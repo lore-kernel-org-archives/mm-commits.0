@@ -1,166 +1,282 @@
 From: akpm@linux-foundation.org
-Subject: - cpuidle-first-round-of-documentation-updates.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:51:37 -0700
-Message-ID: <200707060051.l660pbRO028303@imap1.linux-foundation.org>
+Subject: - git-acpi-tickh-needs-hrtimerh.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:51:39 -0700
+Message-ID: <200707060051.l660pdsE028308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49165 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60469 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760794AbXGFAvx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:51:53 -0400
+	by vger.kernel.org with ESMTP id S1760886AbXGFAwD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuidle: first round of documentation updates
+     git-acpi: tick.h needs hrtimer.h
 has been removed from the -mm tree.  Its filename was
-     cpuidle-first-round-of-documentation-updates.patch
+     git-acpi-tickh-needs-hrtimerh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpuidle: first round of documentation updates
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: git-acpi: tick.h needs hrtimer.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Documentation changes based on Pavel's feedback.
+It uses hrtimers.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cpuidle/core.txt     |    2 +-
- Documentation/cpuidle/driver.txt   |   15 ++++++++++-----
- Documentation/cpuidle/governor.txt |   12 ++++++++----
- Documentation/cpuidle/sysfs.txt    |   18 +++++++++++++-----
- 4 files changed, 32 insertions(+), 15 deletions(-)
+ include/linux/tick.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/cpuidle/core.txt~cpuidle-first-round-of-documentation-updates Documentation/cpuidle/core.txt
---- a/Documentation/cpuidle/core.txt~cpuidle-first-round-of-documentation-updates
-+++ a/Documentation/cpuidle/core.txt
-@@ -12,6 +12,6 @@ idle policy (governor) from idle mechani
- standardized infrastructure to support independent development of
- governors and drivers.
+diff -puN include/linux/tick.h~git-acpi-tickh-needs-hrtimerh include/linux/tick.h
+--- a/include/linux/tick.h~git-acpi-tickh-needs-hrtimerh
++++ a/include/linux/tick.h
+@@ -7,6 +7,7 @@
+ #define _LINUX_TICK_H
  
--cpuidle resides under /drivers/cpuidle.
-+cpuidle resides under drivers/cpuidle.
+ #include <linux/clockchips.h>
++#include <linux/hrtimer.h>
  
- 
-diff -puN Documentation/cpuidle/driver.txt~cpuidle-first-round-of-documentation-updates Documentation/cpuidle/driver.txt
---- a/Documentation/cpuidle/driver.txt~cpuidle-first-round-of-documentation-updates
-+++ a/Documentation/cpuidle/driver.txt
-@@ -7,16 +7,21 @@
- 
- 
- 
--cpuidle driver supports capability detection for a particular system. The
--init and exit routines will be called for each online CPU, with a percpu
--cpuidle_driver object and driver should fill in cpuidle_states inside
--cpuidle_driver depending on the CPU capability.
-+cpuidle driver hooks into the cpuidle infrastructure and does the
-+architecture/platform dependent part of CPU idle states. Driver
-+provides the platform idle state detection capability and also
-+has mechanisms in place to support actusl entry-exit into a CPU idle state.
-+
-+cpuidle driver supports capability detection for a platform using the
-+init and exit routines. They will be called for each online CPU, with a
-+percpu cpuidle_driver object and driver should fill in cpuidle_states
-+inside cpuidle_driver depending on the CPU capability.
- 
- Driver can handle dynamic state changes (like battery<->AC), by calling
- force_redetect interface.
- 
- It is possible to have more than one driver registered at the same time and
--user can switch between drivers using /sysfs interface.
-+user can switch between drivers using /sysfs interface (when enabled).
- 
- Interfaces:
- int cpuidle_register_driver(struct cpuidle_driver *drv);
-diff -puN Documentation/cpuidle/governor.txt~cpuidle-first-round-of-documentation-updates Documentation/cpuidle/governor.txt
---- a/Documentation/cpuidle/governor.txt~cpuidle-first-round-of-documentation-updates
-+++ a/Documentation/cpuidle/governor.txt
-@@ -11,12 +11,16 @@
- cpuidle governor is policy routine that decides what idle state to enter at
- any given time. cpuidle core uses different callbacks to governor while
- handling idle entry.
--* select_state callback where governor can determine next idle state to enter
--* prepare_idle callback is called before entering an idle state
--* scan callback is called after a driver forces redetection of the states
-+* select_state() callback where governor can determine next idle state to enter
-+* prepare_idle() callback is called before entering an idle state
-+* scan() callback is called after a driver forces redetection of the states
- 
- More than one governor can be registered at the same time and
--user can switch between drivers using /sysfs interface.
-+user can switch between drivers using /sysfs interface (when supported).
-+
-+More than one governor part is supported for developers to easily experiment
-+with different governors. By default, most optimal governor based on your
-+kernel configuration and platform will be selected by cpuidle.
- 
- Interfaces:
- int cpuidle_register_governor(struct cpuidle_governor *gov);
-diff -puN Documentation/cpuidle/sysfs.txt~cpuidle-first-round-of-documentation-updates Documentation/cpuidle/sysfs.txt
---- a/Documentation/cpuidle/sysfs.txt~cpuidle-first-round-of-documentation-updates
-+++ a/Documentation/cpuidle/sysfs.txt
-@@ -4,14 +4,22 @@
- 
- 				cpuidle sysfs
- 
--System global cpuidle information are under
-+System global cpuidle related information and tunables are under
- /sys/devices/system/cpu/cpuidle
- 
- The current interfaces in this directory has self-explanatory names:
-+* current_driver_ro
-+* current_governor_ro
-+
-+With cpuidle_sysfs_switch boot option (meant for developer testing)
-+following objects are visible instead.
- * available_drivers
- * available_governors
- * current_driver
- * current_governor
-+In this case user can switch the driver, governor at run time by writing
-+onto current_driver and current_governor.
-+
- 
- Per logical CPU specific cpuidle information are under
- /sys/devices/system/cpu/cpuX/cpuidle
-@@ -19,9 +27,9 @@ for each online cpu X
- 
- Under this percpu directory, there is a directory for each idle state supported
- by the driver, which in turn has
--* latency
--* power
--* time
--* usage
-+* latency : Latency to exit out of this idle state (in microseconds)
-+* power : Power consumed while in this idle state (in milliwatts)
-+* time : Total time spent in this idle state (in microseconds)
-+* usage : Number of times this state was entered (count)
- 
+ #ifdef CONFIG_GENERIC_CLOCKEVENTS
  
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+potential-compiler-error-irqfunc-caller-sites-update.patch
 git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-git-cpufreq.patch
-make-usb-autosuspend-timer-1-sec-jiffy-aligned.patch
-round_jiffies-for-i386-and-x86-64-non-critical-corrected-mce-polling.patch
-x86_64-convert-to-cleckevents.patch
-x86_64-block-irq-balancing-for-timer.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-fixup.patch
+applesmc-add-temperature-sensors-set-for-macbook-fix.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+serio_raw_read-warning-fix.patch
+tsdev-fix-broken-usecto-millisecs-conversion.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+git-md-accel.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+git-net-fixup.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-battery-vs-git-acpi.patch
+git-ioat-vs-git-md-accel.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+revert-acpi-change-for-scsi.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+restore-acpi-change-for-scsi.patch
+git-scsi-misc-vs-greg-sysfs-stuff.patch
+aacraid-rename-check_reset.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-show-unhandled-signals-fix.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+i386-add-cpu_relax-to-cmos_lock-fix.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support-fix.patch
+x86_64-add-ioapic-nmi-support-fix-2.patch
+highres-improve-debug-output-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early-fix.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-git-newsetup.patch
-add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-kgdb-fixup.patch
+kgdb-warning-fix.patch
+kgdb-kconfig-fix.patch
+kgdb-use-new-style-interrupt-flags.patch
+kgdb-section-fix.patch
+kgdb_skipexception-warning-fix.patch
+kgdb-ia64-fixes.patch
+kgdb-bust-on-ia64.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+fix-alpha-isa-support-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+audit-add-tty-input-auditing-fix-2.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
+sys_time-speedup-build-fixes.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
+sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc-fix.patch
+bd_claim_by_disk-fix-warning.patch
+uninline-check_signature.patch
+uninline-check_signature-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+spi-master-driver-for-xilinx-virtex-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
+rtc-driver-for-ds1216-chips-fix.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+intel-iommu-pci-generic-helper-function-fix.patch
+intel-iommu-iova-allocation-and-management-routines-fix.patch
+intel-iommu-intel-iommu-driver-fix.patch
+intel-iommu-intel-iommu-driver-fix-2.patch
+intel-iommu-iommu-floppy-workaround-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+reiser4.patch
+reiser4-fix.patch
+git-block-vs-reiser4.patch
+allow-page_owner-to-be-set-on-any-architecture-fix.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
