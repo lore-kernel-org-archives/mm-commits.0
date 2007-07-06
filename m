@@ -1,134 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-semaphore-in-philips-webcam-driver.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:51:56 -0700
-Message-ID: <200707060051.l660puGc028337@imap1.linux-foundation.org>
+Subject: - drivers-cpuidle-governors-menuc-make-a-struct-static.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:51:54 -0700
+Message-ID: <200707060051.l660psvL028329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33052 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57121 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760966AbXGFAwT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:19 -0400
+	by vger.kernel.org with ESMTP id S1760951AbXGFAwR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use mutex instead of semaphore in Philips webcam driver
+     drivers/cpuidle/governors/menu.c: make a struct static
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-semaphore-in-philips-webcam-driver.patch
+     drivers-cpuidle-governors-menuc-make-a-struct-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use mutex instead of semaphore in Philips webcam driver
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: drivers/cpuidle/governors/menu.c: make a struct static
+From: Adrian Bunk <bunk@stusta.de>
 
-The Philips webcam driver uses a semaphore as mutex.  Use the mutex API
-instead of the (binary) semaphore.
+This patch makes the needlessly global struct menu_governor static.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pwc/pwc-if.c |   12 ++++++------
- drivers/media/video/pwc/pwc.h    |    4 ++--
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/cpuidle/governors/menu.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/pwc/pwc-if.c~use-mutex-instead-of-semaphore-in-philips-webcam-driver drivers/media/video/pwc/pwc-if.c
---- a/drivers/media/video/pwc/pwc-if.c~use-mutex-instead-of-semaphore-in-philips-webcam-driver
-+++ a/drivers/media/video/pwc/pwc-if.c
-@@ -1099,7 +1099,7 @@ static int pwc_video_open(struct inode *
- 		return -EBUSY;
- 	}
- 
--	down(&pdev->modlock);
-+	mutex_lock(&pdev->modlock);
- 	if (!pdev->usb_init) {
- 		PWC_DEBUG_OPEN("Doing first time initialization.\n");
- 		pdev->usb_init = 1;
-@@ -1131,7 +1131,7 @@ static int pwc_video_open(struct inode *
- 	if (i < 0) {
- 		PWC_DEBUG_OPEN("Failed to allocate buffers memory.\n");
- 		pwc_free_buffers(pdev);
--		up(&pdev->modlock);
-+		mutex_unlock(&pdev->modlock);
- 		return i;
- 	}
- 
-@@ -1172,7 +1172,7 @@ static int pwc_video_open(struct inode *
- 	if (i) {
- 		PWC_DEBUG_OPEN("Second attempt at set_video_mode failed.\n");
- 		pwc_free_buffers(pdev);
--		up(&pdev->modlock);
-+		mutex_unlock(&pdev->modlock);
- 		return i;
- 	}
- 
-@@ -1181,7 +1181,7 @@ static int pwc_video_open(struct inode *
- 		PWC_DEBUG_OPEN("Failed to init ISOC stuff = %d.\n", i);
- 		pwc_isoc_cleanup(pdev);
- 		pwc_free_buffers(pdev);
--		up(&pdev->modlock);
-+		mutex_unlock(&pdev->modlock);
- 		return i;
- 	}
- 
-@@ -1191,7 +1191,7 @@ static int pwc_video_open(struct inode *
- 
- 	pdev->vopen++;
- 	file->private_data = vdev;
--	up(&pdev->modlock);
-+	mutex_unlock(&pdev->modlock);
- 	PWC_DEBUG_OPEN("<< video_open() returns 0.\n");
- 	return 0;
+diff -puN drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-make-a-struct-static drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-make-a-struct-static
++++ a/drivers/cpuidle/governors/menu.c
+@@ -151,7 +151,7 @@ static void menu_scan_device(struct cpui
+ 	data->deepest_bm_state = i - 1;
  }
-@@ -1685,7 +1685,7 @@ static int usb_pwc_probe(struct usb_inte
- 		pdev->angle_range.tilt_max =  2500;
- 	}
  
--	init_MUTEX(&pdev->modlock);
-+	mutex_init(&pdev->modlock);
- 	spin_lock_init(&pdev->ptrlock);
- 
- 	pdev->udev = udev;
-diff -puN drivers/media/video/pwc/pwc.h~use-mutex-instead-of-semaphore-in-philips-webcam-driver drivers/media/video/pwc/pwc.h
---- a/drivers/media/video/pwc/pwc.h~use-mutex-instead-of-semaphore-in-philips-webcam-driver
-+++ a/drivers/media/video/pwc/pwc.h
-@@ -31,7 +31,7 @@
- #include <linux/wait.h>
- #include <linux/smp_lock.h>
- #include <linux/version.h>
--#include <asm/semaphore.h>
-+#include <linux/mutex.h>
- #include <asm/errno.h>
- #include <linux/videodev.h>
- #include <media/v4l2-common.h>
-@@ -244,7 +244,7 @@ struct pwc_device
-    int image_read_pos;			/* In case we read data in pieces, keep track of were we are in the imagebuffer */
-    int image_used[MAX_IMAGES];		/* For MCAPTURE and SYNC */
- 
--   struct semaphore modlock;		/* to prevent races in video_open(), etc */
-+   struct mutex modlock;		/* to prevent races in video_open(), etc */
-    spinlock_t ptrlock;			/* for manipulating the buffer pointers */
- 
-    /*** motorized pan/tilt feature */
+-struct cpuidle_governor menu_governor = {
++static struct cpuidle_governor menu_governor = {
+ 	.name =		"menu",
+ 	.rating =	20,
+ 	.scan =		menu_scan_device,
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-kcopyd-use-mutex-instead-of-semaphore.patch
+origin.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+make-drivers-char-hvc_consoleckhvcd-static.patch
 git-dvb.patch
+git-input.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-md-accel.patch
+git-mmc.patch
 git-mtd.patch
-git-netdev-all.patch
-use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver.patch
-use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch
-block-device-elevator-use-list_for_each_entry-instead-of-list_for_each.patch
-videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
-drivers-block-ubc-use-list_for_each_entry.patch
-use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
-use-mutexes-instead-of-semaphores-in-i2o-driver.patch
-fs-block_devc-use-list_for_each_entry.patch
-use-mutex-instead-of-semaphore-in-capi-20-driver.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+bonding-bond_mainc-make-2-functions-static.patch
+net-make-struct-dccp_li_cachep-static.patch
+git-battery.patch
+git-selinux.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+remove-the-dead-cyberstormiii_scsi-option.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+xen-fix-x86-config-dependencies.patch
+xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
+xen-cant-support-numa-yet.patch
+mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
+handle-kernelcore=-generic-fix.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+mm-slubc-make-code-static.patch
+swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
+more-scheduled-oss-driver-removal.patch
+init-wait-for-asynchronously-scanned-block-devices-fix.patch
+kernel-utf-8-handling-fix.patch
+remove-sonypi_camera_command.patch
+fs-namespacec-should-include-internalh.patch
+proper-prototype-for-proc_nr_files.patch
+fs-reiserfs-cleanups.patch
+remove-mm-backing-devccongestion_wait_interruptible.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+revoke-core-code.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+remove-options-depending-on-oss_obsolete.patch
+fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
+pm3fb-possible-cleanups.patch
+vt8623fbc-make-code-static.patch
+intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
+mm-variable-length-argument-support-fix-2.patch
+kernel-sched_fairc-make-code-static.patch
+fs-proc-basec-make-a-struct-static.patch
+mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
+kernel-relayc-make-functions-static.patch
+immediate-value-add-kconfig-menus.patch
+linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch
+drivers-edac-core-make-functions-static.patch
+lockstat-human-readability-tweaks-fix.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
