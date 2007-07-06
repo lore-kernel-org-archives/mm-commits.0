@@ -1,142 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: + 68360serial-remove-broken-optimisation.patch added to -mm tree
-Date: Fri, 06 Jul 2007 00:03:49 -0700
-Message-ID: <200707060703.l6673nba012405@imap1.linux-foundation.org>
+Subject: - fix-slab-redzone-alignment.patch removed from -mm tree
+Date: Fri, 06 Jul 2007 02:38:37 -0700
+Message-ID: <200707060938.l669cbOK019931@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52727 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758960AbXGFHES (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 03:04:18 -0400
+	by vger.kernel.org with ESMTP id S1761037AbXGFJi5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 05:38:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, gerg@snapgear.com
+To: dwmw2@infradead.org, clameter@sgi.com, michal.k.k.piotrowski@gmail.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     68360serial: remove broken optimisation
-has been added to the -mm tree.  Its filename is
-     68360serial-remove-broken-optimisation.patch
+     Fix slab redzone alignment
+has been removed from the -mm tree.  Its filename was
+     fix-slab-redzone-alignment.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: 68360serial: remove broken optimisation
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Fix slab redzone alignment
+From: David Woodhouse <dwmw2@infradead.org>
 
-Remove the broken 'no termios change' optimisation for this driver.
+Commit b46b8f19c9cd435ecac4d9d12b39d78c137ecd66 fixed a couple of bugs by
+switching the redzone to 64 bits.  Unfortunately, it neglected to ensure
+that the _second_ redzone, after the slab object, is aligned correctly. 
+This caused illegal instruction faults on sparc32, which for some reason
+not entirely clear to me are not trapped and fixed up.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
+Two things need to be done to fix this:
+  - increase the object size, rounding up to alignof(long long) so
+    that the second redzone can be aligned correctly.
+  - If SLAB_STORE_USER is set but alignof(long long)==8, allow a
+    full 64 bits of space for the user word at the end of the buffer,
+    even though we may not _use_ the whole 64 bits.
+
+This patch should be a no-op on any 64-bit architecture or any 32-bit
+architecture where alignof(long long) == 4. Of the others, it's tested
+on ppc32 by myself and a very similar patch was tested on sparc32 by
+Mark Fortescue, who reported the new problem.
+
+Also, fix the conditions for FORCED_DEBUG, which hadn't been adjusted to
+the new sizes. Again noticed by Mark.
+
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/68360serial.c |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/slab.c |   32 +++++++++++++++++++++++---------
+ 1 files changed, 23 insertions(+), 9 deletions(-)
 
-diff -puN drivers/serial/68360serial.c~68360serial-remove-broken-optimisation drivers/serial/68360serial.c
---- a/drivers/serial/68360serial.c~68360serial-remove-broken-optimisation
-+++ a/drivers/serial/68360serial.c
-@@ -934,8 +934,6 @@ static void change_speed(ser_info_t *inf
- 	/*
- 	 * Set up parity check flag
+diff -puN mm/slab.c~fix-slab-redzone-alignment mm/slab.c
+--- a/mm/slab.c~fix-slab-redzone-alignment
++++ a/mm/slab.c
+@@ -137,6 +137,7 @@
+ 
+ /* Shouldn't this be in a header file somewhere? */
+ #define	BYTES_PER_WORD		sizeof(void *)
++#define	REDZONE_ALIGN		max(BYTES_PER_WORD, __alignof__(unsigned long long))
+ 
+ #ifndef cache_line_size
+ #define cache_line_size()	L1_CACHE_BYTES
+@@ -547,7 +548,7 @@ static unsigned long long *dbg_redzone2(
+ 	if (cachep->flags & SLAB_STORE_USER)
+ 		return (unsigned long long *)(objp + cachep->buffer_size -
+ 					      sizeof(unsigned long long) -
+-					      BYTES_PER_WORD);
++					      REDZONE_ALIGN);
+ 	return (unsigned long long *) (objp + cachep->buffer_size -
+ 				       sizeof(unsigned long long));
+ }
+@@ -2178,7 +2179,8 @@ kmem_cache_create (const char *name, siz
+ 	 * above the next power of two: caches with object sizes just above a
+ 	 * power of two have a significant amount of internal fragmentation.
  	 */
--#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
--
- 	info->read_status_mask = (BD_SC_EMPTY | BD_SC_OV);
- 	if (I_INPCK(info->tty))
- 		info->read_status_mask |= BD_SC_FR | BD_SC_PR;
-@@ -1527,11 +1525,6 @@ static void rs_360_set_termios(struct tt
- {
- 	ser_info_t *info = (ser_info_t *)tty->driver_data;
+-	if (size < 4096 || fls(size - 1) == fls(size-1 + 3 * BYTES_PER_WORD))
++	if (size < 4096 || fls(size - 1) == fls(size-1 + REDZONE_ALIGN +
++						2 * sizeof(unsigned long long)))
+ 		flags |= SLAB_RED_ZONE | SLAB_STORE_USER;
+ 	if (!(flags & SLAB_DESTROY_BY_RCU))
+ 		flags |= SLAB_POISON;
+@@ -2219,12 +2221,20 @@ kmem_cache_create (const char *name, siz
+ 	}
  
--	if (   (tty->termios->c_cflag == old_termios->c_cflag)
--	    && (   RELEVANT_IFLAG(tty->termios->c_iflag) 
--		== RELEVANT_IFLAG(old_termios->c_iflag)))
--	  return;
--
- 	change_speed(info);
+ 	/*
+-	 * Redzoning and user store require word alignment. Note this will be
+-	 * overridden by architecture or caller mandated alignment if either
+-	 * is greater than BYTES_PER_WORD.
++	 * Redzoning and user store require word alignment or possibly larger.
++	 * Note this will be overridden by architecture or caller mandated
++	 * alignment if either is greater than BYTES_PER_WORD.
+ 	 */
+-	if (flags & SLAB_RED_ZONE || flags & SLAB_STORE_USER)
+-		ralign = __alignof__(unsigned long long);
++	if (flags & SLAB_STORE_USER)
++		ralign = BYTES_PER_WORD;
++
++	if (flags & SLAB_RED_ZONE) {
++		ralign = REDZONE_ALIGN;
++		/* If redzoning, ensure that the second redzone is suitably
++		 * aligned, by adjusting the object size accordingly. */
++		size += REDZONE_ALIGN - 1;
++		size &= ~(REDZONE_ALIGN - 1);
++	}
  
- #ifdef modem_control
+ 	/* 2) arch mandated alignment */
+ 	if (ralign < ARCH_SLAB_MINALIGN) {
+@@ -2261,9 +2271,13 @@ kmem_cache_create (const char *name, siz
+ 	}
+ 	if (flags & SLAB_STORE_USER) {
+ 		/* user store requires one word storage behind the end of
+-		 * the real object.
++		 * the real object. But if the second red zone needs to be
++		 * aligned to 64 bits, we must allow that much space.
+ 		 */
+-		size += BYTES_PER_WORD;
++		if (flags & SLAB_RED_ZONE)
++			size += REDZONE_ALIGN;
++		else
++			size += BYTES_PER_WORD;
+ 	}
+ #if FORCED_DEBUG && defined(CONFIG_DEBUG_PAGEALLOC)
+ 	if (size >= malloc_sizes[INDEX_L3 + 1].cs_size
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
 origin.patch
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
+x86_64-fix-headers_install.patch
+fix-slab-redzone-alignment.patch
+git-powerpc.patch
 powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
-nozomi-remove-termios-checks-from-various-old-char-serial-drivers.patch
-ia64-arbitary-speed-tty-ioctl-support.patch
-git-libata-all.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-pata_hpt3x3-major-reworking-and-testing.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-rfcomm-hangup-ttys-before-releasing-rfcomm_dev.patch
-fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
-add-pci_try_set_mwi.patch
-git-scsi-misc.patch
-ppa-coding-police-and-printk-levels.patch
-mos7840c-turn-this-into-a-serial-driver.patch
-pl2303-remove-bogus-checks-and-fix-speed-support-to-use.patch
-visor-and-whiteheat-remove-bogus-termios-change-checks.patch
-mos7720-remove-bogus-no-termios-change-check.patch
-io_-remove-bogus-termios-no-change-checks.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-h8300-enable-arbitary-speed-tty-port-setup.patch
-arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
-m32r-enable-arbitary-speed-tty-rate-setting.patch
-etrax-enable-arbitary-speed-setting-on-tty-ports.patch
-v850-enable-arbitary-speed-tty-ioctls.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-update-zilog-timeout.patch
-edd-switch-to-pci_get-based-api.patch
-mpu401-warning-fixes.patch
-char-tty_ioctl-use-wait_event_interruptible_timeout.patch
-char-tty_ioctl-little-whitespace-cleanup.patch
-intel-rng-undo-mess-made-by-an-80-column-extremist.patch
-improve-behaviour-of-spurious-irq-detect.patch
-audit-add-tty-input-auditing.patch
-audit-add-tty-input-auditing-fix.patch
-audit-add-tty-input-auditing-fix-2.patch
-revert-vanishing-ioctl-handler-debugging.patch
-amiserial-remove-incorrect-no-termios-change-check.patch
-genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
-synclink-remove-bogus-no-change-termios-optimisation.patch
-68360serial-remove-broken-optimisation.patch
-serial-remove-termios-checks-from-various-old-char-serial.patch
-i2o_cfg_passthru-cleanup.patch
-i2o_cfg_passthru-cleanup-fix.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
+git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
+git-ubi.patch
+git-battery.patch
+git-nfs.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
+jffs2-convert-to-new-aops.patch
+char-n_r3964-use-wait_event_interruptible.patch
+introduce-compat_u64-and-compat_s64-types.patch
+gitignore-update.patch
+mismatching-declarations-of-revision-strings-in-hisax.patch
