@@ -1,117 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-semaphore-in-virtual-video-driver.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:51:58 -0700
-Message-ID: <200707060051.l660pwnT028340@imap1.linux-foundation.org>
+Subject: - pata_pdc202xx_old-correct-cable-detect-logic.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:52:21 -0700
+Message-ID: <200707060052.l660qLnS028364@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33326 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47833 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760983AbXGFAzC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:55:02 -0400
+	by vger.kernel.org with ESMTP id S1753783AbXGFAz2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:55:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use mutex instead of semaphore in Virtual Video driver
+     pata_pdc202xx_old: correct cable detect logic
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-semaphore-in-virtual-video-driver.patch
+     pata_pdc202xx_old-correct-cable-detect-logic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use mutex instead of semaphore in Virtual Video driver
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: pata_pdc202xx_old: correct cable detect logic
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The Virtual Video driver uses a semaphore as mutex.  Use the mutex API instead
-of the (binary) semaphore.
+We got it backwards and now the other detects are fixed it shows up.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/vivi.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/ata/pata_pdc202xx_old.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/vivi.c~use-mutex-instead-of-semaphore-in-virtual-video-driver drivers/media/video/vivi.c
---- a/drivers/media/video/vivi.c~use-mutex-instead-of-semaphore-in-virtual-video-driver
-+++ a/drivers/media/video/vivi.c
-@@ -25,6 +25,7 @@
- #include <linux/pci.h>
- #include <linux/random.h>
- #include <linux/version.h>
-+#include <linux/mutex.h>
- #include <linux/videodev2.h>
- #include <linux/dma-mapping.h>
- #ifdef CONFIG_VIDEO_V4L1_COMPAT
-@@ -165,7 +166,7 @@ static LIST_HEAD(vivi_devlist);
- struct vivi_dev {
- 	struct list_head           vivi_devlist;
+diff -puN drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-correct-cable-detect-logic drivers/ata/pata_pdc202xx_old.c
+--- a/drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-correct-cable-detect-logic
++++ a/drivers/ata/pata_pdc202xx_old.c
+@@ -31,8 +31,8 @@ static int pdc2026x_cable_detect(struct 
  
--	struct semaphore           lock;
-+	struct mutex               lock;
- 
- 	int                        users;
- 
-@@ -738,16 +739,16 @@ static struct videobuf_queue_ops vivi_vi
- static int res_get(struct vivi_dev *dev, struct vivi_fh *fh)
- {
- 	/* is it free? */
--	down(&dev->lock);
-+	mutex_lock(&dev->lock);
- 	if (dev->resources) {
- 		/* no, someone else uses it */
--		up(&dev->lock);
-+		mutex_unlock(&dev->lock);
- 		return 0;
- 	}
- 	/* it's free, grab it */
- 	dev->resources =1;
- 	dprintk(1,"res: get\n");
--	up(&dev->lock);
-+	mutex_unlock(&dev->lock);
- 	return 1;
+ 	pci_read_config_word(pdev, 0x50, &cis);
+ 	if (cis & (1 << (10 + ap->port_no)))
+-		return ATA_CBL_PATA80;
+-	return ATA_CBL_PATA40;
++		return ATA_CBL_PATA40;
++	return ATA_CBL_PATA80;
  }
  
-@@ -758,10 +759,10 @@ static int res_locked(struct vivi_dev *d
- 
- static void res_free(struct vivi_dev *dev, struct vivi_fh *fh)
- {
--	down(&dev->lock);
-+	mutex_lock(&dev->lock);
- 	dev->resources = 0;
- 	dprintk(1,"res: put\n");
--	up(&dev->lock);
-+	mutex_lock(&dev->lock);
- }
- 
- /* ------------------------------------------------------------------
-@@ -1260,7 +1261,7 @@ static int __init vivi_init(void)
- 	init_waitqueue_head(&dev->vidq.wq);
- 
- 	/* initialize locks */
--	init_MUTEX(&dev->lock);
-+	mutex_init(&dev->lock);
- 
- 	dev->vidq.timeout.function = vivi_vid_timeout;
- 	dev->vidq.timeout.data     = (unsigned long)dev;
+ /**
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-kcopyd-use-mutex-instead-of-semaphore.patch
-git-dvb.patch
-git-mtd.patch
-git-netdev-all.patch
-use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver.patch
-use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch
-block-device-elevator-use-list_for_each_entry-instead-of-list_for_each.patch
-videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
-drivers-block-ubc-use-list_for_each_entry.patch
-use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
-use-mutexes-instead-of-semaphores-in-i2o-driver.patch
-fs-block_devc-use-list_for_each_entry.patch
-use-mutex-instead-of-semaphore-in-capi-20-driver.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
+origin.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
+nozomi-remove-termios-checks-from-various-old-char-serial-drivers.patch
+ia64-arbitary-speed-tty-ioctl-support.patch
+git-libata-all.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+pata_hpt3x3-major-reworking-and-testing.patch
+iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+ata-use-iomap_name.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+rfcomm-hangup-ttys-before-releasing-rfcomm_dev.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+add-pci_try_set_mwi.patch
+git-scsi-misc.patch
+ppa-coding-police-and-printk-levels.patch
+mos7840c-turn-this-into-a-serial-driver.patch
+pl2303-remove-bogus-checks-and-fix-speed-support-to-use.patch
+visor-and-whiteheat-remove-bogus-termios-change-checks.patch
+mos7720-remove-bogus-no-termios-change-check.patch
+io_-remove-bogus-termios-no-change-checks.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+h8300-enable-arbitary-speed-tty-port-setup.patch
+arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
+m32r-enable-arbitary-speed-tty-rate-setting.patch
+etrax-enable-arbitary-speed-setting-on-tty-ports.patch
+v850-enable-arbitary-speed-tty-ioctls.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+update-zilog-timeout.patch
+edd-switch-to-pci_get-based-api.patch
+mpu401-warning-fixes.patch
+char-tty_ioctl-use-wait_event_interruptible_timeout.patch
+char-tty_ioctl-little-whitespace-cleanup.patch
+intel-rng-undo-mess-made-by-an-80-column-extremist.patch
+improve-behaviour-of-spurious-irq-detect.patch
+audit-add-tty-input-auditing.patch
+audit-add-tty-input-auditing-fix.patch
+audit-add-tty-input-auditing-fix-2.patch
+revert-vanishing-ioctl-handler-debugging.patch
+amiserial-remove-incorrect-no-termios-change-check.patch
+genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
+synclink-remove-bogus-no-change-termios-optimisation.patch
+68360serial-remove-broken-optimisation.patch
+serial-remove-termios-checks-from-various-old-char-serial.patch
+i2o_cfg_passthru-cleanup.patch
+i2o_cfg_passthru-cleanup-fix.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+stallion-remove-unneeded-lock_kernel.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
