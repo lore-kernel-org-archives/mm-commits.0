@@ -1,155 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:51:44 -0700
-Message-ID: <200707060051.l660piUo028314@imap1.linux-foundation.org>
+Subject: - make-drivers-acpi-oslcosi_linux-static.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:51:50 -0700
+Message-ID: <200707060051.l660poxZ028323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60592 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37062 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760787AbXGFAwC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:02 -0400
+	by vger.kernel.org with ESMTP id S1760621AbXGFAwL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dkukawka@suse.de, lenb@kernel.org, luming.yu@intel.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI video: don't export sysfs backlight interface if query _BCL fail
+     make drivers/acpi/osl.c:osi_linux static
 has been removed from the -mm tree.  Its filename was
-     acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail.patch
+     make-drivers-acpi-oslcosi_linux-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI video: don't export sysfs backlight interface if query _BCL fail
-From: Danny Kukawka <dkukawka@suse.de>
+Subject: make drivers/acpi/osl.c:osi_linux static
+From: Adrian Bunk <bunk@stusta.de>
 
-Currently the acpi video module export the backlight interface to sysfs
-also if acpi_video_device_lcd_query_levels() fails to read _BLC method
-(e.g.  because the method is not available).  In this case the userspace
-don't know which brightness level are supported and can't set a brightness
-level (echo return with: "write error: Invalid Argument").  This happend
-e.g.  on a ASUS RF1 (correct supported by the asus-laptop module).
+This patch makes the needlessly global osi_linux static.
 
-The video module should not export the backlight interface if query _BLC fail,
-because you can't set anything from userspace and this make it useless.
-
-See also: http://bugzilla.kernel.org/show_bug.cgi?id=8375
-
-Signed-off-by: Danny Kukawka <dkukawka@suse.de>
-Cc: "Yu, Luming" <luming.yu@intel.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/video.c |   78 +++++++++++++++++++++--------------------
- 1 files changed, 41 insertions(+), 37 deletions(-)
+ drivers/acpi/osl.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/video.c~acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail drivers/acpi/video.c
---- a/drivers/acpi/video.c~acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail
-+++ a/drivers/acpi/video.c
-@@ -559,7 +559,6 @@ acpi_video_bus_DOS(struct acpi_video_bus
+diff -puN drivers/acpi/osl.c~make-drivers-acpi-oslcosi_linux-static drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~make-drivers-acpi-oslcosi_linux-static
++++ a/drivers/acpi/osl.c
+@@ -77,7 +77,7 @@ static struct workqueue_struct *kacpi_no
+ #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
+ static char osi_additional_string[OSI_STRING_LENGTH_MAX];
  
- static void acpi_video_device_find_cap(struct acpi_video_device *device)
- {
--	acpi_integer status;
- 	acpi_handle h_dummy1;
- 	int i;
- 	u32 max_level = 0;
-@@ -593,50 +592,55 @@ static void acpi_video_device_find_cap(s
- 		device->cap._DSS = 1;
- 	}
+-int osi_linux;		/* disable _OSI(Linux) by default */
++static int osi_linux;		/* disable _OSI(Linux) by default */
  
--	status = acpi_video_device_lcd_query_levels(device, &obj);
-+	if (ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
- 
--	if (obj && obj->type == ACPI_TYPE_PACKAGE && obj->package.count >= 2) {
--		int count = 0;
--		union acpi_object *o;
--
--		br = kzalloc(sizeof(*br), GFP_KERNEL);
--		if (!br) {
--			printk(KERN_ERR "can't allocate memory\n");
--		} else {
--			br->levels = kmalloc(obj->package.count *
--					     sizeof *(br->levels), GFP_KERNEL);
--			if (!br->levels)
--				goto out;
--
--			for (i = 0; i < obj->package.count; i++) {
--				o = (union acpi_object *)&obj->package.
--				    elements[i];
--				if (o->type != ACPI_TYPE_INTEGER) {
--					printk(KERN_ERR PREFIX "Invalid data\n");
--					continue;
--				}
--				br->levels[count] = (u32) o->integer.value;
--				if (br->levels[count] > max_level)
--					max_level = br->levels[count];
--				count++;
--			}
--		      out:
--			if (count < 2) {
--				kfree(br->levels);
--				kfree(br);
-+		if (obj->package.count >= 2) {
-+			int count = 0;
-+			union acpi_object *o;
-+
-+			br = kzalloc(sizeof(*br), GFP_KERNEL);
-+			if (!br) {
-+				printk(KERN_ERR "can't allocate memory\n");
- 			} else {
--				br->count = count;
--				device->brightness = br;
--				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--						  "found %d brightness levels\n",
--						  count));
-+				br->levels = kmalloc(obj->package.count *
-+						     sizeof *(br->levels), GFP_KERNEL);
-+				if (!br->levels)
-+					goto out;
-+
-+				for (i = 0; i < obj->package.count; i++) {
-+					o = (union acpi_object *)&obj->package.
-+					    elements[i];
-+					if (o->type != ACPI_TYPE_INTEGER) {
-+						printk(KERN_ERR PREFIX "Invalid data\n");
-+						continue;
-+					}
-+					br->levels[count] = (u32) o->integer.value;
-+
-+					if (br->levels[count] > max_level)
-+						max_level = br->levels[count];
-+					count++;
-+				}
-+			      out:
-+				if (count < 2) {
-+					kfree(br->levels);
-+					kfree(br);
-+				} else {
-+					br->count = count;
-+					device->brightness = br;
-+					ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+							  "found %d brightness levels\n",
-+							  count));
-+				}
- 			}
- 		}
-+
-+	} else {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available LCD brightness level\n"));
- 	}
- 
- 	kfree(obj);
- 
--	if (device->cap._BCL && device->cap._BCM && device->cap._BQC){
-+	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
- 		unsigned long tmp;
- 		static int count = 0;
- 		char *name;
+ #ifdef CONFIG_DMI
+ static struct __initdata dmi_system_id acpi_osl_dmi_table[];
 _
 
-Patches currently in -mm which might be from dkukawka@suse.de are
+Patches currently in -mm which might be from bunk@stusta.de are
 
+origin.patch
 git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+make-drivers-char-hvc_consoleckhvcd-static.patch
+git-dvb.patch
+git-input.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-md-accel.patch
+git-mmc.patch
+git-mtd.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+bonding-bond_mainc-make-2-functions-static.patch
+net-make-struct-dccp_li_cachep-static.patch
+git-battery.patch
+git-selinux.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+remove-the-dead-cyberstormiii_scsi-option.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+xen-fix-x86-config-dependencies.patch
+xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
+xen-cant-support-numa-yet.patch
+mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
+handle-kernelcore=-generic-fix.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+mm-slubc-make-code-static.patch
+swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
+more-scheduled-oss-driver-removal.patch
+init-wait-for-asynchronously-scanned-block-devices-fix.patch
+kernel-utf-8-handling-fix.patch
+remove-sonypi_camera_command.patch
+fs-namespacec-should-include-internalh.patch
+proper-prototype-for-proc_nr_files.patch
+fs-reiserfs-cleanups.patch
+remove-mm-backing-devccongestion_wait_interruptible.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+revoke-core-code.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+remove-options-depending-on-oss_obsolete.patch
+fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
+pm3fb-possible-cleanups.patch
+vt8623fbc-make-code-static.patch
+intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
+mm-variable-length-argument-support-fix-2.patch
+kernel-sched_fairc-make-code-static.patch
+fs-proc-basec-make-a-struct-static.patch
+mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
+kernel-relayc-make-functions-static.patch
+immediate-value-add-kconfig-menus.patch
+linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch
+drivers-edac-core-make-functions-static.patch
+lockstat-human-readability-tweaks-fix.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
