@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-style-fix-up-the-loop-to-disable-small-slabs.patch added to -mm tree
-Date: Fri, 06 Jul 2007 16:21:22 -0700
-Message-ID: <200707062321.l66NLMIW026534@imap1.linux-foundation.org>
+Subject: + slub-do-not-use-length-parameter-in-slab_alloc.patch added to -mm tree
+Date: Fri, 06 Jul 2007 16:21:24 -0700
+Message-ID: <200707062321.l66NLOF4026537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53341 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36042 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751582AbXGFXVb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 19:21:31 -0400
+	by vger.kernel.org with ESMTP id S1751650AbXGFXVc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 19:21:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: Style fix up the loop to disable small slabs
+     SLUB: Do not use length parameter in slab_alloc()
 has been added to the -mm tree.  Its filename is
-     slub-style-fix-up-the-loop-to-disable-small-slabs.patch
+     slub-do-not-use-length-parameter-in-slab_alloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Style fix up the loop to disable small slabs
+Subject: SLUB: Do not use length parameter in slab_alloc()
 From: Christoph Lameter <clameter@sgi.com>
 
-Do proper spacing and we only need to do this in steps of 8.
+We can get to the length of the object through the kmem_cache_structure.  The
+additional parameter does no good and causes the compiler to generate bad
+code.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   20 +++++++++-----------
+ 1 files changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN mm/slub.c~slub-style-fix-up-the-loop-to-disable-small-slabs mm/slub.c
---- a/mm/slub.c~slub-style-fix-up-the-loop-to-disable-small-slabs
+diff -puN mm/slub.c~slub-do-not-use-length-parameter-in-slab_alloc mm/slub.c
+--- a/mm/slub.c~slub-do-not-use-length-parameter-in-slab_alloc
 +++ a/mm/slub.c
-@@ -2601,7 +2601,7 @@ void __init kmem_cache_init(void)
- 	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 256 ||
- 		(KMALLOC_MIN_SIZE & (KMALLOC_MIN_SIZE - 1)));
+@@ -1551,7 +1551,7 @@ debug:
+  * Otherwise we can simply pick the next object from the lockless free list.
+  */
+ static void __always_inline *slab_alloc(struct kmem_cache *s,
+-		gfp_t gfpflags, int node, void *addr, int length)
++		gfp_t gfpflags, int node, void *addr)
+ {
+ 	struct page *page;
+ 	void **object;
+@@ -1571,23 +1571,21 @@ static void __always_inline *slab_alloc(
+ 	local_irq_restore(flags);
  
--	for (i = 8; i < KMALLOC_MIN_SIZE;i++)
-+	for (i = 8; i < KMALLOC_MIN_SIZE; i += 8)
- 		size_index[(i - 1) / 8] = KMALLOC_SHIFT_LOW;
+ 	if (unlikely((gfpflags & __GFP_ZERO) && object))
+-		memset(object, 0, length);
++		memset(object, 0, s->objsize);
  
- 	slab_state = UP;
+ 	return object;
+ }
+ 
+ void *kmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags)
+ {
+-	return slab_alloc(s, gfpflags, -1,
+-			__builtin_return_address(0), s->objsize);
++	return slab_alloc(s, gfpflags, -1, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(kmem_cache_alloc);
+ 
+ #ifdef CONFIG_NUMA
+ void *kmem_cache_alloc_node(struct kmem_cache *s, gfp_t gfpflags, int node)
+ {
+-	return slab_alloc(s, gfpflags, node,
+-		__builtin_return_address(0), s->objsize);
++	return slab_alloc(s, gfpflags, node, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(kmem_cache_alloc_node);
+ #endif
+@@ -2383,7 +2381,7 @@ void *__kmalloc(size_t size, gfp_t flags
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
+ 
+-	return slab_alloc(s, flags, -1, __builtin_return_address(0), size);
++	return slab_alloc(s, flags, -1, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(__kmalloc);
+ 
+@@ -2395,7 +2393,7 @@ void *__kmalloc_node(size_t size, gfp_t 
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
+ 
+-	return slab_alloc(s, flags, node, __builtin_return_address(0), size);
++	return slab_alloc(s, flags, node, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(__kmalloc_node);
+ #endif
+@@ -2736,7 +2734,7 @@ void *kmem_cache_zalloc(struct kmem_cach
+ {
+ 	void *x;
+ 
+-	x = slab_alloc(s, flags, -1, __builtin_return_address(0), 0);
++	x = slab_alloc(s, flags, -1, __builtin_return_address(0));
+ 	if (x)
+ 		memset(x, 0, s->objsize);
+ 	return x;
+@@ -2786,7 +2784,7 @@ void *__kmalloc_track_caller(size_t size
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
+ 
+-	return slab_alloc(s, gfpflags, -1, caller, size);
++	return slab_alloc(s, gfpflags, -1, caller);
+ }
+ 
+ void *__kmalloc_node_track_caller(size_t size, gfp_t gfpflags,
+@@ -2797,7 +2795,7 @@ void *__kmalloc_node_track_caller(size_t
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
+ 
+-	return slab_alloc(s, gfpflags, node, caller, size);
++	return slab_alloc(s, gfpflags, node, caller);
+ }
+ 
+ #if defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
