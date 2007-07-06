@@ -1,124 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-st-remove-gendisk-from-private-data-struct.patch removed from -mm tree
-Date: Fri, 06 Jul 2007 13:42:18 -0700
-Message-ID: <200707062042.l66KgICK018955@imap1.linux-foundation.org>
+Subject: - print-utsname-on-oops-on-all-architectures.patch removed from -mm tree
+Date: Fri, 06 Jul 2007 15:07:43 -0700
+Message-ID: <200707062207.l66M7hQA023027@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49792 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54084 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762181AbXGFUmc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 16:42:32 -0400
+	by vger.kernel.org with ESMTP id S1753764AbXGFWIa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 18:08:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristen.c.accardi@intel.com, James.Bottomley@steeleye.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: jwise@google.com, ak@suse.de, benh@kernel.crashing.org, ink@jurassic.park.msu.ru, linux-arch@vger.kernel.org, paulus@samba.org, rmk@arm.linux.org.uk, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SCSI: st: remove gendisk from private data struct
+     Print utsname on Oops on all architectures
 has been removed from the -mm tree.  Its filename was
-     scsi-st-remove-gendisk-from-private-data-struct.patch
+     print-utsname-on-oops-on-all-architectures.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: SCSI: st: remove gendisk from private data struct
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: Print utsname on Oops on all architectures
+From: Joshua Wise <jwise@google.com>
 
-Since gendisk is now part of scsi_device, don't store this struct in private
-data struct
+Background:
+ This patch is a follow-on to "Info dump on Oops or panic()" [1].
 
-Signed-off-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+ On some architectures, the kernel printed some information on the running
+ kernel, but not on all architectures. The information printed was generally
+ the version and build number, but it was not located in a consistant place,
+ and some architectures did not print it at all.
+
+Description:
+ This patch uses the already-existing die_chain to print utsname information
+ on Oops. This patch also removes the architecture-specific utsname
+ printers. To avoid crashing the system further (and hence not printing the
+ Oops) in the case where the system is so hopelessly smashed that utsname
+ might be destroyed, we vsprintf the utsname data into a static buffer
+ first, and then just print that on crash.
+
+Testing:
+ I wrote a module that does a *(int*)0 = 0; and observed that I got my
+ utsname data printed.
+
+Potential impact:
+ This adds another line to the Oops output, causing the first few lines to
+ potentially scroll off the screen. This also adds a few more pointer
+ dereferences in the Oops path, because it adds to the die_chain notifier
+ chain, reducing the likelihood that the Oops will be printed if there is
+ very bad memory corruption.
+
+Signed-off-by: Joshua Wise <jwise@google.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/st.c |   12 +++++++-----
- drivers/scsi/st.h |    1 -
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ arch/alpha/kernel/process.c   |    1 -
+ arch/arm/kernel/process.c     |    7 ++-----
+ arch/i386/kernel/process.c    |    7 ++-----
+ arch/powerpc/kernel/process.c |    5 ++---
+ arch/x86_64/kernel/process.c  |    8 ++------
+ kernel/sys.c                  |   31 +++++++++++++++++++++++++++++++
+ 6 files changed, 39 insertions(+), 20 deletions(-)
 
-diff -puN drivers/scsi/st.c~scsi-st-remove-gendisk-from-private-data-struct drivers/scsi/st.c
---- a/drivers/scsi/st.c~scsi-st-remove-gendisk-from-private-data-struct
-+++ a/drivers/scsi/st.c
-@@ -306,7 +306,7 @@ static char * st_incompatible(struct scs
+diff -puN arch/alpha/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/alpha/kernel/process.c
+--- a/arch/alpha/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/alpha/kernel/process.c
+@@ -20,7 +20,6 @@
+ #include <linux/slab.h>
+ #include <linux/user.h>
+ #include <linux/a.out.h>
+-#include <linux/utsname.h>
+ #include <linux/time.h>
+ #include <linux/major.h>
+ #include <linux/stat.h>
+diff -puN arch/arm/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/arm/kernel/process.c
+--- a/arch/arm/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/arm/kernel/process.c
+@@ -28,7 +28,6 @@
+ #include <linux/elfcore.h>
+ #include <linux/pm.h>
+ #include <linux/tick.h>
+-#include <linux/utsname.h>
  
- static inline char *tape_name(struct scsi_tape *tape)
- {
--	return tape->disk->disk_name;
-+	return tape->device->disk->disk_name;
- }
+ #include <asm/leds.h>
+ #include <asm/processor.h>
+@@ -207,10 +206,8 @@ void __show_regs(struct pt_regs *regs)
+ 	unsigned long flags;
+ 	char buf[64];
  
+-	printk("CPU: %d    %s  (%s %.*s)\n",
+-		smp_processor_id(), print_tainted(), init_utsname()->release,
+-		(int)strcspn(init_utsname()->version, " "),
+-		init_utsname()->version);
++	printk("CPU: %d    %s\n",
++		smp_processor_id(), print_tainted());
+ 	print_symbol("PC is at %s\n", instruction_pointer(regs));
+ 	print_symbol("LR is at %s\n", regs->ARM_lr);
+ 	printk("pc : [<%08lx>]    lr : [<%08lx>]    psr: %08lx\n"
+diff -puN arch/i386/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/i386/kernel/process.c
+@@ -27,7 +27,6 @@
+ #include <linux/user.h>
+ #include <linux/a.out.h>
+ #include <linux/interrupt.h>
+-#include <linux/utsname.h>
+ #include <linux/delay.h>
+ #include <linux/reboot.h>
+ #include <linux/init.h>
+@@ -311,10 +310,8 @@ void show_regs(struct pt_regs * regs)
  
-@@ -3549,7 +3549,8 @@ static int st_ioctl(struct inode *inode,
- 			    !capable(CAP_SYS_RAWIO))
- 				i = -EPERM;
- 			else
--				i = scsi_cmd_ioctl(file, STp->disk, cmd_in, p);
-+				i = scsi_cmd_ioctl(file, STp->device->disk,
-+						cmd_in, p);
- 			if (i != -ENOTTY)
- 				return i;
- 			break;
-@@ -3961,7 +3962,6 @@ static int st_probe(struct device *dev)
- 		goto out_put_disk;
- 	}
- 	kref_init(&tpnt->kref);
--	tpnt->disk = disk;
- 	sprintf(disk->disk_name, "st%d", i);
- 	disk->private_data = &tpnt->driver;
- 	disk->queue = SDp->request_queue;
-@@ -4063,6 +4063,8 @@ static int st_probe(struct device *dev)
- 			goto out_free_tape;
- 	}
+ 	if (user_mode_vm(regs))
+ 		printk(" ESP: %04x:%08lx",0xffff & regs->xss,regs->esp);
+-	printk(" EFLAGS: %08lx    %s  (%s %.*s)\n",
+-	       regs->eflags, print_tainted(), init_utsname()->release,
+-	       (int)strcspn(init_utsname()->version, " "),
+-	       init_utsname()->version);
++	printk(" EFLAGS: %08lx    %s\n",
++	       regs->eflags, print_tainted());
+ 	printk("EAX: %08lx EBX: %08lx ECX: %08lx EDX: %08lx\n",
+ 		regs->eax,regs->ebx,regs->ecx,regs->edx);
+ 	printk("ESI: %08lx EDI: %08lx EBP: %08lx",
+diff -puN arch/powerpc/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/powerpc/kernel/process.c
+--- a/arch/powerpc/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/powerpc/kernel/process.c
+@@ -32,7 +32,6 @@
+ #include <linux/kallsyms.h>
+ #include <linux/mqueue.h>
+ #include <linux/hardirq.h>
+-#include <linux/utsname.h>
  
-+	SDp->disk = disk;
+ #include <asm/pgtable.h>
+ #include <asm/uaccess.h>
+@@ -416,8 +415,8 @@ void show_regs(struct pt_regs * regs)
+ 
+ 	printk("NIP: "REG" LR: "REG" CTR: "REG"\n",
+ 	       regs->nip, regs->link, regs->ctr);
+-	printk("REGS: %p TRAP: %04lx   %s  (%s)\n",
+-	       regs, regs->trap, print_tainted(), init_utsname()->release);
++	printk("REGS: %p TRAP: %04lx   %s\n",
++	       regs, regs->trap, print_tainted());
+ 	printk("MSR: "REG" ", regs->msr);
+ 	printbits(regs->msr, msr_bits);
+ 	printk("  CR: %08lx  XER: %08lx\n", regs->ccr, regs->xer);
+diff -puN arch/x86_64/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/x86_64/kernel/process.c
+--- a/arch/x86_64/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/x86_64/kernel/process.c
+@@ -32,7 +32,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+ #include <linux/ptrace.h>
+-#include <linux/utsname.h>
+ #include <linux/random.h>
+ #include <linux/notifier.h>
+ #include <linux/kprobes.h>
+@@ -316,11 +315,8 @@ void __show_regs(struct pt_regs * regs)
+ 
+ 	printk("\n");
+ 	print_modules();
+-	printk("Pid: %d, comm: %.20s %s %s %.*s\n",
+-		current->pid, current->comm, print_tainted(),
+-		init_utsname()->release,
+-		(int)strcspn(init_utsname()->version, " "),
+-		init_utsname()->version);
++	printk("Pid: %d, comm: %.20s %s\n",
++		current->pid, current->comm, print_tainted());
+ 	printk("RIP: %04lx:[<%016lx>] ", regs->cs & 0xffff, regs->rip);
+ 	printk_address(regs->rip); 
+ 	printk("RSP: %04lx:%016lx  EFLAGS: %08lx\n", regs->ss, regs->rsp,
+diff -puN kernel/sys.c~print-utsname-on-oops-on-all-architectures kernel/sys.c
+--- a/kernel/sys.c~print-utsname-on-oops-on-all-architectures
++++ a/kernel/sys.c
+@@ -27,6 +27,7 @@
+ #include <linux/dcookies.h>
+ #include <linux/suspend.h>
+ #include <linux/tty.h>
++#include <linux/kdebug.h>
+ #include <linux/signal.h>
+ #include <linux/cn_proc.h>
+ #include <linux/getcpu.h>
+@@ -107,6 +108,36 @@ void (*pm_power_off_prepare)(void);
+ EXPORT_SYMBOL(pm_power_off_prepare);
+ 
+ /*
++ * Dump out UTS info on oops / panic.  We pregenerate utsname_info so that
++ * we don't access utsname() if the machine is in a potentially bad state.
++ */
 +
- 	sdev_printk(KERN_NOTICE, SDp,
- 		    "Attached scsi tape %s\n", tape_name(tpnt));
- 	sdev_printk(KERN_INFO, SDp, "%s: try direct i/o: %s (alignment %d B)\n",
-@@ -4151,7 +4153,7 @@ static int st_remove(struct device *dev)
- static void scsi_tape_release(struct kref *kref)
- {
- 	struct scsi_tape *tpnt = to_scsi_tape(kref);
--	struct gendisk *disk = tpnt->disk;
-+	struct gendisk *disk = tpnt->device->disk;
- 
- 	tpnt->device = NULL;
- 
-@@ -4348,7 +4350,7 @@ static int do_create_class_files(struct 
- 		   first modes always get the same names */
- 		i = mode << (4 - ST_NBR_MODE_BITS);
- 		snprintf(name, 10, "%s%s%s", rew ? "n" : "",
--			 STp->disk->disk_name, st_formats[i]);
-+			 STp->device->disk->disk_name, st_formats[i]);
- 		st_class_member =
- 			class_device_create(st_sysfs_class, NULL,
- 					    MKDEV(SCSI_TAPE_MAJOR,
-diff -puN drivers/scsi/st.h~scsi-st-remove-gendisk-from-private-data-struct drivers/scsi/st.h
---- a/drivers/scsi/st.h~scsi-st-remove-gendisk-from-private-data-struct
-+++ a/drivers/scsi/st.h
-@@ -167,7 +167,6 @@ struct scsi_tape {
- 	unsigned char last_cmnd[6];
- 	unsigned char last_sense[16];
- #endif
--	struct gendisk *disk;
- 	struct kref     kref;
- };
- 
++static char *utsname_info;
++
++static int dump_utsname(struct notifier_block *self, unsigned long diecode,
++		void *p)
++{
++	printk(KERN_EMERG "%s\n", utsname_info);
++	return 0;
++}
++
++static struct notifier_block utsname_notifier = {
++	.notifier_call = dump_utsname
++};
++
++static int __init register_utsname_dump(void)
++{
++	utsname_info = kasprintf(GFP_KERNEL, "%s %s %s %s",
++		utsname()->sysname,
++		utsname()->release,
++		utsname()->version,
++		utsname()->machine);
++	register_die_notifier(&utsname_notifier);
++	return 0;
++}
++module_init(register_utsname_dump);
++
++/*
+  *	Notifier list for kernel code which wants to be called
+  *	at shutdown. This is used to stop any idling DMA operations
+  *	and the like. 
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from jwise@google.com are
 
-git-acpi.patch
-libata-check-for-an-support.patch
-scsi-expose-an-to-user-space.patch
-libata-expose-an-to-user-space.patch
-scsi-save-disk-in-scsi_device.patch
-libata-send-event-when-an-received.patch
-ata-ahci-alpm-store-interrupt-value.patch
-ata-ahci-alpm-expose-power-management-policy-option-to-users.patch
-ata-ahci-alpm-enable-link-power-management-for-ata-drivers.patch
-ata-ahci-alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
-cpci_hotplug-convert-to-use-the-kthread-api.patch
-scsi-st-remove-gendisk-from-private-data-struct.patch
+print-utsname-on-oops-on-all-architectures.patch
