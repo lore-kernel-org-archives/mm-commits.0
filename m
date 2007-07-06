@@ -1,134 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-acpi-processor_throttlingc-make-2-functions.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:51:52 -0700
-Message-ID: <200707060051.l660pq4W028326@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-acpi.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:51:46 -0700
+Message-ID: <200707060051.l660pk76028317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38968 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57060 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760951AbXGFAwP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:15 -0400
+	by vger.kernel.org with ESMTP id S1760955AbXGFAwR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, lenb@kernel.org, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/acpi/processor_throttling.c: make 2 functions static
+     Use menuconfig objects: ACPI
 has been removed from the -mm tree.  Its filename was
-     drivers-acpi-processor_throttlingc-make-2-functions.patch
+     use-menuconfig-objects-acpi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/acpi/processor_throttling.c: make 2 functions static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Use menuconfig objects: ACPI
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-This patch makes 2 needlessly global functions static.
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_throttling.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/acpi/Kconfig |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN drivers/acpi/processor_throttling.c~drivers-acpi-processor_throttlingc-make-2-functions drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~drivers-acpi-processor_throttlingc-make-2-functions
-+++ a/drivers/acpi/processor_throttling.c
-@@ -410,7 +410,8 @@ static int acpi_processor_get_throttling
- 	return pr->throttling.acpi_processor_get_throttling(pr);
- }
+diff -puN drivers/acpi/Kconfig~use-menuconfig-objects-acpi drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~use-menuconfig-objects-acpi
++++ a/drivers/acpi/Kconfig
+@@ -2,16 +2,12 @@
+ # ACPI Configuration
+ #
  
--int acpi_processor_set_throttling_fadt(struct acpi_processor *pr, int state)
-+static int acpi_processor_set_throttling_fadt(struct acpi_processor *pr,
-+					      int state)
- {
- 	u32 value = 0;
- 	u32 duty_mask = 0;
-@@ -482,7 +483,8 @@ int acpi_processor_set_throttling_fadt(s
- 	return 0;
- }
+-menu "ACPI (Advanced Configuration and Power Interface) Support"
++menuconfig ACPI
++	bool "ACPI Support (Advanced Configuration and Power Interface) Support"
+ 	depends on !X86_NUMAQ
+ 	depends on !X86_VISWS
+ 	depends on !IA64_HP_SIM
+ 	depends on IA64 || X86
+-	depends on PM
+-
+-config ACPI
+-	bool "ACPI Support"
+-	depends on IA64 || X86
+ 	depends on PCI
+ 	depends on PM
+ 	select PNP
+@@ -49,7 +45,6 @@ if ACPI
+ config ACPI_SLEEP
+ 	bool "Sleep States"
+ 	depends on X86 && (!SMP || SUSPEND_SMP)
+-	depends on PM
+ 	default y
+ 	---help---
+ 	  This option adds support for ACPI suspend states. 
+@@ -82,7 +77,6 @@ config ACPI_SLEEP_PROC_SLEEP
  
--int acpi_processor_set_throttling_ptc(struct acpi_processor *pr, int state)
-+static int acpi_processor_set_throttling_ptc(struct acpi_processor *pr,
-+					     int state)
- {
- 	u32 value = 0;
+ config ACPI_PROCFS
+ 	bool "Procfs interface (deprecated)"
+-	depends on ACPI
+ 	default y
+ 	---help---
+ 	  The Procfs interface for ACPI is made optional for backward compatibility.
+@@ -338,7 +332,6 @@ config ACPI_CONTAINER
  
+ config ACPI_HOTPLUG_MEMORY
+ 	tristate "Memory Hotplug"
+-	depends on ACPI
+ 	depends on MEMORY_HOTPLUG
+ 	default n
+ 	help
+@@ -367,5 +360,3 @@ config ACPI_SBS
+ 	  to today's ACPI "Control Method" battery.
+ 
+ endif	# ACPI
+-
+-endmenu
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
-origin.patch
 git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
+git-hid.patch
+git-infiniband.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-bonding-bond_mainc-make-2-functions-static.patch
-net-make-struct-dccp_li_cachep-static.patch
-git-battery.patch
-git-selinux.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-xen-fix-x86-config-dependencies.patch
-xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
-xen-cant-support-numa-yet.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-mm-slubc-make-code-static.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-init-wait-for-asynchronously-scanned-block-devices-fix.patch
-kernel-utf-8-handling-fix.patch
-remove-sonypi_camera_command.patch
-fs-namespacec-should-include-internalh.patch
-proper-prototype-for-proc_nr_files.patch
-fs-reiserfs-cleanups.patch
-remove-mm-backing-devccongestion_wait_interruptible.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
-mm-variable-length-argument-support-fix-2.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-kernel-relayc-make-functions-static.patch
-immediate-value-add-kconfig-menus.patch
-linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+git-netdev-all.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-ib-block.patch
+use-menuconfig-objects-ii-block-devices.patch
+use-menuconfig-objects-ii-auxdisplay.patch
+use-menuconfig-objects-ii-edac.patch
+use-menuconfig-objects-ii-ipmi.patch
+use-menuconfig-objects-ii-misc-strange-dev.patch
+use-menuconfig-objects-ii-module-menu.patch
+use-menuconfig-objects-ii-oprofile.patch
+use-menuconfig-objects-ii-telephony.patch
+use-menuconfig-objects-ii-tpm.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
+kernel-utf-8-handling.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_i4l.patch
+use-menuconfig-objects-isdn-config_isdn_drv_gigaset.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
+use-menuconfig-objects-ii-md.patch
