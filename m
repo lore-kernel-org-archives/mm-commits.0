@@ -1,127 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - pata_pdc202xx_old-correct-cable-detect-logic.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:52:21 -0700
-Message-ID: <200707060052.l660qLnS028364@imap1.linux-foundation.org>
+Subject: - libata-add-ich8m-pciids-to-ata_piix.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:52:12 -0700
+Message-ID: <200707060052.l660qCXZ028352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47833 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41557 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753783AbXGFAz2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:55:28 -0400
+	by vger.kernel.org with ESMTP id S1761023AbXGFAzk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:55:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: chunkeey@web.de, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_pdc202xx_old: correct cable detect logic
+     libata: add ICH8M PCIIDs to ATA_PIIX
 has been removed from the -mm tree.  Its filename was
-     pata_pdc202xx_old-correct-cable-detect-logic.patch
+     libata-add-ich8m-pciids-to-ata_piix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_pdc202xx_old: correct cable detect logic
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: libata: add ICH8M PCIIDs to ATA_PIIX
+From: Chr <chunkeey@web.de>
 
-We got it backwards and now the other detects are fixed it shows up.
+Add a necessary PCIID for Santa Rosa's PATA controller.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Christian Lamparter <chunkeey@web.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pdc202xx_old.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/ata_piix.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-correct-cable-detect-logic drivers/ata/pata_pdc202xx_old.c
---- a/drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-correct-cable-detect-logic
-+++ a/drivers/ata/pata_pdc202xx_old.c
-@@ -31,8 +31,8 @@ static int pdc2026x_cable_detect(struct 
+diff -puN drivers/ata/ata_piix.c~libata-add-ich8m-pciids-to-ata_piix drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~libata-add-ich8m-pciids-to-ata_piix
++++ a/drivers/ata/ata_piix.c
+@@ -200,6 +200,8 @@ static const struct pci_device_id piix_p
+ 	/* ICH7/7-R (i945, i975) UDMA 100*/
+ 	{ 0x8086, 0x27DF, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_133 },
+ 	{ 0x8086, 0x269E, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
++	/* ICH8 Mobile PATA Controller */
++	{ 0x8086, 0x2850, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_133 },
  
- 	pci_read_config_word(pdev, 0x50, &cis);
- 	if (cis & (1 << (10 + ap->port_no)))
--		return ATA_CBL_PATA80;
--	return ATA_CBL_PATA40;
-+		return ATA_CBL_PATA40;
-+	return ATA_CBL_PATA80;
- }
- 
- /**
+ 	/* NOTE: The following PCI ids must be kept in sync with the
+ 	 * list in drivers/pci/quirks.c.
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from chunkeey@web.de are
 
-origin.patch
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
-nozomi-remove-termios-checks-from-various-old-char-serial-drivers.patch
-ia64-arbitary-speed-tty-ioctl-support.patch
 git-libata-all.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-pata_hpt3x3-major-reworking-and-testing.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-rfcomm-hangup-ttys-before-releasing-rfcomm_dev.patch
-fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
-add-pci_try_set_mwi.patch
-git-scsi-misc.patch
-ppa-coding-police-and-printk-levels.patch
-mos7840c-turn-this-into-a-serial-driver.patch
-pl2303-remove-bogus-checks-and-fix-speed-support-to-use.patch
-visor-and-whiteheat-remove-bogus-termios-change-checks.patch
-mos7720-remove-bogus-no-termios-change-check.patch
-io_-remove-bogus-termios-no-change-checks.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-h8300-enable-arbitary-speed-tty-port-setup.patch
-arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
-m32r-enable-arbitary-speed-tty-rate-setting.patch
-etrax-enable-arbitary-speed-setting-on-tty-ports.patch
-v850-enable-arbitary-speed-tty-ioctls.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-update-zilog-timeout.patch
-edd-switch-to-pci_get-based-api.patch
-mpu401-warning-fixes.patch
-char-tty_ioctl-use-wait_event_interruptible_timeout.patch
-char-tty_ioctl-little-whitespace-cleanup.patch
-intel-rng-undo-mess-made-by-an-80-column-extremist.patch
-improve-behaviour-of-spurious-irq-detect.patch
-audit-add-tty-input-auditing.patch
-audit-add-tty-input-auditing-fix.patch
-audit-add-tty-input-auditing-fix-2.patch
-revert-vanishing-ioctl-handler-debugging.patch
-amiserial-remove-incorrect-no-termios-change-check.patch
-genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
-synclink-remove-bogus-no-change-termios-optimisation.patch
-68360serial-remove-broken-optimisation.patch
-serial-remove-termios-checks-from-various-old-char-serial.patch
-i2o_cfg_passthru-cleanup.patch
-i2o_cfg_passthru-cleanup-fix.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
