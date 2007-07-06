@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-libata-all-fix.patch added to -mm tree
-Date: Thu, 05 Jul 2007 17:37:22 -0700
-Message-ID: <200707060041.l660fX3C027811@imap1.linux-foundation.org>
+Subject: + port-of-blktrace-to-the-linux-kernel-markers-fix.patch added to -mm tree
+Date: Thu, 05 Jul 2007 17:41:17 -0700
+Message-ID: <200707060045.l660jRAa027998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38467 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57136 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760594AbXGFAlv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:41:51 -0400
+	by vger.kernel.org with ESMTP id S1753977AbXGFApp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:45:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     git-libata-all-fix
+     port-of-blktrace-to-the-linux-kernel-markers-fix
 has been added to the -mm tree.  Its filename is
-     git-libata-all-fix.patch
+     port-of-blktrace-to-the-linux-kernel-markers-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,117 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-libata-all-fix
+Subject: port-of-blktrace-to-the-linux-kernel-markers-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/libata-core.c:4253: error: redefinition of 'ata_fill_sg_dumb'
-drivers/ata/libata-core.c:4191: error: previous definition of 'ata_fill_sg_dumb' was here
-drivers/ata/libata-core.c:4375: error: redefinition of 'ata_dumb_qc_prep'
-drivers/ata/libata-core.c:4358: error: previous definition of 'ata_dumb_qc_prep' was here
+doesn't build
 
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   79 ------------------------------------
- 1 file changed, 79 deletions(-)
+ block/blktrace.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~git-libata-all-fix drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~git-libata-all-fix
-+++ a/drivers/ata/libata-core.c
-@@ -4165,68 +4165,6 @@ static void ata_fill_sg_dumb(struct ata_
+diff -puN block/blktrace.c~port-of-blktrace-to-the-linux-kernel-markers-fix block/blktrace.c
+--- a/block/blktrace.c~port-of-blktrace-to-the-linux-kernel-markers-fix
++++ a/block/blktrace.c
+@@ -806,9 +806,9 @@ int blk_probe_arm(void)
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(probe_array); i++) {
+-		result = marker_arm_probe(probe_array[i].name,
+-				probe_array[i].format,
+-				probe_array[i].callback, &probe_array[i]);
++//		result = marker_arm_probe(probe_array[i].name,
++//				probe_array[i].format,
++/				probe_array[i].callback, &probe_array[i]);
+ 		if (result)
+ 			printk(KERN_INFO
+ 				"blktrace unable to register probe %s\n",
+@@ -822,7 +822,7 @@ void blk_probe_disarm(void)
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(probe_array); i++) {
+-		marker_disarm_probe(probe_array[i].name);
++//		marker_disarm_probe(probe_array[i].name);
+ 	}
  }
  
- /**
-- *	ata_fill_sg_dumb - Fill PCI IDE PRD table
-- *	@qc: Metadata associated with taskfile to be transferred
-- *
-- *	Fill PCI IDE PRD (scatter-gather) table with segments
-- *	associated with the current disk command. Perform the fill
-- *	so that we avoid writing any length 64K records for
-- *	controllers that don't follow the spec.
-- *
-- *	LOCKING:
-- *	spin_lock_irqsave(host lock)
-- *
-- */
--static void ata_fill_sg_dumb(struct ata_queued_cmd *qc)
--{
--	struct ata_port *ap = qc->ap;
--	struct scatterlist *sg;
--	unsigned int idx;
--
--	WARN_ON(qc->__sg == NULL);
--	WARN_ON(qc->n_elem == 0 && qc->pad_len == 0);
--
--	idx = 0;
--	ata_for_each_sg(sg, qc) {
--		u32 addr, offset;
--		u32 sg_len, len, blen;
--
-- 		/* determine if physical DMA addr spans 64K boundary.
--		 * Note h/w doesn't support 64-bit, so we unconditionally
--		 * truncate dma_addr_t to u32.
--		 */
--		addr = (u32) sg_dma_address(sg);
--		sg_len = sg_dma_len(sg);
--
--		while (sg_len) {
--			offset = addr & 0xffff;
--			len = sg_len;
--			if ((offset + sg_len) > 0x10000)
--				len = 0x10000 - offset;
--
--			blen = len & 0xffff;
--			ap->prd[idx].addr = cpu_to_le32(addr);
--			if (blen == 0) {
--				/* Some PATA chipsets like the CS5530 can't
--				   cope with 0x0000 meaning 64K as the spec says */
--				ap->prd[idx].flags_len = cpu_to_le32(0x8000);
--				blen = 0x8000;
--				ap->prd[++idx].addr = cpu_to_le32(addr + 0x8000);
--			}
--			ap->prd[idx].flags_len = cpu_to_le32(blen);
--			VPRINTK("PRD[%u] = (0x%X, 0x%X)\n", idx, addr, len);
--
--			idx++;
--			sg_len -= len;
--			addr += len;
--		}
--	}
--
--	if (idx)
--		ap->prd[idx - 1].flags_len |= cpu_to_le32(ATA_PRD_EOT);
--}
--
--/**
-  *	ata_check_atapi_dma - Check whether ATAPI DMA can be supported
-  *	@qc: Metadata associated with taskfile to check
-  *
-@@ -4290,23 +4228,6 @@ void ata_dumb_qc_prep(struct ata_queued_
- 	ata_fill_sg_dumb(qc);
- }
- 
--/**
-- *	ata_dumb_qc_prep - Prepare taskfile for submission
-- *	@qc: Metadata associated with taskfile to be prepared
-- *
-- *	Prepare ATA taskfile for submission.
-- *
-- *	LOCKING:
-- *	spin_lock_irqsave(host lock)
-- */
--void ata_dumb_qc_prep(struct ata_queued_cmd *qc)
--{
--	if (!(qc->flags & ATA_QCFLAG_DMAMAP))
--		return;
--
--	ata_fill_sg_dumb(qc);
--}
--
- void ata_noop_qc_prep(struct ata_queued_cmd *qc) { }
- 
- /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -165,6 +92,7 @@ git-kbuild-fixup.patch
 git-kvm.patch
 git-leds.patch
 led_colour_show-warning-fix.patch
+git-libata-all-fix.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 git-md-accel.patch
@@ -348,6 +276,7 @@ cfs-scheduler-warning-fixes.patch
 cfs-warning-fixes.patch
 kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
 coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+port-of-blktrace-to-the-linux-kernel-markers-fix.patch
 drivers-edac-new-i82443bxgz-mc-driver-broken.patch
 containersv10-basic-container-framework-fix.patch
 containersv10-basic-container-framework-fix-2.patch
@@ -372,4 +301,3 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-git-libata-all-fix.patch
