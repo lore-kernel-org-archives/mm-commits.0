@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-scsi-misc-fixup.patch added to -mm tree
-Date: Thu, 05 Jul 2007 16:56:12 -0700
-Message-ID: <200707052356.l65NuCb5025626@imap1.linux-foundation.org>
+Subject: + git-libata-all-fix.patch added to -mm tree
+Date: Thu, 05 Jul 2007 17:37:22 -0700
+Message-ID: <200707060041.l660fX3C027811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60555 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38467 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758598AbXGEX4p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 19:56:45 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l65NuH7j024878
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 5 Jul 2007 16:56:18 -0700
+	by vger.kernel.org with ESMTP id S1760594AbXGFAlv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:41:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     git-scsi-misc-fixup
+     git-libata-all-fix
 has been added to the -mm tree.  Its filename is
-     git-scsi-misc-fixup.patch
+     git-libata-all-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,31 +25,117 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-scsi-misc-fixup
+Subject: git-libata-all-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/ata/libata-core.c:4253: error: redefinition of 'ata_fill_sg_dumb'
+drivers/ata/libata-core.c:4191: error: previous definition of 'ata_fill_sg_dumb' was here
+drivers/ata/libata-core.c:4375: error: redefinition of 'ata_dumb_qc_prep'
+drivers/ata/libata-core.c:4358: error: previous definition of 'ata_dumb_qc_prep' was here
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/scsi/scsi_host.h |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/ata/libata-core.c |   79 ------------------------------------
+ 1 file changed, 79 deletions(-)
 
-diff -puN include/scsi/scsi_host.h~git-scsi-misc-fixup include/scsi/scsi_host.h
---- a/include/scsi/scsi_host.h~git-scsi-misc-fixup
-+++ a/include/scsi/scsi_host.h
-@@ -349,12 +349,6 @@ struct scsi_host_template {
- 	enum scsi_eh_timer_return (* eh_timed_out)(struct scsi_cmnd *);
+diff -puN drivers/ata/libata-core.c~git-libata-all-fix drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~git-libata-all-fix
++++ a/drivers/ata/libata-core.c
+@@ -4165,68 +4165,6 @@ static void ata_fill_sg_dumb(struct ata_
+ }
  
- 	/*
--	 * suspend support
--	 */
--	int (*resume)(struct scsi_device *);
--	int (*suspend)(struct scsi_device *, pm_message_t state);
+ /**
+- *	ata_fill_sg_dumb - Fill PCI IDE PRD table
+- *	@qc: Metadata associated with taskfile to be transferred
+- *
+- *	Fill PCI IDE PRD (scatter-gather) table with segments
+- *	associated with the current disk command. Perform the fill
+- *	so that we avoid writing any length 64K records for
+- *	controllers that don't follow the spec.
+- *
+- *	LOCKING:
+- *	spin_lock_irqsave(host lock)
+- *
+- */
+-static void ata_fill_sg_dumb(struct ata_queued_cmd *qc)
+-{
+-	struct ata_port *ap = qc->ap;
+-	struct scatterlist *sg;
+-	unsigned int idx;
 -
--	/*
-  	 * link power management support
-  	 */
- 	int (*set_link_pm_policy)(struct Scsi_Host *, enum scsi_host_link_pm);
+-	WARN_ON(qc->__sg == NULL);
+-	WARN_ON(qc->n_elem == 0 && qc->pad_len == 0);
+-
+-	idx = 0;
+-	ata_for_each_sg(sg, qc) {
+-		u32 addr, offset;
+-		u32 sg_len, len, blen;
+-
+- 		/* determine if physical DMA addr spans 64K boundary.
+-		 * Note h/w doesn't support 64-bit, so we unconditionally
+-		 * truncate dma_addr_t to u32.
+-		 */
+-		addr = (u32) sg_dma_address(sg);
+-		sg_len = sg_dma_len(sg);
+-
+-		while (sg_len) {
+-			offset = addr & 0xffff;
+-			len = sg_len;
+-			if ((offset + sg_len) > 0x10000)
+-				len = 0x10000 - offset;
+-
+-			blen = len & 0xffff;
+-			ap->prd[idx].addr = cpu_to_le32(addr);
+-			if (blen == 0) {
+-				/* Some PATA chipsets like the CS5530 can't
+-				   cope with 0x0000 meaning 64K as the spec says */
+-				ap->prd[idx].flags_len = cpu_to_le32(0x8000);
+-				blen = 0x8000;
+-				ap->prd[++idx].addr = cpu_to_le32(addr + 0x8000);
+-			}
+-			ap->prd[idx].flags_len = cpu_to_le32(blen);
+-			VPRINTK("PRD[%u] = (0x%X, 0x%X)\n", idx, addr, len);
+-
+-			idx++;
+-			sg_len -= len;
+-			addr += len;
+-		}
+-	}
+-
+-	if (idx)
+-		ap->prd[idx - 1].flags_len |= cpu_to_le32(ATA_PRD_EOT);
+-}
+-
+-/**
+  *	ata_check_atapi_dma - Check whether ATAPI DMA can be supported
+  *	@qc: Metadata associated with taskfile to check
+  *
+@@ -4290,23 +4228,6 @@ void ata_dumb_qc_prep(struct ata_queued_
+ 	ata_fill_sg_dumb(qc);
+ }
+ 
+-/**
+- *	ata_dumb_qc_prep - Prepare taskfile for submission
+- *	@qc: Metadata associated with taskfile to be prepared
+- *
+- *	Prepare ATA taskfile for submission.
+- *
+- *	LOCKING:
+- *	spin_lock_irqsave(host lock)
+- */
+-void ata_dumb_qc_prep(struct ata_queued_cmd *qc)
+-{
+-	if (!(qc->flags & ATA_QCFLAG_DMAMAP))
+-		return;
+-
+-	ata_fill_sg_dumb(qc);
+-}
+-
+ void ata_noop_qc_prep(struct ata_queued_cmd *qc) { }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,7 +196,6 @@ git-unionfs.patch
 git-block-vs-git-unionfs.patch
 fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
 git-watchdog.patch
-git-wireless.patch
 x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
 revert-x86_64-mm-verify-cpu-rename.patch
 fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
@@ -291,3 +372,4 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+git-libata-all-fix.patch
