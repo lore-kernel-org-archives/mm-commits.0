@@ -1,73 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-add-exports.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:51:41 -0700
-Message-ID: <200707060051.l660pfLT028311@imap1.linux-foundation.org>
+Subject: - ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:52:27 -0700
+Message-ID: <200707060052.l660qROS028373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34218 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58083 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760981AbXGFAwi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:38 -0400
+	by vger.kernel.org with ESMTP id S1760011AbXGFAyt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:54:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, abelay@novell.com, johnstul@us.ibm.com, len.brown@intel.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi: add exports
+     ide_scan_pcibus(): check __pci_register_driver return value
 has been removed from the -mm tree.  Its filename was
-     git-acpi-add-exports.patch
+     ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-acpi: add exports
+Subject: ide_scan_pcibus(): check __pci_register_driver return value
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "tick_nohz_get_sleep_length" [drivers/cpuidle/governors/menu.ko] undefined!
-ERROR: "tick_nohz_get_idle_jiffies" [drivers/cpuidle/governors/menu.ko] undefined!
+drivers/ide/setup-pci.c: In function 'ide_scan_pcibus':
+drivers/ide/setup-pci.c:879: warning: ignoring return value of '__pci_register_driver', declared with attribute warn_unused_result
 
-And please be sure to get your changes to core kernel suitably reviewed.
-
-Cc: Adam Belay <abelay@novell.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-sched.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/ide/setup-pci.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN kernel/time/tick-sched.c~git-acpi-add-exports kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~git-acpi-add-exports
-+++ a/kernel/time/tick-sched.c
-@@ -19,6 +19,7 @@
- #include <linux/percpu.h>
- #include <linux/profile.h>
- #include <linux/sched.h>
-+#include <linux/module.h>
- #include <linux/tick.h>
+diff -puN drivers/ide/setup-pci.c~ide_scan_pcibus-cehck-__pci_register_driver-return-value drivers/ide/setup-pci.c
+--- a/drivers/ide/setup-pci.c~ide_scan_pcibus-cehck-__pci_register_driver-return-value
++++ a/drivers/ide/setup-pci.c
+@@ -872,11 +872,15 @@ void __init ide_scan_pcibus (int scan_di
+ 	 *	are post init.
+ 	 */
  
- #include <asm/irq_regs.h>
-@@ -307,6 +308,7 @@ ktime_t tick_nohz_get_sleep_length(void)
- 
-        return ts->sleep_length;
+-	list_for_each_safe(l, n, &ide_pci_drivers)
+-	{
++	list_for_each_safe(l, n, &ide_pci_drivers) {
+ 		list_del(l);
+ 		d = list_entry(l, struct pci_driver, node);
+-		__pci_register_driver(d, d->driver.owner, d->driver.mod_name);
++		if (__pci_register_driver(d, d->driver.owner,
++					d->driver.mod_name)) {
++			printk(KERN_ERR "%s: failed to register driver "
++					"for %s\n", __FUNCTION__,
++					 d->driver.mod_name);
++		}
+ 	}
  }
-+EXPORT_SYMBOL_GPL(tick_nohz_get_sleep_length);
- 
- /**
-  * tick_nohz_get_idle_jiffies - returns the current idle jiffie count
-@@ -317,6 +319,7 @@ unsigned long tick_nohz_get_idle_jiffies
- 
-        return ts->idle_jiffies;
- }
-+EXPORT_SYMBOL_GPL(tick_nohz_get_idle_jiffies);
- 
- /**
-  * nohz_restart_sched_tick - restart the idle tick from the idle task
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
