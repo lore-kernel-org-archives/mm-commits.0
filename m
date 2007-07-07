@@ -1,571 +1,297 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch removed from -mm tree
-Date: Fri, 06 Jul 2007 17:32:28 -0700
-Message-ID: <200707070036.l670adsg030020@imap1.linux-foundation.org>
+Subject: + lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix.patch added to -mm tree
+Date: Fri, 06 Jul 2007 17:41:21 -0700
+Message-ID: <200707070045.l670jW7v030425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43786 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57650 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752882AbXGGAhG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 20:37:06 -0400
+	by vger.kernel.org with ESMTP id S1752744AbXGGAqY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 20:46:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, bunk@stusta.de, jkenisto@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mpm@selenic.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     Linux Kernel Markers: add kconfig menus for the marker code
-has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch
+     lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix
+has been added to the -mm tree.  Its filename is
+     lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Linux Kernel Markers: add kconfig menus for the marker code
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-With the increasing complexity of today's user-space application and the wide
-deployment of SMP systems, the users need an increasing understanding of the
-behavior and performance of a system across multiple processes/different
-execution contexts/multiple CPUs.  In applications such as large clusters
-(Google, IBM), video acquisition (Autodesk), embedded real-time systems (Wind
-River, Monta Vista, Sony) or sysadmin/programmer-type tasks (SystemTAP from
-Redhat), a tool that permits tracing of kernel-user space interaction becomes
-necessary.
+arch/x86_64/kernel/tsc.c:24: error: static declaration of 'check_tsc_unstable' follows non-static declaration
+include/asm-i386/tsc.h:66: error: previous declaration of 'check_tsc_unstable' was here
+make[1]: *** [arch/x86_64/kernel/tsc.o] Error 1
+make: *** [arch/x86_64/kernel/tsc.o] Error 2
 
-Usage of such tools have been made to successfully pinpoint problems such as:
-latency issues in a user-space video acquisition application, slowdown
-problems in large clusters due to a switch to a different filesystems with a
-that I have personally investigated).
-
-The currently existing solutions does not give a system-wide overview of what
-- and when - things are happening on the system.  Ptracing a program works
-with few processes, but quickly becomes useless when it comes to keeping track
-of many processes.
-
-Bugs occuring because of bad interaction of such complex systems can be very
-hard to find due to the fact that they occur rarely (sometimes once a week on
-hundreds of machines).  One can therefore only hope at having the best
-conditions to statistically reproduce the bug while extracting information
-from the system.  Some bugs have been successfully found at Google using their
-ktrace tracer only because they could enable it on production machines and
-therefore recreate the same context where the bug happened.
-
-Therefore, it makes sense to offer an instrumentation set of the most relevant
-events occurring in the Linux that can have the smallest performance cost
-possible when not active while not requiring a reboot of a production system
-to activate.  This is essentially what the markers are providing.
-
-Since we cannot limit the growth of the Linux kernel, nor can we pre-determine
-each and every "interesting" instrumentation within each subsystem and driver,
-it is sensible to let this task to the persons who knows the best their code.
-Adding instrumentation should therefore be as easy as adding and maintaining a
-"printk" in the kernel code from the developer's point of view.
-
-Towards a complete tracing mechanism in the Linux kernel, the markers are only
-one step forward.  The following step is to connect probes to those markers
-that will record the tracing information in buffers exported to user-space,
-organized in timestamped "events".  Probe callbacks are responsible for
-serializing the information passed as parameter to the markers (described by
-the format string) into the events.  A control mechanism to activate/stop the
-tracing is required, as well as a daemon that maps the buffers to write them
-to disk or send them through the network.
-
-Keeping track of the events also requires a centralized infrastructure : the
-idea is to assign a unique ID to each event so they can be later recognized in
-the trace.  Keeping in mind that recording the complete instrumentation site
-name string for each event would be more that inefficient, assigning a numeric
-unique identifier makes sense.
-
-Finally, support for gathering events coming from user-space, with a minimal
-performance impact, is very useful to see the interaction between the system's
-execution contexts.
-
-The last steps are currently implemented in Linux Trace Toolkit Next
-Generation (LTTng).
-
-The SystemTAP project could clearly benefit from such an infrastructure for
-tracing.  In addition, they would be providing support for dynamic addition of
-kernel probes through breakpoints/jumps when possible, with the associated
-restrictions (accessing local variables, reentrancy, speed).
-
-This marker infrastructure is a hook-callback mechanism.  It is meant to have
-an impact as low as possible on the system performances when no callback
-(probe) is connected so markers (hooks) can be compiled into a production
-kernel without noticeable slowdown.
-
-Why use the markers instead of kprobes?
-
-The rationale behind this mechanism the following :
-
-1 - It makes sense to have instrumentation (for tracing, profiling)
-    within the kernel source tree so that it can follow its evolution.
-    Other options, such as kprobes, imply maintaining an external set of
-    instrumentation that must be adapted to each kernel version.
-    Although it may make sense for distributions, it is not well suited
-    for kernel developers, since they rarely work on a major
-    distribution image.
-2 - kprobes, although being a very good attempt at providing a dynamic
-    hooking mechanism that has no impact when disabled, suffers from
-    important limitations :
-  a - It cannot access local variables of a function at a particular
-      point within its body that will be consistent thorough the kernel
-      versions without involving a lot of recurrent hair-pulling.
-  b - Kprobes is slow, since it involves going though a trap each time
-      a probe site is executed. Even though the djprobes project made a
-      good effort to make things faster, it cannot currently instrument
-      fully-preemptible kernels and does not solve (1), (2a) and (2c).
-  c - On the reentrancy side, going though a trap (thus playing with
-      interrupt enable/disable) and taking spinlocks are not suited to
-      some code paths, i.e. :
-      kernel/lockdep.c, printk (within the lockdep_on()/lockdep_off()).
-      It must be understood that some code paths interesting for
-      instrumentation often present a particular reentrancy challenge.
-
-Some more details :
-
-The probe callback connection to its markers is done dynamically.  A predicted
-branch (see the immediate values infrastructure) is used to skip the hook stack
-setup and function call when the marker is "disabled" (no probe is connected).
-Further optimizations can be implemented for each architecture to make this
-branch faster.
-
-Instrumentation of a subsystem becomes therefore a straightforward task.  One
-has to add instrumentation within the key locations of the kernel code in the
-following form :
-
-trace_mark(subsystem_event, "%d %p", myint, myptr);
-
-Jim Keniston <jkenisto@us.ibm.com> adds:
-
-kprobes remains a vital foundation for SystemTap.  But markers are attactive
-as an alternate source of trace/debug info.  Here's why:
-
-1. Markers will live in the kernel and presumably be kept up to date by
-   the maintainers of the enclosing code.  We have a growing set of tapsets
-   (probe libraries), each of which "knows" the source code for a certain area
-   of the kernel.  Whenever the underlying kernel code changes (e.g., a
-   function or one of its args disappears or is renamed), there's a chance
-   that the tapset will become invalid until we bring it back in sync with the
-   kernel.  As you can imagine, maintaining tapsets separate from the kernel
-   source is a maintenance headache.  Markers could mitigate this.
-
-2. Because the kernel code is highly optimized, the kernel's dwarf info
-   doesn't always accurately reflect which variables have which values on
-   which lines (sometimes even upon entry to a function).  A marker is a way
-   to ensure that values of interest are available to SystemTap at marked
-   points.
-
-3. Sometimes the overhead of a kprobe probepoint is too much (either in
-   terms of time or locking) for the particular hotspot we want to probe.
-
-In OLS2006 proceedings, vol. 1
-http://www.linuxsymposium.org/2006/linuxsymposium_procv1.pdf
-
-Frank C. Eigler, from SystemTAP, presents its "static probing markers"
-(pp. 261-268) in his paper "Problem Solving With Systemtap".
-
-He explains the advantages :
-
-"In exchange for this effort, systemtap marker-based probes are faster and
- more precise than kprobes.  The better precision comes from not having to
- covet the compiler's favours.  Such fickle favours include retaining
- clean boundaries in the instruction stream between interesting statements,
- and precisely describing positions of variables in the stack frame.  Since
- markers don't rely on debugging information, neither favour is required,
- and the compiler can channel its charms into unabated optimization.  The
- speed advantage comes from using direct call instructions rather than int 3
- breakpoints to dispatch to the systemtap handlers.  We will see below just
- how big a difference this makes."
-
-He does a comparison of his "simple" marker solution with kprobes (his simple
-solution looks like my generic markers, but with a major race condition).  I
-also posted numbers about the markers performance impact a few months ago in
-the initial thread.  I can dig into my emails to find them for you if you
-consider it important for the Changelog.
-
-He concludes with :
-
-"To the extent that is true, we propose that these groups consider using a
- shared pool of static markers as the basic kernel-side instrumentation
- mechanism.  If they prove to have as low dormant cost and as high active
- performance as initial experience suggests, perhaps this could motivate the
- various tracing efforts and kernel subsystem developers to finally join
- forces.  Let's designate standard trace/probe points once and for all.
- Tracing backends can attach to these markers the same way systemtap would.
- There would be no need for them to maintain kernel patches any more.
- Let's think about it."
-
-This patch:
-
-Add Kconfig menus for the marker code.
-
-[bunk@stusta.de: Never ever select MODULES]
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig       |    2 ++
- arch/arm/Kconfig         |    2 ++
- arch/arm26/Kconfig       |    2 ++
- arch/avr32/Kconfig.debug |    7 +++++++
- arch/cris/Kconfig        |    2 ++
- arch/frv/Kconfig         |    2 ++
- arch/h8300/Kconfig       |    2 ++
- arch/i386/Kconfig        |    2 ++
- arch/ia64/Kconfig        |    2 ++
- arch/m32r/Kconfig        |    2 ++
- arch/m68k/Kconfig        |    2 ++
- arch/m68knommu/Kconfig   |    2 ++
- arch/mips/Kconfig        |    2 ++
- arch/parisc/Kconfig      |    2 ++
- arch/powerpc/Kconfig     |    2 ++
- arch/ppc/Kconfig         |    2 ++
- arch/s390/Kconfig        |    2 ++
- arch/sh/Kconfig          |    2 ++
- arch/sh64/Kconfig        |    2 ++
- arch/sparc/Kconfig       |    2 ++
- arch/sparc64/Kconfig     |    2 ++
- arch/um/Kconfig          |    2 ++
- arch/v850/Kconfig        |    2 ++
- arch/x86_64/Kconfig      |    2 ++
- arch/xtensa/Kconfig      |    2 ++
- kernel/Kconfig.marker    |    7 +++++++
- 26 files changed, 62 insertions(+)
+ arch/x86_64/kernel/tsc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/alpha/Kconfig
-@@ -657,6 +657,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/alpha/Kconfig.debug"
-diff -puN arch/arm/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/arm/Kconfig
---- a/arch/arm/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/arm/Kconfig
-@@ -1050,6 +1050,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/arm/Kconfig.debug"
-diff -puN arch/arm26/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/arm26/Kconfig
---- a/arch/arm26/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/arm26/Kconfig
-@@ -248,6 +248,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/arm26/Kconfig.debug"
-diff -puN arch/avr32/Kconfig.debug~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/avr32/Kconfig.debug
---- a/arch/avr32/Kconfig.debug~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/avr32/Kconfig.debug
-@@ -9,6 +9,9 @@ source "lib/Kconfig.debug"
- menu "Instrumentation Support"
- 	depends on EXPERIMENTAL
- 
-+menu "Instrumentation Support"
-+	depends on EXPERIMENTAL
-+
- config KPROBES
- 	bool "Kprobes"
- 	depends on DEBUG_KERNEL
-@@ -21,6 +24,10 @@ config KPROBES
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
-+endmenu
-+
- endmenu
- 
- endmenu
-diff -puN arch/cris/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/cris/Kconfig
---- a/arch/cris/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/cris/Kconfig
-@@ -202,6 +202,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/cris/Kconfig.debug"
-diff -puN arch/frv/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/frv/Kconfig
---- a/arch/frv/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/frv/Kconfig
-@@ -379,6 +379,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/frv/Kconfig.debug"
-diff -puN arch/h8300/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/h8300/Kconfig
-@@ -227,6 +227,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/h8300/Kconfig.debug"
-diff -puN arch/i386/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/i386/Kconfig
---- a/arch/i386/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/i386/Kconfig
-@@ -1262,6 +1262,8 @@ config KPROBES
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endif # INSTRUMENTATION
- 
- source "arch/i386/Kconfig.debug"
-diff -puN arch/ia64/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/ia64/Kconfig
-@@ -596,6 +596,8 @@ config KPROBES
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/ia64/Kconfig.debug"
-diff -puN arch/m32r/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/m32r/Kconfig
-@@ -412,6 +412,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/m32r/Kconfig.debug"
-diff -puN arch/m68k/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/m68k/Kconfig
-@@ -680,6 +680,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/m68k/Kconfig.debug"
-diff -puN arch/m68knommu/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/m68knommu/Kconfig
---- a/arch/m68knommu/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/m68knommu/Kconfig
-@@ -672,6 +672,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/m68knommu/Kconfig.debug"
-diff -puN arch/mips/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/mips/Kconfig
---- a/arch/mips/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/mips/Kconfig
-@@ -1950,6 +1950,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/mips/Kconfig.debug"
-diff -puN arch/parisc/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/parisc/Kconfig
-@@ -273,6 +273,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/parisc/Kconfig.debug"
-diff -puN arch/powerpc/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/powerpc/Kconfig
-@@ -649,6 +649,8 @@ config KPROBES
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/powerpc/Kconfig.debug"
-diff -puN arch/ppc/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/ppc/Kconfig
---- a/arch/ppc/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/ppc/Kconfig
-@@ -1457,6 +1457,8 @@ source "arch/powerpc/oprofile/Kconfig"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/ppc/Kconfig.debug"
-diff -puN arch/s390/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/s390/Kconfig
---- a/arch/s390/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/s390/Kconfig
-@@ -549,6 +549,8 @@ config KPROBES
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/s390/Kconfig.debug"
-diff -puN arch/sh/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/sh/Kconfig
---- a/arch/sh/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/sh/Kconfig
-@@ -740,6 +740,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/sh/Kconfig.debug"
-diff -puN arch/sh64/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/sh64/Kconfig
---- a/arch/sh64/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/sh64/Kconfig
-@@ -288,6 +288,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/sh64/Kconfig.debug"
-diff -puN arch/sparc/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/sparc/Kconfig
-@@ -315,6 +315,8 @@ source "arch/sparc/oprofile/Kconfig"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/sparc/Kconfig.debug"
-diff -puN arch/sparc64/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/sparc64/Kconfig
-@@ -454,6 +454,8 @@ config KPROBES
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/sparc64/Kconfig.debug"
-diff -puN arch/um/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/um/Kconfig
---- a/arch/um/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/um/Kconfig
-@@ -339,6 +339,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/um/Kconfig.debug"
-diff -puN arch/v850/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/v850/Kconfig
---- a/arch/v850/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/v850/Kconfig
-@@ -335,6 +335,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/v850/Kconfig.debug"
-diff -puN arch/x86_64/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/x86_64/Kconfig
-@@ -845,6 +845,8 @@ config KPROBES
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/x86_64/Kconfig.debug"
-diff -puN arch/xtensa/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~linux-kernel-markers-add-kconfig-menus-for-the-marker-code
-+++ a/arch/xtensa/Kconfig
-@@ -255,6 +255,8 @@ menu "Instrumentation Support"
- 
- source "kernel/Kconfig.immediate"
- 
-+source "kernel/Kconfig.marker"
-+
- endmenu
- 
- source "arch/xtensa/Kconfig.debug"
-diff -puN /dev/null kernel/Kconfig.marker
---- /dev/null
-+++ a/kernel/Kconfig.marker
-@@ -0,0 +1,7 @@
-+# Code markers configuration
-+
-+config MARKERS
-+	bool "Activate markers"
-+	help
-+	  Place an empty function call at each marker site. Can be
-+	  dynamically changed for a probe function.
+diff -puN arch/x86_64/kernel/tsc.c~lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix arch/x86_64/kernel/tsc.c
+--- a/arch/x86_64/kernel/tsc.c~lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix
++++ a/arch/x86_64/kernel/tsc.c
+@@ -20,7 +20,7 @@ EXPORT_SYMBOL(tsc_khz);
+ 
+ static int tsc_unstable;
+ 
+-static inline int check_tsc_unstable(void)
++inline int check_tsc_unstable(void)
+ {
+ 	return tsc_unstable;
+ }
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-powerpc-promc-remove-undef-printk.patch
-use-data_data-in-cris.patch
-add-missing-data_data-in-powerpc.patch
-use-data_data-in-xtensa.patch
-linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch
-linux-kernel-markers-documentation.patch
-port-of-blktrace-to-the-linux-kernel-markers.patch
-port-of-blktrace-to-the-linux-kernel-markers-fix.patch
+origin.patch
+potential-compiler-error-irqfunc-caller-sites-update.patch
+git-acpi.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-fixup.patch
+applesmc-add-temperature-sensors-set-for-macbook-fix.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-infiniband-doh.patch
+git-input.patch
+serio_raw_read-warning-fix.patch
+tsdev-fix-broken-usecto-millisecs-conversion.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+git-libata-all-fix.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-md-accel.patch
+git-mips-fixup.patch
+git-mtd.patch
+mtd-onenand-build-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+git-netdev-all-fixup.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+git-net-fixup.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-battery-vs-git-acpi.patch
+git-ioat-vs-git-md-accel.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+revert-acpi-change-for-scsi.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+restore-acpi-change-for-scsi.patch
+git-scsi-misc-vs-greg-sysfs-stuff.patch
+aacraid-rename-check_reset.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-show-unhandled-signals-fix.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+i386-add-cpu_relax-to-cmos_lock-fix.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support-fix.patch
+x86_64-add-ioapic-nmi-support-fix-2.patch
+highres-improve-debug-output-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early-fix.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-kgdb-fixup.patch
+kgdb-warning-fix.patch
+kgdb-kconfig-fix.patch
+kgdb-use-new-style-interrupt-flags.patch
+kgdb-section-fix.patch
+kgdb_skipexception-warning-fix.patch
+kgdb-ia64-fixes.patch
+kgdb-bust-on-ia64.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+fix-alpha-isa-support-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+audit-add-tty-input-auditing-fix-2.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
+sys_time-speedup-build-fixes.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
+sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc-fix.patch
+bd_claim_by_disk-fix-warning.patch
+uninline-check_signature.patch
+uninline-check_signature-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+spi-master-driver-for-xilinx-virtex-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
+rtc-driver-for-ds1216-chips-fix.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+lguest-the-host-code.patch
+lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+intel-iommu-pci-generic-helper-function-fix.patch
+intel-iommu-iova-allocation-and-management-routines-fix.patch
+intel-iommu-intel-iommu-driver-fix.patch
+intel-iommu-intel-iommu-driver-fix-2.patch
+intel-iommu-iommu-floppy-workaround-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+some-kmalloc-memset-kzalloc-tree-wide-fix.patch
+reiser4.patch
+reiser4-fix.patch
+git-block-vs-reiser4.patch
+allow-page_owner-to-be-set-on-any-architecture-fix.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
