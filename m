@@ -1,58 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - scheduler-profiling-use-immediate-values-fix.patch removed from -mm tree
-Date: Fri, 06 Jul 2007 17:28:58 -0700
-Message-ID: <200707070033.l670X9jJ029898@imap1.linux-foundation.org>
+Subject: - cxgb3-vs-immediate-stuff.patch removed from -mm tree
+Date: Fri, 06 Jul 2007 17:28:59 -0700
+Message-ID: <200707070033.l670XAZK029901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56593 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753507AbXGGAdW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 20:33:22 -0400
+	by vger.kernel.org with ESMTP id S1753023AbXGGAd1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 20:33:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scheduler-profiling-use-immediate-values fix
+     cxgb3 vs immediate stuff
 has been removed from the -mm tree.  Its filename was
-     scheduler-profiling-use-immediate-values-fix.patch
+     cxgb3-vs-immediate-stuff.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: scheduler-profiling-use-immediate-values fix
+Subject: cxgb3 vs immediate stuff
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allnoconfig:
+drivers/net/cxgb3/sge.c:1262: error: expected identifier or '(' before '{' token
+drivers/net/cxgb3/sge.c: In function 'ctrl_xmit':
+drivers/net/cxgb3/sge.c:1283: error: initializer element is not constant
+drivers/net/cxgb3/sge.c:1283: error: (near initialization for '__immediate_info.var')
+drivers/net/cxgb3/sge.c:1283: error: request for member 'value' in something not a structure or union
 
-In file included from include/asm/hw_irq.h:20,
-                 from include/linux/irq.h:192,
-                 from include/asm/hardirq.h:5,
-                 from include/linux/hardirq.h:7,
-                 from include/linux/interrupt.h:11,
-                 from arch/x86_64/kernel/irq.c:14:
-include/linux/profile.h:13: warning: type defaults to 'int' in declaration of 'immediate_t'
-include/linux/profile.h:13: error: syntax error before 'sleep_profiling'
+"immediate" was a pretty dumb name for a macro.  But I can't be assed changing
+it at present.
 
 Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/profile.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/cxgb3/sge.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/profile.h~scheduler-profiling-use-immediate-values-fix include/linux/profile.h
---- a/include/linux/profile.h~scheduler-profiling-use-immediate-values-fix
-+++ a/include/linux/profile.h
-@@ -7,6 +7,7 @@
- #include <linux/init.h>
- #include <linux/cpumask.h>
- #include <linux/cache.h>
-+#include <linux/immediate.h>
+diff -puN drivers/net/cxgb3/sge.c~cxgb3-vs-immediate-stuff drivers/net/cxgb3/sge.c
+--- a/drivers/net/cxgb3/sge.c~cxgb3-vs-immediate-stuff
++++ a/drivers/net/cxgb3/sge.c
+@@ -1259,7 +1259,7 @@ static inline void reclaim_completed_tx_
+ 	q->cleaned += reclaim;
+ }
  
- #include <asm/errno.h>
+-static inline int immediate(const struct sk_buff *skb)
++static inline int cxgb3_immediate(const struct sk_buff *skb)
+ {
+ 	return skb->len <= WR_LEN && !skb->data_len;
+ }
+@@ -1280,7 +1280,7 @@ static int ctrl_xmit(struct adapter *ada
+ 	int ret;
+ 	struct work_request_hdr *wrp = (struct work_request_hdr *)skb->data;
  
+-	if (unlikely(!immediate(skb))) {
++	if (unlikely(!cxgb3_immediate(skb))) {
+ 		WARN_ON(1);
+ 		dev_kfree_skb(skb);
+ 		return NET_XMIT_SUCCESS;
+@@ -1430,7 +1430,7 @@ static void write_ofld_wr(struct adapter
+ 	struct sg_ent *sgp, sgl[MAX_SKB_FRAGS / 2 + 1];
+ 	struct tx_desc *d = &q->desc[pidx];
+ 
+-	if (immediate(skb)) {
++	if (cxgb3_immediate(skb)) {
+ 		q->sdesc[pidx].skb = NULL;
+ 		write_imm(d, skb, skb->len, gen);
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -268,7 +286,6 @@ cfs-scheduler-warning-fixes.patch
 cfs-warning-fixes.patch
 kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
 coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-scheduler-profiling-use-immediate-values-fix.patch
 cxgb3-vs-immediate-stuff.patch
 drivers-edac-new-i82443bxgz-mc-driver-broken.patch
 containersv10-basic-container-framework-fix.patch
