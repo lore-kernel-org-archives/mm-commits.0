@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cxgb3-vs-immediate-stuff.patch added to -mm tree
-Date: Fri, 06 Jul 2007 17:06:10 -0700
-Message-ID: <200707070010.l670ALBK028802@imap1.linux-foundation.org>
+Subject: + scheduler-profiling-use-immediate-values-fix.patch added to -mm tree
+Date: Fri, 06 Jul 2007 17:20:25 -0700
+Message-ID: <200707070024.l670Oaxr029484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59074 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45041 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752659AbXGGAKo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 20:10:44 -0400
+	by vger.kernel.org with ESMTP id S1752591AbXGGAYv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 20:24:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org, mathieu.desnoyers@polymtl.ca
+Cc: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     cxgb3 vs immediate stuff
+     scheduler-profiling-use-immediate-values fix
 has been added to the -mm tree.  Its filename is
-     cxgb3-vs-immediate-stuff.patch
+     scheduler-profiling-use-immediate-values-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cxgb3 vs immediate stuff
+Subject: scheduler-profiling-use-immediate-values fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/cxgb3/sge.c:1262: error: expected identifier or '(' before '{' token
-drivers/net/cxgb3/sge.c: In function 'ctrl_xmit':
-drivers/net/cxgb3/sge.c:1283: error: initializer element is not constant
-drivers/net/cxgb3/sge.c:1283: error: (near initialization for '__immediate_info.var')
-drivers/net/cxgb3/sge.c:1283: error: request for member 'value' in something not a structure or union
+x86_64 allnoconfig:
 
-"immediate" was a pretty dumb name for a macro.  But I can't be assed changing
-it at present.
+In file included from include/asm/hw_irq.h:20,
+                 from include/linux/irq.h:192,
+                 from include/asm/hardirq.h:5,
+                 from include/linux/hardirq.h:7,
+                 from include/linux/interrupt.h:11,
+                 from arch/x86_64/kernel/irq.c:14:
+include/linux/profile.h:13: warning: type defaults to 'int' in declaration of 'immediate_t'
+include/linux/profile.h:13: error: syntax error before 'sleep_profiling'
 
 Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/sge.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/profile.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/cxgb3/sge.c~cxgb3-vs-immediate-stuff drivers/net/cxgb3/sge.c
---- a/drivers/net/cxgb3/sge.c~cxgb3-vs-immediate-stuff
-+++ a/drivers/net/cxgb3/sge.c
-@@ -1259,7 +1259,7 @@ static inline void reclaim_completed_tx_
- 	q->cleaned += reclaim;
- }
+diff -puN include/linux/profile.h~scheduler-profiling-use-immediate-values-fix include/linux/profile.h
+--- a/include/linux/profile.h~scheduler-profiling-use-immediate-values-fix
++++ a/include/linux/profile.h
+@@ -7,6 +7,7 @@
+ #include <linux/init.h>
+ #include <linux/cpumask.h>
+ #include <linux/cache.h>
++#include <linux/immediate.h>
  
--static inline int immediate(const struct sk_buff *skb)
-+static inline int cxgb3_immediate(const struct sk_buff *skb)
- {
- 	return skb->len <= WR_LEN && !skb->data_len;
- }
-@@ -1280,7 +1280,7 @@ static int ctrl_xmit(struct adapter *ada
- 	int ret;
- 	struct work_request_hdr *wrp = (struct work_request_hdr *)skb->data;
+ #include <asm/errno.h>
  
--	if (unlikely(!immediate(skb))) {
-+	if (unlikely(!cxgb3_immediate(skb))) {
- 		WARN_ON(1);
- 		dev_kfree_skb(skb);
- 		return NET_XMIT_SUCCESS;
-@@ -1430,7 +1430,7 @@ static void write_ofld_wr(struct adapter
- 	struct sg_ent *sgp, sgl[MAX_SKB_FRAGS / 2 + 1];
- 	struct tx_desc *d = &q->desc[pidx];
- 
--	if (immediate(skb)) {
-+	if (cxgb3_immediate(skb)) {
- 		q->sdesc[pidx].skb = NULL;
- 		write_imm(d, skb, skb->len, gen);
- 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +78,7 @@ git-dvb-fixup.patch
 applesmc-add-temperature-sensors-set-for-macbook-fix.patch
 git-gfs2-nmw.patch
 git-infiniband.patch
+git-infiniband-doh.patch
 git-input.patch
 serio_raw_read-warning-fix.patch
 tsdev-fix-broken-usecto-millisecs-conversion.patch
@@ -109,6 +92,7 @@ libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 git-md-accel.patch
 git-mips-fixup.patch
 git-mtd.patch
+mtd-onenand-build-fix.patch
 git-ubi.patch
 git-netdev-all.patch
 git-netdev-all-fixup.patch
@@ -288,6 +272,8 @@ cfs-scheduler-warning-fixes.patch
 cfs-warning-fixes.patch
 kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
 coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+scheduler-profiling-use-immediate-values-fix.patch
+cxgb3-vs-immediate-stuff.patch
 drivers-edac-new-i82443bxgz-mc-driver-broken.patch
 containersv10-basic-container-framework-fix.patch
 containersv10-basic-container-framework-fix-2.patch
@@ -313,6 +299,3 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-git-infiniband-doh.patch
-mtd-onenand-build-fix.patch
-cxgb3-vs-immediate-stuff.patch
