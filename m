@@ -1,59 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix.patch added to -mm tree
-Date: Fri, 06 Jul 2007 17:41:21 -0700
-Message-ID: <200707070045.l670jW7v030425@imap1.linux-foundation.org>
+Subject: - some-kmalloc-memset-kzalloc-tree-wide-fix.patch removed from -mm tree
+Date: Fri, 06 Jul 2007 23:46:41 -0700
+Message-ID: <200707070646.l676kfNI013472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57650 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44104 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752744AbXGGAqY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 20:46:24 -0400
+	by vger.kernel.org with ESMTP id S1751966AbXGGGrH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 7 Jul 2007 02:47:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mpm@selenic.com, rusty@rustcorp.com.au
+To: akpm@linux-foundation.org, padator@wanadoo.fr, shdl@zakalwe.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix
-has been added to the -mm tree.  Its filename is
-     lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix.patch
+     some-kmalloc-memset-kzalloc-tree-wide-fix
+has been removed from the -mm tree.  Its filename was
+     some-kmalloc-memset-kzalloc-tree-wide-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into some-kmalloc-memset-kzalloc-tree-wide.patch
 
 ------------------------------------------------------
-Subject: lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix
+Subject: some-kmalloc-memset-kzalloc-tree-wide-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86_64/kernel/tsc.c:24: error: static declaration of 'check_tsc_unstable' follows non-static declaration
-include/asm-i386/tsc.h:66: error: previous declaration of 'check_tsc_unstable' was here
-make[1]: *** [arch/x86_64/kernel/tsc.o] Error 1
-make: *** [arch/x86_64/kernel/tsc.o] Error 2
-
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Yoann Padioleau <padator@wanadoo.fr>
+Cc: Heikki Orsila <shdl@zakalwe.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/tsc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/hamradio/dmascc.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/tsc.c~lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix arch/x86_64/kernel/tsc.c
---- a/arch/x86_64/kernel/tsc.c~lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix
-+++ a/arch/x86_64/kernel/tsc.c
-@@ -20,7 +20,7 @@ EXPORT_SYMBOL(tsc_khz);
+diff -puN drivers/net/hamradio/dmascc.c~some-kmalloc-memset-kzalloc-tree-wide-fix drivers/net/hamradio/dmascc.c
+--- a/drivers/net/hamradio/dmascc.c~some-kmalloc-memset-kzalloc-tree-wide-fix
++++ a/drivers/net/hamradio/dmascc.c
+@@ -453,7 +453,7 @@ static int __init setup_adapter(int card
+ 	int scc_base = card_base + hw[type].scc_offset;
+ 	char *chipnames[] = CHIPNAMES;
  
- static int tsc_unstable;
- 
--static inline int check_tsc_unstable(void)
-+inline int check_tsc_unstable(void)
- {
- 	return tsc_unstable;
- }
+-	/* Allocate memory */
++	/* Initialize what is necessary for write_scc and write_scc_data */
+ 	info = kzalloc(sizeof(struct scc_info), GFP_KERNEL | GFP_DMA);
+ 	if (!info) {
+ 		printk(KERN_ERR "dmascc: "
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -287,6 +277,7 @@ lockstat-core-infrastructure-fix-fix.patch
 lockstat-core-infrastructure-fix-fix-fix.patch
 lockdep-various-fixes-checkpatch.patch
 lockstat-measure-lock-bouncing-checkpatch.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
 some-kmalloc-memset-kzalloc-tree-wide-fix.patch
 reiser4.patch
 reiser4-fix.patch
