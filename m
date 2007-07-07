@@ -1,158 +1,297 @@
 From: akpm@linux-foundation.org
-Subject: - immediate-value-documentation.patch removed from -mm tree
-Date: Fri, 06 Jul 2007 17:28:52 -0700
-Message-ID: <200707070033.l670X3oT029889@imap1.linux-foundation.org>
+Subject: - scheduler-profiling-use-immediate-values-fix.patch removed from -mm tree
+Date: Fri, 06 Jul 2007 17:28:58 -0700
+Message-ID: <200707070033.l670X9jJ029898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40506 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753240AbXGGAdP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 20:33:15 -0400
+	by vger.kernel.org with ESMTP id S1753507AbXGGAdW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 20:33:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Immediate Value: Documentation
+     scheduler-profiling-use-immediate-values fix
 has been removed from the -mm tree.  Its filename was
-     immediate-value-documentation.patch
+     scheduler-profiling-use-immediate-values-fix.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: Immediate Value: Documentation
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: scheduler-profiling-use-immediate-values fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+x86_64 allnoconfig:
+
+In file included from include/asm/hw_irq.h:20,
+                 from include/linux/irq.h:192,
+                 from include/asm/hardirq.h:5,
+                 from include/linux/hardirq.h:7,
+                 from include/linux/interrupt.h:11,
+                 from arch/x86_64/kernel/irq.c:14:
+include/linux/profile.h:13: warning: type defaults to 'int' in declaration of 'immediate_t'
+include/linux/profile.h:13: error: syntax error before 'sleep_profiling'
+
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/immediate.txt |  103 ++++++++++++++++++++++++++++++++++
- 1 files changed, 103 insertions(+)
+ include/linux/profile.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN /dev/null Documentation/immediate.txt
---- /dev/null
-+++ a/Documentation/immediate.txt
-@@ -0,0 +1,103 @@
-+		        Using the Immediate Values
-+
-+			    Mathieu Desnoyers
-+
-+
-+This document introduces Immediate Values and their use.
-+
-+* Purpose of immediate values
-+
-+An immediate value is used to compile into the kernel a branch that is disabled
-+at compile-time that has almost no measurable performance impact on the kernel.
-+Then, at runtime, it can be enabled dynamically.
-+
-+It can be used to compile code in the kernel that is seldomly meant to be
-+dynamically activated. It's the case of CPU specific workarounds, profiling,
-+tracing, etc.
-+
-+This infrastructure is specialized in supporting dynamic patching of the values
-+in the instruction stream when multiple CPUs are running without disturbing the
-+normal system behavior.
-+
-+
-+* Usage
-+
-+In order to use the macro immediate, you should include linux/immediate.h.
-+
+diff -puN include/linux/profile.h~scheduler-profiling-use-immediate-values-fix include/linux/profile.h
+--- a/include/linux/profile.h~scheduler-profiling-use-immediate-values-fix
++++ a/include/linux/profile.h
+@@ -7,6 +7,7 @@
+ #include <linux/init.h>
+ #include <linux/cpumask.h>
+ #include <linux/cache.h>
 +#include <linux/immediate.h>
-+
-+immediate_t __read_mostly this_immediate;
-+EXPORT_SYMBOL(this_immediate);
-+
-+
-+Add, in your code :
-+
-+if (unlikely(immediate(this_immediate))) {
-+	some code...
-+}
-+
-+And then, use:
-+
-+Use immediate_arm(&this_immediate) to activate the immediate value.
-+
-+Use immediate_disarm(&this_immediate) to deactivate the immediate value.
-+
-+Use immediate_query(&this_immediate) to query the immediate value state.
-+
-+The immediate mechanism supports inserting multiple instances of the same
-+immediate. Immediate values can be put in inline functions, inlined static
-+functions, and unrolled loops.
-+
-+
-+* Optimization for a given architecture
-+
-+One can implement optimized immediate values for a given architecture by
-+replacing asm-$ARCH/immediate.h.
-+
-+The IF_* flags can be used to control the type of immediate value. See the
-+include/linux/immediate.h header for the list of flags. They can be specified as
-+the first parameter of the _immediate() macro, as in the following example,
-+which uses flags to declare a immediate that always uses the generic version of
-+the immediates. It can be useful to use this when immediates are placed in
-+kernel code presenting particular reentrancy challenges.
-+
-+if (unlikely(_immediate(IF_DEFAULT & ~IF_OPTIMIZED, this_immediate))) {
-+	some code...
-+}
-+
-+
-+* Performance improvement
-+
-+Result of a small test comparing:
-+
-+1 - Branch depending on a cache miss (has to fetch in memory, caused by a 128
-+    bytes stride)). This is the test that is likely to look like what
-+    side-effect the original profile_hit code was causing, under the
-+    assumption that the kernel is already using L1 and L2 caches at
-+    their full capacity and that a supplementary data load would cause
-+    cache trashing.
-+2 - Branch depending on L1 cache hit. Just for comparison.
-+3 - Branch depending on a load immediate in the instruction stream.
-+
-+It has been compiled with gcc -O2. Tests done on a 3GHz P4.
-+
-+In the first test series, the branch is not taken:
-+
-+number of tests : 1000
-+number of branches per test : 81920
-+memory hit cycles per iteration (mean) : 48.252
-+L1 cache hit cycles per iteration (mean) : 16.1693
-+instruction stream based test, cycles per iteration (mean) : 16.0432
-+
-+
-+In the second test series, the branch is taken and an integer is
-+incremented within the block:
-+
-+number of tests : 1000
-+number of branches per test : 81920
-+memory hit cycles per iteration (mean) : 48.2691
-+L1 cache hit cycles per iteration (mean) : 16.396
-+instruction stream based test, cycles per iteration (mean) : 16.0441
-+
-+Therefore, the memory fetch based test seems to be 200% slower than the
-+load immediate based test.
+ 
+ #include <asm/errno.h>
+ 
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-powerpc-promc-remove-undef-printk.patch
-immediate-value-documentation.patch
-f00f-bug-fixup-for-i386-use-immediate-values.patch
-scheduler-profiling-use-immediate-values.patch
+origin.patch
+potential-compiler-error-irqfunc-caller-sites-update.patch
+git-acpi.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-fixup.patch
+applesmc-add-temperature-sensors-set-for-macbook-fix.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-infiniband-doh.patch
+git-input.patch
+serio_raw_read-warning-fix.patch
+tsdev-fix-broken-usecto-millisecs-conversion.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+git-libata-all-fix.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-md-accel.patch
+git-mips-fixup.patch
+git-mtd.patch
+mtd-onenand-build-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+git-netdev-all-fixup.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+git-net-fixup.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-battery-vs-git-acpi.patch
+git-ioat-vs-git-md-accel.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+revert-acpi-change-for-scsi.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+restore-acpi-change-for-scsi.patch
+git-scsi-misc-vs-greg-sysfs-stuff.patch
+aacraid-rename-check_reset.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-show-unhandled-signals-fix.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+i386-add-cpu_relax-to-cmos_lock-fix.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support-fix.patch
+x86_64-add-ioapic-nmi-support-fix-2.patch
+highres-improve-debug-output-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early-fix.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-kgdb-fixup.patch
+kgdb-warning-fix.patch
+kgdb-kconfig-fix.patch
+kgdb-use-new-style-interrupt-flags.patch
+kgdb-section-fix.patch
+kgdb_skipexception-warning-fix.patch
+kgdb-ia64-fixes.patch
+kgdb-bust-on-ia64.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+fix-alpha-isa-support-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+audit-add-tty-input-auditing-fix-2.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
+sys_time-speedup-build-fixes.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
+sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc-fix.patch
+bd_claim_by_disk-fix-warning.patch
+uninline-check_signature.patch
+uninline-check_signature-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+spi-master-driver-for-xilinx-virtex-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
+rtc-driver-for-ds1216-chips-fix.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+intel-iommu-pci-generic-helper-function-fix.patch
+intel-iommu-iova-allocation-and-management-routines-fix.patch
+intel-iommu-intel-iommu-driver-fix.patch
+intel-iommu-intel-iommu-driver-fix-2.patch
+intel-iommu-iommu-floppy-workaround-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
 scheduler-profiling-use-immediate-values-fix.patch
 cxgb3-vs-immediate-stuff.patch
-use-data_data-in-cris.patch
-add-missing-data_data-in-powerpc.patch
-use-data_data-in-xtensa.patch
-linux-kernel-markers-architecture-independent-code.patch
-linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch
-linux-kernel-markers-documentation.patch
-port-of-blktrace-to-the-linux-kernel-markers.patch
-port-of-blktrace-to-the-linux-kernel-markers-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+some-kmalloc-memset-kzalloc-tree-wide-fix.patch
+reiser4.patch
+reiser4-fix.patch
+git-block-vs-reiser4.patch
+allow-page_owner-to-be-set-on-any-architecture-fix.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
