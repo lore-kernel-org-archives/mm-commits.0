@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-onenand-build-fix.patch added to -mm tree
-Date: Fri, 06 Jul 2007 17:06:08 -0700
-Message-ID: <200707070010.l670AJLm028797@imap1.linux-foundation.org>
+Subject: + cxgb3-vs-immediate-stuff.patch added to -mm tree
+Date: Fri, 06 Jul 2007 17:06:10 -0700
+Message-ID: <200707070010.l670ALBK028802@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34577 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59074 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752700AbXGGAKg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 20:10:36 -0400
+	by vger.kernel.org with ESMTP id S1752659AbXGGAKo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 20:10:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org, kyungmin.park@samsung.com
+Cc: akpm@linux-foundation.org, jeff@garzik.org, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     mtd: onenand build fix
+     cxgb3 vs immediate stuff
 has been added to the -mm tree.  Its filename is
-     mtd-onenand-build-fix.patch
+     cxgb3-vs-immediate-stuff.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mtd: onenand build fix
+Subject: cxgb3 vs immediate stuff
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386:
+drivers/net/cxgb3/sge.c:1262: error: expected identifier or '(' before '{' token
+drivers/net/cxgb3/sge.c: In function 'ctrl_xmit':
+drivers/net/cxgb3/sge.c:1283: error: initializer element is not constant
+drivers/net/cxgb3/sge.c:1283: error: (near initialization for '__immediate_info.var')
+drivers/net/cxgb3/sge.c:1283: error: request for member 'value' in something not a structure or union
 
-drivers/mtd/onenand/onenand_sim.c:23:23: error: asm/sizes.h: No such file or directory
+"immediate" was a pretty dumb name for a macro.  But I can't be assed changing
+it at present.
 
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/onenand/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/cxgb3/sge.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mtd/onenand/Kconfig~mtd-onenand-build-fix drivers/mtd/onenand/Kconfig
---- a/drivers/mtd/onenand/Kconfig~mtd-onenand-build-fix
-+++ a/drivers/mtd/onenand/Kconfig
-@@ -59,6 +59,7 @@ config MTD_ONENAND_2X_PROGRAM
- config MTD_ONENAND_SIM
- 	tristate "OneNAND simulator support"
- 	depends on MTD_PARTITIONS
-+	depends on ARM || ARM26
- 	help
- 	  The simulator may simulate various OneNAND flash chips for the
- 	  OneNAND MTD layer.
+diff -puN drivers/net/cxgb3/sge.c~cxgb3-vs-immediate-stuff drivers/net/cxgb3/sge.c
+--- a/drivers/net/cxgb3/sge.c~cxgb3-vs-immediate-stuff
++++ a/drivers/net/cxgb3/sge.c
+@@ -1259,7 +1259,7 @@ static inline void reclaim_completed_tx_
+ 	q->cleaned += reclaim;
+ }
+ 
+-static inline int immediate(const struct sk_buff *skb)
++static inline int cxgb3_immediate(const struct sk_buff *skb)
+ {
+ 	return skb->len <= WR_LEN && !skb->data_len;
+ }
+@@ -1280,7 +1280,7 @@ static int ctrl_xmit(struct adapter *ada
+ 	int ret;
+ 	struct work_request_hdr *wrp = (struct work_request_hdr *)skb->data;
+ 
+-	if (unlikely(!immediate(skb))) {
++	if (unlikely(!cxgb3_immediate(skb))) {
+ 		WARN_ON(1);
+ 		dev_kfree_skb(skb);
+ 		return NET_XMIT_SUCCESS;
+@@ -1430,7 +1430,7 @@ static void write_ofld_wr(struct adapter
+ 	struct sg_ent *sgp, sgl[MAX_SKB_FRAGS / 2 + 1];
+ 	struct tx_desc *d = &q->desc[pidx];
+ 
+-	if (immediate(skb)) {
++	if (cxgb3_immediate(skb)) {
+ 		q->sdesc[pidx].skb = NULL;
+ 		write_imm(d, skb, skb->len, gen);
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
