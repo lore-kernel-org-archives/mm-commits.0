@@ -1,152 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-smcf010-quirk-work-around-toshiba-portege-4000-acpi-issues.patch removed from -mm tree
-Date: Sun, 08 Jul 2007 01:11:21 -0700
-Message-ID: <200707080811.l688BLfR014764@imap1.linux-foundation.org>
+Subject: - i386-es7000-build-breakage-fix.patch removed from -mm tree
+Date: Sun, 08 Jul 2007 01:11:25 -0700
+Message-ID: <200707080811.l688BPrm014767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46228 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36378 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751650AbXGHILn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:11:43 -0400
+	by vger.kernel.org with ESMTP id S1753051AbXGHILq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:11:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, arvidjaar@mail.ru, linus.walleij@ericsson.com, michal.k.k.piotrowski@gmail.com, samuel@sortiz.org, mm-commits@vger.kernel.org
+To: vgoyal@in.ibm.com, ak@suse.de, lenb@kernel.org, protasnb@gmail.com, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP SMCf010 quirk: work around Toshiba Portege 4000 ACPI issues
+     i386: es7000 build breakage fix
 has been removed from the -mm tree.  Its filename was
-     pnp-smcf010-quirk-work-around-toshiba-portege-4000-acpi-issues.patch
+     i386-es7000-build-breakage-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PNP SMCf010 quirk: work around Toshiba Portege 4000 ACPI issues
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: i386: es7000 build breakage fix
+From: Vivek Goyal <vgoyal@in.ibm.com>
 
-When we enable the SMCf010 IR device, the Toshiba Portege 4000 BIOS claims
-the device is working, but it really isn't configured correctly.  The BIOS
-*will* configure it, but only if we call _SRS after (1) reversing the order
-of the SIR and FIR I/O port regions and (2) changing the IRQ from
-active-high to active-low.
+o Commit 1833d6bc72893265f22addd79cf52e6987496e0f broke the build if
+  compiled with CONFIG_ES7000=y and CONFIG_X86_GENERICARCH=n
 
-This patch addresses the 2.6.22 regression:
-    "no irda0 interface (2.6.21 was OK), smsc does not find chip"
+arch/i386/kernel/built-in.o(.init.text+0x4fa9): In function `acpi_parse_madt':
+: undefined reference to `acpi_madt_oem_check'
+arch/i386/kernel/built-in.o(.init.text+0x7406): In function `smp_read_mpc':
+: undefined reference to `mps_oem_check'
+arch/i386/kernel/built-in.o(.init.text+0x8990): In function
+`connect_bsp_APIC':
+: undefined reference to `enable_apic_mode'
+make: *** [.tmp_vmlinux1] Error 1
 
-I tested this on a Portege 4000.  The smsc-ircc2 driver correctly detects
-the device, and "irattach irda0 -s && irdadump" shows transmitted and
-received packets.
+o Fix the build issue. Provided the definitions of missing functions.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Samuel Ortiz <samuel@sortiz.org>
-Cc: "Linus Walleij (LD/EAB)" <linus.walleij@ericsson.com>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
+o Don't have ES7000 machine. Only compile tested.
+
+Cc: Len Brown <lenb@kernel.org>
+Cc: Natalie Protasevich <protasnb@gmail.com>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |   63 +++++++++++++++++++++++++++++++++++------
- 1 file changed, 54 insertions(+), 9 deletions(-)
+ arch/i386/mach-es7000/es7000plat.c          |   48 ++++++++++++++++++
+ include/asm-i386/mach-es7000/mach_apic.h    |    4 +
+ include/asm-i386/mach-es7000/mach_mpparse.h |    6 ++
+ 3 files changed, 58 insertions(+)
 
-diff -puN drivers/pnp/quirks.c~pnp-smcf010-quirk-work-around-toshiba-portege-4000-acpi-issues drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-smcf010-quirk-work-around-toshiba-portege-4000-acpi-issues
-+++ a/drivers/pnp/quirks.c
-@@ -136,11 +136,10 @@ static int quirk_smc_fir_enabled(struct 
+diff -puN arch/i386/mach-es7000/es7000plat.c~i386-es7000-build-breakage-fix arch/i386/mach-es7000/es7000plat.c
+--- a/arch/i386/mach-es7000/es7000plat.c~i386-es7000-build-breakage-fix
++++ a/arch/i386/mach-es7000/es7000plat.c
+@@ -40,6 +40,7 @@
+ #include <asm/smp.h>
+ #include <asm/apicdef.h>
+ #include "es7000.h"
++#include <mach_mpparse.h>
  
- static void quirk_smc_enable(struct pnp_dev *dev)
+ /*
+  * ES7000 Globals
+@@ -174,6 +175,53 @@ find_unisys_acpi_oem_table(unsigned long
+ }
+ #endif
+ 
++/*
++ * This file also gets compiled if CONFIG_X86_GENERICARCH is set. Generic
++ * arch already has got following function definitions (asm-generic/es7000.c)
++ * hence no need to define these for that case.
++ */
++#ifndef CONFIG_X86_GENERICARCH
++void es7000_sw_apic(void);
++void __init enable_apic_mode(void)
++{
++	es7000_sw_apic();
++	return;
++}
++
++__init int mps_oem_check(struct mp_config_table *mpc, char *oem,
++		char *productid)
++{
++	if (mpc->mpc_oemptr) {
++		struct mp_config_oemtable *oem_table =
++			(struct mp_config_oemtable *)mpc->mpc_oemptr;
++		if (!strncmp(oem, "UNISYS", 6))
++			return parse_unisys_oem((char *)oem_table);
++	}
++	return 0;
++}
++#ifdef CONFIG_ACPI
++/* Hook from generic ACPI tables.c */
++int __init acpi_madt_oem_check(char *oem_id, char *oem_table_id)
++{
++	unsigned long oem_addr;
++	if (!find_unisys_acpi_oem_table(&oem_addr)) {
++		if (es7000_check_dsdt())
++			return parse_unisys_oem((char *)oem_addr);
++		else {
++			setup_unisys();
++			return 1;
++		}
++	}
++	return 0;
++}
++#else
++int __init acpi_madt_oem_check(char *oem_id, char *oem_table_id)
++{
++	return 0;
++}
++#endif
++#endif /* COFIG_X86_GENERICARCH */
++
+ static void
+ es7000_spin(int n)
  {
--	/*
--	 * If the BIOS left the device disabled, or it is enabled and
--	 * responding correctly, we're in good shape.
--	 */
--	if (!dev->active || quirk_smc_fir_enabled(dev))
-+	struct resource fir, sir, irq;
-+
-+	pnp_activate_dev(dev);
-+	if (quirk_smc_fir_enabled(dev))
- 		return;
- 
- 	/*
-@@ -152,16 +151,62 @@ static void quirk_smc_enable(struct pnp_
- 	 * this.  Fortunately, they do fix things up if we auto-configure
- 	 * the device using its _PRS and _SRS methods.
- 	 */
--	dev_err(&dev->dev, "%s device not responding, auto-configuring "
--		"resources\n", dev->id->id);
-+	dev_err(&dev->dev, "%s not responding at SIR 0x%lx, FIR 0x%lx; "
-+		"auto-configuring\n", dev->id->id,
-+		(unsigned long) pnp_port_start(dev, 0),
-+		(unsigned long) pnp_port_start(dev, 1));
- 
- 	pnp_disable_dev(dev);
- 	pnp_init_resource_table(&dev->res);
- 	pnp_auto_config_dev(dev);
- 	pnp_activate_dev(dev);
-+	if (quirk_smc_fir_enabled(dev)) {
-+		dev_err(&dev->dev, "responds at SIR 0x%lx, FIR 0x%lx\n",
-+			(unsigned long) pnp_port_start(dev, 0),
-+			(unsigned long) pnp_port_start(dev, 1));
-+		return;
-+	}
-+
-+	/*
-+	 * The Toshiba Portege 4000 _CRS reports the FIR region first,
-+	 * followed by the SIR region.  The BIOS will configure the bridge,
-+	 * but only if we call _SRS with SIR first, then FIR.  It also
-+	 * reports the IRQ as active high, when it is really active low.
-+	 */
-+	dev_err(&dev->dev, "not responding at SIR 0x%lx, FIR 0x%lx; "
-+		"swapping SIR/FIR and reconfiguring\n",
-+		(unsigned long) pnp_port_start(dev, 0),
-+		(unsigned long) pnp_port_start(dev, 1));
-+
-+	/*
-+	 * Clear IORESOURCE_AUTO so pnp_activate_dev() doesn't reassign
-+	 * these resources any more.
-+	 */
-+	fir = dev->res.port_resource[0];
-+	sir = dev->res.port_resource[1];
-+	fir.flags &= ~IORESOURCE_AUTO;
-+	sir.flags &= ~IORESOURCE_AUTO;
-+
-+	irq = dev->res.irq_resource[0];
-+	irq.flags &= ~IORESOURCE_AUTO;
-+	irq.flags &= ~IORESOURCE_BITS;
-+	irq.flags |= IORESOURCE_IRQ_LOWEDGE;
-+
-+	pnp_disable_dev(dev);
-+	dev->res.port_resource[0] = sir;
-+	dev->res.port_resource[1] = fir;
-+	dev->res.irq_resource[0] = irq;
-+	pnp_activate_dev(dev);
-+
-+	if (quirk_smc_fir_enabled(dev)) {
-+		dev_err(&dev->dev, "responds at SIR 0x%lx, FIR 0x%lx\n",
-+			(unsigned long) pnp_port_start(dev, 0),
-+			(unsigned long) pnp_port_start(dev, 1));
-+		return;
-+	}
- 
--	if (!quirk_smc_fir_enabled(dev))
--		dev_err(&dev->dev, "giving up; try \"smsc-ircc2.nopnp\"\n");
-+	dev_err(&dev->dev, "giving up; try \"smsc-ircc2.nopnp\" and "
-+		"email bjorn.helgaas@hp.com\n");
+diff -puN include/asm-i386/mach-es7000/mach_apic.h~i386-es7000-build-breakage-fix include/asm-i386/mach-es7000/mach_apic.h
+--- a/include/asm-i386/mach-es7000/mach_apic.h~i386-es7000-build-breakage-fix
++++ a/include/asm-i386/mach-es7000/mach_apic.h
+@@ -73,6 +73,10 @@ static inline void init_apic_ldr(void)
+ 	apic_write_around(APIC_LDR, val);
  }
  
++#ifndef CONFIG_X86_GENERICARCH
++extern void enable_apic_mode(void);
++#endif
++
+ extern int apic_version [MAX_APICS];
+ static inline void setup_apic_routing(void)
+ {
+diff -puN include/asm-i386/mach-es7000/mach_mpparse.h~i386-es7000-build-breakage-fix include/asm-i386/mach-es7000/mach_mpparse.h
+--- a/include/asm-i386/mach-es7000/mach_mpparse.h~i386-es7000-build-breakage-fix
++++ a/include/asm-i386/mach-es7000/mach_mpparse.h
+@@ -18,6 +18,12 @@ extern int parse_unisys_oem (char *oempt
+ extern int find_unisys_acpi_oem_table(unsigned long *oem_addr);
+ extern void setup_unisys(void);
  
++#ifndef CONFIG_X86_GENERICARCH
++extern int acpi_madt_oem_check(char *oem_id, char *oem_table_id);
++extern int mps_oem_check(struct mp_config_table *mpc, char *oem,
++				char *productid);
++#endif
++
+ #ifdef CONFIG_ACPI
+ 
+ static inline int es7000_check_dsdt(void)
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from vgoyal@in.ibm.com are
 
 origin.patch
-serial-assert-dtr-for-serial-console-devices.patch
-console-more-buf-for-index-parsing.patch
-console-console-handover-to-preferred-console.patch
-x86-initial-fixmap-support.patch
-serial-convert-early_uart-to-earlycon-for-8250.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
-move-free-pages-between-lists-on-steal.patch
-use-menuconfig-objects-pnp.patch
+fix-i-oat-for-kexec.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
