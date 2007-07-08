@@ -1,53 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - fix-logic-error-in-ipc-compat-semctl.patch removed from -mm tree
-Date: Sun, 08 Jul 2007 01:11:19 -0700
-Message-ID: <200707080811.l688BJUF014756@imap1.linux-foundation.org>
+Subject: - mtrr-fix-race-causing-set_mtrr-to-go-into-infinite-loop.patch removed from -mm tree
+Date: Sun, 08 Jul 2007 01:11:14 -0700
+Message-ID: <200707080811.l688BEDf014750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58734 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36712 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751610AbXGHIL2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:11:28 -0400
+	by vger.kernel.org with ESMTP id S1751650AbXGHIL3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:11:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agraf@suse.de, mm-commits@vger.kernel.org
+To: loic@myri.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix logic error in ipc compat semctl()
+     MTRR: Fix race causing set_mtrr to go into infinite loop
 has been removed from the -mm tree.  Its filename was
-     fix-logic-error-in-ipc-compat-semctl.patch
+     mtrr-fix-race-causing-set_mtrr-to-go-into-infinite-loop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix logic error in ipc compat semctl()
-From: Alexander Graf <agraf@suse.de>
+Subject: MTRR: Fix race causing set_mtrr to go into infinite loop
+From: Loic Prylli <loic@myri.com>
 
-When calling a semctl(IPC_STAT) without IPC_64 the check if the memory is
-unevaluated.  This patch fixes this.
+Processors synchronization in set_mtrr requires the .gate field to be set
+after .count field is properly initialized.  Without an explicit barrier,
+the compiler was reordering those memory stores.  That was sometimes
+causing a processor (in ipi_handler) to see the .gate change and decrement
+.count before the latter is set by set_mtrr() (which then hangs in a
+infinite loop with irqs disabled).
 
-Signed-off-by: Alexander Graf <agraf@suse.de>
+Signed-off-by: Loic Prylli <loic@myri.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/compat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/cpu/mtrr/main.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN ipc/compat.c~fix-logic-error-in-ipc-compat-semctl ipc/compat.c
---- a/ipc/compat.c~fix-logic-error-in-ipc-compat-semctl
-+++ a/ipc/compat.c
-@@ -225,7 +225,7 @@ static inline int put_compat_semid_ds(st
- 	int err;
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~mtrr-fix-race-causing-set_mtrr-to-go-into-infinite-loop arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~mtrr-fix-race-causing-set_mtrr-to-go-into-infinite-loop
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -229,6 +229,8 @@ static void set_mtrr(unsigned int reg, u
+ 	data.smp_size = size;
+ 	data.smp_type = type;
+ 	atomic_set(&data.count, num_booting_cpus() - 1);
++	/* make sure data.count is visible before unleashing other CPUs */
++	smp_wmb();
+ 	atomic_set(&data.gate,0);
  
- 	if (!access_ok (VERIFY_WRITE, up, sizeof(*up)))
--		err = -EFAULT;
-+		return -EFAULT;
- 	err  = __put_compat_ipc_perm(&s->sem_perm, &up->sem_perm);
- 	err |= __put_user(s->sem_otime, &up->sem_otime);
- 	err |= __put_user(s->sem_ctime, &up->sem_ctime);
+ 	/*  Start the ball rolling on other CPUs  */
+@@ -242,6 +244,7 @@ static void set_mtrr(unsigned int reg, u
+ 
+ 	/* ok, reset count and toggle gate */
+ 	atomic_set(&data.count, num_booting_cpus() - 1);
++	smp_wmb();
+ 	atomic_set(&data.gate,1);
+ 
+ 	/* do our MTRR business */
+@@ -260,6 +263,7 @@ static void set_mtrr(unsigned int reg, u
+ 		cpu_relax();
+ 
+ 	atomic_set(&data.count, num_booting_cpus() - 1);
++	smp_wmb();
+ 	atomic_set(&data.gate,0);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from agraf@suse.de are
+Patches currently in -mm which might be from loic@myri.com are
 
 origin.patch
