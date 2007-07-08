@@ -1,62 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - mm-fixup-proc-vmstat-output.patch removed from -mm tree
-Date: Sun, 08 Jul 2007 01:11:50 -0700
-Message-ID: <200707080811.l688Bo5J014802@imap1.linux-foundation.org>
+Subject: - geode-reboot-fixup-for-geode-machines-with-cs5536-boards.patch removed from -mm tree
+Date: Sun, 08 Jul 2007 01:11:31 -0700
+Message-ID: <200707080811.l688BVYv014773@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55666 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50964 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753245AbXGHIMG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:12:06 -0400
+	by vger.kernel.org with ESMTP id S1753245AbXGHIMS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:12:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterz@infradead.org, a.p.zijlstra@chello.nl, clameter@sgi.com, mm-commits@vger.kernel.org
+To: dilinger@queued.net, ak@suse.de, alan@lxorguk.ukuu.org.uk, dilinger@debian.org, jordan.crouse@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fixup /proc/vmstat output
+     GEODE: reboot fixup for geode machines with CS5536 boards
 has been removed from the -mm tree.  Its filename was
-     mm-fixup-proc-vmstat-output.patch
+     geode-reboot-fixup-for-geode-machines-with-cs5536-boards.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: fixup /proc/vmstat output
-From: Peter Zijlstra <peterz@infradead.org>
+Subject: GEODE: reboot fixup for geode machines with CS5536 boards
+From: Andres Salomon <dilinger@queued.net>
 
-Line up the vmstat_text with zone_stat_item
+Writing to MSR 0x51400017 forces a hard reset on CS5536-based machines,
+this has the reboot fixup do just that if such a board is detected.
 
-enum zone_stat_item {
-	/* First 128 byte cacheline (assuming 64 bit words) */
-	NR_FREE_PAGES,
-	NR_INACTIVE,
-	NR_ACTIVE,
-
-We current have nr_active and nr_inactive reversed.
-
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Jordan Crouse <jordan.crouse@amd.com>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/Kconfig                |    4 ++--
+ arch/i386/kernel/reboot_fixups.c |   13 +++++++++++++
+ 2 files changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmstat.c~mm-fixup-proc-vmstat-output mm/vmstat.c
---- a/mm/vmstat.c~mm-fixup-proc-vmstat-output
-+++ a/mm/vmstat.c
-@@ -477,8 +477,8 @@ const struct seq_operations fragmentatio
- static const char * const vmstat_text[] = {
- 	/* Zoned VM counters */
- 	"nr_free_pages",
--	"nr_active",
- 	"nr_inactive",
-+	"nr_active",
- 	"nr_anon_pages",
- 	"nr_mapped",
- 	"nr_file_pages",
+diff -puN arch/i386/Kconfig~geode-reboot-fixup-for-geode-machines-with-cs5536-boards arch/i386/Kconfig
+--- a/arch/i386/Kconfig~geode-reboot-fixup-for-geode-machines-with-cs5536-boards
++++ a/arch/i386/Kconfig
+@@ -451,8 +451,8 @@ config X86_REBOOTFIXUPS
+ 	  this config is intended, is when reboot ends with a stalled/hung
+ 	  system.
+ 
+-	  Currently, the only fixup is for the Geode GX1/CS5530A/TROM2.1.
+-	  combination.
++	  Currently, the only fixup is for the Geode machines using
++	  CS5530A and CS5536 chipsets.
+ 
+ 	  Say Y if you want to enable the fixup. Currently, it's safe to
+ 	  enable this option even if you don't need it.
+diff -puN arch/i386/kernel/reboot_fixups.c~geode-reboot-fixup-for-geode-machines-with-cs5536-boards arch/i386/kernel/reboot_fixups.c
+--- a/arch/i386/kernel/reboot_fixups.c~geode-reboot-fixup-for-geode-machines-with-cs5536-boards
++++ a/arch/i386/kernel/reboot_fixups.c
+@@ -5,12 +5,14 @@
+  *
+  * List of supported fixups:
+  * geode-gx1/cs5530a - Jaya Kumar <jayalk@intworks.biz>
++ * geode-gx/lx/cs5536 - Andres Salomon <dilinger@debian.org>
+  *
+  */
+ 
+ #include <asm/delay.h>
+ #include <linux/pci.h>
+ #include <asm/reboot_fixups.h>
++#include <asm/msr.h>
+ 
+ static void cs5530a_warm_reset(struct pci_dev *dev)
+ {
+@@ -21,6 +23,16 @@ static void cs5530a_warm_reset(struct pc
+ 	return;
+ }
+ 
++static void cs5536_warm_reset(struct pci_dev *dev)
++{
++	/*
++	 * 6.6.2.12 Soft Reset (DIVIL_SOFT_RESET)
++	 * writing 1 to the LSB of this MSR causes a hard reset.
++	 */
++	wrmsrl(0x51400017, 1ULL);
++	udelay(50); /* shouldn't get here but be safe and spin a while */
++}
++
+ struct device_fixup {
+ 	unsigned int vendor;
+ 	unsigned int device;
+@@ -29,6 +41,7 @@ struct device_fixup {
+ 
+ static struct device_fixup fixups_table[] = {
+ { PCI_VENDOR_ID_CYRIX, PCI_DEVICE_ID_CYRIX_5530_LEGACY, cs5530a_warm_reset },
++{ PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA, cs5536_warm_reset },
+ };
+ 
+ /*
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from dilinger@queued.net are
 
 origin.patch
-mm-double-mark_page_accessed-in-read_cache_page_async.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+geode-basic-infrastructure-support-for-amd-geode-class-update.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-support-for-geode-class-machines-update.patch
+geode-mfgpt-clock-event-device-support.patch
+geode-mfgpt-clock-event-device-support-update.patch
