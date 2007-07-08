@@ -1,151 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - i386-fix-regression-endless-loop-in-ptrace-singlestep.patch removed from -mm tree
-Date: Sun, 08 Jul 2007 01:11:11 -0700
-Message-ID: <200707080811.l688BB3R014747@imap1.linux-foundation.org>
+Subject: - potential-compiler-error-irqfunc-caller-sites-update.patch removed from -mm tree
+Date: Sun, 08 Jul 2007 01:11:28 -0700
+Message-ID: <200707080811.l688BSse014770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38474 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55894 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750999AbXGHILe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:11:34 -0400
+	by vger.kernel.org with ESMTP id S1751749AbXGHILj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:11:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jason.wessel@windriver.com, 76306.1226@compuserve.com, ak@suse.de, jeremy@goop.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: padator@wanadoo.fr, akpm@linux-foundation.org, davem@davemloft.net, greg@kroah.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: fix regression, endless loop in ptrace singlestep over an int80
+     potential compiler error, irqfunc caller sites update
 has been removed from the -mm tree.  Its filename was
-     i386-fix-regression-endless-loop-in-ptrace-singlestep.patch
+     potential-compiler-error-irqfunc-caller-sites-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: fix regression, endless loop in ptrace singlestep over an int80
-From: Jason Wessel <jason.wessel@windriver.com>
+Subject: potential compiler error, irqfunc caller sites update
+From: Yoann Padioleau <padator@wanadoo.fr>
 
-The commit 635cf99a80f4ebee59d70eb64bb85ce829e4591f introduced a
-regression.  Executing a ptrace single step after certain int80
-accesses will infinitely loop and never advance the PC.
+In 7d12e780e003f93433d49ce78cfedf4b4c52adc5 David Howells performed
+this evolution:
+ "IRQ: Maintain regs pointer globally rather than passing to IRQ handlers"
 
-The TIF_SINGLESTEP check should be done on the return from the syscall
-and not before it.
+He correctly updated many of the function definitions that were using this
+extra regs pointer parameter but forgot to update some caller sites of
+those functions.  The reason the modifications was not properly done on all
+drivers is that some drivers were rarely compiled because they are for
+AMIGA, or that some code sites were inside #ifdefs where the option is not
+set or inside #if 0.
 
-I loops on each single step on the pop right after the int80 which writes out
-to the console.  At that point you can issue as many single steps as you want
-and it will not advance any further.
+Here is the semantic patch that found the occurences
+and fixed the problem.
 
+@ rule1 @
+identifier fn;
+identifier irq, dev_id;
+typedef irqreturn_t;
+@@
 
-The test case is below:
-
-/* Test whether singlestep through an int80 syscall works.
- */
-#define _GNU_SOURCE
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/ptrace.h>
-#include <sys/wait.h>
-#include <sys/mman.h>
-#include <asm/user.h>
-#include <string.h>
-
-static int child, status;
-static struct user_regs_struct regs;
-
-static void do_child()
+static irqreturn_t fn(int irq, void *dev_id)
 {
-	char str[80] = "child: int80 test\n";
-
-	ptrace(PTRACE_TRACEME, 0, 0, 0);
-	kill(getpid(), SIGUSR1);
-	write(fileno(stdout),str,strlen(str));
-	asm ("int $0x80" : : "a" (20)); /* getpid */
+   ...
 }
 
-static void do_parent()
-{
-	unsigned long eip, expected = 0;
-again:
-	waitpid(child, &status, 0);
-	if (WIFEXITED(status) || WIFSIGNALED(status))
-		return;
+@@
+identifier rule1.fn;
+expression E1, E2, E3;
+@@
 
-	if (WIFSTOPPED(status)) {
-		ptrace(PTRACE_GETREGS, child, 0, &regs);
-		eip = regs.eip;
-		if (expected)
-			fprintf(stderr, "child stop @ %08lx, expected %08lx %s\n",
-					eip, expected,
-					eip == expected ? "" : " <== ERROR");
+ fn(E1, E2
+-   ,E3
+   )
 
-		if (*(unsigned short *)eip == 0x80cd) {
-			fprintf(stderr, "int 0x80 at %08x\n", (unsigned int)eip);
-			expected = eip + 2;
-		} else
-			expected = 0;
-
-		ptrace(PTRACE_SINGLESTEP, child, NULL, NULL);
-	}
-	goto again;
-}
-
-int main(int argc, char * const argv[])
-{
-	child = fork();
-	if (child)
-		do_parent();
-	else
-		do_child();
-	return 0;
-}
-
-Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: <stable@kernel.org>
-Cc: Chuck Ebbert <76306.1226@compuserve.com>
-Acked-by: Andi Kleen <ak@suse.de>
+Signed-off-by: Yoann Padioleau <padator@wanadoo.fr>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/entry.S |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/atm/firestream.c     |    2 +-
+ drivers/net/arm/am79c961a.c  |    2 +-
+ drivers/net/ixp2000/ixpdev.c |    2 +-
+ drivers/net/sb1250-mac.c     |    2 +-
+ drivers/usb/misc/uss720.c    |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/kernel/entry.S~i386-fix-regression-endless-loop-in-ptrace-singlestep arch/i386/kernel/entry.S
---- a/arch/i386/kernel/entry.S~i386-fix-regression-endless-loop-in-ptrace-singlestep
-+++ a/arch/i386/kernel/entry.S
-@@ -367,10 +367,6 @@ ENTRY(system_call)
- 	CFI_ADJUST_CFA_OFFSET 4
- 	SAVE_ALL
- 	GET_THREAD_INFO(%ebp)
--	testl $TF_MASK,PT_EFLAGS(%esp)
--	jz no_singlestep
--	orl $_TIF_SINGLESTEP,TI_flags(%ebp)
--no_singlestep:
- 					# system call tracing in operation / emulation
- 	/* Note, _TIF_SECCOMP is bit number 8, and so it needs testw and not testb */
- 	testw $(_TIF_SYSCALL_EMU|_TIF_SYSCALL_TRACE|_TIF_SECCOMP|_TIF_SYSCALL_AUDIT),TI_flags(%ebp)
-@@ -385,6 +381,10 @@ syscall_exit:
- 					# setting need_resched or sigpending
- 					# between sampling and the iret
- 	TRACE_IRQS_OFF
-+	testl $TF_MASK,PT_EFLAGS(%esp)	# If tracing set singlestep flag on exit
-+	jz no_singlestep
-+	orl $_TIF_SINGLESTEP,TI_flags(%ebp)
-+no_singlestep:
- 	movl TI_flags(%ebp), %ecx
- 	testw $_TIF_ALLWORK_MASK, %cx	# current->work
- 	jne syscall_exit_work
+diff -puN drivers/atm/firestream.c~potential-compiler-error-irqfunc-caller-sites-update drivers/atm/firestream.c
+--- a/drivers/atm/firestream.c~potential-compiler-error-irqfunc-caller-sites-update
++++ a/drivers/atm/firestream.c
+@@ -1654,7 +1654,7 @@ static void fs_poll (unsigned long data)
+ {
+ 	struct fs_dev *dev = (struct fs_dev *) data;
+   
+-	fs_irq (0, dev, NULL);
++	fs_irq (0, dev);
+ 	dev->timer.expires = jiffies + FS_POLL_FREQ;
+ 	add_timer (&dev->timer);
+ }
+diff -puN drivers/net/arm/am79c961a.c~potential-compiler-error-irqfunc-caller-sites-update drivers/net/arm/am79c961a.c
+--- a/drivers/net/arm/am79c961a.c~potential-compiler-error-irqfunc-caller-sites-update
++++ a/drivers/net/arm/am79c961a.c
+@@ -634,7 +634,7 @@ static void am79c961_poll_controller(str
+ {
+ 	unsigned long flags;
+ 	local_irq_save(flags);
+-	am79c961_interrupt(dev->irq, dev, NULL);
++	am79c961_interrupt(dev->irq, dev);
+ 	local_irq_restore(flags);
+ }
+ #endif
+diff -puN drivers/net/ixp2000/ixpdev.c~potential-compiler-error-irqfunc-caller-sites-update drivers/net/ixp2000/ixpdev.c
+--- a/drivers/net/ixp2000/ixpdev.c~potential-compiler-error-irqfunc-caller-sites-update
++++ a/drivers/net/ixp2000/ixpdev.c
+@@ -222,7 +222,7 @@ static irqreturn_t ixpdev_interrupt(int 
+ static void ixpdev_poll_controller(struct net_device *dev)
+ {
+ 	disable_irq(IRQ_IXP2000_THDA0);
+-	ixpdev_interrupt(IRQ_IXP2000_THDA0, dev, NULL);
++	ixpdev_interrupt(IRQ_IXP2000_THDA0, dev);
+ 	enable_irq(IRQ_IXP2000_THDA0);
+ }
+ #endif
+diff -puN drivers/net/sb1250-mac.c~potential-compiler-error-irqfunc-caller-sites-update drivers/net/sb1250-mac.c
+--- a/drivers/net/sb1250-mac.c~potential-compiler-error-irqfunc-caller-sites-update
++++ a/drivers/net/sb1250-mac.c
+@@ -1159,7 +1159,7 @@ static void sbmac_netpoll(struct net_dev
+ 
+ 	__raw_writeq(0, sc->sbm_imr);
+ 
+-	sbmac_intr(irq, netdev, NULL);
++	sbmac_intr(irq, netdev);
+ 
+ #ifdef CONFIG_SBMAC_COALESCE
+ 	__raw_writeq(((M_MAC_INT_EOP_COUNT | M_MAC_INT_EOP_TIMER) << S_MAC_TX_CH0) |
+diff -puN drivers/usb/misc/uss720.c~potential-compiler-error-irqfunc-caller-sites-update drivers/usb/misc/uss720.c
+--- a/drivers/usb/misc/uss720.c~potential-compiler-error-irqfunc-caller-sites-update
++++ a/drivers/usb/misc/uss720.c
+@@ -336,7 +336,7 @@ static int uss720_irq(int usbstatus, voi
+ 	memcpy(priv->reg, buffer, 4);
+ 	/* if nAck interrupts are enabled and we have an interrupt, call the interrupt procedure */
+ 	if (priv->reg[2] & priv->reg[1] & 0x10)
+-		parport_generic_irq(0, pp, NULL);
++		parport_generic_irq(0, pp);
+ 	return 1;
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from jason.wessel@windriver.com are
+Patches currently in -mm which might be from padator@wanadoo.fr are
 
 origin.patch
-git-kgdb.patch
-kgdb-warning-fix.patch
-kgdb-kconfig-fix.patch
-kgdb-use-new-style-interrupt-flags.patch
-kgdb-section-fix.patch
-kgdb_skipexception-warning-fix.patch
-kgdb-ia64-fixes.patch
-kgdb-bust-on-ia64.patch
+atari_pamsnetc-old-declaration-ritchie-style-fix.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+some-kmalloc-memset-kzalloc-tree-wide-kcalloc-fixes.patch
