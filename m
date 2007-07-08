@@ -1,125 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-fixup.patch removed from -mm tree
-Date: Sun, 08 Jul 2007 01:03:17 -0700
-Message-ID: <200707080803.l6883IAv014646@imap1.linux-foundation.org>
+Subject: - git-net-fixup.patch removed from -mm tree
+Date: Sun, 08 Jul 2007 01:06:15 -0700
+Message-ID: <200707080806.l6886Fma014683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40461 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44228 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750999AbXGHIDZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:03:25 -0400
+	by vger.kernel.org with ESMTP id S1751026AbXGHIGX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:06:23 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6883N2M013763
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6886LNs013846
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 8 Jul 2007 01:03:24 -0700
+	for <mm-commits@vger.kernel.org>; Sun, 8 Jul 2007 01:06:22 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb-fixup
+     git-net-fixup
 has been removed from the -mm tree.  Its filename was
-     git-dvb-fixup.patch
+     git-net-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-dvb-fixup
+Subject: git-net-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/cinergyT2/cinergyT2.c       |   34 ----------------
- drivers/media/video/saa7134/saa7134-tvaudio.c |    7 ---
- 2 files changed, 2 insertions(+), 39 deletions(-)
+ net/core/netpoll.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN drivers/media/video/saa7134/saa7134-tvaudio.c~git-dvb-fixup drivers/media/video/saa7134/saa7134-tvaudio.c
---- a/drivers/media/video/saa7134/saa7134-tvaudio.c~git-dvb-fixup
-+++ a/drivers/media/video/saa7134/saa7134-tvaudio.c
-@@ -998,11 +998,8 @@ int saa7134_tvaudio_init2(struct saa7134
- int saa7134_tvaudio_fini(struct saa7134_dev *dev)
- {
- 	/* shutdown tvaudio thread */
--	if (dev->thread.pid >= 0) {
--		dev->thread.shutdown = 1;
--		wake_up_interruptible(&dev->thread.wq);
--		wait_for_completion(&dev->thread.exit);
--	}
-+	if (dev->thread.thread)
-+		kthread_stop(dev->thread.thread);
- 	saa_andorb(SAA7134_ANALOG_IO_SELECT, 0x07, 0x00); /* LINE1 */
- 	return 0;
- }
-diff -puN drivers/media/dvb/cinergyT2/cinergyT2.c~git-dvb-fixup drivers/media/dvb/cinergyT2/cinergyT2.c
---- a/drivers/media/dvb/cinergyT2/cinergyT2.c~git-dvb-fixup
-+++ a/drivers/media/dvb/cinergyT2/cinergyT2.c
-@@ -1000,34 +1000,14 @@ static int cinergyt2_suspend (struct usb
- 	if (cinergyt2->disconnect_pending || mutex_lock_interruptible(&cinergyt2->wq_sem))
- 		return -ERESTARTSYS;
+diff -puN net/core/netpoll.c~git-net-fixup net/core/netpoll.c
+--- a/net/core/netpoll.c~git-net-fixup
++++ a/net/core/netpoll.c
+@@ -252,20 +252,12 @@ static void netpoll_send_skb(struct netp
+ 		unsigned long flags;
  
--<<<<<<< HEAD/drivers/media/dvb/cinergyT2/cinergyT2.c
--	if (1) {
--		cinergyt2_suspend_rc(cinergyt2);
--		cancel_rearming_delayed_work(&cinergyt2->query_work);
+ 		local_irq_save(flags);
+-<<<<<<< HEAD/net/core/netpoll.c
+-		/* try until next clock tick */
+-		for (tries = jiffies_to_usecs(1)/USEC_PER_POLL;
+-		     tries > 0; --tries) {
+-			if (netif_tx_trylock(dev)) {
+-				if (!netif_queue_stopped(dev))
 -=======
- 	cinergyt2_suspend_rc(cinergyt2);
- 	cancel_rearming_delayed_work(&cinergyt2->query_work);
-->>>>>>> /drivers/media/dvb/cinergyT2/cinergyT2.c
+ 		if (netif_tx_trylock(dev)) {
+ 			/* try until next clock tick */
+ 			for (tries = jiffies_to_usecs(1)/USEC_PER_POLL;
+ 					tries > 0; --tries) {
+ 				if (!netif_queue_stopped(dev) &&
+ 				    !netif_subqueue_stopped(dev, skb->queue_mapping))
+->>>>>>> /net/core/netpoll.c
+ 					status = dev->hard_start_xmit(skb, dev);
+ 				netif_tx_unlock(dev);
  
--<<<<<<< HEAD/drivers/media/dvb/cinergyT2/cinergyT2.c
--		mutex_lock(&cinergyt2->sem);
--		if (cinergyt2->streaming)
--			cinergyt2_stop_stream_xfer(cinergyt2);
--		cinergyt2_sleep(cinergyt2, 1);
--		mutex_unlock(&cinergyt2->sem);
--	}
--=======
- 	mutex_lock(&cinergyt2->sem);
- 	if (cinergyt2->streaming)
- 		cinergyt2_stop_stream_xfer(cinergyt2);
- 	cinergyt2_sleep(cinergyt2, 1);
- 	mutex_unlock(&cinergyt2->sem);
-->>>>>>> /drivers/media/dvb/cinergyT2/cinergyT2.c
--
--<<<<<<< HEAD/drivers/media/dvb/cinergyT2/cinergyT2.c
--	mutex_unlock(&cinergyt2->wq_sem);
--=======
-->>>>>>> /drivers/media/dvb/cinergyT2/cinergyT2.c
- 	return 0;
- }
- 
-@@ -1035,21 +1015,8 @@ static int cinergyt2_resume (struct usb_
- {
- 	struct cinergyt2 *cinergyt2 = usb_get_intfdata (intf);
- 	struct dvbt_set_parameters_msg *param = &cinergyt2->param;
--<<<<<<< HEAD/drivers/media/dvb/cinergyT2/cinergyT2.c
--	int err = -ERESTARTSYS;
--
--	if (cinergyt2->disconnect_pending || mutex_lock_interruptible(&cinergyt2->wq_sem))
--		goto out;
--
--	if (mutex_lock_interruptible(&cinergyt2->sem))
--		goto out_unlock1;
--=======
- 	int err = -ERESTARTSYS;
-->>>>>>> /drivers/media/dvb/cinergyT2/cinergyT2.c
- 
--<<<<<<< HEAD/drivers/media/dvb/cinergyT2/cinergyT2.c
--	err = 0;
--=======
- 	if (cinergyt2->disconnect_pending || mutex_lock_interruptible(&cinergyt2->wq_sem))
- 		goto out;
- 
-@@ -1057,7 +1024,6 @@ static int cinergyt2_resume (struct usb_
- 		goto out_unlock1;
- 
- 	err = 0;
-->>>>>>> /drivers/media/dvb/cinergyT2/cinergyT2.c
- 
- 	if (!cinergyt2->sleeping) {
- 		cinergyt2_sleep(cinergyt2, 0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,11 +74,9 @@ revert-gregkh-driver-block-device.patch
 driver-core-check-return-code-of-sysfs_create_link.patch
 revert-saa7134-fix-thread-shutdown-handling.patch
 git-dvb.patch
-git-dvb-fixup.patch
 applesmc-add-temperature-sensors-set-for-macbook-fix.patch
 git-gfs2-nmw.patch
 git-infiniband.patch
-git-infiniband-doh.patch
 git-input.patch
 serio_raw_read-warning-fix.patch
 tsdev-fix-broken-usecto-millisecs-conversion.patch
@@ -149,7 +85,6 @@ git-kbuild-fixup.patch
 git-kvm.patch
 git-leds.patch
 led_colour_show-warning-fix.patch
-git-libata-all-fix.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 git-md-accel.patch
 git-mips-fixup.patch
