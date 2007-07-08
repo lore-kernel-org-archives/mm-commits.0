@@ -1,143 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - slub-remove-useless-export_symbol.patch removed from -mm tree
-Date: Sun, 08 Jul 2007 01:11:37 -0700
-Message-ID: <200707080811.l688BbLS014779@imap1.linux-foundation.org>
+Subject: + retrieve-vbe-edid-ddc-info-independent-of-used-video.patch added to -mm tree
+Date: Sun, 08 Jul 2007 11:13:32 -0700
+Message-ID: <200707081813.l68IDW4E014056@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56558 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49889 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753256AbXGHIMX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:12:23 -0400
+	by vger.kernel.org with ESMTP id S1757144AbXGHSOB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 14:14:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, benh@kernel.crashing.org, johannes@sipsolutions.net, paulus@samba.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jbeulich@novell.com, adaplas@pol.net, ak@suse.de, dsd@gentoo.org, hpa@zytor.com
 
 
 The patch titled
-     slub: remove useless EXPORT_SYMBOL
-has been removed from the -mm tree.  Its filename was
-     slub-remove-useless-export_symbol.patch
+     retrieve VBE EDID/DDC info independent of used video mode
+has been added to the -mm tree.  Its filename is
+     retrieve-vbe-edid-ddc-info-independent-of-used-video.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: slub: remove useless EXPORT_SYMBOL
-From: Christoph Lameter <clameter@sgi.com>
+Subject: retrieve VBE EDID/DDC info independent of used video mode
+From: "Jan Beulich" <jbeulich@novell.com>
 
-kmem_cache_open is static. EXPORT_SYMBOL was leftover from some earlier
-time period where kmem_cache_open was usable outside of slub.
+The code to retrieve this information was (a) inside a CONFIG_VIDEO_SELECT
+section and (b) protected by a check of a variable (vbe_version) that would
+get initialized only when a VESA mode was selected on the command line.
 
-(Fixes powerpc build error)
-
-Signed-off-by: Chrsitoph Lameter <clameter@sgi.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Daniel Drake <dsd@gentoo.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/i386/boot/video.S |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN mm/slub.c~slub-remove-useless-export_symbol mm/slub.c
---- a/mm/slub.c~slub-remove-useless-export_symbol
-+++ a/mm/slub.c
-@@ -2020,7 +2020,6 @@ error:
- 			s->offset, flags);
- 	return 0;
- }
--EXPORT_SYMBOL(kmem_cache_open);
+diff -puN arch/i386/boot/video.S~retrieve-vbe-edid-ddc-info-independent-of-used-video arch/i386/boot/video.S
+--- a/arch/i386/boot/video.S~retrieve-vbe-edid-ddc-info-independent-of-used-video
++++ a/arch/i386/boot/video.S
+@@ -96,6 +96,7 @@
+ #define PARAM_LFB_PAGES		0x32
+ #define PARAM_VESA_ATTRIB	0x34
+ #define PARAM_CAPABILITIES	0x36
++#define PARAM_EDID_INFO		0x140
  
- /*
-  * Check if a given pointer is valid
+ /* Define DO_STORE according to CONFIG_VIDEO_RETAIN */
+ #ifdef CONFIG_VIDEO_RETAIN
+@@ -132,8 +133,8 @@ vid1:
+ #ifdef CONFIG_VIDEO_RETAIN
+ 	call	restore_screen			# Restore screen contents
+ #endif /* CONFIG_VIDEO_RETAIN */
+-	call	store_edid
+ #endif /* CONFIG_VIDEO_SELECT */
++	call	store_edid
+ 	call	mode_params			# Store mode parameters
+ 	popw	%ds				# Restore original DS
+ 	ret
+@@ -571,16 +572,12 @@ setr1:	lodsw
+ 	jmp	_m_s
+ 
+ check_vesa:
+-#ifdef CONFIG_FIRMWARE_EDID
+ 	leaw	modelist+1024, %di
+ 	movw	$0x4f00, %ax
+ 	int	$0x10
+ 	cmpw	$0x004f, %ax
+ 	jnz	setbad
+ 
+-	movw	4(%di), %ax
+-	movw	%ax, vbe_version
+-#endif
+ 	leaw	modelist+1024, %di
+ 	subb	$VIDEO_FIRST_VESA>>8, %bh
+ 	movw	%bx, %cx			# Get mode information structure
+@@ -1935,6 +1932,7 @@ skip10:	movb	%ah, %al
+ 	popw	%cx
+ 	popw	%ax
+ 	ret
++#endif /* CONFIG_VIDEO_SELECT */
+ 
+ store_edid:
+ #ifdef CONFIG_FIRMWARE_EDID
+@@ -1945,18 +1943,28 @@ store_edid:
+ 	pushw	%dx
+ 	pushw   %di
+ 
++	pushw	%ds
++	popw    %es
++	leaw	modelist, %di
++	movw	$0x4f00, %ax
++	int	$0x10
++	cmpw	$0x004f, %ax
++	setne	%dl
++	cmpw	$0x0200, 4(%di)			# only do EDID on >= VBE2.0
++	adc	%dl, %dl
++
+ 	pushw	%fs
+ 	popw    %es
+ 
+ 	movl	$0x13131313, %eax		# memset block with 0x13
+ 	movw    $32, %cx
+-	movw	$0x140, %di
++	movw	$PARAM_EDID_INFO, %di
+ 	cld
+ 	rep
+ 	stosl
+ 
+-	cmpw	$0x0200, vbe_version		# only do EDID on >= VBE2.0
+-	jl	no_edid
++	testb	%dl, %dl
++	jnz	no_edid
+ 
+ 	pushw   %es				# save ES
+ 	xorw    %di, %di                        # Report Capability
+@@ -1978,7 +1986,7 @@ store_edid:
+ 	movw	$0x01, %bx
+ 	movw	$0x00, %cx
+ 	movw    $0x00, %dx
+-	movw	$0x140, %di
++	movw	$PARAM_EDID_INFO, %di
+ 	int	$0x10
+ 
+ no_edid:
+@@ -1991,6 +1999,7 @@ no_edid:
+ #endif
+ 	ret
+ 
++#ifdef CONFIG_VIDEO_SELECT
+ # VIDEO_SELECT-only variables
+ mt_end:		.word	0	# End of video mode table if built
+ edit_buf:	.space	6	# Line editor buffer
+@@ -2000,7 +2009,6 @@ do_restore:	.byte	0	# Screen contents al
+ svga_prefix:	.byte	VIDEO_FIRST_BIOS>>8	# Default prefix for BIOS modes
+ graphic_mode:	.byte	0	# Graphic mode with a linear frame buffer
+ dac_size:	.byte	6	# DAC bit depth
+-vbe_version:	.word	0	# VBE bios version
+ 
+ # Status messages
+ keymsg:		.ascii	"Press <RETURN> to see video modes available, "
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-origin.patch
-git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-usb-make-the-usb_device-numa_node-to-get-assigned-from.patch
-quicklist-support-for-x86_64.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-x86_64-get-mp_bus_to_node-as-early-fix.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-support-slub_debug-on-by-default.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-dynamic-interleave-map-for-system-init.patch
-numa-mempolicy-trivial-debug-fixes.patch
-slob-initial-numa-support.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of.patch
-slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
-slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
-slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
-slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
-slab-allocators-support-__gfp_zero-in-all-allocators.patch
-slab-allocators-support-__gfp_zero-in-all-allocators-fix.patch
-slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
-slub-extract-dma_kmalloc_cache-from-get_cache.patch
-slub-do-proper-locking-during-dma-slab-creation.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2.patch
-slub-simplify-dma-index-size-calculation.patch
-mm-slubc-make-code-static.patch
-slub-style-fix-up-the-loop-to-disable-small-slabs.patch
-slub-do-not-use-length-parameter-in-slab_alloc.patch
-slab-allocators-cleanup-zeroing-allocations.patch
-slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
-slub-do-not-allocate-object-bit-array-on-stack.patch
-slub-move-sysfs-operations-outside-of-slub_lock.patch
-slub-fix-config_slub_debug-use-for-config_numa.patch
-add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
-memory-unplug-v7-migration-by-kernel.patch
-memory-unplug-v7-isolate_lru_page-fix.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-dma-make-dma-pool-to-use-kmalloc_node.patch
-revoke-core-code.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-intel-iommu-driver-fix-2.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+retrieve-vbe-edid-ddc-info-independent-of-used-video.patch
+modpost-white-list-pattern-adjustment.patch
+remove-pci_dac_dma_-apis.patch
+more-fix-x86_64-mm-xen-xen-smp-guest-support.patch
+i386-minor-nx-handling-adjustment.patch
+i386-minor-nx-handling-adjustment-fix.patch
+x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch
+x86-64-remove-unused-variable-maxcpus.patch
+mm-fix-improper-init-type-section-references.patch
+page-table-handling-cleanup.patch
+kill-vmalloc_earlyreserve.patch
+adjust-nosmp-handling.patch
