@@ -1,63 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fixup.patch removed from -mm tree
-Date: Sun, 08 Jul 2007 01:06:15 -0700
-Message-ID: <200707080806.l6886Fma014683@imap1.linux-foundation.org>
+Subject: + git-scsi-target-fixup.patch added to -mm tree
+Date: Sun, 08 Jul 2007 01:07:41 -0700
+Message-ID: <200707080807.l6887fH7014707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44228 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38334 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751026AbXGHIGX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:06:23 -0400
+	by vger.kernel.org with ESMTP id S1752308AbXGHIHt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 04:07:49 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6886LNs013846
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6887khI013871
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 8 Jul 2007 01:06:22 -0700
+	for <mm-commits@vger.kernel.org>; Sun, 8 Jul 2007 01:07:47 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-net-fixup
-has been removed from the -mm tree.  Its filename was
-     git-net-fixup.patch
+     git-scsi-target-fixup
+has been added to the -mm tree.  Its filename is
+     git-scsi-target-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-fixup
+Subject: git-scsi-target-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/netpoll.c |    8 --------
- 1 file changed, 8 deletions(-)
+ drivers/infiniband/ulp/srp/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/core/netpoll.c~git-net-fixup net/core/netpoll.c
---- a/net/core/netpoll.c~git-net-fixup
-+++ a/net/core/netpoll.c
-@@ -252,20 +252,12 @@ static void netpoll_send_skb(struct netp
- 		unsigned long flags;
- 
- 		local_irq_save(flags);
--<<<<<<< HEAD/net/core/netpoll.c
--		/* try until next clock tick */
--		for (tries = jiffies_to_usecs(1)/USEC_PER_POLL;
--		     tries > 0; --tries) {
--			if (netif_tx_trylock(dev)) {
--				if (!netif_queue_stopped(dev))
--=======
- 		if (netif_tx_trylock(dev)) {
- 			/* try until next clock tick */
- 			for (tries = jiffies_to_usecs(1)/USEC_PER_POLL;
- 					tries > 0; --tries) {
- 				if (!netif_queue_stopped(dev) &&
- 				    !netif_subqueue_stopped(dev, skb->queue_mapping))
-->>>>>>> /net/core/netpoll.c
- 					status = dev->hard_start_xmit(skb, dev);
- 				netif_tx_unlock(dev);
- 
+diff -puN drivers/infiniband/ulp/srp/Kconfig~git-scsi-target-fixup drivers/infiniband/ulp/srp/Kconfig
+--- a/drivers/infiniband/ulp/srp/Kconfig~git-scsi-target-fixup
++++ a/drivers/infiniband/ulp/srp/Kconfig
+@@ -1,6 +1,7 @@
+ config INFINIBAND_SRP
+ 	tristate "InfiniBand SCSI RDMA Protocol"
+ 	depends on SCSI
++	select SCSI_SRP_ATTRS
+ 	---help---
+ 	  Support for the SCSI RDMA Protocol over InfiniBand.  This
+ 	  allows you to access storage devices that speak SRP over
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,7 +85,6 @@ git-ubi.patch
 git-netdev-all.patch
 git-netdev-all-fixup.patch
 sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-git-net-fixup.patch
 wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
 git-battery-vs-git-acpi.patch
@@ -111,6 +101,7 @@ restore-acpi-change-for-scsi.patch
 git-scsi-misc-vs-greg-sysfs-stuff.patch
 aacraid-rename-check_reset.patch
 scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-scsi-target-fixup.patch
 splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
 git-block-fixup.patch
 git-unionfs.patch
