@@ -1,49 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:20:33 -0700
-Message-ID: <200707091920.l69JKYsD003834@imap1.linux-foundation.org>
+Subject: - i386-do-not-restore-reserved-memory-after-hibernation-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:21:09 -0700
+Message-ID: <200707091921.l69JL90B003852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46165 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53378 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754044AbXGITVG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:21:06 -0400
+	by vger.kernel.org with ESMTP id S1754781AbXGITV1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:21:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, muli@il.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, pavel@ucw.cz, rientjes@google.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix
+     i386-do-not-restore-reserved-memory-after-hibernation-fix
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+     i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
 
-This patch was dropped because it was folded into x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+This patch was dropped because it was folded into i386-do-not-restore-reserved-memory-after-hibernation.patch
 
 ------------------------------------------------------
-Subject: x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix
+Subject: i386-do-not-restore-reserved-memory-after-hibernation-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+SubmitChecklist, section 1.
+
 Cc: Andi Kleen <ak@suse.de>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/e820.c |    2 ++
+ include/asm-i386/e820.h |    7 +++++++
+ 2 files changed, 9 insertions(+)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -1571,7 +1571,7 @@ static void __init calgary_fixup_one_tce
- static int __init calgary_fixup_tce_spaces(void)
- {
- 	struct pci_dev *dev = NULL;
--	void* tce_space;
-+	void *tce_space;
+diff -puN arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation-fix arch/i386/kernel/e820.c
+--- a/arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation-fix
++++ a/arch/i386/kernel/e820.c
+@@ -321,6 +321,7 @@ static int __init request_standard_resou
  
- 	if (no_iommu || swiotlb || !calgary_detected)
- 		return -ENODEV;
+ subsys_initcall(request_standard_resources);
+ 
++#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
+ /**
+  * e820_mark_nosave_regions - Find the ranges of physical addresses that do not
+  * correspond to e820 RAM areas and mark the corresponding pages as nosave for
+@@ -349,6 +350,7 @@ void __init e820_mark_nosave_regions(voi
+ 			break;
+ 	}
+ }
++#endif
+ 
+ void __init add_memory_region(unsigned long long start,
+ 			      unsigned long long size, int type)
+diff -puN include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation-fix include/asm-i386/e820.h
+--- a/include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation-fix
++++ a/include/asm-i386/e820.h
+@@ -44,7 +44,14 @@ extern void register_bootmem_low_pages(u
+ extern void e820_register_memory(void);
+ extern void limit_regions(unsigned long long size);
+ extern void print_memory_map(char *who);
++
++#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
+ extern void e820_mark_nosave_regions(void);
++#else
++static inline void e820_mark_nosave_regions(void)
++{
++}
++#endif
+ 
+ #endif/*!__ASSEMBLY__*/
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,7 +143,7 @@ x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
 x86-64-calgary-introduce-chipset-specific-ops.patch
 x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
 x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
 i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
 paravirt-helper-to-disable-all-io-space-fix.patch
 i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
