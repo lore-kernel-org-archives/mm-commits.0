@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kgdb-build-fix-2.patch added to -mm tree
-Date: Mon, 09 Jul 2007 00:12:48 -0700
-Message-ID: <200707090717.l697H4tJ024814@imap1.linux-foundation.org>
+Subject: + git-dvb-saa7134-tvaudio-fix.patch added to -mm tree
+Date: Mon, 09 Jul 2007 00:30:12 -0700
+Message-ID: <200707090734.l697YQ46025835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44387 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751124AbXGIHRo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 03:17:44 -0400
+	by vger.kernel.org with ESMTP id S1751043AbXGIHek (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 03:34:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     kgdb-build-fix-2
+     git-dvb-saa7134-tvaudio-fix
 has been added to the -mm tree.  Its filename is
-     kgdb-build-fix-2.patch
+     git-dvb-saa7134-tvaudio-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kgdb-build-fix-2
+Subject: git-dvb-saa7134-tvaudio-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allnoconfig:
+drivers/media/video/saa7134/saa7134-tvaudio.c: In function 'saa7134_tvaudio_fini':
+drivers/media/video/saa7134/saa7134-tvaudio.c:1001: error: 'struct saa7134_thread' has no member named 'pid'
+drivers/media/video/saa7134/saa7134-tvaudio.c:1002: error: 'struct saa7134_thread' has no member named 'shutdown'
+drivers/media/video/saa7134/saa7134-tvaudio.c:1003: error: 'struct saa7134_thread' has no member named 'wq'
+drivers/media/video/saa7134/saa7134-tvaudio.c:1004: error: 'struct saa7134_thread' has no member named 'exit'
 
-drivers/serial/8250_kgdb.c: In function 'kgdb8250_uart_init':
-drivers/serial/8250_kgdb.c:176: error: 'BASE_BAUD' undeclared (first use in this function)
-drivers/serial/8250_kgdb.c:176: error: (Each undeclared identifier is reported only once
-drivers/serial/8250_kgdb.c:176: error: for each function it appears in.)
+weird...
 
-But we shouldn't even be compiling this file.
-
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_kgdb.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/video/saa7134/saa7134-tvaudio.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/serial/8250_kgdb.c~kgdb-build-fix-2 drivers/serial/8250_kgdb.c
---- a/drivers/serial/8250_kgdb.c~kgdb-build-fix-2
-+++ a/drivers/serial/8250_kgdb.c
-@@ -25,6 +25,7 @@
- #include <linux/ioport.h>
- #include <linux/io.h>
- #include <linux/serial.h>		/* For BASE_BAUD and SERIAL_PORT_DFNS */
-+#include <asm/serial.h>
- 
- #include "8250.h"
- 
+diff -puN drivers/media/video/saa7134/saa7134-tvaudio.c~git-dvb-saa7134-tvaudio-fix drivers/media/video/saa7134/saa7134-tvaudio.c
+--- a/drivers/media/video/saa7134/saa7134-tvaudio.c~git-dvb-saa7134-tvaudio-fix
++++ a/drivers/media/video/saa7134/saa7134-tvaudio.c
+@@ -998,11 +998,11 @@ int saa7134_tvaudio_init2(struct saa7134
+ int saa7134_tvaudio_fini(struct saa7134_dev *dev)
+ {
+ 	/* shutdown tvaudio thread */
+-	if (dev->thread.pid >= 0) {
+-		dev->thread.shutdown = 1;
+-		wake_up_interruptible(&dev->thread.wq);
+-		wait_for_completion(&dev->thread.exit);
+-	}
++//	if (dev->thread.pid >= 0) {
++//		dev->thread.shutdown = 1;
++//		wake_up_interruptible(&dev->thread.wq);
++//		wait_for_completion(&dev->thread.exit);
++//	}
+ 	saa_andorb(SAA7134_ANALOG_IO_SELECT, 0x07, 0x00); /* LINE1 */
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -158,6 +166,7 @@ kgdb-section-fix.patch
 kgdb_skipexception-warning-fix.patch
 kgdb-ia64-fixes.patch
 kgdb-bust-on-ia64.patch
+kgdb-build-fix-2.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
@@ -289,4 +298,4 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-kgdb-build-fix-2.patch
+git-dvb-saa7134-tvaudio-fix.patch
