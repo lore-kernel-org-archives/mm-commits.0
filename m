@@ -1,51 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:24:02 -0700
-Message-ID: <200707091924.l69JO2Q1004051@imap1.linux-foundation.org>
+Subject: - i386-show-unhandled-signals-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:30:05 -0700
+Message-ID: <200707091930.l69JU5B2004403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52564 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49317 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754210AbXGIT1i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:27:38 -0400
+	by vger.kernel.org with ESMTP id S1754828AbXGITaU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:30:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, ebiederm@xmission.com, jesse.barnes@intel.com, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, masouds@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386-trim-memory-not-covered-by-wb-mtrrs-fix
+     i386-show-unhandled-signals-fix
 has been removed from the -mm tree.  Its filename was
-     i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+     i386-show-unhandled-signals-fix.patch
 
-This patch was dropped because it was folded into i386-trim-memory-not-covered-by-wb-mtrrs.patch
+This patch was dropped because it was folded into i386-show-unhandled-signals.patch
 
 ------------------------------------------------------
-Subject: i386-trim-memory-not-covered-by-wb-mtrrs-fix
+Subject: i386-show-unhandled-signals-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+No new sysctls (I've asked Eric for documentation which explains why)
+
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Jesse Barnes <jesse.barnes@intel.com>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Masoud Sharbiani <masouds@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sysctl.h |    3 ---
+ kernel/sysctl.c        |    2 +-
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~i386-trim-memory-not-covered-by-wb-mtrrs-fix arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~i386-trim-memory-not-covered-by-wb-mtrrs-fix
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -672,7 +672,7 @@ void __init mtrr_trim_uncached_memory(vo
- 			highest_addr = base + size;
- 	}
+diff -puN include/linux/sysctl.h~i386-show-unhandled-signals-fix include/linux/sysctl.h
+--- a/include/linux/sysctl.h~i386-show-unhandled-signals-fix
++++ a/include/linux/sysctl.h
+@@ -835,9 +835,6 @@ enum {
+ };
  
--	if ((highest_addr >> PAGE_SHIFT) != end_pfn) {
-+	if ((highest_addr >> PAGE_SHIFT) < end_pfn) {
- 		printk(KERN_WARNING "***************\n");
- 		printk(KERN_WARNING "**** WARNING: likely BIOS bug\n");
- 		printk(KERN_WARNING "**** MTRRs don't cover all of "
+ /* CTL_DEBUG names: */
+-enum {
+-	DEBUG_UNHANDLED_SIGNALS = 1,
+-};
+ 
+ /* CTL_DEV names: */
+ enum {
+diff -puN kernel/sysctl.c~i386-show-unhandled-signals-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~i386-show-unhandled-signals-fix
++++ a/kernel/sysctl.c
+@@ -1048,7 +1048,7 @@ static ctl_table fs_table[] = {
+ static ctl_table debug_table[] = {
+ #ifdef CONFIG_X86
+ 	{
+-		.ctl_name	= DEBUG_UNHANDLED_SIGNALS,
++		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "show-unhandled-signals",
+ 		.data		= &show_unhandled_signals,
+ 		.maxlen		= sizeof(int),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,8 +132,7 @@ x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
 x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
 i386-do-not-restore-reserved-memory-after-hibernation.patch
 paravirt-helper-to-disable-all-io-space-fix.patch
-i386-trim-memory-not-covered-by-wb-mtrrs.patch
-i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-show-unhandled-signals.patch
 i386-show-unhandled-signals-fix.patch
 x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
 i386-add-cpu_relax-to-cmos_lock-fix.patch
