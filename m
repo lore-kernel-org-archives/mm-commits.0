@@ -1,264 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:41:58 -0700
-Message-ID: <200707092341.l69NfwNV020891@imap1.linux-foundation.org>
+Subject: - lguest-the-host-code-handle-dodgy-non-existent-tsc-guest-code.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:41:55 -0700
+Message-ID: <200707092341.l69Nfu1X020888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35756 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40018 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758873AbXGIXm0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:42:26 -0400
+	by vger.kernel.org with ESMTP id S1759175AbXGIXm2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:42:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, johnstul@us.ibm.com, mpm@selenic.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, johnstul@us.ibm.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix
+     lguest: handle dodgy/non-existent TSC.  Guest code.
 has been removed from the -mm tree.  Its filename was
-     lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix.patch
+     lguest-the-host-code-handle-dodgy-non-existent-tsc-guest-code.patch
 
 This patch was dropped because it was folded into lguest-the-host-code.patch
 
 ------------------------------------------------------
-Subject: lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lguest: handle dodgy/non-existent TSC.  Guest code.
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-arch/x86_64/kernel/tsc.c:24: error: static declaration of 'check_tsc_unstable' follows non-static declaration
-include/asm-i386/tsc.h:66: error: previous declaration of 'check_tsc_unstable' was here
-make[1]: *** [arch/x86_64/kernel/tsc.o] Error 1
-make: *** [arch/x86_64/kernel/tsc.o] Error 2
+We create an "lguest_clock" which the guest uses: either TSC or jiffies,
+depending on whether the host tells us the TSC frequency.
 
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Cc: john stultz <johnstul@us.ibm.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/tsc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/lguest/lguest.c |   51 +++++++++++++++++++-------------------
+ 1 files changed, 26 insertions(+), 25 deletions(-)
 
-diff -puN arch/x86_64/kernel/tsc.c~lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix arch/x86_64/kernel/tsc.c
---- a/arch/x86_64/kernel/tsc.c~lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix
-+++ a/arch/x86_64/kernel/tsc.c
-@@ -20,7 +20,7 @@ EXPORT_SYMBOL(tsc_khz);
- 
- static int tsc_unstable;
- 
--static inline int check_tsc_unstable(void)
-+inline int check_tsc_unstable(void)
- {
- 	return tsc_unstable;
+diff -puN drivers/lguest/lguest.c~lguest-the-host-code-handle-dodgy-non-existent-tsc-guest-code drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-host-code-handle-dodgy-non-existent-tsc-guest-code
++++ a/drivers/lguest/lguest.c
+@@ -212,8 +212,8 @@ static void lguest_cpuid(unsigned int *e
+ 	case 1:	/* Basic feature request. */
+ 		/* We only allow kernel to see SSE3, CMPXCHG16B and SSSE3 */
+ 		*ecx &= 0x00002201;
+-		/* SSE, SSE2, FXSR, MMX, CMOV, CMPXCHG8B, TSC, FPU. */
+-		*edx &= 0x07808111;
++		/* SSE, SSE2, FXSR, MMX, CMOV, CMPXCHG8B, FPU. */
++		*edx &= 0x07808101;
+ 		/* Host wants to know when we flush kernel pages: set PGE. */
+ 		*edx |= 0x00002000;
+ 		break;
+@@ -348,16 +348,19 @@ static unsigned long lguest_get_wallcloc
+ 	return hcall(LHCALL_GET_WALLCLOCK, 0, 0, 0);
  }
+ 
+-/* This is what we tell the kernel is our clocksource.  It's the normal "Time
+- * Stamp Counter": the Host tells us what speed it's going at. */
++static cycle_t lguest_clock_read(void)
++{
++	if (lguest_data.tsc_khz)
++		return native_read_tsc();
++	else
++		return jiffies;
++}
++
++/* This is what we tell the kernel is our clocksource.  */
+ static struct clocksource lguest_clock = {
+ 	.name		= "lguest",
+ 	.rating		= 400,
+-	.read		= native_read_tsc,
+-	.mask		= CLOCKSOURCE_MASK(64),
+-	.mult		= 0, /* to be set */
+-	.shift		= 22,
+-	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
++	.read		= lguest_clock_read,
+ };
+ 
+ /* We also need a "struct clock_event_device": Linux asks us to set it to go
+@@ -414,14 +417,6 @@ static void lguest_time_irq(unsigned int
+ {
+ 	unsigned long flags;
+ 
+-	/* Check in case host TSC has changed rate. */
+-	if (unlikely(tsc_khz != lguest_data.tsc_khz)) {
+-		tsc_khz = lguest_data.tsc_khz;
+-		lguest_clock.mult = clocksource_khz2mult(tsc_khz, 22);
+-		__get_cpu_var(sc_data).cyc2ns_scale
+-			= (1000000 << CYC2NS_SCALE_FACTOR) / tsc_khz;
+-	}
+-
+ 	/* Don't interrupt us while this is running. */
+ 	local_irq_save(flags);
+ 	lguest_clockevent.event_handler(&lguest_clockevent);
+@@ -432,7 +427,20 @@ static void lguest_time_init(void)
+ {
+ 	set_irq_handler(0, lguest_time_irq);
+ 
+-	lguest_clock.mult = clocksource_khz2mult(tsc_khz, 22);
++	/* We use the TSC if the Host tells us we can, otherwise a dumb
++	 * jiffies-based clock. */
++	if (lguest_data.tsc_khz) {
++		lguest_clock.shift = 22;
++		lguest_clock.mult = clocksource_khz2mult(lguest_data.tsc_khz,
++							 lguest_clock.shift);
++		lguest_clock.mask = CLOCKSOURCE_MASK(64);
++		lguest_clock.flags = CLOCK_SOURCE_IS_CONTINUOUS;
++	} else {
++		/* To understand this, start at kernel/time/jiffies.c... */
++		lguest_clock.shift = 8;
++		lguest_clock.mult = (((u64)NSEC_PER_SEC<<8)/ACTHZ) << 8;
++		lguest_clock.mask = CLOCKSOURCE_MASK(32);
++	}
+ 	clocksource_register(&lguest_clock);
+ 
+ 	/* We can't set cpumask in the initializer: damn C limitations! */
+@@ -442,12 +450,6 @@ static void lguest_time_init(void)
+ 	enable_lguest_irq(0);
+ }
+ 
+-static unsigned long lguest_get_cpu_khz(void)
+-{
+-	/* The Host tells us the TSC speed */
+-	return lguest_data.tsc_khz;
+-}
+-
+ static void lguest_load_esp0(struct tss_struct *tss,
+ 				     struct thread_struct *thread)
+ {
+@@ -584,7 +586,6 @@ __init void lguest_init(void *boot)
+ 	paravirt_ops.time_init = lguest_time_init;
+ 	paravirt_ops.set_lazy_mode = lguest_lazy_mode;
+ 	paravirt_ops.wbinvd = lguest_wbinvd;
+-	paravirt_ops.get_cpu_khz = lguest_get_cpu_khz;
+ 
+ 	hcall(LHCALL_LGUEST_INIT, __pa(&lguest_data), 0, 0);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-git-acpi.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
 git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-md-accel.patch
-git-mips-fixup.patch
-git-mtd.patch
-mtd-onenand-build-fix.patch
-git-ubi.patch
-git-netdev-all.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-battery-vs-git-acpi.patch
-git-ioat-vs-git-md-accel.patch
-revert-gregkh-pci-pci_bridge-device.patch
-fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-revert-acpi-change-for-scsi.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-restore-acpi-change-for-scsi.patch
-git-scsi-misc-vs-greg-sysfs-stuff.patch
-aacraid-rename-check_reset.patch
-git-scsi-target-fixup.patch
-splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
 paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-kgdb-fixup.patch
-kgdb-warning-fix.patch
-kgdb-kconfig-fix.patch
-kgdb-use-new-style-interrupt-flags.patch
-kgdb-section-fix.patch
-kgdb_skipexception-warning-fix.patch
-kgdb-ia64-fixes.patch
-kgdb-bust-on-ia64.patch
-kgdb-build-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
 mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-fix-alpha-isa-support.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-use-write_trylock_irqsave-in-ptrace_attach.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time.patch
-use-boot-based-time-for-process-start-time-and-boot-time.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
+use-menuconfig-objects-ii-module-menu.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
 cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-vdso-print-fatal-signals.patch
-o_cloexec-for-scm_rights.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each.patch
-ext3-ext4-orphan-list-check-on-destroy_inode.patch
-taskstats-add-context-switch-counters.patch
-improve-behaviour-of-spurious-irq-detect.patch
-audit-add-tty-input-auditing.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-diskquota-32bit-quota-tools-on-64bit-architectures.patch
-sys_time-speedup.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc.patch
-bd_claim_by_disk-fix-warning.patch
-uninline-check_signature.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support.patch
-spi-master-driver-for-xilinx-virtex.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup.patch
-knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-remove-iget-abuse.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-add-support-for-the-st-m48t59-rtc.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
-rtc-driver-for-ds1216-chips-fix.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
+modules-remove-modlist_lock.patch
+permit-mempool_freenull.patch
+lguest-export-symbols-for-lguest-as-a-module.patch
+lguest-the-guest-code.patch
 lguest-the-host-code.patch
+lguest-the-host-code-handle-dodgy-non-existent-tsc-guest-code.patch
 lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-console-driver.patch
 lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-intel-iommu-driver-fix-2.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-git-block-vs-reiser4.patch
-allow-page_owner-to-be-set-on-any-architecture-fix.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+lguest-the-block-driver.patch
+lguest-the-documentation-example-launcher.patch
+lguest-the-documentation-example-launcher-fix-guests-1g.patch
+readahead-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-min_ra_pages-max_ra_pages-macros.patch
+readahead-data-structure-and-routines.patch
+readahead-on-demand-readahead-logic.patch
+readahead-convert-filemap-invocations.patch
+readahead-convert-splice-invocations.patch
+readahead-convert-ext3-ext4-invocations.patch
+readahead-remove-the-old-algorithm.patch
+readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
+readahead-pass-real-splice-size.patch
+mm-share-pg_readahead-and-pg_reclaim.patch
+readahead-split-ondemand-readahead-interface-into-two-functions.patch
+readahead-sanify-file_ra_state-names.patch
+define-new-percpu-interface-for-shared-data-version-4.patch
+use-the-new-percpu-interface-for-shared-data-version-4.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
