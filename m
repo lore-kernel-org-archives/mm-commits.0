@@ -1,144 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-get-mp_bus_to_node-as-early-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:34:50 -0700
-Message-ID: <200707091934.l69JYpNn004663@imap1.linux-foundation.org>
+Subject: - ntp-move-the-cmos-update-code-into-ntpc-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:34:05 -0700
+Message-ID: <200707091934.l69JY5V9004627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47851 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40907 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755635AbXGITfH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:35:07 -0400
+	by vger.kernel.org with ESMTP id S1755308AbXGITfG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:35:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, rientjes@google.com, yinghai.lu@sun.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chrisw@sous-sol.org, davem@davemloft.net, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64-get-mp_bus_to_node-as-early-fix
+     ntp-move-the-cmos-update-code-into-ntpc-fix
 has been removed from the -mm tree.  Its filename was
-     x86_64-get-mp_bus_to_node-as-early-fix.patch
+     ntp-move-the-cmos-update-code-into-ntpc-fix.patch
 
-This patch was dropped because it was folded into x86_64-get-mp_bus_to_node-as-early.patch
+This patch was dropped because it was folded into ntp-move-the-cmos-update-code-into-ntpc.patch
 
 ------------------------------------------------------
-Subject: x86_64-get-mp_bus_to_node-as-early-fix
+Subject: ntp-move-the-cmos-update-code-into-ntpc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-scripts/checkpatch.pl says:
+alpha:
 
-printk() should include KERN_ facility level
-#119: FILE: arch/i386/pci/acpi.c:25:
-+		printk("bus %02x -> pxm %d -> node %02x\n", busnum, pxm, node);
+include/linux/time.h:97: error: expected '=', ',', ';', 'asm' or '__attribute__' before '__read_mostly'
 
-line over 80 characters
-#149: FILE: arch/i386/pci/common.c:310:
-+	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x) with (node %02lx)\n", busnum, node);
-
-Use #include <linux/topology.h> instead of <asm/topology.h>
-#213: FILE: arch/x86_64/pci/k8-bus.c:6:
-+#include <asm/topology.h>
-
-line over 80 characters
-#317: FILE: arch/x86_64/pci/k8-bus.c:100:
-+					mp_bus_to_node[j] = (unsigned char) node;
-
-need spaces around that '=' (ctx:VxV)
-#323: FILE: arch/x86_64/pci/k8-bus.c:106:
-+	for (i=0; i<BUS_NR; i++) {
-              ^
-
-need spaces around that '<' (ctx:VxV)
-#323: FILE: arch/x86_64/pci/k8-bus.c:106:
-+	for (i=0; i<BUS_NR; i++) {
-                   ^
-
-Use #include <linux/topology.h> instead of <asm/topology.h>
-#387: FILE: arch/i386/pci/mp_bus_to_node.c:3:
-+#include <asm/topology.h>
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/acpi.c           |    3 ++-
- arch/i386/pci/common.c         |    3 ++-
- arch/i386/pci/mp_bus_to_node.c |    2 +-
- arch/x86_64/pci/k8-bus.c       |    6 +++---
- 4 files changed, 8 insertions(+), 6 deletions(-)
+ include/linux/time.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/pci/acpi.c~x86_64-get-mp_bus_to_node-as-early-fix arch/i386/pci/acpi.c
---- a/arch/i386/pci/acpi.c~x86_64-get-mp_bus_to_node-as-early-fix
-+++ a/arch/i386/pci/acpi.c
-@@ -22,7 +22,8 @@ struct pci_bus * __devinit pci_acpi_scan
- 	pxm = acpi_get_pxm(device->handle);
- 	if (pxm >= 0) {
- 		node  = pxm_to_node(pxm);
--		printk("bus %02x -> pxm %d -> node %02x\n", busnum, pxm, node);
-+		printk(KERN_INFO "bus %02x -> pxm %d -> node %02x\n",
-+			busnum, pxm, node);
- 		set_mp_bus_to_node(busnum, node);
- 	}
- #endif
-diff -puN arch/i386/pci/common.c~x86_64-get-mp_bus_to_node-as-early-fix arch/i386/pci/common.c
---- a/arch/i386/pci/common.c~x86_64-get-mp_bus_to_node-as-early-fix
-+++ a/arch/i386/pci/common.c
-@@ -307,7 +307,8 @@ struct pci_bus * __devinit pcibios_scan_
- 	node = get_mp_bus_to_node(busnum);
+diff -puN include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix include/linux/time.h
+--- a/include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix
++++ a/include/linux/time.h
+@@ -2,6 +2,7 @@
+ #define _LINUX_TIME_H
  
- #ifdef CONFIG_NUMA
--	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x) with (node %02lx)\n", busnum, node);
-+	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x) with "
-+		"(node %02lx)\n", busnum, node);
- #else
- 	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x)\n", busnum);
- #endif
-diff -puN arch/i386/pci/mp_bus_to_node.c~x86_64-get-mp_bus_to_node-as-early-fix arch/i386/pci/mp_bus_to_node.c
---- a/arch/i386/pci/mp_bus_to_node.c~x86_64-get-mp_bus_to_node-as-early-fix
-+++ a/arch/i386/pci/mp_bus_to_node.c
-@@ -1,6 +1,6 @@
- #include <linux/pci.h>
- #include <linux/init.h>
--#include <asm/topology.h>
-+#include <linux/topology.h>
+ #include <linux/types.h>
++#include <linux/cache.h>
  
- #define BUS_NR 256
- 
-diff -puN arch/x86_64/pci/k8-bus.c~x86_64-get-mp_bus_to_node-as-early-fix arch/x86_64/pci/k8-bus.c
---- a/arch/x86_64/pci/k8-bus.c~x86_64-get-mp_bus_to_node-as-early-fix
-+++ a/arch/x86_64/pci/k8-bus.c
-@@ -3,7 +3,7 @@
- #include <asm/pci-direct.h>
- #include <asm/mpspec.h>
- #include <linux/cpumask.h>
--#include <asm/topology.h>
-+#include <linux/topology.h>
- 
- /*
-  * This discovers the pcibus <-> node mapping on AMD K8.
-@@ -97,13 +97,13 @@ early_fill_mp_bus_to_node(void)
- 				     j <= SUBORDINATE_LDT_BUS_NUMBER(ldtbus);
- 				     j++) {
- 					int node = NODE_ID(nid);
--					mp_bus_to_node[j] = (unsigned char) node;
-+					mp_bus_to_node[j] = node;
- 				}
- 			}
- 		}
- 	}
- 
--	for (i=0; i<BUS_NR; i++) {
-+	for (i = 0; i < BUS_NR; i++) {
- 		int node = mp_bus_to_node[i];
- 		if (node)
- 			printk(KERN_DEBUG "bus: %02x to node: %02x\n", i, node);
+ #ifdef __KERNEL__
+ # include <linux/seqlock.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -216,8 +128,9 @@ i386-add-cpu_relax-to-cmos_lock.patch
 x86_64-flush_tlb_kernel_range-warning-fix.patch
 x86_64-add-ioapic-nmi-support.patch
 ntp-move-the-cmos-update-code-into-ntpc.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
 x86_64-get-mp_bus_to_node-as-early-fix.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
