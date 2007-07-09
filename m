@@ -1,151 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: + revert-retrieve-vbe-edid-ddc-info-independent-of-used-video.patch added to -mm tree
-Date: Sun, 08 Jul 2007 12:00:38 -0700
-Message-ID: <200707081900.l68J0cvp016794@imap1.linux-foundation.org>
+Subject: - git-netdev-all-fixup.patch removed from -mm tree
+Date: Sun, 08 Jul 2007 23:25:06 -0700
+Message-ID: <200707090625.l696P7s4021937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46586 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38313 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754694AbXGHTBV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 8 Jul 2007 15:01:21 -0400
+	by vger.kernel.org with ESMTP id S1751290AbXGIGZO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 02:25:14 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l68J0hdN003909
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l696PCFO024962
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 8 Jul 2007 12:00:44 -0700
+	for <mm-commits@vger.kernel.org>; Sun, 8 Jul 2007 23:25:13 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert retrieve-vbe-edid-ddc-info-independent-of-used-video
-has been added to the -mm tree.  Its filename is
-     revert-retrieve-vbe-edid-ddc-info-independent-of-used-video.patch
+     git-netdev-all-fixup
+has been removed from the -mm tree.  Its filename was
+     git-netdev-all-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert retrieve-vbe-edid-ddc-info-independent-of-used-video
+Subject: git-netdev-all-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/boot/video.S |   28 ++++++++++------------------
- 1 file changed, 10 insertions(+), 18 deletions(-)
+ drivers/misc/Kconfig |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/i386/boot/video.S~revert-retrieve-vbe-edid-ddc-info-independent-of-used-video arch/i386/boot/video.S
---- a/arch/i386/boot/video.S~revert-retrieve-vbe-edid-ddc-info-independent-of-used-video
-+++ a/arch/i386/boot/video.S
-@@ -96,7 +96,6 @@
- #define PARAM_LFB_PAGES		0x32
- #define PARAM_VESA_ATTRIB	0x34
- #define PARAM_CAPABILITIES	0x36
--#define PARAM_EDID_INFO		0x140
+diff -puN drivers/misc/Kconfig~git-netdev-all-fixup drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~git-netdev-all-fixup
++++ a/drivers/misc/Kconfig
+@@ -187,8 +187,6 @@ config THINKPAD_ACPI_BAY
  
- /* Define DO_STORE according to CONFIG_VIDEO_RETAIN */
- #ifdef CONFIG_VIDEO_RETAIN
-@@ -133,8 +132,8 @@ vid1:
- #ifdef CONFIG_VIDEO_RETAIN
- 	call	restore_screen			# Restore screen contents
- #endif /* CONFIG_VIDEO_RETAIN */
--#endif /* CONFIG_VIDEO_SELECT */
- 	call	store_edid
-+#endif /* CONFIG_VIDEO_SELECT */
- 	call	mode_params			# Store mode parameters
- 	popw	%ds				# Restore original DS
- 	ret
-@@ -572,12 +571,16 @@ setr1:	lodsw
- 	jmp	_m_s
+ 	  If you are not sure, say Y here.
  
- check_vesa:
-+#ifdef CONFIG_FIRMWARE_EDID
- 	leaw	modelist+1024, %di
- 	movw	$0x4f00, %ax
- 	int	$0x10
- 	cmpw	$0x004f, %ax
- 	jnz	setbad
+-<<<<<<< HEAD/drivers/misc/Kconfig
+-=======
+ config BLINK
+ 	tristate "Keyboard blink driver"
+ 	help
+@@ -202,6 +200,5 @@ config EEPROM_93CX6
+ 	---help---
+ 	  This is a driver for the EEPROM chipsets 93c46 and 93c66.
+ 	  The driver supports both read as well as write commands.
+->>>>>>> /drivers/misc/Kconfig
  
-+	movw	4(%di), %ax
-+	movw	%ax, vbe_version
-+#endif
- 	leaw	modelist+1024, %di
- 	subb	$VIDEO_FIRST_VESA>>8, %bh
- 	movw	%bx, %cx			# Get mode information structure
-@@ -1932,7 +1935,6 @@ skip10:	movb	%ah, %al
- 	popw	%cx
- 	popw	%ax
- 	ret
--#endif /* CONFIG_VIDEO_SELECT */
- 
- store_edid:
- #ifdef CONFIG_FIRMWARE_EDID
-@@ -1943,28 +1945,18 @@ store_edid:
- 	pushw	%dx
- 	pushw   %di
- 
--	pushw	%ds
--	popw    %es
--	leaw	modelist, %di
--	movw	$0x4f00, %ax
--	int	$0x10
--	cmpw	$0x004f, %ax
--	setne	%dl
--	cmpw	$0x0200, 4(%di)			# only do EDID on >= VBE2.0
--	adc	%dl, %dl
--
- 	pushw	%fs
- 	popw    %es
- 
- 	movl	$0x13131313, %eax		# memset block with 0x13
- 	movw    $32, %cx
--	movw	$PARAM_EDID_INFO, %di
-+	movw	$0x140, %di
- 	cld
- 	rep
- 	stosl
- 
--	testb	%dl, %dl
--	jnz	no_edid
-+	cmpw	$0x0200, vbe_version		# only do EDID on >= VBE2.0
-+	jl	no_edid
- 
- 	pushw   %es				# save ES
- 	xorw    %di, %di                        # Report Capability
-@@ -1986,7 +1978,7 @@ store_edid:
- 	movw	$0x01, %bx
- 	movw	$0x00, %cx
- 	movw    $0x00, %dx
--	movw	$PARAM_EDID_INFO, %di
-+	movw	$0x140, %di
- 	int	$0x10
- 
- no_edid:
-@@ -1999,7 +1991,6 @@ no_edid:
- #endif
- 	ret
- 
--#ifdef CONFIG_VIDEO_SELECT
- # VIDEO_SELECT-only variables
- mt_end:		.word	0	# End of video mode table if built
- edit_buf:	.space	6	# Line editor buffer
-@@ -2009,6 +2000,7 @@ do_restore:	.byte	0	# Screen contents al
- svga_prefix:	.byte	VIDEO_FIRST_BIOS>>8	# Default prefix for BIOS modes
- graphic_mode:	.byte	0	# Graphic mode with a linear frame buffer
- dac_size:	.byte	6	# DAC bit depth
-+vbe_version:	.word	0	# VBE bios version
- 
- # Status messages
- keymsg:		.ascii	"Press <RETURN> to see video modes available, "
+ endmenu
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 git-acpi.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
@@ -234,7 +145,6 @@ x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 x86_64-get-mp_bus_to_node-as-early-fix.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-revert-retrieve-vbe-edid-ddc-info-independent-of-used-video.patch
 git-newsetup-fixup.patch
 git-xfs.patch
 git-cryptodev.patch
@@ -378,4 +288,3 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-revert-retrieve-vbe-edid-ddc-info-independent-of-used-video.patch
