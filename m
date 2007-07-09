@@ -1,49 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 15:03:00 -0700
-Message-ID: <200707092203.l69M30Te015052@imap1.linux-foundation.org>
+Subject: - replace-obscure-constructs-in-fs-block_devc-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 15:04:06 -0700
+Message-ID: <200707092204.l69M47O1015149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51986 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36462 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756232AbXGIWDT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 18:03:19 -0400
+	by vger.kernel.org with ESMTP id S1755495AbXGIWES (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 18:04:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, duaneg@dghda.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, B.Steinbrink@gmx.de, hannes-kernel@saeurebad.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hfs-refactor-ascii-to-unicode-conversion-routine-fix
+     replace-obscure-constructs-in-fs-block_devc-fix
 has been removed from the -mm tree.  Its filename was
-     hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
+     replace-obscure-constructs-in-fs-block_devc-fix.patch
 
-This patch was dropped because it was folded into hfs-refactor-ascii-to-unicode-conversion-routine.patch
+This patch was dropped because it was folded into replace-obscure-constructs-in-fs-block_devc.patch
 
 ------------------------------------------------------
-Subject: hfs-refactor-ascii-to-unicode-conversion-routine-fix
+Subject: replace-obscure-constructs-in-fs-block_devc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Duane Griffin <duaneg@dghda.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Bjorn Steinbrink <B.Steinbrink@gmx.de>
+Cc: Johannes Weiner <hannes-kernel@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/unicode.c |    2 ++
- 1 files changed, 2 insertions(+)
+ fs/block_dev.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/unicode.c~hfs-refactor-ascii-to-unicode-conversion-routine-fix fs/hfsplus/unicode.c
---- a/fs/hfsplus/unicode.c~hfs-refactor-ascii-to-unicode-conversion-routine-fix
-+++ a/fs/hfsplus/unicode.c
-@@ -281,6 +281,8 @@ static inline u16 *decompose_unichar(wch
+diff -puN fs/block_dev.c~replace-obscure-constructs-in-fs-block_devc-fix fs/block_dev.c
+--- a/fs/block_dev.c~replace-obscure-constructs-in-fs-block_devc-fix
++++ a/fs/block_dev.c
+@@ -903,7 +903,7 @@ static int add_bd_holder(struct block_de
+ 	}
  
- 	off = hfsplus_decompose_table[off + (uc & 0xf)];
- 	*size = off & 3;
-+	if (*size == 0)
-+		return NULL;
- 	return hfsplus_decompose_table + (off / 4);
+ 	list_add_tail(&bo->list, &bdev->bd_holder_list);
+-	return err;
++	return 0;
  }
  
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -190,8 +190,8 @@ sys_time-speedup.patch
 add-documentation-sysctl-ctl_unnumberedtxt.patch
 sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
 hfs-refactor-ascii-to-unicode-conversion-routine.patch
-hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
 sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc.patch
 replace-obscure-constructs-in-fs-block_devc-fix.patch
 bd_claim_by_disk-fix-warning.patch
 uninline-check_signature.patch
