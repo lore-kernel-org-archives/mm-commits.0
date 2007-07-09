@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-introduce-chipset-specific-ops-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:18:53 -0700
-Message-ID: <200707091918.l69JIr3U003702@imap1.linux-foundation.org>
+Subject: - x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:20:03 -0700
+Message-ID: <200707091920.l69JK4xw003829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43746 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59663 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754265AbXGITTe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:19:34 -0400
+	by vger.kernel.org with ESMTP id S1752917AbXGITUq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:20:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ak@suse.de, muli@il.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64-calgary-introduce-chipset-specific-ops-fix
+     x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+     x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
 
-This patch was dropped because it was folded into x86-64-calgary-introduce-chipset-specific-ops.patch
+This patch was dropped because it was folded into x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
 
 ------------------------------------------------------
-Subject: x86-64-calgary-introduce-chipset-specific-ops-fix
+Subject: x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Andi Kleen <ak@suse.de>
@@ -32,17 +32,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  arch/x86_64/kernel/pci-calgary.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-introduce-chipset-specific-ops-fix arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-introduce-chipset-specific-ops-fix
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix
 +++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -158,7 +158,7 @@ struct calgary_bus_info {
- static void calgary_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
- static void calgary_tce_cache_blast(struct iommu_table *tbl);
- 
--struct cal_chipset_ops calgary_chip_ops = {
-+static struct cal_chipset_ops calgary_chip_ops = {
- 	.handle_quirks = calgary_handle_quirks,
+@@ -166,7 +166,7 @@ static struct cal_chipset_ops calgary_ch
  	.tce_cache_blast = calgary_tce_cache_blast
+ };
+ 
+-struct cal_chipset_ops calioc2_chip_ops = {
++static struct cal_chipset_ops calioc2_chip_ops = {
+ 	.handle_quirks = calioc2_handle_quirks,
+ 	.tce_cache_blast = NULL
  };
 _
 
@@ -111,7 +111,7 @@ i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
 mmconfig-validate-against-acpi-motherboard-resources.patch
 x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
 x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
 x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
 x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
 i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
