@@ -1,53 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - i386-add-cpu_relax-to-cmos_lock-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:31:58 -0700
-Message-ID: <200707091931.l69JVxUw004440@imap1.linux-foundation.org>
+Subject: - x86_64-add-ioapic-nmi-support-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:32:31 -0700
+Message-ID: <200707091932.l69JWWY0004520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36420 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50782 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754563AbXGITcL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:32:11 -0400
+	by vger.kernel.org with ESMTP id S1755071AbXGITcm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:32:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, andi@lisas.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, jpk@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386-add-cpu_relax-to-cmos_lock-fix
+     x86_64-add-ioapic-nmi-support-fix
 has been removed from the -mm tree.  Its filename was
-     i386-add-cpu_relax-to-cmos_lock-fix.patch
+     x86_64-add-ioapic-nmi-support-fix.patch
 
-This patch was dropped because it was folded into i386-add-cpu_relax-to-cmos_lock.patch
+This patch was dropped because it was folded into x86_64-add-ioapic-nmi-support.patch
 
 ------------------------------------------------------
-Subject: i386-add-cpu_relax-to-cmos_lock-fix
+Subject: x86_64-add-ioapic-nmi-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Include the header file for cpu_relax().
-
-(might break the build, who knows.  WHy the heck is the whole damn kernel
-inlined anwyay?)
-
+Cc: John Keller <jpk@sgi.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Andreas Mohr <andi@lisas.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/mc146818rtc.h |    1 +
- 1 files changed, 1 insertion(+)
+ arch/x86_64/kernel/io_apic.c |    6 ++----
+ arch/x86_64/kernel/mpparse.c |    2 +-
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-i386/mc146818rtc.h~i386-add-cpu_relax-to-cmos_lock-fix include/asm-i386/mc146818rtc.h
---- a/include/asm-i386/mc146818rtc.h~i386-add-cpu_relax-to-cmos_lock-fix
-+++ a/include/asm-i386/mc146818rtc.h
-@@ -6,6 +6,7 @@
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-add-ioapic-nmi-support-fix arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-add-ioapic-nmi-support-fix
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -379,8 +379,7 @@ static void clear_IO_APIC_pin(unsigned i
+ 	 * or NMI pin.
+ 	 */
+ 	entry = ioapic_read_entry(apic, pin);
+-	if ((entry.delivery_mode == dest_SMI) ||
+-	    (entry.delivery_mode == dest_NMI))
++	if (entry.delivery_mode == dest_SMI || entry.delivery_mode == dest_NMI)
+ 		return;
+ 	/*
+ 	 * Disable it in the IO-APIC irq-routing table:
+@@ -1211,9 +1210,8 @@ static void __init enable_IO_APIC(void)
+ 				continue;
+ 			}
  
- #include <asm/io.h>
- #include <asm/system.h>
-+#include <asm/processor.h>
- #include <linux/mc146818rtc.h>
+-			if (entry.delivery_mode == dest_NMI) {
++			if (entry.delivery_mode == dest_NMI)
+ 				setup_ioapic_nmi_irq(apic, pin, &entry);
+-			}
+ 		}
+ 	}
  
- #ifndef RTC_PORT
+diff -puN arch/x86_64/kernel/mpparse.c~x86_64-add-ioapic-nmi-support-fix arch/x86_64/kernel/mpparse.c
+--- a/arch/x86_64/kernel/mpparse.c~x86_64-add-ioapic-nmi-support-fix
++++ a/arch/x86_64/kernel/mpparse.c
+@@ -671,7 +671,7 @@ int mp_apic_pin_to_gsi(int apic, int pin
+                 return -1;
+         }
+ 
+-        return (mp_ioapic_routing[apic].gsi_start + pin);
++        return mp_ioapic_routing[apic].gsi_start + pin;
+ }
+ 
+ void __init mp_register_ioapic(u8 id, u32 address, u32 gsi_base)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,8 +144,8 @@ paravirt-helper-to-disable-all-io-space-fix.patch
 i386-show-unhandled-signals.patch
 x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
 i386-add-cpu_relax-to-cmos_lock.patch
-i386-add-cpu_relax-to-cmos_lock-fix.patch
 x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support.patch
 x86_64-add-ioapic-nmi-support-fix.patch
 x86_64-add-ioapic-nmi-support-fix-2.patch
 highres-improve-debug-output-fix.patch
