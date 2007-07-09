@@ -1,121 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:43:53 -0700
-Message-ID: <200707092343.l69NhrZ4021005@imap1.linux-foundation.org>
+Subject: - fbcon-allow-fbcon-to-use-the-primary-display-driver-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:44:39 -0700
+Message-ID: <200707092344.l69NidFs021086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33369 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56175 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759532AbXGIXoK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:44:10 -0400
+	by vger.kernel.org with ESMTP id S1759005AbXGIXoq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:44:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, adaplas@pol.net, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix include/asm-m68k/fb.h
+     fbcon: Allow fbcon to use the primary display driver fix
 has been removed from the -mm tree.  Its filename was
-     fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
+     fbcon-allow-fbcon-to-use-the-primary-display-driver-fix.patch
 
-This patch was dropped because it was folded into fbdev-move-arch-specific-bits-to-their-respective.patch
+This patch was dropped because it was folded into fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
 
 ------------------------------------------------------
-Subject: fix include/asm-m68k/fb.h
-From: Adrian Bunk <bunk@stusta.de>
+Subject: fbcon: Allow fbcon to use the primary display driver fix
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+unbind_con_driver() should be EXPORT_SYBOL.
+
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68k/fb.h |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/char/vt.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-m68k/fb.h~fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh include/asm-m68k/fb.h
---- a/include/asm-m68k/fb.h~fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh
-+++ a/include/asm-m68k/fb.h
-@@ -14,6 +14,7 @@ static inline void fb_pgprotect(struct f
- #else
- static inline void fb_pgprotect(struct file *file, struct vm_area_struct *vma,
- 				unsigned long off)
-+{
- 	if (CPU_IS_020_OR_030)
- 		pgprot_val(vma->vm_page_prot) |= _PAGE_NOCACHE030;
- 	if (CPU_IS_040_OR_060) {
+diff -puN drivers/char/vt.c~fbcon-allow-fbcon-to-use-the-primary-display-driver-fix drivers/char/vt.c
+--- a/drivers/char/vt.c~fbcon-allow-fbcon-to-use-the-primary-display-driver-fix
++++ a/drivers/char/vt.c
+@@ -2968,6 +2968,7 @@ err:
+ 	module_put(owner);
+ 	return retval;
+ };
++EXPORT_SYMBOL(bind_con_driver);
+ 
+ #ifdef CONFIG_VT_HW_CONSOLE_BINDING
+ static int con_is_graphics(const struct consw *csw, int first, int last)
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
-git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-hwmon.patch
-git-input.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-bonding-bond_mainc-make-2-functions-static.patch
-net-make-struct-dccp_li_cachep-static.patch
-git-battery.patch
-git-selinux.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-arch-i386-xen-mmuc-must-include-linux-schedh.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-xen-fix-x86-config-dependencies.patch
-xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
-xen-cant-support-numa-yet.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-mm-slubc-make-code-static.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-more-scheduled-oss-driver-removal.patch
-init-wait-for-asynchronously-scanned-block-devices.patch
-kernel-utf-8-handling.patch
-remove-sonypi_camera_command.patch
-fs-namespacec-should-include-internalh.patch
-proper-prototype-for-proc_nr_files.patch
-fs-reiserfs-cleanups.patch
-remove-mm-backing-devccongestion_wait_interruptible.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
+git-newsetup.patch
+fbcon-smart-blitter-usage-for-scrolling.patch
+nvidiafb-adjust-flags-to-take-advantage-of-new-scroll-method.patch
+fbcon-cursor-blink-control.patch
+fbcon-use-struct-device-instead-of-struct-class_device.patch
 fbdev-move-arch-specific-bits-to-their-respective.patch
-fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
+fbdev-detect-primary-display-device.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+radeonfb-add-support-for-radeon-xpress-200m-rs485.patch
+nvidiafb-add-proper-support-for-geforce-7600-chipset.patch
+pm2fb-white-spaces-clean-up.patch
+fbcon-set_con2fb_map-fixes.patch
+fbcon-revise-primary-device-selection.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+vt-add-comment-for-unbind_con_driver.patch
+68328fb-the-pseudo_palette-is-only-16-elements-long.patch
+controlfb-the-pseudo_palette-is-only-16-elements-long.patch
+cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
+epson1355fb-color-setting-fixes.patch
+fm2fb-the-pseudo_palette-is-only-16-elements-long.patch
+gbefb-the-pseudo_palette-is-only-16-elements-long.patch
+macfb-fix-pseudo_palette-size-and-overrun.patch
+offb-the-pseudo_palette-is-only-16-elements-long.patch
+platinumfb-the-pseudo_palette-is-only-16-elements.patch
+pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+q40fb-the-pseudo_palette-is-only-16-elements-long.patch
+sgivwfb-the-pseudo_palette-is-only-16-elements-long.patch
+tgafb-actually-allocate-memory-for-the-pseudo_palette.patch
+tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
+tx3912fb-fix-improper-assignment-of-info-pseudo_palette.patch
+atyfb-the-pseudo_palette-is-only-16-elements-long.patch
+radeonfb-the-pseudo_palette-is-only-16-elements-long.patch
+i810fb-the-pseudo_palette-is-only-16-elements-long.patch
+intelfb-the-pseudo_palette-is-only-16-elements-long.patch
+sisfb-fix-pseudo_palette-array-size-and-overrun.patch
+matroxfb-color-setting-fixes.patch
+pm3fb-fillrect-acceleration.patch
 pm3fb-possible-cleanups.patch
 vt8623fbc-make-code-static.patch
-intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
-mm-variable-length-argument-support-fix-2.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-kernel-relayc-make-functions-static.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+matroxfb-color-setting-fixes-fix.patch
+fb-epson1355fb-kill-off-dead-sh-support.patch
