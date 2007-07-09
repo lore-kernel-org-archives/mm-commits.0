@@ -1,87 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: + e1000new-build-fix-2.patch added to -mm tree
-Date: Mon, 09 Jul 2007 01:51:29 -0700
-Message-ID: <200707090855.l698thgu030272@imap1.linux-foundation.org>
+Subject: - bugfix-cpufreq-in-combination-with-performance-governor-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 11:34:49 -0700
+Message-ID: <200707091834.l69IYnuv000501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53200 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55234 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751315AbXGIIzv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 04:55:51 -0400
+	by vger.kernel.org with ESMTP id S1751917AbXGISfL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 14:35:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, auke-jan.h.kok@intel.com
+To: akpm@linux-foundation.org, davej@codemonkey.org.uk, peter.oruba@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e1000new-build-fix-2
-has been added to the -mm tree.  Its filename is
-     e1000new-build-fix-2.patch
+     bugfix-cpufreq-in-combination-with-performance-governor-fix
+has been removed from the -mm tree.  Its filename was
+     bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into bugfix-cpufreq-in-combination-with-performance-governor.patch
 
 ------------------------------------------------------
-Subject: e1000new-build-fix-2
+Subject: bugfix-cpufreq-in-combination-with-performance-governor-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: "Peter Oruba" <peter.oruba@amd.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Peter Oruba <peter.oruba@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000new/82542.c |    1 +
- drivers/net/e1000new/82543.c |    1 +
- drivers/net/e1000new/82571.c |    1 +
- drivers/net/e1000new/nvm.c   |    1 +
- 4 files changed, 4 insertions(+)
+ drivers/cpufreq/cpufreq.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/net/e1000new/82543.c~e1000new-build-fix-2 drivers/net/e1000new/82543.c
---- a/drivers/net/e1000new/82543.c~e1000new-build-fix-2
-+++ a/drivers/net/e1000new/82543.c
-@@ -36,6 +36,7 @@
-  */
+diff -puN drivers/cpufreq/cpufreq.c~bugfix-cpufreq-in-combination-with-performance-governor-fix drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~bugfix-cpufreq-in-combination-with-performance-governor-fix
++++ a/drivers/cpufreq/cpufreq.c
+@@ -1687,7 +1687,6 @@ static int cpufreq_cpu_callback(struct n
+ {
+ 	unsigned int cpu = (unsigned long)hcpu;
+ 	struct sys_device *sys_dev;
+-	struct cpufreq_policy *policy;
  
- #include "82543.h"
-+#include <linux/delay.h>
- 
- void e1000_init_function_pointers_82543(struct e1000_hw *hw);
- 
-diff -puN drivers/net/e1000new/82542.c~e1000new-build-fix-2 drivers/net/e1000new/82542.c
---- a/drivers/net/e1000new/82542.c~e1000new-build-fix-2
-+++ a/drivers/net/e1000new/82542.c
-@@ -32,6 +32,7 @@
- 
- #include <linux/netdevice.h>
- #include <linux/pci.h>
-+#include <linux/delay.h>
- 
- #include "e1000.h"
- #include "api.h"
-diff -puN drivers/net/e1000new/82571.c~e1000new-build-fix-2 drivers/net/e1000new/82571.c
---- a/drivers/net/e1000new/82571.c~e1000new-build-fix-2
-+++ a/drivers/net/e1000new/82571.c
-@@ -38,6 +38,7 @@
-  */
- 
- #include "82571.h"
-+#include <linux/delay.h>
- 
- void e1000_init_function_pointers_82571(struct e1000_hw *hw);
- 
-diff -puN drivers/net/e1000new/nvm.c~e1000new-build-fix-2 drivers/net/e1000new/nvm.c
---- a/drivers/net/e1000new/nvm.c~e1000new-build-fix-2
-+++ a/drivers/net/e1000new/nvm.c
-@@ -27,6 +27,7 @@
- *******************************************************************************/
- 
- #include "nvm.h"
-+#include <linux/delay.h>
- 
- /**
-  *  e1000_raise_eec_clk - Raise EEPROM clock
+ 	sys_dev = get_cpu_sysdev(cpu);
+ 	if (sys_dev) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,6 +53,7 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-avr32.patch
 git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor.patch
 bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
 8xx-mpc885ads-pcmcia-support.patch
 revert-gregkh-driver-block-device.patch
@@ -118,6 +81,7 @@ git-ubi.patch
 git-netdev-all.patch
 sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
 e1000new-build-fix.patch
+e1000new-build-fix-2.patch
 wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
 git-battery-vs-git-acpi.patch
@@ -319,4 +283,3 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-e1000new-build-fix-2.patch
