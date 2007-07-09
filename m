@@ -1,66 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:31:20 -0700
-Message-ID: <200707091931.l69JVKjD004420@imap1.linux-foundation.org>
+Subject: - i386-add-cpu_relax-to-cmos_lock-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:31:58 -0700
+Message-ID: <200707091931.l69JVxUw004440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56207 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36420 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754396AbXGITcI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:32:08 -0400
+	by vger.kernel.org with ESMTP id S1754563AbXGITcL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:32:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk, ebiederm@xmission.com, muli@il.ibm.com, vgoyal@in.ibm.com, yinghai.lu@sun.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, andi@lisas.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
+     i386-add-cpu_relax-to-cmos_lock-fix
 has been removed from the -mm tree.  Its filename was
-     x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+     i386-add-cpu_relax-to-cmos_lock-fix.patch
 
-This patch was dropped because it was folded into x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+This patch was dropped because it was folded into i386-add-cpu_relax-to-cmos_lock.patch
 
 ------------------------------------------------------
-Subject: x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
+Subject: i386-add-cpu_relax-to-cmos_lock-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86_64/kernel/pci-calgary.c: In function 'detect_calgary':
-arch/x86_64/kernel/pci-calgary.c:1356: error: 'no_iommu' undeclared (first use in this function)
-arch/x86_64/kernel/pci-calgary.c:1356: error: (Each undeclared identifier is reported only once
-arch/x86_64/kernel/pci-calgary.c:1356: error: for each function it appears in.)
-arch/x86_64/kernel/pci-calgary.c:1356: error: 'iommu_detected' undeclared (first use in this function)
-arch/x86_64/kernel/pci-calgary.c: In function 'calgary_iommu_init':
-arch/x86_64/kernel/pci-calgary.c:1450: error: 'no_iommu' undeclared (first use in this function)
-arch/x86_64/kernel/pci-calgary.c:1469: error: 'force_iommu' undeclared (first use in this function)
-arch/x86_64/kernel/pci-calgary.c: In function 'calgary_fixup_tce_spaces':
-arch/x86_64/kernel/pci-calgary.c:1564: error: 'no_iommu' undeclared (first use in this function)
+Include the header file for cpu_relax().
 
+(might break the build, who knows.  WHy the heck is the whole damn kernel
+inlined anwyay?)
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andreas Mohr <andi@lisas.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-i386/mc146818rtc.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86_84-move-iommu-declaration-from-proto-to-iommuh-fix arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -35,7 +35,7 @@
- #include <linux/pci_ids.h>
- #include <linux/pci.h>
- #include <linux/delay.h>
--#include <asm/proto.h>
-+#include <asm/iommu.h>
- #include <asm/calgary.h>
- #include <asm/tce.h>
- #include <asm/pci-direct.h>
+diff -puN include/asm-i386/mc146818rtc.h~i386-add-cpu_relax-to-cmos_lock-fix include/asm-i386/mc146818rtc.h
+--- a/include/asm-i386/mc146818rtc.h~i386-add-cpu_relax-to-cmos_lock-fix
++++ a/include/asm-i386/mc146818rtc.h
+@@ -6,6 +6,7 @@
+ 
+ #include <asm/io.h>
+ #include <asm/system.h>
++#include <asm/processor.h>
+ #include <linux/mc146818rtc.h>
+ 
+ #ifndef RTC_PORT
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -134,7 +121,7 @@ i386-do-not-restore-reserved-memory-after-hibernation.patch
 paravirt-helper-to-disable-all-io-space-fix.patch
 i386-show-unhandled-signals.patch
 x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+i386-add-cpu_relax-to-cmos_lock.patch
 i386-add-cpu_relax-to-cmos_lock-fix.patch
 x86_64-flush_tlb_kernel_range-warning-fix.patch
 x86_64-add-ioapic-nmi-support-fix.patch
