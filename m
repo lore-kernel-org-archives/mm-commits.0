@@ -1,94 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:58:59 -0700
-Message-ID: <200707092359.l69Nx0x9021985@imap1.linux-foundation.org>
+Subject: - allow-page_owner-to-be-set-on-any-architecture.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:59:05 -0700
+Message-ID: <200707092359.l69Nx6PY021997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53116 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57810 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759232AbXGIX7n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:59:43 -0400
+	by vger.kernel.org with ESMTP id S1760359AbXGIX7q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:59:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Update page->order at an appropriate time when tracking PAGE_OWNER
+     Allow PAGE_OWNER to be set on any architecture
 has been removed from the -mm tree.  Its filename was
-     update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch
+     allow-page_owner-to-be-set-on-any-architecture.patch
 
 This patch was dropped because it was folded into page-owner-tracking-leak-detector.patch
 
 ------------------------------------------------------
-Subject: Update page->order at an appropriate time when tracking PAGE_OWNER
-From: mel@skynet.ie (Mel Gorman)
+Subject: Allow PAGE_OWNER to be set on any architecture
+From: Mel Gorman <mel@csn.ul.ie>
 
-PAGE_OWNER tracks free pages by setting page->order to -1.  However, it is
-set during __free_pages() which is not the only free path as
-__pagevec_free() and free_compound_page() do not go through __free_pages().
- This leads to a situation where free pages are visible in /proc/page_owner
-which is confusing and might be interpreted as a memory leak.
+Currently PAGE_OWNER depends on CONFIG_X86.  This appears to be due to
+pfn_to_page() being called in an inappropriate for many memory models and
+the presense of memory holes.  This patch ensures that pfn_valid() and
+pfn_valid_within() is called at the appropriate places and the offsets
+correctly updated so that PAGE_OWNER is safe on any architecture.
 
-This patch sets page->owner when PageBuddy is set.  It also prints a
-warning to the kernel log if a free page is found that does not appear free
-to PAGE_OWNER.  This should be considered a fix to
-page-owner-tracking-leak-detector.patch.
+In situations where CONFIG_HOLES_IN_ZONES is set (IA64 with
+VIRTUAL_MEM_MAP), there may be cases where pages allocated within a
+MAX_ORDER_NR_PAGES block of pages may not be displayed in /proc/page_owner
+if the hole is at the start of the block.  Addressing this would be quite
+complex, perform slowly and is of no clear benefit.
 
-This only applies to -mm as PAGE_OWNER is not in mainline.
+Once PAGE_OWNER is allowed on all architectures, the statistics for
+grouping pages by mobility that declare how many pageblocks contain mixed
+page types becomes optionally available on all arches.
+
+This patch was tested successfully on x86, x86_64, ppc64 and IA64 machines.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    8 ++++++++
- mm/page_alloc.c     |    6 +++---
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ fs/proc/proc_misc.c |   31 ++++++++++++++++++++++++-------
+ lib/Kconfig.debug   |    2 +-
+ 2 files changed, 25 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~update-page-order-at-an-appropriate-time-when-tracking-page_owner fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~update-page-order-at-an-appropriate-time-when-tracking-page_owner
+diff -puN fs/proc/proc_misc.c~allow-page_owner-to-be-set-on-any-architecture fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~allow-page_owner-to-be-set-on-any-architecture
 +++ a/fs/proc/proc_misc.c
-@@ -768,8 +768,16 @@ read_page_owner(struct file *file, char 
- 		if (!pfn_valid(pfn))
+@@ -756,18 +756,35 @@ read_page_owner(struct file *file, char 
+ 	struct page *page;
+ 	char *kbuf, *modname;
+ 	const char *symname;
+-	int ret = 0, next_idx = 1;
++	int ret = 0;
+ 	char namebuf[128];
+ 	unsigned long offset = 0, symsize;
+ 	int i;
+ 	ssize_t num_written = 0;
+ 	int blocktype = 0, pagetype = 0;
+ 
++	page = NULL;
+ 	pfn = min_low_pfn + *ppos;
+-	page = pfn_to_page(pfn);
++
++	/* Find a valid PFN or the start of a MAX_ORDER_NR_PAGES area */
++	while (!pfn_valid(pfn) && (pfn & (MAX_ORDER_NR_PAGES - 1)) != 0)
++		pfn++;
++
++	/* Find an allocated page */
+ 	for (; pfn < max_pfn; pfn++) {
+-		if (!pfn_valid(pfn))
++		/*
++		 * If the new page is in a new MAX_ORDER_NR_PAGES area,
++		 * validate the area as existing, skip it if not
++		 */
++		if ((pfn & (MAX_ORDER_NR_PAGES - 1)) == 0 && !pfn_valid(pfn)) {
++			pfn += MAX_ORDER_NR_PAGES - 1;
  			continue;
++		}
++
++		/* Check for holes within a MAX_ORDER area */
++		if (!pfn_valid_within(pfn))
++			continue;
++
  		page = pfn_to_page(pfn);
-+
-+		/* Catch situations where free pages have a bad ->order  */
-+		if (page->order >= 0 && PageBuddy(page))
-+			printk(KERN_WARNING
-+				"PageOwner info inaccurate for PFN %lu\n",
-+				pfn);
-+
- 		if (page->order >= 0)
+ 
+ 		/* Catch situations where free pages have a bad ->order  */
+@@ -776,16 +793,16 @@ read_page_owner(struct file *file, char 
+ 				"PageOwner info inaccurate for PFN %lu\n",
+ 				pfn);
+ 
+-		if (page->order >= 0)
++		/* Stop search if page is allocated and has trace info */
++		if (page->order >= 0 && page->trace[0])
  			break;
-+
- 		next_idx++;
+-
+-		next_idx++;
  	}
  
-diff -puN mm/page_alloc.c~update-page-order-at-an-appropriate-time-when-tracking-page_owner mm/page_alloc.c
---- a/mm/page_alloc.c~update-page-order-at-an-appropriate-time-when-tracking-page_owner
-+++ a/mm/page_alloc.c
-@@ -308,6 +308,9 @@ static inline void set_page_order(struct
- {
- 	set_page_private(page, order);
- 	__SetPageBuddy(page);
-+#ifdef CONFIG_PAGE_OWNER
-+		page->order = -1;
-+#endif
- }
+ 	if (!pfn_valid(pfn))
+ 		return 0;
  
- static inline void rmv_page_order(struct page *page)
-@@ -1736,9 +1739,6 @@ fastcall void __free_pages(struct page *
- 			free_hot_page(page);
- 		else
- 			__free_pages_ok(page, order);
--#ifdef CONFIG_PAGE_OWNER
--		page->order = -1;
--#endif
- 	}
- }
+-	*ppos += next_idx;
++	/* Record the next PFN to read in the file offset */
++	*ppos = (pfn - min_low_pfn) + 1;
  
+ 	kbuf = kmalloc(count, GFP_KERNEL);
+ 	if (!kbuf)
+diff -puN lib/Kconfig.debug~allow-page_owner-to-be-set-on-any-architecture lib/Kconfig.debug
+--- a/lib/Kconfig.debug~allow-page_owner-to-be-set-on-any-architecture
++++ a/lib/Kconfig.debug
+@@ -49,7 +49,7 @@ config UNUSED_SYMBOLS
+ 
+ config PAGE_OWNER
+ 	bool "Track page owner"
+-	depends on DEBUG_KERNEL && X86
++	depends on DEBUG_KERNEL
+ 	help
+ 	  This keeps track of what call chain is the owner of a page, may
+ 	  help to find bare alloc_page(s) leaks. Eats a fair amount of memory.
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -125,8 +162,6 @@ ext2-reservations.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
 rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
 page-owner-tracking-leak-detector.patch
-update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
 allow-page_owner-to-be-set-on-any-architecture.patch
 allow-page_owner-to-be-set-on-any-architecture-fix.patch
 allow-page_owner-to-be-set-on-any-architecture-fix-fix.patch
