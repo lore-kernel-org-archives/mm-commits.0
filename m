@@ -1,41 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - lockstat-core-infrastructure-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:55:05 -0700
-Message-ID: <200707092355.l69Nt56p021738@imap1.linux-foundation.org>
+Subject: - lockstat-core-infrastructure-fix-fix-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:55:11 -0700
+Message-ID: <200707092355.l69NtBDV021745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52836 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37357 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757301AbXGIXz3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:55:29 -0400
+	by vger.kernel.org with ESMTP id S1760282AbXGIXzb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, jbaron@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockstat-core-infrastructure-fix
+     lockstat-core-infrastructure-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     lockstat-core-infrastructure-fix.patch
+     lockstat-core-infrastructure-fix-fix-fix.patch
 
 This patch was dropped because it was folded into lockstat-core-infrastructure.patch
 
 ------------------------------------------------------
-Subject: lockstat-core-infrastructure-fix
+Subject: lockstat-core-infrastructure-fix-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/spinlock_types.h:18,
-                 from include/linux/spinlock.h:79,
-                 from include/linux/seqlock.h:29,
-                 from include/linux/time.h:7,
-                 from include/linux/stat.h:60,
-                 from include/linux/module.h:10,
-                 from include/linux/crypto.h:21,
-                 from arch/i386/kernel/asm-offsets.c:7:
-include/linux/lockdep.h:328: warning: 'struct lockdep_map' declared inside parameter list
-include/linux/lockdep.h:328: warning: its scope is only this definition or declaration, which is probably not what you want
-
-Dunno why I bothered writing that SubmitChecklist thing.
+Nuke unneeded ifdefs.
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Jason Baron <jbaron@redhat.com>
@@ -43,24 +32,27 @@ Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Kconfig.debug           |    0 
- include/linux/lockdep.h |    1 +
- 2 files changed, 1 insertion(+)
+ kernel/sysctl.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockstat-core-infrastructure-fix include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockstat-core-infrastructure-fix
-+++ a/include/linux/lockdep.h
-@@ -9,6 +9,7 @@
- #define __LINUX_LOCKDEP_H
+diff -puN kernel/sysctl.c~lockstat-core-infrastructure-fix-fix-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~lockstat-core-infrastructure-fix-fix-fix
++++ a/kernel/sysctl.c
+@@ -162,14 +162,8 @@ extern ctl_table inotify_table[];
+ int sysctl_legacy_va_layout;
+ #endif
  
- struct task_struct;
-+struct lockdep_map;
+-
+-#ifdef CONFIG_PROVE_LOCKING
+ extern int prove_locking;
+-#endif
+-
+-#ifdef CONFIG_LOCK_STAT
+ extern int lock_stat;
+-#endif
  
- #ifdef CONFIG_LOCKDEP
+ /* The default sysctl tables: */
  
-diff -puN kernel/lockdep.c~lockstat-core-infrastructure-fix kernel/lockdep.c
-diff -puN kernel/sysctl.c~lockstat-core-infrastructure-fix kernel/sysctl.c
-diff -puN lib/Kconfig.debug~lockstat-core-infrastructure-fix lib/Kconfig.debug
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -260,8 +252,6 @@ containersv10-simple-debug-info-subsystem-fix.patch
 containersv10-simple-debug-info-subsystem-fix-2.patch
 add-containerstats-v3-fix.patch
 lockstat-core-infrastructure.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
 lockstat-core-infrastructure-fix-fix-fix.patch
 lockdep-various-fixes-checkpatch.patch
 lockstat-measure-lock-bouncing-checkpatch.patch
