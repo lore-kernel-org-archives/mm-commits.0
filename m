@@ -1,75 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-add-ioapic-nmi-support-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:32:31 -0700
-Message-ID: <200707091932.l69JWWY0004520@imap1.linux-foundation.org>
+Subject: - x86_64-add-ioapic-nmi-support-fix-2.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:32:34 -0700
+Message-ID: <200707091932.l69JWYWL004523@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50782 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51369 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755071AbXGITcm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:32:42 -0400
+	by vger.kernel.org with ESMTP id S1755071AbXGITco (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:32:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, jpk@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64-add-ioapic-nmi-support-fix
+     x86_64-add-ioapic-nmi-support-fix-2
 has been removed from the -mm tree.  Its filename was
-     x86_64-add-ioapic-nmi-support-fix.patch
+     x86_64-add-ioapic-nmi-support-fix-2.patch
 
 This patch was dropped because it was folded into x86_64-add-ioapic-nmi-support.patch
 
 ------------------------------------------------------
-Subject: x86_64-add-ioapic-nmi-support-fix
+Subject: x86_64-add-ioapic-nmi-support-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: John Keller <jpk@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
+Simpler, shorter, faster, equivalent.
+
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: John Keller <jpk@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |    6 ++----
- arch/x86_64/kernel/mpparse.c |    2 +-
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ arch/x86_64/kernel/mpparse.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-add-ioapic-nmi-support-fix arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-add-ioapic-nmi-support-fix
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -379,8 +379,7 @@ static void clear_IO_APIC_pin(unsigned i
- 	 * or NMI pin.
- 	 */
- 	entry = ioapic_read_entry(apic, pin);
--	if ((entry.delivery_mode == dest_SMI) ||
--	    (entry.delivery_mode == dest_NMI))
-+	if (entry.delivery_mode == dest_SMI || entry.delivery_mode == dest_NMI)
- 		return;
- 	/*
- 	 * Disable it in the IO-APIC irq-routing table:
-@@ -1211,9 +1210,8 @@ static void __init enable_IO_APIC(void)
- 				continue;
- 			}
- 
--			if (entry.delivery_mode == dest_NMI) {
-+			if (entry.delivery_mode == dest_NMI)
- 				setup_ioapic_nmi_irq(apic, pin, &entry);
--			}
- 		}
- 	}
- 
-diff -puN arch/x86_64/kernel/mpparse.c~x86_64-add-ioapic-nmi-support-fix arch/x86_64/kernel/mpparse.c
---- a/arch/x86_64/kernel/mpparse.c~x86_64-add-ioapic-nmi-support-fix
+diff -puN arch/x86_64/kernel/mpparse.c~x86_64-add-ioapic-nmi-support-fix-2 arch/x86_64/kernel/mpparse.c
+--- a/arch/x86_64/kernel/mpparse.c~x86_64-add-ioapic-nmi-support-fix-2
 +++ a/arch/x86_64/kernel/mpparse.c
-@@ -671,7 +671,7 @@ int mp_apic_pin_to_gsi(int apic, int pin
-                 return -1;
-         }
+@@ -828,7 +828,7 @@ void __init mp_config_acpi_nmi_src(u32 g
  
--        return (mp_ioapic_routing[apic].gsi_start + pin);
-+        return mp_ioapic_routing[apic].gsi_start + pin;
- }
- 
- void __init mp_register_ioapic(u8 id, u32 address, u32 gsi_base)
+ 	ioapic_pin = gsi - mp_ioapic_routing[ioapic].gsi_start;
+ 	bit = ioapic_pin % 32;
+-	idx = (ioapic_pin < 32) ? 0 : (ioapic_pin / 32);
++	idx = ioapic_pin / 32;
+ 	if (idx > 3) {
+ 		printk(KERN_ERR "Invalid reference to IOAPIC pin "
+ 			"%d-%d\n", mp_ioapic_routing[ioapic].apic_id,
+@@ -873,7 +873,7 @@ int mp_register_gsi(u32 gsi, int trigger
+ 	 * we only program the IOAPIC on the first.
+ 	 */
+ 	bit = ioapic_pin % 32;
+-	idx = (ioapic_pin < 32) ? 0 : (ioapic_pin / 32);
++	idx = ioapic_pin / 32;
+ 	if (idx > 3) {
+ 		printk(KERN_ERR "Invalid reference to IOAPIC pin "
+ 			"%d-%d\n", mp_ioapic_routing[ioapic].apic_id, 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -146,7 +132,6 @@ x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
 i386-add-cpu_relax-to-cmos_lock.patch
 x86_64-flush_tlb_kernel_range-warning-fix.patch
 x86_64-add-ioapic-nmi-support.patch
-x86_64-add-ioapic-nmi-support-fix.patch
 x86_64-add-ioapic-nmi-support-fix-2.patch
 highres-improve-debug-output-fix.patch
 ntp-move-the-cmos-update-code-into-ntpc-fix.patch
