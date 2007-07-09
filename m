@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:14:54 -0700
-Message-ID: <200707092114.l69LEsQK012175@imap1.linux-foundation.org>
+Subject: - freezer-make-kernel-threads-nonfreezable-by-default-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:14:51 -0700
+Message-ID: <200707092114.l69LEp80012172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55618 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44822 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754705AbXGIVP1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755017AbXGIVP1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:15:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,39 +14,19 @@ To: akpm@linux-foundation.org, ego@in.ibm.com, nigel@nigel.suspend2.net, oleg@tv
 
 
 The patch titled
-     freezer-make-kernel-threads-nonfreezable-by-default-fix-fix
+     freezer-make-kernel-threads-nonfreezable-by-default-fix
 has been removed from the -mm tree.  Its filename was
-     freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+     freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
 
 This patch was dropped because it was folded into freezer-make-kernel-threads-nonfreezable-by-default.patch
 
 ------------------------------------------------------
-Subject: freezer-make-kernel-threads-nonfreezable-by-default-fix-fix
+Subject: freezer-make-kernel-threads-nonfreezable-by-default-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from kernel/exit.c:48:
-include/linux/freezer.h:10: error: redefinition of 'frozen'
-include/linux/freezer.h:10: error: previous definition of 'frozen' was here
-include/linux/freezer.h:18: error: redefinition of 'freezing'
-include/linux/freezer.h:18: error: previous definition of 'freezing' was here
-include/linux/freezer.h:26: error: redefinition of 'set_freeze_flag'
-include/linux/freezer.h:26: error: previous definition of 'set_freeze_flag' was here
-include/linux/freezer.h:34: error: redefinition of 'clear_freeze_flag'
-include/linux/freezer.h:34: error: previous definition of 'clear_freeze_flag' was here
-include/linux/freezer.h:48: error: redefinition of 'thaw_process'
-include/linux/freezer.h:48: error: previous definition of 'thaw_process' was here
-include/linux/freezer.h:66: error: redefinition of 'try_to_freeze'
-include/linux/freezer.h:66: error: previous definition of 'try_to_freeze' was here
-include/linux/freezer.h:93: error: redefinition of 'freezer_do_not_count'
-include/linux/freezer.h:93: error: previous definition of 'freezer_do_not_count' was here
-include/linux/freezer.h:103: error: redefinition of 'freezer_count'
-include/linux/freezer.h:103: error: previous definition of 'freezer_count' was here
-include/linux/freezer.h:114: error: redefinition of 'freezer_should_skip'
-include/linux/freezer.h:114: error: previous definition of 'freezer_should_skip' was here
-include/linux/freezer.h:122: error: redefinition of 'set_freezable'
-include/linux/freezer.h:122: error: previous definition of 'set_freezable' was here
+ERROR: "set_freezable" [drivers/media/video/msp3400.ko] undefined!
 
-It's included in some header file, it needs include protection.
+Make sure all affected fiels include freezer.h.  Might be overkill.
 
 Cc: Gautham R Shenoy <ego@in.ibm.com>
 Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
@@ -56,27 +36,212 @@ Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/i386/kernel/apm.c                 |    1 +
+ drivers/block/loop.c                   |    1 +
+ drivers/char/apm-emulation.c           |    1 +
+ drivers/ieee1394/ieee1394_core.c       |    1 +
+ drivers/media/video/msp3400-kthreads.c |    1 +
+ drivers/mmc/card/queue.c               |    1 +
+ drivers/mtd/mtd_blkdevs.c              |    1 +
+ drivers/scsi/libsas/sas_scsi_host.c    |    1 +
+ drivers/scsi/scsi_error.c              |    1 +
+ kernel/exit.c                          |    1 +
+ kernel/rcutorture.c                    |    1 +
+ kernel/softirq.c                       |    1 +
+ kernel/softlockup.c                    |    1 +
+ net/bluetooth/bnep/core.c              |    1 +
+ net/bluetooth/cmtp/core.c              |    1 +
+ net/bluetooth/hidp/core.c              |    1 +
+ net/bluetooth/rfcomm/core.c            |    1 +
+ 17 files changed, 17 insertions(+)
 
-diff -puN include/linux/freezer.h~freezer-make-kernel-threads-nonfreezable-by-default-fix-fix include/linux/freezer.h
---- a/include/linux/freezer.h~freezer-make-kernel-threads-nonfreezable-by-default-fix-fix
-+++ a/include/linux/freezer.h
-@@ -1,5 +1,8 @@
- /* Freezer declarations */
- 
-+#ifndef FREEZER_H_INCLUDED
-+#define FREEZER_H_INCLUDED
-+
+diff -puN arch/i386/kernel/apm.c~freezer-make-kernel-threads-nonfreezable-by-default-fix arch/i386/kernel/apm.c
+--- a/arch/i386/kernel/apm.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/arch/i386/kernel/apm.c
+@@ -222,6 +222,7 @@
+ #include <linux/capability.h>
+ #include <linux/device.h>
+ #include <linux/kernel.h>
++#include <linux/freezer.h>
+ #include <linux/smp.h>
+ #include <linux/dmi.h>
+ #include <linux/suspend.h>
+diff -puN drivers/block/loop.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/block/loop.c
+--- a/drivers/block/loop.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/block/loop.c
+@@ -68,6 +68,7 @@
+ #include <linux/loop.h>
+ #include <linux/compat.h>
+ #include <linux/suspend.h>
++#include <linux/freezer.h>
+ #include <linux/writeback.h>
+ #include <linux/buffer_head.h>		/* for invalidate_bdev() */
+ #include <linux/completion.h>
+diff -puN drivers/char/apm-emulation.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/char/apm-emulation.c
+--- a/drivers/char/apm-emulation.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/char/apm-emulation.c
+@@ -20,6 +20,7 @@
  #include <linux/sched.h>
+ #include <linux/pm.h>
+ #include <linux/apm-emulation.h>
++#include <linux/freezer.h>
+ #include <linux/device.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+diff -puN drivers/ieee1394/ieee1394_core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/ieee1394/ieee1394_core.c
+--- a/drivers/ieee1394/ieee1394_core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/ieee1394/ieee1394_core.c
+@@ -30,6 +30,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/bitops.h>
+ #include <linux/kdev_t.h>
++#include <linux/freezer.h>
+ #include <linux/suspend.h>
+ #include <linux/kthread.h>
+ #include <linux/preempt.h>
+diff -puN drivers/media/video/msp3400-kthreads.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/media/video/msp3400-kthreads.c
+--- a/drivers/media/video/msp3400-kthreads.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/media/video/msp3400-kthreads.c
+@@ -23,6 +23,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
++#include <linux/freezer.h>
+ #include <linux/videodev.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-common.h>
+diff -puN drivers/mmc/card/queue.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/mmc/card/queue.c
+--- a/drivers/mmc/card/queue.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/mmc/card/queue.c
+@@ -11,6 +11,7 @@
+  */
+ #include <linux/module.h>
+ #include <linux/blkdev.h>
++#include <linux/freezer.h>
+ #include <linux/kthread.h>
  
- #ifdef CONFIG_PM
-@@ -140,3 +143,5 @@ static inline void freezer_count(void) {
- static inline int freezer_should_skip(struct task_struct *p) { return 0; }
- static inline void set_freezable(void) {}
- #endif
-+
-+#endif	/* FREEZER_H_INCLUDED */
+ #include <linux/mmc/card.h>
+diff -puN drivers/mtd/mtd_blkdevs.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/mtd/mtd_blkdevs.c
+--- a/drivers/mtd/mtd_blkdevs.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/mtd/mtd_blkdevs.c
+@@ -16,6 +16,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/blkdev.h>
+ #include <linux/blkpg.h>
++#include <linux/freezer.h>
+ #include <linux/spinlock.h>
+ #include <linux/hdreg.h>
+ #include <linux/init.h>
+diff -puN drivers/scsi/libsas/sas_scsi_host.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/scsi/libsas/sas_scsi_host.c
+--- a/drivers/scsi/libsas/sas_scsi_host.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/scsi/libsas/sas_scsi_host.c
+@@ -40,6 +40,7 @@
+ 
+ #include <linux/err.h>
+ #include <linux/blkdev.h>
++#include <linux/freezer.h>
+ #include <linux/scatterlist.h>
+ 
+ /* ---------- SCSI Host glue ---------- */
+diff -puN drivers/scsi/scsi_error.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/scsi/scsi_error.c
+--- a/drivers/scsi/scsi_error.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/scsi/scsi_error.c
+@@ -19,6 +19,7 @@
+ #include <linux/timer.h>
+ #include <linux/string.h>
+ #include <linux/kernel.h>
++#include <linux/freezer.h>
+ #include <linux/kthread.h>
+ #include <linux/interrupt.h>
+ #include <linux/blkdev.h>
+diff -puN kernel/exit.c~freezer-make-kernel-threads-nonfreezable-by-default-fix kernel/exit.c
+--- a/kernel/exit.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/kernel/exit.c
+@@ -31,6 +31,7 @@
+ #include <linux/mempolicy.h>
+ #include <linux/taskstats_kern.h>
+ #include <linux/delayacct.h>
++#include <linux/freezer.h>
+ #include <linux/cpuset.h>
+ #include <linux/syscalls.h>
+ #include <linux/signal.h>
+diff -puN kernel/rcutorture.c~freezer-make-kernel-threads-nonfreezable-by-default-fix kernel/rcutorture.c
+--- a/kernel/rcutorture.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/kernel/rcutorture.c
+@@ -40,6 +40,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/percpu.h>
+ #include <linux/notifier.h>
++#include <linux/freezer.h>
+ #include <linux/cpu.h>
+ #include <linux/random.h>
+ #include <linux/delay.h>
+diff -puN kernel/softirq.c~freezer-make-kernel-threads-nonfreezable-by-default-fix kernel/softirq.c
+--- a/kernel/softirq.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/kernel/softirq.c
+@@ -14,6 +14,7 @@
+ #include <linux/notifier.h>
+ #include <linux/percpu.h>
+ #include <linux/cpu.h>
++#include <linux/freezer.h>
+ #include <linux/kthread.h>
+ #include <linux/rcupdate.h>
+ #include <linux/smp.h>
+diff -puN kernel/softlockup.c~freezer-make-kernel-threads-nonfreezable-by-default-fix kernel/softlockup.c
+--- a/kernel/softlockup.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/kernel/softlockup.c
+@@ -10,6 +10,7 @@
+ #include <linux/cpu.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
++#include <linux/freezer.h>
+ #include <linux/kthread.h>
+ #include <linux/notifier.h>
+ #include <linux/module.h>
+diff -puN net/bluetooth/bnep/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix net/bluetooth/bnep/core.c
+--- a/net/bluetooth/bnep/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/net/bluetooth/bnep/core.c
+@@ -36,6 +36,7 @@
+ #include <linux/signal.h>
+ #include <linux/init.h>
+ #include <linux/wait.h>
++#include <linux/freezer.h>
+ #include <linux/errno.h>
+ #include <linux/net.h>
+ #include <net/sock.h>
+diff -puN net/bluetooth/cmtp/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix net/bluetooth/cmtp/core.c
+--- a/net/bluetooth/cmtp/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/net/bluetooth/cmtp/core.c
+@@ -29,6 +29,7 @@
+ #include <linux/slab.h>
+ #include <linux/poll.h>
+ #include <linux/fcntl.h>
++#include <linux/freezer.h>
+ #include <linux/skbuff.h>
+ #include <linux/socket.h>
+ #include <linux/ioctl.h>
+diff -puN net/bluetooth/hidp/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix net/bluetooth/hidp/core.c
+--- a/net/bluetooth/hidp/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/net/bluetooth/hidp/core.c
+@@ -28,6 +28,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/poll.h>
++#include <linux/freezer.h>
+ #include <linux/fcntl.h>
+ #include <linux/skbuff.h>
+ #include <linux/socket.h>
+diff -puN net/bluetooth/rfcomm/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix net/bluetooth/rfcomm/core.c
+--- a/net/bluetooth/rfcomm/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/net/bluetooth/rfcomm/core.c
+@@ -33,6 +33,7 @@
+ #include <linux/sched.h>
+ #include <linux/signal.h>
+ #include <linux/init.h>
++#include <linux/freezer.h>
+ #include <linux/wait.h>
+ #include <linux/device.h>
+ #include <linux/net.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -188,6 +353,7 @@ mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
 fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
 freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
 freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
 fix-alpha-isa-support-fix.patch
 freezer-run-show_state-when-freezing-times-out.patch
