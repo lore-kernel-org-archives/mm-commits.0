@@ -1,61 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - slab-allocators-support-__gfp_zero-in-all-allocators-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:13:59 -0700
-Message-ID: <200707092113.l69LDxPq012156@imap1.linux-foundation.org>
+Subject: - slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:14:19 -0700
+Message-ID: <200707092114.l69LEJQI012165@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37020 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44902 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754923AbXGIVOH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:14:07 -0400
+	by vger.kernel.org with ESMTP id S1754706AbXGIVO1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:14:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Slab GFP_ZERO support: Use obj_size instead of buffer_size.
+     SLUB: Faster more efficient slab determination for __kmalloc (fix)
 has been removed from the -mm tree.  Its filename was
-     slab-allocators-support-__gfp_zero-in-all-allocators-fix.patch
+     slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
 
-This patch was dropped because it was folded into slab-allocators-support-__gfp_zero-in-all-allocators.patch
+This patch was dropped because it was folded into slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
 
 ------------------------------------------------------
-Subject: Slab GFP_ZERO support: Use obj_size instead of buffer_size.
+Subject: SLUB: Faster more efficient slab determination for __kmalloc (fix)
 From: Christoph Lameter <clameter@sgi.com>
-
-Buffer size includes the metadata in the debug case so we were clearing
-SLAB metadata.  The obj_size() function determines the size independent of
-CONFIG_SLAB_DEBUG.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~slab-allocators-support-__gfp_zero-in-all-allocators-fix mm/slab.c
---- a/mm/slab.c~slab-allocators-support-__gfp_zero-in-all-allocators-fix
-+++ a/mm/slab.c
-@@ -3395,7 +3395,7 @@ __cache_alloc_node(struct kmem_cache *ca
- 	ptr = cache_alloc_debugcheck_after(cachep, flags, ptr, caller);
+diff -puN mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc-fix mm/slub.c
+--- a/mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc-fix
++++ a/mm/slub.c
+@@ -2606,7 +2606,7 @@ void __init kmem_cache_init(void)
+ 	 * Make sure that nothing crazy happens if someone starts tinkering
+ 	 * around with ARCH_KMALLOC_MINALIGN
+ 	 */
+-	BUG_ON(KMALLOC_MIN_SIZE > 256 ||
++	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 256 ||
+ 		(KMALLOC_MIN_SIZE & (KMALLOC_MIN_SIZE - 1)));
  
- 	if (unlikely((flags & __GFP_ZERO) && ptr))
--		memset(ptr, 0, cachep->buffer_size);
-+		memset(ptr, 0, obj_size(cachep));
- 
- 	return ptr;
- }
-@@ -3449,7 +3449,7 @@ __cache_alloc(struct kmem_cache *cachep,
- 	prefetchw(objp);
- 
- 	if (unlikely((flags & __GFP_ZERO) && objp))
--		memset(objp, 0, cachep->buffer_size);
-+		memset(objp, 0, obj_size(cachep));
- 
- 	return objp;
- }
+ 	for (i = 8; i < KMALLOC_MIN_SIZE;i++)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -91,7 +78,6 @@ slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
 slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
 slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
 slab-allocators-support-__gfp_zero-in-all-allocators.patch
-slab-allocators-support-__gfp_zero-in-all-allocators-fix.patch
 slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
 slub-extract-dma_kmalloc_cache-from-get_cache.patch
 slub-do-proper-locking-during-dma-slab-creation.patch
