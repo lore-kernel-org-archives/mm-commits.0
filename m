@@ -1,64 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - fs-introduce-write_begin-write_end-and-perform_write-aops-fix-5.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 13:40:02 -0700
-Message-ID: <200707092040.l69Ke2Xu010102@imap1.linux-foundation.org>
+Subject: - fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 13:39:56 -0700
+Message-ID: <200707092039.l69Kdu0Z010072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60512 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42599 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754589AbXGIUkv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 16:40:51 -0400
+	by vger.kernel.org with ESMTP id S1757288AbXGIUlC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 16:41:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@sw.ru, dmonakhov@openvz.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: npiggin@suse.de, dmonakhov@sw.ru, mark.fasheh@oracle.com, pbadari@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     new aop block_write_begin fix
+     fs-introduce-write_begin-write_end-and-perform_write-aops fix 3
 has been removed from the -mm tree.  Its filename was
-     fs-introduce-write_begin-write_end-and-perform_write-aops-fix-5.patch
+     fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3.patch
 
 This patch was dropped because it was folded into fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 
 ------------------------------------------------------
-Subject: new aop block_write_begin fix
-From: Dmitriy Monakhov <dmonakhov@sw.ru>
+Subject: fs-introduce-write_begin-write_end-and-perform_write-aops fix 3
+From: Nick Piggin <npiggin@suse.de>
 
-After we enter to block_write_begin with *pagep == NULL and some page was
-grabed we remember this page in *pagep And if __block_prepare_write() we
-have to clear *pagep , as it was before.  Because this may confuse caller. 
-for example caller may have folowing code:
+Dmitriy noticed some weird code I had in __page_symlink that is wrong.
 
- 		ret = block_write_begin(..., pagep,...)
- 		if (ret && *pagep != NULL) {
- 			unlock_page(*pagep);
- 			page_cache_release(*pagep);
- 		}
+Fixes: fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 
-Signed-off-by: Dmitriy Monakhov <dmonakhov@openvz.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Badari Pulavarty <pbadari@gmail.com>
+Cc: Dmitriy Monakhov <dmonakhov@sw.ru>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    1 +
- 1 files changed, 1 insertion(+)
+ fs/namei.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/buffer.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-5 fs/buffer.c
---- a/fs/buffer.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-5
-+++ a/fs/buffer.c
-@@ -1951,6 +1951,7 @@ int block_write_begin(struct file *file,
- 		if (ownpage) {
- 			unlock_page(page);
- 			page_cache_release(page);
-+			*pagep = NULL;
+diff -puN fs/namei.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3 fs/namei.c
+--- a/fs/namei.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3
++++ a/fs/namei.c
+@@ -2702,21 +2702,20 @@ int __page_symlink(struct inode *inode, 
+ 	char *kaddr;
  
- 			/*
- 			 * prepare_write() may have instantiated a few blocks
+ retry:
+-	err = pagecache_write_begin(NULL, mapping, 0, PAGE_CACHE_SIZE,
++	err = pagecache_write_begin(NULL, mapping, 0, len-1,
+ 				AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
+ 	if (err)
+ 		goto fail;
+ 
+ 	kaddr = kmap_atomic(page, KM_USER0);
+ 	memcpy(kaddr, symname, len-1);
+-	memset(kaddr+len-1, 0, PAGE_CACHE_SIZE-(len-1));
+ 	kunmap_atomic(kaddr, KM_USER0);
+ 
+-	err = pagecache_write_end(NULL, mapping, 0, PAGE_CACHE_SIZE, PAGE_CACHE_SIZE,
++	err = pagecache_write_end(NULL, mapping, 0, len-1, len-1,
+ 							page, fsdata);
+ 	if (err < 0)
+ 		goto fail;
+-	if (err < PAGE_CACHE_SIZE)
++	if (err < len-1)
+ 		goto retry;
+ 
+ 	mark_inode_dirty(inode);
 _
 
-Patches currently in -mm which might be from dmonakhov@sw.ru are
+Patches currently in -mm which might be from npiggin@suse.de are
 
+slob-rework-freelist-handling.patch
+slob-remove-bigblock-tracking.patch
+slob-improved-alignment-handling.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+mm-remove-legacy-cruft.patch
+mm-debug-check-for-the-fault-vs-invalidate-race.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix-5.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
 ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
 ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+ufs-convert-to-new-aops-fix.patch
+udf-convert-to-new-aops.patch
+sysv-convert-to-new-aops.patch
+sysv-convert-to-new-aops-fix.patch
+minix-convert-to-new-aops.patch
+minix-convert-to-new-aops-fix.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+ocfs2-convert-to-new-aops.patch
+fix-read-truncate-race.patch
+fs-remove-some-aop_truncated_page.patch
+mm-document-fault_data-and-flags.patch
+fs-introduce-some-page-buffer-invariants.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
