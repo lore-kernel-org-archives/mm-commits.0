@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - mmconfig-validate-against-acpi-motherboard-resources-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:17:54 -0700
-Message-ID: <200707091917.l69JHsQ8003610@imap1.linux-foundation.org>
+Subject: - mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:17:57 -0700
+Message-ID: <200707091917.l69JHv5u003614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50845 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57991 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754423AbXGITSh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:18:37 -0400
+	by vger.kernel.org with ESMTP id S1754592AbXGITSi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:18:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, hancockr@shaw.ca, jbarnes@virtuousgeek.org, rajesh.shah@intel.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmconfig-validate-against-acpi-motherboard-resources-fix
+     mmconfig-validate-against-acpi-motherboard-resources-fix-2
 has been removed from the -mm tree.  Its filename was
-     mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+     mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
 
 This patch was dropped because it was folded into mmconfig-validate-against-acpi-motherboard-resources.patch
 
 ------------------------------------------------------
-Subject: mmconfig-validate-against-acpi-motherboard-resources-fix
+Subject: mmconfig-validate-against-acpi-motherboard-resources-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- fix obvious compile error
+- We can just move those declarations into linux/pci.h, remove the
+  duplication.  Other architectures will be fine with that.
 
-- inlines are better than macros
-
-- linux/pci.h includes asm/pci.h already, and it's OK to rely on that.
+- Can nuke an ifdef as a consequence of this.
 
 Cc: Andi Kleen <ak@suse.de>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
@@ -39,48 +38,78 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/init.c     |    1 -
- include/asm-i386/pci.h   |    4 ++--
- include/asm-x86_64/pci.h |    4 ++--
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/acpi/bus.c       |    2 --
+ include/asm-i386/pci.h   |    8 --------
+ include/asm-x86_64/pci.h |    8 --------
+ include/linux/pci.h      |    8 ++++++++
+ 4 files changed, 8 insertions(+), 18 deletions(-)
 
-diff -puN arch/i386/pci/init.c~mmconfig-validate-against-acpi-motherboard-resources-fix arch/i386/pci/init.c
---- a/arch/i386/pci/init.c~mmconfig-validate-against-acpi-motherboard-resources-fix
-+++ a/arch/i386/pci/init.c
-@@ -1,5 +1,4 @@
- #include <linux/pci.h>
--#include <asm/pci.h>
- #include <linux/init.h>
- #include "pci.h"
+diff -puN drivers/acpi/bus.c~mmconfig-validate-against-acpi-motherboard-resources-fix-2 drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c~mmconfig-validate-against-acpi-motherboard-resources-fix-2
++++ a/drivers/acpi/bus.c
+@@ -761,9 +761,7 @@ static int __init acpi_init(void)
+ 	result = acpi_bus_init();
  
-diff -puN include/asm-i386/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix include/asm-i386/pci.h
---- a/include/asm-i386/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix
+ 	if (!result) {
+-#ifdef CONFIG_X86
+ 		pci_mmcfg_late_init();
+-#endif
+ #ifdef CONFIG_PM_LEGACY
+ 		if (!PM_IS_ACTIVE())
+ 			pm_active = 1;
+diff -puN include/asm-i386/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix-2 include/asm-i386/pci.h
+--- a/include/asm-i386/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix-2
 +++ a/include/asm-i386/pci.h
-@@ -34,8 +34,8 @@ int pcibios_set_irq_routing(struct pci_d
- extern void __init pci_mmcfg_early_init(int type);
- extern void __init pci_mmcfg_late_init(void);
- #else
--#define pci_mmcfg_early_init(TYPE)	do { } while (0)
--#define pci_mmcfg_late_init(TYPE)	do { } while (0)
-+static inline void pci_mmcfg_early_init(int type) { }
-+static inline void pci_mmcfg_late_init(void) { }
- #endif
+@@ -30,14 +30,6 @@ void pcibios_penalize_isa_irq(int irq, i
+ struct irq_routing_table *pcibios_get_irq_routing_table(void);
+ int pcibios_set_irq_routing(struct pci_dev *dev, int pin, int irq);
  
+-#ifdef CONFIG_PCI_MMCONFIG
+-extern void __init pci_mmcfg_early_init(int type);
+-extern void __init pci_mmcfg_late_init(void);
+-#else
+-static inline void pci_mmcfg_early_init(int type) { }
+-static inline void pci_mmcfg_late_init(void) { }
+-#endif
+-
  /* Dynamic DMA mapping stuff.
-diff -puN include/asm-x86_64/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix include/asm-x86_64/pci.h
---- a/include/asm-x86_64/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix
+  * i386 has everything mapped statically.
+  */
+diff -puN include/asm-x86_64/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix-2 include/asm-x86_64/pci.h
+--- a/include/asm-x86_64/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix-2
 +++ a/include/asm-x86_64/pci.h
-@@ -38,8 +38,8 @@ int pcibios_set_irq_routing(struct pci_d
- extern void __init pci_mmcfg_early_init(int type);
- extern void __init pci_mmcfg_late_init(void);
- #else
--#define pci_mmcfg_early_init(TYPE)	do { } while (0)
--#define pci_mmcfg_late_init(TYPE)	do { } while (0)
+@@ -34,14 +34,6 @@ void pcibios_penalize_isa_irq(int irq, i
+ struct irq_routing_table *pcibios_get_irq_routing_table(void);
+ int pcibios_set_irq_routing(struct pci_dev *dev, int pin, int irq);
+ 
+-#ifdef CONFIG_PCI_MMCONFIG
+-extern void __init pci_mmcfg_early_init(int type);
+-extern void __init pci_mmcfg_late_init(void);
+-#else
+-static inline void pci_mmcfg_early_init(int type) { }
+-static inline void pci_mmcfg_late_init(void) { }
+-#endif
+-
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include <asm/scatterlist.h>
+diff -puN include/linux/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix-2 include/linux/pci.h
+--- a/include/linux/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix-2
++++ a/include/linux/pci.h
+@@ -885,5 +885,13 @@ extern unsigned long pci_cardbus_mem_siz
+ 
+ extern void pcibios_add_platform_entries(struct pci_dev *dev);
+ 
++#ifdef CONFIG_PCI_MMCONFIG
++extern void __init pci_mmcfg_early_init(int type);
++extern void __init pci_mmcfg_late_init(void);
++#else
 +static inline void pci_mmcfg_early_init(int type) { }
 +static inline void pci_mmcfg_late_init(void) { }
- #endif
- 
- #include <linux/types.h>
++#endif
++
+ #endif /* __KERNEL__ */
+ #endif /* LINUX_PCI_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -146,7 +175,6 @@ mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
 x86_64-fix-smp_call_function_single-return-value.patch
 i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
 mmconfig-validate-against-acpi-motherboard-resources.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
 mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
 mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
 mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
