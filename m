@@ -1,48 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 13:58:10 -0700
-Message-ID: <200707092058.l69KwAtb011215@imap1.linux-foundation.org>
+Subject: - allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 13:58:07 -0700
+Message-ID: <200707092058.l69Kw8Sm011212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47443 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36116 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755361AbXGIU6i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 16:58:38 -0400
+	by vger.kernel.org with ESMTP id S1754752AbXGIU6f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 16:58:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     allow-huge-page-allocations-to-use-gfp_high_movable-fix-2
+     allow-huge-page-allocations-to-use-gfp_high_movable-fix
 has been removed from the -mm tree.  Its filename was
-     allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+     allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
 
 This patch was dropped because it was folded into allow-huge-page-allocations-to-use-gfp_high_movable.patch
 
 ------------------------------------------------------
-Subject: allow-huge-page-allocations-to-use-gfp_high_movable-fix-2
+Subject: allow-huge-page-allocations-to-use-gfp_high_movable-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/hugetlb.h |    1 -
+ mm/hugetlb.c            |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix-2 mm/hugetlb.c
---- a/mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix-2
+diff -puN mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix
 +++ a/mm/hugetlb.c
-@@ -267,7 +267,7 @@ int hugetlb_treat_movable_handler(struct
- {
- 	proc_dointvec(table, write, file, buffer, length, ppos);
- 	if (hugepages_treat_as_movable)
--		htlb_alloc_mask = GFP_HIGH_MOVABLE;
-+		htlb_alloc_mask = GFP_HIGHUSER_MOVABLE;
- 	else
- 		htlb_alloc_mask = GFP_HIGHUSER;
- 	return 0;
+@@ -27,7 +27,7 @@ unsigned long max_huge_pages;
+ static struct list_head hugepage_freelists[MAX_NUMNODES];
+ static unsigned int nr_huge_pages_node[MAX_NUMNODES];
+ static unsigned int free_huge_pages_node[MAX_NUMNODES];
+-gfp_t htlb_alloc_mask = GFP_HIGHUSER;
++static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
+ unsigned long hugepages_treat_as_movable;
+ 
+ /*
+diff -puN include/linux/hugetlb.h~allow-huge-page-allocations-to-use-gfp_high_movable-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~allow-huge-page-allocations-to-use-gfp_high_movable-fix
++++ a/include/linux/hugetlb.h
+@@ -31,7 +31,6 @@ void hugetlb_unreserve_pages(struct inod
+ 
+ extern unsigned long max_huge_pages;
+ extern unsigned long hugepages_treat_as_movable;
+-extern gfp_t htlb_alloc_mask;
+ extern const unsigned long hugetlb_zero, hugetlb_infinity;
+ extern int sysctl_hugetlb_shm_group;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -148,6 +160,7 @@ add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-m
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 create-the-zone_movable-zone.patch
 allow-huge-page-allocations-to-use-gfp_high_movable.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
 maps2-move-the-page-walker-code-to-lib.patch
