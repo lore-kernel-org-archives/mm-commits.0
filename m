@@ -1,460 +1,262 @@
 From: akpm@linux-foundation.org
-Subject: - mm-swap-prefetch-increase-aggressiveness-and-tunability.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:52:59 -0700
-Message-ID: <200707092352.l69NqxFO021617@imap1.linux-foundation.org>
+Subject: - coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:53:54 -0700
+Message-ID: <200707092353.l69NrsCD021642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32947 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59753 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756853AbXGIXyD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:54:03 -0400
+	by vger.kernel.org with ESMTP id S1759244AbXGIXyT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:54:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kernel@kolivas.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hidehiro.kawai.ez@hitachi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: swap prefetch increase aggressiveness and tunability
+     coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
 has been removed from the -mm tree.  Its filename was
-     mm-swap-prefetch-increase-aggressiveness-and-tunability.patch
+     coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
 
-This patch was dropped because it was folded into mm-implement-swap-prefetching.patch
+This patch was dropped because it was folded into coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
 
 ------------------------------------------------------
-Subject: mm: swap prefetch increase aggressiveness and tunability
-From: Con Kolivas <kernel@kolivas.org>
+Subject: coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Swap prefetch is currently too lax in prefetching with extended idle
-periods unused.  Increase its aggressiveness and tunability.
+ERROR: "set_dumpable" [security/commoncap.ko] undefined!
 
-Make it possible for swap_prefetch to be set to a high value ignoring load
-and prefetching regardless.
-
-Add tunables to modify the swap prefetch delay and sleep period on the fly,
-and decrease both periods to 1 and 5 seconds respectively.  Extended
-periods did not decrease the impact any further but greatly diminished the
-rate ram was prefetched.
-
-Remove the prefetch_watermark that left free ram unused.  The impact of
-using the free ram with prefetched pages being put on the tail end of the
-inactive list would be minimal and potentially very beneficial, yet testing
-the pagestate adds unnecessary expense.
-
-Put kprefetchd to sleep if the low watermarks are hit instead of delaying it.
-
-Increase the maxcount as the lazy removal of swapped entries means we can
-easily have many stale entries and not enough entries for good swap
-prefetch.
-
-Do not delay prefetch in cond_resched() returning positive.  That was
-pointless and frequently put kprefetchd to sleep for no reason.
-
-Update comments and documentation.
-
-Signed-off-by: Con Kolivas <kernel@kolivas.org>
+Cc: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt   |   33 +++++-
- include/linux/swap-prefetch.h |    3 
- kernel/sysctl.c               |   16 +++
- mm/swap_prefetch.c            |  164 +++++++++++++-------------------
- 4 files changed, 117 insertions(+), 99 deletions(-)
+ fs/exec.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/sysctl/vm.txt~mm-swap-prefetch-increase-aggressiveness-and-tunability Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-swap-prefetch-increase-aggressiveness-and-tunability
-+++ a/Documentation/sysctl/vm.txt
-@@ -34,6 +34,8 @@ Currently, these files are in /proc/sys/
- - mmap_min_address
- - numa_zonelist_order
- - swap_prefetch
-+- swap_prefetch_delay
-+- swap_prefetch_sleep
- 
- ==============================================================
- 
-@@ -284,10 +286,31 @@ this is causing problems for your system
- swap_prefetch
- 
- This enables or disables the swap prefetching feature. When the virtual
--memory subsystem has been extremely idle for at least 5 seconds it will start
--copying back pages from swap into the swapcache and keep a copy in swap. In
--practice it can take many minutes before the vm is idle enough. A value of 0
--disables swap prefetching, 1 enables it unless laptop_mode is enabled, and 2
--enables it even in the presence of laptop_mode.
-+memory subsystem has been extremely idle for at least swap_prefetch_sleep
-+seconds it will start copying back pages from swap into the swapcache and keep
-+a copy in swap. Valid values are 0 - 3. A value of 0 disables swap
-+prefetching, 1 enables it unless laptop_mode is enabled, 2 enables it in the
-+presence of laptop_mode, and 3 enables it unconditionally, ignoring whether
-+the system is idle or not. If set to 0, swap prefetch wil not even try to keep
-+record of ram swapped out to have the most minimal impact on performance.
- 
- The default value is 1.
-+
-+==============================================================
-+
-+swap_prefetch_delay
-+
-+This is the time in seconds that swap prefetching is delayed upon finding
-+the system is not idle (ie the vm is busy or non-niced cpu load is present).
-+
-+The default value is 1.
-+
-+==============================================================
-+
-+swap_prefetch_sleep
-+
-+This is the time in seconds that the swap prefetch kernel thread is put to
-+sleep for when the ram is found to be full and it is unable to prefetch
-+further.
-+
-+The default value is 5.
-diff -puN include/linux/swap-prefetch.h~mm-swap-prefetch-increase-aggressiveness-and-tunability include/linux/swap-prefetch.h
---- a/include/linux/swap-prefetch.h~mm-swap-prefetch-increase-aggressiveness-and-tunability
-+++ a/include/linux/swap-prefetch.h
-@@ -4,6 +4,9 @@
- #ifdef CONFIG_SWAP_PREFETCH
- /* mm/swap_prefetch.c */
- extern int swap_prefetch;
-+extern int swap_prefetch_delay;
-+extern int swap_prefetch_sleep;
-+
- struct swapped_entry {
- 	swp_entry_t		swp_entry;	/* The actual swap entry */
- 	struct list_head	swapped_list;	/* Linked list of entries */
-diff -puN kernel/sysctl.c~mm-swap-prefetch-increase-aggressiveness-and-tunability kernel/sysctl.c
---- a/kernel/sysctl.c~mm-swap-prefetch-increase-aggressiveness-and-tunability
-+++ a/kernel/sysctl.c
-@@ -983,6 +983,22 @@ static ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "swap_prefetch_delay",
-+		.data		= &swap_prefetch_delay,
-+		.maxlen		= sizeof(swap_prefetch_delay),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "swap_prefetch_sleep",
-+		.data		= &swap_prefetch_sleep,
-+		.maxlen		= sizeof(swap_prefetch_sleep),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
- #endif
- #ifdef CONFIG_SMP
- 	{
-diff -puN mm/swap_prefetch.c~mm-swap-prefetch-increase-aggressiveness-and-tunability mm/swap_prefetch.c
---- a/mm/swap_prefetch.c~mm-swap-prefetch-increase-aggressiveness-and-tunability
-+++ a/mm/swap_prefetch.c
-@@ -1,7 +1,7 @@
- /*
-  * linux/mm/swap_prefetch.c
-  *
-- * Copyright (C) 2005-2006 Con Kolivas
-+ * Copyright (C) 2005-2007 Con Kolivas
-  *
-  * Written by Con Kolivas <kernel@kolivas.org>
-  *
-@@ -23,15 +23,22 @@
- #include <linux/freezer.h>
- 
- /*
-- * Time to delay prefetching if vm is busy or prefetching unsuccessful. There
-- * needs to be at least this duration of idle time meaning in practice it can
-- * be much longer
-+ * sysctls:
-+ * swap_prefetch:	0. Disable swap prefetching
-+ *			1. Prefetch only when idle and not with laptop_mode
-+ *			2. Prefetch when idle and with laptop_mode
-+ *			3. Prefetch at all times.
-+ * swap_prefetch_delay:	Number of seconds to delay prefetching when system
-+ *			is not idle.
-+ * swap_prefetch_sleep:	Number of seconds to put kprefetchd to sleep when
-+ *			unable to prefetch.
-  */
--#define PREFETCH_DELAY		(HZ * 5)
--#define DISABLED_PREFETCH_DELAY	(HZ * 60)
--
--/* sysctl - enable/disable swap prefetching */
- int swap_prefetch __read_mostly = 1;
-+int swap_prefetch_delay __read_mostly = 1;
-+int swap_prefetch_sleep __read_mostly = 5;
-+
-+#define PREFETCH_DELAY		(HZ * swap_prefetch_delay)
-+#define PREFETCH_SLEEP		((HZ * swap_prefetch_sleep) ? : 1)
- 
- struct swapped_root {
- 	unsigned long		busy;		/* vm busy */
-@@ -73,7 +80,7 @@ static inline int prefetch_enabled(void)
- 	return 1;
+diff -puN fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags-fix fs/exec.c
+--- a/fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
++++ a/fs/exec.c
+@@ -1705,6 +1705,7 @@ void set_dumpable(struct mm_struct *mm, 
+ 		break;
+ 	}
  }
++EXPORT_SYMBOL_GPL(set_dumpable);
  
--static int wakeup_kprefetchd;
-+static int kprefetchd_awake;
- 
- /*
-  * Drop behind accounting which keeps a list of the most recently used swap
-@@ -90,9 +97,8 @@ void add_to_swapped_list(struct page *pa
- 	spin_lock_irqsave(&swapped.lock, flags);
- 	if (swapped.count >= swapped.maxcount) {
- 		/*
--		 * We limit the number of entries to 2/3 of physical ram.
--		 * Once the number of entries exceeds this we start removing
--		 * the least recently used entries.
-+		 * Once the number of entries exceeds maxcount we start
-+		 * removing the least recently used entries.
- 		 */
- 		entry = list_entry(swapped.list.next,
- 			struct swapped_entry, swapped_list);
-@@ -123,7 +129,7 @@ void add_to_swapped_list(struct page *pa
- out_locked:
- 	spin_unlock_irqrestore(&swapped.lock, flags);
- out:
--	if (wakeup_kprefetchd)
-+	if (!kprefetchd_awake)
- 		wake_up_process(kprefetchd_task);
- 	return;
- }
-@@ -138,9 +144,6 @@ static void remove_from_swapped_list(con
- 	struct swapped_entry *entry;
- 	unsigned long flags;
- 
--	if (list_empty(&swapped.list))
--		return;
--
- 	spin_lock_irqsave(&swapped.lock, flags);
- 	entry = radix_tree_delete(&swapped.swap_tree, index);
- 	if (likely(entry)) {
-@@ -162,8 +165,6 @@ struct node_stats {
- 	unsigned long	last_free;
- 	/* Free ram on this cycle of checking prefetch_suitable */
- 	unsigned long	current_free;
--	/* Maximum amount we will prefetch to */
--	unsigned long	prefetch_watermark;
- 	/* The amount of free ram before we start prefetching */
- 	unsigned long	highfree[MAX_NR_ZONES];
- 	/* The amount of free ram where we will stop prefetching */
-@@ -303,31 +304,35 @@ static void examine_free_limits(void)
- /*
-  * We want to be absolutely certain it's ok to start prefetching.
-  */
--static int prefetch_suitable(void)
-+static enum trickle_return prefetch_suitable(void)
+ int get_dumpable(struct mm_struct *mm)
  {
--	unsigned long limit;
-+	enum trickle_return ret = TRICKLE_DELAY;
- 	struct zone *z;
--	int node, ret = 0, test_pagestate = 0;
--
--	/* Purposefully racy */
--	if (test_bit(0, &swapped.busy)) {
--		__clear_bit(0, &swapped.busy);
--		goto out;
--	}
-+	int node;
- 
- 	/*
--	 * get_page_state and above_background_load are expensive so we only
--	 * perform them every SWAP_CLUSTER_MAX prefetched_pages.
--	 * We test to see if we're above_background_load as disk activity
--	 * even at low priority can cause interrupt induced scheduling
--	 * latencies.
-+	 * If swap_prefetch is set to a high value we can ignore load
-+	 * and prefetch whenever we can. Otherwise we test for vm and
-+	 * cpu activity.
- 	 */
--	if (!(sp_stat.prefetched_pages % SWAP_CLUSTER_MAX)) {
--		if (above_background_load())
-+	if (swap_prefetch < 3) {
-+		/* Purposefully racy, may return false positive */
-+		if (test_bit(0, &swapped.busy)) {
-+			__clear_bit(0, &swapped.busy);
- 			goto out;
--		test_pagestate = 1;
--	}
-+		}
- 
-+		/*
-+		 * above_background_load is expensive so we only perform it
-+		 * every SWAP_CLUSTER_MAX prefetched_pages.
-+		 * We test to see if we're above_background_load as disk
-+		 * activity even at low priority can cause interrupt induced
-+		 * scheduling latencies.
-+		 */
-+		if (!(sp_stat.prefetched_pages % SWAP_CLUSTER_MAX) &&
-+		    above_background_load())
-+			goto out;
-+	}
- 	clear_current_prefetch_free();
- 
- 	/*
-@@ -383,40 +388,17 @@ static int prefetch_suitable(void)
- 		} else
- 			ns->last_free = ns->current_free;
- 
--		if (!test_pagestate)
--			continue;
--
- 		/* We shouldn't prefetch when we are doing writeback */
--		if (node_page_state(node, NR_WRITEBACK)) {
-+		if (node_page_state(node, NR_WRITEBACK))
- 			node_clear(node, sp_stat.prefetch_nodes);
--			continue;
--		}
--
--		/*
--		 * >2/3 of the ram on this node is mapped, slab, swapcache or
--		 * dirty, we need to leave some free for pagecache.
--		 * Note that currently nr_slab is innacurate on numa because
--		 * nr_slab is incremented on the node doing the accounting
--		 * even if the slab is being allocated on a remote node. This
--		 * would be expensive to fix and not of great significance.
--		 */
--		limit = node_page_state(node, NR_FILE_PAGES);
--		limit += node_page_state(node, NR_SLAB_UNRECLAIMABLE);
--		limit += node_page_state(node, NR_SLAB_RECLAIMABLE);
--		limit += node_page_state(node, NR_FILE_DIRTY);
--		limit += node_page_state(node, NR_UNSTABLE_NFS);
--		limit += total_swapcache_pages;
--		if (limit > ns->prefetch_watermark) {
--			node_clear(node, sp_stat.prefetch_nodes);
--			continue;
--		}
- 	}
- 
-+	/* Nothing suitable, put kprefetchd back to sleep */
- 	if (nodes_empty(sp_stat.prefetch_nodes))
--		goto out;
-+		return TRICKLE_FAILED;
- 
- 	/* Survived all that? Hooray we can prefetch! */
--	ret = 1;
-+	ret = TRICKLE_SUCCESS;
- out:
- 	return ret;
- }
-@@ -426,12 +408,12 @@ out:
-  * first checks to see if the busy flag is set, and does not prefetch if it
-  * is, as the flag implied we are low on memory or swapping in currently.
-  * Otherwise it runs until prefetch_suitable fails which occurs when the
-- * vm is busy, we prefetch to the watermark, or the list is empty or we have
-- * iterated over all entries
-+ * vm is busy, we prefetch to the watermark, the list is empty or we have
-+ * iterated over all entries once.
-  */
- static enum trickle_return trickle_swap(void)
- {
--	enum trickle_return ret = TRICKLE_DELAY;
-+	enum trickle_return suitable, ret = TRICKLE_DELAY;
- 	struct swapped_entry *pos, *n;
- 	unsigned long flags;
- 
-@@ -439,10 +421,13 @@ static enum trickle_return trickle_swap(
- 		return ret;
- 
- 	examine_free_limits();
--	if (!prefetch_suitable())
--		return ret;
--	if (list_empty(&swapped.list))
-+	suitable = prefetch_suitable();
-+	if (suitable != TRICKLE_SUCCESS)
-+		return suitable;
-+	if (list_empty(&swapped.list)) {
-+		kprefetchd_awake = 0;
- 		return TRICKLE_FAILED;
-+	}
- 
- 	spin_lock_irqsave(&swapped.lock, flags);
- 	list_for_each_entry_safe_reverse(pos, n, &swapped.list, swapped_list) {
-@@ -450,9 +435,12 @@ static enum trickle_return trickle_swap(
- 		int node;
- 
- 		spin_unlock_irqrestore(&swapped.lock, flags);
--		/* Yield to anything else running */
--		if (cond_resched() || !prefetch_suitable())
-+		cond_resched();
-+		suitable = prefetch_suitable();
-+		if (suitable != TRICKLE_SUCCESS) {
-+			ret = suitable;
- 			goto out_unlocked;
-+		}
- 
- 		spin_lock_irqsave(&swapped.lock, flags);
- 		if (unlikely(!pos))
-@@ -491,29 +479,20 @@ static int kprefetchd(void *__unused)
- 	/* Set ioprio to lowest if supported by i/o scheduler */
- 	sys_ioprio_set(IOPRIO_WHO_PROCESS, IOPRIO_BE_NR - 1, IOPRIO_CLASS_BE);
- 
--	/* kprefetchd has nothing to do until it is woken up the first time */
--	wakeup_kprefetchd = 1;
--	set_current_state(TASK_INTERRUPTIBLE);
--	schedule();
--
- 	while (!kthread_should_stop()) {
- 		try_to_freeze();
- 
--		/*
--		 * TRICKLE_FAILED implies no entries left - we do not schedule
--		 * a wakeup, and further delay the next one.
--		 */
--		if (trickle_swap() == TRICKLE_FAILED) {
--			wakeup_kprefetchd = 1;
-+		if (!kprefetchd_awake) {
- 			set_current_state(TASK_INTERRUPTIBLE);
- 			schedule();
--		} else
--			wakeup_kprefetchd = 0;
--		clear_last_prefetch_free();
--		if (!prefetch_enabled())
--			schedule_timeout_interruptible(DISABLED_PREFETCH_DELAY);
-+			kprefetchd_awake = 1;
-+		}
-+
-+		if (trickle_swap() == TRICKLE_FAILED)
-+			schedule_timeout_interruptible(PREFETCH_SLEEP);
- 		else
- 			schedule_timeout_interruptible(PREFETCH_DELAY);
-+		clear_last_prefetch_free();
- 	}
- 	return 0;
- }
-@@ -529,22 +508,19 @@ void __init prepare_swap_prefetch(void)
- 		sizeof(struct swapped_entry), 0, SLAB_PANIC, NULL, NULL);
- 
- 	/*
--	 * Set max number of entries to 2/3 the size of physical ram  as we
--	 * only ever prefetch to consume 2/3 of the ram.
-+	 * We set the limit to more entries than the physical ram.
-+	 * We remove entries lazily so we need some headroom.
- 	 */
--	swapped.maxcount = nr_free_pagecache_pages() / 3 * 2;
-+	swapped.maxcount = nr_free_pagecache_pages() * 2;
- 
- 	for_each_zone(zone) {
--		unsigned long present;
- 		struct node_stats *ns;
- 		int idx;
- 
--		present = zone->present_pages;
--		if (!present)
-+		if (!populated_zone(zone))
- 			continue;
- 
- 		ns = &sp_stat.node[zone_to_nid(zone)];
--		ns->prefetch_watermark += present / 3 * 2;
- 		idx = zone_idx(zone);
- 		ns->pointfree[idx] = &ns->highfree[idx];
- 	}
 _
 
-Patches currently in -mm which might be from kernel@kolivas.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-mm-swap-prefetch-increase-aggressiveness-and-tunability.patch
+git-acpi.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-saa7134-tvaudio-fix.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+serio_raw_read-warning-fix.patch
+tsdev-fix-broken-usecto-millisecs-conversion.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-md-accel.patch
+git-mips-fixup.patch
+git-mtd.patch
+mtd-onenand-build-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-battery-vs-git-acpi.patch
+git-ioat-vs-git-md-accel.patch
+revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+revert-acpi-change-for-scsi.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+restore-acpi-change-for-scsi.patch
+git-scsi-misc-vs-greg-sysfs-stuff.patch
+aacraid-rename-check_reset.patch
+git-scsi-target-fixup.patch
+splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-show-unhandled-signals.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+i386-add-cpu_relax-to-cmos_lock.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-kgdb-fixup.patch
+kgdb-warning-fix.patch
+kgdb-kconfig-fix.patch
+kgdb-use-new-style-interrupt-flags.patch
+kgdb-section-fix.patch
+kgdb_skipexception-warning-fix.patch
+kgdb-ia64-fixes.patch
+kgdb-bust-on-ia64.patch
+kgdb-build-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+fix-alpha-isa-support.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time.patch
+use-boot-based-time-for-process-start-time-and-boot-time.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+vdso-print-fatal-signals.patch
+o_cloexec-for-scm_rights.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each.patch
+ext3-ext4-orphan-list-check-on-destroy_inode.patch
+taskstats-add-context-switch-counters.patch
+improve-behaviour-of-spurious-irq-detect.patch
+audit-add-tty-input-auditing.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+diskquota-32bit-quota-tools-on-64bit-architectures.patch
+sys_time-speedup.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine.patch
+sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc.patch
+bd_claim_by_disk-fix-warning.patch
+uninline-check_signature.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support.patch
+spi-master-driver-for-xilinx-virtex.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-remove-iget-abuse.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+rtc-add-rtc-m41t80-driver-take-2.patch
+rtc-add-support-for-the-st-m48t59-rtc.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-driver-for-ds1216-chips-fix.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+reiser4.patch
+reiser4-fix.patch
+git-block-vs-reiser4.patch
+allow-page_owner-to-be-set-on-any-architecture-fix.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
