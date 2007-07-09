@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + e1000new-build-fix.patch added to -mm tree
-Date: Mon, 09 Jul 2007 01:16:08 -0700
-Message-ID: <200707090820.l698KMjd028359@imap1.linux-foundation.org>
+Date: Mon, 09 Jul 2007 01:25:52 -0700
+Message-ID: <200707090830.l698U6Rk028920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57008 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34787 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751290AbXGIIUg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 04:20:36 -0400
+	by vger.kernel.org with ESMTP id S1751221AbXGIIan (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 04:30:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -44,9 +44,28 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000new/82540.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/e1000new/80003es2lan.c |    1 +
+ drivers/net/e1000new/82540.c       |    1 +
+ drivers/net/e1000new/82541.c       |    1 +
+ drivers/net/e1000new/ethtool.c     |    1 +
+ drivers/net/e1000new/ich8lan.c     |    1 +
+ drivers/net/e1000new/mac.c         |    1 +
+ drivers/net/e1000new/main.c        |    1 +
+ drivers/net/e1000new/manage.c      |    1 +
+ drivers/net/e1000new/phy.c         |    1 +
+ 9 files changed, 9 insertions(+)
 
+diff -puN drivers/net/e1000new/80003es2lan.c~e1000new-build-fix drivers/net/e1000new/80003es2lan.c
+--- a/drivers/net/e1000new/80003es2lan.c~e1000new-build-fix
++++ a/drivers/net/e1000new/80003es2lan.c
+@@ -32,6 +32,7 @@
+  */
+ 
+ #include "80003es2lan.h"
++#include <linux/delay.h>
+ 
+ void e1000_init_function_pointers_80003es2lan(struct e1000_hw *hw);
+ 
 diff -puN drivers/net/e1000new/82540.c~e1000new-build-fix drivers/net/e1000new/82540.c
 --- a/drivers/net/e1000new/82540.c~e1000new-build-fix
 +++ a/drivers/net/e1000new/82540.c
@@ -58,6 +77,83 @@ diff -puN drivers/net/e1000new/82540.c~e1000new-build-fix drivers/net/e1000new/8
  
  void e1000_init_function_pointers_82540(struct e1000_hw *hw);
  
+diff -puN drivers/net/e1000new/82541.c~e1000new-build-fix drivers/net/e1000new/82541.c
+--- a/drivers/net/e1000new/82541.c~e1000new-build-fix
++++ a/drivers/net/e1000new/82541.c
+@@ -36,6 +36,7 @@
+  */
+ 
+ #include "82541.h"
++#include <linux/delay.h>
+ 
+ void e1000_init_function_pointers_82541(struct e1000_hw *hw);
+ 
+diff -puN drivers/net/e1000new/ethtool.c~e1000new-build-fix drivers/net/e1000new/ethtool.c
+--- a/drivers/net/e1000new/ethtool.c~e1000new-build-fix
++++ a/drivers/net/e1000new/ethtool.c
+@@ -31,6 +31,7 @@
+ #include <linux/netdevice.h>
+ 
+ #include <linux/ethtool.h>
++#include <linux/delay.h>
+ 
+ #include "e1000.h"
+ #include "82541.h"
+diff -puN drivers/net/e1000new/ich8lan.c~e1000new-build-fix drivers/net/e1000new/ich8lan.c
+--- a/drivers/net/e1000new/ich8lan.c~e1000new-build-fix
++++ a/drivers/net/e1000new/ich8lan.c
+@@ -41,6 +41,7 @@
+  */
+ 
+ #include "ich8lan.h"
++#include <linux/delay.h>
+ 
+ void e1000_init_function_pointers_ich8lan(struct e1000_hw *hw);
+ 
+diff -puN drivers/net/e1000new/mac.c~e1000new-build-fix drivers/net/e1000new/mac.c
+--- a/drivers/net/e1000new/mac.c~e1000new-build-fix
++++ a/drivers/net/e1000new/mac.c
+@@ -28,6 +28,7 @@
+ 
+ #include <linux/netdevice.h>
+ #include <linux/pci.h>
++#include <linux/delay.h>
+ 
+ #include "e1000.h"
+ #include "mac.h"
+diff -puN drivers/net/e1000new/main.c~e1000new-build-fix drivers/net/e1000new/main.c
+--- a/drivers/net/e1000new/main.c~e1000new-build-fix
++++ a/drivers/net/e1000new/main.c
+@@ -41,6 +41,7 @@
+ #include <linux/if_vlan.h>
+ #include <linux/cpu.h>
+ #include <linux/smp.h>
++#include <linux/delay.h>
+ 
+ #include "e1000.h"
+ 
+diff -puN drivers/net/e1000new/manage.c~e1000new-build-fix drivers/net/e1000new/manage.c
+--- a/drivers/net/e1000new/manage.c~e1000new-build-fix
++++ a/drivers/net/e1000new/manage.c
+@@ -27,6 +27,7 @@
+ *******************************************************************************/
+ 
+ #include "manage.h"
++#include <linux/delay.h>
+ 
+ /**
+  *  e1000_calculate_checksum - Calculate checksum for buffer
+diff -puN drivers/net/e1000new/phy.c~e1000new-build-fix drivers/net/e1000new/phy.c
+--- a/drivers/net/e1000new/phy.c~e1000new-build-fix
++++ a/drivers/net/e1000new/phy.c
+@@ -27,6 +27,7 @@
+ *******************************************************************************/
+ 
+ #include "phy.h"
++#include <linux/delay.h>
+ 
+ static s32  e1000_get_phy_cfg_done(struct e1000_hw *hw);
+ static void e1000_release_phy(struct e1000_hw *hw);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +189,7 @@ mtd-onenand-build-fix.patch
 git-ubi.patch
 git-netdev-all.patch
 sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+e1000new-build-fix.patch
 wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
 git-battery-vs-git-acpi.patch
@@ -294,4 +391,3 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-e1000new-build-fix.patch
