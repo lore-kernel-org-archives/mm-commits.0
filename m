@@ -1,122 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 13:25:17 -0700
-Message-ID: <200707092025.l69KPHtg009248@imap1.linux-foundation.org>
+Subject: - change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 13:34:25 -0700
+Message-ID: <200707092034.l69KYQOC009723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39888 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37473 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754334AbXGIU0i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 16:26:38 -0400
+	by vger.kernel.org with ESMTP id S1754002AbXGIUei (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 16:34:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, apw@shadowen.org, bjorn.helgaas@hp.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: Lee.Schermerhorn@hp.com, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: convert early_uart to earlycon for 8250 fix 3 alias
+     add check_highest_zone to build_zonelists_in_zone_order
 has been removed from the -mm tree.  Its filename was
-     serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
+     change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
 
-This patch was dropped because it was folded into serial-convert-early_uart-to-earlycon-for-8250.patch
+This patch was dropped because it was folded into change-zonelist-order-zonelist-order-selection-logic.patch
 
 ------------------------------------------------------
-Subject: serial: convert early_uart to earlycon for 8250 fix 3 alias
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: add check_highest_zone to build_zonelists_in_zone_order
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-make the console=uart,io,0x3f8,9600n8 like console=uart8250,io,0x3f8,9600
-suggested by Andy Whitcroft.
+We missed this in the "change zone order" series.  We need to record the
+highest populated zone, just as build_zonelists_node() does.  Memory
+policies apply only to this zone.  Without this, we'll be applying policy
+to all zones, including DMA, I think.  Not having thought about it much, I
+can't claim to understand the downside of doing so.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Gerd Hoffmann <kraxel@suse.de>
+Also, display selected "policy zone" during boot or reconfig of zonelist
+order, if 'NUMA.  Inquiring minds [might] want to know...
+
+Cleanup: remove stale comment in set_zonelist_order()
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-By: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    8 ++++----
- drivers/serial/8250_early.c         |   15 ++++++++++++---
- 2 files changed, 16 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias
-+++ a/Documentation/kernel-parameters.txt
-@@ -462,16 +462,16 @@ and is between 256 and 4096 characters. 
- 			Documentation/networking/netconsole.txt for an
- 			alternative.
+diff -puN mm/page_alloc.c~change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order mm/page_alloc.c
+--- a/mm/page_alloc.c~change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order
++++ a/mm/page_alloc.c
+@@ -1663,7 +1663,7 @@ static char zonelist_order_name[3][8] = 
  
--		uart8250,io,<addr>[,options]
--		uart8250,mmio,<addr>[,options]
-+		uart[8250],io,<addr>[,options]
-+		uart[8250],mmio,<addr>[,options]
- 			Start an early, polled-mode console on the 8250/16550
- 			UART at the specified I/O port or MMIO address,
- 			switching to the matching ttyS device later.  The
- 			options are the same as for ttyS, above.
  
- 	earlycon=	[KNL] Output early console device and options.
--		uart8250,io,<addr>[,options]
--		uart8250,mmio,<addr>[,options]
-+		uart[8250],io,<addr>[,options]
-+		uart[8250],mmio,<addr>[,options]
- 			Start an early, polled-mode console on the 8250/16550
- 			UART at the specified I/O port or MMIO address.
- 			The options are the same as for ttyS, above.
-diff -puN drivers/serial/8250_early.c~serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias drivers/serial/8250_early.c
---- a/drivers/serial/8250_early.c~serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias
-+++ a/drivers/serial/8250_early.c
-@@ -210,8 +210,11 @@ int __init setup_early_serial8250_consol
- 	int err;
+ #ifdef CONFIG_NUMA
+-/* The vaule user specified ....changed by config */
++/* The value user specified ....changed by config */
+ static int user_zonelist_order = ZONELIST_ORDER_DEFAULT;
+ /* string for sysctl */
+ #define NUMA_ZONELIST_ORDER_LEN	16
+@@ -1841,8 +1841,10 @@ static void build_zonelists_in_zone_orde
+ 			for (j = 0; j < nr_nodes; j++) {
+ 				node = node_order[j];
+ 				z = &NODE_DATA(node)->node_zones[zone_type];
+-				if (populated_zone(z))
++				if (populated_zone(z)) {
+ 					zonelist->zones[pos++] = z;
++					check_highest_zone(zone_type);
++				}
+ 			}
+ 		}
+ 		zonelist->zones[pos] = NULL;
+@@ -1857,7 +1859,6 @@ static int default_zonelist_order(void)
  
- 	options = strstr(cmdline, "uart8250,");
--	if (!options)
--		return 0;
-+	if (!options) {
-+		options = strstr(cmdline, "uart,");
-+		if (!options)
-+			return 0;
-+	}
- 
- 	options = strchr(cmdline, ',') + 1;
- 	if ((err = early_serial8250_setup(options)) < 0)
-@@ -227,6 +230,7 @@ int __init serial8250_find_port_for_earl
- 	struct early_serial8250_device *device = &early_device;
- 	struct uart_port *port = &device->port;
- 	int line;
-+	int ret;
- 
- 	if (!device->port.membase && !device->port.iobase)
- 		return -ENODEV;
-@@ -235,8 +239,13 @@ int __init serial8250_find_port_for_earl
- 	if (line < 0)
- 		return -ENODEV;
- 
--	return update_console_cmdline("uart", 8250,
-+	ret = update_console_cmdline("uart", 8250,
-+			     "ttyS", line, device->options);
-+	if (ret < 0)
-+		ret = update_console_cmdline("uart", 0,
- 				     "ttyS", line, device->options);
-+
-+	return ret;
+ static void set_zonelist_order(void)
+ {
+-	/* dummy, just select node order. */
+ 	if (user_zonelist_order == ZONELIST_ORDER_DEFAULT)
+ 		current_zonelist_order = default_zonelist_order();
+ 	else
+@@ -2024,6 +2025,9 @@ void build_all_zonelists(void)
+ 	printk("Built %i zonelists in %s order.  Total pages: %ld\n",
+ 			zonelist_order_name[current_zonelist_order],
+ 			num_online_nodes(), vm_total_pages);
++#ifdef CONFIG_NUMA
++	printk("Policy zone: %s\n", zone_names[policy_zone]);
++#endif
  }
  
- early_param("earlycon", setup_early_serial8250_console);
+ /*
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-serial-assert-dtr-for-serial-console-devices.patch
-usb-make-the-usb_device-numa_node-to-get-assigned-from.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
-x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-console-more-buf-for-index-parsing.patch
-console-console-handover-to-preferred-console.patch
-serial-convert-early_uart-to-earlycon-for-8250.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
-dma-make-dma-pool-to-use-kmalloc_node.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
