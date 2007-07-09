@@ -1,81 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:36:31 -0700
-Message-ID: <200707092336.l69NaW12020580@imap1.linux-foundation.org>
+Subject: - knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:36:24 -0700
+Message-ID: <200707092336.l69NaOhi020574@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57000 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41278 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758163AbXGIXgn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:36:43 -0400
+	by vger.kernel.org with ESMTP id S1757954AbXGIXgl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:36:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix
+     knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix
 has been removed from the -mm tree.  Its filename was
-     knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
+     knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
 
 This patch was dropped because it was folded into knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
 
 ------------------------------------------------------
-Subject: knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix
+Subject: knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make it right for highmem machines.
+Don't needlessly bloat vmlinux
 
-Cc: J. Bruce Fields <bfields@citi.umich.edu>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4state.c |    7 ++-----
- mm/page_alloc.c     |    1 +
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ fs/nfsd/nfs4state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nfsd/nfs4state.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix
+diff -puN fs/nfsd/nfs4state.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix fs/nfsd/nfs4state.c
+--- a/fs/nfsd/nfs4state.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix
 +++ a/fs/nfsd/nfs4state.c
-@@ -49,6 +49,7 @@
- #include <linux/nfsd/state.h>
- #include <linux/nfsd/xdr4.h>
- #include <linux/namei.h>
-+#include <linux/swap.h>
- #include <linux/mutex.h>
- #include <linux/lockd/bind.h>
- #include <linux/module.h>
-@@ -3210,17 +3211,13 @@ get_nfs4_grace_period(void)
- static void
- set_max_delegations(void)
- {
--	struct sysinfo sys;
--
--	si_meminfo(&sys);
- 	/*
- 	 * Allow at most 4 delegations per megabyte of RAM.  Quick
- 	 * estimates suggest that in the worst case (where every delegation
- 	 * is for a different inode), a delegation could take about 1.5K,
- 	 * giving a worst case usage of about 6% of memory.
- 	 */
--	sys.totalram >>= (18 - PAGE_SHIFT);
--	max_delegations = (unsigned int) sys.totalram;
-+	max_delegations = nr_free_buffer_pages() >> (20 - 2 - PAGE_SHIFT);
+@@ -150,7 +150,7 @@ get_nfs4_file(struct nfs4_file *fi)
  }
  
- /* initialization to perform when the nfsd service is started: */
-diff -puN mm/page_alloc.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix mm/page_alloc.c
---- a/mm/page_alloc.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix
-+++ a/mm/page_alloc.c
-@@ -1729,6 +1729,7 @@ unsigned int nr_free_buffer_pages(void)
- {
- 	return nr_free_zone_pages(gfp_zone(GFP_USER));
- }
-+EXPORT_SYMBOL_GPL(nr_free_buffer_pages);
+ static int num_delegations;
+-unsigned int max_delegations = 0;
++unsigned int max_delegations;
  
  /*
-  * Amount of free RAM allocatable within all zones
+  * Open owner state (share locks)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -242,6 +212,7 @@ knfsd-exportfs-add-exportfsh-header.patch
 knfsd-exportfs-remove-iget-abuse.patch
 nfsd-warning-fix.patch
 knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
 knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
 driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
 rtc-add-rtc-m41t80-driver-take-2-fix.patch
