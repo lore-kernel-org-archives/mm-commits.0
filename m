@@ -1,71 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - sys_time-speedup-build-fixes.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 15:01:05 -0700
-Message-ID: <200707092201.l69M16Oe014970@imap1.linux-foundation.org>
+Subject: - hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 15:03:00 -0700
+Message-ID: <200707092203.l69M30Te015052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33739 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51986 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756519AbXGIWBa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 18:01:30 -0400
+	by vger.kernel.org with ESMTP id S1756232AbXGIWDT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 18:03:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, duaneg@dghda.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_time-speedup-build-fixes
+     hfs-refactor-ascii-to-unicode-conversion-routine-fix
 has been removed from the -mm tree.  Its filename was
-     sys_time-speedup-build-fixes.patch
+     hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
 
-This patch was dropped because it was folded into sys_time-speedup.patch
+This patch was dropped because it was folded into hfs-refactor-ascii-to-unicode-conversion-routine.patch
 
 ------------------------------------------------------
-Subject: sys_time-speedup-build-fixes
+Subject: hfs-refactor-ascii-to-unicode-conversion-routine-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Duane Griffin <duaneg@dghda.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/hfsplus/unicode.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN kernel/time.c~sys_time-speedup-build-fixes kernel/time.c
---- a/kernel/time.c~sys_time-speedup-build-fixes
-+++ a/kernel/time.c
-@@ -386,16 +386,15 @@ void do_gettimeofday (struct timeval *tv
- 	if (unlikely(xtime.tv_sec != tv->tv_sec)) {
- 		unsigned long flags;
+diff -puN fs/hfsplus/unicode.c~hfs-refactor-ascii-to-unicode-conversion-routine-fix fs/hfsplus/unicode.c
+--- a/fs/hfsplus/unicode.c~hfs-refactor-ascii-to-unicode-conversion-routine-fix
++++ a/fs/hfsplus/unicode.c
+@@ -281,6 +281,8 @@ static inline u16 *decompose_unichar(wch
  
--		write_seqlock_irqsave(&xtime_lock);
-+		write_seqlock_irqsave(&xtime_lock, flags);
- 		update_wall_time();
--		write_seqlock_irqrestore(&xtime_lock);
-+		write_sequnlock_irqrestore(&xtime_lock, flags);
- 	}
+ 	off = hfsplus_decompose_table[off + (uc & 0xf)];
+ 	*size = off & 3;
++	if (*size == 0)
++		return NULL;
+ 	return hfsplus_decompose_table + (off / 4);
  }
--
- EXPORT_SYMBOL(do_gettimeofday);
  
-+#else	/* CONFIG_TIME_INTERPOLATION */
- 
--#else
- #ifndef CONFIG_GENERIC_TIME
- /*
-  * Simulate gettimeofday using do_gettimeofday which only allows a timeval
-@@ -411,7 +410,7 @@ void getnstimeofday(struct timespec *tv)
- }
- EXPORT_SYMBOL_GPL(getnstimeofday);
- #endif
--#endif
-+#endif	/* CONFIG_TIME_INTERPOLATION */
- 
- /* Converts Gregorian date to seconds since 1970-01-01 00:00:00.
-  * Assumes input in normal date format, i.e. 1980-12-31 23:59:59
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -209,9 +187,9 @@ binfmt_elf-warning-fix.patch
 dirty_writeback_centisecs_handler-cleanup.patch
 diskquota-32bit-quota-tools-on-64bit-architectures.patch
 sys_time-speedup.patch
-sys_time-speedup-build-fixes.patch
 add-documentation-sysctl-ctl_unnumberedtxt.patch
 sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine.patch
 hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
 sprint_symbol-cleanup.patch
 replace-obscure-constructs-in-fs-block_devc-fix.patch
