@@ -1,28 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - intel-iommu-intel-iommu-driver-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:48:51 -0700
-Message-ID: <200707092348.l69NmpIb021362@imap1.linux-foundation.org>
+Subject: - intel-iommu-intel-iommu-driver-fix-2.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:48:54 -0700
+Message-ID: <200707092348.l69NmsoP021365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52319 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758643AbXGIXtR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:49:17 -0400
+	by vger.kernel.org with ESMTP id S1758873AbXGIXtW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:49:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ak@suse.de, anil.s.keshavamurthy@intel.com, arjan@infradead.org, ashok.raj@intel.com, clameter@sgi.com, davem@davemloft.net, greg@kroah.com, muli@il.ibm.com, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     intel-iommu-intel-iommu-driver-fix
+     intel-iommu-intel-iommu-driver-fix-2
 has been removed from the -mm tree.  Its filename was
-     intel-iommu-intel-iommu-driver-fix.patch
+     intel-iommu-intel-iommu-driver-fix-2.patch
 
 This patch was dropped because it was folded into intel-iommu-intel-iommu-driver.patch
 
 ------------------------------------------------------
-Subject: intel-iommu-intel-iommu-driver-fix
+Subject: intel-iommu-intel-iommu-driver-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
+
+drivers/pci/intel-iommu.c: In function 'detect_intel_iommu':
+drivers/pci/intel-iommu.c:1879: error: 'no_iommu' undeclared (first use in this function)
+drivers/pci/intel-iommu.c:1879: error: (Each undeclared identifier is reported only once
+drivers/pci/intel-iommu.c:1879: error: for each function it appears in.)
+drivers/pci/intel-iommu.c:1879: error: 'iommu_detected' undeclared (first use in this function)
+drivers/pci/intel-iommu.c: In function 'intel_iommu_init':
+drivers/pci/intel-iommu.c:1932: error: 'no_iommu' undeclared (first use in this function)
+drivers/pci/intel-iommu.c:1953: error: 'force_iommu' undeclared (first use in this function)
 
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
@@ -38,21 +47,20 @@ Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/intel-iommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/intel-iommu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-driver-fix drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-driver-fix
+diff -puN drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-driver-fix-2 drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-driver-fix-2
 +++ a/drivers/pci/intel-iommu.c
-@@ -1168,7 +1168,7 @@ find_domain(struct pci_dev *pdev)
- 	struct device_domain_info *info;
+@@ -34,6 +34,7 @@
+ #include "intel-iommu.h"
+ #include <asm/proto.h> /* force_iommu in this header in x86-64*/
+ #include <asm/cacheflush.h>
++#include <asm/iommu.h>
+ #include "pci.h"
  
- 	/* No lock here, assumes no domain exit in normal case */
--	info = (struct device_domain_info *)pdev->sysdata;
-+	info = pdev->sysdata;
- 	if (info)
- 		return info->domain;
- 	return NULL;
+ #define IS_GFX_DEVICE(pdev) ((pdev->class >> 16) == PCI_BASE_CLASS_DISPLAY)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -233,7 +241,6 @@ fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
 intel-iommu-pci-generic-helper-function.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-intel-iommu-driver-fix.patch
 intel-iommu-intel-iommu-driver-fix-2.patch
 intel-iommu-iommu-floppy-workaround-fix.patch
 cfs-scheduler-vs-detach-schedh-from-mmh.patch
