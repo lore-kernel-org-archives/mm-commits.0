@@ -1,50 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - lockstat-measure-lock-bouncing-checkpatch.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:56:58 -0700
-Message-ID: <200707092356.l69NuwU2021862@imap1.linux-foundation.org>
+Subject: - reiser4-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:58:28 -0700
+Message-ID: <200707092358.l69NwTmv021967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49926 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50813 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757560AbXGIX5N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:57:13 -0400
+	by vger.kernel.org with ESMTP id S1760004AbXGIX6g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:58:36 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l69NwY08000488
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 9 Jul 2007 16:58:35 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockstat-measure-lock-bouncing-checkpatch
+     reiser4-fix
 has been removed from the -mm tree.  Its filename was
-     lockstat-measure-lock-bouncing-checkpatch.patch
+     reiser4-fix.patch
 
-This patch was dropped because it was folded into lockstat-measure-lock-bouncing.patch
+This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: lockstat-measure-lock-bouncing-checkpatch
+Subject: reiser4-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep_proc.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ fs/reiser4/super.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/lockdep_proc.c~lockstat-measure-lock-bouncing-checkpatch kernel/lockdep_proc.c
---- a/kernel/lockdep_proc.c~lockstat-measure-lock-bouncing-checkpatch
-+++ a/kernel/lockdep_proc.c
-@@ -480,7 +480,8 @@ static void seq_header(struct seq_file *
- {
- 	seq_printf(m, "lock_stat version 0.2\n");
- 	seq_line(m, '-', 0, 40 + 1 + 10 * (14 + 1));
--	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s %14s %14s\n",
-+	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s "
-+			"%14s %14s\n",
- 			"class name",
- 			"con-bounces",
- 			"contentions",
+diff -puN fs/reiser4/super.h~reiser4-fix fs/reiser4/super.h
+--- a/fs/reiser4/super.h~reiser4-fix
++++ a/fs/reiser4/super.h
+@@ -6,6 +6,8 @@
+ #if !defined( __REISER4_SUPER_H__ )
+ #define __REISER4_SUPER_H__
+ 
++#include <linux/exportfs.h>
++
+ #include "tree.h"
+ #include "entd.h"
+ #include "wander.h"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -246,7 +249,7 @@ add-containerstats-v3-fix.patch
 lockstat-core-infrastructure.patch
 lockdep-various-fixes.patch
 lockstat-measure-lock-bouncing.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
 reiser4.patch
 reiser4-fix.patch
 git-block-vs-reiser4.patch
