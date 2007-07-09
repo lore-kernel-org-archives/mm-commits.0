@@ -1,49 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:44:41 -0700
-Message-ID: <200707092344.l69Nifa4021089@imap1.linux-foundation.org>
+Subject: - fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:45:15 -0700
+Message-ID: <200707092345.l69NjFYd021103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56860 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760026AbXGIXos (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:44:48 -0400
+	by vger.kernel.org with ESMTP id S1760145AbXGIXpj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:45:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adaplas@gmail.com, geert@linux-m68k.org, jesse.barnes@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2
+     fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix
 has been removed from the -mm tree.  Its filename was
-     fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+     fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
 
-This patch was dropped because it was folded into fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+This patch was dropped because it was folded into fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
 
 ------------------------------------------------------
-Subject: fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2
+Subject: fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "unbind_con_driver" [drivers/video/console/fbcon.ko] undefined!
-
 Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jesse Barnes <jesse.barnes@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/console/fbcon.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/vt.c~fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2 drivers/char/vt.c
---- a/drivers/char/vt.c~fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2
-+++ a/drivers/char/vt.c
-@@ -3072,6 +3072,7 @@ err:
- 	return retval;
- 
+diff -puN drivers/video/console/fbcon.c~fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix
++++ a/drivers/video/console/fbcon.c
+@@ -3013,7 +3013,7 @@ static int fbcon_unbind(void)
+ 	return ret;
  }
-+EXPORT_SYMBOL(unbind_con_driver);
- 
- static int vt_bind(struct con_driver *con)
+ #else
+-static fbcon_unbind(void)
++static inline int fbcon_unbind(void)
  {
+ 	return -EINVAL;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -220,7 +221,7 @@ revoke-vs-git-block.patch
 lguest-the-host-code.patch
 lguest-the-net-driver.patch
 fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
 fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
 intel-iommu-pci-generic-helper-function-fix.patch
 intel-iommu-iova-allocation-and-management-routines-fix.patch
