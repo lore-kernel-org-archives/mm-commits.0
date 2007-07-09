@@ -1,66 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - procfs-directory-entry-cleanup-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:49:33 -0700
-Message-ID: <200707092149.l69LnYHL014219@imap1.linux-foundation.org>
+Subject: - reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:50:05 -0700
+Message-ID: <200707092150.l69Lo6f9014231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43477 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35680 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754694AbXGIVtm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:49:42 -0400
+	by vger.kernel.org with ESMTP id S1754221AbXGIVur (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:50:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, xiaosuo@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     procfs-directory-entry-cleanup-fix
+     reduce-cpusetc-write_lock_irq-to-read_lock-fix
 has been removed from the -mm tree.  Its filename was
-     procfs-directory-entry-cleanup-fix.patch
+     reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
 
-This patch was dropped because it was folded into procfs-directory-entry-cleanup.patch
+This patch was dropped because it was folded into reduce-cpusetc-write_lock_irq-to-read_lock.patch
 
 ------------------------------------------------------
-Subject: procfs-directory-entry-cleanup-fix
+Subject: reduce-cpusetc-write_lock_irq-to-read_lock-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Changli Gao" <xiaosuo@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Paul Menage<menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ kernel/cpuset.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/generic.c~procfs-directory-entry-cleanup-fix fs/proc/generic.c
---- a/fs/proc/generic.c~procfs-directory-entry-cleanup-fix
-+++ a/fs/proc/generic.c
-@@ -530,12 +530,6 @@ static int proc_register(struct proc_dir
- 		return -EAGAIN;
- 	dp->low_ino = i;
- 
--	spin_lock(&proc_subdir_lock);
--	dp->next = dir->subdir;
--	dp->parent = dir;
--	dir->subdir = dp;
--	spin_unlock(&proc_subdir_lock);
--
- 	if (S_ISDIR(dp->mode)) {
- 		if (dp->proc_iops == NULL) {
- 			dp->proc_fops = &proc_dir_operations;
-@@ -551,6 +545,13 @@ static int proc_register(struct proc_dir
- 		if (dp->proc_iops == NULL)
- 			dp->proc_iops = &proc_file_inode_operations;
+diff -puN kernel/cpuset.c~reduce-cpusetc-write_lock_irq-to-read_lock-fix kernel/cpuset.c
+--- a/kernel/cpuset.c~reduce-cpusetc-write_lock_irq-to-read_lock-fix
++++ a/kernel/cpuset.c
+@@ -926,7 +926,7 @@ static int update_nodemask(struct cpuset
+ 		read_lock(&tasklist_lock);		/* block fork */
+ 		if (atomic_read(&cs->count) <= ntasks)
+ 			break;				/* got enough */
+-		read_unlock(&tasklist_lock);	/* try again */
++		read_unlock(&tasklist_lock);		/* try again */
+ 		kfree(mmarray);
  	}
-+
-+	spin_lock(&proc_subdir_lock);
-+	dp->next = dir->subdir;
-+	dp->parent = dir;
-+	dir->subdir = dp;
-+	spin_unlock(&proc_subdir_lock);
-+
- 	return 0;
- }
  
 _
 
@@ -192,9 +175,8 @@ vxfs-warning-fixes.patch
 percpu_counters-use-cpu-notifiers.patch
 percpu_counters-use-for_each_online_cpu.patch
 mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup.patch
-procfs-directory-entry-cleanup-fix.patch
 vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock.patch
 reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
 o_cloexec-for-scm_rights-fix.patch
 o_cloexec-for-scm_rights-fix-2.patch
