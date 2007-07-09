@@ -1,124 +1,262 @@
 From: akpm@linux-foundation.org
-Subject: - init-wait-for-asynchronously-scanned-block-devices-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:55:03 -0700
-Message-ID: <200707092155.l69Lt34s014567@imap1.linux-foundation.org>
+Subject: - lib-add-idr_for_each-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:55:36 -0700
+Message-ID: <200707092155.l69LtbB0014577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59945 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753913AbXGIVzz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:55:55 -0400
+	by vger.kernel.org with ESMTP id S1755706AbXGIV4X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:56:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, drzeus@drzeus.cx, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@linux.ie, htejun@gmail.com, krh@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make init/do_mounts.c:root_wait static
+     lib-add-idr_for_each-fix
 has been removed from the -mm tree.  Its filename was
-     init-wait-for-asynchronously-scanned-block-devices-fix.patch
+     lib-add-idr_for_each-fix.patch
 
-This patch was dropped because it was folded into init-wait-for-asynchronously-scanned-block-devices.patch
+This patch was dropped because it was folded into lib-add-idr_for_each.patch
 
 ------------------------------------------------------
-Subject: make init/do_mounts.c:root_wait static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: lib-add-idr_for_each-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-root_wait can become static.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Kristian Hoegsberg <krh@redhat.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    2 +-
+ lib/idr.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/do_mounts.c~init-wait-for-asynchronously-scanned-block-devices-fix init/do_mounts.c
---- a/init/do_mounts.c~init-wait-for-asynchronously-scanned-block-devices-fix
-+++ a/init/do_mounts.c
-@@ -25,7 +25,7 @@ int __initdata rd_doload;	/* 1 = load RA
- int root_mountflags = MS_RDONLY | MS_SILENT;
- char * __initdata root_device_name;
- static char __initdata saved_root_name[64];
--int __initdata root_wait;
-+static int __initdata root_wait;
- 
- dev_t ROOT_DEV;
- 
+diff -puN lib/idr.c~lib-add-idr_for_each-fix lib/idr.c
+--- a/lib/idr.c~lib-add-idr_for_each-fix
++++ a/lib/idr.c
+@@ -452,7 +452,7 @@ EXPORT_SYMBOL(idr_find);
+  * We check the return of @fn each time. If it returns anything other
+  * than 0, we break out and return that value.
+  *
+- * The caller must serialize idr_find() vs idr_get_new() and idr_remove().
++ * The caller must serialize idr_for_each() vs idr_get_new() and idr_remove().
+  */
+ int idr_for_each(struct idr *idp,
+ 		 int (*fn)(int id, void *p, void *data), void *data)
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
 git-alsa.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
 git-dvb.patch
-git-hwmon.patch
+git-dvb-saa7134-tvaudio-fix.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
 git-input.patch
+serio_raw_read-warning-fix.patch
+tsdev-fix-broken-usecto-millisecs-conversion.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 git-md-accel.patch
-git-mmc.patch
+git-mips-fixup.patch
 git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-bonding-bond_mainc-make-2-functions-static.patch
-net-make-struct-dccp_li_cachep-static.patch
+mtd-onenand-build-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
-git-selinux.patch
+git-battery-vs-git-acpi.patch
+git-ioat-vs-git-md-accel.patch
+revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+revert-acpi-change-for-scsi.patch
 git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-scsi-misc-fixup.patch
+restore-acpi-change-for-scsi.patch
+git-scsi-misc-vs-greg-sysfs-stuff.patch
+aacraid-rename-check_reset.patch
+git-scsi-target-fixup.patch
+splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
+git-block-fixup.patch
 git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-arch-i386-xen-mmuc-must-include-linux-schedh.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-xen-fix-x86-config-dependencies.patch
-xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
-xen-cant-support-numa-yet.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-mm-slubc-make-code-static.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-more-scheduled-oss-driver-removal.patch
-init-wait-for-asynchronously-scanned-block-devices.patch
-init-wait-for-asynchronously-scanned-block-devices-fix.patch
-kernel-utf-8-handling-fix.patch
-remove-sonypi_camera_command.patch
-fs-namespacec-should-include-internalh.patch
-proper-prototype-for-proc_nr_files.patch
-fs-reiserfs-cleanups.patch
-remove-mm-backing-devccongestion_wait_interruptible.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
-mm-variable-length-argument-support-fix-2.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-kernel-relayc-make-functions-static.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
+git-block-vs-git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-show-unhandled-signals.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+i386-add-cpu_relax-to-cmos_lock.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-kgdb-fixup.patch
+kgdb-warning-fix.patch
+kgdb-kconfig-fix.patch
+kgdb-use-new-style-interrupt-flags.patch
+kgdb-section-fix.patch
+kgdb_skipexception-warning-fix.patch
+kgdb-ia64-fixes.patch
+kgdb-bust-on-ia64.patch
+kgdb-build-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+fix-alpha-isa-support.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time.patch
+use-boot-based-time-for-process-start-time-and-boot-time.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+vdso-print-fatal-signals.patch
+o_cloexec-for-scm_rights.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+audit-add-tty-input-auditing-fix-2.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
+sys_time-speedup-build-fixes.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
+sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc-fix.patch
+bd_claim_by_disk-fix-warning.patch
+uninline-check_signature.patch
+uninline-check_signature-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+spi-master-driver-for-xilinx-virtex-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
+rtc-driver-for-ds1216-chips-fix.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+lguest-the-host-code.patch
+lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+intel-iommu-pci-generic-helper-function-fix.patch
+intel-iommu-iova-allocation-and-management-routines-fix.patch
+intel-iommu-intel-iommu-driver-fix.patch
+intel-iommu-intel-iommu-driver-fix-2.patch
+intel-iommu-iommu-floppy-workaround-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
 reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+reiser4-fix.patch
+git-block-vs-reiser4.patch
+allow-page_owner-to-be-set-on-any-architecture-fix.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
