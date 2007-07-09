@@ -1,155 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - rd-simplify-by-using-the-same-helper-functions-in-libfs.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:48:39 -0700
-Message-ID: <200707092148.l69Lmd3u014126@imap1.linux-foundation.org>
+Subject: - rd-remove-ramdisk_set_page_dirty.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:48:41 -0700
+Message-ID: <200707092148.l69LmfMp014129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54083 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34910 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755462AbXGIVsq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:48:46 -0400
+	by vger.kernel.org with ESMTP id S1755470AbXGIVss (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rd: simplify by using the same helper functions in libfs
+     rd: remove ramdisk_set_page_dirty
 has been removed from the -mm tree.  Its filename was
-     rd-simplify-by-using-the-same-helper-functions-in-libfs.patch
+     rd-remove-ramdisk_set_page_dirty.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: rd: simplify by using the same helper functions in libfs
+Subject: rd: remove ramdisk_set_page_dirty
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-While the ramdisk code in the page cache started with the ramfs code it has
-diverged, and is a result is more complicated then it currently needs to be. 
-This patch simplifies the ramfs code by syncing it with ramfs and similar
-pieces of code.
-
-The big difference is that the ramdisk must cope with people placing buffer
-heads on it's pages so there is extra code required to mark those buffer heads
-dirty and uptodate.
+The generic function __set_page_dirty_buffers called by default by
+set_page_dirty appears to be a correct superset of ramdisk_set_page_dirty. 
+So remove the specialized ramdisk version.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/rd.c |   76 ++-----------------------------------------
- 1 file changed, 5 insertions(+), 71 deletions(-)
+ drivers/block/rd.c |   27 ---------------------------
+ 1 files changed, 27 deletions(-)
 
-diff -puN drivers/block/rd.c~rd-simplify-by-using-the-same-helper-functions-in-libfs drivers/block/rd.c
---- a/drivers/block/rd.c~rd-simplify-by-using-the-same-helper-functions-in-libfs
+diff -puN drivers/block/rd.c~rd-remove-ramdisk_set_page_dirty drivers/block/rd.c
+--- a/drivers/block/rd.c~rd-remove-ramdisk_set_page_dirty
 +++ a/drivers/block/rd.c
-@@ -92,36 +92,16 @@ static int rd_blocksize = CONFIG_BLK_DEV
-  * aops copied from ramfs.
-  */
- 
--/*
-- * If a ramdisk page has buffers, some may be uptodate and some may be not.
-- * To bring the page uptodate we zero out the non-uptodate buffers.  The
-- * page must be locked.
-- */
- static void make_page_uptodate(struct page *page)
- {
-+	clear_highpage(page);
- 	if (page_has_buffers(page)) {
- 		struct buffer_head *bh = page_buffers(page);
- 		struct buffer_head *head = bh;
- 
- 		do {
--			if (!buffer_uptodate(bh)) {
--				memset(bh->b_data, 0, bh->b_size);
--				/*
--				 * akpm: I'm totally undecided about this.  The
--				 * buffer has just been magically brought "up to
--				 * date", but nobody should want to be reading
--				 * it anyway, because it hasn't been used for
--				 * anything yet.  It is still in a "not read
--				 * from disk yet" state.
--				 *
--				 * But non-uptodate buffers against an uptodate
--				 * page are against the rules.  So do it anyway.
--				 */
--				 set_buffer_uptodate(bh);
--			}
-+			set_buffer_uptodate(bh);
- 		} while ((bh = bh->b_this_page) != head);
--	} else {
--		memset(page_address(page), 0, PAGE_CACHE_SIZE);
- 	}
- 	flush_dcache_page(page);
- 	SetPageUptodate(page);
-@@ -129,55 +109,11 @@ static void make_page_uptodate(struct pa
- 
- static int ramdisk_readpage(struct file *file, struct page *page)
- {
--	if (!PageUptodate(page))
--		make_page_uptodate(page);
-+	make_page_uptodate(page);
- 	unlock_page(page);
+@@ -114,37 +114,10 @@ static int ramdisk_readpage(struct file 
  	return 0;
  }
  
--static int ramdisk_prepare_write(struct file *file, struct page *page,
--				unsigned offset, unsigned to)
--{
--	if (!PageUptodate(page))
--		make_page_uptodate(page);
--	return 0;
--}
--
--static int ramdisk_commit_write(struct file *file, struct page *page,
--				unsigned offset, unsigned to)
--{
--	set_page_dirty(page);
--	return 0;
--}
--
 -/*
-- * ->writepage to the blockdev's mapping has to redirty the page so that the
-- * VM doesn't go and steal it.  We return AOP_WRITEPAGE_ACTIVATE so that the VM
-- * won't try to (pointlessly) write the page again for a while.
-- *
-- * Really, these pages should not be on the LRU at all.
+- * ramdisk blockdev pages have their own ->set_page_dirty() because we don't
+- * want them to contribute to dirty memory accounting.
 - */
--static int ramdisk_writepage(struct page *page, struct writeback_control *wbc)
+-static int ramdisk_set_page_dirty(struct page *page)
 -{
--	if (!PageUptodate(page))
--		make_page_uptodate(page);
--	SetPageDirty(page);
--	if (wbc->for_reclaim)
--		return AOP_WRITEPAGE_ACTIVATE;
--	unlock_page(page);
+-	struct address_space * const mapping = page->mapping;
+-
+-	spin_lock(&mapping->private_lock);
+-	if (page_has_buffers(page)) {
+-		struct buffer_head *head = page_buffers(page);
+-		struct buffer_head *bh = head;
+-
+-		do {
+-			set_buffer_uptodate(bh);
+-			set_buffer_dirty(bh);
+-			bh = bh->b_this_page;
+-		} while (bh != head);
+-	}
+-	spin_unlock(&mapping->private_lock);
+-
+-	if (!TestSetPageDirty(page))
+-		return 1;
 -	return 0;
 -}
 -
--/*
-- * This is a little speedup thing: short-circuit attempts to write back the
-- * ramdisk blockdev inode to its non-existent backing store.
-- */
--static int ramdisk_writepages(struct address_space *mapping,
--				struct writeback_control *wbc)
--{
--	return 0;
--}
--
- /*
-  * ramdisk blockdev pages have their own ->set_page_dirty() because we don't
-  * want them to contribute to dirty memory accounting.
-@@ -206,11 +142,9 @@ static int ramdisk_set_page_dirty(struct
- 
  static const struct address_space_operations ramdisk_aops = {
  	.readpage	= ramdisk_readpage,
--	.prepare_write	= ramdisk_prepare_write,
--	.commit_write	= ramdisk_commit_write,
--	.writepage	= ramdisk_writepage,
-+	.prepare_write	= simple_prepare_write,
-+	.commit_write	= simple_commit_write,
- 	.set_page_dirty	= ramdisk_set_page_dirty,
--	.writepages	= ramdisk_writepages,
+ 	.prepare_write	= simple_prepare_write,
+ 	.commit_write	= simple_commit_write,
+-	.set_page_dirty	= ramdisk_set_page_dirty,
  };
  
  static int rd_blkdev_pagecache_IO(int rw, struct bio_vec *vec, sector_t sector,
