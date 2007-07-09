@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-various-fixes-checkpatch.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:56:32 -0700
-Message-ID: <200707092356.l69NuXfe021852@imap1.linux-foundation.org>
+Subject: - lockstat-measure-lock-bouncing-checkpatch.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:56:58 -0700
+Message-ID: <200707092356.l69NuwU2021862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57896 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49926 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756853AbXGIX4r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:56:47 -0400
+	by vger.kernel.org with ESMTP id S1757560AbXGIX5N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:57:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep-various-fixes-checkpatch
+     lockstat-measure-lock-bouncing-checkpatch
 has been removed from the -mm tree.  Its filename was
-     lockdep-various-fixes-checkpatch.patch
+     lockstat-measure-lock-bouncing-checkpatch.patch
 
-This patch was dropped because it was folded into lockdep-various-fixes.patch
+This patch was dropped because it was folded into lockstat-measure-lock-bouncing.patch
 
 ------------------------------------------------------
-Subject: lockdep-various-fixes-checkpatch
+Subject: lockstat-measure-lock-bouncing-checkpatch
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -29,22 +29,22 @@ Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep.c |    3 ++-
+ kernel/lockdep_proc.c |    3 ++-
  1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/lockdep.c~lockdep-various-fixes-checkpatch kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-various-fixes-checkpatch
-+++ a/kernel/lockdep.c
-@@ -675,7 +675,8 @@ look_up_lock_class(struct lockdep_map *l
- 	 * (or spin_lock_init()) call - which acts as the key. For static
- 	 * locks we use the lock object itself as the key.
- 	 */
--	BUILD_BUG_ON(sizeof(struct lock_class_key) > sizeof(struct lockdep_map));
-+	BUILD_BUG_ON(sizeof(struct lock_class_key) >
-+			sizeof(struct lockdep_map));
- 
- 	key = lock->key->subkeys + subclass;
- 
+diff -puN kernel/lockdep_proc.c~lockstat-measure-lock-bouncing-checkpatch kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockstat-measure-lock-bouncing-checkpatch
++++ a/kernel/lockdep_proc.c
+@@ -480,7 +480,8 @@ static void seq_header(struct seq_file *
+ {
+ 	seq_printf(m, "lock_stat version 0.2\n");
+ 	seq_line(m, '-', 0, 40 + 1 + 10 * (14 + 1));
+-	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s %14s %14s\n",
++	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s "
++			"%14s %14s\n",
+ 			"class name",
+ 			"con-bounces",
+ 			"contentions",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -245,7 +245,7 @@ containersv10-simple-debug-info-subsystem-fix-2.patch
 add-containerstats-v3-fix.patch
 lockstat-core-infrastructure.patch
 lockdep-various-fixes.patch
-lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing.patch
 lockstat-measure-lock-bouncing-checkpatch.patch
 reiser4.patch
 reiser4-fix.patch
