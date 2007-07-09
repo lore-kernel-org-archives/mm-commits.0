@@ -1,51 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - create-the-zone_movable-zone-fix-2.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 13:57:14 -0700
-Message-ID: <200707092057.l69KvEvj011194@imap1.linux-foundation.org>
+Subject: - allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 13:58:10 -0700
+Message-ID: <200707092058.l69KwAtb011215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50992 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47443 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755158AbXGIU5l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 16:57:41 -0400
+	by vger.kernel.org with ESMTP id S1755361AbXGIU6i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 16:58:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mel@csn.ul.ie, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     create-the-zone_movable-zone fix 2
+     allow-huge-page-allocations-to-use-gfp_high_movable-fix-2
 has been removed from the -mm tree.  Its filename was
-     create-the-zone_movable-zone-fix-2.patch
+     allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
 
-This patch was dropped because it was folded into create-the-zone_movable-zone.patch
+This patch was dropped because it was folded into allow-huge-page-allocations-to-use-gfp_high_movable.patch
 
 ------------------------------------------------------
-Subject: create-the-zone_movable-zone fix 2
+Subject: allow-huge-page-allocations-to-use-gfp_high_movable-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: William Lee Irwin III <wli@holomorphy.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~create-the-zone_movable-zone-fix-2 include/linux/mmzone.h
---- a/include/linux/mmzone.h~create-the-zone_movable-zone-fix-2
-+++ a/include/linux/mmzone.h
-@@ -531,9 +531,10 @@ static inline int populated_zone(struct 
- }
- 
- extern int movable_zone;
-+
- static inline int zone_movable_is_highmem(void)
+diff -puN mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix-2 mm/hugetlb.c
+--- a/mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix-2
++++ a/mm/hugetlb.c
+@@ -267,7 +267,7 @@ int hugetlb_treat_movable_handler(struct
  {
--#ifdef CONFIG_HIGHMEM
-+#if defined(CONFIG_HIGHMEM) && defined(CONFIG_ARCH_POPULATES_NODE_MAP)
- 	return movable_zone == ZONE_HIGHMEM;
- #else
+ 	proc_dointvec(table, write, file, buffer, length, ppos);
+ 	if (hugepages_treat_as_movable)
+-		htlb_alloc_mask = GFP_HIGH_MOVABLE;
++		htlb_alloc_mask = GFP_HIGHUSER_MOVABLE;
+ 	else
+ 		htlb_alloc_mask = GFP_HIGHUSER;
  	return 0;
 _
 
@@ -151,8 +147,7 @@ fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 create-the-zone_movable-zone.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
 maps2-move-the-page-walker-code-to-lib.patch
