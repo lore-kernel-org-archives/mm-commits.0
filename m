@@ -1,58 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:34:08 -0700
-Message-ID: <200707091934.l69JY8s4004630@imap1.linux-foundation.org>
+Subject: - ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:35:25 -0700
+Message-ID: <200707091935.l69JZPFm004684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49526 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44446 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755901AbXGITfJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:35:09 -0400
+	by vger.kernel.org with ESMTP id S1753625AbXGITf7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:35:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chrisw@sous-sol.org, davem@davemloft.net, johnstul@us.ibm.com, michal.k.k.piotrowski@gmail.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ntp-move-the-cmos-update-code-into-ntpc-fix-fix
+     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
 has been removed from the -mm tree.  Its filename was
-     ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
+     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 
-This patch was dropped because it was folded into ntp-move-the-cmos-update-code-into-ntpc.patch
+This patch was dropped because it was folded into ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
 
 ------------------------------------------------------
-Subject: ntp-move-the-cmos-update-code-into-ntpc-fix-fix
+Subject: ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-grr, headers_check.
+arch/i386/kernel/quirks.c: In function 'ich_force_enable_hpet':
+arch/i386/kernel/quirks.c:94: warning: 'rcba' is used uninitialized in this function
 
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: David Miller <davem@davemloft.net>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Greg KH <greg@kroah.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Roman Zippel <zippel@linux-m68k.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: john stultz <johnstul@us.ibm.com>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/time.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/quirks.c |    3 ++-
+ asm-i386/hpet.h           |    0 
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix-fix include/linux/time.h
---- a/include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix-fix
-+++ a/include/linux/time.h
-@@ -2,9 +2,9 @@
- #define _LINUX_TIME_H
+diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
++++ a/arch/i386/kernel/quirks.c
+@@ -84,7 +84,8 @@ void ich_force_hpet_resume(void)
  
- #include <linux/types.h>
--#include <linux/cache.h>
+ static void ich_force_enable_hpet(struct pci_dev *dev)
+ {
+-	u32 val, rcba;
++	u32 val;
++	u32 uninitialized_var(rcba);
+ 	int err = 0;
  
- #ifdef __KERNEL__
-+# include <linux/cache.h>
- # include <linux/seqlock.h>
- #endif
- 
+ 	if (hpet_address || force_hpet_address)
+diff -puN include/asm-i386/hpet.h~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix include/asm-i386/hpet.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -130,9 +132,9 @@ i386-add-cpu_relax-to-cmos_lock.patch
 x86_64-flush_tlb_kernel_range-warning-fix.patch
 x86_64-add-ioapic-nmi-support.patch
 ntp-move-the-cmos-update-code-into-ntpc.patch
-ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early-fix.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 git-newsetup-fixup.patch
