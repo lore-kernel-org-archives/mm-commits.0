@@ -1,33 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - pm-introduce-hibernation-and-suspend-notifiers-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:17:14 -0700
-Message-ID: <200707092117.l69LHEBw012390@imap1.linux-foundation.org>
+Subject: - pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:18:03 -0700
+Message-ID: <200707092118.l69LI3ga012410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34189 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34900 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753625AbXGIVSF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:18:05 -0400
+	by vger.kernel.org with ESMTP id S1754438AbXGIVTI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:19:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-introduce-hibernation-and-suspend-notifiers-fix
+     pm-disable-usermode-helper-before-hibernation-and-suspend-fix
 has been removed from the -mm tree.  Its filename was
-     pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+     pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
 
-This patch was dropped because it was folded into pm-introduce-hibernation-and-suspend-notifiers.patch
+This patch was dropped because it was folded into pm-disable-usermode-helper-before-hibernation-and-suspend.patch
 
 ------------------------------------------------------
-Subject: pm-introduce-hibernation-and-suspend-notifiers-fix
+Subject: pm-disable-usermode-helper-before-hibernation-and-suspend-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86_64/kernel/e820.c: In function 'e820_mark_nosave_regions':
-arch/x86_64/kernel/e820.c:248: warning: implicit declaration of function 'register_nosave_region'
-
-these patches were pretty screwed up.
+Please always test allnoconfig and allmodconfig builds
 
 Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
 Cc: Pavel Machek <pavel@ucw.cz>
@@ -35,37 +32,40 @@ Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/suspend.h |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ kernel/kmod.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-fix include/linux/suspend.h
---- a/include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-fix
-+++ a/include/linux/suspend.h
-@@ -74,8 +74,6 @@ extern unsigned long get_safe_page(gfp_t
- extern void hibernation_set_ops(struct hibernation_ops *ops);
- extern int hibernate(void);
- #else /* CONFIG_SOFTWARE_SUSPEND */
--static inline void register_nosave_region(unsigned long b, unsigned long e) {}
--static inline void register_nosave_region_late(unsigned long b, unsigned long e) {}
- static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
- static inline void swsusp_set_page_free(struct page *p) {}
- static inline void swsusp_unset_page_free(struct page *p) {}
-@@ -109,6 +107,15 @@ static inline int unregister_pm_notifier
- 	register_pm_notifier(&fn##_nb);			\
- }
- #else /* CONFIG_PM */
+diff -puN kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend-fix kernel/kmod.c
+--- a/kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend-fix
++++ a/kernel/kmod.c
+@@ -41,13 +41,6 @@ extern int max_threads;
+ 
+ static struct workqueue_struct *khelper_wq;
+ 
+-#ifdef CONFIG_KMOD
+-
+-/*
+-	modprobe_path is set via /proc/sys.
+-*/
+-char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
+-
+ /*
+  * If set, both call_usermodehelper_keys() and call_usermodehelper_pipe() exit
+  * immediately returning -EBUSY.  Used for preventing user land processes from
+@@ -56,6 +49,13 @@ char modprobe_path[KMOD_PATH_LEN] = "/sb
+  */
+ static int usermodehelper_disabled;
+ 
++#ifdef CONFIG_KMOD
 +
-+static inline void register_nosave_region(unsigned long b, unsigned long e)
-+{
-+}
++/*
++	modprobe_path is set via /proc/sys.
++*/
++char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
 +
-+static inline void register_nosave_region_late(unsigned long b, unsigned long e)
-+{
-+}
-+
- static inline int register_pm_notifier(struct notifier_block *nb) {
- 	return 0;
- }
+ /**
+  * request_module - try to load a kernel module
+  * @fmt:     printf style format string for the name of the module
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -180,9 +180,7 @@ freezer-make-kernel-threads-nonfreezable-by-default.patch
 fix-alpha-isa-support.patch
 freezer-run-show_state-when-freezing-times-out.patch
 pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
 pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
 add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
