@@ -1,28 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:14:19 -0700
-Message-ID: <200707092114.l69LEJQI012165@imap1.linux-foundation.org>
+Subject: - slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:14:22 -0700
+Message-ID: <200707092114.l69LEMqZ012168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44902 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60415 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754706AbXGIVO1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:14:27 -0400
+	by vger.kernel.org with ESMTP id S1754812AbXGIVO3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:14:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Faster more efficient slab determination for __kmalloc (fix)
+     slub-faster-more-efficient-slab-determination-for-__kmalloc fix 2
 has been removed from the -mm tree.  Its filename was
-     slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
+     slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2.patch
 
 This patch was dropped because it was folded into slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
 
 ------------------------------------------------------
-Subject: SLUB: Faster more efficient slab determination for __kmalloc (fix)
+Subject: slub-faster-more-efficient-slab-determination-for-__kmalloc fix 2
 From: Christoph Lameter <clameter@sgi.com>
+
+SLUB: Fix index calculation in get_slab
+
+fls already returns the value + 1. No need to increment it.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -31,18 +35,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/slub.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc-fix mm/slub.c
---- a/mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc-fix
+diff -puN mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2 mm/slub.c
+--- a/mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2
 +++ a/mm/slub.c
-@@ -2606,7 +2606,7 @@ void __init kmem_cache_init(void)
- 	 * Make sure that nothing crazy happens if someone starts tinkering
- 	 * around with ARCH_KMALLOC_MINALIGN
- 	 */
--	BUG_ON(KMALLOC_MIN_SIZE > 256 ||
-+	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 256 ||
- 		(KMALLOC_MIN_SIZE & (KMALLOC_MIN_SIZE - 1)));
+@@ -2373,7 +2373,7 @@ static struct kmem_cache *get_slab(size_
+ 		if (size > KMALLOC_MAX_SIZE)
+ 			return NULL;
  
- 	for (i = 8; i < KMALLOC_MIN_SIZE;i++)
+-		index = fls(size - 1) + 1;
++		index = fls(size - 1);
+ 	}
+ 
+ #ifdef CONFIG_ZONE_DMA
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -82,7 +86,6 @@ slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
 slub-extract-dma_kmalloc_cache-from-get_cache.patch
 slub-do-proper-locking-during-dma-slab-creation.patch
 slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
 slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2.patch
 slub-simplify-dma-index-size-calculation.patch
 mm-slubc-make-code-static.patch
