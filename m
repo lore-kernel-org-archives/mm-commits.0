@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:18:00 -0700
-Message-ID: <200707091918.l69JI0mJ003618@imap1.linux-foundation.org>
+Subject: - mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:18:03 -0700
+Message-ID: <200707091918.l69JI3AM003694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51732 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50700 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754696AbXGITSn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:18:43 -0400
+	by vger.kernel.org with ESMTP id S1754687AbXGITSw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:18:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, hancockr@shaw.ca, jbarnes@virtuousgeek.org, rajesh.shah@intel.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, hancockr@shaw.ca, jbarnes@virtuousgeek.org, lenb@kernel.org, rajesh.shah@intel.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmconfig-validate-against-acpi-motherboard-resources-fix-3
+     mmconfig-validate-against-acpi-motherboard-resources-fix-2-3
 has been removed from the -mm tree.  Its filename was
-     mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+     mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
 
 This patch was dropped because it was folded into mmconfig-validate-against-acpi-motherboard-resources.patch
 
 ------------------------------------------------------
-Subject: mmconfig-validate-against-acpi-motherboard-resources-fix-3
+Subject: mmconfig-validate-against-acpi-motherboard-resources-fix-2-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- fix
+drivers/acpi/bus.c: In function `acpi_init':
+drivers/acpi/bus.c:760: warning: implicit declaration of function `pci_mmcfg_late_init'
 
-  arch/i386/pci/mmconfig-shared.c: In function 'pci_mmcfg_reject_broken':
-  arch/i386/pci/mmconfig-shared.c:306: warning: cast to pointer from integer of different size
+Fix this by always including pci.h in drivers/acpi/bus.c.
 
-- 80-col fixes
+Also remove unneeded inclusion of asm/pci.h (linux/pci.h did that)
 
 Cc: Andi Kleen <ak@suse.de>
 Cc: Greg KH <greg@kroah.com>
@@ -37,48 +37,27 @@ Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Rajesh Shah <rajesh.shah@intel.com>
 Cc: Robert Hancock <hancockr@shaw.ca>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/mmconfig-shared.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/acpi/bus.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/i386/pci/mmconfig-shared.c~mmconfig-validate-against-acpi-motherboard-resources-fix-3 arch/i386/pci/mmconfig-shared.c
---- a/arch/i386/pci/mmconfig-shared.c~mmconfig-validate-against-acpi-motherboard-resources-fix-3
-+++ a/arch/i386/pci/mmconfig-shared.c
-@@ -301,9 +301,9 @@ static void __init pci_mmcfg_reject_brok
- 	for (i = 0; i < pci_mmcfg_config_num; i++) {
- 		u32 size = (cfg->end_bus_number + 1) << 20;
- 		cfg = &pci_mmcfg_config[i];
--		printk(KERN_NOTICE "PCI: MCFG configuration %d: base %p "
-+		printk(KERN_NOTICE "PCI: MCFG configuration %d: base %lu "
- 		       "segment %hu buses %u - %u\n",
--		       i, (void*)cfg->address, cfg->pci_segment,
-+		       i, (unsigned long)cfg->address, cfg->pci_segment,
- 		       (unsigned int)cfg->start_bus_number,
- 		       (unsigned int)cfg->end_bus_number);
- 		if (is_acpi_reserved(cfg->address, cfg->address + size - 1)) {
-@@ -311,8 +311,8 @@ static void __init pci_mmcfg_reject_brok
- 			       "in ACPI motherboard resources\n",
- 			       cfg->address);
- 		} else {
--			printk(KERN_ERR "PCI: BIOS Bug: MCFG area at %Lx is not "
--			       "reserved in ACPI motherboard resources\n",
-+			printk(KERN_ERR "PCI: BIOS Bug: MCFG area at %Lx is not"
-+			       " reserved in ACPI motherboard resources\n",
- 			       cfg->address);
- 			/* Don't try to do this check unless configuration
- 			   type 1 is available. */
-@@ -321,7 +321,8 @@ static void __init pci_mmcfg_reject_brok
- 			                    cfg->address + size - 1,
- 					    E820_RESERVED))
- 				printk(KERN_NOTICE
--				       "PCI: MCFG area at %Lx reserved in E820\n",
-+				       "PCI: MCFG area at %Lx reserved in "
-+					"E820\n",
- 				       cfg->address);
- 			else
- 				goto reject;
+diff -puN drivers/acpi/bus.c~mmconfig-validate-against-acpi-motherboard-resources-fix-2-3 drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c~mmconfig-validate-against-acpi-motherboard-resources-fix-2-3
++++ a/drivers/acpi/bus.c
+@@ -34,9 +34,8 @@
+ #include <linux/proc_fs.h>
+ #ifdef CONFIG_X86
+ #include <asm/mpspec.h>
+-#include <linux/pci.h>
+-#include <asm/pci.h>
+ #endif
++#include <linux/pci.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,7 +123,6 @@ mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
 x86_64-fix-smp_call_function_single-return-value.patch
 i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
 mmconfig-validate-against-acpi-motherboard-resources.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
 mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
 x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
 x86-64-calgary-introduce-chipset-specific-ops-fix.patch
