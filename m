@@ -1,118 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - taskstats-add-context-switch-counters-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:57:35 -0700
-Message-ID: <200707092157.l69Lvasv014716@imap1.linux-foundation.org>
+Subject: - improve-behaviour-of-spurious-irq-detect-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:58:21 -0700
+Message-ID: <200707092158.l69LwMLI014740@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41793 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59636 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754478AbXGIV6n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:58:43 -0400
+	by vger.kernel.org with ESMTP id S1756659AbXGIV7n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:59:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, jlan@engr.sgi.com, jlim@sgi.com, muvarov@ru.mvista.com, nagar@watson.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@redhat.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     taskstats-add-context-switch-counters-fix
+     improve-behaviour-of-spurious-irq-detect-fix
 has been removed from the -mm tree.  Its filename was
-     taskstats-add-context-switch-counters-fix.patch
+     improve-behaviour-of-spurious-irq-detect-fix.patch
 
-This patch was dropped because it was folded into taskstats-add-context-switch-counters.patch
+This patch was dropped because it was folded into improve-behaviour-of-spurious-irq-detect.patch
 
 ------------------------------------------------------
-Subject: taskstats-add-context-switch-counters-fix
+Subject: improve-behaviour-of-spurious-irq-detect-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Maxim Uvarov <muvarov@ru.mvista.com>
-Cc: Shailabh Nagar <nagar@watson.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
-Cc: Jonathan Lim <jlim@sgi.com>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c          |   10 +++++-----
- Documentation/accounting/taskstats-struct.txt |    2 +-
- fs/proc/array.c                               |    6 ++++--
- 3 files changed, 10 insertions(+), 8 deletions(-)
+ kernel/irq/spurious.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/accounting/getdelays.c~taskstats-add-context-switch-counters-fix Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~taskstats-add-context-switch-counters-fix
-+++ a/Documentation/accounting/getdelays.c
-@@ -49,7 +49,7 @@ char name[100];
- int dbg;
- int print_delays;
- int print_io_accounting;
--int print_task_context_switch_rates;
-+int print_task_context_switch_counts;
- __u64 stime, utime;
- 
- #define PRINTF(fmt, arg...) {			\
-@@ -205,7 +205,7 @@ void print_delayacct(struct taskstats *t
- 	       "count", "delay total", t->swapin_count, t->swapin_delay_total);
- }
- 
--void task_context_switch_rates(struct taskstats *t)
-+void task_context_switch_counts(struct taskstats *t)
+diff -puN include/linux/irq.h~improve-behaviour-of-spurious-irq-detect-fix include/linux/irq.h
+diff -puN kernel/irq/spurious.c~improve-behaviour-of-spurious-irq-detect-fix kernel/irq/spurious.c
+--- a/kernel/irq/spurious.c~improve-behaviour-of-spurious-irq-detect-fix
++++ a/kernel/irq/spurious.c
+@@ -172,10 +172,12 @@ void note_interrupt(unsigned int irq, st
+ 		    irqreturn_t action_ret)
  {
- 	printf("\n\nTask   %15s%15s\n"
- 	       "       %15lu%15lu\n",
-@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
- 			break;
- 		case 'q':
- 			printf("printing task/process context switch rates\n");
--			print_task_context_switch_rates = 1;
-+			print_task_context_switch_counts = 1;
- 			break;
- 		case 'w':
- 			logfile = strdup(optarg);
-@@ -402,8 +402,8 @@ int main(int argc, char *argv[])
- 							print_delayacct((struct taskstats *) NLA_DATA(na));
- 						if (print_io_accounting)
- 							print_ioacct((struct taskstats *) NLA_DATA(na));
--						if (print_task_context_switch_rates)
--							task_context_switch_rates((struct taskstats *) NLA_DATA(na));
-+						if (print_task_context_switch_counts)
-+							task_context_switch_counts((struct taskstats *) NLA_DATA(na));
- 						if (fd) {
- 							if (write(fd, NLA_DATA(na), na->nla_len) < 0) {
- 								err(1,"write error\n");
-diff -puN Documentation/accounting/taskstats-struct.txt~taskstats-add-context-switch-counters-fix Documentation/accounting/taskstats-struct.txt
---- a/Documentation/accounting/taskstats-struct.txt~taskstats-add-context-switch-counters-fix
-+++ a/Documentation/accounting/taskstats-struct.txt
-@@ -22,7 +22,7 @@ There are three different groups of fiel
-     /* Extended accounting fields end */
-     Their values are collected if CONFIG_TASK_XACCT is set.
- 
--4) Per-task and per-thread context switch rates statistics
-+4) Per-task and per-thread context switch count statistics
- 
- Future extension should add fields to the end of the taskstats struct, and
- should not change the relative position of each field within the struct.
-diff -puN fs/proc/array.c~taskstats-add-context-switch-counters-fix fs/proc/array.c
---- a/fs/proc/array.c~taskstats-add-context-switch-counters-fix
-+++ a/fs/proc/array.c
-@@ -290,7 +290,9 @@ static inline char *task_cap(struct task
- 			    cap_t(p->cap_permitted),
- 			    cap_t(p->cap_effective));
- }
--static inline char *task_context_switch_rates(struct task_struct *p, char *buffer)
-+
-+static inline char *task_context_switch_counts(struct task_struct *p,
-+						char *buffer)
- {
- 	return buffer + sprintf(buffer, "voluntary_ctxt_switches:\t%lu\n"
- 			    "nonvoluntary_ctxt_switches:\t%lu\n",
-@@ -316,7 +318,7 @@ int proc_pid_status(struct task_struct *
- #if defined(CONFIG_S390)
- 	buffer = task_show_regs(task, buffer);
- #endif
--	buffer = task_context_switch_rates(task, buffer);
-+	buffer = task_context_switch_counts(task, buffer);
- 	return buffer - orig;
- }
- 
+ 	if (unlikely(action_ret != IRQ_HANDLED)) {
+-		/* If we are seeing only the odd spurious IRQ caused by
+-		   bus asynchronicity then don't eventually trigger an error,
+-		   otherwise the couter becomes a doomsday timer for otherwise
+-		   working systems */
++		/*
++		 * If we are seeing only the odd spurious IRQ caused by
++		 * bus asynchronicity then don't eventually trigger an error,
++		 * otherwise the couter becomes a doomsday timer for otherwise
++		 * working systems
++		 */
+ 		if (jiffies - desc->last_unhandled > HZ/10)
+ 			desc->irqs_unhandled = 1;
+ 		else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -249,7 +190,7 @@ atmel_serial-fix-break-handling.patch
 lib-add-idr_for_each.patch
 ext3-ext4-orphan-list-check-on-destroy_inode.patch
 taskstats-add-context-switch-counters.patch
-taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect.patch
 improve-behaviour-of-spurious-irq-detect-fix.patch
 audit-add-tty-input-auditing-fix-2.patch
 revert-vanishing-ioctl-handler-debugging.patch
