@@ -1,49 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 11:49:01 -0700
-Message-ID: <200707091849.l69In1HQ001564@imap1.linux-foundation.org>
+Subject: - pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 11:53:21 -0700
+Message-ID: <200707091853.l69IrLPE001971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51816 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45066 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754056AbXGIStz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 14:49:55 -0400
+	by vger.kernel.org with ESMTP id S1754184AbXGISzA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 14:55:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, jesse@icplus.com.tw, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, grundler@parisc-linux.org, hugh@veritas.com, kyle@mcmartin.ca, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sundance-phy-address-form-0-only-for-device-id-0x0200-fix
+     pa-risc-use-page-allocator-instead-of-slab-allocator-fix
 has been removed from the -mm tree.  Its filename was
-     sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+     pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
 
-This patch was dropped because it was folded into sundance-phy-address-form-0-only-for-device-id-0x0200.patch
+This patch was dropped because it was folded into pa-risc-use-page-allocator-instead-of-slab-allocator.patch
 
 ------------------------------------------------------
-Subject: sundance-phy-address-form-0-only-for-device-id-0x0200-fix
+Subject: pa-risc-use-page-allocator-instead-of-slab-allocator-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jesse Huang <jesse@icplus.com.tw>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Grant Grundler <grundler@parisc-linux.org>,
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sundance.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/parisc/kernel/pci-dma.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/sundance.c~sundance-phy-address-form-0-only-for-device-id-0x0200-fix drivers/net/sundance.c
---- a/drivers/net/sundance.c~sundance-phy-address-form-0-only-for-device-id-0x0200-fix
-+++ a/drivers/net/sundance.c
-@@ -562,7 +562,7 @@ static int __devinit sundance_probe1 (st
- 	 * It seems some phys doesn't deal well with address 0 being accessed
- 	 * first, so leave address zero to the end of the loop (32 & 31).
- 	 */
--	if(sundance_pci_tbl[np->chip_id].device == 0x0200)
-+	if (sundance_pci_tbl[np->chip_id].device == 0x0200)
- 		phy = 0;
- 	else
- 		phy = 1;
+diff -puN arch/parisc/kernel/pci-dma.c~pa-risc-use-page-allocator-instead-of-slab-allocator-fix arch/parisc/kernel/pci-dma.c
+--- a/arch/parisc/kernel/pci-dma.c~pa-risc-use-page-allocator-instead-of-slab-allocator-fix
++++ a/arch/parisc/kernel/pci-dma.c
+@@ -569,11 +569,10 @@ static void *fail_alloc_consistent(struc
+ static void *pa11_dma_alloc_noncoherent(struct device *dev, size_t size,
+ 					  dma_addr_t *dma_handle, gfp_t flag)
+ {
+-	void *addr = NULL;
++	void *addr;
+ 
+-	/* rely on kmalloc to be cacheline aligned */
+ 	addr = (void *)__get_free_pages(flag, get_order(size));
+-	if(addr)
++	if (addr)
+ 		*dma_handle = (dma_addr_t)virt_to_phys(addr);
+ 
+ 	return addr;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,14 +84,13 @@ git-mtd.patch
 mtd-onenand-build-fix.patch
 git-ubi.patch
 git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
 e1000new-build-fix.patch
 e1000new-build-fix-2.patch
 wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
 git-battery-vs-git-acpi.patch
 git-ioat-vs-git-md-accel.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
 pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
 dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
