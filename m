@@ -1,54 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 11:54:41 -0700
-Message-ID: <200707091854.l69IsfLo002018@imap1.linux-foundation.org>
+Subject: - scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 11:57:26 -0700
+Message-ID: <200707091857.l69IvQDC002290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40871 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34055 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757336AbXGISzN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 14:55:13 -0400
+	by vger.kernel.org with ESMTP id S1754335AbXGIS6W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 14:58:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@redhat.com, dwmw2@infradead.org, m.kozlowski@tuxland.pl, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, cornelia.huck@de.ibm.com, dan.j.williams@intel.com, hch@lst.de, heiko.carstens@de.ibm.com, jeff@garzik.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix
+     scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix
 has been removed from the -mm tree.  Its filename was
-     dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
+     scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
 
-This patch was dropped because it was folded into dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+This patch was dropped because it was folded into scsi-dont-build-scsi_dma_mapunmap-for-has_dma.patch
 
 ------------------------------------------------------
-Subject: dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix
+Subject: scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@redhat.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    5 -----
- 1 files changed, 5 deletions(-)
+ include/scsi/scsi_cmnd.h |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix
-+++ a/drivers/serial/serial_core.c
-@@ -1150,11 +1150,6 @@ static void uart_set_termios(struct tty_
- 	 * bits in c_cflag; c_[io]speed will always be set
- 	 * appropriately by set_termios() in tty_ioctl.c
- 	 */
--#ifdef CIBAUD
--#define RELEVANT_CFLAG(cflag)	((cflag) & ~(CIBAUD|CBAUD))
--#else
--#define RELEVANT_CFLAG(cflag)	((cflag) & ~(CIBAUD|CBAUD))
+diff -puN include/scsi/scsi_cmnd.h~scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix include/scsi/scsi_cmnd.h
+--- a/include/scsi/scsi_cmnd.h~scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix
++++ a/include/scsi/scsi_cmnd.h
+@@ -135,10 +135,8 @@ extern void scsi_kunmap_atomic_sg(void *
+ extern struct scatterlist *scsi_alloc_sgtable(struct scsi_cmnd *, gfp_t);
+ extern void scsi_free_sgtable(struct scatterlist *, int);
+ 
+-#ifdef CONFIG_SCSI_DMA
+ extern int scsi_dma_map(struct scsi_cmnd *cmd);
+ extern void scsi_dma_unmap(struct scsi_cmnd *cmd);
 -#endif
- #define RELEVANT_IFLAG(iflag)	((iflag) & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
- 	if ((cflag ^ old_termios->c_cflag) == 0 &&
- 	    tty->termios->c_ospeed == old_termios->c_ospeed &&
+ 
+ #define scsi_sg_count(cmd) ((cmd)->use_sg)
+ #define scsi_sglist(cmd) ((struct scatterlist *)(cmd)->request_buffer)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,8 +89,6 @@ wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
 git-battery-vs-git-acpi.patch
 git-ioat-vs-git-md-accel.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
 fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
@@ -98,6 +98,7 @@ git-scsi-misc-fixup.patch
 restore-acpi-change-for-scsi.patch
 git-scsi-misc-vs-greg-sysfs-stuff.patch
 aacraid-rename-check_reset.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma.patch
 scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
 git-scsi-target-fixup.patch
 splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
