@@ -1,52 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - audit-rework-execve-audit-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:51:11 -0700
-Message-ID: <200707092351.l69NpBYX021486@imap1.linux-foundation.org>
+Subject: - mm-variable-length-argument-support-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:51:23 -0700
+Message-ID: <200707092351.l69NpNN9021509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45400 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34365 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759532AbXGIXvT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:51:19 -0400
+	by vger.kernel.org with ESMTP id S1757139AbXGIXvh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:51:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, aaw@google.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     audit: rework execve audit (fix)
+     mm-variable-length-argument-support-fix
 has been removed from the -mm tree.  Its filename was
-     audit-rework-execve-audit-fix.patch
+     mm-variable-length-argument-support-fix.patch
 
-This patch was dropped because it was folded into audit-rework-execve-audit.patch
+This patch was dropped because it was folded into mm-variable-length-argument-support.patch
 
 ------------------------------------------------------
-Subject: audit: rework execve audit (fix)
+Subject: mm-variable-length-argument-support-fix
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ollie Wild <aaw@google.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    7 +++++++
- 1 files changed, 7 insertions(+)
+ fs/exec.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+)
 
-diff -puN Documentation/filesystems/proc.txt~audit-rework-execve-audit-fix Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~audit-rework-execve-audit-fix
-+++ a/Documentation/filesystems/proc.txt
-@@ -1074,6 +1074,13 @@ check the amount of free space (value is
- resume it  if we have a value of 3 or more percent; consider information about
- the amount of free space valid for 30 seconds
+diff -puN fs/exec.c~mm-variable-length-argument-support-fix fs/exec.c
+--- a/fs/exec.c~mm-variable-length-argument-support-fix
++++ a/fs/exec.c
+@@ -199,6 +199,23 @@ static struct page *get_arg_page(struct 
+ 	if (ret <= 0)
+ 		return NULL;
  
-+audit_argv_kb
-+-------------
++	if (write) {
++		struct rlimit *rlim = current->signal->rlim;
++		unsigned long size = bprm->vma->vm_end - bprm->vma->vm_start;
 +
-+The file contains a single value denoting the limit on the argv array size
-+for execve (in KiB). This limit is only applied when system call auditing for
-+execve is enabled, otherwise the value is ignored.
++		/*
++		 * Limit to 1/4-th the stack size for the argv+env strings.
++		 * This ensures that:
++		 *  - the remaining binfmt code will not run out of stack space,
++		 *  - the program will have a reasonable amount of stack left
++		 *    to work from.
++		 */
++		if (size > rlim[RLIMIT_STACK].rlim_cur / 4) {
++			put_page(page);
++			return NULL;
++		}
++	}
 +
- ctrl-alt-del
- ------------
+ 	return page;
+ }
  
 _
 
@@ -69,7 +81,6 @@ intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
 arch-personality-independent-stack-top.patch
 audit-rework-execve-audit.patch
-audit-rework-execve-audit-fix.patch
 mm-variable-length-argument-support.patch
 mm-variable-length-argument-support-fix.patch
 mm-variable-length-argument-support-fix-2.patch
