@@ -1,56 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - ntp-move-the-cmos-update-code-into-ntpc-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:34:05 -0700
-Message-ID: <200707091934.l69JY5V9004627@imap1.linux-foundation.org>
+Subject: - ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:34:08 -0700
+Message-ID: <200707091934.l69JY8s4004630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40907 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49526 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755308AbXGITfG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:35:06 -0400
+	by vger.kernel.org with ESMTP id S1755901AbXGITfJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:35:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chrisw@sous-sol.org, davem@davemloft.net, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chrisw@sous-sol.org, davem@davemloft.net, johnstul@us.ibm.com, michal.k.k.piotrowski@gmail.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ntp-move-the-cmos-update-code-into-ntpc-fix
+     ntp-move-the-cmos-update-code-into-ntpc-fix-fix
 has been removed from the -mm tree.  Its filename was
-     ntp-move-the-cmos-update-code-into-ntpc-fix.patch
+     ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
 
 This patch was dropped because it was folded into ntp-move-the-cmos-update-code-into-ntpc.patch
 
 ------------------------------------------------------
-Subject: ntp-move-the-cmos-update-code-into-ntpc-fix
+Subject: ntp-move-the-cmos-update-code-into-ntpc-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
+grr, headers_check.
 
-include/linux/time.h:97: error: expected '=', ',', ';', 'asm' or '__attribute__' before '__read_mostly'
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
 Cc: David Miller <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/time.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/time.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix include/linux/time.h
---- a/include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix
+diff -puN include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix-fix include/linux/time.h
+--- a/include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix-fix
 +++ a/include/linux/time.h
-@@ -2,6 +2,7 @@
+@@ -2,9 +2,9 @@
  #define _LINUX_TIME_H
  
  #include <linux/types.h>
-+#include <linux/cache.h>
+-#include <linux/cache.h>
  
  #ifdef __KERNEL__
++# include <linux/cache.h>
  # include <linux/seqlock.h>
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,7 +130,6 @@ i386-add-cpu_relax-to-cmos_lock.patch
 x86_64-flush_tlb_kernel_range-warning-fix.patch
 x86_64-add-ioapic-nmi-support.patch
 ntp-move-the-cmos-update-code-into-ntpc.patch
-ntp-move-the-cmos-update-code-into-ntpc-fix.patch
 ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 x86_64-get-mp_bus_to_node-as-early-fix.patch
