@@ -1,28 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - pm-introduce-hibernation-and-suspend-notifiers-tidy.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:17:17 -0700
-Message-ID: <200707092117.l69LHHxE012393@imap1.linux-foundation.org>
+Subject: - pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:17:19 -0700
+Message-ID: <200707092117.l69LHJBw012396@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35282 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49690 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750796AbXGIVZ5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:25:57 -0400
+	by vger.kernel.org with ESMTP id S1752501AbXGIV0n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:26:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-introduce-hibernation-and-suspend-notifiers-tidy
+     pm-introduce-hibernation-and-suspend-notifiers-fix-fix
 has been removed from the -mm tree.  Its filename was
-     pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+     pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
 
 This patch was dropped because it was folded into pm-introduce-hibernation-and-suspend-notifiers.patch
 
 ------------------------------------------------------
-Subject: pm-introduce-hibernation-and-suspend-notifiers-tidy
+Subject: pm-introduce-hibernation-and-suspend-notifiers-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+argh.
 
 Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
 Cc: Pavel Machek <pavel@ucw.cz>
@@ -30,28 +32,38 @@ Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/suspend.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/suspend.h |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-tidy include/linux/suspend.h
---- a/include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-tidy
+diff -puN include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-fix-fix include/linux/suspend.h
+--- a/include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-fix-fix
 +++ a/include/linux/suspend.h
-@@ -116,11 +116,13 @@ static inline void register_nosave_regio
+@@ -108,14 +108,6 @@ static inline int unregister_pm_notifier
+ }
+ #else /* CONFIG_PM */
+ 
+-static inline void register_nosave_region(unsigned long b, unsigned long e)
+-{
+-}
+-
+-static inline void register_nosave_region_late(unsigned long b, unsigned long e)
+-{
+-}
+-
+ static inline int register_pm_notifier(struct notifier_block *nb)
  {
- }
- 
--static inline int register_pm_notifier(struct notifier_block *nb) {
-+static inline int register_pm_notifier(struct notifier_block *nb)
-+{
  	return 0;
- }
+@@ -129,4 +121,10 @@ static inline int unregister_pm_notifier
+ #define pm_notifier(fn, pri)	do { (void)(fn); } while (0)
+ #endif /* CONFIG_PM */
  
--static inline int unregister_pm_notifier(struct notifier_block *nb) {
-+static inline int unregister_pm_notifier(struct notifier_block *nb)
++#if !defined CONFIG_SOFTWARE_SUSPEND || !defined(CONFIG_PM)
++static inline void register_nosave_region(unsigned long b, unsigned long e)
 +{
- 	return 0;
- }
- 
++}
++#endif
++
+ #endif /* _LINUX_SWSUSP_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -166,7 +178,6 @@ freezer-make-kernel-threads-nonfreezable-by-default.patch
 fix-alpha-isa-support.patch
 freezer-run-show_state-when-freezing-times-out.patch
 pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
 pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
 pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
 add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
