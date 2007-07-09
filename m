@@ -1,49 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - replace-obscure-constructs-in-fs-block_devc-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 15:04:06 -0700
-Message-ID: <200707092204.l69M47O1015149@imap1.linux-foundation.org>
+Subject: - uninline-check_signature-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 15:04:51 -0700
+Message-ID: <200707092204.l69M4pRh015156@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36462 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48383 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755495AbXGIWES (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 18:04:18 -0400
+	by vger.kernel.org with ESMTP id S1755952AbXGIWE7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 18:04:59 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l69M4ukn028859
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 9 Jul 2007 15:04:57 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, B.Steinbrink@gmx.de, hannes-kernel@saeurebad.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     replace-obscure-constructs-in-fs-block_devc-fix
+     uninline-check_signature-fix
 has been removed from the -mm tree.  Its filename was
-     replace-obscure-constructs-in-fs-block_devc-fix.patch
+     uninline-check_signature-fix.patch
 
-This patch was dropped because it was folded into replace-obscure-constructs-in-fs-block_devc.patch
+This patch was dropped because it was folded into uninline-check_signature.patch
 
 ------------------------------------------------------
-Subject: replace-obscure-constructs-in-fs-block_devc-fix
+Subject: uninline-check_signature-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Bjorn Steinbrink <B.Steinbrink@gmx.de>
-Cc: Johannes Weiner <hannes-kernel@saeurebad.de>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ lib/Makefile |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/block_dev.c~replace-obscure-constructs-in-fs-block_devc-fix fs/block_dev.c
---- a/fs/block_dev.c~replace-obscure-constructs-in-fs-block_devc-fix
-+++ a/fs/block_dev.c
-@@ -903,7 +903,7 @@ static int add_bd_holder(struct block_de
- 	}
+diff -puN lib/Makefile~uninline-check_signature-fix lib/Makefile
+--- a/lib/Makefile~uninline-check_signature-fix
++++ a/lib/Makefile
+@@ -5,8 +5,7 @@
+ lib-y := ctype.o string.o vsprintf.o cmdline.o \
+ 	 rbtree.o radix-tree.o dump_stack.o \
+ 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
+-	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
+-	 check_signature.o
++	 sha1.o irq_regs.o reciprocal_div.o argv_split.o
  
- 	list_add_tail(&bo->list, &bdev->bd_holder_list);
--	return err;
-+	return 0;
- }
+ lib-$(CONFIG_MMU) += ioremap.o pagewalk.o
+ lib-$(CONFIG_SMP) += cpumask.o
+@@ -14,7 +13,7 @@ lib-$(CONFIG_SMP) += cpumask.o
+ lib-y	+= kobject.o kref.o kobject_uevent.o klist.o
  
- /**
+ obj-y += div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+-	 bust_spinlocks.o hexdump.o
++	 bust_spinlocks.o hexdump.o check_signature.o
+ 
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -192,7 +205,6 @@ sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
 hfs-refactor-ascii-to-unicode-conversion-routine.patch
 sprint_symbol-cleanup.patch
 replace-obscure-constructs-in-fs-block_devc.patch
-replace-obscure-constructs-in-fs-block_devc-fix.patch
 bd_claim_by_disk-fix-warning.patch
 uninline-check_signature.patch
 uninline-check_signature-fix.patch
