@@ -1,110 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - geode-mfgpt-clock-event-device-support-update.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:37:44 -0700
-Message-ID: <200707091937.l69JbiWB004904@imap1.linux-foundation.org>
+Subject: - fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode-update.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:56:21 -0700
+Message-ID: <200707091956.l69JuLdx007312@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54288 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52367 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754493AbXGIThw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:37:52 -0400
+	by vger.kernel.org with ESMTP id S1756235AbXGIT5B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:57:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, mm-commits@vger.kernel.org
+To: mmarek@suse.cz, dgc@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     geode-mfgpt-clock-event-device-support update
+     Fix XFS_IOC_FSBULKSTAT{,_SINGLE} and XFS_IOC_FSINUMBERS in compat =
+mode (fix)
 has been removed from the -mm tree.  Its filename was
-     geode-mfgpt-clock-event-device-support-update.patch
+     fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mod=
+e-update.patch
 
-This patch was dropped because it was folded into geode-mfgpt-clock-event-device-support.patch
+This patch was dropped because it was folded into fix-xfs_ioc_fsbulksta=
+t_single-and-xfs_ioc_fsinumbers-in-compat-mode.patch
 
 ------------------------------------------------------
-Subject: geode-mfgpt-clock-event-device-support update
-From: Andres Salomon <dilinger@queued.net>
+Subject: Fix XFS_IOC_FSBULKSTAT{,_SINGLE} and XFS_IOC_FSINUMBERS in com=
+pat mode (fix)
+=46rom: Michal Marek <mmarek@suse.cz>
 
-Here's an updated version of this patch which makes scripts/checkpatch.pl
-happy, and documents 'mfgpt_irq'.
+On Thu, Jun 28, 2007 at 11:15:30AM -0700, Andrew Morton wrote:
+>   CC      fs/xfs/linux-2.6/xfs_ioctl32.o
+> fs/xfs/linux-2.6/xfs_ioctl32.c: In function =E2=80=98xfs_ioc_bulkstat=
+_compat=E2=80=99:
+> fs/xfs/linux-2.6/xfs_ioctl32.c:334: error: =E2=80=98xfs_inumbers_fmt_=
+compat=E2=80=99 undeclared (first use in this function)
+> fs/xfs/linux-2.6/xfs_ioctl32.c:334: error: (Each undeclared identifie=
+r is reported only once
+> fs/xfs/linux-2.6/xfs_ioctl32.c:334: error: for each function it appea=
+rs in.)
 
+Sorry, the #define was wrong. This one should work better (at least
+build-tested on ppc64 this time):
 
+Signed-off-by: Michal Marek <mmarek@suse.cz>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    4 ++++
- arch/i386/kernel/mfgpt.c            |   21 ++++++++++++++-------
- 2 files changed, 18 insertions(+), 7 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl32.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~geode-mfgpt-clock-event-device-support-update Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~geode-mfgpt-clock-event-device-support-update
-+++ a/Documentation/kernel-parameters.txt
-@@ -1018,6 +1018,10 @@ and is between 256 and 4096 characters. 
- 	meye.*=		[HW] Set MotionEye Camera parameters
- 			See Documentation/video4linux/meye.txt.
- 
-+	mfgpt_irq=	[IA-32] Specify the IRQ to use for the
-+			Multi-Function General Purpose Timers on AMD Geode
-+			platforms.
-+
- 	mga=		[HW,DRM]
- 
- 	migration_cost=
-diff -puN arch/i386/kernel/mfgpt.c~geode-mfgpt-clock-event-device-support-update arch/i386/kernel/mfgpt.c
---- a/arch/i386/kernel/mfgpt.c~geode-mfgpt-clock-event-device-support-update
-+++ a/arch/i386/kernel/mfgpt.c
-@@ -312,9 +312,11 @@ static int __init mfgpt_timer_setup(void
- 	int timer, ret;
- 	u16 val;
- 
--	timer = geode_mfgpt_alloc_timer(MFGPT_TIMER_ANY, MFGPT_DOMAIN_WORKING, THIS_MODULE);
-+	timer = geode_mfgpt_alloc_timer(MFGPT_TIMER_ANY, MFGPT_DOMAIN_WORKING,
-+			THIS_MODULE);
- 	if (timer < 0) {
--		printk(KERN_ERR "mfgpt-timer:  Could not allocate a MFPGT timer\n");
-+		printk(KERN_ERR "mfgpt-timer:  Could not allocate a MFPGT "
-+				"timer\n");
- 		return -ENODEV;
- 	}
- 
-@@ -334,23 +336,28 @@ static int __init mfgpt_timer_setup(void
- 	ret = setup_irq(irq, &mfgptirq);
- 
- 	if (ret) {
--		printk(KERN_ERR "mfgpt-timer:  Unable to set up the interrupt.\n");
-+		printk(KERN_ERR "mfgpt-timer:  Unable to set up the "
-+				"interrupt.\n");
- 		goto err;
- 	}
- 
- 	/* Set up the clock event */
- 	mfgpt_clockevent.mult = div_sc(MFGPT_HZ, NSEC_PER_SEC, 32);
--	mfgpt_clockevent.min_delta_ns = clockevent_delta2ns(0xF, &mfgpt_clockevent);
--	mfgpt_clockevent.max_delta_ns = clockevent_delta2ns(0xFFFE, &mfgpt_clockevent);
-+	mfgpt_clockevent.min_delta_ns = clockevent_delta2ns(0xF,
-+			&mfgpt_clockevent);
-+	mfgpt_clockevent.max_delta_ns = clockevent_delta2ns(0xFFFE,
-+			&mfgpt_clockevent);
- 
--	printk("mfgpt-timer:  registering the MFGT timer as a clock event.\n");
-+	printk(KERN_INFO "mfgpt-timer:  registering the MFGT timer as a "
-+			"clock event.\n");
- 	clockevents_register_device(&mfgpt_clockevent);
- 
- 	return 0;
- 
- err:
- 	geode_mfgpt_release_irq(mfgpt_event_clock, MFGPT_CMP2, irq);
--	printk(KERN_ERR "mfgpt-timer:  Unable to set up the MFGPT clock source\n");
-+	printk(KERN_ERR "mfgpt-timer:  Unable to set up the MFGPT clock "
-+			"source\n");
- 	return -EIO;
- }
- 
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsbulkstat_single-=
+and-xfs_ioc_fsinumbers-in-compat-mode-update fs/xfs/linux-2.6/xfs_ioctl=
+32.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsbulkstat_single-and-=
+xfs_ioc_fsinumbers-in-compat-mode-update
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
+@@ -153,7 +153,7 @@ STATIC int xfs_inumbers_fmt_compat(
+=20
+ #else
+=20
+-#define xfs_inumbers_fmt_compat(a, b, c, d) xfs_inumbers_fmt(a, b, c, =
+d)
++#define xfs_inumbers_fmt_compat xfs_inumbers_fmt
+ #define _PACKED
+=20
+ #endif
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from mmarek@suse.cz are
 
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-geode-mfgpt-clock-event-device-support-update.patch
+fix-xfs_ioc_fsgeometry_v1-in-compat-mode.patch
+fix-xfs_ioc__to_handle-and-xfs_ioc_openreadlink_by_handle-in-compat-mod=
+e.patch
+fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode.pat=
+ch
+fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode-upd=
+ate.patch
