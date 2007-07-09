@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - preserve-the-dirty-bit-in-init_page_buffers.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:48:32 -0700
-Message-ID: <200707092148.l69LmWtx014115@imap1.linux-foundation.org>
+Subject: - rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:48:34 -0700
+Message-ID: <200707092148.l69LmYA3014120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43170 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40468 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754334AbXGIVsj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:48:39 -0400
+	by vger.kernel.org with ESMTP id S1755063AbXGIVsl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:48:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Preserve the dirty bit in init_page_buffers
+     rd: mark ramdisk buffer heads dirty in ramdisk_set_page_dirty
 has been removed from the -mm tree.  Its filename was
-     preserve-the-dirty-bit-in-init_page_buffers.patch
+     rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Preserve the dirty bit in init_page_buffers
+Subject: rd: mark ramdisk buffer heads dirty in ramdisk_set_page_dirty
 From: Eric W. Biederman <ebiederm@xmission.com>
 
 The problem: When we are trying to free buffers try_to_free_buffers will look
@@ -29,40 +29,49 @@ at ramdisk pages with clean buffer heads and remove the dirty bit from the
 page.  Resulting in ramdisk pages with data that get removed from the page
 cache.  Ouch!
 
-Buffer heads appear on ramdisk pages when a filesystem calls getblk, which
-through a series of function calls eventually calls init_page_buffers.
+When we mark a ramdisk page dirty we call set_page_dirty which then calls
+ramdisk_set_page_dirty.  Currently we don't mark the buffer heads dirty
+leaving us susceptible to the problem above.
 
 So to fix the mismatch between buffer head state and page state this patch
-modifies init_page_buffers to transfer the dirty bit from the page to the
-buffer heads like we currently do for the uptodate bit.
+modifies ramdisk_set_page_dirty to set the dirty bit on all of the buffers a
+page may posses.
+
+I set the uptodate bit on the buffer head so that later we can use
+simple_commit_write, and because it is trivially safe.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/block/rd.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN fs/buffer.c~preserve-the-dirty-bit-in-init_page_buffers fs/buffer.c
---- a/fs/buffer.c~preserve-the-dirty-bit-in-init_page_buffers
-+++ a/fs/buffer.c
-@@ -972,6 +972,7 @@ init_page_buffers(struct page *page, str
- 	struct buffer_head *head = page_buffers(page);
- 	struct buffer_head *bh = head;
- 	int uptodate = PageUptodate(page);
-+	int dirty = PageDirty(page);
- 
- 	do {
- 		if (!buffer_mapped(bh)) {
-@@ -980,6 +981,8 @@ init_page_buffers(struct page *page, str
- 			bh->b_blocknr = block;
- 			if (uptodate)
- 				set_buffer_uptodate(bh);
-+			if (dirty)
-+				set_buffer_dirty(bh);
- 			set_buffer_mapped(bh);
- 		}
- 		block++;
+diff -puN drivers/block/rd.c~rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty drivers/block/rd.c
+--- a/drivers/block/rd.c~rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty
++++ a/drivers/block/rd.c
+@@ -184,6 +184,21 @@ static int ramdisk_writepages(struct add
+  */
+ static int ramdisk_set_page_dirty(struct page *page)
+ {
++	struct address_space * const mapping = page_mapping(page);
++
++	spin_lock(&mapping->private_lock);
++	if (page_has_buffers(page)) {
++		struct buffer_head *head = page_buffers(page);
++		struct buffer_head *bh = head;
++
++		do {
++			set_buffer_uptodate(bh);
++			set_buffer_dirty(bh);
++			bh = bh->b_this_page;
++		} while (bh != head);
++	}
++	spin_unlock(&mapping->private_lock);
++
+ 	if (!TestSetPageDirty(page))
+ 		return 1;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
