@@ -1,30 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - lockstat-core-infrastructure-fix-fix-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:55:11 -0700
-Message-ID: <200707092355.l69NtBDV021745@imap1.linux-foundation.org>
+Subject: - lockstat-core-infrastructure-fix-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:55:08 -0700
+Message-ID: <200707092355.l69Nt8Do021741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37357 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37331 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760282AbXGIXzb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:55:31 -0400
+	by vger.kernel.org with ESMTP id S1760325AbXGIXzc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:55:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, jbaron@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockstat-core-infrastructure-fix-fix-fix
+     lockstat-core-infrastructure-fix-fix
 has been removed from the -mm tree.  Its filename was
-     lockstat-core-infrastructure-fix-fix-fix.patch
+     lockstat-core-infrastructure-fix-fix.patch
 
 This patch was dropped because it was folded into lockstat-core-infrastructure.patch
 
 ------------------------------------------------------
-Subject: lockstat-core-infrastructure-fix-fix-fix
+Subject: lockstat-core-infrastructure-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Nuke unneeded ifdefs.
+kernel/mutex.c: In function '__mutex_lock_common':
+kernel/mutex.c:146: error: 'struct mutex' has no member named 'dep_map'
+kernel/mutex.c:183: error: 'struct mutex' has no member named 'dep_map'
+
+tra la la.
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Jason Baron <jbaron@redhat.com>
@@ -32,27 +36,32 @@ Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    6 ------
- 1 file changed, 6 deletions(-)
+ Kconfig.debug           |    0 
+ include/linux/lockdep.h |    9 ++-------
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN kernel/sysctl.c~lockstat-core-infrastructure-fix-fix-fix kernel/sysctl.c
---- a/kernel/sysctl.c~lockstat-core-infrastructure-fix-fix-fix
-+++ a/kernel/sysctl.c
-@@ -162,14 +162,8 @@ extern ctl_table inotify_table[];
- int sysctl_legacy_va_layout;
- #endif
+diff -puN include/linux/lockdep.h~lockstat-core-infrastructure-fix-fix include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockstat-core-infrastructure-fix-fix
++++ a/include/linux/lockdep.h
+@@ -326,13 +326,8 @@ do {								\
  
+ #else /* CONFIG_LOCK_STAT */
+ 
+-static inline void lock_contended(struct lockdep_map *lock, unsigned long ip)
+-{
+-}
 -
--#ifdef CONFIG_PROVE_LOCKING
- extern int prove_locking;
--#endif
--
--#ifdef CONFIG_LOCK_STAT
- extern int lock_stat;
--#endif
+-static inline void lock_acquired(struct lockdep_map *lock)
+-{
+-}
++#define lock_contended(lockdep_map, ip) do {} while (0)
++#define lock_acquired(lockdep_map) do {} while (0)
  
- /* The default sysctl tables: */
- 
+ #define LOCK_CONTENDED(_lock, try, lock) \
+ 	lock(_lock)
+diff -puN kernel/lockdep.c~lockstat-core-infrastructure-fix-fix kernel/lockdep.c
+diff -puN kernel/sysctl.c~lockstat-core-infrastructure-fix-fix kernel/sysctl.c
+diff -puN lib/Kconfig.debug~lockstat-core-infrastructure-fix-fix lib/Kconfig.debug
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -252,6 +261,7 @@ containersv10-simple-debug-info-subsystem-fix.patch
 containersv10-simple-debug-info-subsystem-fix-2.patch
 add-containerstats-v3-fix.patch
 lockstat-core-infrastructure.patch
+lockstat-core-infrastructure-fix-fix.patch
 lockstat-core-infrastructure-fix-fix-fix.patch
 lockdep-various-fixes-checkpatch.patch
 lockstat-measure-lock-bouncing-checkpatch.patch
