@@ -1,51 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-exportfs-add-exportfsh-header-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:34:25 -0700
-Message-ID: <200707092334.l69NYQ3i020459@imap1.linux-foundation.org>
+Subject: - knfsd-exportfs-remove-iget-abuse-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:35:31 -0700
+Message-ID: <200707092335.l69NZVME020473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53676 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37325 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757302AbXGIXet (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:34:49 -0400
+	by vger.kernel.org with ESMTP id S1757457AbXGIXf7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:35:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@infradead.org, hch@lst.de, neilb@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hch@infradead.org, hch@lst.de, neilb@suse.de, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd-exportfs-add-exportfsh-header-fix
+     knfsd-exportfs-remove-iget-abuse-fix
 has been removed from the -mm tree.  Its filename was
-     knfsd-exportfs-add-exportfsh-header-fix.patch
+     knfsd-exportfs-remove-iget-abuse-fix.patch
 
-This patch was dropped because it was folded into knfsd-exportfs-add-exportfsh-header.patch
+This patch was dropped because it was folded into knfsd-exportfs-remove-iget-abuse.patch
 
 ------------------------------------------------------
-Subject: knfsd-exportfs-add-exportfsh-header-fix
+Subject: knfsd-exportfs-remove-iget-abuse-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: <shaggy@austin.ibm.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/export.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/jfs/jfs_inode.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN fs/cifs/export.c~knfsd-exportfs-add-exportfsh-header-fix fs/cifs/export.c
---- a/fs/cifs/export.c~knfsd-exportfs-add-exportfsh-header-fix
-+++ a/fs/cifs/export.c
-@@ -29,7 +29,8 @@
-   */
- 
- #include <linux/fs.h>
-- 
-+#include <linux/exportfs.h>
-+
- #ifdef CONFIG_CIFS_EXPERIMENTAL
-  
- static struct dentry *cifs_get_parent(struct dentry *dentry)
+diff -puN fs/jfs/jfs_inode.h~knfsd-exportfs-remove-iget-abuse-fix fs/jfs/jfs_inode.h
+--- a/fs/jfs/jfs_inode.h~knfsd-exportfs-remove-iget-abuse-fix
++++ a/fs/jfs/jfs_inode.h
+@@ -31,6 +31,7 @@ extern void jfs_truncate(struct inode *)
+ extern void jfs_truncate_nolock(struct inode *, loff_t);
+ extern void jfs_free_zero_link(struct inode *);
+ extern struct dentry *jfs_get_parent(struct dentry *dentry);
++extern void jfs_get_inode_flags(struct jfs_inode_info *);
+ extern struct dentry *jfs_get_dentry(struct super_block *sb, void *vobjp);
+ extern void jfs_set_inode_flags(struct inode *);
+ extern int jfs_get_block(struct inode *, sector_t, struct buffer_head *, int);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -209,7 +208,7 @@ spi-master-driver-for-xilinx-virtex.patch
 isdn-capi-warning-fixes.patch
 i2o_cfg_passthru-cleanup.patch
 knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse.patch
 knfsd-exportfs-remove-iget-abuse-fix.patch
 nfsd-warning-fix.patch
 knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
