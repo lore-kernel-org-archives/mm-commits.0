@@ -1,54 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:53:54 -0700
-Message-ID: <200707092353.l69NrsCD021642@imap1.linux-foundation.org>
+Subject: - lockstat-core-infrastructure-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:55:05 -0700
+Message-ID: <200707092355.l69Nt56p021738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59753 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52836 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759244AbXGIXyT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:54:19 -0400
+	by vger.kernel.org with ESMTP id S1757301AbXGIXz3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:55:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hidehiro.kawai.ez@hitachi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, jbaron@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
+     lockstat-core-infrastructure-fix
 has been removed from the -mm tree.  Its filename was
-     coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+     lockstat-core-infrastructure-fix.patch
 
-This patch was dropped because it was folded into coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+This patch was dropped because it was folded into lockstat-core-infrastructure.patch
 
 ------------------------------------------------------
-Subject: coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
+Subject: lockstat-core-infrastructure-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "set_dumpable" [security/commoncap.ko] undefined!
+In file included from include/linux/spinlock_types.h:18,
+                 from include/linux/spinlock.h:79,
+                 from include/linux/seqlock.h:29,
+                 from include/linux/time.h:7,
+                 from include/linux/stat.h:60,
+                 from include/linux/module.h:10,
+                 from include/linux/crypto.h:21,
+                 from arch/i386/kernel/asm-offsets.c:7:
+include/linux/lockdep.h:328: warning: 'struct lockdep_map' declared inside parameter list
+include/linux/lockdep.h:328: warning: its scope is only this definition or declaration, which is probably not what you want
 
-Cc: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Dunno why I bothered writing that SubmitChecklist thing.
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    1 +
- 1 file changed, 1 insertion(+)
+ Kconfig.debug           |    0 
+ include/linux/lockdep.h |    1 +
+ 2 files changed, 1 insertion(+)
 
-diff -puN fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags-fix fs/exec.c
---- a/fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
-+++ a/fs/exec.c
-@@ -1705,6 +1705,7 @@ void set_dumpable(struct mm_struct *mm, 
- 		break;
- 	}
- }
-+EXPORT_SYMBOL_GPL(set_dumpable);
+diff -puN include/linux/lockdep.h~lockstat-core-infrastructure-fix include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockstat-core-infrastructure-fix
++++ a/include/linux/lockdep.h
+@@ -9,6 +9,7 @@
+ #define __LINUX_LOCKDEP_H
  
- int get_dumpable(struct mm_struct *mm)
- {
+ struct task_struct;
++struct lockdep_map;
+ 
+ #ifdef CONFIG_LOCKDEP
+ 
+diff -puN kernel/lockdep.c~lockstat-core-infrastructure-fix kernel/lockdep.c
+diff -puN kernel/sysctl.c~lockstat-core-infrastructure-fix kernel/sysctl.c
+diff -puN lib/Kconfig.debug~lockstat-core-infrastructure-fix lib/Kconfig.debug
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -235,7 +247,6 @@ cfs-scheduler-warning-fixes.patch
 cfs-warning-fixes.patch
 kernel-doc-fix-leading-dot-in-man-mode-output.patch
 coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
 drivers-edac-new-i82443bxgz-mc-driver-broken.patch
 containersv10-basic-container-framework-fix.patch
 containersv10-basic-container-framework-fix-2.patch
@@ -248,6 +259,7 @@ containersv10-share-css_group-arrays-between-tasks-with-same-container-membershi
 containersv10-simple-debug-info-subsystem-fix.patch
 containersv10-simple-debug-info-subsystem-fix-2.patch
 add-containerstats-v3-fix.patch
+lockstat-core-infrastructure.patch
 lockstat-core-infrastructure-fix.patch
 lockstat-core-infrastructure-fix-fix.patch
 lockstat-core-infrastructure-fix-fix-fix.patch
