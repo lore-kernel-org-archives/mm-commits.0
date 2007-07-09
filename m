@@ -1,84 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - pci-x-pci-express-read-control-interfaces-qla2xxx-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 13:24:37 -0700
-Message-ID: <200707092024.l69KOclB009149@imap1.linux-foundation.org>
+Subject: - serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 13:25:14 -0700
+Message-ID: <200707092025.l69KPFcs009243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34674 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57653 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754334AbXGIUZY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 16:25:24 -0400
+	by vger.kernel.org with ESMTP id S1754210AbXGIUZ5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 16:25:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peter.oruba@amd.com, andrew.vasquez@qlogic.com, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-x-pci-express-read-control-interfaces-qla2xxx fix
+     serial-convert-early_uart-to-earlycon-for-8250 ia64 fix
 has been removed from the -mm tree.  Its filename was
-     pci-x-pci-express-read-control-interfaces-qla2xxx-fix.patch
+     serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
 
-This patch was dropped because it was folded into pci-x-pci-express-read-control-interfaces-qla2xxx.patch
+This patch was dropped because it was folded into serial-convert-early_uart-to-earlycon-for-8250.patch
 
 ------------------------------------------------------
-Subject: pci-x-pci-express-read-control-interfaces-qla2xxx fix
-From: "Peter Oruba" <peter.oruba@amd.com>
+Subject: serial-convert-early_uart-to-earlycon-for-8250 ia64 fix
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Sorry, I missed out an essential part in the qla2xxx driver, namely the MMRBC
-configuration for PCI-X. The submitted patch only did that for PCIe. This is
-the corrected version
+ia64: add extra preferred console for HCDP serial console
 
-The pre-condition check is there to not blindly call the mmrbc-functions, but
-to check for the bus type first. Indeed, the first patch version made this
-check look unnecessary.
-
-Signed-off-by: Peter Oruba <peter.oruba@amd.com>
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Gerd Hoffmann <kraxel@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_init.c |   16 +++++-----------
- 1 files changed, 5 insertions(+), 11 deletions(-)
+ drivers/firmware/pcdp.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/scsi/qla2xxx/qla_init.c~pci-x-pci-express-read-control-interfaces-qla2xxx-fix drivers/scsi/qla2xxx/qla_init.c
---- a/drivers/scsi/qla2xxx/qla_init.c~pci-x-pci-express-read-control-interfaces-qla2xxx-fix
-+++ a/drivers/scsi/qla2xxx/qla_init.c
-@@ -269,21 +269,15 @@ qla24xx_pci_config(scsi_qla_host_t *ha)
+diff -puN drivers/firmware/pcdp.c~serial-convert-early_uart-to-earlycon-for-8250-ia64-fix drivers/firmware/pcdp.c
+--- a/drivers/firmware/pcdp.c~serial-convert-early_uart-to-earlycon-for-8250-ia64-fix
++++ a/drivers/firmware/pcdp.c
+@@ -42,6 +42,7 @@ setup_serial_console(struct pcdp_uart *u
+ 		}
+ 	}
  
- 	/* PCI-X -- adjust Maximum Memory Read Byte Count (2048). */
- 	pcix_cmd_reg = pci_find_capability(ha->pdev, PCI_CAP_ID_PCIX);
--	if (pcix_cmd_reg) {
--		uint16_t pcix_cmd;
--
--		pcix_cmd_reg += PCI_X_CMD;
--		pci_read_config_word(ha->pdev, pcix_cmd_reg, &pcix_cmd);
--		pcix_cmd &= ~PCI_X_CMD_MAX_READ;
--		pcix_cmd |= 0x0008;
--		pci_write_config_word(ha->pdev, pcix_cmd_reg, pcix_cmd);
--	}
-+	if (pcix_cmd_reg)
-+		if (pcix_set_mmrbc(ha->pdev, 2048))
-+		DEBUG2(printk("Couldn't write PCI-X read request\n"));
- 
- 	/* PCIe -- adjust Maximum Read Request Size (2048). */
- 	pcie_dctl_reg = pci_find_capability(ha->pdev, PCI_CAP_ID_EXP);
- 	if (pcie_dctl_reg)
--		if (pcie_set_readrq(ha->pdev, 2048))
--			DEBUG2(printk("Couldn't write PCI Express read request\n"));
-+	if (pcie_set_readrq(ha->pdev, 2048))
-+		DEBUG2(printk("Couldn't write PCI Express read request\n"));
- 
- 	/* Reset expansion ROM address decode enable */
- 	pci_read_config_dword(ha->pdev, PCI_ROM_ADDRESS, &d);
++	add_preferred_console("uart", 8250, &options[9]);
+ 	return setup_early_serial8250_console(options);
+ #else
+ 	return -ENODEV;
+diff -puN /dev/null /dev/null
 _
 
-Patches currently in -mm which might be from peter.oruba@amd.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-bugfix-cpufreq-in-combination-with-performance-governor.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-pci-x-pci-express-read-control-interfaces-myrinet.patch
-pci-x-pci-express-read-control-interfaces-mthca.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-pci-x-pci-express-read-control-interfaces-qla2xxx.patch
-pci-x-pci-express-read-control-interfaces-qla2xxx-fix.patch
+serial-assert-dtr-for-serial-console-devices.patch
+usb-make-the-usb_device-numa_node-to-get-assigned-from.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
+x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+console-more-buf-for-index-parsing.patch
+console-console-handover-to-preferred-console.patch
+serial-convert-early_uart-to-earlycon-for-8250.patch
+serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
+serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
+dma-make-dma-pool-to-use-kmalloc_node.patch
