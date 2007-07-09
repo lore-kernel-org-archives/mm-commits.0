@@ -1,74 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - spi-controller-drivers-check-for-unsupported-modes-update.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 15:05:46 -0700
-Message-ID: <200707092205.l69M5kKO015232@imap1.linux-foundation.org>
+Subject: - spi-add-3wire-mode-flag-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 15:05:57 -0700
+Message-ID: <200707092205.l69M5vnh015235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49844 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59576 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756198AbXGIWGA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 18:06:00 -0400
+	by vger.kernel.org with ESMTP id S1754636AbXGIWGM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 18:06:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi controller mode check update
+     SPI: add 3wire mode flag (fix)
 has been removed from the -mm tree.  Its filename was
-     spi-controller-drivers-check-for-unsupported-modes-update.patch
+     spi-add-3wire-mode-flag-fix.patch
 
-This patch was dropped because it was folded into spi-controller-drivers-check-for-unsupported-modes.patch
+This patch was dropped because it was folded into spi-add-3wire-mode-flag.patch
 
 ------------------------------------------------------
-Subject: spi controller mode check update
+Subject: SPI: add 3wire mode flag (fix)
 From: David Brownell <david-b@pacbell.net>
 
-This lets bitbanging SPI controller drivers declare that they
-support modes like SPI_CS_HIGH and SPI_3WIRE.
+Add missing parenthesis ... evidently GCC warns inconsistently.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bitbang.c       |   12 +++---------
- include/linux/spi/spi_bitbang.h |    1 +
- 2 files changed, 4 insertions(+), 9 deletions(-)
+ drivers/hwmon/lm70.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_bitbang.c~spi-controller-drivers-check-for-unsupported-modes-update drivers/spi/spi_bitbang.c
---- a/drivers/spi/spi_bitbang.c~spi-controller-drivers-check-for-unsupported-modes-update
-+++ a/drivers/spi/spi_bitbang.c
-@@ -187,16 +187,10 @@ int spi_bitbang_setup(struct spi_device 
+diff -puN drivers/hwmon/lm70.c~spi-add-3wire-mode-flag-fix drivers/hwmon/lm70.c
+--- a/drivers/hwmon/lm70.c~spi-add-3wire-mode-flag-fix
++++ a/drivers/hwmon/lm70.c
+@@ -97,7 +97,7 @@ static int __devinit lm70_probe(struct s
+ 	int status;
  
- 	bitbang = spi_master_get_devdata(spi->master);
- 
--	/* REVISIT: some systems will want to support devices using lsb-first
--	 * bit encodings on the wire.  In pure software that would be trivial,
--	 * just bitbang_txrx_le_cphaX() routines shifting the other way, and
--	 * some hardware controllers also have this support.
--	 *
--	 * REVISIT: we should accept SPI_CS_HIGH in some cases; it's
--	 * easy to implement that with GPIOs, but we don't know if the
--	 * underlying chipselect() method support that...
-+	/* Bitbangers can support SPI_CS_HIGH, SPI_3WIRE, and so on;
-+	 * add those to master->flags, and provide the other support.
- 	 */
--	if ((spi->mode & ~(SPI_CPOL|SPI_CPHA)) != 0)
-+	if ((spi->mode & ~(SPI_CPOL|SPI_CPHA|bitbang->flags)) != 0)
+ 	/* signaling is SPI_MODE_0 on a 3-wire link (shared SI/SO) */
+-	if ((spi->mode & (SPI_CPOL|SPI_CPHA)) || !spi->mode & SPI_3WIRE)
++	if ((spi->mode & (SPI_CPOL|SPI_CPHA)) || !(spi->mode & SPI_3WIRE))
  		return -EINVAL;
  
- 	if (!cs) {
-diff -puN include/linux/spi/spi_bitbang.h~spi-controller-drivers-check-for-unsupported-modes-update include/linux/spi/spi_bitbang.h
---- a/include/linux/spi/spi_bitbang.h~spi-controller-drivers-check-for-unsupported-modes-update
-+++ a/include/linux/spi/spi_bitbang.h
-@@ -26,6 +26,7 @@ struct spi_bitbang {
- 	struct list_head	queue;
- 	u8			busy;
- 	u8			use_dma;
-+	u8			flags;		/* extra spi->mode support */
- 
- 	struct spi_master	*master;
- 
+ 	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
@@ -84,7 +60,6 @@ geode-basic-infrastructure-support-for-amd-geode-class.patch
 char-genrtc-use-wait_event_interruptible.patch
 drivers-pmc-msp71xx-gpio-char-driver.patch
 spi-controller-drivers-check-for-unsupported-modes.patch
-spi-controller-drivers-check-for-unsupported-modes-update.patch
 spi-add-3wire-mode-flag.patch
 spi-add-3wire-mode-flag-fix.patch
 spidev-compiler-warning-gone.patch
