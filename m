@@ -1,202 +1,285 @@
 From: akpm@linux-foundation.org
-Subject: - pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 11:38:30 -0700
-Message-ID: <200707091838.l69IcUGl000792@imap1.linux-foundation.org>
+Subject: - applesmc-add-temperature-sensors-set-for-macbook-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 11:40:03 -0700
+Message-ID: <200707091840.l69Ie391000944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47172 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750724AbXGISjJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 14:39:09 -0400
+	by vger.kernel.org with ESMTP id S1755300AbXGISkc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 14:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, david-b@pacbell.net, greg@kroah.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, khali@linux-fr.org, mactel@sukimashita.com, nicolas@boichat.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm update
+     applesmc-add-temperature-sensors-set-for-macbook-fix
 has been removed from the -mm tree.  Its filename was
-     pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update.patch
+     applesmc-add-temperature-sensors-set-for-macbook-fix.patch
 
-This patch was dropped because it was folded into pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm.patch
+This patch was dropped because it was folded into applesmc-add-temperature-sensors-set-for-macbook.patch
 
 ------------------------------------------------------
-Subject: pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm update
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: applesmc-add-temperature-sensors-set-for-macbook-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Russell says that the affected drivers were coded to support multiple instances
-of the same device which the $subject patch doesn't take into account (still,
-as far as the neponset is concerned, I think that there can be only one
-instance of NCR_0 in the system).
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Greg KH <greg@kroah.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Martin Szulecki <mactel@sukimashita.com>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/common/locomo.c |   22 +++++++++++++++++++---
- arch/arm/common/sa1111.c |   15 ++++++++-------
- 2 files changed, 27 insertions(+), 10 deletions(-)
+ drivers/hwmon/applesmc.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/common/locomo.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update arch/arm/common/locomo.c
---- a/arch/arm/common/locomo.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update
-+++ a/arch/arm/common/locomo.c
-@@ -60,6 +60,9 @@ struct locomo {
- 	unsigned int irq;
- 	spinlock_t lock;
- 	void __iomem *base;
-+#ifdef CONFIG_PM
-+	void *saved_state;
-+#endif
+diff -puN drivers/hwmon/applesmc.c~applesmc-add-temperature-sensors-set-for-macbook-fix drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~applesmc-add-temperature-sensors-set-for-macbook-fix
++++ a/drivers/hwmon/applesmc.c
+@@ -1136,7 +1136,7 @@ static __initdata struct dmi_match_data 
+ /* MacBook: accelerometer and temperature set 1 */
+ 	{ .accelerometer = 1, .light = 0, .temperature_set = 1 },
+ /* MacMini: temperature set 2 */
+-	{ .accelerometer = 0, .light = 0, .temperature_set = 2 }
++	{ .accelerometer = 0, .light = 0, .temperature_set = 2 },
  };
  
- struct locomo_dev_info {
-@@ -553,14 +556,20 @@ struct locomo_save_data {
- 	u16	LCM_GPE;
- 	u16	LCM_ASD;
- 	u16	LCM_SPIMD;
--} locomo_saved_state;
-+};
- 
- static int locomo_suspend(struct platform_device *dev, pm_message_t state)
- {
- 	struct locomo *lchip = platform_get_drvdata(dev);
--	struct locomo_save_data *save = &locomo_saved_state;
-+	struct locomo_save_data *save;
- 	unsigned long flags;
- 
-+	save = kmalloc(sizeof(struct locomo_save_data), GFP_KERNEL);
-+	if (!save)
-+		return -ENOMEM;
-+
-+	lchip->saved_state = save;
-+
- 	spin_lock_irqsave(&lchip->lock, flags);
- 
- 	save->LCM_GPO     = locomo_readl(lchip->base + LOCOMO_GPO);	/* GPIO */
-@@ -596,10 +605,14 @@ static int locomo_suspend(struct platfor
- static int locomo_resume(struct platform_device *dev)
- {
- 	struct locomo *lchip = platform_get_drvdata(dev);
--	struct locomo_save_data *save = &locomo_saved_state;
-+	struct locomo_save_data *save;
- 	unsigned long r;
- 	unsigned long flags;
- 
-+	save = lchip->saved_state;
-+	if (!save)
-+		return 0;
-+
- 	spin_lock_irqsave(&lchip->lock, flags);
- 
- 	locomo_writel(save->LCM_GPO, lchip->base + LOCOMO_GPO);
-@@ -619,6 +632,9 @@ static int locomo_resume(struct platform
- 
- 	spin_unlock_irqrestore(&lchip->lock, flags);
- 
-+	lchip->saved_state = NULL;
-+	kfree(save);
-+
- 	return 0;
- }
- #endif
-diff -puN arch/arm/common/sa1111.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update arch/arm/common/sa1111.c
---- a/arch/arm/common/sa1111.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update
-+++ a/arch/arm/common/sa1111.c
-@@ -51,6 +51,9 @@ struct sa1111 {
- 	int		irq;
- 	spinlock_t	lock;
- 	void __iomem	*base;
-+#ifdef CONFIG_PM
-+	void		*saved_state;
-+#endif
- };
- 
- /*
-@@ -811,8 +814,6 @@ struct sa1111_save_data {
- 
- #ifdef CONFIG_PM
- 
--static struct sa1111_save_data *sa1111_saved_state;
--
- static int sa1111_suspend(struct platform_device *dev, pm_message_t state)
- {
- 	struct sa1111 *sachip = platform_get_drvdata(dev);
-@@ -824,7 +825,7 @@ static int sa1111_suspend(struct platfor
- 	save = kmalloc(sizeof(struct sa1111_save_data), GFP_KERNEL);
- 	if (!save)
- 		return -ENOMEM;
--	sa1111_saved_state = save;
-+	sachip->saved_state = save;
- 
- 	spin_lock_irqsave(&sachip->lock, flags);
- 
-@@ -880,7 +881,7 @@ static int sa1111_resume(struct platform
- 	unsigned long flags, id;
- 	void __iomem *base;
- 
--	save = sa1111_saved_state;
-+	save = sachip->saved_state;
- 	if (!save)
- 		return 0;
- 
-@@ -925,7 +926,7 @@ static int sa1111_resume(struct platform
- 
- 	spin_unlock_irqrestore(&sachip->lock, flags);
- 
--	sa1111_saved_state = NULL;
-+	sachip->saved_state = NULL;
- 	kfree(save);
- 
- 	return 0;
-@@ -960,8 +961,8 @@ static int sa1111_remove(struct platform
- 		platform_set_drvdata(pdev, NULL);
- 
- #ifdef CONFIG_PM
--		kfree(sa1111_saved_state);
--		sa1111_saved_state = NULL;
-+		kfree(sachip->saved_state);
-+		sachip->saved_state = NULL;
- #endif
- 	}
- 
+ /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm.patch
-pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update.patch
-x86_64-pm_trace-support.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
+git-acpi.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-saa7134-tvaudio-fix.patch
+applesmc-add-temperature-sensors-set-for-macbook.patch
+applesmc-add-temperature-sensors-set-for-macbook-fix.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+serio_raw_read-warning-fix.patch
+tsdev-fix-broken-usecto-millisecs-conversion.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-md-accel.patch
+git-mips-fixup.patch
+git-mtd.patch
+mtd-onenand-build-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-battery-vs-git-acpi.patch
+git-ioat-vs-git-md-accel.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+revert-acpi-change-for-scsi.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+restore-acpi-change-for-scsi.patch
+git-scsi-misc-vs-greg-sysfs-stuff.patch
+aacraid-rename-check_reset.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-scsi-target-fixup.patch
+splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
 i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-show-unhandled-signals-fix.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+i386-add-cpu_relax-to-cmos_lock-fix.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support-fix.patch
+x86_64-add-ioapic-nmi-support-fix-2.patch
+highres-improve-debug-output-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early-fix.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-kgdb-fixup.patch
+kgdb-warning-fix.patch
+kgdb-kconfig-fix.patch
+kgdb-use-new-style-interrupt-flags.patch
+kgdb-section-fix.patch
+kgdb_skipexception-warning-fix.patch
+kgdb-ia64-fixes.patch
+kgdb-bust-on-ia64.patch
+kgdb-build-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
 freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
 freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
+fix-alpha-isa-support-fix.patch
 freezer-run-show_state-when-freezing-times-out.patch
-pm-do-not-require-dev-spew-to-get-pm_debug.patch
-swsusp-remove-incorrect-code-from-userc.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-swsusp-introduce-restore-platform-operations.patch
-swsusp-fix-hibernation-code-ordering.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
 pm-introduce-hibernation-and-suspend-notifiers-fix.patch
 pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
 pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
 pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
-pm-reduce-code-duplication-between-mainc-and-userc-updated.patch
-acpi-do-not-prepare-for-hibernation-in-acpi_shutdown.patch
-pm-introduce-pm_power_off_prepare.patch
-pm-optional-beeping-during-resume-from-suspend-to-ram.patch
-pm-integrate-beeping-flag-with-existing-acpi_sleep-flags.patch
-shrink_slab-handle-bad-shrinkers.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+audit-add-tty-input-auditing-fix-2.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
+sys_time-speedup-build-fixes.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
+sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc-fix.patch
+bd_claim_by_disk-fix-warning.patch
+uninline-check_signature.patch
+uninline-check_signature-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+spi-master-driver-for-xilinx-virtex-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
+rtc-driver-for-ds1216-chips-fix.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+lguest-the-host-code.patch
+lguest-the-host-code-handle-dodgy-non-existent-tsc-host-code-fix.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+intel-iommu-pci-generic-helper-function-fix.patch
+intel-iommu-iova-allocation-and-management-routines-fix.patch
+intel-iommu-intel-iommu-driver-fix.patch
+intel-iommu-intel-iommu-driver-fix-2.patch
+intel-iommu-iommu-floppy-workaround-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+reiser4.patch
+reiser4-fix.patch
+git-block-vs-reiser4.patch
+allow-page_owner-to-be-set-on-any-architecture-fix.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
