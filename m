@@ -1,298 +1,268 @@
 From: akpm@linux-foundation.org
-Subject: - udf-coding-style-conversion-lindent-fixups-2.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:50:46 -0700
-Message-ID: <200707092150.l69LokN7014238@imap1.linux-foundation.org>
+Subject: - zs-move-to-the-serial-subsystem-update.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:51:08 -0700
+Message-ID: <200707092151.l69Lp8wg014314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53730 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51249 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754439AbXGIVvY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:51:24 -0400
+	by vger.kernel.org with ESMTP id S1754654AbXGIVvw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:51:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, mm-commits@vger.kernel.org
+To: macro@linux-mips.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     UDF: coding style conversion - lindent fixups 2
+     zs: updates to fix issues raised
 has been removed from the -mm tree.  Its filename was
-     udf-coding-style-conversion-lindent-fixups-2.patch
+     zs-move-to-the-serial-subsystem-update.patch
 
-This patch was dropped because it was folded into udf-coding-style-conversion-lindent.patch
+This patch was dropped because it was folded into zs-move-to-the-serial-subsystem.patch
 
 ------------------------------------------------------
-Subject: UDF: coding style conversion - lindent fixups 2
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: zs: updates to fix issues raised
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-This patch fixes sources were converted to kernel coding style by Lindent
-for first and then by hands.  But some messed things were accidentally
-skipped.
+This is a set of fixes to the initial revision of the zs driver port to the
+serial subsystem.  They include an update to the recovery delay, and the
+race on interrupt handler registration.  As well as a number of style fixes
+throughout.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c    |   14 +++--
- fs/udf/truncate.c |  109 ++++++++++++++------------------------------
- 2 files changed, 45 insertions(+), 78 deletions(-)
+ drivers/serial/zs.c |   75 +++++++++++++++++++++++-------------------
+ drivers/serial/zs.h |    2 -
+ 2 files changed, 43 insertions(+), 34 deletions(-)
 
-diff -puN fs/udf/inode.c~udf-coding-style-conversion-lindent-fixups-2 fs/udf/inode.c
---- a/fs/udf/inode.c~udf-coding-style-conversion-lindent-fixups-2
-+++ a/fs/udf/inode.c
-@@ -1103,7 +1103,8 @@ static void udf_fill_inode(struct inode 
- 			make_bad_inode(inode);
- 			return;
- 		}
--		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry), inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
-+		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry),
-+		       inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
- 	} else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_FE) {
- 		UDF_I_EFE(inode) = 0;
- 		UDF_I_USE(inode) = 0;
-@@ -1805,7 +1806,8 @@ int8_t udf_current_aext(struct inode * i
- 		if (!epos->offset)
- 			epos->offset = sizeof(struct allocExtDesc);
- 		ptr = epos->bh->b_data + epos->offset;
--		alen = sizeof(struct allocExtDesc) + le32_to_cpu(((struct allocExtDesc *)epos->bh->b_data)->lengthAllocDescs);
-+		alen = sizeof(struct allocExtDesc) +
-+			le32_to_cpu(((struct allocExtDesc *)epos->bh->b_data)->lengthAllocDescs);
- 	}
+diff -puN drivers/serial/zs.c~zs-move-to-the-serial-subsystem-update drivers/serial/zs.c
+--- a/drivers/serial/zs.c~zs-move-to-the-serial-subsystem-update
++++ a/drivers/serial/zs.c
+@@ -47,11 +47,13 @@
+ #define SUPPORT_SYSRQ
+ #endif
  
- 	switch (UDF_I_ALLOCTYPE(inode)) {
-@@ -1832,9 +1834,8 @@ int8_t udf_current_aext(struct inode * i
- 	return etype;
++#include <linux/bug.h>
+ #include <linux/console.h>
+ #include <linux/delay.h>
+ #include <linux/errno.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
++#include <linux/io.h>
+ #include <linux/ioport.h>
+ #include <linux/irqflags.h>
+ #include <linux/kernel.h>
+@@ -62,8 +64,7 @@
+ #include <linux/sysrq.h>
+ #include <linux/tty.h>
+ 
+-#include <asm/bug.h>
+-#include <asm/io.h>
++#include <asm/atomic.h>
+ #include <asm/system.h>
+ 
+ #include <asm/dec/interrupts.h>
+@@ -86,11 +87,10 @@ static char zs_version[] __initdata = "0
+ #define ZS_CHAN_B	1		/* Index of the channel B.  */
+ #define ZS_CHAN_IO_SIZE 8		/* IOMEM space size.  */
+ #define ZS_CHAN_IO_STRIDE 4		/* Register alignment.  */
+-#define ZS_CHAN_IO_OFFSET 1		/* The SCC resides on the high byte						   of the 16-bit IOBUS.  */
++#define ZS_CHAN_IO_OFFSET 1		/* The SCC resides on the high byte
++					   of the 16-bit IOBUS.  */
+ #define ZS_CLOCK        7372800 	/* Z85C30 PCLK input clock rate.  */
+ 
+-#define RECOVERY_DELAY  udelay(2)
+-
+ #define to_zport(uport) container_of(uport, struct zs_port, port)
+ 
+ struct zs_parms {
+@@ -126,53 +126,59 @@ static u8 zs_init_regs[ZS_NUM_REGS] __in
+ /*
+  * Reading and writing Z85C30 registers.
+  */
+-static inline u8 read_zsreg(struct zs_port *zport, int reg)
++static void recovery_delay(void)
++{
++	udelay(2);
++}
++
++static u8 read_zsreg(struct zs_port *zport, int reg)
+ {
+-	volatile void __iomem *control = zport->port.membase +
+-					 ZS_CHAN_IO_OFFSET;
++	void __iomem *control = zport->port.membase + ZS_CHAN_IO_OFFSET;
+ 	u8 retval;
+ 
+ 	if (reg != 0) {
+ 		writeb(reg & 0xf, control);
+-		fast_iob(); RECOVERY_DELAY;
++		fast_iob();
++		recovery_delay();
+ 	}
+ 	retval = readb(control);
+-	RECOVERY_DELAY;
++	recovery_delay();
+ 	return retval;
  }
  
--static int8_t
--udf_insert_aext(struct inode *inode, struct extent_position epos,
--		kernel_lb_addr neloc, uint32_t nelen)
-+static int8_t udf_insert_aext(struct inode *inode, struct extent_position epos,
-+			      kernel_lb_addr neloc, uint32_t nelen)
+-static inline void write_zsreg(struct zs_port *zport, int reg, u8 value)
++static void write_zsreg(struct zs_port *zport, int reg, u8 value)
  {
- 	kernel_lb_addr oeloc;
- 	uint32_t oelen;
-@@ -1918,7 +1919,8 @@ int8_t udf_delete_aext(struct inode * in
- 			aed = (struct allocExtDesc *)oepos.bh->b_data;
- 			aed->lengthAllocDescs =
- 				cpu_to_le32(le32_to_cpu(aed->lengthAllocDescs) - adsize);
--			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
-+			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) ||
-+			    UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
- 				udf_update_tag(oepos.bh->b_data, epos.offset - adsize);
- 			else
- 				udf_update_tag(oepos.bh->b_data, sizeof(struct allocExtDesc));
-diff -puN fs/udf/truncate.c~udf-coding-style-conversion-lindent-fixups-2 fs/udf/truncate.c
---- a/fs/udf/truncate.c~udf-coding-style-conversion-lindent-fixups-2
-+++ a/fs/udf/truncate.c
-@@ -33,12 +33,10 @@ static void extent_trunc(struct inode *i
- 			 uint32_t nelen)
+-	volatile void __iomem *control = zport->port.membase +
+-					 ZS_CHAN_IO_OFFSET;
++	void __iomem *control = zport->port.membase + ZS_CHAN_IO_OFFSET;
+ 
+ 	if (reg != 0) {
+ 		writeb(reg & 0xf, control);
+-		fast_iob(); RECOVERY_DELAY;
++		fast_iob(); recovery_delay();
+ 	}
+ 	writeb(value, control);
+-	fast_iob(); RECOVERY_DELAY;
++	fast_iob();
++	recovery_delay();
+ 	return;
+ }
+ 
+-static inline u8 read_zsdata(struct zs_port *zport)
++static u8 read_zsdata(struct zs_port *zport)
  {
- 	kernel_lb_addr neloc = {};
--	int last_block =
--	    (elen + inode->i_sb->s_blocksize -
--	     1) >> inode->i_sb->s_blocksize_bits;
--	int first_block =
--	    (nelen + inode->i_sb->s_blocksize -
--	     1) >> inode->i_sb->s_blocksize_bits;
-+	int last_block = (elen + inode->i_sb->s_blocksize - 1) >>
-+		inode->i_sb->s_blocksize_bits;
-+	int first_block = (nelen + inode->i_sb->s_blocksize - 1) >>
-+		inode->i_sb->s_blocksize_bits;
+-	volatile void __iomem *data = zport->port.membase +
+-				      ZS_CHAN_IO_STRIDE + ZS_CHAN_IO_OFFSET;
++	void __iomem *data = zport->port.membase +
++			     ZS_CHAN_IO_STRIDE + ZS_CHAN_IO_OFFSET;
+ 	u8 retval;
  
- 	if (nelen) {
- 		if (etype == (EXT_NOT_RECORDED_ALLOCATED >> 30)) {
-@@ -156,16 +154,16 @@ void udf_discard_prealloc(struct inode *
- 		extent_trunc(inode, &epos, eloc, etype, elen, 0);
- 		if (!epos.bh) {
- 			UDF_I_LENALLOC(inode) =
--			    epos.offset - udf_file_entry_alloc_offset(inode);
-+				epos.offset - udf_file_entry_alloc_offset(inode);
- 			mark_inode_dirty(inode);
- 		} else {
- 			struct allocExtDesc *aed =
--			    (struct allocExtDesc *)(epos.bh->b_data);
-+				(struct allocExtDesc *)(epos.bh->b_data);
- 			aed->lengthAllocDescs =
--			    cpu_to_le32(epos.offset -
--					sizeof(struct allocExtDesc));
--			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT)
--			    || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
-+				cpu_to_le32(epos.offset -
-+					    sizeof(struct allocExtDesc));
-+			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) ||
-+			    UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
- 				udf_update_tag(epos.bh->b_data, epos.offset);
- 			else
- 				udf_update_tag(epos.bh->b_data,
-@@ -182,7 +180,7 @@ void udf_discard_prealloc(struct inode *
- void udf_truncate_extents(struct inode *inode)
+ 	retval = readb(data);
+-	RECOVERY_DELAY;
++	recovery_delay();
+ 	return retval;
+ }
+ 
+-static inline void write_zsdata(struct zs_port *zport, u8 value)
++static void write_zsdata(struct zs_port *zport, u8 value)
  {
- 	struct extent_position epos;
--	kernel_lb_addr eloc, neloc = { 0, 0 };
-+	kernel_lb_addr eloc, neloc = {};
- 	uint32_t elen, nelen = 0, indirect_ext_len = 0, lenalloc;
- 	int8_t etype;
- 	struct super_block *sb = inode->i_sb;
-@@ -198,9 +196,8 @@ void udf_truncate_extents(struct inode *
- 		BUG();
+-	volatile void __iomem *data = zport->port.membase +
+-				      ZS_CHAN_IO_STRIDE + ZS_CHAN_IO_OFFSET;
++	void __iomem *data = zport->port.membase +
++			     ZS_CHAN_IO_STRIDE + ZS_CHAN_IO_OFFSET;
  
- 	etype = inode_bmap(inode, first_block, &epos, &eloc, &elen, &offset);
--	byte_offset =
--	    (offset << sb->s_blocksize_bits) +
--	    (inode->i_size & (sb->s_blocksize - 1));
-+	byte_offset = (offset << sb->s_blocksize_bits) +
-+		(inode->i_size & (sb->s_blocksize - 1));
- 	if (etype != -1) {
- 		epos.offset -= adsize;
- 		extent_trunc(inode, &epos, eloc, etype, elen, byte_offset);
-@@ -215,9 +212,7 @@ void udf_truncate_extents(struct inode *
- 		else
- 			lenalloc -= sizeof(struct allocExtDesc);
+ 	writeb(value, data);
+-	fast_iob(); RECOVERY_DELAY;
++	fast_iob();
++	recovery_delay();
+ 	return;
+ }
  
--		while ((etype =
--			udf_current_aext(inode, &epos, &eloc, &elen,
--					 0)) != -1) {
-+		while ((etype = udf_current_aext(inode, &epos, &eloc, &elen, 0)) != -1) {
- 			if (etype == (EXT_NEXT_EXTENT_ALLOCDECS >> 30)) {
- 				udf_write_aext(inode, &epos, neloc, nelen, 0);
- 				if (indirect_ext_len) {
-@@ -229,52 +224,35 @@ void udf_truncate_extents(struct inode *
- 							0, indirect_ext_len);
- 				} else {
- 					if (!epos.bh) {
--						UDF_I_LENALLOC(inode) =
--						    lenalloc;
-+						UDF_I_LENALLOC(inode) = lenalloc;
- 						mark_inode_dirty(inode);
- 					} else {
- 						struct allocExtDesc *aed =
--						    (struct allocExtDesc
--						     *)(epos.bh->b_data);
-+							(struct allocExtDesc *)(epos.bh->b_data);
- 						aed->lengthAllocDescs =
- 						    cpu_to_le32(lenalloc);
--						if (!UDF_QUERY_FLAG
--						    (sb, UDF_FLAG_STRICT)
--						    || UDF_SB_UDFREV(sb) >=
--						    0x0201)
--							udf_update_tag(epos.bh->
--								       b_data,
--								       lenalloc
--								       +
--								       sizeof
--								       (struct
--									allocExtDesc));
-+						if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) ||
-+						    UDF_SB_UDFREV(sb) >= 0x0201)
-+							udf_update_tag(epos.bh->b_data,
-+								       lenalloc +
-+								       sizeof(struct allocExtDesc));
- 						else
--							udf_update_tag(epos.bh->
--								       b_data,
--								       sizeof
--								       (struct
--									allocExtDesc));
--						mark_buffer_dirty_inode(epos.bh,
--									inode);
-+							udf_update_tag(epos.bh->b_data,
-+								       sizeof(struct allocExtDesc));
-+						mark_buffer_dirty_inode(epos.bh, inode);
- 					}
- 				}
- 				brelse(epos.bh);
- 				epos.offset = sizeof(struct allocExtDesc);
- 				epos.block = eloc;
--				epos.bh =
--				    udf_tread(sb,
--					      udf_get_lb_pblock(sb, eloc, 0));
-+				epos.bh = udf_tread(sb, udf_get_lb_pblock(sb, eloc, 0));
- 				if (elen)
--					indirect_ext_len = (elen +
--							    sb->s_blocksize -
--							    1) >> sb->
--					    s_blocksize_bits;
-+					indirect_ext_len = (elen + sb->s_blocksize -1) >>
-+						sb->s_blocksize_bits;
- 				else
- 					indirect_ext_len = 1;
- 			} else {
--				extent_trunc(inode, &epos, eloc, etype, elen,
--					     0);
-+				extent_trunc(inode, &epos, eloc, etype, elen, 0);
- 				epos.offset += adsize;
- 			}
- 		}
-@@ -292,16 +270,13 @@ void udf_truncate_extents(struct inode *
- 				struct allocExtDesc *aed =
- 				    (struct allocExtDesc *)(epos.bh->b_data);
- 				aed->lengthAllocDescs = cpu_to_le32(lenalloc);
--				if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT)
--				    || UDF_SB_UDFREV(sb) >= 0x0201)
-+				if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) ||
-+				    UDF_SB_UDFREV(sb) >= 0x0201)
- 					udf_update_tag(epos.bh->b_data,
--						       lenalloc +
--						       sizeof(struct
--							      allocExtDesc));
-+						       lenalloc + sizeof(struct allocExtDesc));
- 				else
- 					udf_update_tag(epos.bh->b_data,
--						       sizeof(struct
--							      allocExtDesc));
-+						       sizeof(struct allocExtDesc));
- 				mark_buffer_dirty_inode(epos.bh, inode);
- 			}
- 		}
-@@ -314,21 +289,14 @@ void udf_truncate_extents(struct inode *
- 			 *  no extent above inode->i_size => truncate is
- 			 *  extending the file by 'offset' blocks.
- 			 */
--			if ((!epos.bh
--			     && epos.offset ==
--			     udf_file_entry_alloc_offset(inode)) || (epos.bh
--								     && epos.
--								     offset ==
--								     sizeof
--								     (struct
--								      allocExtDesc)))
--			{
-+			if ((!epos.bh &&
-+			     epos.offset == udf_file_entry_alloc_offset(inode)) ||
-+			    (epos.bh && epos.offset == sizeof(struct allocExtDesc))) {
- 				/* File has no extents at all or has empty last
- 				 * indirect extent! Create a fake extent... */
- 				extent.extLocation.logicalBlockNum = 0;
- 				extent.extLocation.partitionReferenceNum = 0;
--				extent.extLength =
--				    EXT_NOT_RECORDED_NOT_ALLOCATED;
-+				extent.extLength = EXT_NOT_RECORDED_NOT_ALLOCATED;
- 			} else {
- 				epos.offset -= adsize;
- 				etype = udf_next_aext(inode, &epos,
-@@ -337,10 +305,7 @@ void udf_truncate_extents(struct inode *
- 				extent.extLength |= etype << 30;
- 			}
- 			udf_extend_file(inode, &epos, &extent,
--					offset +
--					((inode->
--					  i_size & (sb->s_blocksize - 1)) !=
--					 0));
-+					offset + ((inode->i_size & (sb->s_blocksize - 1)) != 0));
+@@ -196,7 +202,7 @@ void zs_dump(void)
+ #endif
+ 
+ 
+-static inline void zs_spin_lock_cond_irq(spinlock_t* lock, int irq)
++static void zs_spin_lock_cond_irq(spinlock_t *lock, int irq)
+ {
+ 	if (irq)
+ 		spin_lock_irq(lock);
+@@ -204,7 +210,7 @@ static inline void zs_spin_lock_cond_irq
+ 		spin_lock(lock);
+ }
+ 
+-static inline void zs_spin_unlock_cond_irq(spinlock_t* lock, int irq)
++static void zs_spin_unlock_cond_irq(spinlock_t *lock, int irq)
+ {
+ 	if (irq)
+ 		spin_unlock_irq(lock);
+@@ -235,7 +241,7 @@ static int zs_transmit_drain(struct zs_p
+ }
+ 
+ 
+-static inline void load_zsregs(struct zs_port *zport, u8 *regs, int irq)
++static void load_zsregs(struct zs_port *zport, u8 *regs, int irq)
+ {
+ 	zs_transmit_drain(zport, irq);
+ 	/* Load 'em up.  */
+@@ -288,8 +294,8 @@ static unsigned int zs_tx_empty(struct u
+ 	return status & ALL_SNT ? TIOCSER_TEMT : 0;
+ }
+ 
+-static inline unsigned int zs_raw_get_ab_mctrl(struct zs_port *zport_a,
+-					       struct zs_port *zport_b)
++static unsigned int zs_raw_get_ab_mctrl(struct zs_port *zport_a,
++					struct zs_port *zport_b)
+ {
+ 	u8 status_a, status_b;
+ 	unsigned int mctrl;
+@@ -728,18 +734,20 @@ static int zs_startup(struct uart_port *
+ 	struct zs_port *zport = to_zport(uport);
+ 	struct zs_scc *scc = zport->scc;
+ 	unsigned long flags;
++	int irq_guard;
+ 	int ret;
+ 
+-	if (!scc->irq_guard) {
++	irq_guard = atomic_add_return(1, &scc->irq_guard);
++	if (irq_guard == 1) {
+ 		ret = request_irq(zport->port.irq, zs_interrupt,
+ 				  IRQF_SHARED, "scc", scc);
+ 		if (ret) {
++			atomic_add(-1, &scc->irq_guard);
+ 			printk(KERN_ERR "zs: can't get irq %d\n",
+ 			       zport->port.irq);
+ 			return ret;
  		}
  	}
- 	UDF_I_LENEXTENTS(inode) = inode->i_size;
+-	scc->irq_guard++;
+ 
+ 	spin_lock_irqsave(&scc->zlock, flags);
+ 
+@@ -780,6 +788,7 @@ static void zs_shutdown(struct uart_port
+ 	struct zs_port *zport = to_zport(uport);
+ 	struct zs_scc *scc = zport->scc;
+ 	unsigned long flags;
++	int irq_guard;
+ 
+ 	spin_lock_irqsave(&scc->zlock, flags);
+ 
+@@ -790,8 +799,8 @@ static void zs_shutdown(struct uart_port
+ 
+ 	spin_unlock_irqrestore(&scc->zlock, flags);
+ 
+-	scc->irq_guard--;
+-	if (!scc->irq_guard)
++	irq_guard = atomic_add_return(-1, &scc->irq_guard);
++	if (!irq_guard)
+ 		free_irq(zport->port.irq, scc);
+ }
+ 
+@@ -1203,7 +1212,7 @@ static int __init zs_init(void)
+ {
+ 	int i, ret;
+ 
+-	printk("%s%s\n", zs_name, zs_version);
++	pr_info("%s%s\n", zs_name, zs_version);
+ 
+ 	/* Find out how many Z85C30 SCCs we have.  */
+ 	ret = zs_probe_sccs();
+diff -puN drivers/serial/zs.h~zs-move-to-the-serial-subsystem-update drivers/serial/zs.h
+--- a/drivers/serial/zs.h~zs-move-to-the-serial-subsystem-update
++++ a/drivers/serial/zs.h
+@@ -39,7 +39,7 @@ struct zs_port {
+ struct zs_scc {
+ 	struct zs_port	zport[2];
+ 	spinlock_t	zlock;
+-	int		irq_guard;
++	atomic_t	irq_guard;
+ 	int		initialised;
+ };
+ 
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
-sky-cpu-and-nexus-code-style-improvement.patch
-sky-cpu-and-nexus-include-ioh.patch
-sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
-sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
-sky-cpu-use-c99-style-for-struct-init.patch
-udf-check-for-allocated-memory-for-data-of-new-inodes.patch
-udf-check-for-allocated-memory-for-inode-data-v2.patch
-udf-coding-style-conversion-lindent.patch
-udf-coding-style-conversion-lindent-fixups-2.patch
-udf-fix-function-name-from-udf_crc16-to-udf_crc.patch
+zs-move-to-the-serial-subsystem.patch
+zs-move-to-the-serial-subsystem-update.patch
+zsc-drain-the-transmission-line.patch
+tgafb-actually-allocate-memory-for-the-pseudo_palette.patch
