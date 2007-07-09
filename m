@@ -1,50 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - fix-rmmod-read-write-races-in-proc-entries-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:18:52 -0700
-Message-ID: <200707092118.l69LIqVU012429@imap1.linux-foundation.org>
+Subject: - pm-introduce-hibernation-and-suspend-notifiers-tidy.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:17:17 -0700
+Message-ID: <200707092117.l69LHHxE012393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56382 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35282 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754918AbXGIVUf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:20:35 -0400
+	by vger.kernel.org with ESMTP id S1750796AbXGIVZ5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:25:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@sw.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-rmmod-read-write-races-in-proc-entries-fix
+     pm-introduce-hibernation-and-suspend-notifiers-tidy
 has been removed from the -mm tree.  Its filename was
-     fix-rmmod-read-write-races-in-proc-entries-fix.patch
+     pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
 
-This patch was dropped because it was folded into fix-rmmod-read-write-races-in-proc-entries.patch
+This patch was dropped because it was folded into pm-introduce-hibernation-and-suspend-notifiers.patch
 
 ------------------------------------------------------
-Subject: fix-rmmod-read-write-races-in-proc-entries-fix
+Subject: pm-introduce-hibernation-and-suspend-notifiers-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/inode.c: In function 'pde_users_dec':
-fs/proc/inode.c:148: warning: implicit declaration of function 'complete'
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/suspend.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/inode.c~fix-rmmod-read-write-races-in-proc-entries-fix fs/proc/inode.c
---- a/fs/proc/inode.c~fix-rmmod-read-write-races-in-proc-entries-fix
-+++ a/fs/proc/inode.c
-@@ -10,6 +10,7 @@
- #include <linux/mm.h>
- #include <linux/string.h>
- #include <linux/stat.h>
-+#include <linux/completion.h>
- #include <linux/file.h>
- #include <linux/limits.h>
- #include <linux/init.h>
+diff -puN include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-tidy include/linux/suspend.h
+--- a/include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-tidy
++++ a/include/linux/suspend.h
+@@ -116,11 +116,13 @@ static inline void register_nosave_regio
+ {
+ }
+ 
+-static inline int register_pm_notifier(struct notifier_block *nb) {
++static inline int register_pm_notifier(struct notifier_block *nb)
++{
+ 	return 0;
+ }
+ 
+-static inline int unregister_pm_notifier(struct notifier_block *nb) {
++static inline int unregister_pm_notifier(struct notifier_block *nb)
++{
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -159,10 +166,11 @@ freezer-make-kernel-threads-nonfreezable-by-default.patch
 fix-alpha-isa-support.patch
 freezer-run-show_state-when-freezing-times-out.patch
 pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
 add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
 fix-rmmod-read-write-races-in-proc-entries-fix.patch
 use-write_trylock_irqsave-in-ptrace_attach-fix.patch
 use-no_pci_devices-in-pci-searchc.patch
