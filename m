@@ -1,63 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 12:18:03 -0700
-Message-ID: <200707091918.l69JI3AM003694@imap1.linux-foundation.org>
+Subject: - x86-64-calgary-introduce-chipset-specific-ops-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 12:18:53 -0700
+Message-ID: <200707091918.l69JIr3U003702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50700 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43746 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754687AbXGITSw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:18:52 -0400
+	by vger.kernel.org with ESMTP id S1754265AbXGITTe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 15:19:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, hancockr@shaw.ca, jbarnes@virtuousgeek.org, lenb@kernel.org, rajesh.shah@intel.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, muli@il.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmconfig-validate-against-acpi-motherboard-resources-fix-2-3
+     x86-64-calgary-introduce-chipset-specific-ops-fix
 has been removed from the -mm tree.  Its filename was
-     mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+     x86-64-calgary-introduce-chipset-specific-ops-fix.patch
 
-This patch was dropped because it was folded into mmconfig-validate-against-acpi-motherboard-resources.patch
+This patch was dropped because it was folded into x86-64-calgary-introduce-chipset-specific-ops.patch
 
 ------------------------------------------------------
-Subject: mmconfig-validate-against-acpi-motherboard-resources-fix-2-3
+Subject: x86-64-calgary-introduce-chipset-specific-ops-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/acpi/bus.c: In function `acpi_init':
-drivers/acpi/bus.c:760: warning: implicit declaration of function `pci_mmcfg_late_init'
-
-Fix this by always including pci.h in drivers/acpi/bus.c.
-
-Also remove unneeded inclusion of asm/pci.h (linux/pci.h did that)
-
 Cc: Andi Kleen <ak@suse.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Rajesh Shah <rajesh.shah@intel.com>
-Cc: Robert Hancock <hancockr@shaw.ca>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/bus.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86_64/kernel/pci-calgary.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/bus.c~mmconfig-validate-against-acpi-motherboard-resources-fix-2-3 drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~mmconfig-validate-against-acpi-motherboard-resources-fix-2-3
-+++ a/drivers/acpi/bus.c
-@@ -34,9 +34,8 @@
- #include <linux/proc_fs.h>
- #ifdef CONFIG_X86
- #include <asm/mpspec.h>
--#include <linux/pci.h>
--#include <asm/pci.h>
- #endif
-+#include <linux/pci.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-introduce-chipset-specific-ops-fix arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-introduce-chipset-specific-ops-fix
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -158,7 +158,7 @@ struct calgary_bus_info {
+ static void calgary_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
+ static void calgary_tce_cache_blast(struct iommu_table *tbl);
  
+-struct cal_chipset_ops calgary_chip_ops = {
++static struct cal_chipset_ops calgary_chip_ops = {
+ 	.handle_quirks = calgary_handle_quirks,
+ 	.tce_cache_blast = calgary_tce_cache_blast
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,8 +109,8 @@ mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
 x86_64-fix-smp_call_function_single-return-value.patch
 i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
 mmconfig-validate-against-acpi-motherboard-resources.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
 x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
 x86-64-calgary-introduce-chipset-specific-ops-fix.patch
 x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
 x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
