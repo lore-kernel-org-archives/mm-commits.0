@@ -1,52 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - crc7-support-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 15:06:11 -0700
-Message-ID: <200707092206.l69M6BDI015245@imap1.linux-foundation.org>
+Subject: - spi-master-driver-for-xilinx-virtex-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 15:07:03 -0700
+Message-ID: <200707092207.l69M73Bj015361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40884 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41267 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754955AbXGIWGZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 18:06:25 -0400
+	by vger.kernel.org with ESMTP id S1755360AbXGIWHS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 18:07:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, jan.nikitenko@gmail.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, akonovalov@ru.mvista.com, galak@gate.crashing.org, yfrolov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     crc7-support-fix
+     spi-master-driver-for-xilinx-virtex-fix
 has been removed from the -mm tree.  Its filename was
-     crc7-support-fix.patch
+     spi-master-driver-for-xilinx-virtex-fix.patch
 
-This patch was dropped because it was folded into crc7-support.patch
+This patch was dropped because it was folded into spi-master-driver-for-xilinx-virtex.patch
 
 ------------------------------------------------------
-Subject: crc7-support-fix
+Subject: spi-master-driver-for-xilinx-virtex-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Funny mix of const and non-const.
+Large function, two callsites: it is too large to inline.
 
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Jan Nikitenko <jan.nikitenko@gmail.com>
+Cc: Andrei Konovalov <akonovalov@ru.mvista.com>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Yuri Frolov <yfrolov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crc7.h |    2 +-
+ drivers/spi/xilinx_spi.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/crc7.h~crc7-support-fix include/linux/crc7.h
---- a/include/linux/crc7.h~crc7-support-fix
-+++ a/include/linux/crc7.h
-@@ -4,7 +4,7 @@
- 
- extern const u8 crc7_syndrome_table[256];
- 
--static inline u8 crc7_byte(u8 crc, const u8 data)
-+static inline u8 crc7_byte(u8 crc, u8 data)
- {
- 	return crc7_syndrome_table[(crc << 1) ^ data];
+diff -puN drivers/spi/xilinx_spi.c~spi-master-driver-for-xilinx-virtex-fix drivers/spi/xilinx_spi.c
+--- a/drivers/spi/xilinx_spi.c~spi-master-driver-for-xilinx-virtex-fix
++++ a/drivers/spi/xilinx_spi.c
+@@ -195,7 +195,7 @@ static int xilinx_spi_setup(struct spi_d
+ 	return 0;
  }
+ 
+-static inline void xilinx_spi_fill_tx_fifo(struct xilinx_spi *xspi)
++static void xilinx_spi_fill_tx_fifo(struct xilinx_spi *xspi)
+ {
+ 	u8 sr;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -206,7 +206,7 @@ writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
 crc7-support.patch
-crc7-support-fix.patch
+spi-master-driver-for-xilinx-virtex.patch
 spi-master-driver-for-xilinx-virtex-fix.patch
 isdn-capi-warning-fixes.patch
 i2o_cfg_passthru-cleanup-fix.patch
