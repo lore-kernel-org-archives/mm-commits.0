@@ -1,71 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:18:03 -0700
-Message-ID: <200707092118.l69LI3ga012410@imap1.linux-foundation.org>
+Subject: - use-write_trylock_irqsave-in-ptrace_attach-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:19:29 -0700
+Message-ID: <200707092119.l69LJTcE012507@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34900 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35432 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754438AbXGIVTI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:19:08 -0400
+	by vger.kernel.org with ESMTP id S1754818AbXGIVU2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:20:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, sripathik@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-disable-usermode-helper-before-hibernation-and-suspend-fix
+     use-write_trylock_irqsave-in-ptrace_attach-fix
 has been removed from the -mm tree.  Its filename was
-     pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+     use-write_trylock_irqsave-in-ptrace_attach-fix.patch
 
-This patch was dropped because it was folded into pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+This patch was dropped because it was folded into use-write_trylock_irqsave-in-ptrace_attach.patch
 
 ------------------------------------------------------
-Subject: pm-disable-usermode-helper-before-hibernation-and-suspend-fix
+Subject: use-write_trylock_irqsave-in-ptrace_attach-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Please always test allnoconfig and allmodconfig builds
-
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Sripathi Kodi <sripathik@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ kernel/ptrace.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend-fix kernel/kmod.c
---- a/kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend-fix
-+++ a/kernel/kmod.c
-@@ -41,13 +41,6 @@ extern int max_threads;
+diff -puN kernel/ptrace.c~use-write_trylock_irqsave-in-ptrace_attach-fix kernel/ptrace.c
+--- a/kernel/ptrace.c~use-write_trylock_irqsave-in-ptrace_attach-fix
++++ a/kernel/ptrace.c
+@@ -161,7 +161,7 @@ int ptrace_may_attach(struct task_struct
+ int ptrace_attach(struct task_struct *task)
+ {
+ 	int retval;
+-	unsigned long flags = 0;
++	unsigned long flags;
  
- static struct workqueue_struct *khelper_wq;
+ 	audit_ptrace(task);
  
--#ifdef CONFIG_KMOD
--
--/*
--	modprobe_path is set via /proc/sys.
--*/
--char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
--
- /*
-  * If set, both call_usermodehelper_keys() and call_usermodehelper_pipe() exit
-  * immediately returning -EBUSY.  Used for preventing user land processes from
-@@ -56,6 +49,13 @@ char modprobe_path[KMOD_PATH_LEN] = "/sb
-  */
- static int usermodehelper_disabled;
- 
-+#ifdef CONFIG_KMOD
-+
-+/*
-+	modprobe_path is set via /proc/sys.
-+*/
-+char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
-+
- /**
-  * request_module - try to load a kernel module
-  * @fmt:     printf style format string for the name of the module
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -181,10 +158,10 @@ fix-alpha-isa-support.patch
 freezer-run-show_state-when-freezing-times-out.patch
 pm-introduce-hibernation-and-suspend-notifiers.patch
 pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
 add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
 use-write_trylock_irqsave-in-ptrace_attach-fix.patch
 use-no_pci_devices-in-pci-searchc.patch
 introduce-boot-based-time-fix.patch
