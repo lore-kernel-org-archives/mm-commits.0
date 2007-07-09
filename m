@@ -1,70 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:57:00 -0700
-Message-ID: <200707092157.l69Lv0Nf014629@imap1.linux-foundation.org>
+Subject: - taskstats-add-context-switch-counters-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:57:35 -0700
+Message-ID: <200707092157.l69Lvasv014716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39030 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41793 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754478AbXGIV6M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:58:12 -0400
+	by vger.kernel.org with ESMTP id S1754478AbXGIV6n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:58:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rdunlap@xenotime.net, vvs@sw.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@in.ibm.com, jlan@engr.sgi.com, jlim@sgi.com, muvarov@ru.mvista.com, nagar@watson.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3-ext4-orphan-list-check-on-destroy_inode-fix
+     taskstats-add-context-switch-counters-fix
 has been removed from the -mm tree.  Its filename was
-     ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+     taskstats-add-context-switch-counters-fix.patch
 
-This patch was dropped because it was folded into ext3-ext4-orphan-list-check-on-destroy_inode.patch
+This patch was dropped because it was folded into taskstats-add-context-switch-counters.patch
 
 ------------------------------------------------------
-Subject: ext3-ext4-orphan-list-check-on-destroy_inode-fix
+Subject: taskstats-add-context-switch-counters-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-print_hex_dump() got fancy.
-
-Cc: Vasily Averin <vvs@sw.ru>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Maxim Uvarov <muvarov@ru.mvista.com>
+Cc: Shailabh Nagar <nagar@watson.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Jay Lan <jlan@engr.sgi.com>
+Cc: Jonathan Lim <jlim@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |    5 +++--
- fs/ext4/super.c |    5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ Documentation/accounting/getdelays.c          |   10 +++++-----
+ Documentation/accounting/taskstats-struct.txt |    2 +-
+ fs/proc/array.c                               |    6 ++++--
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN fs/ext3/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix
-+++ a/fs/ext3/super.c
-@@ -462,8 +462,9 @@ static void ext3_destroy_inode(struct in
- 	if (!list_empty(&(EXT3_I(inode)->i_orphan))) {
- 		printk("EXT3 Inode %p: orphan list check failed!\n",
- 			EXT3_I(inode));
--		print_hex_dump(KERN_INFO, DUMP_PREFIX_ADDRESS,
--				EXT3_I(inode), sizeof(struct ext3_inode_info));
-+		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_ADDRESS, 16, 4,
-+				EXT3_I(inode), sizeof(struct ext3_inode_info),
-+				false);
- 		dump_stack();
- 	}
- 	kmem_cache_free(ext3_inode_cachep, EXT3_I(inode));
-diff -puN fs/ext4/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix fs/ext4/super.c
---- a/fs/ext4/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix
-+++ a/fs/ext4/super.c
-@@ -513,8 +513,9 @@ static void ext4_destroy_inode(struct in
- 	if (!list_empty(&(EXT4_I(inode)->i_orphan))) {
- 		printk("EXT4 Inode %p: orphan list check failed!\n",
- 			EXT4_I(inode));
--		print_hex_dump(KERN_INFO, DUMP_PREFIX_ADDRESS,
--				EXT4_I(inode), sizeof(struct ext4_inode_info));
-+		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_ADDRESS, 16, 4,
-+				EXT4_I(inode), sizeof(struct ext4_inode_info),
-+				true);
- 		dump_stack();
- 	}
- 	kmem_cache_free(ext4_inode_cachep, EXT4_I(inode));
+diff -puN Documentation/accounting/getdelays.c~taskstats-add-context-switch-counters-fix Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~taskstats-add-context-switch-counters-fix
++++ a/Documentation/accounting/getdelays.c
+@@ -49,7 +49,7 @@ char name[100];
+ int dbg;
+ int print_delays;
+ int print_io_accounting;
+-int print_task_context_switch_rates;
++int print_task_context_switch_counts;
+ __u64 stime, utime;
+ 
+ #define PRINTF(fmt, arg...) {			\
+@@ -205,7 +205,7 @@ void print_delayacct(struct taskstats *t
+ 	       "count", "delay total", t->swapin_count, t->swapin_delay_total);
+ }
+ 
+-void task_context_switch_rates(struct taskstats *t)
++void task_context_switch_counts(struct taskstats *t)
+ {
+ 	printf("\n\nTask   %15s%15s\n"
+ 	       "       %15lu%15lu\n",
+@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
+ 			break;
+ 		case 'q':
+ 			printf("printing task/process context switch rates\n");
+-			print_task_context_switch_rates = 1;
++			print_task_context_switch_counts = 1;
+ 			break;
+ 		case 'w':
+ 			logfile = strdup(optarg);
+@@ -402,8 +402,8 @@ int main(int argc, char *argv[])
+ 							print_delayacct((struct taskstats *) NLA_DATA(na));
+ 						if (print_io_accounting)
+ 							print_ioacct((struct taskstats *) NLA_DATA(na));
+-						if (print_task_context_switch_rates)
+-							task_context_switch_rates((struct taskstats *) NLA_DATA(na));
++						if (print_task_context_switch_counts)
++							task_context_switch_counts((struct taskstats *) NLA_DATA(na));
+ 						if (fd) {
+ 							if (write(fd, NLA_DATA(na), na->nla_len) < 0) {
+ 								err(1,"write error\n");
+diff -puN Documentation/accounting/taskstats-struct.txt~taskstats-add-context-switch-counters-fix Documentation/accounting/taskstats-struct.txt
+--- a/Documentation/accounting/taskstats-struct.txt~taskstats-add-context-switch-counters-fix
++++ a/Documentation/accounting/taskstats-struct.txt
+@@ -22,7 +22,7 @@ There are three different groups of fiel
+     /* Extended accounting fields end */
+     Their values are collected if CONFIG_TASK_XACCT is set.
+ 
+-4) Per-task and per-thread context switch rates statistics
++4) Per-task and per-thread context switch count statistics
+ 
+ Future extension should add fields to the end of the taskstats struct, and
+ should not change the relative position of each field within the struct.
+diff -puN fs/proc/array.c~taskstats-add-context-switch-counters-fix fs/proc/array.c
+--- a/fs/proc/array.c~taskstats-add-context-switch-counters-fix
++++ a/fs/proc/array.c
+@@ -290,7 +290,9 @@ static inline char *task_cap(struct task
+ 			    cap_t(p->cap_permitted),
+ 			    cap_t(p->cap_effective));
+ }
+-static inline char *task_context_switch_rates(struct task_struct *p, char *buffer)
++
++static inline char *task_context_switch_counts(struct task_struct *p,
++						char *buffer)
+ {
+ 	return buffer + sprintf(buffer, "voluntary_ctxt_switches:\t%lu\n"
+ 			    "nonvoluntary_ctxt_switches:\t%lu\n",
+@@ -316,7 +318,7 @@ int proc_pid_status(struct task_struct *
+ #if defined(CONFIG_S390)
+ 	buffer = task_show_regs(task, buffer);
+ #endif
+-	buffer = task_context_switch_rates(task, buffer);
++	buffer = task_context_switch_counts(task, buffer);
+ 	return buffer - orig;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -200,7 +248,7 @@ o_cloexec-for-scm_rights.patch
 atmel_serial-fix-break-handling.patch
 lib-add-idr_for_each.patch
 ext3-ext4-orphan-list-check-on-destroy_inode.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters.patch
 taskstats-add-context-switch-counters-fix.patch
 improve-behaviour-of-spurious-irq-detect-fix.patch
 audit-add-tty-input-auditing-fix-2.patch
