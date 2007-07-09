@@ -1,68 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:11:10 -0700
-Message-ID: <200707092111.l69LBAUb011993@imap1.linux-foundation.org>
+Subject: - slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:12:47 -0700
+Message-ID: <200707092112.l69LClWW012068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43965 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53717 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754492AbXGIVLy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:11:54 -0400
+	by vger.kernel.org with ESMTP id S1754647AbXGIVMz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:12:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, apw@shadowen.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     have-kswapd-keep-a-minimum-order-free-other-than-order-0 fix
+     SLUB: use antifrag constant instead of hardcoding page order
 has been removed from the -mm tree.  Its filename was
-     have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+     slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
 
-This patch was dropped because it was folded into have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+This patch was dropped because it was folded into slub-reduce-antifrag-max-order.patch
 
 ------------------------------------------------------
-Subject: have-kswapd-keep-a-minimum-order-free-other-than-order-0 fix
+Subject: SLUB: use antifrag constant instead of hardcoding page order
 From: Christoph Lameter <clameter@sgi.com>
 
-On third thought: The trouble with this solution is that we will now set
-the order to that used by the largest kmalloc cache.  Bad...  this could be
-6 on i386 to 13 if CONFIG_LARGE_ALLOCs is set.  The large kmalloc caches
-are rarely used and we are used to OOMing if those are utilized to
-frequently.
-
-I guess we should only set this for non kmalloc caches then.  So move the
-call into kmem_cache_create?  Would make the min order 3 on most of my mm
-machines.
+Andy suggested this change.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix mm/slub.c
---- a/mm/slub.c~have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix
+diff -puN mm/slub.c~slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order mm/slub.c
+--- a/mm/slub.c~slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order
 +++ a/mm/slub.c
-@@ -2035,8 +2035,6 @@ static int kmem_cache_open(struct kmem_c
- #ifdef CONFIG_NUMA
- 	s->defrag_ratio = 100;
- #endif
--	raise_kswapd_order(s->order);
--
- 	if (init_kmem_cache_nodes(s, gfpflags & ~SLUB_DMA))
- 		return 1;
- error:
-@@ -2616,6 +2614,7 @@ struct kmem_cache *kmem_cache_create(con
- 				goto err;
- 			}
- 			list_add(&s->list, &slab_caches);
-+			raise_kswapd_order(s->order);
- 		} else
- 			kfree(s);
- 	}
+@@ -176,7 +176,7 @@ static inline void ClearSlabDebug(struct
+  * If antifragmentation methods are in effect then increase the
+  * slab sizes to increase performance
+  */
+-#define DEFAULT_ANTIFRAG_MAX_ORDER 3
++#define DEFAULT_ANTIFRAG_MAX_ORDER PAGE_ALLOC_COSTLY_ORDER
+ #define DEFAULT_ANTIFRAG_MIN_OBJECTS 16
+ 
+ /*
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -86,7 +68,6 @@ breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocat
 do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
 print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
 have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
 only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
 slub-mm-only-make-slub-the-default-slab-allocator.patch
 slub-exploit-page-mobility-to-increase-allocation-order.patch
