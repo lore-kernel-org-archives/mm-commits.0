@@ -1,62 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - i2o_cfg_passthru-cleanup-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:33:06 -0700
-Message-ID: <200707092333.l69NX6Bh020356@imap1.linux-foundation.org>
+Subject: - knfsd-exportfs-add-exportfsh-header-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 16:34:25 -0700
+Message-ID: <200707092334.l69NYQ3i020459@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36146 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53676 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757139AbXGIXd6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:33:58 -0400
+	by vger.kernel.org with ESMTP id S1757302AbXGIXet (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:34:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Markus.Lidel@shadowconnect.com, alan@lxorguk.ukuu.org.uk, dev@openvz.org, vvs@sw.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hch@infradead.org, hch@lst.de, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2o_cfg_passthru-cleanup-fix
+     knfsd-exportfs-add-exportfsh-header-fix
 has been removed from the -mm tree.  Its filename was
-     i2o_cfg_passthru-cleanup-fix.patch
+     knfsd-exportfs-add-exportfsh-header-fix.patch
 
-This patch was dropped because it was folded into i2o_cfg_passthru-cleanup.patch
+This patch was dropped because it was folded into knfsd-exportfs-add-exportfsh-header.patch
 
 ------------------------------------------------------
-Subject: i2o_cfg_passthru-cleanup-fix
+Subject: knfsd-exportfs-add-exportfsh-header-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
-Cc: Vasily Averin <vvs@sw.ru>
-Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/i2o_config.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/cifs/export.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/message/i2o/i2o_config.c~i2o_cfg_passthru-cleanup-fix drivers/message/i2o/i2o_config.c
---- a/drivers/message/i2o/i2o_config.c~i2o_cfg_passthru-cleanup-fix
-+++ a/drivers/message/i2o/i2o_config.c
-@@ -740,8 +740,8 @@ sg_list_cleanup:
+diff -puN fs/cifs/export.c~knfsd-exportfs-add-exportfsh-header-fix fs/cifs/export.c
+--- a/fs/cifs/export.c~knfsd-exportfs-add-exportfsh-header-fix
++++ a/fs/cifs/export.c
+@@ -29,7 +29,8 @@
+   */
  
- cleanup:
- 	kfree(reply);
--	if (msg)
- out:
-+	if (msg)
- 		i2o_msg_nop(c, msg);
- 	return rcode;
- }
-@@ -977,8 +977,8 @@ sg_list_cleanup:
- 
- cleanup:
- 	kfree(reply);
--	if (msg)
- out:
-+	if (msg)
- 		i2o_msg_nop(c, msg);
- 	return rcode;
- }
+ #include <linux/fs.h>
+- 
++#include <linux/exportfs.h>
++
+ #ifdef CONFIG_CIFS_EXPERIMENTAL
+  
+ static struct dentry *cifs_get_parent(struct dentry *dentry)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -219,7 +208,7 @@ crc7-support.patch
 spi-master-driver-for-xilinx-virtex.patch
 isdn-capi-warning-fixes.patch
 i2o_cfg_passthru-cleanup.patch
-i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header.patch
 knfsd-exportfs-add-exportfsh-header-fix.patch
 knfsd-exportfs-remove-iget-abuse-fix.patch
 nfsd-warning-fix.patch
