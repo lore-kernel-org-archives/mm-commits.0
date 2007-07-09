@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - o_cloexec-for-scm_rights-fix-2.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 14:52:11 -0700
-Message-ID: <200707092152.l69LqBBG014360@imap1.linux-foundation.org>
+Subject: - o_cloexec-for-scm_rights-fix.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 14:52:08 -0700
+Message-ID: <200707092152.l69Lq8VK014357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54408 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47211 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754942AbXGIVxf (ORCPT
+	by vger.kernel.org with ESMTP id S1754609AbXGIVxf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 17:53:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,20 +14,17 @@ To: akpm@linux-foundation.org, drepper@redhat.com, mb@bu3sch.de, mingo@elte.hu, 
 
 
 The patch titled
-     o_cloexec-for-scm_rights-fix-2
+     o_cloexec-for-scm_rights-fix
 has been removed from the -mm tree.  Its filename was
-     o_cloexec-for-scm_rights-fix-2.patch
+     o_cloexec-for-scm_rights-fix.patch
 
 This patch was dropped because it was folded into o_cloexec-for-scm_rights.patch
 
 ------------------------------------------------------
-Subject: o_cloexec-for-scm_rights-fix-2
+Subject: o_cloexec-for-scm_rights-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/compat.c: In function 'scm_detach_fds_compat':
-net/compat.c:279: error: 'msg' undeclared (first use in this function)
-net/compat.c:279: error: (Each undeclared identifier is reported only once
-net/compat.c:279: error: for each function it appears in.)
+Fix fastcall inconsistency noted by Michael Buesch.
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Michael Buesch <mb@bu3sch.de>
@@ -36,21 +33,21 @@ Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/compat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/file.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/compat.c~o_cloexec-for-scm_rights-fix-2 net/compat.c
---- a/net/compat.c~o_cloexec-for-scm_rights-fix-2
-+++ a/net/compat.c
-@@ -276,7 +276,7 @@ void scm_detach_fds_compat(struct msghdr
- 		err = security_file_receive(fp[i]);
- 		if (err)
- 			break;
--		err = get_unused_fd_flags(MSG_CMSG_CLOEXEC & msg->msg_flags
-+		err = get_unused_fd_flags(MSG_CMSG_CLOEXEC & kmsg->msg_flags
- 					  ? O_CLOEXEC : 0);
- 		if (err < 0)
- 			break;
+diff -puN include/linux/file.h~o_cloexec-for-scm_rights-fix include/linux/file.h
+--- a/include/linux/file.h~o_cloexec-for-scm_rights-fix
++++ a/include/linux/file.h
+@@ -73,7 +73,7 @@ extern struct file * FASTCALL(fget_light
+ extern void FASTCALL(set_close_on_exec(unsigned int fd, int flag));
+ extern void put_filp(struct file *);
+ extern int get_unused_fd(void);
+-extern int FASTCALL(get_unused_fd_flags(int flags));
++extern int get_unused_fd_flags(int flags);
+ extern void FASTCALL(put_unused_fd(unsigned int fd));
+ struct kmem_cache;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -183,6 +180,7 @@ percpu_counters-use-for_each_online_cpu.patch
 mpu401-warning-fixes.patch
 vdso-print-fatal-signals.patch
 o_cloexec-for-scm_rights.patch
+o_cloexec-for-scm_rights-fix.patch
 o_cloexec-for-scm_rights-fix-2.patch
 atmel_serial-fix-break-handling.patch
 lib-add-idr_for_each-fix.patch
