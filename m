@@ -1,140 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - joydevc-automatic-re-calibration.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 22:05:21 -0700
-Message-ID: <200707100505.l6A55LB4006850@imap1.linux-foundation.org>
+Subject: - input-delete-useless-reference-to-dead-module_parm-macro.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 22:05:46 -0700
+Message-ID: <200707100505.l6A55lKn006853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34863 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40082 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751052AbXGJFGA (ORCPT
+	by vger.kernel.org with ESMTP id S1751189AbXGJFG3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 01:06:00 -0400
+	Tue, 10 Jul 2007 01:06:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rengolin@gmail.com, dtor@mail.ru, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     joydev.c automatic re-calibration
+     input: delete useless reference to dead MODULE_PARM macro
 has been removed from the -mm tree.  Its filename was
-     joydevc-automatic-re-calibration.patch
+     input-delete-useless-reference-to-dead-module_parm-macro.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: joydev.c automatic re-calibration
-From: "Renato Golin" <rengolin@gmail.com>
+Subject: input: delete useless reference to dead MODULE_PARM macro
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Add the automatic recalibration feature without spoiling previously
-calibrated devices.  It's a fix for those joysticks that report faulty
-range, specially Saitek Cyborg Evo Force.
+Remove a clearly useless reference to the obsolete MODULE_PARM macro.
 
-File: drivers/input/joydev.c
-Fix:
-
-- extracted code from joydev_connect to method
-  joydev_calculate_correction to be able to call it from both joydev_event
-  upon recalibration and joydev_connect during first connection.
-
-- on joydev_connect check ranges and zero calibration if found out of range
-
-- on joydev_event, every time found out of range, update min/max and
-  recalculate the correction
-
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/joydev.c |   41 +++++++++++++++++++++++++++++++--------
- 1 files changed, 33 insertions(+), 8 deletions(-)
+ drivers/input/mouse/atarimouse.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN drivers/input/joydev.c~joydevc-automatic-re-calibration drivers/input/joydev.c
---- a/drivers/input/joydev.c~joydevc-automatic-re-calibration
-+++ a/drivers/input/joydev.c
-@@ -54,6 +54,8 @@ struct joydev {
- 	__u8 absmap[ABS_MAX + 1];
- 	__u8 abspam[ABS_MAX + 1];
- 	__s16 abs[ABS_MAX + 1];
-+	__s16 absmin[ABS_MAX + 1];
-+	__s16 absmax[ABS_MAX + 1];
- };
+diff -puN drivers/input/mouse/atarimouse.c~input-delete-useless-reference-to-dead-module_parm-macro drivers/input/mouse/atarimouse.c
+--- a/drivers/input/mouse/atarimouse.c~input-delete-useless-reference-to-dead-module_parm-macro
++++ a/drivers/input/mouse/atarimouse.c
+@@ -59,9 +59,6 @@ MODULE_LICENSE("GPL");
  
- struct joydev_client {
-@@ -68,6 +70,19 @@ struct joydev_client {
+ static int mouse_threshold[2] = {2,2};
  
- static struct joydev *joydev_table[JOYDEV_MINORS];
- 
-+static void joydev_calculate_correction(int min, int max, int axis, struct joydev *joydev)
-+{
-+	int t, j = joydev->abspam[axis];
-+	int flat = joydev->handle.dev->absflat[j];
-+
-+	joydev->corr[axis].coef[0] = (max + min) / 2 - flat;
-+	joydev->corr[axis].coef[1] = (max + min) / 2 + flat;
-+	if (!(t = ((max - min) / 2 - 2 * flat)))
-+		return;
-+	joydev->corr[axis].coef[2] = (1 << 29) / t;
-+	joydev->corr[axis].coef[3] = (1 << 29) / t;
-+}
-+
- static int joydev_correct(int value, struct js_corr *corr)
- {
- 	switch (corr->type) {
-@@ -104,6 +119,14 @@ static void joydev_event(struct input_ha
- 		case EV_ABS:
- 			event.type = JS_EVENT_AXIS;
- 			event.number = joydev->absmap[code];
-+			/* recalibration if needed */
-+			if (value < joydev->absmin[code]) {
-+				joydev->absmin[code] = value;
-+				joydev_calculate_correction(value, joydev->absmax[code], code, joydev);
-+			} else if (value > joydev->absmax[code]) {
-+				joydev->absmax[code] = value;
-+				joydev_calculate_correction(joydev->absmin[code], value, code, joydev);
-+			}
- 			event.value = joydev_correct(value, joydev->corr + event.number);
- 			if (event.value == joydev->abs[event.number])
- 				return;
-@@ -491,7 +514,7 @@ static int joydev_connect(struct input_h
- 			  const struct input_device_id *id)
- {
- 	struct joydev *joydev;
--	int i, j, t, minor;
-+	int i, j, minor;
- 	int error;
- 
- 	for (minor = 0; minor < JOYDEV_MINORS && joydev_table[minor]; minor++);
-@@ -538,19 +561,21 @@ static int joydev_connect(struct input_h
- 
- 	for (i = 0; i < joydev->nabs; i++) {
- 		j = joydev->abspam[i];
--		if (dev->absmax[j] == dev->absmin[j]) {
-+		joydev->absmin[i] = dev->absmin[j];
-+		joydev->absmax[i] = dev->absmax[j];
-+		if (joydev->absmax[i] == joydev->absmin[i]) {
- 			joydev->corr[i].type = JS_CORR_NONE;
- 			joydev->abs[i] = dev->abs[j];
- 			continue;
- 		}
- 		joydev->corr[i].type = JS_CORR_BROKEN;
- 		joydev->corr[i].prec = dev->absfuzz[j];
--		joydev->corr[i].coef[0] = (dev->absmax[j] + dev->absmin[j]) / 2 - dev->absflat[j];
--		joydev->corr[i].coef[1] = (dev->absmax[j] + dev->absmin[j]) / 2 + dev->absflat[j];
--		if (!(t = ((dev->absmax[j] - dev->absmin[j]) / 2 - 2 * dev->absflat[j])))
--			continue;
--		joydev->corr[i].coef[2] = (1 << 29) / t;
--		joydev->corr[i].coef[3] = (1 << 29) / t;
-+
-+		if (dev->abs[j] > joydev->absmax[i] || dev->abs[j] < joydev->absmin[i]) {
-+			printk("Joydev: Bad axis range, recalibrating automatically\n");
-+			joydev_calculate_correction(0, 0, i, joydev);
-+		} else
-+			joydev_calculate_correction(joydev->absmin[i], joydev->absmax[i], i, joydev);
- 
- 		joydev->abs[i] = joydev_correct(dev->abs[j], joydev->corr + i);
- 	}
+-#ifdef __MODULE__
+-MODULE_PARM(mouse_threshold, "2i");
+-#endif
+ #ifdef FIXED_ATARI_JOYSTICK
+ extern int atari_mouse_buttons;
+ #endif
 _
 
-Patches currently in -mm which might be from rengolin@gmail.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-joydevc-automatic-re-calibration.patch
+git-alsa.patch
+ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
+viotape-use-designated-initializers-for-fops-member.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+input-delete-useless-reference-to-dead-module_parm-macro.patch
+git-kbuild.patch
+git-kvm.patch
+rpc-remove-makefile-reference-to-obsolete-rxrpc-config.patch
+bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-s390.patch
+git-sh.patch
+git-scsi-misc.patch
+remove-dead-references-to-module_parm-macro.patch
+usb-remove-makefile-reference-to-obsolete-ohci_at91.patch
+git-watchdog.patch
+i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
+i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
+i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+mm-make-needlessly-global-hugetlb_no_page-static.patch
+frv-be-self-consistent-and-use-config_gdb_console-everywhere.patch
+frv-remove-some-dead-code.patch
+cris-replace-old-style-member-inits-with-designated-inits.patch
+remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
+drop-an-empty-isicomh-from-being-exported-to-user-space.patch
+remove-apparently-useless-commented-apm_get_battery_status.patch
+cobalt-remove-all-references-to-cobalt-nvram.patch
+remove-final-two-references-to-__obsolete_setup-macro.patch
+cdrom-replace-hard-coded-constants-by-kernelh-macro.patch
+nls-remove-obsolete-makefile-entries.patch
