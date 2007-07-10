@@ -1,72 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - fallocate-on-ia64.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 02:14:40 -0700
-Message-ID: <200707100914.l6A9EeSc021010@imap1.linux-foundation.org>
+Subject: + sx-switch-subven-and-subid-values.patch added to -mm tree
+Date: Tue, 10 Jul 2007 02:54:02 -0700
+Message-ID: <200707100954.l6A9s2r5023426@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54086 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41208 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757278AbXGJJQ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757527AbXGJJyS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 05:16:28 -0400
+	Tue, 10 Jul 2007 05:54:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dgc@sgi.com, mark.fasheh@oracle.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jirislaby@gmail.com, gmurray@webwayone.co.uk, stable@kernel.org
 
 
 The patch titled
-     fallocate() on ia64
-has been removed from the -mm tree.  Its filename was
-     fallocate-on-ia64.patch
+     sx: switch subven and subid values
+has been added to the -mm tree.  Its filename is
+     sx-switch-subven-and-subid-values.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fallocate() on ia64
-From: David Chinner <dgc@sgi.com>
+Subject: sx: switch subven and subid values
+From: Jiri Slaby <jirislaby@gmail.com>
 
-ia64 fallocate syscall support.
+sx.c is failing to locate Graham's card.
 
-Signed-off-by: Dave Chinner <dgc@sgi.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Graham Murray <gmurray@webwayone.co.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/entry.S  |    1 +
- include/asm-ia64/unistd.h |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/char/sx.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/kernel/entry.S~fallocate-on-ia64 arch/ia64/kernel/entry.S
---- a/arch/ia64/kernel/entry.S~fallocate-on-ia64
-+++ a/arch/ia64/kernel/entry.S
-@@ -1588,5 +1588,6 @@ sys_call_table:
- 	data8 sys_signalfd
- 	data8 sys_timerfd
- 	data8 sys_eventfd
-+	data8 sys_fallocate			// 1310
- 
- 	.org sys_call_table + 8*NR_syscalls	// guard against failures to increase NR_syscalls
-diff -puN include/asm-ia64/unistd.h~fallocate-on-ia64 include/asm-ia64/unistd.h
---- a/include/asm-ia64/unistd.h~fallocate-on-ia64
-+++ a/include/asm-ia64/unistd.h
-@@ -299,6 +299,7 @@
- #define __NR_signalfd			1307
- #define __NR_timerfd			1308
- #define __NR_eventfd			1309
-+#define __NR_fallocate			1310
- 
- #ifdef __KERNEL__
+diff -puN drivers/char/sx.c~sx-switch-subven-and-subid-values drivers/char/sx.c
+--- a/drivers/char/sx.c~sx-switch-subven-and-subid-values
++++ a/drivers/char/sx.c
+@@ -2721,9 +2721,9 @@ static void __devexit sx_pci_remove(stru
+    its because the standard requires it. So check for SUBVENDOR_ID. */
+ static struct pci_device_id sx_pci_tbl[] = {
+ 	{ PCI_VENDOR_ID_SPECIALIX, PCI_DEVICE_ID_SPECIALIX_SX_XIO_IO8,
+-		.subvendor = 0x0200,.subdevice = PCI_ANY_ID },
++		.subvendor = PCI_ANY_ID, .subdevice = 0x0200 },
+ 	{ PCI_VENDOR_ID_SPECIALIX, PCI_DEVICE_ID_SPECIALIX_SX_XIO_IO8,
+-		.subvendor = 0x0300,.subdevice = PCI_ANY_ID },
++		.subvendor = PCI_ANY_ID, .subdevice = 0x0300 },
+ 	{ 0 }
+ };
  
 _
 
-Patches currently in -mm which might be from dgc@sgi.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-git-xfs.patch
-fix-xfs_ioc_fsgeometry_v1-in-compat-mode.patch
-fix-xfs_ioc__to_handle-and-xfs_ioc_openreadlink_by_handle-in-compat-mode.patch
-fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-introduce-i_sync.patch
-fallocate-on-ia64.patch
-fallocate-on-ia64-fix.patch
+sx-switch-subven-and-subid-values.patch
+rocketc-fix-unchecked-mutex_lock_interruptible.patch
+char-n_hdlc-allow-restartsys-retval-of-tty-write.patch
+char-mxser_new-fix-sparse-warning.patch
+char-tty_ioctl-use-wait_event_interruptible_timeout.patch
+char-tty_ioctl-little-whitespace-cleanup.patch
+char-genrtc-use-wait_event_interruptible.patch
+char-n_r3964-use-wait_event_interruptible.patch
+char-ip2-use-msleep-for-sleeping.patch
+drop-an-empty-isicomh-from-being-exported-to-user-space.patch
+char-cyclades-add-firmware-loading.patch
+char-cyclades-fix-sparse-warning.patch
+char-isicom-cleanup-locking.patch
+char-isicom-del_timer-at-exit.patch
+char-isicom-proper-variables-types.patch
+char-moxa-eliminate-busy-waiting.patch
+char-specialix-remove-busy-waiting.patch
+char-riscom8-eliminate-busy-loop.patch
+char-vt-use-kzalloc.patch
+char-vt-use-array_size.patch
+char-kconfig-mxser_new-remove-experimental-comment.patch
+char-stallion-remove-user-class-report-request.patch
+char-istallion-initlocking-fixes-try-2.patch
+stallion-remove-unneeded-lock_kernel.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+shrink_slab-handle-bad-shrinkers.patch
