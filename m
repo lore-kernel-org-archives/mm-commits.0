@@ -1,57 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - kgdb-build-fix-2.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:49:37 -0700
-Message-ID: <200707101949.l6AJnbXX026112@imap1.linux-foundation.org>
+Subject: - cfs-scheduler-vs-detach-schedh-from-mmh.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:49:45 -0700
+Message-ID: <200707101949.l6AJnjO7026185@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59092 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48999 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756844AbXGJTyz (ORCPT
+	by vger.kernel.org with ESMTP id S1760242AbXGJTzB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 15:54:55 -0400
+	Tue, 10 Jul 2007 15:55:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kgdb-build-fix-2
+     cfs-scheduler vs detach-schedh-from-mmh
 has been removed from the -mm tree.  Its filename was
-     kgdb-build-fix-2.patch
+     cfs-scheduler-vs-detach-schedh-from-mmh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kgdb-build-fix-2
+Subject: cfs-scheduler vs detach-schedh-from-mmh
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allnoconfig:
+arch/i386/kernel/tsc.c: In function 'mark_tsc_unstable':
+arch/i386/kernel/tsc.c:223: warning: implicit declaration of function 'sched_clock_unstable_event'
 
-drivers/serial/8250_kgdb.c: In function 'kgdb8250_uart_init':
-drivers/serial/8250_kgdb.c:176: error: 'BASE_BAUD' undeclared (first use in this function)
-drivers/serial/8250_kgdb.c:176: error: (Each undeclared identifier is reported only once
-drivers/serial/8250_kgdb.c:176: error: for each function it appears in.)
-
-But we shouldn't even be compiling this file.
-
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_kgdb.c |    1 +
+ arch/i386/kernel/tsc.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/serial/8250_kgdb.c~kgdb-build-fix-2 drivers/serial/8250_kgdb.c
---- a/drivers/serial/8250_kgdb.c~kgdb-build-fix-2
-+++ a/drivers/serial/8250_kgdb.c
-@@ -25,6 +25,7 @@
- #include <linux/ioport.h>
- #include <linux/io.h>
- #include <linux/serial.h>		/* For BASE_BAUD and SERIAL_PORT_DFNS */
-+#include <asm/serial.h>
+diff -puN arch/i386/kernel/tsc.c~cfs-scheduler-vs-detach-schedh-from-mmh arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~cfs-scheduler-vs-detach-schedh-from-mmh
++++ a/arch/i386/kernel/tsc.c
+@@ -4,6 +4,7 @@
+  * See comments there for proper credits.
+  */
  
- #include "8250.h"
- 
++#include <linux/sched.h>
+ #include <linux/clocksource.h>
+ #include <linux/workqueue.h>
+ #include <linux/cpufreq.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
