@@ -1,59 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - ocfs2-fix-type-borkage.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:49:21 -0700
-Message-ID: <200707101949.l6AJnL73026086@imap1.linux-foundation.org>
+Subject: - cfs-warning-fixes.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:49:58 -0700
+Message-ID: <200707101949.l6AJnweO026211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35889 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759801AbXGJTzB (ORCPT
+	by vger.kernel.org with ESMTP id S1759594AbXGJTy7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 15:55:01 -0400
+	Tue, 10 Jul 2007 15:54:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ocfs2: fix type borkage
+     cfs warning fixes
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-type-borkage.patch
+     cfs-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ocfs2: fix type borkage
+Subject: cfs warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ocfs2/file.c: In function `ocfs2_file_buffered_write':
-fs/ocfs2/file.c:1417: warning: comparison of distinct pointer types lacks a cast
-fs/ocfs2/file.c:1420: warning: comparison of distinct pointer types lacks a cast
+In file included from kernel/sched.c:601:
+kernel/sched_stats.h: In function 'show_schedstat':
+kernel/sched_stats.h:30: warning: format '%lu' expects type 'long unsigned int', but argument 13 has type 'long long unsigned int'
+kernel/sched_stats.h:30: warning: format '%lu' expects type 'long unsigned int', but argument 14 has type 'long long unsigned int'
 
-size_t is opaque.  You do not know what type was used to implement it..
-
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/sched_stats.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-fix-type-borkage fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-fix-type-borkage
-+++ a/fs/ocfs2/file.c
-@@ -1414,10 +1414,9 @@ static ssize_t ocfs2_file_buffered_write
- 		bytes = min((PAGE_CACHE_SIZE - ((unsigned long)pos & ~PAGE_CACHE_MASK)),
- 			    (PAGE_CACHE_SIZE - ((unsigned long)buf & ~PAGE_CACHE_MASK)));
- 		/* Stay within the vector boundary */
--		bytes = min(bytes,
--			    (unsigned long)(cur_iov->iov_len - iov_offset));
-+		bytes = min_t(size_t, bytes, cur_iov->iov_len - iov_offset);
- 		/* Stay within count */
--		bytes = min(bytes, (unsigned long)count);
-+		bytes = min(bytes, count);
+diff -puN kernel/sched_stats.h~cfs-warning-fixes kernel/sched_stats.h
+--- a/kernel/sched_stats.h~cfs-warning-fixes
++++ a/kernel/sched_stats.h
+@@ -21,7 +21,7 @@ static int show_schedstat(struct seq_fil
  
- 		page = NULL;
- 		ret = ocfs2_write_begin(file, file->f_mapping, pos, bytes, 0,
+ 		/* runqueue-specific stats */
+ 		seq_printf(seq,
+-		    "cpu%d %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu",
++		    "cpu%d %lu %lu %lu %lu %lu %lu %lu %lu %lu %llu %llu %lu",
+ 		    cpu, rq->yld_both_empty,
+ 		    rq->yld_act_empty, rq->yld_exp_empty, rq->yld_cnt,
+ 		    rq->sched_switch, rq->sched_cnt, rq->sched_goidle,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
