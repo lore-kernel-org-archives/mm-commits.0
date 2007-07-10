@@ -1,100 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:48:38 -0700
-Message-ID: <200707101948.l6AJmcbx026017@imap1.linux-foundation.org>
+Subject: - powerpc-promc-remove-undef-printk.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:48:30 -0700
+Message-ID: <200707101948.l6AJmUN6026008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35491 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48644 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757504AbXGJTsq (ORCPT
+	by vger.kernel.org with ESMTP id S1757375AbXGJTsq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 10 Jul 2007 15:48:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PPC: remove dead code for preventing pread() and pwrite() calls
+     powerpc prom.c: remove #undef printk
 has been removed from the -mm tree.  Its filename was
-     ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
+     powerpc-promc-remove-undef-printk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PPC: remove dead code for preventing pread() and pwrite() calls
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: powerpc prom.c: remove #undef printk
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Remove the deactivated code for checking for pread() and pwrite()
-calls on the PPC-based BRIQ.
-
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/briq_panel.c |   10 ----------
- 1 files changed, 10 deletions(-)
+ arch/powerpc/kernel/prom.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/char/briq_panel.c~ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls drivers/char/briq_panel.c
---- a/drivers/char/briq_panel.c~ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls
-+++ a/drivers/char/briq_panel.c
-@@ -91,11 +91,6 @@ static ssize_t briq_panel_read(struct fi
- 	unsigned short c;
- 	unsigned char cp;
+diff -puN arch/powerpc/kernel/prom.c~powerpc-promc-remove-undef-printk arch/powerpc/kernel/prom.c
+--- a/arch/powerpc/kernel/prom.c~powerpc-promc-remove-undef-printk
++++ a/arch/powerpc/kernel/prom.c
+@@ -1055,8 +1055,6 @@ void __init early_init_devtree(void *par
+ 	DBG(" <- early_init_devtree()\n");
+ }
  
--#if 0	/*  Can't seek (pread) on this device  */
--	if (ppos != &file->f_pos)
--		return -ESPIPE;
--#endif
+-#undef printk
 -
- 	if (!vfd_is_open)
- 		return -ENODEV;
- 
-@@ -139,11 +134,6 @@ static ssize_t briq_panel_write(struct f
- 	size_t indx = len;
- 	int i, esc = 0;
- 
--#if 0	/*  Can't seek (pwrite) on this device  */
--	if (ppos != &file->f_pos)
--		return -ESPIPE;
--#endif
--
- 	if (!vfd_is_open)
- 		return -EBUSY;
- 
+ int of_n_addr_cells(struct device_node* np)
+ {
+ 	const int *ip;
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-origin.patch
-git-alsa.patch
 git-powerpc.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-net.patch
-bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-s390.patch
-git-sh.patch
-git-scsi-misc.patch
-remove-dead-references-to-module_parm-macro.patch
-usb-remove-makefile-reference-to-obsolete-ohci_at91.patch
-git-watchdog.patch
-i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
-i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
-i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-mm-make-needlessly-global-hugetlb_no_page-static.patch
-frv-be-self-consistent-and-use-config_gdb_console-everywhere.patch
-frv-remove-some-dead-code.patch
-cris-replace-old-style-member-inits-with-designated-inits.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-remove-apparently-useless-commented-apm_get_battery_status.patch
-cobalt-remove-all-references-to-cobalt-nvram.patch
-remove-final-two-references-to-__obsolete_setup-macro.patch
-cdrom-replace-hard-coded-constants-by-kernelh-macro.patch
-nls-remove-obsolete-makefile-entries.patch
+use-data_data-in-cris.patch
+add-missing-data_data-in-powerpc.patch
+use-data_data-in-xtensa.patch
