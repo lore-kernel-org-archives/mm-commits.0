@@ -1,68 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-ii-block-devices.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:49:30 -0700
-Message-ID: <200707101949.l6AJnUI6026103@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-block-layer.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:49:25 -0700
+Message-ID: <200707101949.l6AJnP5S026097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38941 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51411 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760390AbXGJTzK (ORCPT
+	by vger.kernel.org with ESMTP id S1760485AbXGJTzK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 10 Jul 2007 15:55:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, axboe@kernel.dk, jengelh@gmx.de, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects II - block devices
+     Use menuconfig objects: block layer
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-ii-block-devices.patch
+     use-menuconfig-objects-block-layer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects II - block devices
+Subject: Use menuconfig objects: block layer
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Make a "menuconfig" out of the Kconfig objects "menu, ..., endmenu",
-so that the user can disable all the options in that menu at once
-instead of having to disable each option separately.
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/Kconfig |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ block/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/Kconfig~use-menuconfig-objects-ii-block-devices drivers/block/Kconfig
---- a/drivers/block/Kconfig~use-menuconfig-objects-ii-block-devices
-+++ a/drivers/block/Kconfig
-@@ -2,9 +2,12 @@
- # Block device driver configuration
+diff -puN block/Kconfig~use-menuconfig-objects-block-layer block/Kconfig
+--- a/block/Kconfig~use-menuconfig-objects-block-layer
++++ a/block/Kconfig
+@@ -1,7 +1,7 @@
  #
+ # Block layer core configuration
+ #
+-config BLOCK
++menuconfig BLOCK
+        bool "Enable the block layer" if EMBEDDED
+        default y
+        help
+@@ -49,6 +49,6 @@ config LSF
  
--if BLOCK
-+menuconfig BLK_DEV
-+	bool "Block devices"
-+	depends on BLOCK
-+	default y
+ 	  If unsure, say Y.
  
--menu "Block devices"
-+if BLK_DEV
- 
- config BLK_DEV_FD
- 	tristate "Normal floppy disk support"
-@@ -422,6 +425,4 @@ config ATA_OVER_ETH
- 
- source "drivers/s390/block/Kconfig"
- 
--endmenu
--
 -endif
-+endif # BLK_DEV
++endif # BLOCK
+ 
+ source block/Kconfig.iosched
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
