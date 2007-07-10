@@ -1,53 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - led_colour_show-warning-fix.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:48:53 -0700
-Message-ID: <200707101948.l6AJmr9R026035@imap1.linux-foundation.org>
+Subject: - tsdev-fix-broken-usecto-millisecs-conversion.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:48:51 -0700
+Message-ID: <200707101948.l6AJmpFJ026032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35170 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758651AbXGJTtI (ORCPT
+	by vger.kernel.org with ESMTP id S1758885AbXGJTtG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 15:49:08 -0400
+	Tue, 10 Jul 2007 15:49:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dtor@mail.ru, jsimmons@infradead.org, yfw.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     led_colour_show() warning fix
+     tsdev: fix broken usecto-millisecs conversion
 has been removed from the -mm tree.  Its filename was
-     led_colour_show-warning-fix.patch
+     tsdev-fix-broken-usecto-millisecs-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: led_colour_show() warning fix
+Subject: tsdev: fix broken usecto-millisecs conversion
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/leds/led-class.c: In function 'led_colour_show':
-drivers/leds/led-class.c:62: warning: initialization discards qualifiers from pointer target type
+Noted by Fengwei Yin <yfw.kernel@gmail.com>
 
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: "Fengwei Yin" <yfw.kernel@gmail.com>
+Cc: James Simmons <jsimmons@infradead.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/led-class.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/input/tsdev.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/led-class.c~led_colour_show-warning-fix drivers/leds/led-class.c
---- a/drivers/leds/led-class.c~led_colour_show-warning-fix
-+++ a/drivers/leds/led-class.c
-@@ -59,7 +59,8 @@ static ssize_t led_brightness_store(stru
- static ssize_t led_colour_show(struct class_device *dev, char *buf)
- {
- 	struct led_classdev *led_cdev = class_get_devdata(dev);
--	char *colour, *str = led_cdev->name;
-+	const char *colour;
-+	const char *str = led_cdev->name;
- 	ssize_t len = 0;
+diff -puN drivers/input/tsdev.c~tsdev-fix-broken-usecto-millisecs-conversion drivers/input/tsdev.c
+--- a/drivers/input/tsdev.c~tsdev-fix-broken-usecto-millisecs-conversion
++++ a/drivers/input/tsdev.c
+@@ -371,7 +371,7 @@ static void tsdev_event(struct input_han
+ 		int x, y, tmp;
  
- 	/* skip first field */
+ 		do_gettimeofday(&time);
+-		client->event[client->head].millisecs = time.tv_usec / 100;
++		client->event[client->head].millisecs = time.tv_usec / 1000;
+ 		client->event[client->head].pressure = tsdev->pressure;
+ 
+ 		x = tsdev->x;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
