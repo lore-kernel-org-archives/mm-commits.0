@@ -1,159 +1,273 @@
 From: akpm@linux-foundation.org
-Subject: - configfsdlm-rename-config_group_find_obj-and-state-semantics-clearly.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:50:20 -0700
-Message-ID: <200707101950.l6AJoK0f026242@imap1.linux-foundation.org>
+Subject: - configfsdlmocfs2-convert-subsystem-semaphore-to-mutex.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:50:17 -0700
+Message-ID: <200707101950.l6AJoHN6026239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59530 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37930 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760390AbXGJTz2 (ORCPT
+	by vger.kernel.org with ESMTP id S1761165AbXGJTza (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 15:55:28 -0400
+	Tue, 10 Jul 2007 15:55:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ssatyam@cse.iitk.ac.in, joel.becker@oracle.com, swhiteho@redhat.com, teigland@redhat.com, mm-commits@vger.kernel.org
+To: ssatyam@cse.iitk.ac.in, joel.becker@oracle.com, mark.fasheh@oracle.com, swhiteho@redhat.com, teigland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     configfs+dlm: Rename config_group_find_obj and state semantics clearly
+     configfs+dlm+ocfs2: Convert subsystem semaphore to mutex
 has been removed from the -mm tree.  Its filename was
-     configfsdlm-rename-config_group_find_obj-and-state-semantics-clearly.patch
+     configfsdlmocfs2-convert-subsystem-semaphore-to-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: configfs+dlm: Rename config_group_find_obj and state semantics clearly
+Subject: configfs+dlm+ocfs2: Convert subsystem semaphore to mutex
 From: Satyam Sharma <ssatyam@cse.iitk.ac.in>
 
-Configfs being based upon sysfs code, config_group_find_obj() is probably so
-named because of the similar kset_find_obj() in sysfs.  However, "kobject"s in
-sysfs become "config_item"s in configfs, so let's call it
-config_group_find_item() instead, for sake of uniformity, and make
-corresponding change in the users of this function.
+Convert the su_sem member of struct configfs_subsystem to a struct mutex, as
+that's what it is.  Also convert all the users and update
+Documentation/configfs.txt and Documentation/configfs_example.c accordingly.
 
-BTW a crucial difference between kset_find_obj and config_group_find_item is
-in locking expectations.  kset_find_obj does its locking by itself, but
-config_group_find_item expects the *caller* to do the locking.  The reason for
-this: kset's have their own locks, config_group's don't but instead rely on
-the subsystem mutex.  And, subsystem needn't necessarily be around when
-config_group_find_item() is called.
-
-So let's state these locking semantics explicitly, and rectify the comment,
-otherwise bugs could continue to occur in future, as they did in the past
-(refer commit d82b8191e238 in gfs2-2.6-fixes.git).
-
-[ I also took the opportunity to fix some bad whitespace and
-double-empty lines. ]
+[ This patch touches three different trees (configfs, dlm and ocfs2) and I
+thought of splitting this up, but I guess there's little point in splitting
+into smaller patches that won't even build without each other.  ]
 
 Signed-off-by: Satyam Sharma <ssatyam@cse.iitk.ac.in>
 Cc: Joel Becker <joel.becker@oracle.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Cc: David Teigland <teigland@redhat.com>
 Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/item.c       |   18 ++++++++----------
- fs/dlm/config.c          |    2 +-
- include/linux/configfs.h |    8 ++------
- 3 files changed, 11 insertions(+), 17 deletions(-)
+ Documentation/filesystems/configfs/configfs.txt       |   20 ++++------
+ Documentation/filesystems/configfs/configfs_example.c |    2 -
+ fs/configfs/dir.c                                     |   16 ++++----
+ fs/dlm/config.c                                       |   10 ++---
+ fs/ocfs2/cluster/nodemanager.c                        |    2 -
+ include/linux/configfs.h                              |    5 +-
+ 6 files changed, 26 insertions(+), 29 deletions(-)
 
-diff -puN fs/configfs/item.c~configfsdlm-rename-config_group_find_obj-and-state-semantics-clearly fs/configfs/item.c
---- a/fs/configfs/item.c~configfsdlm-rename-config_group_find_obj-and-state-semantics-clearly
-+++ a/fs/configfs/item.c
-@@ -183,27 +183,25 @@ void config_group_init(struct config_gro
- 	INIT_LIST_HEAD(&group->cg_children);
+diff -puN Documentation/filesystems/configfs/configfs.txt~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex Documentation/filesystems/configfs/configfs.txt
+--- a/Documentation/filesystems/configfs/configfs.txt~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex
++++ a/Documentation/filesystems/configfs/configfs.txt
+@@ -292,18 +292,18 @@ tells configfs to make the subsystem app
+ 
+ 	struct configfs_subsystem {
+ 		struct config_group	su_group;
+-		struct semaphore	su_sem;
++		struct mutex		su_mtx;
+ 	};
+ 
+ 	int configfs_register_subsystem(struct configfs_subsystem *subsys);
+ 	void configfs_unregister_subsystem(struct configfs_subsystem *subsys);
+ 
+-	A subsystem consists of a toplevel config_group and a semaphore.
++	A subsystem consists of a toplevel config_group and a mutex.
+ The group is where child config_items are created.  For a subsystem,
+ this group is usually defined statically.  Before calling
+ configfs_register_subsystem(), the subsystem must have initialized the
+ group via the usual group _init() functions, and it must also have
+-initialized the semaphore.
++initialized the mutex.
+ 	When the register call returns, the subsystem is live, and it
+ will be visible via configfs.  At that point, mkdir(2) can be called and
+ the subsystem must be ready for it.
+@@ -315,7 +315,7 @@ subsystem/group and the simple_child ite
+ shows a trivial object displaying and storing an attribute, and a simple
+ group creating and destroying these children.
+ 
+-[Hierarchy Navigation and the Subsystem Semaphore]
++[Hierarchy Navigation and the Subsystem Mutex]
+ 
+ There is an extra bonus that configfs provides.  The config_groups and
+ config_items are arranged in a hierarchy due to the fact that they
+@@ -326,19 +326,17 @@ and config_item->ci_parent structure mem
+ 
+ A subsystem can navigate the cg_children list and the ci_parent pointer
+ to see the tree created by the subsystem.  This can race with configfs'
+-management of the hierarchy, so configfs uses the subsystem semaphore to
++management of the hierarchy, so configfs uses the subsystem mutex to
+ protect modifications.  Whenever a subsystem wants to navigate the
+-hierarchy, it must do so under the protection of the subsystem
+-semaphore.
++hierarchy, it must do so under the protection of the subsystem mutex.
+ 
+-A subsystem will be prevented from acquiring the semaphore while a newly
++A subsystem will be prevented from acquiring the mutex while a newly
+ allocated item has not been linked into this hierarchy.   Similarly, it
+-will not be able to acquire the semaphore while a dropping item has not
++will not be able to acquire the mutex while a dropping item has not
+ yet been unlinked.  This means that an item's ci_parent pointer will
+ never be NULL while the item is in configfs, and that an item will only
+ be in its parent's cg_children list for the same duration.  This allows
+-a subsystem to trust ci_parent and cg_children while they hold the
+-semaphore.
++a subsystem to trust ci_parent and cg_children while they hold the mutex.
+ 
+ [Item Aggregation Via symlink(2)]
+ 
+diff -puN Documentation/filesystems/configfs/configfs_example.c~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex Documentation/filesystems/configfs/configfs_example.c
+--- a/Documentation/filesystems/configfs/configfs_example.c~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex
++++ a/Documentation/filesystems/configfs/configfs_example.c
+@@ -453,7 +453,7 @@ static int __init configfs_example_init(
+ 		subsys = example_subsys[i];
+ 
+ 		config_group_init(&subsys->su_group);
+-		init_MUTEX(&subsys->su_sem);
++		mutex_init(&subsys->su_mtx);
+ 		ret = configfs_register_subsystem(subsys);
+ 		if (ret) {
+ 			printk(KERN_ERR "Error %d while registering subsystem %s\n",
+diff -puN fs/configfs/dir.c~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex fs/configfs/dir.c
+--- a/fs/configfs/dir.c~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex
++++ a/fs/configfs/dir.c
+@@ -566,7 +566,7 @@ static int populate_groups(struct config
+ 
+ /*
+  * All of link_obj/unlink_obj/link_group/unlink_group require that
+- * subsys->su_sem is held.
++ * subsys->su_mtx is held.
+  */
+ 
+ static void unlink_obj(struct config_item *item)
+@@ -1042,7 +1042,7 @@ static int configfs_mkdir(struct inode *
+ 
+ 	snprintf(name, dentry->d_name.len + 1, "%s", dentry->d_name.name);
+ 
+-	down(&subsys->su_sem);
++	mutex_lock(&subsys->su_mtx);
+ 	group = NULL;
+ 	item = NULL;
+ 	if (type->ct_group_ops->make_group) {
+@@ -1056,7 +1056,7 @@ static int configfs_mkdir(struct inode *
+ 		if (item)
+ 			link_obj(parent_item, item);
+ 	}
+-	up(&subsys->su_sem);
++	mutex_unlock(&subsys->su_mtx);
+ 
+ 	kfree(name);
+ 	if (!item) {
+@@ -1100,7 +1100,7 @@ static int configfs_mkdir(struct inode *
+ out_unlink:
+ 	if (ret) {
+ 		/* Tear down everything we built up */
+-		down(&subsys->su_sem);
++		mutex_lock(&subsys->su_mtx);
+ 
+ 		client_disconnect_notify(parent_item, item);
+ 		if (group)
+@@ -1109,7 +1109,7 @@ out_unlink:
+ 			unlink_obj(item);
+ 		client_drop_item(parent_item, item);
+ 
+-		up(&subsys->su_sem);
++		mutex_unlock(&subsys->su_mtx);
+ 
+ 		if (module_got)
+ 			module_put(owner);
+@@ -1179,19 +1179,19 @@ static int configfs_rmdir(struct inode *
+ 	if (sd->s_type & CONFIGFS_USET_DIR) {
+ 		configfs_detach_group(item);
+ 
+-		down(&subsys->su_sem);
++		mutex_lock(&subsys->su_mtx);
+ 		client_disconnect_notify(parent_item, item);
+ 		unlink_group(to_config_group(item));
+ 	} else {
+ 		configfs_detach_item(item);
+ 
+-		down(&subsys->su_sem);
++		mutex_lock(&subsys->su_mtx);
+ 		client_disconnect_notify(parent_item, item);
+ 		unlink_obj(item);
+ 	}
+ 
+ 	client_drop_item(parent_item, item);
+-	up(&subsys->su_sem);
++	mutex_unlock(&subsys->su_mtx);
+ 
+ 	/* Drop our reference from above */
+ 	config_item_put(item);
+diff -puN fs/dlm/config.c~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex fs/dlm/config.c
+--- a/fs/dlm/config.c~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex
++++ a/fs/dlm/config.c
+@@ -607,7 +607,7 @@ static struct clusters clusters_root = {
+ int dlm_config_init(void)
+ {
+ 	config_group_init(&clusters_root.subsys.su_group);
+-	init_MUTEX(&clusters_root.subsys.su_sem);
++	mutex_init(&clusters_root.subsys.su_mtx);
+ 	return configfs_register_subsystem(&clusters_root.subsys);
  }
  
--
- /**
-- *	config_group_find_obj - search for item in group.
-+ *	config_group_find_item - search for item in group.
-  *	@group:	group we're looking in.
-  *	@name:	item's name.
-  *
-- *	Lock group via @group->cg_subsys, and iterate over @group->cg_list,
-- *	looking for a matching config_item. If matching item is found
-- *	take a reference and return the item.
-+ *	Iterate over @group->cg_list, looking for a matching config_item.
-+ *	If matching item is found take a reference and return the item.
-+ *	Caller must have locked group via @group->cg_subsys->su_mtx.
-  */
--struct config_item *config_group_find_obj(struct config_group *group,
--					  const char * name)
-+struct config_item *config_group_find_item(struct config_group *group,
-+					   const char *name)
- {
- 	struct list_head * entry;
- 	struct config_item * ret = NULL;
- 
--        /* XXX LOCKING! */
- 	list_for_each(entry,&group->cg_children) {
- 		struct config_item * item = to_item(entry);
- 		if (config_item_name(item) &&
--                    !strcmp(config_item_name(item), name)) {
-+		    !strcmp(config_item_name(item), name)) {
- 			ret = config_item_get(item);
- 			break;
- 		}
-@@ -215,4 +213,4 @@ EXPORT_SYMBOL(config_item_init);
- EXPORT_SYMBOL(config_group_init);
- EXPORT_SYMBOL(config_item_get);
- EXPORT_SYMBOL(config_item_put);
--EXPORT_SYMBOL(config_group_find_obj);
-+EXPORT_SYMBOL(config_group_find_item);
-diff -puN fs/dlm/config.c~configfsdlm-rename-config_group_find_obj-and-state-semantics-clearly fs/dlm/config.c
---- a/fs/dlm/config.c~configfsdlm-rename-config_group_find_obj-and-state-semantics-clearly
-+++ a/fs/dlm/config.c
-@@ -752,7 +752,7 @@ static struct space *get_space(char *nam
+@@ -751,9 +751,9 @@ static struct space *get_space(char *nam
+ 	if (!space_list)
  		return NULL;
  
- 	mutex_lock(&space_list->cg_subsys->su_mtx);
--	i = config_group_find_obj(space_list, name);
-+	i = config_group_find_item(space_list, name);
- 	mutex_unlock(&space_list->cg_subsys->su_mtx);
+-	down(&space_list->cg_subsys->su_sem);
++	mutex_lock(&space_list->cg_subsys->su_mtx);
+ 	i = config_group_find_obj(space_list, name);
+-	up(&space_list->cg_subsys->su_sem);
++	mutex_unlock(&space_list->cg_subsys->su_mtx);
  
  	return to_space(i);
-diff -puN include/linux/configfs.h~configfsdlm-rename-config_group_find_obj-and-state-semantics-clearly include/linux/configfs.h
---- a/include/linux/configfs.h~configfsdlm-rename-config_group_find_obj-and-state-semantics-clearly
-+++ a/include/linux/configfs.h
-@@ -85,12 +85,10 @@ struct config_item_type {
- 	struct configfs_attribute		**ct_attrs;
- };
- 
--
- /**
-  *	group - a group of config_items of a specific type, belonging
-  *	to a specific subsystem.
-  */
--
- struct config_group {
- 	struct config_item		cg_item;
- 	struct list_head		cg_children;
-@@ -98,13 +96,11 @@ struct config_group {
- 	struct config_group		**default_groups;
- };
- 
--
- extern void config_group_init(struct config_group *group);
- extern void config_group_init_type_name(struct config_group *group,
- 					const char *name,
- 					struct config_item_type *type);
- 
--
- static inline struct config_group *to_config_group(struct config_item *item)
- {
- 	return item ? container_of(item,struct config_group,cg_item) : NULL;
-@@ -120,8 +116,8 @@ static inline void config_group_put(stru
- 	config_item_put(&group->cg_item);
  }
+@@ -772,7 +772,7 @@ static struct comm *get_comm(int nodeid,
+ 	if (!comm_list)
+ 		return NULL;
  
--extern struct config_item *config_group_find_obj(struct config_group *, const char *);
+-	down(&clusters_root.subsys.su_sem);
++	mutex_lock(&clusters_root.subsys.su_mtx);
+ 
+ 	list_for_each_entry(i, &comm_list->cg_children, ci_entry) {
+ 		cm = to_comm(i);
+@@ -792,7 +792,7 @@ static struct comm *get_comm(int nodeid,
+ 			break;
+ 		}
+ 	}
+-	up(&clusters_root.subsys.su_sem);
++	mutex_unlock(&clusters_root.subsys.su_mtx);
+ 
+ 	if (!found)
+ 		cm = NULL;
+diff -puN fs/ocfs2/cluster/nodemanager.c~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex fs/ocfs2/cluster/nodemanager.c
+--- a/fs/ocfs2/cluster/nodemanager.c~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex
++++ a/fs/ocfs2/cluster/nodemanager.c
+@@ -974,7 +974,7 @@ static int __init init_o2nm(void)
+ 		goto out_sysctl;
+ 
+ 	config_group_init(&o2nm_cluster_group.cs_subsys.su_group);
+-	init_MUTEX(&o2nm_cluster_group.cs_subsys.su_sem);
++	mutex_init(&o2nm_cluster_group.cs_subsys.su_mtx);
+ 	ret = configfs_register_subsystem(&o2nm_cluster_group.cs_subsys);
+ 	if (ret) {
+ 		printk(KERN_ERR "nodemanager: Registration returned %d\n", ret);
+diff -puN include/linux/configfs.h~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex include/linux/configfs.h
+--- a/include/linux/configfs.h~configfsdlmocfs2-convert-subsystem-semaphore-to-mutex
++++ a/include/linux/configfs.h
+@@ -40,9 +40,8 @@
+ #include <linux/types.h>
+ #include <linux/list.h>
+ #include <linux/kref.h>
 -
-+extern struct config_item *config_group_find_item(struct config_group *,
-+						  const char *);
++#include <linux/mutex.h>
+ #include <asm/atomic.h>
+-#include <asm/semaphore.h>
  
- struct configfs_attribute {
- 	const char		*ca_name;
+ #define CONFIGFS_ITEM_NAME_LEN	20
+ 
+@@ -178,7 +177,7 @@ struct configfs_group_operations {
+ 
+ struct configfs_subsystem {
+ 	struct config_group	su_group;
+-	struct semaphore	su_sem;
++	struct mutex		su_mtx;
+ };
+ 
+ static inline struct configfs_subsystem *to_configfs_subsystem(struct config_group *group)
 _
 
 Patches currently in -mm which might be from ssatyam@cse.iitk.ac.in are
