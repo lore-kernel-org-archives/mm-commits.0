@@ -1,87 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - rpc-remove-makefile-reference-to-obsolete-rxrpc-config.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:49:19 -0700
-Message-ID: <200707101949.l6AJnJ1a026083@imap1.linux-foundation.org>
+Subject: - update-documentation-block-barriertxt.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:49:34 -0700
+Message-ID: <200707101949.l6AJnYkR026109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33213 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46113 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760335AbXGJTzT (ORCPT
+	by vger.kernel.org with ESMTP id S1761135AbXGJTz1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 15:55:19 -0400
+	Tue, 10 Jul 2007 15:55:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, htejun@gmail.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     RPC: Remove Makefile reference to obsolete RXRPC config variable
+     Update Documentation/block/barrier.txt
 has been removed from the -mm tree.  Its filename was
-     rpc-remove-makefile-reference-to-obsolete-rxrpc-config.patch
+     update-documentation-block-barriertxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: RPC: Remove Makefile reference to obsolete RXRPC config variable
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: Update Documentation/block/barrier.txt
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Since there is no Kconfig variable RXRPC anywhere in the tree, and the
-variable AF_RXRPC performs exactly the same function, remove the reference
-to CONFIG_RXRPC from net/Makefile.
+Documentation/block/barrier.txt is not in sync with the actual code:
+  - blk_queue_ordered() no longer has a gfp_mask parameter
+  - blk_queue_ordered_locked() no longer exists
+  - sd_prepare_flush() looks slightly different
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/Makefile |    1 -
- 1 files changed, 1 deletion(-)
+ Documentation/block/barrier.txt |   16 +++-------------
+ 1 files changed, 3 insertions(+), 13 deletions(-)
 
-diff -puN net/Makefile~rpc-remove-makefile-reference-to-obsolete-rxrpc-config net/Makefile
---- a/net/Makefile~rpc-remove-makefile-reference-to-obsolete-rxrpc-config
-+++ a/net/Makefile
-@@ -37,7 +37,6 @@ obj-$(CONFIG_AX25)		+= ax25/
- obj-$(CONFIG_IRDA)		+= irda/
- obj-$(CONFIG_BT)		+= bluetooth/
- obj-$(CONFIG_SUNRPC)		+= sunrpc/
--obj-$(CONFIG_RXRPC)		+= rxrpc/
- obj-$(CONFIG_AF_RXRPC)		+= rxrpc/
- obj-$(CONFIG_ATM)		+= atm/
- obj-$(CONFIG_DECNET)		+= decnet/
+diff -puN Documentation/block/barrier.txt~update-documentation-block-barriertxt Documentation/block/barrier.txt
+--- a/Documentation/block/barrier.txt~update-documentation-block-barriertxt
++++ a/Documentation/block/barrier.txt
+@@ -82,23 +82,12 @@ including draining and flushing.
+ typedef void (prepare_flush_fn)(request_queue_t *q, struct request *rq);
+ 
+ int blk_queue_ordered(request_queue_t *q, unsigned ordered,
+-		      prepare_flush_fn *prepare_flush_fn,
+-		      unsigned gfp_mask);
+-
+-int blk_queue_ordered_locked(request_queue_t *q, unsigned ordered,
+-			     prepare_flush_fn *prepare_flush_fn,
+-			     unsigned gfp_mask);
+-
+-The only difference between the two functions is whether or not the
+-caller is holding q->queue_lock on entry.  The latter expects the
+-caller is holding the lock.
++		      prepare_flush_fn *prepare_flush_fn);
+ 
+ @q			: the queue in question
+ @ordered		: the ordered mode the driver/device supports
+ @prepare_flush_fn	: this function should prepare @rq such that it
+ 			  flushes cache to physical medium when executed
+-@gfp_mask		: gfp_mask used when allocating data structures
+-			  for ordered processing
+ 
+ For example, SCSI disk driver's prepare_flush_fn looks like the
+ following.
+@@ -106,9 +95,10 @@ following.
+ static void sd_prepare_flush(request_queue_t *q, struct request *rq)
+ {
+ 	memset(rq->cmd, 0, sizeof(rq->cmd));
+-	rq->flags |= REQ_BLOCK_PC;
++	rq->cmd_type = REQ_TYPE_BLOCK_PC;
+ 	rq->timeout = SD_TIMEOUT;
+ 	rq->cmd[0] = SYNCHRONIZE_CACHE;
++	rq->cmd_len = 10;
+ }
+ 
+ The following seven ordered modes are supported.  The following table
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-git-alsa.patch
 git-powerpc.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-net.patch
-bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-s390.patch
-git-sh.patch
-git-scsi-misc.patch
-remove-dead-references-to-module_parm-macro.patch
-usb-remove-makefile-reference-to-obsolete-ohci_at91.patch
-git-watchdog.patch
-i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
-i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
-i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-mm-make-needlessly-global-hugetlb_no_page-static.patch
-frv-be-self-consistent-and-use-config_gdb_console-everywhere.patch
-frv-remove-some-dead-code.patch
-cris-replace-old-style-member-inits-with-designated-inits.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-remove-apparently-useless-commented-apm_get_battery_status.patch
-cobalt-remove-all-references-to-cobalt-nvram.patch
-remove-final-two-references-to-__obsolete_setup-macro.patch
-cdrom-replace-hard-coded-constants-by-kernelh-macro.patch
-nls-remove-obsolete-makefile-entries.patch
+git-block.patch
+compat32-ignore-the-loop_clr_fd-ioctl.patch
