@@ -1,36 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - dts-kill-hardcoded-phandles.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:48:35 -0700
-Message-ID: <200707101948.l6AJmZh7026014@imap1.linux-foundation.org>
+Subject: - 8xx-mpc885ads-pcmcia-support.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:48:32 -0700
+Message-ID: <200707101948.l6AJmWoY026011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49754 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52499 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757932AbXGJTsu (ORCPT
+	by vger.kernel.org with ESMTP id S1758043AbXGJTst (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 15:48:50 -0400
+	Tue, 10 Jul 2007 15:48:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vitb@kernel.crashing.org, arnd@arndb.de, benh@kernel.crashing.org, galak@gate.crashing.org, linux@dominikbrodowski.net, olof@lixom.net, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: dts: kill hardcoded phandles
+     powerpc: 8xx: mpc885ads pcmcia support
 has been removed from the -mm tree.  Its filename was
-     dts-kill-hardcoded-phandles.patch
+     8xx-mpc885ads-pcmcia-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: dts: kill hardcoded phandles
+Subject: powerpc: 8xx: mpc885ads pcmcia support
 From: Vitaly Bordug <vitb@kernel.crashing.org>
 
-Removed explicit linux,phandle usage.  Using references and labels now in PQ
-and PQ2 boards currently supported in arch/powerpc.
+Adds support for PowerQuicc on-chip PCMCIA.  The driver is implemented as
+of_device, so only arch/powerpc stuff is capable to use it, which now implies
+only mpc885ads reference board.
 
+To cope with the code that should be hooked inside driver, but is really board
+specific (like set_voltage), global structure mpc8xx_pcmcia_ops holds
+necessary function pointers that are filled in the BSP code.
+
+[akpm@linux-foundation.org: whitespace diddles]
 Signed-off-by: Vitaly Bordug <vitb@kernel.crashing.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Olof Johansson <olof@lixom.net>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Olof Johansson <olof@lixom.net>
 Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -38,425 +44,889 @@ Cc: Kumar Gala <galak@gate.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/dts/mpc8272ads.dts |   42 ++++++++---------------
- arch/powerpc/boot/dts/mpc866ads.dts  |   31 ++++++-----------
- arch/powerpc/boot/dts/mpc885ads.dts  |   45 +++++++++----------------
- 3 files changed, 43 insertions(+), 75 deletions(-)
+ arch/powerpc/boot/dts/mpc885ads.dts          |   11 
+ arch/powerpc/platforms/8xx/m8xx_setup.c      |    5 
+ arch/powerpc/platforms/8xx/mpc885ads_setup.c |   71 +++
+ arch/powerpc/sysdev/fsl_soc.c                |   13 
+ arch/powerpc/sysdev/mpc8xx_pic.h             |   11 
+ drivers/pcmcia/Kconfig                       |   15 
+ drivers/pcmcia/m8xx_pcmcia.c                 |  351 ++++++++---------
+ include/asm-powerpc/mpc8xx.h                 |    4 
+ include/linux/fsl_devices.h                  |    5 
+ 9 files changed, 293 insertions(+), 193 deletions(-)
 
-diff -puN arch/powerpc/boot/dts/mpc8272ads.dts~dts-kill-hardcoded-phandles arch/powerpc/boot/dts/mpc8272ads.dts
---- a/arch/powerpc/boot/dts/mpc8272ads.dts~dts-kill-hardcoded-phandles
-+++ a/arch/powerpc/boot/dts/mpc8272ads.dts
-@@ -14,12 +14,10 @@
-        compatible = "MPC8260ADS";
-        #address-cells = <1>;
-        #size-cells = <1>;
--       linux,phandle = <100>;
- 
-        cpus {
-                #address-cells = <1>;
-                #size-cells = <0>;
--               linux,phandle = <200>;
- 
-                PowerPC,8272@0 {
-                        device_type = "cpu";
-@@ -32,12 +30,10 @@
-                        bus-frequency = <0>;
-                        clock-frequency = <0>;
-                        32-bit;
--                       linux,phandle = <201>;
-                };
-        };
- 
--       interrupt-controller@f8200000 {
--               linux,phandle = <f8200000>;
-+		pci_pic: interrupt-controller@f8200000 {
-                #address-cells = <0>;
-                #interrupt-cells = <2>;
-                interrupt-controller;
-@@ -47,15 +43,13 @@
-        };
-        memory {
-                device_type = "memory";
--               linux,phandle = <300>;
-                reg = <00000000 4000000 f4500000 00000020>;
-        };
- 
-        chosen {
-                name = "chosen";
-                linux,platform = <0>;
--               interrupt-controller = <10c00>;
--               linux,phandle = <400>;
-+		interrupt-controller = <&Cpm_pic>;
-        };
- 
-        soc8272@f0000000 {
-@@ -70,20 +64,17 @@
-                        device_type = "mdio";
-                        compatible = "fs_enet";
-                        reg = <0 0>;
--                       linux,phandle = <24520>;
-                        #address-cells = <1>;
-                        #size-cells = <0>;
--                       ethernet-phy@0 {
--                               linux,phandle = <2452000>;
--                               interrupt-parent = <10c00>;
-+			phy0:ethernet-phy@0 {
-+				interrupt-parent = <&Cpm_pic>;
-                                interrupts = <17 4>;
-                                reg = <0>;
-                                bitbang = [ 12 12 13 02 02 01 ];
-                                device_type = "ethernet-phy";
-                        };
--                       ethernet-phy@1 {
--                               linux,phandle = <2452001>;
--                               interrupt-parent = <10c00>;
-+			phy1:ethernet-phy@1 {
-+				interrupt-parent = <&Cpm_pic>;
-                                interrupts = <17 4>;
-                                bitbang = [ 12 12 13 02 02 01 ];
-                                reg = <3>;
-@@ -101,8 +92,8 @@
-                        reg = <11300 20 8400 100 11380 30>;
-                        mac-address = [ 00 11 2F 99 43 54 ];
-                        interrupts = <20 2>;
--                       interrupt-parent = <10c00>;
--                       phy-handle = <2452000>;
-+			interrupt-parent = <&Cpm_pic>;
-+			phy-handle = <&Phy0>;
-                        rx-clock = <13>;
-                        tx-clock = <12>;
-                };
-@@ -115,14 +106,13 @@
-                        reg = <11320 20 8500 100 113b0 30>;
-                        mac-address = [ 00 11 2F 99 44 54 ];
-                        interrupts = <21 2>;
--                       interrupt-parent = <10c00>;
--                       phy-handle = <2452001>;
-+			interrupt-parent = <&Cpm_pic>;
-+			phy-handle = <&Phy1>;
-                        rx-clock = <17>;
-                        tx-clock = <18>;
-                };
- 
-                cpm@f0000000 {
--                       linux,phandle = <f0000000>;
-                        #address-cells = <1>;
-                        #size-cells = <1>;
-                        #interrupt-cells = <2>;
-@@ -142,7 +132,7 @@
-                                reg = <11a00 20 8000 100>;
-                                current-speed = <1c200>;
-                                interrupts = <28 2>;
--                               interrupt-parent = <10c00>;
-+				interrupt-parent = <&Cpm_pic>;
-                                clock-setup = <0 00ffffff>;
-                                rx-clock = <1>;
-                                tx-clock = <1>;
-@@ -156,15 +146,14 @@
-                                reg = <11a60 20 8300 100>;
-                                current-speed = <1c200>;
-                                interrupts = <2b 2>;
--                               interrupt-parent = <10c00>;
-+				interrupt-parent = <&Cpm_pic>;
-                                clock-setup = <1b ffffff00>;
-                                rx-clock = <4>;
-                                tx-clock = <4>;
-                        };
- 
-                };
--               interrupt-controller@10c00 {
--                       linux,phandle = <10c00>;
-+			cpm_pic:interrupt-controller@10c00 {
-                        #address-cells = <0>;
-                        #interrupt-cells = <2>;
-                        interrupt-controller;
-@@ -174,7 +163,6 @@
- 		       compatible = "CPM2";
-                };
-                pci@0500 {
--                       linux,phandle = <0500>;
-                        #interrupt-cells = <1>;
-                        #size-cells = <2>;
-                        #address-cells = <3>;
-@@ -202,7 +190,7 @@
-                                         c000 0 0 2 f8200000 43 8
-                                         c000 0 0 3 f8200000 40 8
-                                         c000 0 0 4 f8200000 41 8>;
--                       interrupt-parent = <10c00>;
-+			interrupt-parent = <&Cpm_pic>;
-                        interrupts = <14 8>;
-                        bus-range = <0 0>;
-                        ranges = <02000000 0 80000000 80000000 0 40000000
-@@ -216,7 +204,7 @@
-                        compatible = "talitos";
-                        reg = <30000 10000>;
-                        interrupts = <b 2>;
--                       interrupt-parent = <10c00>;
-+			interrupt-parent = <&Cpm_pic>;
-                        num-channels = <4>;
-                        channel-fifo-len = <18>;
-                        exec-units-mask = <0000007e>;
-diff -puN arch/powerpc/boot/dts/mpc866ads.dts~dts-kill-hardcoded-phandles arch/powerpc/boot/dts/mpc866ads.dts
---- a/arch/powerpc/boot/dts/mpc866ads.dts~dts-kill-hardcoded-phandles
-+++ a/arch/powerpc/boot/dts/mpc866ads.dts
-@@ -15,12 +15,10 @@
- 	compatible = "mpc8xx";
- 	#address-cells = <1>;
- 	#size-cells = <1>;
--	linux,phandle = <100>;
- 
- 	cpus {
- 		#address-cells = <1>;
- 		#size-cells = <0>;
--		linux,phandle = <200>;
- 
- 		PowerPC,866@0 {
- 			device_type = "cpu";
-@@ -34,14 +32,12 @@
- 			clock-frequency = <0>;
- 			32-bit;
- 			interrupts = <f 2>;	// decrementer interrupt
--			interrupt-parent = <ff000000>;
--			linux,phandle = <201>;
-+			interrupt-parent = <&Mpc8xx_pic>;
- 		};
- 	};
- 
- 	memory {
- 		device_type = "memory";
--		linux,phandle = <300>;
- 		reg = <00000000 800000>;
- 	};
- 
-@@ -57,11 +53,9 @@
- 			device_type = "mdio";
- 			compatible = "fs_enet";
- 			reg = <e80 8>;
--			linux,phandle = <e80>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
--			ethernet-phy@f {
--				linux,phandle = <e800f>;
-+			phy: ethernet-phy@f {
- 				reg = <f>;
- 				device_type = "ethernet-phy";
- 			};
-@@ -75,12 +69,11 @@
- 			reg = <e00 188>;
- 			mac-address = [ 00 00 0C 00 01 FD ];
- 			interrupts = <3 1>;
--			interrupt-parent = <ff000000>;
--			phy-handle = <e800f>;
-+			interrupt-parent = <&Mpc8xx_pic>;
-+			phy-handle = <&Phy>;
- 		};
- 
--		pic@ff000000 {
--			linux,phandle = <ff000000>;
-+		mpc8xx_pic: pic@ff000000 {
- 			interrupt-controller;
- 			#address-cells = <0>;
- 			#interrupt-cells = <2>;
-@@ -91,7 +84,6 @@
- 		};
- 
- 		cpm@ff000000 {
--			linux,phandle = <ff000000>;
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			#interrupt-cells = <2>;
-@@ -102,15 +94,14 @@
- 			command-proc = <9c0>;
- 			brg-frequency = <0>;
- 			interrupts = <0 2>;	// cpm error interrupt
--			interrupt-parent = <930>;
-+			interrupt-parent = <&Cpm_pic>;
- 
--			pic@930 {
--				linux,phandle = <930>;
-+			cpm_pic: pic@930 {
- 				interrupt-controller;
- 				#address-cells = <0>;
- 				#interrupt-cells = <2>;
- 				interrupts = <5 2 0 2>;
--				interrupt-parent = <ff000000>;
-+				interrupt-parent = <&Mpc8xx_pic>;
- 				reg = <930 20>;
- 				built-in;
- 				device_type = "cpm-pic";
-@@ -128,7 +119,7 @@
- 				tx-clock = <1>;
- 				current-speed = <0>;
- 				interrupts = <4 3>;
--				interrupt-parent = <930>;
-+				interrupt-parent = <&Cpm_pic>;
- 			};
- 
- 			smc@a90 {
-@@ -142,7 +133,7 @@
- 				tx-clock = <2>;
- 				current-speed = <0>;
- 				interrupts = <3 3>;
--				interrupt-parent = <930>;
-+				interrupt-parent = <&Cpm_pic>;
- 			};
- 
- 			scc@a00 {
-@@ -153,7 +144,7 @@
- 				reg = <a00 18 3c00 80>;
- 				mac-address = [ 00 00 0C 00 03 FD ];
- 				interrupts = <1e 3>;
--				interrupt-parent = <930>;
-+				interrupt-parent = <&Cpm_pic>;
- 			};
- 		};
- 	};
-diff -puN arch/powerpc/boot/dts/mpc885ads.dts~dts-kill-hardcoded-phandles arch/powerpc/boot/dts/mpc885ads.dts
---- a/arch/powerpc/boot/dts/mpc885ads.dts~dts-kill-hardcoded-phandles
+diff -puN arch/powerpc/boot/dts/mpc885ads.dts~8xx-mpc885ads-pcmcia-support arch/powerpc/boot/dts/mpc885ads.dts
+--- a/arch/powerpc/boot/dts/mpc885ads.dts~8xx-mpc885ads-pcmcia-support
 +++ a/arch/powerpc/boot/dts/mpc885ads.dts
-@@ -15,12 +15,10 @@
- 	compatible = "mpc8xx";
- 	#address-cells = <1>;
- 	#size-cells = <1>;
--	linux,phandle = <100>;
- 
- 	cpus {
- 		#address-cells = <1>;
- 		#size-cells = <0>;
--		linux,phandle = <200>;
- 
- 		PowerPC,885@0 {
- 			device_type = "cpu";
-@@ -34,14 +32,12 @@
- 			clock-frequency = <0>;
- 			32-bit;
- 			interrupts = <f 2>;	// decrementer interrupt
--			interrupt-parent = <ff000000>;
--			linux,phandle = <201>;
-+			interrupt-parent = <&Mpc8xx_pic>;
- 		};
- 	};
- 
- 	memory {
- 		device_type = "memory";
--		linux,phandle = <300>;
- 		reg = <00000000 800000>;
- 	};
- 
-@@ -57,21 +53,17 @@
- 			device_type = "mdio";
- 			compatible = "fs_enet";
- 			reg = <e80 8>;
--			linux,phandle = <e80>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
--			ethernet-phy@0 {
--				linux,phandle = <e8000>;
-+			Phy0: ethernet-phy@0 {
- 				reg = <0>;
- 				device_type = "ethernet-phy";
- 			};
--			ethernet-phy@1 {
--				linux,phandle = <e8001>;
-+			Phy1: ethernet-phy@1 {
- 				reg = <1>;
- 				device_type = "ethernet-phy";
- 			};
--			ethernet-phy@2 {
--				linux,phandle = <e8002>;
-+			Phy2: ethernet-phy@2 {
- 				reg = <2>;
- 				device_type = "ethernet-phy";
- 			};
-@@ -85,8 +77,8 @@
- 			reg = <e00 188>;
- 			mac-address = [ 00 00 0C 00 01 FD ];
- 			interrupts = <3 1>;
--			interrupt-parent = <ff000000>;
--			phy-handle = <e8000>;
-+			interrupt-parent = <&Mpc8xx_pic>;
-+			phy-handle = <&Phy1>;
+@@ -112,6 +112,17 @@
+ 			compatible = "CPM";
  		};
  
- 		fec@1e00 {
-@@ -97,12 +89,11 @@
- 			reg = <1e00 188>;
- 			mac-address = [ 00 00 0C 00 02 FD ];
- 			interrupts = <7 1>;
--			interrupt-parent = <ff000000>;
--			phy-handle = <e8001>;
-+			interrupt-parent = <&Mpc8xx_pic>;
-+			phy-handle = <&Phy2>;
- 		};
- 
--		pic@ff000000 {
--			linux,phandle = <ff000000>;
-+		Mpc8xx_pic: pic@ff000000 {
- 			interrupt-controller;
- 			#address-cells = <0>;
- 			#interrupt-cells = <2>;
-@@ -119,12 +110,11 @@
- 			compatible = "fsl,pq-pcmcia";
- 			device_type = "pcmcia";
- 			reg = <80 80>;
--			interrupt-parent = <ff000000>;
-+			interrupt-parent = <&Mpc8xx_pic>;
- 			interrupts = <d 1>;
- 		};
- 
++		pcmcia@0080 {
++			#address-cells = <3>;
++			#interrupt-cells = <1>;
++			#size-cells = <2>;
++			compatible = "fsl,pq-pcmcia";
++			device_type = "pcmcia";
++			reg = <80 80>;
++			interrupt-parent = <ff000000>;
++			interrupts = <d 1>;
++		};
++
  		cpm@ff000000 {
--			linux,phandle = <ff000000>;
+ 			linux,phandle = <ff000000>;
  			#address-cells = <1>;
- 			#size-cells = <1>;
- 			#interrupt-cells = <2>;
-@@ -135,15 +125,14 @@
- 			command-proc = <9c0>;
- 			brg-frequency = <0>;
- 			interrupts = <0 2>;	// cpm error interrupt
--			interrupt-parent = <930>;
-+			interrupt-parent = <&Cpm_pic>;
+diff -puN arch/powerpc/platforms/8xx/m8xx_setup.c~8xx-mpc885ads-pcmcia-support arch/powerpc/platforms/8xx/m8xx_setup.c
+--- a/arch/powerpc/platforms/8xx/m8xx_setup.c~8xx-mpc885ads-pcmcia-support
++++ a/arch/powerpc/platforms/8xx/m8xx_setup.c
+@@ -32,6 +32,7 @@
+ #include <linux/root_dev.h>
+ #include <linux/time.h>
+ #include <linux/rtc.h>
++#include <linux/fsl_devices.h>
  
--			pic@930 {
--				linux,phandle = <930>;
-+			Cpm_pic: pic@930 {
- 				interrupt-controller;
- 				#address-cells = <0>;
- 				#interrupt-cells = <2>;
- 				interrupts = <5 2 0 2>;
--				interrupt-parent = <ff000000>;
-+				interrupt-parent = <&Mpc8xx_pic>;
- 				reg = <930 20>;
- 				built-in;
- 				device_type = "cpm-pic";
-@@ -161,7 +150,7 @@
- 				tx-clock = <1>;
- 				current-speed = <0>;
- 				interrupts = <4 3>;
--				interrupt-parent = <930>;
-+				interrupt-parent = <&Cpm_pic>;
- 			};
+ #include <asm/mmu.h>
+ #include <asm/reg.h>
+@@ -49,6 +50,10 @@
  
- 			smc@a90 {
-@@ -175,7 +164,7 @@
- 				tx-clock = <2>;
- 				current-speed = <0>;
- 				interrupts = <3 3>;
--				interrupt-parent = <930>;
-+				interrupt-parent = <&Cpm_pic>;
- 			};
+ #include "sysdev/mpc8xx_pic.h"
  
- 			scc@a40 {
-@@ -186,8 +175,8 @@
- 				reg = <a40 18 3e00 80>;
- 				mac-address = [ 00 00 0C 00 03 FD ];
- 				interrupts = <1c 3>;
--				interrupt-parent = <930>;
--				phy-handle = <e8002>;
-+				interrupt-parent = <&Cpm_pic>;
-+				phy-handle = <&Phy2>;
- 			};
- 		};
- 	};
++#ifdef CONFIG_PCMCIA_M8XX
++struct mpc8xx_pcmcia_ops m8xx_pcmcia_ops;
++#endif
++
+ void m8xx_calibrate_decr(void);
+ extern void m8xx_wdt_handler_install(bd_t *bp);
+ extern int cpm_pic_init(void);
+diff -puN arch/powerpc/platforms/8xx/mpc885ads_setup.c~8xx-mpc885ads-pcmcia-support arch/powerpc/platforms/8xx/mpc885ads_setup.c
+--- a/arch/powerpc/platforms/8xx/mpc885ads_setup.c~8xx-mpc885ads-pcmcia-support
++++ a/arch/powerpc/platforms/8xx/mpc885ads_setup.c
+@@ -22,6 +22,7 @@
+ 
+ #include <linux/fs_enet_pd.h>
+ #include <linux/fs_uart_pd.h>
++#include <linux/fsl_devices.h>
+ #include <linux/mii.h>
+ 
+ #include <asm/delay.h>
+@@ -51,6 +52,70 @@ static void init_smc1_uart_ioports(struc
+ static void init_smc2_uart_ioports(struct fs_uart_platform_info* fpi);
+ static void init_scc3_ioports(struct fs_platform_info* ptr);
+ 
++#ifdef CONFIG_PCMCIA_M8XX
++static void pcmcia_hw_setup(int slot, int enable)
++{
++	unsigned *bcsr_io;
++
++	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
++	if (enable)
++		clrbits32(bcsr_io, BCSR1_PCCEN);
++	else
++		setbits32(bcsr_io, BCSR1_PCCEN);
++
++	iounmap(bcsr_io);
++}
++
++static int pcmcia_set_voltage(int slot, int vcc, int vpp)
++{
++	u32 reg = 0;
++	unsigned *bcsr_io;
++
++	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
++
++	switch(vcc) {
++	case 0:
++		break;
++	case 33:
++		reg |= BCSR1_PCCVCC0;
++		break;
++	case 50:
++		reg |= BCSR1_PCCVCC1;
++		break;
++	default:
++		return 1;
++	}
++
++	switch(vpp) {
++	case 0:
++		break;
++	case 33:
++	case 50:
++		if(vcc == vpp)
++			reg |= BCSR1_PCCVPP1;
++		else
++			return 1;
++		break;
++	case 120:
++		if ((vcc == 33) || (vcc == 50))
++			reg |= BCSR1_PCCVPP0;
++		else
++			return 1;
++	default:
++		return 1;
++	}
++
++	/* first, turn off all power */
++	clrbits32(bcsr_io, 0x00610000);
++
++	/* enable new powersettings */
++	setbits32(bcsr_io, reg);
++
++	iounmap(bcsr_io);
++	return 0;
++}
++#endif
++
+ void __init mpc885ads_board_setup(void)
+ {
+ 	cpm8xx_t *cp;
+@@ -115,6 +180,12 @@ void __init mpc885ads_board_setup(void)
+ 	immr_unmap(io_port);
+ 
+ #endif
++
++#ifdef CONFIG_PCMCIA_M8XX
++	/*Set up board specific hook-ups*/
++	m8xx_pcmcia_ops.hw_ctrl = pcmcia_hw_setup;
++	m8xx_pcmcia_ops.voltage_set = pcmcia_set_voltage;
++#endif
+ }
+ 
+ 
+diff -puN arch/powerpc/sysdev/fsl_soc.c~8xx-mpc885ads-pcmcia-support arch/powerpc/sysdev/fsl_soc.c
+--- a/arch/powerpc/sysdev/fsl_soc.c~8xx-mpc885ads-pcmcia-support
++++ a/arch/powerpc/sysdev/fsl_soc.c
+@@ -1028,6 +1028,19 @@ err:
+ 
+ arch_initcall(fs_enet_of_init);
+ 
++static int __init fsl_pcmcia_of_init(void)
++{
++	struct device_node *np = NULL;
++	/*
++	 * Register all the devices which type is "pcmcia"
++	 */
++	while ((np = of_find_compatible_node(np,
++			"pcmcia", "fsl,pq-pcmcia")) != NULL)
++			    of_platform_device_create(np, "m8xx-pcmcia", NULL);
++	return 0;
++}
++
++arch_initcall(fsl_pcmcia_of_init);
+ 
+ static const char *smc_regs = "regs";
+ static const char *smc_pram = "pram";
+diff -puN arch/powerpc/sysdev/mpc8xx_pic.h~8xx-mpc885ads-pcmcia-support arch/powerpc/sysdev/mpc8xx_pic.h
+--- a/arch/powerpc/sysdev/mpc8xx_pic.h~8xx-mpc885ads-pcmcia-support
++++ a/arch/powerpc/sysdev/mpc8xx_pic.h
+@@ -4,9 +4,16 @@
+ #include <linux/irq.h>
+ #include <linux/interrupt.h>
+ 
+-extern struct hw_interrupt_type mpc8xx_pic;
+-
+ int mpc8xx_pic_init(void);
+ unsigned int mpc8xx_get_irq(void);
+ 
++/*
++ * Some internal interrupt registers use an 8-bit mask for the interrupt
++ * level instead of a number.
++ */
++static inline uint mk_int_int_mask(uint mask)
++{
++	return (1 << (7 - (mask/2)));
++}
++
+ #endif /* _PPC_KERNEL_PPC8xx_H */
+diff -puN drivers/pcmcia/Kconfig~8xx-mpc885ads-pcmcia-support drivers/pcmcia/Kconfig
+--- a/drivers/pcmcia/Kconfig~8xx-mpc885ads-pcmcia-support
++++ a/drivers/pcmcia/Kconfig
+@@ -180,14 +180,15 @@ config TCIC
+ 	  PCMCIA cards are plugged into. If unsure, say N.
+ 
+ config PCMCIA_M8XX
+-        tristate "MPC8xx PCMCIA support"
+-        depends on PCMCIA && PPC && 8xx 
+-        select PCCARD_IODYN
+-        help
+-        Say Y here to include support for PowerPC 8xx series PCMCIA
+-        controller.
++	tristate "MPC8xx PCMCIA support"
++	depends on PCMCIA && PPC && 8xx
++	select PCCARD_IODYN
++	select PCCARD_NONSTATIC
++	help
++	  Say Y here to include support for PowerPC 8xx series PCMCIA
++	  controller.
+ 
+-        This driver is also available as a module called m8xx_pcmcia.
++	  This driver is also available as a module called m8xx_pcmcia.
+ 
+ config HD64465_PCMCIA
+ 	tristate "HD64465 host bridge support"
+diff -puN drivers/pcmcia/m8xx_pcmcia.c~8xx-mpc885ads-pcmcia-support drivers/pcmcia/m8xx_pcmcia.c
+--- a/drivers/pcmcia/m8xx_pcmcia.c~8xx-mpc885ads-pcmcia-support
++++ a/drivers/pcmcia/m8xx_pcmcia.c
+@@ -10,7 +10,7 @@
+  * Further fixes, v2.6 kernel port
+  *     <marcelo.tosatti@cyclades.com>
+  * 
+- * Some fixes, additions (C) 2005 Montavista Software, Inc. 
++ * Some fixes, additions (C) 2005-2007 Montavista Software, Inc.
+  *     <vbordug@ru.mvista.com>
+  *
+  * "The ExCA standard specifies that socket controllers should provide
+@@ -40,10 +40,6 @@
+ #include <linux/fcntl.h>
+ #include <linux/string.h>
+ 
+-#include <asm/io.h>
+-#include <asm/bitops.h>
+-#include <asm/system.h>
+-
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #include <linux/slab.h>
+@@ -51,11 +47,18 @@
+ #include <linux/ioport.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+-#include <linux/platform_device.h>
++#include <linux/fsl_devices.h>
+ 
++#include <asm/io.h>
++#include <asm/bitops.h>
++#include <asm/system.h>
++#include <asm/time.h>
+ #include <asm/mpc8xx.h>
+ #include <asm/8xx_immap.h>
+ #include <asm/irq.h>
++#include <asm/fs_pd.h>
++#include <asm/of_device.h>
++#include <asm/of_platform.h>
+ 
+ #include <pcmcia/version.h>
+ #include <pcmcia/cs_types.h>
+@@ -146,27 +149,17 @@ MODULE_LICENSE("Dual MPL/GPL");
+ #define PCMCIA_MEM_WIN_BASE 0xe0000000 /* base address for memory window 0   */
+ #define PCMCIA_MEM_WIN_SIZE 0x04000000 /* each memory window is 64 MByte     */
+ #define PCMCIA_IO_WIN_BASE  _IO_BASE   /* base address for io window 0       */
+-
+-#define PCMCIA_SCHLVL PCMCIA_INTERRUPT /* Status Change Interrupt Level      */
+-
+ /* ------------------------------------------------------------------------- */
+ 
+-/* 2.4.x and newer has this always in HZ */
+-#define M8XX_BUSFREQ ((((bd_t *)&(__res))->bi_busfreq))
+-
+-static int pcmcia_schlvl = PCMCIA_SCHLVL;
++static int pcmcia_schlvl;
+ 
+ static DEFINE_SPINLOCK(events_lock);
+ 
+-
+ #define PCMCIA_SOCKET_KEY_5V 1
+ #define PCMCIA_SOCKET_KEY_LV 2
+ 
+ /* look up table for pgcrx registers */
+-static u32 *m8xx_pgcrx[2] = {
+-	&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pgcra,
+-	&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pgcrb
+-};
++static u32 *m8xx_pgcrx[2];
+ 
+ /*
+  * This structure is used to address each window in the PCMCIA controller.
+@@ -228,11 +221,16 @@ struct event_table {
+ 	u32 eventbit;
+ };
+ 
++static const char driver_name[] = "m8xx-pcmcia";
++
+ struct socket_info {
+ 	void	(*handler)(void *info, u32 events);
+ 	void	*info;
+ 
+ 	u32 slot;
++	pcmconf8xx_t *pcmcia;
++	u32 bus_freq;
++	int hwirq;
+ 
+ 	socket_state_t state;
+ 	struct pccard_mem_map mem_win[PCMCIA_MEM_WIN_NO];
+@@ -408,78 +406,21 @@ static void hardware_disable(int slot)
+ #if defined(CONFIG_MPC885ADS)
+ 
+ #define PCMCIA_BOARD_MSG "MPC885ADS"
++#define socket_get(_slot_) PCMCIA_SOCKET_KEY_5V
+ 
+-static int voltage_set(int slot, int vcc, int vpp)
++static inline void hardware_enable(int slot)
+ {
+-	u32 reg = 0;
+-	unsigned *bcsr_io;
+-
+-	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
+-
+-	switch(vcc) {
+-		case 0:
+-			break;
+-		case 33:
+-			reg |= BCSR1_PCCVCC0;
+-			break;
+-		case 50:
+-			reg |= BCSR1_PCCVCC1;
+-			break;
+-		default:
+-			goto out_unmap;
+-	}
+-
+-	switch(vpp) {
+-		case 0:
+-			break;
+-		case 33:
+-		case 50:
+-			if(vcc == vpp)
+-				reg |= BCSR1_PCCVPP1;
+-			else
+-				goto out_unmap;
+-			break;
+-		case 120:
+-			if ((vcc == 33) || (vcc == 50))
+-				reg |= BCSR1_PCCVPP0;
+-			else
+-				goto out_unmap;
+-		default:
+-			goto out_unmap;
+-	}
+-
+-	/* first, turn off all power */
+-	out_be32(bcsr_io, in_be32(bcsr_io) & ~(BCSR1_PCCVCC_MASK | BCSR1_PCCVPP_MASK));
+-
+-	/* enable new powersettings */
+-	out_be32(bcsr_io, in_be32(bcsr_io) | reg);
+-
+-	iounmap(bcsr_io);
+-	return 0;
+-
+-out_unmap:
+-	iounmap(bcsr_io);
+-	return 1;
++	 m8xx_pcmcia_ops.hw_ctrl(slot, 1);
+ }
+ 
+-#define socket_get(_slot_) PCMCIA_SOCKET_KEY_5V
+-
+-static void hardware_enable(int slot)
++static inline void hardware_disable(int slot)
+ {
+-	unsigned *bcsr_io;
+-
+-	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
+-	out_be32(bcsr_io, in_be32(bcsr_io) & ~BCSR1_PCCEN);
+-	iounmap(bcsr_io);
++	m8xx_pcmcia_ops.hw_ctrl(slot, 0);
+ }
+ 
+-static void hardware_disable(int slot)
++static inline int voltage_set(int slot, int vcc, int vpp)
+ {
+-	unsigned *bcsr_io;
+-
+-	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
+-	out_be32(bcsr_io, in_be32(bcsr_io) |  BCSR1_PCCEN);
+-	iounmap(bcsr_io);
++	return m8xx_pcmcia_ops.voltage_set(slot, vcc, vpp);
+ }
+ 
+ #endif
+@@ -604,48 +545,6 @@ static int voltage_set(int slot, int vcc
+ 
+ #endif /* CONFIG_PRxK */
+ 
+-static void m8xx_shutdown(void)
+-{
+-	u32 m, i;
+-	struct pcmcia_win *w;
+-
+-	for(i = 0; i < PCMCIA_SOCKETS_NO; i++){
+-		w = (void *) &((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pbr0;
+-
+-		out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pscr, M8XX_PCMCIA_MASK(i));
+-		out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per, in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per) & ~M8XX_PCMCIA_MASK(i));
+-
+-		/* turn off interrupt and disable CxOE */
+-		out_be32(M8XX_PGCRX(i), M8XX_PGCRX_CXOE);
+-
+-		/* turn off memory windows */
+-		for(m = 0; m < PCMCIA_MEM_WIN_NO; m++) {
+-			out_be32(&w->or, 0); /* set to not valid */
+-			w++;
+-		}
+-
+-		/* turn off voltage */
+-		voltage_set(i, 0, 0);
+-
+-		/* disable external hardware */
+-		hardware_disable(i);
+-	}
+-
+-	free_irq(pcmcia_schlvl, NULL);
+-}
+-
+-static struct device_driver m8xx_driver = {
+-        .name = "m8xx-pcmcia",
+-        .bus = &platform_bus_type,
+-        .suspend = pcmcia_socket_dev_suspend,
+-        .resume = pcmcia_socket_dev_resume,
+-};
+-
+-static struct platform_device m8xx_device = {
+-        .name = "m8xx-pcmcia",
+-        .id = 0,
+-};
+-
+ static u32 pending_events[PCMCIA_SOCKETS_NO];
+ static DEFINE_SPINLOCK(pending_event_lock);
+ 
+@@ -654,13 +553,14 @@ static irqreturn_t m8xx_interrupt(int ir
+ 	struct socket_info *s;
+ 	struct event_table *e;
+ 	unsigned int i, events, pscr, pipr, per;
++	pcmconf8xx_t	*pcmcia = socket[0].pcmcia;
+ 
+ 	dprintk("Interrupt!\n");
+ 	/* get interrupt sources */
+ 
+-	pscr = in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pscr);
+-	pipr = in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pipr);
+-	per = in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per);
++	pscr = in_be32(&pcmcia->pcmc_pscr);
++	pipr = in_be32(&pcmcia->pcmc_pipr);
++	per = in_be32(&pcmcia->pcmc_per);
+ 
+ 	for(i = 0; i < PCMCIA_SOCKETS_NO; i++) {
+ 		s = &socket[i];
+@@ -724,7 +624,7 @@ static irqreturn_t m8xx_interrupt(int ir
+ 			per &= ~M8XX_PCMCIA_RDY_L(0);
+ 			per &= ~M8XX_PCMCIA_RDY_L(1);
+ 
+-			out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per, per);
++			out_be32(&pcmcia->pcmc_per, per);
+ 
+ 			if (events)
+ 				pcmcia_parse_events(&socket[i].socket, events);
+@@ -732,7 +632,7 @@ static irqreturn_t m8xx_interrupt(int ir
+ 	}
+ 
+ 	/* clear the interrupt sources */
+-	out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pscr, pscr);
++	out_be32(&pcmcia->pcmc_pscr, pscr);
+ 
+ 	dprintk("Interrupt done.\n");
+ 
+@@ -753,7 +653,7 @@ static u32 m8xx_get_graycode(u32 size)
+ 	return k;
+ }
+ 
+-static u32 m8xx_get_speed(u32 ns, u32 is_io)
++static u32 m8xx_get_speed(u32 ns, u32 is_io, u32 bus_freq)
+ {
+ 	u32 reg, clocks, psst, psl, psht;
+ 
+@@ -781,7 +681,7 @@ static u32 m8xx_get_speed(u32 ns, u32 is
+ 
+ #define ADJ 180 /* 80 % longer accesstime - to be sure */
+ 
+-	clocks = ((M8XX_BUSFREQ / 1000) * ns) / 1000;
++	clocks = ((bus_freq / 1000) * ns) / 1000;
+ 	clocks = (clocks * ADJ) / (100*1000);
+ 	if(clocks >= PCMCIA_BMT_LIMIT) {
+ 		printk( "Max access time limit reached\n");
+@@ -806,8 +706,9 @@ static int m8xx_get_status(struct pcmcia
+ 	int lsock = container_of(sock, struct socket_info, socket)->slot;
+ 	struct socket_info *s = &socket[lsock];
+ 	unsigned int pipr, reg;
++	pcmconf8xx_t *pcmcia = s->pcmcia;
+ 
+-	pipr = in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pipr);
++	pipr = in_be32(&pcmcia->pcmc_pipr);
+ 
+ 	*value  = ((pipr & (M8XX_PCMCIA_CD1(lsock)
+ 			    | M8XX_PCMCIA_CD2(lsock))) == 0) ? SS_DETECT : 0;
+@@ -918,6 +819,7 @@ static int m8xx_set_socket(struct pcmcia
+ 	struct event_table *e;
+ 	unsigned int reg;
+ 	unsigned long flags;
++	pcmconf8xx_t *pcmcia = socket[0].pcmcia;
+ 
+ 	dprintk( "SetSocket(%d, flags %#3.3x, Vcc %d, Vpp %d, "
+ 	      "io_irq %d, csc_mask %#2.2x)\n", lsock, state->flags,
+@@ -927,6 +829,7 @@ static int m8xx_set_socket(struct pcmcia
+ 	if(voltage_set(lsock, state->Vcc, state->Vpp))
+ 		return -EINVAL;
+ 
++
+ 	/* Take care of reset... */
+ 	if(state->flags & SS_RESET)
+ 		out_be32(M8XX_PGCRX(lsock), in_be32(M8XX_PGCRX(lsock)) |  M8XX_PGCRX_CXRESET); /* active high */
+@@ -982,7 +885,8 @@ static int m8xx_set_socket(struct pcmcia
+ 		 * If io_irq is non-zero we should enable irq.
+ 		 */
+ 		if(state->io_irq) {
+-			out_be32(M8XX_PGCRX(lsock), in_be32(M8XX_PGCRX(lsock)) | mk_int_int_mask(state->io_irq) << 24);
++			out_be32(M8XX_PGCRX(lsock),
++				 in_be32(M8XX_PGCRX(lsock)) | mk_int_int_mask(s->hwirq) << 24);
+ 			/*
+ 			 * Strange thing here:
+ 			 * The manual does not tell us which interrupt
+@@ -1027,7 +931,7 @@ static int m8xx_set_socket(struct pcmcia
+ 	 * Writing ones will clear the bits.
+ 	 */
+ 
+-	out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pscr, reg);
++	out_be32(&pcmcia->pcmc_pscr, reg);
+ 
+ 	/*
+ 	 * Write the mask.
+@@ -1036,15 +940,8 @@ static int m8xx_set_socket(struct pcmcia
+ 	 * Ones will enable the interrupt.
+ 	 */
+ 
+-	/*
+-	  reg |= ((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per
+-	  & M8XX_PCMCIA_MASK(lsock);
+-	*/
+-
+-	reg |= in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per) &
+-		(M8XX_PCMCIA_MASK(0) | M8XX_PCMCIA_MASK(1));
+-
+-	out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per, reg);
++	reg |= in_be32(&pcmcia->pcmc_per) & (M8XX_PCMCIA_MASK(0) | M8XX_PCMCIA_MASK(1));
++	out_be32(&pcmcia->pcmc_per, reg);
+ 
+ 	spin_unlock_irqrestore(&events_lock, flags);
+ 
+@@ -1062,6 +959,8 @@ static int m8xx_set_io_map(struct pcmcia
+ 	struct socket_info *s = &socket[lsock];
+ 	struct pcmcia_win *w;
+ 	unsigned int reg, winnr;
++	pcmconf8xx_t *pcmcia = s->pcmcia;
++
+ 
+ #define M8XX_SIZE (io->stop - io->start + 1)
+ #define M8XX_BASE (PCMCIA_IO_WIN_BASE + io->start)
+@@ -1086,7 +985,7 @@ static int m8xx_set_io_map(struct pcmcia
+ 
+ 		/* setup registers */
+ 
+-		w = (void *) &((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pbr0;
++		w = (void *) &pcmcia->pcmc_pbr0;
+ 		w += winnr;
+ 
+ 		out_be32(&w->or, 0); /* turn off window first */
+@@ -1095,12 +994,13 @@ static int m8xx_set_io_map(struct pcmcia
+ 		reg <<= 27;
+   		reg |= M8XX_PCMCIA_POR_IO |(lsock << 2);
+ 
+-		reg |= m8xx_get_speed(io->speed, 1);
++		reg |= m8xx_get_speed(io->speed, 1, s->bus_freq);
+ 
+ 		if(io->flags & MAP_WRPROT)
+ 			reg |= M8XX_PCMCIA_POR_WRPROT;
+ 
+-		if(io->flags & (MAP_16BIT | MAP_AUTOSZ))
++		/*if(io->flags & (MAP_16BIT | MAP_AUTOSZ))*/
++		if(io->flags & MAP_16BIT)
+ 			reg |= M8XX_PCMCIA_POR_16BIT;
+ 
+ 		if(io->flags & MAP_ACTIVE)
+@@ -1117,7 +1017,7 @@ static int m8xx_set_io_map(struct pcmcia
+ 
+ 		/* setup registers */
+ 
+-		w = (void *) &((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pbr0;
++		w = (void *) &pcmcia->pcmc_pbr0;
+ 		w += winnr;
+ 
+ 		out_be32(&w->or, 0); /* turn off window */
+@@ -1144,6 +1044,7 @@ static int m8xx_set_mem_map(struct pcmci
+ 	struct pcmcia_win *w;
+ 	struct pccard_mem_map *old;
+ 	unsigned int reg, winnr;
++	pcmconf8xx_t *pcmcia = s->pcmcia;
+ 
+ 	dprintk( "SetMemMap(%d, %d, %#2.2x, %d ns, "
+ 	      "%#5.5lx, %#5.5x)\n", lsock, mem->map, mem->flags,
+@@ -1166,12 +1067,12 @@ static int m8xx_set_mem_map(struct pcmci
+ 
+ 	/* Setup the window in the pcmcia controller */
+ 
+-	w = (void *) &((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pbr0;
++	w = (void *) &pcmcia->pcmc_pbr0;
+ 	w += winnr;
+ 
+ 	reg |= lsock << 2;
+ 
+-	reg |= m8xx_get_speed(mem->speed, 0);
++	reg |= m8xx_get_speed(mem->speed, 0, s->bus_freq);
+ 
+ 	if(mem->flags & MAP_ATTRIB)
+ 		reg |=  M8XX_PCMCIA_POR_ATTRMEM;
+@@ -1236,60 +1137,69 @@ static int m8xx_sock_init(struct pcmcia_
+ 
+ }
+ 
+-static int m8xx_suspend(struct pcmcia_socket *sock)
++static int m8xx_sock_suspend(struct pcmcia_socket *sock)
+ {
+ 	return m8xx_set_socket(sock, &dead_socket);
+ }
+ 
+ static struct pccard_operations m8xx_services = {
+ 	.init	= m8xx_sock_init,
+-	.suspend = m8xx_suspend,
++	.suspend = m8xx_sock_suspend,
+ 	.get_status = m8xx_get_status,
+ 	.set_socket = m8xx_set_socket,
+ 	.set_io_map = m8xx_set_io_map,
+ 	.set_mem_map = m8xx_set_mem_map,
+ };
+ 
+-static int __init m8xx_init(void)
++static int __init m8xx_probe(struct of_device *ofdev, const struct of_device_id *match)
+ {
+ 	struct pcmcia_win *w;
+-	unsigned int i,m;
++	unsigned int i, m, hwirq;
++	pcmconf8xx_t *pcmcia;
++	int status;
++	struct device_node *np = ofdev->node;
+ 
+ 	pcmcia_info("%s\n", version);
+ 
+-	if (driver_register(&m8xx_driver))
+-		return -1;
++	pcmcia = of_iomap(np, 0);
++	if(pcmcia == NULL)
++		return -EINVAL;
++
++	pcmcia_schlvl = irq_of_parse_and_map(np, 0);
++	hwirq  = irq_map[pcmcia_schlvl].hwirq;
++	if (pcmcia_schlvl < 0)
++		return -EINVAL;
++
++	m8xx_pgcrx[0] = &pcmcia->pcmc_pgcra;
++	m8xx_pgcrx[1] = &pcmcia->pcmc_pgcrb;
++
+ 
+ 	pcmcia_info(PCMCIA_BOARD_MSG " using " PCMCIA_SLOT_MSG
+-		    " with IRQ %u.\n", pcmcia_schlvl);
++		    " with IRQ %u  (%d). \n", pcmcia_schlvl, hwirq);
+ 
+ 	/* Configure Status change interrupt */
+ 
+-	if(request_irq(pcmcia_schlvl, m8xx_interrupt, 0,
+-			  "m8xx_pcmcia", NULL)) {
++	if(request_irq(pcmcia_schlvl, m8xx_interrupt, IRQF_SHARED,
++			  driver_name, socket)) {
+ 		pcmcia_error("Cannot allocate IRQ %u for SCHLVL!\n",
+ 			     pcmcia_schlvl);
+ 		return -1;
+ 	}
+ 
+-	w = (void *) &((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pbr0;
+-
+-	out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pscr,
+-		M8XX_PCMCIA_MASK(0)| M8XX_PCMCIA_MASK(1));
++	w = (void *) &pcmcia->pcmc_pbr0;
+ 
+-	out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per,
+-		in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per) &
+-		~(M8XX_PCMCIA_MASK(0)| M8XX_PCMCIA_MASK(1)));
++	out_be32(&pcmcia->pcmc_pscr, M8XX_PCMCIA_MASK(0)| M8XX_PCMCIA_MASK(1));
++	clrbits32(&pcmcia->pcmc_per, M8XX_PCMCIA_MASK(0) | M8XX_PCMCIA_MASK(1));
+ 
+-/* connect interrupt and disable CxOE */
++	/* connect interrupt and disable CxOE */
+ 
+-	out_be32(M8XX_PGCRX(0), M8XX_PGCRX_CXOE | (mk_int_int_mask(pcmcia_schlvl) << 16));
+-	out_be32(M8XX_PGCRX(1), M8XX_PGCRX_CXOE | (mk_int_int_mask(pcmcia_schlvl) << 16));
++	out_be32(M8XX_PGCRX(0), M8XX_PGCRX_CXOE | (mk_int_int_mask(hwirq) << 16));
++	out_be32(M8XX_PGCRX(1), M8XX_PGCRX_CXOE | (mk_int_int_mask(hwirq) << 16));
+ 
+-/* intialize the fixed memory windows */
++	/* intialize the fixed memory windows */
+ 
+ 	for(i = 0; i < PCMCIA_SOCKETS_NO; i++){
+-		for(m = 0; m < PCMCIA_MEM_WIN_NO; m++) {
++		for (m = 0; m < PCMCIA_MEM_WIN_NO; m++) {
+ 			out_be32(&w->br, PCMCIA_MEM_WIN_BASE +
+ 				(PCMCIA_MEM_WIN_SIZE
+ 				 * (m + i * PCMCIA_MEM_WIN_NO)));
+@@ -1300,16 +1210,14 @@ static int __init m8xx_init(void)
+ 		}
+ 	}
+ 
+-/* turn off voltage */
++	/* turn off voltage */
+ 	voltage_set(0, 0, 0);
+ 	voltage_set(1, 0, 0);
+ 
+-/* Enable external hardware */
++	/* Enable external hardware */
+ 	hardware_enable(0);
+ 	hardware_enable(1);
+ 
+-	platform_device_register(&m8xx_device);
+-
+ 	for (i = 0 ; i < PCMCIA_SOCKETS_NO; i++) {
+ 		socket[i].slot = i;
+ 		socket[i].socket.owner = THIS_MODULE;
+@@ -1317,30 +1225,105 @@ static int __init m8xx_init(void)
+ 		socket[i].socket.irq_mask = 0x000;
+ 		socket[i].socket.map_size = 0x1000;
+ 		socket[i].socket.io_offset = 0;
+-		socket[i].socket.pci_irq = i  ? 7 : 9;
++		socket[i].socket.pci_irq = pcmcia_schlvl;
+ 		socket[i].socket.ops = &m8xx_services;
+-		socket[i].socket.resource_ops = &pccard_iodyn_ops;
++		socket[i].socket.resource_ops = &pccard_nonstatic_ops;
+ 		socket[i].socket.cb_dev = NULL;
+-		socket[i].socket.dev.parent = &m8xx_device.dev;
++		socket[i].socket.dev.parent = &ofdev->dev;
++		socket[i].pcmcia = pcmcia;
++		socket[i].bus_freq = ppc_proc_freq;
++		socket[i].hwirq = hwirq;
++
++
+ 	}
+ 
+-	for (i = 0; i < PCMCIA_SOCKETS_NO; i++)
+-		pcmcia_register_socket(&socket[i].socket);
++	for (i = 0; i < PCMCIA_SOCKETS_NO; i++) {
++		status = pcmcia_register_socket(&socket[i].socket);
++		if (status < 0)
++			pcmcia_error("Socket register failed\n");
++	}
+ 
+ 	return 0;
+ }
+ 
+-static void __exit m8xx_exit(void)
++static int m8xx_remove(struct of_device* ofdev)
+ {
+-	int i;
++	u32 m, i;
++	struct pcmcia_win *w;
++	pcmconf8xx_t *pcmcia = socket[0].pcmcia;
++
++	for (i = 0; i < PCMCIA_SOCKETS_NO; i++) {
++		w = (void *) &pcmcia->pcmc_pbr0;
++
++		out_be32(&pcmcia->pcmc_pscr, M8XX_PCMCIA_MASK(i));
++		out_be32(&pcmcia->pcmc_per,
++			in_be32(&pcmcia->pcmc_per) & ~M8XX_PCMCIA_MASK(i));
+ 
++		/* turn off interrupt and disable CxOE */
++		out_be32(M8XX_PGCRX(i), M8XX_PGCRX_CXOE);
++
++		/* turn off memory windows */
++		for (m = 0; m < PCMCIA_MEM_WIN_NO; m++) {
++			out_be32(&w->or, 0); /* set to not valid */
++			w++;
++		}
++
++		/* turn off voltage */
++		voltage_set(i, 0, 0);
++
++		/* disable external hardware */
++		hardware_disable(i);
++	}
+ 	for (i = 0; i < PCMCIA_SOCKETS_NO; i++)
+ 		pcmcia_unregister_socket(&socket[i].socket);
+ 
+-	m8xx_shutdown();
++	free_irq(pcmcia_schlvl, NULL);
+ 
+-	platform_device_unregister(&m8xx_device);
+-	driver_unregister(&m8xx_driver);
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int m8xx_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	return pcmcia_socket_dev_suspend(&pdev->dev, state);
++}
++
++static int m8xx_resume(struct platform_device *pdev)
++{
++	return pcmcia_socket_dev_resume(&pdev->dev);
++}
++#else
++#define m8xx_suspend NULL
++#define m8xx_resume NULL
++#endif
++
++static struct of_device_id m8xx_pcmcia_match[] = {
++	{
++		.type = "pcmcia",
++		.compatible = "fsl,pq-pcmcia",
++	},
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, m8xx_pcmcia_match);
++
++static struct of_platform_driver m8xx_pcmcia_driver = {
++	.name		= (char *) driver_name,
++	.match_table	= m8xx_pcmcia_match,
++	.probe		= m8xx_probe,
++	.remove		= m8xx_remove,
++	.suspend	= m8xx_suspend,
++	.resume		= m8xx_resume,
++};
++
++static int __init m8xx_init(void)
++{
++	return of_register_platform_driver(&m8xx_pcmcia_driver);
++}
++
++static void __exit m8xx_exit(void)
++{
++	of_unregister_platform_driver(&m8xx_pcmcia_driver);
+ }
+ 
+ module_init(m8xx_init);
+diff -puN include/asm-powerpc/mpc8xx.h~8xx-mpc885ads-pcmcia-support include/asm-powerpc/mpc8xx.h
+--- a/include/asm-powerpc/mpc8xx.h~8xx-mpc885ads-pcmcia-support
++++ a/include/asm-powerpc/mpc8xx.h
+@@ -23,6 +23,10 @@
+ #include <platforms/8xx/mpc885ads.h>
+ #endif
+ 
++#ifdef CONFIG_PCMCIA_M8XX
++extern struct mpc8xx_pcmcia_ops m8xx_pcmcia_ops;
++#endif
++
+ #endif /* CONFIG_8xx */
+ #endif /* __CONFIG_8xx_DEFS */
+ #endif /* __KERNEL__ */
+diff -puN include/linux/fsl_devices.h~8xx-mpc885ads-pcmcia-support include/linux/fsl_devices.h
+--- a/include/linux/fsl_devices.h~8xx-mpc885ads-pcmcia-support
++++ a/include/linux/fsl_devices.h
+@@ -120,5 +120,10 @@ struct fsl_spi_platform_data {
+ 	u32	sysclk;
+ };
+ 
++struct mpc8xx_pcmcia_ops {
++	void(*hw_ctrl)(int slot, int enable);
++	int(*voltage_set)(int slot, int vcc, int vpp);
++};
++
+ #endif /* _FSL_DEVICE_H_ */
+ #endif /* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from vitb@kernel.crashing.org are
