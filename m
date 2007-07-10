@@ -1,117 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - allow-page_owner-to-be-set-on-any-architecture-fix-fix.patch removed from -mm tree
-Date: Mon, 09 Jul 2007 16:59:10 -0700
-Message-ID: <200707092359.l69NxAr3022003@imap1.linux-foundation.org>
+Subject: - joydevc-automatic-re-calibration.patch removed from -mm tree
+Date: Mon, 09 Jul 2007 22:05:21 -0700
+Message-ID: <200707100505.l6A55LB4006850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58287 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34863 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760400AbXGIX7u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2007 19:59:50 -0400
+	by vger.kernel.org with ESMTP id S1751052AbXGJFGA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Jul 2007 01:06:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, apw@shadowen.org, mm-commits@vger.kernel.org
+To: rengolin@gmail.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     allow-page_owner-to-be-set-on-any-architecture-fix fix
+     joydev.c automatic re-calibration
 has been removed from the -mm tree.  Its filename was
-     allow-page_owner-to-be-set-on-any-architecture-fix-fix.patch
+     joydevc-automatic-re-calibration.patch
 
-This patch was dropped because it was folded into page-owner-tracking-leak-detector.patch
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: allow-page_owner-to-be-set-on-any-architecture-fix fix
-From: mel@skynet.ie (Mel Gorman)
+Subject: joydev.c automatic re-calibration
+From: "Renato Golin" <rengolin@gmail.com>
 
-Page-owner-tracking stores the a backtrace of an allocation in the struct
-page.  How the stack trace is generated depends on whether
-CONFIG_FRAME_POINTER is set or not.  If CONFIG_FRAME_POINTER is set, the
-frame pointer must be read using some inline assembler which is not
-available for all architectures.
+Add the automatic recalibration feature without spoiling previously
+calibrated devices.  It's a fix for those joysticks that report faulty
+range, specially Saitek Cyborg Evo Force.
 
-This patch uses the frame pointer where it is available but has a fallback
-where it is not.
+File: drivers/input/joydev.c
+Fix:
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Andy Whitcroft <apw@shadowen.org>
+- extracted code from joydev_connect to method
+  joydev_calculate_correction to be able to call it from both joydev_event
+  upon recalibration and joydev_connect during first connection.
+
+- on joydev_connect check ranges and zero calibration if found out of range
+
+- on joydev_event, every time found out of range, update min/max and
+  recalculate the correction
+
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 ++++++++++--------
- 1 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/input/joydev.c |   41 +++++++++++++++++++++++++++++++--------
+ 1 files changed, 33 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~allow-page_owner-to-be-set-on-any-architecture-fix-fix mm/page_alloc.c
---- a/mm/page_alloc.c~allow-page_owner-to-be-set-on-any-architecture-fix-fix
-+++ a/mm/page_alloc.c
-@@ -1479,14 +1479,17 @@ static inline void __stack_trace(struct 
- 	memset(page->trace, 0, sizeof(long) * 8);
+diff -puN drivers/input/joydev.c~joydevc-automatic-re-calibration drivers/input/joydev.c
+--- a/drivers/input/joydev.c~joydevc-automatic-re-calibration
++++ a/drivers/input/joydev.c
+@@ -54,6 +54,8 @@ struct joydev {
+ 	__u8 absmap[ABS_MAX + 1];
+ 	__u8 abspam[ABS_MAX + 1];
+ 	__s16 abs[ABS_MAX + 1];
++	__s16 absmin[ABS_MAX + 1];
++	__s16 absmax[ABS_MAX + 1];
+ };
  
- #ifdef CONFIG_FRAME_POINTER
--	while (valid_stack_ptr(tinfo, (void *)bp)) {
--		addr = *(unsigned long *)(bp + sizeof(long));
--		page->trace[i] = addr;
--		if (++i >= 8)
--			break;
--		bp = *(unsigned long *)bp;
-+	if (bp) {
-+		while (valid_stack_ptr(tinfo, (void *)bp)) {
-+			addr = *(unsigned long *)(bp + sizeof(long));
-+			page->trace[i] = addr;
-+			if (++i >= 8)
-+				break;
-+			bp = *(unsigned long *)bp;
-+		}
+ struct joydev_client {
+@@ -68,6 +70,19 @@ struct joydev_client {
+ 
+ static struct joydev *joydev_table[JOYDEV_MINORS];
+ 
++static void joydev_calculate_correction(int min, int max, int axis, struct joydev *joydev)
++{
++	int t, j = joydev->abspam[axis];
++	int flat = joydev->handle.dev->absflat[j];
++
++	joydev->corr[axis].coef[0] = (max + min) / 2 - flat;
++	joydev->corr[axis].coef[1] = (max + min) / 2 + flat;
++	if (!(t = ((max - min) / 2 - 2 * flat)))
 +		return;
- 	}
--#else
-+#endif /* CONFIG_FRAME_POINTER */
- 	while (valid_stack_ptr(tinfo, stack)) {
- 		addr = *stack++;
- 		if (__kernel_text_address(addr)) {
-@@ -1495,7 +1498,6 @@ static inline void __stack_trace(struct 
- 				break;
- 		}
- 	}
--#endif
- }
++	joydev->corr[axis].coef[2] = (1 << 29) / t;
++	joydev->corr[axis].coef[3] = (1 << 29) / t;
++}
++
+ static int joydev_correct(int value, struct js_corr *corr)
+ {
+ 	switch (corr->type) {
+@@ -104,6 +119,14 @@ static void joydev_event(struct input_ha
+ 		case EV_ABS:
+ 			event.type = JS_EVENT_AXIS;
+ 			event.number = joydev->absmap[code];
++			/* recalibration if needed */
++			if (value < joydev->absmin[code]) {
++				joydev->absmin[code] = value;
++				joydev_calculate_correction(value, joydev->absmax[code], code, joydev);
++			} else if (value > joydev->absmax[code]) {
++				joydev->absmax[code] = value;
++				joydev_calculate_correction(joydev->absmin[code], value, code, joydev);
++			}
+ 			event.value = joydev_correct(value, joydev->corr + event.number);
+ 			if (event.value == joydev->abs[event.number])
+ 				return;
+@@ -491,7 +514,7 @@ static int joydev_connect(struct input_h
+ 			  const struct input_device_id *id)
+ {
+ 	struct joydev *joydev;
+-	int i, j, t, minor;
++	int i, j, minor;
+ 	int error;
  
- static void set_page_owner(struct page *page, unsigned int order,
+ 	for (minor = 0; minor < JOYDEV_MINORS && joydev_table[minor]; minor++);
+@@ -538,19 +561,21 @@ static int joydev_connect(struct input_h
+ 
+ 	for (i = 0; i < joydev->nabs; i++) {
+ 		j = joydev->abspam[i];
+-		if (dev->absmax[j] == dev->absmin[j]) {
++		joydev->absmin[i] = dev->absmin[j];
++		joydev->absmax[i] = dev->absmax[j];
++		if (joydev->absmax[i] == joydev->absmin[i]) {
+ 			joydev->corr[i].type = JS_CORR_NONE;
+ 			joydev->abs[i] = dev->abs[j];
+ 			continue;
+ 		}
+ 		joydev->corr[i].type = JS_CORR_BROKEN;
+ 		joydev->corr[i].prec = dev->absfuzz[j];
+-		joydev->corr[i].coef[0] = (dev->absmax[j] + dev->absmin[j]) / 2 - dev->absflat[j];
+-		joydev->corr[i].coef[1] = (dev->absmax[j] + dev->absmin[j]) / 2 + dev->absflat[j];
+-		if (!(t = ((dev->absmax[j] - dev->absmin[j]) / 2 - 2 * dev->absflat[j])))
+-			continue;
+-		joydev->corr[i].coef[2] = (1 << 29) / t;
+-		joydev->corr[i].coef[3] = (1 << 29) / t;
++
++		if (dev->abs[j] > joydev->absmax[i] || dev->abs[j] < joydev->absmin[i]) {
++			printk("Joydev: Bad axis range, recalibrating automatically\n");
++			joydev_calculate_correction(0, 0, i, joydev);
++		} else
++			joydev_calculate_correction(joydev->absmin[i], joydev->absmax[i], i, joydev);
+ 
+ 		joydev->abs[i] = joydev_correct(dev->abs[j], joydev->corr + i);
+ 	}
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from rengolin@gmail.com are
 
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-split-the-free-lists-for-movable-and-unmovable-allocations.patch
-choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-drain-per-cpu-lists-when-high-order-allocations-fail.patch
-move-free-pages-between-lists-on-steal.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-group-high-order-atomic-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-bias-the-placement-of-kernel-pages-at-lower-pfns.patch
-be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-remove-alloc_zeroed_user_highpage.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-handle-kernelcore=-generic.patch
-lumpy-reclaim-v4.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-ext2-reservations.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-page-owner-tracking-leak-detector.patch
-allow-page_owner-to-be-set-on-any-architecture-fix-fix.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+joydevc-automatic-re-calibration.patch
