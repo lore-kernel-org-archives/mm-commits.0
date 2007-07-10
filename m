@@ -1,91 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-block-layer.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:49:25 -0700
-Message-ID: <200707101949.l6AJnP5S026097@imap1.linux-foundation.org>
+Subject: - s390-rename-cpu_idle-to-s390_cpu_idle.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:49:23 -0700
+Message-ID: <200707101949.l6AJnNDR026089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51411 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43429 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760485AbXGJTzK (ORCPT
+	by vger.kernel.org with ESMTP id S1760865AbXGJTzL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 15:55:10 -0400
+	Tue, 10 Jul 2007 15:55:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jengelh@gmx.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, mingo@elte.hu, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects: block layer
+     s390: rename CPU_IDLE to S390_CPU_IDLE
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-block-layer.patch
+     s390-rename-cpu_idle-to-s390_cpu_idle.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: block layer
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: s390: rename CPU_IDLE to S390_CPU_IDLE
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-Use menuconfigs instead of menus, so the whole menu can be disabled at once
-instead of going through all options.
+sched-cfs-v2.6.22-git-v18.patch introduces CPU_IDLE in sched.h.
+This conflict with the already existing define in
+include/asm-s390/processor.h
+Just rename the s390 defines, since they will go away as soon as
+we support CONFIG_NO_HZ instead of our own CONFIG_NO_IDLE_HZ.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/Kconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/s390/kernel/process.c   |    6 +++---
+ arch/s390/kernel/time.c      |    4 ++--
+ arch/s390/kernel/vtime.c     |    4 ++--
+ include/asm-s390/processor.h |    4 ++--
+ 4 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN block/Kconfig~use-menuconfig-objects-block-layer block/Kconfig
---- a/block/Kconfig~use-menuconfig-objects-block-layer
-+++ a/block/Kconfig
-@@ -1,7 +1,7 @@
- #
- # Block layer core configuration
- #
--config BLOCK
-+menuconfig BLOCK
-        bool "Enable the block layer" if EMBEDDED
-        default y
-        help
-@@ -49,6 +49,6 @@ config LSF
+diff -puN arch/s390/kernel/process.c~s390-rename-cpu_idle-to-s390_cpu_idle arch/s390/kernel/process.c
+--- a/arch/s390/kernel/process.c~s390-rename-cpu_idle-to-s390_cpu_idle
++++ a/arch/s390/kernel/process.c
+@@ -93,8 +93,8 @@ void do_monitor_call(struct pt_regs *reg
+ 	/* disable monitor call class 0 */
+ 	__ctl_clear_bit(8, 15);
  
- 	  If unsure, say Y.
+-	atomic_notifier_call_chain(&idle_chain, CPU_NOT_IDLE,
+-			    (void *)(long) smp_processor_id());
++	atomic_notifier_call_chain(&idle_chain, S390_CPU_NOT_IDLE,
++				   (void *)(long) smp_processor_id());
+ }
  
--endif
-+endif # BLOCK
+ extern void s390_handle_mcck(void);
+@@ -115,7 +115,7 @@ static void default_idle(void)
+ 	}
  
- source block/Kconfig.iosched
+ 	rc = atomic_notifier_call_chain(&idle_chain,
+-			CPU_IDLE, (void *)(long) cpu);
++					S390_CPU_IDLE, (void *)(long) cpu);
+ 	if (rc != NOTIFY_OK && rc != NOTIFY_DONE)
+ 		BUG();
+ 	if (rc != NOTIFY_OK) {
+diff -puN arch/s390/kernel/time.c~s390-rename-cpu_idle-to-s390_cpu_idle arch/s390/kernel/time.c
+--- a/arch/s390/kernel/time.c~s390-rename-cpu_idle-to-s390_cpu_idle
++++ a/arch/s390/kernel/time.c
+@@ -226,10 +226,10 @@ static int nohz_idle_notify(struct notif
+ 			    unsigned long action, void *hcpu)
+ {
+ 	switch (action) {
+-	case CPU_IDLE:
++	case S390_CPU_IDLE:
+ 		stop_hz_timer();
+ 		break;
+-	case CPU_NOT_IDLE:
++	case S390_CPU_NOT_IDLE:
+ 		start_hz_timer();
+ 		break;
+ 	}
+diff -puN arch/s390/kernel/vtime.c~s390-rename-cpu_idle-to-s390_cpu_idle arch/s390/kernel/vtime.c
+--- a/arch/s390/kernel/vtime.c~s390-rename-cpu_idle-to-s390_cpu_idle
++++ a/arch/s390/kernel/vtime.c
+@@ -545,10 +545,10 @@ static int vtimer_idle_notify(struct not
+ 			      unsigned long action, void *hcpu)
+ {
+ 	switch (action) {
+-	case CPU_IDLE:
++	case S390_CPU_IDLE:
+ 		stop_cpu_timer();
+ 		break;
+-	case CPU_NOT_IDLE:
++	case S390_CPU_NOT_IDLE:
+ 		start_cpu_timer();
+ 		break;
+ 	}
+diff -puN include/asm-s390/processor.h~s390-rename-cpu_idle-to-s390_cpu_idle include/asm-s390/processor.h
+--- a/include/asm-s390/processor.h~s390-rename-cpu_idle-to-s390_cpu_idle
++++ a/include/asm-s390/processor.h
+@@ -357,8 +357,8 @@ extern void (*s390_base_ext_handler_fn)(
+ /*
+  * CPU idle notifier chain.
+  */
+-#define CPU_IDLE	0
+-#define CPU_NOT_IDLE	1
++#define S390_CPU_IDLE		0
++#define S390_CPU_NOT_IDLE	1
+ 
+ struct notifier_block;
+ int register_idle_notifier(struct notifier_block *nb);
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-origin.patch
-git-acpi.patch
-git-infiniband.patch
-git-kvm.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
-git-block.patch
-use-menuconfig-objects-ii-auxdisplay.patch
-use-menuconfig-objects-ii-edac.patch
-use-menuconfig-objects-ii-ipmi.patch
-use-menuconfig-objects-ii-misc-strange-dev.patch
-use-menuconfig-objects-ii-module-menu.patch
-use-menuconfig-objects-ii-oprofile.patch
-use-menuconfig-objects-ii-telephony.patch
-use-menuconfig-objects-ii-tpm.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
-kernel-utf-8-handling.patch
-use-menuconfig-objects-isdn-config_isdn.patch
-use-menuconfig-objects-isdn-config_isdn_i4l.patch
-use-menuconfig-objects-isdn-config_isdn_drv_gigaset.patch
-use-menuconfig-objects-isdn-config_isdn_capi.patch
-use-menuconfig-objects-isdn-config_capi_avm.patch
-use-menuconfig-objects-isdn-config_capi_eicon.patch
-use-menuconfig-objects-ii-md.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+git-acpi-s390-struct-bin_attribute-changes.patch
+git-s390.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
+generic-bug-use-show_regs-instead-of-dump_stack.patch
