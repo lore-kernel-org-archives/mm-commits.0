@@ -1,308 +1,780 @@
 From: akpm@linux-foundation.org
-Subject: - cfs-scheduler-warning-fixes.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:49:49 -0700
-Message-ID: <200707101949.l6AJnn3C026195@imap1.linux-foundation.org>
+Subject: - cfs-scheduler-v15-rc3-mm1.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:49:51 -0700
+Message-ID: <200707101949.l6AJnpdD026198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54739 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51354 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754942AbXGJTzI (ORCPT
+	by vger.kernel.org with ESMTP id S1760521AbXGJTzJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 15:55:08 -0400
+	Tue, 10 Jul 2007 15:55:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cfs-scheduler-warning-fixes
+     CFS scheduler, -v15, -rc3-mm1
 has been removed from the -mm tree.  Its filename was
-     cfs-scheduler-warning-fixes.patch
+     cfs-scheduler-v15-rc3-mm1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cfs-scheduler-warning-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: CFS scheduler, -v15, -rc3-mm1
+From: Ingo Molnar <mingo@elte.hu>
 
-ia64:
+-v15 includes smaller fixes only. More precise sched_info statistics
+from Balbir Singh, interactivity tweaks from Mike Galbraith and a number
+of corner-cases fixed/cleaned up by Dmitry Adamushko.
 
-kernel/sched_debug.c: In function `print_task':
-kernel/sched_debug.c:40: warning: long long int format, long unsigned int arg (arg 6)
-kernel/sched_debug.c:40: warning: long long int format, long unsigned int arg (arg 5)
-kernel/sched_debug.c: In function `print_rq_runtime_sum':
-kernel/sched_debug.c:96: warning: long long int format, s64 arg (arg 4)
-kernel/sched_debug.c:96: warning: long long int format, s64 arg (arg 3)
-kernel/sched_debug.c: In function `proc_sched_show_task':
-kernel/sched_debug.c:215: warning: long long int format, long unsigned int arg (arg 4)
-kernel/sched_debug.c:215: warning: long long int format, long unsigned int arg (arg 3)
+Changes since -v14:
 
-Cc: Ingo Molnar <mingo@elte.hu>
+ - more precise sched_info statistics (Balbir Singh)
+
+ - call update_curr() when preempting to an RT task (Dmitry Adamushko)
+
+ - smaller interactivity tweaks (Mike Galbraith)
+
+ - apply runtime-limit to yield_to() as well (Dmitry Adamushko)
+
+ - load-balancing iterator cleanup/simplification (Dmitry Adamushko)
+
+ - fix code duplication (noticed by Li Yu)
+
+ - cleanups (Mike Galbraith)
+
+ - fix CPU usage accounting of threadeded apps in 'top'
+
+ - more cleanups
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_debug.c |    7 ++++---
- sysctl.c             |    0 
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ fs/proc/array.c       |   49 +++++---
+ include/linux/sched.h |   10 -
+ kernel/delayacct.c    |   10 -
+ kernel/sched_fair.c   |  233 +++++++++++++++-------------------------
+ kernel/sched_stats.h  |   28 ++--
+ 5 files changed, 150 insertions(+), 180 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~cfs-scheduler-warning-fixes Documentation/kernel-parameters.txt
-diff -puN Documentation/sched-design-CFS.txt~cfs-scheduler-warning-fixes Documentation/sched-design-CFS.txt
-diff -puN arch/i386/kernel/smpboot.c~cfs-scheduler-warning-fixes arch/i386/kernel/smpboot.c
-diff -puN arch/i386/kernel/syscall_table.S~cfs-scheduler-warning-fixes arch/i386/kernel/syscall_table.S
-diff -puN arch/i386/kernel/tsc.c~cfs-scheduler-warning-fixes arch/i386/kernel/tsc.c
-diff -puN arch/ia64/kernel/setup.c~cfs-scheduler-warning-fixes arch/ia64/kernel/setup.c
-diff -puN arch/mips/kernel/smp.c~cfs-scheduler-warning-fixes arch/mips/kernel/smp.c
-diff -puN arch/sparc/kernel/smp.c~cfs-scheduler-warning-fixes arch/sparc/kernel/smp.c
-diff -puN arch/sparc64/kernel/smp.c~cfs-scheduler-warning-fixes arch/sparc64/kernel/smp.c
-diff -puN drivers/char/drm/radeon_cp.c~cfs-scheduler-warning-fixes drivers/char/drm/radeon_cp.c
-diff -puN fs/proc/array.c~cfs-scheduler-warning-fixes fs/proc/array.c
-diff -puN fs/proc/base.c~cfs-scheduler-warning-fixes fs/proc/base.c
-diff -puN include/asm-generic/bitops/sched.h~cfs-scheduler-warning-fixes include/asm-generic/bitops/sched.h
-diff -puN include/asm-i386/unistd.h~cfs-scheduler-warning-fixes include/asm-i386/unistd.h
-diff -puN include/asm-x86_64/unistd.h~cfs-scheduler-warning-fixes include/asm-x86_64/unistd.h
-diff -puN include/linux/hardirq.h~cfs-scheduler-warning-fixes include/linux/hardirq.h
-diff -puN include/linux/sched.h~cfs-scheduler-warning-fixes include/linux/sched.h
-diff -puN include/linux/topology.h~cfs-scheduler-warning-fixes include/linux/topology.h
-diff -puN init/main.c~cfs-scheduler-warning-fixes init/main.c
-diff -puN kernel/exit.c~cfs-scheduler-warning-fixes kernel/exit.c
-diff -puN kernel/fork.c~cfs-scheduler-warning-fixes kernel/fork.c
-diff -puN kernel/posix-cpu-timers.c~cfs-scheduler-warning-fixes kernel/posix-cpu-timers.c
-diff -puN kernel/sched.c~cfs-scheduler-warning-fixes kernel/sched.c
-diff -puN kernel/sched_debug.c~cfs-scheduler-warning-fixes kernel/sched_debug.c
---- a/kernel/sched_debug.c~cfs-scheduler-warning-fixes
-+++ a/kernel/sched_debug.c
-@@ -40,7 +40,8 @@ print_task(struct seq_file *m, struct rq
- 	SEQ_printf(m, "%15s %5d %15Ld %13Ld %13Ld %9Ld %5d "
- 		      "%15Ld %15Ld %15Ld %15Ld %15Ld\n",
- 		p->comm, p->pid,
--		(long long)p->fair_key, (long long)p->fair_key - rq->fair_clock,
-+		(long long)p->fair_key,
-+		(long long)(p->fair_key - rq->fair_clock),
- 		(long long)p->wait_runtime,
- 		(long long)p->nr_switches,
- 		p->prio,
-@@ -94,7 +95,7 @@ static void print_rq_runtime_sum(struct 
- 	spin_unlock_irqrestore(&rq->lock, flags);
- 
- 	SEQ_printf(m, "  .%-22s: %Ld\n", "wait_runtime_rq_sum",
--		wait_runtime_rq_sum);
-+		(long long)wait_runtime_rq_sum);
+diff -puN fs/proc/array.c~cfs-scheduler-v15-rc3-mm1 fs/proc/array.c
+--- a/fs/proc/array.c~cfs-scheduler-v15-rc3-mm1
++++ a/fs/proc/array.c
+@@ -320,6 +320,29 @@ int proc_pid_status(struct task_struct *
+ 	return buffer - orig;
  }
  
- static void print_cpu(struct seq_file *m, int cpu, u64 now)
-@@ -212,7 +213,7 @@ void proc_sched_show_task(struct task_st
++static clock_t task_utime(struct task_struct *p)
++{
++	/*
++	 * Use CFS's precise accounting, if available:
++	 */
++	if (!has_rt_policy(p) && !(sysctl_sched_load_smoothing & 128))
++		return nsec_to_clock_t(p->sum_exec_runtime);
++
++	return cputime_to_clock_t(p->utime);
++}
++
++static clock_t task_stime(struct task_struct *p)
++{
++	/*
++	 * Use CFS's precise accounting, if available:
++	 */
++	if (!has_rt_policy(p) && !(sysctl_sched_load_smoothing & 128))
++		return 0;
++
++	return cputime_to_clock_t(p->stime);
++}
++
++
+ static int do_task_stat(struct task_struct *task, char * buffer, int whole)
+ {
+ 	unsigned long vsize, eip, esp, wchan = ~0UL;
+@@ -334,7 +357,8 @@ static int do_task_stat(struct task_stru
+ 	unsigned long long start_time;
+ 	unsigned long cmin_flt = 0, cmaj_flt = 0;
+ 	unsigned long  min_flt = 0,  maj_flt = 0;
+-	cputime_t cutime, cstime, utime, stime;
++	cputime_t cutime, cstime;
++	clock_t utime, stime;
+ 	unsigned long rsslim = 0;
+ 	char tcomm[sizeof(task->comm)];
+ 	unsigned long flags;
+@@ -352,7 +376,8 @@ static int do_task_stat(struct task_stru
  
- 		t0 = sched_clock();
- 		t1 = sched_clock();
--		SEQ_printf(m, "%-25s:%20Ld\n", "clock-delta", (long long)t1-t0);
-+		SEQ_printf(m, "%-25s:%20Ld\n", "clock-delta", (long long)(t1-t0));
+ 	sigemptyset(&sigign);
+ 	sigemptyset(&sigcatch);
+-	cutime = cstime = utime = stime = cputime_zero;
++	cutime = cstime = cputime_zero;
++	utime = stime = 0;
+ 
+ 	rcu_read_lock();
+ 	if (lock_task_sighand(task, &flags)) {
+@@ -378,15 +403,15 @@ static int do_task_stat(struct task_stru
+ 			do {
+ 				min_flt += t->min_flt;
+ 				maj_flt += t->maj_flt;
+-				utime = cputime_add(utime, t->utime);
+-				stime = cputime_add(stime, t->stime);
++				utime += task_utime(t);
++				stime += task_stime(t);
+ 				t = next_thread(t);
+ 			} while (t != task);
+ 
+ 			min_flt += sig->min_flt;
+ 			maj_flt += sig->maj_flt;
+-			utime = cputime_add(utime, sig->utime);
+-			stime = cputime_add(stime, sig->stime);
++			utime += cputime_to_clock_t(sig->utime);
++			stime += cputime_to_clock_t(sig->stime);
+ 		}
+ 
+ 		sid = signal_session(sig);
+@@ -402,8 +427,8 @@ static int do_task_stat(struct task_stru
+ 	if (!whole) {
+ 		min_flt = task->min_flt;
+ 		maj_flt = task->maj_flt;
+-		utime = task->utime;
+-		stime = task->stime;
++		utime = task_utime(task);
++		stime = task_stime(task);
+ 	}
+ 
+ 	/* scale priority and nice values from timeslices to -20..20 */
+@@ -419,14 +444,6 @@ static int do_task_stat(struct task_stru
+ 	/* convert nsec -> ticks */
+ 	start_time = nsec_to_clock_t(start_time);
+ 
+-	/*
+-	 * Use CFS's precise accounting, if available:
+-	 */
+-	if (!has_rt_policy(task)) {
+-		utime = nsec_to_clock_t(task->sum_exec_runtime);
+-		stime = 0;
+-	}
+-
+ 	res = sprintf(buffer,"%d (%s) %c %d %d %d %d %d %u %lu \
+ %lu %lu %lu %lu %lu %ld %ld %ld %ld %d 0 %llu %lu %ld %lu %lu %lu %lu %lu \
+ %lu %lu %lu %lu %lu %lu %lu %lu %d %d %u %u %llu\n",
+diff -puN include/linux/sched.h~cfs-scheduler-v15-rc3-mm1 include/linux/sched.h
+--- a/include/linux/sched.h~cfs-scheduler-v15-rc3-mm1
++++ a/include/linux/sched.h
+@@ -595,13 +595,13 @@ struct reclaim_state;
+ #if defined(CONFIG_SCHEDSTATS) || defined(CONFIG_TASK_DELAY_ACCT)
+ struct sched_info {
+ 	/* cumulative counters */
+-	unsigned long	cpu_time,	/* time spent on the cpu */
+-			run_delay,	/* time spent waiting on a runqueue */
+-			pcnt;		/* # of timeslices run on this cpu */
++	unsigned long pcnt;	      /* # of times run on this cpu */
++	unsigned long long cpu_time,  /* time spent on the cpu */
++			   run_delay; /* time spent waiting on a runqueue */
+ 
+ 	/* timestamps */
+-	unsigned long	last_arrival,	/* when we last ran on a cpu */
+-			last_queued;	/* when we were last queued to run */
++	unsigned long long last_arrival,/* when we last ran on a cpu */
++			   last_queued;	/* when we were last queued to run */
+ };
+ #endif /* defined(CONFIG_SCHEDSTATS) || defined(CONFIG_TASK_DELAY_ACCT) */
+ 
+diff -puN kernel/delayacct.c~cfs-scheduler-v15-rc3-mm1 kernel/delayacct.c
+--- a/kernel/delayacct.c~cfs-scheduler-v15-rc3-mm1
++++ a/kernel/delayacct.c
+@@ -99,9 +99,10 @@ void __delayacct_blkio_end(void)
+ int __delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
+ {
+ 	s64 tmp;
+-	struct timespec ts;
+-	unsigned long t1,t2,t3;
++	unsigned long t1;
++	unsigned long long t2,t3;
+ 	unsigned long flags;
++	struct timespec ts;
+ 
+ 	/* Though tsk->delays accessed later, early exit avoids
+ 	 * unnecessary returning of other data
+@@ -124,11 +125,10 @@ int __delayacct_add_tsk(struct taskstats
+ 
+ 	d->cpu_count += t1;
+ 
+-	jiffies_to_timespec(t2, &ts);
+-	tmp = (s64)d->cpu_delay_total + timespec_to_ns(&ts);
++	tmp = (s64)d->cpu_delay_total + t2;
+ 	d->cpu_delay_total = (tmp < (s64)d->cpu_delay_total) ? 0 : tmp;
+ 
+-	tmp = (s64)d->cpu_run_virtual_total + (s64)jiffies_to_usecs(t3) * 1000;
++	tmp = (s64)d->cpu_run_virtual_total + t3;
+ 	d->cpu_run_virtual_total =
+ 		(tmp < (s64)d->cpu_run_virtual_total) ?	0 : tmp;
+ 
+diff -puN kernel/sched_fair.c~cfs-scheduler-v15-rc3-mm1 kernel/sched_fair.c
+--- a/kernel/sched_fair.c~cfs-scheduler-v15-rc3-mm1
++++ a/kernel/sched_fair.c
+@@ -30,7 +30,7 @@ unsigned int sysctl_sched_wakeup_granula
+ 
+ unsigned int sysctl_sched_runtime_limit __read_mostly = 6000000000ULL/HZ;
+ 
+-unsigned int sysctl_sched_load_smoothing __read_mostly = 8 | 16 | 32;
++unsigned int sysctl_sched_load_smoothing __read_mostly = 1 | 2 | 4 | 8 | 0;
+ 
+ /*
+  * sys_sched_yield unfairness bug workaround switch.
+@@ -134,34 +134,19 @@ niced_granularity(struct task_struct *cu
+ 	return curr->load_weight * (s64)(granularity / NICE_0_LOAD);
+ }
+ 
+-unsigned long get_rq_load(struct rq *rq)
+-{
+-	unsigned long load = rq->cpu_load[CPU_LOAD_IDX_MAX-1] + 1;
+-
+-	if (!(sysctl_sched_load_smoothing & 1))
+-		return rq->raw_weighted_load;
+-
+-	if (sysctl_sched_load_smoothing & 4)
+-		load = max(load, rq->raw_weighted_load);
+-
+-	return load;
+-}
+-
+ static void limit_wait_runtime(struct rq *rq, struct task_struct *p)
+ {
+ 	s64 limit = sysctl_sched_runtime_limit;
+-	s64 nice_limit = limit; // niced_granularity(p, limit);
+ 
+ 	/*
+ 	 * Niced tasks have the same history dynamic range as
+-	 * non-niced tasks, but their limits are offset.
++	 * non-niced tasks:
+ 	 */
+-	if (p->wait_runtime > nice_limit) {
+-		p->wait_runtime = nice_limit;
++	if (p->wait_runtime > limit) {
++		p->wait_runtime = limit;
+ 		p->wait_runtime_overruns++;
+ 		rq->wait_runtime_overruns++;
+ 	}
+-	limit = (limit << 1) - nice_limit;
+ 	if (p->wait_runtime < -limit) {
+ 		p->wait_runtime = -limit;
+ 		p->wait_runtime_underruns++;
+@@ -183,59 +168,64 @@ static void add_wait_runtime(struct rq *
+ 	rq->wait_runtime += p->wait_runtime;
+ }
+ 
++static s64 div64_s(s64 divident, unsigned long divisor)
++{
++	u64 tmp;
++
++	if (divident < 0) {
++		tmp = -divident;
++		do_div(tmp, divisor);
++		return -(s64)tmp;
++	} else {
++		tmp = divident;
++		do_div(tmp, divisor);
++		return (s64)tmp;
++	}
++}
++
+ /*
+  * Update the current task's runtime statistics. Skip current tasks that
+  * are not in our scheduling class.
+  */
+ static inline void update_curr(struct rq *rq, u64 now)
+ {
++	unsigned long load = rq->raw_weighted_load;
+ 	u64 delta_exec, delta_fair, delta_mine;
+ 	struct task_struct *curr = rq->curr;
+ 
+-	if (curr->sched_class != &fair_sched_class ||
+-			!rq->raw_weighted_load || curr == rq->idle)
++	if (curr->sched_class != &fair_sched_class || curr == rq->idle)
+ 		return;
+ 	/*
+ 	 * Get the amount of time the current task was running
+ 	 * since the last time we changed raw_weighted_load:
+ 	 */
+ 	delta_exec = now - curr->exec_start;
++	if (unlikely(delta_exec < 0))
++		delta_exec = 0;
+ 	if (unlikely(delta_exec > curr->exec_max))
+ 		curr->exec_max = delta_exec;
+ 
+-	if (sysctl_sched_load_smoothing & 1) {
+-		unsigned long load = get_rq_load(rq);
+-
+-		if (sysctl_sched_load_smoothing & 2) {
+-			delta_fair = delta_exec * NICE_0_LOAD;
+-			do_div(delta_fair, load);
+-		} else {
+-			delta_fair = delta_exec * NICE_0_LOAD;
+-			do_div(delta_fair, rq->raw_weighted_load);
+-		}
+-
+-		delta_mine = delta_exec * curr->load_weight;
+-		do_div(delta_mine, load);
+-	} else {
+-		delta_fair = delta_exec * NICE_0_LOAD;
+-		delta_fair += rq->raw_weighted_load >> 1;
+-		do_div(delta_fair, rq->raw_weighted_load);
+-
+-		delta_mine = delta_exec * curr->load_weight;
+-		delta_mine += rq->raw_weighted_load >> 1;
+-		do_div(delta_mine, rq->raw_weighted_load);
+-	}
+-
+ 	curr->sum_exec_runtime += delta_exec;
+ 	curr->exec_start = now;
+ 	rq->exec_clock += delta_exec;
+ 
++	if (!load)
++		return;
+ 	/*
+ 	 * Task already marked for preemption, do not burden
+-	 * it with the cost of not having left the CPU yet.
++	 * it with the cost of not having left the CPU yet:
+ 	 */
+-	if (unlikely(test_tsk_thread_flag(curr, TIF_NEED_RESCHED)))
+-		goto out_nowait;
++	if (unlikely(sysctl_sched_load_smoothing & 1))
++		if (unlikely(test_tsk_thread_flag(curr, TIF_NEED_RESCHED)))
++			return;
++
++	delta_fair = delta_exec * NICE_0_LOAD;
++	delta_fair += load >> 1;
++	do_div(delta_fair, load);
++
++	delta_mine = delta_exec * curr->load_weight;
++	delta_mine += load >> 1;
++	do_div(delta_mine, load);
+ 
+ 	rq->fair_clock += delta_fair;
+ 	/*
+@@ -246,8 +236,6 @@ static inline void update_curr(struct rq
+ 	 * [Note: delta_mine - delta_exec is negative]:
+ 	 */
+ 	add_wait_runtime(rq, curr, delta_mine - delta_exec);
+-out_nowait:
+-	;
+ }
+ 
+ static inline void
+@@ -279,47 +267,13 @@ update_stats_enqueue(struct rq *rq, stru
+ 	/*
+ 	 * Optimize the common nice 0 case:
+ 	 */
+-	if (likely(p->load_weight == NICE_0_LOAD)) {
++	if (likely(p->load_weight == NICE_0_LOAD))
+ 		key -= p->wait_runtime;
+-	} else {
+-		int negative = p->wait_runtime < 0;
+-		u64 tmp;
+-
+-		if (p->load_weight > NICE_0_LOAD) {
+-			/* negative-reniced tasks get helped: */
+-
+-			if (negative) {
+-				tmp = -p->wait_runtime;
+-				tmp *= NICE_0_LOAD;
+-				do_div(tmp, p->load_weight);
+-
+-				key += tmp;
+-			} else {
+-				tmp = p->wait_runtime;
+-				tmp *= p->load_weight;
+-				do_div(tmp, NICE_0_LOAD);
+-
+-				key -= tmp;
+-			}
+-		} else {
+-			/* plus-reniced tasks get hurt: */
+-
+-			if (negative) {
+-				tmp = -p->wait_runtime;
+-
+-				tmp *= NICE_0_LOAD;
+-				do_div(tmp, p->load_weight);
+-
+-				key += tmp;
+-			} else {
+-				tmp = p->wait_runtime;
+-
+-				tmp *= p->load_weight;
+-				do_div(tmp, NICE_0_LOAD);
+-
+-				key -= tmp;
+-			}
+-		}
++	else {
++		if (p->wait_runtime < 0)
++			key -= div64_s(p->wait_runtime * NICE_0_LOAD, p->load_weight);
++		else
++			key -= div64_s(p->wait_runtime * p->load_weight, NICE_0_LOAD);
+ 	}
+ 
+ 	p->fair_key = key;
+@@ -339,9 +293,10 @@ update_stats_wait_end(struct rq *rq, str
+ 
+ 	if (p->wait_start_fair) {
+ 		delta_fair = rq->fair_clock - p->wait_start_fair;
++
+ 		if (unlikely(p->load_weight != NICE_0_LOAD))
+-			delta_fair = (delta_fair * p->load_weight) /
+-								NICE_0_LOAD;
++			delta_fair = div64_s(delta_fair * p->load_weight,
++								NICE_0_LOAD);
+ 		add_wait_runtime(rq, p, delta_fair);
+ 	}
+ 
+@@ -379,31 +334,14 @@ update_stats_curr_start(struct rq *rq, s
+ static inline void
+ update_stats_curr_end(struct rq *rq, struct task_struct *p, u64 now)
+ {
+-	update_curr(rq, now);
+-
+ 	p->exec_start = 0;
+ }
+ 
+-long div64_s(s64 divident, unsigned long divisor)
+-{
+-	u64 tmp;
+-
+-	if (divident < 0) {
+-		tmp = -divident;
+-		do_div(tmp, divisor);
+-		return -(s64)tmp;
+-	} else {
+-		tmp = divident;
+-		do_div(tmp, divisor);
+-		return (s64)tmp;
+-	}
+-}
+-
+ /*
+  * A task gets added back to the runnable tasks and gets
+- * a small credit for the CPU time it missed out on while
+- * it slept, so fix up all other runnable task's wait_runtime
+- * so that the sum stays constant (around 0).
++ * a small credit for the CPU time it missed out on, so
++ * fix up all other runnable task's wait_runtime so that
++ * the sum stays constant (around 0).
+  *
+  * Instead of looping over all runnable tasks in an O(N)
+  * manner we move the fair clock back by a proportional
+@@ -414,7 +352,7 @@ static void distribute_fair_add(struct r
+ 	struct task_struct *curr = rq->curr;
+ 	s64 delta_fair = 0;
+ 
+-	if (!(sysctl_sched_load_smoothing & 32))
++	if (!(sysctl_sched_load_smoothing & 2))
+ 		return;
+ 
+ 	if (rq->nr_running) {
+@@ -424,8 +362,8 @@ static void distribute_fair_add(struct r
+ 		 * not depend on the fair_clock, so fix it up explicitly:
+ 		 */
+ 		add_wait_runtime(rq, curr, -delta_fair);
+-		rq->fair_clock -= delta_fair;
+ 	}
++	rq->fair_clock -= delta_fair;
+ }
+ 
+ /**************************************************************/
+@@ -434,22 +372,19 @@ static void distribute_fair_add(struct r
+ 
+ static void enqueue_sleeper(struct rq *rq, struct task_struct *p)
+ {
+-	unsigned long load = get_rq_load(rq);
++	unsigned long load = rq->raw_weighted_load;
+ 	s64 delta_fair, prev_runtime;
+ 
+-	if (!(sysctl_sched_load_smoothing & 16))
++	if (!(sysctl_sched_load_smoothing & 4))
+ 		goto out;
+ 
+ 	delta_fair = rq->fair_clock - p->sleep_start_fair;
+-	if ((s64)delta_fair < 0)
+-		delta_fair = 0;
+ 
+ 	/*
+ 	 * Fix up delta_fair with the effect of us running
+ 	 * during the whole sleep period:
+ 	 */
+-	if (sysctl_sched_load_smoothing & 8)
+-		delta_fair = div64_s(delta_fair * load, load + p->load_weight);
++	delta_fair = div64_s(delta_fair * load, load + p->load_weight);
+ 
+ 	prev_runtime = p->wait_runtime;
+ 	__add_wait_runtime(rq, p, delta_fair);
+@@ -577,10 +512,13 @@ yield_task_fair(struct rq *rq, struct ta
+ 	 * yield-to support: if we are on the same runqueue then
+ 	 * give half of our wait_runtime (if it's positive) to the other task:
+ 	 */
+-	if (p_to && p->wait_runtime > 0) {
+-		p_to->wait_runtime += p->wait_runtime >> 1;
+-		p->wait_runtime >>= 1;
++	if (p_to && rq == task_rq(p_to) && p->wait_runtime > 0) {
++		s64 delta = p->wait_runtime >> 1;
++
++		__add_wait_runtime(rq, p_to, delta);
++		__add_wait_runtime(rq, p, -delta);
+ 	}
++
+ 	curr = &p->run_node;
+ 	first = first_fair(rq);
+ 	/*
+@@ -645,6 +583,10 @@ static void check_preempt_curr_fair(stru
+ 	struct task_struct *curr = rq->curr;
+ 
+ 	if ((curr == rq->idle) || rt_prio(p->prio)) {
++		if (sysctl_sched_load_smoothing & 8) {
++			if (rt_prio(p->prio))
++				update_curr(rq, rq_clock(rq));
++		}
+ 		resched_task(curr);
+ 	} else {
+ 		__check_preempt_curr_fair(rq, p, curr,
+@@ -677,11 +619,27 @@ static void put_prev_task_fair(struct rq
+ 	if (prev == rq->idle)
+ 		return;
+ 
+-	update_stats_curr_end(rq, prev, now);
+ 	/*
+ 	 * If the task is still waiting for the CPU (it just got
+-	 * preempted), start the wait period:
++	 * preempted), update its position within the tree and
++	 * start the wait period:
+ 	 */
++	if (sysctl_sched_load_smoothing & 16)  {
++		if (prev->on_rq &&
++			test_tsk_thread_flag(prev, TIF_NEED_RESCHED)) {
++
++			dequeue_task_fair(rq, prev, 0, now);
++			prev->on_rq = 0;
++			enqueue_task_fair(rq, prev, 0, now);
++			prev->on_rq = 1;
++		} else
++			update_curr(rq, now);
++	} else {
++		update_curr(rq, now);
++	}
++
++	update_stats_curr_end(rq, prev, now);
++
+ 	if (prev->on_rq)
+ 		update_stats_wait_start(rq, prev, now);
+ }
+@@ -697,33 +655,28 @@ static void put_prev_task_fair(struct rq
+  * achieve that by always pre-iterating before returning
+  * the current task:
+  */
+-static struct task_struct * load_balance_start_fair(struct rq *rq)
++static inline struct task_struct *
++__load_balance_iterator(struct rq *rq, struct rb_node *curr)
+ {
+-	struct rb_node *first = first_fair(rq);
+ 	struct task_struct *p;
+ 
+-	if (!first)
++	if (!curr)
+ 		return NULL;
+ 
+-	p = rb_entry(first, struct task_struct, run_node);
+-
+-	rq->rb_load_balance_curr = rb_next(first);
++	p = rb_entry(curr, struct task_struct, run_node);
++	rq->rb_load_balance_curr = rb_next(curr);
+ 
+ 	return p;
+ }
+ 
+-static struct task_struct * load_balance_next_fair(struct rq *rq)
++static struct task_struct * load_balance_start_fair(struct rq *rq)
+ {
+-	struct rb_node *curr = rq->rb_load_balance_curr;
+-	struct task_struct *p;
+-
+-	if (!curr)
+-		return NULL;
+-
+-	p = rb_entry(curr, struct task_struct, run_node);
+-	rq->rb_load_balance_curr = rb_next(curr);
++	return __load_balance_iterator(rq, first_fair(rq));
++}
+ 
+-	return p;
++static struct task_struct * load_balance_next_fair(struct rq *rq)
++{
++	return __load_balance_iterator(rq, rq->rb_load_balance_curr);
+ }
+ 
+ /*
+diff -puN kernel/sched_stats.h~cfs-scheduler-v15-rc3-mm1 kernel/sched_stats.h
+--- a/kernel/sched_stats.h~cfs-scheduler-v15-rc3-mm1
++++ a/kernel/sched_stats.h
+@@ -97,10 +97,10 @@ const struct file_operations proc_scheds
+  * Expects runqueue lock to be held for atomicity of update
+  */
+ static inline void
+-rq_sched_info_arrive(struct rq *rq, unsigned long delta_jiffies)
++rq_sched_info_arrive(struct rq *rq, unsigned long long delta)
+ {
+ 	if (rq) {
+-		rq->rq_sched_info.run_delay += delta_jiffies;
++		rq->rq_sched_info.run_delay += delta;
+ 		rq->rq_sched_info.pcnt++;
  	}
  }
+@@ -109,19 +109,19 @@ rq_sched_info_arrive(struct rq *rq, unsi
+  * Expects runqueue lock to be held for atomicity of update
+  */
+ static inline void
+-rq_sched_info_depart(struct rq *rq, unsigned long delta_jiffies)
++rq_sched_info_depart(struct rq *rq, unsigned long long delta)
+ {
+ 	if (rq)
+-		rq->rq_sched_info.cpu_time += delta_jiffies;
++		rq->rq_sched_info.cpu_time += delta;
+ }
+ # define schedstat_inc(rq, field)	do { (rq)->field++; } while (0)
+ # define schedstat_add(rq, field, amt)	do { (rq)->field += (amt); } while (0)
+ #else /* !CONFIG_SCHEDSTATS */
+ static inline void
+-rq_sched_info_arrive(struct rq *rq, unsigned long delta_jiffies)
++rq_sched_info_arrive(struct rq *rq, unsigned long long delta)
+ {}
+ static inline void
+-rq_sched_info_depart(struct rq *rq, unsigned long delta_jiffies)
++rq_sched_info_depart(struct rq *rq, unsigned long long delta)
+ {}
+ # define schedstat_inc(rq, field)	do { } while (0)
+ # define schedstat_add(rq, field, amt)	do { } while (0)
+@@ -155,16 +155,16 @@ static inline void sched_info_dequeued(s
+  */
+ static void sched_info_arrive(struct task_struct *t)
+ {
+-	unsigned long now = jiffies, delta_jiffies = 0;
++	unsigned long long now = sched_clock(), delta = 0;
  
-diff -puN kernel/sched_fair.c~cfs-scheduler-warning-fixes kernel/sched_fair.c
-diff -puN kernel/sched_rt.c~cfs-scheduler-warning-fixes kernel/sched_rt.c
-diff -puN kernel/sched_stats.h~cfs-scheduler-warning-fixes kernel/sched_stats.h
-diff -puN kernel/sysctl.c~cfs-scheduler-warning-fixes kernel/sysctl.c
+ 	if (t->sched_info.last_queued)
+-		delta_jiffies = now - t->sched_info.last_queued;
++		delta = now - t->sched_info.last_queued;
+ 	sched_info_dequeued(t);
+-	t->sched_info.run_delay += delta_jiffies;
++	t->sched_info.run_delay += delta;
+ 	t->sched_info.last_arrival = now;
+ 	t->sched_info.pcnt++;
+ 
+-	rq_sched_info_arrive(task_rq(t), delta_jiffies);
++	rq_sched_info_arrive(task_rq(t), delta);
+ }
+ 
+ /*
+@@ -186,7 +186,7 @@ static inline void sched_info_queued(str
+ {
+ 	if (unlikely(sched_info_on()))
+ 		if (!t->sched_info.last_queued)
+-			t->sched_info.last_queued = jiffies;
++			t->sched_info.last_queued = sched_clock();
+ }
+ 
+ /*
+@@ -195,10 +195,10 @@ static inline void sched_info_queued(str
+  */
+ static inline void sched_info_depart(struct task_struct *t)
+ {
+-	unsigned long delta_jiffies = jiffies - t->sched_info.last_arrival;
++	unsigned long long delta = sched_clock() - t->sched_info.last_arrival;
+ 
+-	t->sched_info.cpu_time += delta_jiffies;
+-	rq_sched_info_depart(task_rq(t), delta_jiffies);
++	t->sched_info.cpu_time += delta;
++	rq_sched_info_depart(task_rq(t), delta);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
 git-acpi.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-git-powerpc.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
 git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-md-accel.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-git-net.patch
-git-battery.patch
-git-battery-vs-git-acpi.patch
-git-ioat-vs-git-md-accel.patch
-git-ocfs2-vs-git-gfs2-nmw.patch
-revert-gregkh-pci-pci_bridge-device.patch
-fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
+git-selinux.patch
 git-s390.patch
-revert-acpi-change-for-scsi.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-restore-acpi-change-for-scsi.patch
-git-scsi-misc-vs-greg-sysfs-stuff.patch
-aacraid-rename-check_reset.patch
-git-scsi-target-fixup.patch
-splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
-git-block.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
 x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+tick-management-spread-timer-interrupt.patch
+highres-improve-debug-output.patch
+hrtimer-speedup-hrtimer_enqueue.patch
+pcspkr-use-the-global-pit-lock.patch
 ntp-move-the-cmos-update-code-into-ntpc.patch
+i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
+i386-remove-volatile-in-apicc.patch
+i386-hpet-assumes-boot-cpu-is-0.patch
+i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
+x86_64-untangle-asm-hpeth-from-asm-timexh.patch
+x86_64-use-generic-cmos-update.patch
+x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
+x86_64-fix-apic-typo.patch
+x86_64-convert-to-cleckevents.patch
+acpi-remove-the-useless-ifdef-code.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-kgdb-fixup.patch
-kgdb-warning-fix.patch
-kgdb-kconfig-fix.patch
-kgdb-use-new-style-interrupt-flags.patch
-kgdb-section-fix.patch
-kgdb_skipexception-warning-fix.patch
-kgdb-ia64-fixes.patch
-kgdb-bust-on-ia64.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-fix-alpha-isa-support.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+geode-mfgpt-clock-event-device-support.patch
+i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
 add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+introduce-write_trylock_irqsave.patch
 use-write_trylock_irqsave-in-ptrace_attach.patch
-use-no_pci_devices-in-pci-searchc.patch
 introduce-boot-based-time.patch
 use-boot-based-time-for-process-start-time-and-boot-time.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
 cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
+pie-randomization.patch
 vdso-print-fatal-signals.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+introduce-o_cloexec-take-2.patch
 o_cloexec-for-scm_rights.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each.patch
-ext3-ext4-orphan-list-check-on-destroy_inode.patch
-taskstats-add-context-switch-counters.patch
 improve-behaviour-of-spurious-irq-detect.patch
-audit-add-tty-input-auditing.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-diskquota-32bit-quota-tools-on-64bit-architectures.patch
+allow-softlockup-to-be-runtime-disabled.patch
 sys_time-speedup.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc.patch
-bd_claim_by_disk-fix-warning.patch
-uninline-check_signature.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support.patch
-spi-master-driver-for-xilinx-virtex.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup.patch
-knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-remove-iget-abuse.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-add-support-for-the-st-m48t59-rtc.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
-rtc-driver-for-ds1216-chips-fix.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
+futex-tidy-up-the-code-v2.patch
+modules-remove-modlist_lock.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+fix-raw_spinlock_t-vs-lockdep.patch
+lockdep-sanitise-config_prove_locking.patch
+lockdep-reduce-the-ifdeffery.patch
 lockstat-core-infrastructure.patch
+lockstat-human-readability-tweaks.patch
+lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
 lockdep-various-fixes.patch
+lockdep-fixup-sk_callback_lock-annotation.patch
 lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+lockstat-better-class-name-representation.patch
+lockdep-debugging-give-stacktrace-for-init_error.patch
+stacktrace-fix-header-file-for-config_stacktrace.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
