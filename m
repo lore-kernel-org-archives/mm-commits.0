@@ -1,258 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-onenand-build-fix.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 01:41:46 -0700
-Message-ID: <200707100841.l6A8fkeR018906@imap1.linux-foundation.org>
+Subject: - fallocate-on-s390.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 02:13:54 -0700
+Message-ID: <200707100913.l6A9DsgX020918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33510 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53583 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757146AbXGJImT (ORCPT
+	by vger.kernel.org with ESMTP id S1755858AbXGJJOg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 04:42:19 -0400
+	Tue, 10 Jul 2007 05:14:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, kyungmin.park@samsung.com, mm-commits@vger.kernel.org
+To: aarora@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, mark.fasheh@oracle.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: onenand build fix
+     fallocate() on s390
 has been removed from the -mm tree.  Its filename was
-     mtd-onenand-build-fix.patch
+     fallocate-on-s390.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mtd: onenand build fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fallocate() on s390
+From: "Amit K. Arora" <aarora@linux.vnet.ibm.com>
 
-i386:
+This is the patch suggested by Martin Schwidefsky to support sys_fallocate()
+on s390(x) platform.
 
-drivers/mtd/onenand/onenand_sim.c:23:23: error: asm/sizes.h: No such file or directory
+He also suggested a wrapper in glibc to handle this system call on s390. 
+Posting it here so that we get feedback for this too.
 
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+.globl __fallocate
+ENTRY(__fallocate)
+	stm	%r6,%r7,28(%r15)	/* save %r6/%r7 on stack */
+	cfi_offset (%r7, -68)
+	cfi_offset (%r6, -72)
+	lm	%r6,%r7,96(%r15)	/* load loff_t len from stack */
+	svc	SYS_ify(fallocate)
+	lm	%r6,%r7,28(%r15)	/* restore %r6/%r7 from stack */
+	br	%r14
+PSEUDO_END(__fallocate)
+
+Here are the comments and the patch to linux kernel from him.
+
+
+  This patch implements support of fallocate system call on s390(x)
+  platform.  A wrapper is added to address the issue which s390 ABI has with
+  the arguments of this system call.
+
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/onenand/Kconfig |    1 +
- 1 files changed, 1 insertion(+)
+ arch/s390/kernel/compat_wrapper.S |   10 +++++++++
+ arch/s390/kernel/sys_s390.c       |   29 ++++++++++++++++++++++++++++
+ arch/s390/kernel/syscalls.S       |    1 
+ include/asm-s390/unistd.h         |    3 +-
+ 4 files changed, 42 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mtd/onenand/Kconfig~mtd-onenand-build-fix drivers/mtd/onenand/Kconfig
---- a/drivers/mtd/onenand/Kconfig~mtd-onenand-build-fix
-+++ a/drivers/mtd/onenand/Kconfig
-@@ -59,6 +59,7 @@ config MTD_ONENAND_2X_PROGRAM
- config MTD_ONENAND_SIM
- 	tristate "OneNAND simulator support"
- 	depends on MTD_PARTITIONS
-+	depends on ARM || ARM26
- 	help
- 	  The simulator may simulate various OneNAND flash chips for the
- 	  OneNAND MTD layer.
+diff -puN arch/s390/kernel/compat_wrapper.S~fallocate-on-s390 arch/s390/kernel/compat_wrapper.S
+--- a/arch/s390/kernel/compat_wrapper.S~fallocate-on-s390
++++ a/arch/s390/kernel/compat_wrapper.S
+@@ -1710,3 +1710,13 @@ compat_sys_timerfd_wrapper:
+ sys_eventfd_wrapper:
+ 	llgfr	%r2,%r2			# unsigned int
+ 	jg	sys_eventfd
++
++	.globl  sys_fallocate_wrapper
++sys_fallocate_wrapper:
++	lgfr	%r2,%r2			# int
++	lgfr	%r3,%r3			# int
++	sllg    %r4,%r4,32		# get high word of 64bit loff_t
++	lr      %r4,%r5			# get low word of 64bit loff_t
++	sllg    %r5,%r6,32		# get high word of 64bit loff_t
++	l	%r5,164(%r15)		# get low word of 64bit loff_t
++	jg	sys_fallocate
+diff -puN arch/s390/kernel/sys_s390.c~fallocate-on-s390 arch/s390/kernel/sys_s390.c
+--- a/arch/s390/kernel/sys_s390.c~fallocate-on-s390
++++ a/arch/s390/kernel/sys_s390.c
+@@ -265,3 +265,32 @@ s390_fadvise64_64(struct fadvise64_64_ar
+ 		return -EFAULT;
+ 	return sys_fadvise64_64(a.fd, a.offset, a.len, a.advice);
+ }
++
++#ifndef CONFIG_64BIT
++/*
++ * This is a wrapper to call sys_fallocate(). For 31 bit s390 the last
++ * 64 bit argument "len" is split into the upper and lower 32 bits. The
++ * system call wrapper in the user space loads the value to %r6/%r7.
++ * The code in entry.S keeps the values in %r2 - %r6 where they are and
++ * stores %r7 to 96(%r15). But the standard C linkage requires that
++ * the whole 64 bit value for len is stored on the stack and doesn't
++ * use %r6 at all. So s390_fallocate has to convert the arguments from
++ *   %r2: fd, %r3: mode, %r4/%r5: offset, %r6/96(%r15)-99(%r15): len
++ * to
++ *   %r2: fd, %r3: mode, %r4/%r5: offset, 96(%r15)-103(%r15): len
++ */
++asmlinkage long s390_fallocate(int fd, int mode, loff_t offset,
++			       u32 len_high, u32 len_low)
++{
++	union {
++		u64 len;
++		struct {
++			u32 high;
++			u32 low;
++		};
++	} cv;
++	cv.high = len_high;
++	cv.low = len_low;
++	return sys_fallocate(fd, mode, offset, cv.len);
++}
++#endif
+diff -puN arch/s390/kernel/syscalls.S~fallocate-on-s390 arch/s390/kernel/syscalls.S
+--- a/arch/s390/kernel/syscalls.S~fallocate-on-s390
++++ a/arch/s390/kernel/syscalls.S
+@@ -327,3 +327,4 @@ SYSCALL(sys_utimensat,sys_utimensat,comp
+ SYSCALL(sys_signalfd,sys_signalfd,compat_sys_signalfd_wrapper)
+ SYSCALL(sys_timerfd,sys_timerfd,compat_sys_timerfd_wrapper)
+ SYSCALL(sys_eventfd,sys_eventfd,sys_eventfd_wrapper)
++SYSCALL(s390_fallocate,sys_fallocate,sys_fallocate_wrapper)
+diff -puN include/asm-s390/unistd.h~fallocate-on-s390 include/asm-s390/unistd.h
+--- a/include/asm-s390/unistd.h~fallocate-on-s390
++++ a/include/asm-s390/unistd.h
+@@ -256,7 +256,8 @@
+ #define __NR_signalfd		316
+ #define __NR_timerfd		317
+ #define __NR_eventfd		318
+-#define NR_syscalls 319
++#define __NR_fallocate		319
++#define NR_syscalls 320
+ 
+ /* 
+  * There are some system calls that are not present on 64 bit, some
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarora@linux.vnet.ibm.com are
 
-git-acpi.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-md-accel.patch
-git-mips-fixup.patch
-git-mtd.patch
-mtd-onenand-build-fix.patch
-git-ubi.patch
-git-netdev-all.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-battery-vs-git-acpi.patch
-git-ioat-vs-git-md-accel.patch
-revert-gregkh-pci-pci_bridge-device.patch
-fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-revert-acpi-change-for-scsi.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-restore-acpi-change-for-scsi.patch
-git-scsi-misc-vs-greg-sysfs-stuff.patch
-aacraid-rename-check_reset.patch
-git-scsi-target-fixup.patch
-splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-kgdb-fixup.patch
-kgdb-warning-fix.patch
-kgdb-kconfig-fix.patch
-kgdb-use-new-style-interrupt-flags.patch
-kgdb-section-fix.patch
-kgdb_skipexception-warning-fix.patch
-kgdb-ia64-fixes.patch
-kgdb-bust-on-ia64.patch
-kgdb-build-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-fix-alpha-isa-support.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-use-write_trylock_irqsave-in-ptrace_attach.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time.patch
-use-boot-based-time-for-process-start-time-and-boot-time.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-vdso-print-fatal-signals.patch
-o_cloexec-for-scm_rights.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each.patch
-ext3-ext4-orphan-list-check-on-destroy_inode.patch
-taskstats-add-context-switch-counters.patch
-improve-behaviour-of-spurious-irq-detect.patch
-audit-add-tty-input-auditing.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-diskquota-32bit-quota-tools-on-64bit-architectures.patch
-sys_time-speedup.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc.patch
-bd_claim_by_disk-fix-warning.patch
-uninline-check_signature.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support.patch
-spi-master-driver-for-xilinx-virtex.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup.patch
-knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-remove-iget-abuse.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-add-support-for-the-st-m48t59-rtc.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
-rtc-driver-for-ds1216-chips-fix.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+fallocate-implementation-on-i86-x86_64-and-powerpc.patch
+fallocate-on-s390.patch
