@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-ib-block.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:49:28 -0700
-Message-ID: <200707101949.l6AJnSUs026100@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-ii-block-devices.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:49:30 -0700
+Message-ID: <200707101949.l6AJnUI6026103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59297 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38941 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760499AbXGJTzK (ORCPT
+	by vger.kernel.org with ESMTP id S1760390AbXGJTzK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 10 Jul 2007 15:55:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,38 +15,54 @@ To: jengelh@linux01.gwdg.de, axboe@kernel.dk, jengelh@gmx.de, mm-commits@vger.ke
 
 
 The patch titled
-     Use menuconfig objects I.b - block
+     Use menuconfig objects II - block devices
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-ib-block.patch
+     use-menuconfig-objects-ii-block-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects I.b - block
+Subject: Use menuconfig objects II - block devices
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-block/Kconfig already has its own "menuconfig" so remove these
-"menu, endmenu" that did not get cleaned up in the block patch
-[ http://lkml.org/lkml/2007/4/10/251 ]
+Make a "menuconfig" out of the Kconfig objects "menu, ..., endmenu",
+so that the user can disable all the options in that menu at once
+instead of having to disable each option separately.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    2 --
- 1 files changed, 2 deletions(-)
+ drivers/block/Kconfig |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN init/Kconfig~use-menuconfig-objects-ib-block init/Kconfig
---- a/init/Kconfig~use-menuconfig-objects-ib-block
-+++ a/init/Kconfig
-@@ -686,6 +686,4 @@ config STOP_MACHINE
- 	  Need stop_machine() primitive.
- endmenu
+diff -puN drivers/block/Kconfig~use-menuconfig-objects-ii-block-devices drivers/block/Kconfig
+--- a/drivers/block/Kconfig~use-menuconfig-objects-ii-block-devices
++++ a/drivers/block/Kconfig
+@@ -2,9 +2,12 @@
+ # Block device driver configuration
+ #
  
--menu "Block layer"
- source "block/Kconfig"
+-if BLOCK
++menuconfig BLK_DEV
++	bool "Block devices"
++	depends on BLOCK
++	default y
+ 
+-menu "Block devices"
++if BLK_DEV
+ 
+ config BLK_DEV_FD
+ 	tristate "Normal floppy disk support"
+@@ -422,6 +425,4 @@ config ATA_OVER_ETH
+ 
+ source "drivers/s390/block/Kconfig"
+ 
 -endmenu
+-
+-endif
++endif # BLK_DEV
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
