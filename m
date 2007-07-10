@@ -1,226 +1,253 @@
 From: akpm@linux-foundation.org
-Subject: - atari_pamsnetc-old-declaration-ritchie-style-fix.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:48:55 -0700
-Message-ID: <200707101948.l6AJmtWr026038@imap1.linux-foundation.org>
+Subject: - led_colour_show-warning-fix.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:48:53 -0700
+Message-ID: <200707101948.l6AJmr9R026035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46246 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35170 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758552AbXGJTtC (ORCPT
+	by vger.kernel.org with ESMTP id S1758651AbXGJTtI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 15:49:02 -0400
+	Tue, 10 Jul 2007 15:49:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: padator@wanadoo.fr, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atari_pamsnet.c: old declaration ritchie style fix
+     led_colour_show() warning fix
 has been removed from the -mm tree.  Its filename was
-     atari_pamsnetc-old-declaration-ritchie-style-fix.patch
+     led_colour_show-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atari_pamsnet.c: old declaration ritchie style fix
-From: Yoann Padioleau <padator@wanadoo.fr>
+Subject: led_colour_show() warning fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use consistent function declaration style.
+drivers/leds/led-class.c: In function 'led_colour_show':
+drivers/leds/led-class.c:62: warning: initialization discards qualifiers from pointer target type
 
-
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atari_pamsnet.c |   62 ++++++++++++----------------------
- 1 files changed, 22 insertions(+), 40 deletions(-)
+ drivers/leds/led-class.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/atari_pamsnet.c~atari_pamsnetc-old-declaration-ritchie-style-fix drivers/net/atari_pamsnet.c
---- a/drivers/net/atari_pamsnet.c~atari_pamsnetc-old-declaration-ritchie-style-fix
-+++ a/drivers/net/atari_pamsnet.c
-@@ -295,10 +295,7 @@ int if_up = 0;
- /* Setup the DMA counter */
- 
- static void
--setup_dma (address, rw_flag, num_blocks)
--	void *address;
--	unsigned rw_flag;
--	int num_blocks;
-+setup_dma (void *address, unsigned rw_flag, int num_blocks)
+diff -puN drivers/leds/led-class.c~led_colour_show-warning-fix drivers/leds/led-class.c
+--- a/drivers/leds/led-class.c~led_colour_show-warning-fix
++++ a/drivers/leds/led-class.c
+@@ -59,7 +59,8 @@ static ssize_t led_brightness_store(stru
+ static ssize_t led_colour_show(struct class_device *dev, char *buf)
  {
- 	WRITEMODE((unsigned) rw_flag          | DMA_FDC | SEC_COUNT | REG_ACSI |
- 		  A1);
-@@ -317,9 +314,7 @@ setup_dma (address, rw_flag, num_blocks)
- /* Send the first byte of an command block */
+ 	struct led_classdev *led_cdev = class_get_devdata(dev);
+-	char *colour, *str = led_cdev->name;
++	const char *colour;
++	const char *str = led_cdev->name;
+ 	ssize_t len = 0;
  
- static int
--send_first (target, byte)
--	int target;
--	unsigned char byte;
-+send_first (int target, unsigned char byte)
- {
- 	rw = READ;
- 	acsi_delay_end(COMMAND_DELAY);
-@@ -338,10 +333,7 @@ send_first (target, byte)
- /* Send the rest of an command block */
- 
- static int
--send_1_5 (lun, command, dma)
--	int lun;
--	unsigned char *command;
--	int dma;
-+send_1_5 (int lun, unsigned char *command, int dma)
- {
- 	int i, j;
- 
-@@ -371,8 +363,7 @@ get_status (void)
- /* Calculate the number of received bytes */
- 
- static int
--calc_received (start_address)
--	void *start_address;
-+calc_received (void *start_address)
- {
- 	return (int)(
- 		(((unsigned long)DMAHIGH << 16) | ((unsigned)DMAMID << 8) | DMALOW)
-@@ -384,8 +375,7 @@ calc_received (start_address)
- /* start() starts the PAM's DMA adaptor */
- 
- static void
--start (target)
--	int target;
-+start (int target)
- {
- 	send_first(target, START);
- }
-@@ -393,8 +383,7 @@ start (target)
- /* stop() stops the PAM's DMA adaptor and returns a value of zero in case of success */
- 
- static int
--stop (target)
--	int target;
-+stop (int target)
- {
- 	int ret = -1;
- 	unsigned char cmd_buffer[5];
-@@ -415,8 +404,7 @@ bad:
- /* testpkt() returns the number of received packets waiting in the queue */
- 
- static int
--testpkt(target)
--	int target;
-+testpkt(int target)
- {
- 	int ret = -1;
- 
-@@ -431,9 +419,7 @@ bad:
- /* Please note: The buffer is for internal use only but must be defined!   */
- 
- static int
--inquiry (target, buffer)
--	int target;
--	unsigned char *buffer;
-+inquiry (int target, unsigned char *buffer)
- {
- 	int ret = -1;
- 	unsigned char *vbuffer = phys_to_virt((unsigned long)buffer);
-@@ -468,9 +454,7 @@ bad:
-  */
- 
- static HADDR
--*read_hw_addr(target, buffer)
--	int target;
--	unsigned char *buffer;
-+*read_hw_addr(int target, unsigned char *buffer)
- {
- 	HADDR *ret = 0;
- 	unsigned char cmd_buffer[5];
-@@ -491,9 +475,7 @@ bad:
- }
- 
- static irqreturn_t
--pamsnet_intr(irq, data, fp)
--	int irq;
--	void *data;
-+pamsnet_intr(int irq, void *data)
- {
- 	return IRQ_HANDLED;
- }
-@@ -501,9 +483,7 @@ pamsnet_intr(irq, data, fp)
- /* receivepkt() loads a packet to a given buffer and returns its length */
- 
- static int
--receivepkt (target, buffer)
--	int target;
--	unsigned char *buffer;
-+receivepkt (int target, unsigned char *buffer)
- {
- 	int ret = -1;
- 	unsigned char cmd_buffer[5];
-@@ -526,10 +506,7 @@ bad:
-              successfully */
- 
- static int
--sendpkt (target, buffer, length)
--	int target;
--	unsigned char *buffer;
--	int length;
-+sendpkt (int target, unsigned char *buffer, int length)
- {
- 	int ret = -1;
- 	unsigned char cmd_buffer[5];
-@@ -665,7 +642,8 @@ struct net_device * __init pamsnet_probe
-    there is non-reboot way to recover if something goes wrong.
-  */
- static int
--pamsnet_open(struct net_device *dev) {
-+pamsnet_open(struct net_device *dev)
-+{
- 	struct net_local *lp = netdev_priv(dev);
- 
- 	if (pamsnet_debug > 0)
-@@ -694,7 +672,8 @@ pamsnet_open(struct net_device *dev) {
- }
- 
- static int
--pamsnet_send_packet(struct sk_buff *skb, struct net_device *dev) {
-+pamsnet_send_packet(struct sk_buff *skb, struct net_device *dev)
-+{
- 	struct net_local *lp = netdev_priv(dev);
- 	unsigned long flags;
- 
-@@ -741,7 +720,8 @@ pamsnet_send_packet(struct sk_buff *skb,
- /* We have a good packet(s), get it/them out of the buffers.
-  */
- static void
--pamsnet_poll_rx(struct net_device *dev) {
-+pamsnet_poll_rx(struct net_device *dev)
-+{
- 	struct net_local *lp = netdev_priv(dev);
- 	int boguscount;
- 	int pkt_len;
-@@ -816,7 +796,8 @@ pamsnet_poll_rx(struct net_device *dev) 
-  * passes them to the higher layers and restarts the timer.
-  */
- static void
--pamsnet_tick(unsigned long data) {
-+pamsnet_tick(unsigned long data)
-+{
- 	struct net_device	 *dev = (struct net_device *)data;
- 	struct net_local *lp = netdev_priv(dev);
- 
-@@ -832,7 +813,8 @@ pamsnet_tick(unsigned long data) {
- /* The inverse routine to pamsnet_open().
-  */
- static int
--pamsnet_close(struct net_device *dev) {
-+pamsnet_close(struct net_device *dev)
-+{
- 	struct net_local *lp = netdev_priv(dev);
- 
- 	if (pamsnet_debug > 0)
+ 	/* skip first field */
 _
 
-Patches currently in -mm which might be from padator@wanadoo.fr are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+git-acpi.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+git-powerpc.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-saa7134-tvaudio-fix.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-md-accel.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-ubi.patch
 git-netdev-all.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+git-net.patch
+git-battery.patch
+git-battery-vs-git-acpi.patch
+git-ioat-vs-git-md-accel.patch
+git-ocfs2-vs-git-gfs2-nmw.patch
+revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-s390.patch
+revert-acpi-change-for-scsi.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+restore-acpi-change-for-scsi.patch
+git-scsi-misc-vs-greg-sysfs-stuff.patch
+aacraid-rename-check_reset.patch
+git-scsi-target-fixup.patch
+splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
+git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-show-unhandled-signals.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+i386-add-cpu_relax-to-cmos_lock.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-kgdb-fixup.patch
+kgdb-warning-fix.patch
+kgdb-kconfig-fix.patch
+kgdb-use-new-style-interrupt-flags.patch
+kgdb-section-fix.patch
+kgdb_skipexception-warning-fix.patch
+kgdb-ia64-fixes.patch
+kgdb-bust-on-ia64.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+fix-alpha-isa-support.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time.patch
+use-boot-based-time-for-process-start-time-and-boot-time.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+vdso-print-fatal-signals.patch
+o_cloexec-for-scm_rights.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each.patch
+ext3-ext4-orphan-list-check-on-destroy_inode.patch
+taskstats-add-context-switch-counters.patch
+improve-behaviour-of-spurious-irq-detect.patch
+audit-add-tty-input-auditing.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+diskquota-32bit-quota-tools-on-64bit-architectures.patch
+sys_time-speedup.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine.patch
+sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc.patch
+bd_claim_by_disk-fix-warning.patch
+uninline-check_signature.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support.patch
+spi-master-driver-for-xilinx-virtex.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-remove-iget-abuse.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+rtc-add-rtc-m41t80-driver-take-2.patch
+rtc-add-support-for-the-st-m48t59-rtc.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-driver-for-ds1216-chips-fix.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
 some-kmalloc-memset-kzalloc-tree-wide.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
