@@ -1,178 +1,257 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver.patch removed from -mm tree
-Date: Tue, 10 Jul 2007 12:49:12 -0700
-Message-ID: <200707101949.l6AJnCi7026072@imap1.linux-foundation.org>
+Subject: - kgdb-build-fix-2.patch removed from -mm tree
+Date: Tue, 10 Jul 2007 12:49:37 -0700
+Message-ID: <200707101949.l6AJnbXX026112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41592 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59092 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759098AbXGJTzE (ORCPT
+	by vger.kernel.org with ESMTP id S1756844AbXGJTyz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Jul 2007 15:55:04 -0400
+	Tue, 10 Jul 2007 15:54:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, samuel@sortiz.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use mutex instead of semaphore in VLSI 82C147 IrDA controller driver
+     kgdb-build-fix-2
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver.patch
+     kgdb-build-fix-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use mutex instead of semaphore in VLSI 82C147 IrDA controller driver
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: kgdb-build-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The VLSI 82C147 IrDA controller driver uses a semaphore as mutex.  Use the
-mutex API instead of the (binary) semaphore.
+i386 allnoconfig:
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+drivers/serial/8250_kgdb.c: In function 'kgdb8250_uart_init':
+drivers/serial/8250_kgdb.c:176: error: 'BASE_BAUD' undeclared (first use in this function)
+drivers/serial/8250_kgdb.c:176: error: (Each undeclared identifier is reported only once
+drivers/serial/8250_kgdb.c:176: error: for each function it appears in.)
+
+But we shouldn't even be compiling this file.
+
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/vlsi_ir.c |   27 ++++++++++++++-------------
- drivers/net/irda/vlsi_ir.h |    2 +-
- 2 files changed, 15 insertions(+), 14 deletions(-)
+ drivers/serial/8250_kgdb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/irda/vlsi_ir.c~use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver drivers/net/irda/vlsi_ir.c
---- a/drivers/net/irda/vlsi_ir.c~use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver
-+++ a/drivers/net/irda/vlsi_ir.c
-@@ -44,6 +44,7 @@ MODULE_LICENSE("GPL");
- #include <linux/time.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-+#include <linux/mutex.h>
- #include <asm/uaccess.h>
- #include <asm/byteorder.h>
+diff -puN drivers/serial/8250_kgdb.c~kgdb-build-fix-2 drivers/serial/8250_kgdb.c
+--- a/drivers/serial/8250_kgdb.c~kgdb-build-fix-2
++++ a/drivers/serial/8250_kgdb.c
+@@ -25,6 +25,7 @@
+ #include <linux/ioport.h>
+ #include <linux/io.h>
+ #include <linux/serial.h>		/* For BASE_BAUD and SERIAL_PORT_DFNS */
++#include <asm/serial.h>
  
-@@ -1660,8 +1661,8 @@ vlsi_irda_probe(struct pci_dev *pdev, co
- 	idev = ndev->priv;
+ #include "8250.h"
  
- 	spin_lock_init(&idev->lock);
--	init_MUTEX(&idev->sem);
--	down(&idev->sem);
-+	mutex_init(&idev->mtx);
-+	mutex_lock(&idev->mtx);
- 	idev->pdev = pdev;
- 
- 	if (vlsi_irda_init(ndev) < 0)
-@@ -1689,12 +1690,12 @@ vlsi_irda_probe(struct pci_dev *pdev, co
- 	IRDA_MESSAGE("%s: registered device %s\n", drivername, ndev->name);
- 
- 	pci_set_drvdata(pdev, ndev);
--	up(&idev->sem);
-+	mutex_unlock(&idev->mtx);
- 
- 	return 0;
- 
- out_freedev:
--	up(&idev->sem);
-+	mutex_unlock(&idev->mtx);
- 	free_netdev(ndev);
- out_disable:
- 	pci_disable_device(pdev);
-@@ -1716,12 +1717,12 @@ static void __devexit vlsi_irda_remove(s
- 	unregister_netdev(ndev);
- 
- 	idev = ndev->priv;
--	down(&idev->sem);
-+	mutex_lock(&idev->mtx);
- 	if (idev->proc_entry) {
- 		remove_proc_entry(ndev->name, vlsi_proc_root);
- 		idev->proc_entry = NULL;
- 	}
--	up(&idev->sem);
-+	mutex_unlock(&idev->mtx);
- 
- 	free_netdev(ndev);
- 
-@@ -1751,7 +1752,7 @@ static int vlsi_irda_suspend(struct pci_
- 		return 0;
- 	}
- 	idev = ndev->priv;	
--	down(&idev->sem);
-+	mutex_lock(&idev->mtx);
- 	if (pdev->current_state != 0) {			/* already suspended */
- 		if (state.event > pdev->current_state) {	/* simply go deeper */
- 			pci_set_power_state(pdev, pci_choose_state(pdev, state));
-@@ -1759,7 +1760,7 @@ static int vlsi_irda_suspend(struct pci_
- 		}
- 		else
- 			IRDA_ERROR("%s - %s: invalid suspend request %u -> %u\n", __FUNCTION__, pci_name(pdev), pdev->current_state, state.event);
--		up(&idev->sem);
-+		mutex_unlock(&idev->mtx);
- 		return 0;
- 	}
- 
-@@ -1775,7 +1776,7 @@ static int vlsi_irda_suspend(struct pci_
- 	pci_set_power_state(pdev, pci_choose_state(pdev, state));
- 	pdev->current_state = state.event;
- 	idev->resume_ok = 1;
--	up(&idev->sem);
-+	mutex_unlock(&idev->mtx);
- 	return 0;
- }
- 
-@@ -1790,9 +1791,9 @@ static int vlsi_irda_resume(struct pci_d
- 		return 0;
- 	}
- 	idev = ndev->priv;	
--	down(&idev->sem);
-+	mutex_lock(&idev->mtx);
- 	if (pdev->current_state == 0) {
--		up(&idev->sem);
-+		mutex_unlock(&idev->mtx);
- 		IRDA_WARNING("%s - %s: already resumed\n",
- 			     __FUNCTION__, pci_name(pdev));
- 		return 0;
-@@ -1814,7 +1815,7 @@ static int vlsi_irda_resume(struct pci_d
- 		 * device and independently resume_ok should catch any garbage config.
- 		 */
- 		IRDA_WARNING("%s - hm, nothing to resume?\n", __FUNCTION__);
--		up(&idev->sem);
-+		mutex_unlock(&idev->mtx);
- 		return 0;
- 	}
- 
-@@ -1824,7 +1825,7 @@ static int vlsi_irda_resume(struct pci_d
- 		netif_device_attach(ndev);
- 	}
- 	idev->resume_ok = 0;
--	up(&idev->sem);
-+	mutex_unlock(&idev->mtx);
- 	return 0;
- }
- 
-diff -puN drivers/net/irda/vlsi_ir.h~use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver drivers/net/irda/vlsi_ir.h
---- a/drivers/net/irda/vlsi_ir.h~use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver
-+++ a/drivers/net/irda/vlsi_ir.h
-@@ -728,7 +728,7 @@ typedef struct vlsi_irda_dev {
- 	struct timeval		last_rx;
- 
- 	spinlock_t		lock;
--	struct semaphore	sem;
-+	struct mutex		mtx;
- 
- 	u8			resume_ok;	
- 	struct proc_dir_entry	*proc_entry;
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-kcopyd-use-mutex-instead-of-semaphore.patch
+git-acpi.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+git-powerpc.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
 git-dvb.patch
+git-dvb-saa7134-tvaudio-fix.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-md-accel.patch
+git-mips-fixup.patch
 git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
 git-net.patch
-use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch
+git-battery.patch
+git-battery-vs-git-acpi.patch
+git-ioat-vs-git-md-accel.patch
+git-ocfs2-vs-git-gfs2-nmw.patch
+revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-s390.patch
+revert-acpi-change-for-scsi.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+restore-acpi-change-for-scsi.patch
+git-scsi-misc-vs-greg-sysfs-stuff.patch
+aacraid-rename-check_reset.patch
+git-scsi-target-fixup.patch
+splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
 git-block.patch
-videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
-drivers-block-ubc-use-list_for_each_entry.patch
-use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
-use-mutexes-instead-of-semaphores-in-i2o-driver.patch
-fs-block_devc-use-list_for_each_entry.patch
-use-mutex-instead-of-semaphore-in-capi-20-driver.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-show-unhandled-signals.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+i386-add-cpu_relax-to-cmos_lock.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-kgdb-fixup.patch
+kgdb-warning-fix.patch
+kgdb-kconfig-fix.patch
+kgdb-use-new-style-interrupt-flags.patch
+kgdb-section-fix.patch
+kgdb_skipexception-warning-fix.patch
+kgdb-ia64-fixes.patch
+kgdb-bust-on-ia64.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+fix-alpha-isa-support.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time.patch
+use-boot-based-time-for-process-start-time-and-boot-time.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+vdso-print-fatal-signals.patch
+o_cloexec-for-scm_rights.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each.patch
+ext3-ext4-orphan-list-check-on-destroy_inode.patch
+taskstats-add-context-switch-counters.patch
+improve-behaviour-of-spurious-irq-detect.patch
+audit-add-tty-input-auditing.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+diskquota-32bit-quota-tools-on-64bit-architectures.patch
+sys_time-speedup.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine.patch
+sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc.patch
+bd_claim_by_disk-fix-warning.patch
+uninline-check_signature.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support.patch
+spi-master-driver-for-xilinx-virtex.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-remove-iget-abuse.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+rtc-add-rtc-m41t80-driver-take-2.patch
+rtc-add-support-for-the-st-m48t59-rtc.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-driver-for-ds1216-chips-fix.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
