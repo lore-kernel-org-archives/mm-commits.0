@@ -1,67 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + jbd2-commit-fix-transaction-dropping.patch added to -mm tree
-Date: Wed, 11 Jul 2007 11:32:32 -0700
-Message-ID: <200707111832.l6BIWWST007653@imap1.linux-foundation.org>
+Subject: - romfs-printk-format-warnings.patch removed from -mm tree
+Date: Wed, 11 Jul 2007 11:35:43 -0700
+Message-ID: <200707111835.l6BIZh9E007853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60038 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47955 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754545AbXGKScz (ORCPT
+	by vger.kernel.org with ESMTP id S1757205AbXGKSgP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jul 2007 14:32:55 -0400
+	Wed, 11 Jul 2007 14:36:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, cebbert@redhat.com, dev@openvz.org, linux-ext4@vger.kernel.org, stable@kernel.org
+To: randy.dunlap@oracle.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd2 commit: fix transaction dropping
-has been added to the -mm tree.  Its filename is
-     jbd2-commit-fix-transaction-dropping.patch
+     ROMFS: printk format warnings
+has been removed from the -mm tree.  Its filename was
+     romfs-printk-format-warnings.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because the file it alters isn't there any more
 
 ------------------------------------------------------
-Subject: jbd2 commit: fix transaction dropping
-From: Jan Kara <jack@suse.cz>
+Subject: ROMFS: printk format warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-We have to check that also the second checkpoint list is non-empty before
-dropping the transaction.
+Field width and precision must be of type int.
+fs/romfs/super.c:513: warning: field width should have type 'int', but argument 2 has type 'size_t'
+fs/romfs/super.c:513: warning: field precision should have type 'int', but argument 3 has type 'size_t'
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Chuck Ebbert <cebbert@redhat.com>
-Cc: Kirill Korotaev <dev@openvz.org>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/commit.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ fs/romfs/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jbd2/commit.c~jbd2-commit-fix-transaction-dropping fs/jbd2/commit.c
---- a/fs/jbd2/commit.c~jbd2-commit-fix-transaction-dropping
-+++ a/fs/jbd2/commit.c
-@@ -896,7 +896,8 @@ restart_loop:
- 	journal->j_committing_transaction = NULL;
- 	spin_unlock(&journal->j_state_lock);
+diff -puN fs/romfs/super.c~romfs-printk-format-warnings fs/romfs/super.c
+--- a/fs/romfs/super.c~romfs-printk-format-warnings
++++ a/fs/romfs/super.c
+@@ -510,7 +510,7 @@ static int romfs_fill_super(struct super
+ 	len = strnlen(rsb->name, ROMFS_MAXFN);
+ 	if (!silent)
+ 		printk("ROMFS: Mounting image '%*.*s' through %s\n",
+-		       len, len, rsb->name, storage);
++		       (int)len, (int)len, rsb->name, storage);
  
--	if (commit_transaction->t_checkpoint_list == NULL) {
-+	if (commit_transaction->t_checkpoint_list == NULL &&
-+	    commit_transaction->t_checkpoint_io_list == NULL) {
- 		__jbd2_journal_drop_transaction(journal, commit_transaction);
- 	} else {
- 		if (journal->j_checkpoint_transactions == NULL) {
+ 	kfree(rsb);
+ 	rsb = NULL;
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-jbd-commit-fix-transaction-dropping.patch
-jbd2-commit-fix-transaction-dropping.patch
-ext2-fix-a-comment-when-ext2_release_file-is-called.patch
-ext3-fix-deadlock-in-ext3_remount-and-orphan-list-handling.patch
-ext4-fix-deadlock-in-ext4_remount-and-orphan-list-handling.patch
+git-acpi.patch
+git-alsa.patch
+git-mtd.patch
+romfs-printk-format-warnings.patch
+add-pci_try_set_mwi.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+kconfig-no-strange-misc-devices.patch
+afs-drop-explicit-extern.patch
+add-printktime-option-deprecate-time.patch
+fs-clarify-dummy-member-in-struct.patch
+sony-laptop-use-null-for-pointer.patch
+hugetlbfs-use-lib-parser-fix-docs.patch
+report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+doc-oops-tracing-add-code-decode-info.patch
+kernel-doc-add-tools-doc-in-makefile.patch
+kernel-doc-fix-unnamed-struct-union-warning.patch
+kernel-doc-strip-c99-comments.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+profile-likely-unlikely-macros.patch
