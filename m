@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-sys-kernel-notes.patch added to -mm tree
-Date: Wed, 11 Jul 2007 16:48:39 -0700
-Message-ID: <200707112348.l6BNmd5M027048@imap1.linux-foundation.org>
+Subject: + sky-cpu-and-nexus-get-rid-of-useless-null-init.patch added to -mm tree
+Date: Wed, 11 Jul 2007 16:58:59 -0700
+Message-ID: <200707112358.l6BNwxPg027688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49239 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34271 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936076AbXGKXti (ORCPT
+	by vger.kernel.org with ESMTP id S935663AbXGKX7G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jul 2007 19:49:38 -0400
+	Wed, 11 Jul 2007 19:59:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@frob.com, ak@suse.de, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, ink@jurassic.park.msu.ru, paulus@samba.org, roland@redhat.com, rth@twiddle.net, schwidefsky@de.ibm.com
+Cc: gorcunov@gmail.com
 
 
 The patch titled
-     Add /sys/kernel/notes
+     Sky Cpu and Nexus: get rid of useless NULL init
 has been added to the -mm tree.  Its filename is
-     add-sys-kernel-notes.patch
+     sky-cpu-and-nexus-get-rid-of-useless-null-init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,75 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add /sys/kernel/notes
-From: Roland McGrath <roland@frob.com>
+Subject: Sky Cpu and Nexus: get rid of useless NULL init
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-This patch adds the /sys/kernel/notes magic file.  Reading this delivers the
-contents of the kernel's .notes section.  This lets userland easily glean any
-detailed information about the running kernel's build that was stored there at
-compile time.
+This patch removes useless structure items init accroding to C99.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ksysfs.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+)
+ drivers/misc/hdpuftrs/hdpu_cpustate.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN kernel/ksysfs.c~add-sys-kernel-notes kernel/ksysfs.c
---- a/kernel/ksysfs.c~add-sys-kernel-notes
-+++ a/kernel/ksysfs.c
-@@ -62,6 +62,28 @@ static ssize_t kexec_crash_loaded_show(s
- KERNEL_ATTR_RO(kexec_crash_loaded);
- #endif /* CONFIG_KEXEC */
- 
-+/*
-+ * Make /sys/kernel/notes give the raw contents of our kernel .notes section.
-+ */
-+extern const char __start_notes __attribute__((weak));
-+extern const char __stop_notes __attribute__((weak));
-+#define	notes_size (&__stop_notes - &__start_notes)
-+
-+static ssize_t notes_read(struct kobject *kobj,
-+			  char *buf, loff_t off, size_t count)
-+{
-+	memcpy(buf, &__start_notes + off, count);
-+	return count;
-+}
-+
-+static struct bin_attribute notes_attr = {
-+	.attr = {
-+		.name = "notes",
-+		.mode = S_IRUGO,
-+	},
-+	.read = &notes_read,
-+};
-+
- decl_subsys(kernel, NULL, NULL);
- EXPORT_SYMBOL_GPL(kernel_subsys);
- 
-@@ -88,6 +110,12 @@ static int __init ksysfs_init(void)
- 		error = sysfs_create_group(&kernel_subsys.kobj,
- 					   &kernel_attr_group);
- 
-+	if (!error && notes_size > 0) {
-+		notes_attr.size = notes_size;
-+		error = sysfs_create_bin_file(&kernel_subsys.kobj,
-+					      &notes_attr);
-+	}
-+
- 	return error;
- }
+diff -puN drivers/misc/hdpuftrs/hdpu_cpustate.c~sky-cpu-and-nexus-get-rid-of-useless-null-init drivers/misc/hdpuftrs/hdpu_cpustate.c
+--- a/drivers/misc/hdpuftrs/hdpu_cpustate.c~sky-cpu-and-nexus-get-rid-of-useless-null-init
++++ a/drivers/misc/hdpuftrs/hdpu_cpustate.c
+@@ -175,9 +175,6 @@ static const struct file_operations cpus
+       .release	= cpustate_release,
+       .read	= cpustate_read,
+       .write	= cpustate_write,
+-      .fasync	= NULL,
+-      .poll	= NULL,
+-      .ioctl	= NULL,
+       .llseek	= no_llseek,
+ };
  
 _
 
-Patches currently in -mm which might be from roland@frob.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-add-sys-kernel-notes.patch
+sky-cpu-and-nexus-code-style-improvement.patch
+sky-cpu-and-nexus-include-ioh.patch
+sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
+sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
+sky-cpu-use-c99-style-for-struct-init.patch
+sky-cpu-and-nexus-get-rid-of-useless-null-init.patch
+sky-cpu-and-nexus-use-seq_file-single_open-on-proc.patch
+udf-check-for-allocated-memory-for-data-of-new-inodes.patch
+udf-check-for-allocated-memory-for-inode-data-v2.patch
+udf-coding-style-conversion-lindent.patch
+udf-fix-function-name-from-udf_crc16-to-udf_crc.patch
