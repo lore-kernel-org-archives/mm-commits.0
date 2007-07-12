@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + incorrect-scsi-transfer-length-computation-from-odd.patch added to -mm tree
-Date: Wed, 11 Jul 2007 18:03:42 -0700
-Message-ID: <200707120103.l6C13gnB032093@imap1.linux-foundation.org>
+Subject: + avoid-open_max-in-scm_max_fd.patch added to -mm tree
+Date: Wed, 11 Jul 2007 18:06:02 -0700
+Message-ID: <200707120106.l6C162hT032205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40801 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41382 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751569AbXGLBEV (ORCPT
+	by vger.kernel.org with ESMTP id S1756532AbXGLBG4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jul 2007 21:04:21 -0400
+	Wed, 11 Jul 2007 21:06:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jli@greshamstorage.com
+Cc: roland@redhat.com, davem@davemloft.net
 
 
 The patch titled
-     Incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers.
+     avoid OPEN_MAX in SCM_MAX_FD
 has been added to the -mm tree.  Its filename is
-     incorrect-scsi-transfer-length-computation-from-odd.patch
+     avoid-open_max-in-scm_max_fd.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers.
-From: Jeremy Linton <jli@greshamstorage.com>
+Subject: avoid OPEN_MAX in SCM_MAX_FD
+From: Roland McGrath <roland@redhat.com>
 
-Any function which use scsi_execute_async() and transfers "odd" sized data
-that doesn't align correctly with the segment sizes may have its transfer
-length padded out to the closest segment size.
+The OPEN_MAX constant is an arbitrary number with no useful relation to
+anything.  Nothing should be using it.  SCM_MAX_FD is just an arbitrary
+constant and it should be clear that its value is chosen in net/scm.h
+and not actually derived from anything else meaningful in the system.
 
-For writes, this results in unnecessary data being transfered to the SCSI
-target.  For reads, it affects the residual data length being returned to
-the application since the residual length will be based on the padded
-transfer size rather than the actual request size.
-
-The easiest way to see this is by trying to read using the SG_IO ioctl a
-large (>32k) buffer size from a tape device that only has a few bytes of
-data stored for the current block.  The resulting resid will generally be
-incorrect.
-
-I've fixed this simply by changing scsi_req_map_sg() so that it places the
-requested transfer length in rq->data_len rather than the sum of all the sg
-segments.
-
-Signed-off-by: Jeremy Linton <jli@greshamstorage.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_lib.c |    2 +-
+ include/net/scm.h |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/scsi_lib.c~incorrect-scsi-transfer-length-computation-from-odd drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~incorrect-scsi-transfer-length-computation-from-odd
-+++ a/drivers/scsi/scsi_lib.c
-@@ -350,7 +350,7 @@ static int scsi_req_map_sg(struct reques
- 	}
+diff -puN include/net/scm.h~avoid-open_max-in-scm_max_fd include/net/scm.h
+--- a/include/net/scm.h~avoid-open_max-in-scm_max_fd
++++ a/include/net/scm.h
+@@ -8,7 +8,7 @@
+ /* Well, we should have at least one descriptor open
+  * to accept passed FDs 8)
+  */
+-#define SCM_MAX_FD	(OPEN_MAX-1)
++#define SCM_MAX_FD	255
  
- 	rq->buffer = rq->data = NULL;
--	rq->data_len = data_len;
-+	rq->data_len = bufflen;
- 	return 0;
- 
- free_bios:
+ struct scm_fp_list
+ {
 _
 
-Patches currently in -mm which might be from jli@greshamstorage.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
-incorrect-scsi-transfer-length-computation-from-odd.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+avoid-open_max-in-scm_max_fd.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
+make-alt-sysrq-p-display-the-debug-register-contents.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+pie-randomization.patch
+i386-put-allocated-elf-notes-in-read-only-data-segment.patch
+x86_64-put-allocated-elf-notes-in-read-only-data-segment.patch
+alpha-put-allocated-elf-notes-in-read-only-data-segment.patch
+powerpc-put-allocated-elf-notes-in-read-only-data-segment.patch
+s390-put-allocated-elf-notes-in-read-only-data-segment.patch
+add-sys-kernel-notes.patch
+use-build-id-ld-option.patch
