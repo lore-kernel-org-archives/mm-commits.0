@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + intel-iommu-iommu-floppy-workaround-kconfig-fix.patch added to -mm tree
-Date: Thu, 12 Jul 2007 16:23:55 -0700
-Message-ID: <200707122323.l6CNNtYV010868@imap1.linux-foundation.org>
+Date: Thu, 12 Jul 2007 16:26:06 -0700
+Message-ID: <200707122326.l6CNQ71s011032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40902 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57511 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755939AbXGLXYH (ORCPT
+	by vger.kernel.org with ESMTP id S1757408AbXGLX0S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jul 2007 19:24:07 -0400
+	Thu, 12 Jul 2007 19:26:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -34,40 +34,27 @@ Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/Kconfig |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ arch/x86_64/Kconfig |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
 diff -puN arch/x86_64/Kconfig~intel-iommu-iommu-floppy-workaround-kconfig-fix arch/x86_64/Kconfig
 --- a/arch/x86_64/Kconfig~intel-iommu-iommu-floppy-workaround-kconfig-fix
 +++ a/arch/x86_64/Kconfig
-@@ -753,11 +753,11 @@ config DMAR
- 	depends on PCI_MSI && ACPI && EXPERIMENTAL
+@@ -775,10 +775,10 @@ config DMAR_FLOPPY_WA
+ 	depends on DMAR
  	default y
  	help
--	  DMA remapping (DMAR) devices support enables independent address
--	  translations for Direct Memory Access (DMA) from devices.
-+	  DMA remapping(DMAR) devices support enables independent address
-+	  translations for Direct Memory Access(DMA) from Devices.
- 	  These DMA remapping devices are reported via ACPI tables
--	  and include PCI device scope covered by these DMA
--	  remapping devices.
-+	  and includes pci device scope covered by these DMA
-+	  remapping device.
+-	 Floppy disk drivers are know to by pass dma api calls
+-	 their by failing to work when IOMMU is enabled. This
+-	 work around will setup a 1 to 1 mappings for the first
+-	 16M to make floppy(isa device) work.
++	 Floppy disk drivers are know to bypass DMA API calls
++	 thereby failing to work when IOMMU is enabled. This
++	 workaround will setup a 1:1 mapping for the first
++	 16M to make floppy (an ISA device) work.
  
- config DMAR_GFX_WA
- 	bool "Support for Graphics workaround"
-@@ -765,9 +765,9 @@ config DMAR_GFX_WA
- 	default y
- 	help
- 	 Current Graphics drivers tend to use physical address
--	 for DMA and avoid using DMA APIs. Setting this config
-+	 for DMA and avoid using DMA api's. Setting this config
- 	 option permits the IOMMU driver to set a unity map for
--	 all the OS-visible memory. Hence the driver can continue
-+	 all the OS visible memory. Hence the driver can continue
- 	 to use physical addresses for DMA.
+ source "drivers/pci/pcie/Kconfig"
  
- config DMAR_FLOPPY_WA
 _
 
 Patches currently in -mm which might be from jengelh@computergmbh.de are
