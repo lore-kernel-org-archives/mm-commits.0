@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-remove-unused-file.patch added to -mm tree
-Date: Thu, 12 Jul 2007 11:49:26 -0700
-Message-ID: <200707121849.l6CInQQK026974@imap1.linux-foundation.org>
+Subject: + lguest-the-host-code-remove-usage-and-export-of-__put_task_struct.patch added to -mm tree
+Date: Thu, 12 Jul 2007 11:51:41 -0700
+Message-ID: <200707121851.l6CIpfpf027150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38100 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43856 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755186AbXGLSts (ORCPT
+	by vger.kernel.org with ESMTP id S1756334AbXGLSvw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jul 2007 14:49:48 -0400
+	Thu, 12 Jul 2007 14:51:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ysato@users.sourceforge.jp
+Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     h8300: remove unused file
+     lguest: remove usage and export of __put_task_struct()
 has been added to the -mm tree.  Its filename is
-     h8300-remove-unused-file.patch
+     lguest-the-host-code-remove-usage-and-export-of-__put_task_struct.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,284 +26,159 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: h8300: remove unused file
-From: Yoshinori Sato <ysato@users.sourceforge.jp>
+Subject: lguest: remove usage and export of __put_task_struct()
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-arch/h8300/kernel/ints.c is unused.
+lguest takes a reference count of tasks for two reasons.  The first is
+bogus: the /dev/lguest close callback will be called before the task is
+destroyed anyway, so no need to take a reference on open.
 
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+The second is code to defer waking up tasks for inter-guest I/O, but the
+current lguest drivers are too simplistic to benefit (only batched
+hypercalls will see an effect, and it's likely that lguests' entire I/O
+model will be replaced with virtio and ringbuffers anyway).
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/kernel/ints.c |  256 -------------------------------------
- 1 files changed, 256 deletions(-)
+ drivers/lguest/hypercalls.c  |    1 -
+ drivers/lguest/io.c          |   18 +-----------------
+ drivers/lguest/lg.h          |    1 -
+ drivers/lguest/lguest_user.c |    2 --
+ kernel/fork.c                |    1 -
+ 5 files changed, 1 insertion(+), 22 deletions(-)
 
-diff -puN arch/h8300/kernel/ints.c~h8300-remove-unused-file /dev/null
---- a/arch/h8300/kernel/ints.c
-+++ /dev/null
-@@ -1,256 +0,0 @@
--/*
-- * linux/arch/h8300/kernel/ints.c
-- *
-- * Yoshinori Sato <ysato@users.sourceforge.jp>
-- *
-- * Based on linux/arch/$(ARCH)/platform/$(PLATFORM)/ints.c
-- *
-- * This file is subject to the terms and conditions of the GNU General Public
-- * License.  See the file COPYING in the main directory of this archive
-- * for more details.
-- *
-- * Copyright 1996 Roman Zippel
-- * Copyright 1999 D. Jeff Dionne <jeff@rt-control.com>
-- */
--
--#include <linux/module.h>
--#include <linux/types.h>
--#include <linux/kernel.h>
--#include <linux/sched.h>
--#include <linux/kernel_stat.h>
--#include <linux/seq_file.h>
--#include <linux/interrupt.h>
--#include <linux/init.h>
--#include <linux/random.h>
--#include <linux/bootmem.h>
--#include <linux/hardirq.h>
--
--#include <asm/system.h>
--#include <asm/irq.h>
--#include <asm/traps.h>
--#include <asm/io.h>
--#include <asm/setup.h>
--#include <asm/errno.h>
--
--/*
-- * This structure has only 4 elements for speed reasons
-- */
--typedef struct irq_handler {
--	irqreturn_t (*handler)(int, void *, struct pt_regs *);
--	int         flags;
--	int         count;
--	void	    *dev_id;
--	const char  *devname;
--} irq_handler_t;
--
--static irq_handler_t *irq_list[NR_IRQS];
--static int use_kmalloc;
--
--extern unsigned long *interrupt_redirect_table;
--extern const int h8300_saved_vectors[];
--extern const unsigned long h8300_trap_table[];
--int h8300_enable_irq_pin(unsigned int irq);
--void h8300_disable_irq_pin(unsigned int irq);
--
--#define CPU_VECTOR ((unsigned long *)0x000000)
--#define ADDR_MASK (0xffffff)
--
--#if defined(CONFIG_RAMKERNEL)
--static unsigned long __init *get_vector_address(void)
+diff -puN drivers/lguest/hypercalls.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct drivers/lguest/hypercalls.c
+--- a/drivers/lguest/hypercalls.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct
++++ a/drivers/lguest/hypercalls.c
+@@ -189,5 +189,4 @@ void do_hypercalls(struct lguest *lg)
+ 		do_hcall(lg, lg->regs);
+ 		clear_hcall(lg);
+ 	}
+-	set_wakeup_process(lg, NULL);
+ }
+diff -puN drivers/lguest/io.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct drivers/lguest/io.c
+--- a/drivers/lguest/io.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct
++++ a/drivers/lguest/io.c
+@@ -296,7 +296,7 @@ static int dma_transfer(struct lguest *s
+ 
+ 	/* Do this last so dst doesn't simply sleep on lock. */
+ 	set_bit(dst->interrupt, dstlg->irqs_pending);
+-	set_wakeup_process(srclg, dstlg->tsk);
++	wake_up_process(dstlg->tsk);
+ 	return i == dst->num_dmas;
+ 
+ fail:
+@@ -333,7 +333,6 @@ again:
+ 			/* Give any recipients one chance to restock. */
+ 			up_read(&current->mm->mmap_sem);
+ 			mutex_unlock(&lguest_lock);
+-			set_wakeup_process(lg, NULL);
+ 			empty++;
+ 			goto again;
+ 		}
+@@ -362,21 +361,6 @@ void release_all_dma(struct lguest *lg)
+ 	up_read(&lg->mm->mmap_sem);
+ }
+ 
+-/* We cache one process to wakeup: helps for batching & wakes outside locks. */
+-void set_wakeup_process(struct lguest *lg, struct task_struct *p)
 -{
--	unsigned long *rom_vector = CPU_VECTOR;
--	unsigned long base,tmp;
--	int vec_no;
--
--	base = rom_vector[EXT_IRQ0] & ADDR_MASK;
--	
--	/* check romvector format */
--	for (vec_no = EXT_IRQ1; vec_no <= EXT_IRQ0+EXT_IRQS; vec_no++) {
--		if ((base+(vec_no - EXT_IRQ0)*4) != (rom_vector[vec_no] & ADDR_MASK))
--			return NULL;
--	}
--
--	/* ramvector base address */
--	base -= EXT_IRQ0*4;
--
--	/* writerble check */
--	tmp = ~(*(volatile unsigned long *)base);
--	(*(volatile unsigned long *)base) = tmp;
--	if ((*(volatile unsigned long *)base) != tmp)
--		return NULL;
--	return (unsigned long *)base;
--}
--#endif
--
--void __init init_IRQ(void)
--{
--#if defined(CONFIG_RAMKERNEL)
--	int i;
--	unsigned long *ramvec,*ramvec_p;
--	const unsigned long *trap_entry;
--	const int *saved_vector;
--
--	ramvec = get_vector_address();
--	if (ramvec == NULL)
--		panic("interrupt vector serup failed.");
--	else
--		printk(KERN_INFO "virtual vector at 0x%08lx\n",(unsigned long)ramvec);
--
--	/* create redirect table */
--	ramvec_p = ramvec;
--	trap_entry = h8300_trap_table;
--	saved_vector = h8300_saved_vectors;
--	for ( i = 0; i < NR_IRQS; i++) {
--		if (i == *saved_vector) {
--			ramvec_p++;
--			saved_vector++;
--		} else {
--			if ( i < NR_TRAPS ) {
--				if (*trap_entry)
--					*ramvec_p = VECTOR(*trap_entry);
--				ramvec_p++;
--				trap_entry++;
--			} else
--				*ramvec_p++ = REDIRECT(interrupt_entry);
--		}
--	}
--	interrupt_redirect_table = ramvec;
--#ifdef DUMP_VECTOR
--	ramvec_p = ramvec;
--	for (i = 0; i < NR_IRQS; i++) {
--		if ((i % 8) == 0)
--			printk(KERN_DEBUG "\n%p: ",ramvec_p);
--		printk(KERN_DEBUG "%p ",*ramvec_p);
--		ramvec_p++;
--	}
--	printk(KERN_DEBUG "\n");
--#endif
--#endif
--}
--
--int request_irq(unsigned int irq, 
--		irqreturn_t (*handler)(int, void *, struct pt_regs *),
--                unsigned long flags, const char *devname, void *dev_id)
--{
--	irq_handler_t *irq_handle;
--	if (irq < 0 || irq >= NR_IRQS) {
--		printk(KERN_ERR "Incorrect IRQ %d from %s\n", irq, devname);
--		return -EINVAL;
--	}
--
--	if (irq_list[irq] || (h8300_enable_irq_pin(irq) == -EBUSY))
--		return -EBUSY;
--
--	if (use_kmalloc)
--		irq_handle = kmalloc(sizeof(irq_handler_t), GFP_ATOMIC);
--	else {
--		/* use bootmem allocater */
--		irq_handle = (irq_handler_t *)alloc_bootmem(sizeof(irq_handler_t));
--		irq_handle = (irq_handler_t *)((unsigned long)irq_handle | 0x80000000);
--	}
--
--	if (irq_handle == NULL)
--		return -ENOMEM;
--
--	irq_handle->handler = handler;
--	irq_handle->flags   = flags;
--	irq_handle->count   = 0;
--	irq_handle->dev_id  = dev_id;
--	irq_handle->devname = devname;
--	irq_list[irq] = irq_handle;
--
--	if (irq_handle->flags & IRQF_SAMPLE_RANDOM)
--		rand_initialize_irq(irq);
--
--	enable_irq(irq);
--	return 0;
--}
--
--EXPORT_SYMBOL(request_irq);
--
--void free_irq(unsigned int irq, void *dev_id)
--{
--	if (irq >= NR_IRQS)
+-	if (p == lg->wake)
 -		return;
 -
--	if (!irq_list[irq] || irq_list[irq]->dev_id != dev_id)
--		printk(KERN_WARNING "Removing probably wrong IRQ %d from %s\n",
--		       irq, irq_list[irq]->devname);
--	disable_irq(irq);
--	h8300_disable_irq_pin(irq);
--	if (((unsigned long)irq_list[irq] & 0x80000000) == 0) {
--		kfree(irq_list[irq]);
--		irq_list[irq] = NULL;
+-	if (lg->wake) {
+-		wake_up_process(lg->wake);
+-		put_task_struct(lg->wake);
 -	}
+-	lg->wake = p;
+-	if (lg->wake)
+-		get_task_struct(lg->wake);
 -}
 -
--EXPORT_SYMBOL(free_irq);
--
--/*
-- * Do we need these probe functions on the m68k?
-- */
--unsigned long probe_irq_on (void)
--{
--	return 0;
--}
--
--EXPORT_SYMBOL(probe_irq_on);
--
--int probe_irq_off (unsigned long irqs)
--{
--	return 0;
--}
--
--EXPORT_SYMBOL(probe_irq_off);
--
--void enable_irq(unsigned int irq)
--{
--	if (irq >= EXT_IRQ0 && irq <= (EXT_IRQ0 + EXT_IRQS))
--		IER_REGS |= 1 << (irq - EXT_IRQ0);
--}
--
--void disable_irq(unsigned int irq)
--{
--	if (irq >= EXT_IRQ0 && irq <= (EXT_IRQ0 + EXT_IRQS))
--		IER_REGS &= ~(1 << (irq - EXT_IRQ0));
--}
--
--asmlinkage void process_int(int irq, struct pt_regs *fp)
--{
--	irq_enter();
--	h8300_clear_isr(irq);
--	if (irq >= NR_TRAPS && irq < NR_IRQS) {
--		if (irq_list[irq]) {
--			irq_list[irq]->handler(irq, irq_list[irq]->dev_id, fp);
--			irq_list[irq]->count++;
--			if (irq_list[irq]->flags & IRQF_SAMPLE_RANDOM)
--				add_interrupt_randomness(irq);
--		}
--	} else {
--		BUG();
--	}
--	irq_exit();
--}
--
--int show_interrupts(struct seq_file *p, void *v)
--{
--	int i = *(loff_t *) v;
--
--	if ((i < NR_IRQS) && (irq_list[i]!=NULL)) {
--		seq_printf(p, "%3d: %10u ",i,irq_list[i]->count);
--		seq_printf(p, "%s\n", irq_list[i]->devname);
--	}
--
--	return 0;
--}
--
--void init_irq_proc(void)
--{
--}
--
--static int __init enable_kmalloc(void)
--{
--	use_kmalloc = 1;
--	return 0;
--}
--core_initcall(enable_kmalloc);
+ /* Userspace wants a dma buffer from this guest. */
+ unsigned long get_dma_buffer(struct lguest *lg,
+ 			     unsigned long ukey, unsigned long *interrupt)
+diff -puN drivers/lguest/lg.h~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct drivers/lguest/lg.h
+--- a/drivers/lguest/lg.h~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct
++++ a/drivers/lguest/lg.h
+@@ -240,7 +240,6 @@ void send_dma(struct lguest *info, unsig
+ void release_all_dma(struct lguest *lg);
+ unsigned long get_dma_buffer(struct lguest *lg, unsigned long key,
+ 			     unsigned long *interrupt);
+-void set_wakeup_process(struct lguest *lg, struct task_struct *p);
+ 
+ /* hypercalls.c: */
+ void do_hypercalls(struct lguest *lg);
+diff -puN drivers/lguest/lguest_user.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct drivers/lguest/lguest_user.c
+--- a/drivers/lguest/lguest_user.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct
++++ a/drivers/lguest/lguest_user.c
+@@ -141,7 +141,6 @@ static int initialize(struct file *file,
+ 	setup_guest_gdt(lg);
+ 	init_clockdev(lg);
+ 	lg->tsk = current;
+-	get_task_struct(lg->tsk);
+ 	lg->mm = get_task_mm(lg->tsk);
+ 	init_waitqueue_head(&lg->break_wq);
+ 	lg->last_pages = NULL;
+@@ -205,7 +204,6 @@ static int close(struct inode *inode, st
+ 	hrtimer_cancel(&lg->hrt);
+ 	release_all_dma(lg);
+ 	free_guest_pagetable(lg);
+-	put_task_struct(lg->tsk);
+ 	mmput(lg->mm);
+ 	if (!IS_ERR(lg->dead))
+ 		kfree(lg->dead);
+diff -puN kernel/fork.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct kernel/fork.c
+--- a/kernel/fork.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct
++++ a/kernel/fork.c
+@@ -127,7 +127,6 @@ void __put_task_struct(struct task_struc
+ 	if (!profile_handoff_task(tsk))
+ 		free_task(tsk);
+ }
+-EXPORT_SYMBOL_GPL(__put_task_struct);
+ 
+ void __init fork_init(unsigned long mempages)
+ {
 _
 
-Patches currently in -mm which might be from ysato@users.sourceforge.jp are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-h8300-enable-arbitary-speed-tty-port-setup.patch
-h8300-zimage-support-update.patch
-h8300-remove-unused-file.patch
-dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
+git-kbuild.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+use-menuconfig-objects-ii-module-menu.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+modules-remove-modlist_lock.patch
+permit-mempool_freenull.patch
+lguest-export-symbols-for-lguest-as-a-module.patch
+lguest-the-guest-code.patch
+lguest-the-host-code.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+lguest-the-host-code-remove-usage-and-export-of-__put_task_struct.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-console-driver.patch
+lguest-the-net-driver.patch
+lguest-the-block-driver.patch
+lguest-the-documentation-example-launcher.patch
+readahead-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-min_ra_pages-max_ra_pages-macros.patch
+readahead-data-structure-and-routines.patch
+readahead-on-demand-readahead-logic.patch
+readahead-convert-filemap-invocations.patch
+readahead-convert-splice-invocations.patch
+readahead-convert-ext3-ext4-invocations.patch
+readahead-remove-the-old-algorithm.patch
+readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
+readahead-pass-real-splice-size.patch
+mm-share-pg_readahead-and-pg_reclaim.patch
+readahead-split-ondemand-readahead-interface-into-two-functions.patch
+readahead-sanify-file_ra_state-names.patch
+define-new-percpu-interface-for-shared-data-version-4.patch
+use-the-new-percpu-interface-for-shared-data-version-4.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
