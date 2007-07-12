@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch added to -mm tree
-Date: Wed, 11 Jul 2007 17:42:52 -0700
-Message-ID: <200707120042.l6C0gqqo030784@imap1.linux-foundation.org>
+Subject: + x86-64-calgary-tighten-up-the-bitmap-locking.patch added to -mm tree
+Date: Wed, 11 Jul 2007 17:42:54 -0700
+Message-ID: <200707120042.l6C0gsJk030787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52066 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33595 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759651AbXGLAnE (ORCPT
+	by vger.kernel.org with ESMTP id S1759651AbXGLAnH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Jul 2007 20:43:04 -0400
+	Wed, 11 Jul 2007 20:43:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: muli@il.ibm.com, ak@suse.de, akpm@linux-foundation.org
+Cc: muli@il.ibm.com, ak@suse.de
 
 
 The patch titled
-     x86-64: Calgary - fix few style problems pointed out by checkpatch.pl
+     x86-64:  Calgary - tighten up the bitmap locking
 has been added to the -mm tree.  Its filename is
-     x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
+     x86-64-calgary-tighten-up-the-bitmap-locking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,196 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-64: Calgary - fix few style problems pointed out by checkpatch.pl
+Subject: x86-64:  Calgary - tighten up the bitmap locking
 From: Muli Ben-Yehuda <muli@il.ibm.com>
 
-No actual code was harmed in the production of this patch.
-
-Thanks to Andrew Morton <akpm@linux-foundation.org> for telling me
-about checkpatch.pl.
+Currently the IOMMU table's lock protects both the bitmap and access
+to the hardware's TCE table. Access to the TCE table is synchronized
+through the bitmap; therefore, only hold the lock while modifying the
+bitmap. This gives a yummy 10-15% reduction in CPU utilization for
+netperf on a large SMP machine.
 
 Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ arch/x86_64/kernel/pci-calgary.c |   40 ++++++++++++-----------------
+ 1 files changed, 17 insertions(+), 23 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-tighten-up-the-bitmap-locking arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-tighten-up-the-bitmap-locking
 +++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -375,7 +375,9 @@ static inline struct iommu_table *find_i
- 		pbus = pdev->bus;
+@@ -233,6 +233,7 @@ static void iommu_range_reserve(struct i
+ 	unsigned long index;
+ 	unsigned long end;
+ 	unsigned long badbit;
++	unsigned long flags;
  
- 	tbl = pbus->self->sysdata;
--	BUG_ON(pdev->bus->parent && (tbl->it_busno != pdev->bus->parent->number));
+ 	index = start_addr >> PAGE_SHIFT;
+ 
+@@ -244,6 +245,8 @@ static void iommu_range_reserve(struct i
+ 	if (end > tbl->it_size) /* don't go off the table */
+ 		end = tbl->it_size;
+ 
++	spin_lock_irqsave(&tbl->it_lock, flags);
 +
-+	BUG_ON(pdev->bus->parent &&
-+	       (tbl->it_busno != pdev->bus->parent->number));
+ 	badbit = verify_bit_range(tbl->it_map, 0, index, end);
+ 	if (badbit != ~0UL) {
+ 		if (printk_ratelimit())
+@@ -253,15 +256,20 @@ static void iommu_range_reserve(struct i
+ 	}
  
- 	return tbl;
+ 	set_bit_string(tbl->it_map, index, npages);
++
++	spin_unlock_irqrestore(&tbl->it_lock, flags);
  }
-@@ -941,7 +943,8 @@ static void calioc2_dump_error_regs(stru
- 	/* dump rest of error regs */
- 	printk(KERN_EMERG "Calgary: ");
- 	for (i = 0; i < ARRAY_SIZE(errregs); i++) {
--		erroff = (0x810 + (i * 0x10)); /* err regs are at 0x810 - 0x870 */
-+		/* err regs are at 0x810 - 0x870 */
-+		erroff = (0x810 + (i * 0x10));
- 		target = calgary_reg(bbar, phboff | erroff);
- 		errregs[i] = be32_to_cpu(readl(target));
- 		printk("0x%08x@0x%lx ", errregs[i], erroff);
-@@ -1207,7 +1210,7 @@ static int __init calgary_init(void)
- {
- 	int ret;
- 	struct pci_dev *dev = NULL;
--	void* tce_space;
-+	void *tce_space;
  
- 	ret = calgary_locate_bbars();
- 	if (ret)
+ static unsigned long iommu_range_alloc(struct iommu_table *tbl,
+ 	unsigned int npages)
+ {
++	unsigned long flags;
+ 	unsigned long offset;
+ 
+ 	BUG_ON(npages == 0);
+ 
++	spin_lock_irqsave(&tbl->it_lock, flags);
++
+ 	offset = find_next_zero_string(tbl->it_map, tbl->it_hint,
+ 				       tbl->it_size, npages);
+ 	if (offset == ~0UL) {
+@@ -270,6 +278,7 @@ static unsigned long iommu_range_alloc(s
+ 					       tbl->it_size, npages);
+ 		if (offset == ~0UL) {
+ 			printk(KERN_WARNING "Calgary: IOMMU full.\n");
++			spin_unlock_irqrestore(&tbl->it_lock, flags);
+ 			if (panic_on_overflow)
+ 				panic("Calgary: fix the allocator.\n");
+ 			else
+@@ -281,17 +290,17 @@ static unsigned long iommu_range_alloc(s
+ 	tbl->it_hint = offset + npages;
+ 	BUG_ON(tbl->it_hint > tbl->it_size);
+ 
++	spin_unlock_irqrestore(&tbl->it_lock, flags);
++
+ 	return offset;
+ }
+ 
+ static dma_addr_t iommu_alloc(struct iommu_table *tbl, void *vaddr,
+ 	unsigned int npages, int direction)
+ {
+-	unsigned long entry, flags;
++	unsigned long entry;
+ 	dma_addr_t ret = bad_dma_address;
+ 
+-	spin_lock_irqsave(&tbl->it_lock, flags);
+-
+ 	entry = iommu_range_alloc(tbl, npages);
+ 
+ 	if (unlikely(entry == bad_dma_address))
+@@ -304,12 +313,9 @@ static dma_addr_t iommu_alloc(struct iom
+ 	tce_build(tbl, entry, npages, (unsigned long)vaddr & PAGE_MASK,
+ 		  direction);
+ 
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+-
+ 	return ret;
+ 
+ error:
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ 	printk(KERN_WARNING "Calgary: failed to allocate %u pages in "
+ 	       "iommu %p\n", npages, tbl);
+ 	return bad_dma_address;
+@@ -321,6 +327,7 @@ static void __iommu_free(struct iommu_ta
+ 	unsigned long entry;
+ 	unsigned long badbit;
+ 	unsigned long badend;
++	unsigned long flags;
+ 
+ 	/* were we called with bad_dma_address? */
+ 	badend = bad_dma_address + (EMERGENCY_PAGES * PAGE_SIZE);
+@@ -337,6 +344,8 @@ static void __iommu_free(struct iommu_ta
+ 
+ 	tce_free(tbl, entry, npages);
+ 
++	spin_lock_irqsave(&tbl->it_lock, flags);
++
+ 	badbit = verify_bit_range(tbl->it_map, 1, entry, entry + npages);
+ 	if (badbit != ~0UL) {
+ 		if (printk_ratelimit())
+@@ -346,18 +355,14 @@ static void __iommu_free(struct iommu_ta
+ 	}
+ 
+ 	__clear_bit_string(tbl->it_map, entry, npages);
++
++	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ }
+ 
+ static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
+ 	unsigned int npages)
+ {
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&tbl->it_lock, flags);
+-
+ 	__iommu_free(tbl, dma_addr, npages);
+-
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ }
+ 
+ static inline struct iommu_table *find_iommu_table(struct device *dev)
+@@ -402,17 +407,12 @@ static void __calgary_unmap_sg(struct io
+ void calgary_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 		      int nelems, int direction)
+ {
+-	unsigned long flags;
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+ 
+ 	if (!translate_phb(to_pci_dev(dev)))
+ 		return;
+ 
+-	spin_lock_irqsave(&tbl->it_lock, flags);
+-
+ 	__calgary_unmap_sg(tbl, sglist, nelems, direction);
+-
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ }
+ 
+ static int calgary_nontranslate_map_sg(struct device* dev,
+@@ -433,7 +433,6 @@ int calgary_map_sg(struct device *dev, s
+ 	int nelems, int direction)
+ {
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+-	unsigned long flags;
+ 	unsigned long vaddr;
+ 	unsigned int npages;
+ 	unsigned long entry;
+@@ -442,8 +441,6 @@ int calgary_map_sg(struct device *dev, s
+ 	if (!translate_phb(to_pci_dev(dev)))
+ 		return calgary_nontranslate_map_sg(dev, sg, nelems, direction);
+ 
+-	spin_lock_irqsave(&tbl->it_lock, flags);
+-
+ 	for (i = 0; i < nelems; i++ ) {
+ 		struct scatterlist *s = &sg[i];
+ 		BUG_ON(!s->page);
+@@ -467,8 +464,6 @@ int calgary_map_sg(struct device *dev, s
+ 		s->dma_length = s->length;
+ 	}
+ 
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+-
+ 	return nelems;
+ error:
+ 	__calgary_unmap_sg(tbl, sg, nelems, direction);
+@@ -476,7 +471,6 @@ error:
+ 		sg[i].dma_address = bad_dma_address;
+ 		sg[i].dma_length = 0;
+ 	}
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from muli@il.ibm.com are
