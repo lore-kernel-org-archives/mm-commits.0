@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-use-lib-parser-fix-docs-fix.patch added to -mm tree
-Date: Thu, 12 Jul 2007 15:05:12 -0700
-Message-ID: <200707122205.l6CM5CP3006531@imap1.linux-foundation.org>
+Subject: + touchscreen-fujitsu-touchscreen-driver-rev3.patch added to -mm tree
+Date: Thu, 12 Jul 2007 15:07:30 -0700
+Message-ID: <200707122207.l6CM7UiL006650@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47452 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47138 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761181AbXGLWFo (ORCPT
+	by vger.kernel.org with ESMTP id S1758940AbXGLWHu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jul 2007 18:05:44 -0400
+	Thu, 12 Jul 2007 18:07:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, lee.schermerhorn@hp.com, randy.dunlap@oracle.com
+Cc: shemminger@linux-foundation.org, dtor@mail.ru
 
 
 The patch titled
-     hugetlbfs: handle empty options string
+     touchscreen: Fujitsu touchscreen driver (rev3)
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-use-lib-parser-fix-docs-fix.patch
+     touchscreen-fujitsu-touchscreen-driver-rev3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,96 +26,134 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hugetlbfs: handle empty options string
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: touchscreen: Fujitsu touchscreen driver (rev3)
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-I was seeing a null pointer deref in fs/super.c:vfs_kern_mount().
-Some file system get_sb() handler was returning NULL mnt_sb with
-a non-negative return value.  I also noticed a "hugetlbfs: Bad
-mount option:" message in the log.
-
-Turns out that hugetlbfs_parse_options() was not checking for an
-empty option string after call to strsep().  On failure,
-hugetlbfs_parse_options() returns 1.  hugetlbfs_fill_super() just
-passed this return code back up the call stack where
-vfs_kern_mount() missed the error and proceeded with a NULL mnt_sb.
-
-Apparently introduced by patch:
-	hugetlbfs-use-lib-parser-fix-docs.patch
-
-The problem was exposed by this line in my fstab:
-
-none        /huge       hugetlbfs   defaults    0 0
-
-It can also be demonstrated by invoking mount of hugetlbfs
-directly with no options or a bogus option.
-
-This patch:
-
-1) adds the check for empty option to hugetlbfs_parse_options(),
-2) enhances the error message to bracket any unrecognized
-   option with quotes ,
-3) modifies hugetlbfs_parse_options() to return -EINVAL on any
-   unrecognized option,
-4) adds a BUG_ON() to vfs_kern_mount() to catch any get_sb()
-   handler that returns a NULL mnt->mnt_sb with a return value
-   >= 0.
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    8 +++++---
- fs/super.c           |    1 +
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/input/touchscreen/fujitsu_ts.c |   36 +++++++++--------------
+ 1 files changed, 15 insertions(+), 21 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-use-lib-parser-fix-docs-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-use-lib-parser-fix-docs-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -625,6 +625,8 @@ hugetlbfs_parse_options(char *options, s
+diff -puN drivers/input/touchscreen/fujitsu_ts.c~touchscreen-fujitsu-touchscreen-driver-rev3 drivers/input/touchscreen/fujitsu_ts.c
+--- a/drivers/input/touchscreen/fujitsu_ts.c~touchscreen-fujitsu-touchscreen-driver-rev3
++++ a/drivers/input/touchscreen/fujitsu_ts.c
+@@ -26,15 +26,9 @@ MODULE_LICENSE("GPL");
  
- 	while ((p = strsep(&options, ",")) != NULL) {
- 		int token;
-+		if (!*p)
-+			continue;
+ #define FUJITSU_LENGTH 5
  
- 		token = match_token(p, tokens, args);
- 		switch (token) {
-@@ -669,8 +671,9 @@ hugetlbfs_parse_options(char *options, s
- 			break;
- 
- 		default:
--			printk(KERN_ERR "hugetlbfs: Bad mount option: %s\n", p);
-- 			return 1;
-+			printk(KERN_ERR "hugetlbfs: Bad mount option: \"%s\"\n",
-+				 p);
-+			return -EINVAL;
- 			break;
- 		}
- 	}
-@@ -697,7 +700,6 @@ hugetlbfs_fill_super(struct super_block 
- 	config.gid = current->fsgid;
- 	config.mode = 0755;
- 	ret = hugetlbfs_parse_options(data, &config);
+-#define X_AXIS_MIN	90
+-#define X_AXIS_MAX	4000
+-#define Y_AXIS_MIN	185
+-#define Y_AXIS_MAX	4000
 -
- 	if (ret)
- 		return ret;
+ /*
+  * Per-touchscreen data.
+  */
+-
+ struct fujitsu {
+ 	struct input_dev *dev;
+ 	struct serio *serio;
+@@ -44,9 +38,13 @@ struct fujitsu {
+ };
  
-diff -puN fs/super.c~hugetlbfs-use-lib-parser-fix-docs-fix fs/super.c
---- a/fs/super.c~hugetlbfs-use-lib-parser-fix-docs-fix
-+++ a/fs/super.c
-@@ -884,6 +884,7 @@ vfs_kern_mount(struct file_system_type *
- 	error = type->get_sb(type, flags, name, data, mnt);
- 	if (error < 0)
- 		goto out_free_secdata;
-+	BUG_ON(!mnt->mnt_sb);
+ /*
+- * Decode serial data
++ * Decode serial data (5 bytes per packet)
++ * First byte
++ * 1 C 0 0 R S S S
++ * Where C is 1 while in calibration mode (which we don't use)
++ * R is 1 when no coordinate corection was done.
++ * S are button state
+  */
+-
+ static irqreturn_t fujitsu_interrupt(struct serio *serio,
+ 				     unsigned char data, unsigned int flags)
+ {
+@@ -55,7 +53,7 @@ static irqreturn_t fujitsu_interrupt(str
  
-  	error = security_sb_kern_mount(mnt->mnt_sb, secdata);
-  	if (error)
+ 	if (fujitsu->idx == 0) {
+ 		/* resync skip until start of frame */
+-		if (!(data & 0x80))
++		if ((data & 0xf8) != 0x80)
+ 			return IRQ_HANDLED;
+ 	} else {
+ 		/* resync skip garbage */
+@@ -83,7 +81,6 @@ static irqreturn_t fujitsu_interrupt(str
+ /*
+  * fujitsu_disconnect() is the opposite of fujitsu_connect()
+  */
+-
+ static void fujitsu_disconnect(struct serio *serio)
+ {
+ 	struct fujitsu *fujitsu = serio_get_drvdata(serio);
+@@ -101,7 +98,6 @@ static void fujitsu_disconnect(struct se
+  * new serio device that supports the Fujitsu protocol and registers it
+  * as input device.
+  */
+-
+ static int fujitsu_connect(struct serio *serio, struct serio_driver *drv)
+ {
+ 	struct fujitsu *fujitsu;
+@@ -129,8 +125,8 @@ static int fujitsu_connect(struct serio 
+ 	input_dev->evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
+ 	input_dev->keybit[LONG(BTN_TOUCH)] = BIT(BTN_TOUCH);
+ 
+-	input_set_abs_params(input_dev, ABS_X, X_AXIS_MIN, X_AXIS_MAX, 0, 0);
+-	input_set_abs_params(input_dev, ABS_Y, Y_AXIS_MIN, Y_AXIS_MAX, 0, 0);
++	input_set_abs_params(input_dev, ABS_X, 0, 4096, 0, 0);
++	input_set_abs_params(input_dev, ABS_Y, 0, 4096, 0, 0);
+ 	serio_set_drvdata(serio, fujitsu);
+ 
+ 	err = serio_open(serio, drv);
+@@ -143,9 +139,12 @@ static int fujitsu_connect(struct serio 
+ 
+ 	return 0;
+ 
+- fail3:	serio_close(serio);
+- fail2:	serio_set_drvdata(serio, NULL);
+- fail1:	input_free_device(input_dev);
++ fail3:
++	serio_close(serio);
++ fail2:
++	serio_set_drvdata(serio, NULL);
++ fail1:
++	input_free_device(input_dev);
+ 	kfree(fujitsu);
+ 	return err;
+ }
+@@ -153,7 +152,6 @@ static int fujitsu_connect(struct serio 
+ /*
+  * The serio driver structure.
+  */
+-
+ static struct serio_device_id fujitsu_serio_ids[] = {
+ 	{
+ 		.type	= SERIO_RS232,
+@@ -177,10 +175,6 @@ static struct serio_driver fujitsu_drv =
+ 	.disconnect	= fujitsu_disconnect,
+ };
+ 
+-/*
+- * The functions for inserting/removing us as a module.
+- */
+-
+ static int __init fujitsu_init(void)
+ {
+ 	return serio_register_driver(&fujitsu_drv);
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-change-zonelist-order-zonelist-order-selection-logic.patch
-hugetlbfs-use-lib-parser-fix-docs-fix.patch
+origin.patch
+git-acpi.patch
+touchscreen-fujitsu-touchscreen-driver.patch
+touchscreen-fujitsu-touchscreen-driver-rev3.patch
+git-netdev-all.patch
+git-net.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+pci-x-pci-express-read-control-interfaces-qla2xxx.patch
