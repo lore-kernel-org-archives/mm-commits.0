@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + touchscreen-fujitsu-touchscreen-driver-rev3.patch added to -mm tree
-Date: Thu, 12 Jul 2007 15:07:30 -0700
-Message-ID: <200707122207.l6CM7UiL006650@imap1.linux-foundation.org>
+Subject: + pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch added to -mm tree
+Date: Thu, 12 Jul 2007 15:48:02 -0700
+Message-ID: <200707122248.l6CMm2nt008894@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47138 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58127 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758940AbXGLWHu (ORCPT
+	by vger.kernel.org with ESMTP id S1758934AbXGLWsv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jul 2007 18:07:50 -0400
+	Thu, 12 Jul 2007 18:48:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, dtor@mail.ru
+Cc: xemul@openvz.org, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, herbert@13thfloor.at, sukadev@us.ibm.com
 
 
 The patch titled
-     touchscreen: Fujitsu touchscreen driver (rev3)
+     pid namespaces: make get_pid_ns() return the namespace itself
 has been added to the -mm tree.  Its filename is
-     touchscreen-fujitsu-touchscreen-driver-rev3.patch
+     pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,134 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: touchscreen: Fujitsu touchscreen driver (rev3)
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: pid namespaces: make get_pid_ns() return the namespace itself
+From: Pavel Emelianov <xemul@openvz.org>
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Make get_pid_ns() return the namespace itself to look like the other getters
+and make the code using it look nicer.
+
+Signed-off-by: Pavel Emelianov <xemul@openvz.org>
+Acked-by: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/fujitsu_ts.c |   36 +++++++++--------------
- 1 files changed, 15 insertions(+), 21 deletions(-)
+ include/linux/pid_namespace.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/fujitsu_ts.c~touchscreen-fujitsu-touchscreen-driver-rev3 drivers/input/touchscreen/fujitsu_ts.c
---- a/drivers/input/touchscreen/fujitsu_ts.c~touchscreen-fujitsu-touchscreen-driver-rev3
-+++ a/drivers/input/touchscreen/fujitsu_ts.c
-@@ -26,15 +26,9 @@ MODULE_LICENSE("GPL");
+diff -puN include/linux/pid_namespace.h~pid-namespaces-make-get_pid_ns-return-the-namespace-itself include/linux/pid_namespace.h
+--- a/include/linux/pid_namespace.h~pid-namespaces-make-get_pid_ns-return-the-namespace-itself
++++ a/include/linux/pid_namespace.h
+@@ -24,9 +24,10 @@ struct pid_namespace {
  
- #define FUJITSU_LENGTH 5
+ extern struct pid_namespace init_pid_ns;
  
--#define X_AXIS_MIN	90
--#define X_AXIS_MAX	4000
--#define Y_AXIS_MIN	185
--#define Y_AXIS_MAX	4000
--
- /*
-  * Per-touchscreen data.
-  */
--
- struct fujitsu {
- 	struct input_dev *dev;
- 	struct serio *serio;
-@@ -44,9 +38,13 @@ struct fujitsu {
- };
- 
- /*
-- * Decode serial data
-+ * Decode serial data (5 bytes per packet)
-+ * First byte
-+ * 1 C 0 0 R S S S
-+ * Where C is 1 while in calibration mode (which we don't use)
-+ * R is 1 when no coordinate corection was done.
-+ * S are button state
-  */
--
- static irqreturn_t fujitsu_interrupt(struct serio *serio,
- 				     unsigned char data, unsigned int flags)
+-static inline void get_pid_ns(struct pid_namespace *ns)
++static inline struct pid_namespace *get_pid_ns(struct pid_namespace *ns)
  {
-@@ -55,7 +53,7 @@ static irqreturn_t fujitsu_interrupt(str
- 
- 	if (fujitsu->idx == 0) {
- 		/* resync skip until start of frame */
--		if (!(data & 0x80))
-+		if ((data & 0xf8) != 0x80)
- 			return IRQ_HANDLED;
- 	} else {
- 		/* resync skip garbage */
-@@ -83,7 +81,6 @@ static irqreturn_t fujitsu_interrupt(str
- /*
-  * fujitsu_disconnect() is the opposite of fujitsu_connect()
-  */
--
- static void fujitsu_disconnect(struct serio *serio)
- {
- 	struct fujitsu *fujitsu = serio_get_drvdata(serio);
-@@ -101,7 +98,6 @@ static void fujitsu_disconnect(struct se
-  * new serio device that supports the Fujitsu protocol and registers it
-  * as input device.
-  */
--
- static int fujitsu_connect(struct serio *serio, struct serio_driver *drv)
- {
- 	struct fujitsu *fujitsu;
-@@ -129,8 +125,8 @@ static int fujitsu_connect(struct serio 
- 	input_dev->evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
- 	input_dev->keybit[LONG(BTN_TOUCH)] = BIT(BTN_TOUCH);
- 
--	input_set_abs_params(input_dev, ABS_X, X_AXIS_MIN, X_AXIS_MAX, 0, 0);
--	input_set_abs_params(input_dev, ABS_Y, Y_AXIS_MIN, Y_AXIS_MAX, 0, 0);
-+	input_set_abs_params(input_dev, ABS_X, 0, 4096, 0, 0);
-+	input_set_abs_params(input_dev, ABS_Y, 0, 4096, 0, 0);
- 	serio_set_drvdata(serio, fujitsu);
- 
- 	err = serio_open(serio, drv);
-@@ -143,9 +139,12 @@ static int fujitsu_connect(struct serio 
- 
- 	return 0;
- 
-- fail3:	serio_close(serio);
-- fail2:	serio_set_drvdata(serio, NULL);
-- fail1:	input_free_device(input_dev);
-+ fail3:
-+	serio_close(serio);
-+ fail2:
-+	serio_set_drvdata(serio, NULL);
-+ fail1:
-+	input_free_device(input_dev);
- 	kfree(fujitsu);
- 	return err;
+ 	kref_get(&ns->kref);
++	return ns;
  }
-@@ -153,7 +152,6 @@ static int fujitsu_connect(struct serio 
- /*
-  * The serio driver structure.
-  */
--
- static struct serio_device_id fujitsu_serio_ids[] = {
- 	{
- 		.type	= SERIO_RS232,
-@@ -177,10 +175,6 @@ static struct serio_driver fujitsu_drv =
- 	.disconnect	= fujitsu_disconnect,
- };
  
--/*
-- * The functions for inserting/removing us as a module.
-- */
--
- static int __init fujitsu_init(void)
- {
- 	return serio_register_driver(&fujitsu_drv);
+ extern struct pid_namespace *copy_pid_ns(unsigned long flags, struct pid_namespace *ns);
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-origin.patch
-git-acpi.patch
-touchscreen-fujitsu-touchscreen-driver.patch
-touchscreen-fujitsu-touchscreen-driver-rev3.patch
-git-netdev-all.patch
+make-common-helpers-for-seq_files-that-work-with-list_head-s.patch
+make-input-layer-use-seq_list_xxx-helpers.patch
 git-net.patch
-pci-x-pci-express-read-control-interfaces-myrinet.patch
-pci-x-pci-express-read-control-interfaces-mthca.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-pci-x-pci-express-read-control-interfaces-qla2xxx.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+make-afs-use-seq_list_xxx-helpers.patch
+make-crypto-api-use-seq_list_xxx-helpers.patch
+make-proc-misc-use-seq_list_xxx-helpers.patch
+make-proc-modules-use-seq_list_xxx-helpers.patch
+make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+make-proc-self-mountstats-use-seq_list_xxx-helpers.patch
+make-nfs-client-use-seq_list_xxx-helpers.patch
+report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+remove-config_uts_ns-and-config_ipc_ns.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-unshare.patch
+mm-fix-create_new_namespaces-return-value.patch
+add-a-kmem_cache-for-nsproxy-objects.patch
+make-isdn-capi-use-seq_list_xxx-helpers.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
