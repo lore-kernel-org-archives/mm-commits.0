@@ -1,16 +1,588 @@
 From: akpm@linux-foundation.org
-Subject: - mm-document-fault_data-and-flags.patch removed from -mm tree
-Date: Thu, 12 Jul 2007 12:56:22 -0700
-Message-ID: <200707121956.l6CJuMSg030991@imap1.linux-foundation.org>
+Subject: - mm-remove-legacy-cruft.patch removed from -mm tree
+Date: Thu, 12 Jul 2007 13:23:39 -0700
+Message-ID: <200707122023.l6CKNdsp032502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35883 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52753 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755011AbXGLT4v (ORCPT
+	by vger.kernel.org with ESMTP id S1756315AbXGLUXu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jul 2007 15:56:51 -0400
+	Thu, 12 Jul 2007 16:23:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
-<<< No Message Collected >>>
+
+The patch titled
+     mm: remove legacy cruft
+has been removed from the -mm tree.  Its filename was
+     mm-remove-legacy-cruft.patch
+
+This patch was dropped because it was withdrawn
+
+------------------------------------------------------
+Subject: mm: remove legacy cruft
+From: Nick Piggin <npiggin@suse.de>
+
+Remove legacy filemap_nopage and all of the .populate API cruft.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/feature-removal-schedule.txt |   18 -
+ include/linux/mm.h                         |    9 
+ mm/filemap.c                               |  195 -------------------
+ mm/fremap.c                                |   85 +-------
+ mm/memory.c                                |   36 ---
+ 5 files changed, 26 insertions(+), 317 deletions(-)
+
+diff -puN Documentation/feature-removal-schedule.txt~mm-remove-legacy-cruft Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~mm-remove-legacy-cruft
++++ a/Documentation/feature-removal-schedule.txt
+@@ -145,24 +145,6 @@ Who:	Greg Kroah-Hartman <gregkh@suse.de>
+ 
+ ---------------------------
+ 
+-What:	filemap_nopage, filemap_populate
+-When:	April 2007
+-Why:	These legacy interfaces no longer have any callers in the kernel and
+-	any functionality provided can be provided with filemap_fault. The
+-	removal schedule is short because they are a big maintainence burden
+-	and have some bugs.
+-Who:	Nick Piggin <npiggin@suse.de>
+-
+----------------------------
+-
+-What:	vm_ops.populate, install_page
+-When:	April 2007
+-Why:	These legacy interfaces no longer have any callers in the kernel and
+-	any functionality provided can be provided with vm_ops.fault.
+-Who:	Nick Piggin <npiggin@suse.de>
+-
+----------------------------
+-
+ What:	vm_ops.nopage
+ When:	February 2008, provided in-kernel callers have been converted
+ Why:	This interface is replaced by vm_ops.fault, but it has been around
+diff -puN include/linux/mm.h~mm-remove-legacy-cruft include/linux/mm.h
+--- a/include/linux/mm.h~mm-remove-legacy-cruft
++++ a/include/linux/mm.h
+@@ -231,9 +231,6 @@ struct vm_operations_struct {
+ 			struct fault_data *fdata);
+ 	struct page *(*nopage)(struct vm_area_struct *area,
+ 			unsigned long address, int *type);
+-	int (*populate)(struct vm_area_struct *area, unsigned long address,
+-			unsigned long len, pgprot_t prot, unsigned long pgoff,
+-			int nonblock);
+ 
+ 	/* notification that a previously read-only page is about to become
+ 	 * writable, if an error is returned it will cause a SIGBUS */
+@@ -785,8 +782,6 @@ static inline void unmap_shared_mapping_
+ 
+ extern int vmtruncate(struct inode * inode, loff_t offset);
+ extern int vmtruncate_range(struct inode * inode, loff_t offset, loff_t end);
+-extern int install_page(struct mm_struct *mm, struct vm_area_struct *vma, unsigned long addr, struct page *page, pgprot_t prot);
+-extern int install_file_pte(struct mm_struct *mm, struct vm_area_struct *vma, unsigned long addr, unsigned long pgoff, pgprot_t prot);
+ 
+ #ifdef CONFIG_MMU
+ extern int __handle_mm_fault(struct mm_struct *mm,struct vm_area_struct *vma,
+@@ -1120,10 +1115,6 @@ extern void truncate_inode_pages_range(s
+ 
+ /* generic vm_area_ops exported for stackable file systems */
+ extern struct page *filemap_fault(struct vm_area_struct *, struct fault_data *);
+-extern struct page * __deprecated_for_modules
+-filemap_nopage(struct vm_area_struct *, unsigned long, int *);
+-extern int __deprecated_for_modules filemap_populate(struct vm_area_struct *,
+-		unsigned long, unsigned long, pgprot_t, unsigned long, int);
+ 
+ /* mm/page-writeback.c */
+ int write_one_page(struct page *page, int wait);
+diff -puN mm/filemap.c~mm-remove-legacy-cruft mm/filemap.c
+--- a/mm/filemap.c~mm-remove-legacy-cruft
++++ a/mm/filemap.c
+@@ -1486,201 +1486,6 @@ page_not_uptodate:
+ }
+ EXPORT_SYMBOL(filemap_fault);
+ 
+-/*
+- * filemap_nopage and filemap_populate are legacy exports that are not used
+- * in tree. Scheduled for removal.
+- */
+-struct page *filemap_nopage(struct vm_area_struct *area,
+-				unsigned long address, int *type)
+-{
+-	struct page *page;
+-	struct fault_data fdata;
+-	fdata.address = address;
+-	fdata.pgoff = ((address - area->vm_start) >> PAGE_CACHE_SHIFT)
+-			+ area->vm_pgoff;
+-	fdata.flags = 0;
+-
+-	page = filemap_fault(area, &fdata);
+-	if (type)
+-		*type = fdata.type;
+-
+-	return page;
+-}
+-EXPORT_SYMBOL(filemap_nopage);
+-
+-static struct page * filemap_getpage(struct file *file, unsigned long pgoff,
+-					int nonblock)
+-{
+-	struct address_space *mapping = file->f_mapping;
+-	struct page *page;
+-	int error;
+-
+-	/*
+-	 * Do we have something in the page cache already?
+-	 */
+-retry_find:
+-	page = find_get_page(mapping, pgoff);
+-	if (!page) {
+-		if (nonblock)
+-			return NULL;
+-		goto no_cached_page;
+-	}
+-
+-	/*
+-	 * Ok, found a page in the page cache, now we need to check
+-	 * that it's up-to-date.
+-	 */
+-	if (!PageUptodate(page)) {
+-		if (nonblock) {
+-			page_cache_release(page);
+-			return NULL;
+-		}
+-		goto page_not_uptodate;
+-	}
+-
+-success:
+-	/*
+-	 * Found the page and have a reference on it.
+-	 */
+-	mark_page_accessed(page);
+-	return page;
+-
+-no_cached_page:
+-	error = page_cache_read(file, pgoff);
+-
+-	/*
+-	 * The page we want has now been added to the page cache.
+-	 * In the unlikely event that someone removed it in the
+-	 * meantime, we'll just come back here and read it again.
+-	 */
+-	if (error >= 0)
+-		goto retry_find;
+-
+-	/*
+-	 * An error return from page_cache_read can result if the
+-	 * system is low on memory, or a problem occurs while trying
+-	 * to schedule I/O.
+-	 */
+-	return NULL;
+-
+-page_not_uptodate:
+-	lock_page(page);
+-
+-	/* Did it get truncated while we waited for it? */
+-	if (!page->mapping) {
+-		unlock_page(page);
+-		goto err;
+-	}
+-
+-	/* Did somebody else get it up-to-date? */
+-	if (PageUptodate(page)) {
+-		unlock_page(page);
+-		goto success;
+-	}
+-
+-	error = mapping->a_ops->readpage(file, page);
+-	if (!error) {
+-		wait_on_page_locked(page);
+-		if (PageUptodate(page))
+-			goto success;
+-	} else if (error == AOP_TRUNCATED_PAGE) {
+-		page_cache_release(page);
+-		goto retry_find;
+-	}
+-
+-	/*
+-	 * Umm, take care of errors if the page isn't up-to-date.
+-	 * Try to re-read it _once_. We do this synchronously,
+-	 * because there really aren't any performance issues here
+-	 * and we need to check for errors.
+-	 */
+-	lock_page(page);
+-
+-	/* Somebody truncated the page on us? */
+-	if (!page->mapping) {
+-		unlock_page(page);
+-		goto err;
+-	}
+-	/* Somebody else successfully read it in? */
+-	if (PageUptodate(page)) {
+-		unlock_page(page);
+-		goto success;
+-	}
+-
+-	ClearPageError(page);
+-	error = mapping->a_ops->readpage(file, page);
+-	if (!error) {
+-		wait_on_page_locked(page);
+-		if (PageUptodate(page))
+-			goto success;
+-	} else if (error == AOP_TRUNCATED_PAGE) {
+-		page_cache_release(page);
+-		goto retry_find;
+-	}
+-
+-	/*
+-	 * Things didn't work out. Return zero to tell the
+-	 * mm layer so, possibly freeing the page cache page first.
+-	 */
+-err:
+-	page_cache_release(page);
+-
+-	return NULL;
+-}
+-
+-int filemap_populate(struct vm_area_struct *vma, unsigned long addr,
+-		unsigned long len, pgprot_t prot, unsigned long pgoff,
+-		int nonblock)
+-{
+-	struct file *file = vma->vm_file;
+-	struct address_space *mapping = file->f_mapping;
+-	struct inode *inode = mapping->host;
+-	unsigned long size;
+-	struct mm_struct *mm = vma->vm_mm;
+-	struct page *page;
+-	int err;
+-
+-	if (!nonblock)
+-		force_page_cache_readahead(mapping, vma->vm_file,
+-					pgoff, len >> PAGE_CACHE_SHIFT);
+-
+-repeat:
+-	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (pgoff + (len >> PAGE_CACHE_SHIFT) > size)
+-		return -EINVAL;
+-
+-	page = filemap_getpage(file, pgoff, nonblock);
+-
+-	/* XXX: This is wrong, a filesystem I/O error may have happened. Fix that as
+-	 * done in shmem_populate calling shmem_getpage */
+-	if (!page && !nonblock)
+-		return -ENOMEM;
+-
+-	if (page) {
+-		err = install_page(mm, vma, addr, page, prot);
+-		if (err) {
+-			page_cache_release(page);
+-			return err;
+-		}
+-	} else if (vma->vm_flags & VM_NONLINEAR) {
+-		/* No page was found just because we can't read it in now (being
+-		 * here implies nonblock != 0), but the page may exist, so set
+-		 * the PTE to fault it in later. */
+-		err = install_file_pte(mm, vma, addr, pgoff, prot);
+-		if (err)
+-			return err;
+-	}
+-
+-	len -= PAGE_SIZE;
+-	addr += PAGE_SIZE;
+-	pgoff++;
+-	if (len)
+-		goto repeat;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(filemap_populate);
+-
+ struct vm_operations_struct generic_file_vm_ops = {
+ 	.fault		= filemap_fault,
+ };
+diff -puN mm/fremap.c~mm-remove-legacy-cruft mm/fremap.c
+--- a/mm/fremap.c~mm-remove-legacy-cruft
++++ a/mm/fremap.c
+@@ -20,13 +20,14 @@
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+ 
+-static int zap_pte(struct mm_struct *mm, struct vm_area_struct *vma,
++static void zap_pte(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long addr, pte_t *ptep)
+ {
+ 	pte_t pte = *ptep;
+-	struct page *page = NULL;
+ 
+ 	if (pte_present(pte)) {
++		struct page *page;
++
+ 		flush_cache_page(vma, addr, pte_pfn(pte));
+ 		pte = ptep_clear_flush(vma, addr, ptep);
+ 		page = vm_normal_page(vma, addr, pte);
+@@ -35,68 +36,21 @@ static int zap_pte(struct mm_struct *mm,
+ 				set_page_dirty(page);
+ 			page_remove_rmap(page, vma);
+ 			page_cache_release(page);
++			update_hiwater_rss(mm);
++			dec_mm_counter(mm, file_rss);
+ 		}
+ 	} else {
+ 		if (!pte_file(pte))
+ 			free_swap_and_cache(pte_to_swp_entry(pte));
+ 		pte_clear_not_present_full(mm, addr, ptep, 0);
+ 	}
+-	return !!page;
+ }
+ 
+ /*
+- * Install a file page to a given virtual memory address, release any
+- * previously existing mapping.
+- */
+-int install_page(struct mm_struct *mm, struct vm_area_struct *vma,
+-		unsigned long addr, struct page *page, pgprot_t prot)
+-{
+-	struct inode *inode;
+-	pgoff_t size;
+-	int err = -ENOMEM;
+-	pte_t *pte;
+-	pte_t pte_val;
+-	spinlock_t *ptl;
+-
+-	pte = get_locked_pte(mm, addr, &ptl);
+-	if (!pte)
+-		goto out;
+-
+-	/*
+-	 * This page may have been truncated. Tell the
+-	 * caller about it.
+-	 */
+-	err = -EINVAL;
+-	inode = vma->vm_file->f_mapping->host;
+-	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (!page->mapping || page->index >= size)
+-		goto unlock;
+-	err = -ENOMEM;
+-	if (page_mapcount(page) > INT_MAX/2)
+-		goto unlock;
+-
+-	if (pte_none(*pte) || !zap_pte(mm, vma, addr, pte))
+-		inc_mm_counter(mm, file_rss);
+-
+-	flush_icache_page(vma, page);
+-	pte_val = mk_pte(page, prot);
+-	set_pte_at(mm, addr, pte, pte_val);
+-	page_add_file_rmap(page);
+-	update_mmu_cache(vma, addr, pte_val);
+-	lazy_mmu_prot_update(pte_val);
+-	err = 0;
+-unlock:
+-	pte_unmap_unlock(pte, ptl);
+-out:
+-	return err;
+-}
+-EXPORT_SYMBOL(install_page);
+-
+-/*
+  * Install a file pte to a given virtual memory address, release any
+  * previously existing mapping.
+  */
+-int install_file_pte(struct mm_struct *mm, struct vm_area_struct *vma,
++static int install_file_pte(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long addr, unsigned long pgoff, pgprot_t prot)
+ {
+ 	int err = -ENOMEM;
+@@ -107,10 +61,8 @@ int install_file_pte(struct mm_struct *m
+ 	if (!pte)
+ 		goto out;
+ 
+-	if (!pte_none(*pte) && zap_pte(mm, vma, addr, pte)) {
+-		update_hiwater_rss(mm);
+-		dec_mm_counter(mm, file_rss);
+-	}
++	if (!pte_none(*pte))
++		zap_pte(mm, vma, addr, pte);
+ 
+ 	set_pte_at(mm, addr, pte, pgoff_to_pte(pgoff));
+ 	/*
+@@ -208,8 +160,7 @@ asmlinkage long sys_remap_file_pages(uns
+ 	if (vma->vm_private_data && !(vma->vm_flags & VM_NONLINEAR))
+ 		goto out;
+ 
+-	if ((!vma->vm_ops || !vma->vm_ops->populate) &&
+-					!(vma->vm_flags & VM_CAN_NONLINEAR))
++	if (!vma->vm_flags & VM_CAN_NONLINEAR)
+ 		goto out;
+ 
+ 	if (end <= start || start < vma->vm_start || end > vma->vm_end)
+@@ -239,18 +190,14 @@ asmlinkage long sys_remap_file_pages(uns
+ 		spin_unlock(&mapping->i_mmap_lock);
+ 	}
+ 
+-	if (vma->vm_flags & VM_CAN_NONLINEAR) {
+-		err = populate_range(mm, vma, start, size, pgoff);
+-		if (!err && !(flags & MAP_NONBLOCK)) {
+-			if (unlikely(has_write_lock)) {
+-				downgrade_write(&mm->mmap_sem);
+-				has_write_lock = 0;
+-			}
+-			make_pages_present(start, start+size);
++	err = populate_range(mm, vma, start, size, pgoff);
++	if (!err && !(flags & MAP_NONBLOCK)) {
++		if (unlikely(has_write_lock)) {
++			downgrade_write(&mm->mmap_sem);
++			has_write_lock = 0;
+ 		}
+-	} else
+-		err = vma->vm_ops->populate(vma, start, size, vma->vm_page_prot,
+-					    	pgoff, flags & MAP_NONBLOCK);
++		make_pages_present(start, start+size);
++	}
+ 
+ 	/*
+ 	 * We can't clear VM_NONLINEAR because we'd have to do
+diff -puN mm/memory.c~mm-remove-legacy-cruft mm/memory.c
+--- a/mm/memory.c~mm-remove-legacy-cruft
++++ a/mm/memory.c
+@@ -2442,18 +2442,10 @@ static int do_linear_fault(struct mm_str
+ 			- vma->vm_start) >> PAGE_CACHE_SHIFT) + vma->vm_pgoff;
+ 	unsigned int flags = (write_access ? FAULT_FLAG_WRITE : 0);
+ 
+-	return __do_fault(mm, vma, address, page_table, pmd, pgoff, flags, orig_pte);
++	return __do_fault(mm, vma, address, page_table, pmd, pgoff,
++							flags, orig_pte);
+ }
+ 
+-static int do_nonlinear_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+-		unsigned long address, pte_t *page_table, pmd_t *pmd,
+-		int write_access, pgoff_t pgoff, pte_t orig_pte)
+-{
+-	unsigned int flags = FAULT_FLAG_NONLINEAR |
+-				(write_access ? FAULT_FLAG_WRITE : 0);
+-
+-	return __do_fault(mm, vma, address, page_table, pmd, pgoff, flags, orig_pte);
+-}
+ 
+ /*
+  * Fault of a previously existing named mapping. Repopulate the pte
+@@ -2464,17 +2456,19 @@ static int do_nonlinear_fault(struct mm_
+  * but allow concurrent faults), and pte mapped but not yet locked.
+  * We return with mmap_sem still held, but pte unmapped and unlocked.
+  */
+-static int do_file_page(struct mm_struct *mm, struct vm_area_struct *vma,
++static int do_nonlinear_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pte_t *page_table, pmd_t *pmd,
+ 		int write_access, pte_t orig_pte)
+ {
++	unsigned int flags = FAULT_FLAG_NONLINEAR |
++				(write_access ? FAULT_FLAG_WRITE : 0);
+ 	pgoff_t pgoff;
+-	int err;
+ 
+ 	if (!pte_unmap_same(mm, pmd, page_table, orig_pte))
+ 		return VM_FAULT_MINOR;
+ 
+-	if (unlikely(!(vma->vm_flags & VM_NONLINEAR))) {
++	if (unlikely(!(vma->vm_flags & VM_NONLINEAR) ||
++			!(vma->vm_flags & VM_CAN_NONLINEAR))) {
+ 		/*
+ 		 * Page table corrupted: show pte and kill process.
+ 		 */
+@@ -2484,18 +2478,8 @@ static int do_file_page(struct mm_struct
+ 
+ 	pgoff = pte_to_pgoff(orig_pte);
+ 
+-	if (vma->vm_ops && vma->vm_ops->fault)
+-		return do_nonlinear_fault(mm, vma, address, page_table, pmd,
+-					write_access, pgoff, orig_pte);
+-
+-	/* We can then assume vm->vm_ops && vma->vm_ops->populate */
+-	err = vma->vm_ops->populate(vma, address & PAGE_MASK, PAGE_SIZE,
+-					vma->vm_page_prot, pgoff, 0);
+-	if (err == -ENOMEM)
+-		return VM_FAULT_OOM;
+-	if (err)
+-		return VM_FAULT_SIGBUS;
+-	return VM_FAULT_MAJOR;
++	return __do_fault(mm, vma, address, page_table, pmd, pgoff,
++							flags, orig_pte);
+ }
+ 
+ /*
+@@ -2530,7 +2514,7 @@ static inline int handle_pte_fault(struc
+ 						 pte, pmd, write_access);
+ 		}
+ 		if (pte_file(entry))
+-			return do_file_page(mm, vma, address,
++			return do_nonlinear_fault(mm, vma, address,
+ 					pte, pmd, write_access, entry);
+ 		return do_swap_page(mm, vma, address,
+ 					pte, pmd, write_access, entry);
+_
+
+Patches currently in -mm which might be from npiggin@suse.de are
+
+slob-rework-freelist-handling.patch
+slob-remove-bigblock-tracking.patch
+slob-improved-alignment-handling.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-fault-feedback-1.patch
+mm-fault-feedback-2.patch
+mm-debug-check-for-the-fault-vs-invalidate-race.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+ocfs2-convert-to-new-aops.patch
+fix-read-truncate-race.patch
+fs-remove-some-aop_truncated_page.patch
+fs-introduce-some-page-buffer-invariants.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
