@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch added to -mm tree
-Date: Thu, 12 Jul 2007 15:48:04 -0700
-Message-ID: <200707122248.l6CMm54g008897@imap1.linux-foundation.org>
+Subject: + pid-namespaces-round-up-the-api.patch added to -mm tree
+Date: Thu, 12 Jul 2007 15:48:00 -0700
+Message-ID: <200707122248.l6CMm0li008819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45791 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59337 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758469AbXGLWtI (ORCPT
+	by vger.kernel.org with ESMTP id S1758934AbXGLWsx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Jul 2007 18:49:08 -0400
+	Thu, 12 Jul 2007 18:48:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, herbert@13thfloor.at, sukadev@us.ibm.com
+Cc: xemul@openvz.org, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, sukadev@us.ibm.com
 
 
 The patch titled
-     pid namespaces: dynamic kmem cache allocator for pid namespaces
+     pid namespaces: round up the API
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+     pid-namespaces-round-up-the-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,174 +26,459 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid namespaces: dynamic kmem cache allocator for pid namespaces
+Subject: pid namespaces: round up the API
 From: Pavel Emelianov <xemul@openvz.org>
 
-Add kmem_cache to pid_namespace to allocate pids from.
+The set of functions process_session, task_session, process_group and
+task_pgrp is confusing, as the names can be mixed with each other when looking
+at the code for a long time.
 
-Since both implementations expand the struct pid to carry more numerical
-values each namespace should have separate cache to store pids of different
-sizes.
+The proposals are to
+* equip the functions that return the integer with _nr suffix to
+  represent that fact,
+* and to make all functions work with task (not process) by making
+  the common prefix of the same name.
 
-Each kmem cache is name "pid_<NR>", where <NR> is the number of numerical ids
-on the pid.  Different namespaces with same level of nesting will have same
-caches.
-
-This patch has two FIXMEs that are to be fixed after we reach the consensus
-about the struct pid itself.
-
-The first one is that the namespace to free the pid from in free_pid() must be
-taken from pid.  Now the init_pid_ns is used.
-
-The second FIXME is about the cache allocation.  When we do know how long the
-object will be then we'll have to calculate this size in create_pid_cachep. 
-Right now the sizeof(struct pid) value is used.
+For monotony the routines signal_session() and set_signal_session() are
+replaced with task_session_nr() and set_task_session(), especially since they
+are only used with the explicit task->signal dereference.
 
 Signed-off-by: Pavel Emelianov <xemul@openvz.org>
-Acked-by: Cedric Le Goater <clg@fr.ibm.com>
-Acked-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Acked-by: Serge E. Hallyn <serue@us.ibm.com>
 Cc: Kirill Korotaev <dev@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid_namespace.h |    1 
- kernel/pid.c                  |   70 +++++++++++++++++++++++++++++---
- 2 files changed, 65 insertions(+), 6 deletions(-)
+ arch/mips/kernel/irixelf.c  |    4 ++--
+ arch/mips/kernel/irixsig.c  |    2 +-
+ arch/mips/kernel/sysirix.c  |    4 ++--
+ arch/sparc64/solaris/misc.c |    4 ++--
+ drivers/char/tty_io.c       |    4 ++--
+ fs/autofs/inode.c           |    2 +-
+ fs/autofs/root.c            |    4 ++--
+ fs/autofs4/autofs_i.h       |    2 +-
+ fs/autofs4/inode.c          |    4 ++--
+ fs/autofs4/root.c           |    4 ++--
+ fs/binfmt_elf.c             |    8 ++++----
+ fs/binfmt_elf_fdpic.c       |    8 ++++----
+ fs/coda/upcall.c            |    2 +-
+ fs/proc/array.c             |    4 ++--
+ include/linux/sched.h       |   15 +++++----------
+ kernel/exit.c               |   10 +++++-----
+ kernel/fork.c               |    4 ++--
+ kernel/signal.c             |    2 +-
+ kernel/sys.c                |   14 +++++++-------
+ 19 files changed, 48 insertions(+), 53 deletions(-)
 
-diff -puN include/linux/pid_namespace.h~pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces include/linux/pid_namespace.h
---- a/include/linux/pid_namespace.h~pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces
-+++ a/include/linux/pid_namespace.h
-@@ -20,6 +20,7 @@ struct pid_namespace {
- 	struct pidmap pidmap[PIDMAP_ENTRIES];
- 	int last_pid;
- 	struct task_struct *child_reaper;
-+	struct kmem_cache_t *pid_cachep;
- };
+diff -puN arch/mips/kernel/irixelf.c~pid-namespaces-round-up-the-api arch/mips/kernel/irixelf.c
+--- a/arch/mips/kernel/irixelf.c~pid-namespaces-round-up-the-api
++++ a/arch/mips/kernel/irixelf.c
+@@ -1170,8 +1170,8 @@ static int irix_core_dump(long signr, st
+ 	prstatus.pr_sighold = current->blocked.sig[0];
+ 	psinfo.pr_pid = prstatus.pr_pid = current->pid;
+ 	psinfo.pr_ppid = prstatus.pr_ppid = current->parent->pid;
+-	psinfo.pr_pgrp = prstatus.pr_pgrp = process_group(current);
+-	psinfo.pr_sid = prstatus.pr_sid = process_session(current);
++	psinfo.pr_pgrp = prstatus.pr_pgrp = task_pgrp_nr(current);
++	psinfo.pr_sid = prstatus.pr_sid = task_session_nr(current);
+ 	if (current->pid == current->tgid) {
+ 		/*
+ 		 * This is the record for the group leader.  Add in the
+diff -puN arch/mips/kernel/irixsig.c~pid-namespaces-round-up-the-api arch/mips/kernel/irixsig.c
+--- a/arch/mips/kernel/irixsig.c~pid-namespaces-round-up-the-api
++++ a/arch/mips/kernel/irixsig.c
+@@ -609,7 +609,7 @@ repeat:
+ 		p = list_entry(_p,struct task_struct,sibling);
+ 		if ((type == IRIX_P_PID) && p->pid != pid)
+ 			continue;
+-		if ((type == IRIX_P_PGID) && process_group(p) != pid)
++		if ((type == IRIX_P_PGID) && task_pgrp_nr(p) != pid)
+ 			continue;
+ 		if ((p->exit_signal != SIGCHLD))
+ 			continue;
+diff -puN arch/mips/kernel/sysirix.c~pid-namespaces-round-up-the-api arch/mips/kernel/sysirix.c
+--- a/arch/mips/kernel/sysirix.c~pid-namespaces-round-up-the-api
++++ a/arch/mips/kernel/sysirix.c
+@@ -763,11 +763,11 @@ asmlinkage int irix_setpgrp(int flags)
+ 	printk("[%s:%d] setpgrp(%d) ", current->comm, current->pid, flags);
+ #endif
+ 	if(!flags)
+-		error = process_group(current);
++		error = task_pgrp_nr(current);
+ 	else
+ 		error = sys_setsid();
+ #ifdef DEBUG_PROCGRPS
+-	printk("returning %d\n", process_group(current));
++	printk("returning %d\n", task_pgrp_nr(current));
+ #endif
  
- extern struct pid_namespace init_pid_ns;
-diff -puN kernel/pid.c~pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces kernel/pid.c
---- a/kernel/pid.c~pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces
-+++ a/kernel/pid.c
-@@ -32,7 +32,6 @@
- #define pid_hashfn(nr) hash_long((unsigned long)nr, pidhash_shift)
- static struct hlist_head *pid_hash;
- static int pidhash_shift;
--static struct kmem_cache *pid_cachep;
- struct pid init_struct_pid = INIT_STRUCT_PID;
+ 	return error;
+diff -puN arch/sparc64/solaris/misc.c~pid-namespaces-round-up-the-api arch/sparc64/solaris/misc.c
+--- a/arch/sparc64/solaris/misc.c~pid-namespaces-round-up-the-api
++++ a/arch/sparc64/solaris/misc.c
+@@ -415,7 +415,7 @@ asmlinkage int solaris_procids(int cmd, 
+ 	
+ 	switch (cmd) {
+ 	case 0: /* getpgrp */
+-		return process_group(current);
++		return task_pgrp_nr(current);
+ 	case 1: /* setpgrp */
+ 		{
+ 			int (*sys_setpgid)(pid_t,pid_t) =
+@@ -426,7 +426,7 @@ asmlinkage int solaris_procids(int cmd, 
+ 			ret = sys_setpgid(0, 0);
+ 			if (ret) return ret;
+ 			proc_clear_tty(current);
+-			return process_group(current);
++			return task_pgrp_nr(current);
+ 		}
+ 	case 2: /* getsid */
+ 		{
+diff -puN drivers/char/tty_io.c~pid-namespaces-round-up-the-api drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~pid-namespaces-round-up-the-api
++++ a/drivers/char/tty_io.c
+@@ -3501,7 +3501,7 @@ void __do_SAK(struct tty_struct *tty)
+ 	/* Kill the entire session */
+ 	do_each_pid_task(session, PIDTYPE_SID, p) {
+ 		printk(KERN_NOTICE "SAK: killed process %d"
+-			" (%s): process_session(p)==tty->session\n",
++			" (%s): task_session_nr(p)==tty->session\n",
+ 			p->pid, p->comm);
+ 		send_sig(SIGKILL, p, 1);
+ 	} while_each_pid_task(session, PIDTYPE_SID, p);
+@@ -3511,7 +3511,7 @@ void __do_SAK(struct tty_struct *tty)
+ 	do_each_thread(g, p) {
+ 		if (p->signal->tty == tty) {
+ 			printk(KERN_NOTICE "SAK: killed process %d"
+-			    " (%s): process_session(p)==tty->session\n",
++			    " (%s): task_session_nr(p)==tty->session\n",
+ 			    p->pid, p->comm);
+ 			send_sig(SIGKILL, p, 1);
+ 			continue;
+diff -puN fs/autofs/inode.c~pid-namespaces-round-up-the-api fs/autofs/inode.c
+--- a/fs/autofs/inode.c~pid-namespaces-round-up-the-api
++++ a/fs/autofs/inode.c
+@@ -80,7 +80,7 @@ static int parse_options(char *options, 
  
- int pid_max = PID_MAX_DEFAULT;
-@@ -176,11 +175,16 @@ static int next_pidmap(struct pid_namesp
+ 	*uid = current->uid;
+ 	*gid = current->gid;
+-	*pgrp = process_group(current);
++	*pgrp = task_pgrp_nr(current);
  
- fastcall void put_pid(struct pid *pid)
- {
-+	struct pid_namespace *ns;
-+
- 	if (!pid)
- 		return;
-+
-+	/* FIXME - this must be the namespace this pid lives in */
-+	ns = &init_pid_ns;
- 	if ((atomic_read(&pid->count) == 1) ||
- 	     atomic_dec_and_test(&pid->count))
--		kmem_cache_free(pid_cachep, pid);
-+		kmem_cache_free(ns->pid_cachep, pid);
+ 	*minproto = *maxproto = AUTOFS_PROTO_VERSION;
+ 
+diff -puN fs/autofs/root.c~pid-namespaces-round-up-the-api fs/autofs/root.c
+--- a/fs/autofs/root.c~pid-namespaces-round-up-the-api
++++ a/fs/autofs/root.c
+@@ -215,7 +215,7 @@ static struct dentry *autofs_root_lookup
+ 	oz_mode = autofs_oz_mode(sbi);
+ 	DPRINTK(("autofs_lookup: pid = %u, pgrp = %u, catatonic = %d, "
+ 				"oz_mode = %d\n", pid_nr(task_pid(current)),
+-				process_group(current), sbi->catatonic,
++				task_pgrp_nr(current), sbi->catatonic,
+ 				oz_mode));
+ 
+ 	/*
+@@ -536,7 +536,7 @@ static int autofs_root_ioctl(struct inod
+ 	struct autofs_sb_info *sbi = autofs_sbi(inode->i_sb);
+ 	void __user *argp = (void __user *)arg;
+ 
+-	DPRINTK(("autofs_ioctl: cmd = 0x%08x, arg = 0x%08lx, sbi = %p, pgrp = %u\n",cmd,arg,sbi,process_group(current)));
++	DPRINTK(("autofs_ioctl: cmd = 0x%08x, arg = 0x%08lx, sbi = %p, pgrp = %u\n",cmd,arg,sbi,task_pgrp_nr(current)));
+ 
+ 	if (_IOC_TYPE(cmd) != _IOC_TYPE(AUTOFS_IOC_FIRST) ||
+ 	     _IOC_NR(cmd) - _IOC_NR(AUTOFS_IOC_FIRST) >= AUTOFS_IOC_COUNT)
+diff -puN fs/autofs4/autofs_i.h~pid-namespaces-round-up-the-api fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~pid-namespaces-round-up-the-api
++++ a/fs/autofs4/autofs_i.h
+@@ -131,7 +131,7 @@ static inline struct autofs_info *autofs
+    filesystem without "magic".) */
+ 
+ static inline int autofs4_oz_mode(struct autofs_sb_info *sbi) {
+-	return sbi->catatonic || process_group(current) == sbi->oz_pgrp;
++	return sbi->catatonic || task_pgrp_nr(current) == sbi->oz_pgrp;
  }
- EXPORT_SYMBOL_GPL(put_pid);
  
-@@ -208,12 +212,14 @@ struct pid *alloc_pid(void)
- 	struct pid *pid;
- 	enum pid_type type;
- 	int nr = -1;
-+	struct pid_namespace *ns;
+ /* Does a dentry have some pending activity? */
+diff -puN fs/autofs4/inode.c~pid-namespaces-round-up-the-api fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~pid-namespaces-round-up-the-api
++++ a/fs/autofs4/inode.c
+@@ -226,7 +226,7 @@ static int parse_options(char *options, 
  
--	pid = kmem_cache_alloc(pid_cachep, GFP_KERNEL);
-+	ns = current->nsproxy->pid_ns;
-+	pid = kmem_cache_alloc(ns->pid_cachep, GFP_KERNEL);
- 	if (!pid)
+ 	*uid = current->uid;
+ 	*gid = current->gid;
+-	*pgrp = process_group(current);
++	*pgrp = task_pgrp_nr(current);
+ 
+ 	*minproto = AUTOFS_MIN_PROTO_VERSION;
+ 	*maxproto = AUTOFS_MAX_PROTO_VERSION;
+@@ -325,7 +325,7 @@ int autofs4_fill_super(struct super_bloc
+ 	sbi->pipe = NULL;
+ 	sbi->catatonic = 1;
+ 	sbi->exp_timeout = 0;
+-	sbi->oz_pgrp = process_group(current);
++	sbi->oz_pgrp = task_pgrp_nr(current);
+ 	sbi->sb = s;
+ 	sbi->version = 0;
+ 	sbi->sub_version = 0;
+diff -puN fs/autofs4/root.c~pid-namespaces-round-up-the-api fs/autofs4/root.c
+--- a/fs/autofs4/root.c~pid-namespaces-round-up-the-api
++++ a/fs/autofs4/root.c
+@@ -582,7 +582,7 @@ static struct dentry *autofs4_lookup(str
+ 	oz_mode = autofs4_oz_mode(sbi);
+ 
+ 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
+-		 current->pid, process_group(current), sbi->catatonic, oz_mode);
++		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
+ 
+ 	unhashed = autofs4_lookup_unhashed(sbi, dentry->d_parent, &dentry->d_name);
+ 	if (!unhashed) {
+@@ -973,7 +973,7 @@ static int autofs4_root_ioctl(struct ino
+ 	void __user *p = (void __user *)arg;
+ 
+ 	DPRINTK("cmd = 0x%08x, arg = 0x%08lx, sbi = %p, pgrp = %u",
+-		cmd,arg,sbi,process_group(current));
++		cmd,arg,sbi,task_pgrp_nr(current));
+ 
+ 	if (_IOC_TYPE(cmd) != _IOC_TYPE(AUTOFS_IOC_FIRST) ||
+ 	     _IOC_NR(cmd) - _IOC_NR(AUTOFS_IOC_FIRST) >= AUTOFS_IOC_COUNT)
+diff -puN fs/binfmt_elf.c~pid-namespaces-round-up-the-api fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~pid-namespaces-round-up-the-api
++++ a/fs/binfmt_elf.c
+@@ -1404,8 +1404,8 @@ static void fill_prstatus(struct elf_prs
+ 	prstatus->pr_sighold = p->blocked.sig[0];
+ 	prstatus->pr_pid = p->pid;
+ 	prstatus->pr_ppid = p->parent->pid;
+-	prstatus->pr_pgrp = process_group(p);
+-	prstatus->pr_sid = process_session(p);
++	prstatus->pr_pgrp = task_pgrp_nr(p);
++	prstatus->pr_sid = task_session_nr(p);
+ 	if (thread_group_leader(p)) {
+ 		/*
+ 		 * This is the record for the group leader.  Add in the
+@@ -1450,8 +1450,8 @@ static int fill_psinfo(struct elf_prpsin
+ 
+ 	psinfo->pr_pid = p->pid;
+ 	psinfo->pr_ppid = p->parent->pid;
+-	psinfo->pr_pgrp = process_group(p);
+-	psinfo->pr_sid = process_session(p);
++	psinfo->pr_pgrp = task_pgrp_nr(p);
++	psinfo->pr_sid = task_session_nr(p);
+ 
+ 	i = p->state ? ffz(~p->state) + 1 : 0;
+ 	psinfo->pr_state = i;
+diff -puN fs/binfmt_elf_fdpic.c~pid-namespaces-round-up-the-api fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~pid-namespaces-round-up-the-api
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1344,8 +1344,8 @@ static void fill_prstatus(struct elf_prs
+ 	prstatus->pr_sighold = p->blocked.sig[0];
+ 	prstatus->pr_pid = p->pid;
+ 	prstatus->pr_ppid = p->parent->pid;
+-	prstatus->pr_pgrp = process_group(p);
+-	prstatus->pr_sid = process_session(p);
++	prstatus->pr_pgrp = task_pgrp_nr(p);
++	prstatus->pr_sid = task_session_nr(p);
+ 	if (thread_group_leader(p)) {
+ 		/*
+ 		 * This is the record for the group leader.  Add in the
+@@ -1393,8 +1393,8 @@ static int fill_psinfo(struct elf_prpsin
+ 
+ 	psinfo->pr_pid = p->pid;
+ 	psinfo->pr_ppid = p->parent->pid;
+-	psinfo->pr_pgrp = process_group(p);
+-	psinfo->pr_sid = process_session(p);
++	psinfo->pr_pgrp = task_pgrp_nr(p);
++	psinfo->pr_sid = task_session_nr(p);
+ 
+ 	i = p->state ? ffz(~p->state) + 1 : 0;
+ 	psinfo->pr_state = i;
+diff -puN fs/coda/upcall.c~pid-namespaces-round-up-the-api fs/coda/upcall.c
+--- a/fs/coda/upcall.c~pid-namespaces-round-up-the-api
++++ a/fs/coda/upcall.c
+@@ -53,7 +53,7 @@ static void *alloc_upcall(int opcode, in
+ 
+         inp->ih.opcode = opcode;
+ 	inp->ih.pid = current->pid;
+-	inp->ih.pgid = process_group(current);
++	inp->ih.pgid = task_pgrp_nr(current);
+ #ifdef CONFIG_CODA_FS_OLD_API
+ 	memset(&inp->ih.cred, 0, sizeof(struct coda_cred));
+ 	inp->ih.cred.cr_fsuid = current->fsuid;
+diff -puN fs/proc/array.c~pid-namespaces-round-up-the-api fs/proc/array.c
+--- a/fs/proc/array.c~pid-namespaces-round-up-the-api
++++ a/fs/proc/array.c
+@@ -426,8 +426,8 @@ static int do_task_stat(struct task_stru
+ 			stime += cputime_to_clock_t(sig->stime);
+ 		}
+ 
+-		sid = signal_session(sig);
+-		pgid = process_group(task);
++		sid = task_session_nr(task);
++		pgid = task_pgrp_nr(task);
+ 		ppid = rcu_dereference(task->real_parent)->tgid;
+ 
+ 		unlock_task_sighand(task, &flags);
+diff -puN include/linux/sched.h~pid-namespaces-round-up-the-api include/linux/sched.h
+--- a/include/linux/sched.h~pid-namespaces-round-up-the-api
++++ a/include/linux/sched.h
+@@ -1220,24 +1220,19 @@ static inline int rt_task(struct task_st
+ 	return rt_prio(p->prio);
+ }
+ 
+-static inline pid_t process_group(struct task_struct *tsk)
++static inline pid_t task_pgrp_nr(struct task_struct *tsk)
+ {
+ 	return tsk->signal->pgrp;
+ }
+ 
+-static inline pid_t signal_session(struct signal_struct *sig)
++static inline pid_t task_session_nr(struct task_struct *tsk)
+ {
+-	return sig->__session;
++	return tsk->signal->__session;
+ }
+ 
+-static inline pid_t process_session(struct task_struct *tsk)
++static inline void set_task_session(struct task_struct *tsk, pid_t session)
+ {
+-	return signal_session(tsk->signal);
+-}
+-
+-static inline void set_signal_session(struct signal_struct *sig, pid_t session)
+-{
+-	sig->__session = session;
++	tsk->signal->__session = session;
+ }
+ 
+ static inline struct pid *task_pid(struct task_struct *task)
+diff -puN kernel/exit.c~pid-namespaces-round-up-the-api kernel/exit.c
+--- a/kernel/exit.c~pid-namespaces-round-up-the-api
++++ a/kernel/exit.c
+@@ -309,12 +309,12 @@ void __set_special_pids(pid_t session, p
+ {
+ 	struct task_struct *curr = current->group_leader;
+ 
+-	if (process_session(curr) != session) {
++	if (task_session_nr(curr) != session) {
+ 		detach_pid(curr, PIDTYPE_SID);
+-		set_signal_session(curr->signal, session);
++		set_task_session(curr, session);
+ 		attach_pid(curr, PIDTYPE_SID, find_pid(session));
+ 	}
+-	if (process_group(curr) != pgrp) {
++	if (task_pgrp_nr(curr) != pgrp) {
+ 		detach_pid(curr, PIDTYPE_PGID);
+ 		curr->signal->pgrp = pgrp;
+ 		attach_pid(curr, PIDTYPE_PGID, find_pid(pgrp));
+@@ -1108,10 +1108,10 @@ static int eligible_child(pid_t pid, int
+ 		if (p->pid != pid)
+ 			return 0;
+ 	} else if (!pid) {
+-		if (process_group(p) != process_group(current))
++		if (task_pgrp_nr(p) != task_pgrp_nr(current))
+ 			return 0;
+ 	} else if (pid != -1) {
+-		if (process_group(p) != -pid)
++		if (task_pgrp_nr(p) != -pid)
+ 			return 0;
+ 	}
+ 
+diff -puN kernel/fork.c~pid-namespaces-round-up-the-api kernel/fork.c
+--- a/kernel/fork.c~pid-namespaces-round-up-the-api
++++ a/kernel/fork.c
+@@ -1260,8 +1260,8 @@ static struct task_struct *copy_process(
+ 
+ 		if (thread_group_leader(p)) {
+ 			p->signal->tty = current->signal->tty;
+-			p->signal->pgrp = process_group(current);
+-			set_signal_session(p->signal, process_session(current));
++			p->signal->pgrp = task_pgrp_nr(current);
++			set_task_session(p, task_session_nr(current));
+ 			attach_pid(p, PIDTYPE_PGID, task_pgrp(current));
+ 			attach_pid(p, PIDTYPE_SID, task_session(current));
+ 
+diff -puN kernel/signal.c~pid-namespaces-round-up-the-api kernel/signal.c
+--- a/kernel/signal.c~pid-namespaces-round-up-the-api
++++ a/kernel/signal.c
+@@ -540,7 +540,7 @@ static int check_kill_permission(int sig
+ 	error = -EPERM;
+ 	if ((info == SEND_SIG_NOINFO || (!is_si_special(info) && SI_FROMUSER(info)))
+ 	    && ((sig != SIGCONT) ||
+-		(process_session(current) != process_session(t)))
++		(task_session_nr(current) != task_session_nr(t)))
+ 	    && (current->euid ^ t->suid) && (current->euid ^ t->uid)
+ 	    && (current->uid ^ t->suid) && (current->uid ^ t->uid)
+ 	    && !capable(CAP_KILL))
+diff -puN kernel/sys.c~pid-namespaces-round-up-the-api kernel/sys.c
+--- a/kernel/sys.c~pid-namespaces-round-up-the-api
++++ a/kernel/sys.c
+@@ -1496,7 +1496,7 @@ asmlinkage long sys_setpgid(pid_t pid, p
+ 	if (err)
  		goto out;
  
--	nr = alloc_pidmap(current->nsproxy->pid_ns);
-+	nr = alloc_pidmap(ns);
- 	if (nr < 0)
- 		goto out_free;
- 
-@@ -230,7 +236,7 @@ out:
- 	return pid;
- 
- out_free:
--	kmem_cache_free(pid_cachep, pid);
-+	kmem_cache_free(ns->pid_cachep, pid);
- 	pid = NULL;
- 	goto out;
- }
-@@ -365,6 +371,56 @@ struct pid *find_ge_pid(int nr)
- }
- EXPORT_SYMBOL_GPL(find_get_pid);
- 
-+struct pid_cache {
-+	int nr_ids;
-+	char name[16];
-+	struct kmem_cache *cachep;
-+	struct list_head list;
-+};
-+
-+static LIST_HEAD(pid_caches_lh);
-+static DEFINE_MUTEX(pid_caches_mutex);
-+
-+/*
-+ * creates the kmem cache to allocate pids from.
-+ * @nr_ids: the number of numerical ids this pid will have to carry
-+ */
-+
-+static struct kmem_cache *create_pid_cachep(int nr_ids)
-+{
-+	struct pid_cache *pcache;
-+	struct kmem_cache *cachep;
-+
-+	mutex_lock(&pid_caches_mutex);
-+	list_for_each_entry (pcache, &pid_caches_lh, list)
-+		if (pcache->nr_ids == nr_ids)
-+			goto out;
-+
-+	pcache = kmalloc(sizeof(struct pid_cache), GFP_KERNEL);
-+	if (pcache == NULL)
-+		goto err_alloc;
-+
-+	snprintf(pcache->name, sizeof(pcache->name), "pid_%d", nr_ids);
-+	cachep = kmem_cache_create(pcache->name,
-+			/* FIXME add numerical ids here */
-+			sizeof(struct pid), 0, SLAB_HWCACHE_ALIGN, NULL, NULL);
-+	if (cachep == NULL)
-+		goto err_cachep;
-+
-+	pcache->nr_ids = nr_ids;
-+	pcache->cachep = cachep;
-+	list_add(&pcache->list, &pid_caches_lh);
-+out:
-+	mutex_unlock(&pid_caches_mutex);
-+	return pcache->cachep;
-+
-+err_cachep:
-+	kfree(pcache);
-+err_alloc:
-+	mutex_unlock(&pid_caches_mutex);
-+	return NULL;
-+}
-+
- struct pid_namespace *copy_pid_ns(unsigned long flags, struct pid_namespace *old_ns)
+-	if (process_group(p) != pgid) {
++	if (task_pgrp_nr(p) != pgid) {
+ 		detach_pid(p, PIDTYPE_PGID);
+ 		p->signal->pgrp = pgid;
+ 		attach_pid(p, PIDTYPE_PGID, find_pid(pgid));
+@@ -1512,7 +1512,7 @@ out:
+ asmlinkage long sys_getpgid(pid_t pid)
  {
- 	BUG_ON(!old_ns);
-@@ -412,5 +468,7 @@ void __init pidmap_init(void)
- 	set_bit(0, init_pid_ns.pidmap[0].page);
- 	atomic_dec(&init_pid_ns.pidmap[0].nr_free);
- 
--	pid_cachep = KMEM_CACHE(pid, SLAB_PANIC);
-+	init_pid_ns.pid_cachep = create_pid_cachep(1);
-+	if (init_pid_ns.pid_cachep == NULL)
-+		panic("Can't create pid_1 cachep\n");
+ 	if (!pid)
+-		return process_group(current);
++		return task_pgrp_nr(current);
+ 	else {
+ 		int retval;
+ 		struct task_struct *p;
+@@ -1524,7 +1524,7 @@ asmlinkage long sys_getpgid(pid_t pid)
+ 		if (p) {
+ 			retval = security_task_getpgid(p);
+ 			if (!retval)
+-				retval = process_group(p);
++				retval = task_pgrp_nr(p);
+ 		}
+ 		read_unlock(&tasklist_lock);
+ 		return retval;
+@@ -1536,7 +1536,7 @@ asmlinkage long sys_getpgid(pid_t pid)
+ asmlinkage long sys_getpgrp(void)
+ {
+ 	/* SMP - assuming writes are word atomic this is fine */
+-	return process_group(current);
++	return task_pgrp_nr(current);
  }
+ 
+ #endif
+@@ -1544,7 +1544,7 @@ asmlinkage long sys_getpgrp(void)
+ asmlinkage long sys_getsid(pid_t pid)
+ {
+ 	if (!pid)
+-		return process_session(current);
++		return task_session_nr(current);
+ 	else {
+ 		int retval;
+ 		struct task_struct *p;
+@@ -1556,7 +1556,7 @@ asmlinkage long sys_getsid(pid_t pid)
+ 		if (p) {
+ 			retval = security_task_getsid(p);
+ 			if (!retval)
+-				retval = process_session(p);
++				retval = task_session_nr(p);
+ 		}
+ 		read_unlock(&tasklist_lock);
+ 		return retval;
+@@ -1593,7 +1593,7 @@ asmlinkage long sys_setsid(void)
+ 	group_leader->signal->tty = NULL;
+ 	spin_unlock(&group_leader->sighand->siglock);
+ 
+-	err = process_group(group_leader);
++	err = task_pgrp_nr(group_leader);
+ out:
+ 	write_unlock_irq(&tasklist_lock);
+ 	return err;
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
