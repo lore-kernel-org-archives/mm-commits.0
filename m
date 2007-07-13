@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + coda-allow-removal-of-busy-directories.patch added to -mm tree
-Date: Thu, 12 Jul 2007 22:29:32 -0700
-Message-ID: <200707130529.l6D5TW6V030793@imap1.linux-foundation.org>
+Subject: + coda-use-ilookup5.patch added to -mm tree
+Date: Thu, 12 Jul 2007 22:29:34 -0700
+Message-ID: <200707130529.l6D5TYsu030799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44688 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36505 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751738AbXGMFaM (ORCPT
+	by vger.kernel.org with ESMTP id S1751611AbXGMFaO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 01:30:12 -0400
+	Fri, 13 Jul 2007 01:30:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jaharkes@cs.cmu.edu
 
 
 The patch titled
-     coda: allow removal of busy directories
+     coda: use ilookup5
 has been added to the -mm tree.  Its filename is
-     coda-allow-removal-of-busy-directories.patch
+     coda-use-ilookup5.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coda: allow removal of busy directories
+Subject: coda: use ilookup5
 From: Jan Harkes <jaharkes@cs.cmu.edu>
-
-A directory without children may still be busy when it is the cwd for some
-process.  We can safely remove such a directory because the VFS prevents
-further operations.  Also we don't need to call d_delete as it is already
-called in vfs_rmdir.
 
 Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/dir.c |   25 ++++++++++---------------
- 1 file changed, 10 insertions(+), 15 deletions(-)
+ fs/coda/cnode.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN fs/coda/dir.c~coda-allow-removal-of-busy-directories fs/coda/dir.c
---- a/fs/coda/dir.c~coda-allow-removal-of-busy-directories
-+++ a/fs/coda/dir.c
-@@ -391,28 +391,23 @@ int coda_rmdir(struct inode *dir, struct
- {
- 	const char *name = de->d_name.name;
- 	int len = de->d_name.len;
--        int error;
-+	int error;
- 
- 	lock_kernel();
- 	coda_vfs_stat.rmdir++;
- 
--	if (!d_unhashed(de)) {
--		unlock_kernel();
--		return -EBUSY;
--	}
- 	error = venus_rmdir(dir->i_sb, coda_i2f(dir), name, len);
--
--	if ( error ) {
--		unlock_kernel();
--		return error;
-+	if (!error) {
-+		/* VFS may delete the child */
-+		if (de->d_inode)
-+		    de->d_inode->i_nlink = 0;
-+
-+		/* fix the link count of the parent */
-+		coda_dir_drop_nlink(dir);
-+		coda_dir_update_mtime(dir);
- 	}
--
--	coda_dir_drop_nlink(dir);
--	coda_dir_update_mtime(dir);
--	drop_nlink(de->d_inode);
--	d_delete(de);
- 	unlock_kernel();
--	return 0;
-+	return error;
+diff -puN fs/coda/cnode.c~coda-use-ilookup5 fs/coda/cnode.c
+--- a/fs/coda/cnode.c~coda-use-ilookup5
++++ a/fs/coda/cnode.c
+@@ -55,11 +55,6 @@ static int coda_set_inode(struct inode *
+ 	return 0;
  }
  
- /* rename */
+-static int coda_fail_inode(struct inode *inode, void *data)
+-{
+-	return -1;
+-}
+-
+ struct inode * coda_iget(struct super_block * sb, struct CodaFid * fid,
+ 			 struct coda_vattr * attr)
+ {
+@@ -141,7 +136,7 @@ struct inode *coda_fid_to_inode(struct C
+ 		return NULL;
+ 	}
+ 
+-	inode = iget5_locked(sb, hash, coda_test_inode, coda_fail_inode, fid);
++	inode = ilookup5(sb, hash, coda_test_inode, fid);
+ 	if ( !inode )
+ 		return NULL;
+ 
 _
 
 Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
