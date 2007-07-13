@@ -1,153 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - sata_promise-sata-hotplug-support.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:32:48 -0700
-Message-ID: <200707132232.l6DMWm0I025025@imap1.linux-foundation.org>
+Subject: - mos7720-remove-bogus-no-termios-change-check.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:33:39 -0700
+Message-ID: <200707132233.l6DMXdDk025095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33372 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32883 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761111AbXGMWpO (ORCPT
+	by vger.kernel.org with ESMTP id S932387AbXGMWpU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:45:14 -0400
+	Fri, 13 Jul 2007 18:45:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mikpe@it.uu.se, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sata_promise: SATA hotplug support
+     mos7720: remove bogus no termios change check
 has been removed from the -mm tree.  Its filename was
-     sata_promise-sata-hotplug-support.patch
+     mos7720-remove-bogus-no-termios-change-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sata_promise: SATA hotplug support
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: mos7720: remove bogus no termios change check
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This patch enables hotplugging of SATA devices in the sata_promise driver. 
-It's been tested successfully on both first- and second-generation Promise
-SATA chips: SATA150 TX2plus, SATAII150 TX2plus, SATAII150 TX4, SATA300
-TX2plus, and SATA300 TX4.
-
-The only quirk I've seen is that hotplugging (insertion) on the
-first-generation SATA150 TX2plus requires a lengthier EH sequence than on the
-second-generation chips.  On the second-generation chips a simple soft reset
-seems to suffice, but on the first-generation chip there's a "port is slow to
-respond" after the initial soft reset, after which libata issues a hard reset,
-and then the device is recognised.
-
-The hotplug checks are high up in the interrupt handling path, not deep down
-in error_intr as in ahci/sata_sil24.  That's because the chip doesn't signal
-hotplug status changes in the per-port status register: instead a global
-register contains hotplug control and status flags for all ports.  I
-considered following the ahci/sata_sil24 structure, but that would have
-required non-trivial changes to the interrupt handling path, so I chose to
-keep the hotplug changes simple and unobtrusive.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
-Cc: Jeff Garzik <jeff@garzik.org>
-Acked-by: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_promise.c |   41 ++++++++++++++++++++++++++++++-----
- 1 files changed, 36 insertions(+), 5 deletions(-)
+ drivers/usb/serial/mos7720.c |   10 ----------
+ 1 files changed, 10 deletions(-)
 
-diff -puN drivers/ata/sata_promise.c~sata_promise-sata-hotplug-support drivers/ata/sata_promise.c
---- a/drivers/ata/sata_promise.c~sata_promise-sata-hotplug-support
-+++ a/drivers/ata/sata_promise.c
-@@ -45,7 +45,7 @@
- #include "sata_promise.h"
- 
- #define DRV_NAME	"sata_promise"
--#define DRV_VERSION	"2.08"
-+#define DRV_VERSION	"2.09"
- 
- enum {
- 	PDC_MAX_PORTS		= 4,
-@@ -716,6 +716,9 @@ static irqreturn_t pdc_interrupt (int ir
- 	unsigned int i, tmp;
- 	unsigned int handled = 0;
- 	void __iomem *mmio_base;
-+	unsigned int hotplug_offset, ata_no;
-+	u32 hotplug_status;
-+	int is_sataii_tx4;
- 
- 	VPRINTK("ENTER\n");
- 
-@@ -726,10 +729,20 @@ static irqreturn_t pdc_interrupt (int ir
- 
- 	mmio_base = host->iomap[PDC_MMIO_BAR];
- 
-+	/* read and clear hotplug flags for all ports */
-+	if (host->ports[0]->flags & PDC_FLAG_GEN_II)
-+		hotplug_offset = PDC2_SATA_PLUG_CSR;
-+	else
-+		hotplug_offset = PDC_SATA_PLUG_CSR;
-+	hotplug_status = readl(mmio_base + hotplug_offset);
-+	if (hotplug_status & 0xff)
-+		writel(hotplug_status | 0xff, mmio_base + hotplug_offset);
-+	hotplug_status &= 0xff;	/* clear uninteresting bits */
-+
- 	/* reading should also clear interrupts */
- 	mask = readl(mmio_base + PDC_INT_SEQMASK);
- 
--	if (mask == 0xffffffff) {
-+	if (mask == 0xffffffff && hotplug_status == 0) {
- 		VPRINTK("QUICK EXIT 2\n");
- 		return IRQ_NONE;
- 	}
-@@ -737,16 +750,34 @@ static irqreturn_t pdc_interrupt (int ir
- 	spin_lock(&host->lock);
- 
- 	mask &= 0xffff;		/* only 16 tags possible */
--	if (!mask) {
-+	if (mask == 0 && hotplug_status == 0) {
- 		VPRINTK("QUICK EXIT 3\n");
- 		goto done_irq;
+diff -puN drivers/usb/serial/mos7720.c~mos7720-remove-bogus-no-termios-change-check drivers/usb/serial/mos7720.c
+--- a/drivers/usb/serial/mos7720.c~mos7720-remove-bogus-no-termios-change-check
++++ a/drivers/usb/serial/mos7720.c
+@@ -1238,16 +1238,6 @@ static void mos7720_set_termios(struct u
+ 		return;
  	}
  
- 	writel(mask, mmio_base + PDC_INT_SEQMASK);
- 
-+	is_sataii_tx4 = pdc_is_sataii_tx4(host->ports[0]->flags);
-+
- 	for (i = 0; i < host->n_ports; i++) {
- 		VPRINTK("port %u\n", i);
- 		ap = host->ports[i];
-+
-+		/* check for a plug or unplug event */
-+		ata_no = pdc_port_no_to_ata_no(i, is_sataii_tx4);
-+		tmp = hotplug_status & (0x11 << ata_no);
-+		if (tmp && ap &&
-+		    !(ap->flags & ATA_FLAG_DISABLED)) {
-+			struct ata_eh_info *ehi = &ap->eh_info;
-+			ata_ehi_clear_desc(ehi);
-+			ata_ehi_hotplugged(ehi);
-+			ata_ehi_push_desc(ehi, "hotplug_status %#x", tmp);
-+			ata_port_freeze(ap);
-+			++handled;
-+			continue;
-+		}
-+
-+		/* check for a packet interrupt */
- 		tmp = mask & (1 << (i + 1));
- 		if (tmp && ap &&
- 		    !(ap->flags & ATA_FLAG_DISABLED)) {
-@@ -902,9 +933,9 @@ static void pdc_host_init(struct ata_hos
- 	tmp = readl(mmio + hotplug_offset);
- 	writel(tmp | 0xff, mmio + hotplug_offset);
- 
--	/* mask plug/unplug ints */
-+	/* unmask plug/unplug ints */
- 	tmp = readl(mmio + hotplug_offset);
--	writel(tmp | 0xff0000, mmio + hotplug_offset);
-+	writel(tmp & ~0xff0000, mmio + hotplug_offset);
- 
- 	/* don't initialise TBG or SLEW on 2nd generation chips */
- 	if (is_gen2)
+-	/* check that they really want us to change something */
+-	if (old_termios) {
+-		if ((cflag == old_termios->c_cflag) &&
+-		    (RELEVANT_IFLAG(tty->termios->c_iflag) ==
+-		     RELEVANT_IFLAG(old_termios->c_iflag))) {
+-			dbg("Nothing to change");
+-			return;
+-		}
+-	}
+-
+ 	dbg("%s - clfag %08x iflag %08x", __FUNCTION__,
+ 	    tty->termios->c_cflag,
+ 	    RELEVANT_IFLAG(tty->termios->c_iflag));
 _
 
-Patches currently in -mm which might be from mikpe@it.uu.se are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
+git-powerpc.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+ata-use-iomap_name.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+git-scsi-misc.patch
+ppa-coding-police-and-printk-levels.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+h8300-enable-arbitary-speed-tty-port-setup.patch
+arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
+m32r-enable-arbitary-speed-tty-rate-setting.patch
+etrax-enable-arbitary-speed-setting-on-tty-ports.patch
+v850-enable-arbitary-speed-tty-ioctls.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+update-zilog-timeout.patch
+edd-switch-to-pci_get-based-api.patch
+mpu401-warning-fixes.patch
+char-tty_ioctl-use-wait_event_interruptible_timeout.patch
+char-tty_ioctl-little-whitespace-cleanup.patch
+intel-rng-undo-mess-made-by-an-80-column-extremist.patch
+improve-behaviour-of-spurious-irq-detect.patch
+audit-add-tty-input-auditing.patch
+revert-vanishing-ioctl-handler-debugging.patch
+amiserial-remove-incorrect-no-termios-change-check.patch
+genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
+synclink-remove-bogus-no-change-termios-optimisation.patch
+68360serial-remove-broken-optimisation.patch
+serial-remove-termios-checks-from-various-old-char-serial.patch
+ia64-arbitary-speed-tty-ioctl-support.patch
+sb1250-duartc-sb1250-duart-serial-support.patch
+i2o_cfg_passthru-cleanup.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+stallion-remove-unneeded-lock_kernel.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
+drivers-edac-fix-edac_device-semaphore-to-mutex.patch
+drivers-edac-fix-e752x-reversed-csrows.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-fix-leaf-sysfs-attribute.patch
+drivers-edac-fix-edac_mc-init-apis.patch
+drivers-edac-fix-edac_device-init-apis.patch
+drivers-edac-fix-edac_mc-sysfs-completion-code.patch
+drivers-edac-fix-edac_device-sysfs-completion-code.patch
