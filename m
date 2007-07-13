@@ -1,137 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: - make-common-helpers-for-seq_files-that-work-with-list_head-s.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:32:03 -0700
-Message-ID: <200707132232.l6DMW39s024969@imap1.linux-foundation.org>
+Subject: - pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:32:28 -0700
+Message-ID: <200707132232.l6DMWS7U025007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51580 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57176 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758348AbXGMWdZ (ORCPT
+	by vger.kernel.org with ESMTP id S1759755AbXGMWde (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:33:25 -0400
+	Fri, 13 Jul 2007 18:33:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@sw.ru, davem@davemloft.net, xemul@openvz.org, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, david-b@pacbell.net, greg@kroah.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make common helpers for seq_files that work with list_heads
+     PM: do not use saved_state from struct dev_pm_info on ARM
 has been removed from the -mm tree.  Its filename was
-     make-common-helpers-for-seq_files-that-work-with-list_head-s.patch
+     pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Make common helpers for seq_files that work with list_heads
-From: Pavel Emelianov <xemul@sw.ru>
+Subject: PM: do not use saved_state from struct dev_pm_info on ARM
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Many places in kernel use seq_file API to iterate over a regular list_head. 
-The code for such iteration is identical in all the places, so it's worth
-introducing a common helpers.
+The saved_state member of 'struct dev_pm_info' that's going to be removed
+is used in arch/arm/common/locomo.c, arch/arm/common/sa1111.c and
+arch/arm/mach-sa1100/neponset.c.  Change the code in there to use local
+variables for saving the state of devices during suspend.
 
-This makes code about 300 lines smaller:
-
-The first version of this patch made the helper functions static inline
-in the seq_file.h header. This patch moves them to the fs/seq_file.c as
-Andrew proposed. The vmlinux .text section sizes are as follows:
-
-2.6.22-rc1-mm1:              0x001794d5
-with the previous version:   0x00179505
-with this patch:             0x00179135
-
-The config file used was make allnoconfig with the "y" inclusion of all
-the possible options to make the files modified by the patch compile plus
-drivers I have on the test node.
-
-
-This patch:
-
-Many places in kernel use seq_file API to iterate over a regular list_head. 
-The code for such iteration is identical in all the places, so it's worth
-introducing a common helpers.
-
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c            |   34 ++++++++++++++++++++++++++++++++++
- include/linux/seq_file.h |   11 +++++++++++
- 2 files changed, 45 insertions(+)
+ arch/arm/common/locomo.c        |   11 ++++++++---
+ arch/arm/common/sa1111.c        |   13 ++++++++-----
+ arch/arm/mach-sa1100/neponset.c |   15 ++++-----------
+ 3 files changed, 20 insertions(+), 19 deletions(-)
 
-diff -puN fs/seq_file.c~make-common-helpers-for-seq_files-that-work-with-list_head-s fs/seq_file.c
---- a/fs/seq_file.c~make-common-helpers-for-seq_files-that-work-with-list_head-s
-+++ a/fs/seq_file.c
-@@ -447,3 +447,37 @@ int seq_puts(struct seq_file *m, const c
- 	return -1;
+diff -puN arch/arm/common/locomo.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm arch/arm/common/locomo.c
+--- a/arch/arm/common/locomo.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm
++++ a/arch/arm/common/locomo.c
+@@ -60,6 +60,9 @@ struct locomo {
+ 	unsigned int irq;
+ 	spinlock_t lock;
+ 	void __iomem *base;
++#ifdef CONFIG_PM
++	void *saved_state;
++#endif
+ };
+ 
+ struct locomo_dev_info {
+@@ -565,7 +568,7 @@ static int locomo_suspend(struct platfor
+ 	if (!save)
+ 		return -ENOMEM;
+ 
+-	dev->dev.power.saved_state = (void *) save;
++	lchip->saved_state = save;
+ 
+ 	spin_lock_irqsave(&lchip->lock, flags);
+ 
+@@ -605,8 +608,8 @@ static int locomo_resume(struct platform
+ 	struct locomo_save_data *save;
+ 	unsigned long r;
+ 	unsigned long flags;
+-	
+-	save = (struct locomo_save_data *) dev->dev.power.saved_state;
++
++	save = lchip->saved_state;
+ 	if (!save)
+ 		return 0;
+ 
+@@ -628,6 +631,8 @@ static int locomo_resume(struct platform
+ 	locomo_writel(0x1, lchip->base + LOCOMO_KEYBOARD + LOCOMO_KCMD);
+ 
+ 	spin_unlock_irqrestore(&lchip->lock, flags);
++
++	lchip->saved_state = NULL;
+ 	kfree(save);
+ 
+ 	return 0;
+diff -puN arch/arm/common/sa1111.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm arch/arm/common/sa1111.c
+--- a/arch/arm/common/sa1111.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm
++++ a/arch/arm/common/sa1111.c
+@@ -51,6 +51,9 @@ struct sa1111 {
+ 	int		irq;
+ 	spinlock_t	lock;
+ 	void __iomem	*base;
++#ifdef CONFIG_PM
++	void		*saved_state;
++#endif
+ };
+ 
+ /*
+@@ -822,7 +825,7 @@ static int sa1111_suspend(struct platfor
+ 	save = kmalloc(sizeof(struct sa1111_save_data), GFP_KERNEL);
+ 	if (!save)
+ 		return -ENOMEM;
+-	dev->dev.power.saved_state = save;
++	sachip->saved_state = save;
+ 
+ 	spin_lock_irqsave(&sachip->lock, flags);
+ 
+@@ -878,7 +881,7 @@ static int sa1111_resume(struct platform
+ 	unsigned long flags, id;
+ 	void __iomem *base;
+ 
+-	save = (struct sa1111_save_data *)dev->dev.power.saved_state;
++	save = sachip->saved_state;
+ 	if (!save)
+ 		return 0;
+ 
+@@ -923,7 +926,7 @@ static int sa1111_resume(struct platform
+ 
+ 	spin_unlock_irqrestore(&sachip->lock, flags);
+ 
+-	dev->dev.power.saved_state = NULL;
++	sachip->saved_state = NULL;
+ 	kfree(save);
+ 
+ 	return 0;
+@@ -958,8 +961,8 @@ static int sa1111_remove(struct platform
+ 		platform_set_drvdata(pdev, NULL);
+ 
+ #ifdef CONFIG_PM
+-		kfree(pdev->dev.power.saved_state);
+-		pdev->dev.power.saved_state = NULL;
++		kfree(sachip->saved_state);
++		sachip->saved_state = NULL;
+ #endif
+ 	}
+ 
+diff -puN arch/arm/mach-sa1100/neponset.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm arch/arm/mach-sa1100/neponset.c
+--- a/arch/arm/mach-sa1100/neponset.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm
++++ a/arch/arm/mach-sa1100/neponset.c
+@@ -185,28 +185,21 @@ static int __devinit neponset_probe(stru
+ /*
+  * LDM power management.
+  */
++static unsigned int neponset_saved_state;
++
+ static int neponset_suspend(struct platform_device *dev, pm_message_t state)
+ {
+ 	/*
+ 	 * Save state.
+ 	 */
+-	if (!dev->dev.power.saved_state)
+-		dev->dev.power.saved_state = kmalloc(sizeof(unsigned int), GFP_KERNEL);
+-	if (!dev->dev.power.saved_state)
+-		return -ENOMEM;
+-
+-	*(unsigned int *)dev->dev.power.saved_state = NCR_0;
++	neponset_saved_state = NCR_0;
+ 
+ 	return 0;
  }
- EXPORT_SYMBOL(seq_puts);
-+
-+struct list_head *seq_list_start(struct list_head *head, loff_t pos)
-+{
-+	struct list_head *lh;
-+
-+	list_for_each(lh, head)
-+		if (pos-- == 0)
-+			return lh;
-+
-+	return NULL;
-+}
-+
-+EXPORT_SYMBOL(seq_list_start);
-+
-+struct list_head *seq_list_start_head(struct list_head *head, loff_t pos)
-+{
-+	if (!pos)
-+		return head;
-+
-+	return seq_list_start(head, pos - 1);
-+}
-+
-+EXPORT_SYMBOL(seq_list_start_head);
-+
-+struct list_head *seq_list_next(void *v, struct list_head *head, loff_t *ppos)
-+{
-+	struct list_head *lh;
-+
-+	lh = ((struct list_head *)v)->next;
-+	++*ppos;
-+	return lh == head ? NULL : lh;
-+}
-+
-+EXPORT_SYMBOL(seq_list_next);
-diff -puN include/linux/seq_file.h~make-common-helpers-for-seq_files-that-work-with-list_head-s include/linux/seq_file.h
---- a/include/linux/seq_file.h~make-common-helpers-for-seq_files-that-work-with-list_head-s
-+++ a/include/linux/seq_file.h
-@@ -50,5 +50,16 @@ int seq_release_private(struct inode *, 
  
- #define SEQ_START_TOKEN ((void *)1)
+ static int neponset_resume(struct platform_device *dev)
+ {
+-	if (dev->dev.power.saved_state) {
+-		NCR_0 = *(unsigned int *)dev->dev.power.saved_state;
+-		kfree(dev->dev.power.saved_state);
+-		dev->dev.power.saved_state = NULL;
+-	}
++	NCR_0 = neponset_saved_state;
  
-+/*
-+ * Helpers for iteration over list_head-s in seq_files
-+ */
-+
-+extern struct list_head *seq_list_start(struct list_head *head,
-+		loff_t pos);
-+extern struct list_head *seq_list_start_head(struct list_head *head,
-+		loff_t pos);
-+extern struct list_head *seq_list_next(void *v, struct list_head *head,
-+		loff_t *ppos);
-+
- #endif
- #endif
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from xemul@sw.ru are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-make-input-layer-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-afs-use-seq_list_xxx-helpers.patch
-make-crypto-api-use-seq_list_xxx-helpers.patch
-make-proc-misc-use-seq_list_xxx-helpers.patch
-make-proc-modules-use-seq_list_xxx-helpers.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-make-proc-self-mountstats-use-seq_list_xxx-helpers.patch
-make-nfs-client-use-seq_list_xxx-helpers.patch
-make-isdn-capi-use-seq_list_xxx-helpers.patch
+x86_64-pm_trace-support.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+pm-reduce-code-duplication-between-mainc-and-userc-updated.patch
+acpi-do-not-prepare-for-hibernation-in-acpi_shutdown.patch
+pm-introduce-pm_power_off_prepare.patch
+pm-optional-beeping-during-resume-from-suspend-to-ram.patch
+pm-integrate-beeping-flag-with-existing-acpi_sleep-flags.patch
+pm-remove-deprecated-sysfs-files.patch
+pm-remove-deprecated-dpm_runtime_-routines.patch
+suspend-maintainers-update.patch
+shrink_slab-handle-bad-shrinkers.patch
