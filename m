@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-nfsd-display-export-secinfo-information.patch added to -mm tree
-Date: Fri, 13 Jul 2007 00:34:04 -0700
-Message-ID: <200707130734.l6D7Y4F6005442@imap1.linux-foundation.org>
+Subject: + knfsd-nfsd-factor-out-code-from-show_expflags.patch added to -mm tree
+Date: Fri, 13 Jul 2007 00:34:03 -0700
+Message-ID: <200707130734.l6D7Y3m1005439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46326 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38895 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754061AbXGMHeP (ORCPT
+	by vger.kernel.org with ESMTP id S933025AbXGMHeN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 03:34:15 -0400
+	Fri, 13 Jul 2007 03:34:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: nfsd: display export secinfo information
+     knfsd: nfsd: factor out code from show_expflags
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd-display-export-secinfo-information.patch
+     knfsd-nfsd-factor-out-code-from-show_expflags.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd: display export secinfo information
+Subject: knfsd: nfsd: factor out code from show_expflags
 From: J. Bruce Fields <bfields@citi.umich.edu>
 
-Add secinfo information to the display in proc/net/sunrpc/nfsd.export/content.
+Factor out some code to be shared by secinfo display code.  Remove some
+unnecessary conditional printing of commas where we know the condition is
+true.
 
 Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ fs/nfsd/export.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN fs/nfsd/export.c~knfsd-nfsd-display-export-secinfo-information fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-nfsd-display-export-secinfo-information
+diff -puN fs/nfsd/export.c~knfsd-nfsd-factor-out-code-from-show_expflags fs/nfsd/export.c
+--- a/fs/nfsd/export.c~knfsd-nfsd-factor-out-code-from-show_expflags
 +++ a/fs/nfsd/export.c
-@@ -641,6 +641,7 @@ static int svc_export_parse(struct cache
+@@ -1453,28 +1453,35 @@ static struct flags {
+ 	{ 0, {"", ""}}
+ };
  
- static void exp_flags(struct seq_file *m, int flag, int fsid,
- 		uid_t anonu, uid_t anong, struct nfsd4_fs_locations *fslocs);
-+static void show_secinfo(struct seq_file *m, struct svc_export *exp);
- 
- static int svc_export_show(struct seq_file *m,
- 			   struct cache_detail *cd,
-@@ -670,6 +671,7 @@ static int svc_export_show(struct seq_fi
- 				seq_printf(m, "%02x", exp->ex_uuid[i]);
- 			}
- 		}
-+		show_secinfo(m, exp);
- 	}
- 	seq_puts(m, ")\n");
- 	return 0;
-@@ -1467,6 +1469,33 @@ static void show_expflags(struct seq_fil
- 	}
- }
- 
-+static void show_secinfo_flags(struct seq_file *m, int flags)
-+{
-+	seq_printf(m, ",");
-+	show_expflags(m, flags, NFSEXP_SECINFO_FLAGS);
-+}
-+
-+static void show_secinfo(struct seq_file *m, struct svc_export *exp)
-+{
-+	struct exp_flavor_info *f;
-+	struct exp_flavor_info *end = exp->ex_flavors + exp->ex_nflavors;
-+	int lastflags = 0, first = 0;
-+
-+	if (exp->ex_nflavors == 0)
-+		return;
-+	for (f = exp->ex_flavors; f < end; f++) {
-+		if (first || f->flags != lastflags) {
-+			if (!first)
-+				show_secinfo_flags(m, lastflags);
-+			seq_printf(m, ",sec=%d", f->pseudoflavor);
-+			lastflags = f->flags;
-+		} else {
-+			seq_printf(m, ":%d", f->pseudoflavor);
-+		}
-+	}
-+	show_secinfo_flags(m, lastflags);
-+}
-+
- static void exp_flags(struct seq_file *m, int flag, int fsid,
- 		uid_t anonu, uid_t anong, struct nfsd4_fs_locations *fsloc)
+-static void exp_flags(struct seq_file *m, int flag, int fsid,
+-		uid_t anonu, uid_t anong, struct nfsd4_fs_locations *fsloc)
++static void show_expflags(struct seq_file *m, int flags, int mask)
  {
+-	int first = 0;
+ 	struct flags *flg;
++	int state, first = 0;
+ 
+ 	for (flg = expflags; flg->flag; flg++) {
+-		int state = (flg->flag & flag)?0:1;
++		if (flg->flag & ~mask)
++			continue;
++		state = (flg->flag & flags) ? 0 : 1;
+ 		if (*flg->name[state])
+ 			seq_printf(m, "%s%s", first++?",":"", flg->name[state]);
+ 	}
++}
++
++static void exp_flags(struct seq_file *m, int flag, int fsid,
++		uid_t anonu, uid_t anong, struct nfsd4_fs_locations *fsloc)
++{
++	show_expflags(m, flag, NFSEXP_ALLFLAGS);
+ 	if (flag & NFSEXP_FSID)
+-		seq_printf(m, "%sfsid=%d", first++?",":"", fsid);
++		seq_printf(m, ",fsid=%d", fsid);
+ 	if (anonu != (uid_t)-2 && anonu != (0x10000-2))
+-		seq_printf(m, "%sanonuid=%d", first++?",":"", anonu);
++		seq_printf(m, ",sanonuid=%d", anonu);
+ 	if (anong != (gid_t)-2 && anong != (0x10000-2))
+-		seq_printf(m, "%sanongid=%d", first++?",":"", anong);
++		seq_printf(m, ",sanongid=%d", anong);
+ 	if (fsloc && fsloc->locations_count > 0) {
+ 		char *loctype = (fsloc->migrated) ? "refer" : "replicas";
+ 		int i;
+ 
+-		seq_printf(m, "%s%s=", first++?",":"", loctype);
++		seq_printf(m, ",%s=", loctype);
+ 		seq_escape(m, fsloc->locations[0].path, ",;@ \t\n\\");
+ 		seq_putc(m, '@');
+ 		seq_escape(m, fsloc->locations[0].hosts, ",;@ \t\n\\");
 _
 
 Patches currently in -mm which might be from bfields@citi.umich.edu are
