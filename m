@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-nfsd4-return-nfserr_wrongsec.patch added to -mm tree
-Date: Fri, 13 Jul 2007 00:33:59 -0700
-Message-ID: <200707130733.l6D7Xxkp005360@imap1.linux-foundation.org>
+Subject: + knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst.patch added to -mm tree
+Date: Fri, 13 Jul 2007 00:33:50 -0700
+Message-ID: <200707130733.l6D7Xoxx005342@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52119 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43869 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755788AbXGMHeK (ORCPT
+	by vger.kernel.org with ESMTP id S1759853AbXGMHeB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 03:34:10 -0400
+	Fri, 13 Jul 2007 03:34:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andros@citi.umich.edu, bfields@citi.umich.edu, neilb@suse.de
+Cc: bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: nfsd4: return nfserr_wrongsec
+     knfsd: nfsd: provide export lookup wrappers which take a svc_rqst
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd4-return-nfserr_wrongsec.patch
+     knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,169 +26,178 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: return nfserr_wrongsec
-From: Andy Adamson <andros@citi.umich.edu>
+Subject: knfsd: nfsd: provide export lookup wrappers which take a svc_rqst
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-Make the first actual use of the secinfo information by using it to return
-nfserr_wrongsec when an export is found that doesn't allow the flavor used on
-this request.
+Split the callers of exp_get_by_name(), exp_find(), and exp_parent() into
+those that are processing requests and those that are doing other stuff (like
+looking up filehandles for mountd).
 
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Signed-off-by: Andy Adamson <andros@citi.umich.edu>
+No change in behavior, just a (fairly pointless, on its own) cleanup.
+
+(Note this has the effect of making nfsd_cross_mnt() pass rqstp->rq_client
+instead of exp->ex_client into exp_find_by_name().  However, the two should
+have the same value at this point.)
+
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c            |   26 ++++++++++++++++++++++++++
- fs/nfsd/nfsfh.c             |    6 ++++++
- fs/nfsd/nfssvc.c            |   10 ++++++++++
- fs/nfsd/vfs.c               |    4 ++++
- include/linux/nfsd/export.h |    1 +
- include/linux/nfsd/nfsd.h   |    1 +
- 6 files changed, 48 insertions(+)
+ fs/nfsd/export.c            |   28 +++++++++++++++++++++++++++-
+ fs/nfsd/nfsfh.c             |    5 ++---
+ fs/nfsd/vfs.c               |    5 ++---
+ include/linux/nfsd/export.h |    7 +++++++
+ 4 files changed, 38 insertions(+), 7 deletions(-)
 
-diff -puN fs/nfsd/export.c~knfsd-nfsd4-return-nfserr_wrongsec fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-nfsd4-return-nfserr_wrongsec
+diff -puN fs/nfsd/export.c~knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst fs/nfsd/export.c
+--- a/fs/nfsd/export.c~knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst
 +++ a/fs/nfsd/export.c
-@@ -1228,6 +1228,28 @@ exp_find(struct auth_domain *clp, int fs
+@@ -1228,6 +1228,32 @@ exp_find(struct auth_domain *clp, int fs
  	return exp;
  }
  
-+__be32 check_nfsd_access(struct svc_export *exp, struct svc_rqst *rqstp)
++/*
++ * Called from functions that handle requests; functions that do work on
++ * behalf of mountd are passed a single client name to use, and should
++ * use exp_get_by_name() or exp_find().
++ */
++struct svc_export *
++rqst_exp_get_by_name(struct svc_rqst *rqstp, struct vfsmount *mnt,
++		struct dentry *dentry)
 +{
-+	struct exp_flavor_info *f;
-+	struct exp_flavor_info *end = exp->ex_flavors + exp->ex_nflavors;
-+
-+	/* legacy gss-only clients are always OK: */
-+	if (exp->ex_client == rqstp->rq_gssclient)
-+		return 0;
-+	/* ip-address based client; check sec= export option: */
-+	for (f = exp->ex_flavors; f < end; f++) {
-+		if (f->pseudoflavor == rqstp->rq_flavor)
-+			return 0;
-+	}
-+	/* defaults in absence of sec= options: */
-+	if (exp->ex_nflavors == 0) {
-+		if (rqstp->rq_flavor == RPC_AUTH_NULL ||
-+		    rqstp->rq_flavor == RPC_AUTH_UNIX)
-+			return 0;
-+	}
-+	return nfserr_wrongsec;
++	return exp_get_by_name(rqstp->rq_client, mnt, dentry,
++						&rqstp->rq_chandle);
 +}
 +
++struct svc_export *
++rqst_exp_find(struct svc_rqst *rqstp, int fsid_type, u32 *fsidv)
++{
++	return exp_find(rqstp->rq_client, fsid_type, fsidv,
++						&rqstp->rq_chandle);
++}
++
++struct svc_export *
++rqst_exp_parent(struct svc_rqst *rqstp, struct vfsmount *mnt,
++		struct dentry *dentry)
++{
++	return exp_parent(rqstp->rq_client, mnt, dentry, &rqstp->rq_chandle);
++}
+ 
  /*
-  * Uses rq_client and rq_gssclient to find an export; uses rq_client (an
-  * auth_unix client) if it's available and has secinfo information;
-@@ -1340,6 +1362,10 @@ exp_pseudoroot(struct svc_rqst *rqstp, s
+  * Called when we need the filehandle for the root of the pseudofs,
+@@ -1243,7 +1269,7 @@ exp_pseudoroot(struct svc_rqst *rqstp, s
+ 
+ 	mk_fsid(FSID_NUM, fsidv, 0, 0, 0, NULL);
+ 
+-	exp = exp_find(rqstp->rq_client, FSID_NUM, fsidv, rqstp->rq_chandle);
++	exp = rqst_exp_find(rqstp, FSID_NUM, fsidv);
+ 	if (PTR_ERR(exp) == -ENOENT)
+ 		return nfserr_perm;
  	if (IS_ERR(exp))
- 		return nfserrno(PTR_ERR(exp));
- 	rv = fh_compose(fhp, exp, exp->ex_dentry, NULL);
-+	if (rv)
-+		goto out;
-+	rv = check_nfsd_access(exp, rqstp);
-+out:
- 	exp_put(exp);
- 	return rv;
- }
-diff -puN fs/nfsd/nfsfh.c~knfsd-nfsd4-return-nfserr_wrongsec fs/nfsd/nfsfh.c
---- a/fs/nfsd/nfsfh.c~knfsd-nfsd4-return-nfserr_wrongsec
+diff -puN fs/nfsd/nfsfh.c~knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst fs/nfsd/nfsfh.c
+--- a/fs/nfsd/nfsfh.c~knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst
 +++ a/fs/nfsd/nfsfh.c
-@@ -20,6 +20,7 @@
+@@ -145,7 +145,7 @@ fh_verify(struct svc_rqst *rqstp, struct
+ 				fh->fh_fsid[1] = fh->fh_fsid[2];
+ 			}
+ 			if ((data_left -= len)<0) goto out;
+-			exp = exp_find(rqstp->rq_client, fh->fh_fsid_type, datap, &rqstp->rq_chandle);
++			exp = rqst_exp_find(rqstp, fh->fh_fsid_type, datap);
+ 			datap += len;
+ 		} else {
+ 			dev_t xdev;
+@@ -156,8 +156,7 @@ fh_verify(struct svc_rqst *rqstp, struct
+ 			xdev = old_decode_dev(fh->ofh_xdev);
+ 			xino = u32_to_ino_t(fh->ofh_xino);
+ 			mk_fsid(FSID_DEV, tfh, xdev, xino, 0, NULL);
+-			exp = exp_find(rqstp->rq_client, FSID_DEV, tfh,
+-				       &rqstp->rq_chandle);
++			exp = rqst_exp_find(rqstp, FSID_DEV, tfh);
+ 		}
  
- #include <linux/sunrpc/clnt.h>
- #include <linux/sunrpc/svc.h>
-+#include <linux/sunrpc/svcauth_gss.h>
- #include <linux/nfsd/nfsd.h>
- 
- #define NFSDDBG_FACILITY		NFSDDBG_FH
-@@ -248,6 +249,11 @@ fh_verify(struct svc_rqst *rqstp, struct
- 	if (error)
- 		goto out;
- 
-+	/* Check security flavor */
-+	error = check_nfsd_access(exp, rqstp);
-+	if (error)
-+		goto out;
-+
- 	/* Finally, check access permissions. */
- 	error = nfsd_permission(exp, dentry, access);
- 
-diff -puN fs/nfsd/nfssvc.c~knfsd-nfsd4-return-nfserr_wrongsec fs/nfsd/nfssvc.c
---- a/fs/nfsd/nfssvc.c~knfsd-nfsd4-return-nfserr_wrongsec
-+++ a/fs/nfsd/nfssvc.c
-@@ -494,6 +494,15 @@ out:
- 	module_put_and_exit(0);
- }
- 
-+static __be32 map_new_errors(u32 vers, __be32 nfserr)
-+{
-+	if (nfserr == nfserr_jukebox && vers == 2)
-+		return nfserr_dropit;
-+	if (nfserr == nfserr_wrongsec && vers < 4)
-+		return nfserr_acces;
-+	return nfserr;
-+}
-+
- int
- nfsd_dispatch(struct svc_rqst *rqstp, __be32 *statp)
- {
-@@ -536,6 +545,7 @@ nfsd_dispatch(struct svc_rqst *rqstp, __
- 
- 	/* Now call the procedure handler, and encode NFS status. */
- 	nfserr = proc->pc_func(rqstp, rqstp->rq_argp, rqstp->rq_resp);
-+	nfserr = map_new_errors(rqstp->rq_vers, nfserr);
- 	if (nfserr == nfserr_jukebox && rqstp->rq_vers == 2)
- 		nfserr = nfserr_dropit;
- 	if (nfserr == nfserr_dropit) {
-diff -puN fs/nfsd/vfs.c~knfsd-nfsd4-return-nfserr_wrongsec fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~knfsd-nfsd4-return-nfserr_wrongsec
+ 		error = nfserr_stale;
+diff -puN fs/nfsd/vfs.c~knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst
 +++ a/fs/nfsd/vfs.c
-@@ -240,6 +240,9 @@ nfsd_lookup(struct svc_rqst *rqstp, stru
- 	err = nfsd_lookup_dentry(rqstp, fhp, name, len, &exp, &dentry);
- 	if (err)
- 		return err;
-+	err = check_nfsd_access(exp, rqstp);
-+	if (err)
-+		goto out;
- 	/*
- 	 * Note: we compose the file handle now, but as the
- 	 * dentry may be negative, it may need to be updated.
-@@ -247,6 +250,7 @@ nfsd_lookup(struct svc_rqst *rqstp, stru
- 	err = fh_compose(resfh, exp, dentry, fhp);
- 	if (!err && !dentry->d_inode)
- 		err = nfserr_noent;
-+out:
- 	dput(dentry);
- 	exp_put(exp);
- 	return err;
-diff -puN include/linux/nfsd/export.h~knfsd-nfsd4-return-nfserr_wrongsec include/linux/nfsd/export.h
---- a/include/linux/nfsd/export.h~knfsd-nfsd4-return-nfserr_wrongsec
+@@ -113,7 +113,7 @@ nfsd_cross_mnt(struct svc_rqst *rqstp, s
+ 
+ 	while (follow_down(&mnt,&mounts)&&d_mountpoint(mounts));
+ 
+-	exp2 = exp_get_by_name(exp->ex_client, mnt, mounts, &rqstp->rq_chandle);
++	exp2 = rqst_exp_get_by_name(rqstp, mnt, mounts);
+ 	if (IS_ERR(exp2)) {
+ 		err = PTR_ERR(exp2);
+ 		dput(mounts);
+@@ -188,8 +188,7 @@ nfsd_lookup(struct svc_rqst *rqstp, stru
+ 			dput(dentry);
+ 			dentry = dp;
+ 
+-			exp2 = exp_parent(exp->ex_client, mnt, dentry,
+-					  &rqstp->rq_chandle);
++			exp2 = rqst_exp_parent(rqstp, mnt, dentry);
+ 			if (PTR_ERR(exp2) == -ENOENT) {
+ 				dput(dentry);
+ 				dentry = dget(dparent);
+diff -puN include/linux/nfsd/export.h~knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst include/linux/nfsd/export.h
+--- a/include/linux/nfsd/export.h~knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst
 +++ a/include/linux/nfsd/export.h
-@@ -116,6 +116,7 @@ struct svc_expkey {
- #define EX_NOHIDE(exp)		((exp)->ex_flags & NFSEXP_NOHIDE)
- #define EX_WGATHER(exp)		((exp)->ex_flags & NFSEXP_GATHERED_WRITES)
+@@ -129,10 +129,16 @@ struct svc_export *	exp_get_by_name(stru
+ 					struct vfsmount *mnt,
+ 					struct dentry *dentry,
+ 					struct cache_req *reqp);
++struct svc_export *	rqst_exp_get_by_name(struct svc_rqst *,
++					     struct vfsmount *,
++					     struct dentry *);
+ struct svc_export *	exp_parent(struct auth_domain *clp,
+ 				   struct vfsmount *mnt,
+ 				   struct dentry *dentry,
+ 				   struct cache_req *reqp);
++struct svc_export *	rqst_exp_parent(struct svc_rqst *,
++					struct vfsmount *mnt,
++					struct dentry *dentry);
+ int			exp_rootfh(struct auth_domain *, 
+ 					char *path, struct knfsd_fh *, int maxsize);
+ __be32			exp_pseudoroot(struct svc_rqst *, struct svc_fh *);
+@@ -152,6 +158,7 @@ static inline void exp_get(struct svc_ex
+ extern struct svc_export *
+ exp_find(struct auth_domain *clp, int fsid_type, u32 *fsidv,
+ 	 struct cache_req *reqp);
++struct svc_export * rqst_exp_find(struct svc_rqst *, int, u32 *);
  
-+__be32 check_nfsd_access(struct svc_export *exp, struct svc_rqst *rqstp);
+ #endif /* __KERNEL__ */
  
- /*
-  * Function declarations
-diff -puN include/linux/nfsd/nfsd.h~knfsd-nfsd4-return-nfserr_wrongsec include/linux/nfsd/nfsd.h
---- a/include/linux/nfsd/nfsd.h~knfsd-nfsd4-return-nfserr_wrongsec
-+++ a/include/linux/nfsd/nfsd.h
-@@ -236,6 +236,7 @@ void		nfsd_lockd_shutdown(void);
- #define	nfserr_badname		__constant_htonl(NFSERR_BADNAME)
- #define	nfserr_cb_path_down	__constant_htonl(NFSERR_CB_PATH_DOWN)
- #define	nfserr_locked		__constant_htonl(NFSERR_LOCKED)
-+#define	nfserr_wrongsec		__constant_htonl(NFSERR_WRONGSEC)
- #define	nfserr_replay_me	__constant_htonl(NFSERR_REPLAY_ME)
- 
- /* error codes for internal use */
 _
 
-Patches currently in -mm which might be from andros@citi.umich.edu are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
 auth_gss-unregister-gss_domain-when-unloading-module.patch
+git-vfs-lease-api.patch
+fix-trivial-typos-in-anon_inodesc-comments.patch
+knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4.patch
+knfsd-nfsd4-fix-nfsv4-filehandle-size-units-confusion.patch
+knfsd-nfsd4-silence-a-compiler-warning-in-acl-code.patch
+knfsd-nfsd4-fix-enc_stateid_sz-for-nfsd-callbacks.patch
+knfsd-nfsd4-fix-handling-of-acl-errrors.patch
+knfsd-nfsd-remove-unused-header-interfaceh.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts.patch
+knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err.patch
+knfsd-nfsd4-build-rpcsec_gss-whenever-nfsd4-is-built.patch
 knfsd-nfsd4-store-pseudoflavor-in-request.patch
 knfsd-nfsd4-parse-secinfo-information-in-exports-downcall.patch
+knfsd-nfsd4-simplify-exp_pseudoroot-arguments.patch
+knfsd-nfsd-remove-superfluous-assignment-from-nfsd_lookup.patch
+knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst.patch
+knfsd-nfsd-set-rq_client-to-ip-address-determined-domain.patch
+knfsd-nfsd-use-ip-address-based-domain-in-secinfo-case.patch
+knfsd-nfsd-factor-nfsd_lookup-into-2-pieces.patch
 knfsd-nfsd4-return-nfserr_wrongsec.patch
+knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor.patch
+knfsd-nfsd-factor-out-code-from-show_expflags.patch
+knfsd-nfsd-display-export-secinfo-information.patch
+knfsd-rpc-add-gss-krb5-and-spkm3-oid-values.patch
 knfsd-nfsd4-implement-secinfo.patch
+knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch
+knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports.patch
+knfsd-nfsd-enforce-per-flavor-id-squashing.patch
