@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - visor-and-whiteheat-remove-bogus-termios-change-checks.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:37 -0700
-Message-ID: <200707132233.l6DMXbq7025092@imap1.linux-foundation.org>
+Subject: - pl2303-remove-bogus-checks-and-fix-speed-support-to-use.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:33:35 -0700
+Message-ID: <200707132233.l6DMXZew025089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56112 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760028AbXGMWpX (ORCPT
+	by vger.kernel.org with ESMTP id S936426AbXGMWp0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:45:23 -0400
+	Fri, 13 Jul 2007 18:45:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     visor and whiteheat: remove bogus termios change checks
+     pl2303: remove bogus checks and fix speed support to use tty_get_baud_rate()
 has been removed from the -mm tree.  Its filename was
-     visor-and-whiteheat-remove-bogus-termios-change-checks.patch
+     pl2303-remove-bogus-checks-and-fix-speed-support-to-use.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: visor and whiteheat: remove bogus termios change checks
+Subject: pl2303: remove bogus checks and fix speed support to use tty_get_baud_rate()
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -30,47 +30,59 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/visor.c     |    8 --------
- drivers/usb/serial/whiteheat.c |    9 ---------
- 2 files changed, 17 deletions(-)
+ drivers/usb/serial/pl2303.c |   33 +--------------------------------
+ 1 files changed, 1 insertion(+), 32 deletions(-)
 
-diff -puN drivers/usb/serial/visor.c~visor-and-whiteheat-remove-bogus-termios-change-checks drivers/usb/serial/visor.c
---- a/drivers/usb/serial/visor.c~visor-and-whiteheat-remove-bogus-termios-change-checks
-+++ a/drivers/usb/serial/visor.c
-@@ -948,14 +948,6 @@ static void visor_set_termios (struct us
- 	}
+diff -puN drivers/usb/serial/pl2303.c~pl2303-remove-bogus-checks-and-fix-speed-support-to-use drivers/usb/serial/pl2303.c
+--- a/drivers/usb/serial/pl2303.c~pl2303-remove-bogus-checks-and-fix-speed-support-to-use
++++ a/drivers/usb/serial/pl2303.c
+@@ -484,15 +484,6 @@ static void pl2303_set_termios(struct us
+ 	spin_unlock_irqrestore(&priv->lock, flags);
  
  	cflag = port->tty->termios->c_cflag;
 -	/* check that they really want us to change something */
 -	if (old_termios) {
 -		if ((cflag == old_termios->c_cflag) &&
--		    (RELEVANT_IFLAG(port->tty->termios->c_iflag) == RELEVANT_IFLAG(old_termios->c_iflag))) {
+-		    (RELEVANT_IFLAG(port->tty->termios->c_iflag) ==
+-		     RELEVANT_IFLAG(old_termios->c_iflag))) {
 -			dbg("%s - nothing to change...", __FUNCTION__);
 -			return;
 -		}
 -	}
  
- 	/* get the byte size */
- 	switch (cflag & CSIZE) {
-diff -puN drivers/usb/serial/whiteheat.c~visor-and-whiteheat-remove-bogus-termios-change-checks drivers/usb/serial/whiteheat.c
---- a/drivers/usb/serial/whiteheat.c~visor-and-whiteheat-remove-bogus-termios-change-checks
-+++ a/drivers/usb/serial/whiteheat.c
-@@ -891,15 +891,6 @@ static void whiteheat_set_termios(struct
- 		goto exit;
+ 	buf = kzalloc(7, GFP_KERNEL);
+ 	if (!buf) {
+@@ -517,29 +508,7 @@ static void pl2303_set_termios(struct us
+ 		dbg("%s - data bits = %d", __FUNCTION__, buf[6]);
  	}
- 	
--	/* check that they really want us to change something */
--	if (old_termios) {
--		if ((port->tty->termios->c_cflag == old_termios->c_cflag) &&
--		    (port->tty->termios->c_iflag == old_termios->c_iflag)) {
--			dbg("%s - nothing to change...", __FUNCTION__);
--			goto exit;
--		}
--	}
--
- 	firm_setup_port(port);
  
- exit:
+-	baud = 0;
+-	switch (cflag & CBAUD) {
+-		case B0:	baud = 0;	break;
+-		case B75:	baud = 75;	break;
+-		case B150:	baud = 150;	break;
+-		case B300:	baud = 300;	break;
+-		case B600:	baud = 600;	break;
+-		case B1200:	baud = 1200;	break;
+-		case B1800:	baud = 1800;	break;
+-		case B2400:	baud = 2400;	break;
+-		case B4800:	baud = 4800;	break;
+-		case B9600:	baud = 9600;	break;
+-		case B19200:	baud = 19200;	break;
+-		case B38400:	baud = 38400;	break;
+-		case B57600:	baud = 57600;	break;
+-		case B115200:	baud = 115200;	break;
+-		case B230400:	baud = 230400;	break;
+-		case B460800:	baud = 460800;	break;
+-		default:
+-			dev_err(&port->dev, "pl2303 driver does not support"
+-				" the baudrate requested (fix it)\n");
+-			break;
+-	}
++	baud = tty_get_baud_rate(port->tty);;
+ 	dbg("%s - baud = %d", __FUNCTION__, baud);
+ 	if (baud) {
+ 		buf[0] = baud & 0xff;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
