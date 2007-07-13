@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - kgdb_skipexception-warning-fix.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:54 -0700
-Message-ID: <200707132233.l6DMXsfs025126@imap1.linux-foundation.org>
+Subject: - kgdb-kconfig-fix.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:33:48 -0700
+Message-ID: <200707132233.l6DMXmPr025116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43222 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35241 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937259AbXGMWo7 (ORCPT
+	by vger.kernel.org with ESMTP id S937286AbXGMWo7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 13 Jul 2007 18:44:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,44 +15,42 @@ To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kerne
 
 
 The patch titled
-     kgdb_skipexception() warning fix
+     kgdb-kconfig-fix
 has been removed from the -mm tree.  Its filename was
-     kgdb_skipexception-warning-fix.patch
+     kgdb-kconfig-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kgdb_skipexception() warning fix
+Subject: kgdb-kconfig-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arm:
+i386 allmodconfig:
 
-kernel/kgdb.c: In function `kgdb_handle_exception':
-kernel/kgdb.c:900: warning: statement with no effect
-kernel/kgdb.c:907: warning: statement with no effect
+drivers/built-in.o: In function `kgdb8250_late_init':
+drivers/serial/8250_kgdb.c:290: undefined reference to `serial8250_unregister_by_port'
+
+this fix is pretty hacky and nasty.
 
 Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/kgdb.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ lib/Kconfig.kgdb |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-generic/kgdb.h~kgdb_skipexception-warning-fix include/asm-generic/kgdb.h
---- a/include/asm-generic/kgdb.h~kgdb_skipexception-warning-fix
-+++ a/include/asm-generic/kgdb.h
-@@ -29,7 +29,10 @@
-  */
- int kgdb_skipexception(int exception, struct pt_regs *regs);
- #else
--#define kgdb_skipexception(exception, regs)	0
-+static inline int kgdb_skipexception(int exception, struct pt_regs *regs)
-+{
-+	return 0;
-+}
- #endif
- 
- #if defined(CONFIG_X86)
+diff -puN drivers/serial/Kconfig~kgdb-kconfig-fix drivers/serial/Kconfig
+diff -puN lib/Kconfig.kgdb~kgdb-kconfig-fix lib/Kconfig.kgdb
+--- a/lib/Kconfig.kgdb~kgdb-kconfig-fix
++++ a/lib/Kconfig.kgdb
+@@ -68,6 +68,7 @@ config KGDB_ONLY_MODULES
+ config KGDB_8250_NOMODULE
+ 	bool "KGDB: On generic serial port (8250)"
+ 	select KGDB_8250
++	select SERIAL_8250
+ 	help
+ 	  Uses generic serial port (8250) to communicate with the host
+ 	  GDB.  This is independent of the normal (SERIAL_8250) driver
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
