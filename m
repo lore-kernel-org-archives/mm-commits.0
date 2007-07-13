@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-nfsd-factor-out-code-from-show_expflags.patch added to -mm tree
-Date: Fri, 13 Jul 2007 00:34:03 -0700
-Message-ID: <200707130734.l6D7Y3m1005439@imap1.linux-foundation.org>
+Subject: + knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch added to -mm tree
+Date: Fri, 13 Jul 2007 00:34:08 -0700
+Message-ID: <200707130734.l6D7Y8O8005454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38895 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50869 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933025AbXGMHeN (ORCPT
+	by vger.kernel.org with ESMTP id S1760623AbXGMHeU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 03:34:13 -0400
+	Fri, 13 Jul 2007 03:34:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: nfsd: factor out code from show_expflags
+     knfsd: nfsd4: secinfo handling without secinfo= option
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd-factor-out-code-from-show_expflags.patch
+     knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd: factor out code from show_expflags
+Subject: knfsd: nfsd4: secinfo handling without secinfo= option
 From: J. Bruce Fields <bfields@citi.umich.edu>
 
-Factor out some code to be shared by secinfo display code.  Remove some
-unnecessary conditional printing of commas where we know the condition is
-true.
+We could return some sort of error in the case where someone asks for secinfo
+on an export without the secinfo= option set--that'd be no worse than what
+we've been doing.  But it's not really correct.  So, hack up an approximate
+secinfo response in that case--it may not be complete, but it'll tell the
+client at least one acceptable security flavor.
 
 Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ fs/nfsd/nfs4xdr.c                  |   30 ++++++++++++++++++++++++---
+ include/linux/sunrpc/svcauth_gss.h |    1 
+ net/sunrpc/auth_gss/svcauth_gss.c  |    9 ++++++++
+ 3 files changed, 37 insertions(+), 3 deletions(-)
 
-diff -puN fs/nfsd/export.c~knfsd-nfsd-factor-out-code-from-show_expflags fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-nfsd-factor-out-code-from-show_expflags
-+++ a/fs/nfsd/export.c
-@@ -1453,28 +1453,35 @@ static struct flags {
- 	{ 0, {"", ""}}
- };
+diff -puN fs/nfsd/nfs4xdr.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option fs/nfsd/nfs4xdr.c
+--- a/fs/nfsd/nfs4xdr.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option
++++ a/fs/nfsd/nfs4xdr.c
+@@ -57,6 +57,7 @@
+ #include <linux/nfs4.h>
+ #include <linux/nfs4_acl.h>
+ #include <linux/sunrpc/gss_api.h>
++#include <linux/sunrpc/svcauth_gss.h>
  
--static void exp_flags(struct seq_file *m, int flag, int fsid,
--		uid_t anonu, uid_t anong, struct nfsd4_fs_locations *fsloc)
-+static void show_expflags(struct seq_file *m, int flags, int mask)
+ #define NFSDDBG_FACILITY		NFSDDBG_XDR
+ 
+@@ -2454,15 +2455,38 @@ nfsd4_encode_secinfo(struct nfsd4_compou
  {
--	int first = 0;
- 	struct flags *flg;
-+	int state, first = 0;
+ 	int i = 0;
+ 	struct svc_export *exp = secinfo->si_exp;
++	u32 nflavs;
++	struct exp_flavor_info *flavs;
++	struct exp_flavor_info def_flavs[2];
+ 	ENCODE_HEAD;
  
- 	for (flg = expflags; flg->flag; flg++) {
--		int state = (flg->flag & flag)?0:1;
-+		if (flg->flag & ~mask)
-+			continue;
-+		state = (flg->flag & flags) ? 0 : 1;
- 		if (*flg->name[state])
- 			seq_printf(m, "%s%s", first++?",":"", flg->name[state]);
- 	}
+ 	if (nfserr)
+ 		goto out;
++	if (exp->ex_nflavors) {
++		flavs = exp->ex_flavors;
++		nflavs = exp->ex_nflavors;
++	} else { /* Handling of some defaults in absence of real secinfo: */
++		flavs = def_flavs;
++		if (exp->ex_client->flavour->flavour == RPC_AUTH_UNIX) {
++			nflavs = 2;
++			flavs[0].pseudoflavor = RPC_AUTH_UNIX;
++			flavs[1].pseudoflavor = RPC_AUTH_NULL;
++		} else if (exp->ex_client->flavour->flavour == RPC_AUTH_GSS) {
++			nflavs = 1;
++			flavs[0].pseudoflavor
++					= svcauth_gss_flavor(exp->ex_client);
++		} else {
++			nflavs = 1;
++			flavs[0].pseudoflavor
++					= exp->ex_client->flavour->flavour;
++		}
++	}
++
+ 	RESERVE_SPACE(4);
+-	WRITE32(exp->ex_nflavors);
++	WRITE32(nflavs);
+ 	ADJUST_ARGS();
+-	for (i = 0; i < exp->ex_nflavors; i++) {
+-		u32 flav = exp->ex_flavors[i].pseudoflavor;
++	for (i = 0; i < nflavs; i++) {
++		u32 flav = flavs[i].pseudoflavor;
+ 		struct gss_api_mech *gm = gss_mech_get_by_pseudoflavor(flav);
+ 
+ 		if (gm) {
+diff -puN include/linux/sunrpc/svcauth_gss.h~knfsd-nfsd4-secinfo-handling-without-secinfo=-option include/linux/sunrpc/svcauth_gss.h
+--- a/include/linux/sunrpc/svcauth_gss.h~knfsd-nfsd4-secinfo-handling-without-secinfo=-option
++++ a/include/linux/sunrpc/svcauth_gss.h
+@@ -23,6 +23,7 @@ int gss_svc_init(void);
+ void gss_svc_shutdown(void);
+ int svcauth_gss_register_pseudoflavor(u32 pseudoflavor, char * name);
+ void svcauth_gss_unregister_pseudoflavor(char *name);
++u32 svcauth_gss_flavor(struct auth_domain *dom);
+ 
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_SUNRPC_SVCAUTH_GSS_H */
+diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option net/sunrpc/auth_gss/svcauth_gss.c
+--- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option
++++ a/net/sunrpc/auth_gss/svcauth_gss.c
+@@ -743,6 +743,15 @@ find_gss_auth_domain(struct gss_ctx *ctx
+ 
+ static struct auth_ops svcauthops_gss;
+ 
++u32 svcauth_gss_flavor(struct auth_domain *dom)
++{
++	struct gss_domain *gd = container_of(dom, struct gss_domain, h);
++
++	return gd->pseudoflavor;
 +}
 +
-+static void exp_flags(struct seq_file *m, int flag, int fsid,
-+		uid_t anonu, uid_t anong, struct nfsd4_fs_locations *fsloc)
-+{
-+	show_expflags(m, flag, NFSEXP_ALLFLAGS);
- 	if (flag & NFSEXP_FSID)
--		seq_printf(m, "%sfsid=%d", first++?",":"", fsid);
-+		seq_printf(m, ",fsid=%d", fsid);
- 	if (anonu != (uid_t)-2 && anonu != (0x10000-2))
--		seq_printf(m, "%sanonuid=%d", first++?",":"", anonu);
-+		seq_printf(m, ",sanonuid=%d", anonu);
- 	if (anong != (gid_t)-2 && anong != (0x10000-2))
--		seq_printf(m, "%sanongid=%d", first++?",":"", anong);
-+		seq_printf(m, ",sanongid=%d", anong);
- 	if (fsloc && fsloc->locations_count > 0) {
- 		char *loctype = (fsloc->migrated) ? "refer" : "replicas";
- 		int i;
- 
--		seq_printf(m, "%s%s=", first++?",":"", loctype);
-+		seq_printf(m, ",%s=", loctype);
- 		seq_escape(m, fsloc->locations[0].path, ",;@ \t\n\\");
- 		seq_putc(m, '@');
- 		seq_escape(m, fsloc->locations[0].hosts, ",;@ \t\n\\");
++EXPORT_SYMBOL(svcauth_gss_flavor);
++
+ int
+ svcauth_gss_register_pseudoflavor(u32 pseudoflavor, char * name)
+ {
 _
 
 Patches currently in -mm which might be from bfields@citi.umich.edu are
