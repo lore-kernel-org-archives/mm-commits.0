@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-nfsd4-store-pseudoflavor-in-request.patch added to -mm tree
-Date: Fri, 13 Jul 2007 00:33:44 -0700
-Message-ID: <200707130733.l6D7XiXG005328@imap1.linux-foundation.org>
+Subject: + knfsd-nfsd4-build-rpcsec_gss-whenever-nfsd4-is-built.patch added to -mm tree
+Date: Fri, 13 Jul 2007 00:33:43 -0700
+Message-ID: <200707130733.l6D7Xhlf005325@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58311 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53935 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752992AbXGMHd4 (ORCPT
+	by vger.kernel.org with ESMTP id S935342AbXGMHdx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 03:33:56 -0400
+	Fri, 13 Jul 2007 03:33:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andros@citi.umich.edu, bfields@citi.umich.edu, neilb@suse.de
+Cc: bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: nfsd4: store pseudoflavor in request
+     knfsd: nfsd4: build rpcsec_gss whenever nfsd4 is built
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd4-store-pseudoflavor-in-request.patch
+     knfsd-nfsd4-build-rpcsec_gss-whenever-nfsd4-is-built.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,117 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: store pseudoflavor in request
-From: Andy Adamson <andros@citi.umich.edu>
+Subject: knfsd: nfsd4: build rpcsec_gss whenever nfsd4 is built
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-Add a new field to the svc_rqst structure to record the pseudoflavor that the
-request was made with.  For now we record the pseudoflavor but don't use it
-for anything.
+Select rpcsec_gss support whenever asked for NFSv4 support.  The rfc actually
+requires gss, and gss is also the main reason to migrate to v4.  We already do
+this on the client side.
 
-Signed-off-by: Andy Adamson <andros@citi.umich.edu>
 Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/gss_api.h        |    1 +
- include/linux/sunrpc/svc.h            |    1 +
- net/sunrpc/auth_gss/gss_mech_switch.c |   14 ++++++++++++++
- net/sunrpc/auth_gss/svcauth_gss.c     |    2 ++
- net/sunrpc/svcauth_unix.c             |    3 +++
- 5 files changed, 21 insertions(+)
+ fs/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/sunrpc/gss_api.h~knfsd-nfsd4-store-pseudoflavor-in-request include/linux/sunrpc/gss_api.h
---- a/include/linux/sunrpc/gss_api.h~knfsd-nfsd4-store-pseudoflavor-in-request
-+++ a/include/linux/sunrpc/gss_api.h
-@@ -58,6 +58,7 @@ u32 gss_unwrap(
- u32 gss_delete_sec_context(
- 		struct gss_ctx		**ctx_id);
- 
-+u32 gss_svc_to_pseudoflavor(struct gss_api_mech *, u32 service);
- u32 gss_pseudoflavor_to_service(struct gss_api_mech *, u32 pseudoflavor);
- char *gss_service_to_auth_domain_name(struct gss_api_mech *, u32 service);
- 
-diff -puN include/linux/sunrpc/svc.h~knfsd-nfsd4-store-pseudoflavor-in-request include/linux/sunrpc/svc.h
---- a/include/linux/sunrpc/svc.h~knfsd-nfsd4-store-pseudoflavor-in-request
-+++ a/include/linux/sunrpc/svc.h
-@@ -212,6 +212,7 @@ struct svc_rqst {
- 	struct svc_pool *	rq_pool;	/* thread pool */
- 	struct svc_procedure *	rq_procinfo;	/* procedure info */
- 	struct auth_ops *	rq_authop;	/* authentication flavour */
-+	u32			rq_flavor;	/* pseudoflavor */
- 	struct svc_cred		rq_cred;	/* auth info */
- 	struct sk_buff *	rq_skbuff;	/* fast recv inet buffer */
- 	struct svc_deferred_req*rq_deferred;	/* deferred request we are replaying */
-diff -puN net/sunrpc/auth_gss/gss_mech_switch.c~knfsd-nfsd4-store-pseudoflavor-in-request net/sunrpc/auth_gss/gss_mech_switch.c
---- a/net/sunrpc/auth_gss/gss_mech_switch.c~knfsd-nfsd4-store-pseudoflavor-in-request
-+++ a/net/sunrpc/auth_gss/gss_mech_switch.c
-@@ -200,6 +200,20 @@ gss_mech_get_by_pseudoflavor(u32 pseudof
- EXPORT_SYMBOL(gss_mech_get_by_pseudoflavor);
- 
- u32
-+gss_svc_to_pseudoflavor(struct gss_api_mech *gm, u32 service)
-+{
-+	int i;
-+
-+	for (i = 0; i < gm->gm_pf_num; i++) {
-+		if (gm->gm_pfs[i].service == service) {
-+			return gm->gm_pfs[i].pseudoflavor;
-+		}
-+	}
-+	return RPC_AUTH_MAXFLAVOR; /* illegal value */
-+}
-+EXPORT_SYMBOL(gss_svc_to_pseudoflavor);
-+
-+u32
- gss_pseudoflavor_to_service(struct gss_api_mech *gm, u32 pseudoflavor)
- {
- 	int i;
-diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-store-pseudoflavor-in-request net/sunrpc/auth_gss/svcauth_gss.c
---- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-store-pseudoflavor-in-request
-+++ a/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -1145,6 +1145,8 @@ svcauth_gss_accept(struct svc_rqst *rqst
- 		}
- 		svcdata->rsci = rsci;
- 		cache_get(&rsci->h);
-+		rqstp->rq_flavor = gss_svc_to_pseudoflavor(
-+					rsci->mechctx->mech_type, gc->gc_svc);
- 		ret = SVC_OK;
- 		goto out;
- 	}
-diff -puN net/sunrpc/svcauth_unix.c~knfsd-nfsd4-store-pseudoflavor-in-request net/sunrpc/svcauth_unix.c
---- a/net/sunrpc/svcauth_unix.c~knfsd-nfsd4-store-pseudoflavor-in-request
-+++ a/net/sunrpc/svcauth_unix.c
-@@ -5,6 +5,7 @@
- #include <linux/sunrpc/xdr.h>
- #include <linux/sunrpc/svcsock.h>
- #include <linux/sunrpc/svcauth.h>
-+#include <linux/sunrpc/gss_api.h>
- #include <linux/err.h>
- #include <linux/seq_file.h>
- #include <linux/hash.h>
-@@ -707,6 +708,7 @@ svcauth_null_accept(struct svc_rqst *rqs
- 	svc_putnl(resv, RPC_AUTH_NULL);
- 	svc_putnl(resv, 0);
- 
-+	rqstp->rq_flavor = RPC_AUTH_NULL;
- 	return SVC_OK;
- }
- 
-@@ -784,6 +786,7 @@ svcauth_unix_accept(struct svc_rqst *rqs
- 	svc_putnl(resv, RPC_AUTH_NULL);
- 	svc_putnl(resv, 0);
- 
-+	rqstp->rq_flavor = RPC_AUTH_UNIX;
- 	return SVC_OK;
- 
- badcred:
+diff -puN fs/Kconfig~knfsd-nfsd4-build-rpcsec_gss-whenever-nfsd4-is-built fs/Kconfig
+--- a/fs/Kconfig~knfsd-nfsd4-build-rpcsec_gss-whenever-nfsd4-is-built
++++ a/fs/Kconfig
+@@ -1698,6 +1698,7 @@ config NFSD_V3_ACL
+ config NFSD_V4
+ 	bool "Provide NFSv4 server support (EXPERIMENTAL)"
+ 	depends on NFSD_V3 && EXPERIMENTAL
++	select RPCSEC_GSS_KRB5
+ 	help
+ 	  If you would like to include the NFSv4 server as well as the NFSv2
+ 	  and NFSv3 servers, say Y here.  This feature is experimental, and
 _
 
-Patches currently in -mm which might be from andros@citi.umich.edu are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
 auth_gss-unregister-gss_domain-when-unloading-module.patch
+git-vfs-lease-api.patch
+fix-trivial-typos-in-anon_inodesc-comments.patch
+knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4.patch
+knfsd-nfsd4-fix-nfsv4-filehandle-size-units-confusion.patch
+knfsd-nfsd4-silence-a-compiler-warning-in-acl-code.patch
+knfsd-nfsd4-fix-enc_stateid_sz-for-nfsd-callbacks.patch
+knfsd-nfsd4-fix-handling-of-acl-errrors.patch
+knfsd-nfsd-remove-unused-header-interfaceh.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts.patch
+knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err.patch
+knfsd-nfsd4-build-rpcsec_gss-whenever-nfsd4-is-built.patch
 knfsd-nfsd4-store-pseudoflavor-in-request.patch
 knfsd-nfsd4-parse-secinfo-information-in-exports-downcall.patch
+knfsd-nfsd4-simplify-exp_pseudoroot-arguments.patch
+knfsd-nfsd-remove-superfluous-assignment-from-nfsd_lookup.patch
+knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst.patch
+knfsd-nfsd-set-rq_client-to-ip-address-determined-domain.patch
+knfsd-nfsd-use-ip-address-based-domain-in-secinfo-case.patch
+knfsd-nfsd-factor-nfsd_lookup-into-2-pieces.patch
 knfsd-nfsd4-return-nfserr_wrongsec.patch
+knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor.patch
+knfsd-nfsd-factor-out-code-from-show_expflags.patch
+knfsd-nfsd-display-export-secinfo-information.patch
+knfsd-rpc-add-gss-krb5-and-spkm3-oid-values.patch
 knfsd-nfsd4-implement-secinfo.patch
+knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch
+knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports.patch
+knfsd-nfsd-enforce-per-flavor-id-squashing.patch
