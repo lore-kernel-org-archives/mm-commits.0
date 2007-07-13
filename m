@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coda-remove-statistics-counters-from-proc-fs-coda.patch added to -mm tree
-Date: Thu, 12 Jul 2007 22:29:46 -0700
-Message-ID: <200707130529.l6D5Tk4e030829@imap1.linux-foundation.org>
+Subject: + h8300-entrys-update.patch added to -mm tree
+Date: Fri, 13 Jul 2007 00:04:53 -0700
+Message-ID: <200707130704.l6D74rIj003739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50194 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56020 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751071AbXGMFiz (ORCPT
+	by vger.kernel.org with ESMTP id S935073AbXGMHFJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 01:38:55 -0400
+	Fri, 13 Jul 2007 03:05:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jaharkes@cs.cmu.edu
+Cc: ysato@users.sourceforge.jp
 
 
 The patch titled
-     coda: remove statistics counters from /proc/fs/coda
+     h8300 entry.S update
 has been added to the -mm tree.  Its filename is
-     coda-remove-statistics-counters-from-proc-fs-coda.patch
+     h8300-entrys-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,625 +26,1173 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coda: remove statistics counters from /proc/fs/coda
-From: Jan Harkes <jaharkes@cs.cmu.edu>
+Subject: h8300 entry.S update
+From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-Similar information can easily be obtained with strace -c.
-
-Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
+Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/coda_int.h         |    7 +
- fs/coda/dir.c              |   16 --
- fs/coda/file.c             |   10 -
- fs/coda/psdev.c            |    1 
- fs/coda/symlink.c          |    2 
- fs/coda/sysctl.c           |  228 -----------------------------------
- fs/coda/upcall.c           |    3 
- include/linux/coda_linux.h |    3 
- include/linux/coda_proc.h  |   76 -----------
- include/linux/coda_psdev.h |    2 
- 10 files changed, 15 insertions(+), 333 deletions(-)
+ arch/h8300/kernel/Makefile          |    3 
+ arch/h8300/kernel/entry.S           |  393 ++++++++++++++++++++++++++
+ arch/h8300/kernel/ptrace.c          |    2 
+ arch/h8300/kernel/signal.c          |    6 
+ arch/h8300/platform/h8300h/Makefile |    2 
+ arch/h8300/platform/h8300h/entry.S  |  332 ---------------------
+ arch/h8300/platform/h8s/Makefile    |    2 
+ arch/h8300/platform/h8s/entry.S     |  331 ---------------------
+ include/asm-h8300/thread_info.h     |    2 
+ 9 files changed, 406 insertions(+), 667 deletions(-)
 
-diff -puN fs/coda/coda_int.h~coda-remove-statistics-counters-from-proc-fs-coda fs/coda/coda_int.h
---- a/fs/coda/coda_int.h~coda-remove-statistics-counters-from-proc-fs-coda
-+++ a/fs/coda/coda_int.h
-@@ -1,12 +1,19 @@
- #ifndef _CODA_INT_
- #define _CODA_INT_
- 
-+struct dentry;
+diff -puN /dev/null arch/h8300/kernel/entry.S
+--- /dev/null
++++ a/arch/h8300/kernel/entry.S
+@@ -0,0 +1,393 @@
++/* -*- mode: asm -*-
++ *
++ *  linux/arch/h8300/platform/h8300h/entry.S
++ *
++ *  Yoshinori Sato <ysato@users.sourceforge.jp>
++ *  David McCullough <davidm@snapgear.com>
++ *
++ */
 +
- extern struct file_system_type coda_fs_type;
-+extern unsigned long coda_timeout;
-+extern int coda_hard;
-+extern int coda_fake_statfs;
- 
- void coda_destroy_inodecache(void);
- int coda_init_inodecache(void);
- int coda_fsync(struct file *coda_file, struct dentry *coda_dentry,
- 	       int datasync);
-+void coda_sysctl_init(void);
-+void coda_sysctl_clean(void);
- 
- #endif  /*  _CODA_INT_  */
- 
-diff -puN fs/coda/dir.c~coda-remove-statistics-counters-from-proc-fs-coda fs/coda/dir.c
---- a/fs/coda/dir.c~coda-remove-statistics-counters-from-proc-fs-coda
-+++ a/fs/coda/dir.c
-@@ -25,7 +25,6 @@
- #include <linux/coda_psdev.h>
- #include <linux/coda_fs_i.h>
- #include <linux/coda_cache.h>
--#include <linux/coda_proc.h>
- 
- #include "coda_int.h"
- 
-@@ -148,8 +147,6 @@ int coda_permission(struct inode *inode,
- 
- 	lock_kernel();
- 
--	coda_vfs_stat.permission++;
--
- 	if (coda_cache_check(inode, mask))
- 		goto out; 
- 
-@@ -206,7 +203,6 @@ static int coda_create(struct inode *dir
- 	struct coda_vattr attrs;
- 
- 	lock_kernel();
--	coda_vfs_stat.create++;
- 
- 	if (coda_isroot(dir) && coda_iscontrol(name, length)) {
- 		unlock_kernel();
-@@ -246,7 +242,6 @@ static int coda_mkdir(struct inode *dir,
- 	struct CodaFid newfid;
- 
- 	lock_kernel();
--	coda_vfs_stat.mkdir++;
- 
- 	if (coda_isroot(dir) && coda_iscontrol(name, len)) {
- 		unlock_kernel();
-@@ -288,7 +283,6 @@ static int coda_link(struct dentry *sour
- 	int error;
- 
- 	lock_kernel();
--	coda_vfs_stat.link++;
- 
- 	if (coda_isroot(dir_inode) && coda_iscontrol(name, len)) {
- 		unlock_kernel();
-@@ -320,10 +314,9 @@ static int coda_symlink(struct inode *di
-         const char *name = de->d_name.name;
- 	int len = de->d_name.len;
- 	int symlen;
--        int error=0;
--        
-+	int error = 0;
++/*
++ *  entry.S
++ *  include exception/interrupt gateway
++ *          system call entry
++ */
 +
- 	lock_kernel();
--	coda_vfs_stat.symlink++;
- 
- 	if (coda_isroot(dir_inode) && coda_iscontrol(name, len)) {
- 		unlock_kernel();
-@@ -360,7 +353,6 @@ int coda_unlink(struct inode *dir, struc
- 	int len = de->d_name.len;
- 
- 	lock_kernel();
--	coda_vfs_stat.unlink++;
- 
- 	error = venus_remove(dir->i_sb, coda_i2f(dir), name, len);
- 	if ( error ) {
-@@ -381,7 +373,6 @@ int coda_rmdir(struct inode *dir, struct
- 	int error;
- 
- 	lock_kernel();
--	coda_vfs_stat.rmdir++;
- 
- 	error = venus_rmdir(dir->i_sb, coda_i2f(dir), name, len);
- 	if (!error) {
-@@ -408,7 +399,6 @@ static int coda_rename(struct inode *old
- 	int error;
- 
- 	lock_kernel();
--	coda_vfs_stat.rename++;
- 
- 	error = venus_rename(old_dir->i_sb, coda_i2f(old_dir),
- 			     coda_i2f(new_dir), old_length, new_length,
-@@ -445,8 +435,6 @@ int coda_readdir(struct file *coda_file,
- 	BUG_ON(!cfi || cfi->cfi_magic != CODA_MAGIC);
- 	host_file = cfi->cfi_container;
- 
--	coda_vfs_stat.readdir++;
--
- 	if (!host_file->f_op)
- 		return -ENOTDIR;
- 
-diff -puN fs/coda/file.c~coda-remove-statistics-counters-from-proc-fs-coda fs/coda/file.c
---- a/fs/coda/file.c~coda-remove-statistics-counters-from-proc-fs-coda
-+++ a/fs/coda/file.c
-@@ -22,7 +22,6 @@
- #include <linux/coda_linux.h>
- #include <linux/coda_fs_i.h>
- #include <linux/coda_psdev.h>
--#include <linux/coda_proc.h>
- 
- #include "coda_int.h"
- 
-@@ -134,8 +133,6 @@ int coda_open(struct inode *coda_inode, 
- 	unsigned short coda_flags = coda_flags_to_cflags(flags);
- 	struct coda_file_info *cfi;
- 
--	coda_vfs_stat.open++;
--
- 	cfi = kmalloc(sizeof(struct coda_file_info), GFP_KERNEL);
- 	if (!cfi)
- 		return -ENOMEM;
-@@ -176,8 +173,6 @@ int coda_flush(struct file *coda_file, f
- 
- 	lock_kernel();
- 
--	coda_vfs_stat.flush++;
--
- 	/* last close semantics */
- 	fcnt = file_count(coda_file);
- 	if (fcnt > 1)
-@@ -219,8 +214,7 @@ int coda_release(struct inode *coda_inod
- 	int err = 0;
- 
- 	lock_kernel();
--	coda_vfs_stat.release++;
-- 
++#include <linux/sys.h>
++#include <asm/unistd.h>
++#include <asm/setup.h>
++#include <asm/segment.h>
++#include <asm/linkage.h>
++#include <asm/asm-offsets.h>
++#include <asm/thread_info.h>
++#include <asm/errno.h>
 +
- 	if (!use_coda_close) {
- 		err = venus_release(coda_inode->i_sb, coda_i2f(coda_inode),
- 				    coda_flags);
-@@ -271,8 +265,6 @@ int coda_fsync(struct file *coda_file, s
- 	BUG_ON(!cfi || cfi->cfi_magic != CODA_MAGIC);
- 	host_file = cfi->cfi_container;
- 
--	coda_vfs_stat.fsync++;
--
- 	if (host_file->f_op && host_file->f_op->fsync) {
- 		host_dentry = host_file->f_path.dentry;
- 		host_inode = host_dentry->d_inode;
-diff -puN fs/coda/psdev.c~coda-remove-statistics-counters-from-proc-fs-coda fs/coda/psdev.c
---- a/fs/coda/psdev.c~coda-remove-statistics-counters-from-proc-fs-coda
-+++ a/fs/coda/psdev.c
-@@ -45,7 +45,6 @@
- #include <linux/coda_linux.h>
- #include <linux/coda_fs_i.h>
- #include <linux/coda_psdev.h>
--#include <linux/coda_proc.h>
- 
- #include "coda_int.h"
- 
-diff -puN fs/coda/symlink.c~coda-remove-statistics-counters-from-proc-fs-coda fs/coda/symlink.c
---- a/fs/coda/symlink.c~coda-remove-statistics-counters-from-proc-fs-coda
-+++ a/fs/coda/symlink.c
-@@ -20,7 +20,6 @@
- #include <linux/coda_linux.h>
- #include <linux/coda_psdev.h>
- #include <linux/coda_fs_i.h>
--#include <linux/coda_proc.h>
- 
- static int coda_symlink_filler(struct file *file, struct page *page)
- {
-@@ -32,7 +31,6 @@ static int coda_symlink_filler(struct fi
- 
- 	lock_kernel();
- 	cii = ITOC(inode);
--	coda_vfs_stat.follow_link++;
- 
- 	error = venus_readlink(inode->i_sb, &cii->c_fid, p, &len);
- 	unlock_kernel();
-diff -puN fs/coda/sysctl.c~coda-remove-statistics-counters-from-proc-fs-coda fs/coda/sysctl.c
---- a/fs/coda/sysctl.c~coda-remove-statistics-counters-from-proc-fs-coda
-+++ a/fs/coda/sysctl.c
-@@ -5,181 +5,14 @@
-  * 
-  * Carnegie Mellon encourages users to contribute improvements to
-  * the Coda project. Contact Peter Braam (coda@cs.cmu.edu).
-- * 
-- * CODA operation statistics
-- * (c) March, 1998 Zhanyong Wan <zhanyong.wan@yale.edu>
-- *
-  */
- 
--#include <linux/time.h>
--#include <linux/mm.h>
- #include <linux/sysctl.h>
--#include <linux/proc_fs.h>
--#include <linux/seq_file.h>
--#include <linux/slab.h>
--#include <linux/stat.h>
--#include <linux/ctype.h>
--#include <linux/bitops.h>
--#include <asm/uaccess.h>
--#include <linux/utsname.h>
--#include <linux/module.h>
- 
--#include <linux/coda.h>
--#include <linux/coda_linux.h>
--#include <linux/coda_fs_i.h>
--#include <linux/coda_psdev.h>
--#include <linux/coda_cache.h>
--#include <linux/coda_proc.h>
-+#include "coda_int.h"
- 
- static struct ctl_table_header *fs_table_header;
- 
--#define CODA_TIMEOUT    3       /* timeout on upcalls to become intrble */
--#define CODA_HARD       5       /* mount type "hard" or "soft" */
--#define CODA_VFS 	 6       /* vfs statistics */
--#define CODA_CACHE_INV 	 9       /* cache invalidation statistics */
--#define CODA_FAKE_STATFS 10	 /* don't query venus for actual cache usage */
--
--struct coda_vfs_stats		coda_vfs_stat;
--static struct coda_cache_inv_stats	coda_cache_inv_stat;
--
--static void reset_coda_vfs_stats( void )
--{
--	memset( &coda_vfs_stat, 0, sizeof( coda_vfs_stat ) );
--}
--
--static void reset_coda_cache_inv_stats( void )
--{
--	memset( &coda_cache_inv_stat, 0, sizeof( coda_cache_inv_stat ) );
--}
--
--static int do_reset_coda_vfs_stats( ctl_table * table, int write,
--				    struct file * filp, void __user * buffer,
--				    size_t * lenp, loff_t * ppos )
--{
--	if ( write ) {
--		reset_coda_vfs_stats();
--
--		*ppos += *lenp;
--	} else {
--		*lenp = 0;
--	}
--
--	return 0;
--}
--
--static int do_reset_coda_cache_inv_stats( ctl_table * table, int write,
--					  struct file * filp,
--					  void __user * buffer,
--					  size_t * lenp, loff_t * ppos )
--{
--	if ( write ) {
--		reset_coda_cache_inv_stats();
--
--		*ppos += *lenp;
--	} else {
--		*lenp = 0;
--	}
--  
--	return 0;
--}
--
--static int proc_vfs_stats_show(struct seq_file *m, void *v)
--{
--	struct coda_vfs_stats * ps = & coda_vfs_stat;
--  
--	seq_printf(m,
--			"Coda VFS statistics\n"
--			"===================\n\n"
--			"File Operations:\n"
--			"\topen\t\t%9d\n"
--			"\tflush\t\t%9d\n"
--			"\trelease\t\t%9d\n"
--			"\tfsync\t\t%9d\n\n"
--			"Dir Operations:\n"
--			"\treaddir\t\t%9d\n\n"
--			"Inode Operations\n"
--			"\tcreate\t\t%9d\n"
--			"\tlookup\t\t%9d\n"
--			"\tlink\t\t%9d\n"
--			"\tunlink\t\t%9d\n"
--			"\tsymlink\t\t%9d\n"
--			"\tmkdir\t\t%9d\n"
--			"\trmdir\t\t%9d\n"
--			"\trename\t\t%9d\n"
--			"\tpermission\t%9d\n",
--
--			/* file operations */
--			ps->open,
--			ps->flush,
--			ps->release,
--			ps->fsync,
--
--			/* dir operations */
--			ps->readdir,
--		  
--			/* inode operations */
--			ps->create,
--			ps->lookup,
--			ps->link,
--			ps->unlink,
--			ps->symlink,
--			ps->mkdir,
--			ps->rmdir,
--			ps->rename,
--			ps->permission); 
--	return 0;
--}
--
--static int proc_cache_inv_stats_show(struct seq_file *m, void *v)
--{
--	struct coda_cache_inv_stats * ps = & coda_cache_inv_stat;
--  
--	seq_printf(m,
--			"Coda cache invalidation statistics\n"
--			"==================================\n\n"
--			"flush\t\t%9d\n"
--			"purge user\t%9d\n"
--			"zap_dir\t\t%9d\n"
--			"zap_file\t%9d\n"
--			"zap_vnode\t%9d\n"
--			"purge_fid\t%9d\n"
--			"replace\t\t%9d\n",
--			ps->flush,
--			ps->purge_user,
--			ps->zap_dir,
--			ps->zap_file,
--			ps->zap_vnode,
--			ps->purge_fid,
--			ps->replace );
--	return 0;
--}
--
--static int proc_vfs_stats_open(struct inode *inode, struct file *file)
--{
--	return single_open(file, proc_vfs_stats_show, NULL);
--}
--
--static int proc_cache_inv_stats_open(struct inode *inode, struct file *file)
--{
--	return single_open(file, proc_cache_inv_stats_show, NULL);
--}
--
--static const struct file_operations proc_vfs_stats_fops = {
--	.owner		= THIS_MODULE,
--	.open		= proc_vfs_stats_open,
--	.read		= seq_read,
--	.llseek		= seq_lseek,
--	.release	= single_release,
--};
--
--static const struct file_operations proc_cache_inv_stats_fops = {
--	.owner		= THIS_MODULE,
--	.open		= proc_cache_inv_stats_open,
--	.read		= seq_read,
--	.llseek		= seq_lseek,
--	.release	= single_release,
--};
--
- static ctl_table coda_table[] = {
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
-@@ -199,22 +32,6 @@ static ctl_table coda_table[] = {
- 	},
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
--		.procname	= "vfs_stats",
--		.data		= NULL,
--		.maxlen		= 0,
--		.mode		= 0644,
--		.proc_handler	= &do_reset_coda_vfs_stats
--	},
--	{
--		.ctl_name	= CTL_UNNUMBERED,
--		.procname	= "cache_inv_stats",
--		.data		= NULL,
--		.maxlen		= 0,
--		.mode		= 0644,
--		.proc_handler	= &do_reset_coda_cache_inv_stats
--	},
--	{
--		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "fake_statfs",
- 		.data		= &coda_fake_statfs,
- 		.maxlen		= sizeof(int),
-@@ -235,59 +52,20 @@ static ctl_table fs_table[] = {
- };
- 
- 
--#ifdef CONFIG_PROC_FS
--
--/*
-- target directory structure:
--   /proc/fs  (see linux/fs/proc/root.c)
--   /proc/fs/coda
--   /proc/fs/coda/{vfs_stats,
--
--*/
--
--static struct proc_dir_entry* proc_fs_coda;
--
--#endif
--
- void coda_sysctl_init(void)
- {
--	reset_coda_vfs_stats();
--	reset_coda_cache_inv_stats();
--
--#ifdef CONFIG_PROC_FS
--	proc_fs_coda = proc_mkdir("coda", proc_root_fs);
--	if (proc_fs_coda) {
--		struct proc_dir_entry *pde;
--
--		proc_fs_coda->owner = THIS_MODULE;
--		pde = create_proc_entry("vfs_stats", 0, proc_fs_coda);
--		if (pde)
--			pde->proc_fops = &proc_vfs_stats_fops;
--		pde = create_proc_entry("cache_inv_stats", 0, proc_fs_coda);
--		if (pde)
--			pde->proc_fops = &proc_cache_inv_stats_fops;
--	}
--#endif
--
- #ifdef CONFIG_SYSCTL
- 	if ( !fs_table_header )
- 		fs_table_header = register_sysctl_table(fs_table);
--#endif 
++#if defined(CONFIG_CPU_H8300H)
++#define USERRET 8
++INTERRUPTS = 64
++	.h8300h
++	.macro	SHLL2 reg
++	shll.l	\reg
++	shll.l	\reg
++	.endm
++	.macro	SHLR2 reg
++	shlr.l	\reg
++	shlr.l	\reg
++	.endm
++	.macro	SAVEREGS
++	mov.l	er0,@-sp
++	mov.l	er1,@-sp
++	mov.l	er2,@-sp
++	mov.l	er3,@-sp
++	.endm
++	.macro	RESTOREREGS
++	mov.l	@sp+,er3
++	mov.l	@sp+,er2
++	.endm
++	.macro	SAVEEXR
++	.endm
++	.macro	RESTOREEXR
++	.endm
 +#endif
- }
- 
--void coda_sysctl_clean(void) 
-+void coda_sysctl_clean(void)
- {
--
- #ifdef CONFIG_SYSCTL
- 	if ( fs_table_header ) {
- 		unregister_sysctl_table(fs_table_header);
- 		fs_table_header = NULL;
- 	}
- #endif
--
--#ifdef CONFIG_PROC_FS
--        remove_proc_entry("cache_inv_stats", proc_fs_coda);
--        remove_proc_entry("vfs_stats", proc_fs_coda);
--	remove_proc_entry("coda", proc_root_fs);
--#endif 
- }
-diff -puN fs/coda/upcall.c~coda-remove-statistics-counters-from-proc-fs-coda fs/coda/upcall.c
---- a/fs/coda/upcall.c~coda-remove-statistics-counters-from-proc-fs-coda
-+++ a/fs/coda/upcall.c
-@@ -35,7 +35,8 @@
- #include <linux/coda_psdev.h>
- #include <linux/coda_fs_i.h>
- #include <linux/coda_cache.h>
--#include <linux/coda_proc.h> 
++#if defined(CONFIG_CPU_H8S)
++#define USERRET 10
++#define USEREXR 8
++INTERRUPTS = 128
++	.h8300s
++	.macro	SHLL2 reg
++	shll.l	#2,\reg
++	.endm
++	.macro	SHLR2 reg
++	shlr.l	#2,\reg
++	.endm
++	.macro	SAVEREGS
++	stm.l	er0-er3,@-sp
++	.endm
++	.macro	RESTOREREGS
++	ldm.l	@sp+,er2-er3
++	.endm
++	.macro	SAVEEXR
++	mov.w	@(USEREXR:16,er0),r1
++	mov.w	r1,@(LEXR-LER3:16,sp)		/* copy EXR */
++	.endm
++	.macro	RESTOREEXR
++	mov.w	@(LEXR-LER1:16,sp),r1		/* restore EXR */
++	mov.b	r1l,r1h
++	mov.w	r1,@(USEREXR:16,er0)
++	.endm
++#endif
 +
-+#include "coda_int.h"
++
++/* CPU context save/restore macros. */
++
++	.macro	SAVE_ALL
++	mov.l	er0,@-sp
++	stc	ccr,r0l				/* check kernel mode */
++	btst	#4,r0l
++	bne	5f
++
++	/* user mode */
++	mov.l	sp,@SYMBOL_NAME(sw_usp)
++	mov.l	@sp,er0				/* restore saved er0 */
++	orc	#0x10,ccr			/* switch kernel stack */
++	mov.l	@SYMBOL_NAME(sw_ksp),sp
++	sub.l	#(LRET-LORIG),sp		/* allocate LORIG - LRET */
++	SAVEREGS
++	mov.l   @SYMBOL_NAME(sw_usp),er0
++	mov.l   @(USERRET:16,er0),er1           /* copy the RET addr */
++	mov.l   er1,@(LRET-LER3:16,sp)
++	SAVEEXR
++
++	mov.l	@(LORIG-LER3:16,sp),er0
++	mov.l	er0,@(LER0-LER3:16,sp)		/* copy ER0 */
++	mov.w	e1,r1				/* e1 highbyte = ccr */
++	and	#0xef,r1h			/* mask mode? flag */
++	bra	6f
++5:
++	/* kernel mode */
++	mov.l	@sp,er0				/* restore saved er0 */
++	subs	#2,sp				/* set dummy ccr */
++	SAVEREGS
++	mov.w	@(LRET-LER3:16,sp),r1		/* copy old ccr */
++6:
++	mov.b	r1h,r1l
++	mov.b	#0,r1h
++	mov.w	r1,@(LCCR-LER3:16,sp)		/* set ccr */
++	mov.l	er6,@-sp			/* syscall arg #6 */
++	mov.l	er5,@-sp			/* syscall arg #5 */
++	mov.l	er4,@-sp			/* syscall arg #4 */
++	.endm					/* r1 = ccr */
++
++	.macro	RESTORE_ALL
++	mov.l	@sp+,er4
++	mov.l	@sp+,er5
++	mov.l	@sp+,er6
++	RESTOREREGS
++	mov.w	@(LCCR-LER1:16,sp),r0		/* check kernel mode */
++	btst	#4,r0l
++	bne	7f
++
++	orc	#0x80,ccr
++	mov.l	@SYMBOL_NAME(sw_usp),er0
++	mov.l	@(LER0-LER1:16,sp),er1		/* restore ER0 */
++	mov.l	er1,@er0
++	RESTOREEXR
++	mov.w	@(LCCR-LER1:16,sp),r1		/* restore the RET addr */
++	mov.b	r1l,r1h
++	mov.b	@(LRET+1-LER1:16,sp),r1l
++	mov.w	r1,e1
++	mov.w	@(LRET+2-LER1:16,sp),r1
++	mov.l	er1,@(USERRET:16,er0)
++
++	mov.l	@sp+,er1
++	add.l	#(LRET-LER1),sp			/* remove LORIG - LRET */
++	mov.l	sp,@SYMBOL_NAME(sw_ksp)
++	andc	#0xef,ccr			/* switch to user mode */
++	mov.l	er0,sp
++	bra	8f
++7:
++	mov.l	@sp+,er1
++	adds	#4,sp
++	adds	#2,sp
++8:
++	mov.l	@sp+,er0
++	adds	#4,sp				/* remove the sw created LVEC */
++	rte
++	.endm
++
++.globl SYMBOL_NAME(system_call)
++.globl SYMBOL_NAME(ret_from_exception)
++.globl SYMBOL_NAME(ret_from_fork)
++.globl SYMBOL_NAME(ret_from_interrupt)
++.globl SYMBOL_NAME(interrupt_redirect_table)
++.globl SYMBOL_NAME(sw_ksp),SYMBOL_NAME(sw_usp)
++.globl SYMBOL_NAME(resume)
++.globl SYMBOL_NAME(interrupt_entry)
++.globl SYMBOL_NAME(trace_break)
++
++#if defined(CONFIG_ROMKERNEL)
++	.section .int_redirect,"ax"
++SYMBOL_NAME_LABEL(interrupt_redirect_table)
++#if defined(CONFIG_CPU_H8300H)
++	.rept	7
++	.long	0
++	.endr
++#endif
++#if defined(CONFIG_CPU_H8S)
++	.rept	5
++	.long	0
++	.endr
++	jmp	@SYMBOL_NAME(trace_break)
++	.long	0
++#endif
++
++	jsr	@SYMBOL_NAME(interrupt_entry)	/* NMI */
++	jmp	@SYMBOL_NAME(system_call)	/* TRAPA #0 (System call) */
++	.long	0
++	.long	0
++	jmp	@SYMBOL_NAME(trace_break)	/* TRAPA #3 (breakpoint) */
++	.rept	INTERRUPTS-12
++	jsr	@SYMBOL_NAME(interrupt_entry)
++	.endr
++#endif
++#if defined(CONFIG_RAMKERNEL)
++.globl SYMBOL_NAME(interrupt_redirect_table)
++	.section .bss
++SYMBOL_NAME_LABEL(interrupt_redirect_table)
++	.space	4
++#endif
++
++	.section .text
++	.align	2
++SYMBOL_NAME_LABEL(interrupt_entry)
++	SAVE_ALL
++	mov.l	sp,er0
++	add.l	#LVEC,er0
++	btst	#4,r1l
++	bne	1f
++	/* user LVEC */
++	mov.l	@SYMBOL_NAME(sw_usp),er0
++	adds	#4,er0
++1:
++	mov.l	@er0,er0			/* LVEC address */
++#if defined(CONFIG_ROMKERNEL)
++	sub.l	#SYMBOL_NAME(interrupt_redirect_table),er0
++#endif
++#if defined(CONFIG_RAMKERNEL)
++	mov.l	@SYMBOL_NAME(interrupt_redirect_table),er1
++	sub.l	er1,er0
++#endif
++	SHLR2	er0
++	dec.l	#1,er0
++	mov.l	sp,er1
++	subs	#4,er1				/* adjust ret_pc */
++	jsr	@SYMBOL_NAME(do_IRQ)
++	jmp	@SYMBOL_NAME(ret_from_interrupt)
++
++SYMBOL_NAME_LABEL(system_call)
++	subs	#4,sp				/* dummy LVEC */
++	SAVE_ALL
++	andc	#0x7f,ccr
++	mov.l	er0,er4
++
++	/* save top of frame */
++	mov.l	sp,er0
++	jsr	@SYMBOL_NAME(set_esp0)
++	mov.l	sp,er2
++	and.w	#0xe000,r2
++	mov.b	@((TI_FLAGS+3-(TIF_SYSCALL_TRACE >> 3)):16,er2),r2l
++	btst	#(TIF_SYSCALL_TRACE & 7),r2l
++	beq	1f
++	jsr	@SYMBOL_NAME(do_syscall_trace)
++1:
++	cmp.l	#NR_syscalls,er4
++	bcc	badsys
++	SHLL2	er4
++	mov.l	#SYMBOL_NAME(sys_call_table),er0
++	add.l	er4,er0
++	mov.l	@er0,er4
++	beq	SYMBOL_NAME(ret_from_exception):16
++	mov.l	@(LER1:16,sp),er0
++	mov.l	@(LER2:16,sp),er1
++	mov.l	@(LER3:16,sp),er2
++	jsr	@er4
++	mov.l	er0,@(LER0:16,sp)		/* save the return value */
++	mov.l	sp,er2
++	and.w	#0xe000,r2
++	mov.b	@((TI_FLAGS+3-(TIF_SYSCALL_TRACE >> 3)):16,er2),r2l
++	btst	#(TIF_SYSCALL_TRACE & 7),r2l
++	beq	2f
++	jsr	@SYMBOL_NAME(do_syscall_trace)
++2:
++#if defined(CONFIG_SYSCALL_PRINT)
++	jsr	@SYMBOL_NAME(syscall_print)
++#endif
++	orc	#0x80,ccr
++	bra	resume_userspace
++
++badsys:
++	mov.l	#-ENOSYS,er0
++	mov.l	er0,@(LER0:16,sp)
++	bra	resume_userspace
++
++#if !defined(CONFIG_PREEMPT)
++#define resume_kernel restore_all
++#endif
++
++SYMBOL_NAME_LABEL(ret_from_exception)
++#if defined(CONFIG_PREEMPT)
++	orc	#0x80,ccr
++#endif
++SYMBOL_NAME_LABEL(ret_from_interrupt)
++	mov.b	@(LCCR+1:16,sp),r0l
++	btst	#4,r0l
++	bne	resume_kernel:8		/* return from kernel */
++resume_userspace:
++	andc	#0x7f,ccr
++	mov.l	sp,er4
++	and.w	#0xe000,r4		/* er4 <- current thread info */
++	mov.l	@(TI_FLAGS:16,er4),er1
++	and.l	#_TIF_WORK_MASK,er1
++	beq	restore_all:8
++work_pending:
++	btst	#TIF_NEED_RESCHED,r1l
++	bne	work_resched:8
++	/* work notifysig */
++	mov.l	sp,er0
++	subs	#4,er0			/* er0: pt_regs */
++	jsr	@SYMBOL_NAME(do_notify_resume)
++	bra	restore_all:8
++work_resched:
++	mov.l	sp,er0
++	jsr	@SYMBOL_NAME(set_esp0)
++	jsr	@SYMBOL_NAME(schedule)
++	bra	resume_userspace:8
++restore_all:
++	RESTORE_ALL			/* Does RTE */
++
++#if defined(CONFIG_PREEMPT)
++resume_kernel:
++	mov.l	@(TI_PRE_COUNT:16,er4),er0
++	bne	restore_all:8
++need_resched:
++	mov.l	@(TI_FLAGS:16,er4),er0
++	btst	#TIF_NEED_RESCHED,r0l
++	beq	restore_all:8
++	mov.b	@(LCCR+1:16,sp),r0l	/* Interrupt Enabled? */
++	bmi	restore_all:8
++	mov.l	#PREEMPT_ACTIVE,er0
++	mov.l	er0,@(TI_PRE_COUNT:16,er4)
++	andc	#0x7f,ccr
++	mov.l	sp,er0
++	jsr	@SYMBOL_NAME(set_esp0)
++	jsr	@SYMBOL_NAME(schedule)
++	orc	#0x80,ccr
++	bra	need_resched:8
++#endif
++
++SYMBOL_NAME_LABEL(ret_from_fork)
++	mov.l	er2,er0
++	jsr	@SYMBOL_NAME(schedule_tail)
++	jmp	@SYMBOL_NAME(ret_from_exception)
++
++SYMBOL_NAME_LABEL(resume)
++	/*
++	 * Beware - when entering resume, offset of tss is in d1,
++	 * prev (the current task) is in a0, next (the new task)
++	 * is in a1 and d2.b is non-zero if the mm structure is
++	 * shared between the tasks, so don't change these
++	 * registers until their contents are no longer needed.
++	 */
++
++	/* save sr */
++	sub.w	r3,r3
++	stc	ccr,r3l
++	mov.w	r3,@(THREAD_CCR+2:16,er0)
++
++	/* disable interrupts */
++	orc	#0x80,ccr
++	mov.l	@SYMBOL_NAME(sw_usp),er3
++	mov.l	er3,@(THREAD_USP:16,er0)
++	mov.l	sp,@(THREAD_KSP:16,er0)
++
++	/* Skip address space switching if they are the same. */
++	/* FIXME: what did we hack out of here, this does nothing! */
++
++	mov.l	@(THREAD_USP:16,er1),er0
++	mov.l	er0,@SYMBOL_NAME(sw_usp)
++	mov.l	@(THREAD_KSP:16,er1),sp
++
++	/* restore status register */
++	mov.w	@(THREAD_CCR+2:16,er1),r3
++
++	ldc	r3l,ccr
++	rts
++
++SYMBOL_NAME_LABEL(trace_break)
++	subs	#4,sp
++	SAVE_ALL
++	sub.l	er1,er1
++	dec.l	#1,er1
++	mov.l	er1,@(LORIG,sp)
++	mov.l	sp,er0
++	jsr	@SYMBOL_NAME(set_esp0)
++	mov.l	@SYMBOL_NAME(sw_usp),er0
++	mov.l	@er0,er1
++	mov.w	@(-2:16,er1),r2
++	cmp.w	#0x5730,r2
++	beq	1f
++	subs	#2,er1
++	mov.l	er1,@er0
++1:
++	and.w	#0xff,e1
++	mov.l	er1,er0
++	jsr	@SYMBOL_NAME(trace_trap)
++	jmp	@SYMBOL_NAME(ret_from_exception)
++
++	.section	.bss
++SYMBOL_NAME_LABEL(sw_ksp)
++	.space	4
++SYMBOL_NAME_LABEL(sw_usp)
++	.space	4
++
++	.end
+diff -puN arch/h8300/kernel/Makefile~h8300-entrys-update arch/h8300/kernel/Makefile
+--- a/arch/h8300/kernel/Makefile~h8300-entrys-update
++++ a/arch/h8300/kernel/Makefile
+@@ -6,6 +6,7 @@ extra-y := vmlinux.lds
  
- static int coda_upcall(struct venus_comm *vc, int inSize, int *outSize,
- 		       union inputArgs *buffer);
-diff -puN include/linux/coda_linux.h~coda-remove-statistics-counters-from-proc-fs-coda include/linux/coda_linux.h
---- a/include/linux/coda_linux.h~coda-remove-statistics-counters-from-proc-fs-coda
-+++ a/include/linux/coda_linux.h
-@@ -43,9 +43,6 @@ int coda_revalidate_inode(struct dentry 
- int coda_getattr(struct vfsmount *, struct dentry *, struct kstat *);
- int coda_setattr(struct dentry *, struct iattr *);
+ obj-y := process.o traps.o ptrace.o irq.o \
+ 	 sys_h8300.o time.o semaphore.o signal.o \
+-         setup.o gpio.o init_task.o syscalls.o
++         setup.o gpio.o init_task.o syscalls.o \
++	 entry.o
  
--/* global variables */
--extern int coda_fake_statfs;
--
- /* this file:  heloers */
- static __inline__ struct CodaFid *coda_i2f(struct inode *);
- static __inline__ char *coda_i2s(struct inode *);
-diff -puN include/linux/coda_proc.h~coda-remove-statistics-counters-from-proc-fs-coda /dev/null
---- a/include/linux/coda_proc.h
+ obj-$(CONFIG_MODULES) += module.o h8300_ksyms.o 
+diff -puN arch/h8300/kernel/ptrace.c~h8300-entrys-update arch/h8300/kernel/ptrace.c
+--- a/arch/h8300/kernel/ptrace.c~h8300-entrys-update
++++ a/arch/h8300/kernel/ptrace.c
+@@ -219,7 +219,7 @@ long arch_ptrace(struct task_struct *chi
+ 	return ret;
+ }
+ 
+-asmlinkage void syscall_trace(void)
++asmlinkage void do_syscall_trace(void)
+ {
+ 	if (!test_thread_flag(TIF_SYSCALL_TRACE))
+ 		return;
+diff -puN arch/h8300/kernel/signal.c~h8300-entrys-update arch/h8300/kernel/signal.c
+--- a/arch/h8300/kernel/signal.c~h8300-entrys-update
++++ a/arch/h8300/kernel/signal.c
+@@ -547,3 +547,9 @@ asmlinkage int do_signal(struct pt_regs 
+ 	}
+ 	return 0;
+ }
++
++asmlinkage void do_notify_resume(struct pt_regs *regs, u32 thread_info_flags)
++{
++	if (thread_info_flags & (_TIF_SIGPENDING | _TIF_RESTORE_SIGMASK))
++		do_signal(regs, NULL);
++}
+diff -puN arch/h8300/platform/h8300h/entry.S~h8300-entrys-update /dev/null
+--- a/arch/h8300/platform/h8300h/entry.S
 +++ /dev/null
-@@ -1,76 +0,0 @@
+@@ -1,332 +0,0 @@
+-/* -*- mode: asm -*-
+- *
+- *  linux/arch/h8300/platform/h8300h/entry.S
+- *
+- *  Yoshinori Sato <ysato@users.sourceforge.jp>
+- *  David McCullough <davidm@snapgear.com>
+- *
+- */
+-
 -/*
-- * coda_statis.h
-- * 
-- * CODA operation statistics
-- *
-- * (c) March, 1998
-- * by Michihiro Kuramochi, Zhenyu Xia and Zhanyong Wan
-- * zhanyong.wan@yale.edu
-- *
+- *  entry.S
+- *  include exception/interrupt gateway
+- *          system call entry
 - */
 -
--#ifndef _CODA_PROC_H
--#define _CODA_PROC_H
+-#include <linux/sys.h>
+-#include <asm/unistd.h>
+-#include <asm/setup.h>
+-#include <asm/segment.h>
+-#include <asm/linkage.h>
+-#include <asm/asm-offsets.h>
+-#include <asm/thread_info.h>
+-#include <asm/errno.h>
 -
--void coda_sysctl_init(void);
--void coda_sysctl_clean(void);
+-	.h8300h
 -
--#include <linux/sysctl.h>
--#include <linux/coda_fs_i.h>
--#include <linux/coda.h>
+-/* CPU context save/restore macros. */
+-	
+-	.macro	SAVE_ALL
+-	mov.l	er0,@-sp
 -
--/* these four files are presented to show the result of the statistics:
+-	stc	ccr,r0l				/* check kernel mode */
+-	btst	#4,r0l
+-	bne	5f
+-
+-	mov.l	sp,@SYMBOL_NAME(sw_usp)		/* user mode */
+-	mov.l	@sp,er0
+-	orc	#0x10,ccr
+-	mov.l	@SYMBOL_NAME(sw_ksp),sp
+-	sub.l	#(LRET-LORIG),sp		/* allocate LORIG - LRET */ 
+-	mov.l	er0,@-sp
+-	mov.l	er1,@-sp
+-	mov.l   @SYMBOL_NAME(sw_usp),er0
+-	mov.l   @(8:16,er0),er1                 /* copy the RET addr */
+-	mov.l   er1,@(LRET-LER1:16,sp)
+-
+-	mov.w	e1,r1				/* e1 highbyte = ccr */
+-	and	#0xef,r1h			/* mask mode? flag */
+-	sub.w	r0,r0
+-	mov.b	r1h,r0l
+-	mov.w	r0,@(LCCR-LER1:16,sp)		/* copy ccr */
+-	mov.l	@(LORIG-LER1:16,sp),er0
+-	mov.l	er0,@(LER0-LER1:16,sp)		/* copy ER0 */
+-	bra	6f
+-5:
+-	mov.l	@sp,er0				/* kernel mode */
+-	subs	#2,sp				/* dummy ccr */
+-	mov.l	er0,@-sp
+-	mov.l	er1,@-sp
+-	mov.w	@(LRET-LER1:16,sp),r1		/* copy old ccr */
+-	mov.b	r1h,r1l
+-	mov.b	#0,r1h
+-	mov.w	r1,@(LCCR-LER1:16,sp)		/* set ccr */
+-6:
+-	mov.l	er2,@-sp
+-	mov.l	er3,@-sp
+-	mov.l	er6,@-sp			/* syscall arg #6 */
+-	mov.l	er5,@-sp			/* syscall arg #5 */
+-	mov.l	er4,@-sp			/* syscall arg #4 */
+-	.endm
+-
+-	.macro	RESTORE_ALL
+-	mov.l	@sp+,er4
+-	mov.l	@sp+,er5
+-	mov.l	@sp+,er6
+-	mov.l	@sp+,er3
+-	mov.l	@sp+,er2
+-	mov.w	@(LCCR-LER1:16,sp),r0		/* check kernel mode */
+-	btst	#4,r0l
+-	bne	7f
+-
+-	orc	#0x80,ccr
+-	mov.l	@SYMBOL_NAME(sw_usp),er0
+-	mov.l	@(LER0-LER1:16,sp),er1		/* restore ER0 */
+-	mov.l	er1,@er0
+-	mov.w	@(LCCR-LER1:16,sp),r1		/* restore the RET addr */
+-	mov.b	r1l,r1h
+-	mov.b	@(LRET+1-LER1:16,sp),r1l
+-	mov.w	r1,e1
+-	mov.w	@(LRET+2-LER1:16,sp),r1
+-	mov.l	er1,@(8:16,er0)
+-
+-	mov.l	@sp+,er1
+-	add.l	#(LRET-LER1),sp			/* remove LORIG - LRET */ 
+-	mov.l	sp,@SYMBOL_NAME(sw_ksp)
+-	mov.l	er0,sp
+-	bra	8f
+-7:
+-	mov.l	@sp+,er1
+-	adds	#4,sp
+-	adds	#2,sp
+-8:
+-	mov.l	@sp+,er0
+-	adds	#4,sp				/* remove the sw created LVEC */
+-	rte
+-	.endm
+-	
+-.globl SYMBOL_NAME(system_call)
+-.globl SYMBOL_NAME(ret_from_exception)
+-.globl SYMBOL_NAME(ret_from_fork)
+-.globl SYMBOL_NAME(ret_from_interrupt)
+-.globl SYMBOL_NAME(interrupt_redirect_table)
+-.globl SYMBOL_NAME(sw_ksp),SYMBOL_NAME(sw_usp)
+-.globl SYMBOL_NAME(resume)
+-.globl SYMBOL_NAME(interrupt_redirect_table)
+-.globl SYMBOL_NAME(interrupt_entry)
+-.globl SYMBOL_NAME(system_call)
+-.globl SYMBOL_NAME(trace_break)
+-
+-#if defined(CONFIG_ROMKERNEL)
+-INTERRUPTS = 64		
+-	.section .int_redirect,"ax"
+-SYMBOL_NAME_LABEL(interrupt_redirect_table)
+-	.rept	7
+-	.long	0
+-	.endr
+-	jsr	@SYMBOL_NAME(interrupt_entry)	/* NMI */
+-	jmp	@SYMBOL_NAME(system_call)	/* TRAPA #0 (System call) */
+-	.long	0
+-	.long	0
+-	jmp	@SYMBOL_NAME(trace_break)	/* TRAPA #3 (breakpoint) */
+-	.rept	INTERRUPTS-12
+-	jsr	@SYMBOL_NAME(interrupt_entry)
+-	.endr
+-#endif
+-#if defined(CONFIG_RAMKERNEL)
+-.globl SYMBOL_NAME(interrupt_redirect_table)
+-	.section .bss
+-SYMBOL_NAME_LABEL(interrupt_redirect_table)
+-	.space	4
+-#endif
+-
+-	.section .text
+-	.align	2
+-SYMBOL_NAME_LABEL(interrupt_entry)
+-	SAVE_ALL
+-	mov.w	@(LCCR,sp),r0
+-	btst	#4,r0l
+-	bne	1f
+-	mov.l	@SYMBOL_NAME(sw_usp),er0
+-	mov.l	@(4:16,er0),er0
+-	bra	2f
+-1:
+-	mov.l	@(LVEC,sp),er0
+-2:
+-#if defined(CONFIG_ROMKERNEL)
+-	sub.l	#SYMBOL_NAME(interrupt_redirect_table),er0
+-#endif
+-#if defined(CONFIG_RAMKERNEL)
+-	mov.l	@SYMBOL_NAME(interrupt_redirect_table),er1
+-	sub.l	er1,er0
+-#endif
+-	shlr.l	er0
+-	shlr.l	er0
+-	dec.l	#1,er0
+-	mov.l	sp,er1
+-	subs	#4,er1				/* adjust ret_pc */
+-	jsr	@SYMBOL_NAME(do_IRQ)
+-	mov.l	@SYMBOL_NAME(irq_stat)+CPUSTAT_SOFTIRQ_PENDING,er0
+-	beq	1f
+-	jsr	@SYMBOL_NAME(do_softirq)
+-1:
+-	jmp	@SYMBOL_NAME(ret_from_interrupt)
+-	
+-SYMBOL_NAME_LABEL(system_call)
+-	subs	#4,sp				/* dummy LVEC */
+-	SAVE_ALL
+-	mov.w	@(LCCR:16,sp),r1
+-	bset	#4,r1l
+-	ldc	r1l,ccr
+-	mov.l	er0,er4
+-	mov.l	#-ENOSYS,er0
+-	mov.l	er0,@(LER0:16,sp)
+-
+-	/* save top of frame */
+-	mov.l	sp,er0
+-	jsr	@SYMBOL_NAME(set_esp0)
+-	cmp.l	#NR_syscalls,er4
+-	bcc	SYMBOL_NAME(ret_from_exception):16
+-	shll.l	er4
+-	shll.l	er4
+-	mov.l	#SYMBOL_NAME(sys_call_table),er0
+-	add.l	er4,er0
+-	mov.l	@er0,er4
+-	beq	SYMBOL_NAME(ret_from_exception):16	
+-	mov.l	sp,er2
+-	and.w	#0xe000,r2
+-	mov.b	@((TASK_FLAGS+3-(TIF_SYSCALL_TRACE >> 3)):16,er2),r2l
+-	btst	#(TIF_SYSCALL_TRACE & 7),r2l
+-	bne	1f
+-	mov.l	@(LER1:16,sp),er0
+-	mov.l	@(LER2:16,sp),er1
+-	mov.l	@(LER3:16,sp),er2
+-	jsr	@er4
+-	mov.l	er0,@(LER0:16,sp)		/* save the return value */
+-#if defined(CONFIG_SYSCALL_PRINT)
+-	jsr	@SYMBOL_NAME(syscall_print)
+-#endif
+-	bra	SYMBOL_NAME(ret_from_exception):8
+-1:
+-	jsr	SYMBOL_NAME(syscall_trace)
+-	mov.l	@(LER1:16,sp),er0
+-	mov.l	@(LER2:16,sp),er1
+-	mov.l	@(LER3:16,sp),er2
+-	jsr	@er4
+-	mov.l	er0,@(LER0:16,sp)		/* save the return value */
+-	jsr	@SYMBOL_NAME(syscall_trace)
+-	bra	SYMBOL_NAME(ret_from_exception):8
+-
+-SYMBOL_NAME_LABEL(ret_from_fork)
+-	mov.l	er2,er0
+-	jsr	@SYMBOL_NAME(schedule_tail)
+-	bra	SYMBOL_NAME(ret_from_exception):8
+-
+-SYMBOL_NAME_LABEL(reschedule)
+-	/* save top of frame */
+-	mov.l	sp,er0
+-	jsr	@SYMBOL_NAME(set_esp0)
+-	jsr	@SYMBOL_NAME(schedule)
+-
+-SYMBOL_NAME_LABEL(ret_from_exception)
+-#if defined(CONFIG_PREEMPT)
+-	orc	#0x80,ccr
+-#endif
+-SYMBOL_NAME_LABEL(ret_from_interrupt)
+-	mov.b	@(LCCR+1:16,sp),r0l
+-	btst	#4,r0l			/* check if returning to kernel */
+-	bne	done:8			/* if so, skip resched, signals */
+-	andc	#0x7f,ccr
+-	mov.l	sp,er4
+-	and.w	#0xe000,r4
+-	mov.l	@(TI_FLAGS:16,er4),er1
+-	and.l	#_TIF_WORK_MASK,er1
+-	beq	done:8
+-1:
+-	mov.l	@(TI_FLAGS:16,er4),er1
+-	btst	#TIF_NEED_RESCHED,r1l
+-	bne	SYMBOL_NAME(reschedule):16
+-	mov.l	sp,er0
+-	subs	#4,er0			/* adjust retpc */
+-	mov.l	er2,er1
+-	jsr	@SYMBOL_NAME(do_signal)
+-#if defined(CONFIG_PREEMPT)
+-	bra	done:8			/* userspace thoru */
+-3:
+-	btst	#4,r0l
+-	beq	done:8			/* userspace thoru */
+-4:
+-	mov.l	@(TI_PRE_COUNT:16,er4),er1
+-	bne	done:8
+-	mov.l	@(TI_FLAGS:16,er4),er1
+-	btst	#TIF_NEED_RESCHED,r1l
+-	beq	done:8
+-	mov.b	r0l,r0l
+-	bpl	done:8			/* interrupt off (exception path?) */
+-	mov.l	#PREEMPT_ACTIVE,er1
+-	mov.l	er1,@(TI_PRE_COUNT:16,er4)
+-	andc	#0x7f,ccr
+-	jsr	@SYMBOL_NAME(schedule)
+-	sub.l	er1,er1
+-	mov.l	er1,@(TI_PRE_COUNT:16,er4)
+-	orc	#0x80,ccr
+-	bra	4b:8
+-#endif
+-done:
+-	RESTORE_ALL			/* Does RTE */
+-
+-SYMBOL_NAME_LABEL(resume)
+-	/*
+-	 * Beware - when entering resume, offset of tss is in d1,
+-	 * prev (the current task) is in a0, next (the new task)
+-	 * is in a1 and d2.b is non-zero if the mm structure is
+-	 * shared between the tasks, so don't change these
+-	 * registers until their contents are no longer needed.
+-	 */
+-
+-	/* save sr */
+-	sub.w	r3,r3
+-	stc	ccr,r3l
+-	mov.w	r3,@(THREAD_CCR+2:16,er0)
+-
+-	/* disable interrupts */
+-	orc	#0x80,ccr
+-	mov.l	@SYMBOL_NAME(sw_usp),er3
+-	mov.l	er3,@(THREAD_USP:16,er0)
+-	mov.l	sp,@(THREAD_KSP:16,er0)
+-
+-	/* Skip address space switching if they are the same. */
+-	/* FIXME: what did we hack out of here, this does nothing! */
+-
+-	mov.l	@(THREAD_USP:16,er1),er0
+-	mov.l	er0,@SYMBOL_NAME(sw_usp)
+-	mov.l	@(THREAD_KSP:16,er1),sp
+-			
+-	/* restore status register */
+-	mov.w	@(THREAD_CCR+2:16,er1),r3
+-
+-	ldc	r3l,ccr
+-	rts
+-	
+-SYMBOL_NAME_LABEL(trace_break)
+-	subs	#4,sp
+-	SAVE_ALL
+-	sub.l	er1,er1
+-	dec.l	#1,er1
+-	mov.l	er1,@(LORIG,sp)	
+-	mov.l	sp,er0
+-	jsr	@SYMBOL_NAME(set_esp0)
+-	mov.l	@SYMBOL_NAME(sw_usp),er0
+-	mov.l	@er0,er1
+-	subs	#2,er1
+-	mov.l	er1,@er0	
+-	and.w	#0xff,e1
+-	mov.l	er1,er0
+-	jsr	@SYMBOL_NAME(trace_trap)
+-	jmp	@SYMBOL_NAME(ret_from_exception)	
+-
+-	.section	.bss
+-SYMBOL_NAME_LABEL(sw_ksp)
+-	.space	4	
+-SYMBOL_NAME_LABEL(sw_usp)
+-	.space	4	
+diff -puN arch/h8300/platform/h8300h/Makefile~h8300-entrys-update arch/h8300/platform/h8300h/Makefile
+--- a/arch/h8300/platform/h8300h/Makefile~h8300-entrys-update
++++ a/arch/h8300/platform/h8300h/Makefile
+@@ -4,4 +4,4 @@
+ # Reuse any files we can from the H8/300H
+ #
+ 
+-obj-y := entry.o irq_pin.o ptrace_h8300h.o
++obj-y := irq_pin.o ptrace_h8300h.o
+diff -puN arch/h8300/platform/h8s/entry.S~h8300-entrys-update /dev/null
+--- a/arch/h8300/platform/h8s/entry.S
++++ /dev/null
+@@ -1,331 +0,0 @@
+-/* -*- mode: asm -*-
 - *
-- *	/proc/fs/coda/vfs_stats
-- *		      cache_inv_stats
+- *  linux/arch/h8300/platform/h8s/entry.S
 - *
-- * these four files are presented to reset the statistics to 0:
+- *  Yoshinori Sato <ysato@users.sourceforge.jp>
 - *
-- *	/proc/sys/coda/vfs_stats
-- *		       cache_inv_stats
+- *	fairly heavy changes to fix syscall args and signal processing
+- *	by David McCullough <davidm@snapgear.com>
 - */
 -
--/* VFS operation statistics */
--struct coda_vfs_stats 
--{
--	/* file operations */
--	int open;
--	int flush;
--	int release;
--	int fsync;
+-/*
+- *  entry.S
+- *  include exception/interrupt gateway
+- *          system call entry
+- */
 -
--	/* dir operations */
--	int readdir;
--  
--	/* inode operations */
--	int create;
--	int lookup;
--	int link;
--	int unlink;
--	int symlink;
--	int mkdir;
--	int rmdir;
--	int rename;
--	int permission;
+-#include <linux/sys.h>
+-#include <asm/unistd.h>
+-#include <asm/setup.h>
+-#include <asm/segment.h>
+-#include <asm/linkage.h>
+-#include <asm/asm-offsets.h>
+-#include <asm/thread_info.h>
+-#include <asm/errno.h>
 -
--	/* symlink operatoins*/
--	int follow_link;
--	int readlink;
--};
+-	.h8300s
 -
--/* cache invalidation statistics */
--struct coda_cache_inv_stats
--{
--	int flush;
--	int purge_user;
--	int zap_dir;
--	int zap_file;
--	int zap_vnode;
--	int purge_fid;
--	int replace;
--};
+-/* CPU context save/restore macros. */
+-	
+-	.macro	SAVE_ALL
+-	mov.l	er0,@-sp
 -
--/* these global variables hold the actual statistics data */
--extern struct coda_vfs_stats		coda_vfs_stat;
+-	stc	ccr,r0l				/* check kernel mode */
+-	btst	#4,r0l
+-	bne	5f
 -
--#endif /* _CODA_PROC_H */
-diff -puN include/linux/coda_psdev.h~coda-remove-statistics-counters-from-proc-fs-coda include/linux/coda_psdev.h
---- a/include/linux/coda_psdev.h~coda-remove-statistics-counters-from-proc-fs-coda
-+++ a/include/linux/coda_psdev.h
-@@ -69,8 +69,6 @@ int venus_statfs(struct dentry *dentry, 
+-	/* user mode */
+-	mov.l	sp,@SYMBOL_NAME(sw_usp)
+-	mov.l	@sp,er0				/* restore saved er0 */
+-	orc	#0x10,ccr			/* switch kernel stack */
+-	mov.l	@SYMBOL_NAME(sw_ksp),sp
+-	sub.l	#(LRET-LORIG),sp		/* allocate LORIG - LRET */ 
+-	stm.l	er0-er3,@-sp
+-	mov.l	@SYMBOL_NAME(sw_usp),er0
+-	mov.l	@(10:16,er0),er1		/* copy the RET addr */
+-	mov.l	er1,@(LRET-LER3:16,sp)
+-	mov.w	@(8:16,er0),r1
+-	mov.w	r1,@(LEXR-LER3:16,sp)		/* copy EXR */
+-
+-	mov.w	e1,r1				/* e1 highbyte = ccr */
+-	and	#0xef,r1h			/* mask mode? flag */
+-	sub.w	r0,r0
+-	mov.b	r1h,r0l
+-	mov.w	r0,@(LCCR-LER3:16,sp)		/* copy ccr */
+-	mov.l	@(LORIG-LER3:16,sp),er0
+-	mov.l	er0,@(LER0-LER3:16,sp)		/* copy ER0 */
+-	bra	6f
+-5:
+-	/* kernel mode */
+-	mov.l	@sp,er0				/* restore saved er0 */
+-	subs	#2,sp				/* set dummy ccr */
+-	stm.l	er0-er3,@-sp
+-	mov.w	@(LRET-LER3:16,sp),r1		/* copy old ccr */
+-	mov.b	r1h,r1l
+-	mov.b	#0,r1h
+-	mov.w	r1,@(LCCR-LER3:16,sp)
+-6:	
+-	mov.l	er6,@-sp			/* syscall arg #6 */
+-	mov.l	er5,@-sp			/* syscall arg #5 */
+-	mov.l	er4,@-sp			/* syscall arg #4 */
+-	.endm
+-
+-	.macro	RESTORE_ALL
+-	mov.l	@sp+,er4
+-	mov.l	@sp+,er5
+-	mov.l	@sp+,er6
+-	ldm.l	@sp+,er2-er3
+-	mov.w	@(LCCR-LER1:16,sp),r0		/* check kernel mode */
+-	btst	#4,r0l
+-	bne	7f
+-
+-	orc	#0x80,ccr
+-	mov.l	@SYMBOL_NAME(sw_usp),er0
+-	mov.l	@(LER0-LER1:16,sp),er1		/* restore ER0 */
+-	mov.l	er1,@er0
+-	mov.w	@(LEXR-LER1:16,sp),r1		/* restore EXR */
+-	mov.b	r1l,r1h
+-	mov.w	r1,@(8:16,er0)
+-	mov.w	@(LCCR-LER1:16,sp),r1		/* restore the RET addr */
+-	mov.b	r1l,r1h
+-	mov.b	@(LRET+1-LER1:16,sp),r1l
+-	mov.w	r1,e1
+-	mov.w	@(LRET+2-LER1:16,sp),r1
+-	mov.l	er1,@(10:16,er0)
+-
+-	mov.l	@sp+,er1
+-	add.l	#(LRET-LER1),sp			/* remove LORIG - LRET */ 
+-	mov.l	sp,@SYMBOL_NAME(sw_ksp)
+-	andc	#0xef,ccr			/* switch to user mode */
+-	mov.l	er0,sp
+-	bra	8f
+-7:
+-	mov.l	@sp+,er1
+-	adds	#4,sp
+-	adds	#2,sp
+-8:
+-	mov.l	@sp+,er0
+-	adds	#4,sp				/* remove the sw created LVEC */
+-	rte
+-	.endm
+-	
+-.globl SYMBOL_NAME(system_call)
+-.globl SYMBOL_NAME(ret_from_exception)
+-.globl SYMBOL_NAME(ret_from_fork)
+-.globl SYMBOL_NAME(ret_from_interrupt)
+-.globl SYMBOL_NAME(interrupt_redirect_table)
+-.globl SYMBOL_NAME(sw_ksp),SYMBOL_NAME(sw_usp)
+-.globl SYMBOL_NAME(resume)
+-.globl SYMBOL_NAME(trace_break)
+-.globl SYMBOL_NAME(interrupt_entry)
+-		
+-INTERRUPTS = 128
+-#if defined(CONFIG_ROMKERNEL)
+-	.section .int_redirect,"ax"
+-SYMBOL_NAME_LABEL(interrupt_redirect_table)
+-	.rept	7
+-	.long	0
+-	.endr
+-	jsr	@SYMBOL_NAME(interrupt_entry)	/* NMI */
+-	jmp	@SYMBOL_NAME(system_call)	/* TRAPA #0 (System call) */
+-	.long	0
+-	.long	0
+-	jmp	@SYMBOL_NAME(trace_break)	/* TRAPA #3 (breakpoint) */
+-	.rept	INTERRUPTS-12
+-	jsr	@SYMBOL_NAME(interrupt_entry)
+-	.endr
+-#endif
+-#if defined(CONFIG_RAMKERNEL)
+-.globl SYMBOL_NAME(interrupt_redirect_table)
+-	.section .bss
+-SYMBOL_NAME_LABEL(interrupt_redirect_table)
+-	.space	4
+-#endif
+-	
+-	.section .text
+-	.align	2
+-SYMBOL_NAME_LABEL(interrupt_entry)
+-	SAVE_ALL
+-	mov.w	@(LCCR,sp),r0
+-	btst	#4,r0l
+-	bne	1f
+-	mov.l	@SYMBOL_NAME(sw_usp),er0
+-	mov.l	@(4:16,er0),er0
+-	bra	2f
+-1:
+-	mov.l	@(LVEC:16,sp),er0
+-2:
+-#if defined(CONFIG_ROMKERNEL)
+-	sub.l	#SYMBOL_NAME(interrupt_redirect_table),er0
+-#endif
+-#if defined(CONFIG_RAMKERNEL)
+-	mov.l	@SYMBOL_NAME(interrupt_redirect_table),er1
+-	sub.l	er1,er0
+-#endif
+-	shlr.l	#2,er0
+-	dec.l	#1,er0
+-	mov.l	sp,er1
+-	subs	#4,er1				/* adjust ret_pc */
+-	jsr	@SYMBOL_NAME(process_int)
+-	mov.l	@SYMBOL_NAME(irq_stat)+CPUSTAT_SOFTIRQ_PENDING,er0
+-	beq	1f
+-	jsr	@SYMBOL_NAME(do_softirq)
+-1:
+-	jmp	@SYMBOL_NAME(ret_from_exception)
+-
+-SYMBOL_NAME_LABEL(system_call)
+-	subs	#4,sp				/* dummy LVEC */
+-	SAVE_ALL
+-	mov.l	er0,er4
+-	mov.l	#-ENOSYS,er0
+-	mov.l	er0,@(LER0:16,sp)
+-
+-	/* save top of frame */
+-	mov.l	sp,er0
+-	jsr	@SYMBOL_NAME(set_esp0)
+-	cmp.l	#NR_syscalls,er4
+-	bcc	SYMBOL_NAME(ret_from_exception):16
+-	shll.l	#2,er4
+-	mov.l	#SYMBOL_NAME(sys_call_table),er0
+-	add.l	er4,er0
+-	mov.l	@er0,er0
+-	mov.l	er0,er4
+-	beq	SYMBOL_NAME(ret_from_exception):16	
+-	mov.l	sp,er2
+-	and.w	#0xe000,r2
+-	mov.b	@((TASK_FLAGS+3-(TIF_SYSCALL_TRACE >> 3)):16,er2),r2l
+-	btst	#(TIF_SYSCALL_TRACE & 7),r2l
+-	mov.l	@(LER1:16,sp),er0
+-	mov.l	@(LER2:16,sp),er1
+-	mov.l	@(LER3:16,sp),er2
+-	andc	#0x7f,ccr
+-	jsr	@er4
+-	mov.l	er0,@(LER0:16,sp)			/* save the return value */
+-#if defined(CONFIG_SYSCALL_PRINT)
+-	jsr	@SYMBOL_NAME(syscall_print)
+-#endif
+-	bra	SYMBOL_NAME(ret_from_exception):8
+-1:
+-	jsr	SYMBOL_NAME(syscall_trace)
+-	mov.l	@(LER1:16,sp),er0
+-	mov.l	@(LER2:16,sp),er1
+-	mov.l	@(LER3:16,sp),er2
+-	jsr	@er4
+-	mov.l	er0,@(LER0:16,sp)		/* save the return value */
+-	jsr	@SYMBOL_NAME(syscall_trace)
+-	bra	SYMBOL_NAME(ret_from_exception):8
+-
+-SYMBOL_NAME_LABEL(ret_from_fork)
+-	mov.l	er2,er0
+-	jsr	@SYMBOL_NAME(schedule_tail)
+-	bra	SYMBOL_NAME(ret_from_exception):8
+-
+-SYMBOL_NAME_LABEL(reschedule)
+-	/* save top of frame */
+-	mov.l	sp,er0
+-	jsr	@SYMBOL_NAME(set_esp0)
+-	jsr	@SYMBOL_NAME(schedule)
+-
+-SYMBOL_NAME_LABEL(ret_from_exception)
+-#if defined(CONFIG_PREEMPT)
+-	orc	#0x80,ccr
+-#endif
+-SYMBOL_NAME_LABEL(ret_from_interrupt)
+-	mov.b	@(LCCR+1:16,sp),r0l
+-	btst	#4,r0l			/* check if returning to kernel */
+-	bne	done:8			/* if so, skip resched, signals */
+-	andc	#0x7f,ccr
+-	mov.l	sp,er4
+-	and.w	#0xe000,r4
+-	mov.l	@(TI_FLAGS:16,er4),er1
+-	and.l	#_TIF_WORK_MASK,er1
+-	beq	done:8
+-1:
+-	mov.l	@(TI_FLAGS:16,er4),er1
+-	btst	#TIF_NEED_RESCHED,r1l
+-	bne	SYMBOL_NAME(reschedule):16
+-	mov.l	sp,er0
+-	subs	#4,er0			/* adjust retpc */
+-	mov.l	er2,er1
+-	jsr	@SYMBOL_NAME(do_signal)
+-#if defined(CONFIG_PREEMPT)
+-	bra	done:8			/* userspace thoru */
+-3:
+-	btst	#4,r0l
+-	beq	done:8			/* userspace thoru */
+-4:
+-	mov.l	@(TI_PRE_COUNT:16,er4),er1
+-	bne	done:8
+-	mov.l	@(TI_FLAGS:16,er4),er1
+-	btst	#TIF_NEED_RESCHED,r1l
+-	beq	done:8
+-	mov.b	r0l,r0l
+-	bpl	done:8			/* interrupt off (exception path?) */
+-	mov.l	#PREEMPT_ACTIVE,er1
+-	mov.l	er1,@(TI_PRE_COUNT:16,er4)
+-	andc	#0x7f,ccr
+-	jsr	@SYMBOL_NAME(schedule)
+-	sub.l	er1,er1
+-	mov.l	er1,@(TI_PRE_COUNT:16,er4)
+-	orc	#0x80,ccr
+-	bra	4b:8
+-#endif
+-done:
+-	RESTORE_ALL			/* Does RTE */
+-
+-SYMBOL_NAME_LABEL(resume)
+-	/*
+-	 *	er0 = prev
+-	 *	er1 = next
+-	 *	return last in er2
+-	 */
+-
+-	/* save sr */
+-	sub.w	r3,r3
+-	stc	ccr,r3l
+-	stc	exr,r3h
+-	mov.w	r3,@(THREAD_CCR+2:16,er0)
+-
+-	/* disable interrupts */
+-	orc	#0x80,ccr
+-	mov.l	@SYMBOL_NAME(sw_usp),er3
+-	mov.l	er3,@(THREAD_USP:16,er0)
+-	mov.l	sp,@(THREAD_KSP:16,er0)
+-	
+-	/* Skip address space switching if they are the same. */
+-	/* FIXME: what did we hack out of here, this does nothing! */
+-
+-	mov.l	@(THREAD_USP:16,er1),er0
+-	mov.l	er0,@SYMBOL_NAME(sw_usp)
+-	mov.l	@(THREAD_KSP:16,er1),sp
+-			
+-	/* restore status register */
+-	mov.w	@(THREAD_CCR+2:16,er1),r3
+-
+-	ldc	r3l,ccr
+-	ldc	r3h,exr
+-
+-	rts
+-
+-SYMBOL_NAME_LABEL(trace_break)
+-	subs	#4,sp			/* dummy LVEC */
+-	SAVE_ALL
+-	sub.l	er1,er1
+-	dec.l	#1,er1
+-	mov.l	er1,@(LORIG,sp)	
+-	mov.l	sp,er0
+-	jsr	@SYMBOL_NAME(set_esp0)
+-	mov.l	@SYMBOL_NAME(sw_usp),er0
+-	mov.l	@er0,er1
+-	subs	#2,er1
+-	mov.l	er1,@er0	
+-	and.w	#0xff,e1
+-	mov.l	er1,er0
+-	jsr	@SYMBOL_NAME(trace_trap)
+-	jmp	@SYMBOL_NAME(ret_from_exception)	
+-
+-	.section	.bss
+-SYMBOL_NAME_LABEL(sw_ksp)
+-	.space	4	
+-SYMBOL_NAME_LABEL(sw_usp)
+-	.space	4	
+diff -puN arch/h8300/platform/h8s/Makefile~h8300-entrys-update arch/h8300/platform/h8s/Makefile
+--- a/arch/h8300/platform/h8s/Makefile~h8300-entrys-update
++++ a/arch/h8300/platform/h8s/Makefile
+@@ -4,4 +4,4 @@
+ # Reuse any files we can from the H8S
+ #
  
+-obj-y := entry.o ints_h8s.o ptrace_h8s.o
++obj-y := ints_h8s.o ptrace_h8s.o
+diff -puN include/asm-h8300/thread_info.h~h8300-entrys-update include/asm-h8300/thread_info.h
+--- a/include/asm-h8300/thread_info.h~h8300-entrys-update
++++ a/include/asm-h8300/thread_info.h
+@@ -92,6 +92,7 @@ static inline struct thread_info *curren
+ #define TIF_POLLING_NRFLAG	4	/* true if poll_idle() is polling
+ 					   TIF_NEED_RESCHED */
+ #define TIF_MEMDIE		5
++#define TIF_RESTORE_SIGMASK	6	/* restore signal mask in do_signal() */
  
- /* messages between coda filesystem in kernel and Venus */
--extern int coda_hard;
--extern unsigned long coda_timeout;
- struct upc_req {
- 	struct list_head    uc_chain;
- 	caddr_t	            uc_data;
+ /* as above, but as bit values */
+ #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
+@@ -99,6 +100,7 @@ static inline struct thread_info *curren
+ #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
+ #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
+ #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
++#define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
+ 
+ #define _TIF_WORK_MASK		0x0000FFFE	/* work to do on interrupt/exception return */
+ 
 _
 
-Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
+Patches currently in -mm which might be from ysato@users.sourceforge.jp are
 
-coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error.patch
-coda-correctly-invalidate-cached-access-rights.patch
-coda-fix-nlink-updates-for-directories.patch
-coda-allow-removal-of-busy-directories.patch
-coda-coda-doesnt-track-atime.patch
-coda-use-ilookup5.patch
-coda-cleanup-dev-cfs-open-and-close-handling.patch
-coda-cleanup-for-upcall-handling-path.patch
-coda-block-signals-during-upcall-processing.patch
-coda-avoid-lockdep-warning-in-coda_readdir.patch
-coda-replace-upc_alloc-upc_free-with-kmalloc-kfree.patch
-coda-ignore-returned-values-when-upcalls-return-errors.patch
-coda-cleanup-coda_lookup-use-dsplice_alias.patch
-coda-cleanup-downcall-handler.patch
-coda-remove-struct-coda_sb_info.patch
-coda-remove-statistics-counters-from-proc-fs-coda.patch
-coda-update-module-information.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+h8300-enable-arbitary-speed-tty-port-setup.patch
+h8300-zimage-support-update.patch
+h8300-remove-unused-file.patch
+h8300-entrys-update.patch
+dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
