@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + coda-cleanup-dev-cfs-open-and-close-handling.patch added to -mm tree
-Date: Thu, 12 Jul 2007 22:29:35 -0700
-Message-ID: <200707130529.l6D5TZlO030802@imap1.linux-foundation.org>
+Subject: + coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error.patch added to -mm tree
+Date: Thu, 12 Jul 2007 22:29:27 -0700
+Message-ID: <200707130529.l6D5TRfS030784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53730 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60736 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751731AbXGMFaF (ORCPT
+	by vger.kernel.org with ESMTP id S1751699AbXGMFaH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 01:30:05 -0400
+	Fri, 13 Jul 2007 01:30:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jaharkes@cs.cmu.edu
 
 
 The patch titled
-     coda: cleanup /dev/cfs open and close handling
+     coda: do not grab an uninitialized fd when the open upcall returns an error
 has been added to the -mm tree.  Its filename is
-     coda-cleanup-dev-cfs-open-and-close-handling.patch
+     coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,158 +26,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coda: cleanup /dev/cfs open and close handling
+Subject: coda: do not grab an uninitialized fd when the open upcall returns an error
 From: Jan Harkes <jaharkes@cs.cmu.edu>
 
-- Make sure device index is not a negative number.
-- Unlink queued requests when the device is closed to avoid passing them
-  to the next opener.
+When open fails the fd in the response is uninitialized and we ended up taking
+a reference on the file struct and never released it.
 
 Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/psdev.c  |   61 ++++++++++++++++++++++-----------------------
- fs/coda/upcall.c |    9 +-----
- 2 files changed, 32 insertions(+), 38 deletions(-)
+ fs/coda/file.c   |    7 +++++--
+ fs/coda/psdev.c  |    3 ++-
+ fs/coda/upcall.c |   10 +++++-----
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN fs/coda/psdev.c~coda-cleanup-dev-cfs-open-and-close-handling fs/coda/psdev.c
---- a/fs/coda/psdev.c~coda-cleanup-dev-cfs-open-and-close-handling
+diff -puN fs/coda/file.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error fs/coda/file.c
+--- a/fs/coda/file.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error
++++ a/fs/coda/file.c
+@@ -143,8 +143,11 @@ int coda_open(struct inode *coda_inode, 
+ 	lock_kernel();
+ 
+ 	error = venus_open(coda_inode->i_sb, coda_i2f(coda_inode), coda_flags,
+-			   &host_file); 
+-	if (error || !host_file) {
++			   &host_file);
++	if (!host_file)
++		error = -EIO;
++
++	if (error) {
+ 		kfree(cfi);
+ 		unlock_kernel();
+ 		return error;
+diff -puN fs/coda/psdev.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error fs/coda/psdev.c
+--- a/fs/coda/psdev.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error
 +++ a/fs/coda/psdev.c
-@@ -272,56 +272,51 @@ out:
- 
- static int coda_psdev_open(struct inode * inode, struct file * file)
- {
--        struct venus_comm *vcp;
--	int idx;
-+	struct venus_comm *vcp;
-+	int idx, err;
- 
--	lock_kernel();
- 	idx = iminor(inode);
--	if(idx >= MAX_CODADEVS) {
--		unlock_kernel();
-+	if (idx < 0 || idx >= MAX_CODADEVS)
- 		return -ENODEV;
--	}
- 
-+	lock_kernel();
-+
-+	err = -EBUSY;
- 	vcp = &coda_comms[idx];
--	if(vcp->vc_inuse) {
--		unlock_kernel();
--		return -EBUSY;
--	}
--	
--	if (!vcp->vc_inuse++) {
-+	if (!vcp->vc_inuse) {
-+		vcp->vc_inuse++;
-+
- 		INIT_LIST_HEAD(&vcp->vc_pending);
- 		INIT_LIST_HEAD(&vcp->vc_processing);
- 		init_waitqueue_head(&vcp->vc_waitq);
- 		vcp->vc_sb = NULL;
- 		vcp->vc_seq = 0;
-+
-+		file->private_data = vcp;
-+		err = 0;
- 	}
--	
--	file->private_data = vcp;
- 
- 	unlock_kernel();
--        return 0;
-+	return err;
- }
- 
- 
- static int coda_psdev_release(struct inode * inode, struct file * file)
- {
--        struct venus_comm *vcp = (struct venus_comm *) file->private_data;
--        struct upc_req *req, *tmp;
-+	struct venus_comm *vcp = (struct venus_comm *) file->private_data;
-+	struct upc_req *req, *tmp;
- 
--	lock_kernel();
--	if ( !vcp->vc_inuse ) {
--		unlock_kernel();
-+	if (!vcp || !vcp->vc_inuse ) {
- 		printk("psdev_release: Not open.\n");
- 		return -1;
+@@ -195,7 +195,8 @@ static ssize_t coda_psdev_write(struct f
+ 	if (req->uc_opcode == CODA_OPEN_BY_FD) {
+ 		struct coda_open_by_fd_out *outp =
+ 			(struct coda_open_by_fd_out *)req->uc_data;
+-		outp->fh = fget(outp->fd);
++		if (!outp->oh.result)
++			outp->fh = fget(outp->fd);
  	}
  
--	if (--vcp->vc_inuse) {
--		unlock_kernel();
--		return 0;
--	}
--        
--        /* Wakeup clients so they can return. */
-+	lock_kernel();
-+
-+	/* Wakeup clients so they can return. */
- 	list_for_each_entry_safe(req, tmp, &vcp->vc_pending, uc_chain) {
-+		list_del(&req->uc_chain);
-+
- 		/* Async requests need to be freed here */
- 		if (req->uc_flags & REQ_ASYNC) {
- 			CODA_FREE(req->uc_data, sizeof(struct coda_in_hdr));
-@@ -330,13 +325,17 @@ static int coda_psdev_release(struct ino
- 		}
- 		req->uc_flags |= REQ_ABORT;
- 		wake_up(&req->uc_sleep);
--        }
--        
--	list_for_each_entry(req, &vcp->vc_processing, uc_chain) {
-+	}
-+
-+	list_for_each_entry_safe(req, tmp, &vcp->vc_processing, uc_chain) {
-+		list_del(&req->uc_chain);
-+
- 		req->uc_flags |= REQ_ABORT;
--	        wake_up(&req->uc_sleep);
--        }
-+		wake_up(&req->uc_sleep);
-+	}
- 
-+	file->private_data = NULL;
-+	vcp->vc_inuse--;
- 	unlock_kernel();
- 	return 0;
- }
-diff -puN fs/coda/upcall.c~coda-cleanup-dev-cfs-open-and-close-handling fs/coda/upcall.c
---- a/fs/coda/upcall.c~coda-cleanup-dev-cfs-open-and-close-handling
+         wake_up(&req->uc_sleep);
+diff -puN fs/coda/upcall.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error fs/coda/upcall.c
+--- a/fs/coda/upcall.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error
 +++ a/fs/coda/upcall.c
-@@ -641,8 +641,7 @@ int venus_statfs(struct dentry *dentry, 
-  * 
-  */
+@@ -251,12 +251,12 @@ int venus_open(struct super_block *sb, s
+ 	insize = SIZE(open_by_fd);
+ 	UPARG(CODA_OPEN_BY_FD);
  
--static inline void coda_waitfor_upcall(struct upc_req *vmp,
--				       struct venus_comm *vcommp)
-+static inline void coda_waitfor_upcall(struct upc_req *vmp)
- {
- 	DECLARE_WAITQUEUE(wait, current);
+-        inp->coda_open.VFid = *fid;
+-        inp->coda_open.flags = flags;
++	inp->coda_open_by_fd.VFid = *fid;
++	inp->coda_open_by_fd.flags = flags;
  
-@@ -655,10 +654,6 @@ static inline void coda_waitfor_upcall(s
- 		else
- 			set_current_state(TASK_UNINTERRUPTIBLE);
- 
--                /* venus died */
--                if ( !vcommp->vc_inuse )
--                        break;
+-        error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
 -
- 		/* got a reply */
- 		if ( vmp->uc_flags & ( REQ_WRITE | REQ_ABORT ) )
- 			break;
-@@ -738,7 +733,7 @@ static int coda_upcall(struct coda_sb_in
- 	 * ENODEV.  */
+-	*fh = outp->coda_open_by_fd.fh;
++	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
++	if (!error)
++		*fh = outp->coda_open_by_fd.fh;
  
- 	/* Go to sleep.  Wake up on signals only after the timeout. */
--	coda_waitfor_upcall(req, vcommp);
-+	coda_waitfor_upcall(req);
- 
- 	if (vcommp->vc_inuse) {      /* i.e. Venus is still alive */
- 	    /* Op went through, interrupt or not... */
+ 	CODA_FREE(inp, insize);
+ 	return error;
 _
 
 Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
