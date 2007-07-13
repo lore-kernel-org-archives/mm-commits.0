@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-fix-edac_mc-sysfs-completion-code.patch added to -mm tree
-Date: Fri, 13 Jul 2007 11:30:49 -0700
-Message-ID: <200707131830.l6DIUn63011041@imap1.linux-foundation.org>
+Subject: + drivers-edac-fix-edac_device-sysfs-completion-code.patch added to -mm tree
+Date: Fri, 13 Jul 2007 11:30:51 -0700
+Message-ID: <200707131830.l6DIUpQW011044@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52456 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41825 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757971AbXGMSbb (ORCPT
+	by vger.kernel.org with ESMTP id S933422AbXGMSbc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 14:31:31 -0400
+	Fri, 13 Jul 2007 14:31:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dougthompson@xmission.com, greg@kroah.com
 
 
 The patch titled
-     drivers edac: fix edac_mc sysfs completion code
+     drivers edac: fix edac_device sysfs completion code
 has been added to the -mm tree.  Its filename is
-     drivers-edac-fix-edac_mc-sysfs-completion-code.patch
+     drivers-edac-fix-edac_device-sysfs-completion-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,17 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers edac: fix edac_mc sysfs completion code
-From: Doug Thompson <dougthompson@xmission.com>
+Subject: drivers edac: fix edac_device sysfs completion code
+From: Douglas Thompson <dougthompson@xmission.com>
 
-This patch refactors the 'releasing' of kobjects for the edac_mc type of
-device.  The correct pattern of kobject release is followed.
-
-As internal kobjs are allocated they bump a ref count on the top level kobj. 
-It in turn has a module ref count on the edac_core module.  When internal
-kobjects are released, they dec the ref count on the top level kobj.  When the
-top level kobj reaches zero, it decrements the ref count on the edac_core
-object, allow it to be unloaded, as all resources have all now been released.
+With feedback, this patch corrects operation of the kobject release operation
+on kobjects, attributes and controls for the edac_device.
 
 Cc: Alan Cox alan@lxorguk.ukuu.org.uk
 Signed-off-by: Doug Thompson <dougthompson@xmission.com>
@@ -44,1001 +38,820 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_core.h     |    4 
- drivers/edac/edac_mc.c       |   36 +-
- drivers/edac/edac_mc_sysfs.c |  568 ++++++++++++++++++++-------------
- drivers/edac/edac_module.c   |   32 -
- drivers/edac/edac_module.h   |    8 
- 5 files changed, 399 insertions(+), 249 deletions(-)
+ drivers/edac/edac_core.h         |   10 
+ drivers/edac/edac_device.c       |   37 ++-
+ drivers/edac/edac_device_sysfs.c |  341 ++++++++++++++++++++---------
+ drivers/edac/edac_module.h       |    4 
+ 4 files changed, 277 insertions(+), 115 deletions(-)
 
-diff -puN drivers/edac/edac_core.h~drivers-edac-fix-edac_mc-sysfs-completion-code drivers/edac/edac_core.h
---- a/drivers/edac/edac_core.h~drivers-edac-fix-edac_mc-sysfs-completion-code
+diff -puN drivers/edac/edac_core.h~drivers-edac-fix-edac_device-sysfs-completion-code drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~drivers-edac-fix-edac_device-sysfs-completion-code
 +++ a/drivers/edac/edac_core.h
-@@ -317,9 +317,8 @@ struct csrow_info {
- 	struct mem_ctl_info *mci;	/* the parent */
- 
- 	struct kobject kobj;	/* sysfs kobject for this csrow */
--	struct completion kobj_complete;
- 
--	/* FIXME the number of CHANNELs might need to become dynamic */
-+	/* channel information for this csrow */
- 	u32 nr_channels;
- 	struct channel_info *channels;
- };
-@@ -403,7 +402,6 @@ struct mem_ctl_info {
+@@ -337,6 +337,9 @@ struct mcidev_sysfs_attribute {
+  */
+ struct mem_ctl_info {
+ 	struct list_head link;	/* for global list of mem_ctl_info structs */
++
++	struct module *owner;	/* Module owner of this control struct */
++
+ 	unsigned long mtype_cap;	/* memory types supported by mc */
+ 	unsigned long edac_ctl_cap;	/* Mem controller EDAC capabilities */
+ 	unsigned long edac_cap;	/* configuration capabilities - this is
+@@ -510,7 +513,6 @@ struct edac_device_block {
  
  	/* edac sysfs device control */
- 	struct kobject edac_mci_kobj;
+ 	struct kobject kobj;
 -	struct completion kobj_complete;
+ };
  
- 	/* Additional top controller level attributes, but specified
- 	 * by the low level driver.
-diff -puN drivers/edac/edac_mc.c~drivers-edac-fix-edac_mc-sysfs-completion-code drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~drivers-edac-fix-edac_mc-sysfs-completion-code
-+++ a/drivers/edac/edac_mc.c
-@@ -137,6 +137,7 @@ struct mem_ctl_info *edac_mc_alloc(unsig
+ /* device instance control structure */
+@@ -525,7 +527,6 @@ struct edac_device_instance {
+ 
+ 	/* edac sysfs device control */
+ 	struct kobject kobj;
+-	struct completion kobj_complete;
+ };
+ 
+ 
+@@ -537,6 +538,8 @@ struct edac_device_ctl_info {
+ 	/* for global list of edac_device_ctl_info structs */
+ 	struct list_head link;
+ 
++	struct module *owner;	/* Module owner of this control struct */
++
+ 	int dev_idx;
+ 
+ 	/* Per instance controls for this edac_device */
+@@ -587,7 +590,7 @@ struct edac_device_ctl_info {
+ 	 * NMI handlers may be traversing list
+ 	 */
+ 	struct rcu_head rcu;
+-	struct completion complete;
++	struct completion removal_complete;
+ 
+ 	/* sysfs top name under 'edac' directory
+ 	 * and instance name:
+@@ -611,7 +614,6 @@ struct edac_device_ctl_info {
+ 	 * device this structure controls
+ 	 */
+ 	struct kobject kobj;
+-	struct completion kobj_complete;
+ };
+ 
+ /* To get from the instance's wq to the beginning of the ctl structure */
+diff -puN drivers/edac/edac_device.c~drivers-edac-fix-edac_device-sysfs-completion-code drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~drivers-edac-fix-edac_device-sysfs-completion-code
++++ a/drivers/edac/edac_device.c
+@@ -48,6 +48,7 @@ static void edac_device_dump_device(stru
+ }
+ #endif				/* CONFIG_EDAC_DEBUG */
+ 
++
+ /*
+  * edac_device_alloc_ctl_info()
+  *	Allocate a new edac device control info structure
+@@ -78,6 +79,7 @@ struct edac_device_ctl_info *edac_device
+ 	unsigned count;
+ 	unsigned instance, block, attr;
  	void *pvt;
- 	unsigned size;
- 	int row, chn;
 +	int err;
  
- 	/* Figure out the offsets of the various items from the start of an mc
- 	 * structure.  We want the alignment of each item to be at least as
-@@ -149,7 +150,8 @@ struct mem_ctl_info *edac_mc_alloc(unsig
- 	pvt = edac_align_ptr(&chi[nr_chans * nr_csrows], sz_pvt);
- 	size = ((unsigned long)pvt) + sz_pvt;
- 
--	if ((mci = kmalloc(size, GFP_KERNEL)) == NULL)
-+	mci = kzalloc(size, GFP_KERNEL);
-+	if (mci == NULL)
- 		return NULL;
- 
- 	/* Adjust pointers so they point within the memory we just allocated
-@@ -182,20 +184,34 @@ struct mem_ctl_info *edac_mc_alloc(unsig
- 
- 	mci->op_state = OP_ALLOC;
+ 	debugf1("%s() instances=%d blocks=%d\n",
+ 		__func__, nr_instances, nr_blocks);
+@@ -208,6 +210,22 @@ struct edac_device_ctl_info *edac_device
+ 	/* Mark this instance as merely ALLOCATED */
+ 	dev_ctl->op_state = OP_ALLOC;
  
 +	/*
-+	 * Initialize the 'root' kobj for the edac_mc controller
++	 * Initialize the 'root' kobj for the edac_device controller
 +	 */
-+	err = edac_mc_register_sysfs_main_kobj(mci);
++	err = edac_device_register_sysfs_main_kobj(dev_ctl);
 +	if (err) {
-+		kfree(mci);
++		kfree(dev_ctl);
 +		return NULL;
 +	}
 +
 +	/* at this point, the root kobj is valid, and in order to
 +	 * 'free' the object, then the function:
-+	 *      edac_mc_unregister_sysfs_main_kobj() must be called
++	 *	edac_device_unregister_sysfs_main_kobj() must be called
 +	 * which will perform kobj unregistration and the actual free
 +	 * will occur during the kobject callback operation
 +	 */
- 	return mci;
++
+ 	return dev_ctl;
  }
--
- EXPORT_SYMBOL_GPL(edac_mc_alloc);
- 
- /**
-- * edac_mc_free:  Free a previously allocated 'mci' structure
-+ * edac_mc_free
-+ *	'Free' a previously allocated 'mci' structure
-  * @mci: pointer to a struct mem_ctl_info structure
+ EXPORT_SYMBOL_GPL(edac_device_alloc_ctl_info);
+@@ -219,7 +237,7 @@ EXPORT_SYMBOL_GPL(edac_device_alloc_ctl_
   */
- void edac_mc_free(struct mem_ctl_info *mci)
+ void edac_device_free_ctl_info(struct edac_device_ctl_info *ctl_info)
  {
--	kfree(mci);
-+	edac_mc_unregister_sysfs_main_kobj(mci);
+-	kfree(ctl_info);
++	edac_device_unregister_sysfs_main_kobj(ctl_info);
  }
--
- EXPORT_SYMBOL_GPL(edac_mc_free);
+ EXPORT_SYMBOL_GPL(edac_device_free_ctl_info);
  
- static struct mem_ctl_info *find_mci_by_dev(struct device *dev)
-@@ -391,7 +407,6 @@ struct mem_ctl_info *edac_mc_find(int id
+@@ -315,22 +333,23 @@ static void complete_edac_device_list_de
  
- 	return NULL;
+ 	edac_dev = container_of(head, struct edac_device_ctl_info, rcu);
+ 	INIT_LIST_HEAD(&edac_dev->link);
+-	complete(&edac_dev->complete);
++	complete(&edac_dev->removal_complete);
  }
--
- EXPORT_SYMBOL(edac_mc_find);
- 
- /**
-@@ -465,7 +480,6 @@ fail0:
- 	mutex_unlock(&mem_ctls_mutex);
- 	return 1;
- }
--
- EXPORT_SYMBOL_GPL(edac_mc_add_mc);
- 
- /**
-@@ -501,7 +515,6 @@ struct mem_ctl_info *edac_mc_del_mc(stru
- 		mci->mod_name, mci->ctl_name, dev_name(mci));
- 	return mci;
- }
--
- EXPORT_SYMBOL_GPL(edac_mc_del_mc);
- 
- static void edac_mc_scrub_block(unsigned long page, unsigned long offset,
-@@ -571,7 +584,6 @@ int edac_mc_find_csrow_by_page(struct me
- 
- 	return row;
- }
--
- EXPORT_SYMBOL_GPL(edac_mc_find_csrow_by_page);
- 
- /* FIXME - setable log (warning/emerg) levels */
-@@ -636,7 +648,6 @@ void edac_mc_handle_ce(struct mem_ctl_in
- 				mci->csrows[row].grain);
- 	}
- }
--
- EXPORT_SYMBOL_GPL(edac_mc_handle_ce);
- 
- void edac_mc_handle_ce_no_info(struct mem_ctl_info *mci, const char *msg)
-@@ -648,7 +659,6 @@ void edac_mc_handle_ce_no_info(struct me
- 	mci->ce_noinfo_count++;
- 	mci->ce_count++;
- }
--
- EXPORT_SYMBOL_GPL(edac_mc_handle_ce_no_info);
- 
- void edac_mc_handle_ue(struct mem_ctl_info *mci,
-@@ -702,7 +712,6 @@ void edac_mc_handle_ue(struct mem_ctl_in
- 	mci->ue_count++;
- 	mci->csrows[row].ue_count++;
- }
--
- EXPORT_SYMBOL_GPL(edac_mc_handle_ue);
- 
- void edac_mc_handle_ue_no_info(struct mem_ctl_info *mci, const char *msg)
-@@ -716,7 +725,6 @@ void edac_mc_handle_ue_no_info(struct me
- 	mci->ue_noinfo_count++;
- 	mci->ue_count++;
- }
--
- EXPORT_SYMBOL_GPL(edac_mc_handle_ue_no_info);
- 
- /*************************************************************
-@@ -784,7 +792,6 @@ void edac_mc_handle_fbd_ue(struct mem_ct
- 			"labels \"%s\": %s\n", csrow, channela,
- 			channelb, labels, msg);
- }
--
- EXPORT_SYMBOL(edac_mc_handle_fbd_ue);
- 
- /*************************************************************
-@@ -824,7 +831,6 @@ void edac_mc_handle_fbd_ce(struct mem_ct
- 	mci->csrows[csrow].ce_count++;
- 	mci->csrows[csrow].channels[channel].ce_count++;
- }
--
- EXPORT_SYMBOL(edac_mc_handle_fbd_ce);
  
  /*
-diff -puN drivers/edac/edac_mc_sysfs.c~drivers-edac-fix-edac_mc-sysfs-completion-code drivers/edac/edac_mc_sysfs.c
---- a/drivers/edac/edac_mc_sysfs.c~drivers-edac-fix-edac_mc-sysfs-completion-code
-+++ a/drivers/edac/edac_mc_sysfs.c
-@@ -10,10 +10,12 @@
+  * del_edac_device_from_global_list
+  *
+- *	remove the RCU, setup for a callback call, then wait for the
+- *	callback to occur
++ *	remove the RCU, setup for a callback call,
++ *	then wait for the callback to occur
+  */
+ static void del_edac_device_from_global_list(struct edac_device_ctl_info
+ 						*edac_device)
+ {
+ 	list_del_rcu(&edac_device->link);
+-	init_completion(&edac_device->complete);
++
++	init_completion(&edac_device->removal_complete);
+ 	call_rcu(&edac_device->rcu, complete_edac_device_list_del);
+-	wait_for_completion(&edac_device->complete);
++	wait_for_completion(&edac_device->removal_complete);
+ }
+ 
+ /**
+@@ -542,14 +561,14 @@ struct edac_device_ctl_info *edac_device
+ 	/* clear workq processing on this instance */
+ 	edac_device_workq_teardown(edac_dev);
+ 
+-	/* Tear down the sysfs entries for this instance */
+-	edac_device_remove_sysfs(edac_dev);
+-
+ 	/* deregister from global list */
+ 	del_edac_device_from_global_list(edac_dev);
+ 
+ 	mutex_unlock(&device_ctls_mutex);
+ 
++	/* Tear down the sysfs entries for this instance */
++	edac_device_remove_sysfs(edac_dev);
++
+ 	edac_printk(KERN_INFO, EDAC_MC,
+ 		"Removed device %d for %s %s: DEV %s\n",
+ 		edac_dev->dev_idx,
+diff -puN drivers/edac/edac_device_sysfs.c~drivers-edac-fix-edac_device-sysfs-completion-code drivers/edac/edac_device_sysfs.c
+--- a/drivers/edac/edac_device_sysfs.c~drivers-edac-fix-edac_device-sysfs-completion-code
++++ a/drivers/edac/edac_device_sysfs.c
+@@ -1,7 +1,8 @@
+ /*
+  * file for managing the edac_device class of devices for EDAC
+  *
+- * (C) 2007 SoftwareBitMaker(http://www.softwarebitmaker.com)
++ * (C) 2007 SoftwareBitMaker (http://www.softwarebitmaker.com)
++ *
+  * This file may be distributed under the terms of the
+  * GNU General Public License.
+  *
+@@ -10,6 +11,7 @@
   */
  
  #include <linux/ctype.h>
-+#include <linux/bug.h>
++#include <linux/module.h>
  
  #include "edac_core.h"
  #include "edac_module.h"
+@@ -19,7 +21,6 @@
+ #define to_edacdev(k) container_of(k, struct edac_device_ctl_info, kobj)
+ #define to_edacdev_attr(a) container_of(a, struct edacdev_attribute, attr)
  
-+
- /* MC EDAC Controls, setable by module parameter, and sysfs */
- static int edac_mc_log_ue = 1;
- static int edac_mc_log_ce = 1;
-@@ -98,15 +100,7 @@ static const char *edac_caps[] = {
- 	[EDAC_S16ECD16ED] = "S16ECD16ED"
- };
- 
--/* sysfs object:
-- *	/sys/devices/system/edac/mc
-- */
--static struct kobject edac_memctrl_kobj;
- 
--/* We use these to wait for the reference counts on edac_memctrl_kobj and
-- * edac_pci_kobj to reach 0.
-- */
--static struct completion edac_memctrl_kobj_complete;
+-/************************** edac_device sysfs code and data **************/
  
  /*
-  * /sys/devices/system/edac/mc;
-@@ -128,153 +122,6 @@ static ssize_t memctrl_int_store(void *p
- 	return count;
+  * Set of edac_device_ctl_info attribute store/show functions
+@@ -103,8 +104,8 @@ static ssize_t edac_device_ctl_poll_msec
+ /* edac_device_ctl_info specific attribute structure */
+ struct ctl_info_attribute {
+ 	struct attribute attr;
+-	 ssize_t(*show) (struct edac_device_ctl_info *, char *);
+-	 ssize_t(*store) (struct edac_device_ctl_info *, const char *, size_t);
++	ssize_t(*show) (struct edac_device_ctl_info *, char *);
++	ssize_t(*store) (struct edac_device_ctl_info *, const char *, size_t);
+ };
+ 
+ #define to_ctl_info(k) container_of(k, struct edac_device_ctl_info, kobj)
+@@ -168,45 +169,76 @@ static struct ctl_info_attribute *device
+ 	NULL,
+ };
+ 
+-/* Main DEVICE kobject release() function */
++/*
++ * edac_device_ctrl_master_release
++ *
++ *	called when the reference count for the 'main' kobj
++ *	for a edac_device control struct reaches zero
++ *
++ *	Reference count model:
++ *		One 'main' kobject for each control structure allocated.
++ *		That main kobj is initially set to one AND
++ *		the reference count for the EDAC 'core' module is
++ *		bumped by one, thus added 'keep in memory' dependency.
++ *
++ *		Each new internal kobj (in instances and blocks) then
++ *		bumps the 'main' kobject.
++ *
++ *		When they are released their release functions decrement
++ *		the 'main' kobj.
++ *
++ *		When the main kobj reaches zero (0) then THIS function
++ *		is called which then decrements the EDAC 'core' module.
++ *		When the module reference count reaches zero then the
++ *		module no longer has dependency on keeping the release
++ *		function code in memory and module can be unloaded.
++ *
++ *		This will support several control objects as well, each
++ *		with its own 'main' kobj.
++ */
+ static void edac_device_ctrl_master_release(struct kobject *kobj)
+ {
+-	struct edac_device_ctl_info *edac_dev;
++	struct edac_device_ctl_info *edac_dev = to_edacdev(kobj);
+ 
+-	edac_dev = to_edacdev(kobj);
++	debugf1("%s() control index=%d\n", __func__, edac_dev->dev_idx);
+ 
+-	debugf1("%s()\n", __func__);
+-	complete(&edac_dev->kobj_complete);
++	/* decrement the EDAC CORE module ref count */
++	module_put(edac_dev->owner);
++
++	/* free the control struct containing the 'main' kobj
++	 * passed in to this routine
++	 */
++	kfree(edac_dev);
  }
  
--struct memctrl_dev_attribute {
--	struct attribute attr;
--	void *value;
--	 ssize_t(*show) (void *, char *);
--	 ssize_t(*store) (void *, const char *, size_t);
--};
++/* ktype for the main (master) kobject */
+ static struct kobj_type ktype_device_ctrl = {
+ 	.release = edac_device_ctrl_master_release,
+ 	.sysfs_ops = &device_ctl_info_ops,
+ 	.default_attrs = (struct attribute **)device_ctrl_attr,
+ };
+ 
+-/**************** edac_device main kobj ctor/dtor code *********************/
 -
--/* Set of show/store abstract level functions for memory control object */
--static ssize_t memctrl_dev_show(struct kobject *kobj,
--				struct attribute *attr, char *buffer)
--{
--	struct memctrl_dev_attribute *memctrl_dev;
--	memctrl_dev = (struct memctrl_dev_attribute *)attr;
--
--	if (memctrl_dev->show)
--		return memctrl_dev->show(memctrl_dev->value, buffer);
--
--	return -EIO;
--}
--
--static ssize_t memctrl_dev_store(struct kobject *kobj, struct attribute *attr,
--				 const char *buffer, size_t count)
--{
--	struct memctrl_dev_attribute *memctrl_dev;
--	memctrl_dev = (struct memctrl_dev_attribute *)attr;
--
--	if (memctrl_dev->store)
--		return memctrl_dev->store(memctrl_dev->value, buffer, count);
--
--	return -EIO;
--}
--
--static struct sysfs_ops memctrlfs_ops = {
--	.show = memctrl_dev_show,
--	.store = memctrl_dev_store
--};
--
--#define MEMCTRL_ATTR(_name,_mode,_show,_store)			\
--static struct memctrl_dev_attribute attr_##_name = {			\
--	.attr = {.name = __stringify(_name), .mode = _mode },	\
--	.value  = &_name,					\
--	.show   = _show,					\
--	.store  = _store,					\
--};
--
--#define MEMCTRL_STRING_ATTR(_name,_data,_mode,_show,_store)	\
--static struct memctrl_dev_attribute attr_##_name = {			\
--	.attr = {.name = __stringify(_name), .mode = _mode },	\
--	.value  = _data,					\
--	.show   = _show,					\
--	.store  = _store,					\
--};
--
--/* csrow<id> control files */
--MEMCTRL_ATTR(edac_mc_panic_on_ue,
--	S_IRUGO | S_IWUSR, memctrl_int_show, memctrl_int_store);
--
--MEMCTRL_ATTR(edac_mc_log_ue,
--	S_IRUGO | S_IWUSR, memctrl_int_show, memctrl_int_store);
--
--MEMCTRL_ATTR(edac_mc_log_ce,
--	S_IRUGO | S_IWUSR, memctrl_int_show, memctrl_int_store);
--
--MEMCTRL_ATTR(edac_mc_poll_msec,
--	S_IRUGO | S_IWUSR, memctrl_int_show, memctrl_int_store);
--
--/* Base Attributes of the memory ECC object */
--static struct memctrl_dev_attribute *memctrl_attr[] = {
--	&attr_edac_mc_panic_on_ue,
--	&attr_edac_mc_log_ue,
--	&attr_edac_mc_log_ce,
--	&attr_edac_mc_poll_msec,
--	NULL,
--};
--
--/* Main MC kobject release() function */
--static void edac_memctrl_master_release(struct kobject *kobj)
--{
--	debugf1("%s()\n", __func__);
--	complete(&edac_memctrl_kobj_complete);
--}
--
--static struct kobj_type ktype_memctrl = {
--	.release = edac_memctrl_master_release,
--	.sysfs_ops = &memctrlfs_ops,
--	.default_attrs = (struct attribute **)memctrl_attr,
--};
--
--/* Initialize the main sysfs entries for edac:
-- *   /sys/devices/system/edac
-- *
-- * and children
-- *
-- * Return:  0 SUCCESS
-- *         !0 FAILURE
-- */
--int edac_sysfs_memctrl_setup(void)
--{
+ /*
+- * edac_device_register_main_kobj
++ * edac_device_register_sysfs_main_kobj
+  *
+  *	perform the high level setup for the new edac_device instance
+  *
+  * Return:  0 SUCCESS
+  *         !0 FAILURE
+  */
+-static int edac_device_register_main_kobj(struct edac_device_ctl_info *edac_dev)
++int edac_device_register_sysfs_main_kobj(struct edac_device_ctl_info *edac_dev)
+ {
 -	int err = 0;
--	struct sysdev_class *edac_class;
--
--	debugf1("%s()\n", __func__);
--
--	/* get the /sys/devices/system/edac class reference */
--	edac_class = edac_get_edac_class();
--	if (edac_class == NULL) {
+ 	struct sysdev_class *edac_class;
++	int err;
+ 
+ 	debugf1("%s()\n", __func__);
+ 
+ 	/* get the /sys/devices/system/edac reference */
+ 	edac_class = edac_get_edac_class();
+ 	if (edac_class == NULL) {
 -		debugf1("%s() no edac_class error=%d\n", __func__, err);
 -		return err;
--	}
--
--	/* Init the MC's kobject */
--	memset(&edac_memctrl_kobj, 0, sizeof(edac_memctrl_kobj));
--	edac_memctrl_kobj.parent = &edac_class->kset.kobj;
--	edac_memctrl_kobj.ktype = &ktype_memctrl;
--
--	/* generate sysfs "..../edac/mc"   */
--	err = kobject_set_name(&edac_memctrl_kobj, "mc");
--	if (err) {
--		debugf1("%s() Failed to set name '.../edac/mc'\n", __func__);
--		return err;
--	}
--
--	/* FIXME: maybe new sysdev_create_subdir() */
--	err = kobject_register(&edac_memctrl_kobj);
--	if (err) {
--		debugf1("%s() Failed to register '.../edac/mc'\n", __func__);
--		return err;
--	}
--
--	debugf1("%s() Registered '.../edac/mc' kobject\n", __func__);
--	return 0;
--}
--
--/*
-- * MC teardown:
-- *	the '..../edac/mc' kobject followed by '..../edac' itself
-- */
--void edac_sysfs_memctrl_teardown(void)
--{
--	debugf0("MC: " __FILE__ ": %s()\n", __func__);
--
--	/* Unregister the MC's kobject and wait for reference count to reach 0.
--	 */
--	init_completion(&edac_memctrl_kobj_complete);
--	kobject_unregister(&edac_memctrl_kobj);
--	wait_for_completion(&edac_memctrl_kobj_complete);
--}
- 
- /* EDAC sysfs CSROW data structures and methods
-  */
-@@ -486,10 +333,15 @@ static int edac_create_channel_files(str
- /* No memory to release for this kobj */
- static void edac_csrow_instance_release(struct kobject *kobj)
- {
-+	struct mem_ctl_info *mci;
- 	struct csrow_info *cs;
- 
-+	debugf1("%s()\n", __func__);
-+
- 	cs = container_of(kobj, struct csrow_info, kobj);
--	complete(&cs->kobj_complete);
-+	mci = cs->mci;
-+
-+	kobject_put(&mci->edac_mci_kobj);
- }
- 
- /* the kobj_type instance for a CSROW */
-@@ -500,38 +352,61 @@ static struct kobj_type ktype_csrow = {
- };
- 
- /* Create a CSROW object under specifed edac_mc_device */
--static int edac_create_csrow_object(struct kobject *edac_mci_kobj,
--				struct csrow_info *csrow, int index)
-+static int edac_create_csrow_object(struct mem_ctl_info *mci,
-+					struct csrow_info *csrow, int index)
- {
--	int err = 0;
-+	struct kobject *kobj_mci = &mci->edac_mci_kobj;
-+	struct kobject *kobj;
- 	int chan;
--
--	memset(&csrow->kobj, 0, sizeof(csrow->kobj));
-+	int err;
- 
- 	/* generate ..../edac/mc/mc<id>/csrow<index>   */
--
--	csrow->kobj.parent = edac_mci_kobj;
-+	memset(&csrow->kobj, 0, sizeof(csrow->kobj));
-+	csrow->mci = mci;	/* include container up link */
-+	csrow->kobj.parent = kobj_mci;
- 	csrow->kobj.ktype = &ktype_csrow;
- 
- 	/* name this instance of csrow<id> */
- 	err = kobject_set_name(&csrow->kobj, "csrow%d", index);
- 	if (err)
--		goto error_exit;
-+		goto err_out;
-+
-+	/* bump the mci instance's kobject's ref count */
-+	kobj = kobject_get(&mci->edac_mci_kobj);
-+	if (!kobj) {
++		debugf1("%s() no edac_class error\n", __func__);
 +		err = -ENODEV;
 +		goto err_out;
-+	}
- 
- 	/* Instanstiate the csrow object */
- 	err = kobject_register(&csrow->kobj);
--	if (!err) {
--		/* Create the dyanmic attribute files on this csrow,
--		 * namely, the DIMM labels and the channel ce_count
--		 */
--		for (chan = 0; chan < csrow->nr_channels; chan++) {
--			err = edac_create_channel_files(&csrow->kobj, chan);
--			if (err)
--				break;
-+	if (err)
-+		goto err_release_top_kobj;
-+
-+	/* At this point, to release a csrow kobj, one must
-+	 * call the kobject_unregister and allow that tear down
-+	 * to work the releasing
-+	 */
-+
-+	/* Create the dyanmic attribute files on this csrow,
-+	 * namely, the DIMM labels and the channel ce_count
-+	 */
-+	for (chan = 0; chan < csrow->nr_channels; chan++) {
-+		err = edac_create_channel_files(&csrow->kobj, chan);
-+		if (err) {
-+			/* special case the unregister here */
-+			kobject_unregister(&csrow->kobj);
-+			goto err_out;
- 		}
  	}
  
--error_exit:
-+	return 0;
-+
-+	/* error unwind stack */
-+err_release_top_kobj:
-+	kobject_put(&mci->edac_mci_kobj);
-+
-+err_out:
- 	return err;
- }
- 
-@@ -688,6 +563,7 @@ static ssize_t mcidev_store(struct kobje
- 	return -EIO;
- }
- 
-+/* Intermediate show/store table */
- static struct sysfs_ops mci_ops = {
- 	.show = mcidev_show,
- 	.store = mcidev_store
-@@ -729,32 +605,213 @@ static struct mcidev_sysfs_attribute *mc
- 	NULL
- };
- 
-+
- /*
-  * Release of a MC controlling instance
-+ *
-+ *	each MC control instance has the following resources upon entry:
-+ *		a) a ref count on the top memctl kobj
-+ *		b) a ref count on this module
-+ *
-+ *	this function must decrement those ref counts and then
-+ *	issue a free on the instance's memory
-  */
--static void edac_mci_instance_release(struct kobject *kobj)
-+static void edac_mci_control_release(struct kobject *kobj)
- {
- 	struct mem_ctl_info *mci;
- 
- 	mci = to_mci(kobj);
--	debugf0("%s() idx=%d\n", __func__, mci->mc_idx);
--	complete(&mci->kobj_complete);
-+
-+	debugf0("%s() mci instance idx=%d releasing\n", __func__, mci->mc_idx);
-+
-+	/* decrement the module ref count */
-+	module_put(mci->owner);
-+
-+	/* free the mci instance memory here */
-+	kfree(mci);
- }
- 
- static struct kobj_type ktype_mci = {
--	.release = edac_mci_instance_release,
-+	.release = edac_mci_control_release,
- 	.sysfs_ops = &mci_ops,
- 	.default_attrs = (struct attribute **)mci_attr,
- };
- 
-+/* show/store, tables, etc for the MC kset */
-+
-+
-+struct memctrl_dev_attribute {
-+	struct attribute attr;
-+	void *value;
-+	 ssize_t(*show) (void *, char *);
-+	 ssize_t(*store) (void *, const char *, size_t);
-+};
-+
-+/* Set of show/store abstract level functions for memory control object */
-+static ssize_t memctrl_dev_show(struct kobject *kobj,
-+				struct attribute *attr, char *buffer)
-+{
-+	struct memctrl_dev_attribute *memctrl_dev;
-+	memctrl_dev = (struct memctrl_dev_attribute *)attr;
-+
-+	if (memctrl_dev->show)
-+		return memctrl_dev->show(memctrl_dev->value, buffer);
-+
-+	return -EIO;
-+}
-+
-+static ssize_t memctrl_dev_store(struct kobject *kobj, struct attribute *attr,
-+				 const char *buffer, size_t count)
-+{
-+	struct memctrl_dev_attribute *memctrl_dev;
-+	memctrl_dev = (struct memctrl_dev_attribute *)attr;
-+
-+	if (memctrl_dev->store)
-+		return memctrl_dev->store(memctrl_dev->value, buffer, count);
-+
-+	return -EIO;
-+}
-+
-+static struct sysfs_ops memctrlfs_ops = {
-+	.show = memctrl_dev_show,
-+	.store = memctrl_dev_store
-+};
-+
-+#define MEMCTRL_ATTR(_name, _mode, _show, _store)			\
-+static struct memctrl_dev_attribute attr_##_name = {			\
-+	.attr = {.name = __stringify(_name), .mode = _mode },	\
-+	.value  = &_name,					\
-+	.show   = _show,					\
-+	.store  = _store,					\
-+};
-+
-+#define MEMCTRL_STRING_ATTR(_name, _data, _mode, _show, _store)	\
-+static struct memctrl_dev_attribute attr_##_name = {			\
-+	.attr = {.name = __stringify(_name), .mode = _mode },	\
-+	.value  = _data,					\
-+	.show   = _show,					\
-+	.store  = _store,					\
-+};
-+
-+/* csrow<id> control files */
-+MEMCTRL_ATTR(edac_mc_panic_on_ue,
-+	S_IRUGO | S_IWUSR, memctrl_int_show, memctrl_int_store);
-+
-+MEMCTRL_ATTR(edac_mc_log_ue,
-+	S_IRUGO | S_IWUSR, memctrl_int_show, memctrl_int_store);
-+
-+MEMCTRL_ATTR(edac_mc_log_ce,
-+	S_IRUGO | S_IWUSR, memctrl_int_show, memctrl_int_store);
-+
-+MEMCTRL_ATTR(edac_mc_poll_msec,
-+	S_IRUGO | S_IWUSR, memctrl_int_show, memctrl_int_store);
-+
-+/* Base Attributes of the memory ECC object */
-+static struct memctrl_dev_attribute *memctrl_attr[] = {
-+	&attr_edac_mc_panic_on_ue,
-+	&attr_edac_mc_log_ue,
-+	&attr_edac_mc_log_ce,
-+	&attr_edac_mc_poll_msec,
-+	NULL,
-+};
-+
-+
-+/* the ktype for the mc_kset internal kobj */
-+static struct kobj_type ktype_mc_set_attribs = {
-+	.sysfs_ops = &memctrlfs_ops,
-+	.default_attrs = (struct attribute **)memctrl_attr,
-+};
-+
-+/* EDAC memory controller sysfs kset:
-+ *	/sys/devices/system/edac/mc
-+ */
-+static struct kset mc_kset = {
-+	.kobj = {.name = "mc", .ktype = &ktype_mc_set_attribs },
-+	.ktype = &ktype_mci,
-+};
-+
-+
-+/*
-+ * edac_mc_register_sysfs_main_kobj
-+ *
-+ *	setups and registers the main kobject for each mci
-+ */
-+int edac_mc_register_sysfs_main_kobj(struct mem_ctl_info *mci)
-+{
-+	struct kobject *kobj_mci;
-+	int err;
-+
-+	debugf1("%s()\n", __func__);
-+
-+	kobj_mci = &mci->edac_mci_kobj;
-+
-+	/* Init the mci's kobject */
-+	memset(kobj_mci, 0, sizeof(*kobj_mci));
-+
-+	/* this instance become part of the mc_kset */
-+	kobj_mci->kset = &mc_kset;
-+
-+	/* set the name of the mc<id> object */
-+	err = kobject_set_name(kobj_mci, "mc%d", mci->mc_idx);
-+	if (err)
-+		goto fail_out;
+ 	/* Point to the 'edac_class' this instance 'reports' to */
+@@ -223,42 +255,65 @@ static int edac_device_register_main_kob
+ 	debugf1("%s() set name of kobject to: %s\n", __func__, edac_dev->name);
+ 	err = kobject_set_name(&edac_dev->kobj, "%s", edac_dev->name);
+ 	if (err)
+-		return err;
++		goto err_out;
 +
 +	/* Record which module 'owns' this control structure
 +	 * and bump the ref count of the module
 +	 */
-+	mci->owner = THIS_MODULE;
++	edac_dev->owner = THIS_MODULE;
 +
-+	/* bump ref count on this module */
-+	if (!try_module_get(mci->owner)) {
++	if (!try_module_get(edac_dev->owner)) {
 +		err = -ENODEV;
-+		goto fail_out;
++		goto err_out;
 +	}
 +
-+	/* register the mc<id> kobject to the mc_kset */
-+	err = kobject_register(kobj_mci);
-+	if (err) {
-+		debugf1("%s()Failed to register '.../edac/mc%d'\n",
-+			__func__, mci->mc_idx);
-+		goto kobj_reg_fail;
-+	}
-+
++	/* register */
+ 	err = kobject_register(&edac_dev->kobj);
+ 	if (err) {
+ 		debugf1("%s()Failed to register '.../edac/%s'\n",
+ 			__func__, edac_dev->name);
+-		return err;
++		goto err_kobj_reg;
+ 	}
+ 
 +	/* At this point, to 'free' the control struct,
-+	 * edac_mc_unregister_sysfs_main_kobj() must be used
++	 * edac_device_unregister_sysfs_main_kobj() must be used
 +	 */
 +
-+	debugf1("%s() Registered '.../edac/mc%d' kobject\n",
-+		__func__, mci->mc_idx);
-+
-+	return 0;
+ 	debugf1("%s() Registered '.../edac/%s' kobject\n",
+ 		__func__, edac_dev->name);
+ 
+ 	return 0;
 +
 +	/* Error exit stack */
++err_kobj_reg:
++	module_put(edac_dev->owner);
 +
-+kobj_reg_fail:
-+	module_put(mci->owner);
-+
-+fail_out:
++err_out:
 +	return err;
-+}
-+
-+/*
-+ * edac_mc_register_sysfs_main_kobj
-+ *
-+ *	tears down and the main mci kobject from the mc_kset
-+ */
-+void edac_mc_unregister_sysfs_main_kobj(struct mem_ctl_info *mci)
-+{
-+	/* delete the kobj from the mc_kset */
-+	kobject_unregister(&mci->edac_mci_kobj);
-+}
-+
- #define EDAC_DEVICE_SYMLINK	"device"
- 
- /*
-- * edac_create_driver_attributes
-+ * edac_create_mci_instance_attributes
-  *	create MC driver specific attributes at the topmost level
-  *	directory of this mci instance.
-  */
--static int edac_create_driver_attributes(struct mem_ctl_info *mci)
-+static int edac_create_mci_instance_attributes(struct mem_ctl_info *mci)
- {
- 	int err;
- 	struct mcidev_sysfs_attribute *sysfs_attrib;
-@@ -764,7 +821,7 @@ static int edac_create_driver_attributes
- 	 */
- 	sysfs_attrib = mci->mc_driver_sysfs_attributes;
- 
--	while (sysfs_attrib->attr.name != NULL) {
-+	while (sysfs_attrib && sysfs_attrib->attr.name) {
- 		err = sysfs_create_file(&mci->edac_mci_kobj,
- 					(struct attribute*) sysfs_attrib);
- 		if (err) {
-@@ -778,6 +835,29 @@ static int edac_create_driver_attributes
  }
  
  /*
-+ * edac_remove_mci_instance_attributes
-+ *	remove MC driver specific attributes at the topmost level
-+ *	directory of this mci instance.
-+ */
-+static void edac_remove_mci_instance_attributes(struct mem_ctl_info *mci)
-+{
-+	struct mcidev_sysfs_attribute *sysfs_attrib;
-+
-+	/* point to the start of the array and iterate over it
-+	 * adding each attribute listed to this mci instance's kobject
+- * edac_device_unregister_main_kobj:
++ * edac_device_unregister_sysfs_main_kobj:
+  *	the '..../edac/<name>' kobject
+  */
+-static void edac_device_unregister_main_kobj(struct edac_device_ctl_info
+-					*edac_dev)
++void edac_device_unregister_sysfs_main_kobj(
++					struct edac_device_ctl_info *edac_dev)
+ {
+ 	debugf0("%s()\n", __func__);
+ 	debugf1("%s() name of kobject is: %s\n",
+ 		__func__, kobject_name(&edac_dev->kobj));
+ 
+-	init_completion(&edac_dev->kobj_complete);
+-
+ 	/*
+ 	 * Unregister the edac device's kobject and
+-	 * wait for reference count to reach 0.
++	 * allow for reference count to reach 0 at which point
++	 * the callback will be called to:
++	 *   a) module_put() this module
++	 *   b) 'kfree' the memory
+ 	 */
+ 	kobject_unregister(&edac_dev->kobj);
+-	wait_for_completion(&edac_dev->kobj_complete);
+ }
+ 
+-/*************** edac_dev -> instance information ***********/
++/* edac_dev -> instance information */
+ 
+ /*
+  * Set of low-level instance attribute show functions
+@@ -285,8 +340,11 @@ static void edac_device_ctrl_instance_re
+ 
+ 	debugf1("%s()\n", __func__);
+ 
++	/* map from this kobj to the main control struct
++	 * and then dec the main kobj count
 +	 */
-+	sysfs_attrib = mci->mc_driver_sysfs_attributes;
+ 	instance = to_instance(kobj);
+-	complete(&instance->kobj_complete);
++	kobject_put(&instance->ctl->kobj);
+ }
+ 
+ /* instance specific attribute structure */
+@@ -356,7 +414,7 @@ static struct kobj_type ktype_instance_c
+ 	.default_attrs = (struct attribute **)device_instance_attr,
+ };
+ 
+-/*************** edac_dev -> instance -> block information *********/
++/* edac_dev -> instance -> block information */
+ 
+ /*
+  * Set of low-level block attribute show functions
+@@ -381,8 +439,13 @@ static void edac_device_ctrl_block_relea
+ 
+ 	debugf1("%s()\n", __func__);
+ 
++	/* get the container of the kobj */
+ 	block = to_block(kobj);
+-	complete(&block->kobj_complete);
 +
-+	/* loop if there are attributes and until we hit a NULL entry */
-+	while (sysfs_attrib && sysfs_attrib->attr.name) {
-+		sysfs_remove_file(&mci->edac_mci_kobj,
-+					(struct attribute *) sysfs_attrib);
-+		sysfs_attrib++;
-+	}
-+}
-+
-+
-+/*
-  * Create a new Memory Controller kobject instance,
-  *	mc<id> under the 'mc' directory
-  *
-@@ -790,51 +870,43 @@ int edac_create_sysfs_mci_device(struct 
++	/* map from 'block kobj' to 'block->instance->controller->main_kobj'
++	 * now 'release' the block kobject
++	 */
++	kobject_put(&block->instance->ctl->kobj);
+ }
+ 
+ /* block specific attribute structure */
+@@ -447,49 +510,60 @@ static struct kobj_type ktype_block_ctrl
+ 	.default_attrs = (struct attribute **)device_block_attr,
+ };
+ 
+-/************** block ctor/dtor  code ************/
++/* block ctor/dtor  code */
+ 
+ /*
+  * edac_device_create_block
+  */
+ static int edac_device_create_block(struct edac_device_ctl_info *edac_dev,
+ 				struct edac_device_instance *instance,
+-				int idx)
++				struct edac_device_block *block)
+ {
  	int i;
  	int err;
- 	struct csrow_info *csrow;
--	struct kobject *edac_mci_kobj = &mci->edac_mci_kobj;
-+	struct kobject *kobj_mci = &mci->edac_mci_kobj;
+-	struct edac_device_block *block;
+ 	struct edac_dev_sysfs_block_attribute *sysfs_attrib;
++	struct kobject *main_kobj;
  
- 	debugf0("%s() idx=%d\n", __func__, mci->mc_idx);
--	memset(edac_mci_kobj, 0, sizeof(*edac_mci_kobj));
+-	block = &instance->blocks[idx];
 -
--	/* set the name of the mc<id> object */
--	err = kobject_set_name(edac_mci_kobj, "mc%d", mci->mc_idx);
--	if (err)
--		return err;
--
--	/* link to our parent the '..../edac/mc' object */
--	edac_mci_kobj->parent = &edac_memctrl_kobj;
--	edac_mci_kobj->ktype = &ktype_mci;
--
--	/* register the mc<id> kobject */
--	err = kobject_register(edac_mci_kobj);
--	if (err)
--		return err;
+-	debugf1("%s() Instance '%s' block[%d] '%s'\n",
+-		__func__, instance->name, idx, block->name);
++	debugf1("%s() Instance '%s' block '%s'\n",
++		__func__, instance->name, block->name);
  
- 	/* create a symlink for the device */
--	err = sysfs_create_link(edac_mci_kobj, &mci->dev->kobj,
-+	err = sysfs_create_link(kobj_mci, &mci->dev->kobj,
- 				EDAC_DEVICE_SYMLINK);
--	if (err)
-+	if (err) {
-+		debugf1("%s() failure to create symlink\n", __func__);
- 		goto fail0;
-+	}
+ 	/* init this block's kobject */
+ 	memset(&block->kobj, 0, sizeof(struct kobject));
+ 	block->kobj.parent = &instance->kobj;
+ 	block->kobj.ktype = &ktype_block_ctrl;
++	block->instance = instance;
  
- 	/* If the low level driver desires some attributes,
- 	 * then create them now for the driver.
- 	 */
- 	if (mci->mc_driver_sysfs_attributes) {
--		err = edac_create_driver_attributes(mci);
--		if (err)
-+		err = edac_create_mci_instance_attributes(mci);
-+		if (err) {
-+			debugf1("%s() failure to create mci attributes\n",
-+				__func__);
- 			goto fail0;
-+		}
- 	}
+ 	err = kobject_set_name(&block->kobj, "%s", block->name);
+ 	if (err)
+ 		return err;
  
--	/* Make directories for each CSROW object
--	 * under the mc<id> kobject
-+	/* Make directories for each CSROW object under the mc<id> kobject
- 	 */
- 	for (i = 0; i < mci->nr_csrows; i++) {
- 		csrow = &mci->csrows[i];
- 
- 		/* Only expose populated CSROWs */
- 		if (csrow->nr_pages > 0) {
--			err = edac_create_csrow_object(edac_mci_kobj, csrow, i);
--			if (err)
-+			err = edac_create_csrow_object(mci, csrow, i);
-+			if (err) {
-+				debugf1("%s() failure: create csrow %d obj\n",
-+					__func__, i);
- 				goto fail1;
-+			}
- 		}
- 	}
- 
-@@ -844,16 +916,17 @@ int edac_create_sysfs_mci_device(struct 
- fail1:
- 	for (i--; i >= 0; i--) {
- 		if (csrow->nr_pages > 0) {
--			init_completion(&csrow->kobj_complete);
- 			kobject_unregister(&mci->csrows[i].kobj);
--			wait_for_completion(&csrow->kobj_complete);
- 		}
- 	}
- 
-+	/* remove the mci instance's attributes, if any */
-+	edac_remove_mci_instance_attributes(mci);
-+
-+	/* remove the symlink */
-+	sysfs_remove_link(kobj_mci, EDAC_DEVICE_SYMLINK);
-+
- fail0:
--	init_completion(&mci->kobj_complete);
--	kobject_unregister(edac_mci_kobj);
--	wait_for_completion(&mci->kobj_complete);
- 	return err;
- }
- 
-@@ -869,14 +942,83 @@ void edac_remove_sysfs_mci_device(struct
- 	/* remove all csrow kobjects */
- 	for (i = 0; i < mci->nr_csrows; i++) {
- 		if (mci->csrows[i].nr_pages > 0) {
--			init_completion(&mci->csrows[i].kobj_complete);
-+			debugf0("%s()  unreg csrow-%d\n", __func__, i);
- 			kobject_unregister(&mci->csrows[i].kobj);
--			wait_for_completion(&mci->csrows[i].kobj_complete);
- 		}
- 	}
- 
-+	debugf0("%s()  remove_link\n", __func__);
-+
-+	/* remove the symlink */
- 	sysfs_remove_link(&mci->edac_mci_kobj, EDAC_DEVICE_SYMLINK);
--	init_completion(&mci->kobj_complete);
-+
-+	debugf0("%s()  remove_mci_instance\n", __func__);
-+
-+	/* remove this mci instance's attribtes */
-+	edac_remove_mci_instance_attributes(mci);
-+
-+	debugf0("%s()  unregister this mci kobj\n", __func__);
-+
-+	/* unregister this instance's kobject */
- 	kobject_unregister(&mci->edac_mci_kobj);
--	wait_for_completion(&mci->kobj_complete);
- }
-+
-+
-+
-+
-+/*
-+ * edac_setup_sysfs_mc_kset(void)
-+ *
-+ * Initialize the mc_kset for the 'mc' entry
-+ *	This requires creating the top 'mc' directory with a kset
-+ *	and its controls/attributes.
-+ *
-+ *	To this 'mc' kset, instance 'mci' will be grouped as children.
-+ *
-+ * Return:  0 SUCCESS
-+ *         !0 FAILURE error code
-+ */
-+int edac_sysfs_setup_mc_kset(void)
-+{
-+	int err = 0;
-+	struct sysdev_class *edac_class;
-+
-+	debugf1("%s()\n", __func__);
-+
-+	/* get the /sys/devices/system/edac class reference */
-+	edac_class = edac_get_edac_class();
-+	if (edac_class == NULL) {
-+		debugf1("%s() no edac_class error=%d\n", __func__, err);
-+		goto fail_out;
++	/* bump the main kobject's reference count for this controller
++	 * and this instance is dependant on the main
++	 */
++	main_kobj = kobject_get(&edac_dev->kobj);
++	if (!main_kobj) {
++		err = -ENODEV;
++		goto err_out;
 +	}
 +
-+	/* Init the MC's kobject */
-+	mc_kset.kobj.parent = &edac_class->kset.kobj;
-+
-+	/* register the mc_kset */
-+	err = kset_register(&mc_kset);
-+	if (err) {
-+		debugf1("%s() Failed to register '.../edac/mc'\n", __func__);
-+		goto fail_out;
-+	}
-+
-+	debugf1("%s() Registered '.../edac/mc' kobject\n", __func__);
-+
-+	return 0;
-+
-+
-+	/* error unwind stack */
-+fail_out:
-+	return err;
-+}
-+
-+/*
-+ * edac_sysfs_teardown_mc_kset
-+ *
-+ *	deconstruct the mc_ket for memory controllers
-+ */
-+void edac_sysfs_teardown_mc_kset(void)
-+{
-+	kset_unregister(&mc_kset);
-+}
-+
-diff -puN drivers/edac/edac_module.c~drivers-edac-fix-edac_mc-sysfs-completion-code drivers/edac/edac_module.c
---- a/drivers/edac/edac_module.c~drivers-edac-fix-edac_mc-sysfs-completion-code
-+++ a/drivers/edac/edac_module.c
-@@ -14,11 +14,11 @@
- #include "edac_core.h"
- #include "edac_module.h"
- 
--#define EDAC_MC_VERSION "Ver: 2.0.4 " __DATE__
-+#define EDAC_MC_VERSION "Ver: 2.0.5 " __DATE__
- 
- #ifdef CONFIG_EDAC_DEBUG
- /* Values of 0 to 4 will generate output */
--int edac_debug_level = 1;
-+int edac_debug_level = 2;
- EXPORT_SYMBOL_GPL(edac_debug_level);
- #endif
- 
-@@ -153,7 +153,7 @@ static int __init edac_init(void)
- 	edac_pci_clear_parity_errors();
- 
- 	/*
--	 * perform the registration of the /sys/devices/system/edac object
-+	 * perform the registration of the /sys/devices/system/edac class object
- 	 */
- 	if (edac_register_sysfs_edac_name()) {
- 		edac_printk(KERN_ERR, EDAC_MC,
-@@ -162,29 +162,29 @@ static int __init edac_init(void)
- 		goto error;
- 	}
- 
--	/* Create the MC sysfs entries, must be first
-+	/*
-+	 * now set up the mc_kset under the edac class object
- 	 */
--	if (edac_sysfs_memctrl_setup()) {
--		edac_printk(KERN_ERR, EDAC_MC,
--			"Error initializing sysfs code\n");
--		err = -ENODEV;
--		goto error_sysfs;
--	}
-+	err = edac_sysfs_setup_mc_kset();
-+	if (err)
-+		goto sysfs_setup_fail;
- 
--	/* Setup/Initialize the edac_device system */
-+	/* Setup/Initialize the workq for this core */
- 	err = edac_workqueue_setup();
++	/* Add this block's kobject */
+ 	err = kobject_register(&block->kobj);
  	if (err) {
- 		edac_printk(KERN_ERR, EDAC_MC, "init WorkQueue failure\n");
--		goto error_mem;
-+		goto workq_fail;
+-		debugf1("%s()Failed to register instance '%s'\n",
++		debugf1("%s() Failed to register instance '%s'\n",
+ 			__func__, block->name);
+-		return err;
++		kobject_put(main_kobj);
++		err = -ENODEV;
++		goto err_out;
  	}
+ 
+ 	/* If there are driver level block attributes, then added them
+ 	 * to the block kobject
+ 	 */
+ 	sysfs_attrib = block->block_attributes;
+-	if (sysfs_attrib != NULL) {
++	if (sysfs_attrib) {
+ 		for (i = 0; i < block->nr_attribs; i++) {
+ 			err = sysfs_create_file(&block->kobj,
+-				(struct attribute *) &sysfs_attrib[i]);
++				(struct attribute *) sysfs_attrib);
+ 			if (err)
+ 				goto err_on_attrib;
+ 
+@@ -499,30 +573,41 @@ static int edac_device_create_block(stru
  
  	return 0;
  
- 	/* Error teardown stack */
--error_mem:
--	edac_sysfs_memctrl_teardown();
--error_sysfs:
-+workq_fail:
-+	edac_sysfs_teardown_mc_kset();
-+
-+sysfs_setup_fail:
- 	edac_unregister_sysfs_edac_name();
-+
- error:
++	/* Error unwind stack */
+ err_on_attrib:
+ 	kobject_unregister(&block->kobj);
+ 
++err_out:
  	return err;
  }
-@@ -199,7 +199,7 @@ static void __exit edac_exit(void)
  
- 	/* tear down the various subsystems */
- 	edac_workqueue_teardown();
--	edac_sysfs_memctrl_teardown();
-+	edac_sysfs_teardown_mc_kset();
- 	edac_unregister_sysfs_edac_name();
+ /*
+- * edac_device_delete_block(edac_dev,j);
++ * edac_device_delete_block(edac_dev,block);
+  */
+ static void edac_device_delete_block(struct edac_device_ctl_info *edac_dev,
+-				struct edac_device_instance *instance,
+-				int idx)
++				struct edac_device_block *block)
+ {
+-	struct edac_device_block *block;
++	struct edac_dev_sysfs_block_attribute *sysfs_attrib;
++	int i;
+ 
+-	block = &instance->blocks[idx];
++	/* if this block has 'attributes' then we need to iterate over the list
++	 * and 'remove' the attributes on this block
++	 */
++	sysfs_attrib = block->block_attributes;
++	if (sysfs_attrib && block->nr_attribs) {
++		for (i = 0; i < block->nr_attribs; i++) {
++			sysfs_remove_file(&block->kobj,
++				(struct attribute *) sysfs_attrib);
++		}
++	}
+ 
+-	/* unregister this block's kobject */
+-	init_completion(&block->kobj_complete);
++	/* unregister this block's kobject, SEE:
++	 *	edac_device_ctrl_block_release() callback operation
++	 */
+ 	kobject_unregister(&block->kobj);
+-	wait_for_completion(&block->kobj_complete);
  }
  
-diff -puN drivers/edac/edac_module.h~drivers-edac-fix-edac_mc-sysfs-completion-code drivers/edac/edac_module.h
---- a/drivers/edac/edac_module.h~drivers-edac-fix-edac_mc-sysfs-completion-code
-+++ a/drivers/edac/edac_module.h
-@@ -18,11 +18,15 @@
-  * INTERNAL EDAC MODULE:
-  * EDAC memory controller sysfs create/remove functions
-  * and setup/teardown functions
-+ *
-+ * edac_mc objects
+-/************** instance ctor/dtor  code ************/
++/* instance ctor/dtor code */
+ 
+ /*
+  * edac_device_create_instance
+@@ -534,6 +619,7 @@ static int edac_device_create_instance(s
+ 	int i, j;
+ 	int err;
+ 	struct edac_device_instance *instance;
++	struct kobject *main_kobj;
+ 
+ 	instance = &edac_dev->instances[idx];
+ 
+@@ -543,16 +629,28 @@ static int edac_device_create_instance(s
+ 	/* set this new device under the edac_device main kobject */
+ 	instance->kobj.parent = &edac_dev->kobj;
+ 	instance->kobj.ktype = &ktype_instance_ctrl;
++	instance->ctl = edac_dev;
+ 
+ 	err = kobject_set_name(&instance->kobj, "%s", instance->name);
+ 	if (err)
+-		return err;
++		goto err_out;
++
++	/* bump the main kobject's reference count for this controller
++	 * and this instance is dependant on the main
++	 */
++	main_kobj = kobject_get(&edac_dev->kobj);
++	if (!main_kobj) {
++		err = -ENODEV;
++		goto err_out;
++	}
+ 
++	/* Formally register this instance's kobject */
+ 	err = kobject_register(&instance->kobj);
+ 	if (err != 0) {
+ 		debugf2("%s() Failed to register instance '%s'\n",
+ 			__func__, instance->name);
+-		return err;
++		kobject_put(main_kobj);
++		goto err_out;
+ 	}
+ 
+ 	debugf1("%s() now register '%d' blocks for instance %d\n",
+@@ -560,11 +658,14 @@ static int edac_device_create_instance(s
+ 
+ 	/* register all blocks of this instance */
+ 	for (i = 0; i < instance->nr_blocks; i++) {
+-		err = edac_device_create_block(edac_dev, instance, i);
++		err = edac_device_create_block(edac_dev, instance,
++						&instance->blocks[i]);
+ 		if (err) {
++			/* If any fail, remove all previous ones */
+ 			for (j = 0; j < i; j++)
+-				edac_device_delete_block(edac_dev, instance, j);
+-			return err;
++				edac_device_delete_block(edac_dev,
++							&instance->blocks[j]);
++			goto err_release_instance_kobj;
+ 		}
+ 	}
+ 
+@@ -572,6 +673,13 @@ static int edac_device_create_instance(s
+ 		__func__, idx, instance->name);
+ 
+ 	return 0;
++
++	/* error unwind stack */
++err_release_instance_kobj:
++	kobject_unregister(&instance->kobj);
++
++err_out:
++	return err;
+ }
+ 
+ /*
+@@ -581,19 +689,19 @@ static int edac_device_create_instance(s
+ static void edac_device_delete_instance(struct edac_device_ctl_info *edac_dev,
+ 					int idx)
+ {
+-	int i;
+ 	struct edac_device_instance *instance;
++	int i;
+ 
+ 	instance = &edac_dev->instances[idx];
+ 
+ 	/* unregister all blocks in this instance */
+ 	for (i = 0; i < instance->nr_blocks; i++)
+-		edac_device_delete_block(edac_dev, instance, i);
++		edac_device_delete_block(edac_dev, &instance->blocks[i]);
+ 
+-	/* unregister this instance's kobject */
+-	init_completion(&instance->kobj_complete);
++	/* unregister this instance's kobject, SEE:
++	 *	edac_device_ctrl_instance_release() for callback operation
++	 */
+ 	kobject_unregister(&instance->kobj);
+-	wait_for_completion(&instance->kobj_complete);
+ }
+ 
+ /*
+@@ -635,39 +743,69 @@ static void edac_device_delete_instances
+ 		edac_device_delete_instance(edac_dev, i);
+ }
+ 
+-/******************* edac_dev sysfs ctor/dtor  code *************/
++/* edac_dev sysfs ctor/dtor  code */
+ 
+ /*
+- * edac_device_add_sysfs_attributes
++ * edac_device_add_main_sysfs_attributes
+  *	add some attributes to this instance's main kobject
   */
-+extern int edac_sysfs_setup_mc_kset(void);
-+extern void edac_sysfs_teardown_mc_kset(void);
-+extern int edac_mc_register_sysfs_main_kobj(struct mem_ctl_info *mci);
-+extern void edac_mc_unregister_sysfs_main_kobj(struct mem_ctl_info *mci);
- extern int edac_create_sysfs_mci_device(struct mem_ctl_info *mci);
- extern void edac_remove_sysfs_mci_device(struct mem_ctl_info *mci);
--extern int edac_sysfs_memctrl_setup(void);
--extern void edac_sysfs_memctrl_teardown(void);
- extern void edac_check_mc_devices(void);
- extern int edac_get_log_ue(void);
- extern int edac_get_log_ce(void);
+-static int edac_device_add_sysfs_attributes(
++static int edac_device_add_main_sysfs_attributes(
+ 			struct edac_device_ctl_info *edac_dev)
+ {
+-	int err;
+ 	struct edac_dev_sysfs_attribute *sysfs_attrib;
++	int err = 0;
+ 
+-	/* point to the start of the array and iterate over it
+-	 * adding each attribute listed to this mci instance's kobject
+-	 */
+ 	sysfs_attrib = edac_dev->sysfs_attributes;
+-
+-	while (sysfs_attrib->attr.name != NULL) {
+-		err = sysfs_create_file(&edac_dev->kobj,
++	if (sysfs_attrib) {
++		/* iterate over the array and create an attribute for each
++		 * entry in the list
++		 */
++		while (sysfs_attrib->attr.name != NULL) {
++			err = sysfs_create_file(&edac_dev->kobj,
+ 				(struct attribute*) sysfs_attrib);
+-		if (err)
+-			return err;
++			if (err)
++				goto err_out;
+ 
+-		sysfs_attrib++;
++			sysfs_attrib++;
++		}
+ 	}
+ 
+-	return 0;
++err_out:
++	return err;
++}
++
++/*
++ * edac_device_remove_main_sysfs_attributes
++ *	remove any attributes to this instance's main kobject
++ */
++static void edac_device_remove_main_sysfs_attributes(
++			struct edac_device_ctl_info *edac_dev)
++{
++	struct edac_dev_sysfs_attribute *sysfs_attrib;
++
++	/* if there are main attributes, defined, remove them. First,
++	 * point to the start of the array and iterate over it
++	 * removing each attribute listed from this device's instance's kobject
++	 */
++	sysfs_attrib = edac_dev->sysfs_attributes;
++	if (sysfs_attrib) {
++		while (sysfs_attrib->attr.name != NULL) {
++			sysfs_remove_file(&edac_dev->kobj,
++					(struct attribute *) sysfs_attrib);
++			sysfs_attrib++;
++		}
++	}
+ }
+ 
+ /*
+  * edac_device_create_sysfs() Constructor
+  *
+- * Create a new edac_device kobject instance,
++ * accept a created edac_device control structure
++ * and 'export' it to sysfs. The 'main' kobj should already have been
++ * created. 'instance' and 'block' kobjects should be registered
++ * along with any 'block' attributes from the low driver. In addition,
++ * the main attributes (if any) are connected to the main kobject of
++ * the control structure.
+  *
+  * Return:
+  *	0	Success
+@@ -678,23 +816,13 @@ int edac_device_create_sysfs(struct edac
+ 	int err;
+ 	struct kobject *edac_kobj = &edac_dev->kobj;
+ 
+-	/* register this instance's main kobj with the edac class kobj */
+-	err = edac_device_register_main_kobj(edac_dev);
+-	if (err)
+-		return err;
+-
+ 	debugf0("%s() idx=%d\n", __func__, edac_dev->dev_idx);
+ 
+-	/* If the low level driver requests some sysfs entries
+-	 * then go create them here
+-	 */
+-	if (edac_dev->sysfs_attributes != NULL) {
+-		err = edac_device_add_sysfs_attributes(edac_dev);
+-		if (err) {
+-			debugf0("%s() failed to add sysfs attribs\n",
+-				__func__);
+-			goto err_unreg_object;
+-		}
++	/*  go create any main attributes callers wants */
++	err = edac_device_add_main_sysfs_attributes(edac_dev);
++	if (err) {
++		debugf0("%s() failed to add sysfs attribs\n", __func__);
++		goto err_out;
+ 	}
+ 
+ 	/* create a symlink from the edac device
+@@ -705,16 +833,23 @@ int edac_device_create_sysfs(struct edac
+ 	if (err) {
+ 		debugf0("%s() sysfs_create_link() returned err= %d\n",
+ 			__func__, err);
+-		goto err_unreg_object;
++		goto err_remove_main_attribs;
+ 	}
+ 
+-	debugf0("%s() calling create-instances, idx=%d\n",
+-		__func__, edac_dev->dev_idx);
+-
+-	/* Create the first level instance directories */
++	/* Create the first level instance directories
++	 * In turn, the nested blocks beneath the instances will
++	 * be registered as well
++	 */
+ 	err = edac_device_create_instances(edac_dev);
+-	if (err)
++	if (err) {
++		debugf0("%s() edac_device_create_instances() "
++			"returned err= %d\n", __func__, err);
+ 		goto err_remove_link;
++	}
++
++
++	debugf0("%s() calling create-instances, idx=%d\n",
++		__func__, edac_dev->dev_idx);
+ 
+ 	return 0;
+ 
+@@ -723,26 +858,28 @@ err_remove_link:
+ 	/* remove the sym link */
+ 	sysfs_remove_link(&edac_dev->kobj, EDAC_DEVICE_SYMLINK);
+ 
+-err_unreg_object:
+-	edac_device_unregister_main_kobj(edac_dev);
++err_remove_main_attribs:
++	edac_device_remove_main_sysfs_attributes(edac_dev);
+ 
++err_out:
+ 	return err;
+ }
+ 
+ /*
+  * edac_device_remove_sysfs() destructor
+  *
+- * remove a edac_device instance
++ * given an edac_device struct, tear down the kobject resources
+  */
+ void edac_device_remove_sysfs(struct edac_device_ctl_info *edac_dev)
+ {
+ 	debugf0("%s()\n", __func__);
+ 
+-	edac_device_delete_instances(edac_dev);
++	/* remove any main attributes for this device */
++	edac_device_remove_main_sysfs_attributes(edac_dev);
+ 
+-	/* remove the sym link */
++	/* remove the device sym link */
+ 	sysfs_remove_link(&edac_dev->kobj, EDAC_DEVICE_SYMLINK);
+ 
+-	/* unregister the instance's main kobj */
+-	edac_device_unregister_main_kobj(edac_dev);
++	/* walk the instance/block kobject tree, deconstructing it */
++	edac_device_delete_instances(edac_dev);
+ }
+diff -puN drivers/edac/edac_module.h~drivers-edac-fix-edac_device-sysfs-completion-code drivers/edac/edac_module.h
+--- a/drivers/edac/edac_module.h~drivers-edac-fix-edac_device-sysfs-completion-code
++++ a/drivers/edac/edac_module.h
+@@ -37,6 +37,10 @@ extern int edac_mc_get_panic_on_ue(void)
+ extern int edac_get_poll_msec(void);
+ extern int edac_mc_get_poll_msec(void);
+ 
++extern int edac_device_register_sysfs_main_kobj(
++				struct edac_device_ctl_info *edac_dev);
++extern void edac_device_unregister_sysfs_main_kobj(
++				struct edac_device_ctl_info *edac_dev);
+ extern int edac_device_create_sysfs(struct edac_device_ctl_info *edac_dev);
+ extern void edac_device_remove_sysfs(struct edac_device_ctl_info *edac_dev);
+ extern struct sysdev_class *edac_get_edac_class(void);
 _
 
 Patches currently in -mm which might be from dougthompson@xmission.com are
