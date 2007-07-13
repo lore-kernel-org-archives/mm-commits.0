@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports.patch added to -mm tree
-Date: Fri, 13 Jul 2007 00:34:09 -0700
-Message-ID: <200707130734.l6D7Y9w0005457@imap1.linux-foundation.org>
+Subject: + drivers-video-macmodescmac_find_mode-mustnt-be.patch added to -mm tree
+Date: Fri, 13 Jul 2007 00:52:56 -0700
+Message-ID: <200707130752.l6D7quBZ006474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37683 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58457 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935151AbXGMHo7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755817AbXGMHxU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 03:44:59 -0400
+	Fri, 13 Jul 2007 03:53:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bfields@citi.umich.edu, neilb@suse.de
+Cc: bunk@stusta.de, adaplas@pol.net, michal.k.k.piotrowski@gmail.com, stable@kernel.org
 
 
 The patch titled
-     knfsd: nfsd: allow auth_sys nlm on rpcsec_gss exports
+     drivers/video/macmodes.c:mac_find_mode() mustn't be __devinit
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports.patch
+     drivers-video-macmodescmac_find_mode-mustnt-be.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,78 +26,130 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd: allow auth_sys nlm on rpcsec_gss exports
-From: J. Bruce Fields <bfields@citi.umich.edu>
+Subject: drivers/video/macmodes.c:mac_find_mode() mustn't be __devinit
+From: Adrian Bunk <bunk@stusta.de>
 
-Our clients (like other clients, as far as I know) use only auth_sys for nlm,
-even when using rpcsec_gss for the main nfs operations.
+If it's EXPORT_SYMBOL'ed it can't be __devinit.
 
-Administrators that want to deny non-kerberos-authenticated locking requests
-will need to turn off NFS protocol versions less than 4....
+Reported by Mikael Pettersson.
 
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfsfh.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/video/macmodes.c |    5 ++---
+ drivers/video/macmodes.h |    8 ++++----
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN fs/nfsd/nfsfh.c~knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports fs/nfsd/nfsfh.c
---- a/fs/nfsd/nfsfh.c~knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports
-+++ a/fs/nfsd/nfsfh.c
-@@ -249,10 +249,16 @@ fh_verify(struct svc_rqst *rqstp, struct
- 	if (error)
- 		goto out;
+diff -puN drivers/video/macmodes.c~drivers-video-macmodescmac_find_mode-mustnt-be drivers/video/macmodes.c
+--- a/drivers/video/macmodes.c~drivers-video-macmodescmac_find_mode-mustnt-be
++++ a/drivers/video/macmodes.c
+@@ -369,9 +369,8 @@ EXPORT_SYMBOL(mac_map_monitor_sense);
+  *
+  */
  
--	/* Check security flavor */
--	error = check_nfsd_access(exp, rqstp);
--	if (error)
--		goto out;
-+	if (!(access & MAY_LOCK)) {
-+		/*
-+		 * pseudoflavor restrictions are not enforced on NLM,
-+		 * which clients virtually always use auth_sys for,
-+		 * even while using RPCSEC_GSS for NFS.
-+		 */
-+		error = check_nfsd_access(exp, rqstp);
-+		if (error)
-+			goto out;
-+	}
+-int __devinit mac_find_mode(struct fb_var_screeninfo *var,
+-			    struct fb_info *info, const char *mode_option,
+-			    unsigned int default_bpp)
++int mac_find_mode(struct fb_var_screeninfo *var, struct fb_info *info,
++		  const char *mode_option, unsigned int default_bpp)
+ {
+     const struct fb_videomode *db = NULL;
+     unsigned int dbsize = 0;
+diff -puN drivers/video/macmodes.h~drivers-video-macmodescmac_find_mode-mustnt-be drivers/video/macmodes.h
+--- a/drivers/video/macmodes.h~drivers-video-macmodescmac_find_mode-mustnt-be
++++ a/drivers/video/macmodes.h
+@@ -55,10 +55,10 @@ extern int mac_vmode_to_var(int vmode, i
+ extern int mac_var_to_vmode(const struct fb_var_screeninfo *var, int *vmode,
+ 			    int *cmode);
+ extern int mac_map_monitor_sense(int sense);
+-extern int __devinit mac_find_mode(struct fb_var_screeninfo *var,
+-				   struct fb_info *info,
+-				   const char *mode_option,
+-				   unsigned int default_bpp);
++extern int mac_find_mode(struct fb_var_screeninfo *var,
++			 struct fb_info *info,
++			 const char *mode_option,
++			 unsigned int default_bpp);
  
- 	/* Finally, check access permissions. */
- 	error = nfsd_permission(rqstp, exp, dentry, access);
+ 
+     /*
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-git-vfs-lease-api.patch
-fix-trivial-typos-in-anon_inodesc-comments.patch
-knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4.patch
-knfsd-nfsd4-fix-nfsv4-filehandle-size-units-confusion.patch
-knfsd-nfsd4-silence-a-compiler-warning-in-acl-code.patch
-knfsd-nfsd4-fix-enc_stateid_sz-for-nfsd-callbacks.patch
-knfsd-nfsd4-fix-handling-of-acl-errrors.patch
-knfsd-nfsd-remove-unused-header-interfaceh.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts.patch
-knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err.patch
-knfsd-nfsd4-build-rpcsec_gss-whenever-nfsd4-is-built.patch
-knfsd-nfsd4-store-pseudoflavor-in-request.patch
-knfsd-nfsd4-parse-secinfo-information-in-exports-downcall.patch
-knfsd-nfsd4-simplify-exp_pseudoroot-arguments.patch
-knfsd-nfsd-remove-superfluous-assignment-from-nfsd_lookup.patch
-knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst.patch
-knfsd-nfsd-set-rq_client-to-ip-address-determined-domain.patch
-knfsd-nfsd-use-ip-address-based-domain-in-secinfo-case.patch
-knfsd-nfsd-factor-nfsd_lookup-into-2-pieces.patch
-knfsd-nfsd4-return-nfserr_wrongsec.patch
-knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor.patch
-knfsd-nfsd-factor-out-code-from-show_expflags.patch
-knfsd-nfsd-display-export-secinfo-information.patch
-knfsd-rpc-add-gss-krb5-and-spkm3-oid-values.patch
-knfsd-nfsd4-implement-secinfo.patch
-knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch
-knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports.patch
-knfsd-nfsd-enforce-per-flavor-id-squashing.patch
+origin.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+git-powerpc.patch
+git-dvb.patch
+git-hwmon.patch
+git-input.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-md-accel.patch
+git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+bonding-bond_mainc-make-2-functions-static.patch
+git-net.patch
+git-battery.patch
+git-selinux.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+remove-the-dead-cyberstormiii_scsi-option.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-block.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+arch-i386-xen-mmuc-must-include-linux-schedh.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+xen-fix-x86-config-dependencies.patch
+xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
+xen-cant-support-numa-yet.patch
+mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
+handle-kernelcore=-generic.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+mm-slubc-make-code-static.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+more-scheduled-oss-driver-removal.patch
+init-wait-for-asynchronously-scanned-block-devices.patch
+kernel-utf-8-handling.patch
+remove-sonypi_camera_command.patch
+fs-namespacec-should-include-internalh.patch
+proper-prototype-for-proc_nr_files.patch
+fs-reiserfs-cleanups.patch
+remove-mm-backing-devccongestion_wait_interruptible.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+remove-options-depending-on-oss_obsolete.patch
+fbdev-move-arch-specific-bits-to-their-respective.patch
+pm3fb-possible-cleanups.patch
+vt8623fbc-make-code-static.patch
+drivers-video-macmodescmac_find_mode-mustnt-be.patch
+intel-iommu-intel-iommu-driver.patch
+mm-variable-length-argument-support.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+kernel-relayc-make-functions-static.patch
+drivers-edac-core-make-functions-static.patch
+lockstat-human-readability-tweaks.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
