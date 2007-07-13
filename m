@@ -1,135 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - nozomi-remove-termios-checks-from-various-old-char-serial-drivers.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:32:30 -0700
-Message-ID: <200707132232.l6DMWUOW025010@imap1.linux-foundation.org>
+Subject: - touchscreen-fujitsu-touchscreen-driver-rev3.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:32:39 -0700
+Message-ID: <200707132232.l6DMWdan025019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34605 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41156 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932095AbXGMWdR (ORCPT
+	by vger.kernel.org with ESMTP id S932067AbXGMWdS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:33:17 -0400
+	Fri, 13 Jul 2007 18:33:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nozomi: remove termios checks from various old char serial drivers
+     touchscreen: Fujitsu touchscreen driver (rev3)
 has been removed from the -mm tree.  Its filename was
-     nozomi-remove-termios-checks-from-various-old-char-serial-drivers.patch
+     touchscreen-fujitsu-touchscreen-driver-rev3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nozomi: remove termios checks from various old char serial drivers
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: touchscreen: Fujitsu touchscreen driver (rev3)
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/nozomi.c |   11 -----------
- 1 files changed, 11 deletions(-)
+ drivers/input/touchscreen/fujitsu_ts.c |   36 +++++++++--------------
+ 1 files changed, 15 insertions(+), 21 deletions(-)
 
-diff -puN drivers/char/nozomi.c~nozomi-remove-termios-checks-from-various-old-char-serial-drivers drivers/char/nozomi.c
---- a/drivers/char/nozomi.c~nozomi-remove-termios-checks-from-various-old-char-serial-drivers
-+++ a/drivers/char/nozomi.c
-@@ -192,8 +192,6 @@ static int debug = 0;
-     }\
- } while(0)
+diff -puN drivers/input/touchscreen/fujitsu_ts.c~touchscreen-fujitsu-touchscreen-driver-rev3 drivers/input/touchscreen/fujitsu_ts.c
+--- a/drivers/input/touchscreen/fujitsu_ts.c~touchscreen-fujitsu-touchscreen-driver-rev3
++++ a/drivers/input/touchscreen/fujitsu_ts.c
+@@ -26,15 +26,9 @@ MODULE_LICENSE("GPL");
  
--#define RELEVANT_IFLAG(iflag) ((iflag) & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
+ #define FUJITSU_LENGTH 5
+ 
+-#define X_AXIS_MIN	90
+-#define X_AXIS_MAX	4000
+-#define Y_AXIS_MIN	185
+-#define Y_AXIS_MAX	4000
 -
- /*    Defines */
- #define NOZOMI_NAME     "nozomi"
- #define NOZOMI_NAME_TTY "nozomi_tty"
-@@ -1869,15 +1867,6 @@ static void ntty_set_termios(struct tty_
- 
- 	cflag = tty->termios->c_cflag;
- 
--	if (old_termios) {
--		if ((cflag == old_termios->c_cflag) &&
--		    (RELEVANT_IFLAG(tty->termios->c_iflag) ==
--		     RELEVANT_IFLAG(old_termios->c_iflag))) {
--			D1(" - nothing to change...");
--			goto exit_termios;
--		}
--	}
+ /*
+  * Per-touchscreen data.
+  */
 -
- 	/* get the byte size */
- 	switch (cflag & CSIZE) {
- 	case CS5:
+ struct fujitsu {
+ 	struct input_dev *dev;
+ 	struct serio *serio;
+@@ -44,9 +38,13 @@ struct fujitsu {
+ };
+ 
+ /*
+- * Decode serial data
++ * Decode serial data (5 bytes per packet)
++ * First byte
++ * 1 C 0 0 R S S S
++ * Where C is 1 while in calibration mode (which we don't use)
++ * R is 1 when no coordinate corection was done.
++ * S are button state
+  */
+-
+ static irqreturn_t fujitsu_interrupt(struct serio *serio,
+ 				     unsigned char data, unsigned int flags)
+ {
+@@ -55,7 +53,7 @@ static irqreturn_t fujitsu_interrupt(str
+ 
+ 	if (fujitsu->idx == 0) {
+ 		/* resync skip until start of frame */
+-		if (!(data & 0x80))
++		if ((data & 0xf8) != 0x80)
+ 			return IRQ_HANDLED;
+ 	} else {
+ 		/* resync skip garbage */
+@@ -83,7 +81,6 @@ static irqreturn_t fujitsu_interrupt(str
+ /*
+  * fujitsu_disconnect() is the opposite of fujitsu_connect()
+  */
+-
+ static void fujitsu_disconnect(struct serio *serio)
+ {
+ 	struct fujitsu *fujitsu = serio_get_drvdata(serio);
+@@ -101,7 +98,6 @@ static void fujitsu_disconnect(struct se
+  * new serio device that supports the Fujitsu protocol and registers it
+  * as input device.
+  */
+-
+ static int fujitsu_connect(struct serio *serio, struct serio_driver *drv)
+ {
+ 	struct fujitsu *fujitsu;
+@@ -129,8 +125,8 @@ static int fujitsu_connect(struct serio 
+ 	input_dev->evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
+ 	input_dev->keybit[LONG(BTN_TOUCH)] = BIT(BTN_TOUCH);
+ 
+-	input_set_abs_params(input_dev, ABS_X, X_AXIS_MIN, X_AXIS_MAX, 0, 0);
+-	input_set_abs_params(input_dev, ABS_Y, Y_AXIS_MIN, Y_AXIS_MAX, 0, 0);
++	input_set_abs_params(input_dev, ABS_X, 0, 4096, 0, 0);
++	input_set_abs_params(input_dev, ABS_Y, 0, 4096, 0, 0);
+ 	serio_set_drvdata(serio, fujitsu);
+ 
+ 	err = serio_open(serio, drv);
+@@ -143,9 +139,12 @@ static int fujitsu_connect(struct serio 
+ 
+ 	return 0;
+ 
+- fail3:	serio_close(serio);
+- fail2:	serio_set_drvdata(serio, NULL);
+- fail1:	input_free_device(input_dev);
++ fail3:
++	serio_close(serio);
++ fail2:
++	serio_set_drvdata(serio, NULL);
++ fail1:
++	input_free_device(input_dev);
+ 	kfree(fujitsu);
+ 	return err;
+ }
+@@ -153,7 +152,6 @@ static int fujitsu_connect(struct serio 
+ /*
+  * The serio driver structure.
+  */
+-
+ static struct serio_device_id fujitsu_serio_ids[] = {
+ 	{
+ 		.type	= SERIO_RS232,
+@@ -177,10 +175,6 @@ static struct serio_driver fujitsu_drv =
+ 	.disconnect	= fujitsu_disconnect,
+ };
+ 
+-/*
+- * The functions for inserting/removing us as a module.
+- */
+-
+ static int __init fujitsu_init(void)
+ {
+ 	return serio_register_driver(&fujitsu_drv);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
 origin.patch
-git-powerpc.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-git-scsi-misc.patch
-ppa-coding-police-and-printk-levels.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-h8300-enable-arbitary-speed-tty-port-setup.patch
-arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
-m32r-enable-arbitary-speed-tty-rate-setting.patch
-etrax-enable-arbitary-speed-setting-on-tty-ports.patch
-v850-enable-arbitary-speed-tty-ioctls.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-update-zilog-timeout.patch
-edd-switch-to-pci_get-based-api.patch
-mpu401-warning-fixes.patch
-char-tty_ioctl-use-wait_event_interruptible_timeout.patch
-char-tty_ioctl-little-whitespace-cleanup.patch
-intel-rng-undo-mess-made-by-an-80-column-extremist.patch
-improve-behaviour-of-spurious-irq-detect.patch
-audit-add-tty-input-auditing.patch
-revert-vanishing-ioctl-handler-debugging.patch
-amiserial-remove-incorrect-no-termios-change-check.patch
-genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
-synclink-remove-bogus-no-change-termios-optimisation.patch
-68360serial-remove-broken-optimisation.patch
-serial-remove-termios-checks-from-various-old-char-serial.patch
-ia64-arbitary-speed-tty-ioctl-support.patch
-sb1250-duartc-sb1250-duart-serial-support.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
+git-acpi.patch
+git-input.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+pci-x-pci-express-read-control-interfaces-qla2xxx.patch
