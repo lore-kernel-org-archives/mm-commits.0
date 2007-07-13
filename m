@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cfs-fix-missing-digit-off-in-wmult-table.patch added to -mm tree
-Date: Fri, 13 Jul 2007 13:33:45 -0700
-Message-ID: <200707132033.l6DKXjgn018119@imap1.linux-foundation.org>
+Subject: + use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch added to -mm tree
+Date: Fri, 13 Jul 2007 13:39:29 -0700
+Message-ID: <200707132039.l6DKdTxA018440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39045 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48281 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760675AbXGMUeb (ORCPT
+	by vger.kernel.org with ESMTP id S1757553AbXGMUkI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 16:34:31 -0400
+	Fri, 13 Jul 2007 16:40:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@elte.hu
+Cc: matthias.kaehlcke@gmail.com, david-b@pacbell.net, greg@kroah.com
 
 
 The patch titled
-     CFS: fix missing digit off in wmult table
+     use mutex instead of semaphore in the USB gadget serial driver
 has been added to the -mm tree.  Its filename is
-     cfs-fix-missing-digit-off-in-wmult-table.patch
+     use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,85 +26,137 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: CFS: fix missing digit off in wmult table
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: use mutex instead of semaphore in the USB gadget serial driver
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Roman Zippel noticed inconsistency of the wmult table.
+The USB gadget serial driver uses a semaphore as mutex. Use the
+mutex API instead of the (binary) semaphore.
 
-wmult[16] has a missing digit.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Acked-by: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/gadget/serial.c |   25 +++++++++++++------------
+ 1 files changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN kernel/sched.c~cfs-fix-missing-digit-off-in-wmult-table kernel/sched.c
---- a/kernel/sched.c~cfs-fix-missing-digit-off-in-wmult-table
-+++ a/kernel/sched.c
-@@ -750,7 +750,7 @@ static const u32 prio_to_wmult[40] = {
- 	48356,   60446,   75558,   94446,  118058,  147573,
- 	184467,  230589,  288233,  360285,  450347,
- 	562979,  703746,  879575, 1099582, 1374389,
--	717986, 2147483, 2684354, 3355443, 4194304,
-+	1717986, 2147483, 2684354, 3355443, 4194304,
- 	244160, 6557201, 8196502, 10250518, 12782640,
- 	16025997, 19976592, 24970740, 31350126, 39045157,
- 	49367440, 61356675, 76695844, 95443717, 119304647,
+diff -puN drivers/usb/gadget/serial.c~use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver drivers/usb/gadget/serial.c
+--- a/drivers/usb/gadget/serial.c~use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver
++++ a/drivers/usb/gadget/serial.c
+@@ -33,6 +33,7 @@
+ #include <linux/device.h>
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
++#include <linux/mutex.h>
+ 
+ #include <asm/byteorder.h>
+ #include <asm/io.h>
+@@ -258,7 +259,7 @@ static const char *EP_IN_NAME;
+ static const char *EP_OUT_NAME;
+ static const char *EP_NOTIFY_NAME;
+ 
+-static struct semaphore	gs_open_close_sem[GS_NUM_PORTS];
++static struct mutex gs_open_close_lock[GS_NUM_PORTS];
+ 
+ static unsigned int read_q_size = GS_DEFAULT_READ_Q_SIZE;
+ static unsigned int write_q_size = GS_DEFAULT_WRITE_Q_SIZE;
+@@ -595,7 +596,7 @@ static int __init gs_module_init(void)
+ 	tty_set_operations(gs_tty_driver, &gs_tty_ops);
+ 
+ 	for (i=0; i < GS_NUM_PORTS; i++)
+-		sema_init(&gs_open_close_sem[i], 1);
++		mutex_init(&gs_open_close_lock[i]);
+ 
+ 	retval = tty_register_driver(gs_tty_driver);
+ 	if (retval) {
+@@ -635,7 +636,7 @@ static int gs_open(struct tty_struct *tt
+ 	struct gs_port *port;
+ 	struct gs_dev *dev;
+ 	struct gs_buf *buf;
+-	struct semaphore *sem;
++	struct mutex *mtx;
+ 	int ret;
+ 
+ 	port_num = tty->index;
+@@ -656,10 +657,10 @@ static int gs_open(struct tty_struct *tt
+ 		return -ENODEV;
+ 	}
+ 
+-	sem = &gs_open_close_sem[port_num];
+-	if (down_interruptible(sem)) {
++	mtx = &gs_open_close_lock[port_num];
++	if (mutex_lock_interruptible(mtx)) {
+ 		printk(KERN_ERR
+-		"gs_open: (%d,%p,%p) interrupted waiting for semaphore\n",
++		"gs_open: (%d,%p,%p) interrupted waiting for mutex\n",
+ 			port_num, tty, file);
+ 		return -ERESTARTSYS;
+ 	}
+@@ -754,12 +755,12 @@ static int gs_open(struct tty_struct *tt
+ 
+ exit_unlock_port:
+ 	spin_unlock_irqrestore(&port->port_lock, flags);
+-	up(sem);
++	mutex_unlock(mtx);
+ 	return ret;
+ 
+ exit_unlock_dev:
+ 	spin_unlock_irqrestore(&dev->dev_lock, flags);
+-	up(sem);
++	mutex_unlock(mtx);
+ 	return ret;
+ 
+ }
+@@ -781,7 +782,7 @@ exit_unlock_dev:
+ static void gs_close(struct tty_struct *tty, struct file *file)
+ {
+ 	struct gs_port *port = tty->driver_data;
+-	struct semaphore *sem;
++	struct mutex *mtx;
+ 
+ 	if (port == NULL) {
+ 		printk(KERN_ERR "gs_close: NULL port pointer\n");
+@@ -790,8 +791,8 @@ static void gs_close(struct tty_struct *
+ 
+ 	gs_debug("gs_close: (%d,%p,%p)\n", port->port_num, tty, file);
+ 
+-	sem = &gs_open_close_sem[port->port_num];
+-	down(sem);
++	mtx = &gs_open_close_lock[port->port_num];
++	mutex_lock(mtx);
+ 
+ 	spin_lock_irq(&port->port_lock);
+ 
+@@ -846,7 +847,7 @@ static void gs_close(struct tty_struct *
+ 
+ exit:
+ 	spin_unlock_irq(&port->port_lock);
+-	up(sem);
++	mutex_unlock(mtx);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-cfs-fix-missing-digit-off-in-wmult-table.patch
-git-acpi.patch
-git-arm.patch
-i386-hpet-check-if-the-counter-works.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
-timekeeping-fixup-shadow-variable-argument.patch
-timerc-cleanup-recently-introduced-whitespace-damage.patch
-clockevents-remove-prototypes-of-removed-functions.patch
-clockevents-fix-resume-logic.patch
-clockevents-fix-device-replacement.patch
-tick-management-spread-timer-interrupt.patch
-highres-improve-debug-output.patch
-hrtimer-speedup-hrtimer_enqueue.patch
-pcspkr-use-the-global-pit-lock.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
-i386-remove-volatile-in-apicc.patch
-i386-hpet-assumes-boot-cpu-is-0.patch
-i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
-x86_64-untangle-asm-hpeth-from-asm-timexh.patch
-x86_64-use-generic-cmos-update.patch
-x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
-x86_64-fix-apic-typo.patch
-x86_64-convert-to-cleckevents.patch
-acpi-remove-the-useless-ifdef-code.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-geode-mfgpt-clock-event-device-support.patch
-i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch
-introduce-boot-based-time.patch
-use-boot-based-time-for-process-start-time-and-boot-time.patch
-remove-clockevents_releaserequest_device.patch
-add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
-improve-behaviour-of-spurious-irq-detect.patch
-sys_time-speedup.patch
-futex-tidy-up-the-code-v2.patch
-make-timespec_equal-take-const-arguments.patch
-lguest-the-host-code.patch
-lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+origin.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+git-dvb.patch
+git-mtd.patch
+git-net.patch
+use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch
+git-block.patch
+videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
+drivers-block-ubc-use-list_for_each_entry.patch
+use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
+use-mutex-instead-of-semaphore-in-the-elan-u132-adapter-driver.patch
+use-mutex-instead-of-semaphore-in-the-adutux-driver.patch
+use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver.patch
+use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
+use-mutexes-instead-of-semaphores-in-i2o-driver.patch
+fs-block_devc-use-list_for_each_entry.patch
+use-mutex-instead-of-semaphore-in-spi-core-init-code.patch
+use-mutex-instead-of-semaphore-in-capi-20-driver.patch
+drivers-edac-change-from-semaphore-to-mutex-operation.patch
