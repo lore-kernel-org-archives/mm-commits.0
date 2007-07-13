@@ -1,77 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - revert-x86_64-mm-verify-cpu-rename.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 14:43:03 -0700
-Message-ID: <200707132143.l6DLh3k9022127@imap1.linux-foundation.org>
+Subject: - git-cryptodev-fixup.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 14:43:44 -0700
+Message-ID: <200707132143.l6DLhjLt022138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53159 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52002 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756775AbXGMVnl (ORCPT
+	by vger.kernel.org with ESMTP id S1757535AbXGMVoX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 17:43:41 -0400
+	Fri, 13 Jul 2007 17:44:23 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6DLhot4021661
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2007 14:43:51 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, hpa@zytor.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert x86_64-mm-verify-cpu-rename
+     git-cryptodev-fixup
 has been removed from the -mm tree.  Its filename was
-     revert-x86_64-mm-verify-cpu-rename.patch
+     git-cryptodev-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-verify-cpu-rename
+Subject: git-cryptodev-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make this patch from Andi's tree go away for now - it mucks up the
-git-newsetup merge.
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig.cpu         |    2 +-
- arch/i386/kernel/verify_cpu.S |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ crypto/Kconfig |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/i386/Kconfig.cpu~revert-x86_64-mm-verify-cpu-rename arch/i386/Kconfig.cpu
---- a/arch/i386/Kconfig.cpu~revert-x86_64-mm-verify-cpu-rename
-+++ a/arch/i386/Kconfig.cpu
-@@ -344,7 +344,7 @@ config X86_CMOV
- 	depends on (MK7 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MVIAC3_2 || MVIAC7)
- 	default y
- 
--config X86_MINIMUM_CPU_FAMILY
-+config X86_MINIMUM_CPU_MODEL
- 	int
- 	default "4" if X86_XADD || X86_CMPXCHG || X86_BSWAP
- 	default "0"
-diff -puN arch/i386/kernel/verify_cpu.S~revert-x86_64-mm-verify-cpu-rename arch/i386/kernel/verify_cpu.S
---- a/arch/i386/kernel/verify_cpu.S~revert-x86_64-mm-verify-cpu-rename
-+++ a/arch/i386/kernel/verify_cpu.S
-@@ -9,7 +9,7 @@ verify_cpu:
- 	pushl	$0			# Kill any dangerous flags
- 	popfl
- 
--#if CONFIG_X86_MINIMUM_CPU_FAMILY >= 4
-+#if CONFIG_X86_MINIMUM_CPU_MODEL >= 4
- 	pushfl
- 	pop	%eax
- 	orl	$(1<<18),%eax		# try setting AC
-@@ -75,8 +75,8 @@ verify_cpu:
- 	movl    $0x1,%eax		# Does the cpu have what it takes
- 	cpuid
- 
--#if CONFIG_X86_MINIMUM_CPU_FAMILY > 4
--#error	add proper family checking here
-+#if CONFIG_X86_MINIMUM_CPU_MODEL > 4
-+#error	add proper model checking here
- #endif
- 
- 	andl	$REQUIRED_MASK1,%edx
+diff -puN crypto/Kconfig~git-cryptodev-fixup crypto/Kconfig
+--- a/crypto/Kconfig~git-cryptodev-fixup
++++ a/crypto/Kconfig
+@@ -12,9 +12,7 @@ source "crypto/async_tx/Kconfig"
+ #
+ # Cryptographic API Configuration
+ #
+-menu "Cryptographic options"
+-
+-config CRYPTO
++menuconfig CRYPTO
+ 	bool "Cryptographic API"
+ 	help
+ 	  This option provides the core Cryptographic API.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,7 +85,6 @@ git-unionfs.patch
 git-block-vs-git-unionfs.patch
 git-watchdog.patch
 x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
 fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
 fix-x86_64-mm-sched-clock-share.patch
 fix-x86_64-mm-add-common-orderly_poweroff.patch
@@ -135,7 +111,6 @@ x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 x86_64-get-mp_bus_to_node-as-early.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-newsetup-fixup.patch
 git-xfs.patch
 git-cryptodev.patch
 git-cryptodev-fixup.patch
