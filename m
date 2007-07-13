@@ -1,234 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - ftdi_sio-fix-something.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:26 -0700
-Message-ID: <200707132233.l6DMXQ14025080@imap1.linux-foundation.org>
+Subject: - visor-and-whiteheat-remove-bogus-termios-change-checks.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:33:37 -0700
+Message-ID: <200707132233.l6DMXbq7025092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42870 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56112 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761111AbXGMWpg (ORCPT
+	by vger.kernel.org with ESMTP id S1760028AbXGMWpX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:45:36 -0400
+	Fri, 13 Jul 2007 18:45:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oliver@neukum.org, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ftdi_sio: fix oops due to processing workarounds too early
+     visor and whiteheat: remove bogus termios change checks
 has been removed from the -mm tree.  Its filename was
-     ftdi_sio-fix-something.patch
+     visor-and-whiteheat-remove-bogus-termios-change-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ftdi_sio: fix oops due to processing workarounds too early
-From: Oliver Neukum <oliver@neukum.org>
+Subject: visor and whiteheat: remove bogus termios change checks
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Fix an oops that happens in relation with applying work arounds for buggy
-ftdi_sio devices.  The quirks were handled too early because due to changes in
-the initialisation of usb serial devices the device was not fully initialised
-when the old hook was called.
-
-Addresses bug 8564
-
+Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ftdi_sio.c |  104 +++++++++++++-------------------
- 1 files changed, 44 insertions(+), 60 deletions(-)
+ drivers/usb/serial/visor.c     |    8 --------
+ drivers/usb/serial/whiteheat.c |    9 ---------
+ 2 files changed, 17 deletions(-)
 
-diff -puN drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-something drivers/usb/serial/ftdi_sio.c
---- a/drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-something
-+++ a/drivers/usb/serial/ftdi_sio.c
-@@ -271,26 +271,58 @@ static int debug;
- static __u16 vendor = FTDI_VID;
- static __u16 product;
+diff -puN drivers/usb/serial/visor.c~visor-and-whiteheat-remove-bogus-termios-change-checks drivers/usb/serial/visor.c
+--- a/drivers/usb/serial/visor.c~visor-and-whiteheat-remove-bogus-termios-change-checks
++++ a/drivers/usb/serial/visor.c
+@@ -948,14 +948,6 @@ static void visor_set_termios (struct us
+ 	}
  
-+struct ftdi_private {
-+	ftdi_chip_type_t chip_type;
-+				/* type of the device, either SIO or FT8U232AM */
-+	int baud_base;		/* baud base clock for divisor setting */
-+	int custom_divisor;	/* custom_divisor kludge, this is for baud_base (different from what goes to the chip!) */
-+	__u16 last_set_data_urb_value ;
-+				/* the last data state set - needed for doing a break */
-+        int write_offset;       /* This is the offset in the usb data block to write the serial data -
-+				 * it is different between devices
-+				 */
-+	int flags;		/* some ASYNC_xxxx flags are supported */
-+	unsigned long last_dtr_rts;	/* saved modem control outputs */
-+        wait_queue_head_t delta_msr_wait; /* Used for TIOCMIWAIT */
-+	char prev_status, diff_status;        /* Used for TIOCMIWAIT */
-+	__u8 rx_flags;		/* receive state flags (throttling) */
-+	spinlock_t rx_lock;	/* spinlock for receive state */
-+	struct delayed_work rx_work;
-+	struct usb_serial_port *port;
-+	int rx_processed;
-+	unsigned long rx_bytes;
-+
-+	__u16 interface;	/* FT2232C port interface (0 for FT232/245) */
-+
-+	int force_baud;		/* if non-zero, force the baud rate to this value */
-+	int force_rtscts;	/* if non-zero, force RTS-CTS to always be enabled */
-+
-+	spinlock_t tx_lock;	/* spinlock for transmit state */
-+	unsigned long tx_bytes;
-+	unsigned long tx_outstanding_bytes;
-+	unsigned long tx_outstanding_urbs;
-+};
-+
- /* struct ftdi_sio_quirk is used by devices requiring special attention. */
- struct ftdi_sio_quirk {
- 	int (*probe)(struct usb_serial *);
--	void (*setup)(struct usb_serial *); /* Special settings during startup. */
-+	void (*port_probe)(struct ftdi_private *); /* Special settings for probed ports. */
- };
+ 	cflag = port->tty->termios->c_cflag;
+-	/* check that they really want us to change something */
+-	if (old_termios) {
+-		if ((cflag == old_termios->c_cflag) &&
+-		    (RELEVANT_IFLAG(port->tty->termios->c_iflag) == RELEVANT_IFLAG(old_termios->c_iflag))) {
+-			dbg("%s - nothing to change...", __FUNCTION__);
+-			return;
+-		}
+-	}
  
- static int   ftdi_olimex_probe		(struct usb_serial *serial);
--static void  ftdi_USB_UIRT_setup	(struct usb_serial *serial);
--static void  ftdi_HE_TIRA1_setup	(struct usb_serial *serial);
-+static void  ftdi_USB_UIRT_setup	(struct ftdi_private *priv);
-+static void  ftdi_HE_TIRA1_setup	(struct ftdi_private *priv);
- 
- static struct ftdi_sio_quirk ftdi_olimex_quirk = {
- 	.probe	= ftdi_olimex_probe,
- };
- 
- static struct ftdi_sio_quirk ftdi_USB_UIRT_quirk = {
--	.setup = ftdi_USB_UIRT_setup,
-+	.port_probe = ftdi_USB_UIRT_setup,
- };
- 
- static struct ftdi_sio_quirk ftdi_HE_TIRA1_quirk = {
--	.setup = ftdi_HE_TIRA1_setup,
-+	.port_probe = ftdi_HE_TIRA1_setup,
- };
- 
- /*
-@@ -567,38 +599,6 @@ static const char *ftdi_chip_name[] = {
- #define THROTTLED		0x01
- #define ACTUALLY_THROTTLED	0x02
- 
--struct ftdi_private {
--	ftdi_chip_type_t chip_type;
--				/* type of the device, either SIO or FT8U232AM */
--	int baud_base;		/* baud base clock for divisor setting */
--	int custom_divisor;	/* custom_divisor kludge, this is for baud_base (different from what goes to the chip!) */
--	__u16 last_set_data_urb_value ;
--				/* the last data state set - needed for doing a break */
--        int write_offset;       /* This is the offset in the usb data block to write the serial data -
--				 * it is different between devices
--				 */
--	int flags;		/* some ASYNC_xxxx flags are supported */
--	unsigned long last_dtr_rts;	/* saved modem control outputs */
--        wait_queue_head_t delta_msr_wait; /* Used for TIOCMIWAIT */
--	char prev_status, diff_status;        /* Used for TIOCMIWAIT */
--	__u8 rx_flags;		/* receive state flags (throttling) */
--	spinlock_t rx_lock;	/* spinlock for receive state */
--	struct delayed_work rx_work;
--	struct usb_serial_port *port;
--	int rx_processed;
--	unsigned long rx_bytes;
+ 	/* get the byte size */
+ 	switch (cflag & CSIZE) {
+diff -puN drivers/usb/serial/whiteheat.c~visor-and-whiteheat-remove-bogus-termios-change-checks drivers/usb/serial/whiteheat.c
+--- a/drivers/usb/serial/whiteheat.c~visor-and-whiteheat-remove-bogus-termios-change-checks
++++ a/drivers/usb/serial/whiteheat.c
+@@ -891,15 +891,6 @@ static void whiteheat_set_termios(struct
+ 		goto exit;
+ 	}
+ 	
+-	/* check that they really want us to change something */
+-	if (old_termios) {
+-		if ((port->tty->termios->c_cflag == old_termios->c_cflag) &&
+-		    (port->tty->termios->c_iflag == old_termios->c_iflag)) {
+-			dbg("%s - nothing to change...", __FUNCTION__);
+-			goto exit;
+-		}
+-	}
 -
--	__u16 interface;	/* FT2232C port interface (0 for FT232/245) */
--
--	int force_baud;		/* if non-zero, force the baud rate to this value */
--	int force_rtscts;	/* if non-zero, force RTS-CTS to always be enabled */
--
--	spinlock_t tx_lock;	/* spinlock for transmit state */
--	unsigned long tx_bytes;
--	unsigned long tx_outstanding_bytes;
--	unsigned long tx_outstanding_urbs;
--};
--
- /* Used for TIOCMIWAIT */
- #define FTDI_STATUS_B0_MASK	(FTDI_RS0_CTS | FTDI_RS0_DSR | FTDI_RS0_RI | FTDI_RS0_RLSD)
- #define FTDI_STATUS_B1_MASK	(FTDI_RS_BI)
-@@ -609,7 +609,6 @@ struct ftdi_private {
+ 	firm_setup_port(port);
  
- /* function prototypes for a FTDI serial converter */
- static int  ftdi_sio_probe	(struct usb_serial *serial, const struct usb_device_id *id);
--static int  ftdi_sio_attach		(struct usb_serial *serial);
- static void ftdi_shutdown		(struct usb_serial *serial);
- static int  ftdi_sio_port_probe	(struct usb_serial_port *port);
- static int  ftdi_sio_port_remove	(struct usb_serial_port *port);
-@@ -663,7 +662,6 @@ static struct usb_serial_driver ftdi_sio
- 	.ioctl =		ftdi_ioctl,
- 	.set_termios =		ftdi_set_termios,
- 	.break_ctl =		ftdi_break_ctl,
--	.attach =		ftdi_sio_attach,
- 	.shutdown =		ftdi_shutdown,
- };
- 
-@@ -1200,6 +1198,8 @@ static int ftdi_sio_probe (struct usb_se
- static int ftdi_sio_port_probe(struct usb_serial_port *port)
- {
- 	struct ftdi_private *priv;
-+	struct ftdi_sio_quirk *quirk = usb_get_serial_data(port->serial);
-+
- 
- 	dbg("%s",__FUNCTION__);
- 
-@@ -1216,6 +1216,9 @@ static int ftdi_sio_port_probe(struct us
- 	   than queue a task to deliver them */
- 	priv->flags = ASYNC_LOW_LATENCY;
- 
-+	if (quirk && quirk->port_probe)
-+		quirk->port_probe(priv);
-+
- 	/* Increase the size of read buffers */
- 	kfree(port->bulk_in_buffer);
- 	port->bulk_in_buffer = kmalloc (BUFSZ, GFP_KERNEL);
-@@ -1246,29 +1249,13 @@ static int ftdi_sio_port_probe(struct us
- 	return 0;
- }
- 
--/* attach subroutine */
--static int ftdi_sio_attach (struct usb_serial *serial)
--{
--	/* Check for device requiring special set up. */
--	struct ftdi_sio_quirk *quirk = usb_get_serial_data(serial);
--
--	if (quirk && quirk->setup)
--		quirk->setup(serial);
--
--	return 0;
--} /* ftdi_sio_attach */
--
--
- /* Setup for the USB-UIRT device, which requires hardwired
-  * baudrate (38400 gets mapped to 312500) */
- /* Called from usbserial:serial_probe */
--static void ftdi_USB_UIRT_setup (struct usb_serial *serial)
-+static void ftdi_USB_UIRT_setup (struct ftdi_private *priv)
- {
--	struct ftdi_private *priv;
--
- 	dbg("%s",__FUNCTION__);
- 
--	priv = usb_get_serial_port_data(serial->port[0]);
- 	priv->flags |= ASYNC_SPD_CUST;
- 	priv->custom_divisor = 77;
- 	priv->force_baud = B38400;
-@@ -1276,13 +1263,10 @@ static void ftdi_USB_UIRT_setup (struct 
- 
- /* Setup for the HE-TIRA1 device, which requires hardwired
-  * baudrate (38400 gets mapped to 100000) and RTS-CTS enabled.  */
--static void ftdi_HE_TIRA1_setup (struct usb_serial *serial)
-+static void ftdi_HE_TIRA1_setup (struct ftdi_private *priv)
- {
--	struct ftdi_private *priv;
--
- 	dbg("%s",__FUNCTION__);
- 
--	priv = usb_get_serial_port_data(serial->port[0]);
- 	priv->flags |= ASYNC_SPD_CUST;
- 	priv->custom_divisor = 240;
- 	priv->force_baud = B38400;
+ exit:
 _
 
-Patches currently in -mm which might be from oliver@neukum.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
+git-powerpc.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+ata-use-iomap_name.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+git-scsi-misc.patch
+ppa-coding-police-and-printk-levels.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+h8300-enable-arbitary-speed-tty-port-setup.patch
+arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
+m32r-enable-arbitary-speed-tty-rate-setting.patch
+etrax-enable-arbitary-speed-setting-on-tty-ports.patch
+v850-enable-arbitary-speed-tty-ioctls.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+update-zilog-timeout.patch
+edd-switch-to-pci_get-based-api.patch
+mpu401-warning-fixes.patch
+char-tty_ioctl-use-wait_event_interruptible_timeout.patch
+char-tty_ioctl-little-whitespace-cleanup.patch
+intel-rng-undo-mess-made-by-an-80-column-extremist.patch
+improve-behaviour-of-spurious-irq-detect.patch
+audit-add-tty-input-auditing.patch
+revert-vanishing-ioctl-handler-debugging.patch
+amiserial-remove-incorrect-no-termios-change-check.patch
+genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
+synclink-remove-bogus-no-change-termios-optimisation.patch
+68360serial-remove-broken-optimisation.patch
+serial-remove-termios-checks-from-various-old-char-serial.patch
+ia64-arbitary-speed-tty-ioctl-support.patch
+sb1250-duartc-sb1250-duart-serial-support.patch
+i2o_cfg_passthru-cleanup.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+stallion-remove-unneeded-lock_kernel.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
+drivers-edac-fix-edac_device-semaphore-to-mutex.patch
+drivers-edac-fix-e752x-reversed-csrows.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-fix-leaf-sysfs-attribute.patch
+drivers-edac-fix-edac_mc-init-apis.patch
+drivers-edac-fix-edac_device-init-apis.patch
+drivers-edac-fix-edac_mc-sysfs-completion-code.patch
+drivers-edac-fix-edac_device-sysfs-completion-code.patch
