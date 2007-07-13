@@ -1,58 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - kgdb-bust-on-ia64.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 14:05:14 -0700
-Message-ID: <200707132105.l6DL5EpG019942@imap1.linux-foundation.org>
+Subject: - git-cpufreq-fix.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 14:21:11 -0700
+Message-ID: <200707132121.l6DLLBNo020844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37460 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751699AbXGMVFV (ORCPT
+	by vger.kernel.org with ESMTP id S1752492AbXGMVVa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 17:05:21 -0400
+	Fri, 13 Jul 2007 17:21:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davej@codemonkey.org.uk, mark.langsdorf@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kgdb-bust-on-ia64
+     git-cpufreq-fix
 has been removed from the -mm tree.  Its filename was
-     kgdb-bust-on-ia64.patch
+     git-cpufreq-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: kgdb-bust-on-ia64
+Subject: git-cpufreq-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Make it compile on UP.
+
+What's that divide in there for?  Looks odd.
+
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kgdb |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/cpu/cpufreq/powernow-k8.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.kgdb~kgdb-bust-on-ia64 lib/Kconfig.kgdb
---- a/lib/Kconfig.kgdb~kgdb-bust-on-ia64
-+++ a/lib/Kconfig.kgdb
-@@ -14,7 +14,7 @@ config KGDB
- 	bool "KGDB: kernel debugging with remote gdb"
- 	select WANT_EXTRA_DEBUG_INFORMATION
- 	select KGDB_ARCH_HAS_SHADOW_INFO if X86_64
--	depends on DEBUG_KERNEL && (ARM || X86 || MIPS || (SUPERH && !SUPERH64) || IA64 || PPC)
-+	depends on DEBUG_KERNEL && (ARM || X86 || MIPS || (SUPERH && !SUPERH64) || PPC)
- 	help
- 	  If you say Y here, it will be possible to remotely debug the
- 	  kernel using gdb.  Documentation of kernel debugger is available
+diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-fix arch/i386/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-fix
++++ a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c
+@@ -1322,16 +1322,21 @@ static struct cpufreq_driver cpufreq_amd
+ static int __cpuinit powernowk8_init(void)
+ {
+ 	unsigned int i, supported_cpus = 0;
++	unsigned int booted_cores = 1;
+ 
+ 	for_each_online_cpu(i) {
+ 		if (check_supported_cpu(i))
+ 			supported_cpus++;
+ 	}
+ 
++#ifdef CONFIG_SMP
++	booted_cores = cpu_data[0].booted_cores;
++#endif
++
+ 	if (supported_cpus == num_online_cpus()) {
+ 		printk(KERN_INFO PFX "Found %d %s "
+ 			"processors (%d cpu cores) (" VERSION ")\n",
+-			supported_cpus/cpu_data[0].booted_cores,
++			supported_cpus/booted_cores,
+ 			boot_cpu_data.x86_model_id, supported_cpus);
+ 		return cpufreq_register_driver(&cpufreq_amd64_driver);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 git-acpi.patch
-git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
+git-cpufreq.patch
 git-cpufreq-fix.patch
 git-powerpc.patch
 revert-gregkh-driver-block-device.patch
@@ -60,9 +77,6 @@ driver-core-check-return-code-of-sysfs_create_link.patch
 revert-saa7134-fix-thread-shutdown-handling.patch
 git-dvb.patch
 git-dvb-saa7134-tvaudio-fix.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
 git-kbuild.patch
 git-kbuild-fixup.patch
 git-kvm.patch
@@ -71,18 +85,14 @@ git-md-accel.patch
 git-mips-fixup.patch
 git-mtd.patch
 git-ubi.patch
-git-netdev-all.patch
 e1000new-build-fix.patch
 e1000new-build-fix-2.patch
-git-net.patch
-git-battery.patch
 git-battery-vs-git-acpi.patch
 git-ioat-vs-git-md-accel.patch
 git-ocfs2-vs-git-gfs2-nmw.patch
 revert-gregkh-pci-pci_bridge-device.patch
 fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
-git-s390.patch
 revert-acpi-change-for-scsi.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
@@ -91,7 +101,6 @@ git-scsi-misc-vs-greg-sysfs-stuff.patch
 aacraid-rename-check_reset.patch
 git-scsi-target-fixup.patch
 splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
-git-block.patch
 git-block-fixup.patch
 git-unionfs.patch
 git-block-vs-git-unionfs.patch
@@ -136,7 +145,6 @@ kgdb-use-new-style-interrupt-flags.patch
 kgdb-section-fix.patch
 kgdb_skipexception-warning-fix.patch
 kgdb-ia64-fixes.patch
-kgdb-bust-on-ia64.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-zonelist-order-selection-logic.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
