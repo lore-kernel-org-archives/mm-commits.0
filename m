@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-nfsd4-parse-secinfo-information-in-exports-downcall.patch added to -mm tree
-Date: Fri, 13 Jul 2007 00:33:45 -0700
-Message-ID: <200707130733.l6D7Xjjs005333@imap1.linux-foundation.org>
+Subject: + knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor.patch added to -mm tree
+Date: Fri, 13 Jul 2007 00:34:01 -0700
+Message-ID: <200707130734.l6D7Y1Fk005431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35504 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35685 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761849AbXGMHd5 (ORCPT
+	by vger.kernel.org with ESMTP id S1761662AbXGMHeM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 03:33:57 -0400
+	Fri, 13 Jul 2007 03:34:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andros@citi.umich.edu, bfields@citi.umich.edu, neilb@suse.de
+Cc: bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: nfsd4: parse secinfo information in exports downcall
+     knfsd: nfsd4: make readonly access depend on pseudoflavor
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd4-parse-secinfo-information-in-exports-downcall.patch
+     knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,175 +26,179 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: parse secinfo information in exports downcall
-From: Andy Adamson <andros@citi.umich.edu>
+Subject: knfsd: nfsd4: make readonly access depend on pseudoflavor
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-We add a list of pseudoflavors to each export downcall, which will be used
-both as a list of security flavors allowed on that export, and (in the order
-given) as the list of pseudoflavors to return on secinfo calls.
+Allow readonly access to vary depending on the pseudoflavor, using the flag
+passed with each pseudoflavor in the export downcall.  The rest of the flags
+are ignored for now, though some day we might also allow id squashing to vary
+based on the flavor.
 
-This patch parses the new downcall information and adds it to the export
-structure, but doesn't use it for anything yet.
-
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Signed-off-by: Andy Adamson <andros@citi.umich.edu>
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c            |   56 ++++++++++++++++++++++++++++++++--
- include/linux/nfsd/export.h |   17 ++++++++++
- 2 files changed, 71 insertions(+), 2 deletions(-)
+ fs/nfsd/nfsfh.c             |    2 +-
+ fs/nfsd/nfsproc.c           |    3 ++-
+ fs/nfsd/vfs.c               |   13 +++++++------
+ include/linux/nfsd/export.h |   13 ++++++++++++-
+ include/linux/nfsd/nfsd.h   |    3 ++-
+ 5 files changed, 24 insertions(+), 10 deletions(-)
 
-diff -puN fs/nfsd/export.c~knfsd-nfsd4-parse-secinfo-information-in-exports-downcall fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-nfsd4-parse-secinfo-information-in-exports-downcall
-+++ a/fs/nfsd/export.c
-@@ -33,6 +33,8 @@
- #include <linux/nfsd/nfsfh.h>
- #include <linux/nfsd/syscall.h>
- #include <linux/lockd/bind.h>
-+#include <linux/sunrpc/msg_prot.h>
-+#include <linux/sunrpc/gss_api.h>
+diff -puN fs/nfsd/nfsfh.c~knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor fs/nfsd/nfsfh.c
+--- a/fs/nfsd/nfsfh.c~knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor
++++ a/fs/nfsd/nfsfh.c
+@@ -255,7 +255,7 @@ fh_verify(struct svc_rqst *rqstp, struct
+ 		goto out;
  
- #define NFSDDBG_FACILITY	NFSDDBG_EXPORT
+ 	/* Finally, check access permissions. */
+-	error = nfsd_permission(exp, dentry, access);
++	error = nfsd_permission(rqstp, exp, dentry, access);
  
-@@ -452,8 +454,48 @@ out_free_all:
- 	return err;
- }
+ 	if (error) {
+ 		dprintk("fh_verify: %s/%s permission failure, "
+diff -puN fs/nfsd/nfsproc.c~knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor fs/nfsd/nfsproc.c
+--- a/fs/nfsd/nfsproc.c~knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor
++++ a/fs/nfsd/nfsproc.c
+@@ -278,7 +278,8 @@ nfsd_proc_create(struct svc_rqst *rqstp,
+ 					 *   echo thing > device-special-file-or-pipe
+ 					 * by doing a CREATE with type==0
+ 					 */
+-					nfserr = nfsd_permission(newfhp->fh_export,
++					nfserr = nfsd_permission(rqstp,
++								 newfhp->fh_export,
+ 								 newfhp->fh_dentry,
+ 								 MAY_WRITE|MAY_LOCAL_ACCESS);
+ 					if (nfserr && nfserr != nfserr_rofs)
+diff -puN fs/nfsd/vfs.c~knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor
++++ a/fs/nfsd/vfs.c
+@@ -328,7 +328,7 @@ nfsd_setattr(struct svc_rqst *rqstp, str
+ 	/* The size case is special. It changes the file as well as the attributes.  */
+ 	if (iap->ia_valid & ATTR_SIZE) {
+ 		if (iap->ia_size < inode->i_size) {
+-			err = nfsd_permission(fhp->fh_export, dentry, MAY_TRUNC|MAY_OWNER_OVERRIDE);
++			err = nfsd_permission(rqstp, fhp->fh_export, dentry, MAY_TRUNC|MAY_OWNER_OVERRIDE);
+ 			if (err)
+ 				goto out;
+ 		}
+@@ -616,7 +616,7 @@ nfsd_access(struct svc_rqst *rqstp, stru
  
-+static int secinfo_parse(char **mesg, char *buf, struct svc_export *exp)
+ 			sresult |= map->access;
+ 
+-			err2 = nfsd_permission(export, dentry, map->how);
++			err2 = nfsd_permission(rqstp, export, dentry, map->how);
+ 			switch (err2) {
+ 			case nfs_ok:
+ 				result |= map->access;
+@@ -1042,7 +1042,7 @@ nfsd_read(struct svc_rqst *rqstp, struct
+ 	__be32		err;
+ 
+ 	if (file) {
+-		err = nfsd_permission(fhp->fh_export, fhp->fh_dentry,
++		err = nfsd_permission(rqstp, fhp->fh_export, fhp->fh_dentry,
+ 				MAY_READ|MAY_OWNER_OVERRIDE);
+ 		if (err)
+ 			goto out;
+@@ -1071,7 +1071,7 @@ nfsd_write(struct svc_rqst *rqstp, struc
+ 	__be32			err = 0;
+ 
+ 	if (file) {
+-		err = nfsd_permission(fhp->fh_export, fhp->fh_dentry,
++		err = nfsd_permission(rqstp, fhp->fh_export, fhp->fh_dentry,
+ 				MAY_WRITE|MAY_OWNER_OVERRIDE);
+ 		if (err)
+ 			goto out;
+@@ -1800,7 +1800,8 @@ nfsd_statfs(struct svc_rqst *rqstp, stru
+  * Check for a user's access permissions to this inode.
+  */
+ __be32
+-nfsd_permission(struct svc_export *exp, struct dentry *dentry, int acc)
++nfsd_permission(struct svc_rqst *rqstp, struct svc_export *exp,
++					struct dentry *dentry, int acc)
+ {
+ 	struct inode	*inode = dentry->d_inode;
+ 	int		err;
+@@ -1831,7 +1832,7 @@ nfsd_permission(struct svc_export *exp, 
+ 	 */
+ 	if (!(acc & MAY_LOCAL_ACCESS))
+ 		if (acc & (MAY_WRITE | MAY_SATTR | MAY_TRUNC)) {
+-			if (EX_RDONLY(exp) || IS_RDONLY(inode))
++			if (EX_RDONLY(exp, rqstp) || IS_RDONLY(inode))
+ 				return nfserr_rofs;
+ 			if (/* (acc & MAY_WRITE) && */ IS_IMMUTABLE(inode))
+ 				return nfserr_perm;
+diff -puN include/linux/nfsd/export.h~knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor include/linux/nfsd/export.h
+--- a/include/linux/nfsd/export.h~knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor
++++ a/include/linux/nfsd/export.h
+@@ -112,10 +112,21 @@ struct svc_expkey {
+ 
+ #define EX_SECURE(exp)		(!((exp)->ex_flags & NFSEXP_INSECURE_PORT))
+ #define EX_ISSYNC(exp)		(!((exp)->ex_flags & NFSEXP_ASYNC))
+-#define EX_RDONLY(exp)		((exp)->ex_flags & NFSEXP_READONLY)
+ #define EX_NOHIDE(exp)		((exp)->ex_flags & NFSEXP_NOHIDE)
+ #define EX_WGATHER(exp)		((exp)->ex_flags & NFSEXP_GATHERED_WRITES)
+ 
++static inline int EX_RDONLY(struct svc_export *exp, struct svc_rqst *rqstp)
 +{
-+	int listsize, err;
 +	struct exp_flavor_info *f;
++	struct exp_flavor_info *end = exp->ex_flavors + exp->ex_nflavors;
 +
-+	err = get_int(mesg, &listsize);
-+	if (err)
-+		return err;
-+	if (listsize < 0 || listsize > MAX_SECINFO_LIST)
-+		return -EINVAL;
-+
-+	for (f = exp->ex_flavors; f < exp->ex_flavors + listsize; f++) {
-+		err = get_int(mesg, &f->pseudoflavor);
-+		if (err)
-+			return err;
-+		/*
-+		 * Just a quick sanity check; we could also try to check
-+		 * whether this pseudoflavor is supported, but at worst
-+		 * an unsupported pseudoflavor on the export would just
-+		 * be a pseudoflavor that won't match the flavor of any
-+		 * authenticated request.  The administrator will
-+		 * probably discover the problem when someone fails to
-+		 * authenticate.
-+		 */
-+		if (f->pseudoflavor < 0)
-+			return -EINVAL;
-+		err = get_int(mesg, &f->flags);
-+		if (err)
-+			return err;
-+		/* Only some flags are allowed to differ between flavors: */
-+		if (~NFSEXP_SECINFO_FLAGS & (f->flags ^ exp->ex_flags))
-+			return -EINVAL;
++	for (f = exp->ex_flavors; f < end; f++) {
++		if (f->pseudoflavor == rqstp->rq_flavor)
++			return f->flags & NFSEXP_READONLY;
 +	}
-+	exp->ex_nflavors = listsize;
-+	return 0;
++	return exp->ex_flags & NFSEXP_READONLY;
 +}
 +
- #else /* CONFIG_NFSD_V4 */
--static inline int fsloc_parse(char **mesg, char *buf, struct nfsd4_fs_locations *fsloc) { return 0; }
-+static inline int
-+fsloc_parse(char **mesg, char *buf, struct nfsd4_fs_locations *fsloc){return 0;}
-+static inline int
-+secinfo_parse(char **mesg, char *buf, struct svc_export *exp) { return 0; }
- #endif
+ __be32 check_nfsd_access(struct svc_export *exp, struct svc_rqst *rqstp);
  
- static int svc_export_parse(struct cache_detail *cd, char *mesg, int mlen)
-@@ -477,6 +519,9 @@ static int svc_export_parse(struct cache
+ /*
+diff -puN include/linux/nfsd/nfsd.h~knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor include/linux/nfsd/nfsd.h
+--- a/include/linux/nfsd/nfsd.h~knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor
++++ a/include/linux/nfsd/nfsd.h
+@@ -119,7 +119,8 @@ __be32		nfsd_statfs(struct svc_rqst *, s
+ 				struct kstatfs *);
  
- 	exp.ex_uuid = NULL;
+ int		nfsd_notify_change(struct inode *, struct iattr *);
+-__be32		nfsd_permission(struct svc_export *, struct dentry *, int);
++__be32		nfsd_permission(struct svc_rqst *, struct svc_export *,
++				struct dentry *, int);
+ int		nfsd_sync_dir(struct dentry *dp);
  
-+	/* secinfo */
-+	exp.ex_nflavors = 0;
-+
- 	if (mesg[mlen-1] != '\n')
- 		return -EINVAL;
- 	mesg[mlen-1] = 0;
-@@ -554,7 +599,9 @@ static int svc_export_parse(struct cache
- 					if (exp.ex_uuid == NULL)
- 						err = -ENOMEM;
- 				}
--			} else
-+			} else if (strcmp(buf, "secinfo") == 0)
-+				err = secinfo_parse(&mesg, buf, &exp);
-+			else
- 				/* quietly ignore unknown words and anything
- 				 * following. Newer user-space can try to set
- 				 * new values, then see what the result was.
-@@ -655,6 +702,7 @@ static void export_update(struct cache_h
- {
- 	struct svc_export *new = container_of(cnew, struct svc_export, h);
- 	struct svc_export *item = container_of(citem, struct svc_export, h);
-+	int i;
- 
- 	new->ex_flags = item->ex_flags;
- 	new->ex_anon_uid = item->ex_anon_uid;
-@@ -670,6 +718,10 @@ static void export_update(struct cache_h
- 	item->ex_fslocs.locations_count = 0;
- 	new->ex_fslocs.migrated = item->ex_fslocs.migrated;
- 	item->ex_fslocs.migrated = 0;
-+	new->ex_nflavors = item->ex_nflavors;
-+	for (i = 0; i < MAX_SECINFO_LIST; i++) {
-+		new->ex_flavors[i] = item->ex_flavors[i];
-+	}
- }
- 
- static struct cache_head *svc_export_alloc(void)
-diff -puN include/linux/nfsd/export.h~knfsd-nfsd4-parse-secinfo-information-in-exports-downcall include/linux/nfsd/export.h
---- a/include/linux/nfsd/export.h~knfsd-nfsd4-parse-secinfo-information-in-exports-downcall
-+++ a/include/linux/nfsd/export.h
-@@ -42,6 +42,8 @@
- #define	NFSEXP_NOACL		0x8000	/* reserved for possible ACL related use */
- #define NFSEXP_ALLFLAGS		0xFE3F
- 
-+/* The flags that may vary depending on security flavor: */
-+#define NFSEXP_SECINFO_FLAGS	0
- 
- #ifdef __KERNEL__
- 
-@@ -64,6 +66,19 @@ struct nfsd4_fs_locations {
- 	int migrated;
- };
- 
-+/*
-+ * We keep an array of pseudoflavors with the export, in order from most
-+ * to least preferred.  For the forseeable future, we don't expect more
-+ * than the eight pseudoflavors null, unix, krb5, krb5i, krb5p, skpm3,
-+ * spkm3i, and spkm3p (and using all 8 at once should be rare).
-+ */
-+#define MAX_SECINFO_LIST	8
-+
-+struct exp_flavor_info {
-+	u32	pseudoflavor;
-+	u32	flags;
-+};
-+
- struct svc_export {
- 	struct cache_head	h;
- 	struct auth_domain *	ex_client;
-@@ -76,6 +91,8 @@ struct svc_export {
- 	int			ex_fsid;
- 	unsigned char *		ex_uuid; /* 16 byte fsid */
- 	struct nfsd4_fs_locations ex_fslocs;
-+	int			ex_nflavors;
-+	struct exp_flavor_info	ex_flavors[MAX_SECINFO_LIST];
- };
- 
- /* an "export key" (expkey) maps a filehandlefragement to an
+ #if defined(CONFIG_NFSD_V2_ACL) || defined(CONFIG_NFSD_V3_ACL)
 _
 
-Patches currently in -mm which might be from andros@citi.umich.edu are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
 auth_gss-unregister-gss_domain-when-unloading-module.patch
+git-vfs-lease-api.patch
+fix-trivial-typos-in-anon_inodesc-comments.patch
+knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4.patch
+knfsd-nfsd4-fix-nfsv4-filehandle-size-units-confusion.patch
+knfsd-nfsd4-silence-a-compiler-warning-in-acl-code.patch
+knfsd-nfsd4-fix-enc_stateid_sz-for-nfsd-callbacks.patch
+knfsd-nfsd4-fix-handling-of-acl-errrors.patch
+knfsd-nfsd-remove-unused-header-interfaceh.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts.patch
+knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err.patch
+knfsd-nfsd4-build-rpcsec_gss-whenever-nfsd4-is-built.patch
 knfsd-nfsd4-store-pseudoflavor-in-request.patch
 knfsd-nfsd4-parse-secinfo-information-in-exports-downcall.patch
+knfsd-nfsd4-simplify-exp_pseudoroot-arguments.patch
+knfsd-nfsd-remove-superfluous-assignment-from-nfsd_lookup.patch
+knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst.patch
+knfsd-nfsd-set-rq_client-to-ip-address-determined-domain.patch
+knfsd-nfsd-use-ip-address-based-domain-in-secinfo-case.patch
+knfsd-nfsd-factor-nfsd_lookup-into-2-pieces.patch
 knfsd-nfsd4-return-nfserr_wrongsec.patch
+knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor.patch
+knfsd-nfsd-factor-out-code-from-show_expflags.patch
+knfsd-nfsd-display-export-secinfo-information.patch
+knfsd-rpc-add-gss-krb5-and-spkm3-oid-values.patch
 knfsd-nfsd4-implement-secinfo.patch
+knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch
+knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports.patch
+knfsd-nfsd-enforce-per-flavor-id-squashing.patch
