@@ -1,145 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - io_-remove-bogus-termios-no-change-checks.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:41 -0700
-Message-ID: <200707132233.l6DMXfIU025098@imap1.linux-foundation.org>
+Subject: - usb-remove-makefile-reference-to-obsolete-ohci_at91.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:33:43 -0700
+Message-ID: <200707132233.l6DMXh1L025102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53531 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54989 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762033AbXGMWpS (ORCPT
+	by vger.kernel.org with ESMTP id S937339AbXGMWpF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:45:18 -0400
+	Fri, 13 Jul 2007 18:45:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     io_*: remove bogus termios no change checks
+     USB: remove Makefile reference to obsolete OHCI_AT91
 has been removed from the -mm tree.  Its filename was
-     io_-remove-bogus-termios-no-change-checks.patch
+     usb-remove-makefile-reference-to-obsolete-ohci_at91.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: io_*: remove bogus termios no change checks
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: USB: remove Makefile reference to obsolete OHCI_AT91
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_edgeport.c |    9 ---------
- drivers/usb/serial/io_ti.c       |    8 --------
- 2 files changed, 17 deletions(-)
+ drivers/usb/Makefile |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/usb/serial/io_edgeport.c~io_-remove-bogus-termios-no-change-checks drivers/usb/serial/io_edgeport.c
---- a/drivers/usb/serial/io_edgeport.c~io_-remove-bogus-termios-no-change-checks
-+++ a/drivers/usb/serial/io_edgeport.c
-@@ -1513,15 +1513,6 @@ static void edge_set_termios (struct usb
- 	}
+diff -puN drivers/usb/Makefile~usb-remove-makefile-reference-to-obsolete-ohci_at91 drivers/usb/Makefile
+--- a/drivers/usb/Makefile~usb-remove-makefile-reference-to-obsolete-ohci_at91
++++ a/drivers/usb/Makefile
+@@ -15,7 +15,6 @@ obj-$(CONFIG_USB_OHCI_HCD)	+= host/
+ obj-$(CONFIG_USB_UHCI_HCD)	+= host/
+ obj-$(CONFIG_USB_SL811_HCD)	+= host/
+ obj-$(CONFIG_USB_U132_HCD)	+= host/
+-obj-$(CONFIG_USB_OHCI_AT91)	+= host/
+ obj-$(CONFIG_USB_R8A66597_HCD)	+= host/
  
- 	cflag = tty->termios->c_cflag;
--	/* check that they really want us to change something */
--	if (old_termios) {
--		if (cflag == old_termios->c_cflag &&
--		    tty->termios->c_iflag == old_termios->c_iflag) {
--			dbg("%s - nothing to change", __FUNCTION__);
--			return;
--		}
--	}
--
- 	dbg("%s - clfag %08x iflag %08x", __FUNCTION__, 
- 	    tty->termios->c_cflag, tty->termios->c_iflag);
- 	if (old_termios) {
-diff -puN drivers/usb/serial/io_ti.c~io_-remove-bogus-termios-no-change-checks drivers/usb/serial/io_ti.c
---- a/drivers/usb/serial/io_ti.c~io_-remove-bogus-termios-no-change-checks
-+++ a/drivers/usb/serial/io_ti.c
-@@ -2544,14 +2544,6 @@ static void edge_set_termios (struct usb
- 	}
- 
- 	cflag = tty->termios->c_cflag;
--	/* check that they really want us to change something */
--	if (old_termios) {
--		if (cflag == old_termios->c_cflag &&
--		    tty->termios->c_iflag == old_termios->c_iflag) {
--			dbg ("%s - nothing to change", __FUNCTION__);
--			return;
--		}
--	}
- 
- 	dbg("%s - clfag %08x iflag %08x", __FUNCTION__, 
- 	    tty->termios->c_cflag, tty->termios->c_iflag);
+ obj-$(CONFIG_USB_ACM)		+= class/
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
+git-avr32.patch
 git-powerpc.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+git-dvb.patch
+git-kbuild.patch
+git-kvm.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-sh.patch
 git-scsi-misc.patch
-ppa-coding-police-and-printk-levels.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-h8300-enable-arbitary-speed-tty-port-setup.patch
-arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
-m32r-enable-arbitary-speed-tty-rate-setting.patch
-etrax-enable-arbitary-speed-setting-on-tty-ports.patch
-v850-enable-arbitary-speed-tty-ioctls.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-update-zilog-timeout.patch
-edd-switch-to-pci_get-based-api.patch
-mpu401-warning-fixes.patch
-char-tty_ioctl-use-wait_event_interruptible_timeout.patch
-char-tty_ioctl-little-whitespace-cleanup.patch
-intel-rng-undo-mess-made-by-an-80-column-extremist.patch
-improve-behaviour-of-spurious-irq-detect.patch
-audit-add-tty-input-auditing.patch
-revert-vanishing-ioctl-handler-debugging.patch
-amiserial-remove-incorrect-no-termios-change-check.patch
-genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
-synclink-remove-bogus-no-change-termios-optimisation.patch
-68360serial-remove-broken-optimisation.patch
-serial-remove-termios-checks-from-various-old-char-serial.patch
-ia64-arbitary-speed-tty-ioctl-support.patch
-sb1250-duartc-sb1250-duart-serial-support.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
+remove-dead-references-to-module_parm-macro.patch
+git-watchdog.patch
+i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
+i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
+i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+mm-make-needlessly-global-hugetlb_no_page-static.patch
+frv-be-self-consistent-and-use-config_gdb_console-everywhere.patch
+frv-remove-some-dead-code.patch
+cris-replace-old-style-member-inits-with-designated-inits.patch
+remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
+drop-an-empty-isicomh-from-being-exported-to-user-space.patch
+remove-apparently-useless-commented-apm_get_battery_status.patch
+cobalt-remove-all-references-to-cobalt-nvram.patch
+remove-final-two-references-to-__obsolete_setup-macro.patch
+cdrom-replace-hard-coded-constants-by-kernelh-macro.patch
+nls-remove-obsolete-makefile-entries.patch
