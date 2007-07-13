@@ -1,231 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - kgdb-kconfig-fix.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:48 -0700
-Message-ID: <200707132233.l6DMXmPr025116@imap1.linux-foundation.org>
+Subject: - sata_promise-sata-hotplug-support.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:32:48 -0700
+Message-ID: <200707132232.l6DMWm0I025025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35241 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33372 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937286AbXGMWo7 (ORCPT
+	by vger.kernel.org with ESMTP id S1761111AbXGMWpO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:44:59 -0400
+	Fri, 13 Jul 2007 18:45:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: mikpe@it.uu.se, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kgdb-kconfig-fix
+     sata_promise: SATA hotplug support
 has been removed from the -mm tree.  Its filename was
-     kgdb-kconfig-fix.patch
+     sata_promise-sata-hotplug-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kgdb-kconfig-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sata_promise: SATA hotplug support
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-i386 allmodconfig:
+This patch enables hotplugging of SATA devices in the sata_promise driver. 
+It's been tested successfully on both first- and second-generation Promise
+SATA chips: SATA150 TX2plus, SATAII150 TX2plus, SATAII150 TX4, SATA300
+TX2plus, and SATA300 TX4.
 
-drivers/built-in.o: In function `kgdb8250_late_init':
-drivers/serial/8250_kgdb.c:290: undefined reference to `serial8250_unregister_by_port'
+The only quirk I've seen is that hotplugging (insertion) on the
+first-generation SATA150 TX2plus requires a lengthier EH sequence than on the
+second-generation chips.  On the second-generation chips a simple soft reset
+seems to suffice, but on the first-generation chip there's a "port is slow to
+respond" after the initial soft reset, after which libata issues a hard reset,
+and then the device is recognised.
 
-this fix is pretty hacky and nasty.
+The hotplug checks are high up in the interrupt handling path, not deep down
+in error_intr as in ahci/sata_sil24.  That's because the chip doesn't signal
+hotplug status changes in the per-port status register: instead a global
+register contains hotplug control and status flags for all ports.  I
+considered following the ahci/sata_sil24 structure, but that would have
+required non-trivial changes to the interrupt handling path, so I chose to
+keep the hotplug changes simple and unobtrusive.
 
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Cc: Jeff Garzik <jeff@garzik.org>
+Acked-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kgdb |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/sata_promise.c |   41 ++++++++++++++++++++++++++++++-----
+ 1 files changed, 36 insertions(+), 5 deletions(-)
 
-diff -puN drivers/serial/Kconfig~kgdb-kconfig-fix drivers/serial/Kconfig
-diff -puN lib/Kconfig.kgdb~kgdb-kconfig-fix lib/Kconfig.kgdb
---- a/lib/Kconfig.kgdb~kgdb-kconfig-fix
-+++ a/lib/Kconfig.kgdb
-@@ -68,6 +68,7 @@ config KGDB_ONLY_MODULES
- config KGDB_8250_NOMODULE
- 	bool "KGDB: On generic serial port (8250)"
- 	select KGDB_8250
-+	select SERIAL_8250
- 	help
- 	  Uses generic serial port (8250) to communicate with the host
- 	  GDB.  This is independent of the normal (SERIAL_8250) driver
+diff -puN drivers/ata/sata_promise.c~sata_promise-sata-hotplug-support drivers/ata/sata_promise.c
+--- a/drivers/ata/sata_promise.c~sata_promise-sata-hotplug-support
++++ a/drivers/ata/sata_promise.c
+@@ -45,7 +45,7 @@
+ #include "sata_promise.h"
+ 
+ #define DRV_NAME	"sata_promise"
+-#define DRV_VERSION	"2.08"
++#define DRV_VERSION	"2.09"
+ 
+ enum {
+ 	PDC_MAX_PORTS		= 4,
+@@ -716,6 +716,9 @@ static irqreturn_t pdc_interrupt (int ir
+ 	unsigned int i, tmp;
+ 	unsigned int handled = 0;
+ 	void __iomem *mmio_base;
++	unsigned int hotplug_offset, ata_no;
++	u32 hotplug_status;
++	int is_sataii_tx4;
+ 
+ 	VPRINTK("ENTER\n");
+ 
+@@ -726,10 +729,20 @@ static irqreturn_t pdc_interrupt (int ir
+ 
+ 	mmio_base = host->iomap[PDC_MMIO_BAR];
+ 
++	/* read and clear hotplug flags for all ports */
++	if (host->ports[0]->flags & PDC_FLAG_GEN_II)
++		hotplug_offset = PDC2_SATA_PLUG_CSR;
++	else
++		hotplug_offset = PDC_SATA_PLUG_CSR;
++	hotplug_status = readl(mmio_base + hotplug_offset);
++	if (hotplug_status & 0xff)
++		writel(hotplug_status | 0xff, mmio_base + hotplug_offset);
++	hotplug_status &= 0xff;	/* clear uninteresting bits */
++
+ 	/* reading should also clear interrupts */
+ 	mask = readl(mmio_base + PDC_INT_SEQMASK);
+ 
+-	if (mask == 0xffffffff) {
++	if (mask == 0xffffffff && hotplug_status == 0) {
+ 		VPRINTK("QUICK EXIT 2\n");
+ 		return IRQ_NONE;
+ 	}
+@@ -737,16 +750,34 @@ static irqreturn_t pdc_interrupt (int ir
+ 	spin_lock(&host->lock);
+ 
+ 	mask &= 0xffff;		/* only 16 tags possible */
+-	if (!mask) {
++	if (mask == 0 && hotplug_status == 0) {
+ 		VPRINTK("QUICK EXIT 3\n");
+ 		goto done_irq;
+ 	}
+ 
+ 	writel(mask, mmio_base + PDC_INT_SEQMASK);
+ 
++	is_sataii_tx4 = pdc_is_sataii_tx4(host->ports[0]->flags);
++
+ 	for (i = 0; i < host->n_ports; i++) {
+ 		VPRINTK("port %u\n", i);
+ 		ap = host->ports[i];
++
++		/* check for a plug or unplug event */
++		ata_no = pdc_port_no_to_ata_no(i, is_sataii_tx4);
++		tmp = hotplug_status & (0x11 << ata_no);
++		if (tmp && ap &&
++		    !(ap->flags & ATA_FLAG_DISABLED)) {
++			struct ata_eh_info *ehi = &ap->eh_info;
++			ata_ehi_clear_desc(ehi);
++			ata_ehi_hotplugged(ehi);
++			ata_ehi_push_desc(ehi, "hotplug_status %#x", tmp);
++			ata_port_freeze(ap);
++			++handled;
++			continue;
++		}
++
++		/* check for a packet interrupt */
+ 		tmp = mask & (1 << (i + 1));
+ 		if (tmp && ap &&
+ 		    !(ap->flags & ATA_FLAG_DISABLED)) {
+@@ -902,9 +933,9 @@ static void pdc_host_init(struct ata_hos
+ 	tmp = readl(mmio + hotplug_offset);
+ 	writel(tmp | 0xff, mmio + hotplug_offset);
+ 
+-	/* mask plug/unplug ints */
++	/* unmask plug/unplug ints */
+ 	tmp = readl(mmio + hotplug_offset);
+-	writel(tmp | 0xff0000, mmio + hotplug_offset);
++	writel(tmp & ~0xff0000, mmio + hotplug_offset);
+ 
+ 	/* don't initialise TBG or SLEW on 2nd generation chips */
+ 	if (is_gen2)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mikpe@it.uu.se are
 
 origin.patch
-git-acpi.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cpufreq.patch
-git-powerpc.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-md-accel.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-ubi.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-git-ioat-vs-git-md-accel.patch
-git-ocfs2-vs-git-gfs2-nmw.patch
-revert-gregkh-pci-pci_bridge-device.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-vs-greg-sysfs-stuff.patch
-aacraid-rename-check_reset.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-xfs.patch
-git-cryptodev.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-fix-alpha-isa-support.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-use-write_trylock_irqsave-in-ptrace_attach.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time.patch
-use-boot-based-time-for-process-start-time-and-boot-time.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-vdso-print-fatal-signals.patch
-o_cloexec-for-scm_rights.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each.patch
-ext3-ext4-orphan-list-check-on-destroy_inode.patch
-taskstats-add-context-switch-counters.patch
-improve-behaviour-of-spurious-irq-detect.patch
-audit-add-tty-input-auditing.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-diskquota-32bit-quota-tools-on-64bit-architectures.patch
-sys_time-speedup.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc.patch
-bd_claim_by_disk-fix-warning.patch
-uninline-check_signature.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support.patch
-spi-master-driver-for-xilinx-virtex.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup.patch
-knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-remove-iget-abuse.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-add-support-for-the-st-m48t59-rtc.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
-rtc-driver-for-ds1216-chips-fix.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
