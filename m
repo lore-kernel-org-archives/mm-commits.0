@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-macmodescmac_find_mode-mustnt-be.patch added to -mm tree
-Date: Fri, 13 Jul 2007 00:52:56 -0700
-Message-ID: <200707130752.l6D7quBZ006474@imap1.linux-foundation.org>
+Subject: + arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch added to -mm tree
+Date: Fri, 13 Jul 2007 00:55:12 -0700
+Message-ID: <200707130755.l6D7tCZO006569@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58457 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57751 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755817AbXGMHxU (ORCPT
+	by vger.kernel.org with ESMTP id S1753160AbXGMHz2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 03:53:20 -0400
+	Fri, 13 Jul 2007 03:55:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, adaplas@pol.net, michal.k.k.piotrowski@gmail.com, stable@kernel.org
+Cc: bunk@stusta.de
 
 
 The patch titled
-     drivers/video/macmodes.c:mac_find_mode() mustn't be __devinit
+     arch/i386/kernel/smpboot.c:setup_trampoline() must be __cpuinit
 has been added to the -mm tree.  Its filename is
-     drivers-video-macmodescmac_find_mode-mustnt-be.patch
+     arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/video/macmodes.c:mac_find_mode() mustn't be __devinit
+Subject: arch/i386/kernel/smpboot.c:setup_trampoline() must be __cpuinit
 From: Adrian Bunk <bunk@stusta.de>
 
-If it's EXPORT_SYMBOL'ed it can't be __devinit.
+WARNING: arch/i386/kernel/built-in.o(.text+0xf201): Section mismatch: reference to .init.data:trampoline_end (between 'setup_trampoline' and 'cpu_coregroup_map')
+WARNING: arch/i386/kernel/built-in.o(.text+0xf207): Section mismatch: reference to .init.data:trampoline_data (between 'setup_trampoline' and 'cpu_coregroup_map')
+WARNING: arch/i386/kernel/built-in.o(.text+0xf21a): Section mismatch: reference to .init.data:trampoline_data (between 'setup_trampoline' and 'cpu_coregroup_map')
 
-Reported by Mikael Pettersson.
+Harmless but annoying warnings present when building an i386 SMP kernel
+with CONFIG_HOTPLUG_CPU=n and gcc < 4.0 .
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/macmodes.c |    5 ++---
- drivers/video/macmodes.h |    8 ++++----
- 2 files changed, 6 insertions(+), 7 deletions(-)
+ arch/i386/kernel/smpboot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/macmodes.c~drivers-video-macmodescmac_find_mode-mustnt-be drivers/video/macmodes.c
---- a/drivers/video/macmodes.c~drivers-video-macmodescmac_find_mode-mustnt-be
-+++ a/drivers/video/macmodes.c
-@@ -369,9 +369,8 @@ EXPORT_SYMBOL(mac_map_monitor_sense);
-  *
+diff -puN arch/i386/kernel/smpboot.c~arch-i386-kernel-smpbootcsetup_trampoline-must-be arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~arch-i386-kernel-smpbootcsetup_trampoline-must-be
++++ a/arch/i386/kernel/smpboot.c
+@@ -118,7 +118,7 @@ DEFINE_PER_CPU(int, cpu_state) = { 0 };
+  * has made sure it's suitably aligned.
   */
  
--int __devinit mac_find_mode(struct fb_var_screeninfo *var,
--			    struct fb_info *info, const char *mode_option,
--			    unsigned int default_bpp)
-+int mac_find_mode(struct fb_var_screeninfo *var, struct fb_info *info,
-+		  const char *mode_option, unsigned int default_bpp)
+-static unsigned long __devinit setup_trampoline(void)
++static unsigned long __cpuinit setup_trampoline(void)
  {
-     const struct fb_videomode *db = NULL;
-     unsigned int dbsize = 0;
-diff -puN drivers/video/macmodes.h~drivers-video-macmodescmac_find_mode-mustnt-be drivers/video/macmodes.h
---- a/drivers/video/macmodes.h~drivers-video-macmodescmac_find_mode-mustnt-be
-+++ a/drivers/video/macmodes.h
-@@ -55,10 +55,10 @@ extern int mac_vmode_to_var(int vmode, i
- extern int mac_var_to_vmode(const struct fb_var_screeninfo *var, int *vmode,
- 			    int *cmode);
- extern int mac_map_monitor_sense(int sense);
--extern int __devinit mac_find_mode(struct fb_var_screeninfo *var,
--				   struct fb_info *info,
--				   const char *mode_option,
--				   unsigned int default_bpp);
-+extern int mac_find_mode(struct fb_var_screeninfo *var,
-+			 struct fb_info *info,
-+			 const char *mode_option,
-+			 unsigned int default_bpp);
- 
- 
-     /*
+ 	memcpy(trampoline_base, trampoline_data, trampoline_end - trampoline_data);
+ 	return virt_to_phys(trampoline_base);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -121,6 +99,7 @@ i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
 xen-fix-x86-config-dependencies.patch
 xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
 xen-cant-support-numa-yet.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
 mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
 handle-kernelcore=-generic.patch
 maps2-add-proc-kpagemap-interface.patch
