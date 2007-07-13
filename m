@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + coda-replace-upc_alloc-upc_free-with-kmalloc-kfree.patch added to -mm tree
-Date: Thu, 12 Jul 2007 22:29:40 -0700
-Message-ID: <200707130529.l6D5Tend030814@imap1.linux-foundation.org>
+Subject: + coda-cleanup-coda_lookup-use-dsplice_alias.patch added to -mm tree
+Date: Thu, 12 Jul 2007 22:29:42 -0700
+Message-ID: <200707130529.l6D5TgxF030820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36422 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46854 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751427AbXGMFf5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751652AbXGMFg1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 01:35:57 -0400
+	Fri, 13 Jul 2007 01:36:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jaharkes@cs.cmu.edu
 
 
 The patch titled
-     coda: replace upc_alloc/upc_free with kmalloc/kfree
+     coda: cleanup coda_lookup, use dsplice_alias
 has been added to the -mm tree.  Its filename is
-     coda-replace-upc_alloc-upc_free-with-kmalloc-kfree.patch
+     coda-cleanup-coda_lookup-use-dsplice_alias.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,92 +26,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coda: replace upc_alloc/upc_free with kmalloc/kfree
+Subject: coda: cleanup coda_lookup, use dsplice_alias
 From: Jan Harkes <jaharkes@cs.cmu.edu>
 
 Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/psdev.c  |    6 ++----
- fs/coda/upcall.c |   11 ++++-------
- 2 files changed, 6 insertions(+), 11 deletions(-)
+ fs/coda/dir.c |   57 ++++++++++++++++++------------------------------
+ 1 file changed, 22 insertions(+), 35 deletions(-)
 
-diff -puN fs/coda/psdev.c~coda-replace-upc_alloc-upc_free-with-kmalloc-kfree fs/coda/psdev.c
---- a/fs/coda/psdev.c~coda-replace-upc_alloc-upc_free-with-kmalloc-kfree
-+++ a/fs/coda/psdev.c
-@@ -49,8 +49,6 @@
- 
- #include "coda_int.h"
- 
--#define upc_free(r) kfree(r)
--
- /* statistics */
- int           coda_hard;         /* allows signals during upcalls */
- unsigned long coda_timeout = 30; /* .. secs, then signals will dequeue */
-@@ -264,7 +262,7 @@ static ssize_t coda_psdev_read(struct fi
+diff -puN fs/coda/dir.c~coda-cleanup-coda_lookup-use-dsplice_alias fs/coda/dir.c
+--- a/fs/coda/dir.c~coda-cleanup-coda_lookup-use-dsplice_alias
++++ a/fs/coda/dir.c
+@@ -97,58 +97,45 @@ const struct file_operations coda_dir_op
+ /* access routines: lookup, readlink, permission */
+ static struct dentry *coda_lookup(struct inode *dir, struct dentry *entry, struct nameidata *nd)
+ {
+-	struct inode *res_inode = NULL;
++	struct inode *inode = NULL;
+ 	struct CodaFid resfid = { { 0, } };
+-	int dropme = 0; /* to indicate entry should not be cached */
+ 	int type = 0;
+ 	int error = 0;
+ 	const char *name = entry->d_name.name;
+ 	size_t length = entry->d_name.len;
+-	
+-	if ( length > CODA_MAXNAMLEN ) {
+-	        printk("name too long: lookup, %s (%*s)\n", 
++
++	if (length > CODA_MAXNAMLEN) {
++		printk(KERN_ERR "name too long: lookup, %s (%*s)\n",
+ 		       coda_i2s(dir), (int)length, name);
+ 		return ERR_PTR(-ENAMETOOLONG);
  	}
  
- 	CODA_FREE(req->uc_data, sizeof(struct coda_in_hdr));
--	upc_free(req);
-+	kfree(req);
- out:
- 	unlock_kernel();
- 	return (count ? count : retval);
-@@ -320,7 +318,7 @@ static int coda_psdev_release(struct ino
- 		/* Async requests need to be freed here */
- 		if (req->uc_flags & REQ_ASYNC) {
- 			CODA_FREE(req->uc_data, sizeof(struct coda_in_hdr));
--			upc_free(req);
-+			kfree(req);
- 			continue;
- 		}
- 		req->uc_flags |= REQ_ABORT;
-diff -puN fs/coda/upcall.c~coda-replace-upc_alloc-upc_free-with-kmalloc-kfree fs/coda/upcall.c
---- a/fs/coda/upcall.c~coda-replace-upc_alloc-upc_free-with-kmalloc-kfree
-+++ a/fs/coda/upcall.c
-@@ -37,9 +37,6 @@
- #include <linux/coda_cache.h>
- #include <linux/coda_proc.h> 
++	/* control object, create inode on the fly */
++	if (coda_isroot(dir) && coda_iscontrol(name, length)) {
++		error = coda_cnode_makectl(&inode, dir->i_sb);
++		type = CODA_NOCACHE;
++		goto exit;
++	}
++
+ 	lock_kernel();
+-        /* control object, create inode on the fly */
+-        if (coda_isroot(dir) && coda_iscontrol(name, length)) {
+-	        error = coda_cnode_makectl(&res_inode, dir->i_sb);
+-		dropme = 1;
+-                goto exit;
+-        }
  
--#define upc_alloc() kmalloc(sizeof(struct upc_req), GFP_KERNEL)
--#define upc_free(r) kfree(r)
--
- static int coda_upcall(struct coda_sb_info *mntinfo, int inSize, int *outSize, 
- 		       union inputArgs *buffer);
+-	error = venus_lookup(dir->i_sb, coda_i2f(dir), 
+-			     (const char *)name, length, &type, &resfid);
++	error = venus_lookup(dir->i_sb, coda_i2f(dir), name, length,
++			     &type, &resfid);
++	if (!error)
++		error = coda_cnode_make(&inode, &resfid, dir->i_sb);
  
-@@ -745,7 +742,7 @@ static int coda_upcall(struct coda_sb_in
- 	}
+-	res_inode = NULL;
+-	if (!error) {
+-		if (type & CODA_NOCACHE) {
+-			type &= (~CODA_NOCACHE);
+-			dropme = 1;
+-		}
++	unlock_kernel();
  
- 	/* Format the request message. */
--	req = upc_alloc();
-+	req = kmalloc(sizeof(struct upc_req), GFP_KERNEL);
- 	if (!req)
- 		return -ENOMEM;
- 
-@@ -802,12 +799,12 @@ static int coda_upcall(struct coda_sb_in
- 	}
- 
- 	error = -ENOMEM;
--	sig_req = upc_alloc();
-+	sig_req = kmalloc(sizeof(struct upc_req), GFP_KERNEL);
- 	if (!sig_req) goto exit;
- 
- 	CODA_ALLOC((sig_req->uc_data), char *, sizeof(struct coda_in_hdr));
- 	if (!sig_req->uc_data) {
--		upc_free(sig_req);
-+		kfree(sig_req);
- 		goto exit;
- 	}
- 
-@@ -827,7 +824,7 @@ static int coda_upcall(struct coda_sb_in
- 	wake_up_interruptible(&vcommp->vc_waitq);
+-	    	error = coda_cnode_make(&res_inode, &resfid, dir->i_sb);
+-		if (error) {
+-			unlock_kernel();
+-			return ERR_PTR(error);
+-		}
+-	} else if (error != -ENOENT) {
+-		unlock_kernel();
++	if (error && error != -ENOENT)
+ 		return ERR_PTR(error);
+-	}
  
  exit:
--	upc_free(req);
-+	kfree(req);
- 	return error;
+-	entry->d_time = 0;
+ 	entry->d_op = &coda_dentry_operations;
+-	d_add(entry, res_inode);
+-	if ( dropme ) {
+-		d_drop(entry);
+-		coda_flag_inode(res_inode, C_VATTR);
+-	}
+-	unlock_kernel();
+-        return NULL;
++
++	if (inode && (type & CODA_NOCACHE))
++		coda_flag_inode(inode, C_VATTR | C_PURGE);
++
++	return d_splice_alias(inode, entry);
  }
+ 
  
 _
 
