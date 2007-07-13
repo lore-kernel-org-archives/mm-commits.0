@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-speedup-touch_nmi_watchdog.patch added to -mm tree
-Date: Fri, 13 Jul 2007 16:46:04 -0700
-Message-ID: <200707132346.l6DNk4ow029373@imap1.linux-foundation.org>
+Subject: + i386-speedup-touch_nmi_watchdog.patch added to -mm tree
+Date: Fri, 13 Jul 2007 16:46:02 -0700
+Message-ID: <200707132346.l6DNk2GR029370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55143 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35354 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758647AbXGMXqW (ORCPT
+	by vger.kernel.org with ESMTP id S1757179AbXGMXqV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 19:46:22 -0400
+	Fri, 13 Jul 2007 19:46:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, ak@suse.de, konrad@darnok.org
 
 
 The patch titled
-     x86_64: speedup touch_nmi_watchdog
+     i386: speedup touch_nmi_watchdog
 has been added to the -mm tree.  Its filename is
-     x86_64-speedup-touch_nmi_watchdog.patch
+     i386-speedup-touch_nmi_watchdog.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: speedup touch_nmi_watchdog
+Subject: i386: speedup touch_nmi_watchdog
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Avoid dirtying remote cpu's memory if it already has the correct value.
@@ -36,34 +36,34 @@ Cc: Konrad Rzeszutek <konrad@darnok.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/nmi.c |    8 +++++---
+ arch/i386/kernel/nmi.c |    8 +++++---
  1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/nmi.c~x86_64-speedup-touch_nmi_watchdog arch/x86_64/kernel/nmi.c
---- a/arch/x86_64/kernel/nmi.c~x86_64-speedup-touch_nmi_watchdog
-+++ a/arch/x86_64/kernel/nmi.c
-@@ -299,7 +299,7 @@ static DEFINE_PER_CPU(unsigned, last_irq
- static DEFINE_PER_CPU(local_t, alert_counter);
- static DEFINE_PER_CPU(int, nmi_touch);
+diff -puN arch/i386/kernel/nmi.c~i386-speedup-touch_nmi_watchdog arch/i386/kernel/nmi.c
+--- a/arch/i386/kernel/nmi.c~i386-speedup-touch_nmi_watchdog
++++ a/arch/i386/kernel/nmi.c
+@@ -298,7 +298,7 @@ static unsigned int
+ 	last_irq_sums [NR_CPUS],
+ 	alert_counter [NR_CPUS];
  
 -void touch_nmi_watchdog (void)
 +void touch_nmi_watchdog(void)
  {
  	if (nmi_watchdog > 0) {
  		unsigned cpu;
-@@ -309,8 +309,10 @@ void touch_nmi_watchdog (void)
- 		 * do it ourselves because the alert count increase is not
- 		 * atomic.
+@@ -307,8 +307,10 @@ void touch_nmi_watchdog (void)
+ 		 * Just reset the alert counters, (other CPUs might be
+ 		 * spinning on locks we hold):
  		 */
 -		for_each_present_cpu (cpu)
--			per_cpu(nmi_touch, cpu) = 1;
+-			alert_counter[cpu] = 0;
 +		for_each_present_cpu(cpu) {
-+			if (per_cpu(nmi_touch, cpu) != 1)
-+				per_cpu(nmi_touch, cpu) = 1;
++			if (alert_counter[cpu])
++				alert_counter[cpu] = 0;
 +		}
  	}
  
-  	touch_softlockup_watchdog();
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
