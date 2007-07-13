@@ -1,71 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - slub-mm-only-make-slub-the-default-slab-allocator.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 00:56:18 -0700
-Message-ID: <200707130756.l6D7uIir006585@imap1.linux-foundation.org>
+Subject: + make-slub-the-default-allocator.patch added to -mm tree
+Date: Fri, 13 Jul 2007 00:56:26 -0700
+Message-ID: <200707130756.l6D7uQ9x006608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34683 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52795 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756277AbXGMH40 (ORCPT
+	by vger.kernel.org with ESMTP id S1756433AbXGMH4d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 03:56:26 -0400
+	Fri, 13 Jul 2007 03:56:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: mm-only: Make SLUB the default slab allocator
-has been removed from the -mm tree.  Its filename was
-     slub-mm-only-make-slub-the-default-slab-allocator.patch
+     Make SLUB the default allocator
+has been added to the -mm tree.  Its filename is
+     make-slub-the-default-allocator.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: mm-only: Make SLUB the default slab allocator
+Subject: Make SLUB the default allocator
 From: Christoph Lameter <clameter@sgi.com>
 
-Make SLUB the default slab allocator
+There are some reports that 2.6.22 has SLUB as the default. Not
+true!
 
-WARNING: This is a new allocator. No guarantees.
-
-Known areas of concern:
-
-A. i386 and FRV arches have been disabled by setting
-   ARCH_USES_SLAB_PAGE_STRUCT. SLUB cannot be enabled on those platforms.
-
-   The issue is that both arches use the page->index and page->private field
-   of memory allocated via the slab. SLUB uses these fields too. There are
-   a variety of patches out there (some by me, some by Bill Irwin) to address
-   this but without those you may be stuck until Bill Irwin comes up with a
-   definite solution.
-
-B. There may be undiscovered locations in arch code that are as badly
-   behaved as i386 and FRV which will likely cause the arch not to boot
-   and fail with mysterious error messages.
-
-C. Unlike SLAB, SLUB does not special case page sized allocations. SLAB
-   aligns kmallocs of page sized allocation on page boundaries.
-   SLUB also does that most of the time but does not guarantee alignment
-   beyond KMALLOC_ARCH_MINALIGN that is valid for other kmalloc slabs.
-   In particular enabling debugging will add some tracking information
-   to slabs which will usually cause page sized slabs to become no longer
-   aligned on page boundaries.
-
-   If there is arch code that relies on this behavior then we are likely
-   to see funky behavior. Code that uses page sized allocations via kmalloc
-   should either use the page allocator or explictly request page aligned
-   data from the slab by creating a custom slab with the needed alignment.
+This will make SLUB the default for 2.6.23.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  init/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/Kconfig~slub-mm-only-make-slub-the-default-slab-allocator init/Kconfig
---- a/init/Kconfig~slub-mm-only-make-slub-the-default-slab-allocator
+diff -puN init/Kconfig~make-slub-the-default-allocator init/Kconfig
+--- a/init/Kconfig~make-slub-the-default-allocator
 +++ a/init/Kconfig
 @@ -554,7 +554,7 @@ config SLUB_DEBUG
  
@@ -98,7 +75,6 @@ fix-calculation-in-move_freepages_block-for-counting-pages.patch
 breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
 do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
 print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
 have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
 only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
 slub-exploit-page-mobility-to-increase-allocation-order.patch
