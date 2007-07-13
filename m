@@ -1,66 +1,234 @@
 From: akpm@linux-foundation.org
-Subject: - usb-make-the-usb_device-numa_node-to-get-assigned-from.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:31 -0700
-Message-ID: <200707132233.l6DMXVOH025083@imap1.linux-foundation.org>
+Subject: - ftdi_sio-fix-something.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:33:26 -0700
+Message-ID: <200707132233.l6DMXQ14025080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44662 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42870 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761086AbXGMWpf (ORCPT
+	by vger.kernel.org with ESMTP id S1761111AbXGMWpg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:45:35 -0400
+	Fri, 13 Jul 2007 18:45:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@sun.com, ak@suse.de, clameter@sgi.com, greg@kroah.com, rientjes@google.com, yinghai.lu@sun.com, mm-commits@vger.kernel.org
+To: oliver@neukum.org, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: make the usb_device numa_node get assigned from controller
+     ftdi_sio: fix oops due to processing workarounds too early
 has been removed from the -mm tree.  Its filename was
-     usb-make-the-usb_device-numa_node-to-get-assigned-from.patch
+     ftdi_sio-fix-something.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb: make the usb_device numa_node get assigned from controller
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: ftdi_sio: fix oops due to processing workarounds too early
+From: Oliver Neukum <oliver@neukum.org>
 
-So we can use dev_to_node(&usb_dev->dev) later in kmalloc_node to dma buffer
+Fix an oops that happens in relation with applying work arounds for buggy
+ftdi_sio devices.  The quirks were handled too early because due to changes in
+the initialisation of usb serial devices the device was not fully initialised
+when the old hook was called.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Andi Kleen <ak@suse.de>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
+Addresses bug 8564
+
 Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/usb.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/usb/serial/ftdi_sio.c |  104 +++++++++++++-------------------
+ 1 files changed, 44 insertions(+), 60 deletions(-)
 
-diff -puN drivers/usb/core/usb.c~usb-make-the-usb_device-numa_node-to-get-assigned-from drivers/usb/core/usb.c
---- a/drivers/usb/core/usb.c~usb-make-the-usb_device-numa_node-to-get-assigned-from
-+++ a/drivers/usb/core/usb.c
-@@ -253,6 +253,7 @@ usb_alloc_dev(struct usb_device *parent,
- 	dev->dev.bus = &usb_bus_type;
- 	dev->dev.type = &usb_device_type;
- 	dev->dev.dma_mask = bus->controller->dma_mask;
-+	set_dev_node(&dev->dev, dev_to_node(bus->controller));
- 	dev->state = USB_STATE_ATTACHED;
+diff -puN drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-something drivers/usb/serial/ftdi_sio.c
+--- a/drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-something
++++ a/drivers/usb/serial/ftdi_sio.c
+@@ -271,26 +271,58 @@ static int debug;
+ static __u16 vendor = FTDI_VID;
+ static __u16 product;
  
- 	INIT_LIST_HEAD(&dev->ep0.urb_list);
++struct ftdi_private {
++	ftdi_chip_type_t chip_type;
++				/* type of the device, either SIO or FT8U232AM */
++	int baud_base;		/* baud base clock for divisor setting */
++	int custom_divisor;	/* custom_divisor kludge, this is for baud_base (different from what goes to the chip!) */
++	__u16 last_set_data_urb_value ;
++				/* the last data state set - needed for doing a break */
++        int write_offset;       /* This is the offset in the usb data block to write the serial data -
++				 * it is different between devices
++				 */
++	int flags;		/* some ASYNC_xxxx flags are supported */
++	unsigned long last_dtr_rts;	/* saved modem control outputs */
++        wait_queue_head_t delta_msr_wait; /* Used for TIOCMIWAIT */
++	char prev_status, diff_status;        /* Used for TIOCMIWAIT */
++	__u8 rx_flags;		/* receive state flags (throttling) */
++	spinlock_t rx_lock;	/* spinlock for receive state */
++	struct delayed_work rx_work;
++	struct usb_serial_port *port;
++	int rx_processed;
++	unsigned long rx_bytes;
++
++	__u16 interface;	/* FT2232C port interface (0 for FT232/245) */
++
++	int force_baud;		/* if non-zero, force the baud rate to this value */
++	int force_rtscts;	/* if non-zero, force RTS-CTS to always be enabled */
++
++	spinlock_t tx_lock;	/* spinlock for transmit state */
++	unsigned long tx_bytes;
++	unsigned long tx_outstanding_bytes;
++	unsigned long tx_outstanding_urbs;
++};
++
+ /* struct ftdi_sio_quirk is used by devices requiring special attention. */
+ struct ftdi_sio_quirk {
+ 	int (*probe)(struct usb_serial *);
+-	void (*setup)(struct usb_serial *); /* Special settings during startup. */
++	void (*port_probe)(struct ftdi_private *); /* Special settings for probed ports. */
+ };
+ 
+ static int   ftdi_olimex_probe		(struct usb_serial *serial);
+-static void  ftdi_USB_UIRT_setup	(struct usb_serial *serial);
+-static void  ftdi_HE_TIRA1_setup	(struct usb_serial *serial);
++static void  ftdi_USB_UIRT_setup	(struct ftdi_private *priv);
++static void  ftdi_HE_TIRA1_setup	(struct ftdi_private *priv);
+ 
+ static struct ftdi_sio_quirk ftdi_olimex_quirk = {
+ 	.probe	= ftdi_olimex_probe,
+ };
+ 
+ static struct ftdi_sio_quirk ftdi_USB_UIRT_quirk = {
+-	.setup = ftdi_USB_UIRT_setup,
++	.port_probe = ftdi_USB_UIRT_setup,
+ };
+ 
+ static struct ftdi_sio_quirk ftdi_HE_TIRA1_quirk = {
+-	.setup = ftdi_HE_TIRA1_setup,
++	.port_probe = ftdi_HE_TIRA1_setup,
+ };
+ 
+ /*
+@@ -567,38 +599,6 @@ static const char *ftdi_chip_name[] = {
+ #define THROTTLED		0x01
+ #define ACTUALLY_THROTTLED	0x02
+ 
+-struct ftdi_private {
+-	ftdi_chip_type_t chip_type;
+-				/* type of the device, either SIO or FT8U232AM */
+-	int baud_base;		/* baud base clock for divisor setting */
+-	int custom_divisor;	/* custom_divisor kludge, this is for baud_base (different from what goes to the chip!) */
+-	__u16 last_set_data_urb_value ;
+-				/* the last data state set - needed for doing a break */
+-        int write_offset;       /* This is the offset in the usb data block to write the serial data -
+-				 * it is different between devices
+-				 */
+-	int flags;		/* some ASYNC_xxxx flags are supported */
+-	unsigned long last_dtr_rts;	/* saved modem control outputs */
+-        wait_queue_head_t delta_msr_wait; /* Used for TIOCMIWAIT */
+-	char prev_status, diff_status;        /* Used for TIOCMIWAIT */
+-	__u8 rx_flags;		/* receive state flags (throttling) */
+-	spinlock_t rx_lock;	/* spinlock for receive state */
+-	struct delayed_work rx_work;
+-	struct usb_serial_port *port;
+-	int rx_processed;
+-	unsigned long rx_bytes;
+-
+-	__u16 interface;	/* FT2232C port interface (0 for FT232/245) */
+-
+-	int force_baud;		/* if non-zero, force the baud rate to this value */
+-	int force_rtscts;	/* if non-zero, force RTS-CTS to always be enabled */
+-
+-	spinlock_t tx_lock;	/* spinlock for transmit state */
+-	unsigned long tx_bytes;
+-	unsigned long tx_outstanding_bytes;
+-	unsigned long tx_outstanding_urbs;
+-};
+-
+ /* Used for TIOCMIWAIT */
+ #define FTDI_STATUS_B0_MASK	(FTDI_RS0_CTS | FTDI_RS0_DSR | FTDI_RS0_RI | FTDI_RS0_RLSD)
+ #define FTDI_STATUS_B1_MASK	(FTDI_RS_BI)
+@@ -609,7 +609,6 @@ struct ftdi_private {
+ 
+ /* function prototypes for a FTDI serial converter */
+ static int  ftdi_sio_probe	(struct usb_serial *serial, const struct usb_device_id *id);
+-static int  ftdi_sio_attach		(struct usb_serial *serial);
+ static void ftdi_shutdown		(struct usb_serial *serial);
+ static int  ftdi_sio_port_probe	(struct usb_serial_port *port);
+ static int  ftdi_sio_port_remove	(struct usb_serial_port *port);
+@@ -663,7 +662,6 @@ static struct usb_serial_driver ftdi_sio
+ 	.ioctl =		ftdi_ioctl,
+ 	.set_termios =		ftdi_set_termios,
+ 	.break_ctl =		ftdi_break_ctl,
+-	.attach =		ftdi_sio_attach,
+ 	.shutdown =		ftdi_shutdown,
+ };
+ 
+@@ -1200,6 +1198,8 @@ static int ftdi_sio_probe (struct usb_se
+ static int ftdi_sio_port_probe(struct usb_serial_port *port)
+ {
+ 	struct ftdi_private *priv;
++	struct ftdi_sio_quirk *quirk = usb_get_serial_data(port->serial);
++
+ 
+ 	dbg("%s",__FUNCTION__);
+ 
+@@ -1216,6 +1216,9 @@ static int ftdi_sio_port_probe(struct us
+ 	   than queue a task to deliver them */
+ 	priv->flags = ASYNC_LOW_LATENCY;
+ 
++	if (quirk && quirk->port_probe)
++		quirk->port_probe(priv);
++
+ 	/* Increase the size of read buffers */
+ 	kfree(port->bulk_in_buffer);
+ 	port->bulk_in_buffer = kmalloc (BUFSZ, GFP_KERNEL);
+@@ -1246,29 +1249,13 @@ static int ftdi_sio_port_probe(struct us
+ 	return 0;
+ }
+ 
+-/* attach subroutine */
+-static int ftdi_sio_attach (struct usb_serial *serial)
+-{
+-	/* Check for device requiring special set up. */
+-	struct ftdi_sio_quirk *quirk = usb_get_serial_data(serial);
+-
+-	if (quirk && quirk->setup)
+-		quirk->setup(serial);
+-
+-	return 0;
+-} /* ftdi_sio_attach */
+-
+-
+ /* Setup for the USB-UIRT device, which requires hardwired
+  * baudrate (38400 gets mapped to 312500) */
+ /* Called from usbserial:serial_probe */
+-static void ftdi_USB_UIRT_setup (struct usb_serial *serial)
++static void ftdi_USB_UIRT_setup (struct ftdi_private *priv)
+ {
+-	struct ftdi_private *priv;
+-
+ 	dbg("%s",__FUNCTION__);
+ 
+-	priv = usb_get_serial_port_data(serial->port[0]);
+ 	priv->flags |= ASYNC_SPD_CUST;
+ 	priv->custom_divisor = 77;
+ 	priv->force_baud = B38400;
+@@ -1276,13 +1263,10 @@ static void ftdi_USB_UIRT_setup (struct 
+ 
+ /* Setup for the HE-TIRA1 device, which requires hardwired
+  * baudrate (38400 gets mapped to 100000) and RTS-CTS enabled.  */
+-static void ftdi_HE_TIRA1_setup (struct usb_serial *serial)
++static void ftdi_HE_TIRA1_setup (struct ftdi_private *priv)
+ {
+-	struct ftdi_private *priv;
+-
+ 	dbg("%s",__FUNCTION__);
+ 
+-	priv = usb_get_serial_port_data(serial->port[0]);
+ 	priv->flags |= ASYNC_SPD_CUST;
+ 	priv->custom_divisor = 240;
+ 	priv->force_baud = B38400;
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from oliver@neukum.org are
 
 origin.patch
-serial-assert-dtr-for-serial-console-devices.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
-x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-console-more-buf-for-index-parsing.patch
-console-console-handover-to-preferred-console.patch
-serial-convert-early_uart-to-earlycon-for-8250.patch
-dma-make-dma-pool-to-use-kmalloc_node.patch
