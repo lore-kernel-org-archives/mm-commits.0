@@ -1,58 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - kgdb-warning-fix.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:46 -0700
-Message-ID: <200707132233.l6DMXk0E025111@imap1.linux-foundation.org>
+Subject: - kgdb_skipexception-warning-fix.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:33:54 -0700
+Message-ID: <200707132233.l6DMXsfs025126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60838 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43222 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937277AbXGMWo6 (ORCPT
+	by vger.kernel.org with ESMTP id S937259AbXGMWo7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:44:58 -0400
+	Fri, 13 Jul 2007 18:44:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kgdb warning fix
+     kgdb_skipexception() warning fix
 has been removed from the -mm tree.  Its filename was
-     kgdb-warning-fix.patch
+     kgdb_skipexception-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kgdb warning fix
+Subject: kgdb_skipexception() warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/timer.c: In function 'run_local_timers':
-kernel/timer.c:900: warning: unused variable 'this_cpu'
+arm:
+
+kernel/kgdb.c: In function `kgdb_handle_exception':
+kernel/kgdb.c:900: warning: statement with no effect
+kernel/kgdb.c:907: warning: statement with no effect
 
 Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/asm-generic/kgdb.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/timer.c~kgdb-warning-fix kernel/timer.c
---- a/kernel/timer.c~kgdb-warning-fix
-+++ a/kernel/timer.c
-@@ -883,12 +883,11 @@ static void run_timer_softirq(struct sof
+diff -puN include/asm-generic/kgdb.h~kgdb_skipexception-warning-fix include/asm-generic/kgdb.h
+--- a/include/asm-generic/kgdb.h~kgdb_skipexception-warning-fix
++++ a/include/asm-generic/kgdb.h
+@@ -29,7 +29,10 @@
   */
- void run_local_timers(void)
- {
--	int this_cpu = smp_processor_id();
- 	raise_softirq(TIMER_SOFTIRQ);
- #ifdef CONFIG_KGDB
--	if (!atomic_read(&kgdb_sync_softlockup[this_cpu]))
-+	if (!atomic_read(&kgdb_sync_softlockup[smp_processor_id()]))
+ int kgdb_skipexception(int exception, struct pt_regs *regs);
+ #else
+-#define kgdb_skipexception(exception, regs)	0
++static inline int kgdb_skipexception(int exception, struct pt_regs *regs)
++{
++	return 0;
++}
  #endif
--	softlockup_tick();
-+		softlockup_tick();
- }
  
- /*
+ #if defined(CONFIG_X86)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
