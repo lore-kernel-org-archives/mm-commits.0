@@ -1,111 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-block-ubc-use-list_for_each_entry.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:24 -0700
-Message-ID: <200707132233.l6DMXOuT025077@imap1.linux-foundation.org>
+Subject: - bonding-bond_mainc-make-2-functions-static.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:32:56 -0700
+Message-ID: <200707132232.l6DMWuRt025034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44068 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59112 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758965AbXGMWpe (ORCPT
+	by vger.kernel.org with ESMTP id S1760829AbXGMWpX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:45:34 -0400
+	Fri, 13 Jul 2007 18:45:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, greg@kroah.com, jens.axboe@oracle.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, ctindel@users.sourceforge.net, fubar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/block/ub.c: use list_for_each_entry()
+     bonding/bond_main.c: make 2 functions static
 has been removed from the -mm tree.  Its filename was
-     drivers-block-ubc-use-list_for_each_entry.patch
+     bonding-bond_mainc-make-2-functions-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/block/ub.c: use list_for_each_entry()
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: bonding/bond_main.c: make 2 functions static
+From: Adrian Bunk <bunk@stusta.de>
 
-Low performance USB storage driver: Use list_for_each_entry() instead
-of list_for_each()
-
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Chad Tindel <ctindel@users.sourceforge.net>
+Cc: Jay Vosburgh <fubar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/ub.c |   12 +++---------
- 1 files changed, 3 insertions(+), 9 deletions(-)
+ drivers/net/bonding/bond_main.c |    5 +++--
+ drivers/net/bonding/bonding.h   |    2 --
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/ub.c~drivers-block-ubc-use-list_for_each_entry drivers/block/ub.c
---- a/drivers/block/ub.c~drivers-block-ubc-use-list_for_each_entry
-+++ a/drivers/block/ub.c
-@@ -1547,10 +1547,8 @@ static void ub_reset_enter(struct ub_dev
- #endif
+diff -puN drivers/net/bonding/bond_main.c~bonding-bond_mainc-make-2-functions-static drivers/net/bonding/bond_main.c
+--- a/drivers/net/bonding/bond_main.c~bonding-bond_mainc-make-2-functions-static
++++ a/drivers/net/bonding/bond_main.c
+@@ -187,7 +187,7 @@ static void bond_send_gratuitous_arp(str
  
- #if 0 /* We let them stop themselves. */
--	struct list_head *p;
- 	struct ub_lun *lun;
--	list_for_each(p, &sc->luns) {
--		lun = list_entry(p, struct ub_lun, link);
-+	list_for_each_entry(lun, &sc->luns, link) {
- 		blk_stop_queue(lun->disk->queue);
- 	}
- #endif
-@@ -1562,7 +1560,6 @@ static void ub_reset_task(struct work_st
+ /*---------------------------- General routines -----------------------------*/
+ 
+-const char *bond_mode_name(int mode)
++static const char *bond_mode_name(int mode)
  {
- 	struct ub_dev *sc = container_of(work, struct ub_dev, reset_work);
- 	unsigned long flags;
--	struct list_head *p;
- 	struct ub_lun *lun;
- 	int lkr, rc;
+ 	switch (mode) {
+ 	case BOND_MODE_ROUNDROBIN :
+@@ -1224,7 +1224,8 @@ static void bond_detach_slave(struct bon
  
-@@ -1608,8 +1605,7 @@ static void ub_reset_task(struct work_st
- 	spin_lock_irqsave(sc->lock, flags);
- 	sc->reset = 0;
- 	tasklet_schedule(&sc->tasklet);
--	list_for_each(p, &sc->luns) {
--		lun = list_entry(p, struct ub_lun, link);
-+	list_for_each_entry(lun, &sc->luns, link) {
- 		blk_start_queue(lun->disk->queue);
- 	}
- 	wake_up(&sc->reset_wait);
-@@ -2348,7 +2344,6 @@ err_alloc:
- static void ub_disconnect(struct usb_interface *intf)
+ /*---------------------------------- IOCTL ----------------------------------*/
+ 
+-int bond_sethwaddr(struct net_device *bond_dev, struct net_device *slave_dev)
++static int bond_sethwaddr(struct net_device *bond_dev,
++			  struct net_device *slave_dev)
  {
- 	struct ub_dev *sc = usb_get_intfdata(intf);
--	struct list_head *p;
- 	struct ub_lun *lun;
- 	unsigned long flags;
- 
-@@ -2403,8 +2398,7 @@ static void ub_disconnect(struct usb_int
- 	/*
- 	 * Unregister the upper layer.
- 	 */
--	list_for_each (p, &sc->luns) {
--		lun = list_entry(p, struct ub_lun, link);
-+	list_for_each_entry(lun, &sc->luns, link) {
- 		del_gendisk(lun->disk);
- 		/*
- 		 * I wish I could do:
+ 	dprintk("bond_dev=%p\n", bond_dev);
+ 	dprintk("slave_dev=%p\n", slave_dev);
+diff -puN drivers/net/bonding/bonding.h~bonding-bond_mainc-make-2-functions-static drivers/net/bonding/bonding.h
+--- a/drivers/net/bonding/bonding.h~bonding-bond_mainc-make-2-functions-static
++++ a/drivers/net/bonding/bonding.h
+@@ -301,13 +301,11 @@ int bond_create_slave_symlinks(struct ne
+ void bond_destroy_slave_symlinks(struct net_device *master, struct net_device *slave);
+ int bond_enslave(struct net_device *bond_dev, struct net_device *slave_dev);
+ int bond_release(struct net_device *bond_dev, struct net_device *slave_dev);
+-int bond_sethwaddr(struct net_device *bond_dev, struct net_device *slave_dev);
+ void bond_mii_monitor(struct net_device *bond_dev);
+ void bond_loadbalance_arp_mon(struct net_device *bond_dev);
+ void bond_activebackup_arp_mon(struct net_device *bond_dev);
+ void bond_set_mode_ops(struct bonding *bond, int mode);
+ int bond_parse_parm(char *mode_arg, struct bond_parm_tbl *tbl);
+-const char *bond_mode_name(int mode);
+ void bond_select_active_slave(struct bonding *bond);
+ void bond_change_active_slave(struct bonding *bond, struct slave *new_active);
+ void bond_register_arp(struct bonding *);
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-kcopyd-use-mutex-instead-of-semaphore.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-cpufreq.patch
+git-powerpc.patch
 git-dvb.patch
+git-hwmon.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-md-accel.patch
 git-mtd.patch
-use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch
-videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
-use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
-use-mutex-instead-of-semaphore-in-the-elan-u132-adapter-driver.patch
-use-mutex-instead-of-semaphore-in-the-adutux-driver.patch
-use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver.patch
-use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
-use-mutexes-instead-of-semaphores-in-i2o-driver.patch
-fs-block_devc-use-list_for_each_entry.patch
-use-mutex-instead-of-semaphore-in-spi-core-init-code.patch
-use-mutex-instead-of-semaphore-in-capi-20-driver.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+remove-the-dead-cyberstormiii_scsi-option.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+arch-i386-xen-mmuc-must-include-linux-schedh.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+xen-fix-x86-config-dependencies.patch
+xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
+xen-cant-support-numa-yet.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
+handle-kernelcore=-generic.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+mm-slubc-make-code-static.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+more-scheduled-oss-driver-removal.patch
+init-wait-for-asynchronously-scanned-block-devices.patch
+kernel-utf-8-handling.patch
+remove-sonypi_camera_command.patch
+fs-namespacec-should-include-internalh.patch
+proper-prototype-for-proc_nr_files.patch
+fs-reiserfs-cleanups.patch
+remove-mm-backing-devccongestion_wait_interruptible.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+remove-options-depending-on-oss_obsolete.patch
+fbdev-move-arch-specific-bits-to-their-respective.patch
+pm3fb-possible-cleanups.patch
+vt8623fbc-make-code-static.patch
+drivers-video-macmodescmac_find_mode-mustnt-be.patch
+intel-iommu-intel-iommu-driver.patch
+mm-variable-length-argument-support.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+kernel-relayc-make-functions-static.patch
+drivers-edac-core-make-functions-static.patch
+lockstat-human-readability-tweaks.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
