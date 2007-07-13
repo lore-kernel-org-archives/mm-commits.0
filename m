@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + avoid-too-many-remote-cpu-references-due-to-proc-stat.patch added to -mm tree
-Date: Thu, 12 Jul 2007 22:01:08 -0700
-Message-ID: <200707130501.l6D5187Q029268@imap1.linux-foundation.org>
+Subject: + dev_vdbg-available-with-dverbose_debug.patch added to -mm tree
+Date: Thu, 12 Jul 2007 22:08:22 -0700
+Message-ID: <200707130508.l6D58MP3029707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34001 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45215 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751071AbXGMFBk (ORCPT
+	by vger.kernel.org with ESMTP id S932337AbXGMFIt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 01:01:40 -0400
+	Fri, 13 Jul 2007 01:08:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kiran@scalex86.org, alok.kataria@calsoftinc.com
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com
 
 
 The patch titled
-     Avoid too many remote cpu references due to /proc/stat
+     dev_vdbg(), available with -DVERBOSE_DEBUG
 has been added to the -mm tree.  Its filename is
-     avoid-too-many-remote-cpu-references-due-to-proc-stat.patch
+     dev_vdbg-available-with-dverbose_debug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,75 +26,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Avoid too many remote cpu references due to /proc/stat
-From: Ravikiran G Thirumalai <kiran@scalex86.org>
+Subject: dev_vdbg(), available with -DVERBOSE_DEBUG
+From: David Brownell <david-b@pacbell.net>
 
-Optimize show_stat to collect per-irq information just once.
+This defines a dev_vdbg() call, which is enabled with -DVERBOSE_DEBUG. 
+When enabled, dev_vdbg() acts just like dev_dbg().  When disabled, it is a
+NOP ...  just like dev_dbg() without -DDEBUG.  The specific code was moved
+out of a USB patch, but lots of drivers have similar support.
 
-On x86_64, with newer kernel versions, kstat_irqs is a bit of a problem.
-On every call to kstat_irqs, the process brings in per-cpu data from all
-online cpus.  Doing this for NR_IRQS, which is now 256 + 32 * NR_CPUS
-results in (256+32*63) * 63 remote cpu references on a 64 cpu config.
-Considering the fact that we already compute this value per-cpu, we can
-save on the remote references as below.
+That is, code can now be written to use an additional level of debug
+output, selected at compile time.  Many driver authors have found this
+idiom to be very useful.  A typical usage model is for "normal" debug
+messages to focus on fault paths and not be very "chatty", so that those
+messages can be left on during normal operation without much of a
+performance or syslog load.  On the other hand "verbose" messages would be
+noisy enough that they wouldn't normally be enabled; they might even affect
+timings enough to change system or driver behavior.
 
-Signed-off-by: Alok N Kataria <alok.kataria@calsoftinc.com>
-Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ drivers/usb/core/driver.c |    7 -------
+ include/linux/device.h    |   10 ++++++++++
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~avoid-too-many-remote-cpu-references-due-to-proc-stat fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~avoid-too-many-remote-cpu-references-due-to-proc-stat
-+++ a/fs/proc/proc_misc.c
-@@ -460,6 +460,11 @@ static int show_stat(struct seq_file *p,
- 	cputime64_t user, nice, system, idle, iowait, irq, softirq, steal;
- 	u64 sum = 0;
- 	struct timespec boottime;
-+	unsigned int *per_irq_sum;
-+
-+	per_irq_sum = kzalloc(sizeof(unsigned int)*NR_IRQS, GFP_KERNEL);
-+	if (!per_irq_sum)
-+		return -ENOMEM;
+diff -puN drivers/usb/core/driver.c~dev_vdbg-available-with-dverbose_debug drivers/usb/core/driver.c
+--- a/drivers/usb/core/driver.c~dev_vdbg-available-with-dverbose_debug
++++ a/drivers/usb/core/driver.c
+@@ -29,13 +29,6 @@
+ #include "hcd.h"
+ #include "usb.h"
  
- 	user = nice = system = idle = iowait =
- 		irq = softirq = steal = cputime64_zero;
-@@ -477,8 +482,11 @@ static int show_stat(struct seq_file *p,
- 		irq = cputime64_add(irq, kstat_cpu(i).cpustat.irq);
- 		softirq = cputime64_add(softirq, kstat_cpu(i).cpustat.softirq);
- 		steal = cputime64_add(steal, kstat_cpu(i).cpustat.steal);
--		for (j = 0 ; j < NR_IRQS ; j++)
--			sum += kstat_cpu(i).irqs[j];
-+		for (j = 0; j < NR_IRQS; j++) {
-+			unsigned int temp = kstat_cpu(i).irqs[j];
-+			sum += temp;
-+			per_irq_sum[j] += temp;
-+		}
- 	}
+-#define VERBOSE_DEBUG	0
+-
+-#if VERBOSE_DEBUG
+-#define dev_vdbg	dev_dbg
+-#else
+-#define dev_vdbg(dev, fmt, args...)	do { } while (0)
+-#endif
  
- 	seq_printf(p, "cpu  %llu %llu %llu %llu %llu %llu %llu %llu\n",
-@@ -516,7 +524,7 @@ static int show_stat(struct seq_file *p,
+ #ifdef CONFIG_HOTPLUG
  
- #if !defined(CONFIG_PPC64) && !defined(CONFIG_ALPHA) && !defined(CONFIG_IA64)
- 	for (i = 0; i < NR_IRQS; i++)
--		seq_printf(p, " %u", kstat_irqs(i));
-+		seq_printf(p, " %u", per_irq_sum[i]);
+diff -puN include/linux/device.h~dev_vdbg-available-with-dverbose_debug include/linux/device.h
+--- a/include/linux/device.h~dev_vdbg-available-with-dverbose_debug
++++ a/include/linux/device.h
+@@ -572,6 +572,16 @@ dev_dbg(struct device * dev, const char 
+ }
  #endif
  
- 	seq_printf(p,
-@@ -531,6 +539,7 @@ static int show_stat(struct seq_file *p,
- 		nr_running(),
- 		nr_iowait());
- 
-+	kfree(per_irq_sum);
- 	return 0;
- }
- 
++#ifdef VERBOSE_DEBUG
++#define dev_vdbg	dev_dbg
++#else
++static inline int __attribute__ ((format (printf, 2, 3)))
++dev_vdbg(struct device * dev, const char * fmt, ...)
++{
++	return 0;
++}
++#endif
++
+ #define dev_err(dev, format, arg...)		\
+ 	dev_printk(KERN_ERR , dev , format , ## arg)
+ #define dev_info(dev, format, arg...)		\
 _
 
-Patches currently in -mm which might be from kiran@scalex86.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-avoid-too-many-remote-cpu-references-due-to-proc-stat.patch
-slab-leaks3-default-y.patch
+origin.patch
+git-avr32.patch
+pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm.patch
+git-mmc.patch
+git-mtd.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+char-genrtc-use-wait_event_interruptible.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+gpio-calls-dont-need-i-o-barriers.patch
+dev_vdbg-available-with-dverbose_debug.patch
+spi-controller-drivers-check-for-unsupported-modes.patch
+spi-add-3wire-mode-flag.patch
+spidev-compiler-warning-gone.patch
+spi_mpc83xxc-underclocking-hotfix.patch
+atmel_spi-minor-updates.patch
+s3c24xx-spi-controllers-both-select-bitbang.patch
+spi-master-driver-for-xilinx-virtex.patch
+spi-omap2_mcspi-driver.patch
+rtc-ds1307-cleanups.patch
+rtc-rs5c372-becomes-a-new-style-i2c-driver.patch
+thecus-n2100-register-rtc-rs5c372-i2c-device.patch
+rtc-make-example-code-jump-to-done-instead-of-return-when-ioctl-not-supported.patch
+rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+rtc-kconfig-tweax.patch
+rtc-add-rtc-m41t80-driver-take-2.patch
+rtc-watchdog-support-for-rtc-m41t80-driver-take-2.patch
+omap-add-ti-twl92330-menelaus-power-management-chip-driver.patch
