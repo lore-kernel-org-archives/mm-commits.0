@@ -1,57 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - git-battery-vs-git-acpi.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 14:26:26 -0700
-Message-ID: <200707132126.l6DLQQCj021174@imap1.linux-foundation.org>
+Subject: - git-scsi-target-fixup.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 14:31:04 -0700
+Message-ID: <200707132131.l6DLV436021407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54550 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44508 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751282AbXGMV0o (ORCPT
+	by vger.kernel.org with ESMTP id S1753837AbXGMVbM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 17:26:44 -0400
+	Fri, 13 Jul 2007 17:31:12 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6DLVA7J021217
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2007 14:31:11 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cbou@mail.ru, lenb@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-battery vs git-acpi
+     git-scsi-target-fixup
 has been removed from the -mm tree.  Its filename was
-     git-battery-vs-git-acpi.patch
+     git-scsi-target-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-battery vs git-acpi
+Subject: git-scsi-target-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/w1/slaves/w1_ds2760.c:85: warning: initialization from incompatible pointer type
-
-The ACPI guys changed the bin_attr APIs
-
-Cc: Anton Vorontsov <cbou@mail.ru>
-Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2760.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/srp/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/w1/slaves/w1_ds2760.c~git-battery-vs-git-acpi drivers/w1/slaves/w1_ds2760.c
---- a/drivers/w1/slaves/w1_ds2760.c~git-battery-vs-git-acpi
-+++ a/drivers/w1/slaves/w1_ds2760.c
-@@ -68,8 +68,9 @@ int w1_ds2760_write(struct device *dev, 
- 	return w1_ds2760_io(dev, buf, addr, count, 1);
- }
- 
--static ssize_t w1_ds2760_read_bin(struct kobject *kobj, char *buf, loff_t off,
--                                  size_t count)
-+static ssize_t w1_ds2760_read_bin(struct kobject *kobj,
-+				struct bin_attribute *bin_attr,
-+				char *buf, loff_t off, size_t count)
- {
- 	struct device *dev = container_of(kobj, struct device, kobj);
- 	return w1_ds2760_read(dev, buf, off, count);
+diff -puN drivers/infiniband/ulp/srp/Kconfig~git-scsi-target-fixup drivers/infiniband/ulp/srp/Kconfig
+--- a/drivers/infiniband/ulp/srp/Kconfig~git-scsi-target-fixup
++++ a/drivers/infiniband/ulp/srp/Kconfig
+@@ -1,6 +1,7 @@
+ config INFINIBAND_SRP
+ 	tristate "InfiniBand SCSI RDMA Protocol"
+ 	depends on SCSI
++	select SCSI_SRP_ATTRS
+ 	---help---
+ 	  Support for the SCSI RDMA Protocol over InfiniBand.  This
+ 	  allows you to access storage devices that speak SRP over
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,16 +70,11 @@ git-mtd.patch
 git-ubi.patch
 e1000new-build-fix.patch
 e1000new-build-fix-2.patch
-git-battery-vs-git-acpi.patch
 git-ioat-vs-git-md-accel.patch
 git-ocfs2-vs-git-gfs2-nmw.patch
 revert-gregkh-pci-pci_bridge-device.patch
-fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-revert-acpi-change-for-scsi.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
-restore-acpi-change-for-scsi.patch
 git-scsi-misc-vs-greg-sysfs-stuff.patch
 aacraid-rename-check_reset.patch
 git-scsi-target-fixup.patch
