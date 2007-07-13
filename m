@@ -1,108 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - ioat-warning-fix.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:04 -0700
-Message-ID: <200707132233.l6DMX4Lm025049@imap1.linux-foundation.org>
+Subject: - libata-core-convert-to-use-cancel_rearming_delayed_work.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:32:41 -0700
+Message-ID: <200707132232.l6DMWfto025022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34465 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43378 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937329AbXGMWpC (ORCPT
+	by vger.kernel.org with ESMTP id S937087AbXGMWpM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:45:02 -0400
+	Fri, 13 Jul 2007 18:45:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, christopher.leech@intel.com, shannon.nelson@intel.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ioat warning fix
+     libata-core: convert to use cancel_rearming_delayed_work()
 has been removed from the -mm tree.  Its filename was
-     ioat-warning-fix.patch
+     libata-core-convert-to-use-cancel_rearming_delayed_work.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ioat warning fix
-From: Andrew Morton <akpm@osdl.org>
+Subject: libata-core: convert to use cancel_rearming_delayed_work()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-net/ipv4/tcp.c: In function 'tcp_recvmsg':
-net/ipv4/tcp.c:1111: warning: unused variable 'available'
+We should not use cancel_work_sync(delayed_work->work). This works, but not
+good. We can use cancel_rearming_delayed_work(), this also simplifies the
+code.
 
-Cc: Chris Leech <christopher.leech@intel.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/tcp.c |   26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ drivers/ata/libata-core.c |   44 +++---------------------------------
+ include/linux/libata.h    |    1 
+ 2 files changed, 4 insertions(+), 41 deletions(-)
 
-diff -puN net/ipv4/tcp.c~ioat-warning-fix net/ipv4/tcp.c
---- a/net/ipv4/tcp.c~ioat-warning-fix
-+++ a/net/ipv4/tcp.c
-@@ -1116,7 +1116,6 @@ int tcp_recvmsg(struct kiocb *iocb, stru
- 	long timeo;
- 	struct task_struct *user_recv = NULL;
- 	int copied_early = 0;
--	int available = 0;
- 	struct sk_buff *skb;
+diff -puN drivers/ata/libata-core.c~libata-core-convert-to-use-cancel_rearming_delayed_work drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-core-convert-to-use-cancel_rearming_delayed_work
++++ a/drivers/ata/libata-core.c
+@@ -1283,18 +1283,11 @@ static unsigned int ata_id_xfermask(cons
+ void ata_port_queue_task(struct ata_port *ap, work_func_t fn, void *data,
+ 			 unsigned long delay)
+ {
+-	int rc;
+-
+-	if (ap->pflags & ATA_PFLAG_FLUSH_PORT_TASK)
+-		return;
+-
+ 	PREPARE_DELAYED_WORK(&ap->port_task, fn);
+ 	ap->port_task_data = data;
  
- 	lock_sock(sk);
-@@ -1145,15 +1144,22 @@ int tcp_recvmsg(struct kiocb *iocb, stru
- 	tp->ucopy.dma_chan = NULL;
- 	preempt_disable();
- 	skb = skb_peek_tail(&sk->sk_receive_queue);
--	if (skb)
--		available = TCP_SKB_CB(skb)->seq + skb->len - (*seq);
--	if ((available < target) &&
--	    (len > sysctl_tcp_dma_copybreak) && !(flags & MSG_PEEK) &&
--	    !sysctl_tcp_low_latency && __get_cpu_var(softnet_data).net_dma) {
--		preempt_enable_no_resched();
--		tp->ucopy.pinned_list = dma_pin_iovec_pages(msg->msg_iov, len);
--	} else
--		preempt_enable_no_resched();
-+	{
-+		int available = 0;
-+
-+		if (skb)
-+			available = TCP_SKB_CB(skb)->seq + skb->len - (*seq);
-+		if ((available < target) &&
-+		    (len > sysctl_tcp_dma_copybreak) && !(flags & MSG_PEEK) &&
-+		    !sysctl_tcp_low_latency &&
-+		    __get_cpu_var(softnet_data).net_dma) {
-+			preempt_enable_no_resched();
-+			tp->ucopy.pinned_list =
-+					dma_pin_iovec_pages(msg->msg_iov, len);
-+		} else {
-+			preempt_enable_no_resched();
-+		}
-+	}
- #endif
+-	rc = queue_delayed_work(ata_wq, &ap->port_task, delay);
+-
+-	/* rc == 0 means that another user is using port task */
+-	WARN_ON(rc == 0);
++	/* may fail if ata_port_flush_task() in progress */
++	queue_delayed_work(ata_wq, &ap->port_task, delay);
+ }
  
- 	do {
+ /**
+@@ -1309,32 +1302,9 @@ void ata_port_queue_task(struct ata_port
+  */
+ void ata_port_flush_task(struct ata_port *ap)
+ {
+-	unsigned long flags;
+-
+ 	DPRINTK("ENTER\n");
+ 
+-	spin_lock_irqsave(ap->lock, flags);
+-	ap->pflags |= ATA_PFLAG_FLUSH_PORT_TASK;
+-	spin_unlock_irqrestore(ap->lock, flags);
+-
+-	DPRINTK("flush #1\n");
+-	cancel_work_sync(&ap->port_task.work); /* akpm: seems unneeded */
+-
+-	/*
+-	 * At this point, if a task is running, it's guaranteed to see
+-	 * the FLUSH flag; thus, it will never queue pio tasks again.
+-	 * Cancel and flush.
+-	 */
+-	if (!cancel_delayed_work(&ap->port_task)) {
+-		if (ata_msg_ctl(ap))
+-			ata_port_printk(ap, KERN_DEBUG, "%s: flush #2\n",
+-					__FUNCTION__);
+-		cancel_work_sync(&ap->port_task.work);
+-	}
+-
+-	spin_lock_irqsave(ap->lock, flags);
+-	ap->pflags &= ~ATA_PFLAG_FLUSH_PORT_TASK;
+-	spin_unlock_irqrestore(ap->lock, flags);
++	cancel_rearming_delayed_work(&ap->port_task);
+ 
+ 	if (ata_msg_ctl(ap))
+ 		ata_port_printk(ap, KERN_DEBUG, "%s: EXIT\n", __FUNCTION__);
+@@ -6557,13 +6527,7 @@ void ata_port_detach(struct ata_port *ap
+ 	spin_unlock_irqrestore(ap->lock, flags);
+ 
+ 	ata_port_wait_eh(ap);
+-
+-	/* Flush hotplug task.  The sequence is similar to
+-	 * ata_port_flush_task().
+-	 */
+-	cancel_work_sync(&ap->hotplug_task.work); /* akpm: why? */
+-	cancel_delayed_work(&ap->hotplug_task);
+-	cancel_work_sync(&ap->hotplug_task.work);
++	cancel_rearming_delayed_work(&ap->hotplug_task);
+ 
+  skip_eh:
+ 	/* remove the associated SCSI host */
+diff -puN include/linux/libata.h~libata-core-convert-to-use-cancel_rearming_delayed_work include/linux/libata.h
+--- a/include/linux/libata.h~libata-core-convert-to-use-cancel_rearming_delayed_work
++++ a/include/linux/libata.h
+@@ -196,7 +196,6 @@ enum {
+ 	ATA_PFLAG_SCSI_HOTPLUG	= (1 << 6), /* SCSI hotplug scheduled */
+ 	ATA_PFLAG_INITIALIZING	= (1 << 7), /* being initialized, don't touch */
+ 
+-	ATA_PFLAG_FLUSH_PORT_TASK = (1 << 16), /* flush port task */
+ 	ATA_PFLAG_SUSPENDED	= (1 << 17), /* port is suspended (power) */
+ 	ATA_PFLAG_PM_PENDING	= (1 << 18), /* PM operation pending */
+ 	ATA_PFLAG_GTM_VALID	= (1 << 19), /* acpi_gtm data valid */
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-git-md-accel.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-ipwireless_cs.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-lumpy-reclaim-v4.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-sync_sb_inodes-propagate-errors.patch
-move-page-writeback-acounting-out-of-macros.patch
-ext2-reservations.patch
-mm-implement-swap-prefetching.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-acpi_format_exception-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-run-show_state-when-freezing-times-out.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mm-fix-create_new_namespaces-return-value.patch
+adb_probe_task-remove-unneeded-flush_signals-call.patch
+kcdrwd-remove-unneeded-flush_signals-call.patch
+nbdcsock_xmit-cleanup-signal-related-code.patch
+rename-cancel_rearming_delayed_work-to-cancel_delayed_work_sync.patch
+make-cancel_xxx_work_sync-return-a-boolean.patch
+destroy_workqueue-can-livelock.patch
