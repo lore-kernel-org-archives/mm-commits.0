@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + coda-block-signals-during-upcall-processing.patch added to -mm tree
-Date: Thu, 12 Jul 2007 22:29:38 -0700
-Message-ID: <200707130529.l6D5Tc37030808@imap1.linux-foundation.org>
+Subject: + coda-cleanup-for-upcall-handling-path.patch added to -mm tree
+Date: Thu, 12 Jul 2007 22:29:36 -0700
+Message-ID: <200707130529.l6D5Tatu030805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39685 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57698 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752254AbXGMFaT (ORCPT
+	by vger.kernel.org with ESMTP id S1751889AbXGMFaR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 01:30:19 -0400
+	Fri, 13 Jul 2007 01:30:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jaharkes@cs.cmu.edu
 
 
 The patch titled
-     coda: block signals during upcall processing
+     coda: cleanup for upcall handling path
 has been added to the -mm tree.  Its filename is
-     coda-block-signals-during-upcall-processing.patch
+     coda-cleanup-for-upcall-handling-path.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,147 +26,188 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coda: block signals during upcall processing
+Subject: coda: cleanup for upcall handling path
 From: Jan Harkes <jaharkes@cs.cmu.edu>
 
-We ignore signals for about 30 seconds to give userspace a chance to see the
-upcall.  As we did not block signals we ended up in a busy loop for the
-remainder of the period when a signal is received.
+Make the code that processes upcall responses more straightforward, uncovered
+at least one bad assumption.  We trusted that vc_inuse would be 0 when upcalls
+are aborted, however the device may have been reopened.
 
 Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/upcall.c           |   81 +++++++++++++++++++++++++----------
- include/linux/coda_psdev.h |    1 
- 2 files changed, 60 insertions(+), 22 deletions(-)
+ fs/coda/upcall.c |  121 +++++++++++++++++++++------------------------
+ 1 file changed, 58 insertions(+), 63 deletions(-)
 
-diff -puN fs/coda/upcall.c~coda-block-signals-during-upcall-processing fs/coda/upcall.c
---- a/fs/coda/upcall.c~coda-block-signals-during-upcall-processing
+diff -puN fs/coda/upcall.c~coda-cleanup-for-upcall-handling-path fs/coda/upcall.c
+--- a/fs/coda/upcall.c~coda-cleanup-for-upcall-handling-path
 +++ a/fs/coda/upcall.c
-@@ -638,42 +638,83 @@ int venus_statfs(struct dentry *dentry, 
- 
- /*
-  * coda_upcall and coda_downcall routines.
-- * 
+@@ -687,27 +687,27 @@ static inline void coda_waitfor_upcall(s
+  * are all mapped to -EINTR, while showing a nice warning message. (jh)
+  * 
   */
-+static void block_signals(sigset_t *old)
-+{
-+	spin_lock_irq(&current->sighand->siglock);
-+	*old = current->blocked;
-+
-+	sigfillset(&current->blocked);
-+	sigdelset(&current->blocked, SIGKILL);
-+	sigdelset(&current->blocked, SIGSTOP);
-+	sigdelset(&current->blocked, SIGINT);
-+
-+	recalc_sigpending();
-+	spin_unlock_irq(&current->sighand->siglock);
-+}
-+
-+static void unblock_signals(sigset_t *old)
-+{
-+	spin_lock_irq(&current->sighand->siglock);
-+	current->blocked = *old;
-+	recalc_sigpending();
-+	spin_unlock_irq(&current->sighand->siglock);
-+}
-+
-+/* Don't allow signals to interrupt the following upcalls before venus
-+ * has seen them,
-+ * - CODA_CLOSE or CODA_RELEASE upcall  (to avoid reference count problems)
-+ * - CODA_STORE				(to avoid data loss)
-+ */
-+#define CODA_INTERRUPTIBLE(r) (!coda_hard && \
-+			       (((r)->uc_opcode != CODA_CLOSE && \
-+				 (r)->uc_opcode != CODA_STORE && \
-+				 (r)->uc_opcode != CODA_RELEASE) || \
-+				(r)->uc_flags & REQ_READ))
- 
--static inline void coda_waitfor_upcall(struct upc_req *vmp)
-+static inline void coda_waitfor_upcall(struct upc_req *req)
+-static int coda_upcall(struct coda_sb_info *sbi, 
+-		int inSize, int *outSize, 
+-		union inputArgs *buffer) 
++static int coda_upcall(struct coda_sb_info *sbi,
++		       int inSize, int *outSize,
++		       union inputArgs *buffer)
  {
- 	DECLARE_WAITQUEUE(wait, current);
-+	unsigned long timeout = jiffies + coda_timeout * HZ;
-+	sigset_t old;
-+	int blocked;
+ 	struct venus_comm *vcommp;
+ 	union outputArgs *out;
+-	struct upc_req *req;
++	union inputArgs *sig_inputArgs;
++	struct upc_req *req, *sig_req;
+ 	int error = 0;
  
--	vmp->uc_posttime = jiffies;
-+	block_signals(&old);
-+	blocked = 1;
- 
--	add_wait_queue(&vmp->uc_sleep, &wait);
-+	add_wait_queue(&req->uc_sleep, &wait);
- 	for (;;) {
--		if ( !coda_hard && vmp->uc_opcode != CODA_CLOSE ) 
-+		if (CODA_INTERRUPTIBLE(req))
- 			set_current_state(TASK_INTERRUPTIBLE);
- 		else
- 			set_current_state(TASK_UNINTERRUPTIBLE);
- 
- 		/* got a reply */
--		if ( vmp->uc_flags & ( REQ_WRITE | REQ_ABORT ) )
-+		if (req->uc_flags & (REQ_WRITE | REQ_ABORT))
- 			break;
- 
--		if ( !coda_hard && vmp->uc_opcode != CODA_CLOSE && signal_pending(current) ) {
--			/* if this process really wants to die, let it go */
--			if ( sigismember(&(current->pending.signal), SIGKILL) ||
--			     sigismember(&(current->pending.signal), SIGINT) )
--				break;
--			/* signal is present: after timeout always return 
--			   really smart idea, probably useless ... */
--			if ( jiffies - vmp->uc_posttime > coda_timeout * HZ )
--				break; 
-+		if (blocked && time_after(jiffies, timeout) &&
-+		    CODA_INTERRUPTIBLE(req))
-+		{
-+			unblock_signals(&old);
-+			blocked = 0;
- 		}
--		schedule();
-+
-+		if (signal_pending(current)) {
-+			list_del(&req->uc_chain);
-+			break;
-+		}
-+
-+		if (blocked)
-+			schedule_timeout(HZ);
-+		else
-+			schedule();
+ 	vcommp = sbi->sbi_vcomm;
+-	if ( !vcommp->vc_inuse ) {
+-		printk("No pseudo device in upcall comms at %p\n", vcommp);
+-                return -ENXIO;
++	if (!vcommp->vc_inuse) {
++		printk(KERN_NOTICE "coda: Venus dead, not sending upcall\n");
++		return -ENXIO;
  	}
--	remove_wait_queue(&vmp->uc_sleep, &wait);
--	set_current_state(TASK_RUNNING);
-+	if (blocked)
-+		unblock_signals(&old);
  
--	return;
-+	remove_wait_queue(&req->uc_sleep, &wait);
-+	set_current_state(TASK_RUNNING);
- }
+ 	/* Format the request message. */
+ 	req = upc_alloc();
+-	if (!req) {
+-		printk("Failed to allocate upc_req structure\n");
++	if (!req)
+ 		return -ENOMEM;
+-	}
++
+ 	req->uc_data = (void *)buffer;
+ 	req->uc_flags = 0;
+ 	req->uc_inSize = inSize;
+@@ -715,13 +715,13 @@ static int coda_upcall(struct coda_sb_in
+ 	req->uc_opcode = ((union inputArgs *)buffer)->ih.opcode;
+ 	req->uc_unique = ++vcommp->vc_seq;
+ 	init_waitqueue_head(&req->uc_sleep);
+-	
++
+ 	/* Fill in the common input args. */
+ 	((union inputArgs *)buffer)->ih.unique = req->uc_unique;
  
+ 	/* Append msg to pending queue and poke Venus. */
+-	list_add_tail(&(req->uc_chain), &vcommp->vc_pending);
+-        
++	list_add_tail(&req->uc_chain, &vcommp->vc_pending);
++
+ 	wake_up_interruptible(&vcommp->vc_waitq);
+ 	/* We can be interrupted while we wait for Venus to process
+ 	 * our request.  If the interrupt occurs before Venus has read
+@@ -735,64 +735,59 @@ static int coda_upcall(struct coda_sb_in
+ 	/* Go to sleep.  Wake up on signals only after the timeout. */
+ 	coda_waitfor_upcall(req);
  
-@@ -750,8 +791,6 @@ static int coda_upcall(struct coda_sb_in
+-	if (vcommp->vc_inuse) {      /* i.e. Venus is still alive */
+-	    /* Op went through, interrupt or not... */
+-	    if (req->uc_flags & REQ_WRITE) {
++	/* Op went through, interrupt or not... */
++	if (req->uc_flags & REQ_WRITE) {
+ 		out = (union outputArgs *)req->uc_data;
+ 		/* here we map positive Venus errors to kernel errors */
+ 		error = -out->oh.result;
+ 		*outSize = req->uc_outSize;
  		goto exit;
- 	}
- 
--	list_del(&(req->uc_chain));
+-	    }
+-	    if ( !(req->uc_flags & REQ_READ) && signal_pending(current)) { 
+-		/* Interrupted before venus read it. */
+-		list_del(&(req->uc_chain));
+-		/* perhaps the best way to convince the app to
+-		   give up? */
+-		error = -EINTR;
++	}
++
++	error = -EINTR;
++	if ((req->uc_flags & REQ_ABORT) || !signal_pending(current)) {
++		printk(KERN_WARNING "coda: Unexpected interruption.\n");
++		goto exit;
++	}
++
++	list_del(&(req->uc_chain));
++
++	/* Interrupted before venus read it. */
++	if (!(req->uc_flags & REQ_READ))
++		goto exit;
++
++	/* Venus saw the upcall, make sure we can send interrupt signal */
++	if (!vcommp->vc_inuse) {
++		printk(KERN_INFO "coda: Venus dead, not sending signal.\n");
+ 		goto exit;
+-	    } 
+-	    if ( (req->uc_flags & REQ_READ) && signal_pending(current) ) {
+-		    /* interrupted after Venus did its read, send signal */
+-		    union inputArgs *sig_inputArgs;
+-		    struct upc_req *sig_req;
+-		    
+-		    list_del(&(req->uc_chain));
+-		    error = -ENOMEM;
+-		    sig_req = upc_alloc();
+-		    if (!sig_req) goto exit;
 -
- 	/* Interrupted before venus read it. */
- 	if (!(req->uc_flags & REQ_READ))
- 		goto exit;
-diff -puN include/linux/coda_psdev.h~coda-block-signals-during-upcall-processing include/linux/coda_psdev.h
---- a/include/linux/coda_psdev.h~coda-block-signals-during-upcall-processing
-+++ a/include/linux/coda_psdev.h
-@@ -85,7 +85,6 @@ struct upc_req {
- 	u_short	            uc_opcode;  /* copied from data to save lookup */
- 	int		    uc_unique;
- 	wait_queue_head_t   uc_sleep;   /* process' wait queue */
--	unsigned long       uc_posttime;
- };
+-		    CODA_ALLOC((sig_req->uc_data), char *, sizeof(struct coda_in_hdr));
+-		    if (!sig_req->uc_data) {
+-			upc_free(sig_req);
+-			goto exit;
+-		    }
+-		    
+-		    error = -EINTR;
+-		    sig_inputArgs = (union inputArgs *)sig_req->uc_data;
+-		    sig_inputArgs->ih.opcode = CODA_SIGNAL;
+-		    sig_inputArgs->ih.unique = req->uc_unique;
+-		    
+-		    sig_req->uc_flags = REQ_ASYNC;
+-		    sig_req->uc_opcode = sig_inputArgs->ih.opcode;
+-		    sig_req->uc_unique = sig_inputArgs->ih.unique;
+-		    sig_req->uc_inSize = sizeof(struct coda_in_hdr);
+-		    sig_req->uc_outSize = sizeof(struct coda_in_hdr);
+-		    
+-		    /* insert at head of queue! */
+-		    list_add(&(sig_req->uc_chain), &vcommp->vc_pending);
+-		    wake_up_interruptible(&vcommp->vc_waitq);
+-	    } else {
+-		    printk("Coda: Strange interruption..\n");
+-		    error = -EINTR;
+-	    }
+-	} else {	/* If venus died i.e. !VC_OPEN(vcommp) */
+-	        printk("coda_upcall: Venus dead on (op,un) (%d.%d) flags %d\n",
+-		       req->uc_opcode, req->uc_unique, req->uc_flags);
+-		error = -ENODEV;
+ 	}
  
- #define REQ_ASYNC  0x1
+- exit:
++	error = -ENOMEM;
++	sig_req = upc_alloc();
++	if (!sig_req) goto exit;
++
++	CODA_ALLOC((sig_req->uc_data), char *, sizeof(struct coda_in_hdr));
++	if (!sig_req->uc_data) {
++		upc_free(sig_req);
++		goto exit;
++	}
++
++	error = -EINTR;
++	sig_inputArgs = (union inputArgs *)sig_req->uc_data;
++	sig_inputArgs->ih.opcode = CODA_SIGNAL;
++	sig_inputArgs->ih.unique = req->uc_unique;
++
++	sig_req->uc_flags = REQ_ASYNC;
++	sig_req->uc_opcode = sig_inputArgs->ih.opcode;
++	sig_req->uc_unique = sig_inputArgs->ih.unique;
++	sig_req->uc_inSize = sizeof(struct coda_in_hdr);
++	sig_req->uc_outSize = sizeof(struct coda_in_hdr);
++
++	/* insert at head of queue! */
++	list_add(&(sig_req->uc_chain), &vcommp->vc_pending);
++	wake_up_interruptible(&vcommp->vc_waitq);
++
++exit:
+ 	upc_free(req);
+ 	return error;
+ }
 _
 
 Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
