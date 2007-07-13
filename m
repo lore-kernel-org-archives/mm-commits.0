@@ -1,67 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - git-cpufreq-fix.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 14:21:11 -0700
-Message-ID: <200707132121.l6DLLBNo020844@imap1.linux-foundation.org>
+Subject: - git-battery-vs-git-acpi.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 14:26:26 -0700
+Message-ID: <200707132126.l6DLQQCj021174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54550 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752492AbXGMVVa (ORCPT
+	by vger.kernel.org with ESMTP id S1751282AbXGMV0o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 17:21:30 -0400
+	Fri, 13 Jul 2007 17:26:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@codemonkey.org.uk, mark.langsdorf@amd.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cbou@mail.ru, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-cpufreq-fix
+     git-battery vs git-acpi
 has been removed from the -mm tree.  Its filename was
-     git-cpufreq-fix.patch
+     git-battery-vs-git-acpi.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-cpufreq-fix
+Subject: git-battery vs git-acpi
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make it compile on UP.
+drivers/w1/slaves/w1_ds2760.c:85: warning: initialization from incompatible pointer type
 
-What's that divide in there for?  Looks odd.
+The ACPI guys changed the bin_attr APIs
 
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Anton Vorontsov <cbou@mail.ru>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/powernow-k8.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/w1/slaves/w1_ds2760.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-fix arch/i386/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-fix
-+++ a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c
-@@ -1322,16 +1322,21 @@ static struct cpufreq_driver cpufreq_amd
- static int __cpuinit powernowk8_init(void)
+diff -puN drivers/w1/slaves/w1_ds2760.c~git-battery-vs-git-acpi drivers/w1/slaves/w1_ds2760.c
+--- a/drivers/w1/slaves/w1_ds2760.c~git-battery-vs-git-acpi
++++ a/drivers/w1/slaves/w1_ds2760.c
+@@ -68,8 +68,9 @@ int w1_ds2760_write(struct device *dev, 
+ 	return w1_ds2760_io(dev, buf, addr, count, 1);
+ }
+ 
+-static ssize_t w1_ds2760_read_bin(struct kobject *kobj, char *buf, loff_t off,
+-                                  size_t count)
++static ssize_t w1_ds2760_read_bin(struct kobject *kobj,
++				struct bin_attribute *bin_attr,
++				char *buf, loff_t off, size_t count)
  {
- 	unsigned int i, supported_cpus = 0;
-+	unsigned int booted_cores = 1;
- 
- 	for_each_online_cpu(i) {
- 		if (check_supported_cpu(i))
- 			supported_cpus++;
- 	}
- 
-+#ifdef CONFIG_SMP
-+	booted_cores = cpu_data[0].booted_cores;
-+#endif
-+
- 	if (supported_cpus == num_online_cpus()) {
- 		printk(KERN_INFO PFX "Found %d %s "
- 			"processors (%d cpu cores) (" VERSION ")\n",
--			supported_cpus/cpu_data[0].booted_cores,
-+			supported_cpus/booted_cores,
- 			boot_cpu_data.x86_model_id, supported_cpus);
- 		return cpufreq_register_driver(&cpufreq_amd64_driver);
- 	}
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+ 	return w1_ds2760_read(dev, buf, off, count);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +60,6 @@ origin.patch
 git-acpi.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-cpufreq.patch
-git-cpufreq-fix.patch
 git-powerpc.patch
 revert-gregkh-driver-block-device.patch
 driver-core-check-return-code-of-sysfs_create_link.patch
