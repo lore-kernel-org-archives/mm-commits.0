@@ -1,152 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - touchscreen-fujitsu-touchscreen-driver-rev3.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:32:39 -0700
-Message-ID: <200707132232.l6DMWdan025019@imap1.linux-foundation.org>
+Subject: - make-common-helpers-for-seq_files-that-work-with-list_head-s.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:32:03 -0700
+Message-ID: <200707132232.l6DMW39s024969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41156 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51580 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932067AbXGMWdS (ORCPT
+	by vger.kernel.org with ESMTP id S1758348AbXGMWdZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:33:18 -0400
+	Fri, 13 Jul 2007 18:33:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: xemul@sw.ru, davem@davemloft.net, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     touchscreen: Fujitsu touchscreen driver (rev3)
+     Make common helpers for seq_files that work with list_heads
 has been removed from the -mm tree.  Its filename was
-     touchscreen-fujitsu-touchscreen-driver-rev3.patch
+     make-common-helpers-for-seq_files-that-work-with-list_head-s.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: touchscreen: Fujitsu touchscreen driver (rev3)
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: Make common helpers for seq_files that work with list_heads
+From: Pavel Emelianov <xemul@sw.ru>
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Many places in kernel use seq_file API to iterate over a regular list_head. 
+The code for such iteration is identical in all the places, so it's worth
+introducing a common helpers.
+
+This makes code about 300 lines smaller:
+
+The first version of this patch made the helper functions static inline
+in the seq_file.h header. This patch moves them to the fs/seq_file.c as
+Andrew proposed. The vmlinux .text section sizes are as follows:
+
+2.6.22-rc1-mm1:              0x001794d5
+with the previous version:   0x00179505
+with this patch:             0x00179135
+
+The config file used was make allnoconfig with the "y" inclusion of all
+the possible options to make the files modified by the patch compile plus
+drivers I have on the test node.
+
+
+This patch:
+
+Many places in kernel use seq_file API to iterate over a regular list_head. 
+The code for such iteration is identical in all the places, so it's worth
+introducing a common helpers.
+
+Signed-off-by: Pavel Emelianov <xemul@openvz.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/fujitsu_ts.c |   36 +++++++++--------------
- 1 files changed, 15 insertions(+), 21 deletions(-)
+ fs/seq_file.c            |   34 ++++++++++++++++++++++++++++++++++
+ include/linux/seq_file.h |   11 +++++++++++
+ 2 files changed, 45 insertions(+)
 
-diff -puN drivers/input/touchscreen/fujitsu_ts.c~touchscreen-fujitsu-touchscreen-driver-rev3 drivers/input/touchscreen/fujitsu_ts.c
---- a/drivers/input/touchscreen/fujitsu_ts.c~touchscreen-fujitsu-touchscreen-driver-rev3
-+++ a/drivers/input/touchscreen/fujitsu_ts.c
-@@ -26,15 +26,9 @@ MODULE_LICENSE("GPL");
- 
- #define FUJITSU_LENGTH 5
- 
--#define X_AXIS_MIN	90
--#define X_AXIS_MAX	4000
--#define Y_AXIS_MIN	185
--#define Y_AXIS_MAX	4000
--
- /*
-  * Per-touchscreen data.
-  */
--
- struct fujitsu {
- 	struct input_dev *dev;
- 	struct serio *serio;
-@@ -44,9 +38,13 @@ struct fujitsu {
- };
- 
- /*
-- * Decode serial data
-+ * Decode serial data (5 bytes per packet)
-+ * First byte
-+ * 1 C 0 0 R S S S
-+ * Where C is 1 while in calibration mode (which we don't use)
-+ * R is 1 when no coordinate corection was done.
-+ * S are button state
-  */
--
- static irqreturn_t fujitsu_interrupt(struct serio *serio,
- 				     unsigned char data, unsigned int flags)
- {
-@@ -55,7 +53,7 @@ static irqreturn_t fujitsu_interrupt(str
- 
- 	if (fujitsu->idx == 0) {
- 		/* resync skip until start of frame */
--		if (!(data & 0x80))
-+		if ((data & 0xf8) != 0x80)
- 			return IRQ_HANDLED;
- 	} else {
- 		/* resync skip garbage */
-@@ -83,7 +81,6 @@ static irqreturn_t fujitsu_interrupt(str
- /*
-  * fujitsu_disconnect() is the opposite of fujitsu_connect()
-  */
--
- static void fujitsu_disconnect(struct serio *serio)
- {
- 	struct fujitsu *fujitsu = serio_get_drvdata(serio);
-@@ -101,7 +98,6 @@ static void fujitsu_disconnect(struct se
-  * new serio device that supports the Fujitsu protocol and registers it
-  * as input device.
-  */
--
- static int fujitsu_connect(struct serio *serio, struct serio_driver *drv)
- {
- 	struct fujitsu *fujitsu;
-@@ -129,8 +125,8 @@ static int fujitsu_connect(struct serio 
- 	input_dev->evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
- 	input_dev->keybit[LONG(BTN_TOUCH)] = BIT(BTN_TOUCH);
- 
--	input_set_abs_params(input_dev, ABS_X, X_AXIS_MIN, X_AXIS_MAX, 0, 0);
--	input_set_abs_params(input_dev, ABS_Y, Y_AXIS_MIN, Y_AXIS_MAX, 0, 0);
-+	input_set_abs_params(input_dev, ABS_X, 0, 4096, 0, 0);
-+	input_set_abs_params(input_dev, ABS_Y, 0, 4096, 0, 0);
- 	serio_set_drvdata(serio, fujitsu);
- 
- 	err = serio_open(serio, drv);
-@@ -143,9 +139,12 @@ static int fujitsu_connect(struct serio 
- 
- 	return 0;
- 
-- fail3:	serio_close(serio);
-- fail2:	serio_set_drvdata(serio, NULL);
-- fail1:	input_free_device(input_dev);
-+ fail3:
-+	serio_close(serio);
-+ fail2:
-+	serio_set_drvdata(serio, NULL);
-+ fail1:
-+	input_free_device(input_dev);
- 	kfree(fujitsu);
- 	return err;
+diff -puN fs/seq_file.c~make-common-helpers-for-seq_files-that-work-with-list_head-s fs/seq_file.c
+--- a/fs/seq_file.c~make-common-helpers-for-seq_files-that-work-with-list_head-s
++++ a/fs/seq_file.c
+@@ -447,3 +447,37 @@ int seq_puts(struct seq_file *m, const c
+ 	return -1;
  }
-@@ -153,7 +152,6 @@ static int fujitsu_connect(struct serio 
- /*
-  * The serio driver structure.
-  */
--
- static struct serio_device_id fujitsu_serio_ids[] = {
- 	{
- 		.type	= SERIO_RS232,
-@@ -177,10 +175,6 @@ static struct serio_driver fujitsu_drv =
- 	.disconnect	= fujitsu_disconnect,
- };
+ EXPORT_SYMBOL(seq_puts);
++
++struct list_head *seq_list_start(struct list_head *head, loff_t pos)
++{
++	struct list_head *lh;
++
++	list_for_each(lh, head)
++		if (pos-- == 0)
++			return lh;
++
++	return NULL;
++}
++
++EXPORT_SYMBOL(seq_list_start);
++
++struct list_head *seq_list_start_head(struct list_head *head, loff_t pos)
++{
++	if (!pos)
++		return head;
++
++	return seq_list_start(head, pos - 1);
++}
++
++EXPORT_SYMBOL(seq_list_start_head);
++
++struct list_head *seq_list_next(void *v, struct list_head *head, loff_t *ppos)
++{
++	struct list_head *lh;
++
++	lh = ((struct list_head *)v)->next;
++	++*ppos;
++	return lh == head ? NULL : lh;
++}
++
++EXPORT_SYMBOL(seq_list_next);
+diff -puN include/linux/seq_file.h~make-common-helpers-for-seq_files-that-work-with-list_head-s include/linux/seq_file.h
+--- a/include/linux/seq_file.h~make-common-helpers-for-seq_files-that-work-with-list_head-s
++++ a/include/linux/seq_file.h
+@@ -50,5 +50,16 @@ int seq_release_private(struct inode *, 
  
--/*
-- * The functions for inserting/removing us as a module.
-- */
--
- static int __init fujitsu_init(void)
- {
- 	return serio_register_driver(&fujitsu_drv);
+ #define SEQ_START_TOKEN ((void *)1)
+ 
++/*
++ * Helpers for iteration over list_head-s in seq_files
++ */
++
++extern struct list_head *seq_list_start(struct list_head *head,
++		loff_t pos);
++extern struct list_head *seq_list_start_head(struct list_head *head,
++		loff_t pos);
++extern struct list_head *seq_list_next(void *v, struct list_head *head,
++		loff_t *ppos);
++
+ #endif
+ #endif
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from xemul@sw.ru are
 
 origin.patch
-git-acpi.patch
-git-input.patch
-pci-x-pci-express-read-control-interfaces-myrinet.patch
-pci-x-pci-express-read-control-interfaces-mthca.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-pci-x-pci-express-read-control-interfaces-qla2xxx.patch
+make-input-layer-use-seq_list_xxx-helpers.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+make-afs-use-seq_list_xxx-helpers.patch
+make-crypto-api-use-seq_list_xxx-helpers.patch
+make-proc-misc-use-seq_list_xxx-helpers.patch
+make-proc-modules-use-seq_list_xxx-helpers.patch
+make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+make-proc-self-mountstats-use-seq_list_xxx-helpers.patch
+make-nfs-client-use-seq_list_xxx-helpers.patch
+make-isdn-capi-use-seq_list_xxx-helpers.patch
