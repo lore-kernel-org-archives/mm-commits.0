@@ -1,224 +1,303 @@
 From: akpm@linux-foundation.org
-Subject: - sn-correct-rom-resource-length-for-bios-copy.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:32:32 -0700
-Message-ID: <200707132232.l6DMWWwl025013@imap1.linux-foundation.org>
+Subject: - touchscreen-fujitsu-touchscreen-driver.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:32:34 -0700
+Message-ID: <200707132232.l6DMWYCd025016@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52091 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34003 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758311AbXGMWdK (ORCPT
+	by vger.kernel.org with ESMTP id S1758348AbXGMWdQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:33:10 -0400
+	Fri, 13 Jul 2007 18:33:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jpk@sgi.com, greg@kroah.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SN: Correct ROM resource length for BIOS copy
+     touchscreen: Fujitsu touchscreen driver
 has been removed from the -mm tree.  Its filename was
-     sn-correct-rom-resource-length-for-bios-copy.patch
+     touchscreen-fujitsu-touchscreen-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SN: Correct ROM resource length for BIOS copy
-From: John Keller <jpk@sgi.com>
+Subject: touchscreen: Fujitsu touchscreen driver
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-On SN systems, when setting the IORESOURCE_ROM_BIOS_COPY resource flag,
-the resource length should be set to the actual size of the ROM image
-so that a call to pci_map_rom() returns the correct size.
+Dmitry wrote this, I just cleaned it up and tried on a B6210 laptop. 
+Serial touchscreen are found on some Fujitsu lifebook P-series laptops, and
+the B6210.  The data stream looks correct but there appear to be
+calibration issues with both mouse emulation and the evtouch driver.
 
-Signed-off-by: John Keller <jpk@sgi.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Using this requires a new version of inputattach and doing
+ inputattach -fjt /dev/ttyS0
+
+It should be possible to automatically do this with udev rules.
+
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/sn/kernel/io_acpi_init.c |   17 ++----
- arch/ia64/sn/kernel/io_init.c      |   20 ++++++-
- drivers/pci/rom.c                  |   73 ++++++++++++++++-----------
- include/linux/pci.h                |    1 
- 4 files changed, 70 insertions(+), 41 deletions(-)
+ drivers/input/touchscreen/Kconfig      |   13 +
+ drivers/input/touchscreen/Makefile     |    1 
+ drivers/input/touchscreen/fujitsu_ts.c |  195 +++++++++++++++++++++++
+ include/linux/serio.h                  |    1 
+ 4 files changed, 210 insertions(+)
 
-diff -puN arch/ia64/sn/kernel/io_acpi_init.c~sn-correct-rom-resource-length-for-bios-copy arch/ia64/sn/kernel/io_acpi_init.c
---- a/arch/ia64/sn/kernel/io_acpi_init.c~sn-correct-rom-resource-length-for-bios-copy
-+++ a/arch/ia64/sn/kernel/io_acpi_init.c
-@@ -418,7 +418,7 @@ sn_acpi_slot_fixup(struct pci_dev *dev)
- 	void __iomem *addr;
- 	struct pcidev_info *pcidev_info = NULL;
- 	struct sn_irq_info *sn_irq_info = NULL;
--	size_t size;
-+	size_t image_size, size;
+diff -puN drivers/input/touchscreen/Kconfig~touchscreen-fujitsu-touchscreen-driver drivers/input/touchscreen/Kconfig
+--- a/drivers/input/touchscreen/Kconfig~touchscreen-fujitsu-touchscreen-driver
++++ a/drivers/input/touchscreen/Kconfig
+@@ -54,6 +54,19 @@ config TOUCHSCREEN_CORGI
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called corgi_ts.
  
- 	if (sn_acpi_get_pcidev_info(dev, &pcidev_info, &sn_irq_info)) {
- 		panic("%s:  Failure obtaining pcidev_info for %s\n",
-@@ -428,17 +428,16 @@ sn_acpi_slot_fixup(struct pci_dev *dev)
- 	if (pcidev_info->pdi_pio_mapped_addr[PCI_ROM_RESOURCE]) {
- 		/*
- 		 * A valid ROM image exists and has been shadowed by the
--		 * PROM. Setup the pci_dev ROM resource to point to
--		 * the shadowed copy.
-+		 * PROM. Setup the pci_dev ROM resource with the address
-+		 * of the shadowed copy, and the actual length of the ROM image.
- 		 */
--		size = dev->resource[PCI_ROM_RESOURCE].end -
--				dev->resource[PCI_ROM_RESOURCE].start;
--		addr =
--		     ioremap(pcidev_info->pdi_pio_mapped_addr[PCI_ROM_RESOURCE],
--			     size);
-+		size = pci_resource_len(dev, PCI_ROM_RESOURCE);
-+		addr = ioremap(pcidev_info->pdi_pio_mapped_addr[PCI_ROM_RESOURCE],
-+			       size);
-+		image_size = pci_get_rom_size(addr, size);
- 		dev->resource[PCI_ROM_RESOURCE].start = (unsigned long) addr;
- 		dev->resource[PCI_ROM_RESOURCE].end =
--						(unsigned long) addr + size;
-+					(unsigned long) addr + image_size - 1;
- 		dev->resource[PCI_ROM_RESOURCE].flags |= IORESOURCE_ROM_BIOS_COPY;
- 	}
- 	sn_pci_fixup_slot(dev, pcidev_info, sn_irq_info);
-diff -puN arch/ia64/sn/kernel/io_init.c~sn-correct-rom-resource-length-for-bios-copy arch/ia64/sn/kernel/io_init.c
---- a/arch/ia64/sn/kernel/io_init.c~sn-correct-rom-resource-length-for-bios-copy
-+++ a/arch/ia64/sn/kernel/io_init.c
-@@ -259,9 +259,23 @@ sn_io_slot_fixup(struct pci_dev *dev)
- 			insert_resource(&ioport_resource, &dev->resource[idx]);
- 		else
- 			insert_resource(&iomem_resource, &dev->resource[idx]);
--		/* If ROM, mark as shadowed in PROM */
--		if (idx == PCI_ROM_RESOURCE)
--			dev->resource[idx].flags |= IORESOURCE_ROM_BIOS_COPY;
-+		/*
-+		 * If ROM, set the actual ROM image size, and mark as
-+		 * shadowed in PROM.
-+		 */
-+		if (idx == PCI_ROM_RESOURCE) {
-+			size_t image_size;
-+			void __iomem *rom;
++config TOUCHSCREEN_FUJITSU
++	tristate "Fujitsu serial touchscreen"
++	select SERIO
++	help
++	  Say Y here if you have the Fujitsu touchscreen (such as one
++	  installed in Lifebook P series laptop) connected to your
++	  system.
 +
-+			rom = ioremap(pci_resource_start(dev, PCI_ROM_RESOURCE),
-+				      size + 1);
-+			image_size = pci_get_rom_size(rom, size + 1);
-+			dev->resource[PCI_ROM_RESOURCE].end =
-+				dev->resource[PCI_ROM_RESOURCE].start +
-+				image_size - 1;
-+			dev->resource[PCI_ROM_RESOURCE].flags |=
-+						 IORESOURCE_ROM_BIOS_COPY;
-+		}
- 	}
- 	/* Create a pci_window in the pci_controller struct for
- 	 * each device resource.
-diff -puN drivers/pci/rom.c~sn-correct-rom-resource-length-for-bios-copy drivers/pci/rom.c
---- a/drivers/pci/rom.c~sn-correct-rom-resource-length-for-bios-copy
-+++ a/drivers/pci/rom.c
-@@ -54,6 +54,49 @@ static void pci_disable_rom(struct pci_d
- }
- 
- /**
-+ * pci_get_rom_size - obtain the actual size of the ROM image
-+ * @rom: kernel virtual pointer to image of ROM
-+ * @size: size of PCI window
-+ *  return: size of actual ROM image
++	  If unsure, say N.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called fujitsu-ts.
++
+ config TOUCHSCREEN_GUNZE
+ 	tristate "Gunze AHL-51S touchscreen"
+ 	select SERIO
+diff -puN drivers/input/touchscreen/Makefile~touchscreen-fujitsu-touchscreen-driver drivers/input/touchscreen/Makefile
+--- a/drivers/input/touchscreen/Makefile~touchscreen-fujitsu-touchscreen-driver
++++ a/drivers/input/touchscreen/Makefile
+@@ -9,6 +9,7 @@ obj-$(CONFIG_TOUCHSCREEN_BITSY)		+= h360
+ obj-$(CONFIG_TOUCHSCREEN_CORGI)		+= corgi_ts.o
+ obj-$(CONFIG_TOUCHSCREEN_GUNZE)		+= gunze.o
+ obj-$(CONFIG_TOUCHSCREEN_ELO)		+= elo.o
++obj-$(CONFIG_TOUCHSCREEN_FUJITSU)	+= fujitsu_ts.o
+ obj-$(CONFIG_TOUCHSCREEN_MTOUCH)	+= mtouch.o
+ obj-$(CONFIG_TOUCHSCREEN_MK712)		+= mk712.o
+ obj-$(CONFIG_TOUCHSCREEN_HP600)		+= hp680_ts_input.o
+diff -puN /dev/null drivers/input/touchscreen/fujitsu_ts.c
+--- /dev/null
++++ a/drivers/input/touchscreen/fujitsu_ts.c
+@@ -0,0 +1,195 @@
++/*
++ * Fujitsu serial touchscreen driver
 + *
-+ * Determine the actual length of the ROM image.
-+ * The PCI window size could be much larger than the
-+ * actual image size.
++ * Copyright (c) Dmitry Torokhov <dtor@mail.ru>
 + */
-+size_t pci_get_rom_size(void __iomem *rom, size_t size)
++
++/*
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published
++ * by the Free Software Foundation.
++ */
++
++#include <linux/errno.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/input.h>
++#include <linux/serio.h>
++#include <linux/init.h>
++
++#define DRIVER_DESC	"Fujitsu serial touchscreen driver"
++
++MODULE_AUTHOR("Dmitry Torokhov <dtor@mail.ru>");
++MODULE_DESCRIPTION(DRIVER_DESC);
++MODULE_LICENSE("GPL");
++
++#define FUJITSU_LENGTH 5
++
++#define X_AXIS_MIN	90
++#define X_AXIS_MAX	4000
++#define Y_AXIS_MIN	185
++#define Y_AXIS_MAX	4000
++
++/*
++ * Per-touchscreen data.
++ */
++
++struct fujitsu {
++	struct input_dev *dev;
++	struct serio *serio;
++	int idx;
++	unsigned char data[FUJITSU_LENGTH];
++	char phys[32];
++};
++
++/*
++ * Decode serial data
++ */
++
++static irqreturn_t fujitsu_interrupt(struct serio *serio,
++				     unsigned char data, unsigned int flags)
 +{
-+	void __iomem *image;
-+	int last_image;
++	struct fujitsu *fujitsu = serio_get_drvdata(serio);
++	struct input_dev *dev = fujitsu->dev;
 +
-+	image = rom;
-+	do {
-+		void __iomem *pds;
-+		/* Standard PCI ROMs start out with these bytes 55 AA */
-+		if (readb(image) != 0x55)
-+			break;
-+		if (readb(image + 1) != 0xAA)
-+			break;
-+		/* get the PCI data structure and check its signature */
-+		pds = image + readw(image + 24);
-+		if (readb(pds) != 'P')
-+			break;
-+		if (readb(pds + 1) != 'C')
-+			break;
-+		if (readb(pds + 2) != 'I')
-+			break;
-+		if (readb(pds + 3) != 'R')
-+			break;
-+		last_image = readb(pds + 21) & 0x80;
-+		/* this length is reliable */
-+		image += readw(pds + 16) * 512;
-+	} while (!last_image);
++	if (fujitsu->idx == 0) {
++		/* resync skip until start of frame */
++		if (!(data & 0x80))
++			return IRQ_HANDLED;
++	} else {
++		/* resync skip garbage */
++		if (data & 0x80) {
++			fujitsu->idx = 0;
++			return IRQ_HANDLED;
++		}
++	}
 +
-+	/* never return a size larger than the PCI resource window */
-+	/* there are known ROMs that get the size wrong */
-+	return min((size_t)(image - rom), size);
++	fujitsu->data[fujitsu->idx++] = data;
++	if (fujitsu->idx == FUJITSU_LENGTH) {
++		input_report_abs(dev, ABS_X,
++				 (fujitsu->data[2] << 7) | fujitsu->data[1]);
++		input_report_abs(dev, ABS_Y,
++				 (fujitsu->data[4] << 7) | fujitsu->data[3]);
++		input_report_key(dev, BTN_TOUCH,
++				 (fujitsu->data[0] & 0x03) != 2);
++		input_sync(dev);
++		fujitsu->idx = 0;
++	}
++
++	return IRQ_HANDLED;
 +}
 +
-+/**
-  * pci_map_rom - map a PCI ROM to kernel space
-  * @pdev: pointer to pci device struct
-  * @size: pointer to receive size of pci window over ROM
-@@ -68,8 +111,6 @@ void __iomem *pci_map_rom(struct pci_dev
- 	struct resource *res = &pdev->resource[PCI_ROM_RESOURCE];
- 	loff_t start;
- 	void __iomem *rom;
--	void __iomem *image;
--	int last_image;
++/*
++ * fujitsu_disconnect() is the opposite of fujitsu_connect()
++ */
++
++static void fujitsu_disconnect(struct serio *serio)
++{
++	struct fujitsu *fujitsu = serio_get_drvdata(serio);
++
++	input_get_device(fujitsu->dev);
++	input_unregister_device(fujitsu->dev);
++	serio_close(serio);
++	serio_set_drvdata(serio, NULL);
++	input_put_device(fujitsu->dev);
++	kfree(fujitsu);
++}
++
++/*
++ * fujitsu_connect() is the routine that is called when someone adds a
++ * new serio device that supports the Fujitsu protocol and registers it
++ * as input device.
++ */
++
++static int fujitsu_connect(struct serio *serio, struct serio_driver *drv)
++{
++	struct fujitsu *fujitsu;
++	struct input_dev *input_dev;
++	int err;
++
++	fujitsu = kzalloc(sizeof(struct fujitsu), GFP_KERNEL);
++	input_dev = input_allocate_device();
++	if (!fujitsu || !input_dev) {
++		err = -ENOMEM;
++		goto fail1;
++	}
++
++	fujitsu->serio = serio;
++	fujitsu->dev = input_dev;
++	snprintf(fujitsu->phys, sizeof(fujitsu->phys),
++		 "%s/input0", serio->phys);
++
++	input_dev->name = "Fujitsu Serial Touchscreen";
++	input_dev->phys = fujitsu->phys;
++	input_dev->id.bustype = BUS_RS232;
++	input_dev->id.vendor = SERIO_FUJITSU;
++	input_dev->id.product = 0;
++	input_dev->id.version = 0x0100;
++	input_dev->evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
++	input_dev->keybit[LONG(BTN_TOUCH)] = BIT(BTN_TOUCH);
++
++	input_set_abs_params(input_dev, ABS_X, X_AXIS_MIN, X_AXIS_MAX, 0, 0);
++	input_set_abs_params(input_dev, ABS_Y, Y_AXIS_MIN, Y_AXIS_MAX, 0, 0);
++	serio_set_drvdata(serio, fujitsu);
++
++	err = serio_open(serio, drv);
++	if (err)
++		goto fail2;
++
++	err = input_register_device(fujitsu->dev);
++	if (err)
++		goto fail3;
++
++	return 0;
++
++ fail3:	serio_close(serio);
++ fail2:	serio_set_drvdata(serio, NULL);
++ fail1:	input_free_device(input_dev);
++	kfree(fujitsu);
++	return err;
++}
++
++/*
++ * The serio driver structure.
++ */
++
++static struct serio_device_id fujitsu_serio_ids[] = {
++	{
++		.type	= SERIO_RS232,
++		.proto	= SERIO_FUJITSU,
++		.id	= SERIO_ANY,
++		.extra	= SERIO_ANY,
++	},
++	{ 0 }
++};
++
++MODULE_DEVICE_TABLE(serio, fujitsu_serio_ids);
++
++static struct serio_driver fujitsu_drv = {
++	.driver		= {
++		.name	= "fujitsu_ts",
++	},
++	.description	= DRIVER_DESC,
++	.id_table	= fujitsu_serio_ids,
++	.interrupt	= fujitsu_interrupt,
++	.connect	= fujitsu_connect,
++	.disconnect	= fujitsu_disconnect,
++};
++
++/*
++ * The functions for inserting/removing us as a module.
++ */
++
++static int __init fujitsu_init(void)
++{
++	return serio_register_driver(&fujitsu_drv);
++}
++
++static void __exit fujitsu_exit(void)
++{
++	serio_unregister_driver(&fujitsu_drv);
++}
++
++module_init(fujitsu_init);
++module_exit(fujitsu_exit);
+diff -puN include/linux/serio.h~touchscreen-fujitsu-touchscreen-driver include/linux/serio.h
+--- a/include/linux/serio.h~touchscreen-fujitsu-touchscreen-driver
++++ a/include/linux/serio.h
+@@ -209,6 +209,7 @@ static inline void serio_unpin_driver(st
+ #define SERIO_PENMOUNT	0x31
+ #define SERIO_TOUCHRIGHT	0x32
+ #define SERIO_TOUCHWIN	0x33
++#define SERIO_FUJITSU	0x34
+ #define SERIO_TAOSEVM	0x40
  
- 	/*
- 	 * IORESOURCE_ROM_SHADOW set on x86, x86_64 and IA64 supports legacy
-@@ -117,33 +158,7 @@ void __iomem *pci_map_rom(struct pci_dev
- 	 * size is much larger than the actual size of the ROM.
- 	 * True size is important if the ROM is going to be copied.
- 	 */
--	image = rom;
--	do {
--		void __iomem *pds;
--		/* Standard PCI ROMs start out with these bytes 55 AA */
--		if (readb(image) != 0x55)
--			break;
--		if (readb(image + 1) != 0xAA)
--			break;
--		/* get the PCI data structure and check its signature */
--		pds = image + readw(image + 24);
--		if (readb(pds) != 'P')
--			break;
--		if (readb(pds + 1) != 'C')
--			break;
--		if (readb(pds + 2) != 'I')
--			break;
--		if (readb(pds + 3) != 'R')
--			break;
--		last_image = readb(pds + 21) & 0x80;
--		/* this length is reliable */
--		image += readw(pds + 16) * 512;
--	} while (!last_image);
--
--	/* never return a size larger than the PCI resource window */
--	/* there are known ROMs that get the size wrong */
--	*size = min((size_t)(image - rom), *size);
--
-+	*size = pci_get_rom_size(rom, *size);
- 	return rom;
- }
- 
-diff -puN include/linux/pci.h~sn-correct-rom-resource-length-for-bios-copy include/linux/pci.h
---- a/include/linux/pci.h~sn-correct-rom-resource-length-for-bios-copy
-+++ a/include/linux/pci.h
-@@ -560,6 +560,7 @@ void __iomem __must_check *pci_map_rom(s
- void __iomem __must_check *pci_map_rom_copy(struct pci_dev *pdev, size_t *size);
- void pci_unmap_rom(struct pci_dev *pdev, void __iomem *rom);
- void pci_remove_rom(struct pci_dev *pdev);
-+size_t pci_get_rom_size(void __iomem *rom, size_t size);
- 
- /* Power management related routines */
- int pci_save_state(struct pci_dev *dev);
+ #endif
 _
 
-Patches currently in -mm which might be from jpk@sgi.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
 origin.patch
-x86_64-add-ioapic-nmi-support.patch
+git-acpi.patch
+git-input.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+pci-x-pci-express-read-control-interfaces-qla2xxx.patch
