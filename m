@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + coda-cleanup-downcall-handler.patch added to -mm tree
-Date: Thu, 12 Jul 2007 22:29:43 -0700
-Message-ID: <200707130529.l6D5ThnG030823@imap1.linux-foundation.org>
+Subject: + coda-ignore-returned-values-when-upcalls-return-errors.patch added to -mm tree
+Date: Thu, 12 Jul 2007 22:29:41 -0700
+Message-ID: <200707130529.l6D5Tfs2030817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42170 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57241 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751699AbXGMFg4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751779AbXGMFh1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 01:36:56 -0400
+	Fri, 13 Jul 2007 01:37:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jaharkes@cs.cmu.edu
 
 
 The patch titled
-     coda: cleanup downcall handler
+     coda: ignore returned values when upcalls return errors
 has been added to the -mm tree.  Its filename is
-     coda-cleanup-downcall-handler.patch
+     coda-ignore-returned-values-when-upcalls-return-errors.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,150 +26,141 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coda: cleanup downcall handler
+Subject: coda: ignore returned values when upcalls return errors
 From: Jan Harkes <jaharkes@cs.cmu.edu>
 
 Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/upcall.c |  117 ++++++++++++++++++++-------------------------
- 1 file changed, 53 insertions(+), 64 deletions(-)
+ fs/coda/upcall.c |   59 ++++++++++++++++++++-------------------------
+ 1 file changed, 27 insertions(+), 32 deletions(-)
 
-diff -puN fs/coda/upcall.c~coda-cleanup-downcall-handler fs/coda/upcall.c
---- a/fs/coda/upcall.c~coda-cleanup-downcall-handler
+diff -puN fs/coda/upcall.c~coda-ignore-returned-values-when-upcalls-return-errors fs/coda/upcall.c
+--- a/fs/coda/upcall.c~coda-ignore-returned-values-when-upcalls-return-errors
 +++ a/fs/coda/upcall.c
-@@ -859,77 +859,66 @@ exit:
+@@ -84,12 +84,8 @@ int venus_rootfid(struct super_block *sb
+         UPARG(CODA_ROOT);
  
- int coda_downcall(int opcode, union outputArgs * out, struct super_block *sb)
- {
--	/* Handle invalidation requests. */
--          if ( !sb || !sb->s_root || !sb->s_root->d_inode)
--		  return 0; 
-+	struct inode *inode = NULL;
-+	struct CodaFid *fid, *newfid;
+ 	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
+-	
+-	if (error) {
+-	        printk("coda_get_rootfid: error %d\n", error);
+-	} else {
++	if (!error)
+ 		*fidp = outp->coda_root.VFid;
+-	}
  
--	  switch (opcode) {
-+	/* Handle invalidation requests. */
-+	if ( !sb || !sb->s_root)
-+		return 0;
+ 	CODA_FREE(inp, insize);
+ 	return error;
+@@ -106,9 +102,9 @@ int venus_getattr(struct super_block *sb
+ 	UPARG(CODA_GETATTR);
+         inp->coda_getattr.VFid = *fid;
  
--	  case CODA_FLUSH : {
--		   coda_cache_clear_all(sb);
--		   shrink_dcache_sb(sb);
--		   coda_flag_inode(sb->s_root->d_inode, C_FLUSH);
--		   return(0);
--	  }
--
--	  case CODA_PURGEUSER : {
--		   coda_cache_clear_all(sb);
--		   return(0);
--	  }
--
--	  case CODA_ZAPDIR : {
--	          struct inode *inode;
--		  struct CodaFid *fid = &out->coda_zapdir.CodaFid;
--
--		  inode = coda_fid_to_inode(fid, sb);
--		  if (inode) {
--			  coda_flag_inode_children(inode, C_PURGE);
--	                  coda_flag_inode(inode, C_VATTR);
--			  iput(inode);
--		  }
--		  
--		  return(0);
--	  }
--
--	  case CODA_ZAPFILE : {
--	          struct inode *inode;
--		  struct CodaFid *fid = &out->coda_zapfile.CodaFid;
--		  inode = coda_fid_to_inode(fid, sb);
--		  if ( inode ) {
--	                  coda_flag_inode(inode, C_VATTR);
--			  iput(inode);
--		  }
--		  return 0;
--	  }
--
--	  case CODA_PURGEFID : {
--	          struct inode *inode;
--		  struct CodaFid *fid = &out->coda_purgefid.CodaFid;
--		  inode = coda_fid_to_inode(fid, sb);
--		  if ( inode ) { 
-+	switch (opcode) {
-+	case CODA_FLUSH:
-+		coda_cache_clear_all(sb);
-+		shrink_dcache_sb(sb);
-+		if (sb->s_root->d_inode)
-+		    coda_flag_inode(sb->s_root->d_inode, C_FLUSH);
-+		break;
-+
-+	case CODA_PURGEUSER:
-+		coda_cache_clear_all(sb);
-+		break;
-+
-+	case CODA_ZAPDIR:
-+		fid = &out->coda_zapdir.CodaFid;
-+		inode = coda_fid_to_inode(fid, sb);
-+		if (inode) {
-+			coda_flag_inode_children(inode, C_PURGE);
-+			coda_flag_inode(inode, C_VATTR);
-+		}
-+		break;
-+
-+	case CODA_ZAPFILE:
-+		fid = &out->coda_zapfile.CodaFid;
-+		inode = coda_fid_to_inode(fid, sb);
-+		if (inode)
-+			coda_flag_inode(inode, C_VATTR);
-+		break;
-+
-+	case CODA_PURGEFID:
-+		fid = &out->coda_purgefid.CodaFid;
-+		inode = coda_fid_to_inode(fid, sb);
-+		if (inode) {
- 			coda_flag_inode_children(inode, C_PURGE);
+-        error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
+-	
+-	*attr = outp->coda_getattr.attr;
++	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
++	if (!error)
++		*attr = outp->coda_getattr.attr;
  
- 			/* catch the dentries later if some are still busy */
- 			coda_flag_inode(inode, C_PURGE);
- 			d_prune_aliases(inode);
+ 	CODA_FREE(inp, insize);
+         return error;
+@@ -153,10 +149,11 @@ int venus_lookup(struct super_block *sb,
+         memcpy((char *)(inp) + offset, name, length);
+         *((char *)inp + offset + length) = '\0';
  
--			iput(inode);
--		  }
--		  return 0;
--	  }
+-        error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
 -
--	  case CODA_REPLACE : {
--	          struct inode *inode;
--		  struct CodaFid *oldfid = &out->coda_replace.OldFid;
--		  struct CodaFid *newfid = &out->coda_replace.NewFid;
--		  inode = coda_fid_to_inode(oldfid, sb);
--		  if ( inode ) { 
--			  coda_replace_fid(inode, oldfid, newfid);
--			  iput(inode);
--		  }
--		  return 0;
--	  }
--	  }
--	  return 0;
-+		}
-+		break;
-+
-+	case CODA_REPLACE:
-+		fid = &out->coda_replace.OldFid;
-+		newfid = &out->coda_replace.NewFid;
-+		inode = coda_fid_to_inode(fid, sb);
-+		if (inode)
-+			coda_replace_fid(inode, fid, newfid);
-+		break;
+-	*resfid = outp->coda_lookup.VFid;
+-	*type = outp->coda_lookup.vtype;
++	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
++	if (!error) {
++		*resfid = outp->coda_lookup.VFid;
++		*type = outp->coda_lookup.vtype;
 +	}
-+
-+	if (inode)
-+		iput(inode);
-+
-+	return 0;
- }
  
+ 	CODA_FREE(inp, insize);
+ 	return error;
+@@ -278,11 +275,12 @@ int venus_mkdir(struct super_block *sb, 
+         /* Venus must get null terminated string */
+         memcpy((char *)(inp) + offset, name, length);
+         *((char *)inp + offset + length) = '\0';
+-        
+-        error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
+ 
+-	*attrs = outp->coda_mkdir.attr;
+-	*newfid = outp->coda_mkdir.VFid;
++	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
++	if (!error) {
++		*attrs = outp->coda_mkdir.attr;
++		*newfid = outp->coda_mkdir.VFid;
++	}
+ 
+ 	CODA_FREE(inp, insize);
+ 	return error;        
+@@ -348,11 +346,12 @@ int venus_create(struct super_block *sb,
+         /* Venus must get null terminated string */
+         memcpy((char *)(inp) + offset, name, length);
+         *((char *)inp + offset + length) = '\0';
+-                
+-        error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
+ 
+-	*attrs = outp->coda_create.attr;
+-	*newfid = outp->coda_create.VFid;
++	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
++	if (!error) {
++		*attrs = outp->coda_create.attr;
++		*newfid = outp->coda_create.VFid;
++	}
+ 
+ 	CODA_FREE(inp, insize);
+ 	return error;        
+@@ -417,19 +416,18 @@ int venus_readlink(struct super_block *s
+ 	UPARG(CODA_READLINK);
+ 
+         inp->coda_readlink.VFid = *fid;
+-    
+-        error =  coda_upcall(coda_sbp(sb), insize, &outsize, inp);
+-	
+-	if (! error) {
+-                retlen = outp->coda_readlink.count;
++
++	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
++	if (!error) {
++		retlen = outp->coda_readlink.count;
+ 		if ( retlen > *length )
+-		        retlen = *length;
++			retlen = *length;
+ 		*length = retlen;
+ 		result =  (char *)outp + (long)outp->coda_readlink.data;
+ 		memcpy(buffer, result, retlen);
+ 		*(buffer + retlen) = '\0';
+ 	}
+-        
++
+         CODA_FREE(inp, insize);
+         return error;
+ }
+@@ -617,16 +615,13 @@ int venus_statfs(struct dentry *dentry, 
+ 	insize = max_t(unsigned int, INSIZE(statfs), OUTSIZE(statfs));
+ 	UPARG(CODA_STATFS);
+ 
+-        error = coda_upcall(coda_sbp(dentry->d_sb), insize, &outsize, inp);
+-	
+-        if (!error) {
++	error = coda_upcall(coda_sbp(dentry->d_sb), insize, &outsize, inp);
++	if (!error) {
+ 		sfs->f_blocks = outp->coda_statfs.stat.f_blocks;
+ 		sfs->f_bfree  = outp->coda_statfs.stat.f_bfree;
+ 		sfs->f_bavail = outp->coda_statfs.stat.f_bavail;
+ 		sfs->f_files  = outp->coda_statfs.stat.f_files;
+ 		sfs->f_ffree  = outp->coda_statfs.stat.f_ffree;
+-	} else {
+-		printk("coda_statfs: Venus returns: %d\n", error);
+ 	}
+ 
+         CODA_FREE(inp, insize);
 _
 
 Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
