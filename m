@@ -1,51 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - kgdb-section-fix.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:52 -0700
-Message-ID: <200707132233.l6DMXqCs025122@imap1.linux-foundation.org>
+Subject: - splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:33:09 -0700
+Message-ID: <200707132233.l6DMX93g025055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54106 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761168AbXGMWo7 (ORCPT
+	by vger.kernel.org with ESMTP id S937335AbXGMWpK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:44:59 -0400
+	Fri, 13 Jul 2007 18:45:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, jmorris@namei.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kgdb-section-fix
+     splice.c: revert git-selinux changes so that git-block will apply
 has been removed from the -mm tree.  Its filename was
-     kgdb-section-fix.patch
+     splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kgdb-section-fix
+Subject: splice.c: revert git-selinux changes so that git-block will apply
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: drivers/built-in.o(.text+0x57467): Section mismatch: reference to .init.text:kgdb8250_add_port (between 'uart_add_one_port' and 'uart_startup')
+my life sucks
 
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_kgdb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/splice.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN drivers/serial/8250_kgdb.c~kgdb-section-fix drivers/serial/8250_kgdb.c
---- a/drivers/serial/8250_kgdb.c~kgdb-section-fix
-+++ a/drivers/serial/8250_kgdb.c
-@@ -391,7 +391,7 @@ struct kgdb_io kgdb_io_ops = {
-  * 	dynamically, this is the best option if a platform also normally
-  * 	calls early_serial_setup().
-  */
--void __init kgdb8250_add_port(int i, struct uart_port *serial_req)
-+void kgdb8250_add_port(int i, struct uart_port *serial_req)
+diff -puN fs/splice.c~splicec-revert-git-selinux-changes-so-that-git-block-will-apply fs/splice.c
+--- a/fs/splice.c~splicec-revert-git-selinux-changes-so-that-git-block-will-apply
++++ a/fs/splice.c
+@@ -28,7 +28,6 @@
+ #include <linux/module.h>
+ #include <linux/syscalls.h>
+ #include <linux/uio.h>
+-#include <linux/security.h>
+ 
+ struct partial_page {
+ 	unsigned int offset;
+@@ -932,10 +931,6 @@ static long do_splice_from(struct pipe_i
+ 	if (unlikely(ret < 0))
+ 		return ret;
+ 
+-	ret = security_file_permission(out, MAY_WRITE);
+-	if (unlikely(ret < 0))
+-		return ret;
+-
+ 	return out->f_op->splice_write(pipe, out, ppos, len, flags);
+ }
+ 
+@@ -958,10 +953,6 @@ static long do_splice_to(struct file *in
+ 	if (unlikely(ret < 0))
+ 		return ret;
+ 
+-	ret = security_file_permission(in, MAY_READ);
+-	if (unlikely(ret < 0))
+-		return ret;
+-
+ 	return in->f_op->splice_read(in, ppos, pipe, len, flags);
+ }
+ 
+@@ -1280,7 +1271,6 @@ static int get_iovec_page_array(const st
+ static long do_vmsplice(struct file *file, const struct iovec __user *iov,
+ 			unsigned long nr_segs, unsigned int flags)
  {
- 	/* Make sure we've got the built-in data before we override. */
- 	kgdb8250_copy_rs_table();
+-	long err;
+ 	struct pipe_inode_info *pipe;
+ 	struct page *pages[PIPE_BUFFERS];
+ 	struct partial_page partial[PIPE_BUFFERS];
+@@ -1299,10 +1289,6 @@ static long do_vmsplice(struct file *fil
+ 	else if (unlikely(!nr_segs))
+ 		return 0;
+ 
+-	err = security_file_permission(file, MAY_WRITE);
+-	if (unlikely(err < 0))
+-		return err;
+-
+ 	spd.nr_pages = get_iovec_page_array(iov, nr_segs, pages, partial,
+ 					    flags & SPLICE_F_GIFT);
+ 	if (spd.nr_pages <= 0)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
