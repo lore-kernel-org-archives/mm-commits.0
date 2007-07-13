@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + use-mutex-instead-of-semaphore-in-the-adutux-driver.patch added to -mm tree
-Date: Fri, 13 Jul 2007 13:39:33 -0700
-Message-ID: <200707132039.l6DKdXnU018448@imap1.linux-foundation.org>
+Subject: + use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver.patch added to -mm tree
+Date: Fri, 13 Jul 2007 13:39:35 -0700
+Message-ID: <200707132039.l6DKdZqo018451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53825 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49457 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757759AbXGMUkL (ORCPT
+	by vger.kernel.org with ESMTP id S1759486AbXGMUkO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 16:40:11 -0400
+	Fri, 13 Jul 2007 16:40:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: matthias.kaehlcke@gmail.com, greg@kroah.com
 
 
 The patch titled
-     use mutex instead of semaphore in the Adutux driver
+     use mutex instead of semaphore in the FTDI ELAN driver
 has been added to the -mm tree.  Its filename is
-     use-mutex-instead-of-semaphore-in-the-adutux-driver.patch
+     use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use mutex instead of semaphore in the Adutux driver
+Subject: use mutex instead of semaphore in the FTDI ELAN driver
 From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-The Adutux driver uses a semaphore as mutex. Use the mutex API
+The FTDI ELAN driver uses a semaphore as mutex. Use the mutex API
 instead of the (binary) semaphore.
 
 Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
@@ -37,153 +37,64 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/adutux.c |   35 ++++++++++++++++++-----------------
- 1 files changed, 18 insertions(+), 17 deletions(-)
+ drivers/usb/misc/ftdi-elan.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/usb/misc/adutux.c~use-mutex-instead-of-semaphore-in-the-adutux-driver drivers/usb/misc/adutux.c
---- a/drivers/usb/misc/adutux.c~use-mutex-instead-of-semaphore-in-the-adutux-driver
-+++ a/drivers/usb/misc/adutux.c
-@@ -24,6 +24,7 @@
+diff -puN drivers/usb/misc/ftdi-elan.c~use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver drivers/usb/misc/ftdi-elan.c
+--- a/drivers/usb/misc/ftdi-elan.c~use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver
++++ a/drivers/usb/misc/ftdi-elan.c
+@@ -44,6 +44,7 @@
  #include <linux/slab.h>
  #include <linux/module.h>
- #include <linux/usb.h>
+ #include <linux/kref.h>
 +#include <linux/mutex.h>
  #include <asm/uaccess.h>
- 
- #ifdef CONFIG_USB_DEBUG
-@@ -80,7 +81,7 @@ MODULE_DEVICE_TABLE(usb, device_table);
- 
- /* Structure to hold all of our device specific stuff */
- struct adu_device {
--	struct semaphore	sem; /* locks this structure */
-+	struct mutex		mtx; /* locks this structure */
- 	struct usb_device*	udev; /* save off the usb device pointer */
- 	struct usb_interface*	interface;
- 	unsigned char		minor; /* the starting minor number for this device */
-@@ -269,8 +270,8 @@ static int adu_open(struct inode *inode,
- 	}
- 
- 	/* lock this device */
--	if ((retval = down_interruptible(&dev->sem))) {
--		dbg(2, "%s : sem down failed", __FUNCTION__);
-+	if ((retval = mutex_lock_interruptible(&dev->mtx))) {
-+		dbg(2, "%s : mutex lock failed", __FUNCTION__);
- 		goto exit_no_device;
- 	}
- 
-@@ -299,7 +300,7 @@ static int adu_open(struct inode *inode,
- 		if (retval)
- 			--dev->open_count;
- 	}
--	up(&dev->sem);
-+	mutex_unlock(&dev->mtx);
- 
- exit_no_device:
- 	dbg(2,"%s : leave, return value %d ", __FUNCTION__, retval);
-@@ -347,7 +348,7 @@ static int adu_release(struct inode *ino
- 	}
- 
- 	/* lock our device */
--	down(&dev->sem); /* not interruptible */
-+	mutex_lock(&dev->mtx); /* not interruptible */
- 
- 	if (dev->open_count <= 0) {
- 		dbg(1," %s : device not opened", __FUNCTION__);
-@@ -357,7 +358,7 @@ static int adu_release(struct inode *ino
- 
- 	if (dev->udev == NULL) {
- 		/* the device was unplugged before the file was released */
--		up(&dev->sem);
-+		mutex_unlock(&dev->mtx);
- 		adu_delete(dev);
- 		dev = NULL;
- 	} else {
-@@ -367,7 +368,7 @@ static int adu_release(struct inode *ino
- 
- exit:
- 	if (dev)
--		up(&dev->sem);
-+		mutex_unlock(&dev->mtx);
- 	dbg(2," %s : leave, return value %d", __FUNCTION__, retval);
- 	return retval;
+ #include <linux/usb.h>
+ #include <linux/workqueue.h>
+@@ -64,7 +65,7 @@ static struct workqueue_struct *respond_
+ * ftdi_module_lock exists to protect access to global variables
+ *
+ */
+-static struct semaphore ftdi_module_lock;
++static struct mutex ftdi_module_lock;
+ static int ftdi_instances = 0;
+ static struct list_head ftdi_static_list;
+ /*
+@@ -199,10 +200,10 @@ static void ftdi_elan_delete(struct kref
+         dev_warn(&ftdi->udev->dev, "FREEING ftdi=%p\n", ftdi);
+         usb_put_dev(ftdi->udev);
+         ftdi->disconnected += 1;
+-        down(&ftdi_module_lock);
++        mutex_lock(&ftdi_module_lock);
+         list_del_init(&ftdi->ftdi_list);
+         ftdi_instances -= 1;
+-        up(&ftdi_module_lock);
++        mutex_unlock(&ftdi_module_lock);
+         kfree(ftdi->bulk_in_buffer);
+         ftdi->bulk_in_buffer = NULL;
  }
-@@ -390,7 +391,7 @@ static ssize_t adu_read(struct file *fil
- 	dev = file->private_data;
- 	dbg(2," %s : dev=%p", __FUNCTION__, dev);
- 	/* lock this object */
--	if (down_interruptible(&dev->sem))
-+	if (mutex_lock_interruptible(&dev->mtx))
- 		return -ERESTARTSYS;
- 
- 	/* verify that the device wasn't unplugged */
-@@ -522,7 +523,7 @@ static ssize_t adu_read(struct file *fil
- 
- exit:
- 	/* unlock the device */
--	up(&dev->sem);
-+	mutex_unlock(&dev->mtx);
- 
- 	dbg(2," %s : leave, return value %d", __FUNCTION__, retval);
- 	return retval;
-@@ -543,7 +544,7 @@ static ssize_t adu_write(struct file *fi
- 	dev = file->private_data;
- 
- 	/* lock this object */
--	retval = down_interruptible(&dev->sem);
-+	retval = mutex_lock_interruptible(&dev->mtx);
- 	if (retval)
- 		goto exit_nolock;
- 
-@@ -571,9 +572,9 @@ static ssize_t adu_write(struct file *fi
- 				retval = -EINTR;
- 				goto exit;
- 			}
--			up(&dev->sem);
-+			mutex_unlock(&dev->mtx);
- 			timeout = interruptible_sleep_on_timeout(&dev->write_wait, timeout);
--			retval = down_interruptible(&dev->sem);
-+			retval = mutex_lock_interruptible(&dev->mtx);
- 			if (retval) {
- 				retval = bytes_written ? bytes_written : retval;
- 				goto exit_nolock;
-@@ -638,7 +639,7 @@ static ssize_t adu_write(struct file *fi
- 
- exit:
- 	/* unlock the device */
--	up(&dev->sem);
-+	mutex_unlock(&dev->mtx);
- exit_nolock:
- 
- 	dbg(2," %s : leave, return value %d", __FUNCTION__, retval);
-@@ -698,7 +699,7 @@ static int adu_probe(struct usb_interfac
- 		goto exit;
- 	}
- 
--	init_MUTEX(&dev->sem);
-+	mutex_init(&dev->mtx);
- 	spin_lock_init(&dev->buflock);
- 	dev->udev = udev;
- 	init_waitqueue_head(&dev->read_wait);
-@@ -835,16 +836,16 @@ static void adu_disconnect(struct usb_in
- 	usb_deregister_dev(interface, &adu_class);
- 	dev->minor = 0;
- 
--	down(&dev->sem); /* not interruptible */
-+	mutex_lock(&dev->mtx); /* not interruptible */
- 
- 	/* if the device is not opened, then we clean up right now */
- 	dbg(2," %s : open count %d", __FUNCTION__, dev->open_count);
- 	if (!dev->open_count) {
--		up(&dev->sem);
-+		mutex_unlock(&dev->mtx);
- 		adu_delete(dev);
- 	} else {
- 		dev->udev = NULL;
--		up(&dev->sem);
-+		mutex_unlock(&dev->mtx);
- 	}
- 
- 	dev_info(&interface->dev, "ADU device adutux%d now disconnected",
+@@ -2780,10 +2781,10 @@ static int ftdi_elan_probe(struct usb_in
+                 return -ENOMEM;
+         }
+         memset(ftdi, 0x00, sizeof(struct usb_ftdi));
+-        down(&ftdi_module_lock);
++        mutex_lock(&ftdi_module_lock);
+         list_add_tail(&ftdi->ftdi_list, &ftdi_static_list);
+         ftdi->sequence_num = ++ftdi_instances;
+-        up(&ftdi_module_lock);
++        mutex_unlock(&ftdi_module_lock);
+         ftdi_elan_init_kref(ftdi);
+         init_MUTEX(&ftdi->sw_lock);
+         ftdi->udev = usb_get_dev(interface_to_usbdev(interface));
+@@ -2909,7 +2910,7 @@ static int __init ftdi_elan_init(void)
+         int result;
+         printk(KERN_INFO "driver %s built at %s on %s\n", ftdi_elan_driver.name,
+ 	       __TIME__, __DATE__);
+-        init_MUTEX(&ftdi_module_lock);
++        mutex_init(&ftdi_module_lock);
+         INIT_LIST_HEAD(&ftdi_static_list);
+         status_queue = create_singlethread_workqueue("ftdi-status-control");
+ 	if (!status_queue)
 _
 
 Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
