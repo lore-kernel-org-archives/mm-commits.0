@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch added to -mm tree
-Date: Fri, 13 Jul 2007 00:34:08 -0700
-Message-ID: <200707130734.l6D7Y8O8005454@imap1.linux-foundation.org>
+Subject: + knfsd-nfsd4-implement-secinfo.patch added to -mm tree
+Date: Fri, 13 Jul 2007 00:34:06 -0700
+Message-ID: <200707130734.l6D7Y6de005450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50869 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55546 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760623AbXGMHeU (ORCPT
+	by vger.kernel.org with ESMTP id S1755111AbXGMHj0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 03:34:20 -0400
+	Fri, 13 Jul 2007 03:39:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bfields@citi.umich.edu, neilb@suse.de
+Cc: andros@citi.umich.edu, bfields@citi.umich.edu, neilb@suse.de, uketinen@us.ibm.com
 
 
 The patch titled
-     knfsd: nfsd4: secinfo handling without secinfo= option
+     knfsd: nfsd4: implement secinfo
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch
+     knfsd-nfsd4-implement-secinfo.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,139 +26,246 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: secinfo handling without secinfo= option
-From: J. Bruce Fields <bfields@citi.umich.edu>
+Subject: knfsd: nfsd4: implement secinfo
+From: Andy Adamson <andros@citi.umich.edu>
 
-We could return some sort of error in the case where someone asks for secinfo
-on an export without the secinfo= option set--that'd be no worse than what
-we've been doing.  But it's not really correct.  So, hack up an approximate
-secinfo response in that case--it may not be complete, but it'll tell the
-client at least one acceptable security flavor.
+Implement the secinfo operation.
 
+(Thanks to Usha Ketineni wrote an earlier version of this support.)
+
+Cc: Usha Ketineni <uketinen@us.ibm.com>
+Signed-off-by: Andy Adamson <andros@citi.umich.edu>
 Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4xdr.c                  |   30 ++++++++++++++++++++++++---
- include/linux/sunrpc/svcauth_gss.h |    1 
- net/sunrpc/auth_gss/svcauth_gss.c  |    9 ++++++++
- 3 files changed, 37 insertions(+), 3 deletions(-)
+ fs/nfsd/nfs4proc.c        |   28 +++++++++++++
+ fs/nfsd/nfs4xdr.c         |   75 ++++++++++++++++++++++++++++++++++++
+ include/linux/nfsd/nfsd.h |    3 +
+ include/linux/nfsd/xdr4.h |    7 +++
+ 4 files changed, 113 insertions(+)
 
-diff -puN fs/nfsd/nfs4xdr.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option fs/nfsd/nfs4xdr.c
---- a/fs/nfsd/nfs4xdr.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option
+diff -puN fs/nfsd/nfs4proc.c~knfsd-nfsd4-implement-secinfo fs/nfsd/nfs4proc.c
+--- a/fs/nfsd/nfs4proc.c~knfsd-nfsd4-implement-secinfo
++++ a/fs/nfsd/nfs4proc.c
+@@ -47,6 +47,7 @@
+ #include <linux/nfsd/state.h>
+ #include <linux/nfsd/xdr4.h>
+ #include <linux/nfs4_acl.h>
++#include <linux/sunrpc/gss_api.h>
+ 
+ #define NFSDDBG_FACILITY		NFSDDBG_PROC
+ 
+@@ -610,6 +611,30 @@ nfsd4_rename(struct svc_rqst *rqstp, str
+ }
+ 
+ static __be32
++nfsd4_secinfo(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
++	      struct nfsd4_secinfo *secinfo)
++{
++	struct svc_fh resfh;
++	struct svc_export *exp;
++	struct dentry *dentry;
++	__be32 err;
++
++	fh_init(&resfh, NFS4_FHSIZE);
++	err = nfsd_lookup_dentry(rqstp, &cstate->current_fh,
++				    secinfo->si_name, secinfo->si_namelen,
++				    &exp, &dentry);
++	if (err)
++		return err;
++	if (dentry->d_inode == NULL) {
++		exp_put(exp);
++		err = nfserr_noent;
++	} else
++		secinfo->si_exp = exp;
++	dput(dentry);
++	return err;
++}
++
++static __be32
+ nfsd4_setattr(struct svc_rqst *rqstp, struct nfsd4_compound_state *cstate,
+ 	      struct nfsd4_setattr *setattr)
+ {
+@@ -1008,6 +1033,9 @@ static struct nfsd4_operation nfsd4_ops[
+ 	[OP_SAVEFH] = {
+ 		.op_func = (nfsd4op_func)nfsd4_savefh,
+ 	},
++	[OP_SECINFO] = {
++		.op_func = (nfsd4op_func)nfsd4_secinfo,
++	},
+ 	[OP_SETATTR] = {
+ 		.op_func = (nfsd4op_func)nfsd4_setattr,
+ 	},
+diff -puN fs/nfsd/nfs4xdr.c~knfsd-nfsd4-implement-secinfo fs/nfsd/nfs4xdr.c
+--- a/fs/nfsd/nfs4xdr.c~knfsd-nfsd4-implement-secinfo
 +++ a/fs/nfsd/nfs4xdr.c
-@@ -57,6 +57,7 @@
+@@ -56,6 +56,7 @@
+ #include <linux/nfsd_idmap.h>
  #include <linux/nfs4.h>
  #include <linux/nfs4_acl.h>
- #include <linux/sunrpc/gss_api.h>
-+#include <linux/sunrpc/svcauth_gss.h>
++#include <linux/sunrpc/gss_api.h>
  
  #define NFSDDBG_FACILITY		NFSDDBG_XDR
  
-@@ -2454,15 +2455,38 @@ nfsd4_encode_secinfo(struct nfsd4_compou
- {
- 	int i = 0;
- 	struct svc_export *exp = secinfo->si_exp;
-+	u32 nflavs;
-+	struct exp_flavor_info *flavs;
-+	struct exp_flavor_info def_flavs[2];
- 	ENCODE_HEAD;
+@@ -819,6 +820,23 @@ nfsd4_decode_renew(struct nfsd4_compound
+ }
  
- 	if (nfserr)
- 		goto out;
-+	if (exp->ex_nflavors) {
-+		flavs = exp->ex_flavors;
-+		nflavs = exp->ex_nflavors;
-+	} else { /* Handling of some defaults in absence of real secinfo: */
-+		flavs = def_flavs;
-+		if (exp->ex_client->flavour->flavour == RPC_AUTH_UNIX) {
-+			nflavs = 2;
-+			flavs[0].pseudoflavor = RPC_AUTH_UNIX;
-+			flavs[1].pseudoflavor = RPC_AUTH_NULL;
-+		} else if (exp->ex_client->flavour->flavour == RPC_AUTH_GSS) {
-+			nflavs = 1;
-+			flavs[0].pseudoflavor
-+					= svcauth_gss_flavor(exp->ex_client);
-+		} else {
-+			nflavs = 1;
-+			flavs[0].pseudoflavor
-+					= exp->ex_client->flavour->flavour;
-+		}
-+	}
-+
- 	RESERVE_SPACE(4);
--	WRITE32(exp->ex_nflavors);
-+	WRITE32(nflavs);
- 	ADJUST_ARGS();
--	for (i = 0; i < exp->ex_nflavors; i++) {
--		u32 flav = exp->ex_flavors[i].pseudoflavor;
-+	for (i = 0; i < nflavs; i++) {
-+		u32 flav = flavs[i].pseudoflavor;
- 		struct gss_api_mech *gm = gss_mech_get_by_pseudoflavor(flav);
- 
- 		if (gm) {
-diff -puN include/linux/sunrpc/svcauth_gss.h~knfsd-nfsd4-secinfo-handling-without-secinfo=-option include/linux/sunrpc/svcauth_gss.h
---- a/include/linux/sunrpc/svcauth_gss.h~knfsd-nfsd4-secinfo-handling-without-secinfo=-option
-+++ a/include/linux/sunrpc/svcauth_gss.h
-@@ -23,6 +23,7 @@ int gss_svc_init(void);
- void gss_svc_shutdown(void);
- int svcauth_gss_register_pseudoflavor(u32 pseudoflavor, char * name);
- void svcauth_gss_unregister_pseudoflavor(char *name);
-+u32 svcauth_gss_flavor(struct auth_domain *dom);
- 
- #endif /* __KERNEL__ */
- #endif /* _LINUX_SUNRPC_SVCAUTH_GSS_H */
-diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option net/sunrpc/auth_gss/svcauth_gss.c
---- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option
-+++ a/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -743,6 +743,15 @@ find_gss_auth_domain(struct gss_ctx *ctx
- 
- static struct auth_ops svcauthops_gss;
- 
-+u32 svcauth_gss_flavor(struct auth_domain *dom)
+ static __be32
++nfsd4_decode_secinfo(struct nfsd4_compoundargs *argp,
++		     struct nfsd4_secinfo *secinfo)
 +{
-+	struct gss_domain *gd = container_of(dom, struct gss_domain, h);
++	DECODE_HEAD;
 +
-+	return gd->pseudoflavor;
++	READ_BUF(4);
++	READ32(secinfo->si_namelen);
++	READ_BUF(secinfo->si_namelen);
++	SAVEMEM(secinfo->si_name, secinfo->si_namelen);
++	status = check_filename(secinfo->si_name, secinfo->si_namelen,
++								nfserr_noent);
++	if (status)
++		return status;
++	DECODE_TAIL;
 +}
 +
-+EXPORT_SYMBOL(svcauth_gss_flavor);
-+
- int
- svcauth_gss_register_pseudoflavor(u32 pseudoflavor, char * name)
++static __be32
+ nfsd4_decode_setattr(struct nfsd4_compoundargs *argp, struct nfsd4_setattr *setattr)
  {
+ 	DECODE_HEAD;
+@@ -1131,6 +1149,9 @@ nfsd4_decode_compound(struct nfsd4_compo
+ 		case OP_SAVEFH:
+ 			op->status = nfs_ok;
+ 			break;
++		case OP_SECINFO:
++			op->status = nfsd4_decode_secinfo(argp, &op->u.secinfo);
++			break;
+ 		case OP_SETATTR:
+ 			op->status = nfsd4_decode_setattr(argp, &op->u.setattr);
+ 			break;
+@@ -1847,11 +1868,19 @@ nfsd4_encode_dirent_fattr(struct nfsd4_r
+ 	if (d_mountpoint(dentry)) {
+ 		int err;
+ 
++		/*
++		 * Why the heck aren't we just using nfsd_lookup??
++		 * Different "."/".." handling?  Something else?
++		 * At least, add a comment here to explain....
++		 */
+ 		err = nfsd_cross_mnt(cd->rd_rqstp, &dentry, &exp);
+ 		if (err) {
+ 			nfserr = nfserrno(err);
+ 			goto out_put;
+ 		}
++		nfserr = check_nfsd_access(exp, cd->rd_rqstp);
++		if (nfserr)
++			goto out_put;
+ 
+ 	}
+ 	nfserr = nfsd4_encode_fattr(NULL, exp, dentry, p, buflen, cd->rd_bmval,
+@@ -2419,6 +2448,49 @@ nfsd4_encode_rename(struct nfsd4_compoun
+ 	}
+ }
+ 
++static void
++nfsd4_encode_secinfo(struct nfsd4_compoundres *resp, int nfserr,
++		     struct nfsd4_secinfo *secinfo)
++{
++	int i = 0;
++	struct svc_export *exp = secinfo->si_exp;
++	ENCODE_HEAD;
++
++	if (nfserr)
++		goto out;
++	RESERVE_SPACE(4);
++	WRITE32(exp->ex_nflavors);
++	ADJUST_ARGS();
++	for (i = 0; i < exp->ex_nflavors; i++) {
++		u32 flav = exp->ex_flavors[i].pseudoflavor;
++		struct gss_api_mech *gm = gss_mech_get_by_pseudoflavor(flav);
++
++		if (gm) {
++			RESERVE_SPACE(4);
++			WRITE32(RPC_AUTH_GSS);
++			ADJUST_ARGS();
++			RESERVE_SPACE(4 + gm->gm_oid.len);
++			WRITE32(gm->gm_oid.len);
++			WRITEMEM(gm->gm_oid.data, gm->gm_oid.len);
++			ADJUST_ARGS();
++			RESERVE_SPACE(4);
++			WRITE32(0); /* qop */
++			ADJUST_ARGS();
++			RESERVE_SPACE(4);
++			WRITE32(gss_pseudoflavor_to_service(gm, flav));
++			ADJUST_ARGS();
++			gss_mech_put(gm);
++		} else {
++			RESERVE_SPACE(4);
++			WRITE32(flav);
++			ADJUST_ARGS();
++		}
++	}
++out:
++	if (exp)
++		exp_put(exp);
++}
++
+ /*
+  * The SETATTR encode routine is special -- it always encodes a bitmap,
+  * regardless of the error status.
+@@ -2559,6 +2631,9 @@ nfsd4_encode_operation(struct nfsd4_comp
+ 		break;
+ 	case OP_SAVEFH:
+ 		break;
++	case OP_SECINFO:
++		nfsd4_encode_secinfo(resp, op->status, &op->u.secinfo);
++		break;
+ 	case OP_SETATTR:
+ 		nfsd4_encode_setattr(resp, op->status, &op->u.setattr);
+ 		break;
+diff -puN include/linux/nfsd/nfsd.h~knfsd-nfsd4-implement-secinfo include/linux/nfsd/nfsd.h
+--- a/include/linux/nfsd/nfsd.h~knfsd-nfsd4-implement-secinfo
++++ a/include/linux/nfsd/nfsd.h
+@@ -71,6 +71,9 @@ int		nfsd_cross_mnt(struct svc_rqst *rqs
+ 		                struct svc_export **expp);
+ __be32		nfsd_lookup(struct svc_rqst *, struct svc_fh *,
+ 				const char *, int, struct svc_fh *);
++__be32		 nfsd_lookup_dentry(struct svc_rqst *, struct svc_fh *,
++				const char *, int,
++				struct svc_export **, struct dentry **);
+ __be32		nfsd_setattr(struct svc_rqst *, struct svc_fh *,
+ 				struct iattr *, int, time_t);
+ #ifdef CONFIG_NFSD_V4
+diff -puN include/linux/nfsd/xdr4.h~knfsd-nfsd4-implement-secinfo include/linux/nfsd/xdr4.h
+--- a/include/linux/nfsd/xdr4.h~knfsd-nfsd4-implement-secinfo
++++ a/include/linux/nfsd/xdr4.h
+@@ -293,6 +293,12 @@ struct nfsd4_rename {
+ 	struct nfsd4_change_info  rn_tinfo; /* response */
+ };
+ 
++struct nfsd4_secinfo {
++	u32 si_namelen;					/* request */
++	char *si_name;					/* request */
++	struct svc_export *si_exp;			/* response */
++};
++
+ struct nfsd4_setattr {
+ 	stateid_t	sa_stateid;         /* request */
+ 	u32		sa_bmval[2];        /* request */
+@@ -365,6 +371,7 @@ struct nfsd4_op {
+ 		struct nfsd4_remove		remove;
+ 		struct nfsd4_rename		rename;
+ 		clientid_t			renew;
++		struct nfsd4_secinfo		secinfo;
+ 		struct nfsd4_setattr		setattr;
+ 		struct nfsd4_setclientid	setclientid;
+ 		struct nfsd4_setclientid_confirm setclientid_confirm;
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from andros@citi.umich.edu are
 
 auth_gss-unregister-gss_domain-when-unloading-module.patch
-git-vfs-lease-api.patch
-fix-trivial-typos-in-anon_inodesc-comments.patch
-knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4.patch
-knfsd-nfsd4-fix-nfsv4-filehandle-size-units-confusion.patch
-knfsd-nfsd4-silence-a-compiler-warning-in-acl-code.patch
-knfsd-nfsd4-fix-enc_stateid_sz-for-nfsd-callbacks.patch
-knfsd-nfsd4-fix-handling-of-acl-errrors.patch
-knfsd-nfsd-remove-unused-header-interfaceh.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts.patch
-knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err.patch
-knfsd-nfsd4-build-rpcsec_gss-whenever-nfsd4-is-built.patch
 knfsd-nfsd4-store-pseudoflavor-in-request.patch
 knfsd-nfsd4-parse-secinfo-information-in-exports-downcall.patch
-knfsd-nfsd4-simplify-exp_pseudoroot-arguments.patch
-knfsd-nfsd-remove-superfluous-assignment-from-nfsd_lookup.patch
-knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst.patch
-knfsd-nfsd-set-rq_client-to-ip-address-determined-domain.patch
-knfsd-nfsd-use-ip-address-based-domain-in-secinfo-case.patch
-knfsd-nfsd-factor-nfsd_lookup-into-2-pieces.patch
 knfsd-nfsd4-return-nfserr_wrongsec.patch
-knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor.patch
-knfsd-nfsd-factor-out-code-from-show_expflags.patch
-knfsd-nfsd-display-export-secinfo-information.patch
-knfsd-rpc-add-gss-krb5-and-spkm3-oid-values.patch
 knfsd-nfsd4-implement-secinfo.patch
-knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch
-knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports.patch
-knfsd-nfsd-enforce-per-flavor-id-squashing.patch
