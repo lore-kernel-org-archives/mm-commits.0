@@ -1,145 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: - bonding-bond_mainc-make-2-functions-static.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:32:56 -0700
-Message-ID: <200707132232.l6DMWuRt025034@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-isdn-config_isdn_i4l.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 16:16:14 -0700
+Message-ID: <200707132316.l6DNGFSl027704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59112 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34478 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760829AbXGMWpX (ORCPT
+	by vger.kernel.org with ESMTP id S1759179AbXGMXQj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:45:23 -0400
+	Fri, 13 Jul 2007 19:16:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, ctindel@users.sourceforge.net, fubar@us.ibm.com, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bonding/bond_main.c: make 2 functions static
+     Use menuconfig objects: ISDN: CONFIG_ISDN_I4L
 has been removed from the -mm tree.  Its filename was
-     bonding-bond_mainc-make-2-functions-static.patch
+     use-menuconfig-objects-isdn-config_isdn_i4l.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: bonding/bond_main.c: make 2 functions static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Use menuconfig objects: ISDN: CONFIG_ISDN_I4L
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Chad Tindel <ctindel@users.sourceforge.net>
-Cc: Jay Vosburgh <fubar@us.ibm.com>
+Transform Kconfig objects from "menu, config" into "menuconfig" so that the
+user can disable the whole feature without having to enter the menu first.
+
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bonding/bond_main.c |    5 +++--
- drivers/net/bonding/bonding.h   |    2 --
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/isdn/Kconfig         |    6 +-----
+ drivers/isdn/act2000/Kconfig |    2 +-
+ drivers/isdn/gigaset/Kconfig |    2 --
+ drivers/isdn/hisax/Kconfig   |    1 -
+ drivers/isdn/i4l/Kconfig     |    3 ---
+ drivers/isdn/icn/Kconfig     |    2 +-
+ drivers/isdn/pcbit/Kconfig   |    2 +-
+ drivers/isdn/sc/Kconfig      |    2 +-
+ 8 files changed, 5 insertions(+), 15 deletions(-)
 
-diff -puN drivers/net/bonding/bond_main.c~bonding-bond_mainc-make-2-functions-static drivers/net/bonding/bond_main.c
---- a/drivers/net/bonding/bond_main.c~bonding-bond_mainc-make-2-functions-static
-+++ a/drivers/net/bonding/bond_main.c
-@@ -187,7 +187,7 @@ static void bond_send_gratuitous_arp(str
+diff -puN drivers/isdn/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l drivers/isdn/Kconfig
+--- a/drivers/isdn/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l
++++ a/drivers/isdn/Kconfig
+@@ -21,9 +21,7 @@ menuconfig ISDN
  
- /*---------------------------- General routines -----------------------------*/
+ if ISDN
  
--const char *bond_mode_name(int mode)
-+static const char *bond_mode_name(int mode)
- {
- 	switch (mode) {
- 	case BOND_MODE_ROUNDROBIN :
-@@ -1224,7 +1224,8 @@ static void bond_detach_slave(struct bon
+-menu "Old ISDN4Linux"
+-
+-config ISDN_I4L
++menuconfig ISDN_I4L
+ 	tristate "Old ISDN4Linux (deprecated)"
+ 	---help---
+ 	  This driver allows you to use an ISDN adapter for networking
+@@ -45,8 +43,6 @@ if ISDN_I4L
+ source "drivers/isdn/i4l/Kconfig"
+ endif
  
- /*---------------------------------- IOCTL ----------------------------------*/
+-endmenu
+-
+ comment "CAPI subsystem"
  
--int bond_sethwaddr(struct net_device *bond_dev, struct net_device *slave_dev)
-+static int bond_sethwaddr(struct net_device *bond_dev,
-+			  struct net_device *slave_dev)
- {
- 	dprintk("bond_dev=%p\n", bond_dev);
- 	dprintk("slave_dev=%p\n", slave_dev);
-diff -puN drivers/net/bonding/bonding.h~bonding-bond_mainc-make-2-functions-static drivers/net/bonding/bonding.h
---- a/drivers/net/bonding/bonding.h~bonding-bond_mainc-make-2-functions-static
-+++ a/drivers/net/bonding/bonding.h
-@@ -301,13 +301,11 @@ int bond_create_slave_symlinks(struct ne
- void bond_destroy_slave_symlinks(struct net_device *master, struct net_device *slave);
- int bond_enslave(struct net_device *bond_dev, struct net_device *slave_dev);
- int bond_release(struct net_device *bond_dev, struct net_device *slave_dev);
--int bond_sethwaddr(struct net_device *bond_dev, struct net_device *slave_dev);
- void bond_mii_monitor(struct net_device *bond_dev);
- void bond_loadbalance_arp_mon(struct net_device *bond_dev);
- void bond_activebackup_arp_mon(struct net_device *bond_dev);
- void bond_set_mode_ops(struct bonding *bond, int mode);
- int bond_parse_parm(char *mode_arg, struct bond_parm_tbl *tbl);
--const char *bond_mode_name(int mode);
- void bond_select_active_slave(struct bonding *bond);
- void bond_change_active_slave(struct bonding *bond, struct slave *new_active);
- void bond_register_arp(struct bonding *);
+ config ISDN_CAPI
+diff -puN drivers/isdn/act2000/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l drivers/isdn/act2000/Kconfig
+--- a/drivers/isdn/act2000/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l
++++ a/drivers/isdn/act2000/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ config ISDN_DRV_ACT2000
+ 	tristate "IBM Active 2000 support"
+-	depends on ISDN_I4L && ISA
++	depends on ISA
+ 	help
+ 	  Say Y here if you have an IBM Active 2000 ISDN card. In order to use
+ 	  this card, additional firmware is necessary, which has to be loaded
+diff -puN drivers/isdn/gigaset/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l drivers/isdn/gigaset/Kconfig
+--- a/drivers/isdn/gigaset/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l
++++ a/drivers/isdn/gigaset/Kconfig
+@@ -1,9 +1,7 @@
+ menu "Siemens Gigaset"
+-	depends on ISDN_I4L
+ 
+ config ISDN_DRV_GIGASET
+ 	tristate "Siemens Gigaset support (isdn)"
+-	depends on ISDN_I4L
+ 	select CRC_CCITT
+ 	select BITREVERSE
+ 	help
+diff -puN drivers/isdn/hisax/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l drivers/isdn/hisax/Kconfig
+--- a/drivers/isdn/hisax/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l
++++ a/drivers/isdn/hisax/Kconfig
+@@ -1,6 +1,5 @@
+ 
+ menu "Passive cards"
+-	depends on ISDN_I4L
+ 
+ config ISDN_DRV_HISAX
+ 	tristate "HiSax SiemensChipSet driver support"
+diff -puN drivers/isdn/i4l/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l drivers/isdn/i4l/Kconfig
+--- a/drivers/isdn/i4l/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l
++++ a/drivers/isdn/i4l/Kconfig
+@@ -99,7 +99,6 @@ config ISDN_DRV_LOOP
+ 
+ config ISDN_DIVERSION
+ 	tristate "Support isdn diversion services"
+-	depends on ISDN_I4L
+ 	help
+ 	  This option allows you to use some supplementary diversion
+ 	  services in conjunction with the HiSax driver on an EURO/DSS1
+@@ -119,13 +118,11 @@ config ISDN_DIVERSION
+ endmenu
+ 
+ comment "ISDN4Linux hardware drivers"
+-	depends on ISDN_I4L
+ 
+ source "drivers/isdn/hisax/Kconfig"
+ 
+ 
+ menu "Active cards"
+-	depends on ISDN_I4L!=n
+ 
+ source "drivers/isdn/icn/Kconfig"
+ 
+diff -puN drivers/isdn/icn/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l drivers/isdn/icn/Kconfig
+--- a/drivers/isdn/icn/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l
++++ a/drivers/isdn/icn/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ config ISDN_DRV_ICN
+ 	tristate "ICN 2B and 4B support"
+-	depends on ISDN_I4L && ISA
++	depends on ISA
+ 	help
+ 	  This enables support for two kinds of ISDN-cards made by a German
+ 	  company called ICN.  2B is the standard version for a single ISDN
+diff -puN drivers/isdn/pcbit/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l drivers/isdn/pcbit/Kconfig
+--- a/drivers/isdn/pcbit/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l
++++ a/drivers/isdn/pcbit/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ config ISDN_DRV_PCBIT
+ 	tristate "PCBIT-D support"
+-	depends on ISDN_I4L && ISA && (BROKEN || X86)
++	depends on ISA && (BROKEN || X86)
+ 	help
+ 	  This enables support for the PCBIT ISDN-card.  This card is
+ 	  manufactured in Portugal by Octal.  For running this card,
+diff -puN drivers/isdn/sc/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l drivers/isdn/sc/Kconfig
+--- a/drivers/isdn/sc/Kconfig~use-menuconfig-objects-isdn-config_isdn_i4l
++++ a/drivers/isdn/sc/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ config ISDN_DRV_SC
+ 	tristate "Spellcaster support"
+-	depends on ISDN_I4L && ISA
++	depends on ISA
+ 	help
+ 	  This enables support for the Spellcaster BRI ISDN boards.  This
+ 	  driver currently builds only in a modularized version.
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
 git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-cpufreq.patch
-git-powerpc.patch
-git-dvb.patch
-git-hwmon.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-md-accel.patch
-git-mtd.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-arch-i386-xen-mmuc-must-include-linux-schedh.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-xen-fix-x86-config-dependencies.patch
-xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
-xen-cant-support-numa-yet.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-mm-slubc-make-code-static.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-more-scheduled-oss-driver-removal.patch
-init-wait-for-asynchronously-scanned-block-devices.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-ii-auxdisplay.patch
+use-menuconfig-objects-ii-edac.patch
+use-menuconfig-objects-ii-ipmi.patch
+use-menuconfig-objects-ii-misc-strange-dev.patch
+use-menuconfig-objects-ii-module-menu.patch
+use-menuconfig-objects-ii-oprofile.patch
+use-menuconfig-objects-ii-telephony.patch
+use-menuconfig-objects-ii-tpm.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
 kernel-utf-8-handling.patch
-remove-sonypi_camera_command.patch
-fs-namespacec-should-include-internalh.patch
-proper-prototype-for-proc_nr_files.patch
-fs-reiserfs-cleanups.patch
-remove-mm-backing-devccongestion_wait_interruptible.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-fbdev-move-arch-specific-bits-to-their-respective.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-drivers-video-macmodescmac_find_mode-mustnt-be.patch
-intel-iommu-intel-iommu-driver.patch
-mm-variable-length-argument-support.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-kernel-relayc-make-functions-static.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_i4l.patch
+use-menuconfig-objects-isdn-config_isdn_drv_gigaset.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
+use-menuconfig-objects-ii-md.patch
