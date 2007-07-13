@@ -1,96 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - fix-i-oat-for-kexec.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:06 -0700
-Message-ID: <200707132233.l6DMX6oG025052@imap1.linux-foundation.org>
+Subject: - drivers-block-ubc-use-list_for_each_entry.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:33:24 -0700
+Message-ID: <200707132233.l6DMXOuT025077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52662 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44068 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934655AbXGMWpY (ORCPT
+	by vger.kernel.org with ESMTP id S1758965AbXGMWpe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:45:24 -0400
+	Fri, 13 Jul 2007 18:45:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: da-x@monatomic.org, christopher.leech@intel.com, ebiederm@xmission.com, shannon.nelson@intel.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, greg@kroah.com, jens.axboe@oracle.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix I/OAT for kexec
+     drivers/block/ub.c: use list_for_each_entry()
 has been removed from the -mm tree.  Its filename was
-     fix-i-oat-for-kexec.patch
+     drivers-block-ubc-use-list_for_each_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix I/OAT for kexec
-From: Dan Aloni <da-x@monatomic.org>
+Subject: drivers/block/ub.c: use list_for_each_entry()
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Under kexec, I/OAT initialization breaks over busy resources because the
-previous kernel did not release them.
+Low performance USB storage driver: Use list_for_each_entry() instead
+of list_for_each()
 
-I'm not sure this fix can be considered a complete one but it works for me.
- I guess something similar to the *_remove method should occur there..
-
-Signed-off-by: Dan Aloni <da-x@monatomic.org>
-Cc: Chris Leech <christopher.leech@intel.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioatdma.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/block/ub.c |   12 +++---------
+ 1 files changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN drivers/dma/ioatdma.c~fix-i-oat-for-kexec drivers/dma/ioatdma.c
---- a/drivers/dma/ioatdma.c~fix-i-oat-for-kexec
-+++ a/drivers/dma/ioatdma.c
-@@ -42,6 +42,7 @@
+diff -puN drivers/block/ub.c~drivers-block-ubc-use-list_for_each_entry drivers/block/ub.c
+--- a/drivers/block/ub.c~drivers-block-ubc-use-list_for_each_entry
++++ a/drivers/block/ub.c
+@@ -1547,10 +1547,8 @@ static void ub_reset_enter(struct ub_dev
+ #endif
  
- /* internal functions */
- static int __devinit ioat_probe(struct pci_dev *pdev, const struct pci_device_id *ent);
-+static void ioat_shutdown(struct pci_dev *pdev);
- static void __devexit ioat_remove(struct pci_dev *pdev);
- 
- static int enumerate_dma_channels(struct ioat_device *device)
-@@ -518,6 +519,7 @@ static struct pci_driver ioat_pci_driver
- 	.name 	= "ioatdma",
- 	.id_table = ioat_pci_tbl,
- 	.probe	= ioat_probe,
-+	.shutdown = ioat_shutdown,
- 	.remove	= __devexit_p(ioat_remove),
- };
- 
-@@ -754,9 +756,20 @@ err_request_regions:
- err_set_dma_mask:
- 	pci_disable_device(pdev);
- err_enable_device:
-+
-+	printk(KERN_ERR "Intel(R) I/OAT DMA Engine initialization failed\n");
-+
- 	return err;
- }
- 
-+static void ioat_shutdown(struct pci_dev *pdev)
-+{
-+	struct ioat_device *device;
-+	device = pci_get_drvdata(pdev);
-+
-+	dma_async_device_unregister(&device->common);
-+}
-+
- static void __devexit ioat_remove(struct pci_dev *pdev)
+ #if 0 /* We let them stop themselves. */
+-	struct list_head *p;
+ 	struct ub_lun *lun;
+-	list_for_each(p, &sc->luns) {
+-		lun = list_entry(p, struct ub_lun, link);
++	list_for_each_entry(lun, &sc->luns, link) {
+ 		blk_stop_queue(lun->disk->queue);
+ 	}
+ #endif
+@@ -1562,7 +1560,6 @@ static void ub_reset_task(struct work_st
  {
- 	struct ioat_device *device;
+ 	struct ub_dev *sc = container_of(work, struct ub_dev, reset_work);
+ 	unsigned long flags;
+-	struct list_head *p;
+ 	struct ub_lun *lun;
+ 	int lkr, rc;
+ 
+@@ -1608,8 +1605,7 @@ static void ub_reset_task(struct work_st
+ 	spin_lock_irqsave(sc->lock, flags);
+ 	sc->reset = 0;
+ 	tasklet_schedule(&sc->tasklet);
+-	list_for_each(p, &sc->luns) {
+-		lun = list_entry(p, struct ub_lun, link);
++	list_for_each_entry(lun, &sc->luns, link) {
+ 		blk_start_queue(lun->disk->queue);
+ 	}
+ 	wake_up(&sc->reset_wait);
+@@ -2348,7 +2344,6 @@ err_alloc:
+ static void ub_disconnect(struct usb_interface *intf)
+ {
+ 	struct ub_dev *sc = usb_get_intfdata(intf);
+-	struct list_head *p;
+ 	struct ub_lun *lun;
+ 	unsigned long flags;
+ 
+@@ -2403,8 +2398,7 @@ static void ub_disconnect(struct usb_int
+ 	/*
+ 	 * Unregister the upper layer.
+ 	 */
+-	list_for_each (p, &sc->luns) {
+-		lun = list_entry(p, struct ub_lun, link);
++	list_for_each_entry(lun, &sc->luns, link) {
+ 		del_gendisk(lun->disk);
+ 		/*
+ 		 * I wish I could do:
 _
 
-Patches currently in -mm which might be from da-x@monatomic.org are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
-drivers-acpi-pci_linkc-lower-printk-severity.patch
-arch-x86_64-kernel-processc-lower-printk-severity.patch
-arch-x86_64-kernel-aperturec-lower-printk-severity.patch
-arch-x86_64-kernel-e820c-lower-printk-severity.patch
-mm-page_allocc-lower-printk-severity.patch
-drivers-char-ipmi-ipmi_poweroffc-lower-printk-severity.patch
-drivers-char-ipmi-ipmi_si_intfc-lower-printk-severity.patch
-drivers-block-rdc-lower-printk-severity.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+git-dvb.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch
+videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
+use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
+use-mutex-instead-of-semaphore-in-the-elan-u132-adapter-driver.patch
+use-mutex-instead-of-semaphore-in-the-adutux-driver.patch
+use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver.patch
+use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
+use-mutexes-instead-of-semaphores-in-i2o-driver.patch
+fs-block_devc-use-list_for_each_entry.patch
+use-mutex-instead-of-semaphore-in-spi-core-init-code.patch
+use-mutex-instead-of-semaphore-in-capi-20-driver.patch
+drivers-edac-change-from-semaphore-to-mutex-operation.patch
