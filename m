@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-fix-e752x-reversed-csrows-fix.patch added to -mm tree
-Date: Fri, 13 Jul 2007 11:32:20 -0700
-Message-ID: <200707131832.l6DIWKxT011168@imap1.linux-foundation.org>
+Subject: + drivers-edac-new-pasemi-driver-fix.patch added to -mm tree
+Date: Fri, 13 Jul 2007 11:36:54 -0700
+Message-ID: <200707131836.l6DIastn011410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36180 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47146 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758071AbXGMSc7 (ORCPT
+	by vger.kernel.org with ESMTP id S1757492AbXGMShV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 14:32:59 -0400
+	Fri, 13 Jul 2007 14:37:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dougthompson@xmission.com, greg@kroah.com, mgrondona@llnl.gov
+Cc: akpm@linux-foundation.org, dougthompson@xmission.com, egor@pasemi.com, greg@kroah.com, olof@lixom.net
 
 
 The patch titled
-     drivers-edac-fix-e752x-reversed-csrows-fix
+     drivers-edac-new-pasemi-driver-fix
 has been added to the -mm tree.  Its filename is
-     drivers-edac-fix-e752x-reversed-csrows-fix.patch
+     drivers-edac-new-pasemi-driver-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-edac-fix-e752x-reversed-csrows-fix
+Subject: drivers-edac-new-pasemi-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-unneeded (and undesirable) cast of void*
-
 Cc: Alan Cox alan@lxorguk.ukuu.org.uk
-Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Doug Thompson <dougthompson@xmission.com
+Cc: Egor Martovetsky <egor@pasemi.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Mark Grondona <mgrondona@llnl.gov>
+Cc: Olof Johansson <olof@lixom.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/e752x_edac.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/edac/pasemi_edac.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/edac/e752x_edac.c~drivers-edac-fix-e752x-reversed-csrows-fix drivers/edac/e752x_edac.c
---- a/drivers/edac/e752x_edac.c~drivers-edac-fix-e752x-reversed-csrows-fix
-+++ a/drivers/edac/e752x_edac.c
-@@ -775,7 +775,7 @@ static inline int dual_channel_active(u1
-  */
- static inline int remap_csrow_index(struct mem_ctl_info *mci, int index)
- {
--	struct e752x_pvt *pvt = (struct e752x_pvt *) mci->pvt_info;
-+	struct e752x_pvt *pvt = mci->pvt_info;
+diff -puN drivers/edac/pasemi_edac.c~drivers-edac-new-pasemi-driver-fix drivers/edac/pasemi_edac.c
+--- a/drivers/edac/pasemi_edac.c~drivers-edac-new-pasemi-driver-fix
++++ a/drivers/edac/pasemi_edac.c
+@@ -168,7 +168,8 @@ static int pasemi_edac_init_csrows(struc
+ 			break;
+ 		default:
+ 			edac_mc_printk(mci, KERN_ERR,
+-				       "Unrecognized Rank Config\n");
++				"Unrecognized Rank Config. rankcfg=%u\n",
++				rankcfg);
+ 			return -EINVAL;
+ 		}
  
- 	if (!pvt->map_type)
- 		return (7 - index);
+@@ -244,9 +245,8 @@ static int __devinit pasemi_edac_probe(s
+ 	 */
+ 	pasemi_edac_get_error_info(mci);
+ 
+-	if (edac_mc_add_mc(mci, system_mmc_id++)) {
++	if (edac_mc_add_mc(mci, system_mmc_id++))
+ 		goto fail;
+-	}
+ 
+ 	/* get this far and it's successful */
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -237,6 +248,7 @@ kernel-doc-fix-leading-dot-in-man-mode-output.patch
 coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
 drivers-edac-new-i82443bxgz-mc-driver-broken.patch
 drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver-fix.patch
 containersv10-basic-container-framework-fix.patch
 containersv10-basic-container-framework-fix-2.patch
 containersv10-example-cpu-accounting-subsystem-fix.patch
