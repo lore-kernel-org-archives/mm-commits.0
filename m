@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-remove-dead-file.patch added to -mm tree
-Date: Fri, 13 Jul 2007 11:54:29 -0700
-Message-ID: <200707131854.l6DIsTtH012475@imap1.linux-foundation.org>
+Subject: + use-resource_size_t-for-serial-port-io-addresses.patch added to -mm tree
+Date: Fri, 13 Jul 2007 12:02:32 -0700
+Message-ID: <200707131902.l6DJ2WTW012978@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59808 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58042 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761124AbXGMSzR (ORCPT
+	by vger.kernel.org with ESMTP id S1757364AbXGMTDe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 14:55:17 -0400
+	Fri, 13 Jul 2007 15:03:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
+Cc: jwboyer@linux.vnet.ibm.com, dwg@au1.ibm.com, paulus@samba.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     uml: remove dead file
+     Use resource_size_t for serial port IO addresses
 has been added to the -mm tree.  Its filename is
-     uml-remove-dead-file.patch
+     use-resource_size_t-for-serial-port-io-addresses.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,374 +26,152 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: remove dead file
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Use resource_size_t for serial port IO addresses
+From: Josh Boyer <jwboyer@linux.vnet.ibm.com>
 
-I forgot this file was here.  It hasn't been used since UML has been in
-mainline.
+At present, various parts of the serial code use unsigned long to define
+resource addresses.  This is a problem, because some 32-bit platforms have
+physical addresses larger than 32-bits, and have mmio serial uarts located
+above the 4GB point.
 
-Thanks to Jesper for finding something that needed doing to it, thus reminding
-me of its existence.
+This patch changes the type of mapbase in both struct uart_port and struct
+plat_serial8250_port to resource_size_t, which can be configured to be 64
+bits on such platforms.  The mapbase in serial_struct can't safely be
+changed, because that structure is user visible.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: David Gibson <dwg@au1.ibm.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/config.release |  333 ---------------------------------------
- 1 files changed, 333 deletions(-)
+ drivers/serial/8250.c        |    5 +++--
+ drivers/serial/8250_early.c  |   16 +++++++++-------
+ drivers/serial/serial_core.c |    9 +++++----
+ include/linux/serial_8250.h  |    2 +-
+ include/linux/serial_core.h  |    2 +-
+ 5 files changed, 19 insertions(+), 15 deletions(-)
 
-diff -puN arch/um/config.release~uml-remove-dead-file /dev/null
---- a/arch/um/config.release
-+++ /dev/null
-@@ -1,333 +0,0 @@
--#
--# Automatically generated make config: don't edit
--#
--CONFIG_USERMODE=y
--# CONFIG_ISA is not set
--# CONFIG_SBUS is not set
--# CONFIG_PCI is not set
--CONFIG_UID16=y
--CONFIG_RWSEM_XCHGADD_ALGORITHM=y
--
--#
--# Code maturity level options
--#
--CONFIG_EXPERIMENTAL=y
--
--#
--# General Setup
--#
--CONFIG_STDIO_CONSOLE=y
--CONFIG_NET=y
--CONFIG_SYSVIPC=y
--CONFIG_BSD_PROCESS_ACCT=y
--CONFIG_SYSCTL=y
--CONFIG_BINFMT_AOUT=y
--CONFIG_BINFMT_ELF=y
--CONFIG_BINFMT_MISC=y
--CONFIG_UNIX98_PTYS=y
--CONFIG_UNIX98_PTY_COUNT=256
--CONFIG_SSL=y
--CONFIG_HOSTFS=y
--CONFIG_MCONSOLE=y
--CONFIG_MAGIC_SYSRQ=y
--# CONFIG_HOST_2G_2G is not set
--# CONFIG_UML_SMP is not set
--# CONFIG_SMP is not set
--CONFIG_CON_ZERO_CHAN="fd:0,fd:1"
--CONFIG_CON_CHAN="xterm"
--CONFIG_SSL_CHAN="pty"
--CONFIG_NEST_LEVEL=0
--CONFIG_KERNEL_HALF_GIGS=1
--
--#
--# Loadable module support
--#
--CONFIG_MODULES=y
--CONFIG_KMOD=y
--
--#
--# Devices
--#
--CONFIG_BLK_DEV_UBD=y
--# CONFIG_BLK_DEV_UBD_SYNC is not set
--CONFIG_BLK_DEV_LOOP=y
--CONFIG_BLK_DEV_NBD=y
--CONFIG_BLK_DEV_RAM=y
--CONFIG_BLK_DEV_RAM_SIZE=4096
--CONFIG_BLK_DEV_INITRD=y
--# CONFIG_MMAPPER is not set
--CONFIG_UML_SOUND=y
--CONFIG_SOUND=y
--CONFIG_HOSTAUDIO=y
--# CONFIG_UML_WATCHDOG is not set
--# CONFIG_TTY_LOG is not set
--CONFIG_FD_CHAN=y
--# CONFIG_NULL_CHAN is not set
--CONFIG_PORT_CHAN=y
--CONFIG_PTY_CHAN=y
--CONFIG_TTY_CHAN=y
--CONFIG_XTERM_CHAN=y
--
--#
--# Networking options
--#
--CONFIG_PACKET=y
--CONFIG_PACKET_MMAP=y
--# CONFIG_NETLINK_DEV is not set
--# CONFIG_NETFILTER is not set
--# CONFIG_FILTER is not set
--CONFIG_UNIX=y
--CONFIG_INET=y
--# CONFIG_IP_MULTICAST is not set
--# CONFIG_IP_ADVANCED_ROUTER is not set
--# CONFIG_IP_PNP is not set
--# CONFIG_NET_IPIP is not set
--# CONFIG_NET_IPGRE is not set
--# CONFIG_ARPD is not set
--# CONFIG_INET_ECN is not set
--# CONFIG_SYN_COOKIES is not set
--# CONFIG_IPV6 is not set
--# CONFIG_KHTTPD is not set
--# CONFIG_ATM is not set
--# CONFIG_VLAN_8021Q is not set
--
--#
--#  
--#
--# CONFIG_IPX is not set
--# CONFIG_ATALK is not set
--# CONFIG_DECNET is not set
--# CONFIG_BRIDGE is not set
--# CONFIG_X25 is not set
--# CONFIG_LAPB is not set
--# CONFIG_LLC is not set
--# CONFIG_NET_DIVERT is not set
--# CONFIG_ECONET is not set
--# CONFIG_WAN_ROUTER is not set
--# CONFIG_NET_HW_FLOWCONTROL is not set
--
--#
--# QoS and/or fair queueing
--#
--# CONFIG_NET_SCHED is not set
--
--#
--# Network device support
--#
--CONFIG_UML_NET=y
--CONFIG_UML_NET_ETHERTAP=y
--CONFIG_UML_NET_TUNTAP=y
--CONFIG_UML_NET_SLIP=y
--CONFIG_UML_NET_DAEMON=y
--CONFIG_UML_NET_MCAST=y
--CONFIG_NETDEVICES=y
--
--#
--# ARCnet devices
--#
--# CONFIG_ARCNET is not set
--CONFIG_DUMMY=y
--CONFIG_BONDING=m
--CONFIG_EQUALIZER=m
--CONFIG_TUN=y
--# CONFIG_ETHERTAP is not set
--
--#
--# Ethernet (10 or 100Mbit)
--#
--# CONFIG_NET_ETHERNET is not set
--
--#
--# Ethernet (1000 Mbit)
--#
--# CONFIG_ACENIC is not set
--# CONFIG_DL2K is not set
--# CONFIG_MYRI_SBUS is not set
--# CONFIG_NS83820 is not set
--# CONFIG_HAMACHI is not set
--# CONFIG_YELLOWFIN is not set
--# CONFIG_SK98LIN is not set
--# CONFIG_FDDI is not set
--# CONFIG_HIPPI is not set
--CONFIG_PLIP=m
--CONFIG_PPP=m
--CONFIG_PPP_MULTILINK=y
--# CONFIG_PPP_FILTER is not set
--# CONFIG_PPP_ASYNC is not set
--CONFIG_PPP_SYNC_TTY=m
--CONFIG_PPP_DEFLATE=m
--CONFIG_PPP_BSDCOMP=m
--CONFIG_PPPOE=m
--CONFIG_SLIP=m
--CONFIG_SLIP_COMPRESSED=y
--CONFIG_SLIP_SMART=y
--# CONFIG_SLIP_MODE_SLIP6 is not set
--
--#
--# Wireless LAN (non-hamradio)
--#
--# CONFIG_NET_RADIO is not set
--
--#
--# Token Ring devices
--#
--# CONFIG_TR is not set
--# CONFIG_NET_FC is not set
--# CONFIG_RCPCI is not set
--CONFIG_SHAPER=m
--
--#
--# Wan interfaces
--#
--# CONFIG_WAN is not set
--
--#
--# File systems
--#
--CONFIG_QUOTA=y
--CONFIG_AUTOFS_FS=m
--CONFIG_AUTOFS4_FS=m
--CONFIG_REISERFS_FS=m
--# CONFIG_REISERFS_CHECK is not set
--# CONFIG_REISERFS_PROC_INFO is not set
--CONFIG_ADFS_FS=m
--# CONFIG_ADFS_FS_RW is not set
--CONFIG_AFFS_FS=m
--CONFIG_HFS_FS=m
--CONFIG_BFS_FS=m
--CONFIG_EXT3_FS=y
--CONFIG_JBD=y
--# CONFIG_JBD_DEBUG is not set
--CONFIG_FAT_FS=y
--CONFIG_MSDOS_FS=y
--CONFIG_UMSDOS_FS=y
--CONFIG_VFAT_FS=y
--CONFIG_EFS_FS=m
--# CONFIG_JFFS_FS is not set
--# CONFIG_JFFS2_FS is not set
--CONFIG_CRAMFS=m
--CONFIG_TMPFS=y
--CONFIG_RAMFS=m
--CONFIG_ISO9660_FS=y
--# CONFIG_JOLIET is not set
--# CONFIG_ZISOFS is not set
--CONFIG_MINIX_FS=m
--CONFIG_VXFS_FS=m
--# CONFIG_NTFS_FS is not set
--# CONFIG_NTFS_RW is not set
--CONFIG_HPFS_FS=m
--CONFIG_PROC_FS=y
--CONFIG_DEVFS_FS=y
--CONFIG_DEVFS_MOUNT=y
--# CONFIG_DEVFS_DEBUG is not set
--CONFIG_DEVPTS_FS=y
--CONFIG_QNX4FS_FS=m
--# CONFIG_QNX4FS_RW is not set
--CONFIG_ROMFS_FS=m
--CONFIG_EXT2_FS=y
--CONFIG_SYSV_FS=m
--CONFIG_UDF_FS=m
--CONFIG_UFS_FS=m
--# CONFIG_UFS_FS_WRITE is not set
--
--#
--# Network File Systems
--#
--# CONFIG_CODA_FS is not set
--# CONFIG_INTERMEZZO_FS is not set
--CONFIG_NFS_FS=y
--CONFIG_NFS_V3=y
--# CONFIG_ROOT_NFS is not set
--CONFIG_NFSD=y
--CONFIG_NFSD_V3=y
--CONFIG_SUNRPC=y
--CONFIG_LOCKD=y
--CONFIG_LOCKD_V4=y
--# CONFIG_SMB_FS is not set
--# CONFIG_NCP_FS is not set
--# CONFIG_NCPFS_PACKET_SIGNING is not set
--# CONFIG_NCPFS_IOCTL_LOCKING is not set
--# CONFIG_NCPFS_STRONG is not set
--# CONFIG_NCPFS_NFS_NS is not set
--# CONFIG_NCPFS_OS2_NS is not set
--# CONFIG_NCPFS_SMALLDOS is not set
--# CONFIG_NCPFS_NLS is not set
--# CONFIG_NCPFS_EXTRAS is not set
--# CONFIG_ZISOFS_FS is not set
--CONFIG_ZLIB_FS_INFLATE=m
--
--#
--# Partition Types
--#
--# CONFIG_PARTITION_ADVANCED is not set
--CONFIG_MSDOS_PARTITION=y
--# CONFIG_SMB_NLS is not set
--CONFIG_NLS=y
--
--#
--# Native Language Support
--#
--CONFIG_NLS_DEFAULT="iso8859-1"
--# CONFIG_NLS_CODEPAGE_437 is not set
--# CONFIG_NLS_CODEPAGE_737 is not set
--# CONFIG_NLS_CODEPAGE_775 is not set
--# CONFIG_NLS_CODEPAGE_850 is not set
--# CONFIG_NLS_CODEPAGE_852 is not set
--# CONFIG_NLS_CODEPAGE_855 is not set
--# CONFIG_NLS_CODEPAGE_857 is not set
--# CONFIG_NLS_CODEPAGE_860 is not set
--# CONFIG_NLS_CODEPAGE_861 is not set
--# CONFIG_NLS_CODEPAGE_862 is not set
--# CONFIG_NLS_CODEPAGE_863 is not set
--# CONFIG_NLS_CODEPAGE_864 is not set
--# CONFIG_NLS_CODEPAGE_865 is not set
--# CONFIG_NLS_CODEPAGE_866 is not set
--# CONFIG_NLS_CODEPAGE_869 is not set
--# CONFIG_NLS_CODEPAGE_936 is not set
--# CONFIG_NLS_CODEPAGE_950 is not set
--# CONFIG_NLS_CODEPAGE_932 is not set
--# CONFIG_NLS_CODEPAGE_949 is not set
--# CONFIG_NLS_CODEPAGE_874 is not set
--# CONFIG_NLS_ISO8859_8 is not set
--# CONFIG_NLS_CODEPAGE_1250 is not set
--# CONFIG_NLS_CODEPAGE_1251 is not set
--# CONFIG_NLS_ISO8859_1 is not set
--# CONFIG_NLS_ISO8859_2 is not set
--# CONFIG_NLS_ISO8859_3 is not set
--# CONFIG_NLS_ISO8859_4 is not set
--# CONFIG_NLS_ISO8859_5 is not set
--# CONFIG_NLS_ISO8859_6 is not set
--# CONFIG_NLS_ISO8859_7 is not set
--# CONFIG_NLS_ISO8859_9 is not set
--# CONFIG_NLS_ISO8859_13 is not set
--# CONFIG_NLS_ISO8859_14 is not set
--# CONFIG_NLS_ISO8859_15 is not set
--# CONFIG_NLS_KOI8_R is not set
--# CONFIG_NLS_KOI8_U is not set
--# CONFIG_NLS_UTF8 is not set
--
--#
--# Multi-device support (RAID and LVM)
--#
--# CONFIG_MD is not set
--# CONFIG_BLK_DEV_MD is not set
--# CONFIG_MD_LINEAR is not set
--# CONFIG_MD_RAID0 is not set
--# CONFIG_MD_RAID1 is not set
--# CONFIG_MD_RAID5 is not set
--# CONFIG_MD_MULTIPATH is not set
--# CONFIG_BLK_DEV_LVM is not set
--
--#
--# Memory Technology Devices (MTD)
--#
--# CONFIG_MTD is not set
--
--#
--# Kernel hacking
--#
--# CONFIG_DEBUG_SLAB is not set
--# CONFIG_DEBUG_INFO is not set
--# CONFIG_PT_PROXY is not set
--# CONFIG_GPROF is not set
--# CONFIG_GCOV is not set
+diff -puN drivers/serial/8250.c~use-resource_size_t-for-serial-port-io-addresses drivers/serial/8250.c
+--- a/drivers/serial/8250.c~use-resource_size_t-for-serial-port-io-addresses
++++ a/drivers/serial/8250.c
+@@ -2664,8 +2664,9 @@ static int __devinit serial8250_probe(st
+ 		ret = serial8250_register_port(&port);
+ 		if (ret < 0) {
+ 			dev_err(&dev->dev, "unable to register port at index %d "
+-				"(IO%lx MEM%lx IRQ%d): %d\n", i,
+-				p->iobase, p->mapbase, p->irq, ret);
++				"(IO%lx MEM%llx IRQ%d): %d\n", i,
++				p->iobase, (unsigned long long)p->mapbase,
++				p->irq, ret);
+ 		}
+ 	}
+ 	return 0;
+diff -puN drivers/serial/8250_early.c~use-resource_size_t-for-serial-port-io-addresses drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~use-resource_size_t-for-serial-port-io-addresses
++++ a/drivers/serial/8250_early.c
+@@ -145,8 +145,9 @@ static int __init parse_options(struct e
+ 		port->mapbase = simple_strtoul(options + 5, &options, 0);
+ 		port->membase = ioremap(port->mapbase, mapsize);
+ 		if (!port->membase) {
+-			printk(KERN_ERR "%s: Couldn't ioremap 0x%lx\n",
+-				__FUNCTION__, port->mapbase);
++			printk(KERN_ERR "%s: Couldn't ioremap 0x%llx\n",
++				__FUNCTION__,
++			       (unsigned long long)port->mapbase);
+ 			return -ENOMEM;
+ 		}
+ 		mmio = 1;
+@@ -168,9 +169,10 @@ static int __init parse_options(struct e
+ 			device->baud);
+ 	}
+ 
+-	printk(KERN_INFO "Early serial console at %s 0x%lx (options '%s')\n",
++	printk(KERN_INFO "Early serial console at %s 0x%llx (options '%s')\n",
+ 		mmio ? "MMIO" : "I/O port",
+-		mmio ? port->mapbase : (unsigned long) port->iobase,
++		mmio ? (unsigned long long) port->mapbase
++	             : (unsigned long long) port->iobase,
+ 		device->options);
+ 	return 0;
+ }
+@@ -236,10 +238,10 @@ static int __init early_uart_console_swi
+ 	mmio = (port->iotype == UPIO_MEM);
+ 	line = serial8250_start_console(port, device->options);
+ 	if (line < 0)
+-		printk("No ttyS device at %s 0x%lx for console\n",
++		printk("No ttyS device at %s 0x%llx for console\n",
+ 			mmio ? "MMIO" : "I/O port",
+-			mmio ? port->mapbase :
+-			    (unsigned long) port->iobase);
++			mmio ? (unsigned long long) port->mapbase
++		             : (unsigned long long) port->iobase);
+ 
+ 	unregister_console(&early_uart_console);
+ 	if (mmio)
+diff -puN drivers/serial/serial_core.c~use-resource_size_t-for-serial-port-io-addresses drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~use-resource_size_t-for-serial-port-io-addresses
++++ a/drivers/serial/serial_core.c
+@@ -626,7 +626,7 @@ static int uart_get_info(struct uart_sta
+ 	tmp.hub6	    = port->hub6;
+ 	tmp.io_type         = port->iotype;
+ 	tmp.iomem_reg_shift = port->regshift;
+-	tmp.iomem_base      = (void *)port->mapbase;
++	tmp.iomem_base      = (void *)(unsigned long)port->mapbase;
+ 
+ 	if (copy_to_user(retinfo, &tmp, sizeof(*retinfo)))
+ 		return -EFAULT;
+@@ -1669,10 +1669,11 @@ static int uart_line_info(char *buf, str
+ 		return 0;
+ 
+ 	mmio = port->iotype >= UPIO_MEM;
+-	ret = sprintf(buf, "%d: uart:%s %s%08lX irq:%d",
++	ret = sprintf(buf, "%d: uart:%s %s%08llX irq:%d",
+ 			port->line, uart_type(port),
+ 			mmio ? "mmio:0x" : "port:",
+-			mmio ? port->mapbase : (unsigned long) port->iobase,
++			mmio ? (unsigned long long)port->mapbase
++		             : (unsigned long long) port->iobase,
+ 			port->irq);
+ 
+ 	if (port->type == PORT_UNKNOWN) {
+@@ -2072,7 +2073,7 @@ uart_report_port(struct uart_driver *drv
+ 	case UPIO_TSI:
+ 	case UPIO_DWAPB:
+ 		snprintf(address, sizeof(address),
+-			 "MMIO 0x%lx", port->mapbase);
++			 "MMIO 0x%llx", (unsigned long long)port->mapbase);
+ 		break;
+ 	default:
+ 		strlcpy(address, "*unknown*", sizeof(address));
+diff -puN include/linux/serial_8250.h~use-resource_size_t-for-serial-port-io-addresses include/linux/serial_8250.h
+--- a/include/linux/serial_8250.h~use-resource_size_t-for-serial-port-io-addresses
++++ a/include/linux/serial_8250.h
+@@ -20,7 +20,7 @@
+ struct plat_serial8250_port {
+ 	unsigned long	iobase;		/* io base address */
+ 	void __iomem	*membase;	/* ioremap cookie or NULL */
+-	unsigned long	mapbase;	/* resource base */
++	resource_size_t	mapbase;	/* resource base */
+ 	unsigned int	irq;		/* interrupt number */
+ 	unsigned int	uartclk;	/* UART clock rate */
+ 	unsigned char	regshift;	/* register shift */
+diff -puN include/linux/serial_core.h~use-resource_size_t-for-serial-port-io-addresses include/linux/serial_core.h
+--- a/include/linux/serial_core.h~use-resource_size_t-for-serial-port-io-addresses
++++ a/include/linux/serial_core.h
+@@ -284,7 +284,7 @@ struct uart_port {
+ 	const struct uart_ops	*ops;
+ 	unsigned int		custom_divisor;
+ 	unsigned int		line;			/* port index */
+-	unsigned long		mapbase;		/* for ioremap */
++	resource_size_t		mapbase;		/* for ioremap */
+ 	struct device		*dev;			/* parent device */
+ 	unsigned char		hub6;			/* this should be in the 8250 driver */
+ 	unsigned char		unused[3];
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jwboyer@linux.vnet.ibm.com are
 
-hostfs-convert-to-new-aops.patch
-uml-fix-request-sector-update.patch
-uml-use-get_free_pages-to-allocate-kernel-stacks.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
-uml-xterm-driver-tidying.patch
-uml-pty-channel-tidying.patch
-uml-handle-errors-on-opening-host-side-of-consoles.patch
-uml-sigio-support-cleanup.patch
-uml-simplify-helper-stack-handling.patch
-uml-eliminate-kernel-allocator-wrappers.patch
-uml-export-hostfs-symbols.patch
-uml-limit-request-size-on-cowed-devices.patch
-uml-remove-dead-file.patch
+git-powerpc.patch
+git-ubi.patch
+use-resource_size_t-for-serial-port-io-addresses.patch
