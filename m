@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + destroy_workqueue-can-livelock.patch added to -mm tree
-Date: Fri, 13 Jul 2007 12:14:08 -0700
-Message-ID: <200707131914.l6DJE8e5013614@imap1.linux-foundation.org>
+Subject: + hugetlb-fix-race-in-alloc_fresh_huge_page.patch added to -mm tree
+Date: Fri, 13 Jul 2007 12:23:34 -0700
+Message-ID: <200707131923.l6DJNYus014183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39094 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56758 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758828AbXGMTPK (ORCPT
+	by vger.kernel.org with ESMTP id S1759790AbXGMTXn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 15:15:10 -0400
+	Fri, 13 Jul 2007 15:23:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, mschmidt@redhat.com, stable@kernel.org, vatsa@in.ibm.com
+Cc: joe.jin@oracle.com, gurudas.pai@oracle.com
 
 
 The patch titled
-     destroy_workqueue() can livelock
+     hugetlb: fix race in alloc_fresh_huge_page()
 has been added to the -mm tree.  Its filename is
-     destroy_workqueue-can-livelock.patch
+     hugetlb-fix-race-in-alloc_fresh_huge_page.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,84 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: destroy_workqueue() can livelock
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: hugetlb: fix race in alloc_fresh_huge_page()
+From: Joe Jin <joe.jin@oracle.com>
 
-Pointed out by Michal Schmidt <mschmidt@redhat.com>.
+That static `nid' index needs locking.  Without it we can end up calling
+alloc_pages_node() with an illegal node ID and the kernel crashes.
 
-The bug was introduced in 2.6.22 by me.
-
-cleanup_workqueue_thread() does flush_cpu_workqueue(cwq) in a loop until
-->worklist becomes empty.  This is live-lockable, a re-niced caller can get
-CPU after wake_up() and insert a new barrier before the lower-priority
-cwq->thread has a chance to clear ->current_work.
-
-Change cleanup_workqueue_thread() to do flush_cpu_workqueue(cwq) only once.
- We can rely on the fact that run_workqueue() won't return until it flushes
-all works.  So it is safe to call kthread_stop() after that, the "should
-stop" request won't be noticed until run_workqueue() returns.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Michal Schmidt <mschmidt@redhat.com>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
-Cc: <stable@kernel.org>
+Acked-by: gurudas pai <gurudas.pai@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ mm/hugetlb.c |   15 +++++++++++----
+ 1 files changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN kernel/workqueue.c~destroy_workqueue-can-livelock kernel/workqueue.c
---- a/kernel/workqueue.c~destroy_workqueue-can-livelock
-+++ a/kernel/workqueue.c
-@@ -739,18 +739,17 @@ static void cleanup_workqueue_thread(str
- 	if (cwq->thread == NULL)
- 		return;
+diff -puN mm/hugetlb.c~hugetlb-fix-race-in-alloc_fresh_huge_page mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-fix-race-in-alloc_fresh_huge_page
++++ a/mm/hugetlb.c
+@@ -101,13 +101,20 @@ static void free_huge_page(struct page *
  
-+	flush_cpu_workqueue(cwq);
- 	/*
--	 * If the caller is CPU_DEAD the single flush_cpu_workqueue()
--	 * is not enough, a concurrent flush_workqueue() can insert a
--	 * barrier after us.
-+	 * If the caller is CPU_DEAD and cwq->worklist was not empty,
-+	 * a concurrent flush_workqueue() can insert a barrier after us.
-+	 * However, in that case run_workqueue() won't return and check
-+	 * kthread_should_stop() until it flushes all work_struct's.
- 	 * When ->worklist becomes empty it is safe to exit because no
- 	 * more work_structs can be queued on this cwq: flush_workqueue
- 	 * checks list_empty(), and a "normal" queue_work() can't use
- 	 * a dead CPU.
- 	 */
--	while (flush_cpu_workqueue(cwq))
--		;
--
- 	kthread_stop(cwq->thread);
- 	cwq->thread = NULL;
- }
+ static int alloc_fresh_huge_page(void)
+ {
+-	static int nid = 0;
++	static int prev_nid;
+ 	struct page *page;
+-	page = alloc_pages_node(nid, GFP_HIGHUSER|__GFP_COMP|__GFP_NOWARN,
+-					HUGETLB_PAGE_ORDER);
+-	nid = next_node(nid, node_online_map);
++	static DEFINE_SPINLOCK(nid_lock);
++	int nid;
++
++	spin_lock(&nid_lock);
++	nid = next_node(prev_nid, node_online_map);
+ 	if (nid == MAX_NUMNODES)
+ 		nid = first_node(node_online_map);
++	prev_nid = nid;
++	spin_unlock(&nid_lock);
++
++	page = alloc_pages_node(nid, GFP_HIGHUSER|__GFP_COMP|__GFP_NOWARN,
++					HUGETLB_PAGE_ORDER);
+ 	if (page) {
+ 		set_compound_page_dtor(page, free_huge_page);
+ 		spin_lock(&hugetlb_lock);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from joe.jin@oracle.com are
 
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-freezer-run-show_state-when-freezing-times-out.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-use-write_trylock_irqsave-in-ptrace_attach.patch
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mm-fix-create_new_namespaces-return-value.patch
-adb_probe_task-remove-unneeded-flush_signals-call.patch
-kcdrwd-remove-unneeded-flush_signals-call.patch
-nbdcsock_xmit-cleanup-signal-related-code.patch
-rename-cancel_rearming_delayed_work-to-cancel_delayed_work_sync.patch
-make-cancel_xxx_work_sync-return-a-boolean.patch
-destroy_workqueue-can-livelock.patch
+hugetlb-fix-race-in-alloc_fresh_huge_page.patch
