@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-nfsd-enforce-per-flavor-id-squashing.patch added to -mm tree
-Date: Fri, 13 Jul 2007 00:34:10 -0700
-Message-ID: <200707130734.l6D7YAD7005460@imap1.linux-foundation.org>
+Subject: + knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports.patch added to -mm tree
+Date: Fri, 13 Jul 2007 00:34:09 -0700
+Message-ID: <200707130734.l6D7Y9w0005457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59692 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37683 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935975AbXGMHpA (ORCPT
+	by vger.kernel.org with ESMTP id S935151AbXGMHo7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 03:45:00 -0400
+	Fri, 13 Jul 2007 03:44:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bfields@citi.umich.edu, neilb@suse.de
 
 
 The patch titled
-     knfsd: nfsd: enforce per-flavor id squashing
+     knfsd: nfsd: allow auth_sys nlm on rpcsec_gss exports
 has been added to the -mm tree.  Its filename is
-     knfsd-nfsd-enforce-per-flavor-id-squashing.patch
+     knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,71 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: nfsd: enforce per-flavor id squashing
+Subject: knfsd: nfsd: allow auth_sys nlm on rpcsec_gss exports
 From: J. Bruce Fields <bfields@citi.umich.edu>
 
-Allow root squashing to vary per-pseudoflavor, so that you can (for example)
-allow root access only when sufficiently strong security is in use.
+Our clients (like other clients, as far as I know) use only auth_sys for nlm,
+even when using rpcsec_gss for the main nfs operations.
+
+Administrators that want to deny non-kerberos-authenticated locking requests
+will need to turn off NFS protocol versions less than 4....
 
 Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/auth.c              |   18 ++++++++++++++++--
- include/linux/nfsd/export.h |    3 ++-
- 2 files changed, 18 insertions(+), 3 deletions(-)
+ fs/nfsd/nfsfh.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN fs/nfsd/auth.c~knfsd-nfsd-enforce-per-flavor-id-squashing fs/nfsd/auth.c
---- a/fs/nfsd/auth.c~knfsd-nfsd-enforce-per-flavor-id-squashing
-+++ a/fs/nfsd/auth.c
-@@ -12,17 +12,31 @@
+diff -puN fs/nfsd/nfsfh.c~knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports fs/nfsd/nfsfh.c
+--- a/fs/nfsd/nfsfh.c~knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports
++++ a/fs/nfsd/nfsfh.c
+@@ -249,10 +249,16 @@ fh_verify(struct svc_rqst *rqstp, struct
+ 	if (error)
+ 		goto out;
  
- #define	CAP_NFSD_MASK (CAP_FS_MASK|CAP_TO_MASK(CAP_SYS_RESOURCE))
- 
-+static int nfsexp_flags(struct svc_rqst *rqstp, struct svc_export *exp)
-+{
-+	struct exp_flavor_info *f;
-+	struct exp_flavor_info *end = exp->ex_flavors + exp->ex_nflavors;
-+
-+	for (f = exp->ex_flavors; f < end; f++) {
-+		if (f->pseudoflavor == rqstp->rq_flavor)
-+			return f->flags;
+-	/* Check security flavor */
+-	error = check_nfsd_access(exp, rqstp);
+-	if (error)
+-		goto out;
++	if (!(access & MAY_LOCK)) {
++		/*
++		 * pseudoflavor restrictions are not enforced on NLM,
++		 * which clients virtually always use auth_sys for,
++		 * even while using RPCSEC_GSS for NFS.
++		 */
++		error = check_nfsd_access(exp, rqstp);
++		if (error)
++			goto out;
 +	}
-+	return exp->ex_flags;
-+
-+}
-+
- int nfsd_setuser(struct svc_rqst *rqstp, struct svc_export *exp)
- {
- 	struct svc_cred	cred = rqstp->rq_cred;
- 	int i;
-+	int flags = nfsexp_flags(rqstp, exp);
- 	int ret;
  
--	if (exp->ex_flags & NFSEXP_ALLSQUASH) {
-+	if (flags & NFSEXP_ALLSQUASH) {
- 		cred.cr_uid = exp->ex_anon_uid;
- 		cred.cr_gid = exp->ex_anon_gid;
- 		cred.cr_group_info = groups_alloc(0);
--	} else if (exp->ex_flags & NFSEXP_ROOTSQUASH) {
-+	} else if (flags & NFSEXP_ROOTSQUASH) {
- 		struct group_info *gi;
- 		if (!cred.cr_uid)
- 			cred.cr_uid = exp->ex_anon_uid;
-diff -puN include/linux/nfsd/export.h~knfsd-nfsd-enforce-per-flavor-id-squashing include/linux/nfsd/export.h
---- a/include/linux/nfsd/export.h~knfsd-nfsd-enforce-per-flavor-id-squashing
-+++ a/include/linux/nfsd/export.h
-@@ -43,7 +43,8 @@
- #define NFSEXP_ALLFLAGS		0xFE3F
- 
- /* The flags that may vary depending on security flavor: */
--#define NFSEXP_SECINFO_FLAGS	0
-+#define NFSEXP_SECINFO_FLAGS	(NFSEXP_READONLY | NFSEXP_ROOTSQUASH \
-+					| NFSEXP_ALLSQUASH)
- 
- #ifdef __KERNEL__
- 
+ 	/* Finally, check access permissions. */
+ 	error = nfsd_permission(rqstp, exp, dentry, access);
 _
 
 Patches currently in -mm which might be from bfields@citi.umich.edu are
