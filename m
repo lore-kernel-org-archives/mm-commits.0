@@ -1,101 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - driver-core-coding-style-cleanup.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:32:26 -0700
-Message-ID: <200707132232.l6DMWQBB025004@imap1.linux-foundation.org>
+Subject: - bugfix-cpufreq-in-combination-with-performance-governor.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:32:18 -0700
+Message-ID: <200707132232.l6DMWIEi024996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53598 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55352 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751782AbXGMWdH (ORCPT
+	by vger.kernel.org with ESMTP id S1758311AbXGMWdI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 18:33:07 -0400
+	Fri, 13 Jul 2007 18:33:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cornelia.huck@de.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: peter.oruba@amd.com, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Driver core: coding style cleanup
+     bugfix cpufreq in combination with performance governor
 has been removed from the -mm tree.  Its filename was
-     driver-core-coding-style-cleanup.patch
+     bugfix-cpufreq-in-combination-with-performance-governor.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Driver core: coding style cleanup
-From: Cornelia Huck <cornelia.huck@de.ibm.com>
+Subject: bugfix cpufreq in combination with performance governor
+From: "Peter Oruba" <peter.oruba@amd.com>
 
-This converts code of the form
+There is a frequency scaling issue that I encountered with the performance
+governor in combination with CPU hotplug.
 
-	if ((error = some_func()))
-		goto fixup;
-to
-	error = some_func();
-	if (error)
-		goto fixup;
+In cpufreq.c CPU frequency is reduced to its minimum before the CPU gets
+unregistered and set offline.  Does that have a particular reason?
 
-Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Since the (k8-)governor does not monitor CPU frequency that setting also
+applies then to the remaining CPU as well and lets the system run on the
+lowest frequency although performance is chose as the policy.
+
+Signed-off-by: Peter Oruba <peter.oruba@amd.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/bus.c  |    6 ++++--
- drivers/base/core.c |   12 ++++++++----
- 2 files changed, 12 insertions(+), 6 deletions(-)
+ drivers/cpufreq/cpufreq.c |    6 ------
+ 1 files changed, 6 deletions(-)
 
-diff -puN drivers/base/bus.c~driver-core-coding-style-cleanup drivers/base/bus.c
---- a/drivers/base/bus.c~driver-core-coding-style-cleanup
-+++ a/drivers/base/bus.c
-@@ -620,7 +620,8 @@ int bus_add_driver(struct device_driver 
- 	if (error)
- 		goto out_put_bus;
- 	drv->kobj.kset = &bus->drivers;
--	if ((error = kobject_register(&drv->kobj)))
-+	error = kobject_register(&drv->kobj);
-+	if (error)
- 		goto out_put_bus;
+diff -puN drivers/cpufreq/cpufreq.c~bugfix-cpufreq-in-combination-with-performance-governor drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~bugfix-cpufreq-in-combination-with-performance-governor
++++ a/drivers/cpufreq/cpufreq.c
+@@ -1687,7 +1687,6 @@ static int cpufreq_cpu_callback(struct n
+ {
+ 	unsigned int cpu = (unsigned long)hcpu;
+ 	struct sys_device *sys_dev;
+-	struct cpufreq_policy *policy;
  
- 	if (drv->bus->drivers_autoprobe) {
-@@ -770,7 +771,8 @@ static int bus_add_attrs(struct bus_type
+ 	sys_dev = get_cpu_sysdev(cpu);
+ 	if (sys_dev) {
+@@ -1701,11 +1700,6 @@ static int cpufreq_cpu_callback(struct n
+ 			if (unlikely(lock_policy_rwsem_write(cpu)))
+ 				BUG();
  
- 	if (bus->bus_attrs) {
- 		for (i = 0; attr_name(bus->bus_attrs[i]); i++) {
--			if ((error = bus_create_file(bus,&bus->bus_attrs[i])))
-+			error = bus_create_file(bus,&bus->bus_attrs[i]);
-+			if (error)
- 				goto Err;
- 		}
- 	}
-diff -puN drivers/base/core.c~driver-core-coding-style-cleanup drivers/base/core.c
---- a/drivers/base/core.c~driver-core-coding-style-cleanup
-+++ a/drivers/base/core.c
-@@ -771,13 +771,17 @@ int device_add(struct device *dev)
- 		if (error)
- 			goto ueventattrError;
- 	}
--	if ((error = device_add_class_symlinks(dev)))
-+	error = device_add_class_symlinks(dev);
-+	if (error)
- 		goto SymlinkError;
--	if ((error = device_add_attrs(dev)))
-+	error = device_add_attrs(dev);
-+	if (error)
- 		goto AttrsError;
--	if ((error = device_pm_add(dev)))
-+	error = device_pm_add(dev);
-+	if (error)
- 		goto PMError;
--	if ((error = bus_add_device(dev)))
-+	error = bus_add_device(dev);
-+	if (error)
- 		goto BusError;
- 	kobject_uevent(&dev->kobj, KOBJ_ADD);
- 	bus_attach_device(dev);
+-			policy = cpufreq_cpu_data[cpu];
+-			if (policy) {
+-				__cpufreq_driver_target(policy, policy->min,
+-						CPUFREQ_RELATION_H);
+-			}
+ 			__cpufreq_remove_dev(sys_dev);
+ 			break;
+ 		case CPU_DOWN_FAILED:
 _
 
-Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
+Patches currently in -mm which might be from peter.oruba@amd.com are
 
 origin.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma.patch
-dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
+git-cpufreq.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+pci-x-pci-express-read-control-interfaces-qla2xxx.patch
