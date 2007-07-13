@@ -1,110 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - mm-recheck-lock-rlim-after-f_op-mmap-method.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 10:21:14 -0700
-Message-ID: <200707131721.l6DHLE2s007069@imap1.linux-foundation.org>
+Subject: + net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets.patch added to -mm tree
+Date: Fri, 13 Jul 2007 11:23:51 -0700
+Message-ID: <200707131823.l6DINqoF010635@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32999 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55184 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751843AbXGMRWk (ORCPT
+	by vger.kernel.org with ESMTP id S933499AbXGMSYH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 13:22:40 -0400
+	Fri, 13 Jul 2007 14:24:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@sw.ru, chris.mason@oracle.com, dmonakhov@openvz.org, herbert.van.den.bergh@oracle.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dmitry@butskoy.name
 
 
 The patch titled
-     mm: recheck lock rlim after f_op->mmap() method
-has been removed from the -mm tree.  Its filename was
-     mm-recheck-lock-rlim-after-f_op-mmap-method.patch
+     net: MSG_ERRQUEUE messages do not pass to connected raw sockets
+has been added to the -mm tree.  Its filename is
+     net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: mm: recheck lock rlim after f_op->mmap() method
-From: Dmitry Monakhov <dmonakhov@sw.ru>
+Subject: net: MSG_ERRQUEUE messages do not pass to connected raw sockets
+From: Dmitry Butskoy <dmitry@butskoy.name>
 
-Some device drivers can change vm_flags in their f_op->mmap method.  In
-order to be on the safe side we have to recheck lock rlimit.  Now we have
-to check lock rlimit from two places, let's move this common code to helper
-functon.
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8747
 
-Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
-Cc: Herbert van den Bergh <herbert.van.den.bergh@oracle.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh@veritas.com>
+Problem Description:
+
+It is related to the possibility to obtain MSG_ERRQUEUE messages from the udp
+and raw sockets, both connected and unconnected.
+
+There is a little typo in net/ipv6/icmp.c code, which prevents such messages
+to be delivered to the errqueue of the correspond raw socket, when the socket
+is CONNECTED.  The typo is due to swap of local/remote addresses.
+
+Consider __raw_v6_lookup() function from net/ipv6/raw.c. When a raw socket is
+looked up usual way, it is something like:
+
+sk = __raw_v6_lookup(sk, nexthdr, daddr, saddr, IP6CB(skb)->iif);
+
+where "daddr" is a destination address of the incoming packet (IOW our local
+address), "saddr" is a source address of the incoming packet (the remote end).
+
+But when the raw socket is looked up for some icmp error report, in
+net/ipv6/icmp.c:icmpv6_notify() , daddr/saddr are obtained from the echoed
+fragment of the "bad" packet, i.e.  "daddr" is the original destination
+address of that packet, "saddr" is our local address.  Hence, for
+icmpv6_notify() must use "saddr, daddr" in its arguments, not "daddr, saddr"
+...
+
+Steps to reproduce:
+
+Create some raw socket, connect it to an address, and cause some error
+situation: f.e. set ttl=1 where the remote address is more than 1 hop to reach.
+Set IPV6_RECVERR .
+Then send something and wait for the error (f.e. poll() with POLLERR|POLLIN).
+You should receive "time exceeded" icmp message (because of "ttl=1"), but the
+socket do not receive it.
+
+If you do not connect your raw socket, you will receive MSG_ERRQUEUE
+successfully.  (The reason is that for unconnected socket there are no actual
+checks for local/remote addresses).
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   33 ++++++++++++++++++++++++++-------
- 1 file changed, 26 insertions(+), 7 deletions(-)
+ net/ipv6/icmp.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-recheck-lock-rlim-after-f_op-mmap-method mm/mmap.c
---- a/mm/mmap.c~mm-recheck-lock-rlim-after-f_op-mmap-method
-+++ a/mm/mmap.c
-@@ -885,6 +885,18 @@ void vm_stat_account(struct mm_struct *m
- }
- #endif /* CONFIG_PROC_FS */
+diff -puN net/ipv6/icmp.c~net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets net/ipv6/icmp.c
+--- a/net/ipv6/icmp.c~net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets
++++ a/net/ipv6/icmp.c
+@@ -604,7 +604,7 @@ static void icmpv6_notify(struct sk_buff
  
-+static int check_lock_limit(unsigned long delta, struct mm_struct* mm)
-+{
-+	unsigned long locked, lock_limit;
-+	locked = delta >> PAGE_SHIFT;
-+	locked += mm->locked_vm;
-+	lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur;
-+	lock_limit >>= PAGE_SHIFT;
-+	if (locked > lock_limit && !capable(CAP_IPC_LOCK))
-+		return -EAGAIN;
-+	return 0;
-+}
-+
- /*
-  * The caller must hold down_write(current->mm->mmap_sem).
-  */
-@@ -954,13 +966,9 @@ unsigned long do_mmap_pgoff(struct file 
- 	}
- 	/* mlock MCL_FUTURE? */
- 	if (vm_flags & VM_LOCKED) {
--		unsigned long locked, lock_limit;
--		locked = len >> PAGE_SHIFT;
--		locked += mm->locked_vm;
--		lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur;
--		lock_limit >>= PAGE_SHIFT;
--		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
--			return -EAGAIN;
-+		error = check_lock_limit(len, mm);
-+		if (error)
-+			return error;
- 	}
- 
- 	inode = file ? file->f_path.dentry->d_inode : NULL;
-@@ -1101,6 +1109,17 @@ munmap_back:
- 		error = file->f_op->mmap(file, vma);
- 		if (error)
- 			goto unmap_and_free_vma;
-+
-+		if (vma->vm_flags & VM_LOCKED
-+				&& !(vm_flags & VM_LOCKED)) {
-+		/*
-+		 * VM_LOCKED was added in f_op->mmap() method,
-+		 * so we have to recheck limit.
-+		 */
-+			error = check_lock_limit(len, mm);
-+			if (error)
-+				goto unmap_and_free_vma;
-+		}
- 	} else if (vm_flags & VM_SHARED) {
- 		error = shmem_zero_setup(vma);
- 		if (error)
+ 	read_lock(&raw_v6_lock);
+ 	if ((sk = sk_head(&raw_v6_htable[hash])) != NULL) {
+-		while((sk = __raw_v6_lookup(sk, nexthdr, daddr, saddr,
++		while ((sk = __raw_v6_lookup(sk, nexthdr, saddr, daddr,
+ 					    IP6CB(skb)->iif))) {
+ 			rawv6_err(sk, skb, NULL, type, code, inner_offset, info);
+ 			sk = sk_next(sk);
 _
 
-Patches currently in -mm which might be from dmonakhov@sw.ru are
+Patches currently in -mm which might be from dmitry@butskoy.name are
 
-mspec_mmap-dont-set-vm_locked.patch
-mm-recheck-lock-rlim-after-f_op-mmap-method.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-deny-partial-write-for-loop-dev-fd.patch
-ext3-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops-fix.patch
+net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets.patch
