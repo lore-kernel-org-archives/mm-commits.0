@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-export-hostfs-symbols.patch added to -mm tree
-Date: Fri, 13 Jul 2007 11:54:25 -0700
-Message-ID: <200707131854.l6DIsPLn012469@imap1.linux-foundation.org>
+Subject: + uml-remove-dead-file.patch added to -mm tree
+Date: Fri, 13 Jul 2007 11:54:29 -0700
+Message-ID: <200707131854.l6DIsTtH012475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59808 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760771AbXGMSzO (ORCPT
+	by vger.kernel.org with ESMTP id S1761124AbXGMSzR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 14:55:14 -0400
+	Fri, 13 Jul 2007 14:55:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     uml: export hostfs symbols
+     uml: remove dead file
 has been added to the -mm tree.  Its filename is
-     uml-export-hostfs-symbols.patch
+     uml-remove-dead-file.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,69 +26,360 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: export hostfs symbols
+Subject: uml: remove dead file
 From: Jeff Dike <jdike@addtoit.com>
 
-Add some exports for hostfs that are required after Alberto Bertogli's fixes
-for accessing unlinked host files.
+I forgot this file was here.  It hasn't been used since UML has been in
+mainline.
 
-Also did some style cleanups while I was here.
+Thanks to Jesper for finding something that needed doing to it, thus reminding
+me of its existence.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/user_syms.c |   20 ++++++++------------
- 1 files changed, 8 insertions(+), 12 deletions(-)
+ arch/um/config.release |  333 ---------------------------------------
+ 1 files changed, 333 deletions(-)
 
-diff -puN arch/um/os-Linux/user_syms.c~uml-export-hostfs-symbols arch/um/os-Linux/user_syms.c
---- a/arch/um/os-Linux/user_syms.c~uml-export-hostfs-symbols
-+++ a/arch/um/os-Linux/user_syms.c
-@@ -5,7 +5,8 @@
-  * so I *must* declare good prototypes for them and then EXPORT them.
-  * The kernel code uses the macro defined by include/linux/string.h,
-  * so I undef macros; the userspace code does not include that and I
-- * add an EXPORT for the glibc one.*/
-+ * add an EXPORT for the glibc one.
-+ */
- 
- #undef strlen
- #undef strstr
-@@ -61,12 +62,18 @@ EXPORT_SYMBOL_PROTO(dup2);
- EXPORT_SYMBOL_PROTO(__xstat);
- EXPORT_SYMBOL_PROTO(__lxstat);
- EXPORT_SYMBOL_PROTO(__lxstat64);
-+EXPORT_SYMBOL_PROTO(__fxstat64);
- EXPORT_SYMBOL_PROTO(lseek);
- EXPORT_SYMBOL_PROTO(lseek64);
- EXPORT_SYMBOL_PROTO(chown);
-+EXPORT_SYMBOL_PROTO(fchown);
- EXPORT_SYMBOL_PROTO(truncate);
-+EXPORT_SYMBOL_PROTO(ftruncate64);
- EXPORT_SYMBOL_PROTO(utime);
-+EXPORT_SYMBOL_PROTO(utimes);
-+EXPORT_SYMBOL_PROTO(futimes);
- EXPORT_SYMBOL_PROTO(chmod);
-+EXPORT_SYMBOL_PROTO(fchmod);
- EXPORT_SYMBOL_PROTO(rename);
- EXPORT_SYMBOL_PROTO(__xmknod);
- 
-@@ -102,14 +109,3 @@ EXPORT_SYMBOL(__stack_smash_handler);
- 
- extern long __guard __attribute__((weak));
- EXPORT_SYMBOL(__guard);
+diff -puN arch/um/config.release~uml-remove-dead-file /dev/null
+--- a/arch/um/config.release
++++ /dev/null
+@@ -1,333 +0,0 @@
+-#
+-# Automatically generated make config: don't edit
+-#
+-CONFIG_USERMODE=y
+-# CONFIG_ISA is not set
+-# CONFIG_SBUS is not set
+-# CONFIG_PCI is not set
+-CONFIG_UID16=y
+-CONFIG_RWSEM_XCHGADD_ALGORITHM=y
 -
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
+-#
+-# Code maturity level options
+-#
+-CONFIG_EXPERIMENTAL=y
+-
+-#
+-# General Setup
+-#
+-CONFIG_STDIO_CONSOLE=y
+-CONFIG_NET=y
+-CONFIG_SYSVIPC=y
+-CONFIG_BSD_PROCESS_ACCT=y
+-CONFIG_SYSCTL=y
+-CONFIG_BINFMT_AOUT=y
+-CONFIG_BINFMT_ELF=y
+-CONFIG_BINFMT_MISC=y
+-CONFIG_UNIX98_PTYS=y
+-CONFIG_UNIX98_PTY_COUNT=256
+-CONFIG_SSL=y
+-CONFIG_HOSTFS=y
+-CONFIG_MCONSOLE=y
+-CONFIG_MAGIC_SYSRQ=y
+-# CONFIG_HOST_2G_2G is not set
+-# CONFIG_UML_SMP is not set
+-# CONFIG_SMP is not set
+-CONFIG_CON_ZERO_CHAN="fd:0,fd:1"
+-CONFIG_CON_CHAN="xterm"
+-CONFIG_SSL_CHAN="pty"
+-CONFIG_NEST_LEVEL=0
+-CONFIG_KERNEL_HALF_GIGS=1
+-
+-#
+-# Loadable module support
+-#
+-CONFIG_MODULES=y
+-CONFIG_KMOD=y
+-
+-#
+-# Devices
+-#
+-CONFIG_BLK_DEV_UBD=y
+-# CONFIG_BLK_DEV_UBD_SYNC is not set
+-CONFIG_BLK_DEV_LOOP=y
+-CONFIG_BLK_DEV_NBD=y
+-CONFIG_BLK_DEV_RAM=y
+-CONFIG_BLK_DEV_RAM_SIZE=4096
+-CONFIG_BLK_DEV_INITRD=y
+-# CONFIG_MMAPPER is not set
+-CONFIG_UML_SOUND=y
+-CONFIG_SOUND=y
+-CONFIG_HOSTAUDIO=y
+-# CONFIG_UML_WATCHDOG is not set
+-# CONFIG_TTY_LOG is not set
+-CONFIG_FD_CHAN=y
+-# CONFIG_NULL_CHAN is not set
+-CONFIG_PORT_CHAN=y
+-CONFIG_PTY_CHAN=y
+-CONFIG_TTY_CHAN=y
+-CONFIG_XTERM_CHAN=y
+-
+-#
+-# Networking options
+-#
+-CONFIG_PACKET=y
+-CONFIG_PACKET_MMAP=y
+-# CONFIG_NETLINK_DEV is not set
+-# CONFIG_NETFILTER is not set
+-# CONFIG_FILTER is not set
+-CONFIG_UNIX=y
+-CONFIG_INET=y
+-# CONFIG_IP_MULTICAST is not set
+-# CONFIG_IP_ADVANCED_ROUTER is not set
+-# CONFIG_IP_PNP is not set
+-# CONFIG_NET_IPIP is not set
+-# CONFIG_NET_IPGRE is not set
+-# CONFIG_ARPD is not set
+-# CONFIG_INET_ECN is not set
+-# CONFIG_SYN_COOKIES is not set
+-# CONFIG_IPV6 is not set
+-# CONFIG_KHTTPD is not set
+-# CONFIG_ATM is not set
+-# CONFIG_VLAN_8021Q is not set
+-
+-#
+-#  
+-#
+-# CONFIG_IPX is not set
+-# CONFIG_ATALK is not set
+-# CONFIG_DECNET is not set
+-# CONFIG_BRIDGE is not set
+-# CONFIG_X25 is not set
+-# CONFIG_LAPB is not set
+-# CONFIG_LLC is not set
+-# CONFIG_NET_DIVERT is not set
+-# CONFIG_ECONET is not set
+-# CONFIG_WAN_ROUTER is not set
+-# CONFIG_NET_HW_FLOWCONTROL is not set
+-
+-#
+-# QoS and/or fair queueing
+-#
+-# CONFIG_NET_SCHED is not set
+-
+-#
+-# Network device support
+-#
+-CONFIG_UML_NET=y
+-CONFIG_UML_NET_ETHERTAP=y
+-CONFIG_UML_NET_TUNTAP=y
+-CONFIG_UML_NET_SLIP=y
+-CONFIG_UML_NET_DAEMON=y
+-CONFIG_UML_NET_MCAST=y
+-CONFIG_NETDEVICES=y
+-
+-#
+-# ARCnet devices
+-#
+-# CONFIG_ARCNET is not set
+-CONFIG_DUMMY=y
+-CONFIG_BONDING=m
+-CONFIG_EQUALIZER=m
+-CONFIG_TUN=y
+-# CONFIG_ETHERTAP is not set
+-
+-#
+-# Ethernet (10 or 100Mbit)
+-#
+-# CONFIG_NET_ETHERNET is not set
+-
+-#
+-# Ethernet (1000 Mbit)
+-#
+-# CONFIG_ACENIC is not set
+-# CONFIG_DL2K is not set
+-# CONFIG_MYRI_SBUS is not set
+-# CONFIG_NS83820 is not set
+-# CONFIG_HAMACHI is not set
+-# CONFIG_YELLOWFIN is not set
+-# CONFIG_SK98LIN is not set
+-# CONFIG_FDDI is not set
+-# CONFIG_HIPPI is not set
+-CONFIG_PLIP=m
+-CONFIG_PPP=m
+-CONFIG_PPP_MULTILINK=y
+-# CONFIG_PPP_FILTER is not set
+-# CONFIG_PPP_ASYNC is not set
+-CONFIG_PPP_SYNC_TTY=m
+-CONFIG_PPP_DEFLATE=m
+-CONFIG_PPP_BSDCOMP=m
+-CONFIG_PPPOE=m
+-CONFIG_SLIP=m
+-CONFIG_SLIP_COMPRESSED=y
+-CONFIG_SLIP_SMART=y
+-# CONFIG_SLIP_MODE_SLIP6 is not set
+-
+-#
+-# Wireless LAN (non-hamradio)
+-#
+-# CONFIG_NET_RADIO is not set
+-
+-#
+-# Token Ring devices
+-#
+-# CONFIG_TR is not set
+-# CONFIG_NET_FC is not set
+-# CONFIG_RCPCI is not set
+-CONFIG_SHAPER=m
+-
+-#
+-# Wan interfaces
+-#
+-# CONFIG_WAN is not set
+-
+-#
+-# File systems
+-#
+-CONFIG_QUOTA=y
+-CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
+-CONFIG_REISERFS_FS=m
+-# CONFIG_REISERFS_CHECK is not set
+-# CONFIG_REISERFS_PROC_INFO is not set
+-CONFIG_ADFS_FS=m
+-# CONFIG_ADFS_FS_RW is not set
+-CONFIG_AFFS_FS=m
+-CONFIG_HFS_FS=m
+-CONFIG_BFS_FS=m
+-CONFIG_EXT3_FS=y
+-CONFIG_JBD=y
+-# CONFIG_JBD_DEBUG is not set
+-CONFIG_FAT_FS=y
+-CONFIG_MSDOS_FS=y
+-CONFIG_UMSDOS_FS=y
+-CONFIG_VFAT_FS=y
+-CONFIG_EFS_FS=m
+-# CONFIG_JFFS_FS is not set
+-# CONFIG_JFFS2_FS is not set
+-CONFIG_CRAMFS=m
+-CONFIG_TMPFS=y
+-CONFIG_RAMFS=m
+-CONFIG_ISO9660_FS=y
+-# CONFIG_JOLIET is not set
+-# CONFIG_ZISOFS is not set
+-CONFIG_MINIX_FS=m
+-CONFIG_VXFS_FS=m
+-# CONFIG_NTFS_FS is not set
+-# CONFIG_NTFS_RW is not set
+-CONFIG_HPFS_FS=m
+-CONFIG_PROC_FS=y
+-CONFIG_DEVFS_FS=y
+-CONFIG_DEVFS_MOUNT=y
+-# CONFIG_DEVFS_DEBUG is not set
+-CONFIG_DEVPTS_FS=y
+-CONFIG_QNX4FS_FS=m
+-# CONFIG_QNX4FS_RW is not set
+-CONFIG_ROMFS_FS=m
+-CONFIG_EXT2_FS=y
+-CONFIG_SYSV_FS=m
+-CONFIG_UDF_FS=m
+-CONFIG_UFS_FS=m
+-# CONFIG_UFS_FS_WRITE is not set
+-
+-#
+-# Network File Systems
+-#
+-# CONFIG_CODA_FS is not set
+-# CONFIG_INTERMEZZO_FS is not set
+-CONFIG_NFS_FS=y
+-CONFIG_NFS_V3=y
+-# CONFIG_ROOT_NFS is not set
+-CONFIG_NFSD=y
+-CONFIG_NFSD_V3=y
+-CONFIG_SUNRPC=y
+-CONFIG_LOCKD=y
+-CONFIG_LOCKD_V4=y
+-# CONFIG_SMB_FS is not set
+-# CONFIG_NCP_FS is not set
+-# CONFIG_NCPFS_PACKET_SIGNING is not set
+-# CONFIG_NCPFS_IOCTL_LOCKING is not set
+-# CONFIG_NCPFS_STRONG is not set
+-# CONFIG_NCPFS_NFS_NS is not set
+-# CONFIG_NCPFS_OS2_NS is not set
+-# CONFIG_NCPFS_SMALLDOS is not set
+-# CONFIG_NCPFS_NLS is not set
+-# CONFIG_NCPFS_EXTRAS is not set
+-# CONFIG_ZISOFS_FS is not set
+-CONFIG_ZLIB_FS_INFLATE=m
+-
+-#
+-# Partition Types
+-#
+-# CONFIG_PARTITION_ADVANCED is not set
+-CONFIG_MSDOS_PARTITION=y
+-# CONFIG_SMB_NLS is not set
+-CONFIG_NLS=y
+-
+-#
+-# Native Language Support
+-#
+-CONFIG_NLS_DEFAULT="iso8859-1"
+-# CONFIG_NLS_CODEPAGE_437 is not set
+-# CONFIG_NLS_CODEPAGE_737 is not set
+-# CONFIG_NLS_CODEPAGE_775 is not set
+-# CONFIG_NLS_CODEPAGE_850 is not set
+-# CONFIG_NLS_CODEPAGE_852 is not set
+-# CONFIG_NLS_CODEPAGE_855 is not set
+-# CONFIG_NLS_CODEPAGE_857 is not set
+-# CONFIG_NLS_CODEPAGE_860 is not set
+-# CONFIG_NLS_CODEPAGE_861 is not set
+-# CONFIG_NLS_CODEPAGE_862 is not set
+-# CONFIG_NLS_CODEPAGE_863 is not set
+-# CONFIG_NLS_CODEPAGE_864 is not set
+-# CONFIG_NLS_CODEPAGE_865 is not set
+-# CONFIG_NLS_CODEPAGE_866 is not set
+-# CONFIG_NLS_CODEPAGE_869 is not set
+-# CONFIG_NLS_CODEPAGE_936 is not set
+-# CONFIG_NLS_CODEPAGE_950 is not set
+-# CONFIG_NLS_CODEPAGE_932 is not set
+-# CONFIG_NLS_CODEPAGE_949 is not set
+-# CONFIG_NLS_CODEPAGE_874 is not set
+-# CONFIG_NLS_ISO8859_8 is not set
+-# CONFIG_NLS_CODEPAGE_1250 is not set
+-# CONFIG_NLS_CODEPAGE_1251 is not set
+-# CONFIG_NLS_ISO8859_1 is not set
+-# CONFIG_NLS_ISO8859_2 is not set
+-# CONFIG_NLS_ISO8859_3 is not set
+-# CONFIG_NLS_ISO8859_4 is not set
+-# CONFIG_NLS_ISO8859_5 is not set
+-# CONFIG_NLS_ISO8859_6 is not set
+-# CONFIG_NLS_ISO8859_7 is not set
+-# CONFIG_NLS_ISO8859_9 is not set
+-# CONFIG_NLS_ISO8859_13 is not set
+-# CONFIG_NLS_ISO8859_14 is not set
+-# CONFIG_NLS_ISO8859_15 is not set
+-# CONFIG_NLS_KOI8_R is not set
+-# CONFIG_NLS_KOI8_U is not set
+-# CONFIG_NLS_UTF8 is not set
+-
+-#
+-# Multi-device support (RAID and LVM)
+-#
+-# CONFIG_MD is not set
+-# CONFIG_BLK_DEV_MD is not set
+-# CONFIG_MD_LINEAR is not set
+-# CONFIG_MD_RAID0 is not set
+-# CONFIG_MD_RAID1 is not set
+-# CONFIG_MD_RAID5 is not set
+-# CONFIG_MD_MULTIPATH is not set
+-# CONFIG_BLK_DEV_LVM is not set
+-
+-#
+-# Memory Technology Devices (MTD)
+-#
+-# CONFIG_MTD is not set
+-
+-#
+-# Kernel hacking
+-#
+-# CONFIG_DEBUG_SLAB is not set
+-# CONFIG_DEBUG_INFO is not set
+-# CONFIG_PT_PROXY is not set
+-# CONFIG_GPROF is not set
+-# CONFIG_GCOV is not set
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
