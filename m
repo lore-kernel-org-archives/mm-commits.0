@@ -1,52 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - git-newsetup-fixup.patch removed from -mm tree
-Date: Fri, 13 Jul 2007 15:33:45 -0700
-Message-ID: <200707132233.l6DMXjFX025108@imap1.linux-foundation.org>
+Subject: - kgdb-warning-fix.patch removed from -mm tree
+Date: Fri, 13 Jul 2007 15:33:46 -0700
+Message-ID: <200707132233.l6DMXk0E025111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37607 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60838 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760745AbXGMWo6 (ORCPT
+	by vger.kernel.org with ESMTP id S937277AbXGMWo6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 13 Jul 2007 18:44:58 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6DMitW9025319
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2007 15:44:57 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-newsetup-fixup
+     kgdb warning fix
 has been removed from the -mm tree.  Its filename was
-     git-newsetup-fixup.patch
+     kgdb-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-newsetup-fixup
+Subject: kgdb warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+kernel/timer.c: In function 'run_local_timers':
+kernel/timer.c:900: warning: unused variable 'this_cpu'
+
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/timer.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/Makefile~git-newsetup-fixup arch/i386/kernel/cpu/Makefile
---- a/arch/i386/kernel/cpu/Makefile~git-newsetup-fixup
-+++ a/arch/i386/kernel/cpu/Makefile
-@@ -8,7 +8,7 @@ obj-y	+=	amd.o
- obj-y	+=	cyrix.o
- obj-y	+=	centaur.o
- obj-y	+=	transmeta.o
--obj-y	+=	intel.o intel_cacheinfo.o
-+obj-y	+=	intel.o intel_cacheinfo.o addon_cpuid_features.o
- obj-y	+=	nexgen.o
- obj-y	+=	umc.o
+diff -puN kernel/timer.c~kgdb-warning-fix kernel/timer.c
+--- a/kernel/timer.c~kgdb-warning-fix
++++ a/kernel/timer.c
+@@ -883,12 +883,11 @@ static void run_timer_softirq(struct sof
+  */
+ void run_local_timers(void)
+ {
+-	int this_cpu = smp_processor_id();
+ 	raise_softirq(TIMER_SOFTIRQ);
+ #ifdef CONFIG_KGDB
+-	if (!atomic_read(&kgdb_sync_softlockup[this_cpu]))
++	if (!atomic_read(&kgdb_sync_softlockup[smp_processor_id()]))
+ #endif
+-	softlockup_tick();
++		softlockup_tick();
+ }
  
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
