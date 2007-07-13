@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + coda-use-ilookup5.patch added to -mm tree
-Date: Thu, 12 Jul 2007 22:29:34 -0700
-Message-ID: <200707130529.l6D5TYsu030799@imap1.linux-foundation.org>
+Subject: + coda-coda-doesnt-track-atime.patch added to -mm tree
+Date: Thu, 12 Jul 2007 22:29:33 -0700
+Message-ID: <200707130529.l6D5TX00030796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36505 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36596 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751611AbXGMFaO (ORCPT
+	by vger.kernel.org with ESMTP id S1752203AbXGMFaS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 01:30:14 -0400
+	Fri, 13 Jul 2007 01:30:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jaharkes@cs.cmu.edu
 
 
 The patch titled
-     coda: use ilookup5
+     coda: coda doesn't track atime
 has been added to the -mm tree.  Its filename is
-     coda-use-ilookup5.patch
+     coda-coda-doesnt-track-atime.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coda: use ilookup5
+Subject: coda: coda doesn't track atime
 From: Jan Harkes <jaharkes@cs.cmu.edu>
+
+Set MS_NOATIME flag to avoid unnecessary calls when the coda inode is
+accessed.
 
 Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/cnode.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ fs/coda/inode.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/coda/cnode.c~coda-use-ilookup5 fs/coda/cnode.c
---- a/fs/coda/cnode.c~coda-use-ilookup5
-+++ a/fs/coda/cnode.c
-@@ -55,11 +55,6 @@ static int coda_set_inode(struct inode *
+diff -puN fs/coda/inode.c~coda-coda-doesnt-track-atime fs/coda/inode.c
+--- a/fs/coda/inode.c~coda-coda-doesnt-track-atime
++++ a/fs/coda/inode.c
+@@ -83,7 +83,7 @@ void coda_destroy_inodecache(void)
+ 
+ static int coda_remount(struct super_block *sb, int *flags, char *data)
+ {
+-	*flags |= MS_NODIRATIME;
++	*flags |= MS_NOATIME;
  	return 0;
  }
  
--static int coda_fail_inode(struct inode *inode, void *data)
--{
--	return -1;
--}
--
- struct inode * coda_iget(struct super_block * sb, struct CodaFid * fid,
- 			 struct coda_vattr * attr)
- {
-@@ -141,7 +136,7 @@ struct inode *coda_fid_to_inode(struct C
- 		return NULL;
- 	}
+@@ -176,12 +176,12 @@ static int coda_fill_super(struct super_
  
--	inode = iget5_locked(sb, hash, coda_test_inode, coda_fail_inode, fid);
-+	inode = ilookup5(sb, hash, coda_test_inode, fid);
- 	if ( !inode )
- 		return NULL;
+ 	sbi->sbi_vcomm = vc;
  
+-        sb->s_fs_info = sbi;
+-	sb->s_flags |= MS_NODIRATIME; /* probably even noatime */
+-        sb->s_blocksize = 1024;	/* XXXXX  what do we put here?? */
+-        sb->s_blocksize_bits = 10;
+-        sb->s_magic = CODA_SUPER_MAGIC;
+-        sb->s_op = &coda_super_operations;
++	sb->s_fs_info = sbi;
++	sb->s_flags |= MS_NOATIME;
++	sb->s_blocksize = 4096;	/* XXXXX  what do we put here?? */
++	sb->s_blocksize_bits = 12;
++	sb->s_magic = CODA_SUPER_MAGIC;
++	sb->s_op = &coda_super_operations;
+ 
+ 	/* get root fid from Venus: this needs the root inode */
+ 	error = venus_rootfid(sb, &fid);
+@@ -296,7 +296,7 @@ static int coda_statfs(struct dentry *de
+ 
+ 	/* and fill in the rest */
+ 	buf->f_type = CODA_SUPER_MAGIC;
+-	buf->f_bsize = 1024;
++	buf->f_bsize = 4096;
+ 	buf->f_namelen = CODA_MAXNAMLEN;
+ 
+ 	return 0; 
 _
 
 Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
