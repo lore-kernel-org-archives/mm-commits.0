@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + generic_nvram-use-i_mutex-not-lock_kernel.patch added to -mm tree
-Date: Fri, 13 Jul 2007 16:59:04 -0700
-Message-ID: <200707132359.l6DNx4pG030119@imap1.linux-foundation.org>
+Subject: + sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch added to -mm tree
+Date: Fri, 13 Jul 2007 17:00:07 -0700
+Message-ID: <200707140000.l6E007CD030164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34614 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45003 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933404AbXGMX7X (ORCPT
+	by vger.kernel.org with ESMTP id S1759347AbXGNAA2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Jul 2007 19:59:23 -0400
+	Fri, 13 Jul 2007 20:00:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     generic_nvram: use i_mutex not lock_kernel
+     sata_mv: test patch for Hightpoint RocketRaid 1740/1742
 has been added to the -mm tree.  Its filename is
-     generic_nvram-use-i_mutex-not-lock_kernel.patch
+     sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: generic_nvram: use i_mutex not lock_kernel
+Subject: sata_mv: test patch for Hightpoint RocketRaid 1740/1742
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The locking is only done for lseek so this isn't a big change.  All the
-other operations are thrown at the arch specific lower layers for locking
-handling without the file pointer being directly exposed.
+Underneath all the HPT packaging, PCI identifiers, binary driver modules
+and stuff you find that ...
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/generic_nvram.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/sata_mv.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN drivers/char/generic_nvram.c~generic_nvram-use-i_mutex-not-lock_kernel drivers/char/generic_nvram.c
---- a/drivers/char/generic_nvram.c~generic_nvram-use-i_mutex-not-lock_kernel
-+++ a/drivers/char/generic_nvram.c
-@@ -30,7 +30,7 @@
+diff -puN drivers/ata/sata_mv.c~sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742 drivers/ata/sata_mv.c
+--- a/drivers/ata/sata_mv.c~sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742
++++ a/drivers/ata/sata_mv.c
+@@ -620,6 +620,9 @@ static const struct pci_device_id mv_pci
+ 	{ PCI_VDEVICE(MARVELL, 0x5041), chip_504x },
+ 	{ PCI_VDEVICE(MARVELL, 0x5080), chip_5080 },
+ 	{ PCI_VDEVICE(MARVELL, 0x5081), chip_508x },
++	/* RocketRAID 1740/174x have different identifiers */
++	{ PCI_VDEVICE(TTI, 0x1740), chip_508x },
++	{ PCI_VDEVICE(TTI, 0x1742), chip_508x },
  
- static loff_t nvram_llseek(struct file *file, loff_t offset, int origin)
- {
--	lock_kernel();
-+	mutex_lock(&file->f_path.dentry->d_inode->i_mutex);
- 	switch (origin) {
- 	case 1:
- 		offset += file->f_pos;
-@@ -44,7 +44,7 @@ static loff_t nvram_llseek(struct file *
- 		return -EINVAL;
- 	}
- 	file->f_pos = offset;
--	unlock_kernel();
-+	mutex_unlock(&file->f_path.dentry->d_inode->i_mutex);
- 	return file->f_pos;
- }
- 
+ 	{ PCI_VDEVICE(MARVELL, 0x6040), chip_604x },
+ 	{ PCI_VDEVICE(MARVELL, 0x6041), chip_604x },
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -70,6 +61,7 @@ git-powerpc.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
 ata-use-iomap_name.patch
+sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
 libata-fix-hopefully-all-the-remaining-problems-with.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 pata_ali-more-work.patch
