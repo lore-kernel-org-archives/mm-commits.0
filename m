@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - uml-remove-dead-file.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:51:37 -0700
-Message-ID: <200707162051.l6GKpbQ0001414@imap1.linux-foundation.org>
+Subject: - uml-sigio-support-cleanup.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:51:22 -0700
+Message-ID: <200707162051.l6GKpMPt001393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48021 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55274 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763101AbXGPVep (ORCPT
+	by vger.kernel.org with ESMTP id S1763165AbXGPVep (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 16 Jul 2007 17:34:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,367 +15,318 @@ To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@
 
 
 The patch titled
-     uml: remove dead file
+     uml: SIGIO support cleanup
 has been removed from the -mm tree.  Its filename was
-     uml-remove-dead-file.patch
+     uml-sigio-support-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: remove dead file
+Subject: uml: SIGIO support cleanup
 From: Jeff Dike <jdike@addtoit.com>
 
-I forgot this file was here.  It hasn't been used since UML has been in
-mainline.
+Cleanup of the SIGWINCH support.
 
-Thanks to Jesper for finding something that needed doing to it, thus reminding
-me of its existence.
+Some code and comment reformatting.
+
+The stack used for SIGWINCH threads was leaked.  This is now fixed by storing
+it with the pid and other information, and freeing it when the thread is
+killed.
+
+If something goes wrong with a WIGWINCH thread, and this is discovered in the
+interrupt handler, the winch record would leak.  It is now freed, except that
+the IRQ isn't freed.  This is hard to do from interrupt context.  This has the
+side-effect that the IRQ system maintains a reference to the freed structure,
+but that shouldn't cause a problem since the descriptor is disabled.
+
+register_winch_irq is now much better about cleaning up after an
+initialization failure.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/config.release |  333 ---------------------------------------
- 1 file changed, 333 deletions(-)
+ arch/um/drivers/chan_user.c     |   70 ++++++++++++++++--------------
+ arch/um/drivers/line.c          |   60 ++++++++++++++++---------
+ arch/um/include/chan_user.h     |    3 -
+ arch/um/os-Linux/skas/process.c |    2 
+ 4 files changed, 80 insertions(+), 55 deletions(-)
 
-diff -puN arch/um/config.release~uml-remove-dead-file /dev/null
---- a/arch/um/config.release
-+++ /dev/null
-@@ -1,333 +0,0 @@
--#
--# Automatically generated make config: don't edit
--#
--CONFIG_USERMODE=y
--# CONFIG_ISA is not set
--# CONFIG_SBUS is not set
--# CONFIG_PCI is not set
--CONFIG_UID16=y
--CONFIG_RWSEM_XCHGADD_ALGORITHM=y
+diff -puN arch/um/drivers/chan_user.c~uml-sigio-support-cleanup arch/um/drivers/chan_user.c
+--- a/arch/um/drivers/chan_user.c~uml-sigio-support-cleanup
++++ a/arch/um/drivers/chan_user.c
+@@ -51,19 +51,21 @@ error:
+ /*
+  * UML SIGWINCH handling
+  *
+- * The point of this is to handle SIGWINCH on consoles which have host ttys and
+- * relay them inside UML to whatever might be running on the console and cares
+- * about the window size (since SIGWINCH notifies about terminal size changes).
++ * The point of this is to handle SIGWINCH on consoles which have host
++ * ttys and relay them inside UML to whatever might be running on the
++ * console and cares about the window size (since SIGWINCH notifies
++ * about terminal size changes).
+  *
+- * So, we have a separate thread for each host tty attached to a UML device
+- * (side-issue - I'm annoyed that one thread can't have multiple controlling
+- * ttys for purposed of handling SIGWINCH, but I imagine there are other reasons
+- * that doesn't make any sense).
++ * So, we have a separate thread for each host tty attached to a UML
++ * device (side-issue - I'm annoyed that one thread can't have
++ * multiple controlling ttys for the purpose of handling SIGWINCH, but
++ * I imagine there are other reasons that doesn't make any sense).
+  *
+- * SIGWINCH can't be received synchronously, so you have to set up to receive it
+- * as a signal.  That being the case, if you are going to wait for it, it is
+- * convenient to sit in sigsuspend() and wait for the signal to bounce you out of
+- * it (see below for how we make sure to exit only on SIGWINCH).
++ * SIGWINCH can't be received synchronously, so you have to set up to
++ * receive it as a signal.  That being the case, if you are going to
++ * wait for it, it is convenient to sit in sigsuspend() and wait for
++ * the signal to bounce you out of it (see below for how we make sure
++ * to exit only on SIGWINCH).
+  */
+ 
+ static void winch_handler(int sig)
+@@ -112,7 +114,8 @@ static int winch_thread(void *arg)
+ 
+ 	err = os_new_tty_pgrp(pty_fd, os_getpid());
+ 	if(err < 0){
+-		printk("winch_thread : new_tty_pgrp failed, err = %d\n", -err);
++		printk("winch_thread : new_tty_pgrp failed on fd %d, "
++		       "err = %d\n", pty_fd, -err);
+ 		exit(1);
+ 	}
+ 
+@@ -126,8 +129,9 @@ static int winch_thread(void *arg)
+ 		       "err = %d\n", -count);
+ 
+ 	while(1){
+-		/* This will be interrupted by SIGWINCH only, since other signals
+-		 * are blocked.*/
++		/* This will be interrupted by SIGWINCH only, since
++		 * other signals are blocked.
++		 */
+ 		sigsuspend(&sigs);
+ 
+ 		count = os_write_file(pipe_fd, &c, sizeof(c));
+@@ -137,10 +141,10 @@ static int winch_thread(void *arg)
+ 	}
+ }
+ 
+-static int winch_tramp(int fd, struct tty_struct *tty, int *fd_out)
++static int winch_tramp(int fd, struct tty_struct *tty, int *fd_out,
++		       unsigned long *stack_out)
+ {
+ 	struct winch_data data;
+-	unsigned long stack;
+ 	int fds[2], n, err;
+ 	char c;
+ 
+@@ -153,9 +157,11 @@ static int winch_tramp(int fd, struct tt
+ 	data = ((struct winch_data) { .pty_fd 		= fd,
+ 				      .pipe_fd 		= fds[1] } );
+ 	/* CLONE_FILES so this thread doesn't hold open files which are open
+-	 * now, but later closed.  This is a problem with /dev/net/tun.
++	 * now, but later closed in a different thread.  This is a
++	 * problem with /dev/net/tun, which if held open by this
++	 * thread, prevents the TUN/TAP device from being reused.
+ 	 */
+-	err = run_helper_thread(winch_thread, &data, CLONE_FILES, &stack, 0);
++	err = run_helper_thread(winch_thread, &data, CLONE_FILES, stack_out, 0);
+ 	if(err < 0){
+ 		printk("fork of winch_thread failed - errno = %d\n", -err);
+ 		goto out_close;
+@@ -187,25 +193,25 @@ static int winch_tramp(int fd, struct tt
+ 
+ void register_winch(int fd, struct tty_struct *tty)
+ {
+-	int pid, thread, thread_fd = -1;
+-	int count;
++	unsigned long stack;
++	int pid, thread, count, thread_fd = -1;
+ 	char c = 1;
+ 
+ 	if(!isatty(fd))
+ 		return;
+ 
+ 	pid = tcgetpgrp(fd);
+-	if(!CHOOSE_MODE_PROC(is_tracer_winch, is_skas_winch, pid, fd,
+-			     tty) && (pid == -1)){
+-		thread = winch_tramp(fd, tty, &thread_fd);
+-		if(thread > 0){
+-			register_winch_irq(thread_fd, fd, thread, tty);
 -
--#
--# Code maturity level options
--#
--CONFIG_EXPERIMENTAL=y
+-			count = os_write_file(thread_fd, &c, sizeof(c));
+-			if(count != sizeof(c))
+-				printk("register_winch : failed to write "
+-				       "synchronization byte, err = %d\n",
+-					-count);
+-		}
++	if (!CHOOSE_MODE_PROC(is_tracer_winch, is_skas_winch, pid, fd, tty) &&
++	    (pid == -1)) {
++		thread = winch_tramp(fd, tty, &thread_fd, &stack);
++		if (thread < 0)
++			return;
++
++		register_winch_irq(thread_fd, fd, thread, tty, stack);
++
++		count = os_write_file(thread_fd, &c, sizeof(c));
++		if(count != sizeof(c))
++			printk("register_winch : failed to write "
++			       "synchronization byte, err = %d\n", -count);
+ 	}
+ }
+diff -puN arch/um/drivers/line.c~uml-sigio-support-cleanup arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~uml-sigio-support-cleanup
++++ a/arch/um/drivers/line.c
+@@ -749,8 +749,24 @@ struct winch {
+ 	int tty_fd;
+ 	int pid;
+ 	struct tty_struct *tty;
++	unsigned long stack;
+ };
+ 
++static void free_winch(struct winch *winch, int free_irq_ok)
++{
++	list_del(&winch->list);
++
++	if (winch->pid != -1)
++		os_kill_process(winch->pid, 1);
++	if (winch->fd != -1)
++		os_close_file(winch->fd);
++	if (winch->stack != 0)
++		free_stack(winch->stack, 0);
++	if (free_irq_ok)
++		free_irq(WINCH_IRQ, winch);
++	kfree(winch);
++}
++
+ static irqreturn_t winch_interrupt(int irq, void *data)
+ {
+ 	struct winch *winch = data;
+@@ -767,12 +783,13 @@ static irqreturn_t winch_interrupt(int i
+ 				       "errno = %d\n", -err);
+ 				printk("fd %d is losing SIGWINCH support\n",
+ 				       winch->tty_fd);
++				free_winch(winch, 0);
+ 				return IRQ_HANDLED;
+ 			}
+ 			goto out;
+ 		}
+ 	}
+-	tty  = winch->tty;
++	tty = winch->tty;
+ 	if (tty != NULL) {
+ 		line = tty->driver_data;
+ 		chan_window_size(&line->chan_list, &tty->winsize.ws_row,
+@@ -785,43 +802,44 @@ static irqreturn_t winch_interrupt(int i
+ 	return IRQ_HANDLED;
+ }
+ 
+-void register_winch_irq(int fd, int tty_fd, int pid, struct tty_struct *tty)
++void register_winch_irq(int fd, int tty_fd, int pid, struct tty_struct *tty,
++			unsigned long stack)
+ {
+ 	struct winch *winch;
+ 
+ 	winch = kmalloc(sizeof(*winch), GFP_KERNEL);
+ 	if (winch == NULL) {
+ 		printk("register_winch_irq - kmalloc failed\n");
+-		return;
++		goto cleanup;
+ 	}
+ 
+ 	*winch = ((struct winch) { .list  	= LIST_HEAD_INIT(winch->list),
+ 				   .fd  	= fd,
+ 				   .tty_fd 	= tty_fd,
+ 				   .pid  	= pid,
+-				   .tty 	= tty });
++				   .tty 	= tty,
++				   .stack	= stack });
++
++	if (um_request_irq(WINCH_IRQ, fd, IRQ_READ, winch_interrupt,
++			   IRQF_DISABLED | IRQF_SHARED | IRQF_SAMPLE_RANDOM,
++			   "winch", winch) < 0) {
++		printk("register_winch_irq - failed to register IRQ\n");
++		goto out_free;
++	}
+ 
+ 	spin_lock(&winch_handler_lock);
+ 	list_add(&winch->list, &winch_handlers);
+ 	spin_unlock(&winch_handler_lock);
+ 
+-	if(um_request_irq(WINCH_IRQ, fd, IRQ_READ, winch_interrupt,
+-			  IRQF_DISABLED | IRQF_SHARED | IRQF_SAMPLE_RANDOM,
+-			  "winch", winch) < 0)
+-		printk("register_winch_irq - failed to register IRQ\n");
+-}
 -
--#
--# General Setup
--#
--CONFIG_STDIO_CONSOLE=y
--CONFIG_NET=y
--CONFIG_SYSVIPC=y
--CONFIG_BSD_PROCESS_ACCT=y
--CONFIG_SYSCTL=y
--CONFIG_BINFMT_AOUT=y
--CONFIG_BINFMT_ELF=y
--CONFIG_BINFMT_MISC=y
--CONFIG_UNIX98_PTYS=y
--CONFIG_UNIX98_PTY_COUNT=256
--CONFIG_SSL=y
--CONFIG_HOSTFS=y
--CONFIG_MCONSOLE=y
--CONFIG_MAGIC_SYSRQ=y
--# CONFIG_HOST_2G_2G is not set
--# CONFIG_UML_SMP is not set
--# CONFIG_SMP is not set
--CONFIG_CON_ZERO_CHAN="fd:0,fd:1"
--CONFIG_CON_CHAN="xterm"
--CONFIG_SSL_CHAN="pty"
--CONFIG_NEST_LEVEL=0
--CONFIG_KERNEL_HALF_GIGS=1
+-static void free_winch(struct winch *winch)
+-{
+-	list_del(&winch->list);
 -
--#
--# Loadable module support
--#
--CONFIG_MODULES=y
--CONFIG_KMOD=y
--
--#
--# Devices
--#
--CONFIG_BLK_DEV_UBD=y
--# CONFIG_BLK_DEV_UBD_SYNC is not set
--CONFIG_BLK_DEV_LOOP=y
--CONFIG_BLK_DEV_NBD=y
--CONFIG_BLK_DEV_RAM=y
--CONFIG_BLK_DEV_RAM_SIZE=4096
--CONFIG_BLK_DEV_INITRD=y
--# CONFIG_MMAPPER is not set
--CONFIG_UML_SOUND=y
--CONFIG_SOUND=y
--CONFIG_HOSTAUDIO=y
--# CONFIG_UML_WATCHDOG is not set
--# CONFIG_TTY_LOG is not set
--CONFIG_FD_CHAN=y
--# CONFIG_NULL_CHAN is not set
--CONFIG_PORT_CHAN=y
--CONFIG_PTY_CHAN=y
--CONFIG_TTY_CHAN=y
--CONFIG_XTERM_CHAN=y
--
--#
--# Networking options
--#
--CONFIG_PACKET=y
--CONFIG_PACKET_MMAP=y
--# CONFIG_NETLINK_DEV is not set
--# CONFIG_NETFILTER is not set
--# CONFIG_FILTER is not set
--CONFIG_UNIX=y
--CONFIG_INET=y
--# CONFIG_IP_MULTICAST is not set
--# CONFIG_IP_ADVANCED_ROUTER is not set
--# CONFIG_IP_PNP is not set
--# CONFIG_NET_IPIP is not set
--# CONFIG_NET_IPGRE is not set
--# CONFIG_ARPD is not set
--# CONFIG_INET_ECN is not set
--# CONFIG_SYN_COOKIES is not set
--# CONFIG_IPV6 is not set
--# CONFIG_KHTTPD is not set
--# CONFIG_ATM is not set
--# CONFIG_VLAN_8021Q is not set
--
--#
--#  
--#
--# CONFIG_IPX is not set
--# CONFIG_ATALK is not set
--# CONFIG_DECNET is not set
--# CONFIG_BRIDGE is not set
--# CONFIG_X25 is not set
--# CONFIG_LAPB is not set
--# CONFIG_LLC is not set
--# CONFIG_NET_DIVERT is not set
--# CONFIG_ECONET is not set
--# CONFIG_WAN_ROUTER is not set
--# CONFIG_NET_HW_FLOWCONTROL is not set
--
--#
--# QoS and/or fair queueing
--#
--# CONFIG_NET_SCHED is not set
--
--#
--# Network device support
--#
--CONFIG_UML_NET=y
--CONFIG_UML_NET_ETHERTAP=y
--CONFIG_UML_NET_TUNTAP=y
--CONFIG_UML_NET_SLIP=y
--CONFIG_UML_NET_DAEMON=y
--CONFIG_UML_NET_MCAST=y
--CONFIG_NETDEVICES=y
--
--#
--# ARCnet devices
--#
--# CONFIG_ARCNET is not set
--CONFIG_DUMMY=y
--CONFIG_BONDING=m
--CONFIG_EQUALIZER=m
--CONFIG_TUN=y
--# CONFIG_ETHERTAP is not set
--
--#
--# Ethernet (10 or 100Mbit)
--#
--# CONFIG_NET_ETHERNET is not set
--
--#
--# Ethernet (1000 Mbit)
--#
--# CONFIG_ACENIC is not set
--# CONFIG_DL2K is not set
--# CONFIG_MYRI_SBUS is not set
--# CONFIG_NS83820 is not set
--# CONFIG_HAMACHI is not set
--# CONFIG_YELLOWFIN is not set
--# CONFIG_SK98LIN is not set
--# CONFIG_FDDI is not set
--# CONFIG_HIPPI is not set
--CONFIG_PLIP=m
--CONFIG_PPP=m
--CONFIG_PPP_MULTILINK=y
--# CONFIG_PPP_FILTER is not set
--# CONFIG_PPP_ASYNC is not set
--CONFIG_PPP_SYNC_TTY=m
--CONFIG_PPP_DEFLATE=m
--CONFIG_PPP_BSDCOMP=m
--CONFIG_PPPOE=m
--CONFIG_SLIP=m
--CONFIG_SLIP_COMPRESSED=y
--CONFIG_SLIP_SMART=y
--# CONFIG_SLIP_MODE_SLIP6 is not set
--
--#
--# Wireless LAN (non-hamradio)
--#
--# CONFIG_NET_RADIO is not set
--
--#
--# Token Ring devices
--#
--# CONFIG_TR is not set
--# CONFIG_NET_FC is not set
--# CONFIG_RCPCI is not set
--CONFIG_SHAPER=m
--
--#
--# Wan interfaces
--#
--# CONFIG_WAN is not set
--
--#
--# File systems
--#
--CONFIG_QUOTA=y
--CONFIG_AUTOFS_FS=m
--CONFIG_AUTOFS4_FS=m
--CONFIG_REISERFS_FS=m
--# CONFIG_REISERFS_CHECK is not set
--# CONFIG_REISERFS_PROC_INFO is not set
--CONFIG_ADFS_FS=m
--# CONFIG_ADFS_FS_RW is not set
--CONFIG_AFFS_FS=m
--CONFIG_HFS_FS=m
--CONFIG_BFS_FS=m
--CONFIG_EXT3_FS=y
--CONFIG_JBD=y
--# CONFIG_JBD_DEBUG is not set
--CONFIG_FAT_FS=y
--CONFIG_MSDOS_FS=y
--CONFIG_UMSDOS_FS=y
--CONFIG_VFAT_FS=y
--CONFIG_EFS_FS=m
--# CONFIG_JFFS_FS is not set
--# CONFIG_JFFS2_FS is not set
--CONFIG_CRAMFS=m
--CONFIG_TMPFS=y
--CONFIG_RAMFS=m
--CONFIG_ISO9660_FS=y
--# CONFIG_JOLIET is not set
--# CONFIG_ZISOFS is not set
--CONFIG_MINIX_FS=m
--CONFIG_VXFS_FS=m
--# CONFIG_NTFS_FS is not set
--# CONFIG_NTFS_RW is not set
--CONFIG_HPFS_FS=m
--CONFIG_PROC_FS=y
--CONFIG_DEVFS_FS=y
--CONFIG_DEVFS_MOUNT=y
--# CONFIG_DEVFS_DEBUG is not set
--CONFIG_DEVPTS_FS=y
--CONFIG_QNX4FS_FS=m
--# CONFIG_QNX4FS_RW is not set
--CONFIG_ROMFS_FS=m
--CONFIG_EXT2_FS=y
--CONFIG_SYSV_FS=m
--CONFIG_UDF_FS=m
--CONFIG_UFS_FS=m
--# CONFIG_UFS_FS_WRITE is not set
--
--#
--# Network File Systems
--#
--# CONFIG_CODA_FS is not set
--# CONFIG_INTERMEZZO_FS is not set
--CONFIG_NFS_FS=y
--CONFIG_NFS_V3=y
--# CONFIG_ROOT_NFS is not set
--CONFIG_NFSD=y
--CONFIG_NFSD_V3=y
--CONFIG_SUNRPC=y
--CONFIG_LOCKD=y
--CONFIG_LOCKD_V4=y
--# CONFIG_SMB_FS is not set
--# CONFIG_NCP_FS is not set
--# CONFIG_NCPFS_PACKET_SIGNING is not set
--# CONFIG_NCPFS_IOCTL_LOCKING is not set
--# CONFIG_NCPFS_STRONG is not set
--# CONFIG_NCPFS_NFS_NS is not set
--# CONFIG_NCPFS_OS2_NS is not set
--# CONFIG_NCPFS_SMALLDOS is not set
--# CONFIG_NCPFS_NLS is not set
--# CONFIG_NCPFS_EXTRAS is not set
--# CONFIG_ZISOFS_FS is not set
--CONFIG_ZLIB_FS_INFLATE=m
--
--#
--# Partition Types
--#
--# CONFIG_PARTITION_ADVANCED is not set
--CONFIG_MSDOS_PARTITION=y
--# CONFIG_SMB_NLS is not set
--CONFIG_NLS=y
--
--#
--# Native Language Support
--#
--CONFIG_NLS_DEFAULT="iso8859-1"
--# CONFIG_NLS_CODEPAGE_437 is not set
--# CONFIG_NLS_CODEPAGE_737 is not set
--# CONFIG_NLS_CODEPAGE_775 is not set
--# CONFIG_NLS_CODEPAGE_850 is not set
--# CONFIG_NLS_CODEPAGE_852 is not set
--# CONFIG_NLS_CODEPAGE_855 is not set
--# CONFIG_NLS_CODEPAGE_857 is not set
--# CONFIG_NLS_CODEPAGE_860 is not set
--# CONFIG_NLS_CODEPAGE_861 is not set
--# CONFIG_NLS_CODEPAGE_862 is not set
--# CONFIG_NLS_CODEPAGE_863 is not set
--# CONFIG_NLS_CODEPAGE_864 is not set
--# CONFIG_NLS_CODEPAGE_865 is not set
--# CONFIG_NLS_CODEPAGE_866 is not set
--# CONFIG_NLS_CODEPAGE_869 is not set
--# CONFIG_NLS_CODEPAGE_936 is not set
--# CONFIG_NLS_CODEPAGE_950 is not set
--# CONFIG_NLS_CODEPAGE_932 is not set
--# CONFIG_NLS_CODEPAGE_949 is not set
--# CONFIG_NLS_CODEPAGE_874 is not set
--# CONFIG_NLS_ISO8859_8 is not set
--# CONFIG_NLS_CODEPAGE_1250 is not set
--# CONFIG_NLS_CODEPAGE_1251 is not set
--# CONFIG_NLS_ISO8859_1 is not set
--# CONFIG_NLS_ISO8859_2 is not set
--# CONFIG_NLS_ISO8859_3 is not set
--# CONFIG_NLS_ISO8859_4 is not set
--# CONFIG_NLS_ISO8859_5 is not set
--# CONFIG_NLS_ISO8859_6 is not set
--# CONFIG_NLS_ISO8859_7 is not set
--# CONFIG_NLS_ISO8859_9 is not set
--# CONFIG_NLS_ISO8859_13 is not set
--# CONFIG_NLS_ISO8859_14 is not set
--# CONFIG_NLS_ISO8859_15 is not set
--# CONFIG_NLS_KOI8_R is not set
--# CONFIG_NLS_KOI8_U is not set
--# CONFIG_NLS_UTF8 is not set
--
--#
--# Multi-device support (RAID and LVM)
--#
--# CONFIG_MD is not set
--# CONFIG_BLK_DEV_MD is not set
--# CONFIG_MD_LINEAR is not set
--# CONFIG_MD_RAID0 is not set
--# CONFIG_MD_RAID1 is not set
--# CONFIG_MD_RAID5 is not set
--# CONFIG_MD_MULTIPATH is not set
--# CONFIG_BLK_DEV_LVM is not set
--
--#
--# Memory Technology Devices (MTD)
--#
--# CONFIG_MTD is not set
--
--#
--# Kernel hacking
--#
--# CONFIG_DEBUG_SLAB is not set
--# CONFIG_DEBUG_INFO is not set
--# CONFIG_PT_PROXY is not set
--# CONFIG_GPROF is not set
--# CONFIG_GCOV is not set
+-	if(winch->pid != -1)
+-		os_kill_process(winch->pid, 1);
+-	if(winch->fd != -1)
+-		os_close_file(winch->fd);
++	return;
+ 
+-	free_irq(WINCH_IRQ, winch);
++ out_free:
+ 	kfree(winch);
++ cleanup:
++	os_kill_process(pid, 1);
++	os_close_file(fd);
++	if (stack != 0)
++		free_stack(stack, 0);
+ }
+ 
+ static void unregister_winch(struct tty_struct *tty)
+@@ -834,7 +852,7 @@ static void unregister_winch(struct tty_
+ 	list_for_each(ele, &winch_handlers){
+ 		winch = list_entry(ele, struct winch, list);
+                 if(winch->tty == tty){
+-			free_winch(winch);
++			free_winch(winch, 1);
+ 			break;
+                 }
+         }
+@@ -850,7 +868,7 @@ static void winch_cleanup(void)
+ 
+ 	list_for_each_safe(ele, next, &winch_handlers){
+ 		winch = list_entry(ele, struct winch, list);
+-		free_winch(winch);
++		free_winch(winch, 1);
+ 	}
+ 
+ 	spin_unlock(&winch_handler_lock);
+diff -puN arch/um/include/chan_user.h~uml-sigio-support-cleanup arch/um/include/chan_user.h
+--- a/arch/um/include/chan_user.h~uml-sigio-support-cleanup
++++ a/arch/um/include/chan_user.h
+@@ -42,7 +42,8 @@ extern void generic_free(void *data);
+ 
+ struct tty_struct;
+ extern void register_winch(int fd,  struct tty_struct *tty);
+-extern void register_winch_irq(int fd, int tty_fd, int pid, struct tty_struct *tty);
++extern void register_winch_irq(int fd, int tty_fd, int pid,
++			       struct tty_struct *tty, unsigned long stack);
+ 
+ #define __channel_help(fn, prefix) \
+ __uml_help(fn, prefix "[0-9]*=<channel description>\n" \
+diff -puN arch/um/os-Linux/skas/process.c~uml-sigio-support-cleanup arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-sigio-support-cleanup
++++ a/arch/um/os-Linux/skas/process.c
+@@ -41,7 +41,7 @@ int is_skas_winch(int pid, int fd, void 
+ 	if(pid != os_getpgrp())
+ 		return(0);
+ 
+-	register_winch_irq(-1, fd, -1, data);
++	register_winch_irq(-1, fd, -1, data, 0);
+ 	return(1);
+ }
+ 
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
