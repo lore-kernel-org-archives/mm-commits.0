@@ -1,316 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - percpu_counters-use-cpu-notifiers.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:30 -0700
-Message-ID: <200707162053.l6GKrUqE001634@imap1.linux-foundation.org>
+Subject: - rocketc-fix-unchecked-mutex_lock_interruptible.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:54:23 -0700
+Message-ID: <200707162054.l6GKsNxr001796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45991 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52829 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761177AbXGPVW2 (ORCPT
+	by vger.kernel.org with ESMTP id S1761177AbXGPVWa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:22:28 -0400
+	Mon, 16 Jul 2007 17:22:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ego@in.ibm.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: satyam.sharma@gmail.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     percpu_counters(): use cpu notifiers
+     rocket.c: fix unchecked mutex_lock_interruptible()
 has been removed from the -mm tree.  Its filename was
-     percpu_counters-use-cpu-notifiers.patch
+     rocketc-fix-unchecked-mutex_lock_interruptible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: percpu_counters(): use cpu notifiers
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rocket.c: fix unchecked mutex_lock_interruptible()
+From: "Satyam Sharma" <satyam.sharma@gmail.com>
 
-per-cpu counters presently must iterate over all possible CPUs in the
-exhaustive percpu_counter_sum().
+Check the return of mutex_lock_interruptible() in drivers/char/rocket.c and
+return ERESTARTSYS if we were interrupted.
 
-But it can be much better to only iterate over the presently-online CPUs.  To
-do this, we must arrange for an offlined CPU's count to be spilled into the
-counter's central count.
-
-We can do this for all percpu_counters in the machine by linking them into a
-single global list and walking that list at CPU_DEAD time.
-
-(I hope.  Might have race windows in which the percpu_counter_sum() count is
-inaccurate?)
-
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Satyam Sharma <satyam.sharma@gmail.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu_counter.h |   18 ++------
- lib/percpu_counter.c           |   66 +++++++++++++++++++++++++++++++
- 2 files changed, 72 insertions(+), 12 deletions(-)
+ drivers/char/rocket.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/percpu_counter.h~percpu_counters-use-cpu-notifiers include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~percpu_counters-use-cpu-notifiers
-+++ a/include/linux/percpu_counter.h
-@@ -8,6 +8,7 @@
+diff -puN drivers/char/rocket.c~rocketc-fix-unchecked-mutex_lock_interruptible drivers/char/rocket.c
+--- a/drivers/char/rocket.c~rocketc-fix-unchecked-mutex_lock_interruptible
++++ a/drivers/char/rocket.c
+@@ -1702,7 +1702,8 @@ static int rp_write(struct tty_struct *t
+ 	if (count <= 0 || rocket_paranoia_check(info, "rp_write"))
+ 		return 0;
  
- #include <linux/spinlock.h>
- #include <linux/smp.h>
-+#include <linux/list.h>
- #include <linux/threads.h>
- #include <linux/percpu.h>
- #include <linux/types.h>
-@@ -17,6 +18,9 @@
- struct percpu_counter {
- 	spinlock_t lock;
- 	s64 count;
-+#ifdef CONFIG_HOTPLUG_CPU
-+	struct list_head list;	/* All percpu_counters are on a list */
-+#endif
- 	s32 *counters;
- };
+-	mutex_lock_interruptible(&info->write_mtx);
++	if (mutex_lock_interruptible(&info->write_mtx))
++		return -ERESTARTSYS;
  
-@@ -26,18 +30,8 @@ struct percpu_counter {
- #define FBC_BATCH	(NR_CPUS*4)
- #endif
- 
--static inline void percpu_counter_init(struct percpu_counter *fbc, s64 amount)
--{
--	spin_lock_init(&fbc->lock);
--	fbc->count = amount;
--	fbc->counters = alloc_percpu(s32);
--}
--
--static inline void percpu_counter_destroy(struct percpu_counter *fbc)
--{
--	free_percpu(fbc->counters);
--}
--
-+void percpu_counter_init(struct percpu_counter *fbc, s64 amount);
-+void percpu_counter_destroy(struct percpu_counter *fbc);
- void percpu_counter_mod(struct percpu_counter *fbc, s32 amount);
- s64 percpu_counter_sum(struct percpu_counter *fbc);
- 
-diff -puN lib/percpu_counter.c~percpu_counters-use-cpu-notifiers lib/percpu_counter.c
---- a/lib/percpu_counter.c~percpu_counters-use-cpu-notifiers
-+++ a/lib/percpu_counter.c
-@@ -3,8 +3,17 @@
-  */
- 
- #include <linux/percpu_counter.h>
-+#include <linux/notifier.h>
-+#include <linux/mutex.h>
-+#include <linux/init.h>
-+#include <linux/cpu.h>
- #include <linux/module.h>
- 
-+#ifdef CONFIG_HOTPLUG_CPU
-+static LIST_HEAD(percpu_counters);
-+static DEFINE_MUTEX(percpu_counters_lock);
-+#endif
-+
- void percpu_counter_mod(struct percpu_counter *fbc, s32 amount)
- {
- 	long count;
-@@ -44,3 +53,60 @@ s64 percpu_counter_sum(struct percpu_cou
- 	return ret < 0 ? 0 : ret;
- }
- EXPORT_SYMBOL(percpu_counter_sum);
-+
-+void percpu_counter_init(struct percpu_counter *fbc, s64 amount)
-+{
-+	spin_lock_init(&fbc->lock);
-+	fbc->count = amount;
-+	fbc->counters = alloc_percpu(s32);
-+#ifdef CONFIG_HOTPLUG_CPU
-+	mutex_lock(&percpu_counters_lock);
-+	list_add(&fbc->list, &percpu_counters);
-+	mutex_unlock(&percpu_counters_lock);
-+#endif
-+}
-+EXPORT_SYMBOL(percpu_counter_init);
-+
-+void percpu_counter_destroy(struct percpu_counter *fbc)
-+{
-+	free_percpu(fbc->counters);
-+#ifdef CONFIG_HOTPLUG_CPU
-+	mutex_lock(&percpu_counters_lock);
-+	list_del(&fbc->list);
-+	mutex_unlock(&percpu_counters_lock);
-+#endif
-+}
-+EXPORT_SYMBOL(percpu_counter_destroy);
-+
-+#ifdef CONFIG_HOTPLUG_CPU
-+static int __cpuinit percpu_counter_hotcpu_callback(struct notifier_block *nb,
-+					unsigned long action, void *hcpu)
-+{
-+	unsigned int cpu;
-+	struct percpu_counter *fbc;
-+
-+	if (action != CPU_DEAD)
-+		return NOTIFY_OK;
-+
-+	cpu = (unsigned long)hcpu;
-+	mutex_lock(&percpu_counters_lock);
-+	list_for_each_entry(fbc, &percpu_counters, list) {
-+		s32 *pcount;
-+
-+		spin_lock(&fbc->lock);
-+		pcount = per_cpu_ptr(fbc->counters, cpu);
-+		fbc->count += *pcount;
-+		*pcount = 0;
-+		spin_unlock(&fbc->lock);
-+	}
-+	mutex_unlock(&percpu_counters_lock);
-+	return NOTIFY_OK;
-+}
-+
-+static int __init percpu_counter_startup(void)
-+{
-+	hotcpu_notifier(percpu_counter_hotcpu_callback, 0);
-+	return 0;
-+}
-+module_init(percpu_counter_startup);
-+#endif
+ #ifdef ROCKET_DEBUG_WRITE
+ 	printk(KERN_INFO "rp_write %d chars...", count);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from satyam.sharma@gmail.com are
 
 origin.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-git-powerpc.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-ia64.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
 git-ubi.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-git-ocfs2-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-i386-speedup-touch_nmi_watchdog.patch
-x86_64-speedup-touch_nmi_watchdog.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support.patch
-spi-master-driver-for-xilinx-virtex.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup.patch
-knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-remove-iget-abuse.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-add-support-for-the-st-m48t59-rtc.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
-rtc-driver-for-ds1216-chips-fix.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
