@@ -1,105 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-lpfc-lpfc_initc-remove-unused-variable.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 14:00:31 -0700
-Message-ID: <200707162100.l6GL0VGK002612@imap1.linux-foundation.org>
+Subject: - ext2-statfs-speed-up.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:59:40 -0700
+Message-ID: <200707162059.l6GKxefU002445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36614 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47213 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759148AbXGPVPS (ORCPT
+	by vger.kernel.org with ESMTP id S1759137AbXGPVPU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:18 -0400
+	Mon, 16 Jul 2007 17:15:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, James.Smart@Emulex.Com, mm-commits@vger.kernel.org
+To: pbadari@us.ibm.com, adilger@clusterfs.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi/lpfc/lpfc_init.c: remove unused variable
+     ext2: statfs speed up
 has been removed from the -mm tree.  Its filename was
-     scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+     ext2-statfs-speed-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: scsi/lpfc/lpfc_init.c: remove unused variable
-From: Adrian Bunk <bunk@stusta.de>
+Subject: ext2: statfs speed up
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: James Smart <James.Smart@Emulex.Com>
+This is a patch that speeds up statfs.  It is very simple - the "overhead"
+calculation, which takes a huge amount of time for large filesystems, never
+changes unless the size of the filesystem itself changes.  That means we can
+store it in memory and only recalculate if the filesystem has been resized
+(almost never).
+
+It also fixes a minor problem that we never update the on-disk superblock free
+blocks/inodes counts until the filesystem is unmounted.  While not fatal, we
+may as well update that on disk when we have the information, and it makes
+things like debugfs and dumpe2fs report a bit more accurate info.
+
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: Andreas Dilger <adilger@clusterfs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_init.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/ext2/super.c            |   20 ++++++++++++++------
+ include/linux/ext2_fs_sb.h |    2 ++
+ 2 files changed, 16 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-lpfc_initc-remove-unused-variable drivers/scsi/lpfc/lpfc_init.c
---- a/drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-lpfc_initc-remove-unused-variable
-+++ a/drivers/scsi/lpfc/lpfc_init.c
-@@ -1717,7 +1717,7 @@ lpfc_pci_probe_one(struct pci_dev *pdev,
- 	struct lpfc_iocbq *iocbq_entry = NULL, *iocbq_next = NULL;
- 	struct Scsi_Host  *shost = NULL;
- 	unsigned long bar0map_len, bar2map_len;
--	int error = -ENODEV, retval;
-+	int error = -ENODEV;
- 	int i;
- 	uint16_t iotag;
+diff -puN fs/ext2/super.c~ext2-statfs-speed-up fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-statfs-speed-up
++++ a/fs/ext2/super.c
+@@ -1099,15 +1099,18 @@ static int ext2_statfs (struct dentry * 
+ 	struct super_block *sb = dentry->d_sb;
+ 	struct ext2_sb_info *sbi = EXT2_SB(sb);
+ 	struct ext2_super_block *es = sbi->s_es;
+-	unsigned long overhead;
+-	int i;
+ 	u64 fsid;
  
+ 	if (test_opt (sb, MINIX_DF))
+-		overhead = 0;
+-	else {
++		sbi->s_overhead_last = 0;
++	else if (sbi->s_blocks_last != le32_to_cpu(es->s_blocks_count)) {
++		unsigned long i, overhead = 0;
++		smp_rmb();
++
+ 		/*
+-		 * Compute the overhead (FS structures)
++		 * Compute the overhead (FS structures). This is constant
++		 * for a given filesystem unless the number of block groups
++		 * changes so we cache the previous value until it does.
+ 		 */
+ 
+ 		/*
+@@ -1131,17 +1134,22 @@ static int ext2_statfs (struct dentry * 
+ 		 */
+ 		overhead += (sbi->s_groups_count *
+ 			     (2 + sbi->s_itb_per_group));
++		sbi->s_overhead_last = overhead;
++		smp_wmb();
++		sbi->s_blocks_last = le32_to_cpu(es->s_blocks_count);
+ 	}
+ 
+ 	buf->f_type = EXT2_SUPER_MAGIC;
+ 	buf->f_bsize = sb->s_blocksize;
+-	buf->f_blocks = le32_to_cpu(es->s_blocks_count) - overhead;
++	buf->f_blocks = le32_to_cpu(es->s_blocks_count) - sbi->s_overhead_last;
+ 	buf->f_bfree = ext2_count_free_blocks(sb);
++	es->s_free_blocks_count = cpu_to_le32(buf->f_bfree);
+ 	buf->f_bavail = buf->f_bfree - le32_to_cpu(es->s_r_blocks_count);
+ 	if (buf->f_bfree < le32_to_cpu(es->s_r_blocks_count))
+ 		buf->f_bavail = 0;
+ 	buf->f_files = le32_to_cpu(es->s_inodes_count);
+ 	buf->f_ffree = ext2_count_free_inodes(sb);
++	es->s_free_inodes_count = cpu_to_le32(buf->f_ffree);
+ 	buf->f_namelen = EXT2_NAME_LEN;
+ 	fsid = le64_to_cpup((void *)es->s_uuid) ^
+ 	       le64_to_cpup((void *)es->s_uuid + sizeof(u64));
+diff -puN include/linux/ext2_fs_sb.h~ext2-statfs-speed-up include/linux/ext2_fs_sb.h
+--- a/include/linux/ext2_fs_sb.h~ext2-statfs-speed-up
++++ a/include/linux/ext2_fs_sb.h
+@@ -33,6 +33,8 @@ struct ext2_sb_info {
+ 	unsigned long s_gdb_count;	/* Number of group descriptor blocks */
+ 	unsigned long s_desc_per_block;	/* Number of group descriptors per block */
+ 	unsigned long s_groups_count;	/* Number of groups in the fs */
++	unsigned long s_overhead_last;  /* Last calculated overhead */
++	unsigned long s_blocks_last;    /* Last seen block count */
+ 	struct buffer_head * s_sbh;	/* Buffer containing the super block */
+ 	struct ext2_super_block * s_es;	/* Pointer to the super block in the buffer */
+ 	struct buffer_head ** s_group_desc;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
 origin.patch
-git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-git-powerpc.patch
-git-dvb.patch
-git-hwmon.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-arch-i386-xen-mmuc-must-include-linux-schedh.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-xen-fix-x86-config-dependencies.patch
-xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
-xen-cant-support-numa-yet.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-handle-kernelcore=-generic.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-mm-slubc-make-code-static.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-proper-prototype-for-proc_nr_files.patch
-fs-reiserfs-cleanups.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-fbdev-move-arch-specific-bits-to-their-respective.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-drivers-video-macmodescmac_find_mode-mustnt-be.patch
-intel-iommu-intel-iommu-driver.patch
-mm-variable-length-argument-support.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-kernel-relayc-make-functions-static.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+ext3-convert-to-new-aops.patch
+ext4-convert-to-new-aops.patch
+fix-for-ext2-reservation.patch
