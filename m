@@ -1,122 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - amiserial-remove-incorrect-no-termios-change-check.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:59:06 -0700
-Message-ID: <200707162059.l6GKx6U6002400@imap1.linux-foundation.org>
+Subject: - ext4-statfs-speed-up.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:59:45 -0700
+Message-ID: <200707162059.l6GKxjjh002451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43954 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58475 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759292AbXGPVP2 (ORCPT
+	by vger.kernel.org with ESMTP id S1760008AbXGPVPY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:28 -0400
+	Mon, 16 Jul 2007 17:15:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: pbadari@us.ibm.com, adilger@clusterfs.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     amiserial: remove incorrect 'no termios change' check
+     ext4: statfs speed up
 has been removed from the -mm tree.  Its filename was
-     amiserial-remove-incorrect-no-termios-change-check.patch
+     ext4-statfs-speed-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: amiserial: remove incorrect 'no termios change' check
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: ext4: statfs speed up
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-Lots of serial drivers check and optimise for setting the termios values to
-the ones they were before.  This is pointless and the check is wrong
-anyway.  Remove the checks on the serial drivers.  If we ever do need such
-a check put it back in the tty layer instead _once_!
+This is a patch that speeds up statfs.  It is very simple - the "overhead"
+calculation, which takes a huge amount of time for large filesystems, never
+changes unless the size of the filesystem itself changes.  That means we can
+store it in memory and only recalculate if the filesystem has been resized
+(almost never).
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+It also fixes a minor problem that we never update the on-disk superblock free
+blocks/inodes counts until the filesystem is unmounted.  While not fatal, we
+may as well update that on disk when we have the information, and it makes
+things like debugfs and dumpe2fs report a bit more accurate info.
+
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: Andreas Dilger <adilger@clusterfs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/amiserial.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ fs/ext4/super.c            |   25 +++++++++++++++----------
+ include/linux/ext4_fs_sb.h |    2 ++
+ 2 files changed, 17 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/amiserial.c~amiserial-remove-incorrect-no-termios-change-check drivers/char/amiserial.c
---- a/drivers/char/amiserial.c~amiserial-remove-incorrect-no-termios-change-check
-+++ a/drivers/char/amiserial.c
-@@ -738,6 +738,7 @@ static void change_speed(struct async_st
+diff -puN fs/ext4/super.c~ext4-statfs-speed-up fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-statfs-speed-up
++++ a/fs/ext4/super.c
+@@ -2500,19 +2500,19 @@ static int ext4_statfs (struct dentry * 
+ 	struct super_block *sb = dentry->d_sb;
+ 	struct ext4_sb_info *sbi = EXT4_SB(sb);
+ 	struct ext4_super_block *es = sbi->s_es;
+-	ext4_fsblk_t overhead;
+-	int i;
+ 	u64 fsid;
+ 
+-	if (test_opt (sb, MINIX_DF))
+-		overhead = 0;
+-	else {
+-		unsigned long ngroups;
+-		ngroups = EXT4_SB(sb)->s_groups_count;
++	if (test_opt(sb, MINIX_DF)) {
++		sbi->s_overhead_last = 0;
++	} else if (sbi->s_blocks_last != le32_to_cpu(es->s_blocks_count)) {
++		unsigned long ngroups = sbi->s_groups_count, i;
++		ext4_fsblk_t overhead = 0;
+ 		smp_rmb();
+ 
+ 		/*
+-		 * Compute the overhead (FS structures)
++		 * Compute the overhead (FS structures).  This is constant
++		 * for a given filesystem unless the number of block groups
++		 * changes so we cache the previous value until it does.
+ 		 */
+ 
+ 		/*
+@@ -2536,18 +2536,23 @@ static int ext4_statfs (struct dentry * 
+ 		 * Every block group has an inode bitmap, a block
+ 		 * bitmap, and an inode table.
+ 		 */
+-		overhead += (ngroups * (2 + EXT4_SB(sb)->s_itb_per_group));
++		overhead += ngroups * (2 + sbi->s_itb_per_group);
++		sbi->s_overhead_last = overhead;
++		smp_wmb();
++		sbi->s_blocks_last = le32_to_cpu(es->s_blocks_count);
  	}
- 	/* If the quotient is zero refuse the change */
- 	if (!quot && old_termios) {
-+		/* FIXME: Will need updating for new tty in the end */
- 		info->tty->termios->c_cflag &= ~CBAUD;
- 		info->tty->termios->c_cflag |= (old_termios->c_cflag & CBAUD);
- 		baud = tty_get_baud_rate(info->tty);
-@@ -783,7 +784,6 @@ static void change_speed(struct async_st
- 	/*
- 	 * Set up parity check flag
- 	 */
--#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
  
- 	info->read_status_mask = UART_LSR_OE | UART_LSR_DR;
- 	if (I_INPCK(info->tty))
-@@ -1367,11 +1367,6 @@ static void rs_set_termios(struct tty_st
- 	unsigned long flags;
- 	unsigned int cflag = tty->termios->c_cflag;
- 
--	if (   (cflag == old_termios->c_cflag)
--	    && (   RELEVANT_IFLAG(tty->termios->c_iflag) 
--		== RELEVANT_IFLAG(old_termios->c_iflag)))
--	  return;
--
- 	change_speed(info, old_termios);
- 
- 	/* Handle transition to B0 status */
+ 	buf->f_type = EXT4_SUPER_MAGIC;
+ 	buf->f_bsize = sb->s_blocksize;
+-	buf->f_blocks = ext4_blocks_count(es) - overhead;
++	buf->f_blocks = ext4_blocks_count(es) - sbi->s_overhead_last;
+ 	buf->f_bfree = percpu_counter_sum(&sbi->s_freeblocks_counter);
++	es->s_free_blocks_count = cpu_to_le32(buf->f_bfree);
+ 	buf->f_bavail = buf->f_bfree - ext4_r_blocks_count(es);
+ 	if (buf->f_bfree < ext4_r_blocks_count(es))
+ 		buf->f_bavail = 0;
+ 	buf->f_files = le32_to_cpu(es->s_inodes_count);
+ 	buf->f_ffree = percpu_counter_sum(&sbi->s_freeinodes_counter);
++	es->s_free_inodes_count = cpu_to_le32(buf->f_ffree);
+ 	buf->f_namelen = EXT4_NAME_LEN;
+ 	fsid = le64_to_cpup((void *)es->s_uuid) ^
+ 	       le64_to_cpup((void *)es->s_uuid + sizeof(u64));
+diff -puN include/linux/ext4_fs_sb.h~ext4-statfs-speed-up include/linux/ext4_fs_sb.h
+--- a/include/linux/ext4_fs_sb.h~ext4-statfs-speed-up
++++ a/include/linux/ext4_fs_sb.h
+@@ -39,6 +39,8 @@ struct ext4_sb_info {
+ 	unsigned long s_gdb_count;	/* Number of group descriptor blocks */
+ 	unsigned long s_desc_per_block;	/* Number of group descriptors per block */
+ 	unsigned long s_groups_count;	/* Number of groups in the fs */
++	unsigned long s_overhead_last;  /* Last calculated overhead */
++	unsigned long s_blocks_last;    /* Last seen block count */
+ 	struct buffer_head * s_sbh;	/* Buffer containing the super block */
+ 	struct ext4_super_block * s_es;	/* Pointer to the super block in the buffer */
+ 	struct buffer_head ** s_group_desc;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
 origin.patch
-git-powerpc.patch
-git-ia64.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-sb1250-duartc-sb1250-duart-serial-support.patch
-mbcs-remove-lots-of-global-symbols.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
+ext3-convert-to-new-aops.patch
+ext4-convert-to-new-aops.patch
+fix-for-ext2-reservation.patch
