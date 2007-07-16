@@ -1,94 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-fix-git-rejects.patch added to -mm tree
-Date: Mon, 16 Jul 2007 12:32:27 -0700
-Message-ID: <200707161932.l6GJWRqp029018@imap1.linux-foundation.org>
+Subject: - authgss-build-fix.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:48:01 -0700
+Message-ID: <200707162048.l6GKm1JT001000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49658 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40313 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754562AbXGPTck (ORCPT
+	by vger.kernel.org with ESMTP id S1753281AbXGPUsX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 15:32:40 -0400
+	Mon, 16 Jul 2007 16:48:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org
+To: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi-fix-git-rejects
-has been added to the -mm tree.  Its filename is
-     git-acpi-fix-git-rejects.patch
+     authgss build fix
+has been removed from the -mm tree.  Its filename was
+     authgss-build-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-acpi-fix-git-rejects
+Subject: authgss build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Len Brown <lenb@kernel.org>
+Recent breakage..
+
+net/sunrpc/auth_gss/auth_gss.c:1002: warning: implicit declaration of function 'lock_kernel'
+net/sunrpc/auth_gss/auth_gss.c:1004: warning: implicit declaration of function 'unlock_kernel'
+
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c         |    8 --------
- include/asm-ia64/pci.h |    9 ---------
- 2 files changed, 17 deletions(-)
+ net/sunrpc/auth_gss/auth_gss.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/sysfs/bin.c~git-acpi-fix-git-rejects fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~git-acpi-fix-git-rejects
-+++ a/fs/sysfs/bin.c
-@@ -44,11 +44,7 @@ fill_read(struct dentry *dentry, char *b
- 
- 	sysfs_put_active_two(attr_sd);
- 
--<<<<<<< HEAD/fs/sysfs/bin.c
--	return rc;
--=======
- 	return attr->read(kobj, attr, buffer, off, count);
-->>>>>>> /fs/sysfs/bin.c
- }
- 
- static ssize_t
-@@ -105,11 +101,7 @@ flush_write(struct dentry *dentry, char 
- 
- 	sysfs_put_active_two(attr_sd);
- 
--<<<<<<< HEAD/fs/sysfs/bin.c
--	return rc;
--=======
- 	return attr->write(kobj, attr, buffer, offset, count);
-->>>>>>> /fs/sysfs/bin.c
- }
- 
- static ssize_t write(struct file *file, const char __user *userbuf,
-diff -puN include/asm-ia64/pci.h~git-acpi-fix-git-rejects include/asm-ia64/pci.h
---- a/include/asm-ia64/pci.h~git-acpi-fix-git-rejects
-+++ a/include/asm-ia64/pci.h
-@@ -98,21 +98,12 @@ extern int pci_mmap_page_range (struct p
- #define HAVE_PCI_LEGACY
- extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
- 				      struct vm_area_struct *vma);
--<<<<<<< HEAD/include/asm-ia64/pci.h
--extern ssize_t pci_read_legacy_io(struct kobject *kobj,
--				  struct bin_attribute *bin_attr,
--				  char *buf, loff_t off, size_t count);
--extern ssize_t pci_write_legacy_io(struct kobject *kobj,
--				   struct bin_attribute *bin_attr,
--				   char *buf, loff_t off, size_t count);
--=======
- extern ssize_t pci_read_legacy_io(struct kobject *kobj,
- 			struct bin_attribute *bin_attr, char *buf,
- 			loff_t off, size_t count);
- extern ssize_t pci_write_legacy_io(struct kobject *kobj,
- 			struct bin_attribute *bin_attr, char *buf,
- 			loff_t off, size_t count);
-->>>>>>> /include/asm-ia64/pci.h
- extern int pci_mmap_legacy_mem(struct kobject *kobj,
- 			       struct bin_attribute *attr,
- 			       struct vm_area_struct *vma);
+diff -puN net/sunrpc/auth_gss/auth_gss.c~authgss-build-fix net/sunrpc/auth_gss/auth_gss.c
+--- a/net/sunrpc/auth_gss/auth_gss.c~authgss-build-fix
++++ a/net/sunrpc/auth_gss/auth_gss.c
+@@ -43,6 +43,7 @@
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
++#include <linux/smp_lock.h>
+ #include <linux/pagemap.h>
+ #include <linux/sunrpc/clnt.h>
+ #include <linux/sunrpc/auth.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,10 +79,7 @@ e1000new-build-fix.patch
 e1000new-build-fix-2.patch
 git-ocfs2-fixup.patch
 revert-gregkh-pci-pci_bridge-device.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-vs-greg-sysfs-stuff.patch
 aacraid-rename-check_reset.patch
-git-block-fixup.patch
 git-unionfs.patch
 git-block-vs-git-unionfs.patch
 git-watchdog.patch
