@@ -1,283 +1,425 @@
 From: akpm@linux-foundation.org
-Subject: - pie-randomization.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:54:21 -0700
-Message-ID: <200707162054.l6GKsL3M001793@imap1.linux-foundation.org>
+Subject: - kernel-utf-8-handling.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:55:51 -0700
+Message-ID: <200707162055.l6GKtpaE001970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38146 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35804 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752351AbXGPVg4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752351AbXGPVg6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:36:56 -0400
+	Mon, 16 Jul 2007 17:36:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: honza@jikos.cz, jakub@redhat.com, jkosina@suse.cz, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, adaplas@pol.net, bunk@stusta.de, dtor@mail.ru, dwmw2@infradead.org, jengelh@gmx.de, patrakov@ums.usu.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PIE randomization
+     Kernel utf-8 handling
 has been removed from the -mm tree.  Its filename was
-     pie-randomization.patch
+     kernel-utf-8-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PIE randomization
-From: Jan Kratochvil <honza@jikos.cz>
+Subject: Kernel utf-8 handling
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-This patch is using mmap()'s randomization functionality in such a way that
-it maps the main executable of (specially compiled/linked -pie/-fpie)
-ET_DYN binaries onto a random address (in cases in which mmap() is allowed
-to perform a randomization).
+This patch fixes dead keys and copy/paste of non-ASCII characters in UTF-8
+mode on Linux console.  See more details about the original patch at:
+http://chris.heathens.co.nz/linux/utf8.html
 
-Origin of this patch is in exec-shield
-(http://people.redhat.com/mingo/exec-shield/)
+Already posted on
+	(Oldest) http://lkml.org/lkml/2003/5/31/148
+	         http://lkml.org/lkml/2005/12/24/69
+	(Recent) http://lkml.org/lkml/2006/8/7/75
 
-[jkosina@suse.cz: pie randomization: fix BAD_ADDR macro]
-Signed-off-by: Jan Kratochvil <honza@jikos.cz>
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+[bunk@stusta.de: make drivers/char/selection.c:store_utf8() static]
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Alexander E. Patrakov <patrakov@ums.usu.ru>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/ia32/binfmt_elf32.c |    2 
- fs/binfmt_elf.c               |  109 +++++++++++++++++++++++++-------
- 2 files changed, 87 insertions(+), 24 deletions(-)
+ drivers/char/consolemap.c  |   78 ++++++++++++++++++++++++++++++++---
+ drivers/char/keyboard.c    |   26 ++++++++---
+ drivers/char/selection.c   |   48 +++++++++++++++++----
+ include/linux/consolemap.h |    5 +-
+ 4 files changed, 134 insertions(+), 23 deletions(-)
 
-diff -puN arch/ia64/ia32/binfmt_elf32.c~pie-randomization arch/ia64/ia32/binfmt_elf32.c
---- a/arch/ia64/ia32/binfmt_elf32.c~pie-randomization
-+++ a/arch/ia64/ia32/binfmt_elf32.c
-@@ -261,7 +261,7 @@ elf32_set_personality (void)
- }
- 
- static unsigned long
--elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type)
-+elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type, unsigned long unused)
- {
- 	unsigned long pgoff = (eppnt->p_vaddr) & ~IA32_PAGE_MASK;
- 
-diff -puN fs/binfmt_elf.c~pie-randomization fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~pie-randomization
-+++ a/fs/binfmt_elf.c
-@@ -45,7 +45,7 @@
- 
- static int load_elf_binary(struct linux_binprm *bprm, struct pt_regs *regs);
- static int load_elf_library(struct file *);
--static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int);
-+static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int, unsigned long);
- 
- /*
-  * If we don't support core dumping, then supply a NULL so we
-@@ -80,7 +80,7 @@ static struct linux_binfmt elf_format = 
- 		.hasvdso	= 1
+diff -puN drivers/char/consolemap.c~kernel-utf-8-handling drivers/char/consolemap.c
+--- a/drivers/char/consolemap.c~kernel-utf-8-handling
++++ a/drivers/char/consolemap.c
+@@ -177,6 +177,7 @@ struct uni_pagedir {
+ 	unsigned long	refcount;
+ 	unsigned long	sum;
+ 	unsigned char	*inverse_translations[4];
++	u16		*inverse_trans_unicode;
+ 	int		readonly;
  };
  
--#define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
-+#define BAD_ADDR(x) IS_ERR_VALUE(x)
- 
- static int set_brk(unsigned long start, unsigned long end)
- {
-@@ -285,33 +285,70 @@ create_elf_tables(struct linux_binprm *b
- #ifndef elf_map
- 
- static unsigned long elf_map(struct file *filep, unsigned long addr,
--		struct elf_phdr *eppnt, int prot, int type)
-+		struct elf_phdr *eppnt, int prot, int type,
-+		unsigned long total_size)
- {
- 	unsigned long map_addr;
--	unsigned long pageoffset = ELF_PAGEOFFSET(eppnt->p_vaddr);
-+	unsigned long size = eppnt->p_filesz + ELF_PAGEOFFSET(eppnt->p_vaddr);
-+	unsigned long off = eppnt->p_offset - ELF_PAGEOFFSET(eppnt->p_vaddr);
-+	addr = ELF_PAGESTART(addr);
-+	size = ELF_PAGEALIGN(size);
- 
--	down_write(&current->mm->mmap_sem);
- 	/* mmap() will return -EINVAL if given a zero size, but a
- 	 * segment with zero filesize is perfectly valid */
--	if (eppnt->p_filesz + pageoffset)
--		map_addr = do_mmap(filep, ELF_PAGESTART(addr),
--				   eppnt->p_filesz + pageoffset, prot, type,
--				   eppnt->p_offset - pageoffset);
--	else
--		map_addr = ELF_PAGESTART(addr);
-+	if (!size)
-+		return addr;
-+
-+	down_write(&current->mm->mmap_sem);
-+	/*
-+	* total_size is the size of the ELF (interpreter) image.
-+	* The _first_ mmap needs to know the full size, otherwise
-+	* randomization might put this image into an overlapping
-+	* position with the ELF binary image. (since size < total_size)
-+	* So we first map the 'big' image - and unmap the remainder at
-+	* the end. (which unmap is needed for ELF images with holes.)
-+	*/
-+	if (total_size) {
-+		total_size = ELF_PAGEALIGN(total_size);
-+		map_addr = do_mmap(filep, addr, total_size, prot, type, off);
-+		if (!BAD_ADDR(map_addr))
-+			do_munmap(current->mm, map_addr+size, total_size-size);
-+	} else
-+		map_addr = do_mmap(filep, addr, size, prot, type, off);
-+
- 	up_write(&current->mm->mmap_sem);
- 	return(map_addr);
+@@ -207,6 +208,41 @@ static void set_inverse_transl(struct vc
+ 	}
  }
  
- #endif /* !elf_map */
- 
-+static unsigned long total_mapping_size(struct elf_phdr *cmds, int nr)
++static void set_inverse_trans_unicode(struct vc_data *conp,
++				      struct uni_pagedir *p)
 +{
-+	int i, first_idx = -1, last_idx = -1;
++	int i, j, k, glyph;
++	u16 **p1, *p2;
++	u16 *q;
 +
-+	for (i = 0; i < nr; i++) {
-+		if (cmds[i].p_type == PT_LOAD) {
-+			last_idx = i;
-+			if (first_idx == -1)
-+				first_idx = i;
-+		}
++	if (!p) return;
++	q = p->inverse_trans_unicode;
++	if (!q) {
++		q = p->inverse_trans_unicode =
++			kmalloc(MAX_GLYPH * sizeof(u16), GFP_KERNEL);
++		if (!q)
++			return;
 +	}
-+	if (first_idx == -1)
-+		return 0;
++	memset(q, 0, MAX_GLYPH * sizeof(u16));
 +
-+	return cmds[last_idx].p_vaddr + cmds[last_idx].p_memsz -
-+				ELF_PAGESTART(cmds[first_idx].p_vaddr);
-+}
-+
-+
- /* This is much more generalized than the library routine read function,
-    so we keep this separate.  Technically the library read function
-    is only provided so that we can read a.out libraries that have
-    an ELF header */
- 
- static unsigned long load_elf_interp(struct elfhdr *interp_elf_ex,
--		struct file *interpreter, unsigned long *interp_load_addr)
-+		struct file *interpreter, unsigned long *interp_map_addr,
-+		unsigned long no_base)
- {
- 	struct elf_phdr *elf_phdata;
- 	struct elf_phdr *eppnt;
-@@ -319,6 +356,7 @@ static unsigned long load_elf_interp(str
- 	int load_addr_set = 0;
- 	unsigned long last_bss = 0, elf_bss = 0;
- 	unsigned long error = ~0UL;
-+	unsigned long total_size;
- 	int retval, i, size;
- 
- 	/* First of all, some simple consistency checks */
-@@ -357,6 +395,12 @@ static unsigned long load_elf_interp(str
- 		goto out_close;
- 	}
- 
-+	total_size = total_mapping_size(elf_phdata, interp_elf_ex->e_phnum);
-+	if (!total_size) {
-+		error = -EINVAL;
-+		goto out_close;
-+	}
-+
- 	eppnt = elf_phdata;
- 	for (i = 0; i < interp_elf_ex->e_phnum; i++, eppnt++) {
- 		if (eppnt->p_type == PT_LOAD) {
-@@ -374,9 +418,14 @@ static unsigned long load_elf_interp(str
- 			vaddr = eppnt->p_vaddr;
- 			if (interp_elf_ex->e_type == ET_EXEC || load_addr_set)
- 				elf_type |= MAP_FIXED;
-+			else if (no_base && interp_elf_ex->e_type == ET_DYN)
-+				load_addr = -vaddr;
- 
- 			map_addr = elf_map(interpreter, load_addr + vaddr,
--					   eppnt, elf_prot, elf_type);
-+					   eppnt, elf_prot, elf_type, total_size);
-+			total_size = 0;
-+			if (!*interp_map_addr)
-+				*interp_map_addr = map_addr;
- 			error = map_addr;
- 			if (BAD_ADDR(map_addr))
- 				goto out_close;
-@@ -442,8 +491,7 @@ static unsigned long load_elf_interp(str
- 			goto out_close;
- 	}
- 
--	*interp_load_addr = load_addr;
--	error = ((unsigned long)interp_elf_ex->e_entry) + load_addr;
-+	error = load_addr;
- 
- out_close:
- 	kfree(elf_phdata);
-@@ -540,7 +588,8 @@ static int load_elf_binary(struct linux_
- 	int elf_exec_fileno;
- 	int retval, i;
- 	unsigned int size;
--	unsigned long elf_entry, interp_load_addr = 0;
-+	unsigned long elf_entry;
-+	unsigned long interp_load_addr = 0;
- 	unsigned long start_code, end_code, start_data, end_data;
- 	unsigned long reloc_func_desc = 0;
- 	char passed_fileno[6];
-@@ -808,9 +857,7 @@ static int load_elf_binary(struct linux_
- 	current->mm->start_stack = bprm->p;
- 
- 	/* Now we do a little grungy work by mmaping the ELF image into
--	   the correct location in memory.  At this point, we assume that
--	   the image should be loaded at fixed address, not at a variable
--	   address. */
-+	   the correct location in memory. */
- 	for(i = 0, elf_ppnt = elf_phdata;
- 	    i < loc->elf_ex.e_phnum; i++, elf_ppnt++) {
- 		int elf_prot = 0, elf_flags;
-@@ -864,11 +911,15 @@ static int load_elf_binary(struct linux_
- 			 * default mmap base, as well as whatever program they
- 			 * might try to exec.  This is because the brk will
- 			 * follow the loader, and is not movable.  */
-+#ifdef CONFIG_X86
-+			load_bias = 0;
-+#else
- 			load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
-+#endif
- 		}
- 
- 		error = elf_map(bprm->file, load_bias + vaddr, elf_ppnt,
--				elf_prot, elf_flags);
-+				elf_prot, elf_flags,0);
- 		if (BAD_ADDR(error)) {
- 			send_sig(SIGKILL, current, 0);
- 			retval = IS_ERR((void *)error) ?
-@@ -944,13 +995,25 @@ static int load_elf_binary(struct linux_
- 	}
- 
- 	if (elf_interpreter) {
--		if (interpreter_type == INTERPRETER_AOUT)
-+		if (interpreter_type == INTERPRETER_AOUT) {
- 			elf_entry = load_aout_interp(&loc->interp_ex,
- 						     interpreter);
--		else
-+		} else {
-+			unsigned long interp_map_addr;	/* unused */
-+
- 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
- 						    interpreter,
--						    &interp_load_addr);
-+						    &interp_map_addr,
-+						    load_bias);
-+			if (!BAD_ADDR(elf_entry)) {
-+				/*
-+				 * load_elf_interp() returns relocation
-+				 * adjustment
-+				 */
-+				interp_load_addr = elf_entry;
-+				elf_entry += loc->interp_elf_ex.e_entry;
++	for (i = 0; i < 32; i++) {
++		p1 = p->uni_pgdir[i];
++		if (!p1)
++			continue;
++		for (j = 0; j < 32; j++) {
++			p2 = p1[j];
++			if (!p2)
++				continue;
++			for (k = 0; k < 64; k++) {
++				glyph = p2[k];
++				if (glyph >= 0 && glyph < MAX_GLYPH
++					       && q[glyph] < 32)
++		  			q[glyph] = (i << 11) + (j << 6) + k;
 +			}
 +		}
- 		if (BAD_ADDR(elf_entry)) {
- 			force_sig(SIGSEGV, current);
- 			retval = IS_ERR((void *)elf_entry) ?
++	}
++}
++
+ unsigned short *set_translate(int m, struct vc_data *vc)
+ {
+ 	inv_translate[vc->vc_num] = m;
+@@ -217,19 +253,29 @@ unsigned short *set_translate(int m, str
+  * Inverse translation is impossible for several reasons:
+  * 1. The font<->character maps are not 1-1.
+  * 2. The text may have been written while a different translation map
+- *    was active, or using Unicode.
++ *    was active.
+  * Still, it is now possible to a certain extent to cut and paste non-ASCII.
+  */
+-unsigned char inverse_translate(struct vc_data *conp, int glyph)
++u16 inverse_translate(struct vc_data *conp, int glyph, int use_unicode)
+ {
+ 	struct uni_pagedir *p;
++	int m;
+ 	if (glyph < 0 || glyph >= MAX_GLYPH)
+ 		return 0;
+-	else if (!(p = (struct uni_pagedir *)*conp->vc_uni_pagedir_loc) ||
+-		 !p->inverse_translations[inv_translate[conp->vc_num]])
++	else if (!(p = (struct uni_pagedir *)*conp->vc_uni_pagedir_loc))
+ 		return glyph;
+-	else
+-		return p->inverse_translations[inv_translate[conp->vc_num]][glyph];
++	else if (use_unicode) {
++		if (!p->inverse_trans_unicode)
++			return glyph;
++		else
++			return p->inverse_trans_unicode[glyph];
++	} else {
++		m = inv_translate[conp->vc_num];
++		if (!p->inverse_translations[m])
++			return glyph;
++		else
++			return p->inverse_translations[m][glyph];
++	}
+ }
+ 
+ static void update_user_maps(void)
+@@ -243,6 +289,7 @@ static void update_user_maps(void)
+ 		p = (struct uni_pagedir *)*vc_cons[i].d->vc_uni_pagedir_loc;
+ 		if (p && p != q) {
+ 			set_inverse_transl(vc_cons[i].d, p, USER_MAP);
++			set_inverse_trans_unicode(vc_cons[i].d, p);
+ 			q = p;
+ 		}
+ 	}
+@@ -353,6 +400,10 @@ static void con_release_unimap(struct un
+ 		kfree(p->inverse_translations[i]);
+ 		p->inverse_translations[i] = NULL;
+ 	}
++	if (p->inverse_trans_unicode) {
++		kfree(p->inverse_trans_unicode);
++		p->inverse_trans_unicode = NULL;
++	}
+ }
+ 
+ void con_free_unimap(struct vc_data *vc)
+@@ -511,6 +562,7 @@ int con_set_unimap(struct vc_data *vc, u
+ 
+ 	for (i = 0; i <= 3; i++)
+ 		set_inverse_transl(vc, p, i); /* Update all inverse translations */
++	set_inverse_trans_unicode(vc, p);
+   
+ 	return err;
+ }
+@@ -561,6 +613,7 @@ int con_set_default_unimap(struct vc_dat
+ 
+ 	for (i = 0; i <= 3; i++)
+ 		set_inverse_transl(vc, p, i);	/* Update all inverse translations */
++	set_inverse_trans_unicode(vc, p);
+ 	dflt = p;
+ 	return err;
+ }
+@@ -617,6 +670,19 @@ void con_protect_unimap(struct vc_data *
+ 		p->readonly = rdonly;
+ }
+ 
++/* may be called during an interrupt */
++u32 conv_8bit_to_uni(unsigned char c)
++{
++	/*
++	 * Always use USER_MAP. This function is used by the keyboard,
++	 * which shouldn't be affected by G0/G1 switching, etc.
++	 * If the user map still contains default values, i.e. the
++	 * direct-to-font mapping, then assume user is using Latin1.
++	 */
++	unsigned short uni = translations[USER_MAP][c];
++	return uni == (0xf000 | c) ? c : uni;
++}
++
+ int
+ conv_uni_to_pc(struct vc_data *conp, long ucs) 
+ {
+diff -puN drivers/char/keyboard.c~kernel-utf-8-handling drivers/char/keyboard.c
+--- a/drivers/char/keyboard.c~kernel-utf-8-handling
++++ a/drivers/char/keyboard.c
+@@ -24,6 +24,7 @@
+  * 21-08-02: Converted to input API, major cleanup. (Vojtech Pavlik)
+  */
+ 
++#include <linux/consolemap.h>
+ #include <linux/module.h>
+ #include <linux/sched.h>
+ #include <linux/tty.h>
+@@ -308,10 +309,9 @@ static void applkey(struct vc_data *vc, 
+  * Many other routines do put_queue, but I think either
+  * they produce ASCII, or they produce some user-assigned
+  * string, and in both cases we might assume that it is
+- * in utf-8 already. UTF-8 is defined for words of up to 31 bits,
+- * but we need only 16 bits here
++ * in utf-8 already.
+  */
+-static void to_utf8(struct vc_data *vc, ushort c)
++static void to_utf8(struct vc_data *vc, uint c)
+ {
+ 	if (c < 0x80)
+ 		/*  0******* */
+@@ -320,11 +320,21 @@ static void to_utf8(struct vc_data *vc, 
+ 		/* 110***** 10****** */
+ 		put_queue(vc, 0xc0 | (c >> 6));
+ 		put_queue(vc, 0x80 | (c & 0x3f));
+-	} else {
++    	} else if (c < 0x10000) {
++	       	if (c >= 0xD800 && c < 0xE000)
++			return;
++		if (c == 0xFFFF)
++			return;
+ 		/* 1110**** 10****** 10****** */
+ 		put_queue(vc, 0xe0 | (c >> 12));
+ 		put_queue(vc, 0x80 | ((c >> 6) & 0x3f));
+ 		put_queue(vc, 0x80 | (c & 0x3f));
++    	} else if (c < 0x110000) {
++		/* 11110*** 10****** 10****** 10****** */
++		put_queue(vc, 0xf0 | (c >> 18));
++		put_queue(vc, 0x80 | ((c >> 12) & 0x3f));
++		put_queue(vc, 0x80 | ((c >> 6) & 0x3f));
++		put_queue(vc, 0x80 | (c & 0x3f));
+ 	}
+ }
+ 
+@@ -393,7 +403,7 @@ static unsigned int handle_diacr(struct 
+ 		return d;
+ 
+ 	if (kbd->kbdmode == VC_UNICODE)
+-		to_utf8(vc, d);
++		to_utf8(vc, conv_8bit_to_uni(d));
+ 	else if (d < 0x100)
+ 		put_queue(vc, d);
+ 
+@@ -407,7 +417,7 @@ static void fn_enter(struct vc_data *vc)
+ {
+ 	if (diacr) {
+ 		if (kbd->kbdmode == VC_UNICODE)
+-			to_utf8(vc, diacr);
++			to_utf8(vc, conv_8bit_to_uni(diacr));
+ 		else if (diacr < 0x100)
+ 			put_queue(vc, diacr);
+ 		diacr = 0;
+@@ -617,7 +627,7 @@ static void k_unicode(struct vc_data *vc
+ 		return;
+ 	}
+ 	if (kbd->kbdmode == VC_UNICODE)
+-		to_utf8(vc, value);
++		to_utf8(vc, conv_8bit_to_uni(value));
+ 	else if (value < 0x100)
+ 		put_queue(vc, value);
+ }
+@@ -775,7 +785,7 @@ static void k_shift(struct vc_data *vc, 
+ 	/* kludge */
+ 	if (up_flag && shift_state != old_state && npadch != -1) {
+ 		if (kbd->kbdmode == VC_UNICODE)
+-			to_utf8(vc, npadch & 0xffff);
++			to_utf8(vc, npadch);
+ 		else
+ 			put_queue(vc, npadch & 0xff);
+ 		npadch = -1;
+diff -puN drivers/char/selection.c~kernel-utf-8-handling drivers/char/selection.c
+--- a/drivers/char/selection.c~kernel-utf-8-handling
++++ a/drivers/char/selection.c
+@@ -20,6 +20,7 @@
+ 
+ #include <asm/uaccess.h>
+ 
++#include <linux/kbd_kern.h>
+ #include <linux/vt_kern.h>
+ #include <linux/consolemap.h>
+ #include <linux/selection.h>
+@@ -34,6 +35,7 @@ extern void poke_blanked_console(void);
+ /* Variables for selection control. */
+ /* Use a dynamic buffer, instead of static (Dec 1994) */
+ struct vc_data *sel_cons;		/* must not be deallocated */
++static int use_unicode;
+ static volatile int sel_start = -1; 	/* cleared by clear_selection */
+ static int sel_end;
+ static int sel_buffer_lth;
+@@ -54,10 +56,11 @@ static inline void highlight_pointer(con
+ 	complement_pos(sel_cons, where);
+ }
+ 
+-static unsigned char
++static u16
+ sel_pos(int n)
+ {
+-	return inverse_translate(sel_cons, screen_glyph(sel_cons, n));
++	return inverse_translate(sel_cons, screen_glyph(sel_cons, n),
++				use_unicode);
+ }
+ 
+ /* remove the current selection highlight, if any,
+@@ -86,8 +89,8 @@ static u32 inwordLut[8]={
+   0xFF7FFFFF  /* latin-1 accented letters, not division sign */
+ };
+ 
+-static inline int inword(const unsigned char c) {
+-	return ( inwordLut[c>>5] >> (c & 0x1F) ) & 1;
++static inline int inword(const u16 c) {
++	return c > 0xff || (( inwordLut[c>>5] >> (c & 0x1F) ) & 1);
+ }
+ 
+ /* set inwordLut contents. Invoked by ioctl(). */
+@@ -108,13 +111,36 @@ static inline unsigned short limit(const
+ 	return (v > u) ? u : v;
+ }
+ 
++/* stores the char in UTF8 and returns the number of bytes used (1-3) */
++static int store_utf8(u16 c, char *p)
++{
++	if (c < 0x80) {
++		/*  0******* */
++		p[0] = c;
++		return 1;
++	} else if (c < 0x800) {
++		/* 110***** 10****** */
++		p[0] = 0xc0 | (c >> 6);
++		p[1] = 0x80 | (c & 0x3f);
++		return 2;
++    	} else {
++		/* 1110**** 10****** 10****** */
++		p[0] = 0xe0 | (c >> 12);
++		p[1] = 0x80 | ((c >> 6) & 0x3f);
++		p[2] = 0x80 | (c & 0x3f);
++		return 3;
++    	}
++}
++
+ /* set the current selection. Invoked by ioctl() or by kernel code. */
+ int set_selection(const struct tiocl_selection __user *sel, struct tty_struct *tty)
+ {
+ 	struct vc_data *vc = vc_cons[fg_console].d;
+ 	int sel_mode, new_sel_start, new_sel_end, spc;
+ 	char *bp, *obp;
+-	int i, ps, pe;
++	int i, ps, pe, multiplier;
++	u16 c;
++	struct kbd_struct *kbd = kbd_table + fg_console;
+ 
+ 	poke_blanked_console();
+ 
+@@ -158,6 +184,7 @@ int set_selection(const struct tiocl_sel
+ 		clear_selection();
+ 		sel_cons = vc_cons[fg_console].d;
+ 	}
++	use_unicode = kbd && kbd->kbdmode == VC_UNICODE;
+ 
+ 	switch (sel_mode)
+ 	{
+@@ -240,7 +267,8 @@ int set_selection(const struct tiocl_sel
+ 	sel_end = new_sel_end;
+ 
+ 	/* Allocate a new buffer before freeing the old one ... */
+-	bp = kmalloc((sel_end-sel_start)/2+1, GFP_KERNEL);
++	multiplier = use_unicode ? 3 : 1;  /* chars can take up to 3 bytes */
++	bp = kmalloc((sel_end-sel_start)/2*multiplier+1, GFP_KERNEL);
+ 	if (!bp) {
+ 		printk(KERN_WARNING "selection: kmalloc() failed\n");
+ 		clear_selection();
+@@ -251,8 +279,12 @@ int set_selection(const struct tiocl_sel
+ 
+ 	obp = bp;
+ 	for (i = sel_start; i <= sel_end; i += 2) {
+-		*bp = sel_pos(i);
+-		if (!isspace(*bp++))
++		c = sel_pos(i);
++		if (use_unicode)
++			bp += store_utf8(c, bp);
++		else
++			*bp++ = c;
++		if (!isspace(c))
+ 			obp = bp;
+ 		if (! ((i + 2) % vc->vc_size_row)) {
+ 			/* strip trailing blanks from line and add newline,
+diff -puN include/linux/consolemap.h~kernel-utf-8-handling include/linux/consolemap.h
+--- a/include/linux/consolemap.h~kernel-utf-8-handling
++++ a/include/linux/consolemap.h
+@@ -8,9 +8,12 @@
+ #define IBMPC_MAP 2
+ #define USER_MAP 3
+ 
++#include <linux/types.h>
++
+ struct vc_data;
+ 
+-extern unsigned char inverse_translate(struct vc_data *conp, int glyph);
++extern u16 inverse_translate(struct vc_data *conp, int glyph, int use_unicode);
+ extern unsigned short *set_translate(int m, struct vc_data *vc);
+ extern int conv_uni_to_pc(struct vc_data *conp, long ucs);
++extern u32 conv_8bit_to_uni(unsigned char c);
+ void console_map_init(void);
 _
 
-Patches currently in -mm which might be from honza@jikos.cz are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
-git-input.patch
+git-acpi.patch
+git-kvm.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
+use-menuconfig-objects-ii-md.patch
