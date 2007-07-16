@@ -1,90 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 14:00:08 -0700
-Message-ID: <200707162100.l6GL0815002575@imap1.linux-foundation.org>
+Subject: - fs-namespacec-should-include-internalh.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:56 -0700
+Message-ID: <200707162057.l6GKvuAA002239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56936 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38537 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755933AbXGPVIc (ORCPT
+	by vger.kernel.org with ESMTP id S1755186AbXGPVIx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:08:32 -0400
+	Mon, 16 Jul 2007 17:08:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmitry@butskoy.name, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: MSG_ERRQUEUE messages do not pass to connected raw sockets
+     fs/namespace.c should #include "internal.h"
 has been removed from the -mm tree.  Its filename was
-     net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets.patch
+     fs-namespacec-should-include-internalh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net: MSG_ERRQUEUE messages do not pass to connected raw sockets
-From: Dmitry Butskoy <dmitry@butskoy.name>
+Subject: fs/namespace.c should #include "internal.h"
+From: Adrian Bunk <bunk@stusta.de>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8747
+Every file should include the headers containing the prototypes for
+its global functions.
 
-Problem Description:
-
-It is related to the possibility to obtain MSG_ERRQUEUE messages from the udp
-and raw sockets, both connected and unconnected.
-
-There is a little typo in net/ipv6/icmp.c code, which prevents such messages
-to be delivered to the errqueue of the correspond raw socket, when the socket
-is CONNECTED.  The typo is due to swap of local/remote addresses.
-
-Consider __raw_v6_lookup() function from net/ipv6/raw.c. When a raw socket is
-looked up usual way, it is something like:
-
-sk = __raw_v6_lookup(sk, nexthdr, daddr, saddr, IP6CB(skb)->iif);
-
-where "daddr" is a destination address of the incoming packet (IOW our local
-address), "saddr" is a source address of the incoming packet (the remote end).
-
-But when the raw socket is looked up for some icmp error report, in
-net/ipv6/icmp.c:icmpv6_notify() , daddr/saddr are obtained from the echoed
-fragment of the "bad" packet, i.e.  "daddr" is the original destination
-address of that packet, "saddr" is our local address.  Hence, for
-icmpv6_notify() must use "saddr, daddr" in its arguments, not "daddr, saddr"
-...
-
-Steps to reproduce:
-
-Create some raw socket, connect it to an address, and cause some error
-situation: f.e. set ttl=1 where the remote address is more than 1 hop to reach.
-Set IPV6_RECVERR .
-Then send something and wait for the error (f.e. poll() with POLLERR|POLLIN).
-You should receive "time exceeded" icmp message (because of "ttl=1"), but the
-socket do not receive it.
-
-If you do not connect your raw socket, you will receive MSG_ERRQUEUE
-successfully.  (The reason is that for unconnected socket there are no actual
-checks for local/remote addresses).
-
-
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv6/icmp.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/namespace.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/ipv6/icmp.c~net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets net/ipv6/icmp.c
---- a/net/ipv6/icmp.c~net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets
-+++ a/net/ipv6/icmp.c
-@@ -604,7 +604,7 @@ static void icmpv6_notify(struct sk_buff
+diff -puN fs/namespace.c~fs-namespacec-should-include-internalh fs/namespace.c
+--- a/fs/namespace.c~fs-namespacec-should-include-internalh
++++ a/fs/namespace.c
+@@ -28,6 +28,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+ #include "pnode.h"
++#include "internal.h"
  
- 	read_lock(&raw_v6_lock);
- 	if ((sk = sk_head(&raw_v6_htable[hash])) != NULL) {
--		while((sk = __raw_v6_lookup(sk, nexthdr, daddr, saddr,
-+		while ((sk = __raw_v6_lookup(sk, nexthdr, saddr, daddr,
- 					    IP6CB(skb)->iif))) {
- 			rawv6_err(sk, skb, NULL, type, code, inner_offset, info);
- 			sk = sk_next(sk);
+ /* spinlock for vfsmount related operations, inplace of dcache_lock */
+ __cacheline_aligned_in_smp DEFINE_SPINLOCK(vfsmount_lock);
 _
 
-Patches currently in -mm which might be from dmitry@butskoy.name are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+git-powerpc.patch
+git-dvb.patch
+git-hwmon.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+arch-i386-xen-mmuc-must-include-linux-schedh.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+xen-fix-x86-config-dependencies.patch
+xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
+xen-cant-support-numa-yet.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+handle-kernelcore=-generic.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+mm-slubc-make-code-static.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+proper-prototype-for-proc_nr_files.patch
+fs-reiserfs-cleanups.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+remove-options-depending-on-oss_obsolete.patch
+fbdev-move-arch-specific-bits-to-their-respective.patch
+pm3fb-possible-cleanups.patch
+vt8623fbc-make-code-static.patch
+drivers-video-macmodescmac_find_mode-mustnt-be.patch
+intel-iommu-intel-iommu-driver.patch
+mm-variable-length-argument-support.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+kernel-relayc-make-functions-static.patch
+drivers-edac-core-make-functions-static.patch
+lockstat-human-readability-tweaks.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
