@@ -1,143 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - h8300-zimage-support-update.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:30 -0700
-Message-ID: <200707162050.l6GKoUOL001318@imap1.linux-foundation.org>
+Subject: - fat-gcc-43-warning-fix.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:53:56 -0700
+Message-ID: <200707162053.l6GKruNW001691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45809 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52547 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756453AbXGPVUb (ORCPT
+	by vger.kernel.org with ESMTP id S1754108AbXGPVUj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:20:31 -0400
+	Mon, 16 Jul 2007 17:20:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     h8300 zImage support update
+     fat: gcc 4.3 warning fix
 has been removed from the -mm tree.  Its filename was
-     h8300-zimage-support-update.patch
+     fat-gcc-43-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: h8300 zImage support update
-From: Yoshinori Sato <ysato@users.sourceforge.jp>
+Subject: fat: gcc 4.3 warning fix
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-- Add missing files
-- Add Makefile target
-- Change image base
-- Style fix
+This patch fixes the following warnings.
 
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+fs/fat/dir.c: In function 'fat_parse_long':
+include/linux/msdos_fs.h:294: warning: array subscript is above array bounds
+include/linux/msdos_fs.h:295: warning: array subscript is above array bounds
+include/linux/msdos_fs.h:295: warning: array subscript is above array bounds
+
+The ->name is defined as "name[8], ext[3]", but fat_checksum() uses
+those as name[11]. There is no actual problem, but it's not a good manner.
+
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/Makefile                    |    7 ++---
- arch/h8300/boot/compressed/Makefile    |    4 +-
- arch/h8300/boot/compressed/head.S      |    2 -
- arch/h8300/boot/compressed/vmlinux.lds |   32 +++++++++++++++++++++++
- arch/h8300/boot/compressed/vmlinux.scr |    9 ++++++
- 5 files changed, 48 insertions(+), 6 deletions(-)
+ fs/fat/dir.c             |   31 ++++++++++++++++++-------------
+ fs/fat/inode.c           |    3 +--
+ include/linux/msdos_fs.h |    2 +-
+ 3 files changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN arch/h8300/Makefile~h8300-zimage-support-update arch/h8300/Makefile
---- a/arch/h8300/Makefile~h8300-zimage-support-update
-+++ a/arch/h8300/Makefile
-@@ -61,10 +61,11 @@ archmrproper:
- archclean:
- 	$(Q)$(MAKE) $(clean)=$(boot)
+diff -puN fs/fat/dir.c~fat-gcc-43-warning-fix fs/fat/dir.c
+--- a/fs/fat/dir.c~fat-gcc-43-warning-fix
++++ a/fs/fat/dir.c
+@@ -313,7 +313,7 @@ int fat_search_long(struct inode *inode,
+ 	wchar_t bufuname[14];
+ 	unsigned char xlate_len, nr_slots;
+ 	wchar_t *unicode = NULL;
+-	unsigned char work[8], bufname[260];	/* 256 + 4 */
++	unsigned char work[MSDOS_NAME], bufname[260];	/* 256 + 4 */
+ 	int uni_xlate = sbi->options.unicode_xlate;
+ 	int utf8 = sbi->options.utf8;
+ 	int anycase = (sbi->options.name_check != 's');
+@@ -351,7 +351,8 @@ parse_record:
+ 		if (work[0] == 0x05)
+ 			work[0] = 0xE5;
+ 		for (i = 0, j = 0, last_u = 0; i < 8;) {
+-			if (!work[i]) break;
++			if (!work[i])
++				break;
+ 			chl = fat_shortname2uni(nls_disk, &work[i], 8 - i,
+ 						&bufuname[j++], opt_shortname,
+ 						de->lcase & CASE_LOWER_BASE);
+@@ -365,13 +366,15 @@ parse_record:
+ 		}
+ 		j = last_u;
+ 		fat_short2uni(nls_disk, ".", 1, &bufuname[j++]);
+-		for (i = 0; i < 3;) {
+-			if (!de->ext[i]) break;
+-			chl = fat_shortname2uni(nls_disk, &de->ext[i], 3 - i,
++		for (i = 8; i < MSDOS_NAME;) {
++			if (!work[i])
++				break;
++			chl = fat_shortname2uni(nls_disk, &work[i],
++						MSDOS_NAME - i,
+ 						&bufuname[j++], opt_shortname,
+ 						de->lcase & CASE_LOWER_EXT);
+ 			if (chl <= 1) {
+-				if (de->ext[i] != ' ')
++				if (work[i] != ' ')
+ 					last_u = j;
+ 			} else {
+ 				last_u = j;
+@@ -445,7 +448,7 @@ static int __fat_readdir(struct inode *i
+ 	int fill_len;
+ 	wchar_t bufuname[14];
+ 	wchar_t *unicode = NULL;
+-	unsigned char c, work[8], bufname[56], *ptname = bufname;
++	unsigned char c, work[MSDOS_NAME], bufname[56], *ptname = bufname;
+ 	unsigned long lpos, dummy, *furrfu = &lpos;
+ 	int uni_xlate = sbi->options.unicode_xlate;
+ 	int isvfat = sbi->options.isvfat;
+@@ -527,7 +530,8 @@ parse_record:
+ 	if (work[0] == 0x05)
+ 		work[0] = 0xE5;
+ 	for (i = 0, j = 0, last = 0, last_u = 0; i < 8;) {
+-		if (!(c = work[i])) break;
++		if (!(c = work[i]))
++			break;
+ 		chl = fat_shortname2uni(nls_disk, &work[i], 8 - i,
+ 					&bufuname[j++], opt_shortname,
+ 					de->lcase & CASE_LOWER_BASE);
+@@ -549,9 +553,10 @@ parse_record:
+ 	j = last_u;
+ 	fat_short2uni(nls_disk, ".", 1, &bufuname[j++]);
+ 	ptname[i++] = '.';
+-	for (i2 = 0; i2 < 3;) {
+-		if (!(c = de->ext[i2])) break;
+-		chl = fat_shortname2uni(nls_disk, &de->ext[i2], 3 - i2,
++	for (i2 = 8; i2 < MSDOS_NAME;) {
++		if (!(c = work[i2]))
++			break;
++		chl = fat_shortname2uni(nls_disk, &work[i2], MSDOS_NAME - i2,
+ 					&bufuname[j++], opt_shortname,
+ 					de->lcase & CASE_LOWER_EXT);
+ 		if (chl <= 1) {
+@@ -563,8 +568,8 @@ parse_record:
+ 			}
+ 		} else {
+ 			last_u = j;
+-			for (chi = 0; chi < chl && i2 < 3; chi++) {
+-				ptname[i++] = de->ext[i2++];
++			for (chi = 0; chi < chl && i2 < MSDOS_NAME; chi++) {
++				ptname[i++] = work[i2++];
+ 				last = i;
+ 			}
+ 		}
+diff -puN fs/fat/inode.c~fat-gcc-43-warning-fix fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-gcc-43-warning-fix
++++ a/fs/fat/inode.c
+@@ -354,8 +354,7 @@ static int fat_fill_inode(struct inode *
+ 	} else { /* not a directory */
+ 		inode->i_generation |= 1;
+ 		inode->i_mode = MSDOS_MKMODE(de->attr,
+-		    ((sbi->options.showexec &&
+-			!is_exec(de->ext))
++		    ((sbi->options.showexec && !is_exec(de->name + 8))
+ 			? S_IRUGO|S_IWUGO : S_IRWXUGO)
+ 		    & ~sbi->options.fs_fmask) | S_IFREG;
+ 		MSDOS_I(inode)->i_start = le16_to_cpu(de->start);
+diff -puN include/linux/msdos_fs.h~fat-gcc-43-warning-fix include/linux/msdos_fs.h
+--- a/include/linux/msdos_fs.h~fat-gcc-43-warning-fix
++++ a/include/linux/msdos_fs.h
+@@ -146,7 +146,7 @@ struct fat_boot_fsinfo {
+ };
  
--vmlinux.srec vmlinux.bin: vmlinux
-+vmlinux.srec vmlinux.bin zImage: vmlinux
- 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
- 
- define archhelp
--  echo  'vmlinux.bin  - Create raw binary'
--  echo  'vmlinux.srec - Create srec binary'
-+  @echo  'vmlinux.bin  - Create raw binary'
-+  @echo  'vmlinux.srec - Create srec binary'
-+  @echo  'zImage       - Compressed kernel image'
- endef
-diff -puN arch/h8300/boot/compressed/Makefile~h8300-zimage-support-update arch/h8300/boot/compressed/Makefile
---- a/arch/h8300/boot/compressed/Makefile~h8300-zimage-support-update
-+++ a/arch/h8300/boot/compressed/Makefile
-@@ -15,10 +15,10 @@ OBJECTS = $(obj)/head.o $(obj)/misc.o
- # in order to suppress error message.
- #
- CONFIG_MEMORY_START     ?= 0x00400000
--CONFIG_BOOT_LINK_OFFSET ?= 0x00400000
-+CONFIG_BOOT_LINK_OFFSET ?= 0x00140000
- IMAGE_OFFSET := $(shell printf "0x%08x" $$[$(CONFIG_MEMORY_START)+$(CONFIG_BOOT_LINK_OFFSET)])
- 
--LDFLAGS_vmlinux := -T $(obj)/vmlinux.lds
-+LDFLAGS_vmlinux := -Ttext $(IMAGE_OFFSET) -estartup $(obj)/vmlinux.lds
- 
- $(obj)/vmlinux: $(OBJECTS) $(obj)/piggy.o FORCE
- 	$(call if_changed,ld)
-diff -puN arch/h8300/boot/compressed/head.S~h8300-zimage-support-update arch/h8300/boot/compressed/head.S
---- a/arch/h8300/boot/compressed/head.S~h8300-zimage-support-update
-+++ a/arch/h8300/boot/compressed/head.S
-@@ -4,7 +4,7 @@
-  *  Copyright (C) 2006 Yoshinori Sato
-  */
- 
--.h8300h
-+	.h8300h
- #include <linux/linkage.h>
- 
- #define SRAM_START 0xff4000
-diff -puN /dev/null arch/h8300/boot/compressed/vmlinux.lds
---- /dev/null
-+++ a/arch/h8300/boot/compressed/vmlinux.lds
-@@ -0,0 +1,32 @@
-+SECTIONS
-+{
-+        .text :
-+        {
-+        __stext = . ;
-+	__text = .;
-+	       *(.text.startup)
-+	       *(.text)
-+        __etext = . ;
-+        }
-+
-+	.rodata :
-+	{
-+		*(.rodata)
-+	}
-+        .data :
-+
-+        {
-+        __sdata = . ;
-+        ___data_start = . ;
-+                *(.data.*)
-+	}
-+        .bss :
-+        {
-+        . = ALIGN(0x4) ;
-+        __sbss = . ;
-+                *(.bss*)
-+        . = ALIGN(0x4) ;
-+        __ebss = . ;
-+        __end = . ;
-+        }
-+}
-diff -puN /dev/null arch/h8300/boot/compressed/vmlinux.scr
---- /dev/null
-+++ a/arch/h8300/boot/compressed/vmlinux.scr
-@@ -0,0 +1,9 @@
-+SECTIONS
-+{
-+  .data : {
-+	_input_len = .;
-+	LONG(_input_data_end - _input_data) _input_data = .;
-+	*(.data)
-+	_input_data_end = .;
-+	}
-+}
+ struct msdos_dir_entry {
+-	__u8	name[8],ext[3];	/* name and extension */
++	__u8	name[MSDOS_NAME];/* name and extension */
+ 	__u8	attr;		/* attribute bits */
+ 	__u8    lcase;		/* Case for base and extension */
+ 	__u8	ctime_cs;	/* Creation time, centiseconds (0-199) */
 _
 
-Patches currently in -mm which might be from ysato@users.sourceforge.jp are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
 origin.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
