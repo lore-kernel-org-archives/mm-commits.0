@@ -1,119 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 14:00:28 -0700
-Message-ID: <200707162100.l6GL0SvX002609@imap1.linux-foundation.org>
+Subject: - amiserial-remove-incorrect-no-termios-change-check.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:59:06 -0700
+Message-ID: <200707162059.l6GKx6U6002400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53321 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43954 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758803AbXGPVPX (ORCPT
+	by vger.kernel.org with ESMTP id S1759292AbXGPVP2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:23 -0400
+	Mon, 16 Jul 2007 17:15:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, Sumant.Patro@lsi.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use mutex instead of semaphore in Megaraid Mailbox driver
+     amiserial: remove incorrect 'no termios change' check
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch
+     amiserial-remove-incorrect-no-termios-change-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use mutex instead of semaphore in Megaraid Mailbox driver
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: amiserial: remove incorrect 'no termios change' check
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The Megaraid Mailbox driver uses a semaphore as mutex.  Use the mutex API
-instead of the (binary) semaphore.
+Lots of serial drivers check and optimise for setting the termios values to
+the ones they were before.  This is pointless and the check is wrong
+anyway.  Remove the checks on the serial drivers.  If we ever do need such
+a check put it back in the tty layer instead _once_!
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: "Patro, Sumant" <Sumant.Patro@lsi.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/mega_common.h   |    1 +
- drivers/scsi/megaraid/megaraid_mbox.c |    6 +++---
- drivers/scsi/megaraid/megaraid_mbox.h |    4 ++--
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/char/amiserial.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/scsi/megaraid/mega_common.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver drivers/scsi/megaraid/mega_common.h
---- a/drivers/scsi/megaraid/mega_common.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver
-+++ a/drivers/scsi/megaraid/mega_common.h
-@@ -21,6 +21,7 @@
- #include <linux/types.h>
- #include <linux/pci.h>
- #include <linux/spinlock.h>
-+#include <linux/mutex.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/blkdev.h>
-diff -puN drivers/scsi/megaraid/megaraid_mbox.c~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver drivers/scsi/megaraid/megaraid_mbox.c
---- a/drivers/scsi/megaraid/megaraid_mbox.c~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver
-+++ a/drivers/scsi/megaraid/megaraid_mbox.c
-@@ -3880,7 +3880,7 @@ megaraid_sysfs_alloc_resources(adapter_t
- 		megaraid_sysfs_free_resources(adapter);
+diff -puN drivers/char/amiserial.c~amiserial-remove-incorrect-no-termios-change-check drivers/char/amiserial.c
+--- a/drivers/char/amiserial.c~amiserial-remove-incorrect-no-termios-change-check
++++ a/drivers/char/amiserial.c
+@@ -738,6 +738,7 @@ static void change_speed(struct async_st
  	}
- 
--	sema_init(&raid_dev->sysfs_sem, 1);
-+	mutex_init(&raid_dev->sysfs_mtx);
- 
- 	init_waitqueue_head(&raid_dev->sysfs_wait_q);
- 
-@@ -3981,7 +3981,7 @@ megaraid_sysfs_get_ldmap(adapter_t *adap
+ 	/* If the quotient is zero refuse the change */
+ 	if (!quot && old_termios) {
++		/* FIXME: Will need updating for new tty in the end */
+ 		info->tty->termios->c_cflag &= ~CBAUD;
+ 		info->tty->termios->c_cflag |= (old_termios->c_cflag & CBAUD);
+ 		baud = tty_get_baud_rate(info->tty);
+@@ -783,7 +784,6 @@ static void change_speed(struct async_st
  	/*
- 	 * Allow only one read at a time to go through the sysfs attributes
+ 	 * Set up parity check flag
  	 */
--	down(&raid_dev->sysfs_sem);
-+	mutex_lock(&raid_dev->sysfs_mtx);
+-#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
  
- 	uioc	= raid_dev->sysfs_uioc;
- 	mbox64	= raid_dev->sysfs_mbox64;
-@@ -4057,7 +4057,7 @@ megaraid_sysfs_get_ldmap(adapter_t *adap
+ 	info->read_status_mask = UART_LSR_OE | UART_LSR_DR;
+ 	if (I_INPCK(info->tty))
+@@ -1367,11 +1367,6 @@ static void rs_set_termios(struct tty_st
+ 	unsigned long flags;
+ 	unsigned int cflag = tty->termios->c_cflag;
  
- 	del_timer_sync(timerp);
+-	if (   (cflag == old_termios->c_cflag)
+-	    && (   RELEVANT_IFLAG(tty->termios->c_iflag) 
+-		== RELEVANT_IFLAG(old_termios->c_iflag)))
+-	  return;
+-
+ 	change_speed(info, old_termios);
  
--	up(&raid_dev->sysfs_sem);
-+	mutex_unlock(&raid_dev->sysfs_mtx);
- 
- 	return rval;
- }
-diff -puN drivers/scsi/megaraid/megaraid_mbox.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver drivers/scsi/megaraid/megaraid_mbox.h
---- a/drivers/scsi/megaraid/megaraid_mbox.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver
-+++ a/drivers/scsi/megaraid/megaraid_mbox.h
-@@ -168,7 +168,7 @@ typedef struct {
-  * @hw_error			: set if FW not responding
-  * @fast_load			: If set, skip physical device scanning
-  * @channel_class		: channel class, RAID or SCSI
-- * @sysfs_sem			: semaphore to serialize access to sysfs res.
-+ * @sysfs_mtx			: mutex to serialize access to sysfs res.
-  * @sysfs_uioc			: management packet to issue FW calls from sysfs
-  * @sysfs_mbox64		: mailbox packet to issue FW calls from sysfs
-  * @sysfs_buffer		: data buffer for FW commands issued from sysfs
-@@ -208,7 +208,7 @@ typedef struct {
- 	int				hw_error;
- 	int				fast_load;
- 	uint8_t				channel_class;
--	struct semaphore		sysfs_sem;
-+	struct mutex			sysfs_mtx;
- 	uioc_t				*sysfs_uioc;
- 	mbox64_t			*sysfs_mbox64;
- 	caddr_t				sysfs_buffer;
+ 	/* Handle transition to B0 status */
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-kcopyd-use-mutex-instead-of-semaphore.patch
-git-dvb.patch
-git-mtd.patch
-videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
-use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
-use-mutex-instead-of-semaphore-in-the-elan-u132-adapter-driver.patch
-use-mutex-instead-of-semaphore-in-the-adutux-driver.patch
-use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver.patch
-use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
-use-mutex-instead-of-semaphore-in-spi-core-init-code.patch
-use-mutex-instead-of-semaphore-in-capi-20-driver.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
+git-powerpc.patch
+git-ia64.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+ata-use-iomap_name.patch
+sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+sb1250-duartc-sb1250-duart-serial-support.patch
+mbcs-remove-lots-of-global-symbols.patch
+i2o_cfg_passthru-cleanup.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+stallion-remove-unneeded-lock_kernel.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
+drivers-edac-fix-edac_device-semaphore-to-mutex.patch
+drivers-edac-fix-e752x-reversed-csrows.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-fix-leaf-sysfs-attribute.patch
+drivers-edac-fix-edac_mc-init-apis.patch
+drivers-edac-fix-edac_device-init-apis.patch
+drivers-edac-fix-edac_mc-sysfs-completion-code.patch
+drivers-edac-fix-edac_device-sysfs-completion-code.patch
