@@ -1,116 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - uml-debug_shirq-fixes.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:51:10 -0700
-Message-ID: <200707162051.l6GKpAV5001379@imap1.linux-foundation.org>
+Subject: - numa-mempolicy-trivial-debug-fixes.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:49:24 -0700
+Message-ID: <200707162049.l6GKnOiT001158@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43877 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53496 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757968AbXGPV05 (ORCPT
+	by vger.kernel.org with ESMTP id S1759751AbXGPV1h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:26:57 -0400
+	Mon, 16 Jul 2007 17:27:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maxdamage@aladin.ro, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: DEBUG_SHIRQ fixes
+     numa: mempolicy: trivial debug fixes.
 has been removed from the -mm tree.  Its filename was
-     uml-debug_shirq-fixes.patch
+     numa-mempolicy-trivial-debug-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: DEBUG_SHIRQ fixes
-From: Eduard-Gabriel Munteanu <maxdamage@aladin.ro>
+Subject: numa: mempolicy: trivial debug fixes.
+From: Paul Mundt <lethal@linux-sh.org>
 
-DEBUG_SHIRQ generates spurious interrupts, triggering handlers such as
-mconsole_interrupt() or line_interrupt().  They expect data to be available to
-be read from their sockets/pipes, but in the case of spurious interrupts, the
-host didn't actually send anything, so UML hangs in read() and friends. 
-Setting those fd's as O_NONBLOCK makes DEBUG_SHIRQ-enabled UML kernels boot
-and run correctly.
+Enabling debugging fails to build due to the nodemask variable in
+do_mbind() having changed names, and then oopses on boot due to the
+assumption that the nodemask can be dereferenced -- which doesn't work out
+so well when the policy is changed to MPOL_DEFAULT with a NULL nodemask by
+numa_default_policy().
 
-Signed-off-by: Eduard-Gabriel Munteanu <maxdamage@aladin.ro>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+This fixes it up, and switches from PDprintk() to pr_debug() while
+we're at it.
+
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/chan_user.c     |    8 +++++++-
- arch/um/drivers/mconsole_user.c |    5 +++--
- arch/um/drivers/ubd_user.c      |    6 ++++++
- arch/um/drivers/xterm.c         |    7 +++++++
- 4 files changed, 23 insertions(+), 3 deletions(-)
+ mm/mempolicy.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN arch/um/drivers/chan_user.c~uml-debug_shirq-fixes arch/um/drivers/chan_user.c
---- a/arch/um/drivers/chan_user.c~uml-debug_shirq-fixes
-+++ a/arch/um/drivers/chan_user.c
-@@ -170,7 +170,13 @@ static int winch_tramp(int fd, struct tt
-                 err = -EINVAL;
- 		goto out_close;
+diff -puN mm/mempolicy.c~numa-mempolicy-trivial-debug-fixes mm/mempolicy.c
+--- a/mm/mempolicy.c~numa-mempolicy-trivial-debug-fixes
++++ a/mm/mempolicy.c
+@@ -101,8 +101,6 @@
+ static struct kmem_cache *policy_cache;
+ static struct kmem_cache *sn_cache;
+ 
+-#define PDprintk(fmt...)
+-
+ /* Highest zone. An specific allocation for a zone below that is not
+    policied. */
+ enum zone_type policy_zone = 0;
+@@ -175,7 +173,9 @@ static struct mempolicy *mpol_new(int mo
+ {
+ 	struct mempolicy *policy;
+ 
+-	PDprintk("setting mode %d nodes[0] %lx\n", mode, nodes_addr(*nodes)[0]);
++	pr_debug("setting mode %d nodes[0] %lx\n",
++		 mode, nodes ? nodes_addr(*nodes)[0] : -1);
++
+ 	if (mode == MPOL_DEFAULT)
+ 		return NULL;
+ 	policy = kmem_cache_alloc(policy_cache, GFP_KERNEL);
+@@ -379,7 +379,7 @@ static int policy_vma(struct vm_area_str
+ 	int err = 0;
+ 	struct mempolicy *old = vma->vm_policy;
+ 
+-	PDprintk("vma %lx-%lx/%lx vm_ops %p vm_file %p set_policy %p\n",
++	pr_debug("vma %lx-%lx/%lx vm_ops %p vm_file %p set_policy %p\n",
+ 		 vma->vm_start, vma->vm_end, vma->vm_pgoff,
+ 		 vma->vm_ops, vma->vm_file,
+ 		 vma->vm_ops ? vma->vm_ops->set_policy : NULL);
+@@ -776,8 +776,8 @@ long do_mbind(unsigned long start, unsig
+ 	if (!new)
+ 		flags |= MPOL_MF_DISCONTIG_OK;
+ 
+-	PDprintk("mbind %lx-%lx mode:%ld nodes:%lx\n",start,start+len,
+-			mode,nodes_addr(nodes)[0]);
++	pr_debug("mbind %lx-%lx mode:%ld nodes:%lx\n",start,start+len,
++		 mode, nmask ? nodes_addr(*nmask)[0] : -1);
+ 
+ 	down_write(&mm->mmap_sem);
+ 	vma = check_range(mm, start, end, nmask,
+@@ -1434,7 +1434,7 @@ static void sp_insert(struct shared_poli
  	}
--	return err ;
-+
-+	if (os_set_fd_block(*fd_out, 0)) {
-+		printk("winch_tramp: failed to set thread_fd non-blocking.\n");
-+		goto out_close;
-+	}
-+
-+	return err;
+ 	rb_link_node(&new->nd, parent, p);
+ 	rb_insert_color(&new->nd, &sp->root);
+-	PDprintk("inserting %lx-%lx: %d\n", new->start, new->end,
++	pr_debug("inserting %lx-%lx: %d\n", new->start, new->end,
+ 		 new->policy ? new->policy->policy : 0);
+ }
  
-  out_close:
- 	os_close_file(fds[1]);
-diff -puN arch/um/drivers/mconsole_user.c~uml-debug_shirq-fixes arch/um/drivers/mconsole_user.c
---- a/arch/um/drivers/mconsole_user.c~uml-debug_shirq-fixes
-+++ a/arch/um/drivers/mconsole_user.c
-@@ -86,8 +86,9 @@ int mconsole_get_request(int fd, struct 
- 	int len;
+@@ -1459,7 +1459,7 @@ mpol_shared_policy_lookup(struct shared_
  
- 	req->originlen = sizeof(req->origin);
--	req->len = recvfrom(fd, &req->request, sizeof(req->request), 0,
--			    (struct sockaddr *) req->origin, &req->originlen);
-+	req->len = recvfrom(fd, &req->request, sizeof(req->request),
-+			    MSG_DONTWAIT, (struct sockaddr *) req->origin,
-+			    &req->originlen);
- 	if (req->len < 0)
- 		return 0;
+ static void sp_delete(struct shared_policy *sp, struct sp_node *n)
+ {
+-	PDprintk("deleting %lx-l%x\n", n->start, n->end);
++	pr_debug("deleting %lx-l%lx\n", n->start, n->end);
+ 	rb_erase(&n->nd, &sp->root);
+ 	mpol_free(n->policy);
+ 	kmem_cache_free(sn_cache, n);
+@@ -1558,10 +1558,10 @@ int mpol_set_shared_policy(struct shared
+ 	struct sp_node *new = NULL;
+ 	unsigned long sz = vma_pages(vma);
  
-diff -puN arch/um/drivers/ubd_user.c~uml-debug_shirq-fixes arch/um/drivers/ubd_user.c
---- a/arch/um/drivers/ubd_user.c~uml-debug_shirq-fixes
-+++ a/arch/um/drivers/ubd_user.c
-@@ -43,6 +43,12 @@ int start_io_thread(unsigned long sp, in
- 	kernel_fd = fds[0];
- 	*fd_out = fds[1];
+-	PDprintk("set_shared_policy %lx sz %lu %d %lx\n",
++	pr_debug("set_shared_policy %lx sz %lu %d %lx\n",
+ 		 vma->vm_pgoff,
+ 		 sz, npol? npol->policy : -1,
+-		npol ? nodes_addr(npol->v.nodes)[0] : -1);
++		 npol ? nodes_addr(npol->v.nodes)[0] : -1);
  
-+	err = os_set_fd_block(*fd_out, 0);
-+	if (err) {
-+		printk("start_io_thread - failed to set nonblocking I/O.\n");
-+		goto out_close;
-+	}
-+
- 	pid = clone(io_thread, (void *) sp, CLONE_FILES | CLONE_VM | SIGCHLD,
- 		    NULL);
- 	if(pid < 0){
-diff -puN arch/um/drivers/xterm.c~uml-debug_shirq-fixes arch/um/drivers/xterm.c
---- a/arch/um/drivers/xterm.c~uml-debug_shirq-fixes
-+++ a/arch/um/drivers/xterm.c
-@@ -151,6 +151,13 @@ int xterm_open(int input, int output, in
- 		goto out;
- 	}
- 
-+	err = os_set_fd_block(new, 0);
-+	if (err) {
-+		printk("xterm_open : failed to set xterm descriptor "
-+		       "non-blocking, err = %d\n", -err);
-+		goto out;
-+	}
-+
- 	CATCH_EINTR(err = tcgetattr(new, &data->tt));
- 	if(err){
- 		new = err;
+ 	if (npol) {
+ 		new = sp_alloc(vma->vm_pgoff, vma->vm_pgoff + sz, npol);
 _
 
-Patches currently in -mm which might be from maxdamage@aladin.ro are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+fb-epson1355fb-kill-off-dead-sh-support.patch
