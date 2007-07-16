@@ -1,102 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-fix-trivial-section-mismatch-warnings.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:38 -0700
-Message-ID: <200707162050.l6GKocU4001327@imap1.linux-foundation.org>
+Subject: - scsi-dont-build-scsi_dma_mapunmap-for-has_dma.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 14:00:15 -0700
+Message-ID: <200707162100.l6GL0FH3002584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34297 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46951 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761999AbXGPVf6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755391AbXGPVgT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:35:58 -0400
+	Mon, 16 Jul 2007 17:36:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, ink@jurassic.park.msu.ru, mroos@linux.ee, rth@twiddle.net, mm-commits@vger.kernel.org
+To: cornelia.huck@de.ibm.com, James.Bottomley@SteelEye.com, dan.j.williams@intel.com, hch@lst.de, heiko.carstens@de.ibm.com, jeff@garzik.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: fix trivial section mismatch warnings
+     scsi: don't build scsi_dma_{map,unmap} for !HAS_DMA
 has been removed from the -mm tree.  Its filename was
-     alpha-fix-trivial-section-mismatch-warnings.patch
+     scsi-dont-build-scsi_dma_mapunmap-for-has_dma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: alpha: fix trivial section mismatch warnings
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: scsi: don't build scsi_dma_{map,unmap} for !HAS_DMA
+From: Cornelia Huck <cornelia.huck@de.ibm.com>
 
-Fix the following section mismatch warnings:
-WARNING: arch/alpha/kernel/built-in.o(.text+0x7c78): Section mismatch: reference to .init.text:init_rtc_irq (between 'common_init_rtc' and 'timer_interrupt')
-WARNING: arch/alpha/kernel/built-in.o(.text+0x7c7c): Section mismatch: reference to .init.text:init_rtc_irq (between 'common_init_rtc' and 'timer_interrupt')
-WARNING: arch/alpha/kernel/built-in.o(.data+0x2c30): Section mismatch: reference to .init.text:srm_console_setup (between 'srmcons' and 'tsunami_pci_ops')
+With
 
-In all three cases functions marked __init was called outside __init context.
-So the fix was to just drop the __init attribute.
+ dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Meelis Roos <mroos@linux.ee>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+scsi fails to build on !HAS_DMA architectures:
+
+drivers/built-in.o(.text+0x20af6): In function `scsi_dma_map':
+: undefined reference to `dma_map_sg'
+drivers/built-in.o(.text+0x20b5c): In function `scsi_dma_unmap':
+: undefined reference to `dma_unmap_sg'
+
+I split those functions out into a new file. Builds on s390 and i386.
+
+Move scsi_dma_{map,unmap} into scsi_lib_dma.c which is only build if
+HAS_DMA is set.
+
+Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/srmcons.c    |    2 +-
- arch/alpha/kernel/sys_marvel.c |    2 +-
- arch/alpha/kernel/time.c       |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/scsi/Kconfig        |    5 +++
+ drivers/scsi/Makefile       |    6 ++--
+ drivers/scsi/scsi_lib.c     |   38 -------------------------
+ drivers/scsi/scsi_lib_dma.c |   50 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 58 insertions(+), 41 deletions(-)
 
-diff -puN arch/alpha/kernel/srmcons.c~alpha-fix-trivial-section-mismatch-warnings arch/alpha/kernel/srmcons.c
---- a/arch/alpha/kernel/srmcons.c~alpha-fix-trivial-section-mismatch-warnings
-+++ a/arch/alpha/kernel/srmcons.c
-@@ -289,7 +289,7 @@ srm_console_device(struct console *co, i
- 	return srmcons_driver;
- }
+diff -puN drivers/scsi/Kconfig~scsi-dont-build-scsi_dma_mapunmap-for-has_dma drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~scsi-dont-build-scsi_dma_mapunmap-for-has_dma
++++ a/drivers/scsi/Kconfig
+@@ -10,6 +10,7 @@ config RAID_ATTRS
+ config SCSI
+ 	tristate "SCSI device support"
+ 	depends on BLOCK
++	select SCSI_DMA if HAS_DMA
+ 	---help---
+ 	  If you want to use a SCSI hard disk, SCSI tape drive, SCSI CD-ROM or
+ 	  any other SCSI device under Linux, say Y and make sure that you know
+@@ -29,6 +30,10 @@ config SCSI
+ 	  However, do not compile this as a module if your root file system
+ 	  (the one containing the directory /) is located on a SCSI device.
  
--static int __init
-+static int
- srm_console_setup(struct console *co, char *options)
- {
- 	return 0;
-diff -puN arch/alpha/kernel/sys_marvel.c~alpha-fix-trivial-section-mismatch-warnings arch/alpha/kernel/sys_marvel.c
---- a/arch/alpha/kernel/sys_marvel.c~alpha-fix-trivial-section-mismatch-warnings
-+++ a/arch/alpha/kernel/sys_marvel.c
-@@ -420,7 +420,7 @@ marvel_init_pci(void)
- 		io7_clear_errors(io7);
- }
++config SCSI_DMA
++	bool
++	default n
++
+ config SCSI_TGT
+ 	tristate "SCSI target support"
+ 	depends on SCSI && EXPERIMENTAL
+diff -puN drivers/scsi/Makefile~scsi-dont-build-scsi_dma_mapunmap-for-has_dma drivers/scsi/Makefile
+--- a/drivers/scsi/Makefile~scsi-dont-build-scsi_dma_mapunmap-for-has_dma
++++ a/drivers/scsi/Makefile
+@@ -149,9 +149,9 @@ obj-$(CONFIG_SCSI_DEBUG)	+= scsi_debug.o
+ obj-$(CONFIG_SCSI_WAIT_SCAN)	+= scsi_wait_scan.o
  
--static void
-+static void __init
- marvel_init_rtc(void)
- {
- 	init_rtc_irq();
-diff -puN arch/alpha/kernel/time.c~alpha-fix-trivial-section-mismatch-warnings arch/alpha/kernel/time.c
---- a/arch/alpha/kernel/time.c~alpha-fix-trivial-section-mismatch-warnings
-+++ a/arch/alpha/kernel/time.c
-@@ -144,7 +144,7 @@ irqreturn_t timer_interrupt(int irq, voi
- 	return IRQ_HANDLED;
+ scsi_mod-y			+= scsi.o hosts.o scsi_ioctl.o constants.o \
+-				   scsicam.o scsi_error.o scsi_lib.o \
+-				   scsi_scan.o scsi_sysfs.o \
+-				   scsi_devinfo.o
++				   scsicam.o scsi_error.o scsi_lib.o
++scsi_mod-$(CONFIG_SCSI_DMA)	+= scsi_lib_dma.o
++scsi_mod-y			+= scsi_scan.o scsi_sysfs.o scsi_devinfo.o
+ scsi_mod-$(CONFIG_SCSI_NETLINK)	+= scsi_netlink.o
+ scsi_mod-$(CONFIG_SYSCTL)	+= scsi_sysctl.o
+ scsi_mod-$(CONFIG_SCSI_PROC_FS)	+= scsi_proc.o
+diff -puN drivers/scsi/scsi_lib.c~scsi-dont-build-scsi_dma_mapunmap-for-has_dma drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~scsi-dont-build-scsi_dma_mapunmap-for-has_dma
++++ a/drivers/scsi/scsi_lib.c
+@@ -2290,41 +2290,3 @@ void scsi_kunmap_atomic_sg(void *virt)
+ 	kunmap_atomic(virt, KM_BIO_SRC_IRQ);
  }
- 
--void
-+void __init
- common_init_rtc(void)
- {
- 	unsigned char x;
+ EXPORT_SYMBOL(scsi_kunmap_atomic_sg);
+-
+-/**
+- * scsi_dma_map - perform DMA mapping against command's sg lists
+- * @cmd:	scsi command
+- *
+- * Returns the number of sg lists actually used, zero if the sg lists
+- * is NULL, or -ENOMEM if the mapping failed.
+- */
+-int scsi_dma_map(struct scsi_cmnd *cmd)
+-{
+-	int nseg = 0;
+-
+-	if (scsi_sg_count(cmd)) {
+-		struct device *dev = cmd->device->host->shost_gendev.parent;
+-
+-		nseg = dma_map_sg(dev, scsi_sglist(cmd), scsi_sg_count(cmd),
+-				  cmd->sc_data_direction);
+-		if (unlikely(!nseg))
+-			return -ENOMEM;
+-	}
+-	return nseg;
+-}
+-EXPORT_SYMBOL(scsi_dma_map);
+-
+-/**
+- * scsi_dma_unmap - unmap command's sg lists mapped by scsi_dma_map
+- * @cmd:	scsi command
+- */
+-void scsi_dma_unmap(struct scsi_cmnd *cmd)
+-{
+-	if (scsi_sg_count(cmd)) {
+-		struct device *dev = cmd->device->host->shost_gendev.parent;
+-
+-		dma_unmap_sg(dev, scsi_sglist(cmd), scsi_sg_count(cmd),
+-			     cmd->sc_data_direction);
+-	}
+-}
+-EXPORT_SYMBOL(scsi_dma_unmap);
+diff -puN /dev/null drivers/scsi/scsi_lib_dma.c
+--- /dev/null
++++ a/drivers/scsi/scsi_lib_dma.c
+@@ -0,0 +1,50 @@
++/*
++ * SCSI library functions depending on DMA
++ */
++
++#include <linux/blkdev.h>
++#include <linux/device.h>
++#include <linux/kernel.h>
++
++#include <scsi/scsi.h>
++#include <scsi/scsi_cmnd.h>
++#include <scsi/scsi_device.h>
++#include <scsi/scsi_host.h>
++
++/**
++ * scsi_dma_map - perform DMA mapping against command's sg lists
++ * @cmd:	scsi command
++ *
++ * Returns the number of sg lists actually used, zero if the sg lists
++ * is NULL, or -ENOMEM if the mapping failed.
++ */
++int scsi_dma_map(struct scsi_cmnd *cmd)
++{
++	int nseg = 0;
++
++	if (scsi_sg_count(cmd)) {
++		struct device *dev = cmd->device->host->shost_gendev.parent;
++
++		nseg = dma_map_sg(dev, scsi_sglist(cmd), scsi_sg_count(cmd),
++				  cmd->sc_data_direction);
++		if (unlikely(!nseg))
++			return -ENOMEM;
++	}
++	return nseg;
++}
++EXPORT_SYMBOL(scsi_dma_map);
++
++/**
++ * scsi_dma_unmap - unmap command's sg lists mapped by scsi_dma_map
++ * @cmd:	scsi command
++ */
++void scsi_dma_unmap(struct scsi_cmnd *cmd)
++{
++	if (scsi_sg_count(cmd)) {
++		struct device *dev = cmd->device->host->shost_gendev.parent;
++
++		dma_unmap_sg(dev, scsi_sglist(cmd), scsi_sg_count(cmd),
++			     cmd->sc_data_direction);
++	}
++}
++EXPORT_SYMBOL(scsi_dma_unmap);
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
 
 origin.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-git-kbuild.patch
-use-posix-bre-in-headers-install-target.patch
-modpost-white-list-pattern-adjustment.patch
-strip-config_-automatically-in-kernel-configuration-search.patch
-fix-the-warning-when-running-make-tags.patch
-kconfig-reset-generated-values-only-if-kconfig-and-config-agree.patch
-pass-g-to-assembler-under-config_debug_info.patch
-x86-fix-section-mismatch-warnings-in-mtrr.patch
-i386-fix-section-mismatch-warning-in-intel_cacheinfo.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-whitelist-references-from-__dbe_table-to-init.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
