@@ -1,84 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:57:45 -0700
-Message-ID: <200707162057.l6GKvjR0002224@imap1.linux-foundation.org>
+Subject: - uninline-check_signature.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:58:34 -0700
+Message-ID: <200707162058.l6GKwY9Z002353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34665 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54717 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755443AbXGPVFA (ORCPT
+	by vger.kernel.org with ESMTP id S1754167AbXGPVE7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:05:00 -0400
+	Mon, 16 Jul 2007 17:04:59 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6GL4t33018235
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2007 14:04:58 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl.c: add text telling people to use CTL_UNNUMBERED
+     uninline check_signature()
 has been removed from the -mm tree.  Its filename was
-     sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+     uninline-check_signature.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl.c: add text telling people to use CTL_UNNUMBERED
+Subject: uninline check_signature()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Hopefully this will help people to understand the new regime.
+This is a rather bizarre thing to have inlined in io.h.  Stick it in lib/
+instead.
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+While we're there, despaghetti it a bit, and fix its off-by-one behaviour when
+passed a zero length.
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ include/linux/io.h    |   29 ++---------------------------
+ lib/Makefile          |    2 +-
+ lib/check_signature.c |   26 ++++++++++++++++++++++++++
+ 3 files changed, 29 insertions(+), 28 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctlc-add-text-telling-people-to-use-ctl_unnumbered kernel/sysctl.c
---- a/kernel/sysctl.c~sysctlc-add-text-telling-people-to-use-ctl_unnumbered
-+++ a/kernel/sysctl.c
-@@ -203,7 +203,10 @@ static ctl_table root_table[] = {
- 		.mode		= 0555,
- 		.child		= dev_table,
- 	},
+diff -puN include/linux/io.h~uninline-check_signature include/linux/io.h
+--- a/include/linux/io.h~uninline-check_signature
++++ a/include/linux/io.h
+@@ -63,32 +63,7 @@ void __iomem * devm_ioremap(struct devic
+ void __iomem * devm_ioremap_nocache(struct device *dev, unsigned long offset,
+ 				    unsigned long size);
+ void devm_iounmap(struct device *dev, void __iomem *addr);
 -
-+/*
-+ * NOTE: do not add new entries to this table unless you have read
-+ * Documentation/sysctl/ctl_unnumbered.txt
-+ */
- 	{ .ctl_name = 0 }
- };
+-/**
+- *	check_signature		-	find BIOS signatures
+- *	@io_addr: mmio address to check
+- *	@signature:  signature block
+- *	@length: length of signature
+- *
+- *	Perform a signature comparison with the mmio address io_addr. This
+- *	address should have been obtained by ioremap.
+- *	Returns 1 on a match.
+- */
+-
+-static inline int check_signature(const volatile void __iomem *io_addr,
+-	const unsigned char *signature, int length)
+-{
+-	int retval = 0;
+-	do {
+-		if (readb(io_addr) != *signature)
+-			goto out;
+-		io_addr++;
+-		signature++;
+-		length--;
+-	} while (length);
+-	retval = 1;
+-out:
+-	return retval;
+-}
++int check_signature(const volatile void __iomem *io_addr,
++			const unsigned char *signature, int length);
  
-@@ -992,6 +995,14 @@ static ctl_table vm_table[] = {
- 		.extra1		= &zero,
- 	},
- #endif
-+/*
-+ * NOTE: do not add new entries to this table unless you have read
-+ * Documentation/sysctl/ctl_unnumbered.txt
-+ */
-+/*
-+ * NOTE: do not add new entries to this table unless you have read
-+ * Documentation/sysctl/ctl_unnumbered.txt
-+ */
- 	{ .ctl_name = 0 }
- };
+ #endif /* _LINUX_IO_H */
+diff -puN lib/Makefile~uninline-check_signature lib/Makefile
+--- a/lib/Makefile~uninline-check_signature
++++ a/lib/Makefile
+@@ -13,7 +13,7 @@ lib-$(CONFIG_SMP) += cpumask.o
+ lib-y	+= kobject.o kref.o kobject_uevent.o klist.o
  
-@@ -1132,6 +1143,14 @@ static ctl_table fs_table[] = {
- 		.child		= binfmt_misc_table,
- 	},
- #endif
-+/*
-+ * NOTE: do not add new entries to this table unless you have read
-+ * Documentation/sysctl/ctl_unnumbered.txt
-+ */
-+/*
-+ * NOTE: do not add new entries to this table unless you have read
-+ * Documentation/sysctl/ctl_unnumbered.txt
-+ */
- 	{ .ctl_name = 0 }
- };
+ obj-y += div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+-	 bust_spinlocks.o hexdump.o
++	 bust_spinlocks.o hexdump.o check_signature.o
  
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
+diff -puN /dev/null lib/check_signature.c
+--- /dev/null
++++ a/lib/check_signature.c
+@@ -0,0 +1,26 @@
++#include <linux/io.h>
++#include <linux/module.h>
++
++/**
++ *	check_signature		-	find BIOS signatures
++ *	@io_addr: mmio address to check
++ *	@signature:  signature block
++ *	@length: length of signature
++ *
++ *	Perform a signature comparison with the mmio address io_addr. This
++ *	address should have been obtained by ioremap.
++ *	Returns 1 on a match.
++ */
++
++int check_signature(const volatile void __iomem *io_addr,
++			const unsigned char *signature, int length)
++{
++	while (length--) {
++		if (readb(io_addr) != *signature)
++			return 0;
++		io_addr++;
++		signature++;
++	}
++	return 1;
++}
++EXPORT_SYMBOL(check_signature);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
