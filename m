@@ -1,81 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - adb_probe_task-remove-unneeded-flush_signals-call.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:58:04 -0700
-Message-ID: <200707162058.l6GKw4rP002321@imap1.linux-foundation.org>
+Subject: - ext3-fix-deadlock-in-ext3_remount-and-orphan-list-handling.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:02 -0700
+Message-ID: <200707162057.l6GKv2Ng002151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37690 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37144 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758803AbXGPVQz (ORCPT
+	by vger.kernel.org with ESMTP id S1759109AbXGPVRJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:16:55 -0400
+	Mon, 16 Jul 2007 17:17:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, linux-ext4@vger.kernel.org, sandeen@sandeen.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     adb_probe_task: remove unneeded flush_signals() call
+     ext3: fix deadlock in ext3_remount() and orphan list handling
 has been removed from the -mm tree.  Its filename was
-     adb_probe_task-remove-unneeded-flush_signals-call.patch
+     ext3-fix-deadlock-in-ext3_remount-and-orphan-list-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: adb_probe_task: remove unneeded flush_signals() call
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: ext3: fix deadlock in ext3_remount() and orphan list handling
+From: Jan Kara <jack@suse.cz>
 
-adb_probe_task() is forked by "events" thread, all signals are ignored, no
-need to play with signal blocking/flushing.
+ext3_orphan_add() and ext3_orphan_del() functions lock sb->s_lock with a
+transaction started with ext3_mark_recovery_complete() waits for a transaction
+holding sb->s_lock, thus leading to a possible deadlock.  At the moment we
+call ext3_mark_recovery_complete() from ext3_remount() we have done all the
+work needed for remounting and thus we are safe to drop sb->s_lock before we
+wait for transactions to commit.  Note that at this moment we are still
+guarded by s_umount lock against other remounts/umounts.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Eric Sandeen <sandeen@sandeen.net>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/adb.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ fs/ext3/super.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/macintosh/adb.c~adb_probe_task-remove-unneeded-flush_signals-call drivers/macintosh/adb.c
---- a/drivers/macintosh/adb.c~adb_probe_task-remove-unneeded-flush_signals-call
-+++ a/drivers/macintosh/adb.c
-@@ -248,21 +248,15 @@ static int adb_scan_bus(void)
- static int
- adb_probe_task(void *x)
- {
--	sigset_t blocked;
--
- 	strcpy(current->comm, "kadbprobe");
+diff -puN fs/ext3/super.c~ext3-fix-deadlock-in-ext3_remount-and-orphan-list-handling fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-fix-deadlock-in-ext3_remount-and-orphan-list-handling
++++ a/fs/ext3/super.c
+@@ -2147,12 +2147,14 @@ static void ext3_mark_recovery_complete(
  
--	sigfillset(&blocked);
--	sigprocmask(SIG_BLOCK, &blocked, NULL);
--	flush_signals(current);
--
- 	printk(KERN_INFO "adb: starting probe task...\n");
- 	do_adb_reset_bus();
- 	printk(KERN_INFO "adb: finished probe task...\n");
--	
-+
- 	adb_probe_task_pid = 0;
- 	up(&adb_probe_mutex);
--	
-+
- 	return 0;
+ 	journal_lock_updates(journal);
+ 	journal_flush(journal);
++	lock_super(sb);
+ 	if (EXT3_HAS_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER) &&
+ 	    sb->s_flags & MS_RDONLY) {
+ 		EXT3_CLEAR_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER);
+ 		sb->s_dirt = 0;
+ 		ext3_commit_super(sb, es, 1);
+ 	}
++	unlock_super(sb);
+ 	journal_unlock_updates(journal);
  }
  
+@@ -2341,7 +2343,13 @@ static int ext3_remount (struct super_bl
+ 			    (sbi->s_mount_state & EXT3_VALID_FS))
+ 				es->s_state = cpu_to_le16(sbi->s_mount_state);
+ 
++			/*
++			 * We have to unlock super so that we can wait for
++			 * transactions.
++			 */
++			unlock_super(sb);
+ 			ext3_mark_recovery_complete(sb, es);
++			lock_super(sb);
+ 		} else {
+ 			__le32 ret;
+ 			if ((ret = EXT3_HAS_RO_COMPAT_FEATURE(sb,
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-freezer-run-show_state-when-freezing-times-out.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-destroy_workqueue-can-livelock.patch
