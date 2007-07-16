@@ -1,79 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - codingstyle-add-information-about-editor-modelines.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:59:49 -0700
-Message-ID: <200707162059.l6GKxnb8002457@imap1.linux-foundation.org>
+Subject: - sony-laptop-use-null-for-pointer.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:56:07 -0700
+Message-ID: <200707162056.l6GKu7Vf002067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34922 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39158 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758430AbXGPVO3 (ORCPT
+	by vger.kernel.org with ESMTP id S1762571AbXGPVOn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:14:29 -0400
+	Mon, 16 Jul 2007 17:14:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josht@linux.vnet.ibm.com, josh@freedesktop.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, malattia@linux.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CodingStyle: add information about editor modelines
+     sony-laptop: use NULL for pointer
 has been removed from the -mm tree.  Its filename was
-     codingstyle-add-information-about-editor-modelines.patch
+     sony-laptop-use-null-for-pointer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CodingStyle: add information about editor modelines
-From: Josh Triplett <josht@linux.vnet.ibm.com>
+Subject: sony-laptop: use NULL for pointer
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-I recently received a patch including a file that had a vim modeline,
-and I realized that nothing specifically proscribed that practice.
+Use NULL instead of 0 for pointer:
+drivers/misc/sony-laptop.c:1920:6: warning: Using plain integer as NULL pointer
 
-Signed-off-by: Josh Triplett <josh@freedesktop.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/CodingStyle |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ drivers/misc/sony-laptop.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/CodingStyle~codingstyle-add-information-about-editor-modelines Documentation/CodingStyle
---- a/Documentation/CodingStyle~codingstyle-add-information-about-editor-modelines
-+++ a/Documentation/CodingStyle
-@@ -738,6 +738,33 @@ need them.  Feel free to peruse that hea
- defined that you shouldn't reproduce in your code.
+diff -puN drivers/misc/sony-laptop.c~sony-laptop-use-null-for-pointer drivers/misc/sony-laptop.c
+--- a/drivers/misc/sony-laptop.c~sony-laptop-use-null-for-pointer
++++ a/drivers/misc/sony-laptop.c
+@@ -1917,7 +1917,8 @@ end:
+  */
+ static int sony_pic_disable(struct acpi_device *device)
+ {
+-	if (ACPI_FAILURE(acpi_evaluate_object(device->handle, "_DIS", 0, NULL)))
++	if (ACPI_FAILURE(acpi_evaluate_object(device->handle,
++			"_DIS", NULL, NULL)))
+ 		return -ENXIO;
  
- 
-+		Chapter 18:  Editor modelines and other cruft
-+
-+Some editors can interpret configuration information embedded in source files,
-+indicated with special markers.  For example, emacs interprets lines marked
-+like this:
-+
-+-*- mode: c -*-
-+
-+Or like this:
-+
-+/*
-+Local Variables:
-+compile-command: "gcc -DMAGIC_DEBUG_FLAG foo.c"
-+End:
-+*/
-+
-+Vim interprets markers that look like this:
-+
-+/* vim:set sw=8 noet */
-+
-+Do not include any of these in source files.  People have their own personal
-+editor configurations, and your source files should not override them.  This
-+includes markers for indentation and mode configuration.  People may use their
-+own custom mode, or may have some other magic method for making indentation
-+work correctly.
-+
-+
- 
- 		Appendix I: References
- 
+ 	dprintk("Device disabled\n");
 _
 
-Patches currently in -mm which might be from josht@linux.vnet.ibm.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-mtd.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+kernel-doc-add-tools-doc-in-makefile.patch
+kernel-doc-fix-unnamed-struct-union-warning.patch
+kernel-doc-strip-c99-comments.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+docbook-dont-reference-file-without-kernel-doc.patch
+profile-likely-unlikely-macros.patch
