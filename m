@@ -1,58 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - git-scsi-misc-vs-greg-sysfs-stuff.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 14:00:12 -0700
-Message-ID: <200707162100.l6GL0C93002581@imap1.linux-foundation.org>
+Subject: - fuse-warning-fix.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:53:26 -0700
+Message-ID: <200707162053.l6GKrQdx001626@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41876 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42966 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762764AbXGPVQE (ORCPT
+	by vger.kernel.org with ESMTP id S1759137AbXGPVQP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:16:04 -0400
+	Mon, 16 Jul 2007 17:16:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, James.Smart@emulex.com, greg@kroah.com, htejun@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, miklos@szeredi.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-misc vs greg-sysfs-stuff
+     fuse warning fix
 has been removed from the -mm tree.  Its filename was
-     git-scsi-misc-vs-greg-sysfs-stuff.patch
+     fuse-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-scsi-misc vs greg-sysfs-stuff
+Subject: fuse warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/lpfc/lpfc_init.c: In function 'lpfc_create_port':
-drivers/scsi/lpfc/lpfc_init.c:1573: error: 'struct kobject' has no member named 'dentry'
+gcc-4.3:
 
-I'm not really sure what this code is trying to test.  Was it correct?
+fs/fuse/dir.c: In function 'parse_dirfile':
+fs/fuse/dir.c:833: warning: cast from pointer to integer of different size
+fs/fuse/dir.c:835: warning: cast from pointer to integer of different size
 
-Cc: James Smart <James.Smart@emulex.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+[miklos@szeredi.hu: use offsetof]
+Acked-by: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_init.c |    3 ---
- 1 files changed, 3 deletions(-)
+ include/linux/fuse.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_init.c~git-scsi-misc-vs-greg-sysfs-stuff drivers/scsi/lpfc/lpfc_init.c
---- a/drivers/scsi/lpfc/lpfc_init.c~git-scsi-misc-vs-greg-sysfs-stuff
-+++ a/drivers/scsi/lpfc/lpfc_init.c
-@@ -1570,9 +1570,6 @@ lpfc_create_port(struct lpfc_hba *phba, 
- 	if (error)
- 		goto out_put_shost;
+diff -puN include/linux/fuse.h~fuse-warning-fix include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-warning-fix
++++ a/include/linux/fuse.h
+@@ -339,7 +339,7 @@ struct fuse_dirent {
+ 	char name[0];
+ };
  
--	if (!shost->shost_classdev.kobj.dentry)
--		goto out_put_shost;
--
- 	list_add_tail(&vport->listentry, &phba->port_list);
- 	return vport;
- 
+-#define FUSE_NAME_OFFSET ((unsigned) ((struct fuse_dirent *) 0)->name)
++#define FUSE_NAME_OFFSET offsetof(struct fuse_dirent, name)
+ #define FUSE_DIRENT_ALIGN(x) (((x) + sizeof(__u64) - 1) & ~(sizeof(__u64) - 1))
+ #define FUSE_DIRENT_SIZE(d) \
+ 	FUSE_DIRENT_ALIGN(FUSE_NAME_OFFSET + (d)->namelen)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
