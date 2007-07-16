@@ -1,89 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - allow-softlockup-to-be-runtime-disabled.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:56:51 -0700
-Message-ID: <200707162056.l6GKup1d002126@imap1.linux-foundation.org>
+Subject: - document-the-fact-that-rcu-callbacks-can-run-in-parallel.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:56:47 -0700
+Message-ID: <200707162056.l6GKul74002120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47868 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52090 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762594AbXGPVOo (ORCPT
+	by vger.kernel.org with ESMTP id S1756822AbXGPVOx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:14:44 -0400
+	Mon, 16 Jul 2007 17:14:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: paulmck@linux.vnet.ibm.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Allow softlockup to be runtime disabled
+     Document the fact that RCU callbacks can run in parallel
 has been removed from the -mm tree.  Its filename was
-     allow-softlockup-to-be-runtime-disabled.patch
+     document-the-fact-that-rcu-callbacks-can-run-in-parallel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Allow softlockup to be runtime disabled
-From: Dave Jones <davej@redhat.com>
+Subject: Document the fact that RCU callbacks can run in parallel
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-It's useful sometimes to disable the softlockup checker at boottime. 
-Especially if it triggers during a distro install.
+Add an item to the RCU documentation checklist noting that RCU callbacks
+can run in parallel.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 ++
- init/main.c                         |   12 +++++++++++-
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ Documentation/RCU/checklist.txt |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~allow-softlockup-to-be-runtime-disabled Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~allow-softlockup-to-be-runtime-disabled
-+++ a/Documentation/kernel-parameters.txt
-@@ -1181,6 +1181,8 @@ and is between 256 and 4096 characters. 
+diff -puN Documentation/RCU/checklist.txt~document-the-fact-that-rcu-callbacks-can-run-in-parallel Documentation/RCU/checklist.txt
+--- a/Documentation/RCU/checklist.txt~document-the-fact-that-rcu-callbacks-can-run-in-parallel
++++ a/Documentation/RCU/checklist.txt
+@@ -222,7 +222,15 @@ over a rather long period of time, but i
+ 	deadlock as soon as the RCU callback happens to interrupt that
+ 	acquisition's critical section.
  
- 	nosmp		[SMP] Tells an SMP kernel to act as a UP kernel.
- 
-+	nosoftlockup	[KNL] Disable the soft-lockup detector.
+-13.	SRCU (srcu_read_lock(), srcu_read_unlock(), and synchronize_srcu())
++13.	RCU callbacks can be and are executed in parallel.  In many cases,
++	the callback code simply wrappers around kfree(), so that this
++	is not an issue (or, more accurately, to the extent that it is
++	an issue, the memory-allocator locking handles it).  However,
++	if the callbacks do manipulate a shared data structure, they
++	must use whatever locking or other synchronization is required
++	to safely access and/or modify that data structure.
 +
- 	nosync		[HW,M68K] Disables sync negotiation for all devices.
- 
- 	notsc		[BUGS=IA-32] Disable Time Stamp Counter
-diff -puN init/main.c~allow-softlockup-to-be-runtime-disabled init/main.c
---- a/init/main.c~allow-softlockup-to-be-runtime-disabled
-+++ a/init/main.c
-@@ -728,6 +728,15 @@ static void __init do_basic_setup(void)
- 	do_initcalls();
- }
- 
-+static int __initdata nosoftlockup;
-+
-+static int __init nosoftlockup_setup(char *str)
-+{
-+	nosoftlockup = 1;
-+	return 1;
-+}
-+__setup("nosoftlockup", nosoftlockup_setup);
-+
- static void __init do_pre_smp_initcalls(void)
- {
- 	extern int spawn_ksoftirqd(void);
-@@ -737,7 +746,8 @@ static void __init do_pre_smp_initcalls(
- 	migration_init();
- #endif
- 	spawn_ksoftirqd();
--	spawn_softlockup_task();
-+	if (!nosoftlockup)
-+		spawn_softlockup_task();
- }
- 
- static void run_init_process(char *init_filename)
++14.	SRCU (srcu_read_lock(), srcu_read_unlock(), and synchronize_srcu())
+ 	may only be invoked from process context.  Unlike other forms of
+ 	RCU, it -is- permissible to block in an SRCU read-side critical
+ 	section (demarked by srcu_read_lock() and srcu_read_unlock()),
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
 origin.patch
-fix-empty-macros-in-acpi.patch
-git-alsa.patch
-i386-remove-support-for-the-rise-cpu.patch
-slow-down-printk-during-boot.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
