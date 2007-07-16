@@ -1,164 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: - fat-gcc-43-warning-fix.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:56 -0700
-Message-ID: <200707162053.l6GKruNW001691@imap1.linux-foundation.org>
+Subject: - use-mutexes-instead-of-semaphores-in-i2o-driver.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:53:24 -0700
+Message-ID: <200707162053.l6GKrOMX001623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52547 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54102 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754108AbXGPVUj (ORCPT
+	by vger.kernel.org with ESMTP id S1759554AbXGPVVC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:20:39 -0400
+	Mon, 16 Jul 2007 17:21:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat: gcc 4.3 warning fix
+     Use mutexes instead of semaphores in I2O driver
 has been removed from the -mm tree.  Its filename was
-     fat-gcc-43-warning-fix.patch
+     use-mutexes-instead-of-semaphores-in-i2o-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fat: gcc 4.3 warning fix
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: Use mutexes instead of semaphores in I2O driver
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-This patch fixes the following warnings.
+The I2O driver uses two semaphores as mutexes.  Use the mutex API instead of
+the (binary) semaphores.
 
-fs/fat/dir.c: In function 'fat_parse_long':
-include/linux/msdos_fs.h:294: warning: array subscript is above array bounds
-include/linux/msdos_fs.h:295: warning: array subscript is above array bounds
-include/linux/msdos_fs.h:295: warning: array subscript is above array bounds
-
-The ->name is defined as "name[8], ext[3]", but fat_checksum() uses
-those as name[11]. There is no actual problem, but it's not a good manner.
-
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c             |   31 ++++++++++++++++++-------------
- fs/fat/inode.c           |    3 +--
- include/linux/msdos_fs.h |    2 +-
- 3 files changed, 20 insertions(+), 16 deletions(-)
+ drivers/message/i2o/device.c   |   16 ++++++++--------
+ drivers/message/i2o/exec-osm.c |    4 ++--
+ drivers/message/i2o/iop.c      |    2 +-
+ include/linux/i2o.h            |    5 +++--
+ 4 files changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-gcc-43-warning-fix fs/fat/dir.c
---- a/fs/fat/dir.c~fat-gcc-43-warning-fix
-+++ a/fs/fat/dir.c
-@@ -313,7 +313,7 @@ int fat_search_long(struct inode *inode,
- 	wchar_t bufuname[14];
- 	unsigned char xlate_len, nr_slots;
- 	wchar_t *unicode = NULL;
--	unsigned char work[8], bufname[260];	/* 256 + 4 */
-+	unsigned char work[MSDOS_NAME], bufname[260];	/* 256 + 4 */
- 	int uni_xlate = sbi->options.unicode_xlate;
- 	int utf8 = sbi->options.utf8;
- 	int anycase = (sbi->options.name_check != 's');
-@@ -351,7 +351,8 @@ parse_record:
- 		if (work[0] == 0x05)
- 			work[0] = 0xE5;
- 		for (i = 0, j = 0, last_u = 0; i < 8;) {
--			if (!work[i]) break;
-+			if (!work[i])
-+				break;
- 			chl = fat_shortname2uni(nls_disk, &work[i], 8 - i,
- 						&bufuname[j++], opt_shortname,
- 						de->lcase & CASE_LOWER_BASE);
-@@ -365,13 +366,15 @@ parse_record:
- 		}
- 		j = last_u;
- 		fat_short2uni(nls_disk, ".", 1, &bufuname[j++]);
--		for (i = 0; i < 3;) {
--			if (!de->ext[i]) break;
--			chl = fat_shortname2uni(nls_disk, &de->ext[i], 3 - i,
-+		for (i = 8; i < MSDOS_NAME;) {
-+			if (!work[i])
-+				break;
-+			chl = fat_shortname2uni(nls_disk, &work[i],
-+						MSDOS_NAME - i,
- 						&bufuname[j++], opt_shortname,
- 						de->lcase & CASE_LOWER_EXT);
- 			if (chl <= 1) {
--				if (de->ext[i] != ' ')
-+				if (work[i] != ' ')
- 					last_u = j;
- 			} else {
- 				last_u = j;
-@@ -445,7 +448,7 @@ static int __fat_readdir(struct inode *i
- 	int fill_len;
- 	wchar_t bufuname[14];
- 	wchar_t *unicode = NULL;
--	unsigned char c, work[8], bufname[56], *ptname = bufname;
-+	unsigned char c, work[MSDOS_NAME], bufname[56], *ptname = bufname;
- 	unsigned long lpos, dummy, *furrfu = &lpos;
- 	int uni_xlate = sbi->options.unicode_xlate;
- 	int isvfat = sbi->options.isvfat;
-@@ -527,7 +530,8 @@ parse_record:
- 	if (work[0] == 0x05)
- 		work[0] = 0xE5;
- 	for (i = 0, j = 0, last = 0, last_u = 0; i < 8;) {
--		if (!(c = work[i])) break;
-+		if (!(c = work[i]))
-+			break;
- 		chl = fat_shortname2uni(nls_disk, &work[i], 8 - i,
- 					&bufuname[j++], opt_shortname,
- 					de->lcase & CASE_LOWER_BASE);
-@@ -549,9 +553,10 @@ parse_record:
- 	j = last_u;
- 	fat_short2uni(nls_disk, ".", 1, &bufuname[j++]);
- 	ptname[i++] = '.';
--	for (i2 = 0; i2 < 3;) {
--		if (!(c = de->ext[i2])) break;
--		chl = fat_shortname2uni(nls_disk, &de->ext[i2], 3 - i2,
-+	for (i2 = 8; i2 < MSDOS_NAME;) {
-+		if (!(c = work[i2]))
-+			break;
-+		chl = fat_shortname2uni(nls_disk, &work[i2], MSDOS_NAME - i2,
- 					&bufuname[j++], opt_shortname,
- 					de->lcase & CASE_LOWER_EXT);
- 		if (chl <= 1) {
-@@ -563,8 +568,8 @@ parse_record:
- 			}
- 		} else {
- 			last_u = j;
--			for (chi = 0; chi < chl && i2 < 3; chi++) {
--				ptname[i++] = de->ext[i2++];
-+			for (chi = 0; chi < chl && i2 < MSDOS_NAME; chi++) {
-+				ptname[i++] = work[i2++];
- 				last = i;
- 			}
- 		}
-diff -puN fs/fat/inode.c~fat-gcc-43-warning-fix fs/fat/inode.c
---- a/fs/fat/inode.c~fat-gcc-43-warning-fix
-+++ a/fs/fat/inode.c
-@@ -354,8 +354,7 @@ static int fat_fill_inode(struct inode *
- 	} else { /* not a directory */
- 		inode->i_generation |= 1;
- 		inode->i_mode = MSDOS_MKMODE(de->attr,
--		    ((sbi->options.showexec &&
--			!is_exec(de->ext))
-+		    ((sbi->options.showexec && !is_exec(de->name + 8))
- 			? S_IRUGO|S_IWUGO : S_IRWXUGO)
- 		    & ~sbi->options.fs_fmask) | S_IFREG;
- 		MSDOS_I(inode)->i_start = le16_to_cpu(de->start);
-diff -puN include/linux/msdos_fs.h~fat-gcc-43-warning-fix include/linux/msdos_fs.h
---- a/include/linux/msdos_fs.h~fat-gcc-43-warning-fix
-+++ a/include/linux/msdos_fs.h
-@@ -146,7 +146,7 @@ struct fat_boot_fsinfo {
+diff -puN drivers/message/i2o/device.c~use-mutexes-instead-of-semaphores-in-i2o-driver drivers/message/i2o/device.c
+--- a/drivers/message/i2o/device.c~use-mutexes-instead-of-semaphores-in-i2o-driver
++++ a/drivers/message/i2o/device.c
+@@ -62,7 +62,7 @@ int i2o_device_claim(struct i2o_device *
+ {
+ 	int rc = 0;
+ 
+-	down(&dev->lock);
++	mutex_lock(&dev->lock);
+ 
+ 	rc = i2o_device_issue_claim(dev, I2O_CMD_UTIL_CLAIM, I2O_CLAIM_PRIMARY);
+ 	if (!rc)
+@@ -72,7 +72,7 @@ int i2o_device_claim(struct i2o_device *
+ 		pr_debug("i2o: claim of device %d failed %d\n",
+ 			 dev->lct_data.tid, rc);
+ 
+-	up(&dev->lock);
++	mutex_unlock(&dev->lock);
+ 
+ 	return rc;
+ }
+@@ -96,7 +96,7 @@ int i2o_device_claim_release(struct i2o_
+ 	int tries;
+ 	int rc = 0;
+ 
+-	down(&dev->lock);
++	mutex_lock(&dev->lock);
+ 
+ 	/*
+ 	 *      If the controller takes a nonblocking approach to
+@@ -118,7 +118,7 @@ int i2o_device_claim_release(struct i2o_
+ 		pr_debug("i2o: claim release of device %d failed %d\n",
+ 			 dev->lct_data.tid, rc);
+ 
+-	up(&dev->lock);
++	mutex_unlock(&dev->lock);
+ 
+ 	return rc;
+ }
+@@ -198,7 +198,7 @@ static struct i2o_device *i2o_device_all
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	INIT_LIST_HEAD(&dev->list);
+-	init_MUTEX(&dev->lock);
++	mutex_init(&dev->lock);
+ 
+ 	dev->device.bus = &i2o_bus_type;
+ 	dev->device.release = &i2o_device_release;
+@@ -326,7 +326,7 @@ int i2o_device_parse_lct(struct i2o_cont
+ 	u16 table_size;
+ 	u32 buf;
+ 
+-	down(&c->lct_lock);
++	mutex_lock(&c->lct_lock);
+ 
+ 	kfree(c->lct);
+ 
+@@ -335,7 +335,7 @@ int i2o_device_parse_lct(struct i2o_cont
+ 
+ 	lct = c->lct = kmalloc(table_size * 4, GFP_KERNEL);
+ 	if (!lct) {
+-		up(&c->lct_lock);
++		mutex_unlock(&c->lct_lock);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -408,7 +408,7 @@ int i2o_device_parse_lct(struct i2o_cont
+ 			i2o_device_remove(dev);
+ 	}
+ 
+-	up(&c->lct_lock);
++	mutex_unlock(&c->lct_lock);
+ 
+ 	return 0;
+ }
+diff -puN drivers/message/i2o/exec-osm.c~use-mutexes-instead-of-semaphores-in-i2o-driver drivers/message/i2o/exec-osm.c
+--- a/drivers/message/i2o/exec-osm.c~use-mutexes-instead-of-semaphores-in-i2o-driver
++++ a/drivers/message/i2o/exec-osm.c
+@@ -537,7 +537,7 @@ static int i2o_exec_lct_notify(struct i2
+ 	struct device *dev;
+ 	struct i2o_message *msg;
+ 
+-	down(&c->lct_lock);
++	mutex_lock(&c->lct_lock);
+ 
+ 	dev = &c->pdev->dev;
+ 
+@@ -561,7 +561,7 @@ static int i2o_exec_lct_notify(struct i2
+ 
+ 	i2o_msg_post(c, msg);
+ 
+-	up(&c->lct_lock);
++	mutex_unlock(&c->lct_lock);
+ 
+ 	return 0;
+ };
+diff -puN drivers/message/i2o/iop.c~use-mutexes-instead-of-semaphores-in-i2o-driver drivers/message/i2o/iop.c
+--- a/drivers/message/i2o/iop.c~use-mutexes-instead-of-semaphores-in-i2o-driver
++++ a/drivers/message/i2o/iop.c
+@@ -1067,7 +1067,7 @@ struct i2o_controller *i2o_iop_alloc(voi
+ 
+ 	INIT_LIST_HEAD(&c->devices);
+ 	spin_lock_init(&c->lock);
+-	init_MUTEX(&c->lct_lock);
++	mutex_init(&c->lct_lock);
+ 
+ 	device_initialize(&c->device);
+ 
+diff -puN include/linux/i2o.h~use-mutexes-instead-of-semaphores-in-i2o-driver include/linux/i2o.h
+--- a/include/linux/i2o.h~use-mutexes-instead-of-semaphores-in-i2o-driver
++++ a/include/linux/i2o.h
+@@ -31,6 +31,7 @@
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>	/* work_struct */
+ #include <linux/mempool.h>
++#include <linux/mutex.h>
+ 
+ #include <asm/io.h>
+ #include <asm/semaphore.h>	/* Needed for MUTEX init macros */
+@@ -425,7 +426,7 @@ struct i2o_device {
+ 
+ 	struct device device;
+ 
+-	struct semaphore lock;	/* device lock */
++	struct mutex lock;	/* device lock */
  };
  
- struct msdos_dir_entry {
--	__u8	name[8],ext[3];	/* name and extension */
-+	__u8	name[MSDOS_NAME];/* name and extension */
- 	__u8	attr;		/* attribute bits */
- 	__u8    lcase;		/* Case for base and extension */
- 	__u8	ctime_cs;	/* Creation time, centiseconds (0-199) */
+ /*
+@@ -544,7 +545,7 @@ struct i2o_controller {
+ 	struct i2o_dma hrt;	/* HW Resource Table */
+ 	i2o_lct *lct;		/* Logical Config Table */
+ 	struct i2o_dma dlct;	/* Temp LCT */
+-	struct semaphore lct_lock;	/* Lock for LCT updates */
++	struct mutex lct_lock;	/* Lock for LCT updates */
+ 	struct i2o_dma status_block;	/* IOP status block */
+ 
+ 	struct i2o_io base;	/* controller messaging unit */
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+git-dvb.patch
+git-mtd.patch
+videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
+use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
+use-mutex-instead-of-semaphore-in-the-elan-u132-adapter-driver.patch
+use-mutex-instead-of-semaphore-in-the-adutux-driver.patch
+use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver.patch
+use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
+use-mutex-instead-of-semaphore-in-spi-core-init-code.patch
+use-mutex-instead-of-semaphore-in-capi-20-driver.patch
+drivers-edac-change-from-semaphore-to-mutex-operation.patch
