@@ -1,140 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-ext4-orphan-list-corruption-due-bad-inode.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:56:01 -0700
-Message-ID: <200707162056.l6GKu1JI002002@imap1.linux-foundation.org>
+Subject: - fault-injection-fix-example-scripts-in-documentation.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:55:17 -0700
+Message-ID: <200707162055.l6GKtHEB001900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34776 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52486 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758560AbXGPVK2 (ORCPT
+	by vger.kernel.org with ESMTP id S1758673AbXGPVKh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:10:28 -0400
+	Mon, 16 Jul 2007 17:10:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vvs@sw.ru, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3/ext4: orphan list corruption due bad inode
+     fault-injection: fix example scripts in documentation
 has been removed from the -mm tree.  Its filename was
-     ext3-ext4-orphan-list-corruption-due-bad-inode.patch
+     fault-injection-fix-example-scripts-in-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext3/ext4: orphan list corruption due bad inode
-From: Vasily Averin <vvs@sw.ru>
+Subject: fault-injection: fix example scripts in documentation
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-After ext3 orphan list check has been added into ext3_destroy_inode()
-(please see my previous patch) the following situation has been detected:
+Fix and cleanup example scripts in fault injection documentation.
 
- EXT3-fs warning (device sda6): ext3_unlink: Deleting nonexistent file (37901290), 0
- Inode 00000101a15b7840: orphan list check failed!
- 00000773 6f665f00 74616d72 00000573 65725f00 06737270 66000000 616d726f
-...
- Call Trace: [<ffffffff80211ea9>] ext3_destroy_inode+0x79/0x90
-  [<ffffffff801a2b16>] sys_unlink+0x126/0x1a0
-  [<ffffffff80111479>] error_exit+0x0/0x81
-  [<ffffffff80110aba>] system_call+0x7e/0x83
+1. Eliminate broken oops() shell function.
 
-First messages said that unlinked inode has i_nlink=0, then ext3_unlink()
-adds this inode into orphan list.
+2. Fold failcmd.sh and failmodule.sh into example scripts. It makes
+   the example scripts work independent of current working directory.
 
-Second message means that this inode has not been removed from orphan list.
- Inode dump has showed that i_fop = &bad_file_ops and it can be set in
-make_bad_inode() only.  Then I've found that ext3_read_inode() can call
-make_bad_inode() without any error/warning messages, for example in the
-following case:
+3. Set "space" parameter to 0 to start injecting errors immediately.
 
-...
-        if (inode->i_nlink == 0) {
-                if (inode->i_mode == 0 ||
-                    !(EXT3_SB(inode->i_sb)->s_mount_state & EXT3_ORPHAN_FS)) {
-                        /* this inode is deleted */
-                        brelse (bh);
-                        goto bad_inode;
-...
+4. Use /sys/module/<modulename>/sections/.data as upper bound of
+   .text section. Because some module doesn't have .exit.text section.
 
-Bad inode can live some time, ext3_unlink can add it to orphan list, but
-ext3_delete_inode() do not deleted this inode from orphan list.  As result
-we can have orphan list corruption detected in ext3_destroy_inode().
-
-However it is not clear for me how to fix this issue correctly.
-
-As far as i see is_bad_inode() is called after iget() in all places
-excluding ext3_lookup() and ext3_get_parent().  I believe it makes sense to
-add bad inode check to these functions too and call iput if bad inode
-detected.
-
-Signed-off-by:	Vasily Averin <vvs@sw.ru>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |   10 ++++++++++
- fs/ext4/namei.c |   10 ++++++++++
- 2 files changed, 20 insertions(+)
+ Documentation/fault-injection/failcmd.sh          |    4 
+ Documentation/fault-injection/failmodule.sh       |   31 ---
+ Documentation/fault-injection/fault-injection.txt |  107 ++++++------
+ 3 files changed, 57 insertions(+), 85 deletions(-)
 
-diff -puN fs/ext3/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode
-+++ a/fs/ext3/namei.c
-@@ -1019,6 +1019,11 @@ static struct dentry *ext3_lookup(struct
+diff -puN Documentation/fault-injection/failcmd.sh~fault-injection-fix-example-scripts-in-documentation /dev/null
+--- a/Documentation/fault-injection/failcmd.sh
++++ /dev/null
+@@ -1,4 +0,0 @@
+-#!/bin/bash
+-
+-echo 1 > /proc/self/make-it-fail
+-exec $*
+diff -puN Documentation/fault-injection/failmodule.sh~fault-injection-fix-example-scripts-in-documentation /dev/null
+--- a/Documentation/fault-injection/failmodule.sh
++++ /dev/null
+@@ -1,31 +0,0 @@
+-#!/bin/bash
+-#
+-# Usage: failmodule <failname> <modulename> [stacktrace-depth]
+-#
+-#	<failname>: "failslab", "fail_alloc_page", or "fail_make_request"
+-#
+-#	<modulename>: module name that you want to inject faults.
+-#
+-#	[stacktrace-depth]: the maximum number of stacktrace walking allowed
+-#
+-
+-STACKTRACE_DEPTH=5
+-if [ $# -gt 2 ]; then
+-	STACKTRACE_DEPTH=$3
+-fi
+-
+-if [ ! -d /debug/$1 ]; then
+-	echo "Fault-injection $1 does not exist" >&2
+-	exit 1
+-fi
+-if [ ! -d /sys/module/$2 ]; then
+-	echo "Module $2 does not exist" >&2
+-	exit 1
+-fi
+-
+-# Disable any fault injection
+-echo 0 > /debug/$1/stacktrace-depth
+-
+-echo `cat /sys/module/$2/sections/.text` > /debug/$1/require-start
+-echo `cat /sys/module/$2/sections/.exit.text` > /debug/$1/require-end
+-echo $STACKTRACE_DEPTH > /debug/$1/stacktrace-depth
+diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-fix-example-scripts-in-documentation Documentation/fault-injection/fault-injection.txt
+--- a/Documentation/fault-injection/fault-injection.txt~fault-injection-fix-example-scripts-in-documentation
++++ a/Documentation/fault-injection/fault-injection.txt
+@@ -161,70 +161,77 @@ o add a hook to insert failures
+ Application Examples
+ --------------------
  
- 		if (!inode)
- 			return ERR_PTR(-EACCES);
-+
-+		if (is_bad_inode(inode)) {
-+			iput(inode);
-+			return ERR_PTR(-ENOENT);
-+		}
- 	}
- 	return d_splice_alias(inode, dentry);
+-o inject slab allocation failures into module init/cleanup code
++o Inject slab allocation failures into module init/exit code
+ 
+-------------------------------------------------------------------------------
+ #!/bin/bash
+ 
+-FAILCMD=Documentation/fault-injection/failcmd.sh
+-BLACKLIST="root_plug evbug"
+-
+-FAILNAME=failslab
+-echo Y > /debug/$FAILNAME/task-filter
+-echo 10 > /debug/$FAILNAME/probability
+-echo 100 > /debug/$FAILNAME/interval
+-echo -1 > /debug/$FAILNAME/times
+-echo 2 > /debug/$FAILNAME/verbose
+-echo 1 > /debug/$FAILNAME/ignore-gfp-wait
++FAILTYPE=failslab
++echo Y > /debug/$FAILTYPE/task-filter
++echo 10 > /debug/$FAILTYPE/probability
++echo 100 > /debug/$FAILTYPE/interval
++echo -1 > /debug/$FAILTYPE/times
++echo 0 > /debug/$FAILTYPE/space
++echo 2 > /debug/$FAILTYPE/verbose
++echo 1 > /debug/$FAILTYPE/ignore-gfp-wait
+ 
+-blacklist()
++faulty_system()
+ {
+-	echo $BLACKLIST | grep $1 > /dev/null 2>&1
++	bash -c "echo 1 > /proc/self/make-it-fail && exec $*"
  }
-@@ -1054,6 +1059,11 @@ struct dentry *ext3_get_parent(struct de
- 	if (!inode)
- 		return ERR_PTR(-EACCES);
  
-+	if (is_bad_inode(inode)) {
-+		iput(inode);
-+		return ERR_PTR(-ENOENT);
-+	}
+-oops()
+-{
+-	dmesg | grep BUG > /dev/null 2>&1
+-}
+-
+-find /lib/modules/`uname -r` -name '*.ko' -exec basename {} .ko \; |
+-	while read i
+-	do
+-		oops && exit 1
+-
+-		if ! blacklist $i
+-		then
+-			echo inserting $i...
+-			bash $FAILCMD modprobe $i
+-		fi
+-	done
+-
+-lsmod | awk '{ if ($3 == 0) { print $1 } }' |
+-	while read i
+-	do
+-		oops && exit 1
+-
+-		if ! blacklist $i
+-		then
+-			echo removing $i...
+-			bash $FAILCMD modprobe -r $i
+-		fi
+-	done
++if [ $# -eq 0 ]
++then
++	echo "Usage: $0 modulename [ modulename ... ]"
++	exit 1
++fi
 +
- 	parent = d_alloc_anon(inode);
- 	if (!parent) {
- 		iput(inode);
-diff -puN fs/ext4/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode fs/ext4/namei.c
---- a/fs/ext4/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode
-+++ a/fs/ext4/namei.c
-@@ -1017,6 +1017,11 @@ static struct dentry *ext4_lookup(struct
++for m in $*
++do
++	echo inserting $m...
++	faulty_system modprobe $m
++
++	echo removing $m...
++	faulty_system modprobe -r $m
++done
  
- 		if (!inode)
- 			return ERR_PTR(-EACCES);
-+
-+		if (is_bad_inode(inode)) {
-+			iput(inode);
-+			return ERR_PTR(-ENOENT);
-+		}
- 	}
- 	return d_splice_alias(inode, dentry);
- }
-@@ -1052,6 +1057,11 @@ struct dentry *ext4_get_parent(struct de
- 	if (!inode)
- 		return ERR_PTR(-EACCES);
+ ------------------------------------------------------------------------------
  
-+	if (is_bad_inode(inode)) {
-+		iput(inode);
-+		return ERR_PTR(-ENOENT);
-+	}
+-o inject slab allocation failures only for a specific module
++o Inject page allocation failures only for a specific module
+ 
+-------------------------------------------------------------------------------
+ #!/bin/bash
+ 
+-FAILMOD=Documentation/fault-injection/failmodule.sh
++FAILTYPE=fail_page_alloc
++module=$1
+ 
+-echo injecting errors into the module $1...
++if [ -z $module ]
++then
++	echo "Usage: $0 <modulename>"
++	exit 1
++fi
 +
- 	parent = d_alloc_anon(inode);
- 	if (!parent) {
- 		iput(inode);
++modprobe $module
++
++if [ ! -d /sys/module/$module/sections ]
++then
++	echo Module $module is not loaded
++	exit 1
++fi
++
++cat /sys/module/$module/sections/.text > /debug/$FAILTYPE/require-start
++cat /sys/module/$module/sections/.data > /debug/$FAILTYPE/require-end
++
++echo N > /debug/$FAILTYPE/task-filter
++echo 10 > /debug/$FAILTYPE/probability
++echo 100 > /debug/$FAILTYPE/interval
++echo -1 > /debug/$FAILTYPE/times
++echo 0 > /debug/$FAILTYPE/space
++echo 2 > /debug/$FAILTYPE/verbose
++echo 1 > /debug/$FAILTYPE/ignore-gfp-wait
++echo 1 > /debug/$FAILTYPE/ignore-gfp-highmem
++echo 10 > /debug/$FAILTYPE/stacktrace-depth
+ 
+-modprobe $1
+-bash $FAILMOD failslab $1 10
+-echo 25 > /debug/failslab/probability
++trap "echo 0 > /debug/$FAILTYPE/probability" SIGINT SIGTERM EXIT
+ 
+-------------------------------------------------------------------------------
++echo "Injecting errors into the module $module... (interrupt to stop)"
++sleep 1000000
+ 
 _
 
-Patches currently in -mm which might be from vvs@sw.ru are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
+git-dvb.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+unregister_chrdev-ignore-the-return-value.patch
+unregister_chrdev-return-void.patch
+unregister_blkdev-do-warn_on-on-failure.patch
+unregister_blkdev-delete-redundant-messages-in-callers.patch
+unregister_blkdev-delete-redundant-message.patch
+unregister_blkdev-return-void.patch
