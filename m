@@ -1,421 +1,390 @@
 From: akpm@linux-foundation.org
-Subject: - add-missing-files-and-dirs-to-00-index-in-documentation.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:58:49 -0700
-Message-ID: <200707162058.l6GKwnQw002370@imap1.linux-foundation.org>
+Subject: - cobalt-remove-all-references-to-cobalt-nvram.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:56:49 -0700
+Message-ID: <200707162056.l6GKunl8002123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59976 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41276 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758803AbXGPVQk (ORCPT
+	by vger.kernel.org with ESMTP id S1754185AbXGPVQh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:16:40 -0400
+	Mon, 16 Jul 2007 17:16:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, rob@landley.net, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, thockin@hockin.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add missing files and dirs to 00-INDEX in Documentation/
+     COBALT: remove all references to Cobalt NVRAM
 has been removed from the -mm tree.  Its filename was
-     add-missing-files-and-dirs-to-00-index-in-documentation.patch
+     cobalt-remove-all-references-to-cobalt-nvram.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add missing files and dirs to 00-INDEX in Documentation/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: COBALT: remove all references to Cobalt NVRAM
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Add descriptions for a number of missing files and directories to the
-Documentation/00-INDEX file.
+Remove not only the references to Cobalt NVRAM, but the header file as
+well.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Rob Landley <rob@landley.net>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Acked-by: Tim Hockin <thockin@hockin.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/00-INDEX |  142 ++++++++++++++++++++++++++++++++++++---
- 1 file changed, 133 insertions(+), 9 deletions(-)
+ drivers/char/nvram.c         |  192 ---------------------------------
+ include/linux/cobalt-nvram.h |  109 ------------------
+ 2 files changed, 1 insertion(+), 300 deletions(-)
 
-diff -puN Documentation/00-INDEX~add-missing-files-and-dirs-to-00-index-in-documentation Documentation/00-INDEX
---- a/Documentation/00-INDEX~add-missing-files-and-dirs-to-00-index-in-documentation
-+++ a/Documentation/00-INDEX
-@@ -12,6 +12,8 @@ Following translations are available on 
+diff -puN drivers/char/nvram.c~cobalt-remove-all-references-to-cobalt-nvram drivers/char/nvram.c
+--- a/drivers/char/nvram.c~cobalt-remove-all-references-to-cobalt-nvram
++++ a/drivers/char/nvram.c
+@@ -42,19 +42,12 @@
  
- 00-INDEX
- 	- this file.
-+ABI/
-+	- info on kernel <-> userspace ABI and relative interface stability.
- BUG-HUNTING
- 	- brute force method of doing binary search of patches to find bug.
- Changes
-@@ -25,37 +27,57 @@ DMA-mapping.txt
- DocBook/
- 	- directory with DocBook templates etc. for kernel documentation.
- HOWTO
--	- The process and procedures of how to do Linux kernel development.
-+	- the process and procedures of how to do Linux kernel development.
- IO-mapping.txt
- 	- how to access I/O mapped memory from within device drivers.
- IPMI.txt
- 	- info on Linux Intelligent Platform Management Interface (IPMI) Driver.
- IRQ-affinity.txt
- 	- how to select which CPU(s) handle which interrupt events on SMP.
-+IRQ.txt
-+	- description of what an IRQ is.
- ManagementStyle
- 	- how to (attempt to) manage kernel hackers.
- MSI-HOWTO.txt
- 	- the Message Signaled Interrupts (MSI) Driver Guide HOWTO and FAQ.
-+PCIEBUS-HOWTO.txt
-+	- a guide describing the PCI Express Port Bus driver.
- RCU/
- 	- directory with info on RCU (read-copy update).
- README.DAC960
- 	- info on Mylex DAC960/DAC1100 PCI RAID Controller Driver for Linux.
-+README.cycladesZ
-+	- info on Cyclades-Z firmware loading.
- SAK.txt
- 	- info on Secure Attention Keys.
-+SecurityBugs
-+	- procedure for reporting security bugs found in the kernel.
-+SubmitChecklist
-+	- Linux kernel patch submission checklist.
- SubmittingDrivers
- 	- procedure to get a new driver source included into the kernel tree.
- SubmittingPatches
- 	- procedure to get a source patch included into the kernel tree.
- VGA-softcursor.txt
- 	- how to change your VGA cursor from a blinking underscore.
-+accounting/
-+	- documentation on accounting and taskstats.
-+aoe/
-+	- description of AoE (ATA over Ethernet) along with config examples.
- applying-patches.txt
- 	- description of various trees and how to apply their patches.
- arm/
- 	- directory with info about Linux on the ARM architecture.
-+atomic_ops.txt
-+	- semantics and behavior of atomic and bitmask operations.
-+auxdisplay/
-+	- misc. LCD driver documentation (cfag12864b, ks0108).
- basic_profiling.txt
- 	- basic instructions for those who wants to profile Linux kernel.
- binfmt_misc.txt
- 	- info on the kernel support for extra binary formats.
-+blackfin/
-+	- directory with documentation for the Blackfin arch.
- block/
- 	- info on the Block I/O (BIO) layer.
- cachetlb.txt
-@@ -68,16 +90,32 @@ cli-sti-removal.txt
- 	- cli()/sti() removal guide.
- computone.txt
- 	- info on Computone Intelliport II/Plus Multiport Serial Driver.
-+connector/
-+	- docs on the netlink based userspace<->kernel space communication mod.
-+console/
-+	- documentation on Linux console drivers.
- cpqarray.txt
- 	- info on using Compaq's SMART2 Intelligent Disk Array Controllers.
- cpu-freq/
- 	- info on CPU frequency and voltage scaling.
-+cpu-hotplug.txt
-+	- document describing CPU hotplug support in the Linux kernel.
-+cpu-load.txt
-+	- document describing how CPU load statistics are collected.
-+cpusets.txt
-+	- documents the cpusets feature; assign CPUs and Mem to a set of tasks.
-+cputopology.txt
-+	- documentation on how CPU topology info is exported via sysfs.
- cris/
- 	- directory with info about Linux on CRIS architecture.
- crypto/
- 	- directory with info on the Crypto API.
-+dcdbas.txt
-+	- information on the Dell Systems Management Base Driver.
- debugging-modules.txt
- 	- some notes on debugging modules after Linux 2.6.3.
-+dell_rbu.txt
-+	- document demonstrating the use of the Dell Remote BIOS Update driver.
- device-mapper/
- 	- directory with info on Device Mapper.
- devices.txt
-@@ -86,32 +124,52 @@ digiepca.txt
- 	- info on Digi Intl. {PC,PCI,EISA}Xx and Xem series cards.
- dnotify.txt
- 	- info about directory notification in Linux.
-+dontdiff
-+	- file containing a list of files that should never be diff'ed.
- driver-model/
- 	- directory with info about Linux driver model.
-+drivers/
-+	- directory with driver documentation (currently only EDAC).
- dvb/
- 	- info on Linux Digital Video Broadcast (DVB) subsystem.
- early-userspace/
- 	- info about initramfs, klibc, and userspace early during boot.
-+ecryptfs.txt
-+	- docs on eCryptfs: stacked cryptographic filesystem for Linux.
- eisa.txt
- 	- info on EISA bus support.
- exception.txt
- 	- how Linux v2.2 handles exceptions without verify_area etc.
-+fault-injection/
-+	- dir with docs about the fault injection capabilities infrastructure.
- fb/
- 	- directory with info on the frame buffer graphics abstraction layer.
-+feature-removal-schedule.txt
-+	- list of files and features that are going to be removed.
- filesystems/
- 	- directory with info on the various filesystems that Linux supports.
- firmware_class/
- 	- request_firmware() hotplug interface info.
- floppy.txt
- 	- notes and driver options for the floppy disk driver.
-+fujitsu/
-+	- Fujitsu FR-V Linux documentation.
-+gpio.txt
-+	- overview of GPIO (General Purpose Input/Output) access conventions.
- hayes-esp.txt
- 	- info on using the Hayes ESP serial driver.
- highuid.txt
- 	- notes on the change from 16 bit to 32 bit user/group IDs.
- hpet.txt
- 	- High Precision Event Timer Driver for Linux.
-+hrtimer/
-+	- info on the timer_stats debugging facility for timer (ab)use.
-+hrtimers/
-+	- info on the hrtimers subsystem for high-resolution kernel timers.
- hw_random.txt
- 	- info on Linux support for random number generator in i8xx chipsets.
-+hwmon/
-+	- directory with docs on various hardware monitoring drivers.
- i2c/
- 	- directory with info about the I2C bus/protocol (2 wire, kHz speed).
- i2o/
-@@ -122,16 +180,22 @@ ia64/
- 	- directory with info about Linux on Intel 64 bit architecture.
- ide.txt
- 	- important info for users of ATA devices (IDE/EIDE disks and CD-ROMS).
-+infiniband/
-+	- directory with documents concerning Linux InfiniBand support.
- initrd.txt
- 	- how to use the RAM disk as an initial/temporary root filesystem.
- input/
- 	- info on Linux input device support.
- io_ordering.txt
- 	- info on ordering I/O writes to memory-mapped addresses.
-+ioctl/
-+	- directory with documents describing various IOCTL calls.
- ioctl-number.txt
- 	- how to implement and register device/driver ioctl calls.
- iostats.txt
- 	- info on I/O statistics Linux kernel provides.
-+irqflags-tracing.txt
-+	- how to use the irq-flags tracing feature.
- isapnp.txt
- 	- info on Linux ISA Plug & Play support.
- isdn/
-@@ -140,26 +204,40 @@ java.txt
- 	- info on the in-kernel binary support for Java(tm).
- kbuild/
- 	- directory with info about the kernel build process.
--kdumpt.txt
--       - mini HowTo on getting the crash dump code to work.
-+kdump/
-+	- directory with mini HowTo on getting the crash dump code to work.
- kernel-doc-nano-HOWTO.txt
- 	- mini HowTo on generation and location of kernel documentation files.
- kernel-docs.txt
- 	- listing of various WWW + books that document kernel internals.
- kernel-parameters.txt
- 	- summary listing of command line / boot prompt args for the kernel.
-+keys-request-key.txt
-+	- description of the kernel key request service.
-+keys.txt
-+	- description of the kernel key retention service.
- kobject.txt
- 	- info of the kobject infrastructure of the Linux kernel.
-+kprobes.txt
-+	- documents the kernel probes debugging feature.
-+kref.txt
-+	- docs on adding reference counters (krefs) to kernel objects.
- laptop-mode.txt
--	- How to conserve battery power using laptop-mode.
-+	- how to conserve battery power using laptop-mode.
- ldm.txt
- 	- a brief description of LDM (Windows Dynamic Disks).
-+leds-class.txt
-+	- documents LED handling under Linux.
-+local_ops.txt
-+	- semantics and behavior of local atomic operations.
-+lockdep-design.txt
-+	- documentation on the runtime locking correctness validator.
- locks.txt
- 	- info on file locking implementations, flock() vs. fcntl(), etc.
- logo.gif
--	- Full colour GIF image of Linux logo (penguin).
-+	- full colour GIF image of Linux logo (penguin - Tux).
- logo.txt
--	- Info on creator of above logo & site to get additional images from.
-+	- info on creator of above logo & site to get additional images from.
- m68k/
- 	- directory with info about Linux on Motorola 68k architecture.
- magic-number.txt
-@@ -170,6 +248,8 @@ mca.txt
- 	- info on supporting Micro Channel Architecture (e.g. PS/2) systems.
- md.txt
- 	- info on boot arguments for the multiple devices driver.
-+memory-barriers.txt
-+	- info on Linux kernel memory barriers.
- memory.txt
- 	- info on typical Linux memory problems.
- mips/
-@@ -177,9 +257,11 @@ mips/
- mono.txt
- 	- how to execute Mono-based .NET binaries with the help of BINFMT_MISC.
- moxa-smartio
--	- info on installing/using Moxa multiport serial driver.
-+	- file with info on installing/using Moxa multiport serial driver.
- mtrr.txt
- 	- how to use PPro Memory Type Range Registers to increase performance.
-+mutex-design.txt
-+	- info on the generic mutex subsystem.
- nbd.txt
- 	- info on a TCP implementation of a network block device.
- netlabel/
-@@ -190,6 +272,8 @@ nfsroot.txt
- 	- short guide on setting up a diskless box with NFS root filesystem.
- nmi_watchdog.txt
- 	- info on NMI watchdog for SMP systems.
-+nommu-mmap.txt
-+	- documentation about no-mmu memory mapping support.
- numastat.txt
- 	- info on how to read Numa policy hit/miss statistics in sysfs.
- oops-tracing.txt
-@@ -202,8 +286,16 @@ parport.txt
- 	- how to use the parallel-port driver.
- parport-lowlevel.txt
- 	- description and usage of the low level parallel port functions.
-+pci-error-recovery.txt
-+	- info on PCI error recovery.
- pci.txt
- 	- info on the PCI subsystem for device driver authors.
-+pcieaer-howto.txt
-+	- the PCI Express Advanced Error Reporting Driver Guide HOWTO.
-+pcmcia/
-+	- info on the Linux PCMCIA driver.
-+pi-futex.txt
-+	- documentation on lightweight PI-futexes.
- pm.txt
- 	- info on Linux power management support.
- pnp.txt
-@@ -214,18 +306,32 @@ powerpc/
- 	- directory with info on using Linux with the PowerPC.
- preempt-locking.txt
- 	- info on locking under a preemptive kernel.
-+prio_tree.txt
-+	- info on radix-priority-search-tree use for indexing vmas.
- ramdisk.txt
- 	- short guide on how to set up and use the RAM disk.
-+rbtree.txt
-+	- info on what red-black trees are and what they are for.
- riscom8.txt
- 	- notes on using the RISCom/8 multi-port serial driver.
-+robust-futex-ABI.txt
-+	- documentation of the robust futex ABI.
-+robust-futexes.txt
-+	- a description of what robust futexes are.
- rocket.txt
- 	- info on the Comtrol RocketPort multiport serial driver.
- rpc-cache.txt
- 	- introduction to the caching mechanisms in the sunrpc layer.
-+rt-mutex-design.txt
-+	- description of the RealTime mutex implementation design.
-+rt-mutex.txt
-+	- desc. of RT-mutex subsystem with PI (Priority Inheritance) support.
- rtc.txt
- 	- notes on how to use the Real Time Clock (aka CMOS clock) driver.
- s390/
- 	- directory with info on using Linux on the IBM S390.
-+sched-arch.txt
-+	- CPU Scheduler implementation hints for architecture specific code.
- sched-coding.txt
- 	- reference for various scheduler-related methods in the O(1) scheduler.
- sched-design.txt
-@@ -240,22 +346,32 @@ serial/
- 	- directory with info on the low level serial API.
- serial-console.txt
- 	- how to set up Linux with a serial line console as the default.
-+sgi-ioc4.txt
-+	- description of the SGI IOC4 PCI (multi function) device.
- sgi-visws.txt
- 	- short blurb on the SGI Visual Workstations.
- sh/
- 	- directory with info on porting Linux to a new architecture.
-+sharedsubtree.txt
-+	- a description of shared subtrees for namespaces.
- smart-config.txt
- 	- description of the Smart Config makefile feature.
- smp.txt
- 	- a few notes on symmetric multi-processing.
-+sony-laptop.txt
-+	- Sony Notebook Control Driver (SNC) Readme.
- sonypi.txt
- 	- info on Linux Sony Programmable I/O Device support.
- sound/
- 	- directory with info on sound card support.
- sparc/
- 	- directory with info on using Linux on Sparc architecture.
-+sparse.txt
-+	- info on how to obtain and use the sparse tool for typechecking.
- specialix.txt
- 	- info on hardware/driver for specialix IO8+ multiport serial card.
-+spi/
-+	- overview of Linux kernel Serial Peripheral Interface (SPI) support.
- spinlocks.txt
- 	- info on using spinlocks to provide exclusive access in kernel.
- stable_api_nonsense.txt
-@@ -274,24 +390,32 @@ sysrq.txt
- 	- info on the magic SysRq key.
- telephony/
- 	- directory with info on telephony (e.g. voice over IP) support.
-+thinkpad-acpi.txt
-+	- information on the (IBM and Lenovo) ThinkPad ACPI Extras driver.
- time_interpolators.txt
- 	- info on time interpolators.
- tipar.txt
- 	- information about Parallel link cable for Texas Instruments handhelds.
- tty.txt
- 	- guide to the locking policies of the tty layer.
--unicode.txt
--	- info on the Unicode character/font mapping used in Linux.
- uml/
- 	- directory with information about User Mode Linux.
-+unicode.txt
-+	- info on the Unicode character/font mapping used in Linux.
-+unshare.txt
-+	- description of the Linux unshare system call.
- usb/
- 	- directory with info regarding the Universal Serial Bus.
-+video-output.txt
-+	- sysfs class driver interface to enable/disable a video output device.
- video4linux/
- 	- directory with info regarding video/TV/radio cards and linux.
- vm/
- 	- directory with info on the Linux vm code.
- voyager.txt
- 	- guide to running Linux on the Voyager architecture.
-+w1/
-+	- directory with documents regarding the 1-wire (w1) subsystem.
- watchdog/
- 	- how to auto-reboot Linux if it has "fallen and can't get up". ;-)
- x86_64/
+ #define PC		1
+ #define ATARI		2
+-#define COBALT		3
+ 
+ /* select machine configuration */
+ #if defined(CONFIG_ATARI)
+ #  define MACH ATARI
+ #elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)  /* and others?? */
+-#define MACH PC
+-#  if defined(CONFIG_COBALT)
+-#    include <linux/cobalt-nvram.h>
+-#    define MACH COBALT
+-#  else
+-#    define MACH PC
+-#  endif
++#  define MACH PC
+ #else
+ #  error Cannot build nvram driver for this machine configuration.
+ #endif
+@@ -76,18 +69,6 @@
+ 
+ #endif
+ 
+-#if MACH == COBALT
+-
+-#define CHECK_DRIVER_INIT()     1
+-
+-#define NVRAM_BYTES		(128-NVRAM_FIRST_BYTE)
+-
+-#define mach_check_checksum	cobalt_check_checksum
+-#define mach_set_checksum	cobalt_set_checksum
+-#define mach_proc_infos		cobalt_proc_infos
+-
+-#endif
+-
+ #if MACH == ATARI
+ 
+ /* Special parameters for RTC in Atari machines */
+@@ -604,177 +585,6 @@ pc_proc_infos(unsigned char *nvram, char
+ 
+ #endif /* MACH == PC */
+ 
+-#if MACH == COBALT
+-
+-/* the cobalt CMOS has a wider range of its checksum */
+-static int cobalt_check_checksum(void)
+-{
+-	int i;
+-	unsigned short sum = 0;
+-	unsigned short expect;
+-
+-	for (i = COBT_CMOS_CKS_START; i <= COBT_CMOS_CKS_END; ++i) {
+-		if ((i == COBT_CMOS_CHECKSUM) || (i == (COBT_CMOS_CHECKSUM+1)))
+-			continue;
+-
+-		sum += __nvram_read_byte(i);
+-	}
+-	expect = __nvram_read_byte(COBT_CMOS_CHECKSUM) << 8 |
+-	    __nvram_read_byte(COBT_CMOS_CHECKSUM+1);
+-	return ((sum & 0xffff) == expect);
+-}
+-
+-static void cobalt_set_checksum(void)
+-{
+-	int i;
+-	unsigned short sum = 0;
+-
+-	for (i = COBT_CMOS_CKS_START; i <= COBT_CMOS_CKS_END; ++i) {
+-		if ((i == COBT_CMOS_CHECKSUM) || (i == (COBT_CMOS_CHECKSUM+1)))
+-			continue;
+-
+-		sum += __nvram_read_byte(i);
+-	}
+-
+-	__nvram_write_byte(sum >> 8, COBT_CMOS_CHECKSUM);
+-	__nvram_write_byte(sum & 0xff, COBT_CMOS_CHECKSUM+1);
+-}
+-
+-#ifdef CONFIG_PROC_FS
+-
+-static int cobalt_proc_infos(unsigned char *nvram, char *buffer, int *len,
+-	off_t *begin, off_t offset, int size)
+-{
+-	int i;
+-	unsigned int checksum;
+-	unsigned int flags;
+-	char sernum[14];
+-	char *key = "cNoEbTaWlOtR!";
+-	unsigned char bto_csum;
+-
+-	spin_lock_irq(&rtc_lock);
+-	checksum = __nvram_check_checksum();
+-	spin_unlock_irq(&rtc_lock);
+-
+-	PRINT_PROC("Checksum status: %svalid\n", checksum ? "" : "not ");
+-
+-	flags = nvram[COBT_CMOS_FLAG_BYTE_0] << 8 
+-	    | nvram[COBT_CMOS_FLAG_BYTE_1];
+-
+-	PRINT_PROC("Console: %s\n",
+-		flags & COBT_CMOS_CONSOLE_FLAG ?  "on": "off");
+-
+-	PRINT_PROC("Firmware Debug Messages: %s\n",
+-		flags & COBT_CMOS_DEBUG_FLAG ? "on": "off");
+-
+-	PRINT_PROC("Auto Prompt: %s\n",
+-		flags & COBT_CMOS_AUTO_PROMPT_FLAG ? "on": "off");
+-
+-	PRINT_PROC("Shutdown Status: %s\n",
+-		flags & COBT_CMOS_CLEAN_BOOT_FLAG ? "clean": "dirty");
+-
+-	PRINT_PROC("Hardware Probe: %s\n",
+-		flags & COBT_CMOS_HW_NOPROBE_FLAG ? "partial": "full");
+-
+-	PRINT_PROC("System Fault: %sdetected\n",
+-		flags & COBT_CMOS_SYSFAULT_FLAG ? "": "not ");
+-
+-	PRINT_PROC("Panic on OOPS: %s\n",
+-		flags & COBT_CMOS_OOPSPANIC_FLAG ? "yes": "no");
+-
+-	PRINT_PROC("Delayed Cache Initialization: %s\n",
+-		flags & COBT_CMOS_DELAY_CACHE_FLAG ? "yes": "no");
+-
+-	PRINT_PROC("Show Logo at Boot: %s\n",
+-		flags & COBT_CMOS_NOLOGO_FLAG ? "no": "yes");
+-
+-	PRINT_PROC("Boot Method: ");
+-	switch (nvram[COBT_CMOS_BOOT_METHOD]) {
+-	case COBT_CMOS_BOOT_METHOD_DISK:
+-		PRINT_PROC("disk\n");
+-		break;
+-
+-	case COBT_CMOS_BOOT_METHOD_ROM:
+-		PRINT_PROC("rom\n");
+-		break;
+-
+-	case COBT_CMOS_BOOT_METHOD_NET:
+-		PRINT_PROC("net\n");
+-		break;
+-
+-	default:
+-		PRINT_PROC("unknown\n");
+-		break;
+-	}
+-
+-	PRINT_PROC("Primary Boot Device: %d:%d\n",
+-		nvram[COBT_CMOS_BOOT_DEV0_MAJ],
+-		nvram[COBT_CMOS_BOOT_DEV0_MIN] );
+-	PRINT_PROC("Secondary Boot Device: %d:%d\n",
+-		nvram[COBT_CMOS_BOOT_DEV1_MAJ],
+-		nvram[COBT_CMOS_BOOT_DEV1_MIN] );
+-	PRINT_PROC("Tertiary Boot Device: %d:%d\n",
+-		nvram[COBT_CMOS_BOOT_DEV2_MAJ],
+-		nvram[COBT_CMOS_BOOT_DEV2_MIN] );
+-
+-	PRINT_PROC("Uptime: %d\n",
+-		nvram[COBT_CMOS_UPTIME_0] << 24 |
+-		nvram[COBT_CMOS_UPTIME_1] << 16 |
+-		nvram[COBT_CMOS_UPTIME_2] << 8  |
+-		nvram[COBT_CMOS_UPTIME_3]);
+-
+-	PRINT_PROC("Boot Count: %d\n",
+-		nvram[COBT_CMOS_BOOTCOUNT_0] << 24 |
+-		nvram[COBT_CMOS_BOOTCOUNT_1] << 16 |
+-		nvram[COBT_CMOS_BOOTCOUNT_2] << 8  |
+-		nvram[COBT_CMOS_BOOTCOUNT_3]);
+-
+-	/* 13 bytes of serial num */
+-	for (i=0 ; i<13 ; i++) {
+-		sernum[i] = nvram[COBT_CMOS_SYS_SERNUM_0 + i];
+-	}
+-	sernum[13] = '\0';
+-
+-	checksum = 0;
+-	for (i=0 ; i<13 ; i++) {
+-		checksum += sernum[i] ^ key[i];
+-	}
+-	checksum = ((checksum & 0x7f) ^ (0xd6)) & 0xff;
+-
+-	PRINT_PROC("Serial Number: %s", sernum);
+-	if (checksum != nvram[COBT_CMOS_SYS_SERNUM_CSUM]) {
+-		PRINT_PROC(" (invalid checksum)");
+-	}
+-	PRINT_PROC("\n");
+-
+-	PRINT_PROC("Rom Revison: %d.%d.%d\n", nvram[COBT_CMOS_ROM_REV_MAJ],
+-		nvram[COBT_CMOS_ROM_REV_MIN], nvram[COBT_CMOS_ROM_REV_REV]);
+-
+-	PRINT_PROC("BTO Server: %d.%d.%d.%d", nvram[COBT_CMOS_BTO_IP_0],
+-		nvram[COBT_CMOS_BTO_IP_1], nvram[COBT_CMOS_BTO_IP_2],
+-		nvram[COBT_CMOS_BTO_IP_3]);
+-	bto_csum = nvram[COBT_CMOS_BTO_IP_0] + nvram[COBT_CMOS_BTO_IP_1]
+-		+ nvram[COBT_CMOS_BTO_IP_2] + nvram[COBT_CMOS_BTO_IP_3];
+-	if (bto_csum != nvram[COBT_CMOS_BTO_IP_CSUM]) {
+-		PRINT_PROC(" (invalid checksum)");
+-	}
+-	PRINT_PROC("\n");
+-
+-	if (flags & COBT_CMOS_VERSION_FLAG
+-	 && nvram[COBT_CMOS_VERSION] >= COBT_CMOS_VER_BTOCODE) {
+-		PRINT_PROC("BTO Code: 0x%x\n",
+-			nvram[COBT_CMOS_BTO_CODE_0] << 24 |
+-			nvram[COBT_CMOS_BTO_CODE_1] << 16 |
+-			nvram[COBT_CMOS_BTO_CODE_2] << 8 |
+-			nvram[COBT_CMOS_BTO_CODE_3]);
+-	}
+-
+-	return 1;
+-}
+-#endif /* CONFIG_PROC_FS */
+-
+-#endif /* MACH == COBALT */
+-
+ #if MACH == ATARI
+ 
+ static int
+diff -puN include/linux/cobalt-nvram.h~cobalt-remove-all-references-to-cobalt-nvram /dev/null
+--- a/include/linux/cobalt-nvram.h
++++ /dev/null
+@@ -1,109 +0,0 @@
+-/*
+- * $Id: cobalt-nvram.h,v 1.20 2001/10/17 23:16:55 thockin Exp $
+- * cobalt-nvram.h : defines for the various fields in the cobalt NVRAM
+- *
+- * Copyright 2001,2002 Sun Microsystems, Inc.
+- */
+-
+-#ifndef COBALT_NVRAM_H
+-#define COBALT_NVRAM_H
+-
+-#include <linux/nvram.h>
+-
+-#define COBT_CMOS_INFO_MAX		0x7f	/* top address allowed */
+-#define COBT_CMOS_BIOS_DRIVE_INFO	0x12	/* drive info would go here */
+-
+-#define COBT_CMOS_CKS_START		NVRAM_OFFSET(0x0e)
+-#define COBT_CMOS_CKS_END		NVRAM_OFFSET(0x7f)
+-
+-/* flag bytes - 16 flags for now, leave room for more */
+-#define COBT_CMOS_FLAG_BYTE_0		NVRAM_OFFSET(0x10)
+-#define COBT_CMOS_FLAG_BYTE_1		NVRAM_OFFSET(0x11)
+-
+-/* flags in flag bytes - up to 16 */
+-#define COBT_CMOS_FLAG_MIN		0x0001
+-#define COBT_CMOS_CONSOLE_FLAG		0x0001 /* console on/off */
+-#define COBT_CMOS_DEBUG_FLAG		0x0002 /* ROM debug messages */
+-#define COBT_CMOS_AUTO_PROMPT_FLAG	0x0004 /* boot to ROM prompt? */
+-#define COBT_CMOS_CLEAN_BOOT_FLAG	0x0008 /* set by a clean shutdown */
+-#define COBT_CMOS_HW_NOPROBE_FLAG	0x0010 /* go easy on the probing */
+-#define COBT_CMOS_SYSFAULT_FLAG		0x0020 /* system fault detected */
+-#define COBT_CMOS_OOPSPANIC_FLAG	0x0040 /* panic on oops */
+-#define COBT_CMOS_DELAY_CACHE_FLAG	0x0080 /* delay cache initialization */
+-#define COBT_CMOS_NOLOGO_FLAG		0x0100 /* hide "C" logo @ boot */
+-#define COBT_CMOS_VERSION_FLAG		0x0200 /* the version field is valid */
+-#define COBT_CMOS_FLAG_MAX		0x0200
+-
+-/* leave byte 0x12 blank - Linux looks for drive info here */
+-
+-/* CMOS structure version, valid if COBT_CMOS_VERSION_FLAG is true */
+-#define COBT_CMOS_VERSION		NVRAM_OFFSET(0x13)
+-#define COBT_CMOS_VER_BTOCODE		1 /* min. version needed for btocode */
+-
+-/* index of default boot method */
+-#define COBT_CMOS_BOOT_METHOD		NVRAM_OFFSET(0x20)
+-#define COBT_CMOS_BOOT_METHOD_DISK	0
+-#define COBT_CMOS_BOOT_METHOD_ROM	1
+-#define COBT_CMOS_BOOT_METHOD_NET	2
+-
+-#define COBT_CMOS_BOOT_DEV_MIN		NVRAM_OFFSET(0x21)
+-/* major #, minor # of first through fourth boot device */
+-#define COBT_CMOS_BOOT_DEV0_MAJ		NVRAM_OFFSET(0x21)
+-#define COBT_CMOS_BOOT_DEV0_MIN		NVRAM_OFFSET(0x22)
+-#define COBT_CMOS_BOOT_DEV1_MAJ		NVRAM_OFFSET(0x23)
+-#define COBT_CMOS_BOOT_DEV1_MIN		NVRAM_OFFSET(0x24)
+-#define COBT_CMOS_BOOT_DEV2_MAJ		NVRAM_OFFSET(0x25)
+-#define COBT_CMOS_BOOT_DEV2_MIN		NVRAM_OFFSET(0x26)
+-#define COBT_CMOS_BOOT_DEV3_MAJ		NVRAM_OFFSET(0x27)
+-#define COBT_CMOS_BOOT_DEV3_MIN		NVRAM_OFFSET(0x28)
+-#define COBT_CMOS_BOOT_DEV_MAX		NVRAM_OFFSET(0x28)
+-
+-/* checksum of bytes 0xe-0x7f */
+-#define COBT_CMOS_CHECKSUM		NVRAM_OFFSET(0x2e)
+-
+-/* running uptime counter, units of 5 minutes (32 bits =~ 41000 years) */
+-#define COBT_CMOS_UPTIME_0		NVRAM_OFFSET(0x30)
+-#define COBT_CMOS_UPTIME_1		NVRAM_OFFSET(0x31)
+-#define COBT_CMOS_UPTIME_2		NVRAM_OFFSET(0x32)
+-#define COBT_CMOS_UPTIME_3		NVRAM_OFFSET(0x33)
+-
+-/* count of successful boots (32 bits) */
+-#define COBT_CMOS_BOOTCOUNT_0		NVRAM_OFFSET(0x38)
+-#define COBT_CMOS_BOOTCOUNT_1		NVRAM_OFFSET(0x39)
+-#define COBT_CMOS_BOOTCOUNT_2		NVRAM_OFFSET(0x3a)
+-#define COBT_CMOS_BOOTCOUNT_3		NVRAM_OFFSET(0x3b)
+-
+-/* 13 bytes: system serial number, same as on the back of the system */
+-#define COBT_CMOS_SYS_SERNUM_LEN	13
+-#define COBT_CMOS_SYS_SERNUM_0		NVRAM_OFFSET(0x40)
+-#define COBT_CMOS_SYS_SERNUM_1		NVRAM_OFFSET(0x41)
+-#define COBT_CMOS_SYS_SERNUM_2		NVRAM_OFFSET(0x42)
+-#define COBT_CMOS_SYS_SERNUM_3		NVRAM_OFFSET(0x43)
+-#define COBT_CMOS_SYS_SERNUM_4		NVRAM_OFFSET(0x44)
+-#define COBT_CMOS_SYS_SERNUM_5		NVRAM_OFFSET(0x45)
+-#define COBT_CMOS_SYS_SERNUM_6		NVRAM_OFFSET(0x46)
+-#define COBT_CMOS_SYS_SERNUM_7		NVRAM_OFFSET(0x47)
+-#define COBT_CMOS_SYS_SERNUM_8		NVRAM_OFFSET(0x48)
+-#define COBT_CMOS_SYS_SERNUM_9		NVRAM_OFFSET(0x49)
+-#define COBT_CMOS_SYS_SERNUM_10		NVRAM_OFFSET(0x4a)
+-#define COBT_CMOS_SYS_SERNUM_11		NVRAM_OFFSET(0x4b)
+-#define COBT_CMOS_SYS_SERNUM_12		NVRAM_OFFSET(0x4c)
+-/* checksum for serial num - 1 byte */
+-#define COBT_CMOS_SYS_SERNUM_CSUM	NVRAM_OFFSET(0x4f)
+-
+-#define COBT_CMOS_ROM_REV_MAJ		NVRAM_OFFSET(0x50)
+-#define COBT_CMOS_ROM_REV_MIN		NVRAM_OFFSET(0x51)
+-#define COBT_CMOS_ROM_REV_REV		NVRAM_OFFSET(0x52)
+-
+-#define COBT_CMOS_BTO_CODE_0		NVRAM_OFFSET(0x53)
+-#define COBT_CMOS_BTO_CODE_1		NVRAM_OFFSET(0x54)
+-#define COBT_CMOS_BTO_CODE_2		NVRAM_OFFSET(0x55)
+-#define COBT_CMOS_BTO_CODE_3		NVRAM_OFFSET(0x56)
+-
+-#define COBT_CMOS_BTO_IP_CSUM		NVRAM_OFFSET(0x57)
+-#define COBT_CMOS_BTO_IP_0		NVRAM_OFFSET(0x58)
+-#define COBT_CMOS_BTO_IP_1		NVRAM_OFFSET(0x59)
+-#define COBT_CMOS_BTO_IP_2		NVRAM_OFFSET(0x5a)
+-#define COBT_CMOS_BTO_IP_3		NVRAM_OFFSET(0x5b)
+-
+-#endif /* COBALT_NVRAM_H */
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-git-mtd.patch
-remove-unneeded-test-of-task-in-dump_trace.patch
-git-xfs.patch
+git-alsa.patch
+git-powerpc.patch
+git-dvb.patch
+git-kbuild.patch
+git-kvm.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+remove-dead-references-to-module_parm-macro.patch
+git-watchdog.patch
+i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
+i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
+i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
+mm-make-needlessly-global-hugetlb_no_page-static.patch
