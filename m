@@ -1,118 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - fix-xfs_ioc_fsgeometry_v1-in-compat-mode.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 14:00:33 -0700
-Message-ID: <200707162100.l6GL0XiP002635@imap1.linux-foundation.org>
+Subject: - synclink-remove-bogus-no-change-termios-optimisation.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:59:11 -0700
+Message-ID: <200707162059.l6GKxB7G002406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55700 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55897 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763382AbXGPVR1 (ORCPT
+	by vger.kernel.org with ESMTP id S1759207AbXGPVR5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:17:27 -0400
+	Mon, 16 Jul 2007 17:17:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mmarek@suse.cz, dgc@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xfs: fix XFS_IOC_FSGEOMETRY_V1 in compat mode
+     synclink: remove bogus 'no change' termios optimisation from synclink drivers
 has been removed from the -mm tree.  Its filename was
-     fix-xfs_ioc_fsgeometry_v1-in-compat-mode.patch
+     synclink-remove-bogus-no-change-termios-optimisation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: xfs: fix XFS_IOC_FSGEOMETRY_V1 in compat mode
-From: Michal Marek <mmarek@suse.cz>
+Subject: synclink: remove bogus 'no change' termios optimisation from synclink drivers
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-i386 struct xfs_fsop_geom_v1 has no padding after the last member, so the size
-is different.
+Again this check is wrong now, and un-needed
 
-Signed-off-by: Michal Marek <mmarek@suse.cz>
-Cc: Timothy Shimmin <tes@sgi.com>
-Cc: David Chinner <dgc@sgi.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_ioctl32.c |   42 ++++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
+ drivers/char/synclink.c    |    8 --------
+ drivers/char/synclink_gt.c |    8 --------
+ drivers/char/synclinkmp.c  |    8 --------
+ 3 files changed, 24 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsgeometry_v1-in-compat-mode fs/xfs/linux-2.6/xfs_ioctl32.c
---- a/fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsgeometry_v1-in-compat-mode
-+++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
-@@ -75,6 +75,42 @@ xfs_ioctl32_flock(
- 	return (unsigned long)p;
- }
+diff -puN drivers/char/synclink.c~synclink-remove-bogus-no-change-termios-optimisation drivers/char/synclink.c
+--- a/drivers/char/synclink.c~synclink-remove-bogus-no-change-termios-optimisation
++++ a/drivers/char/synclink.c
+@@ -160,8 +160,6 @@ typedef struct _DMABUFFERENTRY
  
-+typedef struct compat_xfs_fsop_geom_v1 {
-+	__u32		blocksize;	/* filesystem (data) block size */
-+	__u32		rtextsize;	/* realtime extent size		*/
-+	__u32		agblocks;	/* fsblocks in an AG		*/
-+	__u32		agcount;	/* number of allocation groups	*/
-+	__u32		logblocks;	/* fsblocks in the log		*/
-+	__u32		sectsize;	/* (data) sector size, bytes	*/
-+	__u32		inodesize;	/* inode size in bytes		*/
-+	__u32		imaxpct;	/* max allowed inode space(%)	*/
-+	__u64		datablocks;	/* fsblocks in data subvolume	*/
-+	__u64		rtblocks;	/* fsblocks in realtime subvol	*/
-+	__u64		rtextents;	/* rt extents in realtime subvol*/
-+	__u64		logstart;	/* starting fsblock of the log	*/
-+	unsigned char	uuid[16];	/* unique id of the filesystem	*/
-+	__u32		sunit;		/* stripe unit, fsblocks	*/
-+	__u32		swidth;		/* stripe width, fsblocks	*/
-+	__s32		version;	/* structure version		*/
-+	__u32		flags;		/* superblock version flags	*/
-+	__u32		logsectsize;	/* log sector size, bytes	*/
-+	__u32		rtsectsize;	/* realtime sector size, bytes	*/
-+	__u32		dirblocksize;	/* directory block size, bytes	*/
-+} __attribute__((packed)) compat_xfs_fsop_geom_v1_t;
-+
-+#define XFS_IOC_FSGEOMETRY_V1_32  \
-+	_IOR ('X', 100, struct compat_xfs_fsop_geom_v1)
-+
-+STATIC unsigned long xfs_ioctl32_geom_v1(unsigned long arg)
-+{
-+	compat_xfs_fsop_geom_v1_t __user *p32 = (void __user *)arg;
-+	xfs_fsop_geom_v1_t __user *p = compat_alloc_user_space(sizeof(*p));
-+
-+	if (copy_in_user(p, p32, sizeof(*p32)))
-+		return -EFAULT;
-+	return (unsigned long)p;
-+}
-+
- #else
+ #define IO_PIN_SHUTDOWN_LIMIT 100
  
- typedef struct xfs_fsop_bulkreq32 {
-@@ -118,7 +154,6 @@ xfs_compat_ioctl(
+-#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
+-
+ struct	_input_signal_events {
+ 	int	ri_up;	
+ 	int	ri_down;
+@@ -3064,12 +3062,6 @@ static void mgsl_set_termios(struct tty_
+ 		printk("%s(%d):mgsl_set_termios %s\n", __FILE__,__LINE__,
+ 			tty->driver->name );
+ 	
+-	/* just return if nothing has changed */
+-	if ((tty->termios->c_cflag == old_termios->c_cflag)
+-	    && (RELEVANT_IFLAG(tty->termios->c_iflag) 
+-		== RELEVANT_IFLAG(old_termios->c_iflag)))
+-	  return;
+-
+ 	mgsl_change_params(info);
  
- 	switch (cmd) {
- 	case XFS_IOC_DIOINFO:
--	case XFS_IOC_FSGEOMETRY_V1:
- 	case XFS_IOC_FSGEOMETRY:
- 	case XFS_IOC_GETVERSION:
- 	case XFS_IOC_GETXFLAGS:
-@@ -166,6 +201,10 @@ xfs_compat_ioctl(
- 		arg = xfs_ioctl32_flock(arg);
- 		cmd = _NATIVE_IOC(cmd, struct xfs_flock64);
- 		break;
-+	case XFS_IOC_FSGEOMETRY_V1_32:
-+		arg = xfs_ioctl32_geom_v1(arg);
-+		cmd = _NATIVE_IOC(cmd, struct xfs_fsop_geom_v1);
-+		break;
+ 	/* Handle transition to B0 status */
+diff -puN drivers/char/synclink_gt.c~synclink-remove-bogus-no-change-termios-optimisation drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink-remove-bogus-no-change-termios-optimisation
++++ a/drivers/char/synclink_gt.c
+@@ -144,8 +144,6 @@ MODULE_PARM_DESC(dosyncppp, "Enable sync
+ /*
+  * tty support and callbacks
+  */
+-#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
+-
+ static struct tty_driver *serial_driver;
  
- #else /* These are handled fine if no alignment issues */
- 	case XFS_IOC_ALLOCSP:
-@@ -176,6 +215,7 @@ xfs_compat_ioctl(
- 	case XFS_IOC_FREESP64:
- 	case XFS_IOC_RESVSP64:
- 	case XFS_IOC_UNRESVSP64:
-+	case XFS_IOC_FSGEOMETRY_V1:
- 		break;
+ static int  open(struct tty_struct *tty, struct file * filp);
+@@ -823,12 +821,6 @@ static void set_termios(struct tty_struc
  
- 	/* xfs_bstat_t still has wrong u32 vs u64 alignment */
+ 	DBGINFO(("%s set_termios\n", tty->driver->name));
+ 
+-	/* just return if nothing has changed */
+-	if ((tty->termios->c_cflag == old_termios->c_cflag)
+-	    && (RELEVANT_IFLAG(tty->termios->c_iflag)
+-		== RELEVANT_IFLAG(old_termios->c_iflag)))
+-		return;
+-
+ 	change_params(info);
+ 
+ 	/* Handle transition to B0 status */
+diff -puN drivers/char/synclinkmp.c~synclink-remove-bogus-no-change-termios-optimisation drivers/char/synclinkmp.c
+--- a/drivers/char/synclinkmp.c~synclink-remove-bogus-no-change-termios-optimisation
++++ a/drivers/char/synclinkmp.c
+@@ -135,8 +135,6 @@ typedef struct _SCADESC_EX
+ 
+ #define IO_PIN_SHUTDOWN_LIMIT 100
+ 
+-#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
+-
+ struct	_input_signal_events {
+ 	int	ri_up;
+ 	int	ri_down;
+@@ -927,12 +925,6 @@ static void set_termios(struct tty_struc
+ 		printk("%s(%d):%s set_termios()\n", __FILE__,__LINE__,
+ 			tty->driver->name );
+ 
+-	/* just return if nothing has changed */
+-	if ((tty->termios->c_cflag == old_termios->c_cflag)
+-	    && (RELEVANT_IFLAG(tty->termios->c_iflag)
+-		== RELEVANT_IFLAG(old_termios->c_iflag)))
+-	  return;
+-
+ 	change_params(info);
+ 
+ 	/* Handle transition to B0 status */
 _
 
-Patches currently in -mm which might be from mmarek@suse.cz are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-git-xfs.patch
+git-powerpc.patch
+git-ia64.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+ata-use-iomap_name.patch
+sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+sb1250-duartc-sb1250-duart-serial-support.patch
+mbcs-remove-lots-of-global-symbols.patch
+i2o_cfg_passthru-cleanup.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+stallion-remove-unneeded-lock_kernel.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
+drivers-edac-fix-edac_device-semaphore-to-mutex.patch
+drivers-edac-fix-e752x-reversed-csrows.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-fix-leaf-sysfs-attribute.patch
+drivers-edac-fix-edac_mc-init-apis.patch
+drivers-edac-fix-edac_device-init-apis.patch
+drivers-edac-fix-edac_mc-sysfs-completion-code.patch
+drivers-edac-fix-edac_device-sysfs-completion-code.patch
