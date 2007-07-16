@@ -1,236 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - make-seccomp-zerocost-in-schedule.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:58:18 -0700
-Message-ID: <200707162058.l6GKwIg3002337@imap1.linux-foundation.org>
+Subject: - make-cancel_xxx_work_sync-return-a-boolean.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:58:57 -0700
+Message-ID: <200707162058.l6GKwvrX002382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41646 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59655 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760722AbXGPVP2 (ORCPT
+	by vger.kernel.org with ESMTP id S1762594AbXGPVPa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:28 -0400
+	Mon, 16 Jul 2007 17:15:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andrea@cpushare.com, ak@suse.de, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, jarkao2@o2.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make seccomp zerocost in schedule
+     make cancel_xxx_work_sync() return a boolean
 has been removed from the -mm tree.  Its filename was
-     make-seccomp-zerocost-in-schedule.patch
+     make-cancel_xxx_work_sync-return-a-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make seccomp zerocost in schedule
-From: Andrea Arcangeli <andrea@cpushare.com>
+Subject: make cancel_xxx_work_sync() return a boolean
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This follows a suggestion from Chuck Ebbert on how to make seccomp
-absolutely zerocost in schedule too.  The only remaining footprint of
-seccomp is in terms of the bzImage size that becomes a few bytes (perhaps
-even a few kbytes) larger, measure it if you care in the embedded.
+Change cancel_work_sync() and cancel_delayed_work_sync() to return a boolean
+indicating whether the work was actually cancelled.  A zero return value means
+that the work was not pending/queued.
 
-Signed-off-by: Andrea Arcangeli <andrea@cpushare.com>
-Cc: Andi Kleen <ak@suse.de>
+Without that kind of change it is not possible to avoid flush_workqueue()
+sometimes, see the next patch as an example.
+
+Also, this patch unifies both functions and kills the (unlikely) busy-wait
+loop.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Jarek Poplawski <jarkao2@o2.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/process.c     |   73 ++++++++++++++++---------------
- include/asm-i386/processor.h   |    4 +
- include/asm-i386/thread_info.h |    5 +-
- include/linux/seccomp.h        |   10 ----
- kernel/seccomp.c               |    3 +
- 5 files changed, 50 insertions(+), 45 deletions(-)
+ include/linux/workqueue.h |    4 +--
+ kernel/workqueue.c        |   41 +++++++++++++++++++++++-------------
+ 2 files changed, 29 insertions(+), 16 deletions(-)
 
-diff -puN arch/i386/kernel/process.c~make-seccomp-zerocost-in-schedule arch/i386/kernel/process.c
---- a/arch/i386/kernel/process.c~make-seccomp-zerocost-in-schedule
-+++ a/arch/i386/kernel/process.c
-@@ -538,8 +538,31 @@ int dump_task_regs(struct task_struct *t
- 	return 1;
- }
+diff -puN include/linux/workqueue.h~make-cancel_xxx_work_sync-return-a-boolean include/linux/workqueue.h
+--- a/include/linux/workqueue.h~make-cancel_xxx_work_sync-return-a-boolean
++++ a/include/linux/workqueue.h
+@@ -148,7 +148,7 @@ extern int keventd_up(void);
+ extern void init_workqueues(void);
+ int execute_in_process_context(work_func_t fn, struct execute_work *);
  
--static noinline void __switch_to_xtra(struct task_struct *next_p,
--				    struct tss_struct *tss)
-+#ifdef CONFIG_SECCOMP
-+void hard_disable_TSC(void)
-+{
-+	write_cr4(read_cr4() | X86_CR4_TSD);
-+}
-+void disable_TSC(void)
-+{
-+	preempt_disable();
-+	if (!test_and_set_thread_flag(TIF_NOTSC))
-+		/*
-+		 * Must flip the CPU state synchronously with
-+		 * TIF_NOTSC in the current running context.
-+		 */
-+		hard_disable_TSC();
-+	preempt_enable();
-+}
-+void hard_enable_TSC(void)
-+{
-+	write_cr4(read_cr4() & ~X86_CR4_TSD);
-+}
-+#endif /* CONFIG_SECCOMP */
-+
-+static noinline void
-+__switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
-+		 struct tss_struct *tss)
- {
- 	struct thread_struct *next;
- 
-@@ -555,6 +578,17 @@ static noinline void __switch_to_xtra(st
- 		set_debugreg(next->debugreg[7], 7);
- 	}
- 
-+#ifdef CONFIG_SECCOMP
-+	if (test_tsk_thread_flag(prev_p, TIF_NOTSC) ^
-+	    test_tsk_thread_flag(next_p, TIF_NOTSC)) {
-+		/* prev and next are different */
-+		if (test_tsk_thread_flag(next_p, TIF_NOTSC))
-+			hard_disable_TSC();
-+		else
-+			hard_enable_TSC();
-+	}
-+#endif
-+
- 	if (!test_tsk_thread_flag(next_p, TIF_IO_BITMAP)) {
- 		/*
- 		 * Disable the bitmap via an invalid offset. We still cache
-@@ -586,33 +620,6 @@ static noinline void __switch_to_xtra(st
- }
+-extern void cancel_work_sync(struct work_struct *work);
++extern int cancel_work_sync(struct work_struct *work);
  
  /*
-- * This function selects if the context switch from prev to next
-- * has to tweak the TSC disable bit in the cr4.
-- */
--static inline void disable_tsc(struct task_struct *prev_p,
--			       struct task_struct *next_p)
--{
--	struct thread_info *prev, *next;
--
--	/*
--	 * gcc should eliminate the ->thread_info dereference if
--	 * has_secure_computing returns 0 at compile time (SECCOMP=n).
--	 */
--	prev = task_thread_info(prev_p);
--	next = task_thread_info(next_p);
--
--	if (has_secure_computing(prev) || has_secure_computing(next)) {
--		/* slow path here */
--		if (has_secure_computing(prev) &&
--		    !has_secure_computing(next)) {
--			write_cr4(read_cr4() & ~X86_CR4_TSD);
--		} else if (!has_secure_computing(prev) &&
--			   has_secure_computing(next))
--			write_cr4(read_cr4() | X86_CR4_TSD);
--	}
--}
--
--/*
-  *	switch_to(x,yn) should switch tasks from x to y.
-  *
-  * We fsave/fwait so that an exception goes off at the right time
-@@ -689,11 +696,9 @@ struct task_struct fastcall * __switch_t
- 	/*
- 	 * Now maybe handle debug registers and/or IO bitmaps
- 	 */
--	if (unlikely((task_thread_info(next_p)->flags & _TIF_WORK_CTXSW)
--	    || test_tsk_thread_flag(prev_p, TIF_IO_BITMAP)))
--		__switch_to_xtra(next_p, tss);
--
--	disable_tsc(prev_p, next_p);
-+	if (unlikely(task_thread_info(prev_p)->flags & _TIF_WORK_CTXSW_PREV ||
-+		     task_thread_info(next_p)->flags & _TIF_WORK_CTXSW_NEXT))
-+		__switch_to_xtra(prev_p, next_p, tss);
+  * Kill off a pending schedule_delayed_work().  Note that the work callback
+@@ -166,7 +166,7 @@ static inline int cancel_delayed_work(st
+ 	return ret;
+ }
  
- 	/*
- 	 * Leave lazy mode, flushing any hypercalls made here.
-diff -puN include/asm-i386/processor.h~make-seccomp-zerocost-in-schedule include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~make-seccomp-zerocost-in-schedule
-+++ a/include/asm-i386/processor.h
-@@ -228,6 +228,10 @@ extern int bootloader_type;
+-extern void cancel_delayed_work_sync(struct delayed_work *work);
++extern int cancel_delayed_work_sync(struct delayed_work *work);
  
- #define HAVE_ARCH_PICK_MMAP_LAYOUT
+ /* Obsolete. use cancel_delayed_work_sync() */
+ static inline
+diff -puN kernel/workqueue.c~make-cancel_xxx_work_sync-return-a-boolean kernel/workqueue.c
+--- a/kernel/workqueue.c~make-cancel_xxx_work_sync-return-a-boolean
++++ a/kernel/workqueue.c
+@@ -382,16 +382,16 @@ void fastcall flush_workqueue(struct wor
+ EXPORT_SYMBOL_GPL(flush_workqueue);
  
-+extern void hard_disable_TSC(void);
-+extern void disable_TSC(void);
-+extern void hard_enable_TSC(void);
-+
  /*
-  * Size of io_bitmap.
+- * Upon a successful return, the caller "owns" WORK_STRUCT_PENDING bit,
++ * Upon a successful return (>= 0), the caller "owns" WORK_STRUCT_PENDING bit,
+  * so this work can't be re-armed in any way.
   */
-diff -puN include/asm-i386/thread_info.h~make-seccomp-zerocost-in-schedule include/asm-i386/thread_info.h
---- a/include/asm-i386/thread_info.h~make-seccomp-zerocost-in-schedule
-+++ a/include/asm-i386/thread_info.h
-@@ -137,6 +137,7 @@ static inline struct thread_info *curren
- #define TIF_DEBUG		17	/* uses debug registers */
- #define TIF_IO_BITMAP		18	/* uses I/O bitmap */
- #define TIF_FREEZE		19	/* is freezing for suspend */
-+#define TIF_NOTSC		20	/* TSC is not accessible in userland */
+ static int try_to_grab_pending(struct work_struct *work)
+ {
+ 	struct cpu_workqueue_struct *cwq;
+-	int ret = 0;
++	int ret = -1;
  
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
-@@ -151,6 +152,7 @@ static inline struct thread_info *curren
- #define _TIF_DEBUG		(1<<TIF_DEBUG)
- #define _TIF_IO_BITMAP		(1<<TIF_IO_BITMAP)
- #define _TIF_FREEZE		(1<<TIF_FREEZE)
-+#define _TIF_NOTSC		(1<<TIF_NOTSC)
+ 	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work)))
+-		return 1;
++		return 0;
  
- /* work to do on interrupt/exception return */
- #define _TIF_WORK_MASK \
-@@ -160,7 +162,8 @@ static inline struct thread_info *curren
- #define _TIF_ALLWORK_MASK	(0x0000FFFF & ~_TIF_SECCOMP)
- 
- /* flags to check in __switch_to() */
--#define _TIF_WORK_CTXSW (_TIF_DEBUG|_TIF_IO_BITMAP)
-+#define _TIF_WORK_CTXSW_NEXT (_TIF_IO_BITMAP | _TIF_NOTSC | _TIF_DEBUG)
-+#define _TIF_WORK_CTXSW_PREV (_TIF_IO_BITMAP | _TIF_NOTSC)
- 
- /*
-  * Thread-synchronous status.
-diff -puN include/linux/seccomp.h~make-seccomp-zerocost-in-schedule include/linux/seccomp.h
---- a/include/linux/seccomp.h~make-seccomp-zerocost-in-schedule
-+++ a/include/linux/seccomp.h
-@@ -16,11 +16,6 @@ static inline void secure_computing(int 
- 		__secure_computing(this_syscall);
+ 	/*
+ 	 * The queueing is in progress, or it is already queued. Try to
+@@ -457,10 +457,28 @@ static void wait_on_work(struct work_str
+ 		wait_on_cpu_work(per_cpu_ptr(wq->cpu_wq, cpu), work);
  }
  
--static inline int has_secure_computing(struct thread_info *ti)
--{
--	return unlikely(test_ti_thread_flag(ti, TIF_SECCOMP));
--}
--
- extern long prctl_get_seccomp(void);
- extern long prctl_set_seccomp(unsigned long);
- 
-@@ -29,11 +24,6 @@ extern long prctl_set_seccomp(unsigned l
- typedef struct { } seccomp_t;
- 
- #define secure_computing(x) do { } while (0)
--/* static inline to preserve typechecking */
--static inline int has_secure_computing(struct thread_info *ti)
--{
--	return 0;
--}
- 
- static inline long prctl_get_seccomp(void)
++static int __cancel_work_timer(struct work_struct *work,
++				struct timer_list* timer)
++{
++	int ret;
++
++	do {
++		ret = (timer && likely(del_timer(timer)));
++		if (!ret)
++			ret = try_to_grab_pending(work);
++		wait_on_work(work);
++	} while (unlikely(ret < 0));
++
++	work_clear_pending(work);
++	return ret;
++}
++
+ /**
+  * cancel_work_sync - block until a work_struct's callback has terminated
+  * @work: the work which is to be flushed
+  *
++ * Returns true if @work was pending.
++ *
+  * cancel_work_sync() will cancel the work if it is queued. If the work's
+  * callback appears to be running, cancel_work_sync() will block until it
+  * has completed.
+@@ -476,12 +494,9 @@ static void wait_on_work(struct work_str
+  * The caller must ensure that workqueue_struct on which this work was last
+  * queued can't be destroyed before this function returns.
+  */
+-void cancel_work_sync(struct work_struct *work)
++int cancel_work_sync(struct work_struct *work)
  {
-diff -puN kernel/seccomp.c~make-seccomp-zerocost-in-schedule kernel/seccomp.c
---- a/kernel/seccomp.c~make-seccomp-zerocost-in-schedule
-+++ a/kernel/seccomp.c
-@@ -74,6 +74,9 @@ long prctl_set_seccomp(unsigned long sec
- 	if (seccomp_mode && seccomp_mode <= NR_SECCOMP_MODES) {
- 		current->seccomp.mode = seccomp_mode;
- 		set_thread_flag(TIF_SECCOMP);
-+#ifdef TIF_NOTSC
-+		disable_TSC();
-+#endif
- 		ret = 0;
- 	}
+-	while (!try_to_grab_pending(work))
+-		cpu_relax();
+-	wait_on_work(work);
+-	work_clear_pending(work);
++	return __cancel_work_timer(work, NULL);
+ }
+ EXPORT_SYMBOL_GPL(cancel_work_sync);
+ 
+@@ -489,16 +504,14 @@ EXPORT_SYMBOL_GPL(cancel_work_sync);
+  * cancel_delayed_work_sync - reliably kill off a delayed work.
+  * @dwork: the delayed work struct
+  *
++ * Returns true if @dwork was pending.
++ *
+  * It is possible to use this function if @dwork rearms itself via queue_work()
+  * or queue_delayed_work(). See also the comment for cancel_work_sync().
+  */
+-void cancel_delayed_work_sync(struct delayed_work *dwork)
++int cancel_delayed_work_sync(struct delayed_work *dwork)
+ {
+-	while (!del_timer(&dwork->timer) &&
+-	       !try_to_grab_pending(&dwork->work))
+-		cpu_relax();
+-	wait_on_work(&dwork->work);
+-	work_clear_pending(&dwork->work);
++	return __cancel_work_timer(&dwork->work, &dwork->timer);
+ }
+ EXPORT_SYMBOL(cancel_delayed_work_sync);
  
 _
 
-Patches currently in -mm which might be from andrea@cpushare.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-run-show_state-when-freezing-times-out.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+destroy_workqueue-can-livelock.patch
