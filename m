@@ -1,69 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - compat32-ignore-the-loop_clr_fd-ioctl.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:59:53 -0700
-Message-ID: <200707162059.l6GKxrT0002463@imap1.linux-foundation.org>
+Subject: - kcdrwd-remove-unneeded-flush_signals-call.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:58:07 -0700
+Message-ID: <200707162058.l6GKw7Ts002324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34839 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46497 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760722AbXGPVNG (ORCPT
+	by vger.kernel.org with ESMTP id S1755985AbXGPVN1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:13:06 -0400
+	Mon, 16 Jul 2007 17:13:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, arnd@arndb.de, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, petero2@telia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     compat32: ignore the LOOP_CLR_FD ioctl
+     kcdrwd: remove unneeded flush_signals() call
 has been removed from the -mm tree.  Its filename was
-     compat32-ignore-the-loop_clr_fd-ioctl.patch
+     kcdrwd-remove-unneeded-flush_signals-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: compat32: ignore the LOOP_CLR_FD ioctl
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: kcdrwd: remove unneeded flush_signals() call
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-compat32: Ignore the LOOP_CLR_FD ioctl for the loop block device, to kill an
-annoying kernel message when e.g. busybox umount is used.
+kcdrwd() is a kernel thread, all signals are ignored.
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Peter Osterlund <petero2@telia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/block/pktcdvd.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/compat_ioctl.c~compat32-ignore-the-loop_clr_fd-ioctl fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~compat32-ignore-the-loop_clr_fd-ioctl
-+++ a/fs/compat_ioctl.c
-@@ -63,6 +63,7 @@
- #include <linux/wireless.h>
- #include <linux/atalk.h>
- #include <linux/blktrace_api.h>
-+#include <linux/loop.h>
+diff -puN drivers/block/pktcdvd.c~kcdrwd-remove-unneeded-flush_signals-call drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~kcdrwd-remove-unneeded-flush_signals-call
++++ a/drivers/block/pktcdvd.c
+@@ -1652,9 +1652,6 @@ static int kcdrwd(void *foobar)
+ 				}
+ 			}
  
- #include <net/bluetooth/bluetooth.h>
- #include <net/bluetooth/hci.h>
-@@ -3489,6 +3490,9 @@ HANDLE_IOCTL(LPSETTIMEOUT, lp_timeout_tr
- 
- IGNORE_IOCTL(VFAT_IOCTL_READDIR_BOTH32)
- IGNORE_IOCTL(VFAT_IOCTL_READDIR_SHORT32)
-+
-+/* loop */
-+IGNORE_IOCTL(LOOP_CLR_FD)
- };
- 
- #define IOCTL_HASHSIZE 256
+-			if (signal_pending(current)) {
+-				flush_signals(current);
+-			}
+ 			if (kthread_should_stop())
+ 				break;
+ 		}
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-git-powerpc.patch
-fbdev-extract-fb_show_logo_line.patch
-fbdev-add-fb_append_extra_logo.patch
-fbdev-spe-helper-penguin-logo.patch
-cell-draw-spe-helper-penguin-logos.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-run-show_state-when-freezing-times-out.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+destroy_workqueue-can-livelock.patch
