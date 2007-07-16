@@ -1,78 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - docs-static-initialization-of-spinlocks-is-ok.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:59:17 -0700
-Message-ID: <200707162059.l6GKxHHQ002415@imap1.linux-foundation.org>
+Subject: - is_power_of_2-jbd.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:32 -0700
+Message-ID: <200707162057.l6GKvWpe002202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35998 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54078 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755718AbXGPVIA (ORCPT
+	by vger.kernel.org with ESMTP id S1757174AbXGPVIN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:08:00 -0400
+	Mon, 16 Jul 2007 17:08:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ecashin@coraid.com, mm-commits@vger.kernel.org
+To: vignesh.babu@wipro.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docs: static initialization of spinlocks is OK
+     is_power_of_2(): jbd
 has been removed from the -mm tree.  Its filename was
-     docs-static-initialization-of-spinlocks-is-ok.patch
+     is_power_of_2-jbd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: docs: static initialization of spinlocks is OK
-From: "Ed L. Cashin" <ecashin@coraid.com>
+Subject: is_power_of_2(): jbd
+From: vignesh babu <vignesh.babu@wipro.com>
 
-Static initialization of spinlocks is preferable to dynamic initialization
-when it is practical.  This patch updates documentation for consistency
-with comments in spinlock_types.h.
+Replace (n & (n-1)) in the context of power of 2 checks with
+is_power_of_2().
 
-Signed-off-by: Ed L. Cashin <ecashin@coraid.com>
+Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/spinlocks.txt |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ fs/jbd/revoke.c  |    5 +++--
+ fs/jbd2/revoke.c |    5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/spinlocks.txt~docs-static-initialization-of-spinlocks-is-ok Documentation/spinlocks.txt
---- a/Documentation/spinlocks.txt~docs-static-initialization-of-spinlocks-is-ok
-+++ a/Documentation/spinlocks.txt
-@@ -1,7 +1,12 @@
--UPDATE March 21 2005 Amit Gud <gud@eth.net>
-+SPIN_LOCK_UNLOCKED and RW_LOCK_UNLOCKED defeat lockdep state tracking and
-+are hence deprecated.
+diff -puN fs/jbd/revoke.c~is_power_of_2-jbd fs/jbd/revoke.c
+--- a/fs/jbd/revoke.c~is_power_of_2-jbd
++++ a/fs/jbd/revoke.c
+@@ -68,6 +68,7 @@
+ #include <linux/list.h>
+ #include <linux/init.h>
+ #endif
++#include <linux/log2.h>
  
--Macros SPIN_LOCK_UNLOCKED and RW_LOCK_UNLOCKED are deprecated and will be
--removed soon. So for any new code dynamic initialization should be used:
-+Please use DEFINE_SPINLOCK()/DEFINE_RWLOCK() or
-+__SPIN_LOCK_UNLOCKED()/__RW_LOCK_UNLOCKED() as appropriate for static
-+initialization.
-+
-+Dynamic initialization, when necessary, may be performed as
-+demonstrated below.
+ static struct kmem_cache *revoke_record_cache;
+ static struct kmem_cache *revoke_table_cache;
+@@ -211,7 +212,7 @@ int journal_init_revoke(journal_t *journ
+ 	journal->j_revoke = journal->j_revoke_table[0];
  
-    spinlock_t xxx_lock;
-    rwlock_t xxx_rw_lock;
-@@ -15,12 +20,9 @@ removed soon. So for any new code dynami
+ 	/* Check that the hash_size is a power of two */
+-	J_ASSERT ((hash_size & (hash_size-1)) == 0);
++	J_ASSERT(is_power_of_2(hash_size));
  
-    module_init(xxx_init);
+ 	journal->j_revoke->hash_size = hash_size;
  
--Reasons for deprecation
--  - it hurts automatic lock validators
--  - it becomes intrusive for the realtime preemption patches
--
--Following discussion is still valid, however, with the dynamic initialization
--of spinlocks instead of static.
-+The following discussion is still valid, however, with the dynamic
-+initialization of spinlocks or with DEFINE_SPINLOCK, etc., used
-+instead of SPIN_LOCK_UNLOCKED.
+@@ -238,7 +239,7 @@ int journal_init_revoke(journal_t *journ
+ 	journal->j_revoke = journal->j_revoke_table[1];
  
- -----------------------
+ 	/* Check that the hash_size is a power of two */
+-	J_ASSERT ((hash_size & (hash_size-1)) == 0);
++	J_ASSERT(is_power_of_2(hash_size));
+ 
+ 	journal->j_revoke->hash_size = hash_size;
+ 
+diff -puN fs/jbd2/revoke.c~is_power_of_2-jbd fs/jbd2/revoke.c
+--- a/fs/jbd2/revoke.c~is_power_of_2-jbd
++++ a/fs/jbd2/revoke.c
+@@ -68,6 +68,7 @@
+ #include <linux/list.h>
+ #include <linux/init.h>
+ #endif
++#include <linux/log2.h>
+ 
+ static struct kmem_cache *jbd2_revoke_record_cache;
+ static struct kmem_cache *jbd2_revoke_table_cache;
+@@ -212,7 +213,7 @@ int jbd2_journal_init_revoke(journal_t *
+ 	journal->j_revoke = journal->j_revoke_table[0];
+ 
+ 	/* Check that the hash_size is a power of two */
+-	J_ASSERT ((hash_size & (hash_size-1)) == 0);
++	J_ASSERT(is_power_of_2(hash_size));
+ 
+ 	journal->j_revoke->hash_size = hash_size;
+ 
+@@ -239,7 +240,7 @@ int jbd2_journal_init_revoke(journal_t *
+ 	journal->j_revoke = journal->j_revoke_table[1];
+ 
+ 	/* Check that the hash_size is a power of two */
+-	J_ASSERT ((hash_size & (hash_size-1)) == 0);
++	J_ASSERT(is_power_of_2(hash_size));
+ 
+ 	journal->j_revoke->hash_size = hash_size;
  
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from vignesh.babu@wipro.com are
 
 origin.patch
+git-ubi.patch
+git-xfs.patch
+is_power_of_2-ext4-superc.patch
