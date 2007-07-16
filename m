@@ -1,51 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - fs-namespacec-should-include-internalh.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:57:56 -0700
-Message-ID: <200707162057.l6GKvuAA002239@imap1.linux-foundation.org>
+Subject: - remove-the-dead-cyberstormiii_scsi-option.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 14:00:24 -0700
+Message-ID: <200707162100.l6GL0OJb002597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38537 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39627 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755186AbXGPVIx (ORCPT
+	by vger.kernel.org with ESMTP id S1755662AbXGPVI5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:08:53 -0400
+	Mon, 16 Jul 2007 17:08:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/namespace.c should #include "internal.h"
+     remove the dead CYBERSTORMIII_SCSI option
 has been removed from the -mm tree.  Its filename was
-     fs-namespacec-should-include-internalh.patch
+     remove-the-dead-cyberstormiii_scsi-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/namespace.c should #include "internal.h"
+Subject: remove the dead CYBERSTORMIII_SCSI option
 From: Adrian Bunk <bunk@stusta.de>
 
-Every file should include the headers containing the prototypes for
-its global functions.
+Not converted to the 2.6 kconfig system and no code in the tree.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/Kconfig |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN fs/namespace.c~fs-namespacec-should-include-internalh fs/namespace.c
---- a/fs/namespace.c~fs-namespacec-should-include-internalh
-+++ a/fs/namespace.c
-@@ -28,6 +28,7 @@
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
- #include "pnode.h"
-+#include "internal.h"
+diff -puN drivers/scsi/Kconfig~remove-the-dead-cyberstormiii_scsi-option drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~remove-the-dead-cyberstormiii_scsi-option
++++ a/drivers/scsi/Kconfig
+@@ -1780,8 +1780,6 @@ config SCSI_SUNESP
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called esp.
  
- /* spinlock for vfsmount related operations, inplace of dcache_lock */
- __cacheline_aligned_in_smp DEFINE_SPINLOCK(vfsmount_lock);
+-#      bool 'Cyberstorm Mk III SCSI support (EXPERIMENTAL)' CONFIG_CYBERSTORMIII_SCSI
+-
+ config ZFCP
+ 	tristate "FCP host bus adapter driver for IBM eServer zSeries"
+ 	depends on S390 && QDIO && SCSI
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
