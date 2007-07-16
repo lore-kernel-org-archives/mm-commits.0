@@ -1,102 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - mm-more-__meminit-annotations.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:49:35 -0700
-Message-ID: <200707162049.l6GKnZOV001174@imap1.linux-foundation.org>
+Subject: - frv-be-self-consistent-and-use-config_gdb_console-everywhere.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:50:05 -0700
+Message-ID: <200707162050.l6GKo5Ra001290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56024 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51474 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753825AbXGPV0T (ORCPT
+	by vger.kernel.org with ESMTP id S1755987AbXGPV0Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:26:19 -0400
+	Mon, 16 Jul 2007 17:26:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: more __meminit annotations
+     FRV: Be (self-)consistent and use CONFIG_GDB_CONSOLE everywhere
 has been removed from the -mm tree.  Its filename was
-     mm-more-__meminit-annotations.patch
+     frv-be-self-consistent-and-use-config_gdb_console-everywhere.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: more __meminit annotations
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: FRV: Be (self-)consistent and use CONFIG_GDB_CONSOLE everywhere
+From: David Howells <dhowells@redhat.com>
 
-Currently zone_spanned_pages_in_node() and zone_absent_pages_in_node() are
-non-static for ARCH_POPULATES_NODE_MAP and static otherwise.  However, only
-the non-static versions are __meminit annotated, despite only being called
-from __meminit functions in either case.
+Be (self-)consistent and use CONFIG_GDB_CONSOLE everywhere rather than using
+CONFIG_GDBSTUB_CONSOLE in some places and not others.  This is also then
+consistent with other archs.
 
-zone_init_free_lists() is currently non-static and not __meminit annotated
-either, despite only being called once in the entire tree by
-init_currently_empty_zone(), which too is __meminit.  So make it static and
-properly annotated.
+Also remove the gdbstub console device() op which doesn't seem to be necessary
+now (especially as it doesn't compile).
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+[Found by Robert P. J. Day <rpjday@mindspring.com>]
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/frv/kernel/gdb-stub.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-more-__meminit-annotations mm/page_alloc.c
---- a/mm/page_alloc.c~mm-more-__meminit-annotations
-+++ a/mm/page_alloc.c
-@@ -2182,8 +2182,8 @@ void __meminit memmap_init_zone(unsigned
- 	}
+diff -puN arch/frv/kernel/gdb-stub.c~frv-be-self-consistent-and-use-config_gdb_console-everywhere arch/frv/kernel/gdb-stub.c
+--- a/arch/frv/kernel/gdb-stub.c~frv-be-self-consistent-and-use-config_gdb_console-everywhere
++++ a/arch/frv/kernel/gdb-stub.c
+@@ -647,17 +647,11 @@ void debug_to_serial(const char *p, int 
  }
+ #endif
  
--void zone_init_free_lists(struct pglist_data *pgdat, struct zone *zone,
--				unsigned long size)
-+static void __meminit zone_init_free_lists(struct pglist_data *pgdat,
-+				struct zone *zone, unsigned long size)
- {
- 	int order;
- 	for (order = 0; order < MAX_ORDER ; order++) {
-@@ -2660,7 +2660,7 @@ void __meminit get_pfn_range_for_nid(uns
-  * Return the number of pages a zone spans in a node, including holes
-  * present_pages = zone_spanned_pages_in_node() - zone_absent_pages_in_node()
+-#ifdef CONFIG_GDBSTUB_CONSOLE
+-
+-static kdev_t gdbstub_console_dev(struct console *con)
+-{
+-	return MKDEV(1,3); /* /dev/null */
+-}
++#ifdef CONFIG_GDB_CONSOLE
+ 
+ static struct console gdbstub_console = {
+ 	.name	= "gdb",
+ 	.write	= gdbstub_console_write,	/* in break.S */
+-	.device	= gdbstub_console_dev,
+ 	.flags	= CON_PRINTBUFFER,
+ 	.index	= -1,
+ };
+@@ -2021,7 +2015,7 @@ void __init gdbstub_init(void)
+ 	ptr = mem2hex(gdbstub_banner, ptr, sizeof(gdbstub_banner) - 1, 0);
+ 	gdbstub_send_packet(output_buffer);
+ #endif
+-#if defined(CONFIG_GDBSTUB_CONSOLE) && defined(CONFIG_GDBSTUB_IMMEDIATE)
++#if defined(CONFIG_GDB_CONSOLE) && defined(CONFIG_GDBSTUB_IMMEDIATE)
+ 	register_console(&gdbstub_console);
+ #endif
+ 
+@@ -2031,7 +2025,7 @@ void __init gdbstub_init(void)
+ /*
+  * register the console at a more appropriate time
   */
--unsigned long __meminit zone_spanned_pages_in_node(int nid,
-+static unsigned long __meminit zone_spanned_pages_in_node(int nid,
- 					unsigned long zone_type,
- 					unsigned long *ignored)
+-#if defined (CONFIG_GDBSTUB_CONSOLE) && !defined(CONFIG_GDBSTUB_IMMEDIATE)
++#if defined (CONFIG_GDB_CONSOLE) && !defined(CONFIG_GDBSTUB_IMMEDIATE)
+ static int __init gdbstub_postinit(void)
  {
-@@ -2748,7 +2748,7 @@ unsigned long __init absent_pages_in_ran
- }
- 
- /* Return the number of page frames in holes in a zone on a node */
--unsigned long __meminit zone_absent_pages_in_node(int nid,
-+static unsigned long __meminit zone_absent_pages_in_node(int nid,
- 					unsigned long zone_type,
- 					unsigned long *ignored)
- {
-@@ -2765,14 +2765,14 @@ unsigned long __meminit zone_absent_page
- }
- 
- #else
--static inline unsigned long zone_spanned_pages_in_node(int nid,
-+static inline unsigned long __meminit zone_spanned_pages_in_node(int nid,
- 					unsigned long zone_type,
- 					unsigned long *zones_size)
- {
- 	return zones_size[zone_type];
- }
- 
--static inline unsigned long zone_absent_pages_in_node(int nid,
-+static inline unsigned long __meminit zone_absent_pages_in_node(int nid,
- 						unsigned long zone_type,
- 						unsigned long *zholes_size)
- {
+ 	printk("registering console\n");
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
-fb-epson1355fb-kill-off-dead-sh-support.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+document-page_mkwrite-locking.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+mutex-subsystem-synchro-test-module.patch
