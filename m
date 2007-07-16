@@ -1,193 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: - percpu_counters-use-for_each_online_cpu.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:33 -0700
-Message-ID: <200707162053.l6GKrXxf001657@imap1.linux-foundation.org>
+Subject: - sys_time-speedup.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:34 -0700
+Message-ID: <200707162057.l6GKvYRF002205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46222 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38385 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760675AbXGPVVz (ORCPT
+	by vger.kernel.org with ESMTP id S1760940AbXGPVVz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 16 Jul 2007 17:21:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ego@in.ibm.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     percpu_counters: use for_each_online_cpu()
+     sys_time() speedup
 has been removed from the -mm tree.  Its filename was
-     percpu_counters-use-for_each_online_cpu.patch
+     sys_time-speedup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: percpu_counters: use for_each_online_cpu()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sys_time() speedup
+From: Ingo Molnar <mingo@elte.hu>
 
-Now that we have implemented hotunplug-time counter spilling,
-percpu_counter_sum() only needs to look at online CPUs.
+Improve performance of sys_time().  sys_time() returns time in seconds, but
+it does so by calling do_gettimeofday() and then returning the tv_sec
+portion of the GTOD time.  But the data structure "xtime", which is updated
+by every timer/scheduler tick, already offers HZ granularity time.
 
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+The patch improves the sysbench OLTP macrobenchmark significantly:
+
+2.6.22-rc6:
+
+#threads
+   1:        transactions:                        3733   (373.21 per sec.)
+   2:        transactions:                        6676   (667.46 per sec.)
+   3:        transactions:                        6957   (695.50 per sec.)
+   4:        transactions:                        7055   (705.48 per sec.)
+   5:        transactions:                        6596   (659.33 per sec.)
+
+2.6.22-rc6 + sys_time.patch:
+
+   1:        transactions:                        4005   (400.47 per sec.)
+   2:        transactions:                        7379   (737.77 per sec.)
+   3:        transactions:                        7347   (734.49 per sec.)
+   4:        transactions:                        7468   (746.65 per sec.)
+   5:        transactions:                        7428   (742.47 per sec.)
+
+Mixed API uses of gettimeofday() and time() are guaranteed to be coherent
+via the use of a at-most-once-per-second slowpath that updates xtime.
+
+[akpm@linux-foundation.org: build fixes]
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_counter.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/time.c |   32 ++++++++++++++++++++++++--------
+ 1 file changed, 24 insertions(+), 8 deletions(-)
 
-diff -puN lib/percpu_counter.c~percpu_counters-use-for_each_online_cpu lib/percpu_counter.c
---- a/lib/percpu_counter.c~percpu_counters-use-for_each_online_cpu
-+++ a/lib/percpu_counter.c
-@@ -45,7 +45,7 @@ s64 percpu_counter_sum(struct percpu_cou
+diff -puN kernel/time.c~sys_time-speedup kernel/time.c
+--- a/kernel/time.c~sys_time-speedup
++++ a/kernel/time.c
+@@ -57,14 +57,17 @@ EXPORT_SYMBOL(sys_tz);
+  */
+ asmlinkage long sys_time(time_t __user * tloc)
+ {
+-	time_t i;
+-	struct timeval tv;
++	/*
++	 * We read xtime.tv_sec atomically - it's updated
++	 * atomically by update_wall_time(), so no need to
++	 * even read-lock the xtime seqlock:
++	 */
++	time_t i = xtime.tv_sec;
  
- 	spin_lock(&fbc->lock);
- 	ret = fbc->count;
--	for_each_possible_cpu(cpu) {
-+	for_each_online_cpu(cpu) {
- 		s32 *pcount = per_cpu_ptr(fbc->counters, cpu);
- 		ret += *pcount;
+-	do_gettimeofday(&tv);
+-	i = tv.tv_sec;
++	smp_rmb(); /* sys_time() results are coherent */
+ 
+ 	if (tloc) {
+-		if (put_user(i,tloc))
++		if (put_user(i, tloc))
+ 			i = -EFAULT;
  	}
+ 	return i;
+@@ -373,12 +376,25 @@ void do_gettimeofday (struct timeval *tv
+ 
+ 	tv->tv_sec = sec;
+ 	tv->tv_usec = usec;
+-}
+ 
++	/*
++	 * Make sure xtime.tv_sec [returned by sys_time()] always
++	 * follows the gettimeofday() result precisely. This
++	 * condition is extremely unlikely, it can hit at most
++	 * once per second:
++	 */
++	if (unlikely(xtime.tv_sec != tv->tv_sec)) {
++		unsigned long flags;
++
++		write_seqlock_irqsave(&xtime_lock, flags);
++		update_wall_time();
++		write_sequnlock_irqrestore(&xtime_lock, flags);
++	}
++}
+ EXPORT_SYMBOL(do_gettimeofday);
+ 
++#else	/* CONFIG_TIME_INTERPOLATION */
+ 
+-#else
+ #ifndef CONFIG_GENERIC_TIME
+ /*
+  * Simulate gettimeofday using do_gettimeofday which only allows a timeval
+@@ -394,7 +410,7 @@ void getnstimeofday(struct timespec *tv)
+ }
+ EXPORT_SYMBOL_GPL(getnstimeofday);
+ #endif
+-#endif
++#endif	/* CONFIG_TIME_INTERPOLATION */
+ 
+ /* Converts Gregorian date to seconds since 1970-01-01 00:00:00.
+  * Assumes input in normal date format, i.e. 1980-12-31 23:59:59
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
 git-acpi.patch
-git-acpi-fix-git-rejects.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-git-powerpc.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-ia64.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
 git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-ubi.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-git-ocfs2-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
 x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+tick-management-spread-timer-interrupt.patch
+highres-improve-debug-output.patch
+hrtimer-speedup-hrtimer_enqueue.patch
+pcspkr-use-the-global-pit-lock.patch
 ntp-move-the-cmos-update-code-into-ntpc.patch
+i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
+i386-remove-volatile-in-apicc.patch
+i386-hpet-assumes-boot-cpu-is-0.patch
+i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
+x86_64-untangle-asm-hpeth-from-asm-timexh.patch
+x86_64-use-generic-cmos-update.patch
+x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
+x86_64-fix-apic-typo.patch
+x86_64-convert-to-cleckevents.patch
+acpi-remove-the-useless-ifdef-code.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-i386-speedup-touch_nmi_watchdog.patch
-x86_64-speedup-touch_nmi_watchdog.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support.patch
-spi-master-driver-for-xilinx-virtex.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup.patch
-knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-remove-iget-abuse.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-add-support-for-the-st-m48t59-rtc.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
-rtc-driver-for-ds1216-chips-fix.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+geode-mfgpt-clock-event-device-support.patch
+i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+fix-raw_spinlock_t-vs-lockdep.patch
+lockdep-sanitise-config_prove_locking.patch
+lockdep-reduce-the-ifdeffery.patch
 lockstat-core-infrastructure.patch
+lockstat-human-readability-tweaks.patch
+lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
 lockdep-various-fixes.patch
+lockdep-fixup-sk_callback_lock-annotation.patch
 lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+lockstat-better-class-name-representation.patch
+lockdep-debugging-give-stacktrace-for-init_error.patch
+stacktrace-fix-header-file-for-config_stacktrace.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
