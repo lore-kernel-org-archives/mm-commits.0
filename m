@@ -1,89 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - undeprecate-raw-driver.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:56:09 -0700
-Message-ID: <200707162056.l6GKu98d002070@imap1.linux-foundation.org>
+Subject: - net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 14:00:08 -0700
+Message-ID: <200707162100.l6GL0815002575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46515 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56936 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754812AbXGPVIZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755933AbXGPVIc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:08:25 -0400
+	Mon, 16 Jul 2007 17:08:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, mm-commits@vger.kernel.org
+To: dmitry@butskoy.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     undeprecate raw driver
+     net: MSG_ERRQUEUE messages do not pass to connected raw sockets
 has been removed from the -mm tree.  Its filename was
-     undeprecate-raw-driver.patch
+     net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: undeprecate raw driver
-From: Dave Jones <davej@redhat.com>
+Subject: net: MSG_ERRQUEUE messages do not pass to connected raw sockets
+From: Dmitry Butskoy <dmitry@butskoy.name>
 
-Despite repeated attempts over the last two and half years, this driver
-seems somewhat persistant.  Remove its deprecated status as it has existing
-users who may not be in a position to migrate their apps to O_DIRECT.
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=8747
 
-Signed-off-by: Dave Jones <davej@redhat.com>
+Problem Description:
+
+It is related to the possibility to obtain MSG_ERRQUEUE messages from the udp
+and raw sockets, both connected and unconnected.
+
+There is a little typo in net/ipv6/icmp.c code, which prevents such messages
+to be delivered to the errqueue of the correspond raw socket, when the socket
+is CONNECTED.  The typo is due to swap of local/remote addresses.
+
+Consider __raw_v6_lookup() function from net/ipv6/raw.c. When a raw socket is
+looked up usual way, it is something like:
+
+sk = __raw_v6_lookup(sk, nexthdr, daddr, saddr, IP6CB(skb)->iif);
+
+where "daddr" is a destination address of the incoming packet (IOW our local
+address), "saddr" is a source address of the incoming packet (the remote end).
+
+But when the raw socket is looked up for some icmp error report, in
+net/ipv6/icmp.c:icmpv6_notify() , daddr/saddr are obtained from the echoed
+fragment of the "bad" packet, i.e.  "daddr" is the original destination
+address of that packet, "saddr" is our local address.  Hence, for
+icmpv6_notify() must use "saddr, daddr" in its arguments, not "daddr, saddr"
+...
+
+Steps to reproduce:
+
+Create some raw socket, connect it to an address, and cause some error
+situation: f.e. set ttl=1 where the remote address is more than 1 hop to reach.
+Set IPV6_RECVERR .
+Then send something and wait for the error (f.e. poll() with POLLERR|POLLIN).
+You should receive "time exceeded" icmp message (because of "ttl=1"), but the
+socket do not receive it.
+
+If you do not connect your raw socket, you will receive MSG_ERRQUEUE
+successfully.  (The reason is that for unconnected socket there are no actual
+checks for local/remote addresses).
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    8 --------
- drivers/char/Kconfig                       |    9 ++++-----
- 2 files changed, 4 insertions(+), 13 deletions(-)
+ net/ipv6/icmp.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~undeprecate-raw-driver Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~undeprecate-raw-driver
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -41,14 +41,6 @@ Who:	Pavel Machek <pavel@suse.cz>
+diff -puN net/ipv6/icmp.c~net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets net/ipv6/icmp.c
+--- a/net/ipv6/icmp.c~net-msg_errqueue-messages-do-not-pass-to-connected-raw-sockets
++++ a/net/ipv6/icmp.c
+@@ -604,7 +604,7 @@ static void icmpv6_notify(struct sk_buff
  
- ---------------------------
- 
--What:	RAW driver (CONFIG_RAW_DRIVER)
--When:	December 2005
--Why:	declared obsolete since kernel 2.6.3
--	O_DIRECT can be used instead
--Who:	Adrian Bunk <bunk@stusta.de>
--
-----------------------------
--
- What:	old NCR53C9x driver
- When:	October 2007
- Why:	Replaced by the much better esp_scsi driver.  Actual low-level
-diff -puN drivers/char/Kconfig~undeprecate-raw-driver drivers/char/Kconfig
---- a/drivers/char/Kconfig~undeprecate-raw-driver
-+++ a/drivers/char/Kconfig
-@@ -979,15 +979,14 @@ config GPIO_VR41XX
- 	depends on CPU_VR41XX
- 
- config RAW_DRIVER
--	tristate "RAW driver (/dev/raw/rawN) (OBSOLETE)"
-+	tristate "RAW driver (/dev/raw/rawN)"
- 	depends on BLOCK
- 	help
--	  The raw driver permits block devices to be bound to /dev/raw/rawN. 
--	  Once bound, I/O against /dev/raw/rawN uses efficient zero-copy I/O. 
-+	  The raw driver permits block devices to be bound to /dev/raw/rawN.
-+	  Once bound, I/O against /dev/raw/rawN uses efficient zero-copy I/O.
- 	  See the raw(8) manpage for more details.
- 
--          The raw driver is deprecated and will be removed soon.
--          Applications should simply open the device (eg /dev/hda1)
-+          Applications should preferably open the device (eg /dev/hda1)
-           with the O_DIRECT flag.
- 
- config MAX_RAW_DEVS
+ 	read_lock(&raw_v6_lock);
+ 	if ((sk = sk_head(&raw_v6_htable[hash])) != NULL) {
+-		while((sk = __raw_v6_lookup(sk, nexthdr, daddr, saddr,
++		while ((sk = __raw_v6_lookup(sk, nexthdr, saddr, daddr,
+ 					    IP6CB(skb)->iif))) {
+ 			rawv6_err(sk, skb, NULL, type, code, inner_offset, info);
+ 			sk = sk_next(sk);
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from dmitry@butskoy.name are
 
 origin.patch
-fix-empty-macros-in-acpi.patch
-git-alsa.patch
-i386-remove-support-for-the-rise-cpu.patch
-slow-down-printk-during-boot.patch
