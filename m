@@ -1,58 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - snd-aoa-codec-onyx-fix-typo.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 14:00:02 -0700
-Message-ID: <200707162100.l6GL02ho002566@imap1.linux-foundation.org>
+Subject: - adb_probe_task-remove-unneeded-flush_signals-call.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:58:04 -0700
+Message-ID: <200707162058.l6GKw4rP002321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44512 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37690 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755859AbXGPVQw (ORCPT
+	by vger.kernel.org with ESMTP id S1758803AbXGPVQz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:16:52 -0400
+	Mon, 16 Jul 2007 17:16:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: padator@wanadoo.fr, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     snd-aoa-codec-onyx: fix typo
+     adb_probe_task: remove unneeded flush_signals() call
 has been removed from the -mm tree.  Its filename was
-     snd-aoa-codec-onyx-fix-typo.patch
+     adb_probe_task-remove-unneeded-flush_signals-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: snd-aoa-codec-onyx: fix typo
-From: Yoann Padioleau <padator@wanadoo.fr>
+Subject: adb_probe_task: remove unneeded flush_signals() call
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Parse error in ifdef or bad use of macro.
+adb_probe_task() is forked by "events" thread, all signals are ignored, no
+need to play with signal blocking/flushing.
 
-Signed-off-by: Yoann Padioleau <padator@wanadoo.fr>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/aoa/codecs/snd-aoa-codec-onyx.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/macintosh/adb.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN sound/aoa/codecs/snd-aoa-codec-onyx.c~snd-aoa-codec-onyx-fix-typo sound/aoa/codecs/snd-aoa-codec-onyx.c
---- a/sound/aoa/codecs/snd-aoa-codec-onyx.c~snd-aoa-codec-onyx-fix-typo
-+++ a/sound/aoa/codecs/snd-aoa-codec-onyx.c
-@@ -713,7 +713,7 @@ static int onyx_prepare(struct codec_inf
- 	if (substream->runtime->format == SNDRV_PCM_FMTBIT_COMPRESSED_16BE) {
- 		/* mute and lock analog output */
- 		onyx_read_register(onyx, ONYX_REG_DAC_CONTROL, &v);
--		if (onyx_write_register(onyx
-+		if (onyx_write_register(onyx,
- 					ONYX_REG_DAC_CONTROL,
- 					v | ONYX_MUTE_RIGHT | ONYX_MUTE_LEFT))
- 			goto out_unlock;
+diff -puN drivers/macintosh/adb.c~adb_probe_task-remove-unneeded-flush_signals-call drivers/macintosh/adb.c
+--- a/drivers/macintosh/adb.c~adb_probe_task-remove-unneeded-flush_signals-call
++++ a/drivers/macintosh/adb.c
+@@ -248,21 +248,15 @@ static int adb_scan_bus(void)
+ static int
+ adb_probe_task(void *x)
+ {
+-	sigset_t blocked;
+-
+ 	strcpy(current->comm, "kadbprobe");
+ 
+-	sigfillset(&blocked);
+-	sigprocmask(SIG_BLOCK, &blocked, NULL);
+-	flush_signals(current);
+-
+ 	printk(KERN_INFO "adb: starting probe task...\n");
+ 	do_adb_reset_bus();
+ 	printk(KERN_INFO "adb: finished probe task...\n");
+-	
++
+ 	adb_probe_task_pid = 0;
+ 	up(&adb_probe_mutex);
+-	
++
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from padator@wanadoo.fr are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-git-alsa.patch
-av7110-fix-typo.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-run-show_state-when-freezing-times-out.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+destroy_workqueue-can-livelock.patch
