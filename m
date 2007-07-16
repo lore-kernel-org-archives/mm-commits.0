@@ -1,127 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - split-mmap.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:00 -0700
-Message-ID: <200707162050.l6GKo0tn001210@imap1.linux-foundation.org>
+Subject: - cris-replace-old-style-member-inits-with-designated-inits.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:50:58 -0700
+Message-ID: <200707162050.l6GKownT001352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35744 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759616AbXGPV1S (ORCPT
+	by vger.kernel.org with ESMTP id S1759398AbXGPV0u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:27:18 -0400
+	Mon, 16 Jul 2007 17:26:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     split mmap
+     CRIS: replace old-style member inits with designated inits
 has been removed from the -mm tree.  Its filename was
-     split-mmap.patch
+     cris-replace-old-style-member-inits-with-designated-inits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: split mmap
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: CRIS: replace old-style member inits with designated inits
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-This is a straightforward split of do_mmap_pgoff() into two functions:
+Replace the old-style structure member initializers with designated
+initializers.
 
- - do_mmap_pgoff() checks the parameters, and calculates the vma
-   flags.  Then it calls
-
- - mmap_region(), which does the actual mapping
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++++
- mm/mmap.c          |   25 +++++++++++++++++++------
- 2 files changed, 23 insertions(+), 6 deletions(-)
+ arch/cris/arch-v32/drivers/cryptocop.c |    8 ++++----
+ arch/cris/arch-v32/drivers/i2c.c       |    8 ++++----
+ arch/cris/arch-v32/drivers/pcf8563.c   |    8 ++++----
+ 3 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/mm.h~split-mmap include/linux/mm.h
---- a/include/linux/mm.h~split-mmap
-+++ a/include/linux/mm.h
-@@ -1071,6 +1071,10 @@ extern unsigned long get_unmapped_area(s
- extern unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot,
- 	unsigned long flag, unsigned long pgoff);
-+extern unsigned long mmap_region(struct file *file, unsigned long addr,
-+	unsigned long len, unsigned long flags,
-+	unsigned int vm_flags, unsigned long pgoff,
-+	int accountable);
+diff -puN arch/cris/arch-v32/drivers/cryptocop.c~cris-replace-old-style-member-inits-with-designated-inits arch/cris/arch-v32/drivers/cryptocop.c
+--- a/arch/cris/arch-v32/drivers/cryptocop.c~cris-replace-old-style-member-inits-with-designated-inits
++++ a/arch/cris/arch-v32/drivers/cryptocop.c
+@@ -267,10 +267,10 @@ static void print_user_dma_lists(struct 
  
- static inline unsigned long do_mmap(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot,
-diff -puN mm/mmap.c~split-mmap mm/mmap.c
---- a/mm/mmap.c~split-mmap
-+++ a/mm/mmap.c
-@@ -894,14 +894,11 @@ unsigned long do_mmap_pgoff(struct file 
- 			unsigned long flags, unsigned long pgoff)
- {
- 	struct mm_struct * mm = current->mm;
--	struct vm_area_struct * vma, * prev;
- 	struct inode *inode;
- 	unsigned int vm_flags;
--	int correct_wcount = 0;
- 	int error;
--	struct rb_node ** rb_link, * rb_parent;
- 	int accountable = 1;
--	unsigned long charged = 0, reqprot = prot;
-+	unsigned long reqprot = prot;
  
- 	/*
- 	 * Does the application expect PROT_READ to imply PROT_EXEC?
-@@ -1027,6 +1024,24 @@ unsigned long do_mmap_pgoff(struct file 
- 	if (error)
- 		return error;
+ const struct file_operations cryptocop_fops = {
+-	owner: THIS_MODULE,
+-	open: cryptocop_open,
+-	release: cryptocop_release,
+-	ioctl: cryptocop_ioctl
++	.owner =	THIS_MODULE,
++	.open =		cryptocop_open,
++	.release =	cryptocop_release,
++	.ioctl =	cryptocop_ioctl
+ };
  
-+	return mmap_region(file, addr, len, flags, vm_flags, pgoff,
-+			   accountable);
-+}
-+EXPORT_SYMBOL(do_mmap_pgoff);
-+
-+unsigned long mmap_region(struct file *file, unsigned long addr,
-+			  unsigned long len, unsigned long flags,
-+			  unsigned int vm_flags, unsigned long pgoff,
-+			  int accountable)
-+{
-+	struct mm_struct *mm = current->mm;
-+	struct vm_area_struct *vma, *prev;
-+	int correct_wcount = 0;
-+	int error;
-+	struct rb_node **rb_link, *rb_parent;
-+	unsigned long charged = 0;
-+	struct inode *inode =  file ? file->f_path.dentry->d_inode : NULL;
-+
- 	/* Clear old maps */
- 	error = -ENOMEM;
- munmap_back:
-@@ -1175,8 +1190,6 @@ unacct_error:
- 	return error;
+ 
+diff -puN arch/cris/arch-v32/drivers/i2c.c~cris-replace-old-style-member-inits-with-designated-inits arch/cris/arch-v32/drivers/i2c.c
+--- a/arch/cris/arch-v32/drivers/i2c.c~cris-replace-old-style-member-inits-with-designated-inits
++++ a/arch/cris/arch-v32/drivers/i2c.c
+@@ -574,10 +574,10 @@ i2c_ioctl(struct inode *inode, struct fi
  }
  
--EXPORT_SYMBOL(do_mmap_pgoff);
--
- /* Get an address range which is currently unmapped.
-  * For shmat() with addr=0.
-  *
+ static const struct file_operations i2c_fops = {
+-	owner:    THIS_MODULE,
+-	ioctl:    i2c_ioctl,
+-	open:     i2c_open,
+-	release:  i2c_release,
++	.owner =    THIS_MODULE,
++	.ioctl =    i2c_ioctl,
++	.open =     i2c_open,
++	.release =  i2c_release,
+ };
+ 
+ int __init
+diff -puN arch/cris/arch-v32/drivers/pcf8563.c~cris-replace-old-style-member-inits-with-designated-inits arch/cris/arch-v32/drivers/pcf8563.c
+--- a/arch/cris/arch-v32/drivers/pcf8563.c~cris-replace-old-style-member-inits-with-designated-inits
++++ a/arch/cris/arch-v32/drivers/pcf8563.c
+@@ -51,10 +51,10 @@ int pcf8563_open(struct inode *, struct 
+ int pcf8563_release(struct inode *, struct file *);
+ 
+ static const struct file_operations pcf8563_fops = {
+-	owner: THIS_MODULE,
+-	ioctl: pcf8563_ioctl,
+-	open: pcf8563_open,
+-	release: pcf8563_release,
++	.owner =	THIS_MODULE,
++	.ioctl =	pcf8563_ioctl,
++	.open =		pcf8563_open,
++	.release =	pcf8563_release,
+ };
+ 
+ unsigned char
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-fuse-convert-to-new-aops.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
+git-alsa.patch
+git-powerpc.patch
+git-dvb.patch
+git-kbuild.patch
+git-kvm.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+remove-dead-references-to-module_parm-macro.patch
+git-watchdog.patch
+i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
+i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
+i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
+mm-make-needlessly-global-hugetlb_no_page-static.patch
