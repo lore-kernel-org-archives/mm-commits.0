@@ -1,358 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: - uml-simplify-helper-stack-handling.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:51:25 -0700
-Message-ID: <200707162051.l6GKpPMT001396@imap1.linux-foundation.org>
+Subject: - o_cloexec-for-scm_rights.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:55:36 -0700
+Message-ID: <200707162055.l6GKta7L001946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55039 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58775 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761569AbXGPV3o (ORCPT
+	by vger.kernel.org with ESMTP id S1755966AbXGPV3y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:29:44 -0400
+	Mon, 16 Jul 2007 17:29:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: drepper@redhat.com, davem@davemloft.net, mb@bu3sch.de, mingo@elte.hu, mtk-manpages@gmx.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: simplify helper stack handling
+     O_CLOEXEC for SCM_RIGHTS
 has been removed from the -mm tree.  Its filename was
-     uml-simplify-helper-stack-handling.patch
+     o_cloexec-for-scm_rights.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: simplify helper stack handling
-From: Jeff Dike <jdike@addtoit.com>
+Subject: O_CLOEXEC for SCM_RIGHTS
+From: Ulrich Drepper <drepper@redhat.com>
 
-run_helper and run_helper_thread had arguments which were the same in all
-callers.  run_helper's stack_out was always NULL and run_helper_thread's
-stack_order was always 0.  These are now gone, and the constants folded
-into the code.
+Part two in the O_CLOEXEC saga: adding support for file descriptors received
+through Unix domain sockets.
 
-Also fixed leaks of the helper stack in the AIO and SIGIO code.
+The patch is once again pretty minimal, it introduces a new flag for recvmsg
+and passes it just like the existing MSG_CMSG_COMPAT flag.  I think this bit
+is not used otherwise but the networking people will know better.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+This new flag is not recognized by recvfrom and recv.  These functions cannot
+be used for that purpose and the asymmetry this introduces is not worse than
+the already existing MSG_CMSG_COMPAT situations.
+
+The patch must be applied on the patch which introduced O_CLOEXEC.  It has to
+remove static from the new get_unused_fd_flags function but since scm.c cannot
+live in a module the function still hasn't to be exported.
+
+Here's a test program to make sure the code works.  It's so much longer than
+the actual patch...
+
+#include <errno.h>
+#include <error.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
+#ifndef O_CLOEXEC
+# define O_CLOEXEC 02000000
+#endif
+#ifndef MSG_CMSG_CLOEXEC
+# define MSG_CMSG_CLOEXEC 0x40000000
+#endif
+
+
+int
+main (int argc, char *argv[])
+{
+  if (argc > 1)
+    {
+      int fd = atol (argv[1]);
+      printf ("child: fd = %d\n", fd);
+      if (fcntl (fd, F_GETFD) == 0 || errno != EBADF)
+        {
+          puts ("file descriptor valid in child");
+          return 1;
+        }
+      return 0;
+
+    }
+
+  struct sockaddr_un sun;
+  strcpy (sun.sun_path, "./testsocket");
+  sun.sun_family = AF_UNIX;
+
+  char databuf[] = "hello";
+  struct iovec iov[1];
+  iov[0].iov_base = databuf;
+  iov[0].iov_len = sizeof (databuf);
+
+  union
+  {
+    struct cmsghdr hdr;
+    char bytes[CMSG_SPACE (sizeof (int))];
+  } buf;
+  struct msghdr msg = { .msg_iov = iov, .msg_iovlen = 1,
+                        .msg_control = buf.bytes,
+                        .msg_controllen = sizeof (buf) };
+  struct cmsghdr *cmsg = CMSG_FIRSTHDR (&msg);
+
+  cmsg->cmsg_level = SOL_SOCKET;
+  cmsg->cmsg_type = SCM_RIGHTS;
+  cmsg->cmsg_len = CMSG_LEN (sizeof (int));
+
+  msg.msg_controllen = cmsg->cmsg_len;
+
+  pid_t child = fork ();
+  if (child == -1)
+    error (1, errno, "fork");
+  if (child == 0)
+    {
+      int sock = socket (PF_UNIX, SOCK_STREAM, 0);
+      if (sock < 0)
+        error (1, errno, "socket");
+
+      if (bind (sock, (struct sockaddr *) &sun, sizeof (sun)) < 0)
+        error (1, errno, "bind");
+      if (listen (sock, SOMAXCONN) < 0)
+        error (1, errno, "listen");
+
+      int conn = accept (sock, NULL, NULL);
+      if (conn == -1)
+        error (1, errno, "accept");
+
+      *(int *) CMSG_DATA (cmsg) = sock;
+      if (sendmsg (conn, &msg, MSG_NOSIGNAL) < 0)
+        error (1, errno, "sendmsg");
+
+      return 0;
+    }
+
+  /* For a test suite this should be more robust like a
+     barrier in shared memory.  */
+  sleep (1);
+  
+  int sock = socket (PF_UNIX, SOCK_STREAM, 0);
+  if (sock < 0)
+    error (1, errno, "socket");
+
+  if (connect (sock, (struct sockaddr *) &sun, sizeof (sun)) < 0)
+    error (1, errno, "connect");
+  unlink (sun.sun_path);
+
+  *(int *) CMSG_DATA (cmsg) = -1;
+
+  if (recvmsg (sock, &msg, MSG_CMSG_CLOEXEC) < 0)
+    error (1, errno, "recvmsg");
+
+  int fd = *(int *) CMSG_DATA (cmsg);
+  if (fd == -1)
+    error (1, 0, "no descriptor received");
+
+  char fdname[20];
+  snprintf (fdname, sizeof (fdname), "%d", fd);
+  execl ("/proc/self/exe", argv[0], fdname, NULL);
+  puts ("execl failed");
+  return 1;
+}
+
+[akpm@linux-foundation.org: Fix fastcall inconsistency noted by Michael Buesch]
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/chan_user.c              |    2 +-
- arch/um/drivers/harddog_user.c           |    2 +-
- arch/um/drivers/net_user.c               |    2 +-
- arch/um/drivers/port_user.c              |    2 +-
- arch/um/drivers/slip_user.c              |    2 +-
- arch/um/drivers/slirp_user.c             |    2 +-
- arch/um/drivers/xterm.c                  |    2 +-
- arch/um/include/os.h                     |    6 ++----
- arch/um/os-Linux/aio.c                   |   11 ++++++-----
- arch/um/os-Linux/drivers/ethertap_user.c |    2 +-
- arch/um/os-Linux/drivers/tuntap_user.c   |    2 +-
- arch/um/os-Linux/helper.c                |   19 +++++++------------
- arch/um/os-Linux/sigio.c                 |   19 ++++++++++++-------
- 13 files changed, 36 insertions(+), 37 deletions(-)
+ fs/open.c              |    2 +-
+ include/linux/file.h   |    1 +
+ include/linux/socket.h |    3 +++
+ net/compat.c           |    3 ++-
+ net/core/scm.c         |    3 ++-
+ net/socket.c           |    4 +---
+ 6 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN arch/um/drivers/chan_user.c~uml-simplify-helper-stack-handling arch/um/drivers/chan_user.c
---- a/arch/um/drivers/chan_user.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/drivers/chan_user.c
-@@ -161,7 +161,7 @@ static int winch_tramp(int fd, struct tt
- 	 * problem with /dev/net/tun, which if held open by this
- 	 * thread, prevents the TUN/TAP device from being reused.
- 	 */
--	err = run_helper_thread(winch_thread, &data, CLONE_FILES, stack_out, 0);
-+	err = run_helper_thread(winch_thread, &data, CLONE_FILES, stack_out);
- 	if(err < 0){
- 		printk("fork of winch_thread failed - errno = %d\n", -err);
- 		goto out_close;
-diff -puN arch/um/drivers/harddog_user.c~uml-simplify-helper-stack-handling arch/um/drivers/harddog_user.c
---- a/arch/um/drivers/harddog_user.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/drivers/harddog_user.c
-@@ -68,7 +68,7 @@ int start_watchdog(int *in_fd_ret, int *
- 		args = pid_args;
- 	}
- 
--	pid = run_helper(pre_exec, &data, args, NULL);
-+	pid = run_helper(pre_exec, &data, args);
- 
- 	os_close_file(out_fds[0]);
- 	os_close_file(in_fds[1]);
-diff -puN arch/um/drivers/net_user.c~uml-simplify-helper-stack-handling arch/um/drivers/net_user.c
---- a/arch/um/drivers/net_user.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/drivers/net_user.c
-@@ -187,7 +187,7 @@ static int change_tramp(char **argv, cha
- 	}
- 	pe_data.close_me = fds[0];
- 	pe_data.stdout = fds[1];
--	pid = run_helper(change_pre_exec, &pe_data, argv, NULL);
-+	pid = run_helper(change_pre_exec, &pe_data, argv);
- 
- 	if (pid > 0)	/* Avoid hang as we won't get data in failure case. */
- 		read_output(fds[0], output, output_len);
-diff -puN arch/um/drivers/port_user.c~uml-simplify-helper-stack-handling arch/um/drivers/port_user.c
---- a/arch/um/drivers/port_user.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/drivers/port_user.c
-@@ -188,7 +188,7 @@ int port_connection(int fd, int *socket,
- 		{ .sock_fd  		= new,
- 		  .pipe_fd 		= socket[1] });
- 
--	err = run_helper(port_pre_exec, &data, argv, NULL);
-+	err = run_helper(port_pre_exec, &data, argv);
- 	if(err < 0)
- 		goto out_shutdown;
- 
-diff -puN arch/um/drivers/slip_user.c~uml-simplify-helper-stack-handling arch/um/drivers/slip_user.c
---- a/arch/um/drivers/slip_user.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/drivers/slip_user.c
-@@ -85,7 +85,7 @@ static int slip_tramp(char **argv, int f
- 	pe_data.stdin = fd;
- 	pe_data.stdout = fds[1];
- 	pe_data.close_me = fds[0];
--	err = run_helper(slip_pre_exec, &pe_data, argv, NULL);
-+	err = run_helper(slip_pre_exec, &pe_data, argv);
- 	if(err < 0)
- 		goto out_close;
- 	pid = err;
-diff -puN arch/um/drivers/slirp_user.c~uml-simplify-helper-stack-handling arch/um/drivers/slirp_user.c
---- a/arch/um/drivers/slirp_user.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/drivers/slirp_user.c
-@@ -42,7 +42,7 @@ static int slirp_tramp(char **argv, int 
- 
- 	pe_data.stdin = fd;
- 	pe_data.stdout = fd;
--	pid = run_helper(slirp_pre_exec, &pe_data, argv, NULL);
-+	pid = run_helper(slirp_pre_exec, &pe_data, argv);
- 
- 	return(pid);
- }
-diff -puN arch/um/drivers/xterm.c~uml-simplify-helper-stack-handling arch/um/drivers/xterm.c
---- a/arch/um/drivers/xterm.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/drivers/xterm.c
-@@ -132,7 +132,7 @@ static int xterm_open(int input, int out
- 	}
- 
- 	sprintf(title, data->title, data->device);
--	pid = run_helper(NULL, NULL, argv, NULL);
-+	pid = run_helper(NULL, NULL, argv);
- 	if (pid < 0) {
- 		err = pid;
- 		printk(UM_KERN_ERR "xterm_open : run_helper failed, "
-diff -puN arch/um/include/os.h~uml-simplify-helper-stack-handling arch/um/include/os.h
---- a/arch/um/include/os.h~uml-simplify-helper-stack-handling
-+++ a/arch/um/include/os.h
-@@ -239,11 +239,9 @@ extern unsigned long __do_user_copy(void
- /* execvp.c */
- extern int execvp_noalloc(char *buf, const char *file, char *const argv[]);
- /* helper.c */
--extern int run_helper(void (*pre_exec)(void *), void *pre_data, char **argv,
--		      unsigned long *stack_out);
-+extern int run_helper(void (*pre_exec)(void *), void *pre_data, char **argv);
- extern int run_helper_thread(int (*proc)(void *), void *arg,
--			     unsigned int flags, unsigned long *stack_out,
--			     int stack_order);
-+			     unsigned int flags, unsigned long *stack_out);
- extern int helper_wait(int pid);
- 
- 
-diff -puN arch/um/os-Linux/aio.c~uml-simplify-helper-stack-handling arch/um/os-Linux/aio.c
---- a/arch/um/os-Linux/aio.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/os-Linux/aio.c
-@@ -177,6 +177,7 @@ static int do_not_aio(struct aio_thread_
- static int aio_req_fd_r = -1;
- static int aio_req_fd_w = -1;
- static int aio_pid = -1;
-+static unsigned long aio_stack;
- 
- static int not_aio_thread(void *arg)
- {
-@@ -212,7 +213,6 @@ static int not_aio_thread(void *arg)
- 
- static int init_aio_24(void)
- {
--	unsigned long stack;
- 	int fds[2], err;
- 
- 	err = os_pipe(fds, 1, 1);
-@@ -227,7 +227,7 @@ static int init_aio_24(void)
- 		goto out_close_pipe;
- 
- 	err = run_helper_thread(not_aio_thread, NULL,
--				CLONE_FILES | CLONE_VM | SIGCHLD, &stack, 0);
-+				CLONE_FILES | CLONE_VM | SIGCHLD, &aio_stack);
- 	if(err < 0)
- 		goto out_close_pipe;
- 
-@@ -252,7 +252,6 @@ out:
- #define DEFAULT_24_AIO 0
- static int init_aio_26(void)
- {
--	unsigned long stack;
- 	int err;
- 
- 	if(io_setup(256, &ctx)){
-@@ -263,7 +262,7 @@ static int init_aio_26(void)
- 	}
- 
- 	err = run_helper_thread(aio_thread, NULL,
--				CLONE_FILES | CLONE_VM | SIGCHLD, &stack, 0);
-+				CLONE_FILES | CLONE_VM | SIGCHLD, &aio_stack);
- 	if(err < 0)
- 		return err;
- 
-@@ -365,8 +364,10 @@ __initcall(init_aio);
- 
- static void exit_aio(void)
- {
--	if(aio_pid != -1)
-+	if (aio_pid != -1) {
- 		os_kill_process(aio_pid, 1);
-+		free_stack(aio_stack, 0);
-+	}
- }
- 
- __uml_exitcall(exit_aio);
-diff -puN arch/um/os-Linux/drivers/ethertap_user.c~uml-simplify-helper-stack-handling arch/um/os-Linux/drivers/ethertap_user.c
---- a/arch/um/os-Linux/drivers/ethertap_user.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/os-Linux/drivers/ethertap_user.c
-@@ -117,7 +117,7 @@ static int etap_tramp(char *dev, char *g
- 	pe_data.control_remote = control_remote;
- 	pe_data.control_me = control_me;
- 	pe_data.data_me = data_me;
--	pid = run_helper(etap_pre_exec, &pe_data, args, NULL);
-+	pid = run_helper(etap_pre_exec, &pe_data, args);
- 
- 	if(pid < 0)
- 		err = pid;
-diff -puN arch/um/os-Linux/drivers/tuntap_user.c~uml-simplify-helper-stack-handling arch/um/os-Linux/drivers/tuntap_user.c
---- a/arch/um/os-Linux/drivers/tuntap_user.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/os-Linux/drivers/tuntap_user.c
-@@ -83,7 +83,7 @@ static int tuntap_open_tramp(char *gate,
- 	data.stdout = remote;
- 	data.close_me = me;
- 
--	pid = run_helper(tuntap_pre_exec, &data, argv, NULL);
-+	pid = run_helper(tuntap_pre_exec, &data, argv);
- 
- 	if(pid < 0)
- 		return -pid;
-diff -puN arch/um/os-Linux/helper.c~uml-simplify-helper-stack-handling arch/um/os-Linux/helper.c
---- a/arch/um/os-Linux/helper.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/os-Linux/helper.c
-@@ -44,17 +44,13 @@ static int helper_child(void *arg)
- /* Returns either the pid of the child process we run or -E* on failure.
-  * XXX The alloc_stack here breaks if this is called in the tracing thread, so
-  * we need to receive a preallocated stack (a local buffer is ok). */
--int run_helper(void (*pre_exec)(void *), void *pre_data, char **argv,
--	       unsigned long *stack_out)
-+int run_helper(void (*pre_exec)(void *), void *pre_data, char **argv)
- {
- 	struct helper_data data;
- 	unsigned long stack, sp;
- 	int pid, fds[2], ret, n;
- 
--	if ((stack_out != NULL) && (*stack_out != 0))
--		stack = *stack_out;
--	else
--		stack = alloc_stack(0, __cant_sleep());
-+	stack = alloc_stack(0, __cant_sleep());
- 	if (stack == 0)
- 		return -ENOMEM;
- 
-@@ -113,22 +109,21 @@ out_close:
- 		close(fds[1]);
- 	close(fds[0]);
- out_free:
--	if ((stack_out == NULL) || (*stack_out == 0))
--		free_stack(stack, 0);
-+	free_stack(stack, 0);
- 	return ret;
- }
- 
- int run_helper_thread(int (*proc)(void *), void *arg, unsigned int flags,
--		      unsigned long *stack_out, int stack_order)
-+		      unsigned long *stack_out)
- {
- 	unsigned long stack, sp;
- 	int pid, status, err;
- 
--	stack = alloc_stack(stack_order, __cant_sleep());
-+	stack = alloc_stack(0, __cant_sleep());
- 	if (stack == 0)
- 		return -ENOMEM;
- 
--	sp = stack + (UM_KERN_PAGE_SIZE << stack_order) - sizeof(void *);
-+	sp = stack + UM_KERN_PAGE_SIZE - sizeof(void *);
- 	pid = clone(proc, (void *) sp, flags | SIGCHLD, arg);
- 	if (pid < 0) {
- 		err = -errno;
-@@ -147,7 +142,7 @@ int run_helper_thread(int (*proc)(void *
- 		if (!WIFEXITED(status) || (WEXITSTATUS(status) != 0))
- 			printk("run_helper_thread - thread returned status "
- 			       "0x%x\n", status);
--		free_stack(stack, stack_order);
-+		free_stack(stack, 0);
- 	} else
- 		*stack_out = stack;
- 	return pid;
-diff -puN arch/um/os-Linux/sigio.c~uml-simplify-helper-stack-handling arch/um/os-Linux/sigio.c
---- a/arch/um/os-Linux/sigio.c~uml-simplify-helper-stack-handling
-+++ a/arch/um/os-Linux/sigio.c
-@@ -26,6 +26,7 @@
-  * exitcall.
+diff -puN fs/open.c~o_cloexec-for-scm_rights fs/open.c
+--- a/fs/open.c~o_cloexec-for-scm_rights
++++ a/fs/open.c
+@@ -855,7 +855,7 @@ EXPORT_SYMBOL(dentry_open);
+ /*
+  * Find an empty file descriptor entry, and mark it busy.
   */
- static int write_sigio_pid = -1;
-+static unsigned long write_sigio_stack;
- 
- /* These arrays are initialized before the sigio thread is started, and
-  * the descriptors closed after it is killed.  So, it can't see them change.
-@@ -144,8 +145,10 @@ static void update_thread(void)
- 	return;
-  fail:
- 	/* Critical section start */
--	if(write_sigio_pid != -1)
-+	if (write_sigio_pid != -1) {
- 		os_kill_process(write_sigio_pid, 1);
-+		free_stack(write_sigio_stack, 0);
-+	}
- 	write_sigio_pid = -1;
- 	close(sigio_private[0]);
- 	close(sigio_private[1]);
-@@ -243,7 +246,6 @@ static struct pollfd *setup_initial_poll
- 
- static void write_sigio_workaround(void)
+-static int get_unused_fd_flags(int flags)
++int get_unused_fd_flags(int flags)
  {
--	unsigned long stack;
- 	struct pollfd *p;
- 	int err;
- 	int l_write_sigio_fds[2];
-@@ -293,7 +295,8 @@ static void write_sigio_workaround(void)
- 	memcpy(sigio_private, l_sigio_private, sizeof(l_sigio_private));
+ 	struct files_struct * files = current->files;
+ 	int fd, error;
+diff -puN include/linux/file.h~o_cloexec-for-scm_rights include/linux/file.h
+--- a/include/linux/file.h~o_cloexec-for-scm_rights
++++ a/include/linux/file.h
+@@ -73,6 +73,7 @@ extern struct file * FASTCALL(fget_light
+ extern void FASTCALL(set_close_on_exec(unsigned int fd, int flag));
+ extern void put_filp(struct file *);
+ extern int get_unused_fd(void);
++extern int get_unused_fd_flags(int flags);
+ extern void FASTCALL(put_unused_fd(unsigned int fd));
+ struct kmem_cache;
  
- 	write_sigio_pid = run_helper_thread(write_sigio_thread, NULL,
--					    CLONE_FILES | CLONE_VM, &stack, 0);
-+					    CLONE_FILES | CLONE_VM,
-+					    &write_sigio_stack);
+diff -puN include/linux/socket.h~o_cloexec-for-scm_rights include/linux/socket.h
+--- a/include/linux/socket.h~o_cloexec-for-scm_rights
++++ a/include/linux/socket.h
+@@ -253,6 +253,9 @@ struct ucred {
  
- 	if (write_sigio_pid < 0)
- 		goto out_clear;
-@@ -356,10 +359,12 @@ out:
+ #define MSG_EOF         MSG_FIN
  
- static void sigio_cleanup(void)
- {
--	if(write_sigio_pid != -1){
--		os_kill_process(write_sigio_pid, 1);
--		write_sigio_pid = -1;
--	}
-+	if (write_sigio_pid == -1)
-+		return;
-+
-+	os_kill_process(write_sigio_pid, 1);
-+	free_stack(write_sigio_stack, 0);
-+	write_sigio_pid = -1;
- }
++#define MSG_CMSG_CLOEXEC 0x40000000	/* Set close_on_exit for file
++					   descriptor received through
++					   SCM_RIGHTS */
+ #if defined(CONFIG_COMPAT)
+ #define MSG_CMSG_COMPAT	0x80000000	/* This message needs 32 bit fixups */
+ #else
+diff -puN net/compat.c~o_cloexec-for-scm_rights net/compat.c
+--- a/net/compat.c~o_cloexec-for-scm_rights
++++ a/net/compat.c
+@@ -276,7 +276,8 @@ void scm_detach_fds_compat(struct msghdr
+ 		err = security_file_receive(fp[i]);
+ 		if (err)
+ 			break;
+-		err = get_unused_fd();
++		err = get_unused_fd_flags(MSG_CMSG_CLOEXEC & kmsg->msg_flags
++					  ? O_CLOEXEC : 0);
+ 		if (err < 0)
+ 			break;
+ 		new_fd = err;
+diff -puN net/core/scm.c~o_cloexec-for-scm_rights net/core/scm.c
+--- a/net/core/scm.c~o_cloexec-for-scm_rights
++++ a/net/core/scm.c
+@@ -228,7 +228,8 @@ void scm_detach_fds(struct msghdr *msg, 
+ 		err = security_file_receive(fp[i]);
+ 		if (err)
+ 			break;
+-		err = get_unused_fd();
++		err = get_unused_fd_flags(MSG_CMSG_CLOEXEC & msg->msg_flags
++					  ? O_CLOEXEC : 0);
+ 		if (err < 0)
+ 			break;
+ 		new_fd = err;
+diff -puN net/socket.c~o_cloexec-for-scm_rights net/socket.c
+--- a/net/socket.c~o_cloexec-for-scm_rights
++++ a/net/socket.c
+@@ -1939,9 +1939,7 @@ asmlinkage long sys_recvmsg(int fd, stru
+ 	total_len = err;
  
- __uml_exitcall(sigio_cleanup);
+ 	cmsg_ptr = (unsigned long)msg_sys.msg_control;
+-	msg_sys.msg_flags = 0;
+-	if (MSG_CMSG_COMPAT & flags)
+-		msg_sys.msg_flags = MSG_CMSG_COMPAT;
++	msg_sys.msg_flags = flags & (MSG_CMSG_CLOEXEC|MSG_CMSG_COMPAT);
+ 
+ 	if (sock->file->f_flags & O_NONBLOCK)
+ 		flags |= MSG_DONTWAIT;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from drepper@redhat.com are
 
 origin.patch
-hostfs-convert-to-new-aops.patch
