@@ -1,194 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-config_virt_to_bus.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:54:18 -0700
-Message-ID: <200707162054.l6GKsIIS001790@imap1.linux-foundation.org>
+Subject: - m32r-enable-arbitary-speed-tty-rate-setting.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:50:52 -0700
+Message-ID: <200707162050.l6GKoqR0001340@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48812 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40554 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761009AbXGPVeh (ORCPT
+	by vger.kernel.org with ESMTP id S1763028AbXGPVeo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:34:37 -0400
+	Mon, 16 Jul 2007 17:34:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, davem@davemloft.net, viro@ftp.linux.org.uk, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Introduce CONFIG_VIRT_TO_BUS
+     m32r: enable arbitary speed tty rate setting
 has been removed from the -mm tree.  Its filename was
-     introduce-config_virt_to_bus.patch
+     m32r-enable-arbitary-speed-tty-rate-setting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Introduce CONFIG_VIRT_TO_BUS
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: m32r: enable arbitary speed tty rate setting
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Make some offending drivers depend on it and set CONFIG_ARCH_NO_VIRT_TO_BUS
-for ppc64 so that we don't build those drivers.
+Add the defines and constants needed for the M32R platform to support the
+arbitary speed tty ioctls.
 
-This gets PowerPC allmodconfig and allyesconfig much closer to building.
-
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Al Viro <viro@ftp.linux.org.uk>
-Acked-by: David Miller <davem@davemloft.net>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig        |    3 +++
- drivers/atm/Kconfig         |    8 ++++----
- drivers/block/Kconfig       |    2 +-
- drivers/message/i2o/Kconfig |    1 +
- drivers/net/wan/Kconfig     |    2 +-
- drivers/scsi/Kconfig        |    2 +-
- mm/Kconfig                  |    4 ++++
- sound/oss/Kconfig           |    5 +++--
- 8 files changed, 18 insertions(+), 9 deletions(-)
+ include/asm-m32r/ioctls.h   |    4 ++++
+ include/asm-m32r/termbits.h |    5 ++++-
+ include/asm-m32r/termios.h  |    6 ++++--
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~introduce-config_virt_to_bus arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~introduce-config_virt_to_bus
-+++ a/arch/powerpc/Kconfig
-@@ -66,6 +66,9 @@ config GENERIC_FIND_NEXT_BIT
- 	bool
- 	default y
+diff -puN include/asm-m32r/ioctls.h~m32r-enable-arbitary-speed-tty-rate-setting include/asm-m32r/ioctls.h
+--- a/include/asm-m32r/ioctls.h~m32r-enable-arbitary-speed-tty-rate-setting
++++ a/include/asm-m32r/ioctls.h
+@@ -47,6 +47,10 @@
+ #define TIOCSBRK	0x5427  /* BSD compatibility */
+ #define TIOCCBRK	0x5428  /* BSD compatibility */
+ #define TIOCGSID	0x5429  /* Return the session ID of FD */
++#define TCGETS2		_IOR('T',0x2A, struct termios2)
++#define TCSETS2		_IOW('T',0x2B, struct termios2)
++#define TCSETSW2	_IOW('T',0x2C, struct termios2)
++#define TCSETSF2	_IOW('T',0x2D, struct termios2)
+ #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
+ #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
-+config ARCH_NO_VIRT_TO_BUS
-+	def_bool PPC64
+diff -puN include/asm-m32r/termbits.h~m32r-enable-arbitary-speed-tty-rate-setting include/asm-m32r/termbits.h
+--- a/include/asm-m32r/termbits.h~m32r-enable-arbitary-speed-tty-rate-setting
++++ a/include/asm-m32r/termbits.h
+@@ -140,6 +140,7 @@ struct ktermios {
+ #define HUPCL	0002000
+ #define CLOCAL	0004000
+ #define CBAUDEX 0010000
++#define    BOTHER 0010000
+ #define    B57600 0010001
+ #define   B115200 0010002
+ #define   B230400 0010003
+@@ -155,11 +156,13 @@ struct ktermios {
+ #define  B3000000 0010015
+ #define  B3500000 0010016
+ #define  B4000000 0010017
+-#define CIBAUD	  002003600000	/* input baud rate (not used) */
++#define CIBAUD	  002003600000		/** input baud rate */
+ #define CTVB	  004000000000		/* VisioBraille Terminal flow control */
+ #define CMSPAR	  010000000000		/* mark or space (stick) parity */
+ #define CRTSCTS	  020000000000		/* flow control */
+ 
++#define	IBSHIFT	16			/* Shift from CBAUD to CIBAUD */
 +
- config PPC
- 	bool
- 	default y
-diff -puN drivers/atm/Kconfig~introduce-config_virt_to_bus drivers/atm/Kconfig
---- a/drivers/atm/Kconfig~introduce-config_virt_to_bus
-+++ a/drivers/atm/Kconfig
-@@ -142,7 +142,7 @@ config ATM_ENI_BURST_RX_2W
+ /* c_lflag bits */
+ #define ISIG	0000001
+ #define ICANON	0000002
+diff -puN include/asm-m32r/termios.h~m32r-enable-arbitary-speed-tty-rate-setting include/asm-m32r/termios.h
+--- a/include/asm-m32r/termios.h~m32r-enable-arbitary-speed-tty-rate-setting
++++ a/include/asm-m32r/termios.h
+@@ -81,8 +81,10 @@ struct termio {
+ 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
+ })
  
- config ATM_FIRESTREAM
- 	tristate "Fujitsu FireStream (FS50/FS155) "
--	depends on PCI
-+	depends on PCI && VIRT_TO_BUS
- 	help
- 	  Driver for the Fujitsu FireStream 155 (MB86697) and
- 	  FireStream 50 (MB86695) ATM PCI chips.
-@@ -152,7 +152,7 @@ config ATM_FIRESTREAM
+-#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
+-#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
++#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
++#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
++#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
++#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
  
- config ATM_ZATM
- 	tristate "ZeitNet ZN1221/ZN1225"
--	depends on PCI
-+	depends on PCI && VIRT_TO_BUS
- 	help
- 	  Driver for the ZeitNet ZN1221 (MMF) and ZN1225 (UTP-5) 155 Mbps ATM
- 	  adapters.
-@@ -240,7 +240,7 @@ config ATM_IDT77252_USE_SUNI
+ #endif	/* __KERNEL__ */
  
- config ATM_AMBASSADOR
- 	tristate "Madge Ambassador (Collage PCI 155 Server)"
--	depends on PCI
-+	depends on PCI && VIRT_TO_BUS
- 	select BITREVERSE
- 	help
- 	  This is a driver for ATMizer based ATM card produced by Madge
-@@ -265,7 +265,7 @@ config ATM_AMBASSADOR_DEBUG
- 
- config ATM_HORIZON
- 	tristate "Madge Horizon [Ultra] (Collage PCI 25 and Collage PCI 155 Client)"
--	depends on PCI
-+	depends on PCI && VIRT_TO_BUS
- 	help
- 	  This is a driver for the Horizon chipset ATM adapter cards once
- 	  produced by Madge Networks Ltd. Say Y (or M to compile as a module
-diff -puN drivers/block/Kconfig~introduce-config_virt_to_bus drivers/block/Kconfig
---- a/drivers/block/Kconfig~introduce-config_virt_to_bus
-+++ a/drivers/block/Kconfig
-@@ -113,7 +113,7 @@ source "drivers/block/paride/Kconfig"
- 
- config BLK_CPQ_DA
- 	tristate "Compaq SMART2 support"
--	depends on PCI
-+	depends on PCI && VIRT_TO_BUS
- 	help
- 	  This is the driver for Compaq Smart Array controllers.  Everyone
- 	  using these boards should say Y here.  See the file
-diff -puN drivers/message/i2o/Kconfig~introduce-config_virt_to_bus drivers/message/i2o/Kconfig
---- a/drivers/message/i2o/Kconfig~introduce-config_virt_to_bus
-+++ a/drivers/message/i2o/Kconfig
-@@ -54,6 +54,7 @@ config I2O_EXT_ADAPTEC_DMA64
- 
- config I2O_CONFIG
- 	tristate "I2O Configuration support"
-+	depends on VIRT_TO_BUS
- 	---help---
- 	  Say Y for support of the configuration interface for the I2O adapters.
- 	  If you have a RAID controller from Adaptec and you want to use the
-diff -puN drivers/net/wan/Kconfig~introduce-config_virt_to_bus drivers/net/wan/Kconfig
---- a/drivers/net/wan/Kconfig~introduce-config_virt_to_bus
-+++ a/drivers/net/wan/Kconfig
-@@ -61,7 +61,7 @@ config COSA
- #
- config LANMEDIA
- 	tristate "LanMedia Corp. SSI/V.35, T1/E1, HSSI, T3 boards"
--	depends on PCI
-+	depends on PCI && VIRT_TO_BUS
- 	---help---
- 	  Driver for the following Lan Media family of serial boards:
- 
-diff -puN drivers/scsi/Kconfig~introduce-config_virt_to_bus drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~introduce-config_virt_to_bus
-+++ a/drivers/scsi/Kconfig
-@@ -545,7 +545,7 @@ config SCSI_HPTIOP
- 
- config SCSI_BUSLOGIC
- 	tristate "BusLogic SCSI support"
--	depends on (PCI || ISA || MCA) && SCSI && ISA_DMA_API
-+	depends on (PCI || ISA || MCA) && SCSI && ISA_DMA_API && VIRT_TO_BUS
- 	---help---
- 	  This is support for BusLogic MultiMaster and FlashPoint SCSI Host
- 	  Adapters. Consult the SCSI-HOWTO, available from
-diff -puN mm/Kconfig~introduce-config_virt_to_bus mm/Kconfig
---- a/mm/Kconfig~introduce-config_virt_to_bus
-+++ a/mm/Kconfig
-@@ -168,3 +168,7 @@ config NR_QUICK
- 	depends on QUICKLIST
- 	default "2" if (SUPERH && !SUPERH64)
- 	default "1"
-+
-+config VIRT_TO_BUS
-+	def_bool y
-+	depends on !ARCH_NO_VIRT_TO_BUS
-diff -puN sound/oss/Kconfig~introduce-config_virt_to_bus sound/oss/Kconfig
---- a/sound/oss/Kconfig~introduce-config_virt_to_bus
-+++ a/sound/oss/Kconfig
-@@ -348,7 +348,7 @@ config MSND_FIFOSIZE
- 
- config SOUND_VIA82CXXX
- 	tristate "VIA 82C686 Audio Codec"
--	depends on SOUND_PRIME && PCI && OSS_OBSOLETE
-+	depends on SOUND_PRIME && PCI && OSS_OBSOLETE && VIRT_TO_BUS
- 	help
- 	  Say Y here to include support for the audio codec found on VIA
- 	  82Cxxx-based chips. Typically these are built into a motherboard.
-@@ -368,7 +368,7 @@ config MIDI_VIA82CXXX
- 
- config SOUND_OSS
- 	tristate "OSS sound modules"
--	depends on SOUND_PRIME && ISA_DMA_API
-+	depends on SOUND_PRIME && ISA_DMA_API && VIRT_TO_BUS
- 	help
- 	  OSS is the Open Sound System suite of sound card drivers.  They make
- 	  sound programming easier since they provide a common API.  Say Y or
-@@ -417,6 +417,7 @@ config SOUND_CS4232
- config SOUND_SSCAPE
- 	tristate "Ensoniq SoundScape support"
- 	depends on SOUND_OSS
-+	depends on VIRT_TO_BUS
- 	help
- 	  Answer Y if you have a sound card based on the Ensoniq SoundScape
- 	  chipset. Such cards are being manufactured at least by Ensoniq, Spea
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
 git-powerpc.patch
-git-kbuild.patch
+git-ia64.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+ata-use-iomap_name.patch
+sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+sb1250-duartc-sb1250-duart-serial-support.patch
+mbcs-remove-lots-of-global-symbols.patch
+i2o_cfg_passthru-cleanup.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+stallion-remove-unneeded-lock_kernel.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
+drivers-edac-fix-edac_device-semaphore-to-mutex.patch
+drivers-edac-fix-e752x-reversed-csrows.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-fix-leaf-sysfs-attribute.patch
+drivers-edac-fix-edac_mc-init-apis.patch
+drivers-edac-fix-edac_device-init-apis.patch
+drivers-edac-fix-edac_mc-sysfs-completion-code.patch
+drivers-edac-fix-edac_device-sysfs-completion-code.patch
