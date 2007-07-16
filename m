@@ -1,113 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: - edd-switch-to-pci_get-based-api.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:54:08 -0700
-Message-ID: <200707162054.l6GKs8bY001781@imap1.linux-foundation.org>
+Subject: - uml-handle-errors-on-opening-host-side-of-consoles.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:51:19 -0700
+Message-ID: <200707162051.l6GKpJtA001390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50732 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49348 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756416AbXGPVd4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757769AbXGPVd6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:33:56 -0400
+	Mon, 16 Jul 2007 17:33:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, Matt_Domsch@dell.com, alan@redhat.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edd: switch to pci_get based API
+     uml: handle errors on opening host side of consoles
 has been removed from the -mm tree.  Its filename was
-     edd-switch-to-pci_get-based-api.patch
+     uml-handle-errors-on-opening-host-side-of-consoles.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: edd: switch to pci_get based API
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: uml: handle errors on opening host side of consoles
+From: Jeff Dike <jdike@addtoit.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
+If the host side of a console can't be opened, this will now produce visible
+error messages.
+
+enable_chan now returns a status and this is passed up to con_open and
+ssl_open, which will complain if anything went wrong.
+
+The default host device for the serial line driver is now a pts device rather
+than a pty device since lots of hosts have LEGACY_PTYS disabled.  This had
+always been failing on such hosts, but silently.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/edd.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/um/defconfig               |    2 +-
+ arch/um/drivers/chan_kern.c     |   23 +++++++++++++++++++----
+ arch/um/drivers/line.c          |    5 ++++-
+ arch/um/drivers/ssl.c           |    8 +++++++-
+ arch/um/drivers/stdio_console.c |    7 ++++++-
+ arch/um/include/chan_kern.h     |    2 +-
+ 6 files changed, 38 insertions(+), 9 deletions(-)
 
-diff -puN drivers/firmware/edd.c~edd-switch-to-pci_get-based-api drivers/firmware/edd.c
---- a/drivers/firmware/edd.c~edd-switch-to-pci_get-based-api
-+++ a/drivers/firmware/edd.c
-@@ -669,7 +669,7 @@ edd_get_pci_dev(struct edd_device *edev)
- 	struct edd_info *info = edd_dev_get_info(edev);
- 
- 	if (edd_dev_is_type(edev, "PCI")) {
--		return pci_find_slot(info->params.interface_path.pci.bus,
-+		return pci_get_bus_and_slot(info->params.interface_path.pci.bus,
- 				     PCI_DEVFN(info->params.interface_path.pci.slot,
- 					       info->params.interface_path.pci.
- 					       function));
-@@ -682,9 +682,12 @@ edd_create_symlink_to_pcidev(struct edd_
- {
- 
- 	struct pci_dev *pci_dev = edd_get_pci_dev(edev);
-+	int ret;
- 	if (!pci_dev)
- 		return 1;
--	return sysfs_create_link(&edev->kobj,&pci_dev->dev.kobj,"pci_dev");
-+	ret = sysfs_create_link(&edev->kobj,&pci_dev->dev.kobj,"pci_dev");
-+	pci_dev_put(pci_dev);
-+	return ret;
+diff -puN arch/um/defconfig~uml-handle-errors-on-opening-host-side-of-consoles arch/um/defconfig
+--- a/arch/um/defconfig~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/defconfig
+@@ -189,7 +189,7 @@ CONFIG_XTERM_CHAN=y
+ # CONFIG_NOCONFIG_CHAN is not set
+ CONFIG_CON_ZERO_CHAN="fd:0,fd:1"
+ CONFIG_CON_CHAN="xterm"
+-CONFIG_SSL_CHAN="pty"
++CONFIG_SSL_CHAN="pts"
+ CONFIG_UNIX98_PTYS=y
+ CONFIG_LEGACY_PTYS=y
+ CONFIG_LEGACY_PTY_COUNT=256
+diff -puN arch/um/drivers/chan_kern.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/chan_kern.c
+--- a/arch/um/drivers/chan_kern.c~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/drivers/chan_kern.c
+@@ -203,22 +203,37 @@ void chan_enable_winch(struct list_head 
+ 	}
  }
  
- static inline void
+-void enable_chan(struct line *line)
++int enable_chan(struct line *line)
+ {
+ 	struct list_head *ele;
+ 	struct chan *chan;
++	int err;
+ 
+ 	list_for_each(ele, &line->chan_list){
+ 		chan = list_entry(ele, struct chan, list);
+-		if(open_one_chan(chan))
++		err = open_one_chan(chan);
++		if (err) {
++			if (chan->primary)
++				goto out_close;
++
+ 			continue;
++		}
+ 
+ 		if(chan->enabled)
+ 			continue;
+-		line_setup_irq(chan->fd, chan->input, chan->output, line,
+-			       chan);
++		err = line_setup_irq(chan->fd, chan->input, chan->output, line,
++				     chan);
++		if (err)
++			goto out_close;
++
+ 		chan->enabled = 1;
+ 	}
++
++	return 0;
++
++ out_close:
++	close_chan(&line->chan_list, 0);
++	return err;
+ }
+ 
+ /* Items are added in IRQ context, when free_irq can't be called, and
+diff -puN arch/um/drivers/line.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/drivers/line.c
+@@ -454,7 +454,10 @@ int line_open(struct line *lines, struct
+ 	tty->driver_data = line;
+ 	line->tty = tty;
+ 
+-	enable_chan(line);
++	err = enable_chan(line);
++	if (err)
++		return err;
++
+ 	INIT_DELAYED_WORK(&line->task, line_timer_cb);
+ 
+ 	if(!line->sigio){
+diff -puN arch/um/drivers/ssl.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/ssl.c
+--- a/arch/um/drivers/ssl.c~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/drivers/ssl.c
+@@ -97,7 +97,13 @@ static int ssl_remove(int n, char **erro
+ 
+ static int ssl_open(struct tty_struct *tty, struct file *filp)
+ {
+-	return line_open(serial_lines, tty);
++	int err = line_open(serial_lines, tty);
++
++	if (err)
++		printk(KERN_ERR "Failed to open serial line %d, err = %d\n",
++		       tty->index, err);
++
++	return err;
+ }
+ 
+ #if 0
+diff -puN arch/um/drivers/stdio_console.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/stdio_console.c
+--- a/arch/um/drivers/stdio_console.c~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/drivers/stdio_console.c
+@@ -99,7 +99,12 @@ static int con_remove(int n, char **erro
+ 
+ static int con_open(struct tty_struct *tty, struct file *filp)
+ {
+-	return line_open(vts, tty);
++	int err = line_open(vts, tty);
++	if (err)
++		printk(KERN_ERR "Failed to open console %d, err = %d\n",
++		       tty->index, err);
++
++	return err;
+ }
+ 
+ /* Set in an initcall, checked in an exitcall */
+diff -puN arch/um/include/chan_kern.h~uml-handle-errors-on-opening-host-side-of-consoles arch/um/include/chan_kern.h
+--- a/arch/um/include/chan_kern.h~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/include/chan_kern.h
+@@ -40,7 +40,7 @@ extern int console_open_chan(struct line
+ extern void deactivate_chan(struct list_head *chans, int irq);
+ extern void reactivate_chan(struct list_head *chans, int irq);
+ extern void chan_enable_winch(struct list_head *chans, struct tty_struct *tty);
+-extern void enable_chan(struct line *line);
++extern int enable_chan(struct line *line);
+ extern void close_chan(struct list_head *chans, int delay_free_irq);
+ extern int chan_window_size(struct list_head *chans, 
+ 			     unsigned short *rows_out, 
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-powerpc.patch
-git-ia64.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-sb1250-duartc-sb1250-duart-serial-support.patch
-mbcs-remove-lots-of-global-symbols.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
+hostfs-convert-to-new-aops.patch
