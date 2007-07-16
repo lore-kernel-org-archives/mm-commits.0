@@ -1,63 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - do-not-limit-locked-memory-when-rlimit_memlock-is-rlim_infinity.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:49:54 -0700
-Message-ID: <200707162049.l6GKnspg001203@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-ii-tpm.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:52:34 -0700
+Message-ID: <200707162052.l6GKqYcH001555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44043 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59336 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764215AbXGPVf0 (ORCPT
+	by vger.kernel.org with ESMTP id S1762083AbXGPVfi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:35:26 -0400
+	Mon, 16 Jul 2007 17:35:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Herbert.van.den.Bergh@oracle.com, chris.mason@oracle.com, herbert.van.den.bergh@oracle.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, kjhall@us.ibm.com, tpm@selhorst.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do not limit locked memory when RLIMIT_MEMLOCK is RLIM_INFINITY
+     Use menuconfig objects II - TPM
 has been removed from the -mm tree.  Its filename was
-     do-not-limit-locked-memory-when-rlimit_memlock-is-rlim_infinity.patch
+     use-menuconfig-objects-ii-tpm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: do not limit locked memory when RLIMIT_MEMLOCK is RLIM_INFINITY
-From: Herbert van den Bergh <Herbert.van.den.Bergh@oracle.com>
+Subject: Use menuconfig objects II - TPM
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Fix a bug in mm/mlock.c on 32-bit architectures that prevents a user from
-locking more than 4GB of shared memory, or allocating more than 4GB of
-shared memory in hugepages, when rlim[RLIMIT_MEMLOCK] is set to
-RLIM_INFINITY.
+Change Kconfig objects from "menu, config" into "menuconfig" so
+that the user can disable the whole feature without having to
+enter the menu first.
 
-Signed-off-by: Herbert van den Bergh <herbert.van.den.bergh@oracle.com>
-Acked-by: Chris Mason <chris.mason@oracle.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Kylene Hall <kjhall@us.ibm.com>
+Cc: Marcel Selhorst <tpm@selhorst.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/char/tpm/Kconfig |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN mm/mlock.c~do-not-limit-locked-memory-when-rlimit_memlock-is-rlim_infinity mm/mlock.c
---- a/mm/mlock.c~do-not-limit-locked-memory-when-rlimit_memlock-is-rlim_infinity
-+++ a/mm/mlock.c
-@@ -244,9 +244,12 @@ int user_shm_lock(size_t size, struct us
+diff -puN drivers/char/tpm/Kconfig~use-menuconfig-objects-ii-tpm drivers/char/tpm/Kconfig
+--- a/drivers/char/tpm/Kconfig~use-menuconfig-objects-ii-tpm
++++ a/drivers/char/tpm/Kconfig
+@@ -2,11 +2,9 @@
+ # TPM device configuration
+ #
  
- 	locked = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur;
-+	if (lock_limit == RLIM_INFINITY)
-+		allowed = 1;
- 	lock_limit >>= PAGE_SHIFT;
- 	spin_lock(&shmlock_user_lock);
--	if (locked + user->locked_shm > lock_limit && !capable(CAP_IPC_LOCK))
-+	if (!allowed &&
-+	    locked + user->locked_shm > lock_limit && !capable(CAP_IPC_LOCK))
- 		goto out;
- 	get_uid(user);
- 	user->locked_shm += locked;
+-menu "TPM devices"
+-	depends on HAS_IOMEM
+-
+-config TCG_TPM
++menuconfig TCG_TPM
+ 	tristate "TPM Hardware Support"
++	depends on HAS_IOMEM
+ 	depends on EXPERIMENTAL
+ 	---help---
+ 	  If you have a TPM security chip in your system, which
+@@ -21,9 +19,11 @@ config TCG_TPM
+ 	  Note: For more TPM drivers enable CONFIG_PNP, CONFIG_ACPI
+ 	  and CONFIG_PNPACPI.
+ 
++if TCG_TPM
++
+ config TCG_TIS
+ 	tristate "TPM Interface Specification 1.2 Interface"
+-	depends on TCG_TPM && PNPACPI
++	depends on PNPACPI
+ 	---help---
+ 	  If you have a TPM security chip that is compliant with the
+ 	  TCG TIS 1.2 TPM specification say Yes and it will be accessible
+@@ -32,7 +32,7 @@ config TCG_TIS
+ 
+ config TCG_NSC
+ 	tristate "National Semiconductor TPM Interface"
+-	depends on TCG_TPM && PNPACPI
++	depends on PNPACPI
+ 	---help---
+ 	  If you have a TPM security chip from National Semiconductor 
+ 	  say Yes and it will be accessible from within Linux.  To 
+@@ -41,7 +41,6 @@ config TCG_NSC
+ 
+ config TCG_ATMEL
+ 	tristate "Atmel TPM Interface"
+-	depends on TCG_TPM
+ 	---help---
+ 	  If you have a TPM security chip from Atmel say Yes and it 
+ 	  will be accessible from within Linux.  To compile this driver 
+@@ -49,7 +48,7 @@ config TCG_ATMEL
+ 
+ config TCG_INFINEON
+ 	tristate "Infineon Technologies TPM Interface"
+-	depends on TCG_TPM && PNPACPI
++	depends on PNPACPI
+ 	---help---
+ 	  If you have a TPM security chip from Infineon Technologies
+ 	  (either SLD 9630 TT 1.1 or SLB 9635 TT 1.2) say Yes and it
+@@ -59,5 +58,4 @@ config TCG_INFINEON
+ 	  Further information on this driver and the supported hardware
+ 	  can be found at http://www.prosec.rub.de/tpm
+ 
+-endmenu
+-
++endif # TCG_TPM
 _
 
-Patches currently in -mm which might be from Herbert.van.den.Bergh@oracle.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
+git-acpi.patch
+git-kvm.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
+use-menuconfig-objects-ii-md.patch
