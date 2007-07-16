@@ -1,133 +1,301 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_serial-fix-break-handling.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:55:41 -0700
-Message-ID: <200707162055.l6GKtfCT001953@imap1.linux-foundation.org>
+Subject: - h8300-remove-unused-file.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:50:32 -0700
+Message-ID: <200707162050.l6GKoWAj001321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45969 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33263 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759742AbXGPVVE (ORCPT
+	by vger.kernel.org with ESMTP id S1760252AbXGPVVO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:21:04 -0400
+	Mon, 16 Jul 2007 17:21:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hskinnemoen@atmel.com, akpm@linux-foundation.org, andrew@sanpeople.com, ivan.kuten@promwad.com, nicolas.ferre@rfo.atmel.com, patrice.vilchez@rfo.atmel.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: fix break handling
+     h8300: remove unused file
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-fix-break-handling.patch
+     h8300-remove-unused-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atmel_serial: fix break handling
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: h8300: remove unused file
+From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-The RXBRK field in the AT91/AT32 USART status register has the
-following definition according to e.g. the AT32AP7000 data sheet:
+arch/h8300/kernel/ints.c is unused.
 
-    RXBRK: Break Received/End of Break
-    0: No Break received or End of Break detected since the last RSTSTA.
-    1: Break Received or End of Break detected since the last RSTSTA.
-
-Thus, for each break, the USART sets the RXBRK bit twice. This patch
-modifies the driver to report the break event to the serial core only
-once by keeping track of whether a break condition is currently
-active. The break_active flag is reset as soon as a character is
-received, so even if we miss the start-of-break interrupt this should
-do the right thing.
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <andrew@sanpeople.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ivan Kuten <ivan.kuten@promwad.com>
-Cc: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
-Cc: Patrice Vilchez <patrice.vilchez@rfo.atmel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |   32 ++++++++++++++++++++++++++++++--
- 1 file changed, 30 insertions(+), 2 deletions(-)
+ arch/h8300/kernel/ints.c |  256 -------------------------------------
+ 1 file changed, 256 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-break-handling drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-break-handling
-+++ a/drivers/serial/atmel_serial.c
-@@ -114,6 +114,7 @@ struct atmel_uart_port {
- 	struct uart_port	uart;		/* uart */
- 	struct clk		*clk;		/* uart clock */
- 	unsigned short		suspended;	/* is port suspended? */
-+	int			break_active;	/* break being received */
- };
- 
- static struct atmel_uart_port atmel_ports[ATMEL_MAX_UART];
-@@ -252,6 +253,7 @@ static void atmel_break_ctl(struct uart_
-  */
- static void atmel_rx_chars(struct uart_port *port)
- {
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
- 	struct tty_struct *tty = port->info->tty;
- 	unsigned int status, ch, flg;
- 
-@@ -267,13 +269,29 @@ static void atmel_rx_chars(struct uart_p
- 		 * note that the error handling code is
- 		 * out of the main execution path
- 		 */
--		if (unlikely(status & (ATMEL_US_PARE | ATMEL_US_FRAME | ATMEL_US_OVRE | ATMEL_US_RXBRK))) {
-+		if (unlikely(status & (ATMEL_US_PARE | ATMEL_US_FRAME
-+				       | ATMEL_US_OVRE | ATMEL_US_RXBRK)
-+			     || atmel_port->break_active)) {
- 			UART_PUT_CR(port, ATMEL_US_RSTSTA);	/* clear error */
--			if (status & ATMEL_US_RXBRK) {
-+			if (status & ATMEL_US_RXBRK
-+			    && !atmel_port->break_active) {
- 				status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);	/* ignore side-effect */
- 				port->icount.brk++;
-+				atmel_port->break_active = 1;
-+				UART_PUT_IER(port, ATMEL_US_RXBRK);
- 				if (uart_handle_break(port))
- 					goto ignore_char;
-+			} else {
-+				/*
-+				 * This is either the end-of-break
-+				 * condition or we've received at
-+				 * least one character without RXBRK
-+				 * being set. In both cases, the next
-+				 * RXBRK will indicate start-of-break.
-+				 */
-+				UART_PUT_IDR(port, ATMEL_US_RXBRK);
-+				status &= ~ATMEL_US_RXBRK;
-+				atmel_port->break_active = 0;
- 			}
- 			if (status & ATMEL_US_PARE)
- 				port->icount.parity++;
-@@ -352,6 +370,16 @@ static irqreturn_t atmel_interrupt(int i
- 		/* Interrupt receive */
- 		if (pending & ATMEL_US_RXRDY)
- 			atmel_rx_chars(port);
-+		else if (pending & ATMEL_US_RXBRK) {
-+			/*
-+			 * End of break detected. If it came along
-+			 * with a character, atmel_rx_chars will
-+			 * handle it.
-+			 */
-+			UART_PUT_CR(port, ATMEL_US_RSTSTA);
-+			UART_PUT_IDR(port, ATMEL_US_RXBRK);
-+			atmel_port->break_active = 0;
-+		}
- 
- 		// TODO: All reads to CSR will clear these interrupts!
- 		if (pending & ATMEL_US_RIIC) port->icount.rng++;
+diff -puN arch/h8300/kernel/ints.c~h8300-remove-unused-file /dev/null
+--- a/arch/h8300/kernel/ints.c
++++ /dev/null
+@@ -1,256 +0,0 @@
+-/*
+- * linux/arch/h8300/kernel/ints.c
+- *
+- * Yoshinori Sato <ysato@users.sourceforge.jp>
+- *
+- * Based on linux/arch/$(ARCH)/platform/$(PLATFORM)/ints.c
+- *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file COPYING in the main directory of this archive
+- * for more details.
+- *
+- * Copyright 1996 Roman Zippel
+- * Copyright 1999 D. Jeff Dionne <jeff@rt-control.com>
+- */
+-
+-#include <linux/module.h>
+-#include <linux/types.h>
+-#include <linux/kernel.h>
+-#include <linux/sched.h>
+-#include <linux/kernel_stat.h>
+-#include <linux/seq_file.h>
+-#include <linux/interrupt.h>
+-#include <linux/init.h>
+-#include <linux/random.h>
+-#include <linux/bootmem.h>
+-#include <linux/hardirq.h>
+-
+-#include <asm/system.h>
+-#include <asm/irq.h>
+-#include <asm/traps.h>
+-#include <asm/io.h>
+-#include <asm/setup.h>
+-#include <asm/errno.h>
+-
+-/*
+- * This structure has only 4 elements for speed reasons
+- */
+-typedef struct irq_handler {
+-	irqreturn_t (*handler)(int, void *, struct pt_regs *);
+-	int         flags;
+-	int         count;
+-	void	    *dev_id;
+-	const char  *devname;
+-} irq_handler_t;
+-
+-static irq_handler_t *irq_list[NR_IRQS];
+-static int use_kmalloc;
+-
+-extern unsigned long *interrupt_redirect_table;
+-extern const int h8300_saved_vectors[];
+-extern const unsigned long h8300_trap_table[];
+-int h8300_enable_irq_pin(unsigned int irq);
+-void h8300_disable_irq_pin(unsigned int irq);
+-
+-#define CPU_VECTOR ((unsigned long *)0x000000)
+-#define ADDR_MASK (0xffffff)
+-
+-#if defined(CONFIG_RAMKERNEL)
+-static unsigned long __init *get_vector_address(void)
+-{
+-	unsigned long *rom_vector = CPU_VECTOR;
+-	unsigned long base,tmp;
+-	int vec_no;
+-
+-	base = rom_vector[EXT_IRQ0] & ADDR_MASK;
+-	
+-	/* check romvector format */
+-	for (vec_no = EXT_IRQ1; vec_no <= EXT_IRQ0+EXT_IRQS; vec_no++) {
+-		if ((base+(vec_no - EXT_IRQ0)*4) != (rom_vector[vec_no] & ADDR_MASK))
+-			return NULL;
+-	}
+-
+-	/* ramvector base address */
+-	base -= EXT_IRQ0*4;
+-
+-	/* writerble check */
+-	tmp = ~(*(volatile unsigned long *)base);
+-	(*(volatile unsigned long *)base) = tmp;
+-	if ((*(volatile unsigned long *)base) != tmp)
+-		return NULL;
+-	return (unsigned long *)base;
+-}
+-#endif
+-
+-void __init init_IRQ(void)
+-{
+-#if defined(CONFIG_RAMKERNEL)
+-	int i;
+-	unsigned long *ramvec,*ramvec_p;
+-	const unsigned long *trap_entry;
+-	const int *saved_vector;
+-
+-	ramvec = get_vector_address();
+-	if (ramvec == NULL)
+-		panic("interrupt vector serup failed.");
+-	else
+-		printk(KERN_INFO "virtual vector at 0x%08lx\n",(unsigned long)ramvec);
+-
+-	/* create redirect table */
+-	ramvec_p = ramvec;
+-	trap_entry = h8300_trap_table;
+-	saved_vector = h8300_saved_vectors;
+-	for ( i = 0; i < NR_IRQS; i++) {
+-		if (i == *saved_vector) {
+-			ramvec_p++;
+-			saved_vector++;
+-		} else {
+-			if ( i < NR_TRAPS ) {
+-				if (*trap_entry)
+-					*ramvec_p = VECTOR(*trap_entry);
+-				ramvec_p++;
+-				trap_entry++;
+-			} else
+-				*ramvec_p++ = REDIRECT(interrupt_entry);
+-		}
+-	}
+-	interrupt_redirect_table = ramvec;
+-#ifdef DUMP_VECTOR
+-	ramvec_p = ramvec;
+-	for (i = 0; i < NR_IRQS; i++) {
+-		if ((i % 8) == 0)
+-			printk(KERN_DEBUG "\n%p: ",ramvec_p);
+-		printk(KERN_DEBUG "%p ",*ramvec_p);
+-		ramvec_p++;
+-	}
+-	printk(KERN_DEBUG "\n");
+-#endif
+-#endif
+-}
+-
+-int request_irq(unsigned int irq, 
+-		irqreturn_t (*handler)(int, void *, struct pt_regs *),
+-                unsigned long flags, const char *devname, void *dev_id)
+-{
+-	irq_handler_t *irq_handle;
+-	if (irq < 0 || irq >= NR_IRQS) {
+-		printk(KERN_ERR "Incorrect IRQ %d from %s\n", irq, devname);
+-		return -EINVAL;
+-	}
+-
+-	if (irq_list[irq] || (h8300_enable_irq_pin(irq) == -EBUSY))
+-		return -EBUSY;
+-
+-	if (use_kmalloc)
+-		irq_handle = kmalloc(sizeof(irq_handler_t), GFP_ATOMIC);
+-	else {
+-		/* use bootmem allocater */
+-		irq_handle = (irq_handler_t *)alloc_bootmem(sizeof(irq_handler_t));
+-		irq_handle = (irq_handler_t *)((unsigned long)irq_handle | 0x80000000);
+-	}
+-
+-	if (irq_handle == NULL)
+-		return -ENOMEM;
+-
+-	irq_handle->handler = handler;
+-	irq_handle->flags   = flags;
+-	irq_handle->count   = 0;
+-	irq_handle->dev_id  = dev_id;
+-	irq_handle->devname = devname;
+-	irq_list[irq] = irq_handle;
+-
+-	if (irq_handle->flags & IRQF_SAMPLE_RANDOM)
+-		rand_initialize_irq(irq);
+-
+-	enable_irq(irq);
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL(request_irq);
+-
+-void free_irq(unsigned int irq, void *dev_id)
+-{
+-	if (irq >= NR_IRQS)
+-		return;
+-
+-	if (!irq_list[irq] || irq_list[irq]->dev_id != dev_id)
+-		printk(KERN_WARNING "Removing probably wrong IRQ %d from %s\n",
+-		       irq, irq_list[irq]->devname);
+-	disable_irq(irq);
+-	h8300_disable_irq_pin(irq);
+-	if (((unsigned long)irq_list[irq] & 0x80000000) == 0) {
+-		kfree(irq_list[irq]);
+-		irq_list[irq] = NULL;
+-	}
+-}
+-
+-EXPORT_SYMBOL(free_irq);
+-
+-/*
+- * Do we need these probe functions on the m68k?
+- */
+-unsigned long probe_irq_on (void)
+-{
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL(probe_irq_on);
+-
+-int probe_irq_off (unsigned long irqs)
+-{
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL(probe_irq_off);
+-
+-void enable_irq(unsigned int irq)
+-{
+-	if (irq >= EXT_IRQ0 && irq <= (EXT_IRQ0 + EXT_IRQS))
+-		IER_REGS |= 1 << (irq - EXT_IRQ0);
+-}
+-
+-void disable_irq(unsigned int irq)
+-{
+-	if (irq >= EXT_IRQ0 && irq <= (EXT_IRQ0 + EXT_IRQS))
+-		IER_REGS &= ~(1 << (irq - EXT_IRQ0));
+-}
+-
+-asmlinkage void process_int(int irq, struct pt_regs *fp)
+-{
+-	irq_enter();
+-	h8300_clear_isr(irq);
+-	if (irq >= NR_TRAPS && irq < NR_IRQS) {
+-		if (irq_list[irq]) {
+-			irq_list[irq]->handler(irq, irq_list[irq]->dev_id, fp);
+-			irq_list[irq]->count++;
+-			if (irq_list[irq]->flags & IRQF_SAMPLE_RANDOM)
+-				add_interrupt_randomness(irq);
+-		}
+-	} else {
+-		BUG();
+-	}
+-	irq_exit();
+-}
+-
+-int show_interrupts(struct seq_file *p, void *v)
+-{
+-	int i = *(loff_t *) v;
+-
+-	if ((i < NR_IRQS) && (irq_list[i]!=NULL)) {
+-		seq_printf(p, "%3d: %10u ",i,irq_list[i]->count);
+-		seq_printf(p, "%s\n", irq_list[i]->devname);
+-	}
+-
+-	return 0;
+-}
+-
+-void init_irq_proc(void)
+-{
+-}
+-
+-static int __init enable_kmalloc(void)
+-{
+-	use_kmalloc = 1;
+-	return 0;
+-}
+-core_initcall(enable_kmalloc);
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from ysato@users.sourceforge.jp are
 
 origin.patch
-git-watchdog.patch
-atmel_spi-minor-updates.patch
-atmel_spi-dont-always-deselect-chip-between-messages.patch
-rtc-make-example-code-jump-to-done-instead-of-return-when-ioctl-not-supported.patch
-rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
