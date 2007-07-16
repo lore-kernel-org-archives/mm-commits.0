@@ -1,272 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: - dma-mapping-prevent-dma-dependent-code-from-linking-on.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:55:23 -0700
-Message-ID: <200707162055.l6GKtNgd001909@imap1.linux-foundation.org>
+Subject: - generic-bug-use-show_regs-instead-of-dump_stack.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:58:40 -0700
+Message-ID: <200707162058.l6GKwe29002361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52145 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38118 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759113AbXGPViu (ORCPT
+	by vger.kernel.org with ESMTP id S1755999AbXGPVjZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:38:50 -0400
+	Mon, 16 Jul 2007 17:39:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, James.Bottomley@SteelEye.com, cornelia.huck@de.ibm.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, htejun@gmail.com, jeff@garzik.org, kyle@parisc-linux.org, linville@tuxdriver.com, schwidefsky@de.ibm.com, spyro@f2s.com, ysato@users.sourceforge.jp, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, ak@suse.de, hskinnemoen@atmel.com, jeremy@goop.org, kyle@parisc-linux.org, lethal@linux-sh.org, paulus@samba.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping: prevent dma dependent code from linking on !HAS_DMA archs
+     generic bug: use show_regs() instead of dump_stack()
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
+     generic-bug-use-show_regs-instead-of-dump_stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dma-mapping: prevent dma dependent code from linking on !HAS_DMA archs
-From: Dan Williams <dan.j.williams@intel.com>
+Subject: generic bug: use show_regs() instead of dump_stack()
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-Continuing the work started in 411f0f3edc141a582190d3605cadd1d993abb6df ...
+The current generic bug implementation has a call to dump_stack() in case a
+WARN_ON(whatever) gets hit.  Since report_bug(), which calls dump_stack(),
+gets called from an exception handler we can do better: just pass the
+pt_regs structure to report_bug() and pass it to show_regs() in case of a
+warning.  This will give more debug informations like register contents,
+etc...  In addition this avoids some pointless lines that dump_stack()
+emits, since it includes a stack backtrace of the exception handler which
+is of no interest in case of a warning.  E.g.  on s390 the following lines
+are currently always present in a stack backtrace if dump_stack() gets
+called from report_bug():
 
-This enables code with a dma path, that compiles away, to build without
-requiring additional code factoring.  It also prevents code that calls
-dma_alloc_coherent and dma_free_coherent from linking whereas previously
-the code would hit a BUG() at run time.  Finally, it allows archs that set
-!HAS_DMA to delete their asm/dma-mapping.h file.
+ [<000000000001517a>] show_trace+0x92/0xe8)
+ [<0000000000015270>] show_stack+0xa0/0xd0
+ [<00000000000152ce>] dump_stack+0x2e/0x3c
+ [<0000000000195450>] report_bug+0x98/0xf8
+ [<0000000000016cc8>] illegal_op+0x1fc/0x21c
+ [<00000000000227d6>] sysc_return+0x0/0x10
 
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: John W. Linville <linville@tuxdriver.com>
+Acked-by: Jeremy Fitzhardinge <jeremy@goop.org>
+Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andi Kleen <ak@suse.de>
 Cc: Kyle McMartin <kyle@parisc-linux.org>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: <geert@linux-m68k.org>
-Cc: <zippel@linux-m68k.org>
-Cc: <spyro@f2s.com>
-Cc: <ysato@users.sourceforge.jp>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm26/Kconfig                       |    3 
- arch/h8300/Kconfig                       |    3 
- arch/m32r/Kconfig                        |    3 
- drivers/dma/Kconfig                      |    2 
- include/asm-arm26/dma-mapping.h          |    2 
- include/asm-generic/dma-mapping-broken.h |   82 +++++++++++++++++----
- include/asm-h8300/dma-mapping.h          |    1 
- include/asm-m32r/dma-mapping.h           |    6 -
- include/asm-s390/dma-mapping.h           |   12 ---
- include/linux/dma-mapping.h              |    4 +
- 10 files changed, 84 insertions(+), 34 deletions(-)
+ arch/avr32/kernel/traps.c   |    2 +-
+ arch/i386/kernel/traps.c    |    2 +-
+ arch/parisc/kernel/traps.c  |    2 +-
+ arch/powerpc/kernel/traps.c |    2 +-
+ arch/ppc/kernel/traps.c     |    2 +-
+ arch/s390/kernel/traps.c    |    2 +-
+ arch/sh/kernel/traps.c      |    2 +-
+ arch/x86_64/kernel/traps.c  |    2 +-
+ include/linux/bug.h         |    7 +++++--
+ lib/bug.c                   |    5 +++--
+ 10 files changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN arch/arm26/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on arch/arm26/Kconfig
---- a/arch/arm26/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/arch/arm26/Kconfig
-@@ -17,6 +17,9 @@ config MMU
- 	bool
- 	default y
+diff -puN arch/avr32/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/avr32/kernel/traps.c
+--- a/arch/avr32/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/avr32/kernel/traps.c
+@@ -184,7 +184,7 @@ asmlinkage void do_illegal_opcode(unsign
+ 	if (!user_mode(regs) && (ecr == ECR_ILLEGAL_OPCODE)) {
+ 		enum bug_trap_type type;
  
-+config NO_DMA
-+	def_bool y
-+
- config ARCH_ACORN
-         bool
-         default y
-diff -puN arch/h8300/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/arch/h8300/Kconfig
-@@ -68,6 +68,9 @@ config TIME_LOW_RES
- config NO_IOPORT
- 	def_bool y
+-		type = report_bug(regs->pc);
++		type = report_bug(regs->pc, regs);
+ 		switch (type) {
+ 		case BUG_TRAP_TYPE_NONE:
+ 			break;
+diff -puN arch/i386/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/i386/kernel/traps.c
+@@ -390,7 +390,7 @@ void die(const char * str, struct pt_reg
+ 		unsigned long esp;
+ 		unsigned short ss;
  
-+config NO_DMA
-+	def_bool y
-+
- config ISA
- 	bool
- 	default y
-diff -puN arch/m32r/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/arch/m32r/Kconfig
-@@ -31,6 +31,9 @@ config GENERIC_IRQ_PROBE
- config NO_IOPORT
- 	def_bool y
+-		report_bug(regs->eip);
++		report_bug(regs->eip, regs);
  
-+config NO_DMA
-+	def_bool y
-+
- source "init/Kconfig"
+ 		printk(KERN_EMERG "%s: %04lx [#%d]\n", str, err & 0xffff, ++die_counter);
+ #ifdef CONFIG_PREEMPT
+diff -puN arch/parisc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/parisc/kernel/traps.c
+--- a/arch/parisc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/parisc/kernel/traps.c
+@@ -302,7 +302,7 @@ static void handle_break(struct pt_regs 
+ 	if (unlikely(iir == PARISC_BUG_BREAK_INSN && !user_mode(regs))) {
+ 		/* check if a BUG() or WARN() trapped here.  */
+ 		enum bug_trap_type tt;
+-		tt = report_bug(regs->iaoq[0] & ~3);
++		tt = report_bug(regs->iaoq[0] & ~3, regs);
+ 		if (tt == BUG_TRAP_TYPE_WARN) {
+ 			regs->iaoq[0] += 4;
+ 			regs->iaoq[1] += 4;
+diff -puN arch/powerpc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/powerpc/kernel/traps.c
+--- a/arch/powerpc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/powerpc/kernel/traps.c
+@@ -777,7 +777,7 @@ void __kprobes program_check_exception(s
+ 			return;
  
+ 		if (!(regs->msr & MSR_PR) &&  /* not user-mode */
+-		    report_bug(regs->nip) == BUG_TRAP_TYPE_WARN) {
++		    report_bug(regs->nip, regs) == BUG_TRAP_TYPE_WARN) {
+ 			regs->nip += 4;
+ 			return;
+ 		}
+diff -puN arch/ppc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/ppc/kernel/traps.c
+--- a/arch/ppc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/ppc/kernel/traps.c
+@@ -619,7 +619,7 @@ void program_check_exception(struct pt_r
+ 			return;
  
-diff -puN drivers/dma/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on drivers/dma/Kconfig
---- a/drivers/dma/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/drivers/dma/Kconfig
-@@ -3,7 +3,7 @@
- #
+ 		if (!(regs->msr & MSR_PR) &&  /* not user-mode */
+-		    report_bug(regs->nip) == BUG_TRAP_TYPE_WARN) {
++		    report_bug(regs->nip, regs) == BUG_TRAP_TYPE_WARN) {
+ 			regs->nip += 4;
+ 			return;
+ 		}
+diff -puN arch/s390/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/s390/kernel/traps.c
+--- a/arch/s390/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/s390/kernel/traps.c
+@@ -319,7 +319,7 @@ static void __kprobes inline do_trap(lon
+ 		else {
+ 			enum bug_trap_type btt;
  
- menu "DMA Engine support"
--	depends on !S390
-+	depends on HAS_DMA
+-			btt = report_bug(regs->psw.addr & PSW_ADDR_INSN);
++			btt = report_bug(regs->psw.addr & PSW_ADDR_INSN, regs);
+ 			if (btt == BUG_TRAP_TYPE_WARN)
+ 				return;
+ 			die(str, regs, interruption_code);
+diff -puN arch/sh/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/sh/kernel/traps.c
+--- a/arch/sh/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/sh/kernel/traps.c
+@@ -874,7 +874,7 @@ void __init trap_init(void)
+ void handle_BUG(struct pt_regs *regs)
+ {
+ 	enum bug_trap_type tt;
+-	tt = report_bug(regs->pc);
++	tt = report_bug(regs->pc, regs);
+ 	if (tt == BUG_TRAP_TYPE_WARN) {
+ 		regs->pc += 2;
+ 		return;
+diff -puN arch/x86_64/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/x86_64/kernel/traps.c
+@@ -531,7 +531,7 @@ void die(const char * str, struct pt_reg
+ 	unsigned long flags = oops_begin();
  
- config DMA_ENGINE
- 	bool "Support for DMA engines"
-diff -puN include/asm-arm26/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
---- a/include/asm-arm26/dma-mapping.h
-+++ /dev/null
-@@ -1,2 +0,0 @@
--#include <asm-generic/dma-mapping-broken.h>
--
-diff -puN include/asm-generic/dma-mapping-broken.h~dma-mapping-prevent-dma-dependent-code-from-linking-on include/asm-generic/dma-mapping-broken.h
---- a/include/asm-generic/dma-mapping-broken.h~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/include/asm-generic/dma-mapping-broken.h
-@@ -1,24 +1,82 @@
- #ifndef _ASM_GENERIC_DMA_MAPPING_H
- #define _ASM_GENERIC_DMA_MAPPING_H
+ 	if (!user_mode(regs))
+-		report_bug(regs->rip);
++		report_bug(regs->rip, regs);
  
--/* This is used for archs that do not support DMA */
-+/* define the dma api to allow compilation but not linking of
-+ * dma dependent code.  Code that depends on the dma-mapping
-+ * API needs to set 'depends on HAS_DMA' in its Kconfig
-+ */
+ 	__die(str, regs, err);
+ 	oops_end(flags);
+diff -puN include/linux/bug.h~generic-bug-use-show_regs-instead-of-dump_stack include/linux/bug.h
+--- a/include/linux/bug.h~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/include/linux/bug.h
+@@ -10,6 +10,8 @@ enum bug_trap_type {
+ 	BUG_TRAP_TYPE_BUG = 2,
+ };
  
--static inline void *
-+struct scatterlist;
++struct pt_regs;
 +
-+extern void *
- dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
--		   gfp_t flag)
--{
--	BUG();
--	return NULL;
--}
-+		   gfp_t flag);
+ #ifdef CONFIG_GENERIC_BUG
+ #include <asm-generic/bug.h>
  
--static inline void
-+extern void
- dma_free_coherent(struct device *dev, size_t size, void *cpu_addr,
--		    dma_addr_t dma_handle)
--{
--	BUG();
--}
-+		    dma_addr_t dma_handle);
+@@ -20,7 +22,7 @@ static inline int is_warning_bug(const s
  
- #define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
- #define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
+ const struct bug_entry *find_bug(unsigned long bugaddr);
  
-+extern dma_addr_t
-+dma_map_single(struct device *dev, void *ptr, size_t size,
-+	       enum dma_data_direction direction);
-+
-+extern void
-+dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
-+		 enum dma_data_direction direction);
-+
-+extern int
-+dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+	   enum dma_data_direction direction);
-+
-+extern void
-+dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
-+	     enum dma_data_direction direction);
-+
-+extern dma_addr_t
-+dma_map_page(struct device *dev, struct page *page, unsigned long offset,
-+	     size_t size, enum dma_data_direction direction);
-+
-+extern void
-+dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
-+	       enum dma_data_direction direction);
-+
-+extern void
-+dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, size_t size,
-+			enum dma_data_direction direction);
-+
-+extern void
-+dma_sync_single_range_for_cpu(struct device *dev, dma_addr_t dma_handle,
-+			      unsigned long offset, size_t size,
-+			      enum dma_data_direction direction);
-+
-+extern void
-+dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
-+		    enum dma_data_direction direction);
-+
-+#define dma_sync_single_for_device dma_sync_single_for_cpu
-+#define dma_sync_single_range_for_device dma_sync_single_range_for_cpu
-+#define dma_sync_sg_for_device dma_sync_sg_for_cpu
-+
-+extern int
-+dma_mapping_error(dma_addr_t dma_addr);
-+
-+extern int
-+dma_supported(struct device *dev, u64 mask);
-+
-+extern int
-+dma_set_mask(struct device *dev, u64 mask);
-+
-+extern int
-+dma_get_cache_alignment(void);
-+
-+extern int
-+dma_is_consistent(struct device *dev, dma_addr_t dma_handle);
-+
-+extern void
-+dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-+	       enum dma_data_direction direction);
-+
- #endif /* _ASM_GENERIC_DMA_MAPPING_H */
-diff -puN include/asm-h8300/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
---- a/include/asm-h8300/dma-mapping.h
-+++ /dev/null
-@@ -1 +0,0 @@
--#include <asm-generic/dma-mapping-broken.h>
-diff -puN include/asm-m32r/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
---- a/include/asm-m32r/dma-mapping.h
-+++ /dev/null
-@@ -1,6 +0,0 @@
--#ifndef _ASM_M32R_DMA_MAPPING_H
--#define _ASM_M32R_DMA_MAPPING_H
--
--#include <asm-generic/dma-mapping-broken.h>
--
--#endif /* _ASM_M32R_DMA_MAPPING_H */
-diff -puN include/asm-s390/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
---- a/include/asm-s390/dma-mapping.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--/*
-- *  include/asm-s390/dma-mapping.h
-- *
-- *  S390 version
-- *
-- *  This file exists so that #include <dma-mapping.h> doesn't break anything.
-- */
--
--#ifndef _ASM_DMA_MAPPING_H
--#define _ASM_DMA_MAPPING_H
--
--#endif /* _ASM_DMA_MAPPING_H */
-diff -puN include/linux/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/include/linux/dma-mapping.h
-@@ -31,7 +31,11 @@ static inline int valid_dma_direction(in
- 		(dma_direction == DMA_FROM_DEVICE));
+-enum bug_trap_type report_bug(unsigned long bug_addr);
++enum bug_trap_type report_bug(unsigned long bug_addr, struct pt_regs *regs);
+ 
+ int  module_bug_finalize(const Elf_Ehdr *, const Elf_Shdr *,
+ 			 struct module *);
+@@ -31,7 +33,8 @@ int is_valid_bugaddr(unsigned long addr)
+ 
+ #else	/* !CONFIG_GENERIC_BUG */
+ 
+-static inline enum bug_trap_type report_bug(unsigned long bug_addr)
++static inline enum bug_trap_type report_bug(unsigned long bug_addr,
++					    struct pt_regs *regs)
+ {
+ 	return BUG_TRAP_TYPE_BUG;
+ }
+diff -puN lib/bug.c~generic-bug-use-show_regs-instead-of-dump_stack lib/bug.c
+--- a/lib/bug.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/lib/bug.c
+@@ -38,6 +38,7 @@
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/bug.h>
++#include <linux/sched.h>
+ 
+ extern const struct bug_entry __start___bug_table[], __stop___bug_table[];
+ 
+@@ -112,7 +113,7 @@ const struct bug_entry *find_bug(unsigne
+ 	return module_find_bug(bugaddr);
  }
  
-+#ifdef CONFIG_HAS_DMA
- #include <asm/dma-mapping.h>
-+#else
-+#include <asm-generic/dma-mapping-broken.h>
-+#endif
+-enum bug_trap_type report_bug(unsigned long bugaddr)
++enum bug_trap_type report_bug(unsigned long bugaddr, struct pt_regs *regs)
+ {
+ 	const struct bug_entry *bug;
+ 	const char *file;
+@@ -147,7 +148,7 @@ enum bug_trap_type report_bug(unsigned l
+ 			       "[verbose debug info unavailable]\n",
+ 			       (void *)bugaddr);
  
- /* Backwards compat, remove in 2.7.x */
- #define dma_sync_single		dma_sync_single_for_cpu
+-		dump_stack();
++		show_regs(regs);
+ 		return BUG_TRAP_TYPE_WARN;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 origin.patch
-raid5-add-the-stripe_queue-object-for-tracking-raid.patch
-raid5-add-the-stripe_queue-object-for-tracking-raid-io-requests-take2.patch
-raid5-use-stripe_queues-to-prioritize-the-most.patch
+git-s390.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-put-allocated-elf-notes-in-read-only-data-segment.patch
+s390-put-allocated-elf-notes-in-read-only-data-segment.patch
+add-sys-kernel-notes.patch
+use-build-id-ld-option.patch
