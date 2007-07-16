@@ -1,210 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - vsprintfc-optimizing-part-1-easy-and-obvious-stuff.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:59:30 -0700
-Message-ID: <200707162059.l6GKxUtT002433@imap1.linux-foundation.org>
+Subject: - doc-oops-tracing-add-code-decode-info.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:26 -0700
+Message-ID: <200707162057.l6GKvQSK002189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49494 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54555 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762656AbXGPVPc (ORCPT
+	by vger.kernel.org with ESMTP id S1762790AbXGPVPh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:32 -0400
+	Mon, 16 Jul 2007 17:15:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vda.linux@googlemail.com, jones@cs.uiowa.edu, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vsprintf.c: optimizing, part 1 (easy and obvious stuff)
+     doc/oops-tracing: add Code: decode info
 has been removed from the -mm tree.  Its filename was
-     vsprintfc-optimizing-part-1-easy-and-obvious-stuff.patch
+     doc-oops-tracing-add-code-decode-info.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vsprintf.c: optimizing, part 1 (easy and obvious stuff)
-=46rom: Denis Vlasenko <vda.linux@googlemail.com>
+Subject: doc/oops-tracing: add Code: decode info
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-* There is no point in having full "0...9a...z" constant vector,
-  if we use only "0...9a...f" (and "x" for "0x").
+Add info that the Code: bytes line contains <xy> or (wxyz) in some
+architecture oops reports and what that means.
 
-* Post-decrement usually needs a few more instructions, so use
-  pre decrement instead where makes sense:
-- =A0 =A0 =A0 while (i < precision--) {
-+ =A0 =A0 =A0 while (i <=3D --precision) {
+Add a script by Andi Kleen that reads the Code: line from an Oops report
+file and generates assembly code from the hex bytes.
 
-* if base !=3D 10 (=3D> base 8 or 16), we can avoid using division
-  in a loop and use mask/shift, obtaining much faster conversion.
-  (More complex optimization for base 10 case is in the second patch).
-
-Overall, size vsprintf.o shows ~80 bytes smaller text section
-with this patch applied.
-
-Signed-off-by: Douglas W Jones <jones@cs.uiowa.edu>
-Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   73 ++++++++++++++++++++++++++++-------------------
- 1 file changed, 45 insertions(+), 28 deletions(-)
+ Documentation/oops-tracing.txt |   14 ++++++++
+ scripts/decodecode             |   51 +++++++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+)
 
-diff -puN lib/vsprintf.c~vsprintfc-optimizing-part-1-easy-and-obvious-s=
-tuff lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintfc-optimizing-part-1-easy-and-obvious-stuff
-+++ a/lib/vsprintf.c
-@@ -143,12 +143,14 @@ static int skip_atoi(const char **s)
- #define SPECIAL	32		/* 0x */
- #define LARGE	64		/* use 'ABCDEF' instead of 'abcdef' */
-=20
--static char * number(char * buf, char * end, unsigned long long num, i=
-nt base, int size, int precision, int type)
-+static char *number(char *buf, char *end, unsigned long long num, int =
-base, int size, int precision, int type)
- {
--	char c,sign,tmp[66];
-+	char sign,tmp[66];
- 	const char *digits;
--	static const char small_digits[] =3D "0123456789abcdefghijklmnopqrstu=
-vwxyz";
--	static const char large_digits[] =3D "0123456789ABCDEFGHIJKLMNOPQRSTU=
-VWXYZ";
-+	/* we are called with base 8, 10 or 16, only, thus don't need "g..." =
- */
-+	static const char small_digits[] =3D "0123456789abcdefx"; /* "ghijklm=
-nopqrstuvwxyz"; */
-+	static const char large_digits[] =3D "0123456789ABCDEFX"; /* "GHIJKLM=
-NOPQRSTUVWXYZ"; */
-+	int need_pfx =3D ((type & SPECIAL) && base !=3D 10);
- 	int i;
-=20
- 	digits =3D (type & LARGE) ? large_digits : small_digits;
-@@ -156,7 +158,6 @@ static char * number(char * buf, char *=20
- 		type &=3D ~ZEROPAD;
- 	if (base < 2 || base > 36)
- 		return NULL;
--	c =3D (type & ZEROPAD) ? '0' : ' ';
- 	sign =3D 0;
- 	if (type & SIGN) {
- 		if ((signed long long) num < 0) {
-@@ -171,64 +172,80 @@ static char * number(char * buf, char *=20
- 			size--;
- 		}
- 	}
--	if (type & SPECIAL) {
-+	if (need_pfx) {
-+		size--;
- 		if (base =3D=3D 16)
--			size -=3D 2;
--		else if (base =3D=3D 8)
- 			size--;
- 	}
+diff -puN Documentation/oops-tracing.txt~doc-oops-tracing-add-code-decode-info Documentation/oops-tracing.txt
+--- a/Documentation/oops-tracing.txt~doc-oops-tracing-add-code-decode-info
++++ a/Documentation/oops-tracing.txt
+@@ -86,6 +86,20 @@ stuff are the values reported by the Oop
+ and do a replace of spaces to "\x" - that's what I do, as I'm too lazy 
+ to write a program to automate this all).
+ 
++Alternatively, you can use the shell script in scripts/decodecode.
++Its usage is:  decodecode < oops.txt
 +
-+	/* generate full string in tmp[], in reverse order */
- 	i =3D 0;
- 	if (num =3D=3D 0)
--		tmp[i++]=3D'0';
--	else while (num !=3D 0)
--		tmp[i++] =3D digits[do_div(num,base)];
-+		tmp[i++] =3D '0';
-+	else if (base !=3D 10) { /* 8 or 16 */
-+		int mask =3D base - 1;
-+		int shift =3D 3;
-+		if (base =3D=3D 16) shift =3D 4;
-+		do {
-+			tmp[i++] =3D digits[((unsigned char)num) & mask];
-+			num >>=3D shift;
-+		} while (num);
-+	} else do { /* generic code, works for any base */
-+		tmp[i++] =3D digits[do_div(num,10 /*base*/)];
-+	} while (num);
++The hex bytes that follow "Code:" may (in some architectures) have a series
++of bytes that precede the current instruction pointer as well as bytes at and
++following the current instruction pointer.  In some cases, one instruction
++byte or word is surrounded by <> or (), as in "<86>" or "(f00d)".  These
++<> or () markings indicate the current instruction pointer.  Example from
++i386, split into multiple lines for readability:
 +
-+	/* printing 100 using %2d gives "100", not "00" */
- 	if (i > precision)
- 		precision =3D i;
-+	/* leading space padding */
- 	size -=3D precision;
--	if (!(type&(ZEROPAD+LEFT))) {
--		while(size-->0) {
-+	if (!(type & (ZEROPAD+LEFT))) {
-+		while(--size >=3D 0) {
- 			if (buf < end)
- 				*buf =3D ' ';
- 			++buf;
- 		}
- 	}
-+	/* sign */
- 	if (sign) {
- 		if (buf < end)
- 			*buf =3D sign;
- 		++buf;
- 	}
--	if (type & SPECIAL) {
--		if (base=3D=3D8) {
--			if (buf < end)
--				*buf =3D '0';
--			++buf;
--		} else if (base=3D=3D16) {
--			if (buf < end)
--				*buf =3D '0';
--			++buf;
-+	/* "0x" / "0" prefix */
-+	if (need_pfx) {
-+		if (buf < end)
-+			*buf =3D '0';
-+		++buf;
-+		if (base =3D=3D 16) {
- 			if (buf < end)
--				*buf =3D digits[33];
-+				*buf =3D digits[16]; /* for arbitrary base: digits[33]; */
- 			++buf;
- 		}
- 	}
-+	/* zero or space padding */
- 	if (!(type & LEFT)) {
--		while (size-- > 0) {
-+		char c =3D (type & ZEROPAD) ? '0' : ' ';
-+		while (--size >=3D 0) {
- 			if (buf < end)
- 				*buf =3D c;
- 			++buf;
- 		}
- 	}
--	while (i < precision--) {
-+	/* hmm even more zero padding? */
-+	while (i <=3D --precision) {
- 		if (buf < end)
- 			*buf =3D '0';
- 		++buf;
- 	}
--	while (i-- > 0) {
-+	/* actual digits of result */
-+	while (--i >=3D 0) {
- 		if (buf < end)
- 			*buf =3D tmp[i];
- 		++buf;
- 	}
--	while (size-- > 0) {
-+	/* trailing space padding */
-+	while (--size >=3D 0) {
- 		if (buf < end)
- 			*buf =3D ' ';
- 		++buf;
-@@ -276,7 +293,7 @@ int vsnprintf(char *buf, size_t size, co
- 	   used for unknown buffer sizes. */
- 	if (unlikely((int) size < 0)) {
- 		/* There can be only one.. */
--		static int warn =3D 1;
-+		static char warn =3D 1;
- 		WARN_ON(warn);
- 		warn =3D 0;
- 		return 0;
++Code: f9 0f 8d f9 00 00 00 8d 42 0c e8 dd 26 11 c7 a1 60 ea 2b f9 8b 50 08 a1
++64 ea 2b f9 8d 34 82 8b 1e 85 db 74 6d 8b 15 60 ea 2b f9 <8b> 43 04 39 42 54
++7e 04 40 89 42 54 8b 43 04 3b 05 00 f6 52 c0
++
+ Finally, if you want to see where the code comes from, you can do
+ 
+ 	cd /usr/src/linux
+diff -puN /dev/null scripts/decodecode
+--- /dev/null
++++ a/scripts/decodecode
+@@ -0,0 +1,51 @@
++#!/bin/sh
++# Disassemble the Code: line in Linux oopses
++# usage: decodecode < oops.file
++#
++# options: set env. variable AFLAGS=options to pass options to "as";
++# e.g., to decode an i386 oops on an x86_64 system, use:
++# AFLAGS=--32 decodecode < 386.oops
++
++T=`mktemp`
++code=
++
++while read i ; do
++
++case "$i" in
++*Code:*)
++	code=$i
++	;;
++esac
++
++done
++
++if [ -z "$code" ]; then
++	exit
++fi
++
++echo $code
++code=`echo $code | sed -e 's/.*Code: //'`
++
++marker=`expr index "$code" "\<"`
++if [ $marker -eq 0 ]; then
++	marker=`expr index "$code" "\("`
++fi
++
++if [ $marker -ne 0 ]; then
++	beforemark=`echo "$code" | cut -c-$((${marker} - 1))`
++	echo -n "	.byte 0x" > $T.s
++	echo $beforemark | sed -e 's/ /,0x/g' >> $T.s
++	as $AFLAGS -o $T.o $T.s
++	objdump -S $T.o
++	rm $T.o $T.s
++
++# and fix code at-and-after marker
++	code=`echo "$code" | cut -c$((${marker} + 1))-`
++fi
++
++code=`echo $code | sed -e 's/ [<(]/ /;s/[>)] / /;s/ /,0x/g'`
++echo -n "	.byte 0x" > $T.s
++echo $code >> $T.s
++as $AFLAGS -o $T.o $T.s
++objdump -S $T.o
++rm $T.o $T.s
 _
 
-Patches currently in -mm which might be from vda.linux@googlemail.com a=
-re
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-mtd.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+kernel-doc-add-tools-doc-in-makefile.patch
+kernel-doc-fix-unnamed-struct-union-warning.patch
+kernel-doc-strip-c99-comments.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+docbook-dont-reference-file-without-kernel-doc.patch
+profile-likely-unlikely-macros.patch
