@@ -1,106 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - remove-apparently-useless-commented-apm_get_battery_status.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 00:45:20 -0700
-Message-ID: <200707160745.l6G7jKDw020260@imap1.linux-foundation.org>
+Subject: - cfs-fix-missing-digit-off-in-wmult-table.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 02:32:35 -0600
+Message-ID: <200707160832.l6G8WZQY022871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57032 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53393 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753692AbXGPHpj (ORCPT
+	by vger.kernel.org with ESMTP id S1753463AbXGPIdX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 03:45:39 -0400
+	Mon, 16 Jul 2007 04:33:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, cbou@mail.ru, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove apparently useless, commented apm_get_battery_status()
+     CFS: fix missing digit off in wmult table
 has been removed from the -mm tree.  Its filename was
-     remove-apparently-useless-commented-apm_get_battery_status.patch
+     cfs-fix-missing-digit-off-in-wmult-table.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove apparently useless, commented apm_get_battery_status()
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: CFS: fix missing digit off in wmult table
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Remove the "#if 0"ed definition of apm_get_battery_status().
+Roman Zippel noticed inconsistency of the wmult table.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Anton Vorontsov <cbou@mail.ru>
+wmult[16] has a missing digit.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/apm.c |   29 -----------------------------
- 1 file changed, 29 deletions(-)
+ kernel/sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/apm.c~remove-apparently-useless-commented-apm_get_battery_status arch/i386/kernel/apm.c
---- a/arch/i386/kernel/apm.c~remove-apparently-useless-commented-apm_get_battery_status
-+++ a/arch/i386/kernel/apm.c
-@@ -1006,35 +1006,6 @@ static int apm_get_power_status(u_short 
- 	return APM_SUCCESS;
- }
- 
--#if 0
--static int apm_get_battery_status(u_short which, u_short *status,
--				  u_short *bat, u_short *life, u_short *nbat)
--{
--	u32	eax;
--	u32	ebx;
--	u32	ecx;
--	u32	edx;
--	u32	esi;
--
--	if (apm_info.connection_version < 0x0102) {
--		/* pretend we only have one battery. */
--		if (which != 1)
--			return APM_BAD_DEVICE;
--		*nbat = 1;
--		return apm_get_power_status(status, bat, life);
--	}
--
--	if (apm_bios_call(APM_FUNC_GET_STATUS, (0x8000 | (which)), 0, &eax,
--			&ebx, &ecx, &edx, &esi))
--		return (eax >> 8) & 0xff;
--	*status = ebx;
--	*bat = ecx;
--	*life = edx;
--	*nbat = esi;
--	return APM_SUCCESS;
--}
--#endif
--
- /**
-  *	apm_engage_power_management	-	enable PM on a device
-  *	@device: identity of device
+diff -puN kernel/sched.c~cfs-fix-missing-digit-off-in-wmult-table kernel/sched.c
+--- a/kernel/sched.c~cfs-fix-missing-digit-off-in-wmult-table
++++ a/kernel/sched.c
+@@ -750,7 +750,7 @@ static const u32 prio_to_wmult[40] = {
+ 	48356,   60446,   75558,   94446,  118058,  147573,
+ 	184467,  230589,  288233,  360285,  450347,
+ 	562979,  703746,  879575, 1099582, 1374389,
+-	717986, 2147483, 2684354, 3355443, 4194304,
++	1717986, 2147483, 2684354, 3355443, 4194304,
+ 	5244160, 6557201, 8196502, 10250518, 12782640,
+ 	16025997, 19976592, 24970740, 31350126, 39045157,
+ 	49367440, 61356675, 76695844, 95443717, 119304647,
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-frv-be-self-consistent-and-use-config_gdb_console-everywhere.patch
-frv-remove-some-dead-code.patch
-cris-replace-old-style-member-inits-with-designated-inits.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-remove-apparently-useless-commented-apm_get_battery_status.patch
-cobalt-remove-all-references-to-cobalt-nvram.patch
-remove-final-two-references-to-__obsolete_setup-macro.patch
-cdrom-replace-hard-coded-constants-by-kernelh-macro.patch
-nls-remove-obsolete-makefile-entries.patch
-git-alsa.patch
-git-powerpc.patch
-git-dvb.patch
-git-kbuild.patch
-git-kvm.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-sh.patch
-remove-dead-references-to-module_parm-macro.patch
-git-watchdog.patch
-i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
-i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
-i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
-mm-make-needlessly-global-hugetlb_no_page-static.patch
+introduce-boot-based-time.patch
+use-boot-based-time-for-process-start-time-and-boot-time.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+improve-behaviour-of-spurious-irq-detect.patch
+sys_time-speedup.patch
+futex-tidy-up-the-code-v2.patch
+cfs-fix-missing-digit-off-in-wmult-table.patch
+git-acpi.patch
+i386-hpet-check-if-the-counter-works.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
+timekeeping-fixup-shadow-variable-argument.patch
+timerc-cleanup-recently-introduced-whitespace-damage.patch
+clockevents-remove-prototypes-of-removed-functions.patch
+clockevents-fix-resume-logic.patch
+clockevents-fix-device-replacement.patch
+tick-management-spread-timer-interrupt.patch
+highres-improve-debug-output.patch
+hrtimer-speedup-hrtimer_enqueue.patch
+pcspkr-use-the-global-pit-lock.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
+i386-remove-volatile-in-apicc.patch
+i386-hpet-assumes-boot-cpu-is-0.patch
+i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
+x86_64-untangle-asm-hpeth-from-asm-timexh.patch
+x86_64-use-generic-cmos-update.patch
+x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
+x86_64-fix-apic-typo.patch
+x86_64-convert-to-cleckevents.patch
+acpi-remove-the-useless-ifdef-code.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+geode-mfgpt-clock-event-device-support.patch
+i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch
+make-timespec_equal-take-const-arguments.patch
+lguest-the-host-code.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
