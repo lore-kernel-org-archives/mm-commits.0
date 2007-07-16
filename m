@@ -1,106 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - char-genrtc-use-wait_event_interruptible.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:55:00 -0700
-Message-ID: <200707162055.l6GKt0hX001870@imap1.linux-foundation.org>
+Subject: - mm-slabc-start_cpu_timer-should-be-__cpuinit.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:49:38 -0700
+Message-ID: <200707162049.l6GKncRt001177@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36642 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39048 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758933AbXGPVTy (ORCPT
+	by vger.kernel.org with ESMTP id S1755182AbXGPVUG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:19:54 -0400
+	Mon, 16 Jul 2007 17:20:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, a.zummo@towertech.it, david-b@pacbell.net, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: genrtc, use wait_event_interruptible
+     mm/slab.c: start_cpu_timer() should be __cpuinit
 has been removed from the -mm tree.  Its filename was
-     char-genrtc-use-wait_event_interruptible.patch
+     mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: genrtc, use wait_event_interruptible
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: mm/slab.c: start_cpu_timer() should be __cpuinit
+From: Adrian Bunk <bunk@stusta.de>
 
-genrtc, use wait_event_interruptible
+start_cpu_timer() should be __cpuinit (which also matches what it's
+callers are).
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: David Brownell <david-b@pacbell.net>
+__devinit didn't cause problems, it simply wasted a few bytes of memory
+for the common CONFIG_HOTPLUG_CPU=n case.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/genrtc.c |   22 +++++-----------------
- 1 file changed, 5 insertions(+), 17 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/genrtc.c~char-genrtc-use-wait_event_interruptible drivers/char/genrtc.c
---- a/drivers/char/genrtc.c~char-genrtc-use-wait_event_interruptible
-+++ a/drivers/char/genrtc.c
-@@ -173,7 +173,6 @@ static void gen_rtc_interrupt(unsigned l
- static ssize_t gen_rtc_read(struct file *file, char __user *buf,
- 			size_t count, loff_t *ppos)
+diff -puN mm/slab.c~mm-slabc-start_cpu_timer-should-be-__cpuinit mm/slab.c
+--- a/mm/slab.c~mm-slabc-start_cpu_timer-should-be-__cpuinit
++++ a/mm/slab.c
+@@ -929,7 +929,7 @@ static void next_reap_node(void)
+  * the CPUs getting into lockstep and contending for the global cache chain
+  * lock.
+  */
+-static void __devinit start_cpu_timer(int cpu)
++static void __cpuinit start_cpu_timer(int cpu)
  {
--	DECLARE_WAITQUEUE(wait, current);
- 	unsigned long data;
- 	ssize_t retval;
- 
-@@ -183,18 +182,10 @@ static ssize_t gen_rtc_read(struct file 
- 	if (file->f_flags & O_NONBLOCK && !gen_rtc_irq_data)
- 		return -EAGAIN;
- 
--	add_wait_queue(&gen_rtc_wait, &wait);
--	retval = -ERESTARTSYS;
--
--	while (1) {
--		set_current_state(TASK_INTERRUPTIBLE);
--		data = xchg(&gen_rtc_irq_data, 0);
--		if (data)
--			break;
--		if (signal_pending(current))
--			goto out;
--		schedule();
--	}
-+	retval = wait_event_interruptible(gen_rtc_wait,
-+			(data = xchg(&gen_rtc_irq_data, 0)));
-+	if (retval)
-+		goto out;
- 
- 	/* first test allows optimizer to nuke this case for 32-bit machines */
- 	if (sizeof (int) != sizeof (long) && count == sizeof (unsigned int)) {
-@@ -206,10 +197,7 @@ static ssize_t gen_rtc_read(struct file 
- 		retval = put_user(data, (unsigned long __user *)buf) ?:
- 			sizeof(unsigned long);
- 	}
-- out:
--	__set_current_state(TASK_RUNNING);
--	remove_wait_queue(&gen_rtc_wait, &wait);
--
-+out:
- 	return retval;
- }
+ 	struct delayed_work *reap_work = &per_cpu(reap_work, cpu);
  
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-char-cyclades-add-firmware-loading.patch
-char-cyclades-fix-sparse-warning.patch
-char-isicom-cleanup-locking.patch
-char-isicom-del_timer-at-exit.patch
-char-isicom-proper-variables-types.patch
-char-moxa-eliminate-busy-waiting.patch
-char-specialix-remove-busy-waiting.patch
-char-riscom8-eliminate-busy-loop.patch
-char-vt-use-kzalloc.patch
-char-vt-use-array_size.patch
-char-kconfig-mxser_new-remove-experimental-comment.patch
-char-stallion-remove-user-class-report-request.patch
-char-istallion-initlocking-fixes-try-2.patch
-stallion-remove-unneeded-lock_kernel.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+git-powerpc.patch
+git-dvb.patch
+git-hwmon.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+arch-i386-xen-mmuc-must-include-linux-schedh.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+xen-fix-x86-config-dependencies.patch
+xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
+xen-cant-support-numa-yet.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+handle-kernelcore=-generic.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+mm-slubc-make-code-static.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+proper-prototype-for-proc_nr_files.patch
+fs-reiserfs-cleanups.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+remove-options-depending-on-oss_obsolete.patch
+fbdev-move-arch-specific-bits-to-their-respective.patch
+pm3fb-possible-cleanups.patch
+vt8623fbc-make-code-static.patch
+drivers-video-macmodescmac_find_mode-mustnt-be.patch
+intel-iommu-intel-iommu-driver.patch
+mm-variable-length-argument-support.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+kernel-relayc-make-functions-static.patch
+drivers-edac-core-make-functions-static.patch
+lockstat-human-readability-tweaks.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
