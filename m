@@ -1,206 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-o_cloexec-take-2.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:55:33 -0700
-Message-ID: <200707162055.l6GKtXGs001943@imap1.linux-foundation.org>
+Subject: - user-namespace-add-unshare.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:56:40 -0700
+Message-ID: <200707162056.l6GKueVq002111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33235 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42010 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755999AbXGPVhA (ORCPT
+	by vger.kernel.org with ESMTP id S1764257AbXGPVh3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:37:00 -0400
+	Mon, 16 Jul 2007 17:37:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drepper@redhat.com, chris@zankel.net, davem@davemloft.net, davidel@xmailserver.org, kyle@parisc-linux.org, mingo@elte.hu, mtk-manpages@gmx.net, mm-commits@vger.kernel.org
+To: serue@us.ibm.com, agm@google.com, chrisw@sous-sol.org, clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, jmorris@namei.org, sds@tycho.nsa.gov, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Introduce O_CLOEXEC
+     user namespace: add unshare
 has been removed from the -mm tree.  Its filename was
-     introduce-o_cloexec-take-2.patch
+     user-namespace-add-unshare.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Introduce O_CLOEXEC
-From: Ulrich Drepper <drepper@redhat.com>
+Subject: user namespace: add unshare
+From: Serge E. Hallyn <serue@us.ibm.com>
 
-The problem is as follows: in multi-threaded code (or more correctly: all
-code using clone() with CLONE_FILES) we have a race when exec'ing.
+This patch enables the unshare of user namespaces. 
 
-   thread #1                       thread #2
+It adds a new clone flag CLONE_NEWUSER and implements copy_user_ns() which
+resets the current user_struct and adds a new root user (uid == 0)
 
-   fd=open()
+For now, unsharing the user namespace allows a process to reset its
+user_struct accounting and uid 0 in the new user namespace should be contained
+using appropriate means, for instance selinux
 
-                                   fork + exec
+The plan, when the full support is complete (all uid checks covered), is to
+keep the original user's rights in the original namespace, and let a process
+become uid 0 in the new namespace, with full capabilities to the new
+namespace.
 
-  fcntl(fd,F_SETFD,FD_CLOEXEC)
-
-In some applications this can happen frequently.  Take a web browser.  One
-thread opens a file and another thread starts, say, an external PDF viewer.
- The result can even be a security issue if that open file descriptor
-refers to a sensitive file and the external program can somehow be tricked
-into using that descriptor.
-
-Just adding O_CLOEXEC support to open() doesn't solve the whole set of
-problems.  There are other ways to create file descriptors (socket,
-epoll_create, Unix domain socket transfer, etc).  These can and should be
-addressed separately though.  open() is such an easy case that it makes not
-much sense putting the fix off.
-
-The test program:
-
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
-
-#ifndef O_CLOEXEC
-# define O_CLOEXEC 02000000
-#endif
-
-int
-main (int argc, char *argv[])
-{
-  int fd;
-  if (argc > 1)
-    {
-      fd = atol (argv[1]);
-      printf ("child: fd = %d\n", fd);
-      if (fcntl (fd, F_GETFD) == 0 || errno != EBADF)
-        {
-          puts ("file descriptor valid in child");
-          return 1;
-        }
-      return 0;
-    }
-
-  fd = open ("/proc/self/exe", O_RDONLY | O_CLOEXEC);
-  printf ("in parent: new fd = %d\n", fd);
-  char buf[20];
-  snprintf (buf, sizeof (buf), "%d", fd);
-  execl ("/proc/self/exe", argv[0], buf, NULL);
-  puts ("execl failed");
-  return 1;
-}
-
-[kyle@parisc-linux.org: parisc fix]
-Signed-off-by: Ulrich Drepper <drepper@redhat.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Chris Zankel <chris@zankel.net>
-Signed-off-by: Kyle McMartin <kyle@parisc-linux.org>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Acked-by: Pavel Emelianov <xemul@openvz.org>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
+Cc: Andrew Morgan <agm@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c                   |   14 +++++++++++---
- include/asm-generic/fcntl.h |    3 +++
- include/asm-parisc/fcntl.h  |   31 ++++++++++++++++---------------
- 3 files changed, 30 insertions(+), 18 deletions(-)
+ include/linux/sched.h          |    1 
+ include/linux/user_namespace.h |    4 ++
+ kernel/fork.c                  |    2 -
+ kernel/nsproxy.c               |    5 ++-
+ kernel/user_namespace.c        |   46 ++++++++++++++++++++++++++++++-
+ 5 files changed, 54 insertions(+), 4 deletions(-)
 
-diff -puN fs/open.c~introduce-o_cloexec-take-2 fs/open.c
---- a/fs/open.c~introduce-o_cloexec-take-2
-+++ a/fs/open.c
-@@ -855,7 +855,7 @@ EXPORT_SYMBOL(dentry_open);
- /*
-  * Find an empty file descriptor entry, and mark it busy.
-  */
--int get_unused_fd(void)
-+static int get_unused_fd_flags(int flags)
- {
- 	struct files_struct * files = current->files;
- 	int fd, error;
-@@ -891,7 +891,10 @@ repeat:
- 	}
+diff -puN include/linux/sched.h~user-namespace-add-unshare include/linux/sched.h
+--- a/include/linux/sched.h~user-namespace-add-unshare
++++ a/include/linux/sched.h
+@@ -26,6 +26,7 @@
+ #define CLONE_STOPPED		0x02000000	/* Start in stopped state */
+ #define CLONE_NEWUTS		0x04000000	/* New utsname group? */
+ #define CLONE_NEWIPC		0x08000000	/* New ipcs */
++#define CLONE_NEWUSER		0x10000000	/* New user namespace */
  
- 	FD_SET(fd, fdt->open_fds);
--	FD_CLR(fd, fdt->close_on_exec);
-+	if (flags & O_CLOEXEC)
-+		FD_SET(fd, fdt->close_on_exec);
-+	else
-+		FD_CLR(fd, fdt->close_on_exec);
- 	files->next_fd = fd + 1;
- #if 1
- 	/* Sanity check */
-@@ -907,6 +910,11 @@ out:
- 	return error;
+ /*
+  * Scheduling policies
+diff -puN include/linux/user_namespace.h~user-namespace-add-unshare include/linux/user_namespace.h
+--- a/include/linux/user_namespace.h~user-namespace-add-unshare
++++ a/include/linux/user_namespace.h
+@@ -4,6 +4,7 @@
+ #include <linux/kref.h>
+ #include <linux/nsproxy.h>
+ #include <linux/sched.h>
++#include <linux/err.h>
+ 
+ #define UIDHASH_BITS	(CONFIG_BASE_SMALL ? 3 : 8)
+ #define UIDHASH_SZ	(1 << UIDHASH_BITS)
+@@ -45,6 +46,9 @@ static inline struct user_namespace *get
+ static inline struct user_namespace *copy_user_ns(int flags,
+ 						  struct user_namespace *old_ns)
+ {
++	if (flags & CLONE_NEWUSER)
++		return ERR_PTR(-EINVAL);
++
+ 	return NULL;
  }
  
-+int get_unused_fd(void)
+diff -puN kernel/fork.c~user-namespace-add-unshare kernel/fork.c
+--- a/kernel/fork.c~user-namespace-add-unshare
++++ a/kernel/fork.c
+@@ -1606,7 +1606,7 @@ asmlinkage long sys_unshare(unsigned lon
+ 	err = -EINVAL;
+ 	if (unshare_flags & ~(CLONE_THREAD|CLONE_FS|CLONE_NEWNS|CLONE_SIGHAND|
+ 				CLONE_VM|CLONE_FILES|CLONE_SYSVSEM|
+-				CLONE_NEWUTS|CLONE_NEWIPC))
++				CLONE_NEWUTS|CLONE_NEWIPC|CLONE_NEWUSER))
+ 		goto bad_unshare_out;
+ 
+ 	if ((err = unshare_thread(unshare_flags)))
+diff -puN kernel/nsproxy.c~user-namespace-add-unshare kernel/nsproxy.c
+--- a/kernel/nsproxy.c~user-namespace-add-unshare
++++ a/kernel/nsproxy.c
+@@ -117,7 +117,7 @@ int copy_namespaces(int flags, struct ta
+ 
+ 	get_nsproxy(old_ns);
+ 
+-	if (!(flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC)))
++	if (!(flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC | CLONE_NEWUSER)))
+ 		return 0;
+ 
+ 	if (!capable(CAP_SYS_ADMIN)) {
+@@ -161,7 +161,8 @@ int unshare_nsproxy_namespaces(unsigned 
+ {
+ 	int err = 0;
+ 
+-	if (!(unshare_flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC)))
++	if (!(unshare_flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC |
++			       CLONE_NEWUSER)))
+ 		return 0;
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
+diff -puN kernel/user_namespace.c~user-namespace-add-unshare kernel/user_namespace.c
+--- a/kernel/user_namespace.c~user-namespace-add-unshare
++++ a/kernel/user_namespace.c
+@@ -21,6 +21,45 @@ EXPORT_SYMBOL_GPL(init_user_ns);
+ 
+ #ifdef CONFIG_USER_NS
+ 
++/*
++ * Clone a new ns copying an original user ns, setting refcount to 1
++ * @old_ns: namespace to clone
++ * Return NULL on error (failure to kmalloc), new ns otherwise
++ */
++static struct user_namespace *clone_user_ns(struct user_namespace *old_ns)
 +{
-+	return get_unused_fd_flags(0);
++	struct user_namespace *ns;
++	struct user_struct *new_user;
++	int n;
++
++	ns = kmalloc(sizeof(struct user_namespace), GFP_KERNEL);
++	if (!ns)
++		return NULL;
++
++	kref_init(&ns->kref);
++
++	for (n = 0; n < UIDHASH_SZ; ++n)
++		INIT_LIST_HEAD(ns->uidhash_table + n);
++
++	/* Insert new root user.  */
++	ns->root_user = alloc_uid(ns, 0);
++	if (!ns->root_user) {
++		kfree(ns);
++		return NULL;
++	}
++
++	/* Reset current->user with a new one */
++	new_user = alloc_uid(ns, current->uid);
++	if (!new_user) {
++		free_uid(ns->root_user);
++		kfree(ns);
++		return NULL;
++	}
++
++	switch_uid(new_user);
++	return ns;
 +}
 +
- EXPORT_SYMBOL(get_unused_fd);
+ struct user_namespace * copy_user_ns(int flags, struct user_namespace *old_ns)
+ {
+ 	struct user_namespace *new_ns;
+@@ -28,7 +67,12 @@ struct user_namespace * copy_user_ns(int
+ 	BUG_ON(!old_ns);
+ 	get_user_ns(old_ns);
  
- static void __put_unused_fd(struct files_struct *files, unsigned int fd)
-@@ -959,7 +967,7 @@ long do_sys_open(int dfd, const char __u
- 	int fd = PTR_ERR(tmp);
- 
- 	if (!IS_ERR(tmp)) {
--		fd = get_unused_fd();
-+		fd = get_unused_fd_flags(flags);
- 		if (fd >= 0) {
- 			struct file *f = do_filp_open(dfd, tmp, flags, mode);
- 			if (IS_ERR(f)) {
-diff -puN include/asm-generic/fcntl.h~introduce-o_cloexec-take-2 include/asm-generic/fcntl.h
---- a/include/asm-generic/fcntl.h~introduce-o_cloexec-take-2
-+++ a/include/asm-generic/fcntl.h
-@@ -48,6 +48,9 @@
- #ifndef O_NOATIME
- #define O_NOATIME	01000000
- #endif
-+#ifndef O_CLOEXEC
-+#define O_CLOEXEC	02000000	/* set close_on_exec */
-+#endif
- #ifndef O_NDELAY
- #define O_NDELAY	O_NONBLOCK
- #endif
-diff -puN include/asm-parisc/fcntl.h~introduce-o_cloexec-take-2 include/asm-parisc/fcntl.h
---- a/include/asm-parisc/fcntl.h~introduce-o_cloexec-take-2
-+++ a/include/asm-parisc/fcntl.h
-@@ -3,21 +3,22 @@
- 
- /* open/fcntl - O_SYNC is only implemented on blocks devices and on files
-    located on an ext2 file system */
--#define O_APPEND	00000010
--#define O_BLKSEEK	00000100 /* HPUX only */
--#define O_CREAT		00000400 /* not fcntl */
--#define O_EXCL		00002000 /* not fcntl */
--#define O_LARGEFILE	00004000
--#define O_SYNC		00100000
--#define O_NONBLOCK	00200004 /* HPUX has separate NDELAY & NONBLOCK */
--#define O_NOCTTY	00400000 /* not fcntl */
--#define O_DSYNC		01000000 /* HPUX only */
--#define O_RSYNC		02000000 /* HPUX only */
--#define O_NOATIME	04000000
--
--#define O_DIRECTORY	00010000 /* must be a directory */
--#define O_NOFOLLOW	00000200 /* don't follow links */
--#define O_INVISIBLE	04000000 /* invisible I/O, for DMAPI/XDSM */
-+#define O_APPEND	000000010
-+#define O_BLKSEEK	000000100 /* HPUX only */
-+#define O_CREAT		000000400 /* not fcntl */
-+#define O_EXCL		000002000 /* not fcntl */
-+#define O_LARGEFILE	000004000
-+#define O_SYNC		000100000
-+#define O_NONBLOCK	000200004 /* HPUX has separate NDELAY & NONBLOCK */
-+#define O_NOCTTY	000400000 /* not fcntl */
-+#define O_DSYNC		001000000 /* HPUX only */
-+#define O_RSYNC		002000000 /* HPUX only */
-+#define O_NOATIME	004000000
-+#define O_CLOEXEC	010000000 /* set close_on_exec */
+-	new_ns = old_ns;
++	if (!(flags & CLONE_NEWUSER))
++		return old_ns;
 +
-+#define O_DIRECTORY	000010000 /* must be a directory */
-+#define O_NOFOLLOW	000000200 /* don't follow links */
-+#define O_INVISIBLE	004000000 /* invisible I/O, for DMAPI/XDSM */
++	new_ns = clone_user_ns(old_ns);
++
++	put_user_ns(old_ns);
+ 	return new_ns;
+ }
  
- #define F_GETLK64	8
- #define F_SETLK64	9
 _
 
-Patches currently in -mm which might be from drepper@redhat.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
 origin.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+file-capabilities-introduce-cap_setfcap.patch
+file-capabilities-get_file_caps-cleanups.patch
+file-caps-update-selinux-xattr-hooks.patch
+file-capabilities-clear-caps-cleanup.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+file-capabilities-change-xattr-format-v2.patch
+file-capabilities-change-fe-to-a-bool.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-basic-container-framework.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
+containers-implement-subsys-post_clone.patch
+containers-implement-namespace-tracking-subsystem-v3.patch
+pid-namespaces-round-up-the-api.patch
