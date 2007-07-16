@@ -1,102 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - nbdcsock_xmit-cleanup-signal-related-code.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:58:11 -0700
-Message-ID: <200707162058.l6GKwBik002327@imap1.linux-foundation.org>
+Subject: - permit-mempool_freenull.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:59:47 -0700
+Message-ID: <200707162059.l6GKxlp5002454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48097 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43737 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758957AbXGPVPN (ORCPT
+	by vger.kernel.org with ESMTP id S1759029AbXGPVPR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:13 -0400
+	Mon, 16 Jul 2007 17:15:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, paul.clements@steeleye.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, borntraeger@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nbd.c: sock_xmit: cleanup signal related code
+     permit mempool_free(NULL)
 has been removed from the -mm tree.  Its filename was
-     nbdcsock_xmit-cleanup-signal-related-code.patch
+     permit-mempool_freenull.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nbd.c: sock_xmit: cleanup signal related code
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: permit mempool_free(NULL)
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-sock_xmit() re-implements sigprocmask() and dequeue_signal_lock().
+Christian Borntraeger points out that mempool_free() doesn't noop when
+handed NULL.  This is inconsistent with the other free-like functions
+in the kernel.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Paul Clements <paul.clements@steeleye.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |   22 ++++++----------------
- 1 file changed, 6 insertions(+), 16 deletions(-)
+ mm/mempool.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/block/nbd.c~nbdcsock_xmit-cleanup-signal-related-code drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbdcsock_xmit-cleanup-signal-related-code
-+++ a/drivers/block/nbd.c
-@@ -122,17 +122,12 @@ static int sock_xmit(struct socket *sock
- 	int result;
- 	struct msghdr msg;
- 	struct kvec iov;
--	unsigned long flags;
--	sigset_t oldset;
-+	sigset_t blocked, oldset;
+diff -puN mm/mempool.c~permit-mempool_freenull mm/mempool.c
+--- a/mm/mempool.c~permit-mempool_freenull
++++ a/mm/mempool.c
+@@ -263,6 +263,9 @@ void mempool_free(void *element, mempool
+ {
+ 	unsigned long flags;
  
- 	/* Allow interception of SIGKILL only
- 	 * Don't allow other signals to interrupt the transmission */
--	spin_lock_irqsave(&current->sighand->siglock, flags);
--	oldset = current->blocked;
--	sigfillset(&current->blocked);
--	sigdelsetmask(&current->blocked, sigmask(SIGKILL));
--	recalc_sigpending();
--	spin_unlock_irqrestore(&current->sighand->siglock, flags);
-+	siginitsetinv(&blocked, sigmask(SIGKILL));
-+	sigprocmask(SIG_SETMASK, &blocked, &oldset);
- 
- 	do {
- 		sock->sk->sk_allocation = GFP_NOIO;
-@@ -151,11 +146,9 @@ static int sock_xmit(struct socket *sock
- 
- 		if (signal_pending(current)) {
- 			siginfo_t info;
--			spin_lock_irqsave(&current->sighand->siglock, flags);
- 			printk(KERN_WARNING "nbd (pid %d: %s) got signal %d\n",
--				current->pid, current->comm, 
--				dequeue_signal(current, &current->blocked, &info));
--			spin_unlock_irqrestore(&current->sighand->siglock, flags);
-+				current->pid, current->comm,
-+				dequeue_signal_lock(current, &current->blocked, &info));
- 			result = -EINTR;
- 			break;
- 		}
-@@ -169,10 +162,7 @@ static int sock_xmit(struct socket *sock
- 		buf += result;
- 	} while (size > 0);
- 
--	spin_lock_irqsave(&current->sighand->siglock, flags);
--	current->blocked = oldset;
--	recalc_sigpending();
--	spin_unlock_irqrestore(&current->sighand->siglock, flags);
-+	sigprocmask(SIG_SETMASK, &oldset, NULL);
- 
- 	return result;
- }
++	if (unlikely(element == NULL))
++		return;
++
+ 	smp_mb();
+ 	if (pool->curr_nr < pool->min_nr) {
+ 		spin_lock_irqsave(&pool->lock, flags);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-freezer-run-show_state-when-freezing-times-out.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-destroy_workqueue-can-livelock.patch
+git-kbuild.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+lguest-export-symbols-for-lguest-as-a-module.patch
+lguest-the-guest-code.patch
+lguest-the-host-code.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+lguest-the-host-code-remove-usage-and-export-of-__put_task_struct.patch
+lguest-the-host-code-disable-sysenter-for-guests.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-console-driver.patch
+lguest-the-net-driver.patch
+lguest-the-block-driver.patch
+lguest-the-documentation-example-launcher.patch
+readahead-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-min_ra_pages-max_ra_pages-macros.patch
+readahead-data-structure-and-routines.patch
+readahead-on-demand-readahead-logic.patch
+readahead-convert-filemap-invocations.patch
+readahead-convert-splice-invocations.patch
+readahead-convert-ext3-ext4-invocations.patch
+readahead-remove-the-old-algorithm.patch
+readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
+readahead-pass-real-splice-size.patch
+mm-share-pg_readahead-and-pg_reclaim.patch
+readahead-split-ondemand-readahead-interface-into-two-functions.patch
+readahead-sanify-file_ra_state-names.patch
+define-new-percpu-interface-for-shared-data-version-4.patch
+use-the-new-percpu-interface-for-shared-data-version-4.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
