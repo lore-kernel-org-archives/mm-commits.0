@@ -1,140 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - m68knommu-remove-old-cache-management-cruft-from-mm-code.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:24 -0700
-Message-ID: <200707162050.l6GKoOHT001311@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-parport.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:52:46 -0700
+Message-ID: <200707162052.l6GKqkgq001567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50562 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41857 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760076AbXGPV1q (ORCPT
+	by vger.kernel.org with ESMTP id S1761200AbXGPV1v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:27:46 -0400
+	Mon, 16 Jul 2007 17:27:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerg@snapgear.com, gerg@uclinux.org, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68knommu: remove old cache management cruft from mm code
+     Use menuconfig objects: parport
 has been removed from the -mm tree.  Its filename was
-     m68knommu-remove-old-cache-management-cruft-from-mm-code.patch
+     use-menuconfig-objects-parport.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m68knommu: remove old cache management cruft from mm code
-From: Greg Ungerer <gerg@snapgear.com>
+Subject: Use menuconfig objects: parport
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Remove cache management cruft.  This code is dead, all the cache manangement
-functions for the ColdFire exist in the header file
-include/asm-m68knommu/cacheflush.h.
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
 
-Signed-off-by: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/mm/memory.c |   80 -----------------------------------
- 1 file changed, 2 insertions(+), 78 deletions(-)
+ drivers/parport/Kconfig |   26 +++++++++++---------------
+ 1 file changed, 11 insertions(+), 15 deletions(-)
 
-diff -puN arch/m68knommu/mm/memory.c~m68knommu-remove-old-cache-management-cruft-from-mm-code arch/m68knommu/mm/memory.c
---- a/arch/m68knommu/mm/memory.c~m68knommu-remove-old-cache-management-cruft-from-mm-code
-+++ a/arch/m68knommu/mm/memory.c
-@@ -17,90 +17,14 @@
- #include <linux/types.h>
- #include <linux/slab.h>
+diff -puN drivers/parport/Kconfig~use-menuconfig-objects-parport drivers/parport/Kconfig
+--- a/drivers/parport/Kconfig~use-menuconfig-objects-parport
++++ a/drivers/parport/Kconfig
+@@ -5,11 +5,9 @@
+ # Parport configuration.
+ #
  
--#include <asm/setup.h>
- #include <asm/segment.h>
- #include <asm/page.h>
- #include <asm/pgtable.h>
- #include <asm/system.h>
--#include <asm/traps.h>
--#include <asm/io.h>
+-menu "Parallel port support"
+-	depends on HAS_IOMEM
+-
+-config PARPORT
++menuconfig PARPORT
+ 	tristate "Parallel port support"
++	depends on HAS_IOMEM
+ 	---help---
+ 	  If you want to use devices connected to your machine's parallel port
+ 	  (the connector at the computer with 25 holes), e.g. printer, ZIP
+@@ -33,9 +31,11 @@ config PARPORT
  
- /*
-- * cache_clear() semantics: Clear any cache entries for the area in question,
-- * without writing back dirty entries first. This is useful if the data will
-- * be overwritten anyway, e.g. by DMA to memory. The range is defined by a
-- * _physical_ address.
-- */
--
--void cache_clear (unsigned long paddr, int len)
--{
--}
--
--
--/*
-- *	Define cache invalidate functions. The ColdFire 5407 is really
-- *	the only processor that needs to do some work here. Anything
-- *	that has separate data and instruction caches will be a problem.
-- */
--#ifdef CONFIG_M5407
--
--static __inline__ void cache_invalidate_lines(unsigned long paddr, int len)
--{
--	unsigned long	sset, eset;
--
--	sset = (paddr & 0x00000ff0);
--	eset = ((paddr + len) & 0x0000ff0) + 0x10;
--
--	__asm__ __volatile__ (
--		"nop\n\t"
--		"clrl	%%d0\n\t"
--		"1:\n\t"
--		"movel	%0,%%a0\n\t"
--		"addl	%%d0,%%a0\n\t"
--		"2:\n\t"
--		".word	0xf4e8\n\t"
--		"addl	#0x10,%%a0\n\t"
--		"cmpl	%1,%%a0\n\t"
--		"blt	2b\n\t"
--		"addql	#1,%%d0\n\t"
--		"cmpil	#4,%%d0\n\t"
--		"bne	1b"
--		: : "a" (sset), "a" (eset) : "d0", "a0" );
--}
--
--#else
--#define	cache_invalidate_lines(a,b)
--#endif
--
--
--/*
-- * cache_push() semantics: Write back any dirty cache data in the given area,
-- * and invalidate the range in the instruction cache. It needs not (but may)
-- * invalidate those entries also in the data cache. The range is defined by a
-- * _physical_ address.
-- */
--
--void cache_push (unsigned long paddr, int len)
--{
--	cache_invalidate_lines(paddr, len);
--}
--
--
--/*
-- * cache_push_v() semantics: Write back any dirty cache data in the given
-- * area, and invalidate those entries at least in the instruction cache. This
-- * is intended to be used after data has been written that can be executed as
-- * code later. The range is defined by a _user_mode_ _virtual_ address  (or,
-- * more exactly, the space is defined by the %sfc/%dfc register.)
-- */
--
--void cache_push_v (unsigned long vaddr, int len)
--{
--	cache_invalidate_lines(vaddr, len);
--}
--
--/* Map some physical address range into the kernel address space. The
-- * code is copied and adapted from map_chunk().
-+ * Map some physical address range into the kernel address space.
-+ * The code is copied and adapted from map_chunk().
-  */
+ 	  If unsure, say Y.
  
- unsigned long kernel_map(unsigned long paddr, unsigned long size,
++if PARPORT
++
+ config PARPORT_PC
+ 	tristate "PC-style hardware"
+-	depends on PARPORT && (!SPARC64 || PCI) && !SPARC32 && !M32R && !FRV
++	depends on (!SPARC64 || PCI) && !SPARC32 && !M32R && !FRV
+ 	---help---
+ 	  You should say Y here if you have a PC-style parallel port. All
+ 	  IBM PC compatible computers and some Alphas have PC-style
+@@ -85,7 +85,7 @@ config PARPORT_PC_PCMCIA
+ 
+ config PARPORT_IP32
+ 	tristate "SGI IP32 builtin port (EXPERIMENTAL)"
+-	depends on SGI_IP32 && PARPORT && EXPERIMENTAL
++	depends on SGI_IP32 && EXPERIMENTAL
+ 	select PARPORT_NOT_PC
+ 	help
+ 	  Say Y here if you need support for the parallel port on
+@@ -94,7 +94,7 @@ config PARPORT_IP32
+ 
+ config PARPORT_AMIGA
+ 	tristate "Amiga builtin port"
+-	depends on AMIGA && PARPORT
++	depends on AMIGA
+ 	select PARPORT_NOT_PC
+ 	help
+ 	  Say Y here if you need support for the parallel port hardware on
+@@ -103,7 +103,7 @@ config PARPORT_AMIGA
+ 
+ config PARPORT_MFC3
+ 	tristate "Multiface III parallel port"
+-	depends on ZORRO && PARPORT
++	depends on ZORRO
+ 	select PARPORT_NOT_PC
+ 	help
+ 	  Say Y here if you need parallel port support for the MFC3 card.
+@@ -112,7 +112,7 @@ config PARPORT_MFC3
+ 
+ config PARPORT_ATARI
+ 	tristate "Atari hardware"
+-	depends on ATARI && PARPORT
++	depends on ATARI
+ 	select PARPORT_NOT_PC
+ 	help
+ 	  Say Y here if you need support for the parallel port hardware on
+@@ -122,12 +122,11 @@ config PARPORT_ATARI
+ config PARPORT_GSC
+ 	tristate
+ 	default GSC
+-	depends on PARPORT
+ 	select PARPORT_NOT_PC
+ 
+ config PARPORT_SUNBPP
+ 	tristate "Sparc hardware (EXPERIMENTAL)"
+-	depends on SBUS && PARPORT && EXPERIMENTAL
++	depends on SBUS && EXPERIMENTAL
+ 	select PARPORT_NOT_PC
+ 	help
+ 	  This driver provides support for the bidirectional parallel port
+@@ -136,7 +135,6 @@ config PARPORT_SUNBPP
+ 
+ config PARPORT_AX88796
+ 	tristate "AX88796 Parallel Port"
+-	depends on PARPORT
+ 	select PARPORT_NOT_PC
+ 	help
+ 	  Say Y here if you need support for the parallel port hardware on
+@@ -148,7 +146,6 @@ config PARPORT_AX88796
+ 
+ config PARPORT_1284
+ 	bool "IEEE 1284 transfer modes"
+-	depends on PARPORT
+ 	help
+ 	  If you have a printer that supports status readback or device ID, or
+ 	  want to use a device that uses enhanced parallel port transfer modes
+@@ -159,5 +156,4 @@ config PARPORT_1284
+ config PARPORT_NOT_PC
+ 	bool
+ 
+-endmenu
+-
++endif # PARPORT
 _
 
-Patches currently in -mm which might be from gerg@snapgear.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
-git-mtd.patch
+git-acpi.patch
+git-kvm.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
+use-menuconfig-objects-ii-md.patch
