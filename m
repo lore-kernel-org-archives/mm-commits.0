@@ -1,143 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - doc-oops-tracing-add-code-decode-info.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:57:26 -0700
-Message-ID: <200707162057.l6GKvQSK002189@imap1.linux-foundation.org>
+Subject: - documentation-proc-pid-stat-files.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:55:45 -0700
+Message-ID: <200707162055.l6GKtjLw001959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54555 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57329 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762790AbXGPVPh (ORCPT
+	by vger.kernel.org with ESMTP id S1760464AbXGPVPr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:37 -0400
+	Mon, 16 Jul 2007 17:15:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, ak@suse.de, mm-commits@vger.kernel.org
+To: kees@outflux.net, rob@landley.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc/oops-tracing: add Code: decode info
+     Documentation: /proc/$pid/stat files
 has been removed from the -mm tree.  Its filename was
-     doc-oops-tracing-add-code-decode-info.patch
+     documentation-proc-pid-stat-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: doc/oops-tracing: add Code: decode info
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Documentation: /proc/$pid/stat files
+From: Kees Cook <kees@outflux.net>
 
-Add info that the Code: bytes line contains <xy> or (wxyz) in some
-architecture oops reports and what that means.
+Documentation for the /proc/$pid/stat file.
 
-Add a script by Andi Kleen that reads the Code: line from an Oops report
-file and generates assembly code from the hex bytes.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Kees Cook <kees@outflux.net>
+Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/oops-tracing.txt |   14 ++++++++
- scripts/decodecode             |   51 +++++++++++++++++++++++++++++++
- 2 files changed, 65 insertions(+)
+ Documentation/filesystems/proc.txt |   65 ++++++++++++++++++++++++---
+ 1 file changed, 58 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/oops-tracing.txt~doc-oops-tracing-add-code-decode-info Documentation/oops-tracing.txt
---- a/Documentation/oops-tracing.txt~doc-oops-tracing-add-code-decode-info
-+++ a/Documentation/oops-tracing.txt
-@@ -86,6 +86,20 @@ stuff are the values reported by the Oop
- and do a replace of spaces to "\x" - that's what I do, as I'm too lazy 
- to write a program to automate this all).
+diff -puN Documentation/filesystems/proc.txt~documentation-proc-pid-stat-files Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~documentation-proc-pid-stat-files
++++ a/Documentation/filesystems/proc.txt
+@@ -171,7 +171,9 @@ read the file /proc/PID/status:
+ This shows you nearly the same information you would get if you viewed it with
+ the ps  command.  In  fact,  ps  uses  the  proc  file  system  to  obtain its
+ information. The  statm  file  contains  more  detailed  information about the
+-process memory usage. Its seven fields are explained in Table 1-2.
++process memory usage. Its seven fields are explained in Table 1-2.  The stat
++file contains details information about the process itself.  Its fields are
++explained in Table 1-3.
  
-+Alternatively, you can use the shell script in scripts/decodecode.
-+Its usage is:  decodecode < oops.txt
-+
-+The hex bytes that follow "Code:" may (in some architectures) have a series
-+of bytes that precede the current instruction pointer as well as bytes at and
-+following the current instruction pointer.  In some cases, one instruction
-+byte or word is surrounded by <> or (), as in "<86>" or "(f00d)".  These
-+<> or () markings indicate the current instruction pointer.  Example from
-+i386, split into multiple lines for readability:
-+
-+Code: f9 0f 8d f9 00 00 00 8d 42 0c e8 dd 26 11 c7 a1 60 ea 2b f9 8b 50 08 a1
-+64 ea 2b f9 8d 34 82 8b 1e 85 db 74 6d 8b 15 60 ea 2b f9 <8b> 43 04 39 42 54
-+7e 04 40 89 42 54 8b 43 04 3b 05 00 f6 52 c0
-+
- Finally, if you want to see where the code comes from, you can do
  
- 	cd /usr/src/linux
-diff -puN /dev/null scripts/decodecode
---- /dev/null
-+++ a/scripts/decodecode
-@@ -0,0 +1,51 @@
-+#!/bin/sh
-+# Disassemble the Code: line in Linux oopses
-+# usage: decodecode < oops.file
-+#
-+# options: set env. variable AFLAGS=options to pass options to "as";
-+# e.g., to decode an i386 oops on an x86_64 system, use:
-+# AFLAGS=--32 decodecode < 386.oops
+ Table 1-2: Contents of the statm files (as of 2.6.8-rc3)
+@@ -188,16 +190,65 @@ Table 1-2: Contents of the statm files (
+  dt       number of dirty pages			(always 0 on 2.6)
+ ..............................................................................
+ 
 +
-+T=`mktemp`
-+code=
++Table 1-3: Contents of the stat files (as of 2.6.22-rc3)
++..............................................................................
++ Field          Content
++  pid           process id
++  tcomm         filename of the executable
++  state         state (R is running, S is sleeping, D is sleeping in an
++                uninterruptible wait, Z is zombie, T is traced or stopped)
++  ppid          process id of the parent process
++  pgrp          pgrp of the process
++  sid           session id
++  tty_nr        tty the process uses
++  tty_pgrp      pgrp of the tty
++  flags         task flags
++  min_flt       number of minor faults
++  cmin_flt      number of minor faults with child's
++  maj_flt       number of major faults
++  cmaj_flt      number of major faults with child's
++  utime         user mode jiffies
++  stime         kernel mode jiffies
++  cutime        user mode jiffies with child's
++  cstime        kernel mode jiffies with child's
++  priority      priority level
++  nice          nice level
++  num_threads   number of threads
++  start_time    time the process started after system boot
++  vsize         virtual memory size
++  rss           resident set memory size
++  rsslim        current limit in bytes on the rss
++  start_code    address above which program text can run
++  end_code      address below which program text can run
++  start_stack   address of the start of the stack
++  esp           current value of ESP
++  eip           current value of EIP
++  pending       bitmap of pending signals (obsolete)
++  blocked       bitmap of blocked signals (obsolete)
++  sigign        bitmap of ignored signals (obsolete)
++  sigcatch      bitmap of catched signals (obsolete)
++  wchan         address where process went to sleep
++  0             (place holder)
++  0             (place holder)
++  exit_signal   signal to send to parent thread on exit
++  task_cpu      which CPU the task is scheduled on
++  rt_priority   realtime priority
++  policy        scheduling policy (man sched_setscheduler)
++  blkio_ticks   time spent waiting for block IO
++..............................................................................
 +
-+while read i ; do
 +
-+case "$i" in
-+*Code:*)
-+	code=$i
-+	;;
-+esac
-+
-+done
-+
-+if [ -z "$code" ]; then
-+	exit
-+fi
-+
-+echo $code
-+code=`echo $code | sed -e 's/.*Code: //'`
-+
-+marker=`expr index "$code" "\<"`
-+if [ $marker -eq 0 ]; then
-+	marker=`expr index "$code" "\("`
-+fi
-+
-+if [ $marker -ne 0 ]; then
-+	beforemark=`echo "$code" | cut -c-$((${marker} - 1))`
-+	echo -n "	.byte 0x" > $T.s
-+	echo $beforemark | sed -e 's/ /,0x/g' >> $T.s
-+	as $AFLAGS -o $T.o $T.s
-+	objdump -S $T.o
-+	rm $T.o $T.s
-+
-+# and fix code at-and-after marker
-+	code=`echo "$code" | cut -c$((${marker} + 1))-`
-+fi
-+
-+code=`echo $code | sed -e 's/ [<(]/ /;s/[>)] / /;s/ /,0x/g'`
-+echo -n "	.byte 0x" > $T.s
-+echo $code >> $T.s
-+as $AFLAGS -o $T.o $T.s
-+objdump -S $T.o
-+rm $T.o $T.s
+ 1.2 Kernel data
+ ---------------
+ 
+ Similar to  the  process entries, the kernel data files give information about
+ the running kernel. The files used to obtain this information are contained in
+-/proc and  are  listed  in Table 1-3. Not all of these will be present in your
++/proc and  are  listed  in Table 1-4. Not all of these will be present in your
+ system. It  depends  on the kernel configuration and the loaded modules, which
+ files are there, and which are missing.
+ 
+-Table 1-3: Kernel info in /proc 
++Table 1-4: Kernel info in /proc
+ ..............................................................................
+  File        Content                                           
+  apm         Advanced power management info                    
+@@ -473,10 +524,10 @@ IDE devices:
+ 
+ More detailed  information  can  be  found  in  the  controller  specific
+ subdirectories. These  are  named  ide0,  ide1  and  so  on.  Each  of  these
+-directories contains the files shown in table 1-4.
++directories contains the files shown in table 1-5.
+ 
+ 
+-Table 1-4: IDE controller info in  /proc/ide/ide? 
++Table 1-5: IDE controller info in  /proc/ide/ide?
+ ..............................................................................
+  File    Content                                 
+  channel IDE channel (0 or 1)                    
+@@ -486,11 +537,11 @@ Table 1-4: IDE controller info in  /proc
+ ..............................................................................
+ 
+ Each device  connected  to  a  controller  has  a separate subdirectory in the
+-controllers directory.  The  files  listed in table 1-5 are contained in these
++controllers directory.  The  files  listed in table 1-6 are contained in these
+ directories.
+ 
+ 
+-Table 1-5: IDE device information 
++Table 1-6: IDE device information
+ ..............................................................................
+  File             Content                                    
+  cache            The cache                                  
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from kees@outflux.net are
 
 origin.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-mtd.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-docbook-dont-reference-file-without-kernel-doc.patch
-profile-likely-unlikely-macros.patch
