@@ -1,65 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - kcdrwd-remove-unneeded-flush_signals-call.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:58:07 -0700
-Message-ID: <200707162058.l6GKw7Ts002324@imap1.linux-foundation.org>
+Subject: - ext4-fix-error-handling-in-ext4_create_journal.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:59:01 -0700
+Message-ID: <200707162059.l6GKx1XL002388@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46497 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36167 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755985AbXGPVN1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756624AbXGPVNa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:13:27 -0400
+	Mon, 16 Jul 2007 17:13:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, petero2@telia.com, mm-commits@vger.kernel.org
+To: bbpetkov@yahoo.de, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kcdrwd: remove unneeded flush_signals() call
+     ext4: fix error handling in ext4_create_journal
 has been removed from the -mm tree.  Its filename was
-     kcdrwd-remove-unneeded-flush_signals-call.patch
+     ext4-fix-error-handling-in-ext4_create_journal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kcdrwd: remove unneeded flush_signals() call
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: ext4: fix error handling in ext4_create_journal
+From: Borislav Petkov <bbpetkov@yahoo.de>
 
-kcdrwd() is a kernel thread, all signals are ignored.
+Fix error handling in ext4_create_journal according to kernel conventions.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Peter Osterlund <petero2@telia.com>
+Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/pktcdvd.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/ext4/super.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/pktcdvd.c~kcdrwd-remove-unneeded-flush_signals-call drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~kcdrwd-remove-unneeded-flush_signals-call
-+++ a/drivers/block/pktcdvd.c
-@@ -1652,9 +1652,6 @@ static int kcdrwd(void *foobar)
- 				}
- 			}
+diff -puN fs/ext4/super.c~ext4-fix-error-handling-in-ext4_create_journal fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-fix-error-handling-in-ext4_create_journal
++++ a/fs/ext4/super.c
+@@ -2158,6 +2158,7 @@ static int ext4_create_journal(struct su
+ 			       unsigned int journal_inum)
+ {
+ 	journal_t *journal;
++	int err;
  
--			if (signal_pending(current)) {
--				flush_signals(current);
--			}
- 			if (kthread_should_stop())
- 				break;
- 		}
+ 	if (sb->s_flags & MS_RDONLY) {
+ 		printk(KERN_ERR "EXT4-fs: readonly filesystem when trying to "
+@@ -2165,13 +2166,15 @@ static int ext4_create_journal(struct su
+ 		return -EROFS;
+ 	}
+ 
+-	if (!(journal = ext4_get_journal(sb, journal_inum)))
++	journal = ext4_get_journal(sb, journal_inum);
++	if (!journal)
+ 		return -EINVAL;
+ 
+ 	printk(KERN_INFO "EXT4-fs: creating new journal on inode %u\n",
+ 	       journal_inum);
+ 
+-	if (jbd2_journal_create(journal)) {
++	err = jbd2_journal_create(journal);
++	if (err) {
+ 		printk(KERN_ERR "EXT4-fs: error creating journal.\n");
+ 		jbd2_journal_destroy(journal);
+ 		return -EIO;
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from bbpetkov@yahoo.de are
 
 origin.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-freezer-run-show_state-when-freezing-times-out.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-destroy_workqueue-can-livelock.patch
