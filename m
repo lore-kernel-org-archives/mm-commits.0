@@ -1,316 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: - slub-support-slub_debug-on-by-default.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:49:16 -0700
-Message-ID: <200707162049.l6GKnGvE001148@imap1.linux-foundation.org>
+Subject: - percpu_counters-use-for_each_online_cpu.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:53:33 -0700
+Message-ID: <200707162053.l6GKrXxf001657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60441 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46222 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760838AbXGPVVq (ORCPT
+	by vger.kernel.org with ESMTP id S1760675AbXGPVVz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:21:46 -0400
+	Mon, 16 Jul 2007 17:21:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ego@in.ibm.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: support slub_debug on by default
+     percpu_counters: use for_each_online_cpu()
 has been removed from the -mm tree.  Its filename was
-     slub-support-slub_debug-on-by-default.patch
+     percpu_counters-use-for_each_online_cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: support slub_debug on by default
-From: Christoph Lameter <clameter@sgi.com>
+Subject: percpu_counters: use for_each_online_cpu()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add a new configuration variable
+Now that we have implemented hotunplug-time counter spilling,
+percpu_counter_sum() only needs to look at online CPUs.
 
-CONFIG_SLUB_DEBUG_ON
-
-If set then the kernel will be booted by default with slab debugging
-switched on. Similar to CONFIG_SLAB_DEBUG. By default slab debugging
-is available but must be enabled by specifying "slub_debug" as a
-kernel parameter.
-
-Also add support to switch off slab debugging for a kernel that was
-built with CONFIG_SLUB_DEBUG_ON. This works by specifying
-
-slub_debug=-
-
-as a kernel parameter.
-
-Dave Jones wanted this feature.
-http://marc.info/?l=linux-kernel&m=118072189913045&w=2
-
-[akpm@linux-foundation.org: clean up switch statement]
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   38 ++++++------
- Documentation/vm/slub.txt           |    2 
- lib/Kconfig.debug                   |   13 ++++
- mm/slub.c                           |   79 ++++++++++++++++----------
- 4 files changed, 87 insertions(+), 45 deletions(-)
+ lib/percpu_counter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~slub-support-slub_debug-on-by-default Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~slub-support-slub_debug-on-by-default
-+++ a/Documentation/kernel-parameters.txt
-@@ -1580,35 +1580,39 @@ and is between 256 and 4096 characters. 
+diff -puN lib/percpu_counter.c~percpu_counters-use-for_each_online_cpu lib/percpu_counter.c
+--- a/lib/percpu_counter.c~percpu_counters-use-for_each_online_cpu
++++ a/lib/percpu_counter.c
+@@ -45,7 +45,7 @@ s64 percpu_counter_sum(struct percpu_cou
  
- 	slram=		[HW,MTD]
- 
--	slub_debug	[MM, SLUB]
--			Enabling slub_debug allows one to determine the culprit
--			if slab objects become corrupted. Enabling slub_debug
--			creates guard zones around objects and poisons objects
--			when not in use. Also tracks the last alloc / free.
--			For more information see Documentation/vm/slub.txt.
-+	slub_debug[=options[,slabs]]	[MM, SLUB]
-+			Enabling slub_debug allows one to determine the
-+			culprit if slab objects become corrupted. Enabling
-+			slub_debug can create guard zones around objects and
-+			may poison objects when not in use. Also tracks the
-+			last alloc / free. For more information see
-+			Documentation/vm/slub.txt.
- 
- 	slub_max_order= [MM, SLUB]
--			Determines the maximum allowed order for slabs. Setting
--			this too high may cause fragmentation.
--			For more information see Documentation/vm/slub.txt.
-+			Determines the maximum allowed order for slabs.
-+			A high setting may cause OOMs due to memory
-+			fragmentation. For more information see
-+			Documentation/vm/slub.txt.
- 
- 	slub_min_objects=	[MM, SLUB]
--			The minimum objects per slab. SLUB will increase the
--			slab order up to slub_max_order to generate a
--			sufficiently big slab to satisfy the number of objects.
--			The higher the number of objects the smaller the overhead
--			of tracking slabs.
-+			The minimum number of objects per slab. SLUB will
-+			increase the slab order up to slub_max_order to
-+			generate a sufficiently large slab able to contain
-+			the number of objects indicated. The higher the number
-+			of objects the smaller the overhead of tracking slabs
-+			and the less frequently locks need to be acquired.
- 			For more information see Documentation/vm/slub.txt.
- 
- 	slub_min_order=	[MM, SLUB]
- 			Determines the mininum page order for slabs. Must be
--			lower than slub_max_order
-+			lower than slub_max_order.
- 			For more information see Documentation/vm/slub.txt.
- 
- 	slub_nomerge	[MM, SLUB]
--			Disable merging of slabs of similar size. May be
-+			Disable merging of slabs with similar size. May be
- 			necessary if there is some reason to distinguish
--			allocs to different slabs.
-+			allocs to different slabs. Debug options disable
-+			merging on their own.
- 			For more information see Documentation/vm/slub.txt.
- 
- 	smart2=		[HW]
-diff -puN Documentation/vm/slub.txt~slub-support-slub_debug-on-by-default Documentation/vm/slub.txt
---- a/Documentation/vm/slub.txt~slub-support-slub_debug-on-by-default
-+++ a/Documentation/vm/slub.txt
-@@ -41,6 +41,8 @@ Possible debug options are
- 	P		Poisoning (object and padding)
- 	U		User tracking (free and alloc)
- 	T		Trace (please only use on single slabs)
-+	-		Switch all debugging off (useful if the kernel is
-+			configured with CONFIG_SLUB_DEBUG_ON)
- 
- F.e. in order to boot just with sanity checks and red zoning one would specify:
- 
-diff -puN lib/Kconfig.debug~slub-support-slub_debug-on-by-default lib/Kconfig.debug
---- a/lib/Kconfig.debug~slub-support-slub_debug-on-by-default
-+++ a/lib/Kconfig.debug
-@@ -152,6 +152,19 @@ config DEBUG_SLAB_LEAK
- 	bool "Memory leak debugging"
- 	depends on DEBUG_SLAB
- 
-+config SLUB_DEBUG_ON
-+	bool "SLUB debugging on by default"
-+	depends on SLUB && SLUB_DEBUG
-+	default n
-+	help
-+	  Boot with debugging on by default. SLUB boots by default with
-+	  the runtime debug capabilities switched off. Enabling this is
-+	  equivalent to specifying the "slub_debug" parameter on boot.
-+	  There is no support for more fine grained debug control like
-+	  possible with slub_debug=xxx. SLUB debugging may be switched
-+	  off in a kernel built with CONFIG_SLUB_DEBUG_ON by specifying
-+	  "slub_debug=-".
-+
- config DEBUG_PREEMPT
- 	bool "Debug preemptible kernel"
- 	depends on DEBUG_KERNEL && PREEMPT && TRACE_IRQFLAGS_SUPPORT
-diff -puN mm/slub.c~slub-support-slub_debug-on-by-default mm/slub.c
---- a/mm/slub.c~slub-support-slub_debug-on-by-default
-+++ a/mm/slub.c
-@@ -323,7 +323,11 @@ static inline int slab_index(void *p, st
- /*
-  * Debug settings:
-  */
-+#ifdef CONFIG_SLUB_DEBUG_ON
-+static int slub_debug = DEBUG_DEFAULT_FLAGS;
-+#else
- static int slub_debug;
-+#endif
- 
- static char *slub_debug_slabs;
- 
-@@ -888,38 +892,57 @@ fail:
- 
- static int __init setup_slub_debug(char *str)
- {
--	if (!str || *str != '=')
--		slub_debug = DEBUG_DEFAULT_FLAGS;
--	else {
--		str++;
--		if (*str == 0 || *str == ',')
--			slub_debug = DEBUG_DEFAULT_FLAGS;
--		else
--		for( ;*str && *str != ','; str++)
--			switch (*str) {
--			case 'f' : case 'F' :
--				slub_debug |= SLAB_DEBUG_FREE;
--				break;
--			case 'z' : case 'Z' :
--				slub_debug |= SLAB_RED_ZONE;
--				break;
--			case 'p' : case 'P' :
--				slub_debug |= SLAB_POISON;
--				break;
--			case 'u' : case 'U' :
--				slub_debug |= SLAB_STORE_USER;
--				break;
--			case 't' : case 'T' :
--				slub_debug |= SLAB_TRACE;
--				break;
--			default:
--				printk(KERN_ERR "slub_debug option '%c' "
--					"unknown. skipped\n",*str);
--			}
-+	slub_debug = DEBUG_DEFAULT_FLAGS;
-+	if (*str++ != '=' || !*str)
-+		/*
-+		 * No options specified. Switch on full debugging.
-+		 */
-+		goto out;
-+
-+	if (*str == ',')
-+		/*
-+		 * No options but restriction on slabs. This means full
-+		 * debugging for slabs matching a pattern.
-+		 */
-+		goto check_slabs;
-+
-+	slub_debug = 0;
-+	if (*str == '-')
-+		/*
-+		 * Switch off all debugging measures.
-+		 */
-+		goto out;
-+
-+	/*
-+	 * Determine which debug features should be switched on
-+	 */
-+	for ( ;*str && *str != ','; str++) {
-+		switch (tolower(*str)) {
-+		case 'f':
-+			slub_debug |= SLAB_DEBUG_FREE;
-+			break;
-+		case 'z':
-+			slub_debug |= SLAB_RED_ZONE;
-+			break;
-+		case 'p':
-+			slub_debug |= SLAB_POISON;
-+			break;
-+		case 'u':
-+			slub_debug |= SLAB_STORE_USER;
-+			break;
-+		case 't':
-+			slub_debug |= SLAB_TRACE;
-+			break;
-+		default:
-+			printk(KERN_ERR "slub_debug option '%c' "
-+				"unknown. skipped\n",*str);
-+		}
+ 	spin_lock(&fbc->lock);
+ 	ret = fbc->count;
+-	for_each_possible_cpu(cpu) {
++	for_each_online_cpu(cpu) {
+ 		s32 *pcount = per_cpu_ptr(fbc->counters, cpu);
+ 		ret += *pcount;
  	}
- 
-+check_slabs:
- 	if (*str == ',')
- 		slub_debug_slabs = str + 1;
-+out:
- 	return 1;
- }
- 
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+git-powerpc.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-saa7134-tvaudio-fix.patch
+git-ia64.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
 git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-quicklist-support-for-x86_64.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+git-ocfs2-fixup.patch
+revert-gregkh-pci-pci_bridge-device.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-show-unhandled-signals.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+i386-add-cpu_relax-to-cmos_lock.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of.patch
-slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
-slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
-slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
-slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
-slab-allocators-support-__gfp_zero-in-all-allocators.patch
-slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
-slub-extract-dma_kmalloc_cache-from-get_cache.patch
-slub-do-proper-locking-during-dma-slab-creation.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
-slub-simplify-dma-index-size-calculation.patch
-mm-slubc-make-code-static.patch
-slub-style-fix-up-the-loop-to-disable-small-slabs.patch
-slub-do-not-use-length-parameter-in-slab_alloc.patch
-slab-allocators-cleanup-zeroing-allocations.patch
-slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
-slub-do-not-allocate-object-bit-array-on-stack.patch
-slub-move-sysfs-operations-outside-of-slub_lock.patch
-slub-fix-config_slub_debug-use-for-config_numa.patch
-make-slub-the-default-allocator.patch
-add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
-memory-unplug-v7-migration-by-kernel.patch
-memory-unplug-v7-isolate_lru_page-fix.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+i386-speedup-touch_nmi_watchdog.patch
+x86_64-speedup-touch_nmi_watchdog.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support.patch
+spi-master-driver-for-xilinx-virtex.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-remove-iget-abuse.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+rtc-add-rtc-m41t80-driver-take-2.patch
+rtc-add-support-for-the-st-m48t59-rtc.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-driver-for-ds1216-chips-fix.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
 intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+reiser4.patch
+git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
