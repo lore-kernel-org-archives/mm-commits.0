@@ -1,238 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlbfs-use-lib-parser-fix-docs.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:56:17 -0700
-Message-ID: <200707162056.l6GKuHNs002085@imap1.linux-foundation.org>
+Subject: - taskstats-add-context-switch-counters.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:56:04 -0700
+Message-ID: <200707162056.l6GKu4NI002064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54546 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38420 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761540AbXGPV3F (ORCPT
+	by vger.kernel.org with ESMTP id S1761543AbXGPV3K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:29:05 -0400
+	Mon, 16 Jul 2007 17:29:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, agl@us.ibm.com, david@gibson.dropbear.id.au, hugh@veritas.com, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: muvarov@ru.mvista.com, balbir@in.ibm.com, jlan@engr.sgi.com, jlim@sgi.com, nagar@watson.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlbfs: use lib/parser, fix docs
+     taskstats: add context-switch counters
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-use-lib-parser-fix-docs.patch
+     taskstats-add-context-switch-counters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hugetlbfs: use lib/parser, fix docs
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: taskstats: add context-switch counters
+From: Maxim Uvarov <muvarov@ru.mvista.com>
 
-Use lib/parser.c to parse hugetlbfs mount options.  Correct docs in
-hugetlbpage.txt.
+Make available to the user the following task and process performance
+statistics:
 
-old size of hugetlbfs_fill_super:  675 bytes
-new size of hugetlbfs_fill_super:  686 bytes
-(hugetlbfs_parse_options() is inlined)
+	* Involuntary Context Switches (task_struct->nivcsw)
+	* Voluntary Context Switches (task_struct->nvcsw)
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Adam Litke <agl@us.ibm.com>
-Acked-by: William Lee Irwin III <wli@holomorphy.com>
+Statistics information is available from:
+	1. taskstats interface (Documentation/accounting/)
+	2. /proc/PID/status (task only).
+
+This data is useful for detecting hyperactivity patterns between processes.
+
+[akpm@linux-foundation.org: cleanup]
+Signed-off-by: Maxim Uvarov <muvarov@ru.mvista.com>
+Cc: Shailabh Nagar <nagar@watson.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Jay Lan <jlan@engr.sgi.com>
+Cc: Jonathan Lim <jlim@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/hugetlbpage.txt |   10 +--
- fs/hugetlbfs/inode.c             |   94 ++++++++++++++++++++---------
- 2 files changed, 73 insertions(+), 31 deletions(-)
+ Documentation/accounting/getdelays.c          |   19 ++++++++++++++--
+ Documentation/accounting/taskstats-struct.txt |    6 +++++
+ fs/proc/array.c                               |   10 ++++++++
+ include/linux/taskstats.h                     |    5 +++-
+ kernel/taskstats.c                            |    4 +++
+ 5 files changed, 41 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/vm/hugetlbpage.txt~hugetlbfs-use-lib-parser-fix-docs Documentation/vm/hugetlbpage.txt
---- a/Documentation/vm/hugetlbpage.txt~hugetlbfs-use-lib-parser-fix-docs
-+++ a/Documentation/vm/hugetlbpage.txt
-@@ -77,8 +77,9 @@ If the user applications are going to re
- call, then it is required that system administrator mount a file system of
- type hugetlbfs:
+diff -puN Documentation/accounting/getdelays.c~taskstats-add-context-switch-counters Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~taskstats-add-context-switch-counters
++++ a/Documentation/accounting/getdelays.c
+@@ -49,6 +49,7 @@ char name[100];
+ int dbg;
+ int print_delays;
+ int print_io_accounting;
++int print_task_context_switch_counts;
+ __u64 stime, utime;
  
--	mount none /mnt/huge -t hugetlbfs <uid=value> <gid=value> <mode=value>
--		 <size=value> <nr_inodes=value>
-+  mount -t hugetlbfs \
-+	-o uid=<value>,gid=<value>,mode=<value>,size=<value>,nr_inodes=<value> \
-+	none /mnt/huge
- 
- This command mounts a (pseudo) filesystem of type hugetlbfs on the directory
- /mnt/huge.  Any files created on /mnt/huge uses hugepages.  The uid and gid
-@@ -88,11 +89,10 @@ mode of root of file system to value & 0
- By default the value 0755 is picked. The size option sets the maximum value of
- memory (huge pages) allowed for that filesystem (/mnt/huge). The size is
- rounded down to HPAGE_SIZE.  The option nr_inodes sets the maximum number of
--inodes that /mnt/huge can use.  If the size or nr_inodes options are not
-+inodes that /mnt/huge can use.  If the size or nr_inodes option is not
- provided on command line then no limits are set.  For size and nr_inodes
- options, you can use [G|g]/[M|m]/[K|k] to represent giga/mega/kilo. For
--example, size=2K has the same meaning as size=2048. An example is given at
--the end of this document.
-+example, size=2K has the same meaning as size=2048.
- 
- read and write system calls are not supported on files that reside on hugetlb
- file systems.
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-use-lib-parser-fix-docs fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-use-lib-parser-fix-docs
-+++ a/fs/hugetlbfs/inode.c
-@@ -13,15 +13,18 @@
- #include <linux/fs.h>
- #include <linux/mount.h>
- #include <linux/file.h>
-+#include <linux/kernel.h>
- #include <linux/writeback.h>
- #include <linux/pagemap.h>
- #include <linux/highmem.h>
- #include <linux/init.h>
- #include <linux/string.h>
- #include <linux/capability.h>
-+#include <linux/ctype.h>
- #include <linux/backing-dev.h>
- #include <linux/hugetlb.h>
- #include <linux/pagevec.h>
-+#include <linux/parser.h>
- #include <linux/mman.h>
- #include <linux/quotaops.h>
- #include <linux/slab.h>
-@@ -47,6 +50,21 @@ static struct backing_dev_info hugetlbfs
- 
- int sysctl_hugetlb_shm_group;
- 
-+enum {
-+	Opt_size, Opt_nr_inodes,
-+	Opt_mode, Opt_uid, Opt_gid,
-+	Opt_err,
-+};
-+
-+static match_table_t tokens = {
-+	{Opt_size,	"size=%s"},
-+	{Opt_nr_inodes,	"nr_inodes=%s"},
-+	{Opt_mode,	"mode=%o"},
-+	{Opt_uid,	"uid=%u"},
-+	{Opt_gid,	"gid=%u"},
-+	{Opt_err,	NULL},
-+};
-+
- static void huge_pagevec_release(struct pagevec *pvec)
- {
- 	int i;
-@@ -594,46 +612,70 @@ static const struct super_operations hug
- static int
- hugetlbfs_parse_options(char *options, struct hugetlbfs_config *pconfig)
- {
--	char *opt, *value, *rest;
-+	char *p, *rest;
-+	substring_t args[MAX_OPT_ARGS];
-+	int option;
- 
- 	if (!options)
- 		return 0;
--	while ((opt = strsep(&options, ",")) != NULL) {
--		if (!*opt)
--			continue;
- 
--		value = strchr(opt, '=');
--		if (!value || !*value)
--			return -EINVAL;
--		else
--			*value++ = '\0';
-+	while ((p = strsep(&options, ",")) != NULL) {
-+		int token;
-+
-+		token = match_token(p, tokens, args);
-+		switch (token) {
-+		case Opt_uid:
-+			if (match_int(&args[0], &option))
-+ 				goto bad_val;
-+			pconfig->uid = option;
-+			break;
-+
-+		case Opt_gid:
-+			if (match_int(&args[0], &option))
-+ 				goto bad_val;
-+			pconfig->gid = option;
-+			break;
-+
-+		case Opt_mode:
-+			if (match_octal(&args[0], &option))
-+ 				goto bad_val;
-+			pconfig->mode = option & 0777U;
-+			break;
- 
--		if (!strcmp(opt, "uid"))
--			pconfig->uid = simple_strtoul(value, &value, 0);
--		else if (!strcmp(opt, "gid"))
--			pconfig->gid = simple_strtoul(value, &value, 0);
--		else if (!strcmp(opt, "mode"))
--			pconfig->mode = simple_strtoul(value,&value,0) & 0777U;
--		else if (!strcmp(opt, "size")) {
--			unsigned long long size = memparse(value, &rest);
-+		case Opt_size: {
-+ 			unsigned long long size;
-+			/* memparse() will accept a K/M/G without a digit */
-+			if (!isdigit(*args[0].from))
-+				goto bad_val;
-+			size = memparse(args[0].from, &rest);
- 			if (*rest == '%') {
- 				size <<= HPAGE_SHIFT;
- 				size *= max_huge_pages;
- 				do_div(size, 100);
--				rest++;
- 			}
- 			pconfig->nr_blocks = (size >> HPAGE_SHIFT);
--			value = rest;
--		} else if (!strcmp(opt,"nr_inodes")) {
--			pconfig->nr_inodes = memparse(value, &rest);
--			value = rest;
--		} else
--			return -EINVAL;
-+			break;
-+		}
- 
--		if (*value)
--			return -EINVAL;
-+		case Opt_nr_inodes:
-+			/* memparse() will accept a K/M/G without a digit */
-+			if (!isdigit(*args[0].from))
-+				goto bad_val;
-+			pconfig->nr_inodes = memparse(args[0].from, &rest);
-+			break;
-+
-+		default:
-+			printk(KERN_ERR "hugetlbfs: Bad mount option: %s\n", p);
-+ 			return 1;
-+			break;
-+		}
- 	}
- 	return 0;
-+
-+bad_val:
-+ 	printk(KERN_ERR "hugetlbfs: Bad value '%s' for mount option '%s'\n",
-+	       args[0].from, p);
-+ 	return 1;
+ #define PRINTF(fmt, arg...) {			\
+@@ -195,7 +196,7 @@ void print_delayacct(struct taskstats *t
+ 	       "IO    %15s%15s\n"
+ 	       "      %15llu%15llu\n"
+ 	       "MEM   %15s%15s\n"
+-	       "      %15llu%15llu\n\n",
++	       "      %15llu%15llu\n"
+ 	       "count", "real total", "virtual total", "delay total",
+ 	       t->cpu_count, t->cpu_run_real_total, t->cpu_run_virtual_total,
+ 	       t->cpu_delay_total,
+@@ -204,6 +205,14 @@ void print_delayacct(struct taskstats *t
+ 	       "count", "delay total", t->swapin_count, t->swapin_delay_total);
  }
  
- static int
++void task_context_switch_counts(struct taskstats *t)
++{
++	printf("\n\nTask   %15s%15s\n"
++	       "       %15lu%15lu\n",
++	       "voluntary", "nonvoluntary",
++	       t->nvcsw, t->nivcsw);
++}
++
+ void print_ioacct(struct taskstats *t)
+ {
+ 	printf("%s: read=%llu, write=%llu, cancelled_write=%llu\n",
+@@ -235,7 +244,7 @@ int main(int argc, char *argv[])
+ 	struct msgtemplate msg;
+ 
+ 	while (1) {
+-		c = getopt(argc, argv, "diw:r:m:t:p:vl");
++		c = getopt(argc, argv, "qdiw:r:m:t:p:vl");
+ 		if (c < 0)
+ 			break;
+ 
+@@ -248,6 +257,10 @@ int main(int argc, char *argv[])
+ 			printf("printing IO accounting\n");
+ 			print_io_accounting = 1;
+ 			break;
++		case 'q':
++			printf("printing task/process context switch rates\n");
++			print_task_context_switch_counts = 1;
++			break;
+ 		case 'w':
+ 			logfile = strdup(optarg);
+ 			printf("write to file %s\n", logfile);
+@@ -389,6 +402,8 @@ int main(int argc, char *argv[])
+ 							print_delayacct((struct taskstats *) NLA_DATA(na));
+ 						if (print_io_accounting)
+ 							print_ioacct((struct taskstats *) NLA_DATA(na));
++						if (print_task_context_switch_counts)
++							task_context_switch_counts((struct taskstats *) NLA_DATA(na));
+ 						if (fd) {
+ 							if (write(fd, NLA_DATA(na), na->nla_len) < 0) {
+ 								err(1,"write error\n");
+diff -puN Documentation/accounting/taskstats-struct.txt~taskstats-add-context-switch-counters Documentation/accounting/taskstats-struct.txt
+--- a/Documentation/accounting/taskstats-struct.txt~taskstats-add-context-switch-counters
++++ a/Documentation/accounting/taskstats-struct.txt
+@@ -22,6 +22,8 @@ There are three different groups of fiel
+     /* Extended accounting fields end */
+     Their values are collected if CONFIG_TASK_XACCT is set.
+ 
++4) Per-task and per-thread context switch count statistics
++
+ Future extension should add fields to the end of the taskstats struct, and
+ should not change the relative position of each field within the struct.
+ 
+@@ -158,4 +160,8 @@ struct taskstats {
+ 
+ 	/* Extended accounting fields end */
+ 
++4) Per-task and per-thread statistics
++	__u64	nvcsw;			/* Context voluntary switch counter */
++	__u64	nivcsw;			/* Context involuntary switch counter */
++
+ }
+diff -puN fs/proc/array.c~taskstats-add-context-switch-counters fs/proc/array.c
+--- a/fs/proc/array.c~taskstats-add-context-switch-counters
++++ a/fs/proc/array.c
+@@ -289,6 +289,15 @@ static inline char *task_cap(struct task
+ 			    cap_t(p->cap_effective));
+ }
+ 
++static inline char *task_context_switch_counts(struct task_struct *p,
++						char *buffer)
++{
++	return buffer + sprintf(buffer, "voluntary_ctxt_switches:\t%lu\n"
++			    "nonvoluntary_ctxt_switches:\t%lu\n",
++			    p->nvcsw,
++			    p->nivcsw);
++}
++
+ int proc_pid_status(struct task_struct *task, char * buffer)
+ {
+ 	char * orig = buffer;
+@@ -307,6 +316,7 @@ int proc_pid_status(struct task_struct *
+ #if defined(CONFIG_S390)
+ 	buffer = task_show_regs(task, buffer);
+ #endif
++	buffer = task_context_switch_counts(task, buffer);
+ 	return buffer - orig;
+ }
+ 
+diff -puN include/linux/taskstats.h~taskstats-add-context-switch-counters include/linux/taskstats.h
+--- a/include/linux/taskstats.h~taskstats-add-context-switch-counters
++++ a/include/linux/taskstats.h
+@@ -31,7 +31,7 @@
+  */
+ 
+ 
+-#define TASKSTATS_VERSION	4
++#define TASKSTATS_VERSION	5
+ #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
+ 					 * in linux/sched.h */
+ 
+@@ -149,6 +149,9 @@ struct taskstats {
+ 	__u64	read_bytes;		/* bytes of read I/O */
+ 	__u64	write_bytes;		/* bytes of write I/O */
+ 	__u64	cancelled_write_bytes;	/* bytes of cancelled write I/O */
++
++	__u64  nvcsw;			/* voluntary_ctxt_switches */
++	__u64  nivcsw;			/* nonvoluntary_ctxt_switches */
+ };
+ 
+ 
+diff -puN kernel/taskstats.c~taskstats-add-context-switch-counters kernel/taskstats.c
+--- a/kernel/taskstats.c~taskstats-add-context-switch-counters
++++ a/kernel/taskstats.c
+@@ -196,6 +196,8 @@ static int fill_pid(pid_t pid, struct ta
+ 
+ 	/* fill in basic acct fields */
+ 	stats->version = TASKSTATS_VERSION;
++	stats->nvcsw = tsk->nvcsw;
++	stats->nivcsw = tsk->nivcsw;
+ 	bacct_add_tsk(stats, tsk);
+ 
+ 	/* fill in extended acct fields */
+@@ -242,6 +244,8 @@ static int fill_tgid(pid_t tgid, struct 
+ 		 */
+ 		delayacct_add_tsk(stats, tsk);
+ 
++		stats->nvcsw += tsk->nvcsw;
++		stats->nivcsw += tsk->nivcsw;
+ 	} while_each_thread(first, tsk);
+ 
+ 	unlock_task_sighand(first, &flags);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from muvarov@ru.mvista.com are
 
 origin.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-mtd.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-docbook-dont-reference-file-without-kernel-doc.patch
-profile-likely-unlikely-macros.patch
