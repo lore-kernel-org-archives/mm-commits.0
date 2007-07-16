@@ -1,75 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - use-write_trylock_irqsave-in-ptrace_attach.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:52:10 -0700
-Message-ID: <200707162052.l6GKqAIv001513@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-crypto-hw.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:52:40 -0700
+Message-ID: <200707162052.l6GKqe7g001561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42520 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56412 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763797AbXGPVb2 (ORCPT
+	by vger.kernel.org with ESMTP id S1758312AbXGPVcD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:31:28 -0400
+	Mon, 16 Jul 2007 17:32:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sripathik@in.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use write_trylock_irqsave in ptrace_attach
+     Use menuconfig objects: crypto hw
 has been removed from the -mm tree.  Its filename was
-     use-write_trylock_irqsave-in-ptrace_attach.patch
+     use-menuconfig-objects-crypto-hw.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use write_trylock_irqsave in ptrace_attach
-From: Sripathi Kodi <sripathik@in.ibm.com>
+Subject: Use menuconfig objects: crypto hw
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-This patch makes ptrace_attach use write_trylock_irqsave().
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
 
-[akpm@linux-foundation.org: remove unneeded initialisation]
-Signed-off-by: Sripathi Kodi <sripathik@in.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/crypto/Kconfig |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN kernel/ptrace.c~use-write_trylock_irqsave-in-ptrace_attach kernel/ptrace.c
---- a/kernel/ptrace.c~use-write_trylock_irqsave-in-ptrace_attach
-+++ a/kernel/ptrace.c
-@@ -161,6 +161,7 @@ int ptrace_may_attach(struct task_struct
- int ptrace_attach(struct task_struct *task)
- {
- 	int retval;
-+	unsigned long flags;
+diff -puN drivers/crypto/Kconfig~use-menuconfig-objects-crypto-hw drivers/crypto/Kconfig
+--- a/drivers/crypto/Kconfig~use-menuconfig-objects-crypto-hw
++++ a/drivers/crypto/Kconfig
+@@ -1,4 +1,9 @@
+-menu "Hardware crypto devices"
++
++menuconfig CRYPTO_HW
++	bool "Hardware crypto devices"
++	default y
++
++if CRYPTO_HW
  
- 	audit_ptrace(task);
+ config CRYPTO_DEV_PADLOCK
+ 	tristate "Support for VIA PadLock ACE"
+@@ -78,4 +83,4 @@ config ZCRYPT_MONOLITHIC
+ 	  that contains all parts of the crypto device driver (ap bus,
+ 	  request router and all the card drivers).
  
-@@ -181,9 +182,7 @@ repeat:
- 	 * cpu's that may have task_lock).
- 	 */
- 	task_lock(task);
--	local_irq_disable();
--	if (!write_trylock(&tasklist_lock)) {
--		local_irq_enable();
-+	if (!write_trylock_irqsave(&tasklist_lock, flags)) {
- 		task_unlock(task);
- 		do {
- 			cpu_relax();
-@@ -211,7 +210,7 @@ repeat:
- 	force_sig_specific(SIGSTOP, task);
- 
- bad:
--	write_unlock_irq(&tasklist_lock);
-+	write_unlock_irqrestore(&tasklist_lock, flags);
- 	task_unlock(task);
- out:
- 	return retval;
+-endmenu
++endif # CRYPTO_HW
 _
 
-Patches currently in -mm which might be from sripathik@in.ibm.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
+git-acpi.patch
+git-kvm.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
+use-menuconfig-objects-ii-md.patch
