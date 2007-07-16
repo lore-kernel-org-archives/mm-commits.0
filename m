@@ -1,81 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-fix-comments-related-to-shrink_list.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:49:05 -0700
-Message-ID: <200707162049.l6GKn5KG001136@imap1.linux-foundation.org>
+Subject: - frv-remove-some-dead-code.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:50:08 -0700
+Message-ID: <200707162050.l6GKo8aW001294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57126 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55392 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759413AbXGPVZv (ORCPT
+	by vger.kernel.org with ESMTP id S1760714AbXGPVZ5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:25:51 -0400
+	Mon, 16 Jul 2007 17:25:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: briglia.anderson@gmail.com, anderson.briglia@indt.org.br, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: fix comments related to shrink_list()
+     FRV: Remove some dead code
 has been removed from the -mm tree.  Its filename was
-     vmscan-fix-comments-related-to-shrink_list.patch
+     frv-remove-some-dead-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vmscan: fix comments related to shrink_list()
-From: "Anderson Briglia" <briglia.anderson@gmail.com>
+Subject: FRV: Remove some dead code
+From: David Howells <dhowells@redhat.com>
 
-Fix the shrink_list name on some files under mm/ directory.
+Remove some dead chunks of code that are bounded by preprocessor conditionals
+controlled by apparently no-longer available config options.
 
-Signed-off-by: Anderson Briglia <anderson.briglia@indt.org.br>
+These are:
+
+	CONFIG_BLK_DEV_BLKMEM
+	CONFIG_CHR_DEV_FLASH
+	CONFIG_BLK_DEV_FLASH
+	CONFIG_CONSOLE
+
+[Found by Robert P. J. Day <rpjday@mindspring.com>]
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    2 +-
- mm/swapfile.c   |    2 +-
- mm/truncate.c   |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ arch/frv/kernel/setup.c |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff -puN mm/swap_state.c~vmscan-fix-comments-related-to-shrink_list mm/swap_state.c
---- a/mm/swap_state.c~vmscan-fix-comments-related-to-shrink_list
-+++ a/mm/swap_state.c
-@@ -21,7 +21,7 @@
+diff -puN arch/frv/kernel/setup.c~frv-remove-some-dead-code arch/frv/kernel/setup.c
+--- a/arch/frv/kernel/setup.c~frv-remove-some-dead-code
++++ a/arch/frv/kernel/setup.c
+@@ -60,10 +60,6 @@ static void __init setup_linux_memory(vo
+ static void __init setup_uclinux_memory(void);
+ #endif
  
- /*
-  * swapper_space is a fiction, retained to simplify the path through
-- * vmscan's shrink_list, to make sync_page look nicer, and to allow
-+ * vmscan's shrink_page_list, to make sync_page look nicer, and to allow
-  * future use of radix_tree tags in the swap cache.
-  */
- static const struct address_space_operations swap_aops = {
-diff -puN mm/swapfile.c~vmscan-fix-comments-related-to-shrink_list mm/swapfile.c
---- a/mm/swapfile.c~vmscan-fix-comments-related-to-shrink_list
-+++ a/mm/swapfile.c
-@@ -885,7 +885,7 @@ static int try_to_unuse(unsigned int typ
- 		/*
- 		 * So we could skip searching mms once swap count went
- 		 * to 1, we did not mark any present ptes as dirty: must
--		 * mark page dirty so shrink_list will preserve it.
-+		 * mark page dirty so shrink_page_list will preserve it.
- 		 */
- 		SetPageDirty(page);
- 		unlock_page(page);
-diff -puN mm/truncate.c~vmscan-fix-comments-related-to-shrink_list mm/truncate.c
---- a/mm/truncate.c~vmscan-fix-comments-related-to-shrink_list
-+++ a/mm/truncate.c
-@@ -317,8 +317,8 @@ EXPORT_SYMBOL(invalidate_mapping_pages);
-  * This is like invalidate_complete_page(), except it ignores the page's
-  * refcount.  We do this because invalidate_inode_pages2() needs stronger
-  * invalidation guarantees, and cannot afford to leave pages behind because
-- * shrink_list() has a temp ref on them, or because they're transiently sitting
-- * in the lru_cache_add() pagevecs.
-+ * shrink_page_list() has a temp ref on them, or because they're transiently
-+ * sitting in the lru_cache_add() pagevecs.
-  */
- static int
- invalidate_complete_page2(struct address_space *mapping, struct page *page)
+-#ifdef CONFIG_CONSOLE
+-extern struct consw *conswitchp;
+-#endif
+-
+ #ifdef CONFIG_MB93090_MB00
+ static char __initdata mb93090_banner[] = "FJ/RH FR-V Linux";
+ static char __initdata mb93090_version[] = UTS_RELEASE;
+@@ -795,13 +791,6 @@ void __init setup_arch(char **cmdline_p)
+ #endif
+ #endif
+ 
+-#if defined(CONFIG_CHR_DEV_FLASH) || defined(CONFIG_BLK_DEV_FLASH)
+-	/* we need to initialize the Flashrom device here since we might
+-	 * do things with flash early on in the boot
+-	 */
+-	flash_probe();
+-#endif
+-
+ 	/* deal with the command line - RedBoot may have passed one to the kernel */
+ 	memcpy(command_line, boot_command_line, sizeof(command_line));
+ 	*cmdline_p = &command_line[0];
+@@ -837,11 +826,6 @@ void __init setup_arch(char **cmdline_p)
+ #endif
+ #endif
+ 
+-#ifdef CONFIG_BLK_DEV_BLKMEM
+-	ROOT_DEV = MKDEV(BLKMEM_MAJOR,0);
+-#endif
+-	/*rom_length = (unsigned long)&_flashend - (unsigned long)&_romvec;*/
+-
+ #ifdef CONFIG_MMU
+ 	setup_linux_memory();
+ #else
 _
 
-Patches currently in -mm which might be from briglia.anderson@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+document-page_mkwrite-locking.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+mutex-subsystem-synchro-test-module.patch
