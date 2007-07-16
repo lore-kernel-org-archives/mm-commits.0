@@ -1,100 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - drop-obsolete-sys_ioctl-export.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:57:28 -0700
-Message-ID: <200707162057.l6GKvSGi002192@imap1.linux-foundation.org>
+Subject: - ext3-statfs-speed-up.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:59:43 -0700
+Message-ID: <200707162059.l6GKxht9002448@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34501 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51029 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759258AbXGPVPS (ORCPT
+	by vger.kernel.org with ESMTP id S1758518AbXGPVPV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:18 -0400
+	Mon, 16 Jul 2007 17:15:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, davem@davemloft.net, mm-commits@vger.kernel.org
+To: pbadari@us.ibm.com, adilger@clusterfs.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drop obsolete sys_ioctl export
+     ext3: statfs speed up
 has been removed from the -mm tree.  Its filename was
-     drop-obsolete-sys_ioctl-export.patch
+     ext3-statfs-speed-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drop obsolete sys_ioctl export
-From: Christoph Hellwig <hch@lst.de>
+Subject: ext3: statfs speed up
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-sys_ioctl() was only exported for our first version of compat ioctl
-handling.  Now that the whole compat ioctl handling mess is more or less
-sorted out there are no more modular users left and we can kill it.
+This is a patch that speeds up statfs.  It is very simple - the "overhead"
+calculation, which takes a huge amount of time for large filesystems, never
+changes unless the size of the filesystem itself changes.  That means we can
+store it in memory and only recalculate if the filesystem has been resized
+(almost never).
 
-There's one exception and that's sparc64's solaris compat module, but
-sparc64 has it's own export predating the generic one by years for that
-which this patch leaves untouched.
+It also fixes a minor problem that we never update the on-disk superblock free
+blocks/inodes counts until the filesystem is unmounted.  While not fatal, we
+may as well update that on disk when we have the information, and it makes
+things like debugfs and dumpe2fs report a bit more accurate info.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: Andreas Dilger <adilger@clusterfs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ioctl.c |    8 --------
- 1 file changed, 8 deletions(-)
+ fs/ext3/super.c            |   25 +++++++++++++++----------
+ include/linux/ext3_fs_sb.h |    2 ++
+ 2 files changed, 17 insertions(+), 10 deletions(-)
 
-diff -puN fs/ioctl.c~drop-obsolete-sys_ioctl-export fs/ioctl.c
---- a/fs/ioctl.c~drop-obsolete-sys_ioctl-export
-+++ a/fs/ioctl.c
-@@ -174,11 +174,3 @@ asmlinkage long sys_ioctl(unsigned int f
-  out:
- 	return error;
- }
--
--/*
-- * Platforms implementing 32 bit compatibility ioctl handlers in
-- * modules need this exported
-- */
--#ifdef CONFIG_COMPAT
--EXPORT_SYMBOL(sys_ioctl);
--#endif
+diff -puN fs/ext3/super.c~ext3-statfs-speed-up fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-statfs-speed-up
++++ a/fs/ext3/super.c
+@@ -2426,19 +2426,19 @@ static int ext3_statfs (struct dentry * 
+ 	struct super_block *sb = dentry->d_sb;
+ 	struct ext3_sb_info *sbi = EXT3_SB(sb);
+ 	struct ext3_super_block *es = sbi->s_es;
+-	ext3_fsblk_t overhead;
+-	int i;
+ 	u64 fsid;
+ 
+-	if (test_opt (sb, MINIX_DF))
+-		overhead = 0;
+-	else {
+-		unsigned long ngroups;
+-		ngroups = EXT3_SB(sb)->s_groups_count;
++	if (test_opt(sb, MINIX_DF)) {
++		sbi->s_overhead_last = 0;
++	} else if (sbi->s_blocks_last != le32_to_cpu(es->s_blocks_count)) {
++		unsigned long ngroups = sbi->s_groups_count, i;
++		ext3_fsblk_t overhead = 0;
+ 		smp_rmb();
+ 
+ 		/*
+-		 * Compute the overhead (FS structures)
++		 * Compute the overhead (FS structures).  This is constant
++		 * for a given filesystem unless the number of block groups
++		 * changes so we cache the previous value until it does.
+ 		 */
+ 
+ 		/*
+@@ -2462,18 +2462,23 @@ static int ext3_statfs (struct dentry * 
+ 		 * Every block group has an inode bitmap, a block
+ 		 * bitmap, and an inode table.
+ 		 */
+-		overhead += (ngroups * (2 + EXT3_SB(sb)->s_itb_per_group));
++		overhead += ngroups * (2 + sbi->s_itb_per_group);
++		sbi->s_overhead_last = overhead;
++		smp_wmb();
++		sbi->s_blocks_last = le32_to_cpu(es->s_blocks_count);
+ 	}
+ 
+ 	buf->f_type = EXT3_SUPER_MAGIC;
+ 	buf->f_bsize = sb->s_blocksize;
+-	buf->f_blocks = le32_to_cpu(es->s_blocks_count) - overhead;
++	buf->f_blocks = le32_to_cpu(es->s_blocks_count) - sbi->s_overhead_last;
+ 	buf->f_bfree = percpu_counter_sum(&sbi->s_freeblocks_counter);
++	es->s_free_blocks_count = cpu_to_le32(buf->f_bfree);
+ 	buf->f_bavail = buf->f_bfree - le32_to_cpu(es->s_r_blocks_count);
+ 	if (buf->f_bfree < le32_to_cpu(es->s_r_blocks_count))
+ 		buf->f_bavail = 0;
+ 	buf->f_files = le32_to_cpu(es->s_inodes_count);
+ 	buf->f_ffree = percpu_counter_sum(&sbi->s_freeinodes_counter);
++	es->s_free_inodes_count = cpu_to_le32(buf->f_ffree);
+ 	buf->f_namelen = EXT3_NAME_LEN;
+ 	fsid = le64_to_cpup((void *)es->s_uuid) ^
+ 	       le64_to_cpup((void *)es->s_uuid + sizeof(u64));
+diff -puN include/linux/ext3_fs_sb.h~ext3-statfs-speed-up include/linux/ext3_fs_sb.h
+--- a/include/linux/ext3_fs_sb.h~ext3-statfs-speed-up
++++ a/include/linux/ext3_fs_sb.h
+@@ -38,6 +38,8 @@ struct ext3_sb_info {
+ 	unsigned long s_gdb_count;	/* Number of group descriptor blocks */
+ 	unsigned long s_desc_per_block;	/* Number of group descriptors per block */
+ 	unsigned long s_groups_count;	/* Number of groups in the fs */
++	unsigned long s_overhead_last;  /* Last calculated overhead */
++	unsigned long s_blocks_last;    /* Last seen block count */
+ 	struct buffer_head * s_sbh;	/* Buffer containing the super block */
+ 	struct ext3_super_block * s_es;	/* Pointer to the super block in the buffer */
+ 	struct buffer_head ** s_group_desc;
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
 origin.patch
-git-powerpc.patch
-git-dvb.patch
-git-ubi.patch
-git-ocfs2.patch
-use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
-git-xfs.patch
-sysv-convert-to-new-aops.patch
-ptrace_peekdata-consolidation.patch
-ptrace_pokedata-consolidation.patch
-knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-remove-iget-abuse.patch
-knfsd-exportfs-add-procedural-interface-for-nfsd.patch
-knfsd-exportfs-remove-call-macro.patch
-knfsd-exportfs-untangle-isdir-logic-in-find_exported_dentry.patch
-knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias.patch
-knfsd-exportfs-add-find_disconnected_root-helper.patch
-knfsd-exportfs-split-out-reconnecting-a-dentry-from-find_exported_dentry.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-fs-introduce-vfs_path_lookup.patch
-sunrpc-use-vfs_path_lookup.patch
-nfsctl-use-vfs_path_lookup.patch
-fs-mark-link_path_walk-static.patch
-fs-remove-path_walk-export.patch
+ext3-convert-to-new-aops.patch
+ext4-convert-to-new-aops.patch
+fix-for-ext2-reservation.patch
