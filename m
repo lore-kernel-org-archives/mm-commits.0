@@ -1,47 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - etrax-enable-arbitary-speed-setting-on-tty-ports.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:55 -0700
-Message-ID: <200707162050.l6GKotT0001344@imap1.linux-foundation.org>
+Subject: - v850-enable-arbitary-speed-tty-ioctls.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:51:40 -0700
+Message-ID: <200707162051.l6GKpe93001418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60623 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36028 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760234AbXGPVeE (ORCPT
+	by vger.kernel.org with ESMTP id S1759700AbXGPVeT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:34:04 -0400
+	Mon, 16 Jul 2007 17:34:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, uclinux-v850@lsi.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     etrax: enable arbitary speed setting on tty ports
+     v850: enable arbitary speed tty ioctls
 has been removed from the -mm tree.  Its filename was
-     etrax-enable-arbitary-speed-setting-on-tty-ports.patch
+     v850-enable-arbitary-speed-tty-ioctls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: etrax: enable arbitary speed setting on tty ports
+Subject: v850: enable arbitary speed tty ioctls
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Add the needed constants and bits. The actual code is already in the tty
-layer and turned on by the definitions
+Adding the defines/macros activates the existing code in the tty layer
+and allows this platform to use the arbitary speed ioctl setting layer
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Mikael Starvik <starvik@axis.com>
+Cc: Miles Bader <uclinux-v850@lsi.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-cris/ioctls.h   |    4 ++++
- include/asm-cris/termbits.h |    1 +
- include/asm-cris/termios.h  |    6 ++++--
- 3 files changed, 9 insertions(+), 2 deletions(-)
+ include/asm-v850/ioctls.h   |    4 ++++
+ include/asm-v850/termbits.h |    5 ++++-
+ include/asm-v850/termios.h  |    6 ++++--
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-cris/ioctls.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/ioctls.h
---- a/include/asm-cris/ioctls.h~etrax-enable-arbitary-speed-setting-on-tty-ports
-+++ a/include/asm-cris/ioctls.h
-@@ -48,6 +48,10 @@
+diff -puN include/asm-v850/ioctls.h~v850-enable-arbitary-speed-tty-ioctls include/asm-v850/ioctls.h
+--- a/include/asm-v850/ioctls.h~v850-enable-arbitary-speed-tty-ioctls
++++ a/include/asm-v850/ioctls.h
+@@ -46,6 +46,10 @@
  #define TIOCSBRK	0x5427  /* BSD compatibility */
  #define TIOCCBRK	0x5428  /* BSD compatibility */
  #define TIOCGSID	0x5429  /* Return the session ID of FD */
@@ -52,21 +52,35 @@ diff -puN include/asm-cris/ioctls.h~etrax-enable-arbitary-speed-setting-on-tty-p
  #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
  #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
-diff -puN include/asm-cris/termbits.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/termbits.h
---- a/include/asm-cris/termbits.h~etrax-enable-arbitary-speed-setting-on-tty-ports
-+++ a/include/asm-cris/termbits.h
-@@ -166,6 +166,7 @@ struct ktermios {
+diff -puN include/asm-v850/termbits.h~v850-enable-arbitary-speed-tty-ioctls include/asm-v850/termbits.h
+--- a/include/asm-v850/termbits.h~v850-enable-arbitary-speed-tty-ioctls
++++ a/include/asm-v850/termbits.h
+@@ -141,6 +141,7 @@ struct ktermios {
  #define HUPCL	0002000
  #define CLOCAL	0004000
  #define CBAUDEX 0010000
-+#define  BOTHER  0010000
- #define  B57600  0010001
- #define  B115200 0010002
- #define  B230400 0010003
-diff -puN include/asm-cris/termios.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/termios.h
---- a/include/asm-cris/termios.h~etrax-enable-arbitary-speed-setting-on-tty-ports
-+++ a/include/asm-cris/termios.h
-@@ -81,8 +81,10 @@ struct termio {
++#define    BOTHER 0010000
+ #define    B57600 0010001
+ #define   B115200 0010002
+ #define   B230400 0010003
+@@ -156,10 +157,12 @@ struct ktermios {
+ #define  B3000000 0010015
+ #define  B3500000 0010016
+ #define  B4000000 0010017
+-#define CIBAUD	  002003600000	/* input baud rate (not used) */
++#define CIBAUD	  002003600000		/* input baud rate */
+ #define CMSPAR	  010000000000		/* mark or space (stick) parity */
+ #define CRTSCTS	  020000000000		/* flow control */
+ 
++#define	IBSHIFT	16		/* Shifr from CBAUD to CIBAUD */
++
+ /* c_lflag bits */
+ #define ISIG	0000001
+ #define ICANON	0000002
+diff -puN include/asm-v850/termios.h~v850-enable-arbitary-speed-tty-ioctls include/asm-v850/termios.h
+--- a/include/asm-v850/termios.h~v850-enable-arbitary-speed-tty-ioctls
++++ a/include/asm-v850/termios.h
+@@ -80,8 +80,10 @@ struct termio {
  	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
  })
  
