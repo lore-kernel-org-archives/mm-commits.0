@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: - binfmt_elf-warning-fix.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:56:45 -0700
-Message-ID: <200707162056.l6GKuj3I002117@imap1.linux-foundation.org>
+Subject: - sprint_symbol-cleanup.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:54 -0700
+Message-ID: <200707162057.l6GKvs9D002236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34414 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53864 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753724AbXGPVE6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753895AbXGPVE6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 16 Jul 2007 17:04:58 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6GL4t2v018235
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6GL4t2x018235
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
 	for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2007 14:04:57 -0700
 Sender: mm-commits-owner@vger.kernel.org
@@ -19,42 +19,46 @@ To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     binfmt_elf warning fix
+     sprint_symbol() cleanup
 has been removed from the -mm tree.  Its filename was
-     binfmt_elf-warning-fix.patch
+     sprint_symbol-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: binfmt_elf warning fix
+Subject: sprint_symbol() cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/binfmt_elf.c: In function 'load_elf_binary':
-fs/binfmt_elf.c:1002: warning: 'interp_map_addr' may be used uninitialized in this function
-
-The compiler (gcc-4.1.0) is correct, but it failed to notice that we didn't
-use the resulting value.
-
-
+Remove pointless `else'.
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kallsyms.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN fs/binfmt_elf.c~binfmt_elf-warning-fix fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~binfmt_elf-warning-fix
-+++ a/fs/binfmt_elf.c
-@@ -999,7 +999,7 @@ static int load_elf_binary(struct linux_
- 			elf_entry = load_aout_interp(&loc->interp_ex,
- 						     interpreter);
- 		} else {
--			unsigned long interp_map_addr;	/* unused */
-+			unsigned long uninitialized_var(interp_map_addr);
+diff -puN kernel/kallsyms.c~sprint_symbol-cleanup kernel/kallsyms.c
+--- a/kernel/kallsyms.c~sprint_symbol-cleanup
++++ a/kernel/kallsyms.c
+@@ -317,13 +317,12 @@ int sprint_symbol(char *buffer, unsigned
+ 	name = kallsyms_lookup(address, &size, &offset, &modname, namebuf);
+ 	if (!name)
+ 		return sprintf(buffer, "0x%lx", address);
+-	else {
+-		if (modname)
+-			return sprintf(buffer, "%s+%#lx/%#lx [%s]", name, offset,
++
++	if (modname)
++		return sprintf(buffer, "%s+%#lx/%#lx [%s]", name, offset,
+ 				size, modname);
+-		else
+-			return sprintf(buffer, "%s+%#lx/%#lx", name, offset, size);
+-	}
++	else
++		return sprintf(buffer, "%s+%#lx/%#lx", name, offset, size);
+ }
  
- 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
- 						    interpreter,
+ /* Look up a kernel symbol and print it to the kernel messages. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
