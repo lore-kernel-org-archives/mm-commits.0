@@ -1,215 +1,260 @@
 From: akpm@linux-foundation.org
-Subject: - taskstats-add-context-switch-counters.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:56:04 -0700
-Message-ID: <200707162056.l6GKu4NI002064@imap1.linux-foundation.org>
+Subject: - slob-remove-bigblock-tracking.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:48:59 -0700
+Message-ID: <200707162048.l6GKmxCR001122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38420 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60599 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761543AbXGPV3K (ORCPT
+	by vger.kernel.org with ESMTP id S1760600AbXGPV3j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:29:10 -0400
+	Mon, 16 Jul 2007 17:29:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muvarov@ru.mvista.com, balbir@in.ibm.com, jlan@engr.sgi.com, jlim@sgi.com, nagar@watson.ibm.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     taskstats: add context-switch counters
+     slob: remove bigblock tracking
 has been removed from the -mm tree.  Its filename was
-     taskstats-add-context-switch-counters.patch
+     slob-remove-bigblock-tracking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: taskstats: add context-switch counters
-From: Maxim Uvarov <muvarov@ru.mvista.com>
+Subject: slob: remove bigblock tracking
+From: Nick Piggin <npiggin@suse.de>
 
-Make available to the user the following task and process performance
-statistics:
+Remove the bigblock lists in favour of using compound pages and going directly
+to the page allocator.  Allocation size is stored in page->private, which also
+makes ksize more accurate than it previously was.
 
-	* Involuntary Context Switches (task_struct->nivcsw)
-	* Voluntary Context Switches (task_struct->nvcsw)
+Saves ~.5K of code, and 12-24 bytes overhead per >= PAGE_SIZE allocation.
 
-Statistics information is available from:
-	1. taskstats interface (Documentation/accounting/)
-	2. /proc/PID/status (task only).
-
-This data is useful for detecting hyperactivity patterns between processes.
-
-[akpm@linux-foundation.org: cleanup]
-Signed-off-by: Maxim Uvarov <muvarov@ru.mvista.com>
-Cc: Shailabh Nagar <nagar@watson.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
-Cc: Jonathan Lim <jlim@sgi.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c          |   19 ++++++++++++++--
- Documentation/accounting/taskstats-struct.txt |    6 +++++
- fs/proc/array.c                               |   10 ++++++++
- include/linux/taskstats.h                     |    5 +++-
- kernel/taskstats.c                            |    4 +++
- 5 files changed, 41 insertions(+), 3 deletions(-)
+ mm/slob.c |  101 ++++++++++++++--------------------------------------
+ 1 file changed, 28 insertions(+), 73 deletions(-)
 
-diff -puN Documentation/accounting/getdelays.c~taskstats-add-context-switch-counters Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~taskstats-add-context-switch-counters
-+++ a/Documentation/accounting/getdelays.c
-@@ -49,6 +49,7 @@ char name[100];
- int dbg;
- int print_delays;
- int print_io_accounting;
-+int print_task_context_switch_counts;
- __u64 stime, utime;
- 
- #define PRINTF(fmt, arg...) {			\
-@@ -195,7 +196,7 @@ void print_delayacct(struct taskstats *t
- 	       "IO    %15s%15s\n"
- 	       "      %15llu%15llu\n"
- 	       "MEM   %15s%15s\n"
--	       "      %15llu%15llu\n\n",
-+	       "      %15llu%15llu\n"
- 	       "count", "real total", "virtual total", "delay total",
- 	       t->cpu_count, t->cpu_run_real_total, t->cpu_run_virtual_total,
- 	       t->cpu_delay_total,
-@@ -204,6 +205,14 @@ void print_delayacct(struct taskstats *t
- 	       "count", "delay total", t->swapin_count, t->swapin_delay_total);
- }
- 
-+void task_context_switch_counts(struct taskstats *t)
-+{
-+	printf("\n\nTask   %15s%15s\n"
-+	       "       %15lu%15lu\n",
-+	       "voluntary", "nonvoluntary",
-+	       t->nvcsw, t->nivcsw);
-+}
-+
- void print_ioacct(struct taskstats *t)
- {
- 	printf("%s: read=%llu, write=%llu, cancelled_write=%llu\n",
-@@ -235,7 +244,7 @@ int main(int argc, char *argv[])
- 	struct msgtemplate msg;
- 
- 	while (1) {
--		c = getopt(argc, argv, "diw:r:m:t:p:vl");
-+		c = getopt(argc, argv, "qdiw:r:m:t:p:vl");
- 		if (c < 0)
- 			break;
- 
-@@ -248,6 +257,10 @@ int main(int argc, char *argv[])
- 			printf("printing IO accounting\n");
- 			print_io_accounting = 1;
- 			break;
-+		case 'q':
-+			printf("printing task/process context switch rates\n");
-+			print_task_context_switch_counts = 1;
-+			break;
- 		case 'w':
- 			logfile = strdup(optarg);
- 			printf("write to file %s\n", logfile);
-@@ -389,6 +402,8 @@ int main(int argc, char *argv[])
- 							print_delayacct((struct taskstats *) NLA_DATA(na));
- 						if (print_io_accounting)
- 							print_ioacct((struct taskstats *) NLA_DATA(na));
-+						if (print_task_context_switch_counts)
-+							task_context_switch_counts((struct taskstats *) NLA_DATA(na));
- 						if (fd) {
- 							if (write(fd, NLA_DATA(na), na->nla_len) < 0) {
- 								err(1,"write error\n");
-diff -puN Documentation/accounting/taskstats-struct.txt~taskstats-add-context-switch-counters Documentation/accounting/taskstats-struct.txt
---- a/Documentation/accounting/taskstats-struct.txt~taskstats-add-context-switch-counters
-+++ a/Documentation/accounting/taskstats-struct.txt
-@@ -22,6 +22,8 @@ There are three different groups of fiel
-     /* Extended accounting fields end */
-     Their values are collected if CONFIG_TASK_XACCT is set.
- 
-+4) Per-task and per-thread context switch count statistics
-+
- Future extension should add fields to the end of the taskstats struct, and
- should not change the relative position of each field within the struct.
- 
-@@ -158,4 +160,8 @@ struct taskstats {
- 
- 	/* Extended accounting fields end */
- 
-+4) Per-task and per-thread statistics
-+	__u64	nvcsw;			/* Context voluntary switch counter */
-+	__u64	nivcsw;			/* Context involuntary switch counter */
-+
- }
-diff -puN fs/proc/array.c~taskstats-add-context-switch-counters fs/proc/array.c
---- a/fs/proc/array.c~taskstats-add-context-switch-counters
-+++ a/fs/proc/array.c
-@@ -289,6 +289,15 @@ static inline char *task_cap(struct task
- 			    cap_t(p->cap_effective));
- }
- 
-+static inline char *task_context_switch_counts(struct task_struct *p,
-+						char *buffer)
-+{
-+	return buffer + sprintf(buffer, "voluntary_ctxt_switches:\t%lu\n"
-+			    "nonvoluntary_ctxt_switches:\t%lu\n",
-+			    p->nvcsw,
-+			    p->nivcsw);
-+}
-+
- int proc_pid_status(struct task_struct *task, char * buffer)
- {
- 	char * orig = buffer;
-@@ -307,6 +316,7 @@ int proc_pid_status(struct task_struct *
- #if defined(CONFIG_S390)
- 	buffer = task_show_regs(task, buffer);
- #endif
-+	buffer = task_context_switch_counts(task, buffer);
- 	return buffer - orig;
- }
- 
-diff -puN include/linux/taskstats.h~taskstats-add-context-switch-counters include/linux/taskstats.h
---- a/include/linux/taskstats.h~taskstats-add-context-switch-counters
-+++ a/include/linux/taskstats.h
-@@ -31,7 +31,7 @@
+diff -puN mm/slob.c~slob-remove-bigblock-tracking mm/slob.c
+--- a/mm/slob.c~slob-remove-bigblock-tracking
++++ a/mm/slob.c
+@@ -18,9 +18,11 @@
+  * Above this is an implementation of kmalloc/kfree. Blocks returned
+  * from kmalloc are 4-byte aligned and prepended with a 4-byte header.
+  * If kmalloc is asked for objects of PAGE_SIZE or larger, it calls
+- * __get_free_pages directly so that it can return page-aligned blocks
+- * and keeps a linked list of such pages and their orders. These
+- * objects are detected in kfree() by their page alignment.
++ * __get_free_pages directly, allocating compound pages so the page order
++ * does not have to be separately tracked, and also stores the exact
++ * allocation size in page->private so that it can be used to accurately
++ * provide ksize(). These objects are detected in kfree() because slob_page()
++ * is false for them.
+  *
+  * SLAB is emulated on top of SLOB by simply calling constructors and
+  * destructors for every SLAB allocation. Objects are returned with the
+@@ -29,7 +31,8 @@
+  * alignment. Again, objects of page-size or greater are allocated by
+  * calling __get_free_pages. As SLAB objects know their size, no separate
+  * size bookkeeping is necessary and there is essentially no allocation
+- * space overhead.
++ * space overhead, and compound pages aren't needed for multi-page
++ * allocations.
   */
  
+ #include <linux/kernel.h>
+@@ -381,48 +384,26 @@ out:
+  * End of slob allocator proper. Begin kmem_cache_alloc and kmalloc frontend.
+  */
  
--#define TASKSTATS_VERSION	4
-+#define TASKSTATS_VERSION	5
- #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
- 					 * in linux/sched.h */
+-struct bigblock {
+-	int order;
+-	void *pages;
+-	struct bigblock *next;
+-};
+-typedef struct bigblock bigblock_t;
+-
+-static bigblock_t *bigblocks;
+-
+-static DEFINE_SPINLOCK(block_lock);
+-
+-
+ void *__kmalloc(size_t size, gfp_t gfp)
+ {
+-	slob_t *m;
+-	bigblock_t *bb;
+-	unsigned long flags;
+-
+ 	if (size < PAGE_SIZE - SLOB_UNIT) {
++		slob_t *m;
+ 		m = slob_alloc(size + SLOB_UNIT, gfp, 0);
+ 		if (m)
+ 			m->units = size;
+ 		return m+1;
+-	}
+-
+-	bb = slob_alloc(sizeof(bigblock_t), gfp, 0);
+-	if (!bb)
+-		return 0;
+-
+-	bb->order = get_order(size);
+-	bb->pages = (void *)__get_free_pages(gfp, bb->order);
++	} else {
++		void *ret;
  
-@@ -149,6 +149,9 @@ struct taskstats {
- 	__u64	read_bytes;		/* bytes of read I/O */
- 	__u64	write_bytes;		/* bytes of write I/O */
- 	__u64	cancelled_write_bytes;	/* bytes of cancelled write I/O */
-+
-+	__u64  nvcsw;			/* voluntary_ctxt_switches */
-+	__u64  nivcsw;			/* nonvoluntary_ctxt_switches */
- };
+-	if (bb->pages) {
+-		spin_lock_irqsave(&block_lock, flags);
+-		bb->next = bigblocks;
+-		bigblocks = bb;
+-		spin_unlock_irqrestore(&block_lock, flags);
+-		return bb->pages;
++		ret = (void *) __get_free_pages(gfp | __GFP_COMP,
++						get_order(size));
++		if (ret) {
++			struct page *page;
++			page = virt_to_page(ret);
++			page->private = size;
++		}
++		return ret;
+ 	}
+-
+-	slob_free(bb, sizeof(bigblock_t));
+-	return 0;
+ }
+ EXPORT_SYMBOL(__kmalloc);
  
+@@ -462,59 +443,33 @@ EXPORT_SYMBOL(krealloc);
+ void kfree(const void *block)
+ {
+ 	struct slob_page *sp;
+-	slob_t *m;
+-	bigblock_t *bb, **last = &bigblocks;
+-	unsigned long flags;
  
-diff -puN kernel/taskstats.c~taskstats-add-context-switch-counters kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-add-context-switch-counters
-+++ a/kernel/taskstats.c
-@@ -196,6 +196,8 @@ static int fill_pid(pid_t pid, struct ta
+ 	if (!block)
+ 		return;
  
- 	/* fill in basic acct fields */
- 	stats->version = TASKSTATS_VERSION;
-+	stats->nvcsw = tsk->nvcsw;
-+	stats->nivcsw = tsk->nivcsw;
- 	bacct_add_tsk(stats, tsk);
+ 	sp = (struct slob_page *)virt_to_page(block);
+-	if (!slob_page(sp)) {
+-		/* on the big block list */
+-		spin_lock_irqsave(&block_lock, flags);
+-		for (bb = bigblocks; bb; last = &bb->next, bb = bb->next) {
+-			if (bb->pages == block) {
+-				*last = bb->next;
+-				spin_unlock_irqrestore(&block_lock, flags);
+-				free_pages((unsigned long)block, bb->order);
+-				slob_free(bb, sizeof(bigblock_t));
+-				return;
+-			}
+-		}
+-		spin_unlock_irqrestore(&block_lock, flags);
+-		WARN_ON(1);
+-		return;
+-	}
+-
+-	m = (slob_t *)block - 1;
+-	slob_free(m, m->units + SLOB_UNIT);
+-	return;
++	if (slob_page(sp)) {
++		slob_t *m = (slob_t *)block - 1;
++		slob_free(m, m->units + SLOB_UNIT);
++	} else
++		put_page(&sp->page);
+ }
  
- 	/* fill in extended acct fields */
-@@ -242,6 +244,8 @@ static int fill_tgid(pid_t tgid, struct 
- 		 */
- 		delayacct_add_tsk(stats, tsk);
+ EXPORT_SYMBOL(kfree);
  
-+		stats->nvcsw += tsk->nvcsw;
-+		stats->nivcsw += tsk->nivcsw;
- 	} while_each_thread(first, tsk);
++/* can't use ksize for kmem_cache_alloc memory, only kmalloc */
+ size_t ksize(const void *block)
+ {
+ 	struct slob_page *sp;
+-	bigblock_t *bb;
+-	unsigned long flags;
  
- 	unlock_task_sighand(first, &flags);
+ 	if (!block)
+ 		return 0;
+ 
+ 	sp = (struct slob_page *)virt_to_page(block);
+-	if (!slob_page(sp)) {
+-		spin_lock_irqsave(&block_lock, flags);
+-		for (bb = bigblocks; bb; bb = bb->next)
+-			if (bb->pages == block) {
+-				spin_unlock_irqrestore(&slob_lock, flags);
+-				return PAGE_SIZE << bb->order;
+-			}
+-		spin_unlock_irqrestore(&block_lock, flags);
+-	}
+-
+-	return ((slob_t *)block - 1)->units + SLOB_UNIT;
++	if (slob_page(sp))
++		return ((slob_t *)block - 1)->units + SLOB_UNIT;
++	else
++		return sp->page.private;
+ }
+ 
+ struct kmem_cache {
 _
 
-Patches currently in -mm which might be from muvarov@ru.mvista.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-fault-feedback-1.patch
+mm-fault-feedback-2.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+ocfs2-convert-to-new-aops.patch
+fix-read-truncate-race.patch
+fs-remove-some-aop_truncated_page.patch
+fs-introduce-some-page-buffer-invariants.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
