@@ -1,66 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - update-zilog-timeout.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:54:05 -0700
-Message-ID: <200707162054.l6GKs5Xn001778@imap1.linux-foundation.org>
+Subject: - fix-stop_machine_run-problem-with-naughty-real-time-process.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:53:18 -0700
+Message-ID: <200707162053.l6GKrIrK001616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43706 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55471 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764215AbXGPVgq (ORCPT
+	by vger.kernel.org with ESMTP id S1759966AbXGPVgr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:36:46 -0400
+	Mon, 16 Jul 2007 17:36:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ths@networkno.de, alan@lxorguk.ukuu.org.uk, pf@net.alphadv.de, ralf@linux-mips.org, rmk@arm.linux.org.uk, tbm@cyrius.com, mm-commits@vger.kernel.org
+To: takeuchi_satoru@jp.fujitsu.com, ashok.raj@intel.com, ego@in.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Update zilog timeout
+     Fix stop_machine_run problem with naughty real time process
 has been removed from the -mm tree.  Its filename was
-     update-zilog-timeout.patch
+     fix-stop_machine_run-problem-with-naughty-real-time-process.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Update zilog timeout
-From: Thiemo Seufer <ths@networkno.de>
+Subject: Fix stop_machine_run problem with naughty real time process
+From: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
 
-Update zilog timeout, thanks Peter Fuerst.
+stop_machine_run() does its work on "kstopmachine" thread having max
+priority.  However that thread get such priority after woken up. 
+Therefore, in the following case ...
 
-Signed-off-by: Thiemo Seufer <ths@networkno.de>
-Cc: Martin Michlmayr <tbm@cyrius.com>
-Cc: Peter Fuerst <pf@net.alphadv.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+  - "kstopmachine" try to run on CPU1
+
+  - There is a real time process which doesn't relinquish CPU time
+    voluntary on CPU1
+
+...  "kstopmachine" can't start to run and the CPU on which
+    stop_machine_run() is runing hangs up.  To fix this problem, call
+    sched_setscheduler() before waking up that thread.
+
+Signed-off-by: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/ip22zilog.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/stop_machine.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/serial/ip22zilog.c~update-zilog-timeout drivers/serial/ip22zilog.c
---- a/drivers/serial/ip22zilog.c~update-zilog-timeout
-+++ a/drivers/serial/ip22zilog.c
-@@ -862,6 +862,7 @@ ip22zilog_set_termios(struct uart_port *
- 	up->cflag = termios->c_cflag;
+diff -puN kernel/stop_machine.c~fix-stop_machine_run-problem-with-naughty-real-time-process kernel/stop_machine.c
+--- a/kernel/stop_machine.c~fix-stop_machine_run-problem-with-naughty-real-time-process
++++ a/kernel/stop_machine.c
+@@ -93,10 +93,6 @@ static void stopmachine_set_state(enum s
+ static int stop_machine(void)
+ {
+ 	int i, ret = 0;
+-	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
+-
+-	/* One high-prio thread per cpu.  We'll do this one. */
+-	sched_setscheduler(current, SCHED_FIFO, &param);
  
- 	ip22zilog_maybe_update_regs(up, ZILOG_CHANNEL_FROM_PORT(port));
-+	uart_update_timeout(port, termios->c_cflag, baud);
+ 	atomic_set(&stopmachine_thread_ack, 0);
+ 	stopmachine_num_threads = 0;
+@@ -189,6 +185,10 @@ struct task_struct *__stop_machine_run(i
  
- 	spin_unlock_irqrestore(&up->port.lock, flags);
- }
-@@ -1017,6 +1018,8 @@ ip22serial_console_termios(struct consol
- 	}
- 
- 	con->cflag = cflag | CS8;			/* 8N1 */
+ 	p = kthread_create(do_stop, &smdata, "kstopmachine");
+ 	if (!IS_ERR(p)) {
++		struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
 +
-+	uart_update_timeout(&ip22zilog_port_table[con->index].port, cflag, baud);
- }
- 
- static int __init ip22zilog_console_setup(struct console *con, char *options)
++		/* One high-prio thread per cpu.  We'll do this one. */
++		sched_setscheduler(p, SCHED_FIFO, &param);
+ 		kthread_bind(p, cpu);
+ 		wake_up_process(p);
+ 		wait_for_completion(&smdata.done);
 _
 
-Patches currently in -mm which might be from ths@networkno.de are
+Patches currently in -mm which might be from takeuchi_satoru@jp.fujitsu.com are
 
 origin.patch
