@@ -1,146 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:51:07 -0700
-Message-ID: <200707162051.l6GKp76Y001375@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-pnp.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:52:48 -0700
+Message-ID: <200707162052.l6GKqm2q001570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60595 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33959 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761169AbXGPVfx (ORCPT
+	by vger.kernel.org with ESMTP id S1761703AbXGPVfr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:35:53 -0400
+	Mon, 16 Jul 2007 17:35:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, ambx1@neo.rr.com, bjorn.helgaas@hp.com, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add generic exit-time stack-depth checking to CONFIG_DEBUG_STACK_USAGE
+     Use menuconfig objects: PNP
 has been removed from the -mm tree.  Its filename was
-     add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+     use-menuconfig-objects-pnp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add generic exit-time stack-depth checking to CONFIG_DEBUG_STACK_USAGE
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Use menuconfig objects: PNP
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Add generic exit-time stack-depth checking to CONFIG_DEBUG_STACK_USAGE.
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
 
-This also adds UML support.
-
-Tested on UML and i386.
-
-[akpm@linux-foundation.org: cleanups, speedups, tweaks]
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Kconfig.debug        |    9 +++++++++
- arch/um/defconfig            |    1 +
- include/asm-um/thread_info.h |    9 +++++++++
- kernel/exit.c                |   29 +++++++++++++++++++++++++++++
- 4 files changed, 48 insertions(+)
+ drivers/pnp/Kconfig         |   13 +++++--------
+ drivers/pnp/isapnp/Kconfig  |    2 +-
+ drivers/pnp/pnpbios/Kconfig |    2 +-
+ 3 files changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN arch/um/Kconfig.debug~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage arch/um/Kconfig.debug
---- a/arch/um/Kconfig.debug~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
-+++ a/arch/um/Kconfig.debug
-@@ -47,4 +47,13 @@ config GCOV
-         If you're involved in UML kernel development and want to use gcov,
-         say Y.  If you're unsure, say N.
+diff -puN drivers/pnp/Kconfig~use-menuconfig-objects-pnp drivers/pnp/Kconfig
+--- a/drivers/pnp/Kconfig~use-menuconfig-objects-pnp
++++ a/drivers/pnp/Kconfig
+@@ -2,11 +2,9 @@
+ # Plug and Play configuration
+ #
  
-+config DEBUG_STACK_USAGE
-+	bool "Stack utilization instrumentation"
-+	default N
-+	help
-+	  Track the maximum kernel stack usage - this will look at each
-+	  kernel stack at process exit and log it if it's the deepest
-+	  stack seen so far.
-+
-+	  This option will slow down process creation and destruction somewhat.
- endmenu
-diff -puN arch/um/defconfig~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage arch/um/defconfig
---- a/arch/um/defconfig~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
-+++ a/arch/um/defconfig
-@@ -527,3 +527,4 @@ CONFIG_FORCED_INLINING=y
- # CONFIG_RCU_TORTURE_TEST is not set
- # CONFIG_GPROF is not set
- # CONFIG_GCOV is not set
-+# CONFIG_DEBUG_STACK_USAGE is not set
-diff -puN include/asm-um/thread_info.h~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage include/asm-um/thread_info.h
---- a/include/asm-um/thread_info.h~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
-+++ a/include/asm-um/thread_info.h
-@@ -52,10 +52,19 @@ static inline struct thread_info *curren
- 	return ti;
- }
+-menu "Plug and Play support"
+-	depends on HAS_IOMEM
+-
+-config PNP
++menuconfig PNP
+ 	bool "Plug and Play support"
++	depends on HAS_IOMEM
+ 	depends on ISA || ACPI
+ 	---help---
+ 	  Plug and Play (PnP) is a standard for peripherals which allows those
+@@ -22,15 +20,15 @@ config PNP
  
-+#ifdef CONFIG_DEBUG_STACK_USAGE
-+
-+#define alloc_thread_info(tsk) \
-+	((struct thread_info *) __get_free_pages(GFP_KERNEL | __GFP_ZERO, \
-+						 CONFIG_KERNEL_STACK_ORDER))
-+#else
-+
- /* thread information allocation */
- #define alloc_thread_info(tsk) \
- 	((struct thread_info *) __get_free_pages(GFP_KERNEL, \
- 						 CONFIG_KERNEL_STACK_ORDER))
-+#endif
-+
- #define free_thread_info(ti) \
- 	free_pages((unsigned long)(ti),CONFIG_KERNEL_STACK_ORDER)
+ 	  If unsure, say Y.
  
-diff -puN kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage kernel/exit.c
---- a/kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
-+++ a/kernel/exit.c
-@@ -858,6 +858,34 @@ static void exit_notify(struct task_stru
- 		release_task(tsk);
- }
++if PNP
++
+ config PNP_DEBUG
+ 	bool "PnP Debug Messages"
+-	depends on PNP
+ 	help
+ 	  Say Y if you want the Plug and Play Layer to print debug messages.
+ 	  This is useful if you are developing a PnP driver or troubleshooting.
  
-+#ifdef CONFIG_DEBUG_STACK_USAGE
-+static void check_stack_usage(void)
-+{
-+	static DEFINE_SPINLOCK(low_water_lock);
-+	static int lowest_to_date = THREAD_SIZE;
-+	unsigned long *n = end_of_stack(current);
-+	unsigned long free;
-+
-+	while (*n == 0)
-+		n++;
-+	free = (unsigned long)n - (unsigned long)end_of_stack(current);
-+
-+	if (free >= lowest_to_date)
-+		return;
-+
-+	spin_lock(&low_water_lock);
-+	if (free < lowest_to_date) {
-+		printk(KERN_WARNING "%s used greatest stack depth: %lu bytes "
-+				"left\n",
-+				current->comm, free);
-+		lowest_to_date = free;
-+	}
-+	spin_unlock(&low_water_lock);
-+}
-+#else
-+static inline void check_stack_usage(void) {}
-+#endif
-+
- fastcall NORET_TYPE void do_exit(long code)
- {
- 	struct task_struct *tsk = current;
-@@ -949,6 +977,7 @@ fastcall NORET_TYPE void do_exit(long co
- 	exit_sem(tsk);
- 	__exit_files(tsk);
- 	__exit_fs(tsk);
-+	check_stack_usage();
- 	exit_thread();
- 	cpuset_exit(tsk);
- 	exit_keys(tsk);
+ comment "Protocols"
+-	depends on PNP
+ 
+ source "drivers/pnp/isapnp/Kconfig"
+ 
+@@ -38,5 +36,4 @@ source "drivers/pnp/pnpbios/Kconfig"
+ 
+ source "drivers/pnp/pnpacpi/Kconfig"
+ 
+-endmenu
+-
++endif # PNP
+diff -puN drivers/pnp/isapnp/Kconfig~use-menuconfig-objects-pnp drivers/pnp/isapnp/Kconfig
+--- a/drivers/pnp/isapnp/Kconfig~use-menuconfig-objects-pnp
++++ a/drivers/pnp/isapnp/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ config ISAPNP
+ 	bool "ISA Plug and Play support"
+-	depends on PNP && ISA
++	depends on ISA
+ 	help
+ 	  Say Y here if you would like support for ISA Plug and Play devices.
+ 	  Some information is in <file:Documentation/isapnp.txt>.
+diff -puN drivers/pnp/pnpbios/Kconfig~use-menuconfig-objects-pnp drivers/pnp/pnpbios/Kconfig
+--- a/drivers/pnp/pnpbios/Kconfig~use-menuconfig-objects-pnp
++++ a/drivers/pnp/pnpbios/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ config PNPBIOS
+ 	bool "Plug and Play BIOS support (EXPERIMENTAL)"
+-	depends on PNP && ISA && X86 && EXPERIMENTAL
++	depends on ISA && X86 && EXPERIMENTAL
+ 	default n
+ 	---help---
+ 	  Linux uses the PNPBIOS as defined in "Plug and Play BIOS
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
-hostfs-convert-to-new-aops.patch
+git-acpi.patch
+git-kvm.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
+use-menuconfig-objects-ii-md.patch
