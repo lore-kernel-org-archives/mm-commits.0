@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - console-more-buf-for-index-parsing.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:48:28 -0700
-Message-ID: <200707162048.l6GKmSb5001040@imap1.linux-foundation.org>
+Subject: - x86-initial-fixmap-support.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:48:32 -0700
+Message-ID: <200707162048.l6GKmWEI001066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46931 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48883 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758118AbXGPUsr (ORCPT
+	by vger.kernel.org with ESMTP id S1758020AbXGPUss (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 16:48:47 -0400
+	Mon, 16 Jul 2007 16:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: ebiderman@xmission.com, ak@suse.de, bjorn.helgaas@hp.com, ebiderman@xmisson.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@sun.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     console: more buf for index parsing
+     x86: initial fixmap support
 has been removed from the -mm tree.  Its filename was
-     console-more-buf-for-index-parsing.patch
+     x86-initial-fixmap-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: console: more buf for index parsing
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: x86: initial fixmap support
+From: Eric W. Biderman <ebiderman@xmission.com>
 
-Change name to buf according to the usage as name + index
+Needed to get fixed virtual address for USB debug and earlycon with mmio.
 
+Signed-off-by: Eric W. Biderman <ebiderman@xmisson.com>
 Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
@@ -35,73 +36,70 @@ Cc: Gerd Hoffmann <kraxel@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/i386/kernel/head.S   |    8 ++++++++
+ arch/x86_64/kernel/head.S |   15 ++++++++++++++-
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN kernel/printk.c~console-more-buf-for-index-parsing kernel/printk.c
---- a/kernel/printk.c~console-more-buf-for-index-parsing
-+++ a/kernel/printk.c
-@@ -654,7 +654,7 @@ static void call_console_drivers(unsigne
-  */
- static int __init console_setup(char *str)
- {
--	char name[sizeof(console_cmdline[0].name)];
-+	char buf[sizeof(console_cmdline[0].name) + 4]; /* 4 for index */
- 	char *s, *options;
- 	int idx;
- 
-@@ -662,27 +662,27 @@ static int __init console_setup(char *st
- 	 * Decode str into name, index, options.
- 	 */
- 	if (str[0] >= '0' && str[0] <= '9') {
--		strcpy(name, "ttyS");
--		strncpy(name + 4, str, sizeof(name) - 5);
-+		strcpy(buf, "ttyS");
-+		strncpy(buf + 4, str, sizeof(buf) - 5);
- 	} else {
--		strncpy(name, str, sizeof(name) - 1);
-+		strncpy(buf, str, sizeof(buf) - 1);
- 	}
--	name[sizeof(name) - 1] = 0;
-+	buf[sizeof(buf) - 1] = 0;
- 	if ((options = strchr(str, ',')) != NULL)
- 		*(options++) = 0;
- #ifdef __sparc__
- 	if (!strcmp(str, "ttya"))
--		strcpy(name, "ttyS0");
-+		strcpy(buf, "ttyS0");
- 	if (!strcmp(str, "ttyb"))
--		strcpy(name, "ttyS1");
-+		strcpy(buf, "ttyS1");
+diff -puN arch/i386/kernel/head.S~x86-initial-fixmap-support arch/i386/kernel/head.S
+--- a/arch/i386/kernel/head.S~x86-initial-fixmap-support
++++ a/arch/i386/kernel/head.S
+@@ -168,6 +168,12 @@ page_pde_offset = (__PAGE_OFFSET >> 20);
+ .section .init.text,"ax",@progbits
  #endif
--	for (s = name; *s; s++)
-+	for (s = buf; *s; s++)
- 		if ((*s >= '0' && *s <= '9') || *s == ',')
- 			break;
- 	idx = simple_strtoul(s, NULL, 10);
- 	*s = 0;
  
--	add_preferred_console(name, idx, options);
-+	add_preferred_console(buf, idx, options);
- 	return 1;
- }
- __setup("console=", console_setup);
-@@ -709,7 +709,7 @@ int __init add_preferred_console(char *n
- 	 *	See if this tty is not yet registered, and
- 	 *	if we have a slot free.
- 	 */
--	for(i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
-+	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
- 		if (strcmp(console_cmdline[i].name, name) == 0 &&
- 			  console_cmdline[i].index == idx) {
- 				selected_console = i;
++	/* Do an early initialization of the fixmap area */
++	movl $(swapper_pg_dir - __PAGE_OFFSET), %edx
++	movl $(swapper_pg_pmd - __PAGE_OFFSET), %eax
++	addl $0x007, %eax			/* 0x007 = PRESENT+RW+USER */
++	movl %eax, 4092(%edx)
++
+ #ifdef CONFIG_SMP
+ ENTRY(startup_32_smp)
+ 	cld
+@@ -507,6 +513,8 @@ ENTRY(_stext)
+ .section ".bss.page_aligned","w"
+ ENTRY(swapper_pg_dir)
+ 	.fill 1024,4,0
++ENTRY(swapper_pg_pmd)
++	.fill 1024,4,0
+ ENTRY(empty_zero_page)
+ 	.fill 4096,1,0
+ 
+diff -puN arch/x86_64/kernel/head.S~x86-initial-fixmap-support arch/x86_64/kernel/head.S
+--- a/arch/x86_64/kernel/head.S~x86-initial-fixmap-support
++++ a/arch/x86_64/kernel/head.S
+@@ -73,7 +73,11 @@ startup_64:
+ 	addq	%rbp, init_level4_pgt + (511*8)(%rip)
+ 
+ 	addq	%rbp, level3_ident_pgt + 0(%rip)
++
+ 	addq	%rbp, level3_kernel_pgt + (510*8)(%rip)
++	addq	%rbp, level3_kernel_pgt + (511*8)(%rip)
++
++	addq	%rbp, level2_fixmap_pgt + (506*8)(%rip)
+ 
+ 	/* Add an Identity mapping if I am above 1G */
+ 	leaq	_text(%rip), %rdi
+@@ -314,7 +318,16 @@ NEXT_PAGE(level3_kernel_pgt)
+ 	.fill	510,8,0
+ 	/* (2^48-(2*1024*1024*1024)-((2^39)*511))/(2^30) = 510 */
+ 	.quad	level2_kernel_pgt - __START_KERNEL_map + _KERNPG_TABLE
+-	.fill	1,8,0
++	.quad	level2_fixmap_pgt - __START_KERNEL_map + _PAGE_TABLE
++
++NEXT_PAGE(level2_fixmap_pgt)
++	.fill	506,8,0
++	.quad	level1_fixmap_pgt - __START_KERNEL_map + _PAGE_TABLE
++	/* 8MB reserved for vsyscalls + a 2MB hole = 4 + 1 entries */
++	.fill	5,8,0
++
++NEXT_PAGE(level1_fixmap_pgt)
++	.fill	512,8,0
+ 
+ NEXT_PAGE(level2_ident_pgt)
+ 	/* Since I easily can, map the first 1G.
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from ebiderman@xmission.com are
 
 origin.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
-x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
-x86_64-get-mp_bus_to_node-as-early.patch
