@@ -1,54 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - kerneldoc-fix-in-audit_core_dumps.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:57:09 -0700
-Message-ID: <200707162057.l6GKv9g9002160@imap1.linux-foundation.org>
+Subject: - gitignore-update.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:59:23 -0700
+Message-ID: <200707162059.l6GKxNuh002424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49253 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36236 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758811AbXGPVLX (ORCPT
+	by vger.kernel.org with ESMTP id S1755651AbXGPVLj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:11:23 -0400
+	Mon, 16 Jul 2007 17:11:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: henne@nachtwindheim.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kerneldoc fix in audit_core_dumps
+     .gitignore update
 has been removed from the -mm tree.  Its filename was
-     kerneldoc-fix-in-audit_core_dumps.patch
+     gitignore-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kerneldoc fix in audit_core_dumps
-From: Henrik Kretzschmar <henne@nachtwindheim.de>
+Subject: .gitignore update
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Fix parameter name in audit_core_dumps for kerneldoc.
+headers_install by default puts headers into usr/include/ .
+They're auto-generated, so should be ignored.
 
-Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Same for *.orig, *.rej .
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .gitignore     |    3 +++
+ usr/.gitignore |    1 +
+ 2 files changed, 4 insertions(+)
 
-diff -puN kernel/auditsc.c~kerneldoc-fix-in-audit_core_dumps kernel/auditsc.c
---- a/kernel/auditsc.c~kerneldoc-fix-in-audit_core_dumps
-+++ a/kernel/auditsc.c
-@@ -2037,7 +2037,7 @@ int __audit_signal_info(int sig, struct 
+diff -puN .gitignore~gitignore-update .gitignore
+--- a/.gitignore~gitignore-update
++++ a/.gitignore
+@@ -45,3 +45,6 @@ series
  
- /**
-  * audit_core_dumps - record information about processes that end abnormally
-- * @sig: signal value
-+ * @signr: signal value
-  *
-  * If a process ends with a core dump, something fishy is going on and we
-  * should record the event for investigation.
+ # cscope files
+ cscope.*
++
++*.orig
++*.rej
+diff -puN usr/.gitignore~gitignore-update usr/.gitignore
+--- a/usr/.gitignore~gitignore-update
++++ a/usr/.gitignore
+@@ -5,3 +5,4 @@ gen_init_cpio
+ initramfs_data.cpio
+ initramfs_data.cpio.gz
+ initramfs_list
++include
 _
 
-Patches currently in -mm which might be from henne@nachtwindheim.de are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
+fix-sparse-false-positives-re-bug_onptr.patch
