@@ -1,58 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - lzo1x-fix-lzo1x_worst_compress.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:48:12 -0700
-Message-ID: <200707162048.l6GKmC5k001018@imap1.linux-foundation.org>
+Subject: - jbd2-commit-fix-transaction-dropping.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:48:07 -0700
+Message-ID: <200707162048.l6GKm71o001012__23672.2606387504$1184618919$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59913 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57996 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756463AbXGPUsc (ORCPT
+	by vger.kernel.org with ESMTP id S1753281AbXGPUs3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 16:48:32 -0400
+	Mon, 16 Jul 2007 16:48:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nitingupta910@gmail.com, markus@oberhumer.com, rpurdie@openedhand.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, cebbert@redhat.com, dev@openvz.org, linux-ext4@vger.kernel.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     LZO1X: fix lzo1x_worst_compress
+     jbd2 commit: fix transaction dropping
 has been removed from the -mm tree.  Its filename was
-     lzo1x-fix-lzo1x_worst_compress.patch
+     jbd2-commit-fix-transaction-dropping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: LZO1X: fix lzo1x_worst_compress
-From: "Nitin Gupta" <nitingupta910@gmail.com>
+Subject: jbd2 commit: fix transaction dropping
+From: Jan Kara <jack@suse.cz>
 
-This is a correction for a macro which gives worst case compressed data
-size by LZO1X.
+We have to check that also the second checkpoint list is non-empty before
+dropping the transaction.
 
-This patch was provided by the LZO author (Markus Oberhumer).
-
-Signed-off-by: Nitin Gupta <nitingupta910@gmail.com>
-Cc: "Markus F.X.J. Oberhumer" <markus@oberhumer.com>
-Cc: "Richard Purdie" <rpurdie@openedhand.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Chuck Ebbert <cebbert@redhat.com>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lzo.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/jbd2/commit.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/lzo.h~lzo1x-fix-lzo1x_worst_compress include/linux/lzo.h
---- a/include/linux/lzo.h~lzo1x-fix-lzo1x_worst_compress
-+++ a/include/linux/lzo.h
-@@ -17,7 +17,7 @@
- #define LZO1X_MEM_COMPRESS	(16384 * sizeof(unsigned char *))
- #define LZO1X_1_MEM_COMPRESS	LZO1X_MEM_COMPRESS
+diff -puN fs/jbd2/commit.c~jbd2-commit-fix-transaction-dropping fs/jbd2/commit.c
+--- a/fs/jbd2/commit.c~jbd2-commit-fix-transaction-dropping
++++ a/fs/jbd2/commit.c
+@@ -896,7 +896,8 @@ restart_loop:
+ 	journal->j_committing_transaction = NULL;
+ 	spin_unlock(&journal->j_state_lock);
  
--#define lzo1x_worst_compress(x) (x + (x / 64) + 16 + 3)
-+#define lzo1x_worst_compress(x) ((x) + ((x) / 16) + 64 + 3)
- 
- /* This requires 'workmem' of size LZO1X_1_MEM_COMPRESS */
- int lzo1x_1_compress(const unsigned char *src, size_t src_len,
+-	if (commit_transaction->t_checkpoint_list == NULL) {
++	if (commit_transaction->t_checkpoint_list == NULL &&
++	    commit_transaction->t_checkpoint_io_list == NULL) {
+ 		__jbd2_journal_drop_transaction(journal, commit_transaction);
+ 	} else {
+ 		if (journal->j_checkpoint_transactions == NULL) {
 _
 
-Patches currently in -mm which might be from nitingupta910@gmail.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
