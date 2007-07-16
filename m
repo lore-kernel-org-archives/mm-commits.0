@@ -1,111 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - cris-replace-old-style-member-inits-with-designated-inits.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:58 -0700
-Message-ID: <200707162050.l6GKownT001352@imap1.linux-foundation.org>
+Subject: - init-wait-for-asynchronously-scanned-block-devices.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:55:39 -0700
+Message-ID: <200707162055.l6GKtdIK001950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35744 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48320 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759398AbXGPV0u (ORCPT
+	by vger.kernel.org with ESMTP id S1759751AbXGPV1F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:26:50 -0400
+	Mon, 16 Jul 2007 17:27:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: drzeus-list@drzeus.cx, bunk@stusta.de, drzeus@drzeus.cx, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRIS: replace old-style member inits with designated inits
+     init: wait for asynchronously scanned block devices
 has been removed from the -mm tree.  Its filename was
-     cris-replace-old-style-member-inits-with-designated-inits.patch
+     init-wait-for-asynchronously-scanned-block-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CRIS: replace old-style member inits with designated inits
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: init: wait for asynchronously scanned block devices
+From: Pierre Ossman <drzeus-list@drzeus.cx>
 
-Replace the old-style structure member initializers with designated
-initializers.
+Some buses (e.g.  USB and MMC) do their scanning of devices in the
+background, causing a race between them and prepare_namespace().  In order
+to be able to use these buses without an initrd, we now wait for the device
+specified in root= to actually show up.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Mikael Starvik <starvik@axis.com>
+If the device never shows up than we will hang in an infinite loop.  In
+order to not mess with setups that reboot on panic, the feature must be
+turned on via the command line option "rootwait".
+
+[bunk@stusta.de: root_wait can become static]
+Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/drivers/cryptocop.c |    8 ++++----
- arch/cris/arch-v32/drivers/i2c.c       |    8 ++++----
- arch/cris/arch-v32/drivers/pcf8563.c   |    8 ++++----
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ Documentation/kernel-parameters.txt |    4 ++++
+ init/do_mounts.c                    |   24 ++++++++++++++++++++++--
+ 2 files changed, 26 insertions(+), 2 deletions(-)
 
-diff -puN arch/cris/arch-v32/drivers/cryptocop.c~cris-replace-old-style-member-inits-with-designated-inits arch/cris/arch-v32/drivers/cryptocop.c
---- a/arch/cris/arch-v32/drivers/cryptocop.c~cris-replace-old-style-member-inits-with-designated-inits
-+++ a/arch/cris/arch-v32/drivers/cryptocop.c
-@@ -267,10 +267,10 @@ static void print_user_dma_lists(struct 
+diff -puN Documentation/kernel-parameters.txt~init-wait-for-asynchronously-scanned-block-devices Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~init-wait-for-asynchronously-scanned-block-devices
++++ a/Documentation/kernel-parameters.txt
+@@ -1504,6 +1504,10 @@ and is between 256 and 4096 characters. 
  
+ 	rootfstype=	[KNL] Set root filesystem type
  
- const struct file_operations cryptocop_fops = {
--	owner: THIS_MODULE,
--	open: cryptocop_open,
--	release: cryptocop_release,
--	ioctl: cryptocop_ioctl
-+	.owner =	THIS_MODULE,
-+	.open =		cryptocop_open,
-+	.release =	cryptocop_release,
-+	.ioctl =	cryptocop_ioctl
- };
++	rootwait	[KNL] Wait (indefinitely) for root device to show up.
++			Useful for devices that are detected asynchronously
++			(e.g. USB and MMC devices).
++
+ 	rw		[KNL] Mount root device read-write on boot
  
+ 	S		[KNL] Run init in single mode
+diff -puN init/do_mounts.c~init-wait-for-asynchronously-scanned-block-devices init/do_mounts.c
+--- a/init/do_mounts.c~init-wait-for-asynchronously-scanned-block-devices
++++ a/init/do_mounts.c
+@@ -25,6 +25,7 @@ int __initdata rd_doload;	/* 1 = load RA
+ int root_mountflags = MS_RDONLY | MS_SILENT;
+ char * __initdata root_device_name;
+ static char __initdata saved_root_name[64];
++static int __initdata root_wait;
  
-diff -puN arch/cris/arch-v32/drivers/i2c.c~cris-replace-old-style-member-inits-with-designated-inits arch/cris/arch-v32/drivers/i2c.c
---- a/arch/cris/arch-v32/drivers/i2c.c~cris-replace-old-style-member-inits-with-designated-inits
-+++ a/arch/cris/arch-v32/drivers/i2c.c
-@@ -574,10 +574,10 @@ i2c_ioctl(struct inode *inode, struct fi
- }
+ dev_t ROOT_DEV;
  
- static const struct file_operations i2c_fops = {
--	owner:    THIS_MODULE,
--	ioctl:    i2c_ioctl,
--	open:     i2c_open,
--	release:  i2c_release,
-+	.owner =    THIS_MODULE,
-+	.ioctl =    i2c_ioctl,
-+	.open =     i2c_open,
-+	.release =  i2c_release,
- };
+@@ -216,6 +217,16 @@ static int __init root_dev_setup(char *l
  
- int __init
-diff -puN arch/cris/arch-v32/drivers/pcf8563.c~cris-replace-old-style-member-inits-with-designated-inits arch/cris/arch-v32/drivers/pcf8563.c
---- a/arch/cris/arch-v32/drivers/pcf8563.c~cris-replace-old-style-member-inits-with-designated-inits
-+++ a/arch/cris/arch-v32/drivers/pcf8563.c
-@@ -51,10 +51,10 @@ int pcf8563_open(struct inode *, struct 
- int pcf8563_release(struct inode *, struct file *);
+ __setup("root=", root_dev_setup);
  
- static const struct file_operations pcf8563_fops = {
--	owner: THIS_MODULE,
--	ioctl: pcf8563_ioctl,
--	open: pcf8563_open,
--	release: pcf8563_release,
-+	.owner =	THIS_MODULE,
-+	.ioctl =	pcf8563_ioctl,
-+	.open =		pcf8563_open,
-+	.release =	pcf8563_release,
- };
++static int __init rootwait_setup(char *str)
++{
++	if (*str)
++		return 0;
++	root_wait = 1;
++	return 1;
++}
++
++__setup("rootwait", rootwait_setup);
++
+ static char * __initdata root_mount_data;
+ static int __init root_data_setup(char *str)
+ {
+@@ -438,11 +449,20 @@ void __init prepare_namespace(void)
+ 			root_device_name += 5;
+ 	}
  
- unsigned char
+-	is_floppy = MAJOR(ROOT_DEV) == FLOPPY_MAJOR;
+-
+ 	if (initrd_load())
+ 		goto out;
+ 
++	/* wait for any asynchronous scanning to complete */
++	if ((ROOT_DEV == 0) && root_wait) {
++		printk(KERN_INFO "Waiting for root device %s...\n",
++			saved_root_name);
++		while (driver_probe_done() != 0 ||
++			(ROOT_DEV = name_to_dev_t(saved_root_name)) == 0)
++			msleep(100);
++	}
++
++	is_floppy = MAJOR(ROOT_DEV) == FLOPPY_MAJOR;
++
+ 	if (is_floppy && rd_doload && rd_load_disk(0))
+ 		ROOT_DEV = Root_RAM0;
+ 
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from drzeus-list@drzeus.cx are
 
 origin.patch
-git-alsa.patch
-git-powerpc.patch
-git-dvb.patch
-git-kbuild.patch
-git-kvm.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-remove-dead-references-to-module_parm-macro.patch
-git-watchdog.patch
-i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
-i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
-i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
-mm-make-needlessly-global-hugetlb_no_page-static.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
