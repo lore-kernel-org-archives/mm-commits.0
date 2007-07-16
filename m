@@ -1,149 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - arm26-enable-arbitary-speed-tty-ioctls-and-split.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:46 -0700
-Message-ID: <200707162050.l6GKoko0001333@imap1.linux-foundation.org>
+Subject: - numa-mempolicy-dynamic-interleave-map-for-system-init.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:49:19 -0700
+Message-ID: <200707162049.l6GKnJ7O001151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35999 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34794 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755391AbXGPVg0 (ORCPT
+	by vger.kernel.org with ESMTP id S1757057AbXGPVga (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:36:26 -0400
+	Mon, 16 Jul 2007 17:36:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, rmk+kernel@arm.linux.org.uk, spyro@f2s.com, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, ak@suse.de, clameter@sgi.com, hugh@veritas.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ARM26: enable arbitary speed tty ioctls and split input/output speed
+     numa: mempolicy: dynamic interleave map for system init
 has been removed from the -mm tree.  Its filename was
-     arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
+     numa-mempolicy-dynamic-interleave-map-for-system-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ARM26: enable arbitary speed tty ioctls and split input/output speed
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: numa: mempolicy: dynamic interleave map for system init
+From: Paul Mundt <lethal@linux-sh.org>
 
-Add the ioctls and values needed for this to the ARM26/ARM32 ports.  The
-actual code has been in the base kernel for a while and automatically turns
-on when a port sets the required defines.
+This converts the default system init memory policy to use a dynamically
+created node map instead of defaulting to all online nodes.  Nodes of a
+certain size (>= 16MB) are judged to be suitable for interleave, and are added
+to the map.  If all nodes are smaller in size, the largest one is
+automatically selected.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Ian Molton <spyro@f2s.com>
+Without this, tiny nodes find themselves out of memory before we even make it
+to userspace.  Systems with large nodes will notice no change.
+
+Only the system init policy is effected by this change, the regular
+MPOL_DEFAULT policy is still switched to later on in the boot process as
+normal.
+
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm26/ioctls.h   |    4 ++++
- include/asm-arm26/termbits.h |    5 ++++-
- include/asm-arm26/termios.h  |    6 ++++--
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ mm/mempolicy.c |   31 ++++++++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-arm26/ioctls.h~arm26-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm26/ioctls.h
---- a/include/asm-arm26/ioctls.h~arm26-enable-arbitary-speed-tty-ioctls-and-split
-+++ a/include/asm-arm26/ioctls.h
-@@ -47,6 +47,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	0x5429  /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
- #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
- #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
- 
-diff -puN include/asm-arm26/termbits.h~arm26-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm26/termbits.h
---- a/include/asm-arm26/termbits.h~arm26-enable-arbitary-speed-tty-ioctls-and-split
-+++ a/include/asm-arm26/termbits.h
-@@ -138,6 +138,7 @@ struct ktermios {
- #define HUPCL	0002000
- #define CLOCAL	0004000
- #define CBAUDEX 0010000
-+#define   BOTHER  0010000
- #define    B57600 0010001
- #define   B115200 0010002
- #define   B230400 0010003
-@@ -153,10 +154,12 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
--#define CIBAUD	  002003600000	/* input baud rate (not used) */
-+#define CIBAUD	  002003600000		/* input baud rate */
- #define CMSPAR    010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
- 
-+#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
+diff -puN mm/mempolicy.c~numa-mempolicy-dynamic-interleave-map-for-system-init mm/mempolicy.c
+--- a/mm/mempolicy.c~numa-mempolicy-dynamic-interleave-map-for-system-init
++++ a/mm/mempolicy.c
+@@ -1597,6 +1597,10 @@ void mpol_free_shared_policy(struct shar
+ /* assumes fs == KERNEL_DS */
+ void __init numa_policy_init(void)
+ {
++	nodemask_t interleave_nodes;
++	unsigned long largest = 0;
++	int nid, prefer = 0;
 +
- /* c_lflag bits */
- #define ISIG	0000001
- #define ICANON	0000002
-diff -puN include/asm-arm26/termios.h~arm26-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm26/termios.h
---- a/include/asm-arm26/termios.h~arm26-enable-arbitary-speed-tty-ioctls-and-split
-+++ a/include/asm-arm26/termios.h
-@@ -82,8 +82,10 @@ struct termio {
- 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
- })
+ 	policy_cache = kmem_cache_create("numa_policy",
+ 					 sizeof(struct mempolicy),
+ 					 0, SLAB_PANIC, NULL, NULL);
+@@ -1605,10 +1609,31 @@ void __init numa_policy_init(void)
+ 				     sizeof(struct sp_node),
+ 				     0, SLAB_PANIC, NULL, NULL);
  
--#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
--#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
-+#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
-+#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
-+#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
-+#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
+-	/* Set interleaving policy for system init. This way not all
+-	   the data structures allocated at system boot end up in node zero. */
++	/*
++	 * Set interleaving policy for system init. Interleaving is only
++	 * enabled across suitably sized nodes (default is >= 16MB), or
++	 * fall back to the largest node if they're all smaller.
++	 */
++	nodes_clear(interleave_nodes);
++	for_each_online_node(nid) {
++		unsigned long total_pages = node_present_pages(nid);
++
++		/* Preserve the largest node */
++		if (largest < total_pages) {
++			largest = total_pages;
++			prefer = nid;
++		}
++
++		/* Interleave this node? */
++		if ((total_pages << PAGE_SHIFT) >= (16 << 20))
++			node_set(nid, interleave_nodes);
++	}
++
++	/* All too small, use the largest */
++	if (unlikely(nodes_empty(interleave_nodes)))
++		node_set(prefer, interleave_nodes);
  
- #endif	/* __KERNEL__ */
+-	if (do_set_mempolicy(MPOL_INTERLEAVE, &node_online_map))
++	if (do_set_mempolicy(MPOL_INTERLEAVE, &interleave_nodes))
+ 		printk("numa_policy_init: interleaving failed\n");
+ }
  
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
-git-powerpc.patch
-git-ia64.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-sb1250-duartc-sb1250-duart-serial-support.patch
-mbcs-remove-lots-of-global-symbols.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+fb-epson1355fb-kill-off-dead-sh-support.patch
