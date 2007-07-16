@@ -1,102 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - frv-remove-some-dead-code.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:08 -0700
-Message-ID: <200707162050.l6GKo8aW001294@imap1.linux-foundation.org>
+Subject: - mm-more-__meminit-annotations.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:49:35 -0700
+Message-ID: <200707162049.l6GKnZOV001174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55392 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56024 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760714AbXGPVZ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753825AbXGPV0T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:25:57 -0400
+	Mon, 16 Jul 2007 17:26:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     FRV: Remove some dead code
+     mm: more __meminit annotations
 has been removed from the -mm tree.  Its filename was
-     frv-remove-some-dead-code.patch
+     mm-more-__meminit-annotations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: FRV: Remove some dead code
-From: David Howells <dhowells@redhat.com>
+Subject: mm: more __meminit annotations
+From: Paul Mundt <lethal@linux-sh.org>
 
-Remove some dead chunks of code that are bounded by preprocessor conditionals
-controlled by apparently no-longer available config options.
+Currently zone_spanned_pages_in_node() and zone_absent_pages_in_node() are
+non-static for ARCH_POPULATES_NODE_MAP and static otherwise.  However, only
+the non-static versions are __meminit annotated, despite only being called
+from __meminit functions in either case.
 
-These are:
+zone_init_free_lists() is currently non-static and not __meminit annotated
+either, despite only being called once in the entire tree by
+init_currently_empty_zone(), which too is __meminit.  So make it static and
+properly annotated.
 
-	CONFIG_BLK_DEV_BLKMEM
-	CONFIG_CHR_DEV_FLASH
-	CONFIG_BLK_DEV_FLASH
-	CONFIG_CONSOLE
-
-[Found by Robert P. J. Day <rpjday@mindspring.com>]
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/setup.c |   16 ----------------
- 1 file changed, 16 deletions(-)
+ mm/page_alloc.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/frv/kernel/setup.c~frv-remove-some-dead-code arch/frv/kernel/setup.c
---- a/arch/frv/kernel/setup.c~frv-remove-some-dead-code
-+++ a/arch/frv/kernel/setup.c
-@@ -60,10 +60,6 @@ static void __init setup_linux_memory(vo
- static void __init setup_uclinux_memory(void);
- #endif
+diff -puN mm/page_alloc.c~mm-more-__meminit-annotations mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-more-__meminit-annotations
++++ a/mm/page_alloc.c
+@@ -2182,8 +2182,8 @@ void __meminit memmap_init_zone(unsigned
+ 	}
+ }
  
--#ifdef CONFIG_CONSOLE
--extern struct consw *conswitchp;
--#endif
--
- #ifdef CONFIG_MB93090_MB00
- static char __initdata mb93090_banner[] = "FJ/RH FR-V Linux";
- static char __initdata mb93090_version[] = UTS_RELEASE;
-@@ -795,13 +791,6 @@ void __init setup_arch(char **cmdline_p)
- #endif
- #endif
+-void zone_init_free_lists(struct pglist_data *pgdat, struct zone *zone,
+-				unsigned long size)
++static void __meminit zone_init_free_lists(struct pglist_data *pgdat,
++				struct zone *zone, unsigned long size)
+ {
+ 	int order;
+ 	for (order = 0; order < MAX_ORDER ; order++) {
+@@ -2660,7 +2660,7 @@ void __meminit get_pfn_range_for_nid(uns
+  * Return the number of pages a zone spans in a node, including holes
+  * present_pages = zone_spanned_pages_in_node() - zone_absent_pages_in_node()
+  */
+-unsigned long __meminit zone_spanned_pages_in_node(int nid,
++static unsigned long __meminit zone_spanned_pages_in_node(int nid,
+ 					unsigned long zone_type,
+ 					unsigned long *ignored)
+ {
+@@ -2748,7 +2748,7 @@ unsigned long __init absent_pages_in_ran
+ }
  
--#if defined(CONFIG_CHR_DEV_FLASH) || defined(CONFIG_BLK_DEV_FLASH)
--	/* we need to initialize the Flashrom device here since we might
--	 * do things with flash early on in the boot
--	 */
--	flash_probe();
--#endif
--
- 	/* deal with the command line - RedBoot may have passed one to the kernel */
- 	memcpy(command_line, boot_command_line, sizeof(command_line));
- 	*cmdline_p = &command_line[0];
-@@ -837,11 +826,6 @@ void __init setup_arch(char **cmdline_p)
- #endif
- #endif
+ /* Return the number of page frames in holes in a zone on a node */
+-unsigned long __meminit zone_absent_pages_in_node(int nid,
++static unsigned long __meminit zone_absent_pages_in_node(int nid,
+ 					unsigned long zone_type,
+ 					unsigned long *ignored)
+ {
+@@ -2765,14 +2765,14 @@ unsigned long __meminit zone_absent_page
+ }
  
--#ifdef CONFIG_BLK_DEV_BLKMEM
--	ROOT_DEV = MKDEV(BLKMEM_MAJOR,0);
--#endif
--	/*rom_length = (unsigned long)&_flashend - (unsigned long)&_romvec;*/
--
- #ifdef CONFIG_MMU
- 	setup_linux_memory();
  #else
+-static inline unsigned long zone_spanned_pages_in_node(int nid,
++static inline unsigned long __meminit zone_spanned_pages_in_node(int nid,
+ 					unsigned long zone_type,
+ 					unsigned long *zones_size)
+ {
+ 	return zones_size[zone_type];
+ }
+ 
+-static inline unsigned long zone_absent_pages_in_node(int nid,
++static inline unsigned long __meminit zone_absent_pages_in_node(int nid,
+ 						unsigned long zone_type,
+ 						unsigned long *zholes_size)
+ {
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-document-page_mkwrite-locking.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-mutex-subsystem-synchro-test-module.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+fb-epson1355fb-kill-off-dead-sh-support.patch
