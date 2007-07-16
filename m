@@ -1,197 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - modules-remove-modlist_lock.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:59:03 -0700
-Message-ID: <200707162059.l6GKx3wj002397@imap1.linux-foundation.org>
+Subject: - fix-xfs_ioc__to_handle-and-xfs_ioc_openreadlink_by_handle-in-compat-mode.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 14:00:35 -0700
+Message-ID: <200707162100.l6GL0ZBn002639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51700 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55663 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756471AbXGPVSE (ORCPT
+	by vger.kernel.org with ESMTP id S1763408AbXGPVRa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:18:04 -0400
+	Mon, 16 Jul 2007 17:17:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, mingo@elte.hu, tobiasoed@hotmail.com, mm-commits@vger.kernel.org
+To: mmarek@suse.cz, dgc@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     modules: remove modlist_lock
+     xfs: fix XFS_IOC_*_TO_HANDLE and XFS_IOC_{OPEN,READLINK}_BY_HANDLE in compat mode
 has been removed from the -mm tree.  Its filename was
-     modules-remove-modlist_lock.patch
+     fix-xfs_ioc__to_handle-and-xfs_ioc_openreadlink_by_handle-in-compat-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: modules: remove modlist_lock
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: xfs: fix XFS_IOC_*_TO_HANDLE and XFS_IOC_{OPEN,READLINK}_BY_HANDLE in compat mode
+From: Michal Marek <mmarek@suse.cz>
 
-Now we always use stop_machine for module insertion or deletion, we no
-longer need the modlist_lock: merely disabling preemption is sufficient to
-block against list manipulation.  This avoids deadlock on OOPSen where we
-can potentially grab the lock twice.
+32bit struct xfs_fsop_handlereq has different size and offsets (due to
+pointers).  TODO: case XFS_IOC_{FSSETDM,ATTRLIST,ATTRMULTI}_BY_HANDLE still
+not handled.
 
-Bug: 8695
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Tobias Oed <tobiasoed@hotmail.com>
+Signed-off-by: Michal Marek <mmarek@suse.cz>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |   36 +++++++++++++++---------------------
- 1 file changed, 15 insertions(+), 21 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl32.c |   57 ++++++++++++++++++++++++++++---
+ 1 file changed, 52 insertions(+), 5 deletions(-)
 
-diff -puN kernel/module.c~modules-remove-modlist_lock kernel/module.c
---- a/kernel/module.c~modules-remove-modlist_lock
-+++ a/kernel/module.c
-@@ -61,10 +61,8 @@ extern int module_sysfs_initialized;
- /* If this is set, the section belongs in the init part of the module */
- #define INIT_OFFSET_MASK (1UL << (BITS_PER_LONG-1))
- 
--/* Protects module list */
--static DEFINE_SPINLOCK(modlist_lock);
--
--/* List of modules, protected by module_mutex AND modlist_lock */
-+/* List of modules, protected by module_mutex or preempt_disable
-+ * (add/delete uses stop_machine). */
- static DEFINE_MUTEX(module_mutex);
- static LIST_HEAD(modules);
- 
-@@ -760,14 +758,13 @@ static void print_unload_info(struct seq
- void __symbol_put(const char *symbol)
- {
- 	struct module *owner;
--	unsigned long flags;
- 	const unsigned long *crc;
- 
--	spin_lock_irqsave(&modlist_lock, flags);
-+	preempt_disable();
- 	if (!__find_symbol(symbol, &owner, &crc, 1))
- 		BUG();
- 	module_put(owner);
--	spin_unlock_irqrestore(&modlist_lock, flags);
-+	preempt_enable();
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc__to_handle-and-xfs_ioc_openreadlink_by_handle-in-compat-mode fs/xfs/linux-2.6/xfs_ioctl32.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc__to_handle-and-xfs_ioc_openreadlink_by_handle-in-compat-mode
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
+@@ -141,6 +141,50 @@ xfs_ioctl32_bulkstat(
  }
- EXPORT_SYMBOL(__symbol_put);
+ #endif
  
-@@ -1228,14 +1225,14 @@ static void free_module(struct module *m
- void *__symbol_get(const char *symbol)
- {
- 	struct module *owner;
--	unsigned long value, flags;
-+	unsigned long value;
- 	const unsigned long *crc;
- 
--	spin_lock_irqsave(&modlist_lock, flags);
-+	preempt_disable();
- 	value = __find_symbol(symbol, &owner, &crc, 1);
- 	if (value && !strong_try_module_get(owner))
- 		value = 0;
--	spin_unlock_irqrestore(&modlist_lock, flags);
-+	preempt_enable();
- 
- 	return (void *)value;
- }
-@@ -2308,11 +2305,10 @@ const struct seq_operations modules_op =
- /* Given an address, look for it in the module exception tables. */
- const struct exception_table_entry *search_module_extables(unsigned long addr)
- {
--	unsigned long flags;
- 	const struct exception_table_entry *e = NULL;
- 	struct module *mod;
- 
--	spin_lock_irqsave(&modlist_lock, flags);
-+	preempt_disable();
- 	list_for_each_entry(mod, &modules, list) {
- 		if (mod->num_exentries == 0)
- 			continue;
-@@ -2323,7 +2319,7 @@ const struct exception_table_entry *sear
- 		if (e)
- 			break;
++typedef struct compat_xfs_fsop_handlereq {
++	__u32		fd;		/* fd for FD_TO_HANDLE		*/
++	compat_uptr_t	path;		/* user pathname		*/
++	__u32		oflags;		/* open flags			*/
++	compat_uptr_t	ihandle;	/* user supplied handle		*/
++	__u32		ihandlen;	/* user supplied length		*/
++	compat_uptr_t	ohandle;	/* user buffer for handle	*/
++	compat_uptr_t	ohandlen;	/* user buffer length		*/
++} compat_xfs_fsop_handlereq_t;
++
++#define XFS_IOC_PATH_TO_FSHANDLE_32 \
++	_IOWR('X', 104, struct compat_xfs_fsop_handlereq)
++#define XFS_IOC_PATH_TO_HANDLE_32 \
++	_IOWR('X', 105, struct compat_xfs_fsop_handlereq)
++#define XFS_IOC_FD_TO_HANDLE_32 \
++	_IOWR('X', 106, struct compat_xfs_fsop_handlereq)
++#define XFS_IOC_OPEN_BY_HANDLE_32 \
++	_IOWR('X', 107, struct compat_xfs_fsop_handlereq)
++#define XFS_IOC_READLINK_BY_HANDLE_32 \
++	_IOWR('X', 108, struct compat_xfs_fsop_handlereq)
++
++STATIC unsigned long xfs_ioctl32_fshandle(unsigned long arg)
++{
++	compat_xfs_fsop_handlereq_t __user *p32 = (void __user *)arg;
++	xfs_fsop_handlereq_t __user *p = compat_alloc_user_space(sizeof(*p));
++	u32 addr;
++
++	if (copy_in_user(&p->fd, &p32->fd, sizeof(__u32)) ||
++	    get_user(addr, &p32->path) ||
++	    put_user(compat_ptr(addr), &p->path) ||
++	    copy_in_user(&p->oflags, &p32->oflags, sizeof(__u32)) ||
++	    get_user(addr, &p32->ihandle) ||
++	    put_user(compat_ptr(addr), &p->ihandle) ||
++	    copy_in_user(&p->ihandlen, &p32->ihandlen, sizeof(__u32)) ||
++	    get_user(addr, &p32->ohandle) ||
++	    put_user(compat_ptr(addr), &p->ohandle) ||
++	    get_user(addr, &p32->ohandlen) ||
++	    put_user(compat_ptr(addr), &p->ohandlen))
++		return -EFAULT;
++
++	return (unsigned long)p;
++}
++
++
+ STATIC long
+ xfs_compat_ioctl(
+ 	int		mode,
+@@ -166,12 +210,7 @@ xfs_compat_ioctl(
+ 	case XFS_IOC_GETBMAPA:
+ 	case XFS_IOC_GETBMAPX:
+ /* not handled
+-	case XFS_IOC_FD_TO_HANDLE:
+-	case XFS_IOC_PATH_TO_HANDLE:
+-	case XFS_IOC_PATH_TO_FSHANDLE:
+-	case XFS_IOC_OPEN_BY_HANDLE:
+ 	case XFS_IOC_FSSETDM_BY_HANDLE:
+-	case XFS_IOC_READLINK_BY_HANDLE:
+ 	case XFS_IOC_ATTRLIST_BY_HANDLE:
+ 	case XFS_IOC_ATTRMULTI_BY_HANDLE:
+ */
+@@ -228,6 +267,14 @@ xfs_compat_ioctl(
+ 		arg = xfs_ioctl32_bulkstat(arg);
+ 		break;
+ #endif
++	case XFS_IOC_FD_TO_HANDLE_32:
++	case XFS_IOC_PATH_TO_HANDLE_32:
++	case XFS_IOC_PATH_TO_FSHANDLE_32:
++	case XFS_IOC_OPEN_BY_HANDLE_32:
++	case XFS_IOC_READLINK_BY_HANDLE_32:
++		arg = xfs_ioctl32_fshandle(arg);
++		cmd = _NATIVE_IOC(cmd, struct xfs_fsop_handlereq);
++		break;
+ 	default:
+ 		return -ENOIOCTLCMD;
  	}
--	spin_unlock_irqrestore(&modlist_lock, flags);
-+	preempt_enable();
- 
- 	/* Now, if we found one, we are running inside it now, hence
-            we cannot unload the module, hence no refcnt needed. */
-@@ -2335,25 +2331,24 @@ const struct exception_table_entry *sear
-  */
- int is_module_address(unsigned long addr)
- {
--	unsigned long flags;
- 	struct module *mod;
- 
--	spin_lock_irqsave(&modlist_lock, flags);
-+	preempt_disable();
- 
- 	list_for_each_entry(mod, &modules, list) {
- 		if (within(addr, mod->module_core, mod->core_size)) {
--			spin_unlock_irqrestore(&modlist_lock, flags);
-+			preempt_enable();
- 			return 1;
- 		}
- 	}
- 
--	spin_unlock_irqrestore(&modlist_lock, flags);
-+	preempt_enable();
- 
- 	return 0;
- }
- 
- 
--/* Is this a valid kernel address?  We don't grab the lock: we are oopsing. */
-+/* Is this a valid kernel address? */
- struct module *__module_text_address(unsigned long addr)
- {
- 	struct module *mod;
-@@ -2368,11 +2363,10 @@ struct module *__module_text_address(uns
- struct module *module_text_address(unsigned long addr)
- {
- 	struct module *mod;
--	unsigned long flags;
- 
--	spin_lock_irqsave(&modlist_lock, flags);
-+	preempt_disable();
- 	mod = __module_text_address(addr);
--	spin_unlock_irqrestore(&modlist_lock, flags);
-+	preempt_enable();
- 
- 	return mod;
- }
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from mmarek@suse.cz are
 
 origin.patch
-git-kbuild.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-lguest-export-symbols-for-lguest-as-a-module.patch
-lguest-the-guest-code.patch
-lguest-the-host-code.patch
-lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
-lguest-the-host-code-remove-usage-and-export-of-__put_task_struct.patch
-lguest-the-host-code-disable-sysenter-for-guests.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
-lguest-the-net-driver.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
-readahead-introduce-pg_readahead.patch
-readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
-readahead-min_ra_pages-max_ra_pages-macros.patch
-readahead-data-structure-and-routines.patch
-readahead-on-demand-readahead-logic.patch
-readahead-convert-filemap-invocations.patch
-readahead-convert-splice-invocations.patch
-readahead-convert-ext3-ext4-invocations.patch
-readahead-remove-the-old-algorithm.patch
-readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
-readahead-pass-real-splice-size.patch
-mm-share-pg_readahead-and-pg_reclaim.patch
-readahead-split-ondemand-readahead-interface-into-two-functions.patch
-readahead-sanify-file_ra_state-names.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+git-xfs.patch
