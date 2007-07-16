@@ -1,102 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - remove-the-last-few-umsdos-leftovers.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:58:51 -0700
-Message-ID: <200707162058.l6GKwpU9002373@imap1.linux-foundation.org>
+Subject: - nbdcsock_xmit-cleanup-signal-related-code.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:58:11 -0700
+Message-ID: <200707162058.l6GKwBik002327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60258 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48097 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758362AbXGPVPL (ORCPT
+	by vger.kernel.org with ESMTP id S1758957AbXGPVPN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:11 -0400
+	Mon, 16 Jul 2007 17:15:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, hpa@zytor.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, paul.clements@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove the last few UMSDOS leftovers
+     nbd.c: sock_xmit: cleanup signal related code
 has been removed from the -mm tree.  Its filename was
-     remove-the-last-few-umsdos-leftovers.patch
+     nbdcsock_xmit-cleanup-signal-related-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove the last few UMSDOS leftovers
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: nbd.c: sock_xmit: cleanup signal related code
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The UMSDOS filesystem was removed back in 2.6.11, but some tiny bits stuck
-around.  This patch removes the few remaining leftovers.  The only things
-left behind after this are the entries in the CREDITS file and the ioctl
-number in Documentation/ioctl-number.txt as documentation.
+sock_xmit() re-implements sigprocmask() and dequeue_signal_lock().
 
-This third (hopefully final) version of the patch doesn't edit the
-arch/um/config.release file, since Jeff Dike pointed out to me that it
-should die completely, and asked me to remove it from my patch as he'll
-send in a seperate patch removing the file completely.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ioctl-number.txt |    2 +-
- arch/arm26/defconfig           |    1 -
- arch/cris/arch-v10/defconfig   |    1 -
- include/linux/ncp_fs.h         |    2 --
- 4 files changed, 1 insertion(+), 5 deletions(-)
+ drivers/block/nbd.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
 
-diff -puN Documentation/ioctl-number.txt~remove-the-last-few-umsdos-leftovers Documentation/ioctl-number.txt
---- a/Documentation/ioctl-number.txt~remove-the-last-few-umsdos-leftovers
-+++ a/Documentation/ioctl-number.txt
-@@ -67,7 +67,7 @@ Code	Seq#	Include File		Comments
- 0x00	00-1F	linux/wavefront.h	conflict!
- 0x02	all	linux/fd.h
- 0x03	all	linux/hdreg.h
--0x04	all	linux/umsdos_fs.h
-+0x04	D2-DC	linux/umsdos_fs.h	Dead since 2.6.11, but don't reuse these.
- 0x06	all	linux/lp.h
- 0x09	all	linux/md.h
- 0x12	all	linux/fs.h
-diff -puN arch/arm26/defconfig~remove-the-last-few-umsdos-leftovers arch/arm26/defconfig
---- a/arch/arm26/defconfig~remove-the-last-few-umsdos-leftovers
-+++ a/arch/arm26/defconfig
-@@ -248,7 +248,6 @@ CONFIG_I2C_CHARDEV=y
- # CONFIG_JBD_DEBUG is not set
- # CONFIG_FAT_FS is not set
- # CONFIG_MSDOS_FS is not set
--# CONFIG_UMSDOS_FS is not set
- # CONFIG_VFAT_FS is not set
- # CONFIG_EFS_FS is not set
- # CONFIG_JFFS_FS is not set
-diff -puN arch/cris/arch-v10/defconfig~remove-the-last-few-umsdos-leftovers arch/cris/arch-v10/defconfig
---- a/arch/cris/arch-v10/defconfig~remove-the-last-few-umsdos-leftovers
-+++ a/arch/cris/arch-v10/defconfig
-@@ -429,7 +429,6 @@ CONFIG_NET_ETHERNET=y
- # CONFIG_BFS_FS is not set
- # CONFIG_FAT_FS is not set
- # CONFIG_MSDOS_FS is not set
--# CONFIG_UMSDOS_FS is not set
- # CONFIG_VFAT_FS is not set
- # CONFIG_EFS_FS is not set
- # CONFIG_JFFS_FS is not set
-diff -puN include/linux/ncp_fs.h~remove-the-last-few-umsdos-leftovers include/linux/ncp_fs.h
---- a/include/linux/ncp_fs.h~remove-the-last-few-umsdos-leftovers
-+++ a/include/linux/ncp_fs.h
-@@ -148,8 +148,6 @@ struct ncp_nls_ioctl
- #include <linux/ncp_fs_i.h>
- #include <linux/ncp_fs_sb.h>
+diff -puN drivers/block/nbd.c~nbdcsock_xmit-cleanup-signal-related-code drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbdcsock_xmit-cleanup-signal-related-code
++++ a/drivers/block/nbd.c
+@@ -122,17 +122,12 @@ static int sock_xmit(struct socket *sock
+ 	int result;
+ 	struct msghdr msg;
+ 	struct kvec iov;
+-	unsigned long flags;
+-	sigset_t oldset;
++	sigset_t blocked, oldset;
  
--/* undef because public define in umsdos_fs.h (ncp_fs.h isn't public) */
--#undef PRINTK
- /* define because it is easy to change PRINTK to {*}PRINTK */
- #define PRINTK(format, args...) printk(KERN_DEBUG format , ## args)
+ 	/* Allow interception of SIGKILL only
+ 	 * Don't allow other signals to interrupt the transmission */
+-	spin_lock_irqsave(&current->sighand->siglock, flags);
+-	oldset = current->blocked;
+-	sigfillset(&current->blocked);
+-	sigdelsetmask(&current->blocked, sigmask(SIGKILL));
+-	recalc_sigpending();
+-	spin_unlock_irqrestore(&current->sighand->siglock, flags);
++	siginitsetinv(&blocked, sigmask(SIGKILL));
++	sigprocmask(SIG_SETMASK, &blocked, &oldset);
  
+ 	do {
+ 		sock->sk->sk_allocation = GFP_NOIO;
+@@ -151,11 +146,9 @@ static int sock_xmit(struct socket *sock
+ 
+ 		if (signal_pending(current)) {
+ 			siginfo_t info;
+-			spin_lock_irqsave(&current->sighand->siglock, flags);
+ 			printk(KERN_WARNING "nbd (pid %d: %s) got signal %d\n",
+-				current->pid, current->comm, 
+-				dequeue_signal(current, &current->blocked, &info));
+-			spin_unlock_irqrestore(&current->sighand->siglock, flags);
++				current->pid, current->comm,
++				dequeue_signal_lock(current, &current->blocked, &info));
+ 			result = -EINTR;
+ 			break;
+ 		}
+@@ -169,10 +162,7 @@ static int sock_xmit(struct socket *sock
+ 		buf += result;
+ 	} while (size > 0);
+ 
+-	spin_lock_irqsave(&current->sighand->siglock, flags);
+-	current->blocked = oldset;
+-	recalc_sigpending();
+-	spin_unlock_irqrestore(&current->sighand->siglock, flags);
++	sigprocmask(SIG_SETMASK, &oldset, NULL);
+ 
+ 	return result;
+ }
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-git-mtd.patch
-remove-unneeded-test-of-task-in-dump_trace.patch
-git-xfs.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-run-show_state-when-freezing-times-out.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+destroy_workqueue-can-livelock.patch
