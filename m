@@ -1,123 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - fault-injection-add-min-order-parameter-to-fail_page_alloc.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:55:15 -0700
-Message-ID: <200707162055.l6GKtFWE001897@imap1.linux-foundation.org>
+Subject: - ext3-remove-extra-is_rdonly-check.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:21 -0700
+Message-ID: <200707162057.l6GKvLae002182__36987.4218282805$1184620520$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37138 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47661 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758332AbXGPVOz (ORCPT
+	by vger.kernel.org with ESMTP id S1756995AbXGPVPF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:14:55 -0400
+	Mon, 16 Jul 2007 17:15:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault-injection: add min-order parameter to fail_page_alloc
+     ext3: remove extra IS_RDONLY() check
 has been removed from the -mm tree.  Its filename was
-     fault-injection-add-min-order-parameter-to-fail_page_alloc.patch
+     ext3-remove-extra-is_rdonly-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fault-injection: add min-order parameter to fail_page_alloc
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: ext3: remove extra IS_RDONLY() check
+From: Dave Hansen <haveblue@us.ibm.com>
 
-Limiting smaller allocation failures by fault injection helps to find real
-possible bugs.  Because higher order allocations are likely to fail and
-zero-order allocations are not likely to fail.
+ext3_change_inode_journal_flag() is only called from one location:
+ext3_ioctl(EXT3_IOC_SETFLAGS).  That ioctl case already has a IS_RDONLY()
+call in it so this one is superfluous.
 
-This patch adds min-order parameter to fail_page_alloc.  It specifies the
-minimum page allocation order to be injected failures.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fault-injection/fault-injection.txt |    5 +++++
- mm/page_alloc.c                                   |   12 +++++++++++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ fs/ext3/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-add-min-order-parameter-to-fail_page_alloc Documentation/fault-injection/fault-injection.txt
---- a/Documentation/fault-injection/fault-injection.txt~fault-injection-add-min-order-parameter-to-fail_page_alloc
-+++ a/Documentation/fault-injection/fault-injection.txt
-@@ -103,6 +103,11 @@ configuration of fault-injection capabil
- 	default is 'N', setting it to 'Y' will inject failures
- 	only into non-sleep allocations (GFP_ATOMIC allocations).
+diff -puN fs/ext3/inode.c~ext3-remove-extra-is_rdonly-check fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-remove-extra-is_rdonly-check
++++ a/fs/ext3/inode.c
+@@ -3195,7 +3195,7 @@ int ext3_change_inode_journal_flag(struc
+ 	 */
  
-+- /debug/fail_page_alloc/min-order:
-+
-+	specifies the minimum page allocation order to be injected
-+	failures.
-+
- o Boot option
+ 	journal = EXT3_JOURNAL(inode);
+-	if (is_journal_aborted(journal) || IS_RDONLY(inode))
++	if (is_journal_aborted(journal))
+ 		return -EROFS;
  
- In order to inject faults while debugfs is not available (early boot time),
-diff -puN mm/page_alloc.c~fault-injection-add-min-order-parameter-to-fail_page_alloc mm/page_alloc.c
---- a/mm/page_alloc.c~fault-injection-add-min-order-parameter-to-fail_page_alloc
-+++ a/mm/page_alloc.c
-@@ -900,11 +900,13 @@ static struct fail_page_alloc_attr {
- 
- 	u32 ignore_gfp_highmem;
- 	u32 ignore_gfp_wait;
-+	u32 min_order;
- 
- #ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
- 
- 	struct dentry *ignore_gfp_highmem_file;
- 	struct dentry *ignore_gfp_wait_file;
-+	struct dentry *min_order_file;
- 
- #endif /* CONFIG_FAULT_INJECTION_DEBUG_FS */
- 
-@@ -912,6 +914,7 @@ static struct fail_page_alloc_attr {
- 	.attr = FAULT_ATTR_INITIALIZER,
- 	.ignore_gfp_wait = 1,
- 	.ignore_gfp_highmem = 1,
-+	.min_order = 1,
- };
- 
- static int __init setup_fail_page_alloc(char *str)
-@@ -922,6 +925,8 @@ __setup("fail_page_alloc=", setup_fail_p
- 
- static int should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
- {
-+	if (order < fail_page_alloc.min_order)
-+		return 0;
- 	if (gfp_mask & __GFP_NOFAIL)
- 		return 0;
- 	if (fail_page_alloc.ignore_gfp_highmem && (gfp_mask & __GFP_HIGHMEM))
-@@ -953,12 +958,17 @@ static int __init fail_page_alloc_debugf
- 	fail_page_alloc.ignore_gfp_highmem_file =
- 		debugfs_create_bool("ignore-gfp-highmem", mode, dir,
- 				      &fail_page_alloc.ignore_gfp_highmem);
-+	fail_page_alloc.min_order_file =
-+		debugfs_create_u32("min-order", mode, dir,
-+				   &fail_page_alloc.min_order);
- 
- 	if (!fail_page_alloc.ignore_gfp_wait_file ||
--			!fail_page_alloc.ignore_gfp_highmem_file) {
-+            !fail_page_alloc.ignore_gfp_highmem_file ||
-+            !fail_page_alloc.min_order_file) {
- 		err = -ENOMEM;
- 		debugfs_remove(fail_page_alloc.ignore_gfp_wait_file);
- 		debugfs_remove(fail_page_alloc.ignore_gfp_highmem_file);
-+		debugfs_remove(fail_page_alloc.min_order_file);
- 		cleanup_fault_attr_dentries(&fail_page_alloc.attr);
- 	}
- 
+ 	journal_lock_updates(journal);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 origin.patch
-git-dvb.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-unregister_chrdev-ignore-the-return-value.patch
-unregister_chrdev-return-void.patch
-unregister_blkdev-do-warn_on-on-failure.patch
-unregister_blkdev-delete-redundant-messages-in-callers.patch
-unregister_blkdev-delete-redundant-message.patch
-unregister_blkdev-return-void.patch
+ext4-remove-extra-is_rdonly-check.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-basic-container-framework.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
+containers-implement-subsys-post_clone.patch
+containers-implement-namespace-tracking-subsystem-v3.patch
+page-owner-tracking-leak-detector.patch
