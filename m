@@ -1,197 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unnecessary-includes-of-spinlockh-under-include-linux.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:58 -0700
-Message-ID: <200707162053.l6GKrwp1001697@imap1.linux-foundation.org>
+Subject: - use-no_pci_devices-in-pci-searchc.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:52:57 -0700
+Message-ID: <200707162052.l6GKqvut001580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50576 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58156 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760496AbXGPVVY (ORCPT
+	by vger.kernel.org with ESMTP id S1760753AbXGPVVn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:21:24 -0400
+	Mon, 16 Jul 2007 17:21:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bzolnier@gmail.com, greg@kroah.com, yanmin.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove unnecessary includes of spinlock.h under include/linux
+     use no_pci_devices() in pci/search.c
 has been removed from the -mm tree.  Its filename was
-     remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
+     use-no_pci_devices-in-pci-searchc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove unnecessary includes of spinlock.h under include/linux
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: use no_pci_devices() in pci/search.c
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove the obviously unnecessary includes of <linux/spinlock.h> under the
-include/linux/ directory, and fix the couple errors that are introduced as
-a result of that.
+We have an API function for this now.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Zhang Yanmin <yanmin.zhang@intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/attribute_container.h |    1 -
- include/linux/capability.h          |    1 -
- include/linux/console.h             |    1 -
- include/linux/ds17287rtc.h          |    1 -
- include/linux/ipc.h                 |    1 +
- include/linux/leds.h                |    1 -
- include/linux/module.h              |    1 -
- include/linux/percpu.h              |    2 +-
- include/linux/scx200_gpio.h         |    2 --
- include/linux/signal.h              |    1 -
- include/linux/smp_lock.h            |    1 -
- include/linux/timer.h               |    1 -
- 12 files changed, 2 insertions(+), 12 deletions(-)
+ drivers/pci/search.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/attribute_container.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/attribute_container.h
---- a/include/linux/attribute_container.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/attribute_container.h
-@@ -12,7 +12,6 @@
- #include <linux/device.h>
- #include <linux/list.h>
- #include <linux/klist.h>
--#include <linux/spinlock.h>
- 
- struct attribute_container {
- 	struct list_head	node;
-diff -puN include/linux/capability.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/capability.h
---- a/include/linux/capability.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/capability.h
-@@ -44,7 +44,6 @@ typedef struct __user_cap_data_struct {
-   
- #ifdef __KERNEL__
- 
--#include <linux/spinlock.h>
- #include <asm/current.h>
- 
- /* #define STRICT_CAP_T_TYPECHECKS */
-diff -puN include/linux/console.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/console.h
---- a/include/linux/console.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/console.h
-@@ -15,7 +15,6 @@
- #define _LINUX_CONSOLE_H_ 1
- 
- #include <linux/types.h>
--#include <linux/spinlock.h>
- 
- struct vc_data;
- struct console_font_op;
-diff -puN include/linux/ds17287rtc.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/ds17287rtc.h
---- a/include/linux/ds17287rtc.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/ds17287rtc.h
-@@ -11,7 +11,6 @@
- #define __LINUX_DS17287RTC_H
- 
- #include <linux/rtc.h>			/* get the user-level API */
--#include <linux/spinlock.h>		/* spinlock_t */
- #include <linux/mc146818rtc.h>
- 
- /* Register A */
-diff -puN include/linux/ipc.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/ipc.h
---- a/include/linux/ipc.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/ipc.h
-@@ -52,6 +52,7 @@ struct ipc_perm
- #ifdef __KERNEL__
- 
- #include <linux/kref.h>
-+#include <linux/spinlock.h>
- 
- #define IPCMNI 32768  /* <= MAX_INT limit for ipc arrays (including sysctl changes) */
- 
-diff -puN include/linux/leds.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/leds.h
---- a/include/linux/leds.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/leds.h
-@@ -13,7 +13,6 @@
- #define __LINUX_LEDS_H_INCLUDED
- 
- #include <linux/list.h>
--#include <linux/spinlock.h>
- 
- struct device;
- struct class_device;
-diff -puN include/linux/module.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/module.h
---- a/include/linux/module.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/module.h
-@@ -6,7 +6,6 @@
-  * Rewritten by Richard Henderson <rth@tamu.edu> Dec 1996
-  * Rewritten again by Rusty Russell, 2002
-  */
--#include <linux/spinlock.h>
- #include <linux/list.h>
- #include <linux/stat.h>
- #include <linux/compiler.h>
-diff -puN include/linux/percpu.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/percpu.h
---- a/include/linux/percpu.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/percpu.h
-@@ -1,7 +1,7 @@
- #ifndef __LINUX_PERCPU_H
- #define __LINUX_PERCPU_H
- 
--#include <linux/spinlock.h> /* For preempt_disable() */
-+#include <linux/preempt.h>
- #include <linux/slab.h> /* For kmalloc() */
- #include <linux/smp.h>
- #include <linux/string.h> /* For memset() */
-diff -puN include/linux/scx200_gpio.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/scx200_gpio.h
---- a/include/linux/scx200_gpio.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/scx200_gpio.h
-@@ -1,5 +1,3 @@
--#include <linux/spinlock.h>
--
- u32 scx200_gpio_configure(unsigned index, u32 set, u32 clear);
- 
- extern unsigned scx200_gpio_base;
-diff -puN include/linux/signal.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/signal.h
---- a/include/linux/signal.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/signal.h
-@@ -6,7 +6,6 @@
- 
- #ifdef __KERNEL__
- #include <linux/list.h>
--#include <linux/spinlock.h>
- 
- /*
-  * Real Time signals may be queued.
-diff -puN include/linux/smp_lock.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/smp_lock.h
---- a/include/linux/smp_lock.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/smp_lock.h
-@@ -3,7 +3,6 @@
- 
- #ifdef CONFIG_LOCK_KERNEL
- #include <linux/sched.h>
--#include <linux/spinlock.h>
- 
- #define kernel_locked()		(current->lock_depth >= 0)
- 
-diff -puN include/linux/timer.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/timer.h
---- a/include/linux/timer.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/timer.h
-@@ -3,7 +3,6 @@
- 
- #include <linux/list.h>
- #include <linux/ktime.h>
--#include <linux/spinlock.h>
- #include <linux/stddef.h>
- 
- struct tvec_t_base_s;
+diff -puN drivers/pci/search.c~use-no_pci_devices-in-pci-searchc drivers/pci/search.c
+--- a/drivers/pci/search.c~use-no_pci_devices-in-pci-searchc
++++ a/drivers/pci/search.c
+@@ -202,7 +202,7 @@ static struct pci_dev * pci_find_subsys(
+ 	 * can cause some machines to crash.  So here we detect and flag that
+ 	 * situation and bail out early.
+ 	 */
+-	if (unlikely(list_empty(&pci_devices)))
++	if (unlikely(no_pci_devices()))
+ 		return NULL;
+ 	down_read(&pci_bus_sem);
+ 	n = from ? from->global_list.next : pci_devices.next;
+@@ -277,7 +277,7 @@ pci_get_subsys(unsigned int vendor, unsi
+ 	 * can cause some machines to crash.  So here we detect and flag that
+ 	 * situation and bail out early.
+ 	 */
+-	if (unlikely(list_empty(&pci_devices)))
++	if (unlikely(no_pci_devices()))
+ 		return NULL;
+ 	down_read(&pci_bus_sem);
+ 	n = from ? from->global_list.next : pci_devices.next;
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
 git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
 git-powerpc.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
 git-dvb.patch
+git-dvb-saa7134-tvaudio-fix.patch
+git-ia64.patch
 git-kbuild.patch
+git-kbuild-fixup.patch
 git-kvm.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-remove-dead-references-to-module_parm-macro.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-ubi.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+git-ocfs2-fixup.patch
+revert-gregkh-pci-pci_bridge-device.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
 git-watchdog.patch
-i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
-i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
-i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
-mm-make-needlessly-global-hugetlb_no_page-static.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-show-unhandled-signals.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+i386-add-cpu_relax-to-cmos_lock.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+i386-speedup-touch_nmi_watchdog.patch
+x86_64-speedup-touch_nmi_watchdog.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support.patch
+spi-master-driver-for-xilinx-virtex.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-remove-iget-abuse.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+rtc-add-rtc-m41t80-driver-take-2.patch
+rtc-add-support-for-the-st-m48t59-rtc.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-driver-for-ds1216-chips-fix.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
