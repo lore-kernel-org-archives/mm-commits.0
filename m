@@ -1,280 +1,421 @@
 From: akpm@linux-foundation.org
-Subject: - ppa-coding-police-and-printk-levels.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 14:00:22 -0700
-Message-ID: <200707162100.l6GL0M76002593@imap1.linux-foundation.org>
+Subject: - add-missing-files-and-dirs-to-00-index-in-documentation.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:58:49 -0700
+Message-ID: <200707162058.l6GKwnQw002370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59567 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59976 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759258AbXGPVQR (ORCPT
+	by vger.kernel.org with ESMTP id S1758803AbXGPVQk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:16:17 -0400
+	Mon, 16 Jul 2007 17:16:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, rob@landley.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ppa: coding police and printk levels
+     Add missing files and dirs to 00-INDEX in Documentation/
 has been removed from the -mm tree.  Its filename was
-     ppa-coding-police-and-printk-levels.patch
+     add-missing-files-and-dirs-to-00-index-in-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ppa: coding police and printk levels
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Add missing files and dirs to 00-INDEX in Documentation/
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Add printk levels
-Clean up some oddities of formatting
-Fix goto labels
+Add descriptions for a number of missing files and directories to the
+Documentation/00-INDEX file.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ppa.c |   57 ++++++++++++++++++++-----------------------
- 1 files changed, 27 insertions(+), 30 deletions(-)
+ Documentation/00-INDEX |  142 ++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 133 insertions(+), 9 deletions(-)
 
-diff -puN drivers/scsi/ppa.c~ppa-coding-police-and-printk-levels drivers/scsi/ppa.c
---- a/drivers/scsi/ppa.c~ppa-coding-police-and-printk-levels
-+++ a/drivers/scsi/ppa.c
-@@ -129,11 +129,11 @@ static inline int ppa_proc_write(ppa_str
- 	if ((length > 10) && (strncmp(buffer, "recon_tmo=", 10) == 0)) {
- 		x = simple_strtoul(buffer + 10, NULL, 0);
- 		dev->recon_tmo = x;
--		printk("ppa: recon_tmo set to %ld\n", x);
-+		printk(KERN_INFO "ppa: recon_tmo set to %ld\n", x);
- 		return length;
- 	}
--	printk("ppa /proc: invalid variable\n");
--	return (-EINVAL);
-+	printk(KERN_WARNING "ppa /proc: invalid variable\n");
-+	return -EINVAL;
- }
+diff -puN Documentation/00-INDEX~add-missing-files-and-dirs-to-00-index-in-documentation Documentation/00-INDEX
+--- a/Documentation/00-INDEX~add-missing-files-and-dirs-to-00-index-in-documentation
++++ a/Documentation/00-INDEX
+@@ -12,6 +12,8 @@ Following translations are available on 
  
- static int ppa_proc_info(struct Scsi_Host *host, char *buffer, char **start, off_t offset, int length, int inout)
-@@ -216,7 +216,7 @@ static unsigned char ppa_wait(ppa_struct
- 
- 	/* Counter expired - Time out occurred */
- 	ppa_fail(dev, DID_TIME_OUT);
--	printk("ppa timeout in ppa_wait\n");
-+	printk(KERN_WARNING "ppa timeout in ppa_wait\n");
- 	return 0;		/* command timed out */
- }
- 
-@@ -248,7 +248,7 @@ static inline void ecp_sync(ppa_struct *
- 				return;
- 			udelay(5);
- 		}
--		printk("ppa: ECP sync failed as data still present in FIFO.\n");
-+		printk(KERN_WARNING "ppa: ECP sync failed as data still present in FIFO.\n");
- 	}
- }
- 
-@@ -328,7 +328,7 @@ static int ppa_out(ppa_struct *dev, char
- 		break;
- 
- 	default:
--		printk("PPA: bug in ppa_out()\n");
-+		printk(KERN_ERR "PPA: bug in ppa_out()\n");
- 		r = 0;
- 	}
- 	return r;
-@@ -381,7 +381,7 @@ static int ppa_in(ppa_struct *dev, char 
- 		break;
- 
- 	default:
--		printk("PPA: bug in ppa_ins()\n");
-+		printk(KERN_ERR "PPA: bug in ppa_ins()\n");
- 		r = 0;
- 		break;
- 	}
-@@ -633,7 +633,7 @@ static void ppa_interrupt(struct work_st
- 	struct scsi_cmnd *cmd = dev->cur_cmd;
- 
- 	if (!cmd) {
--		printk("PPA: bug in ppa_interrupt\n");
-+		printk(KERN_ERR "PPA: bug in ppa_interrupt\n");
- 		return;
- 	}
- 	if (ppa_engine(dev, cmd)) {
-@@ -646,31 +646,31 @@ static void ppa_interrupt(struct work_st
- 	case DID_OK:
- 		break;
- 	case DID_NO_CONNECT:
--		printk("ppa: no device at SCSI ID %i\n", cmd->device->target);
-+		printk(KERN_DEBUG "ppa: no device at SCSI ID %i\n", cmd->device->target);
- 		break;
- 	case DID_BUS_BUSY:
--		printk("ppa: BUS BUSY - EPP timeout detected\n");
-+		printk(KERN_DEBUG "ppa: BUS BUSY - EPP timeout detected\n");
- 		break;
- 	case DID_TIME_OUT:
--		printk("ppa: unknown timeout\n");
-+		printk(KERN_DEBUG "ppa: unknown timeout\n");
- 		break;
- 	case DID_ABORT:
--		printk("ppa: told to abort\n");
-+		printk(KERN_DEBUG "ppa: told to abort\n");
- 		break;
- 	case DID_PARITY:
--		printk("ppa: parity error (???)\n");
-+		printk(KERN_DEBUG "ppa: parity error (???)\n");
- 		break;
- 	case DID_ERROR:
--		printk("ppa: internal driver error\n");
-+		printk(KERN_DEBUG "ppa: internal driver error\n");
- 		break;
- 	case DID_RESET:
--		printk("ppa: told to reset device\n");
-+		printk(KERN_DEBUG "ppa: told to reset device\n");
- 		break;
- 	case DID_BAD_INTR:
--		printk("ppa: bad interrupt (???)\n");
-+		printk(KERN_WARNING "ppa: bad interrupt (???)\n");
- 		break;
- 	default:
--		printk("ppa: bad return code (%02x)\n",
-+		printk(KERN_WARNING "ppa: bad return code (%02x)\n",
- 		       (cmd->result >> 16) & 0xff);
- 	}
- #endif
-@@ -724,8 +724,7 @@ static int ppa_engine(ppa_struct *dev, s
- 
- 			if (retv) {
- 				if (time_after(jiffies, dev->jstart + (1 * HZ))) {
--					printk
--					    ("ppa: Parallel port cable is unplugged!!\n");
-+					printk(KERN_ERR "ppa: Parallel port cable is unplugged.\n");
- 					ppa_fail(dev, DID_BUS_BUSY);
- 					return 0;
- 				} else {
-@@ -755,11 +754,9 @@ static int ppa_engine(ppa_struct *dev, s
- 	case 4:		/* Phase 4 - Setup scatter/gather buffers */
- 		if (cmd->use_sg) {
- 			/* if many buffers are available, start filling the first */
--			cmd->SCp.buffer =
--			    (struct scatterlist *) cmd->request_buffer;
-+			cmd->SCp.buffer = (struct scatterlist *) cmd->request_buffer;
- 			cmd->SCp.this_residual = cmd->SCp.buffer->length;
--			cmd->SCp.ptr =
--			    page_address(cmd->SCp.buffer->page) +
-+			cmd->SCp.ptr = page_address(cmd->SCp.buffer->page) +
- 			    cmd->SCp.buffer->offset;
- 		} else {
- 			/* else fill the only available buffer */
-@@ -800,7 +797,7 @@ static int ppa_engine(ppa_struct *dev, s
- 		break;
- 
- 	default:
--		printk("ppa: Invalid scsi phase\n");
-+		printk(KERN_ERR "ppa: Invalid scsi phase\n");
- 	}
- 	return 0;
- }
-@@ -811,7 +808,7 @@ static int ppa_queuecommand(struct scsi_
- 	ppa_struct *dev = ppa_dev(cmd->device->host);
- 
- 	if (dev->cur_cmd) {
--		printk("PPA: bug in ppa_queuecommand\n");
-+		printk(KERN_ERR "PPA: bug in ppa_queuecommand\n");
- 		return 0;
- 	}
- 	dev->failed = 0;
-@@ -899,7 +896,7 @@ static int device_check(ppa_struct *dev)
- 	/* This routine looks for a device and then attempts to use EPP
- 	   to send a command. If all goes as planned then EPP is available. */
- 
--	static char cmd[6] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-+	static u8 cmd[6] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
- 	int loop, old_mode, status, k, ppb = dev->base;
- 	unsigned char l;
- 
-@@ -909,14 +906,14 @@ static int device_check(ppa_struct *dev)
- 		if ((ppb & 0x0007) == 0x0000)
- 			dev->mode = PPA_EPP_32;
- 
--	      second_pass:
-+second_pass:
- 		ppa_connect(dev, CONNECT_EPP_MAYBE);
- 		/* Select SCSI device */
- 		if (!ppa_select(dev, loop)) {
- 			ppa_disconnect(dev);
- 			continue;
- 		}
--		printk("ppa: Found device at ID %i, Attempting to use %s\n",
-+		printk(KERN_INFO "ppa: Found device at ID %i, Attempting to use %s\n",
- 		       loop, PPA_MODE_STRING[dev->mode]);
- 
- 		/* Send SCSI command */
-@@ -965,7 +962,7 @@ static int device_check(ppa_struct *dev)
- 			return -EIO;
- 		}
- 		ppa_disconnect(dev);
--		printk("ppa: Communication established with ID %i using %s\n",
-+		printk(KERN_INFO "ppa: Communication established with ID %i using %s\n",
- 		       loop, PPA_MODE_STRING[dev->mode]);
- 		ppa_connect(dev, CONNECT_EPP_MAYBE);
- 		ppa_reset_pulse(ppb);
-@@ -1140,7 +1137,7 @@ static struct parport_driver ppa_driver 
- 
- static int __init ppa_driver_init(void)
- {
--	printk("ppa: Version %s\n", PPA_VERSION);
-+	printk(KERN_INFO "ppa: Version %s\n", PPA_VERSION);
- 	return parport_register_driver(&ppa_driver);
- }
- 
+ 00-INDEX
+ 	- this file.
++ABI/
++	- info on kernel <-> userspace ABI and relative interface stability.
+ BUG-HUNTING
+ 	- brute force method of doing binary search of patches to find bug.
+ Changes
+@@ -25,37 +27,57 @@ DMA-mapping.txt
+ DocBook/
+ 	- directory with DocBook templates etc. for kernel documentation.
+ HOWTO
+-	- The process and procedures of how to do Linux kernel development.
++	- the process and procedures of how to do Linux kernel development.
+ IO-mapping.txt
+ 	- how to access I/O mapped memory from within device drivers.
+ IPMI.txt
+ 	- info on Linux Intelligent Platform Management Interface (IPMI) Driver.
+ IRQ-affinity.txt
+ 	- how to select which CPU(s) handle which interrupt events on SMP.
++IRQ.txt
++	- description of what an IRQ is.
+ ManagementStyle
+ 	- how to (attempt to) manage kernel hackers.
+ MSI-HOWTO.txt
+ 	- the Message Signaled Interrupts (MSI) Driver Guide HOWTO and FAQ.
++PCIEBUS-HOWTO.txt
++	- a guide describing the PCI Express Port Bus driver.
+ RCU/
+ 	- directory with info on RCU (read-copy update).
+ README.DAC960
+ 	- info on Mylex DAC960/DAC1100 PCI RAID Controller Driver for Linux.
++README.cycladesZ
++	- info on Cyclades-Z firmware loading.
+ SAK.txt
+ 	- info on Secure Attention Keys.
++SecurityBugs
++	- procedure for reporting security bugs found in the kernel.
++SubmitChecklist
++	- Linux kernel patch submission checklist.
+ SubmittingDrivers
+ 	- procedure to get a new driver source included into the kernel tree.
+ SubmittingPatches
+ 	- procedure to get a source patch included into the kernel tree.
+ VGA-softcursor.txt
+ 	- how to change your VGA cursor from a blinking underscore.
++accounting/
++	- documentation on accounting and taskstats.
++aoe/
++	- description of AoE (ATA over Ethernet) along with config examples.
+ applying-patches.txt
+ 	- description of various trees and how to apply their patches.
+ arm/
+ 	- directory with info about Linux on the ARM architecture.
++atomic_ops.txt
++	- semantics and behavior of atomic and bitmask operations.
++auxdisplay/
++	- misc. LCD driver documentation (cfag12864b, ks0108).
+ basic_profiling.txt
+ 	- basic instructions for those who wants to profile Linux kernel.
+ binfmt_misc.txt
+ 	- info on the kernel support for extra binary formats.
++blackfin/
++	- directory with documentation for the Blackfin arch.
+ block/
+ 	- info on the Block I/O (BIO) layer.
+ cachetlb.txt
+@@ -68,16 +90,32 @@ cli-sti-removal.txt
+ 	- cli()/sti() removal guide.
+ computone.txt
+ 	- info on Computone Intelliport II/Plus Multiport Serial Driver.
++connector/
++	- docs on the netlink based userspace<->kernel space communication mod.
++console/
++	- documentation on Linux console drivers.
+ cpqarray.txt
+ 	- info on using Compaq's SMART2 Intelligent Disk Array Controllers.
+ cpu-freq/
+ 	- info on CPU frequency and voltage scaling.
++cpu-hotplug.txt
++	- document describing CPU hotplug support in the Linux kernel.
++cpu-load.txt
++	- document describing how CPU load statistics are collected.
++cpusets.txt
++	- documents the cpusets feature; assign CPUs and Mem to a set of tasks.
++cputopology.txt
++	- documentation on how CPU topology info is exported via sysfs.
+ cris/
+ 	- directory with info about Linux on CRIS architecture.
+ crypto/
+ 	- directory with info on the Crypto API.
++dcdbas.txt
++	- information on the Dell Systems Management Base Driver.
+ debugging-modules.txt
+ 	- some notes on debugging modules after Linux 2.6.3.
++dell_rbu.txt
++	- document demonstrating the use of the Dell Remote BIOS Update driver.
+ device-mapper/
+ 	- directory with info on Device Mapper.
+ devices.txt
+@@ -86,32 +124,52 @@ digiepca.txt
+ 	- info on Digi Intl. {PC,PCI,EISA}Xx and Xem series cards.
+ dnotify.txt
+ 	- info about directory notification in Linux.
++dontdiff
++	- file containing a list of files that should never be diff'ed.
+ driver-model/
+ 	- directory with info about Linux driver model.
++drivers/
++	- directory with driver documentation (currently only EDAC).
+ dvb/
+ 	- info on Linux Digital Video Broadcast (DVB) subsystem.
+ early-userspace/
+ 	- info about initramfs, klibc, and userspace early during boot.
++ecryptfs.txt
++	- docs on eCryptfs: stacked cryptographic filesystem for Linux.
+ eisa.txt
+ 	- info on EISA bus support.
+ exception.txt
+ 	- how Linux v2.2 handles exceptions without verify_area etc.
++fault-injection/
++	- dir with docs about the fault injection capabilities infrastructure.
+ fb/
+ 	- directory with info on the frame buffer graphics abstraction layer.
++feature-removal-schedule.txt
++	- list of files and features that are going to be removed.
+ filesystems/
+ 	- directory with info on the various filesystems that Linux supports.
+ firmware_class/
+ 	- request_firmware() hotplug interface info.
+ floppy.txt
+ 	- notes and driver options for the floppy disk driver.
++fujitsu/
++	- Fujitsu FR-V Linux documentation.
++gpio.txt
++	- overview of GPIO (General Purpose Input/Output) access conventions.
+ hayes-esp.txt
+ 	- info on using the Hayes ESP serial driver.
+ highuid.txt
+ 	- notes on the change from 16 bit to 32 bit user/group IDs.
+ hpet.txt
+ 	- High Precision Event Timer Driver for Linux.
++hrtimer/
++	- info on the timer_stats debugging facility for timer (ab)use.
++hrtimers/
++	- info on the hrtimers subsystem for high-resolution kernel timers.
+ hw_random.txt
+ 	- info on Linux support for random number generator in i8xx chipsets.
++hwmon/
++	- directory with docs on various hardware monitoring drivers.
+ i2c/
+ 	- directory with info about the I2C bus/protocol (2 wire, kHz speed).
+ i2o/
+@@ -122,16 +180,22 @@ ia64/
+ 	- directory with info about Linux on Intel 64 bit architecture.
+ ide.txt
+ 	- important info for users of ATA devices (IDE/EIDE disks and CD-ROMS).
++infiniband/
++	- directory with documents concerning Linux InfiniBand support.
+ initrd.txt
+ 	- how to use the RAM disk as an initial/temporary root filesystem.
+ input/
+ 	- info on Linux input device support.
+ io_ordering.txt
+ 	- info on ordering I/O writes to memory-mapped addresses.
++ioctl/
++	- directory with documents describing various IOCTL calls.
+ ioctl-number.txt
+ 	- how to implement and register device/driver ioctl calls.
+ iostats.txt
+ 	- info on I/O statistics Linux kernel provides.
++irqflags-tracing.txt
++	- how to use the irq-flags tracing feature.
+ isapnp.txt
+ 	- info on Linux ISA Plug & Play support.
+ isdn/
+@@ -140,26 +204,40 @@ java.txt
+ 	- info on the in-kernel binary support for Java(tm).
+ kbuild/
+ 	- directory with info about the kernel build process.
+-kdumpt.txt
+-       - mini HowTo on getting the crash dump code to work.
++kdump/
++	- directory with mini HowTo on getting the crash dump code to work.
+ kernel-doc-nano-HOWTO.txt
+ 	- mini HowTo on generation and location of kernel documentation files.
+ kernel-docs.txt
+ 	- listing of various WWW + books that document kernel internals.
+ kernel-parameters.txt
+ 	- summary listing of command line / boot prompt args for the kernel.
++keys-request-key.txt
++	- description of the kernel key request service.
++keys.txt
++	- description of the kernel key retention service.
+ kobject.txt
+ 	- info of the kobject infrastructure of the Linux kernel.
++kprobes.txt
++	- documents the kernel probes debugging feature.
++kref.txt
++	- docs on adding reference counters (krefs) to kernel objects.
+ laptop-mode.txt
+-	- How to conserve battery power using laptop-mode.
++	- how to conserve battery power using laptop-mode.
+ ldm.txt
+ 	- a brief description of LDM (Windows Dynamic Disks).
++leds-class.txt
++	- documents LED handling under Linux.
++local_ops.txt
++	- semantics and behavior of local atomic operations.
++lockdep-design.txt
++	- documentation on the runtime locking correctness validator.
+ locks.txt
+ 	- info on file locking implementations, flock() vs. fcntl(), etc.
+ logo.gif
+-	- Full colour GIF image of Linux logo (penguin).
++	- full colour GIF image of Linux logo (penguin - Tux).
+ logo.txt
+-	- Info on creator of above logo & site to get additional images from.
++	- info on creator of above logo & site to get additional images from.
+ m68k/
+ 	- directory with info about Linux on Motorola 68k architecture.
+ magic-number.txt
+@@ -170,6 +248,8 @@ mca.txt
+ 	- info on supporting Micro Channel Architecture (e.g. PS/2) systems.
+ md.txt
+ 	- info on boot arguments for the multiple devices driver.
++memory-barriers.txt
++	- info on Linux kernel memory barriers.
+ memory.txt
+ 	- info on typical Linux memory problems.
+ mips/
+@@ -177,9 +257,11 @@ mips/
+ mono.txt
+ 	- how to execute Mono-based .NET binaries with the help of BINFMT_MISC.
+ moxa-smartio
+-	- info on installing/using Moxa multiport serial driver.
++	- file with info on installing/using Moxa multiport serial driver.
+ mtrr.txt
+ 	- how to use PPro Memory Type Range Registers to increase performance.
++mutex-design.txt
++	- info on the generic mutex subsystem.
+ nbd.txt
+ 	- info on a TCP implementation of a network block device.
+ netlabel/
+@@ -190,6 +272,8 @@ nfsroot.txt
+ 	- short guide on setting up a diskless box with NFS root filesystem.
+ nmi_watchdog.txt
+ 	- info on NMI watchdog for SMP systems.
++nommu-mmap.txt
++	- documentation about no-mmu memory mapping support.
+ numastat.txt
+ 	- info on how to read Numa policy hit/miss statistics in sysfs.
+ oops-tracing.txt
+@@ -202,8 +286,16 @@ parport.txt
+ 	- how to use the parallel-port driver.
+ parport-lowlevel.txt
+ 	- description and usage of the low level parallel port functions.
++pci-error-recovery.txt
++	- info on PCI error recovery.
+ pci.txt
+ 	- info on the PCI subsystem for device driver authors.
++pcieaer-howto.txt
++	- the PCI Express Advanced Error Reporting Driver Guide HOWTO.
++pcmcia/
++	- info on the Linux PCMCIA driver.
++pi-futex.txt
++	- documentation on lightweight PI-futexes.
+ pm.txt
+ 	- info on Linux power management support.
+ pnp.txt
+@@ -214,18 +306,32 @@ powerpc/
+ 	- directory with info on using Linux with the PowerPC.
+ preempt-locking.txt
+ 	- info on locking under a preemptive kernel.
++prio_tree.txt
++	- info on radix-priority-search-tree use for indexing vmas.
+ ramdisk.txt
+ 	- short guide on how to set up and use the RAM disk.
++rbtree.txt
++	- info on what red-black trees are and what they are for.
+ riscom8.txt
+ 	- notes on using the RISCom/8 multi-port serial driver.
++robust-futex-ABI.txt
++	- documentation of the robust futex ABI.
++robust-futexes.txt
++	- a description of what robust futexes are.
+ rocket.txt
+ 	- info on the Comtrol RocketPort multiport serial driver.
+ rpc-cache.txt
+ 	- introduction to the caching mechanisms in the sunrpc layer.
++rt-mutex-design.txt
++	- description of the RealTime mutex implementation design.
++rt-mutex.txt
++	- desc. of RT-mutex subsystem with PI (Priority Inheritance) support.
+ rtc.txt
+ 	- notes on how to use the Real Time Clock (aka CMOS clock) driver.
+ s390/
+ 	- directory with info on using Linux on the IBM S390.
++sched-arch.txt
++	- CPU Scheduler implementation hints for architecture specific code.
+ sched-coding.txt
+ 	- reference for various scheduler-related methods in the O(1) scheduler.
+ sched-design.txt
+@@ -240,22 +346,32 @@ serial/
+ 	- directory with info on the low level serial API.
+ serial-console.txt
+ 	- how to set up Linux with a serial line console as the default.
++sgi-ioc4.txt
++	- description of the SGI IOC4 PCI (multi function) device.
+ sgi-visws.txt
+ 	- short blurb on the SGI Visual Workstations.
+ sh/
+ 	- directory with info on porting Linux to a new architecture.
++sharedsubtree.txt
++	- a description of shared subtrees for namespaces.
+ smart-config.txt
+ 	- description of the Smart Config makefile feature.
+ smp.txt
+ 	- a few notes on symmetric multi-processing.
++sony-laptop.txt
++	- Sony Notebook Control Driver (SNC) Readme.
+ sonypi.txt
+ 	- info on Linux Sony Programmable I/O Device support.
+ sound/
+ 	- directory with info on sound card support.
+ sparc/
+ 	- directory with info on using Linux on Sparc architecture.
++sparse.txt
++	- info on how to obtain and use the sparse tool for typechecking.
+ specialix.txt
+ 	- info on hardware/driver for specialix IO8+ multiport serial card.
++spi/
++	- overview of Linux kernel Serial Peripheral Interface (SPI) support.
+ spinlocks.txt
+ 	- info on using spinlocks to provide exclusive access in kernel.
+ stable_api_nonsense.txt
+@@ -274,24 +390,32 @@ sysrq.txt
+ 	- info on the magic SysRq key.
+ telephony/
+ 	- directory with info on telephony (e.g. voice over IP) support.
++thinkpad-acpi.txt
++	- information on the (IBM and Lenovo) ThinkPad ACPI Extras driver.
+ time_interpolators.txt
+ 	- info on time interpolators.
+ tipar.txt
+ 	- information about Parallel link cable for Texas Instruments handhelds.
+ tty.txt
+ 	- guide to the locking policies of the tty layer.
+-unicode.txt
+-	- info on the Unicode character/font mapping used in Linux.
+ uml/
+ 	- directory with information about User Mode Linux.
++unicode.txt
++	- info on the Unicode character/font mapping used in Linux.
++unshare.txt
++	- description of the Linux unshare system call.
+ usb/
+ 	- directory with info regarding the Universal Serial Bus.
++video-output.txt
++	- sysfs class driver interface to enable/disable a video output device.
+ video4linux/
+ 	- directory with info regarding video/TV/radio cards and linux.
+ vm/
+ 	- directory with info on the Linux vm code.
+ voyager.txt
+ 	- guide to running Linux on the Voyager architecture.
++w1/
++	- directory with documents regarding the 1-wire (w1) subsystem.
+ watchdog/
+ 	- how to auto-reboot Linux if it has "fallen and can't get up". ;-)
+ x86_64/
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-git-powerpc.patch
-git-ia64.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-sb1250-duartc-sb1250-duart-serial-support.patch
-mbcs-remove-lots-of-global-symbols.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
+git-mtd.patch
+remove-unneeded-test-of-task-in-dump_trace.patch
+git-xfs.patch
