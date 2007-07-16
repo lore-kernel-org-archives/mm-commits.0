@@ -1,202 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: - vdso-print-fatal-signals.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:54:30 -0700
-Message-ID: <200707162054.l6GKsUFY001806@imap1.linux-foundation.org>
+Subject: - m68knommu-remove-cruft-from-setup-code.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:50:21 -0700
+Message-ID: <200707162050.l6GKoLR7001308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51072 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39401 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762725AbXGPV21 (ORCPT
+	by vger.kernel.org with ESMTP id S1763641AbXGPV2Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:28:27 -0400
+	Mon, 16 Jul 2007 17:28:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, arjan@infradead.org, mm-commits@vger.kernel.org
+To: gerg@snapgear.com, gerg@uclinux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vdso: print fatal signals
+     m68knommu: remove cruft from setup code
 has been removed from the -mm tree.  Its filename was
-     vdso-print-fatal-signals.patch
+     m68knommu-remove-cruft-from-setup-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vdso: print fatal signals
-From: Ingo Molnar <mingo@elte.hu>
+Subject: m68knommu: remove cruft from setup code
+From: Greg Ungerer <gerg@snapgear.com>
 
-Add the print-fatal-signals=1 boot option and the
-/proc/sys/kernel/print-fatal-signals runtime switch.
+Clean out cruft.
 
-This feature prints some minimal information about userspace segfaults to
-the kernel console.  This is useful to find early bootup bugs where
-userspace debugging is very hard.
+. remove include files not needed
+. remove not used CAT_ROMARRAY code
+. remove generic machine pointers not used
+. remove unused functions
+. fix email address in copyrights
 
-Defaults to off.
-
-[akpm@linux-foundation.org: Don't add new sysctl numbers]
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    6 ++++
- kernel/signal.c                     |   33 ++++++++++++++++++++++++++
- kernel/sysctl.c                     |    9 +++++++
- 3 files changed, 48 insertions(+)
+ arch/m68knommu/kernel/setup.c |   65 ++++++--------------------------
+ 1 file changed, 14 insertions(+), 51 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~vdso-print-fatal-signals Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~vdso-print-fatal-signals
-+++ a/Documentation/kernel-parameters.txt
-@@ -1383,6 +1383,12 @@ and is between 256 and 4096 characters. 
- 			autoconfiguration.
- 			Ranges are in pairs (memory base and size).
+diff -puN arch/m68knommu/kernel/setup.c~m68knommu-remove-cruft-from-setup-code arch/m68knommu/kernel/setup.c
+--- a/arch/m68knommu/kernel/setup.c~m68knommu-remove-cruft-from-setup-code
++++ a/arch/m68knommu/kernel/setup.c
+@@ -1,8 +1,8 @@
+ /*
+  *  linux/arch/m68knommu/kernel/setup.c
+  *
+- *  Copyright (C) 1999-2004  Greg Ungerer (gerg@snapgear.com)
+- *  Copyright (C) 1998,1999  D. Jeff Dionne <jeff@lineo.ca>
++ *  Copyright (C) 1999-2007  Greg Ungerer (gerg@snapgear.com)
++ *  Copyright (C) 1998,1999  D. Jeff Dionne <jeff@uClinux.org>
+  *  Copyleft  ()) 2000       James D. Schettine {james@telos-systems.com}
+  *  Copyright (C) 1998       Kenneth Albanowski <kjahds@kjahds.com>
+  *  Copyright (C) 1995       Hamish Macdonald
+@@ -20,17 +20,13 @@
+ #include <linux/sched.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+-#include <linux/fs.h>
+ #include <linux/fb.h>
+ #include <linux/module.h>
+ #include <linux/console.h>
+-#include <linux/genhd.h>
+ #include <linux/errno.h>
+ #include <linux/string.h>
+-#include <linux/major.h>
+ #include <linux/bootmem.h>
+ #include <linux/seq_file.h>
+-#include <linux/root_dev.h>
+ #include <linux/init.h>
  
-+	print-fatal-signals=
-+			[KNL] debug: print fatal signals
-+			print-fatal-signals=1: print segfault info to
-+			the kernel console.
-+			default: off.
-+
- 	profile=	[KNL] Enable kernel profiling via /proc/profile
- 			Format: [schedule,]<number>
- 			Param: "schedule" - profile schedule points.
-diff -puN kernel/signal.c~vdso-print-fatal-signals kernel/signal.c
---- a/kernel/signal.c~vdso-print-fatal-signals
-+++ a/kernel/signal.c
-@@ -718,6 +718,37 @@ out_set:
- #define LEGACY_QUEUE(sigptr, sig) \
- 	(((sig) < SIGRTMIN) && sigismember(&(sigptr)->signal, (sig)))
+ #include <asm/setup.h>
+@@ -46,34 +42,19 @@ EXPORT_SYMBOL(memory_end);
  
-+int print_fatal_signals;
-+
-+static void print_fatal_signal(struct pt_regs *regs, int signr)
-+{
-+	printk("%s/%d: potentially unexpected fatal signal %d.\n",
-+		current->comm, current->pid, signr);
-+
-+#ifdef __i386__
-+	printk("code at %08lx: ", regs->eip);
-+	{
-+		int i;
-+		for (i = 0; i < 16; i++) {
-+			unsigned char insn;
-+
-+			__get_user(insn, (unsigned char *)(regs->eip + i));
-+			printk("%02x ", insn);
-+		}
-+	}
-+#endif
-+	printk("\n");
-+	show_regs(regs);
-+}
-+
-+static int __init setup_print_fatal_signals(char *str)
-+{
-+	get_option (&str, &print_fatal_signals);
-+
-+	return 1;
-+}
-+
-+__setup("print-fatal-signals=", setup_print_fatal_signals);
+ char __initdata command_line[COMMAND_LINE_SIZE];
  
- static int
- specific_send_sig_info(int sig, struct siginfo *info, struct task_struct *t)
-@@ -1855,6 +1886,8 @@ relock:
- 		 * Anything else is fatal, maybe with a core dump.
- 		 */
- 		current->flags |= PF_SIGNALED;
-+		if ((signr != SIGKILL) && print_fatal_signals)
-+			print_fatal_signal(regs, signr);
- 		if (sig_kernel_coredump(signr)) {
- 			/*
- 			 * If it was able to dump core, this kills all
-diff -puN kernel/sysctl.c~vdso-print-fatal-signals kernel/sysctl.c
---- a/kernel/sysctl.c~vdso-print-fatal-signals
-+++ a/kernel/sysctl.c
-@@ -61,6 +61,7 @@ extern int proc_nr_files(ctl_table *tabl
+-/* setup some dummy routines */
+-static void dummy_waitbut(void)
+-{
+-}
++void (*mach_trap_init)(void);
  
- /* External variables not in a header file. */
- extern int C_A_D;
-+extern int print_fatal_signals;
- extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
- extern int sysctl_panic_on_oom;
-@@ -340,6 +341,14 @@ static ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
+-void (*mach_sched_init) (irq_handler_t handler);
+-void (*mach_tick)( void );
+-/* machine dependent keyboard functions */
+-int (*mach_keyb_init) (void);
+-int (*mach_kbdrate) (struct kbd_repeat *);
+-void (*mach_kbd_leds) (unsigned int);
+-/* machine dependent irq functions */
+-void (*mach_init_IRQ) (void);
+-irq_handler_t mach_default_handler;
+-int (*mach_get_irq_list) (struct seq_file *, void *);
+-void (*mach_process_int) (int irq, struct pt_regs *fp);
+-void (*mach_trap_init) (void);
+ /* machine dependent timer functions */
+-unsigned long (*mach_gettimeoffset) (void);
+-void (*mach_gettod) (int*, int*, int*, int*, int*, int*);
+-int (*mach_hwclk) (int, struct rtc_time*);
+-int (*mach_set_clock_mmss) (unsigned long);
+-void (*mach_mksound)( unsigned int count, unsigned int ticks );
+-void (*mach_reset)( void );
+-void (*waitbut)(void) = dummy_waitbut;
+-void (*mach_debug_init)(void);
+-void (*mach_halt)( void );
+-void (*mach_power_off)( void );
++void (*mach_sched_init)(irq_handler_t handler);
++void (*mach_tick)(void);
++void (*mach_gettod)(int*, int*, int*, int*, int*, int*);
++int (*mach_set_clock_mmss)(unsigned long);
++unsigned long (*mach_gettimeoffset)(void);
++
++/* machine dependent reboot functions */
++void (*mach_reset)(void);
++void (*mach_halt)(void);
++void (*mach_power_off)(void);
+ 
+ 
+ #ifdef CONFIG_M68000
+@@ -134,13 +115,6 @@ void (*mach_power_off)( void );
+ 	#define	CPU "UNKNOWN"
  #endif
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "print-fatal-signals",
-+		.data		= &print_fatal_signals,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
- #ifdef __sparc__
- 	{
- 		.ctl_name	= KERN_SPARC_REBOOT,
+ 
+-/* (es) */
+-/* note: why is this defined here?  the must be a better place to put this */
+-#if defined( CONFIG_TELOS) || defined( CONFIG_UCDIMM ) || defined( CONFIG_UCSIMM ) || defined(CONFIG_DRAGEN2) || (defined( CONFIG_PILOT ) && defined( CONFIG_M68328 ))
+-#define CAT_ROMARRAY
+-#endif
+-/* (/es) */
+-
+ extern int _stext, _etext, _sdata, _edata, _sbss, _ebss, _end;
+ extern int _ramstart, _ramend;
+ 
+@@ -148,15 +122,8 @@ void setup_arch(char **cmdline_p)
+ {
+ 	int bootmap_size;
+ 
+-#if defined(CAT_ROMARRAY) && defined(DEBUG)
+-	extern int __data_rom_start;
+-	extern int __data_start;
+-	int *romarray = (int *)((int) &__data_rom_start +
+-			      (int)&_edata - (int)&__data_start);
+-#endif
+-
+ 	memory_start = PAGE_ALIGN(_ramstart);
+-	memory_end = _ramend; /* by now the stack is part of the init task */
++	memory_end = _ramend;
+ 
+ 	init_mm.start_code = (unsigned long) &_stext;
+ 	init_mm.end_code = (unsigned long) &_etext;
+@@ -220,11 +187,7 @@ void setup_arch(char **cmdline_p)
+ 		(int) &_sbss, (int) &_ebss);
+ 	printk(KERN_DEBUG "KERNEL -> ROMFS=0x%06x-0x%06x MEM=0x%06x-0x%06x "
+ 		"STACK=0x%06x-0x%06x\n",
+-#ifdef CAT_ROMARRAY
+-		(int) romarray, ((int) romarray) + romarray[2],
+-#else
+ 		(int) &_ebss, (int) memory_start,
+-#endif
+ 		(int) memory_start, (int) memory_end,
+ 		(int) memory_end, (int) _ramend);
+ #endif
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from gerg@snapgear.com are
 
 origin.patch
-git-acpi.patch
-git-kvm.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-tick-management-spread-timer-interrupt.patch
-highres-improve-debug-output.patch
-hrtimer-speedup-hrtimer_enqueue.patch
-pcspkr-use-the-global-pit-lock.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
-i386-remove-volatile-in-apicc.patch
-i386-hpet-assumes-boot-cpu-is-0.patch
-i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
-x86_64-untangle-asm-hpeth-from-asm-timexh.patch
-x86_64-use-generic-cmos-update.patch
-x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
-x86_64-fix-apic-typo.patch
-x86_64-convert-to-cleckevents.patch
-acpi-remove-the-useless-ifdef-code.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-geode-mfgpt-clock-event-device-support.patch
-i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-immunize-rcu_dereference-against-crazy-compiler-writers.patch
-remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-fix-raw_spinlock_t-vs-lockdep.patch
-lockdep-sanitise-config_prove_locking.patch
-lockdep-reduce-the-ifdeffery.patch
-lockstat-core-infrastructure.patch
-lockstat-human-readability-tweaks.patch
-lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
-lockdep-various-fixes.patch
-lockdep-fixup-sk_callback_lock-annotation.patch
-lockstat-measure-lock-bouncing.patch
-lockstat-better-class-name-representation.patch
-lockdep-debugging-give-stacktrace-for-init_error.patch
-stacktrace-fix-header-file-for-config_stacktrace.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
-random-warning-squishes.patch
+git-mtd.patch
