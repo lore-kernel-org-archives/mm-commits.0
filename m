@@ -1,104 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - is_power_of_2-jbd.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:57:32 -0700
-Message-ID: <200707162057.l6GKvWpe002202@imap1.linux-foundation.org>
+Subject: - undeprecate-raw-driver.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:56:09 -0700
+Message-ID: <200707162056.l6GKu98d002070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54078 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46515 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757174AbXGPVIN (ORCPT
+	by vger.kernel.org with ESMTP id S1754812AbXGPVIZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:08:13 -0400
+	Mon, 16 Jul 2007 17:08:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vignesh.babu@wipro.com, mm-commits@vger.kernel.org
+To: davej@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     is_power_of_2(): jbd
+     undeprecate raw driver
 has been removed from the -mm tree.  Its filename was
-     is_power_of_2-jbd.patch
+     undeprecate-raw-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: is_power_of_2(): jbd
-From: vignesh babu <vignesh.babu@wipro.com>
+Subject: undeprecate raw driver
+From: Dave Jones <davej@redhat.com>
 
-Replace (n & (n-1)) in the context of power of 2 checks with
-is_power_of_2().
+Despite repeated attempts over the last two and half years, this driver
+seems somewhat persistant.  Remove its deprecated status as it has existing
+users who may not be in a position to migrate their apps to O_DIRECT.
 
-Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
+Signed-off-by: Dave Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/revoke.c  |    5 +++--
- fs/jbd2/revoke.c |    5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ Documentation/feature-removal-schedule.txt |    8 --------
+ drivers/char/Kconfig                       |    9 ++++-----
+ 2 files changed, 4 insertions(+), 13 deletions(-)
 
-diff -puN fs/jbd/revoke.c~is_power_of_2-jbd fs/jbd/revoke.c
---- a/fs/jbd/revoke.c~is_power_of_2-jbd
-+++ a/fs/jbd/revoke.c
-@@ -68,6 +68,7 @@
- #include <linux/list.h>
- #include <linux/init.h>
- #endif
-+#include <linux/log2.h>
+diff -puN Documentation/feature-removal-schedule.txt~undeprecate-raw-driver Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~undeprecate-raw-driver
++++ a/Documentation/feature-removal-schedule.txt
+@@ -41,14 +41,6 @@ Who:	Pavel Machek <pavel@suse.cz>
  
- static struct kmem_cache *revoke_record_cache;
- static struct kmem_cache *revoke_table_cache;
-@@ -211,7 +212,7 @@ int journal_init_revoke(journal_t *journ
- 	journal->j_revoke = journal->j_revoke_table[0];
+ ---------------------------
  
- 	/* Check that the hash_size is a power of two */
--	J_ASSERT ((hash_size & (hash_size-1)) == 0);
-+	J_ASSERT(is_power_of_2(hash_size));
+-What:	RAW driver (CONFIG_RAW_DRIVER)
+-When:	December 2005
+-Why:	declared obsolete since kernel 2.6.3
+-	O_DIRECT can be used instead
+-Who:	Adrian Bunk <bunk@stusta.de>
+-
+----------------------------
+-
+ What:	old NCR53C9x driver
+ When:	October 2007
+ Why:	Replaced by the much better esp_scsi driver.  Actual low-level
+diff -puN drivers/char/Kconfig~undeprecate-raw-driver drivers/char/Kconfig
+--- a/drivers/char/Kconfig~undeprecate-raw-driver
++++ a/drivers/char/Kconfig
+@@ -979,15 +979,14 @@ config GPIO_VR41XX
+ 	depends on CPU_VR41XX
  
- 	journal->j_revoke->hash_size = hash_size;
+ config RAW_DRIVER
+-	tristate "RAW driver (/dev/raw/rawN) (OBSOLETE)"
++	tristate "RAW driver (/dev/raw/rawN)"
+ 	depends on BLOCK
+ 	help
+-	  The raw driver permits block devices to be bound to /dev/raw/rawN. 
+-	  Once bound, I/O against /dev/raw/rawN uses efficient zero-copy I/O. 
++	  The raw driver permits block devices to be bound to /dev/raw/rawN.
++	  Once bound, I/O against /dev/raw/rawN uses efficient zero-copy I/O.
+ 	  See the raw(8) manpage for more details.
  
-@@ -238,7 +239,7 @@ int journal_init_revoke(journal_t *journ
- 	journal->j_revoke = journal->j_revoke_table[1];
+-          The raw driver is deprecated and will be removed soon.
+-          Applications should simply open the device (eg /dev/hda1)
++          Applications should preferably open the device (eg /dev/hda1)
+           with the O_DIRECT flag.
  
- 	/* Check that the hash_size is a power of two */
--	J_ASSERT ((hash_size & (hash_size-1)) == 0);
-+	J_ASSERT(is_power_of_2(hash_size));
- 
- 	journal->j_revoke->hash_size = hash_size;
- 
-diff -puN fs/jbd2/revoke.c~is_power_of_2-jbd fs/jbd2/revoke.c
---- a/fs/jbd2/revoke.c~is_power_of_2-jbd
-+++ a/fs/jbd2/revoke.c
-@@ -68,6 +68,7 @@
- #include <linux/list.h>
- #include <linux/init.h>
- #endif
-+#include <linux/log2.h>
- 
- static struct kmem_cache *jbd2_revoke_record_cache;
- static struct kmem_cache *jbd2_revoke_table_cache;
-@@ -212,7 +213,7 @@ int jbd2_journal_init_revoke(journal_t *
- 	journal->j_revoke = journal->j_revoke_table[0];
- 
- 	/* Check that the hash_size is a power of two */
--	J_ASSERT ((hash_size & (hash_size-1)) == 0);
-+	J_ASSERT(is_power_of_2(hash_size));
- 
- 	journal->j_revoke->hash_size = hash_size;
- 
-@@ -239,7 +240,7 @@ int jbd2_journal_init_revoke(journal_t *
- 	journal->j_revoke = journal->j_revoke_table[1];
- 
- 	/* Check that the hash_size is a power of two */
--	J_ASSERT ((hash_size & (hash_size-1)) == 0);
-+	J_ASSERT(is_power_of_2(hash_size));
- 
- 	journal->j_revoke->hash_size = hash_size;
- 
+ config MAX_RAW_DEVS
 _
 
-Patches currently in -mm which might be from vignesh.babu@wipro.com are
+Patches currently in -mm which might be from davej@redhat.com are
 
 origin.patch
-git-ubi.patch
-git-xfs.patch
-is_power_of_2-ext4-superc.patch
+fix-empty-macros-in-acpi.patch
+git-alsa.patch
+i386-remove-support-for-the-rise-cpu.patch
+slow-down-printk-during-boot.patch
