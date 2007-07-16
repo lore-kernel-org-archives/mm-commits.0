@@ -1,140 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - add-printktime-option-deprecate-time.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:55:19 -0700
-Message-ID: <200707162055.l6GKtJXN001903@imap1.linux-foundation.org>
+Subject: - ext3-ext4-orphan-list-corruption-due-bad-inode.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:56:01 -0700
+Message-ID: <200707162056.l6GKu1JI002002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50441 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34776 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757642AbXGPVK1 (ORCPT
+	by vger.kernel.org with ESMTP id S1758560AbXGPVK2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:10:27 -0400
+	Mon, 16 Jul 2007 17:10:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: vvs@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add printk.time option, deprecate 'time'
+     ext3/ext4: orphan list corruption due bad inode
 has been removed from the -mm tree.  Its filename was
-     add-printktime-option-deprecate-time.patch
+     ext3-ext4-orphan-list-corruption-due-bad-inode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add printk.time option, deprecate 'time'
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ext3/ext4: orphan list corruption due bad inode
+From: Vasily Averin <vvs@sw.ru>
 
-Allow printk_time to be enabled or disabled at boot time.  Previously it
-could be enabled only, but not disabled.
+After ext3 orphan list check has been added into ext3_destroy_inode()
+(please see my previous patch) the following situation has been detected:
 
-Change printk_time from an int to a bool since that's what it is.  Make its
-logical (exposed) name just be "time" (was "printk_time").
+ EXT3-fs warning (device sda6): ext3_unlink: Deleting nonexistent file (37901290), 0
+ Inode 00000101a15b7840: orphan list check failed!
+ 00000773 6f665f00 74616d72 00000573 65725f00 06737270 66000000 616d726f
+...
+ Call Trace: [<ffffffff80211ea9>] ext3_destroy_inode+0x79/0x90
+  [<ffffffff801a2b16>] sys_unlink+0x126/0x1a0
+  [<ffffffff80111479>] error_exit+0x0/0x81
+  [<ffffffff80110aba>] system_call+0x7e/0x83
 
-Note: Changes kernel boot option syntax from "time" to "printk.time=value".
+First messages said that unlinked inode has i_nlink=0, then ext3_unlink()
+adds this inode into orphan list.
 
-Since printk_time is declared as a module_param, it can also be
-changed at run-time by modifying
-  /sys/module/printk/parameters/time
-to a value of 1/Y/y to enabled it or 0/N/n to disable it.
+Second message means that this inode has not been removed from orphan list.
+ Inode dump has showed that i_fop = &bad_file_ops and it can be set in
+make_bad_inode() only.  Then I've found that ext3_read_inode() can call
+make_bad_inode() without any error/warning messages, for example in the
+following case:
 
-Since printk_time is declared as a module_param, its value can also
-be set at boot-time by using
-  linux printk.time=<bool>
+...
+        if (inode->i_nlink == 0) {
+                if (inode->i_mode == 0 ||
+                    !(EXT3_SB(inode->i_sb)->s_mount_state & EXT3_ORPHAN_FS)) {
+                        /* this inode is deleted */
+                        brelse (bh);
+                        goto bad_inode;
+...
 
-If the "time" boot option is used, print a message that it is deprecated
-and will be removed.
+Bad inode can live some time, ext3_unlink can add it to orphan list, but
+ext3_delete_inode() do not deleted this inode from orphan list.  As result
+we can have orphan list corruption detected in ext3_destroy_inode().
 
-Note its planned removal in feature-removal-schedule.txt.
+However it is not clear for me how to fix this issue correctly.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+As far as i see is_bad_inode() is called after iget() in all places
+excluding ext3_lookup() and ext3_get_parent().  I believe it makes sense to
+add bad inode check to these functions too and call iput if bad inode
+detected.
+
+Signed-off-by:	Vasily Averin <vvs@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    8 ++++++++
- Documentation/kernel-parameters.txt        |    4 ++++
- kernel/printk.c                            |    5 ++++-
- 3 files changed, 16 insertions(+), 1 deletion(-)
+ fs/ext3/namei.c |   10 ++++++++++
+ fs/ext4/namei.c |   10 ++++++++++
+ 2 files changed, 20 insertions(+)
 
-diff -puN Documentation/feature-removal-schedule.txt~add-printktime-option-deprecate-time Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~add-printktime-option-deprecate-time
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -257,6 +257,14 @@ Who:	Jean Delvare <khali@linux-fr.org>
+diff -puN fs/ext3/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode fs/ext3/namei.c
+--- a/fs/ext3/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode
++++ a/fs/ext3/namei.c
+@@ -1019,6 +1019,11 @@ static struct dentry *ext3_lookup(struct
  
- ---------------------------
- 
-+What:	'time' kernel boot parameter
-+When:	January 2008
-+Why:	replaced by 'printk.time=<value>' so that printk timestamps can be
-+	enabled or disabled as needed
-+Who:	Randy Dunlap <randy.dunlap@oracle.com>
+ 		if (!inode)
+ 			return ERR_PTR(-EACCES);
 +
-+---------------------------
-+
- What:  drivers depending on OSS_OBSOLETE
- When:  options in 2.6.23, code in 2.6.25
- Why:   obsolete OSS drivers
-diff -puN Documentation/kernel-parameters.txt~add-printktime-option-deprecate-time Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~add-printktime-option-deprecate-time
-+++ a/Documentation/kernel-parameters.txt
-@@ -1389,6 +1389,9 @@ and is between 256 and 4096 characters. 
- 			the kernel console.
- 			default: off.
- 
-+	printk.time=	Show timing data prefixed to each printk message line
-+			Format: <bool>  (1/Y/y=enable, 0/N/n=disable)
-+
- 	profile=	[KNL] Enable kernel profiling via /proc/profile
- 			Format: [schedule,]<number>
- 			Param: "schedule" - profile schedule points.
-@@ -1824,6 +1827,7 @@ and is between 256 and 4096 characters. 
- 			Set number of hash buckets for TCP connection
- 
- 	time		Show timing data prefixed to each printk message line
-+			[deprecated, see 'printk.time']
- 
- 	tipar.timeout=	[HW,PPT]
- 			Set communications timeout in tenths of a second
-diff -puN kernel/printk.c~add-printktime-option-deprecate-time kernel/printk.c
---- a/kernel/printk.c~add-printktime-option-deprecate-time
-+++ a/kernel/printk.c
-@@ -449,13 +449,16 @@ static int printk_time = 1;
- #else
- static int printk_time = 0;
- #endif
--module_param(printk_time, int, S_IRUGO | S_IWUSR);
-+module_param_named(time, printk_time, bool, S_IRUGO | S_IWUSR);
- 
- static int __init printk_time_setup(char *str)
- {
- 	if (*str)
- 		return 0;
- 	printk_time = 1;
-+	printk(KERN_NOTICE "The 'time' option is deprecated and "
-+		"is scheduled for removal in early 2008\n");
-+	printk(KERN_NOTICE "Use 'printk.time=<value>' instead\n");
- 	return 1;
++		if (is_bad_inode(inode)) {
++			iput(inode);
++			return ERR_PTR(-ENOENT);
++		}
+ 	}
+ 	return d_splice_alias(inode, dentry);
  }
+@@ -1054,6 +1059,11 @@ struct dentry *ext3_get_parent(struct de
+ 	if (!inode)
+ 		return ERR_PTR(-EACCES);
  
++	if (is_bad_inode(inode)) {
++		iput(inode);
++		return ERR_PTR(-ENOENT);
++	}
++
+ 	parent = d_alloc_anon(inode);
+ 	if (!parent) {
+ 		iput(inode);
+diff -puN fs/ext4/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode fs/ext4/namei.c
+--- a/fs/ext4/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode
++++ a/fs/ext4/namei.c
+@@ -1017,6 +1017,11 @@ static struct dentry *ext4_lookup(struct
+ 
+ 		if (!inode)
+ 			return ERR_PTR(-EACCES);
++
++		if (is_bad_inode(inode)) {
++			iput(inode);
++			return ERR_PTR(-ENOENT);
++		}
+ 	}
+ 	return d_splice_alias(inode, dentry);
+ }
+@@ -1052,6 +1057,11 @@ struct dentry *ext4_get_parent(struct de
+ 	if (!inode)
+ 		return ERR_PTR(-EACCES);
+ 
++	if (is_bad_inode(inode)) {
++		iput(inode);
++		return ERR_PTR(-ENOENT);
++	}
++
+ 	parent = d_alloc_anon(inode);
+ 	if (!parent) {
+ 		iput(inode);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from vvs@sw.ru are
 
 origin.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-mtd.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-docbook-dont-reference-file-without-kernel-doc.patch
-profile-likely-unlikely-macros.patch
+i2o_cfg_passthru-cleanup.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
