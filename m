@@ -1,64 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - dirty_writeback_centisecs_handler-cleanup.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:56:53 -0700
-Message-ID: <200707162056.l6GKurEs002130@imap1.linux-foundation.org>
+Subject: - sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:45 -0700
+Message-ID: <200707162057.l6GKvjR0002224@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48354 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34665 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754266AbXGPVE6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755443AbXGPVFA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:04:58 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6GL4t31018235
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2007 14:04:57 -0700
+	Mon, 16 Jul 2007 17:05:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dirty_writeback_centisecs_handler() cleanup
+     sysctl.c: add text telling people to use CTL_UNNUMBERED
 has been removed from the -mm tree.  Its filename was
-     dirty_writeback_centisecs_handler-cleanup.patch
+     sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dirty_writeback_centisecs_handler() cleanup
+Subject: sysctl.c: add text telling people to use CTL_UNNUMBERED
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Repair indenting bustage.
+Hopefully this will help people to understand the new regime.
 
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ kernel/sysctl.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~dirty_writeback_centisecs_handler-cleanup mm/page-writeback.c
---- a/mm/page-writeback.c~dirty_writeback_centisecs_handler-cleanup
-+++ a/mm/page-writeback.c
-@@ -476,15 +476,13 @@ static void wb_kupdate(unsigned long arg
-  * sysctl handler for /proc/sys/vm/dirty_writeback_centisecs
-  */
- int dirty_writeback_centisecs_handler(ctl_table *table, int write,
--		struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
-+	struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
- {
- 	proc_dointvec_userhz_jiffies(table, write, file, buffer, length, ppos);
--	if (dirty_writeback_interval) {
--		mod_timer(&wb_timer,
--			jiffies + dirty_writeback_interval);
--		} else {
-+	if (dirty_writeback_interval)
-+		mod_timer(&wb_timer, jiffies + dirty_writeback_interval);
-+	else
- 		del_timer(&wb_timer);
--	}
- 	return 0;
- }
+diff -puN kernel/sysctl.c~sysctlc-add-text-telling-people-to-use-ctl_unnumbered kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctlc-add-text-telling-people-to-use-ctl_unnumbered
++++ a/kernel/sysctl.c
+@@ -203,7 +203,10 @@ static ctl_table root_table[] = {
+ 		.mode		= 0555,
+ 		.child		= dev_table,
+ 	},
+-
++/*
++ * NOTE: do not add new entries to this table unless you have read
++ * Documentation/sysctl/ctl_unnumbered.txt
++ */
+ 	{ .ctl_name = 0 }
+ };
+ 
+@@ -992,6 +995,14 @@ static ctl_table vm_table[] = {
+ 		.extra1		= &zero,
+ 	},
+ #endif
++/*
++ * NOTE: do not add new entries to this table unless you have read
++ * Documentation/sysctl/ctl_unnumbered.txt
++ */
++/*
++ * NOTE: do not add new entries to this table unless you have read
++ * Documentation/sysctl/ctl_unnumbered.txt
++ */
+ 	{ .ctl_name = 0 }
+ };
+ 
+@@ -1132,6 +1143,14 @@ static ctl_table fs_table[] = {
+ 		.child		= binfmt_misc_table,
+ 	},
+ #endif
++/*
++ * NOTE: do not add new entries to this table unless you have read
++ * Documentation/sysctl/ctl_unnumbered.txt
++ */
++/*
++ * NOTE: do not add new entries to this table unless you have read
++ * Documentation/sysctl/ctl_unnumbered.txt
++ */
+ 	{ .ctl_name = 0 }
+ };
  
 _
 
