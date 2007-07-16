@@ -1,61 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-crypto-hw.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:52:40 -0700
-Message-ID: <200707162052.l6GKqe7g001561@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-ii-module-menu.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:52:25 -0700
+Message-ID: <200707162052.l6GKqPVh001546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56412 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54967 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758312AbXGPVcD (ORCPT
+	by vger.kernel.org with ESMTP id S1761619AbXGPVcF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:32:03 -0400
+	Mon, 16 Jul 2007 17:32:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jengelh@gmx.de, mb@bu3sch.de, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects: crypto hw
+     Use menuconfig objects II - module menu
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-crypto-hw.patch
+     use-menuconfig-objects-ii-module-menu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: crypto hw
+Subject: Use menuconfig objects II - module menu
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Use menuconfigs instead of menus, so the whole menu can be disabled at once
-instead of going through all options.
+Change menuconfig objects from "menu, config" into "menuconfig" so that the
+user can disable the whole feature without entering its menu first.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/crypto/Kconfig |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ init/Kconfig |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/crypto/Kconfig~use-menuconfig-objects-crypto-hw drivers/crypto/Kconfig
---- a/drivers/crypto/Kconfig~use-menuconfig-objects-crypto-hw
-+++ a/drivers/crypto/Kconfig
-@@ -1,4 +1,9 @@
--menu "Hardware crypto devices"
-+
-+menuconfig CRYPTO_HW
-+	bool "Hardware crypto devices"
-+	default y
-+
-+if CRYPTO_HW
+diff -puN init/Kconfig~use-menuconfig-objects-ii-module-menu init/Kconfig
+--- a/init/Kconfig~use-menuconfig-objects-ii-module-menu
++++ a/init/Kconfig
+@@ -602,9 +602,7 @@ config BASE_SMALL
+ 	default 0 if BASE_FULL
+ 	default 1 if !BASE_FULL
  
- config CRYPTO_DEV_PADLOCK
- 	tristate "Support for VIA PadLock ACE"
-@@ -78,4 +83,4 @@ config ZCRYPT_MONOLITHIC
- 	  that contains all parts of the crypto device driver (ap bus,
- 	  request router and all the card drivers).
- 
+-menu "Loadable module support"
+-
+-config MODULES
++menuconfig MODULES
+ 	bool "Enable loadable module support"
+ 	help
+ 	  Kernel modules are small pieces of compiled code which can
+@@ -684,6 +682,5 @@ config STOP_MACHINE
+ 	depends on (SMP && MODULE_UNLOAD) || HOTPLUG_CPU
+ 	help
+ 	  Need stop_machine() primitive.
 -endmenu
-+endif # CRYPTO_HW
+ 
+ source "block/Kconfig"
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
