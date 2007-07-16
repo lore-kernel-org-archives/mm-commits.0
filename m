@@ -1,56 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - git-scsi-misc-fixup.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 14:00:11 -0700
-Message-ID: <200707162100.l6GL0BSH002578@imap1.linux-foundation.org>
+Subject: - cpwatchdog-build-fix.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:59:58 -0700
+Message-ID: <200707162059.l6GKxwEo002469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57043 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34628 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755651AbXGPVFB (ORCPT
+	by vger.kernel.org with ESMTP id S1755636AbXGPVFA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:05:01 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6GL4xxX018236
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2007 14:05:00 -0700
+	Mon, 16 Jul 2007 17:05:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-misc-fixup
+     cpwatchdog build fix
 has been removed from the -mm tree.  Its filename was
-     git-scsi-misc-fixup.patch
+     cpwatchdog-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-scsi-misc-fixup
+Subject: cpwatchdog build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+sparc64:
+
+drivers/sbus/char/cpwatchdog.c: In function `wd_toggleintr':
+drivers/sbus/char/cpwatchdog.c:523: error: implicit declaration of function `readb'
+drivers/sbus/char/cpwatchdog.c:533: error: implicit declaration of function `writeb'
+drivers/sbus/char/cpwatchdog.c: In function `wd_pingtimer':
+drivers/sbus/char/cpwatchdog.c:545: error: implicit declaration of function `readw'
+drivers/sbus/char/cpwatchdog.c: In function `wd_starttimer':
+drivers/sbus/char/cpwatchdog.c:584: error: implicit declaration of function `writew'
+drivers/sbus/char/cpwatchdog.c: In function `wd_init':
+drivers/sbus/char/cpwatchdog.c:767: error: implicit declaration of function `ioremap'
+drivers/sbus/char/cpwatchdog.c:767: warning: assignment makes pointer from integer without a cast
+drivers/sbus/char/cpwatchdog.c: In function `wd_cleanup':
+drivers/sbus/char/cpwatchdog.c:849: error: implicit declaration of function `iounmap'
+
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/scsi/scsi_host.h |    6 ------
- 1 files changed, 6 deletions(-)
+ drivers/sbus/char/cpwatchdog.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/scsi/scsi_host.h~git-scsi-misc-fixup include/scsi/scsi_host.h
---- a/include/scsi/scsi_host.h~git-scsi-misc-fixup
-+++ a/include/scsi/scsi_host.h
-@@ -349,12 +349,6 @@ struct scsi_host_template {
- 	enum scsi_eh_timer_return (* eh_timed_out)(struct scsi_cmnd *);
- 
- 	/*
--	 * suspend support
--	 */
--	int (*resume)(struct scsi_device *);
--	int (*suspend)(struct scsi_device *, pm_message_t state);
--
--	/*
-  	 * link power management support
-  	 */
- 	int (*set_link_pm_policy)(struct Scsi_Host *, enum scsi_host_link_pm);
+diff -puN drivers/sbus/char/cpwatchdog.c~cpwatchdog-build-fix drivers/sbus/char/cpwatchdog.c
+--- a/drivers/sbus/char/cpwatchdog.c~cpwatchdog-build-fix
++++ a/drivers/sbus/char/cpwatchdog.c
+@@ -24,6 +24,7 @@
+ #include <linux/ioport.h>
+ #include <linux/timer.h>
+ #include <linux/smp_lock.h>
++#include <linux/io.h>
+ #include <asm/irq.h>
+ #include <asm/ebus.h>
+ #include <asm/oplib.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
