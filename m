@@ -1,231 +1,264 @@
 From: akpm@linux-foundation.org
-Subject: - prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:12 -0700
-Message-ID: <200707162053.l6GKrCVP001606@imap1.linux-foundation.org>
+Subject: - genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:59:08 -0700
+Message-ID: <200707162059.l6GKx8tQ002403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41853 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755397AbXGPVSW (ORCPT
+	by vger.kernel.org with ESMTP id S1756032AbXGPVSd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:18:22 -0400
+	Mon, 16 Jul 2007 17:18:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@redhat.com, djohnson+linux-kernel@sw.starentnetworks.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, morten@sourcepoet.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Prevent an O_NDELAY writer from blocking when a tty write is blocked by the tty atomic writer mutex
+     genericserial: remove bogus optimisation check and dead code paths
 has been removed from the -mm tree.  Its filename was
-     prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by.patch
+     genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Prevent an O_NDELAY writer from blocking when a tty write is blocked by the tty atomic writer mutex
-From: Alan Cox <alan@redhat.com>
+Subject: genericserial: remove bogus optimisation check and dead code paths
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Without this a tty write could block if a previous blocking tty write was
-in progress on the same tty and blocked by a line discipline or hardware
-event.  Originally found and reported by Dave Johnson.
+We've been using the 'new locking' for a long time now so it seems
+pointless keeping the old one around.  Remove it and undo the macros it
+uses back into real code for readability.  Remove the bogus 'no termios
+change' checks.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Dave Johnson <djohnson+linux-kernel@sw.starentnetworks.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Morten Helgesen <morten@sourcepoet.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_hdlc.c    |    9 ++++----
- drivers/char/n_tty.c     |    3 +-
- drivers/char/tty_io.c    |   40 +++++++++++++++++++++++++------------
- drivers/char/tty_ioctl.c |    4 +--
- include/linux/tty.h      |    6 +++++
- 5 files changed, 43 insertions(+), 19 deletions(-)
+ drivers/char/generic_serial.c |  120 --------------------------------
+ 1 file changed, 3 insertions(+), 117 deletions(-)
 
-diff -puN drivers/char/n_hdlc.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by drivers/char/n_hdlc.c
---- a/drivers/char/n_hdlc.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by
-+++ a/drivers/char/n_hdlc.c
-@@ -780,13 +780,14 @@ static unsigned int n_hdlc_tty_poll(stru
- 		poll_wait(filp, &tty->write_wait, wait);
+diff -puN drivers/char/generic_serial.c~genericserial-remove-bogus-optimisation-check-and-dead-code-paths drivers/char/generic_serial.c
+--- a/drivers/char/generic_serial.c~genericserial-remove-bogus-optimisation-check-and-dead-code-paths
++++ a/drivers/char/generic_serial.c
+@@ -43,16 +43,6 @@ static int gs_debug;
  
- 		/* set bits for operations that won't block */
--		if(n_hdlc->rx_buf_list.head)
-+		if (n_hdlc->rx_buf_list.head)
- 			mask |= POLLIN | POLLRDNORM;	/* readable */
- 		if (test_bit(TTY_OTHER_CLOSED, &tty->flags))
- 			mask |= POLLHUP;
--		if(tty_hung_up_p(filp))
-+		if (tty_hung_up_p(filp))
- 			mask |= POLLHUP;
--		if(n_hdlc->tx_free_buf_list.head)
-+		if (!tty_is_writelocked(tty) &&
-+				n_hdlc->tx_free_buf_list.head)
- 			mask |= POLLOUT | POLLWRNORM;	/* writable */
+ #define func_enter() gs_dprintk (GS_DEBUG_FLOW, "gs: enter %s\n", __FUNCTION__)
+ #define func_exit()  gs_dprintk (GS_DEBUG_FLOW, "gs: exit  %s\n", __FUNCTION__)
+-#define NEW_WRITE_LOCKING 1
+-#if NEW_WRITE_LOCKING
+-#define DECL      /* Nothing */
+-#define LOCKIT    mutex_lock(& port->port_write_mutex);
+-#define RELEASEIT mutex_unlock(&port->port_write_mutex);
+-#else
+-#define DECL      unsigned long flags;
+-#define LOCKIT    save_flags (flags);cli ()
+-#define RELEASEIT restore_flags (flags)
+-#endif
+ 
+ #define RS_EVENT_WRITE_WAKEUP	1
+ 
+@@ -62,7 +52,6 @@ module_param(gs_debug, int, 0644);
+ void gs_put_char(struct tty_struct * tty, unsigned char ch)
+ {
+ 	struct gs_port *port;
+-	DECL
+ 
+ 	func_enter (); 
+ 
+@@ -75,11 +64,11 @@ void gs_put_char(struct tty_struct * tty
+ 	if (! (port->flags & ASYNC_INITIALIZED)) return;
+ 
+ 	/* Take a lock on the serial tranmit buffer! */
+-	LOCKIT;
++	mutex_lock(& port->port_write_mutex);
+ 
+ 	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1) {
+ 		/* Sorry, buffer is full, drop character. Update statistics???? -- REW */
+-		RELEASEIT;
++		mutex_unlock(&port->port_write_mutex);
+ 		return;
  	}
- 	return mask;
-@@ -861,7 +862,7 @@ static void n_hdlc_buf_put(struct n_hdlc
- 	spin_lock_irqsave(&list->spinlock,flags);
- 	
- 	buf->link=NULL;
--	if(list->tail)
-+	if (list->tail)
- 		list->tail->link = buf;
- 	else
- 		list->head = buf;
-diff -puN drivers/char/n_tty.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by drivers/char/n_tty.c
---- a/drivers/char/n_tty.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by
-+++ a/drivers/char/n_tty.c
-@@ -1538,7 +1538,8 @@ static unsigned int normal_poll(struct t
- 		else
- 			tty->minimum_to_wake = 1;
- 	}
--	if (tty->driver->chars_in_buffer(tty) < WAKEUP_CHARS &&
-+	if (!tty_is_writelocked(tty) &&
-+			tty->driver->chars_in_buffer(tty) < WAKEUP_CHARS &&
- 			tty->driver->write_room(tty) > 0)
- 		mask |= POLLOUT | POLLWRNORM;
- 	return mask;
-diff -puN drivers/char/tty_io.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by
-+++ a/drivers/char/tty_io.c
-@@ -1726,6 +1726,23 @@ static ssize_t tty_read(struct file * fi
- 	return i;
+ 
+@@ -87,13 +76,11 @@ void gs_put_char(struct tty_struct * tty
+ 	port->xmit_head &= SERIAL_XMIT_SIZE - 1;
+ 	port->xmit_cnt++;  /* Characters in buffer */
+ 
+-	RELEASEIT;
++	mutex_unlock(&port->port_write_mutex);
+ 	func_exit ();
  }
  
-+void tty_write_unlock(struct tty_struct *tty)
-+{
-+	mutex_unlock(&tty->atomic_write_lock);
-+	wake_up_interruptible(&tty->write_wait);
-+}
-+
-+int tty_write_lock(struct tty_struct *tty, int ndelay)
-+{
-+	if (!mutex_trylock(&tty->atomic_write_lock)) {
-+		if (ndelay)
-+			return -EAGAIN;
-+		if (mutex_lock_interruptible(&tty->atomic_write_lock))
-+			return -ERESTARTSYS;
-+	}
-+	return 0;
-+}
-+
+ 
+-#ifdef NEW_WRITE_LOCKING
+-
  /*
-  * Split writes up in sane blocksizes to avoid
-  * denial-of-service type attacks
-@@ -1737,13 +1754,12 @@ static inline ssize_t do_tty_write(
- 	const char __user *buf,
- 	size_t count)
- {
--	ssize_t ret = 0, written = 0;
-+	ssize_t ret, written = 0;
- 	unsigned int chunk;
- 	
--	/* FIXME: O_NDELAY ... */
--	if (mutex_lock_interruptible(&tty->atomic_write_lock)) {
--		return -ERESTARTSYS;
--	}
-+	ret = tty_write_lock(tty, file->f_flags & O_NDELAY);
-+	if (ret < 0)
-+		return ret;
- 
- 	/*
- 	 * We chunk up writes into a temporary buffer. This
-@@ -1776,8 +1792,8 @@ static inline ssize_t do_tty_write(
- 
- 		buf = kmalloc(chunk, GFP_KERNEL);
- 		if (!buf) {
--			mutex_unlock(&tty->atomic_write_lock);
--			return -ENOMEM;
-+			ret = -ENOMEM;
-+			goto out;
- 		}
- 		kfree(tty->write_buf);
- 		tty->write_cnt = chunk;
-@@ -1812,7 +1828,8 @@ static inline ssize_t do_tty_write(
- 		inode->i_mtime = current_fs_time(inode->i_sb);
- 		ret = written;
- 	}
--	mutex_unlock(&tty->atomic_write_lock);
-+out:
-+	tty_write_unlock(tty);
- 	return ret;
+ > Problems to take into account are:
+ >       -1- Interrupts that empty part of the buffer.
+@@ -166,90 +153,6 @@ int gs_write(struct tty_struct * tty, 
+ 	func_exit ();
+ 	return total;
  }
- 
-@@ -3163,14 +3180,13 @@ static int tiocsetd(struct tty_struct *t
- 
- static int send_break(struct tty_struct *tty, unsigned int duration)
- {
--	if (mutex_lock_interruptible(&tty->atomic_write_lock))
-+	if (tty_write_lock(tty, 0) < 0)
- 		return -EINTR;
- 	tty->driver->break_ctl(tty, -1);
--	if (!signal_pending(current)) {
-+	if (!signal_pending(current))
- 		msleep_interruptible(duration);
+-#else
+-/*
+-> Problems to take into account are:
+->       -1- Interrupts that empty part of the buffer.
+->       -2- page faults on the access to userspace. 
+->       -3- Other processes that are also trying to do a "write". 
+-*/
+-
+-int gs_write(struct tty_struct * tty,
+-                    const unsigned char *buf, int count)
+-{
+-	struct gs_port *port;
+-	int c, total = 0;
+-	int t;
+-	unsigned long flags;
+-
+-	func_enter ();
+-
+-	/* The standard serial driver returns 0 in this case. 
+-	   That sounds to me as "No error, I just didn't get to writing any
+-	   bytes. Feel free to try again." 
+-	   The "official" way to write n bytes from buf is:
+-
+-		 for (nwritten = 0;nwritten < n;nwritten += rv) {
+-			 rv = write (fd, buf+nwritten, n-nwritten);
+-			 if (rv < 0) break; // Error: bail out. //
+-		 } 
+-
+-	   which will loop endlessly in this case. The manual page for write
+-	   agrees with me. In practise almost everybody writes 
+-	   "write (fd, buf,n);" but some people might have had to deal with 
+-	   incomplete writes in the past and correctly implemented it by now... 
+-	 */
+-
+-	if (!tty) return -EIO;
+-
+-	port = tty->driver_data;
+-	if (!port || !port->xmit_buf)
+-		return -EIO;
+-
+-	local_save_flags(flags);
+-	while (1) {
+-		cli();
+-		c = count;
+-
+-		/* This is safe because we "OWN" the "head". Noone else can 
+-		   change the "head": we own the port_write_mutex. */
+-		/* Don't overrun the end of the buffer */
+-		t = SERIAL_XMIT_SIZE - port->xmit_head;
+-		if (t < c) c = t;
+-
+-		/* This is safe because the xmit_cnt can only decrease. This 
+-		   would increase "t", so we might copy too little chars. */
+-		/* Don't copy past the "head" of the buffer */
+-		t = SERIAL_XMIT_SIZE - 1 - port->xmit_cnt;
+-		if (t < c) c = t;
+-
+-		/* Can't copy more? break out! */
+-		if (c <= 0) {
+-			local_restore_flags(flags);
+-			break;
+-		}
+-		memcpy(port->xmit_buf + port->xmit_head, buf, c);
+-		port->xmit_head = ((port->xmit_head + c) &
+-		                   (SERIAL_XMIT_SIZE-1));
+-		port->xmit_cnt += c;
+-		local_restore_flags(flags);
+-		buf += c;
+-		count -= c;
+-		total += c;
 -	}
- 	tty->driver->break_ctl(tty, 0);
--	mutex_unlock(&tty->atomic_write_lock);
-+	tty_write_unlock(tty);
- 	if (signal_pending(current))
- 		return -EINTR;
- 	return 0;
-diff -puN drivers/char/tty_ioctl.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by
-+++ a/drivers/char/tty_ioctl.c
-@@ -667,7 +667,7 @@ static int send_prio_char(struct tty_str
- 		return 0;
+-
+-	if (port->xmit_cnt && 
+-	    !tty->stopped && 
+-	    !tty->hw_stopped &&
+-	    !(port->flags & GS_TX_INTEN)) {
+-		port->flags |= GS_TX_INTEN;
+-		port->rd->enable_tx_interrupts (port);
+-	}
+-	func_exit ();
+-	return total;
+-}
+-
+-#endif
+ 
+ 
+ 
+@@ -737,23 +640,6 @@ void gs_set_termios (struct tty_struct *
+ 		gs_dprintk (GS_DEBUG_TERMIOS, "termios structure (%p):\n", tiosp);
  	}
  
--	if (mutex_lock_interruptible(&tty->atomic_write_lock))
-+	if (tty_write_lock(tty, 0) < 0)
- 		return -ERESTARTSYS;
- 
- 	if (was_stopped)
-@@ -675,7 +675,7 @@ static int send_prio_char(struct tty_str
- 	tty->driver->write(tty, &ch, 1);
- 	if (was_stopped)
- 		stop_tty(tty);
--	mutex_unlock(&tty->atomic_write_lock);
-+	tty_write_unlock(tty);
- 	return 0;
- }
- 
-diff -puN include/linux/tty.h~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by include/linux/tty.h
---- a/include/linux/tty.h~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by
-+++ a/include/linux/tty.h
-@@ -338,6 +338,12 @@ extern struct tty_struct *get_current_tt
- 
- extern struct mutex tty_mutex;
- 
-+extern void tty_write_unlock(struct tty_struct *tty);
-+extern int tty_write_lock(struct tty_struct *tty, int ndelay);
-+#define tty_is_writelocked(tty)  (mutex_is_locked(&tty->atomic_write_lock))
-+
-+
-+
- /* n_tty.c */
- extern struct tty_ldisc tty_ldisc_N_TTY;
- 
+-	/* This is an optimization that is only allowed for dumb cards */
+-	/* Smart cards require knowledge of iflags and oflags too: that 
+-	   might change hardware cooking mode.... */
+-	if (old_termios) {
+-		if(   (tiosp->c_iflag == old_termios->c_iflag)
+-		   && (tiosp->c_oflag == old_termios->c_oflag)
+-		   && (tiosp->c_cflag == old_termios->c_cflag)
+-		   && (tiosp->c_lflag == old_termios->c_lflag)
+-		   && (tiosp->c_line  == old_termios->c_line)
+-		   && (memcmp(tiosp->c_cc, old_termios->c_cc, NCC) == 0)) {
+-			gs_dprintk(GS_DEBUG_TERMIOS, "gs_set_termios: optimized away\n");
+-			return /* 0 */;
+-		}
+-	} else 
+-		gs_dprintk(GS_DEBUG_TERMIOS, "gs_set_termios: no old_termios: "
+-		           "no optimization\n");
+-
+ 	if(old_termios && (gs_debug & GS_DEBUG_TERMIOS)) {
+ 		if(tiosp->c_iflag != old_termios->c_iflag)  printk("c_iflag changed\n");
+ 		if(tiosp->c_oflag != old_termios->c_oflag)  printk("c_oflag changed\n");
 _
 
-Patches currently in -mm which might be from alan@redhat.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
+git-powerpc.patch
 git-ia64.patch
-pata_acpi-restore-driver.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
 ata-use-iomap_name.patch
 sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 pata_ali-more-work.patch
 tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
-x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
 xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
 blackfin-enable-arbitary-speed-serial-setting.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+sb1250-duartc-sb1250-duart-serial-support.patch
 mbcs-remove-lots-of-global-symbols.patch
-char-vt-use-kzalloc.patch
-char-vt-use-array_size.patch
+i2o_cfg_passthru-cleanup.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
 stallion-remove-unneeded-lock_kernel.patch
-revoke-special-mmap-handling.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
+drivers-edac-fix-edac_device-semaphore-to-mutex.patch
+drivers-edac-fix-e752x-reversed-csrows.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-fix-leaf-sysfs-attribute.patch
+drivers-edac-fix-edac_mc-init-apis.patch
+drivers-edac-fix-edac_device-init-apis.patch
+drivers-edac-fix-edac_mc-sysfs-completion-code.patch
+drivers-edac-fix-edac_device-sysfs-completion-code.patch
