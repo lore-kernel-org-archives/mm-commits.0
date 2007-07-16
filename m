@@ -1,233 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: - remove-clockevents_releaserequest_device.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:54:45 -0700
-Message-ID: <200707162054.l6GKsjIr001848@imap1.linux-foundation.org>
+Subject: - introduce-o_cloexec-take-2.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:55:33 -0700
+Message-ID: <200707162055.l6GKtXGs001943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37464 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33235 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751096AbXGPVgv (ORCPT
+	by vger.kernel.org with ESMTP id S1755999AbXGPVhA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:36:51 -0400
+	Mon, 16 Jul 2007 17:37:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: drepper@redhat.com, chris@zankel.net, davem@davemloft.net, davidel@xmailserver.org, kyle@parisc-linux.org, mingo@elte.hu, mtk-manpages@gmx.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove clockevents_{release,request}_device
+     Introduce O_CLOEXEC
 has been removed from the -mm tree.  Its filename was
-     remove-clockevents_releaserequest_device.patch
+     introduce-o_cloexec-take-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove clockevents_{release,request}_device
-From: Andi Kleen <ak@suse.de>
+Subject: Introduce O_CLOEXEC
+From: Ulrich Drepper <drepper@redhat.com>
 
-Not called by anything in tree.
+The problem is as follows: in multi-threaded code (or more correctly: all
+code using clone() with CLONE_FILES) we have a race when exec'ing.
 
-Signed-off-by: Andi Kleen <ak@suse.de>
+   thread #1                       thread #2
+
+   fd=open()
+
+                                   fork + exec
+
+  fcntl(fd,F_SETFD,FD_CLOEXEC)
+
+In some applications this can happen frequently.  Take a web browser.  One
+thread opens a file and another thread starts, say, an external PDF viewer.
+ The result can even be a security issue if that open file descriptor
+refers to a sensitive file and the external program can somehow be tricked
+into using that descriptor.
+
+Just adding O_CLOEXEC support to open() doesn't solve the whole set of
+problems.  There are other ways to create file descriptors (socket,
+epoll_create, Unix domain socket transfer, etc).  These can and should be
+addressed separately though.  open() is such an easy case that it makes not
+much sense putting the fix off.
+
+The test program:
+
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+
+#ifndef O_CLOEXEC
+# define O_CLOEXEC 02000000
+#endif
+
+int
+main (int argc, char *argv[])
+{
+  int fd;
+  if (argc > 1)
+    {
+      fd = atol (argv[1]);
+      printf ("child: fd = %d\n", fd);
+      if (fcntl (fd, F_GETFD) == 0 || errno != EBADF)
+        {
+          puts ("file descriptor valid in child");
+          return 1;
+        }
+      return 0;
+    }
+
+  fd = open ("/proc/self/exe", O_RDONLY | O_CLOEXEC);
+  printf ("in parent: new fd = %d\n", fd);
+  char buf[20];
+  snprintf (buf, sizeof (buf), "%d", fd);
+  execl ("/proc/self/exe", argv[0], buf, NULL);
+  puts ("execl failed");
+  return 1;
+}
+
+[kyle@parisc-linux.org: parisc fix]
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Cc: Chris Zankel <chris@zankel.net>
+Signed-off-by: Kyle McMartin <kyle@parisc-linux.org>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/clockevents.c |   41 ------------------------------------
- 1 file changed, 41 deletions(-)
+ fs/open.c                   |   14 +++++++++++---
+ include/asm-generic/fcntl.h |    3 +++
+ include/asm-parisc/fcntl.h  |   31 ++++++++++++++++---------------
+ 3 files changed, 30 insertions(+), 18 deletions(-)
 
-diff -puN kernel/time/clockevents.c~remove-clockevents_releaserequest_device kernel/time/clockevents.c
---- a/kernel/time/clockevents.c~remove-clockevents_releaserequest_device
-+++ a/kernel/time/clockevents.c
-@@ -205,47 +205,6 @@ void clockevents_exchange_device(struct 
+diff -puN fs/open.c~introduce-o_cloexec-take-2 fs/open.c
+--- a/fs/open.c~introduce-o_cloexec-take-2
++++ a/fs/open.c
+@@ -855,7 +855,7 @@ EXPORT_SYMBOL(dentry_open);
+ /*
+  * Find an empty file descriptor entry, and mark it busy.
+  */
+-int get_unused_fd(void)
++static int get_unused_fd_flags(int flags)
+ {
+ 	struct files_struct * files = current->files;
+ 	int fd, error;
+@@ -891,7 +891,10 @@ repeat:
+ 	}
+ 
+ 	FD_SET(fd, fdt->open_fds);
+-	FD_CLR(fd, fdt->close_on_exec);
++	if (flags & O_CLOEXEC)
++		FD_SET(fd, fdt->close_on_exec);
++	else
++		FD_CLR(fd, fdt->close_on_exec);
+ 	files->next_fd = fd + 1;
+ #if 1
+ 	/* Sanity check */
+@@ -907,6 +910,11 @@ out:
+ 	return error;
  }
  
- /**
-- * clockevents_request_device
-- */
--struct clock_event_device *clockevents_request_device(unsigned int features,
--						      cpumask_t cpumask)
--{
--	struct clock_event_device *cur, *dev = NULL;
--	struct list_head *tmp;
++int get_unused_fd(void)
++{
++	return get_unused_fd_flags(0);
++}
++
+ EXPORT_SYMBOL(get_unused_fd);
+ 
+ static void __put_unused_fd(struct files_struct *files, unsigned int fd)
+@@ -959,7 +967,7 @@ long do_sys_open(int dfd, const char __u
+ 	int fd = PTR_ERR(tmp);
+ 
+ 	if (!IS_ERR(tmp)) {
+-		fd = get_unused_fd();
++		fd = get_unused_fd_flags(flags);
+ 		if (fd >= 0) {
+ 			struct file *f = do_filp_open(dfd, tmp, flags, mode);
+ 			if (IS_ERR(f)) {
+diff -puN include/asm-generic/fcntl.h~introduce-o_cloexec-take-2 include/asm-generic/fcntl.h
+--- a/include/asm-generic/fcntl.h~introduce-o_cloexec-take-2
++++ a/include/asm-generic/fcntl.h
+@@ -48,6 +48,9 @@
+ #ifndef O_NOATIME
+ #define O_NOATIME	01000000
+ #endif
++#ifndef O_CLOEXEC
++#define O_CLOEXEC	02000000	/* set close_on_exec */
++#endif
+ #ifndef O_NDELAY
+ #define O_NDELAY	O_NONBLOCK
+ #endif
+diff -puN include/asm-parisc/fcntl.h~introduce-o_cloexec-take-2 include/asm-parisc/fcntl.h
+--- a/include/asm-parisc/fcntl.h~introduce-o_cloexec-take-2
++++ a/include/asm-parisc/fcntl.h
+@@ -3,21 +3,22 @@
+ 
+ /* open/fcntl - O_SYNC is only implemented on blocks devices and on files
+    located on an ext2 file system */
+-#define O_APPEND	00000010
+-#define O_BLKSEEK	00000100 /* HPUX only */
+-#define O_CREAT		00000400 /* not fcntl */
+-#define O_EXCL		00002000 /* not fcntl */
+-#define O_LARGEFILE	00004000
+-#define O_SYNC		00100000
+-#define O_NONBLOCK	00200004 /* HPUX has separate NDELAY & NONBLOCK */
+-#define O_NOCTTY	00400000 /* not fcntl */
+-#define O_DSYNC		01000000 /* HPUX only */
+-#define O_RSYNC		02000000 /* HPUX only */
+-#define O_NOATIME	04000000
 -
--	spin_lock(&clockevents_lock);
--
--	list_for_each(tmp, &clockevent_devices) {
--		cur = list_entry(tmp, struct clock_event_device, list);
--
--		if ((cur->features & features) == features &&
--		    cpus_equal(cpumask, cur->cpumask)) {
--			if (!dev || dev->rating < cur->rating)
--				dev = cur;
--		}
--	}
--
--	clockevents_exchange_device(NULL, dev);
--
--	spin_unlock(&clockevents_lock);
--
--	return dev;
--}
--
--/**
-- * clockevents_release_device
-- */
--void clockevents_release_device(struct clock_event_device *dev)
--{
--	spin_lock(&clockevents_lock);
--
--	clockevents_exchange_device(dev, NULL);
--	clockevents_notify_released();
--
--	spin_unlock(&clockevents_lock);
--}
--
--/**
-  * clockevents_notify - notification about relevant events
-  */
- void clockevents_notify(unsigned long reason, void *arg)
+-#define O_DIRECTORY	00010000 /* must be a directory */
+-#define O_NOFOLLOW	00000200 /* don't follow links */
+-#define O_INVISIBLE	04000000 /* invisible I/O, for DMAPI/XDSM */
++#define O_APPEND	000000010
++#define O_BLKSEEK	000000100 /* HPUX only */
++#define O_CREAT		000000400 /* not fcntl */
++#define O_EXCL		000002000 /* not fcntl */
++#define O_LARGEFILE	000004000
++#define O_SYNC		000100000
++#define O_NONBLOCK	000200004 /* HPUX has separate NDELAY & NONBLOCK */
++#define O_NOCTTY	000400000 /* not fcntl */
++#define O_DSYNC		001000000 /* HPUX only */
++#define O_RSYNC		002000000 /* HPUX only */
++#define O_NOATIME	004000000
++#define O_CLOEXEC	010000000 /* set close_on_exec */
++
++#define O_DIRECTORY	000010000 /* must be a directory */
++#define O_NOFOLLOW	000000200 /* don't follow links */
++#define O_INVISIBLE	004000000 /* invisible I/O, for DMAPI/XDSM */
+ 
+ #define F_GETLK64	8
+ #define F_SETLK64	9
 _
 
-Patches currently in -mm which might be from ak@suse.de are
+Patches currently in -mm which might be from drepper@redhat.com are
 
 origin.patch
-pci-disable-decode-of-io-memory-during-bar-sizing.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-xen-build-fix.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-xen-xen-smp-guest-support.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-update-x86_64-mm-xen-use-iret-directly-where-possible.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-quicklist-support-for-x86_64.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-x86_64-fix-e820_hole_size-based-on-address-ranges.patch
-x86_64-acpi-disable-srat-when-numa-emulation-succeeds.patch
-x86_64-slit-fake-pxm-to-node-mapping-for-fake-numa-2.patch
-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-x86_64-o_excl-on-dev-mcelog.patch
-x86_64-support-poll-on-dev-mcelog.patch
-x86_64-mcelog-tolerant-level-cleanup.patch
-x86_64-mce-poll-at-idle_start-and-printk-fix.patch
-i386-fix-machine-rebooting.patch
-x86_64-ratelimit-segfault-reporting-rate.patch
-x86_64-pm_trace-support.patch
-make-alt-sysrq-p-display-the-debug-register-contents.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-round_jiffies-for-i386-and-x86-64-non-critical-corrected-mce-polling.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-i386-remove-support-for-the-rise-cpu.patch
-x86-64-calgary-generalize-calgary_increase_split_completion_timeout.patch
-x86-64-calgary-update-copyright-notice.patch
-x86-64-calgary-introduce-handle_quirks-for-various-chipset-quirks.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-abstract-how-we-find-the-iommu_table-for-a-device.patch
-x86-64-calgary-introduce-calioc2-support.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-implement-calioc2-tce-cache-flush-sequence.patch
-x86-64-calgary-make-dump_error_regs-a-chip-op.patch
-x86-64-calgary-grab-plssr-too-when-a-dma-error-occurs.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-cleanup-of-unneeded-macros.patch
-x86-64-calgary-tabify-and-trim-trailing-whitespace.patch
-x86-64-calgary-only-reserve-the-first-1mb-of-io-space-for-calioc2.patch
-x86-64-calgary-tidy-up-debug-printks.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-x86-64-calgary-tighten-up-the-bitmap-locking.patch
-x86-64-calgary-fold-in-redundant-functions.patch
-x86_64-calgary-change-_map_single-etc-to-static.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-dmi_match-patch-in-rebootc-for-sff-dell-optiplex-745-fixes-hang.patch
-kprobes-x86_64-fix-for-mark-ro-data.patch
-kprobes-i386-fix-for-mark-ro-data.patch
-divorce-config_x86_pae-from-config_highmem64g.patch
-i386-show-unhandled-signals.patch
-i386-minor-nx-handling-adjustment.patch
-x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch
-x86-64-remove-unused-variable-maxcpus.patch
-move-functions-declarations-to-header-file.patch
-x86_64-during-vm-oom-condition.patch
-i386-during-vm-oom-condition.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support.patch
-x86_64-fix-wrong-comment-regarding-set_fixmap.patch
-i386-hpet-check-if-the-counter-works.patch
-i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
-i386-remove-volatile-in-apicc.patch
-i386-hpet-assumes-boot-cpu-is-0.patch
-i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
-x86_64-untangle-asm-hpeth-from-asm-timexh.patch
-x86_64-use-generic-cmos-update.patch
-x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
-x86_64-fix-apic-typo.patch
-x86_64-convert-to-cleckevents.patch
-acpi-remove-the-useless-ifdef-code.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-xen-fix-x86-config-dependencies.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
-xen-cant-support-numa-yet.patch
-x86-fix-iounmaps-use-of-vm_structs-size-field.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch
-i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
-kprobes-on-select-architectures-no-longer-experimental.patch
-print-utsname-on-oops-on-all-architectures.patch
-print-utsname-on-oops-on-all-architectures-fix.patch
-inhibit-nmi-watchdog-when-alt-sysrq-t-operation-is-underway.patch
-i386-speedup-touch_nmi_watchdog.patch
-x86_64-speedup-touch_nmi_watchdog.patch
-lguest-the-guest-code.patch
-lguest-the-host-code.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
-lguest-the-net-driver.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-i386-put-allocated-elf-notes-in-read-only-data-segment.patch
-x86_64-put-allocated-elf-notes-in-read-only-data-segment.patch
-add-sys-kernel-notes.patch
-use-build-id-ld-option.patch
