@@ -1,62 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-write_trylock_irqsave.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:53 -0700
-Message-ID: <200707162053.l6GKrr2b001685@imap1.linux-foundation.org>
+Subject: - nommu-stub-expand_stack-for-nommu-case.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:50:11 -0700
+Message-ID: <200707162050.l6GKoBuh001299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39777 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55464 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760228AbXGPVas (ORCPT
+	by vger.kernel.org with ESMTP id S1759733AbXGPVa5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:30:48 -0400
+	Mon, 16 Jul 2007 17:30:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ssatyam@cse.iitk.ac.in, mingo@elte.hu, sripathik@in.ibm.com, mm-commits@vger.kernel.org
+To: gerg@snapgear.com, dhowells@redhat.com, gerg@uclinux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce write_trylock_irqsave()
+     nommu: stub expand_stack() for nommu case
 has been removed from the -mm tree.  Its filename was
-     introduce-write_trylock_irqsave.patch
+     nommu-stub-expand_stack-for-nommu-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: introduce write_trylock_irqsave()
-From: Satyam Sharma <ssatyam@cse.iitk.ac.in>
+Subject: nommu: stub expand_stack() for nommu case
+From: Greg Ungerer <gerg@snapgear.com>
 
-Introduce a write_trylock_irqsave() implementation.  Similar in style to
-the implementation of spin_trylock_irqsave() in mainline.
+Be consistent with VM mmap, implement expand_stack().  We can't actually do
+anything other than return an error in the no MMU case though.
 
-Signed-off-by: Satyam Sharma <ssatyam@cse.iitk.ac.in>
-Cc: Sripathi Kodi <sripathik@in.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spinlock.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/nommu.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/spinlock.h~introduce-write_trylock_irqsave include/linux/spinlock.h
---- a/include/linux/spinlock.h~introduce-write_trylock_irqsave
-+++ a/include/linux/spinlock.h
-@@ -282,6 +282,13 @@ do {						\
- 	1 : ({ local_irq_restore(flags); 0; }); \
- })
+diff -puN mm/nommu.c~nommu-stub-expand_stack-for-nommu-case mm/nommu.c
+--- a/mm/nommu.c~nommu-stub-expand_stack-for-nommu-case
++++ a/mm/nommu.c
+@@ -367,6 +367,11 @@ struct vm_area_struct *find_extend_vma(s
+ 	return find_vma(mm, addr);
+ }
  
-+#define write_trylock_irqsave(lock, flags) \
-+({ \
-+	local_irq_save(flags); \
-+	write_trylock(lock) ? \
-+	1 : ({ local_irq_restore(flags); 0; }); \
-+})
++int expand_stack(struct vm_area_struct *vma, unsigned long address)
++{
++	return -ENOMEM;
++}
 +
  /*
-  * Locks two spinlocks l1 and l2.
-  * l1_first indicates if spinlock l1 should be taken first.
+  * look up the first VMA exactly that exactly matches addr
+  * - should be called with mm->mmap_sem at least held readlocked
 _
 
-Patches currently in -mm which might be from ssatyam@cse.iitk.ac.in are
+Patches currently in -mm which might be from gerg@snapgear.com are
 
 origin.patch
-git-ocfs2.patch
+git-mtd.patch
