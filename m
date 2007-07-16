@@ -1,195 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - vxfs-warning-fixes.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:28 -0700
-Message-ID: <200707162053.l6GKrSJ4001631@imap1.linux-foundation.org>
+Subject: - namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:23 -0700
+Message-ID: <200707162057.l6GKvNfp002185@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57485 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36723 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760740AbXGPVP5 (ORCPT
+	by vger.kernel.org with ESMTP id S1758697AbXGPVQI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:57 -0400
+	Mon, 16 Jul 2007 17:16:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, clg@fr.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vxfs warning fixes
+     namespace: ensure clone_flags are always stored in an unsigned long
 has been removed from the -mm tree.  Its filename was
-     vxfs-warning-fixes.patch
+     namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vxfs warning fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: namespace: ensure clone_flags are always stored in an unsigned long
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-gcc-4.3:
+While working on unshare support for the network namespace I noticed we
+were putting clone flags in an int.  Which is weird because the syscall
+uses unsigned long and we at least need an unsigned to properly hold all of
+the unshare flags.
 
-fs/freevxfs/vxfs_lookup.c: In function 'vxfs_find_entry':
-fs/freevxfs/vxfs_lookup.c:139: warning: cast from pointer to integer of different size
-fs/freevxfs/vxfs_lookup.c: In function 'vxfs_readdir':
-fs/freevxfs/vxfs_lookup.c:294: warning: cast from pointer to integer of different size
+So to make the code consistent, this patch updates the code to use
+unsigned long instead of int for the clone flags in those places
+where we get it wrong today.
 
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: Cedric Le Goater <clg@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/freevxfs/vxfs_dir.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/namespace.c                |    2 +-
+ include/linux/mnt_namespace.h |    2 +-
+ include/linux/nsproxy.h       |    2 +-
+ include/linux/pid_namespace.h |    2 +-
+ include/linux/utsname.h       |    3 ++-
+ kernel/nsproxy.c              |    6 +++---
+ kernel/pid.c                  |    2 +-
+ kernel/utsname.c              |    2 +-
+ 8 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN fs/freevxfs/vxfs_dir.h~vxfs-warning-fixes fs/freevxfs/vxfs_dir.h
---- a/fs/freevxfs/vxfs_dir.h~vxfs-warning-fixes
-+++ a/fs/freevxfs/vxfs_dir.h
-@@ -80,7 +80,7 @@ struct vxfs_direct {
-  *	a d_name with size len.
+diff -puN fs/namespace.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long fs/namespace.c
+--- a/fs/namespace.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
++++ a/fs/namespace.c
+@@ -1509,7 +1509,7 @@ static struct mnt_namespace *dup_mnt_ns(
+ 	return new_ns;
+ }
+ 
+-struct mnt_namespace *copy_mnt_ns(int flags, struct mnt_namespace *ns,
++struct mnt_namespace *copy_mnt_ns(unsigned long flags, struct mnt_namespace *ns,
+ 		struct fs_struct *new_fs)
+ {
+ 	struct mnt_namespace *new_ns;
+diff -puN include/linux/mnt_namespace.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long include/linux/mnt_namespace.h
+--- a/include/linux/mnt_namespace.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
++++ a/include/linux/mnt_namespace.h
+@@ -14,7 +14,7 @@ struct mnt_namespace {
+ 	int event;
+ };
+ 
+-extern struct mnt_namespace *copy_mnt_ns(int, struct mnt_namespace *,
++extern struct mnt_namespace *copy_mnt_ns(unsigned long, struct mnt_namespace *,
+ 		struct fs_struct *);
+ extern void __put_mnt_ns(struct mnt_namespace *ns);
+ 
+diff -puN include/linux/nsproxy.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
++++ a/include/linux/nsproxy.h
+@@ -32,7 +32,7 @@ struct nsproxy {
+ };
+ extern struct nsproxy init_nsproxy;
+ 
+-int copy_namespaces(int flags, struct task_struct *tsk);
++int copy_namespaces(unsigned long flags, struct task_struct *tsk);
+ void get_task_namespaces(struct task_struct *tsk);
+ void free_nsproxy(struct nsproxy *ns);
+ int unshare_nsproxy_namespaces(unsigned long, struct nsproxy **,
+diff -puN include/linux/pid_namespace.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long include/linux/pid_namespace.h
+--- a/include/linux/pid_namespace.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
++++ a/include/linux/pid_namespace.h
+@@ -29,7 +29,7 @@ static inline void get_pid_ns(struct pid
+ 	kref_get(&ns->kref);
+ }
+ 
+-extern struct pid_namespace *copy_pid_ns(int flags, struct pid_namespace *ns);
++extern struct pid_namespace *copy_pid_ns(unsigned long flags, struct pid_namespace *ns);
+ extern void free_pid_ns(struct kref *kref);
+ 
+ static inline void put_pid_ns(struct pid_namespace *ns)
+diff -puN include/linux/utsname.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long include/linux/utsname.h
+--- a/include/linux/utsname.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
++++ a/include/linux/utsname.h
+@@ -48,7 +48,8 @@ static inline void get_uts_ns(struct uts
+ 	kref_get(&ns->kref);
+ }
+ 
+-extern struct uts_namespace *copy_utsname(int flags, struct uts_namespace *ns);
++extern struct uts_namespace *copy_utsname(unsigned long flags,
++					struct uts_namespace *ns);
+ extern void free_uts_ns(struct kref *kref);
+ 
+ static inline void put_uts_ns(struct uts_namespace *ns)
+diff -puN kernel/nsproxy.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long kernel/nsproxy.c
+--- a/kernel/nsproxy.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
++++ a/kernel/nsproxy.c
+@@ -58,8 +58,8 @@ static inline struct nsproxy *clone_nspr
+  * Return the newly created nsproxy.  Do not attach this to the task,
+  * leave it to the caller to do proper locking and attach it to task.
   */
- #define VXFS_DIRPAD		4
--#define VXFS_NAMEMIN		((int)((struct vxfs_direct *)0)->d_name)
-+#define VXFS_NAMEMIN		offsetof(struct vxfs_direct, d_name)
- #define VXFS_DIRROUND(len)	((VXFS_DIRPAD + (len) - 1) & ~(VXFS_DIRPAD -1))
- #define VXFS_DIRLEN(len)	(VXFS_DIRROUND(VXFS_NAMEMIN + (len)))
+-static struct nsproxy *create_new_namespaces(int flags, struct task_struct *tsk,
+-			struct fs_struct *new_fs)
++static struct nsproxy *create_new_namespaces(unsigned long flags,
++			struct task_struct *tsk, struct fs_struct *new_fs)
+ {
+ 	struct nsproxy *new_nsp;
+ 	int err;
+@@ -121,7 +121,7 @@ out_ns:
+  * called from clone.  This now handles copy for nsproxy and all
+  * namespaces therein.
+  */
+-int copy_namespaces(int flags, struct task_struct *tsk)
++int copy_namespaces(unsigned long flags, struct task_struct *tsk)
+ {
+ 	struct nsproxy *old_ns = tsk->nsproxy;
+ 	struct nsproxy *new_ns;
+diff -puN kernel/pid.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long kernel/pid.c
+--- a/kernel/pid.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
++++ a/kernel/pid.c
+@@ -365,7 +365,7 @@ struct pid *find_ge_pid(int nr)
+ }
+ EXPORT_SYMBOL_GPL(find_get_pid);
+ 
+-struct pid_namespace *copy_pid_ns(int flags, struct pid_namespace *old_ns)
++struct pid_namespace *copy_pid_ns(unsigned long flags, struct pid_namespace *old_ns)
+ {
+ 	BUG_ON(!old_ns);
+ 	get_pid_ns(old_ns);
+diff -puN kernel/utsname.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long kernel/utsname.c
+--- a/kernel/utsname.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
++++ a/kernel/utsname.c
+@@ -39,7 +39,7 @@ static struct uts_namespace *clone_uts_n
+  * utsname of this process won't be seen by parent, and vice
+  * versa.
+  */
+-struct uts_namespace *copy_utsname(int flags, struct uts_namespace *old_ns)
++struct uts_namespace *copy_utsname(unsigned long flags, struct uts_namespace *old_ns)
+ {
+ 	struct uts_namespace *new_ns;
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-git-powerpc.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-ia64.patch
+dvb_en_50221-convert-to-kthread-api.patch
 git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-ubi.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-git-ocfs2-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
 fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
 x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals.patch
+i386-trim-memory-not-covered-by-wb-mtrrs.patch
+x86-64-disable-the-gart-in-shutdown.patch
 x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
 x86_64-add-ioapic-nmi-support.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-i386-speedup-touch_nmi_watchdog.patch
-x86_64-speedup-touch_nmi_watchdog.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support.patch
-spi-master-driver-for-xilinx-virtex.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup.patch
-knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-remove-iget-abuse.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-add-support-for-the-st-m48t59-rtc.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
-rtc-driver-for-ds1216-chips-fix.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver-fix.patch
+xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-basic-container-framework.patch
 containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem.patch
 containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
 containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
 containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
 containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
 containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
 containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+containersv10-simple-debug-info-subsystem.patch
 containersv10-simple-debug-info-subsystem-fix.patch
 containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
+containers-implement-subsys-post_clone.patch
+containers-implement-namespace-tracking-subsystem-v3.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
