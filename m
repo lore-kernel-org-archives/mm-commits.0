@@ -1,78 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - udf-check-for-allocated-memory-for-data-of-new-inodes.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:09 -0700
-Message-ID: <200707162053.l6GKr9ED001603@imap1.linux-foundation.org>
+Subject: - uml-export-hostfs-symbols.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:51:31 -0700
+Message-ID: <200707162051.l6GKpV8V001402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52976 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54724 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759148AbXGPVdL (ORCPT
+	by vger.kernel.org with ESMTP id S1756437AbXGPVdZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:33:11 -0400
+	Mon, 16 Jul 2007 17:33:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, hch@lst.de, jack@ucw.cz, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     UDF: check for allocated memory for data of new inodes
+     uml: export hostfs symbols
 has been removed from the -mm tree.  Its filename was
-     udf-check-for-allocated-memory-for-data-of-new-inodes.patch
+     uml-export-hostfs-symbols.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: UDF: check for allocated memory for data of new inodes
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: uml: export hostfs symbols
+From: Jeff Dike <jdike@addtoit.com>
 
-Add checking for granted memory for inode data at the moment of its
-creation.
+Add some exports for hostfs that are required after Alberto Bertogli's fixes
+for accessing unlinked host files.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Christoph Hellwig <hch@lst.de>
+Also did some style cleanups while I was here.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/ialloc.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/um/os-Linux/user_syms.c |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN fs/udf/ialloc.c~udf-check-for-allocated-memory-for-data-of-new-inodes fs/udf/ialloc.c
---- a/fs/udf/ialloc.c~udf-check-for-allocated-memory-for-data-of-new-inodes
-+++ a/fs/udf/ialloc.c
-@@ -50,7 +50,7 @@ void udf_free_inode(struct inode * inode
- 		else
- 			UDF_SB_LVIDIU(sb)->numFiles =
- 				cpu_to_le32(le32_to_cpu(UDF_SB_LVIDIU(sb)->numFiles) - 1);
--		
-+
- 		mark_buffer_dirty(sbi->s_lvidbh);
- 	}
- 	mutex_unlock(&sbi->s_alloc_mutex);
-@@ -136,6 +136,13 @@ struct inode * udf_new_inode (struct ino
- 		UDF_I_EFE(inode) = 0;
- 		UDF_I_DATA(inode) = kzalloc(inode->i_sb->s_blocksize - sizeof(struct fileEntry), GFP_KERNEL);
- 	}
-+	if (!UDF_I_DATA(inode))
-+	{
-+		iput(inode);
-+		*err = -ENOMEM;
-+		mutex_unlock(&sbi->s_alloc_mutex);
-+		return NULL;
-+	}
- 	if (UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_USE_AD_IN_ICB))
- 		UDF_I_ALLOCTYPE(inode) = ICBTAG_FLAG_AD_IN_ICB;
- 	else if (UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_USE_SHORT_AD))
+diff -puN arch/um/os-Linux/user_syms.c~uml-export-hostfs-symbols arch/um/os-Linux/user_syms.c
+--- a/arch/um/os-Linux/user_syms.c~uml-export-hostfs-symbols
++++ a/arch/um/os-Linux/user_syms.c
+@@ -5,7 +5,8 @@
+  * so I *must* declare good prototypes for them and then EXPORT them.
+  * The kernel code uses the macro defined by include/linux/string.h,
+  * so I undef macros; the userspace code does not include that and I
+- * add an EXPORT for the glibc one.*/
++ * add an EXPORT for the glibc one.
++ */
+ 
+ #undef strlen
+ #undef strstr
+@@ -61,12 +62,18 @@ EXPORT_SYMBOL_PROTO(dup2);
+ EXPORT_SYMBOL_PROTO(__xstat);
+ EXPORT_SYMBOL_PROTO(__lxstat);
+ EXPORT_SYMBOL_PROTO(__lxstat64);
++EXPORT_SYMBOL_PROTO(__fxstat64);
+ EXPORT_SYMBOL_PROTO(lseek);
+ EXPORT_SYMBOL_PROTO(lseek64);
+ EXPORT_SYMBOL_PROTO(chown);
++EXPORT_SYMBOL_PROTO(fchown);
+ EXPORT_SYMBOL_PROTO(truncate);
++EXPORT_SYMBOL_PROTO(ftruncate64);
+ EXPORT_SYMBOL_PROTO(utime);
++EXPORT_SYMBOL_PROTO(utimes);
++EXPORT_SYMBOL_PROTO(futimes);
+ EXPORT_SYMBOL_PROTO(chmod);
++EXPORT_SYMBOL_PROTO(fchmod);
+ EXPORT_SYMBOL_PROTO(rename);
+ EXPORT_SYMBOL_PROTO(__xmknod);
+ 
+@@ -102,14 +109,3 @@ EXPORT_SYMBOL(__stack_smash_handler);
+ 
+ extern long __guard __attribute__((weak));
+ EXPORT_SYMBOL(__guard);
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-sky-cpu-and-nexus-code-style-improvement.patch
-sky-cpu-and-nexus-include-ioh.patch
-sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
-sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
-sky-cpu-use-c99-style-for-struct-init.patch
-sky-cpu-and-nexus-get-rid-of-useless-null-init.patch
-sky-cpu-and-nexus-use-seq_file-single_open-on-proc-interface.patch
-udf-coding-style-conversion-lindent.patch
+hostfs-convert-to-new-aops.patch
