@@ -1,149 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - make-nfs-client-use-seq_list_xxx-helpers.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:54 -0700
-Message-ID: <200707162053.l6GKrssd001688@imap1.linux-foundation.org>
+Subject: - etrax-enable-arbitary-speed-setting-on-tty-ports.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:50:55 -0700
+Message-ID: <200707162050.l6GKotT0001344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38705 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60623 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759700AbXGPVeC (ORCPT
+	by vger.kernel.org with ESMTP id S1760234AbXGPVeE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:34:02 -0400
+	Mon, 16 Jul 2007 17:34:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@sw.ru, trond.myklebust@fys.uio.no, xemul@openvz.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make NFS client use seq_list_xxx helpers
+     etrax: enable arbitary speed setting on tty ports
 has been removed from the -mm tree.  Its filename was
-     make-nfs-client-use-seq_list_xxx-helpers.patch
+     etrax-enable-arbitary-speed-setting-on-tty-ports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Make NFS client use seq_list_xxx helpers
-From: Pavel Emelianov <xemul@sw.ru>
+Subject: etrax: enable arbitary speed setting on tty ports
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This includes /proc/fs/nfsfs/servers and /proc/fs/nfsfs/volumes entries.
+Add the needed constants and bits. The actual code is already in the tty
+layer and turned on by the definitions
 
-Both need to show the header and use the list_head.
-
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
-Acked-by: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/client.c |   54 +++++-----------------------------------------
- 1 file changed, 6 insertions(+), 48 deletions(-)
+ include/asm-cris/ioctls.h   |    4 ++++
+ include/asm-cris/termbits.h |    1 +
+ include/asm-cris/termios.h  |    6 ++++--
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN fs/nfs/client.c~make-nfs-client-use-seq_list_xxx-helpers fs/nfs/client.c
---- a/fs/nfs/client.c~make-nfs-client-use-seq_list_xxx-helpers
-+++ a/fs/nfs/client.c
-@@ -1206,23 +1206,9 @@ static int nfs_server_list_open(struct i
-  */
- static void *nfs_server_list_start(struct seq_file *m, loff_t *_pos)
- {
--	struct list_head *_p;
--	loff_t pos = *_pos;
--
- 	/* lock the list against modification */
- 	spin_lock(&nfs_client_lock);
--
--	/* allow for the header line */
--	if (!pos)
--		return SEQ_START_TOKEN;
--	pos--;
--
--	/* find the n'th element in the list */
--	list_for_each(_p, &nfs_client_list)
--		if (!pos--)
--			break;
--
--	return _p != &nfs_client_list ? _p : NULL;
-+	return seq_list_start_head(&nfs_client_list, *_pos);
- }
+diff -puN include/asm-cris/ioctls.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/ioctls.h
+--- a/include/asm-cris/ioctls.h~etrax-enable-arbitary-speed-setting-on-tty-ports
++++ a/include/asm-cris/ioctls.h
+@@ -48,6 +48,10 @@
+ #define TIOCSBRK	0x5427  /* BSD compatibility */
+ #define TIOCCBRK	0x5428  /* BSD compatibility */
+ #define TIOCGSID	0x5429  /* Return the session ID of FD */
++#define TCGETS2		_IOR('T',0x2A, struct termios2)
++#define TCSETS2		_IOW('T',0x2B, struct termios2)
++#define TCSETSW2	_IOW('T',0x2C, struct termios2)
++#define TCSETSF2	_IOW('T',0x2D, struct termios2)
+ #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
+ #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
- /*
-@@ -1230,14 +1216,7 @@ static void *nfs_server_list_start(struc
-  */
- static void *nfs_server_list_next(struct seq_file *p, void *v, loff_t *pos)
- {
--	struct list_head *_p;
--
--	(*pos)++;
--
--	_p = v;
--	_p = (v == SEQ_START_TOKEN) ? nfs_client_list.next : _p->next;
--
--	return _p != &nfs_client_list ? _p : NULL;
-+	return seq_list_next(v, &nfs_client_list, pos);
- }
+diff -puN include/asm-cris/termbits.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/termbits.h
+--- a/include/asm-cris/termbits.h~etrax-enable-arbitary-speed-setting-on-tty-ports
++++ a/include/asm-cris/termbits.h
+@@ -166,6 +166,7 @@ struct ktermios {
+ #define HUPCL	0002000
+ #define CLOCAL	0004000
+ #define CBAUDEX 0010000
++#define  BOTHER  0010000
+ #define  B57600  0010001
+ #define  B115200 0010002
+ #define  B230400 0010003
+diff -puN include/asm-cris/termios.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/termios.h
+--- a/include/asm-cris/termios.h~etrax-enable-arbitary-speed-setting-on-tty-ports
++++ a/include/asm-cris/termios.h
+@@ -81,8 +81,10 @@ struct termio {
+ 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
+ })
  
- /*
-@@ -1256,7 +1235,7 @@ static int nfs_server_list_show(struct s
- 	struct nfs_client *clp;
+-#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
+-#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
++#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
++#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
++#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
++#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
  
- 	/* display header on line 1 */
--	if (v == SEQ_START_TOKEN) {
-+	if (v == &nfs_client_list) {
- 		seq_puts(m, "NV SERVER   PORT USE HOSTNAME\n");
- 		return 0;
- 	}
-@@ -1297,23 +1276,9 @@ static int nfs_volume_list_open(struct i
-  */
- static void *nfs_volume_list_start(struct seq_file *m, loff_t *_pos)
- {
--	struct list_head *_p;
--	loff_t pos = *_pos;
--
- 	/* lock the list against modification */
- 	spin_lock(&nfs_client_lock);
--
--	/* allow for the header line */
--	if (!pos)
--		return SEQ_START_TOKEN;
--	pos--;
--
--	/* find the n'th element in the list */
--	list_for_each(_p, &nfs_volume_list)
--		if (!pos--)
--			break;
--
--	return _p != &nfs_volume_list ? _p : NULL;
-+	return seq_list_start_head(&nfs_volume_list, *_pos);
- }
+ #endif	/* __KERNEL__ */
  
- /*
-@@ -1321,14 +1286,7 @@ static void *nfs_volume_list_start(struc
-  */
- static void *nfs_volume_list_next(struct seq_file *p, void *v, loff_t *pos)
- {
--	struct list_head *_p;
--
--	(*pos)++;
--
--	_p = v;
--	_p = (v == SEQ_START_TOKEN) ? nfs_volume_list.next : _p->next;
--
--	return _p != &nfs_volume_list ? _p : NULL;
-+	return seq_list_next(v, &nfs_volume_list, pos);
- }
- 
- /*
-@@ -1349,7 +1307,7 @@ static int nfs_volume_list_show(struct s
- 	char dev[8], fsid[17];
- 
- 	/* display header on line 1 */
--	if (v == SEQ_START_TOKEN) {
-+	if (v == &nfs_volume_list) {
- 		seq_puts(m, "NV SERVER   PORT DEV     FSID\n");
- 		return 0;
- 	}
 _
 
-Patches currently in -mm which might be from xemul@sw.ru are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-make-input-layer-use-seq_list_xxx-helpers.patch
-make-isdn-capi-use-seq_list_xxx-helpers.patch
+git-powerpc.patch
+git-ia64.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+ata-use-iomap_name.patch
+sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+sb1250-duartc-sb1250-duart-serial-support.patch
+mbcs-remove-lots-of-global-symbols.patch
+i2o_cfg_passthru-cleanup.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+stallion-remove-unneeded-lock_kernel.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
+drivers-edac-fix-edac_device-semaphore-to-mutex.patch
+drivers-edac-fix-e752x-reversed-csrows.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-fix-leaf-sysfs-attribute.patch
+drivers-edac-fix-edac_mc-init-apis.patch
+drivers-edac-fix-edac_device-init-apis.patch
+drivers-edac-fix-edac_mc-sysfs-completion-code.patch
+drivers-edac-fix-edac_device-sysfs-completion-code.patch
