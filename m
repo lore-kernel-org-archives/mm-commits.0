@@ -1,57 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-ratelimit-lost-interrupts-message.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:54:32 -0700
-Message-ID: <200707162054.l6GKsW58001832@imap1.linux-foundation.org>
+Subject: - oom-stop-allocating-user-memory-if-tif_memdie-is-set.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:49:22 -0700
+Message-ID: <200707162049.l6GKnMJo001155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60268 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45982 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756370AbXGPVSu (ORCPT
+	by vger.kernel.org with ESMTP id S1756370AbXGPVTG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:18:50 -0400
+	Mon, 16 Jul 2007 17:19:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bcollins@ubuntu.com, mm-commits@vger.kernel.org
+To: solo@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     RTC: Ratelimit "lost interrupts" message
+     oom: stop allocating user memory if TIF_MEMDIE is set
 has been removed from the -mm tree.  Its filename was
-     rtc-ratelimit-lost-interrupts-message.patch
+     oom-stop-allocating-user-memory-if-tif_memdie-is-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: RTC: Ratelimit "lost interrupts" message
-From: Ben Collins <bcollins@ubuntu.com>
+Subject: oom: stop allocating user memory if TIF_MEMDIE is set
+From: Ethan Solomita <solo@google.com>
 
-We gets lots of these when the kernel is running on a hypervisor.  Zach says
-"a guest kernel trying to get high frequency RTC will also be inaccurate, and
-inevitably will have unhidable interrupt lateness."
+get_user_pages() can try to allocate a nearly unlimited amount of memory on
+behalf of a user process, even if that process has been OOM killed.  The
+OOM kill occurs upon return to user space via a SIGKILL, but
+get_user_pages() will try allocate all its memory before returning.  Change
+get_user_pages() to check for TIF_MEMDIE, and if set then return
+immediately.
 
-Signed-off-by: Ben Collins <bcollins@ubuntu.com>
+Signed-off-by: Ethan Solomita <solo@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rtc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/char/rtc.c~rtc-ratelimit-lost-interrupts-message drivers/char/rtc.c
---- a/drivers/char/rtc.c~rtc-ratelimit-lost-interrupts-message
-+++ a/drivers/char/rtc.c
-@@ -1159,7 +1159,8 @@ static void rtc_dropped_irq(unsigned lon
+diff -puN mm/memory.c~oom-stop-allocating-user-memory-if-tif_memdie-is-set mm/memory.c
+--- a/mm/memory.c~oom-stop-allocating-user-memory-if-tif_memdie-is-set
++++ a/mm/memory.c
+@@ -1055,6 +1055,14 @@ int get_user_pages(struct task_struct *t
+ 		do {
+ 			struct page *page;
  
- 	spin_unlock_irq(&rtc_lock);
++			/*
++			 * If tsk is ooming, cut off its access to large memory
++			 * allocations. It has a pending SIGKILL, but it can't
++			 * be processed until returning to user space.
++			 */
++			if (unlikely(test_tsk_thread_flag(tsk, TIF_MEMDIE)))
++				return -ENOMEM;
++
+ 			if (write)
+ 				foll_flags |= FOLL_WRITE;
  
--	printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n", freq);
-+	if (printk_ratelimit())
-+		printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n", freq);
- 
- 	/* Now we have new data */
- 	wake_up_interruptible(&rtc_wait);
 _
 
-Patches currently in -mm which might be from bcollins@ubuntu.com are
+Patches currently in -mm which might be from solo@google.com are
 
 origin.patch
-pm-do-not-require-dev-spew-to-get-pm_debug.patch
