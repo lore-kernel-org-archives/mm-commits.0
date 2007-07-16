@@ -1,108 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - use-boot-based-time-for-process-start-time-and-boot-time.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:03 -0700
-Message-ID: <200707162053.l6GKr38l001595@imap1.linux-foundation.org>
+Subject: - introduce-boot-based-time.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:53:00 -0700
+Message-ID: <200707162053.l6GKr05o001585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43074 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34979 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751086AbXGPVhF (ORCPT
+	by vger.kernel.org with ESMTP id S1761496AbXGPVhP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:37:05 -0400
+	Mon, 16 Jul 2007 17:37:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tjanouse@redhat.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, tsmetana@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use boot based time for process start time and boot time 	in /proc
+     Introduce boot based time
 has been removed from the -mm tree.  Its filename was
-     use-boot-based-time-for-process-start-time-and-boot-time.patch
+     introduce-boot-based-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use boot based time for process start time and boot time 	in /proc
+Subject: Introduce boot based time
 From: Tomas Janousek <tjanouse@redhat.com>
 
-Commit 411187fb05cd11676b0979d9fbf3291db69dbce2 caused boot time to move and
-process start times to become invalid after suspend.  Using boot based time
-for those restores the old behaviour and fixes the issue.
+The commits
 
-[akpm@linux-foundation.org: little cleanup]
+  411187fb05cd11676b0979d9fbf3291db69dbce2 (GTOD: persistent clock support)
+  c1d370e167d66b10bca3b602d3740405469383de (i386: use GTOD persistent clock
+    support)
+
+changed the monotonic time so that it no longer jumps after resume, but it's
+not possible to use it for boot time and process start time calculations then.
+ Also, the uptime no longer increases during suspend.
+
+I add a variable to track the wall_to_monotonic changes, a function to get the
+real boot time and a function to get the boot based time from the monotonic
+one.
+
+[akpm@linux-foundation.org: remove exports, add comment]
 Signed-off-by: Tomas Janousek <tjanouse@redhat.com>
 Cc: Tomas Smetana <tsmetana@redhat.com>
-Acked-by: John Stultz <johnstul@us.ibm.com>
+Cc: John Stultz <johnstul@us.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c       |    5 +++--
- fs/proc/proc_misc.c   |    6 +++---
- include/linux/sched.h |    3 ++-
- kernel/fork.c         |    2 ++
- 4 files changed, 10 insertions(+), 6 deletions(-)
+ include/linux/time.h      |    2 +
+ kernel/time/timekeeping.c |   37 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+)
 
-diff -puN fs/proc/array.c~use-boot-based-time-for-process-start-time-and-boot-time fs/proc/array.c
---- a/fs/proc/array.c~use-boot-based-time-for-process-start-time-and-boot-time
-+++ a/fs/proc/array.c
-@@ -440,8 +440,9 @@ static int do_task_stat(struct task_stru
+diff -puN include/linux/time.h~introduce-boot-based-time include/linux/time.h
+--- a/include/linux/time.h~introduce-boot-based-time
++++ a/include/linux/time.h
+@@ -116,6 +116,8 @@ extern int do_setitimer(int which, struc
+ extern unsigned int alarm_setitimer(unsigned int seconds);
+ extern int do_getitimer(int which, struct itimerval *value);
+ extern void getnstimeofday(struct timespec *tv);
++extern void getboottime(struct timespec *ts);
++extern void monotonic_to_bootbased(struct timespec *ts);
  
- 	/* Temporary variable needed for gcc-2.96 */
- 	/* convert timespec -> nsec*/
--	start_time = (unsigned long long)task->start_time.tv_sec * NSEC_PER_SEC
--				+ task->start_time.tv_nsec;
-+	start_time =
-+		(unsigned long long)task->real_start_time.tv_sec * NSEC_PER_SEC
-+				+ task->real_start_time.tv_nsec;
- 	/* convert nsec -> ticks */
- 	start_time = nsec_to_clock_t(start_time);
+ extern struct timespec timespec_trunc(struct timespec t, unsigned gran);
+ extern int timekeeping_is_continuous(void);
+diff -puN kernel/time/timekeeping.c~introduce-boot-based-time kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~introduce-boot-based-time
++++ a/kernel/time/timekeeping.c
+@@ -36,9 +36,17 @@ EXPORT_SYMBOL(xtime_lock);
+  * at zero at system boot time, so wall_to_monotonic will be negative,
+  * however, we will ALWAYS keep the tv_nsec part positive so we can use
+  * the usual normalization.
++ *
++ * wall_to_monotonic is moved after resume from suspend for the monotonic
++ * time not to jump. We need to add total_sleep_time to wall_to_monotonic
++ * to get the real boot based time offset.
++ *
++ * - wall_to_monotonic is no longer the boot time, getboottime must be
++ * used instead.
+  */
+ struct timespec xtime __attribute__ ((aligned (16)));
+ struct timespec wall_to_monotonic __attribute__ ((aligned (16)));
++static unsigned long total_sleep_time;		/* seconds */
  
-diff -puN fs/proc/proc_misc.c~use-boot-based-time-for-process-start-time-and-boot-time fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~use-boot-based-time-for-process-start-time-and-boot-time
-+++ a/fs/proc/proc_misc.c
-@@ -443,12 +443,12 @@ static int show_stat(struct seq_file *p,
- 	unsigned long jif;
- 	cputime64_t user, nice, system, idle, iowait, irq, softirq, steal;
- 	u64 sum = 0;
-+	struct timespec boottime;
+ EXPORT_SYMBOL(xtime);
  
- 	user = nice = system = idle = iowait =
- 		irq = softirq = steal = cputime64_zero;
--	jif = - wall_to_monotonic.tv_sec;
--	if (wall_to_monotonic.tv_nsec)
--		--jif;
-+	getboottime(&boottime);
-+	jif = boottime.tv_sec;
+@@ -251,6 +259,7 @@ void __init timekeeping_init(void)
+ 	xtime.tv_nsec = 0;
+ 	set_normalized_timespec(&wall_to_monotonic,
+ 		-xtime.tv_sec, -xtime.tv_nsec);
++	total_sleep_time = 0;
  
- 	for_each_possible_cpu(i) {
- 		int j;
-diff -puN include/linux/sched.h~use-boot-based-time-for-process-start-time-and-boot-time include/linux/sched.h
---- a/include/linux/sched.h~use-boot-based-time-for-process-start-time-and-boot-time
-+++ a/include/linux/sched.h
-@@ -972,7 +972,8 @@ struct task_struct {
- 	unsigned int rt_priority;
- 	cputime_t utime, stime;
- 	unsigned long nvcsw, nivcsw; /* context switch counts */
--	struct timespec start_time;
-+	struct timespec start_time; 		/* monotonic time */
-+	struct timespec real_start_time;	/* boot based time */
- /* mm fault and swap info: this can arguably be seen as either mm-specific or thread-specific */
- 	unsigned long min_flt, maj_flt;
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
+ }
+@@ -282,6 +291,7 @@ static int timekeeping_resume(struct sys
  
-diff -puN kernel/fork.c~use-boot-based-time-for-process-start-time-and-boot-time kernel/fork.c
---- a/kernel/fork.c~use-boot-based-time-for-process-start-time-and-boot-time
-+++ a/kernel/fork.c
-@@ -1059,6 +1059,8 @@ static struct task_struct *copy_process(
- 
- 	p->lock_depth = -1;		/* -1 = no lock */
- 	do_posix_clock_monotonic_gettime(&p->start_time);
-+	p->real_start_time = p->start_time;
-+	monotonic_to_bootbased(&p->real_start_time);
- 	p->security = NULL;
- 	p->io_context = NULL;
- 	p->io_wait = NULL;
+ 		xtime.tv_sec += sleep_length;
+ 		wall_to_monotonic.tv_sec -= sleep_length;
++		total_sleep_time += sleep_length;
+ 	}
+ 	/* re-base the last cycle value */
+ 	clock->cycle_last = clocksource_read(clock);
+@@ -476,3 +486,30 @@ void update_wall_time(void)
+ 	change_clocksource();
+ 	update_vsyscall(&xtime, clock);
+ }
++
++/**
++ * getboottime - Return the real time of system boot.
++ * @ts:		pointer to the timespec to be set
++ *
++ * Returns the time of day in a timespec.
++ *
++ * This is based on the wall_to_monotonic offset and the total suspend
++ * time. Calls to settimeofday will affect the value returned (which
++ * basically means that however wrong your real time clock is at boot time,
++ * you get the right time here).
++ */
++void getboottime(struct timespec *ts)
++{
++	set_normalized_timespec(ts,
++		- (wall_to_monotonic.tv_sec + total_sleep_time),
++		- wall_to_monotonic.tv_nsec);
++}
++
++/**
++ * monotonic_to_bootbased - Convert the monotonic time to boot based.
++ * @ts:		pointer to the timespec to be converted
++ */
++void monotonic_to_bootbased(struct timespec *ts)
++{
++	ts->tv_sec += total_sleep_time;
++}
 _
 
 Patches currently in -mm which might be from tjanouse@redhat.com are
