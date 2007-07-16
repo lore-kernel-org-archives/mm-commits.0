@@ -1,64 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - oom-stop-allocating-user-memory-if-tif_memdie-is-set.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:49:22 -0700
-Message-ID: <200707162049.l6GKnMJo001155@imap1.linux-foundation.org>
+Subject: - kill-vmalloc_earlyreserve.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:49:33 -0700
+Message-ID: <200707162049.l6GKnXY6001170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45982 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46683 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756370AbXGPVTG (ORCPT
+	by vger.kernel.org with ESMTP id S1756985AbXGPVTV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:19:06 -0400
+	Mon, 16 Jul 2007 17:19:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: solo@google.com, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: stop allocating user memory if TIF_MEMDIE is set
+     kill vmalloc_earlyreserve
 has been removed from the -mm tree.  Its filename was
-     oom-stop-allocating-user-memory-if-tif_memdie-is-set.patch
+     kill-vmalloc_earlyreserve.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: oom: stop allocating user memory if TIF_MEMDIE is set
-From: Ethan Solomita <solo@google.com>
+Subject: kill vmalloc_earlyreserve
+From: "Jan Beulich" <jbeulich@novell.com>
 
-get_user_pages() can try to allocate a nearly unlimited amount of memory on
-behalf of a user process, even if that process has been OOM killed.  The
-OOM kill occurs upon return to user space via a SIGKILL, but
-get_user_pages() will try allocate all its memory before returning.  Change
-get_user_pages() to check for TIF_MEMDIE, and if set then return
-immediately.
+This symbol got orphaned quite a while ago.
 
-Signed-off-by: Ethan Solomita <solo@google.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/asm-i386/pgtable.h |    2 +-
+ include/linux/mm.h         |    1 -
+ mm/memory.c                |    2 --
+ 3 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/memory.c~oom-stop-allocating-user-memory-if-tif_memdie-is-set mm/memory.c
---- a/mm/memory.c~oom-stop-allocating-user-memory-if-tif_memdie-is-set
-+++ a/mm/memory.c
-@@ -1055,6 +1055,14 @@ int get_user_pages(struct task_struct *t
- 		do {
- 			struct page *page;
+diff -puN include/asm-i386/pgtable.h~kill-vmalloc_earlyreserve include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~kill-vmalloc_earlyreserve
++++ a/include/asm-i386/pgtable.h
+@@ -79,7 +79,7 @@ void paging_init(void);
+  * area for the same reason. ;)
+  */
+ #define VMALLOC_OFFSET	(8*1024*1024)
+-#define VMALLOC_START	(((unsigned long) high_memory + vmalloc_earlyreserve + \
++#define VMALLOC_START	(((unsigned long) high_memory + \
+ 			2*VMALLOC_OFFSET-1) & ~(VMALLOC_OFFSET-1))
+ #ifdef CONFIG_HIGHMEM
+ # define VMALLOC_END	(PKMAP_BASE-2*PAGE_SIZE)
+diff -puN include/linux/mm.h~kill-vmalloc_earlyreserve include/linux/mm.h
+--- a/include/linux/mm.h~kill-vmalloc_earlyreserve
++++ a/include/linux/mm.h
+@@ -27,7 +27,6 @@ extern unsigned long max_mapnr;
  
-+			/*
-+			 * If tsk is ooming, cut off its access to large memory
-+			 * allocations. It has a pending SIGKILL, but it can't
-+			 * be processed until returning to user space.
-+			 */
-+			if (unlikely(test_tsk_thread_flag(tsk, TIF_MEMDIE)))
-+				return -ENOMEM;
-+
- 			if (write)
- 				foll_flags |= FOLL_WRITE;
+ extern unsigned long num_physpages;
+ extern void * high_memory;
+-extern unsigned long vmalloc_earlyreserve;
+ extern int page_cluster;
+ 
+ #ifdef CONFIG_SYSCTL
+diff -puN mm/memory.c~kill-vmalloc_earlyreserve mm/memory.c
+--- a/mm/memory.c~kill-vmalloc_earlyreserve
++++ a/mm/memory.c
+@@ -78,11 +78,9 @@ unsigned long num_physpages;
+  * and ZONE_HIGHMEM.
+  */
+ void * high_memory;
+-unsigned long vmalloc_earlyreserve;
+ 
+ EXPORT_SYMBOL(num_physpages);
+ EXPORT_SYMBOL(high_memory);
+-EXPORT_SYMBOL(vmalloc_earlyreserve);
+ 
+ int randomize_va_space __read_mostly = 1;
  
 _
 
-Patches currently in -mm which might be from solo@google.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
+modpost-white-list-pattern-adjustment.patch
+more-fix-x86_64-mm-xen-xen-smp-guest-support.patch
+i386-minor-nx-handling-adjustment.patch
+x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch
+x86-64-remove-unused-variable-maxcpus.patch
