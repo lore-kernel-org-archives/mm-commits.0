@@ -1,264 +1,502 @@
 From: akpm@linux-foundation.org
-Subject: - genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:59:08 -0700
-Message-ID: <200707162059.l6GKx8tQ002403@imap1.linux-foundation.org>
+Subject: - fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 14:00:37 -0700
+Message-ID: <200707162100.l6GL0bmu002643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35667 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756032AbXGPVSd (ORCPT
+	by vger.kernel.org with ESMTP id S1756754AbXGPVSe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:18:33 -0400
+	Mon, 16 Jul 2007 17:18:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, morten@sourcepoet.org, mm-commits@vger.kernel.org
+To: mmarek@suse.cz, dgc@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     genericserial: remove bogus optimisation check and dead code paths
+     xfs: fix XFS_IOC_FSBULKSTAT{,_SINGLE} and XFS_IOC_FSINUMBERS in compat mode
 has been removed from the -mm tree.  Its filename was
-     genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
+     fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: genericserial: remove bogus optimisation check and dead code paths
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: xfs: fix XFS_IOC_FSBULKSTAT{,_SINGLE} and XFS_IOC_FSINUMBERS in compat mode
+From: Michal Marek <mmarek@suse.cz>
 
-We've been using the 'new locking' for a long time now so it seems
-pointless keeping the old one around.  Remove it and undo the macros it
-uses back into real code for readability.  Remove the bogus 'no termios
-change' checks.
+* 32bit struct xfs_fsop_bulkreq has different size and layout of members, no
+  matter the alignment.  Move the code out of the #else branch (why was it
+  there in the first place?).  Define _32 variants of the ioctl constants.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Morten Helgesen <morten@sourcepoet.org>
+* 32bit struct xfs_bstat is different because of time_t and on i386 becaus
+  of different padding.  Create a new formatter xfs_bulkstat_one_compat() that
+  takes care of this.  To do this, we need to make xfs_bulkstat_one_iget() and
+  xfs_bulkstat_one_dinode() non-static.
+
+* i386 struct xfs_inogrp has different padding.  Introduce a similar
+  "formatter" mechanism for xfs_inumbers: the native formatter is just a
+  copy_to_user, the compat formatter takes care of the different layout
+
+Signed-off-by: Michal Marek <mmarek@suse.cz>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/generic_serial.c |  120 --------------------------------
- 1 file changed, 3 insertions(+), 117 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl.c   |    2 
+ fs/xfs/linux-2.6/xfs_ioctl32.c |  259 ++++++++++++++++++++++++++++---
+ fs/xfs/xfs_itable.c            |   30 ++-
+ fs/xfs/xfs_itable.h            |   31 +++
+ 4 files changed, 290 insertions(+), 32 deletions(-)
 
-diff -puN drivers/char/generic_serial.c~genericserial-remove-bogus-optimisation-check-and-dead-code-paths drivers/char/generic_serial.c
---- a/drivers/char/generic_serial.c~genericserial-remove-bogus-optimisation-check-and-dead-code-paths
-+++ a/drivers/char/generic_serial.c
-@@ -43,16 +43,6 @@ static int gs_debug;
+diff -puN fs/xfs/linux-2.6/xfs_ioctl.c~fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode fs/xfs/linux-2.6/xfs_ioctl.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl.c~fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode
++++ a/fs/xfs/linux-2.6/xfs_ioctl.c
+@@ -1019,7 +1019,7 @@ xfs_ioc_bulkstat(
  
- #define func_enter() gs_dprintk (GS_DEBUG_FLOW, "gs: enter %s\n", __FUNCTION__)
- #define func_exit()  gs_dprintk (GS_DEBUG_FLOW, "gs: exit  %s\n", __FUNCTION__)
--#define NEW_WRITE_LOCKING 1
--#if NEW_WRITE_LOCKING
--#define DECL      /* Nothing */
--#define LOCKIT    mutex_lock(& port->port_write_mutex);
--#define RELEASEIT mutex_unlock(&port->port_write_mutex);
--#else
--#define DECL      unsigned long flags;
--#define LOCKIT    save_flags (flags);cli ()
--#define RELEASEIT restore_flags (flags)
--#endif
+ 	if (cmd == XFS_IOC_FSINUMBERS)
+ 		error = xfs_inumbers(mp, &inlast, &count,
+-						bulkreq.ubuffer);
++					bulkreq.ubuffer, xfs_inumbers_fmt);
+ 	else if (cmd == XFS_IOC_FSBULKSTAT_SINGLE)
+ 		error = xfs_bulkstat_single(mp, &inlast,
+ 						bulkreq.ubuffer, &done);
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode fs/xfs/linux-2.6/xfs_ioctl32.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
+@@ -28,12 +28,27 @@
+ #include "xfs_vfs.h"
+ #include "xfs_vnode.h"
+ #include "xfs_dfrag.h"
++#include "xfs_sb.h"
++#include "xfs_log.h"
++#include "xfs_trans.h"
++#include "xfs_dmapi.h"
++#include "xfs_mount.h"
++#include "xfs_inum.h"
++#include "xfs_bmap_btree.h"
++#include "xfs_dir2.h"
++#include "xfs_dir2_sf.h"
++#include "xfs_attr_sf.h"
++#include "xfs_dinode.h"
++#include "xfs_itable.h"
++#include "xfs_error.h"
++#include "xfs_inode.h"
  
- #define RS_EVENT_WRITE_WAKEUP	1
+ #define  _NATIVE_IOC(cmd, type) \
+ 	  _IOC(_IOC_DIR(cmd), _IOC_TYPE(cmd), _IOC_NR(cmd), sizeof(type))
  
-@@ -62,7 +52,6 @@ module_param(gs_debug, int, 0644);
- void gs_put_char(struct tty_struct * tty, unsigned char ch)
+ #if defined(CONFIG_IA64) || defined(CONFIG_X86_64)
+ #define BROKEN_X86_ALIGNMENT
++#define _PACKED __attribute__((packed))
+ /* on ia32 l_start is on a 32-bit boundary */
+ typedef struct xfs_flock64_32 {
+ 	__s16		l_type;
+@@ -111,35 +126,234 @@ STATIC unsigned long xfs_ioctl32_geom_v1
+ 	return (unsigned long)p;
+ }
+ 
++typedef struct compat_xfs_inogrp {
++	__u64		xi_startino;	/* starting inode number	*/
++	__s32		xi_alloccount;	/* # bits set in allocmask	*/
++	__u64		xi_allocmask;	/* mask of allocated inodes	*/
++} __attribute__((packed)) compat_xfs_inogrp_t;
++
++STATIC int xfs_inumbers_fmt_compat(
++	void __user *ubuffer,
++	const xfs_inogrp_t *buffer,
++	long count,
++	long *written)
++{
++	compat_xfs_inogrp_t *p32 = ubuffer;
++	long i;
++
++	for (i = 0; i < count; i++) {
++		if (put_user(buffer[i].xi_startino,   &p32[i].xi_startino) ||
++		    put_user(buffer[i].xi_alloccount, &p32[i].xi_alloccount) ||
++		    put_user(buffer[i].xi_allocmask,  &p32[i].xi_allocmask))
++			return -EFAULT;
++	}
++	*written = count * sizeof(*p32);
++	return 0;
++}
++
+ #else
+ 
+-typedef struct xfs_fsop_bulkreq32 {
++#define xfs_inumbers_fmt_compat xfs_inumbers_fmt
++#define _PACKED
++
++#endif
++
++/* XFS_IOC_FSBULKSTAT and friends */
++
++typedef struct compat_xfs_bstime {
++	__s32		tv_sec;		/* seconds		*/
++	__s32		tv_nsec;	/* and nanoseconds	*/
++} compat_xfs_bstime_t;
++
++static int xfs_bstime_store_compat(
++	compat_xfs_bstime_t __user *p32,
++	xfs_bstime_t *p)
++{
++	__s32 sec32;
++
++	sec32 = p->tv_sec;
++	if (put_user(sec32, &p32->tv_sec) ||
++	    put_user(p->tv_nsec, &p32->tv_nsec))
++		return -EFAULT;
++	return 0;
++}
++
++typedef struct compat_xfs_bstat {
++	__u64		bs_ino;		/* inode number			*/
++	__u16		bs_mode;	/* type and mode		*/
++	__u16		bs_nlink;	/* number of links		*/
++	__u32		bs_uid;		/* user id			*/
++	__u32		bs_gid;		/* group id			*/
++	__u32		bs_rdev;	/* device value			*/
++	__s32		bs_blksize;	/* block size			*/
++	__s64		bs_size;	/* file size			*/
++	compat_xfs_bstime_t bs_atime;	/* access time			*/
++	compat_xfs_bstime_t bs_mtime;	/* modify time			*/
++	compat_xfs_bstime_t bs_ctime;	/* inode change time		*/
++	int64_t		bs_blocks;	/* number of blocks		*/
++	__u32		bs_xflags;	/* extended flags		*/
++	__s32		bs_extsize;	/* extent size			*/
++	__s32		bs_extents;	/* number of extents		*/
++	__u32		bs_gen;		/* generation count		*/
++	__u16		bs_projid;	/* project id			*/
++	unsigned char	bs_pad[14];	/* pad space, unused		*/
++	__u32		bs_dmevmask;	/* DMIG event mask		*/
++	__u16		bs_dmstate;	/* DMIG state info		*/
++	__u16		bs_aextents;	/* attribute number of extents	*/
++} _PACKED compat_xfs_bstat_t;
++
++static int xfs_bulkstat_one_compat(
++	xfs_mount_t	*mp,		/* mount point for filesystem */
++	xfs_ino_t	ino,		/* inode number to get data for */
++	void		__user *buffer,	/* buffer to place output in */
++	int		ubsize,		/* size of buffer */
++	void		*private_data,	/* my private data */
++	xfs_daddr_t	bno,		/* starting bno of inode cluster */
++	int		*ubused,	/* bytes used by me */
++	void		*dibuff,	/* on-disk inode buffer */
++	int		*stat)		/* BULKSTAT_RV_... */
++{
++	xfs_bstat_t	*buf;		/* return buffer */
++	int		error = 0;	/* error value */
++	xfs_dinode_t	*dip;		/* dinode inode pointer */
++	compat_xfs_bstat_t __user *p32 = buffer;
++
++	dip = (xfs_dinode_t *)dibuff;
++	*stat = BULKSTAT_RV_NOTHING;
++
++	if (!buffer || xfs_internal_inum(mp, ino))
++		return XFS_ERROR(EINVAL);
++	if (ubsize < sizeof(*buf))
++		return XFS_ERROR(ENOMEM);
++
++	buf = kmem_alloc(sizeof(*buf), KM_SLEEP);
++
++	if (dip == NULL) {
++		/* We're not being passed a pointer to a dinode.  This happens
++		 * if BULKSTAT_FG_IGET is selected.  Do the iget.
++		 */
++		error = xfs_bulkstat_one_iget(mp, ino, bno, buf, stat);
++		if (error)
++			goto out_free;
++	} else {
++		xfs_bulkstat_one_dinode(mp, ino, dip, buf);
++	}
++
++	if (put_user(buf->bs_ino, &p32->bs_ino) ||
++	    put_user(buf->bs_mode, &p32->bs_mode) ||
++	    put_user(buf->bs_nlink, &p32->bs_nlink) ||
++	    put_user(buf->bs_uid, &p32->bs_uid) ||
++	    put_user(buf->bs_gid, &p32->bs_gid) ||
++	    put_user(buf->bs_rdev, &p32->bs_rdev) ||
++	    put_user(buf->bs_blksize, &p32->bs_blksize) ||
++	    put_user(buf->bs_size, &p32->bs_size) ||
++	    xfs_bstime_store_compat(&p32->bs_atime, &buf->bs_atime) ||
++	    xfs_bstime_store_compat(&p32->bs_mtime, &buf->bs_mtime) ||
++	    xfs_bstime_store_compat(&p32->bs_ctime, &buf->bs_ctime) ||
++	    put_user(buf->bs_blocks, &p32->bs_blocks) ||
++	    put_user(buf->bs_xflags, &p32->bs_xflags) ||
++	    put_user(buf->bs_extsize, &p32->bs_extsize) ||
++	    put_user(buf->bs_extents, &p32->bs_extents) ||
++	    put_user(buf->bs_gen, &p32->bs_gen) ||
++	    put_user(buf->bs_projid, &p32->bs_projid) ||
++	    put_user(buf->bs_dmevmask, &p32->bs_dmevmask) ||
++	    put_user(buf->bs_dmstate, &p32->bs_dmstate) ||
++	    put_user(buf->bs_aextents, &p32->bs_aextents)) {
++		error = EFAULT;
++		goto out_free;
++	}
++
++	*stat = BULKSTAT_RV_DIDONE;
++	if (ubused)
++		*ubused = sizeof(compat_xfs_bstat_t);
++
++ out_free:
++	kmem_free(buf, sizeof(*buf));
++	return error;
++}
++
++
++
++typedef struct compat_xfs_fsop_bulkreq {
+ 	compat_uptr_t	lastip;		/* last inode # pointer		*/
+ 	__s32		icount;		/* count of entries in buffer	*/
+ 	compat_uptr_t	ubuffer;	/* user buffer for inode desc.	*/
+-	__s32		ocount;		/* output count pointer		*/
+-} xfs_fsop_bulkreq32_t;
++	compat_uptr_t	ocount;		/* output count pointer		*/
++} compat_xfs_fsop_bulkreq_t;
+ 
+-STATIC unsigned long
+-xfs_ioctl32_bulkstat(
+-	unsigned long		arg)
++#define XFS_IOC_FSBULKSTAT_32 \
++	_IOWR('X', 101, struct compat_xfs_fsop_bulkreq)
++#define XFS_IOC_FSBULKSTAT_SINGLE_32 \
++	_IOWR('X', 102, struct compat_xfs_fsop_bulkreq)
++#define XFS_IOC_FSINUMBERS_32 \
++	_IOWR('X', 103, struct compat_xfs_fsop_bulkreq)
++
++/* copied from xfs_ioctl.c */
++STATIC int
++xfs_ioc_bulkstat_compat(
++	xfs_mount_t		*mp,
++	unsigned int		cmd,
++	void			__user *arg)
  {
- 	struct gs_port *port;
--	DECL
+-	xfs_fsop_bulkreq32_t	__user *p32 = (void __user *)arg;
+-	xfs_fsop_bulkreq_t	__user *p = compat_alloc_user_space(sizeof(*p));
++	compat_xfs_fsop_bulkreq_t __user *p32 = (void __user *)arg;
+ 	u32			addr;
++	xfs_fsop_bulkreq_t	bulkreq;
++	int			count;	/* # of records returned */
++	xfs_ino_t		inlast;	/* last inode number */
++	int			done;
++	int			error;
++
++	/* done = 1 if there are more stats to get and if bulkstat */
++	/* should be called again (unused here, but used in dmapi) */
++
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	if (XFS_FORCED_SHUTDOWN(mp))
++		return -XFS_ERROR(EIO);
  
- 	func_enter (); 
+-	if (get_user(addr, &p32->lastip) ||
+-	    put_user(compat_ptr(addr), &p->lastip) ||
+-	    copy_in_user(&p->icount, &p32->icount, sizeof(s32)) ||
+-	    get_user(addr, &p32->ubuffer) ||
+-	    put_user(compat_ptr(addr), &p->ubuffer) ||
+-	    get_user(addr, &p32->ocount) ||
+-	    put_user(compat_ptr(addr), &p->ocount))
++	if (get_user(addr, &p32->lastip))
++		return -EFAULT;
++	bulkreq.lastip = compat_ptr(addr);
++	if (get_user(bulkreq.icount, &p32->icount) ||
++	    get_user(addr, &p32->ubuffer))
++		return -EFAULT;
++	bulkreq.ubuffer = compat_ptr(addr);
++	if (get_user(addr, &p32->ocount))
+ 		return -EFAULT;
++	bulkreq.ocount = compat_ptr(addr);
  
-@@ -75,11 +64,11 @@ void gs_put_char(struct tty_struct * tty
- 	if (! (port->flags & ASYNC_INITIALIZED)) return;
- 
- 	/* Take a lock on the serial tranmit buffer! */
--	LOCKIT;
-+	mutex_lock(& port->port_write_mutex);
- 
- 	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1) {
- 		/* Sorry, buffer is full, drop character. Update statistics???? -- REW */
--		RELEASEIT;
-+		mutex_unlock(&port->port_write_mutex);
- 		return;
- 	}
- 
-@@ -87,13 +76,11 @@ void gs_put_char(struct tty_struct * tty
- 	port->xmit_head &= SERIAL_XMIT_SIZE - 1;
- 	port->xmit_cnt++;  /* Characters in buffer */
- 
--	RELEASEIT;
-+	mutex_unlock(&port->port_write_mutex);
- 	func_exit ();
+-	return (unsigned long)p;
++	if (copy_from_user(&inlast, bulkreq.lastip, sizeof(__s64)))
++		return -XFS_ERROR(EFAULT);
++
++	if ((count = bulkreq.icount) <= 0)
++		return -XFS_ERROR(EINVAL);
++
++	if (cmd == XFS_IOC_FSINUMBERS)
++		error = xfs_inumbers(mp, &inlast, &count,
++				bulkreq.ubuffer, xfs_inumbers_fmt_compat);
++	else
++		error = xfs_bulkstat(mp, &inlast, &count,
++			xfs_bulkstat_one_compat, NULL,
++			sizeof(compat_xfs_bstat_t), bulkreq.ubuffer,
++			BULKSTAT_FG_QUICK, &done);
++
++	if (error)
++		return -error;
++
++	if (bulkreq.ocount != NULL) {
++		if (copy_to_user(bulkreq.lastip, &inlast,
++						sizeof(xfs_ino_t)))
++			return -XFS_ERROR(EFAULT);
++
++		if (copy_to_user(bulkreq.ocount, &count, sizeof(count)))
++			return -XFS_ERROR(EFAULT);
++	}
++
++	return 0;
  }
- 
- 
--#ifdef NEW_WRITE_LOCKING
--
- /*
- > Problems to take into account are:
- >       -1- Interrupts that empty part of the buffer.
-@@ -166,90 +153,6 @@ int gs_write(struct tty_struct * tty, 
- 	func_exit ();
- 	return total;
- }
--#else
--/*
--> Problems to take into account are:
-->       -1- Interrupts that empty part of the buffer.
-->       -2- page faults on the access to userspace. 
-->       -3- Other processes that are also trying to do a "write". 
--*/
--
--int gs_write(struct tty_struct * tty,
--                    const unsigned char *buf, int count)
--{
--	struct gs_port *port;
--	int c, total = 0;
--	int t;
--	unsigned long flags;
--
--	func_enter ();
--
--	/* The standard serial driver returns 0 in this case. 
--	   That sounds to me as "No error, I just didn't get to writing any
--	   bytes. Feel free to try again." 
--	   The "official" way to write n bytes from buf is:
--
--		 for (nwritten = 0;nwritten < n;nwritten += rv) {
--			 rv = write (fd, buf+nwritten, n-nwritten);
--			 if (rv < 0) break; // Error: bail out. //
--		 } 
--
--	   which will loop endlessly in this case. The manual page for write
--	   agrees with me. In practise almost everybody writes 
--	   "write (fd, buf,n);" but some people might have had to deal with 
--	   incomplete writes in the past and correctly implemented it by now... 
--	 */
--
--	if (!tty) return -EIO;
--
--	port = tty->driver_data;
--	if (!port || !port->xmit_buf)
--		return -EIO;
--
--	local_save_flags(flags);
--	while (1) {
--		cli();
--		c = count;
--
--		/* This is safe because we "OWN" the "head". Noone else can 
--		   change the "head": we own the port_write_mutex. */
--		/* Don't overrun the end of the buffer */
--		t = SERIAL_XMIT_SIZE - port->xmit_head;
--		if (t < c) c = t;
--
--		/* This is safe because the xmit_cnt can only decrease. This 
--		   would increase "t", so we might copy too little chars. */
--		/* Don't copy past the "head" of the buffer */
--		t = SERIAL_XMIT_SIZE - 1 - port->xmit_cnt;
--		if (t < c) c = t;
--
--		/* Can't copy more? break out! */
--		if (c <= 0) {
--			local_restore_flags(flags);
--			break;
--		}
--		memcpy(port->xmit_buf + port->xmit_head, buf, c);
--		port->xmit_head = ((port->xmit_head + c) &
--		                   (SERIAL_XMIT_SIZE-1));
--		port->xmit_cnt += c;
--		local_restore_flags(flags);
--		buf += c;
--		count -= c;
--		total += c;
--	}
--
--	if (port->xmit_cnt && 
--	    !tty->stopped && 
--	    !tty->hw_stopped &&
--	    !(port->flags & GS_TX_INTEN)) {
--		port->flags |= GS_TX_INTEN;
--		port->rd->enable_tx_interrupts (port);
--	}
--	func_exit ();
--	return total;
--}
--
 -#endif
++
++
  
+ typedef struct compat_xfs_fsop_handlereq {
+ 	__u32		fd;		/* fd for FD_TO_HANDLE		*/
+@@ -261,12 +475,13 @@ xfs_compat_ioctl(
+ 	case XFS_IOC_SWAPEXT:
+ 		break;
  
+-	case XFS_IOC_FSBULKSTAT_SINGLE:
+-	case XFS_IOC_FSBULKSTAT:
+-	case XFS_IOC_FSINUMBERS:
+-		arg = xfs_ioctl32_bulkstat(arg);
+-		break;
+ #endif
++	case XFS_IOC_FSBULKSTAT_32:
++	case XFS_IOC_FSBULKSTAT_SINGLE_32:
++	case XFS_IOC_FSINUMBERS_32:
++		cmd = _NATIVE_IOC(cmd, struct xfs_fsop_bulkreq);
++		return xfs_ioc_bulkstat_compat(XFS_BHVTOI(VNHEAD(vp))->i_mount,
++				cmd, (void*)arg);
+ 	case XFS_IOC_FD_TO_HANDLE_32:
+ 	case XFS_IOC_PATH_TO_HANDLE_32:
+ 	case XFS_IOC_PATH_TO_FSHANDLE_32:
+diff -puN fs/xfs/xfs_itable.c~fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode fs/xfs/xfs_itable.c
+--- a/fs/xfs/xfs_itable.c~fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode
++++ a/fs/xfs/xfs_itable.c
+@@ -49,7 +49,7 @@ xfs_internal_inum(
+ 		 (ino == mp->m_sb.sb_uquotino || ino == mp->m_sb.sb_gquotino)));
+ }
  
-@@ -737,23 +640,6 @@ void gs_set_termios (struct tty_struct *
- 		gs_dprintk (GS_DEBUG_TERMIOS, "termios structure (%p):\n", tiosp);
+-STATIC int
++int
+ xfs_bulkstat_one_iget(
+ 	xfs_mount_t	*mp,		/* mount point for filesystem */
+ 	xfs_ino_t	ino,		/* inode number to get data for */
+@@ -129,7 +129,7 @@ xfs_bulkstat_one_iget(
+ 	return error;
+ }
+ 
+-STATIC int
++int
+ xfs_bulkstat_one_dinode(
+ 	xfs_mount_t	*mp,		/* mount point for filesystem */
+ 	xfs_ino_t	ino,		/* inode number to get data for */
+@@ -748,6 +748,19 @@ xfs_bulkstat_single(
+ 	return 0;
+ }
+ 
++int
++xfs_inumbers_fmt(
++	void			__user *ubuffer, /* buffer to write to */
++	const xfs_inogrp_t	*buffer,	/* buffer to read from */
++	long			count,		/* # of elements to read */
++	long			*written)	/* # of bytes written */
++{
++	if (copy_to_user(ubuffer, buffer, count * sizeof(*buffer)))
++		return -EFAULT;
++	*written = count * sizeof(*buffer);
++	return 0;
++}
++
+ /*
+  * Return inode number table for the filesystem.
+  */
+@@ -756,7 +769,8 @@ xfs_inumbers(
+ 	xfs_mount_t	*mp,		/* mount point for filesystem */
+ 	xfs_ino_t	*lastino,	/* last inode returned */
+ 	int		*count,		/* size of buffer/count returned */
+-	xfs_inogrp_t	__user *ubuffer)/* buffer with inode descriptions */
++	void		__user *ubuffer,/* buffer with inode descriptions */
++	inumbers_fmt_pf	formatter)
+ {
+ 	xfs_buf_t	*agbp;
+ 	xfs_agino_t	agino;
+@@ -835,12 +849,12 @@ xfs_inumbers(
+ 		bufidx++;
+ 		left--;
+ 		if (bufidx == bcount) {
+-			if (copy_to_user(ubuffer, buffer,
+-					bufidx * sizeof(*buffer))) {
++			long written;
++			if (formatter(ubuffer, buffer, bufidx, &written)) {
+ 				error = XFS_ERROR(EFAULT);
+ 				break;
+ 			}
+-			ubuffer += bufidx;
++			ubuffer += written;
+ 			*count += bufidx;
+ 			bufidx = 0;
+ 		}
+@@ -862,8 +876,8 @@ xfs_inumbers(
  	}
+ 	if (!error) {
+ 		if (bufidx) {
+-			if (copy_to_user(ubuffer, buffer,
+-					bufidx * sizeof(*buffer)))
++			long written;
++			if (formatter(ubuffer, buffer, bufidx, &written))
+ 				error = XFS_ERROR(EFAULT);
+ 			else
+ 				*count += bufidx;
+diff -puN fs/xfs/xfs_itable.h~fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode fs/xfs/xfs_itable.h
+--- a/fs/xfs/xfs_itable.h~fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode
++++ a/fs/xfs/xfs_itable.h
+@@ -70,6 +70,21 @@ xfs_bulkstat_single(
+ 	int			*done);
  
--	/* This is an optimization that is only allowed for dumb cards */
--	/* Smart cards require knowledge of iflags and oflags too: that 
--	   might change hardware cooking mode.... */
--	if (old_termios) {
--		if(   (tiosp->c_iflag == old_termios->c_iflag)
--		   && (tiosp->c_oflag == old_termios->c_oflag)
--		   && (tiosp->c_cflag == old_termios->c_cflag)
--		   && (tiosp->c_lflag == old_termios->c_lflag)
--		   && (tiosp->c_line  == old_termios->c_line)
--		   && (memcmp(tiosp->c_cc, old_termios->c_cc, NCC) == 0)) {
--			gs_dprintk(GS_DEBUG_TERMIOS, "gs_set_termios: optimized away\n");
--			return /* 0 */;
--		}
--	} else 
--		gs_dprintk(GS_DEBUG_TERMIOS, "gs_set_termios: no old_termios: "
--		           "no optimization\n");
--
- 	if(old_termios && (gs_debug & GS_DEBUG_TERMIOS)) {
- 		if(tiosp->c_iflag != old_termios->c_iflag)  printk("c_iflag changed\n");
- 		if(tiosp->c_oflag != old_termios->c_oflag)  printk("c_oflag changed\n");
+ int
++xfs_bulkstat_one_iget(
++	xfs_mount_t	*mp,		/* mount point for filesystem */
++	xfs_ino_t	ino,		/* inode number to get data for */
++	xfs_daddr_t	bno,		/* starting bno of inode cluster */
++	xfs_bstat_t	*buf,		/* return buffer */
++	int		*stat);		/* BULKSTAT_RV_... */
++
++int
++xfs_bulkstat_one_dinode(
++	xfs_mount_t	*mp,		/* mount point for filesystem */
++	xfs_ino_t	ino,		/* inode number to get data for */
++	xfs_dinode_t	*dip,		/* dinode inode pointer */
++	xfs_bstat_t	*buf);		/* return buffer */
++
++int
+ xfs_bulkstat_one(
+ 	xfs_mount_t		*mp,
+ 	xfs_ino_t		ino,
+@@ -86,11 +101,25 @@ xfs_internal_inum(
+ 	xfs_mount_t		*mp,
+ 	xfs_ino_t		ino);
+ 
++typedef int (*inumbers_fmt_pf)(
++	void			__user *ubuffer, /* buffer to write to */
++	const xfs_inogrp_t	*buffer,	/* buffer to read from */
++	long			count,		/* # of elements to read */
++	long			*written);	/* # of bytes written */
++
++int
++xfs_inumbers_fmt(
++	void			__user *ubuffer, /* buffer to write to */
++	const xfs_inogrp_t	*buffer,	/* buffer to read from */
++	long			count,		/* # of elements to read */
++	long			*written);	/* # of bytes written */
++
+ int					/* error status */
+ xfs_inumbers(
+ 	xfs_mount_t		*mp,	/* mount point for filesystem */
+ 	xfs_ino_t		*last,	/* last inode returned */
+ 	int			*count,	/* size of buffer/count returned */
+-	xfs_inogrp_t		__user *buffer);/* buffer with inode info */
++	void			__user *buffer, /* buffer with inode info */
++	inumbers_fmt_pf		formatter);
+ 
+ #endif	/* __XFS_ITABLE_H__ */
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from mmarek@suse.cz are
 
 origin.patch
-git-powerpc.patch
-git-ia64.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-sb1250-duartc-sb1250-duart-serial-support.patch
-mbcs-remove-lots-of-global-symbols.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
+git-xfs.patch
