@@ -1,61 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - add-werror-implicit-function-declaration.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:58:37 -0700
-Message-ID: <200707162058.l6GKwbfx002358@imap1.linux-foundation.org>
+Subject: - mistaken-ext4_inode_bitmap-for-ext4_block_bitmap.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:47 -0700
+Message-ID: <200707162057.l6GKvlM4002227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45707 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34656 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751459AbXGPVMY (ORCPT
+	by vger.kernel.org with ESMTP id S1751459AbXGPVMW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:12:24 -0400
+	Mon, 16 Jul 2007 17:12:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: toshi.okajima@jp.fujitsu.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add -Werror-implicit-function-declaration
+     mistaken ext4_inode_bitmap for ext4_block_bitmap
 has been removed from the -mm tree.  Its filename was
-     add-werror-implicit-function-declaration.patch
+     mistaken-ext4_inode_bitmap-for-ext4_block_bitmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add -Werror-implicit-function-declaration
-From: Dave Jones <davej@redhat.com>
+Subject: mistaken ext4_inode_bitmap for ext4_block_bitmap
+From: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
 
-Add -Werror-implicit-function-declaration
-This makes builds fail sooner if something is implicitly defined instead
-of having to wait half an hour for it to fail at the linking stage.
+In ext4_new_blocks(), one of two ext4_block_bitmap() calls should be
+ext4_inode_bitmap() call.  It is not harmful in normal processing, but it
+should be fixed.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ext4/balloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Makefile~add-werror-implicit-function-declaration Makefile
---- a/Makefile~add-werror-implicit-function-declaration
-+++ a/Makefile
-@@ -313,7 +313,8 @@ LINUXINCLUDE    := -Iinclude \
- CPPFLAGS        := -D__KERNEL__ $(LINUXINCLUDE)
+diff -puN fs/ext4/balloc.c~mistaken-ext4_inode_bitmap-for-ext4_block_bitmap fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~mistaken-ext4_inode_bitmap-for-ext4_block_bitmap
++++ a/fs/ext4/balloc.c
+@@ -1585,7 +1585,7 @@ allocated:
+ 	ret_block = grp_alloc_blk + ext4_group_first_block_no(sb, group_no);
  
- CFLAGS          := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
--                   -fno-strict-aliasing -fno-common
-+		   -fno-strict-aliasing -fno-common \
-+		   -Werror-implicit-function-declaration
- AFLAGS          := -D__ASSEMBLY__
- 
- # Read KERNELRELEASE from include/config/kernel.release (if it exists)
+ 	if (in_range(ext4_block_bitmap(sb, gdp), ret_block, num) ||
+-	    in_range(ext4_block_bitmap(sb, gdp), ret_block, num) ||
++	    in_range(ext4_inode_bitmap(sb, gdp), ret_block, num) ||
+ 	    in_range(ret_block, ext4_inode_table(sb, gdp),
+ 		     EXT4_SB(sb)->s_itb_per_group) ||
+ 	    in_range(ret_block + num - 1, ext4_inode_table(sb, gdp),
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from toshi.okajima@jp.fujitsu.com are
 
 origin.patch
-fix-empty-macros-in-acpi.patch
-git-alsa.patch
-i386-remove-support-for-the-rise-cpu.patch
-slow-down-printk-during-boot.patch
