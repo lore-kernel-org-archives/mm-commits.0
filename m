@@ -1,87 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - kconfig-no-strange-misc-devices.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:54:48 -0700
-Message-ID: <200707162054.l6GKsmeU001851@imap1.linux-foundation.org>
+Subject: - frv-connect-up-new-syscalls.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:50:03 -0700
+Message-ID: <200707162050.l6GKo3cD001287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53135 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58432 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757880AbXGPVTU (ORCPT
+	by vger.kernel.org with ESMTP id S1757919AbXGPVTU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 16 Jul 2007 17:19:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kconfig: no STRANGE misc. devices
+     FRV: Connect up new syscalls
 has been removed from the -mm tree.  Its filename was
-     kconfig-no-strange-misc-devices.patch
+     frv-connect-up-new-syscalls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kconfig: no STRANGE misc. devices
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: FRV: Connect up new syscalls
+From: David Howells <dhowells@redhat.com>
 
-This config symbol name is confusing and unneeded/unwanted, so just
-change it to MISC_DEVICES.
+Connect up new system calls.
 
-*
-* Misc devices
-*
-Misc devices (MISC_STRANGE_DEV) [Y/n] (NEW)
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/frv/kernel/entry.S  |    4 ++++
+ include/asm-frv/unistd.h |    6 +++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/Kconfig~kconfig-no-strange-misc-devices drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~kconfig-no-strange-misc-devices
-+++ a/drivers/misc/Kconfig
-@@ -2,11 +2,11 @@
- # Misc strange devices
- #
+diff -puN arch/frv/kernel/entry.S~frv-connect-up-new-syscalls arch/frv/kernel/entry.S
+--- a/arch/frv/kernel/entry.S~frv-connect-up-new-syscalls
++++ a/arch/frv/kernel/entry.S
+@@ -1492,6 +1492,10 @@ sys_call_table:
+ 	.long sys_move_pages
+ 	.long sys_getcpu
+ 	.long sys_epoll_pwait
++	.long sys_utimensat		/* 320 */
++	.long sys_signalfd
++	.long sys_timerfd
++	.long sys_eventfd
  
--menuconfig MISC_STRANGE_DEV
-+menuconfig MISC_DEVICES
- 	bool "Misc devices"
- 	default y
  
--if MISC_STRANGE_DEV
-+if MISC_DEVICES
+ syscall_table_size = (. - sys_call_table)
+diff -puN include/asm-frv/unistd.h~frv-connect-up-new-syscalls include/asm-frv/unistd.h
+--- a/include/asm-frv/unistd.h~frv-connect-up-new-syscalls
++++ a/include/asm-frv/unistd.h
+@@ -326,10 +326,14 @@
+ #define __NR_move_pages		317
+ #define __NR_getcpu		318
+ #define __NR_epoll_pwait	319
++#define __NR_utimensat		320
++#define __NR_signalfd		321
++#define __NR_timerfd		322
++#define __NR_eventfd		323
  
- config IBM_ASM
- 	tristate "Device driver for IBM RSA service processor"
-@@ -196,4 +196,4 @@ config THINKPAD_ACPI_BAY
+ #ifdef __KERNEL__
  
- 	  If you are not sure, say Y here.
+-#define NR_syscalls 320
++#define NR_syscalls 324
  
--endif # MISC_STRANGE_DEV
-+endif # MISC_DEVICES
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ /* #define __ARCH_WANT_OLD_READDIR */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-mtd.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-docbook-dont-reference-file-without-kernel-doc.patch
-profile-likely-unlikely-macros.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+document-page_mkwrite-locking.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+mutex-subsystem-synchro-test-module.patch
