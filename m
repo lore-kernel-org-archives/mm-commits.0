@@ -1,260 +1,358 @@
 From: akpm@linux-foundation.org
-Subject: - slob-remove-bigblock-tracking.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:48:59 -0700
-Message-ID: <200707162048.l6GKmxCR001122@imap1.linux-foundation.org>
+Subject: - uml-simplify-helper-stack-handling.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:51:25 -0700
+Message-ID: <200707162051.l6GKpPMT001396@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60599 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55039 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760600AbXGPV3j (ORCPT
+	by vger.kernel.org with ESMTP id S1761569AbXGPV3o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:29:39 -0400
+	Mon, 16 Jul 2007 17:29:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mpm@selenic.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slob: remove bigblock tracking
+     uml: simplify helper stack handling
 has been removed from the -mm tree.  Its filename was
-     slob-remove-bigblock-tracking.patch
+     uml-simplify-helper-stack-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slob: remove bigblock tracking
-From: Nick Piggin <npiggin@suse.de>
+Subject: uml: simplify helper stack handling
+From: Jeff Dike <jdike@addtoit.com>
 
-Remove the bigblock lists in favour of using compound pages and going directly
-to the page allocator.  Allocation size is stored in page->private, which also
-makes ksize more accurate than it previously was.
+run_helper and run_helper_thread had arguments which were the same in all
+callers.  run_helper's stack_out was always NULL and run_helper_thread's
+stack_order was always 0.  These are now gone, and the constants folded
+into the code.
 
-Saves ~.5K of code, and 12-24 bytes overhead per >= PAGE_SIZE allocation.
+Also fixed leaks of the helper stack in the AIO and SIGIO code.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slob.c |  101 ++++++++++++++--------------------------------------
- 1 file changed, 28 insertions(+), 73 deletions(-)
+ arch/um/drivers/chan_user.c              |    2 +-
+ arch/um/drivers/harddog_user.c           |    2 +-
+ arch/um/drivers/net_user.c               |    2 +-
+ arch/um/drivers/port_user.c              |    2 +-
+ arch/um/drivers/slip_user.c              |    2 +-
+ arch/um/drivers/slirp_user.c             |    2 +-
+ arch/um/drivers/xterm.c                  |    2 +-
+ arch/um/include/os.h                     |    6 ++----
+ arch/um/os-Linux/aio.c                   |   11 ++++++-----
+ arch/um/os-Linux/drivers/ethertap_user.c |    2 +-
+ arch/um/os-Linux/drivers/tuntap_user.c   |    2 +-
+ arch/um/os-Linux/helper.c                |   19 +++++++------------
+ arch/um/os-Linux/sigio.c                 |   19 ++++++++++++-------
+ 13 files changed, 36 insertions(+), 37 deletions(-)
 
-diff -puN mm/slob.c~slob-remove-bigblock-tracking mm/slob.c
---- a/mm/slob.c~slob-remove-bigblock-tracking
-+++ a/mm/slob.c
-@@ -18,9 +18,11 @@
-  * Above this is an implementation of kmalloc/kfree. Blocks returned
-  * from kmalloc are 4-byte aligned and prepended with a 4-byte header.
-  * If kmalloc is asked for objects of PAGE_SIZE or larger, it calls
-- * __get_free_pages directly so that it can return page-aligned blocks
-- * and keeps a linked list of such pages and their orders. These
-- * objects are detected in kfree() by their page alignment.
-+ * __get_free_pages directly, allocating compound pages so the page order
-+ * does not have to be separately tracked, and also stores the exact
-+ * allocation size in page->private so that it can be used to accurately
-+ * provide ksize(). These objects are detected in kfree() because slob_page()
-+ * is false for them.
-  *
-  * SLAB is emulated on top of SLOB by simply calling constructors and
-  * destructors for every SLAB allocation. Objects are returned with the
-@@ -29,7 +31,8 @@
-  * alignment. Again, objects of page-size or greater are allocated by
-  * calling __get_free_pages. As SLAB objects know their size, no separate
-  * size bookkeeping is necessary and there is essentially no allocation
-- * space overhead.
-+ * space overhead, and compound pages aren't needed for multi-page
-+ * allocations.
-  */
- 
- #include <linux/kernel.h>
-@@ -381,48 +384,26 @@ out:
-  * End of slob allocator proper. Begin kmem_cache_alloc and kmalloc frontend.
-  */
- 
--struct bigblock {
--	int order;
--	void *pages;
--	struct bigblock *next;
--};
--typedef struct bigblock bigblock_t;
--
--static bigblock_t *bigblocks;
--
--static DEFINE_SPINLOCK(block_lock);
--
--
- void *__kmalloc(size_t size, gfp_t gfp)
- {
--	slob_t *m;
--	bigblock_t *bb;
--	unsigned long flags;
--
- 	if (size < PAGE_SIZE - SLOB_UNIT) {
-+		slob_t *m;
- 		m = slob_alloc(size + SLOB_UNIT, gfp, 0);
- 		if (m)
- 			m->units = size;
- 		return m+1;
--	}
--
--	bb = slob_alloc(sizeof(bigblock_t), gfp, 0);
--	if (!bb)
--		return 0;
--
--	bb->order = get_order(size);
--	bb->pages = (void *)__get_free_pages(gfp, bb->order);
-+	} else {
-+		void *ret;
- 
--	if (bb->pages) {
--		spin_lock_irqsave(&block_lock, flags);
--		bb->next = bigblocks;
--		bigblocks = bb;
--		spin_unlock_irqrestore(&block_lock, flags);
--		return bb->pages;
-+		ret = (void *) __get_free_pages(gfp | __GFP_COMP,
-+						get_order(size));
-+		if (ret) {
-+			struct page *page;
-+			page = virt_to_page(ret);
-+			page->private = size;
-+		}
-+		return ret;
+diff -puN arch/um/drivers/chan_user.c~uml-simplify-helper-stack-handling arch/um/drivers/chan_user.c
+--- a/arch/um/drivers/chan_user.c~uml-simplify-helper-stack-handling
++++ a/arch/um/drivers/chan_user.c
+@@ -161,7 +161,7 @@ static int winch_tramp(int fd, struct tt
+ 	 * problem with /dev/net/tun, which if held open by this
+ 	 * thread, prevents the TUN/TAP device from being reused.
+ 	 */
+-	err = run_helper_thread(winch_thread, &data, CLONE_FILES, stack_out, 0);
++	err = run_helper_thread(winch_thread, &data, CLONE_FILES, stack_out);
+ 	if(err < 0){
+ 		printk("fork of winch_thread failed - errno = %d\n", -err);
+ 		goto out_close;
+diff -puN arch/um/drivers/harddog_user.c~uml-simplify-helper-stack-handling arch/um/drivers/harddog_user.c
+--- a/arch/um/drivers/harddog_user.c~uml-simplify-helper-stack-handling
++++ a/arch/um/drivers/harddog_user.c
+@@ -68,7 +68,7 @@ int start_watchdog(int *in_fd_ret, int *
+ 		args = pid_args;
  	}
--
--	slob_free(bb, sizeof(bigblock_t));
--	return 0;
- }
- EXPORT_SYMBOL(__kmalloc);
  
-@@ -462,59 +443,33 @@ EXPORT_SYMBOL(krealloc);
- void kfree(const void *block)
+-	pid = run_helper(pre_exec, &data, args, NULL);
++	pid = run_helper(pre_exec, &data, args);
+ 
+ 	os_close_file(out_fds[0]);
+ 	os_close_file(in_fds[1]);
+diff -puN arch/um/drivers/net_user.c~uml-simplify-helper-stack-handling arch/um/drivers/net_user.c
+--- a/arch/um/drivers/net_user.c~uml-simplify-helper-stack-handling
++++ a/arch/um/drivers/net_user.c
+@@ -187,7 +187,7 @@ static int change_tramp(char **argv, cha
+ 	}
+ 	pe_data.close_me = fds[0];
+ 	pe_data.stdout = fds[1];
+-	pid = run_helper(change_pre_exec, &pe_data, argv, NULL);
++	pid = run_helper(change_pre_exec, &pe_data, argv);
+ 
+ 	if (pid > 0)	/* Avoid hang as we won't get data in failure case. */
+ 		read_output(fds[0], output, output_len);
+diff -puN arch/um/drivers/port_user.c~uml-simplify-helper-stack-handling arch/um/drivers/port_user.c
+--- a/arch/um/drivers/port_user.c~uml-simplify-helper-stack-handling
++++ a/arch/um/drivers/port_user.c
+@@ -188,7 +188,7 @@ int port_connection(int fd, int *socket,
+ 		{ .sock_fd  		= new,
+ 		  .pipe_fd 		= socket[1] });
+ 
+-	err = run_helper(port_pre_exec, &data, argv, NULL);
++	err = run_helper(port_pre_exec, &data, argv);
+ 	if(err < 0)
+ 		goto out_shutdown;
+ 
+diff -puN arch/um/drivers/slip_user.c~uml-simplify-helper-stack-handling arch/um/drivers/slip_user.c
+--- a/arch/um/drivers/slip_user.c~uml-simplify-helper-stack-handling
++++ a/arch/um/drivers/slip_user.c
+@@ -85,7 +85,7 @@ static int slip_tramp(char **argv, int f
+ 	pe_data.stdin = fd;
+ 	pe_data.stdout = fds[1];
+ 	pe_data.close_me = fds[0];
+-	err = run_helper(slip_pre_exec, &pe_data, argv, NULL);
++	err = run_helper(slip_pre_exec, &pe_data, argv);
+ 	if(err < 0)
+ 		goto out_close;
+ 	pid = err;
+diff -puN arch/um/drivers/slirp_user.c~uml-simplify-helper-stack-handling arch/um/drivers/slirp_user.c
+--- a/arch/um/drivers/slirp_user.c~uml-simplify-helper-stack-handling
++++ a/arch/um/drivers/slirp_user.c
+@@ -42,7 +42,7 @@ static int slirp_tramp(char **argv, int 
+ 
+ 	pe_data.stdin = fd;
+ 	pe_data.stdout = fd;
+-	pid = run_helper(slirp_pre_exec, &pe_data, argv, NULL);
++	pid = run_helper(slirp_pre_exec, &pe_data, argv);
+ 
+ 	return(pid);
+ }
+diff -puN arch/um/drivers/xterm.c~uml-simplify-helper-stack-handling arch/um/drivers/xterm.c
+--- a/arch/um/drivers/xterm.c~uml-simplify-helper-stack-handling
++++ a/arch/um/drivers/xterm.c
+@@ -132,7 +132,7 @@ static int xterm_open(int input, int out
+ 	}
+ 
+ 	sprintf(title, data->title, data->device);
+-	pid = run_helper(NULL, NULL, argv, NULL);
++	pid = run_helper(NULL, NULL, argv);
+ 	if (pid < 0) {
+ 		err = pid;
+ 		printk(UM_KERN_ERR "xterm_open : run_helper failed, "
+diff -puN arch/um/include/os.h~uml-simplify-helper-stack-handling arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-simplify-helper-stack-handling
++++ a/arch/um/include/os.h
+@@ -239,11 +239,9 @@ extern unsigned long __do_user_copy(void
+ /* execvp.c */
+ extern int execvp_noalloc(char *buf, const char *file, char *const argv[]);
+ /* helper.c */
+-extern int run_helper(void (*pre_exec)(void *), void *pre_data, char **argv,
+-		      unsigned long *stack_out);
++extern int run_helper(void (*pre_exec)(void *), void *pre_data, char **argv);
+ extern int run_helper_thread(int (*proc)(void *), void *arg,
+-			     unsigned int flags, unsigned long *stack_out,
+-			     int stack_order);
++			     unsigned int flags, unsigned long *stack_out);
+ extern int helper_wait(int pid);
+ 
+ 
+diff -puN arch/um/os-Linux/aio.c~uml-simplify-helper-stack-handling arch/um/os-Linux/aio.c
+--- a/arch/um/os-Linux/aio.c~uml-simplify-helper-stack-handling
++++ a/arch/um/os-Linux/aio.c
+@@ -177,6 +177,7 @@ static int do_not_aio(struct aio_thread_
+ static int aio_req_fd_r = -1;
+ static int aio_req_fd_w = -1;
+ static int aio_pid = -1;
++static unsigned long aio_stack;
+ 
+ static int not_aio_thread(void *arg)
  {
- 	struct slob_page *sp;
--	slob_t *m;
--	bigblock_t *bb, **last = &bigblocks;
--	unsigned long flags;
+@@ -212,7 +213,6 @@ static int not_aio_thread(void *arg)
  
- 	if (!block)
- 		return;
- 
- 	sp = (struct slob_page *)virt_to_page(block);
--	if (!slob_page(sp)) {
--		/* on the big block list */
--		spin_lock_irqsave(&block_lock, flags);
--		for (bb = bigblocks; bb; last = &bb->next, bb = bb->next) {
--			if (bb->pages == block) {
--				*last = bb->next;
--				spin_unlock_irqrestore(&block_lock, flags);
--				free_pages((unsigned long)block, bb->order);
--				slob_free(bb, sizeof(bigblock_t));
--				return;
--			}
--		}
--		spin_unlock_irqrestore(&block_lock, flags);
--		WARN_ON(1);
--		return;
--	}
--
--	m = (slob_t *)block - 1;
--	slob_free(m, m->units + SLOB_UNIT);
--	return;
-+	if (slob_page(sp)) {
-+		slob_t *m = (slob_t *)block - 1;
-+		slob_free(m, m->units + SLOB_UNIT);
-+	} else
-+		put_page(&sp->page);
- }
- 
- EXPORT_SYMBOL(kfree);
- 
-+/* can't use ksize for kmem_cache_alloc memory, only kmalloc */
- size_t ksize(const void *block)
+ static int init_aio_24(void)
  {
- 	struct slob_page *sp;
--	bigblock_t *bb;
--	unsigned long flags;
+-	unsigned long stack;
+ 	int fds[2], err;
  
- 	if (!block)
- 		return 0;
+ 	err = os_pipe(fds, 1, 1);
+@@ -227,7 +227,7 @@ static int init_aio_24(void)
+ 		goto out_close_pipe;
  
- 	sp = (struct slob_page *)virt_to_page(block);
--	if (!slob_page(sp)) {
--		spin_lock_irqsave(&block_lock, flags);
--		for (bb = bigblocks; bb; bb = bb->next)
--			if (bb->pages == block) {
--				spin_unlock_irqrestore(&slob_lock, flags);
--				return PAGE_SIZE << bb->order;
--			}
--		spin_unlock_irqrestore(&block_lock, flags);
--	}
--
--	return ((slob_t *)block - 1)->units + SLOB_UNIT;
-+	if (slob_page(sp))
-+		return ((slob_t *)block - 1)->units + SLOB_UNIT;
-+	else
-+		return sp->page.private;
+ 	err = run_helper_thread(not_aio_thread, NULL,
+-				CLONE_FILES | CLONE_VM | SIGCHLD, &stack, 0);
++				CLONE_FILES | CLONE_VM | SIGCHLD, &aio_stack);
+ 	if(err < 0)
+ 		goto out_close_pipe;
+ 
+@@ -252,7 +252,6 @@ out:
+ #define DEFAULT_24_AIO 0
+ static int init_aio_26(void)
+ {
+-	unsigned long stack;
+ 	int err;
+ 
+ 	if(io_setup(256, &ctx)){
+@@ -263,7 +262,7 @@ static int init_aio_26(void)
+ 	}
+ 
+ 	err = run_helper_thread(aio_thread, NULL,
+-				CLONE_FILES | CLONE_VM | SIGCHLD, &stack, 0);
++				CLONE_FILES | CLONE_VM | SIGCHLD, &aio_stack);
+ 	if(err < 0)
+ 		return err;
+ 
+@@ -365,8 +364,10 @@ __initcall(init_aio);
+ 
+ static void exit_aio(void)
+ {
+-	if(aio_pid != -1)
++	if (aio_pid != -1) {
+ 		os_kill_process(aio_pid, 1);
++		free_stack(aio_stack, 0);
++	}
  }
  
- struct kmem_cache {
+ __uml_exitcall(exit_aio);
+diff -puN arch/um/os-Linux/drivers/ethertap_user.c~uml-simplify-helper-stack-handling arch/um/os-Linux/drivers/ethertap_user.c
+--- a/arch/um/os-Linux/drivers/ethertap_user.c~uml-simplify-helper-stack-handling
++++ a/arch/um/os-Linux/drivers/ethertap_user.c
+@@ -117,7 +117,7 @@ static int etap_tramp(char *dev, char *g
+ 	pe_data.control_remote = control_remote;
+ 	pe_data.control_me = control_me;
+ 	pe_data.data_me = data_me;
+-	pid = run_helper(etap_pre_exec, &pe_data, args, NULL);
++	pid = run_helper(etap_pre_exec, &pe_data, args);
+ 
+ 	if(pid < 0)
+ 		err = pid;
+diff -puN arch/um/os-Linux/drivers/tuntap_user.c~uml-simplify-helper-stack-handling arch/um/os-Linux/drivers/tuntap_user.c
+--- a/arch/um/os-Linux/drivers/tuntap_user.c~uml-simplify-helper-stack-handling
++++ a/arch/um/os-Linux/drivers/tuntap_user.c
+@@ -83,7 +83,7 @@ static int tuntap_open_tramp(char *gate,
+ 	data.stdout = remote;
+ 	data.close_me = me;
+ 
+-	pid = run_helper(tuntap_pre_exec, &data, argv, NULL);
++	pid = run_helper(tuntap_pre_exec, &data, argv);
+ 
+ 	if(pid < 0)
+ 		return -pid;
+diff -puN arch/um/os-Linux/helper.c~uml-simplify-helper-stack-handling arch/um/os-Linux/helper.c
+--- a/arch/um/os-Linux/helper.c~uml-simplify-helper-stack-handling
++++ a/arch/um/os-Linux/helper.c
+@@ -44,17 +44,13 @@ static int helper_child(void *arg)
+ /* Returns either the pid of the child process we run or -E* on failure.
+  * XXX The alloc_stack here breaks if this is called in the tracing thread, so
+  * we need to receive a preallocated stack (a local buffer is ok). */
+-int run_helper(void (*pre_exec)(void *), void *pre_data, char **argv,
+-	       unsigned long *stack_out)
++int run_helper(void (*pre_exec)(void *), void *pre_data, char **argv)
+ {
+ 	struct helper_data data;
+ 	unsigned long stack, sp;
+ 	int pid, fds[2], ret, n;
+ 
+-	if ((stack_out != NULL) && (*stack_out != 0))
+-		stack = *stack_out;
+-	else
+-		stack = alloc_stack(0, __cant_sleep());
++	stack = alloc_stack(0, __cant_sleep());
+ 	if (stack == 0)
+ 		return -ENOMEM;
+ 
+@@ -113,22 +109,21 @@ out_close:
+ 		close(fds[1]);
+ 	close(fds[0]);
+ out_free:
+-	if ((stack_out == NULL) || (*stack_out == 0))
+-		free_stack(stack, 0);
++	free_stack(stack, 0);
+ 	return ret;
+ }
+ 
+ int run_helper_thread(int (*proc)(void *), void *arg, unsigned int flags,
+-		      unsigned long *stack_out, int stack_order)
++		      unsigned long *stack_out)
+ {
+ 	unsigned long stack, sp;
+ 	int pid, status, err;
+ 
+-	stack = alloc_stack(stack_order, __cant_sleep());
++	stack = alloc_stack(0, __cant_sleep());
+ 	if (stack == 0)
+ 		return -ENOMEM;
+ 
+-	sp = stack + (UM_KERN_PAGE_SIZE << stack_order) - sizeof(void *);
++	sp = stack + UM_KERN_PAGE_SIZE - sizeof(void *);
+ 	pid = clone(proc, (void *) sp, flags | SIGCHLD, arg);
+ 	if (pid < 0) {
+ 		err = -errno;
+@@ -147,7 +142,7 @@ int run_helper_thread(int (*proc)(void *
+ 		if (!WIFEXITED(status) || (WEXITSTATUS(status) != 0))
+ 			printk("run_helper_thread - thread returned status "
+ 			       "0x%x\n", status);
+-		free_stack(stack, stack_order);
++		free_stack(stack, 0);
+ 	} else
+ 		*stack_out = stack;
+ 	return pid;
+diff -puN arch/um/os-Linux/sigio.c~uml-simplify-helper-stack-handling arch/um/os-Linux/sigio.c
+--- a/arch/um/os-Linux/sigio.c~uml-simplify-helper-stack-handling
++++ a/arch/um/os-Linux/sigio.c
+@@ -26,6 +26,7 @@
+  * exitcall.
+  */
+ static int write_sigio_pid = -1;
++static unsigned long write_sigio_stack;
+ 
+ /* These arrays are initialized before the sigio thread is started, and
+  * the descriptors closed after it is killed.  So, it can't see them change.
+@@ -144,8 +145,10 @@ static void update_thread(void)
+ 	return;
+  fail:
+ 	/* Critical section start */
+-	if(write_sigio_pid != -1)
++	if (write_sigio_pid != -1) {
+ 		os_kill_process(write_sigio_pid, 1);
++		free_stack(write_sigio_stack, 0);
++	}
+ 	write_sigio_pid = -1;
+ 	close(sigio_private[0]);
+ 	close(sigio_private[1]);
+@@ -243,7 +246,6 @@ static struct pollfd *setup_initial_poll
+ 
+ static void write_sigio_workaround(void)
+ {
+-	unsigned long stack;
+ 	struct pollfd *p;
+ 	int err;
+ 	int l_write_sigio_fds[2];
+@@ -293,7 +295,8 @@ static void write_sigio_workaround(void)
+ 	memcpy(sigio_private, l_sigio_private, sizeof(l_sigio_private));
+ 
+ 	write_sigio_pid = run_helper_thread(write_sigio_thread, NULL,
+-					    CLONE_FILES | CLONE_VM, &stack, 0);
++					    CLONE_FILES | CLONE_VM,
++					    &write_sigio_stack);
+ 
+ 	if (write_sigio_pid < 0)
+ 		goto out_clear;
+@@ -356,10 +359,12 @@ out:
+ 
+ static void sigio_cleanup(void)
+ {
+-	if(write_sigio_pid != -1){
+-		os_kill_process(write_sigio_pid, 1);
+-		write_sigio_pid = -1;
+-	}
++	if (write_sigio_pid == -1)
++		return;
++
++	os_kill_process(write_sigio_pid, 1);
++	free_stack(write_sigio_stack, 0);
++	write_sigio_pid = -1;
+ }
+ 
+ __uml_exitcall(sigio_cleanup);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-fault-feedback-1.patch
-mm-fault-feedback-2.patch
-mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
-xfs-convert-to-new-aops.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
 hostfs-convert-to-new-aops.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-udf-convert-to-new-aops.patch
-sysv-convert-to-new-aops.patch
-minix-convert-to-new-aops.patch
-jfs-convert-to-new-aops.patch
-fs-adfs-convert-to-new-aops.patch
-fs-affs-convert-to-new-aops.patch
-ocfs2-convert-to-new-aops.patch
-fix-read-truncate-race.patch
-fs-remove-some-aop_truncated_page.patch
-fs-introduce-some-page-buffer-invariants.patch
-fs-reiserfs-cleanups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-reiser4-fix-for-new-aops-patches.patch
