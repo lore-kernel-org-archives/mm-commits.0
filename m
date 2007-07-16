@@ -1,95 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - procfs-directory-entry-cleanup.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:54:28 -0700
-Message-ID: <200707162054.l6GKsSKt001803@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-ii-telephony.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:52:31 -0700
+Message-ID: <200707162052.l6GKqVab001552@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34894 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44135 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759643AbXGPVYh (ORCPT
+	by vger.kernel.org with ESMTP id S1759258AbXGPVZ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:24:37 -0400
+	Mon, 16 Jul 2007 17:25:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiaosuo@gmail.com, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     procfs directory entry cleanup
+     Use menuconfig objects II - Telephony
 has been removed from the -mm tree.  Its filename was
-     procfs-directory-entry-cleanup.patch
+     use-menuconfig-objects-ii-telephony.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: procfs directory entry cleanup
-From: "Changli Gao" <xiaosuo@gmail.com>
+Subject: Use menuconfig objects II - Telephony
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Function proc_register() will assign proc_dir_operations and
-proc_dir_inode_operations to ent's members proc_fops and proc_iops
-correctly if ent is a directory. So the early assignment isn't
-necessary.
+Change Kconfig objects from "menu, config" into "menuconfig" so
+that the user can disable the whole feature without having to
+enter the menu first.
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+ drivers/telephony/Kconfig |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN fs/proc/generic.c~procfs-directory-entry-cleanup fs/proc/generic.c
---- a/fs/proc/generic.c~procfs-directory-entry-cleanup
-+++ a/fs/proc/generic.c
-@@ -530,12 +530,6 @@ static int proc_register(struct proc_dir
- 		return -EAGAIN;
- 	dp->low_ino = i;
+diff -puN drivers/telephony/Kconfig~use-menuconfig-objects-ii-telephony drivers/telephony/Kconfig
+--- a/drivers/telephony/Kconfig~use-menuconfig-objects-ii-telephony
++++ a/drivers/telephony/Kconfig
+@@ -2,11 +2,9 @@
+ # Telephony device configuration
+ #
  
--	spin_lock(&proc_subdir_lock);
--	dp->next = dir->subdir;
--	dp->parent = dir;
--	dir->subdir = dp;
--	spin_unlock(&proc_subdir_lock);
+-menu "Telephony Support"
++menuconfig PHONE
++	tristate "Telephony support"
+ 	depends on HAS_IOMEM
 -
- 	if (S_ISDIR(dp->mode)) {
- 		if (dp->proc_iops == NULL) {
- 			dp->proc_fops = &proc_dir_operations;
-@@ -551,6 +545,13 @@ static int proc_register(struct proc_dir
- 		if (dp->proc_iops == NULL)
- 			dp->proc_iops = &proc_file_inode_operations;
- 	}
-+
-+	spin_lock(&proc_subdir_lock);
-+	dp->next = dir->subdir;
-+	dp->parent = dir;
-+	dir->subdir = dp;
-+	spin_unlock(&proc_subdir_lock);
-+
- 	return 0;
- }
+-config PHONE
+-	tristate "Linux telephony support"
+ 	---help---
+ 	  Say Y here if you have a telephony card, which for example allows
+ 	  you to use a regular phone for voice-over-IP applications.
+@@ -17,9 +15,10 @@ config PHONE
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called phonedev.
  
-@@ -653,9 +654,6 @@ struct proc_dir_entry *proc_mkdir_mode(c
++if PHONE
++
+ config PHONE_IXJ
+ 	tristate "QuickNet Internet LineJack/PhoneJack support"
+-	depends on PHONE
+ 	---help---
+ 	  Say M if you have a telephony card manufactured by Quicknet
+ 	  Technologies, Inc.  These include the Internet PhoneJACK and
+@@ -44,5 +43,4 @@ config PHONE_IXJ_PCMCIA
+ 	  cards manufactured by Quicknet Technologies, Inc.  This changes the
+ 	  card initialization code to work with the card manager daemon.
  
- 	ent = proc_create(&parent, name, S_IFDIR | mode, 2);
- 	if (ent) {
--		ent->proc_fops = &proc_dir_operations;
--		ent->proc_iops = &proc_dir_inode_operations;
+-endmenu
 -
- 		if (proc_register(parent, ent) < 0) {
- 			kfree(ent);
- 			ent = NULL;
-@@ -690,10 +688,6 @@ struct proc_dir_entry *create_proc_entry
- 
- 	ent = proc_create(&parent,name,mode,nlink);
- 	if (ent) {
--		if (S_ISDIR(mode)) {
--			ent->proc_fops = &proc_dir_operations;
--			ent->proc_iops = &proc_dir_inode_operations;
--		}
- 		if (proc_register(parent, ent) < 0) {
- 			kfree(ent);
- 			ent = NULL;
++endif # PHONE
 _
 
-Patches currently in -mm which might be from xiaosuo@gmail.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
+git-acpi.patch
+git-kvm.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
+use-menuconfig-objects-ii-md.patch
