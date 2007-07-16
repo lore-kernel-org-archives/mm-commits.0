@@ -1,65 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - gitignore-update.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:59:23 -0700
-Message-ID: <200707162059.l6GKxNuh002424@imap1.linux-foundation.org>
+Subject: - is_power_of_2-kernel-kfifoc.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:58:21 -0700
+Message-ID: <200707162058.l6GKwLQu002340@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36236 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47144 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755651AbXGPVLj (ORCPT
+	by vger.kernel.org with ESMTP id S1753281AbXGPVLo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:11:39 -0400
+	Mon, 16 Jul 2007 17:11:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: vignesh.babu@wipro.com, stelian@popies.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     .gitignore update
+     is_power_of_2: kernel/kfifo.c
 has been removed from the -mm tree.  Its filename was
-     gitignore-update.patch
+     is_power_of_2-kernel-kfifoc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: .gitignore update
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: is_power_of_2: kernel/kfifo.c
+From: vignesh babu <vignesh.babu@wipro.com>
 
-headers_install by default puts headers into usr/include/ .
-They're auto-generated, so should be ignored.
+Replace (n & (n-1)) with is_power_of_2()
 
-Same for *.orig, *.rej .
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
+Acked-by: Stelian Pop <stelian@popies.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .gitignore     |    3 +++
- usr/.gitignore |    1 +
- 2 files changed, 4 insertions(+)
+ kernel/kfifo.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN .gitignore~gitignore-update .gitignore
---- a/.gitignore~gitignore-update
-+++ a/.gitignore
-@@ -45,3 +45,6 @@ series
+diff -puN kernel/kfifo.c~is_power_of_2-kernel-kfifoc kernel/kfifo.c
+--- a/kernel/kfifo.c~is_power_of_2-kernel-kfifoc
++++ a/kernel/kfifo.c
+@@ -24,6 +24,7 @@
+ #include <linux/slab.h>
+ #include <linux/err.h>
+ #include <linux/kfifo.h>
++#include <linux/log2.h>
  
- # cscope files
- cscope.*
-+
-+*.orig
-+*.rej
-diff -puN usr/.gitignore~gitignore-update usr/.gitignore
---- a/usr/.gitignore~gitignore-update
-+++ a/usr/.gitignore
-@@ -5,3 +5,4 @@ gen_init_cpio
- initramfs_data.cpio
- initramfs_data.cpio.gz
- initramfs_list
-+include
+ /**
+  * kfifo_init - allocates a new FIFO using a preallocated buffer
+@@ -41,7 +42,7 @@ struct kfifo *kfifo_init(unsigned char *
+ 	struct kfifo *fifo;
+ 
+ 	/* size must be a power of 2 */
+-	BUG_ON(size & (size - 1));
++	BUG_ON(!is_power_of_2(size));
+ 
+ 	fifo = kmalloc(sizeof(struct kfifo), gfp_mask);
+ 	if (!fifo)
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from vignesh.babu@wipro.com are
 
 origin.patch
-fix-sparse-false-positives-re-bug_onptr.patch
+git-ubi.patch
+git-xfs.patch
+is_power_of_2-ext4-superc.patch
