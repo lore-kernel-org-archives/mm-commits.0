@@ -1,124 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-statfs-speed-up.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:59:45 -0700
-Message-ID: <200707162059.l6GKxjjh002451@imap1.linux-foundation.org>
+Subject: - ext3-ext4-orphan-list-check-on-destroy_inode.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:55:59 -0700
+Message-ID: <200707162055.l6GKtx6x001984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58475 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48214 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760008AbXGPVPY (ORCPT
+	by vger.kernel.org with ESMTP id S1760677AbXGPVP1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:24 -0400
+	Mon, 16 Jul 2007 17:15:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pbadari@us.ibm.com, adilger@clusterfs.com, mm-commits@vger.kernel.org
+To: vvs@sw.ru, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: statfs speed up
+     ext3/ext4: orphan list check on destroy_inode
 has been removed from the -mm tree.  Its filename was
-     ext4-statfs-speed-up.patch
+     ext3-ext4-orphan-list-check-on-destroy_inode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext4: statfs speed up
-From: Badari Pulavarty <pbadari@us.ibm.com>
+Subject: ext3/ext4: orphan list check on destroy_inode
+From: Vasily Averin <vvs@sw.ru>
 
-This is a patch that speeds up statfs.  It is very simple - the "overhead"
-calculation, which takes a huge amount of time for large filesystems, never
-changes unless the size of the filesystem itself changes.  That means we can
-store it in memory and only recalculate if the filesystem has been resized
-(almost never).
+Customers claims to ext3-related errors, investigation showed that ext3
+orphan list has been corrupted and have the reference to non-ext3 inode. 
+The following debug helps to understand the reasons of this issue.
 
-It also fixes a minor problem that we never update the on-disk superblock free
-blocks/inodes counts until the filesystem is unmounted.  While not fatal, we
-may as well update that on disk when we have the information, and it makes
-things like debugfs and dumpe2fs report a bit more accurate info.
-
-Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
-Signed-off-by: Andreas Dilger <adilger@clusterfs.com>
+[akpm@linux-foundation.org: update for print_hex_dump() changes]
+Signed-off-by: Vasily Averin <vvs@sw.ru>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c            |   25 +++++++++++++++----------
- include/linux/ext4_fs_sb.h |    2 ++
- 2 files changed, 17 insertions(+), 10 deletions(-)
+ fs/ext3/super.c |    8 ++++++++
+ fs/ext4/super.c |    8 ++++++++
+ 2 files changed, 16 insertions(+)
 
-diff -puN fs/ext4/super.c~ext4-statfs-speed-up fs/ext4/super.c
---- a/fs/ext4/super.c~ext4-statfs-speed-up
+diff -puN fs/ext3/super.c~ext3-ext4-orphan-list-check-on-destroy_inode fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-ext4-orphan-list-check-on-destroy_inode
++++ a/fs/ext3/super.c
+@@ -459,6 +459,14 @@ static struct inode *ext3_alloc_inode(st
+ 
+ static void ext3_destroy_inode(struct inode *inode)
+ {
++	if (!list_empty(&(EXT3_I(inode)->i_orphan))) {
++		printk("EXT3 Inode %p: orphan list check failed!\n",
++			EXT3_I(inode));
++		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_ADDRESS, 16, 4,
++				EXT3_I(inode), sizeof(struct ext3_inode_info),
++				false);
++		dump_stack();
++	}
+ 	kmem_cache_free(ext3_inode_cachep, EXT3_I(inode));
+ }
+ 
+diff -puN fs/ext4/super.c~ext3-ext4-orphan-list-check-on-destroy_inode fs/ext4/super.c
+--- a/fs/ext4/super.c~ext3-ext4-orphan-list-check-on-destroy_inode
 +++ a/fs/ext4/super.c
-@@ -2500,19 +2500,19 @@ static int ext4_statfs (struct dentry * 
- 	struct super_block *sb = dentry->d_sb;
- 	struct ext4_sb_info *sbi = EXT4_SB(sb);
- 	struct ext4_super_block *es = sbi->s_es;
--	ext4_fsblk_t overhead;
--	int i;
- 	u64 fsid;
+@@ -510,6 +510,14 @@ static struct inode *ext4_alloc_inode(st
  
--	if (test_opt (sb, MINIX_DF))
--		overhead = 0;
--	else {
--		unsigned long ngroups;
--		ngroups = EXT4_SB(sb)->s_groups_count;
-+	if (test_opt(sb, MINIX_DF)) {
-+		sbi->s_overhead_last = 0;
-+	} else if (sbi->s_blocks_last != le32_to_cpu(es->s_blocks_count)) {
-+		unsigned long ngroups = sbi->s_groups_count, i;
-+		ext4_fsblk_t overhead = 0;
- 		smp_rmb();
+ static void ext4_destroy_inode(struct inode *inode)
+ {
++	if (!list_empty(&(EXT4_I(inode)->i_orphan))) {
++		printk("EXT4 Inode %p: orphan list check failed!\n",
++			EXT4_I(inode));
++		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_ADDRESS, 16, 4,
++				EXT4_I(inode), sizeof(struct ext4_inode_info),
++				true);
++		dump_stack();
++	}
+ 	kmem_cache_free(ext4_inode_cachep, EXT4_I(inode));
+ }
  
- 		/*
--		 * Compute the overhead (FS structures)
-+		 * Compute the overhead (FS structures).  This is constant
-+		 * for a given filesystem unless the number of block groups
-+		 * changes so we cache the previous value until it does.
- 		 */
- 
- 		/*
-@@ -2536,18 +2536,23 @@ static int ext4_statfs (struct dentry * 
- 		 * Every block group has an inode bitmap, a block
- 		 * bitmap, and an inode table.
- 		 */
--		overhead += (ngroups * (2 + EXT4_SB(sb)->s_itb_per_group));
-+		overhead += ngroups * (2 + sbi->s_itb_per_group);
-+		sbi->s_overhead_last = overhead;
-+		smp_wmb();
-+		sbi->s_blocks_last = le32_to_cpu(es->s_blocks_count);
- 	}
- 
- 	buf->f_type = EXT4_SUPER_MAGIC;
- 	buf->f_bsize = sb->s_blocksize;
--	buf->f_blocks = ext4_blocks_count(es) - overhead;
-+	buf->f_blocks = ext4_blocks_count(es) - sbi->s_overhead_last;
- 	buf->f_bfree = percpu_counter_sum(&sbi->s_freeblocks_counter);
-+	es->s_free_blocks_count = cpu_to_le32(buf->f_bfree);
- 	buf->f_bavail = buf->f_bfree - ext4_r_blocks_count(es);
- 	if (buf->f_bfree < ext4_r_blocks_count(es))
- 		buf->f_bavail = 0;
- 	buf->f_files = le32_to_cpu(es->s_inodes_count);
- 	buf->f_ffree = percpu_counter_sum(&sbi->s_freeinodes_counter);
-+	es->s_free_inodes_count = cpu_to_le32(buf->f_ffree);
- 	buf->f_namelen = EXT4_NAME_LEN;
- 	fsid = le64_to_cpup((void *)es->s_uuid) ^
- 	       le64_to_cpup((void *)es->s_uuid + sizeof(u64));
-diff -puN include/linux/ext4_fs_sb.h~ext4-statfs-speed-up include/linux/ext4_fs_sb.h
---- a/include/linux/ext4_fs_sb.h~ext4-statfs-speed-up
-+++ a/include/linux/ext4_fs_sb.h
-@@ -39,6 +39,8 @@ struct ext4_sb_info {
- 	unsigned long s_gdb_count;	/* Number of group descriptor blocks */
- 	unsigned long s_desc_per_block;	/* Number of group descriptors per block */
- 	unsigned long s_groups_count;	/* Number of groups in the fs */
-+	unsigned long s_overhead_last;  /* Last calculated overhead */
-+	unsigned long s_blocks_last;    /* Last seen block count */
- 	struct buffer_head * s_sbh;	/* Buffer containing the super block */
- 	struct ext4_super_block * s_es;	/* Pointer to the super block in the buffer */
- 	struct buffer_head ** s_group_desc;
 _
 
-Patches currently in -mm which might be from pbadari@us.ibm.com are
+Patches currently in -mm which might be from vvs@sw.ru are
 
 origin.patch
-ext3-convert-to-new-aops.patch
-ext4-convert-to-new-aops.patch
-fix-for-ext2-reservation.patch
+i2o_cfg_passthru-cleanup.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
