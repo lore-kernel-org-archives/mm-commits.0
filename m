@@ -1,161 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: - sys_time-speedup.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:57:34 -0700
-Message-ID: <200707162057.l6GKvYRF002205@imap1.linux-foundation.org>
+Subject: - add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:55:28 -0700
+Message-ID: <200707162055.l6GKtSOk001916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38385 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55610 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760940AbXGPVVz (ORCPT
+	by vger.kernel.org with ESMTP id S1760940AbXGPVWI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:21:55 -0400
+	Mon, 16 Jul 2007 17:22:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_time() speedup
+     Add a flag to indicate deferrable timers in /proc/timer_stats
 has been removed from the -mm tree.  Its filename was
-     sys_time-speedup.patch
+     add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sys_time() speedup
-From: Ingo Molnar <mingo@elte.hu>
+Subject: Add a flag to indicate deferrable timers in /proc/timer_stats
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Improve performance of sys_time().  sys_time() returns time in seconds, but
-it does so by calling do_gettimeofday() and then returning the tv_sec
-portion of the GTOD time.  But the data structure "xtime", which is updated
-by every timer/scheduler tick, already offers HZ granularity time.
+Add a flag in /proc/timer_stats to indicate deferrable timers.  This will
+let developers/users to differentiate between types of tiemrs in
+/proc/timer_stats.
 
-The patch improves the sysbench OLTP macrobenchmark significantly:
+Deferrable timer and normal timer will appear in /proc/timer_stats as below.
+  10D,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
+   10,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
 
-2.6.22-rc6:
+Also version of timer_stats changes from v0.1 to v0.2
 
-#threads
-   1:        transactions:                        3733   (373.21 per sec.)
-   2:        transactions:                        6676   (667.46 per sec.)
-   3:        transactions:                        6957   (695.50 per sec.)
-   4:        transactions:                        7055   (705.48 per sec.)
-   5:        transactions:                        6596   (659.33 per sec.)
-
-2.6.22-rc6 + sys_time.patch:
-
-   1:        transactions:                        4005   (400.47 per sec.)
-   2:        transactions:                        7379   (737.77 per sec.)
-   3:        transactions:                        7347   (734.49 per sec.)
-   4:        transactions:                        7468   (746.65 per sec.)
-   5:        transactions:                        7428   (742.47 per sec.)
-
-Mixed API uses of gettimeofday() and time() are guaranteed to be coherent
-via the use of a at-most-once-per-second slowpath that updates xtime.
-
-[akpm@linux-foundation.org: build fixes]
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: John Stultz <johnstul@us.ibm.com>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |   32 ++++++++++++++++++++++++--------
- 1 file changed, 24 insertions(+), 8 deletions(-)
+ Documentation/hrtimer/timer_stats.txt |    4 ++++
+ include/linux/hrtimer.h               |    5 +++--
+ include/linux/timer.h                 |   15 ++++-----------
+ kernel/time/timer_stats.c             |   14 +++++++++++---
+ kernel/timer.c                        |   14 ++++++++++++++
+ 5 files changed, 36 insertions(+), 16 deletions(-)
 
-diff -puN kernel/time.c~sys_time-speedup kernel/time.c
---- a/kernel/time.c~sys_time-speedup
-+++ a/kernel/time.c
-@@ -57,14 +57,17 @@ EXPORT_SYMBOL(sys_tz);
-  */
- asmlinkage long sys_time(time_t __user * tloc)
- {
--	time_t i;
--	struct timeval tv;
-+	/*
-+	 * We read xtime.tv_sec atomically - it's updated
-+	 * atomically by update_wall_time(), so no need to
-+	 * even read-lock the xtime seqlock:
-+	 */
-+	time_t i = xtime.tv_sec;
+diff -puN Documentation/hrtimer/timer_stats.txt~add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats Documentation/hrtimer/timer_stats.txt
+--- a/Documentation/hrtimer/timer_stats.txt~add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats
++++ a/Documentation/hrtimer/timer_stats.txt
+@@ -67,3 +67,7 @@ executed on expiry.
  
--	do_gettimeofday(&tv);
--	i = tv.tv_sec;
-+	smp_rmb(); /* sys_time() results are coherent */
+     Thomas, Ingo
  
- 	if (tloc) {
--		if (put_user(i,tloc))
-+		if (put_user(i, tloc))
- 			i = -EFAULT;
- 	}
- 	return i;
-@@ -373,12 +376,25 @@ void do_gettimeofday (struct timeval *tv
- 
- 	tv->tv_sec = sec;
- 	tv->tv_usec = usec;
--}
- 
-+	/*
-+	 * Make sure xtime.tv_sec [returned by sys_time()] always
-+	 * follows the gettimeofday() result precisely. This
-+	 * condition is extremely unlikely, it can hit at most
-+	 * once per second:
-+	 */
-+	if (unlikely(xtime.tv_sec != tv->tv_sec)) {
-+		unsigned long flags;
++Added flag to indicate 'deferrable timer' in /proc/timer_stats. A deferrable
++timer will appear as follows
++  10D,     1 swapper          queue_delayed_work_on (delayed_work_timer_fn)
 +
-+		write_seqlock_irqsave(&xtime_lock, flags);
-+		update_wall_time();
-+		write_sequnlock_irqrestore(&xtime_lock, flags);
-+	}
-+}
- EXPORT_SYMBOL(do_gettimeofday);
+diff -puN include/linux/hrtimer.h~add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats
++++ a/include/linux/hrtimer.h
+@@ -329,12 +329,13 @@ extern void sysrq_timer_list_show(void);
+ #ifdef CONFIG_TIMER_STATS
  
-+#else	/* CONFIG_TIME_INTERPOLATION */
+ extern void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
+-				     void *timerf, char * comm);
++				     void *timerf, char *comm,
++				     unsigned int timer_flag);
  
--#else
- #ifndef CONFIG_GENERIC_TIME
- /*
-  * Simulate gettimeofday using do_gettimeofday which only allows a timeval
-@@ -394,7 +410,7 @@ void getnstimeofday(struct timespec *tv)
+ static inline void timer_stats_account_hrtimer(struct hrtimer *timer)
+ {
+ 	timer_stats_update_stats(timer, timer->start_pid, timer->start_site,
+-				 timer->function, timer->start_comm);
++				 timer->function, timer->start_comm, 0);
  }
- EXPORT_SYMBOL_GPL(getnstimeofday);
- #endif
--#endif
-+#endif	/* CONFIG_TIME_INTERPOLATION */
  
- /* Converts Gregorian date to seconds since 1970-01-01 00:00:00.
-  * Assumes input in normal date format, i.e. 1980-12-31 23:59:59
+ extern void __timer_stats_hrtimer_set_start_info(struct hrtimer *timer,
+diff -puN include/linux/timer.h~add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats include/linux/timer.h
+--- a/include/linux/timer.h~add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats
++++ a/include/linux/timer.h
+@@ -90,16 +90,13 @@ extern unsigned long get_next_timer_inte
+  */
+ #ifdef CONFIG_TIMER_STATS
+ 
++#define TIMER_STATS_FLAG_DEFERRABLE	0x1
++
+ extern void init_timer_stats(void);
+ 
+ extern void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
+-				     void *timerf, char * comm);
+-
+-static inline void timer_stats_account_timer(struct timer_list *timer)
+-{
+-	timer_stats_update_stats(timer, timer->start_pid, timer->start_site,
+-				 timer->function, timer->start_comm);
+-}
++				     void *timerf, char *comm,
++				     unsigned int timer_flag);
+ 
+ extern void __timer_stats_timer_set_start_info(struct timer_list *timer,
+ 					       void *addr);
+@@ -118,10 +115,6 @@ static inline void init_timer_stats(void
+ {
+ }
+ 
+-static inline void timer_stats_account_timer(struct timer_list *timer)
+-{
+-}
+-
+ static inline void timer_stats_timer_set_start_info(struct timer_list *timer)
+ {
+ }
+diff -puN kernel/time/timer_stats.c~add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats kernel/time/timer_stats.c
+--- a/kernel/time/timer_stats.c~add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats
++++ a/kernel/time/timer_stats.c
+@@ -68,6 +68,7 @@ struct entry {
+ 	 * Number of timeout events:
+ 	 */
+ 	unsigned long		count;
++	unsigned int		timer_flag;
+ 
+ 	/*
+ 	 * We save the command-line string to preserve
+@@ -231,7 +232,8 @@ static struct entry *tstat_lookup(struct
+  * incremented. Otherwise the timer is registered in a free slot.
+  */
+ void timer_stats_update_stats(void *timer, pid_t pid, void *startf,
+-			      void *timerf, char * comm)
++			      void *timerf, char *comm,
++			      unsigned int timer_flag)
+ {
+ 	/*
+ 	 * It doesnt matter which lock we take:
+@@ -249,6 +251,7 @@ void timer_stats_update_stats(void *time
+ 	input.start_func = startf;
+ 	input.expire_func = timerf;
+ 	input.pid = pid;
++	input.timer_flag = timer_flag;
+ 
+ 	spin_lock_irqsave(lock, flags);
+ 	if (!active)
+@@ -295,7 +298,7 @@ static int tstats_show(struct seq_file *
+ 	period = ktime_to_timespec(time);
+ 	ms = period.tv_nsec / 1000000;
+ 
+-	seq_puts(m, "Timer Stats Version: v0.1\n");
++	seq_puts(m, "Timer Stats Version: v0.2\n");
+ 	seq_printf(m, "Sample period: %ld.%03ld s\n", period.tv_sec, ms);
+ 	if (atomic_read(&overflow_count))
+ 		seq_printf(m, "Overflow: %d entries\n",
+@@ -303,8 +306,13 @@ static int tstats_show(struct seq_file *
+ 
+ 	for (i = 0; i < nr_entries; i++) {
+ 		entry = entries + i;
+-		seq_printf(m, "%4lu, %5d %-16s ",
++ 		if (entry->timer_flag & TIMER_STATS_FLAG_DEFERRABLE) {
++			seq_printf(m, "%4luD, %5d %-16s ",
+ 				entry->count, entry->pid, entry->comm);
++		} else {
++			seq_printf(m, " %4lu, %5d %-16s ",
++				entry->count, entry->pid, entry->comm);
++		}
+ 
+ 		print_name_offset(m, (unsigned long)entry->start_func);
+ 		seq_puts(m, " (");
+diff -puN kernel/timer.c~add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats kernel/timer.c
+--- a/kernel/timer.c~add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats
++++ a/kernel/timer.c
+@@ -305,6 +305,20 @@ void __timer_stats_timer_set_start_info(
+ 	memcpy(timer->start_comm, current->comm, TASK_COMM_LEN);
+ 	timer->start_pid = current->pid;
+ }
++
++static void timer_stats_account_timer(struct timer_list *timer)
++{
++	unsigned int flag = 0;
++
++	if (unlikely(tbase_get_deferrable(timer->base)))
++		flag |= TIMER_STATS_FLAG_DEFERRABLE;
++
++	timer_stats_update_stats(timer, timer->start_pid, timer->start_site,
++				 timer->function, timer->start_comm, flag);
++}
++
++#else
++static void timer_stats_account_timer(struct timer_list *timer) {}
+ #endif
+ 
+ /**
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
 origin.patch
 git-acpi.patch
-git-kvm.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-tick-management-spread-timer-interrupt.patch
-highres-improve-debug-output.patch
-hrtimer-speedup-hrtimer_enqueue.patch
-pcspkr-use-the-global-pit-lock.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
-i386-remove-volatile-in-apicc.patch
-i386-hpet-assumes-boot-cpu-is-0.patch
-i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
-x86_64-untangle-asm-hpeth-from-asm-timexh.patch
-x86_64-use-generic-cmos-update.patch
-x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
-x86_64-fix-apic-typo.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+round_jiffies-for-i386-and-x86-64-non-critical-corrected-mce-polling.patch
 x86_64-convert-to-cleckevents.patch
-acpi-remove-the-useless-ifdef-code.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
 x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
 ich-force-hpet-restructure-hpet-generic-clock-code.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
@@ -163,29 +208,3 @@ ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
 ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
 ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-geode-mfgpt-clock-event-device-support.patch
-i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-immunize-rcu_dereference-against-crazy-compiler-writers.patch
-remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-fix-raw_spinlock_t-vs-lockdep.patch
-lockdep-sanitise-config_prove_locking.patch
-lockdep-reduce-the-ifdeffery.patch
-lockstat-core-infrastructure.patch
-lockstat-human-readability-tweaks.patch
-lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
-lockdep-various-fixes.patch
-lockdep-fixup-sk_callback_lock-annotation.patch
-lockstat-measure-lock-bouncing.patch
-lockstat-better-class-name-representation.patch
-lockdep-debugging-give-stacktrace-for-init_error.patch
-stacktrace-fix-header-file-for-config_stacktrace.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
-random-warning-squishes.patch
