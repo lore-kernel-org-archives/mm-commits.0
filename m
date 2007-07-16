@@ -1,71 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-fix-race-in-alloc_fresh_huge_page.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:49:08 -0700
-Message-ID: <200707162049.l6GKn8oY001139@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-ii-oprofile.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:52:28 -0700
+Message-ID: <200707162052.l6GKqSrx001549@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49426 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48333 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761350AbXGPVcU (ORCPT
+	by vger.kernel.org with ESMTP id S1760059AbXGPVcQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:32:20 -0400
+	Mon, 16 Jul 2007 17:32:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe.jin@oracle.com, gurudas.pai@oracle.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, phil.el@wanadoo.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: fix race in alloc_fresh_huge_page()
+     Use menuconfig objects II - oprofile
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-race-in-alloc_fresh_huge_page.patch
+     use-menuconfig-objects-ii-oprofile.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hugetlb: fix race in alloc_fresh_huge_page()
-From: Joe Jin <joe.jin@oracle.com>
+Subject: Use menuconfig objects II - oprofile
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-That static `nid' index needs locking.  Without it we can end up calling
-alloc_pages_node() with an illegal node ID and the kernel crashes.
+Make a "menuconfig" out of the Kconfig objects "menu, ..., endmenu",
+so that the user can disable all the options in that menu at once
+instead of having to disable each option separately.
 
-Acked-by: gurudas pai <gurudas.pai@oracle.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Philippe Elie <phil.el@wanadoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ arch/i386/Kconfig |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-race-in-alloc_fresh_huge_page mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-race-in-alloc_fresh_huge_page
-+++ a/mm/hugetlb.c
-@@ -101,13 +101,20 @@ static void free_huge_page(struct page *
+diff -puN arch/i386/Kconfig~use-menuconfig-objects-ii-oprofile arch/i386/Kconfig
+--- a/arch/i386/Kconfig~use-menuconfig-objects-ii-oprofile
++++ a/arch/i386/Kconfig
+@@ -1212,8 +1212,12 @@ source "drivers/Kconfig"
  
- static int alloc_fresh_huge_page(void)
- {
--	static int nid = 0;
-+	static int prev_nid;
- 	struct page *page;
--	page = alloc_pages_node(nid, GFP_HIGHUSER|__GFP_COMP|__GFP_NOWARN,
--					HUGETLB_PAGE_ORDER);
--	nid = next_node(nid, node_online_map);
-+	static DEFINE_SPINLOCK(nid_lock);
-+	int nid;
+ source "fs/Kconfig"
+ 
+-menu "Instrumentation Support"
++menuconfig INSTRUMENTATION
++	bool "Instrumentation Support"
+ 	depends on EXPERIMENTAL
++	default y
 +
-+	spin_lock(&nid_lock);
-+	nid = next_node(prev_nid, node_online_map);
- 	if (nid == MAX_NUMNODES)
- 		nid = first_node(node_online_map);
-+	prev_nid = nid;
-+	spin_unlock(&nid_lock);
++if INSTRUMENTATION
+ 
+ source "arch/i386/oprofile/Kconfig"
+ 
+@@ -1226,7 +1230,8 @@ config KPROBES
+ 	  a probepoint and specifies the callback.  Kprobes is useful
+ 	  for kernel debugging, non-intrusive instrumentation and testing.
+ 	  If in doubt, say "N".
+-endmenu
 +
-+	page = alloc_pages_node(nid, GFP_HIGHUSER|__GFP_COMP|__GFP_NOWARN,
-+					HUGETLB_PAGE_ORDER);
- 	if (page) {
- 		set_compound_page_dtor(page, free_huge_page);
- 		spin_lock(&hugetlb_lock);
++endif # INSTRUMENTATION
+ 
+ source "arch/i386/Kconfig.debug"
+ 
 _
 
-Patches currently in -mm which might be from joe.jin@oracle.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
+git-acpi.patch
+git-kvm.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
+use-menuconfig-objects-ii-md.patch
