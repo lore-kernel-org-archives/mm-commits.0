@@ -1,63 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - dma-make-dma-pool-to-use-kmalloc_node.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:58:47 -0700
-Message-ID: <200707162058.l6GKwliZ002367@imap1.linux-foundation.org>
+Subject: - use-write_trylock_irqsave-in-ptrace_attach.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:52:10 -0700
+Message-ID: <200707162052.l6GKqAIv001513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49830 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42520 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763719AbXGPVbX (ORCPT
+	by vger.kernel.org with ESMTP id S1763797AbXGPVb2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:31:23 -0400
+	Mon, 16 Jul 2007 17:31:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, clameter@sgi.com, greg@kroah.com, rientjes@google.com, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: sripathik@in.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma: make dma pool to use kmalloc_node
+     Use write_trylock_irqsave in ptrace_attach
 has been removed from the -mm tree.  Its filename was
-     dma-make-dma-pool-to-use-kmalloc_node.patch
+     use-write_trylock_irqsave-in-ptrace_attach.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dma: make dma pool to use kmalloc_node
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: Use write_trylock_irqsave in ptrace_attach
+From: Sripathi Kodi <sripathik@in.ibm.com>
 
-Using dev_to_node(&dev->dev) to get node, and kmalloc_node to dma buffer on
-corresponding node dma pool
+This patch makes ptrace_attach use write_trylock_irqsave().
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg KH <greg@kroah.com>
+[akpm@linux-foundation.org: remove unneeded initialisation]
+Signed-off-by: Sripathi Kodi <sripathik@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dmapool.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/ptrace.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/base/dmapool.c~dma-make-dma-pool-to-use-kmalloc_node drivers/base/dmapool.c
---- a/drivers/base/dmapool.c~dma-make-dma-pool-to-use-kmalloc_node
-+++ a/drivers/base/dmapool.c
-@@ -127,7 +127,7 @@ dma_pool_create (const char *name, struc
- 	} else if (allocation < size)
- 		return NULL;
+diff -puN kernel/ptrace.c~use-write_trylock_irqsave-in-ptrace_attach kernel/ptrace.c
+--- a/kernel/ptrace.c~use-write_trylock_irqsave-in-ptrace_attach
++++ a/kernel/ptrace.c
+@@ -161,6 +161,7 @@ int ptrace_may_attach(struct task_struct
+ int ptrace_attach(struct task_struct *task)
+ {
+ 	int retval;
++	unsigned long flags;
  
--	if (!(retval = kmalloc (sizeof *retval, GFP_KERNEL)))
-+	if (!(retval = kmalloc_node (sizeof *retval, GFP_KERNEL, dev_to_node(dev))))
- 		return retval;
+ 	audit_ptrace(task);
  
- 	strlcpy (retval->name, name, sizeof retval->name);
+@@ -181,9 +182,7 @@ repeat:
+ 	 * cpu's that may have task_lock).
+ 	 */
+ 	task_lock(task);
+-	local_irq_disable();
+-	if (!write_trylock(&tasklist_lock)) {
+-		local_irq_enable();
++	if (!write_trylock_irqsave(&tasklist_lock, flags)) {
+ 		task_unlock(task);
+ 		do {
+ 			cpu_relax();
+@@ -211,7 +210,7 @@ repeat:
+ 	force_sig_specific(SIGSTOP, task);
+ 
+ bad:
+-	write_unlock_irq(&tasklist_lock);
++	write_unlock_irqrestore(&tasklist_lock, flags);
+ 	task_unlock(task);
+ out:
+ 	return retval;
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from sripathik@in.ibm.com are
 
 origin.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
-x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
-x86_64-get-mp_bus_to_node-as-early.patch
