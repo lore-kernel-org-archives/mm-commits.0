@@ -1,116 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlbfs-use-lib-parser-fix-docs-fix.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:56:23 -0700
-Message-ID: <200707162056.l6GKuNYu002088@imap1.linux-foundation.org>
+Subject: - fix-xfs_ioc_fsgeometry_v1-in-compat-mode.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 14:00:33 -0700
+Message-ID: <200707162100.l6GL0XiP002635@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44942 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55700 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762771AbXGPVRV (ORCPT
+	by vger.kernel.org with ESMTP id S1763382AbXGPVR1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:17:21 -0400
+	Mon, 16 Jul 2007 17:17:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, lee.schermerhorn@hp.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mmarek@suse.cz, dgc@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlbfs: handle empty options string
+     xfs: fix XFS_IOC_FSGEOMETRY_V1 in compat mode
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-use-lib-parser-fix-docs-fix.patch
+     fix-xfs_ioc_fsgeometry_v1-in-compat-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hugetlbfs: handle empty options string
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: xfs: fix XFS_IOC_FSGEOMETRY_V1 in compat mode
+From: Michal Marek <mmarek@suse.cz>
 
-I was seeing a null pointer deref in fs/super.c:vfs_kern_mount().
-Some file system get_sb() handler was returning NULL mnt_sb with
-a non-negative return value.  I also noticed a "hugetlbfs: Bad
-mount option:" message in the log.
+i386 struct xfs_fsop_geom_v1 has no padding after the last member, so the size
+is different.
 
-Turns out that hugetlbfs_parse_options() was not checking for an
-empty option string after call to strsep().  On failure,
-hugetlbfs_parse_options() returns 1.  hugetlbfs_fill_super() just
-passed this return code back up the call stack where
-vfs_kern_mount() missed the error and proceeded with a NULL mnt_sb.
-
-Apparently introduced by patch:
-	hugetlbfs-use-lib-parser-fix-docs.patch
-
-The problem was exposed by this line in my fstab:
-
-none        /huge       hugetlbfs   defaults    0 0
-
-It can also be demonstrated by invoking mount of hugetlbfs
-directly with no options or a bogus option.
-
-This patch:
-
-1) adds the check for empty option to hugetlbfs_parse_options(),
-2) enhances the error message to bracket any unrecognized
-   option with quotes ,
-3) modifies hugetlbfs_parse_options() to return -EINVAL on any
-   unrecognized option,
-4) adds a BUG_ON() to vfs_kern_mount() to catch any get_sb()
-   handler that returns a NULL mnt->mnt_sb with a return value
-   >= 0.
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Michal Marek <mmarek@suse.cz>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    8 +++++---
- fs/super.c           |    1 +
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl32.c |   42 ++++++++++++++++++++++++++++++-
+ 1 file changed, 41 insertions(+), 1 deletion(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-use-lib-parser-fix-docs-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-use-lib-parser-fix-docs-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -621,6 +621,8 @@ hugetlbfs_parse_options(char *options, s
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsgeometry_v1-in-compat-mode fs/xfs/linux-2.6/xfs_ioctl32.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsgeometry_v1-in-compat-mode
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
+@@ -75,6 +75,42 @@ xfs_ioctl32_flock(
+ 	return (unsigned long)p;
+ }
  
- 	while ((p = strsep(&options, ",")) != NULL) {
- 		int token;
-+		if (!*p)
-+			continue;
++typedef struct compat_xfs_fsop_geom_v1 {
++	__u32		blocksize;	/* filesystem (data) block size */
++	__u32		rtextsize;	/* realtime extent size		*/
++	__u32		agblocks;	/* fsblocks in an AG		*/
++	__u32		agcount;	/* number of allocation groups	*/
++	__u32		logblocks;	/* fsblocks in the log		*/
++	__u32		sectsize;	/* (data) sector size, bytes	*/
++	__u32		inodesize;	/* inode size in bytes		*/
++	__u32		imaxpct;	/* max allowed inode space(%)	*/
++	__u64		datablocks;	/* fsblocks in data subvolume	*/
++	__u64		rtblocks;	/* fsblocks in realtime subvol	*/
++	__u64		rtextents;	/* rt extents in realtime subvol*/
++	__u64		logstart;	/* starting fsblock of the log	*/
++	unsigned char	uuid[16];	/* unique id of the filesystem	*/
++	__u32		sunit;		/* stripe unit, fsblocks	*/
++	__u32		swidth;		/* stripe width, fsblocks	*/
++	__s32		version;	/* structure version		*/
++	__u32		flags;		/* superblock version flags	*/
++	__u32		logsectsize;	/* log sector size, bytes	*/
++	__u32		rtsectsize;	/* realtime sector size, bytes	*/
++	__u32		dirblocksize;	/* directory block size, bytes	*/
++} __attribute__((packed)) compat_xfs_fsop_geom_v1_t;
++
++#define XFS_IOC_FSGEOMETRY_V1_32  \
++	_IOR ('X', 100, struct compat_xfs_fsop_geom_v1)
++
++STATIC unsigned long xfs_ioctl32_geom_v1(unsigned long arg)
++{
++	compat_xfs_fsop_geom_v1_t __user *p32 = (void __user *)arg;
++	xfs_fsop_geom_v1_t __user *p = compat_alloc_user_space(sizeof(*p));
++
++	if (copy_in_user(p, p32, sizeof(*p32)))
++		return -EFAULT;
++	return (unsigned long)p;
++}
++
+ #else
  
- 		token = match_token(p, tokens, args);
- 		switch (token) {
-@@ -665,8 +667,9 @@ hugetlbfs_parse_options(char *options, s
- 			break;
+ typedef struct xfs_fsop_bulkreq32 {
+@@ -118,7 +154,6 @@ xfs_compat_ioctl(
  
- 		default:
--			printk(KERN_ERR "hugetlbfs: Bad mount option: %s\n", p);
-- 			return 1;
-+			printk(KERN_ERR "hugetlbfs: Bad mount option: \"%s\"\n",
-+				 p);
-+			return -EINVAL;
- 			break;
- 		}
- 	}
-@@ -693,7 +696,6 @@ hugetlbfs_fill_super(struct super_block 
- 	config.gid = current->fsgid;
- 	config.mode = 0755;
- 	ret = hugetlbfs_parse_options(data, &config);
--
- 	if (ret)
- 		return ret;
+ 	switch (cmd) {
+ 	case XFS_IOC_DIOINFO:
+-	case XFS_IOC_FSGEOMETRY_V1:
+ 	case XFS_IOC_FSGEOMETRY:
+ 	case XFS_IOC_GETVERSION:
+ 	case XFS_IOC_GETXFLAGS:
+@@ -166,6 +201,10 @@ xfs_compat_ioctl(
+ 		arg = xfs_ioctl32_flock(arg);
+ 		cmd = _NATIVE_IOC(cmd, struct xfs_flock64);
+ 		break;
++	case XFS_IOC_FSGEOMETRY_V1_32:
++		arg = xfs_ioctl32_geom_v1(arg);
++		cmd = _NATIVE_IOC(cmd, struct xfs_fsop_geom_v1);
++		break;
  
-diff -puN fs/super.c~hugetlbfs-use-lib-parser-fix-docs-fix fs/super.c
---- a/fs/super.c~hugetlbfs-use-lib-parser-fix-docs-fix
-+++ a/fs/super.c
-@@ -884,6 +884,7 @@ vfs_kern_mount(struct file_system_type *
- 	error = type->get_sb(type, flags, name, data, mnt);
- 	if (error < 0)
- 		goto out_free_secdata;
-+	BUG_ON(!mnt->mnt_sb);
+ #else /* These are handled fine if no alignment issues */
+ 	case XFS_IOC_ALLOCSP:
+@@ -176,6 +215,7 @@ xfs_compat_ioctl(
+ 	case XFS_IOC_FREESP64:
+ 	case XFS_IOC_RESVSP64:
+ 	case XFS_IOC_UNRESVSP64:
++	case XFS_IOC_FSGEOMETRY_V1:
+ 		break;
  
-  	error = security_sb_kern_mount(mnt->mnt_sb, secdata);
-  	if (error)
+ 	/* xfs_bstat_t still has wrong u32 vs u64 alignment */
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from mmarek@suse.cz are
 
 origin.patch
+git-xfs.patch
