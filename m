@@ -1,93 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - uml-export-hostfs-symbols.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:51:31 -0700
-Message-ID: <200707162051.l6GKpV8V001402@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-ii-ipmi.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:52:19 -0700
+Message-ID: <200707162052.l6GKqJJA001536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54724 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55871 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756437AbXGPVdZ (ORCPT
+	by vger.kernel.org with ESMTP id S1759509AbXGPVdd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:33:25 -0400
+	Mon, 16 Jul 2007 17:33:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, minyard@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: export hostfs symbols
+     Use menuconfig objects II - IPMI
 has been removed from the -mm tree.  Its filename was
-     uml-export-hostfs-symbols.patch
+     use-menuconfig-objects-ii-ipmi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: export hostfs symbols
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Use menuconfig objects II - IPMI
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Add some exports for hostfs that are required after Alberto Bertogli's fixes
-for accessing unlinked host files.
+Change Kconfig objects from "menu, config" into "menuconfig" so
+that the user can disable the whole feature without having to
+enter the menu first.
 
-Also did some style cleanups while I was here.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Acked-by: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/user_syms.c |   20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+ drivers/char/ipmi/Kconfig |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN arch/um/os-Linux/user_syms.c~uml-export-hostfs-symbols arch/um/os-Linux/user_syms.c
---- a/arch/um/os-Linux/user_syms.c~uml-export-hostfs-symbols
-+++ a/arch/um/os-Linux/user_syms.c
-@@ -5,7 +5,8 @@
-  * so I *must* declare good prototypes for them and then EXPORT them.
-  * The kernel code uses the macro defined by include/linux/string.h,
-  * so I undef macros; the userspace code does not include that and I
-- * add an EXPORT for the glibc one.*/
-+ * add an EXPORT for the glibc one.
-+ */
+diff -puN drivers/char/ipmi/Kconfig~use-menuconfig-objects-ii-ipmi drivers/char/ipmi/Kconfig
+--- a/drivers/char/ipmi/Kconfig~use-menuconfig-objects-ii-ipmi
++++ a/drivers/char/ipmi/Kconfig
+@@ -2,11 +2,9 @@
+ # IPMI device configuration
+ #
  
- #undef strlen
- #undef strstr
-@@ -61,12 +62,18 @@ EXPORT_SYMBOL_PROTO(dup2);
- EXPORT_SYMBOL_PROTO(__xstat);
- EXPORT_SYMBOL_PROTO(__lxstat);
- EXPORT_SYMBOL_PROTO(__lxstat64);
-+EXPORT_SYMBOL_PROTO(__fxstat64);
- EXPORT_SYMBOL_PROTO(lseek);
- EXPORT_SYMBOL_PROTO(lseek64);
- EXPORT_SYMBOL_PROTO(chown);
-+EXPORT_SYMBOL_PROTO(fchown);
- EXPORT_SYMBOL_PROTO(truncate);
-+EXPORT_SYMBOL_PROTO(ftruncate64);
- EXPORT_SYMBOL_PROTO(utime);
-+EXPORT_SYMBOL_PROTO(utimes);
-+EXPORT_SYMBOL_PROTO(futimes);
- EXPORT_SYMBOL_PROTO(chmod);
-+EXPORT_SYMBOL_PROTO(fchmod);
- EXPORT_SYMBOL_PROTO(rename);
- EXPORT_SYMBOL_PROTO(__xmknod);
- 
-@@ -102,14 +109,3 @@ EXPORT_SYMBOL(__stack_smash_handler);
- 
- extern long __guard __attribute__((weak));
- EXPORT_SYMBOL(__guard);
+-menu "IPMI"
+-	depends on HAS_IOMEM
 -
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
+-config IPMI_HANDLER
++menuconfig IPMI_HANDLER
+        tristate 'IPMI top-level message handler'
++       depends on HAS_IOMEM
+        help
+          This enables the central IPMI message handler, required for IPMI
+ 	 to work.
+@@ -18,9 +16,10 @@ config IPMI_HANDLER
+ 
+ 	 If unsure, say N.
+ 
++if IPMI_HANDLER
++
+ config IPMI_PANIC_EVENT
+        bool 'Generate a panic event to all BMCs on a panic'
+-       depends on IPMI_HANDLER
+        help
+          When a panic occurs, this will cause the IPMI message handler to
+ 	 generate an IPMI event describing the panic to each interface
+@@ -40,14 +39,12 @@ config IPMI_PANIC_STRING
+ 
+ config IPMI_DEVICE_INTERFACE
+        tristate 'Device interface for IPMI'
+-       depends on IPMI_HANDLER
+        help
+          This provides an IOCTL interface to the IPMI message handler so
+ 	 userland processes may use IPMI.  It supports poll() and select().
+ 
+ config IPMI_SI
+        tristate 'IPMI System Interface handler'
+-       depends on IPMI_HANDLER
+        help
+          Provides a driver for System Interfaces (KCS, SMIC, BT).
+ 	 Currently, only KCS and SMIC are supported.  If
+@@ -55,15 +52,13 @@ config IPMI_SI
+ 
+ config IPMI_WATCHDOG
+        tristate 'IPMI Watchdog Timer'
+-       depends on IPMI_HANDLER
+        help
+          This enables the IPMI watchdog timer.
+ 
+ config IPMI_POWEROFF
+        tristate 'IPMI Poweroff'
+-       depends on IPMI_HANDLER
+        help
+          This enables a function to power off the system with IPMI if
+ 	 the IPMI management controller is capable of this.
+ 
+-endmenu
++endif # IPMI_HANDLER
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
-hostfs-convert-to-new-aops.patch
+git-acpi.patch
+git-kvm.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
+use-menuconfig-objects-ii-md.patch
