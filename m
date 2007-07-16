@@ -1,52 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - git-ocfs2-vs-git-gfs2-nmw.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 12:27:15 -0700
-Message-ID: <200707161927.l6GJRFlH028689@imap1.linux-foundation.org>
+Subject: + git-acpi-fix-git-rejects.patch added to -mm tree
+Date: Mon, 16 Jul 2007 12:32:27 -0700
+Message-ID: <200707161932.l6GJWRqp029018@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59646 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49658 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751281AbXGPT1X (ORCPT
+	by vger.kernel.org with ESMTP id S1754562AbXGPTck (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 15:27:23 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6GJRLpp012702
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2007 12:27:22 -0700
+	Mon, 16 Jul 2007 15:32:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, lenb@kernel.org
 
 
 The patch titled
-     git-ocfs2 vs git-gfs2-nmw
-has been removed from the -mm tree.  Its filename was
-     git-ocfs2-vs-git-gfs2-nmw.patch
+     git-acpi-fix-git-rejects
+has been added to the -mm tree.  Its filename is
+     git-acpi-fix-git-rejects.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-ocfs2 vs git-gfs2-nmw
+Subject: git-acpi-fix-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/config.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/sysfs/bin.c         |    8 --------
+ include/asm-ia64/pci.h |    9 ---------
+ 2 files changed, 17 deletions(-)
 
-diff -puN fs/dlm/config.c~git-ocfs2-vs-git-gfs2-nmw fs/dlm/config.c
---- a/fs/dlm/config.c~git-ocfs2-vs-git-gfs2-nmw
-+++ a/fs/dlm/config.c
-@@ -752,7 +752,7 @@ static struct space *get_space(char *nam
- 		return NULL;
+diff -puN fs/sysfs/bin.c~git-acpi-fix-git-rejects fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~git-acpi-fix-git-rejects
++++ a/fs/sysfs/bin.c
+@@ -44,11 +44,7 @@ fill_read(struct dentry *dentry, char *b
  
- 	down(&space_list->cg_subsys->su_sem);
--	i = config_group_find_obj(space_list, name);
-+	i = config_group_find_item(space_list, name);
- 	up(&space_list->cg_subsys->su_sem);
+ 	sysfs_put_active_two(attr_sd);
  
- 	return to_space(i);
+-<<<<<<< HEAD/fs/sysfs/bin.c
+-	return rc;
+-=======
+ 	return attr->read(kobj, attr, buffer, off, count);
+->>>>>>> /fs/sysfs/bin.c
+ }
+ 
+ static ssize_t
+@@ -105,11 +101,7 @@ flush_write(struct dentry *dentry, char 
+ 
+ 	sysfs_put_active_two(attr_sd);
+ 
+-<<<<<<< HEAD/fs/sysfs/bin.c
+-	return rc;
+-=======
+ 	return attr->write(kobj, attr, buffer, offset, count);
+->>>>>>> /fs/sysfs/bin.c
+ }
+ 
+ static ssize_t write(struct file *file, const char __user *userbuf,
+diff -puN include/asm-ia64/pci.h~git-acpi-fix-git-rejects include/asm-ia64/pci.h
+--- a/include/asm-ia64/pci.h~git-acpi-fix-git-rejects
++++ a/include/asm-ia64/pci.h
+@@ -98,21 +98,12 @@ extern int pci_mmap_page_range (struct p
+ #define HAVE_PCI_LEGACY
+ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
+ 				      struct vm_area_struct *vma);
+-<<<<<<< HEAD/include/asm-ia64/pci.h
+-extern ssize_t pci_read_legacy_io(struct kobject *kobj,
+-				  struct bin_attribute *bin_attr,
+-				  char *buf, loff_t off, size_t count);
+-extern ssize_t pci_write_legacy_io(struct kobject *kobj,
+-				   struct bin_attribute *bin_attr,
+-				   char *buf, loff_t off, size_t count);
+-=======
+ extern ssize_t pci_read_legacy_io(struct kobject *kobj,
+ 			struct bin_attribute *bin_attr, char *buf,
+ 			loff_t off, size_t count);
+ extern ssize_t pci_write_legacy_io(struct kobject *kobj,
+ 			struct bin_attribute *bin_attr, char *buf,
+ 			loff_t off, size_t count);
+->>>>>>> /include/asm-ia64/pci.h
+ extern int pci_mmap_legacy_mem(struct kobject *kobj,
+ 			       struct bin_attribute *attr,
+ 			       struct vm_area_struct *vma);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -54,6 +96,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
 git-acpi.patch
+git-acpi-fix-git-rejects.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-cifs.patch
@@ -69,13 +112,12 @@ git-kbuild-fixup.patch
 git-kvm.patch
 git-leds.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-md-accel.patch
 git-mips-fixup.patch
 git-mtd.patch
 git-ubi.patch
 e1000new-build-fix.patch
 e1000new-build-fix-2.patch
-git-ocfs2-vs-git-gfs2-nmw.patch
+git-ocfs2-fixup.patch
 revert-gregkh-pci-pci_bridge-device.patch
 git-scsi-misc-fixup.patch
 git-scsi-misc-vs-greg-sysfs-stuff.patch
