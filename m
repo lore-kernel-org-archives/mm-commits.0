@@ -1,100 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - char-tty_ioctl-use-wait_event_interruptible_timeout.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:54:56 -0700
-Message-ID: <200707162054.l6GKsu42001864@imap1.linux-foundation.org>
+Subject: - scsi-lpfc-lpfc_initc-remove-unused-variable.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 14:00:31 -0700
+Message-ID: <200707162100.l6GL0VGK002612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58767 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36614 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759038AbXGPVPQ (ORCPT
+	by vger.kernel.org with ESMTP id S1759148AbXGPVPS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:16 -0400
+	Mon, 16 Jul 2007 17:15:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: bunk@stusta.de, James.Smart@Emulex.Com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: tty_ioctl, use wait_event_interruptible_timeout
+     scsi/lpfc/lpfc_init.c: remove unused variable
 has been removed from the -mm tree.  Its filename was
-     char-tty_ioctl-use-wait_event_interruptible_timeout.patch
+     scsi-lpfc-lpfc_initc-remove-unused-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: tty_ioctl, use wait_event_interruptible_timeout
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: scsi/lpfc/lpfc_init.c: remove unused variable
+From: Adrian Bunk <bunk@stusta.de>
 
-tty_ioctl, use wait_event_interruptible_timeout
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: James Smart <James.Smart@Emulex.Com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |   21 +++------------------
- 1 file changed, 3 insertions(+), 18 deletions(-)
+ drivers/scsi/lpfc/lpfc_init.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_ioctl.c~char-tty_ioctl-use-wait_event_interruptible_timeout drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~char-tty_ioctl-use-wait_event_interruptible_timeout
-+++ a/drivers/char/tty_ioctl.c
-@@ -52,8 +52,6 @@
+diff -puN drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-lpfc_initc-remove-unused-variable drivers/scsi/lpfc/lpfc_init.c
+--- a/drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-lpfc_initc-remove-unused-variable
++++ a/drivers/scsi/lpfc/lpfc_init.c
+@@ -1717,7 +1717,7 @@ lpfc_pci_probe_one(struct pci_dev *pdev,
+ 	struct lpfc_iocbq *iocbq_entry = NULL, *iocbq_next = NULL;
+ 	struct Scsi_Host  *shost = NULL;
+ 	unsigned long bar0map_len, bar2map_len;
+-	int error = -ENODEV, retval;
++	int error = -ENODEV;
+ 	int i;
+ 	uint16_t iotag;
  
- void tty_wait_until_sent(struct tty_struct * tty, long timeout)
- {
--	DECLARE_WAITQUEUE(wait, current);
--
- #ifdef TTY_DEBUG_WAIT_UNTIL_SENT
- 	char buf[64];
- 	
-@@ -61,26 +59,13 @@ void tty_wait_until_sent(struct tty_stru
- #endif
- 	if (!tty->driver->chars_in_buffer)
- 		return;
--	add_wait_queue(&tty->write_wait, &wait);
- 	if (!timeout)
- 		timeout = MAX_SCHEDULE_TIMEOUT;
--	do {
--#ifdef TTY_DEBUG_WAIT_UNTIL_SENT
--		printk(KERN_DEBUG "waiting %s...(%d)\n", tty_name(tty, buf),
--		       tty->driver->chars_in_buffer(tty));
--#endif
--		set_current_state(TASK_INTERRUPTIBLE);
--		if (signal_pending(current))
--			goto stop_waiting;
--		if (!tty->driver->chars_in_buffer(tty))
--			break;
--		timeout = schedule_timeout(timeout);
--	} while (timeout);
-+	if (wait_event_interruptible_timeout(tty->write_wait,
-+			!tty->driver->chars_in_buffer(tty), timeout))
-+		return;
- 	if (tty->driver->wait_until_sent)
- 		tty->driver->wait_until_sent(tty, timeout);
--stop_waiting:
--	set_current_state(TASK_RUNNING);
--	remove_wait_queue(&tty->write_wait, &wait);
- }
- 
- EXPORT_SYMBOL(tty_wait_until_sent);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-char-cyclades-add-firmware-loading.patch
-char-cyclades-fix-sparse-warning.patch
-char-isicom-cleanup-locking.patch
-char-isicom-del_timer-at-exit.patch
-char-isicom-proper-variables-types.patch
-char-moxa-eliminate-busy-waiting.patch
-char-specialix-remove-busy-waiting.patch
-char-riscom8-eliminate-busy-loop.patch
-char-vt-use-kzalloc.patch
-char-vt-use-array_size.patch
-char-kconfig-mxser_new-remove-experimental-comment.patch
-char-stallion-remove-user-class-report-request.patch
-char-istallion-initlocking-fixes-try-2.patch
-stallion-remove-unneeded-lock_kernel.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+git-powerpc.patch
+git-dvb.patch
+git-hwmon.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+arch-i386-xen-mmuc-must-include-linux-schedh.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+xen-fix-x86-config-dependencies.patch
+xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
+xen-cant-support-numa-yet.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+handle-kernelcore=-generic.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+mm-slubc-make-code-static.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+proper-prototype-for-proc_nr_files.patch
+fs-reiserfs-cleanups.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+remove-options-depending-on-oss_obsolete.patch
+fbdev-move-arch-specific-bits-to-their-respective.patch
+pm3fb-possible-cleanups.patch
+vt8623fbc-make-code-static.patch
+drivers-video-macmodescmac_find_mode-mustnt-be.patch
+intel-iommu-intel-iommu-driver.patch
+mm-variable-length-argument-support.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+kernel-relayc-make-functions-static.patch
+drivers-edac-core-make-functions-static.patch
+lockstat-human-readability-tweaks.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
