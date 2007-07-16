@@ -1,162 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: - update-procfs-guide-doc-of-read_func.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:57:19 -0700
-Message-ID: <200707162057.l6GKvJMV002179@imap1.linux-foundation.org>
+Subject: - prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:53:12 -0700
+Message-ID: <200707162053.l6GKrCVP001606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54390 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41853 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760005AbXGPVSF (ORCPT
+	by vger.kernel.org with ESMTP id S1755397AbXGPVSW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:18:05 -0400
+	Mon, 16 Jul 2007 17:18:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cscott@laptop.org, ebiederm@xmission.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: alan@redhat.com, djohnson+linux-kernel@sw.starentnetworks.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     update procfs-guide doc of read_func
+     Prevent an O_NDELAY writer from blocking when a tty write is blocked by the tty atomic writer mutex
 has been removed from the -mm tree.  Its filename was
-     update-procfs-guide-doc-of-read_func.patch
+     prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: update procfs-guide doc of read_func
-From: "C. Scott Ananian" <cscott@laptop.org>
+Subject: Prevent an O_NDELAY writer from blocking when a tty write is blocked by the tty atomic writer mutex
+From: Alan Cox <alan@redhat.com>
 
-The procfs-guide claims that 'the parameter start doesn't seem to be used
-anywhere in the kernel'.  This is out of date.  In linux/fs/proc/generic.c
-we find a very nice description of the parameters to read_func.  The
-appended patch replaces the bogus description with this (as far as I know)
-accurate one.
+Without this a tty write could block if a previous blocking tty write was
+in progress on the same tty and blocked by a line discipline or hardware
+event.  Originally found and reported by Dave Johnson.
 
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Acked-by: Dave Johnson <djohnson+linux-kernel@sw.starentnetworks.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/procfs-guide.tmpl |   82 ++++++++++++++++------
- 1 file changed, 63 insertions(+), 19 deletions(-)
+ drivers/char/n_hdlc.c    |    9 ++++----
+ drivers/char/n_tty.c     |    3 +-
+ drivers/char/tty_io.c    |   40 +++++++++++++++++++++++++------------
+ drivers/char/tty_ioctl.c |    4 +--
+ include/linux/tty.h      |    6 +++++
+ 5 files changed, 43 insertions(+), 19 deletions(-)
 
-diff -puN Documentation/DocBook/procfs-guide.tmpl~update-procfs-guide-doc-of-read_func Documentation/DocBook/procfs-guide.tmpl
---- a/Documentation/DocBook/procfs-guide.tmpl~update-procfs-guide-doc-of-read_func
-+++ a/Documentation/DocBook/procfs-guide.tmpl
-@@ -352,49 +352,93 @@ entry->write_proc = write_proc_foo;
-       <funcsynopsis>
- 	<funcprototype>
- 	  <funcdef>int <function>read_func</function></funcdef>
--	  <paramdef>char* <parameter>page</parameter></paramdef>
-+	  <paramdef>char* <parameter>buffer</parameter></paramdef>
- 	  <paramdef>char** <parameter>start</parameter></paramdef>
- 	  <paramdef>off_t <parameter>off</parameter></paramdef>
- 	  <paramdef>int <parameter>count</parameter></paramdef>
--	  <paramdef>int* <parameter>eof</parameter></paramdef>
-+	  <paramdef>int* <parameter>peof</parameter></paramdef>
- 	  <paramdef>void* <parameter>data</parameter></paramdef>
- 	</funcprototype>
-       </funcsynopsis>
+diff -puN drivers/char/n_hdlc.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by drivers/char/n_hdlc.c
+--- a/drivers/char/n_hdlc.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by
++++ a/drivers/char/n_hdlc.c
+@@ -780,13 +780,14 @@ static unsigned int n_hdlc_tty_poll(stru
+ 		poll_wait(filp, &tty->write_wait, wait);
  
-       <para>
-         The read function should write its information into the
--        <parameter>page</parameter>. For proper use, the function
--        should start writing at an offset of
--        <parameter>off</parameter> in <parameter>page</parameter> and
--        write at most <parameter>count</parameter> bytes, but because
--        most read functions are quite simple and only return a small
--        amount of information, these two parameters are usually
--        ignored (it breaks pagers like <literal>more</literal> and
--        <literal>less</literal>, but <literal>cat</literal> still
--        works).
-+        <parameter>buffer</parameter>, which will be exactly
-+        <literal>PAGE_SIZE</literal> bytes long.
-       </para>
+ 		/* set bits for operations that won't block */
+-		if(n_hdlc->rx_buf_list.head)
++		if (n_hdlc->rx_buf_list.head)
+ 			mask |= POLLIN | POLLRDNORM;	/* readable */
+ 		if (test_bit(TTY_OTHER_CLOSED, &tty->flags))
+ 			mask |= POLLHUP;
+-		if(tty_hung_up_p(filp))
++		if (tty_hung_up_p(filp))
+ 			mask |= POLLHUP;
+-		if(n_hdlc->tx_free_buf_list.head)
++		if (!tty_is_writelocked(tty) &&
++				n_hdlc->tx_free_buf_list.head)
+ 			mask |= POLLOUT | POLLWRNORM;	/* writable */
+ 	}
+ 	return mask;
+@@ -861,7 +862,7 @@ static void n_hdlc_buf_put(struct n_hdlc
+ 	spin_lock_irqsave(&list->spinlock,flags);
+ 	
+ 	buf->link=NULL;
+-	if(list->tail)
++	if (list->tail)
+ 		list->tail->link = buf;
+ 	else
+ 		list->head = buf;
+diff -puN drivers/char/n_tty.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by
++++ a/drivers/char/n_tty.c
+@@ -1538,7 +1538,8 @@ static unsigned int normal_poll(struct t
+ 		else
+ 			tty->minimum_to_wake = 1;
+ 	}
+-	if (tty->driver->chars_in_buffer(tty) < WAKEUP_CHARS &&
++	if (!tty_is_writelocked(tty) &&
++			tty->driver->chars_in_buffer(tty) < WAKEUP_CHARS &&
+ 			tty->driver->write_room(tty) > 0)
+ 		mask |= POLLOUT | POLLWRNORM;
+ 	return mask;
+diff -puN drivers/char/tty_io.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by
++++ a/drivers/char/tty_io.c
+@@ -1726,6 +1726,23 @@ static ssize_t tty_read(struct file * fi
+ 	return i;
+ }
  
-       <para>
--        If the <parameter>off</parameter> and
--        <parameter>count</parameter> parameters are properly used,
--        <parameter>eof</parameter> should be used to signal that the
-+        The parameter
-+        <parameter>peof</parameter> should be used to signal that the
-         end of the file has been reached by writing
-         <literal>1</literal> to the memory location
--        <parameter>eof</parameter> points to.
-+        <parameter>peof</parameter> points to.
-       </para>
- 
-       <para>
--        The parameter <parameter>start</parameter> doesn't seem to be
--        used anywhere in the kernel. The <parameter>data</parameter>
-+        The <parameter>data</parameter>
-         parameter can be used to create a single call back function for
-         several files, see <xref linkend="usingdata"/>.
-       </para>
- 
-       <para>
--        The <function>read_func</function> function must return the
--        number of bytes written into the <parameter>page</parameter>.
-+        The rest of the parameters and the return value are described
-+	by a comment in <filename>fs/proc/generic.c</filename> as follows:
-       </para>
- 
-+      <blockquote>
-+        <para>
-+	You have three ways to return data:
-+       	</para>
-+        <orderedlist>
-+          <listitem>
-+            <para>
-+	      Leave <literal>*start = NULL</literal>.  (This is the default.)
-+	      Put the data of the requested offset at that
-+	      offset within the buffer.  Return the number (<literal>n</literal>)
-+	      of bytes there are from the beginning of the
-+	      buffer up to the last byte of data.  If the
-+	      number of supplied bytes (<literal>= n - offset</literal>) is
-+	      greater than zero and you didn't signal eof
-+	      and the reader is prepared to take more data
-+	      you will be called again with the requested
-+	      offset advanced by the number of bytes
-+	      absorbed.  This interface is useful for files
-+	      no larger than the buffer.
-+	    </para>
-+	  </listitem>
-+	  <listitem>
-+            <para>
-+	      Set <literal>*start</literal> to an unsigned long value less than
-+	      the buffer address but greater than zero.
-+	      Put the data of the requested offset at the
-+	      beginning of the buffer.  Return the number of
-+	      bytes of data placed there.  If this number is
-+	      greater than zero and you didn't signal eof
-+	      and the reader is prepared to take more data
-+	      you will be called again with the requested
-+	      offset advanced by <literal>*start</literal>.  This interface is
-+	      useful when you have a large file consisting
-+	      of a series of blocks which you want to count
-+	      and return as wholes.
-+	      (Hack by Paul.Russell@rustcorp.com.au)
-+	    </para>
-+	  </listitem>
-+	  <listitem>
-+            <para>
-+	      Set <literal>*start</literal> to an address within the buffer.
-+	      Put the data of the requested offset at <literal>*start</literal>.
-+	      Return the number of bytes of data placed there.
-+	      If this number is greater than zero and you
-+	      didn't signal eof and the reader is prepared to
-+	      take more data you will be called again with the
-+	      requested offset advanced by the number of bytes
-+	      absorbed.
-+	    </para>
-+	  </listitem>
-+	</orderedlist>
-+      </blockquote>
++void tty_write_unlock(struct tty_struct *tty)
++{
++	mutex_unlock(&tty->atomic_write_lock);
++	wake_up_interruptible(&tty->write_wait);
++}
 +
-       <para>
-         <xref linkend="example"/> shows how to use a read call back
-         function.
++int tty_write_lock(struct tty_struct *tty, int ndelay)
++{
++	if (!mutex_trylock(&tty->atomic_write_lock)) {
++		if (ndelay)
++			return -EAGAIN;
++		if (mutex_lock_interruptible(&tty->atomic_write_lock))
++			return -ERESTARTSYS;
++	}
++	return 0;
++}
++
+ /*
+  * Split writes up in sane blocksizes to avoid
+  * denial-of-service type attacks
+@@ -1737,13 +1754,12 @@ static inline ssize_t do_tty_write(
+ 	const char __user *buf,
+ 	size_t count)
+ {
+-	ssize_t ret = 0, written = 0;
++	ssize_t ret, written = 0;
+ 	unsigned int chunk;
+ 	
+-	/* FIXME: O_NDELAY ... */
+-	if (mutex_lock_interruptible(&tty->atomic_write_lock)) {
+-		return -ERESTARTSYS;
+-	}
++	ret = tty_write_lock(tty, file->f_flags & O_NDELAY);
++	if (ret < 0)
++		return ret;
+ 
+ 	/*
+ 	 * We chunk up writes into a temporary buffer. This
+@@ -1776,8 +1792,8 @@ static inline ssize_t do_tty_write(
+ 
+ 		buf = kmalloc(chunk, GFP_KERNEL);
+ 		if (!buf) {
+-			mutex_unlock(&tty->atomic_write_lock);
+-			return -ENOMEM;
++			ret = -ENOMEM;
++			goto out;
+ 		}
+ 		kfree(tty->write_buf);
+ 		tty->write_cnt = chunk;
+@@ -1812,7 +1828,8 @@ static inline ssize_t do_tty_write(
+ 		inode->i_mtime = current_fs_time(inode->i_sb);
+ 		ret = written;
+ 	}
+-	mutex_unlock(&tty->atomic_write_lock);
++out:
++	tty_write_unlock(tty);
+ 	return ret;
+ }
+ 
+@@ -3163,14 +3180,13 @@ static int tiocsetd(struct tty_struct *t
+ 
+ static int send_break(struct tty_struct *tty, unsigned int duration)
+ {
+-	if (mutex_lock_interruptible(&tty->atomic_write_lock))
++	if (tty_write_lock(tty, 0) < 0)
+ 		return -EINTR;
+ 	tty->driver->break_ctl(tty, -1);
+-	if (!signal_pending(current)) {
++	if (!signal_pending(current))
+ 		msleep_interruptible(duration);
+-	}
+ 	tty->driver->break_ctl(tty, 0);
+-	mutex_unlock(&tty->atomic_write_lock);
++	tty_write_unlock(tty);
+ 	if (signal_pending(current))
+ 		return -EINTR;
+ 	return 0;
+diff -puN drivers/char/tty_ioctl.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by
++++ a/drivers/char/tty_ioctl.c
+@@ -667,7 +667,7 @@ static int send_prio_char(struct tty_str
+ 		return 0;
+ 	}
+ 
+-	if (mutex_lock_interruptible(&tty->atomic_write_lock))
++	if (tty_write_lock(tty, 0) < 0)
+ 		return -ERESTARTSYS;
+ 
+ 	if (was_stopped)
+@@ -675,7 +675,7 @@ static int send_prio_char(struct tty_str
+ 	tty->driver->write(tty, &ch, 1);
+ 	if (was_stopped)
+ 		stop_tty(tty);
+-	mutex_unlock(&tty->atomic_write_lock);
++	tty_write_unlock(tty);
+ 	return 0;
+ }
+ 
+diff -puN include/linux/tty.h~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by include/linux/tty.h
+--- a/include/linux/tty.h~prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by
++++ a/include/linux/tty.h
+@@ -338,6 +338,12 @@ extern struct tty_struct *get_current_tt
+ 
+ extern struct mutex tty_mutex;
+ 
++extern void tty_write_unlock(struct tty_struct *tty);
++extern int tty_write_lock(struct tty_struct *tty, int ndelay);
++#define tty_is_writelocked(tty)  (mutex_is_locked(&tty->atomic_write_lock))
++
++
++
+ /* n_tty.c */
+ extern struct tty_ldisc tty_ldisc_N_TTY;
+ 
 _
 
-Patches currently in -mm which might be from cscott@laptop.org are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
+git-ia64.patch
+pata_acpi-restore-driver.patch
+iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+ata-use-iomap_name.patch
+sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+mbcs-remove-lots-of-global-symbols.patch
+char-vt-use-kzalloc.patch
+char-vt-use-array_size.patch
+stallion-remove-unneeded-lock_kernel.patch
+revoke-special-mmap-handling.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
