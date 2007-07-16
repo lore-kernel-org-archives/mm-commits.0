@@ -1,83 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - make-proc-misc-use-seq_list_xxx-helpers.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:42 -0700
-Message-ID: <200707162053.l6GKrgFw001667@imap1.linux-foundation.org>
+Subject: - procfs-directory-entry-cleanup.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:54:28 -0700
+Message-ID: <200707162054.l6GKsSKt001803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41949 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34894 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760664AbXGPVY1 (ORCPT
+	by vger.kernel.org with ESMTP id S1759643AbXGPVYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:24:27 -0400
+	Mon, 16 Jul 2007 17:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@sw.ru, xemul@openvz.org, mm-commits@vger.kernel.org
+To: xiaosuo@gmail.com, adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make /proc/misc use seq_list_xxx helpers
+     procfs directory entry cleanup
 has been removed from the -mm tree.  Its filename was
-     make-proc-misc-use-seq_list_xxx-helpers.patch
+     procfs-directory-entry-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Make /proc/misc use seq_list_xxx helpers
-From: Pavel Emelianov <xemul@sw.ru>
+Subject: procfs directory entry cleanup
+From: "Changli Gao" <xiaosuo@gmail.com>
 
-Simple and stupid - just use the helpers.
+Function proc_register() will assign proc_dir_operations and
+proc_dir_inode_operations to ent's members proc_fops and proc_iops
+correctly if ent is a directory. So the early assignment isn't
+necessary.
 
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/misc.c |   18 +++---------------
- 1 file changed, 3 insertions(+), 15 deletions(-)
+ fs/proc/generic.c |   20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
 
-diff -puN drivers/char/misc.c~make-proc-misc-use-seq_list_xxx-helpers drivers/char/misc.c
---- a/drivers/char/misc.c~make-proc-misc-use-seq_list_xxx-helpers
-+++ a/drivers/char/misc.c
-@@ -67,25 +67,13 @@ extern int pmu_device_init(void);
- #ifdef CONFIG_PROC_FS
- static void *misc_seq_start(struct seq_file *seq, loff_t *pos)
- {
--	struct miscdevice *p;
--	loff_t off = 0;
+diff -puN fs/proc/generic.c~procfs-directory-entry-cleanup fs/proc/generic.c
+--- a/fs/proc/generic.c~procfs-directory-entry-cleanup
++++ a/fs/proc/generic.c
+@@ -530,12 +530,6 @@ static int proc_register(struct proc_dir
+ 		return -EAGAIN;
+ 	dp->low_ino = i;
+ 
+-	spin_lock(&proc_subdir_lock);
+-	dp->next = dir->subdir;
+-	dp->parent = dir;
+-	dir->subdir = dp;
+-	spin_unlock(&proc_subdir_lock);
 -
- 	mutex_lock(&misc_mtx);
--	list_for_each_entry(p, &misc_list, list) {
--		if (*pos == off++) 
--			return p;
--	}
--	return NULL;
-+	return seq_list_start(&misc_list, *pos);
- }
- 
- static void *misc_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- {
--	struct list_head *n = ((struct miscdevice *)v)->list.next;
--
--	++*pos;
--
--	return (n != &misc_list) ? list_entry(n, struct miscdevice, list)
--		 : NULL;
-+	return seq_list_next(v, &misc_list, pos);
- }
- 
- static void misc_seq_stop(struct seq_file *seq, void *v)
-@@ -95,7 +83,7 @@ static void misc_seq_stop(struct seq_fil
- 
- static int misc_seq_show(struct seq_file *seq, void *v)
- {
--	const struct miscdevice *p = v;
-+	const struct miscdevice *p = list_entry(v, struct miscdevice, list);
- 
- 	seq_printf(seq, "%3i %s\n", p->minor, p->name ? p->name : "");
+ 	if (S_ISDIR(dp->mode)) {
+ 		if (dp->proc_iops == NULL) {
+ 			dp->proc_fops = &proc_dir_operations;
+@@ -551,6 +545,13 @@ static int proc_register(struct proc_dir
+ 		if (dp->proc_iops == NULL)
+ 			dp->proc_iops = &proc_file_inode_operations;
+ 	}
++
++	spin_lock(&proc_subdir_lock);
++	dp->next = dir->subdir;
++	dp->parent = dir;
++	dir->subdir = dp;
++	spin_unlock(&proc_subdir_lock);
++
  	return 0;
+ }
+ 
+@@ -653,9 +654,6 @@ struct proc_dir_entry *proc_mkdir_mode(c
+ 
+ 	ent = proc_create(&parent, name, S_IFDIR | mode, 2);
+ 	if (ent) {
+-		ent->proc_fops = &proc_dir_operations;
+-		ent->proc_iops = &proc_dir_inode_operations;
+-
+ 		if (proc_register(parent, ent) < 0) {
+ 			kfree(ent);
+ 			ent = NULL;
+@@ -690,10 +688,6 @@ struct proc_dir_entry *create_proc_entry
+ 
+ 	ent = proc_create(&parent,name,mode,nlink);
+ 	if (ent) {
+-		if (S_ISDIR(mode)) {
+-			ent->proc_fops = &proc_dir_operations;
+-			ent->proc_iops = &proc_dir_inode_operations;
+-		}
+ 		if (proc_register(parent, ent) < 0) {
+ 			kfree(ent);
+ 			ent = NULL;
 _
 
-Patches currently in -mm which might be from xemul@sw.ru are
+Patches currently in -mm which might be from xiaosuo@gmail.com are
 
 origin.patch
-make-input-layer-use-seq_list_xxx-helpers.patch
-make-isdn-capi-use-seq_list_xxx-helpers.patch
