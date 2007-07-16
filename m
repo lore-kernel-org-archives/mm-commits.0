@@ -1,126 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - rename-cancel_rearming_delayed_work-to-cancel_delayed_work_sync.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:58:55 -0700
-Message-ID: <200707162058.l6GKwtsD002379@imap1.linux-foundation.org>
+Subject: - hfs-refactor-ascii-to-unicode-conversion-routine.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:49 -0700
+Message-ID: <200707162057.l6GKvnMc002230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41209 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38063 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760433AbXGPVP0 (ORCPT
+	by vger.kernel.org with ESMTP id S1762344AbXGPVPa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:26 -0400
+	Mon, 16 Jul 2007 17:15:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, jarkao2@o2.pl, mm-commits@vger.kernel.org
+To: duaneg@dghda.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rename cancel_rearming_delayed_work() to cancel_delayed_work_sync()
+     HFS+: refactor ASCII to unicode conversion routine for later reuse
 has been removed from the -mm tree.  Its filename was
-     rename-cancel_rearming_delayed_work-to-cancel_delayed_work_sync.patch
+     hfs-refactor-ascii-to-unicode-conversion-routine.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rename cancel_rearming_delayed_work() to cancel_delayed_work_sync()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: HFS+: refactor ASCII to unicode conversion routine for later reuse
+From: Duane Griffin <duaneg@dghda.com>
 
-Imho, the current naming of cancel_xxx workqueue functions is very confusing.
+The HFS+ filesystem is case-insensitive and does automatic unicode
+decomposition by default, but does not provide custom dentry operations.  This
+can lead to multiple dentries being cached for lookups on a filename with
+varying case and/or character (de)composition.
 
-	cancel_delayed_work()
-	cancel_rearming_delayed_work()
-	cancel_rearming_delayed_workqueue()	// obsolete
+These patches add custom dentry hash and comparison operations for
+case-sensitive and/or automatically decomposing HFS+ filesystems.  Unicode
+decomposition and case-folding are performed as required to ensure equivalent
+filenames are hashed to the same values and compare as equal.
 
-	cancel_work_sync()
 
-This looks as if the first 2 functions differ in "type" of their argument
-which is not true any longer, nowadays the difference is the behaviour.
+This patch:
 
-The semantics of cancel_rearming_delayed_work(dwork) was changed
-significantly, it doesn't require that dwork rearms itself, and cancels dwork
-synchronously.
+Refactor existing HFS+ ASCII to unicode string conversion routine to split out
+character conversion functionality.  This will be reused by the custom dentry
+hash and comparison routines.  This approach avoids unnecessary memory
+allocation compared to using the string conversion routine directly in the new
+functions.
 
-Rename it to cancel_delayed_work_sync().  This matches cancel_delayed_work()
-and cancel_work_sync().  Re-create cancel_rearming_delayed_work() as a simple
-inline obsolete wrapper, like cancel_rearming_delayed_workqueue().
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Jarek Poplawski <jarkao2@o2.pl>
+[akpm@linux-foundation.org: avoid use-of-uninitialised]
+Signed-off-by: Duane Griffin <duaneg@dghda.com>
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/workqueue.h |   13 ++++++++++---
- kernel/workqueue.c        |    6 +++---
- 2 files changed, 13 insertions(+), 6 deletions(-)
+ fs/hfsplus/unicode.c |  107 +++++++++++++++++++++++------------------
+ 1 file changed, 62 insertions(+), 45 deletions(-)
 
-diff -puN include/linux/workqueue.h~rename-cancel_rearming_delayed_work-to-cancel_delayed_work_sync include/linux/workqueue.h
---- a/include/linux/workqueue.h~rename-cancel_rearming_delayed_work-to-cancel_delayed_work_sync
-+++ a/include/linux/workqueue.h
-@@ -166,14 +166,21 @@ static inline int cancel_delayed_work(st
- 	return ret;
+diff -puN fs/hfsplus/unicode.c~hfs-refactor-ascii-to-unicode-conversion-routine fs/hfsplus/unicode.c
+--- a/fs/hfsplus/unicode.c~hfs-refactor-ascii-to-unicode-conversion-routine
++++ a/fs/hfsplus/unicode.c
+@@ -239,58 +239,75 @@ out:
+ 	return res;
  }
  
--extern void cancel_rearming_delayed_work(struct delayed_work *work);
-+extern void cancel_delayed_work_sync(struct delayed_work *work);
- 
--/* Obsolete. use cancel_rearming_delayed_work() */
-+/* Obsolete. use cancel_delayed_work_sync() */
- static inline
- void cancel_rearming_delayed_workqueue(struct workqueue_struct *wq,
- 					struct delayed_work *work)
+-int hfsplus_asc2uni(struct super_block *sb, struct hfsplus_unistr *ustr, const char *astr, int len)
++/*
++ * Convert one or more ASCII characters into a single unicode character.
++ * Returns the number of ASCII characters corresponding to the unicode char.
++ */
++static inline int asc2unichar(struct super_block *sb, const char *astr, int len,
++			      wchar_t *uc)
  {
--	cancel_rearming_delayed_work(work);
-+	cancel_delayed_work_sync(work);
+-	struct nls_table *nls = HFSPLUS_SB(sb).nls;
+-	int size, off, decompose;
++	int size = HFSPLUS_SB(sb).nls->char2uni(astr, len, uc);
++	if (size <= 0) {
++		*uc = '?';
++		size = 1;
++	}
++	switch (*uc) {
++	case 0x2400:
++		*uc = 0;
++		break;
++	case ':':
++		*uc = '/';
++		break;
++	}
++	return size;
 +}
 +
-+/* Obsolete. use cancel_delayed_work_sync() */
-+static inline
-+void cancel_rearming_delayed_work(struct delayed_work *work)
++/* Decomposes a single unicode character. */
++static inline u16 *decompose_unichar(wchar_t uc, int *size)
 +{
-+	cancel_delayed_work_sync(work);
- }
++	int off;
++
++	off = hfsplus_decompose_table[(uc >> 12) & 0xf];
++	if (off == 0 || off == 0xffff)
++		return NULL;
++
++	off = hfsplus_decompose_table[off + ((uc >> 8) & 0xf)];
++	if (!off)
++		return NULL;
++
++	off = hfsplus_decompose_table[off + ((uc >> 4) & 0xf)];
++	if (!off)
++		return NULL;
++
++	off = hfsplus_decompose_table[off + (uc & 0xf)];
++	*size = off & 3;
++	if (*size == 0)
++		return NULL;
++	return hfsplus_decompose_table + (off / 4);
++}
++
++int hfsplus_asc2uni(struct super_block *sb, struct hfsplus_unistr *ustr,
++		    const char *astr, int len)
++{
++	int size, dsize, decompose;
++	u16 *dstr, outlen = 0;
+ 	wchar_t c;
+-	u16 outlen = 0;
  
- #endif
-diff -puN kernel/workqueue.c~rename-cancel_rearming_delayed_work-to-cancel_delayed_work_sync kernel/workqueue.c
---- a/kernel/workqueue.c~rename-cancel_rearming_delayed_work-to-cancel_delayed_work_sync
-+++ a/kernel/workqueue.c
-@@ -486,13 +486,13 @@ void cancel_work_sync(struct work_struct
- EXPORT_SYMBOL_GPL(cancel_work_sync);
- 
- /**
-- * cancel_rearming_delayed_work - reliably kill off a delayed work.
-+ * cancel_delayed_work_sync - reliably kill off a delayed work.
-  * @dwork: the delayed work struct
-  *
-  * It is possible to use this function if @dwork rearms itself via queue_work()
-  * or queue_delayed_work(). See also the comment for cancel_work_sync().
-  */
--void cancel_rearming_delayed_work(struct delayed_work *dwork)
-+void cancel_delayed_work_sync(struct delayed_work *dwork)
- {
- 	while (!del_timer(&dwork->timer) &&
- 	       !try_to_grab_pending(&dwork->work))
-@@ -500,7 +500,7 @@ void cancel_rearming_delayed_work(struct
- 	wait_on_work(&dwork->work);
- 	work_clear_pending(&dwork->work);
- }
--EXPORT_SYMBOL(cancel_rearming_delayed_work);
-+EXPORT_SYMBOL(cancel_delayed_work_sync);
- 
- static struct workqueue_struct *keventd_wq __read_mostly;
- 
+ 	decompose = !(HFSPLUS_SB(sb).flags & HFSPLUS_SB_NODECOMPOSE);
+-
+ 	while (outlen < HFSPLUS_MAX_STRLEN && len > 0) {
+-		size = nls->char2uni(astr, len, &c);
+-		if (size <= 0) {
+-			c = '?';
+-			size = 1;
+-		}
+-		astr += size;
+-		len -= size;
+-		switch (c) {
+-		case 0x2400:
+-			c = 0;
+-			break;
+-		case ':':
+-			c = '/';
+-			break;
+-		}
+-		if (c >= 0xc0 && decompose) {
+-			off = hfsplus_decompose_table[(c >> 12) & 0xf];
+-			if (!off)
+-				goto done;
+-			if (off == 0xffff) {
+-				goto done;
+-			}
+-			off = hfsplus_decompose_table[off + ((c >> 8) & 0xf)];
+-			if (!off)
+-				goto done;
+-			off = hfsplus_decompose_table[off + ((c >> 4) & 0xf)];
+-			if (!off)
+-				goto done;
+-			off = hfsplus_decompose_table[off + (c & 0xf)];
+-			size = off & 3;
+-			if (!size)
+-				goto done;
+-			off /= 4;
+-			if (outlen + size > HFSPLUS_MAX_STRLEN)
++		size = asc2unichar(sb, astr, len, &c);
++
++		if (decompose && (dstr = decompose_unichar(c, &dsize))) {
++			if (outlen + dsize > HFSPLUS_MAX_STRLEN)
+ 				break;
+ 			do {
+-				ustr->unicode[outlen++] = cpu_to_be16(hfsplus_decompose_table[off++]);
+-			} while (--size > 0);
+-			continue;
+-		}
+-	done:
+-		ustr->unicode[outlen++] = cpu_to_be16(c);
++				ustr->unicode[outlen++] = cpu_to_be16(*dstr++);
++			} while (--dsize > 0);
++		} else
++			ustr->unicode[outlen++] = cpu_to_be16(c);
++
++		astr += size;
++		len -= size;
+ 	}
+ 	ustr->length = cpu_to_be16(outlen);
+ 	if (len > 0)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from duaneg@dghda.com are
 
 origin.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-freezer-run-show_state-when-freezing-times-out.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-destroy_workqueue-can-livelock.patch
