@@ -1,113 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - make-sure-readv-stops-reading-when-it-hits-end-of-file.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:49:57 -0700
-Message-ID: <200707162049.l6GKnvjG001206@imap1.linux-foundation.org>
+Subject: - add-a-kmem_cache-for-nsproxy-objects.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:56:58 -0700
+Message-ID: <200707162056.l6GKuwhF002136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58870 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757357AbXGPVUT (ORCPT
+	by vger.kernel.org with ESMTP id S1757919AbXGPVUQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:20:19 -0400
+	Mon, 16 Jul 2007 17:20:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NeilBrown <neilb@suse.de>
+     add a kmem_cache for nsproxy objects
 has been removed from the -mm tree.  Its filename was
-     make-sure-readv-stops-reading-when-it-hits-end-of-file.patch
+     add-a-kmem_cache-for-nsproxy-objects.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NeilBrown <neilb@suse.de>
+Subject: add a kmem_cache for nsproxy objects
+From: Cedric Le Goater <clg@fr.ibm.com>
 
+It should improve performance in some scenarii where a lot of
+these nsproxy objects are created by unsharing namespaces. This is
+a typical use of virtual servers that are being created or entered.
 
-The do_loop_readv_writev implementation of readv breaks out of the loop as
-soon as a single read request didn't fill it's buffer:
+This is also a good tool to find leaks and gather statistics on
+namespace usage.
 
-		if (nr != len)
-			break;
-
-The generic_file_aio_read version doesn't.  So if it hits EOF before the end
-of the list of buffers, it will try again on the next buffer.  If the file was
-extended in the mean time, this will produce a bad result.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/nsproxy.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN mm/filemap.c~make-sure-readv-stops-reading-when-it-hits-end-of-file mm/filemap.c
---- a/mm/filemap.c~make-sure-readv-stops-reading-when-it-hits-end-of-file
-+++ a/mm/filemap.c
-@@ -1219,6 +1219,8 @@ generic_file_aio_read(struct kiocb *iocb
- 				retval = retval ?: desc.error;
- 				break;
- 			}
-+			if (desc.count > 0)
-+				break;
- 		}
- 	}
- out:
+diff -puN kernel/nsproxy.c~add-a-kmem_cache-for-nsproxy-objects kernel/nsproxy.c
+--- a/kernel/nsproxy.c~add-a-kmem_cache-for-nsproxy-objects
++++ a/kernel/nsproxy.c
+@@ -21,6 +21,8 @@
+ #include <linux/utsname.h>
+ #include <linux/pid_namespace.h>
+ 
++static struct kmem_cache *nsproxy_cachep;
++
+ struct nsproxy init_nsproxy = INIT_NSPROXY(init_nsproxy);
+ 
+ static inline void get_nsproxy(struct nsproxy *ns)
+@@ -43,9 +45,11 @@ static inline struct nsproxy *clone_nspr
+ {
+ 	struct nsproxy *ns;
+ 
+-	ns = kmemdup(orig, sizeof(struct nsproxy), GFP_KERNEL);
+-	if (ns)
++	ns = kmem_cache_alloc(nsproxy_cachep, GFP_KERNEL);
++	if (ns) {
++		memcpy(ns, orig, sizeof(struct nsproxy));
+ 		atomic_set(&ns->count, 1);
++	}
+ 	return ns;
+ }
+ 
+@@ -109,7 +113,7 @@ out_uts:
+ 	if (new_nsp->mnt_ns)
+ 		put_mnt_ns(new_nsp->mnt_ns);
+ out_ns:
+-	kfree(new_nsp);
++	kmem_cache_free(nsproxy_cachep, new_nsp);
+ 	return ERR_PTR(err);
+ }
+ 
+@@ -160,7 +164,7 @@ void free_nsproxy(struct nsproxy *ns)
+ 		put_pid_ns(ns->pid_ns);
+ 	if (ns->user_ns)
+ 		put_user_ns(ns->user_ns);
+-	kfree(ns);
++	kmem_cache_free(nsproxy_cachep, ns);
+ }
+ 
+ /*
+@@ -185,3 +189,12 @@ int unshare_nsproxy_namespaces(unsigned 
+ 		err = PTR_ERR(*new_nsp);
+ 	return err;
+ }
++
++static int __init nsproxy_cache_init(void)
++{
++	nsproxy_cachep = kmem_cache_create("nsproxy", sizeof(struct nsproxy),
++					   0, SLAB_PANIC, NULL, NULL);
++	return 0;
++}
++
++module_init(nsproxy_cache_init);
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from clg@fr.ibm.com are
 
 origin.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-fix-read-truncate-race.patch
-knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-remove-iget-abuse.patch
-knfsd-exportfs-add-procedural-interface-for-nfsd.patch
-knfsd-exportfs-remove-call-macro.patch
-knfsd-exportfs-untangle-isdir-logic-in-find_exported_dentry.patch
-knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias.patch
-knfsd-exportfs-add-find_disconnected_root-helper.patch
-knfsd-exportfs-split-out-reconnecting-a-dentry-from-find_exported_dentry.patch
-nfsd-warning-fix.patch
-knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4.patch
-knfsd-nfsd4-fix-nfsv4-filehandle-size-units-confusion.patch
-knfsd-nfsd4-silence-a-compiler-warning-in-acl-code.patch
-knfsd-nfsd4-fix-enc_stateid_sz-for-nfsd-callbacks.patch
-knfsd-nfsd4-fix-handling-of-acl-errrors.patch
-knfsd-nfsd-remove-unused-header-interfaceh.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts.patch
-knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err.patch
-knfsd-nfsd4-build-rpcsec_gss-whenever-nfsd4-is-built.patch
-knfsd-nfsd4-store-pseudoflavor-in-request.patch
-knfsd-nfsd4-parse-secinfo-information-in-exports-downcall.patch
-knfsd-nfsd4-simplify-exp_pseudoroot-arguments.patch
-knfsd-nfsd-remove-superfluous-assignment-from-nfsd_lookup.patch
-knfsd-nfsd-provide-export-lookup-wrappers-which-take-a-svc_rqst.patch
-knfsd-nfsd-set-rq_client-to-ip-address-determined-domain.patch
-knfsd-nfsd-use-ip-address-based-domain-in-secinfo-case.patch
-knfsd-nfsd-use-ip-address-based-domain-in-secinfo-case-fix.patch
-knfsd-nfsd-factor-nfsd_lookup-into-2-pieces.patch
-knfsd-nfsd4-return-nfserr_wrongsec.patch
-knfsd-nfsd4-make-readonly-access-depend-on-pseudoflavor.patch
-knfsd-nfsd-factor-out-code-from-show_expflags.patch
-knfsd-nfsd-display-export-secinfo-information.patch
-knfsd-rpc-add-gss-krb5-and-spkm3-oid-values.patch
-knfsd-nfsd4-implement-secinfo.patch
-knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch
-knfsd-nfsd-allow-auth_sys-nlm-on-rpcsec_gss-exports.patch
-knfsd-nfsd-enforce-per-flavor-id-squashing.patch
-use-menuconfig-objects-ii-md.patch
-md-improve-message-about-invalid-superblock-during-autodetect.patch
-md-improve-the-is_mddev_idle-test-fix.patch
-md-check-that-internal-bitmap-does-not-overlap-other-data.patch
-md-change-bitmap_unplug-and-others-to-void-functions.patch
-raid5-add-the-stripe_queue-object-for-tracking-raid.patch
-raid5-add-the-stripe_queue-object-for-tracking-raid-io-requests-take2.patch
-raid5-use-stripe_queues-to-prioritize-the-most.patch
-fs-introduce-vfs_path_lookup.patch
-sunrpc-use-vfs_path_lookup.patch
-nfsctl-use-vfs_path_lookup.patch
-fs-mark-link_path_walk-static.patch
-fs-remove-path_walk-export.patch
+containersv10-add-tasks-file-interface-fix-2.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
