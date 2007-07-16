@@ -1,606 +1,603 @@
 From: akpm@linux-foundation.org
-Subject: - change-zonelist-order-zonelist-order-selection-logic.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:48:38 -0700
-Message-ID: <200707162048.l6GKmcOT001080@imap1.linux-foundation.org>
+Subject: - serial-convert-early_uart-to-earlycon-for-8250.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:48:36 -0700
+Message-ID: <200707162048.l6GKmarn001072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59398 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46629 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758182AbXGPUsz (ORCPT
+	by vger.kernel.org with ESMTP id S1758476AbXGPUs4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 16:48:55 -0400
+	Mon, 16 Jul 2007 16:48:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, ak@suse.de, clameter@sgi.com, jesse.barnes@intel.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     change zonelist order: zonelist order selection logic
+     serial: convert early_uart to earlycon for 8250
 has been removed from the -mm tree.  Its filename was
-     change-zonelist-order-zonelist-order-selection-logic.patch
+     serial-convert-early_uart-to-earlycon-for-8250.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: change zonelist order: zonelist order selection logic
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: serial: convert early_uart to earlycon for 8250
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Make zonelist creation policy selectable from sysctl/boot option v6.
+Beacuse SERIAL_PORT_DFNS is removed from include/asm-i386/serial.h and
+include/asm-x86_64/serial.h.  the serial8250_ports need to be probed late in
+serial initializing stage.  the console_init=>serial8250_console_init=>
+register_console=>serial8250_console_setup will return -ENDEV, and console
+ttyS0 can not be enabled at that time.  need to wait till uart_add_one_port in
+drivers/serial/serial_core.c to call register_console to get console ttyS0. 
+that is too late.
 
-This patch makes NUMA's zonelist (of pgdat) order selectable.
-Available order are Default(automatic)/ Node-based / Zone-based.
+Make early_uart to use early_param, so uart console can be used earlier.  Make
+it to be bootconsole with CON_BOOT flag, so can use console handover feature. 
+and it will switch to corresponding normal serial console automatically.
 
-[Default Order]
-The kernel selects Node-based or Zone-based order automatically.
+new command line will be:
+	console=uart8250,io,0x3f8,9600n8
+	console=uart8250,mmio,0xff5e0000,115200n8
+or
+	earlycon=uart8250,io,0x3f8,9600n8
+	earlycon=uart8250,mmio,0xff5e0000,115200n8
 
-[Node-based Order]
-This policy treats the locality of memory as the most important parameter.
-Zonelist order is created by each zone's locality. This means lower zones
-(ex. ZONE_DMA) can be used before higher zone (ex. ZONE_NORMAL) exhausion.
-IOW. ZONE_DMA will be in the middle of zonelist.
-current 2.6.21 kernel uses this.
+it will print in very early stage:
+	Early serial console at I/O port 0x3f8 (options '9600n8')
+	console [uart0] enabled
+later for console it will print:
+	console handover: boot [uart0] -> real [ttyS0]
 
-Pros.
- * A user can expect local memory as much as possible.
-Cons.
- * lower zone will be exhansted before higher zone. This may cause OOM_KILL.
-
-Maybe suitable if ZONE_DMA is relatively big and you never see OOM_KILL
-because of ZONE_DMA exhaution and you need the best locality.
-
-(example)
-assume 2 node NUMA. node(0) has ZONE_DMA/ZONE_NORMAL, node(1) has ZONE_NORMAL.
-
-*node(0)'s memory allocation order:
-
- node(0)'s NORMAL -> node(0)'s DMA -> node(1)'s NORMAL.
-
-*node(1)'s memory allocation order:
-
- node(1)'s NORMAL -> node(0)'s NORMAL -> node(0)'s DMA.
-
-[Zone-based order]
-This policy treats the zone type as the most important parameter.
-Zonelist order is created by zone-type order. This means lower zone
-never be used bofere higher zone exhaustion.
-IOW. ZONE_DMA will be always at the tail of zonelist.
-
-Pros.
- * OOM_KILL(bacause of lower zone) occurs only if the whole zones are exhausted.
-Cons.
- * memory locality may not be best.
-
-(example)
-assume 2 node NUMA. node(0) has ZONE_DMA/ZONE_NORMAL, node(1) has ZONE_NORMAL.
-
-*node(0)'s memory allocation order:
-
- node(0)'s NORMAL -> node(1)'s NORMAL -> node(0)'s DMA.
-
-*node(1)'s memory allocation order:
-
- node(1)'s NORMAL -> node(0)'s NORMAL -> node(0)'s DMA.
-
-bootoption "numa_zonelist_order=" and proc/sysctl is supporetd.
-
-command:
-%echo N > /proc/sys/vm/numa_zonelist_order
-
-Will rebuild zonelist in Node-based order.
-
-command:
-%echo Z > /proc/sys/vm/numa_zonelist_order
-
-Will rebuild zonelist in Zone-based order.
-
-Thanks to Lee Schermerhorn, he gives me much help and codes.
-
-[Lee.Schermerhorn@hp.com: add check_highest_zone to build_zonelists_in_zone_order]
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: <yinghai.lu@sun.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: "jesse.barnes@intel.com" <jesse.barnes@intel.com>
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Gerd Hoffmann <kraxel@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    5 
- Documentation/sysctl/vm.txt         |   45 ++++
- include/linux/mmzone.h              |    5 
- kernel/sysctl.c                     |   11 +
- mm/page_alloc.c                     |  273 +++++++++++++++++++++++---
- 5 files changed, 317 insertions(+), 22 deletions(-)
+ Documentation/kernel-parameters.txt |   11 +-
+ arch/ia64/kernel/setup.c            |    4 
+ drivers/firmware/pcdp.c             |    6 -
+ drivers/serial/8250.c               |   28 +-----
+ drivers/serial/8250_early.c         |  119 +++++++++++++-------------
+ drivers/serial/Kconfig              |   14 +++
+ include/asm-i386/fixmap.h           |    2 
+ include/asm-i386/io.h               |    1 
+ include/asm-x86_64/fixmap.h         |    4 
+ include/asm-x86_64/io.h             |    1 
+ include/linux/console.h             |    2 
+ include/linux/serial.h              |    6 -
+ include/linux/serial_8250.h         |    4 
+ init/main.c                         |    5 -
+ kernel/printk.c                     |   22 ++++
+ 15 files changed, 133 insertions(+), 96 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~change-zonelist-order-zonelist-order-selection-logic Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~change-zonelist-order-zonelist-order-selection-logic
+diff -puN Documentation/kernel-parameters.txt~serial-convert-early_uart-to-earlycon-for-8250 Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~serial-convert-early_uart-to-earlycon-for-8250
 +++ a/Documentation/kernel-parameters.txt
-@@ -1196,6 +1196,11 @@ and is between 256 and 4096 characters. 
+@@ -462,13 +462,20 @@ and is between 256 and 4096 characters. 
+ 			Documentation/networking/netconsole.txt for an
+ 			alternative.
  
- 	nowb		[ARM]
+-		uart,io,<addr>[,options]
+-		uart,mmio,<addr>[,options]
++		uart[8250],io,<addr>[,options]
++		uart[8250],mmio,<addr>[,options]
+ 			Start an early, polled-mode console on the 8250/16550
+ 			UART at the specified I/O port or MMIO address,
+ 			switching to the matching ttyS device later.  The
+ 			options are the same as for ttyS, above.
  
-+	numa_zonelist_order= [KNL, BOOT] Select zonelist order for NUMA.
-+			one of ['zone', 'node', 'default'] can be specified
-+			This can be set from sysctl after boot.
-+			See Documentation/sysctl/vm.txt for details.
++	earlycon=	[KNL] Output early console device and options.
++		uart[8250],io,<addr>[,options]
++		uart[8250],mmio,<addr>[,options]
++			Start an early, polled-mode console on the 8250/16550
++			UART at the specified I/O port or MMIO address.
++			The options are the same as for ttyS, above.
 +
- 	nr_uarts=	[SERIAL] maximum number of UARTs to be registered.
- 
- 	opl3=		[HW,OSS]
-diff -puN Documentation/sysctl/vm.txt~change-zonelist-order-zonelist-order-selection-logic Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~change-zonelist-order-zonelist-order-selection-logic
-+++ a/Documentation/sysctl/vm.txt
-@@ -32,6 +32,7 @@ Currently, these files are in /proc/sys/
- - min_slab_ratio
- - panic_on_oom
- - mmap_min_address
-+- numa_zonelist_order
- 
- ==============================================================
- 
-@@ -231,3 +232,47 @@ security module.  Setting this value to 
- vast majority of applications to work correctly and provide defense in depth
- against future potential kernel bugs.
- 
-+==============================================================
-+
-+numa_zonelist_order
-+
-+This sysctl is only for NUMA.
-+'where the memory is allocated from' is controlled by zonelists.
-+(This documentation ignores ZONE_HIGHMEM/ZONE_DMA32 for simple explanation.
-+ you may be able to read ZONE_DMA as ZONE_DMA32...)
-+
-+In non-NUMA case, a zonelist for GFP_KERNEL is ordered as following.
-+ZONE_NORMAL -> ZONE_DMA
-+This means that a memory allocation request for GFP_KERNEL will
-+get memory from ZONE_DMA only when ZONE_NORMAL is not available.
-+
-+In NUMA case, you can think of following 2 types of order.
-+Assume 2 node NUMA and below is zonelist of Node(0)'s GFP_KERNEL
-+
-+(A) Node(0) ZONE_NORMAL -> Node(0) ZONE_DMA -> Node(1) ZONE_NORMAL
-+(B) Node(0) ZONE_NORMAL -> Node(1) ZONE_NORMAL -> Node(0) ZONE_DMA.
-+
-+Type(A) offers the best locality for processes on Node(0), but ZONE_DMA
-+will be used before ZONE_NORMAL exhaustion. This increases possibility of
-+out-of-memory(OOM) of ZONE_DMA because ZONE_DMA is tend to be small.
-+
-+Type(B) cannot offer the best locality but is more robust against OOM of
-+the DMA zone.
-+
-+Type(A) is called as "Node" order. Type (B) is "Zone" order.
-+
-+"Node order" orders the zonelists by node, then by zone within each node.
-+Specify "[Nn]ode" for zone order
-+
-+"Zone Order" orders the zonelists by zone type, then by node within each
-+zone.  Specify "[Zz]one"for zode order.
-+
-+Specify "[Dd]efault" to request automatic configuration.  Autoconfiguration
-+will select "node" order in following case.
-+(1) if the DMA zone does not exist or
-+(2) if the DMA zone comprises greater than 50% of the available memory or
-+(3) if any node's DMA zone comprises greater than 60% of its local memory and
-+    the amount of local memory is big enough.
-+
-+Otherwise, "zone" order will be selected. Default order is recommended unless
-+this is causing problems for your system/application.
-diff -puN include/linux/mmzone.h~change-zonelist-order-zonelist-order-selection-logic include/linux/mmzone.h
---- a/include/linux/mmzone.h~change-zonelist-order-zonelist-order-selection-logic
-+++ a/include/linux/mmzone.h
-@@ -566,6 +566,11 @@ int sysctl_min_unmapped_ratio_sysctl_han
- int sysctl_min_slab_ratio_sysctl_handler(struct ctl_table *, int,
- 			struct file *, void __user *, size_t *, loff_t *);
- 
-+extern int numa_zonelist_order_handler(struct ctl_table *, int,
-+			struct file *, void __user *, size_t *, loff_t *);
-+extern char numa_zonelist_order[];
-+#define NUMA_ZONELIST_ORDER_LEN 16	/* string buffer size */
-+
- #include <linux/topology.h>
- /* Returns the number of the current Node. */
- #ifndef numa_node_id
-diff -puN kernel/sysctl.c~change-zonelist-order-zonelist-order-selection-logic kernel/sysctl.c
---- a/kernel/sysctl.c~change-zonelist-order-zonelist-order-selection-logic
-+++ a/kernel/sysctl.c
-@@ -958,6 +958,17 @@ static ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_doulongvec_minmax,
- 	},
-+#ifdef CONFIG_NUMA
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "numa_zonelist_order",
-+		.data		= &numa_zonelist_order,
-+		.maxlen		= NUMA_ZONELIST_ORDER_LEN,
-+		.mode		= 0644,
-+		.proc_handler	= &numa_zonelist_order_handler,
-+		.strategy	= &sysctl_string,
-+	},
-+#endif
+ 	cpcihp_generic=	[HW,PCI] Generic port I/O CompactPCI driver
+ 			Format:
+ 			<first_slot>,<last_slot>,<port>,<enum_bit>[,<debug>]
+diff -puN arch/ia64/kernel/setup.c~serial-convert-early_uart-to-earlycon-for-8250 arch/ia64/kernel/setup.c
+--- a/arch/ia64/kernel/setup.c~serial-convert-early_uart-to-earlycon-for-8250
++++ a/arch/ia64/kernel/setup.c
+@@ -390,10 +390,6 @@ early_console_setup (char *cmdline)
+ 	if (!efi_setup_pcdp_console(cmdline))
+ 		earlycons++;
  #endif
- #if defined(CONFIG_X86_32) || \
-    (defined(CONFIG_SUPERH) && defined(CONFIG_VSYSCALL))
-diff -puN mm/page_alloc.c~change-zonelist-order-zonelist-order-selection-logic mm/page_alloc.c
---- a/mm/page_alloc.c~change-zonelist-order-zonelist-order-selection-logic
-+++ a/mm/page_alloc.c
-@@ -1621,8 +1621,8 @@ void show_free_areas(void)
-  *
-  * Add all populated zones of a node to the zonelist.
-  */
--static int __meminit build_zonelists_node(pg_data_t *pgdat,
--			struct zonelist *zonelist, int nr_zones, enum zone_type zone_type)
-+static int build_zonelists_node(pg_data_t *pgdat, struct zonelist *zonelist,
-+				int nr_zones, enum zone_type zone_type)
- {
- 	struct zone *zone;
+-#ifdef CONFIG_SERIAL_8250_CONSOLE
+-	if (!early_serial_console_init(cmdline))
+-		earlycons++;
+-#endif
  
-@@ -1641,9 +1641,102 @@ static int __meminit build_zonelists_nod
- 	return nr_zones;
+ 	return (earlycons) ? 0 : -1;
+ }
+diff -puN drivers/firmware/pcdp.c~serial-convert-early_uart-to-earlycon-for-8250 drivers/firmware/pcdp.c
+--- a/drivers/firmware/pcdp.c~serial-convert-early_uart-to-earlycon-for-8250
++++ a/drivers/firmware/pcdp.c
+@@ -15,6 +15,7 @@
+ #include <linux/console.h>
+ #include <linux/efi.h>
+ #include <linux/serial.h>
++#include <linux/serial_8250.h>
+ #include <asm/vga.h>
+ #include "pcdp.h"
+ 
+@@ -27,7 +28,7 @@ setup_serial_console(struct pcdp_uart *u
+ 	char parity;
+ 
+ 	mmio = (uart->addr.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY);
+-	p += sprintf(p, "console=uart,%s,0x%lx",
++	p += sprintf(p, "uart8250,%s,0x%lx",
+ 		mmio ? "mmio" : "io", uart->addr.address);
+ 	if (uart->baud) {
+ 		p += sprintf(p, ",%lu", uart->baud);
+@@ -41,7 +42,8 @@ setup_serial_console(struct pcdp_uart *u
+ 		}
+ 	}
+ 
+-	return early_serial_console_init(options);
++	add_preferred_console("uart", 8250, &options[9]);
++	return setup_early_serial8250_console(options);
+ #else
+ 	return -ENODEV;
+ #endif
+diff -puN drivers/serial/8250.c~serial-convert-early_uart-to-earlycon-for-8250 drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-convert-early_uart-to-earlycon-for-8250
++++ a/drivers/serial/8250.c
+@@ -2514,12 +2514,18 @@ static int __init serial8250_console_set
+ 	return uart_set_options(port, co, baud, parity, bits, flow);
  }
  
-+
-+/*
-+ *  zonelist_order:
-+ *  0 = automatic detection of better ordering.
-+ *  1 = order by ([node] distance, -zonetype)
-+ *  2 = order by (-zonetype, [node] distance)
-+ *
-+ *  If not NUMA, ZONELIST_ORDER_ZONE and ZONELIST_ORDER_NODE will create
-+ *  the same zonelist. So only NUMA can configure this param.
-+ */
-+#define ZONELIST_ORDER_DEFAULT  0
-+#define ZONELIST_ORDER_NODE     1
-+#define ZONELIST_ORDER_ZONE     2
-+
-+/* zonelist order in the kernel.
-+ * set_zonelist_order() will set this to NODE or ZONE.
-+ */
-+static int current_zonelist_order = ZONELIST_ORDER_DEFAULT;
-+static char zonelist_order_name[3][8] = {"Default", "Node", "Zone"};
-+
-+
- #ifdef CONFIG_NUMA
-+/* The value user specified ....changed by config */
-+static int user_zonelist_order = ZONELIST_ORDER_DEFAULT;
-+/* string for sysctl */
-+#define NUMA_ZONELIST_ORDER_LEN	16
-+char numa_zonelist_order[16] = "default";
-+
-+/*
-+ * interface for configure zonelist ordering.
-+ * command line option "numa_zonelist_order"
-+ *	= "[dD]efault	- default, automatic configuration.
-+ *	= "[nN]ode 	- order by node locality, then by zone within node
-+ *	= "[zZ]one      - order by zone, then by locality within zone
-+ */
-+
-+static int __parse_numa_zonelist_order(char *s)
++static int __init serial8250_console_early_setup(void)
 +{
-+	if (*s == 'd' || *s == 'D') {
-+		user_zonelist_order = ZONELIST_ORDER_DEFAULT;
-+	} else if (*s == 'n' || *s == 'N') {
-+		user_zonelist_order = ZONELIST_ORDER_NODE;
-+	} else if (*s == 'z' || *s == 'Z') {
-+		user_zonelist_order = ZONELIST_ORDER_ZONE;
-+	} else {
-+		printk(KERN_WARNING
-+			"Ignoring invalid numa_zonelist_order value:  "
-+			"%s\n", s);
-+		return -EINVAL;
-+	}
-+	return 0;
++	return serial8250_find_port_for_earlycon();
 +}
 +
-+static __init int setup_numa_zonelist_order(char *s)
-+{
-+	if (s)
-+		return __parse_numa_zonelist_order(s);
-+	return 0;
-+}
-+early_param("numa_zonelist_order", setup_numa_zonelist_order);
-+
-+/*
-+ * sysctl handler for numa_zonelist_order
-+ */
-+int numa_zonelist_order_handler(ctl_table *table, int write,
-+		struct file *file, void __user *buffer, size_t *length,
-+		loff_t *ppos)
-+{
-+	char saved_string[NUMA_ZONELIST_ORDER_LEN];
-+	int ret;
-+
-+	if (write)
-+		strncpy(saved_string, (char*)table->data,
-+			NUMA_ZONELIST_ORDER_LEN);
-+	ret = proc_dostring(table, write, file, buffer, length, ppos);
-+	if (ret)
-+		return ret;
-+	if (write) {
-+		int oldval = user_zonelist_order;
-+		if (__parse_numa_zonelist_order((char*)table->data)) {
-+			/*
-+			 * bogus value.  restore saved string
-+			 */
-+			strncpy((char*)table->data, saved_string,
-+				NUMA_ZONELIST_ORDER_LEN);
-+			user_zonelist_order = oldval;
-+		} else if (oldval != user_zonelist_order)
-+			build_all_zonelists();
-+	}
-+	return 0;
-+}
-+
-+
- #define MAX_NODE_LOAD (num_online_nodes())
--static int __meminitdata node_load[MAX_NUMNODES];
-+static int node_load[MAX_NUMNODES];
-+
- /**
-  * find_next_best_node - find the next node that should appear in a given node's fallback list
-  * @node: node whose fallback list we're appending
-@@ -1658,7 +1751,7 @@ static int __meminitdata node_load[MAX_N
-  * on them otherwise.
-  * It returns -1 if no node is found.
-  */
--static int __meminit find_next_best_node(int node, nodemask_t *used_node_mask)
-+static int find_next_best_node(int node, nodemask_t *used_node_mask)
+ static struct uart_driver serial8250_reg;
+ static struct console serial8250_console = {
+ 	.name		= "ttyS",
+ 	.write		= serial8250_console_write,
+ 	.device		= uart_console_device,
+ 	.setup		= serial8250_console_setup,
++	.early_setup	= serial8250_console_early_setup,
+ 	.flags		= CON_PRINTBUFFER,
+ 	.index		= -1,
+ 	.data		= &serial8250_reg,
+@@ -2533,7 +2539,7 @@ static int __init serial8250_console_ini
+ }
+ console_initcall(serial8250_console_init);
+ 
+-static int __init find_port(struct uart_port *p)
++int serial8250_find_port(struct uart_port *p)
  {
- 	int n, val;
- 	int min_val = INT_MAX;
-@@ -1704,13 +1797,129 @@ static int __meminit find_next_best_node
- 	return best_node;
+ 	int line;
+ 	struct uart_port *port;
+@@ -2546,26 +2552,6 @@ static int __init find_port(struct uart_
+ 	return -ENODEV;
  }
  
--static void __meminit build_zonelists(pg_data_t *pgdat)
-+
-+/*
-+ * Build zonelists ordered by node and zones within node.
-+ * This results in maximum locality--normal zone overflows into local
-+ * DMA zone, if any--but risks exhausting DMA zone.
-+ */
-+static void build_zonelists_in_node_order(pg_data_t *pgdat, int node)
- {
--	int j, node, local_node;
- 	enum zone_type i;
--	int prev_node, load;
-+	int j;
- 	struct zonelist *zonelist;
-+
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
-+		zonelist = pgdat->node_zonelists + i;
-+		for (j = 0; zonelist->zones[j] != NULL; j++)
-+			;
-+ 		j = build_zonelists_node(NODE_DATA(node), zonelist, j, i);
-+		zonelist->zones[j] = NULL;
-+	}
-+}
-+
-+/*
-+ * Build zonelists ordered by zone and nodes within zones.
-+ * This results in conserving DMA zone[s] until all Normal memory is
-+ * exhausted, but results in overflowing to remote node while memory
-+ * may still exist in local DMA zone.
-+ */
-+static int node_order[MAX_NUMNODES];
-+
-+static void build_zonelists_in_zone_order(pg_data_t *pgdat, int nr_nodes)
-+{
-+	enum zone_type i;
-+	int pos, j, node;
-+	int zone_type;		/* needs to be signed */
-+	struct zone *z;
-+	struct zonelist *zonelist;
-+
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
-+		zonelist = pgdat->node_zonelists + i;
-+		pos = 0;
-+		for (zone_type = i; zone_type >= 0; zone_type--) {
-+			for (j = 0; j < nr_nodes; j++) {
-+				node = node_order[j];
-+				z = &NODE_DATA(node)->node_zones[zone_type];
-+				if (populated_zone(z)) {
-+					zonelist->zones[pos++] = z;
-+					check_highest_zone(zone_type);
-+				}
-+			}
-+		}
-+		zonelist->zones[pos] = NULL;
-+	}
-+}
-+
-+static int default_zonelist_order(void)
-+{
-+	int nid, zone_type;
-+	unsigned long low_kmem_size,total_size;
-+	struct zone *z;
-+	int average_size;
-+	/*
-+         * ZONE_DMA and ZONE_DMA32 can be very small area in the sytem.
-+	 * If they are really small and used heavily, the system can fall
-+	 * into OOM very easily.
-+	 * This function detect ZONE_DMA/DMA32 size and confgigures zone order.
-+	 */
-+	/* Is there ZONE_NORMAL ? (ex. ppc has only DMA zone..) */
-+	low_kmem_size = 0;
-+	total_size = 0;
-+	for_each_online_node(nid) {
-+		for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
-+			z = &NODE_DATA(nid)->node_zones[zone_type];
-+			if (populated_zone(z)) {
-+				if (zone_type < ZONE_NORMAL)
-+					low_kmem_size += z->present_pages;
-+				total_size += z->present_pages;
-+			}
-+		}
-+	}
-+	if (!low_kmem_size ||  /* there are no DMA area. */
-+	    low_kmem_size > total_size/2) /* DMA/DMA32 is big. */
-+		return ZONELIST_ORDER_NODE;
-+	/*
-+	 * look into each node's config.
-+  	 * If there is a node whose DMA/DMA32 memory is very big area on
-+ 	 * local memory, NODE_ORDER may be suitable.
-+         */
-+	average_size = total_size / (num_online_nodes() + 1);
-+	for_each_online_node(nid) {
-+		low_kmem_size = 0;
-+		total_size = 0;
-+		for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
-+			z = &NODE_DATA(nid)->node_zones[zone_type];
-+			if (populated_zone(z)) {
-+				if (zone_type < ZONE_NORMAL)
-+					low_kmem_size += z->present_pages;
-+				total_size += z->present_pages;
-+			}
-+		}
-+		if (low_kmem_size &&
-+		    total_size > average_size && /* ignore small node */
-+		    low_kmem_size > total_size * 70/100)
-+			return ZONELIST_ORDER_NODE;
-+	}
-+	return ZONELIST_ORDER_ZONE;
-+}
-+
-+static void set_zonelist_order(void)
-+{
-+	if (user_zonelist_order == ZONELIST_ORDER_DEFAULT)
-+		current_zonelist_order = default_zonelist_order();
-+	else
-+		current_zonelist_order = user_zonelist_order;
-+}
-+
-+static void build_zonelists(pg_data_t *pgdat)
-+{
-+	int j, node, load;
-+	enum zone_type i;
- 	nodemask_t used_mask;
-+	int local_node, prev_node;
-+	struct zonelist *zonelist;
-+	int order = current_zonelist_order;
- 
- 	/* initialize zonelists */
- 	for (i = 0; i < MAX_NR_ZONES; i++) {
-@@ -1723,6 +1932,11 @@ static void __meminit build_zonelists(pg
- 	load = num_online_nodes();
- 	prev_node = local_node;
- 	nodes_clear(used_mask);
-+
-+	memset(node_load, 0, sizeof(node_load));
-+	memset(node_order, 0, sizeof(node_order));
-+	j = 0;
-+
- 	while ((node = find_next_best_node(local_node, &used_mask)) >= 0) {
- 		int distance = node_distance(local_node, node);
- 
-@@ -1738,23 +1952,25 @@ static void __meminit build_zonelists(pg
- 		 * So adding penalty to the first node in same
- 		 * distance group to make it round-robin.
- 		 */
+-int __init serial8250_start_console(struct uart_port *port, char *options)
+-{
+-	int line;
 -
- 		if (distance != node_distance(local_node, prev_node))
--			node_load[node] += load;
-+			node_load[node] = load;
-+
- 		prev_node = node;
- 		load--;
--		for (i = 0; i < MAX_NR_ZONES; i++) {
--			zonelist = pgdat->node_zonelists + i;
--			for (j = 0; zonelist->zones[j] != NULL; j++);
-+		if (order == ZONELIST_ORDER_NODE)
-+			build_zonelists_in_node_order(pgdat, node);
-+		else
-+			node_order[j++] = node;	/* remember order */
-+	}
+-	line = find_port(port);
+-	if (line < 0)
+-		return -ENODEV;
+-
+-	add_preferred_console("ttyS", line, options);
+-	printk("Adding console on ttyS%d at %s 0x%lx (options '%s')\n",
+-		line, port->iotype == UPIO_MEM ? "MMIO" : "I/O port",
+-		port->iotype == UPIO_MEM ? (unsigned long) port->mapbase :
+-		    (unsigned long) port->iobase, options);
+-	if (!(serial8250_console.flags & CON_ENABLED)) {
+-		serial8250_console.flags &= ~CON_PRINTBUFFER;
+-		register_console(&serial8250_console);
+-	}
+-	return line;
+-}
+-
+ #define SERIAL8250_CONSOLE	&serial8250_console
+ #else
+ #define SERIAL8250_CONSOLE	NULL
+diff -puN drivers/serial/8250_early.c~serial-convert-early_uart-to-earlycon-for-8250 drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~serial-convert-early_uart-to-earlycon-for-8250
++++ a/drivers/serial/8250_early.c
+@@ -17,13 +17,11 @@
+  * we locate the device directly by its MMIO or I/O port address.
+  *
+  * The user can specify the device directly, e.g.,
+- *	console=uart,io,0x3f8,9600n8
+- *	console=uart,mmio,0xff5e0000,115200n8
+- * or platform code can call early_uart_console_init() to set
+- * the early UART device.
+- *
+- * After the normal serial driver starts, we try to locate the
+- * matching ttyS device and start a console there.
++ *	earlycon=uart8250,io,0x3f8,9600n8
++ *	earlycon=uart8250,mmio,0xff5e0000,115200n8
++ * or
++ *	console=uart8250,io,0x3f8,9600n8
++ *	console=uart8250,mmio,0xff5e0000,115200n8
+  */
  
--	 		j = build_zonelists_node(NODE_DATA(node), zonelist, j, i);
--			zonelist->zones[j] = NULL;
--		}
-+	if (order == ZONELIST_ORDER_ZONE) {
-+		/* calculate node order -- i.e., DMA last! */
-+		build_zonelists_in_zone_order(pgdat, j);
- 	}
+ #include <linux/tty.h>
+@@ -32,17 +30,21 @@
+ #include <linux/serial_core.h>
+ #include <linux/serial_reg.h>
+ #include <linux/serial.h>
++#include <linux/serial_8250.h>
+ #include <asm/io.h>
+ #include <asm/serial.h>
++#ifdef CONFIG_FIX_EARLYCON_MEM
++#include <asm/pgtable.h>
++#include <asm/fixmap.h>
++#endif
+ 
+-struct early_uart_device {
++struct early_serial8250_device {
+ 	struct uart_port port;
+ 	char options[16];		/* e.g., 115200n8 */
+ 	unsigned int baud;
+ };
+ 
+-static struct early_uart_device early_device __initdata;
+-static int early_uart_registered __initdata;
++static struct early_serial8250_device early_device;
+ 
+ static unsigned int __init serial_in(struct uart_port *port, int offset)
+ {
+@@ -80,7 +82,7 @@ static void __init putc(struct uart_port
+ 	serial_out(port, UART_TX, c);
  }
  
- /* Construct the zonelist performance cache - see further mmzone.h */
--static void __meminit build_zonelist_cache(pg_data_t *pgdat)
-+static void build_zonelist_cache(pg_data_t *pgdat)
+-static void __init early_uart_write(struct console *console, const char *s, unsigned int count)
++static void __init early_serial8250_write(struct console *console, const char *s, unsigned int count)
  {
- 	int i;
- 
-@@ -1771,9 +1987,15 @@ static void __meminit build_zonelist_cac
- 	}
+ 	struct uart_port *port = &early_device.port;
+ 	unsigned int ier;
+@@ -111,7 +113,7 @@ static unsigned int __init probe_baud(st
+ 	return (port->uartclk / 16) / quot;
  }
  
-+
- #else	/* CONFIG_NUMA */
- 
--static void __meminit build_zonelists(pg_data_t *pgdat)
-+static void set_zonelist_order(void)
-+{
-+	current_zonelist_order = ZONELIST_ORDER_ZONE;
-+}
-+
-+static void build_zonelists(pg_data_t *pgdat)
+-static void __init init_port(struct early_uart_device *device)
++static void __init init_port(struct early_serial8250_device *device)
  {
- 	int node, local_node;
- 	enum zone_type i,j;
-@@ -1809,7 +2031,7 @@ static void __meminit build_zonelists(pg
+ 	struct uart_port *port = &device->port;
+ 	unsigned int divisor;
+@@ -130,10 +132,9 @@ static void __init init_port(struct earl
+ 	serial_out(port, UART_LCR, c & ~UART_LCR_DLAB);
  }
  
- /* non-NUMA variant of zonelist performance cache - just NULL zlcache_ptr */
--static void __meminit build_zonelist_cache(pg_data_t *pgdat)
-+static void build_zonelist_cache(pg_data_t *pgdat)
+-static int __init parse_options(struct early_uart_device *device, char *options)
++static int __init parse_options(struct early_serial8250_device *device, char *options)
  {
- 	int i;
+ 	struct uart_port *port = &device->port;
+-	int mapsize = 64;
+ 	int mmio, length;
  
-@@ -1820,7 +2042,7 @@ static void __meminit build_zonelist_cac
- #endif	/* CONFIG_NUMA */
- 
- /* return values int ....just for stop_machine_run() */
--static int __meminit __build_all_zonelists(void *dummy)
-+static int __build_all_zonelists(void *dummy)
- {
- 	int nid;
- 
-@@ -1831,8 +2053,10 @@ static int __meminit __build_all_zonelis
+ 	if (!options)
+@@ -143,12 +144,18 @@ static int __init parse_options(struct e
+ 	if (!strncmp(options, "mmio,", 5)) {
+ 		port->iotype = UPIO_MEM;
+ 		port->mapbase = simple_strtoul(options + 5, &options, 0);
+-		port->membase = ioremap(port->mapbase, mapsize);
++#ifdef CONFIG_FIX_EARLYCON_MEM
++		set_fixmap_nocache(FIX_EARLYCON_MEM_BASE, port->mapbase & PAGE_MASK);
++		port->membase = (void __iomem *)__fix_to_virt(FIX_EARLYCON_MEM_BASE);
++		port->membase += port->mapbase & ~PAGE_MASK;
++#else
++		port->membase = ioremap(port->mapbase, 64);
+ 		if (!port->membase) {
+ 			printk(KERN_ERR "%s: Couldn't ioremap 0x%lx\n",
+ 				__FUNCTION__, port->mapbase);
+ 			return -ENOMEM;
+ 		}
++#endif
+ 		mmio = 1;
+ 	} else if (!strncmp(options, "io,", 3)) {
+ 		port->iotype = UPIO_PORT;
+@@ -175,9 +182,16 @@ static int __init parse_options(struct e
  	return 0;
  }
  
--void __meminit build_all_zonelists(void)
-+void build_all_zonelists(void)
- {
-+	set_zonelist_order();
+-static int __init early_uart_setup(struct console *console, char *options)
++static struct console early_serial8250_console __initdata = {
++	.name	= "uart",
++	.write	= early_serial8250_write,
++	.flags	= CON_PRINTBUFFER | CON_BOOT,
++	.index	= -1,
++};
 +
- 	if (system_state == SYSTEM_BOOTING) {
- 		__build_all_zonelists(NULL);
- 		cpuset_init_current_mems_allowed();
-@@ -1843,8 +2067,13 @@ void __meminit build_all_zonelists(void)
- 		/* cpuset refresh routine should be here */
- 	}
- 	vm_total_pages = nr_free_pagecache_pages();
--	printk("Built %i zonelists.  Total pages: %ld\n",
--			num_online_nodes(), vm_total_pages);
-+	printk("Built %i zonelists in %s order.  Total pages: %ld\n",
-+			num_online_nodes(),
-+			zonelist_order_name[current_zonelist_order],
-+			vm_total_pages);
-+#ifdef CONFIG_NUMA
-+	printk("Policy zone: %s\n", zone_names[policy_zone]);
-+#endif
++static int __init early_serial8250_setup(char *options)
+ {
+-	struct early_uart_device *device = &early_device;
++	struct early_serial8250_device *device = &early_device;
+ 	int err;
+ 
+ 	if (device->port.membase || device->port.iobase)
+@@ -190,61 +204,48 @@ static int __init early_uart_setup(struc
+ 	return 0;
  }
  
+-static struct console early_uart_console __initdata = {
+-	.name	= "uart",
+-	.write	= early_uart_write,
+-	.setup	= early_uart_setup,
+-	.flags	= CON_PRINTBUFFER,
+-	.index	= -1,
+-};
+-
+-static int __init early_uart_console_init(void)
+-{
+-	if (!early_uart_registered) {
+-		register_console(&early_uart_console);
+-		early_uart_registered = 1;
+-	}
+-	return 0;
+-}
+-console_initcall(early_uart_console_init);
+-
+-int __init early_serial_console_init(char *cmdline)
++int __init setup_early_serial8250_console(char *cmdline)
+ {
+ 	char *options;
+ 	int err;
+ 
+-	options = strstr(cmdline, "console=uart,");
+-	if (!options)
+-		return -ENODEV;
++	options = strstr(cmdline, "uart8250,");
++	if (!options) {
++		options = strstr(cmdline, "uart,");
++		if (!options)
++			return 0;
++	}
+ 
+ 	options = strchr(cmdline, ',') + 1;
+-	if ((err = early_uart_setup(NULL, options)) < 0)
++	if ((err = early_serial8250_setup(options)) < 0)
+ 		return err;
+-	return early_uart_console_init();
++
++	register_console(&early_serial8250_console);
++
++	return 0;
+ }
+ 
+-static int __init early_uart_console_switch(void)
++int __init serial8250_find_port_for_earlycon(void)
+ {
+-	struct early_uart_device *device = &early_device;
++	struct early_serial8250_device *device = &early_device;
+ 	struct uart_port *port = &device->port;
+-	int mmio, line;
++	int line;
++	int ret;
+ 
+-	if (!(early_uart_console.flags & CON_ENABLED))
+-		return 0;
++	if (!device->port.membase && !device->port.iobase)
++		return -ENODEV;
+ 
+-	/* Try to start the normal driver on a matching line.  */
+-	mmio = (port->iotype == UPIO_MEM);
+-	line = serial8250_start_console(port, device->options);
++	line = serial8250_find_port(port);
+ 	if (line < 0)
+-		printk("No ttyS device at %s 0x%lx for console\n",
+-			mmio ? "MMIO" : "I/O port",
+-			mmio ? port->mapbase :
+-			    (unsigned long) port->iobase);
+-
+-	unregister_console(&early_uart_console);
+-	if (mmio)
+-		iounmap(port->membase);
++		return -ENODEV;
+ 
+-	return 0;
++	ret = update_console_cmdline("uart", 8250,
++			     "ttyS", line, device->options);
++	if (ret < 0)
++		ret = update_console_cmdline("uart", 0,
++				     "ttyS", line, device->options);
++
++	return ret;
+ }
+-late_initcall(early_uart_console_switch);
++
++early_param("earlycon", setup_early_serial8250_console);
+diff -puN drivers/serial/Kconfig~serial-convert-early_uart-to-earlycon-for-8250 drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~serial-convert-early_uart-to-earlycon-for-8250
++++ a/drivers/serial/Kconfig
+@@ -62,8 +62,22 @@ config SERIAL_8250_CONSOLE
+ 	  kernel will automatically use the first serial line, /dev/ttyS0, as
+ 	  system console.
+ 
++	  you can set that using a kernel command line option such as
++	  "console=uart8250,io,0x3f8,9600n8"
++	  "console=uart8250,mmio,0xff5e0000,115200n8".
++	  and it will switch to normal serial console when correponding port is
++	  ready.
++	  "earlycon=uart8250,io,0x3f8,9600n8"
++	  "earlycon=uart8250,mmio,0xff5e0000,115200n8".
++	  it will not only setup early console.
++
+ 	  If unsure, say N.
+ 
++config FIX_EARLYCON_MEM
++	bool
++	depends on X86
++	default y
++
+ config SERIAL_8250_GSC
+ 	tristate
+ 	depends on SERIAL_8250 && GSC
+diff -puN include/asm-i386/fixmap.h~serial-convert-early_uart-to-earlycon-for-8250 include/asm-i386/fixmap.h
+--- a/include/asm-i386/fixmap.h~serial-convert-early_uart-to-earlycon-for-8250
++++ a/include/asm-i386/fixmap.h
+@@ -54,6 +54,8 @@ extern unsigned long __FIXADDR_TOP;
+ enum fixed_addresses {
+ 	FIX_HOLE,
+ 	FIX_VDSO,
++	FIX_DBGP_BASE,
++	FIX_EARLYCON_MEM_BASE,
+ #ifdef CONFIG_X86_LOCAL_APIC
+ 	FIX_APIC_BASE,	/* local (CPU) APIC) -- required for SMP or not */
+ #endif
+diff -puN include/asm-i386/io.h~serial-convert-early_uart-to-earlycon-for-8250 include/asm-i386/io.h
+--- a/include/asm-i386/io.h~serial-convert-early_uart-to-earlycon-for-8250
++++ a/include/asm-i386/io.h
+@@ -129,6 +129,7 @@ extern void iounmap(volatile void __iome
+  */
+ extern void *bt_ioremap(unsigned long offset, unsigned long size);
+ extern void bt_iounmap(void *addr, unsigned long size);
++extern void __iomem *fix_ioremap(unsigned idx, unsigned long phys);
+ 
+ /* Use early IO mappings for DMI because it's initialized early */
+ #define dmi_ioremap bt_ioremap
+diff -puN include/asm-x86_64/fixmap.h~serial-convert-early_uart-to-earlycon-for-8250 include/asm-x86_64/fixmap.h
+--- a/include/asm-x86_64/fixmap.h~serial-convert-early_uart-to-earlycon-for-8250
++++ a/include/asm-x86_64/fixmap.h
+@@ -35,6 +35,8 @@ enum fixed_addresses {
+ 	VSYSCALL_LAST_PAGE,
+ 	VSYSCALL_FIRST_PAGE = VSYSCALL_LAST_PAGE + ((VSYSCALL_END-VSYSCALL_START) >> PAGE_SHIFT) - 1,
+ 	VSYSCALL_HPET,
++	FIX_DBGP_BASE,
++	FIX_EARLYCON_MEM_BASE,
+ 	FIX_HPET_BASE,
+ 	FIX_APIC_BASE,	/* local (CPU) APIC) -- required for SMP or not */
+ 	FIX_IO_APIC_BASE_0,
+@@ -84,7 +86,7 @@ static __always_inline unsigned long fix
+ 	if (idx >= __end_of_fixed_addresses)
+ 		__this_fixmap_does_not_exist();
+ 
+-        return __fix_to_virt(idx);
++	return __fix_to_virt(idx);
+ }
+ 
+ #endif
+diff -puN include/asm-x86_64/io.h~serial-convert-early_uart-to-earlycon-for-8250 include/asm-x86_64/io.h
+--- a/include/asm-x86_64/io.h~serial-convert-early_uart-to-earlycon-for-8250
++++ a/include/asm-x86_64/io.h
+@@ -144,6 +144,7 @@ extern void early_iounmap(void *addr, un
+  */
+ extern void __iomem * ioremap_nocache (unsigned long offset, unsigned long size);
+ extern void iounmap(volatile void __iomem *addr);
++extern void __iomem *fix_ioremap(unsigned idx, unsigned long phys);
+ 
  /*
+  * ISA I/O bus memory addresses are 1:1 with the physical address.
+diff -puN include/linux/console.h~serial-convert-early_uart-to-earlycon-for-8250 include/linux/console.h
+--- a/include/linux/console.h~serial-convert-early_uart-to-earlycon-for-8250
++++ a/include/linux/console.h
+@@ -99,6 +99,7 @@ struct console {
+ 	struct tty_driver *(*device)(struct console *, int *);
+ 	void	(*unblank)(void);
+ 	int	(*setup)(struct console *, char *);
++	int	(*early_setup)(void);
+ 	short	flags;
+ 	short	index;
+ 	int	cflag;
+@@ -107,6 +108,7 @@ struct console {
+ };
+ 
+ extern int add_preferred_console(char *name, int idx, char *options);
++extern int update_console_cmdline(char *name, int idx, char *name_new, int idx_new, char *options);
+ extern void register_console(struct console *);
+ extern int unregister_console(struct console *);
+ extern struct console *console_drivers;
+diff -puN include/linux/serial.h~serial-convert-early_uart-to-earlycon-for-8250 include/linux/serial.h
+--- a/include/linux/serial.h~serial-convert-early_uart-to-earlycon-for-8250
++++ a/include/linux/serial.h
+@@ -177,11 +177,5 @@ struct serial_icounter_struct {
+ #ifdef __KERNEL__
+ #include <linux/compiler.h>
+ 
+-/* Allow architectures to override entries in serial8250_ports[] at run time: */
+-struct uart_port;	/* forward declaration */
+-extern int early_serial_setup(struct uart_port *port);
+-extern int early_serial_console_init(char *options);
+-extern int serial8250_start_console(struct uart_port *port, char *options);
+-
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_SERIAL_H */
+diff -puN include/linux/serial_8250.h~serial-convert-early_uart-to-earlycon-for-8250 include/linux/serial_8250.h
+--- a/include/linux/serial_8250.h~serial-convert-early_uart-to-earlycon-for-8250
++++ a/include/linux/serial_8250.h
+@@ -60,4 +60,8 @@ void serial8250_unregister_port(int line
+ void serial8250_suspend_port(int line);
+ void serial8250_resume_port(int line);
+ 
++extern int serial8250_find_port(struct uart_port *p);
++extern int serial8250_find_port_for_earlycon(void);
++extern int setup_early_serial8250_console(char *cmdline);
++
+ #endif
+diff -puN init/main.c~serial-convert-early_uart-to-earlycon-for-8250 init/main.c
+--- a/init/main.c~serial-convert-early_uart-to-earlycon-for-8250
++++ a/init/main.c
+@@ -453,7 +453,10 @@ static int __init do_early_param(char *p
+ 	struct obs_kernel_param *p;
+ 
+ 	for (p = __setup_start; p < __setup_end; p++) {
+-		if (p->early && strcmp(param, p->str) == 0) {
++		if ((p->early && strcmp(param, p->str) == 0) ||
++		    (strcmp(param, "console") == 0 &&
++		     strcmp(p->str, "earlycon") == 0)
++		) {
+ 			if (p->setup_func(val) != 0)
+ 				printk(KERN_WARNING
+ 				       "Malformed early option '%s'\n", param);
+diff -puN kernel/printk.c~serial-convert-early_uart-to-earlycon-for-8250 kernel/printk.c
+--- a/kernel/printk.c~serial-convert-early_uart-to-earlycon-for-8250
++++ a/kernel/printk.c
+@@ -726,6 +726,25 @@ int __init add_preferred_console(char *n
+ 	return 0;
+ }
+ 
++int __init update_console_cmdline(char *name, int idx, char *name_new, int idx_new, char *options)
++{
++	struct console_cmdline *c;
++	int i;
++
++	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
++		if (strcmp(console_cmdline[i].name, name) == 0 &&
++			  console_cmdline[i].index == idx) {
++				c = &console_cmdline[i];
++				memcpy(c->name, name_new, sizeof(c->name));
++				c->name[sizeof(c->name) - 1] = 0;
++				c->options = options;
++				c->index = idx_new;
++				return i;
++		}
++	/* not found */
++	return -1;
++}
++
+ #ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
+ /**
+  * suspend_console - suspend the console subsystem
+@@ -942,6 +961,9 @@ void register_console(struct console *co
+ 	if (preferred_console < 0 || bootconsole || !console_drivers)
+ 		preferred_console = selected_console;
+ 
++	if (console->early_setup)
++		console->early_setup();
++
+ 	/*
+ 	 *	See if we want to use this console driver. If we
+ 	 *	didn't select a console we take the first one
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
 origin.patch
-memory-unplug-v7-migration-by-kernel.patch
-memory-unplug-v7-isolate_lru_page-fix.patch
-memory-unplug-v7-memory-hotplug-cleanup.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-ia64-interface.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
+x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
+x86_64-get-mp_bus_to_node-as-early.patch
