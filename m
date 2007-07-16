@@ -1,148 +1,384 @@
 From: akpm@linux-foundation.org
-Subject: - m32r-enable-arbitary-speed-tty-rate-setting.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:52 -0700
-Message-ID: <200707162050.l6GKoqR0001340@imap1.linux-foundation.org>
+Subject: - uml-remove-dead-file.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:51:37 -0700
+Message-ID: <200707162051.l6GKpbQ0001414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40554 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48021 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763028AbXGPVeo (ORCPT
+	by vger.kernel.org with ESMTP id S1763101AbXGPVep (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:34:44 -0400
+	Mon, 16 Jul 2007 17:34:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: enable arbitary speed tty rate setting
+     uml: remove dead file
 has been removed from the -mm tree.  Its filename was
-     m32r-enable-arbitary-speed-tty-rate-setting.patch
+     uml-remove-dead-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m32r: enable arbitary speed tty rate setting
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: uml: remove dead file
+From: Jeff Dike <jdike@addtoit.com>
 
-Add the defines and constants needed for the M32R platform to support the
-arbitary speed tty ioctls.
+I forgot this file was here.  It hasn't been used since UML has been in
+mainline.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Thanks to Jesper for finding something that needed doing to it, thus reminding
+me of its existence.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m32r/ioctls.h   |    4 ++++
- include/asm-m32r/termbits.h |    5 ++++-
- include/asm-m32r/termios.h  |    6 ++++--
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ arch/um/config.release |  333 ---------------------------------------
+ 1 file changed, 333 deletions(-)
 
-diff -puN include/asm-m32r/ioctls.h~m32r-enable-arbitary-speed-tty-rate-setting include/asm-m32r/ioctls.h
---- a/include/asm-m32r/ioctls.h~m32r-enable-arbitary-speed-tty-rate-setting
-+++ a/include/asm-m32r/ioctls.h
-@@ -47,6 +47,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	0x5429  /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
- #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
- #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
- 
-diff -puN include/asm-m32r/termbits.h~m32r-enable-arbitary-speed-tty-rate-setting include/asm-m32r/termbits.h
---- a/include/asm-m32r/termbits.h~m32r-enable-arbitary-speed-tty-rate-setting
-+++ a/include/asm-m32r/termbits.h
-@@ -140,6 +140,7 @@ struct ktermios {
- #define HUPCL	0002000
- #define CLOCAL	0004000
- #define CBAUDEX 0010000
-+#define    BOTHER 0010000
- #define    B57600 0010001
- #define   B115200 0010002
- #define   B230400 0010003
-@@ -155,11 +156,13 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
--#define CIBAUD	  002003600000	/* input baud rate (not used) */
-+#define CIBAUD	  002003600000		/** input baud rate */
- #define CTVB	  004000000000		/* VisioBraille Terminal flow control */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
- 
-+#define	IBSHIFT	16			/* Shift from CBAUD to CIBAUD */
-+
- /* c_lflag bits */
- #define ISIG	0000001
- #define ICANON	0000002
-diff -puN include/asm-m32r/termios.h~m32r-enable-arbitary-speed-tty-rate-setting include/asm-m32r/termios.h
---- a/include/asm-m32r/termios.h~m32r-enable-arbitary-speed-tty-rate-setting
-+++ a/include/asm-m32r/termios.h
-@@ -81,8 +81,10 @@ struct termio {
- 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
- })
- 
--#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
--#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
-+#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
-+#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
-+#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
-+#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
- 
- #endif	/* __KERNEL__ */
- 
+diff -puN arch/um/config.release~uml-remove-dead-file /dev/null
+--- a/arch/um/config.release
++++ /dev/null
+@@ -1,333 +0,0 @@
+-#
+-# Automatically generated make config: don't edit
+-#
+-CONFIG_USERMODE=y
+-# CONFIG_ISA is not set
+-# CONFIG_SBUS is not set
+-# CONFIG_PCI is not set
+-CONFIG_UID16=y
+-CONFIG_RWSEM_XCHGADD_ALGORITHM=y
+-
+-#
+-# Code maturity level options
+-#
+-CONFIG_EXPERIMENTAL=y
+-
+-#
+-# General Setup
+-#
+-CONFIG_STDIO_CONSOLE=y
+-CONFIG_NET=y
+-CONFIG_SYSVIPC=y
+-CONFIG_BSD_PROCESS_ACCT=y
+-CONFIG_SYSCTL=y
+-CONFIG_BINFMT_AOUT=y
+-CONFIG_BINFMT_ELF=y
+-CONFIG_BINFMT_MISC=y
+-CONFIG_UNIX98_PTYS=y
+-CONFIG_UNIX98_PTY_COUNT=256
+-CONFIG_SSL=y
+-CONFIG_HOSTFS=y
+-CONFIG_MCONSOLE=y
+-CONFIG_MAGIC_SYSRQ=y
+-# CONFIG_HOST_2G_2G is not set
+-# CONFIG_UML_SMP is not set
+-# CONFIG_SMP is not set
+-CONFIG_CON_ZERO_CHAN="fd:0,fd:1"
+-CONFIG_CON_CHAN="xterm"
+-CONFIG_SSL_CHAN="pty"
+-CONFIG_NEST_LEVEL=0
+-CONFIG_KERNEL_HALF_GIGS=1
+-
+-#
+-# Loadable module support
+-#
+-CONFIG_MODULES=y
+-CONFIG_KMOD=y
+-
+-#
+-# Devices
+-#
+-CONFIG_BLK_DEV_UBD=y
+-# CONFIG_BLK_DEV_UBD_SYNC is not set
+-CONFIG_BLK_DEV_LOOP=y
+-CONFIG_BLK_DEV_NBD=y
+-CONFIG_BLK_DEV_RAM=y
+-CONFIG_BLK_DEV_RAM_SIZE=4096
+-CONFIG_BLK_DEV_INITRD=y
+-# CONFIG_MMAPPER is not set
+-CONFIG_UML_SOUND=y
+-CONFIG_SOUND=y
+-CONFIG_HOSTAUDIO=y
+-# CONFIG_UML_WATCHDOG is not set
+-# CONFIG_TTY_LOG is not set
+-CONFIG_FD_CHAN=y
+-# CONFIG_NULL_CHAN is not set
+-CONFIG_PORT_CHAN=y
+-CONFIG_PTY_CHAN=y
+-CONFIG_TTY_CHAN=y
+-CONFIG_XTERM_CHAN=y
+-
+-#
+-# Networking options
+-#
+-CONFIG_PACKET=y
+-CONFIG_PACKET_MMAP=y
+-# CONFIG_NETLINK_DEV is not set
+-# CONFIG_NETFILTER is not set
+-# CONFIG_FILTER is not set
+-CONFIG_UNIX=y
+-CONFIG_INET=y
+-# CONFIG_IP_MULTICAST is not set
+-# CONFIG_IP_ADVANCED_ROUTER is not set
+-# CONFIG_IP_PNP is not set
+-# CONFIG_NET_IPIP is not set
+-# CONFIG_NET_IPGRE is not set
+-# CONFIG_ARPD is not set
+-# CONFIG_INET_ECN is not set
+-# CONFIG_SYN_COOKIES is not set
+-# CONFIG_IPV6 is not set
+-# CONFIG_KHTTPD is not set
+-# CONFIG_ATM is not set
+-# CONFIG_VLAN_8021Q is not set
+-
+-#
+-#  
+-#
+-# CONFIG_IPX is not set
+-# CONFIG_ATALK is not set
+-# CONFIG_DECNET is not set
+-# CONFIG_BRIDGE is not set
+-# CONFIG_X25 is not set
+-# CONFIG_LAPB is not set
+-# CONFIG_LLC is not set
+-# CONFIG_NET_DIVERT is not set
+-# CONFIG_ECONET is not set
+-# CONFIG_WAN_ROUTER is not set
+-# CONFIG_NET_HW_FLOWCONTROL is not set
+-
+-#
+-# QoS and/or fair queueing
+-#
+-# CONFIG_NET_SCHED is not set
+-
+-#
+-# Network device support
+-#
+-CONFIG_UML_NET=y
+-CONFIG_UML_NET_ETHERTAP=y
+-CONFIG_UML_NET_TUNTAP=y
+-CONFIG_UML_NET_SLIP=y
+-CONFIG_UML_NET_DAEMON=y
+-CONFIG_UML_NET_MCAST=y
+-CONFIG_NETDEVICES=y
+-
+-#
+-# ARCnet devices
+-#
+-# CONFIG_ARCNET is not set
+-CONFIG_DUMMY=y
+-CONFIG_BONDING=m
+-CONFIG_EQUALIZER=m
+-CONFIG_TUN=y
+-# CONFIG_ETHERTAP is not set
+-
+-#
+-# Ethernet (10 or 100Mbit)
+-#
+-# CONFIG_NET_ETHERNET is not set
+-
+-#
+-# Ethernet (1000 Mbit)
+-#
+-# CONFIG_ACENIC is not set
+-# CONFIG_DL2K is not set
+-# CONFIG_MYRI_SBUS is not set
+-# CONFIG_NS83820 is not set
+-# CONFIG_HAMACHI is not set
+-# CONFIG_YELLOWFIN is not set
+-# CONFIG_SK98LIN is not set
+-# CONFIG_FDDI is not set
+-# CONFIG_HIPPI is not set
+-CONFIG_PLIP=m
+-CONFIG_PPP=m
+-CONFIG_PPP_MULTILINK=y
+-# CONFIG_PPP_FILTER is not set
+-# CONFIG_PPP_ASYNC is not set
+-CONFIG_PPP_SYNC_TTY=m
+-CONFIG_PPP_DEFLATE=m
+-CONFIG_PPP_BSDCOMP=m
+-CONFIG_PPPOE=m
+-CONFIG_SLIP=m
+-CONFIG_SLIP_COMPRESSED=y
+-CONFIG_SLIP_SMART=y
+-# CONFIG_SLIP_MODE_SLIP6 is not set
+-
+-#
+-# Wireless LAN (non-hamradio)
+-#
+-# CONFIG_NET_RADIO is not set
+-
+-#
+-# Token Ring devices
+-#
+-# CONFIG_TR is not set
+-# CONFIG_NET_FC is not set
+-# CONFIG_RCPCI is not set
+-CONFIG_SHAPER=m
+-
+-#
+-# Wan interfaces
+-#
+-# CONFIG_WAN is not set
+-
+-#
+-# File systems
+-#
+-CONFIG_QUOTA=y
+-CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
+-CONFIG_REISERFS_FS=m
+-# CONFIG_REISERFS_CHECK is not set
+-# CONFIG_REISERFS_PROC_INFO is not set
+-CONFIG_ADFS_FS=m
+-# CONFIG_ADFS_FS_RW is not set
+-CONFIG_AFFS_FS=m
+-CONFIG_HFS_FS=m
+-CONFIG_BFS_FS=m
+-CONFIG_EXT3_FS=y
+-CONFIG_JBD=y
+-# CONFIG_JBD_DEBUG is not set
+-CONFIG_FAT_FS=y
+-CONFIG_MSDOS_FS=y
+-CONFIG_UMSDOS_FS=y
+-CONFIG_VFAT_FS=y
+-CONFIG_EFS_FS=m
+-# CONFIG_JFFS_FS is not set
+-# CONFIG_JFFS2_FS is not set
+-CONFIG_CRAMFS=m
+-CONFIG_TMPFS=y
+-CONFIG_RAMFS=m
+-CONFIG_ISO9660_FS=y
+-# CONFIG_JOLIET is not set
+-# CONFIG_ZISOFS is not set
+-CONFIG_MINIX_FS=m
+-CONFIG_VXFS_FS=m
+-# CONFIG_NTFS_FS is not set
+-# CONFIG_NTFS_RW is not set
+-CONFIG_HPFS_FS=m
+-CONFIG_PROC_FS=y
+-CONFIG_DEVFS_FS=y
+-CONFIG_DEVFS_MOUNT=y
+-# CONFIG_DEVFS_DEBUG is not set
+-CONFIG_DEVPTS_FS=y
+-CONFIG_QNX4FS_FS=m
+-# CONFIG_QNX4FS_RW is not set
+-CONFIG_ROMFS_FS=m
+-CONFIG_EXT2_FS=y
+-CONFIG_SYSV_FS=m
+-CONFIG_UDF_FS=m
+-CONFIG_UFS_FS=m
+-# CONFIG_UFS_FS_WRITE is not set
+-
+-#
+-# Network File Systems
+-#
+-# CONFIG_CODA_FS is not set
+-# CONFIG_INTERMEZZO_FS is not set
+-CONFIG_NFS_FS=y
+-CONFIG_NFS_V3=y
+-# CONFIG_ROOT_NFS is not set
+-CONFIG_NFSD=y
+-CONFIG_NFSD_V3=y
+-CONFIG_SUNRPC=y
+-CONFIG_LOCKD=y
+-CONFIG_LOCKD_V4=y
+-# CONFIG_SMB_FS is not set
+-# CONFIG_NCP_FS is not set
+-# CONFIG_NCPFS_PACKET_SIGNING is not set
+-# CONFIG_NCPFS_IOCTL_LOCKING is not set
+-# CONFIG_NCPFS_STRONG is not set
+-# CONFIG_NCPFS_NFS_NS is not set
+-# CONFIG_NCPFS_OS2_NS is not set
+-# CONFIG_NCPFS_SMALLDOS is not set
+-# CONFIG_NCPFS_NLS is not set
+-# CONFIG_NCPFS_EXTRAS is not set
+-# CONFIG_ZISOFS_FS is not set
+-CONFIG_ZLIB_FS_INFLATE=m
+-
+-#
+-# Partition Types
+-#
+-# CONFIG_PARTITION_ADVANCED is not set
+-CONFIG_MSDOS_PARTITION=y
+-# CONFIG_SMB_NLS is not set
+-CONFIG_NLS=y
+-
+-#
+-# Native Language Support
+-#
+-CONFIG_NLS_DEFAULT="iso8859-1"
+-# CONFIG_NLS_CODEPAGE_437 is not set
+-# CONFIG_NLS_CODEPAGE_737 is not set
+-# CONFIG_NLS_CODEPAGE_775 is not set
+-# CONFIG_NLS_CODEPAGE_850 is not set
+-# CONFIG_NLS_CODEPAGE_852 is not set
+-# CONFIG_NLS_CODEPAGE_855 is not set
+-# CONFIG_NLS_CODEPAGE_857 is not set
+-# CONFIG_NLS_CODEPAGE_860 is not set
+-# CONFIG_NLS_CODEPAGE_861 is not set
+-# CONFIG_NLS_CODEPAGE_862 is not set
+-# CONFIG_NLS_CODEPAGE_863 is not set
+-# CONFIG_NLS_CODEPAGE_864 is not set
+-# CONFIG_NLS_CODEPAGE_865 is not set
+-# CONFIG_NLS_CODEPAGE_866 is not set
+-# CONFIG_NLS_CODEPAGE_869 is not set
+-# CONFIG_NLS_CODEPAGE_936 is not set
+-# CONFIG_NLS_CODEPAGE_950 is not set
+-# CONFIG_NLS_CODEPAGE_932 is not set
+-# CONFIG_NLS_CODEPAGE_949 is not set
+-# CONFIG_NLS_CODEPAGE_874 is not set
+-# CONFIG_NLS_ISO8859_8 is not set
+-# CONFIG_NLS_CODEPAGE_1250 is not set
+-# CONFIG_NLS_CODEPAGE_1251 is not set
+-# CONFIG_NLS_ISO8859_1 is not set
+-# CONFIG_NLS_ISO8859_2 is not set
+-# CONFIG_NLS_ISO8859_3 is not set
+-# CONFIG_NLS_ISO8859_4 is not set
+-# CONFIG_NLS_ISO8859_5 is not set
+-# CONFIG_NLS_ISO8859_6 is not set
+-# CONFIG_NLS_ISO8859_7 is not set
+-# CONFIG_NLS_ISO8859_9 is not set
+-# CONFIG_NLS_ISO8859_13 is not set
+-# CONFIG_NLS_ISO8859_14 is not set
+-# CONFIG_NLS_ISO8859_15 is not set
+-# CONFIG_NLS_KOI8_R is not set
+-# CONFIG_NLS_KOI8_U is not set
+-# CONFIG_NLS_UTF8 is not set
+-
+-#
+-# Multi-device support (RAID and LVM)
+-#
+-# CONFIG_MD is not set
+-# CONFIG_BLK_DEV_MD is not set
+-# CONFIG_MD_LINEAR is not set
+-# CONFIG_MD_RAID0 is not set
+-# CONFIG_MD_RAID1 is not set
+-# CONFIG_MD_RAID5 is not set
+-# CONFIG_MD_MULTIPATH is not set
+-# CONFIG_BLK_DEV_LVM is not set
+-
+-#
+-# Memory Technology Devices (MTD)
+-#
+-# CONFIG_MTD is not set
+-
+-#
+-# Kernel hacking
+-#
+-# CONFIG_DEBUG_SLAB is not set
+-# CONFIG_DEBUG_INFO is not set
+-# CONFIG_PT_PROXY is not set
+-# CONFIG_GPROF is not set
+-# CONFIG_GCOV is not set
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-powerpc.patch
-git-ia64.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-sb1250-duartc-sb1250-duart-serial-support.patch
-mbcs-remove-lots-of-global-symbols.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
+hostfs-convert-to-new-aops.patch
