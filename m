@@ -1,147 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: - h8300-enable-arbitary-speed-tty-port-setup.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:27 -0700
-Message-ID: <200707162050.l6GKoRYY001315@imap1.linux-foundation.org>
+Subject: - diskquota-32bit-quota-tools-on-64bit-architectures.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:57:14 -0700
+Message-ID: <200707162057.l6GKvEJ7002168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32964 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48655 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763233AbXGPVep (ORCPT
+	by vger.kernel.org with ESMTP id S1763754AbXGPVes (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:34:45 -0400
+	Mon, 16 Jul 2007 17:34:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: vtaras@openvz.org, ak@suse.de, jack@ucw.cz, linux-arch@vger.kernel.org, michal.k.k.piotrowski@gmail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     h8300: enable arbitary speed tty port setup
+     diskquota: 32bit quota tools on 64bit architectures
 has been removed from the -mm tree.  Its filename was
-     h8300-enable-arbitary-speed-tty-port-setup.patch
+     diskquota-32bit-quota-tools-on-64bit-architectures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: h8300: enable arbitary speed tty port setup
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: diskquota: 32bit quota tools on 64bit architectures
+From: Vasily Tarasov <vtaras@openvz.org>
 
-Add the needed constants and defines to activate the new tty code on this
-platform
+OpenVZ Linux kernel team has discovered the problem with 32bit quota tools
+working on 64bit architectures.  In 2.6.10 kernel sys32_quotactl() function
+was replaced by sys_quotactl() with the comment "sys_quotactl seems to be
+32/64bit clean, enable it for 32bit" However this isn't right.  Look at
+if_dqblk structure:
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+struct if_dqblk {
+        __u64 dqb_bhardlimit;
+        __u64 dqb_bsoftlimit;
+        __u64 dqb_curspace;
+        __u64 dqb_ihardlimit;
+        __u64 dqb_isoftlimit;
+        __u64 dqb_curinodes;
+        __u64 dqb_btime;
+        __u64 dqb_itime;
+        __u32 dqb_valid;
+};
+
+For 32 bit quota tools sizeof(if_dqblk) == 0x44.
+But for 64 bit kernel its size is 0x48, 'cause of alignment!
+Thus we got a problem. Attached patch reintroduce sys32_quotactl() function,
+that handles this and related situations.
+
+[michal.k.k.piotrowski@gmail.com: build fix]
+[akpm@linux-foundation.org: Make it link with CONFIG_QUOTA=n]
+Signed-off-by: Vasily Tarasov <vtaras@openvz.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-h8300/ioctls.h   |    4 ++++
- include/asm-h8300/termbits.h |    5 ++++-
- include/asm-h8300/termios.h  |    6 ++++--
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ arch/ia64/ia32/ia32_entry.S  |    2 
+ arch/x86_64/ia32/ia32entry.S |    2 
+ fs/quota.c                   |  118 +++++++++++++++++++++++++++++++++
+ kernel/sys_ni.c              |    1 
+ 4 files changed, 121 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-h8300/ioctls.h~h8300-enable-arbitary-speed-tty-port-setup include/asm-h8300/ioctls.h
---- a/include/asm-h8300/ioctls.h~h8300-enable-arbitary-speed-tty-port-setup
-+++ a/include/asm-h8300/ioctls.h
-@@ -47,6 +47,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	0x5429  /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
- #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
- #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
+diff -puN arch/ia64/ia32/ia32_entry.S~diskquota-32bit-quota-tools-on-64bit-architectures arch/ia64/ia32/ia32_entry.S
+--- a/arch/ia64/ia32/ia32_entry.S~diskquota-32bit-quota-tools-on-64bit-architectures
++++ a/arch/ia64/ia32/ia32_entry.S
+@@ -304,7 +304,7 @@ ia32_syscall_table:
+ 	data8 sys_ni_syscall	/* init_module */
+ 	data8 sys_ni_syscall	/* delete_module */
+ 	data8 sys_ni_syscall	/* get_kernel_syms */  /* 130 */
+-	data8 sys_quotactl
++	data8 sys32_quotactl
+ 	data8 sys_getpgid
+ 	data8 sys_fchdir
+ 	data8 sys_ni_syscall	/* sys_bdflush */
+diff -puN arch/x86_64/ia32/ia32entry.S~diskquota-32bit-quota-tools-on-64bit-architectures arch/x86_64/ia32/ia32entry.S
+--- a/arch/x86_64/ia32/ia32entry.S~diskquota-32bit-quota-tools-on-64bit-architectures
++++ a/arch/x86_64/ia32/ia32entry.S
+@@ -526,7 +526,7 @@ ia32_sys_call_table:
+ 	.quad sys_init_module
+ 	.quad sys_delete_module
+ 	.quad quiet_ni_syscall		/* 130  get_kernel_syms */
+-	.quad sys_quotactl
++	.quad sys32_quotactl
+ 	.quad sys_getpgid
+ 	.quad sys_fchdir
+ 	.quad quiet_ni_syscall	/* bdflush */
+diff -puN fs/quota.c~diskquota-32bit-quota-tools-on-64bit-architectures fs/quota.c
+--- a/fs/quota.c~diskquota-32bit-quota-tools-on-64bit-architectures
++++ a/fs/quota.c
+@@ -10,12 +10,14 @@
+ #include <linux/slab.h>
+ #include <asm/current.h>
+ #include <asm/uaccess.h>
++#include <linux/compat.h>
+ #include <linux/kernel.h>
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+ #include <linux/buffer_head.h>
+ #include <linux/capability.h>
+ #include <linux/quotaops.h>
++#include <linux/types.h>
  
-diff -puN include/asm-h8300/termbits.h~h8300-enable-arbitary-speed-tty-port-setup include/asm-h8300/termbits.h
---- a/include/asm-h8300/termbits.h~h8300-enable-arbitary-speed-tty-port-setup
-+++ a/include/asm-h8300/termbits.h
-@@ -141,6 +141,7 @@ struct ktermios {
- #define HUPCL	0002000
- #define CLOCAL	0004000
- #define CBAUDEX 0010000
-+#define    BOTHER 0010000
- #define    B57600 0010001
- #define   B115200 0010002
- #define   B230400 0010003
-@@ -156,10 +157,12 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
--#define CIBAUD	  002003600000	/* input baud rate (not used) */
-+#define CIBAUD	  002003600000		/* input baud rate */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
+ /* Check validity of generic quotactl commands */
+ static int generic_quotactl_valid(struct super_block *sb, int type, int cmd, qid_t id)
+@@ -384,3 +386,119 @@ asmlinkage long sys_quotactl(unsigned in
  
-+#define IBSHIFT	  16			/* shift from CBAUD to CIBAUD */
+ 	return ret;
+ }
 +
- /* c_lflag bits */
- #define ISIG	0000001
- #define ICANON	0000002
-diff -puN include/asm-h8300/termios.h~h8300-enable-arbitary-speed-tty-port-setup include/asm-h8300/termios.h
---- a/include/asm-h8300/termios.h~h8300-enable-arbitary-speed-tty-port-setup
-+++ a/include/asm-h8300/termios.h
-@@ -82,8 +82,10 @@ struct termio {
- 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
- })
++#if defined(CONFIG_X86_64) || defined(CONFIG_IA64)
++/*
++ * This code works only for 32 bit quota tools over 64 bit OS (x86_64, ia64)
++ * and is necessary due to alignment problems.
++ */
++struct compat_if_dqblk {
++	compat_u64 dqb_bhardlimit;
++	compat_u64 dqb_bsoftlimit;
++	compat_u64 dqb_curspace;
++	compat_u64 dqb_ihardlimit;
++	compat_u64 dqb_isoftlimit;
++	compat_u64 dqb_curinodes;
++	compat_u64 dqb_btime;
++	compat_u64 dqb_itime;
++	compat_uint_t dqb_valid;
++};
++
++/* XFS structures */
++struct compat_fs_qfilestat {
++	compat_u64 dqb_bhardlimit;
++	compat_u64 qfs_nblks;
++	compat_uint_t qfs_nextents;
++};
++
++struct compat_fs_quota_stat {
++	__s8		qs_version;
++	__u16		qs_flags;
++	__s8		qs_pad;
++	struct compat_fs_qfilestat	qs_uquota;
++	struct compat_fs_qfilestat	qs_gquota;
++	compat_uint_t	qs_incoredqs;
++	compat_int_t	qs_btimelimit;
++	compat_int_t	qs_itimelimit;
++	compat_int_t	qs_rtbtimelimit;
++	__u16		qs_bwarnlimit;
++	__u16		qs_iwarnlimit;
++};
++
++asmlinkage long sys32_quotactl(unsigned int cmd, const char __user *special,
++						qid_t id, void __user *addr)
++{
++	unsigned int cmds;
++	struct if_dqblk __user *dqblk;
++	struct compat_if_dqblk __user *compat_dqblk;
++	struct fs_quota_stat __user *fsqstat;
++	struct compat_fs_quota_stat __user *compat_fsqstat;
++	compat_uint_t data;
++	u16 xdata;
++	long ret;
++
++	cmds = cmd >> SUBCMDSHIFT;
++
++	switch (cmds) {
++	case Q_GETQUOTA:
++		dqblk = compat_alloc_user_space(sizeof(struct if_dqblk));
++		compat_dqblk = addr;
++		ret = sys_quotactl(cmd, special, id, dqblk);
++		if (ret)
++			break;
++		if (copy_in_user(compat_dqblk, dqblk, sizeof(*compat_dqblk)) ||
++			get_user(data, &dqblk->dqb_valid) ||
++			put_user(data, &compat_dqblk->dqb_valid))
++			ret = -EFAULT;
++		break;
++	case Q_SETQUOTA:
++		dqblk = compat_alloc_user_space(sizeof(struct if_dqblk));
++		compat_dqblk = addr;
++		ret = -EFAULT;
++		if (copy_in_user(dqblk, compat_dqblk, sizeof(*compat_dqblk)) ||
++			get_user(data, &compat_dqblk->dqb_valid) ||
++			put_user(data, &dqblk->dqb_valid))
++			break;
++		ret = sys_quotactl(cmd, special, id, dqblk);
++		break;
++	case Q_XGETQSTAT:
++		fsqstat = compat_alloc_user_space(sizeof(struct fs_quota_stat));
++		compat_fsqstat = addr;
++		ret = sys_quotactl(cmd, special, id, fsqstat);
++		if (ret)
++			break;
++		ret = -EFAULT;
++		/* Copying qs_version, qs_flags, qs_pad */
++		if (copy_in_user(compat_fsqstat, fsqstat,
++			offsetof(struct compat_fs_quota_stat, qs_uquota)))
++			break;
++		/* Copying qs_uquota */
++		if (copy_in_user(&compat_fsqstat->qs_uquota,
++			&fsqstat->qs_uquota,
++			sizeof(compat_fsqstat->qs_uquota)) ||
++			get_user(data, &fsqstat->qs_uquota.qfs_nextents) ||
++			put_user(data, &compat_fsqstat->qs_uquota.qfs_nextents))
++			break;
++		/* Copying qs_gquota */
++		if (copy_in_user(&compat_fsqstat->qs_gquota,
++			&fsqstat->qs_gquota,
++			sizeof(compat_fsqstat->qs_gquota)) ||
++			get_user(data, &fsqstat->qs_gquota.qfs_nextents) ||
++			put_user(data, &compat_fsqstat->qs_gquota.qfs_nextents))
++			break;
++		/* Copying the rest */
++		if (copy_in_user(&compat_fsqstat->qs_incoredqs,
++			&fsqstat->qs_incoredqs,
++			sizeof(struct compat_fs_quota_stat) -
++			offsetof(struct compat_fs_quota_stat, qs_incoredqs)) ||
++			get_user(xdata, &fsqstat->qs_iwarnlimit) ||
++			put_user(xdata, &compat_fsqstat->qs_iwarnlimit))
++			break;
++		ret = 0;
++		break;
++	default:
++		ret = sys_quotactl(cmd, special, id, addr);
++	}
++	return ret;
++}
++#endif
+diff -puN kernel/sys_ni.c~diskquota-32bit-quota-tools-on-64bit-architectures kernel/sys_ni.c
+--- a/kernel/sys_ni.c~diskquota-32bit-quota-tools-on-64bit-architectures
++++ a/kernel/sys_ni.c
+@@ -14,6 +14,7 @@ asmlinkage long sys_ni_syscall(void)
  
--#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
--#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
-+#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
-+#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
-+#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
-+#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
- 
- #endif	/* __KERNEL__ */
- 
+ cond_syscall(sys_nfsservctl);
+ cond_syscall(sys_quotactl);
++cond_syscall(sys32_quotactl);
+ cond_syscall(sys_acct);
+ cond_syscall(sys_lookup_dcookie);
+ cond_syscall(sys_swapon);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from vtaras@openvz.org are
 
 origin.patch
-git-powerpc.patch
-git-ia64.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-sb1250-duartc-sb1250-duart-serial-support.patch
-mbcs-remove-lots-of-global-symbols.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
