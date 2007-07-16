@@ -1,63 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - isapnp-remove-pointless-check-of-type-against-0-in-isapnp_read_tag.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:59:25 -0700
-Message-ID: <200707162059.l6GKxPee002427@imap1.linux-foundation.org>
+Subject: - char-mxser_new-fix-sparse-warning.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:54:54 -0700
+Message-ID: <200707162054.l6GKssVk001860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53724 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38868 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754186AbXGPVGy (ORCPT
+	by vger.kernel.org with ESMTP id S1757196AbXGPVGy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 16 Jul 2007 17:06:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isapnp: remove pointless check of 'type' against 0 in isapnp_read_tag()
+     Char: mxser_new, fix sparse warning
 has been removed from the -mm tree.  Its filename was
-     isapnp-remove-pointless-check-of-type-against-0-in-isapnp_read_tag.patch
+     char-mxser_new-fix-sparse-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: isapnp: remove pointless check of 'type' against 0 in isapnp_read_tag()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: Char: mxser_new, fix sparse warning
+From: Jiri Slaby <jirislaby@gmail.com>
 
-In drivers/pnp/isapnp/core.c::isapnp_read_tag() there is a test of 'type'
-being == 0 a bit down in the function.  That test doesn't make any sense. 
-If 'type' could indeed be NULL, then the test happens way too late as we'd
-already have tried to dereference the pointer earlier and looking at the
-callers it also turns out that there is no way type can ever actually be
-NULL.
-
-So the test is completely pointless and should just be removed.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/isapnp/core.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/char/mxser_new.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pnp/isapnp/core.c~isapnp-remove-pointless-check-of-type-against-0-in-isapnp_read_tag drivers/pnp/isapnp/core.c
---- a/drivers/pnp/isapnp/core.c~isapnp-remove-pointless-check-of-type-against-0-in-isapnp_read_tag
-+++ a/drivers/pnp/isapnp/core.c
-@@ -370,8 +370,6 @@ static int __init isapnp_read_tag(unsign
- #if 0
- 	printk(KERN_DEBUG "tag = 0x%x, type = 0x%x, size = %i\n", tag, *type, *size);
- #endif
--	if (type == 0)				/* wrong type */
--		return -1;
- 	if (*type == 0xff && *size == 0xffff)	/* probably invalid data */
- 		return -1;
- 	return 0;
+diff -puN drivers/char/mxser_new.c~char-mxser_new-fix-sparse-warning drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-fix-sparse-warning
++++ a/drivers/char/mxser_new.c
+@@ -1560,7 +1560,7 @@ static int mxser_ioctl_special(unsigned 
+ 			return -EFAULT;
+ 		return 0;
+ 	case MOXA_ASPP_MON_EXT: {
+-		int status, p, shiftbit;
++		int p, shiftbit;
+ 		unsigned long opmode;
+ 		unsigned cflag, iflag;
+ 
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-git-mtd.patch
-remove-unneeded-test-of-task-in-dump_trace.patch
-git-xfs.patch
+char-cyclades-add-firmware-loading.patch
+char-cyclades-fix-sparse-warning.patch
+char-isicom-cleanup-locking.patch
+char-isicom-del_timer-at-exit.patch
+char-isicom-proper-variables-types.patch
+char-moxa-eliminate-busy-waiting.patch
+char-specialix-remove-busy-waiting.patch
+char-riscom8-eliminate-busy-loop.patch
+char-vt-use-kzalloc.patch
+char-vt-use-array_size.patch
+char-kconfig-mxser_new-remove-experimental-comment.patch
+char-stallion-remove-user-class-report-request.patch
+char-istallion-initlocking-fixes-try-2.patch
+stallion-remove-unneeded-lock_kernel.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+shrink_slab-handle-bad-shrinkers.patch
