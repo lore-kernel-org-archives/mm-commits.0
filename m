@@ -1,175 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - uml-handle-errors-on-opening-host-side-of-consoles.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:51:19 -0700
-Message-ID: <200707162051.l6GKpJtA001390@imap1.linux-foundation.org>
+Subject: - make-crypto-api-use-seq_list_xxx-helpers.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:53:39 -0700
+Message-ID: <200707162053.l6GKrdoT001664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49348 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40463 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757769AbXGPVd6 (ORCPT
+	by vger.kernel.org with ESMTP id S1759474AbXGPVeB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:33:58 -0400
+	Mon, 16 Jul 2007 17:34:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: xemul@sw.ru, herbert@gondor.apana.org.au, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: handle errors on opening host side of consoles
+     Make crypto API use seq_list_xxx helpers
 has been removed from the -mm tree.  Its filename was
-     uml-handle-errors-on-opening-host-side-of-consoles.patch
+     make-crypto-api-use-seq_list_xxx-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: handle errors on opening host side of consoles
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Make crypto API use seq_list_xxx helpers
+From: Pavel Emelianov <xemul@sw.ru>
 
-If the host side of a console can't be opened, this will now produce visible
-error messages.
+Simple and stupid - just use the same code from another place in the kernel.
 
-enable_chan now returns a status and this is passed up to con_open and
-ssl_open, which will complain if anything went wrong.
-
-The default host device for the serial line driver is now a pts device rather
-than a pty device since lots of hosts have LEGACY_PTYS disabled.  This had
-always been failing on such hosts, but silently.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: Pavel Emelianov <xemul@openvz.org>
+Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/defconfig               |    2 +-
- arch/um/drivers/chan_kern.c     |   23 +++++++++++++++++++----
- arch/um/drivers/line.c          |    5 ++++-
- arch/um/drivers/ssl.c           |    8 +++++++-
- arch/um/drivers/stdio_console.c |    7 ++++++-
- arch/um/include/chan_kern.h     |    2 +-
- 6 files changed, 38 insertions(+), 9 deletions(-)
+ crypto/proc.c |   17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN arch/um/defconfig~uml-handle-errors-on-opening-host-side-of-consoles arch/um/defconfig
---- a/arch/um/defconfig~uml-handle-errors-on-opening-host-side-of-consoles
-+++ a/arch/um/defconfig
-@@ -189,7 +189,7 @@ CONFIG_XTERM_CHAN=y
- # CONFIG_NOCONFIG_CHAN is not set
- CONFIG_CON_ZERO_CHAN="fd:0,fd:1"
- CONFIG_CON_CHAN="xterm"
--CONFIG_SSL_CHAN="pty"
-+CONFIG_SSL_CHAN="pts"
- CONFIG_UNIX98_PTYS=y
- CONFIG_LEGACY_PTYS=y
- CONFIG_LEGACY_PTY_COUNT=256
-diff -puN arch/um/drivers/chan_kern.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/chan_kern.c
---- a/arch/um/drivers/chan_kern.c~uml-handle-errors-on-opening-host-side-of-consoles
-+++ a/arch/um/drivers/chan_kern.c
-@@ -203,22 +203,37 @@ void chan_enable_winch(struct list_head 
- 	}
- }
+diff -puN crypto/proc.c~make-crypto-api-use-seq_list_xxx-helpers crypto/proc.c
+--- a/crypto/proc.c~make-crypto-api-use-seq_list_xxx-helpers
++++ a/crypto/proc.c
+@@ -23,24 +23,13 @@
  
--void enable_chan(struct line *line)
-+int enable_chan(struct line *line)
+ static void *c_start(struct seq_file *m, loff_t *pos)
  {
- 	struct list_head *ele;
- 	struct chan *chan;
-+	int err;
- 
- 	list_for_each(ele, &line->chan_list){
- 		chan = list_entry(ele, struct chan, list);
--		if(open_one_chan(chan))
-+		err = open_one_chan(chan);
-+		if (err) {
-+			if (chan->primary)
-+				goto out_close;
-+
- 			continue;
-+		}
- 
- 		if(chan->enabled)
- 			continue;
--		line_setup_irq(chan->fd, chan->input, chan->output, line,
--			       chan);
-+		err = line_setup_irq(chan->fd, chan->input, chan->output, line,
-+				     chan);
-+		if (err)
-+			goto out_close;
-+
- 		chan->enabled = 1;
- 	}
-+
-+	return 0;
-+
-+ out_close:
-+	close_chan(&line->chan_list, 0);
-+	return err;
+-	struct list_head *v;
+-	loff_t n = *pos;
+-
+ 	down_read(&crypto_alg_sem);
+-	list_for_each(v, &crypto_alg_list)
+-		if (!n--)
+-			return list_entry(v, struct crypto_alg, cra_list);
+-	return NULL;
++	return seq_list_start(&crypto_alg_list, *pos);
  }
  
- /* Items are added in IRQ context, when free_irq can't be called, and
-diff -puN arch/um/drivers/line.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-handle-errors-on-opening-host-side-of-consoles
-+++ a/arch/um/drivers/line.c
-@@ -454,7 +454,10 @@ int line_open(struct line *lines, struct
- 	tty->driver_data = line;
- 	line->tty = tty;
- 
--	enable_chan(line);
-+	err = enable_chan(line);
-+	if (err)
-+		return err;
-+
- 	INIT_DELAYED_WORK(&line->task, line_timer_cb);
- 
- 	if(!line->sigio){
-diff -puN arch/um/drivers/ssl.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/ssl.c
---- a/arch/um/drivers/ssl.c~uml-handle-errors-on-opening-host-side-of-consoles
-+++ a/arch/um/drivers/ssl.c
-@@ -97,7 +97,13 @@ static int ssl_remove(int n, char **erro
- 
- static int ssl_open(struct tty_struct *tty, struct file *filp)
+ static void *c_next(struct seq_file *m, void *p, loff_t *pos)
  {
--	return line_open(serial_lines, tty);
-+	int err = line_open(serial_lines, tty);
-+
-+	if (err)
-+		printk(KERN_ERR "Failed to open serial line %d, err = %d\n",
-+		       tty->index, err);
-+
-+	return err;
+-	struct list_head *v = p;
+-	
+-	(*pos)++;
+-	v = v->next;
+-	return (v == &crypto_alg_list) ?
+-		NULL : list_entry(v, struct crypto_alg, cra_list);
++	return seq_list_next(p, &crypto_alg_list, pos);
  }
  
- #if 0
-diff -puN arch/um/drivers/stdio_console.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/stdio_console.c
---- a/arch/um/drivers/stdio_console.c~uml-handle-errors-on-opening-host-side-of-consoles
-+++ a/arch/um/drivers/stdio_console.c
-@@ -99,7 +99,12 @@ static int con_remove(int n, char **erro
+ static void c_stop(struct seq_file *m, void *p)
+@@ -50,7 +39,7 @@ static void c_stop(struct seq_file *m, v
  
- static int con_open(struct tty_struct *tty, struct file *filp)
+ static int c_show(struct seq_file *m, void *p)
  {
--	return line_open(vts, tty);
-+	int err = line_open(vts, tty);
-+	if (err)
-+		printk(KERN_ERR "Failed to open console %d, err = %d\n",
-+		       tty->index, err);
-+
-+	return err;
- }
- 
- /* Set in an initcall, checked in an exitcall */
-diff -puN arch/um/include/chan_kern.h~uml-handle-errors-on-opening-host-side-of-consoles arch/um/include/chan_kern.h
---- a/arch/um/include/chan_kern.h~uml-handle-errors-on-opening-host-side-of-consoles
-+++ a/arch/um/include/chan_kern.h
-@@ -40,7 +40,7 @@ extern int console_open_chan(struct line
- extern void deactivate_chan(struct list_head *chans, int irq);
- extern void reactivate_chan(struct list_head *chans, int irq);
- extern void chan_enable_winch(struct list_head *chans, struct tty_struct *tty);
--extern void enable_chan(struct line *line);
-+extern int enable_chan(struct line *line);
- extern void close_chan(struct list_head *chans, int delay_free_irq);
- extern int chan_window_size(struct list_head *chans, 
- 			     unsigned short *rows_out, 
+-	struct crypto_alg *alg = (struct crypto_alg *)p;
++	struct crypto_alg *alg = list_entry(p, struct crypto_alg, cra_list);
+ 	
+ 	seq_printf(m, "name         : %s\n", alg->cra_name);
+ 	seq_printf(m, "driver       : %s\n", alg->cra_driver_name);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from xemul@sw.ru are
 
 origin.patch
-hostfs-convert-to-new-aops.patch
+make-input-layer-use-seq_list_xxx-helpers.patch
+make-isdn-capi-use-seq_list_xxx-helpers.patch
