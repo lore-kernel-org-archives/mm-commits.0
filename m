@@ -1,194 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutexes-instead-of-semaphores-in-i2o-driver.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:24 -0700
-Message-ID: <200707162053.l6GKrOMX001623@imap1.linux-foundation.org>
+Subject: - intel-rng-undo-mess-made-by-an-80-column-extremist.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:56:25 -0700
+Message-ID: <200707162056.l6GKuP2Q002091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54102 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54921 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759554AbXGPVVC (ORCPT
+	by vger.kernel.org with ESMTP id S1760252AbXGPVVE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:21:02 -0400
+	Mon, 16 Jul 2007 17:21:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use mutexes instead of semaphores in I2O driver
+     intel-rng: undo mess made by an 80 column extremist
 has been removed from the -mm tree.  Its filename was
-     use-mutexes-instead-of-semaphores-in-i2o-driver.patch
+     intel-rng-undo-mess-made-by-an-80-column-extremist.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use mutexes instead of semaphores in I2O driver
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: intel-rng: undo mess made by an 80 column extremist
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The I2O driver uses two semaphores as mutexes.  Use the mutex API instead of
-the (binary) semaphores.
+The intel-rng printed a nice well formatted message when the port was
+disabled.  Someone then came along and blindly trashed it by screwing up a
+trim down to 80 columns.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Put it back into the right format and keep the overlong lines as the result
+is also MUCH easier to read in this specific case.
+
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Acked-by: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/device.c   |   16 ++++++++--------
- drivers/message/i2o/exec-osm.c |    4 ++--
- drivers/message/i2o/iop.c      |    2 +-
- include/linux/i2o.h            |    5 +++--
- 4 files changed, 14 insertions(+), 13 deletions(-)
+ drivers/char/hw_random/intel-rng.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/message/i2o/device.c~use-mutexes-instead-of-semaphores-in-i2o-driver drivers/message/i2o/device.c
---- a/drivers/message/i2o/device.c~use-mutexes-instead-of-semaphores-in-i2o-driver
-+++ a/drivers/message/i2o/device.c
-@@ -62,7 +62,7 @@ int i2o_device_claim(struct i2o_device *
- {
- 	int rc = 0;
+diff -puN drivers/char/hw_random/intel-rng.c~intel-rng-undo-mess-made-by-an-80-column-extremist drivers/char/hw_random/intel-rng.c
+--- a/drivers/char/hw_random/intel-rng.c~intel-rng-undo-mess-made-by-an-80-column-extremist
++++ a/drivers/char/hw_random/intel-rng.c
+@@ -296,12 +296,10 @@ static int __init intel_init_hw_struct(s
+ 	     (BIOS_CNTL_LOCK_ENABLE_MASK|BIOS_CNTL_WRITE_ENABLE_MASK))
+ 	    == BIOS_CNTL_LOCK_ENABLE_MASK) {
+ 		static __initdata /*const*/ char warning[] =
+-			KERN_WARNING PFX "Firmware space is locked read-only. "
+-			KERN_WARNING PFX "If you can't or\n don't want to "
+-			KERN_WARNING PFX "disable this in firmware setup, and "
+-			KERN_WARNING PFX "if\n you are certain that your "
+-			KERN_WARNING PFX "system has a functional\n RNG, try"
+-			KERN_WARNING PFX "using the 'no_fwh_detect' option.\n";
++			KERN_WARNING PFX "Firmware space is locked read-only. If you can't or\n"
++			KERN_WARNING PFX "don't want to disable this in firmware setup, and if\n"
++			KERN_WARNING PFX "you are certain that your system has a functional\n"
++			KERN_WARNING PFX "RNG, try using the 'no_fwh_detect' option.\n";
  
--	down(&dev->lock);
-+	mutex_lock(&dev->lock);
- 
- 	rc = i2o_device_issue_claim(dev, I2O_CMD_UTIL_CLAIM, I2O_CLAIM_PRIMARY);
- 	if (!rc)
-@@ -72,7 +72,7 @@ int i2o_device_claim(struct i2o_device *
- 		pr_debug("i2o: claim of device %d failed %d\n",
- 			 dev->lct_data.tid, rc);
- 
--	up(&dev->lock);
-+	mutex_unlock(&dev->lock);
- 
- 	return rc;
- }
-@@ -96,7 +96,7 @@ int i2o_device_claim_release(struct i2o_
- 	int tries;
- 	int rc = 0;
- 
--	down(&dev->lock);
-+	mutex_lock(&dev->lock);
- 
- 	/*
- 	 *      If the controller takes a nonblocking approach to
-@@ -118,7 +118,7 @@ int i2o_device_claim_release(struct i2o_
- 		pr_debug("i2o: claim release of device %d failed %d\n",
- 			 dev->lct_data.tid, rc);
- 
--	up(&dev->lock);
-+	mutex_unlock(&dev->lock);
- 
- 	return rc;
- }
-@@ -198,7 +198,7 @@ static struct i2o_device *i2o_device_all
- 		return ERR_PTR(-ENOMEM);
- 
- 	INIT_LIST_HEAD(&dev->list);
--	init_MUTEX(&dev->lock);
-+	mutex_init(&dev->lock);
- 
- 	dev->device.bus = &i2o_bus_type;
- 	dev->device.release = &i2o_device_release;
-@@ -326,7 +326,7 @@ int i2o_device_parse_lct(struct i2o_cont
- 	u16 table_size;
- 	u32 buf;
- 
--	down(&c->lct_lock);
-+	mutex_lock(&c->lct_lock);
- 
- 	kfree(c->lct);
- 
-@@ -335,7 +335,7 @@ int i2o_device_parse_lct(struct i2o_cont
- 
- 	lct = c->lct = kmalloc(table_size * 4, GFP_KERNEL);
- 	if (!lct) {
--		up(&c->lct_lock);
-+		mutex_unlock(&c->lct_lock);
- 		return -ENOMEM;
- 	}
- 
-@@ -408,7 +408,7 @@ int i2o_device_parse_lct(struct i2o_cont
- 			i2o_device_remove(dev);
- 	}
- 
--	up(&c->lct_lock);
-+	mutex_unlock(&c->lct_lock);
- 
- 	return 0;
- }
-diff -puN drivers/message/i2o/exec-osm.c~use-mutexes-instead-of-semaphores-in-i2o-driver drivers/message/i2o/exec-osm.c
---- a/drivers/message/i2o/exec-osm.c~use-mutexes-instead-of-semaphores-in-i2o-driver
-+++ a/drivers/message/i2o/exec-osm.c
-@@ -537,7 +537,7 @@ static int i2o_exec_lct_notify(struct i2
- 	struct device *dev;
- 	struct i2o_message *msg;
- 
--	down(&c->lct_lock);
-+	mutex_lock(&c->lct_lock);
- 
- 	dev = &c->pdev->dev;
- 
-@@ -561,7 +561,7 @@ static int i2o_exec_lct_notify(struct i2
- 
- 	i2o_msg_post(c, msg);
- 
--	up(&c->lct_lock);
-+	mutex_unlock(&c->lct_lock);
- 
- 	return 0;
- };
-diff -puN drivers/message/i2o/iop.c~use-mutexes-instead-of-semaphores-in-i2o-driver drivers/message/i2o/iop.c
---- a/drivers/message/i2o/iop.c~use-mutexes-instead-of-semaphores-in-i2o-driver
-+++ a/drivers/message/i2o/iop.c
-@@ -1067,7 +1067,7 @@ struct i2o_controller *i2o_iop_alloc(voi
- 
- 	INIT_LIST_HEAD(&c->devices);
- 	spin_lock_init(&c->lock);
--	init_MUTEX(&c->lct_lock);
-+	mutex_init(&c->lct_lock);
- 
- 	device_initialize(&c->device);
- 
-diff -puN include/linux/i2o.h~use-mutexes-instead-of-semaphores-in-i2o-driver include/linux/i2o.h
---- a/include/linux/i2o.h~use-mutexes-instead-of-semaphores-in-i2o-driver
-+++ a/include/linux/i2o.h
-@@ -31,6 +31,7 @@
- #include <linux/slab.h>
- #include <linux/workqueue.h>	/* work_struct */
- #include <linux/mempool.h>
-+#include <linux/mutex.h>
- 
- #include <asm/io.h>
- #include <asm/semaphore.h>	/* Needed for MUTEX init macros */
-@@ -425,7 +426,7 @@ struct i2o_device {
- 
- 	struct device device;
- 
--	struct semaphore lock;	/* device lock */
-+	struct mutex lock;	/* device lock */
- };
- 
- /*
-@@ -544,7 +545,7 @@ struct i2o_controller {
- 	struct i2o_dma hrt;	/* HW Resource Table */
- 	i2o_lct *lct;		/* Logical Config Table */
- 	struct i2o_dma dlct;	/* Temp LCT */
--	struct semaphore lct_lock;	/* Lock for LCT updates */
-+	struct mutex lct_lock;	/* Lock for LCT updates */
- 	struct i2o_dma status_block;	/* IOP status block */
- 
- 	struct i2o_io base;	/* controller messaging unit */
+ 		if (no_fwh_detect)
+ 			return -ENODEV;
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-kcopyd-use-mutex-instead-of-semaphore.patch
-git-dvb.patch
-git-mtd.patch
-videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
-use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
-use-mutex-instead-of-semaphore-in-the-elan-u132-adapter-driver.patch
-use-mutex-instead-of-semaphore-in-the-adutux-driver.patch
-use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver.patch
-use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
-use-mutex-instead-of-semaphore-in-spi-core-init-code.patch
-use-mutex-instead-of-semaphore-in-capi-20-driver.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
+git-powerpc.patch
+git-ia64.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+ata-use-iomap_name.patch
+sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+sb1250-duartc-sb1250-duart-serial-support.patch
+mbcs-remove-lots-of-global-symbols.patch
+i2o_cfg_passthru-cleanup.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+stallion-remove-unneeded-lock_kernel.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
+drivers-edac-fix-edac_device-semaphore-to-mutex.patch
+drivers-edac-fix-e752x-reversed-csrows.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-fix-leaf-sysfs-attribute.patch
+drivers-edac-fix-edac_mc-init-apis.patch
+drivers-edac-fix-edac_device-init-apis.patch
+drivers-edac-fix-edac_mc-sysfs-completion-code.patch
+drivers-edac-fix-edac_device-sysfs-completion-code.patch
