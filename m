@@ -1,130 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - adjust-nosmp-handling.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:57:00 -0700
-Message-ID: <200707162057.l6GKv09B002139@imap1.linux-foundation.org>
+Subject: - add-printktime-option-deprecate-time.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:55:19 -0700
+Message-ID: <200707162055.l6GKtJXN001903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47652 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50441 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758560AbXGPVJx (ORCPT
+	by vger.kernel.org with ESMTP id S1757642AbXGPVK1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:09:53 -0400
+	Mon, 16 Jul 2007 17:10:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     adjust nosmp handling
+     add printk.time option, deprecate 'time'
 has been removed from the -mm tree.  Its filename was
-     adjust-nosmp-handling.patch
+     add-printktime-option-deprecate-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: adjust nosmp handling
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: add printk.time option, deprecate 'time'
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Especially when !CONFIG_HOTPLUG_CPU, avoid needlessy allocating resources for
-CPUs that can never become available.
+Allow printk_time to be enabled or disabled at boot time.  Previously it
+could be enabled only, but not disabled.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Change printk_time from an int to a bool since that's what it is.  Make its
+logical (exposed) name just be "time" (was "printk_time").
+
+Note: Changes kernel boot option syntax from "time" to "printk.time=value".
+
+Since printk_time is declared as a module_param, it can also be
+changed at run-time by modifying
+  /sys/module/printk/parameters/time
+to a value of 1/Y/y to enabled it or 0/N/n to disable it.
+
+Since printk_time is declared as a module_param, its value can also
+be set at boot-time by using
+  linux printk.time=<bool>
+
+If the "time" boot option is used, print a message that it is deprecated
+and will be removed.
+
+Note its planned removal in feature-removal-schedule.txt.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |   42 +++++++++++++++++++++++++++---------------
- 1 file changed, 27 insertions(+), 15 deletions(-)
+ Documentation/feature-removal-schedule.txt |    8 ++++++++
+ Documentation/kernel-parameters.txt        |    4 ++++
+ kernel/printk.c                            |    5 ++++-
+ 3 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN init/main.c~adjust-nosmp-handling init/main.c
---- a/init/main.c~adjust-nosmp-handling
-+++ a/init/main.c
-@@ -132,20 +132,9 @@ static char *static_command_line;
- static char *execute_command;
- static char *ramdisk_execute_command;
+diff -puN Documentation/feature-removal-schedule.txt~add-printktime-option-deprecate-time Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~add-printktime-option-deprecate-time
++++ a/Documentation/feature-removal-schedule.txt
+@@ -257,6 +257,14 @@ Who:	Jean Delvare <khali@linux-fr.org>
  
-+#ifdef CONFIG_SMP
- /* Setup configured maximum number of CPUs to activate */
--static unsigned int max_cpus = NR_CPUS;
--
--/*
-- * If set, this is an indication to the drivers that reset the underlying
-- * device before going ahead with the initialization otherwise driver might
-- * rely on the BIOS and skip the reset operation.
-- *
-- * This is useful if kernel is booting in an unreliable environment.
-- * For ex. kdump situaiton where previous kernel has crashed, BIOS has been
-- * skipped and devices will be in unknown state.
-- */
--unsigned int reset_devices;
--EXPORT_SYMBOL(reset_devices);
-+static unsigned int __initdata max_cpus = NR_CPUS;
+ ---------------------------
  
- /*
-  * Setup routine for controlling SMP activation
-@@ -160,10 +149,10 @@ EXPORT_SYMBOL(reset_devices);
- static int __init nosmp(char *str)
- {
- 	max_cpus = 0;
--	return 1;
-+	return 0;
- }
- 
--__setup("nosmp", nosmp);
-+early_param("nosmp", nosmp);
- 
- static int __init maxcpus(char *str)
- {
-@@ -172,6 +161,21 @@ static int __init maxcpus(char *str)
- }
- 
- __setup("maxcpus=", maxcpus);
-+#else
-+#define max_cpus NR_CPUS
-+#endif
++What:	'time' kernel boot parameter
++When:	January 2008
++Why:	replaced by 'printk.time=<value>' so that printk timestamps can be
++	enabled or disabled as needed
++Who:	Randy Dunlap <randy.dunlap@oracle.com>
 +
-+/*
-+ * If set, this is an indication to the drivers that reset the underlying
-+ * device before going ahead with the initialization otherwise driver might
-+ * rely on the BIOS and skip the reset operation.
-+ *
-+ * This is useful if kernel is booting in an unreliable environment.
-+ * For ex. kdump situaiton where previous kernel has crashed, BIOS has been
-+ * skipped and devices will be in unknown state.
-+ */
-+unsigned int reset_devices;
-+EXPORT_SYMBOL(reset_devices);
- 
- static int __init set_reset_devices(char *str)
- {
-@@ -385,6 +389,10 @@ static void __init smp_init(void)
- {
- 	unsigned int cpu;
- 
-+#ifndef CONFIG_HOTPLUG_CPU
-+	cpu_possible_map = cpu_present_map;
-+#endif
++---------------------------
 +
- 	/* FIXME: This should be done in userspace --RR */
- 	for_each_present_cpu(cpu) {
- 		if (num_online_cpus() >= max_cpus)
-@@ -529,6 +537,10 @@ asmlinkage void __init start_kernel(void
- 	setup_arch(&command_line);
- 	setup_command_line(command_line);
- 	unwind_setup();
-+#ifndef CONFIG_HOTPLUG_CPU
-+	if (max_cpus < 2)
-+		cpu_possible_map = cpu_online_map;
-+#endif
- 	setup_per_cpu_areas();
- 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
+ What:  drivers depending on OSS_OBSOLETE
+ When:  options in 2.6.23, code in 2.6.25
+ Why:   obsolete OSS drivers
+diff -puN Documentation/kernel-parameters.txt~add-printktime-option-deprecate-time Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~add-printktime-option-deprecate-time
++++ a/Documentation/kernel-parameters.txt
+@@ -1389,6 +1389,9 @@ and is between 256 and 4096 characters. 
+ 			the kernel console.
+ 			default: off.
+ 
++	printk.time=	Show timing data prefixed to each printk message line
++			Format: <bool>  (1/Y/y=enable, 0/N/n=disable)
++
+ 	profile=	[KNL] Enable kernel profiling via /proc/profile
+ 			Format: [schedule,]<number>
+ 			Param: "schedule" - profile schedule points.
+@@ -1824,6 +1827,7 @@ and is between 256 and 4096 characters. 
+ 			Set number of hash buckets for TCP connection
+ 
+ 	time		Show timing data prefixed to each printk message line
++			[deprecated, see 'printk.time']
+ 
+ 	tipar.timeout=	[HW,PPT]
+ 			Set communications timeout in tenths of a second
+diff -puN kernel/printk.c~add-printktime-option-deprecate-time kernel/printk.c
+--- a/kernel/printk.c~add-printktime-option-deprecate-time
++++ a/kernel/printk.c
+@@ -449,13 +449,16 @@ static int printk_time = 1;
+ #else
+ static int printk_time = 0;
+ #endif
+-module_param(printk_time, int, S_IRUGO | S_IWUSR);
++module_param_named(time, printk_time, bool, S_IRUGO | S_IWUSR);
+ 
+ static int __init printk_time_setup(char *str)
+ {
+ 	if (*str)
+ 		return 0;
+ 	printk_time = 1;
++	printk(KERN_NOTICE "The 'time' option is deprecated and "
++		"is scheduled for removal in early 2008\n");
++	printk(KERN_NOTICE "Use 'printk.time=<value>' instead\n");
+ 	return 1;
+ }
  
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-modpost-white-list-pattern-adjustment.patch
-more-fix-x86_64-mm-xen-xen-smp-guest-support.patch
-i386-minor-nx-handling-adjustment.patch
-x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch
-x86-64-remove-unused-variable-maxcpus.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-mtd.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+kernel-doc-add-tools-doc-in-makefile.patch
+kernel-doc-fix-unnamed-struct-union-warning.patch
+kernel-doc-strip-c99-comments.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+docbook-dont-reference-file-without-kernel-doc.patch
+profile-likely-unlikely-macros.patch
