@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: - sprint_symbol-cleanup.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:57:54 -0700
-Message-ID: <200707162057.l6GKvs9D002236@imap1.linux-foundation.org>
+Subject: - dirty_writeback_centisecs_handler-cleanup.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:56:53 -0700
+Message-ID: <200707162056.l6GKurEs002130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53864 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48354 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753895AbXGPVE6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754266AbXGPVE6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 16 Jul 2007 17:04:58 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6GL4t2x018235
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6GL4t31018235
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
 	for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2007 14:04:57 -0700
 Sender: mm-commits-owner@vger.kernel.org
@@ -19,46 +19,47 @@ To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sprint_symbol() cleanup
+     dirty_writeback_centisecs_handler() cleanup
 has been removed from the -mm tree.  Its filename was
-     sprint_symbol-cleanup.patch
+     dirty_writeback_centisecs_handler-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sprint_symbol() cleanup
+Subject: dirty_writeback_centisecs_handler() cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove pointless `else'.
+Repair indenting bustage.
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/page-writeback.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN kernel/kallsyms.c~sprint_symbol-cleanup kernel/kallsyms.c
---- a/kernel/kallsyms.c~sprint_symbol-cleanup
-+++ a/kernel/kallsyms.c
-@@ -317,13 +317,12 @@ int sprint_symbol(char *buffer, unsigned
- 	name = kallsyms_lookup(address, &size, &offset, &modname, namebuf);
- 	if (!name)
- 		return sprintf(buffer, "0x%lx", address);
--	else {
--		if (modname)
--			return sprintf(buffer, "%s+%#lx/%#lx [%s]", name, offset,
-+
-+	if (modname)
-+		return sprintf(buffer, "%s+%#lx/%#lx [%s]", name, offset,
- 				size, modname);
--		else
--			return sprintf(buffer, "%s+%#lx/%#lx", name, offset, size);
--	}
+diff -puN mm/page-writeback.c~dirty_writeback_centisecs_handler-cleanup mm/page-writeback.c
+--- a/mm/page-writeback.c~dirty_writeback_centisecs_handler-cleanup
++++ a/mm/page-writeback.c
+@@ -476,15 +476,13 @@ static void wb_kupdate(unsigned long arg
+  * sysctl handler for /proc/sys/vm/dirty_writeback_centisecs
+  */
+ int dirty_writeback_centisecs_handler(ctl_table *table, int write,
+-		struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
++	struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
+ {
+ 	proc_dointvec_userhz_jiffies(table, write, file, buffer, length, ppos);
+-	if (dirty_writeback_interval) {
+-		mod_timer(&wb_timer,
+-			jiffies + dirty_writeback_interval);
+-		} else {
++	if (dirty_writeback_interval)
++		mod_timer(&wb_timer, jiffies + dirty_writeback_interval);
 +	else
-+		return sprintf(buffer, "%s+%#lx/%#lx", name, offset, size);
+ 		del_timer(&wb_timer);
+-	}
+ 	return 0;
  }
  
- /* Look up a kernel symbol and print it to the kernel messages. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
