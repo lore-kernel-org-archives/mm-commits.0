@@ -1,55 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - m68knommu-use-trhead_size-instead-of-hard-constant.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:18 -0700
-Message-ID: <200707162050.l6GKoI6G001302@imap1.linux-foundation.org>
+Subject: - dma-make-dma-pool-to-use-kmalloc_node.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:58:47 -0700
+Message-ID: <200707162058.l6GKwliZ002367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60012 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49830 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760499AbXGPVa7 (ORCPT
+	by vger.kernel.org with ESMTP id S1763719AbXGPVbX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:30:59 -0400
+	Mon, 16 Jul 2007 17:31:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerg@snapgear.com, gerg@uclinux.org, phdm@macqel.be, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, clameter@sgi.com, greg@kroah.com, rientjes@google.com, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68knommu: use TRHEAD_SIZE instead of hard constant
+     dma: make dma pool to use kmalloc_node
 has been removed from the -mm tree.  Its filename was
-     m68knommu-use-trhead_size-instead-of-hard-constant.patch
+     dma-make-dma-pool-to-use-kmalloc_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m68knommu: use TRHEAD_SIZE instead of hard constant
-From: Greg Ungerer <gerg@snapgear.com>
+Subject: dma: make dma pool to use kmalloc_node
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Use THREAD_SIZE instead of a hard constant.
+Using dev_to_node(&dev->dev) to get node, and kmalloc_node to dma buffer on
+corresponding node dma pool
 
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Signed-off-by: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/kernel/process.c |    2 +-
+ drivers/base/dmapool.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m68knommu/kernel/process.c~m68knommu-use-trhead_size-instead-of-hard-constant arch/m68knommu/kernel/process.c
---- a/arch/m68knommu/kernel/process.c~m68knommu-use-trhead_size-instead-of-hard-constant
-+++ a/arch/m68knommu/kernel/process.c
-@@ -377,7 +377,7 @@ unsigned long get_wchan(struct task_stru
- 	fp = ((struct switch_stack *)p->thread.ksp)->a6;
- 	do {
- 		if (fp < stack_page+sizeof(struct thread_info) ||
--		    fp >= 8184+stack_page)
-+		    fp >= THREAD_SIZE-8+stack_page)
- 			return 0;
- 		pc = ((unsigned long *)fp)[1];
- 		if (!in_sched_functions(pc))
+diff -puN drivers/base/dmapool.c~dma-make-dma-pool-to-use-kmalloc_node drivers/base/dmapool.c
+--- a/drivers/base/dmapool.c~dma-make-dma-pool-to-use-kmalloc_node
++++ a/drivers/base/dmapool.c
+@@ -127,7 +127,7 @@ dma_pool_create (const char *name, struc
+ 	} else if (allocation < size)
+ 		return NULL;
+ 
+-	if (!(retval = kmalloc (sizeof *retval, GFP_KERNEL)))
++	if (!(retval = kmalloc_node (sizeof *retval, GFP_KERNEL, dev_to_node(dev))))
+ 		return retval;
+ 
+ 	strlcpy (retval->name, name, sizeof retval->name);
 _
 
-Patches currently in -mm which might be from gerg@snapgear.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
 origin.patch
-git-mtd.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
+x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
+x86_64-get-mp_bus_to_node-as-early.patch
