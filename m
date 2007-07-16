@@ -1,147 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: - v850-enable-arbitary-speed-tty-ioctls.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:51:40 -0700
-Message-ID: <200707162051.l6GKpe93001418@imap1.linux-foundation.org>
+Subject: - udf-check-for-allocated-memory-for-inode-data-v2.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:53:15 -0700
+Message-ID: <200707162053.l6GKrFKg001609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36028 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60833 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759700AbXGPVeT (ORCPT
+	by vger.kernel.org with ESMTP id S1760872AbXGPVeZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:34:19 -0400
+	Mon, 16 Jul 2007 17:34:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, uclinux-v850@lsi.nec.co.jp, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, hch@lst.de, jack@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     v850: enable arbitary speed tty ioctls
+     UDF: check for allocated memory for inode data
 has been removed from the -mm tree.  Its filename was
-     v850-enable-arbitary-speed-tty-ioctls.patch
+     udf-check-for-allocated-memory-for-inode-data-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: v850: enable arbitary speed tty ioctls
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: UDF: check for allocated memory for inode data
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Adding the defines/macros activates the existing code in the tty layer
-and allows this platform to use the arbitary speed ioctl setting layer
+This patch adds checking for granted memory while filling up inode data to
+prevent possible NULL pointer usage.  If there is not enough memory to fill
+inode data we just mark it as "bad".  Also some whitespace cleanup.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Miles Bader <uclinux-v850@lsi.nec.co.jp>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-v850/ioctls.h   |    4 ++++
- include/asm-v850/termbits.h |    5 ++++-
- include/asm-v850/termios.h  |    6 ++++--
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ fs/udf/inode.c |   51 +++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 39 insertions(+), 12 deletions(-)
 
-diff -puN include/asm-v850/ioctls.h~v850-enable-arbitary-speed-tty-ioctls include/asm-v850/ioctls.h
---- a/include/asm-v850/ioctls.h~v850-enable-arbitary-speed-tty-ioctls
-+++ a/include/asm-v850/ioctls.h
-@@ -46,6 +46,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	0x5429  /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
- #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
- #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
- 
-diff -puN include/asm-v850/termbits.h~v850-enable-arbitary-speed-tty-ioctls include/asm-v850/termbits.h
---- a/include/asm-v850/termbits.h~v850-enable-arbitary-speed-tty-ioctls
-+++ a/include/asm-v850/termbits.h
-@@ -141,6 +141,7 @@ struct ktermios {
- #define HUPCL	0002000
- #define CLOCAL	0004000
- #define CBAUDEX 0010000
-+#define    BOTHER 0010000
- #define    B57600 0010001
- #define   B115200 0010002
- #define   B230400 0010003
-@@ -156,10 +157,12 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
--#define CIBAUD	  002003600000	/* input baud rate (not used) */
-+#define CIBAUD	  002003600000		/* input baud rate */
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
- 
-+#define	IBSHIFT	16		/* Shifr from CBAUD to CIBAUD */
+diff -puN fs/udf/inode.c~udf-check-for-allocated-memory-for-inode-data-v2 fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-check-for-allocated-memory-for-inode-data-v2
++++ a/fs/udf/inode.c
+@@ -49,6 +49,7 @@ MODULE_LICENSE("GPL");
+ static mode_t udf_convert_permissions(struct fileEntry *);
+ static int udf_update_inode(struct inode *, int);
+ static void udf_fill_inode(struct inode *, struct buffer_head *);
++static int udf_alloc_i_data(struct inode *inode, size_t size);
+ static struct buffer_head *inode_getblk(struct inode *, sector_t, int *,
+ 	long *, int *);
+ static int8_t udf_insert_aext(struct inode *, struct extent_position,
+@@ -734,7 +735,7 @@ static void udf_split_extents(struct ino
+ 			(*c) ++;
+ 			(*endnum) ++;
+ 		}
+-		
 +
- /* c_lflag bits */
- #define ISIG	0000001
- #define ICANON	0000002
-diff -puN include/asm-v850/termios.h~v850-enable-arbitary-speed-tty-ioctls include/asm-v850/termios.h
---- a/include/asm-v850/termios.h~v850-enable-arbitary-speed-tty-ioctls
-+++ a/include/asm-v850/termios.h
-@@ -80,8 +80,10 @@ struct termio {
- 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
- })
+ 		laarr[curr].extLocation.logicalBlockNum = newblocknum;
+ 		if (etype == (EXT_NOT_RECORDED_NOT_ALLOCATED >> 30))
+ 			laarr[curr].extLocation.partitionReferenceNum =
+@@ -836,7 +837,7 @@ static void udf_prealloc_extents(struct 
+ 				{
+ 					numalloc -= elen;
+ 					if (*endnum > (i+1))
+-						memmove(&laarr[i], &laarr[i+1], 
++						memmove(&laarr[i], &laarr[i+1],
+ 							sizeof(long_ad) * (*endnum - (i+1)));
+ 					i --;
+ 					(*endnum) --;
+@@ -1024,7 +1025,7 @@ void udf_truncate(struct inode * inode)
+ 	{
+ 		block_truncate_page(inode->i_mapping, inode->i_size, udf_get_block);
+ 		udf_truncate_extents(inode);
+-	}	
++	}
  
--#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
--#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
-+#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
-+#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
-+#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
-+#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
+ 	inode->i_mtime = inode->i_ctime = current_fs_time(inode->i_sb);
+ 	if (IS_SYNC(inode))
+@@ -1087,10 +1088,10 @@ __udf_read_inode(struct inode *inode)
+ 			{
+ 				kernel_lb_addr loc;
+ 				ie = (struct indirectEntry *)ibh->b_data;
+-	
++
+ 				loc = lelb_to_cpu(ie->indirectICB.extLocation);
+-	
+-				if (ie->indirectICB.extLength && 
++
++				if (ie->indirectICB.extLength &&
+ 					(nbh = udf_read_ptagged(inode->i_sb, loc, 0, &ident)))
+ 				{
+ 					if (ident == TAG_IDENT_FE ||
+@@ -1156,14 +1157,22 @@ static void udf_fill_inode(struct inode 
+ 	{
+ 		UDF_I_EFE(inode) = 1;
+ 		UDF_I_USE(inode) = 0;
+-		UDF_I_DATA(inode) = kmalloc(inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry), GFP_KERNEL);
++		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry)))
++		{
++			make_bad_inode(inode);
++			return;
++		}
+ 		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry), inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
+ 	}
+ 	else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_FE)
+ 	{
+ 		UDF_I_EFE(inode) = 0;
+ 		UDF_I_USE(inode) = 0;
+-		UDF_I_DATA(inode) = kmalloc(inode->i_sb->s_blocksize - sizeof(struct fileEntry), GFP_KERNEL);
++		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize - sizeof(struct fileEntry)))
++		{
++			make_bad_inode(inode);
++			return;
++		}
+ 		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct fileEntry), inode->i_sb->s_blocksize - sizeof(struct fileEntry));
+ 	}
+ 	else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_USE)
+@@ -1173,7 +1182,11 @@ static void udf_fill_inode(struct inode 
+ 		UDF_I_LENALLOC(inode) =
+ 			le32_to_cpu(
+ 				((struct unallocSpaceEntry *)bh->b_data)->lengthAllocDescs);
+-		UDF_I_DATA(inode) = kmalloc(inode->i_sb->s_blocksize - sizeof(struct unallocSpaceEntry), GFP_KERNEL);
++		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize - sizeof(struct unallocSpaceEntry)))
++		{
++			make_bad_inode(inode);
++			return;
++		}
+ 		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct unallocSpaceEntry), inode->i_sb->s_blocksize - sizeof(struct unallocSpaceEntry));
+ 		return;
+ 	}
+@@ -1191,7 +1204,7 @@ static void udf_fill_inode(struct inode 
+ 	inode->i_nlink = le16_to_cpu(fe->fileLinkCount);
+ 	if (!inode->i_nlink)
+ 		inode->i_nlink = 1;
+-	
++
+ 	inode->i_size = le64_to_cpu(fe->informationLength);
+ 	UDF_I_LENEXTENTS(inode) = inode->i_size;
  
- #endif	/* __KERNEL__ */
+@@ -1243,7 +1256,7 @@ static void udf_fill_inode(struct inode 
+ 	}
+ 	else
+ 	{
+-		inode->i_blocks = le64_to_cpu(efe->logicalBlocksRecorded) << 
++		inode->i_blocks = le64_to_cpu(efe->logicalBlocksRecorded) <<
+ 			(inode->i_sb->s_blocksize_bits - 9);
  
+ 		if ( udf_stamp_to_time(&convtime, &convtime_usec,
+@@ -1374,6 +1387,20 @@ static void udf_fill_inode(struct inode 
+ 	}
+ }
+ 
++static int udf_alloc_i_data(struct inode *inode, size_t size)
++{
++	UDF_I_DATA(inode) = kmalloc(size, GFP_KERNEL);
++
++	if (!UDF_I_DATA(inode))
++	{
++		printk(KERN_ERR "udf:udf_alloc_i_data (ino %ld) no free memory\n",
++		       inode->i_ino);
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
+ static mode_t
+ udf_convert_permissions(struct fileEntry *fe)
+ {
+@@ -2072,7 +2099,7 @@ int8_t udf_delete_aext(struct inode *ino
+ 			mark_buffer_dirty_inode(oepos.bh, inode);
+ 		}
+ 	}
+-	
++
+ 	brelse(epos.bh);
+ 	brelse(oepos.bh);
+ 	return (elen >> 30);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
-git-powerpc.patch
-git-ia64.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-sb1250-duartc-sb1250-duart-serial-support.patch
-mbcs-remove-lots-of-global-symbols.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
+sky-cpu-and-nexus-code-style-improvement.patch
+sky-cpu-and-nexus-include-ioh.patch
+sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
+sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
+sky-cpu-use-c99-style-for-struct-init.patch
+sky-cpu-and-nexus-get-rid-of-useless-null-init.patch
+sky-cpu-and-nexus-use-seq_file-single_open-on-proc-interface.patch
+udf-coding-style-conversion-lindent.patch
