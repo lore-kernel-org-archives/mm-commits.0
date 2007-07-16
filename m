@@ -1,169 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: - m68knommu-remove-cruft-from-setup-code.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:50:21 -0700
-Message-ID: <200707162050.l6GKoLR7001308@imap1.linux-foundation.org>
+Subject: - slob-improved-alignment-handling.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:49:02 -0700
+Message-ID: <200707162049.l6GKn2T7001131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39401 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42199 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763641AbXGPV2Y (ORCPT
+	by vger.kernel.org with ESMTP id S1761325AbXGPV2q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:28:24 -0400
+	Mon, 16 Jul 2007 17:28:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerg@snapgear.com, gerg@uclinux.org, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68knommu: remove cruft from setup code
+     slob: improved alignment handling
 has been removed from the -mm tree.  Its filename was
-     m68knommu-remove-cruft-from-setup-code.patch
+     slob-improved-alignment-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m68knommu: remove cruft from setup code
-From: Greg Ungerer <gerg@snapgear.com>
+Subject: slob: improved alignment handling
+From: Nick Piggin <npiggin@suse.de>
 
-Clean out cruft.
+Remove the core slob allocator's minimum alignment restrictions, and instead
+introduce the alignment restrictions at the slab API layer.  This lets us heed
+the ARCH_KMALLOC/SLAB_MINALIGN directives, and also use __alignof__ (unsigned
+long) for the default alignment (which should allow relaxed alignment
+architectures to take better advantage of SLOB's small minimum alignment).
 
-. remove include files not needed
-. remove not used CAT_ROMARRAY code
-. remove generic machine pointers not used
-. remove unused functions
-. fix email address in copyrights
-
-Signed-off-by: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/kernel/setup.c |   65 ++++++--------------------------
- 1 file changed, 14 insertions(+), 51 deletions(-)
+ mm/slob.c |   49 ++++++++++++++++++++++++++-----------------------
+ 1 file changed, 26 insertions(+), 23 deletions(-)
 
-diff -puN arch/m68knommu/kernel/setup.c~m68knommu-remove-cruft-from-setup-code arch/m68knommu/kernel/setup.c
---- a/arch/m68knommu/kernel/setup.c~m68knommu-remove-cruft-from-setup-code
-+++ a/arch/m68knommu/kernel/setup.c
-@@ -1,8 +1,8 @@
- /*
-  *  linux/arch/m68knommu/kernel/setup.c
+diff -puN mm/slob.c~slob-improved-alignment-handling mm/slob.c
+--- a/mm/slob.c~slob-improved-alignment-handling
++++ a/mm/slob.c
+@@ -7,8 +7,8 @@
   *
-- *  Copyright (C) 1999-2004  Greg Ungerer (gerg@snapgear.com)
-- *  Copyright (C) 1998,1999  D. Jeff Dionne <jeff@lineo.ca>
-+ *  Copyright (C) 1999-2007  Greg Ungerer (gerg@snapgear.com)
-+ *  Copyright (C) 1998,1999  D. Jeff Dionne <jeff@uClinux.org>
-  *  Copyleft  ()) 2000       James D. Schettine {james@telos-systems.com}
-  *  Copyright (C) 1998       Kenneth Albanowski <kjahds@kjahds.com>
-  *  Copyright (C) 1995       Hamish Macdonald
-@@ -20,17 +20,13 @@
- #include <linux/sched.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
--#include <linux/fs.h>
- #include <linux/fb.h>
- #include <linux/module.h>
- #include <linux/console.h>
--#include <linux/genhd.h>
- #include <linux/errno.h>
- #include <linux/string.h>
--#include <linux/major.h>
- #include <linux/bootmem.h>
- #include <linux/seq_file.h>
--#include <linux/root_dev.h>
- #include <linux/init.h>
+  * The core of SLOB is a traditional K&R style heap allocator, with
+  * support for returning aligned objects. The granularity of this
+- * allocator is 4 bytes on 32-bit and 8 bytes on 64-bit, though it
+- * could be as low as 2 if the compiler alignment requirements allow.
++ * allocator is as little as 2 bytes, however typically most architectures
++ * will require 4 bytes on 32-bit and 8 bytes on 64-bit.
+  *
+  * The slob heap is a linked list of pages from __get_free_page, and
+  * within each page, there is a singly-linked list of free blocks (slob_t).
+@@ -16,7 +16,7 @@
+  * first-fit.
+  *
+  * Above this is an implementation of kmalloc/kfree. Blocks returned
+- * from kmalloc are 4-byte aligned and prepended with a 4-byte header.
++ * from kmalloc are prepended with a 4-byte header with the kmalloc size.
+  * If kmalloc is asked for objects of PAGE_SIZE or larger, it calls
+  * __get_free_pages directly, allocating compound pages so the page order
+  * does not have to be separately tracked, and also stores the exact
+@@ -45,13 +45,6 @@
+ #include <linux/list.h>
+ #include <asm/atomic.h>
  
- #include <asm/setup.h>
-@@ -46,34 +42,19 @@ EXPORT_SYMBOL(memory_end);
- 
- char __initdata command_line[COMMAND_LINE_SIZE];
- 
--/* setup some dummy routines */
--static void dummy_waitbut(void)
--{
--}
-+void (*mach_trap_init)(void);
- 
--void (*mach_sched_init) (irq_handler_t handler);
--void (*mach_tick)( void );
--/* machine dependent keyboard functions */
--int (*mach_keyb_init) (void);
--int (*mach_kbdrate) (struct kbd_repeat *);
--void (*mach_kbd_leds) (unsigned int);
--/* machine dependent irq functions */
--void (*mach_init_IRQ) (void);
--irq_handler_t mach_default_handler;
--int (*mach_get_irq_list) (struct seq_file *, void *);
--void (*mach_process_int) (int irq, struct pt_regs *fp);
--void (*mach_trap_init) (void);
- /* machine dependent timer functions */
--unsigned long (*mach_gettimeoffset) (void);
--void (*mach_gettod) (int*, int*, int*, int*, int*, int*);
--int (*mach_hwclk) (int, struct rtc_time*);
--int (*mach_set_clock_mmss) (unsigned long);
--void (*mach_mksound)( unsigned int count, unsigned int ticks );
--void (*mach_reset)( void );
--void (*waitbut)(void) = dummy_waitbut;
--void (*mach_debug_init)(void);
--void (*mach_halt)( void );
--void (*mach_power_off)( void );
-+void (*mach_sched_init)(irq_handler_t handler);
-+void (*mach_tick)(void);
-+void (*mach_gettod)(int*, int*, int*, int*, int*, int*);
-+int (*mach_set_clock_mmss)(unsigned long);
-+unsigned long (*mach_gettimeoffset)(void);
-+
-+/* machine dependent reboot functions */
-+void (*mach_reset)(void);
-+void (*mach_halt)(void);
-+void (*mach_power_off)(void);
- 
- 
- #ifdef CONFIG_M68000
-@@ -134,13 +115,6 @@ void (*mach_power_off)( void );
- 	#define	CPU "UNKNOWN"
- #endif
- 
--/* (es) */
--/* note: why is this defined here?  the must be a better place to put this */
--#if defined( CONFIG_TELOS) || defined( CONFIG_UCDIMM ) || defined( CONFIG_UCSIMM ) || defined(CONFIG_DRAGEN2) || (defined( CONFIG_PILOT ) && defined( CONFIG_M68328 ))
--#define CAT_ROMARRAY
--#endif
--/* (/es) */
--
- extern int _stext, _etext, _sdata, _edata, _sbss, _ebss, _end;
- extern int _ramstart, _ramend;
- 
-@@ -148,15 +122,8 @@ void setup_arch(char **cmdline_p)
- {
- 	int bootmap_size;
- 
--#if defined(CAT_ROMARRAY) && defined(DEBUG)
--	extern int __data_rom_start;
--	extern int __data_start;
--	int *romarray = (int *)((int) &__data_rom_start +
--			      (int)&_edata - (int)&__data_start);
--#endif
--
- 	memory_start = PAGE_ALIGN(_ramstart);
--	memory_end = _ramend; /* by now the stack is part of the init task */
-+	memory_end = _ramend;
- 
- 	init_mm.start_code = (unsigned long) &_stext;
- 	init_mm.end_code = (unsigned long) &_etext;
-@@ -220,11 +187,7 @@ void setup_arch(char **cmdline_p)
- 		(int) &_sbss, (int) &_ebss);
- 	printk(KERN_DEBUG "KERNEL -> ROMFS=0x%06x-0x%06x MEM=0x%06x-0x%06x "
- 		"STACK=0x%06x-0x%06x\n",
--#ifdef CAT_ROMARRAY
--		(int) romarray, ((int) romarray) + romarray[2],
+-/* SLOB_MIN_ALIGN == sizeof(long) */
+-#if BITS_PER_BYTE == 32
+-#define SLOB_MIN_ALIGN	4
 -#else
- 		(int) &_ebss, (int) memory_start,
+-#define SLOB_MIN_ALIGN	8
 -#endif
- 		(int) memory_start, (int) memory_end,
- 		(int) memory_end, (int) _ramend);
+-
+ /*
+  * slob_block has a field 'units', which indicates size of block if +ve,
+  * or offset of next block if -ve (in SLOB_UNITs).
+@@ -60,19 +53,15 @@
+  * Those with larger size contain their size in the first SLOB_UNIT of
+  * memory, and the offset of the next free block in the second SLOB_UNIT.
+  */
+-#if PAGE_SIZE <= (32767 * SLOB_MIN_ALIGN)
++#if PAGE_SIZE <= (32767 * 2)
+ typedef s16 slobidx_t;
+ #else
+ typedef s32 slobidx_t;
  #endif
+ 
+-/*
+- * Align struct slob_block to long for now, but can some embedded
+- * architectures get away with less?
+- */
+ struct slob_block {
+ 	slobidx_t units;
+-} __attribute__((aligned(SLOB_MIN_ALIGN)));
++};
+ typedef struct slob_block slob_t;
+ 
+ /*
+@@ -384,14 +373,25 @@ out:
+  * End of slob allocator proper. Begin kmem_cache_alloc and kmalloc frontend.
+  */
+ 
++#ifndef ARCH_KMALLOC_MINALIGN
++#define ARCH_KMALLOC_MINALIGN __alignof__(unsigned long)
++#endif
++
++#ifndef ARCH_SLAB_MINALIGN
++#define ARCH_SLAB_MINALIGN __alignof__(unsigned long)
++#endif
++
++
+ void *__kmalloc(size_t size, gfp_t gfp)
+ {
+-	if (size < PAGE_SIZE - SLOB_UNIT) {
+-		slob_t *m;
+-		m = slob_alloc(size + SLOB_UNIT, gfp, 0);
++	int align = max(ARCH_KMALLOC_MINALIGN, ARCH_SLAB_MINALIGN);
++
++	if (size < PAGE_SIZE - align) {
++		unsigned int *m;
++		m = slob_alloc(size + align, gfp, align);
+ 		if (m)
+-			m->units = size;
+-		return m+1;
++			*m = size;
++		return (void *)m + align;
+ 	} else {
+ 		void *ret;
+ 
+@@ -449,8 +449,9 @@ void kfree(const void *block)
+ 
+ 	sp = (struct slob_page *)virt_to_page(block);
+ 	if (slob_page(sp)) {
+-		slob_t *m = (slob_t *)block - 1;
+-		slob_free(m, m->units + SLOB_UNIT);
++		int align = max(ARCH_KMALLOC_MINALIGN, ARCH_SLAB_MINALIGN);
++		unsigned int *m = (unsigned int *)(block - align);
++		slob_free(m, *m + align);
+ 	} else
+ 		put_page(&sp->page);
+ }
+@@ -499,6 +500,8 @@ struct kmem_cache *kmem_cache_create(con
+ 		c->ctor = ctor;
+ 		/* ignore alignment unless it's forced */
+ 		c->align = (flags & SLAB_HWCACHE_ALIGN) ? SLOB_ALIGN : 0;
++		if (c->align < ARCH_SLAB_MINALIGN)
++			c->align = ARCH_SLAB_MINALIGN;
+ 		if (c->align < align)
+ 			c->align = align;
+ 	} else if (flags & SLAB_PANIC)
 _
 
-Patches currently in -mm which might be from gerg@snapgear.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-git-mtd.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-fault-feedback-1.patch
+mm-fault-feedback-2.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+ocfs2-convert-to-new-aops.patch
+fix-read-truncate-race.patch
+fs-remove-some-aop_truncated_page.patch
+fs-introduce-some-page-buffer-invariants.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
