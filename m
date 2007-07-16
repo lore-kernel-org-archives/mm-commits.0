@@ -1,235 +1,272 @@
 From: akpm@linux-foundation.org
-Subject: - fault-injection-fix-example-scripts-in-documentation.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:55:17 -0700
-Message-ID: <200707162055.l6GKtHEB001900@imap1.linux-foundation.org>
+Subject: - invalidate_mapping_pages-add-cond_resched.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:49:13 -0700
+Message-ID: <200707162049.l6GKnDSH001145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52486 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35450 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758673AbXGPVKh (ORCPT
+	by vger.kernel.org with ESMTP id S1755545AbXGPVK4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:10:37 -0400
+	Mon, 16 Jul 2007 17:10:56 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6GL4x0B018236
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2007 14:10:36 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault-injection: fix example scripts in documentation
+     invalidate_mapping_pages(): add cond_resched
 has been removed from the -mm tree.  Its filename was
-     fault-injection-fix-example-scripts-in-documentation.patch
+     invalidate_mapping_pages-add-cond_resched.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fault-injection: fix example scripts in documentation
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: invalidate_mapping_pages(): add cond_resched
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix and cleanup example scripts in fault injection documentation.
+invalidate_mapping_pages() can sometimes take a long time (millions of pages
+to free).  Long enough for the softlockup detector to trigger.
 
-1. Eliminate broken oops() shell function.
+We used to have a cond_resched() in there but I took it out because the
+drop_caches code calls invalidate_mapping_pages() under inode_lock.
 
-2. Fold failcmd.sh and failmodule.sh into example scripts. It makes
-   the example scripts work independent of current working directory.
+The patch adds a nasty flag and puts the cond_resched() back.
 
-3. Set "space" parameter to 0 to start injecting errors immediately.
-
-4. Use /sys/module/<modulename>/sections/.data as upper bound of
-   .text section. Because some module doesn't have .exit.text section.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fault-injection/failcmd.sh          |    4 
- Documentation/fault-injection/failmodule.sh       |   31 ---
- Documentation/fault-injection/fault-injection.txt |  107 ++++++------
- 3 files changed, 57 insertions(+), 85 deletions(-)
+ fs/drop_caches.c   |    2 +-
+ include/linux/fs.h |    3 +++
+ mm/truncate.c      |   38 +++++++++++++++++++++++---------------
+ 3 files changed, 27 insertions(+), 16 deletions(-)
 
-diff -puN Documentation/fault-injection/failcmd.sh~fault-injection-fix-example-scripts-in-documentation /dev/null
---- a/Documentation/fault-injection/failcmd.sh
-+++ /dev/null
-@@ -1,4 +0,0 @@
--#!/bin/bash
--
--echo 1 > /proc/self/make-it-fail
--exec $*
-diff -puN Documentation/fault-injection/failmodule.sh~fault-injection-fix-example-scripts-in-documentation /dev/null
---- a/Documentation/fault-injection/failmodule.sh
-+++ /dev/null
-@@ -1,31 +0,0 @@
--#!/bin/bash
--#
--# Usage: failmodule <failname> <modulename> [stacktrace-depth]
--#
--#	<failname>: "failslab", "fail_alloc_page", or "fail_make_request"
--#
--#	<modulename>: module name that you want to inject faults.
--#
--#	[stacktrace-depth]: the maximum number of stacktrace walking allowed
--#
--
--STACKTRACE_DEPTH=5
--if [ $# -gt 2 ]; then
--	STACKTRACE_DEPTH=$3
--fi
--
--if [ ! -d /debug/$1 ]; then
--	echo "Fault-injection $1 does not exist" >&2
--	exit 1
--fi
--if [ ! -d /sys/module/$2 ]; then
--	echo "Module $2 does not exist" >&2
--	exit 1
--fi
--
--# Disable any fault injection
--echo 0 > /debug/$1/stacktrace-depth
--
--echo `cat /sys/module/$2/sections/.text` > /debug/$1/require-start
--echo `cat /sys/module/$2/sections/.exit.text` > /debug/$1/require-end
--echo $STACKTRACE_DEPTH > /debug/$1/stacktrace-depth
-diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-fix-example-scripts-in-documentation Documentation/fault-injection/fault-injection.txt
---- a/Documentation/fault-injection/fault-injection.txt~fault-injection-fix-example-scripts-in-documentation
-+++ a/Documentation/fault-injection/fault-injection.txt
-@@ -161,70 +161,77 @@ o add a hook to insert failures
- Application Examples
- --------------------
- 
--o inject slab allocation failures into module init/cleanup code
-+o Inject slab allocation failures into module init/exit code
- 
--------------------------------------------------------------------------------
- #!/bin/bash
- 
--FAILCMD=Documentation/fault-injection/failcmd.sh
--BLACKLIST="root_plug evbug"
--
--FAILNAME=failslab
--echo Y > /debug/$FAILNAME/task-filter
--echo 10 > /debug/$FAILNAME/probability
--echo 100 > /debug/$FAILNAME/interval
--echo -1 > /debug/$FAILNAME/times
--echo 2 > /debug/$FAILNAME/verbose
--echo 1 > /debug/$FAILNAME/ignore-gfp-wait
-+FAILTYPE=failslab
-+echo Y > /debug/$FAILTYPE/task-filter
-+echo 10 > /debug/$FAILTYPE/probability
-+echo 100 > /debug/$FAILTYPE/interval
-+echo -1 > /debug/$FAILTYPE/times
-+echo 0 > /debug/$FAILTYPE/space
-+echo 2 > /debug/$FAILTYPE/verbose
-+echo 1 > /debug/$FAILTYPE/ignore-gfp-wait
- 
--blacklist()
-+faulty_system()
- {
--	echo $BLACKLIST | grep $1 > /dev/null 2>&1
-+	bash -c "echo 1 > /proc/self/make-it-fail && exec $*"
+diff -puN fs/drop_caches.c~invalidate_mapping_pages-add-cond_resched fs/drop_caches.c
+--- a/fs/drop_caches.c~invalidate_mapping_pages-add-cond_resched
++++ a/fs/drop_caches.c
+@@ -20,7 +20,7 @@ static void drop_pagecache_sb(struct sup
+ 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+ 		if (inode->i_state & (I_FREEING|I_WILL_FREE))
+ 			continue;
+-		invalidate_mapping_pages(inode->i_mapping, 0, -1);
++		__invalidate_mapping_pages(inode->i_mapping, 0, -1, true);
+ 	}
+ 	spin_unlock(&inode_lock);
  }
+diff -puN include/linux/fs.h~invalidate_mapping_pages-add-cond_resched include/linux/fs.h
+--- a/include/linux/fs.h~invalidate_mapping_pages-add-cond_resched
++++ a/include/linux/fs.h
+@@ -1610,6 +1610,9 @@ extern int __invalidate_device(struct bl
+ extern int invalidate_partition(struct gendisk *, int);
+ #endif
+ extern int invalidate_inodes(struct super_block *);
++unsigned long __invalidate_mapping_pages(struct address_space *mapping,
++					pgoff_t start, pgoff_t end,
++					bool be_atomic);
+ unsigned long invalidate_mapping_pages(struct address_space *mapping,
+ 					pgoff_t start, pgoff_t end);
  
--oops()
--{
--	dmesg | grep BUG > /dev/null 2>&1
--}
--
--find /lib/modules/`uname -r` -name '*.ko' -exec basename {} .ko \; |
--	while read i
--	do
--		oops && exit 1
--
--		if ! blacklist $i
--		then
--			echo inserting $i...
--			bash $FAILCMD modprobe $i
--		fi
--	done
--
--lsmod | awk '{ if ($3 == 0) { print $1 } }' |
--	while read i
--	do
--		oops && exit 1
--
--		if ! blacklist $i
--		then
--			echo removing $i...
--			bash $FAILCMD modprobe -r $i
--		fi
--	done
-+if [ $# -eq 0 ]
-+then
-+	echo "Usage: $0 modulename [ modulename ... ]"
-+	exit 1
-+fi
+diff -puN mm/truncate.c~invalidate_mapping_pages-add-cond_resched mm/truncate.c
+--- a/mm/truncate.c~invalidate_mapping_pages-add-cond_resched
++++ a/mm/truncate.c
+@@ -253,21 +253,8 @@ void truncate_inode_pages(struct address
+ }
+ EXPORT_SYMBOL(truncate_inode_pages);
+ 
+-/**
+- * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
+- * @mapping: the address_space which holds the pages to invalidate
+- * @start: the offset 'from' which to invalidate
+- * @end: the offset 'to' which to invalidate (inclusive)
+- *
+- * This function only removes the unlocked pages, if you want to
+- * remove all the pages of one inode, you must call truncate_inode_pages.
+- *
+- * invalidate_mapping_pages() will not block on IO activity. It will not
+- * invalidate pages which are dirty, locked, under writeback or mapped into
+- * pagetables.
+- */
+-unsigned long invalidate_mapping_pages(struct address_space *mapping,
+-				pgoff_t start, pgoff_t end)
++unsigned long __invalidate_mapping_pages(struct address_space *mapping,
++				pgoff_t start, pgoff_t end, bool be_atomic)
+ {
+ 	struct pagevec pvec;
+ 	pgoff_t next = start;
+@@ -308,9 +295,30 @@ unlock:
+ 				break;
+ 		}
+ 		pagevec_release(&pvec);
++		if (likely(!be_atomic))
++			cond_resched();
+ 	}
+ 	return ret;
+ }
 +
-+for m in $*
-+do
-+	echo inserting $m...
-+	faulty_system modprobe $m
-+
-+	echo removing $m...
-+	faulty_system modprobe -r $m
-+done
++/**
++ * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
++ * @mapping: the address_space which holds the pages to invalidate
++ * @start: the offset 'from' which to invalidate
++ * @end: the offset 'to' which to invalidate (inclusive)
++ *
++ * This function only removes the unlocked pages, if you want to
++ * remove all the pages of one inode, you must call truncate_inode_pages.
++ *
++ * invalidate_mapping_pages() will not block on IO activity. It will not
++ * invalidate pages which are dirty, locked, under writeback or mapped into
++ * pagetables.
++ */
++unsigned long invalidate_mapping_pages(struct address_space *mapping,
++				pgoff_t start, pgoff_t end)
++{
++	return __invalidate_mapping_pages(mapping, start, end, false);
++}
+ EXPORT_SYMBOL(invalidate_mapping_pages);
  
- ------------------------------------------------------------------------------
- 
--o inject slab allocation failures only for a specific module
-+o Inject page allocation failures only for a specific module
- 
--------------------------------------------------------------------------------
- #!/bin/bash
- 
--FAILMOD=Documentation/fault-injection/failmodule.sh
-+FAILTYPE=fail_page_alloc
-+module=$1
- 
--echo injecting errors into the module $1...
-+if [ -z $module ]
-+then
-+	echo "Usage: $0 <modulename>"
-+	exit 1
-+fi
-+
-+modprobe $module
-+
-+if [ ! -d /sys/module/$module/sections ]
-+then
-+	echo Module $module is not loaded
-+	exit 1
-+fi
-+
-+cat /sys/module/$module/sections/.text > /debug/$FAILTYPE/require-start
-+cat /sys/module/$module/sections/.data > /debug/$FAILTYPE/require-end
-+
-+echo N > /debug/$FAILTYPE/task-filter
-+echo 10 > /debug/$FAILTYPE/probability
-+echo 100 > /debug/$FAILTYPE/interval
-+echo -1 > /debug/$FAILTYPE/times
-+echo 0 > /debug/$FAILTYPE/space
-+echo 2 > /debug/$FAILTYPE/verbose
-+echo 1 > /debug/$FAILTYPE/ignore-gfp-wait
-+echo 1 > /debug/$FAILTYPE/ignore-gfp-highmem
-+echo 10 > /debug/$FAILTYPE/stacktrace-depth
- 
--modprobe $1
--bash $FAILMOD failslab $1 10
--echo 25 > /debug/failslab/probability
-+trap "echo 0 > /debug/$FAILTYPE/probability" SIGINT SIGTERM EXIT
- 
--------------------------------------------------------------------------------
-+echo "Injecting errors into the module $module... (interrupt to stop)"
-+sleep 1000000
- 
+ /*
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+git-powerpc.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
 git-dvb.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-unregister_chrdev-ignore-the-return-value.patch
-unregister_chrdev-return-void.patch
-unregister_blkdev-do-warn_on-on-failure.patch
-unregister_blkdev-delete-redundant-messages-in-callers.patch
-unregister_blkdev-delete-redundant-message.patch
-unregister_blkdev-return-void.patch
+git-dvb-saa7134-tvaudio-fix.patch
+git-ia64.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-ubi.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+git-ocfs2-fixup.patch
+revert-gregkh-pci-pci_bridge-device.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-show-unhandled-signals.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+i386-add-cpu_relax-to-cmos_lock.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+i386-speedup-touch_nmi_watchdog.patch
+x86_64-speedup-touch_nmi_watchdog.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support.patch
+spi-master-driver-for-xilinx-virtex.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-remove-iget-abuse.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+rtc-add-rtc-m41t80-driver-take-2.patch
+rtc-add-support-for-the-st-m48t59-rtc.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-driver-for-ds1216-chips-fix.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
