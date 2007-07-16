@@ -1,214 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: - serial-remove-termios-checks-from-various-old-char-serial.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:59:15 -0700
-Message-ID: <200707162059.l6GKxFoV002412@imap1.linux-foundation.org>
+Subject: - remove-sonypi_camera_command.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:55:54 -0700
+Message-ID: <200707162055.l6GKtsH5001977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42366 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43514 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762833AbXGPVPk (ORCPT
+	by vger.kernel.org with ESMTP id S1762764AbXGPVPh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:15:40 -0400
+	Mon, 16 Jul 2007 17:15:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, malattia@linux.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: remove termios checks from various old char serial drivers
+     remove sonypi_camera_command()
 has been removed from the -mm tree.  Its filename was
-     serial-remove-termios-checks-from-various-old-char-serial.patch
+     remove-sonypi_camera_command.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: serial: remove termios checks from various old char serial drivers
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: remove sonypi_camera_command()
+From: Adrian Bunk <bunk@stusta.de>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Remove the no longer used sonypi_camera_command().
 
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c  |    4 ----
- drivers/char/esp.c       |    7 -------
- drivers/char/istallion.c |    3 ---
- drivers/char/mxser.c     |   16 +++++-----------
- drivers/char/mxser_new.c |   20 +++++++-------------
- 5 files changed, 12 insertions(+), 38 deletions(-)
+ drivers/char/sonypi.c  |   47 ---------------------------------------
+ include/linux/sonypi.h |    2 -
+ 2 files changed, 49 deletions(-)
 
-diff -puN drivers/char/cyclades.c~serial-remove-termios-checks-from-various-old-char-serial drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~serial-remove-termios-checks-from-various-old-char-serial
-+++ a/drivers/char/cyclades.c
-@@ -4127,10 +4127,6 @@ static void cy_set_termios(struct tty_st
- 	printk(KERN_DEBUG "cyc:cy_set_termios ttyC%d\n", info->line);
- #endif
+diff -puN drivers/char/sonypi.c~remove-sonypi_camera_command drivers/char/sonypi.c
+--- a/drivers/char/sonypi.c~remove-sonypi_camera_command
++++ a/drivers/char/sonypi.c
+@@ -885,53 +885,6 @@ found:
+ 	return IRQ_HANDLED;
+ }
  
--	if (tty->termios->c_cflag == old_termios->c_cflag &&
--			(tty->termios->c_iflag & (IXON | IXANY)) ==
--			(old_termios->c_iflag & (IXON | IXANY)))
--		return;
- 	set_line_char(info);
- 
- 	if ((old_termios->c_cflag & CRTSCTS) &&
-diff -puN drivers/char/esp.c~serial-remove-termios-checks-from-various-old-char-serial drivers/char/esp.c
---- a/drivers/char/esp.c~serial-remove-termios-checks-from-various-old-char-serial
-+++ a/drivers/char/esp.c
-@@ -1121,8 +1121,6 @@ static void change_speed(struct esp_stru
- 	/*
- 	 * Set up parity check flag
- 	 */
--#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
+-/* External camera command (exported to the motion eye v4l driver) */
+-int sonypi_camera_command(int command, u8 value)
+-{
+-	if (!camera)
+-		return -EIO;
 -
- 	info->read_status_mask = UART_LSR_OE | UART_LSR_THRE | UART_LSR_DR;
- 	if (I_INPCK(info->tty))
- 		info->read_status_mask |= UART_LSR_FE | UART_LSR_PE;
-@@ -1920,11 +1918,6 @@ static void rs_set_termios(struct tty_st
- 	struct esp_struct *info = (struct esp_struct *)tty->driver_data;
- 	unsigned long flags;
- 
--	if (   (tty->termios->c_cflag == old_termios->c_cflag)
--	    && (   RELEVANT_IFLAG(tty->termios->c_iflag) 
--		== RELEVANT_IFLAG(old_termios->c_iflag)))
--		return;
+-	mutex_lock(&sonypi_device.lock);
 -
- 	change_speed(info);
- 
- 	spin_lock_irqsave(&info->lock, flags);
-diff -puN drivers/char/istallion.c~serial-remove-termios-checks-from-various-old-char-serial drivers/char/istallion.c
---- a/drivers/char/istallion.c~serial-remove-termios-checks-from-various-old-char-serial
-+++ a/drivers/char/istallion.c
-@@ -1753,9 +1753,6 @@ static void stli_settermios(struct tty_s
- 		return;
- 
- 	tiosp = tty->termios;
--	if ((tiosp->c_cflag == old->c_cflag) &&
--	    (tiosp->c_iflag == old->c_iflag))
--		return;
- 
- 	stli_mkasyport(portp, &aport, tiosp);
- 	stli_cmdwait(brdp, portp, A_SETPORT, &aport, sizeof(asyport_t), 0);
-diff -puN drivers/char/mxser.c~serial-remove-termios-checks-from-various-old-char-serial drivers/char/mxser.c
---- a/drivers/char/mxser.c~serial-remove-termios-checks-from-various-old-char-serial
-+++ a/drivers/char/mxser.c
-@@ -90,8 +90,6 @@
- #define UART_MCR_AFE		0x20
- #define UART_LSR_SPECIAL	0x1E
- 
--#define RELEVANT_IFLAG(iflag)	(iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK|\
--					  IXON|IXOFF))
- 
- #define IRQ_T(info) ((info->flags & ASYNC_SHARE_IRQ) ? IRQF_SHARED : IRQF_DISABLED)
- 
-@@ -1729,16 +1727,12 @@ static void mxser_set_termios(struct tty
- 	struct mxser_struct *info = tty->driver_data;
- 	unsigned long flags;
- 
--	if ((tty->termios->c_cflag != old_termios->c_cflag) ||
--			(RELEVANT_IFLAG(tty->termios->c_iflag) != RELEVANT_IFLAG(old_termios->c_iflag))) {
-+	mxser_change_speed(info, old_termios);
- 
--		mxser_change_speed(info, old_termios);
+-	switch (command) {
+-	case SONYPI_COMMAND_SETCAMERA:
+-		if (value)
+-			sonypi_camera_on();
+-		else
+-			sonypi_camera_off();
+-		break;
+-	case SONYPI_COMMAND_SETCAMERABRIGHTNESS:
+-		sonypi_set(SONYPI_CAMERA_BRIGHTNESS, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERACONTRAST:
+-		sonypi_set(SONYPI_CAMERA_CONTRAST, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERAHUE:
+-		sonypi_set(SONYPI_CAMERA_HUE, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERACOLOR:
+-		sonypi_set(SONYPI_CAMERA_COLOR, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERASHARPNESS:
+-		sonypi_set(SONYPI_CAMERA_SHARPNESS, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERAPICTURE:
+-		sonypi_set(SONYPI_CAMERA_PICTURE, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERAAGC:
+-		sonypi_set(SONYPI_CAMERA_AGC, value);
+-		break;
+-	default:
+-		printk(KERN_ERR "sonypi: sonypi_camera_command invalid: %d\n",
+-		       command);
+-		break;
+-	}
+-	mutex_unlock(&sonypi_device.lock);
+-	return 0;
+-}
 -
--		if ((old_termios->c_cflag & CRTSCTS) &&
--				!(tty->termios->c_cflag & CRTSCTS)) {
--			tty->hw_stopped = 0;
--			mxser_start(tty);
--		}
-+	if ((old_termios->c_cflag & CRTSCTS) &&
-+			!(tty->termios->c_cflag & CRTSCTS)) {
-+		tty->hw_stopped = 0;
-+		mxser_start(tty);
- 	}
- 
- /* Handle sw stopped */
-diff -puN drivers/char/mxser_new.c~serial-remove-termios-checks-from-various-old-char-serial drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~serial-remove-termios-checks-from-various-old-char-serial
-+++ a/drivers/char/mxser_new.c
-@@ -72,8 +72,6 @@
- #define UART_MCR_AFE		0x20
- #define UART_LSR_SPECIAL	0x1E
- 
--#define RELEVANT_IFLAG(iflag)	(iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK|\
--					  IXON|IXOFF))
- 
- #define C168_ASIC_ID    1
- #define C104_ASIC_ID    2
-@@ -1990,18 +1988,14 @@ static void mxser_set_termios(struct tty
- 	struct mxser_port *info = tty->driver_data;
- 	unsigned long flags;
- 
--	if ((tty->termios->c_cflag != old_termios->c_cflag) ||
--			(RELEVANT_IFLAG(tty->termios->c_iflag) != RELEVANT_IFLAG(old_termios->c_iflag))) {
+-EXPORT_SYMBOL(sonypi_camera_command);
 -
--		spin_lock_irqsave(&info->slock, flags);
--		mxser_change_speed(info, old_termios);
--		spin_unlock_irqrestore(&info->slock, flags);
-+	spin_lock_irqsave(&info->slock, flags);
-+	mxser_change_speed(info, old_termios);
-+	spin_unlock_irqrestore(&info->slock, flags);
+ static int sonypi_misc_fasync(int fd, struct file *filp, int on)
+ {
+ 	int retval;
+diff -puN include/linux/sonypi.h~remove-sonypi_camera_command include/linux/sonypi.h
+--- a/include/linux/sonypi.h~remove-sonypi_camera_command
++++ a/include/linux/sonypi.h
+@@ -153,8 +153,6 @@
+ #define SONYPI_COMMAND_GETCAMERAROMVERSION	18	/* obsolete */
+ #define SONYPI_COMMAND_GETCAMERAREVISION	19	/* obsolete */
  
--		if ((old_termios->c_cflag & CRTSCTS) &&
--				!(tty->termios->c_cflag & CRTSCTS)) {
--			tty->hw_stopped = 0;
--			mxser_start(tty);
--		}
-+	if ((old_termios->c_cflag & CRTSCTS) &&
-+			!(tty->termios->c_cflag & CRTSCTS)) {
-+		tty->hw_stopped = 0;
-+		mxser_start(tty);
- 	}
+-int sonypi_camera_command(int command, u8 value);
+-
+ #endif				/* __KERNEL__ */
  
- 	/* Handle sw stopped */
+ #endif				/* _SONYPI_H_ */
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
 git-powerpc.patch
-git-ia64.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
+git-dvb.patch
+git-hwmon.patch
+git-kvm.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-sb1250-duartc-sb1250-duart-serial-support.patch
-mbcs-remove-lots-of-global-symbols.patch
-i2o_cfg_passthru-cleanup.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-stallion-remove-unneeded-lock_kernel.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
+git-mtd.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+arch-i386-xen-mmuc-must-include-linux-schedh.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+xen-fix-x86-config-dependencies.patch
+xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
+xen-cant-support-numa-yet.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+handle-kernelcore=-generic.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+mm-slubc-make-code-static.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+proper-prototype-for-proc_nr_files.patch
+fs-reiserfs-cleanups.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+remove-options-depending-on-oss_obsolete.patch
+fbdev-move-arch-specific-bits-to-their-respective.patch
+pm3fb-possible-cleanups.patch
+vt8623fbc-make-code-static.patch
+drivers-video-macmodescmac_find_mode-mustnt-be.patch
+intel-iommu-intel-iommu-driver.patch
+mm-variable-length-argument-support.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+kernel-relayc-make-functions-static.patch
+drivers-edac-core-make-functions-static.patch
+lockstat-human-readability-tweaks.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
