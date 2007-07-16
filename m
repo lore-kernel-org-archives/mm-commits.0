@@ -1,359 +1,712 @@
 From: akpm@linux-foundation.org
-Subject: - remove-config_uts_ns-and-config_ipc_ns.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:56:34 -0700
-Message-ID: <200707162056.l6GKuYe9002105@imap1.linux-foundation.org>
+Subject: - slob-rework-freelist-handling.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:48:56 -0700
+Message-ID: <200707162048.l6GKmuZo001113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42318 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46113 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755295AbXGPVaU (ORCPT
+	by vger.kernel.org with ESMTP id S1758498AbXGPVac (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:30:20 -0400
+	Mon, 16 Jul 2007 17:30:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove CONFIG_UTS_NS and CONFIG_IPC_NS
+     slob: rework freelist handling
 has been removed from the -mm tree.  Its filename was
-     remove-config_uts_ns-and-config_ipc_ns.patch
+     slob-rework-freelist-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove CONFIG_UTS_NS and CONFIG_IPC_NS
-From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: slob: rework freelist handling
+From: Nick Piggin <npiggin@suse.de>
 
-CONFIG_UTS_NS and CONFIG_IPC_NS have very little value as they only
-deactivate the unshare of the uts and ipc namespaces and do not improve
-performance.
+Improve slob by turning the freelist into a list of pages using struct page
+fields, then each page has a singly linked freelist of slob blocks via a
+pointer in the struct page.
 
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Acked-by: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Pavel Emelianov <xemul@openvz.org>
+- The first benefit is that the slob freelists can be indexed by a smaller
+  type (2 bytes, if the PAGE_SIZE is reasonable).
+
+- Next is that freeing is much quicker because it does not have to traverse
+  the entire freelist. Allocation can be slightly faster too, because we can
+  skip almost-full freelist pages completely.
+
+- Slob pages are then freed immediately when they become empty, rather than
+  having a periodic timer try to free them. This gives efficiency and memory
+  consumption improvement.
+
+Then, we don't encode seperate size and next fields into each slob block,
+rather we use the sign bit to distinguish between "size" or "next". Then
+size 1 blocks contain a "next" offset, and others contain the "size" in
+the first unit and "next" in the second unit.
+
+- This allows minimum slob allocation alignment to go from 8 bytes to 2
+  bytes on 32-bit and 12 bytes to 2 bytes on 64-bit. In practice, it is
+  best to align them to word size, however some architectures (eg. cris)
+  could gain space savings from turning off this extra alignment.
+
+Then, make kmalloc use its own slob_block at the front of the allocation
+in order to encode allocation size, rather than rely on not overwriting
+slob's existing header block.
+
+- This reduces kmalloc allocation overhead similarly to alignment reductions.
+
+- Decouples kmalloc layer from the slob allocator.
+
+Then, add a page flag specific to slob pages.
+
+- This means kfree of a page aligned slob block doesn't have to traverse
+  the bigblock list.
+
+I would get benchmarks, but my test box's network doesn't come up with
+slob before this patch. I think something is timing out. Anyway, things
+are faster after the patch.
+
+Code size goes up about 1K, however dynamic memory usage _should_ be
+lower even on relatively small memory systems.
+
+Future todo item is to restore the cyclic free list search, rather than
+to always begin at the start.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc.h     |   11 +++--------
- include/linux/utsname.h |   13 -------------
- init/Kconfig            |   17 -----------------
- ipc/msg.c               |    4 +---
- ipc/sem.c               |    4 +---
- ipc/shm.c               |    4 +---
- ipc/util.c              |   11 +----------
- ipc/util.h              |    8 ++------
- kernel/Makefile         |    4 ++--
- kernel/nsproxy.c        |   10 ----------
- kernel/utsname_sysctl.c |    5 +----
- 11 files changed, 12 insertions(+), 79 deletions(-)
+ mm/slob.c |  424 +++++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 326 insertions(+), 98 deletions(-)
 
-diff -puN include/linux/ipc.h~remove-config_uts_ns-and-config_ipc_ns include/linux/ipc.h
---- a/include/linux/ipc.h~remove-config_uts_ns-and-config_ipc_ns
-+++ a/include/linux/ipc.h
-@@ -93,6 +93,7 @@ extern struct ipc_namespace init_ipc_ns;
- 
- #ifdef CONFIG_SYSVIPC
- #define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
-+extern void free_ipc_ns(struct kref *kref);
- extern struct ipc_namespace *copy_ipcs(unsigned long flags,
- 						struct ipc_namespace *ns);
- #else
-@@ -104,13 +105,9 @@ static inline struct ipc_namespace *copy
- }
- #endif
- 
--#ifdef CONFIG_IPC_NS
--extern void free_ipc_ns(struct kref *kref);
--#endif
--
- static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
- {
--#ifdef CONFIG_IPC_NS
-+#ifdef CONFIG_SYSVIPC
- 	if (ns)
- 		kref_get(&ns->kref);
- #endif
-@@ -119,7 +116,7 @@ static inline struct ipc_namespace *get_
- 
- static inline void put_ipc_ns(struct ipc_namespace *ns)
- {
--#ifdef CONFIG_IPC_NS
-+#ifdef CONFIG_SYSVIPC
- 	kref_put(&ns->kref, free_ipc_ns);
- #endif
- }
-@@ -127,5 +124,3 @@ static inline void put_ipc_ns(struct ipc
- #endif /* __KERNEL__ */
- 
- #endif /* _LINUX_IPC_H */
--
--
-diff -puN include/linux/utsname.h~remove-config_uts_ns-and-config_ipc_ns include/linux/utsname.h
---- a/include/linux/utsname.h~remove-config_uts_ns-and-config_ipc_ns
-+++ a/include/linux/utsname.h
-@@ -48,7 +48,6 @@ static inline void get_uts_ns(struct uts
- 	kref_get(&ns->kref);
- }
- 
--#ifdef CONFIG_UTS_NS
- extern struct uts_namespace *copy_utsname(int flags, struct uts_namespace *ns);
- extern void free_uts_ns(struct kref *kref);
- 
-@@ -56,18 +55,6 @@ static inline void put_uts_ns(struct uts
- {
- 	kref_put(&ns->kref, free_uts_ns);
- }
--#else
--static inline struct uts_namespace *copy_utsname(int flags,
--						struct uts_namespace *ns)
--{
--	return ns;
--}
--
--static inline void put_uts_ns(struct uts_namespace *ns)
--{
--}
--#endif
--
- static inline struct new_utsname *utsname(void)
- {
- 	return &current->nsproxy->uts_ns->name;
-diff -puN init/Kconfig~remove-config_uts_ns-and-config_ipc_ns init/Kconfig
---- a/init/Kconfig~remove-config_uts_ns-and-config_ipc_ns
-+++ a/init/Kconfig
-@@ -120,15 +120,6 @@ config SYSVIPC
- 	  section 6.4 of the Linux Programmer's Guide, available from
- 	  <http://www.tldp.org/guides.html>.
- 
--config IPC_NS
--	bool "IPC Namespaces"
--	depends on SYSVIPC
--	default n
--	help
--	  Support ipc namespaces.  This allows containers, i.e. virtual
--	  environments, to use ipc namespaces to provide different ipc
--	  objects for different servers.  If unsure, say N.
--
- config SYSVIPC_SYSCTL
- 	bool
- 	depends on SYSVIPC
-@@ -218,14 +209,6 @@ config TASK_IO_ACCOUNTING
- 
- 	  Say N if unsure.
- 
--config UTS_NS
--	bool "UTS Namespaces"
--	default n
--	help
--	  Support uts namespaces.  This allows containers, i.e.
--	  vservers, to use uts namespaces to provide different
--	  uts info for different servers.  If unsure, say N.
--
- config AUDIT
- 	bool "Auditing support"
- 	depends on NET
-diff -puN ipc/msg.c~remove-config_uts_ns-and-config_ipc_ns ipc/msg.c
---- a/ipc/msg.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/ipc/msg.c
-@@ -87,7 +87,7 @@ static int newque (struct ipc_namespace 
- static int sysvipc_msg_proc_show(struct seq_file *s, void *it);
- #endif
- 
--static void __ipc_init __msg_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
-+static void __msg_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
- {
- 	ns->ids[IPC_MSG_IDS] = ids;
- 	ns->msg_ctlmax = MSGMAX;
-@@ -96,7 +96,6 @@ static void __ipc_init __msg_init_ns(str
- 	ipc_init_ids(ids, ns->msg_ctlmni);
- }
- 
--#ifdef CONFIG_IPC_NS
- int msg_init_ns(struct ipc_namespace *ns)
- {
- 	struct ipc_ids *ids;
-@@ -128,7 +127,6 @@ void msg_exit_ns(struct ipc_namespace *n
- 	kfree(ns->ids[IPC_MSG_IDS]);
- 	ns->ids[IPC_MSG_IDS] = NULL;
- }
--#endif
- 
- void __init msg_init(void)
- {
-diff -puN ipc/sem.c~remove-config_uts_ns-and-config_ipc_ns ipc/sem.c
---- a/ipc/sem.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/ipc/sem.c
-@@ -121,7 +121,7 @@ static int sysvipc_sem_proc_show(struct 
- #define sc_semopm	sem_ctls[2]
- #define sc_semmni	sem_ctls[3]
- 
--static void __ipc_init __sem_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
-+static void __sem_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
- {
- 	ns->ids[IPC_SEM_IDS] = ids;
- 	ns->sc_semmsl = SEMMSL;
-@@ -132,7 +132,6 @@ static void __ipc_init __sem_init_ns(str
- 	ipc_init_ids(ids, ns->sc_semmni);
- }
- 
--#ifdef CONFIG_IPC_NS
- int sem_init_ns(struct ipc_namespace *ns)
- {
- 	struct ipc_ids *ids;
-@@ -164,7 +163,6 @@ void sem_exit_ns(struct ipc_namespace *n
- 	kfree(ns->ids[IPC_SEM_IDS]);
- 	ns->ids[IPC_SEM_IDS] = NULL;
- }
--#endif
- 
- void __init sem_init (void)
- {
-diff -puN ipc/shm.c~remove-config_uts_ns-and-config_ipc_ns ipc/shm.c
---- a/ipc/shm.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/ipc/shm.c
-@@ -77,7 +77,7 @@ static void shm_destroy (struct ipc_name
- static int sysvipc_shm_proc_show(struct seq_file *s, void *it);
- #endif
- 
--static void __ipc_init __shm_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
-+static void __shm_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
- {
- 	ns->ids[IPC_SHM_IDS] = ids;
- 	ns->shm_ctlmax = SHMMAX;
-@@ -98,7 +98,6 @@ static void do_shm_rmid(struct ipc_names
- 		shm_destroy(ns, shp);
- }
- 
--#ifdef CONFIG_IPC_NS
- int shm_init_ns(struct ipc_namespace *ns)
- {
- 	struct ipc_ids *ids;
-@@ -130,7 +129,6 @@ void shm_exit_ns(struct ipc_namespace *n
- 	kfree(ns->ids[IPC_SHM_IDS]);
- 	ns->ids[IPC_SHM_IDS] = NULL;
- }
--#endif
- 
- void __init shm_init (void)
- {
-diff -puN ipc/util.c~remove-config_uts_ns-and-config_ipc_ns ipc/util.c
---- a/ipc/util.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/ipc/util.c
-@@ -50,7 +50,6 @@ struct ipc_namespace init_ipc_ns = {
- 	},
- };
- 
--#ifdef CONFIG_IPC_NS
- static struct ipc_namespace *clone_ipc_ns(struct ipc_namespace *old_ns)
- {
- 	int err;
-@@ -110,14 +109,6 @@ void free_ipc_ns(struct kref *kref)
- 	shm_exit_ns(ns);
- 	kfree(ns);
- }
--#else
--struct ipc_namespace *copy_ipcs(unsigned long flags, struct ipc_namespace *ns)
--{
--	if (flags & CLONE_NEWIPC)
--		return ERR_PTR(-EINVAL);
--	return ns;
--}
--#endif
- 
- /**
-  *	ipc_init	-	initialise IPC subsystem
-@@ -145,7 +136,7 @@ __initcall(ipc_init);
-  *	array itself. 
+diff -puN mm/slob.c~slob-rework-freelist-handling mm/slob.c
+--- a/mm/slob.c~slob-rework-freelist-handling
++++ a/mm/slob.c
+@@ -7,53 +7,148 @@
+  *
+  * The core of SLOB is a traditional K&R style heap allocator, with
+  * support for returning aligned objects. The granularity of this
+- * allocator is 8 bytes on x86, though it's perhaps possible to reduce
+- * this to 4 if it's deemed worth the effort. The slob heap is a
+- * singly-linked list of pages from __get_free_page, grown on demand
+- * and allocation from the heap is currently first-fit.
++ * allocator is 4 bytes on 32-bit and 8 bytes on 64-bit, though it
++ * could be as low as 2 if the compiler alignment requirements allow.
++ *
++ * The slob heap is a linked list of pages from __get_free_page, and
++ * within each page, there is a singly-linked list of free blocks (slob_t).
++ * The heap is grown on demand and allocation from the heap is currently
++ * first-fit.
+  *
+  * Above this is an implementation of kmalloc/kfree. Blocks returned
+- * from kmalloc are 8-byte aligned and prepended with a 8-byte header.
++ * from kmalloc are 4-byte aligned and prepended with a 4-byte header.
+  * If kmalloc is asked for objects of PAGE_SIZE or larger, it calls
+  * __get_free_pages directly so that it can return page-aligned blocks
+  * and keeps a linked list of such pages and their orders. These
+  * objects are detected in kfree() by their page alignment.
+  *
+  * SLAB is emulated on top of SLOB by simply calling constructors and
+- * destructors for every SLAB allocation. Objects are returned with
+- * the 8-byte alignment unless the SLAB_HWCACHE_ALIGN flag is
+- * set, in which case the low-level allocator will fragment blocks to
+- * create the proper alignment. Again, objects of page-size or greater
+- * are allocated by calling __get_free_pages. As SLAB objects know
+- * their size, no separate size bookkeeping is necessary and there is
+- * essentially no allocation space overhead.
++ * destructors for every SLAB allocation. Objects are returned with the
++ * 4-byte alignment unless the SLAB_HWCACHE_ALIGN flag is set, in which
++ * case the low-level allocator will fragment blocks to create the proper
++ * alignment. Again, objects of page-size or greater are allocated by
++ * calling __get_free_pages. As SLAB objects know their size, no separate
++ * size bookkeeping is necessary and there is essentially no allocation
++ * space overhead.
   */
-  
--void __ipc_init ipc_init_ids(struct ipc_ids* ids, int size)
-+void ipc_init_ids(struct ipc_ids* ids, int size)
- {
- 	int i;
  
-diff -puN ipc/util.h~remove-config_uts_ns-and-config_ipc_ns ipc/util.h
---- a/ipc/util.h~remove-config_uts_ns-and-config_ipc_ns
-+++ a/ipc/util.h
-@@ -41,12 +41,8 @@ struct ipc_ids {
++#include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+ #include <linux/cache.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+-#include <linux/timer.h>
+ #include <linux/rcupdate.h>
++#include <linux/list.h>
++#include <asm/atomic.h>
++
++/* SLOB_MIN_ALIGN == sizeof(long) */
++#if BITS_PER_BYTE == 32
++#define SLOB_MIN_ALIGN	4
++#else
++#define SLOB_MIN_ALIGN	8
++#endif
++
++/*
++ * slob_block has a field 'units', which indicates size of block if +ve,
++ * or offset of next block if -ve (in SLOB_UNITs).
++ *
++ * Free blocks of size 1 unit simply contain the offset of the next block.
++ * Those with larger size contain their size in the first SLOB_UNIT of
++ * memory, and the offset of the next free block in the second SLOB_UNIT.
++ */
++#if PAGE_SIZE <= (32767 * SLOB_MIN_ALIGN)
++typedef s16 slobidx_t;
++#else
++typedef s32 slobidx_t;
++#endif
+ 
++/*
++ * Align struct slob_block to long for now, but can some embedded
++ * architectures get away with less?
++ */
+ struct slob_block {
+-	int units;
+-	struct slob_block *next;
+-};
++	slobidx_t units;
++} __attribute__((aligned(SLOB_MIN_ALIGN)));
+ typedef struct slob_block slob_t;
+ 
++/*
++ * We use struct page fields to manage some slob allocation aspects,
++ * however to avoid the horrible mess in include/linux/mm_types.h, we'll
++ * just define our own struct page type variant here.
++ */
++struct slob_page {
++	union {
++		struct {
++			unsigned long flags;	/* mandatory */
++			atomic_t _count;	/* mandatory */
++			slobidx_t units;	/* free units left in page */
++			unsigned long pad[2];
++			slob_t *free;		/* first free slob_t in page */
++			struct list_head list;	/* linked list of free pages */
++		};
++		struct page page;
++	};
++};
++static inline void struct_slob_page_wrong_size(void)
++{ BUILD_BUG_ON(sizeof(struct slob_page) != sizeof(struct page)); }
++
++/*
++ * free_slob_page: call before a slob_page is returned to the page allocator.
++ */
++static inline void free_slob_page(struct slob_page *sp)
++{
++	reset_page_mapcount(&sp->page);
++	sp->page.mapping = NULL;
++}
++
++/*
++ * All (partially) free slob pages go on this list.
++ */
++static LIST_HEAD(free_slob_pages);
++
++/*
++ * slob_page: True for all slob pages (false for bigblock pages)
++ */
++static inline int slob_page(struct slob_page *sp)
++{
++	return test_bit(PG_active, &sp->flags);
++}
++
++static inline void set_slob_page(struct slob_page *sp)
++{
++	__set_bit(PG_active, &sp->flags);
++}
++
++static inline void clear_slob_page(struct slob_page *sp)
++{
++	__clear_bit(PG_active, &sp->flags);
++}
++
++/*
++ * slob_page_free: true for pages on free_slob_pages list.
++ */
++static inline int slob_page_free(struct slob_page *sp)
++{
++	return test_bit(PG_private, &sp->flags);
++}
++
++static inline void set_slob_page_free(struct slob_page *sp)
++{
++	list_add(&sp->list, &free_slob_pages);
++	__set_bit(PG_private, &sp->flags);
++}
++
++static inline void clear_slob_page_free(struct slob_page *sp)
++{
++	list_del(&sp->list);
++	__clear_bit(PG_private, &sp->flags);
++}
++
+ #define SLOB_UNIT sizeof(slob_t)
+ #define SLOB_UNITS(size) (((size) + SLOB_UNIT - 1)/SLOB_UNIT)
+ #define SLOB_ALIGN L1_CACHE_BYTES
+ 
+-struct bigblock {
+-	int order;
+-	void *pages;
+-	struct bigblock *next;
+-};
+-typedef struct bigblock bigblock_t;
+-
+ /*
+  * struct slob_rcu is inserted at the tail of allocated slob blocks, which
+  * were created with a SLAB_DESTROY_BY_RCU slab. slob_rcu is used to free
+@@ -64,103 +159,240 @@ struct slob_rcu {
+ 	int size;
  };
  
- struct seq_file;
--#ifdef CONFIG_IPC_NS
--#define __ipc_init
--#else
--#define __ipc_init	__init
--#endif
--void __ipc_init ipc_init_ids(struct ipc_ids *ids, int size);
+-static slob_t arena = { .next = &arena, .units = 1 };
+-static slob_t *slobfree = &arena;
+-static bigblock_t *bigblocks;
++/*
++ * slob_lock protects all slob allocator structures.
++ */
+ static DEFINE_SPINLOCK(slob_lock);
+-static DEFINE_SPINLOCK(block_lock);
+ 
+-static void slob_free(void *b, int size);
+-static void slob_timer_cbk(void);
++/*
++ * Encode the given size and next info into a free slob block s.
++ */
++static void set_slob(slob_t *s, slobidx_t size, slob_t *next)
++{
++	slob_t *base = (slob_t *)((unsigned long)s & PAGE_MASK);
++	slobidx_t offset = next - base;
+ 
++	if (size > 1) {
++		s[0].units = size;
++		s[1].units = offset;
++	} else
++		s[0].units = -offset;
++}
+ 
+-static void *slob_alloc(size_t size, gfp_t gfp, int align)
++/*
++ * Return the size of a slob block.
++ */
++static slobidx_t slob_units(slob_t *s)
++{
++	if (s->units > 0)
++		return s->units;
++	return 1;
++}
 +
-+void ipc_init_ids(struct ipc_ids *ids, int size);
- #ifdef CONFIG_PROC_FS
- void __init ipc_init_proc_interface(const char *path, const char *header,
- 		int ids, int (*show)(struct seq_file *, void *));
-diff -puN kernel/Makefile~remove-config_uts_ns-and-config_ipc_ns kernel/Makefile
---- a/kernel/Makefile~remove-config_uts_ns-and-config_ipc_ns
-+++ a/kernel/Makefile
-@@ -8,7 +8,8 @@ obj-y     = sched.o fork.o exec_domain.o
- 	    signal.o sys.o kmod.o workqueue.o pid.o \
- 	    rcupdate.o extable.o params.o posix-timers.o \
- 	    kthread.o wait.o kfifo.o sys_ni.o posix-cpu-timers.o mutex.o \
--	    hrtimer.o rwsem.o latency.o nsproxy.o srcu.o die_notifier.o
-+	    hrtimer.o rwsem.o latency.o nsproxy.o srcu.o die_notifier.o \
-+	    utsname.o
++/*
++ * Return the next free slob block pointer after this one.
++ */
++static slob_t *slob_next(slob_t *s)
++{
++	slob_t *base = (slob_t *)((unsigned long)s & PAGE_MASK);
++	slobidx_t next;
++
++	if (s[0].units < 0)
++		next = -s[0].units;
++	else
++		next = s[1].units;
++	return base+next;
++}
++
++/*
++ * Returns true if s is the last free block in its page.
++ */
++static int slob_last(slob_t *s)
++{
++	return !((unsigned long)slob_next(s) & ~PAGE_MASK);
++}
++
++/*
++ * Allocate a slob block within a given slob_page sp.
++ */
++static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
+ {
+ 	slob_t *prev, *cur, *aligned = 0;
+ 	int delta = 0, units = SLOB_UNITS(size);
+-	unsigned long flags;
  
- obj-$(CONFIG_STACKTRACE) += stacktrace.o
- obj-y += time/
-@@ -48,7 +49,6 @@ obj-$(CONFIG_SECCOMP) += seccomp.o
- obj-$(CONFIG_RCU_TORTURE_TEST) += rcutorture.o
- obj-$(CONFIG_RELAY) += relay.o
- obj-$(CONFIG_SYSCTL) += utsname_sysctl.o
--obj-$(CONFIG_UTS_NS) += utsname.o
- obj-$(CONFIG_TASK_DELAY_ACCT) += delayacct.o
- obj-$(CONFIG_TASKSTATS) += taskstats.o tsacct.o
+-	spin_lock_irqsave(&slob_lock, flags);
+-	prev = slobfree;
+-	for (cur = prev->next; ; prev = cur, cur = cur->next) {
++	for (prev = NULL, cur = sp->free; ; prev = cur, cur = slob_next(cur)) {
++		slobidx_t avail = slob_units(cur);
++
+ 		if (align) {
+ 			aligned = (slob_t *)ALIGN((unsigned long)cur, align);
+ 			delta = aligned - cur;
+ 		}
+-		if (cur->units >= units + delta) { /* room enough? */
++		if (avail >= units + delta) { /* room enough? */
++			slob_t *next;
++
+ 			if (delta) { /* need to fragment head to align? */
+-				aligned->units = cur->units - delta;
+-				aligned->next = cur->next;
+-				cur->next = aligned;
+-				cur->units = delta;
++				next = slob_next(cur);
++				set_slob(aligned, avail - delta, next);
++				set_slob(cur, delta, aligned);
+ 				prev = cur;
+ 				cur = aligned;
++				avail = slob_units(cur);
+ 			}
  
-diff -puN kernel/nsproxy.c~remove-config_uts_ns-and-config_ipc_ns kernel/nsproxy.c
---- a/kernel/nsproxy.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/kernel/nsproxy.c
-@@ -155,16 +155,6 @@ int unshare_nsproxy_namespaces(unsigned 
- 	if (!(unshare_flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC)))
+-			if (cur->units == units) /* exact fit? */
+-				prev->next = cur->next; /* unlink */
+-			else { /* fragment */
+-				prev->next = cur + units;
+-				prev->next->units = cur->units - units;
+-				prev->next->next = cur->next;
+-				cur->units = units;
++			next = slob_next(cur);
++			if (avail == units) { /* exact fit? unlink. */
++				if (prev)
++					set_slob(prev, slob_units(prev), next);
++				else
++					sp->free = next;
++			} else { /* fragment */
++				if (prev)
++					set_slob(prev, slob_units(prev), cur + units);
++				else
++					sp->free = cur + units;
++				set_slob(cur + units, avail - units, next);
+ 			}
+ 
+-			slobfree = prev;
+-			spin_unlock_irqrestore(&slob_lock, flags);
++			sp->units -= units;
++			if (!sp->units)
++				clear_slob_page_free(sp);
+ 			return cur;
+ 		}
+-		if (cur == slobfree) {
+-			spin_unlock_irqrestore(&slob_lock, flags);
++		if (slob_last(cur))
++			return NULL;
++	}
++}
+ 
+-			if (size == PAGE_SIZE) /* trying to shrink arena? */
+-				return 0;
++/*
++ * slob_alloc: entry point into the slob allocator.
++ */
++static void *slob_alloc(size_t size, gfp_t gfp, int align)
++{
++	struct slob_page *sp;
++	slob_t *b = NULL;
++	unsigned long flags;
+ 
+-			cur = (slob_t *)__get_free_page(gfp);
+-			if (!cur)
+-				return 0;
+-
+-			slob_free(cur, PAGE_SIZE);
+-			spin_lock_irqsave(&slob_lock, flags);
+-			cur = slobfree;
++	spin_lock_irqsave(&slob_lock, flags);
++	/* Iterate through each partially free page, try to find room */
++	list_for_each_entry(sp, &free_slob_pages, list) {
++		if (sp->units >= SLOB_UNITS(size)) {
++			b = slob_page_alloc(sp, size, align);
++			if (b)
++				break;
+ 		}
+ 	}
++	spin_unlock_irqrestore(&slob_lock, flags);
++
++	/* Not enough space: must allocate a new page */
++	if (!b) {
++		b = (slob_t *)__get_free_page(gfp);
++		if (!b)
++			return 0;
++		sp = (struct slob_page *)virt_to_page(b);
++		set_slob_page(sp);
++
++		spin_lock_irqsave(&slob_lock, flags);
++		sp->units = SLOB_UNITS(PAGE_SIZE);
++		sp->free = b;
++		INIT_LIST_HEAD(&sp->list);
++		set_slob(b, SLOB_UNITS(PAGE_SIZE), b + SLOB_UNITS(PAGE_SIZE));
++		set_slob_page_free(sp);
++		b = slob_page_alloc(sp, size, align);
++		BUG_ON(!b);
++		spin_unlock_irqrestore(&slob_lock, flags);
++	}
++	return b;
+ }
+ 
++/*
++ * slob_free: entry point into the slob allocator.
++ */
+ static void slob_free(void *block, int size)
+ {
+-	slob_t *cur, *b = (slob_t *)block;
++	struct slob_page *sp;
++	slob_t *prev, *next, *b = (slob_t *)block;
++	slobidx_t units;
+ 	unsigned long flags;
+ 
+ 	if (!block)
+ 		return;
++	BUG_ON(!size);
+ 
+-	if (size)
+-		b->units = SLOB_UNITS(size);
++	sp = (struct slob_page *)virt_to_page(block);
++	units = SLOB_UNITS(size);
+ 
+-	/* Find reinsertion point */
+ 	spin_lock_irqsave(&slob_lock, flags);
+-	for (cur = slobfree; !(b > cur && b < cur->next); cur = cur->next)
+-		if (cur >= cur->next && (b > cur || b < cur->next))
+-			break;
+-
+-	if (b + b->units == cur->next) {
+-		b->units += cur->next->units;
+-		b->next = cur->next->next;
+-	} else
+-		b->next = cur->next;
+ 
+-	if (cur + cur->units == b) {
+-		cur->units += b->units;
+-		cur->next = b->next;
+-	} else
+-		cur->next = b;
++	if (sp->units + units == SLOB_UNITS(PAGE_SIZE)) {
++		/* Go directly to page allocator. Do not pass slob allocator */
++		if (slob_page_free(sp))
++			clear_slob_page_free(sp);
++		clear_slob_page(sp);
++		free_slob_page(sp);
++		free_page((unsigned long)b);
++		goto out;
++	}
+ 
+-	slobfree = cur;
++	if (!slob_page_free(sp)) {
++		/* This slob page is about to become partially free. Easy! */
++		sp->units = units;
++		sp->free = b;
++		set_slob(b, units,
++			(void *)((unsigned long)(b +
++					SLOB_UNITS(PAGE_SIZE)) & PAGE_MASK));
++		set_slob_page_free(sp);
++		goto out;
++	}
++
++	/*
++	 * Otherwise the page is already partially free, so find reinsertion
++	 * point.
++	 */
++	sp->units += units;
++
++	if (b < sp->free) {
++		set_slob(b, units, sp->free);
++		sp->free = b;
++	} else {
++		prev = sp->free;
++		next = slob_next(prev);
++		while (b > next) {
++			prev = next;
++			next = slob_next(prev);
++		}
+ 
++		if (!slob_last(prev) && b + units == next) {
++			units += slob_units(next);
++			set_slob(b, units, slob_next(next));
++		} else
++			set_slob(b, units, next);
++
++		if (prev + slob_units(prev) == b) {
++			units = slob_units(b) + slob_units(prev);
++			set_slob(prev, units, slob_next(b));
++		} else
++			set_slob(prev, slob_units(prev), b);
++	}
++out:
+ 	spin_unlock_irqrestore(&slob_lock, flags);
+ }
+ 
++/*
++ * End of slob allocator proper. Begin kmem_cache_alloc and kmalloc frontend.
++ */
++
++struct bigblock {
++	int order;
++	void *pages;
++	struct bigblock *next;
++};
++typedef struct bigblock bigblock_t;
++
++static bigblock_t *bigblocks;
++
++static DEFINE_SPINLOCK(block_lock);
++
++
+ void *__kmalloc(size_t size, gfp_t gfp)
+ {
+ 	slob_t *m;
+@@ -169,7 +401,9 @@ void *__kmalloc(size_t size, gfp_t gfp)
+ 
+ 	if (size < PAGE_SIZE - SLOB_UNIT) {
+ 		m = slob_alloc(size + SLOB_UNIT, gfp, 0);
+-		return m ? (void *)(m + 1) : 0;
++		if (m)
++			m->units = size;
++		return m+1;
+ 	}
+ 
+ 	bb = slob_alloc(sizeof(bigblock_t), gfp, 0);
+@@ -227,14 +461,17 @@ EXPORT_SYMBOL(krealloc);
+ 
+ void kfree(const void *block)
+ {
++	struct slob_page *sp;
++	slob_t *m;
+ 	bigblock_t *bb, **last = &bigblocks;
+ 	unsigned long flags;
+ 
+ 	if (!block)
+ 		return;
+ 
+-	if (!((unsigned long)block & (PAGE_SIZE-1))) {
+-		/* might be on the big block list */
++	sp = (struct slob_page *)virt_to_page(block);
++	if (!slob_page(sp)) {
++		/* on the big block list */
+ 		spin_lock_irqsave(&block_lock, flags);
+ 		for (bb = bigblocks; bb; last = &bb->next, bb = bb->next) {
+ 			if (bb->pages == block) {
+@@ -246,9 +483,12 @@ void kfree(const void *block)
+ 			}
+ 		}
+ 		spin_unlock_irqrestore(&block_lock, flags);
++		WARN_ON(1);
++		return;
+ 	}
+ 
+-	slob_free((slob_t *)block - 1, 0);
++	m = (slob_t *)block - 1;
++	slob_free(m, m->units + SLOB_UNIT);
+ 	return;
+ }
+ 
+@@ -256,13 +496,15 @@ EXPORT_SYMBOL(kfree);
+ 
+ size_t ksize(const void *block)
+ {
++	struct slob_page *sp;
+ 	bigblock_t *bb;
+ 	unsigned long flags;
+ 
+ 	if (!block)
  		return 0;
  
--#ifndef CONFIG_IPC_NS
--	if (unshare_flags & CLONE_NEWIPC)
--		return -EINVAL;
--#endif
--
--#ifndef CONFIG_UTS_NS
--	if (unshare_flags & CLONE_NEWUTS)
--		return -EINVAL;
--#endif
--
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
+-	if (!((unsigned long)block & (PAGE_SIZE-1))) {
++	sp = (struct slob_page *)virt_to_page(block);
++	if (!slob_page(sp)) {
+ 		spin_lock_irqsave(&block_lock, flags);
+ 		for (bb = bigblocks; bb; bb = bb->next)
+ 			if (bb->pages == block) {
+@@ -272,7 +514,7 @@ size_t ksize(const void *block)
+ 		spin_unlock_irqrestore(&block_lock, flags);
+ 	}
  
-diff -puN kernel/utsname_sysctl.c~remove-config_uts_ns-and-config_ipc_ns kernel/utsname_sysctl.c
---- a/kernel/utsname_sysctl.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/kernel/utsname_sysctl.c
-@@ -18,10 +18,7 @@
- static void *get_uts(ctl_table *table, int write)
+-	return ((slob_t *)block - 1)->units * SLOB_UNIT;
++	return ((slob_t *)block - 1)->units + SLOB_UNIT;
+ }
+ 
+ struct kmem_cache {
+@@ -385,9 +627,6 @@ const char *kmem_cache_name(struct kmem_
+ }
+ EXPORT_SYMBOL(kmem_cache_name);
+ 
+-static struct timer_list slob_timer = TIMER_INITIALIZER(
+-	(void (*)(unsigned long))slob_timer_cbk, 0, 0);
+-
+ int kmem_cache_shrink(struct kmem_cache *d)
  {
- 	char *which = table->data;
--#ifdef CONFIG_UTS_NS
--	struct uts_namespace *uts_ns = current->nsproxy->uts_ns;
--	which = (which - (char *)&init_uts_ns) + (char *)uts_ns;
--#endif
-+
- 	if (!write)
- 		down_read(&uts_sem);
- 	else
+ 	return 0;
+@@ -401,15 +640,4 @@ int kmem_ptr_validate(struct kmem_cache 
+ 
+ void __init kmem_cache_init(void)
+ {
+-	slob_timer_cbk();
+-}
+-
+-static void slob_timer_cbk(void)
+-{
+-	void *p = slob_alloc(PAGE_SIZE, 0, PAGE_SIZE-1);
+-
+-	if (p)
+-		free_page((unsigned long)p);
+-
+-	mod_timer(&slob_timer, jiffies + HZ);
+ }
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-containersv10-add-tasks-file-interface-fix-2.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-fault-feedback-1.patch
+mm-fault-feedback-2.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+ocfs2-convert-to-new-aops.patch
+fix-read-truncate-race.patch
+fs-remove-some-aop_truncated_page.patch
+fs-introduce-some-page-buffer-invariants.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
