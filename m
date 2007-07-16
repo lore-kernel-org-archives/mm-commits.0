@@ -1,121 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - fix-jvc-cdrom-drive-lockup.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:52:54 -0700
-Message-ID: <200707162052.l6GKqspD001576@imap1.linux-foundation.org>
+Subject: - add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:51:07 -0700
+Message-ID: <200707162051.l6GKp76Y001375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53991 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60595 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761816AbXGPVfk (ORCPT
+	by vger.kernel.org with ESMTP id S1761169AbXGPVfx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:35:40 -0400
+	Mon, 16 Jul 2007 17:35:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yanmin_zhang@linux.intel.com, bzolnier@gmail.com, greg@kroah.com, yanmin.zhang@intel.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix jvc cdrom drive lockup
+     Add generic exit-time stack-depth checking to CONFIG_DEBUG_STACK_USAGE
 has been removed from the -mm tree.  Its filename was
-     fix-jvc-cdrom-drive-lockup.patch
+     add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix jvc cdrom drive lockup
-From: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Subject: Add generic exit-time stack-depth checking to CONFIG_DEBUG_STACK_USAGE
+From: Jeff Dike <jdike@addtoit.com>
 
-Before calling init_hwif_default, ide_unregister gets lock ide_lock and
-disables irq.  init_hwif_default calls ide_default_io_base which calls
-pci_get_device and later pci_get_subsys tries to apply for semaphore
-pci_bus_sem and goes to sleep.
+Add generic exit-time stack-depth checking to CONFIG_DEBUG_STACK_USAGE.
 
-Mostly, pci_get_device should be called when irq is turned on.
+This also adds UML support.
 
-ide_default_io_base just needs find if list pci_devices is empty.
+Tested on UML and i386.
 
-Signed-off-by: Zhang Yanmin <yanmin.zhang@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+[akpm@linux-foundation.org: cleanups, speedups, tweaks]
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c    |   12 ++++++++++++
- include/asm-i386/ide.h |    4 +---
- include/linux/pci.h    |    3 +++
- 3 files changed, 16 insertions(+), 3 deletions(-)
+ arch/um/Kconfig.debug        |    9 +++++++++
+ arch/um/defconfig            |    1 +
+ include/asm-um/thread_info.h |    9 +++++++++
+ kernel/exit.c                |   29 +++++++++++++++++++++++++++++
+ 4 files changed, 48 insertions(+)
 
-diff -puN drivers/pci/probe.c~fix-jvc-cdrom-drive-lockup drivers/pci/probe.c
---- a/drivers/pci/probe.c~fix-jvc-cdrom-drive-lockup
-+++ a/drivers/pci/probe.c
-@@ -22,6 +22,18 @@ EXPORT_SYMBOL(pci_root_buses);
+diff -puN arch/um/Kconfig.debug~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage arch/um/Kconfig.debug
+--- a/arch/um/Kconfig.debug~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
++++ a/arch/um/Kconfig.debug
+@@ -47,4 +47,13 @@ config GCOV
+         If you're involved in UML kernel development and want to use gcov,
+         say Y.  If you're unsure, say N.
  
- LIST_HEAD(pci_devices);
++config DEBUG_STACK_USAGE
++	bool "Stack utilization instrumentation"
++	default N
++	help
++	  Track the maximum kernel stack usage - this will look at each
++	  kernel stack at process exit and log it if it's the deepest
++	  stack seen so far.
++
++	  This option will slow down process creation and destruction somewhat.
+ endmenu
+diff -puN arch/um/defconfig~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage arch/um/defconfig
+--- a/arch/um/defconfig~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
++++ a/arch/um/defconfig
+@@ -527,3 +527,4 @@ CONFIG_FORCED_INLINING=y
+ # CONFIG_RCU_TORTURE_TEST is not set
+ # CONFIG_GPROF is not set
+ # CONFIG_GCOV is not set
++# CONFIG_DEBUG_STACK_USAGE is not set
+diff -puN include/asm-um/thread_info.h~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage include/asm-um/thread_info.h
+--- a/include/asm-um/thread_info.h~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
++++ a/include/asm-um/thread_info.h
+@@ -52,10 +52,19 @@ static inline struct thread_info *curren
+ 	return ti;
+ }
  
-+/*
-+ * Some device drivers need know if pci is initiated.
-+ * Basically, we think pci is not initiated when there
-+ * is no device in list of pci_devices.
-+ */
-+int no_pci_devices(void)
++#ifdef CONFIG_DEBUG_STACK_USAGE
++
++#define alloc_thread_info(tsk) \
++	((struct thread_info *) __get_free_pages(GFP_KERNEL | __GFP_ZERO, \
++						 CONFIG_KERNEL_STACK_ORDER))
++#else
++
+ /* thread information allocation */
+ #define alloc_thread_info(tsk) \
+ 	((struct thread_info *) __get_free_pages(GFP_KERNEL, \
+ 						 CONFIG_KERNEL_STACK_ORDER))
++#endif
++
+ #define free_thread_info(ti) \
+ 	free_pages((unsigned long)(ti),CONFIG_KERNEL_STACK_ORDER)
+ 
+diff -puN kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage kernel/exit.c
+--- a/kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
++++ a/kernel/exit.c
+@@ -858,6 +858,34 @@ static void exit_notify(struct task_stru
+ 		release_task(tsk);
+ }
+ 
++#ifdef CONFIG_DEBUG_STACK_USAGE
++static void check_stack_usage(void)
 +{
-+	return list_empty(&pci_devices);
++	static DEFINE_SPINLOCK(low_water_lock);
++	static int lowest_to_date = THREAD_SIZE;
++	unsigned long *n = end_of_stack(current);
++	unsigned long free;
++
++	while (*n == 0)
++		n++;
++	free = (unsigned long)n - (unsigned long)end_of_stack(current);
++
++	if (free >= lowest_to_date)
++		return;
++
++	spin_lock(&low_water_lock);
++	if (free < lowest_to_date) {
++		printk(KERN_WARNING "%s used greatest stack depth: %lu bytes "
++				"left\n",
++				current->comm, free);
++		lowest_to_date = free;
++	}
++	spin_unlock(&low_water_lock);
 +}
++#else
++static inline void check_stack_usage(void) {}
++#endif
 +
-+EXPORT_SYMBOL(no_pci_devices);
-+
- #ifdef HAVE_PCI_LEGACY
- /**
-  * pci_create_legacy_files - create legacy I/O port and memory files
-diff -puN include/asm-i386/ide.h~fix-jvc-cdrom-drive-lockup include/asm-i386/ide.h
---- a/include/asm-i386/ide.h~fix-jvc-cdrom-drive-lockup
-+++ a/include/asm-i386/ide.h
-@@ -40,14 +40,13 @@ static __inline__ int ide_default_irq(un
- 
- static __inline__ unsigned long ide_default_io_base(int index)
+ fastcall NORET_TYPE void do_exit(long code)
  {
--	struct pci_dev *pdev;
- 	/*
- 	 *	If PCI is present then it is not safe to poke around
- 	 *	the other legacy IDE ports. Only 0x1f0 and 0x170 are
- 	 *	defined compatibility mode ports for PCI. A user can 
- 	 *	override this using ide= but we must default safe.
- 	 */
--	if ((pdev = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, NULL)) == NULL) {
-+	if (no_pci_devices()) {
- 		switch(index) {
- 			case 2: return 0x1e8;
- 			case 3: return 0x168;
-@@ -55,7 +54,6 @@ static __inline__ unsigned long ide_defa
- 			case 5: return 0x160;
- 		}
- 	}
--	pci_dev_put(pdev);
- 	switch (index) {
- 		case 0:	return 0x1f0;
- 		case 1:	return 0x170;
-diff -puN include/linux/pci.h~fix-jvc-cdrom-drive-lockup include/linux/pci.h
---- a/include/linux/pci.h~fix-jvc-cdrom-drive-lockup
-+++ a/include/linux/pci.h
-@@ -432,6 +432,8 @@ extern struct bus_type pci_bus_type;
-  * code, or pci core code. */
- extern struct list_head pci_root_buses;	/* list of all known PCI buses */
- extern struct list_head pci_devices;	/* list of all devices */
-+/* Some device drivers need know if pci is initiated */
-+extern int no_pci_devices(void);
- 
- void pcibios_fixup_bus(struct pci_bus *);
- int __must_check pcibios_enable_device(struct pci_dev *, int mask);
-@@ -724,6 +726,7 @@ static inline struct pci_dev *pci_get_cl
- { return NULL; }
- 
- #define pci_dev_present(ids)	(0)
-+#define no_pci_devices()	(1)
- #define pci_find_present(ids)	(NULL)
- #define pci_dev_put(dev)	do { } while (0)
- 
+ 	struct task_struct *tsk = current;
+@@ -949,6 +977,7 @@ fastcall NORET_TYPE void do_exit(long co
+ 	exit_sem(tsk);
+ 	__exit_files(tsk);
+ 	__exit_fs(tsk);
++	check_stack_usage();
+ 	exit_thread();
+ 	cpuset_exit(tsk);
+ 	exit_keys(tsk);
 _
 
-Patches currently in -mm which might be from yanmin_zhang@linux.intel.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
+hostfs-convert-to-new-aops.patch
