@@ -1,272 +1,266 @@
 From: akpm@linux-foundation.org
-Subject: - invalidate_mapping_pages-add-cond_resched.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:49:13 -0700
-Message-ID: <200707162049.l6GKnDSH001145@imap1.linux-foundation.org>
+Subject: - move-seccomp-from-proc-to-a-prctl.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:58:14 -0700
+Message-ID: <200707162058.l6GKwEwk002330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35450 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53185 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755545AbXGPVK4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754575AbXGPVLE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:10:56 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6GL4x0B018236
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2007 14:10:36 -0700
+	Mon, 16 Jul 2007 17:11:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: andrea@cpushare.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     invalidate_mapping_pages(): add cond_resched
+     move seccomp from /proc to a prctl
 has been removed from the -mm tree.  Its filename was
-     invalidate_mapping_pages-add-cond_resched.patch
+     move-seccomp-from-proc-to-a-prctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: invalidate_mapping_pages(): add cond_resched
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: move seccomp from /proc to a prctl
+From: Andrea Arcangeli <andrea@cpushare.com>
 
-invalidate_mapping_pages() can sometimes take a long time (millions of pages
-to free).  Long enough for the softlockup detector to trigger.
+This reduces the memory footprint and it enforces that only the current
+task can enable seccomp on itself (this is a requirement for a
+strightforward [modulo preempt ;) ] TIF_NOTSC implementation).
 
-We used to have a cond_resched() in there but I took it out because the
-drop_caches code calls invalidate_mapping_pages() under inode_lock.
-
-The patch adds a nasty flag and puts the cond_resched() back.
-
+Signed-off-by: Andrea Arcangeli <andrea@cpushare.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/drop_caches.c   |    2 +-
- include/linux/fs.h |    3 +++
- mm/truncate.c      |   38 +++++++++++++++++++++++---------------
- 3 files changed, 27 insertions(+), 16 deletions(-)
+ fs/proc/base.c          |   72 --------------------------------------
+ include/linux/prctl.h   |    4 ++
+ include/linux/seccomp.h |   15 ++++++-
+ kernel/seccomp.c        |   26 +++++++++++++
+ kernel/sys.c            |    8 ++++
+ 5 files changed, 51 insertions(+), 74 deletions(-)
 
-diff -puN fs/drop_caches.c~invalidate_mapping_pages-add-cond_resched fs/drop_caches.c
---- a/fs/drop_caches.c~invalidate_mapping_pages-add-cond_resched
-+++ a/fs/drop_caches.c
-@@ -20,7 +20,7 @@ static void drop_pagecache_sb(struct sup
- 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
- 		if (inode->i_state & (I_FREEING|I_WILL_FREE))
- 			continue;
--		invalidate_mapping_pages(inode->i_mapping, 0, -1);
-+		__invalidate_mapping_pages(inode->i_mapping, 0, -1, true);
- 	}
- 	spin_unlock(&inode_lock);
- }
-diff -puN include/linux/fs.h~invalidate_mapping_pages-add-cond_resched include/linux/fs.h
---- a/include/linux/fs.h~invalidate_mapping_pages-add-cond_resched
-+++ a/include/linux/fs.h
-@@ -1610,6 +1610,9 @@ extern int __invalidate_device(struct bl
- extern int invalidate_partition(struct gendisk *, int);
+diff -puN fs/proc/base.c~move-seccomp-from-proc-to-a-prctl fs/proc/base.c
+--- a/fs/proc/base.c~move-seccomp-from-proc-to-a-prctl
++++ a/fs/proc/base.c
+@@ -67,7 +67,6 @@
+ #include <linux/mount.h>
+ #include <linux/security.h>
+ #include <linux/ptrace.h>
+-#include <linux/seccomp.h>
+ #include <linux/cpuset.h>
+ #include <linux/audit.h>
+ #include <linux/poll.h>
+@@ -817,71 +816,6 @@ static const struct file_operations proc
+ };
  #endif
- extern int invalidate_inodes(struct super_block *);
-+unsigned long __invalidate_mapping_pages(struct address_space *mapping,
-+					pgoff_t start, pgoff_t end,
-+					bool be_atomic);
- unsigned long invalidate_mapping_pages(struct address_space *mapping,
- 					pgoff_t start, pgoff_t end);
  
-diff -puN mm/truncate.c~invalidate_mapping_pages-add-cond_resched mm/truncate.c
---- a/mm/truncate.c~invalidate_mapping_pages-add-cond_resched
-+++ a/mm/truncate.c
-@@ -253,21 +253,8 @@ void truncate_inode_pages(struct address
- }
- EXPORT_SYMBOL(truncate_inode_pages);
+-#ifdef CONFIG_SECCOMP
+-static ssize_t seccomp_read(struct file *file, char __user *buf,
+-			    size_t count, loff_t *ppos)
+-{
+-	struct task_struct *tsk = get_proc_task(file->f_dentry->d_inode);
+-	char __buf[20];
+-	size_t len;
+-
+-	if (!tsk)
+-		return -ESRCH;
+-	/* no need to print the trailing zero, so use only len */
+-	len = sprintf(__buf, "%u\n", tsk->seccomp.mode);
+-	put_task_struct(tsk);
+-
+-	return simple_read_from_buffer(buf, count, ppos, __buf, len);
+-}
+-
+-static ssize_t seccomp_write(struct file *file, const char __user *buf,
+-			     size_t count, loff_t *ppos)
+-{
+-	struct task_struct *tsk = get_proc_task(file->f_dentry->d_inode);
+-	char __buf[20], *end;
+-	unsigned int seccomp_mode;
+-	ssize_t result;
+-
+-	result = -ESRCH;
+-	if (!tsk)
+-		goto out_no_task;
+-
+-	/* can set it only once to be even more secure */
+-	result = -EPERM;
+-	if (unlikely(tsk->seccomp.mode))
+-		goto out;
+-
+-	result = -EFAULT;
+-	memset(__buf, 0, sizeof(__buf));
+-	count = min(count, sizeof(__buf) - 1);
+-	if (copy_from_user(__buf, buf, count))
+-		goto out;
+-
+-	seccomp_mode = simple_strtoul(__buf, &end, 0);
+-	if (*end == '\n')
+-		end++;
+-	result = -EINVAL;
+-	if (seccomp_mode && seccomp_mode <= NR_SECCOMP_MODES) {
+-		tsk->seccomp.mode = seccomp_mode;
+-		set_tsk_thread_flag(tsk, TIF_SECCOMP);
+-	} else
+-		goto out;
+-	result = -EIO;
+-	if (unlikely(!(end - __buf)))
+-		goto out;
+-	result = end - __buf;
+-out:
+-	put_task_struct(tsk);
+-out_no_task:
+-	return result;
+-}
+-
+-static const struct file_operations proc_seccomp_operations = {
+-	.read		= seccomp_read,
+-	.write		= seccomp_write,
+-};
+-#endif /* CONFIG_SECCOMP */
+-
+ #ifdef CONFIG_FAULT_INJECTION
+ static ssize_t proc_fault_inject_read(struct file * file, char __user * buf,
+ 				      size_t count, loff_t *ppos)
+@@ -2042,9 +1976,6 @@ static const struct pid_entry tgid_base_
+ 	REG("numa_maps",  S_IRUGO, numa_maps),
+ #endif
+ 	REG("mem",        S_IRUSR|S_IWUSR, mem),
+-#ifdef CONFIG_SECCOMP
+-	REG("seccomp",    S_IRUSR|S_IWUSR, seccomp),
+-#endif
+ 	LNK("cwd",        cwd),
+ 	LNK("root",       root),
+ 	LNK("exe",        exe),
+@@ -2329,9 +2260,6 @@ static const struct pid_entry tid_base_s
+ 	REG("numa_maps", S_IRUGO, numa_maps),
+ #endif
+ 	REG("mem",       S_IRUSR|S_IWUSR, mem),
+-#ifdef CONFIG_SECCOMP
+-	REG("seccomp",   S_IRUSR|S_IWUSR, seccomp),
+-#endif
+ 	LNK("cwd",       cwd),
+ 	LNK("root",      root),
+ 	LNK("exe",       exe),
+diff -puN include/linux/prctl.h~move-seccomp-from-proc-to-a-prctl include/linux/prctl.h
+--- a/include/linux/prctl.h~move-seccomp-from-proc-to-a-prctl
++++ a/include/linux/prctl.h
+@@ -59,4 +59,8 @@
+ # define PR_ENDIAN_LITTLE	1	/* True little endian mode */
+ # define PR_ENDIAN_PPC_LITTLE	2	/* "PowerPC" pseudo little endian */
  
--/**
-- * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
-- * @mapping: the address_space which holds the pages to invalidate
-- * @start: the offset 'from' which to invalidate
-- * @end: the offset 'to' which to invalidate (inclusive)
-- *
-- * This function only removes the unlocked pages, if you want to
-- * remove all the pages of one inode, you must call truncate_inode_pages.
-- *
-- * invalidate_mapping_pages() will not block on IO activity. It will not
-- * invalidate pages which are dirty, locked, under writeback or mapped into
-- * pagetables.
-- */
--unsigned long invalidate_mapping_pages(struct address_space *mapping,
--				pgoff_t start, pgoff_t end)
-+unsigned long __invalidate_mapping_pages(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end, bool be_atomic)
- {
- 	struct pagevec pvec;
- 	pgoff_t next = start;
-@@ -308,9 +295,30 @@ unlock:
- 				break;
- 		}
- 		pagevec_release(&pvec);
-+		if (likely(!be_atomic))
-+			cond_resched();
- 	}
- 	return ret;
- }
++/* Get/set process seccomp mode */
++#define PR_GET_SECCOMP	21
++#define PR_SET_SECCOMP	22
 +
-+/**
-+ * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
-+ * @mapping: the address_space which holds the pages to invalidate
-+ * @start: the offset 'from' which to invalidate
-+ * @end: the offset 'to' which to invalidate (inclusive)
-+ *
-+ * This function only removes the unlocked pages, if you want to
-+ * remove all the pages of one inode, you must call truncate_inode_pages.
-+ *
-+ * invalidate_mapping_pages() will not block on IO activity. It will not
-+ * invalidate pages which are dirty, locked, under writeback or mapped into
-+ * pagetables.
-+ */
-+unsigned long invalidate_mapping_pages(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end)
+ #endif /* _LINUX_PRCTL_H */
+diff -puN include/linux/seccomp.h~move-seccomp-from-proc-to-a-prctl include/linux/seccomp.h
+--- a/include/linux/seccomp.h~move-seccomp-from-proc-to-a-prctl
++++ a/include/linux/seccomp.h
+@@ -4,8 +4,6 @@
+ 
+ #ifdef CONFIG_SECCOMP
+ 
+-#define NR_SECCOMP_MODES 1
+-
+ #include <linux/thread_info.h>
+ #include <asm/seccomp.h>
+ 
+@@ -23,6 +21,9 @@ static inline int has_secure_computing(s
+ 	return unlikely(test_ti_thread_flag(ti, TIF_SECCOMP));
+ }
+ 
++extern long prctl_get_seccomp(void);
++extern long prctl_set_seccomp(unsigned long);
++
+ #else /* CONFIG_SECCOMP */
+ 
+ typedef struct { } seccomp_t;
+@@ -34,6 +35,16 @@ static inline int has_secure_computing(s
+ 	return 0;
+ }
+ 
++static inline long prctl_get_seccomp(void)
 +{
-+	return __invalidate_mapping_pages(mapping, start, end, false);
++	return -EINVAL;
 +}
- EXPORT_SYMBOL(invalidate_mapping_pages);
++
++static inline long prctl_set_seccomp(unsigned long arg2)
++{
++	return -EINVAL;
++}
++
+ #endif /* CONFIG_SECCOMP */
+ 
+ #endif /* _LINUX_SECCOMP_H */
+diff -puN kernel/seccomp.c~move-seccomp-from-proc-to-a-prctl kernel/seccomp.c
+--- a/kernel/seccomp.c~move-seccomp-from-proc-to-a-prctl
++++ a/kernel/seccomp.c
+@@ -10,6 +10,7 @@
+ #include <linux/sched.h>
+ 
+ /* #define SECCOMP_DEBUG 1 */
++#define NR_SECCOMP_MODES 1
  
  /*
+  * Secure computing mode 1 allows only read/write/exit/sigreturn.
+@@ -54,3 +55,28 @@ void __secure_computing(int this_syscall
+ #endif
+ 	do_exit(SIGKILL);
+ }
++
++long prctl_get_seccomp(void)
++{
++	return current->seccomp.mode;
++}
++
++long prctl_set_seccomp(unsigned long seccomp_mode)
++{
++	long ret;
++
++	/* can set it only once to be even more secure */
++	ret = -EPERM;
++	if (unlikely(current->seccomp.mode))
++		goto out;
++
++	ret = -EINVAL;
++	if (seccomp_mode && seccomp_mode <= NR_SECCOMP_MODES) {
++		current->seccomp.mode = seccomp_mode;
++		set_thread_flag(TIF_SECCOMP);
++		ret = 0;
++	}
++
++ out:
++	return ret;
++}
+diff -puN kernel/sys.c~move-seccomp-from-proc-to-a-prctl kernel/sys.c
+--- a/kernel/sys.c~move-seccomp-from-proc-to-a-prctl
++++ a/kernel/sys.c
+@@ -31,6 +31,7 @@
+ #include <linux/cn_proc.h>
+ #include <linux/getcpu.h>
+ #include <linux/task_io_accounting_ops.h>
++#include <linux/seccomp.h>
+ 
+ #include <linux/compat.h>
+ #include <linux/syscalls.h>
+@@ -2242,6 +2243,13 @@ asmlinkage long sys_prctl(int option, un
+ 			error = SET_ENDIAN(current, arg2);
+ 			break;
+ 
++		case PR_GET_SECCOMP:
++			error = prctl_get_seccomp();
++			break;
++		case PR_SET_SECCOMP:
++			error = prctl_set_seccomp(arg2);
++			break;
++
+ 		default:
+ 			error = -EINVAL;
+ 			break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andrea@cpushare.com are
 
 origin.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-git-powerpc.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-ia64.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-ubi.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-git-ocfs2-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-i386-speedup-touch_nmi_watchdog.patch
-x86_64-speedup-touch_nmi_watchdog.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support.patch
-spi-master-driver-for-xilinx-virtex.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup.patch
-knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-remove-iget-abuse.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-add-support-for-the-st-m48t59-rtc.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
-rtc-driver-for-ds1216-chips-fix.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
