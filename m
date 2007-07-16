@@ -1,81 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - make-proc-tty-drivers-use-seq_list_xxx-helpers.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:53:46 -0700
-Message-ID: <200707162053.l6GKrkR6001675@imap1.linux-foundation.org>
+Subject: - mspec_mmap-dont-set-vm_locked.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:49:48 -0700
+Message-ID: <200707162049.l6GKnmSp001193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44717 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760002AbXGPVdi (ORCPT
+	by vger.kernel.org with ESMTP id S1756209AbXGPVdu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:33:38 -0400
+	Mon, 16 Jul 2007 17:33:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@sw.ru, alan@lxorguk.ukuu.org.uk, xemul@openvz.org, mm-commits@vger.kernel.org
+To: hugh@veritas.com, dmonakhov@sw.ru, jes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make /proc/tty/drivers use seq_list_xxx helpers
+     mspec_mmap: don't set VM_LOCKED
 has been removed from the -mm tree.  Its filename was
-     make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+     mspec_mmap-dont-set-vm_locked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Make /proc/tty/drivers use seq_list_xxx helpers
-From: Pavel Emelianov <xemul@sw.ru>
+Subject: mspec_mmap: don't set VM_LOCKED
+From: Hugh Dickins <hugh@veritas.com>
 
-Simple and stupid like some previous ones.  Just use new API.
+mspec_mmap was setting VM_LOCKED (without adjusting locked_vm): don't do
+that, it serves no purpose in 2.6, other than to mess up the locked_vm
+accounting - mspec's pages won't get reclaimed anyway.  Thanks to Dmitry
+Monakhov for raising the issue.
 
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: Jes Sorensen <jes@sgi.com>
+Cc: Dmitry Monakhov <dmonakhov@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_tty.c |   15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ drivers/char/mspec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/proc_tty.c~make-proc-tty-drivers-use-seq_list_xxx-helpers fs/proc/proc_tty.c
---- a/fs/proc/proc_tty.c~make-proc-tty-drivers-use-seq_list_xxx-helpers
-+++ a/fs/proc/proc_tty.c
-@@ -69,7 +69,7 @@ static void show_tty_range(struct seq_fi
+diff -puN drivers/char/mspec.c~mspec_mmap-dont-set-vm_locked drivers/char/mspec.c
+--- a/drivers/char/mspec.c~mspec_mmap-dont-set-vm_locked
++++ a/drivers/char/mspec.c
+@@ -265,7 +265,7 @@ mspec_mmap(struct file *file, struct vm_
+ 	vdata->refcnt = ATOMIC_INIT(1);
+ 	vma->vm_private_data = vdata;
  
- static int show_tty_driver(struct seq_file *m, void *v)
- {
--	struct tty_driver *p = v;
-+	struct tty_driver *p = list_entry(v, struct tty_driver, tty_drivers);
- 	dev_t from = MKDEV(p->major, p->minor_start);
- 	dev_t to = from + p->num;
- 
-@@ -106,22 +106,13 @@ static int show_tty_driver(struct seq_fi
- /* iterator */
- static void *t_start(struct seq_file *m, loff_t *pos)
- {
--	struct list_head *p;
--	loff_t l = *pos;
--
- 	mutex_lock(&tty_mutex);
--	list_for_each(p, &tty_drivers)
--		if (!l--)
--			return list_entry(p, struct tty_driver, tty_drivers);
--	return NULL;
-+	return seq_list_start(&tty_drivers, *pos);
- }
- 
- static void *t_next(struct seq_file *m, void *v, loff_t *pos)
- {
--	struct list_head *p = ((struct tty_driver *)v)->tty_drivers.next;
--	(*pos)++;
--	return p==&tty_drivers ? NULL :
--			list_entry(p, struct tty_driver, tty_drivers);
-+	return seq_list_next(v, &tty_drivers, pos);
- }
- 
- static void t_stop(struct seq_file *m, void *v)
+-	vma->vm_flags |= (VM_IO | VM_LOCKED | VM_RESERVED | VM_PFNMAP);
++	vma->vm_flags |= (VM_IO | VM_RESERVED | VM_PFNMAP);
+ 	if (vdata->type == MSPEC_FETCHOP || vdata->type == MSPEC_UNCACHED)
+ 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+ 	vma->vm_ops = &mspec_vm_ops;
 _
 
-Patches currently in -mm which might be from xemul@sw.ru are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-make-input-layer-use-seq_list_xxx-helpers.patch
-make-isdn-capi-use-seq_list_xxx-helpers.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+x86_64-acpi-disable-srat-when-numa-emulation-succeeds.patch
+mm-avoid-tlb-gather-restarts.patch
+mm-remove-ptep_establish.patch
+mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
+ext2-reservations.patch
+fix-for-ext2-reservation.patch
+ext2-balloc-use-io_error-label.patch
+mm-variable-length-argument-support.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+prio_tree-debugging-patch.patch
