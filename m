@@ -1,56 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-aic7xxx_oldc-remove-redundant-gfp_atomic-from-kmalloc.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 14:00:20 -0700
-Message-ID: <200707162100.l6GL0KGJ002590@imap1.linux-foundation.org>
+Subject: - ext3-fix-error-handling-in-ext3_create_journal.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:58:59 -0700
+Message-ID: <200707162058.l6GKwxHE002385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53027 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58870 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755636AbXGPVGW (ORCPT
+	by vger.kernel.org with ESMTP id S1753942AbXGPVGf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:06:22 -0400
+	Mon, 16 Jul 2007 17:06:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ssatyam@cse.iitk.ac.in, mm-commits@vger.kernel.org
+To: bbpetkov@yahoo.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/aic7xxx_old.c: remove redundant GFP_ATOMIC from kmalloc
+     ext3: fix error handling in ext3_create_journal()
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-aic7xxx_oldc-remove-redundant-gfp_atomic-from-kmalloc.patch
+     ext3-fix-error-handling-in-ext3_create_journal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/scsi/aic7xxx_old.c: remove redundant GFP_ATOMIC from kmalloc
-From: Satyam Sharma <ssatyam@cse.iitk.ac.in>
+Subject: ext3: fix error handling in ext3_create_journal()
+From: Borislav Petkov <bbpetkov@yahoo.de>
 
-drivers/scsi/aic7xxx_old.c:aic7xxx_slave_alloc() unnecessarily passes
-GFP_ATOMIC (along with GFP_KERNEL) to kmalloc() from a context that is not
-atomic. Remove the pointless GFP_ATOMIC.
+Fix error handling in ext3_create_journal according to kernel conventions.
 
-Signed-off-by: Satyam Sharma <ssatyam@cse.iitk.ac.in>
+Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic7xxx_old.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/ext3/super.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/aic7xxx_old.c~drivers-scsi-aic7xxx_oldc-remove-redundant-gfp_atomic-from-kmalloc drivers/scsi/aic7xxx_old.c
---- a/drivers/scsi/aic7xxx_old.c~drivers-scsi-aic7xxx_oldc-remove-redundant-gfp_atomic-from-kmalloc
-+++ a/drivers/scsi/aic7xxx_old.c
-@@ -6572,7 +6572,7 @@ aic7xxx_slave_alloc(struct scsi_device *
-   struct aic7xxx_host *p = (struct aic7xxx_host *)SDptr->host->hostdata;
-   struct aic_dev_data *aic_dev;
+diff -puN fs/ext3/super.c~ext3-fix-error-handling-in-ext3_create_journal fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-fix-error-handling-in-ext3_create_journal
++++ a/fs/ext3/super.c
+@@ -2084,6 +2084,7 @@ static int ext3_create_journal(struct su
+ 			       unsigned int journal_inum)
+ {
+ 	journal_t *journal;
++	int err;
  
--  aic_dev = kmalloc(sizeof(struct aic_dev_data), GFP_ATOMIC | GFP_KERNEL);
-+  aic_dev = kmalloc(sizeof(struct aic_dev_data), GFP_KERNEL);
-   if(!aic_dev)
-     return 1;
-   /*
+ 	if (sb->s_flags & MS_RDONLY) {
+ 		printk(KERN_ERR "EXT3-fs: readonly filesystem when trying to "
+@@ -2091,13 +2092,15 @@ static int ext3_create_journal(struct su
+ 		return -EROFS;
+ 	}
+ 
+-	if (!(journal = ext3_get_journal(sb, journal_inum)))
++	journal = ext3_get_journal(sb, journal_inum);
++	if (!journal)
+ 		return -EINVAL;
+ 
+ 	printk(KERN_INFO "EXT3-fs: creating new journal on inode %u\n",
+ 	       journal_inum);
+ 
+-	if (journal_create(journal)) {
++	err = journal_create(journal);
++	if (err) {
+ 		printk(KERN_ERR "EXT3-fs: error creating journal.\n");
+ 		journal_destroy(journal);
+ 		return -EIO;
 _
 
-Patches currently in -mm which might be from ssatyam@cse.iitk.ac.in are
+Patches currently in -mm which might be from bbpetkov@yahoo.de are
 
 origin.patch
-git-ocfs2.patch
