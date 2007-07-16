@@ -1,200 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: - namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:57:23 -0700
-Message-ID: <200707162057.l6GKvNfp002185@imap1.linux-foundation.org>
+Subject: - serial-remove-termios-checks-from-various-old-char-serial.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:59:15 -0700
+Message-ID: <200707162059.l6GKxFoV002412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36723 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42366 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758697AbXGPVQI (ORCPT
+	by vger.kernel.org with ESMTP id S1762833AbXGPVPk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:16:08 -0400
+	Mon, 16 Jul 2007 17:15:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, clg@fr.ibm.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     namespace: ensure clone_flags are always stored in an unsigned long
+     serial: remove termios checks from various old char serial drivers
 has been removed from the -mm tree.  Its filename was
-     namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long.patch
+     serial-remove-termios-checks-from-various-old-char-serial.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: namespace: ensure clone_flags are always stored in an unsigned long
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: serial: remove termios checks from various old char serial drivers
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-While working on unshare support for the network namespace I noticed we
-were putting clone flags in an int.  Which is weird because the syscall
-uses unsigned long and we at least need an unsigned to properly hold all of
-the unshare flags.
+Signed-off-by: Alan Cox <alan@redhat.com>
 
-So to make the code consistent, this patch updates the code to use
-unsigned long instead of int for the clone flags in those places
-where we get it wrong today.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Cedric Le Goater <clg@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c                |    2 +-
- include/linux/mnt_namespace.h |    2 +-
- include/linux/nsproxy.h       |    2 +-
- include/linux/pid_namespace.h |    2 +-
- include/linux/utsname.h       |    3 ++-
- kernel/nsproxy.c              |    6 +++---
- kernel/pid.c                  |    2 +-
- kernel/utsname.c              |    2 +-
- 8 files changed, 11 insertions(+), 10 deletions(-)
+ drivers/char/cyclades.c  |    4 ----
+ drivers/char/esp.c       |    7 -------
+ drivers/char/istallion.c |    3 ---
+ drivers/char/mxser.c     |   16 +++++-----------
+ drivers/char/mxser_new.c |   20 +++++++-------------
+ 5 files changed, 12 insertions(+), 38 deletions(-)
 
-diff -puN fs/namespace.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long fs/namespace.c
---- a/fs/namespace.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
-+++ a/fs/namespace.c
-@@ -1509,7 +1509,7 @@ static struct mnt_namespace *dup_mnt_ns(
- 	return new_ns;
- }
+diff -puN drivers/char/cyclades.c~serial-remove-termios-checks-from-various-old-char-serial drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~serial-remove-termios-checks-from-various-old-char-serial
++++ a/drivers/char/cyclades.c
+@@ -4127,10 +4127,6 @@ static void cy_set_termios(struct tty_st
+ 	printk(KERN_DEBUG "cyc:cy_set_termios ttyC%d\n", info->line);
+ #endif
  
--struct mnt_namespace *copy_mnt_ns(int flags, struct mnt_namespace *ns,
-+struct mnt_namespace *copy_mnt_ns(unsigned long flags, struct mnt_namespace *ns,
- 		struct fs_struct *new_fs)
- {
- 	struct mnt_namespace *new_ns;
-diff -puN include/linux/mnt_namespace.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long include/linux/mnt_namespace.h
---- a/include/linux/mnt_namespace.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
-+++ a/include/linux/mnt_namespace.h
-@@ -14,7 +14,7 @@ struct mnt_namespace {
- 	int event;
- };
+-	if (tty->termios->c_cflag == old_termios->c_cflag &&
+-			(tty->termios->c_iflag & (IXON | IXANY)) ==
+-			(old_termios->c_iflag & (IXON | IXANY)))
+-		return;
+ 	set_line_char(info);
  
--extern struct mnt_namespace *copy_mnt_ns(int, struct mnt_namespace *,
-+extern struct mnt_namespace *copy_mnt_ns(unsigned long, struct mnt_namespace *,
- 		struct fs_struct *);
- extern void __put_mnt_ns(struct mnt_namespace *ns);
+ 	if ((old_termios->c_cflag & CRTSCTS) &&
+diff -puN drivers/char/esp.c~serial-remove-termios-checks-from-various-old-char-serial drivers/char/esp.c
+--- a/drivers/char/esp.c~serial-remove-termios-checks-from-various-old-char-serial
++++ a/drivers/char/esp.c
+@@ -1121,8 +1121,6 @@ static void change_speed(struct esp_stru
+ 	/*
+ 	 * Set up parity check flag
+ 	 */
+-#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
+-
+ 	info->read_status_mask = UART_LSR_OE | UART_LSR_THRE | UART_LSR_DR;
+ 	if (I_INPCK(info->tty))
+ 		info->read_status_mask |= UART_LSR_FE | UART_LSR_PE;
+@@ -1920,11 +1918,6 @@ static void rs_set_termios(struct tty_st
+ 	struct esp_struct *info = (struct esp_struct *)tty->driver_data;
+ 	unsigned long flags;
  
-diff -puN include/linux/nsproxy.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
-+++ a/include/linux/nsproxy.h
-@@ -32,7 +32,7 @@ struct nsproxy {
- };
- extern struct nsproxy init_nsproxy;
+-	if (   (tty->termios->c_cflag == old_termios->c_cflag)
+-	    && (   RELEVANT_IFLAG(tty->termios->c_iflag) 
+-		== RELEVANT_IFLAG(old_termios->c_iflag)))
+-		return;
+-
+ 	change_speed(info);
  
--int copy_namespaces(int flags, struct task_struct *tsk);
-+int copy_namespaces(unsigned long flags, struct task_struct *tsk);
- void get_task_namespaces(struct task_struct *tsk);
- void free_nsproxy(struct nsproxy *ns);
- int unshare_nsproxy_namespaces(unsigned long, struct nsproxy **,
-diff -puN include/linux/pid_namespace.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long include/linux/pid_namespace.h
---- a/include/linux/pid_namespace.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
-+++ a/include/linux/pid_namespace.h
-@@ -29,7 +29,7 @@ static inline void get_pid_ns(struct pid
- 	kref_get(&ns->kref);
- }
+ 	spin_lock_irqsave(&info->lock, flags);
+diff -puN drivers/char/istallion.c~serial-remove-termios-checks-from-various-old-char-serial drivers/char/istallion.c
+--- a/drivers/char/istallion.c~serial-remove-termios-checks-from-various-old-char-serial
++++ a/drivers/char/istallion.c
+@@ -1753,9 +1753,6 @@ static void stli_settermios(struct tty_s
+ 		return;
  
--extern struct pid_namespace *copy_pid_ns(int flags, struct pid_namespace *ns);
-+extern struct pid_namespace *copy_pid_ns(unsigned long flags, struct pid_namespace *ns);
- extern void free_pid_ns(struct kref *kref);
+ 	tiosp = tty->termios;
+-	if ((tiosp->c_cflag == old->c_cflag) &&
+-	    (tiosp->c_iflag == old->c_iflag))
+-		return;
  
- static inline void put_pid_ns(struct pid_namespace *ns)
-diff -puN include/linux/utsname.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long include/linux/utsname.h
---- a/include/linux/utsname.h~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
-+++ a/include/linux/utsname.h
-@@ -48,7 +48,8 @@ static inline void get_uts_ns(struct uts
- 	kref_get(&ns->kref);
- }
+ 	stli_mkasyport(portp, &aport, tiosp);
+ 	stli_cmdwait(brdp, portp, A_SETPORT, &aport, sizeof(asyport_t), 0);
+diff -puN drivers/char/mxser.c~serial-remove-termios-checks-from-various-old-char-serial drivers/char/mxser.c
+--- a/drivers/char/mxser.c~serial-remove-termios-checks-from-various-old-char-serial
++++ a/drivers/char/mxser.c
+@@ -90,8 +90,6 @@
+ #define UART_MCR_AFE		0x20
+ #define UART_LSR_SPECIAL	0x1E
  
--extern struct uts_namespace *copy_utsname(int flags, struct uts_namespace *ns);
-+extern struct uts_namespace *copy_utsname(unsigned long flags,
-+					struct uts_namespace *ns);
- extern void free_uts_ns(struct kref *kref);
+-#define RELEVANT_IFLAG(iflag)	(iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK|\
+-					  IXON|IXOFF))
  
- static inline void put_uts_ns(struct uts_namespace *ns)
-diff -puN kernel/nsproxy.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long kernel/nsproxy.c
---- a/kernel/nsproxy.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
-+++ a/kernel/nsproxy.c
-@@ -58,8 +58,8 @@ static inline struct nsproxy *clone_nspr
-  * Return the newly created nsproxy.  Do not attach this to the task,
-  * leave it to the caller to do proper locking and attach it to task.
-  */
--static struct nsproxy *create_new_namespaces(int flags, struct task_struct *tsk,
--			struct fs_struct *new_fs)
-+static struct nsproxy *create_new_namespaces(unsigned long flags,
-+			struct task_struct *tsk, struct fs_struct *new_fs)
- {
- 	struct nsproxy *new_nsp;
- 	int err;
-@@ -121,7 +121,7 @@ out_ns:
-  * called from clone.  This now handles copy for nsproxy and all
-  * namespaces therein.
-  */
--int copy_namespaces(int flags, struct task_struct *tsk)
-+int copy_namespaces(unsigned long flags, struct task_struct *tsk)
- {
- 	struct nsproxy *old_ns = tsk->nsproxy;
- 	struct nsproxy *new_ns;
-diff -puN kernel/pid.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long kernel/pid.c
---- a/kernel/pid.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
-+++ a/kernel/pid.c
-@@ -365,7 +365,7 @@ struct pid *find_ge_pid(int nr)
- }
- EXPORT_SYMBOL_GPL(find_get_pid);
+ #define IRQ_T(info) ((info->flags & ASYNC_SHARE_IRQ) ? IRQF_SHARED : IRQF_DISABLED)
  
--struct pid_namespace *copy_pid_ns(int flags, struct pid_namespace *old_ns)
-+struct pid_namespace *copy_pid_ns(unsigned long flags, struct pid_namespace *old_ns)
- {
- 	BUG_ON(!old_ns);
- 	get_pid_ns(old_ns);
-diff -puN kernel/utsname.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long kernel/utsname.c
---- a/kernel/utsname.c~namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long
-+++ a/kernel/utsname.c
-@@ -39,7 +39,7 @@ static struct uts_namespace *clone_uts_n
-  * utsname of this process won't be seen by parent, and vice
-  * versa.
-  */
--struct uts_namespace *copy_utsname(int flags, struct uts_namespace *old_ns)
-+struct uts_namespace *copy_utsname(unsigned long flags, struct uts_namespace *old_ns)
- {
- 	struct uts_namespace *new_ns;
+@@ -1729,16 +1727,12 @@ static void mxser_set_termios(struct tty
+ 	struct mxser_struct *info = tty->driver_data;
+ 	unsigned long flags;
  
+-	if ((tty->termios->c_cflag != old_termios->c_cflag) ||
+-			(RELEVANT_IFLAG(tty->termios->c_iflag) != RELEVANT_IFLAG(old_termios->c_iflag))) {
++	mxser_change_speed(info, old_termios);
+ 
+-		mxser_change_speed(info, old_termios);
+-
+-		if ((old_termios->c_cflag & CRTSCTS) &&
+-				!(tty->termios->c_cflag & CRTSCTS)) {
+-			tty->hw_stopped = 0;
+-			mxser_start(tty);
+-		}
++	if ((old_termios->c_cflag & CRTSCTS) &&
++			!(tty->termios->c_cflag & CRTSCTS)) {
++		tty->hw_stopped = 0;
++		mxser_start(tty);
+ 	}
+ 
+ /* Handle sw stopped */
+diff -puN drivers/char/mxser_new.c~serial-remove-termios-checks-from-various-old-char-serial drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~serial-remove-termios-checks-from-various-old-char-serial
++++ a/drivers/char/mxser_new.c
+@@ -72,8 +72,6 @@
+ #define UART_MCR_AFE		0x20
+ #define UART_LSR_SPECIAL	0x1E
+ 
+-#define RELEVANT_IFLAG(iflag)	(iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK|\
+-					  IXON|IXOFF))
+ 
+ #define C168_ASIC_ID    1
+ #define C104_ASIC_ID    2
+@@ -1990,18 +1988,14 @@ static void mxser_set_termios(struct tty
+ 	struct mxser_port *info = tty->driver_data;
+ 	unsigned long flags;
+ 
+-	if ((tty->termios->c_cflag != old_termios->c_cflag) ||
+-			(RELEVANT_IFLAG(tty->termios->c_iflag) != RELEVANT_IFLAG(old_termios->c_iflag))) {
+-
+-		spin_lock_irqsave(&info->slock, flags);
+-		mxser_change_speed(info, old_termios);
+-		spin_unlock_irqrestore(&info->slock, flags);
++	spin_lock_irqsave(&info->slock, flags);
++	mxser_change_speed(info, old_termios);
++	spin_unlock_irqrestore(&info->slock, flags);
+ 
+-		if ((old_termios->c_cflag & CRTSCTS) &&
+-				!(tty->termios->c_cflag & CRTSCTS)) {
+-			tty->hw_stopped = 0;
+-			mxser_start(tty);
+-		}
++	if ((old_termios->c_cflag & CRTSCTS) &&
++			!(tty->termios->c_cflag & CRTSCTS)) {
++		tty->hw_stopped = 0;
++		mxser_start(tty);
+ 	}
+ 
+ 	/* Handle sw stopped */
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-dvb_en_50221-convert-to-kthread-api.patch
-git-kbuild.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-i386-trim-memory-not-covered-by-wb-mtrrs.patch
+git-powerpc.patch
+git-ia64.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+ata-use-iomap_name.patch
+sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
 x86-64-disable-the-gart-in-shutdown.patch
 x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-x86_64-add-ioapic-nmi-support.patch
-xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-containers-implement-subsys-post_clone.patch
-containers-implement-namespace-tracking-subsystem-v3.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+sb1250-duartc-sb1250-duart-serial-support.patch
+mbcs-remove-lots-of-global-symbols.patch
+i2o_cfg_passthru-cleanup.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+stallion-remove-unneeded-lock_kernel.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
+drivers-edac-fix-edac_device-semaphore-to-mutex.patch
+drivers-edac-fix-e752x-reversed-csrows.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-fix-leaf-sysfs-attribute.patch
+drivers-edac-fix-edac_mc-init-apis.patch
+drivers-edac-fix-edac_device-init-apis.patch
+drivers-edac-fix-edac_mc-sysfs-completion-code.patch
+drivers-edac-fix-edac_device-sysfs-completion-code.patch
