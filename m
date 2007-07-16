@@ -1,105 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - x86-initial-fixmap-support.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:48:32 -0700
-Message-ID: <200707162048.l6GKmWEI001066@imap1.linux-foundation.org>
+Subject: - serial-assert-dtr-for-serial-console-devices.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:48:24 -0700
+Message-ID: <200707162048.l6GKmOMa001037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48883 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49452 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758020AbXGPUss (ORCPT
+	by vger.kernel.org with ESMTP id S1758599AbXGPUst (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 16:48:48 -0400
+	Mon, 16 Jul 2007 16:48:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiderman@xmission.com, ak@suse.de, bjorn.helgaas@hp.com, ebiderman@xmisson.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@sun.com, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: initial fixmap support
+     serial: assert DTR for serial console devices
 has been removed from the -mm tree.  Its filename was
-     x86-initial-fixmap-support.patch
+     serial-assert-dtr-for-serial-console-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: initial fixmap support
-From: Eric W. Biderman <ebiderman@xmission.com>
+Subject: serial: assert DTR for serial console devices
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Needed to get fixed virtual address for USB debug and earlycon with mmio.
+Some RS-232 devices require DTR to be asserted before they can be used.  DTR
+is normally asserted in uart_startup() when the port is opened.  But we don't
+actually open serial console ports, so assert DTR when the port is added.
 
-Signed-off-by: Eric W. Biderman <ebiderman@xmisson.com>
+BTW:
+earlyprintk and early_uart are hard coded to set DTR/RTS.
+
+rmk says
+
+  The only issue I can think of is the possibility for an attached modem to
+  auto-answer or maybe even auto-dial before the system is ready for it to do
+  so.  Might have an undesirable cost implication for some running with such a
+  setup.
+
+  Apart from that, I can't think of any other side effect of this specific
+  patch.
+
 Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Acked-by: Russell King <rmk@arm.linux.org.uk>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Gerd Hoffmann <kraxel@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/head.S   |    8 ++++++++
- arch/x86_64/kernel/head.S |   15 ++++++++++++++-
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ drivers/serial/serial_core.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/i386/kernel/head.S~x86-initial-fixmap-support arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~x86-initial-fixmap-support
-+++ a/arch/i386/kernel/head.S
-@@ -168,6 +168,12 @@ page_pde_offset = (__PAGE_OFFSET >> 20);
- .section .init.text,"ax",@progbits
- #endif
+diff -puN drivers/serial/serial_core.c~serial-assert-dtr-for-serial-console-devices drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-assert-dtr-for-serial-console-devices
++++ a/drivers/serial/serial_core.c
+@@ -1910,6 +1910,12 @@ uart_set_options(struct uart_port *port,
+ 	if (flow == 'r')
+ 		termios.c_cflag |= CRTSCTS;
  
-+	/* Do an early initialization of the fixmap area */
-+	movl $(swapper_pg_dir - __PAGE_OFFSET), %edx
-+	movl $(swapper_pg_pmd - __PAGE_OFFSET), %eax
-+	addl $0x007, %eax			/* 0x007 = PRESENT+RW+USER */
-+	movl %eax, 4092(%edx)
++	/*
++	 * some uarts on other side don't support no flow control.
++	 * So we set * DTR in host uart to make them happy
++	 */
++	port->mctrl |= TIOCM_DTR;
 +
- #ifdef CONFIG_SMP
- ENTRY(startup_32_smp)
- 	cld
-@@ -507,6 +513,8 @@ ENTRY(_stext)
- .section ".bss.page_aligned","w"
- ENTRY(swapper_pg_dir)
- 	.fill 1024,4,0
-+ENTRY(swapper_pg_pmd)
-+	.fill 1024,4,0
- ENTRY(empty_zero_page)
- 	.fill 4096,1,0
+ 	port->ops->set_termios(port, &termios, NULL);
+ 	co->cflag = termios.c_cflag;
  
-diff -puN arch/x86_64/kernel/head.S~x86-initial-fixmap-support arch/x86_64/kernel/head.S
---- a/arch/x86_64/kernel/head.S~x86-initial-fixmap-support
-+++ a/arch/x86_64/kernel/head.S
-@@ -73,7 +73,11 @@ startup_64:
- 	addq	%rbp, init_level4_pgt + (511*8)(%rip)
- 
- 	addq	%rbp, level3_ident_pgt + 0(%rip)
-+
- 	addq	%rbp, level3_kernel_pgt + (510*8)(%rip)
-+	addq	%rbp, level3_kernel_pgt + (511*8)(%rip)
-+
-+	addq	%rbp, level2_fixmap_pgt + (506*8)(%rip)
- 
- 	/* Add an Identity mapping if I am above 1G */
- 	leaq	_text(%rip), %rdi
-@@ -314,7 +318,16 @@ NEXT_PAGE(level3_kernel_pgt)
- 	.fill	510,8,0
- 	/* (2^48-(2*1024*1024*1024)-((2^39)*511))/(2^30) = 510 */
- 	.quad	level2_kernel_pgt - __START_KERNEL_map + _KERNPG_TABLE
--	.fill	1,8,0
-+	.quad	level2_fixmap_pgt - __START_KERNEL_map + _PAGE_TABLE
-+
-+NEXT_PAGE(level2_fixmap_pgt)
-+	.fill	506,8,0
-+	.quad	level1_fixmap_pgt - __START_KERNEL_map + _PAGE_TABLE
-+	/* 8MB reserved for vsyscalls + a 2MB hole = 4 + 1 entries */
-+	.fill	5,8,0
-+
-+NEXT_PAGE(level1_fixmap_pgt)
-+	.fill	512,8,0
- 
- NEXT_PAGE(level2_ident_pgt)
- 	/* Since I easily can, map the first 1G.
 _
 
-Patches currently in -mm which might be from ebiderman@xmission.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
 origin.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
+x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
+x86_64-get-mp_bus_to_node-as-early.patch
