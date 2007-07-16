@@ -1,135 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-i2o.patch removed from -mm tree
-Date: Mon, 16 Jul 2007 13:52:43 -0700
-Message-ID: <200707162052.l6GKqhab001564@imap1.linux-foundation.org>
+Subject: - uml-debug_shirq-fixes.patch removed from -mm tree
+Date: Mon, 16 Jul 2007 13:51:10 -0700
+Message-ID: <200707162051.l6GKpAV5001379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33872 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43877 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759029AbXGPV1C (ORCPT
+	by vger.kernel.org with ESMTP id S1757968AbXGPV05 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Jul 2007 17:27:02 -0400
+	Mon, 16 Jul 2007 17:26:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jengelh@gmx.de, mm-commits@vger.kernel.org
+To: maxdamage@aladin.ro, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects: I2O
+     uml: DEBUG_SHIRQ fixes
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-i2o.patch
+     uml-debug_shirq-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: I2O
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: uml: DEBUG_SHIRQ fixes
+From: Eduard-Gabriel Munteanu <maxdamage@aladin.ro>
 
-Use menuconfigs instead of menus, so the whole menu can be disabled at once
-instead of going through all options.
+DEBUG_SHIRQ generates spurious interrupts, triggering handlers such as
+mconsole_interrupt() or line_interrupt().  They expect data to be available to
+be read from their sockets/pipes, but in the case of spurious interrupts, the
+host didn't actually send anything, so UML hangs in read() and friends. 
+Setting those fd's as O_NONBLOCK makes DEBUG_SHIRQ-enabled UML kernels boot
+and run correctly.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Signed-off-by: Eduard-Gabriel Munteanu <maxdamage@aladin.ro>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/Kconfig |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ arch/um/drivers/chan_user.c     |    8 +++++++-
+ arch/um/drivers/mconsole_user.c |    5 +++--
+ arch/um/drivers/ubd_user.c      |    6 ++++++
+ arch/um/drivers/xterm.c         |    7 +++++++
+ 4 files changed, 23 insertions(+), 3 deletions(-)
 
-diff -puN drivers/message/i2o/Kconfig~use-menuconfig-objects-i2o drivers/message/i2o/Kconfig
---- a/drivers/message/i2o/Kconfig~use-menuconfig-objects-i2o
-+++ a/drivers/message/i2o/Kconfig
-@@ -1,9 +1,6 @@
- 
--menu "I2O device support"
--	depends on PCI
--
--config I2O
--	tristate "I2O support"
-+menuconfig I2O
-+	tristate "I2O device support"
- 	depends on PCI
- 	---help---
- 	  The Intelligent Input/Output (I2O) architecture allows hardware
-@@ -25,9 +22,10 @@ config I2O
- 
- 	  If unsure, say N.
- 
-+if I2O
+diff -puN arch/um/drivers/chan_user.c~uml-debug_shirq-fixes arch/um/drivers/chan_user.c
+--- a/arch/um/drivers/chan_user.c~uml-debug_shirq-fixes
++++ a/arch/um/drivers/chan_user.c
+@@ -170,7 +170,13 @@ static int winch_tramp(int fd, struct tt
+                 err = -EINVAL;
+ 		goto out_close;
+ 	}
+-	return err ;
 +
- config I2O_LCT_NOTIFY_ON_CHANGES
- 	bool "Enable LCT notification"
--	depends on I2O
- 	default y
- 	---help---
- 	  Only say N here if you have a I2O controller from SUN. The SUN
-@@ -39,7 +37,6 @@ config I2O_LCT_NOTIFY_ON_CHANGES
++	if (os_set_fd_block(*fd_out, 0)) {
++		printk("winch_tramp: failed to set thread_fd non-blocking.\n");
++		goto out_close;
++	}
++
++	return err;
  
- config I2O_EXT_ADAPTEC
- 	bool "Enable Adaptec extensions"
--	depends on I2O
- 	default y
- 	---help---
- 	  Say Y for support of raidutils for Adaptec I2O controllers. You also
-@@ -57,7 +54,6 @@ config I2O_EXT_ADAPTEC_DMA64
+  out_close:
+ 	os_close_file(fds[1]);
+diff -puN arch/um/drivers/mconsole_user.c~uml-debug_shirq-fixes arch/um/drivers/mconsole_user.c
+--- a/arch/um/drivers/mconsole_user.c~uml-debug_shirq-fixes
++++ a/arch/um/drivers/mconsole_user.c
+@@ -86,8 +86,9 @@ int mconsole_get_request(int fd, struct 
+ 	int len;
  
- config I2O_CONFIG
- 	tristate "I2O Configuration support"
--	depends on I2O
- 	---help---
- 	  Say Y for support of the configuration interface for the I2O adapters.
- 	  If you have a RAID controller from Adaptec and you want to use the
-@@ -78,7 +74,6 @@ config I2O_CONFIG_OLD_IOCTL
+ 	req->originlen = sizeof(req->origin);
+-	req->len = recvfrom(fd, &req->request, sizeof(req->request), 0,
+-			    (struct sockaddr *) req->origin, &req->originlen);
++	req->len = recvfrom(fd, &req->request, sizeof(req->request),
++			    MSG_DONTWAIT, (struct sockaddr *) req->origin,
++			    &req->originlen);
+ 	if (req->len < 0)
+ 		return 0;
  
- config I2O_BUS
- 	tristate "I2O Bus Adapter OSM"
--	depends on I2O
- 	---help---
- 	  Include support for the I2O Bus Adapter OSM. The Bus Adapter OSM
- 	  provides access to the busses on the I2O controller. The main purpose
-@@ -89,7 +84,7 @@ config I2O_BUS
+diff -puN arch/um/drivers/ubd_user.c~uml-debug_shirq-fixes arch/um/drivers/ubd_user.c
+--- a/arch/um/drivers/ubd_user.c~uml-debug_shirq-fixes
++++ a/arch/um/drivers/ubd_user.c
+@@ -43,6 +43,12 @@ int start_io_thread(unsigned long sp, in
+ 	kernel_fd = fds[0];
+ 	*fd_out = fds[1];
  
- config I2O_BLOCK
- 	tristate "I2O Block OSM"
--	depends on I2O && BLOCK
-+	depends on BLOCK
- 	---help---
- 	  Include support for the I2O Block OSM. The Block OSM presents disk
- 	  and other structured block devices to the operating system. If you
-@@ -102,7 +97,7 @@ config I2O_BLOCK
++	err = os_set_fd_block(*fd_out, 0);
++	if (err) {
++		printk("start_io_thread - failed to set nonblocking I/O.\n");
++		goto out_close;
++	}
++
+ 	pid = clone(io_thread, (void *) sp, CLONE_FILES | CLONE_VM | SIGCHLD,
+ 		    NULL);
+ 	if(pid < 0){
+diff -puN arch/um/drivers/xterm.c~uml-debug_shirq-fixes arch/um/drivers/xterm.c
+--- a/arch/um/drivers/xterm.c~uml-debug_shirq-fixes
++++ a/arch/um/drivers/xterm.c
+@@ -151,6 +151,13 @@ int xterm_open(int input, int output, in
+ 		goto out;
+ 	}
  
- config I2O_SCSI
- 	tristate "I2O SCSI OSM"
--	depends on I2O && SCSI
-+	depends on SCSI
- 	---help---
- 	  Allows direct SCSI access to SCSI devices on a SCSI or FibreChannel
- 	  I2O controller. You can use both the SCSI and Block OSM together if
-@@ -114,7 +109,6 @@ config I2O_SCSI
- 
- config I2O_PROC
- 	tristate "I2O /proc support"
--	depends on I2O
- 	---help---
- 	  If you say Y here and to "/proc file system support", you will be
- 	  able to read I2O related information from the virtual directory
-@@ -123,5 +117,4 @@ config I2O_PROC
- 	  To compile this support as a module, choose M here: the
- 	  module will be called i2o_proc.
- 
--endmenu
--
-+endif # I2O
++	err = os_set_fd_block(new, 0);
++	if (err) {
++		printk("xterm_open : failed to set xterm descriptor "
++		       "non-blocking, err = %d\n", -err);
++		goto out;
++	}
++
+ 	CATCH_EINTR(err = tcgetattr(new, &data->tt));
+ 	if(err){
+ 		new = err;
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from maxdamage@aladin.ro are
 
 origin.patch
-git-acpi.patch
-git-kvm.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
-use-menuconfig-objects-isdn-config_isdn.patch
-use-menuconfig-objects-isdn-config_isdn_capi.patch
-use-menuconfig-objects-isdn-config_capi_avm.patch
-use-menuconfig-objects-isdn-config_capi_eicon.patch
-use-menuconfig-objects-ii-md.patch
