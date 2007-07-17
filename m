@@ -1,96 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - slub-slab-validation-move-tracking-information-alloc-outside-of.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:00:57 -0700
-Message-ID: <200707172300.l6HN0vCv011335@imap1.linux-foundation.org>
+Subject: - slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:01:01 -0700
+Message-ID: <200707172301.l6HN112x011341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59632 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46537 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935934AbXGQXBY (ORCPT
+	by vger.kernel.org with ESMTP id S936146AbXGQXB2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:01:24 -0400
+	Tue, 17 Jul 2007 19:01:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB slab validation: Move tracking information alloc outside of lock
+     SLUB Debug: fix initial object debug state of NUMA bootstrap objects
 has been removed from the -mm tree.  Its filename was
-     slub-slab-validation-move-tracking-information-alloc-outside-of.patch
+     slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB slab validation: Move tracking information alloc outside of lock
+Subject: SLUB Debug: fix initial object debug state of NUMA bootstrap objects
 From: Christoph Lameter <clameter@sgi.com>
 
-We currently have to do an GFP_ATOMIC allocation because the list_lock is
-already taken when we first allocate memory for tracking allocation
-information.  It would be better if we could avoid atomic allocations.
+The function we are calling to initialize object debug state during early NUMA
+bootstrap sets up an inactive object giving it the wrong redzone signature. 
+The bootstrap nodes are active objects and should have active redzone
+signatures.
 
-Allocate a size of the tracking table that is usually sufficient (one page)
-before we take the list lock.  We will then only do the atomic allocation
-if we need to resize the table to become larger than a page (mostly only
-needed under large NUMA because of the tracking of cpus and nodes otherwise
-the table stays small).
+Currently slab validation complains and reverts the object to active state.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ mm/slub.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-slab-validation-move-tracking-information-alloc-outside-of mm/slub.c
---- a/mm/slub.c~slub-slab-validation-move-tracking-information-alloc-outside-of
+diff -puN mm/slub.c~slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects mm/slub.c
+--- a/mm/slub.c~slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects
 +++ a/mm/slub.c
-@@ -2902,18 +2902,14 @@ static void free_loc_track(struct loc_tr
- 			get_order(sizeof(struct location) * t->max));
- }
- 
--static int alloc_loc_track(struct loc_track *t, unsigned long max)
-+static int alloc_loc_track(struct loc_track *t, unsigned long max, gfp_t flags)
- {
- 	struct location *l;
- 	int order;
- 
--	if (!max)
--		max = PAGE_SIZE / sizeof(struct location);
--
- 	order = get_order(sizeof(struct location) * max);
- 
--	l = (void *)__get_free_pages(GFP_ATOMIC, order);
--
-+	l = (void *)__get_free_pages(flags, order);
- 	if (!l)
- 		return 0;
- 
-@@ -2979,7 +2975,7 @@ static int add_location(struct loc_track
- 	/*
- 	 * Not found. Insert new tracking element.
- 	 */
--	if (t->count >= t->max && !alloc_loc_track(t, 2 * t->max))
-+	if (t->count >= t->max && !alloc_loc_track(t, 2 * t->max, GFP_ATOMIC))
- 		return 0;
- 
- 	l = t->loc + pos;
-@@ -3022,11 +3018,12 @@ static int list_locations(struct kmem_ca
- {
- 	int n = 0;
- 	unsigned long i;
--	struct loc_track t;
-+	struct loc_track t = { 0, 0, NULL };
- 	int node;
- 
--	t.count = 0;
--	t.max = 0;
-+	if (!alloc_loc_track(&t, PAGE_SIZE / sizeof(struct location),
-+			GFP_KERNEL))
-+		return sprintf(buf, "Out of memory\n");
- 
- 	/* Push back cpu slabs */
- 	flush_all(s);
+@@ -1876,7 +1876,8 @@ static struct kmem_cache_node * __init e
+ 	page->freelist = get_freepointer(kmalloc_caches, n);
+ 	page->inuse++;
+ 	kmalloc_caches->node[node] = n;
+-	setup_object_debug(kmalloc_caches, page, n);
++	init_object(kmalloc_caches, n, 1);
++	init_tracking(kmalloc_caches, n);
+ 	init_kmem_cache_node(n);
+ 	atomic_long_inc(&n->nr_slabs);
+ 	add_partial(n, page);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
