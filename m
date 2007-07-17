@@ -1,265 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:04:40 -0700
-Message-ID: <200707172304.l6HN4eej011823@imap1.linux-foundation.org>
+Subject: - crc7-support.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:02:56 -0700
+Message-ID: <200707172302.l6HN2u15011642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53513 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59389 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936714AbXGQXQa (ORCPT
+	by vger.kernel.org with ESMTP id S936713AbXGQXQa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:16:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@puzzle.fieldses.org, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: jan.nikitenko@gmail.com, dbrownell@users.sourceforge.net, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: nfsd: make all exp_finding functions return -errno's on err
+     CRC7 support
 has been removed from the -mm tree.  Its filename was
-     knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err.patch
+     crc7-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: nfsd: make all exp_finding functions return -errno's on err
-From: J. Bruce Fields <bfields@puzzle.fieldses.org>
+Subject: CRC7 support
+From: Jan Nikitenko <jan.nikitenko@gmail.com>
 
-Currently exp_find(), exp_get_by_name(), and friends, return an export on
-success, and on failure return:
+Add CRC7 routines, used for example in MMC over SPI communication. 
+Kerneldoc updates
 
-	errors -EAGAIN (drop this request pending an upcall) or
-		-ETIMEDOUT (an upcall has timed out), or
-	return NULL, which can mean either that there was a memory allocation
-		failure, or that an export was not found, or that a passed-in
-		export lacks an auth_domain.
-
-Many callers seem to assume that NULL means that an export was not found,
-which may lead to bugs in the case of a memory allocation failure.
-
-Modify these functions to distinguish between the two NULL cases by returning
-either -ENOENT or -ENOMEM.  They now never return NULL.  We get to simplify
-some code in the process.
-
-We return -ENOENT in the case of a missing auth_domain.  This case should
-probably be removed (or converted to a bug) after confirming that it can never
-happen.
-
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
-Signed-off-by: Neil Brown <neilb@suse.de>
+[akpm@linux-foundation.org: fix funny mix of const and non-const]
+Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c |   58 +++++++++++++++++----------------------------
- fs/nfsd/nfsfh.c  |   11 +++-----
- fs/nfsd/vfs.c    |    9 +++---
- 3 files changed, 32 insertions(+), 46 deletions(-)
+ Documentation/DocBook/kernel-api.tmpl |    4 +
+ include/linux/crc7.h                  |   14 ++++
+ lib/Kconfig                           |    8 ++
+ lib/Makefile                          |    1 
+ lib/crc7.c                            |   68 ++++++++++++++++++++++++
+ 5 files changed, 94 insertions(+), 1 deletion(-)
 
-diff -puN fs/nfsd/export.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err
-+++ a/fs/nfsd/export.c
-@@ -739,16 +739,18 @@ exp_find_key(svc_client *clp, int fsid_t
- 	int err;
- 	
- 	if (!clp)
--		return NULL;
-+		return ERR_PTR(-ENOENT);
+diff -puN Documentation/DocBook/kernel-api.tmpl~crc7-support Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~crc7-support
++++ a/Documentation/DocBook/kernel-api.tmpl
+@@ -139,8 +139,10 @@ X!Ilib/string.c
+ !Elib/cmdline.c
+      </sect1>
  
- 	key.ek_client = clp;
- 	key.ek_fsidtype = fsid_type;
- 	memcpy(key.ek_fsid, fsidv, key_len(fsid_type));
+-     <sect1><title>CRC Functions</title>
++     <sect1 id="crc"><title>CRC Functions</title>
++!Elib/crc7.c
+ !Elib/crc16.c
++!Elib/crc-itu-t.c
+ !Elib/crc32.c
+ !Elib/crc-ccitt.c
+      </sect1>
+diff -puN /dev/null include/linux/crc7.h
+--- /dev/null
++++ a/include/linux/crc7.h
+@@ -0,0 +1,14 @@
++#ifndef _LINUX_CRC7_H
++#define _LINUX_CRC7_H
++#include <linux/types.h>
++
++extern const u8 crc7_syndrome_table[256];
++
++static inline u8 crc7_byte(u8 crc, u8 data)
++{
++	return crc7_syndrome_table[(crc << 1) ^ data];
++}
++
++extern u8 crc7(u8 crc, const u8 *buffer, size_t len);
++
++#endif
+diff -puN lib/Kconfig~crc7-support lib/Kconfig
+--- a/lib/Kconfig~crc7-support
++++ a/lib/Kconfig
+@@ -41,6 +41,14 @@ config CRC32
+ 	  kernel tree does. Such modules that use library CRC32 functions
+ 	  require M here.
  
- 	ek = svc_expkey_lookup(&key);
--	if (ek != NULL)
--		if ((err = cache_check(&svc_expkey_cache, &ek->h, reqp)))
--			ek = ERR_PTR(err);
-+	if (ek == NULL)
-+		return ERR_PTR(-ENOMEM);
-+	err = cache_check(&svc_expkey_cache, &ek->h, reqp);
-+	if (err)
-+		return ERR_PTR(err);
- 	return ek;
- }
++config CRC7
++	tristate "CRC7 functions"
++	help
++	  This option is provided for the case where no in-kernel-tree
++	  modules require CRC7 functions, but a module built outside
++	  the kernel tree does. Such modules that use library CRC7
++	  functions require M here.
++
+ config LIBCRC32C
+ 	tristate "CRC32c (Castagnoli, et al) Cyclic Redundancy-Check"
+ 	help
+diff -puN lib/Makefile~crc7-support lib/Makefile
+--- a/lib/Makefile~crc7-support
++++ a/lib/Makefile
+@@ -43,6 +43,7 @@ obj-$(CONFIG_CRC_CCITT)	+= crc-ccitt.o
+ obj-$(CONFIG_CRC16)	+= crc16.o
+ obj-$(CONFIG_CRC_ITU_T)	+= crc-itu-t.o
+ obj-$(CONFIG_CRC32)	+= crc32.o
++obj-$(CONFIG_CRC7)	+= crc7.o
+ obj-$(CONFIG_LIBCRC32C)	+= libcrc32c.o
+ obj-$(CONFIG_GENERIC_ALLOCATOR) += genalloc.o
  
-@@ -809,30 +811,21 @@ exp_get_by_name(svc_client *clp, struct 
- 		struct cache_req *reqp)
- {
- 	struct svc_export *exp, key;
-+	int err;
- 	
- 	if (!clp)
--		return NULL;
-+		return ERR_PTR(-ENOENT);
- 
- 	key.ex_client = clp;
- 	key.ex_mnt = mnt;
- 	key.ex_dentry = dentry;
- 
- 	exp = svc_export_lookup(&key);
--	if (exp != NULL)  {
--		int err;
--
--		err = cache_check(&svc_export_cache, &exp->h, reqp);
--		switch (err) {
--		case 0: break;
--		case -EAGAIN:
--		case -ETIMEDOUT:
--			exp = ERR_PTR(err);
--			break;
--		default:
--			exp = NULL;
--		}
--	}
--
-+	if (exp == NULL)
-+		return ERR_PTR(-ENOMEM);
-+	err = cache_check(&svc_export_cache, &exp->h, reqp);
-+	if (err)
-+		return ERR_PTR(err);
- 	return exp;
- }
- 
-@@ -848,7 +841,7 @@ exp_parent(svc_client *clp, struct vfsmo
- 	dget(dentry);
- 	exp = exp_get_by_name(clp, mnt, dentry, reqp);
- 
--	while (exp == NULL && !IS_ROOT(dentry)) {
-+	while (PTR_ERR(exp) == -ENOENT && !IS_ROOT(dentry)) {
- 		struct dentry *parent;
- 
- 		parent = dget_parent(dentry);
-@@ -901,7 +894,7 @@ static void exp_fsid_unhash(struct svc_e
- 		return;
- 
- 	ek = exp_get_fsid_key(exp->ex_client, exp->ex_fsid);
--	if (ek && !IS_ERR(ek)) {
-+	if (!IS_ERR(ek)) {
- 		ek->h.expiry_time = get_seconds()-1;
- 		cache_put(&ek->h, &svc_expkey_cache);
- 	}
-@@ -939,7 +932,7 @@ static void exp_unhash(struct svc_export
- 	struct inode *inode = exp->ex_dentry->d_inode;
- 
- 	ek = exp_get_key(exp->ex_client, inode->i_sb->s_dev, inode->i_ino);
--	if (ek && !IS_ERR(ek)) {
-+	if (!IS_ERR(ek)) {
- 		ek->h.expiry_time = get_seconds()-1;
- 		cache_put(&ek->h, &svc_expkey_cache);
- 	}
-@@ -990,13 +983,12 @@ exp_export(struct nfsctl_export *nxp)
- 
- 	/* must make sure there won't be an ex_fsid clash */
- 	if ((nxp->ex_flags & NFSEXP_FSID) &&
--	    (fsid_key = exp_get_fsid_key(clp, nxp->ex_dev)) &&
--	    !IS_ERR(fsid_key) &&
-+	    (!IS_ERR(fsid_key = exp_get_fsid_key(clp, nxp->ex_dev))) &&
- 	    fsid_key->ek_mnt &&
- 	    (fsid_key->ek_mnt != nd.mnt || fsid_key->ek_dentry != nd.dentry) )
- 		goto finish;
- 
--	if (exp) {
-+	if (!IS_ERR(exp)) {
- 		/* just a flags/id/fsid update */
- 
- 		exp_fsid_unhash(exp);
-@@ -1105,7 +1097,7 @@ exp_unexport(struct nfsctl_export *nxp)
- 	err = -EINVAL;
- 	exp = exp_get_by_name(dom, nd.mnt, nd.dentry, NULL);
- 	path_release(&nd);
--	if (!exp)
-+	if (IS_ERR(exp))
- 		goto out_domain;
- 
- 	exp_do_unexport(exp);
-@@ -1150,10 +1142,6 @@ exp_rootfh(svc_client *clp, char *path, 
- 		err = PTR_ERR(exp);
- 		goto out;
- 	}
--	if (!exp) {
--		dprintk("nfsd: exp_rootfh export not found.\n");
--		goto out;
--	}
- 
- 	/*
- 	 * fh must be initialized before calling fh_compose
-@@ -1177,13 +1165,13 @@ exp_find(struct auth_domain *clp, int fs
- {
- 	struct svc_export *exp;
- 	struct svc_expkey *ek = exp_find_key(clp, fsid_type, fsidv, reqp);
--	if (!ek || IS_ERR(ek))
-+	if (IS_ERR(ek))
- 		return ERR_PTR(PTR_ERR(ek));
- 
- 	exp = exp_get_by_name(clp, ek->ek_mnt, ek->ek_dentry, reqp);
- 	cache_put(&ek->h, &svc_expkey_cache);
- 
--	if (!exp || IS_ERR(exp))
-+	if (IS_ERR(exp))
- 		return ERR_PTR(PTR_ERR(exp));
- 	return exp;
- }
-@@ -1205,10 +1193,10 @@ exp_pseudoroot(struct auth_domain *clp, 
- 	mk_fsid(FSID_NUM, fsidv, 0, 0, 0, NULL);
- 
- 	exp = exp_find(clp, FSID_NUM, fsidv, creq);
-+	if (PTR_ERR(exp) == -ENOENT)
-+		return nfserr_perm;
- 	if (IS_ERR(exp))
- 		return nfserrno(PTR_ERR(exp));
--	if (exp == NULL)
--		return nfserr_perm;
- 	rv = fh_compose(fhp, exp, exp->ex_dentry, NULL);
- 	exp_put(exp);
- 	return rv;
-diff -puN fs/nfsd/nfsfh.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err fs/nfsd/nfsfh.c
---- a/fs/nfsd/nfsfh.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err
-+++ a/fs/nfsd/nfsfh.c
-@@ -160,15 +160,14 @@ fh_verify(struct svc_rqst *rqstp, struct
- 				       &rqstp->rq_chandle);
- 		}
- 
--		if (IS_ERR(exp) && (PTR_ERR(exp) == -EAGAIN
--				|| PTR_ERR(exp) == -ETIMEDOUT)) {
--			error = nfserrno(PTR_ERR(exp));
-+		error = nfserr_stale;
-+		if (PTR_ERR(exp) == -ENOENT)
- 			goto out;
--		}
- 
--		error = nfserr_stale; 
--		if (!exp || IS_ERR(exp))
-+		if (IS_ERR(exp)) {
-+			error = nfserrno(PTR_ERR(exp));
- 			goto out;
-+		}
- 
- 		/* Check if the request originated from a secure port. */
- 		error = nfserr_perm;
-diff -puN fs/nfsd/vfs.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err
-+++ a/fs/nfsd/vfs.c
-@@ -192,15 +192,14 @@ nfsd_lookup(struct svc_rqst *rqstp, stru
- 
- 			exp2 = exp_parent(exp->ex_client, mnt, dentry,
- 					  &rqstp->rq_chandle);
--			if (IS_ERR(exp2)) {
-+			if (PTR_ERR(exp2) == -ENOENT) {
-+				dput(dentry);
-+				dentry = dget(dparent);
-+			} else if (IS_ERR(exp2)) {
- 				host_err = PTR_ERR(exp2);
- 				dput(dentry);
- 				mntput(mnt);
- 				goto out_nfserr;
--			}
--			if (!exp2) {
--				dput(dentry);
--				dentry = dget(dparent);
- 			} else {
- 				exp_put(exp);
- 				exp = exp2;
+diff -puN /dev/null lib/crc7.c
+--- /dev/null
++++ a/lib/crc7.c
+@@ -0,0 +1,68 @@
++/*
++ *      crc7.c
++ *
++ * This source code is licensed under the GNU General Public License,
++ * Version 2. See the file COPYING for more details.
++ */
++
++#include <linux/types.h>
++#include <linux/module.h>
++#include <linux/crc7.h>
++
++
++/* Table for CRC-7 (polynomial x^7 + x^3 + 1) */
++const u8 crc7_syndrome_table[256] = {
++	0x00, 0x09, 0x12, 0x1b, 0x24, 0x2d, 0x36, 0x3f,
++	0x48, 0x41, 0x5a, 0x53, 0x6c, 0x65, 0x7e, 0x77,
++	0x19, 0x10, 0x0b, 0x02, 0x3d, 0x34, 0x2f, 0x26,
++	0x51, 0x58, 0x43, 0x4a, 0x75, 0x7c, 0x67, 0x6e,
++	0x32, 0x3b, 0x20, 0x29, 0x16, 0x1f, 0x04, 0x0d,
++	0x7a, 0x73, 0x68, 0x61, 0x5e, 0x57, 0x4c, 0x45,
++	0x2b, 0x22, 0x39, 0x30, 0x0f, 0x06, 0x1d, 0x14,
++	0x63, 0x6a, 0x71, 0x78, 0x47, 0x4e, 0x55, 0x5c,
++	0x64, 0x6d, 0x76, 0x7f, 0x40, 0x49, 0x52, 0x5b,
++	0x2c, 0x25, 0x3e, 0x37, 0x08, 0x01, 0x1a, 0x13,
++	0x7d, 0x74, 0x6f, 0x66, 0x59, 0x50, 0x4b, 0x42,
++	0x35, 0x3c, 0x27, 0x2e, 0x11, 0x18, 0x03, 0x0a,
++	0x56, 0x5f, 0x44, 0x4d, 0x72, 0x7b, 0x60, 0x69,
++	0x1e, 0x17, 0x0c, 0x05, 0x3a, 0x33, 0x28, 0x21,
++	0x4f, 0x46, 0x5d, 0x54, 0x6b, 0x62, 0x79, 0x70,
++	0x07, 0x0e, 0x15, 0x1c, 0x23, 0x2a, 0x31, 0x38,
++	0x41, 0x48, 0x53, 0x5a, 0x65, 0x6c, 0x77, 0x7e,
++	0x09, 0x00, 0x1b, 0x12, 0x2d, 0x24, 0x3f, 0x36,
++	0x58, 0x51, 0x4a, 0x43, 0x7c, 0x75, 0x6e, 0x67,
++	0x10, 0x19, 0x02, 0x0b, 0x34, 0x3d, 0x26, 0x2f,
++	0x73, 0x7a, 0x61, 0x68, 0x57, 0x5e, 0x45, 0x4c,
++	0x3b, 0x32, 0x29, 0x20, 0x1f, 0x16, 0x0d, 0x04,
++	0x6a, 0x63, 0x78, 0x71, 0x4e, 0x47, 0x5c, 0x55,
++	0x22, 0x2b, 0x30, 0x39, 0x06, 0x0f, 0x14, 0x1d,
++	0x25, 0x2c, 0x37, 0x3e, 0x01, 0x08, 0x13, 0x1a,
++	0x6d, 0x64, 0x7f, 0x76, 0x49, 0x40, 0x5b, 0x52,
++	0x3c, 0x35, 0x2e, 0x27, 0x18, 0x11, 0x0a, 0x03,
++	0x74, 0x7d, 0x66, 0x6f, 0x50, 0x59, 0x42, 0x4b,
++	0x17, 0x1e, 0x05, 0x0c, 0x33, 0x3a, 0x21, 0x28,
++	0x5f, 0x56, 0x4d, 0x44, 0x7b, 0x72, 0x69, 0x60,
++	0x0e, 0x07, 0x1c, 0x15, 0x2a, 0x23, 0x38, 0x31,
++	0x46, 0x4f, 0x54, 0x5d, 0x62, 0x6b, 0x70, 0x79
++};
++EXPORT_SYMBOL(crc7_syndrome_table);
++
++/**
++ * crc7 - update the CRC7 for the data buffer
++ * @crc:     previous CRC7 value
++ * @buffer:  data pointer
++ * @len:     number of bytes in the buffer
++ * Context: any
++ *
++ * Returns the updated CRC7 value.
++ */
++u8 crc7(u8 crc, const u8 *buffer, size_t len)
++{
++	while (len--)
++		crc = crc7_byte(crc, *buffer++);
++	return crc;
++}
++EXPORT_SYMBOL(crc7);
++
++MODULE_DESCRIPTION("CRC7 calculations");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from bfields@puzzle.fieldses.org are
+Patches currently in -mm which might be from jan.nikitenko@gmail.com are
 
 origin.patch
