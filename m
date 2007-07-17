@@ -1,133 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:05:13 -0700
-Message-ID: <200707172305.l6HN5DcD011898@imap1.linux-foundation.org>
+Subject: - oss-trident-replace-deprecated-pci_find_device-with-pci_get_device.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:06:07 -0700
+Message-ID: <200707172306.l6HN67x3011985@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37112 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57445 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935765AbXGQXPY (ORCPT
+	by vger.kernel.org with ESMTP id S1758190AbXGQXPT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:24 -0400
+	Tue, 17 Jul 2007 19:15:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: muli@il.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: nfsd4: secinfo handling without secinfo= option
+     OSS trident: replace deprecated pci_find_device with pci_get_device
 has been removed from the -mm tree.  Its filename was
-     knfsd-nfsd4-secinfo-handling-without-secinfo=-option.patch
+     oss-trident-replace-deprecated-pci_find_device-with-pci_get_device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: secinfo handling without secinfo= option
-From: J. Bruce Fields <bfields@citi.umich.edu>
+Subject: OSS trident: replace deprecated pci_find_device with pci_get_device
+From: Muli Ben-Yehuda <muli@il.ibm.com>
 
-We could return some sort of error in the case where someone asks for secinfo
-on an export without the secinfo= option set--that'd be no worse than what
-we've been doing.  But it's not really correct.  So, hack up an approximate
-secinfo response in that case--it may not be complete, but it'll tell the
-client at least one acceptable security flavor.
-
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4xdr.c                  |   30 ++++++++++++++++++++++++---
- include/linux/sunrpc/svcauth_gss.h |    1 
- net/sunrpc/auth_gss/svcauth_gss.c  |    9 ++++++++
- 3 files changed, 37 insertions(+), 3 deletions(-)
+ sound/oss/trident.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/nfsd/nfs4xdr.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option fs/nfsd/nfs4xdr.c
---- a/fs/nfsd/nfs4xdr.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option
-+++ a/fs/nfsd/nfs4xdr.c
-@@ -57,6 +57,7 @@
- #include <linux/nfs4.h>
- #include <linux/nfs4_acl.h>
- #include <linux/sunrpc/gss_api.h>
-+#include <linux/sunrpc/svcauth_gss.h>
+diff -puN sound/oss/trident.c~oss-trident-replace-deprecated-pci_find_device-with-pci_get_device sound/oss/trident.c
+--- a/sound/oss/trident.c~oss-trident-replace-deprecated-pci_find_device-with-pci_get_device
++++ a/sound/oss/trident.c
+@@ -4454,9 +4454,9 @@ trident_probe(struct pci_dev *pci_dev, c
  
- #define NFSDDBG_FACILITY		NFSDDBG_XDR
- 
-@@ -2454,15 +2455,38 @@ nfsd4_encode_secinfo(struct nfsd4_compou
- {
- 	int i = 0;
- 	struct svc_export *exp = secinfo->si_exp;
-+	u32 nflavs;
-+	struct exp_flavor_info *flavs;
-+	struct exp_flavor_info def_flavs[2];
- 	ENCODE_HEAD;
- 
- 	if (nfserr)
- 		goto out;
-+	if (exp->ex_nflavors) {
-+		flavs = exp->ex_flavors;
-+		nflavs = exp->ex_nflavors;
-+	} else { /* Handling of some defaults in absence of real secinfo: */
-+		flavs = def_flavs;
-+		if (exp->ex_client->flavour->flavour == RPC_AUTH_UNIX) {
-+			nflavs = 2;
-+			flavs[0].pseudoflavor = RPC_AUTH_UNIX;
-+			flavs[1].pseudoflavor = RPC_AUTH_NULL;
-+		} else if (exp->ex_client->flavour->flavour == RPC_AUTH_GSS) {
-+			nflavs = 1;
-+			flavs[0].pseudoflavor
-+					= svcauth_gss_flavor(exp->ex_client);
-+		} else {
-+			nflavs = 1;
-+			flavs[0].pseudoflavor
-+					= exp->ex_client->flavour->flavour;
-+		}
-+	}
+ 		/* Add H/W Volume Control By Matt Wu Jul. 06, 2001 */
+ 		card->hwvolctl = 0;
+-		pci_dev_m1533 = pci_find_device(PCI_VENDOR_ID_AL,
+-						PCI_DEVICE_ID_AL_M1533,
+-						pci_dev_m1533);
++		pci_dev_m1533 = pci_get_device(PCI_VENDOR_ID_AL,
++					       PCI_DEVICE_ID_AL_M1533,
++					       pci_dev_m1533);
+ 		rc = -ENODEV;
+ 		if (pci_dev_m1533 == NULL)
+ 			goto out_proc_fs;
+@@ -4470,6 +4470,8 @@ trident_probe(struct pci_dev *pci_dev, c
+ 			bits &= 0xbf;	/*clear bit 6 */
+ 			pci_write_config_byte(pci_dev_m1533, 0x7b, bits);
+ 		}
++		pci_dev_put(pci_dev_m1533);
 +
- 	RESERVE_SPACE(4);
--	WRITE32(exp->ex_nflavors);
-+	WRITE32(nflavs);
- 	ADJUST_ARGS();
--	for (i = 0; i < exp->ex_nflavors; i++) {
--		u32 flav = exp->ex_flavors[i].pseudoflavor;
-+	for (i = 0; i < nflavs; i++) {
-+		u32 flav = flavs[i].pseudoflavor;
- 		struct gss_api_mech *gm = gss_mech_get_by_pseudoflavor(flav);
- 
- 		if (gm) {
-diff -puN include/linux/sunrpc/svcauth_gss.h~knfsd-nfsd4-secinfo-handling-without-secinfo=-option include/linux/sunrpc/svcauth_gss.h
---- a/include/linux/sunrpc/svcauth_gss.h~knfsd-nfsd4-secinfo-handling-without-secinfo=-option
-+++ a/include/linux/sunrpc/svcauth_gss.h
-@@ -22,6 +22,7 @@
- int gss_svc_init(void);
- void gss_svc_shutdown(void);
- int svcauth_gss_register_pseudoflavor(u32 pseudoflavor, char * name);
-+u32 svcauth_gss_flavor(struct auth_domain *dom);
- 
- #endif /* __KERNEL__ */
- #endif /* _LINUX_SUNRPC_SVCAUTH_GSS_H */
-diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option net/sunrpc/auth_gss/svcauth_gss.c
---- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-secinfo-handling-without-secinfo=-option
-+++ a/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -743,6 +743,15 @@ find_gss_auth_domain(struct gss_ctx *ctx
- 
- static struct auth_ops svcauthops_gss;
- 
-+u32 svcauth_gss_flavor(struct auth_domain *dom)
-+{
-+	struct gss_domain *gd = container_of(dom, struct gss_domain, h);
-+
-+	return gd->pseudoflavor;
-+}
-+
-+EXPORT_SYMBOL(svcauth_gss_flavor);
-+
- int
- svcauth_gss_register_pseudoflavor(u32 pseudoflavor, char * name)
- {
+ 	} else if (card->pci_id == PCI_DEVICE_ID_INTERG_5050) {
+ 		card->alloc_pcm_channel = cyber_alloc_pcm_channel;
+ 		card->alloc_rec_pcm_channel = cyber_alloc_pcm_channel;
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from muli@il.ibm.com are
 
 origin.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-git-vfs-lease-api.patch
+x86-64-calgary-generalize-calgary_increase_split_completion_timeout.patch
+x86-64-calgary-update-copyright-notice.patch
+x86-64-calgary-introduce-handle_quirks-for-various-chipset-quirks.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
+x86-64-calgary-abstract-how-we-find-the-iommu_table-for-a-device.patch
+x86-64-calgary-introduce-calioc2-support.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+x86-64-calgary-implement-calioc2-tce-cache-flush-sequence.patch
+x86-64-calgary-make-dump_error_regs-a-chip-op.patch
+x86-64-calgary-grab-plssr-too-when-a-dma-error-occurs.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+x86-64-calgary-cleanup-of-unneeded-macros.patch
+x86-64-calgary-tabify-and-trim-trailing-whitespace.patch
+x86-64-calgary-only-reserve-the-first-1mb-of-io-space-for-calioc2.patch
+x86-64-calgary-tidy-up-debug-printks.patch
+x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
+x86-64-calgary-tighten-up-the-bitmap-locking.patch
+x86-64-calgary-fold-in-redundant-functions.patch
+x86_64-calgary-change-_map_single-etc-to-static.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
