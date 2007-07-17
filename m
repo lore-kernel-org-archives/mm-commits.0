@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - macfb-fix-pseudo_palette-size-and-overrun.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:07:22 -0700
-Message-ID: <200707172307.l6HN7MC8012183@imap1.linux-foundation.org>
+Subject: - fbcon-revise-primary-device-selection.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:07:03 -0700
+Message-ID: <200707172307.l6HN73WX012146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50520 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41434 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762794AbXGQXPM (ORCPT
+	by vger.kernel.org with ESMTP id S1759454AbXGQXPM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:15:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,144 +15,138 @@ To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     macfb: fix pseudo_palette size and overrun
+     fbcon: Revise primary device selection
 has been removed from the -mm tree.  Its filename was
-     macfb-fix-pseudo_palette-size-and-overrun.patch
+     fbcon-revise-primary-device-selection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: macfb: fix pseudo_palette size and overrun
+Subject: fbcon: Revise primary device selection
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-- the pseudo_palette is only 16 elements long.
-- do not write to the pseudo_palette if regno (array index) is more than 15.
+Use set_con2fb_map() to select the primary display driver instead of using
+unbind_con_driver() and bind_con_driver().  Using the former is much simpler
+and safer than the current one.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/macfb.c |   93 +++++++++++++++++++++-------------------
- 1 file changed, 50 insertions(+), 43 deletions(-)
+ drivers/video/console/Kconfig |    6 ---
+ drivers/video/console/fbcon.c |   49 ++++++++------------------------
+ 2 files changed, 14 insertions(+), 41 deletions(-)
 
-diff -puN drivers/video/macfb.c~macfb-fix-pseudo_palette-size-and-overrun drivers/video/macfb.c
---- a/drivers/video/macfb.c~macfb-fix-pseudo_palette-size-and-overrun
-+++ a/drivers/video/macfb.c
-@@ -170,7 +170,7 @@ static struct fb_fix_screeninfo macfb_fi
- };
+diff -puN drivers/video/console/Kconfig~fbcon-revise-primary-device-selection drivers/video/console/Kconfig
+--- a/drivers/video/console/Kconfig~fbcon-revise-primary-device-selection
++++ a/drivers/video/console/Kconfig
+@@ -120,7 +120,7 @@ config FRAMEBUFFER_CONSOLE
  
- static struct fb_info fb_info;
--static u32 pseudo_palette[17];
-+static u32 pseudo_palette[16];
- static int inverse   = 0;
- static int vidtest   = 0;
+ config FRAMEBUFFER_CONSOLE_DETECT_PRIMARY
+        bool "Map the console to the primary display device"
+-       depends on FRAMEBUFFER_CONSOLE && VT_HW_CONSOLE_BINDING
++       depends on FRAMEBUFFER_CONSOLE
+        default n
+        ---help---
+          If this option is selected, the framebuffer console will
+@@ -132,10 +132,6 @@ config FRAMEBUFFER_CONSOLE_DETECT_PRIMAR
+ 	 You can always override the automatic selection of the primary device
+ 	 by using the fbcon=map: boot option.
  
-@@ -529,56 +529,63 @@ static int macfb_setcolreg(unsigned regn
- 	if (regno >= fb_info->cmap.len)
- 		return 1;
+-	 To select this feature, "Support for binding and unbinding console
+-         drivers", under "Device Drivers"->"Character Devices" must be set to
+-	 y.
+-
+ 	 If unsure, select n.
  
--	switch (fb_info->var.bits_per_pixel) {
--	case 1:
--		/* We shouldn't get here */
--		break;
--	case 2:
--	case 4:
--	case 8:
--		if (macfb_setpalette)
--			macfb_setpalette(regno, red, green, blue, fb_info);
--		else
--			return 1;
--		break;
--	case 16:
--		if (fb_info->var.red.offset == 10) {
--			/* 1:5:5:5 */
--			((u32*) (fb_info->pseudo_palette))[regno] =
-+	if (fb_info->var.bits_per_pixel <= 8) {
-+		switch (fb_info->var.bits_per_pixel) {
-+		case 1:
-+			/* We shouldn't get here */
-+			break;
-+		case 2:
-+		case 4:
-+		case 8:
-+			if (macfb_setpalette)
-+				macfb_setpalette(regno, red, green, blue,
-+						 fb_info);
-+			else
-+				return 1;
-+			break;
-+		}
-+	} else if (regno < 16) {
-+		switch (fb_info->var.bits_per_pixel) {
-+		case 16:
-+			if (fb_info->var.red.offset == 10) {
-+				/* 1:5:5:5 */
-+				((u32*) (fb_info->pseudo_palette))[regno] =
- 					((red   & 0xf800) >>  1) |
- 					((green & 0xf800) >>  6) |
- 					((blue  & 0xf800) >> 11) |
- 					((transp != 0) << 15);
--		} else {
--			/* 0:5:6:5 */
--			((u32*) (fb_info->pseudo_palette))[regno] =
-+			} else {
-+				/* 0:5:6:5 */
-+				((u32*) (fb_info->pseudo_palette))[regno] =
- 					((red   & 0xf800)      ) |
- 					((green & 0xfc00) >>  5) |
- 					((blue  & 0xf800) >> 11);
-+			}
-+			break;
-+			/* I'm pretty sure that one or the other of these
-+			   doesn't exist on 68k Macs */
-+		case 24:
-+			red   >>= 8;
-+			green >>= 8;
-+			blue  >>= 8;
-+			((u32 *)(fb_info->pseudo_palette))[regno] =
-+				(red   << fb_info->var.red.offset)   |
-+				(green << fb_info->var.green.offset) |
-+				(blue  << fb_info->var.blue.offset);
-+			break;
-+		case 32:
-+			red   >>= 8;
-+			green >>= 8;
-+			blue  >>= 8;
-+			((u32 *)(fb_info->pseudo_palette))[regno] =
-+				(red   << fb_info->var.red.offset)   |
-+				(green << fb_info->var.green.offset) |
-+				(blue  << fb_info->var.blue.offset);
-+			break;
- 		}
--		break;	
--		/* I'm pretty sure that one or the other of these
--		   doesn't exist on 68k Macs */
--	case 24:
--		red   >>= 8;
--		green >>= 8;
--		blue  >>= 8;
--		((u32 *)(fb_info->pseudo_palette))[regno] =
--			(red   << fb_info->var.red.offset)   |
--			(green << fb_info->var.green.offset) |
--			(blue  << fb_info->var.blue.offset);
--		break;
--	case 32:
--		red   >>= 8;
--		green >>= 8;
--		blue  >>= 8;
--		((u32 *)(fb_info->pseudo_palette))[regno] =
--			(red   << fb_info->var.red.offset)   |
--			(green << fb_info->var.green.offset) |
--			(blue  << fb_info->var.blue.offset);
--		break;
--    }
--    return 0;
-+	}
-+
-+	return 0;
+ config FRAMEBUFFER_CONSOLE_ROTATION
+diff -puN drivers/video/console/fbcon.c~fbcon-revise-primary-device-selection drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-revise-primary-device-selection
++++ a/drivers/video/console/fbcon.c
+@@ -3041,52 +3041,32 @@ static int fbcon_fb_unregistered(struct 
  }
  
- static struct fb_ops macfb_ops = {
+ #ifdef CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY
+-static int fbcon_select_primary(struct fb_info *info)
++static void fbcon_select_primary(struct fb_info *info)
+ {
+-	int ret = 0;
+-
+ 	if (!map_override && primary_device == -1 &&
+ 	    fb_is_primary_device(info)) {
+-		int i, err;
++		int i;
+ 
+-		printk(KERN_INFO "fbcon: %s is primary device\n",
+-		       info->fix.id);
++		printk(KERN_INFO "fbcon: %s (fb%i) is primary device\n",
++		       info->fix.id, info->node);
+ 		primary_device = info->node;
+ 
+-		if (!con_is_bound(&fb_con))
+-			goto done;
+-
+-		printk(KERN_INFO "fbcon: Unbinding old driver\n");
+-		unbind_con_driver(&fb_con, first_fb_vc, last_fb_vc,
+-				  fbcon_is_default);
+-		info_idx = primary_device;
+-
+-		for (i = first_fb_vc; i <= last_fb_vc; i++) {
++		for (i = first_fb_vc; i <= last_fb_vc; i++)
+ 			con2fb_map_boot[i] = primary_device;
+-			con2fb_map[i] = primary_device;
+-		}
+-
+-		printk(KERN_INFO "fbcon: Selecting new driver\n");
+-		err = bind_con_driver(&fb_con, first_fb_vc, last_fb_vc,
+-				      fbcon_is_default);
+-
+-		if (err) {
+-			for (i = first_fb_vc; i <= last_fb_vc; i++)
+-				con2fb_map[i] = -1;
+ 
+-			info_idx = -1;
++		if (con_is_bound(&fb_con)) {
++			printk(KERN_INFO "fbcon: Remapping primary device, "
++			       "fb%i, to tty %i-%i\n", info->node,
++			       first_fb_vc + 1, last_fb_vc + 1);
++			info_idx = primary_device;
+ 		}
+-
+-		ret = 1;
+ 	}
+ 
+-done:
+-	return ret;
+ }
+ #else
+-static inline int fbcon_select_primary(struct fb_info *info)
++static inline void fbcon_select_primary(struct fb_info *info)
+ {
+-	return 0;
++	return;
+ }
+ #endif /* CONFIG_FRAMEBUFFER_DETECT_PRIMARY */
+ 
+@@ -3094,9 +3074,7 @@ static int fbcon_fb_registered(struct fb
+ {
+ 	int ret = 0, i, idx = info->node;
+ 
+-	if (fbcon_select_primary(info))
+-		goto done;
+-
++	fbcon_select_primary(info);
+ 
+ 	if (info_idx == -1) {
+ 		for (i = first_fb_vc; i <= last_fb_vc; i++) {
+@@ -3115,7 +3093,6 @@ static int fbcon_fb_registered(struct fb
+ 		}
+ 	}
+ 
+-done:
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
