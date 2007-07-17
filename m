@@ -1,167 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: - char-isicom-cleanup-locking.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:06:15 -0700
-Message-ID: <200707172306.l6HN6Fwn011997@imap1.linux-foundation.org>
+Subject: - fbcon-use-struct-device-instead-of-struct-class_device.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:06:47 -0700
+Message-ID: <200707172306.l6HN6l2i012050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44831 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36466 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765425AbXGQXPM (ORCPT
+	by vger.kernel.org with ESMTP id S932300AbXGQXPO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:12 -0400
+	Tue, 17 Jul 2007 19:15:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: isicom, cleanup locking
+     fbcon: use struct device instead of struct class_device
 has been removed from the -mm tree.  Its filename was
-     char-isicom-cleanup-locking.patch
+     fbcon-use-struct-device-instead-of-struct-class_device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: isicom, cleanup locking
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: fbcon: use struct device instead of struct class_device
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Don't spin processor when not needed (use sleep instead of delay).  Don't
-release the lock when needed in next iteration -- this actually fixes a bug --
-missing braces
+Port fbcon.c to use struct device from using struct class_device
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/isicom.c |   65 ++++++++++++++++------------------------
- 1 file changed, 27 insertions(+), 38 deletions(-)
+ drivers/video/console/fbcon.c |   57 ++++++++++++++++----------------
+ 1 file changed, 29 insertions(+), 28 deletions(-)
 
-diff -puN drivers/char/isicom.c~char-isicom-cleanup-locking drivers/char/isicom.c
---- a/drivers/char/isicom.c~char-isicom-cleanup-locking
-+++ a/drivers/char/isicom.c
-@@ -243,17 +243,18 @@ static inline int WaitTillCardIsFree(u16
+diff -puN drivers/video/console/fbcon.c~fbcon-use-struct-device-instead-of-struct-class_device drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-use-struct-device-instead-of-struct-class_device
++++ a/drivers/video/console/fbcon.c
+@@ -198,7 +198,7 @@ static void fbcon_modechanged(struct fb_
+ static void fbcon_set_all_vcs(struct fb_info *info);
+ static void fbcon_start(void);
+ static void fbcon_exit(void);
+-static struct class_device *fbcon_class_device;
++static struct device *fbcon_device;
  
- static int lock_card(struct isi_board *card)
+ #ifdef CONFIG_MAC
+ /*
+@@ -3246,8 +3246,9 @@ static struct notifier_block fbcon_event
+ 	.notifier_call	= fbcon_event_notify,
+ };
+ 
+-static ssize_t store_rotate(struct class_device *class_device,
+-			    const char *buf, size_t count)
++static ssize_t store_rotate(struct device *device,
++			    struct device_attribute *attr, const char *buf,
++			    size_t count)
  {
--	char		retries;
- 	unsigned long base = card->base;
-+	unsigned int retries, a;
- 
--	for (retries = 0; retries < 100; retries++) {
-+	for (retries = 0; retries < 10; retries++) {
- 		spin_lock_irqsave(&card->card_lock, card->flags);
--		if (inw(base + 0xe) & 0x1) {
--			return 1;
--		} else {
--			spin_unlock_irqrestore(&card->card_lock, card->flags);
--			udelay(1000);   /* 1ms */
-+		for (a = 0; a < 10; a++) {
-+			if (inw(base + 0xe) & 0x1)
-+				return 1;
-+			udelay(10);
- 		}
-+		spin_unlock_irqrestore(&card->card_lock, card->flags);
-+		msleep(10);
- 	}
- 	printk(KERN_WARNING "ISICOM: Failed to lock Card (0x%lx)\n",
- 		card->base);
-@@ -261,23 +262,6 @@ static int lock_card(struct isi_board *c
- 	return 0;	/* Failed to acquire the card! */
+ 	struct fb_info *info;
+ 	int rotate, idx;
+@@ -3270,8 +3271,9 @@ err:
+ 	return count;
  }
  
--static int lock_card_at_interrupt(struct isi_board *card)
--{
--	unsigned char		retries;
--	unsigned long base = card->base;
--
--	for (retries = 0; retries < 200; retries++) {
--		spin_lock_irqsave(&card->card_lock, card->flags);
--
--		if (inw(base + 0xe) & 0x1)
--			return 1;
--		else
--			spin_unlock_irqrestore(&card->card_lock, card->flags);
--	}
--	/* Failing in interrupt is an acceptable event */
--	return 0;	/* Failed to acquire the card! */
--}
--
- static void unlock_card(struct isi_board *card)
+-static ssize_t store_rotate_all(struct class_device *class_device,
+-				const char *buf, size_t count)
++static ssize_t store_rotate_all(struct device *device,
++				struct device_attribute *attr,const char *buf,
++				size_t count)
  {
- 	spin_unlock_irqrestore(&card->card_lock, card->flags);
-@@ -415,6 +399,8 @@ static inline int __isicom_paranoia_chec
+ 	struct fb_info *info;
+ 	int rotate, idx;
+@@ -3294,7 +3296,8 @@ err:
+ 	return count;
+ }
  
- static void isicom_tx(unsigned long _data)
+-static ssize_t show_rotate(struct class_device *class_device, char *buf)
++static ssize_t show_rotate(struct device *device,
++			   struct device_attribute *attr,char *buf)
  {
-+	unsigned long flags;
-+	unsigned int retries;
- 	short count = (BOARD_COUNT-1), card, base;
- 	short txcount, wrd, residue, word_count, cnt;
- 	struct isi_port *port;
-@@ -435,32 +421,34 @@ static void isicom_tx(unsigned long _dat
- 	count = isi_card[card].port_count;
- 	port = isi_card[card].ports;
- 	base = isi_card[card].base;
-+
-+	spin_lock_irqsave(&isi_card[card].card_lock, flags);
-+	for (retries = 0; retries < 100; retries++) {
-+		if (inw(base + 0xe) & 0x1)
-+			break;
-+		udelay(2);
-+	}
-+	if (retries >= 100)
-+		goto unlock;
-+
- 	for (;count > 0;count--, port++) {
--		if (!lock_card_at_interrupt(&isi_card[card]))
--			continue;
- 		/* port not active or tx disabled to force flow control */
- 		if (!(port->flags & ASYNC_INITIALIZED) ||
- 				!(port->status & ISI_TXOK))
--			unlock_card(&isi_card[card]);
- 			continue;
+ 	struct fb_info *info;
+ 	int rotate = 0, idx;
+@@ -3315,7 +3318,8 @@ err:
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", rotate);
+ }
  
- 		tty = port->tty;
+-static ssize_t show_cursor_blink(struct class_device *class_device, char *buf)
++static ssize_t show_cursor_blink(struct device *device,
++				 struct device_attribute *attr, char *buf)
+ {
+ 	struct fb_info *info;
+ 	struct fbcon_ops *ops;
+@@ -3342,7 +3346,8 @@ err:
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", blink);
+ }
  
--
--		if (tty == NULL) {
--			unlock_card(&isi_card[card]);
-+		if (tty == NULL)
- 			continue;
--		}
+-static ssize_t store_cursor_blink(struct class_device *clas_device,
++static ssize_t store_cursor_blink(struct device *device,
++				  struct device_attribute *attr,
+ 				  const char *buf, size_t count)
+ {
+ 	struct fb_info *info;
+@@ -3378,22 +3383,21 @@ err:
+ 	return count;
+ }
  
- 		txcount = min_t(short, TX_SIZE, port->xmit_cnt);
--		if (txcount <= 0 || tty->stopped || tty->hw_stopped) {
--			unlock_card(&isi_card[card]);
-+		if (txcount <= 0 || tty->stopped || tty->hw_stopped)
- 			continue;
--		}
--		if (!(inw(base + 0x02) & (1 << port->channel))) {
--			unlock_card(&isi_card[card]);
-+
-+		if (!(inw(base + 0x02) & (1 << port->channel)))
- 			continue;
--		}
-+
- 		pr_dbg("txing %d bytes, port%d.\n", txcount,
- 			port->channel + 1);
- 		outw((port->channel << isi_card[card].shift_count) | txcount,
-@@ -508,9 +496,10 @@ static void isicom_tx(unsigned long _dat
- 			port->status &= ~ISI_TXOK;
- 		if (port->xmit_cnt <= WAKEUP_CHARS)
- 			tty_wakeup(tty);
--		unlock_card(&isi_card[card]);
+-static struct class_device_attribute class_device_attrs[] = {
++static struct device_attribute device_attrs[] = {
+ 	__ATTR(rotate, S_IRUGO|S_IWUSR, show_rotate, store_rotate),
+ 	__ATTR(rotate_all, S_IWUSR, NULL, store_rotate_all),
+ 	__ATTR(cursor_blink, S_IRUGO|S_IWUSR, show_cursor_blink,
+ 	       store_cursor_blink),
+ };
+ 
+-static int fbcon_init_class_device(void)
++static int fbcon_init_device(void)
+ {
+ 	int i, error = 0;
+ 
+ 	fbcon_has_sysfs = 1;
+ 
+-	for (i = 0; i < ARRAY_SIZE(class_device_attrs); i++) {
+-		error = class_device_create_file(fbcon_class_device,
+-						 &class_device_attrs[i]);
++	for (i = 0; i < ARRAY_SIZE(device_attrs); i++) {
++		error = device_create_file(fbcon_device, &device_attrs[i]);
+ 
+ 		if (error)
+ 			break;
+@@ -3401,8 +3405,7 @@ static int fbcon_init_class_device(void)
+ 
+ 	if (error) {
+ 		while (--i >= 0)
+-			class_device_remove_file(fbcon_class_device,
+-						 &class_device_attrs[i]);
++			device_remove_file(fbcon_device, &device_attrs[i]);
+ 
+ 		fbcon_has_sysfs = 0;
  	}
+@@ -3488,16 +3491,15 @@ static int __init fb_console_init(void)
  
-+unlock:
-+	spin_unlock_irqrestore(&isi_card[card].card_lock, flags);
- 	/*	schedule another tx for hopefully in about 10ms	*/
- sched_again:
- 	if (!re_schedule) {
+ 	acquire_console_sem();
+ 	fb_register_client(&fbcon_event_notifier);
+-	fbcon_class_device =
+-	    class_device_create(fb_class, NULL, MKDEV(0, 0), NULL, "fbcon");
++	fbcon_device = device_create(fb_class, NULL, MKDEV(0, 0), "fbcon");
+ 
+-	if (IS_ERR(fbcon_class_device)) {
+-		printk(KERN_WARNING "Unable to create class_device "
++	if (IS_ERR(fbcon_device)) {
++		printk(KERN_WARNING "Unable to create device "
+ 		       "for fbcon; errno = %ld\n",
+-		       PTR_ERR(fbcon_class_device));
+-		fbcon_class_device = NULL;
++		       PTR_ERR(fbcon_device));
++		fbcon_device = NULL;
+ 	} else
+-		fbcon_init_class_device();
++		fbcon_init_device();
+ 
+ 	for (i = 0; i < MAX_NR_CONSOLES; i++)
+ 		con2fb_map[i] = -1;
+@@ -3511,14 +3513,13 @@ module_init(fb_console_init);
+ 
+ #ifdef MODULE
+ 
+-static void __exit fbcon_deinit_class_device(void)
++static void __exit fbcon_deinit_device(void)
+ {
+ 	int i;
+ 
+ 	if (fbcon_has_sysfs) {
+-		for (i = 0; i < ARRAY_SIZE(class_device_attrs); i++)
+-			class_device_remove_file(fbcon_class_device,
+-						 &class_device_attrs[i]);
++		for (i = 0; i < ARRAY_SIZE(device_attrs); i++)
++			device_remove_file(fbcon_device, &device_attrs[i]);
+ 
+ 		fbcon_has_sysfs = 0;
+ 	}
+@@ -3528,8 +3529,8 @@ static void __exit fb_console_exit(void)
+ {
+ 	acquire_console_sem();
+ 	fb_unregister_client(&fbcon_event_notifier);
+-	fbcon_deinit_class_device();
+-	class_device_destroy(fb_class, MKDEV(0, 0));
++	fbcon_deinit_device();
++	device_destroy(fb_class, MKDEV(0, 0));
+ 	fbcon_exit();
+ 	release_console_sem();
+ 	unregister_con_driver(&fb_con);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-shrink_slab-handle-bad-shrinkers.patch
