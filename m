@@ -1,186 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - slub-do-not-allocate-object-bit-array-on-stack.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:01:28 -0700
-Message-ID: <200707172301.l6HN1SWb011399@imap1.linux-foundation.org>
+Subject: - omap-lcd-panel-support-for-the-palm-tungsten-e.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:08:43 -0700
+Message-ID: <200707172308.l6HN8hMK012305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40206 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33405 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936487AbXGQXPt (ORCPT
+	by vger.kernel.org with ESMTP id S932568AbXGQXPt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:15:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: r.goyet@gmail.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Do not allocate object bit array on stack
+     OMAP: LCD panel support for the Palm Tungsten E
 has been removed from the -mm tree.  Its filename was
-     slub-do-not-allocate-object-bit-array-on-stack.patch
+     omap-lcd-panel-support-for-the-palm-tungsten-e.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: Do not allocate object bit array on stack
-From: Christoph Lameter <clameter@sgi.com>
+Subject: OMAP: LCD panel support for the Palm Tungsten E
+From: Romain Goyet <r.goyet@gmail.com>
 
-The objects per slab increase with the current patches in mm since we allow up
-to order 3 allocs by default.  More patches in mm actually allow to use 2M or
-higher sized slabs.  For slab validation we need per object bitmaps in order
-to check a slab.  We end up with up to 64k objects per slab resulting in a
-potential requirement of 8K stack space.  That does not look good.
+- Adds TFT LCD panel support for Palm Tungsten E.
 
-Allocate the bit arrays via kmalloc.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   39 +++++++++++++++++++++++++--------------
- 1 file changed, 25 insertions(+), 14 deletions(-)
+ drivers/video/omap/Makefile     |    1 
+ drivers/video/omap/lcd_palmte.c |  123 ++++++++++++++++++++++++++++++
+ 2 files changed, 124 insertions(+)
 
-diff -puN mm/slub.c~slub-do-not-allocate-object-bit-array-on-stack mm/slub.c
---- a/mm/slub.c~slub-do-not-allocate-object-bit-array-on-stack
-+++ a/mm/slub.c
-@@ -2764,11 +2764,11 @@ void *__kmalloc_node_track_caller(size_t
- }
+diff -puN drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-palm-tungsten-e drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-palm-tungsten-e
++++ a/drivers/video/omap/Makefile
+@@ -17,6 +17,7 @@ objs-y$(CONFIG_FB_OMAP_LCDC_BLIZZARD) +=
  
- #if defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)
--static int validate_slab(struct kmem_cache *s, struct page *page)
-+static int validate_slab(struct kmem_cache *s, struct page *page,
-+						unsigned long *map)
- {
- 	void *p;
- 	void *addr = page_address(page);
--	DECLARE_BITMAP(map, s->objects);
+ objs-y$(CONFIG_MACH_OMAP_H4) += lcd_h4.o
+ objs-y$(CONFIG_MACH_OMAP_H3) += lcd_h3.o
++objs-y$(CONFIG_MACH_OMAP_PALMTE) += lcd_palmte.o
  
- 	if (!check_slab(s, page) ||
- 			!on_freelist(s, page, NULL))
-@@ -2790,10 +2790,11 @@ static int validate_slab(struct kmem_cac
- 	return 1;
- }
+ omapfb-objs := $(objs-yy)
  
--static void validate_slab_slab(struct kmem_cache *s, struct page *page)
-+static void validate_slab_slab(struct kmem_cache *s, struct page *page,
-+						unsigned long *map)
- {
- 	if (slab_trylock(page)) {
--		validate_slab(s, page);
-+		validate_slab(s, page, map);
- 		slab_unlock(page);
- 	} else
- 		printk(KERN_INFO "SLUB %s: Skipped busy slab 0x%p\n",
-@@ -2810,7 +2811,8 @@ static void validate_slab_slab(struct km
- 	}
- }
- 
--static int validate_slab_node(struct kmem_cache *s, struct kmem_cache_node *n)
-+static int validate_slab_node(struct kmem_cache *s,
-+		struct kmem_cache_node *n, unsigned long *map)
- {
- 	unsigned long count = 0;
- 	struct page *page;
-@@ -2819,7 +2821,7 @@ static int validate_slab_node(struct kme
- 	spin_lock_irqsave(&n->list_lock, flags);
- 
- 	list_for_each_entry(page, &n->partial, lru) {
--		validate_slab_slab(s, page);
-+		validate_slab_slab(s, page, map);
- 		count++;
- 	}
- 	if (count != n->nr_partial)
-@@ -2830,7 +2832,7 @@ static int validate_slab_node(struct kme
- 		goto out;
- 
- 	list_for_each_entry(page, &n->full, lru) {
--		validate_slab_slab(s, page);
-+		validate_slab_slab(s, page, map);
- 		count++;
- 	}
- 	if (count != atomic_long_read(&n->nr_slabs))
-@@ -2843,17 +2845,23 @@ out:
- 	return count;
- }
- 
--static unsigned long validate_slab_cache(struct kmem_cache *s)
-+static long validate_slab_cache(struct kmem_cache *s)
- {
- 	int node;
- 	unsigned long count = 0;
-+	unsigned long *map = kmalloc(BITS_TO_LONGS(s->objects) *
-+				sizeof(unsigned long), GFP_KERNEL);
+diff -puN /dev/null drivers/video/omap/lcd_palmte.c
+--- /dev/null
++++ a/drivers/video/omap/lcd_palmte.c
+@@ -0,0 +1,123 @@
++/*
++ * LCD panel support for the Palm Tungsten E
++ *
++ * Original version : Romain Goyet <r.goyet@gmail.com>
++ * Current version : Laurent Gonzalez <palmte.linux@free.fr>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
 +
-+	if (!map)
-+		return -ENOMEM;
- 
- 	flush_all(s);
- 	for_each_online_node(node) {
- 		struct kmem_cache_node *n = get_node(s, node);
- 
--		count += validate_slab_node(s, n);
-+		count += validate_slab_node(s, n, map);
- 	}
-+	kfree(map);
- 	return count;
- }
- 
-@@ -3467,11 +3475,14 @@ static ssize_t validate_show(struct kmem
- static ssize_t validate_store(struct kmem_cache *s,
- 			const char *buf, size_t length)
- {
--	if (buf[0] == '1')
--		validate_slab_cache(s);
--	else
--		return -EINVAL;
--	return length;
-+	int ret = -EINVAL;
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
 +
-+	if (buf[0] == '1') {
-+		ret = validate_slab_cache(s);
-+		if (ret >= 0)
-+			ret = length;
-+	}
-+	return ret;
- }
- SLAB_ATTR(validate);
- 
++#include <asm/arch/fpga.h>
++#include <asm/arch/omapfb.h>
++
++static int palmte_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
++{
++	return 0;
++}
++
++static void palmte_panel_cleanup(struct lcd_panel *panel)
++{
++}
++
++static int palmte_panel_enable(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++static void palmte_panel_disable(struct lcd_panel *panel)
++{
++}
++
++static unsigned long palmte_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++struct lcd_panel palmte_panel = {
++	.name		= "palmte",
++	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
++			  OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
++			  OMAP_LCDC_HSVS_OPPOSITE,
++
++	.data_lines	= 16,
++	.bpp		= 8,
++	.pixel_clock	= 12000,
++	.x_res		= 320,
++	.y_res		= 320,
++	.hsw		= 4,
++	.hfp		= 8,
++	.hbp		= 28,
++	.vsw		= 1,
++	.vfp		= 8,
++	.vbp		= 7,
++	.pcd		= 0,
++
++	.init		= palmte_panel_init,
++	.cleanup	= palmte_panel_cleanup,
++	.enable		= palmte_panel_enable,
++	.disable	= palmte_panel_disable,
++	.get_caps	= palmte_panel_get_caps,
++};
++
++static int palmte_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&palmte_panel);
++	return 0;
++}
++
++static int palmte_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int palmte_panel_suspend(struct platform_device *pdev, pm_message_t mesg)
++{
++	return 0;
++}
++
++static int palmte_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver palmte_panel_driver = {
++	.probe		= palmte_panel_probe,
++	.remove		= palmte_panel_remove,
++	.suspend	= palmte_panel_suspend,
++	.resume		= palmte_panel_resume,
++	.driver		= {
++		.name	= "lcd_palmte",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int palmte_panel_drv_init(void)
++{
++	return platform_driver_register(&palmte_panel_driver);
++}
++
++static void palmte_panel_drv_cleanup(void)
++{
++	platform_driver_unregister(&palmte_panel_driver);
++}
++
++module_init(palmte_panel_drv_init);
++module_exit(palmte_panel_drv_cleanup);
++
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from r.goyet@gmail.com are
 
 origin.patch
-git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-quicklist-support-for-x86_64.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-memory-unplug-v7-migration-by-kernel.patch
-memory-unplug-v7-isolate_lru_page-fix.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-page-owner-tracking-leak-detector.patch
