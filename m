@@ -1,91 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-ii-md.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:09:00 -0700
-Message-ID: <200707172309.l6HN90q2012329@imap1.linux-foundation.org>
+Subject: - modpost-white-list-pattern-adjustment.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:09:12 -0700
+Message-ID: <200707172309.l6HN9C3u012353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57286 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34757 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936324AbXGQXPj (ORCPT
+	by vger.kernel.org with ESMTP id S935910AbXGQXPZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:39 -0400
+	Tue, 17 Jul 2007 19:15:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jengelh@gmx.de, neilb@suse.de, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects II - MD
+     modpost white list pattern adjustment
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-ii-md.patch
+     modpost-white-list-pattern-adjustment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects II - MD
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: modpost white list pattern adjustment
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Change Kconfig objects from "menu, config" into "menuconfig" so
-that the user can disable the whole feature without having to
-enter the menu first.
+gcc puts data into .data.rel or .data.rel.* on some architectures (e.g.
+ia64) or under certain conditions, so whatever is legal relative to
+.data should also be legal for those other sections. Fixes a few
+modpost warnings on ia64.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Acked-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/Kconfig |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ scripts/mod/modpost.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/Kconfig~use-menuconfig-objects-ii-md drivers/md/Kconfig
---- a/drivers/md/Kconfig~use-menuconfig-objects-ii-md
-+++ a/drivers/md/Kconfig
-@@ -2,19 +2,17 @@
- # Block device driver configuration
- #
+diff -puN scripts/mod/modpost.c~modpost-white-list-pattern-adjustment scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~modpost-white-list-pattern-adjustment
++++ a/scripts/mod/modpost.c
+@@ -608,7 +608,7 @@ static int strrcmp(const char *s, const 
+  *   warn here.
+  *   the pattern is identified by:
+  *   tosec   = .init.text | .exit.text | .init.data
+- *   fromsec = .data
++ *   fromsec = .data | .data.rel | .data.rel.*
+  *   atsym = *driver, *_template, *_sht, *_ops, *_probe, *probe_one, *_console, *_timer
+  *
+  * Pattern 3:
+@@ -671,7 +671,9 @@ static int secref_whitelist(const char *
+ 	    (strcmp(tosec, ".exit.text") != 0) &&
+ 	    (strcmp(tosec, ".init.data") != 0))
+ 		f2 = 0;
+-	if (strcmp(fromsec, ".data") != 0)
++	if (strcmp(fromsec, ".data") != 0 &&
++	    strcmp(fromsec, ".data.rel") != 0 &&
++	    strncmp(fromsec, ".data.rel.", strlen(".data.rel.")) != 0)
+ 		f2 = 0;
  
--if BLOCK
--
--menu "Multi-device support (RAID and LVM)"
--
--config MD
-+menuconfig MD
- 	bool "Multiple devices driver support (RAID and LVM)"
-+	depends on BLOCK
- 	help
- 	  Support multiple physical spindles through a single logical device.
- 	  Required for RAID and logical volume management.
- 
-+if MD
-+
- config BLK_DEV_MD
- 	tristate "RAID support"
--	depends on MD
- 	---help---
- 	  This driver lets you combine several hard disk partitions into one
- 	  logical block device. This can be used to simply append one
-@@ -191,7 +189,6 @@ config MD_FAULTY
- 
- config BLK_DEV_DM
- 	tristate "Device mapper support"
--	depends on MD
- 	---help---
- 	  Device-mapper is a low level volume manager.  It works by allowing
- 	  people to specify mappings for ranges of logical sectors.  Various
-@@ -279,6 +276,4 @@ config DM_DELAY
- 
- 	If unsure, say N.
- 
--endmenu
--
--endif
-+endif # MD
+ 	for (s = pat2sym; *s; s++)
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
-git-acpi.patch
-git-kvm.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
+git-kbuild.patch
+more-fix-x86_64-mm-xen-xen-smp-guest-support.patch
+i386-minor-nx-handling-adjustment.patch
+x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch
+x86-64-remove-unused-variable-maxcpus.patch
