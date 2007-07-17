@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - char-riscom8-eliminate-busy-loop.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:06:26 -0700
-Message-ID: <200707172306.l6HN6QSe012013@imap1.linux-foundation.org>
+Subject: - char-isicom-cleanup-locking.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:06:15 -0700
+Message-ID: <200707172306.l6HN6Fwn011997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54089 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44831 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765325AbXGQXPM (ORCPT
+	by vger.kernel.org with ESMTP id S1765425AbXGQXPM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:15:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,61 +15,149 @@ To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: riscom8, eliminate busy loop
+     Char: isicom, cleanup locking
 has been removed from the -mm tree.  Its filename was
-     char-riscom8-eliminate-busy-loop.patch
+     char-isicom-cleanup-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: riscom8, eliminate busy loop
+Subject: Char: isicom, cleanup locking
 From: Jiri Slaby <jirislaby@gmail.com>
 
-riscom8, eliminate busy loop
+Don't spin processor when not needed (use sleep instead of delay).  Don't
+release the lock when needed in next iteration -- this actually fixes a bug --
+missing braces
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/riscom8.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/char/isicom.c |   65 ++++++++++++++++------------------------
+ 1 file changed, 27 insertions(+), 38 deletions(-)
 
-diff -puN drivers/char/riscom8.c~char-riscom8-eliminate-busy-loop drivers/char/riscom8.c
---- a/drivers/char/riscom8.c~char-riscom8-eliminate-busy-loop
-+++ a/drivers/char/riscom8.c
-@@ -213,14 +213,6 @@ static inline void rc_release_io_range(s
- 		release_region(RC_TO_ISA(rc_ioport[i]) + bp->base, 1);
+diff -puN drivers/char/isicom.c~char-isicom-cleanup-locking drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-cleanup-locking
++++ a/drivers/char/isicom.c
+@@ -243,17 +243,18 @@ static inline int WaitTillCardIsFree(u16
+ 
+ static int lock_card(struct isi_board *card)
+ {
+-	char		retries;
+ 	unsigned long base = card->base;
++	unsigned int retries, a;
+ 
+-	for (retries = 0; retries < 100; retries++) {
++	for (retries = 0; retries < 10; retries++) {
+ 		spin_lock_irqsave(&card->card_lock, card->flags);
+-		if (inw(base + 0xe) & 0x1) {
+-			return 1;
+-		} else {
+-			spin_unlock_irqrestore(&card->card_lock, card->flags);
+-			udelay(1000);   /* 1ms */
++		for (a = 0; a < 10; a++) {
++			if (inw(base + 0xe) & 0x1)
++				return 1;
++			udelay(10);
+ 		}
++		spin_unlock_irqrestore(&card->card_lock, card->flags);
++		msleep(10);
+ 	}
+ 	printk(KERN_WARNING "ISICOM: Failed to lock Card (0x%lx)\n",
+ 		card->base);
+@@ -261,23 +262,6 @@ static int lock_card(struct isi_board *c
+ 	return 0;	/* Failed to acquire the card! */
  }
- 	
--/* Must be called with enabled interrupts */
--static inline void rc_long_delay(unsigned long delay)
+ 
+-static int lock_card_at_interrupt(struct isi_board *card)
 -{
--	unsigned long i;
--	
--	for (i = jiffies + delay; time_after(i,jiffies); ) ;
+-	unsigned char		retries;
+-	unsigned long base = card->base;
+-
+-	for (retries = 0; retries < 200; retries++) {
+-		spin_lock_irqsave(&card->card_lock, card->flags);
+-
+-		if (inw(base + 0xe) & 0x1)
+-			return 1;
+-		else
+-			spin_unlock_irqrestore(&card->card_lock, card->flags);
+-	}
+-	/* Failing in interrupt is an acceptable event */
+-	return 0;	/* Failed to acquire the card! */
 -}
 -
- /* Reset and setup CD180 chip */
- static void __init rc_init_CD180(struct riscom_board const * bp)
+ static void unlock_card(struct isi_board *card)
  {
-@@ -231,7 +223,7 @@ static void __init rc_init_CD180(struct 
- 	rc_wait_CCR(bp);			   /* Wait for CCR ready        */
- 	rc_out(bp, CD180_CCR, CCR_HARDRESET);      /* Reset CD180 chip          */
- 	sti();
--	rc_long_delay(HZ/20);                      /* Delay 0.05 sec            */
-+	msleep(50);				   /* Delay 0.05 sec            */
- 	cli();
- 	rc_out(bp, CD180_GIVR, RC_ID);             /* Set ID for this chip      */
- 	rc_out(bp, CD180_GICR, 0);                 /* Clear all bits            */
-@@ -280,7 +272,7 @@ static int __init rc_probe(struct riscom
- 		rc_wait_CCR(bp);
- 		rc_out(bp, CD180_CCR, CCR_TXEN);        /* Enable transmitter     */
- 		rc_out(bp, CD180_IER, IER_TXRDY);       /* Enable tx empty intr   */
--		rc_long_delay(HZ/20);	       		
-+		msleep(50);
- 		irqs = probe_irq_off(irqs);
- 		val1 = rc_in(bp, RC_BSR);		/* Get Board Status reg   */
- 		val2 = rc_in(bp, RC_ACK_TINT);          /* ACK interrupt          */
+ 	spin_unlock_irqrestore(&card->card_lock, card->flags);
+@@ -415,6 +399,8 @@ static inline int __isicom_paranoia_chec
+ 
+ static void isicom_tx(unsigned long _data)
+ {
++	unsigned long flags;
++	unsigned int retries;
+ 	short count = (BOARD_COUNT-1), card, base;
+ 	short txcount, wrd, residue, word_count, cnt;
+ 	struct isi_port *port;
+@@ -435,32 +421,34 @@ static void isicom_tx(unsigned long _dat
+ 	count = isi_card[card].port_count;
+ 	port = isi_card[card].ports;
+ 	base = isi_card[card].base;
++
++	spin_lock_irqsave(&isi_card[card].card_lock, flags);
++	for (retries = 0; retries < 100; retries++) {
++		if (inw(base + 0xe) & 0x1)
++			break;
++		udelay(2);
++	}
++	if (retries >= 100)
++		goto unlock;
++
+ 	for (;count > 0;count--, port++) {
+-		if (!lock_card_at_interrupt(&isi_card[card]))
+-			continue;
+ 		/* port not active or tx disabled to force flow control */
+ 		if (!(port->flags & ASYNC_INITIALIZED) ||
+ 				!(port->status & ISI_TXOK))
+-			unlock_card(&isi_card[card]);
+ 			continue;
+ 
+ 		tty = port->tty;
+ 
+-
+-		if (tty == NULL) {
+-			unlock_card(&isi_card[card]);
++		if (tty == NULL)
+ 			continue;
+-		}
+ 
+ 		txcount = min_t(short, TX_SIZE, port->xmit_cnt);
+-		if (txcount <= 0 || tty->stopped || tty->hw_stopped) {
+-			unlock_card(&isi_card[card]);
++		if (txcount <= 0 || tty->stopped || tty->hw_stopped)
+ 			continue;
+-		}
+-		if (!(inw(base + 0x02) & (1 << port->channel))) {
+-			unlock_card(&isi_card[card]);
++
++		if (!(inw(base + 0x02) & (1 << port->channel)))
+ 			continue;
+-		}
++
+ 		pr_dbg("txing %d bytes, port%d.\n", txcount,
+ 			port->channel + 1);
+ 		outw((port->channel << isi_card[card].shift_count) | txcount,
+@@ -508,9 +496,10 @@ static void isicom_tx(unsigned long _dat
+ 			port->status &= ~ISI_TXOK;
+ 		if (port->xmit_cnt <= WAKEUP_CHARS)
+ 			tty_wakeup(tty);
+-		unlock_card(&isi_card[card]);
+ 	}
+ 
++unlock:
++	spin_unlock_irqrestore(&isi_card[card].card_lock, flags);
+ 	/*	schedule another tx for hopefully in about 10ms	*/
+ sched_again:
+ 	if (!re_schedule) {
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
