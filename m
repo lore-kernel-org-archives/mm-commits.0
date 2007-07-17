@@ -1,84 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - char-specialix-remove-busy-waiting.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:06:23 -0700
-Message-ID: <200707172306.l6HN6NSd012010@imap1.linux-foundation.org>
+Subject: - knfsd-nfsd-display-export-secinfo-information.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:05:07 -0700
+Message-ID: <200707172305.l6HN57dA011889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50669 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54142 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935475AbXGQXPV (ORCPT
+	by vger.kernel.org with ESMTP id S935539AbXGQXPX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:21 -0400
+	Tue, 17 Jul 2007 19:15:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, R.E.Wolff@BitWizard.nl, mm-commits@vger.kernel.org
+To: bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: specialix, remove busy waiting
+     knfsd: nfsd: display export secinfo information
 has been removed from the -mm tree.  Its filename was
-     char-specialix-remove-busy-waiting.patch
+     knfsd-nfsd-display-export-secinfo-information.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: specialix, remove busy waiting
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: knfsd: nfsd: display export secinfo information
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-use msleep instead, because not in atomic
+Add secinfo information to the display in proc/net/sunrpc/nfsd.export/content.
 
-Cc: Roger Wolff <R.E.Wolff@BitWizard.nl>
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/specialix.c |   16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ fs/nfsd/export.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff -puN drivers/char/specialix.c~char-specialix-remove-busy-waiting drivers/char/specialix.c
---- a/drivers/char/specialix.c~char-specialix-remove-busy-waiting
-+++ a/drivers/char/specialix.c
-@@ -345,18 +345,6 @@ static inline void sx_release_io_range(s
+diff -puN fs/nfsd/export.c~knfsd-nfsd-display-export-secinfo-information fs/nfsd/export.c
+--- a/fs/nfsd/export.c~knfsd-nfsd-display-export-secinfo-information
++++ a/fs/nfsd/export.c
+@@ -641,6 +641,7 @@ static int svc_export_parse(struct cache
+ 
+ static void exp_flags(struct seq_file *m, int flag, int fsid,
+ 		uid_t anonu, uid_t anong, struct nfsd4_fs_locations *fslocs);
++static void show_secinfo(struct seq_file *m, struct svc_export *exp);
+ 
+ static int svc_export_show(struct seq_file *m,
+ 			   struct cache_detail *cd,
+@@ -670,6 +671,7 @@ static int svc_export_show(struct seq_fi
+ 				seq_printf(m, "%02x", exp->ex_uuid[i]);
+ 			}
+ 		}
++		show_secinfo(m, exp);
+ 	}
+ 	seq_puts(m, ")\n");
+ 	return 0;
+@@ -1467,6 +1469,33 @@ static void show_expflags(struct seq_fil
+ 	}
  }
  
- 
--/* Must be called with enabled interrupts */
--/* Ugly. Very ugly. Don't use this for anything else than initialization
--   code */
--static inline void sx_long_delay(unsigned long delay)
--{
--	unsigned long i;
--
--	for (i = jiffies + delay; time_after(i, jiffies); ) ;
--}
--
--
--
- /* Set the IRQ using the RTS lines that run to the PAL on the board.... */
- static int sx_set_irq ( struct specialix_board *bp)
++static void show_secinfo_flags(struct seq_file *m, int flags)
++{
++	seq_printf(m, ",");
++	show_expflags(m, flags, NFSEXP_SECINFO_FLAGS);
++}
++
++static void show_secinfo(struct seq_file *m, struct svc_export *exp)
++{
++	struct exp_flavor_info *f;
++	struct exp_flavor_info *end = exp->ex_flavors + exp->ex_nflavors;
++	int lastflags = 0, first = 0;
++
++	if (exp->ex_nflavors == 0)
++		return;
++	for (f = exp->ex_flavors; f < end; f++) {
++		if (first || f->flags != lastflags) {
++			if (!first)
++				show_secinfo_flags(m, lastflags);
++			seq_printf(m, ",sec=%d", f->pseudoflavor);
++			lastflags = f->flags;
++		} else {
++			seq_printf(m, ":%d", f->pseudoflavor);
++		}
++	}
++	show_secinfo_flags(m, lastflags);
++}
++
+ static void exp_flags(struct seq_file *m, int flag, int fsid,
+ 		uid_t anonu, uid_t anong, struct nfsd4_fs_locations *fsloc)
  {
-@@ -397,7 +385,7 @@ static int sx_init_CD186x(struct special
- 	spin_lock_irqsave(&bp->lock, flags);
- 	sx_out_off(bp, CD186x_CCR, CCR_HARDRESET);      /* Reset CD186x chip          */
- 	spin_unlock_irqrestore(&bp->lock, flags);
--	sx_long_delay(HZ/20);                      /* Delay 0.05 sec            */
-+	msleep(50);					/* Delay 0.05 sec            */
- 	spin_lock_irqsave(&bp->lock, flags);
- 	sx_out_off(bp, CD186x_GIVR, SX_ID);             /* Set ID for this chip      */
- 	sx_out_off(bp, CD186x_GICR, 0);                 /* Clear all bits            */
-@@ -533,7 +521,7 @@ static int sx_probe(struct specialix_boa
- 		sx_wait_CCR(bp);
- 		sx_out(bp, CD186x_CCR, CCR_TXEN);        /* Enable transmitter     */
- 		sx_out(bp, CD186x_IER, IER_TXRDY);       /* Enable tx empty intr   */
--		sx_long_delay(HZ/20);
-+		msleep(50);
- 		irqs = probe_irq_off(irqs);
- 
- 		dprintk (SX_DEBUG_INIT, "SRSR = %02x, ", sx_in(bp, CD186x_SRSR));
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
 origin.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-shrink_slab-handle-bad-shrinkers.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+git-vfs-lease-api.patch
