@@ -1,147 +1,265 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:04:36 -0700
-Message-ID: <200707172304.l6HN4abC011817@imap1.linux-foundation.org>
+Subject: - knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:04:40 -0700
+Message-ID: <200707172304.l6HN4eej011823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42317 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53513 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936650AbXGQXQ3 (ORCPT
+	by vger.kernel.org with ESMTP id S936714AbXGQXQa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:29 -0400
+	Tue, 17 Jul 2007 19:16:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: meelap@umich.edu, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: bfields@puzzle.fieldses.org, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: nfsd4: vary maximum delegation limit based on RAM size
+     knfsd: nfsd: make all exp_finding functions return -errno's on err
 has been removed from the -mm tree.  Its filename was
-     knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+     knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: vary maximum delegation limit based on RAM size
-From: Meelap Shah <meelap@umich.edu>
+Subject: knfsd: nfsd: make all exp_finding functions return -errno's on err
+From: J. Bruce Fields <bfields@puzzle.fieldses.org>
 
-Our original NFSv4 delegation policy was to give out a read delegation on any
-open when it was possible to.
+Currently exp_find(), exp_get_by_name(), and friends, return an export on
+success, and on failure return:
 
-Since the lifetime of a delegation isn't limited to that of an open, a client
-may quite reasonably hang on to a delegation as long as it has the inode
-cached.  This becomes an obvious problem the first time a client's inode cache
-approaches the size of the server's total memory.
+	errors -EAGAIN (drop this request pending an upcall) or
+		-ETIMEDOUT (an upcall has timed out), or
+	return NULL, which can mean either that there was a memory allocation
+		failure, or that an export was not found, or that a passed-in
+		export lacks an auth_domain.
 
-Our first quick solution was to add a hard-coded limit.  This patch makes a
-mild incremental improvement by varying that limit according to the server's
-total memory size, allowing at most 4 delegations per megabyte of RAM.
+Many callers seem to assume that NULL means that an export was not found,
+which may lead to bugs in the case of a memory allocation failure.
 
-My quick back-of-the-envelope calculation finds that in the worst case (where
-every delegation is for a different inode), a delegation could take about
-1.5K, which would make the worst case usage about 6% of memory.  The new limit
-works out to be about the same as the old on a 1-gig server.
+Modify these functions to distinguish between the two NULL cases by returning
+either -ENOENT or -ENOMEM.  They now never return NULL.  We get to simplify
+some code in the process.
 
-[akpm@linux-foundation.org: Don't needlessly bloat vmlinux]
-[akpm@linux-foundation.org: Make it right for highmem machines]
+We return -ENOENT in the case of a missing auth_domain.  This case should
+probably be removed (or converted to a bug) after confirming that it can never
+happen.
+
 Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4state.c       |   26 +++++++++++++++++++++++++-
- include/linux/nfsd/nfsd.h |    1 +
- mm/page_alloc.c           |    1 +
- 3 files changed, 27 insertions(+), 1 deletion(-)
+ fs/nfsd/export.c |   58 +++++++++++++++++----------------------------
+ fs/nfsd/nfsfh.c  |   11 +++-----
+ fs/nfsd/vfs.c    |    9 +++---
+ 3 files changed, 32 insertions(+), 46 deletions(-)
 
-diff -puN fs/nfsd/nfs4state.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size
-+++ a/fs/nfsd/nfs4state.c
-@@ -49,6 +49,7 @@
- #include <linux/nfsd/state.h>
- #include <linux/nfsd/xdr4.h>
- #include <linux/namei.h>
-+#include <linux/swap.h>
- #include <linux/mutex.h>
- #include <linux/lockd/bind.h>
- #include <linux/module.h>
-@@ -150,6 +151,7 @@ get_nfs4_file(struct nfs4_file *fi)
+diff -puN fs/nfsd/export.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err fs/nfsd/export.c
+--- a/fs/nfsd/export.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err
++++ a/fs/nfsd/export.c
+@@ -739,16 +739,18 @@ exp_find_key(svc_client *clp, int fsid_t
+ 	int err;
+ 	
+ 	if (!clp)
+-		return NULL;
++		return ERR_PTR(-ENOENT);
+ 
+ 	key.ek_client = clp;
+ 	key.ek_fsidtype = fsid_type;
+ 	memcpy(key.ek_fsid, fsidv, key_len(fsid_type));
+ 
+ 	ek = svc_expkey_lookup(&key);
+-	if (ek != NULL)
+-		if ((err = cache_check(&svc_expkey_cache, &ek->h, reqp)))
+-			ek = ERR_PTR(err);
++	if (ek == NULL)
++		return ERR_PTR(-ENOMEM);
++	err = cache_check(&svc_expkey_cache, &ek->h, reqp);
++	if (err)
++		return ERR_PTR(err);
+ 	return ek;
  }
  
- static int num_delegations;
-+unsigned int max_delegations;
- 
- /*
-  * Open owner state (share locks)
-@@ -193,7 +195,7 @@ alloc_init_deleg(struct nfs4_client *clp
- 	struct nfs4_callback *cb = &stp->st_stateowner->so_client->cl_callback;
- 
- 	dprintk("NFSD alloc_init_deleg\n");
--	if (num_delegations > STATEID_HASH_SIZE * 4)
-+	if (num_delegations > max_delegations)
- 		return NULL;
- 	dp = kmem_cache_alloc(deleg_slab, GFP_KERNEL);
- 	if (dp == NULL)
-@@ -3197,6 +3199,27 @@ get_nfs4_grace_period(void)
- 	return max(user_lease_time, lease_time) * HZ;
- }
- 
-+/*
-+ * Since the lifetime of a delegation isn't limited to that of an open, a
-+ * client may quite reasonably hang on to a delegation as long as it has
-+ * the inode cached.  This becomes an obvious problem the first time a
-+ * client's inode cache approaches the size of the server's total memory.
-+ *
-+ * For now we avoid this problem by imposing a hard limit on the number
-+ * of delegations, which varies according to the server's memory size.
-+ */
-+static void
-+set_max_delegations(void)
-+{
-+	/*
-+	 * Allow at most 4 delegations per megabyte of RAM.  Quick
-+	 * estimates suggest that in the worst case (where every delegation
-+	 * is for a different inode), a delegation could take about 1.5K,
-+	 * giving a worst case usage of about 6% of memory.
-+	 */
-+	max_delegations = nr_free_buffer_pages() >> (20 - 2 - PAGE_SHIFT);
-+}
-+
- /* initialization to perform when the nfsd service is started: */
- 
- static void
-@@ -3212,6 +3235,7 @@ __nfs4_state_start(void)
- 	       grace_time/HZ);
- 	laundry_wq = create_singlethread_workqueue("nfsd4");
- 	queue_delayed_work(laundry_wq, &laundromat_work, grace_time);
-+	set_max_delegations();
- }
- 
- int
-diff -puN include/linux/nfsd/nfsd.h~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size include/linux/nfsd/nfsd.h
---- a/include/linux/nfsd/nfsd.h~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size
-+++ a/include/linux/nfsd/nfsd.h
-@@ -148,6 +148,7 @@ extern int nfsd_max_blksize;
-  * NFSv4 State
-  */
- #ifdef CONFIG_NFSD_V4
-+extern unsigned int max_delegations;
- void nfs4_state_init(void);
- int nfs4_state_start(void);
- void nfs4_state_shutdown(void);
-diff -puN mm/page_alloc.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size mm/page_alloc.c
---- a/mm/page_alloc.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size
-+++ a/mm/page_alloc.c
-@@ -1484,6 +1484,7 @@ unsigned int nr_free_buffer_pages(void)
+@@ -809,30 +811,21 @@ exp_get_by_name(svc_client *clp, struct 
+ 		struct cache_req *reqp)
  {
- 	return nr_free_zone_pages(gfp_zone(GFP_USER));
- }
-+EXPORT_SYMBOL_GPL(nr_free_buffer_pages);
+ 	struct svc_export *exp, key;
++	int err;
+ 	
+ 	if (!clp)
+-		return NULL;
++		return ERR_PTR(-ENOENT);
  
- /*
-  * Amount of free RAM allocatable within all zones
+ 	key.ex_client = clp;
+ 	key.ex_mnt = mnt;
+ 	key.ex_dentry = dentry;
+ 
+ 	exp = svc_export_lookup(&key);
+-	if (exp != NULL)  {
+-		int err;
+-
+-		err = cache_check(&svc_export_cache, &exp->h, reqp);
+-		switch (err) {
+-		case 0: break;
+-		case -EAGAIN:
+-		case -ETIMEDOUT:
+-			exp = ERR_PTR(err);
+-			break;
+-		default:
+-			exp = NULL;
+-		}
+-	}
+-
++	if (exp == NULL)
++		return ERR_PTR(-ENOMEM);
++	err = cache_check(&svc_export_cache, &exp->h, reqp);
++	if (err)
++		return ERR_PTR(err);
+ 	return exp;
+ }
+ 
+@@ -848,7 +841,7 @@ exp_parent(svc_client *clp, struct vfsmo
+ 	dget(dentry);
+ 	exp = exp_get_by_name(clp, mnt, dentry, reqp);
+ 
+-	while (exp == NULL && !IS_ROOT(dentry)) {
++	while (PTR_ERR(exp) == -ENOENT && !IS_ROOT(dentry)) {
+ 		struct dentry *parent;
+ 
+ 		parent = dget_parent(dentry);
+@@ -901,7 +894,7 @@ static void exp_fsid_unhash(struct svc_e
+ 		return;
+ 
+ 	ek = exp_get_fsid_key(exp->ex_client, exp->ex_fsid);
+-	if (ek && !IS_ERR(ek)) {
++	if (!IS_ERR(ek)) {
+ 		ek->h.expiry_time = get_seconds()-1;
+ 		cache_put(&ek->h, &svc_expkey_cache);
+ 	}
+@@ -939,7 +932,7 @@ static void exp_unhash(struct svc_export
+ 	struct inode *inode = exp->ex_dentry->d_inode;
+ 
+ 	ek = exp_get_key(exp->ex_client, inode->i_sb->s_dev, inode->i_ino);
+-	if (ek && !IS_ERR(ek)) {
++	if (!IS_ERR(ek)) {
+ 		ek->h.expiry_time = get_seconds()-1;
+ 		cache_put(&ek->h, &svc_expkey_cache);
+ 	}
+@@ -990,13 +983,12 @@ exp_export(struct nfsctl_export *nxp)
+ 
+ 	/* must make sure there won't be an ex_fsid clash */
+ 	if ((nxp->ex_flags & NFSEXP_FSID) &&
+-	    (fsid_key = exp_get_fsid_key(clp, nxp->ex_dev)) &&
+-	    !IS_ERR(fsid_key) &&
++	    (!IS_ERR(fsid_key = exp_get_fsid_key(clp, nxp->ex_dev))) &&
+ 	    fsid_key->ek_mnt &&
+ 	    (fsid_key->ek_mnt != nd.mnt || fsid_key->ek_dentry != nd.dentry) )
+ 		goto finish;
+ 
+-	if (exp) {
++	if (!IS_ERR(exp)) {
+ 		/* just a flags/id/fsid update */
+ 
+ 		exp_fsid_unhash(exp);
+@@ -1105,7 +1097,7 @@ exp_unexport(struct nfsctl_export *nxp)
+ 	err = -EINVAL;
+ 	exp = exp_get_by_name(dom, nd.mnt, nd.dentry, NULL);
+ 	path_release(&nd);
+-	if (!exp)
++	if (IS_ERR(exp))
+ 		goto out_domain;
+ 
+ 	exp_do_unexport(exp);
+@@ -1150,10 +1142,6 @@ exp_rootfh(svc_client *clp, char *path, 
+ 		err = PTR_ERR(exp);
+ 		goto out;
+ 	}
+-	if (!exp) {
+-		dprintk("nfsd: exp_rootfh export not found.\n");
+-		goto out;
+-	}
+ 
+ 	/*
+ 	 * fh must be initialized before calling fh_compose
+@@ -1177,13 +1165,13 @@ exp_find(struct auth_domain *clp, int fs
+ {
+ 	struct svc_export *exp;
+ 	struct svc_expkey *ek = exp_find_key(clp, fsid_type, fsidv, reqp);
+-	if (!ek || IS_ERR(ek))
++	if (IS_ERR(ek))
+ 		return ERR_PTR(PTR_ERR(ek));
+ 
+ 	exp = exp_get_by_name(clp, ek->ek_mnt, ek->ek_dentry, reqp);
+ 	cache_put(&ek->h, &svc_expkey_cache);
+ 
+-	if (!exp || IS_ERR(exp))
++	if (IS_ERR(exp))
+ 		return ERR_PTR(PTR_ERR(exp));
+ 	return exp;
+ }
+@@ -1205,10 +1193,10 @@ exp_pseudoroot(struct auth_domain *clp, 
+ 	mk_fsid(FSID_NUM, fsidv, 0, 0, 0, NULL);
+ 
+ 	exp = exp_find(clp, FSID_NUM, fsidv, creq);
++	if (PTR_ERR(exp) == -ENOENT)
++		return nfserr_perm;
+ 	if (IS_ERR(exp))
+ 		return nfserrno(PTR_ERR(exp));
+-	if (exp == NULL)
+-		return nfserr_perm;
+ 	rv = fh_compose(fhp, exp, exp->ex_dentry, NULL);
+ 	exp_put(exp);
+ 	return rv;
+diff -puN fs/nfsd/nfsfh.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err fs/nfsd/nfsfh.c
+--- a/fs/nfsd/nfsfh.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err
++++ a/fs/nfsd/nfsfh.c
+@@ -160,15 +160,14 @@ fh_verify(struct svc_rqst *rqstp, struct
+ 				       &rqstp->rq_chandle);
+ 		}
+ 
+-		if (IS_ERR(exp) && (PTR_ERR(exp) == -EAGAIN
+-				|| PTR_ERR(exp) == -ETIMEDOUT)) {
+-			error = nfserrno(PTR_ERR(exp));
++		error = nfserr_stale;
++		if (PTR_ERR(exp) == -ENOENT)
+ 			goto out;
+-		}
+ 
+-		error = nfserr_stale; 
+-		if (!exp || IS_ERR(exp))
++		if (IS_ERR(exp)) {
++			error = nfserrno(PTR_ERR(exp));
+ 			goto out;
++		}
+ 
+ 		/* Check if the request originated from a secure port. */
+ 		error = nfserr_perm;
+diff -puN fs/nfsd/vfs.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~knfsd-nfsd-make-all-exp_finding-functions-return-errnos-on-err
++++ a/fs/nfsd/vfs.c
+@@ -192,15 +192,14 @@ nfsd_lookup(struct svc_rqst *rqstp, stru
+ 
+ 			exp2 = exp_parent(exp->ex_client, mnt, dentry,
+ 					  &rqstp->rq_chandle);
+-			if (IS_ERR(exp2)) {
++			if (PTR_ERR(exp2) == -ENOENT) {
++				dput(dentry);
++				dentry = dget(dparent);
++			} else if (IS_ERR(exp2)) {
+ 				host_err = PTR_ERR(exp2);
+ 				dput(dentry);
+ 				mntput(mnt);
+ 				goto out_nfserr;
+-			}
+-			if (!exp2) {
+-				dput(dentry);
+-				dentry = dget(dparent);
+ 			} else {
+ 				exp_put(exp);
+ 				exp = exp2;
 _
 
-Patches currently in -mm which might be from meelap@umich.edu are
+Patches currently in -mm which might be from bfields@puzzle.fieldses.org are
 
 origin.patch
