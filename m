@@ -1,301 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: - report-that-kernel-is-tainted-if-there-were-an-oops-before.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:01:58 -0700
-Message-ID: <200707172301.l6HN1wCn011442@imap1.linux-foundation.org>
+Subject: - knfsd-exportfs-add-procedural-interface-for-nfsd.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:04:09 -0700
+Message-ID: <200707172304.l6HN49x3011778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59989 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38982 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936736AbXGQXQe (ORCPT
+	by vger.kernel.org with ESMTP id S936000AbXGQXQi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:34 -0400
+	Tue, 17 Jul 2007 19:16:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, linux-arch@vger.kernel.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: hch@infradead.org, hch@lst.de, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Report that kernel is tainted if there was an OOPS
+     knfsd: exportfs: add procedural interface for NFSD
 has been removed from the -mm tree.  Its filename was
-     report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+     knfsd-exportfs-add-procedural-interface-for-nfsd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Report that kernel is tainted if there was an OOPS
-From: Pavel Emelianov <xemul@openvz.org>
+Subject: knfsd: exportfs: add procedural interface for NFSD
+From: Christoph Hellwig <hch@infradead.org>
 
-If the kernel OOPSed or BUGed then it probably should be considered as
-tainted.  Thus, all subsequent OOPSes and SysRq dumps will report the
-tainted kernel.  This saves a lot of time explaining oddities in the
-calltraces.
+Currently NFSD calls directly into filesystems through the export_operations
+structure.  I plan to change this interface in various ways in later patches,
+and want to avoid the export of the default operations to NFSD, so this patch
+adds two simple exportfs_encode_fh/exportfs_decode_fh helpers for NFSD to call
+instead of poking into exportfs guts.
 
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/oops-tracing.txt |    2 ++
- arch/alpha/kernel/traps.c      |    1 +
- arch/arm/kernel/traps.c        |    1 +
- arch/arm26/kernel/traps.c      |    1 +
- arch/avr32/kernel/traps.c      |    1 +
- arch/i386/kernel/traps.c       |    1 +
- arch/ia64/kernel/traps.c       |    1 +
- arch/m68k/kernel/traps.c       |    1 +
- arch/m68knommu/kernel/traps.c  |    1 +
- arch/mips/kernel/traps.c       |    1 +
- arch/powerpc/kernel/traps.c    |    1 +
- arch/ppc/kernel/traps.c        |    1 +
- arch/s390/kernel/traps.c       |    1 +
- arch/sh/kernel/traps.c         |    1 +
- arch/sparc/kernel/traps.c      |    1 +
- arch/sparc64/kernel/traps.c    |    1 +
- arch/x86_64/kernel/traps.c     |    1 +
- arch/xtensa/kernel/traps.c     |    1 +
- include/linux/kernel.h         |    1 +
- kernel/panic.c                 |    5 +++--
- 20 files changed, 23 insertions(+), 2 deletions(-)
+ fs/exportfs/expfs.c      |   22 +++++++++++++++++++++-
+ fs/nfsd/nfsfh.c          |   18 +++++-------------
+ include/linux/exportfs.h |    7 +++++++
+ 3 files changed, 33 insertions(+), 14 deletions(-)
 
-diff -puN Documentation/oops-tracing.txt~report-that-kernel-is-tainted-if-there-were-an-oops-before Documentation/oops-tracing.txt
---- a/Documentation/oops-tracing.txt~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/Documentation/oops-tracing.txt
-@@ -251,6 +251,8 @@ characters, each representing a particul
-   7: 'U' if a user or user application specifically requested that the
-      Tainted flag be set, ' ' otherwise.
+diff -puN fs/exportfs/expfs.c~knfsd-exportfs-add-procedural-interface-for-nfsd fs/exportfs/expfs.c
+--- a/fs/exportfs/expfs.c~knfsd-exportfs-add-procedural-interface-for-nfsd
++++ a/fs/exportfs/expfs.c
+@@ -3,6 +3,7 @@
+ #include <linux/fs.h>
+ #include <linux/file.h>
+ #include <linux/module.h>
++#include <linux/mount.h>
+ #include <linux/namei.h>
  
-+  8: 'D' if the kernel has died recently, i.e. there was an OOPS or BUG.
+ struct export_operations export_op_default;
+@@ -468,6 +469,26 @@ static struct dentry *export_decode_fh(s
+ 				   acceptable, context);
+ }
+ 
++int exportfs_encode_fh(struct dentry *dentry, __u32 *fh, int *max_len,
++		int connectable)
++{
++	struct export_operations *nop = dentry->d_sb->s_export_op;
 +
- The primary reason for the 'Tainted: ' string is to tell kernel
- debuggers if this is a clean kernel or if anything unusual has
- occurred.  Tainting is permanent: even if an offending module is
-diff -puN arch/alpha/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/alpha/kernel/traps.c
---- a/arch/alpha/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/alpha/kernel/traps.c
-@@ -184,6 +184,7 @@ die_if_kernel(char * str, struct pt_regs
- #endif
- 	printk("%s(%d): %s %ld\n", current->comm, current->pid, str, err);
- 	dik_show_regs(regs, r9_15);
-+	add_taint(TAINT_DIE);
- 	dik_show_trace((unsigned long *)(regs+1));
- 	dik_show_code((unsigned int *)regs->pc);
++	return CALL(nop, encode_fh)(dentry, fh, max_len, connectable);
++}
++EXPORT_SYMBOL_GPL(exportfs_encode_fh);
++
++struct dentry *exportfs_decode_fh(struct vfsmount *mnt, __u32 *fh, int fh_len,
++		int fileid_type, int (*acceptable)(void *, struct dentry *),
++		void *context)
++{
++	struct export_operations *nop = mnt->mnt_sb->s_export_op;
++
++	return CALL(nop, decode_fh)(mnt->mnt_sb, fh, fh_len, fileid_type,
++			acceptable, context);
++}
++EXPORT_SYMBOL_GPL(exportfs_decode_fh);
++
+ struct export_operations export_op_default = {
+ 	.decode_fh	= export_decode_fh,
+ 	.encode_fh	= export_encode_fh,
+@@ -477,7 +498,6 @@ struct export_operations export_op_defau
+ 	.get_dentry	= get_dentry,
+ };
  
-diff -puN arch/arm/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/arm/kernel/traps.c
---- a/arch/arm/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/arm/kernel/traps.c
-@@ -249,6 +249,7 @@ NORET_TYPE void die(const char *str, str
- 	bust_spinlocks(1);
- 	__die(str, err, thread, regs);
- 	bust_spinlocks(0);
-+	add_taint(TAINT_DIE);
- 	spin_unlock_irq(&die_lock);
+-EXPORT_SYMBOL(export_op_default);
+ EXPORT_SYMBOL(find_exported_dentry);
  
- 	if (in_interrupt())
-diff -puN arch/arm26/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/arm26/kernel/traps.c
---- a/arch/arm26/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/arm26/kernel/traps.c
-@@ -185,6 +185,7 @@ NORET_TYPE void die(const char *str, str
- 	printk("Internal error: %s: %x\n", str, err);
- 	printk("CPU: %d\n", smp_processor_id());
- 	show_regs(regs);
-+	add_taint(TAINT_DIE);
- 	printk("Process %s (pid: %d, stack limit = 0x%p)\n",
- 		current->comm, current->pid, end_of_stack(tsk));
+ MODULE_LICENSE("GPL");
+diff -puN fs/nfsd/nfsfh.c~knfsd-exportfs-add-procedural-interface-for-nfsd fs/nfsd/nfsfh.c
+--- a/fs/nfsd/nfsfh.c~knfsd-exportfs-add-procedural-interface-for-nfsd
++++ a/fs/nfsd/nfsfh.c
+@@ -28,10 +28,6 @@
+ static int nfsd_nr_verified;
+ static int nfsd_nr_put;
  
-diff -puN arch/avr32/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/avr32/kernel/traps.c
---- a/arch/avr32/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/avr32/kernel/traps.c
-@@ -56,6 +56,7 @@ void NORET_TYPE die(const char *str, str
- 	show_regs_log_lvl(regs, KERN_EMERG);
- 	show_stack_log_lvl(current, regs->sp, regs, KERN_EMERG);
- 	bust_spinlocks(0);
-+	add_taint(TAINT_DIE);
- 	spin_unlock_irq(&die_lock);
- 
- 	if (in_interrupt())
-diff -puN arch/i386/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/i386/kernel/traps.c
-@@ -433,6 +433,7 @@ void die(const char * str, struct pt_reg
- 
- 	bust_spinlocks(0);
- 	die.lock_owner = -1;
-+	add_taint(TAINT_DIE);
- 	spin_unlock_irqrestore(&die.lock, flags);
- 
- 	if (!regs)
-diff -puN arch/ia64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/ia64/kernel/traps.c
---- a/arch/ia64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/ia64/kernel/traps.c
-@@ -69,6 +69,7 @@ die (const char *str, struct pt_regs *re
- 
- 	bust_spinlocks(0);
- 	die.lock_owner = -1;
-+	add_taint(TAINT_DIE);
- 	spin_unlock_irq(&die.lock);
- 
- 	if (panic_on_oops)
-diff -puN arch/m68k/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/m68k/kernel/traps.c
---- a/arch/m68k/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/m68k/kernel/traps.c
-@@ -1170,6 +1170,7 @@ void die_if_kernel (char *str, struct pt
- 	console_verbose();
- 	printk("%s: %08x\n",str,nr);
- 	show_registers(fp);
-+	add_taint(TAINT_DIE);
- 	do_exit(SIGSEGV);
- }
- 
-diff -puN arch/m68knommu/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/m68knommu/kernel/traps.c
---- a/arch/m68knommu/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/m68knommu/kernel/traps.c
-@@ -83,6 +83,7 @@ void die_if_kernel(char *str, struct pt_
- 	printk(KERN_EMERG "Process %s (pid: %d, stackpage=%08lx)\n",
- 		current->comm, current->pid, PAGE_SIZE+(unsigned long)current);
- 	show_stack(NULL, (unsigned long *)fp);
-+	add_taint(TAINT_DIE);
- 	do_exit(SIGSEGV);
- }
- 
-diff -puN arch/mips/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/mips/kernel/traps.c
---- a/arch/mips/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/mips/kernel/traps.c
-@@ -326,6 +326,7 @@ void __noreturn die(const char * str, st
- #endif /* CONFIG_MIPS_MT_SMTC */
- 	printk("%s[#%d]:\n", str, ++die_counter);
- 	show_registers(regs);
-+	add_taint(TAINT_DIE);
- 	spin_unlock_irq(&die_lock);
- 
- 	if (in_interrupt())
-diff -puN arch/powerpc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/powerpc/kernel/traps.c
---- a/arch/powerpc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/powerpc/kernel/traps.c
-@@ -149,6 +149,7 @@ int die(const char *str, struct pt_regs 
- 
- 	bust_spinlocks(0);
- 	die.lock_owner = -1;
-+	add_taint(TAINT_DIE);
- 	spin_unlock_irqrestore(&die.lock, flags);
- 
- 	if (kexec_should_crash(current) ||
-diff -puN arch/ppc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/ppc/kernel/traps.c
---- a/arch/ppc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/ppc/kernel/traps.c
-@@ -92,6 +92,7 @@ int die(const char * str, struct pt_regs
- 	if (nl)
- 		printk("\n");
- 	show_regs(fp);
-+	add_taint(TAINT_DIE);
- 	spin_unlock_irq(&die_lock);
- 	/* do_exit() should take care of panic'ing from an interrupt
- 	 * context so we don't handle it here
-diff -puN arch/s390/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/s390/kernel/traps.c
---- a/arch/s390/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/s390/kernel/traps.c
-@@ -262,6 +262,7 @@ void die(const char * str, struct pt_reg
- 	print_modules();
- 	show_regs(regs);
- 	bust_spinlocks(0);
-+	add_taint(TAINT_DIE);
- 	spin_unlock_irq(&die_lock);
- 	if (in_interrupt())
- 		panic("Fatal exception in interrupt");
-diff -puN arch/sh/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/sh/kernel/traps.c
---- a/arch/sh/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/sh/kernel/traps.c
-@@ -103,6 +103,7 @@ void die(const char * str, struct pt_reg
- 			 (unsigned long)task_stack_page(current));
- 
- 	bust_spinlocks(0);
-+	add_taint(TAINT_DIE);
- 	spin_unlock_irq(&die_lock);
- 
- 	if (kexec_should_crash(current))
-diff -puN arch/sparc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/sparc/kernel/traps.c
---- a/arch/sparc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/sparc/kernel/traps.c
-@@ -101,6 +101,7 @@ void die_if_kernel(char *str, struct pt_
- 
- 	printk("%s(%d): %s [#%d]\n", current->comm, current->pid, str, ++die_counter);
- 	show_regs(regs);
-+	add_taint(TAINT_DIE);
- 
- 	__SAVE; __SAVE; __SAVE; __SAVE;
- 	__SAVE; __SAVE; __SAVE; __SAVE;
-diff -puN arch/sparc64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/sparc64/kernel/traps.c
---- a/arch/sparc64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/sparc64/kernel/traps.c
-@@ -2225,6 +2225,7 @@ void die_if_kernel(char *str, struct pt_
- 	notify_die(DIE_OOPS, str, regs, 0, 255, SIGSEGV);
- 	__asm__ __volatile__("flushw");
- 	__show_regs(regs);
-+	add_taint(TAINT_DIE);
- 	if (regs->tstate & TSTATE_PRIV) {
- 		struct reg_window *rw = (struct reg_window *)
- 			(regs->u_regs[UREG_FP] + STACK_BIAS);
-diff -puN arch/x86_64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/x86_64/kernel/traps.c
-@@ -518,6 +518,7 @@ void __kprobes __die(const char * str, s
- 	printk("\n");
- 	notify_die(DIE_OOPS, str, regs, err, current->thread.trap_no, SIGSEGV);
- 	show_registers(regs);
-+	add_taint(TAINT_DIE);
- 	/* Executive summary in case the oops scrolled away */
- 	printk(KERN_ALERT "RIP ");
- 	printk_address(regs->rip); 
-diff -puN arch/xtensa/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/xtensa/kernel/traps.c
---- a/arch/xtensa/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/arch/xtensa/kernel/traps.c
-@@ -482,6 +482,7 @@ void die(const char * str, struct pt_reg
- 	if (!user_mode(regs))
- 		show_stack(NULL, (unsigned long*)regs->areg[1]);
- 
-+	add_taint(TAINT_DIE);
- 	spin_unlock_irq(&die_lock);
- 
- 	if (in_interrupt())
-diff -puN include/linux/kernel.h~report-that-kernel-is-tainted-if-there-were-an-oops-before include/linux/kernel.h
---- a/include/linux/kernel.h~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/include/linux/kernel.h
-@@ -210,6 +210,7 @@ extern enum system_states {
- #define TAINT_MACHINE_CHECK		(1<<4)
- #define TAINT_BAD_PAGE			(1<<5)
- #define TAINT_USER			(1<<6)
-+#define TAINT_DIE			(1<<7)
- 
- extern void dump_stack(void);
- 
-diff -puN kernel/panic.c~report-that-kernel-is-tainted-if-there-were-an-oops-before kernel/panic.c
---- a/kernel/panic.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
-+++ a/kernel/panic.c
-@@ -159,14 +159,15 @@ const char *print_tainted(void)
+-extern struct export_operations export_op_default;
+-
+-#define	CALL(ops,fun) ((ops->fun)?(ops->fun):export_op_default.fun)
+-
+ /*
+  * our acceptability function.
+  * if NOSUBTREECHECK, accept anything
+@@ -212,11 +208,9 @@ fh_verify(struct svc_rqst *rqstp, struct
+ 		if (fileid_type == 0)
+ 			dentry = dget(exp->ex_dentry);
+ 		else {
+-			struct export_operations *nop = exp->ex_mnt->mnt_sb->s_export_op;
+-			dentry = CALL(nop,decode_fh)(exp->ex_mnt->mnt_sb,
+-						     datap, data_left,
+-						     fileid_type,
+-						     nfsd_acceptable, exp);
++			dentry = exportfs_decode_fh(exp->ex_mnt, datap,
++					data_left, fileid_type,
++					nfsd_acceptable, exp);
+ 		}
+ 		if (dentry == NULL)
+ 			goto out;
+@@ -287,15 +281,13 @@ out:
+ static inline int _fh_update(struct dentry *dentry, struct svc_export *exp,
+ 			     __u32 *datap, int *maxsize)
  {
- 	static char buf[20];
- 	if (tainted) {
--		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c",
-+		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c",
- 			tainted & TAINT_PROPRIETARY_MODULE ? 'P' : 'G',
- 			tainted & TAINT_FORCED_MODULE ? 'F' : ' ',
- 			tainted & TAINT_UNSAFE_SMP ? 'S' : ' ',
- 			tainted & TAINT_FORCED_RMMOD ? 'R' : ' ',
-  			tainted & TAINT_MACHINE_CHECK ? 'M' : ' ',
- 			tainted & TAINT_BAD_PAGE ? 'B' : ' ',
--			tainted & TAINT_USER ? 'U' : ' ');
-+			tainted & TAINT_USER ? 'U' : ' ',
-+			tainted & TAINT_DIE ? 'D' : ' ');
+-	struct export_operations *nop = exp->ex_mnt->mnt_sb->s_export_op;
+-
+ 	if (dentry == exp->ex_dentry) {
+ 		*maxsize = 0;
+ 		return 0;
  	}
- 	else
- 		snprintf(buf, sizeof(buf), "Not tainted");
+ 
+-	return CALL(nop,encode_fh)(dentry, datap, maxsize,
+-			  !(exp->ex_flags&NFSEXP_NOSUBTREECHECK));
++	return exportfs_encode_fh(dentry, datap, maxsize,
++			  !(exp->ex_flags & NFSEXP_NOSUBTREECHECK));
+ }
+ 
+ /*
+diff -puN include/linux/exportfs.h~knfsd-exportfs-add-procedural-interface-for-nfsd include/linux/exportfs.h
+--- a/include/linux/exportfs.h~knfsd-exportfs-add-procedural-interface-for-nfsd
++++ a/include/linux/exportfs.h
+@@ -5,6 +5,7 @@
+ 
+ struct dentry;
+ struct super_block;
++struct vfsmount;
+ 
+ 
+ /**
+@@ -116,4 +117,10 @@ extern struct dentry *find_exported_dent
+ 	void *parent, int (*acceptable)(void *context, struct dentry *de),
+ 	void *context);
+ 
++extern int exportfs_encode_fh(struct dentry *dentry, __u32 *fh, int *max_len,
++	int connectable);
++extern struct dentry *exportfs_decode_fh(struct vfsmount *mnt, __u32 *fh,
++	int fh_len, int fileid_type, int (*acceptable)(void *, struct dentry *),
++	void *context);
++
+ #endif /* LINUX_EXPORTFS_H */
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from hch@infradead.org are
 
 origin.patch
-make-input-layer-use-seq_list_xxx-helpers.patch
-fix-user-struct-leakage-with-locked-ipc-shem-segment.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+dvb_en_50221-convert-to-kthread-api.patch
+git-vfs-lease-api.patch
+git-xfs.patch
+introduce-i_sync.patch
