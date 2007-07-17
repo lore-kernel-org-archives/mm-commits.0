@@ -1,301 +1,779 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_spi-dont-always-deselect-chip-between-messages.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:03:09 -0700
-Message-ID: <200707172303.l6HN39Op011667@imap1.linux-foundation.org>
+Subject: - omap-add-ti-omap1-external-lcd-controller-support-sossi.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:08:28 -0700
+Message-ID: <200707172308.l6HN8SeY012287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35806 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43422 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764208AbXGQXSn (ORCPT
+	by vger.kernel.org with ESMTP id S936648AbXGQXTp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:18:43 -0400
+	Tue, 17 Jul 2007 19:19:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: imre.deak@solidboot.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_spi: don't always deselect chip between messages
+     OMAP: add TI OMAP1 external LCD controller support - SoSSI
 has been removed from the -mm tree.  Its filename was
-     atmel_spi-dont-always-deselect-chip-between-messages.patch
+     omap-add-ti-omap1-external-lcd-controller-support-sossi.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: atmel_spi: don't always deselect chip between messages
-From: David Brownell <david-b@pacbell.net>
+Subject: OMAP: add TI OMAP1 external LCD controller support - SoSSI
+=46rom: Imre Deak <imre.deak@solidboot.com>
 
-Update chipselect handling for atmel_spi:
+- Adds support for Texas Instruments OMAP1 processors boards connected =
+with
+  external LCD controller through "Special OptimiSed Screen Interface"
 
-  * Teach it how to leave chipselect active between messages; this
-    helps various drivers work better.
-
-  * Cope with at91rm0200 errata:  nCS0 can't be managed with GPIOs.
-    The MR.PCS value is now updated whenever a chipselect changes.
-    (This requires SPI pinmux init for that controller to change,
-    and also testing on rm9200; doesn't break at91sam9 or avr32.)
-
-  * Fix minor glitches:  spi_setup() must leave chipselects inactive,
-    as must removal of the spi_device.
-
-Also tweak diagnostic messaging to be a bit more useful.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |  127 ++++++++++++++++++++++++++++++--------
- 1 file changed, 103 insertions(+), 24 deletions(-)
+ drivers/video/omap/Kconfig  |    7=20
+ drivers/video/omap/Makefile |    2=20
+ drivers/video/omap/sossi.c  |  686 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 695 insertions(+)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-dont-always-deselect-chip-between-messages drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-dont-always-deselect-chip-between-messages
-+++ a/drivers/spi/atmel_spi.c
-@@ -46,6 +46,7 @@ struct atmel_spi {
- 	struct clk		*clk;
- 	struct platform_device	*pdev;
- 	unsigned		new_1:1;
-+	struct spi_device	*stay;
- 
- 	u8			stopping;
- 	struct list_head	queue;
-@@ -62,29 +63,62 @@ struct atmel_spi {
- /*
-  * Earlier SPI controllers (e.g. on at91rm9200) have a design bug whereby
-  * they assume that spi slave device state will not change on deselect, so
-- * that automagic deselection is OK.  Not so!  Workaround uses nCSx pins
-- * as GPIOs; or newer controllers have CSAAT and friends.
-+ * that automagic deselection is OK.  ("NPCSx rises if no data is to be
-+ * transmitted")  Not so!  Workaround uses nCSx pins as GPIOs; or newer
-+ * controllers have CSAAT and friends.
-  *
-- * Since the CSAAT functionality is a bit weird on newer controllers
-- * as well, we use GPIO to control nCSx pins on all controllers.
-+ * Since the CSAAT functionality is a bit weird on newer controllers as
-+ * well, we use GPIO to control nCSx pins on all controllers, updating
-+ * MR.PCS to avoid confusing the controller.  Using GPIOs also lets us
-+ * support active-high chipselects despite the controller's belief that
-+ * only active-low devices/systems exists.
+diff -puN drivers/video/omap/Kconfig~omap-add-ti-omap1-external-lcd-con=
+troller-support-sossi drivers/video/omap/Kconfig
+--- a/drivers/video/omap/Kconfig~omap-add-ti-omap1-external-lcd-control=
+ler-support-sossi
++++ a/drivers/video/omap/Kconfig
+@@ -36,3 +36,10 @@ config FB_OMAP_DMA_TUNE
+           answer yes. Answer no if you have a dedicated video
+           memory, or don't use any of the accelerated features.
+=20
++config FB_OMAP_LCDC_EXTERNAL
++	bool "External LCD controller support"
++	depends on FB_OMAP
++	help
++	  Say Y here, if you want to have support for boards with an
++	  external LCD controller connected to the SoSSI/RFBI interface.
++
+diff -puN drivers/video/omap/Makefile~omap-add-ti-omap1-external-lcd-co=
+ntroller-support-sossi drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omap-add-ti-omap1-external-lcd-contro=
+ller-support-sossi
++++ a/drivers/video/omap/Makefile
+@@ -9,5 +9,7 @@ objs-yy :=3D omapfb_main.o
+ objs-y$(CONFIG_ARCH_OMAP1) +=3D lcdc.o
+ objs-y$(CONFIG_ARCH_OMAP2) +=3D dispc.o
+=20
++objs-$(CONFIG_ARCH_OMAP1)$(CONFIG_FB_OMAP_LCDC_EXTERNAL) +=3D sossi.o
++
+ omapfb-objs :=3D $(objs-yy)
+=20
+diff -puN /dev/null drivers/video/omap/sossi.c
+--- /dev/null
++++ a/drivers/video/omap/sossi.c
+@@ -0,0 +1,686 @@
++/*
++ * OMAP1 Special OptimiSed Screen Interface support
 + *
-+ * However, at91rm9200 has a second erratum whereby nCS0 doesn't work
-+ * right when driven with GPIO.  ("Mode Fault does not allow more than one
-+ * Master on Chip Select 0.")  No workaround exists for that ... so for
-+ * nCS0 on that chip, we (a) don't use the GPIO, (b) can't support CS_HIGH,
-+ * and (c) will trigger that first erratum in some cases.
-  */
- 
--static inline void cs_activate(struct spi_device *spi)
-+static void cs_activate(struct atmel_spi *as, struct spi_device *spi)
- {
- 	unsigned gpio = (unsigned) spi->controller_data;
- 	unsigned active = spi->mode & SPI_CS_HIGH;
-+	u32 mr;
++ * Copyright (C) 2004-2005 Nokia Corporation
++ * Author: Juha Yrj=F6l=E4 <juha.yrjola@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y it
++ * under the terms of the GNU General Public License as published by t=
+he
++ * Free Software Foundation; either version 2 of the License, or (at y=
+our
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License a=
+long
++ * with this program; if not, write to the Free Software Foundation, I=
+nc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++#include <linux/module.h>
++#include <linux/mm.h>
++#include <linux/clk.h>
++#include <linux/irq.h>
++#include <linux/io.h>
 +
-+	mr = spi_readl(as, MR);
-+	mr = SPI_BFINS(PCS, ~(1 << spi->chip_select), mr);
++#include <asm/arch/dma.h>
++#include <asm/arch/omapfb.h>
 +
-+	dev_dbg(&spi->dev, "activate %u%s, mr %08x\n",
-+			gpio, active ? " (high)" : "",
-+			mr);
- 
--	dev_dbg(&spi->dev, "activate %u%s\n", gpio, active ? " (high)" : "");
--	gpio_set_value(gpio, active);
-+	if (!(cpu_is_at91rm9200() && spi->chip_select == 0))
-+		gpio_set_value(gpio, active);
-+	spi_writel(as, MR, mr);
- }
- 
--static inline void cs_deactivate(struct spi_device *spi)
-+static void cs_deactivate(struct atmel_spi *as, struct spi_device *spi)
- {
- 	unsigned gpio = (unsigned) spi->controller_data;
- 	unsigned active = spi->mode & SPI_CS_HIGH;
-+	u32 mr;
- 
--	dev_dbg(&spi->dev, "DEactivate %u%s\n", gpio, active ? " (low)" : "");
--	gpio_set_value(gpio, !active);
-+	/* only deactivate *this* device; sometimes transfers to
-+	 * another device may be active when this routine is called.
++#include "lcdc.h"
++
++#define MODULE_NAME		"omapfb-sossi"
++
++#define OMAP_SOSSI_BASE         0xfffbac00
++#define SOSSI_ID_REG		0x00
++#define SOSSI_INIT1_REG		0x04
++#define SOSSI_INIT2_REG		0x08
++#define SOSSI_INIT3_REG		0x0c
++#define SOSSI_FIFO_REG		0x10
++#define SOSSI_REOTABLE_REG	0x14
++#define SOSSI_TEARING_REG	0x18
++#define SOSSI_INIT1B_REG	0x1c
++#define SOSSI_FIFOB_REG		0x20
++
++#define DMA_GSCR          0xfffedc04
++#define DMA_LCD_CCR       0xfffee3c2
++#define DMA_LCD_CTRL      0xfffee3c4
++#define DMA_LCD_LCH_CTRL  0xfffee3ea
++
++#define CONF_SOSSI_RESET_R      (1 << 23)
++
++#define RD_ACCESS		0
++#define WR_ACCESS		1
++
++#define SOSSI_MAX_XMIT_BYTES	(512 * 1024)
++
++static struct {
++	void __iomem	*base;
++	struct clk	*fck;
++	unsigned long	fck_hz;
++	spinlock_t	lock;
++	int		bus_pick_count;
++	int		bus_pick_width;
++	int		tearsync_mode;
++	int		tearsync_line;
++	void		(*lcdc_callback)(void *data);
++	void		*lcdc_callback_data;
++	int		vsync_dma_pending;
++	/* timing for read and write access */
++	int		clk_div;
++	u8		clk_tw0[2];
++	u8		clk_tw1[2];
++	/*
++	 * if last_access is the same as current we don't have to change
++	 * the timings
 +	 */
-+	mr = spi_readl(as, MR);
-+	if (~SPI_BFEXT(PCS, mr) & (1 << spi->chip_select)) {
-+		mr = SPI_BFINS(PCS, 0xf, mr);
-+		spi_writel(as, MR, mr);
-+	}
++	int		last_access;
 +
-+	dev_dbg(&spi->dev, "DEactivate %u%s, mr %08x\n",
-+			gpio, active ? " (low)" : "",
-+			mr);
++	struct omapfb_device	*fbdev;
++} sossi;
 +
-+	if (!(cpu_is_at91rm9200() && spi->chip_select == 0))
-+		gpio_set_value(gpio, !active);
- }
- 
- /*
-@@ -140,6 +174,7 @@ static void atmel_spi_next_xfer(struct s
- 
- 	/* REVISIT: when xfer->delay_usecs == 0, the PDC "next transfer"
- 	 * mechanism might help avoid the IRQ latency between transfers
-+	 * (and improve the nCS0 errata handling on at91rm9200 chips)
- 	 *
- 	 * We're also waiting for ENDRX before we start the next
- 	 * transfer because we need to handle some difficult timing
-@@ -169,17 +204,25 @@ static void atmel_spi_next_message(struc
- {
- 	struct atmel_spi	*as = spi_master_get_devdata(master);
- 	struct spi_message	*msg;
--	u32			mr;
-+	struct spi_device	*spi;
- 
- 	BUG_ON(as->current_transfer);
- 
- 	msg = list_entry(as->queue.next, struct spi_message, queue);
-+	spi = msg->spi;
- 
--	/* Select the chip */
--	mr = spi_readl(as, MR);
--	mr = SPI_BFINS(PCS, ~(1 << msg->spi->chip_select), mr);
--	spi_writel(as, MR, mr);
--	cs_activate(msg->spi);
-+	dev_dbg(master->cdev.dev, "start message %p for %s\n",
-+			msg, spi->dev.bus_id);
++static inline u32 sossi_read_reg(int reg)
++{
++	return readl(sossi.base + reg);
++}
 +
-+	/* select chip if it's not still active */
-+	if (as->stay) {
-+		if (as->stay != spi) {
-+			cs_deactivate(as, as->stay);
-+			cs_activate(as, spi);
-+		}
-+		as->stay = NULL;
-+	} else
-+		cs_activate(as, spi);
- 
- 	atmel_spi_next_xfer(master, msg);
- }
-@@ -232,9 +275,13 @@ static void atmel_spi_dma_unmap_xfer(str
- 
- static void
- atmel_spi_msg_done(struct spi_master *master, struct atmel_spi *as,
--		   struct spi_message *msg, int status)
-+		struct spi_message *msg, int status, int stay)
- {
--	cs_deactivate(msg->spi);
-+	if (!stay || status < 0)
-+		cs_deactivate(as, msg->spi);
-+	else
-+		as->stay = msg->spi;
++static inline u16 sossi_read_reg16(int reg)
++{
++	return readw(sossi.base + reg);
++}
 +
- 	list_del(&msg->queue);
- 	msg->status = status;
- 
-@@ -324,7 +371,7 @@ atmel_spi_interrupt(int irq, void *dev_i
- 		/* Clear any overrun happening while cleaning up */
- 		spi_readl(as, SR);
- 
--		atmel_spi_msg_done(master, as, msg, -EIO);
-+		atmel_spi_msg_done(master, as, msg, -EIO, 0);
- 	} else if (pending & SPI_BIT(ENDRX)) {
- 		ret = IRQ_HANDLED;
- 
-@@ -342,12 +389,13 @@ atmel_spi_interrupt(int irq, void *dev_i
- 
- 			if (msg->transfers.prev == &xfer->transfer_list) {
- 				/* report completed message */
--				atmel_spi_msg_done(master, as, msg, 0);
-+				atmel_spi_msg_done(master, as, msg, 0,
-+						xfer->cs_change);
- 			} else {
- 				if (xfer->cs_change) {
--					cs_deactivate(msg->spi);
-+					cs_deactivate(as, msg->spi);
- 					udelay(1);
--					cs_activate(msg->spi);
-+					cs_activate(as, msg->spi);
- 				}
- 
- 				/*
-@@ -410,6 +458,14 @@ static int atmel_spi_setup(struct spi_de
- 		return -EINVAL;
- 	}
- 
-+	/* see notes above re chipselect */
-+	if (cpu_is_at91rm9200()
-+			&& spi->chip_select == 0
-+			&& (spi->mode & SPI_CS_HIGH)) {
-+		dev_dbg(&spi->dev, "setup: can't be active-high\n");
-+		return -EINVAL;
-+	}
++static inline u8 sossi_read_reg8(int reg)
++{
++	return readb(sossi.base + reg);
++}
 +
- 	/* speed zero convention is used by some upper layers */
- 	bus_hz = clk_get_rate(as->clk);
- 	if (spi->max_speed_hz) {
-@@ -446,6 +502,14 @@ static int atmel_spi_setup(struct spi_de
- 			return ret;
- 		spi->controller_state = (void *)npcs_pin;
- 		gpio_direction_output(npcs_pin, !(spi->mode & SPI_CS_HIGH));
-+	} else {
-+		unsigned long		flags;
++static inline void sossi_write_reg(int reg, u32 value)
++{
++	writel(value, sossi.base + reg);
++}
 +
-+		spin_lock_irqsave(&as->lock, flags);
-+		if (as->stay == spi)
-+			as->stay = NULL;
-+		cs_deactivate(as, spi);
-+		spin_unlock_irqrestore(&as->lock, flags);
- 	}
- 
- 	dev_dbg(&spi->dev,
-@@ -502,6 +566,7 @@ static int atmel_spi_transfer(struct spi
- 		}
- 	}
- 
++static inline void sossi_write_reg16(int reg, u16 value)
++{
++	writew(value, sossi.base + reg);
++}
++
++static inline void sossi_write_reg8(int reg, u8 value)
++{
++	writeb(value, sossi.base + reg);
++}
++
++static void sossi_set_bits(int reg, u32 bits)
++{
++	sossi_write_reg(reg, sossi_read_reg(reg) | bits);
++}
++
++static void sossi_clear_bits(int reg, u32 bits)
++{
++	sossi_write_reg(reg, sossi_read_reg(reg) & ~bits);
++}
++
++#define HZ_TO_PS(x)	(1000000000 / (x / 1000))
++
++static u32 ps_to_sossi_ticks(u32 ps, int div)
++{
++	u32 clk_period =3D HZ_TO_PS(sossi.fck_hz) * div;
++	return (clk_period + ps - 1) / clk_period;
++}
++
++static int calc_rd_timings(struct extif_timings *t)
++{
++	u32 tw0, tw1;
++	int reon, reoff, recyc, actim;
++	int div =3D t->clk_div;
++
++	/*
++	 * Make sure that after conversion it still holds that:
++	 * reoff > reon, recyc >=3D reoff, actim > reon
++	 */
++	reon =3D ps_to_sossi_ticks(t->re_on_time, div);
++	/* reon will be exactly one sossi tick */
++	if (reon > 1)
++		return -1;
++
++	reoff =3D ps_to_sossi_ticks(t->re_off_time, div);
++
++	if (reoff <=3D reon)
++		reoff =3D reon + 1;
++
++	tw0 =3D reoff - reon;
++	if (tw0 > 0x10)
++		return -1;
++
++	recyc =3D ps_to_sossi_ticks(t->re_cycle_time, div);
++	if (recyc <=3D reoff)
++		recyc =3D reoff + 1;
++
++	tw1 =3D recyc - tw0;
++	/* values less then 3 result in the SOSSI block resetting itself */
++	if (tw1 < 3)
++		tw1 =3D 3;
++	if (tw1 > 0x40)
++		return -1;
++
++	actim =3D ps_to_sossi_ticks(t->access_time, div);
++	if (actim < reoff)
++		actim++;
++	/*
++	 * access time (data hold time) will be exactly one sossi
++	 * tick
++	 */
++	if (actim - reoff > 1)
++		return -1;
++
++	t->tim[0] =3D tw0 - 1;
++	t->tim[1] =3D tw1 - 1;
++
++	return 0;
++}
++
++static int calc_wr_timings(struct extif_timings *t)
++{
++	u32 tw0, tw1;
++	int weon, weoff, wecyc;
++	int div =3D t->clk_div;
++
++	/*
++	 * Make sure that after conversion it still holds that:
++	 * weoff > weon, wecyc >=3D weoff
++	 */
++	weon =3D ps_to_sossi_ticks(t->we_on_time, div);
++	/* weon will be exactly one sossi tick */
++	if (weon > 1)
++		return -1;
++
++	weoff =3D ps_to_sossi_ticks(t->we_off_time, div);
++	if (weoff <=3D weon)
++		weoff =3D weon + 1;
++	tw0 =3D weoff - weon;
++	if (tw0 > 0x10)
++		return -1;
++
++	wecyc =3D ps_to_sossi_ticks(t->we_cycle_time, div);
++	if (wecyc <=3D weoff)
++		wecyc =3D weoff + 1;
++
++	tw1 =3D wecyc - tw0;
++	/* values less then 3 result in the SOSSI block resetting itself */
++	if (tw1 < 3)
++		tw1 =3D 3;
++	if (tw1 > 0x40)
++		return -1;
++
++	t->tim[2] =3D tw0 - 1;
++	t->tim[3] =3D tw1 - 1;
++
++	return 0;
++}
++
++static void _set_timing(int div, int tw0, int tw1)
++{
++	u32 l;
++
 +#ifdef VERBOSE
- 	list_for_each_entry(xfer, &msg->transfers, transfer_list) {
- 		dev_dbg(controller,
- 			"  xfer %p: len %u tx %p/%08x rx %p/%08x\n",
-@@ -509,6 +574,7 @@ static int atmel_spi_transfer(struct spi
- 			xfer->tx_buf, xfer->tx_dma,
- 			xfer->rx_buf, xfer->rx_dma);
- 	}
++	dev_dbg(sossi.fbdev->dev, "Using TW0 =3D %d, TW1 =3D %d, div =3D %d\n=
+",
++		 tw0 + 1, tw1 + 1, div);
 +#endif
- 
- 	msg->status = -EINPROGRESS;
- 	msg->actual_length = 0;
-@@ -524,8 +590,21 @@ static int atmel_spi_transfer(struct spi
- 
- static void atmel_spi_cleanup(struct spi_device *spi)
- {
--	if (spi->controller_state)
--		gpio_free((unsigned int)spi->controller_data);
-+	struct atmel_spi	*as = spi_master_get_devdata(spi->master);
-+	unsigned		gpio = (unsigned) spi->controller_data;
-+	unsigned long		flags;
 +
-+	if (!spi->controller_state)
-+		return;
++	clk_set_rate(sossi.fck, sossi.fck_hz / div);
++	clk_enable(sossi.fck);
++	l =3D sossi_read_reg(SOSSI_INIT1_REG);
++	l &=3D ~((0x0f << 20) | (0x3f << 24));
++	l |=3D (tw0 << 20) | (tw1 << 24);
++	sossi_write_reg(SOSSI_INIT1_REG, l);
++	clk_disable(sossi.fck);
++}
 +
-+	spin_lock_irqsave(&as->lock, flags);
-+	if (as->stay == spi) {
-+		as->stay = NULL;
-+		cs_deactivate(as, spi);
++static void _set_bits_per_cycle(int bus_pick_count, int bus_pick_width=
+)
++{
++	u32 l;
++
++	l =3D sossi_read_reg(SOSSI_INIT3_REG);
++	l &=3D ~0x3ff;
++	l |=3D ((bus_pick_count - 1) << 5) | ((bus_pick_width - 1) & 0x1f);
++	sossi_write_reg(SOSSI_INIT3_REG, l);
++}
++
++static void _set_tearsync_mode(int mode, unsigned line)
++{
++	u32 l;
++
++	l =3D sossi_read_reg(SOSSI_TEARING_REG);
++	l &=3D ~(((1 << 11) - 1) << 15);
++	l |=3D line << 15;
++	l &=3D ~(0x3 << 26);
++	l |=3D mode << 26;
++	sossi_write_reg(SOSSI_TEARING_REG, l);
++	if (mode)
++		sossi_set_bits(SOSSI_INIT2_REG, 1 << 6);	/* TE logic */
++	else
++		sossi_clear_bits(SOSSI_INIT2_REG, 1 << 6);
++}
++
++static inline void set_timing(int access)
++{
++	if (access !=3D sossi.last_access) {
++		sossi.last_access =3D access;
++		_set_timing(sossi.clk_div,
++			    sossi.clk_tw0[access], sossi.clk_tw1[access]);
 +	}
-+	spin_unlock_irqrestore(&as->lock, flags);
++}
 +
-+	gpio_free(gpio);
- }
- 
- /*-------------------------------------------------------------------------*/
++static void sossi_start_transfer(void)
++{
++	/* WE */
++	sossi_clear_bits(SOSSI_INIT2_REG, 1 << 4);
++	/* CS active low */
++	sossi_clear_bits(SOSSI_INIT1_REG, 1 << 30);
++}
++
++static void sossi_stop_transfer(void)
++{
++	/* WE */
++	sossi_set_bits(SOSSI_INIT2_REG, 1 << 4);
++	/* CS active low */
++	sossi_set_bits(SOSSI_INIT1_REG, 1 << 30);
++}
++
++static void wait_end_of_write(void)
++{
++	/* Before reading we must check if some writings are going on */
++	while (!(sossi_read_reg(SOSSI_INIT2_REG) & (1 << 3)));
++}
++
++static void send_data(const void *data, unsigned int len)
++{
++	while (len >=3D 4) {
++		sossi_write_reg(SOSSI_FIFO_REG, *(const u32 *) data);
++		len -=3D 4;
++		data +=3D 4;
++	}
++	while (len >=3D 2) {
++		sossi_write_reg16(SOSSI_FIFO_REG, *(const u16 *) data);
++		len -=3D 2;
++		data +=3D 2;
++	}
++	while (len) {
++		sossi_write_reg8(SOSSI_FIFO_REG, *(const u8 *) data);
++		len--;
++		data++;
++	}
++}
++
++static void set_cycles(unsigned int len)
++{
++	unsigned long nr_cycles =3D len / (sossi.bus_pick_width / 8);
++
++	BUG_ON((nr_cycles - 1) & ~0x3ffff);
++
++	sossi_clear_bits(SOSSI_INIT1_REG, 0x3ffff);
++	sossi_set_bits(SOSSI_INIT1_REG, (nr_cycles - 1) & 0x3ffff);
++}
++
++static int sossi_convert_timings(struct extif_timings *t)
++{
++	int r =3D 0;
++	int div =3D t->clk_div;
++
++	t->converted =3D 0;
++
++	if (div <=3D 0 || div > 8)
++		return -1;
++
++	/* no CS on SOSSI, so ignore cson, csoff, cs_pulsewidth */
++	if ((r =3D calc_rd_timings(t)) < 0)
++		return r;
++
++	if ((r =3D calc_wr_timings(t)) < 0)
++		return r;
++
++	t->tim[4] =3D div;
++
++	t->converted =3D 1;
++
++	return 0;
++}
++
++static void sossi_set_timings(const struct extif_timings *t)
++{
++	BUG_ON(!t->converted);
++
++	sossi.clk_tw0[RD_ACCESS] =3D t->tim[0];
++	sossi.clk_tw1[RD_ACCESS] =3D t->tim[1];
++
++	sossi.clk_tw0[WR_ACCESS] =3D t->tim[2];
++	sossi.clk_tw1[WR_ACCESS] =3D t->tim[3];
++
++	sossi.clk_div =3D t->tim[4];
++}
++
++static void sossi_get_clk_info(u32 *clk_period, u32 *max_clk_div)
++{
++	*clk_period =3D HZ_TO_PS(sossi.fck_hz);
++	*max_clk_div =3D 8;
++}
++
++static void sossi_set_bits_per_cycle(int bpc)
++{
++	int bus_pick_count, bus_pick_width;
++
++	/*
++	 * We set explicitly the the bus_pick_count as well, although
++	 * with remapping/reordering disabled it will be calculated by HW
++	 * as (32 / bus_pick_width).
++	 */
++	switch (bpc) {
++	case 8:
++		bus_pick_count =3D 4;
++		bus_pick_width =3D 8;
++		break;
++	case 16:
++		bus_pick_count =3D 2;
++		bus_pick_width =3D 16;
++		break;
++	default:
++		BUG();
++		return;
++	}
++	sossi.bus_pick_width =3D bus_pick_width;
++	sossi.bus_pick_count =3D bus_pick_count;
++}
++
++static int sossi_setup_tearsync(unsigned pin_cnt,
++				unsigned hs_pulse_time, unsigned vs_pulse_time,
++				int hs_pol_inv, int vs_pol_inv, int div)
++{
++	int hs, vs;
++	u32 l;
++
++	if (pin_cnt !=3D 1 || div < 1 || div > 8)
++		return -EINVAL;
++
++	hs =3D ps_to_sossi_ticks(hs_pulse_time, div);
++	vs =3D ps_to_sossi_ticks(vs_pulse_time, div);
++	if (vs < 8 || vs <=3D hs || vs >=3D (1 << 12))
++		return -EDOM;
++	vs /=3D 8;
++	vs--;
++	if (hs > 8)
++		hs =3D 8;
++	if (hs)
++		hs--;
++
++	dev_dbg(sossi.fbdev->dev,
++		"setup_tearsync: hs %d vs %d hs_inv %d vs_inv %d\n",
++		hs, vs, hs_pol_inv, vs_pol_inv);
++
++	clk_enable(sossi.fck);
++	l =3D sossi_read_reg(SOSSI_TEARING_REG);
++	l &=3D ~((1 << 15) - 1);
++	l |=3D vs << 3;
++	l |=3D hs;
++	if (hs_pol_inv)
++		l |=3D 1 << 29;
++	else
++		l &=3D ~(1 << 29);
++	if (vs_pol_inv)
++		l |=3D 1 << 28;
++	else
++		l &=3D ~(1 << 28);
++	sossi_write_reg(SOSSI_TEARING_REG, l);
++	clk_disable(sossi.fck);
++
++	return 0;
++}
++
++static int sossi_enable_tearsync(int enable, unsigned line)
++{
++	int mode;
++
++	dev_dbg(sossi.fbdev->dev, "tearsync %d line %d\n", enable, line);
++	if (line >=3D 1 << 11)
++		return -EINVAL;
++	if (enable) {
++		if (line)
++			mode =3D 2;		/* HS or VS */
++		else
++			mode =3D 3;		/* VS only */
++	} else
++		mode =3D 0;
++	sossi.tearsync_line =3D line;
++	sossi.tearsync_mode =3D mode;
++
++	return 0;
++}
++
++static void sossi_write_command(const void *data, unsigned int len)
++{
++	clk_enable(sossi.fck);
++	set_timing(WR_ACCESS);
++	_set_bits_per_cycle(sossi.bus_pick_count, sossi.bus_pick_width);
++	/* CMD#/DATA */
++	sossi_clear_bits(SOSSI_INIT1_REG, 1 << 18);
++	set_cycles(len);
++	sossi_start_transfer();
++	send_data(data, len);
++	sossi_stop_transfer();
++	wait_end_of_write();
++	clk_disable(sossi.fck);
++}
++
++static void sossi_write_data(const void *data, unsigned int len)
++{
++	clk_enable(sossi.fck);
++	set_timing(WR_ACCESS);
++	_set_bits_per_cycle(sossi.bus_pick_count, sossi.bus_pick_width);
++	/* CMD#/DATA */
++	sossi_set_bits(SOSSI_INIT1_REG, 1 << 18);
++	set_cycles(len);
++	sossi_start_transfer();
++	send_data(data, len);
++	sossi_stop_transfer();
++	wait_end_of_write();
++	clk_disable(sossi.fck);
++}
++
++static void sossi_transfer_area(int width, int height,
++				void (callback)(void *data), void *data)
++{
++	BUG_ON(callback =3D=3D NULL);
++
++	sossi.lcdc_callback =3D callback;
++	sossi.lcdc_callback_data =3D data;
++
++	clk_enable(sossi.fck);
++	set_timing(WR_ACCESS);
++	_set_bits_per_cycle(sossi.bus_pick_count, sossi.bus_pick_width);
++	_set_tearsync_mode(sossi.tearsync_mode, sossi.tearsync_line);
++	/* CMD#/DATA */
++	sossi_set_bits(SOSSI_INIT1_REG, 1 << 18);
++	set_cycles(width * height * sossi.bus_pick_width / 8);
++
++	sossi_start_transfer();
++	if (sossi.tearsync_mode) {
++		/*
++		 * Wait for the sync signal and start the transfer only
++		 * then. We can't seem to be able to use HW sync DMA for
++		 * this since LCD DMA shows huge latencies, as if it
++		 * would ignore some of the DMA requests from SoSSI.
++		 */
++		unsigned long flags;
++
++		spin_lock_irqsave(&sossi.lock, flags);
++		sossi.vsync_dma_pending++;
++		spin_unlock_irqrestore(&sossi.lock, flags);
++	} else
++		/* Just start the transfer right away. */
++		omap_enable_lcd_dma();
++}
++
++static void sossi_dma_callback(void *data)
++{
++	omap_stop_lcd_dma();
++	sossi_stop_transfer();
++	clk_disable(sossi.fck);
++	sossi.lcdc_callback(sossi.lcdc_callback_data);
++}
++
++static void sossi_read_data(void *data, unsigned int len)
++{
++	clk_enable(sossi.fck);
++	set_timing(RD_ACCESS);
++	_set_bits_per_cycle(sossi.bus_pick_count, sossi.bus_pick_width);
++	/* CMD#/DATA */
++	sossi_set_bits(SOSSI_INIT1_REG, 1 << 18);
++	set_cycles(len);
++	sossi_start_transfer();
++	while (len >=3D 4) {
++		*(u32 *) data =3D sossi_read_reg(SOSSI_FIFO_REG);
++		len -=3D 4;
++		data +=3D 4;
++	}
++	while (len >=3D 2) {
++		*(u16 *) data =3D sossi_read_reg16(SOSSI_FIFO_REG);
++		len -=3D 2;
++		data +=3D 2;
++	}
++	while (len) {
++		*(u8 *) data =3D sossi_read_reg8(SOSSI_FIFO_REG);
++		len--;
++		data++;
++	}
++	sossi_stop_transfer();
++	clk_disable(sossi.fck);
++}
++
++static irqreturn_t sossi_match_irq(int irq, void *data)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&sossi.lock, flags);
++	if (sossi.vsync_dma_pending) {
++		sossi.vsync_dma_pending--;
++		omap_enable_lcd_dma();
++	}
++	spin_unlock_irqrestore(&sossi.lock, flags);
++	return IRQ_HANDLED;
++}
++
++static int sossi_init(struct omapfb_device *fbdev)
++{
++	u32 l, k;
++	struct clk *fck;
++	struct clk *dpll1out_ck;
++	int r;
++
++	sossi.base =3D (void __iomem *)IO_ADDRESS(OMAP_SOSSI_BASE);
++	sossi.fbdev =3D fbdev;
++	spin_lock_init(&sossi.lock);
++
++	dpll1out_ck =3D clk_get(fbdev->dev, "ck_dpll1out");
++	if (IS_ERR(dpll1out_ck)) {
++		dev_err(fbdev->dev, "can't get DPLL1OUT clock\n");
++		return PTR_ERR(dpll1out_ck);
++	}
++	/*
++	 * We need the parent clock rate, which we might divide further
++	 * depending on the timing requirements of the controller. See
++	 * _set_timings.
++	 */
++	sossi.fck_hz =3D clk_get_rate(dpll1out_ck);
++	clk_put(dpll1out_ck);
++
++	fck =3D clk_get(fbdev->dev, "ck_sossi");
++	if (IS_ERR(fck)) {
++		dev_err(fbdev->dev, "can't get SoSSI functional clock\n");
++		return PTR_ERR(fck);
++	}
++	sossi.fck =3D fck;
++
++	/* Reset and enable the SoSSI module */
++	l =3D omap_readl(MOD_CONF_CTRL_1);
++	l |=3D CONF_SOSSI_RESET_R;
++	omap_writel(l, MOD_CONF_CTRL_1);
++	l &=3D ~CONF_SOSSI_RESET_R;
++	omap_writel(l, MOD_CONF_CTRL_1);
++
++	clk_enable(sossi.fck);
++	l =3D omap_readl(ARM_IDLECT2);
++	l &=3D ~(1 << 8);			/* DMACK_REQ */
++	omap_writel(l, ARM_IDLECT2);
++
++	l =3D sossi_read_reg(SOSSI_INIT2_REG);
++	/* Enable and reset the SoSSI block */
++	l |=3D (1 << 0) | (1 << 1);
++	sossi_write_reg(SOSSI_INIT2_REG, l);
++	/* Take SoSSI out of reset */
++	l &=3D ~(1 << 1);
++	sossi_write_reg(SOSSI_INIT2_REG, l);
++
++	sossi_write_reg(SOSSI_ID_REG, 0);
++	l =3D sossi_read_reg(SOSSI_ID_REG);
++	k =3D sossi_read_reg(SOSSI_ID_REG);
++
++	if (l !=3D 0x55555555 || k !=3D 0xaaaaaaaa) {
++		dev_err(fbdev->dev,
++			"invalid SoSSI sync pattern: %08x, %08x\n", l, k);
++		r =3D -ENODEV;
++		goto err;
++	}
++
++	if ((r =3D omap_lcdc_set_dma_callback(sossi_dma_callback, NULL)) < 0)=
+ {
++		dev_err(fbdev->dev, "can't get LCDC IRQ\n");
++		r =3D -ENODEV;
++		goto err;
++	}
++
++	l =3D sossi_read_reg(SOSSI_ID_REG); /* Component code */
++	l =3D sossi_read_reg(SOSSI_ID_REG);
++	dev_info(fbdev->dev, "SoSSI version %d.%d initialized\n",
++		l >> 16, l & 0xffff);
++
++	l =3D sossi_read_reg(SOSSI_INIT1_REG);
++	l |=3D (1 << 19); /* DMA_MODE */
++	l &=3D ~(1 << 31); /* REORDERING */
++	sossi_write_reg(SOSSI_INIT1_REG, l);
++
++	if ((r =3D request_irq(INT_1610_SoSSI_MATCH, sossi_match_irq,
++			     IRQT_FALLING,
++	     "sossi_match", sossi.fbdev->dev)) < 0) {
++		dev_err(sossi.fbdev->dev, "can't get SoSSI match IRQ\n");
++		goto err;
++	}
++
++	clk_disable(sossi.fck);
++	return 0;
++
++err:
++	clk_disable(sossi.fck);
++	clk_put(sossi.fck);
++	return r;
++}
++
++static void sossi_cleanup(void)
++{
++	omap_lcdc_free_dma_callback();
++	clk_put(sossi.fck);
++}
++
++struct lcd_ctrl_extif omap1_ext_if =3D {
++	.init			=3D sossi_init,
++	.cleanup		=3D sossi_cleanup,
++	.get_clk_info		=3D sossi_get_clk_info,
++	.convert_timings	=3D sossi_convert_timings,
++	.set_timings		=3D sossi_set_timings,
++	.set_bits_per_cycle	=3D sossi_set_bits_per_cycle,
++	.setup_tearsync		=3D sossi_setup_tearsync,
++	.enable_tearsync	=3D sossi_enable_tearsync,
++	.write_command		=3D sossi_write_command,
++	.read_data		=3D sossi_read_data,
++	.write_data		=3D sossi_write_data,
++	.transfer_area		=3D sossi_transfer_area,
++
++	.max_transmit_size	=3D SOSSI_MAX_XMIT_BYTES,
++};
++
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from imre.deak@solidboot.com ar=
+e
 
 origin.patch
-git-leds.patch
-git-mmc.patch
-git-mtd.patch
-git-backlight.patch
-use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-gpio-calls-dont-need-i-o-barriers.patch
-dev_vdbg-available-with-dverbose_debug.patch
-dev_vdbg-available-with-dverbose_debug-docs.patch
