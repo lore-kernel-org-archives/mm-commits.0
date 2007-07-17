@@ -1,117 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - kconfig-reset-generated-values-only-if-kconfig-and-config-agree.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:09:18 -0700
-Message-ID: <200707172309.l6HN9IMf012362@imap1.linux-foundation.org>
+Subject: - drivers-video-macmodescmac_find_mode-mustnt-be.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:08:15 -0700
+Message-ID: <200707172308.l6HN8FsP012268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46968 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50695 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936193AbXGQXPa (ORCPT
+	by vger.kernel.org with ESMTP id S936595AbXGQXQA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:30 -0400
+	Tue, 17 Jul 2007 19:16:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zippel@linux-m68k.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, adaplas@pol.net, michal.k.k.piotrowski@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kconfig: reset generated values only if Kconfig and .config agree.
+     drivers/video/macmodes.c:mac_find_mode() mustn't be __devinit
 has been removed from the -mm tree.  Its filename was
-     kconfig-reset-generated-values-only-if-kconfig-and-config-agree.patch
+     drivers-video-macmodescmac_find_mode-mustnt-be.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kconfig: reset generated values only if Kconfig and .config agree.
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: drivers/video/macmodes.c:mac_find_mode() mustn't be __devinit
+From: Adrian Bunk <bunk@stusta.de>
 
-Normally generated values (Kconfig entries without a prompt) are cleared as
-they are regenerated anyway and so they appear as new should they become
-visible and defaults work as expected (once a value is set defaults aren't
-used anymore).
+If it's EXPORT_SYMBOL'ed it can't be __devinit.
 
-The detection whether a value is generated or not is only based on its
-visibility status, which can quickly change for a lot of symbols by just
-removing a single line from .config or adding a dependency to Kconfig as you
-noticed.
+Reported by Mikael Pettersson.
 
-The patch now suppresses this logic when .config and Kconfig aren't in sync
-and .config needs to be updated, so that you can remove now a random value
-from .config and oldconfig won't reask for many other values.
-
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/confdata.c |   37 ++++++++++++++++++++++++-----------
- 1 files changed, 26 insertions(+), 11 deletions(-)
+ drivers/video/macmodes.c |    5 ++---
+ drivers/video/macmodes.h |    8 ++++----
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN scripts/kconfig/confdata.c~kconfig-reset-generated-values-only-if-kconfig-and-config-agree scripts/kconfig/confdata.c
---- a/scripts/kconfig/confdata.c~kconfig-reset-generated-values-only-if-kconfig-and-config-agree
-+++ a/scripts/kconfig/confdata.c
-@@ -341,27 +341,42 @@ int conf_read(const char *name)
- 		conf_unsaved++;
- 		/* maybe print value in verbose mode... */
- 	sym_ok:
-+		if (!sym_is_choice(sym))
-+			continue;
-+		/* The choice symbol only has a set value (and thus is not new)
-+		 * if all its visible childs have values.
-+		 */
-+		prop = sym_get_choice_prop(sym);
-+		flags = sym->flags;
-+		for (e = prop->expr; e; e = e->left.expr)
-+			if (e->right.sym->visible != no)
-+				flags &= e->right.sym->flags;
-+		sym->flags &= flags | ~SYMBOL_DEF_USER;
-+	}
-+
-+	for_all_symbols(i, sym) {
- 		if (sym_has_value(sym) && !sym_is_choice_value(sym)) {
--			if (sym->visible == no)
-+			/* Reset values of generates values, so they'll appear
-+			 * as new, if they should become visible, but that
-+			 * doesn't quite work if the Kconfig and the saved
-+			 * configuration disagree.
-+			 */
-+			if (sym->visible == no && !conf_unsaved)
- 				sym->flags &= ~SYMBOL_DEF_USER;
- 			switch (sym->type) {
- 			case S_STRING:
- 			case S_INT:
- 			case S_HEX:
--				if (!sym_string_within_range(sym, sym->def[S_DEF_USER].val))
--					sym->flags &= ~(SYMBOL_VALID|SYMBOL_DEF_USER);
-+				/* Reset a string value if it's out of range */
-+				if (sym_string_within_range(sym, sym->def[S_DEF_USER].val))
-+					break;
-+				sym->flags &= ~(SYMBOL_VALID|SYMBOL_DEF_USER);
-+				conf_unsaved++;
-+				break;
- 			default:
- 				break;
- 			}
- 		}
--		if (!sym_is_choice(sym))
--			continue;
--		prop = sym_get_choice_prop(sym);
--		flags = sym->flags;
--		for (e = prop->expr; e; e = e->left.expr)
--			if (e->right.sym->visible != no)
--				flags &= e->right.sym->flags;
--		sym->flags &= flags | ~SYMBOL_DEF_USER;
- 	}
+diff -puN drivers/video/macmodes.c~drivers-video-macmodescmac_find_mode-mustnt-be drivers/video/macmodes.c
+--- a/drivers/video/macmodes.c~drivers-video-macmodescmac_find_mode-mustnt-be
++++ a/drivers/video/macmodes.c
+@@ -369,9 +369,8 @@ EXPORT_SYMBOL(mac_map_monitor_sense);
+  *
+  */
  
- 	sym_add_change_count(conf_warnings || conf_unsaved);
+-int __devinit mac_find_mode(struct fb_var_screeninfo *var,
+-			    struct fb_info *info, const char *mode_option,
+-			    unsigned int default_bpp)
++int mac_find_mode(struct fb_var_screeninfo *var, struct fb_info *info,
++		  const char *mode_option, unsigned int default_bpp)
+ {
+     const struct fb_videomode *db = NULL;
+     unsigned int dbsize = 0;
+diff -puN drivers/video/macmodes.h~drivers-video-macmodescmac_find_mode-mustnt-be drivers/video/macmodes.h
+--- a/drivers/video/macmodes.h~drivers-video-macmodescmac_find_mode-mustnt-be
++++ a/drivers/video/macmodes.h
+@@ -55,10 +55,10 @@ extern int mac_vmode_to_var(int vmode, i
+ extern int mac_var_to_vmode(const struct fb_var_screeninfo *var, int *vmode,
+ 			    int *cmode);
+ extern int mac_map_monitor_sense(int sense);
+-extern int __devinit mac_find_mode(struct fb_var_screeninfo *var,
+-				   struct fb_info *info,
+-				   const char *mode_option,
+-				   unsigned int default_bpp);
++extern int mac_find_mode(struct fb_var_screeninfo *var,
++			 struct fb_info *info,
++			 const char *mode_option,
++			 unsigned int default_bpp);
+ 
+ 
+     /*
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+git-dvb.patch
+git-hwmon.patch
 git-kbuild.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-fs-affs-convert-to-new-aops.patch
-time-make-sure-sys_gettimeofday-and-sys_time-are-in.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+arch-i386-xen-mmuc-must-include-linux-schedh.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+xen-fix-x86-config-dependencies.patch
+xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
+xen-cant-support-numa-yet.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+maps2-add-proc-kpagemap-interface.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+fs-reiserfs-cleanups.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+mm-variable-length-argument-support.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+kernel-relayc-make-functions-static.patch
+drivers-edac-core-make-functions-static.patch
+lockstat-human-readability-tweaks.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
