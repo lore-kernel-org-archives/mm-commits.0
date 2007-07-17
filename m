@@ -1,81 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - md-improve-message-about-invalid-superblock-during-autodetect.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:09:02 -0700
-Message-ID: <200707172309.l6HN92AK012338@imap1.linux-foundation.org>
+Subject: - macfb-fix-pseudo_palette-size-and-overrun.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:07:22 -0700
+Message-ID: <200707172307.l6HN7MC8012183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44952 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50520 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765189AbXGQXPL (ORCPT
+	by vger.kernel.org with ESMTP id S1762794AbXGQXPM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:11 -0400
+	Tue, 17 Jul 2007 19:15:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: improve message about invalid superblock during autodetect
+     macfb: fix pseudo_palette size and overrun
 has been removed from the -mm tree.  Its filename was
-     md-improve-message-about-invalid-superblock-during-autodetect.patch
+     macfb-fix-pseudo_palette-size-and-overrun.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: improve message about invalid superblock during autodetect
-From: NeilBrown <neilb@suse.de>
+Subject: macfb: fix pseudo_palette size and overrun
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-People try to use raid auto-detect with version-1 superblocks (which is not
-supported) and get confused when they are told they have an invalid
-superblock.
+- the pseudo_palette is only 16 elements long.
+- do not write to the pseudo_palette if regno (array index) is more than 15.
 
-So be more explicit, and say it it is not a valid v0.90 superblock.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/video/macfb.c |   93 +++++++++++++++++++++-------------------
+ 1 file changed, 50 insertions(+), 43 deletions(-)
 
-diff -puN drivers/md/md.c~md-improve-message-about-invalid-superblock-during-autodetect drivers/md/md.c
---- a/drivers/md/md.c~md-improve-message-about-invalid-superblock-during-autodetect
-+++ a/drivers/md/md.c
-@@ -2073,9 +2073,11 @@ static mdk_rdev_t *md_import_device(dev_
- 		err = super_types[super_format].
- 			load_super(rdev, NULL, super_minor);
- 		if (err == -EINVAL) {
--			printk(KERN_WARNING 
--				"md: %s has invalid sb, not importing!\n",
--				bdevname(rdev->bdev,b));
-+			printk(KERN_WARNING
-+				"md: %s does not have a valid v%d.%d "
-+			       "superblock, not importing!\n",
-+				bdevname(rdev->bdev,b),
-+			       super_format, super_minor);
- 			goto abort_free;
+diff -puN drivers/video/macfb.c~macfb-fix-pseudo_palette-size-and-overrun drivers/video/macfb.c
+--- a/drivers/video/macfb.c~macfb-fix-pseudo_palette-size-and-overrun
++++ a/drivers/video/macfb.c
+@@ -170,7 +170,7 @@ static struct fb_fix_screeninfo macfb_fi
+ };
+ 
+ static struct fb_info fb_info;
+-static u32 pseudo_palette[17];
++static u32 pseudo_palette[16];
+ static int inverse   = 0;
+ static int vidtest   = 0;
+ 
+@@ -529,56 +529,63 @@ static int macfb_setcolreg(unsigned regn
+ 	if (regno >= fb_info->cmap.len)
+ 		return 1;
+ 
+-	switch (fb_info->var.bits_per_pixel) {
+-	case 1:
+-		/* We shouldn't get here */
+-		break;
+-	case 2:
+-	case 4:
+-	case 8:
+-		if (macfb_setpalette)
+-			macfb_setpalette(regno, red, green, blue, fb_info);
+-		else
+-			return 1;
+-		break;
+-	case 16:
+-		if (fb_info->var.red.offset == 10) {
+-			/* 1:5:5:5 */
+-			((u32*) (fb_info->pseudo_palette))[regno] =
++	if (fb_info->var.bits_per_pixel <= 8) {
++		switch (fb_info->var.bits_per_pixel) {
++		case 1:
++			/* We shouldn't get here */
++			break;
++		case 2:
++		case 4:
++		case 8:
++			if (macfb_setpalette)
++				macfb_setpalette(regno, red, green, blue,
++						 fb_info);
++			else
++				return 1;
++			break;
++		}
++	} else if (regno < 16) {
++		switch (fb_info->var.bits_per_pixel) {
++		case 16:
++			if (fb_info->var.red.offset == 10) {
++				/* 1:5:5:5 */
++				((u32*) (fb_info->pseudo_palette))[regno] =
+ 					((red   & 0xf800) >>  1) |
+ 					((green & 0xf800) >>  6) |
+ 					((blue  & 0xf800) >> 11) |
+ 					((transp != 0) << 15);
+-		} else {
+-			/* 0:5:6:5 */
+-			((u32*) (fb_info->pseudo_palette))[regno] =
++			} else {
++				/* 0:5:6:5 */
++				((u32*) (fb_info->pseudo_palette))[regno] =
+ 					((red   & 0xf800)      ) |
+ 					((green & 0xfc00) >>  5) |
+ 					((blue  & 0xf800) >> 11);
++			}
++			break;
++			/* I'm pretty sure that one or the other of these
++			   doesn't exist on 68k Macs */
++		case 24:
++			red   >>= 8;
++			green >>= 8;
++			blue  >>= 8;
++			((u32 *)(fb_info->pseudo_palette))[regno] =
++				(red   << fb_info->var.red.offset)   |
++				(green << fb_info->var.green.offset) |
++				(blue  << fb_info->var.blue.offset);
++			break;
++		case 32:
++			red   >>= 8;
++			green >>= 8;
++			blue  >>= 8;
++			((u32 *)(fb_info->pseudo_palette))[regno] =
++				(red   << fb_info->var.red.offset)   |
++				(green << fb_info->var.green.offset) |
++				(blue  << fb_info->var.blue.offset);
++			break;
  		}
- 		if (err < 0) {
-@@ -5771,7 +5773,7 @@ static void autostart_arrays(int part)
- 	for (i = 0; i < dev_cnt; i++) {
- 		dev_t dev = detected_devices[i];
+-		break;	
+-		/* I'm pretty sure that one or the other of these
+-		   doesn't exist on 68k Macs */
+-	case 24:
+-		red   >>= 8;
+-		green >>= 8;
+-		blue  >>= 8;
+-		((u32 *)(fb_info->pseudo_palette))[regno] =
+-			(red   << fb_info->var.red.offset)   |
+-			(green << fb_info->var.green.offset) |
+-			(blue  << fb_info->var.blue.offset);
+-		break;
+-	case 32:
+-		red   >>= 8;
+-		green >>= 8;
+-		blue  >>= 8;
+-		((u32 *)(fb_info->pseudo_palette))[regno] =
+-			(red   << fb_info->var.red.offset)   |
+-			(green << fb_info->var.green.offset) |
+-			(blue  << fb_info->var.blue.offset);
+-		break;
+-    }
+-    return 0;
++	}
++
++	return 0;
+ }
  
--		rdev = md_import_device(dev,0, 0);
-+		rdev = md_import_device(dev,0, 90);
- 		if (IS_ERR(rdev))
- 			continue;
- 
+ static struct fb_ops macfb_ops = {
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-raid5-add-the-stripe_queue-object-for-tracking-raid.patch
-raid5-add-the-stripe_queue-object-for-tracking-raid-io-requests-take2.patch
-raid5-use-stripe_queues-to-prioritize-the-most.patch
-fs-introduce-vfs_path_lookup.patch
-sunrpc-use-vfs_path_lookup.patch
-nfsctl-use-vfs_path_lookup.patch
-fs-mark-link_path_walk-static.patch
-fs-remove-path_walk-export.patch
