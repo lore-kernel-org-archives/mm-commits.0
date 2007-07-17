@@ -1,113 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - oss-trident-fix-locking-around-write_voice_regs.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:06:05 -0700
-Message-ID: <200707172306.l6HN65MA011982@imap1.linux-foundation.org>
+Subject: - unregister_blkdev-delete-redundant-messages-in-callers.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:02:09 -0700
+Message-ID: <200707172302.l6HN292A011539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53701 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56297 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933128AbXGQXPn (ORCPT
+	by vger.kernel.org with ESMTP id S936420AbXGQXPm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:43 -0400
+	Tue, 17 Jul 2007 19:15:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muli@il.ibm.com, bunk@stusta.de, tammy000@gmail.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     OSS trident: fix locking around write_voice_regs
+     unregister_blkdev() delete redundant messages in callers
 has been removed from the -mm tree.  Its filename was
-     oss-trident-fix-locking-around-write_voice_regs.patch
+     unregister_blkdev-delete-redundant-messages-in-callers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: OSS trident: fix locking around write_voice_regs
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: unregister_blkdev() delete redundant messages in callers
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-trident_write_voice_regs() was getting called with the card spinlock held in
-only some cases.  Fix it.
+No need to warn unregister_blkdev() failure by the callers.  (The previous
+patch makes unregister_blkdev() print error message in error case)
 
-Explanation: we allocate a new virtual channel in open, and then we frob some
-hardware registers (in write_voice_regs) for that channel.  But the hardware
-registers are shared with other channels, which may be trying to frob the some
-registers (albeit for another channel) via ioctl(SNDCTL_DSP_SPEED).
-
-Fixed bugzilla.kernel.org bug #8172 (http://bugme.osdl.org/show_bug.cgi?id=8172)
-
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: <tammy000@gmail.com>
-Cc: <bunk@stusta.de>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/trident.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/block/loop.c         |    3 +--
+ drivers/block/z2ram.c        |    4 +---
+ drivers/md/dm.c              |    4 +---
+ drivers/s390/block/dcssblk.c |    7 +------
+ drivers/sbus/char/jsflash.c  |    3 +--
+ 5 files changed, 5 insertions(+), 16 deletions(-)
 
-diff -puN sound/oss/trident.c~oss-trident-fix-locking-around-write_voice_regs sound/oss/trident.c
---- a/sound/oss/trident.c~oss-trident-fix-locking-around-write_voice_regs
-+++ a/sound/oss/trident.c
-@@ -2702,6 +2702,7 @@ trident_open(struct inode *inode, struct
- 	struct trident_card *card = devs;
- 	struct trident_state *state = NULL;
- 	struct dmabuf *dmabuf = NULL;
-+	unsigned long flags;
+diff -puN drivers/block/loop.c~unregister_blkdev-delete-redundant-messages-in-callers drivers/block/loop.c
+--- a/drivers/block/loop.c~unregister_blkdev-delete-redundant-messages-in-callers
++++ a/drivers/block/loop.c
+@@ -1568,8 +1568,7 @@ static void __exit loop_exit(void)
+ 		loop_del_one(lo);
  
- 	/* Added by Matt Wu 01-05-2001 */
- 	/* TODO: there's some redundacy here wrt the check below */
-@@ -2779,7 +2780,9 @@ trident_open(struct inode *inode, struct
- 			/* set default channel attribute to normal playback */
- 			dmabuf->channel->attribute = CHANNEL_PB;
- 		}
-+		spin_lock_irqsave(&card->lock, flags);
- 		trident_set_dac_rate(state, 8000);
-+		spin_unlock_irqrestore(&card->lock, flags);
- 	}
+ 	blk_unregister_region(MKDEV(LOOP_MAJOR, 0), range);
+-	if (unregister_blkdev(LOOP_MAJOR, "loop"))
+-		printk(KERN_WARNING "loop: cannot unregister blkdev\n");
++	unregister_blkdev(LOOP_MAJOR, "loop");
+ }
  
- 	if (file->f_mode & FMODE_READ) {
-@@ -2797,7 +2800,9 @@ trident_open(struct inode *inode, struct
- 			dmabuf->channel->attribute = (CHANNEL_REC | PCM_LR |
- 						      MONO_MIX);
- 		}
-+		spin_lock_irqsave(&card->lock, flags);
- 		trident_set_adc_rate(state, 8000);
-+		spin_unlock_irqrestore(&card->lock, flags);
+ module_init(loop_init);
+diff -puN drivers/block/z2ram.c~unregister_blkdev-delete-redundant-messages-in-callers drivers/block/z2ram.c
+--- a/drivers/block/z2ram.c~unregister_blkdev-delete-redundant-messages-in-callers
++++ a/drivers/block/z2ram.c
+@@ -371,9 +371,7 @@ static void __exit z2_exit(void)
+ {
+     int i, j;
+     blk_unregister_region(MKDEV(Z2RAM_MAJOR, 0), 256);
+-    if ( unregister_blkdev( Z2RAM_MAJOR, DEVICE_NAME ) != 0 )
+-	printk( KERN_ERR DEVICE_NAME ": unregister of device failed\n");
+-
++    unregister_blkdev(Z2RAM_MAJOR, DEVICE_NAME);
+     del_gendisk(z2ram_gendisk);
+     put_disk(z2ram_gendisk);
+     blk_cleanup_queue(z2_queue);
+diff -puN drivers/md/dm.c~unregister_blkdev-delete-redundant-messages-in-callers drivers/md/dm.c
+--- a/drivers/md/dm.c~unregister_blkdev-delete-redundant-messages-in-callers
++++ a/drivers/md/dm.c
+@@ -161,9 +161,7 @@ static void local_exit(void)
+ {
+ 	kmem_cache_destroy(_tio_cache);
+ 	kmem_cache_destroy(_io_cache);
+-
+-	if (unregister_blkdev(_major, _name) < 0)
+-		DMERR("unregister_blkdev failed");
++	unregister_blkdev(_major, _name);
  
- 		/* Added by Matt Wu 01-05-2001 */
- 		if (card->pci_id == PCI_DEVICE_ID_ALI_5451)
+ 	_major = 0;
+ 
+diff -puN drivers/s390/block/dcssblk.c~unregister_blkdev-delete-redundant-messages-in-callers drivers/s390/block/dcssblk.c
+--- a/drivers/s390/block/dcssblk.c~unregister_blkdev-delete-redundant-messages-in-callers
++++ a/drivers/s390/block/dcssblk.c
+@@ -747,14 +747,9 @@ dcssblk_check_params(void)
+ static void __exit
+ dcssblk_exit(void)
+ {
+-	int rc;
+-
+ 	PRINT_DEBUG("DCSSBLOCK EXIT...\n");
+ 	s390_root_dev_unregister(dcssblk_root_dev);
+-	rc = unregister_blkdev(dcssblk_major, DCSSBLK_NAME);
+-	if (rc) {
+-		PRINT_ERR("unregister_blkdev() failed!\n");
+-	}
++	unregister_blkdev(dcssblk_major, DCSSBLK_NAME);
+ 	PRINT_DEBUG("...finished!\n");
+ }
+ 
+diff -puN drivers/sbus/char/jsflash.c~unregister_blkdev-delete-redundant-messages-in-callers drivers/sbus/char/jsflash.c
+--- a/drivers/sbus/char/jsflash.c~unregister_blkdev-delete-redundant-messages-in-callers
++++ a/drivers/sbus/char/jsflash.c
+@@ -619,8 +619,7 @@ static void __exit jsflash_cleanup_modul
+ 	jsf0.busy = 0;
+ 
+ 	misc_deregister(&jsf_dev);
+-	if (unregister_blkdev(JSFD_MAJOR, "jsfd") != 0)
+-		printk("jsfd: cleanup_module failed\n");
++	unregister_blkdev(JSFD_MAJOR, "jsfd");
+ 	blk_cleanup_queue(jsf_queue);
+ }
+ 
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-x86-64-calgary-generalize-calgary_increase_split_completion_timeout.patch
-x86-64-calgary-update-copyright-notice.patch
-x86-64-calgary-introduce-handle_quirks-for-various-chipset-quirks.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-abstract-how-we-find-the-iommu_table-for-a-device.patch
-x86-64-calgary-introduce-calioc2-support.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-implement-calioc2-tce-cache-flush-sequence.patch
-x86-64-calgary-make-dump_error_regs-a-chip-op.patch
-x86-64-calgary-grab-plssr-too-when-a-dma-error-occurs.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-cleanup-of-unneeded-macros.patch
-x86-64-calgary-tabify-and-trim-trailing-whitespace.patch
-x86-64-calgary-only-reserve-the-first-1mb-of-io-space-for-calioc2.patch
-x86-64-calgary-tidy-up-debug-printks.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-x86-64-calgary-tighten-up-the-bitmap-locking.patch
-x86-64-calgary-fold-in-redundant-functions.patch
-x86_64-calgary-change-_map_single-etc-to-static.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+git-dvb.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+unregister_chrdev-ignore-the-return-value.patch
+unregister_chrdev-return-void.patch
