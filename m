@@ -1,353 +1,370 @@
 From: akpm@linux-foundation.org
-Subject: - slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:01:27 -0700
-Message-ID: <200707172301.l6HN1R3k011396@imap1.linux-foundation.org>
+Subject: - rtc-ds1307-cleanups.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:05:23 -0700
+Message-ID: <200707172305.l6HN5NuY011919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41723 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51093 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935387AbXGQXPw (ORCPT
+	by vger.kernel.org with ESMTP id S936278AbXGQXPg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:52 -0400
+	Tue, 17 Jul 2007 19:15:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Slab allocators: Replace explicit zeroing with __GFP_ZERO
+     rtc-ds1307 cleanups
 has been removed from the -mm tree.  Its filename was
-     slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
+     rtc-ds1307-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Slab allocators: Replace explicit zeroing with __GFP_ZERO
-From: Christoph Lameter <clameter@sgi.com>
+Subject: rtc-ds1307 cleanups
+From: David Brownell <david-b@pacbell.net>
 
-kmalloc_node() and kmem_cache_alloc_node() were not available in a zeroing
-variant in the past.  But with __GFP_ZERO it is possible now to do zeroing
-while allocating.
+This updates the rtc-ds1307 driver so that converting it to a "new style"
+driver (driver model, not legacy i2c model) will involve fewer changes.
 
-Use __GFP_ZERO to remove the explicit clearing of memory via memset whereever
-we can.
+ - Use pointer to i2c_client almost everywhere, so that it's easy
+   to let the i2c core create that object;
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+ - Avoid using i2c_client.adapter, since that field is redundant and
+   thus may go away (same object as i2c_client.dev.parent).
+
+ - Extend type enum to include various RTCs this is expected to
+   work with, and include register support for them.
+
+It also cleans up the support for multiple chip types, and fixes a
+glitch that could appear with an un-initialized RTC.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/as-iosched.c       |    3 +--
- block/cfq-iosched.c      |   18 +++++++++---------
- block/deadline-iosched.c |    3 +--
- block/elevator.c         |    3 +--
- block/genhd.c            |    8 ++++----
- block/ll_rw_blk.c        |    4 ++--
- drivers/ide/ide-probe.c  |    4 ++--
- kernel/timer.c           |    4 ++--
- lib/genalloc.c           |    3 +--
- mm/allocpercpu.c         |    9 +++------
- mm/mempool.c             |    3 +--
- mm/vmalloc.c             |    6 +++---
- 12 files changed, 30 insertions(+), 38 deletions(-)
+ drivers/rtc/rtc-ds1307.c |  176 ++++++++++++++++++++++++++-----------
+ 1 file changed, 124 insertions(+), 52 deletions(-)
 
-diff -puN block/as-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/as-iosched.c
---- a/block/as-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/as-iosched.c
-@@ -1322,10 +1322,9 @@ static void *as_init_queue(request_queue
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-cleanups drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-cleanups
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -24,15 +24,22 @@
+  * setting the date and time), Linux can ignore the non-clock features.
+  * That's a natural job for a factory or repair bench.
+  *
++ * This is currently a simple no-alarms driver.  If your board has the
++ * alarm irq wired up on a ds1337 or ds1339, and you want to use that,
++ * then look at the rtc-rs5c372 driver for code to steal...
++ *
+  * If the I2C "force" mechanism is used, we assume the chip is a ds1337.
+  * (Much better would be board-specific tables of I2C devices, along with
+  * the platform_data drivers would use to sort such issues out.)
+  */
+ enum ds_type {
+ 	unknown = 0,
+-	ds_1307,		/* or ds1338, ... */
+-	ds_1337,		/* or ds1339, ... */
+-	ds_1340,		/* or st m41t00, ... */
++	ds_1307,
++	ds_1337,
++	ds_1338,
++	ds_1339,
++	ds_1340,
++	m41t00,
+ 	// rs5c372 too?  different address...
+ };
+ 
+@@ -56,11 +63,12 @@ I2C_CLIENT_INSMOD;
+ #define DS1307_REG_YEAR		0x06	/* 00-99 */
+ 
+ /* Other registers (control, status, alarms, trickle charge, NVRAM, etc)
+- * start at 7, and they differ a lot. Only control and status matter for RTC;
+- * be careful using them.
++ * start at 7, and they differ a LOT. Only control and status matter for
++ * basic RTC date and time functionality; be careful using them.
+  */
+-#define DS1307_REG_CONTROL	0x07
++#define DS1307_REG_CONTROL	0x07		/* or ds1338 */
+ #	define DS1307_BIT_OUT		0x80
++#	define DS1338_BIT_STOP		0x20
+ #	define DS1307_BIT_SQWE		0x10
+ #	define DS1307_BIT_RS1		0x02
+ #	define DS1307_BIT_RS0		0x01
+@@ -71,6 +79,13 @@ I2C_CLIENT_INSMOD;
+ #	define DS1337_BIT_INTCN		0x04
+ #	define DS1337_BIT_A2IE		0x02
+ #	define DS1337_BIT_A1IE		0x01
++#define DS1340_REG_CONTROL	0x07
++#	define DS1340_BIT_OUT		0x80
++#	define DS1340_BIT_FT		0x40
++#	define DS1340_BIT_CALIB_SIGN	0x20
++#	define DS1340_M_CALIBRATION	0x1f
++#define DS1338_REG_FLAG		0x09
++#	define DS1338_BIT_OSF		0x80
+ #define DS1337_REG_STATUS	0x0f
+ #	define DS1337_BIT_OSF		0x80
+ #	define DS1337_BIT_A2I		0x02
+@@ -84,21 +99,63 @@ struct ds1307 {
+ 	u8			regs[8];
+ 	enum ds_type		type;
+ 	struct i2c_msg		msg[2];
+-	struct i2c_client	client;
++	struct i2c_client	*client;
++	struct i2c_client	dev;
+ 	struct rtc_device	*rtc;
+ };
+ 
++struct chip_desc {
++	char			name[9];
++	unsigned		nvram56:1;
++	unsigned		alarm:1;
++	enum ds_type		type;
++};
++
++static const struct chip_desc chips[] = { {
++	.name		= "ds1307",
++	.type		= ds_1307,
++	.nvram56	= 1,
++}, {
++	.name		= "ds1337",
++	.type		= ds_1337,
++	.alarm		= 1,
++}, {
++	.name		= "ds1338",
++	.type		= ds_1338,
++	.nvram56	= 1,
++}, {
++	.name		= "ds1339",
++	.type		= ds_1339,
++	.alarm		= 1,
++}, {
++	.name		= "ds1340",
++	.type		= ds_1340,
++}, {
++	.name		= "m41t00",
++	.type		= m41t00,
++}, };
++
++static inline const struct chip_desc *find_chip(const char *s)
++{
++	unsigned i;
++
++	for (i = 0; i < ARRAY_SIZE(chips); i++)
++		if (strnicmp(s, chips[i].name, sizeof chips[i].name) == 0)
++			return &chips[i];
++	return NULL;
++}
+ 
+ static int ds1307_get_time(struct device *dev, struct rtc_time *t)
  {
- 	struct as_data *ad;
+ 	struct ds1307	*ds1307 = dev_get_drvdata(dev);
+ 	int		tmp;
  
--	ad = kmalloc_node(sizeof(*ad), GFP_KERNEL, q->node);
-+	ad = kmalloc_node(sizeof(*ad), GFP_KERNEL | __GFP_ZERO, q->node);
- 	if (!ad)
- 		return NULL;
--	memset(ad, 0, sizeof(*ad));
+-	/* read the RTC registers all at once */
++	/* read the RTC date and time registers all at once */
+ 	ds1307->msg[1].flags = I2C_M_RD;
+ 	ds1307->msg[1].len = 7;
  
- 	ad->q = q; /* Identify what queue the data belongs to */
+-	tmp = i2c_transfer(ds1307->client.adapter, ds1307->msg, 2);
++	tmp = i2c_transfer(to_i2c_adapter(ds1307->client->dev.parent),
++			ds1307->msg, 2);
+ 	if (tmp != 2) {
+ 		dev_err(dev, "%s error %d\n", "read", tmp);
+ 		return -EIO;
+@@ -129,7 +186,8 @@ static int ds1307_get_time(struct device
+ 		t->tm_hour, t->tm_mday,
+ 		t->tm_mon, t->tm_year, t->tm_wday);
  
-diff -puN block/cfq-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/cfq-iosched.c
---- a/block/cfq-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/cfq-iosched.c
-@@ -1251,9 +1251,9 @@ cfq_alloc_io_context(struct cfq_data *cf
- {
- 	struct cfq_io_context *cic;
- 
--	cic = kmem_cache_alloc_node(cfq_ioc_pool, gfp_mask, cfqd->queue->node);
-+	cic = kmem_cache_alloc_node(cfq_ioc_pool, gfp_mask | __GFP_ZERO,
-+							cfqd->queue->node);
- 	if (cic) {
--		memset(cic, 0, sizeof(*cic));
- 		cic->last_end_request = jiffies;
- 		INIT_LIST_HEAD(&cic->queue_list);
- 		cic->dtor = cfq_free_io_context;
-@@ -1376,17 +1376,19 @@ retry:
- 			 * free memory.
- 			 */
- 			spin_unlock_irq(cfqd->queue->queue_lock);
--			new_cfqq = kmem_cache_alloc_node(cfq_pool, gfp_mask|__GFP_NOFAIL, cfqd->queue->node);
-+			new_cfqq = kmem_cache_alloc_node(cfq_pool,
-+					gfp_mask | __GFP_NOFAIL | __GFP_ZERO,
-+					cfqd->queue->node);
- 			spin_lock_irq(cfqd->queue->queue_lock);
- 			goto retry;
- 		} else {
--			cfqq = kmem_cache_alloc_node(cfq_pool, gfp_mask, cfqd->queue->node);
-+			cfqq = kmem_cache_alloc_node(cfq_pool,
-+					gfp_mask | __GFP_ZERO,
-+					cfqd->queue->node);
- 			if (!cfqq)
- 				goto out;
- 		}
- 
--		memset(cfqq, 0, sizeof(*cfqq));
--
- 		RB_CLEAR_NODE(&cfqq->rb_node);
- 		INIT_LIST_HEAD(&cfqq->fifo);
- 
-@@ -2079,12 +2081,10 @@ static void *cfq_init_queue(request_queu
- {
- 	struct cfq_data *cfqd;
- 
--	cfqd = kmalloc_node(sizeof(*cfqd), GFP_KERNEL, q->node);
-+	cfqd = kmalloc_node(sizeof(*cfqd), GFP_KERNEL | __GFP_ZERO, q->node);
- 	if (!cfqd)
- 		return NULL;
- 
--	memset(cfqd, 0, sizeof(*cfqd));
--
- 	cfqd->service_tree = CFQ_RB_ROOT;
- 	INIT_LIST_HEAD(&cfqd->cic_list);
- 
-diff -puN block/deadline-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/deadline-iosched.c
---- a/block/deadline-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/deadline-iosched.c
-@@ -360,10 +360,9 @@ static void *deadline_init_queue(request
- {
- 	struct deadline_data *dd;
- 
--	dd = kmalloc_node(sizeof(*dd), GFP_KERNEL, q->node);
-+	dd = kmalloc_node(sizeof(*dd), GFP_KERNEL | __GFP_ZERO, q->node);
- 	if (!dd)
- 		return NULL;
--	memset(dd, 0, sizeof(*dd));
- 
- 	INIT_LIST_HEAD(&dd->fifo_list[READ]);
- 	INIT_LIST_HEAD(&dd->fifo_list[WRITE]);
-diff -puN block/elevator.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/elevator.c
---- a/block/elevator.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/elevator.c
-@@ -177,11 +177,10 @@ static elevator_t *elevator_alloc(reques
- 	elevator_t *eq;
- 	int i;
- 
--	eq = kmalloc_node(sizeof(elevator_t), GFP_KERNEL, q->node);
-+	eq = kmalloc_node(sizeof(elevator_t), GFP_KERNEL | __GFP_ZERO, q->node);
- 	if (unlikely(!eq))
- 		goto err;
- 
--	memset(eq, 0, sizeof(*eq));
- 	eq->ops = &e->ops;
- 	eq->elevator_type = e;
- 	kobject_init(&eq->kobj);
-diff -puN block/genhd.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/genhd.c
---- a/block/genhd.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/genhd.c
-@@ -726,21 +726,21 @@ struct gendisk *alloc_disk_node(int mino
- {
- 	struct gendisk *disk;
- 
--	disk = kmalloc_node(sizeof(struct gendisk), GFP_KERNEL, node_id);
-+	disk = kmalloc_node(sizeof(struct gendisk),
-+				GFP_KERNEL | __GFP_ZERO, node_id);
- 	if (disk) {
--		memset(disk, 0, sizeof(struct gendisk));
- 		if (!init_disk_stats(disk)) {
- 			kfree(disk);
- 			return NULL;
- 		}
- 		if (minors > 1) {
- 			int size = (minors - 1) * sizeof(struct hd_struct *);
--			disk->part = kmalloc_node(size, GFP_KERNEL, node_id);
-+			disk->part = kmalloc_node(size,
-+				GFP_KERNEL | __GFP_ZERO, node_id);
- 			if (!disk->part) {
- 				kfree(disk);
- 				return NULL;
- 			}
--			memset(disk->part, 0, size);
- 		}
- 		disk->minors = minors;
- 		kobj_set_kset_s(disk,block_subsys);
-diff -puN block/ll_rw_blk.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/ll_rw_blk.c
-@@ -1829,11 +1829,11 @@ request_queue_t *blk_alloc_queue_node(gf
- {
- 	request_queue_t *q;
- 
--	q = kmem_cache_alloc_node(requestq_cachep, gfp_mask, node_id);
-+	q = kmem_cache_alloc_node(requestq_cachep,
-+				gfp_mask | __GFP_ZERO, node_id);
- 	if (!q)
- 		return NULL;
- 
--	memset(q, 0, sizeof(*q));
- 	init_timer(&q->unplug_timer);
- 
- 	snprintf(q->kobj.name, KOBJ_NAME_LEN, "%s", "queue");
-diff -puN drivers/ide/ide-probe.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero drivers/ide/ide-probe.c
---- a/drivers/ide/ide-probe.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/drivers/ide/ide-probe.c
-@@ -1073,14 +1073,14 @@ static int init_irq (ide_hwif_t *hwif)
- 		hwgroup->hwif->next = hwif;
- 		spin_unlock_irq(&ide_lock);
- 	} else {
--		hwgroup = kmalloc_node(sizeof(ide_hwgroup_t), GFP_KERNEL,
-+		hwgroup = kmalloc_node(sizeof(ide_hwgroup_t),
-+					GFP_KERNEL | __GFP_ZERO,
- 					hwif_to_node(hwif->drives[0].hwif));
- 		if (!hwgroup)
- 	       		goto out_up;
- 
- 		hwif->hwgroup = hwgroup;
- 
--		memset(hwgroup, 0, sizeof(ide_hwgroup_t));
- 		hwgroup->hwif     = hwif->next = hwif;
- 		hwgroup->rq       = NULL;
- 		hwgroup->handler  = NULL;
-diff -puN kernel/timer.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero kernel/timer.c
---- a/kernel/timer.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/kernel/timer.c
-@@ -1221,7 +1221,8 @@ static int __devinit init_timers_cpu(int
- 			/*
- 			 * The APs use this path later in boot
- 			 */
--			base = kmalloc_node(sizeof(*base), GFP_KERNEL,
-+			base = kmalloc_node(sizeof(*base),
-+						GFP_KERNEL | __GFP_ZERO,
- 						cpu_to_node(cpu));
- 			if (!base)
- 				return -ENOMEM;
-@@ -1232,7 +1233,6 @@ static int __devinit init_timers_cpu(int
- 				kfree(base);
- 				return -ENOMEM;
- 			}
--			memset(base, 0, sizeof(*base));
- 			per_cpu(tvec_bases, cpu) = base;
- 		} else {
- 			/*
-diff -puN lib/genalloc.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero lib/genalloc.c
---- a/lib/genalloc.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/lib/genalloc.c
-@@ -54,11 +54,10 @@ int gen_pool_add(struct gen_pool *pool, 
- 	int nbytes = sizeof(struct gen_pool_chunk) +
- 				(nbits + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
- 
--	chunk = kmalloc_node(nbytes, GFP_KERNEL, nid);
-+	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
- 	if (unlikely(chunk == NULL))
- 		return -1;
- 
--	memset(chunk, 0, nbytes);
- 	spin_lock_init(&chunk->lock);
- 	chunk->start_addr = addr;
- 	chunk->end_addr = addr + size;
-diff -puN mm/allocpercpu.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero mm/allocpercpu.c
---- a/mm/allocpercpu.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/mm/allocpercpu.c
-@@ -53,12 +53,9 @@ void *percpu_populate(void *__pdata, siz
- 	int node = cpu_to_node(cpu);
- 
- 	BUG_ON(pdata->ptrs[cpu]);
--	if (node_online(node)) {
--		/* FIXME: kzalloc_node(size, gfp, node) */
--		pdata->ptrs[cpu] = kmalloc_node(size, gfp, node);
--		if (pdata->ptrs[cpu])
--			memset(pdata->ptrs[cpu], 0, size);
--	} else
-+	if (node_online(node))
-+		pdata->ptrs[cpu] = kmalloc_node(size, gfp|__GFP_ZERO, node);
-+	else
- 		pdata->ptrs[cpu] = kzalloc(size, gfp);
- 	return pdata->ptrs[cpu];
+-	return 0;
++	/* initial clock setting can be undefined */
++	return rtc_valid_tm(t);
  }
-diff -puN mm/mempool.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero mm/mempool.c
---- a/mm/mempool.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/mm/mempool.c
-@@ -62,10 +62,9 @@ mempool_t *mempool_create_node(int min_n
- 			mempool_free_t *free_fn, void *pool_data, int node_id)
- {
- 	mempool_t *pool;
--	pool = kmalloc_node(sizeof(*pool), GFP_KERNEL, node_id);
-+	pool = kmalloc_node(sizeof(*pool), GFP_KERNEL | __GFP_ZERO, node_id);
- 	if (!pool)
- 		return NULL;
--	memset(pool, 0, sizeof(*pool));
- 	pool->elements = kmalloc_node(min_nr * sizeof(void *),
- 					GFP_KERNEL, node_id);
- 	if (!pool->elements) {
-diff -puN mm/vmalloc.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero mm/vmalloc.c
---- a/mm/vmalloc.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/mm/vmalloc.c
-@@ -432,11 +432,12 @@ void *__vmalloc_area_node(struct vm_stru
- 	area->nr_pages = nr_pages;
- 	/* Please note that the recursion is strictly bounded. */
- 	if (array_size > PAGE_SIZE) {
--		pages = __vmalloc_node(array_size, gfp_mask, PAGE_KERNEL, node);
-+		pages = __vmalloc_node(array_size, gfp_mask | __GFP_ZERO,
-+					PAGE_KERNEL, node);
- 		area->flags |= VM_VPAGES;
- 	} else {
- 		pages = kmalloc_node(array_size,
--				(gfp_mask & GFP_LEVEL_MASK),
-+				(gfp_mask & GFP_LEVEL_MASK) | __GFP_ZERO,
- 				node);
- 	}
- 	area->pages = pages;
-@@ -445,7 +446,6 @@ void *__vmalloc_area_node(struct vm_stru
- 		kfree(area);
- 		return NULL;
- 	}
--	memset(area->pages, 0, array_size);
  
- 	for (i = 0; i < area->nr_pages; i++) {
- 		if (node < 0)
+ static int ds1307_set_time(struct device *dev, struct rtc_time *t)
+@@ -170,7 +228,8 @@ static int ds1307_set_time(struct device
+ 		"write", buf[0], buf[1], buf[2], buf[3],
+ 		buf[4], buf[5], buf[6]);
+ 
+-	result = i2c_transfer(ds1307->client.adapter, &ds1307->msg[1], 1);
++	result = i2c_transfer(to_i2c_adapter(ds1307->client->dev.parent),
++			&ds1307->msg[1], 1);
+ 	if (result != 1) {
+ 		dev_err(dev, "%s error %d\n", "write", tmp);
+ 		return -EIO;
+@@ -192,18 +251,34 @@ ds1307_detect(struct i2c_adapter *adapte
+ 	int			err = -ENODEV;
+ 	struct i2c_client	*client;
+ 	int			tmp;
++	const struct chip_desc	*chip;
+ 
+ 	if (!(ds1307 = kzalloc(sizeof(struct ds1307), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+ 
+-	client = &ds1307->client;
++	/* REVISIT:  pending driver model conversion, set up "client"
++	 * ourselves, and use a hack to determine the RTC type (instead
++	 * of reading the client->name we're given)
++	 */
++	client = &ds1307->dev;
+ 	client->addr = address;
+ 	client->adapter = adapter;
+ 	client->driver = &ds1307_driver;
+-	client->flags = 0;
+ 
++	/* HACK: "force" implies "needs ds1337-style-oscillator setup", and
++	 * that's the only kind of chip setup we'll know about.  Until the
++	 * driver model conversion, here's where to add any board-specific
++	 * code to say what kind of chip is present...
++	 */
++	if (kind >= 0)
++		chip = find_chip("ds1337");
++	else
++		chip = find_chip("ds1307");
++	strlcpy(client->name, chip->name, I2C_NAME_SIZE);
++
++	ds1307->client = client;
+ 	i2c_set_clientdata(client, ds1307);
+ 
+ 	ds1307->msg[0].addr = client->addr;
+@@ -216,14 +291,17 @@ ds1307_detect(struct i2c_adapter *adapte
+ 	ds1307->msg[1].len = sizeof(ds1307->regs);
+ 	ds1307->msg[1].buf = ds1307->regs;
+ 
+-	/* HACK: "force" implies "needs ds1337-style-oscillator setup" */
+-	if (kind >= 0) {
++	ds1307->type = chip->type;
++
++	switch (ds1307->type) {
++	case ds_1337:
++	case ds_1339:
+ 		ds1307->type = ds_1337;
+ 
+ 		ds1307->reg_addr = DS1337_REG_CONTROL;
+ 		ds1307->msg[1].len = 2;
+ 
+-		tmp = i2c_transfer(client->adapter, ds1307->msg, 2);
++		tmp = i2c_transfer(adapter, ds1307->msg, 2);
+ 		if (tmp != 2) {
+ 			pr_debug("read error %d\n", tmp);
+ 			err = -EIO;
+@@ -236,16 +314,20 @@ ds1307_detect(struct i2c_adapter *adapte
+ 		/* oscillator is off; need to turn it on */
+ 		if ((ds1307->regs[0] & DS1337_BIT_nEOSC)
+ 				|| (ds1307->regs[1] & DS1337_BIT_OSF)) {
+-			printk(KERN_ERR "no ds1337 oscillator code\n");
++no_osc_start:
++			printk(KERN_ERR "no %s oscillator code\n",
++				chip->name);
+ 			goto exit_free;
+ 		}
+-	} else
+-		ds1307->type = ds_1307;
++		break;
++	default:
++		break;
++	}
+ 
+ read_rtc:
+ 	/* read RTC registers */
+ 
+-	tmp = i2c_transfer(client->adapter, ds1307->msg, 2);
++	tmp = i2c_transfer(adapter, ds1307->msg, 2);
+ 	if (tmp != 2) {
+ 		pr_debug("read error %d\n", tmp);
+ 		err = -EIO;
+@@ -257,20 +339,27 @@ read_rtc:
+ 	 * still a few values that are clearly out-of-range.
+ 	 */
+ 	tmp = ds1307->regs[DS1307_REG_SECS];
+-	if (tmp & DS1307_BIT_CH) {
+-		if (ds1307->type && ds1307->type != ds_1307) {
+-			pr_debug("not a ds1307?\n");
+-			goto exit_free;
++	switch (ds1307->type) {
++	case ds_1307:
++	case ds_1338:
++	case m41t00:
++		if (tmp & DS1307_BIT_CH) {
++			i2c_smbus_write_byte_data(client, 0, 0);
++			dev_warn(&client->dev,
++				"oscillator started; SET TIME!\n");
++			goto read_rtc;
+ 		}
+-		ds1307->type = ds_1307;
+-
+-		/* this partial initialization should work for ds1307,
+-		 * ds1338, ds1340, st m41t00, and more.
+-		 */
+-		dev_warn(&client->dev, "oscillator started; SET TIME!\n");
+-		i2c_smbus_write_byte_data(client, 0, 0);
+-		goto read_rtc;
++		break;
++	case ds_1340:
++		/* FIXME write code to start the oscillator */
++		if (tmp & DS1307_BIT_CH)
++			goto no_osc_start;
++		break;
++	default:
++		break;
+ 	}
++
++	tmp = ds1307->regs[DS1307_REG_SECS];
+ 	tmp = BCD2BIN(tmp & 0x7f);
+ 	if (tmp > 60)
+ 		goto exit_free;
+@@ -288,6 +377,9 @@ read_rtc:
+ 
+ 	/* force into in 24 hour mode (most chips) or
+ 	 * disable century bit (ds1340)
++	 *
++	 * REVISIT forcing 24 hour mode can prevent multi-master
++	 * configs from sharing this RTC ... don't do this.
+ 	 */
+ 	tmp = ds1307->regs[DS1307_REG_HOUR];
+ 	if (tmp & (1 << 6)) {
+@@ -300,26 +392,6 @@ read_rtc:
+ 				BIN2BCD(tmp));
+ 	}
+ 
+-	/* FIXME chips like 1337 can generate alarm irqs too; those are
+-	 * worth exposing through the API (especially when the irq is
+-	 * wakeup-capable).
+-	 */
+-
+-	switch (ds1307->type) {
+-	case unknown:
+-		strlcpy(client->name, "unknown", I2C_NAME_SIZE);
+-		break;
+-	case ds_1307:
+-		strlcpy(client->name, "ds1307", I2C_NAME_SIZE);
+-		break;
+-	case ds_1337:
+-		strlcpy(client->name, "ds1337", I2C_NAME_SIZE);
+-		break;
+-	case ds_1340:
+-		strlcpy(client->name, "ds1340", I2C_NAME_SIZE);
+-		break;
+-	}
+-
+ 	/* Tell the I2C layer a new client has arrived */
+ 	if ((err = i2c_attach_client(client)))
+ 		goto exit_free;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-quicklist-support-for-x86_64.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-memory-unplug-v7-migration-by-kernel.patch
-memory-unplug-v7-isolate_lru_page-fix.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-page-owner-tracking-leak-detector.patch
+git-leds.patch
+git-mmc.patch
+git-mtd.patch
+git-backlight.patch
+use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+gpio-calls-dont-need-i-o-barriers.patch
+dev_vdbg-available-with-dverbose_debug.patch
+dev_vdbg-available-with-dverbose_debug-docs.patch
