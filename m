@@ -1,90 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - make-slub-the-default-allocator.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:01:34 -0700
-Message-ID: <200707172301.l6HN1YoD011413@imap1.linux-foundation.org>
+Subject: - rtc-kconfig-tweax.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:05:41 -0700
+Message-ID: <200707172305.l6HN5fVJ011942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52390 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37262 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936413AbXGQXPm (ORCPT
+	by vger.kernel.org with ESMTP id S932852AbXGQXPn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:42 -0400
+	Tue, 17 Jul 2007 19:15:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make SLUB the default allocator
+     RTC Kconfig tweax
 has been removed from the -mm tree.  Its filename was
-     make-slub-the-default-allocator.patch
+     rtc-kconfig-tweax.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Make SLUB the default allocator
-From: Christoph Lameter <clameter@sgi.com>
+Subject: RTC Kconfig tweax
+From: David Brownell <david-b@pacbell.net>
 
-There are some reports that 2.6.22 has SLUB as the default. Not
-true!
+Minor fix to the Kconfig for RTCs: don't display section headers for I2C or
+SPI unless they're configured.  And depend on SPI_MASTER; having slave
+support wouldn't help.
 
-This will make SLUB the default for 2.6.23.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/Kconfig |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN init/Kconfig~make-slub-the-default-allocator init/Kconfig
---- a/init/Kconfig~make-slub-the-default-allocator
-+++ a/init/Kconfig
-@@ -546,7 +546,7 @@ config SLUB_DEBUG
+diff -puN drivers/rtc/Kconfig~rtc-kconfig-tweax drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-kconfig-tweax
++++ a/drivers/rtc/Kconfig
+@@ -118,7 +118,7 @@ config RTC_DRV_TEST
+ 	  will be called rtc-test.
  
- choice
- 	prompt "Choose SLAB allocator"
--	default SLAB
-+	default SLUB
+ comment "I2C RTC drivers"
+-	depends on RTC_CLASS
++	depends on RTC_CLASS && I2C
+ 
+ config RTC_DRV_DS1307
+ 	tristate "Dallas/Maxim DS1307/37/38/39/40, ST M41T00"
+@@ -213,11 +213,11 @@ config RTC_DRV_PCF8583
+ 	  will be called rtc-pcf8583.
+ 
+ comment "SPI RTC drivers"
+-	depends on RTC_CLASS
++	depends on RTC_CLASS && SPI_MASTER
+ 
+ config RTC_DRV_RS5C348
+ 	tristate "Ricoh RS5C348A/B"
+-	depends on RTC_CLASS && SPI
++	depends on RTC_CLASS && SPI_MASTER
  	help
- 	   This option allows to select a slab allocator.
+ 	  If you say yes here you get support for the
+ 	  Ricoh RS5C348A and RS5C348B RTC chips.
+@@ -227,7 +227,7 @@ config RTC_DRV_RS5C348
  
+ config RTC_DRV_MAX6902
+ 	tristate "Maxim 6902"
+-	depends on RTC_CLASS && SPI
++	depends on RTC_CLASS && SPI_MASTER
+ 	help
+ 	  If you say yes here you will get support for the
+ 	  Maxim MAX6902 SPI RTC chip.
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-quicklist-support-for-x86_64.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-memory-unplug-v7-migration-by-kernel.patch
-memory-unplug-v7-isolate_lru_page-fix.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-page-owner-tracking-leak-detector.patch
+git-leds.patch
+git-mmc.patch
+git-mtd.patch
+git-backlight.patch
+use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
+geode-basic-infrastructure-support-for-amd-geode-class.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+gpio-calls-dont-need-i-o-barriers.patch
+dev_vdbg-available-with-dverbose_debug.patch
+dev_vdbg-available-with-dverbose_debug-docs.patch
