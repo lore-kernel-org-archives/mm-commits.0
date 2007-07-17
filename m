@@ -1,183 +1,484 @@
 From: akpm@linux-foundation.org
-Subject: - add-a-movablecore=-parameter-for-sizing-zone_movable.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:00:44 -0700
-Message-ID: <200707172300.l6HN0iH1011319@imap1.linux-foundation.org>
+Subject: - add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:00:32 -0700
+Message-ID: <200707172300.l6HN0WLl011307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49232 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57534 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759643AbXGQXBp (ORCPT
+	by vger.kernel.org with ESMTP id S936386AbXGQXB4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:01:45 -0400
+	Tue, 17 Jul 2007 19:01:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, apw@shadowen.org, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, apw@shadowen.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add a movablecore= parameter for sizing ZONE_MOVABLE
+     Add __GFP_MOVABLE for callers to flag allocations from high memory that may be migrated
 has been removed from the -mm tree.  Its filename was
-     add-a-movablecore=-parameter-for-sizing-zone_movable.patch
+     add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add a movablecore= parameter for sizing ZONE_MOVABLE
+Subject: Add __GFP_MOVABLE for callers to flag allocations from high memory that may be migrated
 From: Mel Gorman <mel@csn.ul.ie>
 
-This patch adds a new parameter for sizing ZONE_MOVABLE called
-movablecore=.  While kernelcore= is used to specify the minimum amount of
-memory that must be available for all allocation types, movablecore= is
-used to specify the minimum amount of memory that is used for migratable
-allocations.  The amount of memory used for migratable allocations
-determines how large the huge page pool could be dynamically resized to at
-runtime for example.
+It is often known at allocation time whether a page may be migrated or not. 
+This patch adds a flag called __GFP_MOVABLE and a new mask called
+GFP_HIGH_MOVABLE.  Allocations using the __GFP_MOVABLE can be either migrated
+using the page migration mechanism or reclaimed by syncing with backing
+storage and discarding.
 
-How movablecore is actually handled is that the total number of pages in
-the system is calculated and a value is set for kernelcore that is
+An API function very similar to alloc_zeroed_user_highpage() is added for
+__GFP_MOVABLE allocations called alloc_zeroed_user_highpage_movable().  The
+flags used by alloc_zeroed_user_highpage() are not changed because it would
+change the semantics of an existing API.  After this patch is applied there
+are no in-kernel users of alloc_zeroed_user_highpage() so it probably should
+be marked deprecated if this patch is merged.
 
-kernelcore == totalpages - movablecore
+Note that this patch includes a minor cleanup to the use of __GFP_ZERO in
+shmem.c to keep all flag modifications to inode->mapping in the
+shmem_dir_alloc() helper function.  This clean-up suggestion is courtesy of
+Hugh Dickens.
 
-Both kernelcore= and movablecore= can be safely specified at the same time.
+Additional credit goes to Christoph Lameter and Linus Torvalds for shaping the
+concept.  Credit to Hugh Dickens for catching issues with shmem swap vector
+and ramfs allocations.
 
+[akpm@linux-foundation.org: build fix]
+[hugh@veritas.com: __GFP_ZERO cleanup]
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   10 ++++
- mm/page_alloc.c                     |   65 +++++++++++++++++++++++---
- 2 files changed, 68 insertions(+), 7 deletions(-)
+ fs/buffer.c                  |    2 -
+ fs/inode.c                   |   10 +++++-
+ fs/ramfs/inode.c             |    1 
+ include/asm-alpha/page.h     |    3 +
+ include/asm-cris/page.h      |    3 +
+ include/asm-h8300/page.h     |    3 +
+ include/asm-i386/page.h      |    3 +
+ include/asm-ia64/page.h      |   13 ++++----
+ include/asm-m32r/page.h      |    3 +
+ include/asm-m68knommu/page.h |    3 +
+ include/asm-s390/page.h      |    3 +
+ include/asm-x86_64/page.h    |    3 +
+ include/linux/gfp.h          |   16 +++++++++-
+ include/linux/highmem.h      |   51 +++++++++++++++++++++++++++++++--
+ mm/memory.c                  |    9 +++--
+ mm/mempolicy.c               |    5 +--
+ mm/migrate.c                 |    3 +
+ mm/shmem.c                   |    7 +++-
+ mm/swap_state.c              |    3 +
+ 19 files changed, 114 insertions(+), 30 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~add-a-movablecore=-parameter-for-sizing-zone_movable Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~add-a-movablecore=-parameter-for-sizing-zone_movable
-+++ a/Documentation/kernel-parameters.txt
-@@ -833,6 +833,16 @@ and is between 256 and 4096 characters. 
- 			use the HighMem zone if it exists, and the Normal
- 			zone if it does not.
+diff -puN fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated fs/buffer.c
+--- a/fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/fs/buffer.c
+@@ -982,7 +982,7 @@ grow_dev_page(struct block_device *bdev,
+ 	struct buffer_head *bh;
  
-+	movablecore=nn[KMG]	[KNL,IA-32,IA-64,PPC,X86-64] This parameter
-+			is similar to kernelcore except it specifies the
-+			amount of memory used for migratable allocations.
-+			If both kernelcore and movablecore is specified,
-+			then kernelcore will be at *least* the specified
-+			value but may be more. If movablecore on its own
-+			is specified, the administrator must be careful
-+			that the amount of memory usable for all allocations
-+			is not too small.
-+
- 	keepinitrd	[HW,ARM]
+ 	page = find_or_create_page(inode->i_mapping, index,
+-		mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
++		(mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS)|__GFP_MOVABLE);
+ 	if (!page)
+ 		return NULL;
  
- 	kstack=N	[IA-32,X86-64] Print N words from the kernel stack
-diff -puN mm/page_alloc.c~add-a-movablecore=-parameter-for-sizing-zone_movable mm/page_alloc.c
---- a/mm/page_alloc.c~add-a-movablecore=-parameter-for-sizing-zone_movable
-+++ a/mm/page_alloc.c
-@@ -137,6 +137,7 @@ static unsigned long __meminitdata dma_r
-   static unsigned long __meminitdata node_boundary_end_pfn[MAX_NUMNODES];
- #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
-   unsigned long __initdata required_kernelcore;
-+  unsigned long __initdata required_movablecore;
-   unsigned long __initdata zone_movable_pfn[MAX_NUMNODES];
+diff -puN fs/inode.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated fs/inode.c
+--- a/fs/inode.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/fs/inode.c
+@@ -145,7 +145,7 @@ static struct inode *alloc_inode(struct 
+ 		mapping->a_ops = &empty_aops;
+  		mapping->host = inode;
+ 		mapping->flags = 0;
+-		mapping_set_gfp_mask(mapping, GFP_HIGHUSER);
++		mapping_set_gfp_mask(mapping, GFP_HIGHUSER_PAGECACHE);
+ 		mapping->assoc_mapping = NULL;
+ 		mapping->backing_dev_info = &default_backing_dev_info;
  
-   /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
-@@ -3219,6 +3220,18 @@ unsigned long __init find_max_pfn_with_a
- 	return max_pfn;
- }
- 
-+unsigned long __init early_calculate_totalpages(void)
-+{
-+	int i;
-+	unsigned long totalpages = 0;
-+
-+	for (i = 0; i < nr_nodemap_entries; i++)
-+		totalpages += early_node_map[i].end_pfn -
-+						early_node_map[i].start_pfn;
-+
-+	return totalpages;
-+}
-+
- /*
-  * Find the PFN the Movable zone begins in each node. Kernel memory
-  * is spread evenly between nodes as long as the nodes have enough
-@@ -3232,6 +3245,29 @@ void __init find_zone_movable_pfns_for_n
- 	unsigned long kernelcore_node, kernelcore_remaining;
- 	int usable_nodes = num_online_nodes();
- 
-+	/*
-+	 * If movablecore was specified, calculate what size of
-+	 * kernelcore that corresponds so that memory usable for
-+	 * any allocation type is evenly spread. If both kernelcore
-+	 * and movablecore are specified, then the value of kernelcore
-+	 * will be used for required_kernelcore if it's greater than
-+	 * what movablecore would have allowed.
-+	 */
-+	if (required_movablecore) {
-+		unsigned long totalpages = early_calculate_totalpages();
-+		unsigned long corepages;
-+
-+		/*
-+		 * Round-up so that ZONE_MOVABLE is at least as large as what
-+		 * was requested by the user
-+		 */
-+		required_movablecore =
-+			roundup(required_movablecore, MAX_ORDER_NR_PAGES);
-+		corepages = totalpages - required_movablecore;
-+
-+		required_kernelcore = max(required_kernelcore, corepages);
-+	}
-+
- 	/* If kernelcore was not specified, there is no ZONE_MOVABLE */
- 	if (!required_kernelcore)
- 		return;
-@@ -3412,26 +3448,41 @@ void __init free_area_init_nodes(unsigne
- 	}
- }
- 
--/*
-- * kernelcore=size sets the amount of memory for use for allocations that
-- * cannot be reclaimed or migrated.
-- */
--static int __init cmdline_parse_kernelcore(char *p)
-+static int __init cmdline_parse_core(char *p, unsigned long *core)
+@@ -519,7 +519,13 @@ repeat:
+  *	new_inode 	- obtain an inode
+  *	@sb: superblock
+  *
+- *	Allocates a new inode for given superblock.
++ *	Allocates a new inode for given superblock. The default gfp_mask
++ *	for allocations related to inode->i_mapping is GFP_HIGHUSER_PAGECACHE.
++ *	If HIGHMEM pages are unsuitable or it is known that pages allocated
++ *	for the page cache are not reclaimable or migratable,
++ *	mapping_set_gfp_mask() must be called with suitable flags on the
++ *	newly created inode's mapping
++ *
+  */
+ struct inode *new_inode(struct super_block *sb)
  {
- 	unsigned long long coremem;
- 	if (!p)
- 		return -EINVAL;
+diff -puN fs/ramfs/inode.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/fs/ramfs/inode.c
+@@ -60,6 +60,7 @@ struct inode *ramfs_get_inode(struct sup
+ 		inode->i_blocks = 0;
+ 		inode->i_mapping->a_ops = &ramfs_aops;
+ 		inode->i_mapping->backing_dev_info = &ramfs_backing_dev_info;
++		mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+ 		switch (mode & S_IFMT) {
+ 		default:
+diff -puN include/asm-alpha/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated include/asm-alpha/page.h
+--- a/include/asm-alpha/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/include/asm-alpha/page.h
+@@ -17,7 +17,8 @@
+ extern void clear_page(void *page);
+ #define clear_user_page(page, vaddr, pg)	clear_page(page)
  
- 	coremem = memparse(p, &p);
--	required_kernelcore = coremem >> PAGE_SHIFT;
-+	*core = coremem >> PAGE_SHIFT;
+-#define alloc_zeroed_user_highpage(vma, vaddr) alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vma, vmaddr)
++#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
++	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vmaddr)
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
  
--	/* Paranoid check that UL is enough for required_kernelcore */
-+	/* Paranoid check that UL is enough for the coremem value */
- 	WARN_ON((coremem >> PAGE_SHIFT) > ULONG_MAX);
+ extern void copy_page(void * _to, void * _from);
+diff -puN include/asm-cris/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated include/asm-cris/page.h
+--- a/include/asm-cris/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/include/asm-cris/page.h
+@@ -20,7 +20,8 @@
+ #define clear_user_page(page, vaddr, pg)    clear_page(page)
+ #define copy_user_page(to, from, vaddr, pg) copy_page(to, from)
  
- 	return 0;
+-#define alloc_zeroed_user_highpage(vma, vaddr) alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vma, vaddr)
++#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
++	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr)
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
+ 
+ /*
+diff -puN include/asm-h8300/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated include/asm-h8300/page.h
+--- a/include/asm-h8300/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/include/asm-h8300/page.h
+@@ -22,7 +22,8 @@
+ #define clear_user_page(page, vaddr, pg)	clear_page(page)
+ #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+ 
+-#define alloc_zeroed_user_highpage(vma, vaddr) alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vma, vaddr)
++#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
++	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr)
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
+ 
+ /*
+diff -puN include/asm-i386/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated include/asm-i386/page.h
+--- a/include/asm-i386/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/include/asm-i386/page.h
+@@ -34,7 +34,8 @@
+ #define clear_user_page(page, vaddr, pg)	clear_page(page)
+ #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+ 
+-#define alloc_zeroed_user_highpage(vma, vaddr) alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vma, vaddr)
++#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
++	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr)
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
+ 
+ /*
+diff -puN include/asm-ia64/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated include/asm-ia64/page.h
+--- a/include/asm-ia64/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/include/asm-ia64/page.h
+@@ -87,12 +87,13 @@ do {						\
+ } while (0)
+ 
+ 
+-#define alloc_zeroed_user_highpage(vma, vaddr) \
+-({						\
+-	struct page *page = alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vma, vaddr); \
+-	if (page)				\
+- 		flush_dcache_page(page);	\
+-	page;					\
++#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr)		\
++({									\
++	struct page *page = alloc_page_vma(				\
++		GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr);	\
++	if (page)							\
++ 		flush_dcache_page(page);				\
++	page;								\
+ })
+ 
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
+diff -puN include/asm-m32r/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated include/asm-m32r/page.h
+--- a/include/asm-m32r/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/include/asm-m32r/page.h
+@@ -15,7 +15,8 @@ extern void copy_page(void *to, void *fr
+ #define clear_user_page(page, vaddr, pg)	clear_page(page)
+ #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+ 
+-#define alloc_zeroed_user_highpage(vma, vaddr) alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vma, vaddr)
++#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
++	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr)
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
+ 
+ /*
+diff -puN include/asm-m68knommu/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated include/asm-m68knommu/page.h
+--- a/include/asm-m68knommu/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/include/asm-m68knommu/page.h
+@@ -22,7 +22,8 @@
+ #define clear_user_page(page, vaddr, pg)	clear_page(page)
+ #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+ 
+-#define alloc_zeroed_user_highpage(vma, vaddr) alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vma, vaddr)
++#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
++	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr)
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
+ 
+ /*
+diff -puN include/asm-s390/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated include/asm-s390/page.h
+--- a/include/asm-s390/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/include/asm-s390/page.h
+@@ -64,7 +64,8 @@ static inline void copy_page(void *to, v
+ #define clear_user_page(page, vaddr, pg)	clear_page(page)
+ #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+ 
+-#define alloc_zeroed_user_highpage(vma, vaddr) alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vma, vaddr)
++#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
++	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr)
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
+ 
+ /*
+diff -puN include/asm-x86_64/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated include/asm-x86_64/page.h
+--- a/include/asm-x86_64/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/include/asm-x86_64/page.h
+@@ -48,7 +48,8 @@ void copy_page(void *, void *);
+ #define clear_user_page(page, vaddr, pg)	clear_page(page)
+ #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+ 
+-#define alloc_zeroed_user_highpage(vma, vaddr) alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vma, vaddr)
++#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
++	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr)
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
+ /*
+  * These are used to make use of C type-checking..
+diff -puN include/linux/gfp.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated include/linux/gfp.h
+--- a/include/linux/gfp.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/include/linux/gfp.h
+@@ -30,6 +30,9 @@ struct vm_area_struct;
+  * cannot handle allocation failures.
+  *
+  * __GFP_NORETRY: The VM implementation must not retry indefinitely.
++ *
++ * __GFP_MOVABLE: Flag that this page will be movable by the page migration
++ * mechanism or reclaimed
+  */
+ #define __GFP_WAIT	((__force gfp_t)0x10u)	/* Can wait and reschedule? */
+ #define __GFP_HIGH	((__force gfp_t)0x20u)	/* Should access emergency pools? */
+@@ -45,6 +48,7 @@ struct vm_area_struct;
+ #define __GFP_NOMEMALLOC ((__force gfp_t)0x10000u) /* Don't use emergency reserves */
+ #define __GFP_HARDWALL   ((__force gfp_t)0x20000u) /* Enforce hardwall cpuset memory allocs */
+ #define __GFP_THISNODE	((__force gfp_t)0x40000u)/* No fallback, no policies */
++#define __GFP_MOVABLE	((__force gfp_t)0x80000u) /* Page is movable */
+ 
+ #define __GFP_BITS_SHIFT 20	/* Room for 20 __GFP_FOO bits */
+ #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+@@ -53,7 +57,8 @@ struct vm_area_struct;
+ #define GFP_LEVEL_MASK (__GFP_WAIT|__GFP_HIGH|__GFP_IO|__GFP_FS| \
+ 			__GFP_COLD|__GFP_NOWARN|__GFP_REPEAT| \
+ 			__GFP_NOFAIL|__GFP_NORETRY|__GFP_COMP| \
+-			__GFP_NOMEMALLOC|__GFP_HARDWALL|__GFP_THISNODE)
++			__GFP_NOMEMALLOC|__GFP_HARDWALL|__GFP_THISNODE| \
++			__GFP_MOVABLE)
+ 
+ /* This equals 0, but use constants in case they ever change */
+ #define GFP_NOWAIT	(GFP_ATOMIC & ~__GFP_HIGH)
+@@ -65,6 +70,15 @@ struct vm_area_struct;
+ #define GFP_USER	(__GFP_WAIT | __GFP_IO | __GFP_FS | __GFP_HARDWALL)
+ #define GFP_HIGHUSER	(__GFP_WAIT | __GFP_IO | __GFP_FS | __GFP_HARDWALL | \
+ 			 __GFP_HIGHMEM)
++#define GFP_HIGHUSER_MOVABLE	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
++				 __GFP_HARDWALL | __GFP_HIGHMEM | \
++				 __GFP_MOVABLE)
++#define GFP_NOFS_PAGECACHE	(__GFP_WAIT | __GFP_IO | __GFP_MOVABLE)
++#define GFP_USER_PAGECACHE	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
++				 __GFP_HARDWALL | __GFP_MOVABLE)
++#define GFP_HIGHUSER_PAGECACHE	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
++				 __GFP_HARDWALL | __GFP_HIGHMEM | \
++				 __GFP_MOVABLE)
+ 
+ #ifdef CONFIG_NUMA
+ #define GFP_THISNODE	(__GFP_THISNODE | __GFP_NOWARN | __GFP_NORETRY)
+diff -puN include/linux/highmem.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated include/linux/highmem.h
+--- a/include/linux/highmem.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/include/linux/highmem.h
+@@ -73,10 +73,27 @@ static inline void clear_user_highpage(s
  }
  
-+/*
-+ * kernelcore=size sets the amount of memory for use for allocations that
-+ * cannot be reclaimed or migrated.
+ #ifndef __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
++/**
++ * __alloc_zeroed_user_highpage - Allocate a zeroed HIGHMEM page for a VMA with caller-specified movable GFP flags
++ * @movableflags: The GFP flags related to the pages future ability to move like __GFP_MOVABLE
++ * @vma: The VMA the page is to be allocated for
++ * @vaddr: The virtual address the page will be inserted into
++ *
++ * This function will allocate a page for a VMA but the caller is expected
++ * to specify via movableflags whether the page will be movable in the
++ * future or not
++ *
++ * An architecture may override this function by defining
++ * __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE and providing their own
++ * implementation.
 + */
-+static int __init cmdline_parse_kernelcore(char *p)
+ static inline struct page *
+-alloc_zeroed_user_highpage(struct vm_area_struct *vma, unsigned long vaddr)
++__alloc_zeroed_user_highpage(gfp_t movableflags,
++			struct vm_area_struct *vma,
++			unsigned long vaddr)
+ {
+-	struct page *page = alloc_page_vma(GFP_HIGHUSER, vma, vaddr);
++	struct page *page = alloc_page_vma(GFP_HIGHUSER | movableflags,
++			vma, vaddr);
+ 
+ 	if (page)
+ 		clear_user_highpage(page, vaddr);
+@@ -85,6 +102,36 @@ alloc_zeroed_user_highpage(struct vm_are
+ }
+ #endif
+ 
++/**
++ * alloc_zeroed_user_highpage - Allocate a zeroed HIGHMEM page for a VMA
++ * @vma: The VMA the page is to be allocated for
++ * @vaddr: The virtual address the page will be inserted into
++ *
++ * This function will allocate a page for a VMA that the caller knows will
++ * not be able to move in the future using move_pages() or reclaim. If it
++ * is known that the page can move, use alloc_zeroed_user_highpage_movable
++ */
++static inline struct page *
++alloc_zeroed_user_highpage(struct vm_area_struct *vma, unsigned long vaddr)
 +{
-+	return cmdline_parse_core(p, &required_kernelcore);
++	return __alloc_zeroed_user_highpage(0, vma, vaddr);
 +}
 +
-+/*
-+ * movablecore=size sets the amount of memory for use for allocations that
-+ * can be reclaimed or migrated.
++/**
++ * alloc_zeroed_user_highpage_movable - Allocate a zeroed HIGHMEM page for a VMA that the caller knows can move
++ * @vma: The VMA the page is to be allocated for
++ * @vaddr: The virtual address the page will be inserted into
++ *
++ * This function will allocate a page for a VMA that the caller knows will
++ * be able to migrate in the future using move_pages() or reclaimed
 + */
-+static int __init cmdline_parse_movablecore(char *p)
++static inline struct page *
++alloc_zeroed_user_highpage_movable(struct vm_area_struct *vma,
++					unsigned long vaddr)
 +{
-+	return cmdline_parse_core(p, &required_movablecore);
++	return __alloc_zeroed_user_highpage(__GFP_MOVABLE, vma, vaddr);
 +}
 +
- early_param("kernelcore", cmdline_parse_kernelcore);
-+early_param("movablecore", cmdline_parse_movablecore);
+ static inline void clear_highpage(struct page *page)
+ {
+ 	void *kaddr = kmap_atomic(page, KM_USER0);
+diff -puN mm/memory.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated mm/memory.c
+--- a/mm/memory.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/mm/memory.c
+@@ -1715,11 +1715,11 @@ gotten:
+ 	if (unlikely(anon_vma_prepare(vma)))
+ 		goto oom;
+ 	if (old_page == ZERO_PAGE(address)) {
+-		new_page = alloc_zeroed_user_highpage(vma, address);
++		new_page = alloc_zeroed_user_highpage_movable(vma, address);
+ 		if (!new_page)
+ 			goto oom;
+ 	} else {
+-		new_page = alloc_page_vma(GFP_HIGHUSER, vma, address);
++		new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
+ 		if (!new_page)
+ 			goto oom;
+ 		cow_user_page(new_page, old_page, address, vma);
+@@ -2237,7 +2237,7 @@ static int do_anonymous_page(struct mm_s
  
- #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
+ 		if (unlikely(anon_vma_prepare(vma)))
+ 			goto oom;
+-		page = alloc_zeroed_user_highpage(vma, address);
++		page = alloc_zeroed_user_highpage_movable(vma, address);
+ 		if (!page)
+ 			goto oom;
  
+@@ -2340,7 +2340,8 @@ retry:
+ 
+ 			if (unlikely(anon_vma_prepare(vma)))
+ 				goto oom;
+-			page = alloc_page_vma(GFP_HIGHUSER, vma, address);
++			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE,
++						vma, address);
+ 			if (!page)
+ 				goto oom;
+ 			copy_user_highpage(page, new_page, address, vma);
+diff -puN mm/mempolicy.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated mm/mempolicy.c
+--- a/mm/mempolicy.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/mm/mempolicy.c
+@@ -594,7 +594,7 @@ static void migrate_page_add(struct page
+ 
+ static struct page *new_node_page(struct page *page, unsigned long node, int **x)
+ {
+-	return alloc_pages_node(node, GFP_HIGHUSER, 0);
++	return alloc_pages_node(node, GFP_HIGHUSER_MOVABLE, 0);
+ }
+ 
+ /*
+@@ -710,7 +710,8 @@ static struct page *new_vma_page(struct 
+ {
+ 	struct vm_area_struct *vma = (struct vm_area_struct *)private;
+ 
+-	return alloc_page_vma(GFP_HIGHUSER, vma, page_address_in_vma(page, vma));
++	return alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,
++					page_address_in_vma(page, vma));
+ }
+ #else
+ 
+diff -puN mm/migrate.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated mm/migrate.c
+--- a/mm/migrate.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/mm/migrate.c
+@@ -761,7 +761,8 @@ static struct page *new_page_node(struct
+ 
+ 	*result = &pm->status;
+ 
+-	return alloc_pages_node(pm->node, GFP_HIGHUSER | GFP_THISNODE, 0);
++	return alloc_pages_node(pm->node,
++				GFP_HIGHUSER_MOVABLE | GFP_THISNODE, 0);
+ }
+ 
+ /*
+diff -puN mm/shmem.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated mm/shmem.c
+--- a/mm/shmem.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/mm/shmem.c
+@@ -93,8 +93,11 @@ static inline struct page *shmem_dir_all
+ 	 * The above definition of ENTRIES_PER_PAGE, and the use of
+ 	 * BLOCKS_PER_PAGE on indirect pages, assume PAGE_CACHE_SIZE:
+ 	 * might be reconsidered if it ever diverges from PAGE_SIZE.
++	 *
++	 * __GFP_MOVABLE is masked out as swap vectors cannot move
+ 	 */
+-	return alloc_pages(gfp_mask, PAGE_CACHE_SHIFT-PAGE_SHIFT);
++	return alloc_pages((gfp_mask & ~__GFP_MOVABLE) | __GFP_ZERO,
++				PAGE_CACHE_SHIFT-PAGE_SHIFT);
+ }
+ 
+ static inline void shmem_dir_free(struct page *page)
+@@ -372,7 +375,7 @@ static swp_entry_t *shmem_swp_alloc(stru
+ 		}
+ 
+ 		spin_unlock(&info->lock);
+-		page = shmem_dir_alloc(mapping_gfp_mask(inode->i_mapping) | __GFP_ZERO);
++		page = shmem_dir_alloc(mapping_gfp_mask(inode->i_mapping));
+ 		if (page)
+ 			set_page_private(page, 0);
+ 		spin_lock(&info->lock);
+diff -puN mm/swap_state.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated mm/swap_state.c
+--- a/mm/swap_state.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated
++++ a/mm/swap_state.c
+@@ -334,7 +334,8 @@ struct page *read_swap_cache_async(swp_e
+ 		 * Get a new page to read into from swap.
+ 		 */
+ 		if (!new_page) {
+-			new_page = alloc_page_vma(GFP_HIGHUSER, vma, addr);
++			new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE,
++								vma, addr);
+ 			if (!new_page)
+ 				break;		/* Out of memory */
+ 		}
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
