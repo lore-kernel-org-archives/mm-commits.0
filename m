@@ -1,135 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-nfsd4-store-pseudoflavor-in-request.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:04:44 -0700
-Message-ID: <200707172304.l6HN4ich011829@imap1.linux-foundation.org>
+Subject: - knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:04:38 -0700
+Message-ID: <200707172304.l6HN4c4t011820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35794 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55232 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935844AbXGQXQY (ORCPT
+	by vger.kernel.org with ESMTP id S936450AbXGQXQY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:16:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andros@citi.umich.edu, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: meelap@umich.edu, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: nfsd4: store pseudoflavor in request
+     knfsd: nfsd4: don't delegate files that have had conflicts
 has been removed from the -mm tree.  Its filename was
-     knfsd-nfsd4-store-pseudoflavor-in-request.patch
+     knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: store pseudoflavor in request
-From: Andy Adamson <andros@citi.umich.edu>
+Subject: knfsd: nfsd4: don't delegate files that have had conflicts
+From: Meelap Shah <meelap@umich.edu>
 
-Add a new field to the svc_rqst structure to record the pseudoflavor that the
-request was made with.  For now we record the pseudoflavor but don't use it
-for anything.
+One more incremental delegation policy improvement: don't give out a
+delegation on a file if conflicting access has previously required that a
+delegation be revoked on that file.  (In practice we'll forget about the
+conflict when the struct nfs4_file is removed on close, so this is of limited
+use for now, though it should at least solve a temporary problem with
+self-conflicts on write opens from the same client.)
 
-Signed-off-by: Andy Adamson <andros@citi.umich.edu>
 Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/gss_api.h        |    1 +
- include/linux/sunrpc/svc.h            |    1 +
- net/sunrpc/auth_gss/gss_mech_switch.c |   14 ++++++++++++++
- net/sunrpc/auth_gss/svcauth_gss.c     |    2 ++
- net/sunrpc/svcauth_unix.c             |    3 +++
- 5 files changed, 21 insertions(+)
+ fs/nfsd/nfs4state.c        |    4 ++++
+ include/linux/nfsd/state.h |    1 +
+ 2 files changed, 5 insertions(+)
 
-diff -puN include/linux/sunrpc/gss_api.h~knfsd-nfsd4-store-pseudoflavor-in-request include/linux/sunrpc/gss_api.h
---- a/include/linux/sunrpc/gss_api.h~knfsd-nfsd4-store-pseudoflavor-in-request
-+++ a/include/linux/sunrpc/gss_api.h
-@@ -58,6 +58,7 @@ u32 gss_unwrap(
- u32 gss_delete_sec_context(
- 		struct gss_ctx		**ctx_id);
+diff -puN fs/nfsd/nfs4state.c~knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts fs/nfsd/nfs4state.c
+--- a/fs/nfsd/nfs4state.c~knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts
++++ a/fs/nfsd/nfs4state.c
+@@ -195,6 +195,8 @@ alloc_init_deleg(struct nfs4_client *clp
+ 	struct nfs4_callback *cb = &stp->st_stateowner->so_client->cl_callback;
  
-+u32 gss_svc_to_pseudoflavor(struct gss_api_mech *, u32 service);
- u32 gss_pseudoflavor_to_service(struct gss_api_mech *, u32 pseudoflavor);
- char *gss_service_to_auth_domain_name(struct gss_api_mech *, u32 service);
- 
-diff -puN include/linux/sunrpc/svc.h~knfsd-nfsd4-store-pseudoflavor-in-request include/linux/sunrpc/svc.h
---- a/include/linux/sunrpc/svc.h~knfsd-nfsd4-store-pseudoflavor-in-request
-+++ a/include/linux/sunrpc/svc.h
-@@ -212,6 +212,7 @@ struct svc_rqst {
- 	struct svc_pool *	rq_pool;	/* thread pool */
- 	struct svc_procedure *	rq_procinfo;	/* procedure info */
- 	struct auth_ops *	rq_authop;	/* authentication flavour */
-+	u32			rq_flavor;	/* pseudoflavor */
- 	struct svc_cred		rq_cred;	/* auth info */
- 	struct sk_buff *	rq_skbuff;	/* fast recv inet buffer */
- 	struct svc_deferred_req*rq_deferred;	/* deferred request we are replaying */
-diff -puN net/sunrpc/auth_gss/gss_mech_switch.c~knfsd-nfsd4-store-pseudoflavor-in-request net/sunrpc/auth_gss/gss_mech_switch.c
---- a/net/sunrpc/auth_gss/gss_mech_switch.c~knfsd-nfsd4-store-pseudoflavor-in-request
-+++ a/net/sunrpc/auth_gss/gss_mech_switch.c
-@@ -194,6 +194,20 @@ gss_mech_get_by_pseudoflavor(u32 pseudof
- EXPORT_SYMBOL(gss_mech_get_by_pseudoflavor);
- 
- u32
-+gss_svc_to_pseudoflavor(struct gss_api_mech *gm, u32 service)
-+{
-+	int i;
-+
-+	for (i = 0; i < gm->gm_pf_num; i++) {
-+		if (gm->gm_pfs[i].service == service) {
-+			return gm->gm_pfs[i].pseudoflavor;
-+		}
-+	}
-+	return RPC_AUTH_MAXFLAVOR; /* illegal value */
-+}
-+EXPORT_SYMBOL(gss_svc_to_pseudoflavor);
-+
-+u32
- gss_pseudoflavor_to_service(struct gss_api_mech *gm, u32 pseudoflavor)
- {
- 	int i;
-diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-store-pseudoflavor-in-request net/sunrpc/auth_gss/svcauth_gss.c
---- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-store-pseudoflavor-in-request
-+++ a/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -1131,6 +1131,8 @@ svcauth_gss_accept(struct svc_rqst *rqst
- 		}
- 		svcdata->rsci = rsci;
- 		cache_get(&rsci->h);
-+		rqstp->rq_flavor = gss_svc_to_pseudoflavor(
-+					rsci->mechctx->mech_type, gc->gc_svc);
- 		ret = SVC_OK;
- 		goto out;
+ 	dprintk("NFSD alloc_init_deleg\n");
++	if (fp->fi_had_conflict)
++		return NULL;
+ 	if (num_delegations > max_delegations)
+ 		return NULL;
+ 	dp = kmem_cache_alloc(deleg_slab, GFP_KERNEL);
+@@ -1002,6 +1004,7 @@ alloc_init_file(struct inode *ino)
+ 		list_add(&fp->fi_hash, &file_hashtbl[hashval]);
+ 		fp->fi_inode = igrab(ino);
+ 		fp->fi_id = current_fileid++;
++		fp->fi_had_conflict = false;
+ 		return fp;
  	}
-diff -puN net/sunrpc/svcauth_unix.c~knfsd-nfsd4-store-pseudoflavor-in-request net/sunrpc/svcauth_unix.c
---- a/net/sunrpc/svcauth_unix.c~knfsd-nfsd4-store-pseudoflavor-in-request
-+++ a/net/sunrpc/svcauth_unix.c
-@@ -5,6 +5,7 @@
- #include <linux/sunrpc/xdr.h>
- #include <linux/sunrpc/svcsock.h>
- #include <linux/sunrpc/svcauth.h>
-+#include <linux/sunrpc/gss_api.h>
- #include <linux/err.h>
- #include <linux/seq_file.h>
- #include <linux/hash.h>
-@@ -707,6 +708,7 @@ svcauth_null_accept(struct svc_rqst *rqs
- 	svc_putnl(resv, RPC_AUTH_NULL);
- 	svc_putnl(resv, 0);
+ 	return NULL;
+@@ -1328,6 +1331,7 @@ do_recall(void *__dp)
+ {
+ 	struct nfs4_delegation *dp = __dp;
  
-+	rqstp->rq_flavor = RPC_AUTH_NULL;
- 	return SVC_OK;
++	dp->dl_file->fi_had_conflict = true;
+ 	nfsd4_cb_recall(dp);
+ 	return 0;
  }
+diff -puN include/linux/nfsd/state.h~knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts include/linux/nfsd/state.h
+--- a/include/linux/nfsd/state.h~knfsd-nfsd4-dont-delegate-files-that-have-had-conflicts
++++ a/include/linux/nfsd/state.h
+@@ -224,6 +224,7 @@ struct nfs4_file {
+ 	struct inode		*fi_inode;
+ 	u32                     fi_id;      /* used with stateowner->so_id 
+ 					     * for stateid_hashtbl hash */
++	bool			fi_had_conflict;
+ };
  
-@@ -784,6 +786,7 @@ svcauth_unix_accept(struct svc_rqst *rqs
- 	svc_putnl(resv, RPC_AUTH_NULL);
- 	svc_putnl(resv, 0);
- 
-+	rqstp->rq_flavor = RPC_AUTH_UNIX;
- 	return SVC_OK;
- 
- badcred:
+ /*
 _
 
-Patches currently in -mm which might be from andros@citi.umich.edu are
+Patches currently in -mm which might be from meelap@umich.edu are
 
 origin.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
