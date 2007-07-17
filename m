@@ -1,55 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:05:34 -0700
-Message-ID: <200707172305.l6HN5YoY011932@imap1.linux-foundation.org>
+Subject: - remove-child_max.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:02:19 -0700
+Message-ID: <200707172302.l6HN2JXY011563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57866 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42916 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936461AbXGQXPt (ORCPT
+	by vger.kernel.org with ESMTP id S936570AbXGQXPv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:49 -0400
+	Tue, 17 Jul 2007 19:15:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hcegtvedt@atmel.com, a.zummo@towertech.it, david-b@pacbell.net, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-dev: return -ENOTTY in ioctl if irq_set_freq is not implemented by driver
+     Remove CHILD_MAX
 has been removed from the -mm tree.  Its filename was
-     rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver.patch
+     remove-child_max.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc-dev: return -ENOTTY in ioctl if irq_set_freq is not implemented by driver
-From: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Subject: Remove CHILD_MAX
+From: Roland McGrath <roland@redhat.com>
 
-Signed-off-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+The CHILD_MAX macro in limits.h should not be there.  It claims to be the
+limit on processes a user can own, but its value is wrong for that.
+There is no constant value, but a variable resource limit (RLIMIT_NPROC).
+Nothing in the kernel uses CHILD_MAX.
+
+The proper thing to do according to POSIX is not to define CHILD_MAX at all.
+The sysconf (_SC_CHILD_MAX) implementation works by calling getrlimit.
+
+Signed-off-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-dev.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/limits.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-dev.c~rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver
-+++ a/drivers/rtc/rtc-dev.c
-@@ -341,6 +341,8 @@ static int rtc_dev_ioctl(struct inode *i
- 	case RTC_IRQP_READ:
- 		if (ops->irq_set_freq)
- 			err = put_user(rtc->irq_freq, (unsigned long __user *)uarg);
-+		else
-+			err = -ENOTTY;
- 		break;
+diff -puN include/linux/limits.h~remove-child_max include/linux/limits.h
+--- a/include/linux/limits.h~remove-child_max
++++ a/include/linux/limits.h
+@@ -5,7 +5,6 @@
  
- 	case RTC_IRQP_SET:
+ #define NGROUPS_MAX    65536	/* supplemental group IDs are available */
+ #define ARG_MAX       131072	/* # bytes of args + environ for exec() */
+-#define CHILD_MAX        999    /* no limit :-) */
+ #define LINK_MAX         127	/* # links a file may have */
+ #define MAX_CANON        255	/* size of the canonical input queue */
+ #define MAX_INPUT        255	/* size of the type-ahead buffer */
 _
 
-Patches currently in -mm which might be from hcegtvedt@atmel.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-git-watchdog.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
+make-alt-sysrq-p-display-the-debug-register-contents.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+i386-put-allocated-elf-notes-in-read-only-data-segment.patch
+x86_64-put-allocated-elf-notes-in-read-only-data-segment.patch
+alpha-put-allocated-elf-notes-in-read-only-data-segment.patch
+powerpc-put-allocated-elf-notes-in-read-only-data-segment.patch
+s390-put-allocated-elf-notes-in-read-only-data-segment.patch
+add-sys-kernel-notes.patch
+use-build-id-ld-option.patch
