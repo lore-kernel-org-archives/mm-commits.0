@@ -1,554 +1,425 @@
 From: akpm@linux-foundation.org
-Subject: - create-the-zone_movable-zone.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:00:37 -0700
-Message-ID: <200707172300.l6HN0bDb011310@imap1.linux-foundation.org>
+Subject: - lumpy-reclaim-v4.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:00:46 -0700
+Message-ID: <200707172300.l6HN0kgH011322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52078 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38221 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934191AbXGQXCE (ORCPT
+	by vger.kernel.org with ESMTP id S936483AbXGQXCO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:02:04 -0400
+	Tue, 17 Jul 2007 19:02:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, apw@shadowen.org, wli@holomorphy.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: apw@shadowen.org, a.p.zijlstra@chello.nl, bob.picco@hp.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Create the ZONE_MOVABLE zone
+     Lumpy Reclaim V4
 has been removed from the -mm tree.  Its filename was
-     create-the-zone_movable-zone.patch
+     lumpy-reclaim-v4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Create the ZONE_MOVABLE zone
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: Lumpy Reclaim V4
+From: Andy Whitcroft <apw@shadowen.org>
 
-The following 8 patches against 2.6.20-mm2 create a zone called ZONE_MOVABLE
-that is only usable by allocations that specify both __GFP_HIGHMEM and
-__GFP_MOVABLE.  This has the effect of keeping all non-movable pages within a
-single memory partition while allowing movable allocations to be satisfied
-from either partition.  The patches may be applied with the list-based
-anti-fragmentation patches that groups pages together based on mobility.
+When we are out of memory of a suitable size we enter reclaim.  The current
+reclaim algorithm targets pages in LRU order, which is great for fairness at
+order-0 but highly unsuitable if you desire pages at higher orders.  To get
+pages of higher order we must shoot down a very high proportion of memory;
+>95% in a lot of cases.
 
-The size of the zone is determined by a kernelcore= parameter specified at
-boot-time.  This specifies how much memory is usable by non-movable
-allocations and the remainder is used for ZONE_MOVABLE.  Any range of pages
-within ZONE_MOVABLE can be released by migrating the pages or by reclaiming.
+This patch set adds a lumpy reclaim algorithm to the allocator.  It targets
+groups of pages at the specified order anchored at the end of the active and
+inactive lists.  This encourages groups of pages at the requested orders to
+move from active to inactive, and active to free lists.  This behaviour is
+only triggered out of direct reclaim when higher order pages have been
+requested.
 
-When selecting a zone to take pages from for ZONE_MOVABLE, there are two
-things to consider.  First, only memory from the highest populated zone is
-used for ZONE_MOVABLE.  On the x86, this is probably going to be ZONE_HIGHMEM
-but it would be ZONE_DMA on ppc64 or possibly ZONE_DMA32 on x86_64.  Second,
-the amount of memory usable by the kernel will be spread evenly throughout
-NUMA nodes where possible.  If the nodes are not of equal size, the amount of
-memory usable by the kernel on some nodes may be greater than others.
+This patch set is particularly effective when utilised with an
+anti-fragmentation scheme which groups pages of similar reclaimability
+together.
 
-By default, the zone is not as useful for hugetlb allocations because they are
-pinned and non-migratable (currently at least).  A sysctl is provided that
-allows huge pages to be allocated from that zone.  This means that the huge
-page pool can be resized to the size of ZONE_MOVABLE during the lifetime of
-the system assuming that pages are not mlocked.  Despite huge pages being
-non-movable, we do not introduce additional external fragmentation of note as
-huge pages are always the largest contiguous block we care about.
+This patch set is based on Peter Zijlstra's lumpy reclaim V2 patch which forms
+the foundation.  Credit to Mel Gorman for sanitity checking.
 
-Credit goes to Andy Whitcroft for catching a large variety of problems during
-review of the patches.
+Mel said:
 
+  The patches have an application with hugepage pool resizing.
 
+  When lumpy-reclaim is used used with ZONE_MOVABLE, the hugepages pool can
+  be resized with greater reliability.  Testing on a desktop machine with 2GB
+  of RAM showed that growing the hugepage pool with ZONE_MOVABLE on it's own
+  was very slow as the success rate was quite low.  Without lumpy-reclaim,
+  each attempt to grow the pool by 100 pages would yield 1 or 2 hugepages. 
+  With lumpy-reclaim, getting 40 to 70 hugepages on each attempt was typical.
 
-
-This patch creates an additional zone, ZONE_MOVABLE.  This zone is only usable
-by allocations which specify both __GFP_HIGHMEM and __GFP_MOVABLE.  Hot-added
-memory continues to be placed in their existing destination as there is no
-mechanism to redirect them to a specific zone.
-
-[y-goto@jp.fujitsu.com: Fix section mismatch of memory hotplug related code]
-[akpm@linux-foundation.org: various fixes]
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+[akpm@osdl.org: ia64 pfn_to_nid fixes and loop cleanup]
+[bunk@stusta.de: static declarations for internal functions]
+[a.p.zijlstra@chello.nl: initial lumpy V2 implementation]
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Bob Picco <bob.picco@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |    3 
- include/linux/mm.h     |    1 
- include/linux/mmzone.h |   20 +++
- include/linux/vmstat.h |    5 
- mm/highmem.c           |    7 +
- mm/page_alloc.c        |  232 ++++++++++++++++++++++++++++++++++++++-
- mm/vmstat.c            |    2 
- 7 files changed, 260 insertions(+), 10 deletions(-)
+ fs/buffer.c            |    2 
+ include/linux/mmzone.h |    8 +
+ include/linux/swap.h   |    3 
+ mm/page_alloc.c        |    5 -
+ mm/vmscan.c            |  171 +++++++++++++++++++++++++++++++++------
+ 5 files changed, 163 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/gfp.h~create-the-zone_movable-zone include/linux/gfp.h
---- a/include/linux/gfp.h~create-the-zone_movable-zone
-+++ a/include/linux/gfp.h
-@@ -106,6 +106,9 @@ static inline enum zone_type gfp_zone(gf
- 	if (flags & __GFP_DMA32)
- 		return ZONE_DMA32;
- #endif
-+	if ((flags & (__GFP_HIGHMEM | __GFP_MOVABLE)) ==
-+			(__GFP_HIGHMEM | __GFP_MOVABLE))
-+		return ZONE_MOVABLE;
- #ifdef CONFIG_HIGHMEM
- 	if (flags & __GFP_HIGHMEM)
- 		return ZONE_HIGHMEM;
-diff -puN include/linux/mm.h~create-the-zone_movable-zone include/linux/mm.h
---- a/include/linux/mm.h~create-the-zone_movable-zone
-+++ a/include/linux/mm.h
-@@ -1005,6 +1005,7 @@ extern unsigned long find_max_pfn_with_a
- extern void free_bootmem_with_active_regions(int nid,
- 						unsigned long max_low_pfn);
- extern void sparse_memory_present_with_active_regions(int nid);
-+extern int cmdline_parse_kernelcore(char *p);
- #ifndef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
- extern int early_pfn_to_nid(unsigned long pfn);
- #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
-diff -puN include/linux/mmzone.h~create-the-zone_movable-zone include/linux/mmzone.h
---- a/include/linux/mmzone.h~create-the-zone_movable-zone
-+++ a/include/linux/mmzone.h
-@@ -146,6 +146,7 @@ enum zone_type {
- 	 */
- 	ZONE_HIGHMEM,
- #endif
-+	ZONE_MOVABLE,
- 	MAX_NR_ZONES
- };
- 
-@@ -167,6 +168,7 @@ enum zone_type {
- 	+ defined(CONFIG_ZONE_DMA32)	\
- 	+ 1				\
- 	+ defined(CONFIG_HIGHMEM)	\
-+	+ 1				\
- )
- #if __ZONE_COUNT < 2
- #define ZONES_SHIFT 0
-@@ -499,10 +501,22 @@ static inline int populated_zone(struct 
- 	return (!!zone->present_pages);
+diff -puN fs/buffer.c~lumpy-reclaim-v4 fs/buffer.c
+--- a/fs/buffer.c~lumpy-reclaim-v4
++++ a/fs/buffer.c
+@@ -356,7 +356,7 @@ static void free_more_memory(void)
+ 	for_each_online_pgdat(pgdat) {
+ 		zones = pgdat->node_zonelists[gfp_zone(GFP_NOFS)].zones;
+ 		if (*zones)
+-			try_to_free_pages(zones, GFP_NOFS);
++			try_to_free_pages(zones, 0, GFP_NOFS);
+ 	}
  }
  
-+extern int movable_zone;
+diff -puN include/linux/mmzone.h~lumpy-reclaim-v4 include/linux/mmzone.h
+--- a/include/linux/mmzone.h~lumpy-reclaim-v4
++++ a/include/linux/mmzone.h
+@@ -24,6 +24,14 @@
+ #endif
+ #define MAX_ORDER_NR_PAGES (1 << (MAX_ORDER - 1))
+ 
++/*
++ * PAGE_ALLOC_COSTLY_ORDER is the order at which allocations are deemed
++ * costly to service.  That is between allocation orders which should
++ * coelesce naturally under reasonable reclaim pressure and those which
++ * will not.
++ */
++#define PAGE_ALLOC_COSTLY_ORDER 3
 +
-+static inline int zone_movable_is_highmem(void)
+ struct free_area {
+ 	struct list_head	free_list;
+ 	unsigned long		nr_free;
+diff -puN include/linux/swap.h~lumpy-reclaim-v4 include/linux/swap.h
+--- a/include/linux/swap.h~lumpy-reclaim-v4
++++ a/include/linux/swap.h
+@@ -188,7 +188,8 @@ extern int rotate_reclaimable_page(struc
+ extern void swap_setup(void);
+ 
+ /* linux/mm/vmscan.c */
+-extern unsigned long try_to_free_pages(struct zone **, gfp_t);
++extern unsigned long try_to_free_pages(struct zone **zones, int order,
++					gfp_t gfp_mask);
+ extern unsigned long shrink_all_memory(unsigned long nr_pages);
+ extern int vm_swappiness;
+ extern int remove_mapping(struct address_space *mapping, struct page *page);
+diff -puN mm/page_alloc.c~lumpy-reclaim-v4 mm/page_alloc.c
+--- a/mm/page_alloc.c~lumpy-reclaim-v4
++++ a/mm/page_alloc.c
+@@ -1333,7 +1333,7 @@ nofail_alloc:
+ 	reclaim_state.reclaimed_slab = 0;
+ 	p->reclaim_state = &reclaim_state;
+ 
+-	did_some_progress = try_to_free_pages(zonelist->zones, gfp_mask);
++	did_some_progress = try_to_free_pages(zonelist->zones, order, gfp_mask);
+ 
+ 	p->reclaim_state = NULL;
+ 	p->flags &= ~PF_MEMALLOC;
+@@ -1370,7 +1370,8 @@ nofail_alloc:
+ 	 */
+ 	do_retry = 0;
+ 	if (!(gfp_mask & __GFP_NORETRY)) {
+-		if ((order <= 3) || (gfp_mask & __GFP_REPEAT))
++		if ((order <= PAGE_ALLOC_COSTLY_ORDER) ||
++						(gfp_mask & __GFP_REPEAT))
+ 			do_retry = 1;
+ 		if (gfp_mask & __GFP_NOFAIL)
+ 			do_retry = 1;
+diff -puN mm/vmscan.c~lumpy-reclaim-v4 mm/vmscan.c
+--- a/mm/vmscan.c~lumpy-reclaim-v4
++++ a/mm/vmscan.c
+@@ -66,6 +66,8 @@ struct scan_control {
+ 	int swappiness;
+ 
+ 	int all_unreclaimable;
++
++	int order;
+ };
+ 
+ /*
+@@ -481,7 +483,8 @@ static unsigned long shrink_page_list(st
+ 
+ 		referenced = page_referenced(page, 1);
+ 		/* In active use or really unfreeable?  Activate it. */
+-		if (referenced && page_mapping_inuse(page))
++		if (sc->order <= PAGE_ALLOC_COSTLY_ORDER &&
++					referenced && page_mapping_inuse(page))
+ 			goto activate_locked;
+ 
+ #ifdef CONFIG_SWAP
+@@ -514,7 +517,7 @@ static unsigned long shrink_page_list(st
+ 		}
+ 
+ 		if (PageDirty(page)) {
+-			if (referenced)
++			if (sc->order <= PAGE_ALLOC_COSTLY_ORDER && referenced)
+ 				goto keep_locked;
+ 			if (!may_enter_fs)
+ 				goto keep_locked;
+@@ -598,6 +601,51 @@ keep:
+ 	return nr_reclaimed;
+ }
+ 
++/* LRU Isolation modes. */
++#define ISOLATE_INACTIVE 0	/* Isolate inactive pages. */
++#define ISOLATE_ACTIVE 1	/* Isolate active pages. */
++#define ISOLATE_BOTH 2		/* Isolate both active and inactive pages. */
++
++/*
++ * Attempt to remove the specified page from its LRU.  Only take this page
++ * if it is of the appropriate PageActive status.  Pages which are being
++ * freed elsewhere are also ignored.
++ *
++ * page:	page to consider
++ * mode:	one of the LRU isolation modes defined above
++ *
++ * returns 0 on success, -ve errno on failure.
++ */
++static int __isolate_lru_page(struct page *page, int mode)
 +{
-+#if defined(CONFIG_HIGHMEM) && defined(CONFIG_ARCH_POPULATES_NODE_MAP)
-+	return movable_zone == ZONE_HIGHMEM;
-+#else
-+	return 0;
-+#endif
++	int ret = -EINVAL;
++
++	/* Only take pages on the LRU. */
++	if (!PageLRU(page))
++		return ret;
++
++	/*
++	 * When checking the active state, we need to be sure we are
++	 * dealing with comparible boolean values.  Take the logical not
++	 * of each.
++	 */
++	if (mode != ISOLATE_BOTH && (!PageActive(page) != !mode))
++		return ret;
++
++	ret = -EBUSY;
++	if (likely(get_page_unless_zero(page))) {
++		/*
++		 * Be careful not to clear PageLRU until after we're
++		 * sure the page is not being freed elsewhere -- the
++		 * page release code relies on it.
++		 */
++		ClearPageLRU(page);
++		ret = 0;
++	}
++
++	return ret;
 +}
 +
- static inline int is_highmem_idx(enum zone_type idx)
- {
- #ifdef CONFIG_HIGHMEM
--	return (idx == ZONE_HIGHMEM);
-+	return (idx == ZONE_HIGHMEM ||
-+		(idx == ZONE_MOVABLE && zone_movable_is_highmem()));
- #else
- 	return 0;
- #endif
-@@ -522,7 +536,9 @@ static inline int is_normal_idx(enum zon
- static inline int is_highmem(struct zone *zone)
- {
- #ifdef CONFIG_HIGHMEM
--	return zone == zone->zone_pgdat->node_zones + ZONE_HIGHMEM;
-+	int zone_idx = zone - zone->zone_pgdat->node_zones;
-+	return zone_idx == ZONE_HIGHMEM ||
-+		(zone_idx == ZONE_MOVABLE && zone_movable_is_highmem());
- #else
- 	return 0;
- #endif
-diff -puN include/linux/vmstat.h~create-the-zone_movable-zone include/linux/vmstat.h
---- a/include/linux/vmstat.h~create-the-zone_movable-zone
-+++ a/include/linux/vmstat.h
-@@ -25,7 +25,7 @@
- #define HIGHMEM_ZONE(xx)
- #endif
- 
--#define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL HIGHMEM_ZONE(xx)
-+#define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL HIGHMEM_ZONE(xx) , xx##_MOVABLE
- 
- enum vm_event_item { PGPGIN, PGPGOUT, PSWPIN, PSWPOUT,
- 		FOR_ALL_ZONES(PGALLOC),
-@@ -170,7 +170,8 @@ static inline unsigned long node_page_st
- #ifdef CONFIG_HIGHMEM
- 		zone_page_state(&zones[ZONE_HIGHMEM], item) +
- #endif
--		zone_page_state(&zones[ZONE_NORMAL], item);
-+		zone_page_state(&zones[ZONE_NORMAL], item) +
-+		zone_page_state(&zones[ZONE_MOVABLE], item);
- }
- 
- extern void zone_statistics(struct zonelist *, struct zone *);
-diff -puN mm/highmem.c~create-the-zone_movable-zone mm/highmem.c
---- a/mm/highmem.c~create-the-zone_movable-zone
-+++ a/mm/highmem.c
-@@ -46,9 +46,14 @@ unsigned int nr_free_highpages (void)
- 	pg_data_t *pgdat;
- 	unsigned int pages = 0;
- 
--	for_each_online_pgdat(pgdat)
-+	for_each_online_pgdat(pgdat) {
- 		pages += zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
- 			NR_FREE_PAGES);
-+		if (zone_movable_is_highmem())
-+			pages += zone_page_state(
-+					&pgdat->node_zones[ZONE_MOVABLE],
-+					NR_FREE_PAGES);
-+	}
- 
- 	return pages;
- }
-diff -puN mm/page_alloc.c~create-the-zone_movable-zone mm/page_alloc.c
---- a/mm/page_alloc.c~create-the-zone_movable-zone
-+++ a/mm/page_alloc.c
-@@ -80,8 +80,9 @@ int sysctl_lowmem_reserve_ratio[MAX_NR_Z
- 	 256,
- #endif
- #ifdef CONFIG_HIGHMEM
--	 32
-+	 32,
- #endif
-+	 32,
- };
- 
- EXPORT_SYMBOL(totalram_pages);
-@@ -95,8 +96,9 @@ static char * const zone_names[MAX_NR_ZO
- #endif
- 	 "Normal",
- #ifdef CONFIG_HIGHMEM
--	 "HighMem"
-+	 "HighMem",
- #endif
-+	 "Movable",
- };
- 
- int min_free_kbytes = 1024;
-@@ -134,6 +136,12 @@ static unsigned long __meminitdata dma_r
-   static unsigned long __meminitdata node_boundary_start_pfn[MAX_NUMNODES];
-   static unsigned long __meminitdata node_boundary_end_pfn[MAX_NUMNODES];
- #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
-+  unsigned long __initdata required_kernelcore;
-+  unsigned long __initdata zone_movable_pfn[MAX_NUMNODES];
-+
-+  /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
-+  int movable_zone;
-+  EXPORT_SYMBOL(movable_zone);
- #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
- 
- #if MAX_NUMNODES > 1
-@@ -1480,7 +1488,7 @@ unsigned int nr_free_buffer_pages(void)
+ /*
+  * zone->lru_lock is heavily contended.  Some of the functions that
+  * shrink the lists perform better by taking out a batch of pages
+@@ -612,38 +660,90 @@ keep:
+  * @src:	The LRU list to pull pages off.
+  * @dst:	The temp list to put pages on to.
+  * @scanned:	The number of pages that were scanned.
++ * @order:	The caller's attempted allocation order
++ * @mode:	One of the LRU isolation modes
+  *
+  * returns how many pages were moved onto *@dst.
   */
- unsigned int nr_free_pagecache_pages(void)
+ static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
+ 		struct list_head *src, struct list_head *dst,
+-		unsigned long *scanned)
++		unsigned long *scanned, int order, int mode)
  {
--	return nr_free_zone_pages(gfp_zone(GFP_HIGHUSER));
-+	return nr_free_zone_pages(gfp_zone(GFP_HIGHUSER_MOVABLE));
- }
+ 	unsigned long nr_taken = 0;
+-	struct page *page;
+ 	unsigned long scan;
  
- static inline void show_node(struct zone *zone)
-@@ -2667,6 +2675,63 @@ void __meminit get_pfn_range_for_nid(uns
+ 	for (scan = 0; scan < nr_to_scan && !list_empty(src); scan++) {
+-		struct list_head *target;
++		struct page *page;
++		unsigned long pfn;
++		unsigned long end_pfn;
++		unsigned long page_pfn;
++		int zone_id;
++
+ 		page = lru_to_page(src);
+ 		prefetchw_prev_lru_page(page, src, flags);
+ 
+ 		VM_BUG_ON(!PageLRU(page));
+ 
+-		list_del(&page->lru);
+-		target = src;
+-		if (likely(get_page_unless_zero(page))) {
+-			/*
+-			 * Be careful not to clear PageLRU until after we're
+-			 * sure the page is not being freed elsewhere -- the
+-			 * page release code relies on it.
+-			 */
+-			ClearPageLRU(page);
+-			target = dst;
++		switch (__isolate_lru_page(page, mode)) {
++		case 0:
++			list_move(&page->lru, dst);
+ 			nr_taken++;
+-		} /* else it is being freed elsewhere */
++			break;
++
++		case -EBUSY:
++			/* else it is being freed elsewhere */
++			list_move(&page->lru, src);
++			continue;
++
++		default:
++			BUG();
++		}
++
++		if (!order)
++			continue;
++
++		/*
++		 * Attempt to take all pages in the order aligned region
++		 * surrounding the tag page.  Only take those pages of
++		 * the same active state as that tag page.  We may safely
++		 * round the target page pfn down to the requested order
++		 * as the mem_map is guarenteed valid out to MAX_ORDER,
++		 * where that page is in a different zone we will detect
++		 * it from its zone id and abort this block scan.
++		 */
++		zone_id = page_zone_id(page);
++		page_pfn = page_to_pfn(page);
++		pfn = page_pfn & ~((1 << order) - 1);
++		end_pfn = pfn + (1 << order);
++		for (; pfn < end_pfn; pfn++) {
++			struct page *cursor_page;
++
++			/* The target page is in the block, ignore it. */
++			if (unlikely(pfn == page_pfn))
++				continue;
+ 
+-		list_add(&page->lru, target);
++			/* Avoid holes within the zone. */
++			if (unlikely(!pfn_valid_within(pfn)))
++				break;
++
++			cursor_page = pfn_to_page(pfn);
++			/* Check that we have not crossed a zone boundary. */
++			if (unlikely(page_zone_id(cursor_page) != zone_id))
++				continue;
++			switch (__isolate_lru_page(cursor_page, mode)) {
++			case 0:
++				list_move(&cursor_page->lru, dst);
++				nr_taken++;
++				scan++;
++				break;
++
++			case -EBUSY:
++				/* else it is being freed elsewhere */
++				list_move(&cursor_page->lru, src);
++			default:
++				break;
++			}
++		}
+ 	}
+ 
+ 	*scanned = scan;
+@@ -651,6 +751,24 @@ static unsigned long isolate_lru_pages(u
  }
  
  /*
-+ * This finds a zone that can be used for ZONE_MOVABLE pages. The
-+ * assumption is made that zones within a node are ordered in monotonic
-+ * increasing memory addresses so that the "highest" populated zone is used
++ * clear_active_flags() is a helper for shrink_active_list(), clearing
++ * any active bits from the pages in the list.
 + */
-+void __init find_usable_zone_for_movable(void)
++static unsigned long clear_active_flags(struct list_head *page_list)
 +{
-+	int zone_index;
-+	for (zone_index = MAX_NR_ZONES - 1; zone_index >= 0; zone_index--) {
-+		if (zone_index == ZONE_MOVABLE)
-+			continue;
++	int nr_active = 0;
++	struct page *page;
 +
-+		if (arch_zone_highest_possible_pfn[zone_index] >
-+				arch_zone_lowest_possible_pfn[zone_index])
-+			break;
-+	}
-+
-+	VM_BUG_ON(zone_index == -1);
-+	movable_zone = zone_index;
-+}
-+
-+/*
-+ * The zone ranges provided by the architecture do not include ZONE_MOVABLE
-+ * because it is sized independant of architecture. Unlike the other zones,
-+ * the starting point for ZONE_MOVABLE is not fixed. It may be different
-+ * in each node depending on the size of each node and how evenly kernelcore
-+ * is distributed. This helper function adjusts the zone ranges
-+ * provided by the architecture for a given node by using the end of the
-+ * highest usable zone for ZONE_MOVABLE. This preserves the assumption that
-+ * zones within a node are in order of monotonic increases memory addresses
-+ */
-+void __meminit adjust_zone_range_for_zone_movable(int nid,
-+					unsigned long zone_type,
-+					unsigned long node_start_pfn,
-+					unsigned long node_end_pfn,
-+					unsigned long *zone_start_pfn,
-+					unsigned long *zone_end_pfn)
-+{
-+	/* Only adjust if ZONE_MOVABLE is on this node */
-+	if (zone_movable_pfn[nid]) {
-+		/* Size ZONE_MOVABLE */
-+		if (zone_type == ZONE_MOVABLE) {
-+			*zone_start_pfn = zone_movable_pfn[nid];
-+			*zone_end_pfn = min(node_end_pfn,
-+				arch_zone_highest_possible_pfn[movable_zone]);
-+
-+		/* Adjust for ZONE_MOVABLE starting within this range */
-+		} else if (*zone_start_pfn < zone_movable_pfn[nid] &&
-+				*zone_end_pfn > zone_movable_pfn[nid]) {
-+			*zone_end_pfn = zone_movable_pfn[nid];
-+
-+		/* Check if this whole range is within ZONE_MOVABLE */
-+		} else if (*zone_start_pfn >= zone_movable_pfn[nid])
-+			*zone_start_pfn = *zone_end_pfn;
-+	}
-+}
-+
-+/*
-  * Return the number of pages a zone spans in a node, including holes
-  * present_pages = zone_spanned_pages_in_node() - zone_absent_pages_in_node()
-  */
-@@ -2681,6 +2746,9 @@ static unsigned long __meminit zone_span
- 	get_pfn_range_for_nid(nid, &node_start_pfn, &node_end_pfn);
- 	zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
- 	zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
-+	adjust_zone_range_for_zone_movable(nid, zone_type,
-+				node_start_pfn, node_end_pfn,
-+				&zone_start_pfn, &zone_end_pfn);
- 
- 	/* Check that this node has pages within the zone's required range */
- 	if (zone_end_pfn < node_start_pfn || zone_start_pfn > node_end_pfn)
-@@ -2771,6 +2839,9 @@ static unsigned long __meminit zone_abse
- 	zone_end_pfn = min(arch_zone_highest_possible_pfn[zone_type],
- 							node_end_pfn);
- 
-+	adjust_zone_range_for_zone_movable(nid, zone_type,
-+			node_start_pfn, node_end_pfn,
-+			&zone_start_pfn, &zone_end_pfn);
- 	return __absent_pages_in_range(nid, zone_start_pfn, zone_end_pfn);
- }
- 
-@@ -3148,6 +3219,122 @@ unsigned long __init find_max_pfn_with_a
- 	return max_pfn;
- }
- 
-+/*
-+ * Find the PFN the Movable zone begins in each node. Kernel memory
-+ * is spread evenly between nodes as long as the nodes have enough
-+ * memory. When they don't, some nodes will have more kernelcore than
-+ * others
-+ */
-+void __init find_zone_movable_pfns_for_nodes(unsigned long *movable_pfn)
-+{
-+	int i, nid;
-+	unsigned long usable_startpfn;
-+	unsigned long kernelcore_node, kernelcore_remaining;
-+	int usable_nodes = num_online_nodes();
-+
-+	/* If kernelcore was not specified, there is no ZONE_MOVABLE */
-+	if (!required_kernelcore)
-+		return;
-+
-+	/* usable_startpfn is the lowest possible pfn ZONE_MOVABLE can be at */
-+	find_usable_zone_for_movable();
-+	usable_startpfn = arch_zone_lowest_possible_pfn[movable_zone];
-+
-+restart:
-+	/* Spread kernelcore memory as evenly as possible throughout nodes */
-+	kernelcore_node = required_kernelcore / usable_nodes;
-+	for_each_online_node(nid) {
-+		/*
-+		 * Recalculate kernelcore_node if the division per node
-+		 * now exceeds what is necessary to satisfy the requested
-+		 * amount of memory for the kernel
-+		 */
-+		if (required_kernelcore < kernelcore_node)
-+			kernelcore_node = required_kernelcore / usable_nodes;
-+
-+		/*
-+		 * As the map is walked, we track how much memory is usable
-+		 * by the kernel using kernelcore_remaining. When it is
-+		 * 0, the rest of the node is usable by ZONE_MOVABLE
-+		 */
-+		kernelcore_remaining = kernelcore_node;
-+
-+		/* Go through each range of PFNs within this node */
-+		for_each_active_range_index_in_nid(i, nid) {
-+			unsigned long start_pfn, end_pfn;
-+			unsigned long size_pages;
-+
-+			start_pfn = max(early_node_map[i].start_pfn,
-+						zone_movable_pfn[nid]);
-+			end_pfn = early_node_map[i].end_pfn;
-+			if (start_pfn >= end_pfn)
-+				continue;
-+
-+			/* Account for what is only usable for kernelcore */
-+			if (start_pfn < usable_startpfn) {
-+				unsigned long kernel_pages;
-+				kernel_pages = min(end_pfn, usable_startpfn)
-+								- start_pfn;
-+
-+				kernelcore_remaining -= min(kernel_pages,
-+							kernelcore_remaining);
-+				required_kernelcore -= min(kernel_pages,
-+							required_kernelcore);
-+
-+				/* Continue if range is now fully accounted */
-+				if (end_pfn <= usable_startpfn) {
-+
-+					/*
-+					 * Push zone_movable_pfn to the end so
-+					 * that if we have to rebalance
-+					 * kernelcore across nodes, we will
-+					 * not double account here
-+					 */
-+					zone_movable_pfn[nid] = end_pfn;
-+					continue;
-+				}
-+				start_pfn = usable_startpfn;
-+			}
-+
-+			/*
-+			 * The usable PFN range for ZONE_MOVABLE is from
-+			 * start_pfn->end_pfn. Calculate size_pages as the
-+			 * number of pages used as kernelcore
-+			 */
-+			size_pages = end_pfn - start_pfn;
-+			if (size_pages > kernelcore_remaining)
-+				size_pages = kernelcore_remaining;
-+			zone_movable_pfn[nid] = start_pfn + size_pages;
-+
-+			/*
-+			 * Some kernelcore has been met, update counts and
-+			 * break if the kernelcore for this node has been
-+			 * satisified
-+			 */
-+			required_kernelcore -= min(required_kernelcore,
-+								size_pages);
-+			kernelcore_remaining -= size_pages;
-+			if (!kernelcore_remaining)
-+				break;
++	list_for_each_entry(page, page_list, lru)
++		if (PageActive(page)) {
++			ClearPageActive(page);
++			nr_active++;
 +		}
-+	}
 +
-+	/*
-+	 * If there is still required_kernelcore, we do another pass with one
-+	 * less node in the count. This will push zone_movable_pfn[nid] further
-+	 * along on the nodes that still have memory until kernelcore is
-+	 * satisified
-+	 */
-+	usable_nodes--;
-+	if (usable_nodes && required_kernelcore > usable_nodes)
-+		goto restart;
-+
-+	/* Align start of ZONE_MOVABLE on all nids to MAX_ORDER_NR_PAGES */
-+	for (nid = 0; nid < MAX_NUMNODES; nid++)
-+		zone_movable_pfn[nid] =
-+			roundup(zone_movable_pfn[nid], MAX_ORDER_NR_PAGES);
++	return nr_active;
 +}
-+
- /**
-  * free_area_init_nodes - Initialise all pg_data_t and zone data
-  * @max_zone_pfn: an array of max PFNs for each zone
-@@ -3177,19 +3364,37 @@ void __init free_area_init_nodes(unsigne
- 	arch_zone_lowest_possible_pfn[0] = find_min_pfn_with_active_regions();
- 	arch_zone_highest_possible_pfn[0] = max_zone_pfn[0];
- 	for (i = 1; i < MAX_NR_ZONES; i++) {
-+		if (i == ZONE_MOVABLE)
-+			continue;
- 		arch_zone_lowest_possible_pfn[i] =
- 			arch_zone_highest_possible_pfn[i-1];
- 		arch_zone_highest_possible_pfn[i] =
- 			max(max_zone_pfn[i], arch_zone_lowest_possible_pfn[i]);
- 	}
-+	arch_zone_lowest_possible_pfn[ZONE_MOVABLE] = 0;
-+	arch_zone_highest_possible_pfn[ZONE_MOVABLE] = 0;
-+
-+	/* Find the PFNs that ZONE_MOVABLE begins at in each node */
-+	memset(zone_movable_pfn, 0, sizeof(zone_movable_pfn));
-+	find_zone_movable_pfns_for_nodes(zone_movable_pfn);
- 
- 	/* Print out the zone ranges */
- 	printk("Zone PFN ranges:\n");
--	for (i = 0; i < MAX_NR_ZONES; i++)
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
-+		if (i == ZONE_MOVABLE)
-+			continue;
- 		printk("  %-8s %8lu -> %8lu\n",
- 				zone_names[i],
- 				arch_zone_lowest_possible_pfn[i],
- 				arch_zone_highest_possible_pfn[i]);
-+	}
-+
-+	/* Print out the PFNs ZONE_MOVABLE begins at in each node */
-+	printk("Movable zone start PFN for each node\n");
-+	for (i = 0; i < MAX_NUMNODES; i++) {
-+		if (zone_movable_pfn[i])
-+			printk("  Node %d: %lu\n", i, zone_movable_pfn[i]);
-+	}
- 
- 	/* Print out the early_node_map[] */
- 	printk("early_node_map[%d] active PFN ranges\n", nr_nodemap_entries);
-@@ -3206,6 +3411,25 @@ void __init free_area_init_nodes(unsigne
- 				find_min_pfn_for_node(nid), NULL);
- 	}
- }
 +
 +/*
-+ * kernelcore=size sets the amount of memory for use for allocations that
-+ * cannot be reclaimed or migrated.
-+ */
-+int __init cmdline_parse_kernelcore(char *p)
-+{
-+	unsigned long long coremem;
-+	if (!p)
-+		return -EINVAL;
-+
-+	coremem = memparse(p, &p);
-+	required_kernelcore = coremem >> PAGE_SHIFT;
-+
-+	/* Paranoid check that UL is enough for required_kernelcore */
-+	WARN_ON((coremem >> PAGE_SHIFT) > ULONG_MAX);
-+
-+	return 0;
-+}
- #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
+  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
+  * of reclaimed pages
+  */
+@@ -671,11 +789,18 @@ static unsigned long shrink_inactive_lis
+ 		unsigned long nr_taken;
+ 		unsigned long nr_scan;
+ 		unsigned long nr_freed;
++		unsigned long nr_active;
  
- /**
-diff -puN mm/vmstat.c~create-the-zone_movable-zone mm/vmstat.c
---- a/mm/vmstat.c~create-the-zone_movable-zone
-+++ a/mm/vmstat.c
-@@ -472,7 +472,7 @@ const struct seq_operations fragmentatio
- #endif
+ 		nr_taken = isolate_lru_pages(sc->swap_cluster_max,
+-					     &zone->inactive_list,
+-					     &page_list, &nr_scan);
+-		__mod_zone_page_state(zone, NR_INACTIVE, -nr_taken);
++			     &zone->inactive_list,
++			     &page_list, &nr_scan, sc->order,
++			     (sc->order > PAGE_ALLOC_COSTLY_ORDER)?
++					     ISOLATE_BOTH : ISOLATE_INACTIVE);
++		nr_active = clear_active_flags(&page_list);
++
++		__mod_zone_page_state(zone, NR_ACTIVE, -nr_active);
++		__mod_zone_page_state(zone, NR_INACTIVE,
++						-(nr_taken - nr_active));
+ 		zone->pages_scanned += nr_scan;
+ 		spin_unlock_irq(&zone->lru_lock);
  
- #define TEXTS_FOR_ZONES(xx) TEXT_FOR_DMA(xx) TEXT_FOR_DMA32(xx) xx "_normal", \
--					TEXT_FOR_HIGHMEM(xx)
-+					TEXT_FOR_HIGHMEM(xx) xx "_movable",
+@@ -820,7 +945,7 @@ force_reclaim_mapped:
+ 	lru_add_drain();
+ 	spin_lock_irq(&zone->lru_lock);
+ 	pgmoved = isolate_lru_pages(nr_pages, &zone->active_list,
+-				    &l_hold, &pgscanned);
++			    &l_hold, &pgscanned, sc->order, ISOLATE_ACTIVE);
+ 	zone->pages_scanned += pgscanned;
+ 	__mod_zone_page_state(zone, NR_ACTIVE, -pgmoved);
+ 	spin_unlock_irq(&zone->lru_lock);
+@@ -1011,7 +1136,7 @@ static unsigned long shrink_zones(int pr
+  * holds filesystem locks which prevent writeout this might not work, and the
+  * allocation attempt will fail.
+  */
+-unsigned long try_to_free_pages(struct zone **zones, gfp_t gfp_mask)
++unsigned long try_to_free_pages(struct zone **zones, int order, gfp_t gfp_mask)
+ {
+ 	int priority;
+ 	int ret = 0;
+@@ -1026,6 +1151,7 @@ unsigned long try_to_free_pages(struct z
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.may_swap = 1,
+ 		.swappiness = vm_swappiness,
++		.order = order,
+ 	};
  
- static const char * const vmstat_text[] = {
- 	/* Zoned VM counters */
+ 	count_vm_event(ALLOCSTALL);
+@@ -1131,6 +1257,7 @@ static unsigned long balance_pgdat(pg_da
+ 		.may_swap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.swappiness = vm_swappiness,
++		.order = order,
+ 	};
+ 	/*
+ 	 * temp_priority is used to remember the scanning priority at which
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
+i386-move-the-kernel-to-16mb-for-numa-q.patch
 add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-split-the-free-lists-for-movable-and-unmovable-allocations.patch
-choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
 add-a-configure-option-to-group-pages-by-mobility.patch
-drain-per-cpu-lists-when-high-order-allocations-fail.patch
 move-free-pages-between-lists-on-steal.patch
 group-short-lived-and-reclaimable-kernel-allocations.patch
-group-high-order-atomic-allocations.patch
 do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-bias-the-placement-of-kernel-pages-at-lower-pfns.patch
-be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
 fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 remove-page_group_by_mobility.patch
@@ -560,9 +431,5 @@ print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo
 remove-alloc_zeroed_user_highpage.patch
 have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
 only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-ext2-reservations.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
 rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
 page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
