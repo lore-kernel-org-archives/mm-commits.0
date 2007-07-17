@@ -1,154 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - mm-avoid-tlb-gather-restarts.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 01:04:10 -0700
-Message-ID: <200707170804.l6H84AL0006714@imap1.linux-foundation.org>
+Subject: - mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 01:04:56 -0700
+Message-ID: <200707170804.l6H84u6l006720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38592 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53477 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751538AbXGQIFM (ORCPT
+	by vger.kernel.org with ESMTP id S1754130AbXGQIFu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 04:05:12 -0400
+	Tue, 17 Jul 2007 04:05:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: schwidefsky@de.ibm.com, davem@davemloft.net, hugh@veritas.com, rmk@arm.linux.org.uk, spyro@f2s.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dgc@sgi.com, rusty@rustcorp.com.au, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: avoid tlb gather restarts
+     mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-tlb-gather-restarts.patch
+     mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into mm-clean-up-and-kernelify-shrinker-registration.patch
 
 ------------------------------------------------------
-Subject: mm: avoid tlb gather restarts
-From: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Subject: mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If need_resched() is false in the inner loop of unmap_vmas it is unnecessary
-to do a full blown tlb_finish_mmu / tlb_gather_mmu for each ZAP_BLOCK_SIZE
-ptes.  Do a tlb_flush_mmu() instead.  That gives architectures with a
-non-generic tlb flush implementation room for optimization.  The tlb_flush_mmu
-primitive is a available with the generic tlb flush code, the
-ia64_tlb_flush_mm needs to be renamed and a dummy function is added to arm and
-arm26.
-
-Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Acked-by: Hugh Dickins <hugh@veritas.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/tlb.h   |    5 +++++
- include/asm-arm26/tlb.h |    5 +++++
- include/asm-ia64/tlb.h  |    6 +++---
- mm/memory.c             |   16 ++++++----------
- 4 files changed, 19 insertions(+), 13 deletions(-)
+ net/sunrpc/auth.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-arm/tlb.h~mm-avoid-tlb-gather-restarts include/asm-arm/tlb.h
---- a/include/asm-arm/tlb.h~mm-avoid-tlb-gather-restarts
-+++ a/include/asm-arm/tlb.h
-@@ -52,6 +52,11 @@ tlb_gather_mmu(struct mm_struct *mm, uns
+diff -puN net/sunrpc/auth.c~mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs net/sunrpc/auth.c
+--- a/net/sunrpc/auth.c~mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs
++++ a/net/sunrpc/auth.c
+@@ -534,17 +534,18 @@ rpcauth_uptodatecred(struct rpc_task *ta
+ 		test_bit(RPCAUTH_CRED_UPTODATE, &cred->cr_flags) != 0;
  }
  
- static inline void
-+tlb_flush_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+{
-+}
-+
-+static inline void
- tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
- {
- 	if (tlb->fullmm)
-diff -puN include/asm-arm26/tlb.h~mm-avoid-tlb-gather-restarts include/asm-arm26/tlb.h
---- a/include/asm-arm26/tlb.h~mm-avoid-tlb-gather-restarts
-+++ a/include/asm-arm26/tlb.h
-@@ -29,6 +29,11 @@ tlb_gather_mmu(struct mm_struct *mm, uns
- }
- 
- static inline void
-+tlb_flush_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+{
-+}
-+
-+static inline void
- tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start, unsigned long end)
- {
-         if (tlb->need_flush)
-diff -puN include/asm-ia64/tlb.h~mm-avoid-tlb-gather-restarts include/asm-ia64/tlb.h
---- a/include/asm-ia64/tlb.h~mm-avoid-tlb-gather-restarts
-+++ a/include/asm-ia64/tlb.h
-@@ -72,7 +72,7 @@ DECLARE_PER_CPU(struct mmu_gather, mmu_g
-  * freed pages that where gathered up to this point.
-  */
- static inline void
--ia64_tlb_flush_mmu (struct mmu_gather *tlb, unsigned long start, unsigned long end)
-+tlb_flush_mmu (struct mmu_gather *tlb, unsigned long start, unsigned long end)
- {
- 	unsigned int nr;
- 
-@@ -160,7 +160,7 @@ tlb_finish_mmu (struct mmu_gather *tlb, 
- 	 * Note: tlb->nr may be 0 at this point, so we can't rely on tlb->start_addr and
- 	 * tlb->end_addr.
- 	 */
--	ia64_tlb_flush_mmu(tlb, start, end);
-+	tlb_flush_mmu(tlb, start, end);
- 
- 	/* keep the page table cache within bounds */
- 	check_pgt_cache();
-@@ -184,7 +184,7 @@ tlb_remove_page (struct mmu_gather *tlb,
- 	}
- 	tlb->pages[tlb->nr++] = page;
- 	if (tlb->nr >= FREE_PTE_NR)
--		ia64_tlb_flush_mmu(tlb, tlb->start_addr, tlb->end_addr);
-+		tlb_flush_mmu(tlb, tlb->start_addr, tlb->end_addr);
- }
- 
- /*
-diff -puN mm/memory.c~mm-avoid-tlb-gather-restarts mm/memory.c
---- a/mm/memory.c~mm-avoid-tlb-gather-restarts
-+++ a/mm/memory.c
-@@ -851,18 +851,15 @@ unsigned long unmap_vmas(struct mmu_gath
- 				break;
- 			}
- 
--			tlb_finish_mmu(*tlbp, tlb_start, start);
 -
- 			if (need_resched() ||
- 				(i_mmap_lock && need_lockbreak(i_mmap_lock))) {
--				if (i_mmap_lock) {
--					*tlbp = NULL;
-+				if (i_mmap_lock)
- 					goto out;
--				}
-+				tlb_finish_mmu(*tlbp, tlb_start, start);
- 				cond_resched();
--			}
--
--			*tlbp = tlb_gather_mmu(vma->vm_mm, fullmm);
-+				*tlbp = tlb_gather_mmu(vma->vm_mm, fullmm);
-+			} else
-+				tlb_flush_mmu(*tlbp, tlb_start, start);
- 			tlb_start_valid = 0;
- 			zap_work = ZAP_BLOCK_SIZE;
- 		}
-@@ -890,8 +887,7 @@ unsigned long zap_page_range(struct vm_a
- 	tlb = tlb_gather_mmu(mm, 0);
- 	update_hiwater_rss(mm);
- 	end = unmap_vmas(&tlb, vma, address, end, &nr_accounted, details);
--	if (tlb)
--		tlb_finish_mmu(tlb, address, end);
-+	tlb_finish_mmu(tlb, address, end);
- 	return end;
+-static struct shrinker *rpc_cred_shrinker;
++static struct shrinker rpc_cred_shrinker = {
++	.shrink = rpcauth_cache_shrinker,
++	.seeks = DEFAULT_SEEKS,
++};
+ 
+ void __init rpcauth_init_module(void)
+ {
+ 	rpc_init_authunix();
+-	rpc_cred_shrinker = set_shrinker(DEFAULT_SEEKS, rpcauth_cache_shrinker);
++	register_shrinker(&rpc_cred_shrinker);
  }
  
+ void __exit rpcauth_remove_module(void)
+ {
+-	if (rpc_cred_shrinker != NULL)
+-		remove_shrinker(rpc_cred_shrinker);
++	unregister_shrinker(&rpc_cred_shrinker);
+ }
 _
 
-Patches currently in -mm which might be from schwidefsky@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-remove-ptep_establish.patch
-mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty.patch
-i386-put-allocated-elf-notes-in-read-only-data-segment.patch
-s390-put-allocated-elf-notes-in-read-only-data-segment.patch
-add-sys-kernel-notes.patch
-use-build-id-ld-option.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+i386-speedup-touch_nmi_watchdog.patch
+x86_64-speedup-touch_nmi_watchdog.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support.patch
+spi-master-driver-for-xilinx-virtex.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-remove-iget-abuse.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+rtc-add-rtc-m41t80-driver-take-2.patch
+rtc-add-support-for-the-st-m48t59-rtc.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-driver-for-ds1216-chips-fix.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
