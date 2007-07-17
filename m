@@ -1,99 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - git-kbuild-fixup.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 15:03:13 -0700
-Message-ID: <200707172203.l6HM3DBu009027@imap1.linux-foundation.org>
+Subject: - git-ocfs2-fixup.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 15:04:33 -0700
+Message-ID: <200707172204.l6HM4YVg009067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34435 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58869 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757530AbXGQWDU (ORCPT
+	by vger.kernel.org with ESMTP id S1753249AbXGQWEl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 18:03:20 -0400
+	Tue, 17 Jul 2007 18:04:41 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6HM3Iwv029952
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6HM4dm0030043
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 17 Jul 2007 15:03:19 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 17 Jul 2007 15:04:40 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-kbuild-fixup
+     git-ocfs2-fixup
 has been removed from the -mm tree.  Its filename was
-     git-kbuild-fixup.patch
+     git-ocfs2-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-kbuild-fixup
+Subject: git-ocfs2-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |   42 ----------------------------------------
- 1 file changed, 42 deletions(-)
+ fs/dlm/config.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN scripts/mod/modpost.c~git-kbuild-fixup scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~git-kbuild-fixup
-+++ a/scripts/mod/modpost.c
-@@ -1131,21 +1131,6 @@ static int init_section_ref_ok(const cha
- 		".data.rel.ro",		/* used by parisc64 */
- 		".init",
- 		".text.lock",
--<<<<<<< HEAD/scripts/mod/modpost.c
--		"__bug_table", /* used by powerpc for BUG() */
--		".pci_fixup_header",
--		".pci_fixup_final",
--		".pdr",
--		"__param",
--		"__ex_table",
--		".fixup",
--		".smp_locks",
--		".plt",  /* seen on ARCH=um build on x86_64. Harmless */
--		"__ftr_fixup",		/* powerpc cpu feature fixup */
--		"__fw_ftr_fixup",	/* powerpc firmware feature fixup */
--		".cranges",	/* used by sh64 */
--=======
-->>>>>>> /scripts/mod/modpost.c
- 		NULL
- 	};
- 	/* Start of section names */
-@@ -1203,33 +1188,6 @@ static int exit_section_ref_ok(const cha
- 		".exit.text",
- 		".exitcall.exit",
- 		".rodata",
--<<<<<<< HEAD/scripts/mod/modpost.c
--		".opd", /* See comment [OPD] */
--		".toc1",  /* used by ppc64 */
--		".altinstructions",
--		".pdr",
--		"__bug_table", /* used by powerpc for BUG() */
--		".exitcall.exit",
--		".eh_frame",
--		".parainstructions",
--		".stab",
--		"__ex_table",
--		".fixup",
--		".smp_locks",
--		".plt",  /* seen on ARCH=um build on x86_64. Harmless */
--		".cranges",	/* used by sh64 */
--		NULL
--	};
--	/* Start of section names */
--	const char *namelist2[] = {
--		".debug",
--		NULL
--	};
--	/* part of section name */
--	const char *namelist3 [] = {
--		".unwind",  /* Sample: IA_64.unwind.exit.text */
--=======
-->>>>>>> /scripts/mod/modpost.c
- 		NULL
- 	};
+diff -puN fs/dlm/config.c~git-ocfs2-fixup fs/dlm/config.c
+--- a/fs/dlm/config.c~git-ocfs2-fixup
++++ a/fs/dlm/config.c
+@@ -750,16 +750,7 @@ static struct space *get_space(char *nam
  
+ 	if (!space_list)
+ 		return NULL;
+-<<<<<<< HEAD/fs/dlm/config.c
+-
+-	mutex_lock(&space_list->cg_subsys->su_mutex);
+-	i = config_group_find_item(space_list, name);
+-	mutex_unlock(&space_list->cg_subsys->su_mutex);
+-
+-	return to_space(i);
+-=======
+ 	return to_space(config_group_find_item(space_list, name));
+->>>>>>> /fs/dlm/config.c
+ }
+ 
+ static void put_space(struct space *sp)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +72,6 @@ revert-saa7134-fix-thread-shutdown-handling.patch
 git-dvb.patch
 git-dvb-saa7134-tvaudio-fix.patch
 git-kbuild.patch
-git-kbuild-fixup.patch
 git-kvm.patch
 git-leds.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
