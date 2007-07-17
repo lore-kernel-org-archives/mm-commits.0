@@ -1,82 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - spidev-compiler-warning-gone.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:02:58 -0700
-Message-ID: <200707172302.l6HN2w4L011645@imap1.linux-foundation.org>
+Subject: - q40fb-the-pseudo_palette-is-only-16-elements-long.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:07:30 -0700
+Message-ID: <200707172307.l6HN7U88012195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49175 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936648AbXGQXQG (ORCPT
+	by vger.kernel.org with ESMTP id S1761953AbXGQXPJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:06 -0400
+	Tue, 17 Jul 2007 19:15:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spidev compiler warning gone
+     q40fb: the pseudo_palette is only 16 elements long
 has been removed from the -mm tree.  Its filename was
-     spidev-compiler-warning-gone.patch
+     q40fb-the-pseudo_palette-is-only-16-elements-long.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spidev compiler warning gone
-From: David Brownell <david-b@pacbell.net>
+Subject: q40fb: the pseudo_palette is only 16 elements long
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Get rid of annoying GCC warning on 32-bit platforms.
+The pseudo_palette is only 16 elements long.
 
-drivers/spi/spidev.c: In function 'spidev_message':
-drivers/spi/spidev.c:184: warning: cast to pointer from integer of different size
-drivers/spi/spidev.c:216: warning: cast to pointer from integer of different size
-
-
-The trick is to add an extra cast using "ptrdiff_t" to convert the u64 to
-the correct size integer, and only then casting it into a "void *" pointer.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spidev.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/video/q40fb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spidev.c~spidev-compiler-warning-gone drivers/spi/spidev.c
---- a/drivers/spi/spidev.c~spidev-compiler-warning-gone
-+++ a/drivers/spi/spidev.c
-@@ -181,7 +181,8 @@ static int spidev_message(struct spidev_
- 		}
- 		if (u_tmp->tx_buf) {
- 			k_tmp->tx_buf = buf;
--			if (copy_from_user(buf, (const u8 __user *)u_tmp->tx_buf,
-+			if (copy_from_user(buf, (const u8 __user *)
-+						(ptrdiff_t) u_tmp->tx_buf,
- 					u_tmp->len))
- 				goto done;
- 		}
-@@ -213,7 +214,8 @@ static int spidev_message(struct spidev_
- 	buf = spidev->buffer;
- 	for (n = n_xfers, u_tmp = u_xfers; n; n--, u_tmp++) {
- 		if (u_tmp->rx_buf) {
--			if (__copy_to_user((u8 __user *)u_tmp->rx_buf, buf,
-+			if (__copy_to_user((u8 __user *)
-+					(ptrdiff_t) u_tmp->rx_buf, buf,
- 					u_tmp->len)) {
- 				status = -EFAULT;
- 				goto done;
+diff -puN drivers/video/q40fb.c~q40fb-the-pseudo_palette-is-only-16-elements-long drivers/video/q40fb.c
+--- a/drivers/video/q40fb.c~q40fb-the-pseudo_palette-is-only-16-elements-long
++++ a/drivers/video/q40fb.c
+@@ -95,7 +95,7 @@ static int __init q40fb_probe(struct pla
+ 	/* mapped in q40/config.c */
+ 	q40fb_fix.smem_start = Q40_PHYS_SCREEN_ADDR;
+ 
+-	info = framebuffer_alloc(sizeof(u32) * 256, &dev->dev);
++	info = framebuffer_alloc(sizeof(u32) * 16, &dev->dev);
+ 	if (!info)
+ 		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
-git-leds.patch
-git-mmc.patch
-git-mtd.patch
-git-backlight.patch
-use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-gpio-calls-dont-need-i-o-barriers.patch
-dev_vdbg-available-with-dverbose_debug.patch
-dev_vdbg-available-with-dverbose_debug-docs.patch
