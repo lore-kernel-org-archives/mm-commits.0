@@ -1,92 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:04:15 -0700
-Message-ID: <200707172304.l6HN4F2F011787@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-isdn-config_isdn.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:03:39 -0700
+Message-ID: <200707172303.l6HN3dXm011707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48578 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42015 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936014AbXGQXQd (ORCPT
+	by vger.kernel.org with ESMTP id S936668AbXGQXQ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:33 -0400
+	Tue, 17 Jul 2007 19:16:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@infradead.org, hch@lst.de, neilb@suse.de, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: exportfs: move acceptable check into find_acceptable_alias
+     Use menuconfig objects: ISDN: CONFIG_ISDN
 has been removed from the -mm tree.  Its filename was
-     knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias.patch
+     use-menuconfig-objects-isdn-config_isdn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: exportfs: move acceptable check into find_acceptable_alias
-From: Christoph Hellwig <hch@infradead.org>
+Subject: Use menuconfig objects: ISDN: CONFIG_ISDN
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-All callers of find_acceptable_alias check if the current dentry is acceptable
-before looking for other acceptable aliases using find_acceptable_alias.  Move
-the check into find_acceptable_alias to make the code a little more dense and
-add a comment to find_acceptable_alias that documents its intent.
+Transform Kconfig objects from "menu, config" into "menuconfig" so that the
+user can disable the whole feature without having to enter the menu first.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exportfs/expfs.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/isdn/Kconfig                |   13 ++++---------
+ drivers/isdn/hardware/Kconfig       |    2 +-
+ drivers/isdn/hardware/avm/Kconfig   |    2 +-
+ drivers/isdn/hardware/eicon/Kconfig |    2 +-
+ drivers/isdn/i4l/Kconfig            |    7 +++----
+ 5 files changed, 10 insertions(+), 16 deletions(-)
 
-diff -puN fs/exportfs/expfs.c~knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias fs/exportfs/expfs.c
---- a/fs/exportfs/expfs.c~knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias
-+++ a/fs/exportfs/expfs.c
-@@ -37,6 +37,9 @@ static int exportfs_get_name(struct dent
- 		return get_name(dir, name, child);
- }
+diff -puN drivers/isdn/Kconfig~use-menuconfig-objects-isdn-config_isdn drivers/isdn/Kconfig
+--- a/drivers/isdn/Kconfig~use-menuconfig-objects-isdn-config_isdn
++++ a/drivers/isdn/Kconfig
+@@ -2,12 +2,10 @@
+ # ISDN device configuration
+ #
  
-+/*
-+ * Check if the dentry or any of it's aliases is acceptable.
-+ */
- static struct dentry *
- find_acceptable_alias(struct dentry *result,
- 		int (*acceptable)(void *context, struct dentry *dentry),
-@@ -44,6 +47,9 @@ find_acceptable_alias(struct dentry *res
- {
- 	struct dentry *dentry, *toput = NULL;
- 
-+	if (acceptable(context, result))
-+		return result;
-+
- 	spin_lock(&dcache_lock);
- 	list_for_each_entry(dentry, &result->d_inode->i_dentry, d_alias) {
- 		dget_locked(dentry);
-@@ -126,9 +132,6 @@ find_exported_dentry(struct super_block 
- 
- 		target_dir = dget(result);
- 	} else {
--		if (acceptable(context, result))
--			return result;
+-menu "ISDN subsystem"
+-	depends on !S390
 -
- 		alias = find_acceptable_alias(result, acceptable, context);
- 		if (alias)
- 			return alias;
-@@ -289,9 +292,6 @@ find_exported_dentry(struct super_block 
- 		}
- 	}
- 	dput(target_dir);
--	/* now result is properly connected, it is our best bet */
--	if (acceptable(context, result))
--		return result;
+-config ISDN
++menuconfig ISDN
+ 	tristate "ISDN support"
+ 	depends on NET
++	depends on !S390
+ 	---help---
+ 	  ISDN ("Integrated Services Digital Networks", called RNIS in France)
+ 	  is a special type of fully digital telephone service; it's mostly
+@@ -21,9 +19,9 @@ config ISDN
  
- 	alias = find_acceptable_alias(result, acceptable, context);
- 	if (alias)
+ 	  Select this option if you want your kernel to support ISDN.
+ 
++if ISDN
+ 
+ menu "Old ISDN4Linux"
+-	depends on NET && ISDN
+ 
+ config ISDN_I4L
+ 	tristate "Old ISDN4Linux (deprecated)"
+@@ -50,11 +48,9 @@ endif
+ endmenu
+ 
+ comment "CAPI subsystem"
+-	depends on NET && ISDN
+ 
+ config ISDN_CAPI
+ 	tristate "CAPI2.0 support"
+-	depends on ISDN
+ 	help
+ 	  This provides the CAPI (Common ISDN Application Programming
+ 	  Interface, a standard making it easy for programs to access ISDN
+@@ -65,5 +61,4 @@ source "drivers/isdn/capi/Kconfig"
+ 
+ source "drivers/isdn/hardware/Kconfig"
+ 
+-endmenu
+-
++endif # ISDN
+diff -puN drivers/isdn/hardware/Kconfig~use-menuconfig-objects-isdn-config_isdn drivers/isdn/hardware/Kconfig
+--- a/drivers/isdn/hardware/Kconfig~use-menuconfig-objects-isdn-config_isdn
++++ a/drivers/isdn/hardware/Kconfig
+@@ -2,7 +2,7 @@
+ # ISDN hardware drivers
+ #
+ comment "CAPI hardware drivers"
+-	depends on NET && ISDN && ISDN_CAPI
++	depends on ISDN_CAPI
+ 
+ source "drivers/isdn/hardware/avm/Kconfig"
+ 
+diff -puN drivers/isdn/hardware/avm/Kconfig~use-menuconfig-objects-isdn-config_isdn drivers/isdn/hardware/avm/Kconfig
+--- a/drivers/isdn/hardware/avm/Kconfig~use-menuconfig-objects-isdn-config_isdn
++++ a/drivers/isdn/hardware/avm/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ 
+ menu "Active AVM cards"
+-	depends on NET && ISDN && ISDN_CAPI!=n
++	depends on ISDN_CAPI!=n
+ 
+ config CAPI_AVM
+ 	bool "Support AVM cards"
+diff -puN drivers/isdn/hardware/eicon/Kconfig~use-menuconfig-objects-isdn-config_isdn drivers/isdn/hardware/eicon/Kconfig
+--- a/drivers/isdn/hardware/eicon/Kconfig~use-menuconfig-objects-isdn-config_isdn
++++ a/drivers/isdn/hardware/eicon/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ 
+ menu "Active Eicon DIVA Server cards"
+-	depends on NET && ISDN && ISDN_CAPI!=n
++	depends on ISDN_CAPI!=n
+ 
+ config CAPI_EICON
+ 	bool "Support Eicon cards"
+diff -puN drivers/isdn/i4l/Kconfig~use-menuconfig-objects-isdn-config_isdn drivers/isdn/i4l/Kconfig
+--- a/drivers/isdn/i4l/Kconfig~use-menuconfig-objects-isdn-config_isdn
++++ a/drivers/isdn/i4l/Kconfig
+@@ -86,7 +86,6 @@ config ISDN_X25
+ 
+ 
+ menu "ISDN feature submodules"
+-	depends on ISDN
+ 
+ config ISDN_DRV_LOOP
+ 	tristate "isdnloop support"
+@@ -100,7 +99,7 @@ config ISDN_DRV_LOOP
+ 
+ config ISDN_DIVERSION
+ 	tristate "Support isdn diversion services"
+-	depends on ISDN && ISDN_I4L
++	depends on ISDN_I4L
+ 	help
+ 	  This option allows you to use some supplementary diversion
+ 	  services in conjunction with the HiSax driver on an EURO/DSS1
+@@ -120,13 +119,13 @@ config ISDN_DIVERSION
+ endmenu
+ 
+ comment "ISDN4Linux hardware drivers"
+-	depends on NET && ISDN && ISDN_I4L
++	depends on ISDN_I4L
+ 
+ source "drivers/isdn/hisax/Kconfig"
+ 
+ 
+ menu "Active cards"
+-	depends on NET && ISDN && ISDN_I4L!=n
++	depends on ISDN_I4L!=n
+ 
+ source "drivers/isdn/icn/Kconfig"
+ 
 _
 
-Patches currently in -mm which might be from hch@infradead.org are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
-dvb_en_50221-convert-to-kthread-api.patch
-git-vfs-lease-api.patch
-git-xfs.patch
-introduce-i_sync.patch
+git-acpi.patch
+git-kvm.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
