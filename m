@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sparc64-rename-tlb_flush_mmu.patch added to -mm tree
-Date: Tue, 17 Jul 2007 00:48:01 -0700
-Message-ID: <200707170748.l6H7m1so005969@imap1.linux-foundation.org>
+Subject: - sparc64-rename-tlb_flush_mmu.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 00:57:46 -0700
+Message-ID: <200707170757.l6H7vkQS006406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37742 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47833 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751726AbXGQHsP (ORCPT
+	by vger.kernel.org with ESMTP id S933291AbXGQH57 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 03:48:15 -0400
+	Tue, 17 Jul 2007 03:57:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, hugh@veritas.com, schwidefsky@de.ibm.com
+To: akpm@linux-foundation.org, davem@davemloft.net, hugh@veritas.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      sparc64: rename tlb_flush_mmu()
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      sparc64-rename-tlb_flush_mmu.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 Subject: sparc64: rename tlb_flush_mmu()
@@ -84,13 +80,9 @@ origin.patch
 sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 sparc64-rename-tlb_flush_mmu.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 create-the-zone_movable-zone.patch
 allow-huge-page-allocations-to-use-gfp_high_movable.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
 mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
 fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
