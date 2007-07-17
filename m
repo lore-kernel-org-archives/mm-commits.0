@@ -1,108 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:00:59 -0700
-Message-ID: <200707172300.l6HN0x9Q011338@imap1.linux-foundation.org>
+Subject: - slub-slab-validation-move-tracking-information-alloc-outside-of.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:00:57 -0700
+Message-ID: <200707172300.l6HN0vCv011335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33175 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59632 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935374AbXGQXBZ (ORCPT
+	by vger.kernel.org with ESMTP id S935934AbXGQXBY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:01:25 -0400
+	Tue, 17 Jul 2007 19:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: ensure that the number of objects per slab stays low for high orders
+     SLUB slab validation: Move tracking information alloc outside of lock
 has been removed from the -mm tree.  Its filename was
-     slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
+     slub-slab-validation-move-tracking-information-alloc-outside-of.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: ensure that the number of objects per slab stays low for high orders
+Subject: SLUB slab validation: Move tracking information alloc outside of lock
 From: Christoph Lameter <clameter@sgi.com>
 
-Currently SLUB has no provision to deal with too high page orders that may
-be specified on the kernel boot line.  If an order higher than 6 (on a 4k
-platform) is generated then we will BUG() because slabs get more than 65535
-objects.
+We currently have to do an GFP_ATOMIC allocation because the list_lock is
+already taken when we first allocate memory for tracking allocation
+information.  It would be better if we could avoid atomic allocations.
 
-Add some logic that decreases order for slabs that have too many objects. 
-This allow booting with slab sizes up to MAX_ORDER.
-
-For example
-
-	slub_min_order=10
-
-will boot with a default slab size of 4M and reduce slab sizes for small
-object sizes to lower orders if the number of objects becomes too big. 
-Large slab sizes like that allow a concentration of objects of the same
-slab cache under as few as possible TLB entries and thus potentially
-reduces TLB pressure.
+Allocate a size of the tracking table that is usually sufficient (one page)
+before we take the list lock.  We will then only do the atomic allocation
+if we need to resize the table to become larger than a page (mostly only
+needed under large NUMA because of the tracking of cpus and nodes otherwise
+the table stays small).
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+ mm/slub.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN mm/slub.c~slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders mm/slub.c
---- a/mm/slub.c~slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders
+diff -puN mm/slub.c~slub-slab-validation-move-tracking-information-alloc-outside-of mm/slub.c
+--- a/mm/slub.c~slub-slab-validation-move-tracking-information-alloc-outside-of
 +++ a/mm/slub.c
-@@ -205,6 +205,11 @@ static inline void ClearSlabDebug(struct
- #define ARCH_SLAB_MINALIGN __alignof__(unsigned long long)
- #endif
+@@ -2902,18 +2902,14 @@ static void free_loc_track(struct loc_tr
+ 			get_order(sizeof(struct location) * t->max));
+ }
  
-+/*
-+ * The page->inuse field is 16 bit thus we have this limitation
-+ */
-+#define MAX_OBJECTS_PER_SLAB 65535
-+
- /* Internal SLUB flags */
- #define __OBJECT_POISON 0x80000000	/* Poison object */
- 
-@@ -1736,8 +1741,17 @@ static inline int slab_order(int size, i
+-static int alloc_loc_track(struct loc_track *t, unsigned long max)
++static int alloc_loc_track(struct loc_track *t, unsigned long max, gfp_t flags)
  {
+ 	struct location *l;
  	int order;
- 	int rem;
-+	int min_order = slub_min_order;
  
--	for (order = max(slub_min_order,
-+	/*
-+	 * If we would create too many object per slab then reduce
-+	 * the slab order even if it goes below slub_min_order.
-+	 */
-+	while (min_order > 0 &&
-+		(PAGE_SIZE << min_order) >= MAX_OBJECTS_PER_SLAB * size)
-+			min_order--;
-+
-+	for (order = max(min_order,
- 				fls(min_objects * size - 1) - PAGE_SHIFT);
- 			order <= max_order; order++) {
+-	if (!max)
+-		max = PAGE_SIZE / sizeof(struct location);
+-
+ 	order = get_order(sizeof(struct location) * max);
  
-@@ -1751,6 +1765,9 @@ static inline int slab_order(int size, i
- 		if (rem <= slab_size / fract_leftover)
- 			break;
- 
-+		/* If the next size is too high then exit now */
-+		if (slab_size * 2 >= MAX_OBJECTS_PER_SLAB * size)
-+			break;
- 	}
- 
- 	return order;
-@@ -2037,7 +2054,7 @@ static int calculate_sizes(struct kmem_c
- 	 * The page->inuse field is only 16 bit wide! So we cannot have
- 	 * more than 64k objects per slab.
- 	 */
--	if (!s->objects || s->objects > 65535)
-+	if (!s->objects || s->objects > MAX_OBJECTS_PER_SLAB)
+-	l = (void *)__get_free_pages(GFP_ATOMIC, order);
+-
++	l = (void *)__get_free_pages(flags, order);
+ 	if (!l)
  		return 0;
- 	return 1;
  
+@@ -2979,7 +2975,7 @@ static int add_location(struct loc_track
+ 	/*
+ 	 * Not found. Insert new tracking element.
+ 	 */
+-	if (t->count >= t->max && !alloc_loc_track(t, 2 * t->max))
++	if (t->count >= t->max && !alloc_loc_track(t, 2 * t->max, GFP_ATOMIC))
+ 		return 0;
+ 
+ 	l = t->loc + pos;
+@@ -3022,11 +3018,12 @@ static int list_locations(struct kmem_ca
+ {
+ 	int n = 0;
+ 	unsigned long i;
+-	struct loc_track t;
++	struct loc_track t = { 0, 0, NULL };
+ 	int node;
+ 
+-	t.count = 0;
+-	t.max = 0;
++	if (!alloc_loc_track(&t, PAGE_SIZE / sizeof(struct location),
++			GFP_KERNEL))
++		return sprintf(buf, "Out of memory\n");
+ 
+ 	/* Push back cpu slabs */
+ 	flush_all(s);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
