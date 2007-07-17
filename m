@@ -1,175 +1,300 @@
 From: akpm@linux-foundation.org
-Subject: - i386-speedup-touch_nmi_watchdog.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:02:39 -0700
-Message-ID: <200707172302.l6HN2dwD011590@imap1.linux-foundation.org>
+Subject: - rtc-driver-for-ds1216-chips.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:05:50 -0700
+Message-ID: <200707172305.l6HN5oUZ011958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45705 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51987 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933784AbXGQXPq (ORCPT
+	by vger.kernel.org with ESMTP id S932159AbXGQXPp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:46 -0400
+	Tue, 17 Jul 2007 19:15:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, konrad@darnok.org, mm-commits@vger.kernel.org
+To: tsbogend@alpha.franken.de, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: speedup touch_nmi_watchdog
+     RTC driver for DS1216 chips
 has been removed from the -mm tree.  Its filename was
-     i386-speedup-touch_nmi_watchdog.patch
+     rtc-driver-for-ds1216-chips.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: speedup touch_nmi_watchdog
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: RTC driver for DS1216 chips
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-Avoid dirtying remote cpu's memory if it already has the correct value.
+RTC driver for Dallas/Maxim DS126 chips used in SNI RM200/RM400
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Konrad Rzeszutek <konrad@darnok.org>
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/nmi.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/rtc/Kconfig      |    6 
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-ds1216.c |  226 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 233 insertions(+)
 
-diff -puN arch/i386/kernel/nmi.c~i386-speedup-touch_nmi_watchdog arch/i386/kernel/nmi.c
---- a/arch/i386/kernel/nmi.c~i386-speedup-touch_nmi_watchdog
-+++ a/arch/i386/kernel/nmi.c
-@@ -295,7 +295,7 @@ static unsigned int
- 	last_irq_sums [NR_CPUS],
- 	alert_counter [NR_CPUS];
+diff -puN drivers/rtc/Kconfig~rtc-driver-for-ds1216-chips drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-driver-for-ds1216-chips
++++ a/drivers/rtc/Kconfig
+@@ -280,6 +280,12 @@ config RTC_DRV_CMOS
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-cmos.
  
--void touch_nmi_watchdog (void)
-+void touch_nmi_watchdog(void)
- {
- 	if (nmi_watchdog > 0) {
- 		unsigned cpu;
-@@ -304,8 +304,10 @@ void touch_nmi_watchdog (void)
- 		 * Just reset the alert counters, (other CPUs might be
- 		 * spinning on locks we hold):
- 		 */
--		for_each_present_cpu (cpu)
--			alert_counter[cpu] = 0;
-+		for_each_present_cpu(cpu) {
-+			if (alert_counter[cpu])
-+				alert_counter[cpu] = 0;
++config RTC_DRV_DS1216
++	tristate "Dallas DS1216"
++	depends on RTC_CLASS && SNI_RM
++	help
++	  If you say yes here you get support for the Dallas DS1216 RTC chips.
++
+ config RTC_DRV_DS1553
+ 	tristate "Dallas DS1553"
+ 	depends on RTC_CLASS
+diff -puN drivers/rtc/Makefile~rtc-driver-for-ds1216-chips drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-driver-for-ds1216-chips
++++ a/drivers/rtc/Makefile
+@@ -44,3 +44,4 @@ obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-a
+ obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
+ obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
+ obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
++obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
+diff -puN /dev/null drivers/rtc/rtc-ds1216.c
+--- /dev/null
++++ a/drivers/rtc/rtc-ds1216.c
+@@ -0,0 +1,226 @@
++/*
++ * Dallas DS1216 RTC driver
++ *
++ * Copyright (c) 2007 Thomas Bogendoerfer
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/rtc.h>
++#include <linux/platform_device.h>
++#include <linux/bcd.h>
++
++#define DRV_VERSION "0.1"
++
++struct ds1216_regs {
++	u8 tsec;
++	u8 sec;
++	u8 min;
++	u8 hour;
++	u8 wday;
++	u8 mday;
++	u8 month;
++	u8 year;
++};
++
++#define DS1216_HOUR_1224	(1 << 7)
++#define DS1216_HOUR_AMPM	(1 << 5)
++
++struct ds1216_priv {
++	struct rtc_device *rtc;
++	void __iomem *ioaddr;
++	size_t size;
++	unsigned long baseaddr;
++};
++
++static const u8 magic[] = {
++	0xc5, 0x3a, 0xa3, 0x5c, 0xc5, 0x3a, 0xa3, 0x5c
++};
++
++/*
++ * Read the 64 bit we'd like to have - It a series
++ * of 64 bits showing up in the LSB of the base register.
++ *
++ */
++static void ds1216_read(u8 __iomem *ioaddr, u8 *buf)
++{
++	unsigned char c;
++	int i, j;
++
++	for (i = 0; i < 8; i++) {
++		c = 0;
++		for (j = 0; j < 8; j++)
++			c |= (readb(ioaddr) & 0x1) << j;
++		buf[i] = c;
++	}
++}
++
++static void ds1216_write(u8 __iomem *ioaddr, const u8 *buf)
++{
++	unsigned char c;
++	int i, j;
++
++	for (i = 0; i < 8; i++) {
++		c = buf[i];
++		for (j = 0; j < 8; j++) {
++			writeb(c, ioaddr);
++			c = c >> 1;
 +		}
- 	}
- 
- 	/*
++	}
++}
++
++static void ds1216_switch_ds_to_clock(u8 __iomem *ioaddr)
++{
++	/* Reset magic pointer */
++	readb(ioaddr);
++	/* Write 64 bit magic to DS1216 */
++	ds1216_write(ioaddr, magic);
++}
++
++static int ds1216_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct ds1216_priv *priv = platform_get_drvdata(pdev);
++	struct ds1216_regs regs;
++
++	ds1216_switch_ds_to_clock(priv->ioaddr);
++	ds1216_read(priv->ioaddr, (u8 *)&regs);
++
++	tm->tm_sec = BCD2BIN(regs.sec);
++	tm->tm_min = BCD2BIN(regs.min);
++	if (regs.hour & DS1216_HOUR_1224) {
++		/* AM/PM mode */
++		tm->tm_hour = BCD2BIN(regs.hour & 0x1f);
++		if (regs.hour & DS1216_HOUR_AMPM)
++			tm->tm_hour += 12;
++	} else
++		tm->tm_hour = BCD2BIN(regs.hour & 0x3f);
++	tm->tm_wday = (regs.wday & 7) - 1;
++	tm->tm_mday = BCD2BIN(regs.mday & 0x3f);
++	tm->tm_mon = BCD2BIN(regs.month & 0x1f);
++	tm->tm_year = BCD2BIN(regs.year);
++	if (tm->tm_year < 70)
++		tm->tm_year += 100;
++	return 0;
++}
++
++static int ds1216_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct ds1216_priv *priv = platform_get_drvdata(pdev);
++	struct ds1216_regs regs;
++
++	ds1216_switch_ds_to_clock(priv->ioaddr);
++	ds1216_read(priv->ioaddr, (u8 *)&regs);
++
++	regs.tsec = 0; /* clear 0.1 and 0.01 seconds */
++	regs.sec = BIN2BCD(tm->tm_sec);
++	regs.min = BIN2BCD(tm->tm_min);
++	regs.hour &= DS1216_HOUR_1224;
++	if (regs.hour && tm->tm_hour > 12) {
++		regs.hour |= DS1216_HOUR_AMPM;
++		tm->tm_hour -= 12;
++	}
++	regs.hour |= BIN2BCD(tm->tm_hour);
++	regs.wday &= ~7;
++	regs.wday |= tm->tm_wday;
++	regs.mday = BIN2BCD(tm->tm_mday);
++	regs.month = BIN2BCD(tm->tm_mon);
++	regs.year = BIN2BCD(tm->tm_year % 100);
++
++	ds1216_switch_ds_to_clock(priv->ioaddr);
++	ds1216_write(priv->ioaddr, (u8 *)&regs);
++	return 0;
++}
++
++static const struct rtc_class_ops ds1216_rtc_ops = {
++	.read_time	= ds1216_rtc_read_time,
++	.set_time	= ds1216_rtc_set_time,
++};
++
++static int __devinit ds1216_rtc_probe(struct platform_device *pdev)
++{
++	struct rtc_device *rtc;
++	struct resource *res;
++	struct ds1216_priv *priv;
++	int ret = 0;
++	u8 dummy[8];
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++	priv = kzalloc(sizeof *priv, GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++	priv->size = res->end - res->start + 1;
++	if (!request_mem_region(res->start, priv->size, pdev->name)) {
++		ret = -EBUSY;
++		goto out;
++	}
++	priv->baseaddr = res->start;
++	priv->ioaddr = ioremap(priv->baseaddr, priv->size);
++	if (!priv->ioaddr) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	rtc = rtc_device_register("ds1216", &pdev->dev,
++				  &ds1216_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc)) {
++		ret = PTR_ERR(rtc);
++		goto out;
++	}
++	priv->rtc = rtc;
++	platform_set_drvdata(pdev, priv);
++
++	/* dummy read to get clock into a known state */
++	ds1216_read(priv->ioaddr, dummy);
++	return 0;
++
++out:
++	if (priv->rtc)
++		rtc_device_unregister(priv->rtc);
++	if (priv->ioaddr)
++		iounmap(priv->ioaddr);
++	if (priv->baseaddr)
++		release_mem_region(priv->baseaddr, priv->size);
++	kfree(priv);
++	return ret;
++}
++
++static int __devexit ds1216_rtc_remove(struct platform_device *pdev)
++{
++	struct ds1216_priv *priv = platform_get_drvdata(pdev);
++
++	rtc_device_unregister(priv->rtc);
++	iounmap(priv->ioaddr);
++	release_mem_region(priv->baseaddr, priv->size);
++	kfree(priv);
++	return 0;
++}
++
++static struct platform_driver ds1216_rtc_platform_driver = {
++	.driver		= {
++		.name	= "rtc-ds1216",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= ds1216_rtc_probe,
++	.remove		= __devexit_p(ds1216_rtc_remove),
++};
++
++static int __init ds1216_rtc_init(void)
++{
++	return platform_driver_register(&ds1216_rtc_platform_driver);
++}
++
++static void __exit ds1216_rtc_exit(void)
++{
++	platform_driver_unregister(&ds1216_rtc_platform_driver);
++}
++
++MODULE_AUTHOR("Thomas Bogendoerfer <tsbogend@alpha.franken.de>");
++MODULE_DESCRIPTION("DS1216 RTC driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
++
++module_init(ds1216_rtc_init);
++module_exit(ds1216_rtc_exit);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
 origin.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-ubi.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
