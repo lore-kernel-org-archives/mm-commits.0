@@ -1,182 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: - omap-lcd-panel-support-for-the-palm-zire71.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:08:47 -0700
-Message-ID: <200707172308.l6HN8ljO012311@imap1.linux-foundation.org>
+Subject: - slub-faster-more-efficient-slab-determination-for-__kmalloc.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:01:16 -0700
+Message-ID: <200707172301.l6HN1GMT011373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45704 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49620 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936498AbXGQXPt (ORCPT
+	by vger.kernel.org with ESMTP id S936495AbXGQXPt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:15:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marek.vasut@gmail.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     OMAP: LCD panel support for the Palm Zire71
+     SLUB: faster more efficient slab determination for __kmalloc
 has been removed from the -mm tree.  Its filename was
-     omap-lcd-panel-support-for-the-palm-zire71.patch
+     slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: OMAP: LCD panel support for the Palm Zire71
-From: Marek Vasut <marek.vasut@gmail.com>
+Subject: SLUB: faster more efficient slab determination for __kmalloc
+From: Christoph Lameter <clameter@sgi.com>
 
-- Adds support for TFT LCD panel on Palm Zire71
+kmalloc_index is a long series of comparisons.  The attempt to replace
+kmalloc_index with something more efficient like ilog2 failed due to compiler
+issues with constant folding on gcc 3.3 / powerpc.
 
-Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+kmalloc_index()'es long list of comparisons works fine for constant folding
+since all the comparisons are optimized away.  However, SLUB also uses
+kmalloc_index to determine the slab to use for the __kmalloc_xxx functions. 
+This leads to a large set of comparisons in get_slab().
+
+The patch here allows to get rid of that list of comparisons in get_slab():
+
+1. If the requested size is larger than 192 then we can simply use
+   fls to determine the slab index since all larger slabs are
+   of the power of two type.
+
+2. If the requested size is smaller then we cannot use fls since there
+   are non power of two caches to be considered. However, the sizes are
+   in a managable range. So we divide the size by 8. Then we have only
+   24 possibilities left and then we simply look up the kmalloc index
+   in a table.
+
+Code size of slub.o decreases by more than 200 bytes through this patch.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/omap/Makefile      |    1 
- drivers/video/omap/lcd_palmz71.c |  123 +++++++++++++++++++++++++++++
- 2 files changed, 124 insertions(+)
+ mm/slub.c |   71 ++++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 64 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-palm-zire71 drivers/video/omap/Makefile
---- a/drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-palm-zire71
-+++ a/drivers/video/omap/Makefile
-@@ -19,6 +19,7 @@ objs-y$(CONFIG_MACH_OMAP_H4) += lcd_h4.o
- objs-y$(CONFIG_MACH_OMAP_H3) += lcd_h3.o
- objs-y$(CONFIG_MACH_OMAP_PALMTE) += lcd_palmte.o
- objs-y$(CONFIG_MACH_OMAP_PALMTT) += lcd_palmtt.o
-+objs-y$(CONFIG_MACH_OMAP_PALMZ71) += lcd_palmz71.o
+diff -puN mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc mm/slub.c
+--- a/mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc
++++ a/mm/slub.c
+@@ -2313,20 +2313,59 @@ static noinline struct kmem_cache *dma_k
+ }
+ #endif
  
- omapfb-objs := $(objs-yy)
- 
-diff -puN /dev/null drivers/video/omap/lcd_palmz71.c
---- /dev/null
-+++ a/drivers/video/omap/lcd_palmz71.c
-@@ -0,0 +1,123 @@
 +/*
-+ * LCD panel support for the Palm Zire71
-+ *
-+ * Original version : Romain Goyet
-+ * Current version : Laurent Gonzalez
-+ * Modified for zire71 : Marek Vasut
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ * Conversion table for small slabs sizes / 8 to the index in the
++ * kmalloc array. This is necessary for slabs < 192 since we have non power
++ * of two cache sizes there. The size of larger slabs can be determined using
++ * fls.
 + */
-+
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/io.h>
-+
-+#include <asm/arch/omapfb.h>
-+
-+static int palmz71_panel_init(struct lcd_panel *panel,
-+			      struct omapfb_device *fbdev)
-+{
-+	return 0;
-+}
-+
-+static void palmz71_panel_cleanup(struct lcd_panel *panel)
-+{
-+
-+}
-+
-+static int palmz71_panel_enable(struct lcd_panel *panel)
-+{
-+	return 0;
-+}
-+
-+static void palmz71_panel_disable(struct lcd_panel *panel)
-+{
-+}
-+
-+static unsigned long palmz71_panel_get_caps(struct lcd_panel *panel)
-+{
-+	return OMAPFB_CAPS_SET_BACKLIGHT;
-+}
-+
-+struct lcd_panel palmz71_panel = {
-+	.name		= "palmz71",
-+	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-+			  OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
-+			  OMAP_LCDC_HSVS_OPPOSITE,
-+	.data_lines	= 16,
-+	.bpp		= 16,
-+	.pixel_clock	= 24000,
-+	.x_res		= 320,
-+	.y_res		= 320,
-+	.hsw		= 4,
-+	.hfp		= 8,
-+	.hbp		= 28,
-+	.vsw		= 1,
-+	.vfp		= 8,
-+	.vbp		= 7,
-+	.pcd		= 0,
-+
-+	.init		= palmz71_panel_init,
-+	.cleanup	= palmz71_panel_cleanup,
-+	.enable		= palmz71_panel_enable,
-+	.disable	= palmz71_panel_disable,
-+	.get_caps	= palmz71_panel_get_caps,
++static s8 size_index[24] = {
++	3,	/* 8 */
++	4,	/* 16 */
++	5,	/* 24 */
++	5,	/* 32 */
++	6,	/* 40 */
++	6,	/* 48 */
++	6,	/* 56 */
++	6,	/* 64 */
++	1,	/* 72 */
++	1,	/* 80 */
++	1,	/* 88 */
++	1,	/* 96 */
++	7,	/* 104 */
++	7,	/* 112 */
++	7,	/* 120 */
++	7,	/* 128 */
++	2,	/* 136 */
++	2,	/* 144 */
++	2,	/* 152 */
++	2,	/* 160 */
++	2,	/* 168 */
++	2,	/* 176 */
++	2,	/* 184 */
++	2	/* 192 */
 +};
 +
-+static int palmz71_panel_probe(struct platform_device *pdev)
-+{
-+	omapfb_register_panel(&palmz71_panel);
-+	return 0;
-+}
+ static struct kmem_cache *get_slab(size_t size, gfp_t flags)
+ {
+-	int index = kmalloc_index(size);
++	int index;
+ 
+-	if (!index)
+-		return ZERO_SIZE_PTR;
++	if (size <= 192) {
++		if (!size)
++			return ZERO_SIZE_PTR;
+ 
+-	/* Allocation too large? */
+-	if (index < 0)
+-		return NULL;
++		index = size_index[(size - 1) / 8];
++	} else {
++		if (size > KMALLOC_MAX_SIZE)
++			return NULL;
 +
-+static int palmz71_panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
++		index = fls(size - 1);
++	}
+ 
+ #ifdef CONFIG_ZONE_DMA
+-	if ((flags & SLUB_DMA))
++	if (unlikely((flags & SLUB_DMA)))
+ 		return dma_kmalloc_cache(index, flags);
 +
-+static int palmz71_panel_suspend(struct platform_device *pdev,
-+				 pm_message_t mesg)
-+{
-+	return 0;
-+}
+ #endif
+ 	return &kmalloc_caches[index];
+ }
+@@ -2532,6 +2571,24 @@ void __init kmem_cache_init(void)
+ 		caches++;
+ 	}
+ 
 +
-+static int palmz71_panel_resume(struct platform_device *pdev)
-+{
-+	return 0;
-+}
++	/*
++	 * Patch up the size_index table if we have strange large alignment
++	 * requirements for the kmalloc array. This is only the case for
++	 * mips it seems. The standard arches will not generate any code here.
++	 *
++	 * Largest permitted alignment is 256 bytes due to the way we
++	 * handle the index determination for the smaller caches.
++	 *
++	 * Make sure that nothing crazy happens if someone starts tinkering
++	 * around with ARCH_KMALLOC_MINALIGN
++	 */
++	BUILD_BUG_ON(KMALLOC_MIN_SIZE > 256 ||
++		(KMALLOC_MIN_SIZE & (KMALLOC_MIN_SIZE - 1)));
 +
-+struct platform_driver palmz71_panel_driver = {
-+	.probe		= palmz71_panel_probe,
-+	.remove		= palmz71_panel_remove,
-+	.suspend	= palmz71_panel_suspend,
-+	.resume		= palmz71_panel_resume,
-+	.driver		= {
-+		.name	= "lcd_palmz71",
-+		.owner	= THIS_MODULE,
-+	},
-+};
++	for (i = 8; i < KMALLOC_MIN_SIZE;i++)
++		size_index[(i - 1) / 8] = KMALLOC_SHIFT_LOW;
 +
-+static int palmz71_panel_drv_init(void)
-+{
-+	return platform_driver_register(&palmz71_panel_driver);
-+}
-+
-+static void palmz71_panel_drv_cleanup(void)
-+{
-+	platform_driver_unregister(&palmz71_panel_driver);
-+}
-+
-+module_init(palmz71_panel_drv_init);
-+module_exit(palmz71_panel_drv_cleanup);
+ 	slab_state = UP;
+ 
+ 	/* Provide the correct kmalloc names now that the caches are up */
 _
 
-Patches currently in -mm which might be from marek.vasut@gmail.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+git-ubi.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+quicklist-support-for-x86_64.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+memory-unplug-v7-migration-by-kernel.patch
+memory-unplug-v7-isolate_lru_page-fix.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+define-new-percpu-interface-for-shared-data-version-4.patch
+use-the-new-percpu-interface-for-shared-data-version-4.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+page-owner-tracking-leak-detector.patch
