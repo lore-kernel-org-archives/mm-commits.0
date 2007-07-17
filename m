@@ -1,57 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - unregister_blkdev-do-warn_on-on-failure.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:02:07 -0700
-Message-ID: <200707172302.l6HN27ix011536@imap1.linux-foundation.org>
+Subject: - unregister_blkdev-delete-redundant-message.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:02:11 -0700
+Message-ID: <200707172302.l6HN2B3N011542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57438 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41064 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932300AbXGQXP7 (ORCPT
+	by vger.kernel.org with ESMTP id S936621AbXGQXP7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:15:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unregister_blkdev(): do WARN_ON on failure
+     unregister_blkdev(): delete redundant message
 has been removed from the -mm tree.  Its filename was
-     unregister_blkdev-do-warn_on-on-failure.patch
+     unregister_blkdev-delete-redundant-message.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: unregister_blkdev(): do WARN_ON on failure
+Subject: unregister_blkdev(): delete redundant message
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-When unregister_blkdev() has failed, something wrong happened.  This patch
-adds WARN_ON to notify of such badness.
+No need to warn unregister_blkdev() failure by caller.  (The previous patch
+makes unregister_blkdev() print error message in error case)
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/block/xsysace.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN block/genhd.c~unregister_blkdev-do-warn_on-on-failure block/genhd.c
---- a/block/genhd.c~unregister_blkdev-do-warn_on-on-failure
-+++ a/block/genhd.c
-@@ -120,9 +120,10 @@ int unregister_blkdev(unsigned int major
- 	for (n = &major_names[index]; *n; n = &(*n)->next)
- 		if ((*n)->major == major)
- 			break;
--	if (!*n || strcmp((*n)->name, name))
-+	if (!*n || strcmp((*n)->name, name)) {
-+		WARN_ON(1);
- 		ret = -EINVAL;
--	else {
-+	} else {
- 		p = *n;
- 		*n = p->next;
- 	}
+diff -puN drivers/block/xsysace.c~unregister_blkdev-delete-redundant-message drivers/block/xsysace.c
+--- a/drivers/block/xsysace.c~unregister_blkdev-delete-redundant-message
++++ a/drivers/block/xsysace.c
+@@ -1157,9 +1157,7 @@ static void __exit ace_exit(void)
+ {
+ 	pr_debug("Unregistering Xilinx SystemACE driver\n");
+ 	driver_unregister(&ace_driver);
+-	if (unregister_blkdev(ace_major, "xsysace"))
+-		printk(KERN_WARNING "systemace unregister_blkdev(%i) failed\n",
+-		       ace_major);
++	unregister_blkdev(ace_major, "xsysace");
+ }
+ 
+ module_init(ace_init);
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
