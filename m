@@ -1,66 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 01:04:56 -0700
-Message-ID: <200707170804.l6H84u6l006720@imap1.linux-foundation.org>
+Subject: - fs-introduce-some-page-buffer-invariants-obnoxiousness.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 01:13:32 -0700
+Message-ID: <200707170813.l6H8DWXQ006999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53477 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41951 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754130AbXGQIFu (ORCPT
+	by vger.kernel.org with ESMTP id S933307AbXGQINk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 04:05:50 -0400
+	Tue, 17 Jul 2007 04:13:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dgc@sgi.com, rusty@rustcorp.com.au, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs
+     fs-introduce-some-page-buffer-invariants-obnoxiousness
 has been removed from the -mm tree.  Its filename was
-     mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+     fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
 
-This patch was dropped because it was folded into mm-clean-up-and-kernelify-shrinker-registration.patch
+This patch was dropped because it was folded into fs-introduce-some-page-buffer-invariants.patch
 
 ------------------------------------------------------
-Subject: mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs
+Subject: fs-introduce-some-page-buffer-invariants-obnoxiousness
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/auth.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/buffer.c         |    4 ++--
+ mm/page-writeback.c |    2 +-
+ truncate.c          |    0 
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN net/sunrpc/auth.c~mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs net/sunrpc/auth.c
---- a/net/sunrpc/auth.c~mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs
-+++ a/net/sunrpc/auth.c
-@@ -534,17 +534,18 @@ rpcauth_uptodatecred(struct rpc_task *ta
- 		test_bit(RPCAUTH_CRED_UPTODATE, &cred->cr_flags) != 0;
- }
+diff -puN fs/buffer.c~fs-introduce-some-page-buffer-invariants-obnoxiousness fs/buffer.c
+--- a/fs/buffer.c~fs-introduce-some-page-buffer-invariants-obnoxiousness
++++ a/fs/buffer.c
+@@ -693,7 +693,7 @@ static int __set_page_dirty(struct page 
  
--
--static struct shrinker *rpc_cred_shrinker;
-+static struct shrinker rpc_cred_shrinker = {
-+	.shrink = rpcauth_cache_shrinker,
-+	.seeks = DEFAULT_SEEKS,
-+};
+ 	write_lock_irq(&mapping->tree_lock);
+ 	if (page->mapping) {	/* Race with truncate? */
+-		WARN_ON(warn && !PageUptodate(page));
++		WARN_ON_ONCE(warn && !PageUptodate(page));
  
- void __init rpcauth_init_module(void)
+ 		if (mapping_cap_account_dirty(mapping)) {
+ 			__inc_zone_page_state(page, NR_FILE_DIRTY);
+@@ -1156,7 +1156,7 @@ __getblk_slow(struct block_device *bdev,
+  */
+ void fastcall mark_buffer_dirty(struct buffer_head *bh)
  {
- 	rpc_init_authunix();
--	rpc_cred_shrinker = set_shrinker(DEFAULT_SEEKS, rpcauth_cache_shrinker);
-+	register_shrinker(&rpc_cred_shrinker);
+-	WARN_ON(!buffer_uptodate(bh));
++	WARN_ON_ONCE(!buffer_uptodate(bh));
+ 	if (!buffer_dirty(bh) && !test_set_buffer_dirty(bh))
+ 		__set_page_dirty(bh->b_page, page_mapping(bh->b_page), 0);
  }
- 
- void __exit rpcauth_remove_module(void)
- {
--	if (rpc_cred_shrinker != NULL)
--		remove_shrinker(rpc_cred_shrinker);
-+	unregister_shrinker(&rpc_cred_shrinker);
- }
+diff -puN mm/page-writeback.c~fs-introduce-some-page-buffer-invariants-obnoxiousness mm/page-writeback.c
+--- a/mm/page-writeback.c~fs-introduce-some-page-buffer-invariants-obnoxiousness
++++ a/mm/page-writeback.c
+@@ -826,7 +826,7 @@ int __set_page_dirty_nobuffers(struct pa
+ 		mapping2 = page_mapping(page);
+ 		if (mapping2) { /* Race with truncate? */
+ 			BUG_ON(mapping2 != mapping);
+-			WARN_ON(!PagePrivate(page) && !PageUptodate(page));
++			WARN_ON_ONCE(!PagePrivate(page) && !PageUptodate(page));
+ 			if (mapping_cap_account_dirty(mapping)) {
+ 				__inc_zone_page_state(page, NR_FILE_DIRTY);
+ 				task_io_account_write(PAGE_CACHE_SIZE);
+diff -puN mm/truncate.c~fs-introduce-some-page-buffer-invariants-obnoxiousness mm/truncate.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,9 +78,8 @@ mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 create-the-zone_movable-zone.patch
 allow-huge-page-allocations-to-use-gfp_high_movable.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+fs-introduce-some-page-buffer-invariants.patch
 fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
 freezer-make-kernel-threads-nonfreezable-by-default.patch
 file-capabilities-clear-caps-cleanup-fix.patch
