@@ -1,66 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - radeonfb-add-support-for-radeon-xpress-200m-rs485.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:06:55 -0700
-Message-ID: <200707172306.l6HN6tr2012062@imap1.linux-foundation.org>
+Subject: - mismatching-declarations-of-revision-strings-in-hisax.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:03:33 -0700
+Message-ID: <200707172303.l6HN3XRc011698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33540 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59206 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765483AbXGQXPh (ORCPT
+	by vger.kernel.org with ESMTP id S1765325AbXGQXPq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:37 -0400
+	Tue, 17 Jul 2007 19:15:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: WolfSt.External@qimonda.com, adaplas@gmail.com, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     radeonfb: Add support for Radeon Xpress 200M (RS485)
+     Mismatching declarations of revision strings in HiSax
 has been removed from the -mm tree.  Its filename was
-     radeonfb-add-support-for-radeon-xpress-200m-rs485.patch
+     mismatching-declarations-of-revision-strings-in-hisax.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: radeonfb: Add support for Radeon Xpress 200M (RS485)
-From: Stephan Wolf <WolfSt.External@qimonda.com>
+Subject: Mismatching declarations of revision strings in HiSax
+From: David Woodhouse <dwmw2@infradead.org>
 
-Add PCI ids for the Radeon Xpress 200M (RS485).
+The {l1,l2,l3,lli,tei}_revision strings in the HiSax driver are 'const',
+but have a mismatching declaration as 'extern char *' in config.c.
 
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/ati_ids.h     |    1 +
- drivers/video/aty/radeon_base.c |    2 ++
- 2 files changed, 3 insertions(+)
+ drivers/isdn/hisax/config.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/aty/ati_ids.h~radeonfb-add-support-for-radeon-xpress-200m-rs485 drivers/video/aty/ati_ids.h
---- a/drivers/video/aty/ati_ids.h~radeonfb-add-support-for-radeon-xpress-200m-rs485
-+++ a/drivers/video/aty/ati_ids.h
-@@ -204,6 +204,7 @@
- #define PCI_CHIP_RV280_5961		0x5961
- #define PCI_CHIP_RV280_5962		0x5962
- #define PCI_CHIP_RV280_5964		0x5964
-+#define PCI_CHIP_RS485_5975		0x5975
- #define PCI_CHIP_RV280_5C61		0x5C61
- #define PCI_CHIP_RV280_5C63		0x5C63
- #define PCI_CHIP_R423_5D57              0x5D57
-diff -puN drivers/video/aty/radeon_base.c~radeonfb-add-support-for-radeon-xpress-200m-rs485 drivers/video/aty/radeon_base.c
---- a/drivers/video/aty/radeon_base.c~radeonfb-add-support-for-radeon-xpress-200m-rs485
-+++ a/drivers/video/aty/radeon_base.c
-@@ -153,6 +153,8 @@ static struct pci_device_id radeonfb_pci
- 	/* Mobility 9200 (M9+) */
- 	CHIP_DEF(PCI_CHIP_RV280_5C61,	RV280,	CHIP_HAS_CRTC2 | CHIP_IS_MOBILITY),
- 	CHIP_DEF(PCI_CHIP_RV280_5C63,	RV280,	CHIP_HAS_CRTC2 | CHIP_IS_MOBILITY),
-+	/*Mobility Xpress 200 */
-+	CHIP_DEF(PCI_CHIP_RS485_5975,	R300,	CHIP_HAS_CRTC2 | CHIP_IS_IGP | CHIP_IS_MOBILITY),
- 	/* 9200 */
- 	CHIP_DEF(PCI_CHIP_RV280_5960,	RV280,	CHIP_HAS_CRTC2),
- 	CHIP_DEF(PCI_CHIP_RV280_5961,	RV280,	CHIP_HAS_CRTC2),
+diff -puN drivers/isdn/hisax/config.c~mismatching-declarations-of-revision-strings-in-hisax drivers/isdn/hisax/config.c
+--- a/drivers/isdn/hisax/config.c~mismatching-declarations-of-revision-strings-in-hisax
++++ a/drivers/isdn/hisax/config.c
+@@ -361,11 +361,11 @@ module_param_array(io1, int, NULL, 0);
+ 
+ int nrcards;
+ 
+-extern char *l1_revision;
+-extern char *l2_revision;
+-extern char *l3_revision;
+-extern char *lli_revision;
+-extern char *tei_revision;
++extern const char *l1_revision;
++extern const char *l2_revision;
++extern const char *l3_revision;
++extern const char *lli_revision;
++extern const char *tei_revision;
+ 
+ char *HiSax_getrev(const char *revision)
+ {
 _
 
-Patches currently in -mm which might be from WolfSt.External@qimonda.com are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
 origin.patch
+git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
+git-ubi.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+jffs2-convert-to-new-aops.patch
