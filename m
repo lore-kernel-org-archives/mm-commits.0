@@ -1,123 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-macmodescmac_find_mode-mustnt-be.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:08:15 -0700
-Message-ID: <200707172308.l6HN8FsP012268@imap1.linux-foundation.org>
+Subject: - knfsd-nfsd4-simplify-exp_pseudoroot-arguments.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:04:48 -0700
+Message-ID: <200707172304.l6HN4mE0011855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50695 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34784 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936595AbXGQXQA (ORCPT
+	by vger.kernel.org with ESMTP id S936624AbXGQXQE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:00 -0400
+	Tue, 17 Jul 2007 19:16:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, adaplas@pol.net, michal.k.k.piotrowski@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/macmodes.c:mac_find_mode() mustn't be __devinit
+     knfsd: nfsd4: simplify exp_pseudoroot arguments
 has been removed from the -mm tree.  Its filename was
-     drivers-video-macmodescmac_find_mode-mustnt-be.patch
+     knfsd-nfsd4-simplify-exp_pseudoroot-arguments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/video/macmodes.c:mac_find_mode() mustn't be __devinit
-From: Adrian Bunk <bunk@stusta.de>
+Subject: knfsd: nfsd4: simplify exp_pseudoroot arguments
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-If it's EXPORT_SYMBOL'ed it can't be __devinit.
+We're passing three arguments to exp_pseudoroot, two of which are just fields
+of the svc_rqst.  Soon we'll want to pass in a third field as well.  So let's
+just give up and pass in the whole struct svc_rqst.
 
-Reported by Mikael Pettersson.
+Also sneak in some minor style cleanups while we're at it.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: <stable@kernel.org>
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/macmodes.c |    5 ++---
- drivers/video/macmodes.h |    8 ++++----
- 2 files changed, 6 insertions(+), 7 deletions(-)
+ fs/nfsd/export.c            |    5 ++---
+ fs/nfsd/nfs4proc.c          |    7 +++----
+ fs/nfsd/nfs4xdr.c           |    2 +-
+ include/linux/nfsd/export.h |    2 +-
+ 4 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/macmodes.c~drivers-video-macmodescmac_find_mode-mustnt-be drivers/video/macmodes.c
---- a/drivers/video/macmodes.c~drivers-video-macmodescmac_find_mode-mustnt-be
-+++ a/drivers/video/macmodes.c
-@@ -369,9 +369,8 @@ EXPORT_SYMBOL(mac_map_monitor_sense);
-  *
+diff -puN fs/nfsd/export.c~knfsd-nfsd4-simplify-exp_pseudoroot-arguments fs/nfsd/export.c
+--- a/fs/nfsd/export.c~knfsd-nfsd4-simplify-exp_pseudoroot-arguments
++++ a/fs/nfsd/export.c
+@@ -1235,8 +1235,7 @@ exp_find(struct auth_domain *clp, int fs
+  * export point with fsid==0
   */
- 
--int __devinit mac_find_mode(struct fb_var_screeninfo *var,
--			    struct fb_info *info, const char *mode_option,
--			    unsigned int default_bpp)
-+int mac_find_mode(struct fb_var_screeninfo *var, struct fb_info *info,
-+		  const char *mode_option, unsigned int default_bpp)
+ __be32
+-exp_pseudoroot(struct auth_domain *clp, struct svc_fh *fhp,
+-	       struct cache_req *creq)
++exp_pseudoroot(struct svc_rqst *rqstp, struct svc_fh *fhp)
  {
-     const struct fb_videomode *db = NULL;
-     unsigned int dbsize = 0;
-diff -puN drivers/video/macmodes.h~drivers-video-macmodescmac_find_mode-mustnt-be drivers/video/macmodes.h
---- a/drivers/video/macmodes.h~drivers-video-macmodescmac_find_mode-mustnt-be
-+++ a/drivers/video/macmodes.h
-@@ -55,10 +55,10 @@ extern int mac_vmode_to_var(int vmode, i
- extern int mac_var_to_vmode(const struct fb_var_screeninfo *var, int *vmode,
- 			    int *cmode);
- extern int mac_map_monitor_sense(int sense);
--extern int __devinit mac_find_mode(struct fb_var_screeninfo *var,
--				   struct fb_info *info,
--				   const char *mode_option,
--				   unsigned int default_bpp);
-+extern int mac_find_mode(struct fb_var_screeninfo *var,
-+			 struct fb_info *info,
-+			 const char *mode_option,
-+			 unsigned int default_bpp);
+ 	struct svc_export *exp;
+ 	__be32 rv;
+@@ -1244,7 +1243,7 @@ exp_pseudoroot(struct auth_domain *clp, 
  
+ 	mk_fsid(FSID_NUM, fsidv, 0, 0, 0, NULL);
  
-     /*
+-	exp = exp_find(clp, FSID_NUM, fsidv, creq);
++	exp = exp_find(rqstp->rq_client, FSID_NUM, fsidv, rqstp->rq_chandle);
+ 	if (PTR_ERR(exp) == -ENOENT)
+ 		return nfserr_perm;
+ 	if (IS_ERR(exp))
+diff -puN fs/nfsd/nfs4proc.c~knfsd-nfsd4-simplify-exp_pseudoroot-arguments fs/nfsd/nfs4proc.c
+--- a/fs/nfsd/nfs4proc.c~knfsd-nfsd4-simplify-exp_pseudoroot-arguments
++++ a/fs/nfsd/nfs4proc.c
+@@ -286,8 +286,7 @@ nfsd4_putrootfh(struct svc_rqst *rqstp, 
+ 	__be32 status;
+ 
+ 	fh_put(&cstate->current_fh);
+-	status = exp_pseudoroot(rqstp->rq_client, &cstate->current_fh,
+-			      &rqstp->rq_chandle);
++	status = exp_pseudoroot(rqstp, &cstate->current_fh);
+ 	return status;
+ }
+ 
+@@ -474,8 +473,8 @@ nfsd4_lookupp(struct svc_rqst *rqstp, st
+ 	__be32 ret;
+ 
+ 	fh_init(&tmp_fh, NFS4_FHSIZE);
+-	if((ret = exp_pseudoroot(rqstp->rq_client, &tmp_fh,
+-			      &rqstp->rq_chandle)) != 0)
++	ret = exp_pseudoroot(rqstp, &tmp_fh);
++	if (ret)
+ 		return ret;
+ 	if (tmp_fh.fh_dentry == cstate->current_fh.fh_dentry) {
+ 		fh_put(&tmp_fh);
+diff -puN fs/nfsd/nfs4xdr.c~knfsd-nfsd4-simplify-exp_pseudoroot-arguments fs/nfsd/nfs4xdr.c
+--- a/fs/nfsd/nfs4xdr.c~knfsd-nfsd4-simplify-exp_pseudoroot-arguments
++++ a/fs/nfsd/nfs4xdr.c
+@@ -1296,7 +1296,7 @@ static char *nfsd4_path(struct svc_rqst 
+ 	char *path, *rootpath;
+ 
+ 	fh_init(&tmp_fh, NFS4_FHSIZE);
+-	*stat = exp_pseudoroot(rqstp->rq_client, &tmp_fh, &rqstp->rq_chandle);
++	*stat = exp_pseudoroot(rqstp, &tmp_fh);
+ 	if (*stat)
+ 		return NULL;
+ 	rootpath = tmp_fh.fh_export->ex_path;
+diff -puN include/linux/nfsd/export.h~knfsd-nfsd4-simplify-exp_pseudoroot-arguments include/linux/nfsd/export.h
+--- a/include/linux/nfsd/export.h~knfsd-nfsd4-simplify-exp_pseudoroot-arguments
++++ a/include/linux/nfsd/export.h
+@@ -135,7 +135,7 @@ struct svc_export *	exp_parent(struct au
+ 				   struct cache_req *reqp);
+ int			exp_rootfh(struct auth_domain *, 
+ 					char *path, struct knfsd_fh *, int maxsize);
+-__be32			exp_pseudoroot(struct auth_domain *, struct svc_fh *fhp, struct cache_req *creq);
++__be32			exp_pseudoroot(struct svc_rqst *, struct svc_fh *);
+ __be32			nfserrno(int errno);
+ 
+ extern struct cache_detail svc_export_cache;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
 origin.patch
-git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-git-dvb.patch
-git-hwmon.patch
-git-kbuild.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-arch-i386-xen-mmuc-must-include-linux-schedh.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-xen-fix-x86-config-dependencies.patch
-xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
-xen-cant-support-numa-yet.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-maps2-add-proc-kpagemap-interface.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-fs-reiserfs-cleanups.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-intel-iommu-intel-iommu-driver.patch
-mm-variable-length-argument-support.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-kernel-relayc-make-functions-static.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+git-vfs-lease-api.patch
