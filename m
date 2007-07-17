@@ -1,106 +1,237 @@
 From: akpm@linux-foundation.org
-Subject: - gbefb-the-pseudo_palette-is-only-16-elements-long.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:07:20 -0700
-Message-ID: <200707172307.l6HN7KtJ012180@imap1.linux-foundation.org>
+Subject: - slab-allocators-support-__gfp_zero-in-all-allocators.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:01:08 -0700
+Message-ID: <200707172301.l6HN18XK011356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42821 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47064 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761896AbXGQXPJ (ORCPT
+	by vger.kernel.org with ESMTP id S936647AbXGQXQG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:09 -0400
+	Tue, 17 Jul 2007 19:16:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gbefb: the pseudo_palette is only 16 elements long
+     Slab allocators: support __GFP_ZERO in all allocators
 has been removed from the -mm tree.  Its filename was
-     gbefb-the-pseudo_palette-is-only-16-elements-long.patch
+     slab-allocators-support-__gfp_zero-in-all-allocators.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gbefb: the pseudo_palette is only 16 elements long
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: Slab allocators: support __GFP_ZERO in all allocators
+From: Christoph Lameter <clameter@sgi.com>
 
-The pseudo_palette is only 16 elements long.
+A kernel convention for many allocators is that if __GFP_ZERO is passed to an
+allocator then the allocated memory should be zeroed.
 
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+This is currently not supported by the slab allocators.  The inconsistency
+makes it difficult to implement in derived allocators such as in the uncached
+allocator and the pool allocators.
+
+In addition the support zeroed allocations in the slab allocators does not
+have a consistent API.  There are no zeroing allocator functions for NUMA node
+placement (kmalloc_node, kmem_cache_alloc_node).  The zeroing allocations are
+only provided for default allocs (kzalloc, kmem_cache_zalloc_node). 
+__GFP_ZERO will make zeroing universally available and does not require any
+addititional functions.
+
+So add the necessary logic to all slab allocators to support __GFP_ZERO.
+
+The code is added to the hot path.  The gfp flags are on the stack and so the
+cacheline is readily available for checking if we want a zeroed object.
+
+Zeroing while allocating is now a frequent operation and we seem to be
+gradually approaching a 1-1 parity between zeroing and not zeroing allocs. 
+The current tree has 3476 uses of kmalloc vs 2731 uses of kzalloc.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/gbefb.c |   41 ++++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 20 deletions(-)
+ mm/slab.c |    8 +++++++-
+ mm/slob.c |    2 ++
+ mm/slub.c |   24 +++++++++++++++---------
+ 3 files changed, 24 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/gbefb.c~gbefb-the-pseudo_palette-is-only-16-elements-long drivers/video/gbefb.c
---- a/drivers/video/gbefb.c~gbefb-the-pseudo_palette-is-only-16-elements-long
-+++ a/drivers/video/gbefb.c
-@@ -86,7 +86,7 @@ static int gbe_revision;
+diff -puN mm/slab.c~slab-allocators-support-__gfp_zero-in-all-allocators mm/slab.c
+--- a/mm/slab.c~slab-allocators-support-__gfp_zero-in-all-allocators
++++ a/mm/slab.c
+@@ -2746,7 +2746,7 @@ static int cache_grow(struct kmem_cache 
+ 	 * Be lazy and only check for valid flags here,  keeping it out of the
+ 	 * critical path in kmem_cache_alloc().
+ 	 */
+-	BUG_ON(flags & ~(GFP_DMA | GFP_LEVEL_MASK));
++	BUG_ON(flags & ~(GFP_DMA | __GFP_ZERO | GFP_LEVEL_MASK));
  
- static int ypan, ywrap;
+ 	local_flags = (flags & GFP_LEVEL_MASK);
+ 	/* Take the l3 list lock to change the colour_next on this node */
+@@ -3392,6 +3392,9 @@ __cache_alloc_node(struct kmem_cache *ca
+ 	local_irq_restore(save_flags);
+ 	ptr = cache_alloc_debugcheck_after(cachep, flags, ptr, caller);
  
--static uint32_t pseudo_palette[256];
-+static uint32_t pseudo_palette[16];
++	if (unlikely((flags & __GFP_ZERO) && ptr))
++		memset(ptr, 0, obj_size(cachep));
++
+ 	return ptr;
+ }
  
- static char *mode_option __initdata = NULL;
+@@ -3443,6 +3446,9 @@ __cache_alloc(struct kmem_cache *cachep,
+ 	objp = cache_alloc_debugcheck_after(cachep, flags, objp, caller);
+ 	prefetchw(objp);
  
-@@ -854,8 +854,7 @@ static int gbefb_setcolreg(unsigned regn
- 	green >>= 8;
- 	blue >>= 8;
++	if (unlikely((flags & __GFP_ZERO) && objp))
++		memset(objp, 0, obj_size(cachep));
++
+ 	return objp;
+ }
  
--	switch (info->var.bits_per_pixel) {
--	case 8:
-+	if (info->var.bits_per_pixel <= 8) {
- 		/* wait for the color map FIFO to have a free entry */
- 		for (i = 0; i < 1000 && gbe->cm_fifo >= 63; i++)
- 			udelay(10);
-@@ -864,23 +863,25 @@ static int gbefb_setcolreg(unsigned regn
- 			return 1;
- 		}
- 		gbe->cmap[regno] = (red << 24) | (green << 16) | (blue << 8);
--		break;
--	case 15:
--	case 16:
--		red >>= 3;
--		green >>= 3;
--		blue >>= 3;
--		pseudo_palette[regno] =
--			(red << info->var.red.offset) |
--			(green << info->var.green.offset) |
--			(blue << info->var.blue.offset);
--		break;
--	case 32:
--		pseudo_palette[regno] =
--			(red << info->var.red.offset) |
--			(green << info->var.green.offset) |
--			(blue << info->var.blue.offset);
--		break;
-+	} else if (regno < 16) {
-+		switch (info->var.bits_per_pixel) {
-+		case 15:
-+		case 16:
-+			red >>= 3;
-+			green >>= 3;
-+			blue >>= 3;
-+			pseudo_palette[regno] =
-+				(red << info->var.red.offset) |
-+				(green << info->var.green.offset) |
-+				(blue << info->var.blue.offset);
-+			break;
-+		case 32:
-+			pseudo_palette[regno] =
-+				(red << info->var.red.offset) |
-+				(green << info->var.green.offset) |
-+				(blue << info->var.blue.offset);
-+			break;
-+		}
+diff -puN mm/slob.c~slab-allocators-support-__gfp_zero-in-all-allocators mm/slob.c
+--- a/mm/slob.c~slab-allocators-support-__gfp_zero-in-all-allocators
++++ a/mm/slob.c
+@@ -334,6 +334,8 @@ static void *slob_alloc(size_t size, gfp
+ 		BUG_ON(!b);
+ 		spin_unlock_irqrestore(&slob_lock, flags);
  	}
++	if (unlikely((gfp & __GFP_ZERO) && b))
++		memset(b, 0, size);
+ 	return b;
+ }
  
- 	return 0;
+diff -puN mm/slub.c~slab-allocators-support-__gfp_zero-in-all-allocators mm/slub.c
+--- a/mm/slub.c~slab-allocators-support-__gfp_zero-in-all-allocators
++++ a/mm/slub.c
+@@ -1077,7 +1077,7 @@ static struct page *new_slab(struct kmem
+ 	void *last;
+ 	void *p;
+ 
+-	BUG_ON(flags & ~(GFP_DMA | GFP_LEVEL_MASK));
++	BUG_ON(flags & ~(GFP_DMA | __GFP_ZERO | GFP_LEVEL_MASK));
+ 
+ 	if (flags & __GFP_WAIT)
+ 		local_irq_enable();
+@@ -1540,7 +1540,7 @@ debug:
+  * Otherwise we can simply pick the next object from the lockless free list.
+  */
+ static void __always_inline *slab_alloc(struct kmem_cache *s,
+-				gfp_t gfpflags, int node, void *addr)
++		gfp_t gfpflags, int node, void *addr, int length)
+ {
+ 	struct page *page;
+ 	void **object;
+@@ -1558,19 +1558,25 @@ static void __always_inline *slab_alloc(
+ 		page->lockless_freelist = object[page->offset];
+ 	}
+ 	local_irq_restore(flags);
++
++	if (unlikely((gfpflags & __GFP_ZERO) && object))
++		memset(object, 0, length);
++
+ 	return object;
+ }
+ 
+ void *kmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags)
+ {
+-	return slab_alloc(s, gfpflags, -1, __builtin_return_address(0));
++	return slab_alloc(s, gfpflags, -1,
++			__builtin_return_address(0), s->objsize);
+ }
+ EXPORT_SYMBOL(kmem_cache_alloc);
+ 
+ #ifdef CONFIG_NUMA
+ void *kmem_cache_alloc_node(struct kmem_cache *s, gfp_t gfpflags, int node)
+ {
+-	return slab_alloc(s, gfpflags, node, __builtin_return_address(0));
++	return slab_alloc(s, gfpflags, node,
++		__builtin_return_address(0), s->objsize);
+ }
+ EXPORT_SYMBOL(kmem_cache_alloc_node);
+ #endif
+@@ -2318,7 +2324,7 @@ void *__kmalloc(size_t size, gfp_t flags
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
+ 
+-	return slab_alloc(s, flags, -1, __builtin_return_address(0));
++	return slab_alloc(s, flags, -1, __builtin_return_address(0), size);
+ }
+ EXPORT_SYMBOL(__kmalloc);
+ 
+@@ -2330,7 +2336,7 @@ void *__kmalloc_node(size_t size, gfp_t 
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
+ 
+-	return slab_alloc(s, flags, node, __builtin_return_address(0));
++	return slab_alloc(s, flags, node, __builtin_return_address(0), size);
+ }
+ EXPORT_SYMBOL(__kmalloc_node);
+ #endif
+@@ -2643,7 +2649,7 @@ void *kmem_cache_zalloc(struct kmem_cach
+ {
+ 	void *x;
+ 
+-	x = slab_alloc(s, flags, -1, __builtin_return_address(0));
++	x = slab_alloc(s, flags, -1, __builtin_return_address(0), 0);
+ 	if (x)
+ 		memset(x, 0, s->objsize);
+ 	return x;
+@@ -2693,7 +2699,7 @@ void *__kmalloc_track_caller(size_t size
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
+ 
+-	return slab_alloc(s, gfpflags, -1, caller);
++	return slab_alloc(s, gfpflags, -1, caller, size);
+ }
+ 
+ void *__kmalloc_node_track_caller(size_t size, gfp_t gfpflags,
+@@ -2704,7 +2710,7 @@ void *__kmalloc_node_track_caller(size_t
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
+ 
+-	return slab_alloc(s, gfpflags, node, caller);
++	return slab_alloc(s, gfpflags, node, caller, size);
+ }
+ 
+ #if defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+git-ubi.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+quicklist-support-for-x86_64.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+memory-unplug-v7-migration-by-kernel.patch
+memory-unplug-v7-isolate_lru_page-fix.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+define-new-percpu-interface-for-shared-data-version-4.patch
+use-the-new-percpu-interface-for-shared-data-version-4.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+page-owner-tracking-leak-detector.patch
