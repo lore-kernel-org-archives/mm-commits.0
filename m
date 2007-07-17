@@ -1,71 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 01:48:47 -0700
-Message-ID: <200707170848.l6H8mlqN008385@imap1.linux-foundation.org>
+Subject: - rtc-driver-for-ds1216-chips-fix.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 01:49:26 -0700
+Message-ID: <200707170849.l6H8nQmB008397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42724 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45123 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757316AbXGQItJ (ORCPT
+	by vger.kernel.org with ESMTP id S1760016AbXGQIuK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 04:49:09 -0400
+	Tue, 17 Jul 2007 04:50:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, lenb@kernel.org, rongkai.zhan@windriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, tsbogend@alpha.franken.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-add-support-for-the-st-m48t59-rtc vs git-acpi
+     rtc-driver-for-ds1216-chips-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+     rtc-driver-for-ds1216-chips-fix.patch
 
-This patch was dropped because it was folded into rtc-add-support-for-the-st-m48t59-rtc.patch
+This patch was dropped because it was folded into rtc-driver-for-ds1216-chips.patch
 
 ------------------------------------------------------
-Subject: rtc-add-support-for-the-st-m48t59-rtc vs git-acpi
+Subject: rtc-driver-for-ds1216-chips-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/rtc/rtc-m48t59.c:357: warning: initialization from incompatible pointer type
-drivers/rtc/rtc-m48t59.c:358: warning: initialization from incompatible pointer type
+- some constification
 
-The acpi guys changed the bin_attribute code.
+- whitespace fixes
 
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Mark Zhan <rongkai.zhan@windriver.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m48t59.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-ds1216.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-m48t59.c~rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi drivers/rtc/rtc-m48t59.c
---- a/drivers/rtc/rtc-m48t59.c~rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi
-+++ a/drivers/rtc/rtc-m48t59.c
-@@ -310,8 +310,9 @@ static const struct rtc_class_ops m48t59
- 	.proc		= m48t59_rtc_proc,
+diff -puN drivers/rtc/rtc-ds1216.c~rtc-driver-for-ds1216-chips-fix drivers/rtc/rtc-ds1216.c
+--- a/drivers/rtc/rtc-ds1216.c~rtc-driver-for-ds1216-chips-fix
++++ a/drivers/rtc/rtc-ds1216.c
+@@ -23,8 +23,8 @@ struct ds1216_regs {
+ 	u8 year;
  };
  
--static ssize_t m48t59_nvram_read(struct kobject *kobj, char *buf,
--				 loff_t pos, size_t size)
-+static ssize_t m48t59_nvram_read(struct kobject *kobj,
-+				struct bin_attribute *bin_attr,
-+				char *buf, loff_t pos, size_t size)
- {
- 	struct device *dev = container_of(kobj, struct device, kobj);
- 	struct platform_device *pdev = to_platform_device(dev);
-@@ -329,8 +330,9 @@ static ssize_t m48t59_nvram_read(struct 
- 	return cnt;
+-#define DS1216_HOUR_1224       (1 << 7)
+-#define DS1216_HOUR_AMPM       (1 << 5)
++#define DS1216_HOUR_1224	(1 << 7)
++#define DS1216_HOUR_AMPM	(1 << 5)
+ 
+ struct ds1216_priv {
+ 	struct rtc_device *rtc;
+@@ -33,7 +33,7 @@ struct ds1216_priv {
+ 	unsigned long baseaddr;
+ };
+ 
+-static u8 magic[] = {
++static const u8 magic[] = {
+ 	0xc5, 0x3a, 0xa3, 0x5c, 0xc5, 0x3a, 0xa3, 0x5c
+ };
+ 
+@@ -55,7 +55,7 @@ static void ds1216_read(u8 __iomem *ioad
+ 	}
  }
  
--static ssize_t m48t59_nvram_write(struct kobject *kobj, char *buf,
--				  loff_t pos, size_t size)
-+static ssize_t m48t59_nvram_write(struct kobject *kobj,
-+				struct bin_attribute *bin_attr,
-+				char *buf, loff_t pos, size_t size)
+-static void ds1216_write(u8 __iomem *ioaddr, u8 *buf)
++static void ds1216_write(u8 __iomem *ioaddr, const u8 *buf)
  {
- 	struct device *dev = container_of(kobj, struct device, kobj);
- 	struct platform_device *pdev = to_platform_device(dev);
+ 	unsigned char c;
+ 	int i, j;
+@@ -63,7 +63,7 @@ static void ds1216_write(u8 __iomem *ioa
+ 	for (i = 0; i < 8; i++) {
+ 		c = buf[i];
+ 		for (j = 0; j < 8; j++) {
+-			writeb (c, ioaddr);
++			writeb(c, ioaddr);
+ 			c = c >> 1;
+ 		}
+ 	}
+@@ -173,7 +173,7 @@ static int __devinit ds1216_rtc_probe(st
+ 	platform_set_drvdata(pdev, priv);
+ 
+ 	/* dummy read to get clock into a known state */
+-	ds1216_read (priv->ioaddr, dummy);
++	ds1216_read(priv->ioaddr, dummy);
+ 	return 0;
+ 
+ out:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,7 +112,7 @@ knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
 driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
 rtc-add-rtc-m41t80-driver-take-2.patch
 rtc-add-support-for-the-st-m48t59-rtc.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-driver-for-ds1216-chips.patch
 rtc-driver-for-ds1216-chips-fix.patch
 lguest-the-host-code.patch
 lguest-the-net-driver.patch
