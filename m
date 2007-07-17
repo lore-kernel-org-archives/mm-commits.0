@@ -1,156 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_spi-minor-updates.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:03:06 -0700
-Message-ID: <200707172303.l6HN36sK011664@imap1.linux-foundation.org>
+Subject: - knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:04:23 -0700
+Message-ID: <200707172304.l6HN4Nl0011799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48022 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54229 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935658AbXGQXQb (ORCPT
+	by vger.kernel.org with ESMTP id S936708AbXGQXQd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:31 -0400
+	Tue, 17 Jul 2007 19:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: eshel@almaden.ibm.com, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_spi: minor updates
+     knfsd: lockd: nfsd4: use same grace period for lockd and nfsd4
 has been removed from the -mm tree.  Its filename was
-     atmel_spi-minor-updates.patch
+     knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atmel_spi: minor updates
-From: David Brownell <david-b@pacbell.net>
+Subject: knfsd: lockd: nfsd4: use same grace period for lockd and nfsd4
+From: Marc Eshel <eshel@almaden.ibm.com>
 
-Minor updates to atmel_spi:
+Both lockd and (in the nfsv4 case) nfsd enforce a "grace period" after reboot,
+during which clients may reclaim locks from the previous server instance, but
+may not acquire new locks.
 
- - DMA:
-    * Comments to explain the DMA policies
-    * Report any mapping errors from spi_transfer()
-    * Remove extra loop for DMA mapping
+Currently the lockd and nfsd enforce grace periods of different lengths.  This
+may cause problems when we reboot a server with both v2/v3 and v4 clients. 
+For example, if the lockd grace period is shorter (as is likely the case),
+then a v3 client might acquire a new lock that conflicts with a lock already
+held (but not yet reclaimed) by a v4 client.
 
- - Diagnostics:  report minimum clock rate, if we need to reject a
-   spi_setup() request because that rate is too low.
+This patch calculates a lease time that lockd and nfsd can both use.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Marc Eshel <eshel@almaden.ibm.com>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |   57 ++++++++++++++++++++++++++++++--------
- 1 file changed, 45 insertions(+), 12 deletions(-)
+ fs/lockd/svc.c             |   27 ++++++++++++++++++++-------
+ fs/nfsd/lockd.c            |    1 +
+ fs/nfsd/nfs4state.c        |   16 ++++++++++++----
+ include/linux/lockd/bind.h |    9 +++++++++
+ 4 files changed, 42 insertions(+), 11 deletions(-)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-minor-updates drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-minor-updates
-+++ a/drivers/spi/atmel_spi.c
-@@ -184,18 +184,39 @@ static void atmel_spi_next_message(struc
- 	atmel_spi_next_xfer(master, msg);
- }
+diff -puN fs/lockd/svc.c~knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4 fs/lockd/svc.c
+--- a/fs/lockd/svc.c~knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4
++++ a/fs/lockd/svc.c
+@@ -76,18 +76,31 @@ static const int		nlm_port_min = 0, nlm_
  
--static void
-+/*
-+ * For DMA, tx_buf/tx_dma have the same relationship as rx_buf/rx_dma:
-+ *  - The buffer is either valid for CPU access, else NULL
-+ *  - If the buffer is valid, so is its DMA addresss
-+ *
-+ * This driver manages the dma addresss unless message->is_dma_mapped.
-+ */
-+static int
- atmel_spi_dma_map_xfer(struct atmel_spi *as, struct spi_transfer *xfer)
+ static struct ctl_table_header * nlm_sysctl_table;
+ 
+-static unsigned long set_grace_period(void)
++static unsigned long get_lockd_grace_period(void)
  {
-+	struct device	*dev = &as->pdev->dev;
+-	unsigned long grace_period;
+-
+ 	/* Note: nlm_timeout should always be nonzero */
+ 	if (nlm_grace_period)
+-		grace_period = ((nlm_grace_period + nlm_timeout - 1)
+-				/ nlm_timeout) * nlm_timeout * HZ;
++		return roundup(nlm_grace_period, nlm_timeout) * HZ;
+ 	else
+-		grace_period = nlm_timeout * 5 * HZ;
++		return nlm_timeout * 5 * HZ;
++}
 +
- 	xfer->tx_dma = xfer->rx_dma = INVALID_DMA_ADDRESS;
--	if (xfer->tx_buf)
--		xfer->tx_dma = dma_map_single(&as->pdev->dev,
-+	if (xfer->tx_buf) {
-+		xfer->tx_dma = dma_map_single(dev,
- 				(void *) xfer->tx_buf, xfer->len,
- 				DMA_TO_DEVICE);
--	if (xfer->rx_buf)
--		xfer->rx_dma = dma_map_single(&as->pdev->dev,
-+		if (dma_mapping_error(xfer->tx_dma))
-+			return -ENOMEM;
-+	}
-+	if (xfer->rx_buf) {
-+		xfer->rx_dma = dma_map_single(dev,
- 				xfer->rx_buf, xfer->len,
- 				DMA_FROM_DEVICE);
-+		if (dma_mapping_error(xfer->tx_dma)) {
-+			if (xfer->tx_buf)
-+				dma_unmap_single(dev,
-+						xfer->tx_dma, xfer->len,
-+						DMA_TO_DEVICE);
-+			return -ENOMEM;
-+		}
-+	}
-+	return 0;
++unsigned long get_nfs_grace_period(void)
++{
++	unsigned long lockdgrace = get_lockd_grace_period();
++	unsigned long nfsdgrace = 0;
++
++	if (nlmsvc_ops)
++		nfsdgrace = nlmsvc_ops->get_grace_period();
++
++	return max(lockdgrace, nfsdgrace);
++}
++EXPORT_SYMBOL(get_nfs_grace_period);
++
++static unsigned long set_grace_period(void)
++{
+ 	nlmsvc_grace_period = 1;
+-	return grace_period + jiffies;
++	return get_nfs_grace_period() + jiffies;
  }
  
- static void atmel_spi_dma_unmap_xfer(struct spi_master *master,
-@@ -398,8 +419,9 @@ static int atmel_spi_setup(struct spi_de
- 		scbr = ((bus_hz + spi->max_speed_hz - 1)
- 			/ spi->max_speed_hz);
- 		if (scbr >= (1 << SPI_SCBR_SIZE)) {
--			dev_dbg(&spi->dev, "setup: %d Hz too slow, scbr %u\n",
--					spi->max_speed_hz, scbr);
-+			dev_dbg(&spi->dev,
-+				"setup: %d Hz too slow, scbr %u; min %ld Hz\n",
-+				spi->max_speed_hz, scbr, bus_hz/255);
- 			return -EINVAL;
- 		}
- 	} else
-@@ -465,12 +487,19 @@ static int atmel_spi_transfer(struct spi
- 			dev_dbg(&spi->dev, "no protocol options yet\n");
- 			return -ENOPROTOOPT;
- 		}
--	}
+ static inline void clear_grace_period(void)
+diff -puN fs/nfsd/lockd.c~knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4 fs/nfsd/lockd.c
+--- a/fs/nfsd/lockd.c~knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4
++++ a/fs/nfsd/lockd.c
+@@ -65,6 +65,7 @@ nlm_fclose(struct file *filp)
+ static struct nlmsvc_binding	nfsd_nlm_ops = {
+ 	.fopen		= nlm_fopen,		/* open file for locking */
+ 	.fclose		= nlm_fclose,		/* close file */
++	.get_grace_period = get_nfs4_grace_period,
+ };
  
--	/* scrub dcache "early" */
--	if (!msg->is_dma_mapped) {
--		list_for_each_entry(xfer, &msg->transfers, transfer_list)
--			atmel_spi_dma_map_xfer(as, xfer);
-+		/*
-+		 * DMA map early, for performance (empties dcache ASAP) and
-+		 * better fault reporting.  This is a DMA-only driver.
-+		 *
-+		 * NOTE that if dma_unmap_single() ever starts to do work on
-+		 * platforms supported by this driver, we would need to clean
-+		 * up mappings for previously-mapped transfers.
-+		 */
-+		if (!msg->is_dma_mapped) {
-+			if (atmel_spi_dma_map_xfer(as, xfer) < 0)
-+				return -ENOMEM;
-+		}
- 	}
+ void
+diff -puN fs/nfsd/nfs4state.c~knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4 fs/nfsd/nfs4state.c
+--- a/fs/nfsd/nfs4state.c~knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4
++++ a/fs/nfsd/nfs4state.c
+@@ -51,6 +51,7 @@
+ #include <linux/namei.h>
+ #include <linux/mutex.h>
+ #include <linux/lockd/bind.h>
++#include <linux/module.h>
  
- 	list_for_each_entry(xfer, &msg->transfers, transfer_list) {
-@@ -537,6 +566,10 @@ static int __init atmel_spi_probe(struct
+ #define NFSDDBG_FACILITY                NFSDDBG_PROC
  
- 	as = spi_master_get_devdata(master);
+@@ -3190,20 +3191,27 @@ nfsd4_load_reboot_recovery_data(void)
+ 		printk("NFSD: Failure reading reboot recovery data\n");
+ }
  
-+	/*
-+	 * Scratch buffer is used for throwaway rx and tx data.
-+	 * It's coherent to minimize dcache pollution.
-+	 */
- 	as->buffer = dma_alloc_coherent(&pdev->dev, BUFFER_SIZE,
- 					&as->buffer_dma, GFP_KERNEL);
- 	if (!as->buffer)
++unsigned long
++get_nfs4_grace_period(void)
++{
++	return max(user_lease_time, lease_time) * HZ;
++}
++
+ /* initialization to perform when the nfsd service is started: */
+ 
+ static void
+ __nfs4_state_start(void)
+ {
+-	time_t grace_time;
++	unsigned long grace_time;
+ 
+ 	boot_time = get_seconds();
+-	grace_time = max(user_lease_time, lease_time);
++	grace_time = get_nfs_grace_period();
+ 	lease_time = user_lease_time;
+ 	in_grace = 1;
+-	printk("NFSD: starting %ld-second grace period\n", grace_time);
++	printk(KERN_INFO "NFSD: starting %ld-second grace period\n",
++	       grace_time/HZ);
+ 	laundry_wq = create_singlethread_workqueue("nfsd4");
+-	queue_delayed_work(laundry_wq, &laundromat_work, grace_time*HZ);
++	queue_delayed_work(laundry_wq, &laundromat_work, grace_time);
+ }
+ 
+ int
+diff -puN include/linux/lockd/bind.h~knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4 include/linux/lockd/bind.h
+--- a/include/linux/lockd/bind.h~knfsd-lockd-nfsd4-use-same-grace-period-for-lockd-and-nfsd4
++++ a/include/linux/lockd/bind.h
+@@ -27,6 +27,7 @@ struct nlmsvc_binding {
+ 						struct nfs_fh *,
+ 						struct file **);
+ 	void			(*fclose)(struct file *);
++	unsigned long		(*get_grace_period)(void);
+ };
+ 
+ extern struct nlmsvc_binding *	nlmsvc_ops;
+@@ -38,4 +39,12 @@ extern int	nlmclnt_proc(struct inode *, 
+ extern int	lockd_up(int proto);
+ extern void	lockd_down(void);
+ 
++unsigned long get_nfs_grace_period(void);
++
++#ifdef CONFIG_NFSD_V4
++unsigned long get_nfs4_grace_period(void);
++#else
++static inline unsigned long get_nfs4_grace_period(void) {return 0;}
++#endif
++
+ #endif /* LINUX_LOCKD_BIND_H */
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from eshel@almaden.ibm.com are
 
 origin.patch
-git-leds.patch
-git-mmc.patch
-git-mtd.patch
-git-backlight.patch
-use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-gpio-calls-dont-need-i-o-barriers.patch
-dev_vdbg-available-with-dverbose_debug.patch
-dev_vdbg-available-with-dverbose_debug-docs.patch
+git-vfs-lease-api.patch
