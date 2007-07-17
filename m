@@ -1,53 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - sgivwfb-the-pseudo_palette-is-only-16-elements-long.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:07:32 -0700
-Message-ID: <200707172307.l6HN7W1c012198@imap1.linux-foundation.org>
+Subject: - char-stallion-remove-user-class-report-request.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:06:34 -0700
+Message-ID: <200707172306.l6HN6YZ4012032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52215 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44200 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758590AbXGQXPI (ORCPT
+	by vger.kernel.org with ESMTP id S1756091AbXGQXPI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:15:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgivwfb: the pseudo_palette is only 16 elements long
+     Char: stallion, remove user class report request
 has been removed from the -mm tree.  Its filename was
-     sgivwfb-the-pseudo_palette-is-only-16-elements-long.patch
+     char-stallion-remove-user-class-report-request.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sgivwfb: the pseudo_palette is only 16 elements long
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: Char: stallion, remove user class report request
+From: Jiri Slaby <jirislaby@gmail.com>
 
-The pseudo_palette is only 16 elements long.
+stallion, remove user class report request
 
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sgivwfb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/stallion.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/video/sgivwfb.c~sgivwfb-the-pseudo_palette-is-only-16-elements-long drivers/video/sgivwfb.c
---- a/drivers/video/sgivwfb.c~sgivwfb-the-pseudo_palette-is-only-16-elements-long
-+++ a/drivers/video/sgivwfb.c
-@@ -752,7 +752,7 @@ static int __init sgivwfb_probe(struct p
- 	struct fb_info *info;
- 	char *monitor;
+diff -puN drivers/char/stallion.c~char-stallion-remove-user-class-report-request drivers/char/stallion.c
+--- a/drivers/char/stallion.c~char-stallion-remove-user-class-report-request
++++ a/drivers/char/stallion.c
+@@ -2357,9 +2357,6 @@ static int __devinit stl_pciprobe(struct
+ 	if ((pdev->class >> 8) == PCI_CLASS_STORAGE_IDE)
+ 		goto err;
  
--	info = framebuffer_alloc(sizeof(struct sgivw_par) + sizeof(u32) * 256, &dev->dev);
-+	info = framebuffer_alloc(sizeof(struct sgivw_par) + sizeof(u32) * 16, &dev->dev);
- 	if (!info)
- 		return -ENOMEM;
- 	par = info->par;
+-	dev_info(&pdev->dev, "please, report this to LKML: %x/%x/%x\n",
+-			pdev->vendor, pdev->device, pdev->class);
+-
+ 	retval = pci_enable_device(pdev);
+ 	if (retval)
+ 		goto err;
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+shrink_slab-handle-bad-shrinkers.patch
