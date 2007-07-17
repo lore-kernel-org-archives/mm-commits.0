@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - add-argv_split-fix.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 01:18:28 -0700
-Message-ID: <200707170818.l6H8ISMq007220@imap1.linux-foundation.org>
+Subject: - add-common-orderly_poweroff-fix.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 01:19:05 -0700
+Message-ID: <200707170819.l6H8J5dr007237@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57899 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751311AbXGQISj (ORCPT
+	by vger.kernel.org with ESMTP id S1764914AbXGQITQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 04:18:39 -0400
+	Tue, 17 Jul 2007 04:19:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jeremy@goop.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-argv_split-fix
+     add-common-orderly_poweroff-fix
 has been removed from the -mm tree.  Its filename was
-     add-argv_split-fix.patch
+     add-common-orderly_poweroff-fix.patch
 
 This patch was dropped because sent to Jeremy, lost interest in it
 
 ------------------------------------------------------
-Subject: add-argv_split-fix
+Subject: add-common-orderly_poweroff-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
@@ -30,20 +30,21 @@ Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/argv_split.c |    1 -
- 1 files changed, 1 deletion(-)
+ kernel/sys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/argv_split.c~add-argv_split-fix lib/argv_split.c
---- a/lib/argv_split.c~add-argv_split-fix
-+++ a/lib/argv_split.c
-@@ -41,7 +41,6 @@ static int count_argc(const char *str)
+diff -puN kernel/sys.c~add-common-orderly_poweroff-fix kernel/sys.c
+--- a/kernel/sys.c~add-common-orderly_poweroff-fix
++++ a/kernel/sys.c
+@@ -2295,7 +2295,7 @@ static void argv_cleanup(char **argv, ch
+ }
  
  /**
-  * argv_free - free an argv
-- *
-  * @argv - the argument vector to be freed
+- * Trigger an orderly system poweroff
++ * orderly_poweroff - Trigger an orderly system poweroff
+  * @force: force poweroff if command execution fails
   *
-  * Frees an argv and the strings it points to.
+  * This may be called from any context to trigger a system shutdown.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -56,7 +57,6 @@ create-the-zone_movable-zone.patch
 allow-huge-page-allocations-to-use-gfp_high_movable.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
 freezer-make-kernel-threads-nonfreezable-by-default.patch
-add-argv_split-fix.patch
 add-common-orderly_poweroff-fix.patch
 i386-speedup-touch_nmi_watchdog.patch
 x86_64-speedup-touch_nmi_watchdog.patch
