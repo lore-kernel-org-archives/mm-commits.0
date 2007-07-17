@@ -1,94 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - unregister_blkdev-return-void.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:02:13 -0700
-Message-ID: <200707172302.l6HN2DrK011547@imap1.linux-foundation.org>
+Subject: + mm-fault-feedback-2-fix.patch added to -mm tree
+Date: Tue, 17 Jul 2007 16:51:05 -0700
+Message-ID: <200707172351.l6HNp79A013936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32958 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34602 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936440AbXGQXVG (ORCPT
+	by vger.kernel.org with ESMTP id S1754751AbXGQXvs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:21:06 -0400
+	Tue, 17 Jul 2007 19:51:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: npiggin@suse.de
 
 
 The patch titled
-     unregister_blkdev(): return void
-has been removed from the -mm tree.  Its filename was
-     unregister_blkdev-return-void.patch
+     mm: fault feedback 2 (fix)
+has been added to the -mm tree.  Its filename is
+     mm-fault-feedback-2-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: unregister_blkdev(): return void
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mm: fault feedback 2 (fix)
+From: Nick Piggin <npiggin@suse.de>
 
-Put WARN_ON and fixed all callers of unregister_blkdev().  Now we can make
-unregister_blkdev return void.
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c      |    7 +------
- include/linux/fs.h |    2 +-
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ include/linux/mm.h |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN block/genhd.c~unregister_blkdev-return-void block/genhd.c
---- a/block/genhd.c~unregister_blkdev-return-void
-+++ a/block/genhd.c
-@@ -108,13 +108,11 @@ out:
+diff -puN include/linux/mm.h~mm-fault-feedback-2-fix include/linux/mm.h
+--- a/include/linux/mm.h~mm-fault-feedback-2-fix
++++ a/include/linux/mm.h
+@@ -697,6 +697,8 @@ static inline int page_mapped(struct pag
+  * just gets major/minor fault counters bumped up.
+  */
  
- EXPORT_SYMBOL(register_blkdev);
- 
--/* todo: make void - error printk here */
--int unregister_blkdev(unsigned int major, const char *name)
-+void unregister_blkdev(unsigned int major, const char *name)
- {
- 	struct blk_major_name **n;
- 	struct blk_major_name *p = NULL;
- 	int index = major_to_index(major);
--	int ret = 0;
- 
- 	mutex_lock(&block_subsys_lock);
- 	for (n = &major_names[index]; *n; n = &(*n)->next)
-@@ -122,15 +120,12 @@ int unregister_blkdev(unsigned int major
- 			break;
- 	if (!*n || strcmp((*n)->name, name)) {
- 		WARN_ON(1);
--		ret = -EINVAL;
- 	} else {
- 		p = *n;
- 		*n = p->next;
- 	}
- 	mutex_unlock(&block_subsys_lock);
- 	kfree(p);
--
--	return ret;
- }
- 
- EXPORT_SYMBOL(unregister_blkdev);
-diff -puN include/linux/fs.h~unregister_blkdev-return-void include/linux/fs.h
---- a/include/linux/fs.h~unregister_blkdev-return-void
-+++ a/include/linux/fs.h
-@@ -1527,7 +1527,7 @@ extern void putname(const char *name);
- 
- #ifdef CONFIG_BLOCK
- extern int register_blkdev(unsigned int, const char *);
--extern int unregister_blkdev(unsigned int, const char *);
-+extern void unregister_blkdev(unsigned int, const char *);
- extern struct block_device *bdget(dev_t);
- extern void bd_set_size(struct block_device *, loff_t size);
- extern void bd_forget(struct inode *inode);
++#define VM_FAULT_MINOR	0 /* For backwards compat. Remove me quickly. */
++
+ #define VM_FAULT_OOM	0x0001
+ #define VM_FAULT_SIGBUS	0x0002
+ #define VM_FAULT_MAJOR	0x0004
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-git-dvb.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-unregister_chrdev-ignore-the-return-value.patch
-unregister_chrdev-return-void.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-fault-feedback-1.patch
+mm-fault-feedback-2.patch
+mm-fault-feedback-2-fix.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+ocfs2-convert-to-new-aops.patch
+fs-remove-some-aop_truncated_page.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
