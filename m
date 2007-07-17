@@ -1,63 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - cell-draw-spe-helper-penguin-logos-update.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 01:56:39 -0700
-Message-ID: <200707170856.l6H8ueXk008737@imap1.linux-foundation.org>
+Subject: + slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch added to -mm tree
+Date: Tue, 17 Jul 2007 02:15:20 -0700
+Message-ID: <200707170919.l6H9Jj0k009518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47516 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33025 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759792AbXGQI5s (ORCPT
+	by vger.kernel.org with ESMTP id S1750732AbXGQJUA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 04:57:48 -0400
+	Tue, 17 Jul 2007 05:20:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, arnd@arndb.de, benh@kernel.crashing.org, geoffrey.levand@am.sony.com, jsimmons@infradead.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com, mel@csn.ul.ie
 
 
 The patch titled
-     Cell: Draw SPE helper penguin logos (update)
-has been removed from the -mm tree.  Its filename was
-     cell-draw-spe-helper-penguin-logos-update.patch
+     slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff
+has been added to the -mm tree.  Its filename is
+     slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
 
-This patch was dropped because it was folded into cell-draw-spe-helper-penguin-logos.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Cell: Draw SPE helper penguin logos (update)
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff
+From: Andrew Morton <akpm@linux-foundation.org>
 
-  - Let FB_LOGO_EXTRA default to y if SPU_BASE is enabled
+my life sucks
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
-Acked-By: James Simmons <jsimmons@infradead.org>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/logo/Kconfig |    1 +
- 1 files changed, 1 insertion(+)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/logo/Kconfig~cell-draw-spe-helper-penguin-logos-update drivers/video/logo/Kconfig
---- a/drivers/video/logo/Kconfig~cell-draw-spe-helper-penguin-logos-update
-+++ a/drivers/video/logo/Kconfig
-@@ -13,6 +13,7 @@ if LOGO
- config FB_LOGO_EXTRA
- 	bool
- 	depends on FB
-+	default y if SPU_BASE
+diff -puN mm/slub.c~slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff mm/slub.c
+--- a/mm/slub.c~slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff
++++ a/mm/slub.c
+@@ -3022,7 +3022,7 @@ static int list_locations(struct kmem_ca
+ 	int node;
  
- config LOGO_LINUX_MONO
- 	bool "Standard black and white Linux logo"
+ 	if (!alloc_loc_track(&t, PAGE_SIZE / sizeof(struct location),
+-			GFP_KERNEL))
++			GFP_TEMPORARY))
+ 		return sprintf(buf, "Out of memory\n");
+ 
+ 	/* Push back cpu slabs */
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fbdev-extract-fb_show_logo_line.patch
-fbdev-add-fb_append_extra_logo.patch
-fbdev-spe-helper-penguin-logo.patch
-cell-draw-spe-helper-penguin-logos.patch
-cell-draw-spe-helper-penguin-logos-update.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+i386-speedup-touch_nmi_watchdog.patch
+x86_64-speedup-touch_nmi_watchdog.patch
+crc7-support.patch
+spi-master-driver-for-xilinx-virtex.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-remove-iget-abuse.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+rtc-add-rtc-m41t80-driver-take-2.patch
+rtc-add-support-for-the-st-m48t59-rtc.patch
+rtc-driver-for-ds1216-chips.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
