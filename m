@@ -1,79 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - spi-add-3wire-mode-flag.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:02:54 -0700
-Message-ID: <200707172302.l6HN2sWJ011634@imap1.linux-foundation.org>
+Subject: - inhibit-nmi-watchdog-when-alt-sysrq-t-operation-is-underway.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:02:37 -0700
+Message-ID: <200707172302.l6HN2b10011587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54973 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42945 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936649AbXGQXQG (ORCPT
+	by vger.kernel.org with ESMTP id S1757890AbXGQXQI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:06 -0400
+	Tue, 17 Jul 2007 19:16:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: konrad@darnok.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SPI: add 3wire mode flag
+     Inhibit NMI watchdog when Alt-SysRq-T operation is underway
 has been removed from the -mm tree.  Its filename was
-     spi-add-3wire-mode-flag.patch
+     inhibit-nmi-watchdog-when-alt-sysrq-t-operation-is-underway.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SPI: add 3wire mode flag
-From: David Brownell <david-b@pacbell.net>
+Subject: Inhibit NMI watchdog when Alt-SysRq-T operation is underway
+From: Konrad Rzeszutek <konrad@darnok.org>
 
-Add a new spi->mode bit: SPI_3WIRE, for chips where the SI and SO signals
-are shared (and which are thus only half duplex).  Update the LM70 driver
-to require support for that hardware mode from the controller.
+On large memory configuration with not so fast CPUs the NMI watchdog is
+triggered when memory addresses are being gathered and printed.  The code
+paths for Alt-SysRq-t are sprinkled with touch_nmi_watchdog in various
+places but not in this routine (or in the loop that utilizes this
+function).  The patch has been tested for regression on large CPU+memory
+configuration (128 logical CPUs + 224 GB) and 1,2,4,16-CPU sockets with
+various memory sizes (1,2,4,6,20).
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lm70.c    |    4 ++++
- include/linux/spi/spi.h |    1 +
- 2 files changed, 5 insertions(+)
+ arch/x86_64/kernel/traps.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/hwmon/lm70.c~spi-add-3wire-mode-flag drivers/hwmon/lm70.c
---- a/drivers/hwmon/lm70.c~spi-add-3wire-mode-flag
-+++ a/drivers/hwmon/lm70.c
-@@ -96,6 +96,10 @@ static int __devinit lm70_probe(struct s
- 	struct lm70 *p_lm70;
- 	int status;
+diff -puN arch/x86_64/kernel/traps.c~inhibit-nmi-watchdog-when-alt-sysrq-t-operation-is-underway arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~inhibit-nmi-watchdog-when-alt-sysrq-t-operation-is-underway
++++ a/arch/x86_64/kernel/traps.c
+@@ -330,6 +330,7 @@ static int print_trace_stack(void *data,
  
-+	/* signaling is SPI_MODE_0 on a 3-wire link (shared SI/SO) */
-+	if ((spi->mode & (SPI_CPOL|SPI_CPHA)) || !(spi->mode & SPI_3WIRE))
-+		return -EINVAL;
-+
- 	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
- 	if (!p_lm70)
- 		return -ENOMEM;
-diff -puN include/linux/spi/spi.h~spi-add-3wire-mode-flag include/linux/spi/spi.h
---- a/include/linux/spi/spi.h~spi-add-3wire-mode-flag
-+++ a/include/linux/spi/spi.h
-@@ -76,6 +76,7 @@ struct spi_device {
- #define	SPI_MODE_3	(SPI_CPOL|SPI_CPHA)
- #define	SPI_CS_HIGH	0x04			/* chipselect active high? */
- #define	SPI_LSB_FIRST	0x08			/* per-word bits-on-wire */
-+#define	SPI_3WIRE	0x10			/* SI/SO signals shared */
- 	u8			bits_per_word;
- 	int			irq;
- 	void			*controller_state;
+ static void print_trace_address(void *data, unsigned long addr)
+ {
++	touch_nmi_watchdog();
+ 	printk_address(addr);
+ }
+ 
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from konrad@darnok.org are
 
 origin.patch
-git-leds.patch
-git-mmc.patch
-git-mtd.patch
-git-backlight.patch
-use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-gpio-calls-dont-need-i-o-barriers.patch
-dev_vdbg-available-with-dverbose_debug.patch
-dev_vdbg-available-with-dverbose_debug-docs.patch
