@@ -1,62 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - s3c24xx-spi-controllers-both-select-bitbang.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:03:12 -0700
-Message-ID: <200707172303.l6HN3C5M011670@imap1.linux-foundation.org>
+Subject: - spidev-compiler-warning-gone.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:02:58 -0700
+Message-ID: <200707172302.l6HN2w4L011645@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52765 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49175 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936631AbXGQXQF (ORCPT
+	by vger.kernel.org with ESMTP id S936648AbXGQXQG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:05 -0400
+	Tue, 17 Jul 2007 19:16:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     S3c24xx SPI controllers both select 'bitbang'
+     spidev compiler warning gone
 has been removed from the -mm tree.  Its filename was
-     s3c24xx-spi-controllers-both-select-bitbang.patch
+     spidev-compiler-warning-gone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: S3c24xx SPI controllers both select 'bitbang'
+Subject: spidev compiler warning gone
 From: David Brownell <david-b@pacbell.net>
 
-Tweak Kconfig for the S3C24XX SPI controller drivers.  Both use the bitbang
-framework; only one previously said that.  Plus in this case "select" is
-the right way to manage that dependency, since folk will not know up front
-to enable bitbang in order to even see those S3C drivers in order to enable
-them.
+Get rid of annoying GCC warning on 32-bit platforms.
+
+drivers/spi/spidev.c: In function 'spidev_message':
+drivers/spi/spidev.c:184: warning: cast to pointer from integer of different size
+drivers/spi/spidev.c:216: warning: cast to pointer from integer of different size
+
+
+The trick is to add an extra cast using "ptrdiff_t" to convert the u64 to
+the correct size integer, and only then casting it into a "void *" pointer.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/Kconfig |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/spi/spidev.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/spi/Kconfig~s3c24xx-spi-controllers-both-select-bitbang drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~s3c24xx-spi-controllers-both-select-bitbang
-+++ a/drivers/spi/Kconfig
-@@ -154,12 +154,14 @@ config SPI_PXA2XX
- config SPI_S3C24XX
- 	tristate "Samsung S3C24XX series SPI"
- 	depends on SPI_MASTER && ARCH_S3C2410 && EXPERIMENTAL
-+	select SPI_BITBANG
- 	help
- 	  SPI driver for Samsung S3C24XX series ARM SoCs
- 
- config SPI_S3C24XX_GPIO
- 	tristate "Samsung S3C24XX series SPI by GPIO"
--	depends on SPI_MASTER && ARCH_S3C2410 && SPI_BITBANG && EXPERIMENTAL
-+	depends on SPI_MASTER && ARCH_S3C2410 && EXPERIMENTAL
-+	select SPI_BITBANG
- 	help
- 	  SPI driver for Samsung S3C24XX series ARM SoCs using
- 	  GPIO lines to provide the SPI bus. This can be used where
+diff -puN drivers/spi/spidev.c~spidev-compiler-warning-gone drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~spidev-compiler-warning-gone
++++ a/drivers/spi/spidev.c
+@@ -181,7 +181,8 @@ static int spidev_message(struct spidev_
+ 		}
+ 		if (u_tmp->tx_buf) {
+ 			k_tmp->tx_buf = buf;
+-			if (copy_from_user(buf, (const u8 __user *)u_tmp->tx_buf,
++			if (copy_from_user(buf, (const u8 __user *)
++						(ptrdiff_t) u_tmp->tx_buf,
+ 					u_tmp->len))
+ 				goto done;
+ 		}
+@@ -213,7 +214,8 @@ static int spidev_message(struct spidev_
+ 	buf = spidev->buffer;
+ 	for (n = n_xfers, u_tmp = u_xfers; n; n--, u_tmp++) {
+ 		if (u_tmp->rx_buf) {
+-			if (__copy_to_user((u8 __user *)u_tmp->rx_buf, buf,
++			if (__copy_to_user((u8 __user *)
++					(ptrdiff_t) u_tmp->rx_buf, buf,
+ 					u_tmp->len)) {
+ 				status = -EFAULT;
+ 				goto done;
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
