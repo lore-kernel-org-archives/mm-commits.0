@@ -1,63 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - ibmasm-must-depend-on-config_input.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:02:50 -0700
-Message-ID: <200707172302.l6HN2ou0011628@imap1.linux-foundation.org>
+Subject: - wrong-memory-access-in-i2o_block_device_lock.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:03:56 -0700
+Message-ID: <200707172303.l6HN3udl011751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60277 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47508 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935806AbXGQXQj (ORCPT
+	by vger.kernel.org with ESMTP id S936743AbXGQXQl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:39 -0400
+	Tue, 17 Jul 2007 19:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dtor@insightbb.com, dtor@mail.ru, masbock@us.ibm.com, vernux@us.ibm.com, mm-commits@vger.kernel.org
+To: vvs@sw.ru, Markus.Lidel@shadowconnect.com, alan@lxorguk.ukuu.org.uk, dev@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IBMASM: must depend on CONFIG_INPUT
+     wrong memory access in i2o_block_device_lock()
 has been removed from the -mm tree.  Its filename was
-     ibmasm-must-depend-on-config_input.patch
+     wrong-memory-access-in-i2o_block_device_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IBMASM: must depend on CONFIG_INPUT
-From: Dmitry Torokhov <dtor@insightbb.com>
+Subject: wrong memory access in i2o_block_device_lock()
+From: Vasily Averin <vvs@sw.ru>
 
-IBMASM: must depend on CONFIG_INPUT
+This patch fixes access to memory that has not been allocated:
+i2o_msg_get_wait() can returns errors different from I2O_QUEUE_EMPTY.  But the
+result is checked only against this code.  If it is not I2O_QUEUE_EMPTY then
+we dereference the error code as the pointer later.
 
-The driver registers couple of input devices and therefore must depend
-on CONFIG_INPUT.
-
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Cc: Vernon Mauery <vernux@us.ibm.com>
-Cc: Max Asbock <masbock@us.ibm.com>
+Signed-off-by: Vasily Averin <vvs@sw.ru>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
+Acked-by: Kirill Korotaev <dev@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    2 +-
+ drivers/message/i2o/i2o_block.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/Kconfig~ibmasm-must-depend-on-config_input drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~ibmasm-must-depend-on-config_input
-+++ a/drivers/misc/Kconfig
-@@ -10,7 +10,7 @@ if MISC_DEVICES
+diff -puN drivers/message/i2o/i2o_block.c~wrong-memory-access-in-i2o_block_device_lock drivers/message/i2o/i2o_block.c
+--- a/drivers/message/i2o/i2o_block.c~wrong-memory-access-in-i2o_block_device_lock
++++ a/drivers/message/i2o/i2o_block.c
+@@ -215,7 +215,7 @@ static int i2o_block_device_lock(struct 
+ 	struct i2o_message *msg;
  
- config IBM_ASM
- 	tristate "Device driver for IBM RSA service processor"
--	depends on X86 && PCI && EXPERIMENTAL
-+	depends on X86 && PCI && INPUT && EXPERIMENTAL
- 	---help---
- 	  This option enables device driver support for in-band access to the
- 	  IBM RSA (Condor) service processor in eServer xSeries systems.
+ 	msg = i2o_msg_get_wait(dev->iop, I2O_TIMEOUT_MESSAGE_GET);
+-	if (IS_ERR(msg) == I2O_QUEUE_EMPTY)
++	if (IS_ERR(msg))
+ 		return PTR_ERR(msg);
+ 
+ 	msg->u.head[0] = cpu_to_le32(FIVE_WORD_MSG_SIZE | SGL_OFFSET_0);
 _
 
-Patches currently in -mm which might be from dtor@insightbb.com are
+Patches currently in -mm which might be from vvs@sw.ru are
 
 origin.patch
-git-dvb.patch
-git-input.patch
-hdaps-switch-to-using-input-polldev.patch
-applesmc-switch-to-using-input-polldev.patch
-ams-switch-to-using-input-polldev.patch
