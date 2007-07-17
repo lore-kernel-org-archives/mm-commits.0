@@ -1,102 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-semaphore-in-spi-core-init-code.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:03:29 -0700
-Message-ID: <200707172303.l6HN3TxC011692@imap1.linux-foundation.org>
+Subject: - make-timespec_equal-take-const-arguments.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:02:28 -0700
+Message-ID: <200707172302.l6HN2SXc011575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57083 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47493 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964781AbXGQXRh (ORCPT
+	by vger.kernel.org with ESMTP id S933784AbXGQXRc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:17:37 -0400
+	Tue, 17 Jul 2007 19:17:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: jengelh@computergmbh.de, jengelh@gmx.de, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use mutex instead of semaphore in SPI core/init code
+     make timespec_equal() take const arguments
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-semaphore-in-spi-core-init-code.patch
+     make-timespec_equal-take-const-arguments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use mutex instead of semaphore in SPI core/init code
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: make timespec_equal() take const arguments
+From: Jan Engelhardt <jengelh@computergmbh.de>
 
-The SPI core/init code uses a semaphore as mutex.  Use the mutex API instead
-of the (binary) semaphore.
+Make arguments of timespec_equal() const struct timespec.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Acked-by: David Brownell <david-b@pacbell.net>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/linux/time.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi.c~use-mutex-instead-of-semaphore-in-spi-core-init-code drivers/spi/spi.c
---- a/drivers/spi/spi.c~use-mutex-instead-of-semaphore-in-spi-core-init-code
-+++ a/drivers/spi/spi.c
-@@ -23,6 +23,7 @@
- #include <linux/device.h>
- #include <linux/init.h>
- #include <linux/cache.h>
-+#include <linux/mutex.h>
- #include <linux/spi/spi.h>
+diff -puN include/linux/time.h~make-timespec_equal-take-const-arguments include/linux/time.h
+--- a/include/linux/time.h~make-timespec_equal-take-const-arguments
++++ a/include/linux/time.h
+@@ -36,7 +36,8 @@ struct timezone {
+ #define NSEC_PER_SEC	1000000000L
+ #define FSEC_PER_SEC	1000000000000000L
  
- 
-@@ -185,7 +186,7 @@ struct boardinfo {
- };
- 
- static LIST_HEAD(board_list);
--static DECLARE_MUTEX(board_lock);
-+static DEFINE_MUTEX(board_lock);
- 
- 
- /**
-@@ -292,9 +293,9 @@ spi_register_board_info(struct spi_board
- 	bi->n_board_info = n;
- 	memcpy(bi->board_info, info, n * sizeof *info);
- 
--	down(&board_lock);
-+	mutex_lock(&board_lock);
- 	list_add_tail(&bi->list, &board_list);
--	up(&board_lock);
-+	mutex_unlock(&board_lock);
- 	return 0;
+-static inline int timespec_equal(struct timespec *a, struct timespec *b)
++static inline int timespec_equal(const struct timespec *a,
++                                 const struct timespec *b)
+ {
+ 	return (a->tv_sec == b->tv_sec) && (a->tv_nsec == b->tv_nsec);
  }
- 
-@@ -308,7 +309,7 @@ scan_boardinfo(struct spi_master *master
- 	struct boardinfo	*bi;
- 	struct device		*dev = master->cdev.dev;
- 
--	down(&board_lock);
-+	mutex_lock(&board_lock);
- 	list_for_each_entry(bi, &board_list, list) {
- 		struct spi_board_info	*chip = bi->board_info;
- 		unsigned		n;
-@@ -330,7 +331,7 @@ scan_boardinfo(struct spi_master *master
- 			(void) spi_new_device(master, chip);
- 		}
- 	}
--	up(&board_lock);
-+	mutex_unlock(&board_lock);
- }
- 
- /*-------------------------------------------------------------------------*/
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from jengelh@computergmbh.de are
 
 origin.patch
-kcopyd-use-mutex-instead-of-semaphore.patch
-git-dvb.patch
-git-mtd.patch
-videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
-use-mutex-instead-of-semaphore-in-the-usb-gadget-serial-driver.patch
-use-mutex-instead-of-semaphore-in-the-elan-u132-adapter-driver.patch
-use-mutex-instead-of-semaphore-in-the-adutux-driver.patch
-use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
+intel-iommu-iommu-gfx-workaround-kconfig-fix.patch
+intel-iommu-iommu-floppy-workaround-kconfig-fix.patch
