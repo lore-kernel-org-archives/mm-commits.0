@@ -1,272 +1,535 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-exportfs-remove-iget-abuse.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:04:07 -0700
-Message-ID: <200707172304.l6HN47op011775@imap1.linux-foundation.org>
+Subject: - spi-master-driver-for-xilinx-virtex.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:03:17 -0700
+Message-ID: <200707172303.l6HN3HIB011680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50076 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42262 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936782AbXGQXQy (ORCPT
+	by vger.kernel.org with ESMTP id S1758190AbXGQXQw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:54 -0400
+	Tue, 17 Jul 2007 19:16:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@infradead.org, hch@lst.de, neilb@suse.de, shaggy@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akonovalov@ru.mvista.com, david-b@pacbell.net, galak@gate.crashing.org, yfrolov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: exportfs: remove iget abuse
+     SPI master driver for Xilinx virtex
 has been removed from the -mm tree.  Its filename was
-     knfsd-exportfs-remove-iget-abuse.patch
+     spi-master-driver-for-xilinx-virtex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: exportfs: remove iget abuse
-From: Christoph Hellwig <hch@infradead.org>
+Subject: SPI master driver for Xilinx virtex
+From: Andrei Konovalov <akonovalov@ru.mvista.com>
 
-When the exportfs interface was added the expectation was that filesystems
-provide an operation to convert from a file handle to an inode/dentry, but it
-kept a backwards compat option that still calls into iget.
+Simple SPI master driver for Xilinx SPI controller.
+No support for multiple masters.
+Not using level 1 drivers from EDK.
 
-Calling into iget from non-filesystem code is very bad, because it gives too
-little information to filesystem, and simply crashes if the filesystem doesn't
-implement the ->read_inode routine.
-
-Fortunately there are only two filesystems left using this fallback: efs and
-jfs.  This patch moves a copy of export_iget to each of those to implement the
-get_dentry method.
-
-While this is a temporary increase of lines of code in the kernel it allows
-for a much cleaner interface and important code restructuring in later
-patches.
-
-[akpm@linux-foundation.org: add jfs_get_inode_flags() declaration]
-Signed-off-by: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Neil Brown <neilb@suse.de>
+[akpm@linux-foundation.org: uninlining]
+Signed-off-by: Yuri Frolov <yfrolov@ru.mvista.com>
+Signed-off-by: Andrei Konovalov <akonovalov@ru.mvista.com>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/namei.c         |   32 ++++++++++++++++++++++
- fs/efs/super.c         |    1 
- fs/exportfs/expfs.c    |   56 ++-------------------------------------
- fs/jfs/jfs_inode.h     |    1 
- fs/jfs/namei.c         |   32 ++++++++++++++++++++++
- fs/jfs/super.c         |    1 
- include/linux/efs_fs.h |    1 
- 7 files changed, 71 insertions(+), 53 deletions(-)
+ arch/ppc/syslib/virtex_devices.h |    7 
+ drivers/spi/Kconfig              |   11 
+ drivers/spi/Makefile             |    1 
+ drivers/spi/xilinx_spi.c         |  434 +++++++++++++++++++++++++++++
+ 4 files changed, 453 insertions(+)
 
-diff -puN fs/efs/namei.c~knfsd-exportfs-remove-iget-abuse fs/efs/namei.c
---- a/fs/efs/namei.c~knfsd-exportfs-remove-iget-abuse
-+++ a/fs/efs/namei.c
-@@ -75,6 +75,38 @@ struct dentry *efs_lookup(struct inode *
- 	return NULL;
- }
+diff -puN arch/ppc/syslib/virtex_devices.h~spi-master-driver-for-xilinx-virtex arch/ppc/syslib/virtex_devices.h
+--- a/arch/ppc/syslib/virtex_devices.h~spi-master-driver-for-xilinx-virtex
++++ a/arch/ppc/syslib/virtex_devices.h
+@@ -31,4 +31,11 @@ void __init virtex_early_serial_map(void
+  */
+ int virtex_device_fixup(struct platform_device *dev);
  
-+struct dentry *efs_get_dentry(struct super_block *sb, void *vobjp)
++/* SPI Controller IP */
++struct xspi_platform_data {
++	s16 bus_num;
++	u16 num_chipselect;
++	u32 speed_hz;
++};
++
+ #endif  /* __ASM_VIRTEX_DEVICES_H__ */
+diff -puN drivers/spi/Kconfig~spi-master-driver-for-xilinx-virtex drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi-master-driver-for-xilinx-virtex
++++ a/drivers/spi/Kconfig
+@@ -167,6 +167,17 @@ config SPI_S3C24XX_GPIO
+ 	  GPIO lines to provide the SPI bus. This can be used where
+ 	  the inbuilt hardware cannot provide the transfer mode, or
+ 	  where the board is using non hardware connected pins.
++
++config SPI_XILINX
++	tristate "Xilinx SPI controller"
++	depends on SPI_MASTER && XILINX_VIRTEX && EXPERIMENTAL
++	select SPI_BITBANG
++	help
++	  This exposes the SPI controller IP from the Xilinx EDK.
++
++	  See the "OPB Serial Peripheral Interface (SPI) (v1.00e)"
++	  Product Specification document (DS464) for hardware details.
++
+ #
+ # Add new SPI master controllers in alphabetical order above this line
+ #
+diff -puN drivers/spi/Makefile~spi-master-driver-for-xilinx-virtex drivers/spi/Makefile
+--- a/drivers/spi/Makefile~spi-master-driver-for-xilinx-virtex
++++ a/drivers/spi/Makefile
+@@ -24,6 +24,7 @@ obj-$(CONFIG_SPI_MPC52xx_PSC)		+= mpc52x
+ obj-$(CONFIG_SPI_MPC83xx)		+= spi_mpc83xx.o
+ obj-$(CONFIG_SPI_S3C24XX_GPIO)		+= spi_s3c24xx_gpio.o
+ obj-$(CONFIG_SPI_S3C24XX)		+= spi_s3c24xx.o
++obj-$(CONFIG_SPI_XILINX)		+= xilinx_spi.o
+ # 	... add above this line ...
+ 
+ # SPI protocol drivers (device/link on bus)
+diff -puN /dev/null drivers/spi/xilinx_spi.c
+--- /dev/null
++++ a/drivers/spi/xilinx_spi.c
+@@ -0,0 +1,434 @@
++/*
++ * xilinx_spi.c
++ *
++ * Xilinx SPI controller driver (master mode only)
++ *
++ * Author: MontaVista Software, Inc.
++ *	source@mvista.com
++ *
++ * 2002-2007 (c) MontaVista Software, Inc.  This file is licensed under the
++ * terms of the GNU General Public License version 2.  This program is licensed
++ * "as is" without any warranty of any kind, whether express or implied.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/spi/spi.h>
++#include <linux/spi/spi_bitbang.h>
++#include <linux/io.h>
++
++#include <syslib/virtex_devices.h>
++
++#define XILINX_SPI_NAME "xspi"
++
++/* Register definitions as per "OPB Serial Peripheral Interface (SPI) (v1.00e)
++ * Product Specification", DS464
++ */
++#define XSPI_CR_OFFSET		0x62	/* 16-bit Control Register */
++
++#define XSPI_CR_ENABLE		0x02
++#define XSPI_CR_MASTER_MODE	0x04
++#define XSPI_CR_CPOL		0x08
++#define XSPI_CR_CPHA		0x10
++#define XSPI_CR_MODE_MASK	(XSPI_CR_CPHA | XSPI_CR_CPOL)
++#define XSPI_CR_TXFIFO_RESET	0x20
++#define XSPI_CR_RXFIFO_RESET	0x40
++#define XSPI_CR_MANUAL_SSELECT	0x80
++#define XSPI_CR_TRANS_INHIBIT	0x100
++
++#define XSPI_SR_OFFSET		0x67	/* 8-bit Status Register */
++
++#define XSPI_SR_RX_EMPTY_MASK	0x01	/* Receive FIFO is empty */
++#define XSPI_SR_RX_FULL_MASK	0x02	/* Receive FIFO is full */
++#define XSPI_SR_TX_EMPTY_MASK	0x04	/* Transmit FIFO is empty */
++#define XSPI_SR_TX_FULL_MASK	0x08	/* Transmit FIFO is full */
++#define XSPI_SR_MODE_FAULT_MASK	0x10	/* Mode fault error */
++
++#define XSPI_TXD_OFFSET		0x6b	/* 8-bit Data Transmit Register */
++#define XSPI_RXD_OFFSET		0x6f	/* 8-bit Data Receive Register */
++
++#define XSPI_SSR_OFFSET		0x70	/* 32-bit Slave Select Register */
++
++/* Register definitions as per "OPB IPIF (v3.01c) Product Specification", DS414
++ * IPIF registers are 32 bit
++ */
++#define XIPIF_V123B_DGIER_OFFSET	0x1c	/* IPIF global int enable reg */
++#define XIPIF_V123B_GINTR_ENABLE	0x80000000
++
++#define XIPIF_V123B_IISR_OFFSET		0x20	/* IPIF interrupt status reg */
++#define XIPIF_V123B_IIER_OFFSET		0x28	/* IPIF interrupt enable reg */
++
++#define XSPI_INTR_MODE_FAULT		0x01	/* Mode fault error */
++#define XSPI_INTR_SLAVE_MODE_FAULT	0x02	/* Selected as slave while
++						 * disabled */
++#define XSPI_INTR_TX_EMPTY		0x04	/* TxFIFO is empty */
++#define XSPI_INTR_TX_UNDERRUN		0x08	/* TxFIFO was underrun */
++#define XSPI_INTR_RX_FULL		0x10	/* RxFIFO is full */
++#define XSPI_INTR_RX_OVERRUN		0x20	/* RxFIFO was overrun */
++
++#define XIPIF_V123B_RESETR_OFFSET	0x40	/* IPIF reset register */
++#define XIPIF_V123B_RESET_MASK		0x0a	/* the value to write */
++
++struct xilinx_spi {
++	/* bitbang has to be first */
++	struct spi_bitbang bitbang;
++	struct completion done;
++
++	void __iomem	*regs;	/* virt. address of the control registers */
++
++	u32		irq;
++
++	u32		speed_hz; /* SCK has a fixed frequency of speed_hz Hz */
++
++	u8 *rx_ptr;		/* pointer in the Tx buffer */
++	const u8 *tx_ptr;	/* pointer in the Rx buffer */
++	int remaining_bytes;	/* the number of bytes left to transfer */
++};
++
++static void xspi_init_hw(void __iomem *regs_base)
 +{
-+	__u32 *objp = vobjp;
-+	unsigned long ino = objp[0];
-+	__u32 generation = objp[1];
-+	struct inode *inode;
-+	struct dentry *result;
-+
-+	if (ino == 0)
-+		return ERR_PTR(-ESTALE);
-+	inode = iget(sb, ino);
-+	if (inode == NULL)
-+		return ERR_PTR(-ENOMEM);
-+
-+	if (is_bad_inode(inode) ||
-+	    (generation && inode->i_generation != generation)) {
-+	    	result = ERR_PTR(-ESTALE);
-+		goto out_iput;
-+	}
-+
-+	result = d_alloc_anon(inode);
-+	if (!result) {
-+		result = ERR_PTR(-ENOMEM);
-+		goto out_iput;
-+	}
-+	return result;
-+
-+ out_iput:
-+	iput(inode);
-+	return result;
++	/* Reset the SPI device */
++	out_be32(regs_base + XIPIF_V123B_RESETR_OFFSET,
++		 XIPIF_V123B_RESET_MASK);
++	/* Disable all the interrupts just in case */
++	out_be32(regs_base + XIPIF_V123B_IIER_OFFSET, 0);
++	/* Enable the global IPIF interrupt */
++	out_be32(regs_base + XIPIF_V123B_DGIER_OFFSET,
++		 XIPIF_V123B_GINTR_ENABLE);
++	/* Deselect the slave on the SPI bus */
++	out_be32(regs_base + XSPI_SSR_OFFSET, 0xffff);
++	/* Disable the transmitter, enable Manual Slave Select Assertion,
++	 * put SPI controller into master mode, and enable it */
++	out_be16(regs_base + XSPI_CR_OFFSET,
++		 XSPI_CR_TRANS_INHIBIT | XSPI_CR_MANUAL_SSELECT
++		 | XSPI_CR_MASTER_MODE | XSPI_CR_ENABLE);
 +}
 +
- struct dentry *efs_get_parent(struct dentry *child)
- {
- 	struct dentry *parent;
-diff -puN fs/efs/super.c~knfsd-exportfs-remove-iget-abuse fs/efs/super.c
---- a/fs/efs/super.c~knfsd-exportfs-remove-iget-abuse
-+++ a/fs/efs/super.c
-@@ -114,6 +114,7 @@ static const struct super_operations efs
- };
- 
- static struct export_operations efs_export_ops = {
-+	.get_dentry	= efs_get_dentry,
- 	.get_parent	= efs_get_parent,
- };
- 
-diff -puN fs/exportfs/expfs.c~knfsd-exportfs-remove-iget-abuse fs/exportfs/expfs.c
---- a/fs/exportfs/expfs.c~knfsd-exportfs-remove-iget-abuse
-+++ a/fs/exportfs/expfs.c
-@@ -391,61 +391,11 @@ out:
- 	return error;
- }
- 
--
--static struct dentry *export_iget(struct super_block *sb, unsigned long ino, __u32 generation)
-+static struct dentry *get_dentry(struct super_block *sb, void *vobjp)
- {
--
--	/* iget isn't really right if the inode is currently unallocated!!
--	 * This should really all be done inside each filesystem
--	 *
--	 * ext2fs' read_inode has been strengthed to return a bad_inode if
--	 * the inode had been deleted.
--	 *
--	 * Currently we don't know the generation for parent directory, so
--	 * a generation of 0 means "accept any"
--	 */
--	struct inode *inode;
--	struct dentry *result;
--	if (ino == 0)
--		return ERR_PTR(-ESTALE);
--	inode = iget(sb, ino);
--	if (inode == NULL)
--		return ERR_PTR(-ENOMEM);
--	if (is_bad_inode(inode)
--	    || (generation && inode->i_generation != generation)
--		) {
--		/* we didn't find the right inode.. */
--		dprintk("fh_verify: Inode %lu, Bad count: %d %d or version  %u %u\n",
--			inode->i_ino,
--			inode->i_nlink, atomic_read(&inode->i_count),
--			inode->i_generation,
--			generation);
--
--		iput(inode);
--		return ERR_PTR(-ESTALE);
--	}
--	/* now to find a dentry.
--	 * If possible, get a well-connected one
--	 */
--	result = d_alloc_anon(inode);
--	if (!result) {
--		iput(inode);
--		return ERR_PTR(-ENOMEM);
--	}
--	return result;
-+	return ERR_PTR(-ESTALE);
- }
- 
--
--static struct dentry *get_object(struct super_block *sb, void *vobjp)
--{
--	__u32 *objp = vobjp;
--	unsigned long ino = objp[0];
--	__u32 generation = objp[1];
--
--	return export_iget(sb, ino, generation);
--}
--
--
- /**
-  * export_encode_fh - default export_operations->encode_fh function
-  * @dentry:  the dentry to encode
-@@ -524,7 +474,7 @@ struct export_operations export_op_defau
- 
- 	.get_name	= get_name,
- 	.get_parent	= get_parent,
--	.get_dentry	= get_object,
-+	.get_dentry	= get_dentry,
- };
- 
- EXPORT_SYMBOL(export_op_default);
-diff -puN fs/jfs/jfs_inode.h~knfsd-exportfs-remove-iget-abuse fs/jfs/jfs_inode.h
---- a/fs/jfs/jfs_inode.h~knfsd-exportfs-remove-iget-abuse
-+++ a/fs/jfs/jfs_inode.h
-@@ -32,6 +32,7 @@ extern void jfs_truncate_nolock(struct i
- extern void jfs_free_zero_link(struct inode *);
- extern struct dentry *jfs_get_parent(struct dentry *dentry);
- extern void jfs_get_inode_flags(struct jfs_inode_info *);
-+extern struct dentry *jfs_get_dentry(struct super_block *sb, void *vobjp);
- extern void jfs_set_inode_flags(struct inode *);
- extern int jfs_get_block(struct inode *, sector_t, struct buffer_head *, int);
- 
-diff -puN fs/jfs/namei.c~knfsd-exportfs-remove-iget-abuse fs/jfs/namei.c
---- a/fs/jfs/namei.c~knfsd-exportfs-remove-iget-abuse
-+++ a/fs/jfs/namei.c
-@@ -1477,6 +1477,38 @@ static struct dentry *jfs_lookup(struct 
- 	return dentry;
- }
- 
-+struct dentry *jfs_get_dentry(struct super_block *sb, void *vobjp)
++static void xilinx_spi_chipselect(struct spi_device *spi, int is_on)
 +{
-+	__u32 *objp = vobjp;
-+	unsigned long ino = objp[0];
-+	__u32 generation = objp[1];
-+	struct inode *inode;
-+	struct dentry *result;
++	struct xilinx_spi *xspi = spi_master_get_devdata(spi->master);
 +
-+	if (ino == 0)
-+		return ERR_PTR(-ESTALE);
-+	inode = iget(sb, ino);
-+	if (inode == NULL)
-+		return ERR_PTR(-ENOMEM);
++	if (is_on == BITBANG_CS_INACTIVE) {
++		/* Deselect the slave on the SPI bus */
++		out_be32(xspi->regs + XSPI_SSR_OFFSET, 0xffff);
++	} else if (is_on == BITBANG_CS_ACTIVE) {
++		/* Set the SPI clock phase and polarity */
++		u16 cr = in_be16(xspi->regs + XSPI_CR_OFFSET)
++			 & ~XSPI_CR_MODE_MASK;
++		if (spi->mode & SPI_CPHA)
++			cr |= XSPI_CR_CPHA;
++		if (spi->mode & SPI_CPOL)
++			cr |= XSPI_CR_CPOL;
++		out_be16(xspi->regs + XSPI_CR_OFFSET, cr);
 +
-+	if (is_bad_inode(inode) ||
-+	    (generation && inode->i_generation != generation)) {
-+	    	result = ERR_PTR(-ESTALE);
-+		goto out_iput;
++		/* We do not check spi->max_speed_hz here as the SPI clock
++		 * frequency is not software programmable (the IP block design
++		 * parameter)
++		 */
++
++		/* Activate the chip select */
++		out_be32(xspi->regs + XSPI_SSR_OFFSET,
++			 ~(0x0001 << spi->chip_select));
 +	}
-+
-+	result = d_alloc_anon(inode);
-+	if (!result) {
-+		result = ERR_PTR(-ENOMEM);
-+		goto out_iput;
-+	}
-+	return result;
-+
-+ out_iput:
-+	iput(inode);
-+	return result;
 +}
 +
- struct dentry *jfs_get_parent(struct dentry *dentry)
- {
- 	struct super_block *sb = dentry->d_inode->i_sb;
-diff -puN fs/jfs/super.c~knfsd-exportfs-remove-iget-abuse fs/jfs/super.c
---- a/fs/jfs/super.c~knfsd-exportfs-remove-iget-abuse
-+++ a/fs/jfs/super.c
-@@ -738,6 +738,7 @@ static const struct super_operations jfs
- };
- 
- static struct export_operations jfs_export_operations = {
-+	.get_dentry	= jfs_get_dentry,
- 	.get_parent	= jfs_get_parent,
- };
- 
-diff -puN include/linux/efs_fs.h~knfsd-exportfs-remove-iget-abuse include/linux/efs_fs.h
---- a/include/linux/efs_fs.h~knfsd-exportfs-remove-iget-abuse
-+++ a/include/linux/efs_fs.h
-@@ -45,6 +45,7 @@ extern efs_block_t efs_map_block(struct 
- extern int efs_get_block(struct inode *, sector_t, struct buffer_head *, int);
- 
- extern struct dentry *efs_lookup(struct inode *, struct dentry *, struct nameidata *);
-+extern struct dentry *efs_get_dentry(struct super_block *sb, void *vobjp);
- extern struct dentry *efs_get_parent(struct dentry *);
- extern int efs_bmap(struct inode *, int);
- 
++/* spi_bitbang requires custom setup_transfer() to be defined if there is a
++ * custom txrx_bufs(). We have nothing to setup here as the SPI IP block
++ * supports just 8 bits per word, and SPI clock can't be changed in software.
++ * Check for 8 bits per word. Chip select delay calculations could be
++ * added here as soon as bitbang_work() can be made aware of the delay value.
++ */
++static int xilinx_spi_setup_transfer(struct spi_device *spi,
++		struct spi_transfer *t)
++{
++	u8 bits_per_word;
++	u32 hz;
++	struct xilinx_spi *xspi = spi_master_get_devdata(spi->master);
++
++	bits_per_word = (t) ? t->bits_per_word : spi->bits_per_word;
++	hz = (t) ? t->speed_hz : spi->max_speed_hz;
++	if (bits_per_word != 8) {
++		dev_err(&spi->dev, "%s, unsupported bits_per_word=%d\n",
++			__FUNCTION__, bits_per_word);
++		return -EINVAL;
++	}
++
++	if (hz && xspi->speed_hz > hz) {
++		dev_err(&spi->dev, "%s, unsupported clock rate %uHz\n",
++			__FUNCTION__, hz);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++/* the spi->mode bits understood by this driver: */
++#define MODEBITS (SPI_CPOL | SPI_CPHA)
++
++static int xilinx_spi_setup(struct spi_device *spi)
++{
++	struct spi_bitbang *bitbang;
++	struct xilinx_spi *xspi;
++	int retval;
++
++	xspi = spi_master_get_devdata(spi->master);
++	bitbang = &xspi->bitbang;
++
++	if (!spi->bits_per_word)
++		spi->bits_per_word = 8;
++
++	if (spi->mode & ~MODEBITS) {
++		dev_err(&spi->dev, "%s, unsupported mode bits %x\n",
++			__FUNCTION__, spi->mode & ~MODEBITS);
++		return -EINVAL;
++	}
++
++	retval = xilinx_spi_setup_transfer(spi, NULL);
++	if (retval < 0)
++		return retval;
++
++	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u nsec/bit\n",
++		__FUNCTION__, spi->mode & MODEBITS, spi->bits_per_word, 0);
++
++	return 0;
++}
++
++static void xilinx_spi_fill_tx_fifo(struct xilinx_spi *xspi)
++{
++	u8 sr;
++
++	/* Fill the Tx FIFO with as many bytes as possible */
++	sr = in_8(xspi->regs + XSPI_SR_OFFSET);
++	while ((sr & XSPI_SR_TX_FULL_MASK) == 0 && xspi->remaining_bytes > 0) {
++		if (xspi->tx_ptr) {
++			out_8(xspi->regs + XSPI_TXD_OFFSET, *xspi->tx_ptr++);
++		} else {
++			out_8(xspi->regs + XSPI_TXD_OFFSET, 0);
++		}
++		xspi->remaining_bytes--;
++		sr = in_8(xspi->regs + XSPI_SR_OFFSET);
++	}
++}
++
++static int xilinx_spi_txrx_bufs(struct spi_device *spi, struct spi_transfer *t)
++{
++	struct xilinx_spi *xspi = spi_master_get_devdata(spi->master);
++	u32 ipif_ier;
++	u16 cr;
++
++	/* We get here with transmitter inhibited */
++
++	xspi->tx_ptr = t->tx_buf;
++	xspi->rx_ptr = t->rx_buf;
++	xspi->remaining_bytes = t->len;
++	INIT_COMPLETION(xspi->done);
++
++	xilinx_spi_fill_tx_fifo(xspi);
++
++	/* Enable the transmit empty interrupt, which we use to determine
++	 * progress on the transmission.
++	 */
++	ipif_ier = in_be32(xspi->regs + XIPIF_V123B_IIER_OFFSET);
++	out_be32(xspi->regs + XIPIF_V123B_IIER_OFFSET,
++		 ipif_ier | XSPI_INTR_TX_EMPTY);
++
++	/* Start the transfer by not inhibiting the transmitter any longer */
++	cr = in_be16(xspi->regs + XSPI_CR_OFFSET) & ~XSPI_CR_TRANS_INHIBIT;
++	out_be16(xspi->regs + XSPI_CR_OFFSET, cr);
++
++	wait_for_completion(&xspi->done);
++
++	/* Disable the transmit empty interrupt */
++	out_be32(xspi->regs + XIPIF_V123B_IIER_OFFSET, ipif_ier);
++
++	return t->len - xspi->remaining_bytes;
++}
++
++
++/* This driver supports single master mode only. Hence Tx FIFO Empty
++ * is the only interrupt we care about.
++ * Receive FIFO Overrun, Transmit FIFO Underrun, Mode Fault, and Slave Mode
++ * Fault are not to happen.
++ */
++static irqreturn_t xilinx_spi_irq(int irq, void *dev_id)
++{
++	struct xilinx_spi *xspi = dev_id;
++	u32 ipif_isr;
++
++	/* Get the IPIF interrupts, and clear them immediately */
++	ipif_isr = in_be32(xspi->regs + XIPIF_V123B_IISR_OFFSET);
++	out_be32(xspi->regs + XIPIF_V123B_IISR_OFFSET, ipif_isr);
++
++	if (ipif_isr & XSPI_INTR_TX_EMPTY) {	/* Transmission completed */
++		u16 cr;
++		u8 sr;
++
++		/* A transmit has just completed. Process received data and
++		 * check for more data to transmit. Always inhibit the
++		 * transmitter while the Isr refills the transmit register/FIFO,
++		 * or make sure it is stopped if we're done.
++		 */
++		cr = in_be16(xspi->regs + XSPI_CR_OFFSET);
++		out_be16(xspi->regs + XSPI_CR_OFFSET,
++			 cr | XSPI_CR_TRANS_INHIBIT);
++
++		/* Read out all the data from the Rx FIFO */
++		sr = in_8(xspi->regs + XSPI_SR_OFFSET);
++		while ((sr & XSPI_SR_RX_EMPTY_MASK) == 0) {
++			u8 data;
++
++			data = in_8(xspi->regs + XSPI_RXD_OFFSET);
++			if (xspi->rx_ptr) {
++				*xspi->rx_ptr++ = data;
++			}
++			sr = in_8(xspi->regs + XSPI_SR_OFFSET);
++		}
++
++		/* See if there is more data to send */
++		if (xspi->remaining_bytes > 0) {
++			xilinx_spi_fill_tx_fifo(xspi);
++			/* Start the transfer by not inhibiting the
++			 * transmitter any longer
++			 */
++			out_be16(xspi->regs + XSPI_CR_OFFSET, cr);
++		} else {
++			/* No more data to send.
++			 * Indicate the transfer is completed.
++			 */
++			complete(&xspi->done);
++		}
++	}
++
++	return IRQ_HANDLED;
++}
++
++static int __init xilinx_spi_probe(struct platform_device *dev)
++{
++	int ret = 0;
++	struct spi_master *master;
++	struct xilinx_spi *xspi;
++	struct xspi_platform_data *pdata;
++	struct resource *r;
++
++	/* Get resources(memory, IRQ) associated with the device */
++	master = spi_alloc_master(&dev->dev, sizeof(struct xilinx_spi));
++
++	if (master == NULL) {
++		return -ENOMEM;
++	}
++
++	platform_set_drvdata(dev, master);
++	pdata = dev->dev.platform_data;
++
++	if (pdata == NULL) {
++		ret = -ENODEV;
++		goto put_master;
++	}
++
++	r = platform_get_resource(dev, IORESOURCE_MEM, 0);
++	if (r == NULL) {
++		ret = -ENODEV;
++		goto put_master;
++	}
++
++	xspi = spi_master_get_devdata(master);
++	xspi->bitbang.master = spi_master_get(master);
++	xspi->bitbang.chipselect = xilinx_spi_chipselect;
++	xspi->bitbang.setup_transfer = xilinx_spi_setup_transfer;
++	xspi->bitbang.txrx_bufs = xilinx_spi_txrx_bufs;
++	xspi->bitbang.master->setup = xilinx_spi_setup;
++	init_completion(&xspi->done);
++
++	if (!request_mem_region(r->start,
++			r->end - r->start + 1, XILINX_SPI_NAME)) {
++		ret = -ENXIO;
++		goto put_master;
++	}
++
++	xspi->regs = ioremap(r->start, r->end - r->start + 1);
++	if (xspi->regs == NULL) {
++		ret = -ENOMEM;
++		goto put_master;
++	}
++
++	xspi->irq = platform_get_irq(dev, 0);
++	if (xspi->irq < 0) {
++		ret = -ENXIO;
++		goto unmap_io;
++	}
++
++	master->bus_num = pdata->bus_num;
++	master->num_chipselect = pdata->num_chipselect;
++	xspi->speed_hz = pdata->speed_hz;
++
++	/* SPI controller initializations */
++	xspi_init_hw(xspi->regs);
++
++	/* Register for SPI Interrupt */
++	ret = request_irq(xspi->irq, xilinx_spi_irq, 0, XILINX_SPI_NAME, xspi);
++	if (ret != 0)
++		goto unmap_io;
++
++	ret = spi_bitbang_start(&xspi->bitbang);
++	if (ret != 0) {
++		dev_err(&dev->dev, "spi_bitbang_start FAILED\n");
++		goto free_irq;
++	}
++
++	dev_info(&dev->dev, "at 0x%08X mapped to 0x%08X, irq=%d\n",
++			r->start, (u32)xspi->regs, xspi->irq);
++
++	return ret;
++
++free_irq:
++	free_irq(xspi->irq, xspi);
++unmap_io:
++	iounmap(xspi->regs);
++put_master:
++	spi_master_put(master);
++	return ret;
++}
++
++static int __devexit xilinx_spi_remove(struct platform_device *dev)
++{
++	struct xilinx_spi *xspi;
++	struct spi_master *master;
++
++	master = platform_get_drvdata(dev);
++	xspi = spi_master_get_devdata(master);
++
++	spi_bitbang_stop(&xspi->bitbang);
++	free_irq(xspi->irq, xspi);
++	iounmap(xspi->regs);
++	platform_set_drvdata(dev, 0);
++	spi_master_put(xspi->bitbang.master);
++
++	return 0;
++}
++
++static struct platform_driver xilinx_spi_driver = {
++	.probe	= xilinx_spi_probe,
++	.remove	= __devexit_p(xilinx_spi_remove),
++	.driver = {
++		.name = XILINX_SPI_NAME,
++		.owner = THIS_MODULE,
++	},
++};
++
++static int __init xilinx_spi_init(void)
++{
++	return platform_driver_register(&xilinx_spi_driver);
++}
++module_init(xilinx_spi_init);
++
++static void __exit xilinx_spi_exit(void)
++{
++	platform_driver_unregister(&xilinx_spi_driver);
++}
++module_exit(xilinx_spi_exit);
++
++MODULE_AUTHOR("MontaVista Software, Inc. <source@mvista.com>");
++MODULE_DESCRIPTION("Xilinx SPI driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from hch@infradead.org are
+Patches currently in -mm which might be from akonovalov@ru.mvista.com are
 
 origin.patch
-dvb_en_50221-convert-to-kthread-api.patch
-git-vfs-lease-api.patch
-git-xfs.patch
-introduce-i_sync.patch
