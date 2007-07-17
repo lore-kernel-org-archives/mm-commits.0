@@ -1,80 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - strip-config_-automatically-in-kernel-configuration-search.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:09:14 -0700
-Message-ID: <200707172309.l6HN9ESt012356@imap1.linux-foundation.org>
+Subject: - mm-make-needlessly-global-hugetlb_no_page-static.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:01:38 -0700
+Message-ID: <200707172301.l6HN1cJr011419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56619 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40344 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935908AbXGQXP1 (ORCPT
+	by vger.kernel.org with ESMTP id S936059AbXGQXPj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:27 -0400
+	Tue, 17 Jul 2007 19:15:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bwalle@suse.de, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Strip 'CONFIG_' automatically in kernel configuration search
+     MM: Make needlessly global hugetlb_no_page() static.
 has been removed from the -mm tree.  Its filename was
-     strip-config_-automatically-in-kernel-configuration-search.patch
+     mm-make-needlessly-global-hugetlb_no_page-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Strip 'CONFIG_' automatically in kernel configuration search
-From: Bernhard Walle <bwalle@suse.de>
+Subject: MM: Make needlessly global hugetlb_no_page() static.
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Modify the ncurses configuration tool ('make menuconfig') in a way that the
-user can enter the search string (/) both with or without the leading
-'CONFIG_'.
-
-This simplifies using copy & paste from .config files because you can
-select the whole word.
-
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/mconf.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/kconfig/mconf.c~strip-config_-automatically-in-kernel-configuration-search scripts/kconfig/mconf.c
---- a/scripts/kconfig/mconf.c~strip-config_-automatically-in-kernel-configuration-search
-+++ a/scripts/kconfig/mconf.c
-@@ -419,11 +419,13 @@ static void search_conf(void)
- {
- 	struct symbol **sym_arr;
- 	struct gstr res;
-+	char *dialog_input;
- 	int dres;
- again:
- 	dialog_clear();
- 	dres = dialog_inputbox(_("Search Configuration Parameter"),
--			      _("Enter CONFIG_ (sub)string to search for (omit CONFIG_)"),
-+			      _("Enter CONFIG_ (sub)string to search for "
-+				"(with or without \"CONFIG\")"),
- 			      10, 75, "");
- 	switch (dres) {
- 	case 0:
-@@ -435,7 +437,12 @@ again:
- 		return;
- 	}
+diff -puN mm/hugetlb.c~mm-make-needlessly-global-hugetlb_no_page-static mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-make-needlessly-global-hugetlb_no_page-static
++++ a/mm/hugetlb.c
+@@ -498,7 +498,7 @@ static int hugetlb_cow(struct mm_struct 
+ 	return VM_FAULT_MINOR;
+ }
  
--	sym_arr = sym_re_search(dialog_input_result);
-+	/* strip CONFIG_ if necessary */
-+	dialog_input = dialog_input_result;
-+	if (strncasecmp(dialog_input_result, "CONFIG_", 7) == 0)
-+		dialog_input += 7;
-+
-+	sym_arr = sym_re_search(dialog_input);
- 	res = get_relations_str(sym_arr);
- 	free(sym_arr);
- 	show_textbox(_("Search Results"), str_get(&res), 0, 0);
+-int hugetlb_no_page(struct mm_struct *mm, struct vm_area_struct *vma,
++static int hugetlb_no_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, pte_t *ptep, int write_access)
+ {
+ 	int ret = VM_FAULT_SIGBUS;
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
+git-alsa.patch
+git-dvb.patch
 git-kbuild.patch
+git-kvm.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+remove-dead-references-to-module_parm-macro.patch
+git-watchdog.patch
+i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
+i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
+i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
