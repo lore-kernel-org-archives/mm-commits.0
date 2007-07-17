@@ -1,104 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - char-cyclades-fix-sparse-warning.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:06:13 -0700
-Message-ID: <200707172306.l6HN6DcD011994@imap1.linux-foundation.org>
+Subject: - fix-the-graphic-corruption-issue-on-ia64-machines.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:08:03 -0700
+Message-ID: <200707172308.l6HN83nM012250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32772 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38916 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762558AbXGQXPK (ORCPT
+	by vger.kernel.org with ESMTP id S935000AbXGQXQL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:10 -0400
+	Tue, 17 Jul 2007 19:16:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: izumi2005@soft.fujitsu.com, adaplas@pol.net, ntachino@redhat.com, tony.luck@intel.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: cyclades, fix sparse warning
+     Fix the graphic corruption issue on IA64 machines
 has been removed from the -mm tree.  Its filename was
-     char-cyclades-fix-sparse-warning.patch
+     fix-the-graphic-corruption-issue-on-ia64-machines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: cyclades, fix sparse warning
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Fix the graphic corruption issue on IA64 machines
+From: izumi <izumi2005@soft.fujitsu.com>
 
-cyclades, fix sparse warning
+VGA console driver can misunderstand the current mode(Text/Graphic) under
+"disable console blanking" setting.  When "disable console blank" is set
+(blankinterval=0), "do_unblank_screen()" function returns without changing
+"blank_state", and when "blank_state" is "blank_off", "do_blank_screen()
+function returns without invoking sw->con_blank() function.  That's why VGA
+console driver can misunderstand the current mode.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Nobuhiro Tachino <ntachino@redhat.com>
+Signed-off-by: Taku Izumi <izumi2005@soft.fujitsu.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Acked-by: Pete Zaitcev <zaitcev@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ drivers/char/vt.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-fix-sparse-warning drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-fix-sparse-warning
-+++ a/drivers/char/cyclades.c
-@@ -1890,11 +1890,11 @@ static void cyz_poll(unsigned long arg)
- 	struct cyclades_card *cinfo;
- 	struct cyclades_port *info;
- 	struct tty_struct *tty;
--	static struct FIRM_ID *firm_id;
--	static struct ZFW_CTRL *zfw_ctrl;
--	static struct BOARD_CTRL *board_ctrl;
--	static struct CH_CTRL *ch_ctrl;
--	static struct BUF_CTRL *buf_ctrl;
-+	struct FIRM_ID __iomem *firm_id;
-+	struct ZFW_CTRL __iomem *zfw_ctrl;
-+	struct BOARD_CTRL __iomem *board_ctrl;
-+	struct CH_CTRL __iomem *ch_ctrl;
-+	struct BUF_CTRL __iomem *buf_ctrl;
- 	unsigned long expires = jiffies + HZ;
- 	int card, port;
+diff -puN drivers/char/vt.c~fix-the-graphic-corruption-issue-on-ia64-machines drivers/char/vt.c
+--- a/drivers/char/vt.c~fix-the-graphic-corruption-issue-on-ia64-machines
++++ a/drivers/char/vt.c
+@@ -3506,9 +3506,6 @@ void do_blank_screen(int entering_gfx)
+ 		}
+ 		return;
+ 	}
+-	if (blank_state != blank_normal_wait)
+-		return;
+-	blank_state = blank_off;
  
-@@ -2038,7 +2038,6 @@ static int startup(struct cyclades_port 
- 		struct ZFW_CTRL __iomem *zfw_ctrl;
- 		struct BOARD_CTRL __iomem *board_ctrl;
- 		struct CH_CTRL __iomem *ch_ctrl;
--		int retval;
+ 	/* entering graphics mode? */
+ 	if (entering_gfx) {
+@@ -3516,10 +3513,15 @@ void do_blank_screen(int entering_gfx)
+ 		save_screen(vc);
+ 		vc->vc_sw->con_blank(vc, -1, 1);
+ 		console_blanked = fg_console + 1;
++		blank_state = blank_off;
+ 		set_origin(vc);
+ 		return;
+ 	}
  
- 		base_addr = card->base_addr;
- 
-@@ -2410,7 +2409,6 @@ block_til_ready(struct tty_struct *tty, 
- 		struct ZFW_CTRL __iomem *zfw_ctrl;
- 		struct BOARD_CTRL __iomem *board_ctrl;
- 		struct CH_CTRL __iomem *ch_ctrl;
--		int retval;
- 
- 		base_addr = cinfo->base_addr;
- 		firm_id = base_addr + ID_ADDRESS;
-@@ -4902,7 +4900,7 @@ static int __devinit cyz_load_fw(struct 
- 	struct FIRM_ID __iomem *fid = base_addr + ID_ADDRESS;
- 	struct CUSTOM_REG __iomem *cust = base_addr;
- 	struct ZFW_CTRL __iomem *pt_zfwctrl;
--	u8 *tmp;
-+	void __iomem *tmp;
- 	u32 mailbox, status;
- 	unsigned int i;
- 	int retval;
-@@ -4964,13 +4962,13 @@ static int __devinit cyz_load_fw(struct 
- 	udelay(100);
- 
- 	/* clear memory */
--	for (tmp = base_addr; (void *)tmp < base_addr + RAM_SIZE; tmp++)
-+	for (tmp = base_addr; tmp < base_addr + RAM_SIZE; tmp++)
- 		cy_writeb(tmp, 255);
- 	if (mailbox != 0) {
- 		/* set window to last 512K of RAM */
- 		cy_writel(&ctl_addr->loc_addr_base, WIN_RAM + RAM_SIZE);
- 		//sleep(1);
--		for (tmp = base_addr; (void *)tmp < base_addr + RAM_SIZE; tmp++)
-+		for (tmp = base_addr; tmp < base_addr + RAM_SIZE; tmp++)
- 			cy_writeb(tmp, 255);
- 		/* set window to beginning of RAM */
- 		cy_writel(&ctl_addr->loc_addr_base, WIN_RAM);
++	if (blank_state != blank_normal_wait)
++		return;
++	blank_state = blank_off;
++
+ 	/* don't blank graphics */
+ 	if (vc->vc_mode != KD_TEXT) {
+ 		console_blanked = fg_console + 1;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from izumi2005@soft.fujitsu.com are
 
 origin.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-shrink_slab-handle-bad-shrinkers.patch
