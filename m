@@ -1,125 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - slub-extract-dma_kmalloc_cache-from-get_cache.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:01:12 -0700
-Message-ID: <200707172301.l6HN1CU9011364@imap1.linux-foundation.org>
+Subject: - slub-use-list_for_each_entry-for-loops-over-all-slabs.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:00:55 -0700
+Message-ID: <200707172300.l6HN0t08011332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45192 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34665 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936477AbXGQXPs (ORCPT
+	by vger.kernel.org with ESMTP id S936314AbXGQXPt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:48 -0400
+	Tue, 17 Jul 2007 19:15:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: extract dma_kmalloc_cache from get_cache.
+     SLUB: use list_for_each_entry for loops over all slabs
 has been removed from the -mm tree.  Its filename was
-     slub-extract-dma_kmalloc_cache-from-get_cache.patch
+     slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: extract dma_kmalloc_cache from get_cache.
+Subject: SLUB: use list_for_each_entry for loops over all slabs
 From: Christoph Lameter <clameter@sgi.com>
 
-The rarely used dma functionality in get_slab() makes the function too
-complex.  The compiler begins to spill variables from the working set onto the
-stack.  The created function is only used in extremely rare cases so make sure
-that the compiler does not decide on its own to merge it back into get_slab().
+Use list_for_each_entry() instead of list_for_each().
+
+Get rid of for_all_slabs(). It had only one user. So fold it into the
+callback. This also gets rid of cpu_slab_flush.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   66 ++++++++++++++++++++++++++++------------------------
- 1 file changed, 36 insertions(+), 30 deletions(-)
+ mm/slub.c |   51 +++++++++++++--------------------------------------
+ 1 file changed, 13 insertions(+), 38 deletions(-)
 
-diff -puN mm/slub.c~slub-extract-dma_kmalloc_cache-from-get_cache mm/slub.c
---- a/mm/slub.c~slub-extract-dma_kmalloc_cache-from-get_cache
+diff -puN mm/slub.c~slub-use-list_for_each_entry-for-loops-over-all-slabs mm/slub.c
+--- a/mm/slub.c~slub-use-list_for_each_entry-for-loops-over-all-slabs
 +++ a/mm/slub.c
-@@ -2272,6 +2272,40 @@ panic:
- 	panic("Creation of kmalloc slab %s size=%d failed.\n", name, size);
- }
- 
-+#ifdef CONFIG_ZONE_DMA
-+static noinline struct kmem_cache *dma_kmalloc_cache(int index, gfp_t flags)
-+{
-+	struct kmem_cache *s;
-+	struct kmem_cache *x;
-+	char *text;
-+	size_t realsize;
-+
-+	s = kmalloc_caches_dma[index];
-+	if (s)
-+		return s;
-+
-+	/* Dynamically create dma cache */
-+	x = kmalloc(kmem_size, flags & ~SLUB_DMA);
-+	if (!x)
-+		panic("Unable to allocate memory for dma cache\n");
-+
-+	if (index <= KMALLOC_SHIFT_HIGH)
-+		realsize = 1 << index;
-+	else {
-+		if (index == 1)
-+			realsize = 96;
-+		else
-+			realsize = 192;
-+	}
-+
-+	text = kasprintf(flags & ~SLUB_DMA, "kmalloc_dma-%d",
-+			(unsigned int)realsize);
-+	s = create_kmalloc_cache(x, text, realsize, flags);
-+	kmalloc_caches_dma[index] = s;
-+	return s;
-+}
-+#endif
-+
- static struct kmem_cache *get_slab(size_t size, gfp_t flags)
+@@ -2573,7 +2573,7 @@ static struct kmem_cache *find_mergeable
+ 		size_t align, unsigned long flags,
+ 		void (*ctor)(void *, struct kmem_cache *, unsigned long))
  {
- 	int index = kmalloc_index(size);
-@@ -2284,36 +2318,8 @@ static struct kmem_cache *get_slab(size_
- 		return NULL;
+-	struct list_head *h;
++	struct kmem_cache *s;
  
- #ifdef CONFIG_ZONE_DMA
--	if ((flags & SLUB_DMA)) {
--		struct kmem_cache *s;
--		struct kmem_cache *x;
--		char *text;
--		size_t realsize;
+ 	if (slub_nomerge || (flags & SLUB_NEVER_MERGE))
+ 		return NULL;
+@@ -2585,10 +2585,7 @@ static struct kmem_cache *find_mergeable
+ 	align = calculate_alignment(flags, align, size);
+ 	size = ALIGN(size, align);
+ 
+-	list_for_each(h, &slab_caches) {
+-		struct kmem_cache *s =
+-			container_of(h, struct kmem_cache, list);
 -
--		s = kmalloc_caches_dma[index];
--		if (s)
--			return s;
++	list_for_each_entry(s, &slab_caches, list) {
+ 		if (slab_unmergeable(s))
+ 			continue;
+ 
+@@ -2670,33 +2667,6 @@ void *kmem_cache_zalloc(struct kmem_cach
+ EXPORT_SYMBOL(kmem_cache_zalloc);
+ 
+ #ifdef CONFIG_SMP
+-static void for_all_slabs(void (*func)(struct kmem_cache *, int), int cpu)
+-{
+-	struct list_head *h;
 -
--		/* Dynamically create dma cache */
--		x = kmalloc(kmem_size, flags & ~SLUB_DMA);
--		if (!x)
--			panic("Unable to allocate memory for dma cache\n");
+-	down_read(&slub_lock);
+-	list_for_each(h, &slab_caches) {
+-		struct kmem_cache *s =
+-			container_of(h, struct kmem_cache, list);
 -
--		if (index <= KMALLOC_SHIFT_HIGH)
--			realsize = 1 << index;
--		else {
--			if (index == 1)
--				realsize = 96;
--			else
--				realsize = 192;
--		}
--
--		text = kasprintf(flags & ~SLUB_DMA, "kmalloc_dma-%d",
--				(unsigned int)realsize);
--		s = create_kmalloc_cache(x, text, realsize, flags);
--		kmalloc_caches_dma[index] = s;
--		return s;
+-		func(s, cpu);
 -	}
-+	if ((flags & SLUB_DMA))
-+		return dma_kmalloc_cache(index, flags);
- #endif
- 	return &kmalloc_caches[index];
- }
+-	up_read(&slub_lock);
+-}
+-
+-/*
+- * Version of __flush_cpu_slab for the case that interrupts
+- * are enabled.
+- */
+-static void cpu_slab_flush(struct kmem_cache *s, int cpu)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	__flush_cpu_slab(s, cpu);
+-	local_irq_restore(flags);
+-}
+-
+ /*
+  * Use the cpu notifier to insure that the cpu slabs are flushed when
+  * necessary.
+@@ -2705,13 +2675,21 @@ static int __cpuinit slab_cpuup_callback
+ 		unsigned long action, void *hcpu)
+ {
+ 	long cpu = (long)hcpu;
++	struct kmem_cache *s;
++	unsigned long flags;
+ 
+ 	switch (action) {
+ 	case CPU_UP_CANCELED:
+ 	case CPU_UP_CANCELED_FROZEN:
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN:
+-		for_all_slabs(cpu_slab_flush, cpu);
++		down_read(&slub_lock);
++		list_for_each_entry(s, &slab_caches, list) {
++			local_irq_save(flags);
++			__flush_cpu_slab(s, cpu);
++			local_irq_restore(flags);
++		}
++		up_read(&slub_lock);
+ 		break;
+ 	default:
+ 		break;
+@@ -3736,7 +3714,7 @@ static int sysfs_slab_alias(struct kmem_
+ 
+ static int __init slab_sysfs_init(void)
+ {
+-	struct list_head *h;
++	struct kmem_cache *s;
+ 	int err;
+ 
+ 	err = subsystem_register(&slab_subsys);
+@@ -3747,10 +3725,7 @@ static int __init slab_sysfs_init(void)
+ 
+ 	slab_state = SYSFS;
+ 
+-	list_for_each(h, &slab_caches) {
+-		struct kmem_cache *s =
+-			container_of(h, struct kmem_cache, list);
+-
++	list_for_each_entry(s, &slab_caches, list) {
+ 		err = sysfs_slab_add(s);
+ 		BUG_ON(err);
+ 	}
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
