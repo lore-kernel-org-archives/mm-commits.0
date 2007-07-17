@@ -1,79 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - fix-the-graphic-corruption-issue-on-ia64-machines.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:08:03 -0700
-Message-ID: <200707172308.l6HN83nM012250@imap1.linux-foundation.org>
+Subject: - char-isicom-del_timer-at-exit.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:06:17 -0700
+Message-ID: <200707172306.l6HN6HCL012000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38916 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34265 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935000AbXGQXQL (ORCPT
+	by vger.kernel.org with ESMTP id S1754947AbXGQXPI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:11 -0400
+	Tue, 17 Jul 2007 19:15:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: izumi2005@soft.fujitsu.com, adaplas@pol.net, ntachino@redhat.com, tony.luck@intel.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix the graphic corruption issue on IA64 machines
+     Char: isicom, del_timer at exit
 has been removed from the -mm tree.  Its filename was
-     fix-the-graphic-corruption-issue-on-ia64-machines.patch
+     char-isicom-del_timer-at-exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix the graphic corruption issue on IA64 machines
-From: izumi <izumi2005@soft.fujitsu.com>
+Subject: Char: isicom, del_timer at exit
+From: Jiri Slaby <jirislaby@gmail.com>
 
-VGA console driver can misunderstand the current mode(Text/Graphic) under
-"disable console blanking" setting.  When "disable console blank" is set
-(blankinterval=0), "do_unblank_screen()" function returns without changing
-"blank_state", and when "blank_state" is "blank_off", "do_blank_screen()
-function returns without invoking sw->con_blank() function.  That's why VGA
-console driver can misunderstand the current mode.
-
-Signed-off-by: Nobuhiro Tachino <ntachino@redhat.com>
-Signed-off-by: Taku Izumi <izumi2005@soft.fujitsu.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Acked-by: Pete Zaitcev <zaitcev@redhat.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/char/isicom.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN drivers/char/vt.c~fix-the-graphic-corruption-issue-on-ia64-machines drivers/char/vt.c
---- a/drivers/char/vt.c~fix-the-graphic-corruption-issue-on-ia64-machines
-+++ a/drivers/char/vt.c
-@@ -3506,9 +3506,6 @@ void do_blank_screen(int entering_gfx)
- 		}
- 		return;
- 	}
--	if (blank_state != blank_normal_wait)
--		return;
--	blank_state = blank_off;
+diff -puN drivers/char/isicom.c~char-isicom-del_timer-at-exit drivers/char/isicom.c
+--- a/drivers/char/isicom.c~char-isicom-del_timer-at-exit
++++ a/drivers/char/isicom.c
+@@ -171,9 +171,6 @@ static struct pci_driver isicom_driver =
+ static int prev_card = 3;	/*	start servicing isi_card[0]	*/
+ static struct tty_driver *isicom_normal;
  
- 	/* entering graphics mode? */
- 	if (entering_gfx) {
-@@ -3516,10 +3513,15 @@ void do_blank_screen(int entering_gfx)
- 		save_screen(vc);
- 		vc->vc_sw->con_blank(vc, -1, 1);
- 		console_blanked = fg_console + 1;
-+		blank_state = blank_off;
- 		set_origin(vc);
- 		return;
- 	}
+-static DECLARE_COMPLETION(isi_timerdone);
+-static char re_schedule = 1;
+-
+ static void isicom_tx(unsigned long _data);
+ static void isicom_start(struct tty_struct *tty);
  
-+	if (blank_state != blank_normal_wait)
-+		return;
-+	blank_state = blank_off;
-+
- 	/* don't blank graphics */
- 	if (vc->vc_mode != KD_TEXT) {
- 		console_blanked = fg_console + 1;
+@@ -502,11 +499,6 @@ unlock:
+ 	spin_unlock_irqrestore(&isi_card[card].card_lock, flags);
+ 	/*	schedule another tx for hopefully in about 10ms	*/
+ sched_again:
+-	if (!re_schedule) {
+-		complete(&isi_timerdone);
+- 		return;
+-	}
+-
+ 	mod_timer(&tx, jiffies + msecs_to_jiffies(10));
+ }
+ 
+@@ -1890,9 +1882,7 @@ error:
+ 
+ static void __exit isicom_exit(void)
+ {
+-	re_schedule = 0;
+-
+-	wait_for_completion_timeout(&isi_timerdone, HZ);
++	del_timer_sync(&tx);
+ 
+ 	pci_unregister_driver(&isicom_driver);
+ 	tty_unregister_driver(isicom_normal);
 _
 
-Patches currently in -mm which might be from izumi2005@soft.fujitsu.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+shrink_slab-handle-bad-shrinkers.patch
