@@ -1,351 +1,279 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-exportfs-split-out-reconnecting-a-dentry-from-find_exported_dentry.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:04:19 -0700
-Message-ID: <200707172304.l6HN4JfR011793@imap1.linux-foundation.org>
+Subject: - i2o_cfg_passthru-cleanup.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:03:53 -0700
+Message-ID: <200707172303.l6HN3rg3011748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56924 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48245 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936791AbXGQXQq (ORCPT
+	by vger.kernel.org with ESMTP id S936787AbXGQXQp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:46 -0400
+	Tue, 17 Jul 2007 19:16:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@infradead.org, hch@lst.de, neilb@suse.de, mm-commits@vger.kernel.org
+To: vvs@sw.ru, Markus.Lidel@shadowconnect.com, alan@lxorguk.ukuu.org.uk, dev@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: exportfs: split out reconnecting a dentry from find_exported_dentry
+     i2o_cfg_passthru cleanup
 has been removed from the -mm tree.  Its filename was
-     knfsd-exportfs-split-out-reconnecting-a-dentry-from-find_exported_dentry.patch
+     i2o_cfg_passthru-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: exportfs: split out reconnecting a dentry from find_exported_dentry
-From: Christoph Hellwig <hch@infradead.org>
+Subject: i2o_cfg_passthru cleanup
+From: Vasily Averin <vvs@sw.ru>
 
-There's a clear subfunctionality of reconnecting a given dentry to the main
-dentry tree in find_exported_dentry, that can be called both for the dentry
-we're looking for or it's parent directory.
+This patch fixes a number of issues in i2o_cfg_passthru{,32}:
+- i2o_msg_get_wait() return vaile is not checked;
+- i2o_message memory leaks on error paths;
+- infinite loop to sg_list_cleanup in passthru32
 
-This patch splits the subfunctionality out into a separate helper to make the
-code more readable and document it's intent.  As a nice side-optimization we
-can avoid getting a superfluous dentry reference count in the case we need to
-reconnect a directory on it's own.
+It's important issue because of i2o_cfg_passthru is used by raidutils for
+monitorig controllers state, and in case of memory shortage it leads to the
+node crash or disk IO stall.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Neil Brown <neilb@suse.de>
+[akpm@linux-foundation.org: fix null-ptr deref]
+Signed-off-by: Vasily Averin <vvs@sw.ru>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
+Acked-by: Kirill Korotaev <dev@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exportfs/expfs.c |  213 ++++++++++++++++++++++--------------------
- 1 file changed, 113 insertions(+), 100 deletions(-)
+ drivers/message/i2o/i2o_config.c |   62 +++++++++++++++++------------
+ 1 file changed, 38 insertions(+), 24 deletions(-)
 
-diff -puN fs/exportfs/expfs.c~knfsd-exportfs-split-out-reconnecting-a-dentry-from-find_exported_dentry fs/exportfs/expfs.c
---- a/fs/exportfs/expfs.c~knfsd-exportfs-split-out-reconnecting-a-dentry-from-find_exported_dentry
-+++ a/fs/exportfs/expfs.c
-@@ -91,101 +91,27 @@ find_disconnected_root(struct dentry *de
- 	return dentry;
+diff -puN drivers/message/i2o/i2o_config.c~i2o_cfg_passthru-cleanup drivers/message/i2o/i2o_config.c
+--- a/drivers/message/i2o/i2o_config.c~i2o_cfg_passthru-cleanup
++++ a/drivers/message/i2o/i2o_config.c
+@@ -554,8 +554,6 @@ static int i2o_cfg_passthru32(struct fil
+ 		return -ENXIO;
+ 	}
+ 
+-	msg = i2o_msg_get_wait(c, I2O_TIMEOUT_MESSAGE_GET);
+-
+ 	sb = c->status_block.virt;
+ 
+ 	if (get_user(size, &user_msg[0])) {
+@@ -573,24 +571,30 @@ static int i2o_cfg_passthru32(struct fil
+ 
+ 	size <<= 2;		// Convert to bytes
+ 
++	msg = i2o_msg_get_wait(c, I2O_TIMEOUT_MESSAGE_GET);
++	if (IS_ERR(msg))
++		return PTR_ERR(msg);
++
++	rcode = -EFAULT;
+ 	/* Copy in the user's I2O command */
+ 	if (copy_from_user(msg, user_msg, size)) {
+ 		osm_warn("unable to copy user message\n");
+-		return -EFAULT;
++		goto out;
+ 	}
+ 	i2o_dump_message(msg);
+ 
+ 	if (get_user(reply_size, &user_reply[0]) < 0)
+-		return -EFAULT;
++		goto out;
+ 
+ 	reply_size >>= 16;
+ 	reply_size <<= 2;
+ 
++	rcode = -ENOMEM;
+ 	reply = kzalloc(reply_size, GFP_KERNEL);
+ 	if (!reply) {
+ 		printk(KERN_WARNING "%s: Could not allocate reply buffer\n",
+ 		       c->name);
+-		return -ENOMEM;
++		goto out;
+ 	}
+ 
+ 	sg_offset = (msg->u.head[0] >> 4) & 0x0f;
+@@ -661,13 +665,14 @@ static int i2o_cfg_passthru32(struct fil
+ 	}
+ 
+ 	rcode = i2o_msg_post_wait(c, msg, 60);
++	msg = NULL;
+ 	if (rcode) {
+ 		reply[4] = ((u32) rcode) << 24;
+ 		goto sg_list_cleanup;
+ 	}
+ 
+ 	if (sg_offset) {
+-		u32 msg[I2O_OUTBOUND_MSG_FRAME_SIZE];
++		u32 rmsg[I2O_OUTBOUND_MSG_FRAME_SIZE];
+ 		/* Copy back the Scatter Gather buffers back to user space */
+ 		u32 j;
+ 		// TODO 64bit fix
+@@ -675,7 +680,7 @@ static int i2o_cfg_passthru32(struct fil
+ 		int sg_size;
+ 
+ 		// re-acquire the original message to handle correctly the sg copy operation
+-		memset(&msg, 0, I2O_OUTBOUND_MSG_FRAME_SIZE * 4);
++		memset(&rmsg, 0, I2O_OUTBOUND_MSG_FRAME_SIZE * 4);
+ 		// get user msg size in u32s
+ 		if (get_user(size, &user_msg[0])) {
+ 			rcode = -EFAULT;
+@@ -684,7 +689,7 @@ static int i2o_cfg_passthru32(struct fil
+ 		size = size >> 16;
+ 		size *= 4;
+ 		/* Copy in the user's I2O command */
+-		if (copy_from_user(msg, user_msg, size)) {
++		if (copy_from_user(rmsg, user_msg, size)) {
+ 			rcode = -EFAULT;
+ 			goto sg_list_cleanup;
+ 		}
+@@ -692,7 +697,7 @@ static int i2o_cfg_passthru32(struct fil
+ 		    (size - sg_offset * 4) / sizeof(struct sg_simple_element);
+ 
+ 		// TODO 64bit fix
+-		sg = (struct sg_simple_element *)(msg + sg_offset);
++		sg = (struct sg_simple_element *)(rmsg + sg_offset);
+ 		for (j = 0; j < sg_count; j++) {
+ 			/* Copy out the SG list to user's buffer if necessary */
+ 			if (!
+@@ -714,7 +719,7 @@ static int i2o_cfg_passthru32(struct fil
+ 		}
+ 	}
+ 
+-      sg_list_cleanup:
++sg_list_cleanup:
+ 	/* Copy back the reply to user space */
+ 	if (reply_size) {
+ 		// we wrote our own values for context - now restore the user supplied ones
+@@ -723,7 +728,6 @@ static int i2o_cfg_passthru32(struct fil
+ 			       "%s: Could not copy message context FROM user\n",
+ 			       c->name);
+ 			rcode = -EFAULT;
+-			goto sg_list_cleanup;
+ 		}
+ 		if (copy_to_user(user_reply, reply, reply_size)) {
+ 			printk(KERN_WARNING
+@@ -731,12 +735,14 @@ static int i2o_cfg_passthru32(struct fil
+ 			rcode = -EFAULT;
+ 		}
+ 	}
+-
+ 	for (i = 0; i < sg_index; i++)
+ 		i2o_dma_free(&c->pdev->dev, &sg_list[i]);
+ 
+-      cleanup:
++cleanup:
+ 	kfree(reply);
++out:
++	if (msg)
++		i2o_msg_nop(c, msg);
+ 	return rcode;
  }
  
--/**
-- * find_exported_dentry - helper routine to implement export_operations->decode_fh
-- * @sb:		The &super_block identifying the filesystem
-- * @obj:	An opaque identifier of the object to be found - passed to
-- *		get_inode
-- * @parent:	An optional opqaue identifier of the parent of the object.
-- * @acceptable:	A function used to test possible &dentries to see if they are
-- *		acceptable
-- * @context:	A parameter to @acceptable so that it knows on what basis to
-- *		judge.
-- *
-- * find_exported_dentry is the central helper routine to enable file systems
-- * to provide the decode_fh() export_operation.  It's main task is to take
-- * an &inode, find or create an appropriate &dentry structure, and possibly
-- * splice this into the dcache in the correct place.
-- *
-- * The decode_fh() operation provided by the filesystem should call
-- * find_exported_dentry() with the same parameters that it received except
-- * that instead of the file handle fragment, pointers to opaque identifiers
-- * for the object and optionally its parent are passed.  The default decode_fh
-- * routine passes one pointer to the start of the filehandle fragment, and
-- * one 8 bytes into the fragment.  It is expected that most filesystems will
-- * take this approach, though the offset to the parent identifier may well be
-- * different.
-+
-+/*
-+ * Make sure target_dir is fully connected to the dentry tree.
-  *
-- * find_exported_dentry() will call get_dentry to get an dentry pointer from
-- * the file system.  If any &dentry in the d_alias list is acceptable, it will
-- * be returned.  Otherwise find_exported_dentry() will attempt to splice a new
-- * &dentry into the dcache using get_name() and get_parent() to find the
-- * appropriate place.
-+ * It may already be, as the flag isn't always updated when connection happens.
-  */
--
--struct dentry *
--find_exported_dentry(struct super_block *sb, void *obj, void *parent,
--		     int (*acceptable)(void *context, struct dentry *de),
--		     void *context)
-+static int
-+reconnect_path(struct super_block *sb, struct dentry *target_dir)
- {
--	struct dentry *result = NULL;
--	struct dentry *target_dir;
--	int err = -ESTALE;
--	struct export_operations *nops = sb->s_export_op;
--	struct dentry *alias;
--	int noprogress;
- 	char nbuf[NAME_MAX+1];
-+	int noprogress = 0;
-+	int err = -ESTALE;
- 
- 	/*
--	 * Attempt to find the inode.
--	 */
--	result = exportfs_get_dentry(sb, obj);
--	if (IS_ERR(result))
--		return result;
--
--	if (S_ISDIR(result->d_inode->i_mode)) {
--		if (!(result->d_flags & DCACHE_DISCONNECTED)) {
--			if (acceptable(context, result))
--				return result;
--			err = -EACCES;
--			goto err_result;
--		}
--
--		target_dir = dget(result);
--	} else {
--		alias = find_acceptable_alias(result, acceptable, context);
--		if (alias)
--			return alias;
--
--		if (parent == NULL)
--			goto err_result;
--
--		target_dir = exportfs_get_dentry(sb,parent);
--		if (IS_ERR(target_dir)) {
--			err = PTR_ERR(target_dir);
--			goto err_result;
--		}
--	}
--
--	/*
--	 * Now we need to make sure that target_dir is properly connected.
--	 * It may already be, as the flag isn't always updated when connection
--	 * happens.
--	 * So, we walk up parent links until we find a connected directory,
--	 * or we run out of directories.  Then we find the parent, find
--	 * the name of the child in that parent, and do a lookup.
--	 * This should connect the child into the parent
--	 * We then repeat.
--	 */
--
--	/* it is possible that a confused file system might not let us complete 
-+	 * It is possible that a confused file system might not let us complete
- 	 * the path to the root.  For example, if get_parent returns a directory
- 	 * in which we cannot find a name for the child.  While this implies a
- 	 * very sick filesystem we don't want it to cause knfsd to spin.  Hence
- 	 * the noprogress counter.  If we go through the loop 10 times (2 is
- 	 * probably enough) without getting anywhere, we just give up
- 	 */
--	noprogress = 0;
- 	while (target_dir->d_flags & DCACHE_DISCONNECTED && noprogress++ < 10) {
- 		struct dentry *pd = find_disconnected_root(target_dir);
- 
-@@ -221,18 +147,20 @@ find_exported_dentry(struct super_block 
- 			struct dentry *npd;
- 
- 			mutex_lock(&pd->d_inode->i_mutex);
--			if (nops->get_parent)
--				ppd = nops->get_parent(pd);
-+			if (sb->s_export_op->get_parent)
-+				ppd = sb->s_export_op->get_parent(pd);
- 			mutex_unlock(&pd->d_inode->i_mutex);
- 
- 			if (IS_ERR(ppd)) {
- 				err = PTR_ERR(ppd);
--				dprintk("find_exported_dentry: get_parent of %ld failed, err %d\n",
--					pd->d_inode->i_ino, err);
-+				dprintk("%s: get_parent of %ld failed, err %d\n",
-+					__FUNCTION__, pd->d_inode->i_ino, err);
- 				dput(pd);
- 				break;
- 			}
--			dprintk("find_exported_dentry: find name of %lu in %lu\n", pd->d_inode->i_ino, ppd->d_inode->i_ino);
-+
-+			dprintk("%s: find name of %lu in %lu\n", __FUNCTION__,
-+				pd->d_inode->i_ino, ppd->d_inode->i_ino);
- 			err = exportfs_get_name(ppd, nbuf, pd);
- 			if (err) {
- 				dput(ppd);
-@@ -244,13 +172,14 @@ find_exported_dentry(struct super_block 
- 					continue;
- 				break;
- 			}
--			dprintk("find_exported_dentry: found name: %s\n", nbuf);
-+			dprintk("%s: found name: %s\n", __FUNCTION__, nbuf);
- 			mutex_lock(&ppd->d_inode->i_mutex);
- 			npd = lookup_one_len(nbuf, ppd, strlen(nbuf));
- 			mutex_unlock(&ppd->d_inode->i_mutex);
- 			if (IS_ERR(npd)) {
- 				err = PTR_ERR(npd);
--				dprintk("find_exported_dentry: lookup failed: %d\n", err);
-+				dprintk("%s: lookup failed: %d\n",
-+					__FUNCTION__, err);
- 				dput(ppd);
- 				dput(pd);
- 				break;
-@@ -263,7 +192,7 @@ find_exported_dentry(struct super_block 
- 			if (npd == pd)
- 				noprogress = 0;
- 			else
--				printk("find_exported_dentry: npd != pd\n");
-+				printk("%s: npd != pd\n", __FUNCTION__);
- 			dput(npd);
- 			dput(ppd);
- 			if (IS_ROOT(pd)) {
-@@ -279,15 +208,101 @@ find_exported_dentry(struct super_block 
- 		/* something went wrong - oh-well */
- 		if (!err)
- 			err = -ESTALE;
--		goto err_target;
-+		return err;
+@@ -793,8 +799,6 @@ static int i2o_cfg_passthru(unsigned lon
+ 		return -ENXIO;
  	}
--	/* if we weren't after a directory, have one more step to go */
--	if (result != target_dir) {
--		struct dentry *nresult;
+ 
+-	msg = i2o_msg_get_wait(c, I2O_TIMEOUT_MESSAGE_GET);
+-
+ 	sb = c->status_block.virt;
+ 
+ 	if (get_user(size, &user_msg[0]))
+@@ -810,12 +814,17 @@ static int i2o_cfg_passthru(unsigned lon
+ 
+ 	size <<= 2;		// Convert to bytes
+ 
++	msg = i2o_msg_get_wait(c, I2O_TIMEOUT_MESSAGE_GET);
++	if (IS_ERR(msg))
++		return PTR_ERR(msg);
 +
-+	return 0;
-+}
-+
-+/**
-+ * find_exported_dentry - helper routine to implement export_operations->decode_fh
-+ * @sb:		The &super_block identifying the filesystem
-+ * @obj:	An opaque identifier of the object to be found - passed to
-+ *		get_inode
-+ * @parent:	An optional opqaue identifier of the parent of the object.
-+ * @acceptable:	A function used to test possible &dentries to see if they are
-+ *		acceptable
-+ * @context:	A parameter to @acceptable so that it knows on what basis to
-+ *		judge.
-+ *
-+ * find_exported_dentry is the central helper routine to enable file systems
-+ * to provide the decode_fh() export_operation.  It's main task is to take
-+ * an &inode, find or create an appropriate &dentry structure, and possibly
-+ * splice this into the dcache in the correct place.
-+ *
-+ * The decode_fh() operation provided by the filesystem should call
-+ * find_exported_dentry() with the same parameters that it received except
-+ * that instead of the file handle fragment, pointers to opaque identifiers
-+ * for the object and optionally its parent are passed.  The default decode_fh
-+ * routine passes one pointer to the start of the filehandle fragment, and
-+ * one 8 bytes into the fragment.  It is expected that most filesystems will
-+ * take this approach, though the offset to the parent identifier may well be
-+ * different.
-+ *
-+ * find_exported_dentry() will call get_dentry to get an dentry pointer from
-+ * the file system.  If any &dentry in the d_alias list is acceptable, it will
-+ * be returned.  Otherwise find_exported_dentry() will attempt to splice a new
-+ * &dentry into the dcache using get_name() and get_parent() to find the
-+ * appropriate place.
-+ */
-+
-+struct dentry *
-+find_exported_dentry(struct super_block *sb, void *obj, void *parent,
-+		     int (*acceptable)(void *context, struct dentry *de),
-+		     void *context)
-+{
-+	struct dentry *result, *alias;
-+	int err = -ESTALE;
-+
-+	/*
-+	 * Attempt to find the inode.
-+	 */
-+	result = exportfs_get_dentry(sb, obj);
-+	if (IS_ERR(result))
-+		return result;
-+
-+	if (S_ISDIR(result->d_inode->i_mode)) {
-+		if (!(result->d_flags & DCACHE_DISCONNECTED)) {
-+			if (acceptable(context, result))
-+				return result;
-+			err = -EACCES;
-+			goto err_result;
-+		}
-+
-+		err = reconnect_path(sb, result);
-+		if (err)
-+			goto err_result;
-+	} else {
-+		struct dentry *target_dir, *nresult;
-+		char nbuf[NAME_MAX+1];
-+
-+		alias = find_acceptable_alias(result, acceptable, context);
-+		if (alias)
-+			return alias;
-+
-+		if (parent == NULL)
-+			goto err_result;
-+
-+		target_dir = exportfs_get_dentry(sb,parent);
-+		if (IS_ERR(target_dir)) {
-+			err = PTR_ERR(target_dir);
-+			goto err_result;
-+		}
-+
-+		err = reconnect_path(sb, target_dir);
-+		if (err) {
-+			dput(target_dir);
-+			goto err_result;
-+		}
-+
-+		/*
-+		 * As we weren't after a directory, have one more step to go.
-+		 */
- 		err = exportfs_get_name(target_dir, nbuf, result);
- 		if (!err) {
- 			mutex_lock(&target_dir->d_inode->i_mutex);
--			nresult = lookup_one_len(nbuf, target_dir, strlen(nbuf));
-+			nresult = lookup_one_len(nbuf, target_dir,
-+						 strlen(nbuf));
- 			mutex_unlock(&target_dir->d_inode->i_mutex);
- 			if (!IS_ERR(nresult)) {
- 				if (nresult->d_inode) {
-@@ -297,8 +312,8 @@ find_exported_dentry(struct super_block 
- 					dput(nresult);
- 			}
++	rcode = -EFAULT;
+ 	/* Copy in the user's I2O command */
+ 	if (copy_from_user(msg, user_msg, size))
+-		return -EFAULT;
++		goto out;
+ 
+ 	if (get_user(reply_size, &user_reply[0]) < 0)
+-		return -EFAULT;
++		goto out;
+ 
+ 	reply_size >>= 16;
+ 	reply_size <<= 2;
+@@ -824,7 +833,8 @@ static int i2o_cfg_passthru(unsigned lon
+ 	if (!reply) {
+ 		printk(KERN_WARNING "%s: Could not allocate reply buffer\n",
+ 		       c->name);
+-		return -ENOMEM;
++		rcode = -ENOMEM;
++		goto out;
+ 	}
+ 
+ 	sg_offset = (msg->u.head[0] >> 4) & 0x0f;
+@@ -891,13 +901,14 @@ static int i2o_cfg_passthru(unsigned lon
+ 	}
+ 
+ 	rcode = i2o_msg_post_wait(c, msg, 60);
++	msg = NULL;
+ 	if (rcode) {
+ 		reply[4] = ((u32) rcode) << 24;
+ 		goto sg_list_cleanup;
+ 	}
+ 
+ 	if (sg_offset) {
+-		u32 msg[128];
++		u32 rmsg[128];
+ 		/* Copy back the Scatter Gather buffers back to user space */
+ 		u32 j;
+ 		// TODO 64bit fix
+@@ -905,7 +916,7 @@ static int i2o_cfg_passthru(unsigned lon
+ 		int sg_size;
+ 
+ 		// re-acquire the original message to handle correctly the sg copy operation
+-		memset(&msg, 0, I2O_OUTBOUND_MSG_FRAME_SIZE * 4);
++		memset(&rmsg, 0, I2O_OUTBOUND_MSG_FRAME_SIZE * 4);
+ 		// get user msg size in u32s
+ 		if (get_user(size, &user_msg[0])) {
+ 			rcode = -EFAULT;
+@@ -914,7 +925,7 @@ static int i2o_cfg_passthru(unsigned lon
+ 		size = size >> 16;
+ 		size *= 4;
+ 		/* Copy in the user's I2O command */
+-		if (copy_from_user(msg, user_msg, size)) {
++		if (copy_from_user(rmsg, user_msg, size)) {
+ 			rcode = -EFAULT;
+ 			goto sg_list_cleanup;
  		}
-+		dput(target_dir);
+@@ -922,7 +933,7 @@ static int i2o_cfg_passthru(unsigned lon
+ 		    (size - sg_offset * 4) / sizeof(struct sg_simple_element);
+ 
+ 		// TODO 64bit fix
+-		sg = (struct sg_simple_element *)(msg + sg_offset);
++		sg = (struct sg_simple_element *)(rmsg + sg_offset);
+ 		for (j = 0; j < sg_count; j++) {
+ 			/* Copy out the SG list to user's buffer if necessary */
+ 			if (!
+@@ -944,7 +955,7 @@ static int i2o_cfg_passthru(unsigned lon
+ 		}
  	}
--	dput(target_dir);
  
- 	alias = find_acceptable_alias(result, acceptable, context);
- 	if (alias)
-@@ -308,13 +323,11 @@ find_exported_dentry(struct super_block 
- 	dput(result);
- 	/* It might be justifiable to return ESTALE here,
- 	 * but the filehandle at-least looks reasonable good
--	 * and it just be a permission problem, so returning
-+	 * and it may just be a permission problem, so returning
- 	 * -EACCESS is safer
- 	 */
- 	return ERR_PTR(-EACCES);
+-      sg_list_cleanup:
++sg_list_cleanup:
+ 	/* Copy back the reply to user space */
+ 	if (reply_size) {
+ 		// we wrote our own values for context - now restore the user supplied ones
+@@ -964,8 +975,11 @@ static int i2o_cfg_passthru(unsigned lon
+ 	for (i = 0; i < sg_index; i++)
+ 		kfree(sg_list[i]);
  
-- err_target:
--	dput(target_dir);
-  err_result:
- 	dput(result);
- 	return ERR_PTR(err);
+-      cleanup:
++cleanup:
+ 	kfree(reply);
++out:
++	if (msg)
++		i2o_msg_nop(c, msg);
+ 	return rcode;
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from hch@infradead.org are
+Patches currently in -mm which might be from vvs@sw.ru are
 
 origin.patch
-dvb_en_50221-convert-to-kthread-api.patch
-git-vfs-lease-api.patch
-git-xfs.patch
-introduce-i_sync.patch
