@@ -1,116 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-update.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 01:47:29 -0700
-Message-ID: <200707170847.l6H8lTFq008356@imap1.linux-foundation.org>
+Subject: - rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 01:48:47 -0700
+Message-ID: <200707170848.l6H8mlqN008385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50860 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42724 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758702AbXGQIru (ORCPT
+	by vger.kernel.org with ESMTP id S1757316AbXGQItJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 04:47:50 -0400
+	Tue, 17 Jul 2007 04:49:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, hcegtvedt@atmel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, lenb@kernel.org, rongkai.zhan@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Further fixes for the at32ap700x RTC driver:
+     rtc-add-support-for-the-st-m48t59-rtc vs git-acpi
 has been removed from the -mm tree.  Its filename was
-     driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-update.patch
+     rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
 
-This patch was dropped because it was folded into driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+This patch was dropped because it was folded into rtc-add-support-for-the-st-m48t59-rtc.patch
 
 ------------------------------------------------------
-Subject: Further fixes for the at32ap700x RTC driver:
-From: David Brownell <david-b@pacbell.net>
+Subject: rtc-add-support-for-the-st-m48t59-rtc vs git-acpi
+From: Andrew Morton <akpm@linux-foundation.org>
 
- - Strike some alarm setup code that's no longer needed.
-   (This patch seems to have gotten lost somewhere...)
+drivers/rtc/rtc-m48t59.c:357: warning: initialization from incompatible pointer type
+drivers/rtc/rtc-m48t59.c:358: warning: initialization from incompatible pointer type
 
- - Make the driver name (and its module alias) match what
-   the platform setup code uses, so the driver can bind
-   and hotplug.
+The acpi guys changed the bin_attribute code.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Mark Zhan <rongkai.zhan@windriver.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at32ap700x.c |   26 +++-----------------------
- 1 file changed, 3 insertions(+), 23 deletions(-)
+ drivers/rtc/rtc-m48t59.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-at32ap700x.c~driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-update drivers/rtc/rtc-at32ap700x.c
---- a/drivers/rtc/rtc-at32ap700x.c~driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-update
-+++ a/drivers/rtc/rtc-at32ap700x.c
-@@ -109,28 +109,6 @@ static int at32_rtc_setalarm(struct devi
+diff -puN drivers/rtc/rtc-m48t59.c~rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi drivers/rtc/rtc-m48t59.c
+--- a/drivers/rtc/rtc-m48t59.c~rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi
++++ a/drivers/rtc/rtc-m48t59.c
+@@ -310,8 +310,9 @@ static const struct rtc_class_ops m48t59
+ 	.proc		= m48t59_rtc_proc,
+ };
  
- 	rtc_unix_time = rtc_readl(rtc, VAL);
- 
--	/* RTC does only support one alarm time, not periodic */
--	if (alrm->time.tm_mday <= 0) {
--		struct rtc_time	tm;
--		unsigned long then;
--
--		rtc_time_to_tm(rtc_unix_time, &tm);
--
--		alrm->time.tm_mday = tm.tm_mday;
--		alrm->time.tm_mon  = tm.tm_mon;
--		alrm->time.tm_year = tm.tm_year;
--
--		rtc_tm_to_time(&alrm->time, &then);
--
--		/* check if the alarm wraps into tomorrow */
--		if (then < rtc_unix_time) {
--			rtc_time_to_tm(rtc_unix_time + 24 * 60 * 60, &tm);
--			alrm->time.tm_mday = tm.tm_mday;
--			alrm->time.tm_mon  = tm.tm_mon;
--			alrm->time.tm_year = tm.tm_year;
--		}
--	}
--
- 	ret = rtc_tm_to_time(&alrm->time, &alarm_unix_time);
- 	if (ret)
- 		return ret;
-@@ -312,10 +290,12 @@ static int __exit at32_rtc_remove(struct
- 	return 0;
+-static ssize_t m48t59_nvram_read(struct kobject *kobj, char *buf,
+-				 loff_t pos, size_t size)
++static ssize_t m48t59_nvram_read(struct kobject *kobj,
++				struct bin_attribute *bin_attr,
++				char *buf, loff_t pos, size_t size)
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+ 	struct platform_device *pdev = to_platform_device(dev);
+@@ -329,8 +330,9 @@ static ssize_t m48t59_nvram_read(struct 
+ 	return cnt;
  }
  
-+MODULE_ALIAS("at32ap700x_rtc");
-+
- static struct platform_driver at32_rtc_driver = {
- 	.remove		= __exit_p(at32_rtc_remove),
- 	.driver		= {
--		.name	= "rtc-at32ap700x",
-+		.name	= "at32ap700x_rtc",
- 		.owner	= THIS_MODULE,
- 	},
- };
+-static ssize_t m48t59_nvram_write(struct kobject *kobj, char *buf,
+-				  loff_t pos, size_t size)
++static ssize_t m48t59_nvram_write(struct kobject *kobj,
++				struct bin_attribute *bin_attr,
++				char *buf, loff_t pos, size_t size)
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+ 	struct platform_device *pdev = to_platform_device(dev);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-spi-controller-drivers-check-for-unsupported-modes.patch
-spi-add-3wire-mode-flag.patch
-spidev-compiler-warning-gone.patch
-spi_mpc83xxc-underclocking-hotfix.patch
-atmel_spi-minor-updates.patch
-atmel_spi-dont-always-deselect-chip-between-messages.patch
-s3c24xx-spi-controllers-both-select-bitbang.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+i386-speedup-touch_nmi_watchdog.patch
+x86_64-speedup-touch_nmi_watchdog.patch
+crc7-support.patch
 spi-master-driver-for-xilinx-virtex.patch
-spi-omap2_mcspi-driver.patch
-use-mutex-instead-of-semaphore-in-spi-core-init-code.patch
-rtc-ds1307-cleanups.patch
-rtc-rs5c372-becomes-a-new-style-i2c-driver.patch
-thecus-n2100-register-rtc-rs5c372-i2c-device.patch
-rtc-make-example-code-jump-to-done-instead-of-return-when-ioctl-not-supported.patch
-rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-remove-iget-abuse.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
 driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-update.patch
-rtc-kconfig-tweax.patch
 rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-watchdog-support-for-rtc-m41t80-driver-take-2.patch
-rtc-ds1307-becomes-new-style-i2c-driver.patch
-csb337-supports-new-style-rtc-ds1307.patch
-omap-add-ti-twl92330-menelaus-power-management-chip-driver.patch
+rtc-add-support-for-the-st-m48t59-rtc.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-driver-for-ds1216-chips-fix.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
