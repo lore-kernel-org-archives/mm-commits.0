@@ -1,222 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - fs-introduce-some-page-buffer-invariants.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:01:40 -0700
-Message-ID: <200707172301.l6HN1eBb011425@imap1.linux-foundation.org>
+Subject: - omap-lcd-panel-support-for-the-ti-omap-h4-board.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:08:39 -0700
+Message-ID: <200707172308.l6HN8d2N012299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40281 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36536 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765425AbXGQXPu (ORCPT
+	by vger.kernel.org with ESMTP id S936502AbXGQXPt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:50 -0400
+	Tue, 17 Jul 2007 19:15:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: imre.deak@solidboot.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: introduce some page/buffer invariants
+     OMAP: LCD panel support for the TI OMAP H4 board
 has been removed from the -mm tree.  Its filename was
-     fs-introduce-some-page-buffer-invariants.patch
+     omap-lcd-panel-support-for-the-ti-omap-h4-board.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs: introduce some page/buffer invariants
-From: Nick Piggin <npiggin@suse.de>
+Subject: OMAP: LCD panel support for the TI OMAP H4 board
+From: Imre Deak <imre.deak@solidboot.com>
 
-It is a bug to set a page dirty if it is not uptodate unless it has
-buffers.  If the page has buffers, then the page may be dirty (some buffers
-dirty) but not uptodate (some buffers not uptodate).  The exception to this
-rule is if the set_page_dirty caller is racing with truncate or invalidate.
+- Adds support for TFT LCD panel on TI OMAP H4 EVM board.
 
-A buffer can not be set dirty if it is not uptodate.
-
-If either of these situations occurs, it indicates there could be some data
-loss problem.  Some of these warnings could be a harmless one where the
-page or buffer is set uptodate immediately after it is dirtied, however we
-should fix those up, and enforce this ordering.
-
-Bring the order of operations for truncate into line with those of
-invalidate.  This will prevent a page from being able to go !uptodate while
-we're holding the tree_lock, which is probably a good thing anyway.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c         |   54 ++++++++++++++++++++++++++++--------------
- mm/page-writeback.c |    1 
- mm/truncate.c       |    2 -
- 3 files changed, 39 insertions(+), 18 deletions(-)
+ drivers/video/omap/Makefile |    2 
+ drivers/video/omap/lcd_h4.c |  117 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 119 insertions(+)
 
-diff -puN fs/buffer.c~fs-introduce-some-page-buffer-invariants fs/buffer.c
---- a/fs/buffer.c~fs-introduce-some-page-buffer-invariants
-+++ a/fs/buffer.c
-@@ -676,6 +676,39 @@ void mark_buffer_dirty_inode(struct buff
- EXPORT_SYMBOL(mark_buffer_dirty_inode);
+diff -puN drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-ti-omap-h4-board drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-ti-omap-h4-board
++++ a/drivers/video/omap/Makefile
+@@ -15,5 +15,7 @@ objs-$(CONFIG_ARCH_OMAP2)$(CONFIG_FB_OMA
+ objs-y$(CONFIG_FB_OMAP_LCDC_HWA742) += hwa742.o
+ objs-y$(CONFIG_FB_OMAP_LCDC_BLIZZARD) += blizzard.o
  
- /*
-+ * Mark the page dirty, and set it dirty in the radix tree, and mark the inode
-+ * dirty.
++objs-y$(CONFIG_MACH_OMAP_H4) += lcd_h4.o
++
+ omapfb-objs := $(objs-yy)
+ 
+diff -puN /dev/null drivers/video/omap/lcd_h4.c
+--- /dev/null
++++ a/drivers/video/omap/lcd_h4.c
+@@ -0,0 +1,117 @@
++/*
++ * LCD panel support for the TI OMAP H4 board
 + *
-+ * If warn is true, then emit a warning if the page is not uptodate and has
-+ * not been truncated.
++ * Copyright (C) 2004 Nokia Corporation
++ * Author: Imre Deak <imre.deak@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
-+static int __set_page_dirty(struct page *page,
-+		struct address_space *mapping, int warn)
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++
++#include <asm/arch/omapfb.h>
++
++static int h4_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
 +{
-+	if (unlikely(!mapping))
-+		return !TestSetPageDirty(page);
-+
-+	if (TestSetPageDirty(page))
-+		return 0;
-+
-+	write_lock_irq(&mapping->tree_lock);
-+	if (page->mapping) {	/* Race with truncate? */
-+		WARN_ON_ONCE(warn && !PageUptodate(page));
-+
-+		if (mapping_cap_account_dirty(mapping)) {
-+			__inc_zone_page_state(page, NR_FILE_DIRTY);
-+			task_io_account_write(PAGE_CACHE_SIZE);
-+		}
-+		radix_tree_tag_set(&mapping->page_tree,
-+				page_index(page), PAGECACHE_TAG_DIRTY);
-+	}
-+	write_unlock_irq(&mapping->tree_lock);
-+	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
-+
-+	return 1;
++	return 0;
 +}
 +
-+/*
-  * Add a page to the dirty page list.
-  *
-  * It is a sad fact of life that this function is called from several places
-@@ -702,7 +735,7 @@ EXPORT_SYMBOL(mark_buffer_dirty_inode);
-  */
- int __set_page_dirty_buffers(struct page *page)
- {
--	struct address_space * const mapping = page_mapping(page);
-+	struct address_space *mapping = page_mapping(page);
- 
- 	if (unlikely(!mapping))
- 		return !TestSetPageDirty(page);
-@@ -719,21 +752,7 @@ int __set_page_dirty_buffers(struct page
- 	}
- 	spin_unlock(&mapping->private_lock);
- 
--	if (TestSetPageDirty(page))
--		return 0;
--
--	write_lock_irq(&mapping->tree_lock);
--	if (page->mapping) {	/* Race with truncate? */
--		if (mapping_cap_account_dirty(mapping)) {
--			__inc_zone_page_state(page, NR_FILE_DIRTY);
--			task_io_account_write(PAGE_CACHE_SIZE);
--		}
--		radix_tree_tag_set(&mapping->page_tree,
--				page_index(page), PAGECACHE_TAG_DIRTY);
--	}
--	write_unlock_irq(&mapping->tree_lock);
--	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
--	return 1;
-+	return __set_page_dirty(page, mapping, 1);
- }
- EXPORT_SYMBOL(__set_page_dirty_buffers);
- 
-@@ -1132,8 +1151,9 @@ __getblk_slow(struct block_device *bdev,
-  */
- void fastcall mark_buffer_dirty(struct buffer_head *bh)
- {
-+	WARN_ON_ONCE(!buffer_uptodate(bh));
- 	if (!buffer_dirty(bh) && !test_set_buffer_dirty(bh))
--		__set_page_dirty_nobuffers(bh->b_page);
-+		__set_page_dirty(bh->b_page, page_mapping(bh->b_page), 0);
- }
- 
- /*
-diff -puN mm/page-writeback.c~fs-introduce-some-page-buffer-invariants mm/page-writeback.c
---- a/mm/page-writeback.c~fs-introduce-some-page-buffer-invariants
-+++ a/mm/page-writeback.c
-@@ -824,6 +824,7 @@ int __set_page_dirty_nobuffers(struct pa
- 		mapping2 = page_mapping(page);
- 		if (mapping2) { /* Race with truncate? */
- 			BUG_ON(mapping2 != mapping);
-+			WARN_ON_ONCE(!PagePrivate(page) && !PageUptodate(page));
- 			if (mapping_cap_account_dirty(mapping)) {
- 				__inc_zone_page_state(page, NR_FILE_DIRTY);
- 				task_io_account_write(PAGE_CACHE_SIZE);
-diff -puN mm/truncate.c~fs-introduce-some-page-buffer-invariants mm/truncate.c
---- a/mm/truncate.c~fs-introduce-some-page-buffer-invariants
-+++ a/mm/truncate.c
-@@ -100,9 +100,9 @@ truncate_complete_page(struct address_sp
- 	if (PagePrivate(page))
- 		do_invalidatepage(page, 0);
- 
-+	remove_from_page_cache(page);
- 	ClearPageUptodate(page);
- 	ClearPageMappedToDisk(page);
--	remove_from_page_cache(page);
- 	page_cache_release(page);	/* pagecache ref */
- }
- 
++static void h4_panel_cleanup(struct lcd_panel *panel)
++{
++}
++
++static int h4_panel_enable(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++static void h4_panel_disable(struct lcd_panel *panel)
++{
++}
++
++static unsigned long h4_panel_get_caps(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++struct lcd_panel h4_panel = {
++	.name		= "h4",
++	.config		= OMAP_LCDC_PANEL_TFT,
++
++	.bpp		= 16,
++	.data_lines	= 16,
++	.x_res		= 240,
++	.y_res		= 320,
++	.pixel_clock	= 6250,
++	.hsw		= 15,
++	.hfp		= 15,
++	.hbp		= 60,
++	.vsw		= 1,
++	.vfp		= 1,
++	.vbp		= 1,
++
++	.init		= h4_panel_init,
++	.cleanup	= h4_panel_cleanup,
++	.enable		= h4_panel_enable,
++	.disable	= h4_panel_disable,
++	.get_caps	= h4_panel_get_caps,
++};
++
++static int h4_panel_probe(struct platform_device *pdev)
++{
++	omapfb_register_panel(&h4_panel);
++	return 0;
++}
++
++static int h4_panel_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int h4_panel_suspend(struct platform_device *pdev, pm_message_t mesg)
++{
++	return 0;
++}
++
++static int h4_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver h4_panel_driver = {
++	.probe		= h4_panel_probe,
++	.remove		= h4_panel_remove,
++	.suspend	= h4_panel_suspend,
++	.resume		= h4_panel_resume,
++	.driver		= {
++		.name	= "lcd_h4",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int h4_panel_drv_init(void)
++{
++	return platform_driver_register(&h4_panel_driver);
++}
++
++static void h4_panel_drv_cleanup(void)
++{
++	platform_driver_unregister(&h4_panel_driver);
++}
++
++module_init(h4_panel_drv_init);
++module_exit(h4_panel_drv_cleanup);
++
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from imre.deak@solidboot.com are
 
 origin.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-fault-feedback-1.patch
-mm-fault-feedback-2.patch
-mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
-xfs-convert-to-new-aops.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
-hostfs-convert-to-new-aops.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-udf-convert-to-new-aops.patch
-sysv-convert-to-new-aops.patch
-minix-convert-to-new-aops.patch
-jfs-convert-to-new-aops.patch
-fs-adfs-convert-to-new-aops.patch
-fs-affs-convert-to-new-aops.patch
-ocfs2-convert-to-new-aops.patch
-fs-remove-some-aop_truncated_page.patch
-fs-reiserfs-cleanups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-reiser4-fix-for-new-aops-patches.patch
