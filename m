@@ -1,164 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - nfsd-warning-fix.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:04:21 -0700
-Message-ID: <200707172304.l6HN4LrT011796@imap1.linux-foundation.org>
+Subject: - fbcon-set_con2fb_map-fixes.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:07:01 -0700
+Message-ID: <200707172307.l6HN71KA012071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47724 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49740 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936144AbXGQXP1 (ORCPT
+	by vger.kernel.org with ESMTP id S934354AbXGQXPS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:27 -0400
+	Tue, 17 Jul 2007 19:15:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, neilb@suse.de, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfsd warning fix
+     fbcon: set_con2fb_map fixes
 has been removed from the -mm tree.  Its filename was
-     nfsd-warning-fix.patch
+     fbcon-set_con2fb_map-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nfsd warning fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fbcon: set_con2fb_map fixes
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-gcc-4.3:
+set_con2fb_map() has regressed for some time.  Using fbcon=map:01, for
+example, works only if there is only 1 working framebuffer. Trying to do a
+set_con2fb_map() on a non-allocated vc will freeze the system.
 
-fs/nfsd/nfsctl.c: In function 'write_getfs':
-fs/nfsd/nfsctl.c:248: warning: cast from pointer to integer of different size
+- ensure that succeeding drivers after the first gets mapped to the console
+- remove fbcon_preset_display() and modify fbcon_set_display() to include the
+  former's functionality
+- ensure that binding and unbinding succeeds if multiple drivers are mapped to
+  the console
 
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfsctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/console/fbcon.c |   64 ++++++++++++--------------------
+ 1 file changed, 25 insertions(+), 39 deletions(-)
 
-diff -puN fs/nfsd/nfsctl.c~nfsd-warning-fix fs/nfsd/nfsctl.c
---- a/fs/nfsd/nfsctl.c~nfsd-warning-fix
-+++ a/fs/nfsd/nfsctl.c
-@@ -245,7 +245,7 @@ static ssize_t write_getfs(struct file *
+diff -puN drivers/video/console/fbcon.c~fbcon-set_con2fb_map-fixes drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-set_con2fb_map-fixes
++++ a/drivers/video/console/fbcon.c
+@@ -192,9 +192,7 @@ static __inline__ void ypan_down(struct 
+ static void fbcon_bmove_rec(struct vc_data *vc, struct display *p, int sy, int sx,
+ 			    int dy, int dx, int height, int width, u_int y_break);
+ static void fbcon_set_disp(struct fb_info *info, struct fb_var_screeninfo *var,
+-			   struct vc_data *vc);
+-static void fbcon_preset_disp(struct fb_info *info, struct fb_var_screeninfo *var,
+-			      int unit);
++			   int unit);
+ static void fbcon_redraw_move(struct vc_data *vc, struct display *p,
+ 			      int line, int count, int dy);
+ static void fbcon_modechanged(struct fb_info *info);
+@@ -745,7 +743,9 @@ static int con2fb_acquire_newinfo(struct
+ 
+ 	if (!err) {
+ 		info->fbcon_par = ops;
+-		set_blitting_type(vc, info);
++
++		if (vc)
++			set_blitting_type(vc, info);
  	}
- 	exp_readunlock();
- 	if (err == 0)
--		err = res->fh_size + (int)&((struct knfsd_fh*)0)->fh_base;
-+		err = res->fh_size + offsetof(struct knfsd_fh, fh_base);
-  out:
- 	return err;
+ 
+ 	if (err) {
+@@ -807,11 +807,7 @@ static void con2fb_init_display(struct v
+ 
+ 	ops->flags |= FBCON_FLAGS_INIT;
+ 	ops->graphics = 0;
+-
+-	if (vc)
+-		fbcon_set_disp(info, &info->var, vc);
+-	else
+-		fbcon_preset_disp(info, &info->var, unit);
++	fbcon_set_disp(info, &info->var, unit);
+ 
+ 	if (show_logo) {
+ 		struct vc_data *fg_vc = vc_cons[fg_console].d;
+@@ -1116,6 +1112,9 @@ static void fbcon_init(struct vc_data *v
+ 	if (var_to_display(p, &info->var, info))
+ 		return;
+ 
++	if (!info->fbcon_par)
++		con2fb_acquire_newinfo(vc, info, vc->vc_num, -1);
++
+ 	/* If we are not the first console on this
+ 	   fb, copy the font from that console */
+ 	t = &fb_display[fg_console];
+@@ -1382,36 +1381,29 @@ static int scrollback_phys_max = 0;
+ static int scrollback_max = 0;
+ static int scrollback_current = 0;
+ 
+-/*
+- * If no vc is existent yet, just set struct display
+- */
+-static void fbcon_preset_disp(struct fb_info *info, struct fb_var_screeninfo *var,
+-			      int unit)
+-{
+-	struct display *p = &fb_display[unit];
+-	struct display *t = &fb_display[fg_console];
+-
+-	if (var_to_display(p, var, info))
+-		return;
+-
+-	p->fontdata = t->fontdata;
+-	p->userfont = t->userfont;
+-	if (p->userfont)
+-		REFCOUNT(p->fontdata)++;
+-}
+-
+ static void fbcon_set_disp(struct fb_info *info, struct fb_var_screeninfo *var,
+-			   struct vc_data *vc)
++			   int unit)
+ {
+-	struct display *p = &fb_display[vc->vc_num], *t;
+-	struct vc_data **default_mode = vc->vc_display_fg;
+-	struct vc_data *svc = *default_mode;
++	struct display *p, *t;
++	struct vc_data **default_mode, *vc;
++	struct vc_data *svc;
+ 	struct fbcon_ops *ops = info->fbcon_par;
+ 	int rows, cols, charcnt = 256;
+ 
++	p = &fb_display[unit];
++
+ 	if (var_to_display(p, var, info))
+ 		return;
++
++	vc = vc_cons[unit].d;
++
++	if (!vc)
++		return;
++
++	default_mode = vc->vc_display_fg;
++	svc = *default_mode;
+ 	t = &fb_display[svc->vc_num];
++
+ 	if (!vc->vc_font.data) {
+ 		vc->vc_font.data = (void *)(p->fontdata = t->fontdata);
+ 		vc->vc_font.width = (*default_mode)->vc_font.width;
+@@ -3118,8 +3110,7 @@ static int fbcon_fb_registered(struct fb
+ 			ret = fbcon_takeover(1);
+ 	} else {
+ 		for (i = first_fb_vc; i <= last_fb_vc; i++) {
+-			if (con2fb_map_boot[i] == idx &&
+-			    con2fb_map[i] == -1)
++			if (con2fb_map_boot[i] == idx)
+ 				set_con2fb_map(i, idx, 0);
+ 		}
+ 	}
+@@ -3167,12 +3158,7 @@ static void fbcon_new_modelist(struct fb
+ 		mode = fb_find_nearest_mode(fb_display[i].mode,
+ 					    &info->modelist);
+ 		fb_videomode_to_var(&var, mode);
+-
+-		if (vc)
+-			fbcon_set_disp(info, &var, vc);
+-		else
+-			fbcon_preset_disp(info, &var, i);
+-
++		fbcon_set_disp(info, &var, vc->vc_num);
+ 	}
  }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-ubi.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
