@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - omap-lcd-panel-support-for-the-ti-omap1610-innovator-board.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:08:49 -0700
-Message-ID: <200707172308.l6HN8nsS012314@imap1.linux-foundation.org>
+Subject: - omap-lcd-panel-support-for-palm-tungstent.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:08:45 -0700
+Message-ID: <200707172308.l6HN8jLc012308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37860 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58672 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936552AbXGQXPv (ORCPT
+	by vger.kernel.org with ESMTP id S936531AbXGQXPu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:51 -0400
+	Tue, 17 Jul 2007 19:15:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: imre.deak@solidboot.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: marek.vasut@gmail.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     OMAP: LCD panel support for the TI OMAP1610 Innovator board
+     OMAP: LCD panel support for Palm Tungsten|T
 has been removed from the -mm tree.  Its filename was
-     omap-lcd-panel-support-for-the-ti-omap1610-innovator-board.patch
+     omap-lcd-panel-support-for-palm-tungstent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: OMAP: LCD panel support for the TI OMAP1610 Innovator board
-From: Imre Deak <imre.deak@solidboot.com>
+Subject: OMAP: LCD panel support for Palm Tungsten|T
+From: Marek Vasut <marek.vasut@gmail.com>
 
-- Add TFT LCD panel spport for TI OMAP1610 Innovator EVM.
+- Add TFT LCD panel support for Palm Tungsten|T
 
 Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>
@@ -33,30 +33,30 @@ Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/omap/Makefile      |    1 
- drivers/video/omap/lcd_inn1610.c |  150 +++++++++++++++++++++++++++++
- 2 files changed, 151 insertions(+)
+ drivers/video/omap/Makefile     |    1 
+ drivers/video/omap/lcd_palmtt.c |  127 ++++++++++++++++++++++++++++++
+ 2 files changed, 128 insertions(+)
 
-diff -puN drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-ti-omap1610-innovator-board drivers/video/omap/Makefile
---- a/drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-ti-omap1610-innovator-board
+diff -puN drivers/video/omap/Makefile~omap-lcd-panel-support-for-palm-tungstent drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omap-lcd-panel-support-for-palm-tungstent
 +++ a/drivers/video/omap/Makefile
-@@ -20,6 +20,7 @@ objs-y$(CONFIG_MACH_OMAP_H3) += lcd_h3.o
+@@ -18,6 +18,7 @@ objs-y$(CONFIG_FB_OMAP_LCDC_BLIZZARD) +=
+ objs-y$(CONFIG_MACH_OMAP_H4) += lcd_h4.o
+ objs-y$(CONFIG_MACH_OMAP_H3) += lcd_h3.o
  objs-y$(CONFIG_MACH_OMAP_PALMTE) += lcd_palmte.o
- objs-y$(CONFIG_MACH_OMAP_PALMTT) += lcd_palmtt.o
- objs-y$(CONFIG_MACH_OMAP_PALMZ71) += lcd_palmz71.o
-+objs-$(CONFIG_ARCH_OMAP16XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1610.o
++objs-y$(CONFIG_MACH_OMAP_PALMTT) += lcd_palmtt.o
  
  omapfb-objs := $(objs-yy)
  
-diff -puN /dev/null drivers/video/omap/lcd_inn1610.c
+diff -puN /dev/null drivers/video/omap/lcd_palmtt.c
 --- /dev/null
-+++ a/drivers/video/omap/lcd_inn1610.c
-@@ -0,0 +1,150 @@
++++ a/drivers/video/omap/lcd_palmtt.c
+@@ -0,0 +1,127 @@
 +/*
-+ * LCD panel support for the TI OMAP1610 Innovator board
++ * LCD panel support for Palm Tungsten|T
++ * Current version : Marek Vasut <marek.vasut@gmail.com>
 + *
-+ * Copyright (C) 2004 Nokia Corporation
-+ * Author: Imre Deak <imre.deak@nokia.com>
++ * Modified from lcd_inn1510.c
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License as published by the
@@ -73,137 +73,114 @@ diff -puN /dev/null drivers/video/omap/lcd_inn1610.c
 + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
 +
-+#include <linux/module.h>
++/*
++GPIO11 - backlight
++GPIO12 - screen blanking
++GPIO13 - screen blanking
++*/
++
 +#include <linux/platform_device.h>
++#include <linux/module.h>
++#include <linux/io.h>
 +
 +#include <asm/arch/gpio.h>
 +#include <asm/arch/omapfb.h>
 +
-+#define MODULE_NAME	"omapfb-lcd_h3"
-+
-+#define pr_err(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
-+
-+static int innovator1610_panel_init(struct lcd_panel *panel,
-+				    struct omapfb_device *fbdev)
-+{
-+	int r = 0;
-+
-+	if (omap_request_gpio(14)) {
-+		pr_err("can't request GPIO 14\n");
-+		r = -1;
-+		goto exit;
-+	}
-+	if (omap_request_gpio(15)) {
-+		pr_err("can't request GPIO 15\n");
-+		omap_free_gpio(14);
-+		r = -1;
-+		goto exit;
-+	}
-+	/* configure GPIO(14, 15) as outputs */
-+	omap_set_gpio_direction(14, 0);
-+	omap_set_gpio_direction(15, 0);
-+exit:
-+	return r;
-+}
-+
-+static void innovator1610_panel_cleanup(struct lcd_panel *panel)
-+{
-+	omap_free_gpio(15);
-+	omap_free_gpio(14);
-+}
-+
-+static int innovator1610_panel_enable(struct lcd_panel *panel)
-+{
-+	/* set GPIO14 and GPIO15 high */
-+	omap_set_gpio_dataout(14, 1);
-+	omap_set_gpio_dataout(15, 1);
-+	return 0;
-+}
-+
-+static void innovator1610_panel_disable(struct lcd_panel *panel)
-+{
-+	/* set GPIO13, GPIO14 and GPIO15 low */
-+	omap_set_gpio_dataout(14, 0);
-+	omap_set_gpio_dataout(15, 0);
-+}
-+
-+static unsigned long innovator1610_panel_get_caps(struct lcd_panel *panel)
++static int palmtt_panel_init(struct lcd_panel *panel,
++	struct omapfb_device *fbdev)
 +{
 +	return 0;
 +}
 +
-+struct lcd_panel innovator1610_panel = {
-+	.name		= "inn1610",
-+	.config		= OMAP_LCDC_PANEL_TFT,
++static void palmtt_panel_cleanup(struct lcd_panel *panel)
++{
++}
 +
++static int palmtt_panel_enable(struct lcd_panel *panel)
++{
++	return 0;
++}
++
++static void palmtt_panel_disable(struct lcd_panel *panel)
++{
++}
++
++static unsigned long palmtt_panel_get_caps(struct lcd_panel *panel)
++{
++	return OMAPFB_CAPS_SET_BACKLIGHT;
++}
++
++struct lcd_panel palmtt_panel = {
++	.name		= "palmtt",
++	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
++			OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
++			OMAP_LCDC_HSVS_OPPOSITE,
 +	.bpp		= 16,
 +	.data_lines	= 16,
 +	.x_res		= 320,
-+	.y_res		= 240,
-+	.pixel_clock	= 12500,
-+	.hsw		= 40,
-+	.hfp		= 40,
-+	.hbp		= 72,
++	.y_res		= 320,
++	.pixel_clock	= 10000,
++	.hsw		= 4,
++	.hfp		= 8,
++	.hbp		= 28,
 +	.vsw		= 1,
-+	.vfp		= 1,
-+	.vbp		= 0,
-+	.pcd		= 12,
++	.vfp		= 8,
++	.vbp		= 7,
++	.pcd		= 0,
 +
-+	.init		= innovator1610_panel_init,
-+	.cleanup	= innovator1610_panel_cleanup,
-+	.enable		= innovator1610_panel_enable,
-+	.disable	= innovator1610_panel_disable,
-+	.get_caps	= innovator1610_panel_get_caps,
++	.init		= palmtt_panel_init,
++	.cleanup	= palmtt_panel_cleanup,
++	.enable		= palmtt_panel_enable,
++	.disable	= palmtt_panel_disable,
++	.get_caps	= palmtt_panel_get_caps,
 +};
 +
-+static int innovator1610_panel_probe(struct platform_device *pdev)
++static int palmtt_panel_probe(struct platform_device *pdev)
 +{
-+	omapfb_register_panel(&innovator1610_panel);
++	omapfb_register_panel(&palmtt_panel);
 +	return 0;
 +}
 +
-+static int innovator1610_panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int innovator1610_panel_suspend(struct platform_device *pdev,
-+				       pm_message_t mesg)
++static int palmtt_panel_remove(struct platform_device *pdev)
 +{
 +	return 0;
 +}
 +
-+static int innovator1610_panel_resume(struct platform_device *pdev)
++static int palmtt_panel_suspend(struct platform_device *pdev, pm_message_t mesg)
 +{
 +	return 0;
 +}
 +
-+struct platform_driver innovator1610_panel_driver = {
-+	.probe		= innovator1610_panel_probe,
-+	.remove		= innovator1610_panel_remove,
-+	.suspend	= innovator1610_panel_suspend,
-+	.resume		= innovator1610_panel_resume,
++static int palmtt_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver palmtt_panel_driver = {
++	.probe		= palmtt_panel_probe,
++	.remove		= palmtt_panel_remove,
++	.suspend	= palmtt_panel_suspend,
++	.resume		= palmtt_panel_resume,
 +	.driver		= {
-+		.name	= "lcd_inn1610",
++		.name	= "lcd_palmtt",
 +		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+static int innovator1610_panel_drv_init(void)
++static int palmtt_panel_drv_init(void)
 +{
-+	return platform_driver_register(&innovator1610_panel_driver);
++	return platform_driver_register(&palmtt_panel_driver);
 +}
 +
-+static void innovator1610_panel_drv_cleanup(void)
++static void palmtt_panel_drv_cleanup(void)
 +{
-+	platform_driver_unregister(&innovator1610_panel_driver);
++	platform_driver_unregister(&palmtt_panel_driver);
 +}
 +
-+module_init(innovator1610_panel_drv_init);
-+module_exit(innovator1610_panel_drv_cleanup);
-+
++module_init(palmtt_panel_drv_init);
++module_exit(palmtt_panel_drv_cleanup);
 _
 
-Patches currently in -mm which might be from imre.deak@solidboot.com are
+Patches currently in -mm which might be from marek.vasut@gmail.com are
 
 origin.patch
