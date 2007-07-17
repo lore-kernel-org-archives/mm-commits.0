@@ -1,151 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - fbcon-cursor-blink-control.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:06:45 -0700
-Message-ID: <200707172306.l6HN6jDN012047@imap1.linux-foundation.org>
+Subject: - md-improve-message-about-invalid-superblock-during-autodetect.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:09:02 -0700
+Message-ID: <200707172309.l6HN92AK012338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52557 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44952 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764879AbXGQXPL (ORCPT
+	by vger.kernel.org with ESMTP id S1765189AbXGQXPL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:15:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbcon: cursor blink control
+     md: improve message about invalid superblock during autodetect
 has been removed from the -mm tree.  Its filename was
-     fbcon-cursor-blink-control.patch
+     md-improve-message-about-invalid-superblock-during-autodetect.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbcon: cursor blink control
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: md: improve message about invalid superblock during autodetect
+From: NeilBrown <neilb@suse.de>
 
-Add sysfs attribute to enable or disable cursor blinking.  This will also
-disable cursor blinking if the VT layer's softcursor is active.  These changes
-are required to enable some machines to enter low-power states properly.
+People try to use raid auto-detect with version-1 superblocks (which is not
+supported) and get confused when they are told they have an invalid
+superblock.
 
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+So be more explicit, and say it it is not a valid v0.90 superblock.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |   74 +++++++++++++++++++++++++++++++-
- 1 file changed, 73 insertions(+), 1 deletion(-)
+ drivers/md/md.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/console/fbcon.c~fbcon-cursor-blink-control drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbcon-cursor-blink-control
-+++ a/drivers/video/console/fbcon.c
-@@ -152,6 +152,7 @@ static int fbcon_set_origin(struct vc_da
- #define DEFAULT_CURSOR_BLINK_RATE	(20)
+diff -puN drivers/md/md.c~md-improve-message-about-invalid-superblock-during-autodetect drivers/md/md.c
+--- a/drivers/md/md.c~md-improve-message-about-invalid-superblock-during-autodetect
++++ a/drivers/md/md.c
+@@ -2073,9 +2073,11 @@ static mdk_rdev_t *md_import_device(dev_
+ 		err = super_types[super_format].
+ 			load_super(rdev, NULL, super_minor);
+ 		if (err == -EINVAL) {
+-			printk(KERN_WARNING 
+-				"md: %s has invalid sb, not importing!\n",
+-				bdevname(rdev->bdev,b));
++			printk(KERN_WARNING
++				"md: %s does not have a valid v%d.%d "
++			       "superblock, not importing!\n",
++				bdevname(rdev->bdev,b),
++			       super_format, super_minor);
+ 			goto abort_free;
+ 		}
+ 		if (err < 0) {
+@@ -5771,7 +5773,7 @@ static void autostart_arrays(int part)
+ 	for (i = 0; i < dev_cnt; i++) {
+ 		dev_t dev = detected_devices[i];
  
- static int vbl_cursor_cnt;
-+static int fbcon_cursor_noblink;
+-		rdev = md_import_device(dev,0, 0);
++		rdev = md_import_device(dev,0, 90);
+ 		if (IS_ERR(rdev))
+ 			continue;
  
- #define divides(a, b)	((!(a) || (b)%(a)) ? 0 : 1)
- 
-@@ -441,7 +442,8 @@ static void fbcon_add_cursor_timer(struc
- 	struct fbcon_ops *ops = info->fbcon_par;
- 
- 	if ((!info->queue.func || info->queue.func == fb_flashcursor) &&
--	    !(ops->flags & FBCON_FLAGS_CURSOR_TIMER)) {
-+	    !(ops->flags & FBCON_FLAGS_CURSOR_TIMER) &&
-+	    !fbcon_cursor_noblink) {
- 		if (!info->queue.func)
- 			INIT_WORK(&info->queue, fb_flashcursor);
- 
-@@ -1349,6 +1351,11 @@ static void fbcon_cursor(struct vc_data 
- 	if (fbcon_is_inactive(vc, info) || vc->vc_deccm != 1)
- 		return;
- 
-+	if (vc->vc_cursor_type & 0x10)
-+		fbcon_del_cursor_timer(info);
-+	else
-+		fbcon_add_cursor_timer(info);
-+
- 	ops->cursor_flash = (mode == CM_ERASE) ? 0 : 1;
- 	if (mode & CM_SOFTBACK) {
- 		mode &= ~CM_SOFTBACK;
-@@ -3308,9 +3315,74 @@ err:
- 	return snprintf(buf, PAGE_SIZE, "%d\n", rotate);
- }
- 
-+static ssize_t show_cursor_blink(struct class_device *class_device, char *buf)
-+{
-+	struct fb_info *info;
-+	struct fbcon_ops *ops;
-+	int idx, blink = -1;
-+
-+	if (fbcon_has_exited)
-+		return 0;
-+
-+	acquire_console_sem();
-+	idx = con2fb_map[fg_console];
-+
-+	if (idx == -1 || registered_fb[idx] == NULL)
-+		goto err;
-+
-+	info = registered_fb[idx];
-+	ops = info->fbcon_par;
-+
-+	if (!ops)
-+		goto err;
-+
-+	blink = (ops->flags & FBCON_FLAGS_CURSOR_TIMER) ? 1 : 0;
-+err:
-+	release_console_sem();
-+	return snprintf(buf, PAGE_SIZE, "%d\n", blink);
-+}
-+
-+static ssize_t store_cursor_blink(struct class_device *clas_device,
-+				  const char *buf, size_t count)
-+{
-+	struct fb_info *info;
-+	int blink, idx;
-+	char **last = NULL;
-+
-+	if (fbcon_has_exited)
-+		return count;
-+
-+	acquire_console_sem();
-+	idx = con2fb_map[fg_console];
-+
-+	if (idx == -1 || registered_fb[idx] == NULL)
-+		goto err;
-+
-+	info = registered_fb[idx];
-+
-+	if (!info->fbcon_par)
-+		goto err;
-+
-+	blink = simple_strtoul(buf, last, 0);
-+
-+	if (blink) {
-+		fbcon_cursor_noblink = 0;
-+		fbcon_add_cursor_timer(info);
-+	} else {
-+		fbcon_cursor_noblink = 1;
-+		fbcon_del_cursor_timer(info);
-+	}
-+
-+err:
-+	release_console_sem();
-+	return count;
-+}
-+
- static struct class_device_attribute class_device_attrs[] = {
- 	__ATTR(rotate, S_IRUGO|S_IWUSR, show_rotate, store_rotate),
- 	__ATTR(rotate_all, S_IWUSR, NULL, store_rotate_all),
-+	__ATTR(cursor_blink, S_IRUGO|S_IWUSR, show_cursor_blink,
-+	       store_cursor_blink),
- };
- 
- static int fbcon_init_class_device(void)
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+raid5-add-the-stripe_queue-object-for-tracking-raid.patch
+raid5-add-the-stripe_queue-object-for-tracking-raid-io-requests-take2.patch
+raid5-use-stripe_queues-to-prioritize-the-most.patch
+fs-introduce-vfs_path_lookup.patch
+sunrpc-use-vfs_path_lookup.patch
+nfsctl-use-vfs_path_lookup.patch
+fs-mark-link_path_walk-static.patch
+fs-remove-path_walk-export.patch
