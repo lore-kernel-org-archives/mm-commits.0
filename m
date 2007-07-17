@@ -1,78 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: - immunize-rcu_dereference-against-crazy-compiler-writers.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 02:41:52 -0700
-Message-ID: <200707170946.l6H9kGVM010483@imap1.linux-foundation.org>
+Subject: - git-kbuild-fixup.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 15:03:13 -0700
+Message-ID: <200707172203.l6HM3DBu009027@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60300 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34435 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753018AbXGQJqh (ORCPT
+	by vger.kernel.org with ESMTP id S1757530AbXGQWDU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 05:46:37 -0400
+	Tue, 17 Jul 2007 18:03:20 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6HM3Iwv029952
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 17 Jul 2007 15:03:19 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com, josh@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Immunize rcu_dereference() against crazy compiler writers
+     git-kbuild-fixup
 has been removed from the -mm tree.  Its filename was
-     immunize-rcu_dereference-against-crazy-compiler-writers.patch
+     git-kbuild-fixup.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Immunize rcu_dereference() against crazy compiler writers
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: git-kbuild-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Turns out that compiler writers are a bit more aggressive about optimizing
-than one might expect.  This patch prevents a number of such optimizations
-from messing up rcu_deference().  This is not merely a theoretical problem, as
-evidenced by the rmb() in mce_log().
-
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rcupdate.h |   14 +++++++++++++-
- 1 files changed, 13 insertions(+), 1 deletion(-)
+ scripts/mod/modpost.c |   42 ----------------------------------------
+ 1 file changed, 42 deletions(-)
 
-diff -puN include/linux/rcupdate.h~immunize-rcu_dereference-against-crazy-compiler-writers include/linux/rcupdate.h
---- a/include/linux/rcupdate.h~immunize-rcu_dereference-against-crazy-compiler-writers
-+++ a/include/linux/rcupdate.h
-@@ -217,6 +217,18 @@ extern int rcu_needs_cpu(int cpu);
- 		local_bh_enable(); \
- 	} while(0)
+diff -puN scripts/mod/modpost.c~git-kbuild-fixup scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~git-kbuild-fixup
++++ a/scripts/mod/modpost.c
+@@ -1131,21 +1131,6 @@ static int init_section_ref_ok(const cha
+ 		".data.rel.ro",		/* used by parisc64 */
+ 		".init",
+ 		".text.lock",
+-<<<<<<< HEAD/scripts/mod/modpost.c
+-		"__bug_table", /* used by powerpc for BUG() */
+-		".pci_fixup_header",
+-		".pci_fixup_final",
+-		".pdr",
+-		"__param",
+-		"__ex_table",
+-		".fixup",
+-		".smp_locks",
+-		".plt",  /* seen on ARCH=um build on x86_64. Harmless */
+-		"__ftr_fixup",		/* powerpc cpu feature fixup */
+-		"__fw_ftr_fixup",	/* powerpc firmware feature fixup */
+-		".cranges",	/* used by sh64 */
+-=======
+->>>>>>> /scripts/mod/modpost.c
+ 		NULL
+ 	};
+ 	/* Start of section names */
+@@ -1203,33 +1188,6 @@ static int exit_section_ref_ok(const cha
+ 		".exit.text",
+ 		".exitcall.exit",
+ 		".rodata",
+-<<<<<<< HEAD/scripts/mod/modpost.c
+-		".opd", /* See comment [OPD] */
+-		".toc1",  /* used by ppc64 */
+-		".altinstructions",
+-		".pdr",
+-		"__bug_table", /* used by powerpc for BUG() */
+-		".exitcall.exit",
+-		".eh_frame",
+-		".parainstructions",
+-		".stab",
+-		"__ex_table",
+-		".fixup",
+-		".smp_locks",
+-		".plt",  /* seen on ARCH=um build on x86_64. Harmless */
+-		".cranges",	/* used by sh64 */
+-		NULL
+-	};
+-	/* Start of section names */
+-	const char *namelist2[] = {
+-		".debug",
+-		NULL
+-	};
+-	/* part of section name */
+-	const char *namelist3 [] = {
+-		".unwind",  /* Sample: IA_64.unwind.exit.text */
+-=======
+->>>>>>> /scripts/mod/modpost.c
+ 		NULL
+ 	};
  
-+/*
-+ * Prevent the compiler from merging or refetching accesses.  The compiler
-+ * is also forbidden from reordering successive instances of ACCESS_ONCE(),
-+ * but only when the compiler is aware of some particular ordering.  One way
-+ * to make the compiler aware of ordering is to put the two invocations of
-+ * ACCESS_ONCE() in different C statements.
-+ *
-+ * This macro does absolutely -nothing- to prevent the CPU from reordering,
-+ * merging, or refetching absolutely anything at any time.
-+ */
-+#define ACCESS_ONCE(x) (*(volatile typeof(x) *)&(x))
-+
- /**
-  * rcu_dereference - fetch an RCU-protected pointer in an
-  * RCU read-side critical section.  This pointer may later
-@@ -228,7 +240,7 @@ extern int rcu_needs_cpu(int cpu);
-  */
- 
- #define rcu_dereference(p)     ({ \
--				typeof(p) _________p1 = p; \
-+				typeof(p) _________p1 = ACCESS_ONCE(p); \
- 				smp_read_barrier_depends(); \
- 				(_________p1); \
- 				})
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-immunize-rcu_dereference-against-crazy-compiler-writers.patch
-remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
+acpi-add-reboot-mechanism-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-saa7134-tvaudio-fix.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-ubi.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+git-ocfs2-fixup.patch
+revert-gregkh-pci-pci_bridge-device.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-show-unhandled-signals.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+i386-add-cpu_relax-to-cmos_lock.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
