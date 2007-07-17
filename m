@@ -1,171 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-isdn-config_isdn.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:03:39 -0700
-Message-ID: <200707172303.l6HN3dXm011707@imap1.linux-foundation.org>
+Subject: - spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:03:20 -0700
+Message-ID: <200707172303.l6HN3KTL011683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42015 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35931 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936668AbXGQXQ3 (ORCPT
+	by vger.kernel.org with ESMTP id S936710AbXGQXQe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:29 -0400
+	Tue, 17 Jul 2007 19:16:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jengelh@gmx.de, kkeil@suse.de, mm-commits@vger.kernel.org
+To: joakim.tjernlund@transmode.se, Joakim.Tjernlund@transmode.se, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects: ISDN: CONFIG_ISDN
+     spi_mpc83xx.c: support QE enabled 83xx CPU's like mpc832x
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-isdn-config_isdn.patch
+     spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: ISDN: CONFIG_ISDN
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: spi_mpc83xx.c: support QE enabled 83xx CPU's like mpc832x
+From: Joakim Tjernlund <joakim.tjernlund@transmode.se>
 
-Transform Kconfig objects from "menu, config" into "menuconfig" so that the
-user can disable the whole feature without having to enter the menu first.
+Quicc Engine enabled mpc83xx CPU's has a somewhat different HW interface to
+the SPI controller.  This patch adds a qe_mode knob that sees to that
+needed adaptions are performed.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/Kconfig                |   13 ++++---------
- drivers/isdn/hardware/Kconfig       |    2 +-
- drivers/isdn/hardware/avm/Kconfig   |    2 +-
- drivers/isdn/hardware/eicon/Kconfig |    2 +-
- drivers/isdn/i4l/Kconfig            |    7 +++----
- 5 files changed, 10 insertions(+), 16 deletions(-)
+ drivers/spi/spi_mpc83xx.c   |   32 +++++++++++++++++++++++++++++---
+ include/linux/fsl_devices.h |    2 +-
+ 2 files changed, 30 insertions(+), 4 deletions(-)
 
-diff -puN drivers/isdn/Kconfig~use-menuconfig-objects-isdn-config_isdn drivers/isdn/Kconfig
---- a/drivers/isdn/Kconfig~use-menuconfig-objects-isdn-config_isdn
-+++ a/drivers/isdn/Kconfig
-@@ -2,12 +2,10 @@
- # ISDN device configuration
- #
+diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -47,6 +47,7 @@ struct mpc83xx_spi_reg {
+ #define	SPMODE_ENABLE		(1 << 24)
+ #define	SPMODE_LEN(x)		((x) << 20)
+ #define	SPMODE_PM(x)		((x) << 16)
++#define	SPMODE_OP		(1 << 14)
  
--menu "ISDN subsystem"
--	depends on !S390
+ /*
+  * Default for SPI Mode:
+@@ -85,6 +86,11 @@ struct mpc83xx_spi {
+ 	unsigned nsecs;		/* (clock cycle time)/2 */
+ 
+ 	u32 sysclk;
++	u32 rx_shift;		/* RX data reg shift when in qe mode */
++	u32 tx_shift;		/* TX data reg shift when in qe mode */
++
++	bool qe_mode;
++
+ 	void (*activate_cs) (u8 cs, u8 polarity);
+ 	void (*deactivate_cs) (u8 cs, u8 polarity);
+ };
+@@ -103,7 +109,7 @@ static inline u32 mpc83xx_spi_read_reg(_
+ void mpc83xx_spi_rx_buf_##type(u32 data, struct mpc83xx_spi *mpc83xx_spi) \
+ {									  \
+ 	type * rx = mpc83xx_spi->rx;					  \
+-	*rx++ = (type)data;						  \
++	*rx++ = (type)(data >> mpc83xx_spi->rx_shift);			  \
+ 	mpc83xx_spi->rx = rx;						  \
+ }
+ 
+@@ -114,7 +120,7 @@ u32 mpc83xx_spi_tx_buf_##type(struct mpc
+ 	const type * tx = mpc83xx_spi->tx;			\
+ 	if (!tx)						\
+ 		return 0;					\
+-	data = *tx++;						\
++	data = *tx++ << mpc83xx_spi->tx_shift;			\
+ 	mpc83xx_spi->tx = tx;					\
+ 	return data;						\
+ }
+@@ -203,12 +209,22 @@ int mpc83xx_spi_setup_transfer(struct sp
+ 	    || ((bits_per_word > 16) && (bits_per_word != 32)))
+ 		return -EINVAL;
+ 
++	mpc83xx_spi->rx_shift = 0;
++	mpc83xx_spi->tx_shift = 0;
+ 	if (bits_per_word <= 8) {
+ 		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u8;
+ 		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u8;
++		if (mpc83xx_spi->qe_mode) {
++			mpc83xx_spi->rx_shift = 16;
++			mpc83xx_spi->tx_shift = 24;
++		}
+ 	} else if (bits_per_word <= 16) {
+ 		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u16;
+ 		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u16;
++		if (mpc83xx_spi->qe_mode) {
++			mpc83xx_spi->rx_shift = 16;
++			mpc83xx_spi->tx_shift = 16;
++		}
+ 	} else if (bits_per_word <= 32) {
+ 		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u32;
+ 		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u32;
+@@ -386,7 +402,6 @@ static int __init mpc83xx_spi_probe(stru
+ 		ret = -ENODEV;
+ 		goto free_master;
+ 	}
 -
--config ISDN
-+menuconfig ISDN
- 	tristate "ISDN support"
- 	depends on NET
-+	depends on !S390
- 	---help---
- 	  ISDN ("Integrated Services Digital Networks", called RNIS in France)
- 	  is a special type of fully digital telephone service; it's mostly
-@@ -21,9 +19,9 @@ config ISDN
+ 	mpc83xx_spi = spi_master_get_devdata(master);
+ 	mpc83xx_spi->bitbang.master = spi_master_get(master);
+ 	mpc83xx_spi->bitbang.chipselect = mpc83xx_spi_chipselect;
+@@ -395,9 +410,17 @@ static int __init mpc83xx_spi_probe(stru
+ 	mpc83xx_spi->sysclk = pdata->sysclk;
+ 	mpc83xx_spi->activate_cs = pdata->activate_cs;
+ 	mpc83xx_spi->deactivate_cs = pdata->deactivate_cs;
++	mpc83xx_spi->qe_mode = pdata->qe_mode;
+ 	mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u8;
+ 	mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u8;
  
- 	  Select this option if you want your kernel to support ISDN.
++	mpc83xx_spi->rx_shift = 0;
++	mpc83xx_spi->tx_shift = 0;
++	if (mpc83xx_spi->qe_mode) {
++		mpc83xx_spi->rx_shift = 16;
++		mpc83xx_spi->tx_shift = 24;
++	}
++
+ 	mpc83xx_spi->bitbang.master->setup = mpc83xx_spi_setup;
+ 	init_completion(&mpc83xx_spi->done);
  
-+if ISDN
+@@ -432,6 +455,9 @@ static int __init mpc83xx_spi_probe(stru
  
- menu "Old ISDN4Linux"
--	depends on NET && ISDN
+ 	/* Enable SPI interface */
+ 	regval = pdata->initial_spmode | SPMODE_INIT_VAL | SPMODE_ENABLE;
++	if (pdata->qe_mode)
++		regval |= SPMODE_OP;
++
+ 	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, regval);
  
- config ISDN_I4L
- 	tristate "Old ISDN4Linux (deprecated)"
-@@ -50,11 +48,9 @@ endif
- endmenu
- 
- comment "CAPI subsystem"
--	depends on NET && ISDN
- 
- config ISDN_CAPI
- 	tristate "CAPI2.0 support"
--	depends on ISDN
- 	help
- 	  This provides the CAPI (Common ISDN Application Programming
- 	  Interface, a standard making it easy for programs to access ISDN
-@@ -65,5 +61,4 @@ source "drivers/isdn/capi/Kconfig"
- 
- source "drivers/isdn/hardware/Kconfig"
- 
--endmenu
+ 	ret = spi_bitbang_start(&mpc83xx_spi->bitbang);
+diff -puN include/linux/fsl_devices.h~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x include/linux/fsl_devices.h
+--- a/include/linux/fsl_devices.h~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x
++++ a/include/linux/fsl_devices.h
+@@ -112,7 +112,7 @@ struct fsl_usb2_platform_data {
+ struct fsl_spi_platform_data {
+ 	u32 	initial_spmode;	/* initial SPMODE value */
+ 	u16	bus_num;
 -
-+endif # ISDN
-diff -puN drivers/isdn/hardware/Kconfig~use-menuconfig-objects-isdn-config_isdn drivers/isdn/hardware/Kconfig
---- a/drivers/isdn/hardware/Kconfig~use-menuconfig-objects-isdn-config_isdn
-+++ a/drivers/isdn/hardware/Kconfig
-@@ -2,7 +2,7 @@
- # ISDN hardware drivers
- #
- comment "CAPI hardware drivers"
--	depends on NET && ISDN && ISDN_CAPI
-+	depends on ISDN_CAPI
- 
- source "drivers/isdn/hardware/avm/Kconfig"
- 
-diff -puN drivers/isdn/hardware/avm/Kconfig~use-menuconfig-objects-isdn-config_isdn drivers/isdn/hardware/avm/Kconfig
---- a/drivers/isdn/hardware/avm/Kconfig~use-menuconfig-objects-isdn-config_isdn
-+++ a/drivers/isdn/hardware/avm/Kconfig
-@@ -3,7 +3,7 @@
- #
- 
- menu "Active AVM cards"
--	depends on NET && ISDN && ISDN_CAPI!=n
-+	depends on ISDN_CAPI!=n
- 
- config CAPI_AVM
- 	bool "Support AVM cards"
-diff -puN drivers/isdn/hardware/eicon/Kconfig~use-menuconfig-objects-isdn-config_isdn drivers/isdn/hardware/eicon/Kconfig
---- a/drivers/isdn/hardware/eicon/Kconfig~use-menuconfig-objects-isdn-config_isdn
-+++ a/drivers/isdn/hardware/eicon/Kconfig
-@@ -3,7 +3,7 @@
- #
- 
- menu "Active Eicon DIVA Server cards"
--	depends on NET && ISDN && ISDN_CAPI!=n
-+	depends on ISDN_CAPI!=n
- 
- config CAPI_EICON
- 	bool "Support Eicon cards"
-diff -puN drivers/isdn/i4l/Kconfig~use-menuconfig-objects-isdn-config_isdn drivers/isdn/i4l/Kconfig
---- a/drivers/isdn/i4l/Kconfig~use-menuconfig-objects-isdn-config_isdn
-+++ a/drivers/isdn/i4l/Kconfig
-@@ -86,7 +86,6 @@ config ISDN_X25
- 
- 
- menu "ISDN feature submodules"
--	depends on ISDN
- 
- config ISDN_DRV_LOOP
- 	tristate "isdnloop support"
-@@ -100,7 +99,7 @@ config ISDN_DRV_LOOP
- 
- config ISDN_DIVERSION
- 	tristate "Support isdn diversion services"
--	depends on ISDN && ISDN_I4L
-+	depends on ISDN_I4L
- 	help
- 	  This option allows you to use some supplementary diversion
- 	  services in conjunction with the HiSax driver on an EURO/DSS1
-@@ -120,13 +119,13 @@ config ISDN_DIVERSION
- endmenu
- 
- comment "ISDN4Linux hardware drivers"
--	depends on NET && ISDN && ISDN_I4L
-+	depends on ISDN_I4L
- 
- source "drivers/isdn/hisax/Kconfig"
- 
- 
- menu "Active cards"
--	depends on NET && ISDN && ISDN_I4L!=n
-+	depends on ISDN_I4L!=n
- 
- source "drivers/isdn/icn/Kconfig"
- 
++	bool	qe_mode;
+ 	/* board specific information */
+ 	u16	max_chipselect;
+ 	void	(*activate_cs)(u8 cs, u8 polarity);
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from joakim.tjernlund@transmode.se are
 
 origin.patch
-git-acpi.patch
-git-kvm.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
