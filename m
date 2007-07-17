@@ -1,152 +1,363 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-driver-for-ds1216-chips-fix.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 01:49:26 -0700
-Message-ID: <200707170849.l6H8nQmB008397@imap1.linux-foundation.org>
+Subject: - fbdev-add-fb_append_extra_logo-update.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 01:56:20 -0700
+Message-ID: <200707170856.l6H8uKGS008729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45123 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52532 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760016AbXGQIuK (ORCPT
+	by vger.kernel.org with ESMTP id S1758861AbXGQI5d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 04:50:10 -0400
+	Tue, 17 Jul 2007 04:57:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, tsbogend@alpha.franken.de, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, benh@kernel.crashing.org, geoffrey.levand@am.sony.com, jsimmons@infradead.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-driver-for-ds1216-chips-fix
+     fbdev: Add fb_append_extra_logo() (update)
 has been removed from the -mm tree.  Its filename was
-     rtc-driver-for-ds1216-chips-fix.patch
+     fbdev-add-fb_append_extra_logo-update.patch
 
-This patch was dropped because it was folded into rtc-driver-for-ds1216-chips.patch
+This patch was dropped because it was folded into fbdev-add-fb_append_extra_logo.patch
 
 ------------------------------------------------------
-Subject: rtc-driver-for-ds1216-chips-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fbdev: Add fb_append_extra_logo() (update)
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-- some constification
+  - Introduce CONFIG_FB_LOGO_EXTRA to protect all new code
+  - Move fb_prepare_logo() down to satisfy declaration dependencies
 
-- whitespace fixes
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
+Acked-By: James Simmons <jsimmons@infradead.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1216.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/video/fbmem.c      |  232 +++++++++++++++++++----------------
+ drivers/video/logo/Kconfig |    4 
+ include/linux/linux_logo.h |    2 
+ 3 files changed, 137 insertions(+), 101 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1216.c~rtc-driver-for-ds1216-chips-fix drivers/rtc/rtc-ds1216.c
---- a/drivers/rtc/rtc-ds1216.c~rtc-driver-for-ds1216-chips-fix
-+++ a/drivers/rtc/rtc-ds1216.c
-@@ -23,8 +23,8 @@ struct ds1216_regs {
- 	u8 year;
- };
+diff -puN drivers/video/fbmem.c~fbdev-add-fb_append_extra_logo-update drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-add-fb_append_extra_logo-update
++++ a/drivers/video/fbmem.c
+@@ -311,13 +311,6 @@ static struct logo_data {
+ 	const struct linux_logo *logo;
+ } fb_logo __read_mostly;
  
--#define DS1216_HOUR_1224       (1 << 7)
--#define DS1216_HOUR_AMPM       (1 << 5)
-+#define DS1216_HOUR_1224	(1 << 7)
-+#define DS1216_HOUR_AMPM	(1 << 5)
- 
- struct ds1216_priv {
- 	struct rtc_device *rtc;
-@@ -33,7 +33,7 @@ struct ds1216_priv {
- 	unsigned long baseaddr;
- };
- 
--static u8 magic[] = {
-+static const u8 magic[] = {
- 	0xc5, 0x3a, 0xa3, 0x5c, 0xc5, 0x3a, 0xa3, 0x5c
- };
- 
-@@ -55,7 +55,7 @@ static void ds1216_read(u8 __iomem *ioad
+-#define FB_LOGO_EX_NUM_MAX 10
+-static struct logo_data_extra {
+-	const struct linux_logo *logo;
+-	unsigned int n;
+-} fb_logo_ex[FB_LOGO_EX_NUM_MAX];
+-static unsigned int fb_logo_ex_num;
+-
+ static void fb_rotate_logo_ud(const u8 *in, u8 *out, u32 width, u32 height)
+ {
+ 	u32 size = width * height, i;
+@@ -411,7 +404,84 @@ static void fb_do_show_logo(struct fb_in
  	}
  }
  
--static void ds1216_write(u8 __iomem *ioaddr, u8 *buf)
-+static void ds1216_write(u8 __iomem *ioaddr, const u8 *buf)
+-#ifdef CONFIG_FB
++static int fb_show_logo_line(struct fb_info *info, int rotate,
++			     const struct linux_logo *logo, int y,
++			     unsigned int n)
++{
++	u32 *palette = NULL, *saved_pseudo_palette = NULL;
++	unsigned char *logo_new = NULL, *logo_rotate = NULL;
++	struct fb_image image;
++
++	/* Return if the frame buffer is not mapped or suspended */
++	if (logo == NULL || info->state != FBINFO_STATE_RUNNING ||
++	    info->flags & FBINFO_MODULE)
++		return 0;
++
++	image.depth = 8;
++	image.data = logo->data;
++
++	if (fb_logo.needs_cmapreset)
++		fb_set_logocmap(info, logo);
++
++	if (fb_logo.needs_truepalette ||
++	    fb_logo.needs_directpalette) {
++		palette = kmalloc(256 * 4, GFP_KERNEL);
++		if (palette == NULL)
++			return 0;
++
++		if (fb_logo.needs_truepalette)
++			fb_set_logo_truepalette(info, logo, palette);
++		else
++			fb_set_logo_directpalette(info, logo, palette);
++
++		saved_pseudo_palette = info->pseudo_palette;
++		info->pseudo_palette = palette;
++	}
++
++	if (fb_logo.depth <= 4) {
++		logo_new = kmalloc(logo->width * logo->height, GFP_KERNEL);
++		if (logo_new == NULL) {
++			kfree(palette);
++			if (saved_pseudo_palette)
++				info->pseudo_palette = saved_pseudo_palette;
++			return 0;
++		}
++		image.data = logo_new;
++		fb_set_logo(info, logo, logo_new, fb_logo.depth);
++	}
++
++	image.dx = 0;
++	image.dy = y;
++	image.width = logo->width;
++	image.height = logo->height;
++
++	if (rotate) {
++		logo_rotate = kmalloc(logo->width *
++				      logo->height, GFP_KERNEL);
++		if (logo_rotate)
++			fb_rotate_logo(info, logo_rotate, &image, rotate);
++	}
++
++	fb_do_show_logo(info, &image, rotate, n);
++
++	kfree(palette);
++	if (saved_pseudo_palette != NULL)
++		info->pseudo_palette = saved_pseudo_palette;
++	kfree(logo_new);
++	kfree(logo_rotate);
++	return logo->height;
++}
++
++
++#ifdef CONFIG_FB_LOGO_EXTRA
++
++#define FB_LOGO_EX_NUM_MAX 10
++static struct logo_data_extra {
++	const struct linux_logo *logo;
++	unsigned int n;
++} fb_logo_ex[FB_LOGO_EX_NUM_MAX];
++static unsigned int fb_logo_ex_num;
++
+ void fb_append_extra_logo(const struct linux_logo *logo, unsigned int n)
  {
- 	unsigned char c;
- 	int i, j;
-@@ -63,7 +63,7 @@ static void ds1216_write(u8 __iomem *ioa
- 	for (i = 0; i < 8; i++) {
- 		c = buf[i];
- 		for (j = 0; j < 8; j++) {
--			writeb (c, ioaddr);
-+			writeb(c, ioaddr);
- 			c = c >> 1;
- 		}
+ 	if (!n || fb_logo_ex_num == FB_LOGO_EX_NUM_MAX)
+@@ -421,12 +491,59 @@ void fb_append_extra_logo(const struct l
+ 	fb_logo_ex[fb_logo_ex_num].n = n;
+ 	fb_logo_ex_num++;
+ }
+-#endif
++
++static int fb_prepare_extra_logos(struct fb_info *info, unsigned int height,
++				  unsigned int yres)
++{
++	unsigned int i;
++
++	/* FIXME: logo_ex supports only truecolor fb. */
++	if (info->fix.visual != FB_VISUAL_TRUECOLOR)
++		fb_logo_ex_num = 0;
++
++	for (i = 0; i < fb_logo_ex_num; i++) {
++		height += fb_logo_ex[i].logo->height;
++		if (height > yres) {
++			height -= fb_logo_ex[i].logo->height;
++			fb_logo_ex_num = i;
++			break;
++		}
++	}
++	return height;
++}
++
++static int fb_show_extra_logos(struct fb_info *info, int y, int rotate)
++{
++	unsigned int i;
++
++	for (i = 0; i < fb_logo_ex_num; i++)
++		y += fb_show_logo_line(info, rotate,
++				       fb_logo_ex[i].logo, y, fb_logo_ex[i].n);
++
++	return y;
++}
++
++#else /* !CONFIG_FB_LOGO_EXTRA */
++
++static inline int fb_prepare_extra_logos(struct fb_info *info,
++					 unsigned int height,
++					 unsigned int yres)
++{
++	return height;
++}
++
++static inline int fb_show_extra_logos(struct fb_info *info, int y, int rotate)
++{
++	return y;
++}
++
++#endif /* CONFIG_FB_LOGO_EXTRA */
++
+ 
+ int fb_prepare_logo(struct fb_info *info, int rotate)
+ {
+ 	int depth = fb_get_color_depth(&info->var, &info->fix);
+-	unsigned int yres, height, i;
++	unsigned int yres;
+ 
+ 	memset(&fb_logo, 0, sizeof(struct logo_data));
+ 
+@@ -468,7 +585,7 @@ int fb_prepare_logo(struct fb_info *info
+ 	if (!fb_logo.logo) {
+ 		return 0;
  	}
-@@ -173,7 +173,7 @@ static int __devinit ds1216_rtc_probe(st
- 	platform_set_drvdata(pdev, priv);
+-	
++
+ 	if (rotate == FB_ROTATE_UR || rotate == FB_ROTATE_UD)
+ 		yres = info->var.yres;
+ 	else
+@@ -485,103 +602,18 @@ int fb_prepare_logo(struct fb_info *info
+ 	else if (fb_logo.logo->type == LINUX_LOGO_VGA16)
+ 		fb_logo.depth = 4;
+ 	else
+-		fb_logo.depth = 1;		
++		fb_logo.depth = 1;
  
- 	/* dummy read to get clock into a known state */
--	ds1216_read (priv->ioaddr, dummy);
-+	ds1216_read(priv->ioaddr, dummy);
- 	return 0;
+-	/* FIXME: logo_ex supports only truecolor fb. */
+-	if (info->fix.visual != FB_VISUAL_TRUECOLOR)
+-		fb_logo_ex_num = 0;
+-
+-	height = fb_logo.logo->height;
+-	for (i = 0; i < fb_logo_ex_num; i++) {
+-		height += fb_logo_ex[i].logo->height;
+-		if (height > yres) {
+-			height -= fb_logo_ex[i].logo->height;
+-			fb_logo_ex_num = i;
+-			break;
+-		}
+-	}
+-	return height;
+-}
+-
+-static int fb_show_logo_line(struct fb_info *info, int rotate,
+-			     const struct linux_logo *logo, int y,
+-			     unsigned int n)
+-{
+-	u32 *palette = NULL, *saved_pseudo_palette = NULL;
+-	unsigned char *logo_new = NULL, *logo_rotate = NULL;
+-	struct fb_image image;
+-
+-	/* Return if the frame buffer is not mapped or suspended */
+-	if (logo == NULL || info->state != FBINFO_STATE_RUNNING ||
+-	    info->flags & FBINFO_MODULE)
+-		return 0;
+-
+-	image.depth = 8;
+-	image.data = logo->data;
+-
+-	if (fb_logo.needs_cmapreset)
+-		fb_set_logocmap(info, logo);
+-
+-	if (fb_logo.needs_truepalette || 
+-	    fb_logo.needs_directpalette) {
+-		palette = kmalloc(256 * 4, GFP_KERNEL);
+-		if (palette == NULL)
+-			return 0;
+-
+-		if (fb_logo.needs_truepalette)
+-			fb_set_logo_truepalette(info, logo, palette);
+-		else
+-			fb_set_logo_directpalette(info, logo, palette);
+-
+-		saved_pseudo_palette = info->pseudo_palette;
+-		info->pseudo_palette = palette;
+-	}
+-
+-	if (fb_logo.depth <= 4) {
+-		logo_new = kmalloc(logo->width * logo->height, GFP_KERNEL);
+-		if (logo_new == NULL) {
+-			kfree(palette);
+-			if (saved_pseudo_palette)
+-				info->pseudo_palette = saved_pseudo_palette;
+-			return 0;
+-		}
+-		image.data = logo_new;
+-		fb_set_logo(info, logo, logo_new, fb_logo.depth);
+-	}
+-
+-	image.dx = 0;
+-	image.dy = y;
+-	image.width = logo->width;
+-	image.height = logo->height;
+-
+-	if (rotate) {
+-		logo_rotate = kmalloc(logo->width *
+-				      logo->height, GFP_KERNEL);
+-		if (logo_rotate)
+-			fb_rotate_logo(info, logo_rotate, &image, rotate);
+-	}
+-
+-	fb_do_show_logo(info, &image, rotate, n);
+-
+-	kfree(palette);
+-	if (saved_pseudo_palette != NULL)
+-		info->pseudo_palette = saved_pseudo_palette;
+-	kfree(logo_new);
+-	kfree(logo_rotate);
+-	return logo->height;
++	return fb_prepare_extra_logos(info, fb_logo.logo->height, yres);
+ }
  
- out:
+ int fb_show_logo(struct fb_info *info, int rotate)
+ {
+-	int y, i;
++	int y;
+ 
+ 	y = fb_show_logo_line(info, rotate, fb_logo.logo, 0,
+ 			      num_online_cpus());
+-
+-	for (i = 0; i < fb_logo_ex_num; i++) {
+-		y += fb_show_logo_line(info, rotate,
+-				       fb_logo_ex[i].logo, y, fb_logo_ex[i].n);
+-	}
++	y = fb_show_extra_logos(info, y, rotate);
+ 
+ 	return y;
+ }
+diff -puN drivers/video/logo/Kconfig~fbdev-add-fb_append_extra_logo-update drivers/video/logo/Kconfig
+--- a/drivers/video/logo/Kconfig~fbdev-add-fb_append_extra_logo-update
++++ a/drivers/video/logo/Kconfig
+@@ -10,6 +10,10 @@ menuconfig LOGO
+ 
+ if LOGO
+ 
++config FB_LOGO_EXTRA
++	bool
++	depends on FB
++
+ config LOGO_LINUX_MONO
+ 	bool "Standard black and white Linux logo"
+ 	default y
+diff -puN include/linux/linux_logo.h~fbdev-add-fb_append_extra_logo-update include/linux/linux_logo.h
+--- a/include/linux/linux_logo.h~fbdev-add-fb_append_extra_logo-update
++++ a/include/linux/linux_logo.h
+@@ -33,7 +33,7 @@ struct linux_logo {
+ };
+ 
+ extern const struct linux_logo *fb_find_logo(int depth);
+-#if defined(CONFIG_LOGO) && defined(CONFIG_FB)
++#ifdef CONFIG_FB_LOGO_EXTRA
+ extern void fb_append_extra_logo(const struct linux_logo *logo,
+ 				 unsigned int n);
+ #else
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-i386-speedup-touch_nmi_watchdog.patch
-x86_64-speedup-touch_nmi_watchdog.patch
-crc7-support.patch
-spi-master-driver-for-xilinx-virtex.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup.patch
-knfsd-exportfs-add-exportfsh-header.patch
-knfsd-exportfs-remove-iget-abuse.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-add-support-for-the-st-m48t59-rtc.patch
-rtc-driver-for-ds1216-chips.patch
-rtc-driver-for-ds1216-chips-fix.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+fbdev-extract-fb_show_logo_line.patch
+fbdev-add-fb_append_extra_logo.patch
+fbdev-add-fb_append_extra_logo-update.patch
+fbdev-spe-helper-penguin-logo.patch
+cell-draw-spe-helper-penguin-logos.patch
+cell-draw-spe-helper-penguin-logos-update.patch
