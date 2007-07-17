@@ -1,157 +1,301 @@
 From: akpm@linux-foundation.org
-Subject: - spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:03:20 -0700
-Message-ID: <200707172303.l6HN3KTL011683@imap1.linux-foundation.org>
+Subject: - report-that-kernel-is-tainted-if-there-were-an-oops-before.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:01:58 -0700
+Message-ID: <200707172301.l6HN1wCn011442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35931 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59989 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936710AbXGQXQe (ORCPT
+	by vger.kernel.org with ESMTP id S936736AbXGQXQe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:16:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joakim.tjernlund@transmode.se, Joakim.Tjernlund@transmode.se, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: xemul@openvz.org, linux-arch@vger.kernel.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_mpc83xx.c: support QE enabled 83xx CPU's like mpc832x
+     Report that kernel is tainted if there was an OOPS
 has been removed from the -mm tree.  Its filename was
-     spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x.patch
+     report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi_mpc83xx.c: support QE enabled 83xx CPU's like mpc832x
-From: Joakim Tjernlund <joakim.tjernlund@transmode.se>
+Subject: Report that kernel is tainted if there was an OOPS
+From: Pavel Emelianov <xemul@openvz.org>
 
-Quicc Engine enabled mpc83xx CPU's has a somewhat different HW interface to
-the SPI controller.  This patch adds a qe_mode knob that sees to that
-needed adaptions are performed.
+If the kernel OOPSed or BUGed then it probably should be considered as
+tainted.  Thus, all subsequent OOPSes and SysRq dumps will report the
+tainted kernel.  This saves a lot of time explaining oddities in the
+calltraces.
 
-Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Pavel Emelianov <xemul@openvz.org>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_mpc83xx.c   |   32 +++++++++++++++++++++++++++++---
- include/linux/fsl_devices.h |    2 +-
- 2 files changed, 30 insertions(+), 4 deletions(-)
+ Documentation/oops-tracing.txt |    2 ++
+ arch/alpha/kernel/traps.c      |    1 +
+ arch/arm/kernel/traps.c        |    1 +
+ arch/arm26/kernel/traps.c      |    1 +
+ arch/avr32/kernel/traps.c      |    1 +
+ arch/i386/kernel/traps.c       |    1 +
+ arch/ia64/kernel/traps.c       |    1 +
+ arch/m68k/kernel/traps.c       |    1 +
+ arch/m68knommu/kernel/traps.c  |    1 +
+ arch/mips/kernel/traps.c       |    1 +
+ arch/powerpc/kernel/traps.c    |    1 +
+ arch/ppc/kernel/traps.c        |    1 +
+ arch/s390/kernel/traps.c       |    1 +
+ arch/sh/kernel/traps.c         |    1 +
+ arch/sparc/kernel/traps.c      |    1 +
+ arch/sparc64/kernel/traps.c    |    1 +
+ arch/x86_64/kernel/traps.c     |    1 +
+ arch/xtensa/kernel/traps.c     |    1 +
+ include/linux/kernel.h         |    1 +
+ kernel/panic.c                 |    5 +++--
+ 20 files changed, 23 insertions(+), 2 deletions(-)
 
-diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -47,6 +47,7 @@ struct mpc83xx_spi_reg {
- #define	SPMODE_ENABLE		(1 << 24)
- #define	SPMODE_LEN(x)		((x) << 20)
- #define	SPMODE_PM(x)		((x) << 16)
-+#define	SPMODE_OP		(1 << 14)
+diff -puN Documentation/oops-tracing.txt~report-that-kernel-is-tainted-if-there-were-an-oops-before Documentation/oops-tracing.txt
+--- a/Documentation/oops-tracing.txt~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/Documentation/oops-tracing.txt
+@@ -251,6 +251,8 @@ characters, each representing a particul
+   7: 'U' if a user or user application specifically requested that the
+      Tainted flag be set, ' ' otherwise.
  
- /*
-  * Default for SPI Mode:
-@@ -85,6 +86,11 @@ struct mpc83xx_spi {
- 	unsigned nsecs;		/* (clock cycle time)/2 */
++  8: 'D' if the kernel has died recently, i.e. there was an OOPS or BUG.
++
+ The primary reason for the 'Tainted: ' string is to tell kernel
+ debuggers if this is a clean kernel or if anything unusual has
+ occurred.  Tainting is permanent: even if an offending module is
+diff -puN arch/alpha/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/alpha/kernel/traps.c
+--- a/arch/alpha/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/alpha/kernel/traps.c
+@@ -184,6 +184,7 @@ die_if_kernel(char * str, struct pt_regs
+ #endif
+ 	printk("%s(%d): %s %ld\n", current->comm, current->pid, str, err);
+ 	dik_show_regs(regs, r9_15);
++	add_taint(TAINT_DIE);
+ 	dik_show_trace((unsigned long *)(regs+1));
+ 	dik_show_code((unsigned int *)regs->pc);
  
- 	u32 sysclk;
-+	u32 rx_shift;		/* RX data reg shift when in qe mode */
-+	u32 tx_shift;		/* TX data reg shift when in qe mode */
-+
-+	bool qe_mode;
-+
- 	void (*activate_cs) (u8 cs, u8 polarity);
- 	void (*deactivate_cs) (u8 cs, u8 polarity);
- };
-@@ -103,7 +109,7 @@ static inline u32 mpc83xx_spi_read_reg(_
- void mpc83xx_spi_rx_buf_##type(u32 data, struct mpc83xx_spi *mpc83xx_spi) \
- {									  \
- 	type * rx = mpc83xx_spi->rx;					  \
--	*rx++ = (type)data;						  \
-+	*rx++ = (type)(data >> mpc83xx_spi->rx_shift);			  \
- 	mpc83xx_spi->rx = rx;						  \
+diff -puN arch/arm/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/arm/kernel/traps.c
+--- a/arch/arm/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/arm/kernel/traps.c
+@@ -249,6 +249,7 @@ NORET_TYPE void die(const char *str, str
+ 	bust_spinlocks(1);
+ 	__die(str, err, thread, regs);
+ 	bust_spinlocks(0);
++	add_taint(TAINT_DIE);
+ 	spin_unlock_irq(&die_lock);
+ 
+ 	if (in_interrupt())
+diff -puN arch/arm26/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/arm26/kernel/traps.c
+--- a/arch/arm26/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/arm26/kernel/traps.c
+@@ -185,6 +185,7 @@ NORET_TYPE void die(const char *str, str
+ 	printk("Internal error: %s: %x\n", str, err);
+ 	printk("CPU: %d\n", smp_processor_id());
+ 	show_regs(regs);
++	add_taint(TAINT_DIE);
+ 	printk("Process %s (pid: %d, stack limit = 0x%p)\n",
+ 		current->comm, current->pid, end_of_stack(tsk));
+ 
+diff -puN arch/avr32/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/avr32/kernel/traps.c
+--- a/arch/avr32/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/avr32/kernel/traps.c
+@@ -56,6 +56,7 @@ void NORET_TYPE die(const char *str, str
+ 	show_regs_log_lvl(regs, KERN_EMERG);
+ 	show_stack_log_lvl(current, regs->sp, regs, KERN_EMERG);
+ 	bust_spinlocks(0);
++	add_taint(TAINT_DIE);
+ 	spin_unlock_irq(&die_lock);
+ 
+ 	if (in_interrupt())
+diff -puN arch/i386/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/i386/kernel/traps.c
+@@ -433,6 +433,7 @@ void die(const char * str, struct pt_reg
+ 
+ 	bust_spinlocks(0);
+ 	die.lock_owner = -1;
++	add_taint(TAINT_DIE);
+ 	spin_unlock_irqrestore(&die.lock, flags);
+ 
+ 	if (!regs)
+diff -puN arch/ia64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/ia64/kernel/traps.c
+--- a/arch/ia64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/ia64/kernel/traps.c
+@@ -69,6 +69,7 @@ die (const char *str, struct pt_regs *re
+ 
+ 	bust_spinlocks(0);
+ 	die.lock_owner = -1;
++	add_taint(TAINT_DIE);
+ 	spin_unlock_irq(&die.lock);
+ 
+ 	if (panic_on_oops)
+diff -puN arch/m68k/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/m68k/kernel/traps.c
+--- a/arch/m68k/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/m68k/kernel/traps.c
+@@ -1170,6 +1170,7 @@ void die_if_kernel (char *str, struct pt
+ 	console_verbose();
+ 	printk("%s: %08x\n",str,nr);
+ 	show_registers(fp);
++	add_taint(TAINT_DIE);
+ 	do_exit(SIGSEGV);
  }
  
-@@ -114,7 +120,7 @@ u32 mpc83xx_spi_tx_buf_##type(struct mpc
- 	const type * tx = mpc83xx_spi->tx;			\
- 	if (!tx)						\
- 		return 0;					\
--	data = *tx++;						\
-+	data = *tx++ << mpc83xx_spi->tx_shift;			\
- 	mpc83xx_spi->tx = tx;					\
- 	return data;						\
+diff -puN arch/m68knommu/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/m68knommu/kernel/traps.c
+--- a/arch/m68knommu/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/m68knommu/kernel/traps.c
+@@ -83,6 +83,7 @@ void die_if_kernel(char *str, struct pt_
+ 	printk(KERN_EMERG "Process %s (pid: %d, stackpage=%08lx)\n",
+ 		current->comm, current->pid, PAGE_SIZE+(unsigned long)current);
+ 	show_stack(NULL, (unsigned long *)fp);
++	add_taint(TAINT_DIE);
+ 	do_exit(SIGSEGV);
  }
-@@ -203,12 +209,22 @@ int mpc83xx_spi_setup_transfer(struct sp
- 	    || ((bits_per_word > 16) && (bits_per_word != 32)))
- 		return -EINVAL;
  
-+	mpc83xx_spi->rx_shift = 0;
-+	mpc83xx_spi->tx_shift = 0;
- 	if (bits_per_word <= 8) {
- 		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u8;
- 		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u8;
-+		if (mpc83xx_spi->qe_mode) {
-+			mpc83xx_spi->rx_shift = 16;
-+			mpc83xx_spi->tx_shift = 24;
-+		}
- 	} else if (bits_per_word <= 16) {
- 		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u16;
- 		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u16;
-+		if (mpc83xx_spi->qe_mode) {
-+			mpc83xx_spi->rx_shift = 16;
-+			mpc83xx_spi->tx_shift = 16;
-+		}
- 	} else if (bits_per_word <= 32) {
- 		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u32;
- 		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u32;
-@@ -386,7 +402,6 @@ static int __init mpc83xx_spi_probe(stru
- 		ret = -ENODEV;
- 		goto free_master;
+diff -puN arch/mips/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/mips/kernel/traps.c
+--- a/arch/mips/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/mips/kernel/traps.c
+@@ -326,6 +326,7 @@ void __noreturn die(const char * str, st
+ #endif /* CONFIG_MIPS_MT_SMTC */
+ 	printk("%s[#%d]:\n", str, ++die_counter);
+ 	show_registers(regs);
++	add_taint(TAINT_DIE);
+ 	spin_unlock_irq(&die_lock);
+ 
+ 	if (in_interrupt())
+diff -puN arch/powerpc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/powerpc/kernel/traps.c
+--- a/arch/powerpc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/powerpc/kernel/traps.c
+@@ -149,6 +149,7 @@ int die(const char *str, struct pt_regs 
+ 
+ 	bust_spinlocks(0);
+ 	die.lock_owner = -1;
++	add_taint(TAINT_DIE);
+ 	spin_unlock_irqrestore(&die.lock, flags);
+ 
+ 	if (kexec_should_crash(current) ||
+diff -puN arch/ppc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/ppc/kernel/traps.c
+--- a/arch/ppc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/ppc/kernel/traps.c
+@@ -92,6 +92,7 @@ int die(const char * str, struct pt_regs
+ 	if (nl)
+ 		printk("\n");
+ 	show_regs(fp);
++	add_taint(TAINT_DIE);
+ 	spin_unlock_irq(&die_lock);
+ 	/* do_exit() should take care of panic'ing from an interrupt
+ 	 * context so we don't handle it here
+diff -puN arch/s390/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/s390/kernel/traps.c
+--- a/arch/s390/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/s390/kernel/traps.c
+@@ -262,6 +262,7 @@ void die(const char * str, struct pt_reg
+ 	print_modules();
+ 	show_regs(regs);
+ 	bust_spinlocks(0);
++	add_taint(TAINT_DIE);
+ 	spin_unlock_irq(&die_lock);
+ 	if (in_interrupt())
+ 		panic("Fatal exception in interrupt");
+diff -puN arch/sh/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/sh/kernel/traps.c
+--- a/arch/sh/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/sh/kernel/traps.c
+@@ -103,6 +103,7 @@ void die(const char * str, struct pt_reg
+ 			 (unsigned long)task_stack_page(current));
+ 
+ 	bust_spinlocks(0);
++	add_taint(TAINT_DIE);
+ 	spin_unlock_irq(&die_lock);
+ 
+ 	if (kexec_should_crash(current))
+diff -puN arch/sparc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/sparc/kernel/traps.c
+--- a/arch/sparc/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/sparc/kernel/traps.c
+@@ -101,6 +101,7 @@ void die_if_kernel(char *str, struct pt_
+ 
+ 	printk("%s(%d): %s [#%d]\n", current->comm, current->pid, str, ++die_counter);
+ 	show_regs(regs);
++	add_taint(TAINT_DIE);
+ 
+ 	__SAVE; __SAVE; __SAVE; __SAVE;
+ 	__SAVE; __SAVE; __SAVE; __SAVE;
+diff -puN arch/sparc64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/sparc64/kernel/traps.c
+--- a/arch/sparc64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/sparc64/kernel/traps.c
+@@ -2225,6 +2225,7 @@ void die_if_kernel(char *str, struct pt_
+ 	notify_die(DIE_OOPS, str, regs, 0, 255, SIGSEGV);
+ 	__asm__ __volatile__("flushw");
+ 	__show_regs(regs);
++	add_taint(TAINT_DIE);
+ 	if (regs->tstate & TSTATE_PRIV) {
+ 		struct reg_window *rw = (struct reg_window *)
+ 			(regs->u_regs[UREG_FP] + STACK_BIAS);
+diff -puN arch/x86_64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/x86_64/kernel/traps.c
+@@ -518,6 +518,7 @@ void __kprobes __die(const char * str, s
+ 	printk("\n");
+ 	notify_die(DIE_OOPS, str, regs, err, current->thread.trap_no, SIGSEGV);
+ 	show_registers(regs);
++	add_taint(TAINT_DIE);
+ 	/* Executive summary in case the oops scrolled away */
+ 	printk(KERN_ALERT "RIP ");
+ 	printk_address(regs->rip); 
+diff -puN arch/xtensa/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before arch/xtensa/kernel/traps.c
+--- a/arch/xtensa/kernel/traps.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/arch/xtensa/kernel/traps.c
+@@ -482,6 +482,7 @@ void die(const char * str, struct pt_reg
+ 	if (!user_mode(regs))
+ 		show_stack(NULL, (unsigned long*)regs->areg[1]);
+ 
++	add_taint(TAINT_DIE);
+ 	spin_unlock_irq(&die_lock);
+ 
+ 	if (in_interrupt())
+diff -puN include/linux/kernel.h~report-that-kernel-is-tainted-if-there-were-an-oops-before include/linux/kernel.h
+--- a/include/linux/kernel.h~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/include/linux/kernel.h
+@@ -210,6 +210,7 @@ extern enum system_states {
+ #define TAINT_MACHINE_CHECK		(1<<4)
+ #define TAINT_BAD_PAGE			(1<<5)
+ #define TAINT_USER			(1<<6)
++#define TAINT_DIE			(1<<7)
+ 
+ extern void dump_stack(void);
+ 
+diff -puN kernel/panic.c~report-that-kernel-is-tainted-if-there-were-an-oops-before kernel/panic.c
+--- a/kernel/panic.c~report-that-kernel-is-tainted-if-there-were-an-oops-before
++++ a/kernel/panic.c
+@@ -159,14 +159,15 @@ const char *print_tainted(void)
+ {
+ 	static char buf[20];
+ 	if (tainted) {
+-		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c",
++		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c",
+ 			tainted & TAINT_PROPRIETARY_MODULE ? 'P' : 'G',
+ 			tainted & TAINT_FORCED_MODULE ? 'F' : ' ',
+ 			tainted & TAINT_UNSAFE_SMP ? 'S' : ' ',
+ 			tainted & TAINT_FORCED_RMMOD ? 'R' : ' ',
+  			tainted & TAINT_MACHINE_CHECK ? 'M' : ' ',
+ 			tainted & TAINT_BAD_PAGE ? 'B' : ' ',
+-			tainted & TAINT_USER ? 'U' : ' ');
++			tainted & TAINT_USER ? 'U' : ' ',
++			tainted & TAINT_DIE ? 'D' : ' ');
  	}
--
- 	mpc83xx_spi = spi_master_get_devdata(master);
- 	mpc83xx_spi->bitbang.master = spi_master_get(master);
- 	mpc83xx_spi->bitbang.chipselect = mpc83xx_spi_chipselect;
-@@ -395,9 +410,17 @@ static int __init mpc83xx_spi_probe(stru
- 	mpc83xx_spi->sysclk = pdata->sysclk;
- 	mpc83xx_spi->activate_cs = pdata->activate_cs;
- 	mpc83xx_spi->deactivate_cs = pdata->deactivate_cs;
-+	mpc83xx_spi->qe_mode = pdata->qe_mode;
- 	mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u8;
- 	mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u8;
- 
-+	mpc83xx_spi->rx_shift = 0;
-+	mpc83xx_spi->tx_shift = 0;
-+	if (mpc83xx_spi->qe_mode) {
-+		mpc83xx_spi->rx_shift = 16;
-+		mpc83xx_spi->tx_shift = 24;
-+	}
-+
- 	mpc83xx_spi->bitbang.master->setup = mpc83xx_spi_setup;
- 	init_completion(&mpc83xx_spi->done);
- 
-@@ -432,6 +455,9 @@ static int __init mpc83xx_spi_probe(stru
- 
- 	/* Enable SPI interface */
- 	regval = pdata->initial_spmode | SPMODE_INIT_VAL | SPMODE_ENABLE;
-+	if (pdata->qe_mode)
-+		regval |= SPMODE_OP;
-+
- 	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, regval);
- 
- 	ret = spi_bitbang_start(&mpc83xx_spi->bitbang);
-diff -puN include/linux/fsl_devices.h~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x include/linux/fsl_devices.h
---- a/include/linux/fsl_devices.h~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x
-+++ a/include/linux/fsl_devices.h
-@@ -112,7 +112,7 @@ struct fsl_usb2_platform_data {
- struct fsl_spi_platform_data {
- 	u32 	initial_spmode;	/* initial SPMODE value */
- 	u16	bus_num;
--
-+	bool	qe_mode;
- 	/* board specific information */
- 	u16	max_chipselect;
- 	void	(*activate_cs)(u8 cs, u8 polarity);
+ 	else
+ 		snprintf(buf, sizeof(buf), "Not tainted");
 _
 
-Patches currently in -mm which might be from joakim.tjernlund@transmode.se are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
+make-input-layer-use-seq_list_xxx-helpers.patch
+fix-user-struct-leakage-with-locked-ipc-shem-segment.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
