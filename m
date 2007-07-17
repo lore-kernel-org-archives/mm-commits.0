@@ -1,318 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:01:06 -0700
-Message-ID: <200707172301.l6HN16Fv011353@imap1.linux-foundation.org>
+Subject: - define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:01:50 -0700
+Message-ID: <200707172301.l6HN1oMk011431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60302 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32788 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936654AbXGQXQH (ORCPT
+	by vger.kernel.org with ESMTP id S934519AbXGQXQI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:07 -0400
+	Tue, 17 Jul 2007 19:16:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: clameter@sgi.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Slab allocators: consistent ZERO_SIZE_PTR support and NULL result semantics
+     CONFIG_BOUNCE to avoid useless inclusion of bounce buffer logic
 has been removed from the -mm tree.  Its filename was
-     slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
+     define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Slab allocators: consistent ZERO_SIZE_PTR support and NULL result semantics
+Subject: CONFIG_BOUNCE to avoid useless inclusion of bounce buffer logic
 From: Christoph Lameter <clameter@sgi.com>
 
-Define ZERO_OR_NULL_PTR macro to be able to remove the checks from the
-allocators.  Move ZERO_SIZE_PTR related stuff into slab.h.
+The bounce buffer logic is included on systems that do not need it.  If a
+system does not have zones like ZONE_DMA and ZONE_HIGHMEM that can lead to
+the use of bounce buffers then there is no need to reserve memory pools etc
+etc.  This is true f.e.  for SGI Altix.
 
-Make ZERO_SIZE_PTR work for all slab allocators and get rid of the
-WARN_ON_ONCE(size == 0) that is still remaining in SLAB.
-
-Make slub return NULL like the other allocators if a too large memory segment
-is requested via __kmalloc.
+Also nicifies the Makefile and gets rid of the tricky "and" there.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h     |   13 +++++++++++++
- include/linux/slab_def.h |   12 ++++++++++++
- include/linux/slub_def.h |   12 ------------
- mm/slab.c                |   13 ++++++++-----
- mm/slob.c                |   11 +++++++----
- mm/slub.c                |   29 ++++++++++++++++-------------
- mm/util.c                |    2 +-
- 7 files changed, 57 insertions(+), 35 deletions(-)
+ include/linux/blkdev.h |    2 +-
+ mm/Kconfig             |    4 ++++
+ mm/Makefile            |    4 +---
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/slab.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics include/linux/slab.h
---- a/include/linux/slab.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
-+++ a/include/linux/slab.h
-@@ -31,6 +31,19 @@
- #define SLAB_TRACE		0x00200000UL	/* Trace allocations and frees */
- 
- /*
-+ * ZERO_SIZE_PTR will be returned for zero sized kmalloc requests.
-+ *
-+ * Dereferencing ZERO_SIZE_PTR will lead to a distinct access fault.
-+ *
-+ * ZERO_SIZE_PTR can be passed to kfree though in the same way that NULL can.
-+ * Both make kfree a no-op.
-+ */
-+#define ZERO_SIZE_PTR ((void *)16)
-+
-+#define ZERO_OR_NULL_PTR(x) ((unsigned long)(x) < \
-+				(unsigned long)ZERO_SIZE_PTR)
-+
-+/*
-  * struct kmem_cache related prototypes
+diff -puN include/linux/blkdev.h~define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer include/linux/blkdev.h
+--- a/include/linux/blkdev.h~define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer
++++ a/include/linux/blkdev.h
+@@ -624,7 +624,7 @@ extern unsigned long blk_max_low_pfn, bl
   */
- void __init kmem_cache_init(void);
-diff -puN include/linux/slab_def.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics include/linux/slab_def.h
---- a/include/linux/slab_def.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
-+++ a/include/linux/slab_def.h
-@@ -32,6 +32,10 @@ static inline void *kmalloc(size_t size,
- {
- 	if (__builtin_constant_p(size)) {
- 		int i = 0;
+ #define BLK_DEFAULT_SG_TIMEOUT	(60 * HZ)
+ 
+-#ifdef CONFIG_MMU
++#ifdef CONFIG_BOUNCE
+ extern int init_emergency_isa_pool(void);
+ extern void blk_queue_bounce(request_queue_t *q, struct bio **bio);
+ #else
+diff -puN mm/Kconfig~define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer mm/Kconfig
+--- a/mm/Kconfig~define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer
++++ a/mm/Kconfig
+@@ -163,6 +163,10 @@ config ZONE_DMA_FLAG
+ 	default "0" if !ZONE_DMA
+ 	default "1"
+ 
++config BOUNCE
++	def_bool y
++	depends on BLOCK && MMU && (ZONE_DMA || HIGHMEM)
 +
-+		if (!size)
-+			return ZERO_SIZE_PTR;
-+
- #define CACHE(x) \
- 		if (size <= x) \
- 			goto found; \
-@@ -58,6 +62,10 @@ static inline void *kzalloc(size_t size,
- {
- 	if (__builtin_constant_p(size)) {
- 		int i = 0;
-+
-+		if (!size)
-+			return ZERO_SIZE_PTR;
-+
- #define CACHE(x) \
- 		if (size <= x) \
- 			goto found; \
-@@ -88,6 +96,10 @@ static inline void *kmalloc_node(size_t 
- {
- 	if (__builtin_constant_p(size)) {
- 		int i = 0;
-+
-+		if (!size)
-+			return ZERO_SIZE_PTR;
-+
- #define CACHE(x) \
- 		if (size <= x) \
- 			goto found; \
-diff -puN include/linux/slub_def.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics include/linux/slub_def.h
---- a/include/linux/slub_def.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
-+++ a/include/linux/slub_def.h
-@@ -159,18 +159,6 @@ static inline struct kmem_cache *kmalloc
- #define SLUB_DMA 0
- #endif
+ config NR_QUICK
+ 	int
+ 	depends on QUICKLIST
+diff -puN mm/Makefile~define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer mm/Makefile
+--- a/mm/Makefile~define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer
++++ a/mm/Makefile
+@@ -13,9 +13,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+ 			   $(mmu-y)
  
--
--/*
-- * ZERO_SIZE_PTR will be returned for zero sized kmalloc requests.
-- *
-- * Dereferencing ZERO_SIZE_PTR will lead to a distinct access fault.
-- *
-- * ZERO_SIZE_PTR can be passed to kfree though in the same way that NULL can.
-- * Both make kfree a no-op.
-- */
--#define ZERO_SIZE_PTR ((void *)16)
--
--
- void *kmem_cache_alloc(struct kmem_cache *, gfp_t);
- void *__kmalloc(size_t size, gfp_t flags);
- 
-diff -puN mm/slab.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics mm/slab.c
---- a/mm/slab.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
-+++ a/mm/slab.c
-@@ -775,6 +775,9 @@ static inline struct kmem_cache *__find_
- 	 */
- 	BUG_ON(malloc_sizes[INDEX_AC].cs_cachep == NULL);
- #endif
-+	if (!size)
-+		return ZERO_SIZE_PTR;
-+
- 	while (size > csizep->cs_size)
- 		csizep++;
- 
-@@ -2351,7 +2354,7 @@ kmem_cache_create (const char *name, siz
- 		 * this should not happen at all.
- 		 * But leave a BUG_ON for some lucky dude.
- 		 */
--		BUG_ON(!cachep->slabp_cache);
-+		BUG_ON(ZERO_OR_NULL_PTR(cachep->slabp_cache));
- 	}
- 	cachep->ctor = ctor;
- 	cachep->name = name;
-@@ -3653,8 +3656,8 @@ __do_kmalloc_node(size_t size, gfp_t fla
- 	struct kmem_cache *cachep;
- 
- 	cachep = kmem_find_general_cachep(size, flags);
--	if (unlikely(cachep == NULL))
--		return NULL;
-+	if (unlikely(ZERO_OR_NULL_PTR(cachep)))
-+		return cachep;
- 	return kmem_cache_alloc_node(cachep, flags, node);
- }
- 
-@@ -3760,7 +3763,7 @@ void kfree(const void *objp)
- 	struct kmem_cache *c;
- 	unsigned long flags;
- 
--	if (unlikely(!objp))
-+	if (unlikely(ZERO_OR_NULL_PTR(objp)))
- 		return;
- 	local_irq_save(flags);
- 	kfree_debugcheck(objp);
-@@ -4447,7 +4450,7 @@ const struct seq_operations slabstats_op
-  */
- size_t ksize(const void *objp)
- {
--	if (unlikely(objp == NULL))
-+	if (unlikely(ZERO_OR_NULL_PTR(objp)))
- 		return 0;
- 
- 	return obj_size(virt_to_cache(objp));
-diff -puN mm/slob.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics mm/slob.c
---- a/mm/slob.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
-+++ a/mm/slob.c
-@@ -347,7 +347,7 @@ static void slob_free(void *block, int s
- 	slobidx_t units;
- 	unsigned long flags;
- 
--	if (!block)
-+	if (ZERO_OR_NULL_PTR(block))
- 		return;
- 	BUG_ON(!size);
- 
-@@ -424,10 +424,13 @@ out:
- 
- void *__kmalloc_node(size_t size, gfp_t gfp, int node)
- {
-+	unsigned int *m;
- 	int align = max(ARCH_KMALLOC_MINALIGN, ARCH_SLAB_MINALIGN);
- 
- 	if (size < PAGE_SIZE - align) {
--		unsigned int *m;
-+		if (!size)
-+			return ZERO_SIZE_PTR;
-+
- 		m = slob_alloc(size + align, gfp, align, node);
- 		if (m)
- 			*m = size;
-@@ -450,7 +453,7 @@ void kfree(const void *block)
- {
- 	struct slob_page *sp;
- 
--	if (!block)
-+	if (ZERO_OR_NULL_PTR(block))
- 		return;
- 
- 	sp = (struct slob_page *)virt_to_page(block);
-@@ -468,7 +471,7 @@ size_t ksize(const void *block)
- {
- 	struct slob_page *sp;
- 
--	if (!block)
-+	if (ZERO_OR_NULL_PTR(block))
- 		return 0;
- 
- 	sp = (struct slob_page *)virt_to_page(block);
-diff -puN mm/slub.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics mm/slub.c
---- a/mm/slub.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
-+++ a/mm/slub.c
-@@ -2270,10 +2270,11 @@ static struct kmem_cache *get_slab(size_
- 	int index = kmalloc_index(size);
- 
- 	if (!index)
--		return NULL;
-+		return ZERO_SIZE_PTR;
- 
- 	/* Allocation too large? */
--	BUG_ON(index < 0);
-+	if (index < 0)
-+		return NULL;
- 
- #ifdef CONFIG_ZONE_DMA
- 	if ((flags & SLUB_DMA)) {
-@@ -2314,9 +2315,10 @@ void *__kmalloc(size_t size, gfp_t flags
- {
- 	struct kmem_cache *s = get_slab(size, flags);
- 
--	if (s)
--		return slab_alloc(s, flags, -1, __builtin_return_address(0));
--	return ZERO_SIZE_PTR;
-+	if (ZERO_OR_NULL_PTR(s))
-+		return s;
-+
-+	return slab_alloc(s, flags, -1, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(__kmalloc);
- 
-@@ -2325,9 +2327,10 @@ void *__kmalloc_node(size_t size, gfp_t 
- {
- 	struct kmem_cache *s = get_slab(size, flags);
- 
--	if (s)
--		return slab_alloc(s, flags, node, __builtin_return_address(0));
--	return ZERO_SIZE_PTR;
-+	if (ZERO_OR_NULL_PTR(s))
-+		return s;
-+
-+	return slab_alloc(s, flags, node, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(__kmalloc_node);
- #endif
-@@ -2378,7 +2381,7 @@ void kfree(const void *x)
- 	 * this comparison would be true for all "negative" pointers
- 	 * (which would cover the whole upper half of the address space).
- 	 */
--	if ((unsigned long)x <= (unsigned long)ZERO_SIZE_PTR)
-+	if (ZERO_OR_NULL_PTR(x))
- 		return;
- 
- 	page = virt_to_head_page(x);
-@@ -2687,8 +2690,8 @@ void *__kmalloc_track_caller(size_t size
- {
- 	struct kmem_cache *s = get_slab(size, gfpflags);
- 
--	if (!s)
--		return ZERO_SIZE_PTR;
-+	if (ZERO_OR_NULL_PTR(s))
-+		return s;
- 
- 	return slab_alloc(s, gfpflags, -1, caller);
- }
-@@ -2698,8 +2701,8 @@ void *__kmalloc_node_track_caller(size_t
- {
- 	struct kmem_cache *s = get_slab(size, gfpflags);
- 
--	if (!s)
--		return ZERO_SIZE_PTR;
-+	if (ZERO_OR_NULL_PTR(s))
-+		return s;
- 
- 	return slab_alloc(s, gfpflags, node, caller);
- }
-diff -puN mm/util.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics mm/util.c
---- a/mm/util.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
-+++ a/mm/util.c
-@@ -76,7 +76,7 @@ void *krealloc(const void *p, size_t new
- 
- 	if (unlikely(!new_size)) {
- 		kfree(p);
--		return NULL;
-+		return ZERO_SIZE_PTR;
- 	}
- 
- 	ks = ksize(p);
+-ifeq ($(CONFIG_MMU)$(CONFIG_BLOCK),yy)
+-obj-y			+= bounce.o
+-endif
++obj-$(CONFIG_BOUNCE)	+= bounce.o
+ obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o thrash.o
+ obj-$(CONFIG_HUGETLBFS)	+= hugetlb.o
+ obj-$(CONFIG_NUMA) 	+= mempolicy.o
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
