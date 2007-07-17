@@ -1,435 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - lumpy-reclaim-v4.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:00:46 -0700
-Message-ID: <200707172300.l6HN0kgH011322@imap1.linux-foundation.org>
+Subject: - intelfb-the-pseudo_palette-is-only-16-elements-long.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:07:46 -0700
+Message-ID: <200707172307.l6HN7kdf012219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38221 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48014 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936483AbXGQXCO (ORCPT
+	by vger.kernel.org with ESMTP id S1757890AbXGQXPF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:02:14 -0400
+	Tue, 17 Jul 2007 19:15:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, a.p.zijlstra@chello.nl, bob.picco@hp.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Lumpy Reclaim V4
+     intelfb: the pseudo_palette is only 16 elements long
 has been removed from the -mm tree.  Its filename was
-     lumpy-reclaim-v4.patch
+     intelfb-the-pseudo_palette-is-only-16-elements-long.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Lumpy Reclaim V4
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: intelfb: the pseudo_palette is only 16 elements long
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-When we are out of memory of a suitable size we enter reclaim.  The current
-reclaim algorithm targets pages in LRU order, which is great for fairness at
-order-0 but highly unsuitable if you desire pages at higher orders.  To get
-pages of higher order we must shoot down a very high proportion of memory;
->95% in a lot of cases.
+The pseudo_palette is only 16 elements long.
 
-This patch set adds a lumpy reclaim algorithm to the allocator.  It targets
-groups of pages at the specified order anchored at the end of the active and
-inactive lists.  This encourages groups of pages at the requested orders to
-move from active to inactive, and active to free lists.  This behaviour is
-only triggered out of direct reclaim when higher order pages have been
-requested.
-
-This patch set is particularly effective when utilised with an
-anti-fragmentation scheme which groups pages of similar reclaimability
-together.
-
-This patch set is based on Peter Zijlstra's lumpy reclaim V2 patch which forms
-the foundation.  Credit to Mel Gorman for sanitity checking.
-
-Mel said:
-
-  The patches have an application with hugepage pool resizing.
-
-  When lumpy-reclaim is used used with ZONE_MOVABLE, the hugepages pool can
-  be resized with greater reliability.  Testing on a desktop machine with 2GB
-  of RAM showed that growing the hugepage pool with ZONE_MOVABLE on it's own
-  was very slow as the success rate was quite low.  Without lumpy-reclaim,
-  each attempt to grow the pool by 100 pages would yield 1 or 2 hugepages. 
-  With lumpy-reclaim, getting 40 to 70 hugepages on each attempt was typical.
-
-[akpm@osdl.org: ia64 pfn_to_nid fixes and loop cleanup]
-[bunk@stusta.de: static declarations for internal functions]
-[a.p.zijlstra@chello.nl: initial lumpy V2 implementation]
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Bob Picco <bob.picco@hp.com>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c            |    2 
- include/linux/mmzone.h |    8 +
- include/linux/swap.h   |    3 
- mm/page_alloc.c        |    5 -
- mm/vmscan.c            |  171 +++++++++++++++++++++++++++++++++------
- 5 files changed, 163 insertions(+), 26 deletions(-)
+ drivers/video/intelfb/intelfb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/buffer.c~lumpy-reclaim-v4 fs/buffer.c
---- a/fs/buffer.c~lumpy-reclaim-v4
-+++ a/fs/buffer.c
-@@ -356,7 +356,7 @@ static void free_more_memory(void)
- 	for_each_online_pgdat(pgdat) {
- 		zones = pgdat->node_zonelists[gfp_zone(GFP_NOFS)].zones;
- 		if (*zones)
--			try_to_free_pages(zones, GFP_NOFS);
-+			try_to_free_pages(zones, 0, GFP_NOFS);
- 	}
- }
+diff -puN drivers/video/intelfb/intelfb.h~intelfb-the-pseudo_palette-is-only-16-elements-long drivers/video/intelfb/intelfb.h
+--- a/drivers/video/intelfb/intelfb.h~intelfb-the-pseudo_palette-is-only-16-elements-long
++++ a/drivers/video/intelfb/intelfb.h
+@@ -302,7 +302,7 @@ struct intelfb_info {
+ 	u32 ring_lockup;
  
-diff -puN include/linux/mmzone.h~lumpy-reclaim-v4 include/linux/mmzone.h
---- a/include/linux/mmzone.h~lumpy-reclaim-v4
-+++ a/include/linux/mmzone.h
-@@ -24,6 +24,14 @@
- #endif
- #define MAX_ORDER_NR_PAGES (1 << (MAX_ORDER - 1))
+ 	/* palette */
+-	u32 pseudo_palette[17];
++	u32 pseudo_palette[16];
  
-+/*
-+ * PAGE_ALLOC_COSTLY_ORDER is the order at which allocations are deemed
-+ * costly to service.  That is between allocation orders which should
-+ * coelesce naturally under reasonable reclaim pressure and those which
-+ * will not.
-+ */
-+#define PAGE_ALLOC_COSTLY_ORDER 3
-+
- struct free_area {
- 	struct list_head	free_list;
- 	unsigned long		nr_free;
-diff -puN include/linux/swap.h~lumpy-reclaim-v4 include/linux/swap.h
---- a/include/linux/swap.h~lumpy-reclaim-v4
-+++ a/include/linux/swap.h
-@@ -188,7 +188,8 @@ extern int rotate_reclaimable_page(struc
- extern void swap_setup(void);
- 
- /* linux/mm/vmscan.c */
--extern unsigned long try_to_free_pages(struct zone **, gfp_t);
-+extern unsigned long try_to_free_pages(struct zone **zones, int order,
-+					gfp_t gfp_mask);
- extern unsigned long shrink_all_memory(unsigned long nr_pages);
- extern int vm_swappiness;
- extern int remove_mapping(struct address_space *mapping, struct page *page);
-diff -puN mm/page_alloc.c~lumpy-reclaim-v4 mm/page_alloc.c
---- a/mm/page_alloc.c~lumpy-reclaim-v4
-+++ a/mm/page_alloc.c
-@@ -1333,7 +1333,7 @@ nofail_alloc:
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
- 
--	did_some_progress = try_to_free_pages(zonelist->zones, gfp_mask);
-+	did_some_progress = try_to_free_pages(zonelist->zones, order, gfp_mask);
- 
- 	p->reclaim_state = NULL;
- 	p->flags &= ~PF_MEMALLOC;
-@@ -1370,7 +1370,8 @@ nofail_alloc:
- 	 */
- 	do_retry = 0;
- 	if (!(gfp_mask & __GFP_NORETRY)) {
--		if ((order <= 3) || (gfp_mask & __GFP_REPEAT))
-+		if ((order <= PAGE_ALLOC_COSTLY_ORDER) ||
-+						(gfp_mask & __GFP_REPEAT))
- 			do_retry = 1;
- 		if (gfp_mask & __GFP_NOFAIL)
- 			do_retry = 1;
-diff -puN mm/vmscan.c~lumpy-reclaim-v4 mm/vmscan.c
---- a/mm/vmscan.c~lumpy-reclaim-v4
-+++ a/mm/vmscan.c
-@@ -66,6 +66,8 @@ struct scan_control {
- 	int swappiness;
- 
- 	int all_unreclaimable;
-+
-+	int order;
- };
- 
- /*
-@@ -481,7 +483,8 @@ static unsigned long shrink_page_list(st
- 
- 		referenced = page_referenced(page, 1);
- 		/* In active use or really unfreeable?  Activate it. */
--		if (referenced && page_mapping_inuse(page))
-+		if (sc->order <= PAGE_ALLOC_COSTLY_ORDER &&
-+					referenced && page_mapping_inuse(page))
- 			goto activate_locked;
- 
- #ifdef CONFIG_SWAP
-@@ -514,7 +517,7 @@ static unsigned long shrink_page_list(st
- 		}
- 
- 		if (PageDirty(page)) {
--			if (referenced)
-+			if (sc->order <= PAGE_ALLOC_COSTLY_ORDER && referenced)
- 				goto keep_locked;
- 			if (!may_enter_fs)
- 				goto keep_locked;
-@@ -598,6 +601,51 @@ keep:
- 	return nr_reclaimed;
- }
- 
-+/* LRU Isolation modes. */
-+#define ISOLATE_INACTIVE 0	/* Isolate inactive pages. */
-+#define ISOLATE_ACTIVE 1	/* Isolate active pages. */
-+#define ISOLATE_BOTH 2		/* Isolate both active and inactive pages. */
-+
-+/*
-+ * Attempt to remove the specified page from its LRU.  Only take this page
-+ * if it is of the appropriate PageActive status.  Pages which are being
-+ * freed elsewhere are also ignored.
-+ *
-+ * page:	page to consider
-+ * mode:	one of the LRU isolation modes defined above
-+ *
-+ * returns 0 on success, -ve errno on failure.
-+ */
-+static int __isolate_lru_page(struct page *page, int mode)
-+{
-+	int ret = -EINVAL;
-+
-+	/* Only take pages on the LRU. */
-+	if (!PageLRU(page))
-+		return ret;
-+
-+	/*
-+	 * When checking the active state, we need to be sure we are
-+	 * dealing with comparible boolean values.  Take the logical not
-+	 * of each.
-+	 */
-+	if (mode != ISOLATE_BOTH && (!PageActive(page) != !mode))
-+		return ret;
-+
-+	ret = -EBUSY;
-+	if (likely(get_page_unless_zero(page))) {
-+		/*
-+		 * Be careful not to clear PageLRU until after we're
-+		 * sure the page is not being freed elsewhere -- the
-+		 * page release code relies on it.
-+		 */
-+		ClearPageLRU(page);
-+		ret = 0;
-+	}
-+
-+	return ret;
-+}
-+
- /*
-  * zone->lru_lock is heavily contended.  Some of the functions that
-  * shrink the lists perform better by taking out a batch of pages
-@@ -612,38 +660,90 @@ keep:
-  * @src:	The LRU list to pull pages off.
-  * @dst:	The temp list to put pages on to.
-  * @scanned:	The number of pages that were scanned.
-+ * @order:	The caller's attempted allocation order
-+ * @mode:	One of the LRU isolation modes
-  *
-  * returns how many pages were moved onto *@dst.
-  */
- static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
- 		struct list_head *src, struct list_head *dst,
--		unsigned long *scanned)
-+		unsigned long *scanned, int order, int mode)
- {
- 	unsigned long nr_taken = 0;
--	struct page *page;
- 	unsigned long scan;
- 
- 	for (scan = 0; scan < nr_to_scan && !list_empty(src); scan++) {
--		struct list_head *target;
-+		struct page *page;
-+		unsigned long pfn;
-+		unsigned long end_pfn;
-+		unsigned long page_pfn;
-+		int zone_id;
-+
- 		page = lru_to_page(src);
- 		prefetchw_prev_lru_page(page, src, flags);
- 
- 		VM_BUG_ON(!PageLRU(page));
- 
--		list_del(&page->lru);
--		target = src;
--		if (likely(get_page_unless_zero(page))) {
--			/*
--			 * Be careful not to clear PageLRU until after we're
--			 * sure the page is not being freed elsewhere -- the
--			 * page release code relies on it.
--			 */
--			ClearPageLRU(page);
--			target = dst;
-+		switch (__isolate_lru_page(page, mode)) {
-+		case 0:
-+			list_move(&page->lru, dst);
- 			nr_taken++;
--		} /* else it is being freed elsewhere */
-+			break;
-+
-+		case -EBUSY:
-+			/* else it is being freed elsewhere */
-+			list_move(&page->lru, src);
-+			continue;
-+
-+		default:
-+			BUG();
-+		}
-+
-+		if (!order)
-+			continue;
-+
-+		/*
-+		 * Attempt to take all pages in the order aligned region
-+		 * surrounding the tag page.  Only take those pages of
-+		 * the same active state as that tag page.  We may safely
-+		 * round the target page pfn down to the requested order
-+		 * as the mem_map is guarenteed valid out to MAX_ORDER,
-+		 * where that page is in a different zone we will detect
-+		 * it from its zone id and abort this block scan.
-+		 */
-+		zone_id = page_zone_id(page);
-+		page_pfn = page_to_pfn(page);
-+		pfn = page_pfn & ~((1 << order) - 1);
-+		end_pfn = pfn + (1 << order);
-+		for (; pfn < end_pfn; pfn++) {
-+			struct page *cursor_page;
-+
-+			/* The target page is in the block, ignore it. */
-+			if (unlikely(pfn == page_pfn))
-+				continue;
- 
--		list_add(&page->lru, target);
-+			/* Avoid holes within the zone. */
-+			if (unlikely(!pfn_valid_within(pfn)))
-+				break;
-+
-+			cursor_page = pfn_to_page(pfn);
-+			/* Check that we have not crossed a zone boundary. */
-+			if (unlikely(page_zone_id(cursor_page) != zone_id))
-+				continue;
-+			switch (__isolate_lru_page(cursor_page, mode)) {
-+			case 0:
-+				list_move(&cursor_page->lru, dst);
-+				nr_taken++;
-+				scan++;
-+				break;
-+
-+			case -EBUSY:
-+				/* else it is being freed elsewhere */
-+				list_move(&cursor_page->lru, src);
-+			default:
-+				break;
-+			}
-+		}
- 	}
- 
- 	*scanned = scan;
-@@ -651,6 +751,24 @@ static unsigned long isolate_lru_pages(u
- }
- 
- /*
-+ * clear_active_flags() is a helper for shrink_active_list(), clearing
-+ * any active bits from the pages in the list.
-+ */
-+static unsigned long clear_active_flags(struct list_head *page_list)
-+{
-+	int nr_active = 0;
-+	struct page *page;
-+
-+	list_for_each_entry(page, page_list, lru)
-+		if (PageActive(page)) {
-+			ClearPageActive(page);
-+			nr_active++;
-+		}
-+
-+	return nr_active;
-+}
-+
-+/*
-  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
-  * of reclaimed pages
-  */
-@@ -671,11 +789,18 @@ static unsigned long shrink_inactive_lis
- 		unsigned long nr_taken;
- 		unsigned long nr_scan;
- 		unsigned long nr_freed;
-+		unsigned long nr_active;
- 
- 		nr_taken = isolate_lru_pages(sc->swap_cluster_max,
--					     &zone->inactive_list,
--					     &page_list, &nr_scan);
--		__mod_zone_page_state(zone, NR_INACTIVE, -nr_taken);
-+			     &zone->inactive_list,
-+			     &page_list, &nr_scan, sc->order,
-+			     (sc->order > PAGE_ALLOC_COSTLY_ORDER)?
-+					     ISOLATE_BOTH : ISOLATE_INACTIVE);
-+		nr_active = clear_active_flags(&page_list);
-+
-+		__mod_zone_page_state(zone, NR_ACTIVE, -nr_active);
-+		__mod_zone_page_state(zone, NR_INACTIVE,
-+						-(nr_taken - nr_active));
- 		zone->pages_scanned += nr_scan;
- 		spin_unlock_irq(&zone->lru_lock);
- 
-@@ -820,7 +945,7 @@ force_reclaim_mapped:
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
- 	pgmoved = isolate_lru_pages(nr_pages, &zone->active_list,
--				    &l_hold, &pgscanned);
-+			    &l_hold, &pgscanned, sc->order, ISOLATE_ACTIVE);
- 	zone->pages_scanned += pgscanned;
- 	__mod_zone_page_state(zone, NR_ACTIVE, -pgmoved);
- 	spin_unlock_irq(&zone->lru_lock);
-@@ -1011,7 +1136,7 @@ static unsigned long shrink_zones(int pr
-  * holds filesystem locks which prevent writeout this might not work, and the
-  * allocation attempt will fail.
-  */
--unsigned long try_to_free_pages(struct zone **zones, gfp_t gfp_mask)
-+unsigned long try_to_free_pages(struct zone **zones, int order, gfp_t gfp_mask)
- {
- 	int priority;
- 	int ret = 0;
-@@ -1026,6 +1151,7 @@ unsigned long try_to_free_pages(struct z
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
- 		.may_swap = 1,
- 		.swappiness = vm_swappiness,
-+		.order = order,
- 	};
- 
- 	count_vm_event(ALLOCSTALL);
-@@ -1131,6 +1257,7 @@ static unsigned long balance_pgdat(pg_da
- 		.may_swap = 1,
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
- 		.swappiness = vm_swappiness,
-+		.order = order,
- 	};
- 	/*
- 	 * temp_priority is used to remember the scanning priority at which
+ 	/* chip info */
+ 	int pci_chipset;
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
-i386-move-the-kernel-to-16mb-for-numa-q.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-move-free-pages-between-lists-on-steal.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-remove-alloc_zeroed_user_highpage.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-page-owner-tracking-leak-detector.patch
