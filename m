@@ -1,729 +1,662 @@
 From: akpm@linux-foundation.org
-Subject: - slub-change-error-reporting-format-to-follow-lockdep-loosely.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:00:52 -0700
-Message-ID: <200707172300.l6HN0q94011329@imap1.linux-foundation.org>
+Subject: - omap-add-ti-omap2-external-lcd-controller-support-rfbi.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:08:31 -0700
+Message-ID: <200707172308.l6HN8V8M012290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34596 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47778 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935520AbXGQXP4 (ORCPT
+	by vger.kernel.org with ESMTP id S1761570AbXGQXP5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:15:56 -0400
+	Tue, 17 Jul 2007 19:15:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: imre.deak@solidboot.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: change error reporting format to follow lockdep loosely
+     OMAP: add TI OMAP2 external LCD controller support - RFBI
 has been removed from the -mm tree.  Its filename was
-     slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+     omap-add-ti-omap2-external-lcd-controller-support-rfbi.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: SLUB: change error reporting format to follow lockdep loosely
-From: Christoph Lameter <clameter@sgi.com>
+Subject: OMAP: add TI OMAP2 external LCD controller support - RFBI
+=46rom: Imre Deak <imre.deak@solidboot.com>
 
-Changes the error reporting format to loosely follow lockdep.
+- Adds support for Texas Instruments OMAP2 processors boards connected =
+with
+  external LCD controller through "Remote framebuffer Interface"
 
-If data corruption is detected then we generate the following lines:
-
-============================================
-BUG <slab-cache>: <problem>
---------------------------------------------
-
-INFO: <more information> [possibly multiple times]
-
-<object dump>
-
-FIX <slab-cache>: <remedial action>
-
-This also adds some more intelligence to the data corruption detection. Its
-now capable of figuring out the start and end.
-
-Add a comment on how to configure SLUB so that a production system may
-continue to operate even though occasional slab corruption occur through
-a misbehaving kernel component. See "Emergency operations" in
-Documentation/vm/slub.txt.
-
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.txt |  139 +++++++++++-------
- mm/slub.c                 |  277 ++++++++++++++++++++----------------
- 2 files changed, 244 insertions(+), 172 deletions(-)
+ drivers/video/omap/Makefile |    1=20
+ drivers/video/omap/rfbi.c   |  588 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 589 insertions(+)
 
-diff -puN Documentation/vm/slub.txt~slub-change-error-reporting-format-to-follow-lockdep-loosely Documentation/vm/slub.txt
---- a/Documentation/vm/slub.txt~slub-change-error-reporting-format-to-follow-lockdep-loosely
-+++ a/Documentation/vm/slub.txt
-@@ -127,13 +127,20 @@ SLUB Debug output
- 
- Here is a sample of slub debug output:
- 
--*** SLUB kmalloc-8: Redzone Active@0xc90f6d20 slab 0xc528c530 offset=3360 flags=0x400000c3 inuse=61 freelist=0xc90f6d58
--  Bytes b4 0xc90f6d10:  00 00 00 00 00 00 00 00 5a 5a 5a 5a 5a 5a 5a 5a ........ZZZZZZZZ
--    Object 0xc90f6d20:  31 30 31 39 2e 30 30 35                         1019.005
--   Redzone 0xc90f6d28:  00 cc cc cc                                     .
--FreePointer 0xc90f6d2c -> 0xc90f6d58
--Last alloc: get_modalias+0x61/0xf5 jiffies_ago=53 cpu=1 pid=554
--Filler 0xc90f6d50:  5a 5a 5a 5a 5a 5a 5a 5a                         ZZZZZZZZ
-+====================================================================
-+BUG kmalloc-8: Redzone overwritten
-+--------------------------------------------------------------------
+diff -puN drivers/video/omap/Makefile~omap-add-ti-omap2-external-lcd-co=
+ntroller-support-rfbi drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omap-add-ti-omap2-external-lcd-contro=
+ller-support-rfbi
++++ a/drivers/video/omap/Makefile
+@@ -10,6 +10,7 @@ objs-y$(CONFIG_ARCH_OMAP1) +=3D lcdc.o
+ objs-y$(CONFIG_ARCH_OMAP2) +=3D dispc.o
+=20
+ objs-$(CONFIG_ARCH_OMAP1)$(CONFIG_FB_OMAP_LCDC_EXTERNAL) +=3D sossi.o
++objs-$(CONFIG_ARCH_OMAP2)$(CONFIG_FB_OMAP_LCDC_EXTERNAL) +=3D rfbi.o
+=20
+ omapfb-objs :=3D $(objs-yy)
+=20
+diff -puN /dev/null drivers/video/omap/rfbi.c
+--- /dev/null
++++ a/drivers/video/omap/rfbi.c
+@@ -0,0 +1,588 @@
++/*
++ * OMAP2 Remote Frame Buffer Interface support
++ *
++ * Copyright (C) 2005 Nokia Corporation
++ * Author: Juha Yrj=F6l=E4 <juha.yrjola@nokia.com>
++ *	   Imre Deak <imre.deak@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y it
++ * under the terms of the GNU General Public License as published by t=
+he
++ * Free Software Foundation; either version 2 of the License, or (at y=
+our
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License a=
+long
++ * with this program; if not, write to the Free Software Foundation, I=
+nc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/err.h>
++#include <linux/interrupt.h>
++#include <linux/clk.h>
++#include <linux/io.h>
 +
-+INFO: 0xc90f6d28-0xc90f6d2b. First byte 0x00 instead of 0xcc
-+INFO: Slab 0xc528c530 flags=0x400000c3 inuse=61 fp=0xc90f6d58
-+INFO: Object 0xc90f6d20 @offset=3360 fp=0xc90f6d58
-+INFO: Allocated in get_modalias+0x61/0xf5 age=53 cpu=1 pid=554
++#include <asm/arch/omapfb.h>
 +
-+Bytes b4 0xc90f6d10:  00 00 00 00 00 00 00 00 5a 5a 5a 5a 5a 5a 5a 5a ........ZZZZZZZZ
-+  Object 0xc90f6d20:  31 30 31 39 2e 30 30 35                         1019.005
-+ Redzone 0xc90f6d28:  00 cc cc cc                                     .
-+ Padding 0xc90f6d50:  5a 5a 5a 5a 5a 5a 5a 5a                         ZZZZZZZZ
++#include "dispc.h"
 +
-   [<c010523d>] dump_trace+0x63/0x1eb
-   [<c01053df>] show_trace_log_lvl+0x1a/0x2f
-   [<c010601d>] show_trace+0x12/0x14
-@@ -155,74 +162,108 @@ Filler 0xc90f6d50:  5a 5a 5a 5a 5a 5a 5a
-   [<c0104112>] sysenter_past_esp+0x5f/0x99
-   [<b7f7b410>] 0xb7f7b410
-   =======================
--@@@ SLUB kmalloc-8: Restoring redzone (0xcc) from 0xc90f6d28-0xc90f6d2b
--
- 
-+FIX kmalloc-8: Restoring Redzone 0xc90f6d28-0xc90f6d2b=0xcc
- 
--If SLUB encounters a corrupted object then it will perform the following
--actions:
-+If SLUB encounters a corrupted object (full detection requires the kernel
-+to be booted with slub_debug) then the following output will be dumped
-+into the syslog:
- 
--1. Isolation and report of the issue
-+1. Description of the problem encountered
- 
- This will be a message in the system log starting with
- 
--*** SLUB <slab cache affected>: <What went wrong>@<object address>
--offset=<offset of object into slab> flags=<slabflags>
--inuse=<objects in use in this slab> freelist=<first free object in slab>
-+===============================================
-+BUG <slab cache affected>: <What went wrong>
-+-----------------------------------------------
++/* To work around an RFBI transfer rate limitation */
++#define OMAP_RFBI_RATE_LIMIT	1
 +
-+INFO: <corruption start>-<corruption_end> <more info>
-+INFO: Slab <address> <slab information>
-+INFO: Object <address> <object information>
-+INFO: Allocated in <kernel function> age=<jiffies since alloc> cpu=<allocated by
-+	cpu> pid=<pid of the process>
-+INFO: Freed in <kernel function> age=<jiffies since free> cpu=<freed by cpu>
-+	 pid=<pid of the process>
- 
--2. Report on how the problem was dealt with in order to ensure the continued
--operation of the system.
--
--These are messages in the system log beginning with
-+(Object allocation / free information is only available if SLAB_STORE_USER is
-+set for the slab. slub_debug sets that option)
- 
--@@@ SLUB <slab cache affected>: <corrective action taken>
-+2. The object contents if an object was involved.
- 
--
--In the above sample SLUB found that the Redzone of an active object has
--been overwritten. Here a string of 8 characters was written into a slab that
--has the length of 8 characters. However, a 8 character string needs a
--terminating 0. That zero has overwritten the first byte of the Redzone field.
--After reporting the details of the issue encountered the @@@ SLUB message
--tell us that SLUB has restored the redzone to its proper value and then
--system operations continue.
--
--Various types of lines can follow the @@@ SLUB line:
-+Various types of lines can follow the BUG SLUB line:
- 
- Bytes b4 <address> : <bytes>
--	Show a few bytes before the object where the problem was detected.
-+	Shows a few bytes before the object where the problem was detected.
- 	Can be useful if the corruption does not stop with the start of the
- 	object.
- 
- Object <address> : <bytes>
- 	The bytes of the object. If the object is inactive then the bytes
--	typically contain poisoning values. Any non-poison value shows a
-+	typically contain poison values. Any non-poison value shows a
- 	corruption by a write after free.
- 
- Redzone <address> : <bytes>
--	The redzone following the object. The redzone is used to detect
-+	The Redzone following the object. The Redzone is used to detect
- 	writes after the object. All bytes should always have the same
- 	value. If there is any deviation then it is due to a write after
- 	the object boundary.
- 
--Freepointer
--	The pointer to the next free object in the slab. May become
--	corrupted if overwriting continues after the red zone.
--
--Last alloc:
--Last free:
--	Shows the address from which the object was allocated/freed last.
--	We note the pid, the time and the CPU that did so. This is usually
--	the most useful information to figure out where things went wrong.
--	Here get_modalias() did an kmalloc(8) instead of a kmalloc(9).
-+	(Redzone information is only available if SLAB_RED_ZONE is set.
-+	slub_debug sets that option)
- 
--Filler <address> : <bytes>
-+Padding <address> : <bytes>
- 	Unused data to fill up the space in order to get the next object
- 	properly aligned. In the debug case we make sure that there are
--	at least 4 bytes of filler. This allow for the detection of writes
-+	at least 4 bytes of padding. This allows the detection of writes
- 	before the object.
- 
--Following the filler will be a stackdump. That stackdump describes the
--location where the error was detected. The cause of the corruption is more
--likely to be found by looking at the information about the last alloc / free.
-+3. A stackdump
++#define RFBI_BASE		0x48050800
++#define RFBI_REVISION		0x0000
++#define RFBI_SYSCONFIG		0x0010
++#define RFBI_SYSSTATUS		0x0014
++#define RFBI_CONTROL		0x0040
++#define RFBI_PIXEL_CNT		0x0044
++#define RFBI_LINE_NUMBER	0x0048
++#define RFBI_CMD		0x004c
++#define RFBI_PARAM		0x0050
++#define RFBI_DATA		0x0054
++#define RFBI_READ		0x0058
++#define RFBI_STATUS		0x005c
++#define RFBI_CONFIG0		0x0060
++#define RFBI_ONOFF_TIME0	0x0064
++#define RFBI_CYCLE_TIME0	0x0068
++#define RFBI_DATA_CYCLE1_0	0x006c
++#define RFBI_DATA_CYCLE2_0	0x0070
++#define RFBI_DATA_CYCLE3_0	0x0074
++#define RFBI_VSYNC_WIDTH	0x0090
++#define RFBI_HSYNC_WIDTH	0x0094
 +
-+The stackdump describes the location where the error was detected. The cause
-+of the corruption is may be more likely found by looking at the function that
-+allocated or freed the object.
++#define DISPC_BASE		0x48050400
++#define DISPC_CONTROL		0x0040
 +
-+4. Report on how the problem was dealt with in order to ensure the continued
-+operation of the system.
++static struct {
++	u32		base;
++	void		(*lcdc_callback)(void *data);
++	void		*lcdc_callback_data;
++	unsigned long	l4_khz;
++	int		bits_per_cycle;
++	struct omapfb_device *fbdev;
++	struct clk	*dss_ick;
++	struct clk	*dss1_fck;
++	unsigned	tearsync_pin_cnt;
++	unsigned	tearsync_mode;
++} rfbi;
 +
-+These are messages in the system log beginning with
++static inline void rfbi_write_reg(int idx, u32 val)
++{
++	__raw_writel(val, rfbi.base + idx);
++}
 +
-+FIX <slab cache affected>: <corrective action taken>
++static inline u32 rfbi_read_reg(int idx)
++{
++	return __raw_readl(rfbi.base + idx);
++}
 +
-+In the above sample SLUB found that the Redzone of an active object has
-+been overwritten. Here a string of 8 characters was written into a slab that
-+has the length of 8 characters. However, a 8 character string needs a
-+terminating 0. That zero has overwritten the first byte of the Redzone field.
-+After reporting the details of the issue encountered the FIX SLUB message
-+tell us that SLUB has restored the Redzone to its proper value and then
-+system operations continue.
++static int rfbi_get_clocks(void)
++{
++	if (IS_ERR((rfbi.dss_ick =3D clk_get(rfbi.fbdev->dev, "dss_ick")))) {
++		dev_err(rfbi.fbdev->dev, "can't get dss_ick");
++		return PTR_ERR(rfbi.dss_ick);
++	}
 +
-+Emergency operations:
-+---------------------
-+
-+Minimal debugging (sanity checks alone) can be enabled by booting with
-+
-+	slub_debug=F
-+
-+This will be generally be enough to enable the resiliency features of slub
-+which will keep the system running even if a bad kernel component will
-+keep corrupting objects. This may be important for production systems.
-+Performance will be impacted by the sanity checks and there will be a
-+continual stream of error messages to the syslog but no additional memory
-+will be used (unlike full debugging).
-+
-+No guarantees. The kernel component still needs to be fixed. Performance
-+may be optimized further by locating the slab that experiences corruption
-+and enabling debugging only for that cache
-+
-+I.e.
-+
-+	slub_debug=F,dentry
-+
-+If the corruption occurs by writing after the end of the object then it
-+may be advisable to enable a Redzone to avoid corrupting the beginning
-+of other objects.
-+
-+	slub_debug=FZ,dentry
- 
--Christoph Lameter, <clameter@sgi.com>, May 23, 2007
-+Christoph Lameter, <clameter@sgi.com>, May 30, 2007
-diff -puN mm/slub.c~slub-change-error-reporting-format-to-follow-lockdep-loosely mm/slub.c
---- a/mm/slub.c~slub-change-error-reporting-format-to-follow-lockdep-loosely
-+++ a/mm/slub.c
-@@ -344,7 +344,7 @@ static void print_section(char *text, u8
- 
- 	for (i = 0; i < length; i++) {
- 		if (newline) {
--			printk(KERN_ERR "%10s 0x%p: ", text, addr + i);
-+			printk(KERN_ERR "%8s 0x%p: ", text, addr + i);
- 			newline = 0;
- 		}
- 		printk(" %02x", addr[i]);
-@@ -401,10 +401,11 @@ static void set_track(struct kmem_cache 
- 
- static void init_tracking(struct kmem_cache *s, void *object)
++	if (IS_ERR((rfbi.dss1_fck =3D clk_get(rfbi.fbdev->dev, "dss1_fck"))))=
  {
--	if (s->flags & SLAB_STORE_USER) {
--		set_track(s, object, TRACK_FREE, NULL);
--		set_track(s, object, TRACK_ALLOC, NULL);
--	}
-+	if (!(s->flags & SLAB_STORE_USER))
-+		return;
++		dev_err(rfbi.fbdev->dev, "can't get dss1_fck");
++		clk_put(rfbi.dss_ick);
++		return PTR_ERR(rfbi.dss1_fck);
++	}
 +
-+	set_track(s, object, TRACK_FREE, NULL);
-+	set_track(s, object, TRACK_ALLOC, NULL);
- }
- 
- static void print_track(const char *s, struct track *t)
-@@ -412,65 +413,106 @@ static void print_track(const char *s, s
- 	if (!t->addr)
- 		return;
- 
--	printk(KERN_ERR "%s: ", s);
-+	printk(KERN_ERR "INFO: %s in ", s);
- 	__print_symbol("%s", (unsigned long)t->addr);
--	printk(" jiffies_ago=%lu cpu=%u pid=%d\n", jiffies - t->when, t->cpu, t->pid);
-+	printk(" age=%lu cpu=%u pid=%d\n", jiffies - t->when, t->cpu, t->pid);
-+}
-+
-+static void print_tracking(struct kmem_cache *s, void *object)
-+{
-+	if (!(s->flags & SLAB_STORE_USER))
-+		return;
-+
-+	print_track("Allocated", get_track(s, object, TRACK_ALLOC));
-+	print_track("Freed", get_track(s, object, TRACK_FREE));
- }
- 
--static void print_trailer(struct kmem_cache *s, u8 *p)
-+static void print_page_info(struct page *page)
-+{
-+	printk(KERN_ERR "INFO: Slab 0x%p used=%u fp=0x%p flags=0x%04lx\n",
-+		page, page->inuse, page->freelist, page->flags);
-+
-+}
-+
-+static void slab_bug(struct kmem_cache *s, char *fmt, ...)
-+{
-+	va_list args;
-+	char buf[100];
-+
-+	va_start(args, fmt);
-+	vsnprintf(buf, sizeof(buf), fmt, args);
-+	va_end(args);
-+	printk(KERN_ERR "========================================"
-+			"=====================================\n");
-+	printk(KERN_ERR "BUG %s: %s\n", s->name, buf);
-+	printk(KERN_ERR "----------------------------------------"
-+			"-------------------------------------\n\n");
-+}
-+
-+static void slab_fix(struct kmem_cache *s, char *fmt, ...)
-+{
-+	va_list args;
-+	char buf[100];
-+
-+	va_start(args, fmt);
-+	vsnprintf(buf, sizeof(buf), fmt, args);
-+	va_end(args);
-+	printk(KERN_ERR "FIX %s: %s\n", s->name, buf);
-+}
-+
-+static void print_trailer(struct kmem_cache *s, struct page *page, u8 *p)
- {
- 	unsigned int off;	/* Offset of last byte */
-+	u8 *addr = page_address(page);
-+
-+	print_tracking(s, p);
-+
-+	print_page_info(page);
-+
-+	printk(KERN_ERR "INFO: Object 0x%p @offset=%tu fp=0x%p\n\n",
-+			p, p - addr, get_freepointer(s, p));
-+
-+	if (p > addr + 16)
-+		print_section("Bytes b4", p - 16, 16);
-+
-+	print_section("Object", p, min(s->objsize, 128));
- 
- 	if (s->flags & SLAB_RED_ZONE)
- 		print_section("Redzone", p + s->objsize,
- 			s->inuse - s->objsize);
- 
--	printk(KERN_ERR "FreePointer 0x%p -> 0x%p\n",
--			p + s->offset,
--			get_freepointer(s, p));
--
- 	if (s->offset)
- 		off = s->offset + sizeof(void *);
- 	else
- 		off = s->inuse;
- 
--	if (s->flags & SLAB_STORE_USER) {
--		print_track("Last alloc", get_track(s, p, TRACK_ALLOC));
--		print_track("Last free ", get_track(s, p, TRACK_FREE));
-+	if (s->flags & SLAB_STORE_USER)
- 		off += 2 * sizeof(struct track);
--	}
- 
- 	if (off != s->size)
- 		/* Beginning of the filler is the free pointer */
--		print_section("Filler", p + off, s->size - off);
-+		print_section("Padding", p + off, s->size - off);
-+
-+	dump_stack();
- }
- 
- static void object_err(struct kmem_cache *s, struct page *page,
- 			u8 *object, char *reason)
- {
--	u8 *addr = page_address(page);
--
--	printk(KERN_ERR "*** SLUB %s: %s@0x%p slab 0x%p\n",
--			s->name, reason, object, page);
--	printk(KERN_ERR "    offset=%tu flags=0x%04lx inuse=%u freelist=0x%p\n",
--		object - addr, page->flags, page->inuse, page->freelist);
--	if (object > addr + 16)
--		print_section("Bytes b4", object - 16, 16);
--	print_section("Object", object, min(s->objsize, 128));
--	print_trailer(s, object);
--	dump_stack();
-+	slab_bug(s, reason);
-+	print_trailer(s, page, object);
- }
- 
--static void slab_err(struct kmem_cache *s, struct page *page, char *reason, ...)
-+static void slab_err(struct kmem_cache *s, struct page *page, char *fmt, ...)
- {
- 	va_list args;
- 	char buf[100];
- 
--	va_start(args, reason);
--	vsnprintf(buf, sizeof(buf), reason, args);
-+	va_start(args, fmt);
-+	vsnprintf(buf, sizeof(buf), fmt, args);
- 	va_end(args);
--	printk(KERN_ERR "*** SLUB %s: %s in slab @0x%p\n", s->name, buf,
--		page);
-+	slab_bug(s, fmt);
-+	print_page_info(page);
- 	dump_stack();
- }
- 
-@@ -489,15 +531,46 @@ static void init_object(struct kmem_cach
- 			s->inuse - s->objsize);
- }
- 
--static int check_bytes(u8 *start, unsigned int value, unsigned int bytes)
-+static u8 *check_bytes(u8 *start, unsigned int value, unsigned int bytes)
- {
- 	while (bytes) {
- 		if (*start != (u8)value)
--			return 0;
-+			return start;
- 		start++;
- 		bytes--;
- 	}
--	return 1;
-+	return NULL;
-+}
-+
-+static void restore_bytes(struct kmem_cache *s, char *message, u8 data,
-+						void *from, void *to)
-+{
-+	slab_fix(s, "Restoring 0x%p-0x%p=0x%x\n", from, to - 1, data);
-+	memset(from, data, to - from);
-+}
-+
-+static int check_bytes_and_report(struct kmem_cache *s, struct page *page,
-+			u8 *object, char *what,
-+			u8* start, unsigned int value, unsigned int bytes)
-+{
-+	u8 *fault;
-+	u8 *end;
-+
-+	fault = check_bytes(start, value, bytes);
-+	if (!fault)
-+		return 1;
-+
-+	end = start + bytes;
-+	while (end > fault && end[-1] == value)
-+		end--;
-+
-+	slab_bug(s, "%s overwritten", what);
-+	printk(KERN_ERR "INFO: 0x%p-0x%p. First byte 0x%x instead of 0x%x\n",
-+					fault, end - 1, fault[0], value);
-+	print_trailer(s, page, object);
-+
-+	restore_bytes(s, what, value, fault, end);
 +	return 0;
- }
- 
- /*
-@@ -538,14 +611,6 @@ static int check_bytes(u8 *start, unsign
-  * may be used with merged slabcaches.
-  */
- 
--static void restore_bytes(struct kmem_cache *s, char *message, u8 data,
--						void *from, void *to)
--{
--	printk(KERN_ERR "@@@ SLUB %s: Restoring %s (0x%x) from 0x%p-0x%p\n",
--		s->name, message, data, from, to - 1);
--	memset(from, data, to - from);
--}
--
- static int check_pad_bytes(struct kmem_cache *s, struct page *page, u8 *p)
- {
- 	unsigned long off = s->inuse;	/* The end of info */
-@@ -561,39 +626,39 @@ static int check_pad_bytes(struct kmem_c
- 	if (s->size == off)
- 		return 1;
- 
--	if (check_bytes(p + off, POISON_INUSE, s->size - off))
--		return 1;
--
--	object_err(s, page, p, "Object padding check fails");
--
--	/*
--	 * Restore padding
--	 */
--	restore_bytes(s, "object padding", POISON_INUSE, p + off, p + s->size);
--	return 0;
-+	return check_bytes_and_report(s, page, p, "Object padding",
-+				p + off, POISON_INUSE, s->size - off);
- }
- 
- static int slab_pad_check(struct kmem_cache *s, struct page *page)
- {
--	u8 *p;
--	int length, remainder;
-+	u8 *start;
-+	u8 *fault;
-+	u8 *end;
-+	int length;
-+	int remainder;
- 
- 	if (!(s->flags & SLAB_POISON))
- 		return 1;
- 
--	p = page_address(page);
-+	start = page_address(page);
-+	end = start + (PAGE_SIZE << s->order);
- 	length = s->objects * s->size;
--	remainder = (PAGE_SIZE << s->order) - length;
-+	remainder = end - (start + length);
- 	if (!remainder)
- 		return 1;
- 
--	if (!check_bytes(p + length, POISON_INUSE, remainder)) {
--		slab_err(s, page, "Padding check failed");
--		restore_bytes(s, "slab padding", POISON_INUSE, p + length,
--			p + length + remainder);
--		return 0;
--	}
--	return 1;
-+	fault = check_bytes(start + length, POISON_INUSE, remainder);
-+	if (!fault)
-+		return 1;
-+	while (end > fault && end[-1] == POISON_INUSE)
-+		end--;
++}
 +
-+	slab_err(s, page, "Padding overwritten. 0x%p-0x%p", fault, end - 1);
-+	print_section("Padding", start, length);
++static void rfbi_put_clocks(void)
++{
++	clk_put(rfbi.dss1_fck);
++	clk_put(rfbi.dss_ick);
++}
 +
-+	restore_bytes(s, "slab padding", POISON_INUSE, start, end);
++static void rfbi_enable_clocks(int enable)
++{
++	if (enable) {
++		clk_enable(rfbi.dss_ick);
++		clk_enable(rfbi.dss1_fck);
++	} else {
++		clk_disable(rfbi.dss1_fck);
++		clk_disable(rfbi.dss_ick);
++	}
++}
++
++
++#ifdef VERBOSE
++static void rfbi_print_timings(void)
++{
++	u32 l;
++	u32 time;
++
++	l =3D rfbi_read_reg(RFBI_CONFIG0);
++	time =3D 1000000000 / rfbi.l4_khz;
++	if (l & (1 << 4))
++		time *=3D 2;
++
++	dev_dbg(rfbi.fbdev->dev, "Tick time %u ps\n", time);
++	l =3D rfbi_read_reg(RFBI_ONOFF_TIME0);
++	dev_dbg(rfbi.fbdev->dev,
++		"CSONTIME %d, CSOFFTIME %d, WEONTIME %d, WEOFFTIME %d, "
++		"REONTIME %d, REOFFTIME %d\n",
++		l & 0x0f, (l >> 4) & 0x3f, (l >> 10) & 0x0f, (l >> 14) & 0x3f,
++		(l >> 20) & 0x0f, (l >> 24) & 0x3f);
++
++	l =3D rfbi_read_reg(RFBI_CYCLE_TIME0);
++	dev_dbg(rfbi.fbdev->dev,
++		"WECYCLETIME %d, RECYCLETIME %d, CSPULSEWIDTH %d, "
++		"ACCESSTIME %d\n",
++		(l & 0x3f), (l >> 6) & 0x3f, (l >> 12) & 0x3f,
++		(l >> 22) & 0x3f);
++}
++#else
++static void rfbi_print_timings(void) {}
++#endif
++
++static void rfbi_set_timings(const struct extif_timings *t)
++{
++	u32 l;
++
++	BUG_ON(!t->converted);
++
++	rfbi_enable_clocks(1);
++	rfbi_write_reg(RFBI_ONOFF_TIME0, t->tim[0]);
++	rfbi_write_reg(RFBI_CYCLE_TIME0, t->tim[1]);
++
++	l =3D rfbi_read_reg(RFBI_CONFIG0);
++	l &=3D ~(1 << 4);
++	l |=3D (t->tim[2] ? 1 : 0) << 4;
++	rfbi_write_reg(RFBI_CONFIG0, l);
++
++	rfbi_print_timings();
++	rfbi_enable_clocks(0);
++}
++
++static void rfbi_get_clk_info(u32 *clk_period, u32 *max_clk_div)
++{
++	*clk_period =3D 1000000000 / rfbi.l4_khz;
++	*max_clk_div =3D 2;
++}
++
++static int ps_to_rfbi_ticks(int time, int div)
++{
++	unsigned long tick_ps;
++	int ret;
++
++	/* Calculate in picosecs to yield more exact results */
++	tick_ps =3D 1000000000 / (rfbi.l4_khz) * div;
++
++	ret =3D (time + tick_ps - 1) / tick_ps;
++
++	return ret;
++}
++
++#ifdef OMAP_RFBI_RATE_LIMIT
++static unsigned long rfbi_get_max_tx_rate(void)
++{
++	unsigned long	l4_rate, dss1_rate;
++	int		min_l4_ticks =3D 0;
++	int		i;
++
++	/* According to TI this can't be calculated so make the
++	 * adjustments for a couple of known frequencies and warn for
++	 * others.
++	 */
++	static const struct {
++		unsigned long l4_clk;		/* HZ */
++		unsigned long dss1_clk;		/* HZ */
++		unsigned long min_l4_ticks;
++	} ftab[] =3D {
++		{ 55,	132,	7, },		/* 7.86 MPix/s */
++		{ 110,	110,	12, },		/* 9.16 MPix/s */
++		{ 110,	132,	10, },		/* 11   Mpix/s */
++		{ 120,	120,	10, },		/* 12   Mpix/s */
++		{ 133,	133,	10, },		/* 13.3 Mpix/s */
++	};
++
++	l4_rate =3D rfbi.l4_khz / 1000;
++	dss1_rate =3D clk_get_rate(rfbi.dss1_fck) / 1000000;
++
++	for (i =3D 0; i < ARRAY_SIZE(ftab); i++) {
++		/* Use a window instead of an exact match, to account
++		 * for different DPLL multiplier / divider pairs.
++		 */
++		if (abs(ftab[i].l4_clk - l4_rate) < 3 &&
++		    abs(ftab[i].dss1_clk - dss1_rate) < 3) {
++			min_l4_ticks =3D ftab[i].min_l4_ticks;
++			break;
++		}
++	}
++	if (i =3D=3D ARRAY_SIZE(ftab)) {
++		/* Can't be sure, return anyway the maximum not
++		 * rate-limited. This might cause a problem only for the
++		 * tearing synchronisation.
++		 */
++		dev_err(rfbi.fbdev->dev,
++			"can't determine maximum RFBI transfer rate\n");
++		return rfbi.l4_khz * 1000;
++	}
++	return rfbi.l4_khz * 1000 / min_l4_ticks;
++}
++#else
++static int rfbi_get_max_tx_rate(void)
++{
++	return rfbi.l4_khz * 1000;
++}
++#endif
++
++
++static int rfbi_convert_timings(struct extif_timings *t)
++{
++	u32 l;
++	int reon, reoff, weon, weoff, cson, csoff, cs_pulse;
++	int actim, recyc, wecyc;
++	int div =3D t->clk_div;
++
++	if (div <=3D 0 || div > 2)
++		return -1;
++
++	/* Make sure that after conversion it still holds that:
++	 * weoff > weon, reoff > reon, recyc >=3D reoff, wecyc >=3D weoff,
++	 * csoff > cson, csoff >=3D max(weoff, reoff), actim > reon
++	 */
++	weon =3D ps_to_rfbi_ticks(t->we_on_time, div);
++	weoff =3D ps_to_rfbi_ticks(t->we_off_time, div);
++	if (weoff <=3D weon)
++		weoff =3D weon + 1;
++	if (weon > 0x0f)
++		return -1;
++	if (weoff > 0x3f)
++		return -1;
++
++	reon =3D ps_to_rfbi_ticks(t->re_on_time, div);
++	reoff =3D ps_to_rfbi_ticks(t->re_off_time, div);
++	if (reoff <=3D reon)
++		reoff =3D reon + 1;
++	if (reon > 0x0f)
++		return -1;
++	if (reoff > 0x3f)
++		return -1;
++
++	cson =3D ps_to_rfbi_ticks(t->cs_on_time, div);
++	csoff =3D ps_to_rfbi_ticks(t->cs_off_time, div);
++	if (csoff <=3D cson)
++		csoff =3D cson + 1;
++	if (csoff < max(weoff, reoff))
++		csoff =3D max(weoff, reoff);
++	if (cson > 0x0f)
++		return -1;
++	if (csoff > 0x3f)
++		return -1;
++
++	l =3D  cson;
++	l |=3D csoff << 4;
++	l |=3D weon  << 10;
++	l |=3D weoff << 14;
++	l |=3D reon  << 20;
++	l |=3D reoff << 24;
++
++	t->tim[0] =3D l;
++
++	actim =3D ps_to_rfbi_ticks(t->access_time, div);
++	if (actim <=3D reon)
++		actim =3D reon + 1;
++	if (actim > 0x3f)
++		return -1;
++
++	wecyc =3D ps_to_rfbi_ticks(t->we_cycle_time, div);
++	if (wecyc < weoff)
++		wecyc =3D weoff;
++	if (wecyc > 0x3f)
++		return -1;
++
++	recyc =3D ps_to_rfbi_ticks(t->re_cycle_time, div);
++	if (recyc < reoff)
++		recyc =3D reoff;
++	if (recyc > 0x3f)
++		return -1;
++
++	cs_pulse =3D ps_to_rfbi_ticks(t->cs_pulse_width, div);
++	if (cs_pulse > 0x3f)
++		return -1;
++
++	l =3D  wecyc;
++	l |=3D recyc    << 6;
++	l |=3D cs_pulse << 12;
++	l |=3D actim    << 22;
++
++	t->tim[1] =3D l;
++
++	t->tim[2] =3D div - 1;
++
++	t->converted =3D 1;
++
 +	return 0;
- }
- 
- static int check_object(struct kmem_cache *s, struct page *page,
-@@ -606,41 +671,22 @@ static int check_object(struct kmem_cach
- 		unsigned int red =
- 			active ? SLUB_RED_ACTIVE : SLUB_RED_INACTIVE;
- 
--		if (!check_bytes(endobject, red, s->inuse - s->objsize)) {
--			object_err(s, page, object,
--			active ? "Redzone Active" : "Redzone Inactive");
--			restore_bytes(s, "redzone", red,
--				endobject, object + s->inuse);
-+		if (!check_bytes_and_report(s, page, object, "Redzone",
-+			endobject, red, s->inuse - s->objsize))
- 			return 0;
--		}
- 	} else {
--		if ((s->flags & SLAB_POISON) && s->objsize < s->inuse &&
--			!check_bytes(endobject, POISON_INUSE,
--					s->inuse - s->objsize)) {
--		object_err(s, page, p, "Alignment padding check fails");
--		/*
--		 * Fix it so that there will not be another report.
--		 *
--		 * Hmmm... We may be corrupting an object that now expects
--		 * to be longer than allowed.
--		 */
--		restore_bytes(s, "alignment padding", POISON_INUSE,
--			endobject, object + s->inuse);
--		}
-+		if ((s->flags & SLAB_POISON) && s->objsize < s->inuse)
-+			check_bytes_and_report(s, page, p, "Alignment padding", endobject,
-+				POISON_INUSE, s->inuse - s->objsize);
- 	}
- 
- 	if (s->flags & SLAB_POISON) {
- 		if (!active && (s->flags & __OBJECT_POISON) &&
--			(!check_bytes(p, POISON_FREE, s->objsize - 1) ||
--				p[s->objsize - 1] != POISON_END)) {
--
--			object_err(s, page, p, "Poison check failed");
--			restore_bytes(s, "Poison", POISON_FREE,
--						p, p + s->objsize -1);
--			restore_bytes(s, "Poison", POISON_END,
--					p + s->objsize - 1, p + s->objsize);
-+			(!check_bytes_and_report(s, page, p, "Poison", p,
-+					POISON_FREE, s->objsize - 1) ||
-+			 !check_bytes_and_report(s, page, p, "Poison",
-+			 	p + s->objsize -1, POISON_END, 1)))
- 			return 0;
--		}
- 		/*
- 		 * check_pad_bytes cleans up on its own.
- 		 */
-@@ -673,25 +719,17 @@ static int check_slab(struct kmem_cache 
- 	VM_BUG_ON(!irqs_disabled());
- 
- 	if (!PageSlab(page)) {
--		slab_err(s, page, "Not a valid slab page flags=%lx "
--			"mapping=0x%p count=%d", page->flags, page->mapping,
--			page_count(page));
-+		slab_err(s, page, "Not a valid slab page");
- 		return 0;
- 	}
- 	if (page->offset * sizeof(void *) != s->offset) {
--		slab_err(s, page, "Corrupted offset %lu flags=0x%lx "
--			"mapping=0x%p count=%d",
--			(unsigned long)(page->offset * sizeof(void *)),
--			page->flags,
--			page->mapping,
--			page_count(page));
-+		slab_err(s, page, "Corrupted offset %lu",
-+			(unsigned long)(page->offset * sizeof(void *)));
- 		return 0;
- 	}
- 	if (page->inuse > s->objects) {
--		slab_err(s, page, "inuse %u > max %u @0x%p flags=%lx "
--			"mapping=0x%p count=%d",
--			s->name, page->inuse, s->objects, page->flags,
--			page->mapping, page_count(page));
-+		slab_err(s, page, "inuse %u > max %u",
-+			s->name, page->inuse, s->objects);
- 		return 0;
- 	}
- 	/* Slab_pad_check fixes things up after itself */
-@@ -719,13 +757,10 @@ static int on_freelist(struct kmem_cache
- 				set_freepointer(s, object, NULL);
- 				break;
- 			} else {
--				slab_err(s, page, "Freepointer 0x%p corrupt",
--									fp);
-+				slab_err(s, page, "Freepointer corrupt");
- 				page->freelist = NULL;
- 				page->inuse = s->objects;
--				printk(KERN_ERR "@@@ SLUB %s: Freelist "
--					"cleared. Slab 0x%p\n",
--					s->name, page);
-+				slab_fix(s, "Freelist cleared");
- 				return 0;
- 			}
- 			break;
-@@ -737,11 +772,9 @@ static int on_freelist(struct kmem_cache
- 
- 	if (page->inuse != s->objects - nr) {
- 		slab_err(s, page, "Wrong object count. Counter is %d but "
--			"counted were %d", s, page, page->inuse,
--							s->objects - nr);
-+			"counted were %d", page->inuse, s->objects - nr);
- 		page->inuse = s->objects - nr;
--		printk(KERN_ERR "@@@ SLUB %s: Object count adjusted. "
--			"Slab @0x%p\n", s->name, page);
-+		slab_fix(s, "Object count adjusted.");
- 	}
- 	return search == NULL;
- }
-@@ -803,7 +836,7 @@ static int alloc_debug_processing(struct
- 		goto bad;
- 
- 	if (object && !on_freelist(s, page, object)) {
--		slab_err(s, page, "Object 0x%p already allocated", object);
-+		object_err(s, page, object, "Object already allocated");
- 		goto bad;
- 	}
- 
-@@ -829,8 +862,7 @@ bad:
- 		 * to avoid issues in the future. Marking all objects
- 		 * as used avoids touching the remaining objects.
- 		 */
--		printk(KERN_ERR "@@@ SLUB: %s slab 0x%p. Marking all objects used.\n",
--			s->name, page);
-+		slab_fix(s, "Marking all objects used");
- 		page->inuse = s->objects;
- 		page->freelist = NULL;
- 		/* Fix up fields that may be corrupted */
-@@ -851,7 +883,7 @@ static int free_debug_processing(struct 
- 	}
- 
- 	if (on_freelist(s, page, object)) {
--		slab_err(s, page, "Object 0x%p already free", object);
-+		object_err(s, page, object, "Object already free");
- 		goto fail;
- 	}
- 
-@@ -870,8 +902,8 @@ static int free_debug_processing(struct 
- 			dump_stack();
- 		}
- 		else
--			slab_err(s, page, "object at 0x%p belongs "
--				"to slab %s", object, page->slab->name);
-+			object_err(s, page, object,
-+					"page slab pointer corrupt.");
- 		goto fail;
- 	}
- 
-@@ -885,8 +917,7 @@ static int free_debug_processing(struct 
- 	return 1;
- 
- fail:
--	printk(KERN_ERR "@@@ SLUB: %s slab 0x%p object at 0x%p not freed.\n",
--		s->name, page, object);
-+	slab_fix(s, "Object at 0x%p not freed", object);
- 	return 0;
- }
- 
++}
++
++static int rfbi_setup_tearsync(unsigned pin_cnt,
++			       unsigned hs_pulse_time, unsigned vs_pulse_time,
++			       int hs_pol_inv, int vs_pol_inv, int extif_div)
++{
++	int hs, vs;
++	int min;
++	u32 l;
++
++	if (pin_cnt !=3D 1 && pin_cnt !=3D 2)
++		return -EINVAL;
++
++	hs =3D ps_to_rfbi_ticks(hs_pulse_time, 1);
++	vs =3D ps_to_rfbi_ticks(vs_pulse_time, 1);
++	if (hs < 2)
++		return -EDOM;
++	if (pin_cnt =3D=3D 2)
++		min =3D 2;
++	else
++		min =3D 4;
++	if (vs < min)
++		return -EDOM;
++	if (vs =3D=3D hs)
++		return -EINVAL;
++	rfbi.tearsync_pin_cnt =3D pin_cnt;
++	dev_dbg(rfbi.fbdev->dev,
++		"setup_tearsync: pins %d hs %d vs %d hs_inv %d vs_inv %d\n",
++		pin_cnt, hs, vs, hs_pol_inv, vs_pol_inv);
++
++	rfbi_enable_clocks(1);
++	rfbi_write_reg(RFBI_HSYNC_WIDTH, hs);
++	rfbi_write_reg(RFBI_VSYNC_WIDTH, vs);
++
++	l =3D rfbi_read_reg(RFBI_CONFIG0);
++	if (hs_pol_inv)
++		l &=3D ~(1 << 21);
++	else
++		l |=3D 1 << 21;
++	if (vs_pol_inv)
++		l &=3D ~(1 << 20);
++	else
++		l |=3D 1 << 20;
++	rfbi_enable_clocks(0);
++
++	return 0;
++}
++
++static int rfbi_enable_tearsync(int enable, unsigned line)
++{
++	u32 l;
++
++	dev_dbg(rfbi.fbdev->dev, "tearsync %d line %d mode %d\n",
++		enable, line, rfbi.tearsync_mode);
++	if (line > (1 << 11) - 1)
++		return -EINVAL;
++
++	rfbi_enable_clocks(1);
++	l =3D rfbi_read_reg(RFBI_CONFIG0);
++	l &=3D ~(0x3 << 2);
++	if (enable) {
++		rfbi.tearsync_mode =3D rfbi.tearsync_pin_cnt;
++		l |=3D rfbi.tearsync_mode << 2;
++	} else
++		rfbi.tearsync_mode =3D 0;
++	rfbi_write_reg(RFBI_CONFIG0, l);
++	rfbi_write_reg(RFBI_LINE_NUMBER, line);
++	rfbi_enable_clocks(0);
++
++	return 0;
++}
++
++static void rfbi_write_command(const void *buf, unsigned int len)
++{
++	rfbi_enable_clocks(1);
++	if (rfbi.bits_per_cycle =3D=3D 16) {
++		const u16 *w =3D buf;
++		BUG_ON(len & 1);
++		for (; len; len -=3D 2)
++			rfbi_write_reg(RFBI_CMD, *w++);
++	} else {
++		const u8 *b =3D buf;
++		BUG_ON(rfbi.bits_per_cycle !=3D 8);
++		for (; len; len--)
++			rfbi_write_reg(RFBI_CMD, *b++);
++	}
++	rfbi_enable_clocks(0);
++}
++
++static void rfbi_read_data(void *buf, unsigned int len)
++{
++	rfbi_enable_clocks(1);
++	if (rfbi.bits_per_cycle =3D=3D 16) {
++		u16 *w =3D buf;
++		BUG_ON(len & ~1);
++		for (; len; len -=3D 2) {
++			rfbi_write_reg(RFBI_READ, 0);
++			*w++ =3D rfbi_read_reg(RFBI_READ);
++		}
++	} else {
++		u8 *b =3D buf;
++		BUG_ON(rfbi.bits_per_cycle !=3D 8);
++		for (; len; len--) {
++			rfbi_write_reg(RFBI_READ, 0);
++			*b++ =3D rfbi_read_reg(RFBI_READ);
++		}
++	}
++	rfbi_enable_clocks(0);
++}
++
++static void rfbi_write_data(const void *buf, unsigned int len)
++{
++	rfbi_enable_clocks(1);
++	if (rfbi.bits_per_cycle =3D=3D 16) {
++		const u16 *w =3D buf;
++		BUG_ON(len & 1);
++		for (; len; len -=3D 2)
++			rfbi_write_reg(RFBI_PARAM, *w++);
++	} else {
++		const u8 *b =3D buf;
++		BUG_ON(rfbi.bits_per_cycle !=3D 8);
++		for (; len; len--)
++			rfbi_write_reg(RFBI_PARAM, *b++);
++	}
++	rfbi_enable_clocks(0);
++}
++
++static void rfbi_transfer_area(int width, int height,
++				void (callback)(void * data), void *data)
++{
++	u32 w;
++
++	BUG_ON(callback =3D=3D NULL);
++
++	rfbi_enable_clocks(1);
++	omap_dispc_set_lcd_size(width, height);
++
++	rfbi.lcdc_callback =3D callback;
++	rfbi.lcdc_callback_data =3D data;
++
++	rfbi_write_reg(RFBI_PIXEL_CNT, width * height);
++
++	w =3D rfbi_read_reg(RFBI_CONTROL);
++	w |=3D 1;				/* enable */
++	if (!rfbi.tearsync_mode)
++		w |=3D 1 << 4;		/* internal trigger, reset by HW */
++	rfbi_write_reg(RFBI_CONTROL, w);
++
++	omap_dispc_enable_lcd_out(1);
++}
++
++static inline void _stop_transfer(void)
++{
++	u32 w;
++
++	w =3D rfbi_read_reg(RFBI_CONTROL);
++	rfbi_write_reg(RFBI_CONTROL, w & ~(1 << 0));
++	rfbi_enable_clocks(0);
++}
++
++static void rfbi_dma_callback(void *data)
++{
++	_stop_transfer();
++	rfbi.lcdc_callback(rfbi.lcdc_callback_data);
++}
++
++static void rfbi_set_bits_per_cycle(int bpc)
++{
++	u32 l;
++
++	rfbi_enable_clocks(1);
++	l =3D rfbi_read_reg(RFBI_CONFIG0);
++	l &=3D ~(0x03 << 0);
++
++	switch (bpc) {
++	case 8:
++		break;
++	case 16:
++		l |=3D 3;
++		break;
++	default:
++		BUG();
++	}
++	rfbi_write_reg(RFBI_CONFIG0, l);
++	rfbi.bits_per_cycle =3D bpc;
++	rfbi_enable_clocks(0);
++}
++
++static int rfbi_init(struct omapfb_device *fbdev)
++{
++	u32 l;
++	int r;
++
++	rfbi.fbdev =3D fbdev;
++	rfbi.base =3D io_p2v(RFBI_BASE);
++
++	if ((r =3D rfbi_get_clocks()) < 0)
++		return r;
++	rfbi_enable_clocks(1);
++
++	rfbi.l4_khz =3D clk_get_rate(rfbi.dss_ick) / 1000;
++
++	/* Reset */
++	rfbi_write_reg(RFBI_SYSCONFIG, 1 << 1);
++	while (!(rfbi_read_reg(RFBI_SYSSTATUS) & (1 << 0)));
++
++	l =3D rfbi_read_reg(RFBI_SYSCONFIG);
++	/* Enable autoidle and smart-idle */
++	l |=3D (1 << 0) | (2 << 3);
++	rfbi_write_reg(RFBI_SYSCONFIG, l);
++
++	/* 16-bit interface, ITE trigger mode, 16-bit data */
++	l =3D (0x03 << 0) | (0x00 << 2) | (0x01 << 5) | (0x02 << 7);
++	l |=3D (0 << 9) | (1 << 20) | (1 << 21);
++	rfbi_write_reg(RFBI_CONFIG0, l);
++
++	rfbi_write_reg(RFBI_DATA_CYCLE1_0, 0x00000010);
++
++	l =3D rfbi_read_reg(RFBI_CONTROL);
++	/* Select CS0, clear bypass mode */
++	l =3D (0x01 << 2);
++	rfbi_write_reg(RFBI_CONTROL, l);
++
++	if ((r =3D omap_dispc_request_irq(rfbi_dma_callback, NULL)) < 0) {
++		dev_err(fbdev->dev, "can't get DISPC irq\n");
++		rfbi_enable_clocks(0);
++		return r;
++	}
++
++	l =3D rfbi_read_reg(RFBI_REVISION);
++	pr_info("omapfb: RFBI version %d.%d initialized\n",
++		(l >> 4) & 0x0f, l & 0x0f);
++
++	rfbi_enable_clocks(0);
++
++	return 0;
++}
++
++static void rfbi_cleanup(void)
++{
++	omap_dispc_free_irq();
++	rfbi_put_clocks();
++}
++
++const struct lcd_ctrl_extif omap2_ext_if =3D {
++	.init			=3D rfbi_init,
++	.cleanup		=3D rfbi_cleanup,
++	.get_clk_info		=3D rfbi_get_clk_info,
++	.get_max_tx_rate	=3D rfbi_get_max_tx_rate,
++	.set_bits_per_cycle	=3D rfbi_set_bits_per_cycle,
++	.convert_timings	=3D rfbi_convert_timings,
++	.set_timings		=3D rfbi_set_timings,
++	.write_command		=3D rfbi_write_command,
++	.read_data		=3D rfbi_read_data,
++	.write_data		=3D rfbi_write_data,
++	.transfer_area		=3D rfbi_transfer_area,
++	.setup_tearsync		=3D rfbi_setup_tearsync,
++	.enable_tearsync	=3D rfbi_enable_tearsync,
++
++	.max_transmit_size	=3D (u32) ~0,
++};
++
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from imre.deak@solidboot.com ar=
+e
 
 origin.patch
-git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-quicklist-support-for-x86_64.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-memory-unplug-v7-migration-by-kernel.patch
-memory-unplug-v7-isolate_lru_page-fix.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-page-owner-tracking-leak-detector.patch
