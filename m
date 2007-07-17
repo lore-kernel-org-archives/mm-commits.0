@@ -1,187 +1,415 @@
 From: akpm@linux-foundation.org
-Subject: - fix-read-truncate-race.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:00:30 -0700
-Message-ID: <200707172300.l6HN0UVi011304@imap1.linux-foundation.org>
+Subject: - mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:00:28 -0700
+Message-ID: <200707172300.l6HN0S2U011301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37404 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936019AbXGQXBO (ORCPT
+	by vger.kernel.org with ESMTP id S936019AbXGQXBM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:01:14 -0400
+	Tue, 17 Jul 2007 19:01:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, jens.axboe@oracle.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: schwidefsky@de.ibm.com, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix read/truncate race
+     mm: remove ptep_test_and_clear_dirty and ptep_clear_flush_dirty
 has been removed from the -mm tree.  Its filename was
-     fix-read-truncate-race.patch
+     mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix read/truncate race
-From: NeilBrown <neilb@suse.de>
+Subject: mm: remove ptep_test_and_clear_dirty and ptep_clear_flush_dirty
+From: Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-do_generic_mapping_read currently samples the i_size at the start and doesn't
-do so again unless it needs to call ->readpage to load a page.  After
-->readpage it has to re-sample i_size as a truncate may have caused that page
-to be filled with zeros, and the read() call should not see these.
+Nobody is using ptep_test_and_clear_dirty and ptep_clear_flush_dirty.  Remove
+the functions from all architectures.
 
-However there are other activities that might cause ->readpage to be called on
-a page between the time that do_generic_mapping_read samples i_size and when
-it finds that it has an uptodate page.  These include at least read-ahead and
-possibly another thread performing a read.
-
-So do_generic_mapping_read must sample i_size *after* it has an uptodate page.
- Thus the current sampling at the start and after a read can be replaced with
-a sampling before the copy-out.
-
-The same change applied to __generic_file_splice_read.
-
-Note that this fixes any race with truncate_complete_page, but does not fix a
-possible race with truncate_partial_page.  If a partial truncate happens after
-do_generic_mapping_read samples i_size and before the copy_out, the nuls that
-truncate_partial_page place in the page could be copied out incorrectly.
-
-I think the best fix for that is to *not* zero out parts of the page in
-truncate_partial_page, but rather to zero out the tail of a page when
-increasing i_size.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Acked-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   72 +++++++++++++++++++------------------------------
- 1 file changed, 28 insertions(+), 44 deletions(-)
+ include/asm-frv/pgtable.h           |    8 ------
+ include/asm-generic/pgtable.h       |   25 --------------------
+ include/asm-i386/pgtable.h          |   21 -----------------
+ include/asm-ia64/pgtable.h          |   17 --------------
+ include/asm-m32r/pgtable.h          |    6 -----
+ include/asm-parisc/pgtable.h        |   16 -------------
+ include/asm-powerpc/pgtable-ppc32.h |    7 -----
+ include/asm-powerpc/pgtable-ppc64.h |   31 --------------------------
+ include/asm-ppc/pgtable.h           |    7 -----
+ include/asm-s390/pgtable.h          |   15 ------------
+ include/asm-x86_64/pgtable.h        |    8 ------
+ include/asm-xtensa/pgtable.h        |   12 ----------
+ 12 files changed, 173 deletions(-)
 
-diff -puN mm/filemap.c~fix-read-truncate-race mm/filemap.c
---- a/mm/filemap.c~fix-read-truncate-race
-+++ a/mm/filemap.c
-@@ -867,13 +867,11 @@ void do_generic_mapping_read(struct addr
+diff -puN include/asm-frv/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-frv/pgtable.h
+--- a/include/asm-frv/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-frv/pgtable.h
+@@ -388,13 +388,6 @@ static inline pte_t pte_mkdirty(pte_t pt
+ static inline pte_t pte_mkyoung(pte_t pte)	{ (pte).pte |= _PAGE_ACCESSED; return pte; }
+ static inline pte_t pte_mkwrite(pte_t pte)	{ (pte).pte &= ~_PAGE_WP; return pte; }
+ 
+-static inline int ptep_test_and_clear_dirty(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
+-{
+-	int i = test_and_clear_bit(_PAGE_BIT_DIRTY, ptep);
+-	asm volatile("dcf %M0" :: "U"(*ptep));
+-	return i;
+-}
+-
+ static inline int ptep_test_and_clear_young(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
  {
- 	struct inode *inode = mapping->host;
- 	unsigned long index;
--	unsigned long end_index;
- 	unsigned long offset;
- 	unsigned long last_index;
- 	unsigned long next_index;
- 	unsigned long prev_index;
- 	unsigned int prev_offset;
--	loff_t isize;
- 	struct page *cached_page;
- 	int error;
- 	struct file_ra_state ra = *_ra;
-@@ -886,27 +884,12 @@ void do_generic_mapping_read(struct addr
- 	last_index = (*ppos + desc->count + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
- 	offset = *ppos & ~PAGE_CACHE_MASK;
+ 	int i = test_and_clear_bit(_PAGE_BIT_ACCESSED, ptep);
+@@ -504,7 +497,6 @@ static inline int pte_file(pte_t pte)
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
  
--	isize = i_size_read(inode);
--	if (!isize)
--		goto out;
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+ #define __HAVE_ARCH_PTE_SAME
+diff -puN include/asm-generic/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-generic/pgtable.h
+@@ -49,31 +49,6 @@
+ })
+ #endif
+ 
+-#ifndef __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+-#define ptep_test_and_clear_dirty(__vma, __address, __ptep)		\
+-({									\
+-	pte_t __pte = *__ptep;						\
+-	int r = 1;							\
+-	if (!pte_dirty(__pte))						\
+-		r = 0;							\
+-	else								\
+-		set_pte_at((__vma)->vm_mm, (__address), (__ptep),	\
+-			   pte_mkclean(__pte));				\
+-	r;								\
+-})
+-#endif
 -
--	end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
- 	for (;;) {
- 		struct page *page;
-+		unsigned long end_index;
-+		loff_t isize;
- 		unsigned long nr, ret;
- 
--		/* nr is the maximum number of bytes to copy from this page */
--		nr = PAGE_CACHE_SIZE;
--		if (index >= end_index) {
--			if (index > end_index)
--				goto out;
--			nr = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
--			if (nr <= offset) {
--				goto out;
--			}
--		}
--		nr = nr - offset;
+-#ifndef __HAVE_ARCH_PTEP_CLEAR_DIRTY_FLUSH
+-#define ptep_clear_flush_dirty(__vma, __address, __ptep)		\
+-({									\
+-	int __dirty;							\
+-	__dirty = ptep_test_and_clear_dirty(__vma, __address, __ptep);	\
+-	if (__dirty)							\
+-		flush_tlb_page(__vma, __address);			\
+-	__dirty;							\
+-})
+-#endif
 -
- 		cond_resched();
- 		if (index == next_index)
- 			next_index = page_cache_readahead(mapping, &ra, filp,
-@@ -921,6 +904,32 @@ find_page:
- 		if (!PageUptodate(page))
- 			goto page_not_up_to_date;
- page_ok:
-+		/*
-+		 * i_size must be checked after we know the page is Uptodate.
-+		 *
-+		 * Checking i_size after the check allows us to calculate
-+		 * the correct value for "nr", which means the zero-filled
-+		 * part of the page is not copied back to userspace (unless
-+		 * another truncate extends the file - this is desired though).
-+		 */
-+
-+		isize = i_size_read(inode);
-+		end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
-+		if (unlikely(!isize || index > end_index)) {
-+			page_cache_release(page);
-+			goto out;
-+		}
-+
-+		/* nr is the maximum number of bytes to copy from this page */
-+		nr = PAGE_CACHE_SIZE;
-+		if (index == end_index) {
-+			nr = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
-+			if (nr <= offset) {
-+				page_cache_release(page);
-+				goto out;
-+			}
-+		}
-+		nr = nr - offset;
+ #ifndef __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ #define ptep_get_and_clear(__mm, __address, __ptep)			\
+ ({									\
+diff -puN include/asm-i386/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-i386/pgtable.h
+@@ -289,17 +289,6 @@ static inline pte_t native_local_ptep_ge
+ 	__changed;							\
+ })
  
- 		/* If users can be writing to this page using arbitrary
- 		 * virtual addresses, take care about potential aliasing
-@@ -1007,31 +1016,6 @@ readpage:
- 			unlock_page(page);
- 		}
- 
--		/*
--		 * i_size must be checked after we have done ->readpage.
--		 *
--		 * Checking i_size after the readpage allows us to calculate
--		 * the correct value for "nr", which means the zero-filled
--		 * part of the page is not copied back to userspace (unless
--		 * another truncate extends the file - this is desired though).
--		 */
--		isize = i_size_read(inode);
--		end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
--		if (unlikely(!isize || index > end_index)) {
--			page_cache_release(page);
--			goto out;
--		}
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+-#define ptep_test_and_clear_dirty(vma, addr, ptep) ({			\
+-	int __ret = 0;							\
+-	if (pte_dirty(*(ptep)))						\
+-		__ret = test_and_clear_bit(_PAGE_BIT_DIRTY,		\
+-						&(ptep)->pte_low);	\
+-	if (__ret)							\
+-		pte_update((vma)->vm_mm, addr, ptep);			\
+-	__ret;								\
+-})
 -
--		/* nr is the maximum number of bytes to copy from this page */
--		nr = PAGE_CACHE_SIZE;
--		if (index == end_index) {
--			nr = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
--			if (nr <= offset) {
--				page_cache_release(page);
--				goto out;
--			}
--		}
--		nr = nr - offset;
- 		goto page_ok;
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+ #define ptep_test_and_clear_young(vma, addr, ptep) ({			\
+ 	int __ret = 0;							\
+@@ -311,16 +300,6 @@ static inline pte_t native_local_ptep_ge
+ 	__ret;								\
+ })
  
- readpage_error:
+-#define __HAVE_ARCH_PTEP_CLEAR_DIRTY_FLUSH
+-#define ptep_clear_flush_dirty(vma, address, ptep)			\
+-({									\
+-	int __dirty;							\
+-	__dirty = ptep_test_and_clear_dirty((vma), (address), (ptep));	\
+-	if (__dirty)							\
+-		flush_tlb_page(vma, address);				\
+-	__dirty;							\
+-})
+-
+ #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+ #define ptep_clear_flush_young(vma, address, ptep)			\
+ ({									\
+diff -puN include/asm-ia64/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-ia64/pgtable.h
+--- a/include/asm-ia64/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-ia64/pgtable.h
+@@ -395,22 +395,6 @@ ptep_test_and_clear_young (struct vm_are
+ #endif
+ }
+ 
+-static inline int
+-ptep_test_and_clear_dirty (struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
+-{
+-#ifdef CONFIG_SMP
+-	if (!pte_dirty(*ptep))
+-		return 0;
+-	return test_and_clear_bit(_PAGE_D_BIT, ptep);
+-#else
+-	pte_t pte = *ptep;
+-	if (!pte_dirty(pte))
+-		return 0;
+-	set_pte_at(vma->vm_mm, addr, ptep, pte_mkclean(pte));
+-	return 1;
+-#endif
+-}
+-
+ static inline pte_t
+ ptep_get_and_clear(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
+ {
+@@ -590,7 +574,6 @@ extern void lazy_mmu_prot_update (pte_t 
+ #endif
+ 
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+ #define __HAVE_ARCH_PTE_SAME
+diff -puN include/asm-m32r/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-m32r/pgtable.h
+--- a/include/asm-m32r/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-m32r/pgtable.h
+@@ -250,11 +250,6 @@ static inline pte_t pte_mkwrite(pte_t pt
+ 	return pte;
+ }
+ 
+-static inline  int ptep_test_and_clear_dirty(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
+-{
+-	return test_and_clear_bit(_PAGE_BIT_DIRTY, ptep);
+-}
+-
+ static inline  int ptep_test_and_clear_young(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
+ {
+ 	return test_and_clear_bit(_PAGE_BIT_ACCESSED, ptep);
+@@ -348,7 +343,6 @@ static inline void pmd_set(pmd_t * pmdp,
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+ #define __HAVE_ARCH_PTE_SAME
+diff -puN include/asm-parisc/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-parisc/pgtable.h
+--- a/include/asm-parisc/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-parisc/pgtable.h
+@@ -447,21 +447,6 @@ static inline int ptep_test_and_clear_yo
+ #endif
+ }
+ 
+-static inline int ptep_test_and_clear_dirty(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
+-{
+-#ifdef CONFIG_SMP
+-	if (!pte_dirty(*ptep))
+-		return 0;
+-	return test_and_clear_bit(xlate_pabit(_PAGE_DIRTY_BIT), &pte_val(*ptep));
+-#else
+-	pte_t pte = *ptep;
+-	if (!pte_dirty(pte))
+-		return 0;
+-	set_pte_at(vma->vm_mm, addr, ptep, pte_mkclean(pte));
+-	return 1;
+-#endif
+-}
+-
+ extern spinlock_t pa_dbit_lock;
+ 
+ struct mm_struct;
+@@ -529,7 +514,6 @@ static inline void ptep_set_wrprotect(st
+ #define HAVE_ARCH_UNMAPPED_AREA
+ 
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+ #define __HAVE_ARCH_PTE_SAME
+diff -puN include/asm-powerpc/pgtable-ppc32.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-powerpc/pgtable-ppc32.h
+--- a/include/asm-powerpc/pgtable-ppc32.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-powerpc/pgtable-ppc32.h
+@@ -621,13 +621,6 @@ static inline int __ptep_test_and_clear_
+ #define ptep_test_and_clear_young(__vma, __addr, __ptep) \
+ 	__ptep_test_and_clear_young((__vma)->vm_mm->context.id, __addr, __ptep)
+ 
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+-static inline int ptep_test_and_clear_dirty(struct vm_area_struct *vma,
+-					    unsigned long addr, pte_t *ptep)
+-{
+-	return (pte_update(ptep, (_PAGE_DIRTY | _PAGE_HWWRITE), 0) & _PAGE_DIRTY) != 0;
+-}
+-
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
+ 				       pte_t *ptep)
+diff -puN include/asm-powerpc/pgtable-ppc64.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-powerpc/pgtable-ppc64.h
+--- a/include/asm-powerpc/pgtable-ppc64.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-powerpc/pgtable-ppc64.h
+@@ -292,29 +292,6 @@ static inline int __ptep_test_and_clear_
+ 	__r;								   \
+ })
+ 
+-/*
+- * On RW/DIRTY bit transitions we can avoid flushing the hpte. For the
+- * moment we always flush but we need to fix hpte_update and test if the
+- * optimisation is worth it.
+- */
+-static inline int __ptep_test_and_clear_dirty(struct mm_struct *mm,
+-					      unsigned long addr, pte_t *ptep)
+-{
+-	unsigned long old;
+-
+-       	if ((pte_val(*ptep) & _PAGE_DIRTY) == 0)
+-		return 0;
+-	old = pte_update(mm, addr, ptep, _PAGE_DIRTY, 0);
+-	return (old & _PAGE_DIRTY) != 0;
+-}
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+-#define ptep_test_and_clear_dirty(__vma, __addr, __ptep)		   \
+-({									   \
+-	int __r;							   \
+-	__r = __ptep_test_and_clear_dirty((__vma)->vm_mm, __addr, __ptep); \
+-	__r;								   \
+-})
+-
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+ static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
+ 				      pte_t *ptep)
+@@ -342,14 +319,6 @@ static inline void ptep_set_wrprotect(st
+ 	__young;							\
+ })
+ 
+-#define __HAVE_ARCH_PTEP_CLEAR_DIRTY_FLUSH
+-#define ptep_clear_flush_dirty(__vma, __address, __ptep)		\
+-({									\
+-	int __dirty = __ptep_test_and_clear_dirty((__vma)->vm_mm, __address, \
+-						  __ptep); 		\
+-	__dirty;							\
+-})
+-
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
+ 				       unsigned long addr, pte_t *ptep)
+diff -puN include/asm-ppc/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-ppc/pgtable.h
+--- a/include/asm-ppc/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-ppc/pgtable.h
+@@ -654,13 +654,6 @@ static inline int __ptep_test_and_clear_
+ #define ptep_test_and_clear_young(__vma, __addr, __ptep) \
+ 	__ptep_test_and_clear_young((__vma)->vm_mm->context.id, __addr, __ptep)
+ 
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+-static inline int ptep_test_and_clear_dirty(struct vm_area_struct *vma,
+-					    unsigned long addr, pte_t *ptep)
+-{
+-	return (pte_update(ptep, (_PAGE_DIRTY | _PAGE_HWWRITE), 0) & _PAGE_DIRTY) != 0;
+-}
+-
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
+ 				       pte_t *ptep)
+diff -puN include/asm-s390/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-s390/pgtable.h
+--- a/include/asm-s390/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-s390/pgtable.h
+@@ -669,19 +669,6 @@ ptep_clear_flush_young(struct vm_area_st
+ 	return ptep_test_and_clear_young(vma, address, ptep);
+ }
+ 
+-static inline int ptep_test_and_clear_dirty(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
+-{
+-	return 0;
+-}
+-
+-static inline int
+-ptep_clear_flush_dirty(struct vm_area_struct *vma,
+-			unsigned long address, pte_t *ptep)
+-{
+-	/* No need to flush TLB; bits are in storage key */
+-	return ptep_test_and_clear_dirty(vma, address, ptep);
+-}
+-
+ static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
+ {
+ 	pte_t pte = *ptep;
+@@ -939,8 +926,6 @@ extern void memmap_init(unsigned long, i
+ #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+ #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+-#define __HAVE_ARCH_PTEP_CLEAR_DIRTY_FLUSH
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ #define __HAVE_ARCH_PTEP_CLEAR_FLUSH
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+diff -puN include/asm-x86_64/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-x86_64/pgtable.h
+--- a/include/asm-x86_64/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-x86_64/pgtable.h
+@@ -284,13 +284,6 @@ static inline pte_t pte_clrhuge(pte_t pt
+ 
+ struct vm_area_struct;
+ 
+-static inline int ptep_test_and_clear_dirty(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
+-{
+-	if (!pte_dirty(*ptep))
+-		return 0;
+-	return test_and_clear_bit(_PAGE_BIT_DIRTY, &ptep->pte);
+-}
+-
+ static inline int ptep_test_and_clear_young(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
+ {
+ 	if (!pte_young(*ptep))
+@@ -427,7 +420,6 @@ extern int kern_addr_valid(unsigned long
+    (((o) & (1UL << (__VIRTUAL_MASK_SHIFT-1))) ? ((o) | (~__VIRTUAL_MASK)) : (o))
+ 
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR_FULL
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+diff -puN include/asm-xtensa/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty include/asm-xtensa/pgtable.h
+--- a/include/asm-xtensa/pgtable.h~mm-remove-ptep_test_and_clear_dirty-and-ptep_clear_flush_dirty
++++ a/include/asm-xtensa/pgtable.h
+@@ -267,17 +267,6 @@ ptep_test_and_clear_young(struct vm_area
+ 	return 1;
+ }
+ 
+-static inline int
+-ptep_test_and_clear_dirty(struct vm_area_struct *vma, unsigned long addr,
+-   			  pte_t *ptep)
+-{
+-	pte_t pte = *ptep;
+-	if (!pte_dirty(pte))
+-		return 0;
+-	update_pte(ptep, pte_mkclean(pte));
+-	return 1;
+-}
+-
+ static inline pte_t
+ ptep_get_and_clear(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
+ {
+@@ -418,7 +407,6 @@ typedef pte_t *pte_addr_t;
+ #endif /* !defined (__ASSEMBLY__) */
+ 
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+ #define __HAVE_ARCH_PTEP_MKDIRTY
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from schwidefsky@de.ibm.com are
 
 origin.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-raid5-add-the-stripe_queue-object-for-tracking-raid.patch
-raid5-add-the-stripe_queue-object-for-tracking-raid-io-requests-take2.patch
-raid5-use-stripe_queues-to-prioritize-the-most.patch
-fs-introduce-vfs_path_lookup.patch
-sunrpc-use-vfs_path_lookup.patch
-nfsctl-use-vfs_path_lookup.patch
-fs-mark-link_path_walk-static.patch
-fs-remove-path_walk-export.patch
+git-s390.patch
+i386-put-allocated-elf-notes-in-read-only-data-segment.patch
+s390-put-allocated-elf-notes-in-read-only-data-segment.patch
+add-sys-kernel-notes.patch
+use-build-id-ld-option.patch
