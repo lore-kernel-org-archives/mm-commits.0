@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - slub-do-not-use-length-parameter-in-slab_alloc.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:01:24 -0700
-Message-ID: <200707172301.l6HN1Oav011388@imap1.linux-foundation.org>
+Subject: - slub-extract-dma_kmalloc_cache-from-get_cache.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:01:12 -0700
+Message-ID: <200707172301.l6HN1CU9011364@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35412 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45192 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936448AbXGQXPs (ORCPT
+	by vger.kernel.org with ESMTP id S936477AbXGQXPs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:15:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,111 +15,111 @@ To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Do not use length parameter in slab_alloc()
+     SLUB: extract dma_kmalloc_cache from get_cache.
 has been removed from the -mm tree.  Its filename was
-     slub-do-not-use-length-parameter-in-slab_alloc.patch
+     slub-extract-dma_kmalloc_cache-from-get_cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: Do not use length parameter in slab_alloc()
+Subject: SLUB: extract dma_kmalloc_cache from get_cache.
 From: Christoph Lameter <clameter@sgi.com>
 
-We can get to the length of the object through the kmem_cache_structure.  The
-additional parameter does no good and causes the compiler to generate bad
-code.
+The rarely used dma functionality in get_slab() makes the function too
+complex.  The compiler begins to spill variables from the working set onto the
+stack.  The created function is only used in extremely rare cases so make sure
+that the compiler does not decide on its own to merge it back into get_slab().
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ mm/slub.c |   66 ++++++++++++++++++++++++++++------------------------
+ 1 file changed, 36 insertions(+), 30 deletions(-)
 
-diff -puN mm/slub.c~slub-do-not-use-length-parameter-in-slab_alloc mm/slub.c
---- a/mm/slub.c~slub-do-not-use-length-parameter-in-slab_alloc
+diff -puN mm/slub.c~slub-extract-dma_kmalloc_cache-from-get_cache mm/slub.c
+--- a/mm/slub.c~slub-extract-dma_kmalloc_cache-from-get_cache
 +++ a/mm/slub.c
-@@ -1541,7 +1541,7 @@ debug:
-  * Otherwise we can simply pick the next object from the lockless free list.
-  */
- static void __always_inline *slab_alloc(struct kmem_cache *s,
--		gfp_t gfpflags, int node, void *addr, int length)
-+		gfp_t gfpflags, int node, void *addr)
- {
- 	struct page *page;
- 	void **object;
-@@ -1561,23 +1561,21 @@ static void __always_inline *slab_alloc(
- 	local_irq_restore(flags);
- 
- 	if (unlikely((gfpflags & __GFP_ZERO) && object))
--		memset(object, 0, length);
-+		memset(object, 0, s->objsize);
- 
- 	return object;
+@@ -2272,6 +2272,40 @@ panic:
+ 	panic("Creation of kmalloc slab %s size=%d failed.\n", name, size);
  }
  
- void *kmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags)
++#ifdef CONFIG_ZONE_DMA
++static noinline struct kmem_cache *dma_kmalloc_cache(int index, gfp_t flags)
++{
++	struct kmem_cache *s;
++	struct kmem_cache *x;
++	char *text;
++	size_t realsize;
++
++	s = kmalloc_caches_dma[index];
++	if (s)
++		return s;
++
++	/* Dynamically create dma cache */
++	x = kmalloc(kmem_size, flags & ~SLUB_DMA);
++	if (!x)
++		panic("Unable to allocate memory for dma cache\n");
++
++	if (index <= KMALLOC_SHIFT_HIGH)
++		realsize = 1 << index;
++	else {
++		if (index == 1)
++			realsize = 96;
++		else
++			realsize = 192;
++	}
++
++	text = kasprintf(flags & ~SLUB_DMA, "kmalloc_dma-%d",
++			(unsigned int)realsize);
++	s = create_kmalloc_cache(x, text, realsize, flags);
++	kmalloc_caches_dma[index] = s;
++	return s;
++}
++#endif
++
+ static struct kmem_cache *get_slab(size_t size, gfp_t flags)
  {
--	return slab_alloc(s, gfpflags, -1,
--			__builtin_return_address(0), s->objsize);
-+	return slab_alloc(s, gfpflags, -1, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(kmem_cache_alloc);
+ 	int index = kmalloc_index(size);
+@@ -2284,36 +2318,8 @@ static struct kmem_cache *get_slab(size_
+ 		return NULL;
  
- #ifdef CONFIG_NUMA
- void *kmem_cache_alloc_node(struct kmem_cache *s, gfp_t gfpflags, int node)
- {
--	return slab_alloc(s, gfpflags, node,
--		__builtin_return_address(0), s->objsize);
-+	return slab_alloc(s, gfpflags, node, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(kmem_cache_alloc_node);
+ #ifdef CONFIG_ZONE_DMA
+-	if ((flags & SLUB_DMA)) {
+-		struct kmem_cache *s;
+-		struct kmem_cache *x;
+-		char *text;
+-		size_t realsize;
+-
+-		s = kmalloc_caches_dma[index];
+-		if (s)
+-			return s;
+-
+-		/* Dynamically create dma cache */
+-		x = kmalloc(kmem_size, flags & ~SLUB_DMA);
+-		if (!x)
+-			panic("Unable to allocate memory for dma cache\n");
+-
+-		if (index <= KMALLOC_SHIFT_HIGH)
+-			realsize = 1 << index;
+-		else {
+-			if (index == 1)
+-				realsize = 96;
+-			else
+-				realsize = 192;
+-		}
+-
+-		text = kasprintf(flags & ~SLUB_DMA, "kmalloc_dma-%d",
+-				(unsigned int)realsize);
+-		s = create_kmalloc_cache(x, text, realsize, flags);
+-		kmalloc_caches_dma[index] = s;
+-		return s;
+-	}
++	if ((flags & SLUB_DMA))
++		return dma_kmalloc_cache(index, flags);
  #endif
-@@ -2369,7 +2367,7 @@ void *__kmalloc(size_t size, gfp_t flags
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
- 
--	return slab_alloc(s, flags, -1, __builtin_return_address(0), size);
-+	return slab_alloc(s, flags, -1, __builtin_return_address(0));
+ 	return &kmalloc_caches[index];
  }
- EXPORT_SYMBOL(__kmalloc);
- 
-@@ -2381,7 +2379,7 @@ void *__kmalloc_node(size_t size, gfp_t 
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
- 
--	return slab_alloc(s, flags, node, __builtin_return_address(0), size);
-+	return slab_alloc(s, flags, node, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(__kmalloc_node);
- #endif
-@@ -2712,7 +2710,7 @@ void *kmem_cache_zalloc(struct kmem_cach
- {
- 	void *x;
- 
--	x = slab_alloc(s, flags, -1, __builtin_return_address(0), 0);
-+	x = slab_alloc(s, flags, -1, __builtin_return_address(0));
- 	if (x)
- 		memset(x, 0, s->objsize);
- 	return x;
-@@ -2762,7 +2760,7 @@ void *__kmalloc_track_caller(size_t size
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
- 
--	return slab_alloc(s, gfpflags, -1, caller, size);
-+	return slab_alloc(s, gfpflags, -1, caller);
- }
- 
- void *__kmalloc_node_track_caller(size_t size, gfp_t gfpflags,
-@@ -2773,7 +2771,7 @@ void *__kmalloc_node_track_caller(size_t
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
- 
--	return slab_alloc(s, gfpflags, node, caller, size);
-+	return slab_alloc(s, gfpflags, node, caller);
- }
- 
- #if defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
