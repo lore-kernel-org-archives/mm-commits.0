@@ -1,208 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: - mm-remove-ptep_establish.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:00:26 -0700
-Message-ID: <200707172300.l6HN0QRx011296@imap1.linux-foundation.org>
+Subject: - fix-read-truncate-race.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:00:30 -0700
+Message-ID: <200707172300.l6HN0UVi011304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54543 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34337 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758957AbXGQXBJ (ORCPT
+	by vger.kernel.org with ESMTP id S936019AbXGQXBO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:01:09 -0400
+	Tue, 17 Jul 2007 19:01:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: schwidefsky@de.ibm.com, hugh@veritas.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, jens.axboe@oracle.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove ptep_establish()
+     Fix read/truncate race
 has been removed from the -mm tree.  Its filename was
-     mm-remove-ptep_establish.patch
+     fix-read-truncate-race.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: remove ptep_establish()
-From: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Subject: Fix read/truncate race
+From: NeilBrown <neilb@suse.de>
 
-The last user of ptep_establish in mm/ is long gone.  Remove the architecture
-primitive as well.
+do_generic_mapping_read currently samples the i_size at the start and doesn't
+do so again unless it needs to call ->readpage to load a page.  After
+->readpage it has to re-sample i_size as a truncate may have caused that page
+to be filled with zeros, and the read() call should not see these.
 
-Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+However there are other activities that might cause ->readpage to be called on
+a page between the time that do_generic_mapping_read samples i_size and when
+it finds that it has an uptodate page.  These include at least read-ahead and
+possibly another thread performing a read.
+
+So do_generic_mapping_read must sample i_size *after* it has an uptodate page.
+ Thus the current sampling at the start and after a read can be replaced with
+a sampling before the copy-out.
+
+The same change applied to __generic_file_splice_read.
+
+Note that this fixes any race with truncate_complete_page, but does not fix a
+possible race with truncate_partial_page.  If a partial truncate happens after
+do_generic_mapping_read samples i_size and before the copy_out, the nuls that
+truncate_partial_page place in the page could be copied out incorrectly.
+
+I think the best fix for that is to *not* zero out parts of the page in
+truncate_partial_page, but rather to zero out the tail of a page when
+increasing i_size.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/pgtable.h     |    6 ++--
- include/asm-generic/pgtable.h |   19 --------------
- include/asm-i386/pgtable.h    |   11 --------
- include/asm-ia64/pgtable.h    |    6 ++--
- include/asm-s390/pgtable.h    |   43 ++++++++++++++------------------
- 5 files changed, 26 insertions(+), 59 deletions(-)
+ mm/filemap.c |   72 +++++++++++++++++++------------------------------
+ 1 file changed, 28 insertions(+), 44 deletions(-)
 
-diff -puN include/asm-arm/pgtable.h~mm-remove-ptep_establish include/asm-arm/pgtable.h
---- a/include/asm-arm/pgtable.h~mm-remove-ptep_establish
-+++ a/include/asm-arm/pgtable.h
-@@ -83,14 +83,14 @@
-  * means that a write to a clean page will cause a permission fault, and
-  * the Linux MM layer will mark the page dirty via handle_pte_fault().
-  * For the hardware to notice the permission change, the TLB entry must
-- * be flushed, and ptep_establish() does that for us.
-+ * be flushed, and ptep_set_access_flags() does that for us.
-  *
-  * The "accessed" or "young" bit is emulated by a similar method; we only
-  * allow accesses to the page if the "young" bit is set.  Accesses to the
-  * page will cause a fault, and handle_pte_fault() will set the young bit
-  * for us as long as the page is marked present in the corresponding Linux
-- * PTE entry.  Again, ptep_establish() will ensure that the TLB is up to
-- * date.
-+ * PTE entry.  Again, ptep_set_access_flags() will ensure that the TLB is
-+ * up to date.
-  *
-  * However, when the "young" bit is cleared, we deny access to the page
-  * by clearing the hardware PTE.  Currently Linux does not flush the TLB
-diff -puN include/asm-generic/pgtable.h~mm-remove-ptep_establish include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-remove-ptep_establish
-+++ a/include/asm-generic/pgtable.h
-@@ -3,25 +3,6 @@
- 
- #ifndef __ASSEMBLY__
- 
--#ifndef __HAVE_ARCH_PTEP_ESTABLISH
--/*
-- * Establish a new mapping:
-- *  - flush the old one
-- *  - update the page tables
-- *  - inform the TLB about the new one
-- *
-- * We hold the mm semaphore for reading, and the pte lock.
-- *
-- * Note: the old pte is known to not be writable, so we don't need to
-- * worry about dirty bits etc getting lost.
-- */
--#define ptep_establish(__vma, __address, __ptep, __entry)		\
--do {				  					\
--	set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry);	\
--	flush_tlb_page(__vma, __address);				\
--} while (0)
--#endif
--
- #ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- /*
-  * Largely same as above, but only sets the access flags (dirty,
-diff -puN include/asm-i386/pgtable.h~mm-remove-ptep_establish include/asm-i386/pgtable.h
---- a/include/asm-i386/pgtable.h~mm-remove-ptep_establish
-+++ a/include/asm-i386/pgtable.h
-@@ -311,17 +311,6 @@ static inline pte_t native_local_ptep_ge
- 	__ret;								\
- })
- 
--/*
-- * Rules for using ptep_establish: the pte MUST be a user pte, and
-- * must be a present->present transition.
-- */
--#define __HAVE_ARCH_PTEP_ESTABLISH
--#define ptep_establish(vma, address, ptep, pteval)			\
--do {									\
--	set_pte_present((vma)->vm_mm, address, ptep, pteval);		\
--	flush_tlb_page(vma, address);					\
--} while (0)
--
- #define __HAVE_ARCH_PTEP_CLEAR_DIRTY_FLUSH
- #define ptep_clear_flush_dirty(vma, address, ptep)			\
- ({									\
-diff -puN include/asm-ia64/pgtable.h~mm-remove-ptep_establish include/asm-ia64/pgtable.h
---- a/include/asm-ia64/pgtable.h~mm-remove-ptep_establish
-+++ a/include/asm-ia64/pgtable.h
-@@ -543,8 +543,10 @@ extern void lazy_mmu_prot_update (pte_t 
- # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
- ({									\
- 	int __changed = !pte_same(*(__ptep), __entry);			\
--	if (__changed)							\
--		ptep_establish(__vma, __addr, __ptep, __entry);		\
-+	if (__changed) {						\
-+		set_pte_at((__vma)->vm_mm, (__addr), __ptep, __entry);	\
-+		flush_tlb_page(__vma, __addr);				\
-+	}								\
- 	__changed;							\
- })
- #endif
-diff -puN include/asm-s390/pgtable.h~mm-remove-ptep_establish include/asm-s390/pgtable.h
---- a/include/asm-s390/pgtable.h~mm-remove-ptep_establish
-+++ a/include/asm-s390/pgtable.h
-@@ -707,16 +707,19 @@ static inline void __ptep_ipte(unsigned 
- 	pte_val(*ptep) = _PAGE_TYPE_EMPTY;
- }
- 
--static inline pte_t
--ptep_clear_flush(struct vm_area_struct *vma,
--		 unsigned long address, pte_t *ptep)
-+static inline void ptep_invalidate(unsigned long address, pte_t *ptep)
+diff -puN mm/filemap.c~fix-read-truncate-race mm/filemap.c
+--- a/mm/filemap.c~fix-read-truncate-race
++++ a/mm/filemap.c
+@@ -867,13 +867,11 @@ void do_generic_mapping_read(struct addr
  {
--	pte_t pte = *ptep;
--	pte_t *shadow_pte = get_shadow_pte(ptep);
+ 	struct inode *inode = mapping->host;
+ 	unsigned long index;
+-	unsigned long end_index;
+ 	unsigned long offset;
+ 	unsigned long last_index;
+ 	unsigned long next_index;
+ 	unsigned long prev_index;
+ 	unsigned int prev_offset;
+-	loff_t isize;
+ 	struct page *cached_page;
+ 	int error;
+ 	struct file_ra_state ra = *_ra;
+@@ -886,27 +884,12 @@ void do_generic_mapping_read(struct addr
+ 	last_index = (*ppos + desc->count + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
+ 	offset = *ppos & ~PAGE_CACHE_MASK;
+ 
+-	isize = i_size_read(inode);
+-	if (!isize)
+-		goto out;
 -
- 	__ptep_ipte(address, ptep);
--	if (shadow_pte)
--		__ptep_ipte(address, shadow_pte);
-+	ptep = get_shadow_pte(ptep);
-+	if (ptep)
-+		__ptep_ipte(address, ptep);
-+}
+-	end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
+ 	for (;;) {
+ 		struct page *page;
++		unsigned long end_index;
++		loff_t isize;
+ 		unsigned long nr, ret;
+ 
+-		/* nr is the maximum number of bytes to copy from this page */
+-		nr = PAGE_CACHE_SIZE;
+-		if (index >= end_index) {
+-			if (index > end_index)
+-				goto out;
+-			nr = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
+-			if (nr <= offset) {
+-				goto out;
+-			}
+-		}
+-		nr = nr - offset;
+-
+ 		cond_resched();
+ 		if (index == next_index)
+ 			next_index = page_cache_readahead(mapping, &ra, filp,
+@@ -921,6 +904,32 @@ find_page:
+ 		if (!PageUptodate(page))
+ 			goto page_not_up_to_date;
+ page_ok:
++		/*
++		 * i_size must be checked after we know the page is Uptodate.
++		 *
++		 * Checking i_size after the check allows us to calculate
++		 * the correct value for "nr", which means the zero-filled
++		 * part of the page is not copied back to userspace (unless
++		 * another truncate extends the file - this is desired though).
++		 */
 +
-+static inline pte_t ptep_clear_flush(struct vm_area_struct *vma,
-+				     unsigned long address, pte_t *ptep)
-+{
-+	pte_t pte = *ptep;
-+	ptep_invalidate(address, ptep);
- 	return pte;
- }
++		isize = i_size_read(inode);
++		end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
++		if (unlikely(!isize || index > end_index)) {
++			page_cache_release(page);
++			goto out;
++		}
++
++		/* nr is the maximum number of bytes to copy from this page */
++		nr = PAGE_CACHE_SIZE;
++		if (index == end_index) {
++			nr = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
++			if (nr <= offset) {
++				page_cache_release(page);
++				goto out;
++			}
++		}
++		nr = nr - offset;
  
-@@ -726,21 +729,14 @@ static inline void ptep_set_wrprotect(st
- 	set_pte_at(mm, addr, ptep, pte_wrprotect(old_pte));
- }
+ 		/* If users can be writing to this page using arbitrary
+ 		 * virtual addresses, take care about potential aliasing
+@@ -1007,31 +1016,6 @@ readpage:
+ 			unlock_page(page);
+ 		}
  
--static inline void
--ptep_establish(struct vm_area_struct *vma, 
--	       unsigned long address, pte_t *ptep,
--	       pte_t entry)
--{
--	ptep_clear_flush(vma, address, ptep);
--	set_pte(ptep, entry);
--}
+-		/*
+-		 * i_size must be checked after we have done ->readpage.
+-		 *
+-		 * Checking i_size after the readpage allows us to calculate
+-		 * the correct value for "nr", which means the zero-filled
+-		 * part of the page is not copied back to userspace (unless
+-		 * another truncate extends the file - this is desired though).
+-		 */
+-		isize = i_size_read(inode);
+-		end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
+-		if (unlikely(!isize || index > end_index)) {
+-			page_cache_release(page);
+-			goto out;
+-		}
 -
--#define ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
--({									  \
--	int __changed = !pte_same(*(__ptep), __entry);			  \
--	if (__changed)							  \
--		ptep_establish(__vma, __address, __ptep, __entry);	  \
--	__changed;							  \
-+#define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __dirty)	\
-+({									\
-+	int __changed = !pte_same(*(__ptep), __entry);			\
-+	if (__changed) {						\
-+		ptep_invalidate(__addr, __ptep);			\
-+		set_pte_at((__vma)->vm_mm, __addr, __ptep, __entry);	\
-+	}								\
-+	__changed;							\
- })
+-		/* nr is the maximum number of bytes to copy from this page */
+-		nr = PAGE_CACHE_SIZE;
+-		if (index == end_index) {
+-			nr = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
+-			if (nr <= offset) {
+-				page_cache_release(page);
+-				goto out;
+-			}
+-		}
+-		nr = nr - offset;
+ 		goto page_ok;
  
- /*
-@@ -940,7 +936,6 @@ extern int remove_shared_memory(unsigned
- #define __HAVE_ARCH_MEMMAP_INIT
- extern void memmap_init(unsigned long, int, unsigned long, unsigned long);
- 
--#define __HAVE_ARCH_PTEP_ESTABLISH
- #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
- #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+ readpage_error:
 _
 
-Patches currently in -mm which might be from schwidefsky@de.ibm.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-git-s390.patch
-i386-put-allocated-elf-notes-in-read-only-data-segment.patch
-s390-put-allocated-elf-notes-in-read-only-data-segment.patch
-add-sys-kernel-notes.patch
-use-build-id-ld-option.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+raid5-add-the-stripe_queue-object-for-tracking-raid.patch
+raid5-add-the-stripe_queue-object-for-tracking-raid-io-requests-take2.patch
+raid5-use-stripe_queues-to-prioritize-the-most.patch
+fs-introduce-vfs_path_lookup.patch
+sunrpc-use-vfs_path_lookup.patch
+nfsctl-use-vfs_path_lookup.patch
+fs-mark-link_path_walk-static.patch
+fs-remove-path_walk-export.patch
