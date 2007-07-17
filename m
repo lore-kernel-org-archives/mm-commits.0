@@ -1,75 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - remove-open_max.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:02:17 -0700
-Message-ID: <200707172302.l6HN2HFL011555@imap1.linux-foundation.org>
+Subject: - knfsd-nfsd4-store-pseudoflavor-in-request.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:04:44 -0700
+Message-ID: <200707172304.l6HN4ich011829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48261 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35794 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935081AbXGQXQJ (ORCPT
+	by vger.kernel.org with ESMTP id S935844AbXGQXQY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 19:16:09 -0400
+	Tue, 17 Jul 2007 19:16:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: andros@citi.umich.edu, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove OPEN_MAX
+     knfsd: nfsd4: store pseudoflavor in request
 has been removed from the -mm tree.  Its filename was
-     remove-open_max.patch
+     knfsd-nfsd4-store-pseudoflavor-in-request.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove OPEN_MAX
-From: Roland McGrath <roland@redhat.com>
+Subject: knfsd: nfsd4: store pseudoflavor in request
+From: Andy Adamson <andros@citi.umich.edu>
 
-The OPEN_MAX macro in limits.h should not be there.  It claims to be the
-limit on file descriptors in a process, but its value is wrong for that. 
-There is no constant value, but a variable resource limit (RLIMIT_NOFILE). 
-Nothing in the kernel uses OPEN_MAX except things that are wrong to do so. 
-I've submitted other patches to remove those uses.
+Add a new field to the svc_rqst structure to record the pseudoflavor that the
+request was made with.  For now we record the pseudoflavor but don't use it
+for anything.
 
-The proper thing to do according to POSIX is not to define OPEN_MAX at all.
-The sysconf (_SC_OPEN_MAX) implementation works by calling getrlimit.
-
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Andy Adamson <andros@citi.umich.edu>
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/limits.h |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/sunrpc/gss_api.h        |    1 +
+ include/linux/sunrpc/svc.h            |    1 +
+ net/sunrpc/auth_gss/gss_mech_switch.c |   14 ++++++++++++++
+ net/sunrpc/auth_gss/svcauth_gss.c     |    2 ++
+ net/sunrpc/svcauth_unix.c             |    3 +++
+ 5 files changed, 21 insertions(+)
 
-diff -puN include/linux/limits.h~remove-open_max include/linux/limits.h
---- a/include/linux/limits.h~remove-open_max
-+++ a/include/linux/limits.h
-@@ -6,7 +6,6 @@
- #define NGROUPS_MAX    65536	/* supplemental group IDs are available */
- #define ARG_MAX       131072	/* # bytes of args + environ for exec() */
- #define CHILD_MAX        999    /* no limit :-) */
--#define OPEN_MAX         256	/* # open files a process may have */
- #define LINK_MAX         127	/* # links a file may have */
- #define MAX_CANON        255	/* size of the canonical input queue */
- #define MAX_INPUT        255	/* size of the type-ahead buffer */
+diff -puN include/linux/sunrpc/gss_api.h~knfsd-nfsd4-store-pseudoflavor-in-request include/linux/sunrpc/gss_api.h
+--- a/include/linux/sunrpc/gss_api.h~knfsd-nfsd4-store-pseudoflavor-in-request
++++ a/include/linux/sunrpc/gss_api.h
+@@ -58,6 +58,7 @@ u32 gss_unwrap(
+ u32 gss_delete_sec_context(
+ 		struct gss_ctx		**ctx_id);
+ 
++u32 gss_svc_to_pseudoflavor(struct gss_api_mech *, u32 service);
+ u32 gss_pseudoflavor_to_service(struct gss_api_mech *, u32 pseudoflavor);
+ char *gss_service_to_auth_domain_name(struct gss_api_mech *, u32 service);
+ 
+diff -puN include/linux/sunrpc/svc.h~knfsd-nfsd4-store-pseudoflavor-in-request include/linux/sunrpc/svc.h
+--- a/include/linux/sunrpc/svc.h~knfsd-nfsd4-store-pseudoflavor-in-request
++++ a/include/linux/sunrpc/svc.h
+@@ -212,6 +212,7 @@ struct svc_rqst {
+ 	struct svc_pool *	rq_pool;	/* thread pool */
+ 	struct svc_procedure *	rq_procinfo;	/* procedure info */
+ 	struct auth_ops *	rq_authop;	/* authentication flavour */
++	u32			rq_flavor;	/* pseudoflavor */
+ 	struct svc_cred		rq_cred;	/* auth info */
+ 	struct sk_buff *	rq_skbuff;	/* fast recv inet buffer */
+ 	struct svc_deferred_req*rq_deferred;	/* deferred request we are replaying */
+diff -puN net/sunrpc/auth_gss/gss_mech_switch.c~knfsd-nfsd4-store-pseudoflavor-in-request net/sunrpc/auth_gss/gss_mech_switch.c
+--- a/net/sunrpc/auth_gss/gss_mech_switch.c~knfsd-nfsd4-store-pseudoflavor-in-request
++++ a/net/sunrpc/auth_gss/gss_mech_switch.c
+@@ -194,6 +194,20 @@ gss_mech_get_by_pseudoflavor(u32 pseudof
+ EXPORT_SYMBOL(gss_mech_get_by_pseudoflavor);
+ 
+ u32
++gss_svc_to_pseudoflavor(struct gss_api_mech *gm, u32 service)
++{
++	int i;
++
++	for (i = 0; i < gm->gm_pf_num; i++) {
++		if (gm->gm_pfs[i].service == service) {
++			return gm->gm_pfs[i].pseudoflavor;
++		}
++	}
++	return RPC_AUTH_MAXFLAVOR; /* illegal value */
++}
++EXPORT_SYMBOL(gss_svc_to_pseudoflavor);
++
++u32
+ gss_pseudoflavor_to_service(struct gss_api_mech *gm, u32 pseudoflavor)
+ {
+ 	int i;
+diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-store-pseudoflavor-in-request net/sunrpc/auth_gss/svcauth_gss.c
+--- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-nfsd4-store-pseudoflavor-in-request
++++ a/net/sunrpc/auth_gss/svcauth_gss.c
+@@ -1131,6 +1131,8 @@ svcauth_gss_accept(struct svc_rqst *rqst
+ 		}
+ 		svcdata->rsci = rsci;
+ 		cache_get(&rsci->h);
++		rqstp->rq_flavor = gss_svc_to_pseudoflavor(
++					rsci->mechctx->mech_type, gc->gc_svc);
+ 		ret = SVC_OK;
+ 		goto out;
+ 	}
+diff -puN net/sunrpc/svcauth_unix.c~knfsd-nfsd4-store-pseudoflavor-in-request net/sunrpc/svcauth_unix.c
+--- a/net/sunrpc/svcauth_unix.c~knfsd-nfsd4-store-pseudoflavor-in-request
++++ a/net/sunrpc/svcauth_unix.c
+@@ -5,6 +5,7 @@
+ #include <linux/sunrpc/xdr.h>
+ #include <linux/sunrpc/svcsock.h>
+ #include <linux/sunrpc/svcauth.h>
++#include <linux/sunrpc/gss_api.h>
+ #include <linux/err.h>
+ #include <linux/seq_file.h>
+ #include <linux/hash.h>
+@@ -707,6 +708,7 @@ svcauth_null_accept(struct svc_rqst *rqs
+ 	svc_putnl(resv, RPC_AUTH_NULL);
+ 	svc_putnl(resv, 0);
+ 
++	rqstp->rq_flavor = RPC_AUTH_NULL;
+ 	return SVC_OK;
+ }
+ 
+@@ -784,6 +786,7 @@ svcauth_unix_accept(struct svc_rqst *rqs
+ 	svc_putnl(resv, RPC_AUTH_NULL);
+ 	svc_putnl(resv, 0);
+ 
++	rqstp->rq_flavor = RPC_AUTH_UNIX;
+ 	return SVC_OK;
+ 
+ badcred:
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from andros@citi.umich.edu are
 
 origin.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-pass-g-to-assembler-under-config_debug_info.patch
-x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
-make-alt-sysrq-p-display-the-debug-register-contents.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-i386-put-allocated-elf-notes-in-read-only-data-segment.patch
-x86_64-put-allocated-elf-notes-in-read-only-data-segment.patch
-alpha-put-allocated-elf-notes-in-read-only-data-segment.patch
-powerpc-put-allocated-elf-notes-in-read-only-data-segment.patch
-s390-put-allocated-elf-notes-in-read-only-data-segment.patch
-add-sys-kernel-notes.patch
-use-build-id-ld-option.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
