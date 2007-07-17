@@ -1,1187 +1,1458 @@
 From: akpm@linux-foundation.org
-Subject: - spi-omap2_mcspi-driver.patch removed from -mm tree
-Date: Tue, 17 Jul 2007 16:03:22 -0700
-Message-ID: <200707172303.l6HN3MD5011686@imap1.linux-foundation.org>
+Subject: - 8xx-fix-whitespace-and-indentation.patch removed from -mm tree
+Date: Tue, 17 Jul 2007 16:01:52 -0700
+Message-ID: <200707172301.l6HN1qrs011434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60159 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56048 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932486AbXGQXRA (ORCPT
+	by vger.kernel.org with ESMTP id S936388AbXGQXRA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 19:17:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samuel.ortiz@solidboot.com, dbrownell@users.sourceforge.net, juha.yrjola@solidboot.com, soni.trilok@gmail.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: vitb@kernel.crashing.org, arnd@arndb.de, benh@kernel.crashing.org, galak@gate.crashing.org, linux@dominikbrodowski.net, olof@lixom.net, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SPI: omap2_mcspi driver
+     powerpc: 8xx: fix whitespace and indentation
 has been removed from the -mm tree.  Its filename was
-     spi-omap2_mcspi-driver.patch
+     8xx-fix-whitespace-and-indentation.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SPI: omap2_mcspi driver
-=46rom: Samuel Ortiz <samuel.ortiz@solidboot.com>
+Subject: powerpc: 8xx: fix whitespace and indentation
+From: Vitaly Bordug <vitb@kernel.crashing.org>
 
-Add OMAP24XX McSPI (Multichannel SPI) controller driver.  This driver i=
-s
-tested very well under OMAP GIT tree with N800 - Nokia Internet Tablet,=
- and
-some other OMAP2 boards.
+Rolling forward PCMCIA driver, it was discovered that the indentation in
+existing one, as well as in BSP side are very odd.  This patch is just result
+of Lindent run ontop of culprit files.
 
-Recent updates included bugfixes, cleanups, speedups, and better
-conformance to the current SPI programming interface.  This doesn't yet
-understand the third controller instance on the OMAP 2430.
-
-[david-b@pacbell.net: more minor cleanups to the omap2_mcspi driver]
-Signed-off-by: Juha Yrj=F6l=E4 <juha.yrjola@solidboot.com>
-Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Vitaly Bordug <vitb@kernel.crashing.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/Kconfig       |    6=20
- drivers/spi/Makefile      |    1=20
- drivers/spi/omap2_mcspi.c | 1081 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 1088 insertions(+)
+ arch/powerpc/platforms/8xx/mpc885ads_setup.c |  125 +--
+ drivers/pcmcia/m8xx_pcmcia.c                 |  548 ++++++++---------
+ 2 files changed, 336 insertions(+), 337 deletions(-)
 
-diff -puN drivers/spi/Kconfig~spi-omap2_mcspi-driver drivers/spi/Kconfi=
-g
---- a/drivers/spi/Kconfig~spi-omap2_mcspi-driver
-+++ a/drivers/spi/Kconfig
-@@ -142,6 +142,12 @@ config SPI_OMAP_UWIRE
- 	help
- 	  This hooks up to the MicroWire controller on OMAP1 chips.
-=20
-+config SPI_OMAP24XX
-+	tristate "McSPI driver for OMAP24xx"
-+	depends on SPI_MASTER && ARCH_OMAP24XX
-+	help
-+	  SPI master controller for OMAP24xx Multichannel SPI
-+	  (McSPI) modules.
-=20
- config SPI_PXA2XX
- 	tristate "PXA2xx SSP SPI master"
-diff -puN drivers/spi/Makefile~spi-omap2_mcspi-driver drivers/spi/Makef=
-ile
---- a/drivers/spi/Makefile~spi-omap2_mcspi-driver
-+++ a/drivers/spi/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_SPI_IMX)			+=3D spi_imx.o
- obj-$(CONFIG_SPI_LM70_LLP)		+=3D spi_lm70llp.o
- obj-$(CONFIG_SPI_PXA2XX)		+=3D pxa2xx_spi.o
- obj-$(CONFIG_SPI_OMAP_UWIRE)		+=3D omap_uwire.o
-+obj-$(CONFIG_SPI_OMAP24XX)		+=3D omap2_mcspi.o
- obj-$(CONFIG_SPI_MPC52xx_PSC)		+=3D mpc52xx_psc_spi.o
- obj-$(CONFIG_SPI_MPC83xx)		+=3D spi_mpc83xx.o
- obj-$(CONFIG_SPI_S3C24XX_GPIO)		+=3D spi_s3c24xx_gpio.o
-diff -puN /dev/null drivers/spi/omap2_mcspi.c
---- /dev/null
-+++ a/drivers/spi/omap2_mcspi.c
-@@ -0,0 +1,1081 @@
-+/*
-+ * OMAP2 McSPI controller driver
-+ *
-+ * Copyright (C) 2005, 2006 Nokia Corporation
-+ * Author:	Samuel Ortiz <samuel.ortiz@nokia.com> and
-+ *		Juha Yrj=F6l=E4 <juha.yrjola@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License as published b=
-y
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307=
- USA
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/device.h>
-+#include <linux/delay.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/platform_device.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+
-+#include <linux/spi/spi.h>
-+
-+#include <asm/arch/dma.h>
-+#include <asm/arch/clock.h>
-+
-+
-+#define OMAP2_MCSPI_MAX_FREQ		48000000
-+
-+#define OMAP2_MCSPI_REVISION		0x00
-+#define OMAP2_MCSPI_SYSCONFIG		0x10
-+#define OMAP2_MCSPI_SYSSTATUS		0x14
-+#define OMAP2_MCSPI_IRQSTATUS		0x18
-+#define OMAP2_MCSPI_IRQENABLE		0x1c
-+#define OMAP2_MCSPI_WAKEUPENABLE	0x20
-+#define OMAP2_MCSPI_SYST		0x24
-+#define OMAP2_MCSPI_MODULCTRL		0x28
-+
-+/* per-channel banks, 0x14 bytes each, first is: */
-+#define OMAP2_MCSPI_CHCONF0		0x2c
-+#define OMAP2_MCSPI_CHSTAT0		0x30
-+#define OMAP2_MCSPI_CHCTRL0		0x34
-+#define OMAP2_MCSPI_TX0			0x38
-+#define OMAP2_MCSPI_RX0			0x3c
-+
-+/* per-register bitmasks: */
-+
-+#define OMAP2_MCSPI_SYSCONFIG_AUTOIDLE	(1 << 0)
-+#define OMAP2_MCSPI_SYSCONFIG_SOFTRESET	(1 << 1)
-+
-+#define OMAP2_MCSPI_SYSSTATUS_RESETDONE	(1 << 0)
-+
-+#define OMAP2_MCSPI_MODULCTRL_SINGLE	(1 << 0)
-+#define OMAP2_MCSPI_MODULCTRL_MS	(1 << 2)
-+#define OMAP2_MCSPI_MODULCTRL_STEST	(1 << 3)
-+
-+#define OMAP2_MCSPI_CHCONF_PHA		(1 << 0)
-+#define OMAP2_MCSPI_CHCONF_POL		(1 << 1)
-+#define OMAP2_MCSPI_CHCONF_CLKD_MASK	(0x0f << 2)
-+#define OMAP2_MCSPI_CHCONF_EPOL		(1 << 6)
-+#define OMAP2_MCSPI_CHCONF_WL_MASK	(0x1f << 7)
-+#define OMAP2_MCSPI_CHCONF_TRM_RX_ONLY	(0x01 << 12)
-+#define OMAP2_MCSPI_CHCONF_TRM_TX_ONLY	(0x02 << 12)
-+#define OMAP2_MCSPI_CHCONF_TRM_MASK	(0x03 << 12)
-+#define OMAP2_MCSPI_CHCONF_DMAW		(1 << 14)
-+#define OMAP2_MCSPI_CHCONF_DMAR		(1 << 15)
-+#define OMAP2_MCSPI_CHCONF_DPE0		(1 << 16)
-+#define OMAP2_MCSPI_CHCONF_DPE1		(1 << 17)
-+#define OMAP2_MCSPI_CHCONF_IS		(1 << 18)
-+#define OMAP2_MCSPI_CHCONF_TURBO	(1 << 19)
-+#define OMAP2_MCSPI_CHCONF_FORCE	(1 << 20)
-+
-+#define OMAP2_MCSPI_CHSTAT_RXS		(1 << 0)
-+#define OMAP2_MCSPI_CHSTAT_TXS		(1 << 1)
-+#define OMAP2_MCSPI_CHSTAT_EOT		(1 << 2)
-+
-+#define OMAP2_MCSPI_CHCTRL_EN		(1 << 0)
-+
-+
-+/* We have 2 DMA channels per CS, one for RX and one for TX */
-+struct omap2_mcspi_dma {
-+	int dma_tx_channel;
-+	int dma_rx_channel;
-+
-+	int dma_tx_sync_dev;
-+	int dma_rx_sync_dev;
-+
-+	struct completion dma_tx_completion;
-+	struct completion dma_rx_completion;
-+};
-+
-+/* use PIO for small transfers, avoiding DMA setup/teardown overhead a=
-nd
-+ * cache operations; better heuristics consider wordsize and bitrate.
-+ */
-+#define DMA_MIN_BYTES			8
-+
-+
-+struct omap2_mcspi {
-+	struct work_struct	work;
-+	/* lock protects queue and registers */
-+	spinlock_t		lock;
-+	struct list_head	msg_queue;
-+	struct spi_master	*master;
-+	struct clk		*ick;
-+	struct clk		*fck;
-+	/* Virtual base address of the controller */
-+	void __iomem		*base;
-+	/* SPI1 has 4 channels, while SPI2 has 2 */
-+	struct omap2_mcspi_dma	*dma_channels;
-+};
-+
-+struct omap2_mcspi_cs {
-+	void __iomem		*base;
-+	int			word_len;
-+};
-+
-+static struct workqueue_struct *omap2_mcspi_wq;
-+
-+#define MOD_REG_BIT(val, mask, set) do { \
-+	if (set) \
-+		val |=3D mask; \
-+	else \
-+		val &=3D ~mask; \
-+} while (0)
-+
-+static inline void mcspi_write_reg(struct spi_master *master,
-+		int idx, u32 val)
-+{
-+	struct omap2_mcspi *mcspi =3D spi_master_get_devdata(master);
-+
-+	__raw_writel(val, mcspi->base + idx);
-+}
-+
-+static inline u32 mcspi_read_reg(struct spi_master *master, int idx)
-+{
-+	struct omap2_mcspi *mcspi =3D spi_master_get_devdata(master);
-+
-+	return __raw_readl(mcspi->base + idx);
-+}
-+
-+static inline void mcspi_write_cs_reg(const struct spi_device *spi,
-+		int idx, u32 val)
-+{
-+	struct omap2_mcspi_cs	*cs =3D spi->controller_state;
-+
-+	__raw_writel(val, cs->base +  idx);
-+}
-+
-+static inline u32 mcspi_read_cs_reg(const struct spi_device *spi, int =
-idx)
-+{
-+	struct omap2_mcspi_cs	*cs =3D spi->controller_state;
-+
-+	return __raw_readl(cs->base + idx);
-+}
-+
-+static void omap2_mcspi_set_dma_req(const struct spi_device *spi,
-+		int is_read, int enable)
-+{
-+	u32 l, rw;
-+
-+	l =3D mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
-+
-+	if (is_read) /* 1 is read, 0 write */
-+		rw =3D OMAP2_MCSPI_CHCONF_DMAR;
-+	else
-+		rw =3D OMAP2_MCSPI_CHCONF_DMAW;
-+
-+	MOD_REG_BIT(l, rw, enable);
-+	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
-+}
-+
-+static void omap2_mcspi_set_enable(const struct spi_device *spi, int e=
-nable)
-+{
-+	u32 l;
-+
-+	l =3D enable ? OMAP2_MCSPI_CHCTRL_EN : 0;
-+	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCTRL0, l);
-+}
-+
-+static void omap2_mcspi_force_cs(struct spi_device *spi, int cs_active=
-)
-+{
-+	u32 l;
-+
-+	l =3D mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
-+	MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
-+	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
-+}
-+
-+static void omap2_mcspi_set_master_mode(struct spi_master *master)
-+{
-+	u32 l;
-+
-+	/* setup when switching from (reset default) slave mode
-+	 * to single-channel master mode
-+	 */
-+	l =3D mcspi_read_reg(master, OMAP2_MCSPI_MODULCTRL);
-+	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_STEST, 0);
-+	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_MS, 0);
-+	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_SINGLE, 1);
-+	mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
-+}
-+
-+static unsigned
-+omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer=
-)
-+{
-+	struct omap2_mcspi	*mcspi;
-+	struct omap2_mcspi_cs	*cs =3D spi->controller_state;
-+	struct omap2_mcspi_dma  *mcspi_dma;
-+	unsigned int		count, c;
-+	unsigned long		base, tx_reg, rx_reg;
-+	int			word_len, data_type, element_count;
-+	u8			* rx;
-+	const u8		* tx;
-+
-+	mcspi =3D spi_master_get_devdata(spi->master);
-+	mcspi_dma =3D &mcspi->dma_channels[spi->chip_select];
-+
-+	count =3D xfer->len;
-+	c =3D count;
-+	word_len =3D cs->word_len;
-+
-+	base =3D (unsigned long) io_v2p(cs->base);
-+	tx_reg =3D base + OMAP2_MCSPI_TX0;
-+	rx_reg =3D base + OMAP2_MCSPI_RX0;
-+	rx =3D xfer->rx_buf;
-+	tx =3D xfer->tx_buf;
-+
-+	if (word_len <=3D 8) {
-+		data_type =3D OMAP_DMA_DATA_TYPE_S8;
-+		element_count =3D count;
-+	} else if (word_len <=3D 16) {
-+		data_type =3D OMAP_DMA_DATA_TYPE_S16;
-+		element_count =3D count >> 1;
-+	} else /* word_len <=3D 32 */ {
-+		data_type =3D OMAP_DMA_DATA_TYPE_S32;
-+		element_count =3D count >> 2;
+diff -puN arch/powerpc/platforms/8xx/mpc885ads_setup.c~8xx-fix-whitespace-and-indentation arch/powerpc/platforms/8xx/mpc885ads_setup.c
+--- a/arch/powerpc/platforms/8xx/mpc885ads_setup.c~8xx-fix-whitespace-and-indentation
++++ a/arch/powerpc/platforms/8xx/mpc885ads_setup.c
+@@ -40,7 +40,7 @@
+ #include <asm/prom.h>
+ 
+ extern void cpm_reset(void);
+-extern void mpc8xx_show_cpuinfo(struct seq_file*);
++extern void mpc8xx_show_cpuinfo(struct seq_file *);
+ extern void mpc8xx_restart(char *cmd);
+ extern void mpc8xx_calibrate_decr(void);
+ extern int mpc8xx_set_rtc_time(struct rtc_time *tm);
+@@ -48,9 +48,9 @@ extern void mpc8xx_get_rtc_time(struct r
+ extern void m8xx_pic_init(void);
+ extern unsigned int mpc8xx_get_irq(void);
+ 
+-static void init_smc1_uart_ioports(struct fs_uart_platform_info* fpi);
+-static void init_smc2_uart_ioports(struct fs_uart_platform_info* fpi);
+-static void init_scc3_ioports(struct fs_platform_info* ptr);
++static void init_smc1_uart_ioports(struct fs_uart_platform_info *fpi);
++static void init_smc2_uart_ioports(struct fs_uart_platform_info *fpi);
++static void init_scc3_ioports(struct fs_platform_info *ptr);
+ 
+ #ifdef CONFIG_PCMCIA_M8XX
+ static void pcmcia_hw_setup(int slot, int enable)
+@@ -73,7 +73,7 @@ static int pcmcia_set_voltage(int slot, 
+ 
+ 	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
+ 
+-	switch(vcc) {
++	switch (vcc) {
+ 	case 0:
+ 		break;
+ 	case 33:
+@@ -86,12 +86,12 @@ static int pcmcia_set_voltage(int slot, 
+ 		return 1;
+ 	}
+ 
+-	switch(vpp) {
++	switch (vpp) {
+ 	case 0:
+ 		break;
+ 	case 33:
+ 	case 50:
+-		if(vcc == vpp)
++		if (vcc == vpp)
+ 			reg |= BCSR1_PCCVPP1;
+ 		else
+ 			return 1;
+@@ -127,7 +127,7 @@ void __init mpc885ads_board_setup(void)
+ #endif
+ 
+ 	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
+-	cp = (cpm8xx_t *)immr_map(im_cpm);
++	cp = (cpm8xx_t *) immr_map(im_cpm);
+ 
+ 	if (bcsr_io == NULL) {
+ 		printk(KERN_CRIT "Could not remap BCSR\n");
+@@ -140,13 +140,13 @@ void __init mpc885ads_board_setup(void)
+ 	out_8(&(cp->cp_smc[0].smc_smcm), tmpval8);
+ 	clrbits16(&cp->cp_smc[0].smc_smcmr, SMCMR_REN | SMCMR_TEN);	/* brg1 */
+ #else
+-	setbits32(bcsr_io,BCSR1_RS232EN_1);
++	setbits32(bcsr_io, BCSR1_RS232EN_1);
+ 	out_be16(&cp->cp_smc[0].smc_smcmr, 0);
+ 	out_8(&cp->cp_smc[0].smc_smce, 0);
+ #endif
+ 
+ #ifdef CONFIG_SERIAL_CPM_SMC2
+-	clrbits32(bcsr_io,BCSR1_RS232EN_2);
++	clrbits32(bcsr_io, BCSR1_RS232EN_2);
+ 	clrbits32(&cp->cp_simode, 0xe0000000 >> 1);
+ 	setbits32(&cp->cp_simode, 0x20000000 >> 1);	/* brg2 */
+ 	tmpval8 = in_8(&(cp->cp_smc[1].smc_smcm)) | (SMCM_RX | SMCM_TX);
+@@ -155,7 +155,7 @@ void __init mpc885ads_board_setup(void)
+ 
+ 	init_smc2_uart_ioports(0);
+ #else
+-	setbits32(bcsr_io,BCSR1_RS232EN_2);
++	setbits32(bcsr_io, BCSR1_RS232EN_2);
+ 	out_be16(&cp->cp_smc[1].smc_smcmr, 0);
+ 	out_8(&cp->cp_smc[1].smc_smce, 0);
+ #endif
+@@ -164,16 +164,16 @@ void __init mpc885ads_board_setup(void)
+ 
+ #ifdef CONFIG_FS_ENET
+ 	/* use MDC for MII (common) */
+-	io_port = (iop8xx_t*)immr_map(im_ioport);
++	io_port = (iop8xx_t *) immr_map(im_ioport);
+ 	setbits16(&io_port->iop_pdpar, 0x0080);
+ 	clrbits16(&io_port->iop_pddir, 0x0080);
+ 
+ 	bcsr_io = ioremap(BCSR5, sizeof(unsigned long));
+-	clrbits32(bcsr_io,BCSR5_MII1_EN);
+-	clrbits32(bcsr_io,BCSR5_MII1_RST);
++	clrbits32(bcsr_io, BCSR5_MII1_EN);
++	clrbits32(bcsr_io, BCSR5_MII1_RST);
+ #ifndef CONFIG_FC_ENET_HAS_SCC
+-	clrbits32(bcsr_io,BCSR5_MII2_EN);
+-	clrbits32(bcsr_io,BCSR5_MII2_RST);
++	clrbits32(bcsr_io, BCSR5_MII2_EN);
++	clrbits32(bcsr_io, BCSR5_MII2_RST);
+ 
+ #endif
+ 	iounmap(bcsr_io);
+@@ -182,17 +182,16 @@ void __init mpc885ads_board_setup(void)
+ #endif
+ 
+ #ifdef CONFIG_PCMCIA_M8XX
+-	/*Set up board specific hook-ups*/
++	/*Set up board specific hook-ups */
+ 	m8xx_pcmcia_ops.hw_ctrl = pcmcia_hw_setup;
+ 	m8xx_pcmcia_ops.voltage_set = pcmcia_set_voltage;
+ #endif
+ }
+ 
+-
+-static void init_fec1_ioports(struct fs_platform_info* ptr)
++static void init_fec1_ioports(struct fs_platform_info *ptr)
+ {
+-	cpm8xx_t *cp = (cpm8xx_t *)immr_map(im_cpm);
+-	iop8xx_t *io_port = (iop8xx_t *)immr_map(im_ioport);
++	cpm8xx_t *cp = (cpm8xx_t *) immr_map(im_cpm);
++	iop8xx_t *io_port = (iop8xx_t *) immr_map(im_ioport);
+ 
+ 	/* configure FEC1 pins  */
+ 	setbits16(&io_port->iop_papar, 0xf830);
+@@ -214,11 +213,10 @@ static void init_fec1_ioports(struct fs_
+ 	immr_unmap(cp);
+ }
+ 
+-
+-static void init_fec2_ioports(struct fs_platform_info* ptr)
++static void init_fec2_ioports(struct fs_platform_info *ptr)
+ {
+-	cpm8xx_t *cp = (cpm8xx_t *)immr_map(im_cpm);
+-	iop8xx_t *io_port = (iop8xx_t *)immr_map(im_ioport);
++	cpm8xx_t *cp = (cpm8xx_t *) immr_map(im_cpm);
++	iop8xx_t *io_port = (iop8xx_t *) immr_map(im_ioport);
+ 
+ 	/* configure FEC2 pins */
+ 	setbits32(&cp->cp_pepar, 0x0003fffc);
+@@ -248,15 +246,15 @@ void init_fec_ioports(struct fs_platform
+ 	}
+ }
+ 
+-static void init_scc3_ioports(struct fs_platform_info* fpi)
++static void init_scc3_ioports(struct fs_platform_info *fpi)
+ {
+ 	unsigned *bcsr_io;
+ 	iop8xx_t *io_port;
+ 	cpm8xx_t *cp;
+ 
+ 	bcsr_io = ioremap(BCSR_ADDR, BCSR_SIZE);
+-	io_port = (iop8xx_t *)immr_map(im_ioport);
+-	cp = (cpm8xx_t *)immr_map(im_cpm);
++	io_port = (iop8xx_t *) immr_map(im_ioport);
++	cp = (cpm8xx_t *) immr_map(im_cpm);
+ 
+ 	if (bcsr_io == NULL) {
+ 		printk(KERN_CRIT "Could not remap BCSR\n");
+@@ -265,9 +263,9 @@ static void init_scc3_ioports(struct fs_
+ 
+ 	/* Enable the PHY.
+ 	 */
+-	clrbits32(bcsr_io+4, BCSR4_ETH10_RST);
++	clrbits32(bcsr_io + 4, BCSR4_ETH10_RST);
+ 	udelay(1000);
+-	setbits32(bcsr_io+4, BCSR4_ETH10_RST);
++	setbits32(bcsr_io + 4, BCSR4_ETH10_RST);
+ 	/* Configure port A pins for Txd and Rxd.
+ 	 */
+ 	setbits16(&io_port->iop_papar, PA_ENET_RXD | PA_ENET_TXD);
+@@ -283,8 +281,7 @@ static void init_scc3_ioports(struct fs_
+ 	 */
+ 	setbits32(&cp->cp_pepar, PE_ENET_TCLK | PE_ENET_RCLK);
+ 	clrbits32(&cp->cp_pepar, PE_ENET_TENA);
+-	clrbits32(&cp->cp_pedir,
+-		  PE_ENET_TCLK | PE_ENET_RCLK | PE_ENET_TENA);
++	clrbits32(&cp->cp_pedir, PE_ENET_TCLK | PE_ENET_RCLK | PE_ENET_TENA);
+ 	clrbits32(&cp->cp_peso, PE_ENET_TCLK | PE_ENET_RCLK);
+ 	setbits32(&cp->cp_peso, PE_ENET_TENA);
+ 
+@@ -308,7 +305,7 @@ static void init_scc3_ioports(struct fs_
+ 	clrbits32(&cp->cp_pedir, PE_ENET_TENA);
+ 	setbits32(&cp->cp_peso, PE_ENET_TENA);
+ 
+-	setbits32(bcsr_io+4, BCSR1_ETHEN);
++	setbits32(bcsr_io + 4, BCSR1_ETHEN);
+ 	iounmap(bcsr_io);
+ 	immr_unmap(io_port);
+ 	immr_unmap(cp);
+@@ -328,50 +325,48 @@ void init_scc_ioports(struct fs_platform
+ 	}
+ }
+ 
+-
+-
+-static void init_smc1_uart_ioports(struct fs_uart_platform_info* ptr)
++static void init_smc1_uart_ioports(struct fs_uart_platform_info *ptr)
+ {
+-        unsigned *bcsr_io;
++	unsigned *bcsr_io;
+ 	cpm8xx_t *cp;
+ 
+-	cp = (cpm8xx_t *)immr_map(im_cpm);
++	cp = (cpm8xx_t *) immr_map(im_cpm);
+ 	setbits32(&cp->cp_pepar, 0x000000c0);
+ 	clrbits32(&cp->cp_pedir, 0x000000c0);
+ 	clrbits32(&cp->cp_peso, 0x00000040);
+ 	setbits32(&cp->cp_peso, 0x00000080);
+ 	immr_unmap(cp);
+ 
+-        bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
++	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
+ 
+-        if (bcsr_io == NULL) {
+-                printk(KERN_CRIT "Could not remap BCSR1\n");
+-                return;
+-        }
+-        clrbits32(bcsr_io,BCSR1_RS232EN_1);
+-        iounmap(bcsr_io);
++	if (bcsr_io == NULL) {
++		printk(KERN_CRIT "Could not remap BCSR1\n");
++		return;
 +	}
-+
-+	if (tx !=3D NULL) {
-+		omap_set_dma_transfer_params(mcspi_dma->dma_tx_channel,
-+				data_type, element_count, 1,
-+				OMAP_DMA_SYNC_ELEMENT,
-+				mcspi_dma->dma_tx_sync_dev, 0);
-+
-+		omap_set_dma_dest_params(mcspi_dma->dma_tx_channel, 0,
-+				OMAP_DMA_AMODE_CONSTANT,
-+				tx_reg, 0, 0);
-+
-+		omap_set_dma_src_params(mcspi_dma->dma_tx_channel, 0,
-+				OMAP_DMA_AMODE_POST_INC,
-+				xfer->tx_dma, 0, 0);
++	clrbits32(bcsr_io, BCSR1_RS232EN_1);
++	iounmap(bcsr_io);
+ }
+ 
+-static void init_smc2_uart_ioports(struct fs_uart_platform_info* fpi)
++static void init_smc2_uart_ioports(struct fs_uart_platform_info *fpi)
+ {
+-        unsigned *bcsr_io;
++	unsigned *bcsr_io;
+ 	cpm8xx_t *cp;
+ 
+-	cp = (cpm8xx_t *)immr_map(im_cpm);
++	cp = (cpm8xx_t *) immr_map(im_cpm);
+ 	setbits32(&cp->cp_pepar, 0x00000c00);
+ 	clrbits32(&cp->cp_pedir, 0x00000c00);
+ 	clrbits32(&cp->cp_peso, 0x00000400);
+ 	setbits32(&cp->cp_peso, 0x00000800);
+ 	immr_unmap(cp);
+ 
+-        bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
++	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
+ 
+-        if (bcsr_io == NULL) {
+-                printk(KERN_CRIT "Could not remap BCSR1\n");
+-                return;
+-        }
+-        clrbits32(bcsr_io,BCSR1_RS232EN_2);
+-        iounmap(bcsr_io);
++	if (bcsr_io == NULL) {
++		printk(KERN_CRIT "Could not remap BCSR1\n");
++		return;
 +	}
-+
-+	if (rx !=3D NULL) {
-+		omap_set_dma_transfer_params(mcspi_dma->dma_rx_channel,
-+				data_type, element_count, 1,
-+				OMAP_DMA_SYNC_ELEMENT,
-+				mcspi_dma->dma_rx_sync_dev, 1);
-+
-+		omap_set_dma_src_params(mcspi_dma->dma_rx_channel, 0,
-+				OMAP_DMA_AMODE_CONSTANT,
-+				rx_reg, 0, 0);
-+
-+		omap_set_dma_dest_params(mcspi_dma->dma_rx_channel, 0,
-+				OMAP_DMA_AMODE_POST_INC,
-+				xfer->rx_dma, 0, 0);
-+	}
-+
-+	if (tx !=3D NULL) {
-+		omap_start_dma(mcspi_dma->dma_tx_channel);
-+		omap2_mcspi_set_dma_req(spi, 0, 1);
-+	}
-+
-+	if (rx !=3D NULL) {
-+		omap_start_dma(mcspi_dma->dma_rx_channel);
-+		omap2_mcspi_set_dma_req(spi, 1, 1);
-+	}
-+
-+	if (tx !=3D NULL) {
-+		wait_for_completion(&mcspi_dma->dma_tx_completion);
-+		dma_unmap_single(NULL, xfer->tx_dma, count, DMA_TO_DEVICE);
-+	}
-+
-+	if (rx !=3D NULL) {
-+		wait_for_completion(&mcspi_dma->dma_rx_completion);
-+		dma_unmap_single(NULL, xfer->rx_dma, count, DMA_FROM_DEVICE);
-+	}
-+	return count;
-+}
-+
-+static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit=
-)
++	clrbits32(bcsr_io, BCSR1_RS232EN_2);
++	iounmap(bcsr_io);
+ }
+ 
+ void init_smc_ioports(struct fs_uart_platform_info *data)
+@@ -444,15 +439,11 @@ static int __init mpc885ads_probe(void)
+ 	return 1;
+ }
+ 
+-define_machine(mpc885_ads) {
+-	.name			= "MPC885 ADS",
+-	.probe			= mpc885ads_probe,
+-	.setup_arch		= mpc885ads_setup_arch,
+-	.init_IRQ		= m8xx_pic_init,
+-	.show_cpuinfo		= mpc8xx_show_cpuinfo,
+-	.get_irq		= mpc8xx_get_irq,
+-	.restart		= mpc8xx_restart,
+-	.calibrate_decr		= mpc8xx_calibrate_decr,
+-	.set_rtc_time		= mpc8xx_set_rtc_time,
+-	.get_rtc_time		= mpc8xx_get_rtc_time,
+-};
++define_machine(mpc885_ads)
 +{
-+	unsigned long timeout;
-+
-+	timeout =3D jiffies + msecs_to_jiffies(1000);
-+	while (!(__raw_readl(reg) & bit)) {
-+		if (time_after(jiffies, timeout))
-+			return -1;
-+		cpu_relax();
-+	}
-+	return 0;
-+}
-+
-+static unsigned
-+omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer=
-)
-+{
-+	struct omap2_mcspi	*mcspi;
-+	struct omap2_mcspi_cs	*cs =3D spi->controller_state;
-+	unsigned int		count, c;
-+	u32			l;
-+	void __iomem		*base =3D cs->base;
-+	void __iomem		*tx_reg;
-+	void __iomem		*rx_reg;
-+	void __iomem		*chstat_reg;
-+	int			word_len;
-+
-+	mcspi =3D spi_master_get_devdata(spi->master);
-+	count =3D xfer->len;
-+	c =3D count;
-+	word_len =3D cs->word_len;
-+
-+	l =3D mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
-+	l &=3D ~OMAP2_MCSPI_CHCONF_TRM_MASK;
-+
-+	/* We store the pre-calculated register addresses on stack to speed
-+	 * up the transfer loop. */
-+	tx_reg		=3D base + OMAP2_MCSPI_TX0;
-+	rx_reg		=3D base + OMAP2_MCSPI_RX0;
-+	chstat_reg	=3D base + OMAP2_MCSPI_CHSTAT0;
-+
-+	if (word_len <=3D 8) {
-+		u8		*rx;
-+		const u8	*tx;
-+
-+		rx =3D xfer->rx_buf;
-+		tx =3D xfer->tx_buf;
-+
-+		do {
-+			if (tx !=3D NULL) {
-+				if (mcspi_wait_for_reg_bit(chstat_reg,
-+						OMAP2_MCSPI_CHSTAT_TXS) < 0) {
-+					dev_err(&spi->dev, "TXS timed out\n");
-+					goto out;
-+				}
-+#ifdef VERBOSE
-+				dev_dbg(&spi->dev, "write-%d %02x\n",
-+						word_len, *tx);
-+#endif
-+				__raw_writel(*tx++, tx_reg);
-+			}
-+			if (rx !=3D NULL) {
-+				if (mcspi_wait_for_reg_bit(chstat_reg,
-+						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
-+					dev_err(&spi->dev, "RXS timed out\n");
-+					goto out;
-+				}
-+				/* prevent last RX_ONLY read from triggering
-+				 * more word i/o: switch to rx+tx
-+				 */
-+				if (c =3D=3D 0 && tx =3D=3D NULL)
-+					mcspi_write_cs_reg(spi,
-+							OMAP2_MCSPI_CHCONF0, l);
-+				*rx++ =3D __raw_readl(rx_reg);
-+#ifdef VERBOSE
-+				dev_dbg(&spi->dev, "read-%d %02x\n",
-+						word_len, *(rx - 1));
-+#endif
-+			}
-+			c -=3D 1;
-+		} while (c);
-+	} else if (word_len <=3D 16) {
-+		u16		*rx;
-+		const u16	*tx;
-+
-+		rx =3D xfer->rx_buf;
-+		tx =3D xfer->tx_buf;
-+		do {
-+			if (tx !=3D NULL) {
-+				if (mcspi_wait_for_reg_bit(chstat_reg,
-+						OMAP2_MCSPI_CHSTAT_TXS) < 0) {
-+					dev_err(&spi->dev, "TXS timed out\n");
-+					goto out;
-+				}
-+#ifdef VERBOSE
-+				dev_dbg(&spi->dev, "write-%d %04x\n",
-+						word_len, *tx);
-+#endif
-+				__raw_writel(*tx++, tx_reg);
-+			}
-+			if (rx !=3D NULL) {
-+				if (mcspi_wait_for_reg_bit(chstat_reg,
-+						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
-+					dev_err(&spi->dev, "RXS timed out\n");
-+					goto out;
-+				}
-+				/* prevent last RX_ONLY read from triggering
-+				 * more word i/o: switch to rx+tx
-+				 */
-+				if (c =3D=3D 0 && tx =3D=3D NULL)
-+					mcspi_write_cs_reg(spi,
-+							OMAP2_MCSPI_CHCONF0, l);
-+				*rx++ =3D __raw_readl(rx_reg);
-+#ifdef VERBOSE
-+				dev_dbg(&spi->dev, "read-%d %04x\n",
-+						word_len, *(rx - 1));
-+#endif
-+			}
-+			c -=3D 2;
-+		} while (c);
-+	} else if (word_len <=3D 32) {
-+		u32		*rx;
-+		const u32	*tx;
-+
-+		rx =3D xfer->rx_buf;
-+		tx =3D xfer->tx_buf;
-+		do {
-+			if (tx !=3D NULL) {
-+				if (mcspi_wait_for_reg_bit(chstat_reg,
-+						OMAP2_MCSPI_CHSTAT_TXS) < 0) {
-+					dev_err(&spi->dev, "TXS timed out\n");
-+					goto out;
-+				}
-+#ifdef VERBOSE
-+				dev_dbg(&spi->dev, "write-%d %04x\n",
-+						word_len, *tx);
-+#endif
-+				__raw_writel(*tx++, tx_reg);
-+			}
-+			if (rx !=3D NULL) {
-+				if (mcspi_wait_for_reg_bit(chstat_reg,
-+						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
-+					dev_err(&spi->dev, "RXS timed out\n");
-+					goto out;
-+				}
-+				/* prevent last RX_ONLY read from triggering
-+				 * more word i/o: switch to rx+tx
-+				 */
-+				if (c =3D=3D 0 && tx =3D=3D NULL)
-+					mcspi_write_cs_reg(spi,
-+							OMAP2_MCSPI_CHCONF0, l);
-+				*rx++ =3D __raw_readl(rx_reg);
-+#ifdef VERBOSE
-+				dev_dbg(&spi->dev, "read-%d %04x\n",
-+						word_len, *(rx - 1));
-+#endif
-+			}
-+			c -=3D 4;
-+		} while (c);
-+	}
-+
-+	/* for TX_ONLY mode, be sure all words have shifted out */
-+	if (xfer->rx_buf =3D=3D NULL) {
-+		if (mcspi_wait_for_reg_bit(chstat_reg,
-+				OMAP2_MCSPI_CHSTAT_TXS) < 0) {
-+			dev_err(&spi->dev, "TXS timed out\n");
-+		} else if (mcspi_wait_for_reg_bit(chstat_reg,
-+				OMAP2_MCSPI_CHSTAT_EOT) < 0)
-+			dev_err(&spi->dev, "EOT timed out\n");
-+	}
-+out:
-+	return count - c;
-+}
-+
-+/* called only when no transfer is active to this device */
-+static int omap2_mcspi_setup_transfer(struct spi_device *spi,
-+		struct spi_transfer *t)
-+{
-+	struct omap2_mcspi_cs *cs =3D spi->controller_state;
-+	struct omap2_mcspi *mcspi;
-+	u32 l =3D 0, div =3D 0;
-+	u8 word_len =3D spi->bits_per_word;
-+
-+	mcspi =3D spi_master_get_devdata(spi->master);
-+
-+	if (t !=3D NULL && t->bits_per_word)
-+		word_len =3D t->bits_per_word;
-+
-+	cs->word_len =3D word_len;
-+
-+	if (spi->max_speed_hz) {
-+		while (div <=3D 15 && (OMAP2_MCSPI_MAX_FREQ / (1 << div))
-+					> spi->max_speed_hz)
-+			div++;
-+	} else
-+		div =3D 15;
-+
-+	l =3D mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
-+
-+	/* standard 4-wire master mode:  SCK, MOSI/out, MISO/in, nCS
-+	 * REVISIT: this controller could support SPI_3WIRE mode.
-+	 */
-+	l &=3D ~(OMAP2_MCSPI_CHCONF_IS|OMAP2_MCSPI_CHCONF_DPE1);
-+	l |=3D OMAP2_MCSPI_CHCONF_DPE0;
-+
-+	/* wordlength */
-+	l &=3D ~OMAP2_MCSPI_CHCONF_WL_MASK;
-+	l |=3D (word_len - 1) << 7;
-+
-+	/* set chipselect polarity; manage with FORCE */
-+	if (!(spi->mode & SPI_CS_HIGH))
-+		l |=3D OMAP2_MCSPI_CHCONF_EPOL;	/* active-low; normal */
-+	else
-+		l &=3D ~OMAP2_MCSPI_CHCONF_EPOL;
-+
-+	/* set clock divisor */
-+	l &=3D ~OMAP2_MCSPI_CHCONF_CLKD_MASK;
-+	l |=3D div << 2;
-+
-+	/* set SPI mode 0..3 */
-+	if (spi->mode & SPI_CPOL)
-+		l |=3D OMAP2_MCSPI_CHCONF_POL;
-+	else
-+		l &=3D ~OMAP2_MCSPI_CHCONF_POL;
-+	if (spi->mode & SPI_CPHA)
-+		l |=3D OMAP2_MCSPI_CHCONF_PHA;
-+	else
-+		l &=3D ~OMAP2_MCSPI_CHCONF_PHA;
-+
-+	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
-+
-+	dev_dbg(&spi->dev, "setup: speed %d, sample %s edge, clk %s\n",
-+			OMAP2_MCSPI_MAX_FREQ / (1 << div),
-+			(spi->mode & SPI_CPHA) ? "trailing" : "leading",
-+			(spi->mode & SPI_CPOL) ? "inverted" : "normal");
-+
-+	return 0;
-+}
-+
-+static void omap2_mcspi_dma_rx_callback(int lch, u16 ch_status, void *=
-data)
-+{
-+	struct spi_device	*spi =3D data;
-+	struct omap2_mcspi	*mcspi;
-+	struct omap2_mcspi_dma	*mcspi_dma;
-+
-+	mcspi =3D spi_master_get_devdata(spi->master);
-+	mcspi_dma =3D &(mcspi->dma_channels[spi->chip_select]);
-+
-+	complete(&mcspi_dma->dma_rx_completion);
-+
-+	/* We must disable the DMA RX request */
-+	omap2_mcspi_set_dma_req(spi, 1, 0);
-+}
-+
-+static void omap2_mcspi_dma_tx_callback(int lch, u16 ch_status, void *=
-data)
-+{
-+	struct spi_device	*spi =3D data;
-+	struct omap2_mcspi	*mcspi;
-+	struct omap2_mcspi_dma	*mcspi_dma;
-+
-+	mcspi =3D spi_master_get_devdata(spi->master);
-+	mcspi_dma =3D &(mcspi->dma_channels[spi->chip_select]);
-+
-+	complete(&mcspi_dma->dma_tx_completion);
-+
-+	/* We must disable the DMA TX request */
-+	omap2_mcspi_set_dma_req(spi, 0, 0);
-+}
-+
-+static int omap2_mcspi_request_dma(struct spi_device *spi)
-+{
-+	struct spi_master	*master =3D spi->master;
-+	struct omap2_mcspi	*mcspi;
-+	struct omap2_mcspi_dma	*mcspi_dma;
-+
-+	mcspi =3D spi_master_get_devdata(master);
-+	mcspi_dma =3D mcspi->dma_channels + spi->chip_select;
-+
-+	if (omap_request_dma(mcspi_dma->dma_rx_sync_dev, "McSPI RX",
-+			omap2_mcspi_dma_rx_callback, spi,
-+			&mcspi_dma->dma_rx_channel)) {
-+		dev_err(&spi->dev, "no RX DMA channel for McSPI\n");
-+		return -EAGAIN;
-+	}
-+
-+	if (omap_request_dma(mcspi_dma->dma_tx_sync_dev, "McSPI TX",
-+			omap2_mcspi_dma_tx_callback, spi,
-+			&mcspi_dma->dma_tx_channel)) {
-+		omap_free_dma(mcspi_dma->dma_rx_channel);
-+		mcspi_dma->dma_rx_channel =3D -1;
-+		dev_err(&spi->dev, "no TX DMA channel for McSPI\n");
-+		return -EAGAIN;
-+	}
-+
-+	init_completion(&mcspi_dma->dma_rx_completion);
-+	init_completion(&mcspi_dma->dma_tx_completion);
-+
-+	return 0;
-+}
-+
-+/* the spi->mode bits understood by this driver: */
-+#define MODEBITS (SPI_CPOL | SPI_CPHA | SPI_CS_HIGH)
-+
-+static int omap2_mcspi_setup(struct spi_device *spi)
-+{
-+	int			ret;
-+	struct omap2_mcspi	*mcspi;
-+	struct omap2_mcspi_dma	*mcspi_dma;
-+	struct omap2_mcspi_cs	*cs =3D spi->controller_state;
-+
-+	if (spi->mode & ~MODEBITS) {
-+		dev_dbg(&spi->dev, "setup: unsupported mode bits %x\n",
-+			spi->mode & ~MODEBITS);
-+		return -EINVAL;
-+	}
-+
-+	if (spi->bits_per_word =3D=3D 0)
-+		spi->bits_per_word =3D 8;
-+	else if (spi->bits_per_word < 4 || spi->bits_per_word > 32) {
-+		dev_dbg(&spi->dev, "setup: unsupported %d bit words\n",
-+			spi->bits_per_word);
-+		return -EINVAL;
-+	}
-+
-+	mcspi =3D spi_master_get_devdata(spi->master);
-+	mcspi_dma =3D &mcspi->dma_channels[spi->chip_select];
-+
-+	if (!cs) {
-+		cs =3D kzalloc(sizeof *cs, GFP_KERNEL);
-+		if (!cs)
-+			return -ENOMEM;
-+		cs->base =3D mcspi->base + spi->chip_select * 0x14;
-+		spi->controller_state =3D cs;
-+	}
-+
-+	if (mcspi_dma->dma_rx_channel =3D=3D -1
-+			|| mcspi_dma->dma_tx_channel =3D=3D -1) {
-+		ret =3D omap2_mcspi_request_dma(spi);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	clk_enable(mcspi->ick);
-+	clk_enable(mcspi->fck);
-+	ret =3D  omap2_mcspi_setup_transfer(spi, NULL);
-+	clk_disable(mcspi->fck);
-+	clk_disable(mcspi->ick);
-+
-+	return ret;
-+}
-+
-+static void omap2_mcspi_cleanup(struct spi_device *spi)
-+{
-+	struct omap2_mcspi	*mcspi;
-+	struct omap2_mcspi_dma	*mcspi_dma;
-+
-+	mcspi =3D spi_master_get_devdata(spi->master);
-+	mcspi_dma =3D &mcspi->dma_channels[spi->chip_select];
-+
-+	kfree(spi->controller_state);
-+
-+	if (mcspi_dma->dma_rx_channel !=3D -1) {
-+		omap_free_dma(mcspi_dma->dma_rx_channel);
-+		mcspi_dma->dma_rx_channel =3D -1;
-+	}
-+	if (mcspi_dma->dma_tx_channel !=3D -1) {
-+		omap_free_dma(mcspi_dma->dma_tx_channel);
-+		mcspi_dma->dma_tx_channel =3D -1;
-+	}
-+}
-+
-+static void omap2_mcspi_work(struct work_struct *work)
-+{
-+	struct omap2_mcspi	*mcspi;
-+
-+	mcspi =3D container_of(work, struct omap2_mcspi, work);
-+	spin_lock_irq(&mcspi->lock);
-+
-+	clk_enable(mcspi->ick);
-+	clk_enable(mcspi->fck);
-+
-+	/* We only enable one channel at a time -- the one whose message is
-+	 * at the head of the queue -- although this controller would gladly
-+	 * arbitrate among multiple channels.  This corresponds to "single
-+	 * channel" master mode.  As a side effect, we need to manage the
-+	 * chipselect with the FORCE bit ... CS !=3D channel enable.
-+	 */
-+	while (!list_empty(&mcspi->msg_queue)) {
-+		struct spi_message		*m;
-+		struct spi_device		*spi;
-+		struct spi_transfer		*t =3D NULL;
-+		int				cs_active =3D 0;
-+		struct omap2_mcspi_device_config *conf;
-+		struct omap2_mcspi_cs		*cs;
-+		int				par_override =3D 0;
-+		int				status =3D 0;
-+		u32				chconf;
-+
-+		m =3D container_of(mcspi->msg_queue.next, struct spi_message,
-+				 queue);
-+
-+		list_del_init(&m->queue);
-+		spin_unlock_irq(&mcspi->lock);
-+
-+		spi =3D m->spi;
-+		conf =3D spi->controller_data;
-+		cs =3D spi->controller_state;
-+
-+		omap2_mcspi_set_enable(spi, 1);
-+		list_for_each_entry(t, &m->transfers, transfer_list) {
-+			if (t->tx_buf =3D=3D NULL && t->rx_buf =3D=3D NULL && t->len) {
-+				status =3D -EINVAL;
-+				break;
-+			}
-+			if (par_override || t->speed_hz || t->bits_per_word) {
-+				par_override =3D 1;
-+				status =3D omap2_mcspi_setup_transfer(spi, t);
-+				if (status < 0)
-+					break;
-+				if (!t->speed_hz && !t->bits_per_word)
-+					par_override =3D 0;
-+			}
-+
-+			if (!cs_active) {
-+				omap2_mcspi_force_cs(spi, 1);
-+				cs_active =3D 1;
-+			}
-+
-+			chconf =3D mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
-+			chconf &=3D ~OMAP2_MCSPI_CHCONF_TRM_MASK;
-+			if (t->tx_buf =3D=3D NULL)
-+				chconf |=3D OMAP2_MCSPI_CHCONF_TRM_RX_ONLY;
-+			else if (t->rx_buf =3D=3D NULL)
-+				chconf |=3D OMAP2_MCSPI_CHCONF_TRM_TX_ONLY;
-+			mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, chconf);
-+
-+			if (t->len) {
-+				unsigned	count;
-+
-+				/* RX_ONLY mode needs dummy data in TX reg */
-+				if (t->tx_buf =3D=3D NULL)
-+					__raw_writel(0, cs->base
-+							+ OMAP2_MCSPI_TX0);
-+
-+				if (m->is_dma_mapped || t->len >=3D DMA_MIN_BYTES)
-+					count =3D omap2_mcspi_txrx_dma(spi, t);
-+				else
-+					count =3D omap2_mcspi_txrx_pio(spi, t);
-+				m->actual_length +=3D count;
-+
-+				if (count !=3D t->len) {
-+					status =3D -EIO;
-+					break;
-+				}
-+			}
-+
-+			if (t->delay_usecs)
-+				udelay(t->delay_usecs);
-+
-+			/* ignore the "leave it on after last xfer" hint */
-+			if (t->cs_change) {
-+				omap2_mcspi_force_cs(spi, 0);
-+				cs_active =3D 0;
-+			}
-+		}
-+
-+		/* Restore defaults if they were overriden */
-+		if (par_override) {
-+			par_override =3D 0;
-+			status =3D omap2_mcspi_setup_transfer(spi, NULL);
-+		}
-+
-+		if (cs_active)
-+			omap2_mcspi_force_cs(spi, 0);
-+
-+		omap2_mcspi_set_enable(spi, 0);
-+
-+		m->status =3D status;
-+		m->complete(m->context);
-+
-+		spin_lock_irq(&mcspi->lock);
-+	}
-+
-+	clk_disable(mcspi->fck);
-+	clk_disable(mcspi->ick);
-+
-+	spin_unlock_irq(&mcspi->lock);
-+}
-+
-+static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_mes=
-sage *m)
-+{
-+	struct omap2_mcspi	*mcspi;
-+	unsigned long		flags;
-+	struct spi_transfer	*t;
-+
-+	m->actual_length =3D 0;
-+	m->status =3D 0;
-+
-+	/* reject invalid messages and transfers */
-+	if (list_empty(&m->transfers) || !m->complete)
-+		return -EINVAL;
-+	list_for_each_entry(t, &m->transfers, transfer_list) {
-+		const void	*tx_buf =3D t->tx_buf;
-+		void		*rx_buf =3D t->rx_buf;
-+		unsigned	len =3D t->len;
-+
-+		if (t->speed_hz > OMAP2_MCSPI_MAX_FREQ
-+				|| (len && !(rx_buf || tx_buf))
-+				|| (t->bits_per_word &&
-+					(  t->bits_per_word < 4
-+					|| t->bits_per_word > 32))) {
-+			dev_dbg(&spi->dev, "transfer: %d Hz, %d %s%s, %d bpw\n",
-+					t->speed_hz,
-+					len,
-+					tx_buf ? "tx" : "",
-+					rx_buf ? "rx" : "",
-+					t->bits_per_word);
-+			return -EINVAL;
-+		}
-+		if (t->speed_hz && t->speed_hz < OMAP2_MCSPI_MAX_FREQ/(1<<16)) {
-+			dev_dbg(&spi->dev, "%d Hz max exceeds %d\n",
-+					t->speed_hz,
-+					OMAP2_MCSPI_MAX_FREQ/(1<<16));
-+			return -EINVAL;
-+		}
-+
-+		if (m->is_dma_mapped || len < DMA_MIN_BYTES)
-+			continue;
-+
-+		/* Do DMA mapping "early" for better error reporting and
-+		 * dcache use.  Note that if dma_unmap_single() ever starts
-+		 * to do real work on ARM, we'd need to clean up mappings
-+		 * for previous transfers on *ALL* exits of this loop...
-+		 */
-+		if (tx_buf !=3D NULL) {
-+			t->tx_dma =3D dma_map_single(&spi->dev, (void *) tx_buf,
-+					len, DMA_TO_DEVICE);
-+			if (dma_mapping_error(t->tx_dma)) {
-+				dev_dbg(&spi->dev, "dma %cX %d bytes error\n",
-+						'T', len);
-+				return -EINVAL;
-+			}
-+		}
-+		if (rx_buf !=3D NULL) {
-+			t->rx_dma =3D dma_map_single(&spi->dev, rx_buf, t->len,
-+					DMA_FROM_DEVICE);
-+			if (dma_mapping_error(t->rx_dma)) {
-+				dev_dbg(&spi->dev, "dma %cX %d bytes error\n",
-+						'R', len);
-+				if (tx_buf !=3D NULL)
-+					dma_unmap_single(NULL, t->tx_dma,
-+							len, DMA_TO_DEVICE);
-+				return -EINVAL;
-+			}
-+		}
-+	}
-+
-+	mcspi =3D spi_master_get_devdata(spi->master);
-+
-+	spin_lock_irqsave(&mcspi->lock, flags);
-+	list_add_tail(&m->queue, &mcspi->msg_queue);
-+	queue_work(omap2_mcspi_wq, &mcspi->work);
-+	spin_unlock_irqrestore(&mcspi->lock, flags);
-+
-+	return 0;
-+}
-+
-+static int __init omap2_mcspi_reset(struct omap2_mcspi *mcspi)
-+{
-+	struct spi_master	*master =3D mcspi->master;
-+	u32			tmp;
-+
-+	clk_enable(mcspi->ick);
-+	clk_enable(mcspi->fck);
-+
-+	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
-+			OMAP2_MCSPI_SYSCONFIG_SOFTRESET);
-+	do {
-+		tmp =3D mcspi_read_reg(master, OMAP2_MCSPI_SYSSTATUS);
-+	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
-+
-+	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
-+			/* (3 << 8) | (2 << 3) | */
-+			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE);
-+
-+	omap2_mcspi_set_master_mode(master);
-+
-+	clk_disable(mcspi->fck);
-+	clk_disable(mcspi->ick);
-+	return 0;
-+}
-+
-+static u8 __initdata spi1_rxdma_id [] =3D {
-+	OMAP24XX_DMA_SPI1_RX0,
-+	OMAP24XX_DMA_SPI1_RX1,
-+	OMAP24XX_DMA_SPI1_RX2,
-+	OMAP24XX_DMA_SPI1_RX3,
-+};
-+
-+static u8 __initdata spi1_txdma_id [] =3D {
-+	OMAP24XX_DMA_SPI1_TX0,
-+	OMAP24XX_DMA_SPI1_TX1,
-+	OMAP24XX_DMA_SPI1_TX2,
-+	OMAP24XX_DMA_SPI1_TX3,
-+};
-+
-+static u8 __initdata spi2_rxdma_id[] =3D {
-+	OMAP24XX_DMA_SPI2_RX0,
-+	OMAP24XX_DMA_SPI2_RX1,
-+};
-+
-+static u8 __initdata spi2_txdma_id[] =3D {
-+	OMAP24XX_DMA_SPI2_TX0,
-+	OMAP24XX_DMA_SPI2_TX1,
-+};
-+
-+static int __init omap2_mcspi_probe(struct platform_device *pdev)
-+{
-+	struct spi_master	*master;
-+	struct omap2_mcspi	*mcspi;
-+	struct resource		*r;
-+	int			status =3D 0, i;
-+	const u8		*rxdma_id, *txdma_id;
-+	unsigned		num_chipselect;
-+
-+	switch (pdev->id) {
-+	case 1:
-+		rxdma_id =3D spi1_rxdma_id;
-+		txdma_id =3D spi1_txdma_id;
-+		num_chipselect =3D 4;
++.name = "MPC885 ADS",.probe = mpc885ads_probe,.setup_arch =
++	    mpc885ads_setup_arch,.init_IRQ =
++	    m8xx_pic_init,.show_cpuinfo = mpc8xx_show_cpuinfo,.get_irq =
++	    mpc8xx_get_irq,.restart = mpc8xx_restart,.calibrate_decr =
++	    mpc8xx_calibrate_decr,.set_rtc_time =
++	    mpc8xx_set_rtc_time,.get_rtc_time = mpc8xx_get_rtc_time,};
+diff -puN drivers/pcmcia/m8xx_pcmcia.c~8xx-fix-whitespace-and-indentation drivers/pcmcia/m8xx_pcmcia.c
+--- a/drivers/pcmcia/m8xx_pcmcia.c~8xx-fix-whitespace-and-indentation
++++ a/drivers/pcmcia/m8xx_pcmcia.c
+@@ -113,7 +113,7 @@ MODULE_LICENSE("Dual MPL/GPL");
+ #define CONFIG_PCMCIA_SLOT_B
+ #endif
+ 
+-#endif /* !defined(CONFIG_PCMCIA_SLOT_A) && !defined(CONFIG_PCMCIA_SLOT_B) */
++#endif				/* !defined(CONFIG_PCMCIA_SLOT_A) && !defined(CONFIG_PCMCIA_SLOT_B) */
+ 
+ #if defined(CONFIG_PCMCIA_SLOT_A) && defined(CONFIG_PCMCIA_SLOT_B)
+ 
+@@ -146,9 +146,9 @@ MODULE_LICENSE("Dual MPL/GPL");
+ 
+ /* ------------------------------------------------------------------------- */
+ 
+-#define PCMCIA_MEM_WIN_BASE 0xe0000000 /* base address for memory window 0   */
+-#define PCMCIA_MEM_WIN_SIZE 0x04000000 /* each memory window is 64 MByte     */
+-#define PCMCIA_IO_WIN_BASE  _IO_BASE   /* base address for io window 0       */
++#define PCMCIA_MEM_WIN_BASE 0xe0000000	/* base address for memory window 0   */
++#define PCMCIA_MEM_WIN_SIZE 0x04000000	/* each memory window is 64 MByte     */
++#define PCMCIA_IO_WIN_BASE  _IO_BASE	/* base address for io window 0       */
+ /* ------------------------------------------------------------------------- */
+ 
+ static int pcmcia_schlvl;
+@@ -169,8 +169,8 @@ static u32 *m8xx_pgcrx[2];
+  */
+ 
+ struct pcmcia_win {
+-	u32	br;
+-	u32	or;
++	u32 br;
++	u32 or;
+ };
+ 
+ /*
+@@ -214,7 +214,7 @@ struct pcmcia_win {
+ 
+ /* we keep one lookup table per socket to check flags */
+ 
+-#define PCMCIA_EVENTS_MAX 5  /* 4 max at a time + termination */
++#define PCMCIA_EVENTS_MAX 5	/* 4 max at a time + termination */
+ 
+ struct event_table {
+ 	u32 regbit;
+@@ -224,8 +224,8 @@ struct event_table {
+ static const char driver_name[] = "m8xx-pcmcia";
+ 
+ struct socket_info {
+-	void	(*handler)(void *info, u32 events);
+-	void	*info;
++	void (*handler) (void *info, u32 events);
++	void *info;
+ 
+ 	u32 slot;
+ 	pcmconf8xx_t *pcmcia;
+@@ -234,7 +234,7 @@ struct socket_info {
+ 
+ 	socket_state_t state;
+ 	struct pccard_mem_map mem_win[PCMCIA_MEM_WIN_NO];
+-	struct pccard_io_map  io_win[PCMCIA_IO_WIN_NO];
++	struct pccard_io_map io_win[PCMCIA_IO_WIN_NO];
+ 	struct event_table events[PCMCIA_EVENTS_MAX];
+ 	struct pcmcia_socket socket;
+ };
+@@ -248,8 +248,7 @@ static struct socket_info socket[PCMCIA_
+ 
+ #define M8XX_SIZES_NO 32
+ 
+-static const u32 m8xx_size_to_gray[M8XX_SIZES_NO] =
+-{
++static const u32 m8xx_size_to_gray[M8XX_SIZES_NO] = {
+ 	0x00000001, 0x00000002, 0x00000008, 0x00000004,
+ 	0x00000080, 0x00000040, 0x00000010, 0x00000020,
+ 	0x00008000, 0x00004000, 0x00001000, 0x00002000,
+@@ -265,7 +264,7 @@ static const u32 m8xx_size_to_gray[M8XX_
+ 
+ static irqreturn_t m8xx_interrupt(int irq, void *dev);
+ 
+-#define PCMCIA_BMT_LIMIT (15*4)  /* Bus Monitor Timeout value */
++#define PCMCIA_BMT_LIMIT (15*4)	/* Bus Monitor Timeout value */
+ 
+ /* ------------------------------------------------------------------------- */
+ /* board specific stuff:                                                     */
+@@ -289,8 +288,9 @@ static int voltage_set(int slot, int vcc
+ {
+ 	u32 reg = 0;
+ 
+-	switch(vcc) {
+-	case 0: break;
++	switch (vcc) {
++	case 0:
 +		break;
-+	case 2:
-+		rxdma_id =3D spi2_rxdma_id;
-+		txdma_id =3D spi2_txdma_id;
-+		num_chipselect =3D 2;
+ 	case 33:
+ 		reg |= BCSR1_PCVCTL4;
+ 		break;
+@@ -301,11 +301,12 @@ static int voltage_set(int slot, int vcc
+ 		return 1;
+ 	}
+ 
+-	switch(vpp) {
+-	case 0: break;
++	switch (vpp) {
++	case 0:
 +		break;
-+	/* REVISIT omap2430 has a third McSPI ... */
+ 	case 33:
+ 	case 50:
+-		if(vcc == vpp)
++		if (vcc == vpp)
+ 			reg |= BCSR1_PCVCTL6;
+ 		else
+ 			return 1;
+@@ -316,25 +317,29 @@ static int voltage_set(int slot, int vcc
+ 		return 1;
+ 	}
+ 
+-	if(!((vcc == 50) || (vcc == 0)))
++	if (!((vcc == 50) || (vcc == 0)))
+ 		return 1;
+ 
+ 	/* first, turn off all power */
+ 
+-	out_be32(((u32 *)RPX_CSR_ADDR), in_be32(((u32 *)RPX_CSR_ADDR)) & ~(BCSR1_PCVCTL4 | BCSR1_PCVCTL5 | BCSR1_PCVCTL6 | BCSR1_PCVCTL7));
++	out_be32(((u32 *) RPX_CSR_ADDR),
++		 in_be32(((u32 *) RPX_CSR_ADDR)) & ~(BCSR1_PCVCTL4 |
++						     BCSR1_PCVCTL5 |
++						     BCSR1_PCVCTL6 |
++						     BCSR1_PCVCTL7));
+ 
+ 	/* enable new powersettings */
+ 
+-	out_be32(((u32 *)RPX_CSR_ADDR), in_be32(((u32 *)RPX_CSR_ADDR)) | reg);
++	out_be32(((u32 *) RPX_CSR_ADDR), in_be32(((u32 *) RPX_CSR_ADDR)) | reg);
+ 
+ 	return 0;
+ }
+ 
+ #define socket_get(_slot_) PCMCIA_SOCKET_KEY_5V
+-#define hardware_enable(_slot_)  /* No hardware to enable */
+-#define hardware_disable(_slot_) /* No hardware to disable */
++#define hardware_enable(_slot_)	/* No hardware to enable */
++#define hardware_disable(_slot_)	/* No hardware to disable */
+ 
+-#endif /* CONFIG_RPXCLASSIC */
++#endif				/* CONFIG_RPXCLASSIC */
+ 
+ /* FADS Boards from Motorola                                               */
+ 
+@@ -346,43 +351,45 @@ static int voltage_set(int slot, int vcc
+ {
+ 	u32 reg = 0;
+ 
+-	switch(vcc) {
+-		case 0:
+-			break;
+-		case 33:
+-			reg |= BCSR1_PCCVCC0;
+-			break;
+-		case 50:
+-			reg |= BCSR1_PCCVCC1;
+-			break;
+-		default:
+-			return 1;
++	switch (vcc) {
++	case 0:
++		break;
++	case 33:
++		reg |= BCSR1_PCCVCC0;
++		break;
++	case 50:
++		reg |= BCSR1_PCCVCC1;
++		break;
 +	default:
-+		return -EINVAL;
-+	}
-+
-+	master =3D spi_alloc_master(&pdev->dev, sizeof *mcspi);
-+	if (master =3D=3D NULL) {
-+		dev_dbg(&pdev->dev, "master allocation failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	if (pdev->id !=3D -1)
-+		master->bus_num =3D pdev->id;
-+
-+	master->setup =3D omap2_mcspi_setup;
-+	master->transfer =3D omap2_mcspi_transfer;
-+	master->cleanup =3D omap2_mcspi_cleanup;
-+	master->num_chipselect =3D num_chipselect;
-+
-+	dev_set_drvdata(&pdev->dev, master);
-+
-+	mcspi =3D spi_master_get_devdata(master);
-+	mcspi->master =3D master;
-+
-+	r =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (r =3D=3D NULL) {
-+		status =3D -ENODEV;
-+		goto err1;
-+	}
-+	if (!request_mem_region(r->start, (r->end - r->start) + 1,
-+			pdev->dev.bus_id)) {
-+		status =3D -EBUSY;
-+		goto err1;
-+	}
-+
-+	mcspi->base =3D (void __iomem *) io_p2v(r->start);
-+
-+	INIT_WORK(&mcspi->work, omap2_mcspi_work);
-+
-+	spin_lock_init(&mcspi->lock);
-+	INIT_LIST_HEAD(&mcspi->msg_queue);
-+
-+	mcspi->ick =3D clk_get(&pdev->dev, "mcspi_ick");
-+	if (IS_ERR(mcspi->ick)) {
-+		dev_dbg(&pdev->dev, "can't get mcspi_ick\n");
-+		status =3D PTR_ERR(mcspi->ick);
-+		goto err1a;
-+	}
-+	mcspi->fck =3D clk_get(&pdev->dev, "mcspi_fck");
-+	if (IS_ERR(mcspi->fck)) {
-+		dev_dbg(&pdev->dev, "can't get mcspi_fck\n");
-+		status =3D PTR_ERR(mcspi->fck);
-+		goto err2;
-+	}
-+
-+	mcspi->dma_channels =3D kcalloc(master->num_chipselect,
-+			sizeof(struct omap2_mcspi_dma),
-+			GFP_KERNEL);
-+
-+	if (mcspi->dma_channels =3D=3D NULL)
-+		goto err3;
-+
-+	for (i =3D 0; i < num_chipselect; i++) {
-+		mcspi->dma_channels[i].dma_rx_channel =3D -1;
-+		mcspi->dma_channels[i].dma_rx_sync_dev =3D rxdma_id[i];
-+		mcspi->dma_channels[i].dma_tx_channel =3D -1;
-+		mcspi->dma_channels[i].dma_tx_sync_dev =3D txdma_id[i];
-+	}
-+
-+	if (omap2_mcspi_reset(mcspi) < 0)
-+		goto err4;
-+
-+	status =3D spi_register_master(master);
-+	if (status < 0)
-+		goto err4;
-+
-+	return status;
-+
-+err4:
-+	kfree(mcspi->dma_channels);
-+err3:
-+	clk_put(mcspi->fck);
-+err2:
-+	clk_put(mcspi->ick);
-+err1a:
-+	release_mem_region(r->start, (r->end - r->start) + 1);
-+err1:
-+	spi_master_put(master);
-+	return status;
-+}
-+
-+static int __exit omap2_mcspi_remove(struct platform_device *pdev)
-+{
-+	struct spi_master	*master;
-+	struct omap2_mcspi	*mcspi;
-+	struct omap2_mcspi_dma	*dma_channels;
-+	struct resource		*r;
-+
-+	master =3D dev_get_drvdata(&pdev->dev);
-+	mcspi =3D spi_master_get_devdata(master);
-+	dma_channels =3D mcspi->dma_channels;
-+
-+	clk_put(mcspi->fck);
-+	clk_put(mcspi->ick);
-+
-+	r =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	release_mem_region(r->start, (r->end - r->start) + 1);
-+
-+	spi_unregister_master(master);
-+	kfree(dma_channels);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver omap2_mcspi_driver =3D {
-+	.driver =3D {
-+		.name =3D		"omap2_mcspi",
-+		.owner =3D	THIS_MODULE,
-+	},
-+	.remove =3D	__exit_p(omap2_mcspi_remove),
-+};
-+
-+
-+static int __init omap2_mcspi_init(void)
-+{
-+	omap2_mcspi_wq =3D create_singlethread_workqueue(
-+				omap2_mcspi_driver.driver.name);
-+	if (omap2_mcspi_wq =3D=3D NULL)
-+		return -1;
-+	return platform_driver_probe(&omap2_mcspi_driver, omap2_mcspi_probe);
-+}
-+subsys_initcall(omap2_mcspi_init);
-+
-+static void __exit omap2_mcspi_exit(void)
-+{
-+	platform_driver_unregister(&omap2_mcspi_driver);
-+
-+	destroy_workqueue(omap2_mcspi_wq);
-+}
-+module_exit(omap2_mcspi_exit);
-+
-+MODULE_LICENSE("GPL");
++		return 1;
+ 	}
+ 
+-	switch(vpp) {
+-		case 0:
+-			break;
+-		case 33:
+-		case 50:
+-			if(vcc == vpp)
+-				reg |= BCSR1_PCCVPP1;
+-			else
+-				return 1;
+-			break;
+-		case 120:
+-			if ((vcc == 33) || (vcc == 50))
+-				reg |= BCSR1_PCCVPP0;
+-			else
+-				return 1;
+-		default:
++	switch (vpp) {
++	case 0:
++		break;
++	case 33:
++	case 50:
++		if (vcc == vpp)
++			reg |= BCSR1_PCCVPP1;
++		else
+ 			return 1;
++		break;
++	case 120:
++		if ((vcc == 33) || (vcc == 50))
++			reg |= BCSR1_PCCVPP0;
++		else
++			return 1;
++	default:
++		return 1;
+ 	}
+ 
+ 	/* first, turn off all power */
+-	out_be32((u32 *)BCSR1, in_be32((u32 *)BCSR1) & ~(BCSR1_PCCVCC_MASK | BCSR1_PCCVPP_MASK));
++	out_be32((u32 *) BCSR1,
++		 in_be32((u32 *) BCSR1) & ~(BCSR1_PCCVCC_MASK |
++					    BCSR1_PCCVPP_MASK));
+ 
+ 	/* enable new powersettings */
+-	out_be32((u32 *)BCSR1, in_be32((u32 *)BCSR1) | reg);
++	out_be32((u32 *) BCSR1, in_be32((u32 *) BCSR1) | reg);
+ 
+ 	return 0;
+ }
+@@ -391,12 +398,12 @@ static int voltage_set(int slot, int vcc
+ 
+ static void hardware_enable(int slot)
+ {
+-	out_be32((u32 *)BCSR1, in_be32((u32 *)BCSR1) & ~BCSR1_PCCEN);
++	out_be32((u32 *) BCSR1, in_be32((u32 *) BCSR1) & ~BCSR1_PCCEN);
+ }
+ 
+ static void hardware_disable(int slot)
+ {
+-	out_be32((u32 *)BCSR1, in_be32((u32 *)BCSR1) |  BCSR1_PCCEN);
++	out_be32((u32 *) BCSR1, in_be32((u32 *) BCSR1) | BCSR1_PCCEN);
+ }
+ 
+ #endif
+@@ -410,7 +417,7 @@ static void hardware_disable(int slot)
+ 
+ static inline void hardware_enable(int slot)
+ {
+-	 m8xx_pcmcia_ops.hw_ctrl(slot, 1);
++	m8xx_pcmcia_ops.hw_ctrl(slot, 1);
+ }
+ 
+ static inline void hardware_disable(int slot)
+@@ -436,52 +443,53 @@ static int voltage_set(int slot, int vcc
+ {
+ 	u8 reg = 0;
+ 
+-	switch(vcc) {
+-		case 0:
+-			break;
+-		case 33:
+-			reg |= CSR2_VCC_33;
+-			break;
+-		case 50:
+-			reg |= CSR2_VCC_50;
+-			break;
+-		default:
+-			return 1;
++	switch (vcc) {
++	case 0:
++		break;
++	case 33:
++		reg |= CSR2_VCC_33;
++		break;
++	case 50:
++		reg |= CSR2_VCC_50;
++		break;
++	default:
++		return 1;
+ 	}
+ 
+-	switch(vpp) {
+-		case 0:
+-			break;
+-		case 33:
+-		case 50:
+-			if(vcc == vpp)
+-				reg |= CSR2_VPP_VCC;
+-			else
+-				return 1;
+-			break;
+-		case 120:
+-			if ((vcc == 33) || (vcc == 50))
+-				reg |= CSR2_VPP_12;
+-			else
+-				return 1;
+-		default:
++	switch (vpp) {
++	case 0:
++		break;
++	case 33:
++	case 50:
++		if (vcc == vpp)
++			reg |= CSR2_VPP_VCC;
++		else
++			return 1;
++		break;
++	case 120:
++		if ((vcc == 33) || (vcc == 50))
++			reg |= CSR2_VPP_12;
++		else
+ 			return 1;
++	default:
++		return 1;
+ 	}
+ 
+ 	/* first, turn off all power */
+-	out_8((u8 *)MBX_CSR2_ADDR, in_8((u8 *)MBX_CSR2_ADDR) & ~(CSR2_VCC_MASK | CSR2_VPP_MASK));
++	out_8((u8 *) MBX_CSR2_ADDR,
++	      in_8((u8 *) MBX_CSR2_ADDR) & ~(CSR2_VCC_MASK | CSR2_VPP_MASK));
+ 
+ 	/* enable new powersettings */
+-	out_8((u8 *)MBX_CSR2_ADDR, in_8((u8 *)MBX_CSR2_ADDR) | reg);
++	out_8((u8 *) MBX_CSR2_ADDR, in_8((u8 *) MBX_CSR2_ADDR) | reg);
+ 
+ 	return 0;
+ }
+ 
+ #define socket_get(_slot_) PCMCIA_SOCKET_KEY_5V
+-#define hardware_enable(_slot_)  /* No hardware to enable */
+-#define hardware_disable(_slot_) /* No hardware to disable */
++#define hardware_enable(_slot_)	/* No hardware to enable */
++#define hardware_disable(_slot_)	/* No hardware to disable */
+ 
+-#endif /* CONFIG_MBX */
++#endif				/* CONFIG_MBX */
+ 
+ #if defined(CONFIG_PRxK)
+ #include <asm/cpld.h>
+@@ -495,43 +503,46 @@ static int voltage_set(int slot, int vcc
+ 	u8 regread;
+ 	cpld_regs *ccpld = get_cpld();
+ 
+-	switch(vcc) {
+-		case 0:
+-			break;
+-		case 33:
+-			reg |= PCMCIA_VCC_33;
+-			break;
+-		case 50:
+-			reg |= PCMCIA_VCC_50;
+-			break;
+-		default:
+-			return 1;
++	switch (vcc) {
++	case 0:
++		break;
++	case 33:
++		reg |= PCMCIA_VCC_33;
++		break;
++	case 50:
++		reg |= PCMCIA_VCC_50;
++		break;
++	default:
++		return 1;
+ 	}
+ 
+-	switch(vpp) {
+-		case 0:
+-			break;
+-		case 33:
+-		case 50:
+-			if(vcc == vpp)
+-				reg |= PCMCIA_VPP_VCC;
+-			else
+-				return 1;
+-			break;
+-		case 120:
+-			if ((vcc == 33) || (vcc == 50))
+-				reg |= PCMCIA_VPP_12;
+-			else
+-				return 1;
+-		default:
++	switch (vpp) {
++	case 0:
++		break;
++	case 33:
++	case 50:
++		if (vcc == vpp)
++			reg |= PCMCIA_VPP_VCC;
++		else
+ 			return 1;
++		break;
++	case 120:
++		if ((vcc == 33) || (vcc == 50))
++			reg |= PCMCIA_VPP_12;
++		else
++			return 1;
++	default:
++		return 1;
+ 	}
+ 
+ 	reg = reg >> (slot << 2);
+ 	regread = in_8(&ccpld->fpga_pc_ctl);
+-	if (reg != (regread & ((PCMCIA_VCC_MASK | PCMCIA_VPP_MASK) >> (slot << 2)))) {
++	if (reg !=
++	    (regread & ((PCMCIA_VCC_MASK | PCMCIA_VPP_MASK) >> (slot << 2)))) {
+ 		/* enable new powersettings */
+-		regread = regread & ~((PCMCIA_VCC_MASK | PCMCIA_VPP_MASK) >> (slot << 2));
++		regread =
++		    regread & ~((PCMCIA_VCC_MASK | PCMCIA_VPP_MASK) >>
++				(slot << 2));
+ 		out_8(&ccpld->fpga_pc_ctl, reg | regread);
+ 		msleep(100);
+ 	}
+@@ -540,10 +551,10 @@ static int voltage_set(int slot, int vcc
+ }
+ 
+ #define socket_get(_slot_) PCMCIA_SOCKET_KEY_LV
+-#define hardware_enable(_slot_)  /* No hardware to enable */
+-#define hardware_disable(_slot_) /* No hardware to disable */
++#define hardware_enable(_slot_)	/* No hardware to enable */
++#define hardware_disable(_slot_)	/* No hardware to disable */
+ 
+-#endif /* CONFIG_PRxK */
++#endif				/* CONFIG_PRxK */
+ 
+ static u32 pending_events[PCMCIA_SOCKETS_NO];
+ static DEFINE_SPINLOCK(pending_event_lock);
+@@ -553,7 +564,7 @@ static irqreturn_t m8xx_interrupt(int ir
+ 	struct socket_info *s;
+ 	struct event_table *e;
+ 	unsigned int i, events, pscr, pipr, per;
+-	pcmconf8xx_t	*pcmcia = socket[0].pcmcia;
++	pcmconf8xx_t *pcmcia = socket[0].pcmcia;
+ 
+ 	dprintk("Interrupt!\n");
+ 	/* get interrupt sources */
+@@ -562,16 +573,16 @@ static irqreturn_t m8xx_interrupt(int ir
+ 	pipr = in_be32(&pcmcia->pcmc_pipr);
+ 	per = in_be32(&pcmcia->pcmc_per);
+ 
+-	for(i = 0; i < PCMCIA_SOCKETS_NO; i++) {
++	for (i = 0; i < PCMCIA_SOCKETS_NO; i++) {
+ 		s = &socket[i];
+ 		e = &s->events[0];
+ 		events = 0;
+ 
+-		while(e->regbit) {
+-			if(pscr & e->regbit)
++		while (e->regbit) {
++			if (pscr & e->regbit)
+ 				events |= e->eventbit;
+ 
+-				e++;
++			e++;
+ 		}
+ 
+ 		/*
+@@ -579,13 +590,11 @@ static irqreturn_t m8xx_interrupt(int ir
+ 		 * not too nice done,
+ 		 * we depend on that CD2 is the bit to the left of CD1...
+ 		 */
+-		if(events & SS_DETECT)
+-			if(((pipr & M8XX_PCMCIA_CD2(i)) >> 1) ^
+-				(pipr & M8XX_PCMCIA_CD1(i)))
+-			{
++		if (events & SS_DETECT)
++			if (((pipr & M8XX_PCMCIA_CD2(i)) >> 1) ^
++			    (pipr & M8XX_PCMCIA_CD1(i))) {
+ 				events &= ~SS_DETECT;
+ 			}
+-
+ #ifdef PCMCIA_GLITCHY_CD
+ 		/*
+ 		 * I've experienced CD problems with my ADS board.
+@@ -593,24 +602,23 @@ static irqreturn_t m8xx_interrupt(int ir
+ 		 * real change of Card detection.
+ 		 */
+ 
+-		if((events & SS_DETECT) &&
+-		   ((pipr &
+-		     (M8XX_PCMCIA_CD2(i) | M8XX_PCMCIA_CD1(i))) == 0) &&
+-		   (s->state.Vcc | s->state.Vpp)) {
++		if ((events & SS_DETECT) &&
++		    ((pipr &
++		      (M8XX_PCMCIA_CD2(i) | M8XX_PCMCIA_CD1(i))) == 0) &&
++		    (s->state.Vcc | s->state.Vpp)) {
+ 			events &= ~SS_DETECT;
+ 			/*printk( "CD glitch workaround - CD = 0x%08x!\n",
+-				(pipr & (M8XX_PCMCIA_CD2(i)
+-					 | M8XX_PCMCIA_CD1(i))));*/
++			   (pipr & (M8XX_PCMCIA_CD2(i)
++			   | M8XX_PCMCIA_CD1(i)))); */
+ 		}
+ #endif
+ 
+ 		/* call the handler */
+ 
+ 		dprintk("slot %u: events = 0x%02x, pscr = 0x%08x, "
+-			"pipr = 0x%08x\n",
+-			i, events, pscr, pipr);
++			"pipr = 0x%08x\n", i, events, pscr, pipr);
+ 
+-		if(events) {
++		if (events) {
+ 			spin_lock(&pending_event_lock);
+ 			pending_events[i] |= events;
+ 			spin_unlock(&pending_event_lock);
+@@ -643,11 +651,11 @@ static u32 m8xx_get_graycode(u32 size)
+ {
+ 	u32 k;
+ 
+-	for(k = 0; k < M8XX_SIZES_NO; k++)
+-		if(m8xx_size_to_gray[k] == size)
++	for (k = 0; k < M8XX_SIZES_NO; k++)
++		if (m8xx_size_to_gray[k] == size)
+ 			break;
+ 
+-	if((k == M8XX_SIZES_NO) || (m8xx_size_to_gray[k] == -1))
++	if ((k == M8XX_SIZES_NO) || (m8xx_size_to_gray[k] == -1))
+ 		k = -1;
+ 
+ 	return k;
+@@ -657,7 +665,7 @@ static u32 m8xx_get_speed(u32 ns, u32 is
+ {
+ 	u32 reg, clocks, psst, psl, psht;
+ 
+-	if(!ns) {
++	if (!ns) {
+ 
+ 		/*
+ 		 * We get called with IO maps setup to 0ns
+@@ -665,10 +673,10 @@ static u32 m8xx_get_speed(u32 ns, u32 is
+ 		 * They should be 255ns.
+ 		 */
+ 
+-		if(is_io)
++		if (is_io)
+ 			ns = 255;
+ 		else
+-			ns = 100;  /* fast memory if 0 */
++			ns = 100;	/* fast memory if 0 */
+ 	}
+ 
+ 	/*
+@@ -679,23 +687,23 @@ static u32 m8xx_get_speed(u32 ns, u32 is
+ 
+ /* how we want to adjust the timing - in percent */
+ 
+-#define ADJ 180 /* 80 % longer accesstime - to be sure */
++#define ADJ 180			/* 80 % longer accesstime - to be sure */
+ 
+ 	clocks = ((bus_freq / 1000) * ns) / 1000;
+-	clocks = (clocks * ADJ) / (100*1000);
+-	if(clocks >= PCMCIA_BMT_LIMIT) {
+-		printk( "Max access time limit reached\n");
+-		clocks = PCMCIA_BMT_LIMIT-1;
++	clocks = (clocks * ADJ) / (100 * 1000);
++	if (clocks >= PCMCIA_BMT_LIMIT) {
++		printk("Max access time limit reached\n");
++		clocks = PCMCIA_BMT_LIMIT - 1;
+ 	}
+ 
+-	psst = clocks / 7;          /* setup time */
+-	psht = clocks / 7;          /* hold time */
+-	psl  = (clocks * 5) / 7;    /* strobe length */
++	psst = clocks / 7;	/* setup time */
++	psht = clocks / 7;	/* hold time */
++	psl = (clocks * 5) / 7;	/* strobe length */
+ 
+ 	psst += clocks - (psst + psht + psl);
+ 
+-	reg =  psst << 12;
+-	reg |= psl  << 7;
++	reg = psst << 12;
++	reg |= psl << 7;
+ 	reg |= psht << 16;
+ 
+ 	return reg;
+@@ -710,8 +718,8 @@ static int m8xx_get_status(struct pcmcia
+ 
+ 	pipr = in_be32(&pcmcia->pcmc_pipr);
+ 
+-	*value  = ((pipr & (M8XX_PCMCIA_CD1(lsock)
+-			    | M8XX_PCMCIA_CD2(lsock))) == 0) ? SS_DETECT : 0;
++	*value = ((pipr & (M8XX_PCMCIA_CD1(lsock)
++			   | M8XX_PCMCIA_CD2(lsock))) == 0) ? SS_DETECT : 0;
+ 	*value |= (pipr & M8XX_PCMCIA_WP(lsock)) ? SS_WRPROT : 0;
+ 
+ 	if (s->state.flags & SS_IOCARD)
+@@ -795,16 +803,16 @@ static int m8xx_get_status(struct pcmcia
+ 	/* read out VS1 and VS2 */
+ 
+ 	reg = (pipr & M8XX_PCMCIA_VS_MASK(lsock))
+-		>> M8XX_PCMCIA_VS_SHIFT(lsock);
++	    >> M8XX_PCMCIA_VS_SHIFT(lsock);
+ 
+-	if(socket_get(lsock) == PCMCIA_SOCKET_KEY_LV) {
+-		switch(reg) {
++	if (socket_get(lsock) == PCMCIA_SOCKET_KEY_LV) {
++		switch (reg) {
+ 		case 1:
+ 			*value |= SS_3VCARD;
+-			break; /* GND, NC - 3.3V only */
++			break;	/* GND, NC - 3.3V only */
+ 		case 2:
+ 			*value |= SS_XVCARD;
+-			break; /* NC. GND - x.xV only */
++			break;	/* NC. GND - x.xV only */
+ 		};
+ 	}
+ 
+@@ -812,7 +820,7 @@ static int m8xx_get_status(struct pcmcia
+ 	return 0;
+ }
+ 
+-static int m8xx_set_socket(struct pcmcia_socket *sock, socket_state_t *state)
++static int m8xx_set_socket(struct pcmcia_socket *sock, socket_state_t * state)
+ {
+ 	int lsock = container_of(sock, struct socket_info, socket)->slot;
+ 	struct socket_info *s = &socket[lsock];
+@@ -821,20 +829,20 @@ static int m8xx_set_socket(struct pcmcia
+ 	unsigned long flags;
+ 	pcmconf8xx_t *pcmcia = socket[0].pcmcia;
+ 
+-	dprintk( "SetSocket(%d, flags %#3.3x, Vcc %d, Vpp %d, "
+-	      "io_irq %d, csc_mask %#2.2x)\n", lsock, state->flags,
+-	      state->Vcc, state->Vpp, state->io_irq, state->csc_mask);
++	dprintk("SetSocket(%d, flags %#3.3x, Vcc %d, Vpp %d, "
++		"io_irq %d, csc_mask %#2.2x)\n", lsock, state->flags,
++		state->Vcc, state->Vpp, state->io_irq, state->csc_mask);
+ 
+ 	/* First, set voltage - bail out if invalid */
+-	if(voltage_set(lsock, state->Vcc, state->Vpp))
++	if (voltage_set(lsock, state->Vcc, state->Vpp))
+ 		return -EINVAL;
+ 
+-
+ 	/* Take care of reset... */
+-	if(state->flags & SS_RESET)
+-		out_be32(M8XX_PGCRX(lsock), in_be32(M8XX_PGCRX(lsock)) |  M8XX_PGCRX_CXRESET); /* active high */
++	if (state->flags & SS_RESET)
++		out_be32(M8XX_PGCRX(lsock), in_be32(M8XX_PGCRX(lsock)) | M8XX_PGCRX_CXRESET);	/* active high */
+ 	else
+-		out_be32(M8XX_PGCRX(lsock), in_be32(M8XX_PGCRX(lsock)) & ~M8XX_PGCRX_CXRESET);
++		out_be32(M8XX_PGCRX(lsock),
++			 in_be32(M8XX_PGCRX(lsock)) & ~M8XX_PGCRX_CXRESET);
+ 
+ 	/* ... and output enable. */
+ 
+@@ -846,10 +854,11 @@ static int m8xx_set_socket(struct pcmcia
+ 	   no pullups are present -> the cards act wierd.
+ 	   So right now the buffers are enabled if the power is on. */
+ 
+-	if(state->Vcc || state->Vpp)
+-		out_be32(M8XX_PGCRX(lsock), in_be32(M8XX_PGCRX(lsock)) & ~M8XX_PGCRX_CXOE); /* active low */
++	if (state->Vcc || state->Vpp)
++		out_be32(M8XX_PGCRX(lsock), in_be32(M8XX_PGCRX(lsock)) & ~M8XX_PGCRX_CXOE);	/* active low */
+ 	else
+-		out_be32(M8XX_PGCRX(lsock), in_be32(M8XX_PGCRX(lsock)) | M8XX_PGCRX_CXOE);
++		out_be32(M8XX_PGCRX(lsock),
++			 in_be32(M8XX_PGCRX(lsock)) | M8XX_PGCRX_CXOE);
+ 
+ 	/*
+ 	 * We'd better turn off interrupts before
+@@ -866,17 +875,17 @@ static int m8xx_set_socket(struct pcmcia
+ 	e = &s->events[0];
+ 	reg = 0;
+ 
+-	if(state->csc_mask & SS_DETECT) {
++	if (state->csc_mask & SS_DETECT) {
+ 		e->eventbit = SS_DETECT;
+ 		reg |= e->regbit = (M8XX_PCMCIA_CD2(lsock)
+ 				    | M8XX_PCMCIA_CD1(lsock));
+ 		e++;
+ 	}
+-	if(state->flags & SS_IOCARD) {
++	if (state->flags & SS_IOCARD) {
+ 		/*
+ 		 * I/O card
+ 		 */
+-		if(state->csc_mask & SS_STSCHG) {
++		if (state->csc_mask & SS_STSCHG) {
+ 			e->eventbit = SS_STSCHG;
+ 			reg |= e->regbit = M8XX_PCMCIA_BVD1(lsock);
+ 			e++;
+@@ -884,9 +893,10 @@ static int m8xx_set_socket(struct pcmcia
+ 		/*
+ 		 * If io_irq is non-zero we should enable irq.
+ 		 */
+-		if(state->io_irq) {
++		if (state->io_irq) {
+ 			out_be32(M8XX_PGCRX(lsock),
+-				 in_be32(M8XX_PGCRX(lsock)) | mk_int_int_mask(s->hwirq) << 24);
++				 in_be32(M8XX_PGCRX(lsock)) |
++				 mk_int_int_mask(s->hwirq) << 24);
+ 			/*
+ 			 * Strange thing here:
+ 			 * The manual does not tell us which interrupt
+@@ -897,33 +907,32 @@ static int m8xx_set_socket(struct pcmcia
+ 			 * have to be cleared in PSCR in the interrupt handler.
+ 			 */
+ 			reg |= M8XX_PCMCIA_RDY_L(lsock);
+-		}
+-		else
+-			out_be32(M8XX_PGCRX(lsock), in_be32(M8XX_PGCRX(lsock)) & 0x00ffffff);
+-	}
+-	else {
++		} else
++			out_be32(M8XX_PGCRX(lsock),
++				 in_be32(M8XX_PGCRX(lsock)) & 0x00ffffff);
++	} else {
+ 		/*
+ 		 * Memory card
+ 		 */
+-		if(state->csc_mask & SS_BATDEAD) {
++		if (state->csc_mask & SS_BATDEAD) {
+ 			e->eventbit = SS_BATDEAD;
+ 			reg |= e->regbit = M8XX_PCMCIA_BVD1(lsock);
+ 			e++;
+ 		}
+-		if(state->csc_mask & SS_BATWARN) {
++		if (state->csc_mask & SS_BATWARN) {
+ 			e->eventbit = SS_BATWARN;
+ 			reg |= e->regbit = M8XX_PCMCIA_BVD2(lsock);
+ 			e++;
+ 		}
+ 		/* What should I trigger on - low/high,raise,fall? */
+-		if(state->csc_mask & SS_READY) {
++		if (state->csc_mask & SS_READY) {
+ 			e->eventbit = SS_READY;
+-			reg |= e->regbit = 0; //??
++			reg |= e->regbit = 0;	//??
+ 			e++;
+ 		}
+ 	}
+ 
+-	e->regbit = 0;  /* terminate list */
++	e->regbit = 0;		/* terminate list */
+ 
+ 	/*
+ 	 * Clear the status changed .
+@@ -940,7 +949,9 @@ static int m8xx_set_socket(struct pcmcia
+ 	 * Ones will enable the interrupt.
+ 	 */
+ 
+-	reg |= in_be32(&pcmcia->pcmc_per) & (M8XX_PCMCIA_MASK(0) | M8XX_PCMCIA_MASK(1));
++	reg |=
++	    in_be32(&pcmcia->
++		    pcmc_per) & (M8XX_PCMCIA_MASK(0) | M8XX_PCMCIA_MASK(1));
+ 	out_be32(&pcmcia->pcmc_per, reg);
+ 
+ 	spin_unlock_irqrestore(&events_lock, flags);
+@@ -961,67 +972,66 @@ static int m8xx_set_io_map(struct pcmcia
+ 	unsigned int reg, winnr;
+ 	pcmconf8xx_t *pcmcia = s->pcmcia;
+ 
+-
+ #define M8XX_SIZE (io->stop - io->start + 1)
+ #define M8XX_BASE (PCMCIA_IO_WIN_BASE + io->start)
+ 
+-	dprintk( "SetIOMap(%d, %d, %#2.2x, %d ns, "
+-	      "%#4.4x-%#4.4x)\n", lsock, io->map, io->flags,
+-	      io->speed, io->start, io->stop);
++	dprintk("SetIOMap(%d, %d, %#2.2x, %d ns, "
++		"%#4.4x-%#4.4x)\n", lsock, io->map, io->flags,
++		io->speed, io->start, io->stop);
+ 
+ 	if ((io->map >= PCMCIA_IO_WIN_NO) || (io->start > 0xffff)
+ 	    || (io->stop > 0xffff) || (io->stop < io->start))
+ 		return -EINVAL;
+ 
+-	if((reg = m8xx_get_graycode(M8XX_SIZE)) == -1)
++	if ((reg = m8xx_get_graycode(M8XX_SIZE)) == -1)
+ 		return -EINVAL;
+ 
+-	if(io->flags & MAP_ACTIVE) {
++	if (io->flags & MAP_ACTIVE) {
+ 
+-		dprintk( "io->flags & MAP_ACTIVE\n");
++		dprintk("io->flags & MAP_ACTIVE\n");
+ 
+ 		winnr = (PCMCIA_MEM_WIN_NO * PCMCIA_SOCKETS_NO)
+-			+ (lsock * PCMCIA_IO_WIN_NO) + io->map;
++		    + (lsock * PCMCIA_IO_WIN_NO) + io->map;
+ 
+ 		/* setup registers */
+ 
+-		w = (void *) &pcmcia->pcmc_pbr0;
++		w = (void *)&pcmcia->pcmc_pbr0;
+ 		w += winnr;
+ 
+-		out_be32(&w->or, 0); /* turn off window first */
++		out_be32(&w->or, 0);	/* turn off window first */
+ 		out_be32(&w->br, M8XX_BASE);
+ 
+ 		reg <<= 27;
+-  		reg |= M8XX_PCMCIA_POR_IO |(lsock << 2);
++		reg |= M8XX_PCMCIA_POR_IO | (lsock << 2);
+ 
+ 		reg |= m8xx_get_speed(io->speed, 1, s->bus_freq);
+ 
+-		if(io->flags & MAP_WRPROT)
++		if (io->flags & MAP_WRPROT)
+ 			reg |= M8XX_PCMCIA_POR_WRPROT;
+ 
+-		/*if(io->flags & (MAP_16BIT | MAP_AUTOSZ))*/
+-		if(io->flags & MAP_16BIT)
++		/*if(io->flags & (MAP_16BIT | MAP_AUTOSZ)) */
++		if (io->flags & MAP_16BIT)
+ 			reg |= M8XX_PCMCIA_POR_16BIT;
+ 
+-		if(io->flags & MAP_ACTIVE)
++		if (io->flags & MAP_ACTIVE)
+ 			reg |= M8XX_PCMCIA_POR_VALID;
+ 
+ 		out_be32(&w->or, reg);
+ 
+ 		dprintk("Socket %u: Mapped io window %u at %#8.8x, "
+-		      "OR = %#8.8x.\n", lsock, io->map, w->br, w->or);
++			"OR = %#8.8x.\n", lsock, io->map, w->br, w->or);
+ 	} else {
+ 		/* shutdown IO window */
+ 		winnr = (PCMCIA_MEM_WIN_NO * PCMCIA_SOCKETS_NO)
+-			+ (lsock * PCMCIA_IO_WIN_NO) + io->map;
++		    + (lsock * PCMCIA_IO_WIN_NO) + io->map;
+ 
+ 		/* setup registers */
+ 
+-		w = (void *) &pcmcia->pcmc_pbr0;
++		w = (void *)&pcmcia->pcmc_pbr0;
+ 		w += winnr;
+ 
+-		out_be32(&w->or, 0); /* turn off window */
+-		out_be32(&w->br, 0); /* turn off base address */
++		out_be32(&w->or, 0);	/* turn off window */
++		out_be32(&w->br, 0);	/* turn off base address */
+ 
+ 		dprintk("Socket %u: Unmapped io window %u at %#8.8x, "
+ 			"OR = %#8.8x.\n", lsock, io->map, w->br, w->or);
+@@ -1029,15 +1039,14 @@ static int m8xx_set_io_map(struct pcmcia
+ 
+ 	/* copy the struct and modify the copy */
+ 	s->io_win[io->map] = *io;
+-	s->io_win[io->map].flags &= (MAP_WRPROT
+-				     | MAP_16BIT
+-				     | MAP_ACTIVE);
++	s->io_win[io->map].flags &= (MAP_WRPROT | MAP_16BIT | MAP_ACTIVE);
+ 	dprintk("SetIOMap exit\n");
+ 
+ 	return 0;
+ }
+ 
+-static int m8xx_set_mem_map(struct pcmcia_socket *sock, struct pccard_mem_map *mem)
++static int m8xx_set_mem_map(struct pcmcia_socket *sock,
++			    struct pccard_mem_map *mem)
+ {
+ 	int lsock = container_of(sock, struct socket_info, socket)->slot;
+ 	struct socket_info *s = &socket[lsock];
+@@ -1046,19 +1055,19 @@ static int m8xx_set_mem_map(struct pcmci
+ 	unsigned int reg, winnr;
+ 	pcmconf8xx_t *pcmcia = s->pcmcia;
+ 
+-	dprintk( "SetMemMap(%d, %d, %#2.2x, %d ns, "
+-	      "%#5.5lx, %#5.5x)\n", lsock, mem->map, mem->flags,
+-	      mem->speed, mem->static_start, mem->card_start);
++	dprintk("SetMemMap(%d, %d, %#2.2x, %d ns, "
++		"%#5.5lx, %#5.5x)\n", lsock, mem->map, mem->flags,
++		mem->speed, mem->static_start, mem->card_start);
+ 
+ 	if ((mem->map >= PCMCIA_MEM_WIN_NO)
+-//	    || ((mem->s) >= PCMCIA_MEM_WIN_SIZE)
++//          || ((mem->s) >= PCMCIA_MEM_WIN_SIZE)
+ 	    || (mem->card_start >= 0x04000000)
+-	    || (mem->static_start & 0xfff)                /* 4KByte resolution */
+-	    || (mem->card_start & 0xfff))
++	    || (mem->static_start & 0xfff)	/* 4KByte resolution */
++	    ||(mem->card_start & 0xfff))
+ 		return -EINVAL;
+ 
+-	if((reg = m8xx_get_graycode(PCMCIA_MEM_WIN_SIZE)) == -1) {
+-		printk( "Cannot set size to 0x%08x.\n", PCMCIA_MEM_WIN_SIZE);
++	if ((reg = m8xx_get_graycode(PCMCIA_MEM_WIN_SIZE)) == -1) {
++		printk("Cannot set size to 0x%08x.\n", PCMCIA_MEM_WIN_SIZE);
+ 		return -EINVAL;
+ 	}
+ 	reg <<= 27;
+@@ -1067,50 +1076,47 @@ static int m8xx_set_mem_map(struct pcmci
+ 
+ 	/* Setup the window in the pcmcia controller */
+ 
+-	w = (void *) &pcmcia->pcmc_pbr0;
++	w = (void *)&pcmcia->pcmc_pbr0;
+ 	w += winnr;
+ 
+ 	reg |= lsock << 2;
+ 
+ 	reg |= m8xx_get_speed(mem->speed, 0, s->bus_freq);
+ 
+-	if(mem->flags & MAP_ATTRIB)
+-		reg |=  M8XX_PCMCIA_POR_ATTRMEM;
++	if (mem->flags & MAP_ATTRIB)
++		reg |= M8XX_PCMCIA_POR_ATTRMEM;
+ 
+-	if(mem->flags & MAP_WRPROT)
++	if (mem->flags & MAP_WRPROT)
+ 		reg |= M8XX_PCMCIA_POR_WRPROT;
+ 
+-	if(mem->flags & MAP_16BIT)
++	if (mem->flags & MAP_16BIT)
+ 		reg |= M8XX_PCMCIA_POR_16BIT;
+ 
+-	if(mem->flags & MAP_ACTIVE)
++	if (mem->flags & MAP_ACTIVE)
+ 		reg |= M8XX_PCMCIA_POR_VALID;
+ 
+ 	out_be32(&w->or, reg);
+ 
+ 	dprintk("Socket %u: Mapped memory window %u at %#8.8x, "
+-	      "OR = %#8.8x.\n", lsock, mem->map, w->br, w->or);
++		"OR = %#8.8x.\n", lsock, mem->map, w->br, w->or);
+ 
+-	if(mem->flags & MAP_ACTIVE) {
++	if (mem->flags & MAP_ACTIVE) {
+ 		/* get the new base address */
+ 		mem->static_start = PCMCIA_MEM_WIN_BASE +
+-			(PCMCIA_MEM_WIN_SIZE * winnr)
+-			+ mem->card_start;
++		    (PCMCIA_MEM_WIN_SIZE * winnr)
++		    + mem->card_start;
+ 	}
+ 
+ 	dprintk("SetMemMap(%d, %d, %#2.2x, %d ns, "
+-	      "%#5.5lx, %#5.5x)\n", lsock, mem->map, mem->flags,
+-	      mem->speed, mem->static_start, mem->card_start);
++		"%#5.5lx, %#5.5x)\n", lsock, mem->map, mem->flags,
++		mem->speed, mem->static_start, mem->card_start);
+ 
+ 	/* copy the struct and modify the copy */
+ 
+ 	old = &s->mem_win[mem->map];
+ 
+ 	*old = *mem;
+-	old->flags &= (MAP_ATTRIB
+-		       | MAP_WRPROT
+-		       | MAP_16BIT
+-		       | MAP_ACTIVE);
++	old->flags &= (MAP_ATTRIB | MAP_WRPROT | MAP_16BIT | MAP_ACTIVE);
+ 
+ 	return 0;
+ }
+@@ -1121,7 +1127,7 @@ static int m8xx_sock_init(struct pcmcia_
+ 	pccard_io_map io = { 0, 0, 0, 0, 1 };
+ 	pccard_mem_map mem = { 0, 0, 0, 0, 0, 0 };
+ 
+-	dprintk( "sock_init(%d)\n", s);
++	dprintk("sock_init(%d)\n", s);
+ 
+ 	m8xx_set_socket(sock, &dead_socket);
+ 	for (i = 0; i < PCMCIA_IO_WIN_NO; i++) {
+@@ -1143,7 +1149,7 @@ static int m8xx_sock_suspend(struct pcmc
+ }
+ 
+ static struct pccard_operations m8xx_services = {
+-	.init	= m8xx_sock_init,
++	.init = m8xx_sock_init,
+ 	.suspend = m8xx_sock_suspend,
+ 	.get_status = m8xx_get_status,
+ 	.set_socket = m8xx_set_socket,
+@@ -1151,7 +1157,8 @@ static struct pccard_operations m8xx_ser
+ 	.set_mem_map = m8xx_set_mem_map,
+ };
+ 
+-static int __init m8xx_probe(struct of_device *ofdev, const struct of_device_id *match)
++static int __init m8xx_probe(struct of_device *ofdev,
++			     const struct of_device_id *match)
+ {
+ 	struct pcmcia_win *w;
+ 	unsigned int i, m, hwirq;
+@@ -1162,49 +1169,50 @@ static int __init m8xx_probe(struct of_d
+ 	pcmcia_info("%s\n", version);
+ 
+ 	pcmcia = of_iomap(np, 0);
+-	if(pcmcia == NULL)
++	if (pcmcia == NULL)
+ 		return -EINVAL;
+ 
+ 	pcmcia_schlvl = irq_of_parse_and_map(np, 0);
+-	hwirq  = irq_map[pcmcia_schlvl].hwirq;
++	hwirq = irq_map[pcmcia_schlvl].hwirq;
+ 	if (pcmcia_schlvl < 0)
+ 		return -EINVAL;
+ 
+ 	m8xx_pgcrx[0] = &pcmcia->pcmc_pgcra;
+ 	m8xx_pgcrx[1] = &pcmcia->pcmc_pgcrb;
+ 
+-
+ 	pcmcia_info(PCMCIA_BOARD_MSG " using " PCMCIA_SLOT_MSG
+ 		    " with IRQ %u  (%d). \n", pcmcia_schlvl, hwirq);
+ 
+ 	/* Configure Status change interrupt */
+ 
+-	if(request_irq(pcmcia_schlvl, m8xx_interrupt, IRQF_SHARED,
+-			  driver_name, socket)) {
++	if (request_irq(pcmcia_schlvl, m8xx_interrupt, IRQF_SHARED,
++			driver_name, socket)) {
+ 		pcmcia_error("Cannot allocate IRQ %u for SCHLVL!\n",
+ 			     pcmcia_schlvl);
+ 		return -1;
+ 	}
+ 
+-	w = (void *) &pcmcia->pcmc_pbr0;
++	w = (void *)&pcmcia->pcmc_pbr0;
+ 
+-	out_be32(&pcmcia->pcmc_pscr, M8XX_PCMCIA_MASK(0)| M8XX_PCMCIA_MASK(1));
++	out_be32(&pcmcia->pcmc_pscr, M8XX_PCMCIA_MASK(0) | M8XX_PCMCIA_MASK(1));
+ 	clrbits32(&pcmcia->pcmc_per, M8XX_PCMCIA_MASK(0) | M8XX_PCMCIA_MASK(1));
+ 
+ 	/* connect interrupt and disable CxOE */
+ 
+-	out_be32(M8XX_PGCRX(0), M8XX_PGCRX_CXOE | (mk_int_int_mask(hwirq) << 16));
+-	out_be32(M8XX_PGCRX(1), M8XX_PGCRX_CXOE | (mk_int_int_mask(hwirq) << 16));
++	out_be32(M8XX_PGCRX(0),
++		 M8XX_PGCRX_CXOE | (mk_int_int_mask(hwirq) << 16));
++	out_be32(M8XX_PGCRX(1),
++		 M8XX_PGCRX_CXOE | (mk_int_int_mask(hwirq) << 16));
+ 
+ 	/* intialize the fixed memory windows */
+ 
+-	for(i = 0; i < PCMCIA_SOCKETS_NO; i++){
++	for (i = 0; i < PCMCIA_SOCKETS_NO; i++) {
+ 		for (m = 0; m < PCMCIA_MEM_WIN_NO; m++) {
+ 			out_be32(&w->br, PCMCIA_MEM_WIN_BASE +
+-				(PCMCIA_MEM_WIN_SIZE
+-				 * (m + i * PCMCIA_MEM_WIN_NO)));
++				 (PCMCIA_MEM_WIN_SIZE
++				  * (m + i * PCMCIA_MEM_WIN_NO)));
+ 
+-			out_be32(&w->or, 0);  /* set to not valid */
++			out_be32(&w->or, 0);	/* set to not valid */
+ 
+ 			w++;
+ 		}
+@@ -1218,10 +1226,11 @@ static int __init m8xx_probe(struct of_d
+ 	hardware_enable(0);
+ 	hardware_enable(1);
+ 
+-	for (i = 0 ; i < PCMCIA_SOCKETS_NO; i++) {
++	for (i = 0; i < PCMCIA_SOCKETS_NO; i++) {
+ 		socket[i].slot = i;
+ 		socket[i].socket.owner = THIS_MODULE;
+-		socket[i].socket.features = SS_CAP_PCCARD | SS_CAP_MEM_ALIGN | SS_CAP_STATIC_MAP;
++		socket[i].socket.features =
++		    SS_CAP_PCCARD | SS_CAP_MEM_ALIGN | SS_CAP_STATIC_MAP;
+ 		socket[i].socket.irq_mask = 0x000;
+ 		socket[i].socket.map_size = 0x1000;
+ 		socket[i].socket.io_offset = 0;
+@@ -1234,7 +1243,6 @@ static int __init m8xx_probe(struct of_d
+ 		socket[i].bus_freq = ppc_proc_freq;
+ 		socket[i].hwirq = hwirq;
+ 
+-
+ 	}
+ 
+ 	for (i = 0; i < PCMCIA_SOCKETS_NO; i++) {
+@@ -1246,25 +1254,25 @@ static int __init m8xx_probe(struct of_d
+ 	return 0;
+ }
+ 
+-static int m8xx_remove(struct of_device* ofdev)
++static int m8xx_remove(struct of_device *ofdev)
+ {
+ 	u32 m, i;
+ 	struct pcmcia_win *w;
+ 	pcmconf8xx_t *pcmcia = socket[0].pcmcia;
+ 
+ 	for (i = 0; i < PCMCIA_SOCKETS_NO; i++) {
+-		w = (void *) &pcmcia->pcmc_pbr0;
++		w = (void *)&pcmcia->pcmc_pbr0;
+ 
+ 		out_be32(&pcmcia->pcmc_pscr, M8XX_PCMCIA_MASK(i));
+ 		out_be32(&pcmcia->pcmc_per,
+-			in_be32(&pcmcia->pcmc_per) & ~M8XX_PCMCIA_MASK(i));
++			 in_be32(&pcmcia->pcmc_per) & ~M8XX_PCMCIA_MASK(i));
+ 
+ 		/* turn off interrupt and disable CxOE */
+ 		out_be32(M8XX_PGCRX(i), M8XX_PGCRX_CXOE);
+ 
+ 		/* turn off memory windows */
+ 		for (m = 0; m < PCMCIA_MEM_WIN_NO; m++) {
+-			out_be32(&w->or, 0); /* set to not valid */
++			out_be32(&w->or, 0);	/* set to not valid */
+ 			w++;
+ 		}
+ 
+@@ -1299,21 +1307,21 @@ static int m8xx_resume(struct platform_d
+ 
+ static struct of_device_id m8xx_pcmcia_match[] = {
+ 	{
+-		.type = "pcmcia",
+-		.compatible = "fsl,pq-pcmcia",
+-	},
++	 .type = "pcmcia",
++	 .compatible = "fsl,pq-pcmcia",
++	 },
+ 	{},
+ };
+ 
+ MODULE_DEVICE_TABLE(of, m8xx_pcmcia_match);
+ 
+ static struct of_platform_driver m8xx_pcmcia_driver = {
+-	.name		= (char *) driver_name,
+-	.match_table	= m8xx_pcmcia_match,
+-	.probe		= m8xx_probe,
+-	.remove		= m8xx_remove,
+-	.suspend	= m8xx_suspend,
+-	.resume		= m8xx_resume,
++	.name = (char *)driver_name,
++	.match_table = m8xx_pcmcia_match,
++	.probe = m8xx_probe,
++	.remove = m8xx_remove,
++	.suspend = m8xx_suspend,
++	.resume = m8xx_resume,
+ };
+ 
+ static int __init m8xx_init(void)
 _
 
-Patches currently in -mm which might be from samuel.ortiz@solidboot.com=
- are
+Patches currently in -mm which might be from vitb@kernel.crashing.org are
 
 origin.patch
