@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cell-cbe_cpufreq-reorganize-code.patch added to -mm tree
-Date: Wed, 18 Jul 2007 12:51:58 -0700
-Message-ID: <200707181951.l6IJpwd8025913@imap1.linux-foundation.org>
+Subject: + cell-add-support-for-msi-on-axon-based-cell-systems.patch added to -mm tree
+Date: Wed, 18 Jul 2007 12:52:14 -0700
+Message-ID: <200707181952.l6IJqEhK025946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36628 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35752 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758679AbXGRTws (ORCPT
+	by vger.kernel.org with ESMTP id S1758196AbXGRTw4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 15:52:48 -0400
+	Wed, 18 Jul 2007 15:52:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krafft@de.ibm.com, arnd.bergmann@de.ibm.com
+Cc: michael@ellerman.id.au, arnd.bergmann@de.ibm.com
 
 
 The patch titled
-     cell: cbe_cpufreq: reorganize code
+     cell: add support for MSI on Axon-based Cell systems
 has been added to the -mm tree.  Its filename is
-     cell-cbe_cpufreq-reorganize-code.patch
+     cell-add-support-for-msi-on-axon-based-cell-systems.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,634 +26,490 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cell: cbe_cpufreq: reorganize code
-From: Christian Krafft <krafft@de.ibm.com>
+Subject: cell: add support for MSI on Axon-based Cell systems
+From: Michael Ellerman <michael@ellerman.id.au>
 
-This patch reorganizes the code of the driver into three files.  Two
-cbe_cpufreq_pmi.c and cbe_cpufreq_pervasive.c care about hardware. 
-cbe_cpufreq.c contains the logic.
+This patch adds support for the setup and decoding of MSIs on Axon-based Cell
+systems, using the MSIC mechanism.
 
-There is no changed behaviour, except that the PMI related function is now
-located in a seperate module cbe_cpufreq_pmi.  This module will be required by
-cbe_cpufreq, if CONFIG_CBE_CPUFREQ_PMI has been set.
+This involves setting up an area of BE memory which the Axon then uses as a
+FIFO for MSI messages.  When one or more MSIs are decoded by the MSIC we
+receive an interrupt on the MPIC, and the MSI messages are written into the
+FIFO.  At the moment we use a 64KB FIFO, one per MSIC/BE.
 
-Signed-off-by: Christian Krafft <krafft@de.ibm.com>
+Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
 Signed-off-by: Arnd Bergmann <arnd.bergmann@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/Kconfig                 |   10 
- arch/powerpc/platforms/cell/Makefile                |    4 
- arch/powerpc/platforms/cell/cbe_cpufreq.c           |  196 ----------
- arch/powerpc/platforms/cell/cbe_cpufreq.h           |   24 +
- arch/powerpc/platforms/cell/cbe_cpufreq_pervasive.c |  115 +++++
- arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c       |  148 +++++++
- 6 files changed, 309 insertions(+), 188 deletions(-)
+ arch/powerpc/platforms/cell/Makefile   |    2 
+ arch/powerpc/platforms/cell/axon_msi.c |  445 +++++++++++++++++++++++
+ 2 files changed, 447 insertions(+)
 
-diff -puN arch/powerpc/platforms/cell/Kconfig~cell-cbe_cpufreq-reorganize-code arch/powerpc/platforms/cell/Kconfig
---- a/arch/powerpc/platforms/cell/Kconfig~cell-cbe_cpufreq-reorganize-code
-+++ a/arch/powerpc/platforms/cell/Kconfig
-@@ -73,4 +73,14 @@ config CBE_CPUFREQ
- 	  For details, take a look at <file:Documentation/cpu-freq/>.
- 	  If you don't have such processor, say N
- 
-+config CBE_CPUFREQ_PMI
-+	tristate "CBE frequency scaling using PMI interface"
-+	depends on CBE_CPUFREQ && PPC_PMI && EXPERIMENTAL
-+	default n
-+	help
-+	  Select this, if you want to use the PMI interface
-+	  to switch frequencies. Using PMI, the
-+	  processor will not only be able to run at lower speed,
-+	  but also at lower core voltage.
-+
- endmenu
-diff -puN arch/powerpc/platforms/cell/Makefile~cell-cbe_cpufreq-reorganize-code arch/powerpc/platforms/cell/Makefile
---- a/arch/powerpc/platforms/cell/Makefile~cell-cbe_cpufreq-reorganize-code
+diff -puN arch/powerpc/platforms/cell/Makefile~cell-add-support-for-msi-on-axon-based-cell-systems arch/powerpc/platforms/cell/Makefile
+--- a/arch/powerpc/platforms/cell/Makefile~cell-add-support-for-msi-on-axon-based-cell-systems
 +++ a/arch/powerpc/platforms/cell/Makefile
-@@ -4,7 +4,9 @@ obj-$(CONFIG_PPC_CELL_NATIVE)		+= interr
- obj-$(CONFIG_CBE_RAS)			+= ras.o
- 
- obj-$(CONFIG_CBE_THERM)			+= cbe_thermal.o
--obj-$(CONFIG_CBE_CPUFREQ)		+= cbe_cpufreq.o
-+obj-$(CONFIG_CBE_CPUFREQ_PMI)		+= cbe_cpufreq_pmi.o
-+obj-$(CONFIG_CBE_CPUFREQ)		+= cbe-cpufreq.o
-+cbe-cpufreq-y				+= cbe_cpufreq_pervasive.o cbe_cpufreq.o
- 
- ifeq ($(CONFIG_SMP),y)
- obj-$(CONFIG_PPC_CELL_NATIVE)		+= smp.o
-diff -puN arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-cbe_cpufreq-reorganize-code arch/powerpc/platforms/cell/cbe_cpufreq.c
---- a/arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-cbe_cpufreq-reorganize-code
-+++ a/arch/powerpc/platforms/cell/cbe_cpufreq.c
-@@ -1,7 +1,7 @@
- /*
-  * cpufreq driver for the cell processor
-  *
-- * (C) Copyright IBM Deutschland Entwicklung GmbH 2005
-+ * (C) Copyright IBM Deutschland Entwicklung GmbH 2005-2007
-  *
-  * Author: Christian Krafft <krafft@de.ibm.com>
-  *
-@@ -21,18 +21,10 @@
-  */
- 
- #include <linux/cpufreq.h>
--#include <linux/timer.h>
--
--#include <asm/hw_irq.h>
--#include <asm/io.h>
- #include <asm/machdep.h>
--#include <asm/processor.h>
--#include <asm/prom.h>
--#include <asm/time.h>
--#include <asm/pmi.h>
- #include <asm/of_platform.h>
--
--#include "cbe_regs.h"
-+#include <asm/prom.h>
-+#include "cbe_cpufreq.h"
- 
- static DEFINE_MUTEX(cbe_switch_mutex);
- 
-@@ -50,183 +42,24 @@ static struct cpufreq_frequency_table cb
- 	{0,	CPUFREQ_TABLE_END},
- };
- 
--/* to write to MIC register */
--static u64 MIC_Slow_Fast_Timer_table[] = {
--	[0 ... 7] = 0x007fc00000000000ull,
--};
--
--/* more values for the MIC */
--static u64 MIC_Slow_Next_Timer_table[] = {
--	0x0000240000000000ull,
--	0x0000268000000000ull,
--	0x000029C000000000ull,
--	0x00002D0000000000ull,
--	0x0000300000000000ull,
--	0x0000334000000000ull,
--	0x000039C000000000ull,
--	0x00003FC000000000ull,
--};
--
--static u8 pmi_slow_mode_limit[MAX_BE];
--
- /*
-  * hardware specific functions
-  */
- 
--static bool cbe_cpufreq_has_pmi;
--
--#ifdef CONFIG_PPC_PMI
--static int set_pmode_pmi(int cpu, unsigned int pmode)
--{
--	int ret;
--	pmi_message_t pmi_msg;
--#ifdef DEBUG
--	long time;
--#endif
--
--	pmi_msg.type = PMI_TYPE_FREQ_CHANGE;
--	pmi_msg.data1 =	cbe_cpu_to_node(cpu);
--	pmi_msg.data2 = pmode;
--
--#ifdef DEBUG
--	time = jiffies;
--#endif
--
--	pmi_send_message(pmi_msg);
--	ret = pmi_msg.data2;
--
--	pr_debug("PMI returned slow mode %d\n", ret);
--
--#ifdef DEBUG
--	time = jiffies - time; /* actual cycles (not cpu cycles!) */
--	time = jiffies_to_msecs(time);
--	pr_debug("had to wait %lu ms for a transition using PMI.\n", time);
--#endif
--	return ret;
--}
--#endif
--
--static int get_pmode(int cpu)
--{
--	int ret;
--	struct cbe_pmd_regs __iomem *pmd_regs;
--
--	pmd_regs = cbe_get_cpu_pmd_regs(cpu);
--	ret = in_be64(&pmd_regs->pmsr) & 0x07;
--
--	return ret;
--}
--
--static int set_pmode_reg(int cpu, unsigned int pmode)
--{
--	struct cbe_pmd_regs __iomem *pmd_regs;
--	struct cbe_mic_tm_regs __iomem *mic_tm_regs;
--	u64 flags;
--	u64 value;
--#ifdef DEBUG
--	long time;
--#endif
--
--	local_irq_save(flags);
--
--	mic_tm_regs = cbe_get_cpu_mic_tm_regs(cpu);
--	pmd_regs = cbe_get_cpu_pmd_regs(cpu);
--
--#ifdef DEBUG
--	time = jiffies;
--#endif
--	out_be64(&mic_tm_regs->slow_fast_timer_0, MIC_Slow_Fast_Timer_table[pmode]);
--	out_be64(&mic_tm_regs->slow_fast_timer_1, MIC_Slow_Fast_Timer_table[pmode]);
--
--	out_be64(&mic_tm_regs->slow_next_timer_0, MIC_Slow_Next_Timer_table[pmode]);
--	out_be64(&mic_tm_regs->slow_next_timer_1, MIC_Slow_Next_Timer_table[pmode]);
--
--	value = in_be64(&pmd_regs->pmcr);
--	/* set bits to zero */
--	value &= 0xFFFFFFFFFFFFFFF8ull;
--	/* set bits to next pmode */
--	value |= pmode;
--
--	out_be64(&pmd_regs->pmcr, value);
--
--#ifdef DEBUG
--	/* wait until new pmode appears in status register */
--	value = in_be64(&pmd_regs->pmsr) & 0x07;
--	while(value != pmode) {
--		cpu_relax();
--		value = in_be64(&pmd_regs->pmsr) & 0x07;
--	}
--
--	time = jiffies - time;
--	time = jiffies_to_msecs(time);
--	pr_debug("had to wait %lu ms for a transition using " \
--		 "the pervasive unit.\n", time);
--#endif
--	local_irq_restore(flags);
--
--	return 0;
--}
--
--static int set_pmode(int cpu, unsigned int slow_mode)
-+static int set_pmode(unsigned int cpu, unsigned int slow_mode)
- {
- 	int rc;
--#ifdef CONFIG_PPC_PMI
+@@ -25,3 +25,5 @@ obj-$(CONFIG_SPU_BASE)			+= spu_callback
+ 					   $(spu-priv1-y) \
+ 					   $(spu-manage-y) \
+ 					   spufs/
 +
- 	if (cbe_cpufreq_has_pmi)
--		rc = set_pmode_pmi(cpu, slow_mode);
-+		rc = cbe_cpufreq_set_pmode_pmi(cpu, slow_mode);
- 	else
--#endif
--		rc = set_pmode_reg(cpu, slow_mode);
-+		rc = cbe_cpufreq_set_pmode(cpu, slow_mode);
- 
--	pr_debug("register contains slow mode %d\n", get_pmode(cpu));
-+	pr_debug("register contains slow mode %d\n", cbe_cpufreq_get_pmode(cpu));
- 
- 	return rc;
- }
- 
--static void cbe_cpufreq_handle_pmi(pmi_message_t pmi_msg)
--{
--	u8 node; slow_mode;
--
--	BUG_ON(pmi_msg.type != PMI_TYPE_FREQ_CHANGE);
--
--	node = pmi_msg.data1;
--	slow_mode = pmi_msg.data2;
--
--	pmi_slow_mode_limit[node] = slow_mode;
--
--	pr_debug("cbe_handle_pmi: node: %d, max slow_mode=%d\n", slow_mode);
--}
--
--static int pmi_notifier(struct notifier_block *nb,
--				       unsigned long event, void *data)
--{
--	struct cpufreq_policy *policy = data;
--	u8 node;
--
--	node = cbe_cpu_to_node(policy->cpu);
--
--	pr_debug("got notified, event=%lu, node=%u\n", event, node);
--
--	if (pmi_slow_mode_limit[node] != 0) {
--		pr_debug("limiting node %d to slow mode %d\n",
--			 node, pmi_slow_mode_limit[node]);
--
--		cpufreq_verify_within_limits(policy, 0,
--			 cbe_freqs[pmi_slow_mode_limit[node]].frequency);
--	}
--
--	return 0;
--}
--
--static struct notifier_block pmi_notifier_block = {
--	.notifier_call = pmi_notifier,
--};
--
--static struct pmi_handler cbe_pmi_handler = {
--	.type			= PMI_TYPE_FREQ_CHANGE,
--	.handle_pmi_message	= cbe_cpufreq_handle_pmi,
--};
--
--
- /*
-  * cpufreq functions
-  */
-@@ -270,7 +103,7 @@ static int cbe_cpufreq_cpu_init(struct c
- 	 * of a transition */
- 	policy->cpuinfo.transition_latency = 25000;
- 
--	cur_pmode = get_pmode(policy->cpu);
-+	cur_pmode = cbe_cpufreq_get_pmode(policy->cpu);
- 	pr_debug("current pmode is at %d\n",cur_pmode);
- 
- 	policy->cur = cbe_freqs[cur_pmode].frequency;
-@@ -297,7 +130,6 @@ static int cbe_cpufreq_verify(struct cpu
- 	return cpufreq_frequency_table_verify(policy, cbe_freqs);
- }
- 
--
- static int cbe_cpufreq_target(struct cpufreq_policy *policy,
- 			      unsigned int target_freq,
- 			      unsigned int relation)
-@@ -352,22 +184,12 @@ static int __init cbe_cpufreq_init(void)
- 	if (!machine_is(cell))
- 		return -ENODEV;
- 
--	cbe_cpufreq_has_pmi = pmi_register_handler(&cbe_pmi_handler) == 0;
--
--	if (cbe_cpufreq_has_pmi)
--		cpufreq_register_notifier(&pmi_notifier_block, CPUFREQ_POLICY_NOTIFIER);
--
- 	return cpufreq_register_driver(&cbe_cpufreq_driver);
- }
- 
- static void __exit cbe_cpufreq_exit(void)
- {
- 	cpufreq_unregister_driver(&cbe_cpufreq_driver);
--
--	if (cbe_cpufreq_has_pmi) {
--		cpufreq_unregister_notifier(&pmi_notifier_block, CPUFREQ_POLICY_NOTIFIER);
--		pmi_unregister_handler(&cbe_pmi_handler);
--	}
- }
- 
- module_init(cbe_cpufreq_init);
-diff -puN /dev/null arch/powerpc/platforms/cell/cbe_cpufreq.h
++obj-$(CONFIG_PCI_MSI)			+= axon_msi.o
+diff -puN /dev/null arch/powerpc/platforms/cell/axon_msi.c
 --- /dev/null
-+++ a/arch/powerpc/platforms/cell/cbe_cpufreq.h
-@@ -0,0 +1,24 @@
++++ a/arch/powerpc/platforms/cell/axon_msi.c
+@@ -0,0 +1,445 @@
 +/*
-+ * cbe_cpufreq.h
++ * Copyright 2007, Michael Ellerman, IBM Corporation.
 + *
-+ * This file contains the definitions used by the cbe_cpufreq driver.
-+ *
-+ * (C) Copyright IBM Deutschland Entwicklung GmbH 2005-2007
-+ *
-+ * Author: Christian Krafft <krafft@de.ibm.com>
-+ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
 + */
 +
-+#include <linux/cpufreq.h>
-+#include <linux/types.h>
 +
-+int cbe_cpufreq_set_pmode(int cpu, unsigned int pmode);
-+int cbe_cpufreq_get_pmode(int cpu);
-+
-+int cbe_cpufreq_set_pmode_pmi(int cpu, unsigned int pmode);
-+
-+#if defined(CONFIG_CBE_CPUFREQ_PMI) || defined(CONFIG_CBE_CPUFREQ_PMI_MODULE)
-+extern bool cbe_cpufreq_has_pmi;
-+#else
-+#define cbe_cpufreq_has_pmi (0)
-+#endif
-diff -puN /dev/null arch/powerpc/platforms/cell/cbe_cpufreq_pervasive.c
---- /dev/null
-+++ a/arch/powerpc/platforms/cell/cbe_cpufreq_pervasive.c
-@@ -0,0 +1,115 @@
-+/*
-+ * pervasive backend for the cbe_cpufreq driver
-+ *
-+ * This driver makes use of the pervasive unit to
-+ * engage the desired frequency.
-+ *
-+ * (C) Copyright IBM Deutschland Entwicklung GmbH 2005-2007
-+ *
-+ * Author: Christian Krafft <krafft@de.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2, or (at your option)
-+ * any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/io.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
 +#include <linux/kernel.h>
-+#include <linux/time.h>
++#include <linux/pci.h>
++#include <linux/msi.h>
++#include <linux/reboot.h>
++
++#include <asm/dcr.h>
 +#include <asm/machdep.h>
-+#include <asm/hw_irq.h>
-+
-+#include "cbe_regs.h"
-+#include "cbe_cpufreq.h"
-+
-+/* to write to MIC register */
-+static u64 MIC_Slow_Fast_Timer_table[] = {
-+	[0 ... 7] = 0x007fc00000000000ull,
-+};
-+
-+/* more values for the MIC */
-+static u64 MIC_Slow_Next_Timer_table[] = {
-+	0x0000240000000000ull,
-+	0x0000268000000000ull,
-+	0x000029C000000000ull,
-+	0x00002D0000000000ull,
-+	0x0000300000000000ull,
-+	0x0000334000000000ull,
-+	0x000039C000000000ull,
-+	0x00003FC000000000ull,
-+};
-+
-+
-+int cbe_cpufreq_set_pmode(int cpu, unsigned int pmode)
-+{
-+	struct cbe_pmd_regs __iomem *pmd_regs;
-+	struct cbe_mic_tm_regs __iomem *mic_tm_regs;
-+	u64 flags;
-+	u64 value;
-+#ifdef DEBUG
-+	long time;
-+#endif
-+
-+	local_irq_save(flags);
-+
-+	mic_tm_regs = cbe_get_cpu_mic_tm_regs(cpu);
-+	pmd_regs = cbe_get_cpu_pmd_regs(cpu);
-+
-+#ifdef DEBUG
-+	time = jiffies;
-+#endif
-+
-+	out_be64(&mic_tm_regs->slow_fast_timer_0, MIC_Slow_Fast_Timer_table[pmode]);
-+	out_be64(&mic_tm_regs->slow_fast_timer_1, MIC_Slow_Fast_Timer_table[pmode]);
-+
-+	out_be64(&mic_tm_regs->slow_next_timer_0, MIC_Slow_Next_Timer_table[pmode]);
-+	out_be64(&mic_tm_regs->slow_next_timer_1, MIC_Slow_Next_Timer_table[pmode]);
-+
-+	value = in_be64(&pmd_regs->pmcr);
-+	/* set bits to zero */
-+	value &= 0xFFFFFFFFFFFFFFF8ull;
-+	/* set bits to next pmode */
-+	value |= pmode;
-+
-+	out_be64(&pmd_regs->pmcr, value);
-+
-+#ifdef DEBUG
-+	/* wait until new pmode appears in status register */
-+	value = in_be64(&pmd_regs->pmsr) & 0x07;
-+	while (value != pmode) {
-+		cpu_relax();
-+		value = in_be64(&pmd_regs->pmsr) & 0x07;
-+	}
-+
-+	time = jiffies  - time;
-+	time = jiffies_to_msecs(time);
-+	pr_debug("had to wait %lu ms for a transition using " \
-+		 "pervasive unit\n", time);
-+#endif
-+	local_irq_restore(flags);
-+
-+	return 0;
-+}
-+
-+
-+int cbe_cpufreq_get_pmode(int cpu)
-+{
-+	int ret;
-+	struct cbe_pmd_regs __iomem *pmd_regs;
-+
-+	pmd_regs = cbe_get_cpu_pmd_regs(cpu);
-+	ret = in_be64(&pmd_regs->pmsr) & 0x07;
-+
-+	return ret;
-+}
-+
-diff -puN /dev/null arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
---- /dev/null
-+++ a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
-@@ -0,0 +1,148 @@
-+/*
-+ * pmi backend for the cbe_cpufreq driver
-+ *
-+ * (C) Copyright IBM Deutschland Entwicklung GmbH 2005-2007
-+ *
-+ * Author: Christian Krafft <krafft@de.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2, or (at your option)
-+ * any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <linux/timer.h>
-+#include <asm/of_platform.h>
-+#include <asm/processor.h>
 +#include <asm/prom.h>
-+#include <asm/pmi.h>
 +
-+#ifdef DEBUG
-+#include <asm/time.h>
-+#endif
-+
-+#include "cbe_regs.h"
-+#include "cbe_cpufreq.h"
-+
-+static u8 pmi_slow_mode_limit[MAX_CBE];
-+
-+bool cbe_cpufreq_has_pmi = false;
-+EXPORT_SYMBOL_GPL(cbe_cpufreq_has_pmi);
 +
 +/*
-+ * hardware specific functions
++ * MSIC registers, specified as offsets from dcr_base
 + */
++#define MSIC_CTRL_REG	0x0
 +
-+int cbe_cpufreq_set_pmode_pmi(int cpu, unsigned int pmode)
++/* Base Address registers specify FIFO location in BE memory */
++#define MSIC_BASE_ADDR_HI_REG	0x3
++#define MSIC_BASE_ADDR_LO_REG	0x4
++
++/* Hold the read/write offsets into the FIFO */
++#define MSIC_READ_OFFSET_REG	0x5
++#define MSIC_WRITE_OFFSET_REG	0x6
++
++
++/* MSIC control register flags */
++#define MSIC_CTRL_ENABLE		0x0001
++#define MSIC_CTRL_FIFO_FULL_ENABLE	0x0002
++#define MSIC_CTRL_IRQ_ENABLE		0x0008
++#define MSIC_CTRL_FULL_STOP_ENABLE	0x0010
++
++/*
++ * The MSIC can be configured to use a FIFO of 32KB, 64KB, 128KB or 256KB.
++ * Currently we're using a 64KB FIFO size.
++ */
++#define MSIC_FIFO_SIZE_SHIFT	16
++#define MSIC_FIFO_SIZE_BYTES	(1 << MSIC_FIFO_SIZE_SHIFT)
++
++/*
++ * To configure the FIFO size as (1 << n) bytes, we write (n - 15) into bits
++ * 8-9 of the MSIC control reg.
++ */
++#define MSIC_CTRL_FIFO_SIZE	(((MSIC_FIFO_SIZE_SHIFT - 15) << 8) & 0x300)
++
++/*
++ * We need to mask the read/write offsets to make sure they stay within
++ * the bounds of the FIFO. Also they should always be 16-byte aligned.
++ */
++#define MSIC_FIFO_SIZE_MASK	((MSIC_FIFO_SIZE_BYTES - 1) & ~0xFu)
++
++/* Each entry in the FIFO is 16 bytes, the first 4 bytes hold the irq # */
++#define MSIC_FIFO_ENTRY_SIZE	0x10
++
++
++struct axon_msic {
++	struct device_node *dn;
++	struct irq_host *irq_host;
++	__le32 *fifo;
++	dcr_host_t dcr_host;
++	struct list_head list;
++	u32 read_offset;
++	u32 dcr_base;
++};
++
++static LIST_HEAD(axon_msic_list);
++
++static void msic_dcr_write(struct axon_msic *msic, unsigned int dcr_n, u32 val)
 +{
-+	int ret;
-+	pmi_message_t pmi_msg;
-+#ifdef DEBUG
-+	long time;
-+#endif
-+	pmi_msg.type = PMI_TYPE_FREQ_CHANGE;
-+	pmi_msg.data1 =	cbe_cpu_to_node(cpu);
-+	pmi_msg.data2 = pmode;
++	pr_debug("axon_msi: dcr_write(0x%x, 0x%x)\n", val, dcr_n);
 +
-+#ifdef DEBUG
-+	time = jiffies;
-+#endif
-+	pmi_send_message(pmi_msg);
-+
-+#ifdef DEBUG
-+	time = jiffies  - time;
-+	time = jiffies_to_msecs(time);
-+	pr_debug("had to wait %lu ms for a transition using " \
-+		 "PMI\n", time);
-+#endif
-+	ret = pmi_msg.data2;
-+	pr_debug("PMI returned slow mode %d\n", ret);
-+
-+	return ret;
++	dcr_write(msic->dcr_host, msic->dcr_base + dcr_n, val);
 +}
-+EXPORT_SYMBOL_GPL(cbe_cpufreq_set_pmode_pmi);
 +
-+
-+static void cbe_cpufreq_handle_pmi(pmi_message_t pmi_msg)
++static u32 msic_dcr_read(struct axon_msic *msic, unsigned int dcr_n)
 +{
-+	u8 node, slow_mode;
-+
-+	BUG_ON(pmi_msg.type != PMI_TYPE_FREQ_CHANGE);
-+
-+	node = pmi_msg.data1;
-+	slow_mode = pmi_msg.data2;
-+
-+	pmi_slow_mode_limit[node] = slow_mode;
-+
-+	pr_debug("cbe_handle_pmi: node: %d max_freq: %d\n", node, slow_mode);
++	return dcr_read(msic->dcr_host, msic->dcr_base + dcr_n);
 +}
 +
-+static int pmi_notifier(struct notifier_block *nb,
-+				       unsigned long event, void *data)
++static void axon_msi_cascade(unsigned int irq, struct irq_desc *desc)
 +{
-+	struct cpufreq_policy *policy = data;
-+	struct cpufreq_frequency_table *cbe_freqs;
-+	u8 node;
++	struct axon_msic *msic = get_irq_data(irq);
++	u32 write_offset, msi;
++	int idx;
 +
-+	cbe_freqs = cpufreq_frequency_get_table(policy->cpu);
-+	node = cbe_cpu_to_node(policy->cpu);
++	write_offset = msic_dcr_read(msic, MSIC_WRITE_OFFSET_REG);
++	pr_debug("axon_msi: original write_offset 0x%x\n", write_offset);
 +
-+	pr_debug("got notified, event=%lu, node=%u\n", event, node);
++	/* write_offset doesn't wrap properly, so we have to mask it */
++	write_offset &= MSIC_FIFO_SIZE_MASK;
 +
-+	if (pmi_slow_mode_limit[node] != 0) {
-+		pr_debug("limiting node %d to slow mode %d\n",
-+			 node, pmi_slow_mode_limit[node]);
++	while (msic->read_offset != write_offset) {
++		idx  = msic->read_offset / sizeof(__le32);
++		msi  = le32_to_cpu(msic->fifo[idx]);
++		msi &= 0xFFFF;
 +
-+		cpufreq_verify_within_limits(policy, 0,
++		pr_debug("axon_msi: woff %x roff %x msi %x\n",
++			  write_offset, msic->read_offset, msi);
 +
-+			cbe_freqs[pmi_slow_mode_limit[node]].frequency);
++		msic->read_offset += MSIC_FIFO_ENTRY_SIZE;
++		msic->read_offset &= MSIC_FIFO_SIZE_MASK;
++
++		if (msi < NR_IRQS && irq_map[msi].host == msic->irq_host)
++			generic_handle_irq(msi);
++		else
++			pr_debug("axon_msi: invalid irq 0x%x!\n", msi);
 +	}
 +
-+	return 0;
++	desc->chip->eoi(irq);
 +}
 +
-+static struct notifier_block pmi_notifier_block = {
-+	.notifier_call = pmi_notifier,
-+};
-+
-+static struct pmi_handler cbe_pmi_handler = {
-+	.type			= PMI_TYPE_FREQ_CHANGE,
-+	.handle_pmi_message	= cbe_cpufreq_handle_pmi,
-+};
-+
-+
-+
-+static int __init cbe_cpufreq_pmi_init(void)
++static struct axon_msic *find_msi_translator(struct pci_dev *dev)
 +{
-+	cbe_cpufreq_has_pmi = pmi_register_handler(&cbe_pmi_handler) == 0;
++	struct irq_host *irq_host;
++	struct device_node *dn, *tmp;
++	const phandle *ph;
++	struct axon_msic *msic = NULL;
 +
-+	if (!cbe_cpufreq_has_pmi)
++	dn = pci_device_to_OF_node(dev);
++	if (!dn) {
++		dev_dbg(&dev->dev, "axon_msi: no pci_dn found\n");
++		return NULL;
++	}
++
++	for (; dn; tmp = of_get_parent(dn), of_node_put(dn), dn = tmp) {
++		ph = of_get_property(dn, "msi-translator", NULL);
++		if (ph)
++			break;
++	}
++
++	if (!ph) {
++		dev_dbg(&dev->dev,
++			"axon_msi: no msi-translator property found\n");
++		goto out_error;
++	}
++
++	tmp = dn;
++	dn = of_find_node_by_phandle(*ph);
++	if (!dn) {
++		dev_dbg(&dev->dev,
++			"axon_msi: msi-translator doesn't point to a node\n");
++		goto out_error;
++	}
++
++	irq_host = irq_find_host(dn);
++	if (!irq_host) {
++		dev_dbg(&dev->dev, "axon_msi: no irq_host found for node %s\n",
++			dn->full_name);
++		goto out_error;
++	}
++
++	msic = irq_host->host_data;
++
++out_error:
++	of_node_put(dn);
++	of_node_put(tmp);
++
++	return msic;
++}
++
++static int axon_msi_check_device(struct pci_dev *dev, int nvec, int type)
++{
++	if (!find_msi_translator(dev))
 +		return -ENODEV;
 +
-+	cpufreq_register_notifier(&pmi_notifier_block, CPUFREQ_POLICY_NOTIFIER);
++	return 0;
++}
++
++static int setup_msi_msg_address(struct pci_dev *dev, struct msi_msg *msg)
++{
++	struct device_node *dn, *tmp;
++	struct msi_desc *entry;
++	int len;
++	const u32 *prop;
++
++	dn = pci_device_to_OF_node(dev);
++	if (!dn) {
++		dev_dbg(&dev->dev, "axon_msi: no pci_dn found\n");
++		return -ENODEV;
++	}
++
++	entry = list_first_entry(&dev->msi_list, struct msi_desc, list);
++
++	for (; dn; tmp = of_get_parent(dn), of_node_put(dn), dn = tmp) {
++		if (entry->msi_attrib.is_64) {
++			prop = of_get_property(dn, "msi-address-64", &len);
++			if (prop)
++				break;
++		}
++
++		prop = of_get_property(dn, "msi-address-32", &len);
++		if (prop)
++			break;
++	}
++
++	if (!prop) {
++		dev_dbg(&dev->dev,
++			"axon_msi: no msi-address-(32|64) properties found\n");
++		return -ENOENT;
++	}
++
++	switch (len) {
++	case 8:
++		msg->address_hi = prop[0];
++		msg->address_lo = prop[1];
++		break;
++	case 4:
++		msg->address_hi = 0;
++		msg->address_lo = prop[0];
++		break;
++	default:
++		dev_dbg(&dev->dev,
++			"axon_msi: malformed msi-address-(32|64) property\n");
++		of_node_put(dn);
++		return -EINVAL;
++	}
++
++	of_node_put(dn);
 +
 +	return 0;
 +}
 +
-+static void __exit cbe_cpufreq_pmi_exit(void)
++static int axon_msi_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
 +{
-+	cpufreq_unregister_notifier(&pmi_notifier_block, CPUFREQ_POLICY_NOTIFIER);
-+	pmi_unregister_handler(&cbe_pmi_handler);
++	unsigned int virq, rc;
++	struct msi_desc *entry;
++	struct msi_msg msg;
++	struct axon_msic *msic;
++
++	msic = find_msi_translator(dev);
++	if (!msic)
++		return -ENODEV;
++
++	rc = setup_msi_msg_address(dev, &msg);
++	if (rc)
++		return rc;
++
++	/* We rely on being able to stash a virq in a u16 */
++	BUILD_BUG_ON(NR_IRQS > 65536);
++
++	list_for_each_entry(entry, &dev->msi_list, list) {
++		virq = irq_create_direct_mapping(msic->irq_host);
++		if (virq == NO_IRQ) {
++			dev_warn(&dev->dev,
++				 "axon_msi: virq allocation failed!\n");
++			return -1;
++		}
++		dev_dbg(&dev->dev, "axon_msi: allocated virq 0x%x\n", virq);
++
++		set_irq_msi(virq, entry);
++		msg.data = virq;
++		write_msi_msg(virq, &msg);
++	}
++
++	return 0;
 +}
 +
-+module_init(cbe_cpufreq_pmi_init);
-+module_exit(cbe_cpufreq_pmi_exit);
++static void axon_msi_teardown_msi_irqs(struct pci_dev *dev)
++{
++	struct msi_desc *entry;
 +
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Christian Krafft <krafft@de.ibm.com>");
++	dev_dbg(&dev->dev, "axon_msi: tearing down msi irqs\n");
++
++	list_for_each_entry(entry, &dev->msi_list, list) {
++		if (entry->irq == NO_IRQ)
++			continue;
++
++		set_irq_msi(entry->irq, NULL);
++		irq_dispose_mapping(entry->irq);
++	}
++}
++
++static struct irq_chip msic_irq_chip = {
++	.mask		= mask_msi_irq,
++	.unmask		= unmask_msi_irq,
++	.shutdown	= unmask_msi_irq,
++	.typename	= "AXON-MSI",
++};
++
++static int msic_host_map(struct irq_host *h, unsigned int virq,
++			 irq_hw_number_t hw)
++{
++	set_irq_chip_and_handler(virq, &msic_irq_chip, handle_simple_irq);
++
++	return 0;
++}
++
++static int msic_host_match(struct irq_host *host, struct device_node *dn)
++{
++	struct axon_msic *msic = host->host_data;
++
++	return msic->dn == dn;
++}
++
++static struct irq_host_ops msic_host_ops = {
++	.match	= msic_host_match,
++	.map	= msic_host_map,
++};
++
++static int axon_msi_notify_reboot(struct notifier_block *nb,
++				  unsigned long code, void *data)
++{
++	struct axon_msic *msic;
++	u32 tmp;
++
++	list_for_each_entry(msic, &axon_msic_list, list) {
++		pr_debug("axon_msi: disabling %s\n", msic->dn->full_name);
++		tmp  = msic_dcr_read(msic, MSIC_CTRL_REG);
++		tmp &= ~MSIC_CTRL_ENABLE & ~MSIC_CTRL_IRQ_ENABLE;
++		msic_dcr_write(msic, MSIC_CTRL_REG, tmp);
++	}
++
++	return 0;
++}
++
++static struct notifier_block axon_msi_reboot_notifier = {
++	.notifier_call = axon_msi_notify_reboot
++};
++
++static int axon_msi_setup_one(struct device_node *dn)
++{
++	struct page *page;
++	struct axon_msic *msic;
++	unsigned int virq;
++	int dcr_len;
++
++	pr_debug("axon_msi: setting up dn %s\n", dn->full_name);
++
++	msic = kzalloc(sizeof(struct axon_msic), GFP_KERNEL);
++	if (!msic) {
++		printk(KERN_ERR "axon_msi: couldn't allocate msic for %s\n",
++		       dn->full_name);
++		goto out;
++	}
++
++	msic->dcr_base = dcr_resource_start(dn, 0);
++	dcr_len = dcr_resource_len(dn, 0);
++
++	if (msic->dcr_base == 0 || dcr_len == 0) {
++		printk(KERN_ERR
++		       "axon_msi: couldn't parse dcr properties on %s\n",
++			dn->full_name);
++		goto out;
++	}
++
++	msic->dcr_host = dcr_map(dn, msic->dcr_base, dcr_len);
++	if (!DCR_MAP_OK(msic->dcr_host)) {
++		printk(KERN_ERR "axon_msi: dcr_map failed for %s\n",
++		       dn->full_name);
++		goto out_free_msic;
++	}
++
++	page = alloc_pages_node(of_node_to_nid(dn), GFP_KERNEL,
++				get_order(MSIC_FIFO_SIZE_BYTES));
++	if (!page) {
++		printk(KERN_ERR "axon_msi: couldn't allocate fifo for %s\n",
++		       dn->full_name);
++		goto out_free_msic;
++	}
++
++	msic->fifo = page_address(page);
++
++	msic->irq_host = irq_alloc_host(IRQ_HOST_MAP_NOMAP, NR_IRQS,
++					&msic_host_ops, 0);
++	if (!msic->irq_host) {
++		printk(KERN_ERR "axon_msi: couldn't allocate irq_host for %s\n",
++		       dn->full_name);
++		goto out_free_fifo;
++	}
++
++	msic->irq_host->host_data = msic;
++
++	virq = irq_of_parse_and_map(dn, 0);
++	if (virq == NO_IRQ) {
++		printk(KERN_ERR "axon_msi: irq parse and map failed for %s\n",
++		       dn->full_name);
++		goto out_free_host;
++	}
++
++	msic->dn = of_node_get(dn);
++
++	set_irq_data(virq, msic);
++	set_irq_chained_handler(virq, axon_msi_cascade);
++	pr_debug("axon_msi: irq 0x%x setup for axon_msi\n", virq);
++
++	/* Enable the MSIC hardware */
++	msic_dcr_write(msic, MSIC_BASE_ADDR_HI_REG, (u64)msic->fifo >> 32);
++	msic_dcr_write(msic, MSIC_BASE_ADDR_LO_REG,
++				  (u64)msic->fifo & 0xFFFFFFFF);
++	msic_dcr_write(msic, MSIC_CTRL_REG,
++			MSIC_CTRL_IRQ_ENABLE | MSIC_CTRL_ENABLE |
++			MSIC_CTRL_FIFO_SIZE);
++
++	list_add(&msic->list, &axon_msic_list);
++
++	printk(KERN_DEBUG "axon_msi: setup MSIC on %s\n", dn->full_name);
++
++	return 0;
++
++out_free_host:
++	kfree(msic->irq_host);
++out_free_fifo:
++	__free_pages(virt_to_page(msic->fifo), get_order(MSIC_FIFO_SIZE_BYTES));
++out_free_msic:
++	kfree(msic);
++out:
++
++	return -1;
++}
++
++static int axon_msi_init(void)
++{
++	struct device_node *dn;
++	int found = 0;
++
++	pr_debug("axon_msi: initialising ...\n");
++
++	for_each_compatible_node(dn, NULL, "ibm,axon-msic") {
++		if (axon_msi_setup_one(dn) == 0)
++			found++;
++	}
++
++	if (found) {
++		ppc_md.setup_msi_irqs = axon_msi_setup_msi_irqs;
++		ppc_md.teardown_msi_irqs = axon_msi_teardown_msi_irqs;
++		ppc_md.msi_check_device = axon_msi_check_device;
++
++		register_reboot_notifier(&axon_msi_reboot_notifier);
++
++		pr_debug("axon_msi: registered callbacks!\n");
++	}
++
++	return 0;
++}
++arch_initcall(axon_msi_init);
 _
 
-Patches currently in -mm which might be from krafft@de.ibm.com are
+Patches currently in -mm which might be from michael@ellerman.id.au are
 
-cell-pmi-remove-support-for-mutiple-devices.patch
-cell-cbe_cpufreq-fix-latency-measurement.patch
-cell-cbe_cpufreq-fix-initialization.patch
-cell-cbe_cpufreq-fix-minor-issues.patch
-cell-cbe_cpufreq-reorganize-code.patch
-cell-fix-cbe_cpufreq-for-legacy-slof-tree.patch
-cell-fix-cbe_regc-for-legacy-slof-tree.patch
-cell-fix-cbe_thermal-for-legacy-slof-tree.patch
-cell-allow-linux-to-map-cell-regs-on-legacy-slof-tree.patch
-powerpc-sysfs-fix-compiler-warning.patch
+origin.patch
+jprobes-make-struct-jprobeentry-a-void.patch
+jprobes-remove-jprobe_entry.patch
+jprobes-make-jprobes-a-little-safer-for-users.patch
+cell-add-support-for-msi-on-axon-based-cell-systems.patch
