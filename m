@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cell-driver-for-ddr2-memory-on-axon.patch added to -mm tree
-Date: Wed, 18 Jul 2007 12:52:10 -0700
-Message-ID: <200707181952.l6IJqADW025937@imap1.linux-foundation.org>
+Subject: + i386-show-unhandled-signals.patch added to -mm tree
+Date: Wed, 18 Jul 2007 13:09:14 -0700
+Message-ID: <200707182009.l6IK9E2G026603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36452 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38996 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758979AbXGRTzH (ORCPT
+	by vger.kernel.org with ESMTP id S1760256AbXGRUJ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 15:55:07 -0400
+	Wed, 18 Jul 2007 16:09:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maxim@de.ibm.com, arnd.bergmann@de.ibm.com
+Cc: masouds@google.com, ak@suse.de
 
 
 The patch titled
-     cell: driver for DDR2 memory on AXON
+     i386: show unhandled signals
 has been added to the -mm tree.  Its filename is
-     cell-driver-for-ddr2-memory-on-axon.patch
+     i386-show-unhandled-signals.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,458 +26,296 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cell: driver for DDR2 memory on AXON
-From: Maxim Shchetynin <maxim@de.ibm.com>
+Subject: i386: show unhandled signals
+From: Masoud Sharbiani <masouds@google.com>
 
-The Axon bridge chip used on new Cell/B.E.  based blade servers comes with a
-DDR2 memory controller that can be used to attach cheap memory modules, as
-opposed to the high-speed XDR memory that is used by the CPU itself.
+This patch makes the i386 behave the same way that x86_64 does when a
+segfault happens.  A line gets printed to the kernel log so that tools that
+need to check for failures can behave more uniformly between
+debug.show_unhandled_signals sysctl variable to 0 (or by doing echo 0 >
+/proc/sys/debug/exception-trace)
 
-Since the memory controller does not participate in the cache coherency
-protocol, we can not use the memory direcly for Linux applications, but by
-providing a block device it can be used for swap space, temporary file storage
-and through the use of the direct_access block device operation for mapping
-into user addresses, when it is mounted with an appropriate file system.
+Also, all of the lines being printed are now using printk_ratelimit() to
+deny the ability of DoS from a local user with a program like the
+following:
 
-Signed-off-by: Maxim Shchetynin <maxim@de.ibm.com>
-Signed-off-by: Arnd Bergmann <arnd.bergmann@de.ibm.com>
+main()
+{
+       while (1)
+               if (!fork()) *(int *)0 = 0;
+}
+
+Signed-off-by: Masoud Sharbiani <masouds@google.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/Kconfig |   10 
- arch/powerpc/sysdev/Makefile   |    1 
- arch/powerpc/sysdev/axonram.c  |  394 +++++++++++++++++++++++++++++++
- 3 files changed, 405 insertions(+)
+ arch/i386/kernel/signal.c   |    7 ++++++
+ arch/i386/kernel/traps.c    |    7 ++++++
+ arch/i386/mm/fault.c        |   10 +++++++++
+ arch/x86_64/kernel/signal.c |    2 -
+ arch/x86_64/kernel/traps.c  |    6 +++--
+ arch/x86_64/mm/fault.c      |   15 ++------------
+ arch/x86_64/mm/init.c       |   35 ----------------------------------
+ include/asm-x86_64/proto.h  |    2 -
+ include/linux/signal.h      |    3 ++
+ kernel/signal.c             |   10 +++++++++
+ kernel/sysctl.c             |   10 +++++++++
+ 11 files changed, 55 insertions(+), 52 deletions(-)
 
-diff -puN arch/powerpc/platforms/Kconfig~cell-driver-for-ddr2-memory-on-axon arch/powerpc/platforms/Kconfig
---- a/arch/powerpc/platforms/Kconfig~cell-driver-for-ddr2-memory-on-axon
-+++ a/arch/powerpc/platforms/Kconfig
-@@ -272,4 +272,14 @@ config CPM2
- 	  you wish to build a kernel for a machine with a CPM2 coprocessor
- 	  on it (826x, 827x, 8560).
+diff -puN arch/i386/kernel/signal.c~i386-show-unhandled-signals arch/i386/kernel/signal.c
+--- a/arch/i386/kernel/signal.c~i386-show-unhandled-signals
++++ a/arch/i386/kernel/signal.c
+@@ -199,6 +199,13 @@ asmlinkage int sys_sigreturn(unsigned lo
+ 	return eax;
  
-+config AXON_RAM
-+	tristate "Axon DDR2 memory device driver"
-+	depends on PPC_IBM_CELL_BLADE
-+	default m
-+	help
-+	  It registers one block device per Axon's DDR2 memory bank found
-+	  on a system. Block devices are called axonram?, their major and
-+	  minor numbers are available in /proc/devices, /proc/partitions or
-+	  in /sys/block/axonram?/dev.
+ badframe:
++	if (show_unhandled_signals && printk_ratelimit())
++		printk("%s%s[%d] bad frame in sigreturn frame:%p eip:%lx"
++		       " esp:%lx oeax:%lx\n",
++		    current->pid > 1 ? KERN_INFO : KERN_EMERG,
++		    current->comm, current->pid, frame, regs->eip,
++		    regs->esp, regs->orig_eax);
 +
- endmenu
-diff -puN arch/powerpc/sysdev/Makefile~cell-driver-for-ddr2-memory-on-axon arch/powerpc/sysdev/Makefile
---- a/arch/powerpc/sysdev/Makefile~cell-driver-for-ddr2-memory-on-axon
-+++ a/arch/powerpc/sysdev/Makefile
-@@ -17,6 +17,7 @@ obj-$(CONFIG_QUICC_ENGINE)	+= qe_lib/
- mv64x60-$(CONFIG_PCI)		+= mv64x60_pci.o
- obj-$(CONFIG_MV64X60)		+= $(mv64x60-y) mv64x60_pic.o mv64x60_dev.o
- obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc_cmos_setup.o
-+obj-$(CONFIG_AXON_RAM)		+= axonram.o
+ 	force_sig(SIGSEGV, current);
+ 	return 0;
+ }	
+diff -puN arch/i386/kernel/traps.c~i386-show-unhandled-signals arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~i386-show-unhandled-signals
++++ a/arch/i386/kernel/traps.c
+@@ -679,6 +679,13 @@ fastcall void __kprobes do_general_prote
  
- # contains only the suspend handler for time
- ifeq ($(CONFIG_RTC_CLASS),)
-diff -puN /dev/null arch/powerpc/sysdev/axonram.c
---- /dev/null
-+++ a/arch/powerpc/sysdev/axonram.c
-@@ -0,0 +1,394 @@
-+/*
-+ * (C) Copyright IBM Deutschland Entwicklung GmbH 2006
-+ *
-+ * Author: Maxim Shchetynin <maxim@de.ibm.com>
-+ *
-+ * Axon DDR2 device driver.
-+ * It registers one block device per Axon's DDR2 memory bank found on a system.
-+ * Block devices are called axonram?, their major and minor numbers are
-+ * available in /proc/devices, /proc/partitions or in /sys/block/axonram?/dev.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2, or (at your option)
-+ * any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
+ 	current->thread.error_code = error_code;
+ 	current->thread.trap_no = 13;
++	if (show_unhandled_signals && unhandled_signal(current, SIGSEGV) &&
++	    printk_ratelimit())
++		printk(KERN_INFO
++		    "%s[%d] general protection eip:%lx esp:%lx error:%lx\n",
++		    current->comm, current->pid,
++		    regs->eip, regs->esp, error_code);
 +
-+#include <linux/bio.h>
-+#include <linux/blkdev.h>
-+#include <linux/buffer_head.h>
-+#include <linux/device.h>
-+#include <linux/errno.h>
-+#include <linux/fs.h>
-+#include <linux/genhd.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/ioport.h>
-+#include <linux/irq.h>
-+#include <linux/irqreturn.h>
-+#include <linux/kernel.h>
-+#include <linux/mm.h>
-+#include <linux/mod_devicetable.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/string.h>
-+#include <linux/types.h>
-+#include <asm/of_device.h>
-+#include <asm/of_platform.h>
-+#include <asm/page.h>
-+#include <asm/prom.h>
+ 	force_sig(SIGSEGV, current);
+ 	return;
+ 
+diff -puN arch/i386/mm/fault.c~i386-show-unhandled-signals arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~i386-show-unhandled-signals
++++ a/arch/i386/mm/fault.c
+@@ -283,6 +283,8 @@ static inline int vmalloc_fault(unsigned
+ 	return 0;
+ }
+ 
++int show_unhandled_signals = 1;
 +
-+#define AXON_RAM_MODULE_NAME		"axonram"
-+#define AXON_RAM_DEVICE_NAME		"axonram"
-+#define AXON_RAM_MINORS_PER_DISK	16
-+#define AXON_RAM_BLOCK_SHIFT		PAGE_SHIFT
-+#define AXON_RAM_BLOCK_SIZE		1 << AXON_RAM_BLOCK_SHIFT
-+#define AXON_RAM_SECTOR_SHIFT		9
-+#define AXON_RAM_SECTOR_SIZE		1 << AXON_RAM_SECTOR_SHIFT
-+#define AXON_RAM_IRQ_FLAGS		IRQF_SHARED | IRQF_TRIGGER_RISING
-+
-+struct axon_ram_bank {
-+	struct of_device	*device;
-+	struct gendisk		*disk;
-+	unsigned int		irq_correctable;
-+	unsigned int		irq_uncorrectable;
-+	unsigned long		ph_addr;
-+	unsigned long		io_addr;
-+	unsigned long		size;
-+	unsigned long		ecc_counter;
-+};
-+
-+static ssize_t
-+axon_ram_sysfs_ecc(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct of_device *device = to_of_device(dev);
-+	struct axon_ram_bank *bank = device->dev.platform_data;
-+
-+	BUG_ON(!bank);
-+
-+	return sprintf(buf, "%ld\n", bank->ecc_counter);
-+}
-+
-+static DEVICE_ATTR(ecc, S_IRUGO, axon_ram_sysfs_ecc, NULL);
-+
-+/**
-+ * axon_ram_irq_handler - interrupt handler for Axon RAM ECC
-+ * @irq: interrupt ID
-+ * @dev: pointer to of_device
-+ */
-+static irqreturn_t
-+axon_ram_irq_handler(int irq, void *dev)
-+{
-+	struct of_device *device = dev;
-+	struct axon_ram_bank *bank = device->dev.platform_data;
-+
-+	BUG_ON(!bank);
-+
-+	if (irq == bank->irq_correctable) {
-+		dev_err(&device->dev, "Correctable memory error occured\n");
-+		bank->ecc_counter++;
-+		return IRQ_HANDLED;
-+	} else if (irq == bank->irq_uncorrectable) {
-+		dev_err(&device->dev, "Uncorrectable memory error occured\n");
-+		panic("Critical ECC error on %s", device->node->full_name);
-+	}
-+
-+	return IRQ_NONE;
-+}
-+
-+/**
-+ * axon_ram_make_request - make_request() method for block device
-+ * @queue, @bio: see blk_queue_make_request()
-+ */
-+static int
-+axon_ram_make_request(struct request_queue *queue, struct bio *bio)
-+{
-+	struct axon_ram_bank *bank = bio->bi_bdev->bd_disk->private_data;
-+	unsigned long phys_mem, phys_end;
-+	void *user_mem;
-+	struct bio_vec *vec;
-+	unsigned int transfered;
-+	unsigned short idx;
-+	int rc = 0;
-+
-+	phys_mem = bank->io_addr + (bio->bi_sector << AXON_RAM_SECTOR_SHIFT);
-+	phys_end = bank->io_addr + bank->size;
-+	transfered = 0;
-+	bio_for_each_segment(vec, bio, idx) {
-+		if (unlikely(phys_mem + vec->bv_len > phys_end)) {
-+			bio_io_error(bio, bio->bi_size);
-+			rc = -ERANGE;
-+			break;
+ /*
+  * This routine handles page faults.  It determines the address,
+  * and the problem, and then passes it off to one of the appropriate
+@@ -469,6 +471,14 @@ bad_area_nosemaphore:
+ 		if (is_prefetch(regs, address, error_code))
+ 			return;
+ 
++		if (show_unhandled_signals && unhandled_signal(tsk, SIGSEGV) &&
++		    printk_ratelimit()) {
++			printk("%s%s[%d]: segfault at %08lx eip %08lx "
++			    "esp %08lx error %lx\n",
++			    tsk->pid > 1 ? KERN_INFO : KERN_EMERG,
++			    tsk->comm, tsk->pid, address, regs->eip,
++			    regs->esp, error_code);
 +		}
+ 		tsk->thread.cr2 = address;
+ 		/* Kernel addresses are always protection faults */
+ 		tsk->thread.error_code = error_code | (address >= TASK_SIZE);
+diff -puN arch/x86_64/kernel/signal.c~i386-show-unhandled-signals arch/x86_64/kernel/signal.c
+--- a/arch/x86_64/kernel/signal.c~i386-show-unhandled-signals
++++ a/arch/x86_64/kernel/signal.c
+@@ -487,7 +487,7 @@ do_notify_resume(struct pt_regs *regs, v
+ void signal_fault(struct pt_regs *regs, void __user *frame, char *where)
+ { 
+ 	struct task_struct *me = current; 
+-	if (exception_trace)
++	if (show_unhandled_signals && printk_ratelimit())
+ 		printk("%s[%d] bad frame in %s frame:%p rip:%lx rsp:%lx orax:%lx\n",
+ 	       me->comm,me->pid,where,frame,regs->rip,regs->rsp,regs->orig_rax); 
+ 
+diff -puN arch/x86_64/kernel/traps.c~i386-show-unhandled-signals arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~i386-show-unhandled-signals
++++ a/arch/x86_64/kernel/traps.c
+@@ -647,7 +647,8 @@ static void __kprobes do_trap(int trapnr
+ 		tsk->thread.error_code = error_code;
+ 		tsk->thread.trap_no = trapnr;
+ 
+-		if (exception_trace && unhandled_signal(tsk, signr))
++		if (show_unhandled_signals && unhandled_signal(tsk, signr) &&
++		    printk_ratelimit())
+ 			printk(KERN_INFO
+ 			       "%s[%d] trap %s rip:%lx rsp:%lx error:%lx\n",
+ 			       tsk->comm, tsk->pid, str,
+@@ -751,7 +752,8 @@ asmlinkage void __kprobes do_general_pro
+ 		tsk->thread.error_code = error_code;
+ 		tsk->thread.trap_no = 13;
+ 
+-		if (exception_trace && unhandled_signal(tsk, SIGSEGV))
++		if (show_unhandled_signals && unhandled_signal(tsk, SIGSEGV) &&
++		    printk_ratelimit())
+ 			printk(KERN_INFO
+ 		       "%s[%d] general protection rip:%lx rsp:%lx error:%lx\n",
+ 			       tsk->comm, tsk->pid,
+diff -puN arch/x86_64/mm/fault.c~i386-show-unhandled-signals arch/x86_64/mm/fault.c
+--- a/arch/x86_64/mm/fault.c~i386-show-unhandled-signals
++++ a/arch/x86_64/mm/fault.c
+@@ -221,16 +221,6 @@ static int is_errata93(struct pt_regs *r
+ 	return 0;
+ } 
+ 
+-int unhandled_signal(struct task_struct *tsk, int sig)
+-{
+-	if (is_init(tsk))
+-		return 1;
+-	if (tsk->ptrace & PT_PTRACED)
+-		return 0;
+-	return (tsk->sighand->action[sig-1].sa.sa_handler == SIG_IGN) ||
+-		(tsk->sighand->action[sig-1].sa.sa_handler == SIG_DFL);
+-}
+-
+ static noinline void pgtable_bad(unsigned long address, struct pt_regs *regs,
+ 				 unsigned long error_code)
+ {
+@@ -302,7 +292,7 @@ static int vmalloc_fault(unsigned long a
+ }
+ 
+ int page_fault_trace = 0;
+-int exception_trace = 1;
++int show_unhandled_signals = 1;
+ 
+ /*
+  * This routine handles page faults.  It determines the address,
+@@ -494,7 +484,8 @@ bad_area_nosemaphore:
+ 		    (address >> 32))
+ 			return;
+ 
+-		if (exception_trace && unhandled_signal(tsk, SIGSEGV)) {
++		if (show_unhandled_signals && unhandled_signal(tsk, SIGSEGV) &&
++		    printk_ratelimit()) {
+ 			printk(
+ 		       "%s%s[%d]: segfault at %016lx rip %016lx rsp %016lx error %lx\n",
+ 					tsk->pid > 1 ? KERN_INFO : KERN_EMERG,
+diff -puN arch/x86_64/mm/init.c~i386-show-unhandled-signals arch/x86_64/mm/init.c
+--- a/arch/x86_64/mm/init.c~i386-show-unhandled-signals
++++ a/arch/x86_64/mm/init.c
+@@ -701,41 +701,6 @@ int kern_addr_valid(unsigned long addr) 
+ 	return pfn_valid(pte_pfn(*pte));
+ }
+ 
+-#ifdef CONFIG_SYSCTL
+-#include <linux/sysctl.h>
+-
+-extern int exception_trace, page_fault_trace;
+-
+-static ctl_table debug_table2[] = {
+-	{
+-		.ctl_name	= 99,
+-		.procname	= "exception-trace",
+-		.data		= &exception_trace,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec
+-	},
+-	{}
+-}; 
+-
+-static ctl_table debug_root_table2[] = { 
+-	{
+-		.ctl_name = CTL_DEBUG,
+-		.procname = "debug",
+-		.mode = 0555,
+-		.child = debug_table2
+-	},
+-	{}
+-}; 
+-
+-static __init int x8664_sysctl_init(void)
+-{ 
+-	register_sysctl_table(debug_root_table2);
+-	return 0;
+-}
+-__initcall(x8664_sysctl_init);
+-#endif
+-
+ /* A pseudo VMA to allow ptrace access for the vsyscall page.  This only
+    covers the 64bit vsyscall page now. 32bit has a real VMA now and does
+    not need special handling anymore. */
+diff -puN include/asm-x86_64/proto.h~i386-show-unhandled-signals include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~i386-show-unhandled-signals
++++ a/include/asm-x86_64/proto.h
+@@ -72,8 +72,6 @@ extern void setup_node_bootmem(int nodei
+ extern void early_quirks(void);
+ extern void check_efer(void);
+ 
+-extern int unhandled_signal(struct task_struct *tsk, int sig);
+-
+ extern void select_idle_routine(const struct cpuinfo_x86 *c);
+ 
+ extern unsigned long table_start, table_end;
+diff -puN include/linux/signal.h~i386-show-unhandled-signals include/linux/signal.h
+--- a/include/linux/signal.h~i386-show-unhandled-signals
++++ a/include/linux/signal.h
+@@ -237,12 +237,15 @@ extern int group_send_sig_info(int sig, 
+ extern int __group_send_sig_info(int, struct siginfo *, struct task_struct *);
+ extern long do_sigpending(void __user *, unsigned long);
+ extern int sigprocmask(int, sigset_t *, sigset_t *);
++extern int show_unhandled_signals;
+ 
+ struct pt_regs;
+ extern int get_signal_to_deliver(siginfo_t *info, struct k_sigaction *return_ka, struct pt_regs *regs, void *cookie);
+ 
+ extern struct kmem_cache *sighand_cachep;
+ 
++int unhandled_signal(struct task_struct *tsk, int sig);
 +
-+		user_mem = page_address(vec->bv_page) + vec->bv_offset;
-+		if (bio_data_dir(bio) == READ)
-+			memcpy(user_mem, (void *) phys_mem, vec->bv_len);
-+		else
-+			memcpy((void *) phys_mem, user_mem, vec->bv_len);
-+
-+		phys_mem += vec->bv_len;
-+		transfered += vec->bv_len;
-+	}
-+	bio_endio(bio, transfered, 0);
-+
-+	return rc;
-+}
-+
-+/**
-+ * axon_ram_open - open() method for device
-+ * @inode, @file: see file_operations method
-+ */
-+static int
-+axon_ram_open(struct inode *inode, struct file *file)
+ /*
+  * In POSIX a signal is sent either to a specific thread (Linux task)
+  * or to the process as a whole (Linux thread group).  How the signal
+diff -puN kernel/signal.c~i386-show-unhandled-signals kernel/signal.c
+--- a/kernel/signal.c~i386-show-unhandled-signals
++++ a/kernel/signal.c
+@@ -255,6 +255,16 @@ flush_signal_handlers(struct task_struct
+ 	}
+ }
+ 
++int unhandled_signal(struct task_struct *tsk, int sig)
 +{
-+	inode->i_bdev->bd_block_size = AXON_RAM_BLOCK_SIZE;
-+
-+	return 0;
++	if (is_init(tsk))
++		return 1;
++	if (tsk->ptrace & PT_PTRACED)
++		return 0;
++	return (tsk->sighand->action[sig-1].sa.sa_handler == SIG_IGN) ||
++		(tsk->sighand->action[sig-1].sa.sa_handler == SIG_DFL);
 +}
 +
-+/**
-+ * axon_ram_direct_access - direct_access() method for block device
-+ * @device, @sector, @data: see block_device_operations method
-+ */
-+static int
-+axon_ram_direct_access(struct block_device *device, sector_t sector,
-+		       unsigned long *data)
-+{
-+	struct axon_ram_bank *bank = device->bd_disk->private_data;
-+	loff_t offset;
-+
-+	offset = sector << AXON_RAM_SECTOR_SHIFT;
-+	if (offset >= bank->size) {
-+		dev_err(&bank->device->dev, "Access outside of address space\n");
-+		return -ERANGE;
-+	}
-+
-+	*data = bank->ph_addr + offset;
-+
-+	return 0;
-+}
-+
-+static struct block_device_operations axon_ram_devops = {
-+	.owner		= THIS_MODULE,
-+	.open		= axon_ram_open,
-+	.direct_access	= axon_ram_direct_access
-+};
-+
-+/**
-+ * axon_ram_probe - probe() method for platform driver
-+ * @device, @device_id: see of_platform_driver method
-+ */
-+static int
-+axon_ram_probe(struct of_device *device, const struct of_device_id *device_id)
-+{
-+	static int axon_ram_bank_id = -1;
-+	struct axon_ram_bank *bank;
-+	struct resource resource;
-+	int rc = 0;
-+
-+	axon_ram_bank_id++;
-+
-+	dev_info(&device->dev, "Found memory controller on %s\n",
-+			device->node->full_name);
-+
-+	bank = kzalloc(sizeof(struct axon_ram_bank), GFP_KERNEL);
-+	if (bank == NULL) {
-+		dev_err(&device->dev, "Out of memory\n");
-+		rc = -ENOMEM;
-+		goto failed;
-+	}
-+
-+	device->dev.platform_data = bank;
-+
-+	bank->device = device;
-+
-+	if (of_address_to_resource(device->node, 0, &resource) != 0) {
-+		dev_err(&device->dev, "Cannot access device tree\n");
-+		rc = -EFAULT;
-+		goto failed;
-+	}
-+
-+	bank->size = resource.end - resource.start + 1;
-+
-+	if (bank->size == 0) {
-+		dev_err(&device->dev, "No DDR2 memory found for %s%d\n",
-+				AXON_RAM_DEVICE_NAME, axon_ram_bank_id);
-+		rc = -ENODEV;
-+		goto failed;
-+	}
-+
-+	dev_info(&device->dev, "Register DDR2 memory device %s%d with %luMB\n",
-+			AXON_RAM_DEVICE_NAME, axon_ram_bank_id, bank->size >> 20);
-+
-+	bank->ph_addr = resource.start;
-+	bank->io_addr = (unsigned long) ioremap_flags(
-+			bank->ph_addr, bank->size, _PAGE_NO_CACHE);
-+	if (bank->io_addr == 0) {
-+		dev_err(&device->dev, "ioremap() failed\n");
-+		rc = -EFAULT;
-+		goto failed;
-+	}
-+
-+	bank->disk = alloc_disk(AXON_RAM_MINORS_PER_DISK);
-+	if (bank->disk == NULL) {
-+		dev_err(&device->dev, "Cannot register disk\n");
-+		rc = -EFAULT;
-+		goto failed;
-+	}
-+
-+	bank->disk->first_minor = 0;
-+	bank->disk->fops = &axon_ram_devops;
-+	bank->disk->private_data = bank;
-+	bank->disk->driverfs_dev = &device->dev;
-+
-+	sprintf(bank->disk->disk_name, "%s%d",
-+			AXON_RAM_DEVICE_NAME, axon_ram_bank_id);
-+	bank->disk->major = register_blkdev(0, bank->disk->disk_name);
-+	if (bank->disk->major < 0) {
-+		dev_err(&device->dev, "Cannot register block device\n");
-+		rc = -EFAULT;
-+		goto failed;
-+	}
-+
-+	bank->disk->queue = blk_alloc_queue(GFP_KERNEL);
-+	if (bank->disk->queue == NULL) {
-+		dev_err(&device->dev, "Cannot register disk queue\n");
-+		rc = -EFAULT;
-+		goto failed;
-+	}
-+
-+	set_capacity(bank->disk, bank->size >> AXON_RAM_SECTOR_SHIFT);
-+	blk_queue_make_request(bank->disk->queue, axon_ram_make_request);
-+	blk_queue_hardsect_size(bank->disk->queue, AXON_RAM_SECTOR_SIZE);
-+	add_disk(bank->disk);
-+
-+	bank->irq_correctable = irq_of_parse_and_map(device->node, 0);
-+	bank->irq_uncorrectable = irq_of_parse_and_map(device->node, 1);
-+	if ((bank->irq_correctable <= 0) || (bank->irq_uncorrectable <= 0)) {
-+		dev_err(&device->dev, "Cannot access ECC interrupt ID\n");
-+		rc = -EFAULT;
-+		goto failed;
-+	}
-+
-+	rc = request_irq(bank->irq_correctable, axon_ram_irq_handler,
-+			AXON_RAM_IRQ_FLAGS, bank->disk->disk_name, device);
-+	if (rc != 0) {
-+		dev_err(&device->dev, "Cannot register ECC interrupt handler\n");
-+		bank->irq_correctable = bank->irq_uncorrectable = 0;
-+		rc = -EFAULT;
-+		goto failed;
-+	}
-+
-+	rc = request_irq(bank->irq_uncorrectable, axon_ram_irq_handler,
-+			AXON_RAM_IRQ_FLAGS, bank->disk->disk_name, device);
-+	if (rc != 0) {
-+		dev_err(&device->dev, "Cannot register ECC interrupt handler\n");
-+		bank->irq_uncorrectable = 0;
-+		rc = -EFAULT;
-+		goto failed;
-+	}
-+
-+	rc = device_create_file(&device->dev, &dev_attr_ecc);
-+	if (rc != 0) {
-+		dev_err(&device->dev, "Cannot create sysfs file\n");
-+		rc = -EFAULT;
-+		goto failed;
-+	}
-+
-+	return 0;
-+
-+failed:
-+	if (bank != NULL) {
-+		if (bank->irq_uncorrectable > 0)
-+			free_irq(bank->irq_uncorrectable, device);
-+		if (bank->irq_correctable > 0)
-+			free_irq(bank->irq_correctable, device);
-+		if (bank->disk != NULL) {
-+			if (bank->disk->queue != NULL)
-+				blk_cleanup_queue(bank->disk->queue);
-+			if (bank->disk->major > 0)
-+				unregister_blkdev(bank->disk->major,
-+						bank->disk->disk_name);
-+			del_gendisk(bank->disk);
-+		}
-+		device->dev.platform_data = NULL;
-+		if (bank->io_addr != 0)
-+			iounmap((void __iomem *) bank->io_addr);
-+		kfree(bank);
-+	}
-+
-+	return rc;
-+}
-+
-+/**
-+ * axon_ram_remove - remove() method for platform driver
-+ * @device: see of_platform_driver method
-+ */
-+static int
-+axon_ram_remove(struct of_device *device)
-+{
-+	struct axon_ram_bank *bank = device->dev.platform_data;
-+
-+	BUG_ON(!bank || !bank->disk);
-+
-+	device_remove_file(&device->dev, &dev_attr_ecc);
-+	free_irq(bank->irq_uncorrectable, device);
-+	free_irq(bank->irq_correctable, device);
-+	blk_cleanup_queue(bank->disk->queue);
-+	unregister_blkdev(bank->disk->major, bank->disk->disk_name);
-+	del_gendisk(bank->disk);
-+	iounmap((void __iomem *) bank->io_addr);
-+	kfree(bank);
-+
-+	return 0;
-+}
-+
-+static struct of_device_id axon_ram_device_id[] = {
+ 
+ /* Notify the system that a driver wants to block all signals for this
+  * process, and wants to be notified if any signals at all were to be
+diff -puN kernel/sysctl.c~i386-show-unhandled-signals kernel/sysctl.c
+--- a/kernel/sysctl.c~i386-show-unhandled-signals
++++ a/kernel/sysctl.c
+@@ -1200,6 +1200,16 @@ static ctl_table fs_table[] = {
+ };
+ 
+ static ctl_table debug_table[] = {
++#ifdef CONFIG_X86
 +	{
-+		.type	= "dma-memory"
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "exception-trace",
++		.data		= &show_unhandled_signals,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec
 +	},
-+	{}
-+};
-+
-+static struct of_platform_driver axon_ram_driver = {
-+	.owner		= THIS_MODULE,
-+	.name		= AXON_RAM_MODULE_NAME,
-+	.match_table	= axon_ram_device_id,
-+	.probe		= axon_ram_probe,
-+	.remove		= axon_ram_remove
-+};
-+
-+/**
-+ * axon_ram_init
-+ */
-+static int __init
-+axon_ram_init(void)
-+{
-+	return of_register_platform_driver(&axon_ram_driver);
-+}
-+
-+/**
-+ * axon_ram_exit
-+ */
-+static void __exit
-+axon_ram_exit(void)
-+{
-+	of_unregister_platform_driver(&axon_ram_driver);
-+}
-+
-+module_init(axon_ram_init);
-+module_exit(axon_ram_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Maxim Shchetynin <maxim@de.ibm.com>");
-+MODULE_DESCRIPTION("Axon DDR2 RAM device driver for IBM Cell BE");
++#endif
+ 	{ .ctl_name = 0 }
+ };
+ 
 _
 
-Patches currently in -mm which might be from maxim@de.ibm.com are
+Patches currently in -mm which might be from masouds@google.com are
 
-cell-driver-for-ddr2-memory-on-axon.patch
+i386-show-unhandled-signals.patch
