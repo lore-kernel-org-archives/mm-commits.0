@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-add-to-edac-docs.patch added to -mm tree
-Date: Tue, 17 Jul 2007 17:32:57 -0700
-Message-ID: <200707180032.l6I0WvGs015670@imap1.linux-foundation.org>
+Subject: + drivers-edac-new-i82975x-driver.patch added to -mm tree
+Date: Tue, 17 Jul 2007 17:32:49 -0700
+Message-ID: <200707180032.l6I0WnWw015658@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44744 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55565 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936606AbXGRAdI (ORCPT
+	by vger.kernel.org with ESMTP id S1761800AbXGRAdL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 20:33:08 -0400
+	Tue, 17 Jul 2007 20:33:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com
+Cc: rdeskan@jetzbroadband.com, alan@lxorguk.ukuu.org.uk, arvind@acarlab.com, dougthompson@xmission.com, greg@kroah.com, rdeskan@jetxbroadband.com
 
 
 The patch titled
-     drivers/edac: add to edac docs
+     drivers/edac: new i82975x driver
 has been added to the -mm tree.  Its filename is
-     drivers-edac-add-to-edac-docs.patch
+     drivers-edac-new-i82975x-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,378 +26,727 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/edac: add to edac docs
-From: Doug Thompson <dougthompson@xmission.com>
+Subject: drivers/edac: new i82975x driver
+From: Ranganathan Desikan <rdeskan@jetzbroadband.com>
 
-Updated the EDAC kernel documentation
+New EDAC driver for the i82975x memory controller chipset Used on ASUS
+motherboards
 
-Signed-off-by:	Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: <arvind@acarlab.com>
+Signed-off-by: Ranganathan Desikan <rdeskan@jetxbroadband.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Cc: Greg KH <greg@kroah.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/drivers/edac/edac.txt |  192 ++++++++++++++++++++++----
- 1 files changed, 165 insertions(+), 27 deletions(-)
+ drivers/edac/Kconfig        |    7 
+ drivers/edac/Makefile       |    1 
+ drivers/edac/i82975x_edac.c |  667 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 675 insertions(+)
 
-diff -puN Documentation/drivers/edac/edac.txt~drivers-edac-add-to-edac-docs Documentation/drivers/edac/edac.txt
---- a/Documentation/drivers/edac/edac.txt~drivers-edac-add-to-edac-docs
-+++ a/Documentation/drivers/edac/edac.txt
-@@ -2,22 +2,42 @@
+diff -puN drivers/edac/Kconfig~drivers-edac-new-i82975x-driver drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~drivers-edac-new-i82975x-driver
++++ a/drivers/edac/Kconfig
+@@ -88,6 +88,13 @@ config EDAC_I82875P
+ 	  Support for error detection and correction on the Intel
+ 	  DP82785P and E7210 server chipsets.
  
- EDAC - Error Detection And Correction
- 
--Written by Doug Thompson <norsk5@xmission.com>
-+Written by Doug Thompson <dougthompson@xmission.com>
- 7 Dec 2005
-+17 Jul 2007	Updated
- 
- 
--EDAC was written by:
--	Thayne Harbaugh,
--	modified by Dave Peterson, Doug Thompson, et al,
--	from the bluesmoke.sourceforge.net project.
-+EDAC is maintained and written by:
- 
-+	Doug Thompson, Dave Jiang, Dave Peterson et al,
-+	original author: Thayne Harbaugh,
++config EDAC_I82975X
++	tristate "Intel 82975x (D82975x)"
++	depends on EDAC_MM_EDAC && PCI && X86
++	help
++	  Support for error detection and correction on the Intel
++	  DP82975x server chipsets.
 +
-+Contact:
-+	website:	bluesmoke.sourceforge.net
-+	mailing list:	bluesmoke-devel@lists.sourceforge.net
+ config EDAC_I3000
+ 	tristate "Intel 3000/3010"
+ 	depends on EDAC_MM_EDAC && PCI && X86_32
+diff -puN drivers/edac/Makefile~drivers-edac-new-i82975x-driver drivers/edac/Makefile
+--- a/drivers/edac/Makefile~drivers-edac-new-i82975x-driver
++++ a/drivers/edac/Makefile
+@@ -23,6 +23,7 @@ obj-$(CONFIG_EDAC_E7XXX)		+= e7xxx_edac.
+ obj-$(CONFIG_EDAC_E752X)		+= e752x_edac.o
+ obj-$(CONFIG_EDAC_I82443BXGX)		+= i82443bxgx_edac.o
+ obj-$(CONFIG_EDAC_I82875P)		+= i82875p_edac.o
++obj-$(CONFIG_EDAC_I82975X)		+= i82975x_edac.o
+ obj-$(CONFIG_EDAC_I3000)		+= i3000_edac.o
+ obj-$(CONFIG_EDAC_I82860)		+= i82860_edac.o
+ obj-$(CONFIG_EDAC_R82600)		+= r82600_edac.o
+diff -puN /dev/null drivers/edac/i82975x_edac.c
+--- /dev/null
++++ a/drivers/edac/i82975x_edac.c
+@@ -0,0 +1,667 @@
++/*
++ * Intel 82975X Memory Controller kernel module
++ * (C) 2007 aCarLab (India) Pvt. Ltd. (http://acarlab.com)
++ * (C) 2007 jetzbroadband (http://jetzbroadband.com)
++ * This file may be distributed under the terms of the
++ * GNU General Public License.
++ *
++ * Written by Arvind R.
++ *   Copied from i82875p_edac.c source:
++ */
 +
-+"bluesmoke" was the name for this device driver when it was "out-of-tree"
-+and maintained at sourceforge.net.  When it was pushed into 2.6.16 for the
-+first time, it was renamed to 'EDAC'.
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/pci.h>
++#include <linux/pci_ids.h>
++#include <linux/slab.h>
 +
-+The bluesmoke project at sourceforge.net is now utilized as a 'staging area'
-+for EDAC development, before it is sent upstream to kernel.org
++#include "edac_core.h"
 +
-+At the bluesmoke/EDAC project site, is a series of quilt patches against
-+recent kernels, stored in a SVN respository. For easier downloading, there
-+is also a tarball snapshot available.
- 
- ============================================================================
- EDAC PURPOSE
- 
- The 'edac' kernel module goal is to detect and report errors that occur
--within the computer system. In the initial release, memory Correctable Errors
--(CE) and Uncorrectable Errors (UE) are the primary errors being harvested.
-+within the computer system running under linux.
++#define I82975X_REVISION	" Ver: 1.0.0 " __DATE__
++#define EDAC_MOD_STR		"i82975x_edac"
 +
-+MEMORY
++#define i82975x_printk(level, fmt, arg...) \
++	edac_printk(level, "i82975x", fmt, ##arg)
 +
-+In the initial release, memory Correctable Errors (CE) and Uncorrectable
-+Errors (UE) are the primary errors being harvested. These types of errors
-+are harvested by the 'edac_mc' class of device.
- 
- Detecting CE events, then harvesting those events and reporting them,
- CAN be a predictor of future UE events.  With CE events, the system can
-@@ -25,9 +45,27 @@ continue to operate, but with less safet
- proactive part replacement of memory DIMMs exhibiting CEs can reduce
- the likelihood of the dreaded UE events and system 'panics'.
- 
-+NON-MEMORY
++#define i82975x_mc_printk(mci, level, fmt, arg...) \
++	edac_mc_chipset_printk(mci, level, "i82975x", fmt, ##arg)
 +
-+A new feature for EDAC, the edac_device class of device, was added in
-+the 2.6.23 version of the kernel.
++#ifndef PCI_DEVICE_ID_INTEL_82975_0
++#define PCI_DEVICE_ID_INTEL_82975_0	0x277c
++#endif				/* PCI_DEVICE_ID_INTEL_82975_0 */
 +
-+This new device type allows for non-memory type of ECC hardware detectors
-+to have their states harvested and presented to userspace via the sysfs
-+interface.
++#define I82975X_NR_CSROWS(nr_chans)		(8/(nr_chans))
 +
-+Some architectures have ECC detectors for L1, L2 and L3 caches, along with DMA
-+engines, fabric switches, main data path switches, interconnections,
-+and various other hardware data paths. If the hardware reports it, then
-+a edac_device device probably can be constructed to harvest and present
-+that to userspace.
++/* Intel 82975X register addresses - device 0 function 0 - DRAM Controller */
++#define I82975X_EAP		0x58	/* Dram Error Address Pointer (32b)
++					 *
++					 * 31:7  128 byte cache-line address
++					 * 6:1   reserved
++					 * 0     0: CH0; 1: CH1
++					 */
 +
++#define I82975X_DERRSYN		0x5c	/* Dram Error SYNdrome (8b)
++					 *
++					 *  7:0  DRAM ECC Syndrome
++					 */
 +
-+PCI BUS SCANNING
- 
- In addition, PCI Bus Parity and SERR Errors are scanned for on PCI devices
- in order to determine if errors are occurring on data transfers.
++#define I82975X_DES		0x5d	/* Dram ERRor DeSTination (8b)
++					 * 0h:    Processor Memory Reads
++					 * 1h:7h  reserved
++					 * More - See Page 65 of Intel DocSheet.
++					 */
 +
- The presence of PCI Parity errors must be examined with a grain of salt.
- There are several add-in adapters that do NOT follow the PCI specification
- with regards to Parity generation and reporting. The specification says
-@@ -35,11 +73,17 @@ the vendor should tie the parity status 
- to generate parity.  Some vendors do not do this, and thus the parity bit
- can "float" giving false positives.
- 
--[There are patches in the kernel queue which will allow for storage of
--quirks of PCI devices reporting false parity positives. The 2.6.18
--kernel should have those patches included. When that becomes available,
--then EDAC will be patched to utilize that information to "skip" such
--devices.]
-+In the kernel there is a pci device attribute located in sysfs that is
-+checked by the EDAC PCI scanning code. If that attribute is set,
-+PCI parity/error scannining is skipped for that device. The attribute
-+is:
++#define I82975X_ERRSTS		0xc8	/* Error Status Register (16b)
++					 *
++					 * 15:12 reserved
++					 * 11    Thermal Sensor Event
++					 * 10    reserved
++					 *  9    non-DRAM lock error (ndlock)
++					 *  8    Refresh Timeout
++					 *  7:2  reserved
++					 *  1    ECC UE (multibit DRAM error)
++					 *  0    ECC CE (singlebit DRAM error)
++					 */
 +
-+	broken_parity_status
++/* Error Reporting is supported by 3 mechanisms:
++  1. DMI SERR generation  ( ERRCMD )
++  2. SMI DMI  generation  ( SMICMD )
++  3. SCI DMI  generation  ( SCICMD )
++NOTE: Only ONE of the three must be enabled
++*/
++#define I82975X_ERRCMD		0xca	/* Error Command (16b)
++					 *
++					 * 15:12 reserved
++					 * 11    Thermal Sensor Event
++					 * 10    reserved
++					 *  9    non-DRAM lock error (ndlock)
++					 *  8    Refresh Timeout
++					 *  7:2  reserved
++					 *  1    ECC UE (multibit DRAM error)
++					 *  0    ECC CE (singlebit DRAM error)
++					 */
 +
-+as is located in /sys/devices/pci<XXX>/0000:XX:YY.Z directorys for
-+PCI devices.
++#define I82975X_SMICMD		0xcc	/* Error Command (16b)
++					 *
++					 * 15:2  reserved
++					 *  1    ECC UE (multibit DRAM error)
++					 *  0    ECC CE (singlebit DRAM error)
++					 */
 +
-+FUTURE HARDWARE SCANNING
- 
- EDAC will have future error detectors that will be integrated with
- EDAC or added to it, in the following list:
-@@ -57,13 +101,14 @@ and the like.
- ============================================================================
- EDAC VERSIONING
- 
--EDAC is composed of a "core" module (edac_mc.ko) and several Memory
-+EDAC is composed of a "core" module (edac_core.ko) and several Memory
- Controller (MC) driver modules. On a given system, the CORE
- is loaded and one MC driver will be loaded. Both the CORE and
--the MC driver have individual versions that reflect current release
--level of their respective modules.  Thus, to "report" on what version
--a system is running, one must report both the CORE's and the
--MC driver's versions.
-+the MC driver (or edac_device driver) have individual versions that reflect
-+current release level of their respective modules.
++#define I82975X_SCICMD		0xce	/* Error Command (16b)
++					 *
++					 * 15:2  reserved
++					 *  1    ECC UE (multibit DRAM error)
++					 *  0    ECC CE (singlebit DRAM error)
++					 */
 +
-+Thus, to "report" on what version a system is running, one must report both
-+the CORE's and the MC driver's versions.
- 
- 
- LOADING
-@@ -88,8 +133,9 @@ EDAC sysfs INTERFACE
- EDAC presents a 'sysfs' interface for control, reporting and attribute
- reporting purposes.
- 
--EDAC lives in the /sys/devices/system/edac directory. Within this directory
--there currently reside 2 'edac' components:
-+EDAC lives in the /sys/devices/system/edac directory.
++#define I82975X_XEAP	0xfc	/* Extended Dram Error Address Pointer (8b)
++					 *
++					 * 7:1   reserved
++					 * 0     Bit32 of the Dram Error Address
++					 */
 +
-+Within this directory there currently reside 2 'edac' components:
- 
- 	mc	memory controller(s) system
- 	pci	PCI control and status system
-@@ -188,7 +234,7 @@ In directory 'mc' are EDAC system overal
- 
- Panic on UE control file:
- 
--	'panic_on_ue'
-+	'edac_mc_panic_on_ue'
- 
- 	An uncorrectable error will cause a machine panic.  This is usually
- 	desirable.  It is a bad idea to continue when an uncorrectable error
-@@ -199,12 +245,12 @@ Panic on UE control file:
- 
- 	LOAD TIME: module/kernel parameter: panic_on_ue=[0|1]
- 
--	RUN TIME:  echo "1" >/sys/devices/system/edac/mc/panic_on_ue
-+	RUN TIME:  echo "1" >/sys/devices/system/edac/mc/edac_mc_panic_on_ue
- 
- 
- Log UE control file:
- 
--	'log_ue'
-+	'edac_mc_log_ue'
- 
- 	Generate kernel messages describing uncorrectable errors.  These errors
- 	are reported through the system message log system.  UE statistics
-@@ -212,12 +258,12 @@ Log UE control file:
- 
- 	LOAD TIME: module/kernel parameter: log_ue=[0|1]
- 
--	RUN TIME: echo "1" >/sys/devices/system/edac/mc/log_ue
-+	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ue
- 
- 
- Log CE control file:
- 
--	'log_ce'
-+	'edac_mc_log_ce'
- 
- 	Generate kernel messages describing correctable errors.  These
- 	errors are reported through the system message log system.
-@@ -225,12 +271,12 @@ Log CE control file:
- 
- 	LOAD TIME: module/kernel parameter: log_ce=[0|1]
- 
--	RUN TIME: echo "1" >/sys/devices/system/edac/mc/log_ce
-+	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ce
- 
- 
- Polling period control file:
- 
--	'poll_msec'
-+	'edac_mc_poll_msec'
- 
- 	The time period, in milliseconds, for polling for error information.
- 	Too small a value wastes resources.  Too large a value might delay
-@@ -241,7 +287,7 @@ Polling period control file:
- 
- 	LOAD TIME: module/kernel parameter: poll_msec=[0|1]
- 
--	RUN TIME: echo "1000" >/sys/devices/system/edac/mc/poll_msec
-+	RUN TIME: echo "1000" >/sys/devices/system/edac/mc/edac_mc_poll_msec
- 
- 
- ============================================================================
-@@ -587,3 +633,95 @@ Parity Count:
- 
- 
- =======================================================================
++#define I82975X_MCHBAR		0x44	/*
++					 *
++					 * 31:14 Base Addr of 16K memory-mapped
++					 *	configuration space
++					 * 13:1  reserverd
++					 *  0    mem-mapped config space enable
++					 */
++
++/* NOTE: Following addresses have to indexed using MCHBAR offset (44h, 32b) */
++/* Intel 82975x memory mapped register space */
++
++#define I82975X_DRB_SHIFT 25	/* fixed 32MiB grain */
++
++#define I82975X_DRB		0x100	/* DRAM Row Boundary (8b x 8)
++					 *
++					 * 7   set to 1 in highest DRB of
++					 *	channel if 4GB in ch.
++					 * 6:2 upper boundary of rank in
++					 *	32MB grains
++					 * 1:0 set to 0
++					 */
++#define I82975X_DRB_CH0R0		0x100
++#define I82975X_DRB_CH0R1		0x101
++#define I82975X_DRB_CH0R2		0x102
++#define I82975X_DRB_CH0R3		0x103
++#define I82975X_DRB_CH1R0		0x180
++#define I82975X_DRB_CH1R1		0x181
++#define I82975X_DRB_CH1R2		0x182
++#define I82975X_DRB_CH1R3		0x183
 +
 +
-+EDAC_DEVICE type of device
-+
-+In the header file, edac_core.h, there is a series of edac_device structures
-+and APIs for the EDAC_DEVICE.
-+
-+User space access to an edac_device is through the sysfs interface.
-+
-+At the location /sys/devices/system/edac (sysfs) new edac_device devices will
-+appear.
-+
-+There is a three level tree beneath the above 'edac' directory. For example,
-+the 'test_device_edac' device (found at the bluesmoke.sourceforget.net website)
-+installs itself as:
-+
-+	/sys/devices/systm/edac/test-instance
-+
-+in this directory are various controls, a symlink and one or more 'instance'
-+directorys.
-+
-+The standard default controls are:
-+
-+	log_ce		boolean to log CE events
-+	log_ue		boolean to log UE events
-+	panic_on_ue	boolean to 'panic' the system if an UE is encountered
-+			(default off, can be set true via startup script)
-+	poll_msec	time period between POLL cycles for events
-+
-+The test_device_edac device adds at least one of its own custom control:
-+
-+	test_bits	which in the current test driver does nothing but
-+			show how it is installed. A ported driver can
-+			add one or more such controls and/or attributes
-+			for specific uses.
-+			One out-of-tree driver uses controls here to allow
-+			for ERROR INJECTION operations to hardware
-+			injection registers
-+
-+The symlink points to the 'struct dev' that is registered for this edac_device.
-+
-+INSTANCES
-+
-+One or more instance directories are present. For the 'test_device_edac' case:
-+
-+	test-instance0
++#define I82975X_DRA		0x108	/* DRAM Row Attribute (4b x 8)
++					 *  defines the PAGE SIZE to be used
++					 *	for the rank
++					 *  7    reserved
++					 *  6:4  row attr of odd rank, i.e. 1
++					 *  3    reserved
++					 *  2:0  row attr of even rank, i.e. 0
++					 *
++					 * 000 = unpopulated
++					 * 001 = reserved
++					 * 010 = 4KiB
++					 * 011 = 8KiB
++					 * 100 = 16KiB
++					 * others = reserved
++					 */
++#define I82975X_DRA_CH0R01		0x108
++#define I82975X_DRA_CH0R23		0x109
++#define I82975X_DRA_CH1R01		0x188
++#define I82975X_DRA_CH1R23		0x189
 +
 +
-+In this directory there are two default counter attributes, which are totals of
-+counter in deeper subdirectories.
-+
-+	ce_count	total of CE events of subdirectories
-+	ue_count	total of UE events of subdirectories
-+
-+BLOCKS
-+
-+At the lowest directory level is the 'block' directory. There can be 0, 1
-+or more blocks specified in each instance.
-+
-+	test-block0
-+
-+
-+In this directory the default attributes are:
-+
-+	ce_count	which is counter of CE events for this 'block'
-+			of hardware being monitored
-+	ue_count	which is counter of UE events for this 'block'
-+			of hardware being monitored
++#define I82975X_BNKARC	0x10e /* Type of device in each rank - Bank Arch (16b)
++					 *
++					 * 15:8  reserved
++					 * 7:6  Rank 3 architecture
++					 * 5:4  Rank 2 architecture
++					 * 3:2  Rank 1 architecture
++					 * 1:0  Rank 0 architecture
++					 *
++					 * 00 => x16 devices; i.e 4 banks
++					 * 01 => x8  devices; i.e 8 banks
++					 */
++#define I82975X_C0BNKARC	0x10e
++#define I82975X_C1BNKARC	0x18e
 +
 +
-+The 'test_device_edac' device adds 4 attributes and 1 control:
 +
-+	test-block-bits-0	for every POLL cycle this counter
-+				is incremented
-+	test-block-bits-1	every 10 cycles, this counter is bumped once,
-+				and test-block-bits-0 is set to 0
-+	test-block-bits-2	every 100 cycles, this counter is bumped once,
-+				and test-block-bits-1 is set to 0
-+	test-block-bits-3	every 1000 cycles, this counter is bumped once,
-+				and test-block-bits-2 is set to 0
++#define I82975X_DRC		0x120 /* DRAM Controller Mode0 (32b)
++					 *
++					 * 31:30 reserved
++					 * 29    init complete
++					 * 28:11 reserved, according to Intel
++					 *    22:21 number of channels
++					 *		00=1 01=2 in 82875
++					 *		seems to be ECC mode
++					 *		bits in 82975 in Asus
++					 *		P5W
++					 *	 19:18 Data Integ Mode
++					 *		00=none 01=ECC in 82875
++					 * 10:8  refresh mode
++					 *  7    reserved
++					 *  6:4  mode select
++					 *  3:2  reserved
++					 *  1:0  DRAM type 10=Second Revision
++					 *		DDR2 SDRAM
++					 *         00, 01, 11 reserved
++					 */
++#define I82975X_DRC_CH0M0		0x120
++#define I82975X_DRC_CH1M0		0x1A0
 +
 +
-+	reset-counters		writing ANY thing to this control will
-+				reset all the above counters.
++#define I82975X_DRC_M1	0x124 /* DRAM Controller Mode1 (32b)
++					 * 31	0=Standard Address Map
++					 *	1=Enhanced Address Map
++					 * 30:0	reserved
++					 */
 +
++#define I82975X_DRC_CH0M1		0x124
++#define I82975X_DRC_CH1M1		0x1A4
 +
-+Use of the 'test_device_edac' driver should any others to create their own
-+unique drivers for their hardware systems.
++enum i82975x_chips {
++	I82975X = 0,
++};
 +
-+The 'test_device_edac' sample driver is located at the
-+bluesmoke.sourceforge.net project site for EDAC.
++struct i82975x_pvt {
++	void __iomem *mch_window;
++};
 +
++struct i82975x_dev_info {
++	const char *ctl_name;
++};
++
++struct i82975x_error_info {
++	u16 errsts;
++	u32 eap;
++	u8 des;
++	u8 derrsyn;
++	u16 errsts2;
++	u8 chan;		/* the channel is bit 0 of EAP */
++	u8 xeap;		/* extended eap bit */
++};
++
++static const struct i82975x_dev_info i82975x_devs[] = {
++	[I82975X] = {
++		.ctl_name = "i82975x"
++	},
++};
++
++static struct pci_dev *mci_pdev = NULL;	/* init dev: in case that AGP code has
++					 * already registered driver
++					 */
++
++static int i82975x_registered = 1;
++
++static void i82975x_get_error_info(struct mem_ctl_info *mci,
++		struct i82975x_error_info *info)
++{
++	struct pci_dev *pdev;
++
++	pdev = to_pci_dev(mci->dev);
++
++	/*
++	 * This is a mess because there is no atomic way to read all the
++	 * registers at once and the registers can transition from CE being
++	 * overwritten by UE.
++	 */
++	pci_read_config_word(pdev, I82975X_ERRSTS, &info->errsts);
++	pci_read_config_dword(pdev, I82975X_EAP, &info->eap);
++	pci_read_config_byte(pdev, I82975X_XEAP, &info->xeap);
++	pci_read_config_byte(pdev, I82975X_DES, &info->des);
++	pci_read_config_byte(pdev, I82975X_DERRSYN, &info->derrsyn);
++	pci_read_config_word(pdev, I82975X_ERRSTS, &info->errsts2);
++
++	pci_write_bits16(pdev, I82975X_ERRSTS, 0x0003, 0x0003);
++
++	/*
++	 * If the error is the same then we can for both reads then
++	 * the first set of reads is valid.  If there is a change then
++	 * there is a CE no info and the second set of reads is valid
++	 * and should be UE info.
++	 */
++	if (!(info->errsts2 & 0x0003))
++		return;
++
++	if ((info->errsts ^ info->errsts2) & 0x0003) {
++		pci_read_config_dword(pdev, I82975X_EAP, &info->eap);
++		pci_read_config_byte(pdev, I82975X_XEAP, &info->xeap);
++		pci_read_config_byte(pdev, I82975X_DES, &info->des);
++		pci_read_config_byte(pdev, I82975X_DERRSYN,
++				&info->derrsyn);
++	}
++}
++
++static int i82975x_process_error_info(struct mem_ctl_info *mci,
++		struct i82975x_error_info *info, int handle_errors)
++{
++	int row, multi_chan, chan;
++
++	multi_chan = mci->csrows[0].nr_channels - 1;
++
++	if (!(info->errsts2 & 0x0003))
++		return 0;
++
++	if (!handle_errors)
++		return 1;
++
++	if ((info->errsts ^ info->errsts2) & 0x0003) {
++		edac_mc_handle_ce_no_info(mci, "UE overwrote CE");
++		info->errsts = info->errsts2;
++	}
++
++	chan = info->eap & 1;
++	info->eap >>= 1;
++	if (info->xeap )
++		info->eap |= 0x80000000;
++	info->eap >>= PAGE_SHIFT;
++	row = edac_mc_find_csrow_by_page(mci, info->eap);
++
++	if (info->errsts & 0x0002)
++		edac_mc_handle_ue(mci, info->eap, 0, row, "i82975x UE");
++	else
++		edac_mc_handle_ce(mci, info->eap, 0, info->derrsyn, row,
++				multi_chan ? chan : 0,
++				"i82975x CE");
++
++	return 1;
++}
++
++static void i82975x_check(struct mem_ctl_info *mci)
++{
++	struct i82975x_error_info info;
++
++	debugf1("MC%d: %s()\n", mci->mc_idx, __func__);
++	i82975x_get_error_info(mci, &info);
++	i82975x_process_error_info(mci, &info, 1);
++}
++
++/* Return 1 if dual channel mode is active.  Else return 0. */
++static int dual_channel_active(void __iomem *mch_window)
++{
++	/*
++	 * We treat interleaved-symmetric configuration as dual-channel - EAP's
++	 * bit-0 giving the channel of the error location.
++	 *
++	 * All other configurations are treated as single channel - the EAP's
++	 * bit-0 will resolve ok in symmetric area of mixed
++	 * (symmetric/asymmetric) configurations
++	 */
++	u8	drb[ 4 ][ 2 ];
++	int	row;
++	int    dualch;
++
++	for (dualch = 1, row = 0; dualch && ( row < 4 ); row++) {
++		drb[ row ][ 0 ] = readb( mch_window + I82975X_DRB + row);
++		drb[ row ][ 1 ] = readb( mch_window + I82975X_DRB + row + 0x80);
++		dualch = dualch && ( drb[ row ][ 0 ] == drb[ row ][ 1 ] );
++	}
++	return dualch;
++}
++
++static enum dev_type i82975x_dram_type(void __iomem *mch_window,
++	int rank)
++{
++	/*
++	 * ASUS P5W DH either does not program this register or programs
++	 * it wrong!
++	 * ECC is possible on i92975x ONLY with DEV_X8 which should mean 'val'
++	 * for each rank should be 01b - the LSB of the word should be 0x55;
++	 * but it reads 0!
++	 */
++	return DEV_X8;
++}
++
++static void i82975x_init_csrows(struct mem_ctl_info *mci,
++		struct pci_dev *pdev, void __iomem *mch_window)
++{
++	struct csrow_info *csrow;
++	unsigned long last_cumul_size;
++	u8 value;
++	u32 cumul_size;
++	int index;
++
++	last_cumul_size = 0;
++
++	/*
++	 * 82875 comment:
++	 * The dram row boundary (DRB) reg values are boundary address
++	 * for each DRAM row with a granularity of 32 or 64MB (single/dual
++	 * channel operation).  DRB regs are cumulative; therefore DRB7 will
++	 * contain the total memory contained in all eight rows.
++	 *
++	 * FIXME:
++	 *  EDAC currently works for Dual-channel Interleaved configuration.
++	 *  Other configurations, which the chip supports, need fixing/testing.
++	 *
++	 */
++
++	for (index = 0; index < mci->nr_csrows; index++) {
++		csrow = &mci->csrows[index];
++
++		value = readb(mch_window + I82975X_DRB + index +
++					((index >= 4) ? 0x80 : 0));
++		cumul_size = value;
++		cumul_size <<= (I82975X_DRB_SHIFT - PAGE_SHIFT);
++		debugf3("%s(): (%d) cumul_size 0x%x\n", __func__, index,
++			cumul_size);
++		if (cumul_size == last_cumul_size)
++			continue;	/* not populated */
++
++		csrow->first_page = last_cumul_size;
++		csrow->last_page = cumul_size - 1;
++		csrow->nr_pages = cumul_size - last_cumul_size;
++		last_cumul_size = cumul_size;
++		csrow->grain = 1 << 7;	/* I82975X_EAP has 128B resolution */
++		csrow->mtype = MEM_DDR; /* i82975x supports only DDR2 */
++		csrow->dtype = i82975x_dram_type(mch_window, index);
++		csrow->edac_mode = EDAC_SECDED; /* only supported */
++	}
++}
++
++/* #define  i82975x_DEBUG_IOMEM */
++
++#ifdef  i82975x_DEBUG_IOMEM
++static void i82975x_print_dram_timings(void __iomem *mch_window)
++{
++	/*
++	 * The register meanings are from Intel specs;
++	 * (shows 13-5-5-5 for 800-DDR2)
++	 * Asus P5W Bios reports 15-5-4-4
++	 * What's your religion?
++	 */
++	static const int caslats[ 4 ] = { 5, 4, 3, 6 };
++	u32	dtreg[ 2 ];
++
++	dtreg[ 0 ] = readl( mch_window + 0x114 );
++	dtreg[ 1 ] = readl( mch_window + 0x194 );
++	i82975x_printk(KERN_INFO, "DRAM Timings :     Ch0    Ch1\n"
++		"                RAS Active Min = %d     %d\n"
++		"                CAS latency    =  %d      %d\n"
++		"                RAS to CAS     =  %d      %d\n"
++		"                RAS precharge  =  %d      %d\n",
++		( dtreg[ 0 ] >> 19 ) & 0x0f,
++			( dtreg[ 1 ] >> 19 ) & 0x0f,
++		caslats[ ( dtreg[ 0 ] >> 8 ) & 0x03 ],
++			caslats[ ( dtreg[ 1 ] >> 8 ) & 0x03 ],
++		( ( dtreg[ 0 ] >> 4 ) & 0x07 ) + 2,
++			( ( dtreg[ 1 ] >> 4 ) & 0x07 ) + 2,
++		( dtreg[ 0 ] & 0x07 ) + 2,
++			( dtreg[ 1 ] & 0x07 ) + 2
++	);
++
++}
++#endif
++
++static int i82975x_probe1(struct pci_dev *pdev, int dev_idx)
++{
++	int rc = -ENODEV;
++	struct mem_ctl_info *mci;
++	struct i82975x_pvt *pvt;
++	void __iomem *mch_window;
++	u32 mchbar;
++	u32 drc[ 2 ];
++	struct i82975x_error_info discard;
++	int	chans;
++#ifdef i82975x_DEBUG_IOMEM
++	u8 c0drb[ 4 ];
++	u8 c1drb[ 4 ];
++#endif
++
++	debugf0("%s()\n", __func__);
++
++	pci_read_config_dword(pdev, I82975X_MCHBAR, &mchbar);
++	if (!(mchbar & 1 )) {
++		debugf3("%s(): failed, MCHBAR disabled!\n", __func__);
++		goto fail0;
++	}
++	mchbar &= 0xffffc000;	/* bits 31:14 used for 16K window */
++	mch_window = ioremap_nocache( mchbar, 0x1000 );
++
++#ifdef i82975x_DEBUG_IOMEM
++	i82975x_printk(KERN_INFO, "MCHBAR real = %0x, remapped = %p\n",
++					mchbar, mch_window);
++
++	c0drb[ 0 ] = readb( mch_window + I82975X_DRB_CH0R0);
++	c0drb[ 1 ] = readb( mch_window + I82975X_DRB_CH0R1);
++	c0drb[ 2 ] = readb( mch_window + I82975X_DRB_CH0R2);
++	c0drb[ 3 ] = readb( mch_window + I82975X_DRB_CH0R3);
++	c1drb[ 0 ] = readb( mch_window + I82975X_DRB_CH1R0);
++	c1drb[ 1 ] = readb( mch_window + I82975X_DRB_CH1R1);
++	c1drb[ 2 ] = readb( mch_window + I82975X_DRB_CH1R2);
++	c1drb[ 3 ] = readb( mch_window + I82975X_DRB_CH1R3);
++	i82975x_printk(KERN_INFO, "DRBCH0R0 = 0x%02x\n", c0drb[ 0 ]);
++	i82975x_printk(KERN_INFO, "DRBCH0R1 = 0x%02x\n", c0drb[ 1 ]);
++	i82975x_printk(KERN_INFO, "DRBCH0R2 = 0x%02x\n", c0drb[ 2 ]);
++	i82975x_printk(KERN_INFO, "DRBCH0R3 = 0x%02x\n", c0drb[ 3 ]);
++	i82975x_printk(KERN_INFO, "DRBCH1R0 = 0x%02x\n", c1drb[ 0 ]);
++	i82975x_printk(KERN_INFO, "DRBCH1R1 = 0x%02x\n", c1drb[ 1 ]);
++	i82975x_printk(KERN_INFO, "DRBCH1R2 = 0x%02x\n", c1drb[ 2 ]);
++	i82975x_printk(KERN_INFO, "DRBCH1R3 = 0x%02x\n", c1drb[ 3 ]);
++#endif
++
++	drc[ 0 ] = readl( mch_window + I82975X_DRC_CH0M0 );
++	drc[ 1 ] = readl( mch_window + I82975X_DRC_CH1M0 );
++#ifdef i82975x_DEBUG_IOMEM
++	i82975x_printk(KERN_INFO, "DRC_CH0 = %0x, %s\n", drc[ 0 ],
++			( ( drc[ 0 ] >> 21 ) & 3 ) == 1 ?
++				"ECC enabled" : "ECC disabled" );
++	i82975x_printk(KERN_INFO, "DRC_CH1 = %0x, %s\n", drc[ 1 ],
++			( ( drc[ 1 ] >> 21 ) & 3 ) == 1 ?
++				"ECC enabled" : "ECC disabled" );
++
++	i82975x_printk(KERN_INFO, "C0 BNKARC = %0x\n",
++		readw( mch_window + I82975X_C0BNKARC ) );
++	i82975x_printk(KERN_INFO, "C1 BNKARC = %0x\n",
++		readw( mch_window + I82975X_C1BNKARC ) );
++	i82975x_print_dram_timings( mch_window );
++	goto fail1;
++#endif
++	if (!(((drc[ 0 ] >> 21) & 3) == 1 || ((drc[ 1 ] >> 21) & 3) == 1 )) {
++		i82975x_printk(KERN_INFO, "ECC disabled on both channels.\n");
++		goto fail1;
++	}
++
++	chans = dual_channel_active( mch_window ) + 1;
++
++	/* assuming only one controller, index thus is 0 */
++	mci = edac_mc_alloc(sizeof(*pvt), I82975X_NR_CSROWS( chans ),
++					chans, 0);
++	if (!mci) {
++		rc = -ENOMEM;
++		goto fail1;
++	}
++
++	debugf3("%s(): init mci\n", __func__);
++	mci->dev = &pdev->dev;
++	mci->mtype_cap = MEM_FLAG_DDR;
++	mci->edac_ctl_cap = EDAC_FLAG_NONE | EDAC_FLAG_SECDED;
++	mci->edac_cap = EDAC_FLAG_NONE | EDAC_FLAG_SECDED;
++	mci->mod_name = EDAC_MOD_STR;
++	mci->mod_ver = I82975X_REVISION;
++	mci->ctl_name = i82975x_devs[dev_idx].ctl_name;
++	mci->edac_check = i82975x_check;
++	mci->ctl_page_to_phys = NULL;
++	debugf3("%s(): init pvt\n", __func__);
++	pvt = (struct i82975x_pvt *) mci->pvt_info;
++	pvt->mch_window = mch_window;
++	i82975x_init_csrows(mci, pdev, mch_window);
++	i82975x_get_error_info(mci, &discard);  /* clear counters */
++
++	/* finalize this instance of memory controller with edac core */
++	if (edac_mc_add_mc(mci)) {
++		debugf3("%s(): failed edac_mc_add_mc()\n", __func__);
++		goto fail2;
++	}
++
++	/* get this far and it's successful */
++	debugf3("%s(): success\n", __func__);
++	return 0;
++
++fail2:
++	edac_mc_free(mci);
++
++fail1:
++	iounmap(mch_window);
++fail0:
++	return rc;
++}
++
++/* returns count (>= 0), or negative on error */
++static int __devinit i82975x_init_one(struct pci_dev *pdev,
++		const struct pci_device_id *ent)
++{
++	int rc;
++
++	debugf0("%s()\n", __func__);
++
++	if (pci_enable_device(pdev) < 0)
++		return -EIO;
++
++	rc = i82975x_probe1(pdev, ent->driver_data);
++
++	if (mci_pdev == NULL)
++		mci_pdev = pci_dev_get(pdev);
++
++	return rc;
++}
++
++static void __devexit i82975x_remove_one(struct pci_dev *pdev)
++{
++	struct mem_ctl_info *mci;
++	struct i82975x_pvt *pvt;
++
++	debugf0("%s()\n", __func__);
++
++	mci = edac_mc_del_mc(&pdev->dev);
++	if (mci  == NULL)
++		return;
++
++	pvt = mci->pvt_info;
++	if (pvt->mch_window)
++		iounmap( pvt->mch_window );
++
++	edac_mc_free(mci);
++}
++
++static const struct pci_device_id i82975x_pci_tbl[] __devinitdata = {
++	{
++		PCI_VEND_DEV(INTEL, 82975_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
++		I82975X
++	},
++	{
++		0,
++	}	/* 0 terminated list. */
++};
++
++MODULE_DEVICE_TABLE(pci, i82975x_pci_tbl);
++
++static struct pci_driver i82975x_driver = {
++	.name = EDAC_MOD_STR,
++	.probe = i82975x_init_one,
++	.remove = __devexit_p(i82975x_remove_one),
++	.id_table = i82975x_pci_tbl,
++};
++
++static int __init i82975x_init(void)
++{
++	int pci_rc;
++
++	debugf3("%s()\n", __func__);
++
++	pci_rc = pci_register_driver(&i82975x_driver);
++	if (pci_rc < 0)
++		goto fail0;
++
++	if (mci_pdev == NULL) {
++		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
++				PCI_DEVICE_ID_INTEL_82975_0, NULL);
++
++		if (!mci_pdev) {
++			debugf0("i82975x pci_get_device fail\n");
++			pci_rc = -ENODEV;
++			goto fail1;
++		}
++
++		pci_rc = i82975x_init_one(mci_pdev, i82975x_pci_tbl);
++
++		if (pci_rc < 0) {
++			debugf0("i82975x init fail\n");
++			pci_rc = -ENODEV;
++			goto fail1;
++		}
++	}
++
++	return 0;
++
++fail1:
++	pci_unregister_driver(&i82975x_driver);
++
++fail0:
++	if (mci_pdev != NULL)
++		pci_dev_put(mci_pdev);
++
++	return pci_rc;
++}
++
++static void __exit i82975x_exit(void)
++{
++	debugf3("%s()\n", __func__);
++
++	pci_unregister_driver(&i82975x_driver);
++
++	if (!i82975x_registered) {
++		i82975x_remove_one(mci_pdev);
++		pci_dev_put(mci_pdev);
++	}
++}
++
++module_init(i82975x_init);
++module_exit(i82975x_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Arvind R. <arvind@acarlab.com>");
++MODULE_DESCRIPTION("MC support for Intel 82975 memory hub controllers");
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from rdeskan@jetzbroadband.com are
 
-drivers-edac-add-edac_mc_find-api.patch
-drivers-edac-add-rddr2-memory-types.patch
-drivers-edac-split-out-functions-to-unique-files.patch
-drivers-edac-add-edac_device-class.patch
-drivers-edac-mc-sysfs-add-missing-mem-types.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
-drivers-edac-coreh-fix-scrubdefs.patch
-drivers-edac-new-i82443bxgz-mc-driver.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-add-new-nmi-rescan.patch
-drivers-edac-mod-use-edac_coreh.patch
-drivers-edac-add-dev_name-getter-function.patch
-drivers-edac-new-inte-30x0-mc-driver.patch
-drivers-edac-mod-mc-to-use-workq-instead-of-kthread.patch
-drivers-edac-updated-pci-monitoring.patch
-drivers-edac-mod-assert_error-check.patch
-drivers-edac-core-lindent-cleanup.patch
-drivers-edac-edac_device-sysfs-cleanup.patch
-drivers-edac-cleanup-workq-ifdefs.patch
-drivers-edac-lindent-amd76x.patch
-drivers-edac-lindent-i5000.patch
-drivers-edac-lindent-e7xxx.patch
-drivers-edac-lindent-i3000.patch
-drivers-edac-lindent-i82860.patch
-drivers-edac-lindent-i82875p.patch
-drivers-edac-lindent-e752x.patch
-drivers-edac-lindent-i82443bxgx.patch
-drivers-edac-lindent-r82600.patch
-drivers-edac-drivers-to-use-new-pci-operation.patch
-drivers-edac-add-device-sysfs-attributes.patch
-drivers-edac-device-output-clenaup.patch
-drivers-edac-add-info-kconfig.patch
-drivers-edac-update-maintainers-files-for-edac.patch
-drivers-edac-cleanup-spaces-gotos-after-lindent-messup.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-driver-edac-i5000-define-typo.patch
-driver-edac-remove-null-from-statics.patch
-driver-edac-i5000-code-tidying.patch
-driver-edac-edac_device-code-tidying.patch
-driver-edac-mod-edac_align_ptr-function.patch
-driver-edac-mod-edac_opt_state_to_string-function.patch
-driver-edac-remove-file-edac_mc-h.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
-drivers-edac-code-tidying-on-export-gpl.patch
-drivers-edac-fix-workq-reset-deadlock.patch
 drivers-edac-new-i82975x-driver.patch
 drivers-edac-new-i82975x-driver-fix.patch
-drivers-edac-add-to-maintainers-new-info.patch
-drivers-edac-fix-edac_device-sysfs-corner-case-bug.patch
-drivers-edac-add-to-edac-docs.patch
