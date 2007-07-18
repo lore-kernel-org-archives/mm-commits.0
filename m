@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + udf-convert-to-new-aops-fix.patch added to -mm tree
-Date: Wed, 18 Jul 2007 16:01:06 -0700
-Message-ID: <200707182301.l6IN16t0001146@imap1.linux-foundation.org>
+Subject: + sched-fix-newly-idle-load-balance-in-case-of-smt.patch added to -mm tree
+Date: Wed, 18 Jul 2007 16:07:17 -0700
+Message-ID: <200707182307.l6IN7H9G001387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43814 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59415 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761541AbXGRXBq (ORCPT
+	by vger.kernel.org with ESMTP id S1755889AbXGRXH3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 19:01:46 -0400
+	Wed, 18 Jul 2007 19:07:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: suresh.b.siddha@intel.com, mingo@elte.hu, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     udf convert to new aops fix
+     sched: fix newly idle load balance in case of SMT
 has been added to the -mm tree.  Its filename is
-     udf-convert-to-new-aops-fix.patch
+     sched-fix-newly-idle-load-balance-in-case-of-smt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,87 +26,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: udf convert to new aops fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: sched: fix newly idle load balance in case of SMT
+From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 
+In the presence of SMT, newly idle balance was never happening for multi-core
+and SMP domains(even when both the logical siblings are idle).
 
+If thread 0 is already idle and when thread 1 is about to go to idle, newly
+idle load balance always think that one of the threads is not idle and skips
+doing the newly idle load balance for multi-core and SMP domains.
 
+This is because of the idle_cpu() macro, which checks if the current process
+on a cpu is an idle process.  But this is not the case for the thread doing
+the load_balance_newidle().
+
+Fix this by using runqueue's nr_running field instead of idle_cpu().  And also
+skip the logic of 'only one idle cpu in the group will be doing load
+balancing' during newly idle case.
+
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c |    1 +
- 1 files changed, 1 insertion(+)
+ kernel/sched.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/udf/inode.c~udf-convert-to-new-aops-fix fs/udf/inode.c
---- a/fs/udf/inode.c~udf-convert-to-new-aops-fix
-+++ a/fs/udf/inode.c
-@@ -136,6 +136,7 @@ static int udf_write_begin(struct file *
- 			loff_t pos, unsigned len, unsigned flags,
- 			struct page **pagep, void **fsdata)
- {
-+	*pagep = NULL;
- 	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
- 				udf_get_block);
- }
+diff -puN kernel/sched.c~sched-fix-newly-idle-load-balance-in-case-of-smt kernel/sched.c
+--- a/kernel/sched.c~sched-fix-newly-idle-load-balance-in-case-of-smt
++++ a/kernel/sched.c
+@@ -2235,7 +2235,7 @@ find_busiest_group(struct sched_domain *
+ 
+ 			rq = cpu_rq(i);
+ 
+-			if (*sd_idle && !idle_cpu(i))
++			if (*sd_idle && rq->nr_running)
+ 				*sd_idle = 0;
+ 
+ 			/* Bias balancing toward cpus of our domain */
+@@ -2257,9 +2257,11 @@ find_busiest_group(struct sched_domain *
+ 		/*
+ 		 * First idle cpu or the first cpu(busiest) in this sched group
+ 		 * is eligible for doing load balancing at this and above
+-		 * domains.
++		 * domains. In the newly idle case, we will allow all the cpu's
++		 * to do the newly idle load balance.
+ 		 */
+-		if (local_group && balance_cpu != this_cpu && balance) {
++		if (idle != CPU_NEWLY_IDLE && local_group &&
++		    balance_cpu != this_cpu && balance) {
+ 			*balance = 0;
+ 			goto ret;
+ 		}
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
-origin.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-fault-feedback-1.patch
-mm-fault-feedback-2.patch
-mm-fault-feedback-2-fix.patch
-mm-fault-feedback-2-fix-2.patch
-mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
-xfs-convert-to-new-aops.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
-hostfs-convert-to-new-aops.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-udf-convert-to-new-aops.patch
-udf-convert-to-new-aops-fix.patch
-sysv-convert-to-new-aops.patch
-minix-convert-to-new-aops.patch
-jfs-convert-to-new-aops.patch
-fs-adfs-convert-to-new-aops.patch
-fs-affs-convert-to-new-aops.patch
-ocfs2-convert-to-new-aops.patch
-fs-remove-some-aop_truncated_page.patch
-fs-reiserfs-cleanups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-reiser4-fix-for-new-aops-patches.patch
+define-new-percpu-interface-for-shared-data-version-4.patch
+use-the-new-percpu-interface-for-shared-data-version-4.patch
+sched-fix-newly-idle-load-balance-in-case-of-smt.patch
+sched-fix-the-all-pinned-logic-in-load_balance_newidle.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
