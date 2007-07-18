@@ -1,76 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-zero_user_page-conversion.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 11:52:50 -0700
-Message-ID: <200707181852.l6IIqoOq023715@imap1.linux-foundation.org>
+Subject: - ext4-remove-extra-is_rdonly-check.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 11:52:52 -0700
+Message-ID: <200707181852.l6IIqqdg023718__30257.7631119222$1184784922$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58371 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57475 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934712AbXGRSzM (ORCPT
+	by vger.kernel.org with ESMTP id S934613AbXGRSzL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 14:55:12 -0400
+	Wed, 18 Jul 2007 14:55:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: zero_user_page() conversions
+     ext4: remove extra IS_RDONLY() check
 has been removed from the -mm tree.  Its filename was
-     ext4-zero_user_page-conversion.patch
+     ext4-remove-extra-is_rdonly-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext4: zero_user_page() conversions
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: ext4: remove extra IS_RDONLY() check
+From: Dave Hansen <haveblue@us.ibm.com>
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+ext4_change_inode_journal_flag() is only called from one location:
+ext4_ioctl(EXT3_IOC_SETFLAGS).  That ioctl case already has a IS_RDONLY()
+call in it so this one is superfluous.
+
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ fs/ext4/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/inode.c~ext4-zero_user_page-conversion fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-zero_user_page-conversion
+diff -puN fs/ext4/inode.c~ext4-remove-extra-is_rdonly-check fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-remove-extra-is_rdonly-check
 +++ a/fs/ext4/inode.c
-@@ -1860,7 +1860,6 @@ int ext4_block_truncate_page(handle_t *h
- 	struct inode *inode = mapping->host;
- 	struct buffer_head *bh;
- 	int err = 0;
--	void *kaddr;
- 
- 	if ((EXT4_I(inode)->i_flags & EXT4_EXTENTS_FL) &&
- 			test_opt(inode->i_sb, EXTENTS) &&
-@@ -1877,10 +1876,7 @@ int ext4_block_truncate_page(handle_t *h
+@@ -3382,7 +3382,7 @@ int ext4_change_inode_journal_flag(struc
  	 */
- 	if (!page_has_buffers(page) && test_opt(inode->i_sb, NOBH) &&
- 	     ext4_should_writeback_data(inode) && PageUptodate(page)) {
--		kaddr = kmap_atomic(page, KM_USER0);
--		memset(kaddr + offset, 0, length);
--		flush_dcache_page(page);
--		kunmap_atomic(kaddr, KM_USER0);
-+		zero_user_page(page, offset, length, KM_USER0);
- 		set_page_dirty(page);
- 		goto unlock;
- 	}
-@@ -1933,10 +1929,7 @@ int ext4_block_truncate_page(handle_t *h
- 			goto unlock;
- 	}
  
--	kaddr = kmap_atomic(page, KM_USER0);
--	memset(kaddr + offset, 0, length);
--	flush_dcache_page(page);
--	kunmap_atomic(kaddr, KM_USER0);
-+	zero_user_page(page, offset, length, KM_USER0);
+ 	journal = EXT4_JOURNAL(inode);
+-	if (is_journal_aborted(journal) || IS_RDONLY(inode))
++	if (is_journal_aborted(journal))
+ 		return -EROFS;
  
- 	BUFFER_TRACE(bh, "zeroed end of block");
- 
+ 	jbd2_journal_lock_updates(journal);
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 origin.patch
-git-cifs.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-basic-container-framework.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
+containers-implement-subsys-post_clone.patch
+containers-implement-namespace-tracking-subsystem-v3.patch
+page-owner-tracking-leak-detector.patch
