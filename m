@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-fix-workq-reset-deadlock.patch added to -mm tree
-Date: Tue, 17 Jul 2007 17:32:47 -0700
-Message-ID: <200707180032.l6I0Wlaa015655@imap1.linux-foundation.org>
+Subject: + drivers-edac-new-i82975x-driver-fix.patch added to -mm tree
+Date: Tue, 17 Jul 2007 17:32:51 -0700
+Message-ID: <200707180032.l6I0WppR015661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49496 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34469 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937224AbXGRAdF (ORCPT
+	by vger.kernel.org with ESMTP id S1755617AbXGRAdo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 20:33:05 -0400
+	Tue, 17 Jul 2007 20:33:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, oleg@tv-sign.ru
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, apw@shadowen.org, arvind@acarlab.com, dougthompson@xmission.com, greg@kroah.com, rdeskan@jetzbroadband.com
 
 
 The patch titled
-     drivers/edac: fix workq reset deadlock
+     drivers-edac-new-i82975x-driver-fix
 has been added to the -mm tree.  Its filename is
-     drivers-edac-fix-workq-reset-deadlock.patch
+     drivers-edac-new-i82975x-driver-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,352 +26,327 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/edac: fix workq reset deadlock
-From: Doug Thompson <dougthompson@xmission.com>
+Subject: drivers-edac-new-i82975x-driver-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix mutex locking deadlock on the device controller linked list.  Was calling
-a lock then a function that could call the same lock.  Moved the cancel workq
-function to outside the lock
+multiple coding-style bloopers, all of which checkpatch missed.
 
-Added some short circuit logic in the workq code
-
-Added comments of description
-
-Code tidying
-
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: <arvind@acarlab.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ranganathan Desikan <rdeskan@jetzbroadband.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_device.c |   56 ++++++++++++++++++++++-----
- drivers/edac/edac_mc.c     |   72 +++++++++++++++++++++++++----------
- 2 files changed, 100 insertions(+), 28 deletions(-)
+ drivers/edac/i82975x_edac.c |  111 ++++++++++++++++------------------
+ 1 files changed, 55 insertions(+), 56 deletions(-)
 
-diff -puN drivers/edac/edac_device.c~drivers-edac-fix-workq-reset-deadlock drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~drivers-edac-fix-workq-reset-deadlock
-+++ a/drivers/edac/edac_device.c
-@@ -32,7 +32,9 @@
- #include "edac_core.h"
- #include "edac_module.h"
+diff -puN drivers/edac/i82975x_edac.c~drivers-edac-new-i82975x-driver-fix drivers/edac/i82975x_edac.c
+--- a/drivers/edac/i82975x_edac.c~drivers-edac-new-i82975x-driver-fix
++++ a/drivers/edac/i82975x_edac.c
+@@ -230,7 +230,7 @@ static const struct i82975x_dev_info i82
+ 	},
+ };
  
--/* lock to memory controller's control array 'edac_device_list' */
-+/* lock for the list: 'edac_device_list', manipulation of this list
-+ * is protected by the 'device_ctls_mutex' lock
-+ */
- static DEFINE_MUTEX(device_ctls_mutex);
- static struct list_head edac_device_list = LIST_HEAD_INIT(edac_device_list);
+-static struct pci_dev *mci_pdev = NULL;	/* init dev: in case that AGP code has
++static struct pci_dev *mci_pdev;	/* init dev: in case that AGP code has
+ 					 * already registered driver
+ 					 */
  
-@@ -386,6 +388,14 @@ EXPORT_SYMBOL_GPL(edac_device_find);
- /*
-  * edac_device_workq_function
-  *	performs the operation scheduled by a workq request
-+ *
-+ *	this workq is embedded within an edac_device_ctl_info
-+ *	structure, that needs to be polled for possible error events.
-+ *
-+ *	This operation is to acquire the list mutex lock
-+ *	(thus preventing insertation or deletion)
-+ *	and then call the device's poll function IFF this device is
-+ *	running polled and there is a poll function defined.
-  */
- static void edac_device_workq_function(struct work_struct *work_req)
- {
-@@ -403,8 +413,17 @@ static void edac_device_workq_function(s
+@@ -330,20 +330,19 @@ static int dual_channel_active(void __io
+ 	 * bit-0 will resolve ok in symmetric area of mixed
+ 	 * (symmetric/asymmetric) configurations
+ 	 */
+-	u8	drb[ 4 ][ 2 ];
++	u8	drb[4][2];
+ 	int	row;
+ 	int    dualch;
  
- 	mutex_unlock(&device_ctls_mutex);
- 
--	/* Reschedule */
--	queue_delayed_work(edac_workqueue, &edac_dev->work, edac_dev->delay);
-+	/* Reschedule the workq for the next time period to start again
-+	 * if the number of msec is for 1 sec, then adjust to the next
-+	 * whole one second to save timers fireing all over the period
-+	 * between integral seconds
-+	 */
-+	if (edac_dev->poll_msec == 1000)
-+		queue_delayed_work(edac_workqueue, &edac_dev->work,
-+				round_jiffies(edac_dev->delay));
-+	else
-+		queue_delayed_work(edac_workqueue, &edac_dev->work,
-+				edac_dev->delay);
- }
- 
- /*
-@@ -417,11 +436,26 @@ void edac_device_workq_setup(struct edac
- {
- 	debugf0("%s()\n", __func__);
- 
-+	/* take the arg 'msec' and set it into the control structure
-+	 * to used in the time period calculation
-+	 * then calc the number of jiffies that represents
-+	 */
- 	edac_dev->poll_msec = msec;
--	edac_dev->delay = msecs_to_jiffies(msec);	/* Calc delay jiffies */
-+	edac_dev->delay = msecs_to_jiffies(msec);
- 
- 	INIT_DELAYED_WORK(&edac_dev->work, edac_device_workq_function);
--	queue_delayed_work(edac_workqueue, &edac_dev->work, edac_dev->delay);
-+
-+	/* optimize here for the 1 second case, which will be normal value, to
-+	 * fire ON the 1 second time event. This helps reduce all sorts of
-+	 * timers firing on sub-second basis, while they are happy
-+	 * to fire together on the 1 second exactly
-+	 */
-+	if (edac_dev->poll_msec == 1000)
-+		queue_delayed_work(edac_workqueue, &edac_dev->work,
-+				round_jiffies(edac_dev->delay));
-+	else
-+		queue_delayed_work(edac_workqueue, &edac_dev->work,
-+				edac_dev->delay);
- }
- 
- /*
-@@ -441,16 +475,20 @@ void edac_device_workq_teardown(struct e
- 
- /*
-  * edac_device_reset_delay_period
-+ *
-+ *	need to stop any outstanding workq queued up at this time
-+ *	because we will be resetting the sleep time.
-+ *	Then restart the workq on the new delay
-  */
--
- void edac_device_reset_delay_period(struct edac_device_ctl_info *edac_dev,
- 					unsigned long value)
- {
--	mutex_lock(&device_ctls_mutex);
--
--	/* cancel the current workq request */
-+	/* cancel the current workq request, without the mutex lock */
- 	edac_device_workq_teardown(edac_dev);
- 
-+	/* acquire the mutex before doing the workq setup */
-+	mutex_lock(&device_ctls_mutex);
-+
- 	/* restart the workq request, with new delay value */
- 	edac_device_workq_setup(edac_dev, value);
- 
-diff -puN drivers/edac/edac_mc.c~drivers-edac-fix-workq-reset-deadlock drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~drivers-edac-fix-workq-reset-deadlock
-+++ a/drivers/edac/edac_mc.c
-@@ -258,6 +258,12 @@ static void edac_mc_workq_function(struc
- 
- 	mutex_lock(&mem_ctls_mutex);
- 
-+	/* if this control struct has movd to offline state, we are done */
-+	if (mci->op_state == OP_OFFLINE) {
-+		mutex_unlock(&mem_ctls_mutex);
-+		return;
-+	}
-+
- 	/* Only poll controllers that are running polled and have a check */
- 	if (edac_mc_assert_error_check_and_clear() && (mci->edac_check != NULL))
- 		mci->edac_check(mci);
-@@ -279,11 +285,19 @@ static void edac_mc_workq_function(struc
-  * edac_mc_workq_setup
-  *	initialize a workq item for this mci
-  *	passing in the new delay period in msec
-+ *
-+ *	locking model:
-+ *
-+ *		called with the mem_ctls_mutex held
-  */
--void edac_mc_workq_setup(struct mem_ctl_info *mci, unsigned msec)
-+static void edac_mc_workq_setup(struct mem_ctl_info *mci, unsigned msec)
- {
- 	debugf0("%s()\n", __func__);
- 
-+	/* if this instance is not in the POLL state, then simply return */
-+	if (mci->op_state != OP_RUNNING_POLL)
-+		return;
-+
- 	INIT_DELAYED_WORK(&mci->work, edac_mc_workq_function);
- 	queue_delayed_work(edac_workqueue, &mci->work, msecs_to_jiffies(msec));
- }
-@@ -291,29 +305,39 @@ void edac_mc_workq_setup(struct mem_ctl_
- /*
-  * edac_mc_workq_teardown
-  *	stop the workq processing on this mci
-+ *
-+ *	locking model:
-+ *
-+ *		called WITHOUT lock held
-  */
--void edac_mc_workq_teardown(struct mem_ctl_info *mci)
-+static void edac_mc_workq_teardown(struct mem_ctl_info *mci)
- {
- 	int status;
- 
--	status = cancel_delayed_work(&mci->work);
--	if (status == 0) {
--		/* workq instance might be running, wait for it */
--		flush_workqueue(edac_workqueue);
-+	/* if not running POLL, leave now */
-+	if (mci->op_state == OP_RUNNING_POLL) {
-+		status = cancel_delayed_work(&mci->work);
-+		if (status == 0) {
-+			debugf0("%s() not canceled, flush the queue\n",
-+				__func__);
-+
-+			/* workq instance might be running, wait for it */
-+			flush_workqueue(edac_workqueue);
-+		}
+-	for (dualch = 1, row = 0; dualch && ( row < 4 ); row++) {
+-		drb[ row ][ 0 ] = readb( mch_window + I82975X_DRB + row);
+-		drb[ row ][ 1 ] = readb( mch_window + I82975X_DRB + row + 0x80);
+-		dualch = dualch && ( drb[ row ][ 0 ] == drb[ row ][ 1 ] );
++	for (dualch = 1, row = 0; dualch && (row < 4); row++) {
++		drb[row][0] = readb(mch_window + I82975X_DRB + row);
++		drb[row][1] = readb(mch_window + I82975X_DRB + row + 0x80);
++		dualch = dualch && (drb[row][0] == drb[row][1]);
  	}
+ 	return dualch;
  }
  
- /*
-  * edac_reset_delay_period
-  */
--
--void edac_reset_delay_period(struct mem_ctl_info *mci, unsigned long value)
-+static void edac_reset_delay_period(struct mem_ctl_info *mci, unsigned long value)
+-static enum dev_type i82975x_dram_type(void __iomem *mch_window,
+-	int rank)
++static enum dev_type i82975x_dram_type(void __iomem *mch_window, int rank)
  {
--	mutex_lock(&mem_ctls_mutex);
--
- 	/* cancel the current workq request */
- 	edac_mc_workq_teardown(mci);
+ 	/*
+ 	 * ASUS P5W DH either does not program this register or programs
+@@ -404,7 +403,7 @@ static void i82975x_init_csrows(struct m
  
-+	/* lock the list of devices for the new setup */
-+	mutex_lock(&mem_ctls_mutex);
-+
- 	/* restart the workq request, with new delay value */
- 	edac_mc_workq_setup(mci, value);
+ /* #define  i82975x_DEBUG_IOMEM */
  
-@@ -323,6 +347,10 @@ void edac_reset_delay_period(struct mem_
- /* Return 0 on success, 1 on failure.
-  * Before calling this function, caller must
-  * assign a unique value to mci->mc_idx.
-+ *
-+ *	locking model:
-+ *
-+ *		called with the mem_ctls_mutex lock held
-  */
- static int add_mc_to_global_list(struct mem_ctl_info *mci)
+-#ifdef  i82975x_DEBUG_IOMEM
++#ifdef i82975x_DEBUG_IOMEM
+ static void i82975x_print_dram_timings(void __iomem *mch_window)
  {
-@@ -331,7 +359,8 @@ static int add_mc_to_global_list(struct 
+ 	/*
+@@ -413,24 +412,24 @@ static void i82975x_print_dram_timings(v
+ 	 * Asus P5W Bios reports 15-5-4-4
+ 	 * What's your religion?
+ 	 */
+-	static const int caslats[ 4 ] = { 5, 4, 3, 6 };
+-	u32	dtreg[ 2 ];
++	static const int caslats[4] = { 5, 4, 3, 6 };
++	u32	dtreg[2];
  
- 	insert_before = &mc_devices;
+-	dtreg[ 0 ] = readl( mch_window + 0x114 );
+-	dtreg[ 1 ] = readl( mch_window + 0x194 );
++	dtreg[0] = readl(mch_window + 0x114);
++	dtreg[1] = readl(mch_window + 0x194);
+ 	i82975x_printk(KERN_INFO, "DRAM Timings :     Ch0    Ch1\n"
+ 		"                RAS Active Min = %d     %d\n"
+ 		"                CAS latency    =  %d      %d\n"
+ 		"                RAS to CAS     =  %d      %d\n"
+ 		"                RAS precharge  =  %d      %d\n",
+-		( dtreg[ 0 ] >> 19 ) & 0x0f,
+-			( dtreg[ 1 ] >> 19 ) & 0x0f,
+-		caslats[ ( dtreg[ 0 ] >> 8 ) & 0x03 ],
+-			caslats[ ( dtreg[ 1 ] >> 8 ) & 0x03 ],
+-		( ( dtreg[ 0 ] >> 4 ) & 0x07 ) + 2,
+-			( ( dtreg[ 1 ] >> 4 ) & 0x07 ) + 2,
+-		( dtreg[ 0 ] & 0x07 ) + 2,
+-			( dtreg[ 1 ] & 0x07 ) + 2
++		(dtreg[0] >> 19 ) & 0x0f,
++			(dtreg[1] >> 19) & 0x0f,
++		caslats[(dtreg[0] >> 8) & 0x03],
++			caslats[(dtreg[1] >> 8) & 0x03],
++		((dtreg[0] >> 4) & 0x07) + 2,
++			((dtreg[1] >> 4) & 0x07) + 2,
++		(dtreg[0] & 0x07) + 2,
++			(dtreg[1] & 0x07) + 2
+ 	);
  
--	if (unlikely((p = find_mci_by_dev(mci->dev)) != NULL))
-+	p = find_mci_by_dev(mci->dev);
-+	if (unlikely(p != NULL))
+ }
+@@ -443,72 +442,72 @@ static int i82975x_probe1(struct pci_dev
+ 	struct i82975x_pvt *pvt;
+ 	void __iomem *mch_window;
+ 	u32 mchbar;
+-	u32 drc[ 2 ];
++	u32 drc[2];
+ 	struct i82975x_error_info discard;
+ 	int	chans;
+ #ifdef i82975x_DEBUG_IOMEM
+-	u8 c0drb[ 4 ];
+-	u8 c1drb[ 4 ];
++	u8 c0drb[4];
++	u8 c1drb[4];
+ #endif
+ 
+ 	debugf0("%s()\n", __func__);
+ 
+ 	pci_read_config_dword(pdev, I82975X_MCHBAR, &mchbar);
+-	if (!(mchbar & 1 )) {
++	if (!(mchbar & 1)) {
+ 		debugf3("%s(): failed, MCHBAR disabled!\n", __func__);
  		goto fail0;
+ 	}
+ 	mchbar &= 0xffffc000;	/* bits 31:14 used for 16K window */
+-	mch_window = ioremap_nocache( mchbar, 0x1000 );
++	mch_window = ioremap_nocache(mchbar, 0x1000);
  
- 	list_for_each(item, &mc_devices) {
-@@ -467,8 +496,8 @@ int edac_mc_add_mc(struct mem_ctl_info *
+ #ifdef i82975x_DEBUG_IOMEM
+ 	i82975x_printk(KERN_INFO, "MCHBAR real = %0x, remapped = %p\n",
+ 					mchbar, mch_window);
+ 
+-	c0drb[ 0 ] = readb( mch_window + I82975X_DRB_CH0R0);
+-	c0drb[ 1 ] = readb( mch_window + I82975X_DRB_CH0R1);
+-	c0drb[ 2 ] = readb( mch_window + I82975X_DRB_CH0R2);
+-	c0drb[ 3 ] = readb( mch_window + I82975X_DRB_CH0R3);
+-	c1drb[ 0 ] = readb( mch_window + I82975X_DRB_CH1R0);
+-	c1drb[ 1 ] = readb( mch_window + I82975X_DRB_CH1R1);
+-	c1drb[ 2 ] = readb( mch_window + I82975X_DRB_CH1R2);
+-	c1drb[ 3 ] = readb( mch_window + I82975X_DRB_CH1R3);
+-	i82975x_printk(KERN_INFO, "DRBCH0R0 = 0x%02x\n", c0drb[ 0 ]);
+-	i82975x_printk(KERN_INFO, "DRBCH0R1 = 0x%02x\n", c0drb[ 1 ]);
+-	i82975x_printk(KERN_INFO, "DRBCH0R2 = 0x%02x\n", c0drb[ 2 ]);
+-	i82975x_printk(KERN_INFO, "DRBCH0R3 = 0x%02x\n", c0drb[ 3 ]);
+-	i82975x_printk(KERN_INFO, "DRBCH1R0 = 0x%02x\n", c1drb[ 0 ]);
+-	i82975x_printk(KERN_INFO, "DRBCH1R1 = 0x%02x\n", c1drb[ 1 ]);
+-	i82975x_printk(KERN_INFO, "DRBCH1R2 = 0x%02x\n", c1drb[ 2 ]);
+-	i82975x_printk(KERN_INFO, "DRBCH1R3 = 0x%02x\n", c1drb[ 3 ]);
++	c0drb[0] = readb(mch_window + I82975X_DRB_CH0R0);
++	c0drb[1] = readb(mch_window + I82975X_DRB_CH0R1);
++	c0drb[2] = readb(mch_window + I82975X_DRB_CH0R2);
++	c0drb[3] = readb(mch_window + I82975X_DRB_CH0R3);
++	c1drb[0] = readb(mch_window + I82975X_DRB_CH1R0);
++	c1drb[1] = readb(mch_window + I82975X_DRB_CH1R1);
++	c1drb[2] = readb(mch_window + I82975X_DRB_CH1R2);
++	c1drb[3] = readb(mch_window + I82975X_DRB_CH1R3);
++	i82975x_printk(KERN_INFO, "DRBCH0R0 = 0x%02x\n", c0drb[0]);
++	i82975x_printk(KERN_INFO, "DRBCH0R1 = 0x%02x\n", c0drb[1]);
++	i82975x_printk(KERN_INFO, "DRBCH0R2 = 0x%02x\n", c0drb[2]);
++	i82975x_printk(KERN_INFO, "DRBCH0R3 = 0x%02x\n", c0drb[3]);
++	i82975x_printk(KERN_INFO, "DRBCH1R0 = 0x%02x\n", c1drb[0]);
++	i82975x_printk(KERN_INFO, "DRBCH1R1 = 0x%02x\n", c1drb[1]);
++	i82975x_printk(KERN_INFO, "DRBCH1R2 = 0x%02x\n", c1drb[2]);
++	i82975x_printk(KERN_INFO, "DRBCH1R3 = 0x%02x\n", c1drb[3]);
+ #endif
+ 
+-	drc[ 0 ] = readl( mch_window + I82975X_DRC_CH0M0 );
+-	drc[ 1 ] = readl( mch_window + I82975X_DRC_CH1M0 );
++	drc[0] = readl(mch_window + I82975X_DRC_CH0M0);
++	drc[1] = readl(mch_window + I82975X_DRC_CH1M0);
+ #ifdef i82975x_DEBUG_IOMEM
+-	i82975x_printk(KERN_INFO, "DRC_CH0 = %0x, %s\n", drc[ 0 ],
+-			( ( drc[ 0 ] >> 21 ) & 3 ) == 1 ?
+-				"ECC enabled" : "ECC disabled" );
+-	i82975x_printk(KERN_INFO, "DRC_CH1 = %0x, %s\n", drc[ 1 ],
+-			( ( drc[ 1 ] >> 21 ) & 3 ) == 1 ?
+-				"ECC enabled" : "ECC disabled" );
++	i82975x_printk(KERN_INFO, "DRC_CH0 = %0x, %s\n", drc[0],
++			((drc[0] >> 21) & 3) == 1 ?
++				"ECC enabled" : "ECC disabled");
++	i82975x_printk(KERN_INFO, "DRC_CH1 = %0x, %s\n", drc[1],
++			((drc[1] >> 21) & 3) == 1 ?
++				"ECC enabled" : "ECC disabled");
+ 
+ 	i82975x_printk(KERN_INFO, "C0 BNKARC = %0x\n",
+-		readw( mch_window + I82975X_C0BNKARC ) );
++		readw(mch_window + I82975X_C0BNKARC));
+ 	i82975x_printk(KERN_INFO, "C1 BNKARC = %0x\n",
+-		readw( mch_window + I82975X_C1BNKARC ) );
+-	i82975x_print_dram_timings( mch_window );
++		readw(mch_window + I82975X_C1BNKARC));
++	i82975x_print_dram_timings(mch_window);
+ 	goto fail1;
+ #endif
+-	if (!(((drc[ 0 ] >> 21) & 3) == 1 || ((drc[ 1 ] >> 21) & 3) == 1 )) {
++	if (!(((drc[0] >> 21) & 3) == 1 || ((drc[1] >> 21) & 3) == 1)) {
+ 		i82975x_printk(KERN_INFO, "ECC disabled on both channels.\n");
+ 		goto fail1;
  	}
  
- 	/* Report action taken */
--	edac_mc_printk(mci, KERN_INFO, "Giving out device to %s %s: DEV %s\n",
--		mci->mod_name, mci->ctl_name, dev_name(mci));
-+	edac_mc_printk(mci, KERN_INFO, "Giving out device to '%s' '%s':"
-+		" DEV %s\n", mci->mod_name, mci->ctl_name, dev_name(mci));
+-	chans = dual_channel_active( mch_window ) + 1;
++	chans = dual_channel_active(mch_window) + 1;
  
- 	mutex_unlock(&mem_ctls_mutex);
- 	return 0;
-@@ -493,10 +522,13 @@ struct mem_ctl_info *edac_mc_del_mc(stru
- {
- 	struct mem_ctl_info *mci;
- 
--	debugf0("MC: %s()\n", __func__);
-+	debugf0("%s()\n", __func__);
-+
- 	mutex_lock(&mem_ctls_mutex);
- 
--	if ((mci = find_mci_by_dev(dev)) == NULL) {
-+	/* find the requested mci struct in the global list */
-+	mci = find_mci_by_dev(dev);
-+	if (mci == NULL) {
- 		mutex_unlock(&mem_ctls_mutex);
- 		return NULL;
- 	}
-@@ -504,15 +536,17 @@ struct mem_ctl_info *edac_mc_del_mc(stru
- 	/* marking MCI offline */
- 	mci->op_state = OP_OFFLINE;
- 
--	/* flush workq processes */
--	edac_mc_workq_teardown(mci);
--
--	edac_remove_sysfs_mci_device(mci);
- 	del_mc_from_global_list(mci);
- 	mutex_unlock(&mem_ctls_mutex);
-+
-+	/* flush workq processes and remove sysfs */
-+	edac_mc_workq_teardown(mci);
-+	edac_remove_sysfs_mci_device(mci);
-+
- 	edac_printk(KERN_INFO, EDAC_MC,
- 		"Removed device %d for %s %s: DEV %s\n", mci->mc_idx,
- 		mci->mod_name, mci->ctl_name, dev_name(mci));
-+
- 	return mci;
- }
- EXPORT_SYMBOL_GPL(edac_mc_del_mc);
+ 	/* assuming only one controller, index thus is 0 */
+-	mci = edac_mc_alloc(sizeof(*pvt), I82975X_NR_CSROWS( chans ),
++	mci = edac_mc_alloc(sizeof(*pvt), I82975X_NR_CSROWS(chans),
+ 					chans, 0);
+ 	if (!mci) {
+ 		rc = -ENOMEM;
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-edac-add-edac_mc_find-api.patch
-drivers-edac-add-rddr2-memory-types.patch
-drivers-edac-split-out-functions-to-unique-files.patch
-drivers-edac-add-edac_device-class.patch
-drivers-edac-mc-sysfs-add-missing-mem-types.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
-drivers-edac-coreh-fix-scrubdefs.patch
-drivers-edac-new-i82443bxgz-mc-driver.patch
+origin.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
+acpi-add-reboot-mechanism-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-saa7134-tvaudio-fix.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-ubi.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-show-unhandled-signals.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+i386-add-cpu_relax-to-cmos_lock.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
 drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-add-new-nmi-rescan.patch
-drivers-edac-mod-use-edac_coreh.patch
-drivers-edac-add-dev_name-getter-function.patch
-drivers-edac-new-inte-30x0-mc-driver.patch
-drivers-edac-mod-mc-to-use-workq-instead-of-kthread.patch
-drivers-edac-updated-pci-monitoring.patch
-drivers-edac-mod-assert_error-check.patch
-drivers-edac-core-lindent-cleanup.patch
-drivers-edac-edac_device-sysfs-cleanup.patch
-drivers-edac-cleanup-workq-ifdefs.patch
-drivers-edac-lindent-amd76x.patch
-drivers-edac-lindent-i5000.patch
-drivers-edac-lindent-e7xxx.patch
-drivers-edac-lindent-i3000.patch
-drivers-edac-lindent-i82860.patch
-drivers-edac-lindent-i82875p.patch
-drivers-edac-lindent-e752x.patch
-drivers-edac-lindent-i82443bxgx.patch
-drivers-edac-lindent-r82600.patch
-drivers-edac-drivers-to-use-new-pci-operation.patch
-drivers-edac-add-device-sysfs-attributes.patch
-drivers-edac-device-output-clenaup.patch
-drivers-edac-add-info-kconfig.patch
-drivers-edac-update-maintainers-files-for-edac.patch
-drivers-edac-cleanup-spaces-gotos-after-lindent-messup.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-driver-edac-i5000-define-typo.patch
-driver-edac-remove-null-from-statics.patch
-driver-edac-i5000-code-tidying.patch
-driver-edac-edac_device-code-tidying.patch
-driver-edac-mod-edac_align_ptr-function.patch
-driver-edac-mod-edac_opt_state_to_string-function.patch
-driver-edac-remove-file-edac_mc-h.patch
-drivers-edac-fix-edac_device-semaphore-to-mutex.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
 drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver.patch
 drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-fix-leaf-sysfs-attribute.patch
-drivers-edac-fix-edac_mc-init-apis.patch
-drivers-edac-fix-edac_device-init-apis.patch
-drivers-edac-fix-edac_mc-sysfs-completion-code.patch
-drivers-edac-fix-edac_device-sysfs-completion-code.patch
-drivers-edac-code-tidying-on-export-gpl.patch
-drivers-edac-fix-workq-reset-deadlock.patch
-drivers-edac-new-i82975x-driver.patch
 drivers-edac-new-i82975x-driver-fix.patch
-drivers-edac-add-to-maintainers-new-info.patch
-drivers-edac-fix-edac_device-sysfs-corner-case-bug.patch
-drivers-edac-add-to-edac-docs.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
