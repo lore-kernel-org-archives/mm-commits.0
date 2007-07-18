@@ -1,53 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - xen-fix-x86-config-dependencies.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 11:52:44 -0700
-Message-ID: <200707181852.l6IIqi1Z023703@imap1.linux-foundation.org>
+Subject: - xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 11:52:46 -0700
+Message-ID: <200707181852.l6IIqke5023707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49377 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51772 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934624AbXGRSzT (ORCPT
+	by vger.kernel.org with ESMTP id S934039AbXGRSzS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 14:55:19 -0400
+	Wed, 18 Jul 2007 14:55:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, bunk@stusta.de, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@suse.de, bunk@stusta.de, ebiederm@xmission.com, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen: fix x86 config dependencies
+     xen: suppress abs symbol warnings for unused reloc pointers
 has been removed from the -mm tree.  Its filename was
-     xen-fix-x86-config-dependencies.patch
+     xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: xen: fix x86 config dependencies
+Subject: xen: suppress abs symbol warnings for unused reloc pointers
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Make sure we set dependencies on CPU features.
+arch/i386/xen/xen-asm.S defines some small pieces of code which are used to
+implement a few paravirt_ops.  They're designed so they can be used either
+in-place, or be inline patched into their callsites if there's enough
+space.
+
+Some of those operations need to make calls out (specifically, if you
+re-enable events [interrupts], and there's a pending event at that time). 
+These calls need the call instruction to be relocated if the code is
+patched inline.  In this case xen_foo_reloc is a section-relative symbol
+which points to xen_foo's required relocation.
+
+Other operations have no need of a relocation, and so their corresponding
+xen_bar_reloc is absolute 0.  These are the cases which are triggering the
+warning.
+
+This patch adds those symbols to the list of safe abs symbols.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Adrian Bunk <bunk@stusta.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/boot/compressed/relocs.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN arch/i386/xen/Kconfig~xen-fix-x86-config-dependencies arch/i386/xen/Kconfig
---- a/arch/i386/xen/Kconfig~xen-fix-x86-config-dependencies
-+++ a/arch/i386/xen/Kconfig
-@@ -4,7 +4,7 @@
+diff -puN arch/i386/boot/compressed/relocs.c~xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers arch/i386/boot/compressed/relocs.c
+--- a/arch/i386/boot/compressed/relocs.c~xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers
++++ a/arch/i386/boot/compressed/relocs.c
+@@ -31,6 +31,8 @@ static const char* safe_abs_relocs[] = {
+ 		"__kernel_rt_sigreturn",
+ 		"__kernel_sigreturn",
+ 		"SYSENTER_RETURN",
++		"xen_irq_disable_direct_reloc",
++		"xen_save_fl_direct_reloc",
+ };
  
- config XEN
- 	bool "Enable support for Xen hypervisor"
--	depends on PARAVIRT
-+	depends on PARAVIRT && X86_CMPXCHG && X86_TSC
- 	help
- 	  This is the Linux Xen port.  Enabling this will allow the
- 	  kernel to boot in a paravirtualized environment under the
+ static int is_safe_abs_reloc(const char* sym_name)
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
