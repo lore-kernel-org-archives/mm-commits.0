@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-add-acpi_pm_device_sleep_state-helper-routine.patch added to -mm tree
-Date: Tue, 17 Jul 2007 17:03:17 -0700
-Message-ID: <200707180003.l6I03HPA014523@imap1.linux-foundation.org>
+Subject: + acpi-implement-the-set_target-callback-from-pm_ops.patch added to -mm tree
+Date: Tue, 17 Jul 2007 17:03:15 -0700
+Message-ID: <200707180003.l6I03FQj014516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52217 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43080 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761171AbXGRADl (ORCPT
+	by vger.kernel.org with ESMTP id S1765606AbXGRADl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 17 Jul 2007 20:03:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, david-b@pacbell.net, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl
+Cc: rjw@sisk.pl, lenb@kernel.org, pavel@ucw.cz
 
 
 The patch titled
-     ACPI: Add acpi_pm_device_sleep_state helper routine
+     ACPI: Implement the set_target() callback from pm_ops
 has been added to the -mm tree.  Its filename is
-     acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
+     acpi-implement-the-set_target-callback-from-pm_ops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,129 +26,229 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: Add acpi_pm_device_sleep_state helper routine
-From: Shaohua Li <shaohua.li@intel.com>, Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ACPI: Implement the set_target() callback from pm_ops
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Based on the David Brownell's patch at
-http://marc.info/?l=linux-acpi&m=117873972806360&w=2
-
-Add a helper routine returning the lowest power (highest number) ACPI device
-power state that given device can be in while the system is in the sleep state
-indicated by acpi_target_sleep_state .
+In the future some drivers may need to use ACPI to determine the low power
+states in which to place their devices, but to provide the drivers with this
+information the ACPI core needs to know what sleep state the system is going
+to enter.  Namely, the device's state should not be too high power for given
+system sleep state and, if the device is supposed to be able to wake up the
+system, its state should not be too low power for the wake up to be possible).
+ For this purpose, the ACPI core needs to implement the set_target() method in
+'struct pm_ops' and store the target system sleep state passed by the PM core
+in a variable.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@ucw.cz>
 Cc: Len Brown <lenb@kernel.org>
-Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep/main.c |   75 ++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h   |    2 
- 2 files changed, 77 insertions(+)
+ drivers/acpi/sleep/main.c |   84 ++++++++++++++++++++++--------------
+ 1 files changed, 52 insertions(+), 32 deletions(-)
 
-diff -puN drivers/acpi/sleep/main.c~acpi-add-acpi_pm_device_sleep_state-helper-routine drivers/acpi/sleep/main.c
---- a/drivers/acpi/sleep/main.c~acpi-add-acpi_pm_device_sleep_state-helper-routine
+diff -puN drivers/acpi/sleep/main.c~acpi-implement-the-set_target-callback-from-pm_ops drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi-implement-the-set_target-callback-from-pm_ops
 +++ a/drivers/acpi/sleep/main.c
-@@ -255,6 +255,81 @@ static struct hibernation_ops acpi_hiber
- };
- #endif				/* CONFIG_SOFTWARE_SUSPEND */
+@@ -34,34 +34,54 @@ static u32 acpi_suspend_states[] = {
  
+ static int init_8259A_after_S1;
+ 
++extern int acpi_sleep_prepare(u32 acpi_state);
++extern void acpi_power_off(void);
++
++static u32 acpi_target_sleep_state = ACPI_STATE_S0;
++
 +/**
-+ *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
-+ *		in the system sleep state given by %acpi_target_sleep_state
-+ *	@dev: device to examine
-+ *	@wake: if set, the device should be able to wake up the system
-+ *	@d_min_p: used to store the upper limit of allowed states range
-+ *	Return value: preferred power state of the device on success, -ENODEV on
-+ *		failure (ie. if there's no 'struct acpi_device' for @dev)
-+ *
-+ *	Find the lowest power (highest number) ACPI device power state that
-+ *	device @dev can be in while the system is in the sleep state represented
-+ *	by %acpi_target_sleep_state.  If @wake is nonzero, the device should be
-+ *	able to wake up the system from this sleep state.  If @d_min_p is set,
-+ *	the highest power (lowest number) device power state of @dev allowed
-+ *	in this system sleep state is stored at the location pointed to by it.
-+ *
-+ *	The caller must ensure that @dev is valid before using this function.
-+ *	The caller is also responsible for figuring out if the device is
-+ *	supposed to be able to wake up the system and passing this information
-+ *	via @wake.
++ *	acpi_pm_set_target - Set the target system sleep state to the state
++ *		associated with given @pm_state, if supported.
 + */
 +
-+int acpi_pm_device_sleep_state(struct device *dev, int wake, int *d_min_p)
++static int acpi_pm_set_target(suspend_state_t pm_state)
 +{
-+	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
-+	struct acpi_device *adev;
-+	char acpi_method[] = "_SxD";
-+	unsigned long d_min, d_max;
++	u32 acpi_state = acpi_suspend_states[pm_state];
++	int error = 0;
 +
-+	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
-+		printk(KERN_ERR "ACPI handle has no context!\n");
-+		return -ENODEV;
++	if (sleep_states[acpi_state]) {
++		acpi_target_sleep_state = acpi_state;
++	} else {
++		printk(KERN_ERR "ACPI does not support this state: %d\n",
++			pm_state);
++		error = -ENOSYS;
 +	}
-+
-+	acpi_method[2] = '0' + acpi_target_sleep_state;
-+	/*
-+	 * If the sleep state is S0, we will return D3, but if the device has
-+	 * _S0W, we will use the value from _S0W
-+	 */
-+	d_min = ACPI_STATE_D0;
-+	d_max = ACPI_STATE_D3;
-+
-+	/*
-+	 * If present, _SxD methods return the minimum D-state (highest power
-+	 * state) we can use for the corresponding S-states.  Otherwise, the
-+	 * minimum D-state is D0 (ACPI 3.x).
-+	 *
-+	 * NOTE: We rely on acpi_evaluate_integer() not clobbering the integer
-+	 * provided -- that's our fault recovery, we ignore retval.
-+	 */
-+	if (acpi_target_sleep_state > ACPI_STATE_S0)
-+		acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
-+
-+	/*
-+	 * If _PRW says we can wake up the system from the target sleep state,
-+	 * the D-state returned by _SxD is sufficient for that (we assume a
-+	 * wakeup-aware driver if wake is set).  Still, if _SxW exists
-+	 * (ACPI 3.x), it should return the maximum (lowest power) D-state that
-+	 * can wake the system.  _S0W may be valid, too.
-+	 */
-+	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
-+	    (wake && adev->wakeup.state.enabled &&
-+	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
-+		acpi_method[3] = 'W';
-+		acpi_evaluate_integer(handle, acpi_method, NULL, &d_max);
-+		/* Sanity check */
-+		if (d_max < d_min)
-+			d_min = d_max;
-+	}
-+
-+	if (d_min_p)
-+		*d_min_p = d_min;
-+	return d_max;
++	return error;
 +}
 +
- /*
-  * Toshiba fails to preserve interrupts over S1, reinitialization
-  * of 8259 is needed after S1 resume.
-diff -puN include/acpi/acpi_bus.h~acpi-add-acpi_pm_device_sleep_state-helper-routine include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h~acpi-add-acpi_pm_device_sleep_state-helper-routine
-+++ a/include/acpi/acpi_bus.h
-@@ -365,6 +365,8 @@ acpi_handle acpi_get_child(acpi_handle, 
- acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
- #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
+ /**
+  *	acpi_pm_prepare - Do preliminary suspend work.
+- *	@pm_state:		suspend state we're entering.
++ *	@pm_state: ignored
+  *
+- *	Make sure we support the state. If we do, and we need it, set the
+- *	firmware waking vector and do arch-specific nastiness to get the 
+- *	wakeup code to the waking vector. 
++ *	If necessary, set the firmware waking vector and do arch-specific
++ *	nastiness to get the wakeup code to the waking vector.
+  */
  
-+int acpi_pm_device_sleep_state(struct device *, int, int *);
+-extern int acpi_sleep_prepare(u32 acpi_state);
+-extern void acpi_power_off(void);
+-
+ static int acpi_pm_prepare(suspend_state_t pm_state)
+ {
+-	u32 acpi_state = acpi_suspend_states[pm_state];
++	int error = acpi_sleep_prepare(acpi_target_sleep_state);
+ 
+-	if (!sleep_states[acpi_state]) {
+-		printk("acpi_pm_prepare does not support %d \n", pm_state);
+-		return -EPERM;
+-	}
+-	return acpi_sleep_prepare(acpi_state);
++	if (error)
++		acpi_target_sleep_state = ACPI_STATE_S0;
 +
- #endif				/* CONFIG_ACPI */
++	return error;
+ }
  
- #endif /*__ACPI_BUS_H__*/
+ /**
+  *	acpi_pm_enter - Actually enter a sleep state.
+- *	@pm_state:		State we're entering.
++ *	@pm_state: ignored
+  *
+- *	Flush caches and go to sleep. For STR or STD, we have to call 
++ *	Flush caches and go to sleep. For STR or S2, we have to call
+  *	arch-specific assembly, which in turn call acpi_enter_sleep_state().
+  *	It's unfortunate, but it works. Please fix if you're feeling frisky.
+  */
+@@ -70,31 +90,32 @@ static int acpi_pm_enter(suspend_state_t
+ {
+ 	acpi_status status = AE_OK;
+ 	unsigned long flags = 0;
+-	u32 acpi_state = acpi_suspend_states[pm_state];
++	u32 acpi_state = acpi_target_sleep_state;
+ 
+ 	ACPI_FLUSH_CPU_CACHE();
+ 
+ 	/* Do arch specific saving of state. */
+-	if (pm_state > PM_SUSPEND_STANDBY) {
++	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3) {
+ 		int error = acpi_save_state_mem();
+-		if (error)
++
++		if (error) {
++			acpi_target_sleep_state = ACPI_STATE_S0;
+ 			return error;
++		}
+ 	}
+ 
+ 	local_irq_save(flags);
+ 	acpi_enable_wakeup_device(acpi_state);
+-	switch (pm_state) {
+-	case PM_SUSPEND_STANDBY:
++	switch (acpi_state) {
++	case ACPI_STATE_S1:
+ 		barrier();
+ 		status = acpi_enter_sleep_state(acpi_state);
+ 		break;
+ 
+-	case PM_SUSPEND_MEM:
++	case ACPI_STATE_S2:
++	case ACPI_STATE_S3:
+ 		do_suspend_lowlevel();
+ 		break;
+-
+-	default:
+-		return -EINVAL;
+ 	}
+ 
+ 	/* ACPI 3.0 specs (P62) says that it's the responsabilty
+@@ -107,12 +128,8 @@ static int acpi_pm_enter(suspend_state_t
+ 	local_irq_restore(flags);
+ 	printk(KERN_DEBUG "Back to C!\n");
+ 
+-	/* restore processor state
+-	 * We should only be here if we're coming back from STR or STD.
+-	 * And, in the case of the latter, the memory image should have already
+-	 * been loaded from disk.
+-	 */
+-	if (pm_state > PM_SUSPEND_STANDBY)
++	/* restore processor state */
++	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3)
+ 		acpi_restore_state_mem();
+ 
+ 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+@@ -120,7 +137,7 @@ static int acpi_pm_enter(suspend_state_t
+ 
+ /**
+  *	acpi_pm_finish - Finish up suspend sequence.
+- *	@pm_state:		State we're coming out of.
++ *	@pm_state: ignored
+  *
+  *	This is called after we wake back up (or if entering the sleep state
+  *	failed). 
+@@ -128,7 +145,7 @@ static int acpi_pm_enter(suspend_state_t
+ 
+ static int acpi_pm_finish(suspend_state_t pm_state)
+ {
+-	u32 acpi_state = acpi_suspend_states[pm_state];
++	u32 acpi_state = acpi_target_sleep_state;
+ 
+ 	acpi_leave_sleep_state(acpi_state);
+ 	acpi_disable_wakeup_device(acpi_state);
+@@ -136,6 +153,8 @@ static int acpi_pm_finish(suspend_state_
+ 	/* reset firmware waking vector */
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+ 
++	acpi_target_sleep_state = ACPI_STATE_S0;
++
+ 	if (init_8259A_after_S1) {
+ 		printk("Broken toshiba laptop -> kicking interrupts\n");
+ 		init_8259A(0);
+@@ -176,6 +195,7 @@ static int acpi_pm_state_valid(suspend_s
+ 
+ static struct pm_ops acpi_pm_ops = {
+ 	.valid = acpi_pm_state_valid,
++	.set_target = acpi_pm_set_target,
+ 	.prepare = acpi_pm_prepare,
+ 	.enter = acpi_pm_enter,
+ 	.finish = acpi_pm_finish,
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-git-acpi.patch
-git-kvm.patch
+x86_64-pm_trace-support.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+pm-reduce-code-duplication-between-mainc-and-userc-updated.patch
+acpi-do-not-prepare-for-hibernation-in-acpi_shutdown.patch
+pm-introduce-pm_power_off_prepare.patch
+pm-optional-beeping-during-resume-from-suspend-to-ram.patch
+pm-integrate-beeping-flag-with-existing-acpi_sleep-flags.patch
+pm-remove-deprecated-sysfs-files.patch
+pm-remove-deprecated-dpm_runtime_-routines.patch
+suspend-maintainers-update.patch
+acpi-implement-the-set_target-callback-from-pm_ops.patch
 acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+shrink_slab-handle-bad-shrinkers.patch
