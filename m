@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-sierra-add-tru-install-c-support.patch added to -mm tree
-Date: Wed, 18 Jul 2007 16:14:04 -0700
-Message-ID: <200707182314.l6INE4OA001623@imap1.linux-foundation.org>
+Subject: + ps3-disk-storage-driver.patch added to -mm tree
+Date: Wed, 18 Jul 2007 16:52:28 -0700
+Message-ID: <200707182352.l6INqS2W003474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41408 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59715 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759442AbXGRXOS (ORCPT
+	by vger.kernel.org with ESMTP id S1754613AbXGRXxr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 19:14:18 -0400
+	Wed, 18 Jul 2007 19:53:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@sierrawireless.com, greg@kroah.com
+Cc: Geert.Uytterhoeven@sonycom.com, James.Bottomley@steeleye.com, benh@kernel.crashing.org, geoffrey.levand@am.sony.com, jens.axboe@oracle.com, paulus@samba.org
 
 
 The patch titled
-     USB: sierra: Add TRU-Install (c) Support
+     ps3: Disk Storage Driver
 has been added to the -mm tree.  Its filename is
-     usb-sierra-add-tru-install-c-support.patch
+     ps3-disk-storage-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,226 +26,691 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: USB: sierra: Add TRU-Install (c) Support
-From: Kevin Lloyd <linux@sierrawireless.com>
+Subject: ps3: Disk Storage Driver
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Add compatibility with Sierra Wireless' new TRU-Install feature.  Future
-devices that use this feature will not work unless this patch has been
-applied.
+Add a Disk Storage Driver for the PS3:
+  - Implemented as a block device driver with a dynamic major
+  - Disk names (and partitions) are of the format ps3d%c(%u)
+  - Uses software scatter-gather with a 64 KiB bounce buffer as the hypervisor
+    doesn't support scatter-gather
 
-Signed-off-by: Kevin Lloyd <linux@sierrawireless.com>
-Cc: Greg KH <greg@kroah.com>
+CC: Geoff Levand <geoffrey.levand@am.sony.com>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/sierra.c        |   98 +++++++++++++++++++++------
- drivers/usb/storage/unusual_devs.h |   11 +++
- 2 files changed, 89 insertions(+), 20 deletions(-)
+ arch/powerpc/platforms/ps3/Kconfig |   10 
+ drivers/block/Makefile             |    1 
+ drivers/block/ps3disk.c            |  624 +++++++++++++++++++++++++++
+ 3 files changed, 635 insertions(+)
 
-diff -puN drivers/usb/serial/sierra.c~usb-sierra-add-tru-install-c-support drivers/usb/serial/sierra.c
---- a/drivers/usb/serial/sierra.c~usb-sierra-add-tru-install-c-support
-+++ a/drivers/usb/serial/sierra.c
-@@ -1,7 +1,7 @@
- /*
-   USB Driver for Sierra Wireless
+diff -puN arch/powerpc/platforms/ps3/Kconfig~ps3-disk-storage-driver arch/powerpc/platforms/ps3/Kconfig
+--- a/arch/powerpc/platforms/ps3/Kconfig~ps3-disk-storage-driver
++++ a/arch/powerpc/platforms/ps3/Kconfig
+@@ -102,4 +102,14 @@ config PS3_STORAGE
+ 	depends on PPC_PS3
+ 	tristate
  
--  Copyright (C) 2006  Kevin Lloyd <linux@sierrawireless.com>
-+  Copyright (C) 2007  Kevin Lloyd <linux@sierrawireless.com>
- 
-   IMPORTANT DISCLAIMER: This driver is not commercially supported by
-   Sierra Wireless. Use at your own risk.
-@@ -12,10 +12,9 @@
- 
-   Portions based on the option driver by Matthias Urlichs <smurf@smurf.noris.de>
-   Whom based his on the Keyspan driver by Hugh Blemings <hugh@blemings.org>
--
- */
- 
--#define DRIVER_VERSION "v.1.0.6"
-+#define DRIVER_VERSION "v.1.2.4b"
- #define DRIVER_AUTHOR "Kevin Lloyd <linux@sierrawireless.com>"
- #define DRIVER_DESC "USB Driver for Sierra Wireless USB modems"
- 
-@@ -28,6 +27,71 @@
- #include <linux/usb.h>
- #include <linux/usb/serial.h>
- 
-+#define SWIMS_USB_REQUEST_SetMode	0x0B
-+#define SWIMS_USB_REQUEST_TYPE_SetMode	0x40
-+#define SWIMS_USB_INDEX_SetMode		0x0000
-+#define SWIMS_SET_MODE_Modem		0x0001
++config PS3_DISK
++	tristate "PS3 Disk Storage Driver"
++	depends on PPC_PS3 && BLOCK
++	select PS3_STORAGE
++	help
++	  Include support for the PS3 Disk Storage.
 +
-+/* per port private data */
-+#define N_IN_URB	4
-+#define N_OUT_URB	4
-+#define IN_BUFLEN	4096
++	  This support is required to access the PS3 hard disk.
++	  In general, all users will say Y or M.
 +
-+static int debug;
+ endmenu
+diff -puN drivers/block/Makefile~ps3-disk-storage-driver drivers/block/Makefile
+--- a/drivers/block/Makefile~ps3-disk-storage-driver
++++ a/drivers/block/Makefile
+@@ -8,6 +8,7 @@
+ obj-$(CONFIG_MAC_FLOPPY)	+= swim3.o
+ obj-$(CONFIG_BLK_DEV_FD)	+= floppy.o
+ obj-$(CONFIG_AMIGA_FLOPPY)	+= amiflop.o
++obj-$(CONFIG_PS3_DISK)		+= ps3disk.o
+ obj-$(CONFIG_ATARI_FLOPPY)	+= ataflop.o
+ obj-$(CONFIG_AMIGA_Z2RAM)	+= z2ram.o
+ obj-$(CONFIG_BLK_DEV_RAM)	+= rd.o
+diff -puN /dev/null drivers/block/ps3disk.c
+--- /dev/null
++++ a/drivers/block/ps3disk.c
+@@ -0,0 +1,624 @@
++/*
++ * PS3 Disk Storage Driver
++ *
++ * Copyright (C) 2007 Sony Computer Entertainment Inc.
++ * Copyright 2007 Sony Corp.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ */
 +
-+enum devicetype {
-+	DEVICE_3_PORT =		0,
-+	DEVICE_1_PORT =		1,
-+	DEVICE_INSTALLER =	2,
++#include <linux/ata.h>
++#include <linux/blkdev.h>
++
++#include <asm/lv1call.h>
++#include <asm/ps3stor.h>
++#include <asm/firmware.h>
++
++
++#define DEVICE_NAME		"ps3disk"
++
++#define BOUNCE_SIZE		(64*1024)
++
++#define PS3DISK_MAX_DISKS	16
++#define PS3DISK_MINORS		16
++
++#define KERNEL_SECTOR_SIZE	512
++
++
++#define PS3DISK_NAME		"ps3d%c"
++
++
++struct ps3disk_private {
++	spinlock_t lock;		/* Request queue spinlock */
++	struct request_queue *queue;
++	struct gendisk *gendisk;
++	unsigned int blocking_factor;
++	struct request *req;
++	u64 raw_capacity;
++	unsigned char model[ATA_ID_PROD_LEN+1];
++};
++#define ps3disk_priv(dev)	((dev)->sbd.core.driver_data)
++
++
++#define LV1_STORAGE_SEND_ATA_COMMAND	(2)
++#define LV1_STORAGE_ATA_HDDOUT		(0x23)
++
++struct lv1_ata_cmnd_block {
++	u16	features;
++	u16	sector_count;
++	u16	LBA_low;
++	u16	LBA_mid;
++	u16	LBA_high;
++	u8	device;
++	u8	command;
++	u32	is_ext;
++	u32	proto;
++	u32	in_out;
++	u32	size;
++	u64	buffer;
++	u32	arglen;
 +};
 +
-+int sierra_set_power_state(struct usb_device *udev, __u16 swiState)
++enum lv1_ata_proto {
++	NON_DATA_PROTO     = 0,
++	PIO_DATA_IN_PROTO  = 1,
++	PIO_DATA_OUT_PROTO = 2,
++	DMA_PROTO = 3
++};
++
++enum lv1_ata_in_out {
++	DIR_WRITE = 0,			/* memory -> device */
++	DIR_READ = 1			/* device -> memory */
++};
++
++static int ps3disk_major;
++
++
++static struct block_device_operations ps3disk_fops = {
++	.owner		= THIS_MODULE,
++};
++
++
++static void ps3disk_scatter_gather(struct ps3_storage_device *dev,
++				   struct request *req, int gather)
 +{
-+	int result;
-+	dev_dbg(&udev->dev, "%s", "SET POWER STATE");
-+	result = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-+			0x00,			/* __u8 request      */
-+			0x40,			/* __u8 request type */
-+			swiState,		/* __u16 value       */
-+			0,			/* __u16 index       */
-+			NULL,			/* void *data        */
-+			0,			/* __u16 size 	     */
-+			USB_CTRL_SET_TIMEOUT);	/* int timeout 	     */
-+	return result;
++	unsigned int sectors = 0, offset = 0;
++	struct bio *bio;
++	sector_t sector;
++	struct bio_vec *bvec;
++	unsigned int i = 0, j;
++	size_t size;
++	void *buf;
++
++	rq_for_each_bio(bio, req) {
++		sector = bio->bi_sector;
++		dev_dbg(&dev->sbd.core,
++			"%s:%u: bio %u: %u segs %u sectors from %lu\n",
++			__func__, __LINE__, i, bio_segments(bio),
++			bio_sectors(bio), sector);
++		bio_for_each_segment(bvec, bio, j) {
++			size = bio_cur_sectors(bio)*KERNEL_SECTOR_SIZE;
++			buf = __bio_kmap_atomic(bio, j, KM_IRQ0);
++			if (gather)
++				memcpy(dev->bounce_buf+offset, buf, size);
++			else
++				memcpy(buf, dev->bounce_buf+offset, size);
++			offset += size;
++			flush_kernel_dcache_page(bio_iovec_idx(bio, j)->bv_page);
++			__bio_kunmap_atomic(bio, KM_IRQ0);
++		}
++		sectors += bio_sectors(bio);
++		i++;
++	}
 +}
 +
-+int sierra_set_ms_mode(struct usb_device *udev, __u16 eSocMode)
++static int ps3disk_submit_request_sg(struct ps3_storage_device *dev,
++				     struct request *req)
 +{
-+	int result;
-+	dev_dbg(&udev->dev, "%s", "DEVICE MODE SWITCH");
-+	result = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-+			SWIMS_USB_REQUEST_SetMode,	/* __u8 request      */
-+			SWIMS_USB_REQUEST_TYPE_SetMode,	/* __u8 request type */
-+			eSocMode,			/* __u16 value       */
-+			SWIMS_USB_INDEX_SetMode,	/* __u16 index       */
-+			NULL,				/* void *data        */
-+			0,				/* __u16 size 	     */
-+			USB_CTRL_SET_TIMEOUT);		/* int timeout       */
-+	return result;
++	struct ps3disk_private *priv = ps3disk_priv(dev);
++	int write = rq_data_dir(req), res;
++	const char *op = write ? "write" : "read";
++	u64 start_sector, sectors;
++	unsigned int region_id = dev->regions[dev->region_idx].id;
++
++#ifdef DEBUG
++	unsigned int n = 0;
++	struct bio *bio;
++	rq_for_each_bio(bio, req)
++		n++;
++	dev_dbg(&dev->sbd.core,
++		"%s:%u: %s req has %u bios for %lu sectors %lu hard sectors\n",
++		__func__, __LINE__, op, n, req->nr_sectors,
++		req->hard_nr_sectors);
++#endif
++
++	start_sector = req->sector*priv->blocking_factor;
++	sectors = req->nr_sectors*priv->blocking_factor;
++	dev_dbg(&dev->sbd.core, "%s:%u: %s %lu sectors starting at %lu\n",
++		__func__, __LINE__, op, sectors, start_sector);
++
++	if (write) {
++		ps3disk_scatter_gather(dev, req, 1);
++
++		res = lv1_storage_write(dev->sbd.dev_id, region_id,
++					start_sector, sectors, 0,
++					dev->bounce_lpar, &dev->tag);
++	} else {
++		res = lv1_storage_read(dev->sbd.dev_id, region_id,
++				       start_sector, sectors, 0,
++				       dev->bounce_lpar, &dev->tag);
++	}
++	if (res) {
++		dev_err(&dev->sbd.core, "%s:%u: %s failed %d\n", __func__,
++			__LINE__, op, res);
++		end_request(req, 0);
++		return 0;
++	}
++
++	priv->req = req;
++	return 1;
 +}
 +
-+int sierra_probe(struct usb_interface *iface, const struct usb_device_id *id)
++static int ps3disk_submit_flush_request(struct ps3_storage_device *dev,
++					struct request *req)
 +{
-+	int result;
-+	struct usb_device *udev;
++	struct ps3disk_private *priv = ps3disk_priv(dev);
++	u64 res;
 +
-+	udev = usb_get_dev(interface_to_usbdev(iface));
++	dev_dbg(&dev->sbd.core, "%s:%u: flush request\n", __func__, __LINE__);
 +
-+	/* Check if in installer mode */
-+	if (id->driver_info == DEVICE_INSTALLER){
-+		dev_dbg(&udev->dev, "%s", "FOUND DEVICE(SW)\n");
-+		result = sierra_set_ms_mode(udev, SWIMS_SET_MODE_Modem);
-+		/*We do not want to bind to the device when in installer mode*/
++	res = lv1_storage_send_device_command(dev->sbd.dev_id,
++					      LV1_STORAGE_ATA_HDDOUT, 0, 0, 0,
++					      0, &dev->tag);
++	if (res) {
++		dev_err(&dev->sbd.core, "%s:%u: sync cache failed 0x%lx\n",
++			__func__, __LINE__, res);
++		end_request(req, 0);
++		return 0;
++	}
++
++	priv->req = req;
++	return 1;
++}
++
++static void ps3disk_do_request(struct ps3_storage_device *dev,
++			       request_queue_t *q)
++{
++	struct request *req;
++
++	dev_dbg(&dev->sbd.core, "%s:%u\n", __func__, __LINE__);
++
++	while ((req = elv_next_request(q))) {
++		if (blk_fs_request(req)) {
++			if (ps3disk_submit_request_sg(dev, req))
++				break;
++		} else if (req->cmd_type == REQ_TYPE_FLUSH) {
++			if (ps3disk_submit_flush_request(dev, req))
++				break;
++		} else {
++			blk_dump_rq_flags(req, DEVICE_NAME " bad request");
++			end_request(req, 0);
++			continue;
++		}
++	}
++}
++
++static void ps3disk_request(request_queue_t *q)
++{
++	struct ps3_storage_device *dev = q->queuedata;
++	struct ps3disk_private *priv = ps3disk_priv(dev);
++
++	if (priv->req) {
++		dev_dbg(&dev->sbd.core, "%s:%u busy\n", __func__, __LINE__);
++		return;
++	}
++
++	ps3disk_do_request(dev, q);
++}
++
++static irqreturn_t ps3disk_interrupt(int irq, void *data)
++{
++	struct ps3_storage_device *dev = data;
++	struct ps3disk_private *priv;
++	struct request *req;
++	int res, read, uptodate;
++	u64 tag, status;
++	unsigned long num_sectors;
++	const char *op;
++
++	res = lv1_storage_get_async_status(dev->sbd.dev_id, &tag, &status);
++
++	if (tag != dev->tag)
++		dev_err(&dev->sbd.core,
++			"%s:%u: tag mismatch, got %lx, expected %lx\n",
++			__func__, __LINE__, tag, dev->tag);
++
++	if (res) {
++		dev_err(&dev->sbd.core, "%s:%u: res=%d status=0x%lx\n",
++			__func__, __LINE__, res, status);
++		return IRQ_HANDLED;
++	}
++
++	priv = ps3disk_priv(dev);
++	req = priv->req;
++	if (!req) {
++		dev_dbg(&dev->sbd.core,
++			"%s:%u non-block layer request completed\n", __func__,
++			__LINE__);
++		dev->lv1_status = status;
++		complete(&dev->done);
++		return IRQ_HANDLED;
++	}
++
++	if (req->cmd_type == REQ_TYPE_FLUSH) {
++		read = 0;
++		num_sectors = req->hard_cur_sectors;
++		op = "flush";
++	} else {
++		read = !rq_data_dir(req);
++		num_sectors = req->nr_sectors;
++		op = read ? "read" : "write";
++	}
++	if (status) {
++		dev_dbg(&dev->sbd.core, "%s:%u: %s failed 0x%lx\n", __func__,
++			__LINE__, op, status);
++		uptodate = 0;
++	} else {
++		dev_dbg(&dev->sbd.core, "%s:%u: %s completed\n", __func__,
++			__LINE__, op);
++		uptodate = 1;
++		if (read)
++			ps3disk_scatter_gather(dev, req, 0);
++	}
++
++	spin_lock(&priv->lock);
++	if (!end_that_request_first(req, uptodate, num_sectors)) {
++		add_disk_randomness(req->rq_disk);
++		blkdev_dequeue_request(req);
++		end_that_request_last(req, uptodate);
++	}
++	priv->req = NULL;
++	ps3disk_do_request(dev, priv->queue);
++	spin_unlock(&priv->lock);
++
++	return IRQ_HANDLED;
++}
++
++static int ps3disk_sync_cache(struct ps3_storage_device *dev)
++{
++	u64 res;
++
++	dev_dbg(&dev->sbd.core, "%s:%u: sync cache\n", __func__, __LINE__);
++
++	res = ps3stor_send_command(dev, LV1_STORAGE_ATA_HDDOUT, 0, 0, 0, 0);
++	if (res) {
++		dev_err(&dev->sbd.core, "%s:%u: sync cache failed 0x%lx\n",
++			__func__, __LINE__, res);
++		return -EIO;
++	}
++	return 0;
++}
++
++
++/* ATA helpers copied from drivers/ata/libata-core.c */
++
++static void swap_buf_le16(u16 *buf, unsigned int buf_words)
++{
++#ifdef __BIG_ENDIAN
++	unsigned int i;
++
++	for (i = 0; i < buf_words; i++)
++		buf[i] = le16_to_cpu(buf[i]);
++#endif /* __BIG_ENDIAN */
++}
++
++static u64 ata_id_n_sectors(const u16 *id)
++{
++	if (ata_id_has_lba(id)) {
++		if (ata_id_has_lba48(id))
++			return ata_id_u64(id, 100);
++		else
++			return ata_id_u32(id, 60);
++	} else {
++		if (ata_id_current_chs_valid(id))
++			return ata_id_u32(id, 57);
++		else
++			return id[1] * id[3] * id[6];
++	}
++}
++
++static void ata_id_string(const u16 *id, unsigned char *s, unsigned int ofs,
++			  unsigned int len)
++{
++	unsigned int c;
++
++	while (len > 0) {
++		c = id[ofs] >> 8;
++		*s = c;
++		s++;
++
++		c = id[ofs] & 0xff;
++		*s = c;
++		s++;
++
++		ofs++;
++		len -= 2;
++	}
++}
++
++static void ata_id_c_string(const u16 *id, unsigned char *s, unsigned int ofs,
++			    unsigned int len)
++{
++	unsigned char *p;
++
++	WARN_ON(!(len & 1));
++
++	ata_id_string(id, s, ofs, len - 1);
++
++	p = s + strnlen(s, len - 1);
++	while (p > s && p[-1] == ' ')
++		p--;
++	*p = '\0';
++}
++
++static int ps3disk_identify(struct ps3_storage_device *dev)
++{
++	struct ps3disk_private *priv = ps3disk_priv(dev);
++	struct lv1_ata_cmnd_block ata_cmnd;
++	u16 *id = dev->bounce_buf;
++	u64 res;
++
++	dev_dbg(&dev->sbd.core, "%s:%u: identify disk\n", __func__, __LINE__);
++
++	memset(&ata_cmnd, 0, sizeof(struct lv1_ata_cmnd_block));
++	ata_cmnd.command = ATA_CMD_ID_ATA;
++	ata_cmnd.sector_count = 1;
++	ata_cmnd.size = ata_cmnd.arglen = ATA_ID_WORDS * 2;
++	ata_cmnd.buffer = dev->bounce_lpar;
++	ata_cmnd.proto = PIO_DATA_IN_PROTO;
++	ata_cmnd.in_out = DIR_READ;
++
++	res = ps3stor_send_command(dev, LV1_STORAGE_SEND_ATA_COMMAND,
++				   ps3_mm_phys_to_lpar(__pa(&ata_cmnd)),
++				   sizeof(ata_cmnd), ata_cmnd.buffer,
++				   ata_cmnd.arglen);
++	if (res) {
++		dev_err(&dev->sbd.core, "%s:%u: identify disk failed 0x%lx\n",
++			__func__, __LINE__, res);
 +		return -EIO;
 +	}
 +
-+	return usb_serial_probe(iface, id);
++	swap_buf_le16(id, ATA_ID_WORDS);
++
++	/* All we're interested in are raw capacity and model name */
++	priv->raw_capacity = ata_id_n_sectors(id);
++	ata_id_c_string(id, priv->model, ATA_ID_PROD, sizeof(priv->model));
++	return 0;
 +}
- 
- static struct usb_device_id id_table [] = {
- 	{ USB_DEVICE(0x1199, 0x0017) },	/* Sierra Wireless EM5625 */
-@@ -43,8 +107,10 @@ static struct usb_device_id id_table [] 
- 	{ USB_DEVICE(0x1199, 0x6812) },	/* Sierra Wireless MC8775 */
- 	{ USB_DEVICE(0x1199, 0x6820) },	/* Sierra Wireless AirCard 875 */
- 
--	{ USB_DEVICE(0x1199, 0x0112) }, /* Sierra Wireless AirCard 580 */
--	{ USB_DEVICE(0x0F3D, 0x0112) }, /* AirPrime/Sierra PC 5220 */
-+	{ USB_DEVICE(0x1199, 0x0112), .driver_info = DEVICE_1_PORT }, /* Sierra Wireless AirCard 580 */
-+	{ USB_DEVICE(0x0F3D, 0x0112), .driver_info = DEVICE_1_PORT }, /* Airprime/Sierra PC 5220 */
 +
-+	{ USB_DEVICE(0x1199, 0x0FFF), .driver_info = DEVICE_INSTALLER},
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, id_table);
-@@ -56,6 +122,7 @@ static struct usb_device_id id_table_1po
- };
- 
- static struct usb_device_id id_table_3port [] = {
-+	/* CDMA Devices */
- 	{ USB_DEVICE(0x1199, 0x0017) },	/* Sierra Wireless EM5625 */
- 	{ USB_DEVICE(0x1199, 0x0018) },	/* Sierra Wireless MC5720 */
- 	{ USB_DEVICE(0x1199, 0x0218) },	/* Sierra Wireless MC5720 */
-@@ -63,6 +130,8 @@ static struct usb_device_id id_table_3po
- 	{ USB_DEVICE(0x1199, 0x0019) },	/* Sierra Wireless AirCard 595 */
- 	{ USB_DEVICE(0x1199, 0x0120) },	/* Sierra Wireless AirCard 595U */
- 	{ USB_DEVICE(0x1199, 0x0021) },	/* Sierra Wireless AirCard 597E */
++static void ps3disk_prepare_flush(request_queue_t *q, struct request *req)
++{
++	struct ps3_storage_device *dev = q->queuedata;
 +
-+	/* GSM/UMTS Devices */
- 	{ USB_DEVICE(0x1199, 0x6802) },	/* Sierra Wireless MC8755 */
- 	{ USB_DEVICE(0x1199, 0x6804) },	/* Sierra Wireless MC8755 */
- 	{ USB_DEVICE(0x1199, 0x6803) },	/* Sierra Wireless MC8765 */
-@@ -73,20 +142,13 @@ static struct usb_device_id id_table_3po
- 
- static struct usb_driver sierra_driver = {
- 	.name       = "sierra",
--	.probe      = usb_serial_probe,
-+	.probe      = sierra_probe,
- 	.disconnect = usb_serial_disconnect,
- 	.id_table   = id_table,
- 	.no_dynamic_id = 	1,
- };
- 
- 
--static int debug;
--
--/* per port private data */
--#define N_IN_URB	4
--#define N_OUT_URB	4
--#define IN_BUFLEN	4096
--
- struct sierra_port_private {
- 	spinlock_t lock;	/* lock the structure */
- 	int outstanding_urbs;	/* number of out urbs in flight */
-@@ -421,7 +483,6 @@ static int sierra_open(struct usb_serial
- 	int i;
- 	struct urb *urb;
- 	int result;
--	__u16 set_mode_dzero = 0x0000;
- 
- 	portdata = usb_get_serial_port_data(port);
- 
-@@ -457,12 +518,6 @@ static int sierra_open(struct usb_serial
- 
- 	port->tty->low_latency = 1;
- 
--	/* set mode to D0 */
--	result = usb_control_msg(serial->dev,
--				 usb_rcvctrlpipe(serial->dev, 0),
--				 0x00, 0x40, set_mode_dzero, 0, NULL,
--				 0, USB_CTRL_SET_TIMEOUT);
--
- 	sierra_send_setup(port);
- 
- 	/* start up the interrupt endpoint if we have one */
-@@ -510,6 +565,9 @@ static int sierra_startup(struct usb_ser
- 
- 	dbg("%s", __FUNCTION__);
- 
-+	/*Set Device mode to D0 */
-+	sierra_set_power_state(serial->dev, 0x0000);
++	dev_dbg(&dev->sbd.core, "%s:%u\n", __func__, __LINE__);
 +
- 	/* Now setup per port private data */
- 	for (i = 0; i < serial->num_ports; i++) {
- 		port = serial->port[i];
-diff -puN drivers/usb/storage/unusual_devs.h~usb-sierra-add-tru-install-c-support drivers/usb/storage/unusual_devs.h
---- a/drivers/usb/storage/unusual_devs.h~usb-sierra-add-tru-install-c-support
-+++ a/drivers/usb/storage/unusual_devs.h
-@@ -1384,6 +1384,17 @@ UNUSUAL_DEV(  0x1019, 0x0c55, 0x0000, 0x
- 		US_SC_DEVICE, US_PR_DEVICE, usb_stor_ucr61s2b_init,
- 		0 ),
- 
-+/* Reported by Kevin Lloyd <linux@sierrawireless.com>
-+ * Entry is needed for the initializer function override,
-+ * which instructs the device to load as a modem
-+ * device.
-+ */
-+UNUSUAL_DEV(  0x1199, 0x0fff, 0x0000, 0x9999,
-+		"Sierra Wireless",
-+		"USB MMC Storage",
-+		US_SC_DEVICE, US_PR_DEVICE, NULL,
-+		US_FL_IGNORE_DEVICE),
++	memset(req->cmd, 0, sizeof(req->cmd));
++	req->cmd_type = REQ_TYPE_FLUSH;
++}
 +
- /* Reported by Jaco Kroon <jaco@kroon.co.za>
-  * The usb-storage module found on the Digitech GNX4 (and supposedly other
-  * devices) misbehaves and causes a bunch of invalid I/O errors.
++static int ps3disk_issue_flush(request_queue_t *q, struct gendisk *gendisk,
++			       sector_t *sector)
++{
++	struct ps3_storage_device *dev = q->queuedata;
++	struct request *req;
++	int res;
++
++	dev_dbg(&dev->sbd.core, "%s:%u\n", __func__, __LINE__);
++
++	req = blk_get_request(q, WRITE, __GFP_WAIT);
++	ps3disk_prepare_flush(q, req);
++	res = blk_execute_rq(q, gendisk, req, 0);
++	if (res)
++		dev_err(&dev->sbd.core, "%s:%u: flush request failed %d\n",
++			__func__, __LINE__, res);
++	blk_put_request(req);
++	return res;
++}
++
++
++static unsigned long ps3disk_mask;
++
++static int __devinit ps3disk_probe(struct ps3_system_bus_device *_dev)
++{
++	struct ps3_storage_device *dev = to_ps3_storage_device(&_dev->core);
++	struct ps3disk_private *priv;
++	int error;
++	unsigned int devidx;
++	struct request_queue *queue;
++	struct gendisk *gendisk;
++
++	if (dev->blk_size < KERNEL_SECTOR_SIZE) {
++		dev_err(&dev->sbd.core,
++			"%s:%u: cannot handle block size %lu\n", __func__,
++			__LINE__, dev->blk_size);
++		return -EINVAL;
++	}
++
++	BUILD_BUG_ON(PS3DISK_MAX_DISKS > BITS_PER_LONG);
++	devidx = find_first_zero_bit(&ps3disk_mask, PS3DISK_MAX_DISKS);
++	if (devidx >= PS3DISK_MAX_DISKS) {
++		dev_err(&dev->sbd.core, "%s:%u: Too many disks\n", __func__,
++			__LINE__);
++		return -ENOSPC;
++	}
++	__set_bit(devidx, &ps3disk_mask);
++
++	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++	if (!priv) {
++		error = -ENOMEM;
++		goto fail;
++	}
++
++	ps3disk_priv(dev) = priv;
++	spin_lock_init(&priv->lock);
++
++	dev->bounce_size = BOUNCE_SIZE;
++	dev->bounce_buf = kmalloc(BOUNCE_SIZE, GFP_DMA);
++	if (!dev->bounce_buf) {
++		error = -ENOMEM;
++		goto fail_free_priv;
++	}
++
++	error = ps3stor_setup(dev, ps3disk_interrupt);
++	if (error)
++		goto fail_free_bounce;
++
++	ps3disk_identify(dev);
++
++	queue = blk_init_queue(ps3disk_request, &priv->lock);
++	if (!queue) {
++		dev_err(&dev->sbd.core, "%s:%u: blk_init_queue failed\n",
++			__func__, __LINE__);
++		error = -ENOMEM;
++		goto fail_teardown;
++	}
++
++	priv->queue = queue;
++	queue->queuedata = dev;
++
++	blk_queue_bounce_limit(queue, BLK_BOUNCE_HIGH);
++
++	blk_queue_max_sectors(queue, dev->bounce_size/KERNEL_SECTOR_SIZE);
++	blk_queue_segment_boundary(queue, -1UL);
++	blk_queue_dma_alignment(queue, dev->blk_size-1);
++	blk_queue_hardsect_size(queue, dev->blk_size);
++
++	blk_queue_issue_flush_fn(queue, ps3disk_issue_flush);
++	blk_queue_ordered(queue, QUEUE_ORDERED_DRAIN_FLUSH,
++			  ps3disk_prepare_flush);
++
++	blk_queue_max_phys_segments(queue, -1);
++	blk_queue_max_hw_segments(queue, -1);
++	blk_queue_max_segment_size(queue, dev->bounce_size);
++
++	gendisk = alloc_disk(PS3DISK_MINORS);
++	if (!gendisk) {
++		dev_err(&dev->sbd.core, "%s:%u: alloc_disk failed\n", __func__,
++			__LINE__);
++		error = -ENOMEM;
++		goto fail_cleanup_queue;
++	}
++
++	priv->gendisk = gendisk;
++	gendisk->major = ps3disk_major;
++	gendisk->first_minor = devidx * PS3DISK_MINORS;
++	gendisk->fops = &ps3disk_fops;
++	gendisk->queue = queue;
++	gendisk->private_data = dev;
++	gendisk->driverfs_dev = &dev->sbd.core;
++	snprintf(gendisk->disk_name, sizeof(gendisk->disk_name), PS3DISK_NAME,
++		 devidx+'a');
++	priv->blocking_factor = dev->blk_size/KERNEL_SECTOR_SIZE;
++	set_capacity(gendisk,
++		     dev->regions[dev->region_idx].size*priv->blocking_factor);
++
++	dev_info(&dev->sbd.core,
++		 "%s is a %s (%lu MiB total, %lu MiB for OtherOS)\n",
++		 gendisk->disk_name, priv->model, priv->raw_capacity >> 11,
++		 get_capacity(gendisk) >> 11);
++
++	add_disk(gendisk);
++	return 0;
++
++fail_cleanup_queue:
++	blk_cleanup_queue(queue);
++fail_teardown:
++	ps3stor_teardown(dev);
++fail_free_bounce:
++	kfree(dev->bounce_buf);
++fail_free_priv:
++	kfree(priv);
++	ps3disk_priv(dev) = NULL;
++fail:
++	__clear_bit(devidx, &ps3disk_mask);
++	return error;
++}
++
++static int ps3disk_remove(struct ps3_system_bus_device *_dev)
++{
++	struct ps3_storage_device *dev = to_ps3_storage_device(&_dev->core);
++	struct ps3disk_private *priv = ps3disk_priv(dev);
++
++	__clear_bit(priv->gendisk->first_minor / PS3DISK_MINORS,
++		    &ps3disk_mask);
++	del_gendisk(priv->gendisk);
++	blk_cleanup_queue(priv->queue);
++	put_disk(priv->gendisk);
++	dev_notice(&dev->sbd.core, "Synchronizing disk cache\n");
++	ps3disk_sync_cache(dev);
++	ps3stor_teardown(dev);
++	kfree(dev->bounce_buf);
++	kfree(priv);
++	ps3disk_priv(dev) = NULL;
++	return 0;
++}
++
++static struct ps3_system_bus_driver ps3disk = {
++	.match_id	= PS3_MATCH_ID_STOR_DISK,
++	.core.name	= DEVICE_NAME,
++	.core.owner	= THIS_MODULE,
++	.probe		= ps3disk_probe,
++	.remove		= ps3disk_remove,
++	.shutdown	= ps3disk_remove,
++};
++
++
++static int __init ps3disk_init(void)
++{
++	int error;
++
++	if (!firmware_has_feature(FW_FEATURE_PS3_LV1))
++		return -ENODEV;
++
++	error = register_blkdev(0, DEVICE_NAME);
++	if (error <= 0) {
++		printk(KERN_ERR "%s:%u: register_blkdev failed %d\n", __func__,
++		       __LINE__, error);
++		return error;
++	}
++	ps3disk_major = error;
++
++	pr_info("%s:%u: registered block device major %d\n", __func__,
++		__LINE__, ps3disk_major);
++
++	error = ps3_system_bus_driver_register(&ps3disk);
++	if (error)
++		unregister_blkdev(ps3disk_major, DEVICE_NAME);
++
++	return error;
++}
++
++static void __exit ps3disk_exit(void)
++{
++	ps3_system_bus_driver_unregister(&ps3disk);
++	unregister_blkdev(ps3disk_major, DEVICE_NAME);
++}
++
++module_init(ps3disk_init);
++module_exit(ps3disk_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("PS3 Disk Storage Driver");
++MODULE_AUTHOR("Sony Corporation");
++MODULE_ALIAS(PS3_MODULE_ALIAS_STOR_DISK);
 _
 
-Patches currently in -mm which might be from linux@sierrawireless.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-usb-sierra-add-tru-install-c-support.patch
-usb-sierra-add-tru-install-c-support-fix.patch
+ps3-disk-storage-driver.patch
+ps3-bd-dvd-cd-rom-storage-driver.patch
+ps3-flash-rom-storage-driver.patch
