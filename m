@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + cell-fix-cbe_thermal-for-legacy-slof-tree.patch added to -mm tree
-Date: Wed, 18 Jul 2007 12:52:04 -0700
-Message-ID: <200707181952.l6IJq4Ml025928@imap1.linux-foundation.org>
+Subject: + cell-fix-cbe_cpufreq-for-legacy-slof-tree.patch added to -mm tree
+Date: Wed, 18 Jul 2007 12:52:00 -0700
+Message-ID: <200707181952.l6IJq0Ji025916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56286 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56241 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754765AbXGRTxe (ORCPT
+	by vger.kernel.org with ESMTP id S1759078AbXGRTxe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 18 Jul 2007 15:53:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jcd@tribudubois.net, arnd.bergmann@de.ibm.com, krafft@de.ibm.com
 
 
 The patch titled
-     cell: fix cbe_thermal for legacy SLOF tree.
+     cell: fix cbe_cpufreq for legacy SLOF tree.
 has been added to the -mm tree.  Its filename is
-     cell-fix-cbe_thermal-for-legacy-slof-tree.patch
+     cell-fix-cbe_cpufreq-for-legacy-slof-tree.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cell: fix cbe_thermal for legacy SLOF tree.
+Subject: cell: fix cbe_cpufreq for legacy SLOF tree.
 From: Jean-Christophe DUBOIS <jcd@tribudubois.net>
 
 Previous patch changed based on Christian Krafft's comment.
@@ -43,66 +43,36 @@ Signed-off-by: Arnd Bergmann <arnd.bergmann@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/cbe_thermal.c |   25 ++++++++++++++++----
- 1 files changed, 20 insertions(+), 5 deletions(-)
+ arch/powerpc/platforms/cell/cbe_cpufreq.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+)
 
-diff -puN arch/powerpc/platforms/cell/cbe_thermal.c~cell-fix-cbe_thermal-for-legacy-slof-tree arch/powerpc/platforms/cell/cbe_thermal.c
---- a/arch/powerpc/platforms/cell/cbe_thermal.c~cell-fix-cbe_thermal-for-legacy-slof-tree
-+++ a/arch/powerpc/platforms/cell/cbe_thermal.c
-@@ -292,7 +292,7 @@ static struct attribute_group ppe_attrib
- /*
-  * initialize throttling with default values
-  */
--static void __init init_default_values(void)
-+static int __init init_default_values(void)
- {
- 	int cpu;
- 	struct cbe_pmd_regs __iomem *pmd_regs;
-@@ -339,25 +339,40 @@ static void __init init_default_values(v
- 	for_each_possible_cpu (cpu) {
- 		pr_debug("processing cpu %d\n", cpu);
- 		sysdev = get_cpu_sysdev(cpu);
-+
-+		if (!sysdev) {
-+			pr_info("invalid sysdev pointer for cbe_thermal\n");
-+			return -EINVAL;
-+		}
-+
- 		pmd_regs = cbe_get_cpu_pmd_regs(sysdev->id);
+diff -puN arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-fix-cbe_cpufreq-for-legacy-slof-tree arch/powerpc/platforms/cell/cbe_cpufreq.c
+--- a/arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-fix-cbe_cpufreq-for-legacy-slof-tree
++++ a/arch/powerpc/platforms/cell/cbe_cpufreq.c
+@@ -24,6 +24,7 @@
+ #include <asm/machdep.h>
+ #include <asm/of_platform.h>
+ #include <asm/prom.h>
++#include "cbe_regs.h"
+ #include "cbe_cpufreq.h"
  
-+		if (!pmd_regs) {
-+			pr_info("invalid CBE regs pointer for cbe_thermal\n");
-+			return -EINVAL;
-+		}
-+
- 		out_be64(&pmd_regs->tm_str2, str2);
- 		out_be64(&pmd_regs->tm_str1.val, str1.val);
- 		out_be64(&pmd_regs->tm_tpr.val, tpr.val);
- 		out_be64(&pmd_regs->tm_cr1.val, cr1.val);
- 		out_be64(&pmd_regs->tm_cr2, cr2);
- 	}
-+
-+	return 0;
- }
+ static DEFINE_MUTEX(cbe_switch_mutex);
+@@ -78,6 +79,15 @@ static int cbe_cpufreq_cpu_init(struct c
  
+ 	pr_debug("init cpufreq on CPU %d\n", policy->cpu);
  
- static int __init thermal_init(void)
- {
--	init_default_values();
-+	int rc = init_default_values();
- 
--	spu_add_sysdev_attr_group(&spu_attribute_group);
--	cpu_add_sysdev_attr_group(&ppe_attribute_group);
-+	if (rc == 0) {
-+		spu_add_sysdev_attr_group(&spu_attribute_group);
-+		cpu_add_sysdev_attr_group(&ppe_attribute_group);
++	/*
++	 * Let's check we can actually get to the CELL regs
++	 */
++	if (!cbe_get_cpu_pmd_regs(policy->cpu) ||
++	    !cbe_get_cpu_mic_tm_regs(policy->cpu)) {
++		pr_info("invalid CBE regs pointers for cpufreq\n");
++		return -EINVAL;
 +	}
++
+ 	max_freqp = of_get_property(cpu, "clock-frequency", NULL);
  
--	return 0;
-+	return rc;
- }
- module_init(thermal_init);
- 
+ 	of_node_put(cpu);
 _
 
 Patches currently in -mm which might be from jcd@tribudubois.net are
