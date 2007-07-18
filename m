@@ -1,317 +1,322 @@
 From: akpm@linux-foundation.org
-Subject: - i386-show-unhandled-signals.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 09:39:00 -0700
-Message-ID: <200707181639.l6IGd0iG018471@imap1.linux-foundation.org>
+Subject: - x86_64-add-ioapic-nmi-support.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 09:39:26 -0700
+Message-ID: <200707181639.l6IGdQXB018551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43704 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40840 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761557AbXGRQjQ (ORCPT
+	by vger.kernel.org with ESMTP id S1760251AbXGRQji (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 12:39:16 -0400
+	Wed, 18 Jul 2007 12:39:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: masouds@google.com, ak@suse.de, mm-commits@vger.kernel.org
+To: jpk@sgi.com, ak@suse.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: show unhandled signals
+     x86_64: add IOAPIC NMI support
 has been removed from the -mm tree.  Its filename was
-     i386-show-unhandled-signals.patch
+     x86_64-add-ioapic-nmi-support.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: i386: show unhandled signals
-From: Masoud Sharbiani <masouds@google.com>
+Subject: x86_64: add IOAPIC NMI support
+From: John Keller <jpk@sgi.com>
 
-This patch makes the i386 behave the same way that x86_64 does when a
-segfault happens.  A line gets printed to the kernel log so that tools that
-need to check for failures can behave more uniformly between
-debug.show_unhandled_signals sysctl variable to 0 (or by doing echo 0 >
-/proc/sys/debug/show_unhandled_signals)
+- Obtain the NMI IOAPIC info via an ACPI NMI SRC structure that is part
+  of the MADT, and program the IOAPIC redirection register.  The NMI SRC
+  struct will contain the GSI of the NMI interrupt.
 
-Also, all of the lines being printed are now using printk_ratelimit() to
-deny the ability of DoS from a local user with a program like the
-following:
+- Setup irq_desc[] and irq_2_pin[] entries for the NMI interrupt irq,
+  which will be used by the generic mask/unmask routines.  This will allow
+  a driver to enable/disable the NMI interrupt via enable/disable_irq().
 
-main()
-{
-       while (1)
-               if (!fork()) *(int *)0 = 0;
-}
-
-[akpm@linux-foundation.org: No new sysctls]
-Signed-off-by: Masoud Sharbiani <masouds@google.com>
+[akpm@linux-foundation.org: fixes and cleanups]
+Signed-off-by: John Keller <jpk@sgi.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/signal.c   |    7 ++++++
- arch/i386/kernel/traps.c    |    7 ++++++
- arch/i386/mm/fault.c        |   10 +++++++++
- arch/x86_64/kernel/signal.c |    2 -
- arch/x86_64/kernel/traps.c  |    6 +++--
- arch/x86_64/mm/fault.c      |   14 +------------
- arch/x86_64/mm/init.c       |   35 ----------------------------------
- include/asm-x86_64/proto.h  |    2 -
- include/linux/signal.h      |    3 ++
- kernel/signal.c             |   10 +++++++++
- kernel/sysctl.c             |   10 +++++++++
- 11 files changed, 54 insertions(+), 52 deletions(-)
+ arch/i386/kernel/acpi/boot.c |    3 -
+ arch/i386/kernel/mpparse.c   |    5 ++
+ arch/x86_64/kernel/io_apic.c |   79 ++++++++++++++++++++++++++++++---
+ arch/x86_64/kernel/mpparse.c |   46 ++++++++++++++++++-
+ include/asm-i386/mpspec.h    |    1 
+ include/asm-x86_64/io_apic.h |    1 
+ include/asm-x86_64/mpspec.h  |    2 
+ 7 files changed, 129 insertions(+), 8 deletions(-)
 
-diff -puN arch/i386/kernel/signal.c~i386-show-unhandled-signals arch/i386/kernel/signal.c
---- a/arch/i386/kernel/signal.c~i386-show-unhandled-signals
-+++ a/arch/i386/kernel/signal.c
-@@ -199,6 +199,13 @@ asmlinkage int sys_sigreturn(unsigned lo
- 	return eax;
+diff -puN arch/i386/kernel/acpi/boot.c~x86_64-add-ioapic-nmi-support arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~x86_64-add-ioapic-nmi-support
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -397,7 +397,8 @@ acpi_parse_nmi_src(struct acpi_subtable_
  
- badframe:
-+	if (show_unhandled_signals && printk_ratelimit())
-+		printk("%s%s[%d] bad frame in sigreturn frame:%p eip:%lx"
-+		       " esp:%lx oeax:%lx\n",
-+		    current->pid > 1 ? KERN_INFO : KERN_EMERG,
-+		    current->comm, current->pid, frame, regs->eip,
-+		    regs->esp, regs->orig_eax);
-+
- 	force_sig(SIGSEGV, current);
- 	return 0;
- }	
-diff -puN arch/i386/kernel/traps.c~i386-show-unhandled-signals arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~i386-show-unhandled-signals
-+++ a/arch/i386/kernel/traps.c
-@@ -678,6 +678,13 @@ fastcall void __kprobes do_general_prote
+ 	acpi_table_print_madt_entry(header);
  
- 	current->thread.error_code = error_code;
- 	current->thread.trap_no = 13;
-+	if (show_unhandled_signals && unhandled_signal(current, SIGSEGV) &&
-+	    printk_ratelimit())
-+		printk(KERN_INFO
-+		    "%s[%d] general protection eip:%lx esp:%lx error:%lx\n",
-+		    current->comm, current->pid,
-+		    regs->eip, regs->esp, error_code);
-+
- 	force_sig(SIGSEGV, current);
- 	return;
+-	/* TBD: Support nimsrc entries? */
++	mp_config_acpi_nmi_src(nmi_src->global_irq,
++			       nmi_src->inti_flags & ACPI_MADT_POLARITY_MASK);
  
-diff -puN arch/i386/mm/fault.c~i386-show-unhandled-signals arch/i386/mm/fault.c
---- a/arch/i386/mm/fault.c~i386-show-unhandled-signals
-+++ a/arch/i386/mm/fault.c
-@@ -283,6 +283,8 @@ static inline int vmalloc_fault(unsigned
  	return 0;
  }
- 
-+int show_unhandled_signals = 1;
-+
- /*
-  * This routine handles page faults.  It determines the address,
-  * and the problem, and then passes it off to one of the appropriate
-@@ -470,6 +472,14 @@ bad_area_nosemaphore:
- 		if (is_prefetch(regs, address, error_code))
- 			return;
- 
-+		if (show_unhandled_signals && unhandled_signal(tsk, SIGSEGV) &&
-+		    printk_ratelimit()) {
-+			printk("%s%s[%d]: segfault at %08lx eip %08lx "
-+			    "esp %08lx error %lx\n",
-+			    tsk->pid > 1 ? KERN_INFO : KERN_EMERG,
-+			    tsk->comm, tsk->pid, address, regs->eip,
-+			    regs->esp, error_code);
-+		}
- 		tsk->thread.cr2 = address;
- 		/* Kernel addresses are always protection faults */
- 		tsk->thread.error_code = error_code | (address >= TASK_SIZE);
-diff -puN arch/x86_64/kernel/signal.c~i386-show-unhandled-signals arch/x86_64/kernel/signal.c
---- a/arch/x86_64/kernel/signal.c~i386-show-unhandled-signals
-+++ a/arch/x86_64/kernel/signal.c
-@@ -487,7 +487,7 @@ do_notify_resume(struct pt_regs *regs, v
- void signal_fault(struct pt_regs *regs, void __user *frame, char *where)
- { 
- 	struct task_struct *me = current; 
--	if (exception_trace)
-+	if (show_unhandled_signals && printk_ratelimit())
- 		printk("%s[%d] bad frame in %s frame:%p rip:%lx rsp:%lx orax:%lx\n",
- 	       me->comm,me->pid,where,frame,regs->rip,regs->rsp,regs->orig_rax); 
- 
-diff -puN arch/x86_64/kernel/traps.c~i386-show-unhandled-signals arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~i386-show-unhandled-signals
-+++ a/arch/x86_64/kernel/traps.c
-@@ -645,7 +645,8 @@ static void __kprobes do_trap(int trapnr
- 		tsk->thread.error_code = error_code;
- 		tsk->thread.trap_no = trapnr;
- 
--		if (exception_trace && unhandled_signal(tsk, signr))
-+		if (show_unhandled_signals && unhandled_signal(tsk, signr) &&
-+		    printk_ratelimit())
- 			printk(KERN_INFO
- 			       "%s[%d] trap %s rip:%lx rsp:%lx error:%lx\n",
- 			       tsk->comm, tsk->pid, str,
-@@ -749,7 +750,8 @@ asmlinkage void __kprobes do_general_pro
- 		tsk->thread.error_code = error_code;
- 		tsk->thread.trap_no = 13;
- 
--		if (exception_trace && unhandled_signal(tsk, SIGSEGV))
-+		if (show_unhandled_signals && unhandled_signal(tsk, SIGSEGV) &&
-+		    printk_ratelimit())
- 			printk(KERN_INFO
- 		       "%s[%d] general protection rip:%lx rsp:%lx error:%lx\n",
- 			       tsk->comm, tsk->pid,
-diff -puN arch/x86_64/mm/fault.c~i386-show-unhandled-signals arch/x86_64/mm/fault.c
---- a/arch/x86_64/mm/fault.c~i386-show-unhandled-signals
-+++ a/arch/x86_64/mm/fault.c
-@@ -221,16 +221,6 @@ static int is_errata93(struct pt_regs *r
- 	return 0;
- } 
- 
--int unhandled_signal(struct task_struct *tsk, int sig)
--{
--	if (is_init(tsk))
--		return 1;
--	if (tsk->ptrace & PT_PTRACED)
--		return 0;
--	return (tsk->sighand->action[sig-1].sa.sa_handler == SIG_IGN) ||
--		(tsk->sighand->action[sig-1].sa.sa_handler == SIG_DFL);
--}
--
- static noinline void pgtable_bad(unsigned long address, struct pt_regs *regs,
- 				 unsigned long error_code)
- {
-@@ -302,7 +292,7 @@ static int vmalloc_fault(unsigned long a
- }
- 
- int page_fault_trace = 0;
--int exception_trace = 1;
-+int show_unhandled_signals = 1;
- 
- /*
-  * This routine handles page faults.  It determines the address,
-@@ -495,7 +485,7 @@ bad_area_nosemaphore:
- 		    (address >> 32))
- 			return;
- 
--		if (exception_trace && unhandled_signal(tsk, SIGSEGV) &&
-+		if (show_unhandled_signals && unhandled_signal(tsk, SIGSEGV) &&
- 		    printk_ratelimit()) {
- 			printk(
- 		       "%s%s[%d]: segfault at %016lx rip %016lx rsp %016lx error %lx\n",
-diff -puN arch/x86_64/mm/init.c~i386-show-unhandled-signals arch/x86_64/mm/init.c
---- a/arch/x86_64/mm/init.c~i386-show-unhandled-signals
-+++ a/arch/x86_64/mm/init.c
-@@ -701,41 +701,6 @@ int kern_addr_valid(unsigned long addr) 
- 	return pfn_valid(pte_pfn(*pte));
- }
- 
--#ifdef CONFIG_SYSCTL
--#include <linux/sysctl.h>
--
--extern int exception_trace, page_fault_trace;
--
--static ctl_table debug_table2[] = {
--	{
--		.ctl_name	= 99,
--		.procname	= "exception-trace",
--		.data		= &exception_trace,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec
--	},
--	{}
--}; 
--
--static ctl_table debug_root_table2[] = { 
--	{
--		.ctl_name = CTL_DEBUG,
--		.procname = "debug",
--		.mode = 0555,
--		.child = debug_table2
--	},
--	{}
--}; 
--
--static __init int x8664_sysctl_init(void)
--{ 
--	register_sysctl_table(debug_root_table2);
--	return 0;
--}
--__initcall(x8664_sysctl_init);
--#endif
--
- /* A pseudo VMA to allow ptrace access for the vsyscall page.  This only
-    covers the 64bit vsyscall page now. 32bit has a real VMA now and does
-    not need special handling anymore. */
-diff -puN include/asm-x86_64/proto.h~i386-show-unhandled-signals include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~i386-show-unhandled-signals
-+++ a/include/asm-x86_64/proto.h
-@@ -75,8 +75,6 @@ extern void setup_node_bootmem(int nodei
- extern void early_quirks(void);
- extern void check_efer(void);
- 
--extern int unhandled_signal(struct task_struct *tsk, int sig);
--
- extern void select_idle_routine(const struct cpuinfo_x86 *c);
- 
- extern unsigned long table_start, table_end;
-diff -puN include/linux/signal.h~i386-show-unhandled-signals include/linux/signal.h
---- a/include/linux/signal.h~i386-show-unhandled-signals
-+++ a/include/linux/signal.h
-@@ -238,12 +238,15 @@ extern int group_send_sig_info(int sig, 
- extern int __group_send_sig_info(int, struct siginfo *, struct task_struct *);
- extern long do_sigpending(void __user *, unsigned long);
- extern int sigprocmask(int, sigset_t *, sigset_t *);
-+extern int show_unhandled_signals;
- 
- struct pt_regs;
- extern int get_signal_to_deliver(siginfo_t *info, struct k_sigaction *return_ka, struct pt_regs *regs, void *cookie);
- 
- extern struct kmem_cache *sighand_cachep;
- 
-+int unhandled_signal(struct task_struct *tsk, int sig);
-+
- /*
-  * In POSIX a signal is sent either to a specific thread (Linux task)
-  * or to the process as a whole (Linux thread group).  How the signal
-diff -puN kernel/signal.c~i386-show-unhandled-signals kernel/signal.c
---- a/kernel/signal.c~i386-show-unhandled-signals
-+++ a/kernel/signal.c
-@@ -255,6 +255,16 @@ flush_signal_handlers(struct task_struct
+diff -puN arch/i386/kernel/mpparse.c~x86_64-add-ioapic-nmi-support arch/i386/kernel/mpparse.c
+--- a/arch/i386/kernel/mpparse.c~x86_64-add-ioapic-nmi-support
++++ a/arch/i386/kernel/mpparse.c
+@@ -1040,6 +1040,11 @@ void __init mp_config_acpi_legacy_irqs (
  	}
  }
  
-+int unhandled_signal(struct task_struct *tsk, int sig)
++void __init mp_config_acpi_nmi_src(u32 gsi, u16 polarity)
 +{
-+	if (is_init(tsk))
-+		return 1;
-+	if (tsk->ptrace & PT_PTRACED)
-+		return 0;
-+	return (tsk->sighand->action[sig-1].sa.sa_handler == SIG_IGN) ||
-+		(tsk->sighand->action[sig-1].sa.sa_handler == SIG_DFL);
++	/* TBD: Support nmi src entries? */
 +}
 +
+ #define MAX_GSI_NUM	4096
  
- /* Notify the system that a driver wants to block all signals for this
-  * process, and wants to be notified if any signals at all were to be
-diff -puN kernel/sysctl.c~i386-show-unhandled-signals kernel/sysctl.c
---- a/kernel/sysctl.c~i386-show-unhandled-signals
-+++ a/kernel/sysctl.c
-@@ -1046,6 +1046,16 @@ static ctl_table fs_table[] = {
+ int mp_register_gsi(u32 gsi, int triggering, int polarity)
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-add-ioapic-nmi-support arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-add-ioapic-nmi-support
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -75,6 +75,10 @@ struct irq_cfg irq_cfg[NR_IRQS] __read_m
+ 	[15] = { .domain = CPU_MASK_ALL, .vector = IRQ15_VECTOR, },
  };
  
- static ctl_table debug_table[] = {
-+#ifdef CONFIG_X86
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "show-unhandled-signals",
-+		.data		= &show_unhandled_signals,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec
-+	},
++#ifdef CONFIG_ACPI
++static void setup_ioapic_nmi_irq(int ioapic, int pin,
++				 struct IO_APIC_route_entry *entry);
 +#endif
- 	{ .ctl_name = 0 }
- };
+ static int assign_irq_vector(int irq, cpumask_t mask);
+ 
+ #define __apicdebuginit  __init
+@@ -375,9 +379,11 @@ static void clear_IO_APIC_pin(unsigned i
+ {
+ 	struct IO_APIC_route_entry entry;
+ 
+-	/* Check delivery_mode to be sure we're not clearing an SMI pin */
++	/* Check delivery_mode to be sure we're not clearing an SMI
++	 * or NMI pin.
++	 */
+ 	entry = ioapic_read_entry(apic, pin);
+-	if (entry.delivery_mode == dest_SMI)
++	if (entry.delivery_mode == dest_SMI || entry.delivery_mode == dest_NMI)
+ 		return;
+ 	/*
+ 	 * Disable it in the IO-APIC irq-routing table:
+@@ -1169,6 +1175,7 @@ static void __init enable_IO_APIC(void)
+ {
+ 	union IO_APIC_reg_01 reg_01;
+ 	int i8259_apic, i8259_pin;
++	int found_i8259 = 0;
+ 	int i, apic;
+ 	unsigned long flags;
+ 
+@@ -1188,7 +1195,7 @@ static void __init enable_IO_APIC(void)
+ 	}
+ 	for(apic = 0; apic < nr_ioapics; apic++) {
+ 		int pin;
+-		/* See if any of the pins is in ExtINT mode */
++		/* See if any of the pins are in ExtINT  or NMI mode */
+ 		for (pin = 0; pin < nr_ioapic_registers[apic]; pin++) {
+ 			struct IO_APIC_route_entry entry;
+ 			entry = ioapic_read_entry(apic, pin);
+@@ -1196,14 +1203,21 @@ static void __init enable_IO_APIC(void)
+ 			/* If the interrupt line is enabled and in ExtInt mode
+ 			 * I have found the pin where the i8259 is connected.
+ 			 */
+-			if ((entry.mask == 0) && (entry.delivery_mode == dest_ExtINT)) {
++			if (!found_i8259 && (entry.mask == 0) &&
++			    (entry.delivery_mode == dest_ExtINT)) {
+ 				ioapic_i8259.apic = apic;
+ 				ioapic_i8259.pin  = pin;
+-				goto found_i8259;
++				found_i8259 = 1;
++				continue;
+ 			}
++
++#ifdef CONFIG_ACPI
++			if (entry.delivery_mode == dest_NMI)
++				setup_ioapic_nmi_irq(apic, pin, &entry);
++#endif
+ 		}
+ 	}
+- found_i8259:
++
+ 	/* Look to see what if the MP table has reported the ExtINT */
+ 	i8259_pin  = find_isa_irq_pin(0, mp_ExtINT);
+ 	i8259_apic = find_isa_irq_apic(0, mp_ExtINT);
+@@ -2161,6 +2175,59 @@ int io_apic_set_pci_routing (int ioapic,
+ 	return 0;
+ }
+ 
++void __init io_apic_set_nmi_src_irq(int ioapic, int pin, u16 polarity)
++{
++	struct IO_APIC_route_entry entry;
++
++	entry = ioapic_read_entry(ioapic, pin);
++
++	/*
++	 * Setup the IOAPIC redirection register for NMI
++	 * The dest_mode and dest fields are setup later, as
++	 * genapic is not yet initialized.
++	 */
++	entry.delivery_mode = dest_NMI;
++	entry.mask = 1;
++	entry.polarity = (polarity == 1) ? 0 : 1;
++	entry.trigger = 0;		/* Should always be edge for NMI */
++
++	ioapic_write_entry(ioapic, pin, entry);
++}
++
++#define disable_nmi_ioapic      mask_IO_APIC_irq
++#define enable_nmi_ioapic       unmask_IO_APIC_irq
++
++static struct irq_chip nmi_ioapic_chip __read_mostly = {
++	.name		= "IO-APIC NMI",
++	.enable		= enable_nmi_ioapic,
++	.disable	= disable_nmi_ioapic,
++	.mask		= mask_IO_APIC_irq,
++	.unmask		= unmask_IO_APIC_irq,
++};
++
++void __init setup_ioapic_nmi_irq(int apic, int pin,
++				 struct IO_APIC_route_entry *entry)
++{
++	int irq;
++
++	entry->dest_mode = INT_DEST_MODE;
++	entry->dest = cpu_mask_to_apicid(TARGET_CPUS);
++	ioapic_write_entry(apic, pin, *entry);
++
++	irq = mp_apic_pin_to_gsi(apic, pin);
++
++	/* Setup pin_2_irq[irq] entry */
++	add_pin_to_irq(irq, apic, pin);
++
++	irq_desc[irq].status = IRQ_NOREQUEST | IRQ_NO_BALANCING;
++	if (!entry->mask) {
++		irq_desc[irq].status &= ~IRQ_DISABLED;
++		irq_desc[irq].depth = 0;
++	}
++
++	set_irq_chip(irq, &nmi_ioapic_chip);
++}
++
+ #endif /* CONFIG_ACPI */
+ 
+ 
+diff -puN arch/x86_64/kernel/mpparse.c~x86_64-add-ioapic-nmi-support arch/x86_64/kernel/mpparse.c
+--- a/arch/x86_64/kernel/mpparse.c~x86_64-add-ioapic-nmi-support
++++ a/arch/x86_64/kernel/mpparse.c
+@@ -662,6 +662,18 @@ static u8 uniq_ioapic_id(u8 id)
+ 	return find_first_zero_bit(used, 256);
+ }
+ 
++int mp_apic_pin_to_gsi(int apic, int pin)
++{
++        if (apic > nr_ioapics) {
++                 printk(KERN_ERR
++			 "ERROR: Invalid I/O APIC (%d), exceeds number"
++			 " found (%d)\n", apic, nr_ioapics);
++                return -1;
++        }
++
++        return mp_ioapic_routing[apic].gsi_start + pin;
++}
++
+ void __init mp_register_ioapic(u8 id, u32 address, u32 gsi_base)
+ {
+ 	int idx = 0;
+@@ -802,6 +814,38 @@ void __init mp_config_acpi_legacy_irqs(v
+ 	}
+ }
+ 
++void __init mp_config_acpi_nmi_src(u32 gsi, u16 polarity)
++{
++	int idx, bit = 0;
++	int ioapic = -1;
++	int ioapic_pin = 0;
++
++	ioapic = mp_find_ioapic(gsi);
++	if (ioapic < 0) {
++		printk(KERN_WARNING "No IOAPIC for NMI Src GSI %u\n", gsi);
++		return;
++	}
++
++	ioapic_pin = gsi - mp_ioapic_routing[ioapic].gsi_start;
++	bit = ioapic_pin % 32;
++	idx = ioapic_pin / 32;
++	if (idx > 3) {
++		printk(KERN_ERR "Invalid reference to IOAPIC pin "
++			"%d-%d\n", mp_ioapic_routing[ioapic].apic_id,
++			ioapic_pin);
++		return;
++	}
++	if ((1 << bit) & mp_ioapic_routing[ioapic].pin_programmed[idx]) {
++		printk(KERN_ERR "Pin %d-%d already programmed\n",
++			mp_ioapic_routing[ioapic].apic_id, ioapic_pin);
++		return;
++	}
++
++	mp_ioapic_routing[ioapic].pin_programmed[idx] |= (1 << bit);
++
++	io_apic_set_nmi_src_irq(ioapic, ioapic_pin, polarity);
++}
++
+ int mp_register_gsi(u32 gsi, int triggering, int polarity)
+ {
+ 	int ioapic = -1;
+@@ -829,7 +873,7 @@ int mp_register_gsi(u32 gsi, int trigger
+ 	 * we only program the IOAPIC on the first.
+ 	 */
+ 	bit = ioapic_pin % 32;
+-	idx = (ioapic_pin < 32) ? 0 : (ioapic_pin / 32);
++	idx = ioapic_pin / 32;
+ 	if (idx > 3) {
+ 		printk(KERN_ERR "Invalid reference to IOAPIC pin "
+ 			"%d-%d\n", mp_ioapic_routing[ioapic].apic_id, 
+diff -puN include/asm-i386/mpspec.h~x86_64-add-ioapic-nmi-support include/asm-i386/mpspec.h
+--- a/include/asm-i386/mpspec.h~x86_64-add-ioapic-nmi-support
++++ a/include/asm-i386/mpspec.h
+@@ -31,6 +31,7 @@ extern void mp_register_ioapic (u8 id, u
+ extern void mp_override_legacy_irq (u8 bus_irq, u8 polarity, u8 trigger, u32 gsi);
+ extern void mp_config_acpi_legacy_irqs (void);
+ extern int mp_register_gsi (u32 gsi, int edge_level, int active_high_low);
++extern void mp_config_acpi_nmi_src(u32 gsi, u16 flags);
+ #endif /* CONFIG_ACPI */
+ 
+ #define PHYSID_ARRAY_SIZE	BITS_TO_LONGS(MAX_APICS)
+diff -puN include/asm-x86_64/io_apic.h~x86_64-add-ioapic-nmi-support include/asm-x86_64/io_apic.h
+--- a/include/asm-x86_64/io_apic.h~x86_64-add-ioapic-nmi-support
++++ a/include/asm-x86_64/io_apic.h
+@@ -119,6 +119,7 @@ extern int skip_ioapic_setup;
+ extern int io_apic_get_version (int ioapic);
+ extern int io_apic_get_redir_entries (int ioapic);
+ extern int io_apic_set_pci_routing (int ioapic, int pin, int irq, int, int);
++extern void io_apic_set_nmi_src_irq (int ioapic, int pin, u16 polarity);
+ #endif
+ 
+ extern int sis_apic_bug; /* dummy */ 
+diff -puN include/asm-x86_64/mpspec.h~x86_64-add-ioapic-nmi-support include/asm-x86_64/mpspec.h
+--- a/include/asm-x86_64/mpspec.h~x86_64-add-ioapic-nmi-support
++++ a/include/asm-x86_64/mpspec.h
+@@ -181,9 +181,11 @@ extern void mp_register_ioapic (u8 id, u
+ extern void mp_override_legacy_irq (u8 bus_irq, u8 polarity, u8 trigger, u32 gsi);
+ extern void mp_config_acpi_legacy_irqs (void);
+ extern int mp_register_gsi (u32 gsi, int triggering, int polarity);
++extern void mp_config_acpi_nmi_src(u32 gsi, u16 flags);
+ #endif
+ 
+ extern int using_apic_timer;
++extern int mp_apic_pin_to_gsi(int apic, int pin);
+ 
+ #define PHYSID_ARRAY_SIZE	BITS_TO_LONGS(MAX_APICS)
  
 _
 
-Patches currently in -mm which might be from masouds@google.com are
+Patches currently in -mm which might be from jpk@sgi.com are
 
-i386-show-unhandled-signals.patch
+origin.patch
+x86_64-add-ioapic-nmi-support.patch
