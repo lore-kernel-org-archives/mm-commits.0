@@ -1,51 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - make-seagate_st0x_detect-static.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 11:52:19 -0700
-Message-ID: <200707181852.l6IIqJwr023662@imap1.linux-foundation.org>
+Subject: - drivers-scsi-wd33c93c-cleanups.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 11:52:17 -0700
+Message-ID: <200707181852.l6IIqHZS023653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37995 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39876 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933065AbXGRSxF (ORCPT
+	by vger.kernel.org with ESMTP id S933206AbXGRSxE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 14:53:05 -0400
+	Wed, 18 Jul 2007 14:53:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make seagate_st0x_detect() static
+     drivers/scsi/wd33c93.c: cleanups
 has been removed from the -mm tree.  Its filename was
-     make-seagate_st0x_detect-static.patch
+     drivers-scsi-wd33c93c-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make seagate_st0x_detect() static
+Subject: drivers/scsi/wd33c93.c: cleanups
 From: Adrian Bunk <bunk@stusta.de>
 
-seagate_st0x_detect() can become static.
+- #include <asm/irq.h> for getting the prototypes of {dis,en}able_irq()
+
+- make the needlessly global wd33c93_setup() static
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/seagate.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/wd33c93.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/seagate.c~make-seagate_st0x_detect-static drivers/scsi/seagate.c
---- a/drivers/scsi/seagate.c~make-seagate_st0x_detect-static
-+++ a/drivers/scsi/seagate.c
-@@ -420,7 +420,7 @@ static inline void borken_wait (void)
- #define ULOOP( i ) for (clock = i*8;;)
- #define TIMEOUT (!(clock--))
+diff -puN drivers/scsi/wd33c93.c~drivers-scsi-wd33c93c-cleanups drivers/scsi/wd33c93.c
+--- a/drivers/scsi/wd33c93.c~drivers-scsi-wd33c93c-cleanups
++++ a/drivers/scsi/wd33c93.c
+@@ -89,6 +89,8 @@
+ #include <scsi/scsi_device.h>
+ #include <scsi/scsi_host.h>
  
--int __init seagate_st0x_detect (struct scsi_host_template * tpnt)
-+static int __init seagate_st0x_detect (struct scsi_host_template * tpnt)
++#include <asm/irq.h>
++
+ #include "wd33c93.h"
+ 
+ #define optimum_sx_per(hostdata) (hostdata)->sx_table[1].period_ns
+@@ -1762,7 +1764,7 @@ static char setup_buffer[SETUP_BUFFER_SI
+ static char setup_used[MAX_SETUP_ARGS];
+ static int done_setup = 0;
+ 
+-int
++static int
+ wd33c93_setup(char *str)
  {
- 	struct Scsi_Host *instance;
- 	int i, j;
+ 	int i;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
