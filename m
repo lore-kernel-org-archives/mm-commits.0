@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cell-pmi-remove-support-for-mutiple-devices.patch added to -mm tree
-Date: Wed, 18 Jul 2007 12:51:46 -0700
-Message-ID: <200707181951.l6IJpo5F025898@imap1.linux-foundation.org>
+Subject: + cell-cbe_cpufreq-fix-minor-issues.patch added to -mm tree
+Date: Wed, 18 Jul 2007 12:51:56 -0700
+Message-ID: <200707181951.l6IJpvEY025907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42769 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56452 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752921AbXGRTwU (ORCPT
+	by vger.kernel.org with ESMTP id S1759422AbXGRTw0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 15:52:20 -0400
+	Wed, 18 Jul 2007 15:52:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krafft@de.ibm.com, arnd.bergmann@de.ibm.com
 
 
 The patch titled
-     cell: pmi: remove support for mutiple devices.
+     cell: cbe_cpufreq: fix minor issues
 has been added to the -mm tree.  Its filename is
-     cell-pmi-remove-support-for-mutiple-devices.patch
+     cell-cbe_cpufreq-fix-minor-issues.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,302 +26,161 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cell: pmi: remove support for mutiple devices.
+Subject: cell: cbe_cpufreq: fix minor issues
 From: Christian Krafft <krafft@de.ibm.com>
 
-The pmi driver got simplified by removing support for multiple devices.  As
-there is no more than one pmi device per maschine, there is no need to specify
-the device for listening and sending messages.
-
-This way the caller (cbe_cpufreq) doesn't need to scan the device tree.  When
-registering the handler on a board without a pmi interface, pmi.c will just
-return -ENODEV.
-
-The patch that fixed the breakage of cell_defconfig has been broken out of the
-earlier version of this patch.  So this is the version that applies cleanly on
-top of it.
+Minor issues have been fixed:
+* added a missing call to of_node_put()
+* signedness of a function parameter
+* added some line breaks
+* changed global pmi_frequency_limit to a
+  per node pmi_slow_mode_limit array
 
 Signed-off-by: Christian Krafft <krafft@de.ibm.com>
 Signed-off-by: Arnd Bergmann <arnd.bergmann@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/cbe_cpufreq.c |   36 +++++---------
- arch/powerpc/sysdev/pmi.c                 |   51 ++++++++------------
- include/asm-powerpc/pmi.h                 |    8 +--
- 3 files changed, 40 insertions(+), 55 deletions(-)
+ arch/powerpc/platforms/cell/cbe_cpufreq.c |   58 +++++++++++++-------
+ 1 files changed, 40 insertions(+), 18 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-pmi-remove-support-for-mutiple-devices arch/powerpc/platforms/cell/cbe_cpufreq.c
---- a/arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-pmi-remove-support-for-mutiple-devices
+diff -puN arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-cbe_cpufreq-fix-minor-issues arch/powerpc/platforms/cell/cbe_cpufreq.c
+--- a/arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-cbe_cpufreq-fix-minor-issues
 +++ a/arch/powerpc/platforms/cell/cbe_cpufreq.c
-@@ -68,11 +68,12 @@ static u64 MIC_Slow_Next_Timer_table[] =
+@@ -67,7 +67,7 @@ static u64 MIC_Slow_Next_Timer_table[] =
+ 	0x00003FC000000000ull,
  };
  
- static unsigned int pmi_frequency_limit = 0;
-+
+-static unsigned int pmi_frequency_limit = 0;
++static u8 pmi_slow_mode_limit[MAX_BE];
+ 
  /*
   * hardware specific functions
-  */
+@@ -169,35 +169,50 @@ static int set_pmode_reg(int cpu, unsign
  
--static struct of_device *pmi_dev;
-+static bool cbe_cpufreq_has_pmi;
- 
+ static int set_pmode(int cpu, unsigned int slow_mode)
+ {
++	int rc;
  #ifdef CONFIG_PPC_PMI
- static int set_pmode_pmi(int cpu, unsigned int pmode)
-@@ -91,7 +92,7 @@ static int set_pmode_pmi(int cpu, unsign
- 	time = (u64) get_cycles();
+ 	if (cbe_cpufreq_has_pmi)
+-		return set_pmode_pmi(cpu, slow_mode);
++		rc = set_pmode_pmi(cpu, slow_mode);
++	else
  #endif
+-	return set_pmode_reg(cpu, slow_mode);
++		rc = set_pmode_reg(cpu, slow_mode);
++
++	pr_debug("register contains slow mode %d\n", get_pmode(cpu));
++
++	return rc;
+ }
  
--	pmi_send_message(pmi_dev, pmi_msg);
-+	pmi_send_message(pmi_msg);
- 	ret = pmi_msg.data2;
+ static void cbe_cpufreq_handle_pmi(pmi_message_t pmi_msg)
+ {
+-	u8 cpu;
+-	u8 cbe_pmode_new;
++	u8 node; slow_mode;
  
- 	pr_debug("PMI returned slow mode %d\n", ret);
-@@ -157,16 +158,16 @@ static int set_pmode_reg(int cpu, unsign
+ 	BUG_ON(pmi_msg.type != PMI_TYPE_FREQ_CHANGE);
+ 
+-	cpu = cbe_node_to_cpu(pmi_msg.data1);
+-	cbe_pmode_new = pmi_msg.data2;
++	node = pmi_msg.data1;
++	slow_mode = pmi_msg.data2;
+ 
+-	pmi_frequency_limit = cbe_freqs[cbe_pmode_new].frequency;
++	pmi_slow_mode_limit[node] = slow_mode;
+ 
+-	pr_debug("cbe_handle_pmi: max freq=%d\n", pmi_frequency_limit);
++	pr_debug("cbe_handle_pmi: node: %d, max slow_mode=%d\n", slow_mode);
+ }
+ 
+ static int pmi_notifier(struct notifier_block *nb,
+ 				       unsigned long event, void *data)
+ {
+ 	struct cpufreq_policy *policy = data;
++	u8 node;
++
++	node = cbe_cpu_to_node(policy->cpu);
++
++	pr_debug("got notified, event=%lu, node=%u\n", event, node);
+ 
+-	if (pmi_frequency_limit)
+-		cpufreq_verify_within_limits(policy, 0, pmi_frequency_limit);
++	if (pmi_slow_mode_limit[node] != 0) {
++		pr_debug("limiting node %d to slow mode %d\n",
++			 node, pmi_slow_mode_limit[node]);
++
++		cpufreq_verify_within_limits(policy, 0,
++			 cbe_freqs[pmi_slow_mode_limit[node]].frequency);
++	}
+ 
  	return 0;
  }
+@@ -232,6 +247,8 @@ static int cbe_cpufreq_cpu_init(struct c
  
--static int set_pmode(int cpu, unsigned int slow_mode) {
-+static int set_pmode(int cpu, unsigned int slow_mode)
-+{
- #ifdef CONFIG_PPC_PMI
--	if (pmi_dev)
-+	if (cbe_cpufreq_has_pmi)
- 		return set_pmode_pmi(cpu, slow_mode);
--	else
- #endif
--		return set_pmode_reg(cpu, slow_mode);
-+	return set_pmode_reg(cpu, slow_mode);
- }
+ 	max_freqp = of_get_property(cpu, "clock-frequency", NULL);
  
--static void cbe_cpufreq_handle_pmi(struct of_device *dev, pmi_message_t pmi_msg)
-+static void cbe_cpufreq_handle_pmi(pmi_message_t pmi_msg)
- {
- 	u8 cpu;
- 	u8 cbe_pmode_new;
-@@ -253,7 +254,7 @@ static int cbe_cpufreq_cpu_init(struct c
++	of_node_put(cpu);
++
+ 	if (!max_freqp)
+ 		return -EINVAL;
+ 
+@@ -248,7 +265,9 @@ static int cbe_cpufreq_cpu_init(struct c
+ 	}
+ 
+ 	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+-	/* if DEBUG is enabled set_pmode() measures the correct latency of a transition */
++
++	/* if DEBUG is enabled set_pmode() measures the latency
++	 * of a transition */
+ 	policy->cpuinfo.transition_latency = 25000;
+ 
+ 	cur_pmode = get_pmode(policy->cpu);
+@@ -262,8 +281,8 @@ static int cbe_cpufreq_cpu_init(struct c
  
  	cpufreq_frequency_table_get_attr(cbe_freqs, policy->cpu);
  
--	if (pmi_dev) {
-+	if (cbe_cpufreq_has_pmi) {
- 		/* frequency might get limited later, initialize limit with max_freq */
- 		pmi_frequency_limit = max_freq;
- 		cpufreq_register_notifier(&pmi_notifier_block, CPUFREQ_POLICY_NOTIFIER);
-@@ -265,7 +266,7 @@ static int cbe_cpufreq_cpu_init(struct c
- 
- static int cbe_cpufreq_cpu_exit(struct cpufreq_policy *policy)
- {
--	if (pmi_dev)
-+	if (cbe_cpufreq_has_pmi)
- 		cpufreq_unregister_notifier(&pmi_notifier_block, CPUFREQ_POLICY_NOTIFIER);
- 
- 	cpufreq_frequency_table_put_attr(policy->cpu);
-@@ -326,29 +327,20 @@ static struct cpufreq_driver cbe_cpufreq
- 
- static int __init cbe_cpufreq_init(void)
- {
--#ifdef CONFIG_PPC_PMI
--	struct device_node *np;
--#endif
- 	if (!machine_is(cell))
- 		return -ENODEV;
--#ifdef CONFIG_PPC_PMI
--	np = of_find_node_by_type(NULL, "ibm,pmi");
- 
--	pmi_dev = of_find_device_by_node(np);
-+	cbe_cpufreq_has_pmi = pmi_register_handler(&cbe_pmi_handler) == 0;
- 
--	if (pmi_dev)
--		pmi_register_handler(pmi_dev, &cbe_pmi_handler);
--#endif
- 	return cpufreq_register_driver(&cbe_cpufreq_driver);
+-
+-	/* this ensures that policy->cpuinfo_min and policy->cpuinfo_max are set correctly */
++	/* this ensures that policy->cpuinfo_min
++	 * and policy->cpuinfo_max are set correctly */
+ 	return cpufreq_frequency_table_cpuinfo(policy, cbe_freqs);
  }
  
- static void __exit cbe_cpufreq_exit(void)
- {
--#ifdef CONFIG_PPC_PMI
--	if (pmi_dev)
--		pmi_unregister_handler(pmi_dev, &cbe_pmi_handler);
--#endif
- 	cpufreq_unregister_driver(&cbe_cpufreq_driver);
-+
-+	if (cbe_cpufreq_has_pmi)
-+		pmi_unregister_handler(&cbe_pmi_handler);
+@@ -279,12 +298,13 @@ static int cbe_cpufreq_verify(struct cpu
  }
  
- module_init(cbe_cpufreq_init);
-diff -puN arch/powerpc/sysdev/pmi.c~cell-pmi-remove-support-for-mutiple-devices arch/powerpc/sysdev/pmi.c
---- a/arch/powerpc/sysdev/pmi.c~cell-pmi-remove-support-for-mutiple-devices
-+++ a/arch/powerpc/sysdev/pmi.c
-@@ -48,15 +48,13 @@ struct pmi_data {
- 	struct work_struct	work;
- };
  
-+static struct pmi_data *data;
- 
- static int pmi_irq_handler(int irq, void *dev_id)
+-static int cbe_cpufreq_target(struct cpufreq_policy *policy, unsigned int target_freq,
+-			    unsigned int relation)
++static int cbe_cpufreq_target(struct cpufreq_policy *policy,
++			      unsigned int target_freq,
++			      unsigned int relation)
  {
--	struct pmi_data *data;
- 	u8 type;
  	int rc;
+ 	struct cpufreq_freqs freqs;
+-	int cbe_pmode_new;
++	unsigned int cbe_pmode_new;
  
--	data = dev_id;
--
- 	spin_lock(&data->pmi_spinlock);
+ 	cpufreq_frequency_table_target(policy,
+ 				       cbe_freqs,
+@@ -299,12 +319,14 @@ static int cbe_cpufreq_target(struct cpu
+ 	mutex_lock(&cbe_switch_mutex);
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
  
- 	type = ioread8(data->pmi_reg + PMI_READ_TYPE);
-@@ -111,16 +109,13 @@ MODULE_DEVICE_TABLE(of, pmi_match);
+-	pr_debug("setting frequency for cpu %d to %d kHz, 1/%d of max frequency\n",
++	pr_debug("setting frequency for cpu %d to %d kHz, " \
++		 "1/%d of max frequency\n",
+ 		 policy->cpu,
+ 		 cbe_freqs[cbe_pmode_new].frequency,
+ 		 cbe_freqs[cbe_pmode_new].index);
  
- static void pmi_notify_handlers(struct work_struct *work)
- {
--	struct pmi_data *data;
- 	struct pmi_handler *handler;
- 
--	data = container_of(work, struct pmi_data, work);
--
- 	spin_lock(&data->handler_spinlock);
- 	list_for_each_entry(handler, &data->handler, node) {
- 		pr_debug(KERN_INFO "pmi: notifying handler %p\n", handler);
- 		if (handler->type == data->msg.type)
--			handler->handle_pmi_message(data->dev, data->msg);
-+			handler->handle_pmi_message(data->msg);
- 	}
- 	spin_unlock(&data->handler_spinlock);
- }
-@@ -129,9 +124,14 @@ static int pmi_of_probe(struct of_device
- 			const struct of_device_id *match)
- {
- 	struct device_node *np = dev->node;
--	struct pmi_data *data;
- 	int rc;
- 
-+	if (data) {
-+		printk(KERN_ERR "pmi: driver has already been initialized.\n");
-+		rc = -EBUSY;
-+		goto out;
-+	}
+ 	rc = set_pmode(policy->cpu, cbe_pmode_new);
 +
- 	data = kzalloc(sizeof(struct pmi_data), GFP_KERNEL);
- 	if (!data) {
- 		printk(KERN_ERR "pmi: could not allocate memory.\n");
-@@ -154,7 +154,6 @@ static int pmi_of_probe(struct of_device
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+ 	mutex_unlock(&cbe_switch_mutex);
  
- 	INIT_WORK(&data->work, pmi_notify_handlers);
- 
--	dev->dev.driver_data = data;
- 	data->dev = dev;
- 
- 	data->irq = irq_of_parse_and_map(np, 0);
-@@ -164,7 +163,7 @@ static int pmi_of_probe(struct of_device
- 		goto error_cleanup_iomap;
- 	}
- 
--	rc = request_irq(data->irq, pmi_irq_handler, 0, "pmi", data);
-+	rc = request_irq(data->irq, pmi_irq_handler, 0, "pmi", NULL);
- 	if (rc) {
- 		printk(KERN_ERR "pmi: can't request IRQ %d: returned %d\n",
- 				data->irq, rc);
-@@ -187,12 +186,9 @@ out:
- 
- static int pmi_of_remove(struct of_device *dev)
- {
--	struct pmi_data *data;
- 	struct pmi_handler *handler, *tmp;
- 
--	data = dev->dev.driver_data;
--
--	free_irq(data->irq, data);
-+	free_irq(data->irq, NULL);
- 	iounmap(data->pmi_reg);
- 
- 	spin_lock(&data->handler_spinlock);
-@@ -202,7 +198,8 @@ static int pmi_of_remove(struct of_devic
- 
- 	spin_unlock(&data->handler_spinlock);
- 
--	kfree(dev->dev.driver_data);
-+	kfree(data);
-+	data = NULL;
- 
- 	return 0;
- }
-@@ -226,13 +223,13 @@ static void __exit pmi_module_exit(void)
- }
- module_exit(pmi_module_exit);
- 
--void pmi_send_message(struct of_device *device, pmi_message_t msg)
-+int pmi_send_message(pmi_message_t msg)
- {
--	struct pmi_data *data;
- 	unsigned long flags;
- 	DECLARE_COMPLETION_ONSTACK(completion);
- 
--	data = device->dev.driver_data;
-+	if (!data)
-+		return -ENODEV;
- 
- 	mutex_lock(&data->msg_mutex);
- 
-@@ -256,30 +253,26 @@ void pmi_send_message(struct of_device *
- 	data->completion = NULL;
- 
- 	mutex_unlock(&data->msg_mutex);
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(pmi_send_message);
- 
--void pmi_register_handler(struct of_device *device,
--			  struct pmi_handler *handler)
-+int pmi_register_handler(struct pmi_handler *handler)
- {
--	struct pmi_data *data;
--	data = device->dev.driver_data;
--
- 	if (!data)
--		return;
-+		return -ENODEV;
- 
- 	spin_lock(&data->handler_spinlock);
- 	list_add_tail(&handler->node, &data->handler);
- 	spin_unlock(&data->handler_spinlock);
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(pmi_register_handler);
- 
--void pmi_unregister_handler(struct of_device *device,
--			    struct pmi_handler *handler)
-+void pmi_unregister_handler(struct pmi_handler *handler)
- {
--	struct pmi_data *data;
--	data = device->dev.driver_data;
--
- 	if (!data)
- 		return;
- 
-diff -puN include/asm-powerpc/pmi.h~cell-pmi-remove-support-for-mutiple-devices include/asm-powerpc/pmi.h
---- a/include/asm-powerpc/pmi.h~cell-pmi-remove-support-for-mutiple-devices
-+++ a/include/asm-powerpc/pmi.h
-@@ -55,13 +55,13 @@ typedef struct {
- struct pmi_handler {
- 	struct list_head node;
- 	u8 type;
--	void (*handle_pmi_message) (struct of_device *, pmi_message_t);
-+	void (*handle_pmi_message) (pmi_message_t);
- };
- 
--void pmi_register_handler(struct of_device *, struct pmi_handler *);
--void pmi_unregister_handler(struct of_device *, struct pmi_handler *);
-+int pmi_register_handler(struct pmi_handler *);
-+void pmi_unregister_handler(struct pmi_handler *);
- 
--void pmi_send_message(struct of_device *, pmi_message_t);
-+int pmi_send_message(pmi_message_t);
- 
- #endif /* __KERNEL__ */
- #endif /* _POWERPC_PMI_H */
 _
 
 Patches currently in -mm which might be from krafft@de.ibm.com are
