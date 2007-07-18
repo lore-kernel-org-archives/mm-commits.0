@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ps3-flash-rom-storage-driver.patch added to -mm tree
-Date: Wed, 18 Jul 2007 16:52:32 -0700
-Message-ID: <200707182352.l6INqWpS003480@imap1.linux-foundation.org>
+Subject: + usb-mos7720-mos7840-remove-redundant-urb-check.patch added to -mm tree
+Date: Wed, 18 Jul 2007 16:55:35 -0700
+Message-ID: <200707182355.l6INtZfU003563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48877 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50390 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752808AbXGRXxs (ORCPT
+	by vger.kernel.org with ESMTP id S1760719AbXGRX4L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 19:53:48 -0400
+	Wed, 18 Jul 2007 19:56:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Geert.Uytterhoeven@sonycom.com, James.Bottomley@steeleye.com, benh@kernel.crashing.org, geoffrey.levand@am.sony.com, jens.axboe@oracle.com, paulus@samba.org
+Cc: fmalita@gmail.com
 
 
 The patch titled
-     ps3: FLASH ROM Storage Driver
+     usb: mos7720, mos7840: remove redundant urb check
 has been added to the -mm tree.  Its filename is
-     ps3-flash-rom-storage-driver.patch
+     usb-mos7720-mos7840-remove-redundant-urb-check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,501 +26,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ps3: FLASH ROM Storage Driver
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: usb: mos7720, mos7840: remove redundant urb check
+From: Florin Malita <fmalita@gmail.com>
 
-Add a FLASH ROM Storage Driver for the PS3:
-  - Implemented as a misc character device driver
-  - Uses a fixed 256 KiB buffer allocated from boot memory as the hypervisor
-    requires the writing of aligned 256 KiB blocks
+Coverity (1709, 1710, 1711, 1712, 1713) actually flagged these as
+REVERSE_INULLs (NULL check performed after dereference). But looking at
+the other drivers I can't see any similar tests and the USB core already
+makes sure urb is non-null - so might as well get rid of the checks.
 
-Cc: Geoff Levand <geoffrey.levand@am.sony.com>
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Florin Malita <fmalita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/ps3/Kconfig |   15 
- drivers/char/Makefile              |    2 
- drivers/char/ps3flash.c            |  429 +++++++++++++++++++++++++++
- 3 files changed, 446 insertions(+)
+ drivers/usb/serial/mos7720.c |    5 -----
+ drivers/usb/serial/mos7840.c |   19 -------------------
+ 2 files changed, 24 deletions(-)
 
-diff -puN arch/powerpc/platforms/ps3/Kconfig~ps3-flash-rom-storage-driver arch/powerpc/platforms/ps3/Kconfig
---- a/arch/powerpc/platforms/ps3/Kconfig~ps3-flash-rom-storage-driver
-+++ a/arch/powerpc/platforms/ps3/Kconfig
-@@ -123,4 +123,19 @@ config PS3_ROM
- 	  In general, all users will say Y or M.
- 	  Also make sure to say Y or M to "SCSI CDROM support" later.
+diff -puN drivers/usb/serial/mos7720.c~usb-mos7720-mos7840-remove-redundant-urb-check drivers/usb/serial/mos7720.c
+--- a/drivers/usb/serial/mos7720.c~usb-mos7720-mos7840-remove-redundant-urb-check
++++ a/drivers/usb/serial/mos7720.c
+@@ -110,11 +110,6 @@ static void mos7720_interrupt_callback(s
  
-+config PS3_FLASH
-+	tristate "PS3 FLASH ROM Storage Driver"
-+	depends on PPC_PS3
-+	select PS3_STORAGE
-+	help
-+	  Include support for the PS3 FLASH ROM Storage.
-+
-+	  This support is required to access the PS3 FLASH ROM, which
-+	  contains the boot loader and some boot options.
-+	  In general, all users will say Y or M.
-+
-+	  As this driver needs a fixed buffer of 256 KiB of memory, it can
-+	  be disabled on the kernel command line using "ps3flash=off", to
-+	  not allocate this fixed buffer.
-+
- endmenu
-diff -puN drivers/char/Makefile~ps3-flash-rom-storage-driver drivers/char/Makefile
---- a/drivers/char/Makefile~ps3-flash-rom-storage-driver
-+++ a/drivers/char/Makefile
-@@ -108,6 +108,8 @@ obj-$(CONFIG_IPMI_HANDLER)	+= ipmi/
- obj-$(CONFIG_HANGCHECK_TIMER)	+= hangcheck-timer.o
- obj-$(CONFIG_TCG_TPM)		+= tpm/
+ 	dbg("%s"," : Entering\n");
  
-+obj-$(CONFIG_PS3_FLASH)		+= ps3flash.o
-+
- # Files generated that shall be removed upon make clean
- clean-files := consolemap_deftbl.c defkeymap.c
+-	if (!urb) {
+-		dbg("%s","Invalid Pointer !!!!:\n");
+-		return;
+-	}
+-
+ 	switch (status) {
+ 	case 0:
+ 		/* success */
+diff -puN drivers/usb/serial/mos7840.c~usb-mos7720-mos7840-remove-redundant-urb-check drivers/usb/serial/mos7840.c
+--- a/drivers/usb/serial/mos7840.c~usb-mos7720-mos7840-remove-redundant-urb-check
++++ a/drivers/usb/serial/mos7840.c
+@@ -436,11 +436,6 @@ static void mos7840_control_callback(str
+ 	int result = 0;
+ 	int status = urb->status;
  
-diff -puN /dev/null drivers/char/ps3flash.c
---- /dev/null
-+++ a/drivers/char/ps3flash.c
-@@ -0,0 +1,429 @@
-+/*
-+ * PS3 FLASH ROM Storage Driver
-+ *
-+ * Copyright (C) 2007 Sony Computer Entertainment Inc.
-+ * Copyright 2007 Sony Corp.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published
-+ * by the Free Software Foundation; version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-+ */
-+
-+#include <linux/fs.h>
-+#include <linux/miscdevice.h>
-+#include <linux/uaccess.h>
-+
-+#include <asm/lv1call.h>
-+#include <asm/ps3stor.h>
-+
-+
-+#define DEVICE_NAME		"ps3flash"
-+
-+#define FLASH_BLOCK_SIZE	(256*1024)
-+
-+
-+struct ps3flash_private {
-+	struct mutex mutex;	/* Bounce buffer mutex */
-+};
-+#define ps3flash_priv(dev)	((dev)->sbd.core.driver_data)
-+
-+static struct ps3_storage_device *ps3flash_dev;
-+
-+static ssize_t ps3flash_read_write_sectors(struct ps3_storage_device *dev,
-+					   u64 lpar, u64 start_sector,
-+					   u64 sectors, int write)
-+{
-+	u64 res = ps3stor_read_write_sectors(dev, lpar, start_sector, sectors,
-+					     write);
-+	if (res) {
-+		dev_err(&dev->sbd.core, "%s:%u: %s failed 0x%lx\n", __func__,
-+			__LINE__, write ? "write" : "read", res);
-+		return -EIO;
-+	}
-+	return sectors;
-+}
-+
-+static ssize_t ps3flash_read_sectors(struct ps3_storage_device *dev,
-+				     u64 start_sector, u64 sectors,
-+				     unsigned int sector_offset)
-+{
-+	u64 max_sectors, lpar;
-+
-+	max_sectors = dev->bounce_size / dev->blk_size;
-+	if (sectors > max_sectors) {
-+		dev_dbg(&dev->sbd.core, "%s:%u Limiting sectors to %lu\n",
-+			__func__, __LINE__, max_sectors);
-+		sectors = max_sectors;
-+	}
-+
-+	lpar = dev->bounce_lpar + sector_offset * dev->blk_size;
-+	return ps3flash_read_write_sectors(dev, lpar, start_sector, sectors,
-+					   0);
-+}
-+
-+static ssize_t ps3flash_write_chunk(struct ps3_storage_device *dev,
-+				    u64 start_sector)
-+{
-+       u64 sectors = dev->bounce_size / dev->blk_size;
-+       return ps3flash_read_write_sectors(dev, dev->bounce_lpar, start_sector,
-+					  sectors, 1);
-+}
-+
-+static loff_t ps3flash_llseek(struct file *file, loff_t offset, int origin)
-+{
-+	struct ps3_storage_device *dev = ps3flash_dev;
-+	u64 size = dev->regions[dev->region_idx].size*dev->blk_size;
-+
-+	switch (origin) {
-+	case 1:
-+		offset += file->f_pos;
-+		break;
-+	case 2:
-+		offset += size;
-+		break;
-+	}
-+	if (offset < 0)
-+		return -EINVAL;
-+
-+	file->f_pos = offset;
-+	return file->f_pos;
-+}
-+
-+static ssize_t ps3flash_read(struct file *file, char __user *buf, size_t count,
-+			     loff_t *pos)
-+{
-+	struct ps3_storage_device *dev = ps3flash_dev;
-+	struct ps3flash_private *priv = ps3flash_priv(dev);
-+	u64 size, start_sector, end_sector, offset;
-+	ssize_t sectors_read;
-+	size_t remaining, n;
-+
-+	dev_dbg(&dev->sbd.core,
-+		"%s:%u: Reading %zu bytes at position %lld to user 0x%p\n",
-+		__func__, __LINE__, count, *pos, buf);
-+
-+	size = dev->regions[dev->region_idx].size*dev->blk_size;
-+	if (*pos >= size || !count)
-+		return 0;
-+
-+	if (*pos+count > size) {
-+		dev_dbg(&dev->sbd.core,
-+			"%s:%u Truncating count from %zu to %llu\n", __func__,
-+			__LINE__, count, size - *pos);
-+		count = size - *pos;
-+	}
-+
-+	start_sector = do_div_llr(*pos, dev->blk_size, &offset);
-+	end_sector = DIV_ROUND_UP(*pos+count, dev->blk_size);
-+
-+	remaining = count;
-+	do {
-+		mutex_lock(&priv->mutex);
-+
-+		sectors_read = ps3flash_read_sectors(dev, start_sector,
-+						     end_sector-start_sector,
-+						     0);
-+		if (sectors_read < 0) {
-+			mutex_unlock(&priv->mutex);
-+			return sectors_read;
-+		}
-+
-+		n = min(remaining, sectors_read*dev->blk_size-offset);
-+		dev_dbg(&dev->sbd.core,
-+			"%s:%u: copy %lu bytes from 0x%p to user 0x%p\n",
-+			__func__, __LINE__, n, dev->bounce_buf+offset, buf);
-+		if (copy_to_user(buf, dev->bounce_buf+offset, n)) {
-+			mutex_unlock(&priv->mutex);
-+			return -EFAULT;
-+		}
-+
-+		mutex_unlock(&priv->mutex);
-+
-+		*pos += n;
-+		buf += n;
-+		remaining -= n;
-+		start_sector += sectors_read;
-+		offset = 0;
-+	} while (remaining > 0);
-+
-+	return count;
-+}
-+
-+static ssize_t ps3flash_write(struct file *file, const char __user *buf,
-+			      size_t count, loff_t *pos)
-+{
-+	struct ps3_storage_device *dev = ps3flash_dev;
-+	struct ps3flash_private *priv = ps3flash_priv(dev);
-+	u64 size, chunk_sectors, start_write_sector, end_write_sector,
-+	    end_read_sector, start_read_sector, head, tail, offset;
-+	ssize_t res;
-+	size_t remaining, n;
-+	unsigned int sec_off;
-+
-+	dev_dbg(&dev->sbd.core,
-+		"%s:%u: Writing %zu bytes at position %lld from user 0x%p\n",
-+		__func__, __LINE__, count, *pos, buf);
-+
-+	size = dev->regions[dev->region_idx].size*dev->blk_size;
-+	if (*pos >= size || !count)
-+		return 0;
-+
-+	if (*pos+count > size) {
-+		dev_dbg(&dev->sbd.core,
-+			"%s:%u Truncating count from %zu to %llu\n", __func__,
-+			__LINE__, count, size - *pos);
-+		count = size - *pos;
-+	}
-+
-+	chunk_sectors = dev->bounce_size / dev->blk_size;
-+
-+	start_write_sector = do_div_llr(*pos, dev->bounce_size, &offset) *
-+			     chunk_sectors;
-+	end_write_sector = DIV_ROUND_UP(*pos+count, dev->bounce_size) *
-+			   chunk_sectors;
-+
-+	end_read_sector = DIV_ROUND_UP(*pos, dev->blk_size);
-+	start_read_sector = (*pos+count) / dev->blk_size;
-+
-+	/*
-+	 * As we have to write in 256 KiB chunks, while we can read in blk_size
-+	 * (usually 512 bytes) chunks, we perform the following steps:
-+	 *   1. Read from start_write_sector to end_read_sector ("head")
-+	 *   2. Read from start_read_sector to end_write_sector ("tail")
-+	 *   3. Copy data to buffer
-+	 *   4. Write from start_write_sector to end_write_sector
-+	 * All of this is complicated by using only one 256 KiB bounce buffer.
-+	 */
-+
-+	head = end_read_sector-start_write_sector;
-+	tail = end_write_sector-start_read_sector;
-+
-+	remaining = count;
-+	do {
-+		mutex_lock(&priv->mutex);
-+
-+		if (end_read_sector >= start_read_sector) {
-+			/* Merge head and tail */
-+			dev_dbg(&dev->sbd.core,
-+				"Merged head and tail: %lu sectors at %lu\n",
-+				chunk_sectors, start_write_sector);
-+			res = ps3flash_read_sectors(dev, start_write_sector,
-+						    chunk_sectors, 0);
-+			if (res < 0)
-+				goto fail;
-+		} else {
-+			if (head) {
-+				/* Read head */
-+				dev_dbg(&dev->sbd.core,
-+					"head: %lu sectors at %lu\n", head,
-+					start_write_sector);
-+				res = ps3flash_read_sectors(dev,
-+							    start_write_sector,
-+							    head, 0);
-+				if (res < 0)
-+					goto fail;
-+			}
-+			if (start_read_sector <
-+			    start_write_sector+chunk_sectors) {
-+				/* Read tail */
-+				dev_dbg(&dev->sbd.core,
-+					"tail: %lu sectors at %lu\n", tail,
-+					start_read_sector);
-+				sec_off = start_read_sector-start_write_sector;
-+				res = ps3flash_read_sectors(dev,
-+							    start_read_sector,
-+							    tail, sec_off);
-+				if (res < 0)
-+					goto fail;
-+			}
-+		}
-+
-+		n = min(remaining, dev->bounce_size-offset);
-+		dev_dbg(&dev->sbd.core,
-+			"%s:%u: copy %lu bytes from user 0x%p to 0x%p\n",
-+			__func__, __LINE__, n, buf, dev->bounce_buf+offset);
-+		if (copy_from_user(dev->bounce_buf+offset, buf, n)) {
-+			res = -EFAULT;
-+			goto fail;
-+		}
-+
-+		res = ps3flash_write_chunk(dev, start_write_sector);
-+		if (res < 0)
-+			goto fail;
-+
-+		mutex_unlock(&priv->mutex);
-+
-+		*pos += n;
-+		buf += n;
-+		remaining -= n;
-+		start_write_sector += chunk_sectors;
-+		head = 0;
-+		offset = 0;
-+	} while (remaining > 0);
-+
-+	return count;
-+
-+fail:
-+	mutex_unlock(&priv->mutex);
-+	return res;
-+}
-+
-+
-+static irqreturn_t ps3flash_interrupt(int irq, void *data)
-+{
-+	struct ps3_storage_device *dev = data;
-+	int res;
-+	u64 tag, status;
-+
-+	res = lv1_storage_get_async_status(dev->sbd.dev_id, &tag, &status);
-+
-+	if (tag != dev->tag)
-+		dev_err(&dev->sbd.core,
-+			"%s:%u: tag mismatch, got %lx, expected %lx\n",
-+			__func__, __LINE__, tag, dev->tag);
-+
-+	if (res) {
-+		dev_err(&dev->sbd.core, "%s:%u: res=%d status=0x%lx\n",
-+			__func__, __LINE__, res, status);
-+	} else {
-+		dev->lv1_status = status;
-+		complete(&dev->done);
-+	}
-+	return IRQ_HANDLED;
-+}
-+
-+
-+static const struct file_operations ps3flash_fops = {
-+	.owner	= THIS_MODULE,
-+	.llseek	= ps3flash_llseek,
-+	.read	= ps3flash_read,
-+	.write	= ps3flash_write,
-+};
-+
-+static struct miscdevice ps3flash_misc = {
-+	.minor	= MISC_DYNAMIC_MINOR,
-+	.name	= DEVICE_NAME,
-+	.fops	= &ps3flash_fops,
-+};
-+
-+static int __devinit ps3flash_probe(struct ps3_system_bus_device *_dev)
-+{
-+	struct ps3_storage_device *dev = to_ps3_storage_device(&_dev->core);
-+	struct ps3flash_private *priv;
-+	int error;
-+	unsigned long tmp;
-+
-+	tmp = dev->regions[dev->region_idx].start*dev->blk_size;
-+	if (tmp % FLASH_BLOCK_SIZE) {
-+		dev_err(&dev->sbd.core,
-+			"%s:%u region start %lu is not aligned\n", __func__,
-+			__LINE__, tmp);
-+		return -EINVAL;
-+	}
-+	tmp = dev->regions[dev->region_idx].size*dev->blk_size;
-+	if (tmp % FLASH_BLOCK_SIZE) {
-+		dev_err(&dev->sbd.core,
-+			"%s:%u region size %lu is not aligned\n", __func__,
-+			__LINE__, tmp);
-+		return -EINVAL;
-+	}
-+
-+	/* use static buffer, kmalloc cannot allocate 256 KiB */
-+	if (!ps3flash_bounce_buffer.address)
-+		return -ENODEV;
-+
-+	if (ps3flash_dev) {
-+		dev_err(&dev->sbd.core,
-+			"Only one FLASH device is supported\n");
-+		return -EBUSY;
-+	}
-+
-+	ps3flash_dev = dev;
-+
-+	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-+	if (!priv) {
-+		error = -ENOMEM;
-+		goto fail;
-+	}
-+
-+	ps3flash_priv(dev) = priv;
-+	mutex_init(&priv->mutex);
-+
-+	dev->bounce_size = ps3flash_bounce_buffer.size;
-+	dev->bounce_buf = ps3flash_bounce_buffer.address;
-+
-+	error = ps3stor_setup(dev, ps3flash_interrupt);
-+	if (error)
-+		goto fail_free_priv;
-+
-+	ps3flash_misc.parent = &dev->sbd.core;
-+	error = misc_register(&ps3flash_misc);
-+	if (error) {
-+		dev_err(&dev->sbd.core, "%s:%u: misc_register failed %d\n",
-+			__func__, __LINE__, error);
-+		goto fail_teardown;
-+	}
-+
-+	dev_info(&dev->sbd.core, "%s:%u: registered misc device %d\n",
-+		 __func__, __LINE__, ps3flash_misc.minor);
-+	return 0;
-+
-+fail_teardown:
-+	ps3stor_teardown(dev);
-+fail_free_priv:
-+	kfree(priv);
-+	ps3flash_priv(dev) = NULL;
-+fail:
-+	ps3flash_dev = NULL;
-+	return error;
-+}
-+
-+static int ps3flash_remove(struct ps3_system_bus_device *_dev)
-+{
-+	struct ps3_storage_device *dev = to_ps3_storage_device(&_dev->core);
-+
-+	misc_deregister(&ps3flash_misc);
-+	ps3stor_teardown(dev);
-+	kfree(ps3flash_priv(dev));
-+	ps3flash_priv(dev) = NULL;
-+	ps3flash_dev = NULL;
-+	return 0;
-+}
-+
-+
-+static struct ps3_system_bus_driver ps3flash = {
-+	.match_id	= PS3_MATCH_ID_STOR_FLASH,
-+	.core.name	= DEVICE_NAME,
-+	.core.owner	= THIS_MODULE,
-+	.probe		= ps3flash_probe,
-+	.remove		= ps3flash_remove,
-+	.shutdown	= ps3flash_remove,
-+};
-+
-+
-+static int __init ps3flash_init(void)
-+{
-+	return ps3_system_bus_driver_register(&ps3flash);
-+}
-+
-+static void __exit ps3flash_exit(void)
-+{
-+	ps3_system_bus_driver_unregister(&ps3flash);
-+}
-+
-+module_init(ps3flash_init);
-+module_exit(ps3flash_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("PS3 FLASH ROM Storage Driver");
-+MODULE_AUTHOR("Sony Corporation");
-+MODULE_ALIAS(PS3_MODULE_ALIAS_STOR_FLASH);
+-	if (!urb) {
+-		dbg("%s", "Invalid Pointer !!!!:\n");
+-		return;
+-	}
+-
+ 	mos7840_port = (struct moschip_port *)urb->context;
+ 
+ 	switch (status) {
+@@ -525,10 +520,6 @@ static void mos7840_interrupt_callback(s
+ 	int status = urb->status;
+ 
+ 	dbg("%s", " : Entering\n");
+-	if (!urb) {
+-		dbg("%s", "Invalid Pointer !!!!:\n");
+-		return;
+-	}
+ 
+ 	switch (status) {
+ 	case 0:
+@@ -676,11 +667,6 @@ static void mos7840_bulk_in_callback(str
+ 	struct tty_struct *tty;
+ 	int status = urb->status;
+ 
+-	if (!urb) {
+-		dbg("%s", "Invalid Pointer !!!!:\n");
+-		return;
+-	}
+-
+ 	if (status) {
+ 		dbg("nonzero read bulk status received: %d", status);
+ 		return;
+@@ -753,11 +739,6 @@ static void mos7840_bulk_out_data_callba
+ 	int status = urb->status;
+ 	int i;
+ 
+-	if (!urb) {
+-		dbg("%s", "Invalid Pointer !!!!:\n");
+-		return;
+-	}
+-
+ 	mos7840_port = (struct moschip_port *)urb->context;
+ 	spin_lock(&mos7840_port->pool_lock);
+ 	for (i = 0; i < NUM_URBS; i++) {
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from fmalita@gmail.com are
 
 origin.patch
-ps3-disk-storage-driver.patch
-ps3-bd-dvd-cd-rom-storage-driver.patch
-ps3-flash-rom-storage-driver.patch
+usb-mos7720-mos7840-remove-redundant-urb-check.patch
