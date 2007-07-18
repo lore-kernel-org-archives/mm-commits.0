@@ -1,77 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-split-ondemand-readahead-interface-into-two-functions-fix.patch added to -mm tree
-Date: Wed, 18 Jul 2007 00:54:24 -0700
-Message-ID: <200707180754.l6I7sOcB031311@imap1.linux-foundation.org>
+Subject: - slob-kill-off-duplicate-kzalloc-definition.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 01:38:28 -0700
+Message-ID: <200707180838.l6I8cSUP000449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56559 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43902 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755980AbXGRHyk (ORCPT
+	by vger.kernel.org with ESMTP id S1752836AbXGRIjW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 03:54:40 -0400
+	Wed, 18 Jul 2007 04:39:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au, wfg@mail.ustc.edu.cn
+To: lethal@linux-sh.org, clameter@sgi.com, jengelh@computergmbh.de, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead-split-ondemand-readahead-interface-into-two-functions-fix
-has been added to the -mm tree.  Its filename is
-     readahead-split-ondemand-readahead-interface-into-two-functions-fix.patch
+     slob: kill off duplicate kzalloc() definition.
+has been removed from the -mm tree.  Its filename was
+     slob-kill-off-duplicate-kzalloc-definition.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: readahead-split-ondemand-readahead-interface-into-two-functions-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: slob: kill off duplicate kzalloc() definition.
+From: Paul Mundt <lethal@linux-sh.org>
 
-Not sure how this happened.  Please check?
+With the slab zeroing allocations cleanups Christoph stubbed in a generic
+kzalloc(), which was missed on SLOB. Follow the SLAB/SLUB changes and
+kill off the __kzalloc() wrapper that SLOB was using.
 
-Cc: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Reported-by: Jan Engelhardt <jengelh@computergmbh.de>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/slob_def.h |   10 ----------
+ 1 files changed, 10 deletions(-)
 
-diff -puN mm/filemap.c~readahead-split-ondemand-readahead-interface-into-two-functions-fix mm/filemap.c
---- a/mm/filemap.c~readahead-split-ondemand-readahead-interface-into-two-functions-fix
-+++ a/mm/filemap.c
-@@ -1348,14 +1348,14 @@ retry_find:
- 	 */
- 	if (VM_SequentialReadHint(vma)) {
- 		if (!page) {
--			page_cache_readahead_ondemand(mapping, ra, file, page,
-+			page_cache_sync_readahead(mapping, ra, file, page,
- 							   vmf->pgoff, 1);
- 			page = find_lock_page(mapping, vmf->pgoff);
- 			if (!page)
- 				goto no_cached_page;
- 		}
- 		if (PageReadahead(page)) {
--			page_cache_readahead_ondemand(mapping, ra, file, page,
-+			page_cache_async_readahead(mapping, ra, file, page,
- 							   vmf->pgoff, 1);
- 		}
- 	}
+diff -puN include/linux/slob_def.h~slob-kill-off-duplicate-kzalloc-definition include/linux/slob_def.h
+--- a/include/linux/slob_def.h~slob-kill-off-duplicate-kzalloc-definition
++++ a/include/linux/slob_def.h
+@@ -33,14 +33,4 @@ static inline void *__kmalloc(size_t siz
+ 	return kmalloc(size, flags);
+ }
+ 
+-/**
+- * kzalloc - allocate memory. The memory is set to zero.
+- * @size: how many bytes of memory are required.
+- * @flags: the type of memory to allocate (see kcalloc).
+- */
+-static inline void *kzalloc(size_t size, gfp_t flags)
+-{
+-	return __kzalloc(size, flags);
+-}
+-
+ #endif /* __LINUX_SLOB_DEF_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-fault-feedback-2-fix.patch
-readahead-split-ondemand-readahead-interface-into-two-functions-fix.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-add-sys-kernel-notes-fix.patch
-lockstat-core-infrastructure.patch
-lockstat-human-readability-tweaks-fix.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
+slob-kill-off-duplicate-kzalloc-definition.patch
+git-sh.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
