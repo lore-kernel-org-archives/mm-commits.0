@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-ecryptfs_setattr-bugfix.patch added to -mm tree
-Date: Tue, 17 Jul 2007 17:07:16 -0700
-Message-ID: <200707180007.l6I07GO2014708@imap1.linux-foundation.org>
+Subject: + serial-add-back-early_serial_setup-back-to-head-file.patch added to -mm tree
+Date: Tue, 17 Jul 2007 17:10:29 -0700
+Message-ID: <200707180010.l6I0ATVG014793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59822 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57680 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760003AbXGRAHd (ORCPT
+	by vger.kernel.org with ESMTP id S1755469AbXGRAKh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 20:07:33 -0400
+	Tue, 17 Jul 2007 20:10:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com, stable@kernel.org
+Cc: Yinghai.Lu@Sun.COM, yinghai.lu@Sun.COM
 
 
 The patch titled
-     eCryptfs: ecryptfs_setattr() bugfix
+     serial: add early_serial_setup() back to header file
 has been added to the -mm tree.  Its filename is
-     ecryptfs-ecryptfs_setattr-bugfix.patch
+     serial-add-back-early_serial_setup-back-to-head-file.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,315 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: ecryptfs_setattr() bugfix
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: serial: add early_serial_setup() back to header file
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-There is another bug recently introduced into the ecryptfs_setattr()
-function in 2.6.22.  eCryptfs will attempt to treat special files like
-regular eCryptfs files on chmod, chown, and so forth.  This leads to a NULL
-pointer dereference.  This patch validates that the file is a regular file
-before proceeding with operations related to the inode's crypt_stat.
+early_serial_setup is removed from serial.h, but foget to put in
+serial_8250.h
 
-Thanks to Ryusuke Konishi for finding this bug and suggesting the fix.
-
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ arch/frv/kernel/setup.c                   |    1 +
+ arch/mips/basler/excite/excite_setup.c    |    1 +
+ arch/mips/gt64120/wrppmc/setup.c          |    1 +
+ arch/mips/mips-boards/atlas/atlas_setup.c |    1 +
+ arch/mips/mips-boards/sead/sead_setup.c   |    1 +
+ arch/mips/mipssim/sim_setup.c             |    1 +
+ arch/mips/pmc-sierra/msp71xx/msp_serial.c |    1 +
+ arch/mips/pmc-sierra/yosemite/setup.c     |    1 +
+ arch/ppc/platforms/4xx/bamboo.c           |    1 +
+ arch/ppc/platforms/4xx/bubinga.c          |    1 +
+ arch/ppc/platforms/4xx/cpci405.c          |    1 +
+ arch/ppc/platforms/4xx/ebony.c            |    1 +
+ arch/ppc/platforms/4xx/luan.c             |    1 +
+ arch/ppc/platforms/4xx/ocotea.c           |    1 +
+ arch/ppc/platforms/4xx/taishan.c          |    1 +
+ arch/ppc/platforms/4xx/yucca.c            |    1 +
+ arch/ppc/platforms/85xx/sbc8560.c         |    1 +
+ arch/ppc/platforms/chestnut.c             |    1 +
+ arch/ppc/platforms/ev64260.c              |    1 +
+ arch/ppc/platforms/radstone_ppc7d.c       |    1 +
+ arch/ppc/platforms/spruce.c               |    1 +
+ drivers/parisc/superio.c                  |    1 +
+ drivers/serial/8250_hp300.c               |    1 +
+ include/linux/serial_8250.h               |    2 ++
+ 24 files changed, 25 insertions(+)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-ecryptfs_setattr-bugfix fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-ecryptfs_setattr-bugfix
-+++ a/fs/ecryptfs/inode.c
-@@ -908,8 +908,9 @@ static int ecryptfs_setattr(struct dentr
- 	mutex_lock(&crypt_stat->cs_mutex);
- 	if (S_ISDIR(dentry->d_inode->i_mode))
- 		crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
--	else if (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
--		 || !(crypt_stat->flags & ECRYPTFS_KEY_VALID)) {
-+	else if (S_ISREG(dentry->d_inode->i_mode)
-+		 && (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
-+		     || !(crypt_stat->flags & ECRYPTFS_KEY_VALID))) {
- 		struct vfsmount *lower_mnt;
- 		struct file *lower_file = NULL;
- 		struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
+diff -puN arch/frv/kernel/setup.c~serial-add-back-early_serial_setup-back-to-head-file arch/frv/kernel/setup.c
+--- a/arch/frv/kernel/setup.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/frv/kernel/setup.c
+@@ -29,6 +29,7 @@
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
+ #include <linux/serial_reg.h>
++#include <linux/serial_8250.h>
+ 
+ #include <asm/setup.h>
+ #include <asm/irq.h>
+diff -puN arch/mips/basler/excite/excite_setup.c~serial-add-back-early_serial_setup-back-to-head-file arch/mips/basler/excite/excite_setup.c
+--- a/arch/mips/basler/excite/excite_setup.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/mips/basler/excite/excite_setup.c
+@@ -26,6 +26,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial_core.h>
+ #include <linux/serial.h>
++#include <linux/serial_8250.h>
+ #include <linux/ioport.h>
+ #include <linux/spinlock.h>
+ #include <asm/bootinfo.h>
+diff -puN arch/mips/gt64120/wrppmc/setup.c~serial-add-back-early_serial_setup-back-to-head-file arch/mips/gt64120/wrppmc/setup.c
+--- a/arch/mips/gt64120/wrppmc/setup.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/mips/gt64120/wrppmc/setup.c
+@@ -14,6 +14,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ #include <linux/pm.h>
+ 
+ #include <asm/io.h>
+diff -puN arch/mips/mips-boards/atlas/atlas_setup.c~serial-add-back-early_serial_setup-back-to-head-file arch/mips/mips-boards/atlas/atlas_setup.c
+--- a/arch/mips/mips-boards/atlas/atlas_setup.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/mips/mips-boards/atlas/atlas_setup.c
+@@ -22,6 +22,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ 
+ #include <asm/cpu.h>
+ #include <asm/bootinfo.h>
+diff -puN arch/mips/mips-boards/sead/sead_setup.c~serial-add-back-early_serial_setup-back-to-head-file arch/mips/mips-boards/sead/sead_setup.c
+--- a/arch/mips/mips-boards/sead/sead_setup.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/mips/mips-boards/sead/sead_setup.c
+@@ -23,6 +23,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ 
+ #include <asm/cpu.h>
+ #include <asm/bootinfo.h>
+diff -puN arch/mips/mipssim/sim_setup.c~serial-add-back-early_serial_setup-back-to-head-file arch/mips/mipssim/sim_setup.c
+--- a/arch/mips/mipssim/sim_setup.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/mips/mipssim/sim_setup.c
+@@ -26,6 +26,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ 
+ #include <asm/cpu.h>
+ #include <asm/bootinfo.h>
+diff -puN arch/mips/pmc-sierra/msp71xx/msp_serial.c~serial-add-back-early_serial_setup-back-to-head-file arch/mips/pmc-sierra/msp71xx/msp_serial.c
+--- a/arch/mips/pmc-sierra/msp71xx/msp_serial.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/mips/pmc-sierra/msp71xx/msp_serial.c
+@@ -32,6 +32,7 @@
+ #include <asm/io.h>
+ #include <asm/processor.h>
+ #include <asm/serial.h>
++#include <linux/serial_8250.h>
+ 
+ #include <msp_prom.h>
+ #include <msp_int.h>
+diff -puN arch/mips/pmc-sierra/yosemite/setup.c~serial-add-back-early_serial_setup-back-to-head-file arch/mips/pmc-sierra/yosemite/setup.c
+--- a/arch/mips/pmc-sierra/yosemite/setup.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/mips/pmc-sierra/yosemite/setup.c
+@@ -39,6 +39,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ 
+ #include <asm/time.h>
+ #include <asm/bootinfo.h>
+diff -puN arch/ppc/platforms/4xx/bamboo.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/4xx/bamboo.c
+--- a/arch/ppc/platforms/4xx/bamboo.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/4xx/bamboo.c
+@@ -29,6 +29,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ #include <linux/ethtool.h>
+ 
+ #include <asm/system.h>
+diff -puN arch/ppc/platforms/4xx/bubinga.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/4xx/bubinga.c
+--- a/arch/ppc/platforms/4xx/bubinga.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/4xx/bubinga.c
+@@ -21,6 +21,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ 
+ #include <asm/system.h>
+ #include <asm/pci-bridge.h>
+diff -puN arch/ppc/platforms/4xx/cpci405.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/4xx/cpci405.c
+--- a/arch/ppc/platforms/4xx/cpci405.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/4xx/cpci405.c
+@@ -23,6 +23,7 @@
+ #include <asm/todc.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ #include <asm/ocp.h>
+ #include <asm/ibm_ocp_pci.h>
+ #include <platforms/4xx/ibm405gp.h>
+diff -puN arch/ppc/platforms/4xx/ebony.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/4xx/ebony.c
+--- a/arch/ppc/platforms/4xx/ebony.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/4xx/ebony.c
+@@ -32,6 +32,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ 
+ #include <asm/system.h>
+ #include <asm/pgtable.h>
+diff -puN arch/ppc/platforms/4xx/luan.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/4xx/luan.c
+--- a/arch/ppc/platforms/4xx/luan.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/4xx/luan.c
+@@ -30,6 +30,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ 
+ #include <asm/system.h>
+ #include <asm/pgtable.h>
+diff -puN arch/ppc/platforms/4xx/ocotea.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/4xx/ocotea.c
+--- a/arch/ppc/platforms/4xx/ocotea.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/4xx/ocotea.c
+@@ -30,6 +30,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ 
+ #include <asm/system.h>
+ #include <asm/pgtable.h>
+diff -puN arch/ppc/platforms/4xx/taishan.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/4xx/taishan.c
+--- a/arch/ppc/platforms/4xx/taishan.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/4xx/taishan.c
+@@ -30,6 +30,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ #include <linux/platform_device.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/nand.h>
+diff -puN arch/ppc/platforms/4xx/yucca.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/4xx/yucca.c
+--- a/arch/ppc/platforms/4xx/yucca.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/4xx/yucca.c
+@@ -31,6 +31,7 @@
+ #include <linux/tty.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ 
+ #include <asm/system.h>
+ #include <asm/pgtable.h>
+diff -puN arch/ppc/platforms/85xx/sbc8560.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/85xx/sbc8560.c
+--- a/arch/ppc/platforms/85xx/sbc8560.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/85xx/sbc8560.c
+@@ -26,6 +26,7 @@
+ #include <linux/serial.h>
+ #include <linux/tty.h>	/* for linux/serial_core.h */
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ #include <linux/initrd.h>
+ #include <linux/module.h>
+ #include <linux/fsl_devices.h>
+diff -puN arch/ppc/platforms/chestnut.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/chestnut.c
+--- a/arch/ppc/platforms/chestnut.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/chestnut.c
+@@ -25,6 +25,7 @@
+ #include <linux/ide.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ #include <linux/mtd/physmap.h>
+ #include <asm/system.h>
+ #include <asm/pgtable.h>
+diff -puN arch/ppc/platforms/ev64260.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/ev64260.c
+--- a/arch/ppc/platforms/ev64260.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/ev64260.c
+@@ -35,6 +35,7 @@
+ #include <linux/serial.h>
+ #include <linux/tty.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ #else
+ #include <linux/mv643xx.h>
+ #endif
+diff -puN arch/ppc/platforms/radstone_ppc7d.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/radstone_ppc7d.c
+--- a/arch/ppc/platforms/radstone_ppc7d.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/radstone_ppc7d.c
+@@ -35,6 +35,7 @@
+ #include <linux/serial.h>
+ #include <linux/tty.h>		/* for linux/serial_core.h */
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ #include <linux/mv643xx.h>
+ #include <linux/netdevice.h>
+ #include <linux/platform_device.h>
+diff -puN arch/ppc/platforms/spruce.c~serial-add-back-early_serial_setup-back-to-head-file arch/ppc/platforms/spruce.c
+--- a/arch/ppc/platforms/spruce.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/arch/ppc/platforms/spruce.c
+@@ -27,6 +27,7 @@
+ #include <linux/serial.h>
+ #include <linux/tty.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ 
+ #include <asm/system.h>
+ #include <asm/pgtable.h>
+diff -puN drivers/parisc/superio.c~serial-add-back-early_serial_setup-back-to-head-file drivers/parisc/superio.c
+--- a/drivers/parisc/superio.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/drivers/parisc/superio.c
+@@ -73,6 +73,7 @@
+ #include <linux/termios.h>
+ #include <linux/tty.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ #include <linux/delay.h>
+ 
+ #include <asm/io.h>
+diff -puN drivers/serial/8250_hp300.c~serial-add-back-early_serial_setup-back-to-head-file drivers/serial/8250_hp300.c
+--- a/drivers/serial/8250_hp300.c~serial-add-back-early_serial_setup-back-to-head-file
++++ a/drivers/serial/8250_hp300.c
+@@ -11,6 +11,7 @@
+ #include <linux/kernel.h>
+ #include <linux/serial.h>
+ #include <linux/serial_core.h>
++#include <linux/serial_8250.h>
+ #include <linux/delay.h>
+ #include <linux/dio.h>
+ #include <linux/console.h>
+diff -puN include/linux/serial_8250.h~serial-add-back-early_serial_setup-back-to-head-file include/linux/serial_8250.h
+--- a/include/linux/serial_8250.h~serial-add-back-early_serial_setup-back-to-head-file
++++ a/include/linux/serial_8250.h
+@@ -60,6 +60,8 @@ void serial8250_unregister_port(int line
+ void serial8250_suspend_port(int line);
+ void serial8250_resume_port(int line);
+ 
++extern int early_serial_setup(struct uart_port *port);
++
+ extern int serial8250_find_port(struct uart_port *p);
+ extern int serial8250_find_port_for_earlycon(void);
+ extern int setup_early_serial8250_console(char *cmdline);
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
 origin.patch
-git-unionfs.patch
-fs-remove-some-aop_truncated_page.patch
-ecryptfs-ecryptfs_setattr-bugfix.patch
-fs-introduce-vfs_path_lookup.patch
-sunrpc-use-vfs_path_lookup.patch
-nfsctl-use-vfs_path_lookup.patch
-fs-mark-link_path_walk-static.patch
-fs-remove-path_walk-export.patch
+serial-add-back-early_serial_setup-back-to-head-file.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
+x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
+x86_64-get-mp_bus_to_node-as-early.patch
