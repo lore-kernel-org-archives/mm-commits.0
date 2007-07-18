@@ -1,104 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - make-input-layer-use-seq_list_xxx-helpers.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 11:52:12 -0700
-Message-ID: <200707181852.l6IIqCgV023645@imap1.linux-foundation.org>
+Subject: - tidy-up-usermode-helper-waiting-a-bit-fix.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 11:52:36 -0700
+Message-ID: <200707181852.l6IIqaYu023691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56982 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48109 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759495AbXGRSxc (ORCPT
+	by vger.kernel.org with ESMTP id S1759495AbXGRSxt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 14:53:32 -0400
+	Wed, 18 Jul 2007 14:53:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@sw.ru, dtor@mail.ru, xemul@openvz.org, mm-commits@vger.kernel.org
+To: jeremy@goop.org, johannes@sipsolutions.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make input layer use seq_list_xxx helpers
+     tidy-up-usermode-helper-waiting-a-bit fix
 has been removed from the -mm tree.  Its filename was
-     make-input-layer-use-seq_list_xxx-helpers.patch
+     tidy-up-usermode-helper-waiting-a-bit-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Make input layer use seq_list_xxx helpers
-From: Pavel Emelianov <xemul@sw.ru>
+Subject: tidy-up-usermode-helper-waiting-a-bit fix
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-This is essentially just a renaming of the existing functions as the
-seq_list_start() and seq_list_next() copies already exist in the input.c file.
-Now we have them in the generic place.
+Some fix for xencleanup-tidy-up-usermode-helper-waiting-a-bit.patch
 
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/input.c |   29 ++++-------------------------
- 1 files changed, 4 insertions(+), 25 deletions(-)
+ kernel/kmod.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/input.c~make-input-layer-use-seq_list_xxx-helpers drivers/input/input.c
---- a/drivers/input/input.c~make-input-layer-use-seq_list_xxx-helpers
-+++ a/drivers/input/input.c
-@@ -471,37 +471,16 @@ static unsigned int input_proc_devices_p
- 	return 0;
- }
- 
--static struct list_head *list_get_nth_element(struct list_head *list, loff_t *pos)
--{
--	struct list_head *node;
--	loff_t i = 0;
--
--	list_for_each(node, list)
--		if (i++ == *pos)
--			return node;
--
--	return NULL;
--}
--
--static struct list_head *list_get_next_element(struct list_head *list, struct list_head *element, loff_t *pos)
--{
--	if (element->next == list)
--		return NULL;
--
--	++(*pos);
--	return element->next;
--}
--
- static void *input_devices_seq_start(struct seq_file *seq, loff_t *pos)
- {
- 	/* acquire lock here ... Yes, we do need locking, I knowi, I know... */
- 
--	return list_get_nth_element(&input_dev_list, pos);
-+	return seq_list_start(&input_dev_list, *pos);
- }
- 
- static void *input_devices_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- {
--	return list_get_next_element(&input_dev_list, v, pos);
-+	return seq_list_next(v, &input_dev_list, pos);
- }
- 
- static void input_devices_seq_stop(struct seq_file *seq, void *v)
-@@ -592,13 +571,13 @@ static void *input_handlers_seq_start(st
- {
- 	/* acquire lock here ... Yes, we do need locking, I knowi, I know... */
- 	seq->private = (void *)(unsigned long)*pos;
--	return list_get_nth_element(&input_handler_list, pos);
-+	return seq_list_start(&input_handler_list, *pos);
- }
- 
- static void *input_handlers_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- {
- 	seq->private = (void *)(unsigned long)(*pos + 1);
--	return list_get_next_element(&input_handler_list, v, pos);
-+	return seq_list_next(v, &input_handler_list, pos);
- }
- 
- static void input_handlers_seq_stop(struct seq_file *seq, void *v)
+diff -puN kernel/kmod.c~tidy-up-usermode-helper-waiting-a-bit-fix kernel/kmod.c
+--- a/kernel/kmod.c~tidy-up-usermode-helper-waiting-a-bit-fix
++++ a/kernel/kmod.c
+@@ -243,7 +243,7 @@ static void __call_usermodehelper(struct
+ 	/* CLONE_VFORK: wait until the usermode helper has execve'd
+ 	 * successfully We need the data structures to stay around
+ 	 * until that is done.  */
+-	if (wait == UMH_WAIT_PROC)
++	if (wait == UMH_WAIT_PROC || wait == UMH_NO_WAIT)
+ 		pid = kernel_thread(wait_for_helper, sub_info,
+ 				    CLONE_FS | CLONE_FILES | SIGCHLD);
+ 	else
 _
 
-Patches currently in -mm which might be from xemul@sw.ru are
+Patches currently in -mm which might be from jeremy@goop.org are
 
 origin.patch
-git-input.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
+git-kbuild.patch
+fix-x86_64-mm-xen-xen-smp-guest-support.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+i386-minor-nx-handling-adjustment.patch
+x86-fix-iounmaps-use-of-vm_structs-size-field.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+lguest-the-guest-code.patch
