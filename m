@@ -1,181 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: - xen-build-fix.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 11:52:26 -0700
-Message-ID: <200707181852.l6IIqQt0023676@imap1.linux-foundation.org>
+Subject: - paravirt-helper-to-disable-all-io-space-fix.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 11:52:42 -0700
+Message-ID: <200707181852.l6IIqg65023700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48125 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39748 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934293AbXGRSzI (ORCPT
+	by vger.kernel.org with ESMTP id S934339AbXGRSzI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 18 Jul 2007 14:55:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@suse.de, jeremy@goop.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, jeremy@xensource.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen build fix
+     paravirt-helper-to-disable-all-io-space-fix
 has been removed from the -mm tree.  Its filename was
-     xen-build-fix.patch
+     paravirt-helper-to-disable-all-io-space-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: xen build fix
+Subject: paravirt-helper-to-disable-all-io-space-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-From
+A fix against paravirt-helper-to-disable-all-io-space.patch
 
-arch/i386/xen/setup.c: In function 'xen_idle':
-arch/i386/xen/setup.c:47: warning: implicit declaration of function 'need_resched'
+- Make sure everything is backed out if it fails.
+
+- xen: don't include unnecessary headers (Jeremy)
 
 Cc: Andi Kleen <ak@suse.de>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/setup.c |    1 +
- 1 files changed, 1 insertion(+)
+ arch/i386/kernel/paravirt.c |    8 +++++---
+ arch/i386/xen/setup.c       |    2 --
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/xen/setup.c~xen-build-fix arch/i386/xen/setup.c
---- a/arch/i386/xen/setup.c~xen-build-fix
+diff -puN arch/i386/kernel/paravirt.c~paravirt-helper-to-disable-all-io-space-fix arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~paravirt-helper-to-disable-all-io-space-fix
++++ a/arch/i386/kernel/paravirt.c
+@@ -251,16 +251,18 @@ static struct resource reserve_iomem = {
+  */
+ int paravirt_disable_iospace(void)
+ {
+-	int ret = 0;
++	int ret;
+ 
+ 	ret = request_resource(&ioport_resource, &reserve_ioports);
+-	if (ret == 0)
++	if (ret == 0) {
+ 		ret = request_resource(&iomem_resource, &reserve_iomem);
++		if (ret)
++			release_resource(&reserve_ioports);
++	}
+ 
+ 	return ret;
+ }
+ 
+-
+ struct paravirt_ops paravirt_ops = {
+ 	.name = "bare hardware",
+ 	.paravirt_enabled = 0,
+diff -puN arch/i386/xen/setup.c~paravirt-helper-to-disable-all-io-space-fix arch/i386/xen/setup.c
+--- a/arch/i386/xen/setup.c~paravirt-helper-to-disable-all-io-space-fix
 +++ a/arch/i386/xen/setup.c
-@@ -6,6 +6,7 @@
- 
- #include <linux/module.h>
+@@ -8,14 +8,12 @@
  #include <linux/mm.h>
-+#include <linux/sched.h>
+ #include <linux/sched.h>
  #include <linux/pm.h>
- #include <linux/ioport.h>
+-#include <linux/ioport.h>
  
+ #include <asm/elf.h>
+ #include <asm/e820.h>
+ #include <asm/setup.h>
+ #include <asm/xen/hypervisor.h>
+ #include <asm/xen/hypercall.h>
+-#include <asm/io.h>
+ 
+ #include <xen/interface/physdev.h>
+ #include <xen/features.h>
 _
 
-Patches currently in -mm which might be from ak@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
-i386-put-allocated-elf-notes-in-read-only-data-segment.patch
-x86_64-put-allocated-elf-notes-in-read-only-data-segment.patch
-add-sys-kernel-notes.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-fault-feedback-2-fix.patch
+readahead-split-ondemand-readahead-interface-into-two-functions-fix.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
 add-sys-kernel-notes-fix.patch
-use-build-id-ld-option.patch
-acpi-add-reboot-mechanism.patch
+lockstat-core-infrastructure.patch
+lockstat-human-readability-tweaks-fix.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+dequeue_huge_page-warning-fix.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
 acpi-add-reboot-mechanism-fix.patch
-pci-disable-decode-of-io-memory-during-bar-sizing.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-saa7134-tvaudio-fix.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+revert-gregkh-pci-pci_bridge-device.patch
 i386-add-support-for-picopower-irq-router.patch
+git-scsi-misc.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
 fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-xen-xen-smp-guest-support.patch
 fix-x86_64-mm-sched-clock-share.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-quicklist-support-for-x86_64.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
-x86_64-fix-e820_hole_size-based-on-address-ranges.patch
-x86_64-acpi-disable-srat-when-numa-emulation-succeeds.patch
-x86_64-slit-fake-pxm-to-node-mapping-for-fake-numa-2.patch
-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
 mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-o_excl-on-dev-mcelog.patch
-x86_64-support-poll-on-dev-mcelog.patch
-x86_64-mcelog-tolerant-level-cleanup.patch
-x86_64-mce-poll-at-idle_start-and-printk-fix.patch
-i386-fix-machine-rebooting.patch
-x86_64-pm_trace-support.patch
-make-alt-sysrq-p-display-the-debug-register-contents.patch
 i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-round_jiffies-for-i386-and-x86-64-non-critical-corrected-mce-polling.patch
 x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-i386-remove-support-for-the-rise-cpu.patch
-x86-64-calgary-generalize-calgary_increase_split_completion_timeout.patch
-x86-64-calgary-update-copyright-notice.patch
-x86-64-calgary-introduce-handle_quirks-for-various-chipset-quirks.patch
 x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-abstract-how-we-find-the-iommu_table-for-a-device.patch
-x86-64-calgary-introduce-calioc2-support.patch
 x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-implement-calioc2-tce-cache-flush-sequence.patch
-x86-64-calgary-make-dump_error_regs-a-chip-op.patch
-x86-64-calgary-grab-plssr-too-when-a-dma-error-occurs.patch
 x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-cleanup-of-unneeded-macros.patch
-x86-64-calgary-tabify-and-trim-trailing-whitespace.patch
-x86-64-calgary-only-reserve-the-first-1mb-of-io-space-for-calioc2.patch
-x86-64-calgary-tidy-up-debug-printks.patch
 x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-x86-64-calgary-tighten-up-the-bitmap-locking.patch
-x86-64-calgary-fold-in-redundant-functions.patch
-x86_64-calgary-change-_map_single-etc-to-static.patch
 i386-do-not-restore-reserved-memory-after-hibernation.patch
-dmi_match-patch-in-rebootc-for-sff-dell-optiplex-745-fixes-hang.patch
-kprobes-x86_64-fix-for-mark-ro-data.patch
-kprobes-i386-fix-for-mark-ro-data.patch
-divorce-config_x86_pae-from-config_highmem64g.patch
-i386-minor-nx-handling-adjustment.patch
-x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch
-x86-64-remove-unused-variable-maxcpus.patch
-move-functions-declarations-to-header-file.patch
-x86_64-during-vm-oom-condition.patch
-i386-during-vm-oom-condition.patch
-x86-64-disable-the-gart-in-shutdown.patch
 x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
 i386-add-cpu_relax-to-cmos_lock.patch
 x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-fix-wrong-comment-regarding-set_fixmap.patch
-i386-hpet-check-if-the-counter-works.patch
-i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
-i386-remove-volatile-in-apicc.patch
-i386-hpet-assumes-boot-cpu-is-0.patch
-i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
-x86_64-untangle-asm-hpeth-from-asm-timexh.patch
-x86_64-use-generic-cmos-update.patch
-x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
-x86_64-fix-apic-typo.patch
-x86_64-convert-to-cleckevents.patch
-acpi-remove-the-useless-ifdef-code.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 x86_64-get-mp_bus_to_node-as-early.patch
-x86-fix-iounmaps-use-of-vm_structs-size-field.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-geode-basic-infrastructure-support-for-amd-geode-class.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch
-i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-x86_64-add-acpi-reboot-option.patch
-x86_64-make-acpi-the-default-reset-option.patch
-print-utsname-on-oops-on-all-architectures.patch
-print-utsname-on-oops-on-all-architectures-fix.patch
-remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
-lguest-the-guest-code.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
 lguest-the-host-code.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
 lguest-the-net-driver.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
 intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
-revoke-add-documentation.patch
 revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-new-i82975x-driver-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
