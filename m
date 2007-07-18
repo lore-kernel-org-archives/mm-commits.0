@@ -1,77 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: - xen-cant-support-numa-yet.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 11:52:48 -0700
-Message-ID: <200707181852.l6IIqm9c023710@imap1.linux-foundation.org>
+Subject: + mm-fault-feedback-2-fix-2.patch added to -mm tree
+Date: Wed, 18 Jul 2007 12:30:48 -0700
+Message-ID: <200707181930.l6IJUnuZ025190@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41242 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43210 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934613AbXGRSzT (ORCPT
+	by vger.kernel.org with ESMTP id S1754174AbXGRTbA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 14:55:19 -0400
+	Wed, 18 Jul 2007 15:31:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, bunk@stusta.de, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, npiggin@suse.de
 
 
 The patch titled
-     xen: can't support numa yet
-has been removed from the -mm tree.  Its filename was
-     xen-cant-support-numa-yet.patch
+     mm-fault-feedback-2-fix-2
+has been added to the -mm tree.  Its filename is
+     mm-fault-feedback-2-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: xen: can't support numa yet
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: mm-fault-feedback-2-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Xen currently relies on contigious memory (ie, no numa, discontig or sparse
-memory).  Specifically it uses mem_map, which is only available if
-CONFIG_NEED_MULTIPLE_NODES is not defined.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/mm/fault.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/xen/Kconfig~xen-cant-support-numa-yet arch/i386/xen/Kconfig
---- a/arch/i386/xen/Kconfig~xen-cant-support-numa-yet
-+++ a/arch/i386/xen/Kconfig
-@@ -4,7 +4,7 @@
- 
- config XEN
- 	bool "Enable support for Xen hypervisor"
--	depends on PARAVIRT && X86_CMPXCHG && X86_TSC
-+	depends on PARAVIRT && X86_CMPXCHG && X86_TSC && !NEED_MULTIPLE_NODES
- 	help
- 	  This is the Linux Xen port.  Enabling this will allow the
- 	  kernel to boot in a paravirtualized environment under the
+diff -puN arch/ia64/mm/fault.c~mm-fault-feedback-2-fix-2 arch/ia64/mm/fault.c
+--- a/arch/ia64/mm/fault.c~mm-fault-feedback-2-fix-2
++++ a/arch/ia64/mm/fault.c
+@@ -157,10 +157,10 @@ ia64_do_page_fault (unsigned long addres
+ 		 */
+ 		if (fault & VM_FAULT_OOM) {
+ 			goto out_of_memory;
++		} else if (fault & VM_FAULT_SIGBUS) {
+ 			signal = SIGBUS;
+ 			goto bad_area;
+-		} else if (fault & VM_FAULT_SIGBUS)
+-			goto do_sigbus;
++		}
+ 		BUG();
+ 	}
+ 	if (fault & VM_FAULT_MAJOR)
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fix-the-softlockup-watchdog-to-actually-work.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-fault-feedback-2-fix.patch
+mm-fault-feedback-2-fix-2.patch
+readahead-split-ondemand-readahead-interface-into-two-functions-fix.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+add-sys-kernel-notes-fix.patch
+lockstat-core-infrastructure.patch
+lockstat-human-readability-tweaks-fix.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+dequeue_huge_page-warning-fix.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
+acpi-add-reboot-mechanism-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-saa7134-tvaudio-fix.patch
+git-input.patch
 git-kbuild.patch
-fix-x86_64-mm-xen-xen-smp-guest-support.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-i386-minor-nx-handling-adjustment.patch
-x86-fix-iounmaps-use-of-vm_structs-size-field.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+git-scsi-misc.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
+x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+i386-add-cpu_relax-to-cmos_lock.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
 maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-lguest-the-guest-code.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-new-i82975x-driver-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
