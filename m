@@ -1,174 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: - fix-x86_64-mm-add-common-orderly_poweroff.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 11:52:32 -0700
-Message-ID: <200707181852.l6IIqWKN023685@imap1.linux-foundation.org>
+Subject: - update-x86_64-mm-xen-use-iret-directly-where-possible.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 11:52:38 -0700
+Message-ID: <200707181852.l6IIqcTw023694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53844 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42137 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933702AbXGRSzG (ORCPT
+	by vger.kernel.org with ESMTP id S934470AbXGRSzL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 14:55:06 -0400
+	Wed, 18 Jul 2007 14:55:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, jeremy@goop.org, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@suse.de, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix x86_64-mm-add-common-orderly_poweroff
+     update x86_64-mm-xen-use-iret-directly-where-possible
 has been removed from the -mm tree.  Its filename was
-     fix-x86_64-mm-add-common-orderly_poweroff.patch
+     update-x86_64-mm-xen-use-iret-directly-where-possible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix x86_64-mm-add-common-orderly_poweroff
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: update x86_64-mm-xen-use-iret-directly-where-possible
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-No new sysctls (I've asked Eric for documentation which explains why)
+There's only a minor code change from the version you've got, but the
+comments are more accurate.
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    1 -
- kernel/sysctl.c        |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ arch/i386/xen/xen-asm.S |   56 +++++++++++++++++++++++++-------------
+ 1 files changed, 37 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/sysctl.h~fix-x86_64-mm-add-common-orderly_poweroff include/linux/sysctl.h
---- a/include/linux/sysctl.h~fix-x86_64-mm-add-common-orderly_poweroff
-+++ a/include/linux/sysctl.h
-@@ -165,7 +165,6 @@ enum
- 	KERN_MAX_LOCK_DEPTH=74,
- 	KERN_NMI_WATCHDOG=75, /* int: enable/disable nmi watchdog */
- 	KERN_PANIC_ON_NMI=76, /* int: whether we will panic on an unrecovered */
--	KERN_POWEROFF_CMD=77,	/* string: poweroff command line */
- };
+diff -puN arch/i386/xen/xen-asm.S~update-x86_64-mm-xen-use-iret-directly-where-possible arch/i386/xen/xen-asm.S
+--- a/arch/i386/xen/xen-asm.S~update-x86_64-mm-xen-use-iret-directly-where-possible
++++ a/arch/i386/xen/xen-asm.S
+@@ -108,14 +108,28 @@ ENDPATCH(xen_restore_fl_direct)
+ 	      4: cs
+ 	esp-> 0: eip
  
+-	This attempts to make sure that any pending events are dealt with
+-	on return to usermode, but there is a small window in which an event
+-	can happen just before entering usermode.  This has three effects:
+-	 - There can be interrupt recursion on the stack, which is
+-	   unbounded in theory (but very unlikely in practice)
+-	 - New softirq events can be queued up, but they won't get
+-	   processed until the cpu next enters and leaves the kernel.
+-	 - Signals likewise.
++	This attempts to make sure that any pending events are dealt
++	with on return to usermode, but there is a small window in
++	which an event can happen just before entering usermode.  If
++	the nested interrupt ends up setting one of the TIF_WORK_MASK
++	pending work flags, they will not be tested again before
++	returning to usermode. This means that a process can end up
++	with pending work, which will be unprocessed until the process
++	enters and leaves the kernel again, which could be an
++	unbounded amount of time.  This means that a pending signal or
++	reschedule event could be indefinitely delayed.
++
++	The fix is to notice a nested interrupt in the critical
++	window, and if one occurs, then fold the nested interrupt into
++	the current interrupt stack frame, and re-process it
++	iteratively rather than recursively.  This means that it will
++	exit via the normal path, and all pending work will be dealt
++	with appropriately.
++
++	Because the nested interrupt handler needs to deal with the
++	current stack state in whatever form its in, we keep things
++	simple by only using a single register which is pushed/popped
++	on the stack.
  
-diff -puN kernel/sysctl.c~fix-x86_64-mm-add-common-orderly_poweroff kernel/sysctl.c
---- a/kernel/sysctl.c~fix-x86_64-mm-add-common-orderly_poweroff
-+++ a/kernel/sysctl.c
-@@ -276,7 +276,7 @@ static ctl_table kern_table[] = {
- 		.extra2		= &max_sched_granularity_ns,
- 	},
- 	{
--		.ctl_name	= KERN_POWEROFF_CMD,
-+		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "poweroff_cmd",
- 		.data		= &poweroff_cmd,
- 		.maxlen		= POWEROFF_CMD_PATH_LEN,
+ 	Non-direct iret could be done in the same way, but it would
+ 	require an annoying amount of code duplication.  We'll assume
+@@ -127,9 +141,6 @@ ENTRY(xen_iret_direct)
+ 	testl $(X86_EFLAGS_VM | XEN_EFLAGS_NMI), 8(%esp)
+ 	jnz hyper_iret
+ 
+-	/* check IF state we're restoring */
+-	testb $X86_EFLAGS_IF>>8, 8+1(%esp)
+-
+ 	push %eax
+ 	ESP_OFFSET=4	# bytes pushed onto stack
+ 
+@@ -144,6 +155,9 @@ ENTRY(xen_iret_direct)
+ 	movl $per_cpu__xen_vcpu_info, %eax
+ #endif
+ 
++	/* check IF state we're restoring */
++	testb $X86_EFLAGS_IF>>8, 8+1+ESP_OFFSET(%esp)
++
+ 	/* Maybe enable events.  Once this happens we could get a
+ 	   recursive event, so the critical region starts immediately
+ 	   afterwards.  However, if that happens we don't end up
+@@ -187,7 +201,7 @@ hyper_iret:
+ 
+    The stack format at this point is:
+ 	----------------
+-	 ss		:
++	 ss		: (ss/esp may be present if we came from usermode)
+ 	 esp		:
+ 	 eflags		}  outer exception info
+ 	 cs		}
+@@ -219,17 +233,21 @@ hyper_iret:
+    The only caveat is that if the outer eax hasn't been
+    restored yet (ie, it's still on stack), we need to insert
+    its value into the SAVE_ALL state before going on, since
+-   its usermode state which we eventually need to restore.
++   it's usermode state which we eventually need to restore.
+  */
+ ENTRY(xen_iret_crit_fixup)
+ 	/* offsets +4 for return address */
+ 
+-	/* Paranoia: make sure we're really coming from userspace.
+-	   Once could imagine a case where userspace jumps into
+-	   the critical range address, but just before the CPU
+-	   delivers a GP, it decides to deliver an interrupt
+-	   instead.  Unlikely?  Definitely.  Easy to avoid?
+-	   Yes. (Some virtual environments get this wrong.) */
++	/*
++	   Paranoia: Make sure we're really coming from userspace.
++	   One could imagine a case where userspace jumps into the
++	   critical range address, but just before the CPU delivers a GP,
++	   it decides to deliver an interrupt instead.  Unlikely?
++	   Definitely.  Easy to avoid?  Yes.  The Intel documents
++	   explicitly say that the reported EIP for a bad jump is the
++	   jump instruction itself, not the destination, but some virtual
++	   environments get this wrong.
++	 */
+ 	movl PT_CS+4(%esp), %ecx
+ 	andl $SEGMENT_RPL_MASK, %ecx
+ 	cmpl $USER_RPL, %ecx
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jeremy@goop.org are
 
 origin.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-fault-feedback-2-fix.patch
-readahead-split-ondemand-readahead-interface-into-two-functions-fix.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-add-sys-kernel-notes-fix.patch
-lockstat-core-infrastructure.patch
-lockstat-human-readability-tweaks-fix.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-dequeue_huge_page-warning-fix.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-input.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
 git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-git-scsi-misc.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+fix-x86_64-mm-xen-xen-smp-guest-support.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+i386-minor-nx-handling-adjustment.patch
+x86-fix-iounmaps-use-of-vm_structs-size-field.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
 maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
 maps2-add-proc-pid-pagemap-interface.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-new-i82975x-driver-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+maps2-add-proc-kpagemap-interface.patch
+lguest-the-guest-code.patch
