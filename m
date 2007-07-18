@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + futex-pass-nr_wake2-to-futex_wake_op.patch added to -mm tree
-Date: Tue, 17 Jul 2007 18:06:32 -0700
-Message-ID: <200707180106.l6I16WUJ016843@imap1.linux-foundation.org>
+Subject: + ata-fix-reported-task-file-values-in-sense-data.patch added to -mm tree
+Date: Tue, 17 Jul 2007 18:09:35 -0700
+Message-ID: <200707180109.l6I19Z37016970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43305 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763841AbXGRBHM (ORCPT
+	by vger.kernel.org with ESMTP id S1760105AbXGRBJ6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 21:07:12 -0400
+	Tue, 17 Jul 2007 21:09:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: schwab@suse.de, drepper@redhat.com, mingo@elte.hu, stable@kernel.org
+Cc: petr@vandrovec.name, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, stable@kernel.org
 
 
 The patch titled
-     futex: pass nr_wake2 to futex_wake_op
+     ata: fix reported task file values in sense data
 has been added to the -mm tree.  Its filename is
-     futex-pass-nr_wake2-to-futex_wake_op.patch
+     ata-fix-reported-task-file-values-in-sense-data.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: futex: pass nr_wake2 to futex_wake_op
-From: Andreas Schwab <schwab@suse.de>
+Subject: ata: fix reported task file values in sense data
+From: Petr Vandrovec <petr@vandrovec.name>
 
-The fourth argument of sys_futex is ignored when op == FUTEX_WAKE_OP,
-but futex_wake_op expects it as its nr_wake2 parameter.
+ata_tf_read was setting HOB bit when lba48 command was submitted, but was
+not clearing it before reading "normal" data.  As it is only place which
+sets HOB bit in control register, and register reads should not be affected
+by other bits, let's just clear it when we are done with reading upper
+bytes so non-48bit commands do not have to touch ctl at all.
 
-The only user of this operation in glibc is always passing 1, so this
-bug had no consequences so far.
+pata_scc suffered from same problem...
 
-Signed-off-by: Andreas Schwab <schwab@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ulrich Drepper <drepper@redhat.com>
+Signed-off-by: Petr Vandrovec <petr@vandrovec.name>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Tejun Heo <htejun@gmail.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/ata/libata-sff.c |    2 ++
+ drivers/ata/pata_scc.c   |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN kernel/futex.c~futex-pass-nr_wake2-to-futex_wake_op kernel/futex.c
---- a/kernel/futex.c~futex-pass-nr_wake2-to-futex_wake_op
-+++ a/kernel/futex.c
-@@ -2060,8 +2060,10 @@ asmlinkage long sys_futex(u32 __user *ua
+diff -puN drivers/ata/libata-sff.c~ata-fix-reported-task-file-values-in-sense-data drivers/ata/libata-sff.c
+--- a/drivers/ata/libata-sff.c~ata-fix-reported-task-file-values-in-sense-data
++++ a/drivers/ata/libata-sff.c
+@@ -211,6 +211,8 @@ void ata_tf_read(struct ata_port *ap, st
+ 		tf->hob_lbal = ioread8(ioaddr->lbal_addr);
+ 		tf->hob_lbam = ioread8(ioaddr->lbam_addr);
+ 		tf->hob_lbah = ioread8(ioaddr->lbah_addr);
++		iowrite8(tf->ctl, ioaddr->ctl_addr);
++		ap->last_ctl = tf->ctl;
  	}
- 	/*
- 	 * requeue parameter in 'utime' if cmd == FUTEX_REQUEUE.
-+	 * number of waiters to wake in 'utime' if cmd == FUTEX_WAKE_OP.
- 	 */
--	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE)
-+	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE ||
-+	    cmd == FUTEX_WAKE_OP)
- 		val2 = (u32) (unsigned long) utime;
+ }
  
- 	return do_futex(uaddr, op, val, tp, uaddr2, val2, val3);
+diff -puN drivers/ata/pata_scc.c~ata-fix-reported-task-file-values-in-sense-data drivers/ata/pata_scc.c
+--- a/drivers/ata/pata_scc.c~ata-fix-reported-task-file-values-in-sense-data
++++ a/drivers/ata/pata_scc.c
+@@ -358,6 +358,8 @@ static void scc_tf_read (struct ata_port
+ 		tf->hob_lbal = in_be32(ioaddr->lbal_addr);
+ 		tf->hob_lbam = in_be32(ioaddr->lbam_addr);
+ 		tf->hob_lbah = in_be32(ioaddr->lbah_addr);
++		out_be32(ioaddr->ctl_addr, tf->ctl);
++		ap->last_ctl = tf->ctl;
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from schwab@suse.de are
+Patches currently in -mm which might be from petr@vandrovec.name are
 
-futex-pass-nr_wake2-to-futex_wake_op.patch
+origin.patch
+ata-fix-reported-task-file-values-in-sense-data.patch
