@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-new-i82975x-driver-fix.patch added to -mm tree
-Date: Tue, 17 Jul 2007 17:32:51 -0700
-Message-ID: <200707180032.l6I0WppR015661@imap1.linux-foundation.org>
+Subject: + drivers-edac-add-to-edac-docs.patch added to -mm tree
+Date: Tue, 17 Jul 2007 17:32:57 -0700
+Message-ID: <200707180032.l6I0WvGs015670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34469 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44744 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755617AbXGRAdo (ORCPT
+	by vger.kernel.org with ESMTP id S936606AbXGRAdI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 20:33:44 -0400
+	Tue, 17 Jul 2007 20:33:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, apw@shadowen.org, arvind@acarlab.com, dougthompson@xmission.com, greg@kroah.com, rdeskan@jetzbroadband.com
+Cc: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com
 
 
 The patch titled
-     drivers-edac-new-i82975x-driver-fix
+     drivers/edac: add to edac docs
 has been added to the -mm tree.  Its filename is
-     drivers-edac-new-i82975x-driver-fix.patch
+     drivers-edac-add-to-edac-docs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,327 +26,378 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-edac-new-i82975x-driver-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/edac: add to edac docs
+From: Doug Thompson <dougthompson@xmission.com>
 
-multiple coding-style bloopers, all of which checkpatch missed.
+Updated the EDAC kernel documentation
 
-Cc: <arvind@acarlab.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by:	Doug Thompson <dougthompson@xmission.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Ranganathan Desikan <rdeskan@jetzbroadband.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i82975x_edac.c |  111 ++++++++++++++++------------------
- 1 files changed, 55 insertions(+), 56 deletions(-)
+ Documentation/drivers/edac/edac.txt |  192 ++++++++++++++++++++++----
+ 1 files changed, 165 insertions(+), 27 deletions(-)
 
-diff -puN drivers/edac/i82975x_edac.c~drivers-edac-new-i82975x-driver-fix drivers/edac/i82975x_edac.c
---- a/drivers/edac/i82975x_edac.c~drivers-edac-new-i82975x-driver-fix
-+++ a/drivers/edac/i82975x_edac.c
-@@ -230,7 +230,7 @@ static const struct i82975x_dev_info i82
- 	},
- };
+diff -puN Documentation/drivers/edac/edac.txt~drivers-edac-add-to-edac-docs Documentation/drivers/edac/edac.txt
+--- a/Documentation/drivers/edac/edac.txt~drivers-edac-add-to-edac-docs
++++ a/Documentation/drivers/edac/edac.txt
+@@ -2,22 +2,42 @@
  
--static struct pci_dev *mci_pdev = NULL;	/* init dev: in case that AGP code has
-+static struct pci_dev *mci_pdev;	/* init dev: in case that AGP code has
- 					 * already registered driver
- 					 */
+ EDAC - Error Detection And Correction
  
-@@ -330,20 +330,19 @@ static int dual_channel_active(void __io
- 	 * bit-0 will resolve ok in symmetric area of mixed
- 	 * (symmetric/asymmetric) configurations
- 	 */
--	u8	drb[ 4 ][ 2 ];
-+	u8	drb[4][2];
- 	int	row;
- 	int    dualch;
+-Written by Doug Thompson <norsk5@xmission.com>
++Written by Doug Thompson <dougthompson@xmission.com>
+ 7 Dec 2005
++17 Jul 2007	Updated
  
--	for (dualch = 1, row = 0; dualch && ( row < 4 ); row++) {
--		drb[ row ][ 0 ] = readb( mch_window + I82975X_DRB + row);
--		drb[ row ][ 1 ] = readb( mch_window + I82975X_DRB + row + 0x80);
--		dualch = dualch && ( drb[ row ][ 0 ] == drb[ row ][ 1 ] );
-+	for (dualch = 1, row = 0; dualch && (row < 4); row++) {
-+		drb[row][0] = readb(mch_window + I82975X_DRB + row);
-+		drb[row][1] = readb(mch_window + I82975X_DRB + row + 0x80);
-+		dualch = dualch && (drb[row][0] == drb[row][1]);
- 	}
- 	return dualch;
- }
  
--static enum dev_type i82975x_dram_type(void __iomem *mch_window,
--	int rank)
-+static enum dev_type i82975x_dram_type(void __iomem *mch_window, int rank)
- {
- 	/*
- 	 * ASUS P5W DH either does not program this register or programs
-@@ -404,7 +403,7 @@ static void i82975x_init_csrows(struct m
+-EDAC was written by:
+-	Thayne Harbaugh,
+-	modified by Dave Peterson, Doug Thompson, et al,
+-	from the bluesmoke.sourceforge.net project.
++EDAC is maintained and written by:
  
- /* #define  i82975x_DEBUG_IOMEM */
++	Doug Thompson, Dave Jiang, Dave Peterson et al,
++	original author: Thayne Harbaugh,
++
++Contact:
++	website:	bluesmoke.sourceforge.net
++	mailing list:	bluesmoke-devel@lists.sourceforge.net
++
++"bluesmoke" was the name for this device driver when it was "out-of-tree"
++and maintained at sourceforge.net.  When it was pushed into 2.6.16 for the
++first time, it was renamed to 'EDAC'.
++
++The bluesmoke project at sourceforge.net is now utilized as a 'staging area'
++for EDAC development, before it is sent upstream to kernel.org
++
++At the bluesmoke/EDAC project site, is a series of quilt patches against
++recent kernels, stored in a SVN respository. For easier downloading, there
++is also a tarball snapshot available.
  
--#ifdef  i82975x_DEBUG_IOMEM
-+#ifdef i82975x_DEBUG_IOMEM
- static void i82975x_print_dram_timings(void __iomem *mch_window)
- {
- 	/*
-@@ -413,24 +412,24 @@ static void i82975x_print_dram_timings(v
- 	 * Asus P5W Bios reports 15-5-4-4
- 	 * What's your religion?
- 	 */
--	static const int caslats[ 4 ] = { 5, 4, 3, 6 };
--	u32	dtreg[ 2 ];
-+	static const int caslats[4] = { 5, 4, 3, 6 };
-+	u32	dtreg[2];
+ ============================================================================
+ EDAC PURPOSE
  
--	dtreg[ 0 ] = readl( mch_window + 0x114 );
--	dtreg[ 1 ] = readl( mch_window + 0x194 );
-+	dtreg[0] = readl(mch_window + 0x114);
-+	dtreg[1] = readl(mch_window + 0x194);
- 	i82975x_printk(KERN_INFO, "DRAM Timings :     Ch0    Ch1\n"
- 		"                RAS Active Min = %d     %d\n"
- 		"                CAS latency    =  %d      %d\n"
- 		"                RAS to CAS     =  %d      %d\n"
- 		"                RAS precharge  =  %d      %d\n",
--		( dtreg[ 0 ] >> 19 ) & 0x0f,
--			( dtreg[ 1 ] >> 19 ) & 0x0f,
--		caslats[ ( dtreg[ 0 ] >> 8 ) & 0x03 ],
--			caslats[ ( dtreg[ 1 ] >> 8 ) & 0x03 ],
--		( ( dtreg[ 0 ] >> 4 ) & 0x07 ) + 2,
--			( ( dtreg[ 1 ] >> 4 ) & 0x07 ) + 2,
--		( dtreg[ 0 ] & 0x07 ) + 2,
--			( dtreg[ 1 ] & 0x07 ) + 2
-+		(dtreg[0] >> 19 ) & 0x0f,
-+			(dtreg[1] >> 19) & 0x0f,
-+		caslats[(dtreg[0] >> 8) & 0x03],
-+			caslats[(dtreg[1] >> 8) & 0x03],
-+		((dtreg[0] >> 4) & 0x07) + 2,
-+			((dtreg[1] >> 4) & 0x07) + 2,
-+		(dtreg[0] & 0x07) + 2,
-+			(dtreg[1] & 0x07) + 2
- 	);
+ The 'edac' kernel module goal is to detect and report errors that occur
+-within the computer system. In the initial release, memory Correctable Errors
+-(CE) and Uncorrectable Errors (UE) are the primary errors being harvested.
++within the computer system running under linux.
++
++MEMORY
++
++In the initial release, memory Correctable Errors (CE) and Uncorrectable
++Errors (UE) are the primary errors being harvested. These types of errors
++are harvested by the 'edac_mc' class of device.
  
- }
-@@ -443,72 +442,72 @@ static int i82975x_probe1(struct pci_dev
- 	struct i82975x_pvt *pvt;
- 	void __iomem *mch_window;
- 	u32 mchbar;
--	u32 drc[ 2 ];
-+	u32 drc[2];
- 	struct i82975x_error_info discard;
- 	int	chans;
- #ifdef i82975x_DEBUG_IOMEM
--	u8 c0drb[ 4 ];
--	u8 c1drb[ 4 ];
-+	u8 c0drb[4];
-+	u8 c1drb[4];
- #endif
+ Detecting CE events, then harvesting those events and reporting them,
+ CAN be a predictor of future UE events.  With CE events, the system can
+@@ -25,9 +45,27 @@ continue to operate, but with less safet
+ proactive part replacement of memory DIMMs exhibiting CEs can reduce
+ the likelihood of the dreaded UE events and system 'panics'.
  
- 	debugf0("%s()\n", __func__);
++NON-MEMORY
++
++A new feature for EDAC, the edac_device class of device, was added in
++the 2.6.23 version of the kernel.
++
++This new device type allows for non-memory type of ECC hardware detectors
++to have their states harvested and presented to userspace via the sysfs
++interface.
++
++Some architectures have ECC detectors for L1, L2 and L3 caches, along with DMA
++engines, fabric switches, main data path switches, interconnections,
++and various other hardware data paths. If the hardware reports it, then
++a edac_device device probably can be constructed to harvest and present
++that to userspace.
++
++
++PCI BUS SCANNING
  
- 	pci_read_config_dword(pdev, I82975X_MCHBAR, &mchbar);
--	if (!(mchbar & 1 )) {
-+	if (!(mchbar & 1)) {
- 		debugf3("%s(): failed, MCHBAR disabled!\n", __func__);
- 		goto fail0;
- 	}
- 	mchbar &= 0xffffc000;	/* bits 31:14 used for 16K window */
--	mch_window = ioremap_nocache( mchbar, 0x1000 );
-+	mch_window = ioremap_nocache(mchbar, 0x1000);
+ In addition, PCI Bus Parity and SERR Errors are scanned for on PCI devices
+ in order to determine if errors are occurring on data transfers.
++
+ The presence of PCI Parity errors must be examined with a grain of salt.
+ There are several add-in adapters that do NOT follow the PCI specification
+ with regards to Parity generation and reporting. The specification says
+@@ -35,11 +73,17 @@ the vendor should tie the parity status 
+ to generate parity.  Some vendors do not do this, and thus the parity bit
+ can "float" giving false positives.
  
- #ifdef i82975x_DEBUG_IOMEM
- 	i82975x_printk(KERN_INFO, "MCHBAR real = %0x, remapped = %p\n",
- 					mchbar, mch_window);
+-[There are patches in the kernel queue which will allow for storage of
+-quirks of PCI devices reporting false parity positives. The 2.6.18
+-kernel should have those patches included. When that becomes available,
+-then EDAC will be patched to utilize that information to "skip" such
+-devices.]
++In the kernel there is a pci device attribute located in sysfs that is
++checked by the EDAC PCI scanning code. If that attribute is set,
++PCI parity/error scannining is skipped for that device. The attribute
++is:
++
++	broken_parity_status
++
++as is located in /sys/devices/pci<XXX>/0000:XX:YY.Z directorys for
++PCI devices.
++
++FUTURE HARDWARE SCANNING
  
--	c0drb[ 0 ] = readb( mch_window + I82975X_DRB_CH0R0);
--	c0drb[ 1 ] = readb( mch_window + I82975X_DRB_CH0R1);
--	c0drb[ 2 ] = readb( mch_window + I82975X_DRB_CH0R2);
--	c0drb[ 3 ] = readb( mch_window + I82975X_DRB_CH0R3);
--	c1drb[ 0 ] = readb( mch_window + I82975X_DRB_CH1R0);
--	c1drb[ 1 ] = readb( mch_window + I82975X_DRB_CH1R1);
--	c1drb[ 2 ] = readb( mch_window + I82975X_DRB_CH1R2);
--	c1drb[ 3 ] = readb( mch_window + I82975X_DRB_CH1R3);
--	i82975x_printk(KERN_INFO, "DRBCH0R0 = 0x%02x\n", c0drb[ 0 ]);
--	i82975x_printk(KERN_INFO, "DRBCH0R1 = 0x%02x\n", c0drb[ 1 ]);
--	i82975x_printk(KERN_INFO, "DRBCH0R2 = 0x%02x\n", c0drb[ 2 ]);
--	i82975x_printk(KERN_INFO, "DRBCH0R3 = 0x%02x\n", c0drb[ 3 ]);
--	i82975x_printk(KERN_INFO, "DRBCH1R0 = 0x%02x\n", c1drb[ 0 ]);
--	i82975x_printk(KERN_INFO, "DRBCH1R1 = 0x%02x\n", c1drb[ 1 ]);
--	i82975x_printk(KERN_INFO, "DRBCH1R2 = 0x%02x\n", c1drb[ 2 ]);
--	i82975x_printk(KERN_INFO, "DRBCH1R3 = 0x%02x\n", c1drb[ 3 ]);
-+	c0drb[0] = readb(mch_window + I82975X_DRB_CH0R0);
-+	c0drb[1] = readb(mch_window + I82975X_DRB_CH0R1);
-+	c0drb[2] = readb(mch_window + I82975X_DRB_CH0R2);
-+	c0drb[3] = readb(mch_window + I82975X_DRB_CH0R3);
-+	c1drb[0] = readb(mch_window + I82975X_DRB_CH1R0);
-+	c1drb[1] = readb(mch_window + I82975X_DRB_CH1R1);
-+	c1drb[2] = readb(mch_window + I82975X_DRB_CH1R2);
-+	c1drb[3] = readb(mch_window + I82975X_DRB_CH1R3);
-+	i82975x_printk(KERN_INFO, "DRBCH0R0 = 0x%02x\n", c0drb[0]);
-+	i82975x_printk(KERN_INFO, "DRBCH0R1 = 0x%02x\n", c0drb[1]);
-+	i82975x_printk(KERN_INFO, "DRBCH0R2 = 0x%02x\n", c0drb[2]);
-+	i82975x_printk(KERN_INFO, "DRBCH0R3 = 0x%02x\n", c0drb[3]);
-+	i82975x_printk(KERN_INFO, "DRBCH1R0 = 0x%02x\n", c1drb[0]);
-+	i82975x_printk(KERN_INFO, "DRBCH1R1 = 0x%02x\n", c1drb[1]);
-+	i82975x_printk(KERN_INFO, "DRBCH1R2 = 0x%02x\n", c1drb[2]);
-+	i82975x_printk(KERN_INFO, "DRBCH1R3 = 0x%02x\n", c1drb[3]);
- #endif
+ EDAC will have future error detectors that will be integrated with
+ EDAC or added to it, in the following list:
+@@ -57,13 +101,14 @@ and the like.
+ ============================================================================
+ EDAC VERSIONING
  
--	drc[ 0 ] = readl( mch_window + I82975X_DRC_CH0M0 );
--	drc[ 1 ] = readl( mch_window + I82975X_DRC_CH1M0 );
-+	drc[0] = readl(mch_window + I82975X_DRC_CH0M0);
-+	drc[1] = readl(mch_window + I82975X_DRC_CH1M0);
- #ifdef i82975x_DEBUG_IOMEM
--	i82975x_printk(KERN_INFO, "DRC_CH0 = %0x, %s\n", drc[ 0 ],
--			( ( drc[ 0 ] >> 21 ) & 3 ) == 1 ?
--				"ECC enabled" : "ECC disabled" );
--	i82975x_printk(KERN_INFO, "DRC_CH1 = %0x, %s\n", drc[ 1 ],
--			( ( drc[ 1 ] >> 21 ) & 3 ) == 1 ?
--				"ECC enabled" : "ECC disabled" );
-+	i82975x_printk(KERN_INFO, "DRC_CH0 = %0x, %s\n", drc[0],
-+			((drc[0] >> 21) & 3) == 1 ?
-+				"ECC enabled" : "ECC disabled");
-+	i82975x_printk(KERN_INFO, "DRC_CH1 = %0x, %s\n", drc[1],
-+			((drc[1] >> 21) & 3) == 1 ?
-+				"ECC enabled" : "ECC disabled");
+-EDAC is composed of a "core" module (edac_mc.ko) and several Memory
++EDAC is composed of a "core" module (edac_core.ko) and several Memory
+ Controller (MC) driver modules. On a given system, the CORE
+ is loaded and one MC driver will be loaded. Both the CORE and
+-the MC driver have individual versions that reflect current release
+-level of their respective modules.  Thus, to "report" on what version
+-a system is running, one must report both the CORE's and the
+-MC driver's versions.
++the MC driver (or edac_device driver) have individual versions that reflect
++current release level of their respective modules.
++
++Thus, to "report" on what version a system is running, one must report both
++the CORE's and the MC driver's versions.
  
- 	i82975x_printk(KERN_INFO, "C0 BNKARC = %0x\n",
--		readw( mch_window + I82975X_C0BNKARC ) );
-+		readw(mch_window + I82975X_C0BNKARC));
- 	i82975x_printk(KERN_INFO, "C1 BNKARC = %0x\n",
--		readw( mch_window + I82975X_C1BNKARC ) );
--	i82975x_print_dram_timings( mch_window );
-+		readw(mch_window + I82975X_C1BNKARC));
-+	i82975x_print_dram_timings(mch_window);
- 	goto fail1;
- #endif
--	if (!(((drc[ 0 ] >> 21) & 3) == 1 || ((drc[ 1 ] >> 21) & 3) == 1 )) {
-+	if (!(((drc[0] >> 21) & 3) == 1 || ((drc[1] >> 21) & 3) == 1)) {
- 		i82975x_printk(KERN_INFO, "ECC disabled on both channels.\n");
- 		goto fail1;
- 	}
  
--	chans = dual_channel_active( mch_window ) + 1;
-+	chans = dual_channel_active(mch_window) + 1;
+ LOADING
+@@ -88,8 +133,9 @@ EDAC sysfs INTERFACE
+ EDAC presents a 'sysfs' interface for control, reporting and attribute
+ reporting purposes.
  
- 	/* assuming only one controller, index thus is 0 */
--	mci = edac_mc_alloc(sizeof(*pvt), I82975X_NR_CSROWS( chans ),
-+	mci = edac_mc_alloc(sizeof(*pvt), I82975X_NR_CSROWS(chans),
- 					chans, 0);
- 	if (!mci) {
- 		rc = -ENOMEM;
+-EDAC lives in the /sys/devices/system/edac directory. Within this directory
+-there currently reside 2 'edac' components:
++EDAC lives in the /sys/devices/system/edac directory.
++
++Within this directory there currently reside 2 'edac' components:
+ 
+ 	mc	memory controller(s) system
+ 	pci	PCI control and status system
+@@ -188,7 +234,7 @@ In directory 'mc' are EDAC system overal
+ 
+ Panic on UE control file:
+ 
+-	'panic_on_ue'
++	'edac_mc_panic_on_ue'
+ 
+ 	An uncorrectable error will cause a machine panic.  This is usually
+ 	desirable.  It is a bad idea to continue when an uncorrectable error
+@@ -199,12 +245,12 @@ Panic on UE control file:
+ 
+ 	LOAD TIME: module/kernel parameter: panic_on_ue=[0|1]
+ 
+-	RUN TIME:  echo "1" >/sys/devices/system/edac/mc/panic_on_ue
++	RUN TIME:  echo "1" >/sys/devices/system/edac/mc/edac_mc_panic_on_ue
+ 
+ 
+ Log UE control file:
+ 
+-	'log_ue'
++	'edac_mc_log_ue'
+ 
+ 	Generate kernel messages describing uncorrectable errors.  These errors
+ 	are reported through the system message log system.  UE statistics
+@@ -212,12 +258,12 @@ Log UE control file:
+ 
+ 	LOAD TIME: module/kernel parameter: log_ue=[0|1]
+ 
+-	RUN TIME: echo "1" >/sys/devices/system/edac/mc/log_ue
++	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ue
+ 
+ 
+ Log CE control file:
+ 
+-	'log_ce'
++	'edac_mc_log_ce'
+ 
+ 	Generate kernel messages describing correctable errors.  These
+ 	errors are reported through the system message log system.
+@@ -225,12 +271,12 @@ Log CE control file:
+ 
+ 	LOAD TIME: module/kernel parameter: log_ce=[0|1]
+ 
+-	RUN TIME: echo "1" >/sys/devices/system/edac/mc/log_ce
++	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ce
+ 
+ 
+ Polling period control file:
+ 
+-	'poll_msec'
++	'edac_mc_poll_msec'
+ 
+ 	The time period, in milliseconds, for polling for error information.
+ 	Too small a value wastes resources.  Too large a value might delay
+@@ -241,7 +287,7 @@ Polling period control file:
+ 
+ 	LOAD TIME: module/kernel parameter: poll_msec=[0|1]
+ 
+-	RUN TIME: echo "1000" >/sys/devices/system/edac/mc/poll_msec
++	RUN TIME: echo "1000" >/sys/devices/system/edac/mc/edac_mc_poll_msec
+ 
+ 
+ ============================================================================
+@@ -587,3 +633,95 @@ Parity Count:
+ 
+ 
+ =======================================================================
++
++
++EDAC_DEVICE type of device
++
++In the header file, edac_core.h, there is a series of edac_device structures
++and APIs for the EDAC_DEVICE.
++
++User space access to an edac_device is through the sysfs interface.
++
++At the location /sys/devices/system/edac (sysfs) new edac_device devices will
++appear.
++
++There is a three level tree beneath the above 'edac' directory. For example,
++the 'test_device_edac' device (found at the bluesmoke.sourceforget.net website)
++installs itself as:
++
++	/sys/devices/systm/edac/test-instance
++
++in this directory are various controls, a symlink and one or more 'instance'
++directorys.
++
++The standard default controls are:
++
++	log_ce		boolean to log CE events
++	log_ue		boolean to log UE events
++	panic_on_ue	boolean to 'panic' the system if an UE is encountered
++			(default off, can be set true via startup script)
++	poll_msec	time period between POLL cycles for events
++
++The test_device_edac device adds at least one of its own custom control:
++
++	test_bits	which in the current test driver does nothing but
++			show how it is installed. A ported driver can
++			add one or more such controls and/or attributes
++			for specific uses.
++			One out-of-tree driver uses controls here to allow
++			for ERROR INJECTION operations to hardware
++			injection registers
++
++The symlink points to the 'struct dev' that is registered for this edac_device.
++
++INSTANCES
++
++One or more instance directories are present. For the 'test_device_edac' case:
++
++	test-instance0
++
++
++In this directory there are two default counter attributes, which are totals of
++counter in deeper subdirectories.
++
++	ce_count	total of CE events of subdirectories
++	ue_count	total of UE events of subdirectories
++
++BLOCKS
++
++At the lowest directory level is the 'block' directory. There can be 0, 1
++or more blocks specified in each instance.
++
++	test-block0
++
++
++In this directory the default attributes are:
++
++	ce_count	which is counter of CE events for this 'block'
++			of hardware being monitored
++	ue_count	which is counter of UE events for this 'block'
++			of hardware being monitored
++
++
++The 'test_device_edac' device adds 4 attributes and 1 control:
++
++	test-block-bits-0	for every POLL cycle this counter
++				is incremented
++	test-block-bits-1	every 10 cycles, this counter is bumped once,
++				and test-block-bits-0 is set to 0
++	test-block-bits-2	every 100 cycles, this counter is bumped once,
++				and test-block-bits-1 is set to 0
++	test-block-bits-3	every 1000 cycles, this counter is bumped once,
++				and test-block-bits-2 is set to 0
++
++
++	reset-counters		writing ANY thing to this control will
++				reset all the above counters.
++
++
++Use of the 'test_device_edac' driver should any others to create their own
++unique drivers for their hardware systems.
++
++The 'test_device_edac' sample driver is located at the
++bluesmoke.sourceforge.net project site for EDAC.
++
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
-origin.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-ubi.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+drivers-edac-add-edac_mc_find-api.patch
+drivers-edac-add-rddr2-memory-types.patch
+drivers-edac-split-out-functions-to-unique-files.patch
+drivers-edac-add-edac_device-class.patch
+drivers-edac-mc-sysfs-add-missing-mem-types.patch
+drivers-edac-change-from-semaphore-to-mutex-operation.patch
+drivers-edac-coreh-fix-scrubdefs.patch
+drivers-edac-new-i82443bxgz-mc-driver.patch
 drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+drivers-edac-add-new-nmi-rescan.patch
+drivers-edac-mod-use-edac_coreh.patch
+drivers-edac-add-dev_name-getter-function.patch
+drivers-edac-new-inte-30x0-mc-driver.patch
+drivers-edac-mod-mc-to-use-workq-instead-of-kthread.patch
+drivers-edac-updated-pci-monitoring.patch
+drivers-edac-mod-assert_error-check.patch
+drivers-edac-core-lindent-cleanup.patch
+drivers-edac-edac_device-sysfs-cleanup.patch
+drivers-edac-cleanup-workq-ifdefs.patch
+drivers-edac-lindent-amd76x.patch
+drivers-edac-lindent-i5000.patch
+drivers-edac-lindent-e7xxx.patch
+drivers-edac-lindent-i3000.patch
+drivers-edac-lindent-i82860.patch
+drivers-edac-lindent-i82875p.patch
+drivers-edac-lindent-e752x.patch
+drivers-edac-lindent-i82443bxgx.patch
+drivers-edac-lindent-r82600.patch
+drivers-edac-drivers-to-use-new-pci-operation.patch
+drivers-edac-add-device-sysfs-attributes.patch
+drivers-edac-device-output-clenaup.patch
+drivers-edac-add-info-kconfig.patch
+drivers-edac-update-maintainers-files-for-edac.patch
+drivers-edac-cleanup-spaces-gotos-after-lindent-messup.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
+driver-edac-i5000-define-typo.patch
+driver-edac-remove-null-from-statics.patch
+driver-edac-i5000-code-tidying.patch
+driver-edac-edac_device-code-tidying.patch
+driver-edac-mod-edac_align_ptr-function.patch
+driver-edac-mod-edac_opt_state_to_string-function.patch
+driver-edac-remove-file-edac_mc-h.patch
+drivers-edac-fix-edac_device-semaphore-to-mutex.patch
+drivers-edac-fix-e752x-reversed-csrows.patch
 drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver.patch
 drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-fix-leaf-sysfs-attribute.patch
+drivers-edac-fix-edac_mc-init-apis.patch
+drivers-edac-fix-edac_device-init-apis.patch
+drivers-edac-fix-edac_mc-sysfs-completion-code.patch
+drivers-edac-fix-edac_device-sysfs-completion-code.patch
+drivers-edac-code-tidying-on-export-gpl.patch
+drivers-edac-fix-workq-reset-deadlock.patch
+drivers-edac-new-i82975x-driver.patch
 drivers-edac-new-i82975x-driver-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+drivers-edac-add-to-maintainers-new-info.patch
+drivers-edac-fix-edac_device-sysfs-corner-case-bug.patch
+drivers-edac-add-to-edac-docs.patch
