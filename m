@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cell-cbe_cpufreq-fix-initialization.patch added to -mm tree
-Date: Wed, 18 Jul 2007 12:51:54 -0700
-Message-ID: <200707181951.l6IJps8V025904@imap1.linux-foundation.org>
+Subject: + cell-cbe_cpufreq-fix-latency-measurement.patch added to -mm tree
+Date: Wed, 18 Jul 2007 12:51:52 -0700
+Message-ID: <200707181951.l6IJpqic025901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43825 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56471 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758760AbXGRTwX (ORCPT
+	by vger.kernel.org with ESMTP id S1754599AbXGRTwV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 15:52:23 -0400
+	Wed, 18 Jul 2007 15:52:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krafft@de.ibm.com, arnd.bergmann@de.ibm.com
 
 
 The patch titled
-     cell: cbe_cpufreq: fix initialization
+     cell: cbe_cpufreq: fix latency measurement
 has been added to the -mm tree.  Its filename is
-     cell-cbe_cpufreq-fix-initialization.patch
+     cell-cbe_cpufreq-fix-latency-measurement.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,88 +26,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cell: cbe_cpufreq: fix initialization
+Subject: cell: cbe_cpufreq: fix latency measurement
 From: Christian Krafft <krafft@de.ibm.com>
 
-This patch fixes the initialization of the cbe_cpufreq driver.
-
-The code that initializes the PMI related functions was called per cpu:
-
-* registering cpufreq notifier block
-* registering a pmi handler
-
-This ends in a bug that the notifier block gets called in an endless loop. 
-The initialization code is being put to the module init code path by this
-patch.  This way it only gets called once.
+This patch fixes the debug code that calculates the transition time when
+changing the slow modes on a Cell BE cpu.
 
 Signed-off-by: Christian Krafft <krafft@de.ibm.com>
 Signed-off-by: Arnd Bergmann <arnd.bergmann@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/cbe_cpufreq.c |   20 ++++++++------------
- 1 files changed, 8 insertions(+), 12 deletions(-)
+ arch/powerpc/platforms/cell/cbe_cpufreq.c |   25 +++++++++++++-------
+ 1 files changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-cbe_cpufreq-fix-initialization arch/powerpc/platforms/cell/cbe_cpufreq.c
---- a/arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-cbe_cpufreq-fix-initialization
+diff -puN arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-cbe_cpufreq-fix-latency-measurement arch/powerpc/platforms/cell/cbe_cpufreq.c
+--- a/arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-cbe_cpufreq-fix-latency-measurement
 +++ a/arch/powerpc/platforms/cell/cbe_cpufreq.c
-@@ -196,10 +196,9 @@ static int pmi_notifier(struct notifier_
- {
- 	struct cpufreq_policy *policy = data;
+@@ -81,7 +81,7 @@ static int set_pmode_pmi(int cpu, unsign
+ 	int ret;
+ 	pmi_message_t pmi_msg;
+ #ifdef DEBUG
+-	u64 time;
++	long time;
+ #endif
  
--	if (event != CPUFREQ_INCOMPATIBLE)
--		return 0;
-+	if (pmi_frequency_limit)
-+		cpufreq_verify_within_limits(policy, 0, pmi_frequency_limit);
+ 	pmi_msg.type = PMI_TYPE_FREQ_CHANGE;
+@@ -89,7 +89,7 @@ static int set_pmode_pmi(int cpu, unsign
+ 	pmi_msg.data2 = pmode;
  
--	cpufreq_verify_within_limits(policy, 0, pmi_frequency_limit);
- 	return 0;
+ #ifdef DEBUG
+-	time = (u64) get_cycles();
++	time = jiffies;
+ #endif
+ 
+ 	pmi_send_message(pmi_msg);
+@@ -98,9 +98,9 @@ static int set_pmode_pmi(int cpu, unsign
+ 	pr_debug("PMI returned slow mode %d\n", ret);
+ 
+ #ifdef DEBUG
+-	time = (u64) get_cycles() - time; /* actual cycles (not cpu cycles!) */
+-	time = 1000000000 * time / CLOCK_TICK_RATE; /* time in ns (10^-9) */
+-	pr_debug("had to wait %lu ns for a transition\n", time);
++	time = jiffies - time; /* actual cycles (not cpu cycles!) */
++	time = jiffies_to_msecs(time);
++	pr_debug("had to wait %lu ms for a transition using PMI.\n", time);
+ #endif
+ 	return ret;
  }
+@@ -123,15 +123,18 @@ static int set_pmode_reg(int cpu, unsign
+ 	struct cbe_mic_tm_regs __iomem *mic_tm_regs;
+ 	u64 flags;
+ 	u64 value;
++#ifdef DEBUG
++	long time;
++#endif
  
-@@ -263,11 +262,6 @@ static int cbe_cpufreq_cpu_init(struct c
+ 	local_irq_save(flags);
  
- 	cpufreq_frequency_table_get_attr(cbe_freqs, policy->cpu);
+ 	mic_tm_regs = cbe_get_cpu_mic_tm_regs(cpu);
+ 	pmd_regs = cbe_get_cpu_pmd_regs(cpu);
  
--	if (cbe_cpufreq_has_pmi) {
--		/* frequency might get limited later, initialize limit with max_freq */
--		pmi_frequency_limit = max_freq;
--		cpufreq_register_notifier(&pmi_notifier_block, CPUFREQ_POLICY_NOTIFIER);
--	}
- 
- 	/* this ensures that policy->cpuinfo_min and policy->cpuinfo_max are set correctly */
- 	return cpufreq_frequency_table_cpuinfo(policy, cbe_freqs);
-@@ -275,9 +269,6 @@ static int cbe_cpufreq_cpu_init(struct c
- 
- static int cbe_cpufreq_cpu_exit(struct cpufreq_policy *policy)
- {
--	if (cbe_cpufreq_has_pmi)
--		cpufreq_unregister_notifier(&pmi_notifier_block, CPUFREQ_POLICY_NOTIFIER);
+-	pr_debug("pm register is mapped at %p\n", &pmd_regs->pmcr);
+-	pr_debug("mic register is mapped at %p\n", &mic_tm_regs->slow_fast_timer_0);
 -
- 	cpufreq_frequency_table_put_attr(policy->cpu);
++#ifdef DEBUG
++	time = jiffies;
++#endif
+ 	out_be64(&mic_tm_regs->slow_fast_timer_0, MIC_Slow_Fast_Timer_table[pmode]);
+ 	out_be64(&mic_tm_regs->slow_fast_timer_1, MIC_Slow_Fast_Timer_table[pmode]);
+ 
+@@ -146,6 +149,7 @@ static int set_pmode_reg(int cpu, unsign
+ 
+ 	out_be64(&pmd_regs->pmcr, value);
+ 
++#ifdef DEBUG
+ 	/* wait until new pmode appears in status register */
+ 	value = in_be64(&pmd_regs->pmsr) & 0x07;
+ 	while(value != pmode) {
+@@ -153,6 +157,11 @@ static int set_pmode_reg(int cpu, unsign
+ 		value = in_be64(&pmd_regs->pmsr) & 0x07;
+ 	}
+ 
++	time = jiffies - time;
++	time = jiffies_to_msecs(time);
++	pr_debug("had to wait %lu ms for a transition using " \
++		 "the pervasive unit.\n", time);
++#endif
+ 	local_irq_restore(flags);
+ 
  	return 0;
- }
-@@ -341,6 +332,9 @@ static int __init cbe_cpufreq_init(void)
- 
- 	cbe_cpufreq_has_pmi = pmi_register_handler(&cbe_pmi_handler) == 0;
- 
-+	if (cbe_cpufreq_has_pmi)
-+		cpufreq_register_notifier(&pmi_notifier_block, CPUFREQ_POLICY_NOTIFIER);
-+
- 	return cpufreq_register_driver(&cbe_cpufreq_driver);
- }
- 
-@@ -348,8 +342,10 @@ static void __exit cbe_cpufreq_exit(void
- {
- 	cpufreq_unregister_driver(&cbe_cpufreq_driver);
- 
--	if (cbe_cpufreq_has_pmi)
-+	if (cbe_cpufreq_has_pmi) {
-+		cpufreq_unregister_notifier(&pmi_notifier_block, CPUFREQ_POLICY_NOTIFIER);
- 		pmi_unregister_handler(&cbe_pmi_handler);
-+	}
- }
- 
- module_init(cbe_cpufreq_init);
 _
 
 Patches currently in -mm which might be from krafft@de.ibm.com are
