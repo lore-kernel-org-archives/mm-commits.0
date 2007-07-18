@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lockstat-human-readability-tweaks-fix.patch added to -mm tree
-Date: Wed, 18 Jul 2007 00:27:17 -0700
-Message-ID: <200707180731.l6I7VgER030396@imap1.linux-foundation.org>
+Subject: + dequeue_huge_page-warning-fix.patch added to -mm tree
+Date: Wed, 18 Jul 2007 00:30:17 -0700
+Message-ID: <200707180734.l6I7YgYE030545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53679 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38719 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756460AbXGRHcP (ORCPT
+	by vger.kernel.org with ESMTP id S1755005AbXGRHf1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 03:32:15 -0400
+	Wed, 18 Jul 2007 03:35:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, bunk@stusta.de, jbaron@redhat.com, mingo@elte.hu
+Cc: akpm@linux-foundation.org, agl@us.ibm.com, clameter@sgi.com, hermes@gibson.dropbear.id.au, wli@holomorphy.com
 
 
 The patch titled
-     lockstat-human-readability-tweaks-fix
+     dequeue_huge_page() warning fix
 has been added to the -mm tree.  Its filename is
-     lockstat-human-readability-tweaks-fix.patch
+     dequeue_huge_page-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockstat-human-readability-tweaks-fix
+Subject: dequeue_huge_page() warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/lockdep_proc.c:394: warning: long long int format, s64 arg (arg 4)
+mm/hugetlb.c: In function `dequeue_huge_page':
+mm/hugetlb.c:72: warning: 'nid' might be used uninitialized in this function
 
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jason Baron <jbaron@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <hermes@gibson.dropbear.id.au>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep_proc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN kernel/lockdep_proc.c~lockstat-human-readability-tweaks-fix kernel/lockdep_proc.c
---- a/kernel/lockdep_proc.c~lockstat-human-readability-tweaks-fix
-+++ a/kernel/lockdep_proc.c
-@@ -391,7 +391,7 @@ static void snprint_time(char *buf, size
- 	unsigned long rem;
- 
- 	rem = do_div(nr, 1000); /* XXX: do_div_signed */
--	snprintf(buf, bufsiz, "%lld.%02d", nr, ((int)rem+5)/10);
-+	snprintf(buf, bufsiz, "%lld.%02d", (long long)nr, ((int)rem+5)/10);
+diff -puN mm/hugetlb.c~dequeue_huge_page-warning-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~dequeue_huge_page-warning-fix
++++ a/mm/hugetlb.c
+@@ -78,16 +78,13 @@ static struct page *dequeue_huge_page(st
+ 	for (z = zonelist->zones; *z; z++) {
+ 		nid = zone_to_nid(*z);
+ 		if (cpuset_zone_allowed_softwall(*z, htlb_alloc_mask) &&
+-		    !list_empty(&hugepage_freelists[nid]))
+-			break;
+-	}
+-
+-	if (*z) {
+-		page = list_entry(hugepage_freelists[nid].next,
+-				  struct page, lru);
+-		list_del(&page->lru);
+-		free_huge_pages--;
+-		free_huge_pages_node[nid]--;
++		    !list_empty(&hugepage_freelists[nid])) {
++			page = list_entry(hugepage_freelists[nid].next,
++					  struct page, lru);
++			list_del(&page->lru);
++			free_huge_pages--;
++			free_huge_pages_node[nid]--;
++		}
+ 	}
+ 	return page;
  }
- 
- static void seq_time(struct seq_file *m, s64 time)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,3 +84,4 @@ lockstat-human-readability-tweaks-fix.patch
 lockdep-various-fixes.patch
 lockstat-measure-lock-bouncing.patch
 some-kmalloc-memset-kzalloc-tree-wide.patch
+dequeue_huge_page-warning-fix.patch
