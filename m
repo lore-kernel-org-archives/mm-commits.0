@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + user-namespace-fix-copy_user_ns-return-value.patch added to -mm tree
-Date: Tue, 17 Jul 2007 17:06:36 -0700
-Message-ID: <200707180006.l6I06asv014628@imap1.linux-foundation.org>
+Subject: + ecryptfs-ecryptfs_setattr-bugfix.patch added to -mm tree
+Date: Tue, 17 Jul 2007 17:07:16 -0700
+Message-ID: <200707180007.l6I07GO2014708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42438 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59822 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757903AbXGRAGt (ORCPT
+	by vger.kernel.org with ESMTP id S1760003AbXGRAHd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 20:06:49 -0400
+	Tue, 17 Jul 2007 20:07:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, clg@fr.ibm.com, sukadev@us.ibm.com, xemul@openvz.org
+Cc: mhalcrow@us.ibm.com, stable@kernel.org
 
 
 The patch titled
-     user namespace: fix copy_user_ns return value
+     eCryptfs: ecryptfs_setattr() bugfix
 has been added to the -mm tree.  Its filename is
-     user-namespace-fix-copy_user_ns-return-value.patch
+     ecryptfs-ecryptfs_setattr-bugfix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,77 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: user namespace: fix copy_user_ns return value
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: eCryptfs: ecryptfs_setattr() bugfix
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-When a CONFIG_USER_NS=n and a user tries to unshare some namespace other
-than the user namespace, the dummy copy_user_ns returns NULL rather than
-the old_ns.  This value then gets assigned to task->nsproxy->user_ns, so
-that a subsequent setuid, which uses task->nsproxy->user_ns, causes a NULL
-pointer deref.
+There is another bug recently introduced into the ecryptfs_setattr()
+function in 2.6.22.  eCryptfs will attempt to treat special files like
+regular eCryptfs files on chmod, chown, and so forth.  This leads to a NULL
+pointer dereference.  This patch validates that the file is a regular file
+before proceeding with operations related to the inode's crypt_stat.
 
-Fix this by returning old_ns.
+Thanks to Ryusuke Konishi for finding this bug and suggesting the fix.
 
-I believe this is a bug both in -mm and mainline.
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/user_namespace.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/ecryptfs/inode.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/user_namespace.h~user-namespace-fix-copy_user_ns-return-value include/linux/user_namespace.h
---- a/include/linux/user_namespace.h~user-namespace-fix-copy_user_ns-return-value
-+++ a/include/linux/user_namespace.h
-@@ -49,7 +49,7 @@ static inline struct user_namespace *cop
- 	if (flags & CLONE_NEWUSER)
- 		return ERR_PTR(-EINVAL);
- 
--	return NULL;
-+	return old_ns;
- }
- 
- static inline void put_user_ns(struct user_namespace *ns)
+diff -puN fs/ecryptfs/inode.c~ecryptfs-ecryptfs_setattr-bugfix fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-ecryptfs_setattr-bugfix
++++ a/fs/ecryptfs/inode.c
+@@ -908,8 +908,9 @@ static int ecryptfs_setattr(struct dentr
+ 	mutex_lock(&crypt_stat->cs_mutex);
+ 	if (S_ISDIR(dentry->d_inode->i_mode))
+ 		crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
+-	else if (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
+-		 || !(crypt_stat->flags & ECRYPTFS_KEY_VALID)) {
++	else if (S_ISREG(dentry->d_inode->i_mode)
++		 && (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
++		     || !(crypt_stat->flags & ECRYPTFS_KEY_VALID))) {
+ 		struct vfsmount *lower_mnt;
+ 		struct file *lower_file = NULL;
+ 		struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-file-capabilities-introduce-cap_setfcap.patch
-file-capabilities-get_file_caps-cleanups.patch
-file-caps-update-selinux-xattr-hooks.patch
-file-capabilities-clear-caps-cleanup.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-file-capabilities-change-xattr-format-v2.patch
-file-capabilities-change-fe-to-a-bool.patch
-user-namespace-fix-copy_user_ns-return-value.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-containers-implement-subsys-post_clone.patch
-containers-implement-namespace-tracking-subsystem-v3.patch
-pid-namespaces-round-up-the-api.patch
+git-unionfs.patch
+fs-remove-some-aop_truncated_page.patch
+ecryptfs-ecryptfs_setattr-bugfix.patch
+fs-introduce-vfs_path_lookup.patch
+sunrpc-use-vfs_path_lookup.patch
+nfsctl-use-vfs_path_lookup.patch
+fs-mark-link_path_walk-static.patch
+fs-remove-path_walk-export.patch
