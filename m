@@ -1,68 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 11:52:40 -0700
-Message-ID: <200707181852.l6IIqeoA023697@imap1.linux-foundation.org>
+Subject: - xen-fix-x86-config-dependencies.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 11:52:44 -0700
+Message-ID: <200707181852.l6IIqi1Z023703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46830 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49377 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934809AbXGRSzO (ORCPT
+	by vger.kernel.org with ESMTP id S934624AbXGRSzT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 14:55:14 -0400
+	Wed, 18 Jul 2007 14:55:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, jeremy@xensource.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@suse.de, bunk@stusta.de, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-use-elfnoteh-to-generate-vsyscall-notes fix
+     xen: fix x86 config dependencies
 has been removed from the -mm tree.  Its filename was
-     x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
+     xen-fix-x86-config-dependencies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-use-elfnoteh-to-generate-vsyscall-notes fix
+Subject: xen: fix x86 config dependencies
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-A fix against xencleanup-use-elfnote_h-to-generate-vsyscall-notes.patch
-
-Roland McGrath <roland@redhat.com>:
-> I used .balign because .align has inconsistent meaning on some platforms
-> (matches .p2align instead of .balign).  Using .align in a
-> machine-independent file seems questionable.
+Make sure we set dependencies on CPU features.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/elfnote.h |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ arch/i386/xen/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/elfnote.h~x86-use-elfnoteh-to-generate-vsyscall-notes-fix include/linux/elfnote.h
---- a/include/linux/elfnote.h~x86-use-elfnoteh-to-generate-vsyscall-notes-fix
-+++ a/include/linux/elfnote.h
-@@ -40,16 +40,16 @@
-  */
- #define ELFNOTE_START(name, type, flags)	\
- .pushsection .note.name, flags,@note	;	\
--  .align 4				;	\
-+  .balign 4				;	\
-   .long 2f - 1f		/* namesz */	;	\
-   .long 4484f - 3f	/* descsz */	;	\
-   .long type				;	\
- 1:.asciz #name				;	\
--2:.align 4				;	\
-+2:.balign 4				;	\
- 3:
+diff -puN arch/i386/xen/Kconfig~xen-fix-x86-config-dependencies arch/i386/xen/Kconfig
+--- a/arch/i386/xen/Kconfig~xen-fix-x86-config-dependencies
++++ a/arch/i386/xen/Kconfig
+@@ -4,7 +4,7 @@
  
- #define ELFNOTE_END				\
--4484:.align 4				;	\
-+4484:.balign 4				;	\
- .popsection				;
- 
- #define ELFNOTE(name, type, desc)		\
+ config XEN
+ 	bool "Enable support for Xen hypervisor"
+-	depends on PARAVIRT
++	depends on PARAVIRT && X86_CMPXCHG && X86_TSC
+ 	help
+ 	  This is the Linux Xen port.  Enabling this will allow the
+ 	  kernel to boot in a paravirtualized environment under the
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
