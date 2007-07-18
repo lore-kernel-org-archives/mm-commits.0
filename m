@@ -1,69 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - ivtv-dont-recompile-needlessly.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 11:52:09 -0700
-Message-ID: <200707181852.l6IIq9FQ023642@imap1.linux-foundation.org>
+Subject: - make-input-layer-use-seq_list_xxx-helpers.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 11:52:12 -0700
+Message-ID: <200707181852.l6IIqCgV023645@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53035 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56982 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759495AbXGRSxY (ORCPT
+	by vger.kernel.org with ESMTP id S1759495AbXGRSxc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 14:53:24 -0400
+	Wed, 18 Jul 2007 14:53:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, hverkuil@xs4all.nl, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: xemul@sw.ru, dtor@mail.ru, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ivtv: don't recompile needlessly
+     Make input layer use seq_list_xxx helpers
 has been removed from the -mm tree.  Its filename was
-     ivtv-dont-recompile-needlessly.patch
+     make-input-layer-use-seq_list_xxx-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ivtv: don't recompile needlessly
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: Make input layer use seq_list_xxx helpers
+From: Pavel Emelianov <xemul@sw.ru>
 
-Driver prints 3l33t banner including kernel version.  Could we _please_
-never do this in future.
+This is essentially just a renaming of the existing functions as the
+seq_list_start() and seq_list_next() copies already exist in the input.c file.
+Now we have them in the generic place.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Pavel Emelianov <xemul@openvz.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/ivtv/ivtv-driver.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/input/input.c |   29 ++++-------------------------
+ 1 files changed, 4 insertions(+), 25 deletions(-)
 
-diff -puN drivers/media/video/ivtv/ivtv-driver.c~ivtv-dont-recompile-needlessly drivers/media/video/ivtv/ivtv-driver.c
---- a/drivers/media/video/ivtv/ivtv-driver.c~ivtv-dont-recompile-needlessly
-+++ a/drivers/media/video/ivtv/ivtv-driver.c
-@@ -56,7 +56,6 @@
- #include "ivtv-gpio.h"
- #include "ivtv-yuv.h"
+diff -puN drivers/input/input.c~make-input-layer-use-seq_list_xxx-helpers drivers/input/input.c
+--- a/drivers/input/input.c~make-input-layer-use-seq_list_xxx-helpers
++++ a/drivers/input/input.c
+@@ -471,37 +471,16 @@ static unsigned int input_proc_devices_p
+ 	return 0;
+ }
  
--#include <linux/vermagic.h>
- #include <media/tveeprom.h>
- #include <media/v4l2-chip-ident.h>
- 
-@@ -1314,7 +1313,7 @@ static struct pci_driver ivtv_pci_driver
- static int module_start(void)
+-static struct list_head *list_get_nth_element(struct list_head *list, loff_t *pos)
+-{
+-	struct list_head *node;
+-	loff_t i = 0;
+-
+-	list_for_each(node, list)
+-		if (i++ == *pos)
+-			return node;
+-
+-	return NULL;
+-}
+-
+-static struct list_head *list_get_next_element(struct list_head *list, struct list_head *element, loff_t *pos)
+-{
+-	if (element->next == list)
+-		return NULL;
+-
+-	++(*pos);
+-	return element->next;
+-}
+-
+ static void *input_devices_seq_start(struct seq_file *seq, loff_t *pos)
  {
- 	printk(KERN_INFO "ivtv:  ==================== START INIT IVTV ====================\n");
--	printk(KERN_INFO "ivtv:  version %s (" VERMAGIC_STRING ") loading\n", IVTV_VERSION);
-+	printk(KERN_INFO "ivtv:  version %s loading\n", IVTV_VERSION);
+ 	/* acquire lock here ... Yes, we do need locking, I knowi, I know... */
  
- 	memset(ivtv_cards, 0, sizeof(ivtv_cards));
+-	return list_get_nth_element(&input_dev_list, pos);
++	return seq_list_start(&input_dev_list, *pos);
+ }
  
+ static void *input_devices_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+ {
+-	return list_get_next_element(&input_dev_list, v, pos);
++	return seq_list_next(v, &input_dev_list, pos);
+ }
+ 
+ static void input_devices_seq_stop(struct seq_file *seq, void *v)
+@@ -592,13 +571,13 @@ static void *input_handlers_seq_start(st
+ {
+ 	/* acquire lock here ... Yes, we do need locking, I knowi, I know... */
+ 	seq->private = (void *)(unsigned long)*pos;
+-	return list_get_nth_element(&input_handler_list, pos);
++	return seq_list_start(&input_handler_list, *pos);
+ }
+ 
+ static void *input_handlers_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+ {
+ 	seq->private = (void *)(unsigned long)(*pos + 1);
+-	return list_get_next_element(&input_handler_list, v, pos);
++	return seq_list_next(v, &input_handler_list, pos);
+ }
+ 
+ static void input_handlers_seq_stop(struct seq_file *seq, void *v)
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from xemul@sw.ru are
 
 origin.patch
-git-dvb.patch
-use-list_head-in-binfmt-handling.patch
-make-unregister_binfmt-return-void.patch
-fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
-fix-leak-on-proc-lockdep_stats.patch
+git-input.patch
