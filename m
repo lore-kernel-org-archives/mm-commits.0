@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-nid_lock-from-alloc_fresh_huge_page.patch added to -mm tree
-Date: Tue, 17 Jul 2007 17:04:09 -0700
-Message-ID: <200707180004.l6I049xM014553@imap1.linux-foundation.org>
+Subject: + make-timerfd-return-a-u64-and-fix-the-__put_user.patch added to -mm tree
+Date: Tue, 17 Jul 2007 17:05:39 -0700
+Message-ID: <200707180005.l6I05doq014605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35402 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48446 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937660AbXGRAEU (ORCPT
+	by vger.kernel.org with ESMTP id S1751926AbXGRAFu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Jul 2007 20:04:20 -0400
+	Tue, 17 Jul 2007 20:05:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com
+Cc: davidel@xmailserver.org, davi@haxent.com.br, mtk-manpages@gmx.net
 
 
 The patch titled
-     Remove nid_lock from alloc_fresh_huge_page
+     make timerfd return a u64 and fix the __put_user
 has been added to the -mm tree.  Its filename is
-     remove-nid_lock-from-alloc_fresh_huge_page.patch
+     make-timerfd-return-a-u64-and-fix-the-__put_user.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove nid_lock from alloc_fresh_huge_page
-From: Hugh Dickins <hugh@veritas.com>
+Subject: make timerfd return a u64 and fix the __put_user
+From: Davide Libenzi <davidel@xmailserver.org>
 
-The fix to that race in alloc_fresh_huge_page() which could give an illegal
-node ID did not need nid_lock at all: the fix was to replace static int nid
-by static int prev_nid and do the work on local int nid.  nid_lock did make
-sure that racers strictly roundrobin the nodes, but that's not something we
-need to enforce strictly.  Kill nid_lock.
+Davi fixed a missing cast in the __put_user(), that was making timerfd
+return a single byte instead of the full value.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Talking with Michael about the timerfd man page, we think it'd be better to
+use a u64 for the returned value, to align it with the eventfd
+implementation.
+
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Cc: Davi Arnaut <davi@haxent.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+ fs/timerfd.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/hugetlb.c~remove-nid_lock-from-alloc_fresh_huge_page mm/hugetlb.c
---- a/mm/hugetlb.c~remove-nid_lock-from-alloc_fresh_huge_page
-+++ a/mm/hugetlb.c
-@@ -107,15 +107,19 @@ static int alloc_fresh_huge_page(void)
+diff -puN fs/timerfd.c~make-timerfd-return-a-u64-and-fix-the-__put_user fs/timerfd.c
+--- a/fs/timerfd.c~make-timerfd-return-a-u64-and-fix-the-__put_user
++++ a/fs/timerfd.c
+@@ -95,7 +95,7 @@ static ssize_t timerfd_read(struct file 
  {
- 	static int prev_nid;
- 	struct page *page;
--	static DEFINE_SPINLOCK(nid_lock);
- 	int nid;
+ 	struct timerfd_ctx *ctx = file->private_data;
+ 	ssize_t res;
+-	u32 ticks = 0;
++	u64 ticks = 0;
+ 	DECLARE_WAITQUEUE(wait, current);
  
--	spin_lock(&nid_lock);
-+	/*
-+	 * Copy static prev_nid to local nid, work on that, then copy it
-+	 * back to prev_nid afterwards: otherwise there's a window in which
-+	 * a racer might pass invalid nid MAX_NUMNODES to alloc_pages_node.
-+	 * But we don't need to use a spin_lock here: it really doesn't
-+	 * matter if occasionally a racer chooses the same nid as we do.
-+	 */
- 	nid = next_node(prev_nid, node_online_map);
- 	if (nid == MAX_NUMNODES)
- 		nid = first_node(node_online_map);
- 	prev_nid = nid;
--	spin_unlock(&nid_lock);
+ 	if (count < sizeof(ticks))
+@@ -130,7 +130,7 @@ static ssize_t timerfd_read(struct file 
+ 			 * callback to avoid DoS attacks specifying a very
+ 			 * short timer period.
+ 			 */
+-			ticks = (u32)
++			ticks = (u64)
+ 				hrtimer_forward(&ctx->tmr,
+ 						hrtimer_cb_get_time(&ctx->tmr),
+ 						ctx->tintv);
+@@ -140,7 +140,7 @@ static ssize_t timerfd_read(struct file 
+ 	}
+ 	spin_unlock_irq(&ctx->wqh.lock);
+ 	if (ticks)
+-		res = put_user(ticks, buf) ? -EFAULT: sizeof(ticks);
++		res = put_user(ticks, (u64 __user *) buf) ? -EFAULT: sizeof(ticks);
+ 	return res;
+ }
  
- 	page = alloc_pages_node(nid, htlb_alloc_mask|__GFP_COMP|__GFP_NOWARN,
- 					HUGETLB_PAGE_ORDER);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-x86_64-acpi-disable-srat-when-numa-emulation-succeeds.patch
-remove-nid_lock-from-alloc_fresh_huge_page.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
-mm-variable-length-argument-support.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-prio_tree-debugging-patch.patch
+git-kvm.patch
+make-timerfd-return-a-u64-and-fix-the-__put_user.patch
