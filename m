@@ -1,80 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-remove-extra-is_rdonly-check.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 11:52:52 -0700
-Message-ID: <200707181852.l6IIqqdg023718__30257.7631119222$1184784922$gmane$org@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-ii-scsi.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 11:52:21 -0700
+Message-ID: <200707181852.l6IIqLp5023666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57475 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57537 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934613AbXGRSzL (ORCPT
+	by vger.kernel.org with ESMTP id S934656AbXGRSzM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 14:55:11 -0400
+	Wed, 18 Jul 2007 14:55:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, James.Bottomley@steeleye.com, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: remove extra IS_RDONLY() check
+     Use menuconfig objects II - SCSI
 has been removed from the -mm tree.  Its filename was
-     ext4-remove-extra-is_rdonly-check.patch
+     use-menuconfig-objects-ii-scsi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext4: remove extra IS_RDONLY() check
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: Use menuconfig objects II - SCSI
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-ext4_change_inode_journal_flag() is only called from one location:
-ext4_ioctl(EXT3_IOC_SETFLAGS).  That ioctl case already has a IS_RDONLY()
-call in it so this one is superfluous.
+Make a "menuconfig" out of the Kconfig objects "menu, ..., endmenu",
+so that the user can disable all the options in that menu at once
+instead of having to disable each option separately.
 
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/Kconfig        |    8 ++++++--
+ drivers/scsi/pcmcia/Kconfig |    7 +++++--
+ 2 files changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN fs/ext4/inode.c~ext4-remove-extra-is_rdonly-check fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-remove-extra-is_rdonly-check
-+++ a/fs/ext4/inode.c
-@@ -3382,7 +3382,7 @@ int ext4_change_inode_journal_flag(struc
- 	 */
+diff -puN drivers/scsi/Kconfig~use-menuconfig-objects-ii-scsi drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~use-menuconfig-objects-ii-scsi
++++ a/drivers/scsi/Kconfig
+@@ -291,8 +291,12 @@ source "drivers/scsi/libsas/Kconfig"
  
- 	journal = EXT4_JOURNAL(inode);
--	if (is_journal_aborted(journal) || IS_RDONLY(inode))
-+	if (is_journal_aborted(journal))
- 		return -EROFS;
+ endmenu
  
- 	jbd2_journal_lock_updates(journal);
+-menu "SCSI low-level drivers"
++menuconfig SCSI_LOWLEVEL
++	bool "SCSI low-level drivers"
+ 	depends on SCSI!=n
++	default y
++
++if SCSI_LOWLEVEL
+ 
+ config ISCSI_TCP
+ 	tristate "iSCSI Initiator over TCP/IP"
+@@ -1802,7 +1806,7 @@ config SCSI_SRP
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called libsrp.
+ 
+-endmenu
++endif # SCSI_LOWLEVEL
+ 
+ source "drivers/scsi/pcmcia/Kconfig"
+ 
+diff -puN drivers/scsi/pcmcia/Kconfig~use-menuconfig-objects-ii-scsi drivers/scsi/pcmcia/Kconfig
+--- a/drivers/scsi/pcmcia/Kconfig~use-menuconfig-objects-ii-scsi
++++ a/drivers/scsi/pcmcia/Kconfig
+@@ -2,9 +2,12 @@
+ # PCMCIA SCSI adapter configuration
+ #
+ 
+-menu "PCMCIA SCSI adapter support"
++menuconfig SCSI_LOWLEVEL_PCMCIA
++	bool "PCMCIA SCSI adapter support"
+ 	depends on SCSI!=n && PCMCIA!=n
+ 
++if SCSI_LOWLEVEL_PCMCIA && SCSI && PCMCIA
++
+ config PCMCIA_AHA152X
+ 	tristate "Adaptec AHA152X PCMCIA support"
+ 	depends on !64BIT
+@@ -77,4 +80,4 @@ config PCMCIA_SYM53C500
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called sym53c500_cs.
+ 
+-endmenu
++endif # SCSI_LOWLEVEL_PCMCIA
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-containers-implement-subsys-post_clone.patch
-containers-implement-namespace-tracking-subsystem-v3.patch
-page-owner-tracking-leak-detector.patch
+git-acpi.patch
+git-kvm.patch
+use-menuconfig-objects-pcmcia.patch
+git-scsi-misc.patch
