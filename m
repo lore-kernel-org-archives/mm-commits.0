@@ -1,62 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-wd33c93c-cleanups.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 11:52:17 -0700
-Message-ID: <200707181852.l6IIqHZS023653@imap1.linux-foundation.org>
+Subject: - arch-i386-xen-mmuc-must-include-linux-schedh.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 11:52:34 -0700
+Message-ID: <200707181852.l6IIqYYs023688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39876 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53074 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933206AbXGRSxE (ORCPT
+	by vger.kernel.org with ESMTP id S1763445AbXGRSxU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 14:53:04 -0400
+	Wed, 18 Jul 2007 14:53:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, jeremy@goop.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/wd33c93.c: cleanups
+     arch/i386/xen/mmu.c must #include <linux/sched.h>
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-wd33c93c-cleanups.patch
+     arch-i386-xen-mmuc-must-include-linux-schedh.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: drivers/scsi/wd33c93.c: cleanups
-From: Adrian Bunk <bunk@stusta.de>
+Subject: arch/i386/xen/mmu.c must #include <linux/sched.h>
+=46rom: Adrian Bunk <bunk@stusta.de>
 
-- #include <asm/irq.h> for getting the prototypes of {dis,en}able_irq()
+This patch fixes the following compile error:
 
-- make the needlessly global wd33c93_setup() static
+<--  snip  -->
+
+=2E..
+  CC      arch/i386/xen/mmu.o
+In file included from
+/home/bunk/linux/kernel-2.6/linux-2.6.22-rc6-mm1/arch/i386/xen/mmu.c:46=
+:
+include2/asm/mmu_context.h: In function =E2=80=98switch_mm=E2=80=99:
+include2/asm/mmu_context.h:45: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:50: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:53: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:58: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:58: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:59: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:66: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:70: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:71: error: dereferencing pointer to incomple=
+te type
+=2E..
+make[2]: *** [arch/i386/xen/mmu.o] Error 1
+
+<--  snip  -->
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/wd33c93.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ arch/i386/xen/mmu.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/scsi/wd33c93.c~drivers-scsi-wd33c93c-cleanups drivers/scsi/wd33c93.c
---- a/drivers/scsi/wd33c93.c~drivers-scsi-wd33c93c-cleanups
-+++ a/drivers/scsi/wd33c93.c
-@@ -89,6 +89,8 @@
- #include <scsi/scsi_device.h>
- #include <scsi/scsi_host.h>
- 
-+#include <asm/irq.h>
-+
- #include "wd33c93.h"
- 
- #define optimum_sx_per(hostdata) (hostdata)->sx_table[1].period_ns
-@@ -1762,7 +1764,7 @@ static char setup_buffer[SETUP_BUFFER_SI
- static char setup_used[MAX_SETUP_ARGS];
- static int done_setup = 0;
- 
--int
-+static int
- wd33c93_setup(char *str)
- {
- 	int i;
+diff -puN arch/i386/xen/mmu.c~arch-i386-xen-mmuc-must-include-linux-sch=
+edh arch/i386/xen/mmu.c
+--- a/arch/i386/xen/mmu.c~arch-i386-xen-mmuc-must-include-linux-schedh
++++ a/arch/i386/xen/mmu.c
+@@ -39,6 +39,7 @@
+  * Jeremy Fitzhardinge <jeremy@xensource.com>, XenSource Inc, 2007
+  */
+ #include <linux/highmem.h>
++#include <linux/sched.h>
+=20
+ #include <asm/bug.h>
+ #include <asm/pgtable.h>
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -67,14 +92,16 @@ kernel-relayc-make-functions-static.patch
 lockstat-human-readability-tweaks.patch
 lockstat-human-readability-tweaks-fix.patch
 git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-ratin=
+g-by-default-fix.patch
 drivers-acpi-sbsc-remove-dead-code.patch
 git-alsa.patch
 git-dvb.patch
 git-hwmon.patch
 git-kbuild.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-=
+dma.patch
 git-mtd.patch
 git-scsi-misc.patch
 drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
