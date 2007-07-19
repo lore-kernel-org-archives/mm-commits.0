@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + try-parent-numa_node-at-first-before-using-default-v2-fix.patch added to -mm tree
-Date: Thu, 19 Jul 2007 16:17:21 -0700
-Message-ID: <200707192317.l6JNHLC3027957@imap1.linux-foundation.org>
+Subject: + mkmakefile-include-arch-on-o=-builds.patch added to -mm tree
+Date: Thu, 19 Jul 2007 16:18:07 -0700
+Message-ID: <200707192318.l6JNI7Bl027977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38959 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59107 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765817AbXGSXR4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756658AbXGSXX2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 19:17:56 -0400
+	Thu, 19 Jul 2007 19:23:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Yinghai.Lu@Sun.COM, ak@suse.de, clameter@sgi.com, cornelia.huck@de.ibm.com, davem@davemloft.net, greg@kroah.com, hch@infradead.org, rientjes@google.com, stefanr@s5r6.in-berlin.de, yinghai.lu@Sun.COM
+Cc: 7eggert@gmx.de, sam@ravnborg.org, tony@bakeyournoodle.com
 
 
 The patch titled
-     try-parent-numa_node-at-first-before-using-default-v2-fix
+     mkmakefile: include ARCH on O= builds
 has been added to the -mm tree.  Its filename is
-     try-parent-numa_node-at-first-before-using-default-v2-fix.patch
+     mkmakefile-include-arch-on-o=-builds.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,119 +26,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: try-parent-numa_node-at-first-before-using-default-v2-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mkmakefile: include ARCH on O= builds
+From: Bodo Eggert <7eggert@gmx.de>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Yinghai Lu <Yinghai.Lu@Sun.COM>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
+If you build using O=builddir ARCH=bar, you'll currently need to supply
+ARCH= on builds from the builddir, too.  With this patch, the generated
+Makefile will do that instead.
+
+make ARCH= will still override the Makefile default, allowing existing
+scripts to work correctly.
+
+Signed-off-by: Bodo Eggert <7eggert@gmx.de>
+Cc: Tony Breeds <tony@bakeyournoodle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ Makefile           |    2 +-
+ scripts/mkmakefile |    6 ++++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/core.c~try-parent-numa_node-at-first-before-using-default-v2-fix drivers/base/core.c
---- a/drivers/base/core.c~try-parent-numa_node-at-first-before-using-default-v2-fix
-+++ a/drivers/base/core.c
-@@ -765,9 +765,8 @@ int device_add(struct device *dev)
- 		goto Error;
+diff -puN Makefile~mkmakefile-include-arch-on-o=-builds Makefile
+--- a/Makefile~mkmakefile-include-arch-on-o=-builds
++++ a/Makefile
+@@ -358,7 +358,7 @@ PHONY += outputmakefile
+ outputmakefile:
+ ifneq ($(KBUILD_SRC),)
+ 	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/mkmakefile \
+-	    $(srctree) $(objtree) $(VERSION) $(PATCHLEVEL)
++	    $(srctree) $(objtree) $(VERSION) $(PATCHLEVEL) $(ARCH)
+ endif
  
- 	/* use parent numa_node */
--	if (parent) {
-+	if (parent)
- 		set_dev_node(dev, dev_to_node(parent));
--	}
+ # To make sure we do not include .config for any of the *config targets
+diff -puN scripts/mkmakefile~mkmakefile-include-arch-on-o=-builds scripts/mkmakefile
+--- a/scripts/mkmakefile~mkmakefile-include-arch-on-o=-builds
++++ a/scripts/mkmakefile
+@@ -8,6 +8,7 @@
+ # $2 - Output directory
+ # $3 - version
+ # $4 - patchlevel
++# $5 - arch
  
- 	/* first, register with generic layer. */
- 	kobject_set_name(&dev->kobj, "%s", dev->bus_id);
+ 
+ test ! -r $2/Makefile -o -O $2/Makefile || exit 0
+@@ -21,16 +22,17 @@ PATCHLEVEL = $4
+ 
+ KERNELSRC    := $1
+ KERNELOUTPUT := $2
++ARCH         := $5
+ 
+ MAKEFLAGS += --no-print-directory
+ 
+ .PHONY: all \$(MAKECMDGOALS)
+ 
+ all:
+-	\$(MAKE) -C \$(KERNELSRC) O=\$(KERNELOUTPUT)
++	\$(MAKE) -C \$(KERNELSRC) O=\$(KERNELOUTPUT) ARCH=\$(ARCH)
+ 
+ Makefile:;
+ 
+ \$(filter-out all Makefile,\$(MAKECMDGOALS)) %/:
+-	\$(MAKE) -C \$(KERNELSRC) O=\$(KERNELOUTPUT) \$@
++	\$(MAKE) -C \$(KERNELSRC) O=\$(KERNELOUTPUT) ARCH=\$(ARCH) \$@
+ EOF
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from 7eggert@gmx.de are
 
-origin.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-dvb.patch
-git-input.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mtd.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-git-scsi-misc.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-clockevents-fix-resume-logic-xen-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-kgdb-fixup-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+mkmakefile-include-arch-on-o=-builds.patch
