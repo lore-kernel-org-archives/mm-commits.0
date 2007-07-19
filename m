@@ -1,142 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-use-generic-cmos-update.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:43 -0700
-Message-ID: <200707192010.l6JKAhbh020698@imap1.linux-foundation.org>
+Subject: - mm-share-pg_readahead-and-pg_reclaim.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:01:27 -0700
+Message-ID: <200707192001.l6JK1RWb019537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39189 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53222 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761284AbXGSUVI (ORCPT
+	by vger.kernel.org with ESMTP id S1760811AbXGSUVP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:21:08 -0400
+	Thu, 19 Jul 2007 16:21:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: use generic cmos update
+     mm: share PG_readahead and PG_reclaim
 has been removed from the -mm tree.  Its filename was
-     x86_64-use-generic-cmos-update.patch
+     mm-share-pg_readahead-and-pg_reclaim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: use generic cmos update
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: mm: share PG_readahead and PG_reclaim
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Use the generic cmos update function in kernel/time/ntp.c
+Share the same page flag bit for PG_readahead and PG_reclaim.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+One is used only on file reads, another is only for emergency writes.  One
+is used mostly for fresh/young pages, another is for old pages.
+
+Combinations of possible interactions are:
+
+a) clear PG_reclaim => implicit clear of PG_readahead
+	it will delay an asynchronous readahead into a synchronous one
+	it actually does _good_ for readahead:
+		the pages will be reclaimed soon, it's readahead thrashing!
+		in this case, synchronous readahead makes more sense.
+
+b) clear PG_readahead => implicit clear of PG_reclaim
+	one(and only one) page will not be reclaimed in time
+	it can be avoided by checking PageWriteback(page) in readahead first
+
+c) set PG_reclaim => implicit set of PG_readahead
+	will confuse readahead and make it restart the size rampup process
+	it's a trivial problem, and can mostly be avoided by checking
+	PageWriteback(page) first in readahead
+
+d) set PG_readahead => implicit set of PG_reclaim
+	PG_readahead will never be set on already cached pages.
+	PG_reclaim will always be cleared on dirtying a page.
+	so not a problem.
+
+In summary,
+	a)   we get better behavior
+	b,d) possible interactions can be avoided
+	c)   racy condition exists that might affect readahead, but the chance
+	     is _really_ low, and the hurt on readahead is trivial.
+
+Compound pages also use PG_reclaim, but for now they do not interact with
+reclaim/readahead code.
+
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/Kconfig       |    4 ++++
- arch/x86_64/kernel/time.c |   25 +++++++++----------------
- 2 files changed, 13 insertions(+), 16 deletions(-)
+ include/linux/page-flags.h |    4 +++-
+ mm/page-writeback.c        |    1 +
+ mm/page_alloc.c            |    7 -------
+ mm/readahead.c             |    6 ++++++
+ 4 files changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86_64/Kconfig~x86_64-use-generic-cmos-update arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~x86_64-use-generic-cmos-update
-+++ a/arch/x86_64/Kconfig
-@@ -32,6 +32,10 @@ config GENERIC_TIME_VSYSCALL
- 	bool
- 	default y
+diff -puN include/linux/page-flags.h~mm-share-pg_readahead-and-pg_reclaim include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-share-pg_readahead-and-pg_reclaim
++++ a/include/linux/page-flags.h
+@@ -83,7 +83,6 @@
+ #define PG_private		11	/* If pagecache, has fs-private data */
  
-+config GENERIC_CMOS_UPDATE
-+	bool
-+	default y
+ #define PG_writeback		12	/* Page is under writeback */
+-#define PG_readahead		13	/* Reminder to do async read-ahead */
+ #define PG_compound		14	/* Part of a compound page */
+ #define PG_swapcache		15	/* Swap page: swp_entry_t in private */
+ 
+@@ -91,6 +90,9 @@
+ #define PG_reclaim		17	/* To be reclaimed asap */
+ #define PG_buddy		19	/* Page is free, on buddy lists */
+ 
++/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
++#define PG_readahead		PG_reclaim /* Reminder to do async read-ahead */
 +
- config ZONE_DMA32
- 	bool
- 	default y
-diff -puN arch/x86_64/kernel/time.c~x86_64-use-generic-cmos-update arch/x86_64/kernel/time.c
---- a/arch/x86_64/kernel/time.c~x86_64-use-generic-cmos-update
-+++ a/arch/x86_64/kernel/time.c
-@@ -82,8 +82,9 @@ EXPORT_SYMBOL(profile_pc);
-  * sheet for details.
-  */
+ /* PG_owner_priv_1 users should have descriptive aliases */
+ #define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
+ #define PG_pinned		PG_owner_priv_1	/* Xen pinned pagetable */
+diff -puN mm/page-writeback.c~mm-share-pg_readahead-and-pg_reclaim mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-share-pg_readahead-and-pg_reclaim
++++ a/mm/page-writeback.c
+@@ -920,6 +920,7 @@ int clear_page_dirty_for_io(struct page 
  
--static void set_rtc_mmss(unsigned long nowtime)
-+static int set_rtc_mmss(unsigned long nowtime)
- {
-+	int retval = 0;
- 	int real_seconds, real_minutes, cmos_minutes;
- 	unsigned char control, freq_select;
+ 	BUG_ON(!PageLocked(page));
  
-@@ -123,6 +124,7 @@ static void set_rtc_mmss(unsigned long n
- 	if (abs(real_minutes - cmos_minutes) >= 30) {
- 		printk(KERN_WARNING "time.c: can't update CMOS clock "
- 		       "from %d to %d\n", cmos_minutes, real_minutes);
-+		retval = -1;
- 	} else {
- 		BIN_TO_BCD(real_seconds);
- 		BIN_TO_BCD(real_minutes);
-@@ -142,12 +144,17 @@ static void set_rtc_mmss(unsigned long n
- 	CMOS_WRITE(freq_select, RTC_FREQ_SELECT);
++	ClearPageReclaim(page);
+ 	if (mapping && mapping_cap_account_dirty(mapping)) {
+ 		/*
+ 		 * Yes, Virginia, this is indeed insane.
+diff -puN mm/page_alloc.c~mm-share-pg_readahead-and-pg_reclaim mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-share-pg_readahead-and-pg_reclaim
++++ a/mm/page_alloc.c
+@@ -453,12 +453,6 @@ static inline int free_pages_check(struc
+ 			1 << PG_reserved |
+ 			1 << PG_buddy ))))
+ 		bad_page(page);
+-	/*
+-	 * PageReclaim == PageTail. It is only an error
+-	 * for PageReclaim to be set if PageCompound is clear.
+-	 */
+-	if (unlikely(!PageCompound(page) && PageReclaim(page)))
+-		bad_page(page);
+ 	if (PageDirty(page))
+ 		__ClearPageDirty(page);
+ 	/*
+@@ -602,7 +596,6 @@ static int prep_new_page(struct page *pa
+ 			1 << PG_locked	|
+ 			1 << PG_active	|
+ 			1 << PG_dirty	|
+-			1 << PG_reclaim	|
+ 			1 << PG_slab    |
+ 			1 << PG_swapcache |
+ 			1 << PG_writeback |
+diff -puN mm/readahead.c~mm-share-pg_readahead-and-pg_reclaim mm/readahead.c
+--- a/mm/readahead.c~mm-share-pg_readahead-and-pg_reclaim
++++ a/mm/readahead.c
+@@ -448,6 +448,12 @@ page_cache_readahead_ondemand(struct add
+ 		return 0;
  
- 	spin_unlock(&rtc_lock);
+ 	if (page) {
++		/*
++		 * It can be PG_reclaim.
++		 */
++		if (PageWriteback(page))
++			return 0;
 +
-+	return retval;
- }
+ 		ClearPageReadahead(page);
  
-+int update_persistent_clock(struct timespec now)
-+{
-+	return set_rtc_mmss(now.tv_sec);
-+}
- 
- void main_timer_handler(void)
- {
--	static unsigned long rtc_update = 0;
- /*
-  * Here we are in the timer irq handler. We have irqs locally disabled (so we
-  * don't need spin_lock_irqsave()) but we don't know if the timer_bh is running
-@@ -175,20 +182,6 @@ void main_timer_handler(void)
- 	if (!using_apic_timer)
- 		smp_local_timer_interrupt();
- 
--/*
-- * If we have an externally synchronized Linux clock, then update CMOS clock
-- * accordingly every ~11 minutes. set_rtc_mmss() will be called in the jiffy
-- * closest to exactly 500 ms before the next second. If the update fails, we
-- * don't care, as it'll be updated on the next turn, and the problem (time way
-- * off) isn't likely to go away much sooner anyway.
-- */
--
--	if (ntp_synced() && xtime.tv_sec > rtc_update &&
--		abs(xtime.tv_nsec - 500000000) <= tick_nsec / 2) {
--		set_rtc_mmss(xtime.tv_sec);
--		rtc_update = xtime.tv_sec + 660;
--	}
-- 
- 	write_sequnlock(&xtime_lock);
- }
- 
+ 		/*
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-git-acpi.patch
-acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-clockevents-remove-prototypes-of-removed-functions.patch
-clockevents-fix-resume-logic.patch
-lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
-clockevents-fix-device-replacement.patch
-tick-management-spread-timer-interrupt.patch
-highres-improve-debug-output.patch
-hrtimer-speedup-hrtimer_enqueue.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
-acpi-remove-the-useless-ifdef-code.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-geode-mfgpt-clock-event-device-support.patch
