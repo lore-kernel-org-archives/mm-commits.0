@@ -1,79 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - fs-mark-link_path_walk-static.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:01:58 -0700
-Message-ID: <200707192001.l6JK1wRj019608@imap1.linux-foundation.org>
+Subject: - coredump-masking-documentation-for-proc-pid-coredump_filter.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:26 -0700
+Message-ID: <200707192002.l6JK2QZp019667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40149 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49465 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757787AbXGSUdZ (ORCPT
+	by vger.kernel.org with ESMTP id S1759344AbXGSUd3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:33:25 -0400
+	Thu, 19 Jul 2007 16:33:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jsipek@cs.sunysb.edu, hch@lst.de, mhalcrow@us.ibm.com, neilb@suse.de, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: mark link_path_walk static
+     coredump masking: documentation for /proc/pid/coredump_filter
 has been removed from the -mm tree.  Its filename was
-     fs-mark-link_path_walk-static.patch
+     coredump-masking-documentation-for-proc-pid-coredump_filter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs: mark link_path_walk static
-From: "Josef 'Jeff' Sipek" <jsipek@cs.sunysb.edu>
+Subject: coredump masking: documentation for /proc/pid/coredump_filter
+From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
 
-Signed-off-by: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Acked-by: Christoph Hellwig <hch@lst.de>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+This patch adds the documentation for /proc/<pid>/coredump_filter.
+
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c            |    4 +++-
- include/linux/namei.h |    1 -
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ Documentation/filesystems/proc.txt |   38 +++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff -puN fs/namei.c~fs-mark-link_path_walk-static fs/namei.c
---- a/fs/namei.c~fs-mark-link_path_walk-static
-+++ a/fs/namei.c
-@@ -107,6 +107,8 @@
-  * any extra contention...
-  */
+diff -puN Documentation/filesystems/proc.txt~coredump-masking-documentation-for-proc-pid-coredump_filter Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~coredump-masking-documentation-for-proc-pid-coredump_filter
++++ a/Documentation/filesystems/proc.txt
+@@ -42,6 +42,7 @@ Table of Contents
+   2.12	/proc/<pid>/oom_adj - Adjust the oom-killer score
+   2.13	/proc/<pid>/oom_score - Display current oom-killer score
+   2.14	/proc/<pid>/io - Display the IO accounting fields
++  2.15	/proc/<pid>/coredump_filter - Core dump filtering settings
  
-+static int fastcall link_path_walk(const char *name, struct nameidata *nd);
+ ------------------------------------------------------------------------------
+ Preface
+@@ -2184,4 +2185,41 @@ those 64-bit counters, process A could s
+ More information about this can be found within the taskstats documentation in
+ Documentation/accounting.
+ 
++2.15 /proc/<pid>/coredump_filter - Core dump filtering settings
++---------------------------------------------------------------
++When a process is dumped, all anonymous memory is written to a core file as
++long as the size of the core file isn't limited. But sometimes we don't want
++to dump some memory segments, for example, huge shared memory. Conversely,
++sometimes we want to save file-backed memory segments into a core file, not
++only the individual files.
 +
- /* In order to reduce some races, while at the same time doing additional
-  * checking and hopefully speeding things up, we copy filenames to the
-  * kernel data space before using them..
-@@ -998,7 +1000,7 @@ return_err:
-  * Retry the whole path once, forcing real lookup requests
-  * instead of relying on the dcache.
-  */
--int fastcall link_path_walk(const char *name, struct nameidata *nd)
-+static int fastcall link_path_walk(const char *name, struct nameidata *nd)
- {
- 	struct nameidata save = *nd;
- 	int result;
-diff -puN include/linux/namei.h~fs-mark-link_path_walk-static include/linux/namei.h
---- a/include/linux/namei.h~fs-mark-link_path_walk-static
-+++ a/include/linux/namei.h
-@@ -72,7 +72,6 @@ extern int FASTCALL(path_lookup(const ch
- extern int vfs_path_lookup(struct dentry *, struct vfsmount *,
- 			   const char *, unsigned int, struct nameidata *);
- extern int FASTCALL(path_walk(const char *, struct nameidata *));
--extern int FASTCALL(link_path_walk(const char *, struct nameidata *));
- extern void path_release(struct nameidata *);
- extern void path_release_on_umount(struct nameidata *);
- 
++/proc/<pid>/coredump_filter allows you to customize which memory segments
++will be dumped when the <pid> process is dumped. coredump_filter is a bitmask
++of memory types. If a bit of the bitmask is set, memory segments of the
++corresponding memory type are dumped, otherwise they are not dumped.
++
++The following 4 memory types are supported:
++  - (bit 0) anonymous private memory
++  - (bit 1) anonymous shared memory
++  - (bit 2) file-backed private memory
++  - (bit 3) file-backed shared memory
++
++  Note that MMIO pages such as frame buffer are never dumped and vDSO pages
++  are always dumped regardless of the bitmask status.
++
++Default value of coredump_filter is 0x3; this means all anonymous memory
++segments are dumped.
++
++If you don't want to dump all shared memory segments attached to pid 1234,
++write 1 to the process's proc file.
++
++  $ echo 0x1 > /proc/1234/coredump_filter
++
++When a new process is created, the process inherits the bitmask status from its
++parent. It is useful to set up coredump_filter before the program runs.
++For example:
++
++  $ echo 0x7 > /proc/self/coredump_filter
++  $ ./some_program
++
+ ------------------------------------------------------------------------------
 _
 
-Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
 
 origin.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
