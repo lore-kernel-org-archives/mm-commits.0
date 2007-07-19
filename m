@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-romfs-inodec-trivial-improvements.patch added to -mm tree
-Date: Thu, 19 Jul 2007 15:53:00 -0700
-Message-ID: <200707192253.l6JMr0pI027027@imap1.linux-foundation.org>
+Subject: + binfmt_elf-clean-up-the-pie-randomization-code.patch added to -mm tree
+Date: Thu, 19 Jul 2007 15:54:36 -0700
+Message-ID: <200707192254.l6JMsahB027150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38610 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53593 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752384AbXGSWxH (ORCPT
+	by vger.kernel.org with ESMTP id S1754884AbXGSWzB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 18:53:07 -0400
+	Thu, 19 Jul 2007 18:55:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com
+Cc: cebbert@redhat.com, honza@jikos.cz, jakub@redhat.com, roland@redhat.com
 
 
 The patch titled
-     fs/romfs/inode.c: trivial improvements
+     binfmt_elf: clean up the PIE randomization code
 has been added to the -mm tree.  Its filename is
-     fs-romfs-inodec-trivial-improvements.patch
+     binfmt_elf-clean-up-the-pie-randomization-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/romfs/inode.c: trivial improvements
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: binfmt_elf: clean up the PIE randomization code
+From: Chuck Ebbert <cebbert@redhat.com>
 
-- There are no lists in fs/romfs/inode.c, so using list_entry
-  is a bit confusing.  Replace it with container_of.
+The recent PIE randomization patch changed the BAD_ADDR() macro
+in binfmt_elf.c:
 
-- It is unnecessary to cast the return value of
-  kmem_cache_alloc, since it returns a void* pointer.
+     -#define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
+     +#define BAD_ADDR(x) IS_ERR_VALUE(x)
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+But in general this is not what is desired.  There was only one piece of
+code that wanted to use a different check.  It is much cleaner and clearer
+to revert part of the patch so the code works like it did before and the
+change to the macro is unnecessary.  (This is what has been done in the Red
+Hat Enterprise kernels.)
+
+Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
+Cc: Jan Kratochvil <honza@jikos.cz>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/inode.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |   26 +++++++-------------------
+ 1 files changed, 7 insertions(+), 19 deletions(-)
 
-diff -puN fs/romfs/inode.c~fs-romfs-inodec-trivial-improvements fs/romfs/inode.c
---- a/fs/romfs/inode.c~fs-romfs-inodec-trivial-improvements
-+++ a/fs/romfs/inode.c
-@@ -92,7 +92,7 @@ static inline unsigned long romfs_maxsiz
+diff -puN fs/binfmt_elf.c~binfmt_elf-clean-up-the-pie-randomization-code fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-clean-up-the-pie-randomization-code
++++ a/fs/binfmt_elf.c
+@@ -80,7 +80,7 @@ static struct linux_binfmt elf_format = 
+ 		.hasvdso	= 1
+ };
  
- static inline struct romfs_inode_info *ROMFS_I(struct inode *inode)
- {
--	return list_entry(inode, struct romfs_inode_info, vfs_inode);
-+	return container_of(inode, struct romfs_inode_info, vfs_inode);
- }
+-#define BAD_ADDR(x) IS_ERR_VALUE(x)
++#define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
  
- static __u32
-@@ -555,7 +555,7 @@ static struct kmem_cache * romfs_inode_c
- static struct inode *romfs_alloc_inode(struct super_block *sb)
+ static int set_brk(unsigned long start, unsigned long end)
  {
- 	struct romfs_inode_info *ei;
--	ei = (struct romfs_inode_info *)kmem_cache_alloc(romfs_inode_cachep, GFP_KERNEL);
-+	ei = kmem_cache_alloc(romfs_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
+@@ -357,7 +357,7 @@ static unsigned long total_mapping_size(
+    an ELF header */
+ 
+ static unsigned long load_elf_interp(struct elfhdr *interp_elf_ex,
+-		struct file *interpreter, unsigned long *interp_map_addr,
++		struct file *interpreter, unsigned long *interp_load_addr,
+ 		unsigned long no_base)
+ {
+ 	struct elf_phdr *elf_phdata;
+@@ -434,8 +434,6 @@ static unsigned long load_elf_interp(str
+ 			map_addr = elf_map(interpreter, load_addr + vaddr,
+ 					   eppnt, elf_prot, elf_type, total_size);
+ 			total_size = 0;
+-			if (!*interp_map_addr)
+-				*interp_map_addr = map_addr;
+ 			error = map_addr;
+ 			if (BAD_ADDR(map_addr))
+ 				goto out_close;
+@@ -501,7 +499,8 @@ static unsigned long load_elf_interp(str
+ 			goto out_close;
+ 	}
+ 
+-	error = load_addr;
++	*interp_load_addr = load_addr;
++	error = ((unsigned long)interp_elf_ex->e_entry) + load_addr;
+ 
+ out_close:
+ 	kfree(elf_phdata);
+@@ -1001,25 +1000,14 @@ static int load_elf_binary(struct linux_
+ 	}
+ 
+ 	if (elf_interpreter) {
+-		if (interpreter_type == INTERPRETER_AOUT) {
++		if (interpreter_type == INTERPRETER_AOUT)
+ 			elf_entry = load_aout_interp(&loc->interp_ex,
+ 						     interpreter);
+-		} else {
+-			unsigned long uninitialized_var(interp_map_addr);
+-
++		else
+ 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
+ 						    interpreter,
+-						    &interp_map_addr,
++						    &interp_load_addr,
+ 						    load_bias);
+-			if (!BAD_ADDR(elf_entry)) {
+-				/*
+-				 * load_elf_interp() returns relocation
+-				 * adjustment
+-				 */
+-				interp_load_addr = elf_entry;
+-				elf_entry += loc->interp_elf_ex.e_entry;
+-			}
+-		}
+ 		if (BAD_ADDR(elf_entry)) {
+ 			force_sig(SIGSEGV, current);
+ 			retval = IS_ERR((void *)elf_entry) ?
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from cebbert@redhat.com are
 
 origin.patch
-fs-romfs-inodec-trivial-improvements.patch
+git-acpi.patch
+binfmt_elf-clean-up-the-pie-randomization-code.patch
