@@ -1,117 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: - xtensa-fix-modpost-warnings.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:58:25 -0700
-Message-ID: <200707192058.l6JKwPsf022744@imap1.linux-foundation.org>
+Subject: + oprofile-enable-spu-switch-notification-to-detect-currently-active-spu-tasks.patch added to -mm tree
+Date: Thu, 19 Jul 2007 14:29:40 -0700
+Message-ID: <200707192129.l6JLTepM023998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40065 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59505 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761584AbXGSU6e (ORCPT
+	by vger.kernel.org with ESMTP id S932174AbXGSV3w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:58:34 -0400
+	Thu, 19 Jul 2007 17:29:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: czankel@tensilica.com, chris@zankel.net, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mpjohn@us.ibm.com, arnd.bergmann@de.ibm.com, carll@us.ibm.com, paulus@samba.org, rrnelson@us.ibm.com
 
 
 The patch titled
-     xtensa: fix modpost warnings
-has been removed from the -mm tree.  Its filename was
-     xtensa-fix-modpost-warnings.patch
+     oprofile: enable SPU switch notification to detect currently active SPU tasks
+has been added to the -mm tree.  Its filename is
+     oprofile-enable-spu-switch-notification-to-detect-currently-active-spu-tasks.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: xtensa: fix modpost warnings
-From: Chris Zankel <czankel@tensilica.com>
+Subject: oprofile: enable SPU switch notification to detect currently active SPU tasks
+From: Maynard Johnson <mpjohn@us.ibm.com>
 
-The Xtensa architecture places literal pools in sections separate from the
-instructions.  The corresponsing text sections, therefore, reference the
-.literal section, and we have to suppress those warnings.  The naming
-convention defines the name for a literal section as .SECTION.literal,
-unless .SECTION is .text.  In that case the name is only .literal.  Using
-strncmp() instead of strcmp() to compare the from-section with
-.SECTION.init.refok in pattern 0 should not cause any regressions for other
-architectures.  We also need to suppress warnings for two informational
-sections (.xt.lit and .xt.prop) used by the Xtensa architecture.
+This patch adds to the capability of spu_switch_event_register so that the
+caller is also notified of currently active SPU tasks.  It also exports
+spu_switch_event_register and spu_switch_event_unregister.
 
-Signed-off-by: Chris Zankel <chris@zankel.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Maynard Johnson <mpjohn@us.ibm.com>
+Signed-off-by: Carl Love <carll@us.ibm.com>
+Signed-off-by: Bob Nelson <rrnelson@us.ibm.com>
+Acked-by: Arnd Bergmann <arnd.bergmann@de.ibm.com>
+Acked-by: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |   30 ++++++++++++++++++++++++------
- 1 files changed, 24 insertions(+), 6 deletions(-)
+ arch/powerpc/platforms/cell/spufs/run.c   |   23 ++++++++++---
+ arch/powerpc/platforms/cell/spufs/sched.c |   33 ++++++++++++++++++--
+ arch/powerpc/platforms/cell/spufs/spufs.h |    6 +++
+ 3 files changed, 54 insertions(+), 8 deletions(-)
 
-diff -puN scripts/mod/modpost.c~xtensa-fix-modpost-warnings scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~xtensa-fix-modpost-warnings
-+++ a/scripts/mod/modpost.c
-@@ -625,12 +625,19 @@ static int strrcmp(const char *s, const 
-  *   This pattern is identified by
-  *   refsymname = __init_begin, _sinittext, _einittext
-  *
-+ * Pattern 11:
-+ *  Xtensa uses literal sections for constants that are accessed PC-relative.
-+ *  Literal sections may savely reference their text sections.
-+ *  (Note that the name for the literal section omits any trailing '.text')
-+ *  tosec = <section>[.text]
-+ *  fromsec = <section>.literal
-  **/
- static int secref_whitelist(const char *modname, const char *tosec,
- 			    const char *fromsec, const char *atsym,
- 			    const char *refsymname)
+diff -puN arch/powerpc/platforms/cell/spufs/run.c~oprofile-enable-spu-switch-notification-to-detect-currently-active-spu-tasks arch/powerpc/platforms/cell/spufs/run.c
+--- a/arch/powerpc/platforms/cell/spufs/run.c~oprofile-enable-spu-switch-notification-to-detect-currently-active-spu-tasks
++++ a/arch/powerpc/platforms/cell/spufs/run.c
+@@ -18,15 +18,17 @@ void spufs_stop_callback(struct spu *spu
+ 	wake_up_all(&ctx->stop_wq);
+ }
+ 
+-static inline int spu_stopped(struct spu_context *ctx, u32 * stat)
++static inline int spu_stopped(struct spu_context *ctx, u32 *stat)
  {
- 	int f1 = 1, f2 = 1;
-+	int len;
- 	const char **s;
- 	const char *pat2sym[] = {
- 		"driver",
-@@ -652,8 +659,10 @@ static int secref_whitelist(const char *
- 	};
+ 	struct spu *spu;
+ 	u64 pte_fault;
  
- 	/* Check for pattern 0 */
--	if ((strcmp(fromsec, ".text.init.refok") == 0) ||
--	    (strcmp(fromsec, ".data.init.refok") == 0))
-+	if ((strncmp(fromsec, ".text.init.refok",
-+		     strlen(".text.init.refok")) == 0) ||
-+	    (strncmp(fromsec, ".data.init.refok",
-+		     strlen(".data.init.refok")) == 0))
- 		return 1;
- 
- 	/* Check for pattern 1 */
-@@ -694,6 +703,16 @@ static int secref_whitelist(const char *
- 		if (strcmp(refsymname, *s) == 0)
- 			return 1;
- 
+ 	*stat = ctx->ops->status_read(ctx);
+-	if (ctx->state != SPU_STATE_RUNNABLE)
+-		return 1;
 +
-+	/* Check for pattern 11 */
-+	len = strlen(tosec) - strlen(".text");
-+	if (len <= 0 || strcmp(tosec + len, ".text") != 0)
-+		len = strlen(tosec);
-+	if (strncmp(tosec, fromsec, len) == 0
-+	    && (strlen(fromsec) > len)
-+	    && (strcmp(fromsec + len, ".literal") == 0))
+ 	spu = ctx->spu;
++	if (ctx->state != SPU_STATE_RUNNABLE ||
++	    test_bit(SPU_SCHED_NOTIFY_ACTIVE, &ctx->sched_flags))
 +		return 1;
-+
+ 	pte_fault = spu->dsisr &
+ 	    (MFC_DSISR_PTE_NOT_FOUND | MFC_DSISR_ACCESS_DENIED);
+ 	return (!(*stat & SPU_STATUS_RUNNING) || pte_fault || spu->class_0_pending) ?
+@@ -124,7 +126,7 @@ out:
+ 	return ret;
+ }
+ 
+-static int spu_run_init(struct spu_context *ctx, u32 * npc)
++static int spu_run_init(struct spu_context *ctx, u32 *npc)
+ {
+ 	if (ctx->flags & SPU_CREATE_ISOLATE) {
+ 		unsigned long runcntl;
+@@ -154,8 +156,8 @@ static int spu_run_init(struct spu_conte
  	return 0;
  }
  
-@@ -821,10 +840,9 @@ static void warn_sec_mismatch(const char
- 	if (refsym && strlen(elf->strtab + refsym->st_name))
- 		refsymname = elf->strtab + refsym->st_name;
+-static int spu_run_fini(struct spu_context *ctx, u32 * npc,
+-			       u32 * status)
++static int spu_run_fini(struct spu_context *ctx, u32 *npc,
++			       u32 *status)
+ {
+ 	int ret = 0;
  
--	/* check whitelist - we may ignore it */
--	if (before &&
--	    secref_whitelist(modname, secname, fromsec,
--			     elf->strtab + before->st_name, refsymname))
-+	if (secref_whitelist(modname, secname, fromsec,
-+			     before ? elf->strtab + before->st_name : "",
-+			     refsymname))
- 		return;
+@@ -293,6 +295,7 @@ long spufs_run_spu(struct file *file, st
+ 		   u32 *npc, u32 *event)
+ {
+ 	int ret;
++	struct spu *spu;
+ 	u32 status;
  
- 	if (before && after) {
+ 	if (mutex_lock_interruptible(&ctx->run_mutex))
+@@ -326,8 +329,16 @@ long spufs_run_spu(struct file *file, st
+ 
+ 	do {
+ 		ret = spufs_wait(ctx->stop_wq, spu_stopped(ctx, &status));
++		spu = ctx->spu;
+ 		if (unlikely(ret))
+ 			break;
++		if (unlikely(test_and_clear_bit(SPU_SCHED_NOTIFY_ACTIVE,
++						&ctx->sched_flags))) {
++			if (!(status & SPU_STATUS_STOPPED_BY_STOP)) {
++				spu_switch_notify(spu, ctx);
++				continue;
++			}
++		}
+ 		if ((status & SPU_STATUS_STOPPED_BY_STOP) &&
+ 		    (status >> SPU_STOP_STATUS_SHIFT == 0x2104)) {
+ 			ret = spu_process_callback(ctx);
+diff -puN arch/powerpc/platforms/cell/spufs/sched.c~oprofile-enable-spu-switch-notification-to-detect-currently-active-spu-tasks arch/powerpc/platforms/cell/spufs/sched.c
+--- a/arch/powerpc/platforms/cell/spufs/sched.c~oprofile-enable-spu-switch-notification-to-detect-currently-active-spu-tasks
++++ a/arch/powerpc/platforms/cell/spufs/sched.c
+@@ -204,21 +204,50 @@ static void spu_remove_from_active_list(
+ 
+ static BLOCKING_NOTIFIER_HEAD(spu_switch_notifier);
+ 
+-static void spu_switch_notify(struct spu *spu, struct spu_context *ctx)
++void spu_switch_notify(struct spu *spu, struct spu_context *ctx)
+ {
+ 	blocking_notifier_call_chain(&spu_switch_notifier,
+ 			    ctx ? ctx->object_id : 0, spu);
+ }
+ 
++static void notify_spus_active(void)
++{
++	int node;
++
++	/*
++	 * Wake up the active spu_contexts.
++	 *
++	 * When the awakened processes see their "notify_active" flag is set,
++	 * they will call spu_switch_notify();
++	 */
++	for (node = 0; node < MAX_NUMNODES; node++) {
++		struct spu *spu;
++		mutex_lock(&spu_prio->active_mutex[node]);
++		list_for_each_entry(spu, &spu_prio->active_list[node], list) {
++			struct spu_context *ctx = spu->ctx;
++			set_bit(SPU_SCHED_NOTIFY_ACTIVE, &ctx->sched_flags);
++			mb();
++			wake_up_all(&ctx->stop_wq);
++		}
++		mutex_unlock(&spu_prio->active_mutex[node]);
++	}
++}
++
+ int spu_switch_event_register(struct notifier_block * n)
+ {
+-	return blocking_notifier_chain_register(&spu_switch_notifier, n);
++	int ret;
++	ret = blocking_notifier_chain_register(&spu_switch_notifier, n);
++	if (!ret)
++		notify_spus_active();
++	return ret;
+ }
++EXPORT_SYMBOL_GPL(spu_switch_event_register);
+ 
+ int spu_switch_event_unregister(struct notifier_block * n)
+ {
+ 	return blocking_notifier_chain_unregister(&spu_switch_notifier, n);
+ }
++EXPORT_SYMBOL_GPL(spu_switch_event_unregister);
+ 
+ /**
+  * spu_bind_context - bind spu context to physical spu
+diff -puN arch/powerpc/platforms/cell/spufs/spufs.h~oprofile-enable-spu-switch-notification-to-detect-currently-active-spu-tasks arch/powerpc/platforms/cell/spufs/spufs.h
+--- a/arch/powerpc/platforms/cell/spufs/spufs.h~oprofile-enable-spu-switch-notification-to-detect-currently-active-spu-tasks
++++ a/arch/powerpc/platforms/cell/spufs/spufs.h
+@@ -53,6 +53,11 @@ enum spuctx_execution_state {
+ 	SPUCTX_UTIL_MAX
+ };
+ 
++/* ctx->sched_flags */
++enum {
++	SPU_SCHED_NOTIFY_ACTIVE,
++};
++
+ struct spu_context {
+ 	struct spu *spu;		  /* pointer to a physical SPU */
+ 	struct spu_state csa;		  /* SPU context save area. */
+@@ -231,6 +236,7 @@ void spu_acquire_saved(struct spu_contex
+ int spu_activate(struct spu_context *ctx, unsigned long flags);
+ void spu_deactivate(struct spu_context *ctx);
+ void spu_yield(struct spu_context *ctx);
++void spu_switch_notify(struct spu *spu, struct spu_context *ctx);
+ void spu_set_timeslice(struct spu_context *ctx);
+ void spu_update_sched_info(struct spu_context *ctx);
+ void __spu_update_sched_info(struct spu_context *ctx);
 _
 
-Patches currently in -mm which might be from czankel@tensilica.com are
+Patches currently in -mm which might be from mpjohn@us.ibm.com are
 
-xtensa-fix-modpost-warnings.patch
+oprofile-enable-spu-switch-notification-to-detect-currently-active-spu-tasks.patch
+oprofile-add-support-to-oprofile-for-profiling-cell-be-spus.patch
