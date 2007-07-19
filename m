@@ -1,406 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-introduce-calioc2-support.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:13 -0700
-Message-ID: <200707192009.l6JK9D8t020558@imap1.linux-foundation.org>
+Subject: - drivers-edac-core-make-functions-static.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:05:13 -0700
+Message-ID: <200707192005.l6JK5DPB020026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53371 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50159 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761149AbXGSUPo (ORCPT
+	by vger.kernel.org with ESMTP id S1757450AbXGSUPm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:44 -0400
+	Thu, 19 Jul 2007 16:15:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, norsk5@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary: introduce CalIOC2 support
+     drivers/edac: core: make functions static
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-introduce-calioc2-support.patch
+     drivers-edac-core-make-functions-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: Calgary: introduce CalIOC2 support
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: drivers/edac: core: make functions static
+From: Adrian Bunk <bunk@stusta.de>
 
-CalIOC2 is a PCI-e implementation of the Calgary logic. Most of the
-programming details are the same, but some differ, e.g., TCE cache
-flush. This patch introduces CalIOC2 support - detection and various
-support routines. It's not expected to work yet (but will with
-follow-on patches).
+This patch makes needlessly global code static, in the edac core
 
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Doug Thompson <norsk5@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |  196 +++++++++++++++++++++++------
- 1 files changed, 156 insertions(+), 40 deletions(-)
+ drivers/edac/edac_mc.c |   25 +++++++++++--------------
+ drivers/edac/edac_mc.h |    8 --------
+ 2 files changed, 11 insertions(+), 22 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-introduce-calioc2-support arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-introduce-calioc2-support
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -50,8 +50,7 @@ int use_calgary __read_mostly = 0;
- #endif /* CONFIG_CALGARY_DEFAULT_ENABLED */
+diff -puN drivers/edac/edac_mc.c~drivers-edac-core-make-functions-static drivers/edac/edac_mc.c
+--- a/drivers/edac/edac_mc.c~drivers-edac-core-make-functions-static
++++ a/drivers/edac/edac_mc.c
+@@ -178,7 +178,7 @@ static struct sysfs_ops memctrlfs_ops = 
+ };
  
- #define PCI_DEVICE_ID_IBM_CALGARY 0x02a1
--#define PCI_VENDOR_DEVICE_ID_CALGARY \
--	(PCI_VENDOR_ID_IBM | PCI_DEVICE_ID_IBM_CALGARY << 16)
-+#define PCI_DEVICE_ID_IBM_CALIOC2 0x0308
+ #define MEMCTRL_ATTR(_name,_mode,_show,_store)			\
+-struct memctrl_dev_attribute attr_##_name = {			\
++static struct memctrl_dev_attribute attr_##_name = {			\
+ 	.attr = {.name = __stringify(_name), .mode = _mode },	\
+ 	.value  = &_name,					\
+ 	.show   = _show,					\
+@@ -186,7 +186,7 @@ struct memctrl_dev_attribute attr_##_nam
+ };
  
- /* we need these for register space address calculation */
- #define START_ADDRESS           0xfe000000
-@@ -193,6 +192,7 @@ static inline unsigned long verify_bit_r
+ #define MEMCTRL_STRING_ATTR(_name,_data,_mode,_show,_store)	\
+-struct memctrl_dev_attribute attr_##_name = {			\
++static struct memctrl_dev_attribute attr_##_name = {			\
+ 	.attr = {.name = __stringify(_name), .mode = _mode },	\
+ 	.value  = _data,					\
+ 	.show   = _show,					\
+@@ -343,7 +343,7 @@ static struct sysfs_ops edac_pci_sysfs_o
+ };
+ 
+ #define EDAC_PCI_ATTR(_name,_mode,_show,_store)			\
+-struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
++static struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
+ 	.attr = {.name = __stringify(_name), .mode = _mode },	\
+ 	.value  = &_name,					\
+ 	.show   = _show,					\
+@@ -351,7 +351,7 @@ struct edac_pci_dev_attribute edac_pci_a
+ };
+ 
+ #define EDAC_PCI_STRING_ATTR(_name,_data,_mode,_show,_store)	\
+-struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
++static struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
+ 	.attr = {.name = __stringify(_name), .mode = _mode },	\
+ 	.value  = _data,					\
+ 	.show   = _show,					\
+@@ -722,7 +722,7 @@ static struct sysfs_ops csrowfs_ops = {
+ };
+ 
+ #define CSROWDEV_ATTR(_name,_mode,_show,_store,_private)	\
+-struct csrowdev_attribute attr_##_name = {			\
++static struct csrowdev_attribute attr_##_name = {			\
+ 	.attr = {.name = __stringify(_name), .mode = _mode },	\
+ 	.show   = _show,					\
+ 	.store  = _store,					\
+@@ -1066,7 +1066,7 @@ static struct sysfs_ops mci_ops = {
+ };
+ 
+ #define MCIDEV_ATTR(_name,_mode,_show,_store)			\
+-struct mcidev_attribute mci_attr_##_name = {			\
++static struct mcidev_attribute mci_attr_##_name = {			\
+ 	.attr = {.name = __stringify(_name), .mode = _mode },	\
+ 	.show   = _show,					\
+ 	.store  = _store,					\
+@@ -1220,7 +1220,7 @@ static void edac_remove_sysfs_mci_device
+ 
+ #ifdef CONFIG_EDAC_DEBUG
+ 
+-void edac_mc_dump_channel(struct channel_info *chan)
++static void edac_mc_dump_channel(struct channel_info *chan)
  {
- 	return ~0UL;
+ 	debugf4("\tchannel = %p\n", chan);
+ 	debugf4("\tchannel->chan_idx = %d\n", chan->chan_idx);
+@@ -1228,9 +1228,8 @@ void edac_mc_dump_channel(struct channel
+ 	debugf4("\tchannel->label = '%s'\n", chan->label);
+ 	debugf4("\tchannel->csrow = %p\n\n", chan->csrow);
  }
-+
- #endif /* CONFIG_IOMMU_DEBUG */
+-EXPORT_SYMBOL_GPL(edac_mc_dump_channel);
  
- static inline unsigned int num_dma_pages(unsigned long dma, unsigned int dmalen)
-@@ -346,9 +346,20 @@ static void iommu_free(struct iommu_tabl
- 
- static inline struct iommu_table *find_iommu_table(struct device *dev)
+-void edac_mc_dump_csrow(struct csrow_info *csrow)
++static void edac_mc_dump_csrow(struct csrow_info *csrow)
  {
-+	struct pci_dev *pdev;
-+	struct pci_bus *pbus;
- 	struct iommu_table *tbl;
- 
--	tbl = to_pci_dev(dev)->bus->self->sysdata;
-+	pdev = to_pci_dev(dev);
-+
-+	/* is the device behind a bridge? */
-+	if (unlikely(pdev->bus->parent))
-+		pbus = pdev->bus->parent;
-+	else
-+		pbus = pdev->bus;
-+
-+	tbl = pbus->self->sysdata;
-+	BUG_ON(pdev->bus->parent && (tbl->it_busno != pdev->bus->parent->number));
- 
- 	return tbl;
+ 	debugf4("\tcsrow = %p\n", csrow);
+ 	debugf4("\tcsrow->csrow_idx = %d\n", csrow->csrow_idx);
+@@ -1244,9 +1243,8 @@ void edac_mc_dump_csrow(struct csrow_inf
+ 	debugf4("\tcsrow->channels = %p\n", csrow->channels);
+ 	debugf4("\tcsrow->mci = %p\n\n", csrow->mci);
  }
-@@ -565,6 +576,21 @@ static inline void __iomem* calgary_reg(
- 	return (void __iomem*)target;
- }
+-EXPORT_SYMBOL_GPL(edac_mc_dump_csrow);
  
-+static inline int is_calioc2(unsigned short device)
-+{
-+	return (device == PCI_DEVICE_ID_IBM_CALIOC2);
-+}
-+
-+static inline int is_calgary(unsigned short device)
-+{
-+	return (device == PCI_DEVICE_ID_IBM_CALGARY);
-+}
-+
-+static inline int is_cal_pci_dev(unsigned short device)
-+{
-+	return (is_calgary(device) || is_calioc2(device));
-+}
-+
- static void calgary_tce_cache_blast(struct iommu_table *tbl)
+-void edac_mc_dump_mci(struct mem_ctl_info *mci)
++static void edac_mc_dump_mci(struct mem_ctl_info *mci)
  {
- 	u64 val;
-@@ -685,8 +711,14 @@ static void __init calgary_reserve_regio
- 	iommu_range_reserve(tbl, bad_dma_address, EMERGENCY_PAGES);
+ 	debugf3("\tmci = %p\n", mci);
+ 	debugf3("\tmci->mtype_cap = %lx\n", mci->mtype_cap);
+@@ -1260,7 +1258,6 @@ void edac_mc_dump_mci(struct mem_ctl_inf
+ 		mci->mod_name, mci->ctl_name);
+ 	debugf3("\tpvt_info = %p\n\n", mci->pvt_info);
+ }
+-EXPORT_SYMBOL_GPL(edac_mc_dump_mci);
  
- 	/* avoid the BIOS/VGA first 640KB-1MB region */
--	start = (640 * 1024);
--	npages = ((1024 - 640) * 1024) >> PAGE_SHIFT;
-+	/* for CalIOC2 - avoid the entire first 2MB */
-+	if (is_calgary(dev->device)) {
-+		start = (640 * 1024);
-+		npages = ((1024 - 640) * 1024) >> PAGE_SHIFT;
-+	} else { /* calioc2 */
-+		start = 0;
-+		npages = (2 * 1024 * 1024) >> PAGE_SHIFT;
-+	}
- 	iommu_range_reserve(tbl, start, npages);
+ #endif  /* CONFIG_EDAC_DEBUG */
  
- 	/* reserve the two PCI peripheral memory regions in IO space */
-@@ -721,15 +753,15 @@ static int __init calgary_setup_tar(stru
+@@ -1576,7 +1573,8 @@ struct mem_ctl_info * edac_mc_del_mc(str
+ }
+ EXPORT_SYMBOL_GPL(edac_mc_del_mc);
  
- 	/* zero out all TAR bits under sw control */
- 	val64 &= ~TAR_SW_BITS;
+-void edac_mc_scrub_block(unsigned long page, unsigned long offset, u32 size)
++static void edac_mc_scrub_block(unsigned long page, unsigned long offset,
++				u32 size)
+ {
+ 	struct page *pg;
+ 	void *virt_addr;
+@@ -1605,7 +1603,6 @@ void edac_mc_scrub_block(unsigned long p
+ 	if (PageHighMem(pg))
+ 		local_irq_restore(flags);
+ }
+-EXPORT_SYMBOL_GPL(edac_mc_scrub_block);
+ 
+ /* FIXME - should return -1 */
+ int edac_mc_find_csrow_by_page(struct mem_ctl_info *mci, unsigned long page)
+diff -puN drivers/edac/edac_mc.h~drivers-edac-core-make-functions-static drivers/edac/edac_mc.h
+--- a/drivers/edac/edac_mc.h~drivers-edac-core-make-functions-static
++++ a/drivers/edac/edac_mc.h
+@@ -424,19 +424,11 @@ static inline void pci_write_bits32(stru
+ 
+ #endif /* CONFIG_PCI */
+ 
+-#ifdef CONFIG_EDAC_DEBUG
+-void edac_mc_dump_channel(struct channel_info *chan);
+-void edac_mc_dump_mci(struct mem_ctl_info *mci);
+-void edac_mc_dump_csrow(struct csrow_info *csrow);
+-#endif  /* CONFIG_EDAC_DEBUG */
 -
--	tbl = dev->sysdata;
- 	table_phys = (u64)__pa(tbl->it_base);
-+
- 	val64 |= table_phys;
+ extern struct mem_ctl_info * edac_mc_find(int idx);
+ extern int edac_mc_add_mc(struct mem_ctl_info *mci,int mc_idx);
+ extern struct mem_ctl_info * edac_mc_del_mc(struct device *dev);
+ extern int edac_mc_find_csrow_by_page(struct mem_ctl_info *mci,
+ 					unsigned long page);
+-extern void edac_mc_scrub_block(unsigned long page, unsigned long offset,
+-		u32 size);
  
- 	BUG_ON(specified_table_size > TCE_TABLE_SIZE_8M);
- 	val64 |= (u64) specified_table_size;
- 
- 	tbl->tar_val = cpu_to_be64(val64);
-+
- 	writeq(tbl->tar_val, target);
- 	readq(target); /* flush */
- 
-@@ -760,6 +792,43 @@ static void __init calgary_free_bus(stru
- 	bus_info[dev->bus->number].tce_space = NULL;
- }
- 
-+static void calgary_dump_error_regs(struct iommu_table *tbl)
-+{
-+	void __iomem *bbar = tbl->bbar;
-+	u32 csr, csmr, plssr, mck;
-+	void __iomem *target;
-+	unsigned long phboff = phb_offset(tbl->it_busno);
-+	unsigned long erroff;
-+	u32 errregs[7];
-+	int i;
-+
-+	/* dump CSR */
-+	target = calgary_reg(bbar, phboff | PHB_CSR_OFFSET);
-+	csr = be32_to_cpu(readl(target));
-+	/* dump PLSSR */
-+	target = calgary_reg(bbar, phboff | PHB_PLSSR_OFFSET);
-+	plssr = be32_to_cpu(readl(target));
-+	/* dump CSMR */
-+	target = calgary_reg(bbar, phboff | 0x290);
-+	csmr = be32_to_cpu(readl(target));
-+	/* dump mck */
-+	target = calgary_reg(bbar, phboff | 0x800);
-+	mck = be32_to_cpu(readl(target));
-+
-+	printk(KERN_EMERG "Calgary: 0x%08x@CSR 0x%08x@PLSSR 0x%08x@CSMR "
-+	       "0x%08x@MCK\n", csr, plssr, csmr, mck);
-+
-+	/* dump rest of error regs */
-+	printk(KERN_EMERG "Calgary: ");
-+	for (i = 0; i < ARRAY_SIZE(errregs); i++) {
-+		erroff = (0x810 + (i * 0x10)); /* err regs are at 0x810 - 0x870 */
-+		target = calgary_reg(bbar, phboff | erroff);
-+		errregs[i] = be32_to_cpu(readl(target));
-+		printk("0x%08x@0x%lx ", errregs[i], erroff);
-+	}
-+	printk("\n");
-+}
-+
- static void calgary_watchdog(unsigned long data)
- {
- 	struct pci_dev *dev = (struct pci_dev *)data;
-@@ -773,13 +842,16 @@ static void calgary_watchdog(unsigned lo
- 
- 	/* If no error, the agent ID in the CSR is not valid */
- 	if (val32 & CSR_AGENT_MASK) {
--		printk(KERN_EMERG "calgary_watchdog: DMA error on PHB %#x, "
--				  "CSR = %#x\n", dev->bus->number, val32);
-+		printk(KERN_EMERG "Calgary: DMA error on PHB %#x\n",
-+		       dev->bus->number);
-+		calgary_dump_error_regs(tbl);
-+
-+		/* reset error */
- 		writel(0, target);
- 
- 		/* Disable bus that caused the error */
- 		target = calgary_reg(bbar, phb_offset(tbl->it_busno) |
--					   PHB_CONFIG_RW_OFFSET);
-+				     PHB_CONFIG_RW_OFFSET);
- 		val32 = be32_to_cpu(readl(target));
- 		val32 |= PHB_SLOT_DISABLE;
- 		writel(cpu_to_be32(val32), target);
-@@ -853,7 +925,9 @@ static void __init calgary_enable_transl
- 	val32 = be32_to_cpu(readl(target));
- 	val32 |= PHB_TCE_ENABLE | PHB_DAC_DISABLE | PHB_MCSR_ENABLE;
- 
--	printk(KERN_INFO "Calgary: enabling translation on PHB %#x\n", busnum);
-+	printk(KERN_INFO "Calgary: enabling translation on %s PHB %#x\n",
-+	       (dev->device == PCI_DEVICE_ID_IBM_CALGARY) ?
-+	       "Calgary" : "CalIOC2", busnum);
- 	printk(KERN_INFO "Calgary: errant DMAs will now be prevented on this "
- 	       "bus.\n");
- 
-@@ -894,7 +968,12 @@ static void __init calgary_init_one_nont
- {
- 	pci_dev_get(dev);
- 	dev->sysdata = NULL;
--	dev->bus->self = dev;
-+
-+	/* is the device behind a bridge? */
-+	if (dev->bus->parent)
-+		dev->bus->parent->self = dev;
-+	else
-+		dev->bus->self = dev;
- }
- 
- static int __init calgary_init_one(struct pci_dev *dev)
-@@ -911,7 +990,14 @@ static int __init calgary_init_one(struc
- 		goto done;
- 
- 	pci_dev_get(dev);
--	dev->bus->self = dev;
-+
-+	if (dev->bus->parent) {
-+		if (dev->bus->parent->self)
-+			printk(KERN_WARNING "Calgary: IEEEE, dev %p has "
-+			       "bus->parent->self!\n", dev);
-+		dev->bus->parent->self = dev;
-+	} else
-+		dev->bus->self = dev;
- 
- 	tbl = dev->sysdata;
- 	tbl->chip_ops->handle_quirks(tbl, dev);
-@@ -951,11 +1037,18 @@ static int __init calgary_locate_bbars(v
- 			target = calgary_reg(bbar, offset);
- 
- 			val = be32_to_cpu(readl(target));
-+
- 			start_bus = (u8)((val & 0x00FF0000) >> 16);
- 			end_bus = (u8)((val & 0x0000FF00) >> 8);
--			for (bus = start_bus; bus <= end_bus; bus++) {
--				bus_info[bus].bbar = bbar;
--				bus_info[bus].phbid = phb;
-+
-+			if (end_bus) {
-+				for (bus = start_bus; bus <= end_bus; bus++) {
-+					bus_info[bus].bbar = bbar;
-+					bus_info[bus].phbid = phb;
-+				}
-+			} else {
-+				bus_info[start_bus].bbar = bbar;
-+				bus_info[start_bus].phbid = phb;
- 			}
- 		}
- 	}
-@@ -975,24 +1068,27 @@ static int __init calgary_init(void)
- {
- 	int ret;
- 	struct pci_dev *dev = NULL;
-+	void* tce_space;
- 
- 	ret = calgary_locate_bbars();
- 	if (ret)
- 		return ret;
- 
- 	do {
--		dev = pci_get_device(PCI_VENDOR_ID_IBM,
--				     PCI_DEVICE_ID_IBM_CALGARY,
--				     dev);
-+		dev = pci_get_device(PCI_VENDOR_ID_IBM, PCI_ANY_ID, dev);
- 		if (!dev)
- 			break;
-+		if (!is_cal_pci_dev(dev->device))
-+			continue;
- 		if (!translate_phb(dev)) {
- 			calgary_init_one_nontraslated(dev);
- 			continue;
- 		}
--		if (!bus_info[dev->bus->number].tce_space && !translate_empty_slots)
-+		tce_space = bus_info[dev->bus->number].tce_space;
-+		if (!tce_space && !translate_empty_slots) {
-+			printk("Calg: %p failed tce_space check\n", dev);
- 			continue;
--
-+		}
- 		ret = calgary_init_one(dev);
- 		if (ret)
- 			goto error;
-@@ -1003,10 +1099,11 @@ static int __init calgary_init(void)
- error:
- 	do {
- 		dev = pci_get_device_reverse(PCI_VENDOR_ID_IBM,
--					      PCI_DEVICE_ID_IBM_CALGARY,
--					      dev);
-+					     PCI_ANY_ID, dev);
- 		if (!dev)
- 			break;
-+		if (!is_cal_pci_dev(dev->device))
-+			continue;
- 		if (!translate_phb(dev)) {
- 			pci_dev_put(dev);
- 			continue;
-@@ -1084,9 +1181,29 @@ static int __init build_detail_arrays(vo
- 	return 0;
- }
- 
--void __init detect_calgary(void)
-+static int __init calgary_bus_has_devices(int bus, unsigned short pci_dev)
- {
-+	int dev;
- 	u32 val;
-+
-+	if (pci_dev == PCI_DEVICE_ID_IBM_CALIOC2) {
-+		/*
-+		 * FIXME: properly scan for devices accross the
-+		 * PCI-to-PCI bridge on every CalIOC2 port.
-+		 */
-+		return 1;
-+	}
-+
-+	for (dev = 1; dev < 8; dev++) {
-+		val = read_pci_config(bus, dev, 0, 0);
-+		if (val != 0xffffffff)
-+			break;
-+	}
-+	return (val != 0xffffffff);
-+}
-+
-+void __init detect_calgary(void)
-+{
- 	int bus;
- 	void *tbl;
- 	int calgary_found = 0;
-@@ -1143,29 +1260,28 @@ void __init detect_calgary(void)
- 	specified_table_size = determine_tce_table_size(end_pfn * PAGE_SIZE);
- 
- 	for (bus = 0; bus < MAX_PHB_BUS_NUM; bus++) {
--		int dev;
- 		struct calgary_bus_info *info = &bus_info[bus];
-+		unsigned short pci_device;
-+		u32 val;
-+
-+		val = read_pci_config(bus, 0, 0, 0);
-+		pci_device = (val & 0xFFFF0000) >> 16;
- 
--		if (read_pci_config(bus, 0, 0, 0) != PCI_VENDOR_DEVICE_ID_CALGARY)
-+		if (!is_cal_pci_dev(pci_device))
- 			continue;
- 
- 		if (info->translation_disabled)
- 			continue;
- 
--		/*
--		 * Scan the slots of the PCI bus to see if there is a device present.
--		 * The parent bus will be the zero-ith device, so start at 1.
--		 */
--		for (dev = 1; dev < 8; dev++) {
--			val = read_pci_config(bus, dev, 0, 0);
--			if (val != 0xffffffff || translate_empty_slots) {
--				tbl = alloc_tce_table();
--				if (!tbl)
--					goto cleanup;
--				info->tce_space = tbl;
--				calgary_found = 1;
--				break;
--			}
-+		if (calgary_bus_has_devices(bus, pci_device) ||
-+		    translate_empty_slots) {
-+			tbl = alloc_tce_table();
-+			if (!tbl)
-+				goto cleanup;
-+			info->tce_space = tbl;
-+			calgary_found = 1;
-+			printk("Calg: allocated tce_table %p for bus 0x%x\n",
-+			       info->tce_space, bus);
- 		}
- 	}
- 
+ /*
+  * The no info errors are used when error overflows are reported.
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+git-hwmon.patch
+git-kbuild.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+git-scsi-misc.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+maps2-add-proc-kpagemap-interface.patch
+fs-reiserfs-cleanups.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
