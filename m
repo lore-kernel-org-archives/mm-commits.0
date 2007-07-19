@@ -1,129 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-fix-e752x-reversed-csrows.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:07:09 -0700
-Message-ID: <200707192007.l6JK79C9020236@imap1.linux-foundation.org>
+Subject: - coda-coda-doesnt-track-atime.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:03:03 -0700
+Message-ID: <200707192003.l6JK33VT019823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37251 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49938 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761314AbXGSUQY (ORCPT
+	by vger.kernel.org with ESMTP id S1759894AbXGSUQY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:16:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgrondona@llnl.gov, dougthompson@xmission.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: fix e752x reversed csrows
+     coda: coda doesn't track atime
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-fix-e752x-reversed-csrows.patch
+     coda-coda-doesnt-track-atime.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: fix e752x reversed csrows
-From: Mark Grondona <mgrondona@llnl.gov>
+Subject: coda: coda doesn't track atime
+From: Jan Harkes <jaharkes@cs.cmu.edu>
 
-Found a 'reversal' decoding bug in the driver.  This patch fixes that mapping
-to correctly display the CSROW entries in their proper order.  Users will be
-enable to correctly identifiy the failing DIMM with this fix.
+Set MS_NOATIME flag to avoid unnecessary calls when the coda inode is
+accessed.
 
-[akpm@linux-foundation.org: unneeded (and undesirable) cast of void*]
-Cc: Alan Cox alan@lxorguk.ukuu.org.uk
-Signed-off-by: Mark Grondona <mgrondona@llnl.gov>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Cc: Greg KH <greg@kroah.com>
+Also, set statfs.f_bsize to 4k.  1k is obviously too small for the suggested
+IO size.
+
+Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/e752x_edac.c |   34 +++++++++++++++++++++-------------
- 1 file changed, 21 insertions(+), 13 deletions(-)
+ fs/coda/inode.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/edac/e752x_edac.c~drivers-edac-fix-e752x-reversed-csrows drivers/edac/e752x_edac.c
---- a/drivers/edac/e752x_edac.c~drivers-edac-fix-e752x-reversed-csrows
-+++ a/drivers/edac/e752x_edac.c
-@@ -284,9 +284,6 @@ static void do_process_ce(struct mem_ctl
- 	/* 0 = channel A, 1 = channel B */
- 	channel = !(error_one & 1);
+diff -puN fs/coda/inode.c~coda-coda-doesnt-track-atime fs/coda/inode.c
+--- a/fs/coda/inode.c~coda-coda-doesnt-track-atime
++++ a/fs/coda/inode.c
+@@ -83,7 +83,7 @@ void coda_destroy_inodecache(void)
  
--	if (!pvt->map_type)
--		row = 7 - row;
--
- 	/* e752x mc reads 34:6 of the DRAM linear address */
- 	edac_mc_handle_ce(mci, page, offset_in_page(sec1_add << 4),
- 			sec1_syndrome, row, channel, "e752x CE");
-@@ -774,6 +771,18 @@ static inline int dual_channel_active(u1
- 	return (((ddrcsr >> 12) & 3) == 3);
+ static int coda_remount(struct super_block *sb, int *flags, char *data)
+ {
+-	*flags |= MS_NODIRATIME;
++	*flags |= MS_NOATIME;
+ 	return 0;
  }
  
-+/* Remap csrow index numbers if map_type is "reverse"
-+ */
-+static inline int remap_csrow_index(struct mem_ctl_info *mci, int index)
-+{
-+	struct e752x_pvt *pvt = mci->pvt_info;
-+
-+	if (!pvt->map_type)
-+		return (7 - index);
-+
-+	return (index);
-+}
-+
- static void e752x_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev,
- 			u16 ddrcsr)
- {
-@@ -804,7 +813,7 @@ static void e752x_init_csrows(struct mem
- 	for (last_cumul_size = index = 0; index < mci->nr_csrows; index++) {
- 		/* mem_dev 0=x8, 1=x4 */
- 		mem_dev = (dra >> (index * 4 + 2)) & 0x3;
--		csrow = &mci->csrows[index];
-+		csrow = &mci->csrows[remap_csrow_index(mci, index)];
+@@ -176,12 +176,12 @@ static int coda_fill_super(struct super_
  
- 		mem_dev = (mem_dev == 2);
- 		pci_read_config_byte(pdev, E752X_DRB + index, &value);
-@@ -844,7 +853,7 @@ static void e752x_init_mem_map_table(str
- 				struct e752x_pvt *pvt)
- {
- 	int index;
--	u8 value, last, row, stat8;
-+	u8 value, last, row;
+ 	sbi->sbi_vcomm = vc;
  
- 	last = 0;
- 	row = 0;
-@@ -873,10 +882,6 @@ static void e752x_init_mem_map_table(str
- 			last = value;
- 		}
- 	}
--
--	/* set the map type.  1 = normal, 0 = reversed */
--	pci_read_config_byte(pdev, E752X_DRM, &stat8);
--	pvt->map_type = ((stat8 & 0x0f) > ((stat8 >> 4) & 0x0f));
- }
+-        sb->s_fs_info = sbi;
+-	sb->s_flags |= MS_NODIRATIME; /* probably even noatime */
+-        sb->s_blocksize = 1024;	/* XXXXX  what do we put here?? */
+-        sb->s_blocksize_bits = 10;
+-        sb->s_magic = CODA_SUPER_MAGIC;
+-        sb->s_op = &coda_super_operations;
++	sb->s_fs_info = sbi;
++	sb->s_flags |= MS_NOATIME;
++	sb->s_blocksize = 4096;	/* XXXXX  what do we put here?? */
++	sb->s_blocksize_bits = 12;
++	sb->s_magic = CODA_SUPER_MAGIC;
++	sb->s_op = &coda_super_operations;
  
- /* Return 0 on success or 1 on failure. */
-@@ -1003,13 +1008,16 @@ static int e752x_probe1(struct pci_dev *
- 	mci->edac_check = e752x_check;
- 	mci->ctl_page_to_phys = ctl_page_to_phys;
+ 	/* get root fid from Venus: this needs the root inode */
+ 	error = venus_rootfid(sb, &fid);
+@@ -296,7 +296,7 @@ static int coda_statfs(struct dentry *de
  
--	e752x_init_csrows(mci, pdev, ddrcsr);
--	e752x_init_mem_map_table(pdev, pvt);
--
--	/* set the map type.  1 = normal, 0 = reversed */
-+	/* set the map type.  1 = normal, 0 = reversed
-+	 * Must be set before e752x_init_csrows in case csrow mapping
-+	 * is reversed.
-+	 */
- 	pci_read_config_byte(pdev, E752X_DRM, &stat8);
- 	pvt->map_type = ((stat8 & 0x0f) > ((stat8 >> 4) & 0x0f));
+ 	/* and fill in the rest */
+ 	buf->f_type = CODA_SUPER_MAGIC;
+-	buf->f_bsize = 1024;
++	buf->f_bsize = 4096;
+ 	buf->f_namelen = CODA_MAXNAMLEN;
  
-+	e752x_init_csrows(mci, pdev, ddrcsr);
-+	e752x_init_mem_map_table(pdev, pvt);
-+
- 	mci->edac_cap |= EDAC_FLAG_NONE;
- 	debugf3("%s(): tolm, remapbase, remaplimit\n", __func__);
- 
+ 	return 0; 
 _
 
-Patches currently in -mm which might be from mgrondona@llnl.gov are
+Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
 
 origin.patch
