@@ -1,77 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:08:11 -0700
-Message-ID: <200707192008.l6JK8BR7020434@imap1.linux-foundation.org>
+Subject: - lguest-the-makefile-and-kconfig.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:05:00 -0700
+Message-ID: <200707192005.l6JK50eX019998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49673 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40471 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760919AbXGSUPa (ORCPT
+	by vger.kernel.org with ESMTP id S1759898AbXGSUP2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:30 -0400
+	Thu, 19 Jul 2007 16:15:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, ak@suse.de, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make arch/i386/kernel/setup.c:remapped_pgdat_init() static
+     lguest: the Makefile and Kconfig
 has been removed from the -mm tree.  Its filename was
-     make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+     lguest-the-makefile-and-kconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make arch/i386/kernel/setup.c:remapped_pgdat_init() static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: lguest: the Makefile and Kconfig
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+This is the Kconfig and Makefile to allow lguest to actually be
+compiled.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/setup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/Kconfig         |    2 ++
+ drivers/Makefile        |    1 +
+ drivers/lguest/Kconfig  |   20 ++++++++++++++++++++
+ drivers/lguest/Makefile |    7 +++++++
+ 4 files changed, 30 insertions(+)
 
-diff -puN arch/i386/kernel/setup.c~make-arch-i386-kernel-setupcremapped_pgdat_init-static arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~make-arch-i386-kernel-setupcremapped_pgdat_init-static
-+++ a/arch/i386/kernel/setup.c
-@@ -466,7 +466,7 @@ void __init setup_bootmem_allocator(void
-  *
-  * This should all compile down to nothing when NUMA is off.
-  */
--void __init remapped_pgdat_init(void)
-+static void __init remapped_pgdat_init(void)
- {
- 	int nid;
+diff -puN drivers/Kconfig~lguest-the-makefile-and-kconfig drivers/Kconfig
+--- a/drivers/Kconfig~lguest-the-makefile-and-kconfig
++++ a/drivers/Kconfig
+@@ -85,4 +85,6 @@ source "drivers/auxdisplay/Kconfig"
+ source "drivers/kvm/Kconfig"
  
+ source "drivers/uio/Kconfig"
++
++source "drivers/lguest/Kconfig"
+ endmenu
+diff -puN drivers/Makefile~lguest-the-makefile-and-kconfig drivers/Makefile
+--- a/drivers/Makefile~lguest-the-makefile-and-kconfig
++++ a/drivers/Makefile
+@@ -73,6 +73,7 @@ obj-$(CONFIG_ISDN)		+= isdn/
+ obj-$(CONFIG_EDAC)		+= edac/
+ obj-$(CONFIG_MCA)		+= mca/
+ obj-$(CONFIG_EISA)		+= eisa/
++obj-$(CONFIG_LGUEST_GUEST)	+= lguest/
+ obj-$(CONFIG_CPU_FREQ)		+= cpufreq/
+ obj-$(CONFIG_MMC)		+= mmc/
+ obj-$(CONFIG_NEW_LEDS)		+= leds/
+diff -puN /dev/null drivers/lguest/Kconfig
+--- /dev/null
++++ a/drivers/lguest/Kconfig
+@@ -0,0 +1,20 @@
++config LGUEST
++	tristate "Linux hypervisor example code"
++	depends on X86 && PARAVIRT && NET && EXPERIMENTAL && !X86_PAE
++	select LGUEST_GUEST
++	select HVC_DRIVER
++	---help---
++	  This is a very simple module which allows you to run
++	  multiple instances of the same Linux kernel, using the
++	  "lguest" command found in the Documentation/lguest directory.
++	  Note that "lguest" is pronounced to rhyme with "fell quest",
++	  not "rustyvisor".  See Documentation/lguest/lguest.txt.
++
++	  If unsure, say N.  If curious, say M.  If masochistic, say Y.
++
++config LGUEST_GUEST
++	bool
++	help
++	  The guest needs code built-in, even if the host has lguest
++	  support as a module.  The drivers are tiny, so we build them
++	  in too.
+diff -puN /dev/null drivers/lguest/Makefile
+--- /dev/null
++++ a/drivers/lguest/Makefile
+@@ -0,0 +1,7 @@
++# Guest requires the paravirt_ops replacement and the bus driver.
++obj-$(CONFIG_LGUEST_GUEST) += lguest.o lguest_asm.o lguest_bus.o
++
++# Host requires the other files, which can be a module.
++obj-$(CONFIG_LGUEST)	+= lg.o
++lg-y := core.o hypercalls.o page_tables.o interrupts_and_traps.o \
++	segments.o io.o lguest_user.o switcher.o
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-git-hwmon.patch
 git-kbuild.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-git-scsi-misc.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-maps2-add-proc-kpagemap-interface.patch
-fs-reiserfs-cleanups.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
