@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-do-not-return-void-value.patch added to -mm tree
-Date: Thu, 19 Jul 2007 16:55:20 -0700
-Message-ID: <200707192355.l6JNtK6b029471@imap1.linux-foundation.org>
+Subject: + hpettxt-broken-link-fix.patch added to -mm tree
+Date: Thu, 19 Jul 2007 16:56:35 -0700
+Message-ID: <200707192356.l6JNuZHR029494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39762 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760508AbXGSX4G (ORCPT
+	by vger.kernel.org with ESMTP id S1761866AbXGSX5L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 19:56:06 -0400
+	Thu, 19 Jul 2007 19:57:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net
+Cc: hidave.darkstar@gmail.com
 
 
 The patch titled
-     rtc: do not return void value
+     hpet.txt: broken link fix
 has been added to the -mm tree.  Its filename is
-     rtc-do-not-return-void-value.patch
+     hpettxt-broken-link-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc: do not return void value
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: hpet.txt: broken link fix
+From: Dave Young <hidave.darkstar@gmail.com>
 
-This patch fixes these sparse warnings:
+The specification link in hpet document is broken.
 
-drivers/rtc/rtc-ds1742.c:265:2: warning: returning void-valued expression
-drivers/rtc/rtc-ds1553.c:409:2: warning: returning void-valued expression
-
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1553.c |    2 +-
- drivers/rtc/rtc-ds1742.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ Documentation/hpet.txt |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1553.c~rtc-do-not-return-void-value drivers/rtc/rtc-ds1553.c
---- a/drivers/rtc/rtc-ds1553.c~rtc-do-not-return-void-value
-+++ a/drivers/rtc/rtc-ds1553.c
-@@ -407,7 +407,7 @@ static __init int ds1553_init(void)
+diff -puN Documentation/hpet.txt~hpettxt-broken-link-fix Documentation/hpet.txt
+--- a/Documentation/hpet.txt~hpettxt-broken-link-fix
++++ a/Documentation/hpet.txt
+@@ -5,7 +5,7 @@ for the 8254 and Real Time Clock (RTC) p
+ Each HPET can have up to 32 timers.  It is possible to configure the
+ first two timers as legacy replacements for 8254 and RTC periodic timers.
+ A specification done by Intel and Microsoft can be found at
+-<http://www.intel.com/hardwaredesign/hpetspec.htm>.
++<http://www.intel.com/technology/architecture/hpetspec.htm>.
  
- static __exit void ds1553_exit(void)
- {
--	return platform_driver_unregister(&ds1553_rtc_driver);
-+	platform_driver_unregister(&ds1553_rtc_driver);
- }
- 
- module_init(ds1553_init);
-diff -puN drivers/rtc/rtc-ds1742.c~rtc-do-not-return-void-value drivers/rtc/rtc-ds1742.c
---- a/drivers/rtc/rtc-ds1742.c~rtc-do-not-return-void-value
-+++ a/drivers/rtc/rtc-ds1742.c
-@@ -263,7 +263,7 @@ static __init int ds1742_init(void)
- 
- static __exit void ds1742_exit(void)
- {
--	return platform_driver_unregister(&ds1742_rtc_driver);
-+	platform_driver_unregister(&ds1742_rtc_driver);
- }
- 
- module_init(ds1742_init);
+ The driver supports detection of HPET driver allocation and initialization
+ of the HPET before the driver module_init routine is called.  This enables
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 origin.patch
-git-kbuild.patch
-mips-make-resources-for-ds1742-static-__initdata.patch
-serial_txx9-fix-modem-control-line-handling.patch
-serial_txx9-cleanup-includes.patch
-rtc-do-not-return-void-value.patch
+zisofs-use-mutex-instead-of-semaphore.patch
+hpettxt-broken-link-fix.patch
