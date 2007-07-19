@@ -1,144 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - i386-do-not-restore-reserved-memory-after-hibernation.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:48 -0700
-Message-ID: <200707192009.l6JK9mP5020611@imap1.linux-foundation.org>
+Subject: - x86_64-fix-apic-typo.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:10:47 -0700
+Message-ID: <200707192010.l6JKAlJx020704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51667 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41707 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761143AbXGSUQt (ORCPT
+	by vger.kernel.org with ESMTP id S1762041AbXGSURG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:49 -0400
+	Thu, 19 Jul 2007 16:17:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, ak@suse.de, pavel@ucw.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: do not restore reserved memory after hibernation
+     x86_64: fix APIC typo
 has been removed from the -mm tree.  Its filename was
-     i386-do-not-restore-reserved-memory-after-hibernation.patch
+     x86_64-fix-apic-typo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: do not restore reserved memory after hibernation
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: x86_64: fix APIC typo
+From: Thomas Gleixner <tglx@linutronix.de>
 
-On some systems the ACPI NVS area is located in the first 1 MB of RAM and
-it is overwritten by the i386 code during the restore after hibernation. 
-This confuses the ACPI platform firmware that doesn't update the AC adapter
-status appropriately as a result
-(http://bugzilla.kernel.org/show_bug.cgi?id=7995).
-
-The solution is to register the reserved memory in the first 1 MB as
-'nosave', so that swsusp doesn't touch it during the restore.  Also, this
-has been done on x86_64 for a long time now, so this patch makes the i386
-restore code behave like the x86_64 one.
-
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/e820.c  |   32 ++++++++++++++++++++++++++++++++
- arch/i386/kernel/setup.c |    1 +
- include/asm-i386/e820.h  |    8 ++++++++
- 3 files changed, 41 insertions(+)
+ arch/x86_64/kernel/apic.c    |    4 ++--
+ arch/x86_64/kernel/mce_amd.c |    6 +++---
+ include/asm-x86_64/apic.h    |    4 ++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation arch/i386/kernel/e820.c
---- a/arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation
-+++ a/arch/i386/kernel/e820.c
-@@ -10,6 +10,7 @@
- #include <linux/efi.h>
- #include <linux/pfn.h>
- #include <linux/uaccess.h>
-+#include <linux/suspend.h>
+diff -puN arch/x86_64/kernel/apic.c~x86_64-fix-apic-typo arch/x86_64/kernel/apic.c
+--- a/arch/x86_64/kernel/apic.c~x86_64-fix-apic-typo
++++ a/arch/x86_64/kernel/apic.c
+@@ -990,8 +990,8 @@ int setup_profiling_timer(unsigned int m
+ 	return -EINVAL;
+ }
  
- #include <asm/pgtable.h>
- #include <asm/page.h>
-@@ -320,6 +321,37 @@ static int __init request_standard_resou
- 
- subsys_initcall(request_standard_resources);
- 
-+#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
-+/**
-+ * e820_mark_nosave_regions - Find the ranges of physical addresses that do not
-+ * correspond to e820 RAM areas and mark the corresponding pages as nosave for
-+ * hibernation.
-+ *
-+ * This function requires the e820 map to be sorted and without any
-+ * overlapping entries and assumes the first e820 area to be RAM.
-+ */
-+void __init e820_mark_nosave_regions(void)
-+{
-+	int i;
-+	unsigned long pfn;
-+
-+	pfn = PFN_DOWN(e820.map[0].addr + e820.map[0].size);
-+	for (i = 1; i < e820.nr_map; i++) {
-+		struct e820entry *ei = &e820.map[i];
-+
-+		if (pfn < PFN_UP(ei->addr))
-+			register_nosave_region(pfn, PFN_UP(ei->addr));
-+
-+		pfn = PFN_DOWN(ei->addr + ei->size);
-+		if (ei->type != E820_RAM)
-+			register_nosave_region(PFN_UP(ei->addr), pfn);
-+
-+		if (pfn >= max_low_pfn)
-+			break;
-+	}
-+}
-+#endif
-+
- void __init add_memory_region(unsigned long long start,
- 			      unsigned long long size, int type)
+-void setup_APIC_extened_lvt(unsigned char lvt_off, unsigned char vector,
+-			    unsigned char msg_type, unsigned char mask)
++void setup_APIC_extended_lvt(unsigned char lvt_off, unsigned char vector,
++			     unsigned char msg_type, unsigned char mask)
  {
-diff -puN arch/i386/kernel/setup.c~i386-do-not-restore-reserved-memory-after-hibernation arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~i386-do-not-restore-reserved-memory-after-hibernation
-+++ a/arch/i386/kernel/setup.c
-@@ -640,6 +640,7 @@ void __init setup_arch(char **cmdline_p)
- #endif
+ 	unsigned long reg = (lvt_off << 4) + K8_APIC_EXT_LVT_BASE;
+ 	unsigned int  v   = (mask << 16) | (msg_type << 8) | vector;
+diff -puN arch/x86_64/kernel/mce_amd.c~x86_64-fix-apic-typo arch/x86_64/kernel/mce_amd.c
+--- a/arch/x86_64/kernel/mce_amd.c~x86_64-fix-apic-typo
++++ a/arch/x86_64/kernel/mce_amd.c
+@@ -157,9 +157,9 @@ void __cpuinit mce_amd_feature_init(stru
+ 			high |= K8_APIC_EXT_LVT_ENTRY_THRESHOLD << 20;
+ 			wrmsr(address, low, high);
  
- 	e820_register_memory();
-+	e820_mark_nosave_regions();
+-			setup_APIC_extened_lvt(K8_APIC_EXT_LVT_ENTRY_THRESHOLD,
+-					       THRESHOLD_APIC_VECTOR,
+-					       K8_APIC_EXT_INT_MSG_FIX, 0);
++			setup_APIC_extended_lvt(K8_APIC_EXT_LVT_ENTRY_THRESHOLD,
++						THRESHOLD_APIC_VECTOR,
++						K8_APIC_EXT_INT_MSG_FIX, 0);
  
- #ifdef CONFIG_VT
- #if defined(CONFIG_VGA_CONSOLE)
-diff -puN include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation include/asm-i386/e820.h
---- a/include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation
-+++ a/include/asm-i386/e820.h
-@@ -47,6 +47,14 @@ extern void e820_register_memory(void);
- extern void limit_regions(unsigned long long size);
- extern void print_memory_map(char *who);
+ 			threshold_defaults.address = address;
+ 			threshold_restart_bank(&threshold_defaults, 0, 0);
+diff -puN include/asm-x86_64/apic.h~x86_64-fix-apic-typo include/asm-x86_64/apic.h
+--- a/include/asm-x86_64/apic.h~x86_64-fix-apic-typo
++++ a/include/asm-x86_64/apic.h
+@@ -83,8 +83,8 @@ extern void disable_APIC_timer(void);
+ extern void enable_APIC_timer(void);
+ extern void setup_apic_routing(void);
  
-+#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
-+extern void e820_mark_nosave_regions(void);
-+#else
-+static inline void e820_mark_nosave_regions(void)
-+{
-+}
-+#endif
-+
- #endif/*!__ASSEMBLY__*/
+-extern void setup_APIC_extened_lvt(unsigned char lvt_off, unsigned char vector,
+-				   unsigned char msg_type, unsigned char mask);
++extern void setup_APIC_extended_lvt(unsigned char lvt_off, unsigned char vector,
++				    unsigned char msg_type, unsigned char mask);
  
- #endif/*__E820_HEADER*/
+ extern int apic_is_clustered_box(void);
+ 
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-acpi-implement-the-set_target-callback-from-pm_ops.patch
-acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-acpi.patch
+acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+clockevents-remove-prototypes-of-removed-functions.patch
+clockevents-fix-resume-logic.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+clockevents-fix-device-replacement.patch
+tick-management-spread-timer-interrupt.patch
+highres-improve-debug-output.patch
+hrtimer-speedup-hrtimer_enqueue.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
+acpi-remove-the-useless-ifdef-code.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+geode-mfgpt-clock-event-device-support.patch
