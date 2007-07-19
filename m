@@ -1,142 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-host-code-remove-usage-and-export-of-__put_task_struct.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 22:54:03 -0700
-Message-ID: <200707190554.l6J5s3K2016574@imap1.linux-foundation.org>
+Subject: - lguest-the-host-code-disable-sysenter-for-guests.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 22:54:17 -0700
+Message-ID: <200707190554.l6J5sHJM016577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45530 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49331 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751938AbXGSFyN (ORCPT
+	by vger.kernel.org with ESMTP id S1753796AbXGSFy0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 01:54:13 -0400
+	Thu, 19 Jul 2007 01:54:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: remove usage and export of __put_task_struct()
+     lguest: disable SYSENTER for guests
 has been removed from the -mm tree.  Its filename was
-     lguest-the-host-code-remove-usage-and-export-of-__put_task_struct.patch
+     lguest-the-host-code-disable-sysenter-for-guests.patch
 
 This patch was dropped because it was folded into lguest-the-host-code.patch
 
 ------------------------------------------------------
-Subject: lguest: remove usage and export of __put_task_struct()
+Subject: lguest: disable SYSENTER for guests
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-lguest takes a reference count of tasks for two reasons.  The first is
-bogus: the /dev/lguest close callback will be called before the task is
-destroyed anyway, so no need to take a reference on open.
+The SYSENTER instruction jumps to a pre-programmed address at privilege
+level 0.  We must not allow execution of guest code at that privilege
+level, so disable sysenter when we enter the guest (and re-enable it on
+return).  This fixes current case where guest userspace can crash host.
 
-The second is code to defer waking up tasks for inter-guest I/O, but the
-current lguest drivers are too simplistic to benefit (only batched
-hypercalls will see an effect, and it's likely that lguests' entire I/O
-model will be replaced with virtio and ringbuffers anyway).
+This save/restore adds 3% to guest context switch times.  (If only there
+were some kind of scheduler hook or something which would tell us when we
+were being preempted so we could fix this up lazily.  But what kind of
+daredevil coder would propose such a thing?)
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/hypercalls.c  |    1 -
- drivers/lguest/io.c          |   18 +-----------------
- drivers/lguest/lg.h          |    1 -
- drivers/lguest/lguest_user.c |    2 --
- kernel/fork.c                |    1 -
- 5 files changed, 1 insertion(+), 22 deletions(-)
+ drivers/lguest/core.c |    7 +++++++
+ 1 files changed, 7 insertions(+)
 
-diff -puN drivers/lguest/hypercalls.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct drivers/lguest/hypercalls.c
---- a/drivers/lguest/hypercalls.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct
-+++ a/drivers/lguest/hypercalls.c
-@@ -189,5 +189,4 @@ void do_hypercalls(struct lguest *lg)
- 		do_hcall(lg, lg->regs);
- 		clear_hcall(lg);
- 	}
--	set_wakeup_process(lg, NULL);
- }
-diff -puN drivers/lguest/io.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct drivers/lguest/io.c
---- a/drivers/lguest/io.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct
-+++ a/drivers/lguest/io.c
-@@ -296,7 +296,7 @@ static int dma_transfer(struct lguest *s
+diff -puN drivers/lguest/core.c~lguest-the-host-code-disable-sysenter-for-guests drivers/lguest/core.c
+--- a/drivers/lguest/core.c~lguest-the-host-code-disable-sysenter-for-guests
++++ a/drivers/lguest/core.c
+@@ -338,6 +338,10 @@ int run_guest(struct lguest *lg, unsigne
+ 		if (lg->ts)
+ 			set_ts();
  
- 	/* Do this last so dst doesn't simply sleep on lock. */
- 	set_bit(dst->interrupt, dstlg->irqs_pending);
--	set_wakeup_process(srclg, dstlg->tsk);
-+	wake_up_process(dstlg->tsk);
- 	return i == dst->num_dmas;
++		/* Don't let Guest do SYSENTER: we can't handle it. */
++		if (boot_cpu_has(X86_FEATURE_SEP))
++			wrmsr(MSR_IA32_SYSENTER_CS, 0, 0);
++
+ 		run_guest_once(lg, lguest_pages(raw_smp_processor_id()));
  
- fail:
-@@ -333,7 +333,6 @@ again:
- 			/* Give any recipients one chance to restock. */
- 			up_read(&current->mm->mmap_sem);
- 			mutex_unlock(&lguest_lock);
--			set_wakeup_process(lg, NULL);
- 			empty++;
- 			goto again;
- 		}
-@@ -362,21 +361,6 @@ void release_all_dma(struct lguest *lg)
- 	up_read(&lg->mm->mmap_sem);
- }
+ 		/* Save cr2 now if we page-faulted. */
+@@ -345,6 +349,9 @@ int run_guest(struct lguest *lg, unsigne
+ 			cr2 = read_cr2();
+ 		else if (lg->regs->trapnum == 7)
+ 			math_state_restore();
++
++		if (boot_cpu_has(X86_FEATURE_SEP))
++			wrmsr(MSR_IA32_SYSENTER_CS, __KERNEL_CS, 0);
+ 		local_irq_enable();
  
--/* We cache one process to wakeup: helps for batching & wakes outside locks. */
--void set_wakeup_process(struct lguest *lg, struct task_struct *p)
--{
--	if (p == lg->wake)
--		return;
--
--	if (lg->wake) {
--		wake_up_process(lg->wake);
--		put_task_struct(lg->wake);
--	}
--	lg->wake = p;
--	if (lg->wake)
--		get_task_struct(lg->wake);
--}
--
- /* Userspace wants a dma buffer from this guest. */
- unsigned long get_dma_buffer(struct lguest *lg,
- 			     unsigned long ukey, unsigned long *interrupt)
-diff -puN drivers/lguest/lg.h~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct drivers/lguest/lg.h
---- a/drivers/lguest/lg.h~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct
-+++ a/drivers/lguest/lg.h
-@@ -240,7 +240,6 @@ void send_dma(struct lguest *info, unsig
- void release_all_dma(struct lguest *lg);
- unsigned long get_dma_buffer(struct lguest *lg, unsigned long key,
- 			     unsigned long *interrupt);
--void set_wakeup_process(struct lguest *lg, struct task_struct *p);
- 
- /* hypercalls.c: */
- void do_hypercalls(struct lguest *lg);
-diff -puN drivers/lguest/lguest_user.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct drivers/lguest/lguest_user.c
---- a/drivers/lguest/lguest_user.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct
-+++ a/drivers/lguest/lguest_user.c
-@@ -141,7 +141,6 @@ static int initialize(struct file *file,
- 	setup_guest_gdt(lg);
- 	init_clockdev(lg);
- 	lg->tsk = current;
--	get_task_struct(lg->tsk);
- 	lg->mm = get_task_mm(lg->tsk);
- 	init_waitqueue_head(&lg->break_wq);
- 	lg->last_pages = NULL;
-@@ -205,7 +204,6 @@ static int close(struct inode *inode, st
- 	hrtimer_cancel(&lg->hrt);
- 	release_all_dma(lg);
- 	free_guest_pagetable(lg);
--	put_task_struct(lg->tsk);
- 	mmput(lg->mm);
- 	if (!IS_ERR(lg->dead))
- 		kfree(lg->dead);
-diff -puN kernel/fork.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct kernel/fork.c
---- a/kernel/fork.c~lguest-the-host-code-remove-usage-and-export-of-__put_task_struct
-+++ a/kernel/fork.c
-@@ -127,7 +127,6 @@ void __put_task_struct(struct task_struc
- 	if (!profile_handoff_task(tsk))
- 		free_task(tsk);
- }
--EXPORT_SYMBOL_GPL(__put_task_struct);
- 
- void __init fork_init(unsigned long mempages)
- {
+ 		switch (lg->regs->trapnum) {
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -161,7 +90,6 @@ use-the-new-percpu-interface-for-shared-data-version-4.patch
 lguest-export-symbols-for-lguest-as-a-module.patch
 lguest-the-guest-code.patch
 lguest-the-host-code.patch
-lguest-the-host-code-remove-usage-and-export-of-__put_task_struct.patch
 lguest-the-host-code-disable-sysenter-for-guests.patch
 lguest-the-asm-offsets.patch
 lguest-the-makefile-and-kconfig.patch
