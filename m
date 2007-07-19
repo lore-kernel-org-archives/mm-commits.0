@@ -1,144 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - jprobes-make-jprobes-a-little-safer-for-users.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:01:39 -0700
-Message-ID: <200707192001.l6JK1d39019557@imap1.linux-foundation.org>
+Subject: - x86-64-disable-the-gart-in-shutdown.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:10:10 -0700
+Message-ID: <200707192010.l6JKAAiY020647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39546 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34517 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932234AbXGSUa7 (ORCPT
+	by vger.kernel.org with ESMTP id S932227AbXGSUa6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:30:59 -0400
+	Thu, 19 Jul 2007 16:30:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael@ellerman.id.au, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, prasanna@in.ibm.com, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk, ebiederm@xmission.com, muli@il.ibm.com, vgoyal@in.ibm.com, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jprobes: make jprobes a little safer for users
+     x86-64: disable the GART in shutdown
 has been removed from the -mm tree.  Its filename was
-     jprobes-make-jprobes-a-little-safer-for-users.patch
+     x86-64-disable-the-gart-in-shutdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jprobes: make jprobes a little safer for users
-From: Michael Ellerman <michael@ellerman.id.au>
+Subject: x86-64: disable the GART in shutdown
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-I realise jprobes are a razor-blades-included type of interface, but that
-doesn't mean we can't try and make them safer to use.  This guy I know once
-wrote code like this:
+For K8 system: 4G RAM with memory hole remapping enabled, or more than 4G
+RAM installed.  when using kexec to load second kernel.  In the second
+kernel, when mem is allocated for GART, it will do the memset for clear, it
+will cause restart, because some device still used that for dma.  solution
+will be:
 
-struct jprobe jp = { .kp.symbol_name = "foo", .entry = "jprobe_foo" };
+in second kernel: disable that at first before we try to allocate mem for
+it.  or in the first kernel: do disable that before shutdown. 
+Andi/Eric/Alan prefer to second one for clean shutdown in first kernel. 
+Andi also point out need to consider to AGP enable but mem less 4G case
+too.
 
-And then his kernel exploded. Oops.
-
-This patch adds an arch hook, arch_deref_entry_point() (I don't like it
-either) which takes the void * in a struct jprobe, and gives back the text
-address that it represents.
-
-We can then use that in register_jprobe() to check that the entry point we're
-passed is actually in the kernel text, rather than just some random value.
-
-Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/kprobes.c    |    7 ++++++-
- arch/powerpc/kernel/kprobes.c |   11 ++++++++---
- include/linux/kprobes.h       |    1 +
- kernel/kprobes.c              |    9 +++++++++
- 4 files changed, 24 insertions(+), 4 deletions(-)
+ arch/x86_64/kernel/pci-dma.c  |    5 +++++
+ arch/x86_64/kernel/pci-gart.c |   20 ++++++++++++++++++++
+ arch/x86_64/kernel/reboot.c   |    4 ++++
+ include/asm-x86_64/proto.h    |    7 +++++++
+ 4 files changed, 36 insertions(+)
 
-diff -puN arch/ia64/kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users arch/ia64/kernel/kprobes.c
---- a/arch/ia64/kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users
-+++ a/arch/ia64/kernel/kprobes.c
-@@ -936,10 +936,15 @@ static void ia64_get_bsp_cfm(struct unw_
- 	return;
+diff -puN arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-dma.c
+--- a/arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown
++++ a/arch/x86_64/kernel/pci-dma.c
+@@ -321,6 +321,11 @@ static int __init pci_iommu_init(void)
+ 	return 0;
  }
  
-+unsigned long arch_deref_entry_point(void *entry)
++void pci_iommu_shutdown(void)
 +{
-+	return ((struct fnptr *)entry)->ip;
++	gart_iommu_shutdown();
 +}
 +
- int __kprobes setjmp_pre_handler(struct kprobe *p, struct pt_regs *regs)
- {
- 	struct jprobe *jp = container_of(p, struct jprobe, kp);
--	unsigned long addr = ((struct fnptr *)(jp->entry))->ip;
-+	unsigned long addr = arch_deref_entry_point(jp->entry);
- 	struct kprobe_ctlblk *kcb = get_kprobe_ctlblk();
- 	struct param_bsp_cfm pa;
- 	int bytes;
-diff -puN arch/powerpc/kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users arch/powerpc/kernel/kprobes.c
---- a/arch/powerpc/kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users
-+++ a/arch/powerpc/kernel/kprobes.c
-@@ -492,6 +492,13 @@ int __kprobes kprobe_exceptions_notify(s
- 	return ret;
- }
+ #ifdef CONFIG_PCI
+ /* Many VIA bridges seem to corrupt data for DAC. Disable it here */
  
-+#ifdef CONFIG_PPC64
-+unsigned long arch_deref_entry_point(void *entry)
-+{
-+	return (unsigned long)(((func_descr_t *)entry)->entry);
-+}
-+#endif
-+
- int __kprobes setjmp_pre_handler(struct kprobe *p, struct pt_regs *regs)
- {
- 	struct jprobe *jp = container_of(p, struct jprobe, kp);
-@@ -500,11 +507,9 @@ int __kprobes setjmp_pre_handler(struct 
- 	memcpy(&kcb->jprobe_saved_regs, regs, sizeof(struct pt_regs));
- 
- 	/* setup return addr to the jprobe handler routine */
-+	regs->nip = arch_deref_entry_point(jp->entry);
- #ifdef CONFIG_PPC64
--	regs->nip = (unsigned long)(((func_descr_t *)jp->entry)->entry);
- 	regs->gpr[2] = (unsigned long)(((func_descr_t *)jp->entry)->toc);
--#else
--	regs->nip = (unsigned long)jp->entry;
- #endif
- 
- 	return 1;
-diff -puN include/linux/kprobes.h~jprobes-make-jprobes-a-little-safer-for-users include/linux/kprobes.h
---- a/include/linux/kprobes.h~jprobes-make-jprobes-a-little-safer-for-users
-+++ a/include/linux/kprobes.h
-@@ -214,6 +214,7 @@ int longjmp_break_handler(struct kprobe 
- int register_jprobe(struct jprobe *p);
- void unregister_jprobe(struct jprobe *p);
- void jprobe_return(void);
-+unsigned long arch_deref_entry_point(void *);
- 
- int register_kretprobe(struct kretprobe *rp);
- void unregister_kretprobe(struct kretprobe *rp);
-diff -puN kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users kernel/kprobes.c
---- a/kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users
-+++ a/kernel/kprobes.c
-@@ -675,9 +675,18 @@ static struct notifier_block kprobe_exce
- 	.priority = 0x7fffffff /* we need to be notified first */
+diff -puN arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-gart.c
+--- a/arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown
++++ a/arch/x86_64/kernel/pci-gart.c
+@@ -571,6 +571,26 @@ static const struct dma_mapping_ops gart
+ 	.unmap_sg = gart_unmap_sg,
  };
  
-+unsigned long __weak arch_deref_entry_point(void *entry)
++void gart_iommu_shutdown(void)
 +{
-+	return (unsigned long)entry;
++	struct pci_dev *dev;
++	int i;
++
++	if (no_agp && (dma_ops != &gart_dma_ops))
++		return;
++
++        for (i = 0; i < num_k8_northbridges; i++) {
++                u32 ctl;
++
++                dev = k8_northbridges[i];
++                pci_read_config_dword(dev, 0x90, &ctl);
++
++                ctl &= ~1;
++
++                pci_write_config_dword(dev, 0x90, ctl);
++        }
 +}
++
+ void __init gart_iommu_init(void)
+ { 
+ 	struct agp_kern_info info;
+diff -puN arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/reboot.c
+--- a/arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown
++++ a/arch/x86_64/kernel/reboot.c
+@@ -16,6 +16,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/tlbflush.h>
+ #include <asm/apic.h>
++#include <asm/proto.h>
  
- int __kprobes register_jprobe(struct jprobe *jp)
+ /*
+  * Power off function, if any
+@@ -81,6 +82,7 @@ static inline void kb_wait(void)
+ void machine_shutdown(void)
  {
-+	unsigned long addr = arch_deref_entry_point(jp->entry);
+ 	unsigned long flags;
 +
-+	if (!kernel_text_address(addr))
-+		return -EINVAL;
+ 	/* Stop the cpus and apics */
+ #ifdef CONFIG_SMP
+ 	int reboot_cpu_id;
+@@ -111,6 +113,8 @@ void machine_shutdown(void)
+ 	disable_IO_APIC();
+ 
+ 	local_irq_restore(flags);
 +
- 	/* Todo: Verify probepoint is a function entry point */
- 	jp->kp.pre_handler = setjmp_pre_handler;
- 	jp->kp.break_handler = longjmp_break_handler;
++	pci_iommu_shutdown();
+ }
+ 
+ void machine_emergency_restart(void)
+diff -puN include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown
++++ a/include/asm-x86_64/proto.h
+@@ -85,11 +85,13 @@ extern int exception_trace;
+ extern unsigned cpu_khz;
+ extern unsigned tsc_khz;
+ 
++extern void pci_iommu_shutdown(void);
+ extern void no_iommu_init(void);
+ extern int force_iommu, no_iommu;
+ extern int iommu_detected;
+ #ifdef CONFIG_IOMMU
+ extern void gart_iommu_init(void);
++extern void gart_iommu_shutdown(void);
+ extern void __init gart_parse_options(char *);
+ extern void iommu_hole_init(void);
+ extern int fallback_aper_order;
+@@ -101,6 +103,11 @@ extern int fix_aperture;
+ #else
+ #define iommu_aperture 0
+ #define iommu_aperture_allowed 0
++
++static inline void gart_iommu_shutdown(void)
++{
++}
++
+ #endif
+ 
+ extern int reboot_force;
 _
 
-Patches currently in -mm which might be from michael@ellerman.id.au are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
 origin.patch
