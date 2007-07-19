@@ -1,85 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-generalize-calgary_increase_split_completion_timeout.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:02 -0700
-Message-ID: <200707192009.l6JK92UR020534@imap1.linux-foundation.org>
+Subject: - x86-fix-section-mismatch-warnings-in-mtrr.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:08:47 -0700
+Message-ID: <200707192008.l6JK8lNI020486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39858 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47923 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760776AbXGSUP0 (ORCPT
+	by vger.kernel.org with ESMTP id S1760733AbXGSUP0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:15:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary: generalize calgary_increase_split_completion_timeout
+     x86: fix section mismatch warnings in mtrr
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-generalize-calgary_increase_split_completion_timeout.patch
+     x86-fix-section-mismatch-warnings-in-mtrr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: Calgary: generalize calgary_increase_split_completion_timeout
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: x86: fix section mismatch warnings in mtrr
+From: Sam Ravnborg <sam@ravnborg.org>
 
-... will be used by CalIOC2 later
+Following section mismatch warnings were reported by Andrey Borzenkov:
 
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text:amd_init_mtrr from .text between 'mtrr_bp_init' (at offset 0x967a) and 'mtrr_attrib_to_str'
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text:cyrix_init_mtrr from .text between 'mtrr_bp_init' (at offset 0x967f) and 'mtrr_attrib_to_str'
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text:centaur_init_mtrr from .text between 'mtrr_bp_init' (at offset 0x9684) and 'mtrr_attrib_to_str'
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text: from .text between 'get_mtrr_state' (at offset 0xa735) and 'generic_get_mtrr'
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text: from .text between 'get_mtrr_state' (at offset 0xa749) and 'generic_get_mtrr'
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text: from .text between 'get_mtrr_state' (at offset 0xa770) and 'generic_get_mtrr'
+
+It was tracked down to a few functions missing __init tag.
+Compile tested only.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ arch/i386/kernel/cpu/mtrr/generic.c |    2 +-
+ arch/i386/kernel/cpu/mtrr/main.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-generalize-calgary_increase_split_completion_timeout arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-generalize-calgary_increase_split_completion_timeout
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -775,8 +775,8 @@ static void calgary_watchdog(unsigned lo
- 	}
+diff -puN arch/i386/kernel/cpu/mtrr/generic.c~x86-fix-section-mismatch-warnings-in-mtrr arch/i386/kernel/cpu/mtrr/generic.c
+--- a/arch/i386/kernel/cpu/mtrr/generic.c~x86-fix-section-mismatch-warnings-in-mtrr
++++ a/arch/i386/kernel/cpu/mtrr/generic.c
+@@ -79,7 +79,7 @@ static void print_fixed(unsigned base, u
  }
  
--static void __init calgary_increase_split_completion_timeout(void __iomem *bbar,
--	unsigned char busnum)
-+static void __init calgary_set_split_completion_timeout(void __iomem *bbar,
-+	unsigned char busnum, unsigned long timeout)
+ /*  Grab all of the MTRR state for this CPU into *state  */
+-void get_mtrr_state(void)
++void __init get_mtrr_state(void)
  {
- 	u64 val64;
- 	void __iomem *target;
-@@ -802,7 +802,7 @@ static void __init calgary_increase_spli
- 	/* zero out this PHB's timer bits */
- 	mask = ~(0xFUL << phb_shift);
- 	val64 &= mask;
--	val64 |= (CCR_2SEC_TIMEOUT << phb_shift);
-+	val64 |= (timeout << phb_shift);
- 	writeq(cpu_to_be64(val64), target);
- 	readq(target); /* flush */
- }
-@@ -836,7 +836,8 @@ static void __init calgary_enable_transl
- 	 * http://bugzilla.kernel.org/show_bug.cgi?id=7180
- 	 */
- 	if (busnum == 1)
--		calgary_increase_split_completion_timeout(bbar, busnum);
-+		calgary_set_split_completion_timeout(bbar, busnum,
-+						     CCR_2SEC_TIMEOUT);
+ 	unsigned int i;
+ 	struct mtrr_var_range *vrs;
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~x86-fix-section-mismatch-warnings-in-mtrr arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~x86-fix-section-mismatch-warnings-in-mtrr
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -648,7 +648,7 @@ static struct sysdev_driver mtrr_sysdev_
+  * initialized (i.e. before smp_init()).
+  * 
+  */
+-__init void mtrr_bp_init(void)
++void __init mtrr_bp_init(void)
+ {
+ 	init_ifs();
  
- 	init_timer(&tbl->watchdog_timer);
- 	tbl->watchdog_timer.function = &calgary_watchdog;
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+git-kbuild.patch
+pass-g-to-assembler-under-config_debug_info.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+whitelist-references-from-__dbe_table-to-init.patch
