@@ -1,65 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-saa7134-tvaudio-fix.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 12:10:22 -0700
-Message-ID: <200707191910.l6JJAMMY017326@imap1.linux-foundation.org>
+Subject: - git-mips-fixup.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 12:10:52 -0700
+Message-ID: <200707191910.l6JJAqZ0017332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55811 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55434 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754799AbXGSTKi (ORCPT
+	by vger.kernel.org with ESMTP id S1765243AbXGSTLA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 15:10:38 -0400
+	Thu, 19 Jul 2007 15:11:00 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6JJAwPX010498
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2007 12:10:59 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb-saa7134-tvaudio-fix
+     git-mips-fixup
 has been removed from the -mm tree.  Its filename was
-     git-dvb-saa7134-tvaudio-fix.patch
+     git-mips-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-dvb-saa7134-tvaudio-fix
+Subject: git-mips-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/saa7134/saa7134-tvaudio.c: In function 'saa7134_tvaudio_fini':
-drivers/media/video/saa7134/saa7134-tvaudio.c:1001: error: 'struct saa7134_thread' has no member named 'pid'
-drivers/media/video/saa7134/saa7134-tvaudio.c:1002: error: 'struct saa7134_thread' has no member named 'shutdown'
-drivers/media/video/saa7134/saa7134-tvaudio.c:1003: error: 'struct saa7134_thread' has no member named 'wq'
-drivers/media/video/saa7134/saa7134-tvaudio.c:1004: error: 'struct saa7134_thread' has no member named 'exit'
-
-weird...
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/saa7134/saa7134-tvaudio.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/mips/Kconfig                     |    4 ----
+ arch/mips/cobalt/setup.c              |    4 ----
+ arch/mips/jmr3927/rbhma3100/kgdb_io.c |    4 ----
+ arch/mips/pci/pci-ocelot.c            |    6 ------
+ 4 files changed, 18 deletions(-)
 
-diff -puN drivers/media/video/saa7134/saa7134-tvaudio.c~git-dvb-saa7134-tvaudio-fix drivers/media/video/saa7134/saa7134-tvaudio.c
---- a/drivers/media/video/saa7134/saa7134-tvaudio.c~git-dvb-saa7134-tvaudio-fix
-+++ a/drivers/media/video/saa7134/saa7134-tvaudio.c
-@@ -998,11 +998,11 @@ int saa7134_tvaudio_init2(struct saa7134
- int saa7134_tvaudio_fini(struct saa7134_dev *dev)
- {
- 	/* shutdown tvaudio thread */
--	if (dev->thread.pid >= 0) {
--		dev->thread.shutdown = 1;
--		wake_up_interruptible(&dev->thread.wq);
--		wait_for_completion(&dev->thread.exit);
--	}
-+//	if (dev->thread.pid >= 0) {
-+//		dev->thread.shutdown = 1;
-+//		wake_up_interruptible(&dev->thread.wq);
-+//		wait_for_completion(&dev->thread.exit);
-+//	}
- 	saa_andorb(SAA7134_ANALOG_IO_SELECT, 0x07, 0x00); /* LINE1 */
- 	return 0;
+diff -puN arch/mips/Kconfig~git-mips-fixup arch/mips/Kconfig
+--- a/arch/mips/Kconfig~git-mips-fixup
++++ a/arch/mips/Kconfig
+@@ -630,12 +630,8 @@ config TOSHIBA_JMR3927
+ 	select SYS_SUPPORTS_32BIT_KERNEL
+ 	select SYS_SUPPORTS_LITTLE_ENDIAN
+ 	select SYS_SUPPORTS_BIG_ENDIAN
+-<<<<<<< HEAD/arch/mips/Kconfig
+-	select GENERIC_HARDIRQS_NO__DO_IRQ
+-=======
+ 	select TOSHIBA_BOARDS
+ 	select GENERIC_HARDIRQS_NO__DO_IRQ
+->>>>>>> /arch/mips/Kconfig
+ 
+ config TOSHIBA_RBTX4927
+ 	bool "Toshiba TBTX49[23]7 board"
+diff -puN arch/mips/cobalt/setup.c~git-mips-fixup arch/mips/cobalt/setup.c
+--- a/arch/mips/cobalt/setup.c~git-mips-fixup
++++ a/arch/mips/cobalt/setup.c
+@@ -103,9 +103,6 @@ void __init plat_mem_setup(void)
+ 	/* These resources have been reserved by VIA SuperI/O chip. */
+ 	for (i = 0; i < ARRAY_SIZE(cobalt_reserved_resources); i++)
+ 		request_resource(&ioport_resource, cobalt_reserved_resources + i);
+-<<<<<<< HEAD/arch/mips/cobalt/setup.c
+-=======
+-
+         /* Read the cobalt id register out of the PCI config space */
+         PCI_CFG_SET(devfn, (VIA_COBALT_BRD_ID_REG & ~0x3));
+         cobalt_board_id = GT_READ(GT_PCI0_CFGDATA_OFS);
+@@ -128,7 +125,6 @@ void __init plat_mem_setup(void)
+ 		early_serial_setup(&uart);
+ #endif
+ 	}
+->>>>>>> /arch/mips/cobalt/setup.c
  }
+ 
+ /*
+diff -puN arch/mips/jmr3927/rbhma3100/kgdb_io.c~git-mips-fixup arch/mips/jmr3927/rbhma3100/kgdb_io.c
+--- a/arch/mips/jmr3927/rbhma3100/kgdb_io.c~git-mips-fixup
++++ a/arch/mips/jmr3927/rbhma3100/kgdb_io.c
+@@ -36,11 +36,7 @@
+ #define TIMEOUT       0xffffff
+ 
+ static int remoteDebugInitialized = 0;
+-<<<<<<< HEAD/arch/mips/jmr3927/rbhma3100/kgdb_io.c
+ static void debugInit(int baud);
+-=======
+-static void debugInit(int baud)
+->>>>>>> /arch/mips/jmr3927/rbhma3100/kgdb_io.c
+ 
+ int putDebugChar(unsigned char c)
+ {
+diff -puN arch/mips/pci/pci-ocelot.c~git-mips-fixup arch/mips/pci/pci-ocelot.c
+--- a/arch/mips/pci/pci-ocelot.c~git-mips-fixup
++++ a/arch/mips/pci/pci-ocelot.c
+@@ -81,15 +81,9 @@ static struct resource ocelot_io_resourc
+ };
+ 
+ static struct pci_controller ocelot_pci_controller = {
+-<<<<<<< HEAD/arch/mips/pci/pci-ocelot.c
+ 	.pci_ops	= gt64xxx_pci0_ops,
+ 	.mem_resource	= &ocelot_mem_resource,
+ 	.io_resource	= &ocelot_io_resource,
+-=======
+-	.pci_ops	= gt64xxx_pci0_ops;
+-	.mem_resource	= &ocelot_mem_resource;
+-	.io_resource	= &ocelot_io_resource;
+->>>>>>> /arch/mips/pci/pci-ocelot.c
+ };
+ 
+ static int __init ocelot_pcibios_init(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,7 +123,6 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 revert-gregkh-driver-block-device.patch
 git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
 git-input.patch
 adbhid-produce-all-capslock-key-events-fix.patch
 git-kbuild.patch
