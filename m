@@ -1,121 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - m68knommu-remove-is_in_rom-function.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:04:27 -0700
-Message-ID: <200707192004.l6JK4RRp019950@imap1.linux-foundation.org>
+Subject: - pm-introduce-pm_power_off_prepare.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:00:30 -0700
+Message-ID: <200707192000.l6JK0UNC019456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53029 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55017 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760849AbXGSUUk (ORCPT
+	by vger.kernel.org with ESMTP id S932279AbXGSUUp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:20:40 -0400
+	Thu, 19 Jul 2007 16:20:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerg@snapgear.com, gerg@uclinux.org, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68knommu: remove is_in_rom() function
+     PM: Introduce pm_power_off_prepare
 has been removed from the -mm tree.  Its filename was
-     m68knommu-remove-is_in_rom-function.patch
+     pm-introduce-pm_power_off_prepare.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m68knommu: remove is_in_rom() function
-From: Greg Ungerer <gerg@snapgear.com>
+Subject: PM: Introduce pm_power_off_prepare
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Remove is_in_rom() function.  It doesn't actually serve the purpose it was
-intended to.  If you look at the use of it _access_ok() (which is the only use
-of it) then it is obvious that most of memory is marked as access_ok.  No
-point having is_in_rom() then, so remove it.
+Introduce the pm_power_off_prepare() callback that can be registered by the
+interested platforms in analogy with pm_idle() and pm_power_off(), used for
+preparing the system to power off (needed by ACPI).
 
-Signed-off-by: Greg Ungerer <gerg@uclinux.org>
+This allows us to drop acpi_sysclass and device_acpi that are only defined in
+order to register the ACPI power off preparation callback, which is needed by
+pm_power_off() registered in a much different way.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/kernel/m68k_ksyms.c |    2 --
- arch/m68knommu/mm/memory.c         |   20 --------------------
- include/asm-m68knommu/pgtable.h    |    1 -
- include/asm-m68knommu/uaccess.h    |   11 +++++++----
- 4 files changed, 7 insertions(+), 27 deletions(-)
+ drivers/acpi/sleep/poweroff.c |   38 +++++++-------------------------
+ include/linux/pm.h            |    1 
+ kernel/sys.c                  |    9 +++++++
+ 3 files changed, 19 insertions(+), 29 deletions(-)
 
-diff -puN arch/m68knommu/kernel/m68k_ksyms.c~m68knommu-remove-is_in_rom-function arch/m68knommu/kernel/m68k_ksyms.c
---- a/arch/m68knommu/kernel/m68k_ksyms.c~m68knommu-remove-is_in_rom-function
-+++ a/arch/m68knommu/kernel/m68k_ksyms.c
-@@ -81,8 +81,6 @@ EXPORT_SYMBOL(__mulsi3);
- EXPORT_SYMBOL(__udivsi3);
- EXPORT_SYMBOL(__umodsi3);
+diff -puN drivers/acpi/sleep/poweroff.c~pm-introduce-pm_power_off_prepare drivers/acpi/sleep/poweroff.c
+--- a/drivers/acpi/sleep/poweroff.c~pm-introduce-pm_power_off_prepare
++++ a/drivers/acpi/sleep/poweroff.c
+@@ -39,7 +39,13 @@ int acpi_sleep_prepare(u32 acpi_state)
  
--EXPORT_SYMBOL(is_in_rom);
--
- #ifdef CONFIG_COLDFIRE
- extern unsigned int *dma_device_address;
- extern unsigned long dma_base_addr, _ramend;
-diff -puN arch/m68knommu/mm/memory.c~m68knommu-remove-is_in_rom-function arch/m68knommu/mm/memory.c
---- a/arch/m68knommu/mm/memory.c~m68knommu-remove-is_in_rom-function
-+++ a/arch/m68knommu/mm/memory.c
-@@ -33,23 +33,3 @@ unsigned long kernel_map(unsigned long p
- 	return paddr;
+ #ifdef CONFIG_PM
+ 
+-void acpi_power_off(void)
++static void acpi_power_off_prepare(void)
++{
++	/* Prepare to power off the system */
++	acpi_sleep_prepare(ACPI_STATE_S5);
++}
++
++static void acpi_power_off(void)
+ {
+ 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+ 	printk("%s called\n", __FUNCTION__);
+@@ -48,27 +54,6 @@ void acpi_power_off(void)
+ 	acpi_enter_sleep_state(ACPI_STATE_S5);
  }
  
--
--int is_in_rom(unsigned long addr)
+-static int acpi_shutdown(struct sys_device *x)
 -{
--	extern unsigned long _ramstart, _ramend;
--
--	/*
--	 *	What we are really trying to do is determine if addr is
--	 *	in an allocated kernel memory region. If not then assume
--	 *	we cannot free it or otherwise de-allocate it. Ideally
--	 *	we could restrict this to really being in a ROM or flash,
--	 *	but that would need to be done on a board by board basis,
--	 *	not globally.
--	 */
--	if ((addr < _ramstart) || (addr >= _ramend))
--		return(1);
--
--	/* Default case, not in ROM */
--	return(0);
+-	switch (system_state) {
+-	case SYSTEM_POWER_OFF:
+-		/* Prepare to power off the system */
+-		return acpi_sleep_prepare(ACPI_STATE_S5);
+-	default:
+-		return 0;
+-	}
 -}
 -
-diff -puN include/asm-m68knommu/pgtable.h~m68knommu-remove-is_in_rom-function include/asm-m68knommu/pgtable.h
---- a/include/asm-m68knommu/pgtable.h~m68knommu-remove-is_in_rom-function
-+++ a/include/asm-m68knommu/pgtable.h
-@@ -49,7 +49,6 @@ static inline int pte_file(pte_t pte) { 
-  * These would be in other places but having them here reduces the diffs.
-  */
- extern unsigned int kobjsize(const void *objp);
--extern int is_in_rom(unsigned long);
- 
- /*
-  * No page table caches to initialise.
-diff -puN include/asm-m68knommu/uaccess.h~m68knommu-remove-is_in_rom-function include/asm-m68knommu/uaccess.h
---- a/include/asm-m68knommu/uaccess.h~m68knommu-remove-is_in_rom-function
-+++ a/include/asm-m68knommu/uaccess.h
-@@ -15,12 +15,15 @@
- 
- #define access_ok(type,addr,size)	_access_ok((unsigned long)(addr),(size))
- 
-+/*
-+ * It is not enough to just have access_ok check for a real RAM address.
-+ * This would disallow the case of code/ro-data running XIP in flash/rom.
-+ * Ideally we would check the possible flash ranges too, but that is
-+ * currently not so easy.
-+ */
- static inline int _access_ok(unsigned long addr, unsigned long size)
- {
--	extern unsigned long memory_start, memory_end;
+-static struct sysdev_class acpi_sysclass = {
+-	set_kset_name("acpi"),
+-	.shutdown = acpi_shutdown
+-};
 -
--	return (((addr >= memory_start) && (addr+size < memory_end)) ||
--		(is_in_rom(addr) && is_in_rom(addr+size)));
-+	return 1;
- }
+-static struct sys_device device_acpi = {
+-	.id = 0,
+-	.cls = &acpi_sysclass,
+-};
+-
+ static int acpi_poweroff_init(void)
+ {
+ 	if (!acpi_disabled) {
+@@ -78,13 +63,8 @@ static int acpi_poweroff_init(void)
+ 		status =
+ 		    acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+ 		if (ACPI_SUCCESS(status)) {
+-			int error;
+-			error = sysdev_class_register(&acpi_sysclass);
+-			if (!error)
+-				error = sysdev_register(&device_acpi);
+-			if (!error)
+-				pm_power_off = acpi_power_off;
+-			return error;
++			pm_power_off_prepare = acpi_power_off_prepare;
++			pm_power_off = acpi_power_off;
+ 		}
+ 	}
+ 	return 0;
+diff -puN include/linux/pm.h~pm-introduce-pm_power_off_prepare include/linux/pm.h
+--- a/include/linux/pm.h~pm-introduce-pm_power_off_prepare
++++ a/include/linux/pm.h
+@@ -101,6 +101,7 @@ struct pm_dev
+  */
+ extern void (*pm_idle)(void);
+ extern void (*pm_power_off)(void);
++extern void (*pm_power_off_prepare)(void);
+ 
+ typedef int __bitwise suspend_state_t;
+ 
+diff -puN kernel/sys.c~pm-introduce-pm_power_off_prepare kernel/sys.c
+--- a/kernel/sys.c~pm-introduce-pm_power_off_prepare
++++ a/kernel/sys.c
+@@ -100,6 +100,13 @@ struct pid *cad_pid;
+ EXPORT_SYMBOL(cad_pid);
  
  /*
++ * If set, this is used for preparing the system to power off.
++ */
++
++void (*pm_power_off_prepare)(void);
++EXPORT_SYMBOL(pm_power_off_prepare);
++
++/*
+  *	Notifier list for kernel code which wants to be called
+  *	at shutdown. This is used to stop any idling DMA operations
+  *	and the like. 
+@@ -867,6 +874,8 @@ EXPORT_SYMBOL_GPL(kernel_halt);
+ void kernel_power_off(void)
+ {
+ 	kernel_shutdown_prepare(SYSTEM_POWER_OFF);
++	if (pm_power_off_prepare)
++		pm_power_off_prepare();
+ 	printk(KERN_EMERG "Power down.\n");
+ 	machine_power_off();
+ }
 _
 
-Patches currently in -mm which might be from gerg@snapgear.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-git-mtd.patch
+acpi-implement-the-set_target-callback-from-pm_ops.patch
+acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+shrink_slab-handle-bad-shrinkers.patch
