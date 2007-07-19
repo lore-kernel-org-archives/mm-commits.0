@@ -1,103 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-mod-assert_error-check.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:05:56 -0700
-Message-ID: <200707192005.l6JK5uEr020087@imap1.linux-foundation.org>
+Subject: - lguest-export-symbols-for-lguest-as-a-module.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:04:49 -0700
+Message-ID: <200707192004.l6JK4ner019982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33779 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52723 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761409AbXGSUQ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1760916AbXGSUQ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:29 -0400
+	Thu, 19 Jul 2007 16:16:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djiang@mvista.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: mod assert_error check
+     lguest: export symbols for lguest as a module
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-mod-assert_error-check.patch
+     lguest-export-symbols-for-lguest-as-a-module.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: mod assert_error check
-From: Dave Jiang <djiang@mvista.com>
+Subject: lguest: export symbols for lguest as a module
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Change error check and clear variable from an atomic to an int
+lguest does some fairly lowlevel things to support a host, which
+normal modules don't need:
 
-Signed-off-by: Dave Jiang <djiang@mvista.com>
-Signed-off-by: Douglas Thompson <dougthompson@xmission.com
+math_state_restore:
+	When the guest triggers a Device Not Available fault, we need
+	to be able to restore the FPU
+
+__put_task_struct:
+	We need to hold a reference to another task for inter-guest
+	I/O, and put_task_struct() is an inline function which calls
+	__put_task_struct.
+
+access_process_vm:
+	We need to access another task for inter-guest I/O.
+
+map_vm_area & __get_vm_area:
+	We need to map the switcher shim (ie. monitor) at 0xFFC01000.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_mc.c   |   11 ++++-------
- drivers/edac/edac_stub.c |    4 ++--
- include/linux/edac.h     |    2 +-
- 3 files changed, 7 insertions(+), 10 deletions(-)
+ arch/i386/kernel/traps.c |    1 +
+ kernel/fork.c            |    1 +
+ mm/memory.c              |    1 +
+ mm/vmalloc.c             |    2 ++
+ 4 files changed, 5 insertions(+)
 
-diff -puN drivers/edac/edac_mc.c~drivers-edac-mod-assert_error-check drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~drivers-edac-mod-assert_error-check
-+++ a/drivers/edac/edac_mc.c
-@@ -222,18 +222,15 @@ static struct mem_ctl_info *find_mci_by_
-  */
- static int edac_mc_assert_error_check_and_clear(void)
- {
--	int vreg;
-+	int old_state;
- 
- 	if(edac_op_state == EDAC_OPSTATE_POLL)
- 		return 1;
- 
--	vreg = atomic_read(&edac_err_assert);
--	if(vreg) {
--		atomic_set(&edac_err_assert, 0);
--		return 1;
--	}
-+	old_state = edac_err_assert;
-+	edac_err_assert = 0;
- 
--	return 0;
-+	return old_state;
+diff -puN arch/i386/kernel/traps.c~lguest-export-symbols-for-lguest-as-a-module arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~lguest-export-symbols-for-lguest-as-a-module
++++ a/arch/i386/kernel/traps.c
+@@ -1056,6 +1056,7 @@ asmlinkage void math_state_restore(void)
+ 	thread->status |= TS_USEDFPU;	/* So we fnsave on switch_to() */
+ 	tsk->fpu_counter++;
  }
++EXPORT_SYMBOL_GPL(math_state_restore);
  
- /*
-diff -puN drivers/edac/edac_stub.c~drivers-edac-mod-assert_error-check drivers/edac/edac_stub.c
---- a/drivers/edac/edac_stub.c~drivers-edac-mod-assert_error-check
-+++ a/drivers/edac/edac_stub.c
-@@ -20,7 +20,7 @@ EXPORT_SYMBOL(edac_op_state);
- atomic_t edac_handlers = ATOMIC_INIT(0);
- EXPORT_SYMBOL(edac_handlers);
+ #ifndef CONFIG_MATH_EMULATION
  
--atomic_t edac_err_assert = ATOMIC_INIT(0);
-+int edac_err_assert = 0;
- EXPORT_SYMBOL(edac_err_assert);
- 
- inline int edac_handler_set(void)
-@@ -37,6 +37,6 @@ EXPORT_SYMBOL(edac_handler_set);
-  */
- inline void edac_atomic_assert_error(void)
- {
--	atomic_set(&edac_err_assert, 1);
-+	edac_err_assert++;
+diff -puN kernel/fork.c~lguest-export-symbols-for-lguest-as-a-module kernel/fork.c
+--- a/kernel/fork.c~lguest-export-symbols-for-lguest-as-a-module
++++ a/kernel/fork.c
+@@ -127,6 +127,7 @@ void __put_task_struct(struct task_struc
+ 	if (!profile_handoff_task(tsk))
+ 		free_task(tsk);
  }
- EXPORT_SYMBOL(edac_atomic_assert_error);
-diff -puN include/linux/edac.h~drivers-edac-mod-assert_error-check include/linux/edac.h
---- a/include/linux/edac.h~drivers-edac-mod-assert_error-check
-+++ a/include/linux/edac.h
-@@ -20,8 +20,8 @@
- #define EDAC_OPSTATE_INT	2
++EXPORT_SYMBOL_GPL(__put_task_struct);
  
- extern int edac_op_state;
-+extern int edac_err_assert;
- extern atomic_t edac_handlers;
--extern atomic_t edac_err_assert;
+ void __init fork_init(unsigned long mempages)
+ {
+diff -puN mm/memory.c~lguest-export-symbols-for-lguest-as-a-module mm/memory.c
+--- a/mm/memory.c~lguest-export-symbols-for-lguest-as-a-module
++++ a/mm/memory.c
+@@ -2865,3 +2865,4 @@ int access_process_vm(struct task_struct
  
- extern int edac_handler_set(void);
- extern void edac_atomic_assert_error(void);
+ 	return buf - old_buf;
+ }
++EXPORT_SYMBOL_GPL(access_process_vm);
+diff -puN mm/vmalloc.c~lguest-export-symbols-for-lguest-as-a-module mm/vmalloc.c
+--- a/mm/vmalloc.c~lguest-export-symbols-for-lguest-as-a-module
++++ a/mm/vmalloc.c
+@@ -164,6 +164,7 @@ int map_vm_area(struct vm_struct *area, 
+ 	flush_cache_vmap((unsigned long) area->addr, end);
+ 	return err;
+ }
++EXPORT_SYMBOL_GPL(map_vm_area);
+ 
+ static struct vm_struct *__get_vm_area_node(unsigned long size, unsigned long flags,
+ 					    unsigned long start, unsigned long end,
+@@ -242,6 +243,7 @@ struct vm_struct *__get_vm_area(unsigned
+ {
+ 	return __get_vm_area_node(size, flags, start, end, -1, GFP_KERNEL);
+ }
++EXPORT_SYMBOL_GPL(__get_vm_area);
+ 
+ /**
+  *	get_vm_area  -  reserve a contingous kernel virtual area
 _
 
-Patches currently in -mm which might be from djiang@mvista.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
+git-kbuild.patch
+git-kvm.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
