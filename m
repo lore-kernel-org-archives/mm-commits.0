@@ -1,52 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - revert-saa7134-fix-thread-shutdown-handling.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 12:10:04 -0700
-Message-ID: <200707191910.l6JJA4Bh017323@imap1.linux-foundation.org>
+Subject: - git-dvb-saa7134-tvaudio-fix.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 12:10:22 -0700
+Message-ID: <200707191910.l6JJAMMY017326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41406 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55811 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753134AbXGSTKS (ORCPT
+	by vger.kernel.org with ESMTP id S1754799AbXGSTKi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 15:10:18 -0400
+	Thu, 19 Jul 2007 15:10:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeffm@suse.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert saa7134-fix-thread-shutdown-handling
+     git-dvb-saa7134-tvaudio-fix
 has been removed from the -mm tree.  Its filename was
-     revert-saa7134-fix-thread-shutdown-handling.patch
+     git-dvb-saa7134-tvaudio-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert saa7134-fix-thread-shutdown-handling
+Subject: git-dvb-saa7134-tvaudio-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make git-dvb.patch apply.  (I hope it didn't retain the same bug?)
+drivers/media/video/saa7134/saa7134-tvaudio.c: In function 'saa7134_tvaudio_fini':
+drivers/media/video/saa7134/saa7134-tvaudio.c:1001: error: 'struct saa7134_thread' has no member named 'pid'
+drivers/media/video/saa7134/saa7134-tvaudio.c:1002: error: 'struct saa7134_thread' has no member named 'shutdown'
+drivers/media/video/saa7134/saa7134-tvaudio.c:1003: error: 'struct saa7134_thread' has no member named 'wq'
+drivers/media/video/saa7134/saa7134-tvaudio.c:1004: error: 'struct saa7134_thread' has no member named 'exit'
+
+weird...
 
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/saa7134/saa7134-tvaudio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/saa7134/saa7134-tvaudio.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/media/video/saa7134/saa7134-tvaudio.c~revert-saa7134-fix-thread-shutdown-handling drivers/media/video/saa7134/saa7134-tvaudio.c
---- a/drivers/media/video/saa7134/saa7134-tvaudio.c~revert-saa7134-fix-thread-shutdown-handling
+diff -puN drivers/media/video/saa7134/saa7134-tvaudio.c~git-dvb-saa7134-tvaudio-fix drivers/media/video/saa7134/saa7134-tvaudio.c
+--- a/drivers/media/video/saa7134/saa7134-tvaudio.c~git-dvb-saa7134-tvaudio-fix
 +++ a/drivers/media/video/saa7134/saa7134-tvaudio.c
-@@ -1005,7 +1005,7 @@ int saa7134_tvaudio_init2(struct saa7134
+@@ -998,11 +998,11 @@ int saa7134_tvaudio_init2(struct saa7134
  int saa7134_tvaudio_fini(struct saa7134_dev *dev)
  {
  	/* shutdown tvaudio thread */
--	if (dev->thread.pid > 0) {
-+	if (dev->thread.pid >= 0) {
- 		dev->thread.shutdown = 1;
- 		wake_up_interruptible(&dev->thread.wq);
- 		wait_for_completion(&dev->thread.exit);
+-	if (dev->thread.pid >= 0) {
+-		dev->thread.shutdown = 1;
+-		wake_up_interruptible(&dev->thread.wq);
+-		wait_for_completion(&dev->thread.exit);
+-	}
++//	if (dev->thread.pid >= 0) {
++//		dev->thread.shutdown = 1;
++//		wake_up_interruptible(&dev->thread.wq);
++//		wait_for_completion(&dev->thread.exit);
++//	}
+ 	saa_andorb(SAA7134_ANALOG_IO_SELECT, 0x07, 0x00); /* LINE1 */
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +73,6 @@ acpi-add-reboot-mechanism-fix.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 revert-gregkh-driver-block-device.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
 git-dvb.patch
 git-dvb-saa7134-tvaudio-fix.patch
 git-input.patch
