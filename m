@@ -1,107 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:11:02 -0700
-Message-ID: <200707192011.l6JKB2ou020731@imap1.linux-foundation.org>
+Subject: - ecryptfs-ecryptfs_setattr-bugfix.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:00:57 -0700
+Message-ID: <200707192000.l6JK0vj2019490@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47659 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35740 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761598AbXGSUSN (ORCPT
+	by vger.kernel.org with ESMTP id S1761406AbXGSUSB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:18:13 -0400
+	Thu, 19 Jul 2007 16:18:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adurbin@google.com, ak@suse.de, johnstul@us.ibm.com, lenb@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386/x86_64: insert HPET firmware resource after PCI enumeration has completed
+     eCryptfs: ecryptfs_setattr() bugfix
 has been removed from the -mm tree.  Its filename was
-     i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch
+     ecryptfs-ecryptfs_setattr-bugfix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386/x86_64: insert HPET firmware resource after PCI enumeration has completed
-From: Aaron Durbin <adurbin@google.com>
+Subject: eCryptfs: ecryptfs_setattr() bugfix
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Insert HPET resources after pci probing has been completed in order to
-avoid resource conflicts with PCI resource reservation.  With this change
-the HPET firmware resources will be identified, but it should also not
-cause issues when the HPET address falls on a BAR in a PCI device, and the
-PCI enumeration cannot reserve the resources.
+There is another bug recently introduced into the ecryptfs_setattr()
+function in 2.6.22.  eCryptfs will attempt to treat special files like
+regular eCryptfs files on chmod, chown, and so forth.  This leads to a NULL
+pointer dereference.  This patch validates that the file is a regular file
+before proceeding with operations related to the inode's crypt_stat.
 
-Signed-off-by: Aaron Durbin <adurbin@google.com>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+Thanks to Ryusuke Konishi for finding this bug and suggesting the fix.
+
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/boot.c |   36 +++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ fs/ecryptfs/inode.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/boot.c~i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed arch/i386/kernel/acpi/boot.c
---- a/arch/i386/kernel/acpi/boot.c~i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed
-+++ a/arch/i386/kernel/acpi/boot.c
-@@ -618,6 +618,8 @@ static int __init acpi_parse_sbf(struct 
- #ifdef CONFIG_HPET_TIMER
- #include <asm/hpet.h>
- 
-+static struct __initdata resource *hpet_res;
-+
- static int __init acpi_parse_hpet(struct acpi_table_header *table)
- {
- 	struct acpi_table_hpet *hpet_tbl;
-@@ -638,8 +640,42 @@ static int __init acpi_parse_hpet(struct
- 	printk(KERN_INFO PREFIX "HPET id: %#x base: %#lx\n",
- 	       hpet_tbl->id, hpet_address);
- 
-+	/*
-+	 * Allocate and initialize the HPET firmware resource for adding into
-+	 * the resource tree during the lateinit timeframe.
-+	 */
-+#define HPET_RESOURCE_NAME_SIZE 9
-+	hpet_res = alloc_bootmem(sizeof(*hpet_res) + HPET_RESOURCE_NAME_SIZE);
-+
-+	if (!hpet_res)
-+		return 0;
-+
-+	memset(hpet_res, 0, sizeof(*hpet_res));
-+	hpet_res->name = (void *)&hpet_res[1];
-+	hpet_res->flags = IORESOURCE_MEM;
-+	snprintf((char *)hpet_res->name, HPET_RESOURCE_NAME_SIZE, "HPET %u",
-+		 hpet_tbl->sequence);
-+
-+	hpet_res->start = hpet_address;
-+	hpet_res->end = hpet_address + (1 * 1024) - 1;
-+
- 	return 0;
- }
-+
-+/*
-+ * hpet_insert_resource inserts the HPET resources used into the resource
-+ * tree.
-+ */
-+static __init int hpet_insert_resource(void)
-+{
-+	if (!hpet_res)
-+		return 1;
-+
-+	return insert_resource(&iomem_resource, hpet_res);
-+}
-+
-+late_initcall(hpet_insert_resource);
-+
- #else
- #define	acpi_parse_hpet	NULL
- #endif
+diff -puN fs/ecryptfs/inode.c~ecryptfs-ecryptfs_setattr-bugfix fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-ecryptfs_setattr-bugfix
++++ a/fs/ecryptfs/inode.c
+@@ -902,8 +902,9 @@ static int ecryptfs_setattr(struct dentr
+ 	mutex_lock(&crypt_stat->cs_mutex);
+ 	if (S_ISDIR(dentry->d_inode->i_mode))
+ 		crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
+-	else if (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
+-		 || !(crypt_stat->flags & ECRYPTFS_KEY_VALID)) {
++	else if (S_ISREG(dentry->d_inode->i_mode)
++		 && (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
++		     || !(crypt_stat->flags & ECRYPTFS_KEY_VALID))) {
+ 		struct vfsmount *lower_mnt;
+ 		struct file *lower_file = NULL;
+ 		struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
 _
 
-Patches currently in -mm which might be from adurbin@google.com are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
-acpi-add-reboot-mechanism.patch
-acpi-add-reboot-mechanism-fix.patch
-x86_64-add-acpi-reboot-option.patch
-x86_64-make-acpi-the-default-reset-option.patch
+origin.patch
+git-unionfs.patch
+fs-remove-some-aop_truncated_page.patch
