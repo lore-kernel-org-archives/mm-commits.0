@@ -1,82 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-calgary-change-_map_single-etc-to-static.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:42 -0700
-Message-ID: <200707192009.l6JK9gNS020602@imap1.linux-foundation.org>
+Subject: - i386-minor-nx-handling-adjustment.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:10:00 -0700
+Message-ID: <200707192010.l6JKA0dn020626@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48606 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59296 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761356AbXGSUQI (ORCPT
+	by vger.kernel.org with ESMTP id S1761390AbXGSUQG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:08 -0400
+	Thu, 19 Jul 2007 16:16:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai.lu@Sun.COM, ak@suse.de, muli@il.ibm.com, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, ak@suse.de, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: Calgary - change _map_single, etc to static
+     i386: minor nx handling adjustment
 has been removed from the -mm tree.  Its filename was
-     x86_64-calgary-change-_map_single-etc-to-static.patch
+     i386-minor-nx-handling-adjustment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: Calgary - change _map_single, etc to static
-From: Yinghai Lu <yinghai.lu@sun.com>
+Subject: i386: minor nx handling adjustment
+From: "Jan Beulich" <jbeulich@novell.com>
 
-there function are called via dma_ops->.., so change them to static
+Constrain __supported_pte_mask and NX handling to just the PAE kernel.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
+[jeremy@goop.org: add missing include]
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/i386/mm/init.c     |    7 ++++---
+ include/asm-i386/page.h |    1 -
+ include/xen/page.h      |    1 +
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86_64-calgary-change-_map_single-etc-to-static arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86_64-calgary-change-_map_single-etc-to-static
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -417,7 +417,7 @@ static int calgary_nontranslate_map_sg(s
- 	return nelems;
+diff -puN arch/i386/mm/init.c~i386-minor-nx-handling-adjustment arch/i386/mm/init.c
+--- a/arch/i386/mm/init.c~i386-minor-nx-handling-adjustment
++++ a/arch/i386/mm/init.c
+@@ -472,6 +472,10 @@ void zap_low_mappings (void)
+ 	flush_tlb_all();
  }
  
--int calgary_map_sg(struct device *dev, struct scatterlist *sg,
-+static int calgary_map_sg(struct device *dev, struct scatterlist *sg,
- 	int nelems, int direction)
- {
- 	struct iommu_table *tbl = find_iommu_table(dev);
-@@ -462,7 +462,7 @@ error:
- 	return 0;
++int nx_enabled = 0;
++
++#ifdef CONFIG_X86_PAE
++
+ static int disable_nx __initdata = 0;
+ u64 __supported_pte_mask __read_mostly = ~_PAGE_NX;
+ EXPORT_SYMBOL_GPL(__supported_pte_mask);
+@@ -501,9 +505,6 @@ static int __init noexec_setup(char *str
  }
+ early_param("noexec", noexec_setup);
  
--dma_addr_t calgary_map_single(struct device *dev, void *vaddr,
-+static dma_addr_t calgary_map_single(struct device *dev, void *vaddr,
- 	size_t size, int direction)
+-int nx_enabled = 0;
+-#ifdef CONFIG_X86_PAE
+-
+ static void __init set_nx(void)
  {
- 	dma_addr_t dma_handle = bad_dma_address;
-@@ -481,7 +481,7 @@ dma_addr_t calgary_map_single(struct dev
- 	return dma_handle;
- }
+ 	unsigned int v[4], l, h;
+diff -puN include/asm-i386/page.h~i386-minor-nx-handling-adjustment include/asm-i386/page.h
+--- a/include/asm-i386/page.h~i386-minor-nx-handling-adjustment
++++ a/include/asm-i386/page.h
+@@ -44,7 +44,6 @@
+ extern int nx_enabled;
  
--void calgary_unmap_single(struct device *dev, dma_addr_t dma_handle,
-+static void calgary_unmap_single(struct device *dev, dma_addr_t dma_handle,
- 	size_t size, int direction)
- {
- 	struct iommu_table *tbl = find_iommu_table(dev);
-@@ -494,7 +494,7 @@ void calgary_unmap_single(struct device 
- 	iommu_free(tbl, dma_handle, npages);
- }
+ #ifdef CONFIG_X86_PAE
+-extern unsigned long long __supported_pte_mask;
+ typedef struct { unsigned long pte_low, pte_high; } pte_t;
+ typedef struct { unsigned long long pmd; } pmd_t;
+ typedef struct { unsigned long long pgd; } pgd_t;
+diff -puN include/xen/page.h~i386-minor-nx-handling-adjustment include/xen/page.h
+--- a/include/xen/page.h~i386-minor-nx-handling-adjustment
++++ a/include/xen/page.h
+@@ -4,6 +4,7 @@
+ #include <linux/pfn.h>
  
--void* calgary_alloc_coherent(struct device *dev, size_t size,
-+static void* calgary_alloc_coherent(struct device *dev, size_t size,
- 	dma_addr_t *dma_handle, gfp_t flag)
- {
- 	void *ret = NULL;
+ #include <asm/uaccess.h>
++#include <asm/pgtable.h>
+ 
+ #include <xen/features.h>
+ 
 _
 
-Patches currently in -mm which might be from yinghai.lu@sun.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
+git-kbuild.patch
