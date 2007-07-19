@@ -1,83 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - x86-fix-section-mismatch-warnings-in-mtrr.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:08:47 -0700
-Message-ID: <200707192008.l6JK8lNI020486@imap1.linux-foundation.org>
+Subject: - make-alt-sysrq-p-display-the-debug-register-contents.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:08:51 -0700
+Message-ID: <200707192008.l6JK8p1b020512@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47923 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48567 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760733AbXGSUP0 (ORCPT
+	by vger.kernel.org with ESMTP id S1761421AbXGSUQS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:26 -0400
+	Thu, 19 Jul 2007 16:16:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, ak@suse.de, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: fix section mismatch warnings in mtrr
+     Make Alt-SysRq-p display the debug register contents
 has been removed from the -mm tree.  Its filename was
-     x86-fix-section-mismatch-warnings-in-mtrr.patch
+     make-alt-sysrq-p-display-the-debug-register-contents.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: fix section mismatch warnings in mtrr
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Make Alt-SysRq-p display the debug register contents
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Following section mismatch warnings were reported by Andrey Borzenkov:
+This patch (as921) adds code to the show_regs() routine in i386 and x86_64
+to print the contents of the debug registers along with all the others.
 
-WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text:amd_init_mtrr from .text between 'mtrr_bp_init' (at offset 0x967a) and 'mtrr_attrib_to_str'
-WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text:cyrix_init_mtrr from .text between 'mtrr_bp_init' (at offset 0x967f) and 'mtrr_attrib_to_str'
-WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text:centaur_init_mtrr from .text between 'mtrr_bp_init' (at offset 0x9684) and 'mtrr_attrib_to_str'
-WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text: from .text between 'get_mtrr_state' (at offset 0xa735) and 'generic_get_mtrr'
-WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text: from .text between 'get_mtrr_state' (at offset 0xa749) and 'generic_get_mtrr'
-WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text: from .text between 'get_mtrr_state' (at offset 0xa770) and 'generic_get_mtrr'
-
-It was tracked down to a few functions missing __init tag.
-Compile tested only.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/generic.c |    2 +-
- arch/i386/kernel/cpu/mtrr/main.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/process.c   |   12 ++++++++++++
+ arch/x86_64/kernel/process.c |   10 ++++++++++
+ 2 files changed, 22 insertions(+)
 
-diff -puN arch/i386/kernel/cpu/mtrr/generic.c~x86-fix-section-mismatch-warnings-in-mtrr arch/i386/kernel/cpu/mtrr/generic.c
---- a/arch/i386/kernel/cpu/mtrr/generic.c~x86-fix-section-mismatch-warnings-in-mtrr
-+++ a/arch/i386/kernel/cpu/mtrr/generic.c
-@@ -79,7 +79,7 @@ static void print_fixed(unsigned base, u
+diff -puN arch/i386/kernel/process.c~make-alt-sysrq-p-display-the-debug-register-contents arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~make-alt-sysrq-p-display-the-debug-register-contents
++++ a/arch/i386/kernel/process.c
+@@ -302,6 +302,7 @@ early_param("idle", idle_setup);
+ void show_regs(struct pt_regs * regs)
+ {
+ 	unsigned long cr0 = 0L, cr2 = 0L, cr3 = 0L, cr4 = 0L;
++	unsigned long d0, d1, d2, d3, d6, d7;
+ 
+ 	printk("\n");
+ 	printk("Pid: %d, comm: %20s\n", current->pid, current->comm);
+@@ -326,6 +327,17 @@ void show_regs(struct pt_regs * regs)
+ 	cr3 = read_cr3();
+ 	cr4 = read_cr4_safe();
+ 	printk("CR0: %08lx CR2: %08lx CR3: %08lx CR4: %08lx\n", cr0, cr2, cr3, cr4);
++
++	get_debugreg(d0, 0);
++	get_debugreg(d1, 1);
++	get_debugreg(d2, 2);
++	get_debugreg(d3, 3);
++	printk("DR0: %08lx DR1: %08lx DR2: %08lx DR3: %08lx\n",
++			d0, d1, d2, d3);
++	get_debugreg(d6, 6);
++	get_debugreg(d7, 7);
++	printk("DR6: %08lx DR7: %08lx\n", d6, d7);
++
+ 	show_trace(NULL, regs, &regs->esp);
  }
  
- /*  Grab all of the MTRR state for this CPU into *state  */
--void get_mtrr_state(void)
-+void __init get_mtrr_state(void)
+diff -puN arch/x86_64/kernel/process.c~make-alt-sysrq-p-display-the-debug-register-contents arch/x86_64/kernel/process.c
+--- a/arch/x86_64/kernel/process.c~make-alt-sysrq-p-display-the-debug-register-contents
++++ a/arch/x86_64/kernel/process.c
+@@ -306,6 +306,7 @@ early_param("idle", idle_setup);
+ void __show_regs(struct pt_regs * regs)
  {
- 	unsigned int i;
- 	struct mtrr_var_range *vrs;
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~x86-fix-section-mismatch-warnings-in-mtrr arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~x86-fix-section-mismatch-warnings-in-mtrr
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -648,7 +648,7 @@ static struct sysdev_driver mtrr_sysdev_
-  * initialized (i.e. before smp_init()).
-  * 
-  */
--__init void mtrr_bp_init(void)
-+void __init mtrr_bp_init(void)
- {
- 	init_ifs();
+ 	unsigned long cr0 = 0L, cr2 = 0L, cr3 = 0L, cr4 = 0L, fs, gs, shadowgs;
++	unsigned long d0, d1, d2, d3, d6, d7;
+ 	unsigned int fsindex,gsindex;
+ 	unsigned int ds,cs,es; 
  
+@@ -350,6 +351,15 @@ void __show_regs(struct pt_regs * regs)
+ 	       fs,fsindex,gs,gsindex,shadowgs); 
+ 	printk("CS:  %04x DS: %04x ES: %04x CR0: %016lx\n", cs, ds, es, cr0); 
+ 	printk("CR2: %016lx CR3: %016lx CR4: %016lx\n", cr2, cr3, cr4);
++
++	get_debugreg(d0, 0);
++	get_debugreg(d1, 1);
++	get_debugreg(d2, 2);
++	printk("DR0: %016lx DR1: %016lx DR2: %016lx\n", d0, d1, d2);
++	get_debugreg(d3, 3);
++	get_debugreg(d6, 6);
++	get_debugreg(d7, 7);
++	printk("DR3: %016lx DR6: %016lx DR7: %016lx\n", d3, d6, d7);
+ }
+ 
+ void show_regs(struct pt_regs *regs)
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
 origin.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-git-kbuild.patch
-pass-g-to-assembler-under-config_debug_info.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-whitelist-references-from-__dbe_table-to-init.patch
