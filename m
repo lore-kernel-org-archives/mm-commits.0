@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch added to -mm tree
-Date: Thu, 19 Jul 2007 14:58:24 -0700
-Message-ID: <200707192158.l6JLwOYp025076@imap1.linux-foundation.org>
+Subject: + ipmi-fix-mem-leak-in-try_init_dmi.patch added to -mm tree
+Date: Thu, 19 Jul 2007 15:06:50 -0700
+Message-ID: <200707192206.l6JM6oe1025400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60855 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48270 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753036AbXGSV6c (ORCPT
+	by vger.kernel.org with ESMTP id S1763220AbXGSWHE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 17:58:32 -0400
+	Thu, 19 Jul 2007 18:07:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rpjday@mindspring.com
+Cc: jesper.juhl@gmail.com, cminyard@mvista.com
 
 
 The patch titled
-     force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
+     ipmi: Fix mem leak in try_init_dmi()
 has been added to the -mm tree.  Its filename is
-     force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+     ipmi-fix-mem-leak-in-try_init_dmi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,134 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipmi: Fix mem leak in try_init_dmi()
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-eh?
+This is only called at init time and only happens if the BIOS screws
+something up, so the leak is slight and it is probably not worth sending to
+2.6.22.x.  The driver would not initialize the interface in the case, and I
+have no reports of this happening.  I have booted and run tests on a system
+with this patch.  Note that the original patch was munged by the mailer,
+here's a new one.
 
-Cc: Robert P. J. Day <rpjday@mindspring.com>
+If we ever hit the "default:" case in the switch in try_init_dmi(),
+then we'll leak the storage allocated with kzalloc() and assigned
+to 'info'.
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h   |    2 +-
- include/linux/compiler-gcc3.h  |    2 +-
- include/linux/compiler-gcc4.h  |    2 +-
- include/linux/compiler-intel.h |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN include/linux/compiler-gcc.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
-+++ a/include/linux/compiler-gcc.h
-@@ -1,4 +1,4 @@
--#ifndef _LINUX_COMPILER_H
-+#ifndef __LINUX_COMPILER_H
- #error "Please don't include <linux/compiler-gcc.h> directly, include <linux/compiler.h> instead."
- #endif
- 
-diff -puN include/linux/compiler-gcc3.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix include/linux/compiler-gcc3.h
---- a/include/linux/compiler-gcc3.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
-+++ a/include/linux/compiler-gcc3.h
-@@ -1,4 +1,4 @@
--#ifndef _LINUX_COMPILER_H
-+#ifndef __LINUX_COMPILER_H
- #error "Please don't include <linux/compiler-gcc3.h> directly, include <linux/compiler.h> instead."
- #endif
- 
-diff -puN include/linux/compiler-gcc4.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
-+++ a/include/linux/compiler-gcc4.h
-@@ -1,4 +1,4 @@
--#ifndef _LINUX_COMPILER_H
-+#ifndef __LINUX_COMPILER_H
- #error "Please don't include <linux/compiler-gcc4.h> directly, include <linux/compiler.h> instead."
- #endif
- 
-diff -puN include/linux/compiler-intel.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix include/linux/compiler-intel.h
---- a/include/linux/compiler-intel.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
-+++ a/include/linux/compiler-intel.h
-@@ -1,4 +1,4 @@
--#ifndef _LINUX_COMPILER_H
-+#ifndef __LINUX_COMPILER_H
- #error "Please don't include <linux/compiler-intel.h> directly, include <linux/compiler.h> instead."
- #endif
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-mem-leak-in-try_init_dmi drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-mem-leak-in-try_init_dmi
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -2050,6 +2050,7 @@ static __devinit void try_init_dmi(struc
+ 		info->si_type = SI_BT;
+ 		break;
+ 	default:
++		kfree(info);
+ 		return;
+ 	}
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-dvb.patch
-git-input.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+fix-acpi_ev_pci_config_region_setup-to-avoid-memory-leak.patch
+git-gfs2-nmw.patch
 git-mtd.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-git-scsi-misc.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
 git-xfs.patch
-git-kgdb-fixup-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+ipmi-fix-mem-leak-in-try_init_dmi.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
