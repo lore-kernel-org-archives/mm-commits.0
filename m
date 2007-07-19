@@ -1,56 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - add-sys-kernel-notes-fix.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 22:52:25 -0700
-Message-ID: <200707190552.l6J5qPvI016549@imap1.linux-foundation.org>
+Subject: - lockstat-human-readability-tweaks-fix.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 22:52:54 -0700
+Message-ID: <200707190552.l6J5qs40016554@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42358 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41724 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750780AbXGSFxE (ORCPT
+	by vger.kernel.org with ESMTP id S1752992AbXGSFxZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 01:53:04 -0400
+	Thu, 19 Jul 2007 01:53:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, ink@jurassic.park.msu.ru, paulus@samba.org, roland@redhat.com, rth@twiddle.net, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, bunk@stusta.de, jbaron@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-sys-kernel-notes-fix
+     lockstat-human-readability-tweaks-fix
 has been removed from the -mm tree.  Its filename was
-     add-sys-kernel-notes-fix.patch
+     lockstat-human-readability-tweaks-fix.patch
 
-This patch was dropped because it was folded into add-sys-kernel-notes.patch
+This patch was dropped because it was folded into lockstat-human-readability-tweaks.patch
 
 ------------------------------------------------------
-Subject: add-sys-kernel-notes-fix
+Subject: lockstat-human-readability-tweaks-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Roland McGrath <roland@redhat.com>
+kernel/lockdep_proc.c:394: warning: long long int format, s64 arg (arg 4)
+
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ksysfs.c |    2 +-
+ kernel/lockdep_proc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/ksysfs.c~add-sys-kernel-notes-fix kernel/ksysfs.c
---- a/kernel/ksysfs.c~add-sys-kernel-notes-fix
-+++ a/kernel/ksysfs.c
-@@ -69,7 +69,7 @@ extern const char __start_notes __attrib
- extern const char __stop_notes __attribute__((weak));
- #define	notes_size (&__stop_notes - &__start_notes)
+diff -puN kernel/lockdep_proc.c~lockstat-human-readability-tweaks-fix kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockstat-human-readability-tweaks-fix
++++ a/kernel/lockdep_proc.c
+@@ -391,7 +391,7 @@ static void snprint_time(char *buf, size
+ 	unsigned long rem;
  
--static ssize_t notes_read(struct kobject *kobj,
-+static ssize_t notes_read(struct kobject *kobj, struct bin_attribute *bin_attr,
- 			  char *buf, loff_t off, size_t count)
- {
- 	memcpy(buf, &__start_notes + off, count);
+ 	rem = do_div(nr, 1000); /* XXX: do_div_signed */
+-	snprintf(buf, bufsiz, "%lld.%02d", nr, ((int)rem+5)/10);
++	snprintf(buf, bufsiz, "%lld.%02d", (long long)nr, ((int)rem+5)/10);
+ }
+ 
+ static void seq_time(struct seq_file *m, s64 time)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,9 +58,8 @@ mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 mm-fault-feedback-2.patch
 kernel-doc-fix-leading-dot-in-man-mode-output.patch
 coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-add-sys-kernel-notes.patch
-add-sys-kernel-notes-fix.patch
 lockstat-core-infrastructure.patch
+lockstat-human-readability-tweaks.patch
 lockstat-human-readability-tweaks-fix.patch
 lockdep-various-fixes.patch
 lockstat-measure-lock-bouncing.patch
