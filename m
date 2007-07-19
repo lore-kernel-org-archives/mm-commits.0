@@ -1,162 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-various-fixes.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:03:48 -0700
-Message-ID: <200707192003.l6JK3mxU019890@imap1.linux-foundation.org>
+Subject: - dequeue_huge_page-warning-fix.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:04:06 -0700
+Message-ID: <200707192004.l6JK46VY019920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38833 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37487 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755313AbXGSUWO (ORCPT
+	by vger.kernel.org with ESMTP id S1758402AbXGSUWf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:22:14 -0400
+	Thu, 19 Jul 2007 16:22:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agl@us.ibm.com, clameter@sgi.com, hermes@gibson.dropbear.id.au, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: various fixes
+     dequeue_huge_page() warning fix
 has been removed from the -mm tree.  Its filename was
-     lockdep-various-fixes.patch
+     dequeue_huge_page-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep: various fixes
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: dequeue_huge_page() warning fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
- - update the copyright notices
- - use the default hash function
- - fix a thinko in a BUILD_BUG_ON
- - add a WARN_ON to spot inconsitent naming
- - fix a termination issue in /proc/lock_stat
+mm/hugetlb.c: In function `dequeue_huge_page':
+mm/hugetlb.c:72: warning: 'nid' might be used uninitialized in this function
 
-[akpm@linux-foundation.org: cleanups]
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <hermes@gibson.dropbear.id.au>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |    3 ++-
- kernel/lockdep.c        |   21 ++++++++++++---------
- kernel/lockdep_proc.c   |    6 +++++-
- 3 files changed, 19 insertions(+), 11 deletions(-)
+ mm/hugetlb.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockdep-various-fixes include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockdep-various-fixes
-+++ a/include/linux/lockdep.h
-@@ -1,7 +1,8 @@
- /*
-  * Runtime locking correctness validator
-  *
-- *  Copyright (C) 2006 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
-+ *  Copyright (C) 2006,2007 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
-+ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
-  *
-  * see Documentation/lockdep-design.txt for more details.
-  */
-diff -puN kernel/lockdep.c~lockdep-various-fixes kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-various-fixes
-+++ a/kernel/lockdep.c
-@@ -5,7 +5,8 @@
-  *
-  * Started by Ingo Molnar:
-  *
-- *  Copyright (C) 2006 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
-+ *  Copyright (C) 2006,2007 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
-+ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
-  *
-  * this code maps all the lock dependencies as they occur in a live kernel
-  * and will warn about the following classes of locking bugs:
-@@ -37,6 +38,7 @@
- #include <linux/debug_locks.h>
- #include <linux/irqflags.h>
- #include <linux/utsname.h>
-+#include <linux/hash.h>
- 
- #include <asm/sections.h>
- 
-@@ -238,8 +240,7 @@ LIST_HEAD(all_lock_classes);
-  */
- #define CLASSHASH_BITS		(MAX_LOCKDEP_KEYS_BITS - 1)
- #define CLASSHASH_SIZE		(1UL << CLASSHASH_BITS)
--#define CLASSHASH_MASK		(CLASSHASH_SIZE - 1)
--#define __classhashfn(key)	((((unsigned long)key >> CLASSHASH_BITS) + (unsigned long)key) & CLASSHASH_MASK)
-+#define __classhashfn(key)	hash_long((unsigned long)key, CLASSHASH_BITS)
- #define classhashentry(key)	(classhash_table + __classhashfn((key)))
- 
- static struct list_head classhash_table[CLASSHASH_SIZE];
-@@ -250,9 +251,7 @@ static struct list_head classhash_table[
-  */
- #define CHAINHASH_BITS		(MAX_LOCKDEP_CHAINS_BITS-1)
- #define CHAINHASH_SIZE		(1UL << CHAINHASH_BITS)
--#define CHAINHASH_MASK		(CHAINHASH_SIZE - 1)
--#define __chainhashfn(chain) \
--		(((chain >> CHAINHASH_BITS) + chain) & CHAINHASH_MASK)
-+#define __chainhashfn(chain)	hash_long(chain, CHAINHASH_BITS)
- #define chainhashentry(chain)	(chainhash_table + __chainhashfn((chain)))
- 
- static struct list_head chainhash_table[CHAINHASH_SIZE];
-@@ -676,7 +675,8 @@ look_up_lock_class(struct lockdep_map *l
- 	 * (or spin_lock_init()) call - which acts as the key. For static
- 	 * locks we use the lock object itself as the key.
- 	 */
--	BUILD_BUG_ON(sizeof(struct lock_class_key) > sizeof(struct lock_class));
-+	BUILD_BUG_ON(sizeof(struct lock_class_key) >
-+			sizeof(struct lockdep_map));
- 
- 	key = lock->key->subkeys + subclass;
- 
-@@ -686,9 +686,12 @@ look_up_lock_class(struct lockdep_map *l
- 	 * We can walk the hash lockfree, because the hash only
- 	 * grows, and we are careful when adding entries to the end:
- 	 */
--	list_for_each_entry(class, hash_head, hash_entry)
--		if (class->key == key)
-+	list_for_each_entry(class, hash_head, hash_entry) {
-+		if (class->key == key) {
-+			WARN_ON_ONCE(class->name != lock->name);
- 			return class;
+diff -puN mm/hugetlb.c~dequeue_huge_page-warning-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~dequeue_huge_page-warning-fix
++++ a/mm/hugetlb.c
+@@ -78,16 +78,13 @@ static struct page *dequeue_huge_page(st
+ 	for (z = zonelist->zones; *z; z++) {
+ 		nid = zone_to_nid(*z);
+ 		if (cpuset_zone_allowed_softwall(*z, htlb_alloc_mask) &&
+-		    !list_empty(&hugepage_freelists[nid]))
+-			break;
+-	}
+-
+-	if (*z) {
+-		page = list_entry(hugepage_freelists[nid].next,
+-				  struct page, lru);
+-		list_del(&page->lru);
+-		free_huge_pages--;
+-		free_huge_pages_node[nid]--;
++		    !list_empty(&hugepage_freelists[nid])) {
++			page = list_entry(hugepage_freelists[nid].next,
++					  struct page, lru);
++			list_del(&page->lru);
++			free_huge_pages--;
++			free_huge_pages_node[nid]--;
 +		}
-+	}
- 
- 	return NULL;
+ 	}
+ 	return page;
  }
-diff -puN kernel/lockdep_proc.c~lockdep-various-fixes kernel/lockdep_proc.c
---- a/kernel/lockdep_proc.c~lockdep-various-fixes
-+++ a/kernel/lockdep_proc.c
-@@ -5,7 +5,8 @@
-  *
-  * Started by Ingo Molnar:
-  *
-- *  Copyright (C) 2006 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
-+ *  Copyright (C) 2006,2007 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
-+ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
-  *
-  * Code for /proc/lockdep and /proc/lockdep_stats:
-  *
-@@ -498,6 +499,9 @@ static void *ls_start(struct seq_file *m
- 	if (data->iter == data->stats)
- 		seq_header(m);
- 
-+	if (data->iter == data->iter_end)
-+		data->iter = NULL;
-+
- 	return data->iter;
- }
- 
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
+acpi-add-reboot-mechanism-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+git-dvb.patch
+git-input.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mtd.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+git-scsi-misc.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-xfs.patch
+git-kgdb-fixup-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
 intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
