@@ -1,79 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - suspend-maintainers-update.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:00:36 -0700
-Message-ID: <200707192000.l6JK0a0X019466@imap1.linux-foundation.org>
+Subject: - powerpc-put-allocated-elf-notes-in-read-only-data-segment.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:46 -0700
+Message-ID: <200707192002.l6JK2k6e019784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36638 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47902 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759295AbXGSU0O (ORCPT
+	by vger.kernel.org with ESMTP id S1759965AbXGSU0b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:26:14 -0400
+	Thu, 19 Jul 2007 16:26:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, pavel@suse.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: roland@redhat.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Suspend MAINTAINERS update
+     powerpc: Put allocated ELF notes in read-only data segment
 has been removed from the -mm tree.  Its filename was
-     suspend-maintainers-update.patch
+     powerpc-put-allocated-elf-notes-in-read-only-data-segment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Suspend MAINTAINERS update
-From: Pavel Machek <pavel@ucw.cz>
+Subject: powerpc: Put allocated ELF notes in read-only data segment
+From: Roland McGrath <roland@redhat.com>
 
-I guess it is time to clarify that suspend and hibernation are separate
-things, and add Rafael as a maintainer.  Plus, people blame us for suspend
-problems, anyway, I guess it is fair to mark us as suspend maintainers,
-too.
+This changes the powerpc linker script to use the asm-generic NOTES macro so
+that ELF note sections with SHF_ALLOC set are linked into the kernel image
+along with other read-only data.  The PT_NOTE also points to their location.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Acked-by: Rafael J. Wysocki" <rjw@sisk.pl>
+This paves the way for putting useful build-time information into ELF notes
+that can be found easily later in a kernel memory dump.
+
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ arch/powerpc/kernel/vmlinux.lds.S |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN MAINTAINERS~suspend-maintainers-update MAINTAINERS
---- a/MAINTAINERS~suspend-maintainers-update
-+++ a/MAINTAINERS
-@@ -3289,9 +3289,19 @@ M:	neilb@suse.de
- L:	linux-raid@vger.kernel.org
- S:	Supported
+diff -puN arch/powerpc/kernel/vmlinux.lds.S~powerpc-put-allocated-elf-notes-in-read-only-data-segment arch/powerpc/kernel/vmlinux.lds.S
+--- a/arch/powerpc/kernel/vmlinux.lds.S~powerpc-put-allocated-elf-notes-in-read-only-data-segment
++++ a/arch/powerpc/kernel/vmlinux.lds.S
+@@ -63,6 +63,8 @@ SECTIONS
+ 		__stop___ex_table = .;
+ 	}
  
--SOFTWARE SUSPEND:
-+HIBERNATION (aka Software Suspend, aka swsusp):
- P:	Pavel Machek
- M:	pavel@suse.cz
-+P:	Rafael J. Wysocki
-+M:	rjw@sisk.pl
-+L:	linux-pm@lists.linux-foundation.org
-+S:	Supported
++	NOTES
 +
-+SUSPEND TO RAM:
-+P:	Pavel Machek
-+M:	pavel@suse.cz
-+P:	Rafael J. Wysocki
-+M:	rjw@sisk.pl
- L:	linux-pm@lists.linux-foundation.org
- S:	Maintained
+ 	BUG_TABLE
  
+ /*
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-acpi-implement-the-set_target-callback-from-pm_ops.patch
-acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+xen-disable-vdso-nosegneg-on-native-boot.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
