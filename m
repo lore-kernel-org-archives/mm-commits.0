@@ -1,93 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-pass-real-splice-size.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:01:25 -0700
-Message-ID: <200707192001.l6JK1P0d019534@imap1.linux-foundation.org>
+Subject: - acpi-do-not-prepare-for-hibernation-in-acpi_shutdown.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:00:28 -0700
+Message-ID: <200707192000.l6JK0SSi019451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58805 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47063 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933078AbXGSU0w (ORCPT
+	by vger.kernel.org with ESMTP id S933040AbXGSU0v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:26:52 -0400
+	Thu, 19 Jul 2007 16:26:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, jens.axboe@oracle.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, lenb@kernel.org, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: pass real splice size
+     ACPI: Do not prepare for hibernation in acpi_shutdown
 has been removed from the -mm tree.  Its filename was
-     readahead-pass-real-splice-size.patch
+     acpi-do-not-prepare-for-hibernation-in-acpi_shutdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: readahead: pass real splice size
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: ACPI: Do not prepare for hibernation in acpi_shutdown
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Pass real splice size to page_cache_readahead_ondemand().
+Since we are now explicitly calling hibernation_ops->prepare() before
+hibernation_ops->enter() in hibernation_platform_enter() (defined in
+kernel/power/disk.c), ACPI should not call acpi_sleep_prepare(ACPI_STATE_S4)
+from acpi_shutdown().
 
-The splice code works in chunks of 16 pages internally.  The readahead code
-should be told of the overall splice size, instead of the internal chunk size.
- Otherwize bad things may happen.  Imagine some 17-page random splice reads. 
-The code before this patch will result in two readahead calls: readahead(16);
-readahead(1); That leads to one 16-page I/O and one 32-page I/O: one extra I/O
-and 31 readahead miss pages.
-
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ drivers/acpi/sleep/poweroff.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/splice.c~readahead-pass-real-splice-size fs/splice.c
---- a/fs/splice.c~readahead-pass-real-splice-size
-+++ a/fs/splice.c
-@@ -265,7 +265,7 @@ __generic_file_splice_read(struct file *
- 			   unsigned int flags)
- {
- 	struct address_space *mapping = in->f_mapping;
--	unsigned int loff, nr_pages;
-+	unsigned int loff, nr_pages, req_pages;
- 	struct page *pages[PIPE_BUFFERS];
- 	struct partial_page partial[PIPE_BUFFERS];
- 	struct page *page;
-@@ -281,10 +281,8 @@ __generic_file_splice_read(struct file *
- 
- 	index = *ppos >> PAGE_CACHE_SHIFT;
- 	loff = *ppos & ~PAGE_CACHE_MASK;
--	nr_pages = (len + loff + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
--
--	if (nr_pages > PIPE_BUFFERS)
--		nr_pages = PIPE_BUFFERS;
-+	req_pages = (len + loff + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
-+	nr_pages = min(req_pages, (unsigned)PIPE_BUFFERS);
- 
- 	/*
- 	 * Lookup the (hopefully) full range of pages we need.
-@@ -298,7 +296,7 @@ __generic_file_splice_read(struct file *
- 	 */
- 	if (spd.nr_pages < nr_pages)
- 		page_cache_readahead_ondemand(mapping, &in->f_ra, in,
--				NULL, index, nr_pages - spd.nr_pages);
-+				NULL, index, req_pages - spd.nr_pages);
- 
- 	error = 0;
- 	while (spd.nr_pages < nr_pages) {
-@@ -355,7 +353,7 @@ __generic_file_splice_read(struct file *
- 
- 		if (PageReadahead(page))
- 			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
--					page, index, nr_pages - page_nr);
-+					page, index, req_pages - page_nr);
- 
- 		/*
- 		 * If the page isn't uptodate, we may need to start io on it
+diff -puN drivers/acpi/sleep/poweroff.c~acpi-do-not-prepare-for-hibernation-in-acpi_shutdown drivers/acpi/sleep/poweroff.c
+--- a/drivers/acpi/sleep/poweroff.c~acpi-do-not-prepare-for-hibernation-in-acpi_shutdown
++++ a/drivers/acpi/sleep/poweroff.c
+@@ -54,9 +54,6 @@ static int acpi_shutdown(struct sys_devi
+ 	case SYSTEM_POWER_OFF:
+ 		/* Prepare to power off the system */
+ 		return acpi_sleep_prepare(ACPI_STATE_S5);
+-	case SYSTEM_SUSPEND_DISK:
+-		/* Prepare to suspend the system to disk */
+-		return acpi_sleep_prepare(ACPI_STATE_S4);
+ 	default:
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
+acpi-implement-the-set_target-callback-from-pm_ops.patch
+acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+shrink_slab-handle-bad-shrinkers.patch
