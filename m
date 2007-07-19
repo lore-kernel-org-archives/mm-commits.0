@@ -1,410 +1,353 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-add-new-nmi-rescan.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:05:42 -0700
-Message-ID: <200707192005.l6JK5gsR020063@imap1.linux-foundation.org>
+Subject: - drivers-edac-fix-leaf-sysfs-attribute.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:07:14 -0700
+Message-ID: <200707192007.l6JK7E3h020247@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38757 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46214 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761240AbXGSUPt (ORCPT
+	by vger.kernel.org with ESMTP id S1761283AbXGSUP5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:49 -0400
+	Thu, 19 Jul 2007 16:15:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djiang@mvista.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: add new nmi rescan
+     drivers/edac: fix leaf sysfs attribute
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-add-new-nmi-rescan.patch
+     drivers-edac-fix-leaf-sysfs-attribute.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: add new nmi rescan
-From: Dave Jiang <djiang@mvista.com>
+Subject: drivers/edac: fix leaf sysfs attribute
+From: Douglas Thompson <dougthompson@xmission.com>
 
-Provides a way for NMI reported errors on x86 to notify the EDAC
-subsystem pending ECC errors by writing to a software state variable.
+This patch fixes and enhances the driver level set of sysfs attributes that
+can be added to the 'block' level of an edac_device type of driver.
 
-Here's the reworked patch. I added an EDAC stub to the kernel so we can
-have variables that are in the kernel even if EDAC is a module. I also
-implemented the idea of using the chip driver to select error detection
-mode via module parameter and eliminate the kernel compile option.
-Please review/test. Thx!
+There is a controller information structure, which contains one or more
+instances of device.  Each instance will have one or more blocks of device
+specific counters.  This patch fixes the ability to have more detailed
+attributes/controls for each of the 'blocks', providing for the addition of
+controls/attributes from the low level driver to user space via sysfs.
 
-Also, I only made changes to some of the chipset drivers since I am
-unfamiliar with the other ones. We can add similar changes as we go.
-
-Signed-off-by: Dave Jiang <djiang@mvista.com>
+Cc: Alan Cox alan@lxorguk.ukuu.org.uk
 Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/traps.c   |   12 ++++++++++
- arch/x86_64/kernel/traps.c |   11 +++++++++
- drivers/edac/Kconfig       |   11 ---------
- drivers/edac/Makefile      |    2 -
- drivers/edac/e752x_edac.c  |   14 ++++++++++-
- drivers/edac/e7xxx_edac.c  |   14 +++++++++++
- drivers/edac/edac_mc.c     |    3 ++
- drivers/edac/edac_module.c |   24 ++++++++++++++++++--
- drivers/edac/edac_stub.c   |   42 +++++++++++++++++++++++++++++++++++
- drivers/edac/i5000_edac.c  |   13 ++++++++++
- include/linux/edac.h       |   29 ++++++++++++++++++++++++
- 11 files changed, 160 insertions(+), 15 deletions(-)
+ drivers/edac/edac_core.h         |   67 +++++++++-----------
+ drivers/edac/edac_device.c       |   94 +++++++++++++++++++----------
+ drivers/edac/edac_device_sysfs.c |   22 ++++++
+ 3 files changed, 115 insertions(+), 68 deletions(-)
 
-diff -puN arch/i386/kernel/traps.c~drivers-edac-add-new-nmi-rescan arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~drivers-edac-add-new-nmi-rescan
-+++ a/arch/i386/kernel/traps.c
-@@ -41,6 +41,10 @@
- #include <linux/mca.h>
- #endif
+diff -puN drivers/edac/edac_core.h~drivers-edac-fix-leaf-sysfs-attribute drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~drivers-edac-fix-leaf-sysfs-attribute
++++ a/drivers/edac/edac_core.h
+@@ -468,32 +468,34 @@ struct edac_device_counter {
+ 	u32 ce_count;
+ };
  
-+#if defined(CONFIG_EDAC)
-+#include <linux/edac.h>
-+#endif
-+
- #include <asm/processor.h>
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -638,6 +642,14 @@ mem_parity_error(unsigned char reason, s
- 	printk(KERN_EMERG "Uhhuh. NMI received for unknown reason %02x on "
- 		"CPU %d.\n", reason, smp_processor_id());
- 	printk(KERN_EMERG "You have some hardware problem, likely on the PCI bus.\n");
-+
-+#if defined(CONFIG_EDAC)
-+	if(edac_handler_set()) {
-+		edac_atomic_assert_error();
-+		return;
-+	}
-+#endif
-+
- 	if (panic_on_unrecovered_nmi)
-                 panic("NMI: Not continuing");
+-/*
+- * An array of these is passed to the alloc() function
+- * to specify attributes of the edac_block
+- */
+-struct edac_attrib_spec {
+-	char name[EDAC_DEVICE_NAME_LEN + 1];
++/* forward reference */
++struct edac_device_ctl_info;
++struct edac_device_block;
  
-diff -puN arch/x86_64/kernel/traps.c~drivers-edac-add-new-nmi-rescan arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~drivers-edac-add-new-nmi-rescan
-+++ a/arch/x86_64/kernel/traps.c
-@@ -34,6 +34,10 @@
- #include <linux/bug.h>
- #include <linux/kdebug.h>
+-	int type;
+-#define	EDAC_ATTR_INT		0x01
+-#define EDAC_ATTR_CHAR		0x02
++/* edac_dev_sysfs_attribute structure
++ *	used for driver sysfs attributes in mem_ctl_info
++ *	for extra controls and attributes:
++ *		like high level error Injection controls
++ */
++struct edac_dev_sysfs_attribute {
++	struct attribute attr;
++	ssize_t (*show)(struct edac_device_ctl_info *, char *);
++	ssize_t (*store)(struct edac_device_ctl_info *, const char *, size_t);
+ };
  
-+#if defined(CONFIG_EDAC)
-+#include <linux/edac.h>
-+#endif
-+
- #include <asm/system.h>
- #include <asm/io.h>
- #include <asm/atomic.h>
-@@ -719,6 +723,13 @@ mem_parity_error(unsigned char reason, s
- 		reason);
- 	printk(KERN_EMERG "You have some hardware problem, likely on the PCI bus.\n");
- 
-+#if defined(CONFIG_EDAC)
-+	if(edac_handler_set()) {
-+		edac_atomic_assert_error();
-+		return;
-+	}
-+#endif
-+
- 	if (panic_on_unrecovered_nmi)
- 		panic("NMI: Not continuing");
- 
-diff -puN drivers/edac/Kconfig~drivers-edac-add-new-nmi-rescan drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~drivers-edac-add-new-nmi-rescan
-+++ a/drivers/edac/Kconfig
-@@ -109,15 +109,4 @@ config EDAC_I5000
- 	  Support for error detection and correction the Intel
- 	  Greekcreek/Blackford chipsets.
- 
--choice
--	prompt "Error detecting method"
--	default EDAC_POLL
+-/* Attribute control structure
+- * In this structure is a pointer to the driver's edac_attrib_spec
+- * The life of this pointer is inclusive in the life of the driver's
+- * life cycle.
++/* edac_dev_sysfs_block_attribute structure
++ *	used in leaf 'block' nodes for adding controls/attributes
+  */
+-struct edac_attrib {
+-	struct edac_device_block *block;	/* Up Pointer */
 -
--config EDAC_POLL
--	bool "Poll for errors"
--	help
--	  Poll the chipset periodically to detect errors.
+-	struct edac_attrib_spec *spec;	/* ptr to module spec entry */
 -
--endchoice
--
- endif # EDAC
-diff -puN drivers/edac/Makefile~drivers-edac-add-new-nmi-rescan drivers/edac/Makefile
---- a/drivers/edac/Makefile~drivers-edac-add-new-nmi-rescan
-+++ a/drivers/edac/Makefile
-@@ -5,9 +5,9 @@
- # This file may be distributed under the terms of the
- # GNU General Public License.
- #
--# $Id: Makefile,v 1.4.2.3 2005/07/08 22:05:38 dsp_llnl Exp $
+-	union {			/* actual value */
+-		int edac_attrib_int_value;
+-		char edac_attrib_char_value[EDAC_ATTRIB_VALUE_LEN + 1];
+-	} edac_attrib_value;
++struct edac_dev_sysfs_block_attribute {
++	struct attribute attr;
++	ssize_t (*show)(struct kobject *, struct attribute *, char *);
++	ssize_t (*store)(struct kobject *, struct attribute *,
++			const char *, size_t);
++	struct edac_device_block *block;
++
++	/* low driver use */
++	void *arg;
++	unsigned int value;
+ };
  
+ /* device block control structure */
+@@ -504,7 +506,9 @@ struct edac_device_block {
+ 	struct edac_device_counter counters;	/* basic UE and CE counters */
  
-+obj-$(CONFIG_EDAC)			:= edac_stub.o
- obj-$(CONFIG_EDAC_MM_EDAC)		+= edac_core.o
+ 	int nr_attribs;		/* how many attributes */
+-	struct edac_attrib *attribs;	/* this block's attributes */
++
++	/* this block's attributes, could be NULL */
++	struct edac_dev_sysfs_block_attribute *block_attributes;
  
- edac_core-objs	:= edac_mc.o edac_device.o edac_mc_sysfs.o edac_pci_sysfs.o
-diff -puN drivers/edac/e752x_edac.c~drivers-edac-add-new-nmi-rescan drivers/edac/e752x_edac.c
---- a/drivers/edac/e752x_edac.c~drivers-edac-add-new-nmi-rescan
-+++ a/drivers/edac/e752x_edac.c
-@@ -22,6 +22,7 @@
- #include <linux/pci.h>
- #include <linux/pci_ids.h>
- #include <linux/slab.h>
-+#include <linux/edac.h>
- #include "edac_mc.h"
+ 	/* edac sysfs device control */
+ 	struct kobject kobj;
+@@ -526,15 +530,6 @@ struct edac_device_instance {
+ 	struct completion kobj_complete;
+ };
  
- #define E752X_REVISION	" Ver: 2.0.1 " __DATE__
-@@ -948,6 +949,16 @@ static int e752x_probe1(struct pci_dev *
- 	debugf0("%s(): mci\n", __func__);
- 	debugf0("Starting Probe1\n");
+-/* edac_dev_sysfs_attribute structure
+- *     used for driver sysfs attributes and in mem_ctl_info
+- *     sysfs top level entries
+- */
+-struct edac_dev_sysfs_attribute {
+-	struct attribute attr;
+-	ssize_t (*show)(struct edac_device_ctl_info *,char *);
+-	ssize_t (*store)(struct edac_device_ctl_info *, const char *,size_t);
+-};
  
-+	/* make sure error reporting method is sane */
-+	switch(edac_op_state) {
-+		case EDAC_OPSTATE_POLL:
-+		case EDAC_OPSTATE_NMI:
-+			break;
-+		default:
-+			edac_op_state = EDAC_OPSTATE_POLL;
-+			break;
+ /*
+  * Abstract edac_device control info structure
+@@ -635,12 +630,10 @@ struct edac_device_ctl_info {
+  */
+ extern struct edac_device_ctl_info *edac_device_alloc_ctl_info(
+ 		unsigned sizeof_private,
+-		char *edac_device_name,
+-		unsigned nr_instances,
+-		char *edac_block_name,
+-		unsigned nr_blocks,
++		char *edac_device_name, unsigned nr_instances,
++		char *edac_block_name, unsigned nr_blocks,
+ 		unsigned offset_value,
+-		struct edac_attrib_spec *attrib_spec,
++		struct edac_dev_sysfs_block_attribute *block_attributes,
+ 		unsigned nr_attribs);
+ 
+ /* The offset value can be:
+diff -puN drivers/edac/edac_device.c~drivers-edac-fix-leaf-sysfs-attribute drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~drivers-edac-fix-leaf-sysfs-attribute
++++ a/drivers/edac/edac_device.c
+@@ -67,12 +67,12 @@ struct edac_device_ctl_info *edac_device
+ 	char *edac_device_name, unsigned nr_instances,
+ 	char *edac_block_name, unsigned nr_blocks,
+ 	unsigned offset_value,		/* zero, 1, or other based offset */
+-	struct edac_attrib_spec *attrib_spec, unsigned nr_attribs)
++	struct edac_dev_sysfs_block_attribute *attrib_spec, unsigned nr_attrib)
+ {
+ 	struct edac_device_ctl_info *dev_ctl;
+ 	struct edac_device_instance *dev_inst, *inst;
+ 	struct edac_device_block *dev_blk, *blk_p, *blk;
+-	struct edac_attrib *dev_attrib, *attrib_p, *attrib;
++	struct edac_dev_sysfs_block_attribute *dev_attrib, *attrib_p, *attrib;
+ 	unsigned total_size;
+ 	unsigned count;
+ 	unsigned instance, block, attr;
+@@ -81,29 +81,47 @@ struct edac_device_ctl_info *edac_device
+ 	debugf1("%s() instances=%d blocks=%d\n",
+ 		__func__, nr_instances, nr_blocks);
+ 
+-	/* Figure out the offsets of the various items from the start of an
+-	 * ctl_info structure.  We want the alignment of each item
++	/* Calculate the size of memory we need to allocate AND
++	 * determine the offsets of the various item arrays
++	 * (instance,block,attrib) from the start of an  allocated structure.
++	 * We want the alignment of each item  (instance,block,attrib)
+ 	 * to be at least as stringent as what the compiler would
+ 	 * provide if we could simply hardcode everything into a single struct.
+ 	 */
+ 	dev_ctl = (struct edac_device_ctl_info *)NULL;
+ 
+-	/* Calc the 'end' offset past the ctl_info structure */
++	/* Calc the 'end' offset past end of ONE ctl_info structure
++	 * which will become the start of the 'instance' array
++	 */
+ 	dev_inst = edac_align_ptr(&dev_ctl[1], sizeof(*dev_inst));
+ 
+-	/* Calc the 'end' offset past the instance array */
++	/* Calc the 'end' offset past the instance array within the ctl_info
++	 * which will become the start of the block array
++	 */
+ 	dev_blk = edac_align_ptr(&dev_inst[nr_instances], sizeof(*dev_blk));
+ 
+-	/* Calc the 'end' offset past the dev_blk array */
++	/* Calc the 'end' offset past the dev_blk array
++	 * which will become the start of the attrib array, if any.
++	 */
+ 	count = nr_instances * nr_blocks;
+ 	dev_attrib = edac_align_ptr(&dev_blk[count], sizeof(*dev_attrib));
+ 
+-	/* Check for case of NO attributes specified */
+-	if (nr_attribs > 0)
+-		count *= nr_attribs;
++	/* Check for case of when an attribute array is specified */
++	if (nr_attrib > 0) {
++		/* calc how many nr_attrib we need */
++		count *= nr_attrib;
+ 
+-	/* Calc the 'end' offset past the attributes array */
+-	pvt = edac_align_ptr(&dev_attrib[count], sz_private);
++		/* Calc the 'end' offset past the attributes array */
++		pvt = edac_align_ptr(&dev_attrib[count], sz_private);
++	} else {
++		/* no attribute array specificed */
++		pvt = edac_align_ptr(dev_attrib, sz_private);
 +	}
 +
- 	/* check to see if device 0 function 1 is enabled; if it isn't, we
- 	 * assume the BIOS has reserved it for a reason and is expecting
- 	 * exclusive access, we take care not to violate that assumption and
-@@ -1123,4 +1134,5 @@ MODULE_DESCRIPTION("MC support for Intel
- module_param(force_function_unhide, int, 0444);
- MODULE_PARM_DESC(force_function_unhide, "if BIOS sets Dev0:Fun1 up as hidden:"
- " 1=force unhide and hope BIOS doesn't fight driver for Dev0:Fun1 access");
++	/* 'pvt' now points to where the private data area is.
++	 * At this point 'pvt' (like dev_inst,dev_blk and dev_attrib)
++	 * is baselined at ZERO
++	 */
+ 	total_size = ((unsigned long)pvt) + sz_private;
+ 
+ 	/* Allocate the amount of memory for the set of control structures */
+@@ -111,17 +129,22 @@ struct edac_device_ctl_info *edac_device
+ 	if (dev_ctl == NULL)
+ 		return NULL;
+ 
+-	/* Adjust pointers so they point within the memory we just allocated
+-	 * rather than an imaginary chunk of memory located at address 0.
++	/* Adjust pointers so they point within the actual memory we
++	 * just allocated rather than an imaginary chunk of memory
++	 * located at address 0.
++	 * 'dev_ctl' points to REAL memory, while the others are
++	 * ZERO based and thus need to be adjusted to point within
++	 * the allocated memory.
+ 	 */
+ 	dev_inst = (struct edac_device_instance *)
+ 		(((char *)dev_ctl) + ((unsigned long)dev_inst));
+ 	dev_blk = (struct edac_device_block *)
+ 		(((char *)dev_ctl) + ((unsigned long)dev_blk));
+-	dev_attrib = (struct edac_attrib *)
++	dev_attrib = (struct edac_dev_sysfs_block_attribute *)
+ 		(((char *)dev_ctl) + ((unsigned long)dev_attrib));
+ 	pvt = sz_private ? (((char *)dev_ctl) + ((unsigned long)pvt)) : NULL;
+ 
++	/* Begin storing the information into the control info structure */
+ 	dev_ctl->nr_instances = nr_instances;
+ 	dev_ctl->instances = dev_inst;
+ 	dev_ctl->pvt_info = pvt;
+@@ -145,28 +168,37 @@ struct edac_device_ctl_info *edac_device
+ 		for (block = 0; block < nr_blocks; block++) {
+ 			blk = &blk_p[block];
+ 			blk->instance = inst;
+-			blk->nr_attribs = nr_attribs;
+-			attrib_p = &dev_attrib[block * nr_attribs];
+-			blk->attribs = attrib_p;
+ 			snprintf(blk->name, sizeof(blk->name),
+ 				 "%s%d", edac_block_name, block+offset_value);
+ 
+ 			debugf1("%s() instance=%d block=%d name=%s\n",
+ 				__func__, instance, block, blk->name);
+ 
+-			if (attrib_spec != NULL) {
+-				/* when there is an attrib_spec passed int then
+-				 * Initialize every attrib of each block
+-				 */
+-				for (attr = 0; attr < nr_attribs; attr++) {
+-					attrib = &attrib_p[attr];
+-					attrib->block = blk;
 -
-+module_param(edac_op_state, int, 0444);
-+MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
-diff -puN drivers/edac/e7xxx_edac.c~drivers-edac-add-new-nmi-rescan drivers/edac/e7xxx_edac.c
---- a/drivers/edac/e7xxx_edac.c~drivers-edac-add-new-nmi-rescan
-+++ a/drivers/edac/e7xxx_edac.c
-@@ -27,6 +27,7 @@
- #include <linux/pci.h>
- #include <linux/pci_ids.h>
- #include <linux/slab.h>
-+#include <linux/edac.h>
- #include "edac_mc.h"
- 
- #define	E7XXX_REVISION " Ver: 2.0.1 " __DATE__
-@@ -419,6 +420,17 @@ static int e7xxx_probe1(struct pci_dev *
- 	struct e7xxx_error_info discard;
- 
- 	debugf0("%s(): mci\n", __func__);
+-					/* Link each attribute to the caller's
+-					 * spec entry, for name and type
+-					 */
+-					attrib->spec = &attrib_spec[attr];
+-				}
++			/* if there are NO attributes OR no attribute pointer
++			 * then continue on to next block iteration
++			 */
++			if ((nr_attrib == 0) || (attrib_spec == NULL))
++				continue;
 +
-+	/* make sure error reporting method is sane */
-+	switch(edac_op_state) {
-+		case EDAC_OPSTATE_POLL:
-+		case EDAC_OPSTATE_NMI:
-+			break;
-+		default:
-+			edac_op_state = EDAC_OPSTATE_POLL;
-+			break;
-+	}
++			/* setup the attribute array for this block */
++			blk->nr_attribs = nr_attrib;
++			attrib_p = &dev_attrib[block*nr_instances*nr_attrib];
++			blk->block_attributes = attrib_p;
 +
- 	pci_read_config_dword(pdev, E7XXX_DRC, &drc);
++			/* Initialize every user specified attribute in this
++			 * block with the data the caller passed in
++			 */
++			for (attr = 0; attr < nr_attrib; attr++) {
++				attrib = &attrib_p[attr];
++				attrib->attr = attrib_spec->attr;
++				attrib->show = attrib_spec->show;
++				attrib->store = attrib_spec->store;
++
++				/* up reference this block */
++				attrib->block = blk;
++
++				/* bump the attrib_spec */
++				attrib_spec++;
+ 			}
+ 		}
+ 	}
+diff -puN drivers/edac/edac_device_sysfs.c~drivers-edac-fix-leaf-sysfs-attribute drivers/edac/edac_device_sysfs.c
+--- a/drivers/edac/edac_device_sysfs.c~drivers-edac-fix-leaf-sysfs-attribute
++++ a/drivers/edac/edac_device_sysfs.c
+@@ -456,8 +456,10 @@ static int edac_device_create_block(stru
+ 				struct edac_device_instance *instance,
+ 				int idx)
+ {
++	int i;
+ 	int err;
+ 	struct edac_device_block *block;
++	struct edac_dev_sysfs_block_attribute *sysfs_attrib;
  
- 	drc_chan = dual_channel_active(drc, dev_idx);
-@@ -565,3 +577,5 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Linux Networx (http://lnxi.com) Thayne Harbaugh et al\n"
- 	"Based on.work by Dan Hollis et al");
- MODULE_DESCRIPTION("MC support for Intel e7xxx memory controllers");
-+module_param(edac_op_state, int, 0444);
-+MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
-diff -puN drivers/edac/edac_mc.c~drivers-edac-add-new-nmi-rescan drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~drivers-edac-add-new-nmi-rescan
-+++ a/drivers/edac/edac_mc.c
-@@ -27,6 +27,7 @@
- #include <linux/list.h>
- #include <linux/sysdev.h>
- #include <linux/ctype.h>
-+#include <linux/edac.h>
- #include <asm/uaccess.h>
- #include <asm/page.h>
- #include <asm/edac.h>
-@@ -241,6 +242,7 @@ static int add_mc_to_global_list (struct
+ 	block = &instance->blocks[idx];
+ 
+@@ -480,7 +482,27 @@ static int edac_device_create_block(stru
+ 		return err;
  	}
  
- 	list_add_tail_rcu(&mci->link, insert_before);
-+	atomic_inc(&edac_handlers);
++	/* If there are driver level block attributes, then added them
++	 * to the block kobject
++	 */
++	sysfs_attrib = block->block_attributes;
++	if (sysfs_attrib != NULL) {
++		for (i = 0; i < block->nr_attribs; i++) {
++			err = sysfs_create_file(&block->kobj,
++				(struct attribute *) &sysfs_attrib[i]);
++			if (err)
++				goto err_on_attrib;
++
++			sysfs_attrib++;
++		}
++	}
++
  	return 0;
- 
- fail0:
-@@ -267,6 +269,7 @@ static void complete_mc_list_del(struct 
- 
- static void del_mc_from_global_list(struct mem_ctl_info *mci)
- {
-+	atomic_dec(&edac_handlers);
- 	list_del_rcu(&mci->link);
- 	init_completion(&mci->complete);
- 	call_rcu(&mci->rcu, complete_mc_list_del);
-diff -puN drivers/edac/edac_module.c~drivers-edac-add-new-nmi-rescan drivers/edac/edac_module.c
---- a/drivers/edac/edac_module.c~drivers-edac-add-new-nmi-rescan
-+++ a/drivers/edac/edac_module.c
-@@ -1,6 +1,7 @@
- 
- #include <linux/freezer.h>
- #include <linux/kthread.h>
-+#include <linux/edac.h>
- 
- #include "edac_mc.h"
- #include "edac_module.h"
-@@ -102,6 +103,25 @@ static void do_edac_check(void)
++
++err_on_attrib:
++	kobject_unregister(&block->kobj);
++
++	return err;
  }
  
  /*
-+ * handler for EDAC to check if NMI type handler has asserted interrupt
-+ */
-+static int edac_assert_error_check_and_clear(void)
-+{
-+	int vreg;
-+
-+	if(edac_op_state == EDAC_OPSTATE_POLL)
-+		return 1;
-+
-+	vreg = atomic_read(&edac_err_assert);
-+	if(vreg) {
-+		atomic_set(&edac_err_assert, 0);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-  * Action thread for EDAC to perform the POLL operations
-  */
- static int edac_kernel_thread(void *arg)
-@@ -109,8 +129,8 @@ static int edac_kernel_thread(void *arg)
- 	int msec;
- 
- 	while (!kthread_should_stop()) {
--
--		do_edac_check();
-+		if(edac_assert_error_check_and_clear())
-+			do_edac_check();
- 
- 		/* goto sleep for the interval */
- 		msec = (HZ * edac_get_poll_msec()) / 1000;
-diff -puN /dev/null drivers/edac/edac_stub.c
---- /dev/null
-+++ a/drivers/edac/edac_stub.c
-@@ -0,0 +1,42 @@
-+/*
-+ * common EDAC components that must be in kernel
-+ *
-+ * Author: Dave Jiang <djiang@mvista.com>
-+ *
-+ * 2007 (c) MontaVista Software, Inc. This file is licensed under
-+ * the terms of the GNU General Public License version 2. This program
-+ * is licensed "as is" without any warranty of any kind, whether express
-+ * or implied.
-+ *
-+ */
-+#include <linux/module.h>
-+#include <linux/edac.h>
-+#include <asm/atomic.h>
-+#include <asm/edac.h>
-+
-+int edac_op_state = EDAC_OPSTATE_INVAL;
-+EXPORT_SYMBOL(edac_op_state);
-+
-+atomic_t edac_handlers = ATOMIC_INIT(0);
-+EXPORT_SYMBOL(edac_handlers);
-+
-+atomic_t edac_err_assert = ATOMIC_INIT(0);
-+EXPORT_SYMBOL(edac_err_assert);
-+
-+inline int edac_handler_set(void)
-+{
-+	if (edac_op_state == EDAC_OPSTATE_POLL)
-+		return 0;
-+
-+	return atomic_read(&edac_handlers);
-+}
-+EXPORT_SYMBOL(edac_handler_set);
-+
-+/*
-+ * handler for NMI type of interrupts to assert error
-+ */
-+inline void edac_atomic_assert_error(void)
-+{
-+	atomic_set(&edac_err_assert, 1);
-+}
-+EXPORT_SYMBOL(edac_atomic_assert_error);
-diff -puN drivers/edac/i5000_edac.c~drivers-edac-add-new-nmi-rescan drivers/edac/i5000_edac.c
---- a/drivers/edac/i5000_edac.c~drivers-edac-add-new-nmi-rescan
-+++ a/drivers/edac/i5000_edac.c
-@@ -19,6 +19,7 @@
- #include <linux/pci.h>
- #include <linux/pci_ids.h>
- #include <linux/slab.h>
-+#include <linux/edac.h>
- #include <asm/mmzone.h>
- 
- #include "edac_mc.h"
-@@ -1285,6 +1286,16 @@ static int i5000_probe1(struct pci_dev *
- 	if (PCI_FUNC(pdev->devfn) != 0)
- 		return -ENODEV;
- 
-+	/* make sure error reporting method is sane */
-+	switch(edac_op_state) {
-+		case EDAC_OPSTATE_POLL:
-+		case EDAC_OPSTATE_NMI:
-+			break;
-+		default:
-+			edac_op_state = EDAC_OPSTATE_POLL;
-+			break;
-+	}
-+
- 	/* Ask the devices for the number of CSROWS and CHANNELS so
- 	 * that we can calculate the memory resources, etc
- 	 *
-@@ -1475,3 +1486,5 @@ MODULE_AUTHOR
-     ("Linux Networx (http://lnxi.com) Doug Thompson <norsk5@xmission.com>");
- MODULE_DESCRIPTION("MC Driver for Intel I5000 memory controllers - "
- 		   I5000_REVISION);
-+module_param(edac_op_state, int, 0444);
-+MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
-diff -puN /dev/null include/linux/edac.h
---- /dev/null
-+++ a/include/linux/edac.h
-@@ -0,0 +1,29 @@
-+/*
-+ * Generic EDAC defs
-+ *
-+ * Author: Dave Jiang <djiang@mvista.com>
-+ *
-+ * 2006-2007 (c) MontaVista Software, Inc. This file is licensed under
-+ * the terms of the GNU General Public License version 2. This program
-+ * is licensed "as is" without any warranty of any kind, whether express
-+ * or implied.
-+ *
-+ */
-+#ifndef _LINUX_EDAC_H_
-+#define _LINUX_EDAC_H_
-+
-+#include <asm/atomic.h>
-+
-+#define EDAC_OPSTATE_INVAL	-1
-+#define EDAC_OPSTATE_POLL	0
-+#define EDAC_OPSTATE_NMI	1
-+#define EDAC_OPSTATE_INT	2
-+
-+extern int edac_op_state;
-+extern atomic_t edac_handlers;
-+extern atomic_t edac_err_assert;
-+
-+extern int edac_handler_set(void);
-+extern void edac_atomic_assert_error(void);
-+
-+#endif
 _
 
-Patches currently in -mm which might be from djiang@mvista.com are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
 origin.patch
