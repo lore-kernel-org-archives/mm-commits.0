@@ -1,190 +1,315 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-semaphore-in-the-adutux-driver.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:07:58 -0700
-Message-ID: <200707192007.l6JK7wY2020407@imap1.linux-foundation.org>
+Subject: - i386-show-unhandled-signals.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:11:06 -0700
+Message-ID: <200707192011.l6JKB6TU020737@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41125 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40358 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761143AbXGSUPm (ORCPT
+	by vger.kernel.org with ESMTP id S1761154AbXGSUPm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:15:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: masouds@google.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use mutex instead of semaphore in the Adutux driver
+     i386: show unhandled signals
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-semaphore-in-the-adutux-driver.patch
+     i386-show-unhandled-signals.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use mutex instead of semaphore in the Adutux driver
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: i386: show unhandled signals
+From: Masoud Sharbiani <masouds@google.com>
 
-The Adutux driver uses a semaphore as mutex. Use the mutex API
-instead of the (binary) semaphore.
+This patch makes the i386 behave the same way that x86_64 does when a
+segfault happens.  A line gets printed to the kernel log so that tools that
+need to check for failures can behave more uniformly between
+debug.show_unhandled_signals sysctl variable to 0 (or by doing echo 0 >
+/proc/sys/debug/exception-trace)
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Also, all of the lines being printed are now using printk_ratelimit() to
+deny the ability of DoS from a local user with a program like the
+following:
+
+main()
+{
+       while (1)
+               if (!fork()) *(int *)0 = 0;
+}
+
+Signed-off-by: Masoud Sharbiani <masouds@google.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/adutux.c |   35 ++++++++++++++++++-----------------
- 1 files changed, 18 insertions(+), 17 deletions(-)
+ arch/i386/kernel/signal.c   |    7 ++++++
+ arch/i386/kernel/traps.c    |    7 ++++++
+ arch/i386/mm/fault.c        |   10 +++++++++
+ arch/x86_64/kernel/signal.c |    2 -
+ arch/x86_64/kernel/traps.c  |    6 +++--
+ arch/x86_64/mm/fault.c      |   15 ++------------
+ arch/x86_64/mm/init.c       |   35 ----------------------------------
+ include/asm-x86_64/proto.h  |    2 -
+ include/linux/signal.h      |    3 ++
+ kernel/signal.c             |   10 +++++++++
+ kernel/sysctl.c             |   10 +++++++++
+ 11 files changed, 55 insertions(+), 52 deletions(-)
 
-diff -puN drivers/usb/misc/adutux.c~use-mutex-instead-of-semaphore-in-the-adutux-driver drivers/usb/misc/adutux.c
---- a/drivers/usb/misc/adutux.c~use-mutex-instead-of-semaphore-in-the-adutux-driver
-+++ a/drivers/usb/misc/adutux.c
-@@ -24,6 +24,7 @@
- #include <linux/slab.h>
- #include <linux/module.h>
- #include <linux/usb.h>
-+#include <linux/mutex.h>
- #include <asm/uaccess.h>
+diff -puN arch/i386/kernel/signal.c~i386-show-unhandled-signals arch/i386/kernel/signal.c
+--- a/arch/i386/kernel/signal.c~i386-show-unhandled-signals
++++ a/arch/i386/kernel/signal.c
+@@ -199,6 +199,13 @@ asmlinkage int sys_sigreturn(unsigned lo
+ 	return eax;
  
- #ifdef CONFIG_USB_DEBUG
-@@ -80,7 +81,7 @@ MODULE_DEVICE_TABLE(usb, device_table);
+ badframe:
++	if (show_unhandled_signals && printk_ratelimit())
++		printk("%s%s[%d] bad frame in sigreturn frame:%p eip:%lx"
++		       " esp:%lx oeax:%lx\n",
++		    current->pid > 1 ? KERN_INFO : KERN_EMERG,
++		    current->comm, current->pid, frame, regs->eip,
++		    regs->esp, regs->orig_eax);
++
+ 	force_sig(SIGSEGV, current);
+ 	return 0;
+ }	
+diff -puN arch/i386/kernel/traps.c~i386-show-unhandled-signals arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~i386-show-unhandled-signals
++++ a/arch/i386/kernel/traps.c
+@@ -679,6 +679,13 @@ fastcall void __kprobes do_general_prote
  
- /* Structure to hold all of our device specific stuff */
- struct adu_device {
--	struct semaphore	sem; /* locks this structure */
-+	struct mutex		mtx; /* locks this structure */
- 	struct usb_device*	udev; /* save off the usb device pointer */
- 	struct usb_interface*	interface;
- 	unsigned char		minor; /* the starting minor number for this device */
-@@ -269,8 +270,8 @@ static int adu_open(struct inode *inode,
- 	}
+ 	current->thread.error_code = error_code;
+ 	current->thread.trap_no = 13;
++	if (show_unhandled_signals && unhandled_signal(current, SIGSEGV) &&
++	    printk_ratelimit())
++		printk(KERN_INFO
++		    "%s[%d] general protection eip:%lx esp:%lx error:%lx\n",
++		    current->comm, current->pid,
++		    regs->eip, regs->esp, error_code);
++
+ 	force_sig(SIGSEGV, current);
+ 	return;
  
- 	/* lock this device */
--	if ((retval = down_interruptible(&dev->sem))) {
--		dbg(2, "%s : sem down failed", __FUNCTION__);
-+	if ((retval = mutex_lock_interruptible(&dev->mtx))) {
-+		dbg(2, "%s : mutex lock failed", __FUNCTION__);
- 		goto exit_no_device;
- 	}
- 
-@@ -299,7 +300,7 @@ static int adu_open(struct inode *inode,
- 		if (retval)
- 			--dev->open_count;
- 	}
--	up(&dev->sem);
-+	mutex_unlock(&dev->mtx);
- 
- exit_no_device:
- 	dbg(2,"%s : leave, return value %d ", __FUNCTION__, retval);
-@@ -347,7 +348,7 @@ static int adu_release(struct inode *ino
- 	}
- 
- 	/* lock our device */
--	down(&dev->sem); /* not interruptible */
-+	mutex_lock(&dev->mtx); /* not interruptible */
- 
- 	if (dev->open_count <= 0) {
- 		dbg(1," %s : device not opened", __FUNCTION__);
-@@ -357,7 +358,7 @@ static int adu_release(struct inode *ino
- 
- 	if (dev->udev == NULL) {
- 		/* the device was unplugged before the file was released */
--		up(&dev->sem);
-+		mutex_unlock(&dev->mtx);
- 		adu_delete(dev);
- 		dev = NULL;
- 	} else {
-@@ -367,7 +368,7 @@ static int adu_release(struct inode *ino
- 
- exit:
- 	if (dev)
--		up(&dev->sem);
-+		mutex_unlock(&dev->mtx);
- 	dbg(2," %s : leave, return value %d", __FUNCTION__, retval);
- 	return retval;
+diff -puN arch/i386/mm/fault.c~i386-show-unhandled-signals arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~i386-show-unhandled-signals
++++ a/arch/i386/mm/fault.c
+@@ -283,6 +283,8 @@ static inline int vmalloc_fault(unsigned
+ 	return 0;
  }
-@@ -390,7 +391,7 @@ static ssize_t adu_read(struct file *fil
- 	dev = file->private_data;
- 	dbg(2," %s : dev=%p", __FUNCTION__, dev);
- 	/* lock this object */
--	if (down_interruptible(&dev->sem))
-+	if (mutex_lock_interruptible(&dev->mtx))
- 		return -ERESTARTSYS;
  
- 	/* verify that the device wasn't unplugged */
-@@ -522,7 +523,7 @@ static ssize_t adu_read(struct file *fil
++int show_unhandled_signals = 1;
++
+ /*
+  * This routine handles page faults.  It determines the address,
+  * and the problem, and then passes it off to one of the appropriate
+@@ -469,6 +471,14 @@ bad_area_nosemaphore:
+ 		if (is_prefetch(regs, address, error_code))
+ 			return;
  
- exit:
- 	/* unlock the device */
--	up(&dev->sem);
-+	mutex_unlock(&dev->mtx);
++		if (show_unhandled_signals && unhandled_signal(tsk, SIGSEGV) &&
++		    printk_ratelimit()) {
++			printk("%s%s[%d]: segfault at %08lx eip %08lx "
++			    "esp %08lx error %lx\n",
++			    tsk->pid > 1 ? KERN_INFO : KERN_EMERG,
++			    tsk->comm, tsk->pid, address, regs->eip,
++			    regs->esp, error_code);
++		}
+ 		tsk->thread.cr2 = address;
+ 		/* Kernel addresses are always protection faults */
+ 		tsk->thread.error_code = error_code | (address >= TASK_SIZE);
+diff -puN arch/x86_64/kernel/signal.c~i386-show-unhandled-signals arch/x86_64/kernel/signal.c
+--- a/arch/x86_64/kernel/signal.c~i386-show-unhandled-signals
++++ a/arch/x86_64/kernel/signal.c
+@@ -487,7 +487,7 @@ do_notify_resume(struct pt_regs *regs, v
+ void signal_fault(struct pt_regs *regs, void __user *frame, char *where)
+ { 
+ 	struct task_struct *me = current; 
+-	if (exception_trace)
++	if (show_unhandled_signals && printk_ratelimit())
+ 		printk("%s[%d] bad frame in %s frame:%p rip:%lx rsp:%lx orax:%lx\n",
+ 	       me->comm,me->pid,where,frame,regs->rip,regs->rsp,regs->orig_rax); 
  
- 	dbg(2," %s : leave, return value %d", __FUNCTION__, retval);
- 	return retval;
-@@ -543,7 +544,7 @@ static ssize_t adu_write(struct file *fi
- 	dev = file->private_data;
+diff -puN arch/x86_64/kernel/traps.c~i386-show-unhandled-signals arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~i386-show-unhandled-signals
++++ a/arch/x86_64/kernel/traps.c
+@@ -647,7 +647,8 @@ static void __kprobes do_trap(int trapnr
+ 		tsk->thread.error_code = error_code;
+ 		tsk->thread.trap_no = trapnr;
  
- 	/* lock this object */
--	retval = down_interruptible(&dev->sem);
-+	retval = mutex_lock_interruptible(&dev->mtx);
- 	if (retval)
- 		goto exit_nolock;
+-		if (exception_trace && unhandled_signal(tsk, signr))
++		if (show_unhandled_signals && unhandled_signal(tsk, signr) &&
++		    printk_ratelimit())
+ 			printk(KERN_INFO
+ 			       "%s[%d] trap %s rip:%lx rsp:%lx error:%lx\n",
+ 			       tsk->comm, tsk->pid, str,
+@@ -751,7 +752,8 @@ asmlinkage void __kprobes do_general_pro
+ 		tsk->thread.error_code = error_code;
+ 		tsk->thread.trap_no = 13;
  
-@@ -571,9 +572,9 @@ static ssize_t adu_write(struct file *fi
- 				retval = -EINTR;
- 				goto exit;
- 			}
--			up(&dev->sem);
-+			mutex_unlock(&dev->mtx);
- 			timeout = interruptible_sleep_on_timeout(&dev->write_wait, timeout);
--			retval = down_interruptible(&dev->sem);
-+			retval = mutex_lock_interruptible(&dev->mtx);
- 			if (retval) {
- 				retval = bytes_written ? bytes_written : retval;
- 				goto exit_nolock;
-@@ -638,7 +639,7 @@ static ssize_t adu_write(struct file *fi
+-		if (exception_trace && unhandled_signal(tsk, SIGSEGV))
++		if (show_unhandled_signals && unhandled_signal(tsk, SIGSEGV) &&
++		    printk_ratelimit())
+ 			printk(KERN_INFO
+ 		       "%s[%d] general protection rip:%lx rsp:%lx error:%lx\n",
+ 			       tsk->comm, tsk->pid,
+diff -puN arch/x86_64/mm/fault.c~i386-show-unhandled-signals arch/x86_64/mm/fault.c
+--- a/arch/x86_64/mm/fault.c~i386-show-unhandled-signals
++++ a/arch/x86_64/mm/fault.c
+@@ -221,16 +221,6 @@ static int is_errata93(struct pt_regs *r
+ 	return 0;
+ } 
  
- exit:
- 	/* unlock the device */
--	up(&dev->sem);
-+	mutex_unlock(&dev->mtx);
- exit_nolock:
+-int unhandled_signal(struct task_struct *tsk, int sig)
+-{
+-	if (is_init(tsk))
+-		return 1;
+-	if (tsk->ptrace & PT_PTRACED)
+-		return 0;
+-	return (tsk->sighand->action[sig-1].sa.sa_handler == SIG_IGN) ||
+-		(tsk->sighand->action[sig-1].sa.sa_handler == SIG_DFL);
+-}
+-
+ static noinline void pgtable_bad(unsigned long address, struct pt_regs *regs,
+ 				 unsigned long error_code)
+ {
+@@ -302,7 +292,7 @@ static int vmalloc_fault(unsigned long a
+ }
  
- 	dbg(2," %s : leave, return value %d", __FUNCTION__, retval);
-@@ -698,7 +699,7 @@ static int adu_probe(struct usb_interfac
- 		goto exit;
+ int page_fault_trace = 0;
+-int exception_trace = 1;
++int show_unhandled_signals = 1;
+ 
+ /*
+  * This routine handles page faults.  It determines the address,
+@@ -494,7 +484,8 @@ bad_area_nosemaphore:
+ 		    (address >> 32))
+ 			return;
+ 
+-		if (exception_trace && unhandled_signal(tsk, SIGSEGV)) {
++		if (show_unhandled_signals && unhandled_signal(tsk, SIGSEGV) &&
++		    printk_ratelimit()) {
+ 			printk(
+ 		       "%s%s[%d]: segfault at %016lx rip %016lx rsp %016lx error %lx\n",
+ 					tsk->pid > 1 ? KERN_INFO : KERN_EMERG,
+diff -puN arch/x86_64/mm/init.c~i386-show-unhandled-signals arch/x86_64/mm/init.c
+--- a/arch/x86_64/mm/init.c~i386-show-unhandled-signals
++++ a/arch/x86_64/mm/init.c
+@@ -701,41 +701,6 @@ int kern_addr_valid(unsigned long addr) 
+ 	return pfn_valid(pte_pfn(*pte));
+ }
+ 
+-#ifdef CONFIG_SYSCTL
+-#include <linux/sysctl.h>
+-
+-extern int exception_trace, page_fault_trace;
+-
+-static ctl_table debug_table2[] = {
+-	{
+-		.ctl_name	= 99,
+-		.procname	= "exception-trace",
+-		.data		= &exception_trace,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec
+-	},
+-	{}
+-}; 
+-
+-static ctl_table debug_root_table2[] = { 
+-	{
+-		.ctl_name = CTL_DEBUG,
+-		.procname = "debug",
+-		.mode = 0555,
+-		.child = debug_table2
+-	},
+-	{}
+-}; 
+-
+-static __init int x8664_sysctl_init(void)
+-{ 
+-	register_sysctl_table(debug_root_table2);
+-	return 0;
+-}
+-__initcall(x8664_sysctl_init);
+-#endif
+-
+ /* A pseudo VMA to allow ptrace access for the vsyscall page.  This only
+    covers the 64bit vsyscall page now. 32bit has a real VMA now and does
+    not need special handling anymore. */
+diff -puN include/asm-x86_64/proto.h~i386-show-unhandled-signals include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~i386-show-unhandled-signals
++++ a/include/asm-x86_64/proto.h
+@@ -72,8 +72,6 @@ extern void setup_node_bootmem(int nodei
+ extern void early_quirks(void);
+ extern void check_efer(void);
+ 
+-extern int unhandled_signal(struct task_struct *tsk, int sig);
+-
+ extern void select_idle_routine(const struct cpuinfo_x86 *c);
+ 
+ extern unsigned long table_start, table_end;
+diff -puN include/linux/signal.h~i386-show-unhandled-signals include/linux/signal.h
+--- a/include/linux/signal.h~i386-show-unhandled-signals
++++ a/include/linux/signal.h
+@@ -237,12 +237,15 @@ extern int group_send_sig_info(int sig, 
+ extern int __group_send_sig_info(int, struct siginfo *, struct task_struct *);
+ extern long do_sigpending(void __user *, unsigned long);
+ extern int sigprocmask(int, sigset_t *, sigset_t *);
++extern int show_unhandled_signals;
+ 
+ struct pt_regs;
+ extern int get_signal_to_deliver(siginfo_t *info, struct k_sigaction *return_ka, struct pt_regs *regs, void *cookie);
+ 
+ extern struct kmem_cache *sighand_cachep;
+ 
++int unhandled_signal(struct task_struct *tsk, int sig);
++
+ /*
+  * In POSIX a signal is sent either to a specific thread (Linux task)
+  * or to the process as a whole (Linux thread group).  How the signal
+diff -puN kernel/signal.c~i386-show-unhandled-signals kernel/signal.c
+--- a/kernel/signal.c~i386-show-unhandled-signals
++++ a/kernel/signal.c
+@@ -255,6 +255,16 @@ flush_signal_handlers(struct task_struct
  	}
+ }
  
--	init_MUTEX(&dev->sem);
-+	mutex_init(&dev->mtx);
- 	spin_lock_init(&dev->buflock);
- 	dev->udev = udev;
- 	init_waitqueue_head(&dev->read_wait);
-@@ -835,16 +836,16 @@ static void adu_disconnect(struct usb_in
- 	usb_deregister_dev(interface, &adu_class);
- 	dev->minor = 0;
++int unhandled_signal(struct task_struct *tsk, int sig)
++{
++	if (is_init(tsk))
++		return 1;
++	if (tsk->ptrace & PT_PTRACED)
++		return 0;
++	return (tsk->sighand->action[sig-1].sa.sa_handler == SIG_IGN) ||
++		(tsk->sighand->action[sig-1].sa.sa_handler == SIG_DFL);
++}
++
  
--	down(&dev->sem); /* not interruptible */
-+	mutex_lock(&dev->mtx); /* not interruptible */
+ /* Notify the system that a driver wants to block all signals for this
+  * process, and wants to be notified if any signals at all were to be
+diff -puN kernel/sysctl.c~i386-show-unhandled-signals kernel/sysctl.c
+--- a/kernel/sysctl.c~i386-show-unhandled-signals
++++ a/kernel/sysctl.c
+@@ -1200,6 +1200,16 @@ static ctl_table fs_table[] = {
+ };
  
- 	/* if the device is not opened, then we clean up right now */
- 	dbg(2," %s : open count %d", __FUNCTION__, dev->open_count);
- 	if (!dev->open_count) {
--		up(&dev->sem);
-+		mutex_unlock(&dev->mtx);
- 		adu_delete(dev);
- 	} else {
- 		dev->udev = NULL;
--		up(&dev->sem);
-+		mutex_unlock(&dev->mtx);
- 	}
+ static ctl_table debug_table[] = {
++#ifdef CONFIG_X86
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "exception-trace",
++		.data		= &show_unhandled_signals,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec
++	},
++#endif
+ 	{ .ctl_name = 0 }
+ };
  
- 	dev_info(&interface->dev, "ADU device adutux%d now disconnected",
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
-
-origin.patch
-kcopyd-use-mutex-instead-of-semaphore.patch
-git-mtd.patch
-videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
+Patches currently in -mm which might be from masouds@google.com are
