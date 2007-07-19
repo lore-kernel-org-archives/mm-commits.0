@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + capabilityh-remove-include-of-currenth.patch added to -mm tree
-Date: Thu, 19 Jul 2007 15:45:37 -0700
-Message-ID: <200707192245.l6JMjbEo026809@imap1.linux-foundation.org>
+Subject: + clockevents-fix-resume-logic-xen-fix.patch added to -mm tree
+Date: Thu, 19 Jul 2007 15:48:54 -0700
+Message-ID: <200707192248.l6JMmsKQ026891@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41476 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36585 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761595AbXGSWp7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752811AbXGSWtg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 18:45:59 -0400
+	Thu, 19 Jul 2007 18:49:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, casey@schaufler-ca.com, chris@friedhoff.org, chrisw@sous-sol.org, jmorris@namei.org, kaigai@kaigai.gr.jp, morgan@kernel.org, sds@tycho.nsa.gov, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, jeremy@goop.org, johnstul@us.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     capability.h: remove include of current.h
+     clockevents-fix-resume-logic-xen-fix
 has been added to the -mm tree.  Its filename is
-     capabilityh-remove-include-of-currenth.patch
+     clockevents-fix-resume-logic-xen-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: capability.h: remove include of current.h
+Subject: clockevents-fix-resume-logic-xen-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I am susecting this isn't needed.
+arch/i386/xen/time.c: In function 'xen_vcpuop_set_mode':
+arch/i386/xen/time.c:462: warning: enumeration value 'CLOCK_EVT_MODE_RESUME' not handled in switch
 
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: KaiGai Kohei <kaigai@kaigai.gr.jp>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: <chris@friedhoff.org>
+Is this right?
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |    2 --
- 1 files changed, 2 deletions(-)
+ arch/i386/xen/time.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN include/linux/capability.h~capabilityh-remove-include-of-currenth include/linux/capability.h
---- a/include/linux/capability.h~capabilityh-remove-include-of-currenth
-+++ a/include/linux/capability.h
-@@ -64,8 +64,6 @@ struct vfs_cap_data {
+diff -puN arch/i386/xen/time.c~clockevents-fix-resume-logic-xen-fix arch/i386/xen/time.c
+--- a/arch/i386/xen/time.c~clockevents-fix-resume-logic-xen-fix
++++ a/arch/i386/xen/time.c
+@@ -475,6 +475,8 @@ static void xen_vcpuop_set_mode(enum clo
+ 		    HYPERVISOR_vcpu_op(VCPUOP_stop_periodic_timer, cpu, NULL))
+ 			BUG();
+ 		break;
++	case CLOCK_EVT_MODE_RESUME:
++		break;
+ 	}
+ }
  
- #ifdef __KERNEL__
- 
--#include <asm/current.h>
--
- /* #define STRICT_CAP_T_TYPECHECKS */
- 
- #ifdef STRICT_CAP_T_TYPECHECKS
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +85,7 @@ aacraid-rename-check_reset.patch
 git-unionfs.patch
 git-block-vs-git-unionfs.patch
 x86_64-clean-up-apicid_to_node-declaration.patch
+clockevents-fix-resume-logic-xen-fix.patch
 ntp-move-the-cmos-update-code-into-ntpc.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 mmconfig-validate-against-acpi-motherboard-resources.patch
