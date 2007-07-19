@@ -1,301 +1,277 @@
 From: akpm@linux-foundation.org
-Subject: - pm-reduce-code-duplication-between-mainc-and-userc-updated.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:00:26 -0700
-Message-ID: <200707192000.l6JK0QNH019448@imap1.linux-foundation.org>
+Subject: - audit-rework-execve-audit.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:01:47 -0700
+Message-ID: <200707192001.l6JK1lDL019570__28459.5200013884$1184876842$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45557 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33821 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932087AbXGSU1I (ORCPT
+	by vger.kernel.org with ESMTP id S932149AbXGSU1J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:27:08 -0400
+	Thu, 19 Jul 2007 16:27:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, aaw@google.com, linux-audit@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Reduce code duplication between main.c and user.c
+     audit: rework execve audit
 has been removed from the -mm tree.  Its filename was
-     pm-reduce-code-duplication-between-mainc-and-userc-updated.patch
+     audit-rework-execve-audit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PM: Reduce code duplication between main.c and user.c
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: audit: rework execve audit
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-The SNAPSHOT_S2RAM ioctl code is outdated and it should not duplicate the
-suspend code in kernel/power/main.c.  Fix that.
+The purpose of audit_bprm() is to log the argv array to a userspace daemon at
+the end of the execve system call.  Since user-space hasn't had time to run,
+this array is still in pristine state on the process' stack; so no need to
+copy it, we can just grab it from there.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+In order to minimize the damage to audit_log_*() copy each string into a
+temporary kernel buffer first.
+
+Currently the audit code requires that the full argument vector fits in a
+single packet.  So currently it does clip the argv size to a (sysctl) limit,
+but only when execve auditing is enabled.
+
+If the audit protocol gets extended to allow for multiple packets this check
+can be removed.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Ollie Wild <aaw@google.com>
+Cc: <linux-audit@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/main.c  |   99 ++++++++++++++++++++++-------------------
- kernel/power/power.h |    3 -
- kernel/power/user.c  |   38 ++-------------
- 3 files changed, 62 insertions(+), 78 deletions(-)
+ Documentation/filesystems/proc.txt |    7 ++
+ fs/exec.c                          |    3 
+ include/linux/binfmts.h            |    1 
+ kernel/auditsc.c                   |   84 ++++++++++++++++++++-------
+ kernel/sysctl.c                    |   11 +++
+ 5 files changed, 85 insertions(+), 21 deletions(-)
 
-diff -puN kernel/power/main.c~pm-reduce-code-duplication-between-mainc-and-userc-updated kernel/power/main.c
---- a/kernel/power/main.c~pm-reduce-code-duplication-between-mainc-and-userc-updated
-+++ a/kernel/power/main.c
-@@ -65,14 +65,11 @@ static inline void pm_finish(suspend_sta
+diff -puN Documentation/filesystems/proc.txt~audit-rework-execve-audit Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~audit-rework-execve-audit
++++ a/Documentation/filesystems/proc.txt
+@@ -1065,6 +1065,13 @@ check the amount of free space (value is
+ resume it  if we have a value of 3 or more percent; consider information about
+ the amount of free space valid for 30 seconds
  
- /**
-  *	suspend_prepare - Do prep work before entering low-power state.
-- *	@state:		State we're entering.
-  *
-- *	This is common code that is called for each state that we're 
-- *	entering. Allocate a console, stop all processes, then make sure
-- *	the platform can enter the requested state.
-+ *	This is common code that is called for each state that we're entering.
-+ *	Run suspend notifiers, allocate a console and stop all processes.
-  */
--
--static int suspend_prepare(suspend_state_t state)
-+static int suspend_prepare(void)
++audit_argv_kb
++-------------
++
++The file contains a single value denoting the limit on the argv array size
++for execve (in KiB). This limit is only applied when system call auditing for
++execve is enabled, otherwise the value is ignored.
++
+ ctrl-alt-del
+ ------------
+ 
+diff -puN fs/exec.c~audit-rework-execve-audit fs/exec.c
+--- a/fs/exec.c~audit-rework-execve-audit
++++ a/fs/exec.c
+@@ -1154,6 +1154,7 @@ int do_execve(char * filename,
  {
- 	int error;
- 	unsigned int free_pages;
-@@ -91,43 +88,18 @@ static int suspend_prepare(suspend_state
- 		goto Thaw;
- 	}
+ 	struct linux_binprm *bprm;
+ 	struct file *file;
++	unsigned long env_p;
+ 	int retval;
+ 	int i;
  
--	if ((free_pages = global_page_state(NR_FREE_PAGES))
--			< FREE_PAGE_NUMBER) {
-+	free_pages = global_page_state(NR_FREE_PAGES);
-+	if (free_pages < FREE_PAGE_NUMBER) {
- 		pr_debug("PM: free some memory\n");
- 		shrink_all_memory(FREE_PAGE_NUMBER - free_pages);
- 		if (nr_free_pages() < FREE_PAGE_NUMBER) {
- 			error = -ENOMEM;
- 			printk(KERN_ERR "PM: No enough memory\n");
--			goto Thaw;
- 		}
- 	}
--
--	if (pm_ops->set_target) {
--		error = pm_ops->set_target(state);
--		if (error)
--			goto Thaw;
--	}
--	suspend_console();
--	error = device_suspend(PMSG_SUSPEND);
--	if (error) {
--		printk(KERN_ERR "Some devices failed to suspend\n");
--		goto Resume_console;
--	}
--	if (pm_ops->prepare) {
--		if ((error = pm_ops->prepare(state)))
--			goto Resume_devices;
--	}
--
--	error = disable_nonboot_cpus();
- 	if (!error)
+@@ -1208,9 +1209,11 @@ int do_execve(char * filename,
+ 	if (retval < 0)
+ 		goto out;
+ 
++	env_p = bprm->p;
+ 	retval = copy_strings(bprm->argc, argv, bprm);
+ 	if (retval < 0)
+ 		goto out;
++	bprm->argv_len = env_p - bprm->p;
+ 
+ 	retval = search_binary_handler(bprm,regs);
+ 	if (retval >= 0) {
+diff -puN include/linux/binfmts.h~audit-rework-execve-audit include/linux/binfmts.h
+--- a/include/linux/binfmts.h~audit-rework-execve-audit
++++ a/include/linux/binfmts.h
+@@ -40,6 +40,7 @@ struct linux_binprm{
+ 	unsigned interp_flags;
+ 	unsigned interp_data;
+ 	unsigned long loader, exec;
++	unsigned long argv_len;
+ };
+ 
+ #define BINPRM_FLAGS_ENFORCE_NONDUMP_BIT 0
+diff -puN kernel/auditsc.c~audit-rework-execve-audit kernel/auditsc.c
+--- a/kernel/auditsc.c~audit-rework-execve-audit
++++ a/kernel/auditsc.c
+@@ -153,7 +153,7 @@ struct audit_aux_data_execve {
+ 	struct audit_aux_data	d;
+ 	int argc;
+ 	int envc;
+-	char mem[0];
++	struct mm_struct *mm;
+ };
+ 
+ struct audit_aux_data_socketcall {
+@@ -831,6 +831,55 @@ static int audit_log_pid_context(struct 
+ 	return rc;
+ }
+ 
++static void audit_log_execve_info(struct audit_buffer *ab,
++		struct audit_aux_data_execve *axi)
++{
++	int i;
++	long len, ret;
++	const char __user *p = (const char __user *)axi->mm->arg_start;
++	char *buf;
++
++	if (axi->mm != current->mm)
++		return; /* execve failed, no additional info */
++
++	for (i = 0; i < axi->argc; i++, p += len) {
++		len = strnlen_user(p, MAX_ARG_PAGES*PAGE_SIZE);
++		/*
++		 * We just created this mm, if we can't find the strings
++		 * we just copied into it something is _very_ wrong. Similar
++		 * for strings that are too long, we should not have created
++		 * any.
++		 */
++		if (!len || len > MAX_ARG_STRLEN) {
++			WARN_ON(1);
++			send_sig(SIGKILL, current, 0);
++		}
++
++		buf = kmalloc(len, GFP_KERNEL);
++		if (!buf) {
++			audit_panic("out of memory for argv string\n");
++			break;
++		}
++
++		ret = copy_from_user(buf, p, len);
++		/*
++		 * There is no reason for this copy to be short. We just
++		 * copied them here, and the mm hasn't been exposed to user-
++		 * space yet.
++		 */
++		if (!ret) {
++			WARN_ON(1);
++			send_sig(SIGKILL, current, 0);
++		}
++
++		audit_log_format(ab, "a%d=", i);
++		audit_log_untrustedstring(ab, buf);
++		audit_log_format(ab, "\n");
++
++		kfree(buf);
++	}
++}
++
+ static void audit_log_exit(struct audit_context *context, struct task_struct *tsk)
+ {
+ 	int i, call_panic = 0;
+@@ -971,13 +1020,7 @@ static void audit_log_exit(struct audit_
+ 
+ 		case AUDIT_EXECVE: {
+ 			struct audit_aux_data_execve *axi = (void *)aux;
+-			int i;
+-			const char *p;
+-			for (i = 0, p = axi->mem; i < axi->argc; i++) {
+-				audit_log_format(ab, "a%d=", i);
+-				p = audit_log_untrustedstring(ab, p);
+-				audit_log_format(ab, "\n");
+-			}
++			audit_log_execve_info(ab, axi);
+ 			break; }
+ 
+ 		case AUDIT_SOCKETCALL: {
+@@ -1821,32 +1864,31 @@ int __audit_ipc_set_perm(unsigned long q
+ 	return 0;
+ }
+ 
++int audit_argv_kb = 32;
++
+ int audit_bprm(struct linux_binprm *bprm)
+ {
+ 	struct audit_aux_data_execve *ax;
+ 	struct audit_context *context = current->audit_context;
+-	unsigned long p, next;
+-	void *to;
+ 
+ 	if (likely(!audit_enabled || !context || context->dummy))
  		return 0;
  
--	enable_nonboot_cpus();
--	pm_finish(state);
-- Resume_devices:
--	device_resume();
-- Resume_console:
--	resume_console();
-  Thaw:
- 	thaw_processes();
- 	pm_restore_console();
-@@ -148,6 +120,12 @@ void __attribute__ ((weak)) arch_suspend
- 	local_irq_enable();
- }
- 
-+/**
-+ *	suspend_enter - enter the desired system sleep state.
-+ *	@state:		state to enter
-+ *
-+ *	This function should be called after devices have been suspended.
-+ */
- int suspend_enter(suspend_state_t state)
- {
- 	int error = 0;
-@@ -167,21 +145,55 @@ int suspend_enter(suspend_state_t state)
- 	return error;
- }
- 
-+/**
-+ *	suspend_devices_and_enter - suspend devices and enter the desired system sleep
-+ *			  state.
-+ *	@state:		  state to enter
-+ */
-+int suspend_devices_and_enter(suspend_state_t state)
-+{
-+	int error;
+-	ax = kmalloc(sizeof(*ax) + PAGE_SIZE * MAX_ARG_PAGES - bprm->p,
+-				GFP_KERNEL);
++	/*
++	 * Even though the stack code doesn't limit the arg+env size any more,
++	 * the audit code requires that _all_ arguments be logged in a single
++	 * netlink skb. Hence cap it :-(
++	 */
++	if (bprm->argv_len > (audit_argv_kb << 10))
++		return -E2BIG;
 +
-+	if (!pm_ops)
-+		return -ENOSYS;
-+
-+	if (pm_ops->set_target) {
-+		error = pm_ops->set_target(state);
-+		if (error)
-+			return error;
-+	}
-+	suspend_console();
-+	error = device_suspend(PMSG_SUSPEND);
-+	if (error) {
-+		printk(KERN_ERR "Some devices failed to suspend\n");
-+		goto Resume_console;
-+	}
-+	if (pm_ops->prepare) {
-+		error = pm_ops->prepare(state);
-+		if (error)
-+			goto Resume_devices;
-+	}
-+	error = disable_nonboot_cpus();
-+	if (!error)
-+		suspend_enter(state);
-+
-+	enable_nonboot_cpus();
-+	pm_finish(state);
-+ Resume_devices:
-+	device_resume();
-+ Resume_console:
-+	resume_console();
-+	return error;
-+}
++	ax = kmalloc(sizeof(*ax), GFP_KERNEL);
+ 	if (!ax)
+ 		return -ENOMEM;
  
- /**
-  *	suspend_finish - Do final work before exiting suspend sequence.
-- *	@state:		State we're coming out of.
-  *
-  *	Call platform code to clean up, restart processes, and free the 
-  *	console that we've allocated. This is not called for suspend-to-disk.
-  */
+ 	ax->argc = bprm->argc;
+ 	ax->envc = bprm->envc;
+-	for (p = bprm->p, to = ax->mem; p < MAX_ARG_PAGES*PAGE_SIZE; p = next) {
+-		struct page *page = bprm->page[p / PAGE_SIZE];
+-		void *kaddr = kmap(page);
+-		next = (p + PAGE_SIZE) & ~(PAGE_SIZE - 1);
+-		memcpy(to, kaddr + (p & (PAGE_SIZE - 1)), next - p);
+-		to += next - p;
+-		kunmap(page);
+-	}
 -
--static void suspend_finish(suspend_state_t state)
-+static void suspend_finish(void)
- {
--	enable_nonboot_cpus();
--	pm_finish(state);
--	device_resume();
--	resume_console();
- 	thaw_processes();
- 	pm_restore_console();
- 	pm_notifier_call_chain(PM_POST_SUSPEND);
-@@ -216,7 +228,6 @@ static inline int valid_state(suspend_st
-  *	Then, do the setup for suspend, enter the state, and cleaup (after
-  *	we've woken up).
-  */
--
- static int enter_state(suspend_state_t state)
- {
- 	int error;
-@@ -227,14 +238,14 @@ static int enter_state(suspend_state_t s
- 		return -EBUSY;
++	ax->mm = bprm->mm;
+ 	ax->d.type = AUDIT_EXECVE;
+ 	ax->d.next = context->aux;
+ 	context->aux = (void *)ax;
+diff -puN kernel/sysctl.c~audit-rework-execve-audit kernel/sysctl.c
+--- a/kernel/sysctl.c~audit-rework-execve-audit
++++ a/kernel/sysctl.c
+@@ -78,6 +78,7 @@ extern int percpu_pagelist_fraction;
+ extern int compat_log;
+ extern int maps_protect;
+ extern int sysctl_stat_interval;
++extern int audit_argv_kb;
  
- 	pr_debug("PM: Preparing system for %s sleep\n", pm_states[state]);
--	if ((error = suspend_prepare(state)))
-+	if ((error = suspend_prepare()))
- 		goto Unlock;
- 
- 	pr_debug("PM: Entering %s sleep\n", pm_states[state]);
--	error = suspend_enter(state);
-+	error = suspend_devices_and_enter(state);
- 
- 	pr_debug("PM: Finishing wakeup.\n");
--	suspend_finish(state);
-+	suspend_finish();
-  Unlock:
- 	mutex_unlock(&pm_mutex);
- 	return error;
-diff -puN kernel/power/power.h~pm-reduce-code-duplication-between-mainc-and-userc-updated kernel/power/power.h
---- a/kernel/power/power.h~pm-reduce-code-duplication-between-mainc-and-userc-updated
-+++ a/kernel/power/power.h
-@@ -170,7 +170,6 @@ extern int swsusp_resume(void);
- extern int swsusp_read(unsigned int *flags_p);
- extern int swsusp_write(unsigned int flags);
- extern void swsusp_close(void);
--extern int suspend_enter(suspend_state_t state);
- 
- struct timeval;
- /* kernel/power/swsusp.c */
-@@ -178,6 +177,8 @@ extern void swsusp_show_speed(struct tim
- 				unsigned int, char *);
- 
- /* kernel/power/main.c */
-+extern int suspend_enter(suspend_state_t state);
-+extern int suspend_devices_and_enter(suspend_state_t state);
- extern struct blocking_notifier_head pm_chain_head;
- 
- static inline int pm_notifier_call_chain(unsigned long val)
-diff -puN kernel/power/user.c~pm-reduce-code-duplication-between-mainc-and-userc-updated kernel/power/user.c
---- a/kernel/power/user.c~pm-reduce-code-duplication-between-mainc-and-userc-updated
-+++ a/kernel/power/user.c
-@@ -255,47 +255,19 @@ static int snapshot_ioctl(struct inode *
- 		break;
- 
- 	case SNAPSHOT_S2RAM:
--		if (!pm_ops) {
--			error = -ENOSYS;
--			break;
--		}
--
- 		if (!data->frozen) {
- 			error = -EPERM;
- 			break;
- 		}
--
- 		if (!mutex_trylock(&pm_mutex)) {
- 			error = -EBUSY;
- 			break;
- 		}
--
--		if (pm_ops->prepare) {
--			error = pm_ops->prepare(PM_SUSPEND_MEM);
--			if (error)
--				goto OutS3;
--		}
--
--		/* Put devices to sleep */
--		suspend_console();
--		error = device_suspend(PMSG_SUSPEND);
--		if (error) {
--			printk(KERN_ERR "Failed to suspend some devices.\n");
--		} else {
--			error = disable_nonboot_cpus();
--			if (!error) {
--				/* Enter S3, system is already frozen */
--				suspend_enter(PM_SUSPEND_MEM);
--				enable_nonboot_cpus();
--			}
--			/* Wake up devices */
--			device_resume();
--		}
--		resume_console();
--		if (pm_ops->finish)
--			pm_ops->finish(PM_SUSPEND_MEM);
--
-- OutS3:
-+		/*
-+		 * Tasks are frozen and the notifiers have been called with
-+		 * PM_HIBERNATION_PREPARE
-+		 */
-+		error = suspend_devices_and_enter(PM_SUSPEND_MEM);
- 		mutex_unlock(&pm_mutex);
- 		break;
- 
+ /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
+ static int maxolduid = 65535;
+@@ -306,6 +307,16 @@ static ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec,
+ 	},
++#ifdef CONFIG_AUDITSYSCALL
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "audit_argv_kb",
++		.data		= &audit_argv_kb,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec,
++	},
++#endif
+ 	{
+ 		.ctl_name	= KERN_CORE_PATTERN,
+ 		.procname	= "core_pattern",
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-acpi-implement-the-set_target-callback-from-pm_ops.patch
-acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-shrink_slab-handle-bad-shrinkers.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
