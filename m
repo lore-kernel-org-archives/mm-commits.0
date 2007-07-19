@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + serial-fix-section-mismatch-vr41xx_siu.patch added to -mm tree
-Date: Wed, 18 Jul 2007 19:43:19 -0700
-Message-ID: <200707190243.l6J2hJ0g009828@imap1.linux-foundation.org>
+Subject: + serial-fix-vr41xx_siu-interface-select.patch added to -mm tree
+Date: Wed, 18 Jul 2007 19:43:20 -0700
+Message-ID: <200707190243.l6J2hKYv009835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46742 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38993 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751363AbXGSCnf (ORCPT
+	by vger.kernel.org with ESMTP id S1753000AbXGSCnf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 18 Jul 2007 22:43:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: yoichi_yuasa@tripeaks.co.jp, ralf@linux-mips.org
 
 
 The patch titled
-     serial: fix section mismatch vr41xx_siu
+     serial: fix vr41xx_siu interface select
 has been added to the -mm tree.  Its filename is
-     serial-fix-section-mismatch-vr41xx_siu.patch
+     serial-fix-vr41xx_siu-interface-select.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: fix section mismatch vr41xx_siu
+Subject: serial: fix vr41xx_siu interface select
 From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-Fix section mismatch vr41xx_siu.
-
-WARNING: drivers/built-in.o(.text+0x2ce4c): Section mismatch: reference to .init.text:uart_parse_options (between 'siu_console_setup' and 'siu_request_port')
-WARNING: drivers/built-in.o(.text+0x2ce70): Section mismatch: reference to .init.text:uart_set_options (between 'siu_console_setup' and 'siu_request_port')
+only PORT_VR41XX_SIU can select interface.
 
 Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/vr41xx_siu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/vr41xx_siu.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/vr41xx_siu.c~serial-fix-section-mismatch-vr41xx_siu drivers/serial/vr41xx_siu.c
---- a/drivers/serial/vr41xx_siu.c~serial-fix-section-mismatch-vr41xx_siu
+diff -puN drivers/serial/vr41xx_siu.c~serial-fix-vr41xx_siu-interface-select drivers/serial/vr41xx_siu.c
+--- a/drivers/serial/vr41xx_siu.c~serial-fix-vr41xx_siu-interface-select
 +++ a/drivers/serial/vr41xx_siu.c
-@@ -782,7 +782,7 @@ static void siu_console_write(struct con
- 	siu_write(port, UART_IER, ier);
- }
+@@ -800,7 +800,8 @@ static int __init siu_console_setup(stru
+ 		port->membase = ioremap(port->mapbase, siu_port_size(port));
+ 	}
  
--static int siu_console_setup(struct console *con, char *options)
-+static int __init siu_console_setup(struct console *con, char *options)
- {
- 	struct uart_port *port;
- 	int baud = 9600;
+-	vr41xx_select_siu_interface(SIU_INTERFACE_RS232C);
++	if (port->type == PORT_VR41XX_SIU)
++		vr41xx_select_siu_interface(SIU_INTERFACE_RS232C);
+ 
+ 	if (options != NULL)
+ 		uart_parse_options(options, &baud, &parity, &bits, &flow);
 _
 
 Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
