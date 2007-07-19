@@ -1,119 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-abstract-how-we-find-the-iommu_table-for-a-device.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:11 -0700
-Message-ID: <200707192009.l6JK9BHG020555@imap1.linux-foundation.org>
+Subject: - use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:08:00 -0700
+Message-ID: <200707192008.l6JK80In020410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57430 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46344 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761418AbXGSUQQ (ORCPT
+	by vger.kernel.org with ESMTP id S1760638AbXGSUP0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:16 -0400
+	Thu, 19 Jul 2007 16:15:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muli@il.ibm.com, ak@suse.de, jeff@garzik.org, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary: abstract how we find the iommu_table for a device
+     use mutex instead of semaphore in the FTDI ELAN driver
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-abstract-how-we-find-the-iommu_table-for-a-device.patch
+     use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: Calgary: abstract how we find the iommu_table for a device
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: use mutex instead of semaphore in the FTDI ELAN driver
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-... in preparation for doing it differently for CalIOC2.
+The FTDI ELAN driver uses a semaphore as mutex. Use the mutex API
+instead of the (binary) semaphore.
 
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |   21 ++++++++++++++-------
- 1 files changed, 14 insertions(+), 7 deletions(-)
+ drivers/usb/misc/ftdi-elan.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-abstract-how-we-find-the-iommu_table-for-a-device arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-abstract-how-we-find-the-iommu_table-for-a-device
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -344,6 +344,15 @@ static void iommu_free(struct iommu_tabl
- 	spin_unlock_irqrestore(&tbl->it_lock, flags);
+diff -puN drivers/usb/misc/ftdi-elan.c~use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver drivers/usb/misc/ftdi-elan.c
+--- a/drivers/usb/misc/ftdi-elan.c~use-mutex-instead-of-semaphore-in-the-ftdi-elan-driver
++++ a/drivers/usb/misc/ftdi-elan.c
+@@ -44,6 +44,7 @@
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ #include <linux/kref.h>
++#include <linux/mutex.h>
+ #include <asm/uaccess.h>
+ #include <linux/usb.h>
+ #include <linux/workqueue.h>
+@@ -64,7 +65,7 @@ static struct workqueue_struct *respond_
+ * ftdi_module_lock exists to protect access to global variables
+ *
+ */
+-static struct semaphore ftdi_module_lock;
++static struct mutex ftdi_module_lock;
+ static int ftdi_instances = 0;
+ static struct list_head ftdi_static_list;
+ /*
+@@ -199,10 +200,10 @@ static void ftdi_elan_delete(struct kref
+         dev_warn(&ftdi->udev->dev, "FREEING ftdi=%p\n", ftdi);
+         usb_put_dev(ftdi->udev);
+         ftdi->disconnected += 1;
+-        down(&ftdi_module_lock);
++        mutex_lock(&ftdi_module_lock);
+         list_del_init(&ftdi->ftdi_list);
+         ftdi_instances -= 1;
+-        up(&ftdi_module_lock);
++        mutex_unlock(&ftdi_module_lock);
+         kfree(ftdi->bulk_in_buffer);
+         ftdi->bulk_in_buffer = NULL;
  }
- 
-+static inline struct iommu_table *find_iommu_table(struct device *dev)
-+{
-+	struct iommu_table *tbl;
-+
-+	tbl = to_pci_dev(dev)->bus->self->sysdata;
-+
-+	return tbl;
-+}
-+
- static void __calgary_unmap_sg(struct iommu_table *tbl,
- 	struct scatterlist *sglist, int nelems, int direction)
- {
-@@ -365,7 +374,7 @@ void calgary_unmap_sg(struct device *dev
- 		      int nelems, int direction)
- {
- 	unsigned long flags;
--	struct iommu_table *tbl = to_pci_dev(dev)->bus->self->sysdata;
-+	struct iommu_table *tbl = find_iommu_table(dev);
- 
- 	if (!translate_phb(to_pci_dev(dev)))
- 		return;
-@@ -394,7 +403,7 @@ static int calgary_nontranslate_map_sg(s
- int calgary_map_sg(struct device *dev, struct scatterlist *sg,
- 	int nelems, int direction)
- {
--	struct iommu_table *tbl = to_pci_dev(dev)->bus->self->sysdata;
-+	struct iommu_table *tbl = find_iommu_table(dev);
- 	unsigned long flags;
- 	unsigned long vaddr;
- 	unsigned int npages;
-@@ -448,7 +457,7 @@ dma_addr_t calgary_map_single(struct dev
- 	dma_addr_t dma_handle = bad_dma_address;
- 	unsigned long uaddr;
- 	unsigned int npages;
--	struct iommu_table *tbl = to_pci_dev(dev)->bus->self->sysdata;
-+	struct iommu_table *tbl = find_iommu_table(dev);
- 
- 	uaddr = (unsigned long)vaddr;
- 	npages = num_dma_pages(uaddr, size);
-@@ -464,7 +473,7 @@ dma_addr_t calgary_map_single(struct dev
- void calgary_unmap_single(struct device *dev, dma_addr_t dma_handle,
- 	size_t size, int direction)
- {
--	struct iommu_table *tbl = to_pci_dev(dev)->bus->self->sysdata;
-+	struct iommu_table *tbl = find_iommu_table(dev);
- 	unsigned int npages;
- 
- 	if (!translate_phb(to_pci_dev(dev)))
-@@ -480,9 +489,7 @@ void* calgary_alloc_coherent(struct devi
- 	void *ret = NULL;
- 	dma_addr_t mapping;
- 	unsigned int npages, order;
--	struct iommu_table *tbl;
--
--	tbl = to_pci_dev(dev)->bus->self->sysdata;
-+	struct iommu_table *tbl = find_iommu_table(dev);
- 
- 	size = PAGE_ALIGN(size); /* size rounded up to full pages */
- 	npages = size >> PAGE_SHIFT;
+@@ -2780,10 +2781,10 @@ static int ftdi_elan_probe(struct usb_in
+                 return -ENOMEM;
+         }
+         memset(ftdi, 0x00, sizeof(struct usb_ftdi));
+-        down(&ftdi_module_lock);
++        mutex_lock(&ftdi_module_lock);
+         list_add_tail(&ftdi->ftdi_list, &ftdi_static_list);
+         ftdi->sequence_num = ++ftdi_instances;
+-        up(&ftdi_module_lock);
++        mutex_unlock(&ftdi_module_lock);
+         ftdi_elan_init_kref(ftdi);
+         init_MUTEX(&ftdi->sw_lock);
+         ftdi->udev = usb_get_dev(interface_to_usbdev(interface));
+@@ -2909,7 +2910,7 @@ static int __init ftdi_elan_init(void)
+         int result;
+         printk(KERN_INFO "driver %s built at %s on %s\n", ftdi_elan_driver.name,
+ 	       __TIME__, __DATE__);
+-        init_MUTEX(&ftdi_module_lock);
++        mutex_init(&ftdi_module_lock);
+         INIT_LIST_HEAD(&ftdi_static_list);
+         status_queue = create_singlethread_workqueue("ftdi-status-control");
+ 	if (!status_queue)
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+git-mtd.patch
+videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
