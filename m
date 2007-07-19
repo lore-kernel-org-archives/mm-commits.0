@@ -1,193 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - jprobes-remove-jprobe_entry.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:01:37 -0700
-Message-ID: <200707192001.l6JK1bB8019554@imap1.linux-foundation.org>
+Subject: - coredump-masking-add-an-interface-for-core-dump-filter.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:18 -0700
+Message-ID: <200707192002.l6JK2I8q019653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56569 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54915 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757178AbXGSUb7 (ORCPT
+	by vger.kernel.org with ESMTP id S932304AbXGSUbn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:31:59 -0400
+	Thu, 19 Jul 2007 16:31:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael@ellerman.id.au, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, prasanna@in.ibm.com, mm-commits@vger.kernel.org
+To: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jprobes: remove JPROBE_ENTRY()
+     coredump masking: add an interface for core dump filter
 has been removed from the -mm tree.  Its filename was
-     jprobes-remove-jprobe_entry.patch
+     coredump-masking-add-an-interface-for-core-dump-filter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jprobes: remove JPROBE_ENTRY()
-From: Michael Ellerman <michael@ellerman.id.au>
+Subject: coredump masking: add an interface for core dump filter
+From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
 
-AFAICT now that jprobe.entry is a void *, JPROBE_ENTRY doesn't do anything
-useful - so remove it ..
+This patch adds an interface to set/reset flags which determines each memory
+segment should be dumped or not when a core file is generated.
 
-I've left a do-nothing version so that out-of-tree jprobes code will still
-compile without modifications.
+/proc/<pid>/coredump_filter file is provided to access the flags.  You can
+change the flag status for a particular process by writing to or reading from
+the file.
 
-Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
+The flag status is inherited to the child process when it is created.
+
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kprobes.txt     |    8 +-------
- include/asm-i386/kprobes.h    |    1 -
- include/asm-ia64/kprobes.h    |    2 --
- include/asm-powerpc/kprobes.h |    2 --
- include/asm-s390/kprobes.h    |    2 --
- include/asm-sparc64/kprobes.h |    1 -
- include/asm-x86_64/kprobes.h  |    1 -
- include/linux/kprobes.h       |    3 +++
- net/dccp/probe.c              |    2 +-
- net/ipv4/tcp_probe.c          |    2 +-
- 10 files changed, 6 insertions(+), 18 deletions(-)
+ fs/proc/base.c        |   89 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/sched.h |   14 ++++++
+ kernel/fork.c         |    2 
+ 3 files changed, 105 insertions(+)
 
-diff -puN Documentation/kprobes.txt~jprobes-remove-jprobe_entry Documentation/kprobes.txt
---- a/Documentation/kprobes.txt~jprobes-remove-jprobe_entry
-+++ a/Documentation/kprobes.txt
-@@ -247,12 +247,6 @@ control to Kprobes.)  If the probed func
- fastcall, or anything else that affects how args are passed, the
- handler's declaration must match.
+diff -puN fs/proc/base.c~coredump-masking-add-an-interface-for-core-dump-filter fs/proc/base.c
+--- a/fs/proc/base.c~coredump-masking-add-an-interface-for-core-dump-filter
++++ a/fs/proc/base.c
+@@ -72,6 +72,7 @@
+ #include <linux/poll.h>
+ #include <linux/nsproxy.h>
+ #include <linux/oom.h>
++#include <linux/elf.h>
+ #include "internal.h"
  
--NOTE: A macro JPROBE_ENTRY is provided to handle architecture-specific
--aliasing of jp->entry. In the interest of portability, it is advised
--to use:
--
--	jp->entry = JPROBE_ENTRY(handler);
--
- register_jprobe() returns 0 on success, or a negative errno otherwise.
+ /* NOTE:
+@@ -1785,6 +1786,91 @@ static const struct inode_operations pro
  
- 4.3 register_kretprobe
-@@ -518,7 +512,7 @@ long jdo_fork(unsigned long clone_flags,
- }
- 
- static struct jprobe my_jprobe = {
--	.entry = JPROBE_ENTRY(jdo_fork)
-+	.entry = jdo_fork
- };
- 
- static int __init jprobe_init(void)
-diff -puN include/asm-i386/kprobes.h~jprobes-remove-jprobe_entry include/asm-i386/kprobes.h
---- a/include/asm-i386/kprobes.h~jprobes-remove-jprobe_entry
-+++ a/include/asm-i386/kprobes.h
-@@ -42,7 +42,6 @@ typedef u8 kprobe_opcode_t;
- 	? (MAX_STACK_SIZE) \
- 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
- 
--#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)pentry
- #define ARCH_SUPPORTS_KRETPROBES
- #define  ARCH_INACTIVE_KPROBE_COUNT 0
- #define flush_insn_slot(p)	do { } while (0)
-diff -puN include/asm-ia64/kprobes.h~jprobes-remove-jprobe_entry include/asm-ia64/kprobes.h
---- a/include/asm-ia64/kprobes.h~jprobes-remove-jprobe_entry
-+++ a/include/asm-ia64/kprobes.h
-@@ -82,8 +82,6 @@ struct kprobe_ctlblk {
- 	struct prev_kprobe prev_kprobe[ARCH_PREV_KPROBE_SZ];
- };
- 
--#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)pentry
--
- #define ARCH_SUPPORTS_KRETPROBES
- #define  ARCH_INACTIVE_KPROBE_COUNT 1
- 
-diff -puN include/asm-powerpc/kprobes.h~jprobes-remove-jprobe_entry include/asm-powerpc/kprobes.h
---- a/include/asm-powerpc/kprobes.h~jprobes-remove-jprobe_entry
-+++ a/include/asm-powerpc/kprobes.h
-@@ -73,12 +73,10 @@ typedef unsigned int kprobe_opcode_t;
- 	}								\
- }
- 
--#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)((func_descr_t *)pentry)
- #define is_trap(instr)	(IS_TW(instr) || IS_TD(instr) || \
- 			IS_TWI(instr) || IS_TDI(instr))
- #else
- /* Use stock kprobe_lookup_name since ppc32 doesn't use function descriptors */
--#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)(pentry)
- #define is_trap(instr)	(IS_TW(instr) || IS_TWI(instr))
  #endif
  
-diff -puN include/asm-s390/kprobes.h~jprobes-remove-jprobe_entry include/asm-s390/kprobes.h
---- a/include/asm-s390/kprobes.h~jprobes-remove-jprobe_entry
-+++ a/include/asm-s390/kprobes.h
-@@ -46,8 +46,6 @@ typedef u16 kprobe_opcode_t;
- 	? (MAX_STACK_SIZE) \
- 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
- 
--#define JPROBE_ENTRY(pentry) (kprobe_opcode_t *)(pentry)
--
- #define ARCH_SUPPORTS_KRETPROBES
- #define ARCH_INACTIVE_KPROBE_COUNT 0
- 
-diff -puN include/asm-sparc64/kprobes.h~jprobes-remove-jprobe_entry include/asm-sparc64/kprobes.h
---- a/include/asm-sparc64/kprobes.h~jprobes-remove-jprobe_entry
-+++ a/include/asm-sparc64/kprobes.h
-@@ -10,7 +10,6 @@ typedef u32 kprobe_opcode_t;
- #define BREAKPOINT_INSTRUCTION_2 0x91d02071 /* ta 0x71 */
- #define MAX_INSN_SIZE 2
- 
--#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)pentry
- #define arch_remove_kprobe(p)	do {} while (0)
- #define  ARCH_INACTIVE_KPROBE_COUNT 0
- 
-diff -puN include/asm-x86_64/kprobes.h~jprobes-remove-jprobe_entry include/asm-x86_64/kprobes.h
---- a/include/asm-x86_64/kprobes.h~jprobes-remove-jprobe_entry
-+++ a/include/asm-x86_64/kprobes.h
-@@ -41,7 +41,6 @@ typedef u8 kprobe_opcode_t;
- 	? (MAX_STACK_SIZE) \
- 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
- 
--#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)pentry
- #define ARCH_SUPPORTS_KRETPROBES
- #define  ARCH_INACTIVE_KPROBE_COUNT 1
- 
-diff -puN include/linux/kprobes.h~jprobes-remove-jprobe_entry include/linux/kprobes.h
---- a/include/linux/kprobes.h~jprobes-remove-jprobe_entry
-+++ a/include/linux/kprobes.h
-@@ -119,6 +119,9 @@ struct jprobe {
- 	void *entry;	/* probe handling code to jump to */
- };
- 
-+/* For backward compatibility with old code using JPROBE_ENTRY() */
-+#define JPROBE_ENTRY(handler)	(handler)
++#if defined(USE_ELF_CORE_DUMP) && defined(CONFIG_ELF_CORE)
++static ssize_t proc_coredump_filter_read(struct file *file, char __user *buf,
++					 size_t count, loff_t *ppos)
++{
++	struct task_struct *task = get_proc_task(file->f_dentry->d_inode);
++	struct mm_struct *mm;
++	char buffer[PROC_NUMBUF];
++	size_t len;
++	int ret;
 +
- DECLARE_PER_CPU(struct kprobe *, current_kprobe);
- DECLARE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
++	if (!task)
++		return -ESRCH;
++
++	ret = 0;
++	mm = get_task_mm(task);
++	if (mm) {
++		len = snprintf(buffer, sizeof(buffer), "%08lx\n",
++			       ((mm->flags & MMF_DUMP_FILTER_MASK) >>
++				MMF_DUMP_FILTER_SHIFT));
++		mmput(mm);
++		ret = simple_read_from_buffer(buf, count, ppos, buffer, len);
++	}
++
++	put_task_struct(task);
++
++	return ret;
++}
++
++static ssize_t proc_coredump_filter_write(struct file *file,
++					  const char __user *buf,
++					  size_t count,
++					  loff_t *ppos)
++{
++	struct task_struct *task;
++	struct mm_struct *mm;
++	char buffer[PROC_NUMBUF], *end;
++	unsigned int val;
++	int ret;
++	int i;
++	unsigned long mask;
++
++	ret = -EFAULT;
++	memset(buffer, 0, sizeof(buffer));
++	if (count > sizeof(buffer) - 1)
++		count = sizeof(buffer) - 1;
++	if (copy_from_user(buffer, buf, count))
++		goto out_no_task;
++
++	ret = -EINVAL;
++	val = (unsigned int)simple_strtoul(buffer, &end, 0);
++	if (*end == '\n')
++		end++;
++	if (end - buffer == 0)
++		goto out_no_task;
++
++	ret = -ESRCH;
++	task = get_proc_task(file->f_dentry->d_inode);
++	if (!task)
++		goto out_no_task;
++
++	ret = end - buffer;
++	mm = get_task_mm(task);
++	if (!mm)
++		goto out_no_mm;
++
++	for (i = 0, mask = 1; i < MMF_DUMP_FILTER_BITS; i++, mask <<= 1) {
++		if (val & mask)
++			set_bit(i + MMF_DUMP_FILTER_SHIFT, &mm->flags);
++		else
++			clear_bit(i + MMF_DUMP_FILTER_SHIFT, &mm->flags);
++	}
++
++	mmput(mm);
++ out_no_mm:
++	put_task_struct(task);
++ out_no_task:
++	return ret;
++}
++
++static const struct file_operations proc_coredump_filter_operations = {
++	.read		= proc_coredump_filter_read,
++	.write		= proc_coredump_filter_write,
++};
++#endif
++
+ /*
+  * /proc/self:
+  */
+@@ -2005,6 +2091,9 @@ static const struct pid_entry tgid_base_
+ #ifdef CONFIG_FAULT_INJECTION
+ 	REG("make-it-fail", S_IRUGO|S_IWUSR, fault_inject),
+ #endif
++#if defined(USE_ELF_CORE_DUMP) && defined(CONFIG_ELF_CORE)
++	REG("coredump_filter", S_IRUGO|S_IWUSR, coredump_filter),
++#endif
+ #ifdef CONFIG_TASK_IO_ACCOUNTING
+ 	INF("io",	S_IRUGO, pid_io_accounting),
+ #endif
+diff -puN include/linux/sched.h~coredump-masking-add-an-interface-for-core-dump-filter include/linux/sched.h
+--- a/include/linux/sched.h~coredump-masking-add-an-interface-for-core-dump-filter
++++ a/include/linux/sched.h
+@@ -349,8 +349,22 @@ extern void set_dumpable(struct mm_struc
+ extern int get_dumpable(struct mm_struct *mm);
  
-diff -puN net/dccp/probe.c~jprobes-remove-jprobe_entry net/dccp/probe.c
---- a/net/dccp/probe.c~jprobes-remove-jprobe_entry
-+++ a/net/dccp/probe.c
-@@ -112,7 +112,7 @@ static struct jprobe dccp_send_probe = {
- 	.kp	= {
- 		.symbol_name = "dccp_sendmsg",
- 	},
--	.entry	= JPROBE_ENTRY(jdccp_sendmsg),
-+	.entry	= jdccp_sendmsg,
- };
+ /* mm flags */
++/* dumpable bits */
+ #define MMF_DUMPABLE      0  /* core dump is permitted */
+ #define MMF_DUMP_SECURELY 1  /* core file is readable only by root */
++#define MMF_DUMPABLE_BITS 2
++
++/* coredump filter bits */
++#define MMF_DUMP_ANON_PRIVATE	2
++#define MMF_DUMP_ANON_SHARED	3
++#define MMF_DUMP_MAPPED_PRIVATE	4
++#define MMF_DUMP_MAPPED_SHARED	5
++#define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
++#define MMF_DUMP_FILTER_BITS	4
++#define MMF_DUMP_FILTER_MASK \
++	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
++#define MMF_DUMP_FILTER_DEFAULT \
++	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED))
  
- static int dccpprobe_open(struct inode *inode, struct file *file)
-diff -puN net/ipv4/tcp_probe.c~jprobes-remove-jprobe_entry net/ipv4/tcp_probe.c
---- a/net/ipv4/tcp_probe.c~jprobes-remove-jprobe_entry
-+++ a/net/ipv4/tcp_probe.c
-@@ -130,7 +130,7 @@ static struct jprobe tcp_jprobe = {
- 	.kp = {
- 		.symbol_name	= "tcp_rcv_established",
- 	},
--	.entry	= JPROBE_ENTRY(jtcp_rcv_established),
-+	.entry	= jtcp_rcv_established,
- };
- 
- static int tcpprobe_open(struct inode * inode, struct file * file)
+ struct mm_struct {
+ 	struct vm_area_struct * mmap;		/* list of VMAs */
+diff -puN kernel/fork.c~coredump-masking-add-an-interface-for-core-dump-filter kernel/fork.c
+--- a/kernel/fork.c~coredump-masking-add-an-interface-for-core-dump-filter
++++ a/kernel/fork.c
+@@ -334,6 +334,8 @@ static struct mm_struct * mm_init(struct
+ 	atomic_set(&mm->mm_count, 1);
+ 	init_rwsem(&mm->mmap_sem);
+ 	INIT_LIST_HEAD(&mm->mmlist);
++	mm->flags = (current->mm) ? current->mm->flags
++				  : MMF_DUMP_FILTER_DEFAULT;
+ 	mm->core_waiters = 0;
+ 	mm->nr_ptes = 0;
+ 	set_mm_counter(mm, file_rss, 0);
 _
 
-Patches currently in -mm which might be from michael@ellerman.id.au are
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
 
 origin.patch
