@@ -1,89 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - nfsd-return-errors-not-null-from-export-functions.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:04:38 -0700
-Message-ID: <200707192004.l6JK4cFW019967@imap1.linux-foundation.org>
+Subject: - avoid-too-many-remote-cpu-references-due-to-proc-stat.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:00:53 -0700
+Message-ID: <200707192000.l6JK0rf0019483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59738 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39282 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760803AbXGSUR6 (ORCPT
+	by vger.kernel.org with ESMTP id S1761497AbXGSUSB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:17:58 -0400
+	Thu, 19 Jul 2007 16:18:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: kiran@scalex86.org, alok.kataria@calsoftinc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfsd: return errors, not NULL, from export functions
+     Avoid too many remote cpu references due to /proc/stat
 has been removed from the -mm tree.  Its filename was
-     nfsd-return-errors-not-null-from-export-functions.patch
+     avoid-too-many-remote-cpu-references-due-to-proc-stat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nfsd: return errors, not NULL, from export functions
-From: J. Bruce Fields <bfields@citi.umich.edu>
+Subject: Avoid too many remote cpu references due to /proc/stat
+From: Ravikiran G Thirumalai <kiran@scalex86.org>
 
-I converted the various export-returning functions to return -ENOENT instead
-of NULL, but missed a few cases.
+Optimize show_stat to collect per-irq information just once.
 
-This particular case could cause actual bugs in the case of a krb5 client that
-doesn't match any ip-based client and that is trying to access a filesystem
-not exported to krb5 clients.
+On x86_64, with newer kernel versions, kstat_irqs is a bit of a problem.
+On every call to kstat_irqs, the process brings in per-cpu data from all
+online cpus.  Doing this for NR_IRQS, which is now 256 + 32 * NR_CPUS
+results in (256+32*63) * 63 remote cpu references on a 64 cpu config.
+Considering the fact that we already compute this value per-cpu, we can
+save on the remote references as below.
 
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
-Acked-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Alok N Kataria <alok.kataria@calsoftinc.com>
+Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/proc/proc_misc.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN fs/nfsd/export.c~nfsd-return-errors-not-null-from-export-functions fs/nfsd/export.c
---- a/fs/nfsd/export.c~nfsd-return-errors-not-null-from-export-functions
-+++ a/fs/nfsd/export.c
-@@ -1265,7 +1265,7 @@ struct svc_export *
- rqst_exp_get_by_name(struct svc_rqst *rqstp, struct vfsmount *mnt,
- 		struct dentry *dentry)
- {
--	struct svc_export *gssexp, *exp = NULL;
-+	struct svc_export *gssexp, *exp = ERR_PTR(-ENOENT);
+diff -puN fs/proc/proc_misc.c~avoid-too-many-remote-cpu-references-due-to-proc-stat fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~avoid-too-many-remote-cpu-references-due-to-proc-stat
++++ a/fs/proc/proc_misc.c
+@@ -445,6 +445,11 @@ static int show_stat(struct seq_file *p,
+ 	cputime64_t user, nice, system, idle, iowait, irq, softirq, steal;
+ 	u64 sum = 0;
+ 	struct timespec boottime;
++	unsigned int *per_irq_sum;
++
++	per_irq_sum = kzalloc(sizeof(unsigned int)*NR_IRQS, GFP_KERNEL);
++	if (!per_irq_sum)
++		return -ENOMEM;
  
- 	if (rqstp->rq_client == NULL)
- 		goto gss;
-@@ -1288,7 +1288,7 @@ gss:
- 						&rqstp->rq_chandle);
- 	if (PTR_ERR(gssexp) == -ENOENT)
- 		return exp;
--	if (exp && !IS_ERR(exp))
-+	if (!IS_ERR(exp))
- 		exp_put(exp);
- 	return gssexp;
- }
-@@ -1296,7 +1296,7 @@ gss:
- struct svc_export *
- rqst_exp_find(struct svc_rqst *rqstp, int fsid_type, u32 *fsidv)
- {
--	struct svc_export *gssexp, *exp = NULL;
-+	struct svc_export *gssexp, *exp = ERR_PTR(-ENOENT);
+ 	user = nice = system = idle = iowait =
+ 		irq = softirq = steal = cputime64_zero;
+@@ -462,8 +467,11 @@ static int show_stat(struct seq_file *p,
+ 		irq = cputime64_add(irq, kstat_cpu(i).cpustat.irq);
+ 		softirq = cputime64_add(softirq, kstat_cpu(i).cpustat.softirq);
+ 		steal = cputime64_add(steal, kstat_cpu(i).cpustat.steal);
+-		for (j = 0 ; j < NR_IRQS ; j++)
+-			sum += kstat_cpu(i).irqs[j];
++		for (j = 0; j < NR_IRQS; j++) {
++			unsigned int temp = kstat_cpu(i).irqs[j];
++			sum += temp;
++			per_irq_sum[j] += temp;
++		}
+ 	}
  
- 	if (rqstp->rq_client == NULL)
- 		goto gss;
-@@ -1318,7 +1318,7 @@ gss:
- 						&rqstp->rq_chandle);
- 	if (PTR_ERR(gssexp) == -ENOENT)
- 		return exp;
--	if (exp && !IS_ERR(exp))
-+	if (!IS_ERR(exp))
- 		exp_put(exp);
- 	return gssexp;
+ 	seq_printf(p, "cpu  %llu %llu %llu %llu %llu %llu %llu %llu\n",
+@@ -501,7 +509,7 @@ static int show_stat(struct seq_file *p,
+ 
+ #if !defined(CONFIG_PPC64) && !defined(CONFIG_ALPHA) && !defined(CONFIG_IA64)
+ 	for (i = 0; i < NR_IRQS; i++)
+-		seq_printf(p, " %u", kstat_irqs(i));
++		seq_printf(p, " %u", per_irq_sum[i]);
+ #endif
+ 
+ 	seq_printf(p,
+@@ -516,6 +524,7 @@ static int show_stat(struct seq_file *p,
+ 		nr_running(),
+ 		nr_iowait());
+ 
++	kfree(per_irq_sum);
+ 	return 0;
  }
+ 
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from kiran@scalex86.org are
 
 origin.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-vfs-fix-a-race-in-lease-breaking-during-truncate.patch
-locks-kill-redundant-local-variable.patch
+slab-leaks3-default-y.patch
