@@ -1,121 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:45 -0700
-Message-ID: <200707192010.l6JKAjth020701@imap1.linux-foundation.org>
+Subject: - i386-remove-volatile-in-apicc.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:10:35 -0700
+Message-ID: <200707192010.l6JKAZ1G020686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43115 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46641 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762045AbXGSURG (ORCPT
+	by vger.kernel.org with ESMTP id S1761633AbXGSUQk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:17:06 -0400
+	Thu, 19 Jul 2007 16:16:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: remove dead code and other janitor work in tsc.c
+     i386: remove volatile in apic.c
 has been removed from the -mm tree.  Its filename was
-     x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
+     i386-remove-volatile-in-apicc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: remove dead code and other janitor work in tsc.c
+Subject: i386: remove volatile in apic.c
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Remove unused code and variables and do some codingstyle / whitespace
-cleanups while at it.
+Remove the volatile in apic.  We have a cpu_relax() in the wait loop.  Fix a
+coding style issue while at it.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Ingo Molnar <mingo@elte.hu>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/tsc.c |   41 +++++++++----------------------------
- 1 files changed, 11 insertions(+), 30 deletions(-)
+ arch/i386/kernel/apic.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/tsc.c~x86_64-remove-dead-code-and-other-janitor-work-in-tscc arch/x86_64/kernel/tsc.c
---- a/arch/x86_64/kernel/tsc.c~x86_64-remove-dead-code-and-other-janitor-work-in-tscc
-+++ a/arch/x86_64/kernel/tsc.c
-@@ -35,25 +35,9 @@ static inline int check_tsc_unstable(voi
-  * first tick after the change will be slightly wrong.
-  */
+diff -puN arch/i386/kernel/apic.c~i386-remove-volatile-in-apicc arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~i386-remove-volatile-in-apicc
++++ a/arch/i386/kernel/apic.c
+@@ -318,7 +318,7 @@ static void __devinit setup_APIC_timer(v
  
--#include <linux/workqueue.h>
--
--static unsigned int cpufreq_delayed_issched = 0;
--static unsigned int cpufreq_init = 0;
--static struct work_struct cpufreq_delayed_get_work;
--
--static void handle_cpufreq_delayed_get(struct work_struct *v)
--{
--	unsigned int cpu;
--	for_each_online_cpu(cpu) {
--		cpufreq_get(cpu);
--	}
--	cpufreq_delayed_issched = 0;
--}
--
--static unsigned int  ref_freq = 0;
--static unsigned long loops_per_jiffy_ref = 0;
--
--static unsigned long tsc_khz_ref = 0;
-+static unsigned int  ref_freq;
-+static unsigned long loops_per_jiffy_ref;
-+static unsigned long tsc_khz_ref;
+ #define LAPIC_CAL_LOOPS		(HZ/10)
  
- static int time_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
- 				 void *data)
-@@ -97,10 +81,8 @@ static struct notifier_block time_cpufre
+-static __initdata volatile int lapic_cal_loops = -1;
++static __initdata int lapic_cal_loops = -1;
+ static __initdata long lapic_cal_t1, lapic_cal_t2;
+ static __initdata unsigned long long lapic_cal_tsc1, lapic_cal_tsc2;
+ static __initdata unsigned long lapic_cal_pm1, lapic_cal_pm2;
+@@ -488,7 +488,7 @@ void __init setup_boot_APIC_clock(void)
+ 		/* Let the interrupts run */
+ 		local_irq_enable();
  
- static int __init cpufreq_tsc(void)
- {
--	INIT_WORK(&cpufreq_delayed_get_work, handle_cpufreq_delayed_get);
--	if (!cpufreq_register_notifier(&time_cpufreq_notifier_block,
--				       CPUFREQ_TRANSITION_NOTIFIER))
--		cpufreq_init = 1;
-+	cpufreq_register_notifier(&time_cpufreq_notifier_block,
-+				  CPUFREQ_TRANSITION_NOTIFIER);
- 	return 0;
- }
+-		while(lapic_cal_loops <= LAPIC_CAL_LOOPS)
++		while (lapic_cal_loops <= LAPIC_CAL_LOOPS)
+ 			cpu_relax();
  
-@@ -108,8 +90,6 @@ core_initcall(cpufreq_tsc);
- 
- #endif
- 
--static int tsc_unstable = 0;
--
- /*
-  * Make an educated guess if the TSC is trustworthy and synchronized
-  * over all CPUs.
-@@ -122,17 +102,18 @@ __cpuinit int unsynchronized_tsc(void)
- #endif
- 	/* Most intel systems have synchronized TSCs except for
- 	   multi node systems */
-- 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) {
-+	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) {
- #ifdef CONFIG_ACPI
- 		/* But TSC doesn't tick in C3 so don't use it there */
--		if (acpi_gbl_FADT.header.length > 0 && acpi_gbl_FADT.C3latency < 1000)
-+		if (acpi_gbl_FADT.header.length > 0 &&
-+		    acpi_gbl_FADT.C3latency < 1000)
- 			return 1;
- #endif
-- 		return 0;
-+		return 0;
- 	}
- 
-- 	/* Assume multi socket systems are not synchronized */
-- 	return num_present_cpus() > 1;
-+	/* Assume multi socket systems are not synchronized */
-+	return num_present_cpus() > 1;
- }
- 
- int __init notsc_setup(char *s)
+ 		local_irq_disable();
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
