@@ -1,147 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: - fix-ext4-jbd2-build-warnings.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:02:36 -0700
-Message-ID: <200707192002.l6JK2aEF019694@imap1.linux-foundation.org>
+Subject: - unregister_chrdev-ignore-the-return-value.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:00:47 -0700
+Message-ID: <200707192000.l6JK0lSf019474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42848 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37236 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932986AbXGSU0s (ORCPT
+	by vger.kernel.org with ESMTP id S932952AbXGSU0r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:26:48 -0400
+	Thu, 19 Jul 2007 16:26:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmm@us.ibm.com, jeff@garzik.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, davem@davemloft.net, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix ext4/JBD2 build warnings
+     unregister_chrdev(): ignore the return value
 has been removed from the -mm tree.  Its filename was
-     fix-ext4-jbd2-build-warnings.patch
+     unregister_chrdev-ignore-the-return-value.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix ext4/JBD2 build warnings
-=46rom: Mingming Cao <cmm@us.ibm.com>
+Subject: unregister_chrdev(): ignore the return value
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Looking at the current linus-git tree jbd_debug() define in
-include/linux/jbd2.h
+unregister_chrdev() always returns 0.  There is no need to check the return
+value.
 
-extern u8 journal_enable_debug;
-
-#define jbd_debug(n, f, a...)                                          =
- \
-        do {                                                           =
- \
-                if ((n) <=3D journal_enable_debug) {                   =
-   \
-                        printk (KERN_DEBUG "(%s, %d): %s: ",           =
- \
-                                __FILE__, __LINE__, __FUNCTION__);     =
- \
-                        printk (f, ## a);                              =
- \
-                }                                                      =
- \
-        } while (0)
-> fs/ext4/inode.c: In function =E2=80=98ext4_write_inode=E2=80=99:
-> fs/ext4/inode.c:2906: warning: comparison is always true due to limit=
-ed
-> range of data type
->
-> fs/jbd2/recovery.c: In function =E2=80=98jbd2_journal_recover=E2=80=99=
-:
-> fs/jbd2/recovery.c:254: warning: comparison is always true due to
-> limited range of data type
-> fs/jbd2/recovery.c:257: warning: comparison is always true due to
-> limited range of data type
->
-> fs/jbd2/recovery.c: In function =E2=80=98jbd2_journal_skip_recovery=E2=
-=80=99:
-> fs/jbd2/recovery.c:301: warning: comparison is always true due to
-> limited range of data type
->
-Noticed all warnings are occurs when the debug level is 0. Then found
-the "jbd2: Move jbd2-debug file to debugfs" patch
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
-commit;h=3D0f49d5d019afa4e94253bfc92f0daca3badb990b
-
-changed the jbd2_journal_enable_debug from int type to u8, makes the
-jbd_debug comparision is always true when the debugging level is 0. Thu=
-s
-the compile warning occurs.
-
-Thought about changing the jbd2_journal_enable_debug data type back to
-int, but can't, because the jbd2-debug is moved to debug fs, where
-calling debugfs_create_u8() to create the debugfs entry needs the value
-to be u8 type.
-
-Even if we changed the data type back to int, the code is still buggy,
-kernel should not print jbd2 debug message if the
-jbd2_journal_enable_debug is set to 0. But this is not the case.
-
-The fix is change the level of debugging to 1. The same should fixed in
-ext3/JBD, but currently ext3 jbd-debug via /proc fs is broken, so we
-probably should fix it all together.
-
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Theodore Tso <tytso@mit.edu>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c    |    2 +-
- fs/jbd2/recovery.c |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/cris/arch-v10/drivers/pcf8563.c |    4 +---
+ arch/cris/arch-v32/drivers/pcf8563.c |    4 +---
+ arch/sparc64/solaris/socksys.c       |    3 +--
+ drivers/char/ip2/ip2main.c           |    4 +---
+ drivers/char/mbcs.c                  |    7 +------
+ drivers/char/stallion.c              |    5 +----
+ drivers/char/viotape.c               |    7 +------
+ drivers/net/ppp_generic.c            |    3 +--
+ sound/core/sound.c                   |    3 +--
+ 9 files changed, 9 insertions(+), 31 deletions(-)
 
-diff -puN fs/ext4/inode.c~fix-ext4-jbd2-build-warnings fs/ext4/inode.c
---- a/fs/ext4/inode.c~fix-ext4-jbd2-build-warnings
-+++ a/fs/ext4/inode.c
-@@ -2903,7 +2903,7 @@ int ext4_write_inode(struct inode *inode
- 		return 0;
-=20
- 	if (ext4_journal_current_handle()) {
--		jbd_debug(0, "called recursively, non-PF_MEMALLOC!\n");
-+		jbd_debug(1, "called recursively, non-PF_MEMALLOC!\n");
- 		dump_stack();
- 		return -EIO;
+diff -puN arch/cris/arch-v10/drivers/pcf8563.c~unregister_chrdev-ignore-the-return-value arch/cris/arch-v10/drivers/pcf8563.c
+--- a/arch/cris/arch-v10/drivers/pcf8563.c~unregister_chrdev-ignore-the-return-value
++++ a/arch/cris/arch-v10/drivers/pcf8563.c
+@@ -180,9 +180,7 @@ err:
+ void __exit
+ pcf8563_exit(void)
+ {
+-	if (unregister_chrdev(PCF8563_MAJOR, DEVICE_NAME) < 0) {
+-		printk(KERN_INFO "%s: Unable to unregister device.\n", PCF8563_NAME);
+-	}
++	unregister_chrdev(PCF8563_MAJOR, DEVICE_NAME);
+ }
+ 
+ /*
+diff -puN arch/cris/arch-v32/drivers/pcf8563.c~unregister_chrdev-ignore-the-return-value arch/cris/arch-v32/drivers/pcf8563.c
+--- a/arch/cris/arch-v32/drivers/pcf8563.c~unregister_chrdev-ignore-the-return-value
++++ a/arch/cris/arch-v32/drivers/pcf8563.c
+@@ -193,9 +193,7 @@ err:
+ void __exit
+ pcf8563_exit(void)
+ {
+-	if (unregister_chrdev(PCF8563_MAJOR, DEVICE_NAME) < 0) {
+-		printk(KERN_INFO "%s: Unable to unregister device.\n", PCF8563_NAME);
+-	}
++	unregister_chrdev(PCF8563_MAJOR, DEVICE_NAME);
+ }
+ 
+ /*
+diff -puN arch/sparc64/solaris/socksys.c~unregister_chrdev-ignore-the-return-value arch/sparc64/solaris/socksys.c
+--- a/arch/sparc64/solaris/socksys.c~unregister_chrdev-ignore-the-return-value
++++ a/arch/sparc64/solaris/socksys.c
+@@ -199,6 +199,5 @@ int __init init_socksys(void)
+ 
+ void __exit cleanup_socksys(void)
+ {
+-	if (unregister_chrdev(30, "socksys"))
+-		printk ("Couldn't unregister socksys character device\n");
++	unregister_chrdev(30, "socksys");
+ }
+diff -puN drivers/char/ip2/ip2main.c~unregister_chrdev-ignore-the-return-value drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~unregister_chrdev-ignore-the-return-value
++++ a/drivers/char/ip2/ip2main.c
+@@ -425,9 +425,7 @@ cleanup_module(void)
+ 		printk(KERN_ERR "IP2: failed to unregister tty driver (%d)\n", err);
  	}
-diff -puN fs/jbd2/recovery.c~fix-ext4-jbd2-build-warnings fs/jbd2/recov=
-ery.c
---- a/fs/jbd2/recovery.c~fix-ext4-jbd2-build-warnings
-+++ a/fs/jbd2/recovery.c
-@@ -251,10 +251,10 @@ int jbd2_journal_recover(journal_t *jour
- 	if (!err)
- 		err =3D do_one_pass(journal, &info, PASS_REPLAY);
-=20
--	jbd_debug(0, "JBD: recovery, exit status %d, "
-+	jbd_debug(1, "JBD: recovery, exit status %d, "
- 		  "recovered transactions %u to %u\n",
- 		  err, info.start_transaction, info.end_transaction);
--	jbd_debug(0, "JBD: Replayed %d and revoked %d/%d blocks\n",
-+	jbd_debug(1, "JBD: Replayed %d and revoked %d/%d blocks\n",
- 		  info.nr_replays, info.nr_revoke_hits, info.nr_revokes);
-=20
- 	/* Restart the log at the next transaction ID, thus invalidating
-@@ -298,7 +298,7 @@ int jbd2_journal_skip_recovery(journal_t
- #ifdef CONFIG_JBD2_DEBUG
- 		int dropped =3D info.end_transaction - be32_to_cpu(sb->s_sequence);
- #endif
--		jbd_debug(0,
-+		jbd_debug(1,
- 			  "JBD: ignoring %d transaction%s from the journal.\n",
- 			  dropped, (dropped =3D=3D 1) ? "" : "s");
- 		journal->j_transaction_sequence =3D ++info.end_transaction;
+ 	put_tty_driver(ip2_tty_driver);
+-	if ( ( err = unregister_chrdev ( IP2_IPL_MAJOR, pcIpl ) ) ) {
+-		printk(KERN_ERR "IP2: failed to unregister IPL driver (%d)\n", err);
+-	}
++	unregister_chrdev(IP2_IPL_MAJOR, pcIpl);
+ 	remove_proc_entry("ip2mem", &proc_root);
+ 
+ 	// free memory
+diff -puN drivers/char/mbcs.c~unregister_chrdev-ignore-the-return-value drivers/char/mbcs.c
+--- a/drivers/char/mbcs.c~unregister_chrdev-ignore-the-return-value
++++ a/drivers/char/mbcs.c
+@@ -816,12 +816,7 @@ struct cx_drv mbcs_driver = {
+ 
+ static void __exit mbcs_exit(void)
+ {
+-	int rv;
+-
+-	rv = unregister_chrdev(mbcs_major, DEVICE_NAME);
+-	if (rv < 0)
+-		DBG(KERN_ALERT "Error in unregister_chrdev: %d\n", rv);
+-
++	unregister_chrdev(mbcs_major, DEVICE_NAME);
+ 	cx_driver_unregister(&mbcs_driver);
+ }
+ 
+diff -puN drivers/char/stallion.c~unregister_chrdev-ignore-the-return-value drivers/char/stallion.c
+--- a/drivers/char/stallion.c~unregister_chrdev-ignore-the-return-value
++++ a/drivers/char/stallion.c
+@@ -4795,7 +4795,6 @@ static void __exit stallion_module_exit(
+ {
+ 	struct stlbrd *brdp;
+ 	unsigned int i, j;
+-	int retval;
+ 
+ 	pr_debug("cleanup_module()\n");
+ 
+@@ -4818,9 +4817,7 @@ static void __exit stallion_module_exit(
+ 
+ 	for (i = 0; i < 4; i++)
+ 		class_device_destroy(stallion_class, MKDEV(STL_SIOMEMMAJOR, i));
+-	if ((retval = unregister_chrdev(STL_SIOMEMMAJOR, "staliomem")))
+-		printk("STALLION: failed to un-register serial memory device, "
+-			"errno=%d\n", -retval);
++	unregister_chrdev(STL_SIOMEMMAJOR, "staliomem");
+ 	class_destroy(stallion_class);
+ 
+ 	pci_unregister_driver(&stl_pcidriver);
+diff -puN drivers/char/viotape.c~unregister_chrdev-ignore-the-return-value drivers/char/viotape.c
+--- a/drivers/char/viotape.c~unregister_chrdev-ignore-the-return-value
++++ a/drivers/char/viotape.c
+@@ -1098,15 +1098,10 @@ static int chg_state(int index, unsigned
+ /* Cleanup */
+ static void __exit viotap_exit(void)
+ {
+-	int ret;
+-
+ 	remove_proc_entry("iSeries/viotape", NULL);
+ 	vio_unregister_driver(&viotape_driver);
+ 	class_destroy(tape_class);
+-	ret = unregister_chrdev(VIOTAPE_MAJOR, "viotape");
+-	if (ret < 0)
+-		printk(VIOTAPE_KERN_WARN "Error unregistering device: %d\n",
+-				ret);
++	unregister_chrdev(VIOTAPE_MAJOR, "viotape");
+ 	if (viotape_unitinfo)
+ 		dma_free_coherent(iSeries_vio_dev,
+ 				sizeof(viotape_unitinfo[0]) * VIOTAPE_MAX_TAPE,
+diff -puN drivers/net/ppp_generic.c~unregister_chrdev-ignore-the-return-value drivers/net/ppp_generic.c
+--- a/drivers/net/ppp_generic.c~unregister_chrdev-ignore-the-return-value
++++ a/drivers/net/ppp_generic.c
+@@ -2684,8 +2684,7 @@ static void __exit ppp_cleanup(void)
+ 	if (atomic_read(&ppp_unit_count) || atomic_read(&channel_count))
+ 		printk(KERN_ERR "PPP: removing module but units remain!\n");
+ 	cardmap_destroy(&all_ppp_units);
+-	if (unregister_chrdev(PPP_MAJOR, "ppp") != 0)
+-		printk(KERN_ERR "PPP: failed to unregister PPP device\n");
++	unregister_chrdev(PPP_MAJOR, "ppp");
+ 	device_destroy(ppp_class, MKDEV(PPP_MAJOR, 0));
+ 	class_destroy(ppp_class);
+ }
+diff -puN sound/core/sound.c~unregister_chrdev-ignore-the-return-value sound/core/sound.c
+--- a/sound/core/sound.c~unregister_chrdev-ignore-the-return-value
++++ a/sound/core/sound.c
+@@ -446,8 +446,7 @@ static void __exit alsa_sound_exit(void)
+ {
+ 	snd_info_minor_unregister();
+ 	snd_info_done();
+-	if (unregister_chrdev(major, "alsa") != 0)
+-		snd_printk(KERN_ERR "unable to unregister major device number %d\n", major);
++	unregister_chrdev(major, "alsa");
+ }
+ 
+ module_init(alsa_sound_init)
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
