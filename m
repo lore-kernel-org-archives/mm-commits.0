@@ -1,65 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - jprobes-make-struct-jprobeentry-a-void.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:01:32 -0700
-Message-ID: <200707192001.l6JK1WSY019546@imap1.linux-foundation.org>
+Subject: - coredump-masking-elf-fdpic-remove-an-unused-argument.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:22 -0700
+Message-ID: <200707192002.l6JK2MX6019659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40583 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47815 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932224AbXGSU3y (ORCPT
+	by vger.kernel.org with ESMTP id S932227AbXGSUaC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:29:54 -0400
+	Thu, 19 Jul 2007 16:30:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael@ellerman.id.au, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, prasanna@in.ibm.com, mm-commits@vger.kernel.org
+To: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jprobes: make struct jprobe.entry a void *
+     coredump masking: ELF-FDPIC: remove an unused argument
 has been removed from the -mm tree.  Its filename was
-     jprobes-make-struct-jprobeentry-a-void.patch
+     coredump-masking-elf-fdpic-remove-an-unused-argument.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jprobes: make struct jprobe.entry a void *
-From: Michael Ellerman <michael@ellerman.id.au>
+Subject: coredump masking: ELF-FDPIC: remove an unused argument
+From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
 
-Currently jprobe.entry is a kprobe_opcode_t *, but that's a lie.  On some
-platforms it doesn't point to an opcode at all, it points to a function
-descriptor.
+This patch removes an unused argument from elf_fdpic_dump_segments().
 
-It's really a pointer to something that the arch code can turn into a function
-entry point.  And that's what actually happens, none of the generic code ever
-looks at jprobe.entry, it's only ever dereferenced by arch code.
-
-So just make it a void *.
-
-Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kprobes.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_elf_fdpic.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/kprobes.h~jprobes-make-struct-jprobeentry-a-void include/linux/kprobes.h
---- a/include/linux/kprobes.h~jprobes-make-struct-jprobeentry-a-void
-+++ a/include/linux/kprobes.h
-@@ -116,7 +116,7 @@ struct kprobe {
+diff -puN fs/binfmt_elf_fdpic.c~coredump-masking-elf-fdpic-remove-an-unused-argument fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~coredump-masking-elf-fdpic-remove-an-unused-argument
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1456,8 +1456,8 @@ static int elf_dump_thread_status(long s
+  * dump the segments for an MMU process
   */
- struct jprobe {
- 	struct kprobe kp;
--	kprobe_opcode_t *entry;	/* probe handling code to jump to */
-+	void *entry;	/* probe handling code to jump to */
- };
+ #ifdef CONFIG_MMU
+-static int elf_fdpic_dump_segments(struct file *file, struct mm_struct *mm,
+-				   size_t *size, unsigned long *limit)
++static int elf_fdpic_dump_segments(struct file *file, size_t *size,
++				   unsigned long *limit)
+ {
+ 	struct vm_area_struct *vma;
  
- DECLARE_PER_CPU(struct kprobe *, current_kprobe);
+@@ -1511,8 +1511,8 @@ end_coredump:
+  * dump the segments for a NOMMU process
+  */
+ #ifndef CONFIG_MMU
+-static int elf_fdpic_dump_segments(struct file *file, struct mm_struct *mm,
+-				   size_t *size, unsigned long *limit)
++static int elf_fdpic_dump_segments(struct file *file, size_t *size,
++				   unsigned long *limit)
+ {
+ 	struct vm_list_struct *vml;
+ 
 _
 
-Patches currently in -mm which might be from michael@ellerman.id.au are
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
 
 origin.patch
