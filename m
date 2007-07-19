@@ -1,93 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - i386-minor-nx-handling-adjustment.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:00 -0700
-Message-ID: <200707192010.l6JKA0dn020626@imap1.linux-foundation.org>
+Subject: - i386-fix-section-mismatch-warning-in-intel_cacheinfo.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:09:46 -0700
+Message-ID: <200707192009.l6JK9kLc020608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59296 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761390AbXGSUQG (ORCPT
+	by vger.kernel.org with ESMTP id S1760871AbXGSUP2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:06 -0400
+	Thu, 19 Jul 2007 16:15:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, ak@suse.de, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: minor nx handling adjustment
+     i386: fix section mismatch warning in intel_cacheinfo
 has been removed from the -mm tree.  Its filename was
-     i386-minor-nx-handling-adjustment.patch
+     i386-fix-section-mismatch-warning-in-intel_cacheinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: minor nx handling adjustment
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: i386: fix section mismatch warning in intel_cacheinfo
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Constrain __supported_pte_mask and NX handling to just the PAE kernel.
+Fix following warning:
+WARNING: arch/i386/kernel/built-in.o(.init.text+0x3818): Section mismatch: reference to .exit.text:cache_remove_dev (between 'cacheinfo_cpu_callback' and 'cache_sysfs_init')
 
-[jeremy@goop.org: add missing include]
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+It points out that a function marked __cpuexit is calling a function marked
+__cpuinit => oops.
+
+The call happens only in an error-condition which may explain why we have
+not seen it before.
+
+The offending function was not used anywhere else - so marked it __cpuexit.
+
+Note: This warning triggers only with a local copy of modpost
+      but that version will soon be pushed out.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/init.c     |    7 ++++---
- include/asm-i386/page.h |    1 -
- include/xen/page.h      |    1 +
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ arch/i386/kernel/cpu/intel_cacheinfo.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/mm/init.c~i386-minor-nx-handling-adjustment arch/i386/mm/init.c
---- a/arch/i386/mm/init.c~i386-minor-nx-handling-adjustment
-+++ a/arch/i386/mm/init.c
-@@ -472,6 +472,10 @@ void zap_low_mappings (void)
- 	flush_tlb_all();
+diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~i386-fix-section-mismatch-warning-in-intel_cacheinfo arch/i386/kernel/cpu/intel_cacheinfo.c
+--- a/arch/i386/kernel/cpu/intel_cacheinfo.c~i386-fix-section-mismatch-warning-in-intel_cacheinfo
++++ a/arch/i386/kernel/cpu/intel_cacheinfo.c
+@@ -746,7 +746,7 @@ static int __cpuinit cache_add_dev(struc
+ 	return retval;
  }
  
-+int nx_enabled = 0;
-+
-+#ifdef CONFIG_X86_PAE
-+
- static int disable_nx __initdata = 0;
- u64 __supported_pte_mask __read_mostly = ~_PAGE_NX;
- EXPORT_SYMBOL_GPL(__supported_pte_mask);
-@@ -501,9 +505,6 @@ static int __init noexec_setup(char *str
- }
- early_param("noexec", noexec_setup);
- 
--int nx_enabled = 0;
--#ifdef CONFIG_X86_PAE
--
- static void __init set_nx(void)
+-static void __cpuexit cache_remove_dev(struct sys_device * sys_dev)
++static void __cpuinit cache_remove_dev(struct sys_device * sys_dev)
  {
- 	unsigned int v[4], l, h;
-diff -puN include/asm-i386/page.h~i386-minor-nx-handling-adjustment include/asm-i386/page.h
---- a/include/asm-i386/page.h~i386-minor-nx-handling-adjustment
-+++ a/include/asm-i386/page.h
-@@ -44,7 +44,6 @@
- extern int nx_enabled;
- 
- #ifdef CONFIG_X86_PAE
--extern unsigned long long __supported_pte_mask;
- typedef struct { unsigned long pte_low, pte_high; } pte_t;
- typedef struct { unsigned long long pmd; } pmd_t;
- typedef struct { unsigned long long pgd; } pgd_t;
-diff -puN include/xen/page.h~i386-minor-nx-handling-adjustment include/xen/page.h
---- a/include/xen/page.h~i386-minor-nx-handling-adjustment
-+++ a/include/xen/page.h
-@@ -4,6 +4,7 @@
- #include <linux/pfn.h>
- 
- #include <asm/uaccess.h>
-+#include <asm/pgtable.h>
- 
- #include <xen/features.h>
- 
+ 	unsigned int cpu = sys_dev->id;
+ 	unsigned long i;
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
 git-kbuild.patch
+pass-g-to-assembler-under-config_debug_info.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+whitelist-references-from-__dbe_table-to-init.patch
