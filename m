@@ -1,75 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - afs-use-patched-rxrpc_kernel_send_data-correctly.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 14:36:11 -0700
-Message-ID: <200707192136.l6JLaBMo024264@imap1.linux-foundation.org>
+Subject: + serial-mpsc-stop-rx-engine-when-cread-cleared.patch added to -mm tree
+Date: Thu, 19 Jul 2007 14:41:22 -0700
+Message-ID: <200707192141.l6JLfMBO024468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39983 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35799 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751477AbXGSVg4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757247AbXGSVmb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 17:36:56 -0400
+	Thu, 19 Jul 2007 17:42:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: stephane@artesyncp.com, mgreer@mvista.com
 
 
 The patch titled
-     AFS: use patched rxrpc_kernel_send_data() correctly
-has been removed from the -mm tree.  Its filename was
-     afs-use-patched-rxrpc_kernel_send_data-correctly.patch
+     serial: MPSC: Stop rx engine when CREAD cleared
+has been added to the -mm tree.  Its filename is
+     serial-mpsc-stop-rx-engine-when-cread-cleared.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: AFS: use patched rxrpc_kernel_send_data() correctly
-From: David Howells <dhowells@redhat.com>
+Subject: serial: MPSC: Stop rx engine when CREAD cleared
+From: Stephane Chazelas <stephane@artesyncp.com>
 
-Fix afs_send_simple_reply() to accept a greater-than-zero return value from
-rxrpc_kernel_send_data() as being a successful return rather than thinking
-it an error and aborting the call.
+Currently, the MPSC driver doesn't stop recieving characters when the CREAD
+flag in termios->c_cflag is cleared.  It should.  Also, only start receiving
+if its not already started.
 
-rxrpc_kernel_send_data() previously returned zero incorrectly when it
-worked successfully, but has been patched to return the number of bytes it
-transmitted.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Stephane Chazelas <stephane@artesyncp.com>
+Signed-off-by: Mark A. Greer <mgreer@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/rxrpc.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/serial/mpsc.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN fs/afs/rxrpc.c~afs-use-patched-rxrpc_kernel_send_data-correctly fs/afs/rxrpc.c
---- a/fs/afs/rxrpc.c~afs-use-patched-rxrpc_kernel_send_data-correctly
-+++ a/fs/afs/rxrpc.c
-@@ -792,6 +792,7 @@ void afs_send_simple_reply(struct afs_ca
- {
- 	struct msghdr msg;
- 	struct iovec iov[1];
-+	int n;
+diff -puN drivers/serial/mpsc.c~serial-mpsc-stop-rx-engine-when-cread-cleared drivers/serial/mpsc.c
+--- a/drivers/serial/mpsc.c~serial-mpsc-stop-rx-engine-when-cread-cleared
++++ a/drivers/serial/mpsc.c
+@@ -1520,7 +1520,6 @@ mpsc_set_termios(struct uart_port *port,
+ 	mpsc_set_baudrate(pi, baud);
  
- 	_enter("");
+ 	/* Characters/events to read */
+-	pi->rcv_data = 1;
+ 	pi->port.read_status_mask = SDMA_DESC_CMDSTAT_OR;
  
-@@ -806,8 +807,9 @@ void afs_send_simple_reply(struct afs_ca
- 	msg.msg_flags		= 0;
+ 	if (termios->c_iflag & INPCK)
+@@ -1544,11 +1543,15 @@ mpsc_set_termios(struct uart_port *port,
+ 			pi->port.ignore_status_mask |= SDMA_DESC_CMDSTAT_OR;
+ 	}
  
- 	call->state = AFS_CALL_AWAIT_ACK;
--	switch (rxrpc_kernel_send_data(call->rxcall, &msg, len)) {
--	case 0:
-+	n = rxrpc_kernel_send_data(call->rxcall, &msg, len);
-+	switch (n) {
-+	case 0 ... INT_MAX:
- 		_leave(" [replied]");
- 		return;
+-	/* Ignore all chars if CREAD not set */
+-	if (!(termios->c_cflag & CREAD))
++	if ((termios->c_cflag & CREAD)) {
++		if (!pi->rcv_data) {
++			pi->rcv_data = 1;
++			mpsc_start_rx(pi);
++		}
++	} else if (pi->rcv_data) {
++		mpsc_stop_rx(port);
+ 		pi->rcv_data = 0;
+-	else
+-		mpsc_start_rx(pi);
++	}
  
+ 	spin_unlock_irqrestore(&pi->port.lock, flags);
+ 	return;
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from stephane@artesyncp.com are
 
-origin.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-afs-fix-file-locking.patch
-afs-use-patched-rxrpc_kernel_send_data-correctly.patch
-mutex-subsystem-synchro-test-module.patch
+serial-mpsc-stop-rx-engine-when-cread-cleared.patch
