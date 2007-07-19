@@ -1,113 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-fix-edac_device-init-apis.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:07:18 -0700
-Message-ID: <200707192007.l6JK7ISc020253@imap1.linux-foundation.org>
+Subject: - drivers-edac-code-tidying-on-export-gpl.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:07:26 -0700
+Message-ID: <200707192007.l6JK7Qoh020262@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50075 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34823 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760713AbXGSUP0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754829AbXGSUQT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:26 -0400
+	Thu, 19 Jul 2007 16:16:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dougthompson@xmission.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: fix edac_device init apis
+     drivers/edac: code tidying on export-gpl
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-fix-edac_device-init-apis.patch
+     drivers-edac-code-tidying-on-export-gpl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: fix edac_device init apis
+Subject: drivers/edac: code tidying on export-gpl
 From: Doug Thompson <dougthompson@xmission.com>
 
-Refactoring of sysfs code necessitated the refactoring of the
-edac_device_alloc() and edac_device_add_device() apis, of moving the index
-value to the alloc() function.  This patch alters the in tree drivers to
-utilize this new api signature.
+Change EXPORT_SYMBOLs to EXPORT_SYMBOLS_GPL
+Tidy changes: blank lines, inline removal, add comment
 
-Having the index value performed later created a chicken-and-the-egg issue. 
-Moving it to the alloc() function allows for creating the necessary sysfs
-entries with the proper index number
-
-Cc: Alan Cox alan@lxorguk.ukuu.org.uk
 Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_core.h   |    6 +++---
- drivers/edac/edac_device.c |    8 ++++----
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/edac/edac_module.c |    9 +++++----
+ drivers/edac/edac_stub.c   |   20 +++++++++++---------
+ 2 files changed, 16 insertions(+), 13 deletions(-)
 
-diff -puN drivers/edac/edac_core.h~drivers-edac-fix-edac_device-init-apis drivers/edac/edac_core.h
---- a/drivers/edac/edac_core.h~drivers-edac-fix-edac_device-init-apis
-+++ a/drivers/edac/edac_core.h
-@@ -634,7 +634,8 @@ extern struct edac_device_ctl_info *edac
- 		char *edac_block_name, unsigned nr_blocks,
- 		unsigned offset_value,
- 		struct edac_dev_sysfs_block_attribute *block_attributes,
--		unsigned nr_attribs);
-+		unsigned nr_attribs,
-+		int device_index);
- 
- /* The offset value can be:
-  *	-1 indicating no offset value
-@@ -806,8 +807,7 @@ extern void edac_mc_handle_fbd_ce(struct
+diff -puN drivers/edac/edac_module.c~drivers-edac-code-tidying-on-export-gpl drivers/edac/edac_module.c
+--- a/drivers/edac/edac_module.c~drivers-edac-code-tidying-on-export-gpl
++++ a/drivers/edac/edac_module.c
+@@ -1,12 +1,13 @@
  /*
-  * edac_device APIs
-  */
--extern int edac_device_add_device(struct edac_device_ctl_info *edac_dev,
--				int dev_idx);
-+extern int edac_device_add_device(struct edac_device_ctl_info *edac_dev);
- extern struct edac_device_ctl_info *edac_device_del_device(struct device *dev);
- extern void edac_device_handle_ue(struct edac_device_ctl_info *edac_dev,
- 				int inst_nr, int block_nr, const char *msg);
-diff -puN drivers/edac/edac_device.c~drivers-edac-fix-edac_device-init-apis drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~drivers-edac-fix-edac_device-init-apis
-+++ a/drivers/edac/edac_device.c
-@@ -67,7 +67,8 @@ struct edac_device_ctl_info *edac_device
- 	char *edac_device_name, unsigned nr_instances,
- 	char *edac_block_name, unsigned nr_blocks,
- 	unsigned offset_value,		/* zero, 1, or other based offset */
--	struct edac_dev_sysfs_block_attribute *attrib_spec, unsigned nr_attrib)
-+	struct edac_dev_sysfs_block_attribute *attrib_spec, unsigned nr_attrib,
-+	int device_index)
- {
- 	struct edac_device_ctl_info *dev_ctl;
- 	struct edac_device_instance *dev_inst, *inst;
-@@ -145,6 +146,7 @@ struct edac_device_ctl_info *edac_device
- 	pvt = sz_private ? (((char *)dev_ctl) + ((unsigned long)pvt)) : NULL;
- 
- 	/* Begin storing the information into the control info structure */
-+	dev_ctl->dev_idx = device_index;
- 	dev_ctl->nr_instances = nr_instances;
- 	dev_ctl->instances = dev_inst;
- 	dev_ctl->pvt_info = pvt;
-@@ -441,18 +443,16 @@ void edac_device_reset_delay_period(stru
-  * edac_device global list and create sysfs entries associated with
-  * edac_device structure.
-  * @edac_device: pointer to the edac_device structure to be added to the list
-- * @edac_idx: A unique numeric identifier to be assigned to the
-  * 'edac_device' structure.
+  * edac_module.c
   *
-  * Return:
-  *	0	Success
-  *	!0	Failure
+- * (C) 2007 www.douglaskthompson.com
++ * (C) 2007 www.softwarebitmaker.com
++ *
+  * This file is licensed under the terms of the GNU General Public
+  * License version 2. This program is licensed "as is" without any
+  * warranty of any kind, whether express or implied.
+  *
+- * Author: Doug Thompson <norsk5@xmission.com>
++ * Author: Doug Thompson <dougthompson@xmission.com>
+  *
   */
--int edac_device_add_device(struct edac_device_ctl_info *edac_dev, int edac_idx)
-+int edac_device_add_device(struct edac_device_ctl_info *edac_dev)
- {
- 	debugf0("%s()\n", __func__);
+ #include <linux/edac.h>
+@@ -14,7 +15,7 @@
+ #include "edac_core.h"
+ #include "edac_module.h"
  
--	edac_dev->dev_idx = edac_idx;
+-#define EDAC_MC_VERSION "Ver: 2.0.5 " __DATE__
++#define EDAC_VERSION "Ver: 2.1.0 " __DATE__
+ 
  #ifdef CONFIG_EDAC_DEBUG
- 	if (edac_debug_level >= 3)
- 		edac_device_dump_device(edac_dev);
+ /* Values of 0 to 4 will generate output */
+@@ -141,7 +142,7 @@ static int __init edac_init(void)
+ {
+ 	int err = 0;
+ 
+-	edac_printk(KERN_INFO, EDAC_MC, EDAC_MC_VERSION "\n");
++	edac_printk(KERN_INFO, EDAC_MC, EDAC_VERSION "\n");
+ 
+ 	/*
+ 	 * Harvest and clear any boot/initialization PCI parity errors
+diff -puN drivers/edac/edac_stub.c~drivers-edac-code-tidying-on-export-gpl drivers/edac/edac_stub.c
+--- a/drivers/edac/edac_stub.c~drivers-edac-code-tidying-on-export-gpl
++++ a/drivers/edac/edac_stub.c
+@@ -15,30 +15,32 @@
+ #include <asm/edac.h>
+ 
+ int edac_op_state = EDAC_OPSTATE_INVAL;
+-EXPORT_SYMBOL(edac_op_state);
++EXPORT_SYMBOL_GPL(edac_op_state);
+ 
+ atomic_t edac_handlers = ATOMIC_INIT(0);
+-EXPORT_SYMBOL(edac_handlers);
++EXPORT_SYMBOL_GPL(edac_handlers);
+ 
+ int edac_err_assert = 0;
+-EXPORT_SYMBOL(edac_err_assert);
++EXPORT_SYMBOL_GPL(edac_err_assert);
+ 
+-inline int edac_handler_set(void)
++/*
++ * called to determine if there is an EDAC driver interested in
++ * knowing an event (such as NMI) occurred
++ */
++int edac_handler_set(void)
+ {
+ 	if (edac_op_state == EDAC_OPSTATE_POLL)
+ 		return 0;
+ 
+ 	return atomic_read(&edac_handlers);
+ }
+-
+-EXPORT_SYMBOL(edac_handler_set);
++EXPORT_SYMBOL_GPL(edac_handler_set);
+ 
+ /*
+  * handler for NMI type of interrupts to assert error
+  */
+-inline void edac_atomic_assert_error(void)
++void edac_atomic_assert_error(void)
+ {
+ 	edac_err_assert++;
+ }
+-
+-EXPORT_SYMBOL(edac_atomic_assert_error);
++EXPORT_SYMBOL_GPL(edac_atomic_assert_error);
 _
 
 Patches currently in -mm which might be from dougthompson@xmission.com are
