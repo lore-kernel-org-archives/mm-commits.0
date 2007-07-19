@@ -1,99 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-sc-compile-breakage-re-check_reset.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:04:13 -0700
-Message-ID: <200707192004.l6JK4Dmq019930@imap1.linux-foundation.org>
+Subject: - kernel-relayc-make-functions-static.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:28 -0700
+Message-ID: <200707192002.l6JK2Sdi019670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52491 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49357 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761657AbXGSUSq (ORCPT
+	by vger.kernel.org with ESMTP id S1758143AbXGSUTr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:18:46 -0400
+	Thu, 19 Jul 2007 16:19:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, kkeil@suse.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, zanussi@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn/sc: compile breakage re check_reset()
+     kernel/relay.c: make functions static
 has been removed from the -mm tree.  Its filename was
-     isdn-sc-compile-breakage-re-check_reset.patch
+     kernel-relayc-make-functions-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: isdn/sc: compile breakage re check_reset()
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: kernel/relay.c: make functions static
+From: Adrian Bunk <bunk@stusta.de>
 
-There is check_reset() -- global function in drivers/isdn/sc/
-There is check_reset -- variable holding module param in aacraid driver.
-
-On allyesconfig they clash with:
-
-  LD      drivers/built-in.o
-drivers/isdn/built-in.o: In function `check_reset':
-: multiple definition of `check_reset'
-drivers/scsi/built-in.o:(.data+0xe458): first defined here
-ld: Warning: size of symbol `check_reset' changed from 4 in drivers/scsi/built-in.o to 219 in drivers/isdn/built-in.o
-ld: Warning: type of symbol `check_reset' changed from 1 to 2 in drivers/isdn/built-in.o
-
-Rename the former.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Tom Zanussi <zanussi@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/sc/card.h    |    2 +-
- drivers/isdn/sc/command.c |    2 +-
- drivers/isdn/sc/timer.c   |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/relay.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/isdn/sc/card.h~isdn-sc-compile-breakage-re-check_reset drivers/isdn/sc/card.h
---- a/drivers/isdn/sc/card.h~isdn-sc-compile-breakage-re-check_reset
-+++ a/drivers/isdn/sc/card.h
-@@ -125,7 +125,7 @@ int sendmessage(int card, unsigned int p
- int receivemessage(int card, RspMessage *rspmsg);
- int sc_ioctl(int card, scs_ioctl *data);
- int setup_buffers(int card, int c);
--void check_reset(unsigned long data);
-+void sc_check_reset(unsigned long data);
- void check_phystat(unsigned long data);
- 
- #endif /* CARD_H */
-diff -puN drivers/isdn/sc/command.c~isdn-sc-compile-breakage-re-check_reset drivers/isdn/sc/command.c
---- a/drivers/isdn/sc/command.c~isdn-sc-compile-breakage-re-check_reset
-+++ a/drivers/isdn/sc/command.c
-@@ -344,7 +344,7 @@ int reset(int card)
- 
- 	spin_lock_irqsave(&sc_adapter[card]->lock, flags);
- 	init_timer(&sc_adapter[card]->reset_timer);
--	sc_adapter[card]->reset_timer.function = check_reset;
-+	sc_adapter[card]->reset_timer.function = sc_check_reset;
- 	sc_adapter[card]->reset_timer.data = card;
- 	sc_adapter[card]->reset_timer.expires = jiffies + CHECKRESET_TIME;
- 	add_timer(&sc_adapter[card]->reset_timer);
-diff -puN drivers/isdn/sc/timer.c~isdn-sc-compile-breakage-re-check_reset drivers/isdn/sc/timer.c
---- a/drivers/isdn/sc/timer.c~isdn-sc-compile-breakage-re-check_reset
-+++ a/drivers/isdn/sc/timer.c
-@@ -43,7 +43,7 @@ static void setup_ports(int card)
-  * Then, check to see if the signate has been set. Next, set the
-  * signature to a known value and issue a startproc if needed.
+diff -puN kernel/relay.c~kernel-relayc-make-functions-static kernel/relay.c
+--- a/kernel/relay.c~kernel-relayc-make-functions-static
++++ a/kernel/relay.c
+@@ -80,7 +80,7 @@ static struct vm_operations_struct relay
+  *
+  *	Caller should already have grabbed mmap_sem.
   */
--void check_reset(unsigned long data)
-+void sc_check_reset(unsigned long data)
+-int relay_mmap_buf(struct rchan_buf *buf, struct vm_area_struct *vma)
++static int relay_mmap_buf(struct rchan_buf *buf, struct vm_area_struct *vma)
  {
- 	unsigned long flags;
- 	unsigned long sig;
+ 	unsigned long length = vma->vm_end - vma->vm_start;
+ 	struct file *filp = vma->vm_file;
+@@ -145,7 +145,7 @@ depopulate:
+  *
+  *	Returns channel buffer if successful, %NULL otherwise.
+  */
+-struct rchan_buf *relay_create_buf(struct rchan *chan)
++static struct rchan_buf *relay_create_buf(struct rchan *chan)
+ {
+ 	struct rchan_buf *buf = kzalloc(sizeof(struct rchan_buf), GFP_KERNEL);
+ 	if (!buf)
+@@ -175,7 +175,7 @@ free_buf:
+  *
+  *	Should only be called from kref_put().
+  */
+-void relay_destroy_channel(struct kref *kref)
++static void relay_destroy_channel(struct kref *kref)
+ {
+ 	struct rchan *chan = container_of(kref, struct rchan, kref);
+ 	kfree(chan);
+@@ -185,7 +185,7 @@ void relay_destroy_channel(struct kref *
+  *	relay_destroy_buf - destroy an rchan_buf struct and associated buffer
+  *	@buf: the buffer struct
+  */
+-void relay_destroy_buf(struct rchan_buf *buf)
++static void relay_destroy_buf(struct rchan_buf *buf)
+ {
+ 	struct rchan *chan = buf->chan;
+ 	unsigned int i;
+@@ -210,7 +210,7 @@ void relay_destroy_buf(struct rchan_buf 
+  *	rchan_buf_struct and the channel buffer.  Should only be called from
+  *	kref_put().
+  */
+-void relay_remove_buf(struct kref *kref)
++static void relay_remove_buf(struct kref *kref)
+ {
+ 	struct rchan_buf *buf = container_of(kref, struct rchan_buf, kref);
+ 	buf->chan->cb->remove_buf_file(buf->dentry);
+@@ -223,11 +223,10 @@ void relay_remove_buf(struct kref *kref)
+  *
+  *	Returns 1 if the buffer is empty, 0 otherwise.
+  */
+-int relay_buf_empty(struct rchan_buf *buf)
++static int relay_buf_empty(struct rchan_buf *buf)
+ {
+ 	return (buf->subbufs_produced - buf->subbufs_consumed) ? 0 : 1;
+ }
+-EXPORT_SYMBOL_GPL(relay_buf_empty);
+ 
+ /**
+  *	relay_buf_full - boolean, is the channel buffer full?
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-consolidate-ptrace_detach.patch
-git-dvb.patch
-use-list_head-in-binfmt-handling.patch
-make-unregister_binfmt-return-void.patch
-fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
-fix-leak-on-proc-lockdep_stats.patch
-slab_panic-more-proc-posix-timers-shmem.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+git-hwmon.patch
+git-kbuild.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+git-scsi-misc.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+maps2-add-proc-kpagemap-interface.patch
+fs-reiserfs-cleanups.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
