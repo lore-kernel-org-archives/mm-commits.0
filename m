@@ -1,205 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-masking-add-an-interface-for-core-dump-filter.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:02:18 -0700
-Message-ID: <200707192002.l6JK2I8q019653@imap1.linux-foundation.org>
+Subject: - pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:00:23 -0700
+Message-ID: <200707192000.l6JK0NXj019444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54915 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51516 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932304AbXGSUbn (ORCPT
+	by vger.kernel.org with ESMTP id S1754641AbXGSUbu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:31:43 -0400
+	Thu, 19 Jul 2007 16:31:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, nigel@nigel.suspend2.net, oleg@tv-sign.ru, pavel@ucw.cz, u.luckas@road.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coredump masking: add an interface for core dump filter
+     PM: prevent frozen user mode helpers from failing the freezing of tasks
 has been removed from the -mm tree.  Its filename was
-     coredump-masking-add-an-interface-for-core-dump-filter.patch
+     pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: coredump masking: add an interface for core dump filter
-From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
+Subject: PM: prevent frozen user mode helpers from failing the freezing of tasks
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-This patch adds an interface to set/reset flags which determines each memory
-segment should be dumped or not when a core file is generated.
+At present, if a user mode helper is running while
+usermodehelper_pm_callback() is executed, the helper may be frozen and the
+completion in call_usermodehelper_exec() won't be completed until user
+space processes are thawed.  As a result, the freezing of kernel threads
+may fail, which is not desirable.
 
-/proc/<pid>/coredump_filter file is provided to access the flags.  You can
-change the flag status for a particular process by writing to or reading from
-the file.
+Prevent this from happening by introducing a counter of running user mode
+helpers and allowing usermodehelper_pm_callback() to succeed for action =
+PM_HIBERNATION_PREPARE or action = PM_SUSPEND_PREPARE only if there are no
+helpers running.  [Namely, usermodehelper_pm_callback() waits for at most
+RUNNING_HELPERS_TIMEOUT for the number of running helpers to become zero
+and fails if that doesn't happen.]
 
-The flag status is inherited to the child process when it is created.
+Special thanks to Uli Luckas <u.luckas@road.de>, Pavel Machek
+<pavel@ucw.cz> and Oleg Nesterov <oleg@tv-sign.ru> for reviewing the
+previous versions of this patch and for very useful comments.
 
-Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Uli Luckas <u.luckas@road.de>
+Acked-by: Nigel Cunningham <nigel@nigel.suspend2.net>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c        |   89 ++++++++++++++++++++++++++++++++++++++++
- include/linux/sched.h |   14 ++++++
- kernel/fork.c         |    2 
- 3 files changed, 105 insertions(+)
+ kernel/kmod.c |   78 +++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 68 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/base.c~coredump-masking-add-an-interface-for-core-dump-filter fs/proc/base.c
---- a/fs/proc/base.c~coredump-masking-add-an-interface-for-core-dump-filter
-+++ a/fs/proc/base.c
-@@ -72,6 +72,7 @@
- #include <linux/poll.h>
- #include <linux/nsproxy.h>
- #include <linux/oom.h>
-+#include <linux/elf.h>
- #include "internal.h"
+diff -puN kernel/kmod.c~pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2 kernel/kmod.c
+--- a/kernel/kmod.c~pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2
++++ a/kernel/kmod.c
+@@ -41,14 +41,6 @@ extern int max_threads;
  
- /* NOTE:
-@@ -1785,6 +1786,91 @@ static const struct inode_operations pro
+ static struct workqueue_struct *khelper_wq;
  
- #endif
+-/*
+- * If set, both call_usermodehelper_keys() and call_usermodehelper_pipe() exit
+- * immediately returning -EBUSY.  Used for preventing user land processes from
+- * being created after the user land has been frozen during a system-wide
+- * hibernation or suspend operation.
+- */
+-static int usermodehelper_disabled;
+-
+ #ifdef CONFIG_KMOD
  
-+#if defined(USE_ELF_CORE_DUMP) && defined(CONFIG_ELF_CORE)
-+static ssize_t proc_coredump_filter_read(struct file *file, char __user *buf,
-+					 size_t count, loff_t *ppos)
-+{
-+	struct task_struct *task = get_proc_task(file->f_dentry->d_inode);
-+	struct mm_struct *mm;
-+	char buffer[PROC_NUMBUF];
-+	size_t len;
-+	int ret;
-+
-+	if (!task)
-+		return -ESRCH;
-+
-+	ret = 0;
-+	mm = get_task_mm(task);
-+	if (mm) {
-+		len = snprintf(buffer, sizeof(buffer), "%08lx\n",
-+			       ((mm->flags & MMF_DUMP_FILTER_MASK) >>
-+				MMF_DUMP_FILTER_SHIFT));
-+		mmput(mm);
-+		ret = simple_read_from_buffer(buf, count, ppos, buffer, len);
-+	}
-+
-+	put_task_struct(task);
-+
-+	return ret;
-+}
-+
-+static ssize_t proc_coredump_filter_write(struct file *file,
-+					  const char __user *buf,
-+					  size_t count,
-+					  loff_t *ppos)
-+{
-+	struct task_struct *task;
-+	struct mm_struct *mm;
-+	char buffer[PROC_NUMBUF], *end;
-+	unsigned int val;
-+	int ret;
-+	int i;
-+	unsigned long mask;
-+
-+	ret = -EFAULT;
-+	memset(buffer, 0, sizeof(buffer));
-+	if (count > sizeof(buffer) - 1)
-+		count = sizeof(buffer) - 1;
-+	if (copy_from_user(buffer, buf, count))
-+		goto out_no_task;
-+
-+	ret = -EINVAL;
-+	val = (unsigned int)simple_strtoul(buffer, &end, 0);
-+	if (*end == '\n')
-+		end++;
-+	if (end - buffer == 0)
-+		goto out_no_task;
-+
-+	ret = -ESRCH;
-+	task = get_proc_task(file->f_dentry->d_inode);
-+	if (!task)
-+		goto out_no_task;
-+
-+	ret = end - buffer;
-+	mm = get_task_mm(task);
-+	if (!mm)
-+		goto out_no_mm;
-+
-+	for (i = 0, mask = 1; i < MMF_DUMP_FILTER_BITS; i++, mask <<= 1) {
-+		if (val & mask)
-+			set_bit(i + MMF_DUMP_FILTER_SHIFT, &mm->flags);
-+		else
-+			clear_bit(i + MMF_DUMP_FILTER_SHIFT, &mm->flags);
-+	}
-+
-+	mmput(mm);
-+ out_no_mm:
-+	put_task_struct(task);
-+ out_no_task:
-+	return ret;
-+}
-+
-+static const struct file_operations proc_coredump_filter_operations = {
-+	.read		= proc_coredump_filter_read,
-+	.write		= proc_coredump_filter_write,
-+};
-+#endif
-+
  /*
-  * /proc/self:
-  */
-@@ -2005,6 +2091,9 @@ static const struct pid_entry tgid_base_
- #ifdef CONFIG_FAULT_INJECTION
- 	REG("make-it-fail", S_IRUGO|S_IWUSR, fault_inject),
- #endif
-+#if defined(USE_ELF_CORE_DUMP) && defined(CONFIG_ELF_CORE)
-+	REG("coredump_filter", S_IRUGO|S_IWUSR, coredump_filter),
-+#endif
- #ifdef CONFIG_TASK_IO_ACCOUNTING
- 	INF("io",	S_IRUGO, pid_io_accounting),
- #endif
-diff -puN include/linux/sched.h~coredump-masking-add-an-interface-for-core-dump-filter include/linux/sched.h
---- a/include/linux/sched.h~coredump-masking-add-an-interface-for-core-dump-filter
-+++ a/include/linux/sched.h
-@@ -349,8 +349,22 @@ extern void set_dumpable(struct mm_struc
- extern int get_dumpable(struct mm_struct *mm);
+@@ -275,15 +267,55 @@ static void __call_usermodehelper(struct
+ 	}
+ }
  
- /* mm flags */
-+/* dumpable bits */
- #define MMF_DUMPABLE      0  /* core dump is permitted */
- #define MMF_DUMP_SECURELY 1  /* core file is readable only by root */
-+#define MMF_DUMPABLE_BITS 2
++#ifdef CONFIG_PM
++/*
++ * If set, call_usermodehelper_exec() will exit immediately returning -EBUSY
++ * (used for preventing user land processes from being created after the user
++ * land has been frozen during a system-wide hibernation or suspend operation).
++ */
++static int usermodehelper_disabled;
 +
-+/* coredump filter bits */
-+#define MMF_DUMP_ANON_PRIVATE	2
-+#define MMF_DUMP_ANON_SHARED	3
-+#define MMF_DUMP_MAPPED_PRIVATE	4
-+#define MMF_DUMP_MAPPED_SHARED	5
-+#define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
-+#define MMF_DUMP_FILTER_BITS	4
-+#define MMF_DUMP_FILTER_MASK \
-+	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
-+#define MMF_DUMP_FILTER_DEFAULT \
-+	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED))
++/* Number of helpers running */
++static atomic_t running_helpers = ATOMIC_INIT(0);
++
++/*
++ * Wait queue head used by usermodehelper_pm_callback() to wait for all running
++ * helpers to finish.
++ */
++static DECLARE_WAIT_QUEUE_HEAD(running_helpers_waitq);
++
++/*
++ * Time to wait for running_helpers to become zero before the setting of
++ * usermodehelper_disabled in usermodehelper_pm_callback() fails
++ */
++#define RUNNING_HELPERS_TIMEOUT	(5 * HZ)
++
+ static int usermodehelper_pm_callback(struct notifier_block *nfb,
+ 					unsigned long action,
+ 					void *ignored)
+ {
++	long retval;
++
+ 	switch (action) {
+ 	case PM_HIBERNATION_PREPARE:
+ 	case PM_SUSPEND_PREPARE:
+ 		usermodehelper_disabled = 1;
+-		return NOTIFY_OK;
++		smp_mb();
++		/*
++		 * From now on call_usermodehelper_exec() won't start any new
++		 * helpers, so it is sufficient if running_helpers turns out to
++		 * be zero at one point (it may be increased later, but that
++		 * doesn't matter).
++		 */
++		retval = wait_event_timeout(running_helpers_waitq,
++					atomic_read(&running_helpers) == 0,
++					RUNNING_HELPERS_TIMEOUT);
++		if (retval) {
++			return NOTIFY_OK;
++		} else {
++			usermodehelper_disabled = 0;
++			return NOTIFY_BAD;
++		}
+ 	case PM_POST_HIBERNATION:
+ 	case PM_POST_SUSPEND:
+ 		usermodehelper_disabled = 0;
+@@ -293,6 +325,30 @@ static int usermodehelper_pm_callback(st
+ 	return NOTIFY_DONE;
+ }
  
- struct mm_struct {
- 	struct vm_area_struct * mmap;		/* list of VMAs */
-diff -puN kernel/fork.c~coredump-masking-add-an-interface-for-core-dump-filter kernel/fork.c
---- a/kernel/fork.c~coredump-masking-add-an-interface-for-core-dump-filter
-+++ a/kernel/fork.c
-@@ -334,6 +334,8 @@ static struct mm_struct * mm_init(struct
- 	atomic_set(&mm->mm_count, 1);
- 	init_rwsem(&mm->mmap_sem);
- 	INIT_LIST_HEAD(&mm->mmlist);
-+	mm->flags = (current->mm) ? current->mm->flags
-+				  : MMF_DUMP_FILTER_DEFAULT;
- 	mm->core_waiters = 0;
- 	mm->nr_ptes = 0;
- 	set_mm_counter(mm, file_rss, 0);
++static void helper_lock(void)
++{
++	atomic_inc(&running_helpers);
++	smp_mb__after_atomic_inc();
++}
++
++static void helper_unlock(void)
++{
++	if (atomic_dec_and_test(&running_helpers))
++		wake_up(&running_helpers_waitq);
++}
++
++static void register_pm_notifier_callback(void)
++{
++	pm_notifier(usermodehelper_pm_callback, 0);
++}
++#else /* CONFIG_PM */
++#define usermodehelper_disabled	0
++
++static inline void helper_lock(void) {}
++static inline void helper_unlock(void) {}
++static inline void register_pm_notifier_callback(void) {}
++#endif /* CONFIG_PM */
++
+ /**
+  * call_usermodehelper_setup - prepare to call a usermode helper
+  * @path - path to usermode executable
+@@ -397,6 +453,7 @@ int call_usermodehelper_exec(struct subp
+ 	DECLARE_COMPLETION_ONSTACK(done);
+ 	int retval;
+ 
++	helper_lock();
+ 	if (sub_info->path[0] == '\0') {
+ 		retval = 0;
+ 		goto out;
+@@ -418,6 +475,7 @@ int call_usermodehelper_exec(struct subp
+ 
+   out:
+ 	call_usermodehelper_freeinfo(sub_info);
++	helper_unlock();
+ 	return retval;
+ }
+ EXPORT_SYMBOL(call_usermodehelper_exec);
+@@ -459,5 +517,5 @@ void __init usermodehelper_init(void)
+ {
+ 	khelper_wq = create_singlethread_workqueue("khelper");
+ 	BUG_ON(!khelper_wq);
+-	pm_notifier(usermodehelper_pm_callback, 0);
++	register_pm_notifier_callback();
+ }
 _
 
-Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
+acpi-implement-the-set_target-callback-from-pm_ops.patch
+acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+shrink_slab-handle-bad-shrinkers.patch
