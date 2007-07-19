@@ -1,167 +1,454 @@
 From: akpm@linux-foundation.org
-Subject: - mbcs-remove-lots-of-global-symbols.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:00:55 -0700
-Message-ID: <200707192000.l6JK0tk6019487@imap1.linux-foundation.org>
+Subject: - lockstat-human-readability-tweaks.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:03:43 -0700
+Message-ID: <200707192003.l6JK3h1x019884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41407 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41767 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932135AbXGSU3C (ORCPT
+	by vger.kernel.org with ESMTP id S932119AbXGSU3m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:29:02 -0400
+	Thu, 19 Jul 2007 16:29:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, blosure@sgi.com, jes@sgi.com, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, bunk@stusta.de, jbaron@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mbcs: Remove lots of global symbols
+     lockstat: human readability tweaks
 has been removed from the -mm tree.  Its filename was
-     mbcs-remove-lots-of-global-symbols.patch
+     lockstat-human-readability-tweaks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mbcs: Remove lots of global symbols
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: lockstat: human readability tweaks
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-MBCS has a collection of things that searches say are not used elsewhere
-and could be static.  If this is the case they should be static, if not
-then someone at SGI should rename things like "soft_list" so they don't
-pollute the global namespace with generic names...
+Present all this fancy new lock statistics information:
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Bruce Losure <blosure@sgi.com>
-Cc: Jes Sorensen <jes@sgi.com>
+*warning, _wide_ output ahead*
+
+(output edited for purpose of brevity)
+
+ # cat /proc/lock_stat
+lock_stat version 0.1
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+                              class name    contentions   waittime-min   waittime-max waittime-total   acquisitions   holdtime-min   holdtime-max holdtime-total
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                         &inode->i_mutex:         14458           6.57      398832.75     2469412.23        6768876           0.34    11398383.65   339410830.89
+                         ---------------
+                         &inode->i_mutex           4486          [<ffffffff802a08f9>] pipe_wait+0x86/0x8d
+                         &inode->i_mutex              0          [<ffffffff802a01e8>] pipe_write_fasync+0x29/0x5d
+                         &inode->i_mutex              0          [<ffffffff802a0e18>] pipe_read+0x74/0x3a5
+                         &inode->i_mutex              0          [<ffffffff802a1a6a>] do_lookup+0x81/0x1ae
+
+.................................................................................................................................................................
+
+              &inode->i_data.tree_lock-W:           491           0.27          62.47         493.89        2477833           0.39         468.89     1146584.25
+              &inode->i_data.tree_lock-R:            65           0.44           4.27          48.78       26288792           0.36         184.62    10197458.24
+              --------------------------
+                &inode->i_data.tree_lock             46          [<ffffffff80277095>] __do_page_cache_readahead+0x69/0x24f
+                &inode->i_data.tree_lock             31          [<ffffffff8026f9fb>] add_to_page_cache+0x31/0xba
+                &inode->i_data.tree_lock              0          [<ffffffff802770ee>] __do_page_cache_readahead+0xc2/0x24f
+                &inode->i_data.tree_lock              0          [<ffffffff8026f6e4>] find_get_page+0x1a/0x58
+
+.................................................................................................................................................................
+
+                      proc_inum_idr.lock:             0           0.00           0.00           0.00             36           0.00          65.60         148.26
+                        proc_subdir_lock:             0           0.00           0.00           0.00        3049859           0.00         106.81     1563212.42
+                        shrinker_rwsem-W:             0           0.00           0.00           0.00              5           0.00           1.73           3.68
+                        shrinker_rwsem-R:             0           0.00           0.00           0.00            633           2.57         246.57       10909.76
+
+'contentions' and 'acquisitions' are the number of such events measured (since
+the last reset). The waittime- and holdtime- (min, max, total) numbers are
+presented in microseconds.
+
+If there are any contention points, the lock class is presented in the block
+format (as i_mutex and tree_lock above), otherwise a single line of output is
+presented.
+
+The output is sorted on absolute number of contentions (read + write), this
+should get the worst offenders presented first, so that:
+
+ # grep : /proc/lock_stat | head
+
+will quickly show who's bad.
+
+The stats can be reset using:
+
+ # echo 0 > /proc/lock_stat
+
+[bunk@stusta.de: make 2 functions static]
+[akpm@linux-foundation.org: fix printk warning]
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Jason Baron <jbaron@redhat.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mbcs.c |   20 ++++++++++----------
- drivers/char/mbcs.h |   10 +++++-----
- 2 files changed, 15 insertions(+), 15 deletions(-)
+ kernel/lockdep.c      |   44 ++++++
+ kernel/lockdep_proc.c |  266 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 310 insertions(+)
 
-diff -puN drivers/char/mbcs.c~mbcs-remove-lots-of-global-symbols drivers/char/mbcs.c
---- a/drivers/char/mbcs.c~mbcs-remove-lots-of-global-symbols
-+++ a/drivers/char/mbcs.c
-@@ -39,14 +39,14 @@
- #else
- #define DBG(fmt...)
- #endif
--int mbcs_major;
-+static int mbcs_major;
- 
--LIST_HEAD(soft_list);
-+static LIST_HEAD(soft_list);
- 
- /*
-  * file operations
-  */
--const struct file_operations mbcs_ops = {
-+static const struct file_operations mbcs_ops = {
- 	.open = mbcs_open,
- 	.llseek = mbcs_sram_llseek,
- 	.read = mbcs_sram_read,
-@@ -377,7 +377,7 @@ dmaread_exit:
- 	return rv;
+diff -puN kernel/lockdep.c~lockstat-human-readability-tweaks kernel/lockdep.c
+--- a/kernel/lockdep.c~lockstat-human-readability-tweaks
++++ a/kernel/lockdep.c
+@@ -149,6 +149,50 @@ static void lock_time_inc(struct lock_ti
+ 	lt->nr++;
  }
  
--int mbcs_open(struct inode *ip, struct file *fp)
-+static int mbcs_open(struct inode *ip, struct file *fp)
++static inline void lock_time_add(struct lock_time *src, struct lock_time *dst)
++{
++	dst->min += src->min;
++	dst->max += src->max;
++	dst->total += src->total;
++	dst->nr += src->nr;
++}
++
++struct lock_class_stats lock_stats(struct lock_class *class)
++{
++	struct lock_class_stats stats;
++	int cpu, i;
++
++	memset(&stats, 0, sizeof(struct lock_class_stats));
++	for_each_possible_cpu(cpu) {
++		struct lock_class_stats *pcs =
++			&per_cpu(lock_stats, cpu)[class - lock_classes];
++
++		for (i = 0; i < ARRAY_SIZE(stats.contention_point); i++)
++			stats.contention_point[i] += pcs->contention_point[i];
++
++		lock_time_add(&pcs->read_waittime, &stats.read_waittime);
++		lock_time_add(&pcs->write_waittime, &stats.write_waittime);
++
++		lock_time_add(&pcs->read_holdtime, &stats.read_holdtime);
++		lock_time_add(&pcs->write_holdtime, &stats.write_holdtime);
++	}
++
++	return stats;
++}
++
++void clear_lock_stats(struct lock_class *class)
++{
++	int cpu;
++
++	for_each_possible_cpu(cpu) {
++		struct lock_class_stats *cpu_stats =
++			&per_cpu(lock_stats, cpu)[class - lock_classes];
++
++		memset(cpu_stats, 0, sizeof(struct lock_class_stats));
++	}
++	memset(class->contention_point, 0, sizeof(class->contention_point));
++}
++
+ static struct lock_class_stats *get_lock_stats(struct lock_class *class)
  {
- 	struct mbcs_soft *soft;
- 	int minor;
-@@ -394,7 +394,7 @@ int mbcs_open(struct inode *ip, struct f
- 	return -ENODEV;
- }
+ 	return &get_cpu_var(lock_stats)[class - lock_classes];
+diff -puN kernel/lockdep_proc.c~lockstat-human-readability-tweaks kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockstat-human-readability-tweaks
++++ a/kernel/lockdep_proc.c
+@@ -15,6 +15,10 @@
+ #include <linux/seq_file.h>
+ #include <linux/kallsyms.h>
+ #include <linux/debug_locks.h>
++#include <linux/vmalloc.h>
++#include <linux/sort.h>
++#include <asm/uaccess.h>
++#include <asm/div64.h>
  
--ssize_t mbcs_sram_read(struct file * fp, char __user *buf, size_t len, loff_t * off)
-+static ssize_t mbcs_sram_read(struct file * fp, char __user *buf, size_t len, loff_t * off)
+ #include "lockdep_internals.h"
+ 
+@@ -344,6 +348,262 @@ static const struct file_operations proc
+ 	.release	= seq_release,
+ };
+ 
++#ifdef CONFIG_LOCK_STAT
++
++struct lock_stat_data {
++	struct lock_class *class;
++	struct lock_class_stats stats;
++};
++
++struct lock_stat_seq {
++	struct lock_stat_data *iter;
++	struct lock_stat_data *iter_end;
++	struct lock_stat_data stats[MAX_LOCKDEP_KEYS];
++};
++
++/*
++ * sort on absolute number of contentions
++ */
++static int lock_stat_cmp(const void *l, const void *r)
++{
++	const struct lock_stat_data *dl = l, *dr = r;
++	unsigned long nl, nr;
++
++	nl = dl->stats.read_waittime.nr + dl->stats.write_waittime.nr;
++	nr = dr->stats.read_waittime.nr + dr->stats.write_waittime.nr;
++
++	return nr - nl;
++}
++
++static void seq_line(struct seq_file *m, char c, int offset, int length)
++{
++	int i;
++
++	for (i = 0; i < offset; i++)
++		seq_puts(m, " ");
++	for (i = 0; i < length; i++)
++		seq_printf(m, "%c", c);
++	seq_puts(m, "\n");
++}
++
++static void snprint_time(char *buf, size_t bufsiz, s64 nr)
++{
++	unsigned long rem;
++
++	rem = do_div(nr, 1000); /* XXX: do_div_signed */
++	snprintf(buf, bufsiz, "%lld.%02d", (long long)nr, ((int)rem+5)/10);
++}
++
++static void seq_time(struct seq_file *m, s64 time)
++{
++	char num[15];
++
++	snprint_time(num, sizeof(num), time);
++	seq_printf(m, " %14s", num);
++}
++
++static void seq_lock_time(struct seq_file *m, struct lock_time *lt)
++{
++	seq_printf(m, "%14lu", lt->nr);
++	seq_time(m, lt->min);
++	seq_time(m, lt->max);
++	seq_time(m, lt->total);
++}
++
++static void seq_stats(struct seq_file *m, struct lock_stat_data *data)
++{
++	char name[39];
++	struct lock_class *class;
++	struct lock_class_stats *stats;
++	int i, namelen;
++
++	class = data->class;
++	stats = &data->stats;
++
++	snprintf(name, 38, "%s", class->name);
++	namelen = strlen(name);
++
++	if (stats->write_holdtime.nr) {
++		if (stats->read_holdtime.nr)
++			seq_printf(m, "%38s-W:", name);
++		else
++			seq_printf(m, "%40s:", name);
++
++		seq_lock_time(m, &stats->write_waittime);
++		seq_puts(m, " ");
++		seq_lock_time(m, &stats->write_holdtime);
++		seq_puts(m, "\n");
++	}
++
++	if (stats->read_holdtime.nr) {
++		seq_printf(m, "%38s-R:", name);
++		seq_lock_time(m, &stats->read_waittime);
++		seq_puts(m, " ");
++		seq_lock_time(m, &stats->read_holdtime);
++		seq_puts(m, "\n");
++	}
++
++	if (stats->read_waittime.nr + stats->write_waittime.nr == 0)
++		return;
++
++	if (stats->read_holdtime.nr)
++		namelen += 2;
++
++	for (i = 0; i < ARRAY_SIZE(class->contention_point); i++) {
++		char sym[KSYM_SYMBOL_LEN];
++		char ip[32];
++
++		if (class->contention_point[i] == 0)
++			break;
++
++		if (!i)
++			seq_line(m, '-', 40-namelen, namelen);
++
++		sprint_symbol(sym, class->contention_point[i]);
++		snprintf(ip, sizeof(ip), "[<%p>]",
++				(void *)class->contention_point[i]);
++		seq_printf(m, "%40s %14lu %29s %s\n", name,
++				stats->contention_point[i],
++				ip, sym);
++	}
++	if (i) {
++		seq_puts(m, "\n");
++		seq_line(m, '.', 0, 40 + 1 + 8 * (14 + 1));
++		seq_puts(m, "\n");
++	}
++}
++
++static void seq_header(struct seq_file *m)
++{
++	seq_printf(m, "lock_stat version 0.1\n");
++	seq_line(m, '-', 0, 40 + 1 + 8 * (14 + 1));
++	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s\n",
++			"class name",
++			"contentions",
++			"waittime-min",
++			"waittime-max",
++			"waittime-total",
++			"acquisitions",
++			"holdtime-min",
++			"holdtime-max",
++			"holdtime-total");
++	seq_line(m, '-', 0, 40 + 1 + 8 * (14 + 1));
++	seq_printf(m, "\n");
++}
++
++static void *ls_start(struct seq_file *m, loff_t *pos)
++{
++	struct lock_stat_seq *data = m->private;
++
++	if (data->iter == data->stats)
++		seq_header(m);
++
++	return data->iter;
++}
++
++static void *ls_next(struct seq_file *m, void *v, loff_t *pos)
++{
++	struct lock_stat_seq *data = m->private;
++
++	(*pos)++;
++
++	data->iter = v;
++	data->iter++;
++	if (data->iter == data->iter_end)
++		data->iter = NULL;
++
++	return data->iter;
++}
++
++static void ls_stop(struct seq_file *m, void *v)
++{
++}
++
++static int ls_show(struct seq_file *m, void *v)
++{
++	struct lock_stat_seq *data = m->private;
++
++	seq_stats(m, data->iter);
++	return 0;
++}
++
++static struct seq_operations lockstat_ops = {
++	.start	= ls_start,
++	.next	= ls_next,
++	.stop	= ls_stop,
++	.show	= ls_show,
++};
++
++static int lock_stat_open(struct inode *inode, struct file *file)
++{
++	int res;
++	struct lock_class *class;
++	struct lock_stat_seq *data = vmalloc(sizeof(struct lock_stat_seq));
++
++	if (!data)
++		return -ENOMEM;
++
++	res = seq_open(file, &lockstat_ops);
++	if (!res) {
++		struct lock_stat_data *iter = data->stats;
++		struct seq_file *m = file->private_data;
++
++		data->iter = iter;
++		list_for_each_entry(class, &all_lock_classes, lock_entry) {
++			iter->class = class;
++			iter->stats = lock_stats(class);
++			iter++;
++		}
++		data->iter_end = iter;
++
++		sort(data->stats, data->iter_end - data->iter,
++				sizeof(struct lock_stat_data),
++				lock_stat_cmp, NULL);
++
++		m->private = data;
++	} else
++		vfree(data);
++
++	return res;
++}
++
++static ssize_t lock_stat_write(struct file *file, const char __user *buf,
++			       size_t count, loff_t *ppos)
++{
++	struct lock_class *class;
++	char c;
++
++	if (count) {
++		if (get_user(c, buf))
++			return -EFAULT;
++
++		if (c != '0')
++			return count;
++
++		list_for_each_entry(class, &all_lock_classes, lock_entry)
++			clear_lock_stats(class);
++	}
++	return count;
++}
++
++static int lock_stat_release(struct inode *inode, struct file *file)
++{
++	struct seq_file *seq = file->private_data;
++
++	vfree(seq->private);
++	seq->private = NULL;
++	return seq_release(inode, file);
++}
++
++static const struct file_operations proc_lock_stat_operations = {
++	.open		= lock_stat_open,
++	.write		= lock_stat_write,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= lock_stat_release,
++};
++#endif /* CONFIG_LOCK_STAT */
++
+ static int __init lockdep_proc_init(void)
  {
- 	struct cx_dev *cx_dev = fp->private_data;
- 	struct mbcs_soft *soft = cx_dev->soft;
-@@ -418,7 +418,7 @@ ssize_t mbcs_sram_read(struct file * fp,
- 	return rv;
- }
+ 	struct proc_dir_entry *entry;
+@@ -356,6 +616,12 @@ static int __init lockdep_proc_init(void
+ 	if (entry)
+ 		entry->proc_fops = &proc_lockdep_stats_operations;
  
--ssize_t
-+static ssize_t
- mbcs_sram_write(struct file * fp, const char __user *buf, size_t len, loff_t * off)
- {
- 	struct cx_dev *cx_dev = fp->private_data;
-@@ -443,7 +443,7 @@ mbcs_sram_write(struct file * fp, const 
- 	return rv;
- }
- 
--loff_t mbcs_sram_llseek(struct file * filp, loff_t off, int whence)
-+static loff_t mbcs_sram_llseek(struct file * filp, loff_t off, int whence)
- {
- 	loff_t newpos;
- 
-@@ -491,7 +491,7 @@ static void mbcs_gscr_pioaddr_set(struct
- 	soft->gscr_addr = mbcs_pioaddr(soft, MBCS_GSCR_START);
- }
- 
--int mbcs_gscr_mmap(struct file *fp, struct vm_area_struct *vma)
-+static int mbcs_gscr_mmap(struct file *fp, struct vm_area_struct *vma)
- {
- 	struct cx_dev *cx_dev = fp->private_data;
- 	struct mbcs_soft *soft = cx_dev->soft;
-@@ -793,7 +793,7 @@ static int mbcs_remove(struct cx_dev *de
++#ifdef CONFIG_LOCK_STAT
++	entry = create_proc_entry("lock_stat", S_IRUSR, NULL);
++	if (entry)
++		entry->proc_fops = &proc_lock_stat_operations;
++#endif
++
  	return 0;
  }
  
--const struct cx_device_id __devinitdata mbcs_id_table[] = {
-+static const struct cx_device_id __devinitdata mbcs_id_table[] = {
- 	{
- 	 .part_num = MBCS_PART_NUM,
- 	 .mfg_num = MBCS_MFG_NUM,
-@@ -807,7 +807,7 @@ const struct cx_device_id __devinitdata 
- 
- MODULE_DEVICE_TABLE(cx, mbcs_id_table);
- 
--struct cx_drv mbcs_driver = {
-+static struct cx_drv mbcs_driver = {
- 	.name = DEVICE_NAME,
- 	.id_table = mbcs_id_table,
- 	.probe = mbcs_probe,
-diff -puN drivers/char/mbcs.h~mbcs-remove-lots-of-global-symbols drivers/char/mbcs.h
---- a/drivers/char/mbcs.h~mbcs-remove-lots-of-global-symbols
-+++ a/drivers/char/mbcs.h
-@@ -542,12 +542,12 @@ struct mbcs_soft {
- 	struct semaphore algolock;
- };
- 
--extern int mbcs_open(struct inode *ip, struct file *fp);
--extern ssize_t mbcs_sram_read(struct file *fp, char __user *buf, size_t len,
-+static int mbcs_open(struct inode *ip, struct file *fp);
-+static ssize_t mbcs_sram_read(struct file *fp, char __user *buf, size_t len,
- 			      loff_t * off);
--extern ssize_t mbcs_sram_write(struct file *fp, const char __user *buf, size_t len,
-+static ssize_t mbcs_sram_write(struct file *fp, const char __user *buf, size_t len,
- 			       loff_t * off);
--extern loff_t mbcs_sram_llseek(struct file *filp, loff_t off, int whence);
--extern int mbcs_gscr_mmap(struct file *fp, struct vm_area_struct *vma);
-+static loff_t mbcs_sram_llseek(struct file *filp, loff_t off, int whence);
-+static int mbcs_gscr_mmap(struct file *fp, struct vm_area_struct *vma);
- 
- #endif				// __MBCS_H__
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-ata-use-iomap_name.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-ata-fix-reported-task-file-values-in-sense-data.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-geode-setup-correct-chipset-access-functions.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
