@@ -1,262 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: - driver-core-check-return-code-of-sysfs_create_link.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:07:46 -0700
-Message-ID: <200707192007.l6JK7kIk020369@imap1.linux-foundation.org>
+Subject: - usb-sierra-add-tru-install-c-support.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:08:02 -0700
+Message-ID: <200707192008.l6JK82Pt020419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48328 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54584 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760855AbXGSUPx (ORCPT
+	by vger.kernel.org with ESMTP id S1761258AbXGSUPv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:53 -0400
+	Thu, 19 Jul 2007 16:15:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cornelia.huck@de.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: linux@sierrawireless.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Driver core: check return code of sysfs_create_link()
+     USB: sierra: Add TRU-Install (c) Support
 has been removed from the -mm tree.  Its filename was
-     driver-core-check-return-code-of-sysfs_create_link.patch
+     usb-sierra-add-tru-install-c-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Driver core: check return code of sysfs_create_link()
-From: Cornelia Huck <cornelia.huck@de.ibm.com>
+Subject: USB: sierra: Add TRU-Install (c) Support
+From: Kevin Lloyd <linux@sierrawireless.com>
 
-Check for return value of sysfs_create_link() in device_add() and
-device_rename().  Add helper functions device_add_class_symlinks() and
-device_remove_class_symlinks() to make the code easier to read.
+Add compatibility with Sierra Wireless' new TRU-Install feature.  Future
+devices that use this feature will not work unless this patch has been
+applied.
 
-[akpm@linux-foundation.org: fix unused var warnings]
-Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
+Signed-off-by: Kevin Lloyd <linux@sierrawireless.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c |  145 ++++++++++++++++++++++++++++++------------
- 1 file changed, 105 insertions(+), 40 deletions(-)
+ drivers/usb/serial/sierra.c        |   98 +++++++++++++++++++++------
+ drivers/usb/storage/unusual_devs.h |   11 +++
+ 2 files changed, 89 insertions(+), 20 deletions(-)
 
-diff -puN drivers/base/core.c~driver-core-check-return-code-of-sysfs_create_link drivers/base/core.c
---- a/drivers/base/core.c~driver-core-check-return-code-of-sysfs_create_link
-+++ a/drivers/base/core.c
-@@ -643,6 +643,82 @@ static int setup_parent(struct device *d
- 	return 0;
- }
+diff -puN drivers/usb/serial/sierra.c~usb-sierra-add-tru-install-c-support drivers/usb/serial/sierra.c
+--- a/drivers/usb/serial/sierra.c~usb-sierra-add-tru-install-c-support
++++ a/drivers/usb/serial/sierra.c
+@@ -1,7 +1,7 @@
+ /*
+   USB Driver for Sierra Wireless
  
-+static int device_add_class_symlinks(struct device *dev)
+-  Copyright (C) 2006  Kevin Lloyd <linux@sierrawireless.com>
++  Copyright (C) 2007  Kevin Lloyd <linux@sierrawireless.com>
+ 
+   IMPORTANT DISCLAIMER: This driver is not commercially supported by
+   Sierra Wireless. Use at your own risk.
+@@ -12,10 +12,9 @@
+ 
+   Portions based on the option driver by Matthias Urlichs <smurf@smurf.noris.de>
+   Whom based his on the Keyspan driver by Hugh Blemings <hugh@blemings.org>
+-
+ */
+ 
+-#define DRIVER_VERSION "v.1.0.6"
++#define DRIVER_VERSION "v.1.2.4b"
+ #define DRIVER_AUTHOR "Kevin Lloyd <linux@sierrawireless.com>"
+ #define DRIVER_DESC "USB Driver for Sierra Wireless USB modems"
+ 
+@@ -28,6 +27,71 @@
+ #include <linux/usb.h>
+ #include <linux/usb/serial.h>
+ 
++#define SWIMS_USB_REQUEST_SetMode	0x0B
++#define SWIMS_USB_REQUEST_TYPE_SetMode	0x40
++#define SWIMS_USB_INDEX_SetMode		0x0000
++#define SWIMS_SET_MODE_Modem		0x0001
++
++/* per port private data */
++#define N_IN_URB	4
++#define N_OUT_URB	4
++#define IN_BUFLEN	4096
++
++static int debug;
++
++enum devicetype {
++	DEVICE_3_PORT =		0,
++	DEVICE_1_PORT =		1,
++	DEVICE_INSTALLER =	2,
++};
++
++int sierra_set_power_state(struct usb_device *udev, __u16 swiState)
 +{
-+	int error;
-+
-+	if (!dev->class)
-+		return 0;
-+	error = sysfs_create_link(&dev->kobj, &dev->class->subsys.kobj,
-+				  "subsystem");
-+	if (error)
-+		goto out;
-+	/*
-+	 * If this is not a "fake" compatible device, then create the
-+	 * symlink from the class to the device.
-+	 */
-+	if (dev->kobj.parent != &dev->class->subsys.kobj) {
-+		error = sysfs_create_link(&dev->class->subsys.kobj, &dev->kobj,
-+					  dev->bus_id);
-+		if (error)
-+			goto out_subsys;
-+	}
-+	/* only bus-device parents get a "device"-link */
-+	if (dev->parent && dev->parent->bus) {
-+		error = sysfs_create_link(&dev->kobj, &dev->parent->kobj,
-+					  "device");
-+		if (error)
-+			goto out_busid;
-+#ifdef CONFIG_SYSFS_DEPRECATED
-+		{
-+			char * class_name = make_class_name(dev->class->name,
-+								&dev->kobj);
-+			if (class_name)
-+				error = sysfs_create_link(&dev->parent->kobj,
-+							&dev->kobj, class_name);
-+			kfree(class_name);
-+			if (error)
-+				goto out_device;
-+		}
-+#endif
-+	}
-+	return 0;
-+
-+#ifdef CONFIG_SYSFS_DEPRECATED
-+out_device:
-+	if (dev->parent)
-+		sysfs_remove_link(&dev->kobj, "device");
-+#endif
-+out_busid:
-+	if (dev->kobj.parent != &dev->class->subsys.kobj)
-+		sysfs_remove_link(&dev->class->subsys.kobj, dev->bus_id);
-+out_subsys:
-+	sysfs_remove_link(&dev->kobj, "subsystem");
-+out:
-+	return error;
++	int result;
++	dev_dbg(&udev->dev, "%s", "SET POWER STATE");
++	result = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
++			0x00,			/* __u8 request      */
++			0x40,			/* __u8 request type */
++			swiState,		/* __u16 value       */
++			0,			/* __u16 index       */
++			NULL,			/* void *data        */
++			0,			/* __u16 size 	     */
++			USB_CTRL_SET_TIMEOUT);	/* int timeout 	     */
++	return result;
 +}
 +
-+static void device_remove_class_symlinks(struct device *dev)
++int sierra_set_ms_mode(struct usb_device *udev, __u16 eSocMode)
 +{
-+	if (!dev->class)
-+		return;
-+	if (dev->parent) {
-+#ifdef CONFIG_SYSFS_DEPRECATED
-+		char *class_name;
-+
-+		class_name = make_class_name(dev->class->name, &dev->kobj);
-+		if (class_name) {
-+			sysfs_remove_link(&dev->parent->kobj, class_name);
-+			kfree(class_name);
-+		}
-+#endif
-+		sysfs_remove_link(&dev->kobj, "device");
-+	}
-+	if (dev->kobj.parent != &dev->class->subsys.kobj)
-+		sysfs_remove_link(&dev->class->subsys.kobj, dev->bus_id);
-+	sysfs_remove_link(&dev->kobj, "subsystem");
++	int result;
++	dev_dbg(&udev->dev, "%s", "DEVICE MODE SWITCH");
++	result = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
++			SWIMS_USB_REQUEST_SetMode,	/* __u8 request      */
++			SWIMS_USB_REQUEST_TYPE_SetMode,	/* __u8 request type */
++			eSocMode,			/* __u16 value       */
++			SWIMS_USB_INDEX_SetMode,	/* __u16 index       */
++			NULL,				/* void *data        */
++			0,				/* __u16 size 	     */
++			USB_CTRL_SET_TIMEOUT);		/* int timeout       */
++	return result;
 +}
 +
- /**
-  *	device_add - add device to device hierarchy.
-  *	@dev:	device.
-@@ -657,7 +733,6 @@ static int setup_parent(struct device *d
- int device_add(struct device *dev)
- {
- 	struct device *parent = NULL;
--	char *class_name = NULL;
- 	struct class_interface *class_intf;
- 	int error = -EINVAL;
- 
-@@ -697,27 +772,9 @@ int device_add(struct device *dev)
- 			goto ueventattrError;
- 	}
- 
--	if (dev->class) {
--		sysfs_create_link(&dev->kobj, &dev->class->subsys.kobj,
--				  "subsystem");
--		/* If this is not a "fake" compatible device, then create the
--		 * symlink from the class to the device. */
--		if (dev->kobj.parent != &dev->class->subsys.kobj)
--			sysfs_create_link(&dev->class->subsys.kobj,
--					  &dev->kobj, dev->bus_id);
--		if (parent) {
--			sysfs_create_link(&dev->kobj, &dev->parent->kobj,
--							"device");
--#ifdef CONFIG_SYSFS_DEPRECATED
--			class_name = make_class_name(dev->class->name,
--							&dev->kobj);
--			if (class_name)
--				sysfs_create_link(&dev->parent->kobj,
--						  &dev->kobj, class_name);
--#endif
--		}
--	}
--
-+	error = device_add_class_symlinks(dev);
-+	if (error)
-+		goto SymlinkError;
- 	error = device_add_attrs(dev);
- 	if (error)
- 		goto AttrsError;
-@@ -744,7 +801,6 @@ int device_add(struct device *dev)
- 		up(&dev->class->sem);
- 	}
-  Done:
--	kfree(class_name);
- 	put_device(dev);
- 	return error;
-  BusError:
-@@ -755,6 +811,8 @@ int device_add(struct device *dev)
- 					     BUS_NOTIFY_DEL_DEVICE, dev);
- 	device_remove_attrs(dev);
-  AttrsError:
-+	device_remove_class_symlinks(dev);
-+ SymlinkError:
- 	if (MAJOR(dev->devt))
- 		device_remove_file(dev, &devt_attr);
- 
-@@ -1140,7 +1198,7 @@ int device_rename(struct device *dev, ch
- {
- 	char *old_class_name = NULL;
- 	char *new_class_name = NULL;
--	char *old_symlink_name = NULL;
-+	char *old_device_name = NULL;
- 	int error;
- 
- 	dev = get_device(dev);
-@@ -1154,42 +1212,49 @@ int device_rename(struct device *dev, ch
- 		old_class_name = make_class_name(dev->class->name, &dev->kobj);
- #endif
- 
--	if (dev->class) {
--		old_symlink_name = kmalloc(BUS_ID_SIZE, GFP_KERNEL);
--		if (!old_symlink_name) {
--			error = -ENOMEM;
--			goto out_free_old_class;
--		}
--		strlcpy(old_symlink_name, dev->bus_id, BUS_ID_SIZE);
-+	old_device_name = kmalloc(BUS_ID_SIZE, GFP_KERNEL);
-+	if (!old_device_name) {
-+		error = -ENOMEM;
-+		goto out;
- 	}
--
-+	strlcpy(old_device_name, dev->bus_id, BUS_ID_SIZE);
- 	strlcpy(dev->bus_id, new_name, BUS_ID_SIZE);
- 
- 	error = kobject_rename(&dev->kobj, new_name);
-+	if (error) {
-+		strlcpy(dev->bus_id, old_device_name, BUS_ID_SIZE);
-+		goto out;
++int sierra_probe(struct usb_interface *iface, const struct usb_device_id *id)
++{
++	int result;
++	struct usb_device *udev;
++
++	udev = usb_get_dev(interface_to_usbdev(iface));
++
++	/* Check if in installer mode */
++	if (id->driver_info == DEVICE_INSTALLER){
++		dev_dbg(&udev->dev, "%s", "FOUND DEVICE(SW)\n");
++		result = sierra_set_ms_mode(udev, SWIMS_SET_MODE_Modem);
++		/*We do not want to bind to the device when in installer mode*/
++		return -EIO;
 +	}
++
++	return usb_serial_probe(iface, id);
++}
  
- #ifdef CONFIG_SYSFS_DEPRECATED
- 	if (old_class_name) {
- 		new_class_name = make_class_name(dev->class->name, &dev->kobj);
- 		if (new_class_name) {
--			sysfs_create_link(&dev->parent->kobj, &dev->kobj,
--					  new_class_name);
-+			error = sysfs_create_link(&dev->parent->kobj,
-+						  &dev->kobj, new_class_name);
-+			if (error)
-+				goto out;
- 			sysfs_remove_link(&dev->parent->kobj, old_class_name);
- 		}
- 	}
- #endif
+ static struct usb_device_id id_table [] = {
+ 	{ USB_DEVICE(0x1199, 0x0017) },	/* Sierra Wireless EM5625 */
+@@ -43,8 +107,10 @@ static struct usb_device_id id_table [] 
+ 	{ USB_DEVICE(0x1199, 0x6812) },	/* Sierra Wireless MC8775 */
+ 	{ USB_DEVICE(0x1199, 0x6820) },	/* Sierra Wireless AirCard 875 */
  
- 	if (dev->class) {
--		sysfs_remove_link(&dev->class->subsys.kobj,
--				  old_symlink_name);
--		sysfs_create_link(&dev->class->subsys.kobj, &dev->kobj,
--				  dev->bus_id);
-+		sysfs_remove_link(&dev->class->subsys.kobj, old_device_name);
-+		error = sysfs_create_link(&dev->class->subsys.kobj, &dev->kobj,
-+					  dev->bus_id);
-+		if (error) {
-+			/* Uh... how to unravel this if restoring can fail? */
-+			dev_err(dev, "%s: sysfs_create_symlink failed (%d)\n",
-+				__FUNCTION__, error);
-+		}
- 	}
-+out:
- 	put_device(dev);
+-	{ USB_DEVICE(0x1199, 0x0112) }, /* Sierra Wireless AirCard 580 */
+-	{ USB_DEVICE(0x0F3D, 0x0112) }, /* AirPrime/Sierra PC 5220 */
++	{ USB_DEVICE(0x1199, 0x0112), .driver_info = DEVICE_1_PORT }, /* Sierra Wireless AirCard 580 */
++	{ USB_DEVICE(0x0F3D, 0x0112), .driver_info = DEVICE_1_PORT }, /* Airprime/Sierra PC 5220 */
++
++	{ USB_DEVICE(0x1199, 0x0FFF), .driver_info = DEVICE_INSTALLER},
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, id_table);
+@@ -56,6 +122,7 @@ static struct usb_device_id id_table_1po
+ };
  
- 	kfree(new_class_name);
--	kfree(old_symlink_name);
-- out_free_old_class:
- 	kfree(old_class_name);
-+	kfree(old_device_name);
+ static struct usb_device_id id_table_3port [] = {
++	/* CDMA Devices */
+ 	{ USB_DEVICE(0x1199, 0x0017) },	/* Sierra Wireless EM5625 */
+ 	{ USB_DEVICE(0x1199, 0x0018) },	/* Sierra Wireless MC5720 */
+ 	{ USB_DEVICE(0x1199, 0x0218) },	/* Sierra Wireless MC5720 */
+@@ -63,6 +130,8 @@ static struct usb_device_id id_table_3po
+ 	{ USB_DEVICE(0x1199, 0x0019) },	/* Sierra Wireless AirCard 595 */
+ 	{ USB_DEVICE(0x1199, 0x0120) },	/* Sierra Wireless AirCard 595U */
+ 	{ USB_DEVICE(0x1199, 0x0021) },	/* Sierra Wireless AirCard 597E */
++
++	/* GSM/UMTS Devices */
+ 	{ USB_DEVICE(0x1199, 0x6802) },	/* Sierra Wireless MC8755 */
+ 	{ USB_DEVICE(0x1199, 0x6804) },	/* Sierra Wireless MC8755 */
+ 	{ USB_DEVICE(0x1199, 0x6803) },	/* Sierra Wireless MC8765 */
+@@ -73,20 +142,13 @@ static struct usb_device_id id_table_3po
  
- 	return error;
- }
+ static struct usb_driver sierra_driver = {
+ 	.name       = "sierra",
+-	.probe      = usb_serial_probe,
++	.probe      = sierra_probe,
+ 	.disconnect = usb_serial_disconnect,
+ 	.id_table   = id_table,
+ 	.no_dynamic_id = 	1,
+ };
+ 
+ 
+-static int debug;
+-
+-/* per port private data */
+-#define N_IN_URB	4
+-#define N_OUT_URB	4
+-#define IN_BUFLEN	4096
+-
+ struct sierra_port_private {
+ 	spinlock_t lock;	/* lock the structure */
+ 	int outstanding_urbs;	/* number of out urbs in flight */
+@@ -421,7 +483,6 @@ static int sierra_open(struct usb_serial
+ 	int i;
+ 	struct urb *urb;
+ 	int result;
+-	__u16 set_mode_dzero = 0x0000;
+ 
+ 	portdata = usb_get_serial_port_data(port);
+ 
+@@ -457,12 +518,6 @@ static int sierra_open(struct usb_serial
+ 
+ 	port->tty->low_latency = 1;
+ 
+-	/* set mode to D0 */
+-	result = usb_control_msg(serial->dev,
+-				 usb_rcvctrlpipe(serial->dev, 0),
+-				 0x00, 0x40, set_mode_dzero, 0, NULL,
+-				 0, USB_CTRL_SET_TIMEOUT);
+-
+ 	sierra_send_setup(port);
+ 
+ 	/* start up the interrupt endpoint if we have one */
+@@ -510,6 +565,9 @@ static int sierra_startup(struct usb_ser
+ 
+ 	dbg("%s", __FUNCTION__);
+ 
++	/*Set Device mode to D0 */
++	sierra_set_power_state(serial->dev, 0x0000);
++
+ 	/* Now setup per port private data */
+ 	for (i = 0; i < serial->num_ports; i++) {
+ 		port = serial->port[i];
+diff -puN drivers/usb/storage/unusual_devs.h~usb-sierra-add-tru-install-c-support drivers/usb/storage/unusual_devs.h
+--- a/drivers/usb/storage/unusual_devs.h~usb-sierra-add-tru-install-c-support
++++ a/drivers/usb/storage/unusual_devs.h
+@@ -1384,6 +1384,17 @@ UNUSUAL_DEV(  0x1019, 0x0c55, 0x0000, 0x
+ 		US_SC_DEVICE, US_PR_DEVICE, usb_stor_ucr61s2b_init,
+ 		0 ),
+ 
++/* Reported by Kevin Lloyd <linux@sierrawireless.com>
++ * Entry is needed for the initializer function override,
++ * which instructs the device to load as a modem
++ * device.
++ */
++UNUSUAL_DEV(  0x1199, 0x0fff, 0x0000, 0x9999,
++		"Sierra Wireless",
++		"USB MMC Storage",
++		US_SC_DEVICE, US_PR_DEVICE, NULL,
++		US_FL_IGNORE_DEVICE),
++
+ /* Reported by Jaco Kroon <jaco@kroon.co.za>
+  * The usb-storage module found on the Digitech GNX4 (and supposedly other
+  * devices) misbehaves and causes a bunch of invalid I/O errors.
 _
 
-Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
+Patches currently in -mm which might be from linux@sierrawireless.com are
 
 origin.patch
