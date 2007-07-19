@@ -1,258 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: - coda-fix-nlink-updates-for-directories.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:02:59 -0700
-Message-ID: <200707192002.l6JK2xpp019804@imap1.linux-foundation.org>
+Subject: - coda-cleanup-for-upcall-handling-path.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:03:09 -0700
+Message-ID: <200707192003.l6JK39FL019832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38196 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32943 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761083AbXGSUQc (ORCPT
+	by vger.kernel.org with ESMTP id S1760286AbXGSUQb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:32 -0400
+	Thu, 19 Jul 2007 16:16:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coda: fix nlink updates for directories
+     coda: cleanup for upcall handling path
 has been removed from the -mm tree.  Its filename was
-     coda-fix-nlink-updates-for-directories.patch
+     coda-cleanup-for-upcall-handling-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: coda: fix nlink updates for directories
+Subject: coda: cleanup for upcall handling path
 From: Jan Harkes <jaharkes@cs.cmu.edu>
 
-The Coda client sets the directory link count to 1 when it isn't sure how many
-subdirectories we have.  In this case we shouldn't change the link count in
-the kernel when a subdirectory is created or removed.
+Make the code that processes upcall responses more straightforward, uncovered
+at least one bad assumption.  We trusted that vc_inuse would be 0 when upcalls
+are aborted, however the device may have been reopened.
 
 Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/dir.c |  106 +++++++++++++++++++++++++++---------------------
- 1 file changed, 60 insertions(+), 46 deletions(-)
+ fs/coda/upcall.c |  121 +++++++++++++++++++++------------------------
+ 1 file changed, 58 insertions(+), 63 deletions(-)
 
-diff -puN fs/coda/dir.c~coda-fix-nlink-updates-for-directories fs/coda/dir.c
---- a/fs/coda/dir.c~coda-fix-nlink-updates-for-directories
-+++ a/fs/coda/dir.c
-@@ -173,12 +173,11 @@ int coda_permission(struct inode *inode,
- 
-  out:
- 	unlock_kernel();
--
--        return error; 
-+	return error;
- }
- 
- 
--static inline void coda_dir_changed(struct inode *dir, int link)
-+static inline void coda_dir_update_mtime(struct inode *dir)
+diff -puN fs/coda/upcall.c~coda-cleanup-for-upcall-handling-path fs/coda/upcall.c
+--- a/fs/coda/upcall.c~coda-cleanup-for-upcall-handling-path
++++ a/fs/coda/upcall.c
+@@ -687,27 +687,27 @@ static inline void coda_waitfor_upcall(s
+  * are all mapped to -EINTR, while showing a nice warning message. (jh)
+  * 
+  */
+-static int coda_upcall(struct coda_sb_info *sbi, 
+-		int inSize, int *outSize, 
+-		union inputArgs *buffer) 
++static int coda_upcall(struct coda_sb_info *sbi,
++		       int inSize, int *outSize,
++		       union inputArgs *buffer)
  {
- #ifdef REQUERY_VENUS_FOR_MTIME
- 	/* invalidate the directory cnode's attributes so we refetch the
-@@ -186,12 +185,27 @@ static inline void coda_dir_changed(stru
- 	coda_flag_inode(dir, C_VATTR);
- #else
- 	/* optimistically we can also act as if our nose bleeds. The
--         * granularity of the mtime is coarse anyways so we might actually be
--         * right most of the time. Note: we only do this for directories. */
-+	 * granularity of the mtime is coarse anyways so we might actually be
-+	 * right most of the time. Note: we only do this for directories. */
- 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
- #endif
--	if (link)
--		dir->i_nlink += link;
-+}
-+
-+/* we have to wrap inc_nlink/drop_nlink because sometimes userspace uses a
-+ * trick to fool GNU find's optimizations. If we can't be sure of the link
-+ * (because of volume mount points) we set i_nlink to 1 which forces find
-+ * to consider every child as a possible directory. We should also never
-+ * see an increment or decrement for deleted directories where i_nlink == 0 */
-+static inline void coda_dir_inc_nlink(struct inode *dir)
-+{
-+	if (dir->i_nlink >= 2)
-+		inc_nlink(dir);
-+}
-+
-+static inline void coda_dir_drop_nlink(struct inode *dir)
-+{
-+	if (dir->i_nlink > 2)
-+		drop_nlink(dir);
- }
+ 	struct venus_comm *vcommp;
+ 	union outputArgs *out;
+-	struct upc_req *req;
++	union inputArgs *sig_inputArgs;
++	struct upc_req *req, *sig_req;
+ 	int error = 0;
  
- /* creation routines: create, mknod, mkdir, link, symlink */
-@@ -229,10 +243,10 @@ static int coda_create(struct inode *dir
+ 	vcommp = sbi->sbi_vcomm;
+-	if ( !vcommp->vc_inuse ) {
+-		printk("No pseudo device in upcall comms at %p\n", vcommp);
+-                return -ENXIO;
++	if (!vcommp->vc_inuse) {
++		printk(KERN_NOTICE "coda: Venus dead, not sending upcall\n");
++		return -ENXIO;
  	}
  
- 	/* invalidate the directory cnode's attributes */
--	coda_dir_changed(dir, 0);
-+	coda_dir_update_mtime(dir);
- 	unlock_kernel();
- 	d_instantiate(de, inode);
--        return 0;
-+	return 0;
- }
- 
- static int coda_mkdir(struct inode *dir, struct dentry *de, int mode)
-@@ -268,12 +282,13 @@ static int coda_mkdir(struct inode *dir,
- 		d_drop(de);
- 		return PTR_ERR(inode);
- 	}
+ 	/* Format the request message. */
+ 	req = upc_alloc();
+-	if (!req) {
+-		printk("Failed to allocate upc_req structure\n");
++	if (!req)
+ 		return -ENOMEM;
+-	}
++
+ 	req->uc_data = (void *)buffer;
+ 	req->uc_flags = 0;
+ 	req->uc_inSize = inSize;
+@@ -715,13 +715,13 @@ static int coda_upcall(struct coda_sb_in
+ 	req->uc_opcode = ((union inputArgs *)buffer)->ih.opcode;
+ 	req->uc_unique = ++vcommp->vc_seq;
+ 	init_waitqueue_head(&req->uc_sleep);
 -	
 +
- 	/* invalidate the directory cnode's attributes */
--	coda_dir_changed(dir, 1);
-+	coda_dir_inc_nlink(dir);
-+	coda_dir_update_mtime(dir);
- 	unlock_kernel();
- 	d_instantiate(de, inode);
--        return 0;
-+	return 0;
- }
+ 	/* Fill in the common input args. */
+ 	((union inputArgs *)buffer)->ih.unique = req->uc_unique;
  
- /* try to make de an entry in dir_inodde linked to source_de */ 
-@@ -296,16 +311,16 @@ static int coda_link(struct dentry *sour
- 	error = venus_link(dir_inode->i_sb, coda_i2f(inode),
- 			   coda_i2f(dir_inode), (const char *)name, len);
- 
--	if (error) { 
-+	if (error) {
- 		d_drop(de);
- 		goto out;
- 	}
- 
--	coda_dir_changed(dir_inode, 0);
-+	coda_dir_update_mtime(dir_inode);
- 	atomic_inc(&inode->i_count);
- 	d_instantiate(de, inode);
- 	inc_nlink(inode);
+ 	/* Append msg to pending queue and poke Venus. */
+-	list_add_tail(&(req->uc_chain), &vcommp->vc_pending);
 -        
++	list_add_tail(&req->uc_chain, &vcommp->vc_pending);
 +
- out:
- 	unlock_kernel();
- 	return(error);
-@@ -336,18 +351,18 @@ static int coda_symlink(struct inode *di
+ 	wake_up_interruptible(&vcommp->vc_waitq);
+ 	/* We can be interrupted while we wait for Venus to process
+ 	 * our request.  If the interrupt occurs before Venus has read
+@@ -735,64 +735,59 @@ static int coda_upcall(struct coda_sb_in
+ 	/* Go to sleep.  Wake up on signals only after the timeout. */
+ 	coda_waitfor_upcall(req);
  
- 	/*
- 	 * This entry is now negative. Since we do not create
--	 * an inode for the entry we have to drop it. 
-+	 * an inode for the entry we have to drop it.
- 	 */
- 	d_drop(de);
--	error = venus_symlink(dir_inode->i_sb, coda_i2f(dir_inode), name, len, 
-+	error = venus_symlink(dir_inode->i_sb, coda_i2f(dir_inode), name, len,
- 			      symname, symlen);
- 
- 	/* mtime is no good anymore */
- 	if ( !error )
--		coda_dir_changed(dir_inode, 0);
-+		coda_dir_update_mtime(dir_inode);
- 
- 	unlock_kernel();
--        return error;
-+	return error;
- }
- 
- /* destruction routines: unlink, rmdir */
-@@ -360,17 +375,16 @@ int coda_unlink(struct inode *dir, struc
- 	lock_kernel();
- 	coda_vfs_stat.unlink++;
- 
--        error = venus_remove(dir->i_sb, coda_i2f(dir), name, len);
--        if ( error ) {
-+	error = venus_remove(dir->i_sb, coda_i2f(dir), name, len);
-+	if ( error ) {
- 		unlock_kernel();
--                return error;
--        }
-+		return error;
+-	if (vcommp->vc_inuse) {      /* i.e. Venus is still alive */
+-	    /* Op went through, interrupt or not... */
+-	    if (req->uc_flags & REQ_WRITE) {
++	/* Op went through, interrupt or not... */
++	if (req->uc_flags & REQ_WRITE) {
+ 		out = (union outputArgs *)req->uc_data;
+ 		/* here we map positive Venus errors to kernel errors */
+ 		error = -out->oh.result;
+ 		*outSize = req->uc_outSize;
+ 		goto exit;
+-	    }
+-	    if ( !(req->uc_flags & REQ_READ) && signal_pending(current)) { 
+-		/* Interrupted before venus read it. */
+-		list_del(&(req->uc_chain));
+-		/* perhaps the best way to convince the app to
+-		   give up? */
+-		error = -EINTR;
 +	}
- 
--	coda_dir_changed(dir, 0);
-+	coda_dir_update_mtime(dir);
- 	drop_nlink(de->d_inode);
- 	unlock_kernel();
--
--        return 0;
-+	return 0;
- }
- 
- int coda_rmdir(struct inode *dir, struct dentry *de)
-@@ -388,49 +402,49 @@ int coda_rmdir(struct inode *dir, struct
- 	}
- 	error = venus_rmdir(dir->i_sb, coda_i2f(dir), name, len);
- 
--        if ( error ) {
-+	if ( error ) {
- 		unlock_kernel();
--                return error;
--        }
-+		return error;
++
++	error = -EINTR;
++	if ((req->uc_flags & REQ_ABORT) || !signal_pending(current)) {
++		printk(KERN_WARNING "coda: Unexpected interruption.\n");
++		goto exit;
 +	}
- 
--	coda_dir_changed(dir, -1);
-+	coda_dir_drop_nlink(dir);
-+	coda_dir_update_mtime(dir);
- 	drop_nlink(de->d_inode);
- 	d_delete(de);
- 	unlock_kernel();
++
++	list_del(&(req->uc_chain));
++
++	/* Interrupted before venus read it. */
++	if (!(req->uc_flags & REQ_READ))
++		goto exit;
++
++	/* Venus saw the upcall, make sure we can send interrupt signal */
++	if (!vcommp->vc_inuse) {
++		printk(KERN_INFO "coda: Venus dead, not sending signal.\n");
+ 		goto exit;
+-	    } 
+-	    if ( (req->uc_flags & REQ_READ) && signal_pending(current) ) {
+-		    /* interrupted after Venus did its read, send signal */
+-		    union inputArgs *sig_inputArgs;
+-		    struct upc_req *sig_req;
+-		    
+-		    list_del(&(req->uc_chain));
+-		    error = -ENOMEM;
+-		    sig_req = upc_alloc();
+-		    if (!sig_req) goto exit;
 -
--        return 0;
-+	return 0;
- }
- 
- /* rename */
--static int coda_rename(struct inode *old_dir, struct dentry *old_dentry, 
-+static int coda_rename(struct inode *old_dir, struct dentry *old_dentry,
- 		       struct inode *new_dir, struct dentry *new_dentry)
- {
--        const char *old_name = old_dentry->d_name.name;
--        const char *new_name = new_dentry->d_name.name;
-+	const char *old_name = old_dentry->d_name.name;
-+	const char *new_name = new_dentry->d_name.name;
- 	int old_length = old_dentry->d_name.len;
- 	int new_length = new_dentry->d_name.len;
--        int link_adjust = 0;
--        int error;
-+	int error;
- 
- 	lock_kernel();
- 	coda_vfs_stat.rename++;
- 
--        error = venus_rename(old_dir->i_sb, coda_i2f(old_dir), 
--			     coda_i2f(new_dir), old_length, new_length, 
-+	error = venus_rename(old_dir->i_sb, coda_i2f(old_dir),
-+			     coda_i2f(new_dir), old_length, new_length,
- 			     (const char *) old_name, (const char *)new_name);
- 
--        if ( !error ) {
-+	if ( !error ) {
- 		if ( new_dentry->d_inode ) {
--			if ( S_ISDIR(new_dentry->d_inode->i_mode) )
--                        	link_adjust = 1;
--
--                        coda_dir_changed(old_dir, -link_adjust);
--                        coda_dir_changed(new_dir,  link_adjust);
-+			if ( S_ISDIR(new_dentry->d_inode->i_mode) ) {
-+				coda_dir_drop_nlink(old_dir);
-+				coda_dir_inc_nlink(new_dir);
-+			}
-+			coda_dir_update_mtime(old_dir);
-+			coda_dir_update_mtime(new_dir);
- 			coda_flag_inode(new_dentry->d_inode, C_VATTR);
- 		} else {
- 			coda_flag_inode(old_dir, C_VATTR);
- 			coda_flag_inode(new_dir, C_VATTR);
--                }
-+		}
+-		    CODA_ALLOC((sig_req->uc_data), char *, sizeof(struct coda_in_hdr));
+-		    if (!sig_req->uc_data) {
+-			upc_free(sig_req);
+-			goto exit;
+-		    }
+-		    
+-		    error = -EINTR;
+-		    sig_inputArgs = (union inputArgs *)sig_req->uc_data;
+-		    sig_inputArgs->ih.opcode = CODA_SIGNAL;
+-		    sig_inputArgs->ih.unique = req->uc_unique;
+-		    
+-		    sig_req->uc_flags = REQ_ASYNC;
+-		    sig_req->uc_opcode = sig_inputArgs->ih.opcode;
+-		    sig_req->uc_unique = sig_inputArgs->ih.unique;
+-		    sig_req->uc_inSize = sizeof(struct coda_in_hdr);
+-		    sig_req->uc_outSize = sizeof(struct coda_in_hdr);
+-		    
+-		    /* insert at head of queue! */
+-		    list_add(&(sig_req->uc_chain), &vcommp->vc_pending);
+-		    wake_up_interruptible(&vcommp->vc_waitq);
+-	    } else {
+-		    printk("Coda: Strange interruption..\n");
+-		    error = -EINTR;
+-	    }
+-	} else {	/* If venus died i.e. !VC_OPEN(vcommp) */
+-	        printk("coda_upcall: Venus dead on (op,un) (%d.%d) flags %d\n",
+-		       req->uc_opcode, req->uc_unique, req->uc_flags);
+-		error = -ENODEV;
  	}
- 	unlock_kernel();
  
+- exit:
++	error = -ENOMEM;
++	sig_req = upc_alloc();
++	if (!sig_req) goto exit;
++
++	CODA_ALLOC((sig_req->uc_data), char *, sizeof(struct coda_in_hdr));
++	if (!sig_req->uc_data) {
++		upc_free(sig_req);
++		goto exit;
++	}
++
++	error = -EINTR;
++	sig_inputArgs = (union inputArgs *)sig_req->uc_data;
++	sig_inputArgs->ih.opcode = CODA_SIGNAL;
++	sig_inputArgs->ih.unique = req->uc_unique;
++
++	sig_req->uc_flags = REQ_ASYNC;
++	sig_req->uc_opcode = sig_inputArgs->ih.opcode;
++	sig_req->uc_unique = sig_inputArgs->ih.unique;
++	sig_req->uc_inSize = sizeof(struct coda_in_hdr);
++	sig_req->uc_outSize = sizeof(struct coda_in_hdr);
++
++	/* insert at head of queue! */
++	list_add(&(sig_req->uc_chain), &vcommp->vc_pending);
++	wake_up_interruptible(&vcommp->vc_waitq);
++
++exit:
+ 	upc_free(req);
+ 	return error;
+ }
 _
 
 Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
