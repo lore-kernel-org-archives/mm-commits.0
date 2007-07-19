@@ -1,33 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 12:21:45 -0700
-Message-ID: <200707191921.l6JJLjXT017784@imap1.linux-foundation.org>
+Subject: + x86_64-clean-up-apicid_to_node-declaration.patch added to -mm tree
+Date: Thu, 19 Jul 2007 12:24:15 -0700
+Message-ID: <200707191924.l6JJOFZg017947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39691 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47022 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933462AbXGSTWX (ORCPT
+	by vger.kernel.org with ESMTP id S965653AbXGSTZY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 15:22:23 -0400
+	Thu, 19 Jul 2007 15:25:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ak@suse.de, rientjes@google.com
 
 
 The patch titled
-     fix x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2
-has been removed from the -mm tree.  Its filename was
-     fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+     x86_64: clean up apicid_to_node declaration
+has been added to the -mm tree.  Its filename is
+     x86_64-clean-up-apicid_to_node-declaration.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2
+Subject: x86_64: clean up apicid_to_node declaration
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86_64/mm/srat.c: In function 'acpi_fake_nodes':
-arch/x86_64/mm/srat.c:503: error: invalid application of 'sizeof' to incomplete type 'unsigned char[]' 
-arch/x86_64/mm/srat.c:503: error: invalid application of 'sizeof' to incomplete type 'unsigned char[]' 
+Use the correct #define in the declaration of apicid_to_node[], to match the
+definition.
 
 Cc: Andi Kleen <ak@suse.de>
 Cc: David Rientjes <rientjes@google.com>
@@ -35,10 +38,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/asm-x86_64/numa.h |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-x86_64/numa.h~fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2 include/asm-x86_64/numa.h
---- a/include/asm-x86_64/numa.h~fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2
+diff -puN include/asm-x86_64/numa.h~x86_64-clean-up-apicid_to_node-declaration include/asm-x86_64/numa.h
+--- a/include/asm-x86_64/numa.h~x86_64-clean-up-apicid_to_node-declaration
 +++ a/include/asm-x86_64/numa.h
 @@ -2,6 +2,7 @@
  #define _ASM_X8664_NUMA_H 1
@@ -52,7 +55,7 @@ diff -puN include/asm-x86_64/numa.h~fix-x86_64-numa-fake-apicid_to_node-mapping-
  extern void srat_reserve_add_area(int nodeid);
  extern int hotadd_percent;
  
--extern unsigned char apicid_to_node[];
+-extern unsigned char apicid_to_node[256];
 +extern unsigned char apicid_to_node[MAX_LOCAL_APIC];
  #ifdef CONFIG_NUMA
  extern void __init init_cpu_to_node(void);
@@ -86,7 +89,7 @@ git-scsi-misc.patch
 aacraid-rename-check_reset.patch
 git-unionfs.patch
 git-block-vs-git-unionfs.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
 fix-x86_64-mm-sched-clock-share.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
 mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
