@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - cell-fix-cbe_thermal-for-legacy-slof-tree.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 17:23:46 -0700
-Message-ID: <200707190023.l6J0NkLq004744@imap1.linux-foundation.org>
+Subject: - cell-fix-cbe_regc-for-legacy-slof-tree.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 17:23:44 -0700
+Message-ID: <200707190023.l6J0NiRC004741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45190 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44439 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762920AbXGSAYi (ORCPT
+	by vger.kernel.org with ESMTP id S1763212AbXGSAYi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 18 Jul 2007 20:24:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,23 +15,20 @@ To: jcd@tribudubois.net, arnd.bergmann@de.ibm.com, krafft@de.ibm.com, mm-commits
 
 
 The patch titled
-     cell: fix cbe_thermal for legacy SLOF tree.
+     cell: fix cbe_reg.c for legacy SLOF tree.
 has been removed from the -mm tree.  Its filename was
-     cell-fix-cbe_thermal-for-legacy-slof-tree.patch
+     cell-fix-cbe_regc-for-legacy-slof-tree.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: cell: fix cbe_thermal for legacy SLOF tree.
+Subject: cell: fix cbe_reg.c for legacy SLOF tree.
 From: Jean-Christophe DUBOIS <jcd@tribudubois.net>
 
-Previous patch changed based on Christian Krafft's comment.
+Some legacy SLOF device trees have a "be" node but no "cpus" properties under
+it.
 
-On some legacy SLOF tree the generic code is unable to ioremap some Cell BE
-registers.  Therefore the "generic" functions are returning a NULL pointer,
-triggering a crash on such platforms.
-
-Let's handle this more gracefully.
+So let's fix the crash until the device tree is fixed.
 
 Signed-off-by: Jean-Christophe DUBOIS <jcd@tribudubois.net>
 Acked-by: Christian Kraff <krafft@de.ibm.com>
@@ -39,69 +36,28 @@ Signed-off-by: Arnd Bergmann <arnd.bergmann@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/cbe_thermal.c |   25 ++++++++++++++++----
- 1 files changed, 20 insertions(+), 5 deletions(-)
+ arch/powerpc/platforms/cell/cbe_regs.c |    5 +++++
+ 1 files changed, 5 insertions(+)
 
-diff -puN arch/powerpc/platforms/cell/cbe_thermal.c~cell-fix-cbe_thermal-for-legacy-slof-tree arch/powerpc/platforms/cell/cbe_thermal.c
---- a/arch/powerpc/platforms/cell/cbe_thermal.c~cell-fix-cbe_thermal-for-legacy-slof-tree
-+++ a/arch/powerpc/platforms/cell/cbe_thermal.c
-@@ -292,7 +292,7 @@ static struct attribute_group ppe_attrib
- /*
-  * initialize throttling with default values
-  */
--static void __init init_default_values(void)
-+static int __init init_default_values(void)
- {
- 	int cpu;
- 	struct cbe_pmd_regs __iomem *pmd_regs;
-@@ -339,25 +339,40 @@ static void __init init_default_values(v
- 	for_each_possible_cpu (cpu) {
- 		pr_debug("processing cpu %d\n", cpu);
- 		sysdev = get_cpu_sysdev(cpu);
-+
-+		if (!sysdev) {
-+			pr_info("invalid sysdev pointer for cbe_thermal\n");
-+			return -EINVAL;
+diff -puN arch/powerpc/platforms/cell/cbe_regs.c~cell-fix-cbe_regc-for-legacy-slof-tree arch/powerpc/platforms/cell/cbe_regs.c
+--- a/arch/powerpc/platforms/cell/cbe_regs.c~cell-fix-cbe_regc-for-legacy-slof-tree
++++ a/arch/powerpc/platforms/cell/cbe_regs.c
+@@ -174,6 +174,11 @@ static struct device_node *cbe_get_be_no
+ 
+ 		cpu_handle = of_get_property(np, "cpus", &len);
+ 
++		if (!cpu_handle) {
++			WARN_ON_ONCE(!cpu_handle);
++			continue;
 +		}
 +
- 		pmd_regs = cbe_get_cpu_pmd_regs(sysdev->id);
- 
-+		if (!pmd_regs) {
-+			pr_info("invalid CBE regs pointer for cbe_thermal\n");
-+			return -EINVAL;
-+		}
-+
- 		out_be64(&pmd_regs->tm_str2, str2);
- 		out_be64(&pmd_regs->tm_str1.val, str1.val);
- 		out_be64(&pmd_regs->tm_tpr.val, tpr.val);
- 		out_be64(&pmd_regs->tm_cr1.val, cr1.val);
- 		out_be64(&pmd_regs->tm_cr2, cr2);
- 	}
-+
-+	return 0;
- }
- 
- 
- static int __init thermal_init(void)
- {
--	init_default_values();
-+	int rc = init_default_values();
- 
--	spu_add_sysdev_attr_group(&spu_attribute_group);
--	cpu_add_sysdev_attr_group(&ppe_attribute_group);
-+	if (rc == 0) {
-+		spu_add_sysdev_attr_group(&spu_attribute_group);
-+		cpu_add_sysdev_attr_group(&ppe_attribute_group);
-+	}
- 
--	return 0;
-+	return rc;
- }
- module_init(thermal_init);
- 
+ 		for (i=0; i<len; i++)
+ 			if (of_find_node_by_phandle(cpu_handle[i]) == of_get_cpu_node(cpu_id, NULL))
+ 				return np;
 _
 
 Patches currently in -mm which might be from jcd@tribudubois.net are
 
+cell-fix-cbe_regc-for-legacy-slof-tree.patch
 cell-fix-cbe_thermal-for-legacy-slof-tree.patch
 cell-allow-linux-to-map-cell-regs-on-legacy-slof-tree.patch
