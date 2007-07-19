@@ -1,179 +1,366 @@
 From: akpm@linux-foundation.org
-Subject: - mm-fault-feedback-2-spufs-fix.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 11:54:24 -0700
-Message-ID: <200707191854.l6JIsO6D016740@imap1.linux-foundation.org>
+Subject: + consolidate-ptrace_detach.patch added to -mm tree
+Date: Thu, 19 Jul 2007 11:56:28 -0700
+Message-ID: <200707191856.l6JIuSWE016772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33214 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49201 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758830AbXGSSz2 (ORCPT
+	by vger.kernel.org with ESMTP id S933884AbXGSTEG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 14:55:28 -0400
+	Thu, 19 Jul 2007 15:04:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, nickpiggin@yahoo.com.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: adobriyan@sw.ru, hch@infradead.org
 
 
 The patch titled
-     mm-fault-feedback spufs fix
-has been removed from the -mm tree.  Its filename was
-     mm-fault-feedback-2-spufs-fix.patch
+     Consolidate PTRACE_DETACH
+has been added to the -mm tree.  Its filename is
+     consolidate-ptrace_detach.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: mm-fault-feedback spufs fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Consolidate PTRACE_DETACH
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Identical handlers of PTRACE_DETACH go into ptrace_request().
+Not touching compat code.
+Not touching archs that don't call ptrace_request.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/fault.c |    2 ++
- 1 files changed, 2 insertions(+)
+ arch/alpha/kernel/ptrace.c         |    4 ----
+ arch/arm/kernel/ptrace.c           |    4 ----
+ arch/arm26/kernel/ptrace.c         |    4 ----
+ arch/avr32/kernel/ptrace.c         |    5 -----
+ arch/blackfin/kernel/ptrace.c      |    6 ------
+ arch/cris/arch-v10/kernel/ptrace.c |    4 ----
+ arch/cris/arch-v32/kernel/ptrace.c |    4 ----
+ arch/i386/kernel/ptrace.c          |    5 -----
+ arch/m32r/kernel/ptrace.c          |    8 --------
+ arch/m68k/kernel/ptrace.c          |    4 ----
+ arch/mips/kernel/ptrace.c          |    4 ----
+ arch/parisc/kernel/ptrace.c        |    4 ----
+ arch/powerpc/kernel/ptrace.c       |    4 ----
+ arch/s390/kernel/ptrace.c          |    5 -----
+ arch/sh/kernel/ptrace.c            |    4 ----
+ arch/sh64/kernel/ptrace.c          |    4 ----
+ arch/um/kernel/ptrace.c            |    5 -----
+ arch/x86_64/kernel/ptrace.c        |    5 -----
+ arch/xtensa/kernel/ptrace.c        |    4 ----
+ kernel/ptrace.c                    |    3 +++
+ 20 files changed, 3 insertions(+), 87 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/spufs/fault.c~mm-fault-feedback-2-spufs-fix arch/powerpc/platforms/cell/spufs/fault.c
---- a/arch/powerpc/platforms/cell/spufs/fault.c~mm-fault-feedback-2-spufs-fix
-+++ a/arch/powerpc/platforms/cell/spufs/fault.c
-@@ -39,6 +39,7 @@ static int spu_handle_mm_fault(struct mm
- 	struct vm_area_struct *vma;
- 	unsigned long is_write;
- 	int ret;
-+	int fault;
+diff -puN arch/alpha/kernel/ptrace.c~consolidate-ptrace_detach arch/alpha/kernel/ptrace.c
+--- a/arch/alpha/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/alpha/kernel/ptrace.c
+@@ -368,10 +368,6 @@ do_sys_ptrace(long request, long pid, lo
+ 		ret = 0;
+ 		goto out;
  
- #if 0
- 	if (!IS_VALID_EA(ea)) {
-@@ -89,6 +90,7 @@ good_area:
- 		current->maj_flt++;
- 	else
- 		current->min_flt++;
-+	*flt = fault;
- 	up_read(&mm->mmap_sem);
- 	return ret;
+-	case PTRACE_DETACH:	 /* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		goto out;
+-
+ 	default:
+ 		ret = ptrace_request(child, request, addr, data);
+ 		goto out;
+diff -puN arch/arm/kernel/ptrace.c~consolidate-ptrace_detach arch/arm/kernel/ptrace.c
+--- a/arch/arm/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/arm/kernel/ptrace.c
+@@ -731,10 +731,6 @@ long arch_ptrace(struct task_struct *chi
+ 			ret = 0;
+ 			break;
  
+-		case PTRACE_DETACH:
+-			ret = ptrace_detach(child, data);
+-			break;
+-
+ 		case PTRACE_GETREGS:
+ 			ret = ptrace_getregs(child, (void __user *)data);
+ 			break;
+diff -puN arch/arm26/kernel/ptrace.c~consolidate-ptrace_detach arch/arm26/kernel/ptrace.c
+--- a/arch/arm26/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/arm26/kernel/ptrace.c
+@@ -609,10 +609,6 @@ long arch_ptrace(struct task_struct *chi
+ 			ret = 0;
+ 			break;
+ 
+-		case PTRACE_DETACH:
+-			ret = ptrace_detach(child, data);
+-			break;
+-
+ 		case PTRACE_GETREGS:
+ 			ret = ptrace_getregs(child, (void *)data);
+ 			break;
+diff -puN arch/avr32/kernel/ptrace.c~consolidate-ptrace_detach arch/avr32/kernel/ptrace.c
+--- a/arch/avr32/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/avr32/kernel/ptrace.c
+@@ -227,11 +227,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = 0;
+ 		break;
+ 
+-	/* Detach a process that was attached */
+-	case PTRACE_DETACH:
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GETREGS:
+ 		ret = ptrace_getregs(child, (void __user *)data);
+ 		break;
+diff -puN arch/blackfin/kernel/ptrace.c~consolidate-ptrace_detach arch/blackfin/kernel/ptrace.c
+--- a/arch/blackfin/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/blackfin/kernel/ptrace.c
+@@ -373,12 +373,6 @@ long arch_ptrace(struct task_struct *chi
+ 			break;
+ 		}
+ 
+-	case PTRACE_DETACH:
+-		{		/* detach a process that was attached. */
+-			ret = ptrace_detach(child, data);
+-			break;
+-		}
+-
+ 	case PTRACE_GETREGS:
+ 		{
+ 
+diff -puN arch/cris/arch-v10/kernel/ptrace.c~consolidate-ptrace_detach arch/cris/arch-v10/kernel/ptrace.c
+--- a/arch/cris/arch-v10/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/cris/arch-v10/kernel/ptrace.c
+@@ -177,10 +177,6 @@ long arch_ptrace(struct task_struct *chi
+ 			ret = 0;
+ 			break;
+ 
+-		case PTRACE_DETACH:
+-			ret = ptrace_detach(child, data);
+-			break;
+-
+ 		/* Get all GP registers from the child. */
+ 		case PTRACE_GETREGS: {
+ 		  	int i;
+diff -puN arch/cris/arch-v32/kernel/ptrace.c~consolidate-ptrace_detach arch/cris/arch-v32/kernel/ptrace.c
+--- a/arch/cris/arch-v32/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/cris/arch-v32/kernel/ptrace.c
+@@ -245,10 +245,6 @@ long arch_ptrace(struct task_struct *chi
+ 			break;
+ 
+ 		}
+-		case PTRACE_DETACH:
+-			ret = ptrace_detach(child, data);
+-			break;
+-
+ 		/* Get all GP registers from the child. */
+ 		case PTRACE_GETREGS: {
+ 		  	int i;
+diff -puN arch/i386/kernel/ptrace.c~consolidate-ptrace_detach arch/i386/kernel/ptrace.c
+--- a/arch/i386/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/i386/kernel/ptrace.c
+@@ -526,11 +526,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = 0;
+ 		break;
+ 
+-	case PTRACE_DETACH:
+-		/* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GETREGS: { /* Get all gp regs from the child. */
+ 	  	if (!access_ok(VERIFY_WRITE, datap, FRAME_SIZE*sizeof(long))) {
+ 			ret = -EIO;
+diff -puN arch/m32r/kernel/ptrace.c~consolidate-ptrace_detach arch/m32r/kernel/ptrace.c
+--- a/arch/m32r/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/m32r/kernel/ptrace.c
+@@ -703,14 +703,6 @@ do_ptrace(long request, struct task_stru
+ 		break;
+ 	}
+ 
+-	/*
+-	 * detach a process that was attached.
+-	 */
+-	case PTRACE_DETACH:
+-		ret = 0;
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GETREGS:
+ 		ret = ptrace_getregs(child, (void __user *)data);
+ 		break;
+diff -puN arch/m68k/kernel/ptrace.c~consolidate-ptrace_detach arch/m68k/kernel/ptrace.c
+--- a/arch/m68k/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/m68k/kernel/ptrace.c
+@@ -227,10 +227,6 @@ long arch_ptrace(struct task_struct *chi
+ 		wake_up_process(child);
+ 		break;
+ 
+-	case PTRACE_DETACH:	/* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GETREGS:	/* Get all gp regs from the child. */
+ 		for (i = 0; i < 19; i++) {
+ 			tmp = get_reg(child, i);
+diff -puN arch/mips/kernel/ptrace.c~consolidate-ptrace_detach arch/mips/kernel/ptrace.c
+--- a/arch/mips/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/mips/kernel/ptrace.c
+@@ -435,10 +435,6 @@ long arch_ptrace(struct task_struct *chi
+ 		wake_up_process(child);
+ 		break;
+ 
+-	case PTRACE_DETACH: /* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GET_THREAD_AREA:
+ 		ret = put_user(task_thread_info(child)->tp_value,
+ 				(unsigned long __user *) data);
+diff -puN arch/parisc/kernel/ptrace.c~consolidate-ptrace_detach arch/parisc/kernel/ptrace.c
+--- a/arch/parisc/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/parisc/kernel/ptrace.c
+@@ -329,10 +329,6 @@ long arch_ptrace(struct task_struct *chi
+ 		/* give it a chance to run. */
+ 		goto out_wake;
+ 
+-	case PTRACE_DETACH:
+-		ret = ptrace_detach(child, data);
+-		goto out_tsk;
+-
+ 	case PTRACE_GETEVENTMSG:
+                 ret = put_user(child->ptrace_message, (unsigned int __user *) data);
+ 		goto out_tsk;
+diff -puN arch/powerpc/kernel/ptrace.c~consolidate-ptrace_detach arch/powerpc/kernel/ptrace.c
+--- a/arch/powerpc/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/powerpc/kernel/ptrace.c
+@@ -503,10 +503,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = ptrace_set_debugreg(child, addr, data);
+ 		break;
+ 
+-	case PTRACE_DETACH:
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ #ifdef CONFIG_PPC64
+ 	case PTRACE_GETREGS64:
+ #endif
+diff -puN arch/s390/kernel/ptrace.c~consolidate-ptrace_detach arch/s390/kernel/ptrace.c
+--- a/arch/s390/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/s390/kernel/ptrace.c
+@@ -683,11 +683,6 @@ do_ptrace(struct task_struct *child, lon
+ 		wake_up_process(child);
+ 		return 0;
+ 
+-	case PTRACE_DETACH:
+-		/* detach a process that was attached. */
+-		return ptrace_detach(child, data);
+-
+-
+ 	/* Do requests that differ for 31/64 bit */
+ 	default:
+ #ifdef CONFIG_COMPAT
+diff -puN arch/sh/kernel/ptrace.c~consolidate-ptrace_detach arch/sh/kernel/ptrace.c
+--- a/arch/sh/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/sh/kernel/ptrace.c
+@@ -210,10 +210,6 @@ long arch_ptrace(struct task_struct *chi
+ 		break;
+ 	}
+ 
+-	case PTRACE_DETACH: /* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ #ifdef CONFIG_SH_DSP
+ 	case PTRACE_GETDSPREGS: {
+ 		unsigned long dp;
+diff -puN arch/sh64/kernel/ptrace.c~consolidate-ptrace_detach arch/sh64/kernel/ptrace.c
+--- a/arch/sh64/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/sh64/kernel/ptrace.c
+@@ -244,10 +244,6 @@ long arch_ptrace(struct task_struct *chi
+ 		break;
+ 	}
+ 
+-	case PTRACE_DETACH: /* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	default:
+ 		ret = ptrace_request(child, request, addr, data);
+ 		break;
+diff -puN arch/um/kernel/ptrace.c~consolidate-ptrace_detach arch/um/kernel/ptrace.c
+--- a/arch/um/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/um/kernel/ptrace.c
+@@ -119,11 +119,6 @@ long arch_ptrace(struct task_struct *chi
+ 		break;
+ 	}
+ 
+-	case PTRACE_DETACH:
+-		/* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+- 		break;
+-
+ #ifdef PTRACE_GETREGS
+ 	case PTRACE_GETREGS: { /* Get all gp regs from the child. */
+ 		if (!access_ok(VERIFY_WRITE, p, MAX_REG_OFFSET)) {
+diff -puN arch/x86_64/kernel/ptrace.c~consolidate-ptrace_detach arch/x86_64/kernel/ptrace.c
+--- a/arch/x86_64/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/x86_64/kernel/ptrace.c
+@@ -505,11 +505,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = 0;
+ 		break;
+ 
+-	case PTRACE_DETACH:
+-		/* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GETREGS: { /* Get all gp regs from the child. */
+ 	  	if (!access_ok(VERIFY_WRITE, (unsigned __user *)data,
+ 			       sizeof(struct user_regs_struct))) {
+diff -puN arch/xtensa/kernel/ptrace.c~consolidate-ptrace_detach arch/xtensa/kernel/ptrace.c
+--- a/arch/xtensa/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/xtensa/kernel/ptrace.c
+@@ -304,10 +304,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = put_user(sizeof(elf_fpregset_t), (unsigned long *) data);
+ 		break;
+ 
+-	case PTRACE_DETACH: /* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	default:
+ 		ret = ptrace_request(child, request, addr, data);
+ 		goto out;
+diff -puN kernel/ptrace.c~consolidate-ptrace_detach kernel/ptrace.c
+--- a/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/kernel/ptrace.c
+@@ -385,6 +385,9 @@ int ptrace_request(struct task_struct *c
+ 	case PTRACE_SETSIGINFO:
+ 		ret = ptrace_setsiginfo(child, (siginfo_t __user *) data);
+ 		break;
++	case PTRACE_DETACH:	 /* detach a process that was attached. */
++		ret = ptrace_detach(child, data);
++		break;
+ 	default:
+ 		break;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-fault-feedback-2.patch
-mm-fault-feedback-2-spufs-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-lockstat-core-infrastructure.patch
-lockstat-human-readability-tweaks.patch
-lockdep-various-fixes.patch
-lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-dequeue_huge_page-warning-fix.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-fix-e752x-reversed-csrows.patch
-drivers-edac-new-pasemi-driver.patch
-drivers-edac-new-i82975x-driver.patch
-kernel-sysctlc-finish-off-the-warning-comments.patch
-afs-build-fix.patch
-mm-fault-feedback-2-spufs-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
+isdn-sc-compile-breakage-re-check_reset.patch
+consolidate-ptrace_detach.patch
 git-dvb.patch
-git-dvb-saa7134-tvaudio-fix.patch
-git-input.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
 git-ubi.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-git-scsi-misc.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-usb-sierra-add-tru-install-c-support-fix.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
-x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-i386-add-cpu_relax-to-cmos_lock.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-revert-x86_64-hpet-tsc-calibration-fix-broken-smi-detection-logic.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+use-list_head-in-binfmt-handling.patch
+make-unregister_binfmt-return-void.patch
+fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
+fix-leak-on-proc-lockdep_stats.patch
+slab_panic-more-proc-posix-timers-shmem.patch
