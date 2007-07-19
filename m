@@ -1,248 +1,456 @@
 From: akpm@linux-foundation.org
-Subject: - lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:03:46 -0700
-Message-ID: <200707192003.l6JK3koZ019887@imap1.linux-foundation.org>
+Subject: - swsusp-remove-code-duplication-between-diskc-and-userc.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:00:01 -0700
+Message-ID: <200707192000.l6JK01JL019390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49672 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35527 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761827AbXGSU1Q (ORCPT
+	by vger.kernel.org with ESMTP id S1761308AbXGSU1O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:27:16 -0400
+	Thu, 19 Jul 2007 16:27:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, jbaron@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockstat: hook into spinlock_t, rwlock_t, rwsem and mutex
+     swsusp: remove code duplication between disk.c and user.c
 has been removed from the -mm tree.  Its filename was
-     lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
+     swsusp-remove-code-duplication-between-diskc-and-userc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockstat: hook into spinlock_t, rwlock_t, rwsem and mutex
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: swsusp: remove code duplication between disk.c and user.c
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Call the new lockstat tracking functions from the various lock primitives.
+Currently, much of the code in kernel/power/disk.c is duplicated in
+kernel/power/user.c , mainly for historical reasons.  By eliminating this code
+duplication we can reduce the size of user.c quite substantially and remove
+the maintenance difficulty resulting from it.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: Jason Baron <jbaron@redhat.com>
+[bunk@stusta.de: kernel/power/disk.c: make code static]
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/mutex.c    |    8 ++++++++
- kernel/rwsem.c    |    8 ++++----
- kernel/spinlock.c |   28 ++++++++++++++--------------
- 3 files changed, 26 insertions(+), 18 deletions(-)
+ kernel/power/disk.c  |  184 +++++++++++++++++++++++------------------
+ kernel/power/power.h |    5 -
+ kernel/power/user.c  |   96 +--------------------
+ 3 files changed, 115 insertions(+), 170 deletions(-)
 
-diff -puN kernel/mutex.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex kernel/mutex.c
---- a/kernel/mutex.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex
-+++ a/kernel/mutex.c
-@@ -139,6 +139,12 @@ __mutex_lock_common(struct mutex *lock, 
- 	list_add_tail(&waiter.list, &lock->wait_list);
- 	waiter.task = task;
+diff -puN kernel/power/disk.c~swsusp-remove-code-duplication-between-diskc-and-userc kernel/power/disk.c
+--- a/kernel/power/disk.c~swsusp-remove-code-duplication-between-diskc-and-userc
++++ a/kernel/power/disk.c
+@@ -45,7 +45,7 @@ enum {
  
-+	old_val = atomic_xchg(&lock->count, -1);
-+	if (old_val == 1)
-+		goto done;
+ static int hibernation_mode = HIBERNATION_SHUTDOWN;
+ 
+-struct hibernation_ops *hibernation_ops;
++static struct hibernation_ops *hibernation_ops;
+ 
+ /**
+  * hibernation_set_ops - set the global hibernate operations
+@@ -74,9 +74,9 @@ void hibernation_set_ops(struct hibernat
+  *	platform driver if so configured and return an error code if it fails
+  */
+ 
+-static int platform_prepare(void)
++static int platform_prepare(int platform_mode)
+ {
+-	return (hibernation_mode == HIBERNATION_PLATFORM && hibernation_ops) ?
++	return (platform_mode && hibernation_ops) ?
+ 		hibernation_ops->prepare() : 0;
+ }
+ 
+@@ -85,13 +85,104 @@ static int platform_prepare(void)
+  *	using the platform driver (must be called after platform_prepare())
+  */
+ 
+-static void platform_finish(void)
++static void platform_finish(int platform_mode)
+ {
+-	if (hibernation_mode == HIBERNATION_PLATFORM && hibernation_ops)
++	if (platform_mode && hibernation_ops)
+ 		hibernation_ops->finish();
+ }
+ 
+ /**
++ *	hibernation_snapshot - quiesce devices and create the hibernation
++ *	snapshot image.
++ *	@platform_mode - if set, use the platform driver, if available, to
++ *			 prepare the platform frimware for the power transition.
++ *
++ *	Must be called with pm_mutex held
++ */
 +
-+	lock_contended(&lock->dep_map, _RET_IP_);
++int hibernation_snapshot(int platform_mode)
++{
++	int error;
 +
- 	for (;;) {
- 		/*
- 		 * Lets try to take the lock again - this is needed even if
-@@ -174,6 +180,8 @@ __mutex_lock_common(struct mutex *lock, 
- 		spin_lock_mutex(&lock->wait_lock, flags);
++	/* Free memory before shutting down devices. */
++	error = swsusp_shrink_memory();
++	if (error)
++		goto Finish;
++
++	error = platform_prepare(platform_mode);
++	if (error)
++		goto Finish;
++
++	suspend_console();
++	error = device_suspend(PMSG_FREEZE);
++	if (error)
++		goto Resume_devices;
++
++	error = disable_nonboot_cpus();
++	if (!error) {
++		if (hibernation_mode != HIBERNATION_TEST) {
++			in_suspend = 1;
++			error = swsusp_suspend();
++			/* Control returns here after successful restore */
++		} else {
++			printk("swsusp debug: Waiting for 5 seconds.\n");
++			mdelay(5000);
++		}
++	}
++	enable_nonboot_cpus();
++ Resume_devices:
++	platform_finish(platform_mode);
++	device_resume();
++	resume_console();
++ Finish:
++	return error;
++}
++
++/**
++ *	hibernation_restore - quiesce devices and restore the hibernation
++ *	snapshot image.  If successful, control returns in hibernation_snaphot()
++ *
++ *	Must be called with pm_mutex held
++ */
++
++int hibernation_restore(void)
++{
++	int error;
++
++	pm_prepare_console();
++	suspend_console();
++	error = device_suspend(PMSG_PRETHAW);
++	if (error)
++		goto Finish;
++
++	error = disable_nonboot_cpus();
++	if (!error)
++		error = swsusp_resume();
++
++	enable_nonboot_cpus();
++ Finish:
++	device_resume();
++	resume_console();
++	pm_restore_console();
++	return error;
++}
++
++/**
++ *	hibernation_platform_enter - enter the hibernation state using the
++ *	platform driver (if available)
++ */
++
++int hibernation_platform_enter(void)
++{
++	if (hibernation_ops) {
++		kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
++		return hibernation_ops->enter();
++	} else {
++		return -ENOSYS;
++	}
++}
++
++/**
+  *	power_down - Shut the machine down for hibernation.
+  *
+  *	Use the platform driver, if configured so; otherwise try
+@@ -111,11 +202,7 @@ static void power_down(void)
+ 		kernel_restart(NULL);
+ 		break;
+ 	case HIBERNATION_PLATFORM:
+-		if (hibernation_ops) {
+-			kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+-			hibernation_ops->enter();
+-			break;
+-		}
++		hibernation_platform_enter();
  	}
+ 	kernel_halt();
+ 	/*
+@@ -171,62 +258,17 @@ int hibernate(void)
+ 		mdelay(5000);
+ 		goto Thaw;
+ 	}
+-
+-	/* Free memory before shutting down devices. */
+-	error = swsusp_shrink_memory();
+-	if (error)
+-		goto Thaw;
+-
+-	error = platform_prepare();
+-	if (error)
+-		goto Thaw;
+-
+-	suspend_console();
+-	error = device_suspend(PMSG_FREEZE);
+-	if (error) {
+-		printk(KERN_ERR "PM: Some devices failed to suspend\n");
+-		goto Resume_devices;
+-	}
+-	error = disable_nonboot_cpus();
+-	if (error)
+-		goto Enable_cpus;
+-
+-	if (hibernation_mode == HIBERNATION_TEST) {
+-		printk("swsusp debug: Waiting for 5 seconds.\n");
+-		mdelay(5000);
+-		goto Enable_cpus;
+-	}
+-
+-	pr_debug("PM: snapshotting memory.\n");
+-	in_suspend = 1;
+-	error = swsusp_suspend();
+-	if (error)
+-		goto Enable_cpus;
+-
+-	if (in_suspend) {
+-		enable_nonboot_cpus();
+-		platform_finish();
+-		device_resume();
+-		resume_console();
++	error = hibernation_snapshot(hibernation_mode == HIBERNATION_PLATFORM);
++	if (in_suspend && !error) {
+ 		pr_debug("PM: writing image.\n");
+ 		error = swsusp_write();
++		swsusp_free();
+ 		if (!error)
+ 			power_down();
+-		else {
+-			swsusp_free();
+-			goto Thaw;
+-		}
+ 	} else {
+ 		pr_debug("PM: Image restored successfully.\n");
++		swsusp_free();
+ 	}
+-
+-	swsusp_free();
+- Enable_cpus:
+-	enable_nonboot_cpus();
+- Resume_devices:
+-	platform_finish();
+-	device_resume();
+-	resume_console();
+  Thaw:
+ 	mutex_unlock(&pm_mutex);
+ 	unprepare_processes();
+@@ -301,29 +343,11 @@ static int software_resume(void)
+ 	pr_debug("PM: Reading swsusp image.\n");
  
-+	lock_acquired(&lock->dep_map);
-+done:
- 	/* got the lock - rejoice! */
- 	mutex_remove_waiter(lock, &waiter, task_thread_info(task));
- 	debug_mutex_set_owner(lock, task_thread_info(task));
-diff -puN kernel/rwsem.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex kernel/rwsem.c
---- a/kernel/rwsem.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex
-+++ a/kernel/rwsem.c
-@@ -20,7 +20,7 @@ void down_read(struct rw_semaphore *sem)
- 	might_sleep();
- 	rwsem_acquire_read(&sem->dep_map, 0, 0, _RET_IP_);
+ 	error = swsusp_read();
+-	if (error) {
+-		swsusp_free();
+-		goto Thaw;
+-	}
+-
+-	pr_debug("PM: Preparing devices for restore.\n");
+-
+-	suspend_console();
+-	error = device_suspend(PMSG_PRETHAW);
+-	if (error)
+-		goto Free;
+-
+-	error = disable_nonboot_cpus();
+ 	if (!error)
+-		swsusp_resume();
++		hibernation_restore();
  
--	__down_read(sem);
-+	LOCK_CONTENDED(sem, __down_read_trylock, __down_read);
+-	enable_nonboot_cpus();
+- Free:
+-	swsusp_free();
+-	device_resume();
+-	resume_console();
+- Thaw:
+ 	printk(KERN_ERR "PM: Restore failed, recovering.\n");
++	swsusp_free();
+ 	unprepare_processes();
+  Done:
+ 	free_basic_memory_bitmaps();
+@@ -333,7 +357,7 @@ static int software_resume(void)
+  Unlock:
+ 	mutex_unlock(&pm_mutex);
+ 	pr_debug("PM: Resume from disk failed.\n");
+-	return 0;
++	return error;
  }
  
- EXPORT_SYMBOL(down_read);
-@@ -47,7 +47,7 @@ void down_write(struct rw_semaphore *sem
- 	might_sleep();
- 	rwsem_acquire(&sem->dep_map, 0, 0, _RET_IP_);
+ late_initcall(software_resume);
+diff -puN kernel/power/power.h~swsusp-remove-code-duplication-between-diskc-and-userc kernel/power/power.h
+--- a/kernel/power/power.h~swsusp-remove-code-duplication-between-diskc-and-userc
++++ a/kernel/power/power.h
+@@ -25,7 +25,10 @@ struct swsusp_info {
+  */
+ #define SPARE_PAGES	((1024 * 1024) >> PAGE_SHIFT)
  
--	__down_write(sem);
-+	LOCK_CONTENDED(sem, __down_write_trylock, __down_write);
- }
- 
- EXPORT_SYMBOL(down_write);
-@@ -111,7 +111,7 @@ void down_read_nested(struct rw_semaphor
- 	might_sleep();
- 	rwsem_acquire_read(&sem->dep_map, subclass, 0, _RET_IP_);
- 
--	__down_read(sem);
-+	LOCK_CONTENDED(sem, __down_read_trylock, __down_read);
- }
- 
- EXPORT_SYMBOL(down_read_nested);
-@@ -130,7 +130,7 @@ void down_write_nested(struct rw_semapho
- 	might_sleep();
- 	rwsem_acquire(&sem->dep_map, subclass, 0, _RET_IP_);
- 
--	__down_write_nested(sem, subclass);
-+	LOCK_CONTENDED(sem, __down_write_trylock, __down_write);
- }
- 
- EXPORT_SYMBOL(down_write_nested);
-diff -puN kernel/spinlock.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex kernel/spinlock.c
---- a/kernel/spinlock.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex
-+++ a/kernel/spinlock.c
-@@ -72,7 +72,7 @@ void __lockfunc _read_lock(rwlock_t *loc
- {
- 	preempt_disable();
- 	rwlock_acquire_read(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_read_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_read_trylock, _raw_read_lock);
- }
- EXPORT_SYMBOL(_read_lock);
- 
-@@ -89,7 +89,7 @@ unsigned long __lockfunc _spin_lock_irqs
- 	 * that interrupts are not re-enabled during lock-acquire:
- 	 */
- #ifdef CONFIG_LOCKDEP
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
- #else
- 	_raw_spin_lock_flags(lock, &flags);
+-extern struct hibernation_ops *hibernation_ops;
++/* kernel/power/disk.c */
++extern int hibernation_snapshot(int platform_mode);
++extern int hibernation_restore(void);
++extern int hibernation_platform_enter(void);
  #endif
-@@ -102,7 +102,7 @@ void __lockfunc _spin_lock_irq(spinlock_
- 	local_irq_disable();
- 	preempt_disable();
- 	spin_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
- }
- EXPORT_SYMBOL(_spin_lock_irq);
  
-@@ -111,7 +111,7 @@ void __lockfunc _spin_lock_bh(spinlock_t
- 	local_bh_disable();
- 	preempt_disable();
- 	spin_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
+ extern int pfn_is_nosave(unsigned long);
+diff -puN kernel/power/user.c~swsusp-remove-code-duplication-between-diskc-and-userc kernel/power/user.c
+--- a/kernel/power/user.c~swsusp-remove-code-duplication-between-diskc-and-userc
++++ a/kernel/power/user.c
+@@ -128,83 +128,6 @@ static ssize_t snapshot_write(struct fil
+ 	return res;
  }
- EXPORT_SYMBOL(_spin_lock_bh);
  
-@@ -122,7 +122,7 @@ unsigned long __lockfunc _read_lock_irqs
- 	local_irq_save(flags);
- 	preempt_disable();
- 	rwlock_acquire_read(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_read_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_read_trylock, _raw_read_lock);
- 	return flags;
- }
- EXPORT_SYMBOL(_read_lock_irqsave);
-@@ -132,7 +132,7 @@ void __lockfunc _read_lock_irq(rwlock_t 
- 	local_irq_disable();
- 	preempt_disable();
- 	rwlock_acquire_read(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_read_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_read_trylock, _raw_read_lock);
- }
- EXPORT_SYMBOL(_read_lock_irq);
- 
-@@ -141,7 +141,7 @@ void __lockfunc _read_lock_bh(rwlock_t *
- 	local_bh_disable();
- 	preempt_disable();
- 	rwlock_acquire_read(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_read_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_read_trylock, _raw_read_lock);
- }
- EXPORT_SYMBOL(_read_lock_bh);
- 
-@@ -152,7 +152,7 @@ unsigned long __lockfunc _write_lock_irq
- 	local_irq_save(flags);
- 	preempt_disable();
- 	rwlock_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_write_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_write_trylock, _raw_write_lock);
- 	return flags;
- }
- EXPORT_SYMBOL(_write_lock_irqsave);
-@@ -162,7 +162,7 @@ void __lockfunc _write_lock_irq(rwlock_t
- 	local_irq_disable();
- 	preempt_disable();
- 	rwlock_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_write_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_write_trylock, _raw_write_lock);
- }
- EXPORT_SYMBOL(_write_lock_irq);
- 
-@@ -171,7 +171,7 @@ void __lockfunc _write_lock_bh(rwlock_t 
- 	local_bh_disable();
- 	preempt_disable();
- 	rwlock_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_write_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_write_trylock, _raw_write_lock);
- }
- EXPORT_SYMBOL(_write_lock_bh);
- 
-@@ -179,7 +179,7 @@ void __lockfunc _spin_lock(spinlock_t *l
+-static inline int platform_prepare(void)
+-{
+-	int error = 0;
+-
+-	if (hibernation_ops)
+-		error = hibernation_ops->prepare();
+-
+-	return error;
+-}
+-
+-static inline void platform_finish(void)
+-{
+-	if (hibernation_ops)
+-		hibernation_ops->finish();
+-}
+-
+-static inline int snapshot_suspend(int platform_suspend)
+-{
+-	int error;
+-
+-	mutex_lock(&pm_mutex);
+-	/* Free memory before shutting down devices. */
+-	error = swsusp_shrink_memory();
+-	if (error)
+-		goto Finish;
+-
+-	if (platform_suspend) {
+-		error = platform_prepare();
+-		if (error)
+-			goto Finish;
+-	}
+-	suspend_console();
+-	error = device_suspend(PMSG_FREEZE);
+-	if (error)
+-		goto Resume_devices;
+-
+-	error = disable_nonboot_cpus();
+-	if (!error) {
+-		in_suspend = 1;
+-		error = swsusp_suspend();
+-	}
+-	enable_nonboot_cpus();
+- Resume_devices:
+-	if (platform_suspend)
+-		platform_finish();
+-
+-	device_resume();
+-	resume_console();
+- Finish:
+-	mutex_unlock(&pm_mutex);
+-	return error;
+-}
+-
+-static inline int snapshot_restore(void)
+-{
+-	int error;
+-
+-	mutex_lock(&pm_mutex);
+-	pm_prepare_console();
+-	suspend_console();
+-	error = device_suspend(PMSG_PRETHAW);
+-	if (error)
+-		goto Finish;
+-
+-	error = disable_nonboot_cpus();
+-	if (!error)
+-		error = swsusp_resume();
+-
+-	enable_nonboot_cpus();
+- Finish:
+-	device_resume();
+-	resume_console();
+-	pm_restore_console();
+-	mutex_unlock(&pm_mutex);
+-	return error;
+-}
+-
+ static int snapshot_ioctl(struct inode *inode, struct file *filp,
+                           unsigned int cmd, unsigned long arg)
  {
- 	preempt_disable();
- 	spin_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
- }
+@@ -251,7 +174,7 @@ static int snapshot_ioctl(struct inode *
+ 			error = -EPERM;
+ 			break;
+ 		}
+-		error = snapshot_suspend(data->platform_suspend);
++		error = hibernation_snapshot(data->platform_suspend);
+ 		if (!error)
+ 			error = put_user(in_suspend, (unsigned int __user *)arg);
+ 		if (!error)
+@@ -265,7 +188,7 @@ static int snapshot_ioctl(struct inode *
+ 			error = -EPERM;
+ 			break;
+ 		}
+-		error = snapshot_restore();
++		error = hibernation_restore();
+ 		break;
  
- EXPORT_SYMBOL(_spin_lock);
-@@ -188,7 +188,7 @@ void __lockfunc _write_lock(rwlock_t *lo
- {
- 	preempt_disable();
- 	rwlock_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_write_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_write_trylock, _raw_write_lock);
- }
+ 	case SNAPSHOT_FREE:
+@@ -377,19 +300,14 @@ static int snapshot_ioctl(struct inode *
+ 		switch (arg) {
  
- EXPORT_SYMBOL(_write_lock);
-@@ -289,7 +289,7 @@ void __lockfunc _spin_lock_nested(spinlo
- {
- 	preempt_disable();
- 	spin_acquire(&lock->dep_map, subclass, 0, _RET_IP_);
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
- }
+ 		case PMOPS_PREPARE:
+-			if (hibernation_ops) {
+-				data->platform_suspend = 1;
+-				error = 0;
+-			} else {
+-				error = -ENOSYS;
+-			}
++			data->platform_suspend = 1;
++			error = 0;
+ 			break;
  
- EXPORT_SYMBOL(_spin_lock_nested);
-@@ -306,7 +306,7 @@ unsigned long __lockfunc _spin_lock_irqs
- 	 * that interrupts are not re-enabled during lock-acquire:
- 	 */
- #ifdef CONFIG_LOCKDEP
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
- #else
- 	_raw_spin_lock_flags(lock, &flags);
- #endif
+ 		case PMOPS_ENTER:
+-			if (data->platform_suspend) {
+-				kernel_shutdown_prepare(SYSTEM_SUSPEND_DISK);
+-				error = hibernation_ops->enter();
+-			}
++			if (data->platform_suspend)
++				error = hibernation_platform_enter();
++
+ 			break;
+ 
+ 		case PMOPS_FINISH:
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+acpi-implement-the-set_target-callback-from-pm_ops.patch
+acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+shrink_slab-handle-bad-shrinkers.patch
