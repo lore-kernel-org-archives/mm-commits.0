@@ -1,584 +1,343 @@
 From: akpm@linux-foundation.org
-Subject: - lockstat-core-infrastructure.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:03:40 -0700
-Message-ID: <200707192003.l6JK3eCc019881@imap1.linux-foundation.org>
+Subject: - pm-introduce-hibernation-and-suspend-notifiers.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:00:19 -0700
+Message-ID: <200707192000.l6JK0JqO019438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37981 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54596 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932201AbXGSU1b (ORCPT
+	by vger.kernel.org with ESMTP id S932101AbXGSU1Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:27:31 -0400
+	Thu, 19 Jul 2007 16:27:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, jbaron@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockstat: core infrastructure
+     PM: introduce hibernation and suspend notifiers
 has been removed from the -mm tree.  Its filename was
-     lockstat-core-infrastructure.patch
+     pm-introduce-hibernation-and-suspend-notifiers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockstat: core infrastructure
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: PM: introduce hibernation and suspend notifiers
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Introduce the core lock statistics code.
-
-Lock statistics provides lock wait-time and hold-time (as well as the count
-of corresponding contention and acquisitions events). Also, the first few
-call-sites that encounter contention are tracked.
-
-Lock wait-time is the time spent waiting on the lock. This provides insight
-into the locking scheme, that is, a heavily contended lock is indicative of
-a too coarse locking scheme.
-
-Lock hold-time is the duration the lock was held, this provides a reference for
-the wait-time numbers, so they can be put into perspective.
-
-  1)
-    lock
-  2)
-    ... do stuff ..
-    unlock
-  3)
-
-The time between 1 and 2 is the wait-time. The time between 2 and 3 is the
-hold-time.
-
-The lockdep held-lock tracking code is reused, because it already collects locks
-into meaningful groups (classes), and because it is an existing infrastructure
-for lock instrumentation.
-
-Currently lockdep tracks lock acquisition with two hooks:
-
-  lock()
-    lock_acquire()
-    _lock()
-
- ... code protected by lock ...
-
-  unlock()
-    lock_release()
-    _unlock()
-
-We need to extend this with two more hooks, in order to measure contention.
-
-  lock_contended() - used to measure contention events
-  lock_acquired()  - completion of the contention
-
-These are then placed the following way:
-
-  lock()
-    lock_acquire()
-    if (!_try_lock())
-      lock_contended()
-      _lock()
-      lock_acquired()
-
- ... do locked stuff ...
-
-  unlock()
-    lock_release()
-    _unlock()
-
-(Note: the try_lock() 'trick' is used to avoid instrumenting all platform
-       dependent lock primitive implementations.)
-
-It is also possible to toggle the two lockdep features at runtime using:
-
-  /proc/sys/kernel/prove_locking
-  /proc/sys/kernel/lock_stat
-
-(esp. turning off the O(n^2) prove_locking functionaliy can help)
+Make it possible to register hibernation and suspend notifiers, so that
+subsystems can perform hibernation-related or suspend-related operations that
+should not be carried out by device drivers' .suspend() and .resume()
+routines.
 
 [akpm@linux-foundation.org: build fixes]
-[akpm@linux-foundation.org: nuke unneeded ifdefs]
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: Jason Baron <jbaron@redhat.com>
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |   53 ++++++++
- kernel/lockdep.c        |  247 ++++++++++++++++++++++++++++++++++++++
- kernel/sysctl.c         |   22 +++
- lib/Kconfig.debug       |   11 +
- 4 files changed, 333 insertions(+)
+ Documentation/power/notifiers.txt |   50 ++++++++++++++++++++++++++++
+ include/linux/notifier.h          |    6 +++
+ include/linux/suspend.h           |   48 ++++++++++++++++++++++++--
+ kernel/power/disk.c               |   16 ++++++--
+ kernel/power/main.c               |    9 +++++
+ kernel/power/power.h              |   10 +++++
+ kernel/power/user.c               |   11 ++++--
+ 7 files changed, 138 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockstat-core-infrastructure include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockstat-core-infrastructure
-+++ a/include/linux/lockdep.h
-@@ -9,6 +9,7 @@
- #define __LINUX_LOCKDEP_H
- 
- struct task_struct;
-+struct lockdep_map;
- 
- #ifdef CONFIG_LOCKDEP
- 
-@@ -114,8 +115,32 @@ struct lock_class {
- 
- 	const char			*name;
- 	int				name_version;
+diff -puN /dev/null Documentation/power/notifiers.txt
+--- /dev/null
++++ a/Documentation/power/notifiers.txt
+@@ -0,0 +1,50 @@
++Suspend notifiers
++	(C) 2007 Rafael J. Wysocki <rjw@sisk.pl>, GPL
 +
-+#ifdef CONFIG_LOCK_STAT
-+	unsigned long			contention_point[4];
-+#endif
-+};
++There are some operations that device drivers may want to carry out in their
++.suspend() routines, but shouldn't, because they can cause the hibernation or
++suspend to fail. For example, a driver may want to allocate a substantial amount
++of memory (like 50 MB) in .suspend(), but that shouldn't be done after the
++swsusp's memory shrinker has run.
 +
-+#ifdef CONFIG_LOCK_STAT
-+struct lock_time {
-+	s64				min;
-+	s64				max;
-+	s64				total;
-+	unsigned long			nr;
++Also, there may be some operations, that subsystems want to carry out before a
++hibernation/suspend or after a restore/resume, requiring the system to be fully
++functional, so the drivers' .suspend() and .resume() routines are not suitable
++for this purpose.  For example, device drivers may want to upload firmware to
++their devices after a restore from a hibernation image, but they cannot do it by
++calling request_firmware() from their .resume() routines (user land processes
++are frozen at this point).  The solution may be to load the firmware into
++memory before processes are frozen and upload it from there in the .resume()
++routine.  Of course, a hibernation notifier may be used for this purpose.
++
++The subsystems that have such needs can register suspend notifiers that will be
++called upon the following events by the suspend core:
++
++PM_HIBERNATION_PREPARE	The system is going to hibernate or suspend, tasks will
++			be frozen immediately.
++
++PM_POST_HIBERNATION	The system memory state has been restored from a
++			hibernation image or an error occured during the
++			hibernation.  Device drivers' .resume() callbacks have
++			been executed and tasks have been thawed.
++
++PM_SUSPEND_PREPARE	The system is preparing for a suspend.
++
++PM_POST_SUSPEND		The system has just resumed or an error occured during
++			the suspend.	Device drivers' .resume() callbacks have
++			been executed and tasks have been thawed.
++
++It is generally assumed that whatever the notifiers do for
++PM_HIBERNATION_PREPARE, should be undone for PM_POST_HIBERNATION.  Analogously,
++operations performed for PM_SUSPEND_PREPARE should be reversed for
++PM_POST_SUSPEND.  Additionally, all of the notifiers are called for
++PM_POST_HIBERNATION if one of them fails for PM_HIBERNATION_PREPARE, and
++all of the notifiers are called for PM_POST_SUSPEND if one of them fails for
++PM_SUSPEND_PREPARE.
++
++The hibernation and suspend notifiers are called with pm_mutex held.  They are
++defined in the usual way, but their last argument is meaningless (it is always
++NULL).  To register and/or unregister a suspend notifier use the functions
++register_pm_notifier() and unregister_pm_notifier(), respectively, defined in
++include/linux/suspend.h .  If you don't need to unregister the notifier, you can
++also use the pm_notifier() macro defined in include/linux/suspend.h .
+diff -puN include/linux/notifier.h~pm-introduce-hibernation-and-suspend-notifiers include/linux/notifier.h
+--- a/include/linux/notifier.h~pm-introduce-hibernation-and-suspend-notifiers
++++ a/include/linux/notifier.h
+@@ -212,5 +212,11 @@ extern int __srcu_notifier_call_chain(st
+ #define CPU_DEAD_FROZEN		(CPU_DEAD | CPU_TASKS_FROZEN)
+ #define CPU_DYING_FROZEN	(CPU_DYING | CPU_TASKS_FROZEN)
+ 
++/* Hibernation and suspend events */
++#define PM_HIBERNATION_PREPARE	0x0001 /* Going to hibernate */
++#define PM_POST_HIBERNATION	0x0002 /* Hibernation finished */
++#define PM_SUSPEND_PREPARE	0x0003 /* Going to suspend the system */
++#define PM_POST_SUSPEND		0x0004 /* Suspend finished */
++
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_NOTIFIER_H */
+diff -puN include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers include/linux/suspend.h
+--- a/include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers
++++ a/include/linux/suspend.h
+@@ -54,7 +54,8 @@ struct hibernation_ops {
+ 	void (*restore_cleanup)(void);
  };
  
-+struct lock_class_stats {
-+	unsigned long			contention_point[4];
-+	struct lock_time		read_waittime;
-+	struct lock_time		write_waittime;
-+	struct lock_time		read_holdtime;
-+	struct lock_time		write_holdtime;
-+};
-+
-+struct lock_class_stats lock_stats(struct lock_class *class);
-+void clear_lock_stats(struct lock_class *class);
-+#endif
-+
- /*
-  * Map the lock object (the lock instance) to the lock-class object.
-  * This is embedded into specific lock instances:
-@@ -165,6 +190,10 @@ struct held_lock {
- 	unsigned long			acquire_ip;
- 	struct lockdep_map		*instance;
+-#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
++#ifdef CONFIG_PM
++#ifdef CONFIG_SOFTWARE_SUSPEND
+ /* kernel/power/snapshot.c */
+ extern void __register_nosave_region(unsigned long b, unsigned long e, int km);
+ static inline void register_nosave_region(unsigned long b, unsigned long e)
+@@ -72,16 +73,14 @@ extern unsigned long get_safe_page(gfp_t
  
-+#ifdef CONFIG_LOCK_STAT
-+	u64 				waittime_stamp;
-+	u64				holdtime_stamp;
-+#endif
- 	/*
- 	 * The lock-stack is unified in that the lock chains of interrupt
- 	 * contexts nest ontop of process context chains, but we 'separate'
-@@ -281,6 +310,30 @@ struct lock_class_key { };
+ extern void hibernation_set_ops(struct hibernation_ops *ops);
+ extern int hibernate(void);
+-#else
+-static inline void register_nosave_region(unsigned long b, unsigned long e) {}
+-static inline void register_nosave_region_late(unsigned long b, unsigned long e) {}
++#else /* CONFIG_SOFTWARE_SUSPEND */
+ static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
+ static inline void swsusp_set_page_free(struct page *p) {}
+ static inline void swsusp_unset_page_free(struct page *p) {}
  
- #endif /* !LOCKDEP */
+ static inline void hibernation_set_ops(struct hibernation_ops *ops) {}
+ static inline int hibernate(void) { return -ENOSYS; }
+-#endif /* defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND) */
++#endif /* CONFIG_SOFTWARE_SUSPEND */
  
-+#ifdef CONFIG_LOCK_STAT
-+
-+extern void lock_contended(struct lockdep_map *lock, unsigned long ip);
-+extern void lock_acquired(struct lockdep_map *lock);
-+
-+#define LOCK_CONTENDED(_lock, try, lock)			\
-+do {								\
-+	if (!try(_lock)) {					\
-+		lock_contended(&(_lock)->dep_map, _RET_IP_);	\
-+		lock(_lock);					\
-+		lock_acquired(&(_lock)->dep_map);		\
-+	}							\
-+} while (0)
-+
-+#else /* CONFIG_LOCK_STAT */
-+
-+#define lock_contended(lockdep_map, ip) do {} while (0)
-+#define lock_acquired(lockdep_map) do {} while (0)
-+
-+#define LOCK_CONTENDED(_lock, try, lock) \
-+	lock(_lock)
-+
-+#endif /* CONFIG_LOCK_STAT */
-+
- #if defined(CONFIG_TRACE_IRQFLAGS) && defined(CONFIG_GENERIC_HARDIRQS)
- extern void early_init_irq_lock_class(void);
- #else
-diff -puN kernel/lockdep.c~lockstat-core-infrastructure kernel/lockdep.c
---- a/kernel/lockdep.c~lockstat-core-infrastructure
-+++ a/kernel/lockdep.c
-@@ -42,6 +42,20 @@
+ void save_processor_state(void);
+ void restore_processor_state(void);
+@@ -89,4 +88,43 @@ struct saved_context;
+ void __save_processor_state(struct saved_context *ctxt);
+ void __restore_processor_state(struct saved_context *ctxt);
  
- #include "lockdep_internals.h"
- 
-+#ifdef CONFIG_PROVE_LOCKING
-+int prove_locking = 1;
-+module_param(prove_locking, int, 0644);
-+#else
-+#define prove_locking 0
-+#endif
++/* kernel/power/main.c */
++extern struct blocking_notifier_head pm_chain_head;
 +
-+#ifdef CONFIG_LOCK_STAT
-+int lock_stat = 1;
-+module_param(lock_stat, int, 0644);
-+#else
-+#define lock_stat 0
-+#endif
-+
- /*
-  * lockdep_lock: protects the lockdep graph, the hashes and the
-  *               class/list/hash allocators.
-@@ -104,6 +118,70 @@ static struct lock_list list_entries[MAX
- unsigned long nr_lock_classes;
- static struct lock_class lock_classes[MAX_LOCKDEP_KEYS];
- 
-+#ifdef CONFIG_LOCK_STAT
-+static DEFINE_PER_CPU(struct lock_class_stats[MAX_LOCKDEP_KEYS], lock_stats);
-+
-+static int lock_contention_point(struct lock_class *class, unsigned long ip)
++static inline int register_pm_notifier(struct notifier_block *nb)
 +{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(class->contention_point); i++) {
-+		if (class->contention_point[i] == 0) {
-+			class->contention_point[i] = ip;
-+			break;
-+		}
-+		if (class->contention_point[i] == ip)
-+			break;
-+	}
-+
-+	return i;
++	return blocking_notifier_chain_register(&pm_chain_head, nb);
 +}
 +
-+static void lock_time_inc(struct lock_time *lt, s64 time)
++static inline int unregister_pm_notifier(struct notifier_block *nb)
 +{
-+	if (time > lt->max)
-+		lt->max = time;
-+
-+	if (time < lt->min || !lt->min)
-+		lt->min = time;
-+
-+	lt->total += time;
-+	lt->nr++;
++	return blocking_notifier_chain_unregister(&pm_chain_head, nb);
 +}
 +
-+static struct lock_class_stats *get_lock_stats(struct lock_class *class)
-+{
-+	return &get_cpu_var(lock_stats)[class - lock_classes];
++#define pm_notifier(fn, pri) {				\
++	static struct notifier_block fn##_nb =			\
++		{ .notifier_call = fn, .priority = pri };	\
++	register_pm_notifier(&fn##_nb);			\
 +}
++#else /* CONFIG_PM */
 +
-+static void put_lock_stats(struct lock_class_stats *stats)
++static inline int register_pm_notifier(struct notifier_block *nb)
 +{
-+	put_cpu_var(lock_stats);
-+}
-+
-+static void lock_release_holdtime(struct held_lock *hlock)
-+{
-+	struct lock_class_stats *stats;
-+	s64 holdtime;
-+
-+	if (!lock_stat)
-+		return;
-+
-+	holdtime = sched_clock() - hlock->holdtime_stamp;
-+
-+	stats = get_lock_stats(hlock->class);
-+	if (hlock->read)
-+		lock_time_inc(&stats->read_holdtime, holdtime);
-+	else
-+		lock_time_inc(&stats->write_holdtime, holdtime);
-+	put_lock_stats(stats);
-+}
-+#else
-+static inline void lock_release_holdtime(struct held_lock *hlock)
-+{
-+}
-+#endif
-+
- /*
-  * We keep a global list of all lock classes. The list only grows,
-  * never shrinks. The list is only accessed with the lockdep
-@@ -2221,6 +2299,9 @@ static int __lock_acquire(struct lockdep
- 	int chain_head = 0;
- 	u64 chain_key;
- 
-+	if (!prove_locking)
-+		check = 1;
-+
- 	if (unlikely(!debug_locks))
- 		return 0;
- 
-@@ -2271,6 +2352,10 @@ static int __lock_acquire(struct lockdep
- 	hlock->read = read;
- 	hlock->check = check;
- 	hlock->hardirqs_off = hardirqs_off;
-+#ifdef CONFIG_LOCK_STAT
-+	hlock->waittime_stamp = 0;
-+	hlock->holdtime_stamp = sched_clock();
-+#endif
- 
- 	if (check == 2 && !mark_irqflags(curr, hlock))
- 		return 0;
-@@ -2411,6 +2496,8 @@ lock_release_non_nested(struct task_stru
- 	return print_unlock_inbalance_bug(curr, lock, ip);
- 
- found_it:
-+	lock_release_holdtime(hlock);
-+
- 	/*
- 	 * We have the right lock to unlock, 'hlock' points to it.
- 	 * Now we remove it from the stack, and add back the other
-@@ -2463,6 +2550,8 @@ static int lock_release_nested(struct ta
- 
- 	curr->curr_chain_key = hlock->prev_chain_key;
- 
-+	lock_release_holdtime(hlock);
-+
- #ifdef CONFIG_DEBUG_LOCKDEP
- 	hlock->prev_chain_key = 0;
- 	hlock->class = NULL;
-@@ -2537,6 +2626,9 @@ void lock_acquire(struct lockdep_map *lo
- {
- 	unsigned long flags;
- 
-+	if (unlikely(!lock_stat && !prove_locking))
-+		return;
-+
- 	if (unlikely(current->lockdep_recursion))
- 		return;
- 
-@@ -2556,6 +2648,9 @@ void lock_release(struct lockdep_map *lo
- {
- 	unsigned long flags;
- 
-+	if (unlikely(!lock_stat && !prove_locking))
-+		return;
-+
- 	if (unlikely(current->lockdep_recursion))
- 		return;
- 
-@@ -2569,6 +2664,158 @@ void lock_release(struct lockdep_map *lo
- 
- EXPORT_SYMBOL_GPL(lock_release);
- 
-+#ifdef CONFIG_LOCK_STAT
-+static int
-+print_lock_contention_bug(struct task_struct *curr, struct lockdep_map *lock,
-+			   unsigned long ip)
-+{
-+	if (!debug_locks_off())
-+		return 0;
-+	if (debug_locks_silent)
-+		return 0;
-+
-+	printk("\n=================================\n");
-+	printk(  "[ BUG: bad contention detected! ]\n");
-+	printk(  "---------------------------------\n");
-+	printk("%s/%d is trying to contend lock (",
-+		curr->comm, curr->pid);
-+	print_lockdep_cache(lock);
-+	printk(") at:\n");
-+	print_ip_sym(ip);
-+	printk("but there are no locks held!\n");
-+	printk("\nother info that might help us debug this:\n");
-+	lockdep_print_held_locks(curr);
-+
-+	printk("\nstack backtrace:\n");
-+	dump_stack();
-+
 +	return 0;
 +}
 +
-+static void
-+__lock_contended(struct lockdep_map *lock, unsigned long ip)
++static inline int unregister_pm_notifier(struct notifier_block *nb)
 +{
-+	struct task_struct *curr = current;
-+	struct held_lock *hlock, *prev_hlock;
-+	struct lock_class_stats *stats;
-+	unsigned int depth;
-+	int i, point;
++	return 0;
++}
 +
-+	depth = curr->lockdep_depth;
-+	if (DEBUG_LOCKS_WARN_ON(!depth))
-+		return;
++#define pm_notifier(fn, pri)	do { (void)(fn); } while (0)
++#endif /* CONFIG_PM */
 +
-+	prev_hlock = NULL;
-+	for (i = depth-1; i >= 0; i--) {
-+		hlock = curr->held_locks + i;
-+		/*
-+		 * We must not cross into another context:
-+		 */
-+		if (prev_hlock && prev_hlock->irq_context != hlock->irq_context)
-+			break;
-+		if (hlock->instance == lock)
-+			goto found_it;
-+		prev_hlock = hlock;
++#if !defined CONFIG_SOFTWARE_SUSPEND || !defined(CONFIG_PM)
++static inline void register_nosave_region(unsigned long b, unsigned long e)
++{
++}
++#endif
++
+ #endif /* _LINUX_SWSUSP_H */
+diff -puN kernel/power/disk.c~pm-introduce-hibernation-and-suspend-notifiers kernel/power/disk.c
+--- a/kernel/power/disk.c~pm-introduce-hibernation-and-suspend-notifiers
++++ a/kernel/power/disk.c
+@@ -281,9 +281,16 @@ int hibernate(void)
+ {
+ 	int error;
+ 
++	mutex_lock(&pm_mutex);
+ 	/* The snapshot device should not be opened while we're running */
+-	if (!atomic_add_unless(&snapshot_device_available, -1, 0))
+-		return -EBUSY;
++	if (!atomic_add_unless(&snapshot_device_available, -1, 0)) {
++		error = -EBUSY;
++		goto Unlock;
 +	}
-+	print_lock_contention_bug(curr, lock, ip);
-+	return;
 +
-+found_it:
-+	hlock->waittime_stamp = sched_clock();
++	error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
++	if (error)
++		goto Exit;
+ 
+ 	/* Allocate memory management structures */
+ 	error = create_basic_memory_bitmaps();
+@@ -294,7 +301,6 @@ int hibernate(void)
+ 	if (error)
+ 		goto Finish;
+ 
+-	mutex_lock(&pm_mutex);
+ 	if (hibernation_mode == HIBERNATION_TESTPROC) {
+ 		printk("swsusp debug: Waiting for 5 seconds.\n");
+ 		mdelay(5000);
+@@ -316,12 +322,14 @@ int hibernate(void)
+ 		swsusp_free();
+ 	}
+  Thaw:
+-	mutex_unlock(&pm_mutex);
+ 	unprepare_processes();
+  Finish:
+ 	free_basic_memory_bitmaps();
+  Exit:
++	pm_notifier_call_chain(PM_POST_HIBERNATION);
+ 	atomic_inc(&snapshot_device_available);
++ Unlock:
++	mutex_unlock(&pm_mutex);
+ 	return error;
+ }
+ 
+diff -puN kernel/power/main.c~pm-introduce-hibernation-and-suspend-notifiers kernel/power/main.c
+--- a/kernel/power/main.c~pm-introduce-hibernation-and-suspend-notifiers
++++ a/kernel/power/main.c
+@@ -23,6 +23,8 @@
+ 
+ #include "power.h"
+ 
++BLOCKING_NOTIFIER_HEAD(pm_chain_head);
 +
-+	point = lock_contention_point(hlock->class, ip);
+ /*This is just an arbitrary number */
+ #define FREE_PAGE_NUMBER (100)
+ 
+@@ -78,6 +80,10 @@ static int suspend_prepare(suspend_state
+ 	if (!pm_ops || !pm_ops->enter)
+ 		return -EPERM;
+ 
++	error = pm_notifier_call_chain(PM_SUSPEND_PREPARE);
++	if (error)
++		goto Finish;
 +
-+	stats = get_lock_stats(hlock->class);
-+	if (point < ARRAY_SIZE(stats->contention_point))
-+		stats->contention_point[i]++;
-+	put_lock_stats(stats);
-+}
+ 	pm_prepare_console();
+ 
+ 	if (freeze_processes()) {
+@@ -125,6 +131,8 @@ static int suspend_prepare(suspend_state
+  Thaw:
+ 	thaw_processes();
+ 	pm_restore_console();
++ Finish:
++	pm_notifier_call_chain(PM_POST_SUSPEND);
+ 	return error;
+ }
+ 
+@@ -176,6 +184,7 @@ static void suspend_finish(suspend_state
+ 	resume_console();
+ 	thaw_processes();
+ 	pm_restore_console();
++	pm_notifier_call_chain(PM_POST_SUSPEND);
+ }
+ 
+ 
+diff -puN kernel/power/power.h~pm-introduce-hibernation-and-suspend-notifiers kernel/power/power.h
+--- a/kernel/power/power.h~pm-introduce-hibernation-and-suspend-notifiers
++++ a/kernel/power/power.h
+@@ -173,5 +173,15 @@ extern void swsusp_close(void);
+ extern int suspend_enter(suspend_state_t state);
+ 
+ struct timeval;
++/* kernel/power/swsusp.c */
+ extern void swsusp_show_speed(struct timeval *, struct timeval *,
+ 				unsigned int, char *);
 +
-+static void
-+__lock_acquired(struct lockdep_map *lock)
++/* kernel/power/main.c */
++extern struct blocking_notifier_head pm_chain_head;
++
++static inline int pm_notifier_call_chain(unsigned long val)
 +{
-+	struct task_struct *curr = current;
-+	struct held_lock *hlock, *prev_hlock;
-+	struct lock_class_stats *stats;
-+	unsigned int depth;
-+	u64 now;
-+	s64 waittime;
-+	int i;
-+
-+	depth = curr->lockdep_depth;
-+	if (DEBUG_LOCKS_WARN_ON(!depth))
-+		return;
-+
-+	prev_hlock = NULL;
-+	for (i = depth-1; i >= 0; i--) {
-+		hlock = curr->held_locks + i;
-+		/*
-+		 * We must not cross into another context:
-+		 */
-+		if (prev_hlock && prev_hlock->irq_context != hlock->irq_context)
-+			break;
-+		if (hlock->instance == lock)
-+			goto found_it;
-+		prev_hlock = hlock;
-+	}
-+	print_lock_contention_bug(curr, lock, _RET_IP_);
-+	return;
-+
-+found_it:
-+	if (!hlock->waittime_stamp)
-+		return;
-+
-+	now = sched_clock();
-+	waittime = now - hlock->waittime_stamp;
-+	hlock->holdtime_stamp = now;
-+
-+	stats = get_lock_stats(hlock->class);
-+	if (hlock->read)
-+		lock_time_inc(&stats->read_waittime, waittime);
-+	else
-+		lock_time_inc(&stats->write_waittime, waittime);
-+	put_lock_stats(stats);
++	return (blocking_notifier_call_chain(&pm_chain_head, val, NULL)
++			== NOTIFY_BAD) ? -EINVAL : 0;
 +}
-+
-+void lock_contended(struct lockdep_map *lock, unsigned long ip)
-+{
-+	unsigned long flags;
-+
-+	if (unlikely(!lock_stat))
-+		return;
-+
-+	if (unlikely(current->lockdep_recursion))
-+		return;
-+
-+	raw_local_irq_save(flags);
-+	check_flags(flags);
-+	current->lockdep_recursion = 1;
-+	__lock_contended(lock, ip);
-+	current->lockdep_recursion = 0;
-+	raw_local_irq_restore(flags);
-+}
-+EXPORT_SYMBOL_GPL(lock_contended);
-+
-+void lock_acquired(struct lockdep_map *lock)
-+{
-+	unsigned long flags;
-+
-+	if (unlikely(!lock_stat))
-+		return;
-+
-+	if (unlikely(current->lockdep_recursion))
-+		return;
-+
-+	raw_local_irq_save(flags);
-+	check_flags(flags);
-+	current->lockdep_recursion = 1;
-+	__lock_acquired(lock);
-+	current->lockdep_recursion = 0;
-+	raw_local_irq_restore(flags);
-+}
-+EXPORT_SYMBOL_GPL(lock_acquired);
-+#endif
-+
- /*
-  * Used by the testsuite, sanitize the validator state
-  * after a simulated failure:
-diff -puN kernel/sysctl.c~lockstat-core-infrastructure kernel/sysctl.c
---- a/kernel/sysctl.c~lockstat-core-infrastructure
-+++ a/kernel/sysctl.c
-@@ -161,6 +161,8 @@ extern ctl_table inotify_table[];
- int sysctl_legacy_va_layout;
- #endif
- 
-+extern int prove_locking;
-+extern int lock_stat;
- 
- /* The default sysctl tables: */
- 
-@@ -282,6 +284,26 @@ static ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
-+#ifdef CONFIG_PROVE_LOCKING
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "prove_locking",
-+		.data		= &prove_locking,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+#endif
-+#ifdef CONFIG_LOCK_STAT
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "lock_stat",
-+		.data		= &lock_stat,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+#endif
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "sched_features",
-diff -puN lib/Kconfig.debug~lockstat-core-infrastructure lib/Kconfig.debug
---- a/lib/Kconfig.debug~lockstat-core-infrastructure
-+++ a/lib/Kconfig.debug
-@@ -283,6 +283,17 @@ config LOCKDEP
- 	select KALLSYMS
- 	select KALLSYMS_ALL
- 
-+config LOCK_STAT
-+	bool "Lock usage statisitics"
-+	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
-+	select LOCKDEP
-+	select DEBUG_SPINLOCK
-+	select DEBUG_MUTEXES
-+	select DEBUG_LOCK_ALLOC
-+	default n
-+	help
-+	 This feature enables tracking lock contention points
-+
- config DEBUG_LOCKDEP
- 	bool "Lock dependency engine debugging"
- 	depends on DEBUG_KERNEL && LOCKDEP
+diff -puN kernel/power/user.c~pm-introduce-hibernation-and-suspend-notifiers kernel/power/user.c
+--- a/kernel/power/user.c~pm-introduce-hibernation-and-suspend-notifiers
++++ a/kernel/power/user.c
+@@ -151,10 +151,14 @@ static int snapshot_ioctl(struct inode *
+ 		if (data->frozen)
+ 			break;
+ 		mutex_lock(&pm_mutex);
+-		if (freeze_processes()) {
+-			thaw_processes();
+-			error = -EBUSY;
++		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
++		if (!error) {
++			error = freeze_processes();
++			if (error)
++				thaw_processes();
+ 		}
++		if (error)
++			pm_notifier_call_chain(PM_POST_HIBERNATION);
+ 		mutex_unlock(&pm_mutex);
+ 		if (!error)
+ 			data->frozen = 1;
+@@ -165,6 +169,7 @@ static int snapshot_ioctl(struct inode *
+ 			break;
+ 		mutex_lock(&pm_mutex);
+ 		thaw_processes();
++		pm_notifier_call_chain(PM_POST_HIBERNATION);
+ 		mutex_unlock(&pm_mutex);
+ 		data->frozen = 0;
+ 		break;
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+acpi-implement-the-set_target-callback-from-pm_ops.patch
+acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+shrink_slab-handle-bad-shrinkers.patch
