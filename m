@@ -1,99 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-masking-documentation-for-proc-pid-coredump_filter.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:02:26 -0700
-Message-ID: <200707192002.l6JK2QZp019667@imap1.linux-foundation.org>
+Subject: - fs-introduce-vfs_path_lookup.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:01:51 -0700
+Message-ID: <200707192001.l6JK1p0r019599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49465 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45333 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759344AbXGSUd3 (ORCPT
+	by vger.kernel.org with ESMTP id S1760315AbXGSUdx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:33:29 -0400
+	Thu, 19 Jul 2007 16:33:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: jsipek@cs.sunysb.edu, hch@lst.de, mhalcrow@us.ibm.com, neilb@suse.de, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coredump masking: documentation for /proc/pid/coredump_filter
+     fs: introduce vfs_path_lookup
 has been removed from the -mm tree.  Its filename was
-     coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+     fs-introduce-vfs_path_lookup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: coredump masking: documentation for /proc/pid/coredump_filter
-From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
+Subject: fs: introduce vfs_path_lookup
+From: "Josef 'Jeff' Sipek" <jsipek@cs.sunysb.edu>
 
-This patch adds the documentation for /proc/<pid>/coredump_filter.
+Stackable file systems, among others, frequently need to lookup paths or
+path components starting from an arbitrary point in the namespace
+(identified by a dentry and a vfsmount).  Currently, such file systems use
+lookup_one_len, which is frowned upon [1] as it does not pass the lookup
+intent along; not passing a lookup intent, for example, can trigger BUG_ON's
+when stacking on top of NFSv4.
 
-Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+The first patch introduces a new lookup function to allow lookup starting
+from an arbitrary point in the namespace.  This approach has been suggested
+by Christoph Hellwig [2].
+
+The second patch changes sunrpc to use vfs_path_lookup.
+
+The third patch changes nfsctl.c to use vfs_path_lookup.
+
+The fourth patch marks link_path_walk static.
+
+The fifth, and last patch, unexports path_walk because it is no longer
+unnecessary to call it directly, and using the new vfs_path_lookup is
+cleaner.
+
+For example, the following snippet of code, looks up "some/path/component"
+in a directory pointed to by parent_{dentry,vfsmnt}:
+
+err = vfs_path_lookup(parent_dentry, parent_vfsmnt,
+		      "some/path/component", 0, &nd);
+if (!err) {
+	/* exits */
+
+	...
+
+	/* once done, release the references */
+	path_release(&nd);
+} else if (err == -ENOENT) {
+	/* doesn't exist */
+} else {
+	/* other error */
+}
+
+VFS functions such as lookup_create can be used on the nameidata structure
+to pass the create intent to the file system.
+
+Signed-off-by: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   38 +++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ fs/namei.c            |   32 ++++++++++++++++++++++++++++++++
+ include/linux/namei.h |    2 ++
+ 2 files changed, 34 insertions(+)
 
-diff -puN Documentation/filesystems/proc.txt~coredump-masking-documentation-for-proc-pid-coredump_filter Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~coredump-masking-documentation-for-proc-pid-coredump_filter
-+++ a/Documentation/filesystems/proc.txt
-@@ -42,6 +42,7 @@ Table of Contents
-   2.12	/proc/<pid>/oom_adj - Adjust the oom-killer score
-   2.13	/proc/<pid>/oom_score - Display current oom-killer score
-   2.14	/proc/<pid>/io - Display the IO accounting fields
-+  2.15	/proc/<pid>/coredump_filter - Core dump filtering settings
+diff -puN fs/namei.c~fs-introduce-vfs_path_lookup fs/namei.c
+--- a/fs/namei.c~fs-introduce-vfs_path_lookup
++++ a/fs/namei.c
+@@ -1172,6 +1172,37 @@ int fastcall path_lookup(const char *nam
+ 	return do_path_lookup(AT_FDCWD, name, flags, nd);
+ }
  
- ------------------------------------------------------------------------------
- Preface
-@@ -2184,4 +2185,41 @@ those 64-bit counters, process A could s
- More information about this can be found within the taskstats documentation in
- Documentation/accounting.
- 
-+2.15 /proc/<pid>/coredump_filter - Core dump filtering settings
-+---------------------------------------------------------------
-+When a process is dumped, all anonymous memory is written to a core file as
-+long as the size of the core file isn't limited. But sometimes we don't want
-+to dump some memory segments, for example, huge shared memory. Conversely,
-+sometimes we want to save file-backed memory segments into a core file, not
-+only the individual files.
++/**
++ * vfs_path_lookup - lookup a file path relative to a dentry-vfsmount pair
++ * @dentry:  pointer to dentry of the base directory
++ * @mnt: pointer to vfs mount of the base directory
++ * @name: pointer to file name
++ * @flags: lookup flags
++ * @nd: pointer to nameidata
++ */
++int vfs_path_lookup(struct dentry *dentry, struct vfsmount *mnt,
++		    const char *name, unsigned int flags,
++		    struct nameidata *nd)
++{
++	int retval;
 +
-+/proc/<pid>/coredump_filter allows you to customize which memory segments
-+will be dumped when the <pid> process is dumped. coredump_filter is a bitmask
-+of memory types. If a bit of the bitmask is set, memory segments of the
-+corresponding memory type are dumped, otherwise they are not dumped.
++	/* same as do_path_lookup */
++	nd->last_type = LAST_ROOT;
++	nd->flags = flags;
++	nd->depth = 0;
 +
-+The following 4 memory types are supported:
-+  - (bit 0) anonymous private memory
-+  - (bit 1) anonymous shared memory
-+  - (bit 2) file-backed private memory
-+  - (bit 3) file-backed shared memory
++	nd->mnt = mntget(mnt);
++	nd->dentry = dget(dentry);
 +
-+  Note that MMIO pages such as frame buffer are never dumped and vDSO pages
-+  are always dumped regardless of the bitmask status.
++	retval = path_walk(name, nd);
++	if (unlikely(!retval && !audit_dummy_context() && nd->dentry &&
++				nd->dentry->d_inode))
++		audit_inode(name, nd->dentry->d_inode);
 +
-+Default value of coredump_filter is 0x3; this means all anonymous memory
-+segments are dumped.
++	return retval;
 +
-+If you don't want to dump all shared memory segments attached to pid 1234,
-+write 1 to the process's proc file.
++}
 +
-+  $ echo 0x1 > /proc/1234/coredump_filter
-+
-+When a new process is created, the process inherits the bitmask status from its
-+parent. It is useful to set up coredump_filter before the program runs.
-+For example:
-+
-+  $ echo 0x7 > /proc/self/coredump_filter
-+  $ ./some_program
-+
- ------------------------------------------------------------------------------
+ static int __path_lookup_intent_open(int dfd, const char *name,
+ 		unsigned int lookup_flags, struct nameidata *nd,
+ 		int open_flags, int create_mode)
+@@ -2774,6 +2805,7 @@ EXPORT_SYMBOL(__page_symlink);
+ EXPORT_SYMBOL(page_symlink);
+ EXPORT_SYMBOL(page_symlink_inode_operations);
+ EXPORT_SYMBOL(path_lookup);
++EXPORT_SYMBOL(vfs_path_lookup);
+ EXPORT_SYMBOL(path_release);
+ EXPORT_SYMBOL(path_walk);
+ EXPORT_SYMBOL(permission);
+diff -puN include/linux/namei.h~fs-introduce-vfs_path_lookup include/linux/namei.h
+--- a/include/linux/namei.h~fs-introduce-vfs_path_lookup
++++ a/include/linux/namei.h
+@@ -69,6 +69,8 @@ extern int FASTCALL(__user_walk_fd(int d
+ #define user_path_walk_link(name,nd) \
+ 	__user_walk_fd(AT_FDCWD, name, 0, nd)
+ extern int FASTCALL(path_lookup(const char *, unsigned, struct nameidata *));
++extern int vfs_path_lookup(struct dentry *, struct vfsmount *,
++			   const char *, unsigned int, struct nameidata *);
+ extern int FASTCALL(path_walk(const char *, struct nameidata *));
+ extern int FASTCALL(link_path_walk(const char *, struct nameidata *));
+ extern void path_release(struct nameidata *);
 _
 
-Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
 
 origin.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
