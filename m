@@ -1,125 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-code-tidying-on-export-gpl.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:07:26 -0700
-Message-ID: <200707192007.l6JK7Qoh020262@imap1.linux-foundation.org>
+Subject: - driver-edac-add-mips-and-ppc-visibility.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:06:45 -0700
+Message-ID: <200707192006.l6JK6jMC020170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34823 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41724 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754829AbXGSUQT (ORCPT
+	by vger.kernel.org with ESMTP id S1757112AbXGSUPU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:19 -0400
+	Thu, 19 Jul 2007 16:15:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: code tidying on export-gpl
+     drivers/edac: add mips and ppc visibility
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-code-tidying-on-export-gpl.patch
+     driver-edac-add-mips-and-ppc-visibility.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: code tidying on export-gpl
-From: Doug Thompson <dougthompson@xmission.com>
+Subject: drivers/edac: add mips and ppc visibility
+From: Douglas Thompson <dougthompson@xmission.com>
 
-Change EXPORT_SYMBOLs to EXPORT_SYMBOLS_GPL
-Tidy changes: blank lines, inline removal, add comment
+1) Remove an old CVS ID string
 
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Cc: Greg KH <greg@kroah.com>
+2) change EDAC from a tristate option to a simple bool option
+
+3) In addition to the X86 arch, PPC and MIPS also have drivers in the
+submission queue.  This patch turns on the EDAC flag for those archs.  Each
+driver will have its respective 'depends on ARCH' set.
+
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_module.c |    9 +++++----
- drivers/edac/edac_stub.c   |   20 +++++++++++---------
- 2 files changed, 16 insertions(+), 13 deletions(-)
+ drivers/edac/Kconfig |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/edac/edac_module.c~drivers-edac-code-tidying-on-export-gpl drivers/edac/edac_module.c
---- a/drivers/edac/edac_module.c~drivers-edac-code-tidying-on-export-gpl
-+++ a/drivers/edac/edac_module.c
-@@ -1,12 +1,13 @@
- /*
-  * edac_module.c
-  *
-- * (C) 2007 www.douglaskthompson.com
-+ * (C) 2007 www.softwarebitmaker.com
-+ *
-  * This file is licensed under the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
-  * warranty of any kind, whether express or implied.
-  *
-- * Author: Doug Thompson <norsk5@xmission.com>
-+ * Author: Doug Thompson <dougthompson@xmission.com>
-  *
-  */
- #include <linux/edac.h>
-@@ -14,7 +15,7 @@
- #include "edac_core.h"
- #include "edac_module.h"
+diff -puN drivers/edac/Kconfig~driver-edac-add-mips-and-ppc-visibility drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~driver-edac-add-mips-and-ppc-visibility
++++ a/drivers/edac/Kconfig
+@@ -3,13 +3,12 @@
+ #	Copyright (c) 2003 Linux Networx
+ #	Licensed and distributed under the GPL
+ #
+-# $Id: Kconfig,v 1.4.2.7 2005/07/08 22:05:38 dsp_llnl Exp $
+-#
  
--#define EDAC_MC_VERSION "Ver: 2.0.5 " __DATE__
-+#define EDAC_VERSION "Ver: 2.1.0 " __DATE__
- 
- #ifdef CONFIG_EDAC_DEBUG
- /* Values of 0 to 4 will generate output */
-@@ -141,7 +142,7 @@ static int __init edac_init(void)
- {
- 	int err = 0;
- 
--	edac_printk(KERN_INFO, EDAC_MC, EDAC_MC_VERSION "\n");
-+	edac_printk(KERN_INFO, EDAC_MC, EDAC_VERSION "\n");
- 
- 	/*
- 	 * Harvest and clear any boot/initialization PCI parity errors
-diff -puN drivers/edac/edac_stub.c~drivers-edac-code-tidying-on-export-gpl drivers/edac/edac_stub.c
---- a/drivers/edac/edac_stub.c~drivers-edac-code-tidying-on-export-gpl
-+++ a/drivers/edac/edac_stub.c
-@@ -15,30 +15,32 @@
- #include <asm/edac.h>
- 
- int edac_op_state = EDAC_OPSTATE_INVAL;
--EXPORT_SYMBOL(edac_op_state);
-+EXPORT_SYMBOL_GPL(edac_op_state);
- 
- atomic_t edac_handlers = ATOMIC_INIT(0);
--EXPORT_SYMBOL(edac_handlers);
-+EXPORT_SYMBOL_GPL(edac_handlers);
- 
- int edac_err_assert = 0;
--EXPORT_SYMBOL(edac_err_assert);
-+EXPORT_SYMBOL_GPL(edac_err_assert);
- 
--inline int edac_handler_set(void)
-+/*
-+ * called to determine if there is an EDAC driver interested in
-+ * knowing an event (such as NMI) occurred
-+ */
-+int edac_handler_set(void)
- {
- 	if (edac_op_state == EDAC_OPSTATE_POLL)
- 		return 0;
- 
- 	return atomic_read(&edac_handlers);
- }
--
--EXPORT_SYMBOL(edac_handler_set);
-+EXPORT_SYMBOL_GPL(edac_handler_set);
- 
- /*
-  * handler for NMI type of interrupts to assert error
-  */
--inline void edac_atomic_assert_error(void)
-+void edac_atomic_assert_error(void)
- {
- 	edac_err_assert++;
- }
--
--EXPORT_SYMBOL(edac_atomic_assert_error);
-+EXPORT_SYMBOL_GPL(edac_atomic_assert_error);
+ menuconfig EDAC
+-	tristate "EDAC - error detection and reporting (EXPERIMENTAL)"
++	bool "EDAC - error detection and reporting (EXPERIMENTAL)"
+ 	depends on HAS_IOMEM
+-	depends on X86 && EXPERIMENTAL
++	depends on EXPERIMENTAL
++	depends on X86 || MIPS || PPC
+ 	help
+ 	  EDAC is designed to report errors in the core system.
+ 	  These are low-level errors that are reported in the CPU or
 _
 
 Patches currently in -mm which might be from dougthompson@xmission.com are
