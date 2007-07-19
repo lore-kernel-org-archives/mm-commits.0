@@ -1,88 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - dev_vdbg-available-with-dverbose_debug-docs.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:11:13 -0700
-Message-ID: <200707192011.l6JKBD9G020749@imap1.linux-foundation.org>
+Subject: - coda-replace-upc_alloc-upc_free-with-kmalloc-kfree.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:03:15 -0700
+Message-ID: <200707192003.l6JK3F7E019844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56965 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58513 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753871AbXGSUQ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756391AbXGSUQ0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:29 -0400
+	Thu, 19 Jul 2007 16:16:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dev_vdbg(), available with -DVERBOSE_DEBUG (docs)
+     coda: replace upc_alloc/upc_free with kmalloc/kfree
 has been removed from the -mm tree.  Its filename was
-     dev_vdbg-available-with-dverbose_debug-docs.patch
+     coda-replace-upc_alloc-upc_free-with-kmalloc-kfree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dev_vdbg(), available with -DVERBOSE_DEBUG (docs)
-From: David Brownell <david-b@pacbell.net>
+Subject: coda: replace upc_alloc/upc_free with kmalloc/kfree
+From: Jan Harkes <jaharkes@cs.cmu.edu>
 
-Update CodingStyle to talk about "-DDEBUG" message conventions and the
-new "-DVERBOSE_DEBUG" convention.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/CodingStyle |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
+ fs/coda/psdev.c  |    6 ++----
+ fs/coda/upcall.c |   11 ++++-------
+ 2 files changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/CodingStyle~dev_vdbg-available-with-dverbose_debug-docs Documentation/CodingStyle
---- a/Documentation/CodingStyle~dev_vdbg-available-with-dverbose_debug-docs
-+++ a/Documentation/CodingStyle
-@@ -633,12 +633,27 @@ covers RTL which is used frequently with
+diff -puN fs/coda/psdev.c~coda-replace-upc_alloc-upc_free-with-kmalloc-kfree fs/coda/psdev.c
+--- a/fs/coda/psdev.c~coda-replace-upc_alloc-upc_free-with-kmalloc-kfree
++++ a/fs/coda/psdev.c
+@@ -49,8 +49,6 @@
  
- Kernel developers like to be seen as literate. Do mind the spelling
- of kernel messages to make a good impression. Do not use crippled
--words like "dont" and use "do not" or "don't" instead.
-+words like "dont"; use "do not" or "don't" instead.  Make the messages
-+concise, clear, and unambiguous.
+ #include "coda_int.h"
  
- Kernel messages do not have to be terminated with a period.
+-#define upc_free(r) kfree(r)
+-
+ /* statistics */
+ int           coda_hard;         /* allows signals during upcalls */
+ unsigned long coda_timeout = 30; /* .. secs, then signals will dequeue */
+@@ -264,7 +262,7 @@ static ssize_t coda_psdev_read(struct fi
+ 	}
  
- Printing numbers in parentheses (%d) adds no value and should be avoided.
+ 	CODA_FREE(req->uc_data, sizeof(struct coda_in_hdr));
+-	upc_free(req);
++	kfree(req);
+ out:
+ 	unlock_kernel();
+ 	return (count ? count : retval);
+@@ -320,7 +318,7 @@ static int coda_psdev_release(struct ino
+ 		/* Async requests need to be freed here */
+ 		if (req->uc_flags & REQ_ASYNC) {
+ 			CODA_FREE(req->uc_data, sizeof(struct coda_in_hdr));
+-			upc_free(req);
++			kfree(req);
+ 			continue;
+ 		}
+ 		req->uc_flags |= REQ_ABORT;
+diff -puN fs/coda/upcall.c~coda-replace-upc_alloc-upc_free-with-kmalloc-kfree fs/coda/upcall.c
+--- a/fs/coda/upcall.c~coda-replace-upc_alloc-upc_free-with-kmalloc-kfree
++++ a/fs/coda/upcall.c
+@@ -37,9 +37,6 @@
+ #include <linux/coda_cache.h>
+ #include <linux/coda_proc.h> 
  
-+There are a number of driver model diagnostic macros in <linux/device.h>
-+which you should use to make sure messages are matched to the right device
-+and driver, and are tagged with the right level:  dev_err(), dev_warn(),
-+dev_info(), and so forth.  For messages that aren't associated with a
-+particular device, <linux/kernel.h> defines pr_debug() and pr_info().
-+
-+Coming up with good debugging messages can be quite a challenge; and once
-+you have them, they can be a huge help for remote troubleshooting.  Such
-+messages should be compiled out when the DEBUG symbol is not defined (that
-+is, by default they are not included).  When you use dev_dbg() or pr_debug(),
-+that's automatic.  Many subsystems have Kconfig options to turn on -DDEBUG.
-+A related convention uses VERBOSE_DEBUG to add dev_vdbg() messages to the
-+ones already enabled by DEBUG.
-+
+-#define upc_alloc() kmalloc(sizeof(struct upc_req), GFP_KERNEL)
+-#define upc_free(r) kfree(r)
+-
+ static int coda_upcall(struct coda_sb_info *mntinfo, int inSize, int *outSize, 
+ 		       union inputArgs *buffer);
  
- 		Chapter 14: Allocating memory
+@@ -745,7 +742,7 @@ static int coda_upcall(struct coda_sb_in
+ 	}
  
-@@ -790,4 +805,5 @@ Kernel CodingStyle, by greg@kroah.com at
- http://www.kroah.com/linux/talks/ols_2002_kernel_codingstyle_talk/html/
+ 	/* Format the request message. */
+-	req = upc_alloc();
++	req = kmalloc(sizeof(struct upc_req), GFP_KERNEL);
+ 	if (!req)
+ 		return -ENOMEM;
  
- --
--Last updated on 2006-December-06.
-+Last updated on 2007-July-13.
-+
+@@ -802,12 +799,12 @@ static int coda_upcall(struct coda_sb_in
+ 	}
+ 
+ 	error = -ENOMEM;
+-	sig_req = upc_alloc();
++	sig_req = kmalloc(sizeof(struct upc_req), GFP_KERNEL);
+ 	if (!sig_req) goto exit;
+ 
+ 	CODA_ALLOC((sig_req->uc_data), char *, sizeof(struct coda_in_hdr));
+ 	if (!sig_req->uc_data) {
+-		upc_free(sig_req);
++		kfree(sig_req);
+ 		goto exit;
+ 	}
+ 
+@@ -827,7 +824,7 @@ static int coda_upcall(struct coda_sb_in
+ 	wake_up_interruptible(&vcommp->vc_waitq);
+ 
+ exit:
+-	upc_free(req);
++	kfree(req);
+ 	return error;
+ }
+ 
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
 
 origin.patch
-git-leds.patch
-git-mmc.patch
-git-mtd.patch
-git-backlight.patch
-acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
