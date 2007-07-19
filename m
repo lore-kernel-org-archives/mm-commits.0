@@ -1,94 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-convert-splice-invocations.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:01:16 -0700
-Message-ID: <200707192001.l6JK1GbK019522@imap1.linux-foundation.org>
+Subject: - jprobes-make-jprobes-a-little-safer-for-users.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:01:39 -0700
+Message-ID: <200707192001.l6JK1d39019557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59250 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39546 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932258AbXGSUag (ORCPT
+	by vger.kernel.org with ESMTP id S932234AbXGSUa7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:30:36 -0400
+	Thu, 19 Jul 2007 16:30:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, axboe@suse.de, linuxram@us.ibm.com, rusty@rustcorp.com.au, slpratt@austin.ibm.com, mm-commits@vger.kernel.org
+To: michael@ellerman.id.au, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, prasanna@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: convert splice invocations
+     jprobes: make jprobes a little safer for users
 has been removed from the -mm tree.  Its filename was
-     readahead-convert-splice-invocations.patch
+     jprobes-make-jprobes-a-little-safer-for-users.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: readahead: convert splice invocations
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: jprobes: make jprobes a little safer for users
+From: Michael Ellerman <michael@ellerman.id.au>
 
-Convert splice reads to use on-demand readahead.
+I realise jprobes are a razor-blades-included type of interface, but that
+doesn't mean we can't try and make them safer to use.  This guy I know once
+wrote code like this:
 
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Steven Pratt <slpratt@austin.ibm.com>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: Jens Axboe <axboe@suse.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+struct jprobe jp = { .kp.symbol_name = "foo", .entry = "jprobe_foo" };
+
+And then his kernel exploded. Oops.
+
+This patch adds an arch hook, arch_deref_entry_point() (I don't like it
+either) which takes the void * in a struct jprobe, and gives back the text
+address that it represents.
+
+We can then use that in register_jprobe() to check that the entry point we're
+passed is actually in the kernel text, rather than just some random value.
+
+Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |   18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ arch/ia64/kernel/kprobes.c    |    7 ++++++-
+ arch/powerpc/kernel/kprobes.c |   11 ++++++++---
+ include/linux/kprobes.h       |    1 +
+ kernel/kprobes.c              |    9 +++++++++
+ 4 files changed, 24 insertions(+), 4 deletions(-)
 
-diff -puN fs/splice.c~readahead-convert-splice-invocations fs/splice.c
---- a/fs/splice.c~readahead-convert-splice-invocations
-+++ a/fs/splice.c
-@@ -287,12 +287,6 @@ __generic_file_splice_read(struct file *
- 		nr_pages = PIPE_BUFFERS;
+diff -puN arch/ia64/kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users arch/ia64/kernel/kprobes.c
+--- a/arch/ia64/kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users
++++ a/arch/ia64/kernel/kprobes.c
+@@ -936,10 +936,15 @@ static void ia64_get_bsp_cfm(struct unw_
+ 	return;
+ }
  
- 	/*
--	 * Don't try to 2nd guess the read-ahead logic, call into
--	 * page_cache_readahead() like the page cache reads would do.
--	 */
--	page_cache_readahead(mapping, &in->f_ra, in, index, nr_pages);
--
--	/*
- 	 * Lookup the (hopefully) full range of pages we need.
- 	 */
- 	spd.nr_pages = find_get_pages_contig(mapping, index, nr_pages, pages);
-@@ -310,11 +304,8 @@ __generic_file_splice_read(struct file *
- 		 */
- 		page = find_get_page(mapping, index);
- 		if (!page) {
--			/*
--			 * Make sure the read-ahead engine is notified
--			 * about this failure.
--			 */
--			handle_ra_miss(mapping, &in->f_ra, index);
-+			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
-+					NULL, index, nr_pages - spd.nr_pages);
- 
- 			/*
- 			 * page didn't exist, allocate one.
-@@ -361,6 +352,10 @@ __generic_file_splice_read(struct file *
- 		this_len = min_t(unsigned long, len, PAGE_CACHE_SIZE - loff);
- 		page = pages[page_nr];
- 
-+		if (PageReadahead(page))
-+			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
-+					page, index, nr_pages - page_nr);
++unsigned long arch_deref_entry_point(void *entry)
++{
++	return ((struct fnptr *)entry)->ip;
++}
 +
- 		/*
- 		 * If the page isn't uptodate, we may need to start io on it
- 		 */
-@@ -453,6 +448,7 @@ fill_it:
- 	 */
- 	while (page_nr < nr_pages)
- 		page_cache_release(pages[page_nr++]);
-+	in->f_ra.prev_index = index;
+ int __kprobes setjmp_pre_handler(struct kprobe *p, struct pt_regs *regs)
+ {
+ 	struct jprobe *jp = container_of(p, struct jprobe, kp);
+-	unsigned long addr = ((struct fnptr *)(jp->entry))->ip;
++	unsigned long addr = arch_deref_entry_point(jp->entry);
+ 	struct kprobe_ctlblk *kcb = get_kprobe_ctlblk();
+ 	struct param_bsp_cfm pa;
+ 	int bytes;
+diff -puN arch/powerpc/kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users arch/powerpc/kernel/kprobes.c
+--- a/arch/powerpc/kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users
++++ a/arch/powerpc/kernel/kprobes.c
+@@ -492,6 +492,13 @@ int __kprobes kprobe_exceptions_notify(s
+ 	return ret;
+ }
  
- 	if (spd.nr_pages)
- 		return splice_to_pipe(pipe, &spd);
++#ifdef CONFIG_PPC64
++unsigned long arch_deref_entry_point(void *entry)
++{
++	return (unsigned long)(((func_descr_t *)entry)->entry);
++}
++#endif
++
+ int __kprobes setjmp_pre_handler(struct kprobe *p, struct pt_regs *regs)
+ {
+ 	struct jprobe *jp = container_of(p, struct jprobe, kp);
+@@ -500,11 +507,9 @@ int __kprobes setjmp_pre_handler(struct 
+ 	memcpy(&kcb->jprobe_saved_regs, regs, sizeof(struct pt_regs));
+ 
+ 	/* setup return addr to the jprobe handler routine */
++	regs->nip = arch_deref_entry_point(jp->entry);
+ #ifdef CONFIG_PPC64
+-	regs->nip = (unsigned long)(((func_descr_t *)jp->entry)->entry);
+ 	regs->gpr[2] = (unsigned long)(((func_descr_t *)jp->entry)->toc);
+-#else
+-	regs->nip = (unsigned long)jp->entry;
+ #endif
+ 
+ 	return 1;
+diff -puN include/linux/kprobes.h~jprobes-make-jprobes-a-little-safer-for-users include/linux/kprobes.h
+--- a/include/linux/kprobes.h~jprobes-make-jprobes-a-little-safer-for-users
++++ a/include/linux/kprobes.h
+@@ -214,6 +214,7 @@ int longjmp_break_handler(struct kprobe 
+ int register_jprobe(struct jprobe *p);
+ void unregister_jprobe(struct jprobe *p);
+ void jprobe_return(void);
++unsigned long arch_deref_entry_point(void *);
+ 
+ int register_kretprobe(struct kretprobe *rp);
+ void unregister_kretprobe(struct kretprobe *rp);
+diff -puN kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users kernel/kprobes.c
+--- a/kernel/kprobes.c~jprobes-make-jprobes-a-little-safer-for-users
++++ a/kernel/kprobes.c
+@@ -675,9 +675,18 @@ static struct notifier_block kprobe_exce
+ 	.priority = 0x7fffffff /* we need to be notified first */
+ };
+ 
++unsigned long __weak arch_deref_entry_point(void *entry)
++{
++	return (unsigned long)entry;
++}
+ 
+ int __kprobes register_jprobe(struct jprobe *jp)
+ {
++	unsigned long addr = arch_deref_entry_point(jp->entry);
++
++	if (!kernel_text_address(addr))
++		return -EINVAL;
++
+ 	/* Todo: Verify probepoint is a function entry point */
+ 	jp->kp.pre_handler = setjmp_pre_handler;
+ 	jp->kp.break_handler = longjmp_break_handler;
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from michael@ellerman.id.au are
 
 origin.patch
