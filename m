@@ -1,50 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - clockevents-fix-typo-in-acpi_pmc.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:31 -0700
-Message-ID: <200707192010.l6JKAVmg020680@imap1.linux-foundation.org>
+Subject: - x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:10:02 -0700
+Message-ID: <200707192010.l6JKA2uc020635@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57174 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52102 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757833AbXGSUPW (ORCPT
+	by vger.kernel.org with ESMTP id S1752378AbXGSUPW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:15:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abogani@texware.it, johnstul@us.ibm.com, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clockevents: fix typo in acpi_pm.c
+     x86: smp-alt-once option is only useful with HOTPLUG_CPU
 has been removed from the -mm tree.  Its filename was
-     clockevents-fix-typo-in-acpi_pmc.patch
+     x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clockevents: fix typo in acpi_pm.c
-From: Alessio Igor Bogani <abogani@texware.it>
+Subject: x86: smp-alt-once option is only useful with HOTPLUG_CPU
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Signed-off-by: Alessio Igor Bogani <abogani@texware.it>
-Cc: john stultz <johnstul@us.ibm.com>
+Hence remove its handling in the opposite case.
+
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clocksource/acpi_pm.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/alternative.c |   14 +++++++++-----
+ 1 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN drivers/clocksource/acpi_pm.c~clockevents-fix-typo-in-acpi_pmc drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~clockevents-fix-typo-in-acpi_pmc
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -71,7 +71,7 @@ static struct clocksource clocksource_ac
- 	.rating		= 200,
- 	.read		= acpi_pm_read,
- 	.mask		= (cycle_t)ACPI_PM_MASK,
--	.mult		= 0, /*to be caluclated*/
-+	.mult		= 0, /* to be calculated */
- 	.shift		= 22,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+diff -puN arch/i386/kernel/alternative.c~x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu
++++ a/arch/i386/kernel/alternative.c
+@@ -5,9 +5,8 @@
+ #include <asm/alternative.h>
+ #include <asm/sections.h>
  
+-static int noreplace_smp     = 0;
+-static int smp_alt_once      = 0;
+-static int debug_alternative = 0;
++#ifdef CONFIG_HOTPLUG_CPU
++static int smp_alt_once;
+ 
+ static int __init bootonly(char *str)
+ {
+@@ -15,6 +14,11 @@ static int __init bootonly(char *str)
+ 	return 1;
+ }
+ __setup("smp-alt-boot", bootonly);
++#else
++#define smp_alt_once 1
++#endif
++
++static int debug_alternative;
+ 
+ static int __init debug_alt(char *str)
+ {
+@@ -23,6 +27,8 @@ static int __init debug_alt(char *str)
+ }
+ __setup("debug-alternative", debug_alt);
+ 
++static int noreplace_smp;
++
+ static int __init setup_noreplace_smp(char *str)
+ {
+ 	noreplace_smp = 1;
+@@ -376,8 +382,6 @@ void __init alternative_instructions(voi
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	if (num_possible_cpus() < 2)
+ 		smp_alt_once = 1;
+-#else
+-	smp_alt_once = 1;
+ #endif
+ 
+ #ifdef CONFIG_SMP
 _
 
-Patches currently in -mm which might be from abogani@texware.it are
+Patches currently in -mm which might be from jbeulich@novell.com are
+
+origin.patch
+git-kbuild.patch
