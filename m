@@ -1,128 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - swsusp-remove-incorrect-code-from-userc.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 12:59:58 -0700
-Message-ID: <200707191959.l6JJxw5h019387@imap1.linux-foundation.org>
+Subject: - remove-alloc_zeroed_user_highpage.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 12:59:43 -0700
+Message-ID: <200707191959.l6JJxhIA019375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42024 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53972 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754824AbXGSUAt (ORCPT
+	by vger.kernel.org with ESMTP id S1758490AbXGSUAx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:00:49 -0400
+	Thu, 19 Jul 2007 16:00:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swsusp: remove incorrect code from user.c
+     Remove alloc_zeroed_user_highpage()
 has been removed from the -mm tree.  Its filename was
-     swsusp-remove-incorrect-code-from-userc.patch
+     remove-alloc_zeroed_user_highpage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: swsusp: remove incorrect code from user.c
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: Remove alloc_zeroed_user_highpage()
+From: Mel Gorman <mel@csn.ul.ie>
 
-In the face of the recent change of suspend code ordering (cf. 
-http://marc.info/?l=linux-acpi&m=117938245931603&w=2) we should also modify
-the code ordering in swsusp so that hibernation_ops->prepare() is executed
-after device_suspend().
+alloc_zeroed_user_highpage() has no in-tree users and it is not exported.
+As it is not exported, it can simply be removed.
 
-However, for this purpose it seems reasonable to eliminate the code
-duplication between kernel/power/disk.c and kernel/power/user.c first.  By
-eliminating it we can reduce the size of user.c quite substantially and remove
-the maintenance difficulty with making essentially the same changes in two
-different places.
-
-Moreover, we should also remove the calls to "platform" functions from the
-restore code path, since it doesn't carry out any power transition of the
-system, but we generally need to disable the GPEs before the restore if the
-'platform' hibernation mode has been used.  To do this, we can introduce two
-new hibernation_ops to be used in the restore code.
-
-
-This patch:
-
-Make the code hibernation code in kernel/power/user.c be functionally
-equivalent to the corresponding code in kernel/power/disk.c , as it should be.
-
-The calls to the platform functions removed by this patch are incorrect.  They
-should be replaced with some other "platform" invocations that will be
-introduced in one of the subsequent patches.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/user.c |   17 ++++-------------
- 1 file changed, 4 insertions(+), 13 deletions(-)
+ include/linux/highmem.h |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff -puN kernel/power/user.c~swsusp-remove-incorrect-code-from-userc kernel/power/user.c
---- a/kernel/power/user.c~swsusp-remove-incorrect-code-from-userc
-+++ a/kernel/power/user.c
-@@ -181,34 +181,25 @@ static inline int snapshot_suspend(int p
- 	return error;
- }
+diff -puN include/linux/highmem.h~remove-alloc_zeroed_user_highpage include/linux/highmem.h
+--- a/include/linux/highmem.h~remove-alloc_zeroed_user_highpage
++++ a/include/linux/highmem.h
+@@ -103,21 +103,6 @@ __alloc_zeroed_user_highpage(gfp_t movab
+ #endif
  
--static inline int snapshot_restore(int platform_suspend)
-+static inline int snapshot_restore(void)
- {
- 	int error;
- 
- 	mutex_lock(&pm_mutex);
- 	pm_prepare_console();
--	if (platform_suspend) {
--		error = platform_prepare();
--		if (error)
--			goto Finish;
--	}
- 	suspend_console();
- 	error = device_suspend(PMSG_PRETHAW);
- 	if (error)
--		goto Resume_devices;
-+		goto Finish;
- 
- 	error = disable_nonboot_cpus();
- 	if (!error)
- 		error = swsusp_resume();
- 
- 	enable_nonboot_cpus();
-- Resume_devices:
--	if (platform_suspend)
--		platform_finish();
+ /**
+- * alloc_zeroed_user_highpage - Allocate a zeroed HIGHMEM page for a VMA
+- * @vma: The VMA the page is to be allocated for
+- * @vaddr: The virtual address the page will be inserted into
+- *
+- * This function will allocate a page for a VMA that the caller knows will
+- * not be able to move in the future using move_pages() or reclaim. If it
+- * is known that the page can move, use alloc_zeroed_user_highpage_movable
+- */
+-static inline struct page *
+-alloc_zeroed_user_highpage(struct vm_area_struct *vma, unsigned long vaddr)
+-{
+-	return __alloc_zeroed_user_highpage(0, vma, vaddr);
+-}
 -
-+ Finish:
- 	device_resume();
- 	resume_console();
-- Finish:
- 	pm_restore_console();
- 	mutex_unlock(&pm_mutex);
- 	return error;
-@@ -274,7 +265,7 @@ static int snapshot_ioctl(struct inode *
- 			error = -EPERM;
- 			break;
- 		}
--		error = snapshot_restore(data->platform_suspend);
-+		error = snapshot_restore();
- 		break;
- 
- 	case SNAPSHOT_FREE:
+-/**
+  * alloc_zeroed_user_highpage_movable - Allocate a zeroed HIGHMEM page for a VMA that the caller knows can move
+  * @vma: The VMA the page is to be allocated for
+  * @vaddr: The virtual address the page will be inserted into
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
-acpi-implement-the-set_target-callback-from-pm_ops.patch
-acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-shrink_slab-handle-bad-shrinkers.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
