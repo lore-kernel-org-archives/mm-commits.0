@@ -1,106 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: - i386-hpet-check-if-the-counter-works.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:29 -0700
-Message-ID: <200707192010.l6JKATjl020677@imap1.linux-foundation.org>
+Subject: - coda-cleanup-dev-cfs-open-and-close-handling.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:03:07 -0700
+Message-ID: <200707192003.l6JK37FC019829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38538 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58861 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761663AbXGSURJ (ORCPT
+	by vger.kernel.org with ESMTP id S1760666AbXGSUQ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:17:09 -0400
+	Thu, 19 Jul 2007 16:16:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: HPET, check if the counter works
+     coda: cleanup /dev/cfs open and close handling
 has been removed from the -mm tree.  Its filename was
-     i386-hpet-check-if-the-counter-works.patch
+     coda-cleanup-dev-cfs-open-and-close-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: HPET, check if the counter works
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: coda: cleanup /dev/cfs open and close handling
+From: Jan Harkes <jaharkes@cs.cmu.edu>
 
-Some systems have a HPET which is not incrementing, which leads to a
-complete hang.  Detect it during HPET setup.
+- Make sure device index is not a negative number.
+- Unlink queued requests when the device is closed to avoid passing them
+  to the next opener.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/hpet.c |   24 +++++++++++++++++++++++-
- 1 files changed, 23 insertions(+), 1 deletion(-)
+ fs/coda/psdev.c  |   61 ++++++++++++++++++++++-----------------------
+ fs/coda/upcall.c |    9 +-----
+ 2 files changed, 32 insertions(+), 38 deletions(-)
 
-diff -puN arch/i386/kernel/hpet.c~i386-hpet-check-if-the-counter-works arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~i386-hpet-check-if-the-counter-works
-+++ a/arch/i386/kernel/hpet.c
-@@ -226,7 +226,8 @@ int __init hpet_enable(void)
+diff -puN fs/coda/psdev.c~coda-cleanup-dev-cfs-open-and-close-handling fs/coda/psdev.c
+--- a/fs/coda/psdev.c~coda-cleanup-dev-cfs-open-and-close-handling
++++ a/fs/coda/psdev.c
+@@ -272,56 +272,51 @@ out:
+ 
+ static int coda_psdev_open(struct inode * inode, struct file * file)
  {
- 	unsigned long id;
- 	uint64_t hpet_freq;
--	u64 tmp;
-+	u64 tmp, start, now;
-+	cycle_t t1;
+-        struct venus_comm *vcp;
+-	int idx;
++	struct venus_comm *vcp;
++	int idx, err;
  
- 	if (!is_hpet_capable())
- 		return 0;
-@@ -273,6 +274,27 @@ int __init hpet_enable(void)
- 	/* Start the counter */
- 	hpet_start_counter();
+-	lock_kernel();
+ 	idx = iminor(inode);
+-	if(idx >= MAX_CODADEVS) {
+-		unlock_kernel();
++	if (idx < 0 || idx >= MAX_CODADEVS)
+ 		return -ENODEV;
+-	}
  
-+	/* Verify whether hpet counter works */
-+	t1 = read_hpet();
-+	rdtscll(start);
++	lock_kernel();
 +
-+	/*
-+	 * We don't know the TSC frequency yet, but waiting for
-+	 * 200000 TSC cycles is safe:
-+	 * 4 GHz == 50us
-+	 * 1 GHz == 200us
-+	 */
-+	do {
-+		rep_nop();
-+		rdtscll(now);
-+	} while ((now - start) < 200000UL);
++	err = -EBUSY;
+ 	vcp = &coda_comms[idx];
+-	if(vcp->vc_inuse) {
+-		unlock_kernel();
+-		return -EBUSY;
+-	}
+-	
+-	if (!vcp->vc_inuse++) {
++	if (!vcp->vc_inuse) {
++		vcp->vc_inuse++;
 +
-+	if (t1 == read_hpet()) {
-+		printk(KERN_WARNING
-+		       "HPET counter not counting. HPET disabled\n");
-+		goto out_nohpet;
+ 		INIT_LIST_HEAD(&vcp->vc_pending);
+ 		INIT_LIST_HEAD(&vcp->vc_processing);
+ 		init_waitqueue_head(&vcp->vc_waitq);
+ 		vcp->vc_sb = NULL;
+ 		vcp->vc_seq = 0;
++
++		file->private_data = vcp;
++		err = 0;
+ 	}
+-	
+-	file->private_data = vcp;
+ 
+ 	unlock_kernel();
+-        return 0;
++	return err;
+ }
+ 
+ 
+ static int coda_psdev_release(struct inode * inode, struct file * file)
+ {
+-        struct venus_comm *vcp = (struct venus_comm *) file->private_data;
+-        struct upc_req *req, *tmp;
++	struct venus_comm *vcp = (struct venus_comm *) file->private_data;
++	struct upc_req *req, *tmp;
+ 
+-	lock_kernel();
+-	if ( !vcp->vc_inuse ) {
+-		unlock_kernel();
++	if (!vcp || !vcp->vc_inuse ) {
+ 		printk("psdev_release: Not open.\n");
+ 		return -1;
+ 	}
+ 
+-	if (--vcp->vc_inuse) {
+-		unlock_kernel();
+-		return 0;
+-	}
+-        
+-        /* Wakeup clients so they can return. */
++	lock_kernel();
++
++	/* Wakeup clients so they can return. */
+ 	list_for_each_entry_safe(req, tmp, &vcp->vc_pending, uc_chain) {
++		list_del(&req->uc_chain);
++
+ 		/* Async requests need to be freed here */
+ 		if (req->uc_flags & REQ_ASYNC) {
+ 			CODA_FREE(req->uc_data, sizeof(struct coda_in_hdr));
+@@ -330,13 +325,17 @@ static int coda_psdev_release(struct ino
+ 		}
+ 		req->uc_flags |= REQ_ABORT;
+ 		wake_up(&req->uc_sleep);
+-        }
+-        
+-	list_for_each_entry(req, &vcp->vc_processing, uc_chain) {
 +	}
 +
- 	/* Initialize and register HPET clocksource
- 	 *
- 	 * hpet period is in femto seconds per cycle
++	list_for_each_entry_safe(req, tmp, &vcp->vc_processing, uc_chain) {
++		list_del(&req->uc_chain);
++
+ 		req->uc_flags |= REQ_ABORT;
+-	        wake_up(&req->uc_sleep);
+-        }
++		wake_up(&req->uc_sleep);
++	}
+ 
++	file->private_data = NULL;
++	vcp->vc_inuse--;
+ 	unlock_kernel();
+ 	return 0;
+ }
+diff -puN fs/coda/upcall.c~coda-cleanup-dev-cfs-open-and-close-handling fs/coda/upcall.c
+--- a/fs/coda/upcall.c~coda-cleanup-dev-cfs-open-and-close-handling
++++ a/fs/coda/upcall.c
+@@ -641,8 +641,7 @@ int venus_statfs(struct dentry *dentry, 
+  * 
+  */
+ 
+-static inline void coda_waitfor_upcall(struct upc_req *vmp,
+-				       struct venus_comm *vcommp)
++static inline void coda_waitfor_upcall(struct upc_req *vmp)
+ {
+ 	DECLARE_WAITQUEUE(wait, current);
+ 
+@@ -655,10 +654,6 @@ static inline void coda_waitfor_upcall(s
+ 		else
+ 			set_current_state(TASK_UNINTERRUPTIBLE);
+ 
+-                /* venus died */
+-                if ( !vcommp->vc_inuse )
+-                        break;
+-
+ 		/* got a reply */
+ 		if ( vmp->uc_flags & ( REQ_WRITE | REQ_ABORT ) )
+ 			break;
+@@ -738,7 +733,7 @@ static int coda_upcall(struct coda_sb_in
+ 	 * ENODEV.  */
+ 
+ 	/* Go to sleep.  Wake up on signals only after the timeout. */
+-	coda_waitfor_upcall(req, vcommp);
++	coda_waitfor_upcall(req);
+ 
+ 	if (vcommp->vc_inuse) {      /* i.e. Venus is still alive */
+ 	    /* Op went through, interrupt or not... */
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
 
 origin.patch
-git-acpi.patch
-acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-clockevents-remove-prototypes-of-removed-functions.patch
-clockevents-fix-resume-logic.patch
-lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
-clockevents-fix-device-replacement.patch
-tick-management-spread-timer-interrupt.patch
-highres-improve-debug-output.patch
-hrtimer-speedup-hrtimer_enqueue.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
-acpi-remove-the-useless-ifdef-code.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-geode-mfgpt-clock-event-device-support.patch
