@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:02 -0700
-Message-ID: <200707192010.l6JKA2uc020635@imap1.linux-foundation.org>
+Subject: - x86-64-remove-unused-variable-maxcpus.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:10:04 -0700
+Message-ID: <200707192010.l6JKA421020638@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52102 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52897 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752378AbXGSUPW (ORCPT
+	by vger.kernel.org with ESMTP id S1760026AbXGSUPW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:15:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,71 +15,55 @@ To: jbeulich@novell.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: smp-alt-once option is only useful with HOTPLUG_CPU
+     x86-64: remove unused variable maxcpus
 has been removed from the -mm tree.  Its filename was
-     x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch
+     x86-64-remove-unused-variable-maxcpus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: smp-alt-once option is only useful with HOTPLUG_CPU
+Subject: x86-64: remove unused variable maxcpus
 From: "Jan Beulich" <jbeulich@novell.com>
 
-Hence remove its handling in the opposite case.
+.. and adjust documentation to properly reflect options that are
+x86-64 specific.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |   14 +++++++++-----
- 1 files changed, 9 insertions(+), 5 deletions(-)
+ Documentation/x86_64/boot-options.txt |    6 ------
+ arch/x86_64/kernel/mpparse.c          |    1 -
+ 2 files changed, 7 deletions(-)
 
-diff -puN arch/i386/kernel/alternative.c~x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu
-+++ a/arch/i386/kernel/alternative.c
-@@ -5,9 +5,8 @@
- #include <asm/alternative.h>
- #include <asm/sections.h>
+diff -puN Documentation/x86_64/boot-options.txt~x86-64-remove-unused-variable-maxcpus Documentation/x86_64/boot-options.txt
+--- a/Documentation/x86_64/boot-options.txt~x86-64-remove-unused-variable-maxcpus
++++ a/Documentation/x86_64/boot-options.txt
+@@ -136,12 +136,6 @@ Non Executable Mappings
  
--static int noreplace_smp     = 0;
--static int smp_alt_once      = 0;
--static int debug_alternative = 0;
-+#ifdef CONFIG_HOTPLUG_CPU
-+static int smp_alt_once;
+ SMP
  
- static int __init bootonly(char *str)
- {
-@@ -15,6 +14,11 @@ static int __init bootonly(char *str)
- 	return 1;
- }
- __setup("smp-alt-boot", bootonly);
-+#else
-+#define smp_alt_once 1
-+#endif
-+
-+static int debug_alternative;
+-  nosmp	Only use a single CPU
+-
+-  maxcpus=NUMBER only use upto NUMBER CPUs
+-
+-  cpumask=MASK   only use cpus with bits set in mask
+-
+   additional_cpus=NUM Allow NUM more CPUs for hotplug
+ 		 (defaults are specified by the BIOS, see Documentation/x86_64/cpu-hotplug-spec)
  
- static int __init debug_alt(char *str)
- {
-@@ -23,6 +27,8 @@ static int __init debug_alt(char *str)
- }
- __setup("debug-alternative", debug_alt);
+diff -puN arch/x86_64/kernel/mpparse.c~x86-64-remove-unused-variable-maxcpus arch/x86_64/kernel/mpparse.c
+--- a/arch/x86_64/kernel/mpparse.c~x86-64-remove-unused-variable-maxcpus
++++ a/arch/x86_64/kernel/mpparse.c
+@@ -32,7 +32,6 @@
  
-+static int noreplace_smp;
-+
- static int __init setup_noreplace_smp(char *str)
- {
- 	noreplace_smp = 1;
-@@ -376,8 +382,6 @@ void __init alternative_instructions(voi
- #ifdef CONFIG_HOTPLUG_CPU
- 	if (num_possible_cpus() < 2)
- 		smp_alt_once = 1;
--#else
--	smp_alt_once = 1;
- #endif
+ /* Have we found an MP table */
+ int smp_found_config;
+-unsigned int __initdata maxcpus = NR_CPUS;
  
- #ifdef CONFIG_SMP
+ /*
+  * Various Linux-internal data structures created from the
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
