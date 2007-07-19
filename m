@@ -1,69 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-do-not-prepare-for-hibernation-in-acpi_shutdown.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:00:28 -0700
-Message-ID: <200707192000.l6JK0SSi019451@imap1.linux-foundation.org>
+Subject: - rtc-add-periodic-irq-support-to-rtc-cmos.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:04:46 -0700
+Message-ID: <200707192004.l6JK4kf2019979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47063 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40336 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933040AbXGSU0v (ORCPT
+	by vger.kernel.org with ESMTP id S932941AbXGSU0q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:26:51 -0400
+	Thu, 19 Jul 2007 16:26:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, lenb@kernel.org, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: alessandro.zummo@towertech.it, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: Do not prepare for hibernation in acpi_shutdown
+     RTC: add periodic irq support to rtc-cmos
 has been removed from the -mm tree.  Its filename was
-     acpi-do-not-prepare-for-hibernation-in-acpi_shutdown.patch
+     rtc-add-periodic-irq-support-to-rtc-cmos.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: Do not prepare for hibernation in acpi_shutdown
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: RTC: add periodic irq support to rtc-cmos
+From: Alessandro Zummo <alessandro.zummo@towertech.it>
 
-Since we are now explicitly calling hibernation_ops->prepare() before
-hibernation_ops->enter() in hibernation_platform_enter() (defined in
-kernel/power/disk.c), ACPI should not call acpi_sleep_prepare(ACPI_STATE_S4)
-from acpi_shutdown().
+Adds support for periodic irq enabling in rtc-cmos.  This could be used by
+the ALSA driver and is already being tested with the zaptel ztdummy module.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep/poweroff.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/rtc/rtc-cmos.c |   33 +++++++++++++++++++++++++++++++--
+ 1 file changed, 31 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/sleep/poweroff.c~acpi-do-not-prepare-for-hibernation-in-acpi_shutdown drivers/acpi/sleep/poweroff.c
---- a/drivers/acpi/sleep/poweroff.c~acpi-do-not-prepare-for-hibernation-in-acpi_shutdown
-+++ a/drivers/acpi/sleep/poweroff.c
-@@ -54,9 +54,6 @@ static int acpi_shutdown(struct sys_devi
- 	case SYSTEM_POWER_OFF:
- 		/* Prepare to power off the system */
- 		return acpi_sleep_prepare(ACPI_STATE_S5);
--	case SYSTEM_SUSPEND_DISK:
--		/* Prepare to suspend the system to disk */
--		return acpi_sleep_prepare(ACPI_STATE_S4);
- 	default:
- 		return 0;
- 	}
+diff -puN drivers/rtc/rtc-cmos.c~rtc-add-periodic-irq-support-to-rtc-cmos drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-add-periodic-irq-support-to-rtc-cmos
++++ a/drivers/rtc/rtc-cmos.c
+@@ -235,7 +235,7 @@ static int cmos_set_alarm(struct device 
+ 	return 0;
+ }
+ 
+-static int cmos_set_freq(struct device *dev, int freq)
++static int cmos_irq_set_freq(struct device *dev, int freq)
+ {
+ 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
+ 	int		f;
+@@ -259,6 +259,34 @@ static int cmos_set_freq(struct device *
+ 	return 0;
+ }
+ 
++static int cmos_irq_set_state(struct device *dev, int enabled)
++{
++	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
++	unsigned char	rtc_control, rtc_intr;
++	unsigned long	flags;
++
++	if (!is_valid_irq(cmos->irq))
++		return -ENXIO;
++
++	spin_lock_irqsave(&rtc_lock, flags);
++	rtc_control = CMOS_READ(RTC_CONTROL);
++
++	if (enabled)
++		rtc_control |= RTC_PIE;
++	else
++		rtc_control &= ~RTC_PIE;
++
++	CMOS_WRITE(rtc_control, RTC_CONTROL);
++
++	rtc_intr = CMOS_READ(RTC_INTR_FLAGS);
++	rtc_intr &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
++	if (is_intr(rtc_intr))
++		rtc_update_irq(cmos->rtc, 1, rtc_intr);
++
++	spin_unlock_irqrestore(&rtc_lock, flags);
++	return 0;
++}
++
+ #if defined(CONFIG_RTC_INTF_DEV) || defined(CONFIG_RTC_INTF_DEV_MODULE)
+ 
+ static int
+@@ -360,7 +388,8 @@ static const struct rtc_class_ops cmos_r
+ 	.read_alarm	= cmos_read_alarm,
+ 	.set_alarm	= cmos_set_alarm,
+ 	.proc		= cmos_procfs,
+-	.irq_set_freq	= cmos_set_freq,
++	.irq_set_freq	= cmos_irq_set_freq,
++	.irq_set_state	= cmos_irq_set_state,
+ };
+ 
+ /*----------------------------------------------------------------*/
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from alessandro.zummo@towertech.it are
 
 origin.patch
-acpi-implement-the-set_target-callback-from-pm_ops.patch
-acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-shrink_slab-handle-bad-shrinkers.patch
