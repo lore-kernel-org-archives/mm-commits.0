@@ -1,123 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-masking-elf-enable-core-dump-filtering.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:02:20 -0700
-Message-ID: <200707192002.l6JK2Khp019656@imap1.linux-foundation.org>
+Subject: - readahead-convert-splice-invocations.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:01:16 -0700
+Message-ID: <200707192001.l6JK1GbK019522@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37604 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59250 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932264AbXGSUai (ORCPT
+	by vger.kernel.org with ESMTP id S932258AbXGSUag (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:30:38 -0400
+	Thu, 19 Jul 2007 16:30:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, axboe@suse.de, linuxram@us.ibm.com, rusty@rustcorp.com.au, slpratt@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coredump masking: ELF: enable core dump filtering
+     readahead: convert splice invocations
 has been removed from the -mm tree.  Its filename was
-     coredump-masking-elf-enable-core-dump-filtering.patch
+     readahead-convert-splice-invocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: coredump masking: ELF: enable core dump filtering
-From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
+Subject: readahead: convert splice invocations
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-This patch enables core dump filtering for ELF-formatted core file.
+Convert splice reads to use on-demand readahead.
 
-Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Steven Pratt <slpratt@austin.ibm.com>
+Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: Jens Axboe <axboe@suse.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   30 +++++++++++++++++++++---------
- 1 file changed, 21 insertions(+), 9 deletions(-)
+ fs/splice.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff -puN fs/binfmt_elf.c~coredump-masking-elf-enable-core-dump-filtering fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~coredump-masking-elf-enable-core-dump-filtering
-+++ a/fs/binfmt_elf.c
-@@ -1262,7 +1262,7 @@ static int dump_seek(struct file *file, 
-  *
-  * I think we should skip something. But I am not sure how. H.J.
-  */
--static int maydump(struct vm_area_struct *vma)
-+static int maydump(struct vm_area_struct *vma, unsigned long mm_flags)
- {
- 	/* The vma can be set up to tell us the answer directly.  */
- 	if (vma->vm_flags & VM_ALWAYSDUMP)
-@@ -1272,15 +1272,19 @@ static int maydump(struct vm_area_struct
- 	if (vma->vm_flags & (VM_IO | VM_RESERVED))
- 		return 0;
+diff -puN fs/splice.c~readahead-convert-splice-invocations fs/splice.c
+--- a/fs/splice.c~readahead-convert-splice-invocations
++++ a/fs/splice.c
+@@ -287,12 +287,6 @@ __generic_file_splice_read(struct file *
+ 		nr_pages = PIPE_BUFFERS;
  
--	/* Dump shared memory only if mapped from an anonymous file. */
--	if (vma->vm_flags & VM_SHARED)
--		return vma->vm_file->f_path.dentry->d_inode->i_nlink == 0;
-+	/* By default, dump shared memory if mapped from an anonymous file. */
-+	if (vma->vm_flags & VM_SHARED) {
-+		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0)
-+			return test_bit(MMF_DUMP_ANON_SHARED, &mm_flags);
-+		else
-+			return test_bit(MMF_DUMP_MAPPED_SHARED, &mm_flags);
-+	}
+ 	/*
+-	 * Don't try to 2nd guess the read-ahead logic, call into
+-	 * page_cache_readahead() like the page cache reads would do.
+-	 */
+-	page_cache_readahead(mapping, &in->f_ra, in, index, nr_pages);
+-
+-	/*
+ 	 * Lookup the (hopefully) full range of pages we need.
+ 	 */
+ 	spd.nr_pages = find_get_pages_contig(mapping, index, nr_pages, pages);
+@@ -310,11 +304,8 @@ __generic_file_splice_read(struct file *
+ 		 */
+ 		page = find_get_page(mapping, index);
+ 		if (!page) {
+-			/*
+-			 * Make sure the read-ahead engine is notified
+-			 * about this failure.
+-			 */
+-			handle_ra_miss(mapping, &in->f_ra, index);
++			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
++					NULL, index, nr_pages - spd.nr_pages);
  
--	/* If it hasn't been written to, don't write it out */
-+	/* By default, if it hasn't been written to, don't write it out. */
- 	if (!vma->anon_vma)
--		return 0;
-+		return test_bit(MMF_DUMP_MAPPED_PRIVATE, &mm_flags);
+ 			/*
+ 			 * page didn't exist, allocate one.
+@@ -361,6 +352,10 @@ __generic_file_splice_read(struct file *
+ 		this_len = min_t(unsigned long, len, PAGE_CACHE_SIZE - loff);
+ 		page = pages[page_nr];
  
--	return 1;
-+	return test_bit(MMF_DUMP_ANON_PRIVATE, &mm_flags);
- }
- 
- /* An ELF note in memory */
-@@ -1572,6 +1576,7 @@ static int elf_core_dump(long signr, str
- #endif
- 	int thread_status_size = 0;
- 	elf_addr_t *auxv;
-+	unsigned long mm_flags;
- #ifdef ELF_CORE_WRITE_EXTRA_NOTES
- 	int extra_notes_size;
- #endif
-@@ -1715,6 +1720,13 @@ static int elf_core_dump(long signr, str
- 
- 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
- 
-+	/*
-+	 * We must use the same mm->flags while dumping core to avoid
-+	 * inconsistency between the program headers and bodies, otherwise an
-+	 * unusable core file can be generated.
-+	 */
-+	mm_flags = current->mm->flags;
++		if (PageReadahead(page))
++			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
++					page, index, nr_pages - page_nr);
 +
- 	/* Write program headers for segments dump */
- 	for (vma = first_vma(current, gate_vma); vma != NULL;
- 			vma = next_vma(vma, gate_vma)) {
-@@ -1727,7 +1739,7 @@ static int elf_core_dump(long signr, str
- 		phdr.p_offset = offset;
- 		phdr.p_vaddr = vma->vm_start;
- 		phdr.p_paddr = 0;
--		phdr.p_filesz = maydump(vma) ? sz : 0;
-+		phdr.p_filesz = maydump(vma, mm_flags) ? sz : 0;
- 		phdr.p_memsz = sz;
- 		offset += phdr.p_filesz;
- 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
-@@ -1771,7 +1783,7 @@ static int elf_core_dump(long signr, str
- 			vma = next_vma(vma, gate_vma)) {
- 		unsigned long addr;
+ 		/*
+ 		 * If the page isn't uptodate, we may need to start io on it
+ 		 */
+@@ -453,6 +448,7 @@ fill_it:
+ 	 */
+ 	while (page_nr < nr_pages)
+ 		page_cache_release(pages[page_nr++]);
++	in->f_ra.prev_index = index;
  
--		if (!maydump(vma))
-+		if (!maydump(vma, mm_flags))
- 			continue;
- 
- 		for (addr = vma->vm_start;
+ 	if (spd.nr_pages)
+ 		return splice_to_pipe(pipe, &spd);
 _
 
-Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
