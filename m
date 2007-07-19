@@ -1,80 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-min_ra_pages-max_ra_pages-macros.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:01:06 -0700
-Message-ID: <200707192001.l6JK162k019510@imap1.linux-foundation.org>
+Subject: - coredump-masking-elf-enable-core-dump-filtering.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:20 -0700
+Message-ID: <200707192002.l6JK2Khp019656@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58668 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37604 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932228AbXGSUad (ORCPT
+	by vger.kernel.org with ESMTP id S932264AbXGSUai (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:30:33 -0400
+	Thu, 19 Jul 2007 16:30:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, linuxram@us.ibm.com, rusty@rustcorp.com.au, slpratt@austin.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: MIN_RA_PAGES/MAX_RA_PAGES macros
+     coredump masking: ELF: enable core dump filtering
 has been removed from the -mm tree.  Its filename was
-     readahead-min_ra_pages-max_ra_pages-macros.patch
+     coredump-masking-elf-enable-core-dump-filtering.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: readahead: MIN_RA_PAGES/MAX_RA_PAGES macros
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: coredump masking: ELF: enable core dump filtering
+From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
 
-Define two convenient macros for read-ahead:
-	- MAX_RA_PAGES: rounded down counterpart of VM_MAX_READAHEAD
-	- MIN_RA_PAGES: rounded _up_ counterpart of VM_MIN_READAHEAD
+This patch enables core dump filtering for ELF-formatted core file.
 
-Note that the rounded up MIN_RA_PAGES will work flawlessly with _large_
-page sizes like 64k.
-
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Steven Pratt <slpratt@austin.ibm.com>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: <stable@kernel.org>
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |   30 +++++++++++++++++++++---------
+ 1 file changed, 21 insertions(+), 9 deletions(-)
 
-diff -puN mm/readahead.c~readahead-min_ra_pages-max_ra_pages-macros mm/readahead.c
---- a/mm/readahead.c~readahead-min_ra_pages-max_ra_pages-macros
-+++ a/mm/readahead.c
-@@ -21,8 +21,16 @@ void default_unplug_io_fn(struct backing
- }
- EXPORT_SYMBOL(default_unplug_io_fn);
- 
-+/*
-+ * Convienent macros for min/max read-ahead pages.
-+ * Note that MAX_RA_PAGES is rounded down, while MIN_RA_PAGES is rounded up.
-+ * The latter is necessary for systems with large page size(i.e. 64k).
-+ */
-+#define MAX_RA_PAGES	(VM_MAX_READAHEAD*1024 / PAGE_CACHE_SIZE)
-+#define MIN_RA_PAGES	DIV_ROUND_UP(VM_MIN_READAHEAD*1024, PAGE_CACHE_SIZE)
-+
- struct backing_dev_info default_backing_dev_info = {
--	.ra_pages	= (VM_MAX_READAHEAD * 1024) / PAGE_CACHE_SIZE,
-+	.ra_pages	= MAX_RA_PAGES,
- 	.state		= 0,
- 	.capabilities	= BDI_CAP_MAP_COPY,
- 	.unplug_io_fn	= default_unplug_io_fn,
-@@ -51,7 +59,7 @@ static inline unsigned long get_max_read
- 
- static inline unsigned long get_min_readahead(struct file_ra_state *ra)
+diff -puN fs/binfmt_elf.c~coredump-masking-elf-enable-core-dump-filtering fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-masking-elf-enable-core-dump-filtering
++++ a/fs/binfmt_elf.c
+@@ -1262,7 +1262,7 @@ static int dump_seek(struct file *file, 
+  *
+  * I think we should skip something. But I am not sure how. H.J.
+  */
+-static int maydump(struct vm_area_struct *vma)
++static int maydump(struct vm_area_struct *vma, unsigned long mm_flags)
  {
--	return (VM_MIN_READAHEAD * 1024) / PAGE_CACHE_SIZE;
-+	return MIN_RA_PAGES;
+ 	/* The vma can be set up to tell us the answer directly.  */
+ 	if (vma->vm_flags & VM_ALWAYSDUMP)
+@@ -1272,15 +1272,19 @@ static int maydump(struct vm_area_struct
+ 	if (vma->vm_flags & (VM_IO | VM_RESERVED))
+ 		return 0;
+ 
+-	/* Dump shared memory only if mapped from an anonymous file. */
+-	if (vma->vm_flags & VM_SHARED)
+-		return vma->vm_file->f_path.dentry->d_inode->i_nlink == 0;
++	/* By default, dump shared memory if mapped from an anonymous file. */
++	if (vma->vm_flags & VM_SHARED) {
++		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0)
++			return test_bit(MMF_DUMP_ANON_SHARED, &mm_flags);
++		else
++			return test_bit(MMF_DUMP_MAPPED_SHARED, &mm_flags);
++	}
+ 
+-	/* If it hasn't been written to, don't write it out */
++	/* By default, if it hasn't been written to, don't write it out. */
+ 	if (!vma->anon_vma)
+-		return 0;
++		return test_bit(MMF_DUMP_MAPPED_PRIVATE, &mm_flags);
+ 
+-	return 1;
++	return test_bit(MMF_DUMP_ANON_PRIVATE, &mm_flags);
  }
  
- static inline void reset_ahead_window(struct file_ra_state *ra)
+ /* An ELF note in memory */
+@@ -1572,6 +1576,7 @@ static int elf_core_dump(long signr, str
+ #endif
+ 	int thread_status_size = 0;
+ 	elf_addr_t *auxv;
++	unsigned long mm_flags;
+ #ifdef ELF_CORE_WRITE_EXTRA_NOTES
+ 	int extra_notes_size;
+ #endif
+@@ -1715,6 +1720,13 @@ static int elf_core_dump(long signr, str
+ 
+ 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
+ 
++	/*
++	 * We must use the same mm->flags while dumping core to avoid
++	 * inconsistency between the program headers and bodies, otherwise an
++	 * unusable core file can be generated.
++	 */
++	mm_flags = current->mm->flags;
++
+ 	/* Write program headers for segments dump */
+ 	for (vma = first_vma(current, gate_vma); vma != NULL;
+ 			vma = next_vma(vma, gate_vma)) {
+@@ -1727,7 +1739,7 @@ static int elf_core_dump(long signr, str
+ 		phdr.p_offset = offset;
+ 		phdr.p_vaddr = vma->vm_start;
+ 		phdr.p_paddr = 0;
+-		phdr.p_filesz = maydump(vma) ? sz : 0;
++		phdr.p_filesz = maydump(vma, mm_flags) ? sz : 0;
+ 		phdr.p_memsz = sz;
+ 		offset += phdr.p_filesz;
+ 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
+@@ -1771,7 +1783,7 @@ static int elf_core_dump(long signr, str
+ 			vma = next_vma(vma, gate_vma)) {
+ 		unsigned long addr;
+ 
+-		if (!maydump(vma))
++		if (!maydump(vma, mm_flags))
+ 			continue;
+ 
+ 		for (addr = vma->vm_start;
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
 
 origin.patch
