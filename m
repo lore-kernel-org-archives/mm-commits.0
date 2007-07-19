@@ -1,330 +1,315 @@
 From: akpm@linux-foundation.org
-Subject: - arch-personality-independent-stack-top.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:01:46 -0700
-Message-ID: <200707192001.l6JK1kWB019567@imap1.linux-foundation.org>
+Subject: - readahead-split-ondemand-readahead-interface-into-two-functions.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:01:29 -0700
+Message-ID: <200707192001.l6JK1Tlp019540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54172 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38512 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754624AbXGSUZK (ORCPT
+	by vger.kernel.org with ESMTP id S1754336AbXGSUZ0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:25:10 -0400
+	Thu, 19 Jul 2007 16:25:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, aaw@google.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch: personality independent stack top
+     readahead: split ondemand readahead interface into two functions
 has been removed from the -mm tree.  Its filename was
-     arch-personality-independent-stack-top.patch
+     readahead-split-ondemand-readahead-interface-into-two-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch: personality independent stack top
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: readahead: split ondemand readahead interface into two functions
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-New arch macro STACK_TOP_MAX it gives the larges valid stack address for the
-architecture in question.
+Split ondemand readahead interface into two functions.  I think this makes it
+a little clearer for non-readahead experts (like Rusty).
 
-It differs from STACK_TOP in that it will not distinguish between
-personalities but will always return the largest possible address.
+Internally they both call ondemand_readahead(), but the page argument is
+changed to an obvious boolean flag.
 
-This is used to create the initial stack on execve, which we will move down to
-the proper location once the binfmt code has figured out where that is.
-
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Signed-off-by: Ollie Wild <aaw@google.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/a.out.h    |    2 ++
- include/asm-arm/a.out.h      |    1 +
- include/asm-arm26/a.out.h    |    1 +
- include/asm-avr32/a.out.h    |    1 +
- include/asm-cris/a.out.h     |    1 +
- include/asm-frv/mem-layout.h |    1 +
- include/asm-h8300/a.out.h    |    1 +
- include/asm-i386/a.out.h     |    1 +
- include/asm-ia64/ustack.h    |    1 +
- include/asm-m32r/a.out.h     |    1 +
- include/asm-m68k/a.out.h     |    1 +
- include/asm-mips/a.out.h     |    1 +
- include/asm-parisc/a.out.h   |    1 +
- include/asm-powerpc/a.out.h  |    3 +++
- include/asm-s390/a.out.h     |    1 +
- include/asm-sh/a.out.h       |    1 +
- include/asm-sh64/a.out.h     |    1 +
- include/asm-sparc/a.out.h    |    1 +
- include/asm-sparc64/a.out.h  |    2 ++
- include/asm-um/a.out.h       |    2 ++
- include/asm-x86_64/a.out.h   |    3 ++-
- include/asm-xtensa/a.out.h   |    1 +
- 22 files changed, 28 insertions(+), 1 deletion(-)
+ fs/ext3/dir.c      |    4 -
+ fs/ext4/dir.c      |    4 -
+ fs/splice.c        |    6 +-
+ include/linux/mm.h |   20 ++++++---
+ mm/filemap.c       |   10 ++--
+ mm/readahead.c     |   95 ++++++++++++++++++++++++++-----------------
+ 6 files changed, 84 insertions(+), 55 deletions(-)
 
-diff -puN include/asm-alpha/a.out.h~arch-personality-independent-stack-top include/asm-alpha/a.out.h
---- a/include/asm-alpha/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-alpha/a.out.h
-@@ -101,6 +101,8 @@ struct exec
- #define STACK_TOP \
-   (current->personality & ADDR_LIMIT_32BIT ? 0x80000000 : 0x00120000000UL)
+diff -puN fs/ext3/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/ext3/dir.c
+--- a/fs/ext3/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/fs/ext3/dir.c
+@@ -139,10 +139,10 @@ static int ext3_readdir(struct file * fi
+ 			pgoff_t index = map_bh.b_blocknr >>
+ 					(PAGE_CACHE_SHIFT - inode->i_blkbits);
+ 			if (!ra_has_index(&filp->f_ra, index))
+-				page_cache_readahead_ondemand(
++				page_cache_sync_readahead(
+ 					sb->s_bdev->bd_inode->i_mapping,
+ 					&filp->f_ra, filp,
+-					NULL, index, 1);
++					index, 1);
+ 			filp->f_ra.prev_index = index;
+ 			bh = ext3_bread(NULL, inode, blk, 0, &err);
+ 		}
+diff -puN fs/ext4/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/ext4/dir.c
+--- a/fs/ext4/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/fs/ext4/dir.c
+@@ -138,10 +138,10 @@ static int ext4_readdir(struct file * fi
+ 			pgoff_t index = map_bh.b_blocknr >>
+ 					(PAGE_CACHE_SHIFT - inode->i_blkbits);
+ 			if (!ra_has_index(&filp->f_ra, index))
+-				page_cache_readahead_ondemand(
++				page_cache_sync_readahead(
+ 					sb->s_bdev->bd_inode->i_mapping,
+ 					&filp->f_ra, filp,
+-					NULL, index, 1);
++					index, 1);
+ 			filp->f_ra.prev_index = index;
+ 			bh = ext4_bread(NULL, inode, blk, 0, &err);
+ 		}
+diff -puN fs/splice.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/splice.c
+--- a/fs/splice.c~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/fs/splice.c
+@@ -295,8 +295,8 @@ __generic_file_splice_read(struct file *
+ 	 * readahead/allocate the rest and fill in the holes.
+ 	 */
+ 	if (spd.nr_pages < nr_pages)
+-		page_cache_readahead_ondemand(mapping, &in->f_ra, in,
+-				NULL, index, req_pages - spd.nr_pages);
++		page_cache_sync_readahead(mapping, &in->f_ra, in,
++				index, req_pages - spd.nr_pages);
  
-+#define STACK_TOP_MAX	0x00120000000UL
+ 	error = 0;
+ 	while (spd.nr_pages < nr_pages) {
+@@ -352,7 +352,7 @@ __generic_file_splice_read(struct file *
+ 		page = pages[page_nr];
+ 
+ 		if (PageReadahead(page))
+-			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
++			page_cache_async_readahead(mapping, &in->f_ra, in,
+ 					page, index, req_pages - page_nr);
+ 
+ 		/*
+diff -puN include/linux/mm.h~readahead-split-ondemand-readahead-interface-into-two-functions include/linux/mm.h
+--- a/include/linux/mm.h~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/include/linux/mm.h
+@@ -1138,12 +1138,20 @@ int do_page_cache_readahead(struct addre
+ 			pgoff_t offset, unsigned long nr_to_read);
+ int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
+ 			pgoff_t offset, unsigned long nr_to_read);
+-unsigned long page_cache_readahead_ondemand(struct address_space *mapping,
+-			  struct file_ra_state *ra,
+-			  struct file *filp,
+-			  struct page *page,
+-			  pgoff_t offset,
+-			  unsigned long size);
 +
- #endif
- 
- #endif /* __A_OUT_GNU_H__ */
-diff -puN include/asm-arm/a.out.h~arch-personality-independent-stack-top include/asm-arm/a.out.h
---- a/include/asm-arm/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-arm/a.out.h
-@@ -30,6 +30,7 @@ struct exec
- #ifdef __KERNEL__
- #define STACK_TOP	((current->personality == PER_LINUX_32BIT) ? \
- 			 TASK_SIZE : TASK_SIZE_26)
-+#define STACK_TOP_MAX	TASK_SIZE
- #endif
- 
- #ifndef LIBRARY_START_TEXT
-diff -puN include/asm-arm26/a.out.h~arch-personality-independent-stack-top include/asm-arm26/a.out.h
---- a/include/asm-arm26/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-arm26/a.out.h
-@@ -29,6 +29,7 @@ struct exec
- 
- #ifdef __KERNEL__
- #define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- #endif
- 
- #ifndef LIBRARY_START_TEXT
-diff -puN include/asm-avr32/a.out.h~arch-personality-independent-stack-top include/asm-avr32/a.out.h
---- a/include/asm-avr32/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-avr32/a.out.h
-@@ -20,6 +20,7 @@ struct exec
- #ifdef __KERNEL__
- 
- #define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- 
- #endif
- 
-diff -puN include/asm-cris/a.out.h~arch-personality-independent-stack-top include/asm-cris/a.out.h
---- a/include/asm-cris/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-cris/a.out.h
-@@ -8,6 +8,7 @@
- 
- /* grabbed from the intel stuff  */   
- #define STACK_TOP TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- 
- 
- struct exec
-diff -puN include/asm-frv/mem-layout.h~arch-personality-independent-stack-top include/asm-frv/mem-layout.h
---- a/include/asm-frv/mem-layout.h~arch-personality-independent-stack-top
-+++ a/include/asm-frv/mem-layout.h
-@@ -60,6 +60,7 @@
-  */
- #define BRK_BASE			__UL(2 * 1024 * 1024 + PAGE_SIZE)
- #define STACK_TOP			__UL(2 * 1024 * 1024)
-+#define STACK_TOP_MAX	STACK_TOP
- 
- /* userspace process size */
- #ifdef CONFIG_MMU
-diff -puN include/asm-h8300/a.out.h~arch-personality-independent-stack-top include/asm-h8300/a.out.h
---- a/include/asm-h8300/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-h8300/a.out.h
-@@ -20,6 +20,7 @@ struct exec
- #ifdef __KERNEL__
- 
- #define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- 
- #endif
- 
-diff -puN include/asm-i386/a.out.h~arch-personality-independent-stack-top include/asm-i386/a.out.h
---- a/include/asm-i386/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-i386/a.out.h
-@@ -20,6 +20,7 @@ struct exec
- #ifdef __KERNEL__
- 
- #define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- 
- #endif
- 
-diff -puN include/asm-ia64/ustack.h~arch-personality-independent-stack-top include/asm-ia64/ustack.h
---- a/include/asm-ia64/ustack.h~arch-personality-independent-stack-top
-+++ a/include/asm-ia64/ustack.h
-@@ -11,6 +11,7 @@
- /* The absolute hard limit for stack size is 1/2 of the mappable space in the region */
- #define MAX_USER_STACK_SIZE	(RGN_MAP_LIMIT/2)
- #define STACK_TOP		(0x6000000000000000UL + RGN_MAP_LIMIT)
-+#define STACK_TOP_MAX		STACK_TOP
- #endif
- 
- /* Make a default stack size of 2GiB */
-diff -puN include/asm-m32r/a.out.h~arch-personality-independent-stack-top include/asm-m32r/a.out.h
---- a/include/asm-m32r/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-m32r/a.out.h
-@@ -20,6 +20,7 @@ struct exec
- #ifdef __KERNEL__
- 
- #define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- 
- #endif
- 
-diff -puN include/asm-m68k/a.out.h~arch-personality-independent-stack-top include/asm-m68k/a.out.h
---- a/include/asm-m68k/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-m68k/a.out.h
-@@ -20,6 +20,7 @@ struct exec
- #ifdef __KERNEL__
- 
- #define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- 
- #endif
- 
-diff -puN include/asm-mips/a.out.h~arch-personality-independent-stack-top include/asm-mips/a.out.h
---- a/include/asm-mips/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-mips/a.out.h
-@@ -40,6 +40,7 @@ struct exec
- #ifdef CONFIG_64BIT
- #define STACK_TOP	(current->thread.mflags & MF_32BIT_ADDR ? TASK_SIZE32 : TASK_SIZE)
- #endif
-+#define STACK_TOP_MAX	TASK_SIZE
- 
- #endif
- 
-diff -puN include/asm-parisc/a.out.h~arch-personality-independent-stack-top include/asm-parisc/a.out.h
---- a/include/asm-parisc/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-parisc/a.out.h
-@@ -23,6 +23,7 @@ struct exec
-  * prumpf */
- 
- #define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
- 
- #endif
- 
-diff -puN include/asm-powerpc/a.out.h~arch-personality-independent-stack-top include/asm-powerpc/a.out.h
---- a/include/asm-powerpc/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-powerpc/a.out.h
-@@ -26,9 +26,12 @@ struct exec
- #define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
- 		   STACK_TOP_USER32 : STACK_TOP_USER64)
- 
-+#define STACK_TOP_MAX STACK_TOP_USER64
++void page_cache_sync_readahead(struct address_space *mapping,
++			       struct file_ra_state *ra,
++			       struct file *filp,
++			       pgoff_t offset,
++			       unsigned long size);
 +
- #else /* __powerpc64__ */
- 
- #define STACK_TOP TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- 
- #endif /* __powerpc64__ */
- #endif /* __KERNEL__ */
-diff -puN include/asm-s390/a.out.h~arch-personality-independent-stack-top include/asm-s390/a.out.h
---- a/include/asm-s390/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-s390/a.out.h
-@@ -32,6 +32,7 @@ struct exec
- #ifdef __KERNEL__
- 
- #define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
- 
- #endif
- 
-diff -puN include/asm-sh/a.out.h~arch-personality-independent-stack-top include/asm-sh/a.out.h
---- a/include/asm-sh/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-sh/a.out.h
-@@ -20,6 +20,7 @@ struct exec
- #ifdef __KERNEL__
- 
- #define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- 
- #endif
- 
-diff -puN include/asm-sh64/a.out.h~arch-personality-independent-stack-top include/asm-sh64/a.out.h
---- a/include/asm-sh64/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-sh64/a.out.h
-@@ -31,6 +31,7 @@ struct exec
- #ifdef __KERNEL__
- 
- #define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- 
- #endif
- 
-diff -puN include/asm-sparc/a.out.h~arch-personality-independent-stack-top include/asm-sparc/a.out.h
---- a/include/asm-sparc/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-sparc/a.out.h
-@@ -92,6 +92,7 @@ struct relocation_info /* used when head
- #include <asm/page.h>
- 
- #define STACK_TOP	(PAGE_OFFSET - PAGE_SIZE)
-+#define STACK_TOP_MAX	STACK_TOP
- 
- #endif /* __KERNEL__ */
- 
-diff -puN include/asm-sparc64/a.out.h~arch-personality-independent-stack-top include/asm-sparc64/a.out.h
---- a/include/asm-sparc64/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-sparc64/a.out.h
-@@ -101,6 +101,8 @@ struct relocation_info /* used when head
- #define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
- 		   STACK_TOP32 : STACK_TOP64)
- 
-+#define STACK_TOP_MAX STACK_TOP64
++void page_cache_async_readahead(struct address_space *mapping,
++				struct file_ra_state *ra,
++				struct file *filp,
++				struct page *pg,
++				pgoff_t offset,
++				unsigned long size);
 +
- #endif
+ unsigned long max_sane_readahead(unsigned long nr);
  
- #endif /* !(__ASSEMBLY__) */
-diff -puN include/asm-um/a.out.h~arch-personality-independent-stack-top include/asm-um/a.out.h
---- a/include/asm-um/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-um/a.out.h
-@@ -17,4 +17,6 @@ extern int honeypot;
- #define STACK_TOP \
- 	CHOOSE_MODE((honeypot ? host_task_size : task_size), task_size)
- 
-+#define STACK_TOP_MAX	STACK_TOP
-+
- #endif
-diff -puN include/asm-x86_64/a.out.h~arch-personality-independent-stack-top include/asm-x86_64/a.out.h
---- a/include/asm-x86_64/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-x86_64/a.out.h
-@@ -21,7 +21,8 @@ struct exec
- 
- #ifdef __KERNEL__
- #include <linux/thread_info.h>
--#define STACK_TOP TASK_SIZE
-+#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	TASK_SIZE64
- #endif
- 
- #endif /* __A_OUT_GNU_H__ */
-diff -puN include/asm-xtensa/a.out.h~arch-personality-independent-stack-top include/asm-xtensa/a.out.h
---- a/include/asm-xtensa/a.out.h~arch-personality-independent-stack-top
-+++ a/include/asm-xtensa/a.out.h
-@@ -17,6 +17,7 @@
- /* Note: the kernel needs the a.out definitions, even if only ELF is used. */
- 
- #define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- 
- struct exec
+ /* Do stack extension */
+diff -puN mm/filemap.c~readahead-split-ondemand-readahead-interface-into-two-functions mm/filemap.c
+--- a/mm/filemap.c~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/mm/filemap.c
+@@ -894,15 +894,15 @@ void do_generic_mapping_read(struct addr
+ find_page:
+ 		page = find_get_page(mapping, index);
+ 		if (!page) {
+-			page_cache_readahead_ondemand(mapping,
+-					&ra, filp, page,
++			page_cache_sync_readahead(mapping,
++					&ra, filp,
+ 					index, last_index - index);
+ 			page = find_get_page(mapping, index);
+ 			if (unlikely(page == NULL))
+ 				goto no_cached_page;
+ 		}
+ 		if (PageReadahead(page)) {
+-			page_cache_readahead_ondemand(mapping,
++			page_cache_async_readahead(mapping,
+ 					&ra, filp, page,
+ 					index, last_index - index);
+ 		}
+@@ -1348,14 +1348,14 @@ retry_find:
+ 	 */
+ 	if (VM_SequentialReadHint(vma)) {
+ 		if (!page) {
+-			page_cache_readahead_ondemand(mapping, ra, file, page,
++			page_cache_sync_readahead(mapping, ra, file,
+ 							   vmf->pgoff, 1);
+ 			page = find_lock_page(mapping, vmf->pgoff);
+ 			if (!page)
+ 				goto no_cached_page;
+ 		}
+ 		if (PageReadahead(page)) {
+-			page_cache_readahead_ondemand(mapping, ra, file, page,
++			page_cache_async_readahead(mapping, ra, file, page,
+ 							   vmf->pgoff, 1);
+ 		}
+ 	}
+diff -puN mm/readahead.c~readahead-split-ondemand-readahead-interface-into-two-functions mm/readahead.c
+--- a/mm/readahead.c~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/mm/readahead.c
+@@ -359,7 +359,7 @@ static unsigned long get_next_ra_size(st
+ static unsigned long
+ ondemand_readahead(struct address_space *mapping,
+ 		   struct file_ra_state *ra, struct file *filp,
+-		   struct page *page, pgoff_t offset,
++		   bool hit_readahead_marker, pgoff_t offset,
+ 		   unsigned long req_size)
  {
+ 	unsigned long max;	/* max readahead pages */
+@@ -387,7 +387,7 @@ ondemand_readahead(struct address_space 
+ 	 * Standalone, small read.
+ 	 * Read as is, and do not pollute the readahead state.
+ 	 */
+-	if (!page && !sequential) {
++	if (!hit_readahead_marker && !sequential) {
+ 		return __do_page_cache_readahead(mapping, filp,
+ 						offset, req_size, 0);
+ 	}
+@@ -408,7 +408,7 @@ ondemand_readahead(struct address_space 
+ 	 * E.g. interleaved reads.
+ 	 * Not knowing its readahead pos/size, bet on the minimal possible one.
+ 	 */
+-	if (page) {
++	if (hit_readahead_marker) {
+ 		ra_index++;
+ 		ra_size = min(4 * ra_size, max);
+ 	}
+@@ -421,50 +421,71 @@ fill_ra:
+ }
+ 
+ /**
+- * page_cache_readahead_ondemand - generic file readahead
++ * page_cache_sync_readahead - generic file readahead
+  * @mapping: address_space which holds the pagecache and I/O vectors
+  * @ra: file_ra_state which holds the readahead state
+  * @filp: passed on to ->readpage() and ->readpages()
+- * @page: the page at @offset, or NULL if non-present
+- * @offset: start offset into @mapping, in PAGE_CACHE_SIZE units
++ * @offset: start offset into @mapping, in pagecache page-sized units
+  * @req_size: hint: total size of the read which the caller is performing in
+- *            PAGE_CACHE_SIZE units
++ *            pagecache pages
+  *
+- * page_cache_readahead_ondemand() is the entry point of readahead logic.
+- * This function should be called when it is time to perform readahead:
+- * 1) @page == NULL
+- *    A cache miss happened, time for synchronous readahead.
+- * 2) @page != NULL && PageReadahead(@page)
+- *    A look-ahead hit occured, time for asynchronous readahead.
++ * page_cache_sync_readahead() should be called when a cache miss happened:
++ * it will submit the read.  The readahead logic may decide to piggyback more
++ * pages onto the read request if access patterns suggest it will improve
++ * performance.
+  */
+-unsigned long
+-page_cache_readahead_ondemand(struct address_space *mapping,
+-				struct file_ra_state *ra, struct file *filp,
+-				struct page *page, pgoff_t offset,
+-				unsigned long req_size)
++void page_cache_sync_readahead(struct address_space *mapping,
++			       struct file_ra_state *ra, struct file *filp,
++			       pgoff_t offset, unsigned long req_size)
+ {
+ 	/* no read-ahead */
+ 	if (!ra->ra_pages)
+-		return 0;
++		return;
+ 
+-	if (page) {
+-		/*
+-		 * It can be PG_reclaim.
+-		 */
+-		if (PageWriteback(page))
+-			return 0;
+-
+-		ClearPageReadahead(page);
+-
+-		/*
+-		 * Defer asynchronous read-ahead on IO congestion.
+-		 */
+-		if (bdi_read_congested(mapping->backing_dev_info))
+-			return 0;
+-	}
++	/* do read-ahead */
++	ondemand_readahead(mapping, ra, filp, false, offset, req_size);
++}
++EXPORT_SYMBOL_GPL(page_cache_sync_readahead);
++
++/**
++ * page_cache_async_readahead - file readahead for marked pages
++ * @mapping: address_space which holds the pagecache and I/O vectors
++ * @ra: file_ra_state which holds the readahead state
++ * @filp: passed on to ->readpage() and ->readpages()
++ * @page: the page at @offset which has the PG_readahead flag set
++ * @offset: start offset into @mapping, in pagecache page-sized units
++ * @req_size: hint: total size of the read which the caller is performing in
++ *            pagecache pages
++ *
++ * page_cache_async_ondemand() should be called when a page is used which
++ * has the PG_readahead flag: this is a marker to suggest that the application
++ * has used up enough of the readahead window that we should start pulling in
++ * more pages. */
++void
++page_cache_async_readahead(struct address_space *mapping,
++			   struct file_ra_state *ra, struct file *filp,
++			   struct page *page, pgoff_t offset,
++			   unsigned long req_size)
++{
++	/* no read-ahead */
++	if (!ra->ra_pages)
++		return;
++
++	/*
++	 * Same bit is used for PG_readahead and PG_reclaim.
++	 */
++	if (PageWriteback(page))
++		return;
++
++	ClearPageReadahead(page);
++
++	/*
++	 * Defer asynchronous read-ahead on IO congestion.
++	 */
++	if (bdi_read_congested(mapping->backing_dev_info))
++		return;
+ 
+ 	/* do read-ahead */
+-	return ondemand_readahead(mapping, ra, filp, page,
+-					offset, req_size);
++	ondemand_readahead(mapping, ra, filp, true, offset, req_size);
+ }
+-EXPORT_SYMBOL_GPL(page_cache_readahead_ondemand);
++EXPORT_SYMBOL_GPL(page_cache_async_readahead);
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+git-kbuild.patch
+git-kvm.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
