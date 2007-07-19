@@ -1,162 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-make-dump_error_regs-a-chip-op.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:19 -0700
-Message-ID: <200707192009.l6JK9JPb020569@imap1.linux-foundation.org>
+Subject: - drivers-edac-lindent-i82860.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:06:22 -0700
+Message-ID: <200707192006.l6JK6MaD020131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46402 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35631 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759889AbXGSUPh (ORCPT
+	by vger.kernel.org with ESMTP id S1761077AbXGSUPi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:37 -0400
+	Thu, 19 Jul 2007 16:15:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
+To: djiang@mvista.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary: make dump_error_regs a chip op
+     drivers/edac: Lindent i82860
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-make-dump_error_regs-a-chip-op.patch
+     drivers-edac-lindent-i82860.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: Calgary: make dump_error_regs a chip op
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: drivers/edac: Lindent i82860
+From: Dave Jiang <djiang@mvista.com>
 
-Provide seperate versions for Calgary and CalIOC2
+Lindent cleanup of i82860 edac driver
 
-Also print out the PCIe Root Complex Status on CalIOC2 errors
-
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Dave Jiang <djiang@mvista.com>
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |   42 +++++++++++++++++++++++------
- include/asm-x86_64/calgary.h     |    1 
- 2 files changed, 35 insertions(+), 8 deletions(-)
+ drivers/edac/i82860_edac.c |   40 ++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 21 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-make-dump_error_regs-a-chip-op arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-make-dump_error_regs-a-chip-op
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -83,6 +83,7 @@ int use_calgary __read_mostly = 0;
- #define PHB_SAVIOR_L2           0x0DB0
- #define PHB_PAGE_MIG_CTRL       0x0DA8
- #define PHB_PAGE_MIG_DEBUG      0x0DA0
-+#define PHB_ROOT_COMPLEX_STATUS 0x0CB0
+diff -puN drivers/edac/i82860_edac.c~drivers-edac-lindent-i82860 drivers/edac/i82860_edac.c
+--- a/drivers/edac/i82860_edac.c~drivers-edac-lindent-i82860
++++ a/drivers/edac/i82860_edac.c
+@@ -54,8 +54,7 @@ struct i82860_error_info {
  
- /* PHB_CONFIG_RW */
- #define PHB_TCE_ENABLE		0x20000000
-@@ -165,17 +166,21 @@ struct calgary_bus_info {
- 
- static void calgary_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
- static void calgary_tce_cache_blast(struct iommu_table *tbl);
-+static void calgary_dump_error_regs(struct iommu_table *tbl);
- static void calioc2_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
- static void calioc2_tce_cache_blast(struct iommu_table *tbl);
-+static void calioc2_dump_error_regs(struct iommu_table *tbl);
- 
- static struct cal_chipset_ops calgary_chip_ops = {
- 	.handle_quirks = calgary_handle_quirks,
--	.tce_cache_blast = calgary_tce_cache_blast
-+	.tce_cache_blast = calgary_tce_cache_blast,
-+	.dump_error_regs = calgary_dump_error_regs
+ static const struct i82860_dev_info i82860_devs[] = {
+ 	[I82860] = {
+-		.ctl_name = "i82860"
+-	},
++		    .ctl_name = "i82860"},
  };
  
- static struct cal_chipset_ops calioc2_chip_ops = {
- 	.handle_quirks = calioc2_handle_quirks,
--	.tce_cache_blast = calioc2_tce_cache_blast
-+	.tce_cache_blast = calioc2_tce_cache_blast,
-+	.dump_error_regs = calioc2_dump_error_regs
- };
+ static struct pci_dev *mci_pdev = NULL;	/* init dev: in case that AGP code
+@@ -63,7 +62,7 @@ static struct pci_dev *mci_pdev = NULL;	
+ 					 */
  
- static struct calgary_bus_info bus_info[MAX_PHB_BUS_NUM] = { { NULL, 0, 0 }, };
-@@ -895,7 +900,21 @@ static void __init calgary_free_bus(stru
- static void calgary_dump_error_regs(struct iommu_table *tbl)
+ static void i82860_get_error_info(struct mem_ctl_info *mci,
+-		struct i82860_error_info *info)
++				  struct i82860_error_info *info)
  {
- 	void __iomem *bbar = tbl->bbar;
--	u32 csr, csmr, plssr, mck;
-+	u32 val32;
-+	void __iomem *target;
-+
-+	target = calgary_reg(bbar, phb_offset(tbl->it_busno) | PHB_CSR_OFFSET);
-+	val32 = be32_to_cpu(readl(target));
-+
-+	/* If no error, the agent ID in the CSR is not valid */
-+	printk(KERN_EMERG "Calgary: DMA error on Calgary PHB 0x%x, "
-+	       "CSR = 0x%08x\n", tbl->it_busno, val32);
-+}
-+
-+static void calioc2_dump_error_regs(struct iommu_table *tbl)
-+{
-+	void __iomem *bbar = tbl->bbar;
-+	u32 csr, csmr, plssr, mck, rcstat;
- 	void __iomem *target;
- 	unsigned long phboff = phb_offset(tbl->it_busno);
- 	unsigned long erroff;
-@@ -915,8 +934,11 @@ static void calgary_dump_error_regs(stru
- 	target = calgary_reg(bbar, phboff | 0x800);
- 	mck = be32_to_cpu(readl(target));
+ 	struct pci_dev *pdev;
  
--	printk(KERN_EMERG "Calgary: 0x%08x@CSR 0x%08x@PLSSR 0x%08x@CSMR "
--	       "0x%08x@MCK\n", csr, plssr, csmr, mck);
-+	printk(KERN_EMERG "Calgary: DMA error on CalIOC2 PHB 0x%x\n",
-+	       tbl->it_busno);
-+
-+	printk(KERN_EMERG "Calgary: 0x%08x@CSR 0x%08x@PLSSR 0x%08x@CSMR 0x%08x@MCK\n",
-+	       csr, plssr, csmr, mck);
+@@ -91,13 +90,13 @@ static void i82860_get_error_info(struct
  
- 	/* dump rest of error regs */
- 	printk(KERN_EMERG "Calgary: ");
-@@ -927,6 +949,12 @@ static void calgary_dump_error_regs(stru
- 		printk("0x%08x@0x%lx ", errregs[i], erroff);
+ 	if ((info->errsts ^ info->errsts2) & 0x0003) {
+ 		pci_read_config_dword(pdev, I82860_EAP, &info->eap);
+-		pci_read_config_word(pdev, I82860_DERRCTL_STS,
+-				&info->derrsyn);
++		pci_read_config_word(pdev, I82860_DERRCTL_STS, &info->derrsyn);
  	}
- 	printk("\n");
-+
-+	/* root complex status */
-+	target = calgary_reg(bbar, phboff | PHB_ROOT_COMPLEX_STATUS);
-+	rcstat = be32_to_cpu(readl(target));
-+	printk(KERN_EMERG "Calgary: 0x%08x@0x%x\n", rcstat,
-+	       PHB_ROOT_COMPLEX_STATUS);
  }
  
- static void calgary_watchdog(unsigned long data)
-@@ -942,9 +970,7 @@ static void calgary_watchdog(unsigned lo
+ static int i82860_process_error_info(struct mem_ctl_info *mci,
+-		struct i82860_error_info *info, int handle_errors)
++				     struct i82860_error_info *info,
++				     int handle_errors)
+ {
+ 	int row;
  
- 	/* If no error, the agent ID in the CSR is not valid */
- 	if (val32 & CSR_AGENT_MASK) {
--		printk(KERN_EMERG "Calgary: DMA error on PHB %#x\n",
--		       dev->bus->number);
--		calgary_dump_error_regs(tbl);
-+		tbl->chip_ops->dump_error_regs(tbl);
+@@ -119,7 +118,7 @@ static int i82860_process_error_info(str
+ 		edac_mc_handle_ue(mci, info->eap, 0, row, "i82860 UE");
+ 	else
+ 		edac_mc_handle_ce(mci, info->eap, 0, info->derrsyn, row, 0,
+-				"i82860 UE");
++				  "i82860 UE");
  
- 		/* reset error */
- 		writel(0, target);
-diff -puN include/asm-x86_64/calgary.h~x86-64-calgary-make-dump_error_regs-a-chip-op include/asm-x86_64/calgary.h
---- a/include/asm-x86_64/calgary.h~x86-64-calgary-make-dump_error_regs-a-chip-op
-+++ a/include/asm-x86_64/calgary.h
-@@ -46,6 +46,7 @@ struct iommu_table {
- struct cal_chipset_ops {
- 	void (*handle_quirks)(struct iommu_table *tbl, struct pci_dev *dev);
- 	void (*tce_cache_blast)(struct iommu_table *tbl);
-+	void (*dump_error_regs)(struct iommu_table *tbl);
+ 	return 1;
+ }
+@@ -136,7 +135,7 @@ static void i82860_check(struct mem_ctl_
+ static void i82860_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev)
+ {
+ 	unsigned long last_cumul_size;
+-	u16 mchcfg_ddim;  /* DRAM Data Integrity Mode 0=none, 2=edac */
++	u16 mchcfg_ddim;	/* DRAM Data Integrity Mode 0=none, 2=edac */
+ 	u16 value;
+ 	u32 cumul_size;
+ 	struct csrow_info *csrow;
+@@ -204,12 +203,12 @@ static int i82860_probe1(struct pci_dev 
+ 	mci->edac_check = i82860_check;
+ 	mci->ctl_page_to_phys = NULL;
+ 	i82860_init_csrows(mci, pdev);
+-	i82860_get_error_info(mci, &discard);  /* clear counters */
++	i82860_get_error_info(mci, &discard);	/* clear counters */
+ 
+ 	/* Here we assume that we will never see multiple instances of this
+ 	 * type of memory controller.  The ID is therefore hardcoded to 0.
+ 	 */
+-	if (edac_mc_add_mc(mci,0)) {
++	if (edac_mc_add_mc(mci, 0)) {
+ 		debugf3("%s(): failed edac_mc_add_mc()\n", __func__);
+ 		goto fail;
+ 	}
+@@ -219,14 +218,14 @@ static int i82860_probe1(struct pci_dev 
+ 
+ 	return 0;
+ 
+-fail:
++      fail:
+ 	edac_mc_free(mci);
+ 	return -ENODEV;
+ }
+ 
+ /* returns count (>= 0), or negative on error */
+ static int __devinit i82860_init_one(struct pci_dev *pdev,
+-		const struct pci_device_id *ent)
++				     const struct pci_device_id *ent)
+ {
+ 	int rc;
+ 
+@@ -258,12 +257,11 @@ static void __devexit i82860_remove_one(
+ 
+ static const struct pci_device_id i82860_pci_tbl[] __devinitdata = {
+ 	{
+-		PCI_VEND_DEV(INTEL, 82860_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+-		I82860
+-	},
++	 PCI_VEND_DEV(INTEL, 82860_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
++	 I82860},
+ 	{
+-		0,
+-	}	/* 0 terminated list. */
++	 0,
++	 }			/* 0 terminated list. */
  };
  
- #define TCE_TABLE_SIZE_UNSPECIFIED	~0
+ MODULE_DEVICE_TABLE(pci, i82860_pci_tbl);
+@@ -286,7 +284,7 @@ static int __init i82860_init(void)
+ 
+ 	if (!mci_pdev) {
+ 		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
+-					PCI_DEVICE_ID_INTEL_82860_0, NULL);
++					  PCI_DEVICE_ID_INTEL_82860_0, NULL);
+ 
+ 		if (mci_pdev == NULL) {
+ 			debugf0("860 pci_get_device fail\n");
+@@ -305,10 +303,10 @@ static int __init i82860_init(void)
+ 
+ 	return 0;
+ 
+-fail1:
++      fail1:
+ 	pci_unregister_driver(&i82860_driver);
+ 
+-fail0:
++      fail0:
+ 	if (mci_pdev != NULL)
+ 		pci_dev_put(mci_pdev);
+ 
+@@ -330,5 +328,5 @@ module_exit(i82860_exit);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com) "
+-	"Ben Woodard <woodard@redhat.com>");
++	      "Ben Woodard <woodard@redhat.com>");
+ MODULE_DESCRIPTION("ECC support for Intel 82860 memory hub controllers");
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from djiang@mvista.com are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
