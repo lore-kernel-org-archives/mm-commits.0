@@ -1,95 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:02:55 -0700
-Message-ID: <200707192002.l6JK2tRQ019797@imap1.linux-foundation.org>
+Subject: - drivers-edac-fix-e752x-reversed-csrows.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:07:09 -0700
+Message-ID: <200707192007.l6JK79C9020236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46020 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37251 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761107AbXGSUQZ (ORCPT
+	by vger.kernel.org with ESMTP id S1761314AbXGSUQY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:25 -0400
+	Thu, 19 Jul 2007 16:16:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
+To: mgrondona@llnl.gov, dougthompson@xmission.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coda: do not grab an uninitialized fd when the open upcall returns an error
+     drivers/edac: fix e752x reversed csrows
 has been removed from the -mm tree.  Its filename was
-     coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error.patch
+     drivers-edac-fix-e752x-reversed-csrows.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: coda: do not grab an uninitialized fd when the open upcall returns an error
-From: Jan Harkes <jaharkes@cs.cmu.edu>
+Subject: drivers/edac: fix e752x reversed csrows
+From: Mark Grondona <mgrondona@llnl.gov>
 
-When open fails the fd in the response is uninitialized and we ended up taking
-a reference on the file struct and never released it.
+Found a 'reversal' decoding bug in the driver.  This patch fixes that mapping
+to correctly display the CSROW entries in their proper order.  Users will be
+enable to correctly identifiy the failing DIMM with this fix.
 
-Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
+[akpm@linux-foundation.org: unneeded (and undesirable) cast of void*]
+Cc: Alan Cox alan@lxorguk.ukuu.org.uk
+Signed-off-by: Mark Grondona <mgrondona@llnl.gov>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/file.c   |    7 +++++--
- fs/coda/psdev.c  |    3 ++-
- fs/coda/upcall.c |   10 +++++-----
- 3 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/edac/e752x_edac.c |   34 +++++++++++++++++++++-------------
+ 1 file changed, 21 insertions(+), 13 deletions(-)
 
-diff -puN fs/coda/file.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error fs/coda/file.c
---- a/fs/coda/file.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error
-+++ a/fs/coda/file.c
-@@ -143,8 +143,11 @@ int coda_open(struct inode *coda_inode, 
- 	lock_kernel();
+diff -puN drivers/edac/e752x_edac.c~drivers-edac-fix-e752x-reversed-csrows drivers/edac/e752x_edac.c
+--- a/drivers/edac/e752x_edac.c~drivers-edac-fix-e752x-reversed-csrows
++++ a/drivers/edac/e752x_edac.c
+@@ -284,9 +284,6 @@ static void do_process_ce(struct mem_ctl
+ 	/* 0 = channel A, 1 = channel B */
+ 	channel = !(error_one & 1);
  
- 	error = venus_open(coda_inode->i_sb, coda_i2f(coda_inode), coda_flags,
--			   &host_file); 
--	if (error || !host_file) {
-+			   &host_file);
-+	if (!host_file)
-+		error = -EIO;
-+
-+	if (error) {
- 		kfree(cfi);
- 		unlock_kernel();
- 		return error;
-diff -puN fs/coda/psdev.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error fs/coda/psdev.c
---- a/fs/coda/psdev.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error
-+++ a/fs/coda/psdev.c
-@@ -195,7 +195,8 @@ static ssize_t coda_psdev_write(struct f
- 	if (req->uc_opcode == CODA_OPEN_BY_FD) {
- 		struct coda_open_by_fd_out *outp =
- 			(struct coda_open_by_fd_out *)req->uc_data;
--		outp->fh = fget(outp->fd);
-+		if (!outp->oh.result)
-+			outp->fh = fget(outp->fd);
- 	}
- 
-         wake_up(&req->uc_sleep);
-diff -puN fs/coda/upcall.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error fs/coda/upcall.c
---- a/fs/coda/upcall.c~coda-do-not-grab-an-uninitialized-fd-when-the-open-upcall-returns-an-error
-+++ a/fs/coda/upcall.c
-@@ -251,12 +251,12 @@ int venus_open(struct super_block *sb, s
- 	insize = SIZE(open_by_fd);
- 	UPARG(CODA_OPEN_BY_FD);
- 
--        inp->coda_open.VFid = *fid;
--        inp->coda_open.flags = flags;
-+	inp->coda_open_by_fd.VFid = *fid;
-+	inp->coda_open_by_fd.flags = flags;
- 
--        error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
+-	if (!pvt->map_type)
+-		row = 7 - row;
 -
--	*fh = outp->coda_open_by_fd.fh;
-+	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
-+	if (!error)
-+		*fh = outp->coda_open_by_fd.fh;
+ 	/* e752x mc reads 34:6 of the DRAM linear address */
+ 	edac_mc_handle_ce(mci, page, offset_in_page(sec1_add << 4),
+ 			sec1_syndrome, row, channel, "e752x CE");
+@@ -774,6 +771,18 @@ static inline int dual_channel_active(u1
+ 	return (((ddrcsr >> 12) & 3) == 3);
+ }
  
- 	CODA_FREE(inp, insize);
- 	return error;
++/* Remap csrow index numbers if map_type is "reverse"
++ */
++static inline int remap_csrow_index(struct mem_ctl_info *mci, int index)
++{
++	struct e752x_pvt *pvt = mci->pvt_info;
++
++	if (!pvt->map_type)
++		return (7 - index);
++
++	return (index);
++}
++
+ static void e752x_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev,
+ 			u16 ddrcsr)
+ {
+@@ -804,7 +813,7 @@ static void e752x_init_csrows(struct mem
+ 	for (last_cumul_size = index = 0; index < mci->nr_csrows; index++) {
+ 		/* mem_dev 0=x8, 1=x4 */
+ 		mem_dev = (dra >> (index * 4 + 2)) & 0x3;
+-		csrow = &mci->csrows[index];
++		csrow = &mci->csrows[remap_csrow_index(mci, index)];
+ 
+ 		mem_dev = (mem_dev == 2);
+ 		pci_read_config_byte(pdev, E752X_DRB + index, &value);
+@@ -844,7 +853,7 @@ static void e752x_init_mem_map_table(str
+ 				struct e752x_pvt *pvt)
+ {
+ 	int index;
+-	u8 value, last, row, stat8;
++	u8 value, last, row;
+ 
+ 	last = 0;
+ 	row = 0;
+@@ -873,10 +882,6 @@ static void e752x_init_mem_map_table(str
+ 			last = value;
+ 		}
+ 	}
+-
+-	/* set the map type.  1 = normal, 0 = reversed */
+-	pci_read_config_byte(pdev, E752X_DRM, &stat8);
+-	pvt->map_type = ((stat8 & 0x0f) > ((stat8 >> 4) & 0x0f));
+ }
+ 
+ /* Return 0 on success or 1 on failure. */
+@@ -1003,13 +1008,16 @@ static int e752x_probe1(struct pci_dev *
+ 	mci->edac_check = e752x_check;
+ 	mci->ctl_page_to_phys = ctl_page_to_phys;
+ 
+-	e752x_init_csrows(mci, pdev, ddrcsr);
+-	e752x_init_mem_map_table(pdev, pvt);
+-
+-	/* set the map type.  1 = normal, 0 = reversed */
++	/* set the map type.  1 = normal, 0 = reversed
++	 * Must be set before e752x_init_csrows in case csrow mapping
++	 * is reversed.
++	 */
+ 	pci_read_config_byte(pdev, E752X_DRM, &stat8);
+ 	pvt->map_type = ((stat8 & 0x0f) > ((stat8 >> 4) & 0x0f));
+ 
++	e752x_init_csrows(mci, pdev, ddrcsr);
++	e752x_init_mem_map_table(pdev, pvt);
++
+ 	mci->edac_cap |= EDAC_FLAG_NONE;
+ 	debugf3("%s(): tolm, remapbase, remaplimit\n", __func__);
+ 
 _
 
-Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
+Patches currently in -mm which might be from mgrondona@llnl.gov are
 
 origin.patch
