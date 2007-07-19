@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - driver-edac-i5000-code-tidying.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:06:57 -0700
-Message-ID: <200707192006.l6JK6vfW020211@imap1.linux-foundation.org>
+Subject: - drivers-edac-mod-use-edac_coreh.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:05:44 -0700
+Message-ID: <200707192005.l6JK5irD020066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54682 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34760 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758638AbXGSUPP (ORCPT
+	by vger.kernel.org with ESMTP id S1759376AbXGSUPP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:15:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,331 +15,217 @@ To: dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: i5000 code tidying
+     drivers/edac: mod use edac_core.h
 has been removed from the -mm tree.  Its filename was
-     driver-edac-i5000-code-tidying.patch
+     drivers-edac-mod-use-edac_coreh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: i5000 code tidying
+Subject: drivers/edac: mod use edac_core.h
 From: Douglas Thompson <dougthompson@xmission.com>
 
-Various code style conformance patches on the i5000 driver
+In the refactoring of edac_mc.c into several subsystem files,
+the header file edac_mc.h became meaningless. A new header file
+edac_core.h was created. All the files that previously included
+"edac_mc.h" are changed to include "edac_core.h".
 
 Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i5000_edac.c |   71 +++++++++++++++++-------------------
- 1 file changed, 35 insertions(+), 36 deletions(-)
+ drivers/edac/amd76x_edac.c     |    4 ++--
+ drivers/edac/e752x_edac.c      |    4 ++--
+ drivers/edac/e7xxx_edac.c      |    4 ++--
+ drivers/edac/edac_mc.c         |    2 +-
+ drivers/edac/edac_mc_sysfs.c   |    2 +-
+ drivers/edac/edac_module.c     |    4 ++--
+ drivers/edac/edac_pci_sysfs.c  |    4 ++--
+ drivers/edac/i5000_edac.c      |    4 ++--
+ drivers/edac/i82443bxgx_edac.c |    2 +-
+ drivers/edac/i82860_edac.c     |    4 ++--
+ drivers/edac/i82875p_edac.c    |    4 ++--
+ drivers/edac/r82600_edac.c     |    4 ++--
+ 12 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN drivers/edac/i5000_edac.c~driver-edac-i5000-code-tidying drivers/edac/i5000_edac.c
---- a/drivers/edac/i5000_edac.c~driver-edac-i5000-code-tidying
+diff -puN drivers/edac/amd76x_edac.c~drivers-edac-mod-use-edac_coreh drivers/edac/amd76x_edac.c
+--- a/drivers/edac/amd76x_edac.c~drivers-edac-mod-use-edac_coreh
++++ a/drivers/edac/amd76x_edac.c
+@@ -17,9 +17,9 @@
+ #include <linux/pci.h>
+ #include <linux/pci_ids.h>
+ #include <linux/slab.h>
+-#include "edac_mc.h"
++#include "edac_core.h"
+ 
+-#define AMD76X_REVISION	" Ver: 2.0.1 "  __DATE__
++#define AMD76X_REVISION	" Ver: 2.0.2 "  __DATE__
+ #define EDAC_MOD_STR	"amd76x_edac"
+ 
+ #define amd76x_printk(level, fmt, arg...) \
+diff -puN drivers/edac/e752x_edac.c~drivers-edac-mod-use-edac_coreh drivers/edac/e752x_edac.c
+--- a/drivers/edac/e752x_edac.c~drivers-edac-mod-use-edac_coreh
++++ a/drivers/edac/e752x_edac.c
+@@ -23,9 +23,9 @@
+ #include <linux/pci_ids.h>
+ #include <linux/slab.h>
+ #include <linux/edac.h>
+-#include "edac_mc.h"
++#include "edac_core.h"
+ 
+-#define E752X_REVISION	" Ver: 2.0.1 " __DATE__
++#define E752X_REVISION	" Ver: 2.0.2 " __DATE__
+ #define EDAC_MOD_STR	"e752x_edac"
+ 
+ static int force_function_unhide;
+diff -puN drivers/edac/e7xxx_edac.c~drivers-edac-mod-use-edac_coreh drivers/edac/e7xxx_edac.c
+--- a/drivers/edac/e7xxx_edac.c~drivers-edac-mod-use-edac_coreh
++++ a/drivers/edac/e7xxx_edac.c
+@@ -28,9 +28,9 @@
+ #include <linux/pci_ids.h>
+ #include <linux/slab.h>
+ #include <linux/edac.h>
+-#include "edac_mc.h"
++#include "edac_core.h"
+ 
+-#define	E7XXX_REVISION " Ver: 2.0.1 " __DATE__
++#define	E7XXX_REVISION " Ver: 2.0.2 " __DATE__
+ #define	EDAC_MOD_STR	"e7xxx_edac"
+ 
+ #define e7xxx_printk(level, fmt, arg...) \
+diff -puN drivers/edac/edac_mc.c~drivers-edac-mod-use-edac_coreh drivers/edac/edac_mc.c
+--- a/drivers/edac/edac_mc.c~drivers-edac-mod-use-edac_coreh
++++ a/drivers/edac/edac_mc.c
+@@ -31,7 +31,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/page.h>
+ #include <asm/edac.h>
+-#include "edac_mc.h"
++#include "edac_core.h"
+ #include "edac_module.h"
+ 
+ 
+diff -puN drivers/edac/edac_mc_sysfs.c~drivers-edac-mod-use-edac_coreh drivers/edac/edac_mc_sysfs.c
+--- a/drivers/edac/edac_mc_sysfs.c~drivers-edac-mod-use-edac_coreh
++++ a/drivers/edac/edac_mc_sysfs.c
+@@ -12,7 +12,7 @@
+ #include <linux/sysdev.h>
+ #include <linux/ctype.h>
+ 
+-#include "edac_mc.h"
++#include "edac_core.h"
+ #include "edac_module.h"
+ 
+ /* MC EDAC Controls, setable by module parameter, and sysfs */
+diff -puN drivers/edac/edac_module.c~drivers-edac-mod-use-edac_coreh drivers/edac/edac_module.c
+--- a/drivers/edac/edac_module.c~drivers-edac-mod-use-edac_coreh
++++ a/drivers/edac/edac_module.c
+@@ -3,10 +3,10 @@
+ #include <linux/kthread.h>
+ #include <linux/edac.h>
+ 
+-#include "edac_mc.h"
++#include "edac_core.h"
+ #include "edac_module.h"
+ 
+-#define EDAC_MC_VERSION "Ver: 2.0.3" __DATE__
++#define EDAC_MC_VERSION "Ver: 2.0.4 " __DATE__
+ 
+ #ifdef CONFIG_EDAC_DEBUG
+ /* Values of 0 to 4 will generate output */
+diff -puN drivers/edac/edac_pci_sysfs.c~drivers-edac-mod-use-edac_coreh drivers/edac/edac_pci_sysfs.c
+--- a/drivers/edac/edac_pci_sysfs.c~drivers-edac-mod-use-edac_coreh
++++ a/drivers/edac/edac_pci_sysfs.c
+@@ -1,4 +1,4 @@
+-/* edac_mc kernel module
++/*
+  * (C) 2005, 2006 Linux Networx (http://lnxi.com)
+  * This file may be distributed under the terms of the
+  * GNU General Public License.
+@@ -10,7 +10,7 @@
+ #include <linux/sysdev.h>
+ #include <linux/ctype.h>
+ 
+-#include "edac_mc.h"
++#include "edac_core.h"
+ #include "edac_module.h"
+ 
+ 
+diff -puN drivers/edac/i5000_edac.c~drivers-edac-mod-use-edac_coreh drivers/edac/i5000_edac.c
+--- a/drivers/edac/i5000_edac.c~drivers-edac-mod-use-edac_coreh
 +++ a/drivers/edac/i5000_edac.c
-@@ -384,18 +384,18 @@ struct i5000_error_info {
+@@ -22,12 +22,12 @@
+ #include <linux/edac.h>
+ #include <asm/mmzone.h>
  
- static struct edac_pci_ctl_info *i5000_pci;
+-#include "edac_mc.h"
++#include "edac_core.h"
  
--/******************************************************************************
-+/*
-  *	i5000_get_error_info	Retrieve the hardware error information from
-  *				the hardware and cache it in the 'info'
-  *				structure
+ /*
+  * Alter this version for the I5000 module when modifications are made
   */
- static void i5000_get_error_info(struct mem_ctl_info *mci,
--				 struct i5000_error_info * info)
-+				 struct i5000_error_info *info)
- {
- 	struct i5000_pvt *pvt;
- 	u32 value;
+-#define I5000_REVISION    " Ver: 2.0.11.devel " __DATE__
++#define I5000_REVISION    " Ver: 2.0.12 " __DATE__
  
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
+ #define i5000_printk(level, fmt, arg...) \
+         edac_printk(level, "i5000", fmt, ##arg)
+diff -puN drivers/edac/i82443bxgx_edac.c~drivers-edac-mod-use-edac_coreh drivers/edac/i82443bxgx_edac.c
+--- a/drivers/edac/i82443bxgx_edac.c~drivers-edac-mod-use-edac_coreh
++++ a/drivers/edac/i82443bxgx_edac.c
+@@ -29,7 +29,7 @@
  
- 	/* read in the 1st FATAL error register */
- 	pci_read_config_dword(pvt->branchmap_werrors, FERR_FAT_FBD, &value);
-@@ -457,7 +457,7 @@ static void i5000_get_error_info(struct 
- 	}
- }
+ #include <linux/slab.h>
  
--/******************************************************************************
-+/*
-  * i5000_process_fatal_error_info(struct mem_ctl_info *mci,
-  * 					struct i5000_error_info *info,
-  * 					int handle_errors);
-@@ -465,7 +465,7 @@ static void i5000_get_error_info(struct 
-  *	handle the Intel FATAL errors, if any
-  */
- static void i5000_process_fatal_error_info(struct mem_ctl_info *mci,
--					struct i5000_error_info * info,
-+					struct i5000_error_info *info,
- 					int handle_errors)
- {
- 	char msg[EDAC_MC_LABEL_LEN + 1 + 90];
-@@ -530,7 +530,7 @@ static void i5000_process_fatal_error_in
- 	edac_mc_handle_fbd_ue(mci, rank, channel, channel + 1, msg);
- }
+-#include "edac_mc.h"
++#include "edac_core.h"
  
--/******************************************************************************
-+/*
-  * i5000_process_fatal_error_info(struct mem_ctl_info *mci,
-  * 				struct i5000_error_info *info,
-  * 				int handle_errors);
-@@ -538,7 +538,7 @@ static void i5000_process_fatal_error_in
-  *	handle the Intel NON-FATAL errors, if any
-  */
- static void i5000_process_nonfatal_error_info(struct mem_ctl_info *mci,
--					struct i5000_error_info * info,
-+					struct i5000_error_info *info,
- 					int handle_errors)
- {
- 	char msg[EDAC_MC_LABEL_LEN + 1 + 90];
-@@ -666,12 +666,12 @@ static void i5000_process_nonfatal_error
- 	}
- }
+ #define I82443_REVISION	"0.1"
  
--/******************************************************************************
-+/*
-  *	i5000_process_error_info	Process the error info that is
-  *	in the 'info' structure, previously retrieved from hardware
-  */
- static void i5000_process_error_info(struct mem_ctl_info *mci,
--				struct i5000_error_info * info,
-+				struct i5000_error_info *info,
- 				int handle_errors)
- {
- 	/* First handle any fatal errors that occurred */
-@@ -681,7 +681,7 @@ static void i5000_process_error_info(str
- 	i5000_process_nonfatal_error_info(mci, info, handle_errors);
- }
+diff -puN drivers/edac/i82860_edac.c~drivers-edac-mod-use-edac_coreh drivers/edac/i82860_edac.c
+--- a/drivers/edac/i82860_edac.c~drivers-edac-mod-use-edac_coreh
++++ a/drivers/edac/i82860_edac.c
+@@ -14,9 +14,9 @@
+ #include <linux/pci.h>
+ #include <linux/pci_ids.h>
+ #include <linux/slab.h>
+-#include "edac_mc.h"
++#include "edac_core.h"
  
--/******************************************************************************
-+/*
-  *	i5000_clear_error	Retrieve any error from the hardware
-  *				but do NOT process that error.
-  *				Used for 'clearing' out of previous errors
-@@ -694,7 +694,7 @@ static void i5000_clear_error(struct mem
- 	i5000_get_error_info(mci, &info);
- }
+-#define  I82860_REVISION " Ver: 2.0.1 " __DATE__
++#define  I82860_REVISION " Ver: 2.0.2 " __DATE__
+ #define EDAC_MOD_STR	"i82860_edac"
  
--/******************************************************************************
-+/*
-  *	i5000_check_error	Retrieve and process errors reported by the
-  *				hardware. Called by the Core module.
-  */
-@@ -706,7 +706,7 @@ static void i5000_check_error(struct mem
- 	i5000_process_error_info(mci, &info, 1);
- }
+ #define i82860_printk(level, fmt, arg...) \
+diff -puN drivers/edac/i82875p_edac.c~drivers-edac-mod-use-edac_coreh drivers/edac/i82875p_edac.c
+--- a/drivers/edac/i82875p_edac.c~drivers-edac-mod-use-edac_coreh
++++ a/drivers/edac/i82875p_edac.c
+@@ -18,9 +18,9 @@
+ #include <linux/pci.h>
+ #include <linux/pci_ids.h>
+ #include <linux/slab.h>
+-#include "edac_mc.h"
++#include "edac_core.h"
  
--/******************************************************************************
-+/*
-  *	i5000_get_devices	Find and perform 'get' operation on the MCH's
-  *			device/functions we want to reference for this driver
-  *
-@@ -718,7 +718,7 @@ static int i5000_get_devices(struct mem_
- 	struct i5000_pvt *pvt;
- 	struct pci_dev *pdev;
+-#define I82875P_REVISION	" Ver: 2.0.1 " __DATE__
++#define I82875P_REVISION	" Ver: 2.0.2 " __DATE__
+ #define EDAC_MOD_STR		"i82875p_edac"
  
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
+ #define i82875p_printk(level, fmt, arg...) \
+diff -puN drivers/edac/r82600_edac.c~drivers-edac-mod-use-edac_coreh drivers/edac/r82600_edac.c
+--- a/drivers/edac/r82600_edac.c~drivers-edac-mod-use-edac_coreh
++++ a/drivers/edac/r82600_edac.c
+@@ -20,9 +20,9 @@
+ #include <linux/pci.h>
+ #include <linux/pci_ids.h>
+ #include <linux/slab.h>
+-#include "edac_mc.h"
++#include "edac_core.h"
  
- 	/* Attempt to 'get' the MCH register we want */
- 	pdev = NULL;
-@@ -827,7 +827,7 @@ static int i5000_get_devices(struct mem_
- 	return 0;
- }
+-#define R82600_REVISION	" Ver: 2.0.1 " __DATE__
++#define R82600_REVISION	" Ver: 2.0.2 " __DATE__
+ #define EDAC_MOD_STR	"r82600_edac"
  
--/******************************************************************************
-+/*
-  *	i5000_put_devices	'put' all the devices that we have
-  *				reserved via 'get'
-  */
-@@ -835,19 +835,18 @@ static void i5000_put_devices(struct mem
- {
- 	struct i5000_pvt *pvt;
- 
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
- 
- 	pci_dev_put(pvt->branchmap_werrors);	/* FUNC 1 */
- 	pci_dev_put(pvt->fsb_error_regs);	/* FUNC 2 */
- 	pci_dev_put(pvt->branch_0);	/* DEV 21 */
- 
- 	/* Only if more than 2 channels do we release the second branch */
--	if (pvt->maxch >= CHANNELS_PER_BRANCH) {
-+	if (pvt->maxch >= CHANNELS_PER_BRANCH)
- 		pci_dev_put(pvt->branch_1);	/* DEV 22 */
--	}
- }
- 
--/******************************************************************************
-+/*
-  *	determine_amb_resent
-  *
-  *		the information is contained in NUM_MTRS different registers
-@@ -879,7 +878,7 @@ static int determine_amb_present_reg(str
- 	return amb_present;
- }
- 
--/******************************************************************************
-+/*
-  * determine_mtr(pvt, csrow, channel)
-  *
-  *	return the proper MTR register as determine by the csrow and channel desired
-@@ -896,7 +895,7 @@ static int determine_mtr(struct i5000_pv
- 	return mtr;
- }
- 
--/******************************************************************************
-+/*
-  */
- static void decode_mtr(int slot_row, u16 mtr)
- {
-@@ -951,7 +950,7 @@ static void handle_channel(struct i5000_
- 	}
- }
- 
--/******************************************************************************
-+/*
-  *	calculate_dimm_size
-  *
-  *	also will output a DIMM matrix map, if debug is enabled, for viewing
-@@ -1037,7 +1036,7 @@ static void calculate_dimm_size(struct i
- 	kfree(mem_buffer);
- }
- 
--/******************************************************************************
-+/*
-  *	i5000_get_mc_regs	read in the necessary registers and
-  *				cache locally
-  *
-@@ -1053,7 +1052,7 @@ static void i5000_get_mc_regs(struct mem
- 	int maxdimmperch;
- 	int way0, way1;
- 
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
- 
- 	pci_read_config_dword(pvt->system_address, AMBASE,
- 			(u32 *) & pvt->ambase);
-@@ -1151,7 +1150,7 @@ static void i5000_get_mc_regs(struct mem
- 	calculate_dimm_size(pvt);
- }
- 
--/******************************************************************************
-+/*
-  *	i5000_init_csrows	Initialize the 'csrows' table within
-  *				the mci control	structure with the
-  *				addressing of memory.
-@@ -1171,7 +1170,7 @@ static int i5000_init_csrows(struct mem_
- 	int channel;
- 	int csrow;
- 
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
- 
- 	channel_count = pvt->maxch;
- 	max_csrows = pvt->maxdimmperch * 2;
-@@ -1221,7 +1220,7 @@ static int i5000_init_csrows(struct mem_
- 	return empty;
- }
- 
--/******************************************************************************
-+/*
-  *	i5000_enable_error_reporting
-  *			Turn on the memory reporting features of the hardware
-  */
-@@ -1230,7 +1229,7 @@ static void i5000_enable_error_reporting
- 	struct i5000_pvt *pvt;
- 	u32 fbd_error_mask;
- 
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
- 
- 	/* Read the FBD Error Mask Register */
- 	pci_read_config_dword(pvt->branchmap_werrors, EMASK_FBD,
-@@ -1243,7 +1242,7 @@ static void i5000_enable_error_reporting
- 			fbd_error_mask);
- }
- 
--/******************************************************************************
-+/*
-  * i5000_get_dimm_and_channel_counts(pdev, &num_csrows, &num_channels)
-  *
-  *	ask the device how many channels are present and how many CSROWS
-@@ -1265,7 +1264,7 @@ static void i5000_get_dimm_and_channel_c
- 	*num_channels = (int)value;
- }
- 
--/******************************************************************************
-+/*
-  *	i5000_probe1	Probe for ONE instance of device to see if it is
-  *			present.
-  *	return:
-@@ -1329,7 +1328,7 @@ static int i5000_probe1(struct pci_dev *
- 
- 	mci->dev = &pdev->dev;	/* record ptr  to the generic device */
- 
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
- 	pvt->system_address = pdev;	/* Record this device in our private */
- 	pvt->maxch = num_channels;
- 	pvt->maxdimmperch = num_dimms_per_channel;
-@@ -1401,7 +1400,7 @@ fail0:
- 	return -ENODEV;
- }
- 
--/******************************************************************************
-+/*
-  *	i5000_init_one	constructor for one instance of device
-  *
-  * 	returns:
-@@ -1424,7 +1423,7 @@ static int __devinit i5000_init_one(stru
- 	return i5000_probe1(pdev, id->driver_data);
- }
- 
--/**************************************************************************
-+/*
-  *	i5000_remove_one	destructor for one instance of device
-  *
-  */
-@@ -1446,7 +1445,7 @@ static void __devexit i5000_remove_one(s
- 	edac_mc_free(mci);
- }
- 
--/**************************************************************************
-+/*
-  *	pci_device_id	table for which devices we are looking for
-  *
-  *	The "E500P" device is the first device supported.
-@@ -1460,7 +1459,7 @@ static const struct pci_device_id i5000_
- 
- MODULE_DEVICE_TABLE(pci, i5000_pci_tbl);
- 
--/**************************************************************************
-+/*
-  *	i5000_driver	pci_driver structure for this module
-  *
-  */
-@@ -1471,7 +1470,7 @@ static struct pci_driver i5000_driver = 
- 	.id_table = i5000_pci_tbl,
- };
- 
--/**************************************************************************
-+/*
-  *	i5000_init		Module entry function
-  *			Try to initialize this module for its devices
-  */
-@@ -1486,7 +1485,7 @@ static int __init i5000_init(void)
- 	return (pci_rc < 0) ? pci_rc : 0;
- }
- 
--/**************************************************************************
-+/*
-  *	i5000_exit()	Module exit function
-  *			Unregister the driver
-  */
+ #define r82600_printk(level, fmt, arg...) \
 _
 
 Patches currently in -mm which might be from dougthompson@xmission.com are
