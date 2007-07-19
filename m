@@ -1,177 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-lindent-i82860.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:06:22 -0700
-Message-ID: <200707192006.l6JK6MaD020131@imap1.linux-foundation.org>
+Subject: - use-mutex-instead-of-semaphore-in-the-elan-u132-adapter-driver.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:07:56 -0700
+Message-ID: <200707192007.l6JK7uFD020404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35631 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44688 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761077AbXGSUPi (ORCPT
+	by vger.kernel.org with ESMTP id S1761012AbXGSUPf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:38 -0400
+	Thu, 19 Jul 2007 16:15:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djiang@mvista.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: Lindent i82860
+     use mutex instead of semaphore in the ELAN U132 adapter driver
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-lindent-i82860.patch
+     use-mutex-instead-of-semaphore-in-the-elan-u132-adapter-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: Lindent i82860
-From: Dave Jiang <djiang@mvista.com>
+Subject: use mutex instead of semaphore in the ELAN U132 adapter driver
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Lindent cleanup of i82860 edac driver
+The ELAN U132 adapter driver uses the semaphore u132_module_lock
+as mutex. Use the mutex API instead of the (binary) semaphore.
 
-Signed-off-by: Dave Jiang <djiang@mvista.com>
-Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i82860_edac.c |   40 ++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 21 deletions(-)
+ drivers/usb/host/u132-hcd.c |   17 +++++++++--------
+ 1 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/edac/i82860_edac.c~drivers-edac-lindent-i82860 drivers/edac/i82860_edac.c
---- a/drivers/edac/i82860_edac.c~drivers-edac-lindent-i82860
-+++ a/drivers/edac/i82860_edac.c
-@@ -54,8 +54,7 @@ struct i82860_error_info {
- 
- static const struct i82860_dev_info i82860_devs[] = {
- 	[I82860] = {
--		.ctl_name = "i82860"
--	},
-+		    .ctl_name = "i82860"},
- };
- 
- static struct pci_dev *mci_pdev = NULL;	/* init dev: in case that AGP code
-@@ -63,7 +62,7 @@ static struct pci_dev *mci_pdev = NULL;	
- 					 */
- 
- static void i82860_get_error_info(struct mem_ctl_info *mci,
--		struct i82860_error_info *info)
-+				  struct i82860_error_info *info)
+diff -puN drivers/usb/host/u132-hcd.c~use-mutex-instead-of-semaphore-in-the-elan-u132-adapter-driver drivers/usb/host/u132-hcd.c
+--- a/drivers/usb/host/u132-hcd.c~use-mutex-instead-of-semaphore-in-the-elan-u132-adapter-driver
++++ a/drivers/usb/host/u132-hcd.c
+@@ -52,6 +52,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/platform_device.h>
+ #include <linux/pci_ids.h>
++#include <linux/mutex.h>
+ #include <asm/io.h>
+ #include <asm/irq.h>
+ #include <asm/system.h>
+@@ -83,7 +84,7 @@ static DECLARE_WAIT_QUEUE_HEAD(u132_hcd_
+ * u132_module_lock exists to protect access to global variables
+ *
+ */
+-static struct semaphore u132_module_lock;
++static struct mutex u132_module_lock;
+ static int u132_exiting = 0;
+ static int u132_instances = 0;
+ static struct list_head u132_static_list;
+@@ -258,10 +259,10 @@ static void u132_hcd_delete(struct kref 
+         struct platform_device *pdev = u132->platform_dev;
+         struct usb_hcd *hcd = u132_to_hcd(u132);
+         u132->going += 1;
+-        down(&u132_module_lock);
++        mutex_lock(&u132_module_lock);
+         list_del_init(&u132->u132_list);
+         u132_instances -= 1;
+-        up(&u132_module_lock);
++        mutex_unlock(&u132_module_lock);
+         dev_warn(&u132->platform_dev->dev, "FREEING the hcd=%p and thus the u13"
+                 "2=%p going=%d pdev=%p\n", hcd, u132, u132->going, pdev);
+         usb_put_hcd(hcd);
+@@ -3111,10 +3112,10 @@ static int __devinit u132_probe(struct p
+                 int retval = 0;
+                 struct u132 *u132 = hcd_to_u132(hcd);
+                 hcd->rsrc_start = 0;
+-                down(&u132_module_lock);
++                mutex_lock(&u132_module_lock);
+                 list_add_tail(&u132->u132_list, &u132_static_list);
+                 u132->sequence_num = ++u132_instances;
+-                up(&u132_module_lock);
++                mutex_unlock(&u132_module_lock);
+                 u132_u132_init_kref(u132);
+                 u132_initialise(u132, pdev);
+                 hcd->product_desc = "ELAN U132 Host Controller";
+@@ -3216,7 +3217,7 @@ static int __init u132_hcd_init(void)
+         INIT_LIST_HEAD(&u132_static_list);
+         u132_instances = 0;
+         u132_exiting = 0;
+-        init_MUTEX(&u132_module_lock);
++        mutex_init(&u132_module_lock);
+         if (usb_disabled())
+                 return -ENODEV;
+         printk(KERN_INFO "driver %s built at %s on %s\n", hcd_name, __TIME__,
+@@ -3232,9 +3233,9 @@ static void __exit u132_hcd_exit(void)
  {
- 	struct pci_dev *pdev;
- 
-@@ -91,13 +90,13 @@ static void i82860_get_error_info(struct
- 
- 	if ((info->errsts ^ info->errsts2) & 0x0003) {
- 		pci_read_config_dword(pdev, I82860_EAP, &info->eap);
--		pci_read_config_word(pdev, I82860_DERRCTL_STS,
--				&info->derrsyn);
-+		pci_read_config_word(pdev, I82860_DERRCTL_STS, &info->derrsyn);
- 	}
- }
- 
- static int i82860_process_error_info(struct mem_ctl_info *mci,
--		struct i82860_error_info *info, int handle_errors)
-+				     struct i82860_error_info *info,
-+				     int handle_errors)
- {
- 	int row;
- 
-@@ -119,7 +118,7 @@ static int i82860_process_error_info(str
- 		edac_mc_handle_ue(mci, info->eap, 0, row, "i82860 UE");
- 	else
- 		edac_mc_handle_ce(mci, info->eap, 0, info->derrsyn, row, 0,
--				"i82860 UE");
-+				  "i82860 UE");
- 
- 	return 1;
- }
-@@ -136,7 +135,7 @@ static void i82860_check(struct mem_ctl_
- static void i82860_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev)
- {
- 	unsigned long last_cumul_size;
--	u16 mchcfg_ddim;  /* DRAM Data Integrity Mode 0=none, 2=edac */
-+	u16 mchcfg_ddim;	/* DRAM Data Integrity Mode 0=none, 2=edac */
- 	u16 value;
- 	u32 cumul_size;
- 	struct csrow_info *csrow;
-@@ -204,12 +203,12 @@ static int i82860_probe1(struct pci_dev 
- 	mci->edac_check = i82860_check;
- 	mci->ctl_page_to_phys = NULL;
- 	i82860_init_csrows(mci, pdev);
--	i82860_get_error_info(mci, &discard);  /* clear counters */
-+	i82860_get_error_info(mci, &discard);	/* clear counters */
- 
- 	/* Here we assume that we will never see multiple instances of this
- 	 * type of memory controller.  The ID is therefore hardcoded to 0.
- 	 */
--	if (edac_mc_add_mc(mci,0)) {
-+	if (edac_mc_add_mc(mci, 0)) {
- 		debugf3("%s(): failed edac_mc_add_mc()\n", __func__);
- 		goto fail;
- 	}
-@@ -219,14 +218,14 @@ static int i82860_probe1(struct pci_dev 
- 
- 	return 0;
- 
--fail:
-+      fail:
- 	edac_mc_free(mci);
- 	return -ENODEV;
- }
- 
- /* returns count (>= 0), or negative on error */
- static int __devinit i82860_init_one(struct pci_dev *pdev,
--		const struct pci_device_id *ent)
-+				     const struct pci_device_id *ent)
- {
- 	int rc;
- 
-@@ -258,12 +257,11 @@ static void __devexit i82860_remove_one(
- 
- static const struct pci_device_id i82860_pci_tbl[] __devinitdata = {
- 	{
--		PCI_VEND_DEV(INTEL, 82860_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
--		I82860
--	},
-+	 PCI_VEND_DEV(INTEL, 82860_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-+	 I82860},
- 	{
--		0,
--	}	/* 0 terminated list. */
-+	 0,
-+	 }			/* 0 terminated list. */
- };
- 
- MODULE_DEVICE_TABLE(pci, i82860_pci_tbl);
-@@ -286,7 +284,7 @@ static int __init i82860_init(void)
- 
- 	if (!mci_pdev) {
- 		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
--					PCI_DEVICE_ID_INTEL_82860_0, NULL);
-+					  PCI_DEVICE_ID_INTEL_82860_0, NULL);
- 
- 		if (mci_pdev == NULL) {
- 			debugf0("860 pci_get_device fail\n");
-@@ -305,10 +303,10 @@ static int __init i82860_init(void)
- 
- 	return 0;
- 
--fail1:
-+      fail1:
- 	pci_unregister_driver(&i82860_driver);
- 
--fail0:
-+      fail0:
- 	if (mci_pdev != NULL)
- 		pci_dev_put(mci_pdev);
- 
-@@ -330,5 +328,5 @@ module_exit(i82860_exit);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com) "
--	"Ben Woodard <woodard@redhat.com>");
-+	      "Ben Woodard <woodard@redhat.com>");
- MODULE_DESCRIPTION("ECC support for Intel 82860 memory hub controllers");
+         struct u132 *u132;
+         struct u132 *temp;
+-        down(&u132_module_lock);
++        mutex_lock(&u132_module_lock);
+         u132_exiting += 1;
+-        up(&u132_module_lock);
++        mutex_unlock(&u132_module_lock);
+         list_for_each_entry_safe(u132, temp, &u132_static_list, u132_list) {
+                 platform_device_unregister(u132->platform_dev);
+         } platform_driver_unregister(&u132_platform_driver);
 _
 
-Patches currently in -mm which might be from djiang@mvista.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+git-mtd.patch
+videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
