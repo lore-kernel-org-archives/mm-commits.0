@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - coda-cleanup-dev-cfs-open-and-close-handling.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:03:07 -0700
-Message-ID: <200707192003.l6JK37FC019829@imap1.linux-foundation.org>
+Subject: - coda-cleanup-downcall-handler.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:03:22 -0700
+Message-ID: <200707192003.l6JK3Mkw019857@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58861 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42289 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760666AbXGSUQ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1760811AbXGSUQ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:16:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,165 +15,157 @@ To: jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coda: cleanup /dev/cfs open and close handling
+     coda: cleanup downcall handler
 has been removed from the -mm tree.  Its filename was
-     coda-cleanup-dev-cfs-open-and-close-handling.patch
+     coda-cleanup-downcall-handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: coda: cleanup /dev/cfs open and close handling
+Subject: coda: cleanup downcall handler
 From: Jan Harkes <jaharkes@cs.cmu.edu>
-
-- Make sure device index is not a negative number.
-- Unlink queued requests when the device is closed to avoid passing them
-  to the next opener.
 
 Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/psdev.c  |   61 ++++++++++++++++++++++-----------------------
- fs/coda/upcall.c |    9 +-----
- 2 files changed, 32 insertions(+), 38 deletions(-)
+ fs/coda/upcall.c |  117 ++++++++++++++++++++-------------------------
+ 1 file changed, 53 insertions(+), 64 deletions(-)
 
-diff -puN fs/coda/psdev.c~coda-cleanup-dev-cfs-open-and-close-handling fs/coda/psdev.c
---- a/fs/coda/psdev.c~coda-cleanup-dev-cfs-open-and-close-handling
-+++ a/fs/coda/psdev.c
-@@ -272,56 +272,51 @@ out:
- 
- static int coda_psdev_open(struct inode * inode, struct file * file)
- {
--        struct venus_comm *vcp;
--	int idx;
-+	struct venus_comm *vcp;
-+	int idx, err;
- 
--	lock_kernel();
- 	idx = iminor(inode);
--	if(idx >= MAX_CODADEVS) {
--		unlock_kernel();
-+	if (idx < 0 || idx >= MAX_CODADEVS)
- 		return -ENODEV;
--	}
- 
-+	lock_kernel();
-+
-+	err = -EBUSY;
- 	vcp = &coda_comms[idx];
--	if(vcp->vc_inuse) {
--		unlock_kernel();
--		return -EBUSY;
--	}
--	
--	if (!vcp->vc_inuse++) {
-+	if (!vcp->vc_inuse) {
-+		vcp->vc_inuse++;
-+
- 		INIT_LIST_HEAD(&vcp->vc_pending);
- 		INIT_LIST_HEAD(&vcp->vc_processing);
- 		init_waitqueue_head(&vcp->vc_waitq);
- 		vcp->vc_sb = NULL;
- 		vcp->vc_seq = 0;
-+
-+		file->private_data = vcp;
-+		err = 0;
- 	}
--	
--	file->private_data = vcp;
- 
- 	unlock_kernel();
--        return 0;
-+	return err;
- }
- 
- 
- static int coda_psdev_release(struct inode * inode, struct file * file)
- {
--        struct venus_comm *vcp = (struct venus_comm *) file->private_data;
--        struct upc_req *req, *tmp;
-+	struct venus_comm *vcp = (struct venus_comm *) file->private_data;
-+	struct upc_req *req, *tmp;
- 
--	lock_kernel();
--	if ( !vcp->vc_inuse ) {
--		unlock_kernel();
-+	if (!vcp || !vcp->vc_inuse ) {
- 		printk("psdev_release: Not open.\n");
- 		return -1;
- 	}
- 
--	if (--vcp->vc_inuse) {
--		unlock_kernel();
--		return 0;
--	}
--        
--        /* Wakeup clients so they can return. */
-+	lock_kernel();
-+
-+	/* Wakeup clients so they can return. */
- 	list_for_each_entry_safe(req, tmp, &vcp->vc_pending, uc_chain) {
-+		list_del(&req->uc_chain);
-+
- 		/* Async requests need to be freed here */
- 		if (req->uc_flags & REQ_ASYNC) {
- 			CODA_FREE(req->uc_data, sizeof(struct coda_in_hdr));
-@@ -330,13 +325,17 @@ static int coda_psdev_release(struct ino
- 		}
- 		req->uc_flags |= REQ_ABORT;
- 		wake_up(&req->uc_sleep);
--        }
--        
--	list_for_each_entry(req, &vcp->vc_processing, uc_chain) {
-+	}
-+
-+	list_for_each_entry_safe(req, tmp, &vcp->vc_processing, uc_chain) {
-+		list_del(&req->uc_chain);
-+
- 		req->uc_flags |= REQ_ABORT;
--	        wake_up(&req->uc_sleep);
--        }
-+		wake_up(&req->uc_sleep);
-+	}
- 
-+	file->private_data = NULL;
-+	vcp->vc_inuse--;
- 	unlock_kernel();
- 	return 0;
- }
-diff -puN fs/coda/upcall.c~coda-cleanup-dev-cfs-open-and-close-handling fs/coda/upcall.c
---- a/fs/coda/upcall.c~coda-cleanup-dev-cfs-open-and-close-handling
+diff -puN fs/coda/upcall.c~coda-cleanup-downcall-handler fs/coda/upcall.c
+--- a/fs/coda/upcall.c~coda-cleanup-downcall-handler
 +++ a/fs/coda/upcall.c
-@@ -641,8 +641,7 @@ int venus_statfs(struct dentry *dentry, 
-  * 
-  */
+@@ -859,77 +859,66 @@ exit:
  
--static inline void coda_waitfor_upcall(struct upc_req *vmp,
--				       struct venus_comm *vcommp)
-+static inline void coda_waitfor_upcall(struct upc_req *vmp)
+ int coda_downcall(int opcode, union outputArgs * out, struct super_block *sb)
  {
- 	DECLARE_WAITQUEUE(wait, current);
+-	/* Handle invalidation requests. */
+-          if ( !sb || !sb->s_root || !sb->s_root->d_inode)
+-		  return 0; 
++	struct inode *inode = NULL;
++	struct CodaFid *fid, *newfid;
  
-@@ -655,10 +654,6 @@ static inline void coda_waitfor_upcall(s
- 		else
- 			set_current_state(TASK_UNINTERRUPTIBLE);
+-	  switch (opcode) {
++	/* Handle invalidation requests. */
++	if ( !sb || !sb->s_root)
++		return 0;
  
--                /* venus died */
--                if ( !vcommp->vc_inuse )
--                        break;
+-	  case CODA_FLUSH : {
+-		   coda_cache_clear_all(sb);
+-		   shrink_dcache_sb(sb);
+-		   coda_flag_inode(sb->s_root->d_inode, C_FLUSH);
+-		   return(0);
+-	  }
 -
- 		/* got a reply */
- 		if ( vmp->uc_flags & ( REQ_WRITE | REQ_ABORT ) )
- 			break;
-@@ -738,7 +733,7 @@ static int coda_upcall(struct coda_sb_in
- 	 * ENODEV.  */
+-	  case CODA_PURGEUSER : {
+-		   coda_cache_clear_all(sb);
+-		   return(0);
+-	  }
+-
+-	  case CODA_ZAPDIR : {
+-	          struct inode *inode;
+-		  struct CodaFid *fid = &out->coda_zapdir.CodaFid;
+-
+-		  inode = coda_fid_to_inode(fid, sb);
+-		  if (inode) {
+-			  coda_flag_inode_children(inode, C_PURGE);
+-	                  coda_flag_inode(inode, C_VATTR);
+-			  iput(inode);
+-		  }
+-		  
+-		  return(0);
+-	  }
+-
+-	  case CODA_ZAPFILE : {
+-	          struct inode *inode;
+-		  struct CodaFid *fid = &out->coda_zapfile.CodaFid;
+-		  inode = coda_fid_to_inode(fid, sb);
+-		  if ( inode ) {
+-	                  coda_flag_inode(inode, C_VATTR);
+-			  iput(inode);
+-		  }
+-		  return 0;
+-	  }
+-
+-	  case CODA_PURGEFID : {
+-	          struct inode *inode;
+-		  struct CodaFid *fid = &out->coda_purgefid.CodaFid;
+-		  inode = coda_fid_to_inode(fid, sb);
+-		  if ( inode ) { 
++	switch (opcode) {
++	case CODA_FLUSH:
++		coda_cache_clear_all(sb);
++		shrink_dcache_sb(sb);
++		if (sb->s_root->d_inode)
++		    coda_flag_inode(sb->s_root->d_inode, C_FLUSH);
++		break;
++
++	case CODA_PURGEUSER:
++		coda_cache_clear_all(sb);
++		break;
++
++	case CODA_ZAPDIR:
++		fid = &out->coda_zapdir.CodaFid;
++		inode = coda_fid_to_inode(fid, sb);
++		if (inode) {
++			coda_flag_inode_children(inode, C_PURGE);
++			coda_flag_inode(inode, C_VATTR);
++		}
++		break;
++
++	case CODA_ZAPFILE:
++		fid = &out->coda_zapfile.CodaFid;
++		inode = coda_fid_to_inode(fid, sb);
++		if (inode)
++			coda_flag_inode(inode, C_VATTR);
++		break;
++
++	case CODA_PURGEFID:
++		fid = &out->coda_purgefid.CodaFid;
++		inode = coda_fid_to_inode(fid, sb);
++		if (inode) {
+ 			coda_flag_inode_children(inode, C_PURGE);
  
- 	/* Go to sleep.  Wake up on signals only after the timeout. */
--	coda_waitfor_upcall(req, vcommp);
-+	coda_waitfor_upcall(req);
+ 			/* catch the dentries later if some are still busy */
+ 			coda_flag_inode(inode, C_PURGE);
+ 			d_prune_aliases(inode);
  
- 	if (vcommp->vc_inuse) {      /* i.e. Venus is still alive */
- 	    /* Op went through, interrupt or not... */
+-			iput(inode);
+-		  }
+-		  return 0;
+-	  }
+-
+-	  case CODA_REPLACE : {
+-	          struct inode *inode;
+-		  struct CodaFid *oldfid = &out->coda_replace.OldFid;
+-		  struct CodaFid *newfid = &out->coda_replace.NewFid;
+-		  inode = coda_fid_to_inode(oldfid, sb);
+-		  if ( inode ) { 
+-			  coda_replace_fid(inode, oldfid, newfid);
+-			  iput(inode);
+-		  }
+-		  return 0;
+-	  }
+-	  }
+-	  return 0;
++		}
++		break;
++
++	case CODA_REPLACE:
++		fid = &out->coda_replace.OldFid;
++		newfid = &out->coda_replace.NewFid;
++		inode = coda_fid_to_inode(fid, sb);
++		if (inode)
++			coda_replace_fid(inode, fid, newfid);
++		break;
++	}
++
++	if (inode)
++		iput(inode);
++
++	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
