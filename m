@@ -1,84 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - timekeeping-fixup-shadow-variable-argument.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:04:29 -0700
-Message-ID: <200707192004.l6JK4TUD019953@imap1.linux-foundation.org>
+Subject: - knfsd-clean-up-ex_rdonly.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:04:44 -0700
+Message-ID: <200707192004.l6JK4iul019976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48163 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34162 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761509AbXGSUSG (ORCPT
+	by vger.kernel.org with ESMTP id S1761585AbXGSUSI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:18:06 -0400
+	Thu, 19 Jul 2007 16:18:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, johnstul@us.ibm.com, mm-commits@vger.kernel.org
+To: bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timekeeping: fixup shadow variable argument
+     knfsd: clean up EX_RDONLY
 has been removed from the -mm tree.  Its filename was
-     timekeeping-fixup-shadow-variable-argument.patch
+     knfsd-clean-up-ex_rdonly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: timekeeping: fixup shadow variable argument
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: knfsd: clean up EX_RDONLY
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-clocksource_adjust() has a clock argument, which shadows the file global clock
-variable.  Fix this up.
+Share a little common code, reverse the arguments for consistency, drop the
+unnecessary "inline", and lowercase the name.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Acked-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timekeeping.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/nfsd/auth.c              |    3 ++-
+ fs/nfsd/vfs.c               |   13 +++----------
+ include/linux/nfsd/export.h |    1 +
+ 3 files changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN kernel/time/timekeeping.c~timekeeping-fixup-shadow-variable-argument kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~timekeeping-fixup-shadow-variable-argument
-+++ a/kernel/time/timekeeping.c
-@@ -401,7 +401,7 @@ static __always_inline int clocksource_b
-  * this is optimized for the most common adjustments of -1,0,1,
-  * for other values we can do a bit more work.
-  */
--static void clocksource_adjust(struct clocksource *clock, s64 offset)
-+static void clocksource_adjust(s64 offset)
+diff -puN fs/nfsd/auth.c~knfsd-clean-up-ex_rdonly fs/nfsd/auth.c
+--- a/fs/nfsd/auth.c~knfsd-clean-up-ex_rdonly
++++ a/fs/nfsd/auth.c
+@@ -9,10 +9,11 @@
+ #include <linux/sunrpc/svc.h>
+ #include <linux/sunrpc/svcauth.h>
+ #include <linux/nfsd/nfsd.h>
++#include <linux/nfsd/export.h>
+ 
+ #define	CAP_NFSD_MASK (CAP_FS_MASK|CAP_TO_MASK(CAP_SYS_RESOURCE))
+ 
+-static int nfsexp_flags(struct svc_rqst *rqstp, struct svc_export *exp)
++int nfsexp_flags(struct svc_rqst *rqstp, struct svc_export *exp)
  {
- 	s64 error, interval = clock->cycle_interval;
- 	int adj;
-@@ -476,7 +476,7 @@ void update_wall_time(void)
- 	}
+ 	struct exp_flavor_info *f;
+ 	struct exp_flavor_info *end = exp->ex_flavors + exp->ex_nflavors;
+diff -puN fs/nfsd/vfs.c~knfsd-clean-up-ex_rdonly fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~knfsd-clean-up-ex_rdonly
++++ a/fs/nfsd/vfs.c
+@@ -1797,16 +1797,9 @@ nfsd_statfs(struct svc_rqst *rqstp, stru
+ 	return err;
+ }
  
- 	/* correct the clock when NTP error is too big */
--	clocksource_adjust(clock, offset);
-+	clocksource_adjust(offset);
+-static inline int EX_RDONLY(struct svc_export *exp, struct svc_rqst *rqstp)
++static int exp_rdonly(struct svc_rqst *rqstp, struct svc_export *exp)
+ {
+-	struct exp_flavor_info *f;
+-	struct exp_flavor_info *end = exp->ex_flavors + exp->ex_nflavors;
+-
+-	for (f = exp->ex_flavors; f < end; f++) {
+-		if (f->pseudoflavor == rqstp->rq_flavor)
+-			return f->flags & NFSEXP_READONLY;
+-	}
+-	return exp->ex_flags & NFSEXP_READONLY;
++	return nfsexp_flags(rqstp, exp) & NFSEXP_READONLY;
+ }
  
- 	/* store full nanoseconds into xtime */
- 	xtime.tv_nsec = (s64)clock->xtime_nsec >> clock->shift;
+ /*
+@@ -1845,7 +1838,7 @@ nfsd_permission(struct svc_rqst *rqstp, 
+ 	 */
+ 	if (!(acc & MAY_LOCAL_ACCESS))
+ 		if (acc & (MAY_WRITE | MAY_SATTR | MAY_TRUNC)) {
+-			if (EX_RDONLY(exp, rqstp) || IS_RDONLY(inode))
++			if (exp_rdonly(rqstp, exp) || IS_RDONLY(inode))
+ 				return nfserr_rofs;
+ 			if (/* (acc & MAY_WRITE) && */ IS_IMMUTABLE(inode))
+ 				return nfserr_perm;
+diff -puN include/linux/nfsd/export.h~knfsd-clean-up-ex_rdonly include/linux/nfsd/export.h
+--- a/include/linux/nfsd/export.h~knfsd-clean-up-ex_rdonly
++++ a/include/linux/nfsd/export.h
+@@ -116,6 +116,7 @@ struct svc_expkey {
+ #define EX_NOHIDE(exp)		((exp)->ex_flags & NFSEXP_NOHIDE)
+ #define EX_WGATHER(exp)		((exp)->ex_flags & NFSEXP_GATHERED_WRITES)
+ 
++int nfsexp_flags(struct svc_rqst *rqstp, struct svc_export *exp);
+ __be32 check_nfsd_access(struct svc_export *exp, struct svc_rqst *rqstp);
+ 
+ /*
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
 origin.patch
-git-acpi.patch
-acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-clockevents-remove-prototypes-of-removed-functions.patch
-clockevents-fix-resume-logic.patch
-lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
-clockevents-fix-device-replacement.patch
-tick-management-spread-timer-interrupt.patch
-highres-improve-debug-output.patch
-hrtimer-speedup-hrtimer_enqueue.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
-acpi-remove-the-useless-ifdef-code.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-geode-mfgpt-clock-event-device-support.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+vfs-fix-a-race-in-lease-breaking-during-truncate.patch
+locks-kill-redundant-local-variable.patch
