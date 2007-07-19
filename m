@@ -1,93 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - sched-fix-newly-idle-load-balance-in-case-of-smt.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:07:50 -0700
-Message-ID: <200707192007.l6JK7oRj020395@imap1.linux-foundation.org>
+Subject: - mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:08:32 -0700
+Message-ID: <200707192008.l6JK8Wxx020468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36719 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34373 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760155AbXGSUQN (ORCPT
+	by vger.kernel.org with ESMTP id S1760946AbXGSUQQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:13 -0400
+	Thu, 19 Jul 2007 16:16:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suresh.b.siddha@intel.com, mingo@elte.hu, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: adurbin@google.com, ak@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: fix newly idle load balance in case of SMT
+     mmconfig x86_64/i386: insert unclaimed MMCONFIG resources
 has been removed from the -mm tree.  Its filename was
-     sched-fix-newly-idle-load-balance-in-case-of-smt.patch
+     mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: fix newly idle load balance in case of SMT
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: mmconfig x86_64/i386: insert unclaimed MMCONFIG resources
+From: Aaron Durbin <adurbin@google.com>
 
-In the presence of SMT, newly idle balance was never happening for multi-core
-and SMP domains(even when both the logical siblings are idle).
+Insert the unclaimed MMCONFIG resources into the resource tree without the
+IORESOURCE_BUSY flag during late initialization.  This allows the MMCONFIG
+regions to be visible in the iomem resource tree without interfering with
+other system resources that were discovered during PCI initialization.
 
-If thread 0 is already idle and when thread 1 is about to go to idle, newly
-idle load balance always think that one of the threads is not idle and skips
-doing the newly idle load balance for multi-core and SMP domains.
-
-This is because of the idle_cpu() macro, which checks if the current process
-on a cpu is an idle process.  But this is not the case for the thread doing
-the load_balance_newidle().
-
-Fix this by using runqueue's nr_running field instead of idle_cpu().  And also
-skip the logic of 'only one idle cpu in the group will be doing load
-balancing' during newly idle case.
-
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+[akpm@linux-foundation.org: nanofixes]
+Signed-off-by: Aaron Durbin <adurbin@google.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ arch/i386/pci/mmconfig-shared.c |   48 ++++++++++++++++++++++++++++--
+ 1 files changed, 45 insertions(+), 3 deletions(-)
 
-diff -puN kernel/sched.c~sched-fix-newly-idle-load-balance-in-case-of-smt kernel/sched.c
---- a/kernel/sched.c~sched-fix-newly-idle-load-balance-in-case-of-smt
-+++ a/kernel/sched.c
-@@ -2235,7 +2235,7 @@ find_busiest_group(struct sched_domain *
+diff -puN arch/i386/pci/mmconfig-shared.c~mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources arch/i386/pci/mmconfig-shared.c
+--- a/arch/i386/pci/mmconfig-shared.c~mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources
++++ a/arch/i386/pci/mmconfig-shared.c
+@@ -24,6 +24,9 @@
  
- 			rq = cpu_rq(i);
+ DECLARE_BITMAP(pci_mmcfg_fallback_slots, 32*PCI_MMCFG_MAX_CHECK_BUS);
  
--			if (*sd_idle && !idle_cpu(i))
-+			if (*sd_idle && rq->nr_running)
- 				*sd_idle = 0;
++/* Indicate if the mmcfg resources have been placed into the resource table. */
++static int __initdata pci_mmcfg_resources_inserted;
++
+ /* K8 systems have some devices (typically in the builtin northbridge)
+    that are only accessible using type1
+    Normally this can be expressed in the MCFG by not listing them
+@@ -170,7 +173,7 @@ static int __init pci_mmcfg_check_hostbr
+ 	return name != NULL;
+ }
  
- 			/* Bias balancing toward cpus of our domain */
-@@ -2257,9 +2257,11 @@ find_busiest_group(struct sched_domain *
- 		/*
- 		 * First idle cpu or the first cpu(busiest) in this sched group
- 		 * is eligible for doing load balancing at this and above
--		 * domains.
-+		 * domains. In the newly idle case, we will allow all the cpu's
-+		 * to do the newly idle load balance.
- 		 */
--		if (local_group && balance_cpu != this_cpu && balance) {
-+		if (idle != CPU_NEWLY_IDLE && local_group &&
-+		    balance_cpu != this_cpu && balance) {
- 			*balance = 0;
- 			goto ret;
- 		}
+-static void __init pci_mmcfg_insert_resources(void)
++static void __init pci_mmcfg_insert_resources(unsigned long resource_flags)
+ {
+ #define PCI_MMCFG_RESOURCE_NAME_LEN 19
+ 	int i;
+@@ -194,10 +197,13 @@ static void __init pci_mmcfg_insert_reso
+ 			 cfg->pci_segment);
+ 		res->start = cfg->address;
+ 		res->end = res->start + (num_buses << 20) - 1;
+-		res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
++		res->flags = IORESOURCE_MEM | resource_flags;
+ 		insert_resource(&iomem_resource, res);
+ 		names += PCI_MMCFG_RESOURCE_NAME_LEN;
+ 	}
++
++	/* Mark that the resources have been inserted. */
++	pci_mmcfg_resources_inserted = 1;
+ }
+ 
+ static void __init pci_mmcfg_reject_broken(int type)
+@@ -267,7 +273,43 @@ void __init pci_mmcfg_init(int type)
+ 		if (type == 1)
+ 			unreachable_devices();
+ 		if (known_bridge)
+-			pci_mmcfg_insert_resources();
++			pci_mmcfg_insert_resources(IORESOURCE_BUSY);
+ 		pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
++	} else {
++		/*
++		 * Signal not to attempt to insert mmcfg resources because
++		 * the architecture mmcfg setup could not initialize.
++		 */
++		pci_mmcfg_resources_inserted = 1;
+ 	}
+ }
++
++static int __init pci_mmcfg_late_insert_resources(void)
++{
++	/*
++	 * If resources are already inserted or we are not using MMCONFIG,
++	 * don't insert the resources.
++	 */
++	if ((pci_mmcfg_resources_inserted == 1) ||
++	    (pci_probe & PCI_PROBE_MMCONF) == 0 ||
++	    (pci_mmcfg_config_num == 0) ||
++	    (pci_mmcfg_config == NULL) ||
++	    (pci_mmcfg_config[0].address == 0))
++		return 1;
++
++	/*
++	 * Attempt to insert the mmcfg resources but not with the busy flag
++	 * marked so it won't cause request errors when __request_region is
++	 * called.
++	 */
++	pci_mmcfg_insert_resources(0);
++
++	return 0;
++}
++
++/*
++ * Perform MMCONFIG resource insertion after PCI initialization to allow for
++ * misprogrammed MCFG tables that state larger sizes but actually conflict
++ * with other system resources.
++ */
++late_initcall(pci_mmcfg_late_insert_resources);
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from adurbin@google.com are
 
-origin.patch
-git-sched.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+acpi-add-reboot-mechanism.patch
+acpi-add-reboot-mechanism-fix.patch
+x86_64-add-acpi-reboot-option.patch
+x86_64-make-acpi-the-default-reset-option.patch
