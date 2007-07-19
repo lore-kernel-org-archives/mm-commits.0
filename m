@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + affs-convert-to-new-aops-fix.patch added to -mm tree
-Date: Wed, 18 Jul 2007 19:52:08 -0700
-Message-ID: <200707190252.l6J2q8Rm010225@imap1.linux-foundation.org>
+Subject: + hostfs-convert-to-new-aops-fix.patch added to -mm tree
+Date: Wed, 18 Jul 2007 19:52:25 -0700
+Message-ID: <200707190252.l6J2qPvj010240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54695 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53028 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757097AbXGSCwT (ORCPT
+	by vger.kernel.org with ESMTP id S1757176AbXGSCwg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 22:52:19 -0400
+	Wed, 18 Jul 2007 22:52:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, hugh@veritas.com
 
 
 The patch titled
-     affs convert to new aops fix
+     hostfs convert to new aops fix
 has been added to the -mm tree.  Its filename is
-     affs-convert-to-new-aops-fix.patch
+     hostfs-convert-to-new-aops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: affs convert to new aops fix
+Subject: hostfs convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
 
-Hugh noticed the page wasn't being unlocked at all in the affs
-conversion.
+Fix lock ordering for hostfs. It seems that this filesystem may not be
+vulnerable to the bug, given that it implements its own writepage, but
+it is better to retain the safe ordering.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/hostfs/hostfs_kern.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/affs/file.c~affs-convert-to-new-aops-fix fs/affs/file.c
---- a/fs/affs/file.c~affs-convert-to-new-aops-fix
-+++ a/fs/affs/file.c
-@@ -13,6 +13,7 @@
-  */
- 
- #include "affs.h"
+diff -puN fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops-fix fs/hostfs/hostfs_kern.c
+--- a/fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops-fix
++++ a/fs/hostfs/hostfs_kern.c
+@@ -16,6 +16,7 @@
+ #include <linux/list.h>
+ #include <linux/statfs.h>
+ #include <linux/kdev_t.h>
 +#include <linux/swap.h> /* mark_page_accessed */
+ #include <asm/uaccess.h>
+ #include "hostfs.h"
+ #include "kern_util.h"
+@@ -493,14 +494,15 @@ int hostfs_write_end(struct file *file, 
  
- #if PAGE_SIZE < 4096
- #error PAGE_SIZE must be at least 4096
-@@ -767,6 +768,10 @@ done:
- 	if (tmp > inode->i_size)
- 		inode->i_size = AFFS_I(inode)->mmu_private = tmp;
+ 	if (!PageUptodate(page) && err == PAGE_CACHE_SIZE)
+ 		SetPageUptodate(page);
+-	unlock_page(page);
+-	page_cache_release(page);
  
+ 	/* If err > 0, write_file has added err to pos, so we are comparing
+ 	 * i_size against the last byte written.
+ 	 */
+ 	if (err > 0 && (pos > inode->i_size))
+ 		inode->i_size = pos;
 +	unlock_page(page);
 +	mark_page_accessed(page);
 +	page_cache_release(page);
-+
- 	return written;
  
- out:
+ 	return err;
+ }
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
