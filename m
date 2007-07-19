@@ -1,79 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - cell-fix-cbe_cpufreq-for-legacy-slof-tree.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 17:23:41 -0700
-Message-ID: <200707190023.l6J0Nftn004735@imap1.linux-foundation.org>
+Subject: + gdth-remove-redundant-pci-stuff-update.patch added to -mm tree
+Date: Wed, 18 Jul 2007 17:28:10 -0700
+Message-ID: <200707190028.l6J0SARh004938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44146 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51078 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932329AbXGSAYm (ORCPT
+	by vger.kernel.org with ESMTP id S1754243AbXGSA2a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 20:24:42 -0400
+	Wed, 18 Jul 2007 20:28:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jcd@tribudubois.net, arnd.bergmann@de.ibm.com, krafft@de.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jeff@garzik.org, hch@lst.de
 
 
 The patch titled
-     cell: fix cbe_cpufreq for legacy SLOF tree.
-has been removed from the -mm tree.  Its filename was
-     cell-fix-cbe_cpufreq-for-legacy-slof-tree.patch
+     gdth-remove-redundant-pci-stuff update
+has been added to the -mm tree.  Its filename is
+     gdth-remove-redundant-pci-stuff-update.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: cell: fix cbe_cpufreq for legacy SLOF tree.
-From: Jean-Christophe DUBOIS <jcd@tribudubois.net>
+Subject: gdth-remove-redundant-pci-stuff update
+From: Jeff Garzik <jeff@garzik.org>
 
-Previous patch changed based on Christian Krafft's comment.
+Attached is the version updated with Christoph's "don't lose info
+contained in PCI_DEVICE_ID constants" request.
 
-On some legacy SLOF tree the generic code is unable to ioremap some Cell BE
-registers.  Therefore the "generic" functions are returning a NULL pointer,
-triggering a crash on such platforms.
-
-Let's handle this more gracefully.
-
-Signed-off-by: Jean-Christophe DUBOIS <jcd@tribudubois.net>
-Acked-by: Christian Kraff <krafft@de.ibm.com>
-Signed-off-by: Arnd Bergmann <arnd.bergmann@de.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/cbe_cpufreq.c |   10 ++++++++++
- 1 files changed, 10 insertions(+)
+ drivers/scsi/gdth.h |   39 ++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 38 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-fix-cbe_cpufreq-for-legacy-slof-tree arch/powerpc/platforms/cell/cbe_cpufreq.c
---- a/arch/powerpc/platforms/cell/cbe_cpufreq.c~cell-fix-cbe_cpufreq-for-legacy-slof-tree
-+++ a/arch/powerpc/platforms/cell/cbe_cpufreq.c
-@@ -24,6 +24,7 @@
- #include <asm/machdep.h>
- #include <asm/of_platform.h>
- #include <asm/prom.h>
-+#include "cbe_regs.h"
- #include "cbe_cpufreq.h"
+diff -puN drivers/scsi/gdth.h~gdth-remove-redundant-pci-stuff-update drivers/scsi/gdth.h
+--- a/drivers/scsi/gdth.h~gdth-remove-redundant-pci-stuff-update
++++ a/drivers/scsi/gdth.h
+@@ -51,8 +51,45 @@
+ #define GDT2_ID         0x0120941c              /* GDT2000/2020 */
  
- static DEFINE_MUTEX(cbe_switch_mutex);
-@@ -78,6 +79,15 @@ static int cbe_cpufreq_cpu_init(struct c
+ /* vendor ID, device IDs (PCI) */
+-/* these defines should be moved to <linux/pci.h> */
++/* these defines should already exist in <linux/pci.h> */
++#ifndef PCI_VENDOR_ID_VORTEX
++#define PCI_VENDOR_ID_VORTEX            0x1119  /* PCI controller vendor ID */
++#endif
++#ifndef PCI_VENDOR_ID_INTEL
++#define PCI_VENDOR_ID_INTEL             0x8086  
++#endif
  
- 	pr_debug("init cpufreq on CPU %d\n", policy->cpu);
- 
-+	/*
-+	 * Let's check we can actually get to the CELL regs
-+	 */
-+	if (!cbe_get_cpu_pmd_regs(policy->cpu) ||
-+	    !cbe_get_cpu_mic_tm_regs(policy->cpu)) {
-+		pr_info("invalid CBE regs pointers for cpufreq\n");
-+		return -EINVAL;
-+	}
++#ifndef PCI_DEVICE_ID_VORTEX_GDT60x0
++/* GDT_PCI */
++#define PCI_DEVICE_ID_VORTEX_GDT60x0    0       /* GDT6000/6020/6050 */
++#define PCI_DEVICE_ID_VORTEX_GDT6000B   1       /* GDT6000B/6010 */
++/* GDT_PCINEW */
++#define PCI_DEVICE_ID_VORTEX_GDT6x10    2       /* GDT6110/6510 */
++#define PCI_DEVICE_ID_VORTEX_GDT6x20    3       /* GDT6120/6520 */
++#define PCI_DEVICE_ID_VORTEX_GDT6530    4       /* GDT6530 */
++#define PCI_DEVICE_ID_VORTEX_GDT6550    5       /* GDT6550 */
++/* GDT_PCINEW, wide/ultra SCSI controllers */
++#define PCI_DEVICE_ID_VORTEX_GDT6x17    6       /* GDT6117/6517 */
++#define PCI_DEVICE_ID_VORTEX_GDT6x27    7       /* GDT6127/6527 */
++#define PCI_DEVICE_ID_VORTEX_GDT6537    8       /* GDT6537 */
++#define PCI_DEVICE_ID_VORTEX_GDT6557    9       /* GDT6557/6557-ECC */
++/* GDT_PCINEW, wide SCSI controllers */
++#define PCI_DEVICE_ID_VORTEX_GDT6x15    10      /* GDT6115/6515 */
++#define PCI_DEVICE_ID_VORTEX_GDT6x25    11      /* GDT6125/6525 */
++#define PCI_DEVICE_ID_VORTEX_GDT6535    12      /* GDT6535 */
++#define PCI_DEVICE_ID_VORTEX_GDT6555    13      /* GDT6555/6555-ECC */
++#endif
 +
- 	max_freqp = of_get_property(cpu, "clock-frequency", NULL);
- 
- 	of_node_put(cpu);
++#ifndef PCI_DEVICE_ID_VORTEX_GDT6x17RP
++/* GDT_MPR, RP series, wide/ultra SCSI */
++#define PCI_DEVICE_ID_VORTEX_GDT6x17RP  0x100   /* GDT6117RP/GDT6517RP */
++#define PCI_DEVICE_ID_VORTEX_GDT6x27RP  0x101   /* GDT6127RP/GDT6527RP */
++#define PCI_DEVICE_ID_VORTEX_GDT6537RP  0x102   /* GDT6537RP */
++#define PCI_DEVICE_ID_VORTEX_GDT6557RP  0x103   /* GDT6557RP */
++/* GDT_MPR, RP series, narrow/ultra SCSI */
++#define PCI_DEVICE_ID_VORTEX_GDT6x11RP  0x104   /* GDT6111RP/GDT6511RP */
++#define PCI_DEVICE_ID_VORTEX_GDT6x21RP  0x105   /* GDT6121RP/GDT6521RP */
++#endif
+ #ifndef PCI_DEVICE_ID_VORTEX_GDT6x17RD
+ /* GDT_MPR, RD series, wide/ultra SCSI */
+ #define PCI_DEVICE_ID_VORTEX_GDT6x17RD  0x110   /* GDT6117RD/GDT6517RD */
 _
 
-Patches currently in -mm which might be from jcd@tribudubois.net are
+Patches currently in -mm which might be from jeff@garzik.org are
 
-cell-fix-cbe_cpufreq-for-legacy-slof-tree.patch
-cell-fix-cbe_regc-for-legacy-slof-tree.patch
-cell-fix-cbe_thermal-for-legacy-slof-tree.patch
-cell-allow-linux-to-map-cell-regs-on-legacy-slof-tree.patch
+origin.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+git-libata-all.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+ata-use-iomap_name.patch
+ata-fix-reported-task-file-values-in-sense-data.patch
+libata-adjust-libata-to-ignore-errors-after.patch
+libata-check-for-an-support.patch
+scsi-expose-an-to-user-space.patch
+libata-expose-an-to-user-space.patch
+scsi-save-disk-in-scsi_device.patch
+libata-send-event-when-an-received.patch
+ata-ahci-alpm-store-interrupt-value.patch
+ata-ahci-alpm-expose-power-management-policy-option-to-users.patch
+ata-ahci-alpm-enable-link-power-management-for-ata-drivers.patch
+ata-ahci-alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
+git-netdev-all.patch
+8139too-force-media-setting-fix.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+e1000new-build-fix.patch
+gdth-remove-redundant-pci-stuff.patch
+gdth-remove-redundant-pci-stuff-update.patch
+x86-64-calgary-abstract-how-we-find-the-iommu_table-for-a-device.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+bpqether-fix-rcu-usage.patch
+lguest-the-net-driver.patch
