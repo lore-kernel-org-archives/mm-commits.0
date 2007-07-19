@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-use-set_compound_page_dtor.patch added to -mm tree
-Date: Wed, 18 Jul 2007 20:05:32 -0700
-Message-ID: <200707190305.l6J35WYW010765@imap1.linux-foundation.org>
+Subject: + ext2-statfs-improvement-for-block-and-inode-free-count.patch added to -mm tree
+Date: Wed, 18 Jul 2007 20:18:14 -0700
+Message-ID: <200707190318.l6J3IEdX011198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41342 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43869 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757767AbXGSDFn (ORCPT
+	by vger.kernel.org with ESMTP id S1756945AbXGSDSY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 23:05:43 -0400
+	Wed, 18 Jul 2007 23:18:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, agl@us.ibm.com, wli@holomorphy.com
+Cc: pbadari@us.ibm.com, adilger@clusterfs.com
 
 
 The patch titled
-     hugetlb: use set_compound_page_dtor
+     ext2 statfs improvement for block and inode free count
 has been added to the -mm tree.  Its filename is
-     hugetlb-use-set_compound_page_dtor.patch
+     ext2-statfs-improvement-for-block-and-inode-free-count.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hugetlb: use set_compound_page_dtor
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: ext2 statfs improvement for block and inode free count
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-Use appropriate accessor function to set compound page destructor
-function.
+More statfs() improvements for ext2.  ext2 already maintains percpu
+counters for free blocks and inodes.  Derive free block count and inode
+count by summing up percpu counters, instead of counting up all the groups
+in the filesystem each time.
 
-Cc:  William Irwin <wli@holomorphy.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Adam Litke <agl@us.ibm.com>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Acked-by: Andreas Dilger <adilger@clusterfs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext2/super.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-use-set_compound_page_dtor mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-use-set_compound_page_dtor
-+++ a/mm/hugetlb.c
-@@ -208,7 +208,7 @@ static void update_and_free_page(struct 
- 				1 << PG_dirty | 1 << PG_active | 1 << PG_reserved |
- 				1 << PG_private | 1<< PG_writeback);
- 	}
--	page[1].lru.next = NULL;
-+	set_compound_page_dtor(page, NULL);
- 	set_page_refcounted(page);
- 	__free_pages(page, HUGETLB_PAGE_ORDER);
- }
+diff -puN fs/ext2/super.c~ext2-statfs-improvement-for-block-and-inode-free-count fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-statfs-improvement-for-block-and-inode-free-count
++++ a/fs/ext2/super.c
+@@ -1141,13 +1141,13 @@ static int ext2_statfs (struct dentry * 
+ 	buf->f_type = EXT2_SUPER_MAGIC;
+ 	buf->f_bsize = sb->s_blocksize;
+ 	buf->f_blocks = le32_to_cpu(es->s_blocks_count) - sbi->s_overhead_last;
+-	buf->f_bfree = ext2_count_free_blocks(sb);
++	buf->f_bfree = percpu_counter_sum(&sbi->s_freeblocks_counter);
+ 	es->s_free_blocks_count = cpu_to_le32(buf->f_bfree);
+ 	buf->f_bavail = buf->f_bfree - le32_to_cpu(es->s_r_blocks_count);
+ 	if (buf->f_bfree < le32_to_cpu(es->s_r_blocks_count))
+ 		buf->f_bavail = 0;
+ 	buf->f_files = le32_to_cpu(es->s_inodes_count);
+-	buf->f_ffree = ext2_count_free_inodes(sb);
++	buf->f_ffree = percpu_counter_sum(&sbi->s_freeinodes_counter);
+ 	es->s_free_inodes_count = cpu_to_le32(buf->f_ffree);
+ 	buf->f_namelen = EXT2_NAME_LEN;
+ 	fsid = le64_to_cpup((void *)es->s_uuid) ^
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
 origin.patch
-unregister_chrdev-ignore-the-return-value.patch
-unregister_chrdev-return-void.patch
-sysfs-avoid-kmem_cache_freenull.patch
-git-dvb.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-hugetlb-use-set_compound_page_dtor.patch
+ext3-convert-to-new-aops.patch
+ext4-convert-to-new-aops.patch
+ext2-statfs-improvement-for-block-and-inode-free-count.patch
+fix-for-ext2-reservation.patch
