@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ps3-flash-rom-storage-driver-updates-after-final-review.patch added to -mm tree
-Date: Thu, 19 Jul 2007 15:20:06 -0700
-Message-ID: <200707192220.l6JMK6WN025907@imap1.linux-foundation.org>
+Subject: + ps3-bd-dvd-cd-rom-storage-driver-updates-after-final-review.patch added to -mm tree
+Date: Thu, 19 Jul 2007 15:20:04 -0700
+Message-ID: <200707192220.l6JMK4dR025904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37745 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49471 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762970AbXGSWUp (ORCPT
+	by vger.kernel.org with ESMTP id S1762940AbXGSWVU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 18:20:45 -0400
+	Thu, 19 Jul 2007 18:21:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: Geert.Uytterhoeven@sonycom.com, James.Bottomley@steeleye.com, benh@kernel.cr
 
 
 The patch titled
-     ps3flash: updates after final review
+     ps3rom: updates after final review
 has been added to the -mm tree.  Its filename is
-     ps3-flash-rom-storage-driver-updates-after-final-review.patch
+     ps3-bd-dvd-cd-rom-storage-driver-updates-after-final-review.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,15 +26,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ps3flash: updates after final review
+Subject: ps3rom: updates after final review
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-ps3flash: updates after final review:
-  o Kill confusing ps3flash_priv() macro, open code it instead
-  o ps3flash_llseek(): Add missing locking (using i_mutex)
-  o Replace do_div_llr() by `/' and `%'
-  o ps3flash_read(): Use a common return for the error path
-  o Minor coding style fixes not reported by checkpatch
+ps3rom: updates after final review:
+  o Kill confusing ps3rom_priv() macro, open code it instead
+  o kmap_atomic() cannot fail
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Cc: Geoff Levand <geoffrey.levand@am.sony.com>
@@ -45,184 +42,78 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ps3flash.c |   59 ++++++++++++++++++++++----------------
- 1 files changed, 35 insertions(+), 24 deletions(-)
+ drivers/scsi/ps3rom.c |   15 +++++----------
+ 1 files changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/ps3flash.c~ps3-flash-rom-storage-driver-updates-after-final-review drivers/char/ps3flash.c
---- a/drivers/char/ps3flash.c~ps3-flash-rom-storage-driver-updates-after-final-review
-+++ a/drivers/char/ps3flash.c
-@@ -34,7 +34,6 @@
- struct ps3flash_private {
- 	struct mutex mutex;	/* Bounce buffer mutex */
+diff -puN drivers/scsi/ps3rom.c~ps3-bd-dvd-cd-rom-storage-driver-updates-after-final-review drivers/scsi/ps3rom.c
+--- a/drivers/scsi/ps3rom.c~ps3-bd-dvd-cd-rom-storage-driver-updates-after-final-review
++++ a/drivers/scsi/ps3rom.c
+@@ -42,7 +42,6 @@ struct ps3rom_private {
+ 	struct ps3_storage_device *dev;
+ 	struct scsi_cmnd *curr_cmd;
  };
--#define ps3flash_priv(dev)	((dev)->sbd.core.driver_data)
+-#define ps3rom_priv(dev)	((dev)->sbd.core.driver_data)
  
- static struct ps3_storage_device *ps3flash_dev;
  
-@@ -81,28 +80,35 @@ static ssize_t ps3flash_write_chunk(stru
- static loff_t ps3flash_llseek(struct file *file, loff_t offset, int origin)
- {
- 	struct ps3_storage_device *dev = ps3flash_dev;
--	u64 size = dev->regions[dev->region_idx].size*dev->blk_size;
-+	loff_t res;
- 
-+	mutex_lock(&file->f_mapping->host->i_mutex);
- 	switch (origin) {
- 	case 1:
- 		offset += file->f_pos;
- 		break;
- 	case 2:
--		offset += size;
-+		offset += dev->regions[dev->region_idx].size*dev->blk_size;
- 		break;
- 	}
--	if (offset < 0)
--		return -EINVAL;
-+	if (offset < 0) {
-+		res = -EINVAL;
-+		goto out;
-+	}
- 
- 	file->f_pos = offset;
--	return file->f_pos;
-+	res = file->f_pos;
-+
-+out:
-+	mutex_unlock(&file->f_mapping->host->i_mutex);
-+	return res;
- }
- 
- static ssize_t ps3flash_read(struct file *file, char __user *buf, size_t count,
- 			     loff_t *pos)
- {
- 	struct ps3_storage_device *dev = ps3flash_dev;
--	struct ps3flash_private *priv = ps3flash_priv(dev);
-+	struct ps3flash_private *priv = dev->sbd.core.driver_data;
- 	u64 size, start_sector, end_sector, offset;
- 	ssize_t sectors_read;
- 	size_t remaining, n;
-@@ -115,15 +121,16 @@ static ssize_t ps3flash_read(struct file
- 	if (*pos >= size || !count)
- 		return 0;
- 
--	if (*pos+count > size) {
-+	if (*pos + count > size) {
- 		dev_dbg(&dev->sbd.core,
- 			"%s:%u Truncating count from %zu to %llu\n", __func__,
- 			__LINE__, count, size - *pos);
- 		count = size - *pos;
+ #define LV1_STORAGE_SEND_ATAPI_COMMAND	(1)
+@@ -113,8 +112,6 @@ static int fill_from_dev_buffer(struct s
+ 	for (k = 0, req_len = 0, act_len = 0; k < cmd->use_sg; ++k, ++sgpnt) {
+ 		if (active) {
+ 			kaddr = kmap_atomic(sgpnt->page, KM_IRQ0);
+-			if (!kaddr)
+-				return -1;
+ 			len = sgpnt->length;
+ 			if ((req_len + len) > buflen) {
+ 				active = 0;
+@@ -151,8 +148,6 @@ static int fetch_to_dev_buffer(struct sc
+ 	sgpnt = cmd->request_buffer;
+ 	for (k = 0, req_len = 0, fin = 0; k < cmd->use_sg; ++k, ++sgpnt) {
+ 		kaddr = kmap_atomic(sgpnt->page, KM_IRQ0);
+-		if (!kaddr)
+-			return -1;
+ 		len = sgpnt->length;
+ 		if ((req_len + len) > buflen) {
+ 			len = buflen - req_len;
+@@ -379,7 +374,7 @@ static irqreturn_t ps3rom_interrupt(int 
+ 		return IRQ_HANDLED;
  	}
  
--	start_sector = do_div_llr(*pos, dev->blk_size, &offset);
--	end_sector = DIV_ROUND_UP(*pos+count, dev->blk_size);
-+	start_sector = *pos / dev->blk_size;
-+	offset = *pos % dev->blk_size;
-+	end_sector = DIV_ROUND_UP(*pos + count, dev->blk_size);
+-	host = ps3rom_priv(dev);
++	host = dev->sbd.core.driver_data;
+ 	priv = shost_priv(host);
+ 	cmd = priv->curr_cmd;
  
- 	remaining = count;
- 	do {
-@@ -134,7 +141,7 @@ static ssize_t ps3flash_read(struct file
- 						     0);
- 		if (sectors_read < 0) {
- 			mutex_unlock(&priv->mutex);
--			return sectors_read;
-+			goto fail;
- 		}
- 
- 		n = min(remaining, sectors_read*dev->blk_size-offset);
-@@ -143,7 +150,8 @@ static ssize_t ps3flash_read(struct file
- 			__func__, __LINE__, n, dev->bounce_buf+offset, buf);
- 		if (copy_to_user(buf, dev->bounce_buf+offset, n)) {
- 			mutex_unlock(&priv->mutex);
--			return -EFAULT;
-+			sectors_read = -EFAULT;
-+			goto fail;
- 		}
- 
- 		mutex_unlock(&priv->mutex);
-@@ -156,13 +164,16 @@ static ssize_t ps3flash_read(struct file
- 	} while (remaining > 0);
- 
- 	return count;
-+
-+fail:
-+	return sectors_read;
- }
- 
- static ssize_t ps3flash_write(struct file *file, const char __user *buf,
- 			      size_t count, loff_t *pos)
- {
- 	struct ps3_storage_device *dev = ps3flash_dev;
--	struct ps3flash_private *priv = ps3flash_priv(dev);
-+	struct ps3flash_private *priv = dev->sbd.core.driver_data;
- 	u64 size, chunk_sectors, start_write_sector, end_write_sector,
- 	    end_read_sector, start_read_sector, head, tail, offset;
- 	ssize_t res;
-@@ -177,7 +188,7 @@ static ssize_t ps3flash_write(struct fil
- 	if (*pos >= size || !count)
- 		return 0;
- 
--	if (*pos+count > size) {
-+	if (*pos + count > size) {
- 		dev_dbg(&dev->sbd.core,
- 			"%s:%u Truncating count from %zu to %llu\n", __func__,
- 			__LINE__, count, size - *pos);
-@@ -186,13 +197,13 @@ static ssize_t ps3flash_write(struct fil
- 
- 	chunk_sectors = dev->bounce_size / dev->blk_size;
- 
--	start_write_sector = do_div_llr(*pos, dev->bounce_size, &offset) *
--			     chunk_sectors;
--	end_write_sector = DIV_ROUND_UP(*pos+count, dev->bounce_size) *
-+	start_write_sector = *pos / dev->bounce_size * chunk_sectors;
-+	offset = *pos % dev->bounce_size;
-+	end_write_sector = DIV_ROUND_UP(*pos + count, dev->bounce_size) *
- 			   chunk_sectors;
- 
- 	end_read_sector = DIV_ROUND_UP(*pos, dev->blk_size);
--	start_read_sector = (*pos+count) / dev->blk_size;
-+	start_read_sector = (*pos + count) / dev->blk_size;
- 
- 	/*
- 	 * As we have to write in 256 KiB chunks, while we can read in blk_size
-@@ -204,8 +215,8 @@ static ssize_t ps3flash_write(struct fil
- 	 * All of this is complicated by using only one 256 KiB bounce buffer.
- 	 */
- 
--	head = end_read_sector-start_write_sector;
--	tail = end_write_sector-start_read_sector;
-+	head = end_read_sector - start_write_sector;
-+	tail = end_write_sector - start_read_sector;
- 
- 	remaining = count;
- 	do {
-@@ -355,7 +366,7 @@ static int __devinit ps3flash_probe(stru
- 		goto fail;
+@@ -469,7 +464,7 @@ static int __devinit ps3rom_probe(struct
  	}
  
--	ps3flash_priv(dev) = priv;
-+	dev->sbd.core.driver_data = priv;
- 	mutex_init(&priv->mutex);
+ 	priv = shost_priv(host);
+-	ps3rom_priv(dev) = host;
++	dev->sbd.core.driver_data = host;
+ 	priv->dev = dev;
  
- 	dev->bounce_size = ps3flash_bounce_buffer.size;
-@@ -381,7 +392,7 @@ fail_teardown:
- 	ps3stor_teardown(dev);
- fail_free_priv:
- 	kfree(priv);
--	ps3flash_priv(dev) = NULL;
+ 	/* One device/LUN per SCSI bus */
+@@ -489,7 +484,7 @@ static int __devinit ps3rom_probe(struct
+ 
+ fail_host_put:
+ 	scsi_host_put(host);
+-	ps3rom_priv(dev) = NULL;
 +	dev->sbd.core.driver_data = NULL;
- fail:
- 	ps3flash_dev = NULL;
- 	return error;
-@@ -393,8 +404,8 @@ static int ps3flash_remove(struct ps3_sy
- 
- 	misc_deregister(&ps3flash_misc);
+ fail_teardown:
  	ps3stor_teardown(dev);
--	kfree(ps3flash_priv(dev));
--	ps3flash_priv(dev) = NULL;
-+	kfree(dev->sbd.core.driver_data);
+ fail_free_bounce:
+@@ -500,12 +495,12 @@ fail_free_bounce:
+ static int ps3rom_remove(struct ps3_system_bus_device *_dev)
+ {
+ 	struct ps3_storage_device *dev = to_ps3_storage_device(&_dev->core);
+-	struct Scsi_Host *host = ps3rom_priv(dev);
++	struct Scsi_Host *host = dev->sbd.core.driver_data;
+ 
+ 	scsi_remove_host(host);
+ 	ps3stor_teardown(dev);
+ 	scsi_host_put(host);
+-	ps3rom_priv(dev) = NULL;
 +	dev->sbd.core.driver_data = NULL;
- 	ps3flash_dev = NULL;
+ 	kfree(dev->bounce_buf);
  	return 0;
  }
 _
