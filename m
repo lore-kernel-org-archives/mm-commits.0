@@ -1,58 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:15 -0700
-Message-ID: <200707192010.l6JKAFJ4020653@imap1.linux-foundation.org>
+Subject: - drivers-edac-device-output-clenaup.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:06:37 -0700
+Message-ID: <200707192006.l6JK6bfq020161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44408 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39459 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759391AbXGSUPM (ORCPT
+	by vger.kernel.org with ESMTP id S1756391AbXGSUPI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:12 -0400
+	Thu, 19 Jul 2007 16:15:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 uaccess.h: replace hard-coded constant with appropriate macro from kernel.h
+     drivers/edac: device output clenaup
 has been removed from the -mm tree.  Its filename was
-     i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
+     drivers-edac-device-output-clenaup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 uaccess.h: replace hard-coded constant with appropriate macro from kernel.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: drivers/edac: device output clenaup
+From: Douglas Thompson <dougthompson@xmission.com>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+The error handling output strings needed to be refactored for better
+displaying of the error informaton.
+
+Also needed to added offset_value for output as well
+
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/uaccess.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/edac/edac_device.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-i386/uaccess.h~i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh include/asm-i386/uaccess.h
---- a/include/asm-i386/uaccess.h~i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh
-+++ a/include/asm-i386/uaccess.h
-@@ -581,7 +581,7 @@ long __must_check __strncpy_from_user(ch
-  * If there is a limit on the length of a valid string, you may wish to
-  * consider using strnlen_user() instead.
-  */
--#define strlen_user(str) strnlen_user(str, ~0UL >> 1)
-+#define strlen_user(str) strnlen_user(str, LONG_MAX)
+diff -puN drivers/edac/edac_device.c~drivers-edac-device-output-clenaup drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~drivers-edac-device-output-clenaup
++++ a/drivers/edac/edac_device.c
+@@ -158,7 +158,7 @@ struct edac_device_ctl_info *edac_device
+ 			attrib_p = &dev_attrib[block * nr_attribs];
+ 			blk->attribs = attrib_p;
+ 			snprintf(blk->name, sizeof(blk->name),
+-				 "%s%d", edac_block_name, block + 1);
++				 "%s%d", edac_block_name, block+offset_value);
+ 			blk->name[sizeof(blk->name) - 1] = '\0';
  
- long strnlen_user(const char __user *str, long n);
- unsigned long __must_check clear_user(void __user *mem, unsigned long len);
+ 			debugf1("%s() instance=%d block=%d name=%s\n",
+@@ -580,7 +580,7 @@ void edac_device_handle_ce(struct edac_d
+ 
+ 	if (edac_device_get_log_ce(edac_dev))
+ 		edac_device_printk(edac_dev, KERN_WARNING,
+-				   "CE ctl: %s, instance: %s, block: %s: %s\n",
++				   "CE: %s instance: %s block: %s '%s'\n",
+ 				   edac_dev->ctl_name, instance->name,
+ 				   block ? block->name : "N/A", msg);
+ }
+@@ -626,12 +626,12 @@ void edac_device_handle_ue(struct edac_d
+ 
+ 	if (edac_device_get_log_ue(edac_dev))
+ 		edac_device_printk(edac_dev, KERN_EMERG,
+-				   "UE ctl: %s, instance: %s, block: %s: %s\n",
++				   "UE: %s instance: %s block: %s '%s'\n",
+ 				   edac_dev->ctl_name, instance->name,
+ 				   block ? block->name : "N/A", msg);
+ 
+ 	if (edac_device_get_panic_on_ue(edac_dev))
+-		panic("EDAC %s: UE instance: %s, block %s: %s\n",
++		panic("EDAC %s: UE instance: %s block %s '%s'\n",
+ 		      edac_dev->ctl_name, instance->name,
+ 		      block ? block->name : "N/A", msg);
+ }
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
 origin.patch
-git-alsa.patch
-git-kbuild.patch
-git-kvm.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-remove-dead-references-to-module_parm-macro.patch
-i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
