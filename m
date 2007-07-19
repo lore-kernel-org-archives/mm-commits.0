@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hostfs-convert-to-new-aops-fix.patch added to -mm tree
-Date: Wed, 18 Jul 2007 19:52:25 -0700
-Message-ID: <200707190252.l6J2qPvj010240@imap1.linux-foundation.org>
+Subject: + reiserfs-convert-to-new-aops-fix.patch added to -mm tree
+Date: Wed, 18 Jul 2007 19:52:40 -0700
+Message-ID: <200707190252.l6J2qeQ3010251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53028 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42308 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757176AbXGSCwg (ORCPT
+	by vger.kernel.org with ESMTP id S1757659AbXGSCww (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 22:52:36 -0400
+	Wed, 18 Jul 2007 22:52:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, hugh@veritas.com
 
 
 The patch titled
-     hostfs convert to new aops fix
+     reiserfs convert to new aops fix
 has been added to the -mm tree.  Its filename is
-     hostfs-convert-to-new-aops-fix.patch
+     reiserfs-convert-to-new-aops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hostfs convert to new aops fix
+Subject: reiserfs convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
 
-Fix lock ordering for hostfs. It seems that this filesystem may not be
-vulnerable to the bug, given that it implements its own writepage, but
-it is better to retain the safe ordering.
+Lock ordering fix for the same problem for reiserfs.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hostfs/hostfs_kern.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/reiserfs/inode.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops-fix fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops-fix
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -16,6 +16,7 @@
- #include <linux/list.h>
- #include <linux/statfs.h>
- #include <linux/kdev_t.h>
-+#include <linux/swap.h> /* mark_page_accessed */
- #include <asm/uaccess.h>
- #include "hostfs.h"
- #include "kern_util.h"
-@@ -493,14 +494,15 @@ int hostfs_write_end(struct file *file, 
+diff -puN fs/reiserfs/inode.c~reiserfs-convert-to-new-aops-fix fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~reiserfs-convert-to-new-aops-fix
++++ a/fs/reiserfs/inode.c
+@@ -2695,9 +2695,6 @@ static int reiserfs_write_end(struct fil
+ 	flush_dcache_page(page);
  
- 	if (!PageUptodate(page) && err == PAGE_CACHE_SIZE)
- 		SetPageUptodate(page);
+ 	reiserfs_commit_page(inode, page, start, start + copied);
 -	unlock_page(page);
+-	mark_page_accessed(page);
 -	page_cache_release(page);
  
- 	/* If err > 0, write_file has added err to pos, so we are comparing
- 	 * i_size against the last byte written.
- 	 */
- 	if (err > 0 && (pos > inode->i_size))
- 		inode->i_size = pos;
+ 	/* generic_commit_write does this for us, but does not update the
+ 	 ** transaction tracking stuff when the size changes.  So, we have
+@@ -2747,6 +2744,9 @@ static int reiserfs_write_end(struct fil
+ 	}
+ 
+       out:
 +	unlock_page(page);
 +	mark_page_accessed(page);
 +	page_cache_release(page);
+ 	return ret == 0 ? copied : ret;
  
- 	return err;
+       journal_error:
+@@ -2758,7 +2758,7 @@ static int reiserfs_write_end(struct fil
+ 		reiserfs_write_unlock(inode->i_sb);
+ 	}
+ 
+-	return ret;
++	goto out;
  }
+ 
+ int reiserfs_commit_write(struct file *f, struct page *page,
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
