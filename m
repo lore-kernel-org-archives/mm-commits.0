@@ -1,56 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-add-info-kconfig.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:06:39 -0700
-Message-ID: <200707192006.l6JK6dkd020164@imap1.linux-foundation.org>
+Subject: - x86_64-flush_tlb_kernel_range-warning-fix.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:10:19 -0700
+Message-ID: <200707192010.l6JKAJWv020659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47538 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35290 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756469AbXGSUPG (ORCPT
+	by vger.kernel.org with ESMTP id S1756782AbXGSUPG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:15:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: add info kconfig
+     x86_64: flush_tlb_kernel_range() warning fix
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-add-info-kconfig.patch
+     x86_64-flush_tlb_kernel_range-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: add info kconfig
-From: Douglas Thompson <dougthompson@xmission.com>
+Subject: x86_64: flush_tlb_kernel_range() warning fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Kconfig - modified the help of EDAC
+mm/vmalloc.c: In function 'unmap_kernel_range':
+mm/vmalloc.c:75: warning: unused variable 'start'
 
-Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
+make it a C function so that the compiler thinks it used its arguments.
+
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/Kconfig |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/asm-x86_64/tlbflush.h |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/edac/Kconfig~drivers-edac-add-info-kconfig drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~drivers-edac-add-info-kconfig
-+++ a/drivers/edac/Kconfig
-@@ -13,8 +13,9 @@ menuconfig EDAC
- 	help
- 	  EDAC is designed to report errors in the core system.
- 	  These are low-level errors that are reported in the CPU or
--	  supporting chipset: memory errors, cache errors, PCI errors,
--	  thermal throttling, etc..  If unsure, select 'Y'.
-+	  supporting chipset or other subsystems:
-+	  memory errors, cache errors, PCI errors, thermal throttling, etc..
-+	  If unsure, select 'Y'.
+diff -puN include/asm-x86_64/tlbflush.h~x86_64-flush_tlb_kernel_range-warning-fix include/asm-x86_64/tlbflush.h
+--- a/include/asm-x86_64/tlbflush.h~x86_64-flush_tlb_kernel_range-warning-fix
++++ a/include/asm-x86_64/tlbflush.h
+@@ -92,7 +92,11 @@ static inline void flush_tlb_range(struc
  
- 	  If this code is reporting problems on your system, please
- 	  see the EDAC project web pages for more information at:
+ #endif
+ 
+-#define flush_tlb_kernel_range(start, end) flush_tlb_all()
++static inline void flush_tlb_kernel_range(unsigned long start,
++					unsigned long end)
++{
++	flush_tlb_all();
++}
+ 
+ static inline void flush_tlb_pgtables(struct mm_struct *mm,
+ 				      unsigned long start, unsigned long end)
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
+acpi-add-reboot-mechanism-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+git-dvb.patch
+git-input.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mtd.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+git-scsi-misc.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-xfs.patch
+git-kgdb-fixup-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
