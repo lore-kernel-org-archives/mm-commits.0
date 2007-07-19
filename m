@@ -1,114 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-mips-fixup.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 12:10:52 -0700
-Message-ID: <200707191910.l6JJAqZ0017332@imap1.linux-foundation.org>
+Subject: - fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 12:21:45 -0700
+Message-ID: <200707191921.l6JJLjXT017784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55434 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39691 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765243AbXGSTLA (ORCPT
+	by vger.kernel.org with ESMTP id S933462AbXGSTWX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 15:11:00 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6JJAwPX010498
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2007 12:10:59 -0700
+	Thu, 19 Jul 2007 15:22:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mips-fixup
+     fix x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2
 has been removed from the -mm tree.  Its filename was
-     git-mips-fixup.patch
+     fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-mips-fixup
+Subject: fix x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
+arch/x86_64/mm/srat.c: In function 'acpi_fake_nodes':
+arch/x86_64/mm/srat.c:503: error: invalid application of 'sizeof' to incomplete type 'unsigned char[]' 
+arch/x86_64/mm/srat.c:503: error: invalid application of 'sizeof' to incomplete type 'unsigned char[]' 
+
+Cc: Andi Kleen <ak@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig                     |    4 ----
- arch/mips/cobalt/setup.c              |    4 ----
- arch/mips/jmr3927/rbhma3100/kgdb_io.c |    4 ----
- arch/mips/pci/pci-ocelot.c            |    6 ------
- 4 files changed, 18 deletions(-)
+ include/asm-x86_64/numa.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/mips/Kconfig~git-mips-fixup arch/mips/Kconfig
---- a/arch/mips/Kconfig~git-mips-fixup
-+++ a/arch/mips/Kconfig
-@@ -630,12 +630,8 @@ config TOSHIBA_JMR3927
- 	select SYS_SUPPORTS_32BIT_KERNEL
- 	select SYS_SUPPORTS_LITTLE_ENDIAN
- 	select SYS_SUPPORTS_BIG_ENDIAN
--<<<<<<< HEAD/arch/mips/Kconfig
--	select GENERIC_HARDIRQS_NO__DO_IRQ
--=======
- 	select TOSHIBA_BOARDS
- 	select GENERIC_HARDIRQS_NO__DO_IRQ
-->>>>>>> /arch/mips/Kconfig
+diff -puN include/asm-x86_64/numa.h~fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2 include/asm-x86_64/numa.h
+--- a/include/asm-x86_64/numa.h~fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2
++++ a/include/asm-x86_64/numa.h
+@@ -2,6 +2,7 @@
+ #define _ASM_X8664_NUMA_H 1
  
- config TOSHIBA_RBTX4927
- 	bool "Toshiba TBTX49[23]7 board"
-diff -puN arch/mips/cobalt/setup.c~git-mips-fixup arch/mips/cobalt/setup.c
---- a/arch/mips/cobalt/setup.c~git-mips-fixup
-+++ a/arch/mips/cobalt/setup.c
-@@ -103,9 +103,6 @@ void __init plat_mem_setup(void)
- 	/* These resources have been reserved by VIA SuperI/O chip. */
- 	for (i = 0; i < ARRAY_SIZE(cobalt_reserved_resources); i++)
- 		request_resource(&ioport_resource, cobalt_reserved_resources + i);
--<<<<<<< HEAD/arch/mips/cobalt/setup.c
--=======
--
-         /* Read the cobalt id register out of the PCI config space */
-         PCI_CFG_SET(devfn, (VIA_COBALT_BRD_ID_REG & ~0x3));
-         cobalt_board_id = GT_READ(GT_PCI0_CFGDATA_OFS);
-@@ -128,7 +125,6 @@ void __init plat_mem_setup(void)
- 		early_serial_setup(&uart);
- #endif
- 	}
-->>>>>>> /arch/mips/cobalt/setup.c
- }
+ #include <linux/nodemask.h>
++#include <asm/apicdef.h>
  
- /*
-diff -puN arch/mips/jmr3927/rbhma3100/kgdb_io.c~git-mips-fixup arch/mips/jmr3927/rbhma3100/kgdb_io.c
---- a/arch/mips/jmr3927/rbhma3100/kgdb_io.c~git-mips-fixup
-+++ a/arch/mips/jmr3927/rbhma3100/kgdb_io.c
-@@ -36,11 +36,7 @@
- #define TIMEOUT       0xffffff
+ struct bootnode {
+ 	u64 start,end; 
+@@ -19,7 +20,7 @@ extern void numa_set_node(int cpu, int n
+ extern void srat_reserve_add_area(int nodeid);
+ extern int hotadd_percent;
  
- static int remoteDebugInitialized = 0;
--<<<<<<< HEAD/arch/mips/jmr3927/rbhma3100/kgdb_io.c
- static void debugInit(int baud);
--=======
--static void debugInit(int baud)
-->>>>>>> /arch/mips/jmr3927/rbhma3100/kgdb_io.c
+-extern unsigned char apicid_to_node[];
++extern unsigned char apicid_to_node[MAX_LOCAL_APIC];
+ #ifdef CONFIG_NUMA
+ extern void __init init_cpu_to_node(void);
  
- int putDebugChar(unsigned char c)
- {
-diff -puN arch/mips/pci/pci-ocelot.c~git-mips-fixup arch/mips/pci/pci-ocelot.c
---- a/arch/mips/pci/pci-ocelot.c~git-mips-fixup
-+++ a/arch/mips/pci/pci-ocelot.c
-@@ -81,15 +81,9 @@ static struct resource ocelot_io_resourc
- };
- 
- static struct pci_controller ocelot_pci_controller = {
--<<<<<<< HEAD/arch/mips/pci/pci-ocelot.c
- 	.pci_ops	= gt64xxx_pci0_ops,
- 	.mem_resource	= &ocelot_mem_resource,
- 	.io_resource	= &ocelot_io_resource,
--=======
--	.pci_ops	= gt64xxx_pci0_ops;
--	.mem_resource	= &ocelot_mem_resource;
--	.io_resource	= &ocelot_io_resource;
-->>>>>>> /arch/mips/pci/pci-ocelot.c
- };
- 
- static int __init ocelot_pcibios_init(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,9 +77,7 @@ git-kbuild.patch
 git-kvm.patch
 git-leds.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mips-fixup.patch
 git-mtd.patch
-git-ubi.patch
 e1000new-build-fix.patch
 e1000new-build-fix-2.patch
 revert-gregkh-pci-pci_bridge-device.patch
@@ -140,7 +86,6 @@ git-scsi-misc.patch
 aacraid-rename-check_reset.patch
 git-unionfs.patch
 git-block-vs-git-unionfs.patch
-usb-sierra-add-tru-install-c-support-fix.patch
 fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
 fix-x86_64-mm-sched-clock-share.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
