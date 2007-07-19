@@ -1,310 +1,330 @@
 From: akpm@linux-foundation.org
-Subject: - pm-integrate-beeping-flag-with-existing-acpi_sleep-flags.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:00:34 -0700
-Message-ID: <200707192000.l6JK0Ybw019462@imap1.linux-foundation.org>
+Subject: - arch-personality-independent-stack-top.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:01:46 -0700
+Message-ID: <200707192001.l6JK1kWB019567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47268 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54172 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751447AbXGSUYn (ORCPT
+	by vger.kernel.org with ESMTP id S1754624AbXGSUZK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:24:43 -0400
+	Thu, 19 Jul 2007 16:25:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@suse.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, aaw@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Integrate beeping flag with existing acpi_sleep flags
+     arch: personality independent stack top
 has been removed from the -mm tree.  Its filename was
-     pm-integrate-beeping-flag-with-existing-acpi_sleep-flags.patch
+     arch-personality-independent-stack-top.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PM: Integrate beeping flag with existing acpi_sleep flags
-From: Pavel Machek <pavel@suse.cz>
+Subject: arch: personality independent stack top
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Move "debug during resume from s2ram" into the variable we already use
-for real-mode flags to simplify code. It also closes nasty trap for
-the user in acpi_sleep_setup; order of parameters actually mattered there,
-acpi_sleep=s3_bios,s3_mode doing something different from
-acpi_sleep=s3_mode,s3_bios.
+New arch macro STACK_TOP_MAX it gives the larges valid stack address for the
+architecture in question.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+It differs from STACK_TOP in that it will not distinguish between
+personalities but will always return the largest possible address.
+
+This is used to create the initial stack on execve, which we will move down to
+the proper location once the binfmt code has figured out where that is.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Ollie Wild <aaw@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/sleep.c    |   12 ++++++++----
- arch/i386/kernel/acpi/wakeup.S   |   18 ++++++++----------
- arch/x86_64/kernel/acpi/sleep.c  |    8 +++++---
- arch/x86_64/kernel/acpi/wakeup.S |   15 ++++++---------
- include/linux/acpi.h             |    3 +--
- kernel/power/main.c              |   23 -----------------------
- kernel/sysctl.c                  |    2 +-
- 7 files changed, 29 insertions(+), 52 deletions(-)
+ include/asm-alpha/a.out.h    |    2 ++
+ include/asm-arm/a.out.h      |    1 +
+ include/asm-arm26/a.out.h    |    1 +
+ include/asm-avr32/a.out.h    |    1 +
+ include/asm-cris/a.out.h     |    1 +
+ include/asm-frv/mem-layout.h |    1 +
+ include/asm-h8300/a.out.h    |    1 +
+ include/asm-i386/a.out.h     |    1 +
+ include/asm-ia64/ustack.h    |    1 +
+ include/asm-m32r/a.out.h     |    1 +
+ include/asm-m68k/a.out.h     |    1 +
+ include/asm-mips/a.out.h     |    1 +
+ include/asm-parisc/a.out.h   |    1 +
+ include/asm-powerpc/a.out.h  |    3 +++
+ include/asm-s390/a.out.h     |    1 +
+ include/asm-sh/a.out.h       |    1 +
+ include/asm-sh64/a.out.h     |    1 +
+ include/asm-sparc/a.out.h    |    1 +
+ include/asm-sparc64/a.out.h  |    2 ++
+ include/asm-um/a.out.h       |    2 ++
+ include/asm-x86_64/a.out.h   |    3 ++-
+ include/asm-xtensa/a.out.h   |    1 +
+ 22 files changed, 28 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/acpi/sleep.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags arch/i386/kernel/acpi/sleep.c
---- a/arch/i386/kernel/acpi/sleep.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
-+++ a/arch/i386/kernel/acpi/sleep.c
-@@ -14,7 +14,7 @@
+diff -puN include/asm-alpha/a.out.h~arch-personality-independent-stack-top include/asm-alpha/a.out.h
+--- a/include/asm-alpha/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-alpha/a.out.h
+@@ -101,6 +101,8 @@ struct exec
+ #define STACK_TOP \
+   (current->personality & ADDR_LIMIT_32BIT ? 0x80000000 : 0x00120000000UL)
  
- /* address in low memory of the wakeup routine. */
- unsigned long acpi_wakeup_address = 0;
--unsigned long acpi_video_flags;
-+unsigned long acpi_realmode_flags;
- extern char wakeup_start, wakeup_end;
++#define STACK_TOP_MAX	0x00120000000UL
++
+ #endif
  
- extern unsigned long FASTCALL(acpi_copy_wakeup_routine(unsigned long));
-@@ -68,9 +68,11 @@ static int __init acpi_sleep_setup(char 
+ #endif /* __A_OUT_GNU_H__ */
+diff -puN include/asm-arm/a.out.h~arch-personality-independent-stack-top include/asm-arm/a.out.h
+--- a/include/asm-arm/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-arm/a.out.h
+@@ -30,6 +30,7 @@ struct exec
+ #ifdef __KERNEL__
+ #define STACK_TOP	((current->personality == PER_LINUX_32BIT) ? \
+ 			 TASK_SIZE : TASK_SIZE_26)
++#define STACK_TOP_MAX	TASK_SIZE
+ #endif
+ 
+ #ifndef LIBRARY_START_TEXT
+diff -puN include/asm-arm26/a.out.h~arch-personality-independent-stack-top include/asm-arm26/a.out.h
+--- a/include/asm-arm26/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-arm26/a.out.h
+@@ -29,6 +29,7 @@ struct exec
+ 
+ #ifdef __KERNEL__
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ #endif
+ 
+ #ifndef LIBRARY_START_TEXT
+diff -puN include/asm-avr32/a.out.h~arch-personality-independent-stack-top include/asm-avr32/a.out.h
+--- a/include/asm-avr32/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-avr32/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif
+ 
+diff -puN include/asm-cris/a.out.h~arch-personality-independent-stack-top include/asm-cris/a.out.h
+--- a/include/asm-cris/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-cris/a.out.h
+@@ -8,6 +8,7 @@
+ 
+ /* grabbed from the intel stuff  */   
+ #define STACK_TOP TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ 
+ struct exec
+diff -puN include/asm-frv/mem-layout.h~arch-personality-independent-stack-top include/asm-frv/mem-layout.h
+--- a/include/asm-frv/mem-layout.h~arch-personality-independent-stack-top
++++ a/include/asm-frv/mem-layout.h
+@@ -60,6 +60,7 @@
+  */
+ #define BRK_BASE			__UL(2 * 1024 * 1024 + PAGE_SIZE)
+ #define STACK_TOP			__UL(2 * 1024 * 1024)
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ /* userspace process size */
+ #ifdef CONFIG_MMU
+diff -puN include/asm-h8300/a.out.h~arch-personality-independent-stack-top include/asm-h8300/a.out.h
+--- a/include/asm-h8300/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-h8300/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif
+ 
+diff -puN include/asm-i386/a.out.h~arch-personality-independent-stack-top include/asm-i386/a.out.h
+--- a/include/asm-i386/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-i386/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif
+ 
+diff -puN include/asm-ia64/ustack.h~arch-personality-independent-stack-top include/asm-ia64/ustack.h
+--- a/include/asm-ia64/ustack.h~arch-personality-independent-stack-top
++++ a/include/asm-ia64/ustack.h
+@@ -11,6 +11,7 @@
+ /* The absolute hard limit for stack size is 1/2 of the mappable space in the region */
+ #define MAX_USER_STACK_SIZE	(RGN_MAP_LIMIT/2)
+ #define STACK_TOP		(0x6000000000000000UL + RGN_MAP_LIMIT)
++#define STACK_TOP_MAX		STACK_TOP
+ #endif
+ 
+ /* Make a default stack size of 2GiB */
+diff -puN include/asm-m32r/a.out.h~arch-personality-independent-stack-top include/asm-m32r/a.out.h
+--- a/include/asm-m32r/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-m32r/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif
+ 
+diff -puN include/asm-m68k/a.out.h~arch-personality-independent-stack-top include/asm-m68k/a.out.h
+--- a/include/asm-m68k/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-m68k/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif
+ 
+diff -puN include/asm-mips/a.out.h~arch-personality-independent-stack-top include/asm-mips/a.out.h
+--- a/include/asm-mips/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-mips/a.out.h
+@@ -40,6 +40,7 @@ struct exec
+ #ifdef CONFIG_64BIT
+ #define STACK_TOP	(current->thread.mflags & MF_32BIT_ADDR ? TASK_SIZE32 : TASK_SIZE)
+ #endif
++#define STACK_TOP_MAX	TASK_SIZE
+ 
+ #endif
+ 
+diff -puN include/asm-parisc/a.out.h~arch-personality-independent-stack-top include/asm-parisc/a.out.h
+--- a/include/asm-parisc/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-parisc/a.out.h
+@@ -23,6 +23,7 @@ struct exec
+  * prumpf */
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
+ 
+ #endif
+ 
+diff -puN include/asm-powerpc/a.out.h~arch-personality-independent-stack-top include/asm-powerpc/a.out.h
+--- a/include/asm-powerpc/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-powerpc/a.out.h
+@@ -26,9 +26,12 @@ struct exec
+ #define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
+ 		   STACK_TOP_USER32 : STACK_TOP_USER64)
+ 
++#define STACK_TOP_MAX STACK_TOP_USER64
++
+ #else /* __powerpc64__ */
+ 
+ #define STACK_TOP TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif /* __powerpc64__ */
+ #endif /* __KERNEL__ */
+diff -puN include/asm-s390/a.out.h~arch-personality-independent-stack-top include/asm-s390/a.out.h
+--- a/include/asm-s390/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-s390/a.out.h
+@@ -32,6 +32,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
+ 
+ #endif
+ 
+diff -puN include/asm-sh/a.out.h~arch-personality-independent-stack-top include/asm-sh/a.out.h
+--- a/include/asm-sh/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-sh/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif
+ 
+diff -puN include/asm-sh64/a.out.h~arch-personality-independent-stack-top include/asm-sh64/a.out.h
+--- a/include/asm-sh64/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-sh64/a.out.h
+@@ -31,6 +31,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif
+ 
+diff -puN include/asm-sparc/a.out.h~arch-personality-independent-stack-top include/asm-sparc/a.out.h
+--- a/include/asm-sparc/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-sparc/a.out.h
+@@ -92,6 +92,7 @@ struct relocation_info /* used when head
+ #include <asm/page.h>
+ 
+ #define STACK_TOP	(PAGE_OFFSET - PAGE_SIZE)
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif /* __KERNEL__ */
+ 
+diff -puN include/asm-sparc64/a.out.h~arch-personality-independent-stack-top include/asm-sparc64/a.out.h
+--- a/include/asm-sparc64/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-sparc64/a.out.h
+@@ -101,6 +101,8 @@ struct relocation_info /* used when head
+ #define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
+ 		   STACK_TOP32 : STACK_TOP64)
+ 
++#define STACK_TOP_MAX STACK_TOP64
++
+ #endif
+ 
+ #endif /* !(__ASSEMBLY__) */
+diff -puN include/asm-um/a.out.h~arch-personality-independent-stack-top include/asm-um/a.out.h
+--- a/include/asm-um/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-um/a.out.h
+@@ -17,4 +17,6 @@ extern int honeypot;
+ #define STACK_TOP \
+ 	CHOOSE_MODE((honeypot ? host_task_size : task_size), task_size)
+ 
++#define STACK_TOP_MAX	STACK_TOP
++
+ #endif
+diff -puN include/asm-x86_64/a.out.h~arch-personality-independent-stack-top include/asm-x86_64/a.out.h
+--- a/include/asm-x86_64/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-x86_64/a.out.h
+@@ -21,7 +21,8 @@ struct exec
+ 
+ #ifdef __KERNEL__
+ #include <linux/thread_info.h>
+-#define STACK_TOP TASK_SIZE
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	TASK_SIZE64
+ #endif
+ 
+ #endif /* __A_OUT_GNU_H__ */
+diff -puN include/asm-xtensa/a.out.h~arch-personality-independent-stack-top include/asm-xtensa/a.out.h
+--- a/include/asm-xtensa/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-xtensa/a.out.h
+@@ -17,6 +17,7 @@
+ /* Note: the kernel needs the a.out definitions, even if only ELF is used. */
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ struct exec
  {
- 	while ((str != NULL) && (*str != '\0')) {
- 		if (strncmp(str, "s3_bios", 7) == 0)
--			acpi_video_flags = 1;
-+			acpi_realmode_flags |= 1;
- 		if (strncmp(str, "s3_mode", 7) == 0)
--			acpi_video_flags |= 2;
-+			acpi_realmode_flags |= 2;
-+		if (strncmp(str, "s3_beep", 7) == 0)
-+			acpi_realmode_flags |= 4;
- 		str = strchr(str, ',');
- 		if (str != NULL)
- 			str += strspn(str, ", \t");
-@@ -80,9 +82,11 @@ static int __init acpi_sleep_setup(char 
- 
- __setup("acpi_sleep=", acpi_sleep_setup);
- 
-+/* Ouch, we want to delete this. We already have better version in userspace, in
-+   s2ram from suspend.sf.net project */
- static __init int reset_videomode_after_s3(struct dmi_system_id *d)
- {
--	acpi_video_flags |= 2;
-+	acpi_realmode_flags |= 2;
- 	return 0;
- }
- 
-diff -puN arch/i386/kernel/acpi/wakeup.S~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags arch/i386/kernel/acpi/wakeup.S
---- a/arch/i386/kernel/acpi/wakeup.S~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
-+++ a/arch/i386/kernel/acpi/wakeup.S
-@@ -47,7 +47,7 @@ wakeup_code:
- 	movw	%ax, %ds					# Make ds:0 point to wakeup_start
- 	movw	%ax, %ss
- 
--	testl   $1, beep_flags - wakeup_code
-+	testl   $4, realmode_flags - wakeup_code
- 	jz      1f
- 	BEEP
- 1:
-@@ -61,7 +61,7 @@ wakeup_code:
- 	cmpl	$0x12345678, %eax
- 	jne	bogus_real_magic
- 
--	testl	$1, video_flags - wakeup_code
-+	testl	$1, realmode_flags - wakeup_code
- 	jz	1f
- 	lcall   $0xc000,$3
- 	movw	%cs, %ax
-@@ -69,7 +69,7 @@ wakeup_code:
- 	movw	%ax, %ss
- 1:
- 
--	testl	$2, video_flags - wakeup_code
-+	testl	$2, realmode_flags - wakeup_code
- 	jz	1f
- 	mov	video_mode - wakeup_code, %ax
- 	call	mode_set
-@@ -108,11 +108,11 @@ wakeup_code:
- 	cmpl	$0x12345678, %eax
- 	jne	bogus_real_magic
- 
--	testl   $2, beep_flags - wakeup_code
-+	testl   $8, realmode_flags - wakeup_code
- 	jz      1f
- 	BEEP
- 1:
--	ljmpl	$__KERNEL_CS,$wakeup_pmode_return
-+	ljmpl	$__KERNEL_CS, $wakeup_pmode_return
- 
- real_save_gdt:	.word 0
- 		.long 0
-@@ -121,7 +121,7 @@ real_save_cr3:	.long 0
- real_save_cr4:	.long 0
- real_magic:	.long 0
- video_mode:	.long 0
--video_flags:	.long 0
-+realmode_flags:	.long 0
- beep_flags:	.long 0
- real_efer_save_restore:	.long 0
- real_save_efer_edx: 	.long 0
-@@ -285,10 +285,8 @@ ENTRY(acpi_copy_wakeup_routine)
- 
- 	movl	saved_videomode, %edx
- 	movl	%edx, video_mode - wakeup_start (%eax)
--	movl	acpi_video_flags, %edx
--	movl	%edx, video_flags - wakeup_start (%eax)
--	movl	s2ram_beep, %edx
--	movl	%edx, beep_flags - wakeup_start (%eax)
-+	movl	acpi_realmode_flags, %edx
-+	movl	%edx, realmode_flags - wakeup_start (%eax)
- 	movl	$0x12345678, real_magic - wakeup_start (%eax)
- 	movl	$0x12345678, saved_magic
- 	popl	%ebx
-diff -puN arch/x86_64/kernel/acpi/sleep.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags arch/x86_64/kernel/acpi/sleep.c
---- a/arch/x86_64/kernel/acpi/sleep.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
-+++ a/arch/x86_64/kernel/acpi/sleep.c
-@@ -55,7 +55,7 @@
- 
- /* address in low memory of the wakeup routine. */
- unsigned long acpi_wakeup_address = 0;
--unsigned long acpi_video_flags;
-+unsigned long acpi_realmode_flags;
- extern char wakeup_start, wakeup_end;
- 
- extern unsigned long acpi_copy_wakeup_routine(unsigned long);
-@@ -103,9 +103,11 @@ static int __init acpi_sleep_setup(char 
- {
- 	while ((str != NULL) && (*str != '\0')) {
- 		if (strncmp(str, "s3_bios", 7) == 0)
--			acpi_video_flags = 1;
-+			acpi_realmode_flags |= 1;
- 		if (strncmp(str, "s3_mode", 7) == 0)
--			acpi_video_flags |= 2;
-+			acpi_realmode_flags |= 2;
-+		if (strncmp(str, "s3_beep", 7) == 0)
-+			acpi_realmode_flags |= 4;
- 		str = strchr(str, ',');
- 		if (str != NULL)
- 			str += strspn(str, ", \t");
-diff -puN arch/x86_64/kernel/acpi/wakeup.S~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags arch/x86_64/kernel/acpi/wakeup.S
---- a/arch/x86_64/kernel/acpi/wakeup.S~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
-+++ a/arch/x86_64/kernel/acpi/wakeup.S
-@@ -50,7 +50,7 @@ wakeup_code:
- 	movw	%ax, %ss
- 
- 	# Data segment must be set up before we can see whether to beep.
--	testl   $1, beep_flags - wakeup_code
-+	testl   $4, realmode_flags - wakeup_code
- 	jz      1f
- 	BEEP
- 1:
-@@ -70,7 +70,7 @@ wakeup_code:
- 	testl	%eax, %eax
- 	jnz	no_longmode
- 
--	testl	$1, video_flags - wakeup_code
-+	testl	$1, realmode_flags - wakeup_code
- 	jz	1f
- 	lcall   $0xc000,$3
- 	movw	%cs, %ax
-@@ -78,7 +78,7 @@ wakeup_code:
- 	movw	%ax, %ss
- 1:
- 
--	testl	$2, video_flags - wakeup_code
-+	testl	$2, realmode_flags - wakeup_code
- 	jz	1f
- 	mov	video_mode - wakeup_code, %ax
- 	call	mode_seta
-@@ -251,9 +251,8 @@ gdt_48a:
- 	.long   gdta - wakeup_code              # gdt base (relocated in later)
- 	
- real_magic:	.quad 0
--beep_flags:	.quad 0
- video_mode:	.quad 0
--video_flags:	.quad 0
-+realmode_flags:	.quad 0
- 
- .code16
- bogus_real_magic:
-@@ -367,12 +366,10 @@ ENTRY(acpi_copy_wakeup_routine)
- 	pushq	%rax
- 	pushq	%rdx
- 
--	movl	s2ram_beep, %edx
--	movl	%edx, beep_flags - wakeup_start (,%rdi)
- 	movl	saved_video_mode, %edx
- 	movl	%edx, video_mode - wakeup_start (,%rdi)
--	movl	acpi_video_flags, %edx
--	movl	%edx, video_flags - wakeup_start (,%rdi)
-+	movl	acpi_realmode_flags, %edx
-+	movl	%edx, realmode_flags - wakeup_start (,%rdi)
- 	movq	$0x12345678, real_magic - wakeup_start (,%rdi)
- 	movq	$0x123456789abcdef0, %rdx
- 	movq	%rdx, saved_magic
-diff -puN include/linux/acpi.h~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags include/linux/acpi.h
---- a/include/linux/acpi.h~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
-+++ a/include/linux/acpi.h
-@@ -122,8 +122,7 @@ extern struct acpi_mcfg_allocation *pci_
- extern int pci_mmcfg_config_num;
- 
- extern int sbf_port;
--extern unsigned long acpi_video_flags;
--extern unsigned long s2ram_beep;
-+extern unsigned long acpi_realmode_flags;
- 
- #else	/* !CONFIG_ACPI */
- 
-diff -puN kernel/power/main.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags kernel/power/main.c
---- a/kernel/power/main.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
-+++ a/kernel/power/main.c
-@@ -332,27 +332,6 @@ static ssize_t state_store(struct kset *
- 
- power_attr(state);
- 
--unsigned long s2ram_beep = 0;
--
--static ssize_t s2ram_beep_show(struct kset *kset, char *buf)
--{
--	return sprintf(buf, "%d\n", s2ram_beep);
--}
--
--static ssize_t
--s2ram_beep_store(struct kset *kset, const char *buf, size_t n)
--{
--	int val;
--
--	if (sscanf(buf, "%d", &val) > 0) {
--		s2ram_beep = val;
--		return n;
--	}
--	return -EINVAL;
--}
--
--power_attr(s2ram_beep);
--
- #ifdef CONFIG_PM_TRACE
- int pm_trace_enabled;
- 
-@@ -378,13 +357,11 @@ power_attr(pm_trace);
- static struct attribute * g[] = {
- 	&state_attr.attr,
- 	&pm_trace_attr.attr,
--	&s2ram_beep_attr.attr,
- 	NULL,
- };
- #else
- static struct attribute * g[] = {
- 	&state_attr.attr,
--	&s2ram_beep_attr.attr,
- 	NULL,
- };
- #endif /* CONFIG_PM_TRACE */
-diff -puN kernel/sysctl.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags kernel/sysctl.c
---- a/kernel/sysctl.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
-+++ a/kernel/sysctl.c
-@@ -660,7 +660,7 @@ static ctl_table kern_table[] = {
- 	{
- 		.ctl_name	= KERN_ACPI_VIDEO_FLAGS,
- 		.procname	= "acpi_video_flags",
--		.data		= &acpi_video_flags,
-+		.data		= &acpi_realmode_flags,
- 		.maxlen		= sizeof (unsigned long),
- 		.mode		= 0644,
- 		.proc_handler	= &proc_doulongvec_minmax,
 _
 
-Patches currently in -mm which might be from pavel@suse.cz are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-git-acpi.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
