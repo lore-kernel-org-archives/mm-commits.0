@@ -1,167 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - coda-ignore-returned-values-when-upcalls-return-errors.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:03:17 -0700
-Message-ID: <200707192003.l6JK3HaR019847@imap1.linux-foundation.org>
+Subject: - dev_vdbg-available-with-dverbose_debug-docs.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:11:13 -0700
+Message-ID: <200707192011.l6JKBD9G020749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49706 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56965 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761010AbXGSUQa (ORCPT
+	by vger.kernel.org with ESMTP id S1753871AbXGSUQ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:30 -0400
+	Thu, 19 Jul 2007 16:16:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coda: ignore returned values when upcalls return errors
+     dev_vdbg(), available with -DVERBOSE_DEBUG (docs)
 has been removed from the -mm tree.  Its filename was
-     coda-ignore-returned-values-when-upcalls-return-errors.patch
+     dev_vdbg-available-with-dverbose_debug-docs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: coda: ignore returned values when upcalls return errors
-From: Jan Harkes <jaharkes@cs.cmu.edu>
+Subject: dev_vdbg(), available with -DVERBOSE_DEBUG (docs)
+From: David Brownell <david-b@pacbell.net>
 
-Venus returns an ENOENT error on open, so we shouldn't try to grab the
-filehandle for the returned fd.
+Update CodingStyle to talk about "-DDEBUG" message conventions and the
+new "-DVERBOSE_DEBUG" convention.
 
-Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/upcall.c |   59 ++++++++++++++++++++-------------------------
- 1 file changed, 27 insertions(+), 32 deletions(-)
+ Documentation/CodingStyle |   20 ++++++++++++++++++--
+ 1 files changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN fs/coda/upcall.c~coda-ignore-returned-values-when-upcalls-return-errors fs/coda/upcall.c
---- a/fs/coda/upcall.c~coda-ignore-returned-values-when-upcalls-return-errors
-+++ a/fs/coda/upcall.c
-@@ -84,12 +84,8 @@ int venus_rootfid(struct super_block *sb
-         UPARG(CODA_ROOT);
+diff -puN Documentation/CodingStyle~dev_vdbg-available-with-dverbose_debug-docs Documentation/CodingStyle
+--- a/Documentation/CodingStyle~dev_vdbg-available-with-dverbose_debug-docs
++++ a/Documentation/CodingStyle
+@@ -633,12 +633,27 @@ covers RTL which is used frequently with
  
- 	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
--	
--	if (error) {
--	        printk("coda_get_rootfid: error %d\n", error);
--	} else {
-+	if (!error)
- 		*fidp = outp->coda_root.VFid;
--	}
+ Kernel developers like to be seen as literate. Do mind the spelling
+ of kernel messages to make a good impression. Do not use crippled
+-words like "dont" and use "do not" or "don't" instead.
++words like "dont"; use "do not" or "don't" instead.  Make the messages
++concise, clear, and unambiguous.
  
- 	CODA_FREE(inp, insize);
- 	return error;
-@@ -106,9 +102,9 @@ int venus_getattr(struct super_block *sb
- 	UPARG(CODA_GETATTR);
-         inp->coda_getattr.VFid = *fid;
+ Kernel messages do not have to be terminated with a period.
  
--        error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
--	
--	*attr = outp->coda_getattr.attr;
-+	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
-+	if (!error)
-+		*attr = outp->coda_getattr.attr;
+ Printing numbers in parentheses (%d) adds no value and should be avoided.
  
- 	CODA_FREE(inp, insize);
-         return error;
-@@ -153,10 +149,11 @@ int venus_lookup(struct super_block *sb,
-         memcpy((char *)(inp) + offset, name, length);
-         *((char *)inp + offset + length) = '\0';
- 
--        error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
--
--	*resfid = outp->coda_lookup.VFid;
--	*type = outp->coda_lookup.vtype;
-+	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
-+	if (!error) {
-+		*resfid = outp->coda_lookup.VFid;
-+		*type = outp->coda_lookup.vtype;
-+	}
- 
- 	CODA_FREE(inp, insize);
- 	return error;
-@@ -278,11 +275,12 @@ int venus_mkdir(struct super_block *sb, 
-         /* Venus must get null terminated string */
-         memcpy((char *)(inp) + offset, name, length);
-         *((char *)inp + offset + length) = '\0';
--        
--        error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
- 
--	*attrs = outp->coda_mkdir.attr;
--	*newfid = outp->coda_mkdir.VFid;
-+	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
-+	if (!error) {
-+		*attrs = outp->coda_mkdir.attr;
-+		*newfid = outp->coda_mkdir.VFid;
-+	}
- 
- 	CODA_FREE(inp, insize);
- 	return error;        
-@@ -348,11 +346,12 @@ int venus_create(struct super_block *sb,
-         /* Venus must get null terminated string */
-         memcpy((char *)(inp) + offset, name, length);
-         *((char *)inp + offset + length) = '\0';
--                
--        error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
- 
--	*attrs = outp->coda_create.attr;
--	*newfid = outp->coda_create.VFid;
-+	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
-+	if (!error) {
-+		*attrs = outp->coda_create.attr;
-+		*newfid = outp->coda_create.VFid;
-+	}
- 
- 	CODA_FREE(inp, insize);
- 	return error;        
-@@ -417,19 +416,18 @@ int venus_readlink(struct super_block *s
- 	UPARG(CODA_READLINK);
- 
-         inp->coda_readlink.VFid = *fid;
--    
--        error =  coda_upcall(coda_sbp(sb), insize, &outsize, inp);
--	
--	if (! error) {
--                retlen = outp->coda_readlink.count;
++There are a number of driver model diagnostic macros in <linux/device.h>
++which you should use to make sure messages are matched to the right device
++and driver, and are tagged with the right level:  dev_err(), dev_warn(),
++dev_info(), and so forth.  For messages that aren't associated with a
++particular device, <linux/kernel.h> defines pr_debug() and pr_info().
 +
-+	error = coda_upcall(coda_sbp(sb), insize, &outsize, inp);
-+	if (!error) {
-+		retlen = outp->coda_readlink.count;
- 		if ( retlen > *length )
--		        retlen = *length;
-+			retlen = *length;
- 		*length = retlen;
- 		result =  (char *)outp + (long)outp->coda_readlink.data;
- 		memcpy(buffer, result, retlen);
- 		*(buffer + retlen) = '\0';
- 	}
--        
++Coming up with good debugging messages can be quite a challenge; and once
++you have them, they can be a huge help for remote troubleshooting.  Such
++messages should be compiled out when the DEBUG symbol is not defined (that
++is, by default they are not included).  When you use dev_dbg() or pr_debug(),
++that's automatic.  Many subsystems have Kconfig options to turn on -DDEBUG.
++A related convention uses VERBOSE_DEBUG to add dev_vdbg() messages to the
++ones already enabled by DEBUG.
 +
-         CODA_FREE(inp, insize);
-         return error;
- }
-@@ -617,16 +615,13 @@ int venus_statfs(struct dentry *dentry, 
- 	insize = max_t(unsigned int, INSIZE(statfs), OUTSIZE(statfs));
- 	UPARG(CODA_STATFS);
  
--        error = coda_upcall(coda_sbp(dentry->d_sb), insize, &outsize, inp);
--	
--        if (!error) {
-+	error = coda_upcall(coda_sbp(dentry->d_sb), insize, &outsize, inp);
-+	if (!error) {
- 		sfs->f_blocks = outp->coda_statfs.stat.f_blocks;
- 		sfs->f_bfree  = outp->coda_statfs.stat.f_bfree;
- 		sfs->f_bavail = outp->coda_statfs.stat.f_bavail;
- 		sfs->f_files  = outp->coda_statfs.stat.f_files;
- 		sfs->f_ffree  = outp->coda_statfs.stat.f_ffree;
--	} else {
--		printk("coda_statfs: Venus returns: %d\n", error);
- 	}
+ 		Chapter 14: Allocating memory
  
-         CODA_FREE(inp, insize);
+@@ -790,4 +805,5 @@ Kernel CodingStyle, by greg@kroah.com at
+ http://www.kroah.com/linux/talks/ols_2002_kernel_codingstyle_talk/html/
+ 
+ --
+-Last updated on 2006-December-06.
++Last updated on 2007-July-13.
++
 _
 
-Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
+git-leds.patch
+git-mmc.patch
+git-mtd.patch
+git-backlight.patch
+acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
