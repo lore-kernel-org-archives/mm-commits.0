@@ -1,88 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - slow-down-printk-during-boot-fix.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 00:51:34 -0700
-Message-ID: <200707190751.l6J7pY08020780@imap1.linux-foundation.org>
+Subject: - time-make-sure-sys_gettimeofday-and-sys_time-are-in.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 00:50:26 -0700
+Message-ID: <200707190750.l6J7oS1U020684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp2.linux-foundation.org ([207.189.120.14]:42162 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759273AbXGSIYl (ORCPT
+	by vger.kernel.org with ESMTP id S933023AbXGSIYp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 04:24:41 -0400
+	Thu, 19 Jul 2007 04:24:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@redhat.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slow-down-printk-during-boot-fix
+     time: make sure sys_gettimeofday() and sys_time() are in sync
 has been removed from the -mm tree.  Its filename was
-     slow-down-printk-during-boot-fix.patch
+     time-make-sure-sys_gettimeofday-and-sys_time-are-in.patch
 
-This patch was dropped because it was folded into slow-down-printk-during-boot.patch
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: slow-down-printk-during-boot-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: time: make sure sys_gettimeofday() and sys_time() are in sync
+From: Ingo Molnar <mingo@elte.hu>
 
-Not all architectures implement CONFIG_HZ.
+Make sure sys_gettimeofday() and sys_time() results are coherent.
 
-Cc: Dave Jones <davej@redhat.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/time/timekeeping.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+)
 
-diff -puN kernel/printk.c~slow-down-printk-during-boot-fix kernel/printk.c
---- a/kernel/printk.c~slow-down-printk-during-boot-fix
-+++ a/kernel/printk.c
-@@ -172,7 +172,7 @@ unsigned long long printk_delay_msec; /*
- static int __init boot_delay_setup(char *str)
- {
- 	unsigned long lpj = preset_lpj ? preset_lpj : 1000000; /* some guess */
--	unsigned long long loops_per_msec = lpj / 1000 * CONFIG_HZ;
-+	unsigned long long loops_per_msec = lpj / 1000 * HZ;
+diff -puN kernel/time/timekeeping.c~time-make-sure-sys_gettimeofday-and-sys_time-are-in kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~time-make-sure-sys_gettimeofday-and-sys_time-are-in
++++ a/kernel/time/timekeeping.c
+@@ -100,6 +100,19 @@ static inline void __get_realtime_clock_
+ 	} while (read_seqretry(&xtime_lock, seq));
  
- 	get_option(&str, &boot_delay);
- 	if (boot_delay > 10 * 1000)
-@@ -180,8 +180,8 @@ static int __init boot_delay_setup(char 
- 
- 	printk_delay_msec = loops_per_msec;
- 	printk(KERN_DEBUG "boot_delay: %u, preset_lpj: %ld, lpj: %lu, "
--		"CONFIG_HZ: %d, printk_delay_msec: %llu\n",
--		boot_delay, preset_lpj, lpj, CONFIG_HZ, printk_delay_msec);
-+		"HZ: %d, printk_delay_msec: %llu\n",
-+		boot_delay, preset_lpj, lpj, HZ, printk_delay_msec);
- 	return 1;
+ 	timespec_add_ns(ts, nsecs);
++	/*
++	 * Make sure xtime.tv_sec [returned by sys_time()] always
++	 * follows the gettimeofday() result precisely. This
++	 * condition is extremely unlikely, it can hit at most
++	 * once per second:
++	 */
++	if (unlikely(xtime.tv_sec != ts->tv_sec)) {
++		unsigned long flags;
++
++		write_seqlock_irqsave(&xtime_lock, flags);
++		update_wall_time();
++		write_sequnlock_irqrestore(&xtime_lock, flags);
++	}
  }
- __setup("boot_delay=", boot_delay_setup);
+ 
+ /**
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-fault-feedback-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+time-make-sure-sys_gettimeofday-and-sys_time-are-in.patch
+add-posix-clocks-and-timers-maintainer.patch
+fix-raw_spinlock_t-vs-lockdep.patch
+lockdep-sanitise-config_prove_locking.patch
+lockdep-reduce-the-ifdeffery.patch
 lockstat-core-infrastructure.patch
 lockstat-human-readability-tweaks.patch
+lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
 lockdep-various-fixes.patch
+lockdep-fixup-sk_callback_lock-annotation.patch
 lockstat-measure-lock-bouncing.patch
-some-kmalloc-memset-kzalloc-tree-wide.patch
-dequeue_huge_page-warning-fix.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-drivers-edac-fix-e752x-reversed-csrows-fix.patch
-drivers-edac-new-pasemi-driver-fix.patch
-drivers-edac-new-i82975x-driver-fix.patch
-kernel-sysctlc-finish-off-the-warning-comments.patch
-afs-build-fix.patch
+lockstat-better-class-name-representation.patch
+lockdep-debugging-give-stacktrace-for-init_error.patch
+stacktrace-fix-header-file-for-config_stacktrace.patch
