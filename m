@@ -1,153 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: + fix-ext4-jbd2-build-warnings.patch added to -mm tree
-Date: Wed, 18 Jul 2007 20:19:46 -0700
-Message-ID: <200707190319.l6J3JkTN011226@imap1.linux-foundation.org>
+Subject: + mm-fault-feedback-more-fixes.patch added to -mm tree
+Date: Wed, 18 Jul 2007 21:41:31 -0700
+Message-ID: <200707190441.l6J4fVVL013991@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58205 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51784 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754158AbXGSDUD (ORCPT
+	by vger.kernel.org with ESMTP id S1750780AbXGSEll (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 23:20:03 -0400
+	Thu, 19 Jul 2007 00:41:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cmm@us.ibm.com, jeff@garzik.org, tytso@mit.edu
+Cc: npiggin@suse.de
 
 
 The patch titled
-     fix ext4/JBD2 build warnings
+     mm: fault feedback more fixes
 has been added to the -mm tree.  Its filename is
-     fix-ext4-jbd2-build-warnings.patch
+     mm-fault-feedback-more-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix ext4/JBD2 build warnings
-=46rom: Mingming Cao <cmm@us.ibm.com>
+Subject: mm: fault feedback more fixes
+From: Nick Piggin <npiggin@suse.de>
 
-Looking at the current linus-git tree jbd_debug() define in
-include/linux/jbd2.h
 
-extern u8 journal_enable_debug;
-
-#define jbd_debug(n, f, a...)                                          =
- \
-        do {                                                           =
- \
-                if ((n) <=3D journal_enable_debug) {                   =
-   \
-                        printk (KERN_DEBUG "(%s, %d): %s: ",           =
- \
-                                __FILE__, __LINE__, __FUNCTION__);     =
- \
-                        printk (f, ## a);                              =
- \
-                }                                                      =
- \
-        } while (0)
-> fs/ext4/inode.c: In function =E2=80=98ext4_write_inode=E2=80=99:
-> fs/ext4/inode.c:2906: warning: comparison is always true due to limit=
-ed
-> range of data type
->
-> fs/jbd2/recovery.c: In function =E2=80=98jbd2_journal_recover=E2=80=99=
-:
-> fs/jbd2/recovery.c:254: warning: comparison is always true due to
-> limited range of data type
-> fs/jbd2/recovery.c:257: warning: comparison is always true due to
-> limited range of data type
->
-> fs/jbd2/recovery.c: In function =E2=80=98jbd2_journal_skip_recovery=E2=
-=80=99:
-> fs/jbd2/recovery.c:301: warning: comparison is always true due to
-> limited range of data type
->
-Noticed all warnings are occurs when the debug level is 0. Then found
-the "jbd2: Move jbd2-debug file to debugfs" patch
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
-commit;h=3D0f49d5d019afa4e94253bfc92f0daca3badb990b
-
-changed the jbd2_journal_enable_debug from int type to u8, makes the
-jbd_debug comparision is always true when the debugging level is 0. Thu=
-s
-the compile warning occurs.
-
-Thought about changing the jbd2_journal_enable_debug data type back to
-int, but can't, because the jbd2-debug is moved to debug fs, where
-calling debugfs_create_u8() to create the debugfs entry needs the value
-to be u8 type.
-
-Even if we changed the data type back to int, the code is still buggy,
-kernel should not print jbd2 debug message if the
-jbd2_journal_enable_debug is set to 0. But this is not the case.
-
-The fix is change the level of debugging to 1. The same should fixed in
-ext3/JBD, but currently ext3 jbd-debug via /proc fs is broken, so we
-probably should fix it all together.
-
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Theodore Tso <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c    |    2 +-
- fs/jbd2/recovery.c |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm26/mm/fault.c |    8 +++-----
+ arch/ppc/mm/fault.c   |    4 ++--
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN fs/ext4/inode.c~fix-ext4-jbd2-build-warnings fs/ext4/inode.c
---- a/fs/ext4/inode.c~fix-ext4-jbd2-build-warnings
-+++ a/fs/ext4/inode.c
-@@ -2972,7 +2972,7 @@ int ext4_write_inode(struct inode *inode
+diff -puN arch/arm26/mm/fault.c~mm-fault-feedback-more-fixes arch/arm26/mm/fault.c
+--- a/arch/arm26/mm/fault.c~mm-fault-feedback-more-fixes
++++ a/arch/arm26/mm/fault.c
+@@ -225,13 +225,11 @@ int do_page_fault(unsigned long addr, un
+ 	/*
+ 	 * Handle the "normal" case first
+ 	 */
+-	if (unlikely(fault & VM_FAULT_SIGBUS))
+-	case VM_FAULT_MINOR:
+-	case VM_FAULT_MAJOR:
++	if (likely(!(fault & VM_FAULT_ERROR)))
  		return 0;
-=20
- 	if (ext4_journal_current_handle()) {
--		jbd_debug(0, "called recursively, non-PF_MEMALLOC!\n");
-+		jbd_debug(1, "called recursively, non-PF_MEMALLOC!\n");
- 		dump_stack();
- 		return -EIO;
+-	case VM_FAULT_SIGBUS:
++	if (fault & VM_FAULT_SIGBUS)
+ 		goto do_sigbus;
+-	}
++	/* else VM_FAULT_OOM */
+ 
+ 	/*
+ 	 * If we are in kernel mode at this point, we
+diff -puN arch/ppc/mm/fault.c~mm-fault-feedback-more-fixes arch/ppc/mm/fault.c
+--- a/arch/ppc/mm/fault.c~mm-fault-feedback-more-fixes
++++ a/arch/ppc/mm/fault.c
+@@ -259,9 +259,9 @@ good_area:
+ 		BUG();
  	}
-diff -puN fs/jbd2/recovery.c~fix-ext4-jbd2-build-warnings fs/jbd2/recov=
-ery.c
---- a/fs/jbd2/recovery.c~fix-ext4-jbd2-build-warnings
-+++ a/fs/jbd2/recovery.c
-@@ -251,10 +251,10 @@ int jbd2_journal_recover(journal_t *jour
- 	if (!err)
- 		err =3D do_one_pass(journal, &info, PASS_REPLAY);
-=20
--	jbd_debug(0, "JBD: recovery, exit status %d, "
-+	jbd_debug(1, "JBD: recovery, exit status %d, "
- 		  "recovered transactions %u to %u\n",
- 		  err, info.start_transaction, info.end_transaction);
--	jbd_debug(0, "JBD: Replayed %d and revoked %d/%d blocks\n",
-+	jbd_debug(1, "JBD: Replayed %d and revoked %d/%d blocks\n",
- 		  info.nr_replays, info.nr_revoke_hits, info.nr_revokes);
-=20
- 	/* Restart the log at the next transaction ID, thus invalidating
-@@ -298,7 +298,7 @@ int jbd2_journal_skip_recovery(journal_t
- #ifdef CONFIG_JBD2_DEBUG
- 		int dropped =3D info.end_transaction - be32_to_cpu(sb->s_sequence);
- #endif
--		jbd_debug(0,
-+		jbd_debug(1,
- 			  "JBD: ignoring %d transaction%s from the journal.\n",
- 			  dropped, (dropped =3D=3D 1) ? "" : "s");
- 		journal->j_transaction_sequence =3D ++info.end_transaction;
+ 	if (fault & VM_FAULT_MAJOR)
+-		tsk->maj_flt++;
++		current->maj_flt++;
+ 	else
+-		tsk->min_flt++;
++		current->min_flt++;
+ 
+ 	up_read(&mm->mmap_sem);
+ 	/*
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-fix-ext4-jbd2-build-warnings.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-fault-feedback-1.patch
+mm-fault-feedback-2.patch
+mm-fault-feedback-2-fix.patch
+mm-fault-feedback-2-fix-2.patch
+mm-fault-feedback-more-fixes.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+introduce-write_begin-write_end-aops-important-fix.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-convert-to-new-aops-fix.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+hostfs-convert-to-new-aops-fix.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+udf-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix.patch
+ocfs2-convert-to-new-aops.patch
+fs-remove-some-aop_truncated_page.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
