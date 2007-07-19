@@ -1,284 +1,310 @@
 From: akpm@linux-foundation.org
-Subject: - quicklist-support-for-x86_64.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:08:17 -0700
-Message-ID: <200707192008.l6JK8HGg020443@imap1.linux-foundation.org>
+Subject: - pm-integrate-beeping-flag-with-existing-acpi_sleep-flags.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:00:34 -0700
+Message-ID: <200707192000.l6JK0Ybw019462@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45887 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47268 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757157AbXGSUYO (ORCPT
+	by vger.kernel.org with ESMTP id S1751447AbXGSUYn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:24:14 -0400
+	Thu, 19 Jul 2007 16:24:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, ak@suse.de, davem@davemloft.net, tony.luck@intel.com, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: pavel@suse.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Quicklist support for x86_64
+     PM: Integrate beeping flag with existing acpi_sleep flags
 has been removed from the -mm tree.  Its filename was
-     quicklist-support-for-x86_64.patch
+     pm-integrate-beeping-flag-with-existing-acpi_sleep-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Quicklist support for x86_64
-From: Christoph Lameter <clameter@sgi.com>
+Subject: PM: Integrate beeping flag with existing acpi_sleep flags
+From: Pavel Machek <pavel@suse.cz>
 
-This adds caching of pgds and puds, pmds, pte.  That way we can avoid costly
-zeroing and initialization of special mappings in the pgd.
+Move "debug during resume from s2ram" into the variable we already use
+for real-mode flags to simplify code. It also closes nasty trap for
+the user in acpi_sleep_setup; order of parameters actually mattered there,
+acpi_sleep=s3_bios,s3_mode doing something different from
+acpi_sleep=s3_mode,s3_bios.
 
-A second quicklist is useful to separate out PGD handling.  We can carry the
-initialized pgds over to the next process needing them.
-
-Also clean up the pgd_list handling to use regular list macros.  There is no
-need anymore to avoid the lru field.
-
-Move the add/removal of the pgds to the pgdlist into the constructor /
-destructor.  That way the implementation is congruent with i386.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Acked-by: William Lee Irwin III <wli@holomorphy.com>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/Kconfig          |    8 +++
- arch/x86_64/kernel/process.c |    1 
- arch/x86_64/kernel/smp.c     |    2 
- include/asm-x86_64/pgalloc.h |   73 ++++++++++++++++++++++-----------
- include/asm-x86_64/pgtable.h |    1 
- 5 files changed, 59 insertions(+), 26 deletions(-)
+ arch/i386/kernel/acpi/sleep.c    |   12 ++++++++----
+ arch/i386/kernel/acpi/wakeup.S   |   18 ++++++++----------
+ arch/x86_64/kernel/acpi/sleep.c  |    8 +++++---
+ arch/x86_64/kernel/acpi/wakeup.S |   15 ++++++---------
+ include/linux/acpi.h             |    3 +--
+ kernel/power/main.c              |   23 -----------------------
+ kernel/sysctl.c                  |    2 +-
+ 7 files changed, 29 insertions(+), 52 deletions(-)
 
-diff -puN arch/x86_64/Kconfig~quicklist-support-for-x86_64 arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~quicklist-support-for-x86_64
-+++ a/arch/x86_64/Kconfig
-@@ -56,6 +56,14 @@ config ZONE_DMA
- 	bool
- 	default y
+diff -puN arch/i386/kernel/acpi/sleep.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags arch/i386/kernel/acpi/sleep.c
+--- a/arch/i386/kernel/acpi/sleep.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
++++ a/arch/i386/kernel/acpi/sleep.c
+@@ -14,7 +14,7 @@
  
-+config QUICKLIST
-+	bool
-+	default y
-+
-+config NR_QUICK
-+	int
-+	default 2
-+
- config ISA
- 	bool
+ /* address in low memory of the wakeup routine. */
+ unsigned long acpi_wakeup_address = 0;
+-unsigned long acpi_video_flags;
++unsigned long acpi_realmode_flags;
+ extern char wakeup_start, wakeup_end;
  
-diff -puN arch/x86_64/kernel/process.c~quicklist-support-for-x86_64 arch/x86_64/kernel/process.c
---- a/arch/x86_64/kernel/process.c~quicklist-support-for-x86_64
-+++ a/arch/x86_64/kernel/process.c
-@@ -207,6 +207,7 @@ void cpu_idle (void)
- 			if (__get_cpu_var(cpu_idle_state))
- 				__get_cpu_var(cpu_idle_state) = 0;
+ extern unsigned long FASTCALL(acpi_copy_wakeup_routine(unsigned long));
+@@ -68,9 +68,11 @@ static int __init acpi_sleep_setup(char 
+ {
+ 	while ((str != NULL) && (*str != '\0')) {
+ 		if (strncmp(str, "s3_bios", 7) == 0)
+-			acpi_video_flags = 1;
++			acpi_realmode_flags |= 1;
+ 		if (strncmp(str, "s3_mode", 7) == 0)
+-			acpi_video_flags |= 2;
++			acpi_realmode_flags |= 2;
++		if (strncmp(str, "s3_beep", 7) == 0)
++			acpi_realmode_flags |= 4;
+ 		str = strchr(str, ',');
+ 		if (str != NULL)
+ 			str += strspn(str, ", \t");
+@@ -80,9 +82,11 @@ static int __init acpi_sleep_setup(char 
  
-+			check_pgt_cache();
- 			rmb();
- 			idle = pm_idle;
- 			if (!idle)
-diff -puN arch/x86_64/kernel/smp.c~quicklist-support-for-x86_64 arch/x86_64/kernel/smp.c
---- a/arch/x86_64/kernel/smp.c~quicklist-support-for-x86_64
-+++ a/arch/x86_64/kernel/smp.c
-@@ -241,7 +241,7 @@ void flush_tlb_mm (struct mm_struct * mm
- 	}
- 	if (!cpus_empty(cpu_mask))
- 		flush_tlb_others(cpu_mask, mm, FLUSH_ALL);
+ __setup("acpi_sleep=", acpi_sleep_setup);
+ 
++/* Ouch, we want to delete this. We already have better version in userspace, in
++   s2ram from suspend.sf.net project */
+ static __init int reset_videomode_after_s3(struct dmi_system_id *d)
+ {
+-	acpi_video_flags |= 2;
++	acpi_realmode_flags |= 2;
+ 	return 0;
+ }
+ 
+diff -puN arch/i386/kernel/acpi/wakeup.S~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags arch/i386/kernel/acpi/wakeup.S
+--- a/arch/i386/kernel/acpi/wakeup.S~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
++++ a/arch/i386/kernel/acpi/wakeup.S
+@@ -47,7 +47,7 @@ wakeup_code:
+ 	movw	%ax, %ds					# Make ds:0 point to wakeup_start
+ 	movw	%ax, %ss
+ 
+-	testl   $1, beep_flags - wakeup_code
++	testl   $4, realmode_flags - wakeup_code
+ 	jz      1f
+ 	BEEP
+ 1:
+@@ -61,7 +61,7 @@ wakeup_code:
+ 	cmpl	$0x12345678, %eax
+ 	jne	bogus_real_magic
+ 
+-	testl	$1, video_flags - wakeup_code
++	testl	$1, realmode_flags - wakeup_code
+ 	jz	1f
+ 	lcall   $0xc000,$3
+ 	movw	%cs, %ax
+@@ -69,7 +69,7 @@ wakeup_code:
+ 	movw	%ax, %ss
+ 1:
+ 
+-	testl	$2, video_flags - wakeup_code
++	testl	$2, realmode_flags - wakeup_code
+ 	jz	1f
+ 	mov	video_mode - wakeup_code, %ax
+ 	call	mode_set
+@@ -108,11 +108,11 @@ wakeup_code:
+ 	cmpl	$0x12345678, %eax
+ 	jne	bogus_real_magic
+ 
+-	testl   $2, beep_flags - wakeup_code
++	testl   $8, realmode_flags - wakeup_code
+ 	jz      1f
+ 	BEEP
+ 1:
+-	ljmpl	$__KERNEL_CS,$wakeup_pmode_return
++	ljmpl	$__KERNEL_CS, $wakeup_pmode_return
+ 
+ real_save_gdt:	.word 0
+ 		.long 0
+@@ -121,7 +121,7 @@ real_save_cr3:	.long 0
+ real_save_cr4:	.long 0
+ real_magic:	.long 0
+ video_mode:	.long 0
+-video_flags:	.long 0
++realmode_flags:	.long 0
+ beep_flags:	.long 0
+ real_efer_save_restore:	.long 0
+ real_save_efer_edx: 	.long 0
+@@ -285,10 +285,8 @@ ENTRY(acpi_copy_wakeup_routine)
+ 
+ 	movl	saved_videomode, %edx
+ 	movl	%edx, video_mode - wakeup_start (%eax)
+-	movl	acpi_video_flags, %edx
+-	movl	%edx, video_flags - wakeup_start (%eax)
+-	movl	s2ram_beep, %edx
+-	movl	%edx, beep_flags - wakeup_start (%eax)
++	movl	acpi_realmode_flags, %edx
++	movl	%edx, realmode_flags - wakeup_start (%eax)
+ 	movl	$0x12345678, real_magic - wakeup_start (%eax)
+ 	movl	$0x12345678, saved_magic
+ 	popl	%ebx
+diff -puN arch/x86_64/kernel/acpi/sleep.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags arch/x86_64/kernel/acpi/sleep.c
+--- a/arch/x86_64/kernel/acpi/sleep.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
++++ a/arch/x86_64/kernel/acpi/sleep.c
+@@ -55,7 +55,7 @@
+ 
+ /* address in low memory of the wakeup routine. */
+ unsigned long acpi_wakeup_address = 0;
+-unsigned long acpi_video_flags;
++unsigned long acpi_realmode_flags;
+ extern char wakeup_start, wakeup_end;
+ 
+ extern unsigned long acpi_copy_wakeup_routine(unsigned long);
+@@ -103,9 +103,11 @@ static int __init acpi_sleep_setup(char 
+ {
+ 	while ((str != NULL) && (*str != '\0')) {
+ 		if (strncmp(str, "s3_bios", 7) == 0)
+-			acpi_video_flags = 1;
++			acpi_realmode_flags |= 1;
+ 		if (strncmp(str, "s3_mode", 7) == 0)
+-			acpi_video_flags |= 2;
++			acpi_realmode_flags |= 2;
++		if (strncmp(str, "s3_beep", 7) == 0)
++			acpi_realmode_flags |= 4;
+ 		str = strchr(str, ',');
+ 		if (str != NULL)
+ 			str += strspn(str, ", \t");
+diff -puN arch/x86_64/kernel/acpi/wakeup.S~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags arch/x86_64/kernel/acpi/wakeup.S
+--- a/arch/x86_64/kernel/acpi/wakeup.S~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
++++ a/arch/x86_64/kernel/acpi/wakeup.S
+@@ -50,7 +50,7 @@ wakeup_code:
+ 	movw	%ax, %ss
+ 
+ 	# Data segment must be set up before we can see whether to beep.
+-	testl   $1, beep_flags - wakeup_code
++	testl   $4, realmode_flags - wakeup_code
+ 	jz      1f
+ 	BEEP
+ 1:
+@@ -70,7 +70,7 @@ wakeup_code:
+ 	testl	%eax, %eax
+ 	jnz	no_longmode
+ 
+-	testl	$1, video_flags - wakeup_code
++	testl	$1, realmode_flags - wakeup_code
+ 	jz	1f
+ 	lcall   $0xc000,$3
+ 	movw	%cs, %ax
+@@ -78,7 +78,7 @@ wakeup_code:
+ 	movw	%ax, %ss
+ 1:
+ 
+-	testl	$2, video_flags - wakeup_code
++	testl	$2, realmode_flags - wakeup_code
+ 	jz	1f
+ 	mov	video_mode - wakeup_code, %ax
+ 	call	mode_seta
+@@ -251,9 +251,8 @@ gdt_48a:
+ 	.long   gdta - wakeup_code              # gdt base (relocated in later)
+ 	
+ real_magic:	.quad 0
+-beep_flags:	.quad 0
+ video_mode:	.quad 0
+-video_flags:	.quad 0
++realmode_flags:	.quad 0
+ 
+ .code16
+ bogus_real_magic:
+@@ -367,12 +366,10 @@ ENTRY(acpi_copy_wakeup_routine)
+ 	pushq	%rax
+ 	pushq	%rdx
+ 
+-	movl	s2ram_beep, %edx
+-	movl	%edx, beep_flags - wakeup_start (,%rdi)
+ 	movl	saved_video_mode, %edx
+ 	movl	%edx, video_mode - wakeup_start (,%rdi)
+-	movl	acpi_video_flags, %edx
+-	movl	%edx, video_flags - wakeup_start (,%rdi)
++	movl	acpi_realmode_flags, %edx
++	movl	%edx, realmode_flags - wakeup_start (,%rdi)
+ 	movq	$0x12345678, real_magic - wakeup_start (,%rdi)
+ 	movq	$0x123456789abcdef0, %rdx
+ 	movq	%rdx, saved_magic
+diff -puN include/linux/acpi.h~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags include/linux/acpi.h
+--- a/include/linux/acpi.h~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
++++ a/include/linux/acpi.h
+@@ -122,8 +122,7 @@ extern struct acpi_mcfg_allocation *pci_
+ extern int pci_mmcfg_config_num;
+ 
+ extern int sbf_port;
+-extern unsigned long acpi_video_flags;
+-extern unsigned long s2ram_beep;
++extern unsigned long acpi_realmode_flags;
+ 
+ #else	/* !CONFIG_ACPI */
+ 
+diff -puN kernel/power/main.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags kernel/power/main.c
+--- a/kernel/power/main.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
++++ a/kernel/power/main.c
+@@ -332,27 +332,6 @@ static ssize_t state_store(struct kset *
+ 
+ power_attr(state);
+ 
+-unsigned long s2ram_beep = 0;
 -
-+	check_pgt_cache();
- 	preempt_enable();
- }
- EXPORT_SYMBOL(flush_tlb_mm);
-diff -puN include/asm-x86_64/pgalloc.h~quicklist-support-for-x86_64 include/asm-x86_64/pgalloc.h
---- a/include/asm-x86_64/pgalloc.h~quicklist-support-for-x86_64
-+++ a/include/asm-x86_64/pgalloc.h
-@@ -4,6 +4,10 @@
- #include <asm/pda.h>
- #include <linux/threads.h>
- #include <linux/mm.h>
-+#include <linux/quicklist.h>
-+
-+#define QUICK_PGD 0	/* We preserve special mappings over free */
-+#define QUICK_PT 1	/* Other page table pages that are zero on free */
+-static ssize_t s2ram_beep_show(struct kset *kset, char *buf)
+-{
+-	return sprintf(buf, "%d\n", s2ram_beep);
+-}
+-
+-static ssize_t
+-s2ram_beep_store(struct kset *kset, const char *buf, size_t n)
+-{
+-	int val;
+-
+-	if (sscanf(buf, "%d", &val) > 0) {
+-		s2ram_beep = val;
+-		return n;
+-	}
+-	return -EINVAL;
+-}
+-
+-power_attr(s2ram_beep);
+-
+ #ifdef CONFIG_PM_TRACE
+ int pm_trace_enabled;
  
- #define pmd_populate_kernel(mm, pmd, pte) \
- 		set_pmd(pmd, __pmd(_PAGE_TABLE | __pa(pte)))
-@@ -20,23 +24,23 @@ static inline void pmd_populate(struct m
- static inline void pmd_free(pmd_t *pmd)
- {
- 	BUG_ON((unsigned long)pmd & (PAGE_SIZE-1));
--	free_page((unsigned long)pmd);
-+	quicklist_free(QUICK_PT, NULL, pmd);
- }
- 
- static inline pmd_t *pmd_alloc_one (struct mm_struct *mm, unsigned long addr)
- {
--	return (pmd_t *)get_zeroed_page(GFP_KERNEL|__GFP_REPEAT);
-+	return (pmd_t *)quicklist_alloc(QUICK_PT, GFP_KERNEL|__GFP_REPEAT, NULL);
- }
- 
- static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long addr)
- {
--	return (pud_t *)get_zeroed_page(GFP_KERNEL|__GFP_REPEAT);
-+	return (pud_t *)quicklist_alloc(QUICK_PT, GFP_KERNEL|__GFP_REPEAT, NULL);
- }
- 
- static inline void pud_free (pud_t *pud)
- {
- 	BUG_ON((unsigned long)pud & (PAGE_SIZE-1));
--	free_page((unsigned long)pud);
-+	quicklist_free(QUICK_PT, NULL, pud);
- }
- 
- static inline void pgd_list_add(pgd_t *pgd)
-@@ -57,41 +61,57 @@ static inline void pgd_list_del(pgd_t *p
- 	spin_unlock(&pgd_lock);
- }
- 
--static inline pgd_t *pgd_alloc(struct mm_struct *mm)
-+static inline void pgd_ctor(void *x)
- {
- 	unsigned boundary;
--	pgd_t *pgd = (pgd_t *)__get_free_page(GFP_KERNEL|__GFP_REPEAT);
--	if (!pgd)
--		return NULL;
--	pgd_list_add(pgd);
-+	pgd_t *pgd = x;
-+	struct page *page = virt_to_page(pgd);
-+
- 	/*
- 	 * Copy kernel pointers in from init.
--	 * Could keep a freelist or slab cache of those because the kernel
--	 * part never changes.
- 	 */
- 	boundary = pgd_index(__PAGE_OFFSET);
--	memset(pgd, 0, boundary * sizeof(pgd_t));
- 	memcpy(pgd + boundary,
--	       init_level4_pgt + boundary,
--	       (PTRS_PER_PGD - boundary) * sizeof(pgd_t));
-+		init_level4_pgt + boundary,
-+		(PTRS_PER_PGD - boundary) * sizeof(pgd_t));
-+
-+	spin_lock(&pgd_lock);
-+	list_add(&page->lru, &pgd_list);
-+	spin_unlock(&pgd_lock);
-+}
-+
-+static inline void pgd_dtor(void *x)
-+{
-+	pgd_t *pgd = x;
-+	struct page *page = virt_to_page(pgd);
-+
-+        spin_lock(&pgd_lock);
-+	list_del(&page->lru);
-+	spin_unlock(&pgd_lock);
-+}
-+
-+static inline pgd_t *pgd_alloc(struct mm_struct *mm)
-+{
-+	pgd_t *pgd = (pgd_t *)quicklist_alloc(QUICK_PGD,
-+		GFP_KERNEL|__GFP_REPEAT, pgd_ctor);
- 	return pgd;
- }
- 
- static inline void pgd_free(pgd_t *pgd)
- {
- 	BUG_ON((unsigned long)pgd & (PAGE_SIZE-1));
--	pgd_list_del(pgd);
--	free_page((unsigned long)pgd);
-+	quicklist_free(QUICK_PGD, pgd_dtor, pgd);
- }
- 
- static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
- {
--	return (pte_t *)get_zeroed_page(GFP_KERNEL|__GFP_REPEAT);
-+	return (pte_t *)quicklist_alloc(QUICK_PT, GFP_KERNEL|__GFP_REPEAT, NULL);
- }
- 
- static inline struct page *pte_alloc_one(struct mm_struct *mm, unsigned long address)
- {
--	void *p = (void *)get_zeroed_page(GFP_KERNEL|__GFP_REPEAT);
-+	void *p = (void *)quicklist_alloc(QUICK_PT, GFP_KERNEL|__GFP_REPEAT, NULL);
-+
- 	if (!p)
- 		return NULL;
- 	return virt_to_page(p);
-@@ -103,17 +123,22 @@ static inline struct page *pte_alloc_one
- static inline void pte_free_kernel(pte_t *pte)
- {
- 	BUG_ON((unsigned long)pte & (PAGE_SIZE-1));
--	free_page((unsigned long)pte); 
-+	quicklist_free(QUICK_PT, NULL, pte);
- }
- 
- static inline void pte_free(struct page *pte)
- {
--	__free_page(pte);
--} 
-+	quicklist_free_page(QUICK_PT, NULL, pte);
-+}
- 
--#define __pte_free_tlb(tlb,pte) tlb_remove_page((tlb),(pte))
-+#define __pte_free_tlb(tlb,pte) quicklist_free_page(QUICK_PT, NULL,(pte))
- 
--#define __pmd_free_tlb(tlb,x)   tlb_remove_page((tlb),virt_to_page(x))
--#define __pud_free_tlb(tlb,x)   tlb_remove_page((tlb),virt_to_page(x))
-+#define __pmd_free_tlb(tlb,x)   quicklist_free(QUICK_PT, NULL, (x))
-+#define __pud_free_tlb(tlb,x)   quicklist_free(QUICK_PT, NULL, (x))
- 
-+static inline void check_pgt_cache(void)
-+{
-+	quicklist_trim(QUICK_PGD, pgd_dtor, 25, 16);
-+	quicklist_trim(QUICK_PT, NULL, 25, 16);
-+}
- #endif /* _X86_64_PGALLOC_H */
-diff -puN include/asm-x86_64/pgtable.h~quicklist-support-for-x86_64 include/asm-x86_64/pgtable.h
---- a/include/asm-x86_64/pgtable.h~quicklist-support-for-x86_64
-+++ a/include/asm-x86_64/pgtable.h
-@@ -409,7 +409,6 @@ extern int kern_addr_valid(unsigned long
- #define HAVE_ARCH_UNMAPPED_AREA
- 
- #define pgtable_cache_init()   do { } while (0)
--#define check_pgt_cache()      do { } while (0)
- 
- #define PAGE_AGP    PAGE_KERNEL_NOCACHE
- #define HAVE_PAGE_AGP 1
+@@ -378,13 +357,11 @@ power_attr(pm_trace);
+ static struct attribute * g[] = {
+ 	&state_attr.attr,
+ 	&pm_trace_attr.attr,
+-	&s2ram_beep_attr.attr,
+ 	NULL,
+ };
+ #else
+ static struct attribute * g[] = {
+ 	&state_attr.attr,
+-	&s2ram_beep_attr.attr,
+ 	NULL,
+ };
+ #endif /* CONFIG_PM_TRACE */
+diff -puN kernel/sysctl.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags kernel/sysctl.c
+--- a/kernel/sysctl.c~pm-integrate-beeping-flag-with-existing-acpi_sleep-flags
++++ a/kernel/sysctl.c
+@@ -660,7 +660,7 @@ static ctl_table kern_table[] = {
+ 	{
+ 		.ctl_name	= KERN_ACPI_VIDEO_FLAGS,
+ 		.procname	= "acpi_video_flags",
+-		.data		= &acpi_video_flags,
++		.data		= &acpi_realmode_flags,
+ 		.maxlen		= sizeof (unsigned long),
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_doulongvec_minmax,
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from pavel@suse.cz are
 
 origin.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-slob-reduce-list-scanning.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-memory-unplug-v7-migration-by-kernel.patch
-memory-unplug-v7-isolate_lru_page-fix.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-page-owner-tracking-leak-detector.patch
+git-acpi.patch
