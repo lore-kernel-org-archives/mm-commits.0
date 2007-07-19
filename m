@@ -1,75 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-lindent-i5000.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:06:16 -0700
-Message-ID: <200707192006.l6JK6GmK020122@imap1.linux-foundation.org>
+Subject: - frv-work-around-a-possible-compiler-bug.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:04:09 -0700
+Message-ID: <200707192004.l6JK49JH019923@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41470 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41477 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761458AbXGSUQ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1761422AbXGSUQ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:16:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dougthompson@xmission.com, djiang@mvista.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: Lindent i5000
+     FRV: work around a possible compiler bug
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-lindent-i5000.patch
+     frv-work-around-a-possible-compiler-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: Lindent i5000
-From: Douglas Thompson <dougthompson@xmission.com>
+Subject: FRV: work around a possible compiler bug
+From: David Howells <dhowells@redhat.com>
 
-Ran e752x_edac.c file through Lindent for cleanup
+Work around a possible bug in the FRV compiler.
 
-Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
-Signed-off-by: Dave Jiang <djiang@mvista.com>
+What appears to be happening is that gcc resolves the
+__builtin_constant_p() in kmalloc() to true, but then fails to reduce the
+therefore constant conditions in the if-statements it guards to constant
+results.
+
+When compiling with -O2 or -Os, one single spurious error crops up in
+cpuup_callback() in mm/slab.c.  This can be avoided by making the memsize
+variable const.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i5000_edac.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ arch/frv/Makefile |    2 +-
+ mm/slab.c         |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/edac/i5000_edac.c~drivers-edac-lindent-i5000 drivers/edac/i5000_edac.c
---- a/drivers/edac/i5000_edac.c~drivers-edac-lindent-i5000
-+++ a/drivers/edac/i5000_edac.c
-@@ -967,7 +967,7 @@ static void calculate_dimm_size(struct i
- 	mem_buffer = p = kmalloc(space, GFP_KERNEL);
- 	if (p == NULL) {
- 		i5000_printk(KERN_ERR, "MC: %s:%s() kmalloc() failed\n",
--			    __FILE__, __func__);
-+			     __FILE__, __func__);
- 		return;
- 	}
+diff -puN arch/frv/Makefile~frv-work-around-a-possible-compiler-bug arch/frv/Makefile
+--- a/arch/frv/Makefile~frv-work-around-a-possible-compiler-bug
++++ a/arch/frv/Makefile
+@@ -88,7 +88,7 @@ ASFLAGS		+= -mno-fdpic
+ # make sure the .S files get compiled with debug info
+ # and disable optimisations that are unhelpful whilst debugging
+ ifdef CONFIG_DEBUG_INFO
+-CFLAGS		+= -O1
++#CFLAGS		+= -O1
+ AFLAGS		+= -Wa,--gdwarf2
+ ASFLAGS		+= -Wa,--gdwarf2
+ endif
+diff -puN mm/slab.c~frv-work-around-a-possible-compiler-bug mm/slab.c
+--- a/mm/slab.c~frv-work-around-a-possible-compiler-bug
++++ a/mm/slab.c
+@@ -1163,7 +1163,7 @@ static int __cpuinit cpuup_callback(stru
+ 	struct kmem_cache *cachep;
+ 	struct kmem_list3 *l3 = NULL;
+ 	int node = cpu_to_node(cpu);
+-	int memsize = sizeof(struct kmem_list3);
++	const int memsize = sizeof(struct kmem_list3);
  
-@@ -1287,13 +1287,13 @@ static int i5000_probe1(struct pci_dev *
- 		return -ENODEV;
- 
- 	/* make sure error reporting method is sane */
--	switch(edac_op_state) {
--		case EDAC_OPSTATE_POLL:
--		case EDAC_OPSTATE_NMI:
--			break;
--		default:
--			edac_op_state = EDAC_OPSTATE_POLL;
--			break;
-+	switch (edac_op_state) {
-+	case EDAC_OPSTATE_POLL:
-+	case EDAC_OPSTATE_NMI:
-+		break;
-+	default:
-+		edac_op_state = EDAC_OPSTATE_POLL;
-+		break;
- 	}
- 
- 	/* Ask the devices for the number of CSROWS and CHANNELS so
+ 	switch (action) {
+ 	case CPU_LOCK_ACQUIRE:
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+afs-fix-file-locking.patch
+mutex-subsystem-synchro-test-module.patch
