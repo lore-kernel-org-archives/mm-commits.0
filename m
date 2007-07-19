@@ -1,190 +1,338 @@
 From: akpm@linux-foundation.org
-Subject: - i386-remove-support-for-the-rise-cpu.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:00 -0700
-Message-ID: <200707192009.l6JK90vi020525@imap1.linux-foundation.org>
+Subject: - drivers-edac-add-to-edac-docs.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:07:38 -0700
+Message-ID: <200707192007.l6JK7cFM020278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41542 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52806 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761108AbXGSUQc (ORCPT
+	by vger.kernel.org with ESMTP id S1761522AbXGSUQi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:32 -0400
+	Thu, 19 Jul 2007 16:16:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, ak@suse.de, davej@redhat.com, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: remove support for the Rise CPU
+     drivers/edac: add to edac docs
 has been removed from the -mm tree.  Its filename was
-     i386-remove-support-for-the-rise-cpu.patch
+     drivers-edac-add-to-edac-docs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: remove support for the Rise CPU
-From: Adrian Bunk <bunk@stusta.de>
+Subject: drivers/edac: add to edac docs
+From: Doug Thompson <dougthompson@xmission.com>
 
-The Rise CPUs were only very short-lived, and there are no reports of
-anyone both owning one and running Linux on it.
+Updated the EDAC kernel documentation
 
-Googling for the printk string "CPU: Rise iDragon" didn't find any dmesg
-available online.
-
-If it turns out that against all expectations there are actually users
-reverting this patch would be easy.
-
-This patch will make the kernel images smaller by a few bytes for all
-i386 users.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Dave Jones <davej@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by:	Doug Thompson <dougthompson@xmission.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/Makefile  |    1 
- arch/i386/kernel/cpu/common.c  |    2 -
- arch/i386/kernel/cpu/rise.c    |   52 -------------------------------
- include/asm-i386/processor.h   |    1 
- include/asm-x86_64/processor.h |    1 
- 5 files changed, 57 deletions(-)
+ Documentation/drivers/edac/edac.txt |  192 ++++++++++++++++++++++----
+ 1 file changed, 165 insertions(+), 27 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/Makefile~i386-remove-support-for-the-rise-cpu arch/i386/kernel/cpu/Makefile
---- a/arch/i386/kernel/cpu/Makefile~i386-remove-support-for-the-rise-cpu
-+++ a/arch/i386/kernel/cpu/Makefile
-@@ -9,7 +9,6 @@ obj-y	+=	cyrix.o
- obj-y	+=	centaur.o
- obj-y	+=	transmeta.o
- obj-y	+=	intel.o intel_cacheinfo.o addon_cpuid_features.o
--obj-y	+=	rise.o
- obj-y	+=	nexgen.o
- obj-y	+=	umc.o
+diff -puN Documentation/drivers/edac/edac.txt~drivers-edac-add-to-edac-docs Documentation/drivers/edac/edac.txt
+--- a/Documentation/drivers/edac/edac.txt~drivers-edac-add-to-edac-docs
++++ a/Documentation/drivers/edac/edac.txt
+@@ -2,22 +2,42 @@
  
-diff -puN arch/i386/kernel/cpu/common.c~i386-remove-support-for-the-rise-cpu arch/i386/kernel/cpu/common.c
---- a/arch/i386/kernel/cpu/common.c~i386-remove-support-for-the-rise-cpu
-+++ a/arch/i386/kernel/cpu/common.c
-@@ -606,7 +606,6 @@ extern int nsc_init_cpu(void);
- extern int amd_init_cpu(void);
- extern int centaur_init_cpu(void);
- extern int transmeta_init_cpu(void);
--extern int rise_init_cpu(void);
- extern int nexgen_init_cpu(void);
- extern int umc_init_cpu(void);
+ EDAC - Error Detection And Correction
  
-@@ -618,7 +617,6 @@ void __init early_cpu_init(void)
- 	amd_init_cpu();
- 	centaur_init_cpu();
- 	transmeta_init_cpu();
--	rise_init_cpu();
- 	nexgen_init_cpu();
- 	umc_init_cpu();
- 	early_cpu_detect();
-diff -puN arch/i386/kernel/cpu/rise.c~i386-remove-support-for-the-rise-cpu /dev/null
---- a/arch/i386/kernel/cpu/rise.c
-+++ /dev/null
-@@ -1,52 +0,0 @@
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/bitops.h>
--#include <asm/processor.h>
--
--#include "cpu.h"
--
--static void __cpuinit init_rise(struct cpuinfo_x86 *c)
--{
--	printk("CPU: Rise iDragon");
--	if (c->x86_model > 2)
--		printk(" II");
--	printk("\n");
--
--	/* Unhide possibly hidden capability flags
--	   The mp6 iDragon family don't have MSRs.
--	   We switch on extra features with this cpuid weirdness: */
--	__asm__ (
--		"movl $0x6363452a, %%eax\n\t"
--		"movl $0x3231206c, %%ecx\n\t"
--		"movl $0x2a32313a, %%edx\n\t"
--		"cpuid\n\t"
--		"movl $0x63634523, %%eax\n\t"
--		"movl $0x32315f6c, %%ecx\n\t"
--		"movl $0x2333313a, %%edx\n\t"
--		"cpuid\n\t" : : : "eax", "ebx", "ecx", "edx"
--	);
--	set_bit(X86_FEATURE_CX8, c->x86_capability);
--}
--
--static struct cpu_dev rise_cpu_dev __cpuinitdata = {
--	.c_vendor	= "Rise",
--	.c_ident	= { "RiseRiseRise" },
--	.c_models = {
--		{ .vendor = X86_VENDOR_RISE, .family = 5, .model_names = 
--		  { 
--			  [0] = "iDragon", 
--			  [2] = "iDragon", 
--			  [8] = "iDragon II", 
--			  [9] = "iDragon II"
--		  }
--		},
--	},
--	.c_init		= init_rise,
--};
--
--int __init rise_init_cpu(void)
--{
--	cpu_devs[X86_VENDOR_RISE] = &rise_cpu_dev;
--	return 0;
--}
--
-diff -puN include/asm-i386/processor.h~i386-remove-support-for-the-rise-cpu include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~i386-remove-support-for-the-rise-cpu
-+++ a/include/asm-i386/processor.h
-@@ -88,7 +88,6 @@ struct cpuinfo_x86 {
- #define X86_VENDOR_UMC 3
- #define X86_VENDOR_NEXGEN 4
- #define X86_VENDOR_CENTAUR 5
--#define X86_VENDOR_RISE 6
- #define X86_VENDOR_TRANSMETA 7
- #define X86_VENDOR_NSC 8
- #define X86_VENDOR_NUM 9
-diff -puN include/asm-x86_64/processor.h~i386-remove-support-for-the-rise-cpu include/asm-x86_64/processor.h
---- a/include/asm-x86_64/processor.h~i386-remove-support-for-the-rise-cpu
-+++ a/include/asm-x86_64/processor.h
-@@ -83,7 +83,6 @@ struct cpuinfo_x86 {
- #define X86_VENDOR_UMC 3
- #define X86_VENDOR_NEXGEN 4
- #define X86_VENDOR_CENTAUR 5
--#define X86_VENDOR_RISE 6
- #define X86_VENDOR_TRANSMETA 7
- #define X86_VENDOR_NUM 8
- #define X86_VENDOR_UNKNOWN 0xff
+-Written by Doug Thompson <norsk5@xmission.com>
++Written by Doug Thompson <dougthompson@xmission.com>
+ 7 Dec 2005
++17 Jul 2007	Updated
+ 
+ 
+-EDAC was written by:
+-	Thayne Harbaugh,
+-	modified by Dave Peterson, Doug Thompson, et al,
+-	from the bluesmoke.sourceforge.net project.
++EDAC is maintained and written by:
+ 
++	Doug Thompson, Dave Jiang, Dave Peterson et al,
++	original author: Thayne Harbaugh,
++
++Contact:
++	website:	bluesmoke.sourceforge.net
++	mailing list:	bluesmoke-devel@lists.sourceforge.net
++
++"bluesmoke" was the name for this device driver when it was "out-of-tree"
++and maintained at sourceforge.net.  When it was pushed into 2.6.16 for the
++first time, it was renamed to 'EDAC'.
++
++The bluesmoke project at sourceforge.net is now utilized as a 'staging area'
++for EDAC development, before it is sent upstream to kernel.org
++
++At the bluesmoke/EDAC project site, is a series of quilt patches against
++recent kernels, stored in a SVN respository. For easier downloading, there
++is also a tarball snapshot available.
+ 
+ ============================================================================
+ EDAC PURPOSE
+ 
+ The 'edac' kernel module goal is to detect and report errors that occur
+-within the computer system. In the initial release, memory Correctable Errors
+-(CE) and Uncorrectable Errors (UE) are the primary errors being harvested.
++within the computer system running under linux.
++
++MEMORY
++
++In the initial release, memory Correctable Errors (CE) and Uncorrectable
++Errors (UE) are the primary errors being harvested. These types of errors
++are harvested by the 'edac_mc' class of device.
+ 
+ Detecting CE events, then harvesting those events and reporting them,
+ CAN be a predictor of future UE events.  With CE events, the system can
+@@ -25,9 +45,27 @@ continue to operate, but with less safet
+ proactive part replacement of memory DIMMs exhibiting CEs can reduce
+ the likelihood of the dreaded UE events and system 'panics'.
+ 
++NON-MEMORY
++
++A new feature for EDAC, the edac_device class of device, was added in
++the 2.6.23 version of the kernel.
++
++This new device type allows for non-memory type of ECC hardware detectors
++to have their states harvested and presented to userspace via the sysfs
++interface.
++
++Some architectures have ECC detectors for L1, L2 and L3 caches, along with DMA
++engines, fabric switches, main data path switches, interconnections,
++and various other hardware data paths. If the hardware reports it, then
++a edac_device device probably can be constructed to harvest and present
++that to userspace.
++
++
++PCI BUS SCANNING
+ 
+ In addition, PCI Bus Parity and SERR Errors are scanned for on PCI devices
+ in order to determine if errors are occurring on data transfers.
++
+ The presence of PCI Parity errors must be examined with a grain of salt.
+ There are several add-in adapters that do NOT follow the PCI specification
+ with regards to Parity generation and reporting. The specification says
+@@ -35,11 +73,17 @@ the vendor should tie the parity status 
+ to generate parity.  Some vendors do not do this, and thus the parity bit
+ can "float" giving false positives.
+ 
+-[There are patches in the kernel queue which will allow for storage of
+-quirks of PCI devices reporting false parity positives. The 2.6.18
+-kernel should have those patches included. When that becomes available,
+-then EDAC will be patched to utilize that information to "skip" such
+-devices.]
++In the kernel there is a pci device attribute located in sysfs that is
++checked by the EDAC PCI scanning code. If that attribute is set,
++PCI parity/error scannining is skipped for that device. The attribute
++is:
++
++	broken_parity_status
++
++as is located in /sys/devices/pci<XXX>/0000:XX:YY.Z directorys for
++PCI devices.
++
++FUTURE HARDWARE SCANNING
+ 
+ EDAC will have future error detectors that will be integrated with
+ EDAC or added to it, in the following list:
+@@ -57,13 +101,14 @@ and the like.
+ ============================================================================
+ EDAC VERSIONING
+ 
+-EDAC is composed of a "core" module (edac_mc.ko) and several Memory
++EDAC is composed of a "core" module (edac_core.ko) and several Memory
+ Controller (MC) driver modules. On a given system, the CORE
+ is loaded and one MC driver will be loaded. Both the CORE and
+-the MC driver have individual versions that reflect current release
+-level of their respective modules.  Thus, to "report" on what version
+-a system is running, one must report both the CORE's and the
+-MC driver's versions.
++the MC driver (or edac_device driver) have individual versions that reflect
++current release level of their respective modules.
++
++Thus, to "report" on what version a system is running, one must report both
++the CORE's and the MC driver's versions.
+ 
+ 
+ LOADING
+@@ -88,8 +133,9 @@ EDAC sysfs INTERFACE
+ EDAC presents a 'sysfs' interface for control, reporting and attribute
+ reporting purposes.
+ 
+-EDAC lives in the /sys/devices/system/edac directory. Within this directory
+-there currently reside 2 'edac' components:
++EDAC lives in the /sys/devices/system/edac directory.
++
++Within this directory there currently reside 2 'edac' components:
+ 
+ 	mc	memory controller(s) system
+ 	pci	PCI control and status system
+@@ -188,7 +234,7 @@ In directory 'mc' are EDAC system overal
+ 
+ Panic on UE control file:
+ 
+-	'panic_on_ue'
++	'edac_mc_panic_on_ue'
+ 
+ 	An uncorrectable error will cause a machine panic.  This is usually
+ 	desirable.  It is a bad idea to continue when an uncorrectable error
+@@ -199,12 +245,12 @@ Panic on UE control file:
+ 
+ 	LOAD TIME: module/kernel parameter: panic_on_ue=[0|1]
+ 
+-	RUN TIME:  echo "1" >/sys/devices/system/edac/mc/panic_on_ue
++	RUN TIME:  echo "1" >/sys/devices/system/edac/mc/edac_mc_panic_on_ue
+ 
+ 
+ Log UE control file:
+ 
+-	'log_ue'
++	'edac_mc_log_ue'
+ 
+ 	Generate kernel messages describing uncorrectable errors.  These errors
+ 	are reported through the system message log system.  UE statistics
+@@ -212,12 +258,12 @@ Log UE control file:
+ 
+ 	LOAD TIME: module/kernel parameter: log_ue=[0|1]
+ 
+-	RUN TIME: echo "1" >/sys/devices/system/edac/mc/log_ue
++	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ue
+ 
+ 
+ Log CE control file:
+ 
+-	'log_ce'
++	'edac_mc_log_ce'
+ 
+ 	Generate kernel messages describing correctable errors.  These
+ 	errors are reported through the system message log system.
+@@ -225,12 +271,12 @@ Log CE control file:
+ 
+ 	LOAD TIME: module/kernel parameter: log_ce=[0|1]
+ 
+-	RUN TIME: echo "1" >/sys/devices/system/edac/mc/log_ce
++	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ce
+ 
+ 
+ Polling period control file:
+ 
+-	'poll_msec'
++	'edac_mc_poll_msec'
+ 
+ 	The time period, in milliseconds, for polling for error information.
+ 	Too small a value wastes resources.  Too large a value might delay
+@@ -241,7 +287,7 @@ Polling period control file:
+ 
+ 	LOAD TIME: module/kernel parameter: poll_msec=[0|1]
+ 
+-	RUN TIME: echo "1000" >/sys/devices/system/edac/mc/poll_msec
++	RUN TIME: echo "1000" >/sys/devices/system/edac/mc/edac_mc_poll_msec
+ 
+ 
+ ============================================================================
+@@ -587,3 +633,95 @@ Parity Count:
+ 
+ 
+ =======================================================================
++
++
++EDAC_DEVICE type of device
++
++In the header file, edac_core.h, there is a series of edac_device structures
++and APIs for the EDAC_DEVICE.
++
++User space access to an edac_device is through the sysfs interface.
++
++At the location /sys/devices/system/edac (sysfs) new edac_device devices will
++appear.
++
++There is a three level tree beneath the above 'edac' directory. For example,
++the 'test_device_edac' device (found at the bluesmoke.sourceforget.net website)
++installs itself as:
++
++	/sys/devices/systm/edac/test-instance
++
++in this directory are various controls, a symlink and one or more 'instance'
++directorys.
++
++The standard default controls are:
++
++	log_ce		boolean to log CE events
++	log_ue		boolean to log UE events
++	panic_on_ue	boolean to 'panic' the system if an UE is encountered
++			(default off, can be set true via startup script)
++	poll_msec	time period between POLL cycles for events
++
++The test_device_edac device adds at least one of its own custom control:
++
++	test_bits	which in the current test driver does nothing but
++			show how it is installed. A ported driver can
++			add one or more such controls and/or attributes
++			for specific uses.
++			One out-of-tree driver uses controls here to allow
++			for ERROR INJECTION operations to hardware
++			injection registers
++
++The symlink points to the 'struct dev' that is registered for this edac_device.
++
++INSTANCES
++
++One or more instance directories are present. For the 'test_device_edac' case:
++
++	test-instance0
++
++
++In this directory there are two default counter attributes, which are totals of
++counter in deeper subdirectories.
++
++	ce_count	total of CE events of subdirectories
++	ue_count	total of UE events of subdirectories
++
++BLOCKS
++
++At the lowest directory level is the 'block' directory. There can be 0, 1
++or more blocks specified in each instance.
++
++	test-block0
++
++
++In this directory the default attributes are:
++
++	ce_count	which is counter of CE events for this 'block'
++			of hardware being monitored
++	ue_count	which is counter of UE events for this 'block'
++			of hardware being monitored
++
++
++The 'test_device_edac' device adds 4 attributes and 1 control:
++
++	test-block-bits-0	for every POLL cycle this counter
++				is incremented
++	test-block-bits-1	every 10 cycles, this counter is bumped once,
++				and test-block-bits-0 is set to 0
++	test-block-bits-2	every 100 cycles, this counter is bumped once,
++				and test-block-bits-1 is set to 0
++	test-block-bits-3	every 1000 cycles, this counter is bumped once,
++				and test-block-bits-2 is set to 0
++
++
++	reset-counters		writing ANY thing to this control will
++				reset all the above counters.
++
++
++Use of the 'test_device_edac' driver should any others to create their own
++unique drivers for their hardware systems.
++
++The 'test_device_edac' sample driver is located at the
++bluesmoke.sourceforge.net project site for EDAC.
++
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
 origin.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-git-hwmon.patch
-git-kbuild.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-git-scsi-misc.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-maps2-add-proc-kpagemap-interface.patch
-fs-reiserfs-cleanups.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
