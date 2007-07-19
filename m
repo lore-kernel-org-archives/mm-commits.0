@@ -1,79 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - sched-fix-the-all-pinned-logic-in-load_balance_newidle.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:07:52 -0700
-Message-ID: <200707192007.l6JK7qdE020398@imap1.linux-foundation.org>
+Subject: - x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:08:30 -0700
+Message-ID: <200707192008.l6JK8U66020465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49722 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38593 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761406AbXGSUQJ (ORCPT
+	by vger.kernel.org with ESMTP id S1760900AbXGSUPa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:09 -0400
+	Thu, 19 Jul 2007 16:15:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suresh.b.siddha@intel.com, mingo@elte.hu, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: rientjes@google.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: fix the all pinned logic in load_balance_newidle()
+     x86_64 numa: fake apicid_to_node mapping for fake numa
 has been removed from the -mm tree.  Its filename was
-     sched-fix-the-all-pinned-logic-in-load_balance_newidle.patch
+     x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: fix the all pinned logic in load_balance_newidle()
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: x86_64 numa: fake apicid_to_node mapping for fake numa
+From: David Rientjes <rientjes@google.com>
 
-nr_moved is not the correct check for triggering all pinned logic.  Fix the
-all pinned logic in the case of load_balance_newidle().
+When we are in the emulated NUMA case, we need to make sure that all existing
+apicid_to_node mappings that point to real node ID's now point to the
+equivalent fake node ID's.
 
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+If we simply iterate over all apicid_to_node[] members for each node, we risk
+remapping an entry if it shares a node ID with a real node.  Since apicid's
+may not be consecutive, we're forced to create an automatic array of
+apicid_to_node mappings and then copy it over once we have finished remapping
+fake to real nodes.
+
+Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ arch/x86_64/mm/srat.c |   13 ++++++++++++-
+ 1 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~sched-fix-the-all-pinned-logic-in-load_balance_newidle kernel/sched.c
---- a/kernel/sched.c~sched-fix-the-all-pinned-logic-in-load_balance_newidle
-+++ a/kernel/sched.c
-@@ -2679,6 +2679,7 @@ load_balance_newidle(int this_cpu, struc
- 	unsigned long imbalance;
- 	int nr_moved = 0;
- 	int sd_idle = 0;
-+	int all_pinned = 0;
- 	cpumask_t cpus = CPU_MASK_ALL;
+diff -puN arch/x86_64/mm/srat.c~x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2 arch/x86_64/mm/srat.c
+--- a/arch/x86_64/mm/srat.c~x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2
++++ a/arch/x86_64/mm/srat.c
+@@ -470,10 +470,13 @@ static int __init find_node_by_addr(unsi
+  */
+ void __init acpi_fake_nodes(const struct bootnode *fake_nodes, int num_nodes)
+ {
+-	int i;
++	int i, j;
+ 	int fake_node_to_pxm_map[MAX_NUMNODES] = {
+ 		[0 ... MAX_NUMNODES-1] = PXM_INVAL
+ 	};
++	unsigned char fake_apicid_to_node[MAX_LOCAL_APIC] = {
++		[0 ... MAX_LOCAL_APIC-1] = NUMA_NO_NODE
++	};
  
- 	/*
-@@ -2717,10 +2718,10 @@ redo:
- 		double_lock_balance(this_rq, busiest);
- 		nr_moved = move_tasks(this_rq, this_cpu, busiest,
- 					minus_1_or_zero(busiest->nr_running),
--					imbalance, sd, CPU_NEWLY_IDLE, NULL);
-+					imbalance, sd, CPU_NEWLY_IDLE, &all_pinned);
- 		spin_unlock(&busiest->lock);
+ 	printk(KERN_INFO "Faking PXM affinity for fake nodes on real "
+ 			 "topology.\n");
+@@ -487,9 +490,17 @@ void __init acpi_fake_nodes(const struct
+ 		if (pxm == PXM_INVAL)
+ 			continue;
+ 		fake_node_to_pxm_map[i] = pxm;
++		/*
++		 * For each apicid_to_node mapping that exists for this real
++		 * node, it must now point to the fake node ID.
++		 */
++		for (j = 0; j < MAX_LOCAL_APIC; j++)
++			if (apicid_to_node[j] == nid)
++				fake_apicid_to_node[j] = i;
+ 	}
+ 	for (i = 0; i < num_nodes; i++)
+ 		__acpi_map_pxm_to_node(fake_node_to_pxm_map[i], i);
++	memcpy(apicid_to_node, fake_apicid_to_node, sizeof(apicid_to_node));
  
--		if (!nr_moved) {
-+		if (unlikely(all_pinned)) {
- 			cpu_clear(cpu_of(busiest), cpus);
- 			if (!cpus_empty(cpus))
- 				goto redo;
+ 	nodes_clear(nodes_parsed);
+ 	for (i = 0; i < num_nodes; i++)
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-git-sched.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
