@@ -1,351 +1,453 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-lindent-e7xxx.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:06:18 -0700
-Message-ID: <200707192006.l6JK6Ivg020125@imap1.linux-foundation.org>
+Subject: - update-checkpatchpl-to-version-008.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:34 -0700
+Message-ID: <200707192002.l6JK2YA4019687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50113 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58218 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762072AbXGSURM (ORCPT
+	by vger.kernel.org with ESMTP id S1760691AbXGSURl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:17:12 -0400
+	Thu, 19 Jul 2007 16:17:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djiang@mvista.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: Lindent e7xxx
+     update checkpatch.pl to version 0.08
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-lindent-e7xxx.patch
+     update-checkpatchpl-to-version-008.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: Lindent e7xxx
-From: Dave Jiang <djiang@mvista.com>
+Subject: update checkpatch.pl to version 0.08
+From: Andy Whitcroft <apw@shadowen.org>
 
-Lindent cleanup of e7xxx_edac driver
+This version brings a number of new checks, and a number of bug
+fixes.  Of note:
 
-Signed-off-by: Dave Jiang <djiang@mvista.com>
-Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
+  - warnings for multiple assignments per line
+  - warnings for multiple declarations per line
+  - checks for single statement blocks with braces
+
+This patch includes an update for feature-removal-schedule.txt to
+better target checks.
+
+Andy Whitcroft (12):
+      Version: 0.08
+      only apply printk checks where there is a string literal
+      allow suppression of errors for when no patch is found
+      warn about multiple assignments
+      warn on declaration of multiple variables
+      check for kfree() with needless null check
+      check for single statement braced blocks
+      check for aggregate initialisation on the next line
+      handle the => operator
+      check for spaces between function name and open parenthesis
+      move to explicit Check: entries in feature-removal-schedule.txt
+      handle pointer attributes
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/e7xxx_edac.c |  132 ++++++++++++++++--------------------
- 1 file changed, 59 insertions(+), 73 deletions(-)
+ Documentation/feature-removal-schedule.txt |    3 
+ scripts/checkpatch.pl                      |  175 +++++++++++++++----
+ 2 files changed, 145 insertions(+), 33 deletions(-)
 
-diff -puN drivers/edac/e7xxx_edac.c~drivers-edac-lindent-e7xxx drivers/edac/e7xxx_edac.c
---- a/drivers/edac/e7xxx_edac.c~drivers-edac-lindent-e7xxx
-+++ a/drivers/edac/e7xxx_edac.c
-@@ -146,21 +146,17 @@ struct e7xxx_error_info {
+diff -puN Documentation/feature-removal-schedule.txt~update-checkpatchpl-to-version-008 Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~update-checkpatchpl-to-version-008
++++ a/Documentation/feature-removal-schedule.txt
+@@ -51,6 +51,7 @@ Who:	David Miller <davem@davemloft.net>
+ What:	Video4Linux API 1 ioctls and video_decoder.h from Video devices.
+ When:	December 2006
+ Files:	include/linux/video_decoder.h
++Check:	include/linux/video_decoder.h
+ Why:	V4L1 AP1 was replaced by V4L2 API. during migration from 2.4 to 2.6
+ 	series. The old API have lots of drawbacks and don't provide enough
+ 	means to work with all video and audio standards. The newer API is
+@@ -84,7 +85,7 @@ Who:	Dominik Brodowski <linux@brodo.de>
+ What:	remove EXPORT_SYMBOL(kernel_thread)
+ When:	August 2006
+ Files:	arch/*/kernel/*_ksyms.c
+-Funcs:	kernel_thread
++Check:	kernel_thread
+ Why:	kernel_thread is a low-level implementation detail.  Drivers should
+         use the <linux/kthread.h> API instead which shields them from
+ 	implementation details and provides a higherlevel interface that
+diff -puN scripts/checkpatch.pl~update-checkpatchpl-to-version-008 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~update-checkpatchpl-to-version-008
++++ a/scripts/checkpatch.pl
+@@ -9,7 +9,7 @@ use strict;
+ my $P = $0;
+ $P =~ s@.*/@@g;
  
- static const struct e7xxx_dev_info e7xxx_devs[] = {
- 	[E7500] = {
--		.err_dev = PCI_DEVICE_ID_INTEL_7500_1_ERR,
--		.ctl_name = "E7500"
--	},
-+		   .err_dev = PCI_DEVICE_ID_INTEL_7500_1_ERR,
-+		   .ctl_name = "E7500"},
- 	[E7501] = {
--		.err_dev = PCI_DEVICE_ID_INTEL_7501_1_ERR,
--		.ctl_name = "E7501"
--	},
-+		   .err_dev = PCI_DEVICE_ID_INTEL_7501_1_ERR,
-+		   .ctl_name = "E7501"},
- 	[E7505] = {
--		.err_dev = PCI_DEVICE_ID_INTEL_7505_1_ERR,
--		.ctl_name = "E7505"
--	},
-+		   .err_dev = PCI_DEVICE_ID_INTEL_7505_1_ERR,
-+		   .ctl_name = "E7505"},
- 	[E7205] = {
--		.err_dev = PCI_DEVICE_ID_INTEL_7205_1_ERR,
--		.ctl_name = "E7205"
--	},
-+		   .err_dev = PCI_DEVICE_ID_INTEL_7205_1_ERR,
-+		   .ctl_name = "E7205"},
- };
+-my $V = '0.07';
++my $V = '0.08';
  
- /* FIXME - is this valid for both SECDED and S4ECD4ED? */
-@@ -181,15 +177,15 @@ static inline int e7xxx_find_channel(u16
+ use Getopt::Long qw(:config no_auto_abbrev);
+ 
+@@ -47,16 +47,14 @@ my $removal = 'Documentation/feature-rem
+ if ($tree && -f $removal) {
+ 	open(REMOVE, "<$removal") || die "$P: $removal: open failed - $!\n";
+ 	while (<REMOVE>) {
+-		if (/^Files:\s+(.*\S)/) {
+-			for my $file (split(/[, ]+/, $1)) {
+-				if ($file =~ m@include/(.*)@) {
++		if (/^Check:\s+(.*\S)/) {
++			for my $entry (split(/[, ]+/, $1)) {
++				if ($entry =~ m@include/(.*)@) {
+ 					push(@dep_includes, $1);
+-				}
+-			}
+ 
+-		} elsif (/^Funcs:\s+(.*\S)/) {
+-			for my $func (split(/[, ]+/, $1)) {
+-				push(@dep_functions, $func);
++				} elsif ($entry !~ m@/@) {
++					push(@dep_functions, $entry);
++				}
+ 			}
+ 		}
+ 	}
+@@ -153,7 +151,7 @@ sub sanitise_line {
  }
  
- static unsigned long ctl_page_to_phys(struct mem_ctl_info *mci,
--		unsigned long page)
-+				      unsigned long page)
- {
- 	u32 remap;
--	struct e7xxx_pvt *pvt = (struct e7xxx_pvt *) mci->pvt_info;
-+	struct e7xxx_pvt *pvt = (struct e7xxx_pvt *)mci->pvt_info;
+ sub ctx_block_get {
+-	my ($linenr, $remain, $outer, $open, $close) = @_;
++	my ($linenr, $remain, $outer, $open, $close, $off) = @_;
+ 	my $line;
+ 	my $start = $linenr - 1;
+ 	my $blk = '';
+@@ -161,38 +159,58 @@ sub ctx_block_get {
+ 	my @c;
+ 	my @res = ();
  
- 	debugf3("%s()\n", __func__);
++	my $level = 0;
+ 	for ($line = $start; $remain > 0; $line++) {
+ 		next if ($rawlines[$line] =~ /^-/);
+ 		$remain--;
  
- 	if ((page < pvt->tolm) ||
--			((page >= 0x100000) && (page < pvt->remapbase)))
-+	    ((page >= 0x100000) && (page < pvt->remapbase)))
- 		return page;
+ 		$blk .= $rawlines[$line];
++		foreach my $c (split(//, $rawlines[$line])) {
++			##print "C<$c>L<$level><$open$close>O<$off>\n";
++			if ($off > 0) {
++				$off--;
++				next;
++			}
  
- 	remap = (page - pvt->tolm) + pvt->remapbase;
-@@ -201,8 +197,7 @@ static unsigned long ctl_page_to_phys(st
- 	return pvt->tolm - 1;
- }
+-		@o = ($blk =~ /$open/g);
+-		@c = ($blk =~ /$close/g);
++			if ($c eq $close && $level > 0) {
++				$level--;
++				last if ($level == 0);
++			} elsif ($c eq $open) {
++				$level++;
++			}
++		}
  
--static void process_ce(struct mem_ctl_info *mci,
--		struct e7xxx_error_info *info)
-+static void process_ce(struct mem_ctl_info *mci, struct e7xxx_error_info *info)
- {
- 	u32 error_1b, page;
- 	u16 syndrome;
-@@ -213,7 +208,7 @@ static void process_ce(struct mem_ctl_in
- 	/* read the error address */
- 	error_1b = info->dram_celog_add;
- 	/* FIXME - should use PAGE_SHIFT */
--	page = error_1b >> 6;  /* convert the address to 4k page */
-+	page = error_1b >> 6;	/* convert the address to 4k page */
- 	/* read the syndrome */
- 	syndrome = info->dram_celog_syndrome;
- 	/* FIXME - check for -1 */
-@@ -229,8 +224,7 @@ static void process_ce_no_info(struct me
- 	edac_mc_handle_ce_no_info(mci, "e7xxx CE log register overflow");
- }
+-		if (!$outer || (scalar(@o) - scalar(@c)) == 1) {
++		if (!$outer || $level <= 1) {
+ 			push(@res, $rawlines[$line]);
+ 		}
  
--static void process_ue(struct mem_ctl_info *mci,
--		struct e7xxx_error_info *info)
-+static void process_ue(struct mem_ctl_info *mci, struct e7xxx_error_info *info)
- {
- 	u32 error_2b, block_page;
- 	int row;
-@@ -239,7 +233,7 @@ static void process_ue(struct mem_ctl_in
- 	/* read the error address */
- 	error_2b = info->dram_uelog_add;
- 	/* FIXME - should use PAGE_SHIFT */
--	block_page = error_2b >> 6;  /* convert to 4k address */
-+	block_page = error_2b >> 6;	/* convert to 4k address */
- 	row = edac_mc_find_csrow_by_page(mci, block_page);
- 	edac_mc_handle_ue(mci, block_page, 0, row, "e7xxx UE");
- }
-@@ -250,28 +244,26 @@ static void process_ue_no_info(struct me
- 	edac_mc_handle_ue_no_info(mci, "e7xxx UE log register overflow");
- }
- 
--static void e7xxx_get_error_info (struct mem_ctl_info *mci,
--		struct e7xxx_error_info *info)
-+static void e7xxx_get_error_info(struct mem_ctl_info *mci,
-+				 struct e7xxx_error_info *info)
- {
- 	struct e7xxx_pvt *pvt;
- 
--	pvt = (struct e7xxx_pvt *) mci->pvt_info;
--	pci_read_config_byte(pvt->bridge_ck, E7XXX_DRAM_FERR,
--			&info->dram_ferr);
--	pci_read_config_byte(pvt->bridge_ck, E7XXX_DRAM_NERR,
--			&info->dram_nerr);
-+	pvt = (struct e7xxx_pvt *)mci->pvt_info;
-+	pci_read_config_byte(pvt->bridge_ck, E7XXX_DRAM_FERR, &info->dram_ferr);
-+	pci_read_config_byte(pvt->bridge_ck, E7XXX_DRAM_NERR, &info->dram_nerr);
- 
- 	if ((info->dram_ferr & 1) || (info->dram_nerr & 1)) {
- 		pci_read_config_dword(pvt->bridge_ck, E7XXX_DRAM_CELOG_ADD,
--				&info->dram_celog_add);
-+				      &info->dram_celog_add);
- 		pci_read_config_word(pvt->bridge_ck,
--				E7XXX_DRAM_CELOG_SYNDROME,
--				&info->dram_celog_syndrome);
-+				     E7XXX_DRAM_CELOG_SYNDROME,
-+				     &info->dram_celog_syndrome);
+-		last if (scalar(@o) == scalar(@c));
++		last if ($level == 0);
  	}
  
- 	if ((info->dram_ferr & 2) || (info->dram_nerr & 2))
- 		pci_read_config_dword(pvt->bridge_ck, E7XXX_DRAM_UELOG_ADD,
--				&info->dram_uelog_add);
-+				      &info->dram_uelog_add);
+-	return @res;
++	return ($level, @res);
+ }
+ sub ctx_block_outer {
+ 	my ($linenr, $remain) = @_;
  
- 	if (info->dram_ferr & 3)
- 		pci_write_bits8(pvt->bridge_ck, E7XXX_DRAM_FERR, 0x03, 0x03);
-@@ -280,8 +272,9 @@ static void e7xxx_get_error_info (struct
- 		pci_write_bits8(pvt->bridge_ck, E7XXX_DRAM_NERR, 0x03, 0x03);
+-	return ctx_block_get($linenr, $remain, 1, '\{', '\}');
++	my ($level, @r) = ctx_block_get($linenr, $remain, 1, '{', '}', 0);
++	return @r;
+ }
+ sub ctx_block {
+ 	my ($linenr, $remain) = @_;
+ 
+-	return ctx_block_get($linenr, $remain, 0, '\{', '\}');
++	my ($level, @r) = ctx_block_get($linenr, $remain, 0, '{', '}', 0);
++	return @r;
+ }
+ sub ctx_statement {
++	my ($linenr, $remain, $off) = @_;
++
++	my ($level, @r) = ctx_block_get($linenr, $remain, 0, '(', ')', $off);
++	return @r;
++}
++sub ctx_block_level {
+ 	my ($linenr, $remain) = @_;
+ 
+-	return ctx_block_get($linenr, $remain, 0, '\(', '\)');
++	return ctx_block_get($linenr, $remain, 0, '{', '}', 0);
  }
  
--static int e7xxx_process_error_info (struct mem_ctl_info *mci,
--		struct e7xxx_error_info *info, int handle_errors)
-+static int e7xxx_process_error_info(struct mem_ctl_info *mci,
-+				    struct e7xxx_error_info *info,
-+				    int handle_errors)
- {
- 	int error_found;
- 
-@@ -342,7 +335,6 @@ static inline int dual_channel_active(u3
- 	return (dev_idx == E7501) ? ((drc >> 22) & 0x1) : 1;
+ sub ctx_locate_comment {
+@@ -246,16 +264,23 @@ sub cat_vet {
+ 	return $vet;
  }
  
--
- /* Return DRB granularity (0=32mb, 1=64mb). */
- static inline int drb_granularity(u32 drc, int dev_idx)
- {
-@@ -350,9 +342,8 @@ static inline int drb_granularity(u32 dr
- 	return (dev_idx == E7501) ? ((drc >> 18) & 0x3) : 1;
++my @report = ();
++sub report {
++	push(@report, $_[0]);
++}
++sub report_dump {
++	@report;
++}
+ sub ERROR {
+-	print "ERROR: $_[0]\n";
++	report("ERROR: $_[0]\n");
+ 	our $clean = 0;
+ }
+ sub WARN {
+-	print "WARNING: $_[0]\n";
++	report("WARNING: $_[0]\n");
+ 	our $clean = 0;
+ }
+ sub CHK {
+-	print "CHECK: $_[0]\n";
++	report("CHECK: $_[0]\n");
+ 	our $clean = 0;
  }
  
--
- static void e7xxx_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev,
--		int dev_idx, u32 drc)
-+			      int dev_idx, u32 drc)
- {
- 	unsigned long last_cumul_size;
- 	int index;
-@@ -422,13 +413,13 @@ static int e7xxx_probe1(struct pci_dev *
- 	debugf0("%s(): mci\n", __func__);
+@@ -318,7 +343,10 @@ sub process {
+ 				(?:\s*\*+\s*const|\s*\*+)?
+ 			  }x;
+ 	my $Declare	= qr{(?:$Storage\s+)?$Type};
+-	my $Attribute	= qr{__read_mostly|__init|__initdata};
++	my $Attribute	= qr{const|__read_mostly|__init|__initdata|__meminit};
++
++	my $Member	= qr{->$Ident|\.$Ident|\[[^]]*\]};
++	my $Lval	= qr{$Ident(?:$Member)*};
  
- 	/* make sure error reporting method is sane */
--	switch(edac_op_state) {
--		case EDAC_OPSTATE_POLL:
--		case EDAC_OPSTATE_NMI:
--			break;
--		default:
--			edac_op_state = EDAC_OPSTATE_POLL;
--			break;
-+	switch (edac_op_state) {
-+	case EDAC_OPSTATE_POLL:
-+	case EDAC_OPSTATE_NMI:
-+		break;
-+	default:
-+		edac_op_state = EDAC_OPSTATE_POLL;
-+		break;
+ 	# Pre-scan the patch looking for any __setup documentation.
+ 	my @setup_docs = ();
+@@ -509,7 +537,7 @@ sub process {
+ # if/while/etc brace do not go on next line, unless defining a do while loop,
+ # or if that brace on the next line is for something else
+ 		if ($line =~ /\b(?:(if|while|for|switch)\s*\(|do\b|else\b)/ && $line !~ /^.#/) {
+-			my @ctx = ctx_statement($linenr, $realcnt);
++			my @ctx = ctx_statement($linenr, $realcnt, 0);
+ 			my $ctx_ln = $linenr + $#ctx + 1;
+ 			my $ctx_cnt = $realcnt - $#ctx - 1;
+ 			my $ctx = join("\n", @ctx);
+@@ -521,7 +549,7 @@ sub process {
+ 			##warn "line<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>";
+ 
+ 			if ($ctx !~ /{\s*/ && $ctx_cnt > 0 && $lines[$ctx_ln - 1] =~ /^\+\s*{/) {
+-				ERROR("That { should be on the previous line\n" .
++				ERROR("That open brace { should be on the previous line\n" .
+ 					"$here\n$ctx\n$lines[$ctx_ln - 1]");
+ 			}
+ 		}
+@@ -535,6 +563,12 @@ sub process {
+ 			next;
+ 		}
+ 
++# check for initialisation to aggregates open brace on the next line
++		if ($prevline =~ /$Declare\s*$Ident\s*=\s*$/ &&
++		    $line =~ /^.\s*{/) {
++			ERROR("That open brace { should be on the previous line\n" . $hereprev);
++		}
++
+ #
+ # Checks which are anchored on the added line.
+ #
+@@ -570,8 +604,13 @@ sub process {
+ 			}
+ 		}
+ 
++# check for external initialisers.
++		if ($line =~ /^.$Type\s*$Ident\s*=\s*(0|NULL);/) {
++			ERROR("do not initialise externals to 0 or NULL\n" .
++				$herecurr);
++		}
+ # check for static initialisers.
+-		if ($line=~/\s*static\s.*=\s+(0|NULL);/) {
++		if ($line =~ /\s*static\s.*=\s*(0|NULL);/) {
+ 			ERROR("do not initialise statics to 0 or NULL\n" .
+ 				$herecurr);
+ 		}
+@@ -593,11 +632,11 @@ sub process {
+ 			ERROR("\"(foo $1 )\" should be \"(foo $1)\"\n" .
+ 				$herecurr);
+ 
+-		} elsif ($line =~ m{$NonptrType(\*+)(?:\s+const)?\s+[A-Za-z\d_]+}) {
++		} elsif ($line =~ m{$NonptrType(\*+)(?:\s+$Attribute)?\s+[A-Za-z\d_]+}) {
+ 			ERROR("\"foo$1 bar\" should be \"foo $1bar\"\n" .
+ 				$herecurr);
+ 
+-		} elsif ($line =~ m{$NonptrType\s+(\*+)(?!\s+const)\s+[A-Za-z\d_]+}) {
++		} elsif ($line =~ m{$NonptrType\s+(\*+)(?!\s+$Attribute)\s+[A-Za-z\d_]+}) {
+ 			ERROR("\"foo $1 bar\" should be \"foo $1bar\"\n" .
+ 				$herecurr);
+ 		}
+@@ -614,7 +653,7 @@ sub process {
+ # to try and find and validate the current printk.  In summary the current
+ # printk includes all preceeding printk's which have no newline on the end.
+ # we assume the first bad printk is the one to report.
+-		if ($line =~ /\bprintk\((?!KERN_)/) {
++		if ($line =~ /\bprintk\((?!KERN_)\s*"/) {
+ 			my $ok = 0;
+ 			for (my $ln = $linenr - 1; $ln >= $first_line; $ln--) {
+ 				#print "CHECK<$lines[$ln - 1]\n";
+@@ -639,6 +678,12 @@ sub process {
+ 			ERROR("open brace '{' following function declarations go on the next line\n" . $herecurr);
+ 		}
+ 
++# check for spaces between functions and their parentheses.
++		if ($line =~ /($Ident)\s+\(/ &&
++		    $1 !~ /^(?:if|for|while|switch|return|volatile)$/ &&
++		    $line !~ /$Type\s+\(/ && $line !~ /^.\#\s*define\b/) {
++			ERROR("no space between function name and open parenthesis '('\n" . $herecurr);
++		}
+ # Check operator spacing.
+ 		# Note we expand the line with the leading + as the real
+ 		# line will be displayed with the leading + and the tabs
+@@ -647,7 +692,7 @@ sub process {
+ 		$opline = expand_tabs($opline);
+ 		$opline =~ s/^./ /;
+ 		if (!($line=~/\#\s*include/)) {
+-			my @elements = split(/(<<=|>>=|<=|>=|==|!=|\+=|-=|\*=|\/=|%=|\^=|\|=|&=|->|<<|>>|<|>|=|!|~|&&|\|\||,|\^|\+\+|--|;|&|\||\+|-|\*|\/\/|\/)/, $opline);
++			my @elements = split(/(<<=|>>=|<=|>=|==|!=|\+=|-=|\*=|\/=|%=|\^=|\|=|&=|=>|->|<<|>>|<|>|=|!|~|&&|\|\||,|\^|\+\+|--|;|&|\||\+|-|\*|\/\/|\/)/, $opline);
+ 			my $off = 0;
+ 			for (my $n = 0; $n < $#elements; $n += 2) {
+ 				$off += length($elements[$n]);
+@@ -773,6 +818,18 @@ sub process {
+ 			}
+ 		}
+ 
++# check for multiple assignments
++		if ($line =~ /^.\s*$Lval\s*=\s*$Lval\s*=(?!=)/) {
++			WARN("multiple assignments should be avoided\n" . $herecurr);
++		}
++
++# check for multiple declarations, allowing for a function declaration
++# continuation.
++		if ($line =~ /^.\s*$Type\s+$Ident(?:\s*=[^,{]*)?\s*,\s*$Ident.*/ &&
++		    $line !~ /^.\s*$Type\s+$Ident(?:\s*=[^,{]*)?\s*,\s*$Type\s*$Ident.*/) {
++			WARN("declaring multiple variables together should be avoided\n" . $herecurr);
++		}
++
+ #need space before brace following if, while, etc
+ 		if ($line =~ /\(.*\){/ || $line =~ /do{/) {
+ 			ERROR("need a space before the open brace '{'\n" . $herecurr);
+@@ -847,13 +904,18 @@ sub process {
+ 			# or the one below.
+ 			my $ln = $linenr;
+ 			my $cnt = $realcnt;
++			my $off = 0;
+ 
+-			# If the macro starts on the define line start there.
+-			if ($prevline !~ m{^.#\s*define\s*$Ident(?:\([^\)]*\))?\s*\\\s*$}) {
++			# If the macro starts on the define line start
++			# grabbing the statement after the identifier
++			$prevline =~ m{^(.#\s*define\s*$Ident(?:\([^\)]*\))?\s*)(.*)\\\s*$};
++			##print "1<$1> 2<$2>\n";
++			if ($2 ne '') {
++				$off = length($1);
+ 				$ln--;
+ 				$cnt++;
+ 			}
+-			my @ctx = ctx_statement($ln, $cnt);
++			my @ctx = ctx_statement($ln, $cnt, $off);
+ 			my $ctx_ln = $ln + $#ctx + 1;
+ 			my $ctx = join("\n", @ctx);
+ 
+@@ -873,6 +935,44 @@ sub process {
+ 			}
+ 		}
+ 
++# check for redundant bracing round if etc
++		if ($line =~ /\b(if|while|for|else)\b/) {
++			# Locate the end of the opening statement.
++			my @control = ctx_statement($linenr, $realcnt, 0);
++			my $nr = $linenr + (scalar(@control) - 1);
++			my $cnt = $realcnt - (scalar(@control) - 1);
++
++			my $off = $realcnt - $cnt;
++			#print "$off: line<$line>end<" . $lines[$nr - 1] . ">\n";
++
++			# If this is is a braced statement group check it
++			if ($lines[$nr - 1] =~ /{\s*$/) {
++				my ($lvl, @block) = ctx_block_level($nr, $cnt);
++
++				my $stmt = join(' ', @block);
++				$stmt =~ s/^[^{]*{//;
++				$stmt =~ s/}[^}]*$//;
++
++				#print "block<" . join(' ', @block) . "><" . scalar(@block) . ">\n";
++				#print "stmt<$stmt>\n\n";
++
++				# Count the ;'s if there is fewer than two
++				# then there can only be one statement,
++				# if there is a brace inside we cannot
++				# trivially detect if its one statement.
++				# Also nested if's often require braces to
++				# disambiguate the else binding so shhh there.
++				my @semi = ($stmt =~ /;/g);
++				##print "semi<" . scalar(@semi) . ">\n";
++				if ($lvl == 0 && scalar(@semi) < 2 &&
++				    $stmt !~ /{/ && $stmt !~ /\bif\b/) {
++				    	my $herectx = "$here\n" . join("\n", @control, @block[1 .. $#block]) . "\n";
++				    	shift(@block);
++					ERROR("braces {} are not necessary for single statement blocks\n" . $herectx);
++				}
++			}
++		}
++
+ # don't include deprecated include files (uses RAW line)
+ 		for my $inc (@dep_includes) {
+ 			if ($rawline =~ m@\#\s*include\s*\<$inc>@) {
+@@ -898,6 +998,14 @@ sub process {
+ 				$herecurr);
+ 		}
+ 
++# check for needless kfree() checks
++		if ($prevline =~ /\bif\s*\(([^\)]*)\)/) {
++			my $expr = $1;
++			if ($line =~ /\bkfree\(\Q$expr\E\);/) {
++				WARN("kfree(NULL) is safe this check is probabally not required\n" . $hereprev);
++			}
++		}
++
+ # warn about #ifdefs in C files
+ #		if ($line =~ /^.#\s*if(|n)def/ && ($realfile =~ /\.c$/)) {
+ #			print "#ifdef in C files should be avoided\n";
+@@ -952,6 +1060,9 @@ sub process {
+ 		ERROR("Missing Signed-off-by: line(s)\n");
  	}
  
- 	pci_read_config_dword(pdev, E7XXX_DRC, &drc);
-@@ -442,22 +433,21 @@ static int e7xxx_probe1(struct pci_dev *
- 	debugf3("%s(): init mci\n", __func__);
- 	mci->mtype_cap = MEM_FLAG_RDDR;
- 	mci->edac_ctl_cap = EDAC_FLAG_NONE | EDAC_FLAG_SECDED |
--			EDAC_FLAG_S4ECD4ED;
-+	    EDAC_FLAG_S4ECD4ED;
- 	/* FIXME - what if different memory types are in different csrows? */
- 	mci->mod_name = EDAC_MOD_STR;
- 	mci->mod_ver = E7XXX_REVISION;
- 	mci->dev = &pdev->dev;
- 	debugf3("%s(): init pvt\n", __func__);
--	pvt = (struct e7xxx_pvt *) mci->pvt_info;
-+	pvt = (struct e7xxx_pvt *)mci->pvt_info;
- 	pvt->dev_info = &e7xxx_devs[dev_idx];
- 	pvt->bridge_ck = pci_get_device(PCI_VENDOR_ID_INTEL,
--					pvt->dev_info->err_dev,
--					pvt->bridge_ck);
-+					pvt->dev_info->err_dev, pvt->bridge_ck);
- 
- 	if (!pvt->bridge_ck) {
- 		e7xxx_printk(KERN_ERR, "error reporting device not found:"
--			"vendor %x device 0x%x (broken BIOS?)\n",
--			PCI_VENDOR_ID_INTEL, e7xxx_devs[dev_idx].err_dev);
-+			     "vendor %x device 0x%x (broken BIOS?)\n",
-+			     PCI_VENDOR_ID_INTEL, e7xxx_devs[dev_idx].err_dev);
- 		goto fail0;
++	if ($clean == 0 && ($chk_patch || $is_patch)) {
++		print report_dump();
++	}
+ 	if ($clean == 1 && $quiet == 0) {
+ 		print "Your patch has no obvious style problems and is ready for submission.\n"
  	}
- 
-@@ -477,8 +467,8 @@ static int e7xxx_probe1(struct pci_dev *
- 	pci_read_config_word(pdev, E7XXX_REMAPLIMIT, &pci_data);
- 	pvt->remaplimit = ((u32) pci_data) << 14;
- 	e7xxx_printk(KERN_INFO,
--		"tolm = %x, remapbase = %x, remaplimit = %x\n", pvt->tolm,
--		pvt->remapbase, pvt->remaplimit);
-+		     "tolm = %x, remapbase = %x, remaplimit = %x\n", pvt->tolm,
-+		     pvt->remapbase, pvt->remaplimit);
- 
- 	/* clear any pending errors, or initial state bits */
- 	e7xxx_get_error_info(mci, &discard);
-@@ -486,7 +476,7 @@ static int e7xxx_probe1(struct pci_dev *
- 	/* Here we assume that we will never see multiple instances of this
- 	 * type of memory controller.  The ID is therefore hardcoded to 0.
- 	 */
--	if (edac_mc_add_mc(mci,0)) {
-+	if (edac_mc_add_mc(mci, 0)) {
- 		debugf3("%s(): failed edac_mc_add_mc()\n", __func__);
- 		goto fail1;
- 	}
-@@ -495,10 +485,10 @@ static int e7xxx_probe1(struct pci_dev *
- 	debugf3("%s(): success\n", __func__);
- 	return 0;
- 
--fail1:
-+      fail1:
- 	pci_dev_put(pvt->bridge_ck);
- 
--fail0:
-+      fail0:
- 	edac_mc_free(mci);
- 
- 	return -ENODEV;
-@@ -506,13 +496,13 @@ fail0:
- 
- /* returns count (>= 0), or negative on error */
- static int __devinit e7xxx_init_one(struct pci_dev *pdev,
--		const struct pci_device_id *ent)
-+				    const struct pci_device_id *ent)
- {
- 	debugf0("%s()\n", __func__);
- 
- 	/* wake up and enable device */
- 	return pci_enable_device(pdev) ?
--		-EIO : e7xxx_probe1(pdev, ent->driver_data);
-+	    -EIO : e7xxx_probe1(pdev, ent->driver_data);
- }
- 
- static void __devexit e7xxx_remove_one(struct pci_dev *pdev)
-@@ -525,31 +515,27 @@ static void __devexit e7xxx_remove_one(s
- 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
- 		return;
- 
--	pvt = (struct e7xxx_pvt *) mci->pvt_info;
-+	pvt = (struct e7xxx_pvt *)mci->pvt_info;
- 	pci_dev_put(pvt->bridge_ck);
- 	edac_mc_free(mci);
- }
- 
- static const struct pci_device_id e7xxx_pci_tbl[] __devinitdata = {
- 	{
--		PCI_VEND_DEV(INTEL, 7205_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
--		E7205
--	},
-+	 PCI_VEND_DEV(INTEL, 7205_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-+	 E7205},
- 	{
--		PCI_VEND_DEV(INTEL, 7500_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
--		E7500
--	},
-+	 PCI_VEND_DEV(INTEL, 7500_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-+	 E7500},
- 	{
--		PCI_VEND_DEV(INTEL, 7501_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
--		E7501
--	},
-+	 PCI_VEND_DEV(INTEL, 7501_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-+	 E7501},
- 	{
--		PCI_VEND_DEV(INTEL, 7505_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
--		E7505
--	},
-+	 PCI_VEND_DEV(INTEL, 7505_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-+	 E7505},
- 	{
--		0,
--	}	/* 0 terminated list. */
-+	 0,
-+	 }			/* 0 terminated list. */
- };
- 
- MODULE_DEVICE_TABLE(pci, e7xxx_pci_tbl);
-@@ -576,7 +562,7 @@ module_exit(e7xxx_exit);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Linux Networx (http://lnxi.com) Thayne Harbaugh et al\n"
--	"Based on.work by Dan Hollis et al");
-+	      "Based on.work by Dan Hollis et al");
- MODULE_DESCRIPTION("MC support for Intel e7xxx memory controllers");
- module_param(edac_op_state, int, 0444);
- MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
 _
 
-Patches currently in -mm which might be from djiang@mvista.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+page-owner-tracking-leak-detector.patch
