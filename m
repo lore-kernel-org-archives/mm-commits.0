@@ -1,282 +1,269 @@
 From: akpm@linux-foundation.org
-Subject: - lockstat-measure-lock-bouncing.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:03:52 -0700
-Message-ID: <200707192003.l6JK3qcw019896@imap1.linux-foundation.org>
+Subject: - readahead-sanify-file_ra_state-names.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:01:30 -0700
+Message-ID: <200707192001.l6JK1UYP019543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59001 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45091 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758874AbXGSUXm (ORCPT
+	by vger.kernel.org with ESMTP id S1757157AbXGSUXp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:23:42 -0400
+	Thu, 19 Jul 2007 16:23:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockstat: measure lock bouncing
+     readahead: sanify file_ra_state names
 has been removed from the -mm tree.  Its filename was
-     lockstat-measure-lock-bouncing.patch
+     readahead-sanify-file_ra_state-names.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockstat: measure lock bouncing
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: readahead: sanify file_ra_state names
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-    __acquire
-        |
-       lock _____
-        |        \
-        |    __contended
-        |         |
-        |        wait
-        | _______/
-        |/
-        |
-   __acquired
-        |
-   __release
-        |
-     unlock
+Rename some file_ra_state variables and remove some accessors.
 
-We measure acquisition and contention bouncing.
+It results in much simpler code.
+Kudos to Rusty!
 
-This is done by recording a cpu stamp in each lock instance.
-
-Contention bouncing requires the cpu stamp to be set on acquisition. Hence we
-move __acquired into the generic path.
-
-__acquired is then used to measure acquisition bouncing by comparing the
-current cpu with the old stamp before replacing it.
-
-__contended is used to measure contention bouncing (only useful for preemptable
-locks)
-
-[akpm@linux-foundation.org: cleanups]
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |   17 ++++++++++++++++-
- kernel/lockdep.c        |   38 ++++++++++++++++++++++++++------------
- kernel/lockdep_proc.c   |   19 ++++++++++++-------
- kernel/mutex.c          |    2 +-
- 4 files changed, 55 insertions(+), 21 deletions(-)
+ include/linux/fs.h |   61 +++-----------------------------------
+ mm/readahead.c     |   68 +++++++++++++++----------------------------
+ 2 files changed, 31 insertions(+), 98 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockstat-measure-lock-bouncing include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockstat-measure-lock-bouncing
-+++ a/include/linux/lockdep.h
-@@ -130,12 +130,24 @@ struct lock_time {
- 	unsigned long			nr;
- };
+diff -puN include/linux/fs.h~readahead-sanify-file_ra_state-names include/linux/fs.h
+--- a/include/linux/fs.h~readahead-sanify-file_ra_state-names
++++ a/include/linux/fs.h
+@@ -695,16 +695,12 @@ struct fown_struct {
  
-+enum bounce_type {
-+	bounce_acquired_write,
-+	bounce_acquired_read,
-+	bounce_contended_write,
-+	bounce_contended_read,
-+	nr_bounce_types,
-+
-+	bounce_acquired = bounce_acquired_write,
-+	bounce_contended = bounce_contended_write,
-+};
-+
- struct lock_class_stats {
- 	unsigned long			contention_point[4];
- 	struct lock_time		read_waittime;
- 	struct lock_time		write_waittime;
- 	struct lock_time		read_holdtime;
- 	struct lock_time		write_holdtime;
-+	unsigned long			bounces[nr_bounce_types];
- };
+ /*
+  * Track a single file's readahead state
+- *
+- *  ================#============|==================#==================|
+- *                  ^            ^                  ^                  ^
+- *  file_ra_state.la_index    .ra_index   .lookahead_index   .readahead_index
+  */
+ struct file_ra_state {
+-	pgoff_t la_index;               /* enqueue time */
+-	pgoff_t ra_index;               /* begin offset */
+-	pgoff_t lookahead_index;        /* time to do next readahead */
+-	pgoff_t readahead_index;        /* end offset */
++	pgoff_t start;                  /* where readahead started */
++	unsigned long size;             /* # of readahead pages */
++	unsigned long async_size;       /* do asynchronous readahead when
++					   there are only # of pages ahead */
  
- struct lock_class_stats lock_stats(struct lock_class *class);
-@@ -150,6 +162,9 @@ struct lockdep_map {
- 	struct lock_class_key		*key;
- 	struct lock_class		*class_cache;
- 	const char			*name;
-+#ifdef CONFIG_LOCK_STAT
-+	int				cpu;
-+#endif
+ 	unsigned long ra_pages;		/* Maximum readahead window */
+ 	unsigned long mmap_hit;		/* Cache hit stat for mmap accesses */
+@@ -714,59 +710,14 @@ struct file_ra_state {
  };
  
  /*
-@@ -321,8 +336,8 @@ do {								\
- 	if (!try(_lock)) {					\
- 		lock_contended(&(_lock)->dep_map, _RET_IP_);	\
- 		lock(_lock);					\
--		lock_acquired(&(_lock)->dep_map);		\
- 	}							\
-+	lock_acquired(&(_lock)->dep_map);			\
- } while (0)
- 
- #else /* CONFIG_LOCK_STAT */
-diff -puN kernel/lockdep.c~lockstat-measure-lock-bouncing kernel/lockdep.c
---- a/kernel/lockdep.c~lockstat-measure-lock-bouncing
-+++ a/kernel/lockdep.c
-@@ -177,6 +177,9 @@ struct lock_class_stats lock_stats(struc
- 
- 		lock_time_add(&pcs->read_holdtime, &stats.read_holdtime);
- 		lock_time_add(&pcs->write_holdtime, &stats.write_holdtime);
-+
-+		for (i = 0; i < ARRAY_SIZE(stats.bounces); i++)
-+			stats.bounces[i] += pcs->bounces[i];
- 	}
- 
- 	return stats;
-@@ -2325,6 +2328,9 @@ void lockdep_init_map(struct lockdep_map
- 	lock->name = name;
- 	lock->key = key;
- 	lock->class_cache = NULL;
-+#ifdef CONFIG_LOCK_STAT
-+	lock->cpu = raw_smp_processor_id();
-+#endif
- 	if (subclass)
- 		register_lock_class(lock, subclass, 1);
- }
-@@ -2775,6 +2781,8 @@ found_it:
- 	stats = get_lock_stats(hlock->class);
- 	if (point < ARRAY_SIZE(stats->contention_point))
- 		stats->contention_point[i]++;
-+	if (lock->cpu != smp_processor_id())
-+		stats->bounces[bounce_contended + !!hlock->read]++;
- 	put_lock_stats(stats);
- }
- 
-@@ -2786,8 +2794,8 @@ __lock_acquired(struct lockdep_map *lock
- 	struct lock_class_stats *stats;
- 	unsigned int depth;
- 	u64 now;
--	s64 waittime;
--	int i;
-+	s64 waittime = 0;
-+	int i, cpu;
- 
- 	depth = curr->lockdep_depth;
- 	if (DEBUG_LOCKS_WARN_ON(!depth))
-@@ -2809,19 +2817,25 @@ __lock_acquired(struct lockdep_map *lock
- 	return;
- 
- found_it:
--	if (!hlock->waittime_stamp)
--		return;
+- * Measuring read-ahead sizes.
+- *
+- *                  |----------- readahead size ------------>|
+- *  ===#============|==================#=====================|
+- *     |------- invoke interval ------>|-- lookahead size -->|
+- */
+-static inline unsigned long ra_readahead_size(struct file_ra_state *ra)
+-{
+-	return ra->readahead_index - ra->ra_index;
+-}
 -
--	now = sched_clock();
--	waittime = now - hlock->waittime_stamp;
--	hlock->holdtime_stamp = now;
-+	cpu = smp_processor_id();
-+	if (hlock->waittime_stamp) {
-+		now = sched_clock();
-+		waittime = now - hlock->waittime_stamp;
-+		hlock->holdtime_stamp = now;
-+	}
- 
- 	stats = get_lock_stats(hlock->class);
--	if (hlock->read)
--		lock_time_inc(&stats->read_waittime, waittime);
--	else
--		lock_time_inc(&stats->write_waittime, waittime);
-+	if (waittime) {
-+		if (hlock->read)
-+			lock_time_inc(&stats->read_waittime, waittime);
-+		else
-+			lock_time_inc(&stats->write_waittime, waittime);
-+	}
-+	if (lock->cpu != cpu)
-+		stats->bounces[bounce_acquired + !!hlock->read]++;
- 	put_lock_stats(stats);
-+
-+	lock->cpu = cpu;
- }
- 
- void lock_contended(struct lockdep_map *lock, unsigned long ip)
-diff -puN kernel/lockdep_proc.c~lockstat-measure-lock-bouncing kernel/lockdep_proc.c
---- a/kernel/lockdep_proc.c~lockstat-measure-lock-bouncing
-+++ a/kernel/lockdep_proc.c
-@@ -430,16 +430,18 @@ static void seq_stats(struct seq_file *m
- 		else
- 			seq_printf(m, "%40s:", name);
- 
-+		seq_printf(m, "%14lu ", stats->bounces[bounce_contended_write]);
- 		seq_lock_time(m, &stats->write_waittime);
--		seq_puts(m, " ");
-+		seq_printf(m, " %14lu ", stats->bounces[bounce_acquired_write]);
- 		seq_lock_time(m, &stats->write_holdtime);
- 		seq_puts(m, "\n");
- 	}
- 
- 	if (stats->read_holdtime.nr) {
- 		seq_printf(m, "%38s-R:", name);
-+		seq_printf(m, "%14lu ", stats->bounces[bounce_contended_read]);
- 		seq_lock_time(m, &stats->read_waittime);
--		seq_puts(m, " ");
-+		seq_printf(m, " %14lu ", stats->bounces[bounce_acquired_read]);
- 		seq_lock_time(m, &stats->read_holdtime);
- 		seq_puts(m, "\n");
- 	}
-@@ -469,26 +471,29 @@ static void seq_stats(struct seq_file *m
- 	}
- 	if (i) {
- 		seq_puts(m, "\n");
--		seq_line(m, '.', 0, 40 + 1 + 8 * (14 + 1));
-+		seq_line(m, '.', 0, 40 + 1 + 10 * (14 + 1));
- 		seq_puts(m, "\n");
- 	}
- }
- 
- static void seq_header(struct seq_file *m)
+-static inline unsigned long ra_lookahead_size(struct file_ra_state *ra)
+-{
+-	return ra->readahead_index - ra->lookahead_index;
+-}
+-
+-static inline unsigned long ra_invoke_interval(struct file_ra_state *ra)
+-{
+-	return ra->lookahead_index - ra->la_index;
+-}
+-
+-/*
+  * Check if @index falls in the readahead windows.
+  */
+ static inline int ra_has_index(struct file_ra_state *ra, pgoff_t index)
  {
--	seq_printf(m, "lock_stat version 0.1\n");
--	seq_line(m, '-', 0, 40 + 1 + 8 * (14 + 1));
--	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s\n",
-+	seq_printf(m, "lock_stat version 0.2\n");
-+	seq_line(m, '-', 0, 40 + 1 + 10 * (14 + 1));
-+	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s "
-+			"%14s %14s\n",
- 			"class name",
-+			"con-bounces",
- 			"contentions",
- 			"waittime-min",
- 			"waittime-max",
- 			"waittime-total",
-+			"acq-bounces",
- 			"acquisitions",
- 			"holdtime-min",
- 			"holdtime-max",
- 			"holdtime-total");
--	seq_line(m, '-', 0, 40 + 1 + 8 * (14 + 1));
-+	seq_line(m, '-', 0, 40 + 1 + 10 * (14 + 1));
- 	seq_printf(m, "\n");
+-	return (index >= ra->la_index &&
+-		index <  ra->readahead_index);
+-}
+-
+-/*
+- * Where is the old read-ahead and look-ahead?
+- */
+-static inline void ra_set_index(struct file_ra_state *ra,
+-				pgoff_t la_index, pgoff_t ra_index)
+-{
+-	ra->la_index = la_index;
+-	ra->ra_index = ra_index;
++	return (index >= ra->start &&
++		index <  ra->start + ra->size);
  }
  
-diff -puN kernel/mutex.c~lockstat-measure-lock-bouncing kernel/mutex.c
---- a/kernel/mutex.c~lockstat-measure-lock-bouncing
-+++ a/kernel/mutex.c
-@@ -180,8 +180,8 @@ __mutex_lock_common(struct mutex *lock, 
- 		spin_lock_mutex(&lock->wait_lock, flags);
+-/*
+- * Where is the new read-ahead and look-ahead?
+- */
+-static inline void ra_set_size(struct file_ra_state *ra,
+-				unsigned long ra_size, unsigned long la_size)
+-{
+-	ra->readahead_index = ra->ra_index + ra_size;
+-	ra->lookahead_index = ra->ra_index + ra_size - la_size;
+-}
+-
+-unsigned long ra_submit(struct file_ra_state *ra,
+-		       struct address_space *mapping, struct file *filp);
+-
+ struct file {
+ 	/*
+ 	 * fu_list becomes invalid after file_free is called and queued via
+diff -puN mm/readahead.c~readahead-sanify-file_ra_state-names mm/readahead.c
+--- a/mm/readahead.c~readahead-sanify-file_ra_state-names
++++ a/mm/readahead.c
+@@ -253,21 +253,16 @@ unsigned long max_sane_readahead(unsigne
+ /*
+  * Submit IO for the read-ahead request in file_ra_state.
+  */
+-unsigned long ra_submit(struct file_ra_state *ra,
++static unsigned long ra_submit(struct file_ra_state *ra,
+ 		       struct address_space *mapping, struct file *filp)
+ {
+-	unsigned long ra_size;
+-	unsigned long la_size;
+ 	int actual;
+ 
+-	ra_size = ra_readahead_size(ra);
+-	la_size = ra_lookahead_size(ra);
+ 	actual = __do_page_cache_readahead(mapping, filp,
+-					ra->ra_index, ra_size, la_size);
++					ra->start, ra->size, ra->async_size);
+ 
+ 	return actual;
+ }
+-EXPORT_SYMBOL_GPL(ra_submit);
+ 
+ /*
+  * Set the initial window size, round to next power of 2 and square
+@@ -296,7 +291,7 @@ static unsigned long get_init_ra_size(un
+ static unsigned long get_next_ra_size(struct file_ra_state *ra,
+ 						unsigned long max)
+ {
+-	unsigned long cur = ra->readahead_index - ra->ra_index;
++	unsigned long cur = ra->size;
+ 	unsigned long newsize;
+ 
+ 	if (cur < max / 16)
+@@ -313,28 +308,21 @@ static unsigned long get_next_ra_size(st
+  * The fields in struct file_ra_state represent the most-recently-executed
+  * readahead attempt:
+  *
+- *                    |-------- last readahead window -------->|
+- *       |-- application walking here -->|
+- * ======#============|==================#=====================|
+- *       ^la_index    ^ra_index          ^lookahead_index      ^readahead_index
+- *
+- * [ra_index, readahead_index) represents the last readahead window.
+- *
+- * [la_index, lookahead_index] is where the application would be walking(in
+- * the common case of cache-cold sequential reads): the last window was
+- * established when the application was at la_index, and the next window will
+- * be bring in when the application reaches lookahead_index.
++ *                        |<----- async_size ---------|
++ *     |------------------- size -------------------->|
++ *     |==================#===========================|
++ *     ^start             ^page marked with PG_readahead
+  *
+  * To overlap application thinking time and disk I/O time, we do
+  * `readahead pipelining': Do not wait until the application consumed all
+  * readahead pages and stalled on the missing page at readahead_index;
+- * Instead, submit an asynchronous readahead I/O as early as the application
+- * reads on the page at lookahead_index. Normally lookahead_index will be
+- * equal to ra_index, for maximum pipelining.
++ * Instead, submit an asynchronous readahead I/O as soon as there are
++ * only async_size pages left in the readahead window. Normally async_size
++ * will be equal to size, for maximum pipelining.
+  *
+  * In interleaved sequential reads, concurrent streams on the same fd can
+  * be invalidating each other's readahead state. So we flag the new readahead
+- * page at lookahead_index with PG_readahead, and use it as readahead
++ * page at (start+size-async_size) with PG_readahead, and use it as readahead
+  * indicator. The flag won't be set on already cached pages, to avoid the
+  * readahead-for-nothing fuss, saving pointless page cache lookups.
+  *
+@@ -363,24 +351,21 @@ ondemand_readahead(struct address_space 
+ 		   unsigned long req_size)
+ {
+ 	unsigned long max;	/* max readahead pages */
+-	pgoff_t ra_index;	/* readahead index */
+-	unsigned long ra_size;	/* readahead size */
+-	unsigned long la_size;	/* lookahead size */
+ 	int sequential;
+ 
+ 	max = ra->ra_pages;
+ 	sequential = (offset - ra->prev_index <= 1UL) || (req_size > max);
+ 
+ 	/*
+-	 * Lookahead/readahead hit, assume sequential access.
++	 * It's the expected callback offset, assume sequential access.
+ 	 * Ramp up sizes, and push forward the readahead window.
+ 	 */
+-	if (offset && (offset == ra->lookahead_index ||
+-			offset == ra->readahead_index)) {
+-		ra_index = ra->readahead_index;
+-		ra_size = get_next_ra_size(ra, max);
+-		la_size = ra_size;
+-		goto fill_ra;
++	if (offset && (offset == (ra->start + ra->size - ra->async_size) ||
++			offset == (ra->start + ra->size))) {
++		ra->start += ra->size;
++		ra->size = get_next_ra_size(ra, max);
++		ra->async_size = ra->size;
++		goto readit;
  	}
  
--	lock_acquired(&lock->dep_map);
- done:
-+	lock_acquired(&lock->dep_map);
- 	/* got the lock - rejoice! */
- 	mutex_remove_waiter(lock, &waiter, task_thread_info(task));
- 	debug_mutex_set_owner(lock, task_thread_info(task));
+ 	/*
+@@ -399,24 +384,21 @@ ondemand_readahead(struct address_space 
+ 	 * 	- oversize random read
+ 	 * Start readahead for it.
+ 	 */
+-	ra_index = offset;
+-	ra_size = get_init_ra_size(req_size, max);
+-	la_size = ra_size > req_size ? ra_size - req_size : ra_size;
++	ra->start = offset;
++	ra->size = get_init_ra_size(req_size, max);
++	ra->async_size = ra->size > req_size ? ra->size - req_size : ra->size;
+ 
+ 	/*
+-	 * Hit on a lookahead page without valid readahead state.
++	 * Hit on a marked page without valid readahead state.
+ 	 * E.g. interleaved reads.
+ 	 * Not knowing its readahead pos/size, bet on the minimal possible one.
+ 	 */
+ 	if (hit_readahead_marker) {
+-		ra_index++;
+-		ra_size = min(4 * ra_size, max);
++		ra->start++;
++		ra->size = get_next_ra_size(ra, max);
+ 	}
+ 
+-fill_ra:
+-	ra_set_index(ra, offset, ra_index);
+-	ra_set_size(ra, ra_size, la_size);
+-
++readit:
+ 	return ra_submit(ra, mapping, filp);
+ }
+ 
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
