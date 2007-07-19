@@ -1,96 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:44 -0700
-Message-ID: <200707192009.l6JK9iS4020605@imap1.linux-foundation.org>
+Subject: - driver-edac-fix-ignored-return-i82875p.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:06:49 -0700
+Message-ID: <200707192006.l6JK6nKS020176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57115 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37326 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756462AbXGSUPR (ORCPT
+	by vger.kernel.org with ESMTP id S1759534AbXGSUPT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:17 -0400
+	Thu, 19 Jul 2007 16:15:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: make arch/i386/mm/pgtable.c:pgd_{c,d}tor() static
+     drivers/edac: fix ignored return i82875p
 has been removed from the -mm tree.  Its filename was
-     i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+     driver-edac-fix-ignored-return-i82875p.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: make arch/i386/mm/pgtable.c:pgd_{c,d}tor() static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: drivers/edac: fix ignored return i82875p
+From: Douglas Thompson <dougthompson@xmission.com>
 
-pgd_{c,d}tor() can now become static.
+Compiling this module gave a warning that the return value of
+'pci_bus_add_device()' was not checked.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+This patch adds that check and an output message
+
+Signed-off-by:	Douglas Thompson <dougthompson@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/pgtable.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/edac/i82875p_edac.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/mm/pgtable.c~i386-make-arch-i386-mm-pgtablecpgd_cdtor-static arch/i386/mm/pgtable.c
---- a/arch/i386/mm/pgtable.c~i386-make-arch-i386-mm-pgtablecpgd_cdtor-static
-+++ a/arch/i386/mm/pgtable.c
-@@ -235,7 +235,7 @@ static inline void pgd_list_del(pgd_t *p
- 
- #if (PTRS_PER_PMD == 1)
- /* Non-PAE pgd constructor */
--void pgd_ctor(void *pgd)
-+static void pgd_ctor(void *pgd)
+diff -puN drivers/edac/i82875p_edac.c~driver-edac-fix-ignored-return-i82875p drivers/edac/i82875p_edac.c
+--- a/drivers/edac/i82875p_edac.c~driver-edac-fix-ignored-return-i82875p
++++ a/drivers/edac/i82875p_edac.c
+@@ -270,6 +270,7 @@ static int i82875p_setup_overfl_dev(stru
  {
- 	unsigned long flags;
+ 	struct pci_dev *dev;
+ 	void __iomem *window;
++	int err;
  
-@@ -257,7 +257,7 @@ void pgd_ctor(void *pgd)
- }
- #else  /* PTRS_PER_PMD > 1 */
- /* PAE pgd constructor */
--void pgd_ctor(void *pgd)
-+static void pgd_ctor(void *pgd)
- {
- 	/* PAE, kernel PMD may be shared */
+ 	*ovrfl_pdev = NULL;
+ 	*ovrfl_window = NULL;
+@@ -287,7 +288,12 @@ static int i82875p_setup_overfl_dev(stru
+ 		if (dev == NULL)
+ 			return 1;
  
-@@ -276,7 +276,7 @@ void pgd_ctor(void *pgd)
- }
- #endif	/* PTRS_PER_PMD */
+-		pci_bus_add_device(dev);
++		err = pci_bus_add_device(dev);
++		if (err) {
++			i82875p_printk(KERN_ERR,
++				"%s(): pci_bus_add_device() Failed\n",
++				__func__);
++		}
+ 	}
  
--void pgd_dtor(void *pgd)
-+static void pgd_dtor(void *pgd)
- {
- 	unsigned long flags; /* can be called from interrupt context */
- 
+ 	*ovrfl_pdev = dev;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
 origin.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-git-hwmon.patch
-git-kbuild.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-git-scsi-misc.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-maps2-add-proc-kpagemap-interface.patch
-fs-reiserfs-cleanups.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
