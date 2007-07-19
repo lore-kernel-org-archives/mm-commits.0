@@ -1,277 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - audit-rework-execve-audit.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:01:47 -0700
-Message-ID: <200707192001.l6JK1lDL019570__28459.5200013884$1184876842$gmane$org@imap1.linux-foundation.org>
+Subject: - alpha-put-allocated-elf-notes-in-read-only-data-segment.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:44 -0700
+Message-ID: <200707192002.l6JK2i10019781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33821 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52798 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932149AbXGSU1J (ORCPT
+	by vger.kernel.org with ESMTP id S1761821AbXGSU1G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:27:09 -0400
+	Thu, 19 Jul 2007 16:27:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, aaw@google.com, linux-audit@redhat.com, mm-commits@vger.kernel.org
+To: roland@redhat.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     audit: rework execve audit
+     alpha: Put allocated ELF notes in read-only data segment
 has been removed from the -mm tree.  Its filename was
-     audit-rework-execve-audit.patch
+     alpha-put-allocated-elf-notes-in-read-only-data-segment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: audit: rework execve audit
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: alpha: Put allocated ELF notes in read-only data segment
+From: Roland McGrath <roland@redhat.com>
 
-The purpose of audit_bprm() is to log the argv array to a userspace daemon at
-the end of the execve system call.  Since user-space hasn't had time to run,
-this array is still in pristine state on the process' stack; so no need to
-copy it, we can just grab it from there.
+This changes the alpha linker script to use the asm-generic NOTES macro so
+that ELF note sections with SHF_ALLOC set are linked into the kernel image
+along with other read-only data.  The PT_NOTE also points to their location.
 
-In order to minimize the damage to audit_log_*() copy each string into a
-temporary kernel buffer first.
+This paves the way for putting useful build-time information into ELF notes
+that can be found easily later in a kernel memory dump.
 
-Currently the audit code requires that the full argument vector fits in a
-single packet.  So currently it does clip the argv size to a (sysctl) limit,
-but only when execve auditing is enabled.
-
-If the audit protocol gets extended to allow for multiple packets this check
-can be removed.
-
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Signed-off-by: Ollie Wild <aaw@google.com>
-Cc: <linux-audit@redhat.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    7 ++
- fs/exec.c                          |    3 
- include/linux/binfmts.h            |    1 
- kernel/auditsc.c                   |   84 ++++++++++++++++++++-------
- kernel/sysctl.c                    |   11 +++
- 5 files changed, 85 insertions(+), 21 deletions(-)
+ arch/alpha/kernel/vmlinux.lds.S |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~audit-rework-execve-audit Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~audit-rework-execve-audit
-+++ a/Documentation/filesystems/proc.txt
-@@ -1065,6 +1065,13 @@ check the amount of free space (value is
- resume it  if we have a value of 3 or more percent; consider information about
- the amount of free space valid for 30 seconds
- 
-+audit_argv_kb
-+-------------
-+
-+The file contains a single value denoting the limit on the argv array size
-+for execve (in KiB). This limit is only applied when system call auditing for
-+execve is enabled, otherwise the value is ignored.
-+
- ctrl-alt-del
- ------------
- 
-diff -puN fs/exec.c~audit-rework-execve-audit fs/exec.c
---- a/fs/exec.c~audit-rework-execve-audit
-+++ a/fs/exec.c
-@@ -1154,6 +1154,7 @@ int do_execve(char * filename,
+diff -puN arch/alpha/kernel/vmlinux.lds.S~alpha-put-allocated-elf-notes-in-read-only-data-segment arch/alpha/kernel/vmlinux.lds.S
+--- a/arch/alpha/kernel/vmlinux.lds.S~alpha-put-allocated-elf-notes-in-read-only-data-segment
++++ a/arch/alpha/kernel/vmlinux.lds.S
+@@ -3,7 +3,7 @@
+ OUTPUT_FORMAT("elf64-alpha")
+ OUTPUT_ARCH(alpha)
+ ENTRY(__start)
+-PHDRS { kernel PT_LOAD ; }
++PHDRS { kernel PT_LOAD; note PT_NOTE; }
+ jiffies = jiffies_64;
+ SECTIONS
  {
- 	struct linux_binprm *bprm;
- 	struct file *file;
-+	unsigned long env_p;
- 	int retval;
- 	int i;
+@@ -28,6 +28,9 @@ SECTIONS
+   __ex_table : { *(__ex_table) }
+   __stop___ex_table = .;
  
-@@ -1208,9 +1209,11 @@ int do_execve(char * filename,
- 	if (retval < 0)
- 		goto out;
- 
-+	env_p = bprm->p;
- 	retval = copy_strings(bprm->argc, argv, bprm);
- 	if (retval < 0)
- 		goto out;
-+	bprm->argv_len = env_p - bprm->p;
- 
- 	retval = search_binary_handler(bprm,regs);
- 	if (retval >= 0) {
-diff -puN include/linux/binfmts.h~audit-rework-execve-audit include/linux/binfmts.h
---- a/include/linux/binfmts.h~audit-rework-execve-audit
-+++ a/include/linux/binfmts.h
-@@ -40,6 +40,7 @@ struct linux_binprm{
- 	unsigned interp_flags;
- 	unsigned interp_data;
- 	unsigned long loader, exec;
-+	unsigned long argv_len;
- };
- 
- #define BINPRM_FLAGS_ENFORCE_NONDUMP_BIT 0
-diff -puN kernel/auditsc.c~audit-rework-execve-audit kernel/auditsc.c
---- a/kernel/auditsc.c~audit-rework-execve-audit
-+++ a/kernel/auditsc.c
-@@ -153,7 +153,7 @@ struct audit_aux_data_execve {
- 	struct audit_aux_data	d;
- 	int argc;
- 	int envc;
--	char mem[0];
-+	struct mm_struct *mm;
- };
- 
- struct audit_aux_data_socketcall {
-@@ -831,6 +831,55 @@ static int audit_log_pid_context(struct 
- 	return rc;
- }
- 
-+static void audit_log_execve_info(struct audit_buffer *ab,
-+		struct audit_aux_data_execve *axi)
-+{
-+	int i;
-+	long len, ret;
-+	const char __user *p = (const char __user *)axi->mm->arg_start;
-+	char *buf;
++  NOTES :kernel :note
++  .dummy : { *(.dummy) } :kernel
 +
-+	if (axi->mm != current->mm)
-+		return; /* execve failed, no additional info */
-+
-+	for (i = 0; i < axi->argc; i++, p += len) {
-+		len = strnlen_user(p, MAX_ARG_PAGES*PAGE_SIZE);
-+		/*
-+		 * We just created this mm, if we can't find the strings
-+		 * we just copied into it something is _very_ wrong. Similar
-+		 * for strings that are too long, we should not have created
-+		 * any.
-+		 */
-+		if (!len || len > MAX_ARG_STRLEN) {
-+			WARN_ON(1);
-+			send_sig(SIGKILL, current, 0);
-+		}
-+
-+		buf = kmalloc(len, GFP_KERNEL);
-+		if (!buf) {
-+			audit_panic("out of memory for argv string\n");
-+			break;
-+		}
-+
-+		ret = copy_from_user(buf, p, len);
-+		/*
-+		 * There is no reason for this copy to be short. We just
-+		 * copied them here, and the mm hasn't been exposed to user-
-+		 * space yet.
-+		 */
-+		if (!ret) {
-+			WARN_ON(1);
-+			send_sig(SIGKILL, current, 0);
-+		}
-+
-+		audit_log_format(ab, "a%d=", i);
-+		audit_log_untrustedstring(ab, buf);
-+		audit_log_format(ab, "\n");
-+
-+		kfree(buf);
-+	}
-+}
-+
- static void audit_log_exit(struct audit_context *context, struct task_struct *tsk)
- {
- 	int i, call_panic = 0;
-@@ -971,13 +1020,7 @@ static void audit_log_exit(struct audit_
+   RODATA
  
- 		case AUDIT_EXECVE: {
- 			struct audit_aux_data_execve *axi = (void *)aux;
--			int i;
--			const char *p;
--			for (i = 0, p = axi->mem; i < axi->argc; i++) {
--				audit_log_format(ab, "a%d=", i);
--				p = audit_log_untrustedstring(ab, p);
--				audit_log_format(ab, "\n");
--			}
-+			audit_log_execve_info(ab, axi);
- 			break; }
- 
- 		case AUDIT_SOCKETCALL: {
-@@ -1821,32 +1864,31 @@ int __audit_ipc_set_perm(unsigned long q
- 	return 0;
- }
- 
-+int audit_argv_kb = 32;
-+
- int audit_bprm(struct linux_binprm *bprm)
- {
- 	struct audit_aux_data_execve *ax;
- 	struct audit_context *context = current->audit_context;
--	unsigned long p, next;
--	void *to;
- 
- 	if (likely(!audit_enabled || !context || context->dummy))
- 		return 0;
- 
--	ax = kmalloc(sizeof(*ax) + PAGE_SIZE * MAX_ARG_PAGES - bprm->p,
--				GFP_KERNEL);
-+	/*
-+	 * Even though the stack code doesn't limit the arg+env size any more,
-+	 * the audit code requires that _all_ arguments be logged in a single
-+	 * netlink skb. Hence cap it :-(
-+	 */
-+	if (bprm->argv_len > (audit_argv_kb << 10))
-+		return -E2BIG;
-+
-+	ax = kmalloc(sizeof(*ax), GFP_KERNEL);
- 	if (!ax)
- 		return -ENOMEM;
- 
- 	ax->argc = bprm->argc;
- 	ax->envc = bprm->envc;
--	for (p = bprm->p, to = ax->mem; p < MAX_ARG_PAGES*PAGE_SIZE; p = next) {
--		struct page *page = bprm->page[p / PAGE_SIZE];
--		void *kaddr = kmap(page);
--		next = (p + PAGE_SIZE) & ~(PAGE_SIZE - 1);
--		memcpy(to, kaddr + (p & (PAGE_SIZE - 1)), next - p);
--		to += next - p;
--		kunmap(page);
--	}
--
-+	ax->mm = bprm->mm;
- 	ax->d.type = AUDIT_EXECVE;
- 	ax->d.next = context->aux;
- 	context->aux = (void *)ax;
-diff -puN kernel/sysctl.c~audit-rework-execve-audit kernel/sysctl.c
---- a/kernel/sysctl.c~audit-rework-execve-audit
-+++ a/kernel/sysctl.c
-@@ -78,6 +78,7 @@ extern int percpu_pagelist_fraction;
- extern int compat_log;
- extern int maps_protect;
- extern int sysctl_stat_interval;
-+extern int audit_argv_kb;
- 
- /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
- static int maxolduid = 65535;
-@@ -306,6 +307,16 @@ static ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
-+#ifdef CONFIG_AUDITSYSCALL
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "audit_argv_kb",
-+		.data		= &audit_argv_kb,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+#endif
- 	{
- 		.ctl_name	= KERN_CORE_PATTERN,
- 		.procname	= "core_pattern",
+   /* Will be freed after init */
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+xen-disable-vdso-nosegneg-on-native-boot.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
