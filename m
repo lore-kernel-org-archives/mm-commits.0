@@ -1,132 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:15 -0700
-Message-ID: <200707192009.l6JK9Fa9020561@imap1.linux-foundation.org>
+Subject: - move-page-writeback-acounting-out-of-macros.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:04:33 -0700
+Message-ID: <200707192004.l6JK4XwI019961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43409 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45504 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760951AbXGSUPc (ORCPT
+	by vger.kernel.org with ESMTP id S1760940AbXGSUPb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:32 -0400
+	Thu, 19 Jul 2007 16:15:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary: add chip_ops and a quirk function for CalIOC2
+     move page writeback acounting out of macros
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
+     move-page-writeback-acounting-out-of-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: Calgary: add chip_ops and a quirk function for CalIOC2
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: move page writeback acounting out of macros
+From: Andrew Morton <akpm@osdl.org>
 
-[akpm@linux-foundation.org>: make calioc2_chip_ops static]
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+page-writeback accounting is presently performed in the page-flags macros. 
+This is inconsistent and a bit ugly and makes it awkward to implement
+per-backing_dev under-writeback page accounting.
+
+So move this accounting down to the callsite(s).
+
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |   37 +++++++++++++++++++++++++----
- 1 files changed, 33 insertions(+), 4 deletions(-)
+ include/linux/page-flags.h |   38 +++++++----------------------------
+ mm/page-writeback.c        |    4 +++
+ 2 files changed, 12 insertions(+), 30 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2 arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -79,6 +79,9 @@ int use_calgary __read_mostly = 0;
- #define PHB_MEM_2_SIZE_LOW	0x02E0
- #define PHB_DOSHOLE_OFFSET	0x08E0
+diff -puN include/linux/page-flags.h~move-page-writeback-acounting-out-of-macros include/linux/page-flags.h
+--- a/include/linux/page-flags.h~move-page-writeback-acounting-out-of-macros
++++ a/include/linux/page-flags.h
+@@ -189,37 +189,15 @@ static inline void SetPageUptodate(struc
+ #define __SetPagePrivate(page)  __set_bit(PG_private, &(page)->flags)
+ #define __ClearPagePrivate(page) __clear_bit(PG_private, &(page)->flags)
  
-+/* CalIOC2 specific */
-+#define PHB_SAVIOR_L2           0x0DB0
-+
- /* PHB_CONFIG_RW */
- #define PHB_TCE_ENABLE		0x20000000
- #define PHB_SLOT_DISABLE	0x1C000000
-@@ -156,12 +159,18 @@ struct calgary_bus_info {
++/*
++ * Only test-and-set exist for PG_writeback.  The unconditional operators are
++ * risky: they bypass page accounting.
++ */
+ #define PageWriteback(page)	test_bit(PG_writeback, &(page)->flags)
+-#define SetPageWriteback(page)						\
+-	do {								\
+-		if (!test_and_set_bit(PG_writeback,			\
+-				&(page)->flags))			\
+-			inc_zone_page_state(page, NR_WRITEBACK);	\
+-	} while (0)
+-#define TestSetPageWriteback(page)					\
+-	({								\
+-		int ret;						\
+-		ret = test_and_set_bit(PG_writeback,			\
+-					&(page)->flags);		\
+-		if (!ret)						\
+-			inc_zone_page_state(page, NR_WRITEBACK);	\
+-		ret;							\
+-	})
+-#define ClearPageWriteback(page)					\
+-	do {								\
+-		if (test_and_clear_bit(PG_writeback,			\
+-				&(page)->flags))			\
+-			dec_zone_page_state(page, NR_WRITEBACK);	\
+-	} while (0)
+-#define TestClearPageWriteback(page)					\
+-	({								\
+-		int ret;						\
+-		ret = test_and_clear_bit(PG_writeback,			\
+-				&(page)->flags);			\
+-		if (ret)						\
+-			dec_zone_page_state(page, NR_WRITEBACK);	\
+-		ret;							\
+-	})
++#define TestSetPageWriteback(page) test_and_set_bit(PG_writeback,	\
++							&(page)->flags)
++#define TestClearPageWriteback(page) test_and_clear_bit(PG_writeback,	\
++							&(page)->flags)
  
- static void calgary_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
- static void calgary_tce_cache_blast(struct iommu_table *tbl);
-+static void calioc2_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
- 
- static struct cal_chipset_ops calgary_chip_ops = {
- 	.handle_quirks = calgary_handle_quirks,
- 	.tce_cache_blast = calgary_tce_cache_blast
- };
- 
-+static struct cal_chipset_ops calioc2_chip_ops = {
-+	.handle_quirks = calioc2_handle_quirks,
-+	.tce_cache_blast = NULL
-+};
-+
- static struct calgary_bus_info bus_info[MAX_PHB_BUS_NUM] = { { NULL, 0, 0 }, };
- 
- /* enable this to stress test the chip's TCE cache */
-@@ -743,7 +752,12 @@ static int __init calgary_setup_tar(stru
- 	tbl->it_base = (unsigned long)bus_info[dev->bus->number].tce_space;
- 	tce_free(tbl, 0, tbl->it_size);
- 
--	tbl->chip_ops = &calgary_chip_ops;
-+  	if (is_calgary(dev->device))
-+  		tbl->chip_ops = &calgary_chip_ops;
-+	else if (is_calioc2(dev->device))
-+		tbl->chip_ops = &calioc2_chip_ops;
-+  	else
-+  		BUG();
- 
- 	calgary_reserve_regions(dev);
- 
-@@ -894,8 +908,23 @@ static void __init calgary_set_split_com
- 	readq(target); /* flush */
+ #define PageBuddy(page)		test_bit(PG_buddy, &(page)->flags)
+ #define __SetPageBuddy(page)	__set_bit(PG_buddy, &(page)->flags)
+diff -puN mm/page-writeback.c~move-page-writeback-acounting-out-of-macros mm/page-writeback.c
+--- a/mm/page-writeback.c~move-page-writeback-acounting-out-of-macros
++++ a/mm/page-writeback.c
+@@ -987,6 +987,8 @@ int test_clear_page_writeback(struct pag
+ 	} else {
+ 		ret = TestClearPageWriteback(page);
+ 	}
++	if (ret)
++		dec_zone_page_state(page, NR_WRITEBACK);
+ 	return ret;
  }
  
--static void __init calgary_handle_quirks(struct iommu_table *tbl,
--	struct pci_dev *dev)
-+static void calioc2_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev)
-+{
-+	unsigned char busnum = dev->bus->number;
-+	void __iomem *bbar = tbl->bbar;
-+	void __iomem *target;
-+	u32 val;
-+
-+ 	/*
-+ 	 * CalIOC2 designers recommend setting bit 8 in 0xnDB0 to 1
-+ 	 */
-+ 	target = calgary_reg(bbar, phb_offset(busnum) | PHB_SAVIOR_L2);
-+ 	val = cpu_to_be32(readl(target));
-+ 	val |= 0x00800000;
-+ 	writel(cpu_to_be32(val), target);
-+}
-+
-+static void calgary_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev)
- {
- 	unsigned char busnum = dev->bus->number;
+@@ -1012,6 +1014,8 @@ int test_set_page_writeback(struct page 
+ 	} else {
+ 		ret = TestSetPageWriteback(page);
+ 	}
++	if (!ret)
++		inc_zone_page_state(page, NR_WRITEBACK);
+ 	return ret;
  
-@@ -903,7 +932,7 @@ static void __init calgary_handle_quirks
- 	 * Give split completion a longer timeout on bus 1 for aic94xx
- 	 * http://bugzilla.kernel.org/show_bug.cgi?id=7180
- 	 */
--	if (busnum == 1)
-+	if (is_calgary(dev->device) && (busnum == 1))
- 		calgary_set_split_completion_timeout(tbl->bbar, busnum,
- 						     CCR_2SEC_TIMEOUT);
  }
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-ipwireless_cs.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+sync_sb_inodes-propagate-errors.patch
+ext2-reservations.patch
+mm-implement-swap-prefetching.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+acpi_format_exception-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
