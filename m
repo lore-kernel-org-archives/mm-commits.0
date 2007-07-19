@@ -1,199 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: - pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:00:23 -0700
-Message-ID: <200707192000.l6JK0NXj019444@imap1.linux-foundation.org>
+Subject: - x86_84-move-iommu-declaration-from-proto-to-iommuh.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:10:12 -0700
+Message-ID: <200707192010.l6JKACO2020650@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51516 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47320 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754641AbXGSUbu (ORCPT
+	by vger.kernel.org with ESMTP id S1757178AbXGSUcS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:31:50 -0400
+	Thu, 19 Jul 2007 16:32:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, nigel@nigel.suspend2.net, oleg@tv-sign.ru, pavel@ucw.cz, u.luckas@road.de, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk, ebiederm@xmission.com, muli@il.ibm.com, vgoyal@in.ibm.com, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: prevent frozen user mode helpers from failing the freezing of tasks
+     x86_84: move iommu declaration from proto to iommu.h
 has been removed from the -mm tree.  Its filename was
-     pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+     x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PM: prevent frozen user mode helpers from failing the freezing of tasks
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: x86_84: move iommu declaration from proto to iommu.h
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-At present, if a user mode helper is running while
-usermodehelper_pm_callback() is executed, the helper may be frozen and the
-completion in call_usermodehelper_exec() won't be completed until user
-space processes are thawed.  As a result, the freezing of kernel threads
-may fail, which is not desirable.
-
-Prevent this from happening by introducing a counter of running user mode
-helpers and allowing usermodehelper_pm_callback() to succeed for action =
-PM_HIBERNATION_PREPARE or action = PM_SUSPEND_PREPARE only if there are no
-helpers running.  [Namely, usermodehelper_pm_callback() waits for at most
-RUNNING_HELPERS_TIMEOUT for the number of running helpers to become zero
-and fails if that doesn't happen.]
-
-Special thanks to Uli Luckas <u.luckas@road.de>, Pavel Machek
-<pavel@ucw.cz> and Oleg Nesterov <oleg@tv-sign.ru> for reviewing the
-previous versions of this patch and for very useful comments.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Uli Luckas <u.luckas@road.de>
-Acked-by: Nigel Cunningham <nigel@nigel.suspend2.net>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   78 +++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 68 insertions(+), 10 deletions(-)
+ arch/x86_64/kernel/aperture.c     |    2 -
+ arch/x86_64/kernel/early-quirks.c |    1 
+ arch/x86_64/kernel/pci-calgary.c  |    2 -
+ arch/x86_64/kernel/pci-dma.c      |    2 -
+ arch/x86_64/kernel/pci-gart.c     |    1 
+ arch/x86_64/kernel/pci-nommu.c    |    2 -
+ arch/x86_64/kernel/pci-swiotlb.c  |    2 -
+ arch/x86_64/kernel/reboot.c       |    2 -
+ include/asm-x86_64/iommu.h        |   29 ++++++++++++++++++++++++++++
+ include/asm-x86_64/proto.h        |   25 ------------------------
+ 10 files changed, 37 insertions(+), 31 deletions(-)
 
-diff -puN kernel/kmod.c~pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2 kernel/kmod.c
---- a/kernel/kmod.c~pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2
-+++ a/kernel/kmod.c
-@@ -41,14 +41,6 @@ extern int max_threads;
+diff -puN arch/x86_64/kernel/aperture.c~x86_84-move-iommu-declaration-from-proto-to-iommuh arch/x86_64/kernel/aperture.c
+--- a/arch/x86_64/kernel/aperture.c~x86_84-move-iommu-declaration-from-proto-to-iommuh
++++ a/arch/x86_64/kernel/aperture.c
+@@ -20,7 +20,7 @@
+ #include <linux/ioport.h>
+ #include <asm/e820.h>
+ #include <asm/io.h>
+-#include <asm/proto.h>
++#include <asm/iommu.h>
+ #include <asm/pci-direct.h>
+ #include <asm/dma.h>
+ #include <asm/k8.h>
+diff -puN arch/x86_64/kernel/early-quirks.c~x86_84-move-iommu-declaration-from-proto-to-iommuh arch/x86_64/kernel/early-quirks.c
+--- a/arch/x86_64/kernel/early-quirks.c~x86_84-move-iommu-declaration-from-proto-to-iommuh
++++ a/arch/x86_64/kernel/early-quirks.c
+@@ -14,6 +14,7 @@
+ #include <linux/pci_ids.h>
+ #include <asm/pci-direct.h>
+ #include <asm/proto.h>
++#include <asm/iommu.h>
+ #include <asm/dma.h>
  
- static struct workqueue_struct *khelper_wq;
+ static void __init via_bugs(void)
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86_84-move-iommu-declaration-from-proto-to-iommuh arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86_84-move-iommu-declaration-from-proto-to-iommuh
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -35,7 +35,7 @@
+ #include <linux/pci_ids.h>
+ #include <linux/pci.h>
+ #include <linux/delay.h>
+-#include <asm/proto.h>
++#include <asm/iommu.h>
+ #include <asm/calgary.h>
+ #include <asm/tce.h>
+ #include <asm/pci-direct.h>
+diff -puN arch/x86_64/kernel/pci-dma.c~x86_84-move-iommu-declaration-from-proto-to-iommuh arch/x86_64/kernel/pci-dma.c
+--- a/arch/x86_64/kernel/pci-dma.c~x86_84-move-iommu-declaration-from-proto-to-iommuh
++++ a/arch/x86_64/kernel/pci-dma.c
+@@ -8,7 +8,7 @@
+ #include <linux/pci.h>
+ #include <linux/module.h>
+ #include <asm/io.h>
+-#include <asm/proto.h>
++#include <asm/iommu.h>
+ #include <asm/calgary.h>
  
--/*
-- * If set, both call_usermodehelper_keys() and call_usermodehelper_pipe() exit
-- * immediately returning -EBUSY.  Used for preventing user land processes from
-- * being created after the user land has been frozen during a system-wide
-- * hibernation or suspend operation.
-- */
--static int usermodehelper_disabled;
--
- #ifdef CONFIG_KMOD
+ int iommu_merge __read_mostly = 0;
+diff -puN arch/x86_64/kernel/pci-gart.c~x86_84-move-iommu-declaration-from-proto-to-iommuh arch/x86_64/kernel/pci-gart.c
+--- a/arch/x86_64/kernel/pci-gart.c~x86_84-move-iommu-declaration-from-proto-to-iommuh
++++ a/arch/x86_64/kernel/pci-gart.c
+@@ -28,6 +28,7 @@
+ #include <asm/mtrr.h>
+ #include <asm/pgtable.h>
+ #include <asm/proto.h>
++#include <asm/iommu.h>
+ #include <asm/cacheflush.h>
+ #include <asm/swiotlb.h>
+ #include <asm/dma.h>
+diff -puN arch/x86_64/kernel/pci-nommu.c~x86_84-move-iommu-declaration-from-proto-to-iommuh arch/x86_64/kernel/pci-nommu.c
+--- a/arch/x86_64/kernel/pci-nommu.c~x86_84-move-iommu-declaration-from-proto-to-iommuh
++++ a/arch/x86_64/kernel/pci-nommu.c
+@@ -6,7 +6,7 @@
+ #include <linux/string.h>
+ #include <linux/dma-mapping.h>
+ 
+-#include <asm/proto.h>
++#include <asm/iommu.h>
+ #include <asm/processor.h>
+ #include <asm/dma.h>
+ 
+diff -puN arch/x86_64/kernel/pci-swiotlb.c~x86_84-move-iommu-declaration-from-proto-to-iommuh arch/x86_64/kernel/pci-swiotlb.c
+--- a/arch/x86_64/kernel/pci-swiotlb.c~x86_84-move-iommu-declaration-from-proto-to-iommuh
++++ a/arch/x86_64/kernel/pci-swiotlb.c
+@@ -5,7 +5,7 @@
+ #include <linux/module.h>
+ #include <linux/dma-mapping.h>
+ 
+-#include <asm/proto.h>
++#include <asm/iommu.h>
+ #include <asm/swiotlb.h>
+ #include <asm/dma.h>
+ 
+diff -puN arch/x86_64/kernel/reboot.c~x86_84-move-iommu-declaration-from-proto-to-iommuh arch/x86_64/kernel/reboot.c
+--- a/arch/x86_64/kernel/reboot.c~x86_84-move-iommu-declaration-from-proto-to-iommuh
++++ a/arch/x86_64/kernel/reboot.c
+@@ -16,7 +16,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/tlbflush.h>
+ #include <asm/apic.h>
+-#include <asm/proto.h>
++#include <asm/iommu.h>
  
  /*
-@@ -275,15 +267,55 @@ static void __call_usermodehelper(struct
- 	}
- }
- 
-+#ifdef CONFIG_PM
-+/*
-+ * If set, call_usermodehelper_exec() will exit immediately returning -EBUSY
-+ * (used for preventing user land processes from being created after the user
-+ * land has been frozen during a system-wide hibernation or suspend operation).
-+ */
-+static int usermodehelper_disabled;
+  * Power off function, if any
+diff -puN /dev/null include/asm-x86_64/iommu.h
+--- /dev/null
++++ a/include/asm-x86_64/iommu.h
+@@ -0,0 +1,29 @@
++#ifndef _ASM_X8664_IOMMU_H
++#define _ASM_X8664_IOMMU_H 1
 +
-+/* Number of helpers running */
-+static atomic_t running_helpers = ATOMIC_INIT(0);
++extern void pci_iommu_shutdown(void);
++extern void no_iommu_init(void);
++extern int force_iommu, no_iommu;
++extern int iommu_detected;
++#ifdef CONFIG_IOMMU
++extern void gart_iommu_init(void);
++extern void gart_iommu_shutdown(void);
++extern void __init gart_parse_options(char *);
++extern void iommu_hole_init(void);
++extern int fallback_aper_order;
++extern int fallback_aper_force;
++extern int iommu_aperture;
++extern int iommu_aperture_allowed;
++extern int iommu_aperture_disabled;
++extern int fix_aperture;
++#else
++#define iommu_aperture 0
++#define iommu_aperture_allowed 0
 +
-+/*
-+ * Wait queue head used by usermodehelper_pm_callback() to wait for all running
-+ * helpers to finish.
-+ */
-+static DECLARE_WAIT_QUEUE_HEAD(running_helpers_waitq);
-+
-+/*
-+ * Time to wait for running_helpers to become zero before the setting of
-+ * usermodehelper_disabled in usermodehelper_pm_callback() fails
-+ */
-+#define RUNNING_HELPERS_TIMEOUT	(5 * HZ)
-+
- static int usermodehelper_pm_callback(struct notifier_block *nfb,
- 					unsigned long action,
- 					void *ignored)
- {
-+	long retval;
-+
- 	switch (action) {
- 	case PM_HIBERNATION_PREPARE:
- 	case PM_SUSPEND_PREPARE:
- 		usermodehelper_disabled = 1;
--		return NOTIFY_OK;
-+		smp_mb();
-+		/*
-+		 * From now on call_usermodehelper_exec() won't start any new
-+		 * helpers, so it is sufficient if running_helpers turns out to
-+		 * be zero at one point (it may be increased later, but that
-+		 * doesn't matter).
-+		 */
-+		retval = wait_event_timeout(running_helpers_waitq,
-+					atomic_read(&running_helpers) == 0,
-+					RUNNING_HELPERS_TIMEOUT);
-+		if (retval) {
-+			return NOTIFY_OK;
-+		} else {
-+			usermodehelper_disabled = 0;
-+			return NOTIFY_BAD;
-+		}
- 	case PM_POST_HIBERNATION:
- 	case PM_POST_SUSPEND:
- 		usermodehelper_disabled = 0;
-@@ -293,6 +325,30 @@ static int usermodehelper_pm_callback(st
- 	return NOTIFY_DONE;
- }
- 
-+static void helper_lock(void)
++static inline void gart_iommu_shutdown(void)
 +{
-+	atomic_inc(&running_helpers);
-+	smp_mb__after_atomic_inc();
 +}
 +
-+static void helper_unlock(void)
-+{
-+	if (atomic_dec_and_test(&running_helpers))
-+		wake_up(&running_helpers_waitq);
-+}
++#endif
 +
-+static void register_pm_notifier_callback(void)
-+{
-+	pm_notifier(usermodehelper_pm_callback, 0);
-+}
-+#else /* CONFIG_PM */
-+#define usermodehelper_disabled	0
-+
-+static inline void helper_lock(void) {}
-+static inline void helper_unlock(void) {}
-+static inline void register_pm_notifier_callback(void) {}
-+#endif /* CONFIG_PM */
-+
- /**
-  * call_usermodehelper_setup - prepare to call a usermode helper
-  * @path - path to usermode executable
-@@ -397,6 +453,7 @@ int call_usermodehelper_exec(struct subp
- 	DECLARE_COMPLETION_ONSTACK(done);
- 	int retval;
++#endif
+diff -puN include/asm-x86_64/proto.h~x86_84-move-iommu-declaration-from-proto-to-iommuh include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~x86_84-move-iommu-declaration-from-proto-to-iommuh
++++ a/include/asm-x86_64/proto.h
+@@ -85,31 +85,6 @@ extern int exception_trace;
+ extern unsigned cpu_khz;
+ extern unsigned tsc_khz;
  
-+	helper_lock();
- 	if (sub_info->path[0] == '\0') {
- 		retval = 0;
- 		goto out;
-@@ -418,6 +475,7 @@ int call_usermodehelper_exec(struct subp
+-extern void pci_iommu_shutdown(void);
+-extern void no_iommu_init(void);
+-extern int force_iommu, no_iommu;
+-extern int iommu_detected;
+-#ifdef CONFIG_IOMMU
+-extern void gart_iommu_init(void);
+-extern void gart_iommu_shutdown(void);
+-extern void __init gart_parse_options(char *);
+-extern void iommu_hole_init(void);
+-extern int fallback_aper_order;
+-extern int fallback_aper_force;
+-extern int iommu_aperture;
+-extern int iommu_aperture_allowed;
+-extern int iommu_aperture_disabled;
+-extern int fix_aperture;
+-#else
+-#define iommu_aperture 0
+-#define iommu_aperture_allowed 0
+-
+-static inline void gart_iommu_shutdown(void)
+-{
+-}
+-
+-#endif
+-
+ extern int reboot_force;
+ extern int notsc_setup(char *);
  
-   out:
- 	call_usermodehelper_freeinfo(sub_info);
-+	helper_unlock();
- 	return retval;
- }
- EXPORT_SYMBOL(call_usermodehelper_exec);
-@@ -459,5 +517,5 @@ void __init usermodehelper_init(void)
- {
- 	khelper_wq = create_singlethread_workqueue("khelper");
- 	BUG_ON(!khelper_wq);
--	pm_notifier(usermodehelper_pm_callback, 0);
-+	register_pm_notifier_callback();
- }
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
 origin.patch
-acpi-implement-the-set_target-callback-from-pm_ops.patch
-acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-shrink_slab-handle-bad-shrinkers.patch
