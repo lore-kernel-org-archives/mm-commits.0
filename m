@@ -1,86 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - sysfs-avoid-kmem_cache_freenull.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:07:48 -0700
-Message-ID: <200707192007.l6JK7mtp020372@imap1.linux-foundation.org>
+Subject: - lguest-the-asm-offsets.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:04:58 -0700
+Message-ID: <200707192004.l6JK4wQK019993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53543 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37777 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759813AbXGSUPX (ORCPT
+	by vger.kernel.org with ESMTP id S1760704AbXGSUPZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:23 -0400
+	Thu, 19 Jul 2007 16:15:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, gregkh@suse.de, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs: avoid kmem_cache_free(NULL)
+     lguest: the asm offsets
 has been removed from the -mm tree.  Its filename was
-     sysfs-avoid-kmem_cache_freenull.patch
+     lguest-the-asm-offsets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysfs: avoid kmem_cache_free(NULL)
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: lguest: the asm offsets
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-kmem_cache_free() with NULL is not allowed.  But it may happen if out of
-memory error is triggered in sysfs_new_dirent().  This patch fixes that
-error handling.
+This is the structure offsets required by lg.ko's switcher.S.
 
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Unfortunately we don't have infrastructure for private asm-offsets
+creation.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/dir.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ arch/i386/kernel/asm-offsets.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff -puN fs/sysfs/dir.c~sysfs-avoid-kmem_cache_freenull fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~sysfs-avoid-kmem_cache_freenull
-+++ a/fs/sysfs/dir.c
-@@ -361,20 +361,20 @@ static struct dentry_operations sysfs_de
- struct sysfs_dirent *sysfs_new_dirent(const char *name, umode_t mode, int type)
- {
- 	char *dup_name = NULL;
--	struct sysfs_dirent *sd = NULL;
-+	struct sysfs_dirent *sd;
+diff -puN arch/i386/kernel/asm-offsets.c~lguest-the-asm-offsets arch/i386/kernel/asm-offsets.c
+--- a/arch/i386/kernel/asm-offsets.c~lguest-the-asm-offsets
++++ a/arch/i386/kernel/asm-offsets.c
+@@ -19,6 +19,11 @@
  
- 	if (type & SYSFS_COPY_NAME) {
- 		name = dup_name = kstrdup(name, GFP_KERNEL);
- 		if (!name)
--			goto err_out;
-+			return NULL;
- 	}
+ #include <xen/interface/xen.h>
  
- 	sd = kmem_cache_zalloc(sysfs_dir_cachep, GFP_KERNEL);
- 	if (!sd)
--		goto err_out;
-+		goto err_out1;
++#ifdef CONFIG_LGUEST_GUEST
++#include <linux/lguest.h>
++#include "../../../drivers/lguest/lg.h"
++#endif
++
+ #define DEFINE(sym, val) \
+         asm volatile("\n->" #sym " %0 " #val : : "i" (val))
  
- 	if (sysfs_alloc_ino(&sd->s_ino))
--		goto err_out;
-+		goto err_out2;
- 
- 	atomic_set(&sd->s_count, 1);
- 	atomic_set(&sd->s_active, 0);
-@@ -386,9 +386,10 @@ struct sysfs_dirent *sysfs_new_dirent(co
- 
- 	return sd;
- 
-- err_out:
--	kfree(dup_name);
-+ err_out2:
- 	kmem_cache_free(sysfs_dir_cachep, sd);
-+ err_out1:
-+	kfree(dup_name);
- 	return NULL;
+@@ -124,4 +129,19 @@ void foo(void)
+ 	OFFSET(XEN_vcpu_info_mask, vcpu_info, evtchn_upcall_mask);
+ 	OFFSET(XEN_vcpu_info_pending, vcpu_info, evtchn_upcall_pending);
+ #endif
++
++#ifdef CONFIG_LGUEST_GUEST
++	BLANK();
++	OFFSET(LGUEST_DATA_irq_enabled, lguest_data, irq_enabled);
++	OFFSET(LGUEST_PAGES_host_gdt_desc, lguest_pages, state.host_gdt_desc);
++	OFFSET(LGUEST_PAGES_host_idt_desc, lguest_pages, state.host_idt_desc);
++	OFFSET(LGUEST_PAGES_host_cr3, lguest_pages, state.host_cr3);
++	OFFSET(LGUEST_PAGES_host_sp, lguest_pages, state.host_sp);
++	OFFSET(LGUEST_PAGES_guest_gdt_desc, lguest_pages,state.guest_gdt_desc);
++	OFFSET(LGUEST_PAGES_guest_idt_desc, lguest_pages,state.guest_idt_desc);
++	OFFSET(LGUEST_PAGES_guest_gdt, lguest_pages, state.guest_gdt);
++	OFFSET(LGUEST_PAGES_regs_trapnum, lguest_pages, regs.trapnum);
++	OFFSET(LGUEST_PAGES_regs_errcode, lguest_pages, regs.errcode);
++	OFFSET(LGUEST_PAGES_regs, lguest_pages, regs);
++#endif
  }
- 
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
+git-kbuild.patch
+git-kvm.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
