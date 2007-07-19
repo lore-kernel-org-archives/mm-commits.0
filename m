@@ -1,63 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysctlc-finish-off-the-warning-comments.patch added to -mm tree
-Date: Wed, 18 Jul 2007 23:10:45 -0700
-Message-ID: <200707190610.l6J6AjDm017103@imap1.linux-foundation.org>
+Subject: - lguest-fix.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 23:22:52 -0700
+Message-ID: <200707190627.l6J6RJch017733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50093 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44429 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752581AbXGSGKw (ORCPT
+	by vger.kernel.org with ESMTP id S1754657AbXGSG13 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 02:10:52 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6J6AodE031784
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 18 Jul 2007 23:10:51 -0700
+	Thu, 19 Jul 2007 02:27:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/sysctl.c: finish off the warning comments
-has been added to the -mm tree.  Its filename is
-     kernel-sysctlc-finish-off-the-warning-comments.patch
+     lguest fix
+has been removed from the -mm tree.  Its filename was
+     lguest-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into lguest-the-host-code.patch
 
 ------------------------------------------------------
-Subject: kernel/sysctl.c: finish off the warning comments
+Subject: lguest fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I've been chasing these comments around this file all week.  Hopefully we're
-straight now.
+sched_clock isn't there yet.
 
-
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/lguest/lguest.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~kernel-sysctlc-finish-off-the-warning-comments kernel/sysctl.c
---- a/kernel/sysctl.c~kernel-sysctlc-finish-off-the-warning-comments
-+++ a/kernel/sysctl.c
-@@ -748,7 +748,10 @@ static ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dostring,
- 		.strategy	= &sysctl_string,
- 	},
--
-+/*
-+ * NOTE: do not add new entries to this table unless you have read
-+ * Documentation/sysctl/ctl_unnumbered.txt
-+ */
- 	{ .ctl_name = 0 }
- };
+diff -puN drivers/lguest/lguest.c~lguest-fix drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-fix
++++ a/drivers/lguest/lguest.c
+@@ -39,7 +39,7 @@
+ #include <asm/e820.h>
+ #include <asm/mce.h>
+ #include <asm/io.h>
+-#include <asm/sched-clock.h>
++//#include <asm/sched-clock.h>
  
+ /* Declarations for definitions in lguest_guest.S */
+ extern char lguest_noirq_start[], lguest_noirq_end[];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +65,7 @@ lockstat-measure-lock-bouncing.patch
 some-kmalloc-memset-kzalloc-tree-wide.patch
 dequeue_huge_page-warning-fix.patch
 lguest-the-host-code.patch
+lguest-fix.patch
 lguest-the-net-driver.patch
 drivers-edac-new-i82443bxgz-mc-driver-broken.patch
 drivers-edac-fix-e752x-reversed-csrows-fix.patch
