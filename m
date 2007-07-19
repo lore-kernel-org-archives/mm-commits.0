@@ -1,353 +1,406 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-fix-leaf-sysfs-attribute.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:07:14 -0700
-Message-ID: <200707192007.l6JK7E3h020247@imap1.linux-foundation.org>
+Subject: - x86-64-calgary-introduce-calioc2-support.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:09:13 -0700
+Message-ID: <200707192009.l6JK9D8t020558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46214 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53371 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761283AbXGSUP5 (ORCPT
+	by vger.kernel.org with ESMTP id S1761149AbXGSUPo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:57 -0400
+	Thu, 19 Jul 2007 16:15:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dougthompson@xmission.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: fix leaf sysfs attribute
+     x86-64: Calgary: introduce CalIOC2 support
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-fix-leaf-sysfs-attribute.patch
+     x86-64-calgary-introduce-calioc2-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: fix leaf sysfs attribute
-From: Douglas Thompson <dougthompson@xmission.com>
+Subject: x86-64: Calgary: introduce CalIOC2 support
+From: Muli Ben-Yehuda <muli@il.ibm.com>
 
-This patch fixes and enhances the driver level set of sysfs attributes that
-can be added to the 'block' level of an edac_device type of driver.
+CalIOC2 is a PCI-e implementation of the Calgary logic. Most of the
+programming details are the same, but some differ, e.g., TCE cache
+flush. This patch introduces CalIOC2 support - detection and various
+support routines. It's not expected to work yet (but will with
+follow-on patches).
 
-There is a controller information structure, which contains one or more
-instances of device.  Each instance will have one or more blocks of device
-specific counters.  This patch fixes the ability to have more detailed
-attributes/controls for each of the 'blocks', providing for the addition of
-controls/attributes from the low level driver to user space via sysfs.
-
-Cc: Alan Cox alan@lxorguk.ukuu.org.uk
-Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_core.h         |   67 +++++++++-----------
- drivers/edac/edac_device.c       |   94 +++++++++++++++++++----------
- drivers/edac/edac_device_sysfs.c |   22 ++++++
- 3 files changed, 115 insertions(+), 68 deletions(-)
+ arch/x86_64/kernel/pci-calgary.c |  196 +++++++++++++++++++++++------
+ 1 files changed, 156 insertions(+), 40 deletions(-)
 
-diff -puN drivers/edac/edac_core.h~drivers-edac-fix-leaf-sysfs-attribute drivers/edac/edac_core.h
---- a/drivers/edac/edac_core.h~drivers-edac-fix-leaf-sysfs-attribute
-+++ a/drivers/edac/edac_core.h
-@@ -468,32 +468,34 @@ struct edac_device_counter {
- 	u32 ce_count;
- };
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-introduce-calioc2-support arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-introduce-calioc2-support
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -50,8 +50,7 @@ int use_calgary __read_mostly = 0;
+ #endif /* CONFIG_CALGARY_DEFAULT_ENABLED */
  
--/*
-- * An array of these is passed to the alloc() function
-- * to specify attributes of the edac_block
-- */
--struct edac_attrib_spec {
--	char name[EDAC_DEVICE_NAME_LEN + 1];
-+/* forward reference */
-+struct edac_device_ctl_info;
-+struct edac_device_block;
+ #define PCI_DEVICE_ID_IBM_CALGARY 0x02a1
+-#define PCI_VENDOR_DEVICE_ID_CALGARY \
+-	(PCI_VENDOR_ID_IBM | PCI_DEVICE_ID_IBM_CALGARY << 16)
++#define PCI_DEVICE_ID_IBM_CALIOC2 0x0308
  
--	int type;
--#define	EDAC_ATTR_INT		0x01
--#define EDAC_ATTR_CHAR		0x02
-+/* edac_dev_sysfs_attribute structure
-+ *	used for driver sysfs attributes in mem_ctl_info
-+ *	for extra controls and attributes:
-+ *		like high level error Injection controls
-+ */
-+struct edac_dev_sysfs_attribute {
-+	struct attribute attr;
-+	ssize_t (*show)(struct edac_device_ctl_info *, char *);
-+	ssize_t (*store)(struct edac_device_ctl_info *, const char *, size_t);
- };
- 
--/* Attribute control structure
-- * In this structure is a pointer to the driver's edac_attrib_spec
-- * The life of this pointer is inclusive in the life of the driver's
-- * life cycle.
-+/* edac_dev_sysfs_block_attribute structure
-+ *	used in leaf 'block' nodes for adding controls/attributes
-  */
--struct edac_attrib {
--	struct edac_device_block *block;	/* Up Pointer */
--
--	struct edac_attrib_spec *spec;	/* ptr to module spec entry */
--
--	union {			/* actual value */
--		int edac_attrib_int_value;
--		char edac_attrib_char_value[EDAC_ATTRIB_VALUE_LEN + 1];
--	} edac_attrib_value;
-+struct edac_dev_sysfs_block_attribute {
-+	struct attribute attr;
-+	ssize_t (*show)(struct kobject *, struct attribute *, char *);
-+	ssize_t (*store)(struct kobject *, struct attribute *,
-+			const char *, size_t);
-+	struct edac_device_block *block;
-+
-+	/* low driver use */
-+	void *arg;
-+	unsigned int value;
- };
- 
- /* device block control structure */
-@@ -504,7 +506,9 @@ struct edac_device_block {
- 	struct edac_device_counter counters;	/* basic UE and CE counters */
- 
- 	int nr_attribs;		/* how many attributes */
--	struct edac_attrib *attribs;	/* this block's attributes */
-+
-+	/* this block's attributes, could be NULL */
-+	struct edac_dev_sysfs_block_attribute *block_attributes;
- 
- 	/* edac sysfs device control */
- 	struct kobject kobj;
-@@ -526,15 +530,6 @@ struct edac_device_instance {
- 	struct completion kobj_complete;
- };
- 
--/* edac_dev_sysfs_attribute structure
-- *     used for driver sysfs attributes and in mem_ctl_info
-- *     sysfs top level entries
-- */
--struct edac_dev_sysfs_attribute {
--	struct attribute attr;
--	ssize_t (*show)(struct edac_device_ctl_info *,char *);
--	ssize_t (*store)(struct edac_device_ctl_info *, const char *,size_t);
--};
- 
- /*
-  * Abstract edac_device control info structure
-@@ -635,12 +630,10 @@ struct edac_device_ctl_info {
-  */
- extern struct edac_device_ctl_info *edac_device_alloc_ctl_info(
- 		unsigned sizeof_private,
--		char *edac_device_name,
--		unsigned nr_instances,
--		char *edac_block_name,
--		unsigned nr_blocks,
-+		char *edac_device_name, unsigned nr_instances,
-+		char *edac_block_name, unsigned nr_blocks,
- 		unsigned offset_value,
--		struct edac_attrib_spec *attrib_spec,
-+		struct edac_dev_sysfs_block_attribute *block_attributes,
- 		unsigned nr_attribs);
- 
- /* The offset value can be:
-diff -puN drivers/edac/edac_device.c~drivers-edac-fix-leaf-sysfs-attribute drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~drivers-edac-fix-leaf-sysfs-attribute
-+++ a/drivers/edac/edac_device.c
-@@ -67,12 +67,12 @@ struct edac_device_ctl_info *edac_device
- 	char *edac_device_name, unsigned nr_instances,
- 	char *edac_block_name, unsigned nr_blocks,
- 	unsigned offset_value,		/* zero, 1, or other based offset */
--	struct edac_attrib_spec *attrib_spec, unsigned nr_attribs)
-+	struct edac_dev_sysfs_block_attribute *attrib_spec, unsigned nr_attrib)
+ /* we need these for register space address calculation */
+ #define START_ADDRESS           0xfe000000
+@@ -193,6 +192,7 @@ static inline unsigned long verify_bit_r
  {
- 	struct edac_device_ctl_info *dev_ctl;
- 	struct edac_device_instance *dev_inst, *inst;
- 	struct edac_device_block *dev_blk, *blk_p, *blk;
--	struct edac_attrib *dev_attrib, *attrib_p, *attrib;
-+	struct edac_dev_sysfs_block_attribute *dev_attrib, *attrib_p, *attrib;
- 	unsigned total_size;
- 	unsigned count;
- 	unsigned instance, block, attr;
-@@ -81,29 +81,47 @@ struct edac_device_ctl_info *edac_device
- 	debugf1("%s() instances=%d blocks=%d\n",
- 		__func__, nr_instances, nr_blocks);
+ 	return ~0UL;
+ }
++
+ #endif /* CONFIG_IOMMU_DEBUG */
  
--	/* Figure out the offsets of the various items from the start of an
--	 * ctl_info structure.  We want the alignment of each item
-+	/* Calculate the size of memory we need to allocate AND
-+	 * determine the offsets of the various item arrays
-+	 * (instance,block,attrib) from the start of an  allocated structure.
-+	 * We want the alignment of each item  (instance,block,attrib)
- 	 * to be at least as stringent as what the compiler would
- 	 * provide if we could simply hardcode everything into a single struct.
- 	 */
- 	dev_ctl = (struct edac_device_ctl_info *)NULL;
+ static inline unsigned int num_dma_pages(unsigned long dma, unsigned int dmalen)
+@@ -346,9 +346,20 @@ static void iommu_free(struct iommu_tabl
  
--	/* Calc the 'end' offset past the ctl_info structure */
-+	/* Calc the 'end' offset past end of ONE ctl_info structure
-+	 * which will become the start of the 'instance' array
-+	 */
- 	dev_inst = edac_align_ptr(&dev_ctl[1], sizeof(*dev_inst));
+ static inline struct iommu_table *find_iommu_table(struct device *dev)
+ {
++	struct pci_dev *pdev;
++	struct pci_bus *pbus;
+ 	struct iommu_table *tbl;
  
--	/* Calc the 'end' offset past the instance array */
-+	/* Calc the 'end' offset past the instance array within the ctl_info
-+	 * which will become the start of the block array
-+	 */
- 	dev_blk = edac_align_ptr(&dev_inst[nr_instances], sizeof(*dev_blk));
+-	tbl = to_pci_dev(dev)->bus->self->sysdata;
++	pdev = to_pci_dev(dev);
++
++	/* is the device behind a bridge? */
++	if (unlikely(pdev->bus->parent))
++		pbus = pdev->bus->parent;
++	else
++		pbus = pdev->bus;
++
++	tbl = pbus->self->sysdata;
++	BUG_ON(pdev->bus->parent && (tbl->it_busno != pdev->bus->parent->number));
  
--	/* Calc the 'end' offset past the dev_blk array */
-+	/* Calc the 'end' offset past the dev_blk array
-+	 * which will become the start of the attrib array, if any.
-+	 */
- 	count = nr_instances * nr_blocks;
- 	dev_attrib = edac_align_ptr(&dev_blk[count], sizeof(*dev_attrib));
+ 	return tbl;
+ }
+@@ -565,6 +576,21 @@ static inline void __iomem* calgary_reg(
+ 	return (void __iomem*)target;
+ }
  
--	/* Check for case of NO attributes specified */
--	if (nr_attribs > 0)
--		count *= nr_attribs;
-+	/* Check for case of when an attribute array is specified */
-+	if (nr_attrib > 0) {
-+		/* calc how many nr_attrib we need */
-+		count *= nr_attrib;
++static inline int is_calioc2(unsigned short device)
++{
++	return (device == PCI_DEVICE_ID_IBM_CALIOC2);
++}
++
++static inline int is_calgary(unsigned short device)
++{
++	return (device == PCI_DEVICE_ID_IBM_CALGARY);
++}
++
++static inline int is_cal_pci_dev(unsigned short device)
++{
++	return (is_calgary(device) || is_calioc2(device));
++}
++
+ static void calgary_tce_cache_blast(struct iommu_table *tbl)
+ {
+ 	u64 val;
+@@ -685,8 +711,14 @@ static void __init calgary_reserve_regio
+ 	iommu_range_reserve(tbl, bad_dma_address, EMERGENCY_PAGES);
  
--	/* Calc the 'end' offset past the attributes array */
--	pvt = edac_align_ptr(&dev_attrib[count], sz_private);
-+		/* Calc the 'end' offset past the attributes array */
-+		pvt = edac_align_ptr(&dev_attrib[count], sz_private);
-+	} else {
-+		/* no attribute array specificed */
-+		pvt = edac_align_ptr(dev_attrib, sz_private);
+ 	/* avoid the BIOS/VGA first 640KB-1MB region */
+-	start = (640 * 1024);
+-	npages = ((1024 - 640) * 1024) >> PAGE_SHIFT;
++	/* for CalIOC2 - avoid the entire first 2MB */
++	if (is_calgary(dev->device)) {
++		start = (640 * 1024);
++		npages = ((1024 - 640) * 1024) >> PAGE_SHIFT;
++	} else { /* calioc2 */
++		start = 0;
++		npages = (2 * 1024 * 1024) >> PAGE_SHIFT;
 +	}
-+
-+	/* 'pvt' now points to where the private data area is.
-+	 * At this point 'pvt' (like dev_inst,dev_blk and dev_attrib)
-+	 * is baselined at ZERO
-+	 */
- 	total_size = ((unsigned long)pvt) + sz_private;
+ 	iommu_range_reserve(tbl, start, npages);
  
- 	/* Allocate the amount of memory for the set of control structures */
-@@ -111,17 +129,22 @@ struct edac_device_ctl_info *edac_device
- 	if (dev_ctl == NULL)
- 		return NULL;
+ 	/* reserve the two PCI peripheral memory regions in IO space */
+@@ -721,15 +753,15 @@ static int __init calgary_setup_tar(stru
  
--	/* Adjust pointers so they point within the memory we just allocated
--	 * rather than an imaginary chunk of memory located at address 0.
-+	/* Adjust pointers so they point within the actual memory we
-+	 * just allocated rather than an imaginary chunk of memory
-+	 * located at address 0.
-+	 * 'dev_ctl' points to REAL memory, while the others are
-+	 * ZERO based and thus need to be adjusted to point within
-+	 * the allocated memory.
- 	 */
- 	dev_inst = (struct edac_device_instance *)
- 		(((char *)dev_ctl) + ((unsigned long)dev_inst));
- 	dev_blk = (struct edac_device_block *)
- 		(((char *)dev_ctl) + ((unsigned long)dev_blk));
--	dev_attrib = (struct edac_attrib *)
-+	dev_attrib = (struct edac_dev_sysfs_block_attribute *)
- 		(((char *)dev_ctl) + ((unsigned long)dev_attrib));
- 	pvt = sz_private ? (((char *)dev_ctl) + ((unsigned long)pvt)) : NULL;
- 
-+	/* Begin storing the information into the control info structure */
- 	dev_ctl->nr_instances = nr_instances;
- 	dev_ctl->instances = dev_inst;
- 	dev_ctl->pvt_info = pvt;
-@@ -145,28 +168,37 @@ struct edac_device_ctl_info *edac_device
- 		for (block = 0; block < nr_blocks; block++) {
- 			blk = &blk_p[block];
- 			blk->instance = inst;
--			blk->nr_attribs = nr_attribs;
--			attrib_p = &dev_attrib[block * nr_attribs];
--			blk->attribs = attrib_p;
- 			snprintf(blk->name, sizeof(blk->name),
- 				 "%s%d", edac_block_name, block+offset_value);
- 
- 			debugf1("%s() instance=%d block=%d name=%s\n",
- 				__func__, instance, block, blk->name);
- 
--			if (attrib_spec != NULL) {
--				/* when there is an attrib_spec passed int then
--				 * Initialize every attrib of each block
--				 */
--				for (attr = 0; attr < nr_attribs; attr++) {
--					attrib = &attrib_p[attr];
--					attrib->block = blk;
+ 	/* zero out all TAR bits under sw control */
+ 	val64 &= ~TAR_SW_BITS;
 -
--					/* Link each attribute to the caller's
--					 * spec entry, for name and type
--					 */
--					attrib->spec = &attrib_spec[attr];
--				}
-+			/* if there are NO attributes OR no attribute pointer
-+			 * then continue on to next block iteration
-+			 */
-+			if ((nr_attrib == 0) || (attrib_spec == NULL))
-+				continue;
+-	tbl = dev->sysdata;
+ 	table_phys = (u64)__pa(tbl->it_base);
 +
-+			/* setup the attribute array for this block */
-+			blk->nr_attribs = nr_attrib;
-+			attrib_p = &dev_attrib[block*nr_instances*nr_attrib];
-+			blk->block_attributes = attrib_p;
+ 	val64 |= table_phys;
+ 
+ 	BUG_ON(specified_table_size > TCE_TABLE_SIZE_8M);
+ 	val64 |= (u64) specified_table_size;
+ 
+ 	tbl->tar_val = cpu_to_be64(val64);
 +
-+			/* Initialize every user specified attribute in this
-+			 * block with the data the caller passed in
-+			 */
-+			for (attr = 0; attr < nr_attrib; attr++) {
-+				attrib = &attrib_p[attr];
-+				attrib->attr = attrib_spec->attr;
-+				attrib->show = attrib_spec->show;
-+				attrib->store = attrib_spec->store;
+ 	writeq(tbl->tar_val, target);
+ 	readq(target); /* flush */
+ 
+@@ -760,6 +792,43 @@ static void __init calgary_free_bus(stru
+ 	bus_info[dev->bus->number].tce_space = NULL;
+ }
+ 
++static void calgary_dump_error_regs(struct iommu_table *tbl)
++{
++	void __iomem *bbar = tbl->bbar;
++	u32 csr, csmr, plssr, mck;
++	void __iomem *target;
++	unsigned long phboff = phb_offset(tbl->it_busno);
++	unsigned long erroff;
++	u32 errregs[7];
++	int i;
 +
-+				/* up reference this block */
-+				attrib->block = blk;
++	/* dump CSR */
++	target = calgary_reg(bbar, phboff | PHB_CSR_OFFSET);
++	csr = be32_to_cpu(readl(target));
++	/* dump PLSSR */
++	target = calgary_reg(bbar, phboff | PHB_PLSSR_OFFSET);
++	plssr = be32_to_cpu(readl(target));
++	/* dump CSMR */
++	target = calgary_reg(bbar, phboff | 0x290);
++	csmr = be32_to_cpu(readl(target));
++	/* dump mck */
++	target = calgary_reg(bbar, phboff | 0x800);
++	mck = be32_to_cpu(readl(target));
 +
-+				/* bump the attrib_spec */
-+				attrib_spec++;
++	printk(KERN_EMERG "Calgary: 0x%08x@CSR 0x%08x@PLSSR 0x%08x@CSMR "
++	       "0x%08x@MCK\n", csr, plssr, csmr, mck);
++
++	/* dump rest of error regs */
++	printk(KERN_EMERG "Calgary: ");
++	for (i = 0; i < ARRAY_SIZE(errregs); i++) {
++		erroff = (0x810 + (i * 0x10)); /* err regs are at 0x810 - 0x870 */
++		target = calgary_reg(bbar, phboff | erroff);
++		errregs[i] = be32_to_cpu(readl(target));
++		printk("0x%08x@0x%lx ", errregs[i], erroff);
++	}
++	printk("\n");
++}
++
+ static void calgary_watchdog(unsigned long data)
+ {
+ 	struct pci_dev *dev = (struct pci_dev *)data;
+@@ -773,13 +842,16 @@ static void calgary_watchdog(unsigned lo
+ 
+ 	/* If no error, the agent ID in the CSR is not valid */
+ 	if (val32 & CSR_AGENT_MASK) {
+-		printk(KERN_EMERG "calgary_watchdog: DMA error on PHB %#x, "
+-				  "CSR = %#x\n", dev->bus->number, val32);
++		printk(KERN_EMERG "Calgary: DMA error on PHB %#x\n",
++		       dev->bus->number);
++		calgary_dump_error_regs(tbl);
++
++		/* reset error */
+ 		writel(0, target);
+ 
+ 		/* Disable bus that caused the error */
+ 		target = calgary_reg(bbar, phb_offset(tbl->it_busno) |
+-					   PHB_CONFIG_RW_OFFSET);
++				     PHB_CONFIG_RW_OFFSET);
+ 		val32 = be32_to_cpu(readl(target));
+ 		val32 |= PHB_SLOT_DISABLE;
+ 		writel(cpu_to_be32(val32), target);
+@@ -853,7 +925,9 @@ static void __init calgary_enable_transl
+ 	val32 = be32_to_cpu(readl(target));
+ 	val32 |= PHB_TCE_ENABLE | PHB_DAC_DISABLE | PHB_MCSR_ENABLE;
+ 
+-	printk(KERN_INFO "Calgary: enabling translation on PHB %#x\n", busnum);
++	printk(KERN_INFO "Calgary: enabling translation on %s PHB %#x\n",
++	       (dev->device == PCI_DEVICE_ID_IBM_CALGARY) ?
++	       "Calgary" : "CalIOC2", busnum);
+ 	printk(KERN_INFO "Calgary: errant DMAs will now be prevented on this "
+ 	       "bus.\n");
+ 
+@@ -894,7 +968,12 @@ static void __init calgary_init_one_nont
+ {
+ 	pci_dev_get(dev);
+ 	dev->sysdata = NULL;
+-	dev->bus->self = dev;
++
++	/* is the device behind a bridge? */
++	if (dev->bus->parent)
++		dev->bus->parent->self = dev;
++	else
++		dev->bus->self = dev;
+ }
+ 
+ static int __init calgary_init_one(struct pci_dev *dev)
+@@ -911,7 +990,14 @@ static int __init calgary_init_one(struc
+ 		goto done;
+ 
+ 	pci_dev_get(dev);
+-	dev->bus->self = dev;
++
++	if (dev->bus->parent) {
++		if (dev->bus->parent->self)
++			printk(KERN_WARNING "Calgary: IEEEE, dev %p has "
++			       "bus->parent->self!\n", dev);
++		dev->bus->parent->self = dev;
++	} else
++		dev->bus->self = dev;
+ 
+ 	tbl = dev->sysdata;
+ 	tbl->chip_ops->handle_quirks(tbl, dev);
+@@ -951,11 +1037,18 @@ static int __init calgary_locate_bbars(v
+ 			target = calgary_reg(bbar, offset);
+ 
+ 			val = be32_to_cpu(readl(target));
++
+ 			start_bus = (u8)((val & 0x00FF0000) >> 16);
+ 			end_bus = (u8)((val & 0x0000FF00) >> 8);
+-			for (bus = start_bus; bus <= end_bus; bus++) {
+-				bus_info[bus].bbar = bbar;
+-				bus_info[bus].phbid = phb;
++
++			if (end_bus) {
++				for (bus = start_bus; bus <= end_bus; bus++) {
++					bus_info[bus].bbar = bbar;
++					bus_info[bus].phbid = phb;
++				}
++			} else {
++				bus_info[start_bus].bbar = bbar;
++				bus_info[start_bus].phbid = phb;
  			}
  		}
  	}
-diff -puN drivers/edac/edac_device_sysfs.c~drivers-edac-fix-leaf-sysfs-attribute drivers/edac/edac_device_sysfs.c
---- a/drivers/edac/edac_device_sysfs.c~drivers-edac-fix-leaf-sysfs-attribute
-+++ a/drivers/edac/edac_device_sysfs.c
-@@ -456,8 +456,10 @@ static int edac_device_create_block(stru
- 				struct edac_device_instance *instance,
- 				int idx)
+@@ -975,24 +1068,27 @@ static int __init calgary_init(void)
  {
-+	int i;
- 	int err;
- 	struct edac_device_block *block;
-+	struct edac_dev_sysfs_block_attribute *sysfs_attrib;
+ 	int ret;
+ 	struct pci_dev *dev = NULL;
++	void* tce_space;
  
- 	block = &instance->blocks[idx];
+ 	ret = calgary_locate_bbars();
+ 	if (ret)
+ 		return ret;
  
-@@ -480,7 +482,27 @@ static int edac_device_create_block(stru
- 		return err;
- 	}
- 
-+	/* If there are driver level block attributes, then added them
-+	 * to the block kobject
-+	 */
-+	sysfs_attrib = block->block_attributes;
-+	if (sysfs_attrib != NULL) {
-+		for (i = 0; i < block->nr_attribs; i++) {
-+			err = sysfs_create_file(&block->kobj,
-+				(struct attribute *) &sysfs_attrib[i]);
-+			if (err)
-+				goto err_on_attrib;
-+
-+			sysfs_attrib++;
+ 	do {
+-		dev = pci_get_device(PCI_VENDOR_ID_IBM,
+-				     PCI_DEVICE_ID_IBM_CALGARY,
+-				     dev);
++		dev = pci_get_device(PCI_VENDOR_ID_IBM, PCI_ANY_ID, dev);
+ 		if (!dev)
+ 			break;
++		if (!is_cal_pci_dev(dev->device))
++			continue;
+ 		if (!translate_phb(dev)) {
+ 			calgary_init_one_nontraslated(dev);
+ 			continue;
+ 		}
+-		if (!bus_info[dev->bus->number].tce_space && !translate_empty_slots)
++		tce_space = bus_info[dev->bus->number].tce_space;
++		if (!tce_space && !translate_empty_slots) {
++			printk("Calg: %p failed tce_space check\n", dev);
+ 			continue;
+-
 +		}
-+	}
-+
+ 		ret = calgary_init_one(dev);
+ 		if (ret)
+ 			goto error;
+@@ -1003,10 +1099,11 @@ static int __init calgary_init(void)
+ error:
+ 	do {
+ 		dev = pci_get_device_reverse(PCI_VENDOR_ID_IBM,
+-					      PCI_DEVICE_ID_IBM_CALGARY,
+-					      dev);
++					     PCI_ANY_ID, dev);
+ 		if (!dev)
+ 			break;
++		if (!is_cal_pci_dev(dev->device))
++			continue;
+ 		if (!translate_phb(dev)) {
+ 			pci_dev_put(dev);
+ 			continue;
+@@ -1084,9 +1181,29 @@ static int __init build_detail_arrays(vo
  	return 0;
-+
-+err_on_attrib:
-+	kobject_unregister(&block->kobj);
-+
-+	return err;
  }
  
- /*
+-void __init detect_calgary(void)
++static int __init calgary_bus_has_devices(int bus, unsigned short pci_dev)
+ {
++	int dev;
+ 	u32 val;
++
++	if (pci_dev == PCI_DEVICE_ID_IBM_CALIOC2) {
++		/*
++		 * FIXME: properly scan for devices accross the
++		 * PCI-to-PCI bridge on every CalIOC2 port.
++		 */
++		return 1;
++	}
++
++	for (dev = 1; dev < 8; dev++) {
++		val = read_pci_config(bus, dev, 0, 0);
++		if (val != 0xffffffff)
++			break;
++	}
++	return (val != 0xffffffff);
++}
++
++void __init detect_calgary(void)
++{
+ 	int bus;
+ 	void *tbl;
+ 	int calgary_found = 0;
+@@ -1143,29 +1260,28 @@ void __init detect_calgary(void)
+ 	specified_table_size = determine_tce_table_size(end_pfn * PAGE_SIZE);
+ 
+ 	for (bus = 0; bus < MAX_PHB_BUS_NUM; bus++) {
+-		int dev;
+ 		struct calgary_bus_info *info = &bus_info[bus];
++		unsigned short pci_device;
++		u32 val;
++
++		val = read_pci_config(bus, 0, 0, 0);
++		pci_device = (val & 0xFFFF0000) >> 16;
+ 
+-		if (read_pci_config(bus, 0, 0, 0) != PCI_VENDOR_DEVICE_ID_CALGARY)
++		if (!is_cal_pci_dev(pci_device))
+ 			continue;
+ 
+ 		if (info->translation_disabled)
+ 			continue;
+ 
+-		/*
+-		 * Scan the slots of the PCI bus to see if there is a device present.
+-		 * The parent bus will be the zero-ith device, so start at 1.
+-		 */
+-		for (dev = 1; dev < 8; dev++) {
+-			val = read_pci_config(bus, dev, 0, 0);
+-			if (val != 0xffffffff || translate_empty_slots) {
+-				tbl = alloc_tce_table();
+-				if (!tbl)
+-					goto cleanup;
+-				info->tce_space = tbl;
+-				calgary_found = 1;
+-				break;
+-			}
++		if (calgary_bus_has_devices(bus, pci_device) ||
++		    translate_empty_slots) {
++			tbl = alloc_tce_table();
++			if (!tbl)
++				goto cleanup;
++			info->tce_space = tbl;
++			calgary_found = 1;
++			printk("Calg: allocated tce_table %p for bus 0x%x\n",
++			       info->tce_space, bus);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from muli@il.ibm.com are
 
 origin.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
