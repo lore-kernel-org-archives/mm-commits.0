@@ -1,81 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - remove-nid_lock-from-alloc_fresh_huge_page.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:04:15 -0700
-Message-ID: <200707192004.l6JK4FvW019933@imap1.linux-foundation.org>
+Subject: - dev_vdbg-available-with-dverbose_debug.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:11:11 -0700
+Message-ID: <200707192011.l6JKBB8N020746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37085 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56417 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759993AbXGSUQ1 (ORCPT
+	by vger.kernel.org with ESMTP id S1759813AbXGSUQ1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:16:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove nid_lock from alloc_fresh_huge_page
+     dev_vdbg(), available with -DVERBOSE_DEBUG
 has been removed from the -mm tree.  Its filename was
-     remove-nid_lock-from-alloc_fresh_huge_page.patch
+     dev_vdbg-available-with-dverbose_debug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove nid_lock from alloc_fresh_huge_page
-From: Hugh Dickins <hugh@veritas.com>
+Subject: dev_vdbg(), available with -DVERBOSE_DEBUG
+From: David Brownell <david-b@pacbell.net>
 
-The fix to that race in alloc_fresh_huge_page() which could give an illegal
-node ID did not need nid_lock at all: the fix was to replace static int nid
-by static int prev_nid and do the work on local int nid.  nid_lock did make
-sure that racers strictly roundrobin the nodes, but that's not something we
-need to enforce strictly.  Kill nid_lock.
+This defines a dev_vdbg() call, which is enabled with -DVERBOSE_DEBUG. 
+When enabled, dev_vdbg() acts just like dev_dbg().  When disabled, it is a
+NOP ...  just like dev_dbg() without -DDEBUG.  The specific code was moved
+out of a USB patch, but lots of drivers have similar support.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+That is, code can now be written to use an additional level of debug
+output, selected at compile time.  Many driver authors have found this
+idiom to be very useful.  A typical usage model is for "normal" debug
+messages to focus on fault paths and not be very "chatty", so that those
+messages can be left on during normal operation without much of a
+performance or syslog load.  On the other hand "verbose" messages would be
+noisy enough that they wouldn't normally be enabled; they might even affect
+timings enough to change system or driver behavior.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/usb/core/driver.c |    7 -------
+ include/linux/device.h    |   10 ++++++++++
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN mm/hugetlb.c~remove-nid_lock-from-alloc_fresh_huge_page mm/hugetlb.c
---- a/mm/hugetlb.c~remove-nid_lock-from-alloc_fresh_huge_page
-+++ a/mm/hugetlb.c
-@@ -104,15 +104,19 @@ static int alloc_fresh_huge_page(void)
- {
- 	static int prev_nid;
- 	struct page *page;
--	static DEFINE_SPINLOCK(nid_lock);
- 	int nid;
+diff -puN drivers/usb/core/driver.c~dev_vdbg-available-with-dverbose_debug drivers/usb/core/driver.c
+--- a/drivers/usb/core/driver.c~dev_vdbg-available-with-dverbose_debug
++++ a/drivers/usb/core/driver.c
+@@ -29,13 +29,6 @@
+ #include "hcd.h"
+ #include "usb.h"
  
--	spin_lock(&nid_lock);
-+	/*
-+	 * Copy static prev_nid to local nid, work on that, then copy it
-+	 * back to prev_nid afterwards: otherwise there's a window in which
-+	 * a racer might pass invalid nid MAX_NUMNODES to alloc_pages_node.
-+	 * But we don't need to use a spin_lock here: it really doesn't
-+	 * matter if occasionally a racer chooses the same nid as we do.
-+	 */
- 	nid = next_node(prev_nid, node_online_map);
- 	if (nid == MAX_NUMNODES)
- 		nid = first_node(node_online_map);
- 	prev_nid = nid;
--	spin_unlock(&nid_lock);
+-#define VERBOSE_DEBUG	0
+-
+-#if VERBOSE_DEBUG
+-#define dev_vdbg	dev_dbg
+-#else
+-#define dev_vdbg(dev, fmt, args...)	do { } while (0)
+-#endif
  
- 	page = alloc_pages_node(nid, htlb_alloc_mask|__GFP_COMP|__GFP_NOWARN,
- 					HUGETLB_PAGE_ORDER);
+ #ifdef CONFIG_HOTPLUG
+ 
+diff -puN include/linux/device.h~dev_vdbg-available-with-dverbose_debug include/linux/device.h
+--- a/include/linux/device.h~dev_vdbg-available-with-dverbose_debug
++++ a/include/linux/device.h
+@@ -572,6 +572,16 @@ dev_dbg(struct device * dev, const char 
+ }
+ #endif
+ 
++#ifdef VERBOSE_DEBUG
++#define dev_vdbg	dev_dbg
++#else
++static inline int __attribute__ ((format (printf, 2, 3)))
++dev_vdbg(struct device * dev, const char * fmt, ...)
++{
++	return 0;
++}
++#endif
++
+ #define dev_err(dev, format, arg...)		\
+ 	dev_printk(KERN_ERR , dev , format , ## arg)
+ #define dev_info(dev, format, arg...)		\
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-reiserfs-convert-to-new-aops-fix.patch
-hostfs-convert-to-new-aops-fix.patch
-affs-convert-to-new-aops-fix.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-prio_tree-debugging-patch.patch
+git-leds.patch
+git-mmc.patch
+git-mtd.patch
+git-backlight.patch
+acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
