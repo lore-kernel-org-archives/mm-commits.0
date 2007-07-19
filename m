@@ -1,164 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-implement-calioc2-tce-cache-flush-sequence.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:17 -0700
-Message-ID: <200707192009.l6JK9H41020566@imap1.linux-foundation.org>
+Subject: - x86-64-calgary-tighten-up-the-bitmap-locking.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:09:38 -0700
+Message-ID: <200707192009.l6JK9cIs020596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50996 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53979 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761039AbXGSUPh (ORCPT
+	by vger.kernel.org with ESMTP id S1757217AbXGSUPi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:37 -0400
+	Thu, 19 Jul 2007 16:15:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary: implement CalIOC2 TCE cache flush sequence
+     x86-64:  Calgary - tighten up the bitmap locking
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-implement-calioc2-tce-cache-flush-sequence.patch
+     x86-64-calgary-tighten-up-the-bitmap-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: Calgary: implement CalIOC2 TCE cache flush sequence
+Subject: x86-64:  Calgary - tighten up the bitmap locking
 From: Muli Ben-Yehuda <muli@il.ibm.com>
+
+Currently the IOMMU table's lock protects both the bitmap and access
+to the hardware's TCE table. Access to the TCE table is synchronized
+through the bitmap; therefore, only hold the lock while modifying the
+bitmap. This gives a yummy 10-15% reduction in CPU utilization for
+netperf on a large SMP machine.
 
 Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |   88 ++++++++++++++++++++++++++++-
- 1 files changed, 87 insertions(+), 1 deletion(-)
+ arch/x86_64/kernel/pci-calgary.c |   40 ++++++++++++-----------------
+ 1 files changed, 17 insertions(+), 23 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-implement-calioc2-tce-cache-flush-sequence arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-implement-calioc2-tce-cache-flush-sequence
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-tighten-up-the-bitmap-locking arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-tighten-up-the-bitmap-locking
 +++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -81,6 +81,8 @@ int use_calgary __read_mostly = 0;
+@@ -233,6 +233,7 @@ static void iommu_range_reserve(struct i
+ 	unsigned long index;
+ 	unsigned long end;
+ 	unsigned long badbit;
++	unsigned long flags;
  
- /* CalIOC2 specific */
- #define PHB_SAVIOR_L2           0x0DB0
-+#define PHB_PAGE_MIG_CTRL       0x0DA8
-+#define PHB_PAGE_MIG_DEBUG      0x0DA0
+ 	index = start_addr >> PAGE_SHIFT;
  
- /* PHB_CONFIG_RW */
- #define PHB_TCE_ENABLE		0x20000000
-@@ -95,6 +97,10 @@ int use_calgary __read_mostly = 0;
- #define CSR_AGENT_MASK		0xffe0ffff
- /* CCR (Calgary Configuration Register) */
- #define CCR_2SEC_TIMEOUT        0x000000000000000EUL
-+/* PMCR/PMDR (Page Migration Control/Debug Registers */
-+#define PMR_SOFTSTOP            0x80000000
-+#define PMR_SOFTSTOPFAULT       0x40000000
-+#define PMR_HARDSTOP            0x20000000
+@@ -244,6 +245,8 @@ static void iommu_range_reserve(struct i
+ 	if (end > tbl->it_size) /* don't go off the table */
+ 		end = tbl->it_size;
  
- #define MAX_NUM_OF_PHBS		8 /* how many PHBs in total? */
- #define MAX_NUM_CHASSIS		8 /* max number of chassis */
-@@ -160,6 +166,7 @@ struct calgary_bus_info {
- static void calgary_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
- static void calgary_tce_cache_blast(struct iommu_table *tbl);
- static void calioc2_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
-+static void calioc2_tce_cache_blast(struct iommu_table *tbl);
++	spin_lock_irqsave(&tbl->it_lock, flags);
++
+ 	badbit = verify_bit_range(tbl->it_map, 0, index, end);
+ 	if (badbit != ~0UL) {
+ 		if (printk_ratelimit())
+@@ -253,15 +256,20 @@ static void iommu_range_reserve(struct i
+ 	}
  
- static struct cal_chipset_ops calgary_chip_ops = {
- 	.handle_quirks = calgary_handle_quirks,
-@@ -168,7 +175,7 @@ static struct cal_chipset_ops calgary_ch
- 
- static struct cal_chipset_ops calioc2_chip_ops = {
- 	.handle_quirks = calioc2_handle_quirks,
--	.tce_cache_blast = NULL
-+	.tce_cache_blast = calioc2_tce_cache_blast
- };
- 
- static struct calgary_bus_info bus_info[MAX_PHB_BUS_NUM] = { { NULL, 0, 0 }, };
-@@ -637,6 +644,85 @@ static void calgary_tce_cache_blast(stru
- 	(void)readl(target); /* flush */
+ 	set_bit_string(tbl->it_map, index, npages);
++
++	spin_unlock_irqrestore(&tbl->it_lock, flags);
  }
  
-+static void calioc2_tce_cache_blast(struct iommu_table *tbl)
-+{
-+	void __iomem *bbar = tbl->bbar;
-+	void __iomem *target;
-+	u64 val64;
-+	u32 val;
-+	int i = 0;
-+	int count = 1;
-+	unsigned char bus = tbl->it_busno;
-+
-+begin:
-+	printk(KERN_DEBUG "Calgary: CalIOC2 bus 0x%x entering tce cache blast "
-+	       "sequence - count %d\n", bus, count);
-+
-+	/* 1. using the Page Migration Control reg set SoftStop */
-+	target = calgary_reg(bbar, phb_offset(bus) | PHB_PAGE_MIG_CTRL);
-+	val = be32_to_cpu(readl(target));
-+	printk(KERN_DEBUG "1a. read 0x%x [LE] from %p\n", val, target);
-+	val |= PMR_SOFTSTOP;
-+	printk(KERN_DEBUG "1b. writing 0x%x [LE] to %p\n", val, target);
-+	writel(cpu_to_be32(val), target);
-+
-+	/* 2. poll split queues until all DMA activity is done */
-+	printk(KERN_DEBUG "2a. starting to poll split queues\n");
-+	target = calgary_reg(bbar, split_queue_offset(bus));
-+	do {
-+		val64 = readq(target);
-+		i++;
-+	} while ((val64 & 0xff) != 0xff && i < 100);
-+	if (i == 100)
-+		printk(KERN_WARNING "CalIOC2: PCI bus not quiesced, "
-+		       "continuing anyway\n");
-+
-+	/* 3. poll Page Migration DEBUG for SoftStopFault */
-+	target = calgary_reg(bbar, phb_offset(bus) | PHB_PAGE_MIG_DEBUG);
-+	val = be32_to_cpu(readl(target));
-+	printk(KERN_DEBUG "3. read 0x%x [LE] from %p\n", val, target);
-+
-+	/* 4. if SoftStopFault - goto (1) */
-+	if (val & PMR_SOFTSTOPFAULT) {
-+		if (++count < 100)
-+			goto begin;
-+		else {
-+			printk(KERN_WARNING "CalIOC2: too many SoftStopFaults, "
-+			       "aborting TCE cache flush sequence!\n");
-+			return; /* pray for the best */
-+		}
-+	}
-+
-+	/* 5. Slam into HardStop by reading PHB_PAGE_MIG_CTRL */
-+	target = calgary_reg(bbar, phb_offset(bus) | PHB_PAGE_MIG_CTRL);
-+	printk(KERN_DEBUG "5a. slamming into HardStop by reading %p\n", target);
-+	val = be32_to_cpu(readl(target));
-+	printk(KERN_DEBUG "5b. read 0x%x [LE] from %p\n", val, target);
-+	target = calgary_reg(bbar, phb_offset(bus) | PHB_PAGE_MIG_DEBUG);
-+	val = be32_to_cpu(readl(target));
-+	printk(KERN_DEBUG "5c. read 0x%x [LE] from %p (debug)\n", val, target);
-+
-+	/* 6. invalidate TCE cache */
-+	printk(KERN_DEBUG "6. invalidating TCE cache\n");
-+	target = calgary_reg(bbar, tar_offset(bus));
-+	writeq(tbl->tar_val, target);
-+
-+	/* 7. Re-read PMCR */
-+	printk(KERN_DEBUG "7a. Re-reading PMCR\n");
-+	target = calgary_reg(bbar, phb_offset(bus) | PHB_PAGE_MIG_CTRL);
-+	val = be32_to_cpu(readl(target));
-+	printk(KERN_DEBUG "7b. read 0x%x [LE] from %p\n", val, target);
-+
-+	/* 8. Remove HardStop */
-+	printk(KERN_DEBUG "8a. removing HardStop from PMCR\n");
-+	target = calgary_reg(bbar, phb_offset(bus) | PHB_PAGE_MIG_CTRL);
-+	val = 0;
-+	printk(KERN_DEBUG "8b. writing 0x%x [LE] to %p\n", val, target);
-+	writel(cpu_to_be32(val), target);
-+	val = be32_to_cpu(readl(target));
-+	printk(KERN_DEBUG "8c. read 0x%x [LE] from %p\n", val, target);
-+}
-+
- static void __init calgary_reserve_mem_region(struct pci_dev *dev, u64 start,
- 	u64 limit)
+ static unsigned long iommu_range_alloc(struct iommu_table *tbl,
+ 	unsigned int npages)
  {
++	unsigned long flags;
+ 	unsigned long offset;
+ 
+ 	BUG_ON(npages == 0);
+ 
++	spin_lock_irqsave(&tbl->it_lock, flags);
++
+ 	offset = find_next_zero_string(tbl->it_map, tbl->it_hint,
+ 				       tbl->it_size, npages);
+ 	if (offset == ~0UL) {
+@@ -270,6 +278,7 @@ static unsigned long iommu_range_alloc(s
+ 					       tbl->it_size, npages);
+ 		if (offset == ~0UL) {
+ 			printk(KERN_WARNING "Calgary: IOMMU full.\n");
++			spin_unlock_irqrestore(&tbl->it_lock, flags);
+ 			if (panic_on_overflow)
+ 				panic("Calgary: fix the allocator.\n");
+ 			else
+@@ -281,17 +290,17 @@ static unsigned long iommu_range_alloc(s
+ 	tbl->it_hint = offset + npages;
+ 	BUG_ON(tbl->it_hint > tbl->it_size);
+ 
++	spin_unlock_irqrestore(&tbl->it_lock, flags);
++
+ 	return offset;
+ }
+ 
+ static dma_addr_t iommu_alloc(struct iommu_table *tbl, void *vaddr,
+ 	unsigned int npages, int direction)
+ {
+-	unsigned long entry, flags;
++	unsigned long entry;
+ 	dma_addr_t ret = bad_dma_address;
+ 
+-	spin_lock_irqsave(&tbl->it_lock, flags);
+-
+ 	entry = iommu_range_alloc(tbl, npages);
+ 
+ 	if (unlikely(entry == bad_dma_address))
+@@ -304,12 +313,9 @@ static dma_addr_t iommu_alloc(struct iom
+ 	tce_build(tbl, entry, npages, (unsigned long)vaddr & PAGE_MASK,
+ 		  direction);
+ 
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+-
+ 	return ret;
+ 
+ error:
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ 	printk(KERN_WARNING "Calgary: failed to allocate %u pages in "
+ 	       "iommu %p\n", npages, tbl);
+ 	return bad_dma_address;
+@@ -321,6 +327,7 @@ static void __iommu_free(struct iommu_ta
+ 	unsigned long entry;
+ 	unsigned long badbit;
+ 	unsigned long badend;
++	unsigned long flags;
+ 
+ 	/* were we called with bad_dma_address? */
+ 	badend = bad_dma_address + (EMERGENCY_PAGES * PAGE_SIZE);
+@@ -337,6 +344,8 @@ static void __iommu_free(struct iommu_ta
+ 
+ 	tce_free(tbl, entry, npages);
+ 
++	spin_lock_irqsave(&tbl->it_lock, flags);
++
+ 	badbit = verify_bit_range(tbl->it_map, 1, entry, entry + npages);
+ 	if (badbit != ~0UL) {
+ 		if (printk_ratelimit())
+@@ -346,18 +355,14 @@ static void __iommu_free(struct iommu_ta
+ 	}
+ 
+ 	__clear_bit_string(tbl->it_map, entry, npages);
++
++	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ }
+ 
+ static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
+ 	unsigned int npages)
+ {
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&tbl->it_lock, flags);
+-
+ 	__iommu_free(tbl, dma_addr, npages);
+-
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ }
+ 
+ static inline struct iommu_table *find_iommu_table(struct device *dev)
+@@ -402,17 +407,12 @@ static void __calgary_unmap_sg(struct io
+ void calgary_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 		      int nelems, int direction)
+ {
+-	unsigned long flags;
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+ 
+ 	if (!translate_phb(to_pci_dev(dev)))
+ 		return;
+ 
+-	spin_lock_irqsave(&tbl->it_lock, flags);
+-
+ 	__calgary_unmap_sg(tbl, sglist, nelems, direction);
+-
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ }
+ 
+ static int calgary_nontranslate_map_sg(struct device* dev,
+@@ -433,7 +433,6 @@ int calgary_map_sg(struct device *dev, s
+ 	int nelems, int direction)
+ {
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+-	unsigned long flags;
+ 	unsigned long vaddr;
+ 	unsigned int npages;
+ 	unsigned long entry;
+@@ -442,8 +441,6 @@ int calgary_map_sg(struct device *dev, s
+ 	if (!translate_phb(to_pci_dev(dev)))
+ 		return calgary_nontranslate_map_sg(dev, sg, nelems, direction);
+ 
+-	spin_lock_irqsave(&tbl->it_lock, flags);
+-
+ 	for (i = 0; i < nelems; i++ ) {
+ 		struct scatterlist *s = &sg[i];
+ 		BUG_ON(!s->page);
+@@ -467,8 +464,6 @@ int calgary_map_sg(struct device *dev, s
+ 		s->dma_length = s->length;
+ 	}
+ 
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+-
+ 	return nelems;
+ error:
+ 	__calgary_unmap_sg(tbl, sg, nelems, direction);
+@@ -476,7 +471,6 @@ error:
+ 		sg[i].dma_address = bad_dma_address;
+ 		sg[i].dma_length = 0;
+ 	}
+-	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from muli@il.ibm.com are
