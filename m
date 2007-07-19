@@ -1,52 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86_64-kernel-e820c-lower-printk-severity.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:57 -0700
-Message-ID: <200707192010.l6JKAvDA020719@imap1.linux-foundation.org>
+Subject: - drivers-edac-coreh-fix-scrubdefs.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:05:33 -0700
+Message-ID: <200707192005.l6JK5Xeh020053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36327 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36691 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757250AbXGSUPJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757112AbXGSUPH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:09 -0400
+	Thu, 19 Jul 2007 16:15:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: da-x@monatomic.org, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86_64/kernel/e820.c: lower printk severity
+     drivers/edac: core.h fix scrubdefs
 has been removed from the -mm tree.  Its filename was
-     arch-x86_64-kernel-e820c-lower-printk-severity.patch
+     drivers-edac-coreh-fix-scrubdefs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch/x86_64/kernel/e820.c: lower printk severity
-From: Dan Aloni <da-x@monatomic.org>
+Subject: drivers/edac: core.h fix scrubdefs
+From: Douglas Thompson <dougthompson@xmission.com>
 
-Signed-off-by: Dan Aloni <da-x@monatomic.org>
+Patch to fix some scrubbing #defines in the edac_core.h file
+
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/e820.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/edac/edac_core.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86_64/kernel/e820.c~arch-x86_64-kernel-e820c-lower-printk-severity arch/x86_64/kernel/e820.c
---- a/arch/x86_64/kernel/e820.c~arch-x86_64-kernel-e820c-lower-printk-severity
-+++ a/arch/x86_64/kernel/e820.c
-@@ -361,7 +361,7 @@ void __init e820_print_map(char *who)
- 	int i;
+diff -puN drivers/edac/edac_core.h~drivers-edac-coreh-fix-scrubdefs drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~drivers-edac-coreh-fix-scrubdefs
++++ a/drivers/edac/edac_core.h
+@@ -194,12 +194,12 @@ enum scrub_type {
+ };
  
- 	for (i = 0; i < e820.nr_map; i++) {
--		printk(" %s: %016Lx - %016Lx ", who,
-+		printk(KERN_INFO " %s: %016Lx - %016Lx ", who,
- 			(unsigned long long) e820.map[i].addr,
- 			(unsigned long long) (e820.map[i].addr + e820.map[i].size));
- 		switch (e820.map[i].type) {
+ #define SCRUB_FLAG_SW_PROG	BIT(SCRUB_SW_PROG)
+-#define SCRUB_FLAG_SW_SRC	BIT(SCRUB_SW_SRC_CORR)
+-#define SCRUB_FLAG_SW_PROG_SRC	BIT(SCRUB_SW_PROG_SRC_CORR)
++#define SCRUB_FLAG_SW_SRC	BIT(SCRUB_SW_SRC)
++#define SCRUB_FLAG_SW_PROG_SRC	BIT(SCRUB_SW_PROG_SRC)
+ #define SCRUB_FLAG_SW_TUN	BIT(SCRUB_SW_SCRUB_TUNABLE)
+ #define SCRUB_FLAG_HW_PROG	BIT(SCRUB_HW_PROG)
+-#define SCRUB_FLAG_HW_SRC	BIT(SCRUB_HW_SRC_CORR)
+-#define SCRUB_FLAG_HW_PROG_SRC	BIT(SCRUB_HW_PROG_SRC_CORR)
++#define SCRUB_FLAG_HW_SRC	BIT(SCRUB_HW_SRC)
++#define SCRUB_FLAG_HW_PROG_SRC	BIT(SCRUB_HW_PROG_SRC)
+ #define SCRUB_FLAG_HW_TUN	BIT(SCRUB_HW_TUNABLE)
+ 
+ /* FIXME - should have notify capabilities: NMI, LOG, PROC, etc */
 _
 
-Patches currently in -mm which might be from da-x@monatomic.org are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
 origin.patch
-drivers-acpi-pci_linkc-lower-printk-severity.patch
