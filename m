@@ -1,95 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - driver-edac-mod-edac_opt_state_to_string-function.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:07:03 -0700
-Message-ID: <200707192007.l6JK73mm020226@imap1.linux-foundation.org>
+Subject: - arch-x86_64-kernel-processc-lower-printk-severity.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:10:27 -0700
+Message-ID: <200707192010.l6JKARB7020674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52794 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38095 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757217AbXGSUPJ (ORCPT
+	by vger.kernel.org with ESMTP id S1755129AbXGSUPI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:09 -0400
+	Thu, 19 Jul 2007 16:15:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: da-x@monatomic.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: mod edac_opt_state_to_string function
+     arch/x86_64/kernel/process.c: lower printk severity
 has been removed from the -mm tree.  Its filename was
-     driver-edac-mod-edac_opt_state_to_string-function.patch
+     arch-x86_64-kernel-processc-lower-printk-severity.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: mod edac_opt_state_to_string function
-From: Douglas Thompson <dougthompson@xmission.com>
+Subject: arch/x86_64/kernel/process.c: lower printk severity
+From: Dan Aloni <da-x@monatomic.org>
 
-Refactored the function edac_op_state_toString() to be edac_op_state_to_string()
-for consistent style, and its callers
-
-Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
+Signed-off-by: Dan Aloni <da-x@monatomic.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_core.h   |    2 +-
- drivers/edac/edac_device.c |    2 +-
- drivers/edac/edac_module.c |    4 ++--
- drivers/edac/edac_pci.c    |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ arch/x86_64/kernel/process.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/edac_core.h~driver-edac-mod-edac_opt_state_to_string-function drivers/edac/edac_core.h
---- a/drivers/edac/edac_core.h~driver-edac-mod-edac_opt_state_to_string-function
-+++ a/drivers/edac/edac_core.h
-@@ -845,6 +845,6 @@ extern void edac_pci_remove_sysfs(struct
- /*
-  * edac misc APIs
-  */
--extern char *edac_op_state_toString(int op_state);
-+extern char *edac_op_state_to_string(int op_state);
- 
- #endif				/* _EDAC_CORE_H_ */
-diff -puN drivers/edac/edac_device.c~driver-edac-mod-edac_opt_state_to_string-function drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~driver-edac-mod-edac_opt_state_to_string-function
-+++ a/drivers/edac/edac_device.c
-@@ -461,7 +461,7 @@ int edac_device_add_device(struct edac_d
- 				edac_dev->mod_name,
- 				edac_dev->ctl_name,
- 				dev_name(edac_dev),
--				edac_op_state_toString(edac_dev->op_state));
-+				edac_op_state_to_string(edac_dev->op_state));
- 
- 	up(&device_ctls_mutex);
- 	return 0;
-diff -puN drivers/edac/edac_module.c~driver-edac-mod-edac_opt_state_to_string-function drivers/edac/edac_module.c
---- a/drivers/edac/edac_module.c~driver-edac-mod-edac_opt_state_to_string-function
-+++ a/drivers/edac/edac_module.c
-@@ -35,9 +35,9 @@ static struct sysdev_class edac_class = 
- static int edac_class_valid;
- 
- /*
-- * edac_op_state_toString()
-+ * edac_op_state_to_string()
-  */
--char *edac_op_state_toString(int opstate)
-+char *edac_op_state_to_string(int opstate)
- {
- 	if (opstate == OP_RUNNING_POLL)
- 		return "POLLED";
-diff -puN drivers/edac/edac_pci.c~driver-edac-mod-edac_opt_state_to_string-function drivers/edac/edac_pci.c
---- a/drivers/edac/edac_pci.c~driver-edac-mod-edac_opt_state_to_string-function
-+++ a/drivers/edac/edac_pci.c
-@@ -321,7 +321,7 @@ int edac_pci_add_device(struct edac_pci_
- 			" DEV '%s' (%s)\n",
- 			pci->mod_name,
- 			pci->ctl_name,
--			dev_name(pci), edac_op_state_toString(pci->op_state));
-+			dev_name(pci), edac_op_state_to_string(pci->op_state));
- 
- 	edac_unlock_pci_list();
- 	return 0;
+diff -puN arch/x86_64/kernel/process.c~arch-x86_64-kernel-processc-lower-printk-severity arch/x86_64/kernel/process.c
+--- a/arch/x86_64/kernel/process.c~arch-x86_64-kernel-processc-lower-printk-severity
++++ a/arch/x86_64/kernel/process.c
+@@ -279,7 +279,7 @@ void __cpuinit select_idle_routine(const
+ 		 */
+ 		if (!pm_idle) {
+ 			if (!printed) {
+-				printk("using mwait in idle threads.\n");
++				printk(KERN_INFO "using mwait in idle threads.\n");
+ 				printed = 1;
+ 			}
+ 			pm_idle = mwait_idle;
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from da-x@monatomic.org are
 
 origin.patch
+drivers-acpi-pci_linkc-lower-printk-severity.patch
