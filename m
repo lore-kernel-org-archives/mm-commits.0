@@ -1,338 +1,260 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-add-to-edac-docs.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:07:38 -0700
-Message-ID: <200707192007.l6JK7cFM020278@imap1.linux-foundation.org>
+Subject: - coda-fix-nlink-updates-for-directories.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:59 -0700
+Message-ID: <200707192002.l6JK2xpp019804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52806 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38196 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761522AbXGSUQi (ORCPT
+	by vger.kernel.org with ESMTP id S1761083AbXGSUQc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:38 -0400
+	Thu, 19 Jul 2007 16:16:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
+To: jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: add to edac docs
+     coda: fix nlink updates for directories
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-add-to-edac-docs.patch
+     coda-fix-nlink-updates-for-directories.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: add to edac docs
-From: Doug Thompson <dougthompson@xmission.com>
+Subject: coda: fix nlink updates for directories
+From: Jan Harkes <jaharkes@cs.cmu.edu>
 
-Updated the EDAC kernel documentation
+The Coda client sets the directory link count to 1 when it isn't sure how many
+subdirectories we have.  In this case we shouldn't change the link count in
+the kernel when a subdirectory is created or removed.
 
-Signed-off-by:	Doug Thompson <dougthompson@xmission.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/drivers/edac/edac.txt |  192 ++++++++++++++++++++++----
- 1 file changed, 165 insertions(+), 27 deletions(-)
+ fs/coda/dir.c |  106 +++++++++++++++++++++++++++---------------------
+ 1 file changed, 60 insertions(+), 46 deletions(-)
 
-diff -puN Documentation/drivers/edac/edac.txt~drivers-edac-add-to-edac-docs Documentation/drivers/edac/edac.txt
---- a/Documentation/drivers/edac/edac.txt~drivers-edac-add-to-edac-docs
-+++ a/Documentation/drivers/edac/edac.txt
-@@ -2,22 +2,42 @@
+diff -puN fs/coda/dir.c~coda-fix-nlink-updates-for-directories fs/coda/dir.c
+--- a/fs/coda/dir.c~coda-fix-nlink-updates-for-directories
++++ a/fs/coda/dir.c
+@@ -173,12 +173,11 @@ int coda_permission(struct inode *inode,
  
- EDAC - Error Detection And Correction
- 
--Written by Doug Thompson <norsk5@xmission.com>
-+Written by Doug Thompson <dougthompson@xmission.com>
- 7 Dec 2005
-+17 Jul 2007	Updated
- 
- 
--EDAC was written by:
--	Thayne Harbaugh,
--	modified by Dave Peterson, Doug Thompson, et al,
--	from the bluesmoke.sourceforge.net project.
-+EDAC is maintained and written by:
- 
-+	Doug Thompson, Dave Jiang, Dave Peterson et al,
-+	original author: Thayne Harbaugh,
-+
-+Contact:
-+	website:	bluesmoke.sourceforge.net
-+	mailing list:	bluesmoke-devel@lists.sourceforge.net
-+
-+"bluesmoke" was the name for this device driver when it was "out-of-tree"
-+and maintained at sourceforge.net.  When it was pushed into 2.6.16 for the
-+first time, it was renamed to 'EDAC'.
-+
-+The bluesmoke project at sourceforge.net is now utilized as a 'staging area'
-+for EDAC development, before it is sent upstream to kernel.org
-+
-+At the bluesmoke/EDAC project site, is a series of quilt patches against
-+recent kernels, stored in a SVN respository. For easier downloading, there
-+is also a tarball snapshot available.
- 
- ============================================================================
- EDAC PURPOSE
- 
- The 'edac' kernel module goal is to detect and report errors that occur
--within the computer system. In the initial release, memory Correctable Errors
--(CE) and Uncorrectable Errors (UE) are the primary errors being harvested.
-+within the computer system running under linux.
-+
-+MEMORY
-+
-+In the initial release, memory Correctable Errors (CE) and Uncorrectable
-+Errors (UE) are the primary errors being harvested. These types of errors
-+are harvested by the 'edac_mc' class of device.
- 
- Detecting CE events, then harvesting those events and reporting them,
- CAN be a predictor of future UE events.  With CE events, the system can
-@@ -25,9 +45,27 @@ continue to operate, but with less safet
- proactive part replacement of memory DIMMs exhibiting CEs can reduce
- the likelihood of the dreaded UE events and system 'panics'.
- 
-+NON-MEMORY
-+
-+A new feature for EDAC, the edac_device class of device, was added in
-+the 2.6.23 version of the kernel.
-+
-+This new device type allows for non-memory type of ECC hardware detectors
-+to have their states harvested and presented to userspace via the sysfs
-+interface.
-+
-+Some architectures have ECC detectors for L1, L2 and L3 caches, along with DMA
-+engines, fabric switches, main data path switches, interconnections,
-+and various other hardware data paths. If the hardware reports it, then
-+a edac_device device probably can be constructed to harvest and present
-+that to userspace.
-+
-+
-+PCI BUS SCANNING
- 
- In addition, PCI Bus Parity and SERR Errors are scanned for on PCI devices
- in order to determine if errors are occurring on data transfers.
-+
- The presence of PCI Parity errors must be examined with a grain of salt.
- There are several add-in adapters that do NOT follow the PCI specification
- with regards to Parity generation and reporting. The specification says
-@@ -35,11 +73,17 @@ the vendor should tie the parity status 
- to generate parity.  Some vendors do not do this, and thus the parity bit
- can "float" giving false positives.
- 
--[There are patches in the kernel queue which will allow for storage of
--quirks of PCI devices reporting false parity positives. The 2.6.18
--kernel should have those patches included. When that becomes available,
--then EDAC will be patched to utilize that information to "skip" such
--devices.]
-+In the kernel there is a pci device attribute located in sysfs that is
-+checked by the EDAC PCI scanning code. If that attribute is set,
-+PCI parity/error scannining is skipped for that device. The attribute
-+is:
-+
-+	broken_parity_status
-+
-+as is located in /sys/devices/pci<XXX>/0000:XX:YY.Z directorys for
-+PCI devices.
-+
-+FUTURE HARDWARE SCANNING
- 
- EDAC will have future error detectors that will be integrated with
- EDAC or added to it, in the following list:
-@@ -57,13 +101,14 @@ and the like.
- ============================================================================
- EDAC VERSIONING
- 
--EDAC is composed of a "core" module (edac_mc.ko) and several Memory
-+EDAC is composed of a "core" module (edac_core.ko) and several Memory
- Controller (MC) driver modules. On a given system, the CORE
- is loaded and one MC driver will be loaded. Both the CORE and
--the MC driver have individual versions that reflect current release
--level of their respective modules.  Thus, to "report" on what version
--a system is running, one must report both the CORE's and the
--MC driver's versions.
-+the MC driver (or edac_device driver) have individual versions that reflect
-+current release level of their respective modules.
-+
-+Thus, to "report" on what version a system is running, one must report both
-+the CORE's and the MC driver's versions.
+  out:
+ 	unlock_kernel();
+-
+-        return error; 
++	return error;
+ }
  
  
- LOADING
-@@ -88,8 +133,9 @@ EDAC sysfs INTERFACE
- EDAC presents a 'sysfs' interface for control, reporting and attribute
- reporting purposes.
+-static inline void coda_dir_changed(struct inode *dir, int link)
++static inline void coda_dir_update_mtime(struct inode *dir)
+ {
+ #ifdef REQUERY_VENUS_FOR_MTIME
+ 	/* invalidate the directory cnode's attributes so we refetch the
+@@ -186,12 +185,27 @@ static inline void coda_dir_changed(stru
+ 	coda_flag_inode(dir, C_VATTR);
+ #else
+ 	/* optimistically we can also act as if our nose bleeds. The
+-         * granularity of the mtime is coarse anyways so we might actually be
+-         * right most of the time. Note: we only do this for directories. */
++	 * granularity of the mtime is coarse anyways so we might actually be
++	 * right most of the time. Note: we only do this for directories. */
+ 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
+ #endif
+-	if (link)
+-		dir->i_nlink += link;
++}
++
++/* we have to wrap inc_nlink/drop_nlink because sometimes userspace uses a
++ * trick to fool GNU find's optimizations. If we can't be sure of the link
++ * (because of volume mount points) we set i_nlink to 1 which forces find
++ * to consider every child as a possible directory. We should also never
++ * see an increment or decrement for deleted directories where i_nlink == 0 */
++static inline void coda_dir_inc_nlink(struct inode *dir)
++{
++	if (dir->i_nlink >= 2)
++		inc_nlink(dir);
++}
++
++static inline void coda_dir_drop_nlink(struct inode *dir)
++{
++	if (dir->i_nlink > 2)
++		drop_nlink(dir);
+ }
  
--EDAC lives in the /sys/devices/system/edac directory. Within this directory
--there currently reside 2 'edac' components:
-+EDAC lives in the /sys/devices/system/edac directory.
-+
-+Within this directory there currently reside 2 'edac' components:
+ /* creation routines: create, mknod, mkdir, link, symlink */
+@@ -229,10 +243,10 @@ static int coda_create(struct inode *dir
+ 	}
  
- 	mc	memory controller(s) system
- 	pci	PCI control and status system
-@@ -188,7 +234,7 @@ In directory 'mc' are EDAC system overal
+ 	/* invalidate the directory cnode's attributes */
+-	coda_dir_changed(dir, 0);
++	coda_dir_update_mtime(dir);
+ 	unlock_kernel();
+ 	d_instantiate(de, inode);
+-        return 0;
++	return 0;
+ }
  
- Panic on UE control file:
+ static int coda_mkdir(struct inode *dir, struct dentry *de, int mode)
+@@ -268,12 +282,13 @@ static int coda_mkdir(struct inode *dir,
+ 		d_drop(de);
+ 		return PTR_ERR(inode);
+ 	}
+-	
++
+ 	/* invalidate the directory cnode's attributes */
+-	coda_dir_changed(dir, 1);
++	coda_dir_inc_nlink(dir);
++	coda_dir_update_mtime(dir);
+ 	unlock_kernel();
+ 	d_instantiate(de, inode);
+-        return 0;
++	return 0;
+ }
  
--	'panic_on_ue'
-+	'edac_mc_panic_on_ue'
+ /* try to make de an entry in dir_inodde linked to source_de */ 
+@@ -296,16 +311,16 @@ static int coda_link(struct dentry *sour
+ 	error = venus_link(dir_inode->i_sb, coda_i2f(inode),
+ 			   coda_i2f(dir_inode), (const char *)name, len);
  
- 	An uncorrectable error will cause a machine panic.  This is usually
- 	desirable.  It is a bad idea to continue when an uncorrectable error
-@@ -199,12 +245,12 @@ Panic on UE control file:
+-	if (error) { 
++	if (error) {
+ 		d_drop(de);
+ 		goto out;
+ 	}
  
- 	LOAD TIME: module/kernel parameter: panic_on_ue=[0|1]
+-	coda_dir_changed(dir_inode, 0);
++	coda_dir_update_mtime(dir_inode);
+ 	atomic_inc(&inode->i_count);
+ 	d_instantiate(de, inode);
+ 	inc_nlink(inode);
+-        
++
+ out:
+ 	unlock_kernel();
+ 	return(error);
+@@ -336,18 +351,18 @@ static int coda_symlink(struct inode *di
  
--	RUN TIME:  echo "1" >/sys/devices/system/edac/mc/panic_on_ue
-+	RUN TIME:  echo "1" >/sys/devices/system/edac/mc/edac_mc_panic_on_ue
+ 	/*
+ 	 * This entry is now negative. Since we do not create
+-	 * an inode for the entry we have to drop it. 
++	 * an inode for the entry we have to drop it.
+ 	 */
+ 	d_drop(de);
+-	error = venus_symlink(dir_inode->i_sb, coda_i2f(dir_inode), name, len, 
++	error = venus_symlink(dir_inode->i_sb, coda_i2f(dir_inode), name, len,
+ 			      symname, symlen);
  
+ 	/* mtime is no good anymore */
+ 	if ( !error )
+-		coda_dir_changed(dir_inode, 0);
++		coda_dir_update_mtime(dir_inode);
  
- Log UE control file:
+ 	unlock_kernel();
+-        return error;
++	return error;
+ }
  
--	'log_ue'
-+	'edac_mc_log_ue'
+ /* destruction routines: unlink, rmdir */
+@@ -360,17 +375,16 @@ int coda_unlink(struct inode *dir, struc
+ 	lock_kernel();
+ 	coda_vfs_stat.unlink++;
  
- 	Generate kernel messages describing uncorrectable errors.  These errors
- 	are reported through the system message log system.  UE statistics
-@@ -212,12 +258,12 @@ Log UE control file:
+-        error = venus_remove(dir->i_sb, coda_i2f(dir), name, len);
+-        if ( error ) {
++	error = venus_remove(dir->i_sb, coda_i2f(dir), name, len);
++	if ( error ) {
+ 		unlock_kernel();
+-                return error;
+-        }
++		return error;
++	}
  
- 	LOAD TIME: module/kernel parameter: log_ue=[0|1]
+-	coda_dir_changed(dir, 0);
++	coda_dir_update_mtime(dir);
+ 	drop_nlink(de->d_inode);
+ 	unlock_kernel();
+-
+-        return 0;
++	return 0;
+ }
  
--	RUN TIME: echo "1" >/sys/devices/system/edac/mc/log_ue
-+	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ue
+ int coda_rmdir(struct inode *dir, struct dentry *de)
+@@ -388,49 +402,49 @@ int coda_rmdir(struct inode *dir, struct
+ 	}
+ 	error = venus_rmdir(dir->i_sb, coda_i2f(dir), name, len);
  
+-        if ( error ) {
++	if ( error ) {
+ 		unlock_kernel();
+-                return error;
+-        }
++		return error;
++	}
  
- Log CE control file:
+-	coda_dir_changed(dir, -1);
++	coda_dir_drop_nlink(dir);
++	coda_dir_update_mtime(dir);
+ 	drop_nlink(de->d_inode);
+ 	d_delete(de);
+ 	unlock_kernel();
+-
+-        return 0;
++	return 0;
+ }
  
--	'log_ce'
-+	'edac_mc_log_ce'
+ /* rename */
+-static int coda_rename(struct inode *old_dir, struct dentry *old_dentry, 
++static int coda_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 		       struct inode *new_dir, struct dentry *new_dentry)
+ {
+-        const char *old_name = old_dentry->d_name.name;
+-        const char *new_name = new_dentry->d_name.name;
++	const char *old_name = old_dentry->d_name.name;
++	const char *new_name = new_dentry->d_name.name;
+ 	int old_length = old_dentry->d_name.len;
+ 	int new_length = new_dentry->d_name.len;
+-        int link_adjust = 0;
+-        int error;
++	int error;
  
- 	Generate kernel messages describing correctable errors.  These
- 	errors are reported through the system message log system.
-@@ -225,12 +271,12 @@ Log CE control file:
+ 	lock_kernel();
+ 	coda_vfs_stat.rename++;
  
- 	LOAD TIME: module/kernel parameter: log_ce=[0|1]
+-        error = venus_rename(old_dir->i_sb, coda_i2f(old_dir), 
+-			     coda_i2f(new_dir), old_length, new_length, 
++	error = venus_rename(old_dir->i_sb, coda_i2f(old_dir),
++			     coda_i2f(new_dir), old_length, new_length,
+ 			     (const char *) old_name, (const char *)new_name);
  
--	RUN TIME: echo "1" >/sys/devices/system/edac/mc/log_ce
-+	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ce
+-        if ( !error ) {
++	if ( !error ) {
+ 		if ( new_dentry->d_inode ) {
+-			if ( S_ISDIR(new_dentry->d_inode->i_mode) )
+-                        	link_adjust = 1;
+-
+-                        coda_dir_changed(old_dir, -link_adjust);
+-                        coda_dir_changed(new_dir,  link_adjust);
++			if ( S_ISDIR(new_dentry->d_inode->i_mode) ) {
++				coda_dir_drop_nlink(old_dir);
++				coda_dir_inc_nlink(new_dir);
++			}
++			coda_dir_update_mtime(old_dir);
++			coda_dir_update_mtime(new_dir);
+ 			coda_flag_inode(new_dentry->d_inode, C_VATTR);
+ 		} else {
+ 			coda_flag_inode(old_dir, C_VATTR);
+ 			coda_flag_inode(new_dir, C_VATTR);
+-                }
++		}
+ 	}
+ 	unlock_kernel();
  
- 
- Polling period control file:
- 
--	'poll_msec'
-+	'edac_mc_poll_msec'
- 
- 	The time period, in milliseconds, for polling for error information.
- 	Too small a value wastes resources.  Too large a value might delay
-@@ -241,7 +287,7 @@ Polling period control file:
- 
- 	LOAD TIME: module/kernel parameter: poll_msec=[0|1]
- 
--	RUN TIME: echo "1000" >/sys/devices/system/edac/mc/poll_msec
-+	RUN TIME: echo "1000" >/sys/devices/system/edac/mc/edac_mc_poll_msec
- 
- 
- ============================================================================
-@@ -587,3 +633,95 @@ Parity Count:
- 
- 
- =======================================================================
-+
-+
-+EDAC_DEVICE type of device
-+
-+In the header file, edac_core.h, there is a series of edac_device structures
-+and APIs for the EDAC_DEVICE.
-+
-+User space access to an edac_device is through the sysfs interface.
-+
-+At the location /sys/devices/system/edac (sysfs) new edac_device devices will
-+appear.
-+
-+There is a three level tree beneath the above 'edac' directory. For example,
-+the 'test_device_edac' device (found at the bluesmoke.sourceforget.net website)
-+installs itself as:
-+
-+	/sys/devices/systm/edac/test-instance
-+
-+in this directory are various controls, a symlink and one or more 'instance'
-+directorys.
-+
-+The standard default controls are:
-+
-+	log_ce		boolean to log CE events
-+	log_ue		boolean to log UE events
-+	panic_on_ue	boolean to 'panic' the system if an UE is encountered
-+			(default off, can be set true via startup script)
-+	poll_msec	time period between POLL cycles for events
-+
-+The test_device_edac device adds at least one of its own custom control:
-+
-+	test_bits	which in the current test driver does nothing but
-+			show how it is installed. A ported driver can
-+			add one or more such controls and/or attributes
-+			for specific uses.
-+			One out-of-tree driver uses controls here to allow
-+			for ERROR INJECTION operations to hardware
-+			injection registers
-+
-+The symlink points to the 'struct dev' that is registered for this edac_device.
-+
-+INSTANCES
-+
-+One or more instance directories are present. For the 'test_device_edac' case:
-+
-+	test-instance0
-+
-+
-+In this directory there are two default counter attributes, which are totals of
-+counter in deeper subdirectories.
-+
-+	ce_count	total of CE events of subdirectories
-+	ue_count	total of UE events of subdirectories
-+
-+BLOCKS
-+
-+At the lowest directory level is the 'block' directory. There can be 0, 1
-+or more blocks specified in each instance.
-+
-+	test-block0
-+
-+
-+In this directory the default attributes are:
-+
-+	ce_count	which is counter of CE events for this 'block'
-+			of hardware being monitored
-+	ue_count	which is counter of UE events for this 'block'
-+			of hardware being monitored
-+
-+
-+The 'test_device_edac' device adds 4 attributes and 1 control:
-+
-+	test-block-bits-0	for every POLL cycle this counter
-+				is incremented
-+	test-block-bits-1	every 10 cycles, this counter is bumped once,
-+				and test-block-bits-0 is set to 0
-+	test-block-bits-2	every 100 cycles, this counter is bumped once,
-+				and test-block-bits-1 is set to 0
-+	test-block-bits-3	every 1000 cycles, this counter is bumped once,
-+				and test-block-bits-2 is set to 0
-+
-+
-+	reset-counters		writing ANY thing to this control will
-+				reset all the above counters.
-+
-+
-+Use of the 'test_device_edac' driver should any others to create their own
-+unique drivers for their hardware systems.
-+
-+The 'test_device_edac' sample driver is located at the
-+bluesmoke.sourceforge.net project site for EDAC.
-+
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
 
 origin.patch
