@@ -1,692 +1,282 @@
 From: akpm@linux-foundation.org
-Subject: - mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 12:59:17 -0700
-Message-ID: <200707191959.l6JJxH8R019354@imap1.linux-foundation.org>
+Subject: - pm-remove-deprecated-dpm_runtime_-routines.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 12:59:15 -0700
+Message-ID: <200707191959.l6JJxFws019351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48508 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37504 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753130AbXGST75 (ORCPT
+	by vger.kernel.org with ESMTP id S1754336AbXGSUAI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 15:59:57 -0400
+	Thu, 19 Jul 2007 16:00:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, greg@kroah.com, linux@dominikbrodowski.net, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix fault vs invalidate race for linear mappings
+     PM: remove deprecated dpm_runtime_* routines
 has been removed from the -mm tree.  Its filename was
-     mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+     pm-remove-deprecated-dpm_runtime_-routines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: fix fault vs invalidate race for linear mappings
-From: Nick Piggin <npiggin@suse.de>
+Subject: PM: remove deprecated dpm_runtime_* routines
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Fix the race between invalidate_inode_pages and do_no_page.
+This patch (as933) removes the deprecated dpm_runtime_suspend() and
+dpm_runtime_resume() routines from the PM core.  The only user of
+those routines is the PCMCIA ds driver; local replacements are added.
 
-Andrea Arcangeli identified a subtle race between invalidation of pages from
-pagecache with userspace mappings, and do_no_page.
-
-The issue is that invalidation has to shoot down all mappings to the page,
-before it can be discarded from the pagecache.  Between shooting down ptes to
-a particular page, and actually dropping the struct page from the pagecache,
-do_no_page from any process might fault on that page and establish a new
-mapping to the page just before it gets discarded from the pagecache.
-
-The most common case where such invalidation is used is in file truncation. 
-This case was catered for by doing a sort of open-coded seqlock between the
-file's i_size, and its truncate_count.
-
-Truncation will decrease i_size, then increment truncate_count before
-unmapping userspace pages; do_no_page will read truncate_count, then find the
-page if it is within i_size, and then check truncate_count under the page
-table lock and back out and retry if it had subsequently been changed (ptl
-will serialise against unmapping, and ensure a potentially updated
-truncate_count is actually visible).
-
-Complexity and documentation issues aside, the locking protocol fails in the
-case where we would like to invalidate pagecache inside i_size.  do_no_page
-can come in anytime and filemap_nopage is not aware of the invalidation in
-progress (as it is when it is outside i_size).  The end result is that
-dangling (->mapping == NULL) pages that appear to be from a particular file
-may be mapped into userspace with nonsense data.  Valid mappings to the same
-place will see a different page.
-
-Andrea implemented two working fixes, one using a real seqlock, another using
-a page->flags bit.  He also proposed using the page lock in do_no_page, but
-that was initially considered too heavyweight.  However, it is not a global or
-per-file lock, and the page cacheline is modified in do_no_page to increment
-_count and _mapcount anyway, so a further modification should not be a large
-performance hit.  Scalability is not an issue.
-
-This patch implements this latter approach.  ->nopage implementations return
-with the page locked if it is possible for their underlying file to be
-invalidated (in that case, they must set a special vm_flags bit to indicate
-so).  do_no_page only unlocks the page after setting up the mapping
-completely.  invalidation is excluded because it holds the page lock during
-invalidation of each page (and ensures that the page is not mapped while
-holding the lock).
-
-This also allows significant simplifications in do_no_page, because we have
-the page locked in the right place in the pagecache from the start.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/ops_file.c          |    2 
- fs/gfs2/ops_vm.c            |    2 
- fs/ncpfs/mmap.c             |    1 
- fs/ocfs2/mmap.c             |    1 
- fs/xfs/linux-2.6/xfs_file.c |    1 
- include/linux/mm.h          |    6 +
- mm/filemap.c                |   53 ++++-------
- mm/memory.c                 |  153 ++++++++++++++++------------------
- mm/shmem.c                  |   11 ++
- mm/truncate.c               |   13 ++
- 10 files changed, 127 insertions(+), 116 deletions(-)
+ Documentation/feature-removal-schedule.txt |    1 
+ drivers/base/power/Makefile                |    2 
+ drivers/base/power/power.h                 |    5 -
+ drivers/base/power/runtime.c               |   85 -------------------
+ drivers/pcmcia/ds.c                        |   40 +++++++-
+ include/linux/pm.h                         |   11 --
+ 6 files changed, 35 insertions(+), 109 deletions(-)
 
-diff -puN fs/gfs2/ops_file.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings fs/gfs2/ops_file.c
---- a/fs/gfs2/ops_file.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings
-+++ a/fs/gfs2/ops_file.c
-@@ -364,6 +364,8 @@ static int gfs2_mmap(struct file *file, 
- 	else
- 		vma->vm_ops = &gfs2_vm_ops_private;
+diff -puN Documentation/feature-removal-schedule.txt~pm-remove-deprecated-dpm_runtime_-routines Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~pm-remove-deprecated-dpm_runtime_-routines
++++ a/Documentation/feature-removal-schedule.txt
+@@ -27,7 +27,6 @@ Who:	Hans Verkuil <hverkuil@xs4all.nl> a
+ ---------------------------
  
-+	vma->vm_flags |= VM_CAN_INVALIDATE;
-+
- 	gfs2_glock_dq_uninit(&i_gh);
+ What:	dev->power.power_state
+-	dpm_runtime_{suspend,resume)()
+ When:	July 2007
+ Why:	Broken design for runtime control over driver power states, confusing
+ 	driver-internal runtime power management with:  mechanisms to support
+diff -puN drivers/base/power/Makefile~pm-remove-deprecated-dpm_runtime_-routines drivers/base/power/Makefile
+--- a/drivers/base/power/Makefile~pm-remove-deprecated-dpm_runtime_-routines
++++ a/drivers/base/power/Makefile
+@@ -1,5 +1,5 @@
+ obj-y			:= shutdown.o
+-obj-$(CONFIG_PM)	+= main.o suspend.o resume.o runtime.o sysfs.o
++obj-$(CONFIG_PM)	+= main.o suspend.o resume.o sysfs.o
+ obj-$(CONFIG_PM_TRACE)	+= trace.o
  
- 	return error;
-diff -puN fs/gfs2/ops_vm.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings fs/gfs2/ops_vm.c
---- a/fs/gfs2/ops_vm.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings
-+++ a/fs/gfs2/ops_vm.c
-@@ -138,6 +138,8 @@ static struct page *gfs2_sharewrite_nopa
- 	if (alloc_required) {
- 		error = alloc_page_backing(ip, result);
- 		if (error) {
-+			if (area->vm_flags & VM_CAN_INVALIDATE)
-+				unlock_page(result);
- 			page_cache_release(result);
- 			result = NULL;
- 			goto out;
-diff -puN fs/ncpfs/mmap.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings fs/ncpfs/mmap.c
---- a/fs/ncpfs/mmap.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings
-+++ a/fs/ncpfs/mmap.c
-@@ -123,6 +123,7 @@ int ncp_mmap(struct file *file, struct v
- 		return -EFBIG;
+ ifeq ($(CONFIG_DEBUG_DRIVER),y)
+diff -puN drivers/base/power/power.h~pm-remove-deprecated-dpm_runtime_-routines drivers/base/power/power.h
+--- a/drivers/base/power/power.h~pm-remove-deprecated-dpm_runtime_-routines
++++ a/drivers/base/power/power.h
+@@ -62,11 +62,6 @@ extern int resume_device(struct device *
+  */
+ extern int suspend_device(struct device *, pm_message_t);
  
- 	vma->vm_ops = &ncp_file_mmap;
-+	vma->vm_flags |= VM_CAN_INVALIDATE;
- 	file_accessed(file);
- 	return 0;
- }
-diff -puN fs/ocfs2/mmap.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings fs/ocfs2/mmap.c
---- a/fs/ocfs2/mmap.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings
-+++ a/fs/ocfs2/mmap.c
-@@ -226,6 +226,7 @@ int ocfs2_mmap(struct file *file, struct
- 	ocfs2_meta_unlock(file->f_dentry->d_inode, lock_level);
- out:
- 	vma->vm_ops = &ocfs2_file_vm_ops;
-+	vma->vm_flags |= VM_CAN_INVALIDATE;
- 	return 0;
- }
+-
+-/*
+- * runtime.c
+- */
+-
+ #else /* CONFIG_PM */
  
-diff -puN fs/xfs/linux-2.6/xfs_file.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings fs/xfs/linux-2.6/xfs_file.c
---- a/fs/xfs/linux-2.6/xfs_file.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings
-+++ a/fs/xfs/linux-2.6/xfs_file.c
-@@ -310,6 +310,7 @@ xfs_file_mmap(
- 	struct vm_area_struct *vma)
- {
- 	vma->vm_ops = &xfs_file_vm_ops;
-+	vma->vm_flags |= VM_CAN_INVALIDATE;
  
- #ifdef CONFIG_XFS_DMAPI
- 	if (vn_from_inode(filp->f_path.dentry->d_inode)->v_vfsp->vfs_flag & VFS_DMI)
-diff -puN include/linux/mm.h~mm-fix-fault-vs-invalidate-race-for-linear-mappings include/linux/mm.h
---- a/include/linux/mm.h~mm-fix-fault-vs-invalidate-race-for-linear-mappings
-+++ a/include/linux/mm.h
-@@ -168,6 +168,12 @@ extern unsigned int kobjsize(const void 
- #define VM_INSERTPAGE	0x02000000	/* The vma has had "vm_insert_page()" done on it */
- #define VM_ALWAYSDUMP	0x04000000	/* Always include in core dumps */
+diff -puN drivers/base/power/runtime.c~pm-remove-deprecated-dpm_runtime_-routines /dev/null
+--- a/drivers/base/power/runtime.c
++++ /dev/null
+@@ -1,85 +0,0 @@
+-/*
+- * drivers/base/power/runtime.c - Handling dynamic device power management.
+- *
+- * Copyright (c) 2003 Patrick Mochel
+- * Copyright (c) 2003 Open Source Development Lab
+- *
+- */
+-
+-#include <linux/device.h>
+-#include "power.h"
+-
+-
+-static void runtime_resume(struct device * dev)
+-{
+-	dev_dbg(dev, "resuming\n");
+-	if (!dev->power.power_state.event)
+-		return;
+-	if (!resume_device(dev))
+-		dev->power.power_state = PMSG_ON;
+-}
+-
+-
+-/**
+- *	dpm_runtime_resume - Power one device back on.
+- *	@dev:	Device.
+- *
+- *	Bring one device back to the on state by first powering it
+- *	on, then restoring state. We only operate on devices that aren't
+- *	already on.
+- *	FIXME: We need to handle devices that are in an unknown state.
+- */
+-
+-void dpm_runtime_resume(struct device * dev)
+-{
+-	mutex_lock(&dpm_mtx);
+-	runtime_resume(dev);
+-	mutex_unlock(&dpm_mtx);
+-}
+-EXPORT_SYMBOL(dpm_runtime_resume);
+-
+-
+-/**
+- *	dpm_runtime_suspend - Put one device in low-power state.
+- *	@dev:	Device.
+- *	@state:	State to enter.
+- */
+-
+-int dpm_runtime_suspend(struct device * dev, pm_message_t state)
+-{
+-	int error = 0;
+-
+-	mutex_lock(&dpm_mtx);
+-	if (dev->power.power_state.event == state.event)
+-		goto Done;
+-
+-	if (dev->power.power_state.event)
+-		runtime_resume(dev);
+-
+-	if (!(error = suspend_device(dev, state)))
+-		dev->power.power_state = state;
+- Done:
+-	mutex_unlock(&dpm_mtx);
+-	return error;
+-}
+-EXPORT_SYMBOL(dpm_runtime_suspend);
+-
+-
+-#if 0
+-/**
+- *	dpm_set_power_state - Update power_state field.
+- *	@dev:	Device.
+- *	@state:	Power state device is in.
+- *
+- *	This is an update mechanism for drivers to notify the core
+- *	what power state a device is in. Device probing code may not
+- *	always be able to tell, but we need accurate information to
+- *	work reliably.
+- */
+-void dpm_set_power_state(struct device * dev, pm_message_t state)
+-{
+-	mutex_lock(&dpm_mtx);
+-	dev->power.power_state = state;
+-	mutex_unlock(&dpm_mtx);
+-}
+-#endif  /*  0  */
+diff -puN drivers/pcmcia/ds.c~pm-remove-deprecated-dpm_runtime_-routines drivers/pcmcia/ds.c
+--- a/drivers/pcmcia/ds.c~pm-remove-deprecated-dpm_runtime_-routines
++++ a/drivers/pcmcia/ds.c
+@@ -1118,6 +1118,34 @@ static int pcmcia_bus_uevent(struct devi
  
-+#define VM_CAN_INVALIDATE 0x08000000	/* The mapping may be invalidated,
-+					 * eg. truncate or invalidate_inode_*.
-+					 * In this case, do_no_page must
-+					 * return with the page locked.
-+					 */
-+
- #ifndef VM_STACK_DEFAULT_FLAGS		/* arch can override this */
- #define VM_STACK_DEFAULT_FLAGS VM_DATA_DEFAULT_FLAGS
  #endif
-diff -puN mm/filemap.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings mm/filemap.c
---- a/mm/filemap.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings
-+++ a/mm/filemap.c
-@@ -1325,9 +1325,10 @@ struct page *filemap_nopage(struct vm_ar
- 	unsigned long size, pgoff;
- 	int did_readaround = 0, majmin = VM_FAULT_MINOR;
  
-+	BUG_ON(!(area->vm_flags & VM_CAN_INVALIDATE));
++/************************ runtime PM support ***************************/
 +
- 	pgoff = ((address-area->vm_start) >> PAGE_CACHE_SHIFT) + area->vm_pgoff;
- 
--retry_all:
- 	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
- 	if (pgoff >= size)
- 		goto outside_data_content;
-@@ -1349,7 +1350,7 @@ retry_all:
- 	 * Do we have something in the page cache already?
- 	 */
- retry_find:
--	page = find_get_page(mapping, pgoff);
-+	page = find_lock_page(mapping, pgoff);
- 	if (!page) {
- 		unsigned long ra_pages;
- 
-@@ -1383,7 +1384,7 @@ retry_find:
- 				start = pgoff - ra_pages / 2;
- 			do_page_cache_readahead(mapping, file, start, ra_pages);
- 		}
--		page = find_get_page(mapping, pgoff);
-+		page = find_lock_page(mapping, pgoff);
- 		if (!page)
- 			goto no_cached_page;
- 	}
-@@ -1392,13 +1393,19 @@ retry_find:
- 		ra->mmap_hit++;
- 
- 	/*
--	 * Ok, found a page in the page cache, now we need to check
--	 * that it's up-to-date.
-+	 * We have a locked page in the page cache, now we need to check
-+	 * that it's up-to-date. If not, it is going to be due to an error.
- 	 */
--	if (!PageUptodate(page))
-+	if (unlikely(!PageUptodate(page)))
- 		goto page_not_uptodate;
- 
--success:
-+	/* Must recheck i_size under page lock */
-+	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
-+	if (unlikely(pgoff >= size)) {
-+		unlock_page(page);
-+		goto outside_data_content;
-+	}
++static int pcmcia_dev_suspend(struct device *dev, pm_message_t state);
++static int pcmcia_dev_resume(struct device *dev);
 +
- 	/*
- 	 * Found the page and have a reference on it.
- 	 */
-@@ -1440,6 +1447,7 @@ no_cached_page:
- 	return NOPAGE_SIGBUS;
- 
- page_not_uptodate:
-+	/* IO error path */
- 	if (!did_readaround) {
- 		majmin = VM_FAULT_MAJOR;
- 		count_vm_event(PGMAJFAULT);
-@@ -1451,37 +1459,15 @@ page_not_uptodate:
- 	 * because there really aren't any performance issues here
- 	 * and we need to check for errors.
- 	 */
--	lock_page(page);
--
--	/* Somebody truncated the page on us? */
--	if (!page->mapping) {
--		unlock_page(page);
--		page_cache_release(page);
--		goto retry_all;
--	}
--
--	/* Somebody else successfully read it in? */
--	if (PageUptodate(page)) {
--		unlock_page(page);
--		goto success;
--	}
- 	ClearPageError(page);
- 	error = mapping->a_ops->readpage(file, page);
--	if (!error) {
--		wait_on_page_locked(page);
--		if (PageUptodate(page))
--			goto success;
--	} else if (error == AOP_TRUNCATED_PAGE) {
--		page_cache_release(page);
-+	page_cache_release(page);
++static int runtime_suspend(struct device *dev)
++{
++	int rc;
 +
-+	if (!error || error == AOP_TRUNCATED_PAGE)
- 		goto retry_find;
--	}
++	down(&dev->sem);
++	rc = pcmcia_dev_suspend(dev, PMSG_SUSPEND);
++	up(&dev->sem);
++	if (!rc)
++		dev->power.power_state.event = PM_EVENT_SUSPEND;
++	return rc;
++}
++
++static void runtime_resume(struct device *dev)
++{
++	int rc;
++
++	down(&dev->sem);
++	rc = pcmcia_dev_resume(dev);
++	up(&dev->sem);
++	if (!rc)
++		dev->power.power_state.event = PM_EVENT_ON;
++}
++
+ /************************ per-device sysfs output ***************************/
  
--	/*
--	 * Things didn't work out. Return zero to tell the
--	 * mm layer so, possibly freeing the page cache page first.
--	 */
-+	/* Things didn't work out. Return zero to tell the mm layer so. */
- 	shrink_readahead_size_eio(file, ra);
--	page_cache_release(page);
- 	return NOPAGE_SIGBUS;
+ #define pcmcia_device_attr(field, test, format)				\
+@@ -1164,9 +1192,9 @@ static ssize_t pcmcia_store_pm_state(str
+                 return -EINVAL;
+ 
+ 	if ((!p_dev->suspended) && !strncmp(buf, "off", 3))
+-		ret = dpm_runtime_suspend(dev, PMSG_SUSPEND);
++		ret = runtime_suspend(dev);
+ 	else if (p_dev->suspended && !strncmp(buf, "on", 2))
+-		dpm_runtime_resume(dev);
++		runtime_resume(dev);
+ 
+ 	return ret ? ret : count;
  }
- EXPORT_SYMBOL(filemap_nopage);
-@@ -1674,6 +1660,7 @@ int generic_file_mmap(struct file * file
- 		return -ENOEXEC;
- 	file_accessed(file);
- 	vma->vm_ops = &generic_file_vm_ops;
-+	vma->vm_flags |= VM_CAN_INVALIDATE;
+@@ -1305,10 +1333,10 @@ static int pcmcia_bus_suspend_callback(s
+ 	struct pcmcia_socket *skt = _data;
+ 	struct pcmcia_device *p_dev = to_pcmcia_dev(dev);
+ 
+-	if (p_dev->socket != skt)
++	if (p_dev->socket != skt || p_dev->suspended)
+ 		return 0;
+ 
+-	return dpm_runtime_suspend(dev, PMSG_SUSPEND);
++	return runtime_suspend(dev);
+ }
+ 
+ static int pcmcia_bus_resume_callback(struct device *dev, void * _data)
+@@ -1316,10 +1344,10 @@ static int pcmcia_bus_resume_callback(st
+ 	struct pcmcia_socket *skt = _data;
+ 	struct pcmcia_device *p_dev = to_pcmcia_dev(dev);
+ 
+-	if (p_dev->socket != skt)
++	if (p_dev->socket != skt || !p_dev->suspended)
+ 		return 0;
+ 
+-	dpm_runtime_resume(dev);
++	runtime_resume(dev);
+ 
  	return 0;
  }
+diff -puN include/linux/pm.h~pm-remove-deprecated-dpm_runtime_-routines include/linux/pm.h
+--- a/include/linux/pm.h~pm-remove-deprecated-dpm_runtime_-routines
++++ a/include/linux/pm.h
+@@ -285,8 +285,6 @@ extern int device_prepare_suspend(pm_mes
+ #define device_may_wakeup(dev) \
+ 	(device_can_wakeup(dev) && (dev)->power.should_wakeup)
  
-diff -puN mm/memory.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings mm/memory.c
---- a/mm/memory.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings
-+++ a/mm/memory.c
-@@ -1831,6 +1831,13 @@ static int unmap_mapping_range_vma(struc
- 	unsigned long restart_addr;
- 	int need_break;
+-extern int dpm_runtime_suspend(struct device *, pm_message_t);
+-extern void dpm_runtime_resume(struct device *);
+ extern void __suspend_report_result(const char *function, void *fn, int ret);
  
-+	/*
-+	 * files that support invalidating or truncating portions of the
-+	 * file from under mmaped areas must set the VM_CAN_INVALIDATE flag, and
-+	 * have their .nopage function return the page locked.
-+	 */
-+	BUG_ON(!(vma->vm_flags & VM_CAN_INVALIDATE));
-+
- again:
- 	restart_addr = vma->vm_truncate_count;
- 	if (is_restart_addr(restart_addr) && start_addr < restart_addr) {
-@@ -1959,17 +1966,8 @@ void unmap_mapping_range(struct address_
+ #define suspend_report_result(fn, ret)					\
+@@ -318,15 +316,6 @@ static inline int device_suspend(pm_mess
+ #define device_set_wakeup_enable(dev,val)	do{}while(0)
+ #define device_may_wakeup(dev)			(0)
  
- 	spin_lock(&mapping->i_mmap_lock);
- 
--	/* serialize i_size write against truncate_count write */
--	smp_wmb();
--	/* Protect against page faults, and endless unmapping loops */
-+	/* Protect against endless unmapping loops */
- 	mapping->truncate_count++;
--	/*
--	 * For archs where spin_lock has inclusive semantics like ia64
--	 * this smp_mb() will prevent to read pagetable contents
--	 * before the truncate_count increment is visible to
--	 * other cpus.
--	 */
--	smp_mb();
- 	if (unlikely(is_restart_addr(mapping->truncate_count))) {
- 		if (mapping->truncate_count == 0)
- 			reset_vma_truncate_counts(mapping);
-@@ -2008,8 +2006,18 @@ int vmtruncate(struct inode * inode, lof
- 	if (IS_SWAPFILE(inode))
- 		goto out_busy;
- 	i_size_write(inode, offset);
-+
-+	/*
-+	 * unmap_mapping_range is called twice, first simply for efficiency
-+	 * so that truncate_inode_pages does fewer single-page unmaps. However
-+	 * after this first call, and before truncate_inode_pages finishes,
-+	 * it is possible for private pages to be COWed, which remain after
-+	 * truncate_inode_pages finishes, hence the second unmap_mapping_range
-+	 * call must be made for correctness.
-+	 */
- 	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
- 	truncate_inode_pages(mapping, offset);
-+	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
- 	goto out_truncate;
- 
- do_expand:
-@@ -2049,6 +2057,7 @@ int vmtruncate_range(struct inode *inode
- 	down_write(&inode->i_alloc_sem);
- 	unmap_mapping_range(mapping, offset, (end - offset), 1);
- 	truncate_inode_pages_range(mapping, offset, end);
-+	unmap_mapping_range(mapping, offset, (end - offset), 1);
- 	inode->i_op->truncate_range(inode, offset, end);
- 	up_write(&inode->i_alloc_sem);
- 	mutex_unlock(&inode->i_mutex);
-@@ -2206,7 +2215,6 @@ static int do_swap_page(struct mm_struct
- 
- 	/* No need to invalidate - it was non-present before */
- 	update_mmu_cache(vma, address, pte);
--	lazy_mmu_prot_update(pte);
- unlock:
- 	pte_unmap_unlock(page_table, ptl);
- out:
-@@ -2297,10 +2305,8 @@ static int do_no_page(struct mm_struct *
- 		int write_access)
- {
- 	spinlock_t *ptl;
--	struct page *new_page;
--	struct address_space *mapping = NULL;
-+	struct page *page, *nopage_page;
- 	pte_t entry;
--	unsigned int sequence = 0;
- 	int ret = VM_FAULT_MINOR;
- 	int anon = 0;
- 	struct page *dirty_page = NULL;
-@@ -2308,74 +2314,53 @@ static int do_no_page(struct mm_struct *
- 	pte_unmap(page_table);
- 	BUG_ON(vma->vm_flags & VM_PFNMAP);
- 
--	if (vma->vm_file) {
--		mapping = vma->vm_file->f_mapping;
--		sequence = mapping->truncate_count;
--		smp_rmb(); /* serializes i_size against truncate_count */
--	}
--retry:
--	new_page = vma->vm_ops->nopage(vma, address & PAGE_MASK, &ret);
--	/*
--	 * No smp_rmb is needed here as long as there's a full
--	 * spin_lock/unlock sequence inside the ->nopage callback
--	 * (for the pagecache lookup) that acts as an implicit
--	 * smp_mb() and prevents the i_size read to happen
--	 * after the next truncate_count read.
--	 */
+-static inline int dpm_runtime_suspend(struct device * dev, pm_message_t state)
+-{
+-	return 0;
+-}
 -
-+	nopage_page = vma->vm_ops->nopage(vma, address & PAGE_MASK, &ret);
- 	/* no page was available -- either SIGBUS, OOM or REFAULT */
--	if (unlikely(new_page == NOPAGE_SIGBUS))
-+	if (unlikely(nopage_page == NOPAGE_SIGBUS))
- 		return VM_FAULT_SIGBUS;
--	else if (unlikely(new_page == NOPAGE_OOM))
-+	else if (unlikely(nopage_page == NOPAGE_OOM))
- 		return VM_FAULT_OOM;
--	else if (unlikely(new_page == NOPAGE_REFAULT))
-+	else if (unlikely(nopage_page == NOPAGE_REFAULT))
- 		return VM_FAULT_MINOR;
- 
-+	BUG_ON(vma->vm_flags & VM_CAN_INVALIDATE && !PageLocked(nopage_page));
-+	/*
-+	 * For consistency in subsequent calls, make the nopage_page always
-+	 * locked.
-+	 */
-+	if (unlikely(!(vma->vm_flags & VM_CAN_INVALIDATE)))
-+		lock_page(nopage_page);
-+
- 	/*
- 	 * Should we do an early C-O-W break?
- 	 */
-+	page = nopage_page;
- 	if (write_access) {
- 		if (!(vma->vm_flags & VM_SHARED)) {
--			struct page *page;
+-static inline void dpm_runtime_resume(struct device * dev)
+-{
+-}
 -
--			if (unlikely(anon_vma_prepare(vma)))
--				goto oom;
--			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE,
--						vma, address);
--			if (!page)
--				goto oom;
--			copy_user_highpage(page, new_page, address, vma);
--			page_cache_release(new_page);
--			new_page = page;
-+			if (unlikely(anon_vma_prepare(vma))) {
-+				ret = VM_FAULT_OOM;
-+				goto out_error;
-+			}
-+			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
-+			if (!page) {
-+				ret = VM_FAULT_OOM;
-+				goto out_error;
-+			}
-+			copy_user_highpage(page, nopage_page, address, vma);
- 			anon = 1;
--
- 		} else {
- 			/* if the page will be shareable, see if the backing
- 			 * address space wants to know that the page is about
- 			 * to become writable */
- 			if (vma->vm_ops->page_mkwrite &&
--			    vma->vm_ops->page_mkwrite(vma, new_page) < 0
--			    ) {
--				page_cache_release(new_page);
--				return VM_FAULT_SIGBUS;
-+			    vma->vm_ops->page_mkwrite(vma, page) < 0) {
-+				ret = VM_FAULT_SIGBUS;
-+				goto out_error;
- 			}
- 		}
- 	}
+ #define suspend_report_result(fn, ret) do { } while (0)
  
- 	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
--	/*
--	 * For a file-backed vma, someone could have truncated or otherwise
--	 * invalidated this page.  If unmap_mapping_range got called,
--	 * retry getting the page.
--	 */
--	if (mapping && unlikely(sequence != mapping->truncate_count)) {
--		pte_unmap_unlock(page_table, ptl);
--		page_cache_release(new_page);
--		cond_resched();
--		sequence = mapping->truncate_count;
--		smp_rmb();
--		goto retry;
--	}
- 
- 	/*
- 	 * This silly early PAGE_DIRTY setting removes a race
-@@ -2388,43 +2373,51 @@ retry:
- 	 * handle that later.
- 	 */
- 	/* Only go through if we didn't race with anybody else... */
--	if (pte_none(*page_table)) {
--		flush_icache_page(vma, new_page);
--		entry = mk_pte(new_page, vma->vm_page_prot);
-+	if (likely(pte_none(*page_table))) {
-+		flush_icache_page(vma, page);
-+		entry = mk_pte(page, vma->vm_page_prot);
- 		if (write_access)
- 			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 		set_pte_at(mm, address, page_table, entry);
- 		if (anon) {
--			inc_mm_counter(mm, anon_rss);
--			lru_cache_add_active(new_page);
--			page_add_new_anon_rmap(new_page, vma, address);
-+                        inc_mm_counter(mm, anon_rss);
-+                        lru_cache_add_active(page);
-+                        page_add_new_anon_rmap(page, vma, address);
- 		} else {
- 			inc_mm_counter(mm, file_rss);
--			page_add_file_rmap(new_page);
-+			page_add_file_rmap(page);
- 			if (write_access) {
--				dirty_page = new_page;
-+				dirty_page = page;
- 				get_page(dirty_page);
- 			}
- 		}
-+
-+		/* no need to invalidate: a not-present page won't be cached */
-+		update_mmu_cache(vma, address, entry);
-+		lazy_mmu_prot_update(entry);
- 	} else {
--		/* One of our sibling threads was faster, back out. */
--		page_cache_release(new_page);
--		goto unlock;
-+		if (anon)
-+			page_cache_release(page);
-+		else
-+			anon = 1; /* not anon, but release nopage_page */
- 	}
- 
--	/* no need to invalidate: a not-present page shouldn't be cached */
--	update_mmu_cache(vma, address, entry);
--	lazy_mmu_prot_update(entry);
--unlock:
- 	pte_unmap_unlock(page_table, ptl);
--	if (dirty_page) {
-+
-+out:
-+	unlock_page(nopage_page);
-+	if (anon)
-+		page_cache_release(nopage_page);
-+	else if (dirty_page) {
- 		set_page_dirty_balance(dirty_page);
- 		put_page(dirty_page);
- 	}
-+
- 	return ret;
--oom:
--	page_cache_release(new_page);
--	return VM_FAULT_OOM;
-+
-+out_error:
-+	anon = 1; /* relase nopage_page */
-+	goto out;
- }
- 
- /*
-diff -puN mm/shmem.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings mm/shmem.c
---- a/mm/shmem.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings
-+++ a/mm/shmem.c
-@@ -83,6 +83,7 @@ enum sgp_type {
- 	SGP_READ,	/* don't exceed i_size, don't allocate page */
- 	SGP_CACHE,	/* don't exceed i_size, may allocate page */
- 	SGP_WRITE,	/* may exceed i_size, may allocate page */
-+	SGP_NOPAGE,	/* same as SGP_CACHE, return with page locked */
- };
- 
- static int shmem_getpage(struct inode *inode, unsigned long idx,
-@@ -1289,8 +1290,10 @@ repeat:
- 	}
- done:
- 	if (*pagep != filepage) {
--		unlock_page(filepage);
- 		*pagep = filepage;
-+		if (sgp != SGP_NOPAGE)
-+			unlock_page(filepage);
-+
- 	}
- 	return 0;
- 
-@@ -1310,13 +1313,15 @@ static struct page *shmem_nopage(struct 
- 	unsigned long idx;
- 	int error;
- 
-+	BUG_ON(!(vma->vm_flags & VM_CAN_INVALIDATE));
-+
- 	idx = (address - vma->vm_start) >> PAGE_SHIFT;
- 	idx += vma->vm_pgoff;
- 	idx >>= PAGE_CACHE_SHIFT - PAGE_SHIFT;
- 	if (((loff_t) idx << PAGE_CACHE_SHIFT) >= i_size_read(inode))
- 		return NOPAGE_SIGBUS;
- 
--	error = shmem_getpage(inode, idx, &page, SGP_CACHE, type);
-+	error = shmem_getpage(inode, idx, &page, SGP_NOPAGE, type);
- 	if (error)
- 		return (error == -ENOMEM)? NOPAGE_OOM: NOPAGE_SIGBUS;
- 
-@@ -1414,6 +1419,7 @@ static int shmem_mmap(struct file *file,
- {
- 	file_accessed(file);
- 	vma->vm_ops = &shmem_vm_ops;
-+	vma->vm_flags |= VM_CAN_INVALIDATE;
- 	return 0;
- }
- 
-@@ -2596,5 +2602,6 @@ int shmem_zero_setup(struct vm_area_stru
- 		fput(vma->vm_file);
- 	vma->vm_file = file;
- 	vma->vm_ops = &shmem_vm_ops;
-+	vma->vm_flags |= VM_CAN_INVALIDATE;
- 	return 0;
- }
-diff -puN mm/truncate.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings mm/truncate.c
---- a/mm/truncate.c~mm-fix-fault-vs-invalidate-race-for-linear-mappings
-+++ a/mm/truncate.c
-@@ -192,6 +192,11 @@ void truncate_inode_pages_range(struct a
- 				unlock_page(page);
- 				continue;
- 			}
-+			if (page_mapped(page)) {
-+				unmap_mapping_range(mapping,
-+				  (loff_t)page_index<<PAGE_CACHE_SHIFT,
-+				  PAGE_CACHE_SIZE, 0);
-+			}
- 			truncate_complete_page(mapping, page);
- 			unlock_page(page);
- 		}
-@@ -229,6 +234,11 @@ void truncate_inode_pages_range(struct a
- 				break;
- 			lock_page(page);
- 			wait_on_page_writeback(page);
-+			if (page_mapped(page)) {
-+				unmap_mapping_range(mapping,
-+				  (loff_t)page->index<<PAGE_CACHE_SHIFT,
-+				  PAGE_CACHE_SIZE, 0);
-+			}
- 			if (page->index > next)
- 				next = page->index;
- 			next++;
-@@ -405,7 +415,7 @@ int invalidate_inode_pages2_range(struct
- 				break;
- 			}
- 			wait_on_page_writeback(page);
--			while (page_mapped(page)) {
-+			if (page_mapped(page)) {
- 				if (!did_range_unmap) {
- 					/*
- 					 * Zap the rest of the file in one hit.
-@@ -425,6 +435,7 @@ int invalidate_inode_pages2_range(struct
- 					  PAGE_CACHE_SIZE, 0);
- 				}
- 			}
-+			BUG_ON(page_mapped(page));
- 			ret = do_launder_page(mapping, page);
- 			if (ret == 0 && !invalidate_complete_page2(mapping, page))
- 				ret = -EIO;
+ static inline int call_platform_enable_wakeup(struct device *dev, int is_on)
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
 origin.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
-xfs-convert-to-new-aops.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-convert-to-new-aops-fix.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
-hostfs-convert-to-new-aops.patch
-hostfs-convert-to-new-aops-fix.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-udf-convert-to-new-aops.patch
-udf-convert-to-new-aops-fix.patch
-sysv-convert-to-new-aops.patch
-minix-convert-to-new-aops.patch
-jfs-convert-to-new-aops.patch
-fs-adfs-convert-to-new-aops.patch
-fs-affs-convert-to-new-aops.patch
-affs-convert-to-new-aops-fix.patch
-ocfs2-convert-to-new-aops.patch
-fs-remove-some-aop_truncated_page.patch
-fs-reiserfs-cleanups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-reiser4-fix-for-new-aops-patches.patch
