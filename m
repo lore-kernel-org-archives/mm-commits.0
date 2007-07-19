@@ -1,315 +1,374 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-split-ondemand-readahead-interface-into-two-functions.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:01:29 -0700
-Message-ID: <200707192001.l6JK1Tlp019540@imap1.linux-foundation.org>
+Subject: - i386-trim-memory-not-covered-by-wb-mtrrs.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:09:50 -0700
+Message-ID: <200707192009.l6JK9ou1020614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38512 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48595 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754336AbXGSUZ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1762300AbXGSUZ5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:25:26 -0400
+	Thu, 19 Jul 2007 16:25:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: jesse.barnes@intel.com, andi@firstfloor.org, ebiederm@xmission.com, jpiszcz@lucidpixels.com, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: split ondemand readahead interface into two functions
+     i386: trim memory not covered by WB MTRRs
 has been removed from the -mm tree.  Its filename was
-     readahead-split-ondemand-readahead-interface-into-two-functions.patch
+     i386-trim-memory-not-covered-by-wb-mtrrs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: readahead: split ondemand readahead interface into two functions
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: i386: trim memory not covered by WB MTRRs
+From: Jesse Barnes <jesse.barnes@intel.com>
 
-Split ondemand readahead interface into two functions.  I think this makes it
-a little clearer for non-readahead experts (like Rusty).
+On some machines, buggy BIOSes don't properly setup WB MTRRs to cover all
+available RAM, meaning the last few megs (or even gigs) of memory will be
+marked uncached.  Since Linux tends to allocate from high memory addresses
+first, this causes the machine to be unusably slow as soon as the kernel
+starts really using memory (i.e.  right around init time).
 
-Internally they both call ondemand_readahead(), but the page argument is
-changed to an obvious boolean flag.
+This patch works around the problem by scanning the MTRRs at boot and
+figuring out whether the current end_pfn value (setup by early e820 code)
+goes beyond the highest WB MTRR range, and if so, trimming it to match.  A
+fairly obnoxious KERN_WARNING is printed too, letting the user know that
+not all of their memory is available due to a likely BIOS bug.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Something similar could be done on i386 if needed, but the boot ordering
+would be slightly different, since the MTRR code on i386 depends on the
+boot_cpu_data structure being setup.
+
+This patch fixes a bug in the last patch that caused the code to run on
+non-Intel machines (AMD machines apparently don't need it and it's untested
+on other non-Intel machines, so best keep it off).
+
+Signed-off-by: Jesse Barnes <jesse.barnes@intel.com>
+Tested-by: Justin Piszcz <jpiszcz@lucidpixels.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/dir.c      |    4 -
- fs/ext4/dir.c      |    4 -
- fs/splice.c        |    6 +-
- include/linux/mm.h |   20 ++++++---
- mm/filemap.c       |   10 ++--
- mm/readahead.c     |   95 ++++++++++++++++++++++++++-----------------
- 6 files changed, 84 insertions(+), 55 deletions(-)
+ Documentation/kernel-parameters.txt |    6 +
+ arch/i386/kernel/cpu/mtrr/generic.c |    8 --
+ arch/i386/kernel/cpu/mtrr/if.c      |    8 --
+ arch/i386/kernel/cpu/mtrr/main.c    |   85 +++++++++++++++++++-------
+ arch/i386/kernel/cpu/mtrr/mtrr.h    |    3 
+ arch/x86_64/kernel/bugs.c           |    1 
+ arch/x86_64/kernel/setup.c          |    4 +
+ include/asm-x86_64/mtrr.h           |    5 +
+ 8 files changed, 84 insertions(+), 36 deletions(-)
 
-diff -puN fs/ext3/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/ext3/dir.c
---- a/fs/ext3/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions
-+++ a/fs/ext3/dir.c
-@@ -139,10 +139,10 @@ static int ext3_readdir(struct file * fi
- 			pgoff_t index = map_bh.b_blocknr >>
- 					(PAGE_CACHE_SHIFT - inode->i_blkbits);
- 			if (!ra_has_index(&filp->f_ra, index))
--				page_cache_readahead_ondemand(
-+				page_cache_sync_readahead(
- 					sb->s_bdev->bd_inode->i_mapping,
- 					&filp->f_ra, filp,
--					NULL, index, 1);
-+					index, 1);
- 			filp->f_ra.prev_index = index;
- 			bh = ext3_bread(NULL, inode, blk, 0, &err);
- 		}
-diff -puN fs/ext4/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/ext4/dir.c
---- a/fs/ext4/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions
-+++ a/fs/ext4/dir.c
-@@ -138,10 +138,10 @@ static int ext4_readdir(struct file * fi
- 			pgoff_t index = map_bh.b_blocknr >>
- 					(PAGE_CACHE_SHIFT - inode->i_blkbits);
- 			if (!ra_has_index(&filp->f_ra, index))
--				page_cache_readahead_ondemand(
-+				page_cache_sync_readahead(
- 					sb->s_bdev->bd_inode->i_mapping,
- 					&filp->f_ra, filp,
--					NULL, index, 1);
-+					index, 1);
- 			filp->f_ra.prev_index = index;
- 			bh = ext4_bread(NULL, inode, blk, 0, &err);
- 		}
-diff -puN fs/splice.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/splice.c
---- a/fs/splice.c~readahead-split-ondemand-readahead-interface-into-two-functions
-+++ a/fs/splice.c
-@@ -295,8 +295,8 @@ __generic_file_splice_read(struct file *
- 	 * readahead/allocate the rest and fill in the holes.
- 	 */
- 	if (spd.nr_pages < nr_pages)
--		page_cache_readahead_ondemand(mapping, &in->f_ra, in,
--				NULL, index, req_pages - spd.nr_pages);
-+		page_cache_sync_readahead(mapping, &in->f_ra, in,
-+				index, req_pages - spd.nr_pages);
+diff -puN Documentation/kernel-parameters.txt~i386-trim-memory-not-covered-by-wb-mtrrs Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~i386-trim-memory-not-covered-by-wb-mtrrs
++++ a/Documentation/kernel-parameters.txt
+@@ -542,6 +542,12 @@ and is between 256 and 4096 characters. 
+ 			See drivers/char/README.epca and
+ 			Documentation/digiepca.txt.
  
- 	error = 0;
- 	while (spd.nr_pages < nr_pages) {
-@@ -352,7 +352,7 @@ __generic_file_splice_read(struct file *
- 		page = pages[page_nr];
- 
- 		if (PageReadahead(page))
--			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
-+			page_cache_async_readahead(mapping, &in->f_ra, in,
- 					page, index, req_pages - page_nr);
- 
- 		/*
-diff -puN include/linux/mm.h~readahead-split-ondemand-readahead-interface-into-two-functions include/linux/mm.h
---- a/include/linux/mm.h~readahead-split-ondemand-readahead-interface-into-two-functions
-+++ a/include/linux/mm.h
-@@ -1138,12 +1138,20 @@ int do_page_cache_readahead(struct addre
- 			pgoff_t offset, unsigned long nr_to_read);
- int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
- 			pgoff_t offset, unsigned long nr_to_read);
--unsigned long page_cache_readahead_ondemand(struct address_space *mapping,
--			  struct file_ra_state *ra,
--			  struct file *filp,
--			  struct page *page,
--			  pgoff_t offset,
--			  unsigned long size);
++	disable_mtrr_trim [X86-64, Intel only]
++			By default the kernel will trim any uncacheable
++			memory out of your available memory pool based on
++			MTRR settings.  This parameter disables that behavior,
++			possibly causing your machine to run very slowly.
 +
-+void page_cache_sync_readahead(struct address_space *mapping,
-+			       struct file_ra_state *ra,
-+			       struct file *filp,
-+			       pgoff_t offset,
-+			       unsigned long size);
-+
-+void page_cache_async_readahead(struct address_space *mapping,
-+				struct file_ra_state *ra,
-+				struct file *filp,
-+				struct page *pg,
-+				pgoff_t offset,
-+				unsigned long size);
-+
- unsigned long max_sane_readahead(unsigned long nr);
+ 	dmascc=		[HW,AX25,SERIAL] AX.25 Z80SCC driver with DMA
+ 			support available.
+ 			Format: <io_dev0>[,<io_dev1>[,..<io_dev32>]]
+diff -puN arch/i386/kernel/cpu/mtrr/generic.c~i386-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/generic.c
+--- a/arch/i386/kernel/cpu/mtrr/generic.c~i386-trim-memory-not-covered-by-wb-mtrrs
++++ a/arch/i386/kernel/cpu/mtrr/generic.c
+@@ -13,7 +13,7 @@
+ #include "mtrr.h"
  
- /* Do stack extension */
-diff -puN mm/filemap.c~readahead-split-ondemand-readahead-interface-into-two-functions mm/filemap.c
---- a/mm/filemap.c~readahead-split-ondemand-readahead-interface-into-two-functions
-+++ a/mm/filemap.c
-@@ -894,15 +894,15 @@ void do_generic_mapping_read(struct addr
- find_page:
- 		page = find_get_page(mapping, index);
- 		if (!page) {
--			page_cache_readahead_ondemand(mapping,
--					&ra, filp, page,
-+			page_cache_sync_readahead(mapping,
-+					&ra, filp,
- 					index, last_index - index);
- 			page = find_get_page(mapping, index);
- 			if (unlikely(page == NULL))
- 				goto no_cached_page;
- 		}
- 		if (PageReadahead(page)) {
--			page_cache_readahead_ondemand(mapping,
-+			page_cache_async_readahead(mapping,
- 					&ra, filp, page,
- 					index, last_index - index);
- 		}
-@@ -1348,14 +1348,14 @@ retry_find:
- 	 */
- 	if (VM_SequentialReadHint(vma)) {
- 		if (!page) {
--			page_cache_readahead_ondemand(mapping, ra, file, page,
-+			page_cache_sync_readahead(mapping, ra, file,
- 							   vmf->pgoff, 1);
- 			page = find_lock_page(mapping, vmf->pgoff);
- 			if (!page)
- 				goto no_cached_page;
- 		}
- 		if (PageReadahead(page)) {
--			page_cache_readahead_ondemand(mapping, ra, file, page,
-+			page_cache_async_readahead(mapping, ra, file, page,
- 							   vmf->pgoff, 1);
+ struct mtrr_state {
+-	struct mtrr_var_range *var_ranges;
++	struct mtrr_var_range var_ranges[MAX_VAR_RANGES];
+ 	mtrr_type fixed_ranges[NUM_FIXED_RANGES];
+ 	unsigned char enabled;
+ 	unsigned char have_fixed;
+@@ -88,12 +88,6 @@ void __init get_mtrr_state(void)
+ 	if (!num_var_ranges)
+ 		return;
+ 
+-	if (!mtrr_state.var_ranges) {
+-		mtrr_state.var_ranges = kmalloc(num_var_ranges * sizeof (struct mtrr_var_range), 
+-						GFP_KERNEL);
+-		if (!mtrr_state.var_ranges)
+-			return;
+-	} 
+ 	vrs = mtrr_state.var_ranges;
+ 
+ 	rdmsr(MTRRcap_MSR, lo, dummy);
+diff -puN arch/i386/kernel/cpu/mtrr/if.c~i386-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/if.c
+--- a/arch/i386/kernel/cpu/mtrr/if.c~i386-trim-memory-not-covered-by-wb-mtrrs
++++ a/arch/i386/kernel/cpu/mtrr/if.c
+@@ -11,10 +11,6 @@
+ #include <asm/mtrr.h>
+ #include "mtrr.h"
+ 
+-/* RED-PEN: this is accessed without any locking */
+-extern unsigned int *usage_table;
+-
+-
+ #define FILE_FCOUNT(f) (((struct seq_file *)((f)->private_data))->private)
+ 
+ static const char *const mtrr_strings[MTRR_NUM_TYPES] =
+@@ -396,7 +392,7 @@ static int mtrr_seq_show(struct seq_file
+ 	for (i = 0; i < max; i++) {
+ 		mtrr_if->get(i, &base, &size, &type);
+ 		if (size == 0)
+-			usage_table[i] = 0;
++			mtrr_usage_table[i] = 0;
+ 		else {
+ 			if (size < (0x100000 >> PAGE_SHIFT)) {
+ 				/* less than 1MB */
+@@ -410,7 +406,7 @@ static int mtrr_seq_show(struct seq_file
+ 			len += seq_printf(seq, 
+ 				   "reg%02i: base=0x%05lx000 (%4luMB), size=%4lu%cB: %s, count=%d\n",
+ 			     i, base, base >> (20 - PAGE_SHIFT), size, factor,
+-			     mtrr_attrib_to_str(type), usage_table[i]);
++			     mtrr_attrib_to_str(type), mtrr_usage_table[i]);
  		}
  	}
-diff -puN mm/readahead.c~readahead-split-ondemand-readahead-interface-into-two-functions mm/readahead.c
---- a/mm/readahead.c~readahead-split-ondemand-readahead-interface-into-two-functions
-+++ a/mm/readahead.c
-@@ -359,7 +359,7 @@ static unsigned long get_next_ra_size(st
- static unsigned long
- ondemand_readahead(struct address_space *mapping,
- 		   struct file_ra_state *ra, struct file *filp,
--		   struct page *page, pgoff_t offset,
-+		   bool hit_readahead_marker, pgoff_t offset,
- 		   unsigned long req_size)
- {
- 	unsigned long max;	/* max readahead pages */
-@@ -387,7 +387,7 @@ ondemand_readahead(struct address_space 
- 	 * Standalone, small read.
- 	 * Read as is, and do not pollute the readahead state.
- 	 */
--	if (!page && !sequential) {
-+	if (!hit_readahead_marker && !sequential) {
- 		return __do_page_cache_readahead(mapping, filp,
- 						offset, req_size, 0);
+ 	return 0;
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~i386-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~i386-trim-memory-not-covered-by-wb-mtrrs
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -38,8 +38,8 @@
+ #include <linux/cpu.h>
+ #include <linux/mutex.h>
+ 
++#include <asm/e820.h>
+ #include <asm/mtrr.h>
+-
+ #include <asm/uaccess.h>
+ #include <asm/processor.h>
+ #include <asm/msr.h>
+@@ -47,7 +47,7 @@
+ 
+ u32 num_var_ranges = 0;
+ 
+-unsigned int *usage_table;
++unsigned int mtrr_usage_table[MAX_VAR_RANGES];
+ static DEFINE_MUTEX(mtrr_mutex);
+ 
+ u64 size_or_mask, size_and_mask;
+@@ -126,13 +126,8 @@ static void __init init_table(void)
  	}
-@@ -408,7 +408,7 @@ ondemand_readahead(struct address_space 
- 	 * E.g. interleaved reads.
- 	 * Not knowing its readahead pos/size, bet on the minimal possible one.
- 	 */
--	if (page) {
-+	if (hit_readahead_marker) {
- 		ra_index++;
- 		ra_size = min(4 * ra_size, max);
- 	}
-@@ -421,50 +421,71 @@ fill_ra:
+ 
+ 	max = num_var_ranges;
+-	if ((usage_table = kmalloc(max * sizeof *usage_table, GFP_KERNEL))
+-	    == NULL) {
+-		printk(KERN_ERR "mtrr: could not allocate\n");
+-		return;
+-	}
+ 	for (i = 0; i < max; i++)
+-		usage_table[i] = 1;
++		mtrr_usage_table[i] = 1;
  }
+ 
+ struct set_mtrr_data {
+@@ -390,7 +385,7 @@ int mtrr_add_page(unsigned long base, un
+ 			goto out;
+ 		}
+ 		if (increment)
+-			++usage_table[i];
++			++mtrr_usage_table[i];
+ 		error = i;
+ 		goto out;
+ 	}
+@@ -399,12 +394,13 @@ int mtrr_add_page(unsigned long base, un
+ 	if (i >= 0) {
+ 		set_mtrr(i, base, size, type);
+ 		if (likely(replace < 0))
+-			usage_table[i] = 1;
++			mtrr_usage_table[i] = 1;
+ 		else {
+-			usage_table[i] = usage_table[replace] + !!increment;
++			mtrr_usage_table[i] = mtrr_usage_table[replace] +
++				!!increment;
+ 			if (unlikely(replace != i)) {
+ 				set_mtrr(replace, 0, 0, 0);
+-				usage_table[replace] = 0;
++				mtrr_usage_table[replace] = 0;
+ 			}
+ 		}
+ 	} else
+@@ -534,11 +530,11 @@ int mtrr_del_page(int reg, unsigned long
+ 		printk(KERN_WARNING "mtrr: MTRR %d not used\n", reg);
+ 		goto out;
+ 	}
+-	if (usage_table[reg] < 1) {
++	if (mtrr_usage_table[reg] < 1) {
+ 		printk(KERN_WARNING "mtrr: reg: %d has count=0\n", reg);
+ 		goto out;
+ 	}
+-	if (--usage_table[reg] < 1)
++	if (--mtrr_usage_table[reg] < 1)
+ 		set_mtrr(reg, 0, 0, 0);
+ 	error = reg;
+  out:
+@@ -598,16 +594,11 @@ struct mtrr_value {
+ 	unsigned long	lsize;
+ };
+ 
+-static struct mtrr_value * mtrr_state;
++static struct mtrr_value mtrr_state[MAX_VAR_RANGES];
+ 
+ static int mtrr_save(struct sys_device * sysdev, pm_message_t state)
+ {
+ 	int i;
+-	int size = num_var_ranges * sizeof(struct mtrr_value);
+-
+-	mtrr_state = kzalloc(size,GFP_ATOMIC);
+-	if (!mtrr_state)
+-		return -ENOMEM;
+ 
+ 	for (i = 0; i < num_var_ranges; i++) {
+ 		mtrr_if->get(i,
+@@ -629,7 +620,6 @@ static int mtrr_restore(struct sys_devic
+ 				 mtrr_state[i].lsize,
+ 				 mtrr_state[i].ltype);
+ 	}
+-	kfree(mtrr_state);
+ 	return 0;
+ }
+ 
+@@ -640,6 +630,59 @@ static struct sysdev_driver mtrr_sysdev_
+ 	.resume		= mtrr_restore,
+ };
+ 
++static int disable_mtrr_trim;
++
++static int __init disable_mtrr_trim_setup(char *str)
++{
++	disable_mtrr_trim = 1;
++	return 0;
++}
++early_param("disable_mtrr_trim", disable_mtrr_trim_setup);
++
++#ifdef CONFIG_X86_64
++/**
++ * mtrr_trim_uncached_memory - trim RAM not covered by MTRRs
++ *
++ * Some buggy BIOSes don't setup the MTRRs properly for systems with certain
++ * memory configurations.  This routine checks to make sure the MTRRs having
++ * a write back type cover all of the memory the kernel is intending to use.
++ * If not, it'll trim any memory off the end by adjusting end_pfn, removing
++ * it from the kernel's allocation pools, warning the user with an obnoxious
++ * message.
++ */
++void __init mtrr_trim_uncached_memory(void)
++{
++	unsigned long i, base, size, highest_addr = 0, def, dummy;
++	mtrr_type type;
++
++	/* Make sure we only trim uncachable memory on Intel machines */
++	rdmsr(MTRRdefType_MSR, def, dummy);
++	def &= 0xff;
++	if (!is_cpu(INTEL) || disable_mtrr_trim || def != MTRR_TYPE_UNCACHABLE)
++		return;
++
++	/* Find highest cached pfn */
++	for (i = 0; i < num_var_ranges; i++) {
++		mtrr_if->get(i, &base, &size, &type);
++		if (type != MTRR_TYPE_WRBACK)
++			continue;
++		base <<= PAGE_SHIFT;
++		size <<= PAGE_SHIFT;
++		if (highest_addr < base + size)
++			highest_addr = base + size;
++	}
++
++	if ((highest_addr >> PAGE_SHIFT) < end_pfn) {
++		printk(KERN_WARNING "***************\n");
++		printk(KERN_WARNING "**** WARNING: likely BIOS bug\n");
++		printk(KERN_WARNING "**** MTRRs don't cover all of "
++		       "memory, trimmed %ld pages\n", end_pfn -
++		       (highest_addr >> PAGE_SHIFT));
++		printk(KERN_WARNING "***************\n");
++		end_pfn = highest_addr >> PAGE_SHIFT;
++	}
++}
++#endif
  
  /**
-- * page_cache_readahead_ondemand - generic file readahead
-+ * page_cache_sync_readahead - generic file readahead
-  * @mapping: address_space which holds the pagecache and I/O vectors
-  * @ra: file_ra_state which holds the readahead state
-  * @filp: passed on to ->readpage() and ->readpages()
-- * @page: the page at @offset, or NULL if non-present
-- * @offset: start offset into @mapping, in PAGE_CACHE_SIZE units
-+ * @offset: start offset into @mapping, in pagecache page-sized units
-  * @req_size: hint: total size of the read which the caller is performing in
-- *            PAGE_CACHE_SIZE units
-+ *            pagecache pages
-  *
-- * page_cache_readahead_ondemand() is the entry point of readahead logic.
-- * This function should be called when it is time to perform readahead:
-- * 1) @page == NULL
-- *    A cache miss happened, time for synchronous readahead.
-- * 2) @page != NULL && PageReadahead(@page)
-- *    A look-ahead hit occured, time for asynchronous readahead.
-+ * page_cache_sync_readahead() should be called when a cache miss happened:
-+ * it will submit the read.  The readahead logic may decide to piggyback more
-+ * pages onto the read request if access patterns suggest it will improve
-+ * performance.
-  */
--unsigned long
--page_cache_readahead_ondemand(struct address_space *mapping,
--				struct file_ra_state *ra, struct file *filp,
--				struct page *page, pgoff_t offset,
--				unsigned long req_size)
-+void page_cache_sync_readahead(struct address_space *mapping,
-+			       struct file_ra_state *ra, struct file *filp,
-+			       pgoff_t offset, unsigned long req_size)
+  * mtrr_bp_init - initialize mtrrs on the boot CPU
+diff -puN arch/i386/kernel/cpu/mtrr/mtrr.h~i386-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/mtrr.h
+--- a/arch/i386/kernel/cpu/mtrr/mtrr.h~i386-trim-memory-not-covered-by-wb-mtrrs
++++ a/arch/i386/kernel/cpu/mtrr/mtrr.h
+@@ -14,6 +14,7 @@
+ #define MTRRphysMask_MSR(reg) (0x200 + 2 * (reg) + 1)
+ 
+ #define NUM_FIXED_RANGES 88
++#define MAX_VAR_RANGES 256
+ #define MTRRfix64K_00000_MSR 0x250
+ #define MTRRfix16K_80000_MSR 0x258
+ #define MTRRfix16K_A0000_MSR 0x259
+@@ -34,6 +35,8 @@
+    an 8 bit field: */
+ typedef u8 mtrr_type;
+ 
++extern unsigned int mtrr_usage_table[MAX_VAR_RANGES];
++
+ struct mtrr_ops {
+ 	u32	vendor;
+ 	u32	use_intel_if;
+diff -puN arch/x86_64/kernel/bugs.c~i386-trim-memory-not-covered-by-wb-mtrrs arch/x86_64/kernel/bugs.c
+--- a/arch/x86_64/kernel/bugs.c~i386-trim-memory-not-covered-by-wb-mtrrs
++++ a/arch/x86_64/kernel/bugs.c
+@@ -14,7 +14,6 @@
+ void __init check_bugs(void)
  {
- 	/* no read-ahead */
- 	if (!ra->ra_pages)
--		return 0;
-+		return;
+ 	identify_cpu(&boot_cpu_data);
+-	mtrr_bp_init();
+ #if !defined(CONFIG_SMP)
+ 	printk("CPU: ");
+ 	print_cpu_info(&boot_cpu_data);
+diff -puN arch/x86_64/kernel/setup.c~i386-trim-memory-not-covered-by-wb-mtrrs arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~i386-trim-memory-not-covered-by-wb-mtrrs
++++ a/arch/x86_64/kernel/setup.c
+@@ -266,6 +266,10 @@ void __init setup_arch(char **cmdline_p)
+ 	 * we are rounding upwards:
+ 	 */
+ 	end_pfn = e820_end_of_ram();
++	/* Trim memory not covered by WB MTRRs */
++	mtrr_bp_init();
++	mtrr_trim_uncached_memory();
++
+ 	num_physpages = end_pfn;
  
--	if (page) {
--		/*
--		 * It can be PG_reclaim.
--		 */
--		if (PageWriteback(page))
--			return 0;
--
--		ClearPageReadahead(page);
--
--		/*
--		 * Defer asynchronous read-ahead on IO congestion.
--		 */
--		if (bdi_read_congested(mapping->backing_dev_info))
--			return 0;
--	}
-+	/* do read-ahead */
-+	ondemand_readahead(mapping, ra, filp, false, offset, req_size);
-+}
-+EXPORT_SYMBOL_GPL(page_cache_sync_readahead);
-+
-+/**
-+ * page_cache_async_readahead - file readahead for marked pages
-+ * @mapping: address_space which holds the pagecache and I/O vectors
-+ * @ra: file_ra_state which holds the readahead state
-+ * @filp: passed on to ->readpage() and ->readpages()
-+ * @page: the page at @offset which has the PG_readahead flag set
-+ * @offset: start offset into @mapping, in pagecache page-sized units
-+ * @req_size: hint: total size of the read which the caller is performing in
-+ *            pagecache pages
-+ *
-+ * page_cache_async_ondemand() should be called when a page is used which
-+ * has the PG_readahead flag: this is a marker to suggest that the application
-+ * has used up enough of the readahead window that we should start pulling in
-+ * more pages. */
-+void
-+page_cache_async_readahead(struct address_space *mapping,
-+			   struct file_ra_state *ra, struct file *filp,
-+			   struct page *page, pgoff_t offset,
-+			   unsigned long req_size)
-+{
-+	/* no read-ahead */
-+	if (!ra->ra_pages)
-+		return;
-+
-+	/*
-+	 * Same bit is used for PG_readahead and PG_reclaim.
-+	 */
-+	if (PageWriteback(page))
-+		return;
-+
-+	ClearPageReadahead(page);
-+
-+	/*
-+	 * Defer asynchronous read-ahead on IO congestion.
-+	 */
-+	if (bdi_read_congested(mapping->backing_dev_info))
-+		return;
- 
- 	/* do read-ahead */
--	return ondemand_readahead(mapping, ra, filp, page,
--					offset, req_size);
-+	ondemand_readahead(mapping, ra, filp, true, offset, req_size);
+ 	check_efer();
+diff -puN include/asm-x86_64/mtrr.h~i386-trim-memory-not-covered-by-wb-mtrrs include/asm-x86_64/mtrr.h
+--- a/include/asm-x86_64/mtrr.h~i386-trim-memory-not-covered-by-wb-mtrrs
++++ a/include/asm-x86_64/mtrr.h
+@@ -78,6 +78,7 @@ extern int mtrr_add_page (unsigned long 
+ 		     unsigned int type, char increment);
+ extern int mtrr_del (int reg, unsigned long base, unsigned long size);
+ extern int mtrr_del_page (int reg, unsigned long base, unsigned long size);
++extern void mtrr_trim_uncached_memory(void);
+ #  else
+ static __inline__ int mtrr_add (unsigned long base, unsigned long size,
+ 				unsigned int type, char increment)
+@@ -99,7 +100,9 @@ static __inline__ int mtrr_del_page (int
+ {
+     return -ENODEV;
  }
--EXPORT_SYMBOL_GPL(page_cache_readahead_ondemand);
-+EXPORT_SYMBOL_GPL(page_cache_async_readahead);
+-
++static __inline__ void mtrr_trim_uncached_memory(void)
++{
++}
+ #endif /* CONFIG_MTRR */
+ 
+ #ifdef CONFIG_COMPAT
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from jesse.barnes@intel.com are
 
 origin.patch
-git-kbuild.patch
-git-kvm.patch
-lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+pci-disable-decode-of-io-memory-during-bar-sizing.patch
