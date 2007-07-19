@@ -1,100 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-add-periodic-irq-support-to-rtc-cmos.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:04:46 -0700
-Message-ID: <200707192004.l6JK4kf2019979@imap1.linux-foundation.org>
+Subject: - readahead-move-synchronous-readahead-call-out-of-splice-loop.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:01:23 -0700
+Message-ID: <200707192001.l6JK1NM9019531@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40336 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44258 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932941AbXGSU0q (ORCPT
+	by vger.kernel.org with ESMTP id S933067AbXGSU0w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:26:46 -0400
+	Thu, 19 Jul 2007 16:26:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alessandro.zummo@towertech.it, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, jens.axboe@oracle.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     RTC: add periodic irq support to rtc-cmos
+     readahead: move synchronous readahead call out of splice loop
 has been removed from the -mm tree.  Its filename was
-     rtc-add-periodic-irq-support-to-rtc-cmos.patch
+     readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: RTC: add periodic irq support to rtc-cmos
-From: Alessandro Zummo <alessandro.zummo@towertech.it>
+Subject: readahead: move synchronous readahead call out of splice loop
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Adds support for periodic irq enabling in rtc-cmos.  This could be used by
-the ALSA driver and is already being tested with the zaptel ztdummy module.
+Move synchronous page_cache_readahead_ondemand() call out of splice loop.
 
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+This avoids one pointless page allocation/insertion in case of non-zero
+ra_pages, or many pointless readahead calls in case of zero ra_pages.
+
+Note that if a user sets ra_pages to less than PIPE_BUFFERS=16 pages, he will
+not get expected readahead behavior anyway.  The splice code works in batches
+of 16 pages, which can be taken as another form of synchronous readahead.
+
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |   33 +++++++++++++++++++++++++++++++--
- 1 file changed, 31 insertions(+), 2 deletions(-)
+ fs/splice.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-add-periodic-irq-support-to-rtc-cmos drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-add-periodic-irq-support-to-rtc-cmos
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -235,7 +235,7 @@ static int cmos_set_alarm(struct device 
- 	return 0;
- }
+diff -puN fs/splice.c~readahead-move-synchronous-readahead-call-out-of-splice-loop fs/splice.c
+--- a/fs/splice.c~readahead-move-synchronous-readahead-call-out-of-splice-loop
++++ a/fs/splice.c
+@@ -290,13 +290,17 @@ __generic_file_splice_read(struct file *
+ 	 * Lookup the (hopefully) full range of pages we need.
+ 	 */
+ 	spd.nr_pages = find_get_pages_contig(mapping, index, nr_pages, pages);
++	index += spd.nr_pages;
  
--static int cmos_set_freq(struct device *dev, int freq)
-+static int cmos_irq_set_freq(struct device *dev, int freq)
- {
- 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
- 	int		f;
-@@ -259,6 +259,34 @@ static int cmos_set_freq(struct device *
- 	return 0;
- }
- 
-+static int cmos_irq_set_state(struct device *dev, int enabled)
-+{
-+	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
-+	unsigned char	rtc_control, rtc_intr;
-+	unsigned long	flags;
+ 	/*
+ 	 * If find_get_pages_contig() returned fewer pages than we needed,
+-	 * allocate the rest and fill in the holes.
++	 * readahead/allocate the rest and fill in the holes.
+ 	 */
++	if (spd.nr_pages < nr_pages)
++		page_cache_readahead_ondemand(mapping, &in->f_ra, in,
++				NULL, index, nr_pages - spd.nr_pages);
 +
-+	if (!is_valid_irq(cmos->irq))
-+		return -ENXIO;
-+
-+	spin_lock_irqsave(&rtc_lock, flags);
-+	rtc_control = CMOS_READ(RTC_CONTROL);
-+
-+	if (enabled)
-+		rtc_control |= RTC_PIE;
-+	else
-+		rtc_control &= ~RTC_PIE;
-+
-+	CMOS_WRITE(rtc_control, RTC_CONTROL);
-+
-+	rtc_intr = CMOS_READ(RTC_INTR_FLAGS);
-+	rtc_intr &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
-+	if (is_intr(rtc_intr))
-+		rtc_update_irq(cmos->rtc, 1, rtc_intr);
-+
-+	spin_unlock_irqrestore(&rtc_lock, flags);
-+	return 0;
-+}
-+
- #if defined(CONFIG_RTC_INTF_DEV) || defined(CONFIG_RTC_INTF_DEV_MODULE)
- 
- static int
-@@ -360,7 +388,8 @@ static const struct rtc_class_ops cmos_r
- 	.read_alarm	= cmos_read_alarm,
- 	.set_alarm	= cmos_set_alarm,
- 	.proc		= cmos_procfs,
--	.irq_set_freq	= cmos_set_freq,
-+	.irq_set_freq	= cmos_irq_set_freq,
-+	.irq_set_state	= cmos_irq_set_state,
- };
- 
- /*----------------------------------------------------------------*/
+ 	error = 0;
+-	index += spd.nr_pages;
+ 	while (spd.nr_pages < nr_pages) {
+ 		/*
+ 		 * Page could be there, find_get_pages_contig() breaks on
+@@ -304,9 +308,6 @@ __generic_file_splice_read(struct file *
+ 		 */
+ 		page = find_get_page(mapping, index);
+ 		if (!page) {
+-			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
+-					NULL, index, nr_pages - spd.nr_pages);
+-
+ 			/*
+ 			 * page didn't exist, allocate one.
+ 			 */
 _
 
-Patches currently in -mm which might be from alessandro.zummo@towertech.it are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
