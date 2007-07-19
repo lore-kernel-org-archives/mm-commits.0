@@ -1,65 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-ecryptfs_setattr-bugfix.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:00:57 -0700
-Message-ID: <200707192000.l6JK0vj2019490@imap1.linux-foundation.org>
+Subject: - add-posix-clocks-and-timers-maintainer.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:30 -0700
+Message-ID: <200707192002.l6JK2Us3019675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35740 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41723 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761406AbXGSUSB (ORCPT
+	by vger.kernel.org with ESMTP id S1755357AbXGSUSI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:18:01 -0400
+	Thu, 19 Jul 2007 16:18:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: ecryptfs_setattr() bugfix
+     add POSIX clocks and timers maintainer
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-ecryptfs_setattr-bugfix.patch
+     add-posix-clocks-and-timers-maintainer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: ecryptfs_setattr() bugfix
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: add POSIX clocks and timers maintainer
+From: Ingo Molnar <mingo@elte.hu>
 
-There is another bug recently introduced into the ecryptfs_setattr()
-function in 2.6.22.  eCryptfs will attempt to treat special files like
-regular eCryptfs files on chmod, chown, and so forth.  This leads to a NULL
-pointer dereference.  This patch validates that the file is a regular file
-before proceeding with operations related to the inode's crypt_stat.
+Update the MAINTAINERS file: Thomas Gleixner has been the de-facto
+maintainer of POSIX timers and clocks for quite some time.
 
-Thanks to Ryusuke Konishi for finding this bug and suggesting the fix.
-
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-ecryptfs_setattr-bugfix fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-ecryptfs_setattr-bugfix
-+++ a/fs/ecryptfs/inode.c
-@@ -902,8 +902,9 @@ static int ecryptfs_setattr(struct dentr
- 	mutex_lock(&crypt_stat->cs_mutex);
- 	if (S_ISDIR(dentry->d_inode->i_mode))
- 		crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
--	else if (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
--		 || !(crypt_stat->flags & ECRYPTFS_KEY_VALID)) {
-+	else if (S_ISREG(dentry->d_inode->i_mode)
-+		 && (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
-+		     || !(crypt_stat->flags & ECRYPTFS_KEY_VALID))) {
- 		struct vfsmount *lower_mnt;
- 		struct file *lower_file = NULL;
- 		struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
+diff -puN MAINTAINERS~add-posix-clocks-and-timers-maintainer MAINTAINERS
+--- a/MAINTAINERS~add-posix-clocks-and-timers-maintainer
++++ a/MAINTAINERS
+@@ -2857,8 +2857,8 @@ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ 
+ POSIX CLOCKS and TIMERS
+-P:	George Anzinger
+-M:	george@mvista.com
++P:	Thomas Gleixner
++M:	tglx@linutronix.de
+ L:	linux-kernel@vger.kernel.org
+ S:	Supported
+ 
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-git-unionfs.patch
-fs-remove-some-aop_truncated_page.patch
+git-acpi.patch
+git-kvm.patch
+git-sched.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+tick-management-spread-timer-interrupt.patch
+highres-improve-debug-output.patch
+hrtimer-speedup-hrtimer_enqueue.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
+acpi-remove-the-useless-ifdef-code.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+geode-mfgpt-clock-event-device-support.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+sys_time-use-barrier-instead-of-smp_rmb.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+softlockup-improve-debug-output.patch
+softlockup-watchdog-style-cleanups.patch
+futex-pass-nr_wake2-to-futex_wake_op.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
