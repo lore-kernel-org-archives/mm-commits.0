@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-mpsc-stop-rx-engine-when-cread-cleared.patch added to -mm tree
-Date: Thu, 19 Jul 2007 14:41:22 -0700
-Message-ID: <200707192141.l6JLfMBO024468@imap1.linux-foundation.org>
+Subject: + serial-mpsc-remove-race-between-rx-stop-restart.patch added to -mm tree
+Date: Thu, 19 Jul 2007 14:41:20 -0700
+Message-ID: <200707192141.l6JLfKlv024465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35799 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52204 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757247AbXGSVmb (ORCPT
+	by vger.kernel.org with ESMTP id S1757624AbXGSVmc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 17:42:31 -0400
+	Thu, 19 Jul 2007 17:42:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stephane@artesyncp.com, mgreer@mvista.com
+Cc: carlos.sanchez@gecoinc.com, mgreer@mvista.com
 
 
 The patch titled
-     serial: MPSC: Stop rx engine when CREAD cleared
+     serial: MPSC: Remove race between Rx stop & restart
 has been added to the -mm tree.  Its filename is
-     serial-mpsc-stop-rx-engine-when-cread-cleared.patch
+     serial-mpsc-remove-race-between-rx-stop-restart.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,54 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: MPSC: Stop rx engine when CREAD cleared
-From: Stephane Chazelas <stephane@artesyncp.com>
+Subject: serial: MPSC: Remove race between Rx stop & restart
+From: Carlos Sanchez <carlos.sanchez@gecoinc.com>
 
-Currently, the MPSC driver doesn't stop recieving characters when the CREAD
-flag in termios->c_cflag is cleared.  It should.  Also, only start receiving
-if its not already started.
+The patch in commit ID f7232056bff5fe2d3bfeab35252a66ebaeb5bbde stops (aborts)
+the MPSC's receive engine just before restarting it.  Unfortunately, it
+doesn't wait for the abort to complete before restarting it which creates a
+race between the abort and the restart.  If the restart occurs first, the
+in-progress abort stops it again and the rx engine remains stopped.
 
-Signed-off-by: Stephane Chazelas <stephane@artesyncp.com>
+Instead, do the abort when the SDMA engine is being stopped.  Make sure to
+wait for the abort to complete before continuing.
+
+Signed-off-by: Carlos Sanchez <carlos.sanchez@gecoinc.com>
 Signed-off-by: Mark A. Greer <mgreer@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/mpsc.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/serial/mpsc.c |   16 ++++++++++++++--
+ 1 files changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/mpsc.c~serial-mpsc-stop-rx-engine-when-cread-cleared drivers/serial/mpsc.c
---- a/drivers/serial/mpsc.c~serial-mpsc-stop-rx-engine-when-cread-cleared
+diff -puN drivers/serial/mpsc.c~serial-mpsc-remove-race-between-rx-stop-restart drivers/serial/mpsc.c
+--- a/drivers/serial/mpsc.c~serial-mpsc-remove-race-between-rx-stop-restart
 +++ a/drivers/serial/mpsc.c
-@@ -1520,7 +1520,6 @@ mpsc_set_termios(struct uart_port *port,
- 	mpsc_set_baudrate(pi, baud);
+@@ -1363,8 +1363,6 @@ mpsc_start_rx(struct mpsc_port_info *pi)
+ {
+ 	pr_debug("mpsc_start_rx[%d]: Starting...\n", pi->port.line);
  
- 	/* Characters/events to read */
--	pi->rcv_data = 1;
- 	pi->port.read_status_mask = SDMA_DESC_CMDSTAT_OR;
+-	/* Issue a Receive Abort to clear any receive errors */
+-	writel(MPSC_CHR_2_RA, pi->mpsc_base + MPSC_CHR_2);
+ 	if (pi->rcv_data) {
+ 		mpsc_enter_hunt(pi);
+ 		mpsc_sdma_cmd(pi, SDMA_SDCM_ERD);
+@@ -1379,6 +1377,20 @@ mpsc_stop_rx(struct uart_port *port)
  
- 	if (termios->c_iflag & INPCK)
-@@ -1544,11 +1543,15 @@ mpsc_set_termios(struct uart_port *port,
- 			pi->port.ignore_status_mask |= SDMA_DESC_CMDSTAT_OR;
- 	}
+ 	pr_debug("mpsc_stop_rx[%d]: Stopping...\n", port->line);
  
--	/* Ignore all chars if CREAD not set */
--	if (!(termios->c_cflag & CREAD))
-+	if ((termios->c_cflag & CREAD)) {
-+		if (!pi->rcv_data) {
-+			pi->rcv_data = 1;
-+			mpsc_start_rx(pi);
-+		}
-+	} else if (pi->rcv_data) {
-+		mpsc_stop_rx(port);
- 		pi->rcv_data = 0;
--	else
--		mpsc_start_rx(pi);
++	if (pi->mirror_regs) {
++		writel(pi->MPSC_CHR_2_m | MPSC_CHR_2_RA,
++				pi->mpsc_base + MPSC_CHR_2);
++		/* Erratum prevents reading CHR_2 so just delay for a while */
++		udelay(100);
 +	}
- 
- 	spin_unlock_irqrestore(&pi->port.lock, flags);
++	else {
++		writel(readl(pi->mpsc_base + MPSC_CHR_2) | MPSC_CHR_2_RA,
++			pi->mpsc_base + MPSC_CHR_2);
++
++		while (readl(pi->mpsc_base + MPSC_CHR_2) & MPSC_CHR_2_RA)
++			udelay(10);
++	}
++
+ 	mpsc_sdma_cmd(pi, SDMA_SDCM_AR);
  	return;
+ }
 _
 
-Patches currently in -mm which might be from stephane@artesyncp.com are
+Patches currently in -mm which might be from carlos.sanchez@gecoinc.com are
 
-serial-mpsc-stop-rx-engine-when-cread-cleared.patch
+serial-mpsc-remove-race-between-rx-stop-restart.patch
