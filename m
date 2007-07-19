@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-spufs-build-after-fault-changes.patch added to -mm tree
-Date: Thu, 19 Jul 2007 11:02:19 -0700
-Message-ID: <200707191802.l6JI2K7v014657@imap1.linux-foundation.org>
+Subject: + xen-disable-vdso-nosegneg-on-native-boot.patch added to -mm tree
+Date: Thu, 19 Jul 2007 11:53:23 -0700
+Message-ID: <200707191853.l6JIrPkj016722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33259 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36841 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937590AbXGSSCj (ORCPT
+	by vger.kernel.org with ESMTP id S1754420AbXGSSyi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 14:02:39 -0400
+	Thu, 19 Jul 2007 14:54:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, arnd@arndb.de
+Cc: roland@redhat.com, ak@suse.de, jeremy@xensource.com
 
 
 The patch titled
-     fix spufs build after ->fault changes
+     xen: disable vdso "nosegneg" on native boot
 has been added to the -mm tree.  Its filename is
-     fix-spufs-build-after-fault-changes.patch
+     xen-disable-vdso-nosegneg-on-native-boot.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,101 +26,138 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix spufs build after ->fault changes
-From: Christoph Hellwig <hch@lst.de>
+Subject: xen: disable vdso "nosegneg" on native boot
+From: Roland McGrath <roland@redhat.com>
 
-83c54070ee1a2d05c89793884bea1a03f2851ed4 broke spufs by incorrectly
-updating the code, this patch gets it to compile again.
+One of the nice ideas behind paravirt is that CONFIG_XEN=y can be included
+in a standard configuration and be no worse for native booting than as a
+Xen guest.  The glibc feature that supports the vDSO "nosegneg" note is
+designed specifically to make this easy.  You just have to flip one bit at
+boot time.  This patch makes Xen flip the bit, so a CONFIG_XEN=y kernel on
+bare hardware does not make glibc use the less-optimized library builds.
 
-It's probably still broken due to the scheduler changes, but this
-at least makes sure cell kernels can still be built.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Acked-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/fault.c |   22 ++++++++++----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ arch/i386/boot/compressed/relocs.c |    1 +
+ arch/i386/kernel/vsyscall-note.S   |   15 +++++++++------
+ arch/i386/xen/setup.c              |   15 +++++++++++++++
+ arch/i386/xen/vdso.h               |    4 ++++
+ 4 files changed, 29 insertions(+), 6 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/spufs/fault.c~fix-spufs-build-after-fault-changes arch/powerpc/platforms/cell/spufs/fault.c
---- a/arch/powerpc/platforms/cell/spufs/fault.c~fix-spufs-build-after-fault-changes
-+++ a/arch/powerpc/platforms/cell/spufs/fault.c
-@@ -74,18 +74,18 @@ good_area:
- 			goto bad_area;
- 	}
- 	ret = 0;
--	fault = handle_mm_fault(mm, vma, ea, is_write);
--	if (unlikely(fault & VM_FAULT_ERROR)) {
--		if (fault & VM_FAULT_OOM) {
-+	*flt = handle_mm_fault(mm, vma, ea, is_write);
-+	if (unlikely(*flt & VM_FAULT_ERROR)) {
-+		if (*flt & VM_FAULT_OOM) {
- 			ret = -ENOMEM;
- 			goto bad_area;
--		} else if (fault & VM_FAULT_SIGBUS) {
-+		} else if (*flt & VM_FAULT_SIGBUS) {
- 			ret = -EFAULT;
- 			goto bad_area;
- 		}
- 		BUG();
- 	}
--	if (fault & VM_FAULT_MAJOR)
-+	if (*flt & VM_FAULT_MAJOR)
- 		current->maj_flt++;
- 	else
- 		current->min_flt++;
-@@ -210,15 +210,15 @@ int spufs_handle_class1(struct spu_conte
- 	 * In case of unhandled error report the problem to user space.
- 	 */
- 	if (!ret) {
--		if (flt == VM_FAULT_MINOR)
--			ctx->stats.min_flt++;
--		else
-+		if (flt & VM_FAULT_MAJOR)
- 			ctx->stats.maj_flt++;
-+		else
-+			ctx->stats.min_flt++;
- 		if (ctx->state == SPU_STATE_RUNNABLE) {
--			if (flt == VM_FAULT_MINOR)
--				ctx->spu->stats.min_flt++;
--			else
-+			if (flt & VM_FAULT_MAJOR)
- 				ctx->spu->stats.maj_flt++;
-+			else
-+				ctx->spu->stats.min_flt++;
- 		}
+diff -puN arch/i386/boot/compressed/relocs.c~xen-disable-vdso-nosegneg-on-native-boot arch/i386/boot/compressed/relocs.c
+--- a/arch/i386/boot/compressed/relocs.c~xen-disable-vdso-nosegneg-on-native-boot
++++ a/arch/i386/boot/compressed/relocs.c
+@@ -31,6 +31,7 @@ static const char* safe_abs_relocs[] = {
+ 		"__kernel_rt_sigreturn",
+ 		"__kernel_sigreturn",
+ 		"SYSENTER_RETURN",
++		"VDSO_NOTE_MASK",
+ 		"xen_irq_disable_direct_reloc",
+ 		"xen_save_fl_direct_reloc",
+ };
+diff -puN arch/i386/kernel/vsyscall-note.S~xen-disable-vdso-nosegneg-on-native-boot arch/i386/kernel/vsyscall-note.S
+--- a/arch/i386/kernel/vsyscall-note.S~xen-disable-vdso-nosegneg-on-native-boot
++++ a/arch/i386/kernel/vsyscall-note.S
+@@ -14,7 +14,6 @@ ELFNOTE_START(Linux, 0, "a")
+ ELFNOTE_END
  
- 		if (ctx->spu)
+ #ifdef CONFIG_XEN
+-
+ /*
+  * Add a special note telling glibc's dynamic linker a fake hardware
+  * flavor that it will use to choose the search path for libraries in the
+@@ -28,15 +27,19 @@ ELFNOTE_END
+  * It should contain:
+  *	hwcap 1 nosegneg
+  * to match the mapping of bit to name that we give here.
++ *
++ * At runtime, the fake hardware feature will be considered to be present
++ * if its bit is set in the mask word.  So, we start with the mask 0, and
++ * at boot time we set VDSO_NOTE_NONEGSEG_BIT if running under Xen.
+  */
+ 
+-/* Bit used for the pseudo-hwcap for non-negative segments.  We use
+-   bit 1 to avoid bugs in some versions of glibc when bit 0 is
+-   used; the choice is otherwise arbitrary. */
+-#define VDSO_NOTE_NONEGSEG_BIT	1
++#include "../xen/vdso.h"	/* Defines VDSO_NOTE_NONEGSEG_BIT.  */
+ 
++	.globl VDSO_NOTE_MASK
+ ELFNOTE_START(GNU, 2, "a")
+-	.long 1, 1<<VDSO_NOTE_NONEGSEG_BIT		/* ncaps, mask */
++	.long 1			/* ncaps */
++VDSO_NOTE_MASK:
++	.long 0			/* mask */
+ 	.byte VDSO_NOTE_NONEGSEG_BIT; .asciz "nosegneg"	/* bit, name */
+ ELFNOTE_END
+ #endif
+diff -puN arch/i386/xen/setup.c~xen-disable-vdso-nosegneg-on-native-boot arch/i386/xen/setup.c
+--- a/arch/i386/xen/setup.c~xen-disable-vdso-nosegneg-on-native-boot
++++ a/arch/i386/xen/setup.c
+@@ -19,6 +19,7 @@
+ #include <xen/features.h>
+ 
+ #include "xen-ops.h"
++#include "vdso.h"
+ 
+ /* These are code, but not functions.  Defined in entry.S */
+ extern const char xen_hypervisor_callback[];
+@@ -55,6 +56,18 @@ static void xen_idle(void)
+ 	}
+ }
+ 
++/*
++ * Set the bit indicating "nosegneg" library variants should be used.
++ */
++static void fiddle_vdso(void)
++{
++	extern u32 VDSO_NOTE_MASK; /* See ../kernel/vsyscall-note.S.  */
++	extern char vsyscall_int80_start;
++	u32 *mask = (u32 *) ((unsigned long) &VDSO_NOTE_MASK - VDSO_PRELINK +
++			     &vsyscall_int80_start);
++	*mask |= 1 << VDSO_NOTE_NONEGSEG_BIT;
++}
++
+ void __init xen_arch_setup(void)
+ {
+ 	struct physdev_set_iopl set_iopl;
+@@ -93,4 +106,6 @@ void __init xen_arch_setup(void)
+ #endif
+ 
+ 	paravirt_disable_iospace();
++
++	fiddle_vdso();
+ }
+diff -puN /dev/null arch/i386/xen/vdso.h
+--- /dev/null
++++ a/arch/i386/xen/vdso.h
+@@ -0,0 +1,4 @@
++/* Bit used for the pseudo-hwcap for non-negative segments.  We use
++   bit 1 to avoid bugs in some versions of glibc when bit 0 is
++   used; the choice is otherwise arbitrary. */
++#define VDSO_NOTE_NONEGSEG_BIT	1
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-fix-spufs-build-after-fault-changes.patch
-fs-introduce-vfs_path_lookup.patch
-sunrpc-use-vfs_path_lookup.patch
-nfsctl-use-vfs_path_lookup.patch
-fs-mark-link_path_walk-static.patch
-fs-remove-path_walk-export.patch
-git-dvb.patch
+i386-put-allocated-elf-notes-in-read-only-data-segment.patch
+x86_64-put-allocated-elf-notes-in-read-only-data-segment.patch
+alpha-put-allocated-elf-notes-in-read-only-data-segment.patch
+powerpc-put-allocated-elf-notes-in-read-only-data-segment.patch
+s390-put-allocated-elf-notes-in-read-only-data-segment.patch
+add-sys-kernel-notes.patch
+use-build-id-ld-option.patch
+xen-disable-vdso-nosegneg-on-native-boot.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
 git-ubi.patch
-gdth-remove-redundant-pci-stuff.patch
-gdth-remove-redundant-pci-stuff-update.patch
-git-xfs.patch
-sysv-convert-to-new-aops.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
+make-alt-sysrq-p-display-the-debug-register-contents.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
