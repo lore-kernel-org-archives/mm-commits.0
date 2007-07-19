@@ -1,205 +1,375 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-core-make-functions-static.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:05:13 -0700
-Message-ID: <200707192005.l6JK5DPB020026@imap1.linux-foundation.org>
+Subject: - drivers-edac-drivers-to-use-new-pci-operation.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:06:33 -0700
+Message-ID: <200707192006.l6JK6XN6020147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50159 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47502 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757450AbXGSUPm (ORCPT
+	by vger.kernel.org with ESMTP id S1759751AbXGSUPr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:42 -0400
+	Thu, 19 Jul 2007 16:15:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, norsk5@xmission.com, mm-commits@vger.kernel.org
+To: djiang@mvista.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: core: make functions static
+     drivers/edac: drivers to use new PCI operation
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-core-make-functions-static.patch
+     drivers-edac-drivers-to-use-new-pci-operation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: core: make functions static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: drivers/edac: drivers to use new PCI operation
+From: Dave Jiang <djiang@mvista.com>
 
-This patch makes needlessly global code static, in the edac core
+Move x86 drivers to new pci controller setup
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Doug Thompson <norsk5@xmission.com>
+Signed-off-by: Dave Jiang <djiang@mvista.com>
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_mc.c |   25 +++++++++++--------------
- drivers/edac/edac_mc.h |    8 --------
- 2 files changed, 11 insertions(+), 22 deletions(-)
+ drivers/edac/amd76x_edac.c     |   16 ++++++++++++++++
+ drivers/edac/e7xxx_edac.c      |   16 ++++++++++++++++
+ drivers/edac/i3000_edac.c      |   15 +++++++++++++++
+ drivers/edac/i5000_edac.c      |   17 +++++++++++++++++
+ drivers/edac/i82443bxgx_edac.c |   16 ++++++++++++++++
+ drivers/edac/i82860_edac.c     |   15 +++++++++++++++
+ drivers/edac/i82875p_edac.c    |   16 ++++++++++++++++
+ drivers/edac/r82600_edac.c     |   16 ++++++++++++++++
+ 8 files changed, 127 insertions(+)
 
-diff -puN drivers/edac/edac_mc.c~drivers-edac-core-make-functions-static drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~drivers-edac-core-make-functions-static
-+++ a/drivers/edac/edac_mc.c
-@@ -178,7 +178,7 @@ static struct sysfs_ops memctrlfs_ops = 
+diff -puN drivers/edac/amd76x_edac.c~drivers-edac-drivers-to-use-new-pci-operation drivers/edac/amd76x_edac.c
+--- a/drivers/edac/amd76x_edac.c~drivers-edac-drivers-to-use-new-pci-operation
++++ a/drivers/edac/amd76x_edac.c
+@@ -91,6 +91,8 @@ static const struct amd76x_dev_info amd7
+ 		    .ctl_name = "AMD762"},
  };
  
- #define MEMCTRL_ATTR(_name,_mode,_show,_store)			\
--struct memctrl_dev_attribute attr_##_name = {			\
-+static struct memctrl_dev_attribute attr_##_name = {			\
- 	.attr = {.name = __stringify(_name), .mode = _mode },	\
- 	.value  = &_name,					\
- 	.show   = _show,					\
-@@ -186,7 +186,7 @@ struct memctrl_dev_attribute attr_##_nam
++static struct edac_pci_ctl_info *amd76x_pci;
++
+ /**
+  *	amd76x_get_error_info	-	fetch error information
+  *	@mci: Memory controller
+@@ -266,6 +268,17 @@ static int amd76x_probe1(struct pci_dev 
+ 		goto fail;
+ 	}
+ 
++	/* allocating generic PCI control info */
++	amd76x_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
++	if (!amd76x_pci) {
++		printk(KERN_WARNING
++			"%s(): Unable to create PCI control\n",
++			__func__);
++		printk(KERN_WARNING
++			"%s(): PCI error report via EDAC not setup\n",
++			__func__);
++	}
++
+ 	/* get this far and it's successful */
+ 	debugf3("%s(): success\n", __func__);
+ 	return 0;
+@@ -299,6 +312,9 @@ static void __devexit amd76x_remove_one(
+ 
+ 	debugf0("%s()\n", __func__);
+ 
++	if (amd76x_pci)
++		edac_pci_release_generic_ctl(amd76x_pci);
++
+ 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+ 		return;
+ 
+diff -puN drivers/edac/e7xxx_edac.c~drivers-edac-drivers-to-use-new-pci-operation drivers/edac/e7xxx_edac.c
+--- a/drivers/edac/e7xxx_edac.c~drivers-edac-drivers-to-use-new-pci-operation
++++ a/drivers/edac/e7xxx_edac.c
+@@ -144,6 +144,8 @@ struct e7xxx_error_info {
+ 	u32 dram_uelog_add;
  };
  
- #define MEMCTRL_STRING_ATTR(_name,_data,_mode,_show,_store)	\
--struct memctrl_dev_attribute attr_##_name = {			\
-+static struct memctrl_dev_attribute attr_##_name = {			\
- 	.attr = {.name = __stringify(_name), .mode = _mode },	\
- 	.value  = _data,					\
- 	.show   = _show,					\
-@@ -343,7 +343,7 @@ static struct sysfs_ops edac_pci_sysfs_o
++static struct edac_pci_ctl_info *e7xxx_pci;
++
+ static const struct e7xxx_dev_info e7xxx_devs[] = {
+ 	[E7500] = {
+ 		   .err_dev = PCI_DEVICE_ID_INTEL_7500_1_ERR,
+@@ -481,6 +483,17 @@ static int e7xxx_probe1(struct pci_dev *
+ 		goto fail1;
+ 	}
+ 
++	/* allocating generic PCI control info */
++	e7xxx_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
++	if (!e7xxx_pci) {
++		printk(KERN_WARNING
++			"%s(): Unable to create PCI control\n",
++			__func__);
++		printk(KERN_WARNING
++			"%s(): PCI error report via EDAC not setup\n",
++			__func__);
++	}
++
+ 	/* get this far and it's successful */
+ 	debugf3("%s(): success\n", __func__);
+ 	return 0;
+@@ -512,6 +525,9 @@ static void __devexit e7xxx_remove_one(s
+ 
+ 	debugf0("%s()\n", __func__);
+ 
++	if (e7xxx_pci)
++		edac_pci_release_generic_ctl(e7xxx_pci);
++
+ 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+ 		return;
+ 
+diff -puN drivers/edac/i3000_edac.c~drivers-edac-drivers-to-use-new-pci-operation drivers/edac/i3000_edac.c
+--- a/drivers/edac/i3000_edac.c~drivers-edac-drivers-to-use-new-pci-operation
++++ a/drivers/edac/i3000_edac.c
+@@ -153,6 +153,7 @@ static const struct i3000_dev_info i3000
+ 
+ static struct pci_dev *mci_pdev = NULL;
+ static int i3000_registered = 1;
++static struct edac_pci_ctl_info *i3000_pci;
+ 
+ static void i3000_get_error_info(struct mem_ctl_info *mci,
+ 				 struct i3000_error_info *info)
+@@ -373,6 +374,17 @@ static int i3000_probe1(struct pci_dev *
+ 		goto fail;
+ 	}
+ 
++	/* allocating generic PCI control info */
++	i3000_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
++	if (!i3000_pci) {
++		printk(KERN_WARNING
++			"%s(): Unable to create PCI control\n",
++			__func__);
++		printk(KERN_WARNING
++			"%s(): PCI error report via EDAC not setup\n",
++			__func__);
++	}
++
+ 	/* get this far and it's successful */
+ 	debugf3("MC: %s(): success\n", __func__);
+ 	return 0;
+@@ -408,6 +420,9 @@ static void __devexit i3000_remove_one(s
+ 
+ 	debugf0("%s()\n", __func__);
+ 
++	if (i3000_pci)
++		edac_pci_release_generic_ctl(i3000_pci);
++
+ 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+ 		return;
+ 
+diff -puN drivers/edac/i5000_edac.c~drivers-edac-drivers-to-use-new-pci-operation drivers/edac/i5000_edac.c
+--- a/drivers/edac/i5000_edac.c~drivers-edac-drivers-to-use-new-pci-operation
++++ a/drivers/edac/i5000_edac.c
+@@ -28,6 +28,7 @@
+  * Alter this version for the I5000 module when modifications are made
+  */
+ #define I5000_REVISION    " Ver: 2.0.12 " __DATE__
++#define EDAC_MOD_STR      "i5000_edac"
+ 
+ #define i5000_printk(level, fmt, arg...) \
+         edac_printk(level, "i5000", fmt, ##arg)
+@@ -381,6 +382,8 @@ struct i5000_error_info {
+ 
  };
  
- #define EDAC_PCI_ATTR(_name,_mode,_show,_store)			\
--struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
-+static struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
- 	.attr = {.name = __stringify(_name), .mode = _mode },	\
- 	.value  = &_name,					\
- 	.show   = _show,					\
-@@ -351,7 +351,7 @@ struct edac_pci_dev_attribute edac_pci_a
++static struct edac_pci_ctl_info *i5000_pci;
++
+ /******************************************************************************
+  *	i5000_get_error_info	Retrieve the hardware error information from
+  *				the hardware and cache it in the 'info'
+@@ -1375,6 +1378,17 @@ static int i5000_probe1(struct pci_dev *
+ 
+ 	i5000_clear_error(mci);
+ 
++	/* allocating generic PCI control info */
++	i5000_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
++	if (!i5000_pci) {
++		printk(KERN_WARNING
++			"%s(): Unable to create PCI control\n",
++			__func__);
++		printk(KERN_WARNING
++			"%s(): PCI error report via EDAC not setup\n",
++			__func__);
++	}
++
+ 	return 0;
+ 
+ 	/* Error exit unwinding stack */
+@@ -1420,6 +1434,9 @@ static void __devexit i5000_remove_one(s
+ 
+ 	debugf0(__FILE__ ": %s()\n", __func__);
+ 
++	if (i5000_pci)
++		edac_pci_release_generic_ctl(i5000_pci);
++
+ 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+ 		return;
+ 
+diff -puN drivers/edac/i82443bxgx_edac.c~drivers-edac-drivers-to-use-new-pci-operation drivers/edac/i82443bxgx_edac.c
+--- a/drivers/edac/i82443bxgx_edac.c~drivers-edac-drivers-to-use-new-pci-operation
++++ a/drivers/edac/i82443bxgx_edac.c
+@@ -111,6 +111,8 @@ struct i82443bxgx_edacmc_error_info {
+ 	u32 eap;
  };
  
- #define EDAC_PCI_STRING_ATTR(_name,_data,_mode,_show,_store)	\
--struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
-+static struct edac_pci_dev_attribute edac_pci_attr_##_name = {		\
- 	.attr = {.name = __stringify(_name), .mode = _mode },	\
- 	.value  = _data,					\
- 	.show   = _show,					\
-@@ -722,7 +722,7 @@ static struct sysfs_ops csrowfs_ops = {
- };
++static struct edac_pci_ctl_info *i82443bxgx_pci;
++
+ static void i82443bxgx_edacmc_get_error_info(struct mem_ctl_info *mci,
+ 					     struct i82443bxgx_edacmc_error_info
+ 					     *info)
+@@ -316,6 +318,17 @@ static int i82443bxgx_edacmc_probe1(stru
+ 		goto fail;
+ 	}
  
- #define CSROWDEV_ATTR(_name,_mode,_show,_store,_private)	\
--struct csrowdev_attribute attr_##_name = {			\
-+static struct csrowdev_attribute attr_##_name = {			\
- 	.attr = {.name = __stringify(_name), .mode = _mode },	\
- 	.show   = _show,					\
- 	.store  = _store,					\
-@@ -1066,7 +1066,7 @@ static struct sysfs_ops mci_ops = {
- };
++	/* allocating generic PCI control info */
++	i82443bxgx_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
++	if (!i82443bxgx_pci) {
++		printk(KERN_WARNING
++			"%s(): Unable to create PCI control\n",
++			__func__);
++		printk(KERN_WARNING
++			"%s(): PCI error report via EDAC not setup\n",
++			__func__);
++	}
++
+ 	debugf3("MC: " __FILE__ ": %s(): success\n", __func__);
+ 	return 0;
  
- #define MCIDEV_ATTR(_name,_mode,_show,_store)			\
--struct mcidev_attribute mci_attr_##_name = {			\
-+static struct mcidev_attribute mci_attr_##_name = {			\
- 	.attr = {.name = __stringify(_name), .mode = _mode },	\
- 	.show   = _show,					\
- 	.store  = _store,					\
-@@ -1220,7 +1220,7 @@ static void edac_remove_sysfs_mci_device
+@@ -342,6 +355,9 @@ static void __devexit i82443bxgx_edacmc_
  
- #ifdef CONFIG_EDAC_DEBUG
+ 	debugf0(__FILE__ ": %s()\n", __func__);
  
--void edac_mc_dump_channel(struct channel_info *chan)
-+static void edac_mc_dump_channel(struct channel_info *chan)
++	if (i82443bxgx_pci)
++		edac_pci_release_generic_ctl(i82443bxgx_pci);
++
+ 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+ 		return;
+ 
+diff -puN drivers/edac/i82860_edac.c~drivers-edac-drivers-to-use-new-pci-operation drivers/edac/i82860_edac.c
+--- a/drivers/edac/i82860_edac.c~drivers-edac-drivers-to-use-new-pci-operation
++++ a/drivers/edac/i82860_edac.c
+@@ -60,6 +60,7 @@ static const struct i82860_dev_info i828
+ static struct pci_dev *mci_pdev = NULL;	/* init dev: in case that AGP code
+ 					 * has already registered driver
+ 					 */
++static struct edac_pci_ctl_info *i82860_pci;
+ 
+ static void i82860_get_error_info(struct mem_ctl_info *mci,
+ 				  struct i82860_error_info *info)
+@@ -213,6 +214,17 @@ static int i82860_probe1(struct pci_dev 
+ 		goto fail;
+ 	}
+ 
++	/* allocating generic PCI control info */
++	i82860_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
++	if (!i82860_pci) {
++		printk(KERN_WARNING
++			"%s(): Unable to create PCI control\n",
++			__func__);
++		printk(KERN_WARNING
++			"%s(): PCI error report via EDAC not setup\n",
++			__func__);
++	}
++
+ 	/* get this far and it's successful */
+ 	debugf3("%s(): success\n", __func__);
+ 
+@@ -249,6 +261,9 @@ static void __devexit i82860_remove_one(
+ 
+ 	debugf0("%s()\n", __func__);
+ 
++	if (i82860_pci)
++		edac_pci_release_generic_ctl(i82860_pci);
++
+ 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+ 		return;
+ 
+diff -puN drivers/edac/i82875p_edac.c~drivers-edac-drivers-to-use-new-pci-operation drivers/edac/i82875p_edac.c
+--- a/drivers/edac/i82875p_edac.c~drivers-edac-drivers-to-use-new-pci-operation
++++ a/drivers/edac/i82875p_edac.c
+@@ -183,6 +183,8 @@ static struct pci_dev *mci_pdev = NULL;	
+ 
+ static int i82875p_registered = 1;
+ 
++static struct edac_pci_ctl_info *i82875p_pci;
++
+ static void i82875p_get_error_info(struct mem_ctl_info *mci,
+ 				   struct i82875p_error_info *info)
  {
- 	debugf4("\tchannel = %p\n", chan);
- 	debugf4("\tchannel->chan_idx = %d\n", chan->chan_idx);
-@@ -1228,9 +1228,8 @@ void edac_mc_dump_channel(struct channel
- 	debugf4("\tchannel->label = '%s'\n", chan->label);
- 	debugf4("\tchannel->csrow = %p\n\n", chan->csrow);
- }
--EXPORT_SYMBOL_GPL(edac_mc_dump_channel);
+@@ -424,6 +426,17 @@ static int i82875p_probe1(struct pci_dev
+ 		goto fail1;
+ 	}
  
--void edac_mc_dump_csrow(struct csrow_info *csrow)
-+static void edac_mc_dump_csrow(struct csrow_info *csrow)
++	/* allocating generic PCI control info */
++	i82875p_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
++	if (!i82875p_pci) {
++		printk(KERN_WARNING
++			"%s(): Unable to create PCI control\n",
++			__func__);
++		printk(KERN_WARNING
++			"%s(): PCI error report via EDAC not setup\n",
++			__func__);
++	}
++
+ 	/* get this far and it's successful */
+ 	debugf3("%s(): success\n", __func__);
+ 	return 0;
+@@ -467,6 +480,9 @@ static void __devexit i82875p_remove_one
+ 
+ 	debugf0("%s()\n", __func__);
+ 
++	if (i82875p_pci)
++		edac_pci_release_generic_ctl(i82875p_pci);
++
+ 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+ 		return;
+ 
+diff -puN drivers/edac/r82600_edac.c~drivers-edac-drivers-to-use-new-pci-operation drivers/edac/r82600_edac.c
+--- a/drivers/edac/r82600_edac.c~drivers-edac-drivers-to-use-new-pci-operation
++++ a/drivers/edac/r82600_edac.c
+@@ -133,6 +133,8 @@ struct r82600_error_info {
+ 
+ static unsigned int disable_hardware_scrub = 0;
+ 
++static struct edac_pci_ctl_info *r82600_pci;
++
+ static void r82600_get_error_info(struct mem_ctl_info *mci,
+ 				  struct r82600_error_info *info)
  {
- 	debugf4("\tcsrow = %p\n", csrow);
- 	debugf4("\tcsrow->csrow_idx = %d\n", csrow->csrow_idx);
-@@ -1244,9 +1243,8 @@ void edac_mc_dump_csrow(struct csrow_inf
- 	debugf4("\tcsrow->channels = %p\n", csrow->channels);
- 	debugf4("\tcsrow->mci = %p\n\n", csrow->mci);
- }
--EXPORT_SYMBOL_GPL(edac_mc_dump_csrow);
+@@ -326,6 +328,17 @@ static int r82600_probe1(struct pci_dev 
+ 		pci_write_bits32(pdev, R82600_EAP, BIT(31), BIT(31));
+ 	}
  
--void edac_mc_dump_mci(struct mem_ctl_info *mci)
-+static void edac_mc_dump_mci(struct mem_ctl_info *mci)
- {
- 	debugf3("\tmci = %p\n", mci);
- 	debugf3("\tmci->mtype_cap = %lx\n", mci->mtype_cap);
-@@ -1260,7 +1258,6 @@ void edac_mc_dump_mci(struct mem_ctl_inf
- 		mci->mod_name, mci->ctl_name);
- 	debugf3("\tpvt_info = %p\n\n", mci->pvt_info);
- }
--EXPORT_SYMBOL_GPL(edac_mc_dump_mci);
++	/* allocating generic PCI control info */
++	r82600_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
++	if (!r82600_pci) {
++		printk(KERN_WARNING
++			"%s(): Unable to create PCI control\n",
++			__func__);
++		printk(KERN_WARNING
++			"%s(): PCI error report via EDAC not setup\n",
++			__func__);
++	}
++
+ 	debugf3("%s(): success\n", __func__);
+ 	return 0;
  
- #endif  /* CONFIG_EDAC_DEBUG */
+@@ -350,6 +363,9 @@ static void __devexit r82600_remove_one(
  
-@@ -1576,7 +1573,8 @@ struct mem_ctl_info * edac_mc_del_mc(str
- }
- EXPORT_SYMBOL_GPL(edac_mc_del_mc);
+ 	debugf0("%s()\n", __func__);
  
--void edac_mc_scrub_block(unsigned long page, unsigned long offset, u32 size)
-+static void edac_mc_scrub_block(unsigned long page, unsigned long offset,
-+				u32 size)
- {
- 	struct page *pg;
- 	void *virt_addr;
-@@ -1605,7 +1603,6 @@ void edac_mc_scrub_block(unsigned long p
- 	if (PageHighMem(pg))
- 		local_irq_restore(flags);
- }
--EXPORT_SYMBOL_GPL(edac_mc_scrub_block);
++	if (r82600_pci)
++		edac_pci_release_generic_ctl(r82600_pci);
++
+ 	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+ 		return;
  
- /* FIXME - should return -1 */
- int edac_mc_find_csrow_by_page(struct mem_ctl_info *mci, unsigned long page)
-diff -puN drivers/edac/edac_mc.h~drivers-edac-core-make-functions-static drivers/edac/edac_mc.h
---- a/drivers/edac/edac_mc.h~drivers-edac-core-make-functions-static
-+++ a/drivers/edac/edac_mc.h
-@@ -424,19 +424,11 @@ static inline void pci_write_bits32(stru
- 
- #endif /* CONFIG_PCI */
- 
--#ifdef CONFIG_EDAC_DEBUG
--void edac_mc_dump_channel(struct channel_info *chan);
--void edac_mc_dump_mci(struct mem_ctl_info *mci);
--void edac_mc_dump_csrow(struct csrow_info *csrow);
--#endif  /* CONFIG_EDAC_DEBUG */
--
- extern struct mem_ctl_info * edac_mc_find(int idx);
- extern int edac_mc_add_mc(struct mem_ctl_info *mci,int mc_idx);
- extern struct mem_ctl_info * edac_mc_del_mc(struct device *dev);
- extern int edac_mc_find_csrow_by_page(struct mem_ctl_info *mci,
- 					unsigned long page);
--extern void edac_mc_scrub_block(unsigned long page, unsigned long offset,
--		u32 size);
- 
- /*
-  * The no info errors are used when error overflows are reported.
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from djiang@mvista.com are
 
 origin.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-git-hwmon.patch
-git-kbuild.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-git-scsi-misc.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-maps2-add-proc-kpagemap-interface.patch
-fs-reiserfs-cleanups.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
