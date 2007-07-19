@@ -1,166 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - usb-sierra-add-tru-install-c-support-fix.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:08:04 -0700
-Message-ID: <200707192008.l6JK84TZ020422@imap1.linux-foundation.org>
+Subject: - driver-edac-mod-edac_opt_state_to_string-function.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:07:03 -0700
+Message-ID: <200707192007.l6JK73mm020226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50068 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52794 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757471AbXGSUPJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757217AbXGSUPJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:15:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, linux@sierrawireless.com, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb-sierra-add-tru-install-c-support-fix
+     drivers/edac: mod edac_opt_state_to_string function
 has been removed from the -mm tree.  Its filename was
-     usb-sierra-add-tru-install-c-support-fix.patch
+     driver-edac-mod-edac_opt_state_to_string-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb-sierra-add-tru-install-c-support-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/edac: mod edac_opt_state_to_string function
+From: Douglas Thompson <dougthompson@xmission.com>
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Kevin Lloyd <linux@sierrawireless.com>
+Refactored the function edac_op_state_toString() to be edac_op_state_to_string()
+for consistent style, and its callers
+
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/sierra.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/edac/edac_core.h   |    2 +-
+ drivers/edac/edac_device.c |    2 +-
+ drivers/edac/edac_module.c |    4 ++--
+ drivers/edac/edac_pci.c    |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/usb/serial/sierra.c~usb-sierra-add-tru-install-c-support-fix drivers/usb/serial/sierra.c
---- a/drivers/usb/serial/sierra.c~usb-sierra-add-tru-install-c-support-fix
-+++ a/drivers/usb/serial/sierra.c
-@@ -45,7 +45,7 @@ enum devicetype {
- 	DEVICE_INSTALLER =	2,
- };
+diff -puN drivers/edac/edac_core.h~driver-edac-mod-edac_opt_state_to_string-function drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~driver-edac-mod-edac_opt_state_to_string-function
++++ a/drivers/edac/edac_core.h
+@@ -845,6 +845,6 @@ extern void edac_pci_remove_sysfs(struct
+ /*
+  * edac misc APIs
+  */
+-extern char *edac_op_state_toString(int op_state);
++extern char *edac_op_state_to_string(int op_state);
  
--int sierra_set_power_state(struct usb_device *udev, __u16 swiState)
-+static int sierra_set_power_state(struct usb_device *udev, __u16 swiState)
+ #endif				/* _EDAC_CORE_H_ */
+diff -puN drivers/edac/edac_device.c~driver-edac-mod-edac_opt_state_to_string-function drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~driver-edac-mod-edac_opt_state_to_string-function
++++ a/drivers/edac/edac_device.c
+@@ -461,7 +461,7 @@ int edac_device_add_device(struct edac_d
+ 				edac_dev->mod_name,
+ 				edac_dev->ctl_name,
+ 				dev_name(edac_dev),
+-				edac_op_state_toString(edac_dev->op_state));
++				edac_op_state_to_string(edac_dev->op_state));
+ 
+ 	up(&device_ctls_mutex);
+ 	return 0;
+diff -puN drivers/edac/edac_module.c~driver-edac-mod-edac_opt_state_to_string-function drivers/edac/edac_module.c
+--- a/drivers/edac/edac_module.c~driver-edac-mod-edac_opt_state_to_string-function
++++ a/drivers/edac/edac_module.c
+@@ -35,9 +35,9 @@ static struct sysdev_class edac_class = 
+ static int edac_class_valid;
+ 
+ /*
+- * edac_op_state_toString()
++ * edac_op_state_to_string()
+  */
+-char *edac_op_state_toString(int opstate)
++char *edac_op_state_to_string(int opstate)
  {
- 	int result;
- 	dev_dbg(&udev->dev, "%s", "SET POWER STATE");
-@@ -60,7 +60,7 @@ int sierra_set_power_state(struct usb_de
- 	return result;
- }
+ 	if (opstate == OP_RUNNING_POLL)
+ 		return "POLLED";
+diff -puN drivers/edac/edac_pci.c~driver-edac-mod-edac_opt_state_to_string-function drivers/edac/edac_pci.c
+--- a/drivers/edac/edac_pci.c~driver-edac-mod-edac_opt_state_to_string-function
++++ a/drivers/edac/edac_pci.c
+@@ -321,7 +321,7 @@ int edac_pci_add_device(struct edac_pci_
+ 			" DEV '%s' (%s)\n",
+ 			pci->mod_name,
+ 			pci->ctl_name,
+-			dev_name(pci), edac_op_state_toString(pci->op_state));
++			dev_name(pci), edac_op_state_to_string(pci->op_state));
  
--int sierra_set_ms_mode(struct usb_device *udev, __u16 eSocMode)
-+static int sierra_set_ms_mode(struct usb_device *udev, __u16 eSocMode)
- {
- 	int result;
- 	dev_dbg(&udev->dev, "%s", "DEVICE MODE SWITCH");
-@@ -75,7 +75,8 @@ int sierra_set_ms_mode(struct usb_device
- 	return result;
- }
- 
--int sierra_probe(struct usb_interface *iface, const struct usb_device_id *id)
-+static int sierra_probe(struct usb_interface *iface,
-+			const struct usb_device_id *id)
- {
- 	int result;
- 	struct usb_device *udev;
-@@ -83,10 +84,10 @@ int sierra_probe(struct usb_interface *i
- 	udev = usb_get_dev(interface_to_usbdev(iface));
- 
- 	/* Check if in installer mode */
--	if (id->driver_info == DEVICE_INSTALLER){
-+	if (id->driver_info == DEVICE_INSTALLER) {
- 		dev_dbg(&udev->dev, "%s", "FOUND DEVICE(SW)\n");
- 		result = sierra_set_ms_mode(udev, SWIMS_SET_MODE_Modem);
--		/*We do not want to bind to the device when in installer mode*/
-+		/* We don't want to bind to the device when in installer mode */
- 		return -EIO;
- 	}
- 
-@@ -565,7 +566,7 @@ static int sierra_startup(struct usb_ser
- 
- 	dbg("%s", __FUNCTION__);
- 
--	/*Set Device mode to D0 */
-+	/* Set Device mode to D0 */
- 	sierra_set_power_state(serial->dev, 0x0000);
- 
- 	/* Now setup per port private data */
+ 	edac_unlock_pci_list();
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
 origin.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-dvb.patch
-git-input.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mtd.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-git-scsi-misc.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-kgdb-fixup-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
