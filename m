@@ -1,190 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 12:48:52 -0700
-Message-ID: <200707191948.l6JJmq4M018935@imap1.linux-foundation.org>
+Subject: + git-kgdb-fixup-2.patch added to -mm tree
+Date: Thu, 19 Jul 2007 12:52:45 -0700
+Message-ID: <200707191952.l6JJqjcA019109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40551 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47852 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S938227AbXGSTuC (ORCPT
+	by vger.kernel.org with ESMTP id S1751210AbXGSTww (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 15:50:02 -0400
+	Thu, 19 Jul 2007 15:52:52 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6JJqonu012225
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2007 12:52:51 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     ICH Force HPET: ICH7 or later quirk to force detect enable
-has been removed from the -mm tree.  Its filename was
-     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+     git-kgdb-fixup-2
+has been added to the -mm tree.  Its filename is
+     git-kgdb-fixup-2.patch
 
-This patch was dropped because Changes in Andi's tree destroyed this patch series
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ICH Force HPET: ICH7 or later quirk to force detect enable
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: git-kgdb-fixup-2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Force detect and/or enable HPET on ICH chipsets.  This patch just handles the
-detection part and following patches use this information.  Adds a function to
-repeat the force enabling during resume time.
-
-Using HPET this way, instead of PIT increases the time CPUs can reside in
-C-state when system is totally idle.  On my test system with Core 2 Duo,
-average C-state residency goes up from ~20mS to ~80mS.
-
-[akpm@linux-foundation.org: kill uninitialised var warning]
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/quirks.c |  102 ++++++++++++++++++++++++++++++++++++
- include/asm-i386/hpet.h   |    2 
- 2 files changed, 104 insertions(+)
+ Makefile                  |    0 
+ arch/i386/kernel/Makefile |    1 +
+ 2 files changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable arch/i386/kernel/quirks.c
---- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable
-+++ a/arch/i386/kernel/quirks.c
-@@ -4,6 +4,8 @@
- #include <linux/pci.h>
- #include <linux/irq.h>
- 
-+#include <asm/hpet.h>
-+
- #if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_SMP) && defined(CONFIG_PCI)
- 
- static void __devinit quirk_intel_irqbalance(struct pci_dev *dev)
-@@ -47,3 +49,103 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_IN
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_E7525_MCH,	quirk_intel_irqbalance);
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_E7520_MCH,	quirk_intel_irqbalance);
- #endif
-+
-+#if defined(CONFIG_HPET_TIMER)
-+unsigned long force_hpet_address;
-+
-+static void __iomem *rcba_base;
-+
-+void ich_force_hpet_resume(void)
-+{
-+	u32 val;
-+
-+	if (!force_hpet_address)
-+		return;
-+
-+	if (rcba_base == NULL)
-+		BUG();
-+
-+	/* read the Function Disable register, dword mode only */
-+	val = readl(rcba_base + 0x3404);
-+	if (!(val & 0x80)) {
-+		/* HPET disabled in HPTC. Trying to enable */
-+		writel(val | 0x80, rcba_base + 0x3404);
-+	}
-+
-+	val = readl(rcba_base + 0x3404);
-+	if (!(val & 0x80))
-+		BUG();
-+	else
-+		printk(KERN_DEBUG "Force enabled HPET at resume\n");
-+
-+	return;
-+}
-+
-+static void ich_force_enable_hpet(struct pci_dev *dev)
-+{
-+	u32 val;
-+	u32 uninitialized_var(rcba);
-+	int err = 0;
-+
-+	if (hpet_address || force_hpet_address)
-+		return;
-+
-+	pci_read_config_dword(dev, 0xF0, &rcba);
-+	rcba &= 0xFFFFC000;
-+	if (rcba == 0) {
-+		printk(KERN_DEBUG "RCBA disabled. Cannot force enable HPET\n");
-+		return;
-+	}
-+
-+	/* use bits 31:14, 16 kB aligned */
-+	rcba_base = ioremap_nocache(rcba, 0x4000);
-+	if (rcba_base == NULL) {
-+		printk(KERN_DEBUG "ioremap failed. Cannot force enable HPET\n");
-+		return;
-+	}
-+
-+	/* read the Function Disable register, dword mode only */
-+	val = readl(rcba_base + 0x3404);
-+
-+	if (val & 0x80) {
-+		/* HPET is enabled in HPTC. Just not reported by BIOS */
-+		val = val & 0x3;
-+		force_hpet_address = 0xFED00000 | (val << 12);
-+		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
-+			       force_hpet_address);
-+		iounmap(rcba_base);
-+		return;
-+	}
-+
-+	/* HPET disabled in HPTC. Trying to enable */
-+	writel(val | 0x80, rcba_base + 0x3404);
-+
-+	val = readl(rcba_base + 0x3404);
-+	if (!(val & 0x80)) {
-+		err = 1;
-+	} else {
-+		val = val & 0x3;
-+		force_hpet_address = 0xFED00000 | (val << 12);
-+	}
-+
-+	if (err) {
-+		force_hpet_address = 0;
-+		iounmap(rcba_base);
-+		printk(KERN_DEBUG "Failed to force enable HPET\n");
-+	} else {
-+		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
-+			       force_hpet_address);
-+	}
-+}
-+
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB2_0,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH6_1,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_1,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_31,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH8_1,
-+                         ich_force_enable_hpet);
-+#endif
-diff -puN include/asm-i386/hpet.h~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable include/asm-i386/hpet.h
---- a/include/asm-i386/hpet.h~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable
-+++ a/include/asm-i386/hpet.h
-@@ -72,6 +72,8 @@ extern int hpet_enable(void);
- #include <asm/vsyscall.h>
- #endif
- 
-+void ich_force_hpet_resume(void);
-+
- #ifdef CONFIG_HPET_EMULATE_RTC
- 
- #include <linux/interrupt.h>
+diff -puN arch/i386/kernel/Makefile~git-kgdb-fixup-2 arch/i386/kernel/Makefile
+--- a/arch/i386/kernel/Makefile~git-kgdb-fixup-2
++++ a/arch/i386/kernel/Makefile
+@@ -29,6 +29,7 @@ obj-$(CONFIG_X86_REBOOTFIXUPS)	+= reboot
+ obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o crash.o
+ obj-$(CONFIG_CRASH_DUMP)	+= crash_dump.o
+ obj-$(CONFIG_X86_NUMAQ)		+= numaq.o
++obj-$(CONFIG_KGDB)		+= kgdb.o kgdb-jmp.o
+ obj-$(CONFIG_X86_SUMMIT_NUMA)	+= summit.o
+ obj-$(CONFIG_KPROBES)		+= kprobes.o
+ obj-$(CONFIG_MODULES)		+= module.o
+diff -puN Makefile~git-kgdb-fixup-2 Makefile
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-x86_64-block-irq-balancing-for-timer.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+git-acpi-fix-git-rejects.patch
+acpi-add-reboot-mechanism-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+git-dvb.patch
+git-input.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mtd.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+git-scsi-misc.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-xfs.patch
+git-kgdb-fixup-2.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
