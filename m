@@ -1,121 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - divorce-config_x86_pae-from-config_highmem64g.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:53 -0700
-Message-ID: <200707192009.l6JK9rg5020617@imap1.linux-foundation.org>
+Subject: - x86-64-calgary-fold-in-redundant-functions.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:09:40 -0700
+Message-ID: <200707192009.l6JK9ev2020599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33539 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40547 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760909AbXGSUQN (ORCPT
+	by vger.kernel.org with ESMTP id S1760924AbXGSUPa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:13 -0400
+	Thu, 19 Jul 2007 16:15:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wli@holomorphy.com, ak@suse.de, lkml@rtr.ca, mm-commits@vger.kernel.org
+To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: divorce CONFIG_X86_PAE from CONFIG_HIGHMEM64G
+     x86-64: Calgary - fold in redundant functions
 has been removed from the -mm tree.  Its filename was
-     divorce-config_x86_pae-from-config_highmem64g.patch
+     x86-64-calgary-fold-in-redundant-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: divorce CONFIG_X86_PAE from CONFIG_HIGHMEM64G
-From: William Lee Irwin III <wli@holomorphy.com>
+Subject: x86-64: Calgary - fold in redundant functions
+From: Muli Ben-Yehuda <muli@il.ibm.com>
 
-PAE is useful for more than supporting more than 4GB RAM.  It supports
-expanded swapspace and NX executable protections.  Some users may want NX
-or expanded swapspace support without the overhead or instability of
-highmem.  For these reasons, the following patch divorces CONFIG_X86_PAE
-from CONFIG_HIGHMEM64G.
+After the bitmap changes we can get rid of the unlocked versions of
+calgary_unmap_sg and iommu_free. Fold __calgary_unmap_sg and
+__iommu_free into their calgary_unmap_sg and iommu_free, respectively.
 
-Cc: Mark Lord <lkml@rtr.ca>
+Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: William Irwin <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig        |   16 +++++++++++-----
- arch/i386/kernel/setup.c |    8 ++++----
- 2 files changed, 15 insertions(+), 9 deletions(-)
+ arch/x86_64/kernel/pci-calgary.c |   30 ++++++++---------------------
+ 1 files changed, 9 insertions(+), 21 deletions(-)
 
-diff -puN arch/i386/Kconfig~divorce-config_x86_pae-from-config_highmem64g arch/i386/Kconfig
---- a/arch/i386/Kconfig~divorce-config_x86_pae-from-config_highmem64g
-+++ a/arch/i386/Kconfig
-@@ -544,6 +544,7 @@ config HIGHMEM4G
- config HIGHMEM64G
- 	bool "64GB"
- 	depends on !M386 && !M486
-+	select X86_PAE
- 	help
- 	  Select this if you have a 32-bit processor and more than 4
- 	  gigabytes of physical RAM.
-@@ -573,12 +574,12 @@ choice
- 	config VMSPLIT_3G
- 		bool "3G/1G user/kernel split"
- 	config VMSPLIT_3G_OPT
--		depends on !HIGHMEM
-+		depends on !X86_PAE
- 		bool "3G/1G user/kernel split (for full 1G low memory)"
- 	config VMSPLIT_2G
- 		bool "2G/2G user/kernel split"
- 	config VMSPLIT_2G_OPT
--		depends on !HIGHMEM
-+		depends on !X86_PAE
- 		bool "2G/2G user/kernel split (for full 2G low memory)"
- 	config VMSPLIT_1G
- 		bool "1G/3G user/kernel split"
-@@ -598,10 +599,15 @@ config HIGHMEM
- 	default y
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-fold-in-redundant-functions arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-fold-in-redundant-functions
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -321,7 +321,7 @@ error:
+ 	return bad_dma_address;
+ }
  
- config X86_PAE
--	bool
--	depends on HIGHMEM64G
--	default y
-+	bool "PAE (Physical Address Extension) Support"
-+	default n
-+	depends on !HIGHMEM4G
- 	select RESOURCES_64BIT
-+	help
-+	  PAE is required for NX support, and furthermore enables
-+	  larger swapspace support for non-overcommit purposes. It
-+	  has the cost of more pagetable lookup overhead, and also
-+	  consumes more pagetable space per process.
+-static void __iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
++static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
+ 	unsigned int npages)
+ {
+ 	unsigned long entry;
+@@ -359,12 +359,6 @@ static void __iommu_free(struct iommu_ta
+ 	spin_unlock_irqrestore(&tbl->it_lock, flags);
+ }
  
- # Common NUMA Features
- config NUMA
-diff -puN arch/i386/kernel/setup.c~divorce-config_x86_pae-from-config_highmem64g arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~divorce-config_x86_pae-from-config_highmem64g
-+++ a/arch/i386/kernel/setup.c
-@@ -273,18 +273,18 @@ unsigned long __init find_max_low_pfn(vo
- 		printk(KERN_WARNING "Warning only %ldMB will be used.\n",
- 					MAXMEM>>20);
- 		if (max_pfn > MAX_NONPAE_PFN)
--			printk(KERN_WARNING "Use a PAE enabled kernel.\n");
-+			printk(KERN_WARNING "Use a HIGHMEM64G enabled kernel.\n");
- 		else
- 			printk(KERN_WARNING "Use a HIGHMEM enabled kernel.\n");
- 		max_pfn = MAXMEM_PFN;
- #else /* !CONFIG_HIGHMEM */
--#ifndef CONFIG_X86_PAE
-+#ifndef CONFIG_HIGHMEM64G
- 		if (max_pfn > MAX_NONPAE_PFN) {
- 			max_pfn = MAX_NONPAE_PFN;
- 			printk(KERN_WARNING "Warning only 4GB will be used.\n");
--			printk(KERN_WARNING "Use a PAE enabled kernel.\n");
-+			printk(KERN_WARNING "Use a HIGHMEM64G enabled kernel.\n");
- 		}
--#endif /* !CONFIG_X86_PAE */
-+#endif /* !CONFIG_HIGHMEM64G */
- #endif /* !CONFIG_HIGHMEM */
- 	} else {
- 		if (highmem_pages == -1)
+-static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
+-	unsigned int npages)
+-{
+-	__iommu_free(tbl, dma_addr, npages);
+-}
+-
+ static inline struct iommu_table *find_iommu_table(struct device *dev)
+ {
+ 	struct pci_dev *pdev;
+@@ -387,9 +381,14 @@ static inline struct iommu_table *find_i
+ 	return tbl;
+ }
+ 
+-static void __calgary_unmap_sg(struct iommu_table *tbl,
++static void calgary_unmap_sg(struct device *dev,
+ 	struct scatterlist *sglist, int nelems, int direction)
+ {
++	struct iommu_table *tbl = find_iommu_table(dev);
++
++	if (!translate_phb(to_pci_dev(dev)))
++		return;
++
+ 	while (nelems--) {
+ 		unsigned int npages;
+ 		dma_addr_t dma = sglist->dma_address;
+@@ -399,22 +398,11 @@ static void __calgary_unmap_sg(struct io
+ 			break;
+ 
+ 		npages = num_dma_pages(dma, dmalen);
+-		__iommu_free(tbl, dma, npages);
++		iommu_free(tbl, dma, npages);
+ 		sglist++;
+ 	}
+ }
+ 
+-void calgary_unmap_sg(struct device *dev, struct scatterlist *sglist,
+-		      int nelems, int direction)
+-{
+-	struct iommu_table *tbl = find_iommu_table(dev);
+-
+-	if (!translate_phb(to_pci_dev(dev)))
+-		return;
+-
+-	__calgary_unmap_sg(tbl, sglist, nelems, direction);
+-}
+-
+ static int calgary_nontranslate_map_sg(struct device* dev,
+ 	struct scatterlist *sg, int nelems, int direction)
+ {
+@@ -466,7 +454,7 @@ int calgary_map_sg(struct device *dev, s
+ 
+ 	return nelems;
+ error:
+-	__calgary_unmap_sg(tbl, sg, nelems, direction);
++	calgary_unmap_sg(dev, sg, nelems, direction);
+ 	for (i = 0; i < nelems; i++) {
+ 		sg[i].dma_address = bad_dma_address;
+ 		sg[i].dma_length = 0;
 _
 
-Patches currently in -mm which might be from wli@holomorphy.com are
+Patches currently in -mm which might be from muli@il.ibm.com are
 
 origin.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-containersv10-basic-container-framework-fix-2.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
