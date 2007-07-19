@@ -1,282 +1,1513 @@
 From: akpm@linux-foundation.org
-Subject: - pm-remove-deprecated-dpm_runtime_-routines.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 12:59:15 -0700
-Message-ID: <200707191959.l6JJxFws019351@imap1.linux-foundation.org>
+Subject: - mm-fault-feedback-1.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 12:59:27 -0700
+Message-ID: <200707191959.l6JJxRCJ019366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37504 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40793 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754336AbXGSUAI (ORCPT
+	by vger.kernel.org with ESMTP id S1752724AbXGSUAS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:00:08 -0400
+	Thu, 19 Jul 2007 16:00:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, greg@kroah.com, linux@dominikbrodowski.net, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: remove deprecated dpm_runtime_* routines
+     mm: fault feedback 1
 has been removed from the -mm tree.  Its filename was
-     pm-remove-deprecated-dpm_runtime_-routines.patch
+     mm-fault-feedback-1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PM: remove deprecated dpm_runtime_* routines
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: mm: fault feedback 1
+From: Nick Piggin <npiggin@suse.de>
 
-This patch (as933) removes the deprecated dpm_runtime_suspend() and
-dpm_runtime_resume() routines from the PM core.  The only user of
-those routines is the PCMCIA ds driver; local replacements are added.
+Change ->fault prototype.  We now return an int, which contains
+VM_FAULT_xxx code in the low byte, and FAULT_RET_xxx code in the next byte.
+ FAULT_RET_ code tells the VM whether a page was found, whether it has been
+locked, and potentially other things.  This is not quite the way he wanted
+it yet, but that's changed in the next patch (which requires changes to
+arch code).
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Greg KH <greg@kroah.com>
+This means we no longer set VM_CAN_INVALIDATE in the vma in order to say
+that a page is locked which requires filemap_nopage to go away (because we
+can no longer remain backward compatible without that flag), but we were
+going to do that anyway.
+
+struct fault_data is renamed to struct vm_fault as Linus asked. address
+is now a void __user * that we should firmly encourage drivers not to use
+without really good reason.
+
+The page is now returned via a page pointer in the vm_fault struct.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    1 
- drivers/base/power/Makefile                |    2 
- drivers/base/power/power.h                 |    5 -
- drivers/base/power/runtime.c               |   85 -------------------
- drivers/pcmcia/ds.c                        |   40 +++++++-
- include/linux/pm.h                         |   11 --
- 6 files changed, 35 insertions(+), 109 deletions(-)
+ Documentation/feature-removal-schedule.txt |   20 -
+ Documentation/filesystems/Locking          |    2 
+ fs/gfs2/ops_file.c                         |    2 
+ fs/gfs2/ops_vm.c                           |   47 +--
+ fs/ncpfs/mmap.c                            |   38 +-
+ fs/ocfs2/mmap.c                            |   30 +-
+ fs/xfs/linux-2.6/xfs_file.c                |   14 -
+ include/linux/mm.h                         |   88 +++---
+ ipc/shm.c                                  |    5 
+ mm/filemap.c                               |  249 +------------------
+ mm/filemap_xip.c                           |   37 +-
+ mm/fremap.c                                |   85 +-----
+ mm/hugetlb.c                               |    7 
+ mm/memory.c                                |  109 +++-----
+ mm/nommu.c                                 |    4 
+ mm/shmem.c                                 |   29 --
+ 16 files changed, 240 insertions(+), 526 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~pm-remove-deprecated-dpm_runtime_-routines Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~pm-remove-deprecated-dpm_runtime_-routines
+diff -puN Documentation/feature-removal-schedule.txt~mm-fault-feedback-1 Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~mm-fault-feedback-1
 +++ a/Documentation/feature-removal-schedule.txt
-@@ -27,7 +27,6 @@ Who:	Hans Verkuil <hverkuil@xs4all.nl> a
+@@ -135,26 +135,8 @@ Who:	Greg Kroah-Hartman <gregkh@suse.de>
+ 
  ---------------------------
  
- What:	dev->power.power_state
--	dpm_runtime_{suspend,resume)()
- When:	July 2007
- Why:	Broken design for runtime control over driver power states, confusing
- 	driver-internal runtime power management with:  mechanisms to support
-diff -puN drivers/base/power/Makefile~pm-remove-deprecated-dpm_runtime_-routines drivers/base/power/Makefile
---- a/drivers/base/power/Makefile~pm-remove-deprecated-dpm_runtime_-routines
-+++ a/drivers/base/power/Makefile
-@@ -1,5 +1,5 @@
- obj-y			:= shutdown.o
--obj-$(CONFIG_PM)	+= main.o suspend.o resume.o runtime.o sysfs.o
-+obj-$(CONFIG_PM)	+= main.o suspend.o resume.o sysfs.o
- obj-$(CONFIG_PM_TRACE)	+= trace.o
+-What:	filemap_nopage, filemap_populate
+-When:	April 2007
+-Why:	These legacy interfaces no longer have any callers in the kernel and
+-	any functionality provided can be provided with filemap_fault. The
+-	removal schedule is short because they are a big maintainence burden
+-	and have some bugs.
+-Who:	Nick Piggin <npiggin@suse.de>
+-
+----------------------------
+-
+-What:	vm_ops.populate, install_page
+-When:	April 2007
+-Why:	These legacy interfaces no longer have any callers in the kernel and
+-	any functionality provided can be provided with vm_ops.fault.
+-Who:	Nick Piggin <npiggin@suse.de>
+-
+----------------------------
+-
+ What:	vm_ops.nopage
+-When:	February 2008, provided in-kernel callers have been converted
++When:	Soon, provided in-kernel callers have been converted
+ Why:	This interface is replaced by vm_ops.fault, but it has been around
+ 	forever, is used by a lot of drivers, and doesn't cost much to
+ 	maintain.
+diff -puN Documentation/filesystems/Locking~mm-fault-feedback-1 Documentation/filesystems/Locking
+--- a/Documentation/filesystems/Locking~mm-fault-feedback-1
++++ a/Documentation/filesystems/Locking
+@@ -510,7 +510,7 @@ More details about quota locking can be 
+ prototypes:
+ 	void (*open)(struct vm_area_struct*);
+ 	void (*close)(struct vm_area_struct*);
+-	struct page *(*fault)(struct vm_area_struct*, struct fault_data *);
++	int (*fault)(struct vm_area_struct*, struct vm_fault *);
+ 	struct page *(*nopage)(struct vm_area_struct*, unsigned long, int *);
+ 	int (*page_mkwrite)(struct vm_area_struct *, struct page *);
  
- ifeq ($(CONFIG_DEBUG_DRIVER),y)
-diff -puN drivers/base/power/power.h~pm-remove-deprecated-dpm_runtime_-routines drivers/base/power/power.h
---- a/drivers/base/power/power.h~pm-remove-deprecated-dpm_runtime_-routines
-+++ a/drivers/base/power/power.h
-@@ -62,11 +62,6 @@ extern int resume_device(struct device *
+diff -puN fs/gfs2/ops_file.c~mm-fault-feedback-1 fs/gfs2/ops_file.c
+--- a/fs/gfs2/ops_file.c~mm-fault-feedback-1
++++ a/fs/gfs2/ops_file.c
+@@ -364,8 +364,6 @@ static int gfs2_mmap(struct file *file, 
+ 	else
+ 		vma->vm_ops = &gfs2_vm_ops_private;
+ 
+-	vma->vm_flags |= VM_CAN_INVALIDATE|VM_CAN_NONLINEAR;
+-
+ 	gfs2_glock_dq_uninit(&i_gh);
+ 
+ 	return error;
+diff -puN fs/gfs2/ops_vm.c~mm-fault-feedback-1 fs/gfs2/ops_vm.c
+--- a/fs/gfs2/ops_vm.c~mm-fault-feedback-1
++++ a/fs/gfs2/ops_vm.c
+@@ -27,13 +27,12 @@
+ #include "trans.h"
+ #include "util.h"
+ 
+-static struct page *gfs2_private_fault(struct vm_area_struct *vma,
+-					struct fault_data *fdata)
++static int gfs2_private_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct gfs2_inode *ip = GFS2_I(vma->vm_file->f_mapping->host);
+ 
+ 	set_bit(GIF_PAGED, &ip->i_flags);
+-	return filemap_fault(vma, fdata);
++	return filemap_fault(vma, vmf);
+ }
+ 
+ static int alloc_page_backing(struct gfs2_inode *ip, struct page *page)
+@@ -104,55 +103,55 @@ out:
+ 	return error;
+ }
+ 
+-static struct page *gfs2_sharewrite_fault(struct vm_area_struct *vma,
+-						struct fault_data *fdata)
++static int gfs2_sharewrite_fault(struct vm_area_struct *vma,
++						struct vm_fault *vmf)
+ {
+ 	struct file *file = vma->vm_file;
+ 	struct gfs2_file *gf = file->private_data;
+ 	struct gfs2_inode *ip = GFS2_I(file->f_mapping->host);
+ 	struct gfs2_holder i_gh;
+-	struct page *result = NULL;
+ 	int alloc_required;
+ 	int error;
++	int ret = VM_FAULT_MINOR;
+ 
+ 	error = gfs2_glock_nq_init(ip->i_gl, LM_ST_EXCLUSIVE, 0, &i_gh);
+ 	if (error)
+-		return NULL;
++		goto out;
+ 
+ 	set_bit(GIF_PAGED, &ip->i_flags);
+ 	set_bit(GIF_SW_PAGED, &ip->i_flags);
+ 
+ 	error = gfs2_write_alloc_required(ip,
+-					(u64)fdata->pgoff << PAGE_CACHE_SHIFT,
++					(u64)vmf->pgoff << PAGE_CACHE_SHIFT,
+ 					PAGE_CACHE_SIZE, &alloc_required);
+ 	if (error) {
+-		fdata->type = VM_FAULT_OOM; /* XXX: are these right? */
+-		goto out;
++		ret = VM_FAULT_OOM; /* XXX: are these right? */
++		goto out_unlock;
+ 	}
+ 
+ 	set_bit(GFF_EXLOCK, &gf->f_flags);
+-	result = filemap_fault(vma, fdata);
++	ret = filemap_fault(vma, vmf);
+ 	clear_bit(GFF_EXLOCK, &gf->f_flags);
+-	if (!result)
+-		goto out;
++	if (ret & (VM_FAULT_ERROR | FAULT_RET_NOPAGE))
++		goto out_unlock;
+ 
+ 	if (alloc_required) {
+-		error = alloc_page_backing(ip, result);
++		/* XXX: do we need to drop page lock around alloc_page_backing?*/
++		error = alloc_page_backing(ip, vmf->page);
+ 		if (error) {
+-			if (vma->vm_flags & VM_CAN_INVALIDATE)
+-				unlock_page(result);
+-			page_cache_release(result);
+-			fdata->type = VM_FAULT_OOM;
+-			result = NULL;
+-			goto out;
++			if (ret & FAULT_RET_LOCKED)
++				unlock_page(vmf->page);
++			page_cache_release(vmf->page);
++			ret = VM_FAULT_OOM;
++			goto out_unlock;
+ 		}
+-		set_page_dirty(result);
++		set_page_dirty(vmf->page);
+ 	}
+ 
+-out:
++out_unlock:
+ 	gfs2_glock_dq_uninit(&i_gh);
+-
+-	return result;
++out:
++	return ret;
+ }
+ 
+ struct vm_operations_struct gfs2_vm_ops_private = {
+diff -puN fs/ncpfs/mmap.c~mm-fault-feedback-1 fs/ncpfs/mmap.c
+--- a/fs/ncpfs/mmap.c~mm-fault-feedback-1
++++ a/fs/ncpfs/mmap.c
+@@ -24,33 +24,35 @@
+ 
+ /*
+  * Fill in the supplied page for mmap
++ * XXX: how are we excluding truncate/invalidate here? Maybe need to lock
++ * page?
   */
- extern int suspend_device(struct device *, pm_message_t);
+-static struct page* ncp_file_mmap_fault(struct vm_area_struct *area,
+-						struct fault_data *fdata)
++static int ncp_file_mmap_fault(struct vm_area_struct *area,
++					struct vm_fault *vmf)
+ {
+ 	struct file *file = area->vm_file;
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+-	struct page* page;
+ 	char *pg_addr;
+ 	unsigned int already_read;
+ 	unsigned int count;
+ 	int bufsize;
+-	int pos;
++	int pos; /* XXX: loff_t ? */
  
--
--/*
-- * runtime.c
-- */
--
- #else /* CONFIG_PM */
+-	page = alloc_page(GFP_HIGHUSER); /* ncpfs has nothing against high pages
+-	           as long as recvmsg and memset works on it */
+-	if (!page) {
+-		fdata->type = VM_FAULT_OOM;
+-		return NULL;
+-	}
+-	pg_addr = kmap(page);
+-	pos = fdata->pgoff << PAGE_SHIFT;
++	/*
++	 * ncpfs has nothing against high pages as long
++	 * as recvmsg and memset works on it
++	 */
++	vmf->page = alloc_page(GFP_HIGHUSER);
++	if (!vmf->page)
++		return VM_FAULT_OOM;
++	pg_addr = kmap(vmf->page);
++	pos = vmf->pgoff << PAGE_SHIFT;
  
+ 	count = PAGE_SIZE;
+-	if (fdata->address + PAGE_SIZE > area->vm_end) {
++	if ((unsigned long)vmf->virtual_address + PAGE_SIZE > area->vm_end) {
+ 		WARN_ON(1); /* shouldn't happen? */
+-		count = area->vm_end - fdata->address;
++		count = area->vm_end - (unsigned long)vmf->virtual_address;
+ 	}
+ 	/* what we can read in one go */
+ 	bufsize = NCP_SERVER(inode)->buffer_size;
+@@ -85,17 +87,16 @@ static struct page* ncp_file_mmap_fault(
  
-diff -puN drivers/base/power/runtime.c~pm-remove-deprecated-dpm_runtime_-routines /dev/null
---- a/drivers/base/power/runtime.c
-+++ /dev/null
-@@ -1,85 +0,0 @@
--/*
-- * drivers/base/power/runtime.c - Handling dynamic device power management.
-- *
-- * Copyright (c) 2003 Patrick Mochel
-- * Copyright (c) 2003 Open Source Development Lab
-- *
-- */
--
--#include <linux/device.h>
--#include "power.h"
--
--
--static void runtime_resume(struct device * dev)
--{
--	dev_dbg(dev, "resuming\n");
--	if (!dev->power.power_state.event)
--		return;
--	if (!resume_device(dev))
--		dev->power.power_state = PMSG_ON;
--}
--
--
--/**
-- *	dpm_runtime_resume - Power one device back on.
-- *	@dev:	Device.
-- *
-- *	Bring one device back to the on state by first powering it
-- *	on, then restoring state. We only operate on devices that aren't
-- *	already on.
-- *	FIXME: We need to handle devices that are in an unknown state.
-- */
--
--void dpm_runtime_resume(struct device * dev)
--{
--	mutex_lock(&dpm_mtx);
--	runtime_resume(dev);
--	mutex_unlock(&dpm_mtx);
--}
--EXPORT_SYMBOL(dpm_runtime_resume);
--
--
--/**
-- *	dpm_runtime_suspend - Put one device in low-power state.
-- *	@dev:	Device.
-- *	@state:	State to enter.
-- */
--
--int dpm_runtime_suspend(struct device * dev, pm_message_t state)
--{
--	int error = 0;
--
--	mutex_lock(&dpm_mtx);
--	if (dev->power.power_state.event == state.event)
--		goto Done;
--
--	if (dev->power.power_state.event)
--		runtime_resume(dev);
--
--	if (!(error = suspend_device(dev, state)))
--		dev->power.power_state = state;
-- Done:
--	mutex_unlock(&dpm_mtx);
--	return error;
--}
--EXPORT_SYMBOL(dpm_runtime_suspend);
--
--
--#if 0
--/**
-- *	dpm_set_power_state - Update power_state field.
-- *	@dev:	Device.
-- *	@state:	Power state device is in.
-- *
-- *	This is an update mechanism for drivers to notify the core
-- *	what power state a device is in. Device probing code may not
-- *	always be able to tell, but we need accurate information to
-- *	work reliably.
-- */
--void dpm_set_power_state(struct device * dev, pm_message_t state)
--{
--	mutex_lock(&dpm_mtx);
--	dev->power.power_state = state;
--	mutex_unlock(&dpm_mtx);
--}
--#endif  /*  0  */
-diff -puN drivers/pcmcia/ds.c~pm-remove-deprecated-dpm_runtime_-routines drivers/pcmcia/ds.c
---- a/drivers/pcmcia/ds.c~pm-remove-deprecated-dpm_runtime_-routines
-+++ a/drivers/pcmcia/ds.c
-@@ -1118,6 +1118,34 @@ static int pcmcia_bus_uevent(struct devi
+ 	if (already_read < PAGE_SIZE)
+ 		memset(pg_addr + already_read, 0, PAGE_SIZE - already_read);
+-	flush_dcache_page(page);
+-	kunmap(page);
++	flush_dcache_page(vmf->page);
++	kunmap(vmf->page);
  
- #endif
- 
-+/************************ runtime PM support ***************************/
-+
-+static int pcmcia_dev_suspend(struct device *dev, pm_message_t state);
-+static int pcmcia_dev_resume(struct device *dev);
-+
-+static int runtime_suspend(struct device *dev)
-+{
-+	int rc;
-+
-+	down(&dev->sem);
-+	rc = pcmcia_dev_suspend(dev, PMSG_SUSPEND);
-+	up(&dev->sem);
-+	if (!rc)
-+		dev->power.power_state.event = PM_EVENT_SUSPEND;
-+	return rc;
-+}
-+
-+static void runtime_resume(struct device *dev)
-+{
-+	int rc;
-+
-+	down(&dev->sem);
-+	rc = pcmcia_dev_resume(dev);
-+	up(&dev->sem);
-+	if (!rc)
-+		dev->power.power_state.event = PM_EVENT_ON;
-+}
-+
- /************************ per-device sysfs output ***************************/
- 
- #define pcmcia_device_attr(field, test, format)				\
-@@ -1164,9 +1192,9 @@ static ssize_t pcmcia_store_pm_state(str
-                 return -EINVAL;
- 
- 	if ((!p_dev->suspended) && !strncmp(buf, "off", 3))
--		ret = dpm_runtime_suspend(dev, PMSG_SUSPEND);
-+		ret = runtime_suspend(dev);
- 	else if (p_dev->suspended && !strncmp(buf, "on", 2))
--		dpm_runtime_resume(dev);
-+		runtime_resume(dev);
- 
- 	return ret ? ret : count;
- }
-@@ -1305,10 +1333,10 @@ static int pcmcia_bus_suspend_callback(s
- 	struct pcmcia_socket *skt = _data;
- 	struct pcmcia_device *p_dev = to_pcmcia_dev(dev);
- 
--	if (p_dev->socket != skt)
-+	if (p_dev->socket != skt || p_dev->suspended)
- 		return 0;
- 
--	return dpm_runtime_suspend(dev, PMSG_SUSPEND);
-+	return runtime_suspend(dev);
+ 	/*
+ 	 * If I understand ncp_read_kernel() properly, the above always
+ 	 * fetches from the network, here the analogue of disk.
+ 	 * -- wli
+ 	 */
+-	fdata->type = VM_FAULT_MAJOR;
+ 	count_vm_event(PGMAJFAULT);
+-	return page;
++	return VM_FAULT_MAJOR;
  }
  
- static int pcmcia_bus_resume_callback(struct device *dev, void * _data)
-@@ -1316,10 +1344,10 @@ static int pcmcia_bus_resume_callback(st
- 	struct pcmcia_socket *skt = _data;
- 	struct pcmcia_device *p_dev = to_pcmcia_dev(dev);
+ static struct vm_operations_struct ncp_file_mmap =
+@@ -124,7 +125,6 @@ int ncp_mmap(struct file *file, struct v
+ 		return -EFBIG;
  
--	if (p_dev->socket != skt)
-+	if (p_dev->socket != skt || !p_dev->suspended)
- 		return 0;
- 
--	dpm_runtime_resume(dev);
-+	runtime_resume(dev);
- 
+ 	vma->vm_ops = &ncp_file_mmap;
+-	vma->vm_flags |= VM_CAN_INVALIDATE;
+ 	file_accessed(file);
  	return 0;
  }
-diff -puN include/linux/pm.h~pm-remove-deprecated-dpm_runtime_-routines include/linux/pm.h
---- a/include/linux/pm.h~pm-remove-deprecated-dpm_runtime_-routines
-+++ a/include/linux/pm.h
-@@ -285,8 +285,6 @@ extern int device_prepare_suspend(pm_mes
- #define device_may_wakeup(dev) \
- 	(device_can_wakeup(dev) && (dev)->power.should_wakeup)
+diff -puN fs/ocfs2/mmap.c~mm-fault-feedback-1 fs/ocfs2/mmap.c
+--- a/fs/ocfs2/mmap.c~mm-fault-feedback-1
++++ a/fs/ocfs2/mmap.c
+@@ -60,30 +60,28 @@ static inline int ocfs2_vm_op_unblock_si
+ 	return sigprocmask(SIG_SETMASK, oldset, NULL);
+ }
  
--extern int dpm_runtime_suspend(struct device *, pm_message_t);
--extern void dpm_runtime_resume(struct device *);
- extern void __suspend_report_result(const char *function, void *fn, int ret);
+-static struct page *ocfs2_fault(struct vm_area_struct *area,
+-						struct fault_data *fdata)
++static int ocfs2_fault(struct vm_area_struct *area, struct vm_fault *vmf)
+ {
+-	struct page *page = NULL;
+ 	sigset_t blocked, oldset;
+-	int ret;
++	int error, ret;
  
- #define suspend_report_result(fn, ret)					\
-@@ -318,15 +316,6 @@ static inline int device_suspend(pm_mess
- #define device_set_wakeup_enable(dev,val)	do{}while(0)
- #define device_may_wakeup(dev)			(0)
+-	mlog_entry("(area=%p, page offset=%lu)\n", area, fdata->pgoff);
++	mlog_entry("(area=%p, page offset=%lu)\n", area, vmf->pgoff);
  
--static inline int dpm_runtime_suspend(struct device * dev, pm_message_t state)
+-	ret = ocfs2_vm_op_block_sigs(&blocked, &oldset);
+-	if (ret < 0) {
+-		fdata->type = VM_FAULT_SIGBUS;
+-		mlog_errno(ret);
++	error = ocfs2_vm_op_block_sigs(&blocked, &oldset);
++	if (error < 0) {
++		mlog_errno(error);
++		ret = VM_FAULT_SIGBUS;
+ 		goto out;
+ 	}
+ 
+-	page = filemap_fault(area, fdata);
++	ret = filemap_fault(area, vmf);
+ 
+-	ret = ocfs2_vm_op_unblock_sigs(&oldset);
+-	if (ret < 0)
+-		mlog_errno(ret);
++	error = ocfs2_vm_op_unblock_sigs(&oldset);
++	if (error < 0)
++		mlog_errno(error);
+ out:
+-	mlog_exit_ptr(page);
+-	return page;
++	mlog_exit_ptr(vmf->page);
++	return ret;
+ }
+ 
+ static int __ocfs2_page_mkwrite(struct inode *inode, struct buffer_head *di_bh,
+@@ -225,7 +223,7 @@ int ocfs2_mmap(struct file *file, struct
+ 	ocfs2_meta_unlock(file->f_dentry->d_inode, lock_level);
+ out:
+ 	vma->vm_ops = &ocfs2_file_vm_ops;
+-	vma->vm_flags |= VM_CAN_INVALIDATE | VM_CAN_NONLINEAR;
++	vma->vm_flags |= VM_CAN_NONLINEAR;
+ 	return 0;
+ }
+ 
+diff -puN fs/xfs/linux-2.6/xfs_file.c~mm-fault-feedback-1 fs/xfs/linux-2.6/xfs_file.c
+--- a/fs/xfs/linux-2.6/xfs_file.c~mm-fault-feedback-1
++++ a/fs/xfs/linux-2.6/xfs_file.c
+@@ -212,20 +212,18 @@ xfs_file_fsync(
+ }
+ 
+ #ifdef CONFIG_XFS_DMAPI
+-STATIC struct page *
++STATIC int
+ xfs_vm_fault(
+ 	struct vm_area_struct	*vma,
+-	struct fault_data	*fdata)
++	struct vm_fault	*vmf)
+ {
+ 	struct inode	*inode = vma->vm_file->f_path.dentry->d_inode;
+ 	bhv_vnode_t	*vp = vn_from_inode(inode);
+ 
+ 	ASSERT_ALWAYS(vp->v_vfsp->vfs_flag & VFS_DMI);
+-	if (XFS_SEND_MMAP(XFS_VFSTOM(vp->v_vfsp), vma, 0)) {
+-		fdata->type = VM_FAULT_SIGBUS;
+-		return NULL;
+-	}
+-	return filemap_fault(vma, fdata);
++	if (XFS_SEND_MMAP(XFS_VFSTOM(vp->v_vfsp), vma, 0))
++		return VM_FAULT_SIGBUS;
++	return filemap_fault(vma, vmf);
+ }
+ #endif /* CONFIG_XFS_DMAPI */
+ 
+@@ -311,7 +309,7 @@ xfs_file_mmap(
+ 	struct vm_area_struct *vma)
+ {
+ 	vma->vm_ops = &xfs_file_vm_ops;
+-	vma->vm_flags |= VM_CAN_INVALIDATE | VM_CAN_NONLINEAR;
++	vma->vm_flags |= VM_CAN_NONLINEAR;
+ 
+ #ifdef CONFIG_XFS_DMAPI
+ 	if (vn_from_inode(filp->f_path.dentry->d_inode)->v_vfsp->vfs_flag & VFS_DMI)
+diff -puN include/linux/mm.h~mm-fault-feedback-1 include/linux/mm.h
+--- a/include/linux/mm.h~mm-fault-feedback-1
++++ a/include/linux/mm.h
+@@ -168,12 +168,7 @@ extern unsigned int kobjsize(const void 
+ #define VM_INSERTPAGE	0x02000000	/* The vma has had "vm_insert_page()" done on it */
+ #define VM_ALWAYSDUMP	0x04000000	/* Always include in core dumps */
+ 
+-#define VM_CAN_INVALIDATE 0x08000000	/* The mapping may be invalidated,
+-					 * eg. truncate or invalidate_inode_*.
+-					 * In this case, do_no_page must
+-					 * return with the page locked.
+-					 */
+-#define VM_CAN_NONLINEAR 0x10000000	/* Has ->fault & does nonlinear pages */
++#define VM_CAN_NONLINEAR 0x08000000	/* Has ->fault & does nonlinear pages */
+ 
+ #ifndef VM_STACK_DEFAULT_FLAGS		/* arch can override this */
+ #define VM_STACK_DEFAULT_FLAGS VM_DATA_DEFAULT_FLAGS
+@@ -197,24 +192,44 @@ extern unsigned int kobjsize(const void 
+  */
+ extern pgprot_t protection_map[16];
+ 
+-#define FAULT_FLAG_WRITE	0x01
+-#define FAULT_FLAG_NONLINEAR	0x02
++#define FAULT_FLAG_WRITE	0x01	/* Fault was a write access */
++#define FAULT_FLAG_NONLINEAR	0x02	/* Fault was via a nonlinear mapping */
++
++
++#define FAULT_RET_NOPAGE	0x0100	/* ->fault did not return a page. This
++					 * can be used if the handler installs
++					 * their own pte.
++					 */
++#define FAULT_RET_LOCKED	0x0200	/* ->fault locked the page, caller must
++					 * unlock after installing the mapping.
++					 * This is used by pagecache in
++					 * particular, where the page lock is
++					 * used to synchronise against truncate
++					 * and invalidate. Mutually exclusive
++					 * with FAULT_RET_NOPAGE.
++					 */
+ 
+ /*
+- * fault_data is filled in the the pagefault handler and passed to the
+- * vma's ->fault function. That function is responsible for filling in
+- * 'type', which is the type of fault if a page is returned, or the type
+- * of error if NULL is returned.
+- *
+- * pgoff should be used in favour of address, if possible. If pgoff is
+- * used, one may set VM_CAN_NONLINEAR in the vma->vm_flags to get
+- * nonlinear mapping support.
+- */
+-struct fault_data {
+-	unsigned long address;
+-	pgoff_t pgoff;
+-	unsigned int flags;
+-	int type;
++ * vm_fault is filled by the the pagefault handler and passed to the vma's
++ * ->fault function. The vma's ->fault is responsible for returning the
++ * VM_FAULT_xxx type which occupies the lowest byte of the return code, ORed
++ * with FAULT_RET_ flags that occupy the next byte and give details about
++ * how the fault was handled.
++ *
++ * pgoff should be used in favour of virtual_address, if possible. If pgoff
++ * is used, one may set VM_CAN_NONLINEAR in the vma->vm_flags to get nonlinear
++ * mapping support.
++ */
++struct vm_fault {
++	unsigned int flags;		/* FAULT_FLAG_xxx flags */
++	pgoff_t pgoff;			/* Logical page offset based on vma */
++	void __user *virtual_address;	/* Faulting virtual address */
++
++	struct page *page;		/* ->fault handlers should return a
++					 * page here, unless FAULT_RET_NOPAGE
++					 * is set (which is also implied by
++					 * VM_FAULT_OOM or SIGBUS).
++					 */
+ };
+ 
+ /*
+@@ -225,15 +240,11 @@ struct fault_data {
+ struct vm_operations_struct {
+ 	void (*open)(struct vm_area_struct * area);
+ 	void (*close)(struct vm_area_struct * area);
+-	struct page *(*fault)(struct vm_area_struct *vma,
+-			struct fault_data *fdata);
++	int (*fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
+ 	struct page *(*nopage)(struct vm_area_struct *area,
+ 			unsigned long address, int *type);
+ 	unsigned long (*nopfn)(struct vm_area_struct *area,
+ 			unsigned long address);
+-	int (*populate)(struct vm_area_struct *area, unsigned long address,
+-			unsigned long len, pgprot_t prot, unsigned long pgoff,
+-			int nonblock);
+ 
+ 	/* notification that a previously read-only page is about to become
+ 	 * writable, if an error is returned it will cause a SIGBUS */
+@@ -700,8 +711,14 @@ static inline int page_mapped(struct pag
+  * Used to decide whether a process gets delivered SIGBUS or
+  * just gets major/minor fault counters bumped up.
+  */
+-#define VM_FAULT_OOM	0x00
+-#define VM_FAULT_SIGBUS	0x01
++
++/*
++ * VM_FAULT_ERROR is set for the error cases, to make some tests simpler.
++ */
++#define VM_FAULT_ERROR	0x20
++
++#define VM_FAULT_OOM	(0x00 | VM_FAULT_ERROR)
++#define VM_FAULT_SIGBUS	(0x01 | VM_FAULT_ERROR)
+ #define VM_FAULT_MINOR	0x02
+ #define VM_FAULT_MAJOR	0x03
+ 
+@@ -711,6 +728,11 @@ static inline int page_mapped(struct pag
+  */
+ #define VM_FAULT_WRITE	0x10
+ 
++/*
++ * Mask of VM_FAULT_ flags
++ */
++#define VM_FAULT_MASK	0xff
++
+ #define offset_in_page(p)	((unsigned long)(p) & ~PAGE_MASK)
+ 
+ extern void show_free_areas(void);
+@@ -793,8 +815,6 @@ static inline void unmap_shared_mapping_
+ 
+ extern int vmtruncate(struct inode * inode, loff_t offset);
+ extern int vmtruncate_range(struct inode * inode, loff_t offset, loff_t end);
+-extern int install_page(struct mm_struct *mm, struct vm_area_struct *vma, unsigned long addr, struct page *page, pgprot_t prot);
+-extern int install_file_pte(struct mm_struct *mm, struct vm_area_struct *vma, unsigned long addr, unsigned long pgoff, pgprot_t prot);
+ 
+ #ifdef CONFIG_MMU
+ extern int __handle_mm_fault(struct mm_struct *mm,struct vm_area_struct *vma,
+@@ -1135,11 +1155,7 @@ extern void truncate_inode_pages_range(s
+ 				       loff_t lstart, loff_t lend);
+ 
+ /* generic vm_area_ops exported for stackable file systems */
+-extern struct page *filemap_fault(struct vm_area_struct *, struct fault_data *);
+-extern struct page * __deprecated_for_modules
+-filemap_nopage(struct vm_area_struct *, unsigned long, int *);
+-extern int __deprecated_for_modules filemap_populate(struct vm_area_struct *,
+-		unsigned long, unsigned long, pgprot_t, unsigned long, int);
++extern int filemap_fault(struct vm_area_struct *, struct vm_fault *);
+ 
+ /* mm/page-writeback.c */
+ int write_one_page(struct page *page, int wait);
+diff -puN ipc/shm.c~mm-fault-feedback-1 ipc/shm.c
+--- a/ipc/shm.c~mm-fault-feedback-1
++++ a/ipc/shm.c
+@@ -224,13 +224,12 @@ static void shm_close(struct vm_area_str
+ 	mutex_unlock(&shm_ids(ns).mutex);
+ }
+ 
+-static struct page *shm_fault(struct vm_area_struct *vma,
+-					struct fault_data *fdata)
++static int shm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct file *file = vma->vm_file;
+ 	struct shm_file_data *sfd = shm_file_data(file);
+ 
+-	return sfd->vm_ops->fault(vma, fdata);
++	return sfd->vm_ops->fault(vma, vmf);
+ }
+ 
+ #ifdef CONFIG_NUMA
+diff -puN mm/filemap.c~mm-fault-feedback-1 mm/filemap.c
+--- a/mm/filemap.c~mm-fault-feedback-1
++++ a/mm/filemap.c
+@@ -1302,8 +1302,8 @@ static int fastcall page_cache_read(stru
+ 
+ /**
+  * filemap_fault - read in file data for page fault handling
+- * @vma:	user vma (not used)
+- * @fdata:	the applicable fault_data
++ * @vma:	vma in which the fault was taken
++ * @vmf:	struct vm_fault containing details of the fault
+  *
+  * filemap_fault() is invoked via the vma operations vector for a
+  * mapped memory region to read in file data during a page fault.
+@@ -1312,7 +1312,7 @@ static int fastcall page_cache_read(stru
+  * it in the page cache, and handles the special cases reasonably without
+  * having a lot of duplicated code.
+  */
+-struct page *filemap_fault(struct vm_area_struct *vma, struct fault_data *fdata)
++int filemap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	int error;
+ 	struct file *file = vma->vm_file;
+@@ -1322,13 +1322,12 @@ struct page *filemap_fault(struct vm_are
+ 	struct page *page;
+ 	unsigned long size;
+ 	int did_readaround = 0;
++	int ret;
+ 
+-	fdata->type = VM_FAULT_MINOR;
+-
+-	BUG_ON(!(vma->vm_flags & VM_CAN_INVALIDATE));
++	ret = VM_FAULT_MINOR;
+ 
+ 	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (fdata->pgoff >= size)
++	if (vmf->pgoff >= size)
+ 		goto outside_data_content;
+ 
+ 	/* If we don't want any read-ahead, don't bother */
+@@ -1342,18 +1341,18 @@ struct page *filemap_fault(struct vm_are
+ 	 * For sequential accesses, we use the generic readahead logic.
+ 	 */
+ 	if (VM_SequentialReadHint(vma))
+-		page_cache_readahead(mapping, ra, file, fdata->pgoff, 1);
++		page_cache_readahead(mapping, ra, file, vmf->pgoff, 1);
+ 
+ 	/*
+ 	 * Do we have something in the page cache already?
+ 	 */
+ retry_find:
+-	page = find_lock_page(mapping, fdata->pgoff);
++	page = find_lock_page(mapping, vmf->pgoff);
+ 	if (!page) {
+ 		unsigned long ra_pages;
+ 
+ 		if (VM_SequentialReadHint(vma)) {
+-			handle_ra_miss(mapping, ra, fdata->pgoff);
++			handle_ra_miss(mapping, ra, vmf->pgoff);
+ 			goto no_cached_page;
+ 		}
+ 		ra->mmap_miss++;
+@@ -1370,7 +1369,7 @@ retry_find:
+ 		 * check did_readaround, as this is an inner loop.
+ 		 */
+ 		if (!did_readaround) {
+-			fdata->type = VM_FAULT_MAJOR;
++			ret = VM_FAULT_MAJOR;
+ 			count_vm_event(PGMAJFAULT);
+ 		}
+ 		did_readaround = 1;
+@@ -1378,11 +1377,11 @@ retry_find:
+ 		if (ra_pages) {
+ 			pgoff_t start = 0;
+ 
+-			if (fdata->pgoff > ra_pages / 2)
+-				start = fdata->pgoff - ra_pages / 2;
++			if (vmf->pgoff > ra_pages / 2)
++				start = vmf->pgoff - ra_pages / 2;
+ 			do_page_cache_readahead(mapping, file, start, ra_pages);
+ 		}
+-		page = find_lock_page(mapping, fdata->pgoff);
++		page = find_lock_page(mapping, vmf->pgoff);
+ 		if (!page)
+ 			goto no_cached_page;
+ 	}
+@@ -1399,7 +1398,7 @@ retry_find:
+ 
+ 	/* Must recheck i_size under page lock */
+ 	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (unlikely(fdata->pgoff >= size)) {
++	if (unlikely(vmf->pgoff >= size)) {
+ 		unlock_page(page);
+ 		goto outside_data_content;
+ 	}
+@@ -1408,24 +1407,24 @@ retry_find:
+ 	 * Found the page and have a reference on it.
+ 	 */
+ 	mark_page_accessed(page);
+-	return page;
++	vmf->page = page;
++	return ret | FAULT_RET_LOCKED;
+ 
+ outside_data_content:
+ 	/*
+ 	 * An external ptracer can access pages that normally aren't
+ 	 * accessible..
+ 	 */
+-	if (vma->vm_mm == current->mm) {
+-		fdata->type = VM_FAULT_SIGBUS;
+-		return NULL;
+-	}
++	if (vma->vm_mm == current->mm)
++		return VM_FAULT_SIGBUS;
++
+ 	/* Fall through to the non-read-ahead case */
+ no_cached_page:
+ 	/*
+ 	 * We're only likely to ever get here if MADV_RANDOM is in
+ 	 * effect.
+ 	 */
+-	error = page_cache_read(file, fdata->pgoff);
++	error = page_cache_read(file, vmf->pgoff);
+ 
+ 	/*
+ 	 * The page we want has now been added to the page cache.
+@@ -1441,15 +1440,13 @@ no_cached_page:
+ 	 * to schedule I/O.
+ 	 */
+ 	if (error == -ENOMEM)
+-		fdata->type = VM_FAULT_OOM;
+-	else
+-		fdata->type = VM_FAULT_SIGBUS;
+-	return NULL;
++		return VM_FAULT_OOM;
++	return VM_FAULT_SIGBUS;
+ 
+ page_not_uptodate:
+ 	/* IO error path */
+ 	if (!did_readaround) {
+-		fdata->type = VM_FAULT_MAJOR;
++		ret = VM_FAULT_MAJOR;
+ 		count_vm_event(PGMAJFAULT);
+ 	}
+ 
+@@ -1468,206 +1465,10 @@ page_not_uptodate:
+ 
+ 	/* Things didn't work out. Return zero to tell the mm layer so. */
+ 	shrink_readahead_size_eio(file, ra);
+-	fdata->type = VM_FAULT_SIGBUS;
+-	return NULL;
++	return VM_FAULT_SIGBUS;
+ }
+ EXPORT_SYMBOL(filemap_fault);
+ 
+-/*
+- * filemap_nopage and filemap_populate are legacy exports that are not used
+- * in tree. Scheduled for removal.
+- */
+-struct page *filemap_nopage(struct vm_area_struct *area,
+-				unsigned long address, int *type)
 -{
+-	struct page *page;
+-	struct fault_data fdata;
+-	fdata.address = address;
+-	fdata.pgoff = ((address - area->vm_start) >> PAGE_CACHE_SHIFT)
+-			+ area->vm_pgoff;
+-	fdata.flags = 0;
+-
+-	page = filemap_fault(area, &fdata);
+-	if (type)
+-		*type = fdata.type;
+-
+-	return page;
+-}
+-EXPORT_SYMBOL(filemap_nopage);
+-
+-static struct page * filemap_getpage(struct file *file, unsigned long pgoff,
+-					int nonblock)
+-{
+-	struct address_space *mapping = file->f_mapping;
+-	struct page *page;
+-	int error;
+-
+-	/*
+-	 * Do we have something in the page cache already?
+-	 */
+-retry_find:
+-	page = find_get_page(mapping, pgoff);
+-	if (!page) {
+-		if (nonblock)
+-			return NULL;
+-		goto no_cached_page;
+-	}
+-
+-	/*
+-	 * Ok, found a page in the page cache, now we need to check
+-	 * that it's up-to-date.
+-	 */
+-	if (!PageUptodate(page)) {
+-		if (nonblock) {
+-			page_cache_release(page);
+-			return NULL;
+-		}
+-		goto page_not_uptodate;
+-	}
+-
+-success:
+-	/*
+-	 * Found the page and have a reference on it.
+-	 */
+-	mark_page_accessed(page);
+-	return page;
+-
+-no_cached_page:
+-	error = page_cache_read(file, pgoff);
+-
+-	/*
+-	 * The page we want has now been added to the page cache.
+-	 * In the unlikely event that someone removed it in the
+-	 * meantime, we'll just come back here and read it again.
+-	 */
+-	if (error >= 0)
+-		goto retry_find;
+-
+-	/*
+-	 * An error return from page_cache_read can result if the
+-	 * system is low on memory, or a problem occurs while trying
+-	 * to schedule I/O.
+-	 */
+-	return NULL;
+-
+-page_not_uptodate:
+-	lock_page(page);
+-
+-	/* Did it get truncated while we waited for it? */
+-	if (!page->mapping) {
+-		unlock_page(page);
+-		goto err;
+-	}
+-
+-	/* Did somebody else get it up-to-date? */
+-	if (PageUptodate(page)) {
+-		unlock_page(page);
+-		goto success;
+-	}
+-
+-	error = mapping->a_ops->readpage(file, page);
+-	if (!error) {
+-		wait_on_page_locked(page);
+-		if (PageUptodate(page))
+-			goto success;
+-	} else if (error == AOP_TRUNCATED_PAGE) {
+-		page_cache_release(page);
+-		goto retry_find;
+-	}
+-
+-	/*
+-	 * Umm, take care of errors if the page isn't up-to-date.
+-	 * Try to re-read it _once_. We do this synchronously,
+-	 * because there really aren't any performance issues here
+-	 * and we need to check for errors.
+-	 */
+-	lock_page(page);
+-
+-	/* Somebody truncated the page on us? */
+-	if (!page->mapping) {
+-		unlock_page(page);
+-		goto err;
+-	}
+-	/* Somebody else successfully read it in? */
+-	if (PageUptodate(page)) {
+-		unlock_page(page);
+-		goto success;
+-	}
+-
+-	ClearPageError(page);
+-	error = mapping->a_ops->readpage(file, page);
+-	if (!error) {
+-		wait_on_page_locked(page);
+-		if (PageUptodate(page))
+-			goto success;
+-	} else if (error == AOP_TRUNCATED_PAGE) {
+-		page_cache_release(page);
+-		goto retry_find;
+-	}
+-
+-	/*
+-	 * Things didn't work out. Return zero to tell the
+-	 * mm layer so, possibly freeing the page cache page first.
+-	 */
+-err:
+-	page_cache_release(page);
+-
+-	return NULL;
+-}
+-
+-int filemap_populate(struct vm_area_struct *vma, unsigned long addr,
+-		unsigned long len, pgprot_t prot, unsigned long pgoff,
+-		int nonblock)
+-{
+-	struct file *file = vma->vm_file;
+-	struct address_space *mapping = file->f_mapping;
+-	struct inode *inode = mapping->host;
+-	unsigned long size;
+-	struct mm_struct *mm = vma->vm_mm;
+-	struct page *page;
+-	int err;
+-
+-	if (!nonblock)
+-		force_page_cache_readahead(mapping, vma->vm_file,
+-					pgoff, len >> PAGE_CACHE_SHIFT);
+-
+-repeat:
+-	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (pgoff + (len >> PAGE_CACHE_SHIFT) > size)
+-		return -EINVAL;
+-
+-	page = filemap_getpage(file, pgoff, nonblock);
+-
+-	/* XXX: This is wrong, a filesystem I/O error may have happened. Fix that as
+-	 * done in shmem_populate calling shmem_getpage */
+-	if (!page && !nonblock)
+-		return -ENOMEM;
+-
+-	if (page) {
+-		err = install_page(mm, vma, addr, page, prot);
+-		if (err) {
+-			page_cache_release(page);
+-			return err;
+-		}
+-	} else if (vma->vm_flags & VM_NONLINEAR) {
+-		/* No page was found just because we can't read it in now (being
+-		 * here implies nonblock != 0), but the page may exist, so set
+-		 * the PTE to fault it in later. */
+-		err = install_file_pte(mm, vma, addr, pgoff, prot);
+-		if (err)
+-			return err;
+-	}
+-
+-	len -= PAGE_SIZE;
+-	addr += PAGE_SIZE;
+-	pgoff++;
+-	if (len)
+-		goto repeat;
+-
 -	return 0;
 -}
+-EXPORT_SYMBOL(filemap_populate);
 -
--static inline void dpm_runtime_resume(struct device * dev)
--{
--}
--
- #define suspend_report_result(fn, ret) do { } while (0)
+ struct vm_operations_struct generic_file_vm_ops = {
+ 	.fault		= filemap_fault,
+ };
+@@ -1682,7 +1483,7 @@ int generic_file_mmap(struct file * file
+ 		return -ENOEXEC;
+ 	file_accessed(file);
+ 	vma->vm_ops = &generic_file_vm_ops;
+-	vma->vm_flags |= VM_CAN_INVALIDATE | VM_CAN_NONLINEAR;
++	vma->vm_flags |= VM_CAN_NONLINEAR;
+ 	return 0;
+ }
  
- static inline int call_platform_enable_wakeup(struct device *dev, int is_on)
+diff -puN mm/filemap_xip.c~mm-fault-feedback-1 mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-fault-feedback-1
++++ a/mm/filemap_xip.c
+@@ -210,8 +210,7 @@ __xip_unmap (struct address_space * mapp
+  *
+  * This function is derived from filemap_fault, but used for execute in place
+  */
+-static struct page *xip_file_fault(struct vm_area_struct *area,
+-					struct fault_data *fdata)
++static int xip_file_fault(struct vm_area_struct *area, struct vm_fault *vmf)
+ {
+ 	struct file *file = area->vm_file;
+ 	struct address_space *mapping = file->f_mapping;
+@@ -222,19 +221,15 @@ static struct page *xip_file_fault(struc
+ 	/* XXX: are VM_FAULT_ codes OK? */
+ 
+ 	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (fdata->pgoff >= size) {
+-		fdata->type = VM_FAULT_SIGBUS;
+-		return NULL;
+-	}
++	if (vmf->pgoff >= size)
++		return VM_FAULT_SIGBUS;
+ 
+ 	page = mapping->a_ops->get_xip_page(mapping,
+-					fdata->pgoff*(PAGE_SIZE/512), 0);
++					vmf->pgoff*(PAGE_SIZE/512), 0);
+ 	if (!IS_ERR(page))
+ 		goto out;
+-	if (PTR_ERR(page) != -ENODATA) {
+-		fdata->type = VM_FAULT_OOM;
+-		return NULL;
+-	}
++	if (PTR_ERR(page) != -ENODATA)
++		return VM_FAULT_OOM;
+ 
+ 	/* sparse block */
+ 	if ((area->vm_flags & (VM_WRITE | VM_MAYWRITE)) &&
+@@ -242,26 +237,22 @@ static struct page *xip_file_fault(struc
+ 	    (!(mapping->host->i_sb->s_flags & MS_RDONLY))) {
+ 		/* maybe shared writable, allocate new block */
+ 		page = mapping->a_ops->get_xip_page(mapping,
+-					fdata->pgoff*(PAGE_SIZE/512), 1);
+-		if (IS_ERR(page)) {
+-			fdata->type = VM_FAULT_SIGBUS;
+-			return NULL;
+-		}
++					vmf->pgoff*(PAGE_SIZE/512), 1);
++		if (IS_ERR(page))
++			return VM_FAULT_SIGBUS;
+ 		/* unmap page at pgoff from all other vmas */
+-		__xip_unmap(mapping, fdata->pgoff);
++		__xip_unmap(mapping, vmf->pgoff);
+ 	} else {
+ 		/* not shared and writable, use xip_sparse_page() */
+ 		page = xip_sparse_page();
+-		if (!page) {
+-			fdata->type = VM_FAULT_OOM;
+-			return NULL;
+-		}
++		if (!page)
++			return VM_FAULT_OOM;
+ 	}
+ 
+ out:
+-	fdata->type = VM_FAULT_MINOR;
+ 	page_cache_get(page);
+-	return page;
++	vmf->page = page;
++	return VM_FAULT_MINOR;
+ }
+ 
+ static struct vm_operations_struct xip_file_vm_ops = {
+diff -puN mm/fremap.c~mm-fault-feedback-1 mm/fremap.c
+--- a/mm/fremap.c~mm-fault-feedback-1
++++ a/mm/fremap.c
+@@ -20,13 +20,14 @@
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+ 
+-static int zap_pte(struct mm_struct *mm, struct vm_area_struct *vma,
++static void zap_pte(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long addr, pte_t *ptep)
+ {
+ 	pte_t pte = *ptep;
+-	struct page *page = NULL;
+ 
+ 	if (pte_present(pte)) {
++		struct page *page;
++
+ 		flush_cache_page(vma, addr, pte_pfn(pte));
+ 		pte = ptep_clear_flush(vma, addr, ptep);
+ 		page = vm_normal_page(vma, addr, pte);
+@@ -35,68 +36,21 @@ static int zap_pte(struct mm_struct *mm,
+ 				set_page_dirty(page);
+ 			page_remove_rmap(page, vma);
+ 			page_cache_release(page);
++			update_hiwater_rss(mm);
++			dec_mm_counter(mm, file_rss);
+ 		}
+ 	} else {
+ 		if (!pte_file(pte))
+ 			free_swap_and_cache(pte_to_swp_entry(pte));
+ 		pte_clear_not_present_full(mm, addr, ptep, 0);
+ 	}
+-	return !!page;
+ }
+ 
+ /*
+- * Install a file page to a given virtual memory address, release any
+- * previously existing mapping.
+- */
+-int install_page(struct mm_struct *mm, struct vm_area_struct *vma,
+-		unsigned long addr, struct page *page, pgprot_t prot)
+-{
+-	struct inode *inode;
+-	pgoff_t size;
+-	int err = -ENOMEM;
+-	pte_t *pte;
+-	pte_t pte_val;
+-	spinlock_t *ptl;
+-
+-	pte = get_locked_pte(mm, addr, &ptl);
+-	if (!pte)
+-		goto out;
+-
+-	/*
+-	 * This page may have been truncated. Tell the
+-	 * caller about it.
+-	 */
+-	err = -EINVAL;
+-	inode = vma->vm_file->f_mapping->host;
+-	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (!page->mapping || page->index >= size)
+-		goto unlock;
+-	err = -ENOMEM;
+-	if (page_mapcount(page) > INT_MAX/2)
+-		goto unlock;
+-
+-	if (pte_none(*pte) || !zap_pte(mm, vma, addr, pte))
+-		inc_mm_counter(mm, file_rss);
+-
+-	flush_icache_page(vma, page);
+-	pte_val = mk_pte(page, prot);
+-	set_pte_at(mm, addr, pte, pte_val);
+-	page_add_file_rmap(page);
+-	update_mmu_cache(vma, addr, pte_val);
+-	lazy_mmu_prot_update(pte_val);
+-	err = 0;
+-unlock:
+-	pte_unmap_unlock(pte, ptl);
+-out:
+-	return err;
+-}
+-EXPORT_SYMBOL(install_page);
+-
+-/*
+  * Install a file pte to a given virtual memory address, release any
+  * previously existing mapping.
+  */
+-int install_file_pte(struct mm_struct *mm, struct vm_area_struct *vma,
++static int install_file_pte(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long addr, unsigned long pgoff, pgprot_t prot)
+ {
+ 	int err = -ENOMEM;
+@@ -107,10 +61,8 @@ int install_file_pte(struct mm_struct *m
+ 	if (!pte)
+ 		goto out;
+ 
+-	if (!pte_none(*pte) && zap_pte(mm, vma, addr, pte)) {
+-		update_hiwater_rss(mm);
+-		dec_mm_counter(mm, file_rss);
+-	}
++	if (!pte_none(*pte))
++		zap_pte(mm, vma, addr, pte);
+ 
+ 	set_pte_at(mm, addr, pte, pgoff_to_pte(pgoff));
+ 	/*
+@@ -208,8 +160,7 @@ asmlinkage long sys_remap_file_pages(uns
+ 	if (vma->vm_private_data && !(vma->vm_flags & VM_NONLINEAR))
+ 		goto out;
+ 
+-	if ((!vma->vm_ops || !vma->vm_ops->populate) &&
+-					!(vma->vm_flags & VM_CAN_NONLINEAR))
++	if (!vma->vm_flags & VM_CAN_NONLINEAR)
+ 		goto out;
+ 
+ 	if (end <= start || start < vma->vm_start || end > vma->vm_end)
+@@ -239,18 +190,14 @@ asmlinkage long sys_remap_file_pages(uns
+ 		spin_unlock(&mapping->i_mmap_lock);
+ 	}
+ 
+-	if (vma->vm_flags & VM_CAN_NONLINEAR) {
+-		err = populate_range(mm, vma, start, size, pgoff);
+-		if (!err && !(flags & MAP_NONBLOCK)) {
+-			if (unlikely(has_write_lock)) {
+-				downgrade_write(&mm->mmap_sem);
+-				has_write_lock = 0;
+-			}
+-			make_pages_present(start, start+size);
++	err = populate_range(mm, vma, start, size, pgoff);
++	if (!err && !(flags & MAP_NONBLOCK)) {
++		if (unlikely(has_write_lock)) {
++			downgrade_write(&mm->mmap_sem);
++			has_write_lock = 0;
+ 		}
+-	} else
+-		err = vma->vm_ops->populate(vma, start, size, vma->vm_page_prot,
+-					    	pgoff, flags & MAP_NONBLOCK);
++		make_pages_present(start, start+size);
++	}
+ 
+ 	/*
+ 	 * We can't clear VM_NONLINEAR because we'd have to do
+diff -puN mm/hugetlb.c~mm-fault-feedback-1 mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-fault-feedback-1
++++ a/mm/hugetlb.c
+@@ -316,15 +316,14 @@ unsigned long hugetlb_total_pages(void)
+  * hugegpage VMA.  do_page_fault() is supposed to trap this, so BUG is we get
+  * this far.
+  */
+-static struct page *hugetlb_nopage(struct vm_area_struct *vma,
+-				unsigned long address, int *unused)
++static int hugetlb_vm_op_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	BUG();
+-	return NULL;
++	return 0;
+ }
+ 
+ struct vm_operations_struct hugetlb_vm_ops = {
+-	.nopage = hugetlb_nopage,
++	.fault = hugetlb_vm_op_fault,
+ };
+ 
+ static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
+diff -puN mm/memory.c~mm-fault-feedback-1 mm/memory.c
+--- a/mm/memory.c~mm-fault-feedback-1
++++ a/mm/memory.c
+@@ -1834,10 +1834,10 @@ static int unmap_mapping_range_vma(struc
+ 
+ 	/*
+ 	 * files that support invalidating or truncating portions of the
+-	 * file from under mmaped areas must set the VM_CAN_INVALIDATE flag, and
+-	 * have their .nopage function return the page locked.
++	 * file from under mmaped areas must have their ->fault function
++	 * return a locked page (and FAULT_RET_LOCKED code). This provides
++	 * synchronisation against concurrent unmapping here.
+ 	 */
+-	BUG_ON(!(vma->vm_flags & VM_CAN_INVALIDATE));
+ 
+ again:
+ 	restart_addr = vma->vm_truncate_count;
+@@ -2306,63 +2306,62 @@ static int __do_fault(struct mm_struct *
+ 		pgoff_t pgoff, unsigned int flags, pte_t orig_pte)
+ {
+ 	spinlock_t *ptl;
+-	struct page *page, *faulted_page;
++	struct page *page;
+ 	pte_t entry;
+ 	int anon = 0;
+ 	struct page *dirty_page = NULL;
+-	struct fault_data fdata;
++	struct vm_fault vmf;
++	int ret;
+ 
+-	fdata.address = address & PAGE_MASK;
+-	fdata.pgoff = pgoff;
+-	fdata.flags = flags;
++	vmf.virtual_address = (void __user *)(address & PAGE_MASK);
++	vmf.pgoff = pgoff;
++	vmf.flags = flags;
++	vmf.page = NULL;
+ 
+ 	pte_unmap(page_table);
+ 	BUG_ON(vma->vm_flags & VM_PFNMAP);
+ 
+ 	if (likely(vma->vm_ops->fault)) {
+-		fdata.type = -1;
+-		faulted_page = vma->vm_ops->fault(vma, &fdata);
+-		WARN_ON(fdata.type == -1);
+-		if (unlikely(!faulted_page))
+-			return fdata.type;
++		ret = vma->vm_ops->fault(vma, &vmf);
++		if (unlikely(ret & (VM_FAULT_ERROR | FAULT_RET_NOPAGE)))
++			return (ret & VM_FAULT_MASK);
+ 	} else {
+ 		/* Legacy ->nopage path */
+-		fdata.type = VM_FAULT_MINOR;
+-		faulted_page = vma->vm_ops->nopage(vma, address & PAGE_MASK,
+-								&fdata.type);
++		ret = VM_FAULT_MINOR;
++		vmf.page = vma->vm_ops->nopage(vma, address & PAGE_MASK, &ret);
+ 		/* no page was available -- either SIGBUS or OOM */
+-		if (unlikely(faulted_page == NOPAGE_SIGBUS))
++		if (unlikely(vmf.page == NOPAGE_SIGBUS))
+ 			return VM_FAULT_SIGBUS;
+-		else if (unlikely(faulted_page == NOPAGE_OOM))
++		else if (unlikely(vmf.page == NOPAGE_OOM))
+ 			return VM_FAULT_OOM;
+ 	}
+ 
+ 	/*
+-	 * For consistency in subsequent calls, make the faulted_page always
++	 * For consistency in subsequent calls, make the faulted page always
+ 	 * locked.
+ 	 */
+-	if (unlikely(!(vma->vm_flags & VM_CAN_INVALIDATE)))
+-		lock_page(faulted_page);
++	if (unlikely(!(ret & FAULT_RET_LOCKED)))
++		lock_page(vmf.page);
+ 	else
+-		BUG_ON(!PageLocked(faulted_page));
++		VM_BUG_ON(!PageLocked(vmf.page));
+ 
+ 	/*
+ 	 * Should we do an early C-O-W break?
+ 	 */
+-	page = faulted_page;
++	page = vmf.page;
+ 	if (flags & FAULT_FLAG_WRITE) {
+ 		if (!(vma->vm_flags & VM_SHARED)) {
+ 			anon = 1;
+ 			if (unlikely(anon_vma_prepare(vma))) {
+-				fdata.type = VM_FAULT_OOM;
++				ret = VM_FAULT_OOM;
+ 				goto out;
+ 			}
+ 			page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
+ 			if (!page) {
+-				fdata.type = VM_FAULT_OOM;
++				ret = VM_FAULT_OOM;
+ 				goto out;
+ 			}
+-			copy_user_highpage(page, faulted_page, address, vma);
++			copy_user_highpage(page, vmf.page, address, vma);
+ 		} else {
+ 			/*
+ 			 * If the page will be shareable, see if the backing
+@@ -2372,11 +2371,23 @@ static int __do_fault(struct mm_struct *
+ 			if (vma->vm_ops->page_mkwrite) {
+ 				unlock_page(page);
+ 				if (vma->vm_ops->page_mkwrite(vma, page) < 0) {
+-					fdata.type = VM_FAULT_SIGBUS;
+-					anon = 1; /* no anon but release faulted_page */
++					ret = VM_FAULT_SIGBUS;
++					anon = 1; /* no anon but release vmf.page */
+ 					goto out_unlocked;
+ 				}
+ 				lock_page(page);
++				/*
++				 * XXX: this is not quite right (racy vs
++				 * invalidate) to unlock and relock the page
++				 * like this, however a better fix requires
++				 * reworking page_mkwrite locking API, which
++				 * is better done later.
++				 */
++				if (!page->mapping) {
++					ret = VM_FAULT_MINOR;
++					anon = 1; /* no anon but release vmf.page */
++					goto out;
++				}
+ 			}
+ 		}
+ 
+@@ -2427,16 +2438,16 @@ static int __do_fault(struct mm_struct *
+ 	pte_unmap_unlock(page_table, ptl);
+ 
+ out:
+-	unlock_page(faulted_page);
++	unlock_page(vmf.page);
+ out_unlocked:
+ 	if (anon)
+-		page_cache_release(faulted_page);
++		page_cache_release(vmf.page);
+ 	else if (dirty_page) {
+ 		set_page_dirty_balance(dirty_page);
+ 		put_page(dirty_page);
+ 	}
+ 
+-	return fdata.type;
++	return (ret & VM_FAULT_MASK);
+ }
+ 
+ static int do_linear_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+@@ -2447,18 +2458,10 @@ static int do_linear_fault(struct mm_str
+ 			- vma->vm_start) >> PAGE_CACHE_SHIFT) + vma->vm_pgoff;
+ 	unsigned int flags = (write_access ? FAULT_FLAG_WRITE : 0);
+ 
+-	return __do_fault(mm, vma, address, page_table, pmd, pgoff, flags, orig_pte);
++	return __do_fault(mm, vma, address, page_table, pmd, pgoff,
++							flags, orig_pte);
+ }
+ 
+-static int do_nonlinear_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+-		unsigned long address, pte_t *page_table, pmd_t *pmd,
+-		int write_access, pgoff_t pgoff, pte_t orig_pte)
+-{
+-	unsigned int flags = FAULT_FLAG_NONLINEAR |
+-				(write_access ? FAULT_FLAG_WRITE : 0);
+-
+-	return __do_fault(mm, vma, address, page_table, pmd, pgoff, flags, orig_pte);
+-}
+ 
+ /*
+  * do_no_pfn() tries to create a new page mapping for a page without
+@@ -2519,17 +2522,19 @@ static noinline int do_no_pfn(struct mm_
+  * but allow concurrent faults), and pte mapped but not yet locked.
+  * We return with mmap_sem still held, but pte unmapped and unlocked.
+  */
+-static int do_file_page(struct mm_struct *mm, struct vm_area_struct *vma,
++static int do_nonlinear_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pte_t *page_table, pmd_t *pmd,
+ 		int write_access, pte_t orig_pte)
+ {
++	unsigned int flags = FAULT_FLAG_NONLINEAR |
++				(write_access ? FAULT_FLAG_WRITE : 0);
+ 	pgoff_t pgoff;
+-	int err;
+ 
+ 	if (!pte_unmap_same(mm, pmd, page_table, orig_pte))
+ 		return VM_FAULT_MINOR;
+ 
+-	if (unlikely(!(vma->vm_flags & VM_NONLINEAR))) {
++	if (unlikely(!(vma->vm_flags & VM_NONLINEAR) ||
++			!(vma->vm_flags & VM_CAN_NONLINEAR))) {
+ 		/*
+ 		 * Page table corrupted: show pte and kill process.
+ 		 */
+@@ -2539,18 +2544,8 @@ static int do_file_page(struct mm_struct
+ 
+ 	pgoff = pte_to_pgoff(orig_pte);
+ 
+-	if (vma->vm_ops && vma->vm_ops->fault)
+-		return do_nonlinear_fault(mm, vma, address, page_table, pmd,
+-					write_access, pgoff, orig_pte);
+-
+-	/* We can then assume vm->vm_ops && vma->vm_ops->populate */
+-	err = vma->vm_ops->populate(vma, address & PAGE_MASK, PAGE_SIZE,
+-					vma->vm_page_prot, pgoff, 0);
+-	if (err == -ENOMEM)
+-		return VM_FAULT_OOM;
+-	if (err)
+-		return VM_FAULT_SIGBUS;
+-	return VM_FAULT_MAJOR;
++	return __do_fault(mm, vma, address, page_table, pmd, pgoff,
++							flags, orig_pte);
+ }
+ 
+ /*
+@@ -2588,7 +2583,7 @@ static inline int handle_pte_fault(struc
+ 						 pte, pmd, write_access);
+ 		}
+ 		if (pte_file(entry))
+-			return do_file_page(mm, vma, address,
++			return do_nonlinear_fault(mm, vma, address,
+ 					pte, pmd, write_access, entry);
+ 		return do_swap_page(mm, vma, address,
+ 					pte, pmd, write_access, entry);
+diff -puN mm/nommu.c~mm-fault-feedback-1 mm/nommu.c
+--- a/mm/nommu.c~mm-fault-feedback-1
++++ a/mm/nommu.c
+@@ -1341,10 +1341,10 @@ int in_gate_area_no_task(unsigned long a
+ 	return 0;
+ }
+ 
+-struct page *filemap_fault(struct vm_area_struct *vma, struct fault_data *fdata)
++int filemap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	BUG();
+-	return NULL;
++	return 0;
+ }
+ 
+ /*
+diff -puN mm/shmem.c~mm-fault-feedback-1 mm/shmem.c
+--- a/mm/shmem.c~mm-fault-feedback-1
++++ a/mm/shmem.c
+@@ -1309,29 +1309,21 @@ failed:
+ 	return error;
+ }
+ 
+-static struct page *shmem_fault(struct vm_area_struct *vma,
+-					struct fault_data *fdata)
++static int shmem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+-	struct page *page = NULL;
+ 	int error;
++	int ret;
+ 
+-	BUG_ON(!(vma->vm_flags & VM_CAN_INVALIDATE));
++	if (((loff_t)vmf->pgoff << PAGE_CACHE_SHIFT) >= i_size_read(inode))
++		return VM_FAULT_SIGBUS;
+ 
+-	if (((loff_t)fdata->pgoff << PAGE_CACHE_SHIFT) >= i_size_read(inode)) {
+-		fdata->type = VM_FAULT_SIGBUS;
+-		return NULL;
+-	}
+-
+-	error = shmem_getpage(inode, fdata->pgoff, &page,
+-						SGP_FAULT, &fdata->type);
+-	if (error) {
+-		fdata->type = ((error == -ENOMEM)?VM_FAULT_OOM:VM_FAULT_SIGBUS);
+-		return NULL;
+-	}
++	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_FAULT, &ret);
++	if (error)
++		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
+ 
+-	mark_page_accessed(page);
+-	return page;
++	mark_page_accessed(vmf->page);
++	return ret | FAULT_RET_LOCKED;
+ }
+ 
+ #ifdef CONFIG_NUMA
+@@ -1378,7 +1370,7 @@ static int shmem_mmap(struct file *file,
+ {
+ 	file_accessed(file);
+ 	vma->vm_ops = &shmem_vm_ops;
+-	vma->vm_flags |= VM_CAN_INVALIDATE | VM_CAN_NONLINEAR;
++	vma->vm_flags |= VM_CAN_NONLINEAR;
+ 	return 0;
+ }
+ 
+@@ -2560,6 +2552,5 @@ int shmem_zero_setup(struct vm_area_stru
+ 		fput(vma->vm_file);
+ 	vma->vm_file = file;
+ 	vma->vm_ops = &shmem_vm_ops;
+-	vma->vm_flags |= VM_CAN_INVALIDATE;
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+introduce-write_begin-write_end-aops-important-fix.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-convert-to-new-aops-fix.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+hostfs-convert-to-new-aops-fix.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+udf-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix.patch
+ocfs2-convert-to-new-aops.patch
+fs-remove-some-aop_truncated_page.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
