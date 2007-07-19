@@ -1,63 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-calls-dont-need-i-o-barriers.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:00:51 -0700
-Message-ID: <200707192000.l6JK0p80019480@imap1.linux-foundation.org>
+Subject: - lockstat-better-class-name-representation.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:03:54 -0700
+Message-ID: <200707192003.l6JK3sE8019899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35859 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760946AbXGSUSB (ORCPT
+	by vger.kernel.org with ESMTP id S1761512AbXGSUSD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:18:01 -0400
+	Thu, 19 Jul 2007 16:18:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio calls don't need i/o barriers
+     lockstat: better class name representation
 has been removed from the -mm tree.  Its filename was
-     gpio-calls-dont-need-i-o-barriers.patch
+     lockstat-better-class-name-representation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gpio calls don't need i/o barriers
-From: David Brownell <david-b@pacbell.net>
+Subject: lockstat: better class name representation
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Clarify that drivers using the GPIO operations don't need to issue io
-barrier instructions themselves.  Previously this wasn't clear, and at
-least one platform assumed otherwise (and would thus break various
-otherwise-portable drivers which don't issue barriers).
+optionally add class->name_version and class->subclass to the class name
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/lockdep_proc.c |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/gpio.txt~gpio-calls-dont-need-i-o-barriers Documentation/gpio.txt
---- a/Documentation/gpio.txt~gpio-calls-dont-need-i-o-barriers
-+++ a/Documentation/gpio.txt
-@@ -75,6 +75,9 @@ using the include file:
- If you stick to this convention then it'll be easier for other developers to
- see what your code is doing, and help maintain it.
+diff -puN kernel/lockdep_proc.c~lockstat-better-class-name-representation kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockstat-better-class-name-representation
++++ a/kernel/lockdep_proc.c
+@@ -421,8 +421,30 @@ static void seq_stats(struct seq_file *m
+ 	class = data->class;
+ 	stats = &data->stats;
  
-+Note that these operations include I/O barriers on platforms which need to
-+use them; drivers don't need to add them explicitly.
+-	snprintf(name, 38, "%s", class->name);
++	namelen = 38;
++	if (class->name_version > 1)
++		namelen -= 2; /* XXX truncates versions > 9 */
++	if (class->subclass)
++		namelen -= 2;
 +
++	if (!class->name) {
++		char str[KSYM_NAME_LEN];
++		const char *key_name;
++
++		key_name = __get_key_name(class->key, str);
++		snprintf(name, namelen, "%s", key_name);
++	} else {
++		snprintf(name, namelen, "%s", class->name);
++	}
+ 	namelen = strlen(name);
++	if (class->name_version > 1) {
++		snprintf(name+namelen, 3, "#%d", class->name_version);
++		namelen += 2;
++	}
++	if (class->subclass) {
++		snprintf(name+namelen, 3, "/%d", class->subclass);
++		namelen += 2;
++	}
  
- Identifying GPIOs
- -----------------
+ 	if (stats->write_holdtime.nr) {
+ 		if (stats->read_holdtime.nr)
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-git-leds.patch
-git-mmc.patch
-git-mtd.patch
-git-backlight.patch
-acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
