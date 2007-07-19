@@ -1,101 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-introduce-handle_quirks-for-various-chipset-quirks.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:07 -0700
-Message-ID: <200707192009.l6JK97uf020546@imap1.linux-foundation.org>
+Subject: - drivers-edac-add-to-maintainers-new-info.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:07:33 -0700
+Message-ID: <200707192007.l6JK7XHY020272@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33979 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39869 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760840AbXGSUP1 (ORCPT
+	by vger.kernel.org with ESMTP id S1760650AbXGSUQM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:27 -0400
+	Thu, 19 Jul 2007 16:16:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary: introduce handle_quirks() for various chipset quirks
+     drivers/edac: add to maintainers new info
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-introduce-handle_quirks-for-various-chipset-quirks.patch
+     drivers-edac-add-to-maintainers-new-info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: Calgary: introduce handle_quirks() for various chipset quirks
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: drivers/edac: add to maintainers new info
+From: Douglas Thompson <dougthompson@xmission.com>
 
-Move the aic94xx split completion timeout handling there.
+Update maintainer information on edac components
 
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |   25 +++++++++++++++++--------
- 1 files changed, 17 insertions(+), 8 deletions(-)
+ MAINTAINERS |   24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-introduce-handle_quirks-for-various-chipset-quirks arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-introduce-handle_quirks-for-various-chipset-quirks
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -807,6 +807,20 @@ static void __init calgary_set_split_com
- 	readq(target); /* flush */
- }
+diff -puN MAINTAINERS~drivers-edac-add-to-maintainers-new-info MAINTAINERS
+--- a/MAINTAINERS~drivers-edac-add-to-maintainers-new-info
++++ a/MAINTAINERS
+@@ -1352,21 +1352,23 @@ S:	Supported
  
-+static void __init calgary_handle_quirks(struct pci_dev* dev)
-+{
-+	unsigned char busnum = dev->bus->number;
-+	struct iommu_table *tbl = dev->sysdata;
-+
-+	/*
-+	 * Give split completion a longer timeout on bus 1 for aic94xx
-+	 * http://bugzilla.kernel.org/show_bug.cgi?id=7180
-+	 */
-+	if (busnum == 1)
-+		calgary_set_split_completion_timeout(tbl->bbar, busnum,
-+						     CCR_2SEC_TIMEOUT);
-+}
-+
- static void __init calgary_enable_translation(struct pci_dev *dev)
- {
- 	u32 val32;
-@@ -831,14 +845,6 @@ static void __init calgary_enable_transl
- 	writel(cpu_to_be32(val32), target);
- 	readl(target); /* flush */
+ EDAC-CORE
+ P:	Doug Thompson
+-M:	norsk5@xmission.com
++M:	dougthompson@xmission.com
+ L:	bluesmoke-devel@lists.sourceforge.net
+ W:	bluesmoke.sourceforge.net
+ S:	Supported
  
--	/*
--	 * Give split completion a longer timeout on bus 1 for aic94xx
--	 * http://bugzilla.kernel.org/show_bug.cgi?id=7180
--	 */
--	if (busnum == 1)
--		calgary_set_split_completion_timeout(bbar, busnum,
--						     CCR_2SEC_TIMEOUT);
--
- 	init_timer(&tbl->watchdog_timer);
- 	tbl->watchdog_timer.function = &calgary_watchdog;
- 	tbl->watchdog_timer.data = (unsigned long)dev;
-@@ -890,6 +896,9 @@ static int __init calgary_init_one(struc
+ EDAC-E752X
+ P:	Mark Gross
++P:	Doug Thompson
+ M:	mark.gross@intel.com
++M:	dougthompson@xmission.com
+ L:	bluesmoke-devel@lists.sourceforge.net
+ W:	bluesmoke.sourceforge.net
+ S:	Maintained
  
- 	pci_dev_get(dev);
- 	dev->bus->self = dev;
-+
-+	calgary_handle_quirks(dev);
-+
- 	calgary_enable_translation(dev);
+ EDAC-E7XXX
+ P:	Doug Thompson
+-M:	norsk5@xmission.com
++M:	dougthompson@xmission.com
+ L:	bluesmoke-devel@lists.sourceforge.net
+ W:	bluesmoke.sourceforge.net
+ S:	Maintained
+@@ -1387,7 +1389,23 @@ S:	Maintained
  
- 	return 0;
+ EDAC-I5000
+ P:	Doug Thompson
+-M:	norsk5@xmission.com
++M:	dougthompson@xmission.com
++L:	bluesmoke-devel@lists.sourceforge.net
++W:	bluesmoke.sourceforge.net
++S:	Maintained
++
++EDAC-I82975X
++P:	Ranganathan Desikan
++P:	Arvind R.
++M:	rdesikan@jetzbroadband.com
++M:	arvind@acarlab.com
++L:	bluesmoke-devel@lists.sourceforge.net
++W:	bluesmoke.sourceforge.net
++S:	Maintained
++
++EDAC-PASEMI
++P:	Egor Martovetsky
++M:	egor@pasemi.com
+ L:	bluesmoke-devel@lists.sourceforge.net
+ W:	bluesmoke.sourceforge.net
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
