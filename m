@@ -1,127 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - fix-raw_spinlock_t-vs-lockdep.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:03:32 -0700
-Message-ID: <200707192003.l6JK3WwM019872@imap1.linux-foundation.org>
+Subject: - isdn-sc-compile-breakage-re-check_reset.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:04:13 -0700
+Message-ID: <200707192004.l6JK4Dmq019930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43013 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52491 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760327AbXGSUSj (ORCPT
+	by vger.kernel.org with ESMTP id S1761657AbXGSUSq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:18:39 -0400
+	Thu, 19 Jul 2007 16:18:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix raw_spinlock_t vs lockdep
+     isdn/sc: compile breakage re check_reset()
 has been removed from the -mm tree.  Its filename was
-     fix-raw_spinlock_t-vs-lockdep.patch
+     isdn-sc-compile-breakage-re-check_reset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix raw_spinlock_t vs lockdep
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: isdn/sc: compile breakage re check_reset()
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Use the lockdep infrastructure to track lock contention and other lock
-statistics.
+There is check_reset() -- global function in drivers/isdn/sc/
+There is check_reset -- variable holding module param in aacraid driver.
 
-It tracks lock contention events, and the first four unique call-sites that
-encountered contention.
+On allyesconfig they clash with:
 
-It also measures lock wait-time and hold-time in nanoseconds. The minimum and
-maximum times are tracked, as well as a total (which together with the number
-of event can give the avg).
+  LD      drivers/built-in.o
+drivers/isdn/built-in.o: In function `check_reset':
+: multiple definition of `check_reset'
+drivers/scsi/built-in.o:(.data+0xe458): first defined here
+ld: Warning: size of symbol `check_reset' changed from 4 in drivers/scsi/built-in.o to 219 in drivers/isdn/built-in.o
+ld: Warning: type of symbol `check_reset' changed from 1 to 2 in drivers/isdn/built-in.o
 
-All statistics are done per lock class, per write (exclusive state) and per read
-(shared state). 
+Rename the former.
 
-The statistics are collected per-cpu, so that the collection overhead is
-minimized via having no global cachemisses.
-
-This new lock statistics feature is independent of the lock dependency checking
-traditionally done by lockdep; it just shares the lock tracking code. It is
-also possible to enable both and runtime disabled either component - thereby
-avoiding the O(n^2) lock chain walks for instance.
-
-
-This patch:
-
-raw_spinlock_t should not use lockdep (and doesn't) since lockdep itself
-relies on it.
-
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spinlock_types.h    |    4 ++--
- include/linux/spinlock_types_up.h |    9 +--------
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ drivers/isdn/sc/card.h    |    2 +-
+ drivers/isdn/sc/command.c |    2 +-
+ drivers/isdn/sc/timer.c   |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/spinlock_types.h~fix-raw_spinlock_t-vs-lockdep include/linux/spinlock_types.h
---- a/include/linux/spinlock_types.h~fix-raw_spinlock_t-vs-lockdep
-+++ a/include/linux/spinlock_types.h
-@@ -9,14 +9,14 @@
-  * Released under the General Public License (GPL).
+diff -puN drivers/isdn/sc/card.h~isdn-sc-compile-breakage-re-check_reset drivers/isdn/sc/card.h
+--- a/drivers/isdn/sc/card.h~isdn-sc-compile-breakage-re-check_reset
++++ a/drivers/isdn/sc/card.h
+@@ -125,7 +125,7 @@ int sendmessage(int card, unsigned int p
+ int receivemessage(int card, RspMessage *rspmsg);
+ int sc_ioctl(int card, scs_ioctl *data);
+ int setup_buffers(int card, int c);
+-void check_reset(unsigned long data);
++void sc_check_reset(unsigned long data);
+ void check_phystat(unsigned long data);
+ 
+ #endif /* CARD_H */
+diff -puN drivers/isdn/sc/command.c~isdn-sc-compile-breakage-re-check_reset drivers/isdn/sc/command.c
+--- a/drivers/isdn/sc/command.c~isdn-sc-compile-breakage-re-check_reset
++++ a/drivers/isdn/sc/command.c
+@@ -344,7 +344,7 @@ int reset(int card)
+ 
+ 	spin_lock_irqsave(&sc_adapter[card]->lock, flags);
+ 	init_timer(&sc_adapter[card]->reset_timer);
+-	sc_adapter[card]->reset_timer.function = check_reset;
++	sc_adapter[card]->reset_timer.function = sc_check_reset;
+ 	sc_adapter[card]->reset_timer.data = card;
+ 	sc_adapter[card]->reset_timer.expires = jiffies + CHECKRESET_TIME;
+ 	add_timer(&sc_adapter[card]->reset_timer);
+diff -puN drivers/isdn/sc/timer.c~isdn-sc-compile-breakage-re-check_reset drivers/isdn/sc/timer.c
+--- a/drivers/isdn/sc/timer.c~isdn-sc-compile-breakage-re-check_reset
++++ a/drivers/isdn/sc/timer.c
+@@ -43,7 +43,7 @@ static void setup_ports(int card)
+  * Then, check to see if the signate has been set. Next, set the
+  * signature to a known value and issue a startproc if needed.
   */
- 
--#include <linux/lockdep.h>
--
- #if defined(CONFIG_SMP)
- # include <asm/spinlock_types.h>
- #else
- # include <linux/spinlock_types_up.h>
- #endif
- 
-+#include <linux/lockdep.h>
-+
- typedef struct {
- 	raw_spinlock_t raw_lock;
- #if defined(CONFIG_PREEMPT) && defined(CONFIG_SMP)
-diff -puN include/linux/spinlock_types_up.h~fix-raw_spinlock_t-vs-lockdep include/linux/spinlock_types_up.h
---- a/include/linux/spinlock_types_up.h~fix-raw_spinlock_t-vs-lockdep
-+++ a/include/linux/spinlock_types_up.h
-@@ -12,14 +12,10 @@
-  * Released under the General Public License (GPL).
-  */
- 
--#if defined(CONFIG_DEBUG_SPINLOCK) || \
--	defined(CONFIG_DEBUG_LOCK_ALLOC)
-+#ifdef CONFIG_DEBUG_SPINLOCK
- 
- typedef struct {
- 	volatile unsigned int slock;
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
--	struct lockdep_map dep_map;
--#endif
- } raw_spinlock_t;
- 
- #define __RAW_SPIN_LOCK_UNLOCKED { 1 }
-@@ -34,9 +30,6 @@ typedef struct { } raw_spinlock_t;
- 
- typedef struct {
- 	/* no debug version on UP */
--#ifdef CONFIG_DEBUG_LOCK_ALLOC
--	struct lockdep_map dep_map;
--#endif
- } raw_rwlock_t;
- 
- #define __RAW_RW_LOCK_UNLOCKED { }
+-void check_reset(unsigned long data)
++void sc_check_reset(unsigned long data)
+ {
+ 	unsigned long flags;
+ 	unsigned long sig;
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+consolidate-ptrace_detach.patch
+git-dvb.patch
+use-list_head-in-binfmt-handling.patch
+make-unregister_binfmt-return-void.patch
+fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
+fix-leak-on-proc-lockdep_stats.patch
+slab_panic-more-proc-posix-timers-shmem.patch
