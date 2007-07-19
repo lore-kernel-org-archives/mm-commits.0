@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-sparsemem_vmemmap-2m-page-size-support.patch added to -mm tree
-Date: Thu, 19 Jul 2007 16:37:24 -0700
-Message-ID: <200707192337.l6JNbObn028696@imap1.linux-foundation.org>
+Subject: + ia64-sparsemem_vmemmap-16k-page-size-support.patch added to -mm tree
+Date: Thu, 19 Jul 2007 16:37:26 -0700
+Message-ID: <200707192337.l6JNbQK5028701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40679 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54407 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754914AbXGSXiJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756635AbXGSXiL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 19:38:09 -0400
+	Thu, 19 Jul 2007 19:38:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ak@suse.de, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
+Cc: clameter@sgi.com, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, tony.luck@intel.com
 
 
 The patch titled
-     x86_64: SPARSEMEM_VMEMMAP 2M page size support
+     IA64: SPARSEMEM_VMEMMAP 16K page size support
 has been added to the -mm tree.  Its filename is
-     x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+     ia64-sparsemem_vmemmap-16k-page-size-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,123 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: SPARSEMEM_VMEMMAP 2M page size support
+Subject: IA64: SPARSEMEM_VMEMMAP 16K page size support
 From: Christoph Lameter <clameter@sgi.com>
 
-x86_64 uses 2M page table entries to map its 1-1 kernel space.  We also
-implement the virtual memmap using 2M page table entries.  So there is no
-additional runtime overhead over FLATMEM, initialisation is slightly more
-complex.  As FLATMEM still references memory to obtain the mem_map pointer and
-SPARSEMEM_VMEMMAP uses a compile time constant, SPARSEMEM_VMEMMAP should be
-superior.
+Equip IA64 sparsemem with a virtual memmap.  This is similar to the existing
+CONFIG_VIRTUAL_MEM_MAP functionality for DISCONTIGMEM.  It uses a PAGE_SIZE
+mapping.
 
-With this SPARSEMEM becomes the most efficient way of handling virt_to_page,
-pfn_to_page and friends for UP, SMP and NUMA on x86_64.
+This is provided as a minimally intrusive solution.  We split the 128TB
+VMALLOC area into two 64TB areas and use one for the virtual memmap.
 
-[apw@shadowen.org: code resplit, style fixups]
+This should replace CONFIG_VIRTUAL_MEM_MAP long term.
+
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Andi Kleen <ak@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/x86_64/mm.txt  |    1 +
- arch/x86_64/Kconfig          |    8 ++++++++
- arch/x86_64/mm/init.c        |   30 ++++++++++++++++++++++++++++++
- include/asm-x86_64/page.h    |    1 +
- include/asm-x86_64/pgtable.h |    1 +
- 5 files changed, 41 insertions(+)
+ arch/ia64/Kconfig          |    4 ++++
+ include/asm-ia64/pgtable.h |    6 ++++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN Documentation/x86_64/mm.txt~x86_64-sparsemem_vmemmap-2m-page-size-support Documentation/x86_64/mm.txt
---- a/Documentation/x86_64/mm.txt~x86_64-sparsemem_vmemmap-2m-page-size-support
-+++ a/Documentation/x86_64/mm.txt
-@@ -9,6 +9,7 @@ ffff800000000000 - ffff80ffffffffff (=40
- ffff810000000000 - ffffc0ffffffffff (=46 bits) direct mapping of all phys. memory
- ffffc10000000000 - ffffc1ffffffffff (=40 bits) hole
- ffffc20000000000 - ffffe1ffffffffff (=45 bits) vmalloc/ioremap space
-+ffffe20000000000 - ffffe2ffffffffff (=40 bits) virtual memory map (1TB)
- ... unused hole ...
- ffffffff80000000 - ffffffff82800000 (=40 MB)   kernel text mapping, from phys 0
- ... unused hole ...
-diff -puN arch/x86_64/Kconfig~x86_64-sparsemem_vmemmap-2m-page-size-support arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~x86_64-sparsemem_vmemmap-2m-page-size-support
-+++ a/arch/x86_64/Kconfig
-@@ -406,6 +406,14 @@ config ARCH_SPARSEMEM_ENABLE
+diff -puN arch/ia64/Kconfig~ia64-sparsemem_vmemmap-16k-page-size-support arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~ia64-sparsemem_vmemmap-16k-page-size-support
++++ a/arch/ia64/Kconfig
+@@ -355,6 +355,10 @@ config ARCH_SPARSEMEM_ENABLE
  	def_bool y
- 	depends on (NUMA || EXPERIMENTAL)
+ 	depends on ARCH_DISCONTIGMEM_ENABLE
  
 +config SPARSEMEM_VMEMMAP
 +	def_bool y
 +	depends on SPARSEMEM
 +
-+config ARCH_POPULATES_SPARSEMEM_VMEMMAP_PMD
-+	def_bool y
-+	depends on SPARSEMEM_VMEMMAP
-+
- config ARCH_MEMORY_PROBE
- 	def_bool y
- 	depends on MEMORY_HOTPLUG
-diff -puN arch/x86_64/mm/init.c~x86_64-sparsemem_vmemmap-2m-page-size-support arch/x86_64/mm/init.c
---- a/arch/x86_64/mm/init.c~x86_64-sparsemem_vmemmap-2m-page-size-support
-+++ a/arch/x86_64/mm/init.c
-@@ -738,3 +738,33 @@ const char *arch_vma_name(struct vm_area
- 		return "[vsyscall]";
- 	return NULL;
- }
-+
-+#ifdef CONFIG_ARCH_POPULATES_SPARSEMEM_VMEMMAP_PMD
-+/*
-+ * Initialise the sparsemem vmemmap using huge-pages at the PMD level.
-+ */
-+int __meminit vmemmap_populate_pmd(pud_t *pud, unsigned long addr,
-+						unsigned long end, int node)
-+{
-+	pmd_t *pmd;
-+
-+	for (pmd = pmd_offset(pud, addr); addr < end;
-+						pmd++, addr += PMD_SIZE)
-+		if (pmd_none(*pmd)) {
-+			pte_t entry;
-+			void *p = vmemmap_alloc_block(PMD_SIZE, node);
-+			if (!p)
-+				return -ENOMEM;
-+
-+			entry = pfn_pte(__pa(p) >> PAGE_SHIFT, PAGE_KERNEL);
-+			mk_pte_huge(entry);
-+			set_pmd(pmd, __pmd(pte_val(entry)));
-+
-+			printk(KERN_DEBUG " [%lx-%lx] PMD ->%p on node %d\n",
-+				addr, addr + PMD_SIZE - 1, p, node);
-+		} else
-+			vmemmap_verify((pte_t *)pmd, node,
-+						pmd_addr_end(addr, end), end);
-+	return 0;
-+}
+ config ARCH_DISCONTIGMEM_DEFAULT
+ 	def_bool y if (IA64_SGI_SN2 || IA64_GENERIC || IA64_HP_ZX1 || IA64_HP_ZX1_SWIOTLB)
+ 	depends on ARCH_DISCONTIGMEM_ENABLE
+diff -puN include/asm-ia64/pgtable.h~ia64-sparsemem_vmemmap-16k-page-size-support include/asm-ia64/pgtable.h
+--- a/include/asm-ia64/pgtable.h~ia64-sparsemem_vmemmap-16k-page-size-support
++++ a/include/asm-ia64/pgtable.h
+@@ -236,8 +236,14 @@ ia64_phys_addr_valid (unsigned long addr
+ # define VMALLOC_END		vmalloc_end
+   extern unsigned long vmalloc_end;
+ #else
++#if defined(CONFIG_SPARSEMEM) && defined(CONFIG_SPARSEMEM_VMEMMAP)
++/* SPARSEMEM_VMEMMAP uses half of vmalloc... */
++# define VMALLOC_END		(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 10)))
++# define vmemmap		((struct page *)VMALLOC_END)
++#else
+ # define VMALLOC_END		(RGN_BASE(RGN_GATE) + (1UL << (4*PAGE_SHIFT - 9)))
+ #endif
 +#endif
-diff -puN include/asm-x86_64/page.h~x86_64-sparsemem_vmemmap-2m-page-size-support include/asm-x86_64/page.h
---- a/include/asm-x86_64/page.h~x86_64-sparsemem_vmemmap-2m-page-size-support
-+++ a/include/asm-x86_64/page.h
-@@ -134,6 +134,7 @@ extern unsigned long __phys_addr(unsigne
- 	 VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
  
- #define __HAVE_ARCH_GATE_AREA 1	
-+#define vmemmap ((struct page *)VMEMMAP_START)
- 
- #include <asm-generic/memory_model.h>
- #include <asm-generic/page.h>
-diff -puN include/asm-x86_64/pgtable.h~x86_64-sparsemem_vmemmap-2m-page-size-support include/asm-x86_64/pgtable.h
---- a/include/asm-x86_64/pgtable.h~x86_64-sparsemem_vmemmap-2m-page-size-support
-+++ a/include/asm-x86_64/pgtable.h
-@@ -137,6 +137,7 @@ static inline pte_t ptep_get_and_clear_f
- #define MAXMEM		 _AC(0x3fffffffffff, UL)
- #define VMALLOC_START    _AC(0xffffc20000000000, UL)
- #define VMALLOC_END      _AC(0xffffe1ffffffffff, UL)
-+#define VMEMMAP_START	 _AC(0xffffe20000000000, UL)
- #define MODULES_VADDR    _AC(0xffffffff88000000, UL)
- #define MODULES_END      _AC(0xfffffffffff00000, UL)
- #define MODULES_LEN   (MODULES_END - MODULES_VADDR)
+ /* fs/proc/kcore.c */
+ #define	kc_vaddr_to_offset(v) ((v) - RGN_BASE(RGN_GATE))
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
