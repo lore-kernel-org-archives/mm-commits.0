@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coda-kill-file_count-abuse.patch added to -mm tree
-Date: Thu, 19 Jul 2007 15:08:13 -0700
-Message-ID: <200707192208.l6JM8Drp025440@imap1.linux-foundation.org>
+Subject: + random-fix-bound-check-ordering.patch added to -mm tree
+Date: Thu, 19 Jul 2007 15:09:07 -0700
+Message-ID: <200707192209.l6JM97qw025542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50024 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49382 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762626AbXGSWIa (ORCPT
+	by vger.kernel.org with ESMTP id S1763036AbXGSWJs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 18:08:30 -0400
+	Thu, 19 Jul 2007 18:09:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, jaharkes@cs.cmu.edu
+Cc: mpm@selenic.com, chrisw@sous-sol.org, pageexec@freemail.hu, stable@kernel.org, tytso@mit.edu, w@1wt.eu
 
 
 The patch titled
-     coda: kill file_count abuse
+     random: fix bound check ordering
 has been added to the -mm tree.  Its filename is
-     coda-kill-file_count-abuse.patch
+     random-fix-bound-check-ordering.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,160 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coda: kill file_count abuse
-From: Christoph Hellwig <hch@lst.de>
+Subject: random: fix bound check ordering
+From: Matt Mackall <mpm@selenic.com>
 
-->release is the proper way to detect the last close of a file,
-file_count should never be used in filesystems.
+If root raised the default wakeup threshold over the size of the output
+pool, the pool transfer function could overflow the stack with RNG bytes,
+causing a DoS or potential privilege escalation.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Jan Harkes <jaharkes@cs.cmu.edu>
+(Bug reported by the PaX Team <pageexec@freemail.hu>)
+
+This fix is already part of PaX, so can be considered public.  I updated
+the changelog to reflect the PaX Team's preferred credit, and to note
+the privilege escalation potential.  I've also verified the fix.
+
+Cc: Theodore Tso <tytso@mit.edu>
+Cc: Willy Tarreau <w@1wt.eu>
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/dir.c              |    1 
- fs/coda/file.c             |   55 ++++++++---------------------------
- include/linux/coda_linux.h |    1 
- 3 files changed, 13 insertions(+), 44 deletions(-)
+ drivers/char/random.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN fs/coda/dir.c~coda-kill-file_count-abuse fs/coda/dir.c
---- a/fs/coda/dir.c~coda-kill-file_count-abuse
-+++ a/fs/coda/dir.c
-@@ -86,7 +86,6 @@ const struct file_operations coda_dir_op
- 	.read		= generic_read_dir,
- 	.readdir	= coda_readdir,
- 	.open		= coda_open,
--	.flush		= coda_flush,
- 	.release	= coda_release,
- 	.fsync		= coda_fsync,
- };
-diff -puN fs/coda/file.c~coda-kill-file_count-abuse fs/coda/file.c
---- a/fs/coda/file.c~coda-kill-file_count-abuse
-+++ a/fs/coda/file.c
-@@ -163,58 +163,31 @@ int coda_open(struct inode *coda_inode, 
- 	return 0;
- }
+diff -puN drivers/char/random.c~random-fix-bound-check-ordering drivers/char/random.c
+--- a/drivers/char/random.c~random-fix-bound-check-ordering
++++ a/drivers/char/random.c
+@@ -693,9 +693,14 @@ static void xfer_secondary_pool(struct e
  
--int coda_flush(struct file *coda_file, fl_owner_t id)
-+int coda_release(struct inode *coda_inode, struct file *coda_file)
- {
- 	unsigned short flags = coda_file->f_flags & ~O_EXCL;
- 	unsigned short coda_flags = coda_flags_to_cflags(flags);
--	struct coda_file_info *cfi;
--	struct inode *coda_inode;
--	int err = 0, fcnt;
-+	struct coda_file_info *cfi = CODA_FTOC(coda_file);
-+	struct coda_inode_info *cii;
-+	struct inode *host_inode;
-+	int err = 0;
+ 	if (r->pull && r->entropy_count < nbytes * 8 &&
+ 	    r->entropy_count < r->poolinfo->POOLBITS) {
+-		int bytes = max_t(int, random_read_wakeup_thresh / 8,
+-				min_t(int, nbytes, sizeof(tmp)));
++		/* If we're limited, always leave two wakeup worth's BITS */
+ 		int rsvd = r->limit ? 0 : random_read_wakeup_thresh/4;
++		int bytes = nbytes;
++
++		/* pull at least as many as BYTES as wakeup BITS */
++		bytes = max_t(int, bytes, random_read_wakeup_thresh / 8);
++		/* but never more than the buffer size */
++		bytes = min_t(int, bytes, sizeof(tmp));
  
- 	lock_kernel();
- 
--	/* last close semantics */
--	fcnt = file_count(coda_file);
--	if (fcnt > 1)
--		goto out;
--
- 	/* No need to make an upcall when we have not made any modifications
- 	 * to the file */
--	if ((coda_file->f_flags & O_ACCMODE) == O_RDONLY)
--		goto out;
--
--	if (use_coda_close)
--		goto out;
-+	if (((coda_file->f_flags & O_ACCMODE) != O_RDONLY) && !use_coda_close) {
-+		BUG_ON(!cfi || cfi->cfi_magic != CODA_MAGIC);
- 
--	cfi = CODA_FTOC(coda_file);
--	BUG_ON(!cfi || cfi->cfi_magic != CODA_MAGIC);
--
--	coda_inode = coda_file->f_path.dentry->d_inode;
--
--	err = venus_store(coda_inode->i_sb, coda_i2f(coda_inode), coda_flags,
--			  coda_file->f_uid);
-+		err = venus_store(coda_inode->i_sb, coda_i2f(coda_inode), coda_flags,
-+				  coda_file->f_uid);
- 
--	if (err == -EOPNOTSUPP) {
--		use_coda_close = 1;
--		err = 0;
-+		if (err == -EOPNOTSUPP) {
-+			use_coda_close = 1;
-+			err = 0;
-+		}
- 	}
- 
--out:
--	unlock_kernel();
--	return err;
--}
--
--int coda_release(struct inode *coda_inode, struct file *coda_file)
--{
--	unsigned short flags = (coda_file->f_flags) & (~O_EXCL);
--	unsigned short coda_flags = coda_flags_to_cflags(flags);
--	struct coda_file_info *cfi;
--	struct coda_inode_info *cii;
--	struct inode *host_inode;
--	int err = 0;
--
--	lock_kernel();
--
- 	if (!use_coda_close) {
- 		err = venus_release(coda_inode->i_sb, coda_i2f(coda_inode),
- 				    coda_flags);
-@@ -224,7 +197,6 @@ int coda_release(struct inode *coda_inod
- 		}
- 	}
- 
--	cfi = CODA_FTOC(coda_file);
- 	BUG_ON(!cfi || cfi->cfi_magic != CODA_MAGIC);
- 
- 	if (use_coda_close)
-@@ -288,7 +260,6 @@ const struct file_operations coda_file_o
- 	.write		= coda_file_write,
- 	.mmap		= coda_file_mmap,
- 	.open		= coda_open,
--	.flush		= coda_flush,
- 	.release	= coda_release,
- 	.fsync		= coda_fsync,
- 	.splice_read	= coda_file_splice_read,
-diff -puN include/linux/coda_linux.h~coda-kill-file_count-abuse include/linux/coda_linux.h
---- a/include/linux/coda_linux.h~coda-kill-file_count-abuse
-+++ a/include/linux/coda_linux.h
-@@ -36,7 +36,6 @@ extern const struct file_operations coda
- 
- /* operations shared over more than one file */
- int coda_open(struct inode *i, struct file *f);
--int coda_flush(struct file *f, fl_owner_t id);
- int coda_release(struct inode *i, struct file *f);
- int coda_permission(struct inode *inode, int mask, struct nameidata *nd);
- int coda_revalidate_inode(struct dentry *);
+ 		DEBUG_ENT("going to reseed %s with %d bits "
+ 			  "(%d of %d requested)\n",
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
-fix-spufs-build-after-fault-changes.patch
-gdth-remove-redundant-pci-stuff.patch
-gdth-remove-redundant-pci-stuff-update.patch
-git-xfs.patch
-remove-handle_mm_fault-export.patch
-sysv-convert-to-new-aops.patch
-kill-declare_mutex_locked.patch
-coda-kill-file_count-abuse.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
+slob-reduce-list-scanning.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+hwrng-add-type-categories.patch
+random-fix-bound-check-ordering.patch
