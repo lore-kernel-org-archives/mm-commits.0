@@ -1,273 +1,358 @@
 From: akpm@linux-foundation.org
-Subject: - freezer-avoid-freezing-kernel-threads-prematurely.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:00:10 -0700
-Message-ID: <200707192000.l6JK0ADm019426@imap1.linux-foundation.org>
+Subject: - coredump-masking-reimplementation-of-dumpable-using-two-flags.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:15 -0700
+Message-ID: <200707192002.l6JK2F5x019648@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55989 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35749 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758898AbXGSUcg (ORCPT
+	by vger.kernel.org with ESMTP id S1757878AbXGSUce (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:32:36 -0400
+	Thu, 19 Jul 2007 16:32:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, ego@in.ibm.com, nigel@nigel.suspend2.net, oleg@tv-sign.ru, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Freezer: avoid freezing kernel threads prematurely
+     coredump masking: reimplementation of dumpable using two flags
 has been removed from the -mm tree.  Its filename was
-     freezer-avoid-freezing-kernel-threads-prematurely.patch
+     coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Freezer: avoid freezing kernel threads prematurely
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: coredump masking: reimplementation of dumpable using two flags
+From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
 
-Kernel threads should not have TIF_FREEZE set when user space processes are
-being frozen, since otherwise some of them might be frozen prematurely.
-To prevent this from happening we can (1) make exit_mm() unset TIF_FREEZE
-unconditionally just after clearing tsk->mm and (2) make try_to_freeze_tasks()
-check if p->mm is different from zero and PF_BORROWED_MM is unset in p->flags
-when user space processes are to be frozen.
+This patch changes mm_struct.dumpable to a pair of bit flags.
 
-Namely, when user space processes are being frozen, we only should set
-TIF_FREEZE for tasks that have p->mm different from NULL and don't have
-PF_BORROWED_MM set in p->flags.  For this reason task_lock() must be used to
-prevent try_to_freeze_tasks() from racing with use_mm()/unuse_mm(), in which
-p->mm and p->flags.PF_BORROWED_MM are changed under task_lock(p).  Also, we
-need to prevent the following scenario from happening:
+set_dumpable() converts three-value dumpable to two flags and stores it into
+lower two bits of mm_struct.flags instead of mm_struct.dumpable. 
+get_dumpable() behaves in the opposite way.
 
-* daemonize() is called by a task spawned from a user space code path
-* freezer checks if the task has p->mm set and the result is positive
-* task enters exit_mm() and clears its TIF_FREEZE
-* freezer sets TIF_FREEZE for the task
-* task calls try_to_freeze() and goes to the refrigerator, which is wrong at
-  that point
-
-This requires us to acquire task_lock(p) before p->flags.PF_BORROWED_MM and
-p->mm are examined and release it after TIF_FREEZE is set for p (or it turns
-out that TIF_FREEZE should not be set).
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+[akpm@linux-foundation.org: export set_dumpable]
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |    9 ++---
- kernel/exit.c           |    3 +
- kernel/power/process.c  |   64 +++++++++++++++++++-------------------
- 3 files changed, 41 insertions(+), 35 deletions(-)
+ fs/exec.c                    |   62 +++++++++++++++++++++++++++++----
+ fs/proc/base.c               |    2 -
+ include/asm-ia64/processor.h |    4 +-
+ include/linux/sched.h        |    9 ++++
+ kernel/ptrace.c              |    2 -
+ kernel/sys.c                 |   24 ++++++------
+ security/commoncap.c         |    2 -
+ security/dummy.c             |    2 -
+ 8 files changed, 82 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/freezer.h~freezer-avoid-freezing-kernel-threads-prematurely include/linux/freezer.h
---- a/include/linux/freezer.h~freezer-avoid-freezing-kernel-threads-prematurely
-+++ a/include/linux/freezer.h
-@@ -25,7 +25,7 @@ static inline int freezing(struct task_s
- /*
-  * Request that a process be frozen
-  */
--static inline void freeze(struct task_struct *p)
-+static inline void set_freeze_flag(struct task_struct *p)
- {
- 	set_tsk_thread_flag(p, TIF_FREEZE);
+diff -puN fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags fs/exec.c
+--- a/fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/fs/exec.c
+@@ -1058,9 +1058,9 @@ int flush_old_exec(struct linux_binprm *
+ 	current->sas_ss_sp = current->sas_ss_size = 0;
+ 
+ 	if (current->euid == current->uid && current->egid == current->gid)
+-		current->mm->dumpable = 1;
++		set_dumpable(current->mm, 1);
+ 	else
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 
+ 	name = bprm->filename;
+ 
+@@ -1088,7 +1088,7 @@ int flush_old_exec(struct linux_binprm *
+ 	    file_permission(bprm->file, MAY_READ) ||
+ 	    (bprm->interp_flags & BINPRM_FLAGS_ENFORCE_NONDUMP)) {
+ 		suid_keys(current);
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 	}
+ 
+ 	/* An exec changes our domain. We are no longer part of the thread
+@@ -1665,6 +1665,56 @@ fail:
+ 	return core_waiters;
  }
-@@ -33,7 +33,7 @@ static inline void freeze(struct task_st
- /*
-  * Sometimes we may need to cancel the previous 'freeze' request
-  */
--static inline void do_not_freeze(struct task_struct *p)
-+static inline void clear_freeze_flag(struct task_struct *p)
+ 
++/*
++ * set_dumpable converts traditional three-value dumpable to two flags and
++ * stores them into mm->flags.  It modifies lower two bits of mm->flags, but
++ * these bits are not changed atomically.  So get_dumpable can observe the
++ * intermediate state.  To avoid doing unexpected behavior, get get_dumpable
++ * return either old dumpable or new one by paying attention to the order of
++ * modifying the bits.
++ *
++ * dumpable |   mm->flags (binary)
++ * old  new | initial interim  final
++ * ---------+-----------------------
++ *  0    1  |   00      01      01
++ *  0    2  |   00      10(*)   11
++ *  1    0  |   01      00      00
++ *  1    2  |   01      11      11
++ *  2    0  |   11      10(*)   00
++ *  2    1  |   11      11      01
++ *
++ * (*) get_dumpable regards interim value of 10 as 11.
++ */
++void set_dumpable(struct mm_struct *mm, int value)
++{
++	switch (value) {
++	case 0:
++		clear_bit(MMF_DUMPABLE, &mm->flags);
++		smp_wmb();
++		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
++		break;
++	case 1:
++		set_bit(MMF_DUMPABLE, &mm->flags);
++		smp_wmb();
++		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
++		break;
++	case 2:
++		set_bit(MMF_DUMP_SECURELY, &mm->flags);
++		smp_wmb();
++		set_bit(MMF_DUMPABLE, &mm->flags);
++		break;
++	}
++}
++EXPORT_SYMBOL_GPL(set_dumpable);
++
++int get_dumpable(struct mm_struct *mm)
++{
++	int ret;
++
++	ret = mm->flags & 0x3;
++	return (ret >= 2) ? 2 : ret;
++}
++
+ int do_coredump(long signr, int exit_code, struct pt_regs * regs)
  {
- 	clear_tsk_thread_flag(p, TIF_FREEZE);
- }
-@@ -56,7 +56,7 @@ static inline int thaw_process(struct ta
- 		wake_up_process(p);
+ 	char corename[CORENAME_MAX_SIZE + 1];
+@@ -1683,7 +1733,7 @@ int do_coredump(long signr, int exit_cod
+ 	if (!binfmt || !binfmt->core_dump)
+ 		goto fail;
+ 	down_write(&mm->mmap_sem);
+-	if (!mm->dumpable) {
++	if (!get_dumpable(mm)) {
+ 		up_write(&mm->mmap_sem);
+ 		goto fail;
+ 	}
+@@ -1693,11 +1743,11 @@ int do_coredump(long signr, int exit_cod
+ 	 *	process nor do we know its entire history. We only know it
+ 	 *	was tainted so we dump it as root in mode 2.
+ 	 */
+-	if (mm->dumpable == 2) {	/* Setuid core dump mode */
++	if (get_dumpable(mm) == 2) {	/* Setuid core dump mode */
+ 		flag = O_EXCL;		/* Stop rewrite attacks */
+ 		current->fsuid = 0;	/* Dump root private */
+ 	}
+-	mm->dumpable = 0;
++	set_dumpable(mm, 0);
+ 
+ 	retval = coredump_wait(exit_code);
+ 	if (retval < 0)
+diff -puN fs/proc/base.c~coredump-masking-reimplementation-of-dumpable-using-two-flags fs/proc/base.c
+--- a/fs/proc/base.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/fs/proc/base.c
+@@ -1014,7 +1014,7 @@ static int task_dumpable(struct task_str
+ 	task_lock(task);
+ 	mm = task->mm;
+ 	if (mm)
+-		dumpable = mm->dumpable;
++		dumpable = get_dumpable(mm);
+ 	task_unlock(task);
+ 	if(dumpable == 1)
  		return 1;
+diff -puN include/asm-ia64/processor.h~coredump-masking-reimplementation-of-dumpable-using-two-flags include/asm-ia64/processor.h
+--- a/include/asm-ia64/processor.h~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/include/asm-ia64/processor.h
+@@ -295,9 +295,9 @@ struct thread_struct {
+ 	regs->ar_bspstore = current->thread.rbs_bot;						\
+ 	regs->ar_fpsr = FPSR_DEFAULT;								\
+ 	regs->loadrs = 0;									\
+-	regs->r8 = current->mm->dumpable;	/* set "don't zap registers" flag */		\
++	regs->r8 = get_dumpable(current->mm);	/* set "don't zap registers" flag */		\
+ 	regs->r12 = new_sp - 16;	/* allocate 16 byte scratch area */			\
+-	if (unlikely(!current->mm->dumpable)) {							\
++	if (unlikely(!get_dumpable(current->mm))) {							\
+ 		/*										\
+ 		 * Zap scratch regs to avoid leaking bits between processes with different	\
+ 		 * uid/privileges.								\
+diff -puN include/linux/sched.h~coredump-masking-reimplementation-of-dumpable-using-two-flags include/linux/sched.h
+--- a/include/linux/sched.h~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/include/linux/sched.h
+@@ -345,6 +345,13 @@ typedef unsigned long mm_counter_t;
+ 		(mm)->hiwater_vm = (mm)->total_vm;	\
+ } while (0)
+ 
++extern void set_dumpable(struct mm_struct *mm, int value);
++extern int get_dumpable(struct mm_struct *mm);
++
++/* mm flags */
++#define MMF_DUMPABLE      0  /* core dump is permitted */
++#define MMF_DUMP_SECURELY 1  /* core file is readable only by root */
++
+ struct mm_struct {
+ 	struct vm_area_struct * mmap;		/* list of VMAs */
+ 	struct rb_root mm_rb;
+@@ -402,7 +409,7 @@ struct mm_struct {
+ 	unsigned int token_priority;
+ 	unsigned int last_interval;
+ 
+-	unsigned char dumpable:2;
++	unsigned long flags; /* Must use atomic bitops to access the bits */
+ 
+ 	/* coredumping support */
+ 	int core_waiters;
+diff -puN kernel/ptrace.c~coredump-masking-reimplementation-of-dumpable-using-two-flags kernel/ptrace.c
+--- a/kernel/ptrace.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/kernel/ptrace.c
+@@ -142,7 +142,7 @@ static int may_attach(struct task_struct
+ 		return -EPERM;
+ 	smp_rmb();
+ 	if (task->mm)
+-		dumpable = task->mm->dumpable;
++		dumpable = get_dumpable(task->mm);
+ 	if (!dumpable && !capable(CAP_SYS_PTRACE))
+ 		return -EPERM;
+ 
+diff -puN kernel/sys.c~coredump-masking-reimplementation-of-dumpable-using-two-flags kernel/sys.c
+--- a/kernel/sys.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/kernel/sys.c
+@@ -1036,7 +1036,7 @@ asmlinkage long sys_setregid(gid_t rgid,
+ 			return -EPERM;
  	}
--	clear_tsk_thread_flag(p, TIF_FREEZE);
-+	clear_freeze_flag(p);
- 	task_unlock(p);
- 	return 0;
- }
-@@ -129,7 +129,8 @@ static inline void set_freezable(void)
- #else
- static inline int frozen(struct task_struct *p) { return 0; }
- static inline int freezing(struct task_struct *p) { return 0; }
--static inline void freeze(struct task_struct *p) { BUG(); }
-+static inline void set_freeze_flag(struct task_struct *p) {}
-+static inline void clear_freeze_flag(struct task_struct *p) {}
- static inline int thaw_process(struct task_struct *p) { return 1; }
- 
- static inline void refrigerator(void) {}
-diff -puN kernel/exit.c~freezer-avoid-freezing-kernel-threads-prematurely kernel/exit.c
---- a/kernel/exit.c~freezer-avoid-freezing-kernel-threads-prematurely
-+++ a/kernel/exit.c
-@@ -45,6 +45,7 @@
- #include <linux/resource.h>
- #include <linux/blkdev.h>
- #include <linux/task_io_accounting_ops.h>
-+#include <linux/freezer.h>
- 
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
-@@ -594,6 +595,8 @@ static void exit_mm(struct task_struct *
- 	tsk->mm = NULL;
- 	up_read(&mm->mmap_sem);
- 	enter_lazy_tlb(mm, current);
-+	/* We don't want this task to be frozen prematurely */
-+	clear_freeze_flag(tsk);
- 	task_unlock(tsk);
- 	mmput(mm);
- }
-diff -puN kernel/power/process.c~freezer-avoid-freezing-kernel-threads-prematurely kernel/power/process.c
---- a/kernel/power/process.c~freezer-avoid-freezing-kernel-threads-prematurely
-+++ a/kernel/power/process.c
-@@ -40,7 +40,7 @@ static inline void frozen_process(void)
- 		current->flags |= PF_FROZEN;
- 		wmb();
+ 	if (new_egid != old_egid) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 		smp_wmb();
  	}
--	clear_tsk_thread_flag(current, TIF_FREEZE);
-+	clear_freeze_flag(current);
- }
+ 	if (rgid != (gid_t) -1 ||
+@@ -1066,13 +1066,13 @@ asmlinkage long sys_setgid(gid_t gid)
  
- /* Refrigerator is place where frozen processes are stored :-). */
-@@ -75,17 +75,16 @@ void refrigerator(void)
- 	current->state = save;
- }
+ 	if (capable(CAP_SETGID)) {
+ 		if (old_egid != gid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->gid = current->egid = current->sgid = current->fsgid = gid;
+ 	} else if ((gid == current->gid) || (gid == current->sgid)) {
+ 		if (old_egid != gid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->egid = current->fsgid = gid;
+@@ -1103,7 +1103,7 @@ static int set_user(uid_t new_ruid, int 
+ 	switch_uid(new_user);
  
--static inline void freeze_process(struct task_struct *p)
-+static void freeze_task(struct task_struct *p)
- {
- 	unsigned long flags;
- 
- 	if (!freezing(p)) {
- 		rmb();
- 		if (!frozen(p)) {
-+			set_freeze_flag(p);
- 			if (p->state == TASK_STOPPED)
- 				force_sig_specific(SIGSTOP, p);
--
--			freeze(p);
- 			spin_lock_irqsave(&p->sighand->siglock, flags);
- 			signal_wake_up(p, p->state == TASK_STOPPED);
- 			spin_unlock_irqrestore(&p->sighand->siglock, flags);
-@@ -99,18 +98,13 @@ static void cancel_freezing(struct task_
- 
- 	if (freezing(p)) {
- 		pr_debug("  clean up: %s\n", p->comm);
--		do_not_freeze(p);
-+		clear_freeze_flag(p);
- 		spin_lock_irqsave(&p->sighand->siglock, flags);
- 		recalc_sigpending_and_wake(p);
- 		spin_unlock_irqrestore(&p->sighand->siglock, flags);
+ 	if (dumpclear) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 		smp_wmb();
  	}
- }
+ 	current->uid = new_ruid;
+@@ -1159,7 +1159,7 @@ asmlinkage long sys_setreuid(uid_t ruid,
+ 		return -EAGAIN;
  
--static inline int is_user_space(struct task_struct *p)
--{
--	return p->mm && !(p->flags & PF_BORROWED_MM);
--}
--
- static unsigned int try_to_freeze_tasks(int freeze_user_space)
- {
- 	struct task_struct *g, *p;
-@@ -122,20 +116,34 @@ static unsigned int try_to_freeze_tasks(
- 		todo = 0;
- 		read_lock(&tasklist_lock);
- 		do_each_thread(g, p) {
--			if (!freezeable(p))
--				continue;
--
--			if (frozen(p))
-+			if (frozen(p) || !freezeable(p))
- 				continue;
+ 	if (new_euid != old_euid) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 		smp_wmb();
+ 	}
+ 	current->fsuid = current->euid = new_euid;
+@@ -1209,7 +1209,7 @@ asmlinkage long sys_setuid(uid_t uid)
+ 		return -EPERM;
  
--			if (p->state == TASK_TRACED && frozen(p->parent)) {
--				cancel_freezing(p);
--				continue;
-+			if (freeze_user_space) {
-+				if (p->state == TASK_TRACED &&
-+				    frozen(p->parent)) {
-+					cancel_freezing(p);
-+					continue;
-+				}
-+				/*
-+				 * Kernel threads should not have TIF_FREEZE set
-+				 * at this point, so we must ensure that either
-+				 * p->mm is not NULL *and* PF_BORROWED_MM is
-+				 * unset, or TIF_FRREZE is left unset.
-+				 * The task_lock() is necessary to prevent races
-+				 * with exit_mm() or use_mm()/unuse_mm() from
-+				 * occuring.
-+				 */
-+				task_lock(p);
-+				if (!p->mm || (p->flags & PF_BORROWED_MM)) {
-+					task_unlock(p);
-+					continue;
-+				}
-+				freeze_task(p);
-+				task_unlock(p);
-+			} else {
-+				freeze_task(p);
+ 	if (old_euid != uid) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 		smp_wmb();
+ 	}
+ 	current->fsuid = current->euid = uid;
+@@ -1254,7 +1254,7 @@ asmlinkage long sys_setresuid(uid_t ruid
+ 	}
+ 	if (euid != (uid_t) -1) {
+ 		if (euid != current->euid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->euid = euid;
+@@ -1304,7 +1304,7 @@ asmlinkage long sys_setresgid(gid_t rgid
+ 	}
+ 	if (egid != (gid_t) -1) {
+ 		if (egid != current->egid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->egid = egid;
+@@ -1350,7 +1350,7 @@ asmlinkage long sys_setfsuid(uid_t uid)
+ 	    uid == current->suid || uid == current->fsuid || 
+ 	    capable(CAP_SETUID)) {
+ 		if (uid != old_fsuid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->fsuid = uid;
+@@ -1379,7 +1379,7 @@ asmlinkage long sys_setfsgid(gid_t gid)
+ 	    gid == current->sgid || gid == current->fsgid || 
+ 	    capable(CAP_SETGID)) {
+ 		if (gid != old_fsgid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->fsgid = gid;
+@@ -2176,14 +2176,14 @@ asmlinkage long sys_prctl(int option, un
+ 			error = put_user(current->pdeath_signal, (int __user *)arg2);
+ 			break;
+ 		case PR_GET_DUMPABLE:
+-			error = current->mm->dumpable;
++			error = get_dumpable(current->mm);
+ 			break;
+ 		case PR_SET_DUMPABLE:
+ 			if (arg2 < 0 || arg2 > 1) {
+ 				error = -EINVAL;
+ 				break;
  			}
--			if (freeze_user_space && !is_user_space(p))
--				continue;
--
--			freeze_process(p);
- 			if (!freezer_should_skip(p))
- 				todo++;
- 		} while_each_thread(g, p);
-@@ -152,22 +160,16 @@ static unsigned int try_to_freeze_tasks(
- 		 * but it cleans up leftover PF_FREEZE requests.
- 		 */
- 		printk("\n");
--		printk(KERN_ERR "Stopping %s timed out after %d seconds "
-+		printk(KERN_ERR "Freezing of %s timed out after %d seconds "
- 				"(%d tasks refusing to freeze):\n",
--				freeze_user_space ? "user space processes" :
--					"kernel threads",
-+				freeze_user_space ? "user space " : "tasks ",
- 				TIMEOUT / HZ, todo);
- 		show_state();
- 		read_lock(&tasklist_lock);
- 		do_each_thread(g, p) {
--			if (freeze_user_space && !is_user_space(p))
--				continue;
--
- 			task_lock(p);
--			if (freezeable(p) && !frozen(p) &&
--			    !freezer_should_skip(p))
-+			if (freezing(p) && !freezer_should_skip(p))
- 				printk(KERN_ERR " %s\n", p->comm);
--
- 			cancel_freezing(p);
- 			task_unlock(p);
- 		} while_each_thread(g, p);
-@@ -211,7 +213,7 @@ static void thaw_tasks(int thaw_user_spa
- 		if (!freezeable(p))
- 			continue;
+-			current->mm->dumpable = arg2;
++			set_dumpable(current->mm, arg2);
+ 			break;
  
--		if (is_user_space(p) == !thaw_user_space)
-+		if (!p->mm == thaw_user_space)
- 			continue;
+ 		case PR_SET_UNALIGN:
+diff -puN security/commoncap.c~coredump-masking-reimplementation-of-dumpable-using-two-flags security/commoncap.c
+--- a/security/commoncap.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/security/commoncap.c
+@@ -148,7 +148,7 @@ void cap_bprm_apply_creds (struct linux_
  
- 		thaw_process(p);
+ 	if (bprm->e_uid != current->uid || bprm->e_gid != current->gid ||
+ 	    !cap_issubset (new_permitted, current->cap_permitted)) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 
+ 		if (unsafe & ~LSM_UNSAFE_PTRACE_CAP) {
+ 			if (!capable(CAP_SETUID)) {
+diff -puN security/dummy.c~coredump-masking-reimplementation-of-dumpable-using-two-flags security/dummy.c
+--- a/security/dummy.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/security/dummy.c
+@@ -130,7 +130,7 @@ static void dummy_bprm_free_security (st
+ static void dummy_bprm_apply_creds (struct linux_binprm *bprm, int unsafe)
+ {
+ 	if (bprm->e_uid != current->uid || bprm->e_gid != current->gid) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 
+ 		if ((unsafe & ~LSM_UNSAFE_PTRACE_CAP) && !capable(CAP_SETUID)) {
+ 			bprm->e_uid = current->uid;
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
 
 origin.patch
-acpi-implement-the-set_target-callback-from-pm_ops.patch
-acpi-add-acpi_pm_device_sleep_state-helper-routine.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-shrink_slab-handle-bad-shrinkers.patch
