@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + afs-use-patched-rxrpc_kernel_send_data-correctly.patch added to -mm tree
-Date: Thu, 19 Jul 2007 13:50:15 -0700
-Message-ID: <200707192050.l6JKoFQm022279@imap1.linux-foundation.org>
+Subject: + remove-handle_mm_fault-export.patch added to -mm tree
+Date: Thu, 19 Jul 2007 13:50:52 -0700
+Message-ID: <200707192050.l6JKoqED022289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42336 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40788 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763457AbXGSUu3 (ORCPT
+	by vger.kernel.org with ESMTP id S1761206AbXGSUvG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:50:29 -0400
+	Thu, 19 Jul 2007 16:51:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: hch@lst.de, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     AFS: use patched rxrpc_kernel_send_data() correctly
+     remove handle_mm_fault export
 has been added to the -mm tree.  Its filename is
-     afs-use-patched-rxrpc_kernel_send_data-correctly.patch
+     remove-handle_mm_fault-export.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,54 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: AFS: use patched rxrpc_kernel_send_data() correctly
-From: David Howells <dhowells@redhat.com>
+Subject: remove handle_mm_fault export
+From: Christoph Hellwig <hch@lst.de>
 
-Fix afs_send_simple_reply() to accept a greater-than-zero return value from
-rxrpc_kernel_send_data() as being a successful return rather than thinking
-it an error and aborting the call.
+Now that arch/powerpc/platforms/cell/spufs/fault.c is always built in
+the kernel there is no need to export handle_mm_fault anymore.
 
-rxrpc_kernel_send_data() previously returned zero incorrectly when it
-worked successfully, but has been patched to return the number of bytes it
-transmitted.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/rxrpc.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ mm/memory.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN fs/afs/rxrpc.c~afs-use-patched-rxrpc_kernel_send_data-correctly fs/afs/rxrpc.c
---- a/fs/afs/rxrpc.c~afs-use-patched-rxrpc_kernel_send_data-correctly
-+++ a/fs/afs/rxrpc.c
-@@ -792,6 +792,7 @@ void afs_send_simple_reply(struct afs_ca
- {
- 	struct msghdr msg;
- 	struct iovec iov[1];
-+	int n;
+diff -puN mm/memory.c~remove-handle_mm_fault-export mm/memory.c
+--- a/mm/memory.c~remove-handle_mm_fault-export
++++ a/mm/memory.c
+@@ -2659,8 +2659,6 @@ int handle_mm_fault(struct mm_struct *mm
+ 	return handle_pte_fault(mm, vma, address, pte, pmd, write_access);
+ }
  
- 	_enter("");
- 
-@@ -806,8 +807,9 @@ void afs_send_simple_reply(struct afs_ca
- 	msg.msg_flags		= 0;
- 
- 	call->state = AFS_CALL_AWAIT_ACK;
--	switch (rxrpc_kernel_send_data(call->rxcall, &msg, len)) {
--	case 0:
-+	n = rxrpc_kernel_send_data(call->rxcall, &msg, len);
-+	switch (n) {
-+	case 0 ... INT_MAX:
- 		_leave(" [replied]");
- 		return;
- 
+-EXPORT_SYMBOL_GPL(handle_mm_fault);
+-
+ #ifndef __PAGETABLE_PUD_FOLDED
+ /*
+  * Allocate page upper directory.
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-afs-fix-file-locking.patch
-afs-use-patched-rxrpc_kernel_send_data-correctly.patch
-mutex-subsystem-synchro-test-module.patch
+fix-spufs-build-after-fault-changes.patch
+gdth-remove-redundant-pci-stuff.patch
+gdth-remove-redundant-pci-stuff-update.patch
+git-xfs.patch
+remove-handle_mm_fault-export.patch
+sysv-convert-to-new-aops.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
