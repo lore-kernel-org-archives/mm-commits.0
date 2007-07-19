@@ -1,67 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - s390-put-allocated-elf-notes-in-read-only-data-segment.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:02:48 -0700
-Message-ID: <200707192002.l6JK2m2U019787@imap1.linux-foundation.org>
+Subject: - m68knommu-start-dump-from-exception-stack.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:04:24 -0700
+Message-ID: <200707192004.l6JK4OvN019946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56938 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57572 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761827AbXGSU0g (ORCPT
+	by vger.kernel.org with ESMTP id S1761915AbXGSU0i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:26:36 -0400
+	Thu, 19 Jul 2007 16:26:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: gerg@snapgear.com, gerg@uclinux.org, phdm@macqel.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s390: Put allocated ELF notes in read-only data segment
+     m68knommu: start dump from exception stack
 has been removed from the -mm tree.  Its filename was
-     s390-put-allocated-elf-notes-in-read-only-data-segment.patch
+     m68knommu-start-dump-from-exception-stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s390: Put allocated ELF notes in read-only data segment
-From: Roland McGrath <roland@redhat.com>
+Subject: m68knommu: start dump from exception stack
+From: Greg Ungerer <gerg@snapgear.com>
 
-This changes the s390 linker script to use the asm-generic NOTES macro so that
-ELF note sections with SHF_ALLOC set are linked into the kernel image along
-with other read-only data.  The PT_NOTE also points to their location.
+In die_if_kernel() start the stack dump at the exception-time SP, not at the
+SP with all the saved registers; the stack below exception-time sp contains
+only exception-saved values and is already printed in details just before.
 
-This paves the way for putting useful build-time information into ELF notes
-that can be found easily later in a kernel memory dump.
-
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/vmlinux.lds.S |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/m68knommu/kernel/traps.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/s390/kernel/vmlinux.lds.S~s390-put-allocated-elf-notes-in-read-only-data-segment arch/s390/kernel/vmlinux.lds.S
---- a/arch/s390/kernel/vmlinux.lds.S~s390-put-allocated-elf-notes-in-read-only-data-segment
-+++ a/arch/s390/kernel/vmlinux.lds.S
-@@ -45,6 +45,8 @@ SECTIONS
-   __ex_table : { *(__ex_table) }
-   __stop___ex_table = .;
+diff -puN arch/m68knommu/kernel/traps.c~m68knommu-start-dump-from-exception-stack arch/m68knommu/kernel/traps.c
+--- a/arch/m68knommu/kernel/traps.c~m68knommu-start-dump-from-exception-stack
++++ a/arch/m68knommu/kernel/traps.c
+@@ -80,7 +80,7 @@ void die_if_kernel(char *str, struct pt_
  
-+  NOTES
-+
-   BUG_TABLE
- 
-   .data : {			/* Data */
+ 	printk(KERN_EMERG "Process %s (pid: %d, stackpage=%08lx)\n",
+ 		current->comm, current->pid, PAGE_SIZE+(unsigned long)current);
+-	show_stack(NULL, (unsigned long *)fp);
++	show_stack(NULL, (unsigned long *)(fp + 1));
+ 	add_taint(TAINT_DIE);
+ 	do_exit(SIGSEGV);
+ }
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from gerg@snapgear.com are
 
 origin.patch
-xen-disable-vdso-nosegneg-on-native-boot.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-pass-g-to-assembler-under-config_debug_info.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+git-mtd.patch
