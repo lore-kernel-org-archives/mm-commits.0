@@ -1,37 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 12:48:46 -0700
-Message-ID: <200707191948.l6JJmlp8018929@imap1.linux-foundation.org>
+Subject: - ich-force-hpet-late-initialization-of-hpet-after-quirk.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 12:48:54 -0700
+Message-ID: <200707191948.l6JJmsLj018938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41661 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35788 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764006AbXGSTtn (ORCPT
+	by vger.kernel.org with ESMTP id S1763325AbXGSTtw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 15:49:43 -0400
+	Thu, 19 Jul 2007 15:49:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: venkatesh.pallipadi@intel.com, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ICH Force HPET: make generic time capable of switching broadcast timer
+     ICH Force HPET: late initialization of hpet after quirk
 has been removed from the -mm tree.  Its filename was
-     ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+     ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
 
 This patch was dropped because Changes in Andi's tree destroyed this patch series
 
 ------------------------------------------------------
-Subject: ICH Force HPET: make generic time capable of switching broadcast timer
+Subject: ICH Force HPET: late initialization of hpet after quirk
 From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Auto-detect the presence of HPET on ICH5 or newer platforms and enable HPET
-for broadcast timer.  This gives a bigger upperlimit for tickless time tick
-and improves the power consumption in comparison to PIT as broadcast timer.
-
-This patch:
-
-Change the broadcast timer, if a timer with higher rating becomes available.
+Enable HPET later during boot, after the force detect in PCI quirks.  Also add
+a call to repeat the force enabling at resume time.
 
 Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -42,61 +37,132 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-broadcast.c |   13 ++++++-------
- kernel/time/tick-common.c    |    4 ++--
- 2 files changed, 8 insertions(+), 9 deletions(-)
+ arch/i386/kernel/hpet.c |   50 ++++++++++++++++++++++++++++++++++----
+ include/asm-i386/hpet.h |    1 
+ 2 files changed, 46 insertions(+), 5 deletions(-)
 
-diff -puN kernel/time/tick-broadcast.c~ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer kernel/time/tick-broadcast.c
---- a/kernel/time/tick-broadcast.c~ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer
-+++ a/kernel/time/tick-broadcast.c
-@@ -64,8 +64,9 @@ static void tick_broadcast_start_periodi
+diff -puN arch/i386/kernel/hpet.c~ich-force-hpet-late-initialization-of-hpet-after-quirk arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~ich-force-hpet-late-initialization-of-hpet-after-quirk
++++ a/arch/i386/kernel/hpet.c
+@@ -25,6 +25,8 @@ extern struct clock_event_device *global
   */
- int tick_check_broadcast_device(struct clock_event_device *dev)
- {
--	if (tick_broadcast_device.evtdev ||
--	    (dev->features & CLOCK_EVT_FEAT_C3STOP))
-+	if ((tick_broadcast_device.evtdev &&
-+	     tick_broadcast_device.evtdev->rating >= dev->rating) ||
-+	     (dev->features & CLOCK_EVT_FEAT_C3STOP))
- 		return 0;
+ unsigned long hpet_address;
  
- 	clockevents_exchange_device(NULL, dev);
-@@ -519,11 +520,9 @@ static void tick_broadcast_clear_oneshot
-  */
- void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
++static void __iomem * hpet_virt_address;
++
+ #ifdef CONFIG_X86_64
+ 
+ #include <asm/pgtable.h>
+@@ -34,19 +36,22 @@ static inline void hpet_set_mapping(void
  {
--	if (bc->mode != CLOCK_EVT_MODE_ONESHOT) {
--		bc->event_handler = tick_handle_oneshot_broadcast;
--		clockevents_set_mode(bc, CLOCK_EVT_MODE_ONESHOT);
--		bc->next_event.tv64 = KTIME_MAX;
--	}
-+	bc->event_handler = tick_handle_oneshot_broadcast;
-+	clockevents_set_mode(bc, CLOCK_EVT_MODE_ONESHOT);
-+	bc->next_event.tv64 = KTIME_MAX;
+ 	set_fixmap_nocache(FIX_HPET_BASE, hpet_address);
+ 	__set_fixmap(VSYSCALL_HPET, hpet_address, PAGE_KERNEL_VSYSCALL_NOCACHE);
++	hpet_virt_address = (void __iomem *)fix_to_virt(FIX_HPET_BASE);
++
  }
  
- /*
-diff -puN kernel/time/tick-common.c~ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer kernel/time/tick-common.c
---- a/kernel/time/tick-common.c~ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer
-+++ a/kernel/time/tick-common.c
-@@ -200,7 +200,7 @@ static int tick_check_new_device(struct 
+ static inline void __iomem *hpet_get_virt_address(void)
+ {
+-	return (void __iomem *)fix_to_virt(FIX_HPET_BASE);
++	return hpet_virt_address;
+ }
  
- 	cpu = smp_processor_id();
- 	if (!cpu_isset(cpu, newdev->cpumask))
--		goto out;
-+		goto out_bc;
+-static inline void hpet_clear_mapping(void) { }
++static inline void hpet_clear_mapping(void)
++{
++	hpet_virt_address = NULL;
++}
  
- 	td = &per_cpu(tick_cpu_device, cpu);
- 	curdev = td->evtdev;
-@@ -265,7 +265,7 @@ out_bc:
- 	 */
- 	if (tick_check_broadcast_device(newdev))
- 		ret = NOTIFY_STOP;
--out:
+ #else
+ 
+-static void __iomem * hpet_virt_address;
+-
+ static inline unsigned long hpet_readl(unsigned long a)
+ {
+ 	return readl(hpet_virt_address + a);
+@@ -173,6 +178,7 @@ static struct clock_event_device hpet_cl
+ 	.set_next_event = hpet_legacy_next_event,
+ 	.shift		= 32,
+ 	.irq		= 0,
++	.rating		= 50,
+ };
+ 
+ static void hpet_start_counter(void)
+@@ -187,6 +193,17 @@ static void hpet_start_counter(void)
+ 	hpet_writel(cfg, HPET_CFG);
+ }
+ 
++static void hpet_resume_device(void)
++{
++	ich_force_hpet_resume();
++}
 +
- 	spin_unlock_irqrestore(&tick_device_lock, flags);
++static void hpet_restart_counter(void)
++{
++	hpet_resume_device();
++	hpet_start_counter();
++}
++
+ static void hpet_enable_legacy_int(void)
+ {
+ 	unsigned long cfg = hpet_readl(HPET_CFG);
+@@ -308,7 +325,7 @@ static struct clocksource clocksource_hp
+ 	.mask		= HPET_MASK,
+ 	.shift		= HPET_SHIFT,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+-	.resume		= hpet_start_counter,
++	.resume		= hpet_restart_counter,
+ #ifdef CONFIG_X86_64
+ 	.vread		= vread_hpet,
+ #endif
+@@ -371,6 +388,9 @@ int __init hpet_enable(void)
+ {
+ 	unsigned long id;
  
- 	return ret;
++	if (hpet_get_virt_address())
++		return 0;
++
+ 	if (!is_hpet_capable())
+ 		return 0;
+ 
+@@ -415,6 +435,26 @@ out_nohpet:
+ }
+ 
+ 
++static int __init hpet_late_init(void)
++{
++	if (boot_hpet_disable)
++		return -ENODEV;
++
++	if (!hpet_address) {
++		if (!force_hpet_address)
++			return -ENODEV;
++
++		hpet_address = force_hpet_address;
++		hpet_enable();
++		if (!hpet_get_virt_address())
++			return -ENODEV;
++	}
++
++	return 0;
++}
++fs_initcall(hpet_late_init);
++
++
+ #ifdef CONFIG_HPET_EMULATE_RTC
+ 
+ /* HPET in LegacyReplacement Mode eats up RTC interrupt line. When, HPET
+diff -puN include/asm-i386/hpet.h~ich-force-hpet-late-initialization-of-hpet-after-quirk include/asm-i386/hpet.h
+--- a/include/asm-i386/hpet.h~ich-force-hpet-late-initialization-of-hpet-after-quirk
++++ a/include/asm-i386/hpet.h
+@@ -64,6 +64,7 @@
+ 
+ /* hpet memory map physical address */
+ extern unsigned long hpet_address;
++extern unsigned long force_hpet_address;
+ extern int is_hpet_enabled(void);
+ extern int hpet_enable(void);
+ 
 _
 
 Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
@@ -105,9 +171,6 @@ origin.patch
 git-acpi.patch
 cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
 x86_64-block-irq-balancing-for-timer.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
 ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
 ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
