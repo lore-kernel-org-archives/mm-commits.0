@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_lcdfb-fix-stn-lcd-support.patch added to -mm tree
-Date: Thu, 19 Jul 2007 16:52:11 -0700
-Message-ID: <200707192352.l6JNqBvO029303@imap1.linux-foundation.org>
+Subject: + anon_inodes-shouldnt-be-user-visible.patch added to -mm tree
+Date: Thu, 19 Jul 2007 16:54:20 -0700
+Message-ID: <200707192354.l6JNsKok029446@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54935 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52658 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936052AbXGSXxm (ORCPT
+	by vger.kernel.org with ESMTP id S934284AbXGSXzC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 19:53:42 -0400
+	Thu, 19 Jul 2007 19:55:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nicolas.ferre@rfo.atmel.com, adaplas@gmail.com, andrew@sanpeople.com, hskinnemoen@atmel.com, jan.altenberg@linutronix.de, patrice.vilchez@rfo.atmel.com
+Cc: bunk@stusta.de, davidel@xmailserver.org
 
 
 The patch titled
-     atmel_lcdfb: Fix STN LCD support
+     ANON_INODES shouldn't be user visible
 has been added to the -mm tree.  Its filename is
-     atmel_lcdfb-fix-stn-lcd-support.patch
+     anon_inodes-shouldnt-be-user-visible.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,191 +26,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: Fix STN LCD support
-From: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
+Subject: ANON_INODES shouldn't be user visible
+From: Adrian Bunk <bunk@stusta.de>
 
-Fixes STN LCD support for the atmel_lcdfb framebuffer driver.
+There doesn't seem to be a good reason for ANON_INODES being
+an user visible option.
 
-This patch is the result of a work from Jan Altenberg and has
-been tested on a Hitachi SP06Q002 on at91sam9261ek.
-
-It adds a Kconfig switch that enables the proper LCD in the
-board configuration file (STN or TFT). The switch is used
-in arch/arm/mach-at91/at91sam9261_devices.c & board-sam9261ek.c
-as an example.
-
-This patch includes the "Fix wrong line_length calculation"
-little one from Jan and Haavard (submitted earlier).
-
-AT91 platform informations are directly submitted trough
-the at91 maintainer, here :
-http://article.gmane.org/gmane.linux.kernel/543158
-
-Signed-off-by: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
-Cc: "Antonino A. Daplas" <adaplas@gmail.com>
-Cc: Jan Altenberg <jan.altenberg@linutronix.de>
-Cc: Patrice Vilchez <patrice.vilchez@rfo.atmel.com>
-Cc: Andrew Victor <andrew@sanpeople.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig       |   10 +++++
- drivers/video/atmel_lcdfb.c |   62 +++++++++++++++++++++++++++++-----
- 2 files changed, 64 insertions(+), 8 deletions(-)
+ init/Kconfig |   16 +++++-----------
+ 1 files changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/Kconfig~atmel_lcdfb-fix-stn-lcd-support drivers/video/Kconfig
---- a/drivers/video/Kconfig~atmel_lcdfb-fix-stn-lcd-support
-+++ a/drivers/video/Kconfig
-@@ -856,6 +856,16 @@ config FB_INTSRAM
- 	  Say Y if you want to map Frame Buffer in internal SRAM. Say N if you want
- 	  to let frame buffer in external SDRAM.
+diff -puN init/Kconfig~anon_inodes-shouldnt-be-user-visible init/Kconfig
+--- a/init/Kconfig~anon_inodes-shouldnt-be-user-visible
++++ a/init/Kconfig
+@@ -468,25 +468,19 @@ config FUTEX
+ 	  run glibc-based applications correctly.
  
-+config FB_ATMEL_STN
-+	bool "Use a STN display with AT91/AT32 LCD Controller"
-+	depends on FB_ATMEL && MACH_AT91SAM9261EK
-+	default n
-+	help
-+	  Say Y if you want to connect a STN LCD display to the AT91/AT32 LCD
-+	  Controller. Say N if you want to connect a TFT.
-+
-+	  If unsure, say N.
-+
- config FB_NVIDIA
- 	tristate "nVidia Framebuffer Support"
- 	depends on FB && PCI
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-fix-stn-lcd-support drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-fix-stn-lcd-support
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -79,6 +79,29 @@ static struct fb_fix_screeninfo atmel_lc
- 	.accel		= FB_ACCEL_NONE,
- };
- 
-+static unsigned long compute_hozval(unsigned long xres, unsigned long lcdcon2)
-+{
-+	unsigned long value;
-+
-+	if (!(cpu_is_at91sam9261() || cpu_is_at32ap7000()))
-+		return xres;
-+
-+	value = xres;
-+	if ((lcdcon2 & ATMEL_LCDC_DISTYPE) != ATMEL_LCDC_DISTYPE_TFT) {
-+		/* STN display */
-+		if ((lcdcon2 & ATMEL_LCDC_DISTYPE) == ATMEL_LCDC_DISTYPE_STNCOLOR) {
-+			value *= 3;
-+		}
-+		if ( (lcdcon2 & ATMEL_LCDC_IFWIDTH) == ATMEL_LCDC_IFWIDTH_4
-+		   || ( (lcdcon2 & ATMEL_LCDC_IFWIDTH) == ATMEL_LCDC_IFWIDTH_8
-+		      && (lcdcon2 & ATMEL_LCDC_SCANMOD) == ATMEL_LCDC_SCANMOD_DUAL ))
-+			value = DIV_ROUND_UP(value, 4);
-+		else
-+			value = DIV_ROUND_UP(value, 8);
-+	}
-+
-+	return value;
-+}
- 
- static void atmel_lcdfb_update_dma(struct fb_info *info,
- 			       struct fb_var_screeninfo *var)
-@@ -181,6 +204,7 @@ static int atmel_lcdfb_check_var(struct 
- 	var->xoffset = var->yoffset = 0;
- 
- 	switch (var->bits_per_pixel) {
-+	case 1:
- 	case 2:
- 	case 4:
- 	case 8:
-@@ -228,8 +252,10 @@ static int atmel_lcdfb_check_var(struct 
- static int atmel_lcdfb_set_par(struct fb_info *info)
- {
- 	struct atmel_lcdfb_info *sinfo = info->par;
-+	unsigned long hozval_linesz;
- 	unsigned long value;
- 	unsigned long clk_value_khz;
-+	unsigned long bits_per_line;
- 
- 	dev_dbg(info->device, "%s:\n", __func__);
- 	dev_dbg(info->device, "  * resolution: %ux%u (%ux%u virtual)\n",
-@@ -241,12 +267,15 @@ static int atmel_lcdfb_set_par(struct fb
- 
- 	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, 0);
- 
--	if (info->var.bits_per_pixel <= 8)
-+	if (info->var.bits_per_pixel == 1)
-+		info->fix.visual = FB_VISUAL_MONO01;
-+	else if (info->var.bits_per_pixel <= 8)
- 		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
- 	else
- 		info->fix.visual = FB_VISUAL_TRUECOLOR;
- 
--	info->fix.line_length = info->var.xres_virtual * (info->var.bits_per_pixel / 8);
-+	bits_per_line = info->var.xres_virtual * info->var.bits_per_pixel;
-+	info->fix.line_length = DIV_ROUND_UP(bits_per_line, 8);
- 
- 	/* Re-initialize the DMA engine... */
- 	dev_dbg(info->device, "  * update DMA engine\n");
-@@ -262,18 +291,21 @@ static int atmel_lcdfb_set_par(struct fb
- 	/* Set pixel clock */
- 	clk_value_khz = clk_get_rate(sinfo->lcdc_clk) / 1000;
- 
--	value = clk_value_khz / PICOS2KHZ(info->var.pixclock);
+ config ANON_INODES
+-	bool "Enable anonymous inode source" if EMBEDDED
+-	default y
+-	help
+-	  Anonymous inode source for pseudo-files like epoll, signalfd,
+-	  timerfd and eventfd.
 -
--	if (clk_value_khz % PICOS2KHZ(info->var.pixclock))
--		value++;
-+	value = DIV_ROUND_UP(clk_value_khz, PICOS2KHZ(info->var.pixclock));
+-	  If unsure, say Y.
++	bool
  
- 	value = (value / 2) - 1;
-+	dev_dbg(info->device, "  * programming CLKVAL = 0x%08lx\n", value);
+ config EPOLL
+ 	bool "Enable eventpoll support" if EMBEDDED
+ 	default y
+-	depends on ANON_INODES
++	select ANON_INODES
+ 	help
+ 	  Disabling this option will cause the kernel to be built without
+ 	  support for epoll family of system calls.
  
- 	if (value <= 0) {
- 		dev_notice(info->device, "Bypassing pixel clock divider\n");
- 		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1, ATMEL_LCDC_BYPASS);
--	} else
-+	} else {
- 		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1, value << ATMEL_LCDC_CLKVAL_OFFSET);
-+		info->var.pixclock = KHZ2PICOS(clk_value_khz / (2 * (value + 1)));
-+		dev_dbg(info->device, "  updated pixclk:     %lu KHz\n",
-+					PICOS2KHZ(info->var.pixclock));
-+	}
-+
+ config SIGNALFD
+ 	bool "Enable signalfd() system call" if EMBEDDED
+-	depends on ANON_INODES
++	select ANON_INODES
+ 	default y
+ 	help
+ 	  Enable the signalfd() system call that allows to receive signals
+@@ -496,7 +490,7 @@ config SIGNALFD
  
- 	/* Initialize control register 2 */
- 	value = sinfo->default_lcdcon2;
-@@ -311,9 +343,14 @@ static int atmel_lcdfb_set_par(struct fb
- 	dev_dbg(info->device, "  * LCDTIM2 = %08lx\n", value);
- 	lcdc_writel(sinfo, ATMEL_LCDC_TIM2, value);
+ config TIMERFD
+ 	bool "Enable timerfd() system call" if EMBEDDED
+-	depends on ANON_INODES
++	select ANON_INODES
+ 	default y
+ 	help
+ 	  Enable the timerfd() system call that allows to receive timer
+@@ -506,7 +500,7 @@ config TIMERFD
  
-+	/* Horizontal value (aka line size) */
-+	hozval_linesz = compute_hozval(info->var.xres,
-+					lcdc_readl(sinfo, ATMEL_LCDC_LCDCON2));
-+
- 	/* Display size */
--	value = (info->var.xres - 1) << ATMEL_LCDC_HOZVAL_OFFSET;
-+	value = (hozval_linesz - 1) << ATMEL_LCDC_HOZVAL_OFFSET;
- 	value |= info->var.yres - 1;
-+	dev_dbg(info->device, "  * LCDFRMCFG = %08lx\n", value);
- 	lcdc_writel(sinfo, ATMEL_LCDC_LCDFRMCFG, value);
- 
- 	/* FIFO Threshold: Use formula from data sheet */
-@@ -421,6 +458,15 @@ static int atmel_lcdfb_setcolreg(unsigne
- 			ret = 0;
- 		}
- 		break;
-+
-+	case FB_VISUAL_MONO01:
-+		if (regno < 2) {
-+			val = (regno == 0) ? 0x00 : 0x1F;
-+			lcdc_writel(sinfo, ATMEL_LCDC_LUT(regno), val);
-+			ret = 0;
-+		}
-+		break;
-+
- 	}
- 
- 	return ret;
+ config EVENTFD
+ 	bool "Enable eventfd() system call" if EMBEDDED
+-	depends on ANON_INODES
++	select ANON_INODES
+ 	default y
+ 	help
+ 	  Enable the eventfd() system call that allows to receive both
 _
 
-Patches currently in -mm which might be from nicolas.ferre@rfo.atmel.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-atmel_lcdfb-fix-stn-lcd-support.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+git-hwmon.patch
+git-kbuild.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+git-scsi-misc.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+maps2-add-proc-kpagemap-interface.patch
+fs-reiserfs-cleanups.patch
+anon_inodes-shouldnt-be-user-visible.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
