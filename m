@@ -1,121 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-fold-in-redundant-functions.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:40 -0700
-Message-ID: <200707192009.l6JK9ev2020599@imap1.linux-foundation.org>
+Subject: - sched-fix-newly-idle-load-balance-in-case-of-smt.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:07:50 -0700
+Message-ID: <200707192007.l6JK7oRj020395@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40547 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36719 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760924AbXGSUPa (ORCPT
+	by vger.kernel.org with ESMTP id S1760155AbXGSUQN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:30 -0400
+	Thu, 19 Jul 2007 16:16:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
+To: suresh.b.siddha@intel.com, mingo@elte.hu, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary - fold in redundant functions
+     sched: fix newly idle load balance in case of SMT
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-fold-in-redundant-functions.patch
+     sched-fix-newly-idle-load-balance-in-case-of-smt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: Calgary - fold in redundant functions
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: sched: fix newly idle load balance in case of SMT
+From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 
-After the bitmap changes we can get rid of the unlocked versions of
-calgary_unmap_sg and iommu_free. Fold __calgary_unmap_sg and
-__iommu_free into their calgary_unmap_sg and iommu_free, respectively.
+In the presence of SMT, newly idle balance was never happening for multi-core
+and SMP domains(even when both the logical siblings are idle).
 
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+If thread 0 is already idle and when thread 1 is about to go to idle, newly
+idle load balance always think that one of the threads is not idle and skips
+doing the newly idle load balance for multi-core and SMP domains.
+
+This is because of the idle_cpu() macro, which checks if the current process
+on a cpu is an idle process.  But this is not the case for the thread doing
+the load_balance_newidle().
+
+Fix this by using runqueue's nr_running field instead of idle_cpu().  And also
+skip the logic of 'only one idle cpu in the group will be doing load
+balancing' during newly idle case.
+
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |   30 ++++++++---------------------
- 1 files changed, 9 insertions(+), 21 deletions(-)
+ kernel/sched.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-fold-in-redundant-functions arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-fold-in-redundant-functions
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -321,7 +321,7 @@ error:
- 	return bad_dma_address;
- }
+diff -puN kernel/sched.c~sched-fix-newly-idle-load-balance-in-case-of-smt kernel/sched.c
+--- a/kernel/sched.c~sched-fix-newly-idle-load-balance-in-case-of-smt
++++ a/kernel/sched.c
+@@ -2235,7 +2235,7 @@ find_busiest_group(struct sched_domain *
  
--static void __iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
-+static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
- 	unsigned int npages)
- {
- 	unsigned long entry;
-@@ -359,12 +359,6 @@ static void __iommu_free(struct iommu_ta
- 	spin_unlock_irqrestore(&tbl->it_lock, flags);
- }
+ 			rq = cpu_rq(i);
  
--static void iommu_free(struct iommu_table *tbl, dma_addr_t dma_addr,
--	unsigned int npages)
--{
--	__iommu_free(tbl, dma_addr, npages);
--}
--
- static inline struct iommu_table *find_iommu_table(struct device *dev)
- {
- 	struct pci_dev *pdev;
-@@ -387,9 +381,14 @@ static inline struct iommu_table *find_i
- 	return tbl;
- }
+-			if (*sd_idle && !idle_cpu(i))
++			if (*sd_idle && rq->nr_running)
+ 				*sd_idle = 0;
  
--static void __calgary_unmap_sg(struct iommu_table *tbl,
-+static void calgary_unmap_sg(struct device *dev,
- 	struct scatterlist *sglist, int nelems, int direction)
- {
-+	struct iommu_table *tbl = find_iommu_table(dev);
-+
-+	if (!translate_phb(to_pci_dev(dev)))
-+		return;
-+
- 	while (nelems--) {
- 		unsigned int npages;
- 		dma_addr_t dma = sglist->dma_address;
-@@ -399,22 +398,11 @@ static void __calgary_unmap_sg(struct io
- 			break;
- 
- 		npages = num_dma_pages(dma, dmalen);
--		__iommu_free(tbl, dma, npages);
-+		iommu_free(tbl, dma, npages);
- 		sglist++;
- 	}
- }
- 
--void calgary_unmap_sg(struct device *dev, struct scatterlist *sglist,
--		      int nelems, int direction)
--{
--	struct iommu_table *tbl = find_iommu_table(dev);
--
--	if (!translate_phb(to_pci_dev(dev)))
--		return;
--
--	__calgary_unmap_sg(tbl, sglist, nelems, direction);
--}
--
- static int calgary_nontranslate_map_sg(struct device* dev,
- 	struct scatterlist *sg, int nelems, int direction)
- {
-@@ -466,7 +454,7 @@ int calgary_map_sg(struct device *dev, s
- 
- 	return nelems;
- error:
--	__calgary_unmap_sg(tbl, sg, nelems, direction);
-+	calgary_unmap_sg(dev, sg, nelems, direction);
- 	for (i = 0; i < nelems; i++) {
- 		sg[i].dma_address = bad_dma_address;
- 		sg[i].dma_length = 0;
+ 			/* Bias balancing toward cpus of our domain */
+@@ -2257,9 +2257,11 @@ find_busiest_group(struct sched_domain *
+ 		/*
+ 		 * First idle cpu or the first cpu(busiest) in this sched group
+ 		 * is eligible for doing load balancing at this and above
+-		 * domains.
++		 * domains. In the newly idle case, we will allow all the cpu's
++		 * to do the newly idle load balance.
+ 		 */
+-		if (local_group && balance_cpu != this_cpu && balance) {
++		if (idle != CPU_NEWLY_IDLE && local_group &&
++		    balance_cpu != this_cpu && balance) {
+ 			*balance = 0;
+ 			goto ret;
+ 		}
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
 origin.patch
+git-sched.patch
 intel-iommu-dmar-detection-and-parsing-logic.patch
 intel-iommu-pci-generic-helper-function.patch
 intel-iommu-clflush_cache_range-now-takes-size-param.patch
