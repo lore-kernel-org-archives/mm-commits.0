@@ -1,225 +1,237 @@
 From: akpm@linux-foundation.org
-Subject: - pm-optional-beeping-during-resume-from-suspend-to-ram.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:00:32 -0700
-Message-ID: <200707192000.l6JK0WFl019459@imap1.linux-foundation.org>
+Subject: - coda-avoid-lockdep-warning-in-coda_readdir.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:03:13 -0700
+Message-ID: <200707192003.l6JK3DIQ019838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38455 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35023 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757956AbXGSUW6 (ORCPT
+	by vger.kernel.org with ESMTP id S1758578AbXGSUXG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:22:58 -0400
+	Thu, 19 Jul 2007 16:23:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nigel@nigel.suspend2.net, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: jaharkes@cs.cmu.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Optional beeping during resume from suspend to RAM
+     coda: avoid lockdep warning in coda_readdir
 has been removed from the -mm tree.  Its filename was
-     pm-optional-beeping-during-resume-from-suspend-to-ram.patch
+     coda-avoid-lockdep-warning-in-coda_readdir.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PM: Optional beeping during resume from suspend to RAM
-From: Nigel Cunningham <nigel@nigel.suspend2.net>
+Subject: coda: avoid lockdep warning in coda_readdir
+From: Jan Harkes <jaharkes@cs.cmu.edu>
 
-Add a feature allowing the user to make the system beep during a resume from
-suspend to RAM, on x86_64 and i386.
-
-This is useful for the users with broken resume from RAM, so that they can
-verify if the control reaches the kernel after a wake-up event.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/wakeup.S   |   27 +++++++++++++++++++++++++++
- arch/x86_64/kernel/acpi/wakeup.S |   25 +++++++++++++++++++++++++
- include/linux/acpi.h             |    1 +
- kernel/power/main.c              |   23 +++++++++++++++++++++++
- 4 files changed, 76 insertions(+)
+ fs/coda/dir.c |   98 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 54 insertions(+), 44 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/wakeup.S~pm-optional-beeping-during-resume-from-suspend-to-ram arch/i386/kernel/acpi/wakeup.S
---- a/arch/i386/kernel/acpi/wakeup.S~pm-optional-beeping-during-resume-from-suspend-to-ram
-+++ a/arch/i386/kernel/acpi/wakeup.S
-@@ -13,6 +13,21 @@
- # cs = 0x1234, eip = 0x05
- # 
+diff -puN fs/coda/dir.c~coda-avoid-lockdep-warning-in-coda_readdir fs/coda/dir.c
+--- a/fs/coda/dir.c~coda-avoid-lockdep-warning-in-coda_readdir
++++ a/fs/coda/dir.c
+@@ -43,15 +43,15 @@ static int coda_rename(struct inode *old
+                        struct inode *new_inode, struct dentry *new_dentry);
  
-+#define BEEP \
-+	inb	$97, %al; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$3, %al; 	\
-+	outb	%al, $97; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$-74, %al; 	\
-+	outb	%al, $67; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$-119, %al; 	\
-+	outb	%al, $66; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$15, %al; 	\
-+	outb	%al, $66;
+ /* dir file-ops */
+-static int coda_readdir(struct file *file, void *dirent, filldir_t filldir);
++static int coda_readdir(struct file *file, void *buf, filldir_t filldir);
+ 
+ /* dentry ops */
+ static int coda_dentry_revalidate(struct dentry *de, struct nameidata *nd);
+ static int coda_dentry_delete(struct dentry *);
+ 
+ /* support routines */
+-static int coda_venus_readdir(struct file *filp, filldir_t filldir,
+-			      void *dirent, struct dentry *dir);
++static int coda_venus_readdir(struct file *coda_file, void *buf,
++			      filldir_t filldir);
+ 
+ /* same as fs/bad_inode.c */
+ static int coda_return_EIO(void)
+@@ -448,12 +448,10 @@ static int coda_rename(struct inode *old
+ 
+ 
+ /* file operations for directories */
+-int coda_readdir(struct file *coda_file, void *dirent, filldir_t filldir)
++int coda_readdir(struct file *coda_file, void *buf, filldir_t filldir)
+ {
+-	struct dentry *coda_dentry = coda_file->f_path.dentry;
+ 	struct coda_file_info *cfi;
+ 	struct file *host_file;
+-	struct inode *host_inode;
+ 	int ret;
+ 
+ 	cfi = CODA_FTOC(coda_file);
+@@ -462,30 +460,31 @@ int coda_readdir(struct file *coda_file,
+ 
+ 	coda_vfs_stat.readdir++;
+ 
+-	host_inode = host_file->f_path.dentry->d_inode;
+-	mutex_lock(&host_inode->i_mutex);
+-	host_file->f_pos = coda_file->f_pos;
+-
+-	if (!host_file->f_op->readdir) {
+-		/* Venus: we must read Venus dirents from the file */
+-		ret = coda_venus_readdir(host_file, filldir, dirent, coda_dentry);
+-	} else {
+-		/* potemkin case: we were handed a directory inode. */
+-		/* Yuk, we can't call vfs_readdir because we are already
+-		 * holding the inode semaphore. */
+-		ret = -ENOTDIR;
+-		if (!host_file->f_op || !host_file->f_op->readdir)
+-			goto out;
++	if (!host_file->f_op)
++		return -ENOTDIR;
 +
- ALIGN
- 	.align	4096
- ENTRY(wakeup_start)
-@@ -31,6 +46,11 @@ wakeup_code:
- 	movw	%cs, %ax
- 	movw	%ax, %ds					# Make ds:0 point to wakeup_start
- 	movw	%ax, %ss
++	if (host_file->f_op->readdir)
++	{
++		/* potemkin case: we were handed a directory inode.
++		 * We can't use vfs_readdir because we have to keep the file
++		 * position in sync between the coda_file and the host_file.
++		 * and as such we need grab the inode mutex. */
++		struct inode *host_inode = host_file->f_path.dentry->d_inode;
 +
-+	testl   $1, beep_flags - wakeup_code
-+	jz      1f
-+	BEEP
-+1:
- 	mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
- 	movw	$0x0e00 + 'S', %fs:(0x12)
++		mutex_lock(&host_inode->i_mutex);
++		host_file->f_pos = coda_file->f_pos;
  
-@@ -88,6 +108,10 @@ wakeup_code:
- 	cmpl	$0x12345678, %eax
- 	jne	bogus_real_magic
- 
-+	testl   $2, beep_flags - wakeup_code
-+	jz      1f
-+	BEEP
-+1:
- 	ljmpl	$__KERNEL_CS,$wakeup_pmode_return
- 
- real_save_gdt:	.word 0
-@@ -98,6 +122,7 @@ real_save_cr4:	.long 0
- real_magic:	.long 0
- video_mode:	.long 0
- video_flags:	.long 0
-+beep_flags:	.long 0
- real_efer_save_restore:	.long 0
- real_save_efer_edx: 	.long 0
- real_save_efer_eax: 	.long 0
-@@ -262,6 +287,8 @@ ENTRY(acpi_copy_wakeup_routine)
- 	movl	%edx, video_mode - wakeup_start (%eax)
- 	movl	acpi_video_flags, %edx
- 	movl	%edx, video_flags - wakeup_start (%eax)
-+	movl	s2ram_beep, %edx
-+	movl	%edx, beep_flags - wakeup_start (%eax)
- 	movl	$0x12345678, real_magic - wakeup_start (%eax)
- 	movl	$0x12345678, saved_magic
- 	popl	%ebx
-diff -puN arch/x86_64/kernel/acpi/wakeup.S~pm-optional-beeping-during-resume-from-suspend-to-ram arch/x86_64/kernel/acpi/wakeup.S
---- a/arch/x86_64/kernel/acpi/wakeup.S~pm-optional-beeping-during-resume-from-suspend-to-ram
-+++ a/arch/x86_64/kernel/acpi/wakeup.S
-@@ -16,6 +16,21 @@
- # cs = 0x1234, eip = 0x05
- #
- 
-+#define BEEP \
-+	inb	$97, %al; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$3, %al; 	\
-+	outb	%al, $97; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$-74, %al; 	\
-+	outb	%al, $67; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$-119, %al; 	\
-+	outb	%al, $66; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$15, %al; 	\
-+	outb	%al, $66;
+ 		ret = -ENOENT;
+ 		if (!IS_DEADDIR(host_inode)) {
+-			ret = host_file->f_op->readdir(host_file, dirent, filldir);
++			ret = host_file->f_op->readdir(host_file, buf, filldir);
+ 			file_accessed(host_file);
+ 		}
 +
++		coda_file->f_pos = host_file->f_pos;
++		mutex_unlock(&host_inode->i_mutex);
+ 	}
+-out:
+-	coda_file->f_pos = host_file->f_pos;
+-	mutex_unlock(&host_inode->i_mutex);
++	else /* Venus: we must read Venus dirents from a file */
++		ret = coda_venus_readdir(coda_file, buf, filldir);
  
- ALIGN
- 	.align	16
-@@ -33,6 +48,13 @@ wakeup_code:
- 	movw	%cs, %ax
- 	movw	%ax, %ds		# Make ds:0 point to wakeup_start
- 	movw	%ax, %ss
+ 	return ret;
+ }
+@@ -510,57 +509,68 @@ static inline unsigned int CDT2DT(unsign
+ }
+ 
+ /* support routines */
+-static int coda_venus_readdir(struct file *filp, filldir_t filldir,
+-			      void *dirent, struct dentry *dir)
++static int coda_venus_readdir(struct file *coda_file, void *buf,
++			      filldir_t filldir)
+ {
+ 	int result = 0; /* # of entries returned */
++	struct coda_file_info *cfi;
++	struct coda_inode_info *cii;
++	struct file *host_file;
++	struct dentry *de;
+ 	struct venus_dirent *vdir;
+ 	unsigned long vdir_size =
+ 	    (unsigned long)(&((struct venus_dirent *)0)->d_name);
+ 	unsigned int type;
+ 	struct qstr name;
+ 	ino_t ino;
+-	int ret, i;
++	int ret;
 +
-+	# Data segment must be set up before we can see whether to beep.
-+	testl   $1, beep_flags - wakeup_code
-+	jz      1f
-+	BEEP
-+1:
++	cfi = CODA_FTOC(coda_file);
++	BUG_ON(!cfi || cfi->cfi_magic != CODA_MAGIC);
++	host_file = cfi->cfi_container;
 +
- 					# Private stack is needed for ASUS board
- 	mov	$(wakeup_stack - wakeup_code), %sp
++	de = coda_file->f_path.dentry;
++	cii = ITOC(de->d_inode);
  
-@@ -229,6 +251,7 @@ gdt_48a:
- 	.long   gdta - wakeup_code              # gdt base (relocated in later)
- 	
- real_magic:	.quad 0
-+beep_flags:	.quad 0
- video_mode:	.quad 0
- video_flags:	.quad 0
+ 	vdir = kmalloc(sizeof(*vdir), GFP_KERNEL);
+ 	if (!vdir) return -ENOMEM;
  
-@@ -344,6 +367,8 @@ ENTRY(acpi_copy_wakeup_routine)
- 	pushq	%rax
- 	pushq	%rdx
+-	i = filp->f_pos;
+-	switch(i) {
++	switch (coda_file->f_pos) {
+ 	case 0:
+-		ret = filldir(dirent, ".", 1, 0, dir->d_inode->i_ino, DT_DIR);
++		ret = filldir(buf, ".", 1, 0, de->d_inode->i_ino, DT_DIR);
+ 		if (ret < 0) break;
+ 		result++;
+-		filp->f_pos++;
++		coda_file->f_pos++;
+ 		/* fallthrough */
+ 	case 1:
+-		ret = filldir(dirent, "..", 2, 1, dir->d_parent->d_inode->i_ino, DT_DIR);
++		ret = filldir(buf, "..", 2, 1, de->d_parent->d_inode->i_ino, DT_DIR);
+ 		if (ret < 0) break;
+ 		result++;
+-		filp->f_pos++;
++		coda_file->f_pos++;
+ 		/* fallthrough */
+ 	default:
+ 	while (1) {
+ 		/* read entries from the directory file */
+-		ret = kernel_read(filp, filp->f_pos - 2, (char *)vdir,
++		ret = kernel_read(host_file, coda_file->f_pos - 2, (char *)vdir,
+ 				  sizeof(*vdir));
+ 		if (ret < 0) {
+-			printk("coda_venus_readdir: read dir failed %d\n", ret);
++			printk(KERN_ERR "coda readdir: read dir %s failed %d\n",
++			       coda_f2s(&cii->c_fid), ret);
+ 			break;
+ 		}
+ 		if (ret == 0) break; /* end of directory file reached */
  
-+	movl	s2ram_beep, %edx
-+	movl	%edx, beep_flags - wakeup_start (,%rdi)
- 	movl	saved_video_mode, %edx
- 	movl	%edx, video_mode - wakeup_start (,%rdi)
- 	movl	acpi_video_flags, %edx
-diff -puN include/linux/acpi.h~pm-optional-beeping-during-resume-from-suspend-to-ram include/linux/acpi.h
---- a/include/linux/acpi.h~pm-optional-beeping-during-resume-from-suspend-to-ram
-+++ a/include/linux/acpi.h
-@@ -123,6 +123,7 @@ extern int pci_mmcfg_config_num;
+ 		/* catch truncated reads */
+ 		if (ret < vdir_size || ret < vdir_size + vdir->d_namlen) {
+-			printk("coda_venus_readdir: short read: %ld\n",
+-			       filp->f_path.dentry->d_inode->i_ino);
++			printk(KERN_ERR "coda readdir: short read on %s\n",
++			       coda_f2s(&cii->c_fid));
+ 			ret = -EBADF;
+ 			break;
+ 		}
+ 		/* validate whether the directory file actually makes sense */
+ 		if (vdir->d_reclen < vdir_size + vdir->d_namlen) {
+-			printk("coda_venus_readdir: Invalid dir: %ld\n",
+-			       filp->f_path.dentry->d_inode->i_ino);
++			printk(KERN_ERR "coda readdir: invalid dir %s\n",
++			       coda_f2s(&cii->c_fid));
+ 			ret = -EBADF;
+ 			break;
+ 		}
+@@ -579,21 +589,21 @@ static int coda_venus_readdir(struct fil
+ 			 * userspace doesn't have to worry about breaking
+ 			 * getcwd by having mismatched inode numbers for
+ 			 * internal volume mountpoints. */
+-			ino = find_inode_number(dir, &name);
++			ino = find_inode_number(de, &name);
+ 			if (!ino) ino = vdir->d_fileno;
  
- extern int sbf_port;
- extern unsigned long acpi_video_flags;
-+extern unsigned long s2ram_beep;
- 
- #else	/* !CONFIG_ACPI */
- 
-diff -puN kernel/power/main.c~pm-optional-beeping-during-resume-from-suspend-to-ram kernel/power/main.c
---- a/kernel/power/main.c~pm-optional-beeping-during-resume-from-suspend-to-ram
-+++ a/kernel/power/main.c
-@@ -332,6 +332,27 @@ static ssize_t state_store(struct kset *
- 
- power_attr(state);
- 
-+unsigned long s2ram_beep = 0;
-+
-+static ssize_t s2ram_beep_show(struct kset *kset, char *buf)
-+{
-+	return sprintf(buf, "%d\n", s2ram_beep);
-+}
-+
-+static ssize_t
-+s2ram_beep_store(struct kset *kset, const char *buf, size_t n)
-+{
-+	int val;
-+
-+	if (sscanf(buf, "%d", &val) > 0) {
-+		s2ram_beep = val;
-+		return n;
+ 			type = CDT2DT(vdir->d_type);
+-			ret = filldir(dirent, name.name, name.len, filp->f_pos,
+-				      ino, type); 
++			ret = filldir(buf, name.name, name.len,
++				      coda_file->f_pos, ino, type);
+ 			/* failure means no space for filling in this round */
+ 			if (ret < 0) break;
+ 			result++;
+ 		}
+ 		/* we'll always have progress because d_reclen is unsigned and
+ 		 * we've already established it is non-zero. */
+-		filp->f_pos += vdir->d_reclen;
++		coda_file->f_pos += vdir->d_reclen;
 +	}
-+	return -EINVAL;
-+}
-+
-+power_attr(s2ram_beep);
-+
- #ifdef CONFIG_PM_TRACE
- int pm_trace_enabled;
- 
-@@ -357,11 +378,13 @@ power_attr(pm_trace);
- static struct attribute * g[] = {
- 	&state_attr.attr,
- 	&pm_trace_attr.attr,
-+	&s2ram_beep_attr.attr,
- 	NULL,
- };
- #else
- static struct attribute * g[] = {
- 	&state_attr.attr,
-+	&s2ram_beep_attr.attr,
- 	NULL,
- };
- #endif /* CONFIG_PM_TRACE */
+ 	}
+-	} 
+ 	kfree(vdir);
+ 	return result ? result : ret;
+ }
 _
 
-Patches currently in -mm which might be from nigel@nigel.suspend2.net are
+Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
 
 origin.patch
