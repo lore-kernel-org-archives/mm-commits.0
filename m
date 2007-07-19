@@ -1,453 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - update-checkpatchpl-to-version-008.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:02:34 -0700
-Message-ID: <200707192002.l6JK2YA4019687@imap1.linux-foundation.org>
+Subject: - i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:10:39 -0700
+Message-ID: <200707192010.l6JKAdWE020692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58218 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58989 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760691AbXGSURl (ORCPT
+	by vger.kernel.org with ESMTP id S1762082AbXGSURR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:17:41 -0400
+	Thu, 19 Jul 2007 16:17:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     update checkpatch.pl to version 0.08
+     i386: move PIT function declarations and constants to correct header file
 has been removed from the -mm tree.  Its filename was
-     update-checkpatchpl-to-version-008.patch
+     i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: update checkpatch.pl to version 0.08
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: i386: move PIT function declarations and constants to correct header file
+From: Thomas Gleixner <tglx@linutronix.de>
 
-This version brings a number of new checks, and a number of bug
-fixes.  Of note:
+setup_pit_timer is declared in asm-i386/timer.h.  Move it to the pit header
+file, so it can be used by x86_64 as well.
 
-  - warnings for multiple assignments per line
-  - warnings for multiple declarations per line
-  - checks for single statement blocks with braces
+Move also the PIT constants.
 
-This patch includes an update for feature-removal-schedule.txt to
-better target checks.
-
-Andy Whitcroft (12):
-      Version: 0.08
-      only apply printk checks where there is a string literal
-      allow suppression of errors for when no patch is found
-      warn about multiple assignments
-      warn on declaration of multiple variables
-      check for kfree() with needless null check
-      check for single statement braced blocks
-      check for aggregate initialisation on the next line
-      handle the => operator
-      check for spaces between function name and open parenthesis
-      move to explicit Check: entries in feature-removal-schedule.txt
-      handle pointer attributes
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    3 
- scripts/checkpatch.pl                      |  175 +++++++++++++++----
- 2 files changed, 145 insertions(+), 33 deletions(-)
+ arch/i386/kernel/i8253.c                 |    2 --
+ arch/i386/kernel/vmiclock.c              |    1 +
+ include/asm-i386/i8253.h                 |    7 +++++++
+ include/asm-i386/mach-default/io_ports.h |    5 -----
+ include/asm-i386/timer.h                 |    1 -
+ 5 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~update-checkpatchpl-to-version-008 Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~update-checkpatchpl-to-version-008
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -51,6 +51,7 @@ Who:	David Miller <davem@davemloft.net>
- What:	Video4Linux API 1 ioctls and video_decoder.h from Video devices.
- When:	December 2006
- Files:	include/linux/video_decoder.h
-+Check:	include/linux/video_decoder.h
- Why:	V4L1 AP1 was replaced by V4L2 API. during migration from 2.4 to 2.6
- 	series. The old API have lots of drawbacks and don't provide enough
- 	means to work with all video and audio standards. The newer API is
-@@ -84,7 +85,7 @@ Who:	Dominik Brodowski <linux@brodo.de>
- What:	remove EXPORT_SYMBOL(kernel_thread)
- When:	August 2006
- Files:	arch/*/kernel/*_ksyms.c
--Funcs:	kernel_thread
-+Check:	kernel_thread
- Why:	kernel_thread is a low-level implementation detail.  Drivers should
-         use the <linux/kthread.h> API instead which shields them from
- 	implementation details and provides a higherlevel interface that
-diff -puN scripts/checkpatch.pl~update-checkpatchpl-to-version-008 scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~update-checkpatchpl-to-version-008
-+++ a/scripts/checkpatch.pl
-@@ -9,7 +9,7 @@ use strict;
- my $P = $0;
- $P =~ s@.*/@@g;
+diff -puN arch/i386/kernel/i8253.c~i386-move-pit-function-declarations-and-constants-to-correct-header-file arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~i386-move-pit-function-declarations-and-constants-to-correct-header-file
++++ a/arch/i386/kernel/i8253.c
+@@ -15,8 +15,6 @@
+ #include <asm/io.h>
+ #include <asm/timer.h>
  
--my $V = '0.07';
-+my $V = '0.08';
+-#include "io_ports.h"
+-
+ DEFINE_SPINLOCK(i8253_lock);
+ EXPORT_SYMBOL(i8253_lock);
  
- use Getopt::Long qw(:config no_auto_abbrev);
+diff -puN arch/i386/kernel/vmiclock.c~i386-move-pit-function-declarations-and-constants-to-correct-header-file arch/i386/kernel/vmiclock.c
+--- a/arch/i386/kernel/vmiclock.c~i386-move-pit-function-declarations-and-constants-to-correct-header-file
++++ a/arch/i386/kernel/vmiclock.c
+@@ -32,6 +32,7 @@
+ #include <asm/apicdef.h>
+ #include <asm/apic.h>
+ #include <asm/timer.h>
++#include <asm/i8253.h>
  
-@@ -47,16 +47,14 @@ my $removal = 'Documentation/feature-rem
- if ($tree && -f $removal) {
- 	open(REMOVE, "<$removal") || die "$P: $removal: open failed - $!\n";
- 	while (<REMOVE>) {
--		if (/^Files:\s+(.*\S)/) {
--			for my $file (split(/[, ]+/, $1)) {
--				if ($file =~ m@include/(.*)@) {
-+		if (/^Check:\s+(.*\S)/) {
-+			for my $entry (split(/[, ]+/, $1)) {
-+				if ($entry =~ m@include/(.*)@) {
- 					push(@dep_includes, $1);
--				}
--			}
+ #include <irq_vectors.h>
+ #include "io_ports.h"
+diff -puN include/asm-i386/i8253.h~i386-move-pit-function-declarations-and-constants-to-correct-header-file include/asm-i386/i8253.h
+--- a/include/asm-i386/i8253.h~i386-move-pit-function-declarations-and-constants-to-correct-header-file
++++ a/include/asm-i386/i8253.h
+@@ -3,6 +3,11 @@
  
--		} elsif (/^Funcs:\s+(.*\S)/) {
--			for my $func (split(/[, ]+/, $1)) {
--				push(@dep_functions, $func);
-+				} elsif ($entry !~ m@/@) {
-+					push(@dep_functions, $entry);
-+				}
- 			}
- 		}
- 	}
-@@ -153,7 +151,7 @@ sub sanitise_line {
+ #include <linux/clockchips.h>
+ 
++/* i8253A PIT registers */
++#define PIT_MODE		0x43
++#define PIT_CH0			0x40
++#define PIT_CH2			0x42
++
+ extern spinlock_t i8253_lock;
+ 
+ extern struct clock_event_device *global_clock_event;
+@@ -18,4 +23,6 @@ static inline void pit_interrupt_hook(vo
+ 	global_clock_event->event_handler(global_clock_event);
  }
  
- sub ctx_block_get {
--	my ($linenr, $remain, $outer, $open, $close) = @_;
-+	my ($linenr, $remain, $outer, $open, $close, $off) = @_;
- 	my $line;
- 	my $start = $linenr - 1;
- 	my $blk = '';
-@@ -161,38 +159,58 @@ sub ctx_block_get {
- 	my @c;
- 	my @res = ();
- 
-+	my $level = 0;
- 	for ($line = $start; $remain > 0; $line++) {
- 		next if ($rawlines[$line] =~ /^-/);
- 		$remain--;
- 
- 		$blk .= $rawlines[$line];
-+		foreach my $c (split(//, $rawlines[$line])) {
-+			##print "C<$c>L<$level><$open$close>O<$off>\n";
-+			if ($off > 0) {
-+				$off--;
-+				next;
-+			}
- 
--		@o = ($blk =~ /$open/g);
--		@c = ($blk =~ /$close/g);
-+			if ($c eq $close && $level > 0) {
-+				$level--;
-+				last if ($level == 0);
-+			} elsif ($c eq $open) {
-+				$level++;
-+			}
-+		}
- 
--		if (!$outer || (scalar(@o) - scalar(@c)) == 1) {
-+		if (!$outer || $level <= 1) {
- 			push(@res, $rawlines[$line]);
- 		}
- 
--		last if (scalar(@o) == scalar(@c));
-+		last if ($level == 0);
- 	}
- 
--	return @res;
-+	return ($level, @res);
- }
- sub ctx_block_outer {
- 	my ($linenr, $remain) = @_;
- 
--	return ctx_block_get($linenr, $remain, 1, '\{', '\}');
-+	my ($level, @r) = ctx_block_get($linenr, $remain, 1, '{', '}', 0);
-+	return @r;
- }
- sub ctx_block {
- 	my ($linenr, $remain) = @_;
- 
--	return ctx_block_get($linenr, $remain, 0, '\{', '\}');
-+	my ($level, @r) = ctx_block_get($linenr, $remain, 0, '{', '}', 0);
-+	return @r;
- }
- sub ctx_statement {
-+	my ($linenr, $remain, $off) = @_;
++extern void setup_pit_timer(void);
 +
-+	my ($level, @r) = ctx_block_get($linenr, $remain, 0, '(', ')', $off);
-+	return @r;
-+}
-+sub ctx_block_level {
- 	my ($linenr, $remain) = @_;
+ #endif	/* __ASM_I8253_H__ */
+diff -puN include/asm-i386/mach-default/io_ports.h~i386-move-pit-function-declarations-and-constants-to-correct-header-file include/asm-i386/mach-default/io_ports.h
+--- a/include/asm-i386/mach-default/io_ports.h~i386-move-pit-function-declarations-and-constants-to-correct-header-file
++++ a/include/asm-i386/mach-default/io_ports.h
+@@ -7,11 +7,6 @@
+ #ifndef _MACH_IO_PORTS_H
+ #define _MACH_IO_PORTS_H
  
--	return ctx_block_get($linenr, $remain, 0, '\(', '\)');
-+	return ctx_block_get($linenr, $remain, 0, '{', '}', 0);
- }
+-/* i8253A PIT registers */
+-#define PIT_MODE		0x43
+-#define PIT_CH0			0x40
+-#define PIT_CH2			0x42
+-
+ /* i8259A PIC registers */
+ #define PIC_MASTER_CMD		0x20
+ #define PIC_MASTER_IMR		0x21
+diff -puN include/asm-i386/timer.h~i386-move-pit-function-declarations-and-constants-to-correct-header-file include/asm-i386/timer.h
+--- a/include/asm-i386/timer.h~i386-move-pit-function-declarations-and-constants-to-correct-header-file
++++ a/include/asm-i386/timer.h
+@@ -5,7 +5,6 @@
  
- sub ctx_locate_comment {
-@@ -246,16 +264,23 @@ sub cat_vet {
- 	return $vet;
- }
+ #define TICK_SIZE (tick_nsec / 1000)
  
-+my @report = ();
-+sub report {
-+	push(@report, $_[0]);
-+}
-+sub report_dump {
-+	@report;
-+}
- sub ERROR {
--	print "ERROR: $_[0]\n";
-+	report("ERROR: $_[0]\n");
- 	our $clean = 0;
- }
- sub WARN {
--	print "WARNING: $_[0]\n";
-+	report("WARNING: $_[0]\n");
- 	our $clean = 0;
- }
- sub CHK {
--	print "CHECK: $_[0]\n";
-+	report("CHECK: $_[0]\n");
- 	our $clean = 0;
- }
+-void setup_pit_timer(void);
+ unsigned long long native_sched_clock(void);
+ unsigned long native_calculate_cpu_khz(void);
  
-@@ -318,7 +343,10 @@ sub process {
- 				(?:\s*\*+\s*const|\s*\*+)?
- 			  }x;
- 	my $Declare	= qr{(?:$Storage\s+)?$Type};
--	my $Attribute	= qr{__read_mostly|__init|__initdata};
-+	my $Attribute	= qr{const|__read_mostly|__init|__initdata|__meminit};
-+
-+	my $Member	= qr{->$Ident|\.$Ident|\[[^]]*\]};
-+	my $Lval	= qr{$Ident(?:$Member)*};
- 
- 	# Pre-scan the patch looking for any __setup documentation.
- 	my @setup_docs = ();
-@@ -509,7 +537,7 @@ sub process {
- # if/while/etc brace do not go on next line, unless defining a do while loop,
- # or if that brace on the next line is for something else
- 		if ($line =~ /\b(?:(if|while|for|switch)\s*\(|do\b|else\b)/ && $line !~ /^.#/) {
--			my @ctx = ctx_statement($linenr, $realcnt);
-+			my @ctx = ctx_statement($linenr, $realcnt, 0);
- 			my $ctx_ln = $linenr + $#ctx + 1;
- 			my $ctx_cnt = $realcnt - $#ctx - 1;
- 			my $ctx = join("\n", @ctx);
-@@ -521,7 +549,7 @@ sub process {
- 			##warn "line<$line>\nctx<$ctx>\nnext<$lines[$ctx_ln - 1]>";
- 
- 			if ($ctx !~ /{\s*/ && $ctx_cnt > 0 && $lines[$ctx_ln - 1] =~ /^\+\s*{/) {
--				ERROR("That { should be on the previous line\n" .
-+				ERROR("That open brace { should be on the previous line\n" .
- 					"$here\n$ctx\n$lines[$ctx_ln - 1]");
- 			}
- 		}
-@@ -535,6 +563,12 @@ sub process {
- 			next;
- 		}
- 
-+# check for initialisation to aggregates open brace on the next line
-+		if ($prevline =~ /$Declare\s*$Ident\s*=\s*$/ &&
-+		    $line =~ /^.\s*{/) {
-+			ERROR("That open brace { should be on the previous line\n" . $hereprev);
-+		}
-+
- #
- # Checks which are anchored on the added line.
- #
-@@ -570,8 +604,13 @@ sub process {
- 			}
- 		}
- 
-+# check for external initialisers.
-+		if ($line =~ /^.$Type\s*$Ident\s*=\s*(0|NULL);/) {
-+			ERROR("do not initialise externals to 0 or NULL\n" .
-+				$herecurr);
-+		}
- # check for static initialisers.
--		if ($line=~/\s*static\s.*=\s+(0|NULL);/) {
-+		if ($line =~ /\s*static\s.*=\s*(0|NULL);/) {
- 			ERROR("do not initialise statics to 0 or NULL\n" .
- 				$herecurr);
- 		}
-@@ -593,11 +632,11 @@ sub process {
- 			ERROR("\"(foo $1 )\" should be \"(foo $1)\"\n" .
- 				$herecurr);
- 
--		} elsif ($line =~ m{$NonptrType(\*+)(?:\s+const)?\s+[A-Za-z\d_]+}) {
-+		} elsif ($line =~ m{$NonptrType(\*+)(?:\s+$Attribute)?\s+[A-Za-z\d_]+}) {
- 			ERROR("\"foo$1 bar\" should be \"foo $1bar\"\n" .
- 				$herecurr);
- 
--		} elsif ($line =~ m{$NonptrType\s+(\*+)(?!\s+const)\s+[A-Za-z\d_]+}) {
-+		} elsif ($line =~ m{$NonptrType\s+(\*+)(?!\s+$Attribute)\s+[A-Za-z\d_]+}) {
- 			ERROR("\"foo $1 bar\" should be \"foo $1bar\"\n" .
- 				$herecurr);
- 		}
-@@ -614,7 +653,7 @@ sub process {
- # to try and find and validate the current printk.  In summary the current
- # printk includes all preceeding printk's which have no newline on the end.
- # we assume the first bad printk is the one to report.
--		if ($line =~ /\bprintk\((?!KERN_)/) {
-+		if ($line =~ /\bprintk\((?!KERN_)\s*"/) {
- 			my $ok = 0;
- 			for (my $ln = $linenr - 1; $ln >= $first_line; $ln--) {
- 				#print "CHECK<$lines[$ln - 1]\n";
-@@ -639,6 +678,12 @@ sub process {
- 			ERROR("open brace '{' following function declarations go on the next line\n" . $herecurr);
- 		}
- 
-+# check for spaces between functions and their parentheses.
-+		if ($line =~ /($Ident)\s+\(/ &&
-+		    $1 !~ /^(?:if|for|while|switch|return|volatile)$/ &&
-+		    $line !~ /$Type\s+\(/ && $line !~ /^.\#\s*define\b/) {
-+			ERROR("no space between function name and open parenthesis '('\n" . $herecurr);
-+		}
- # Check operator spacing.
- 		# Note we expand the line with the leading + as the real
- 		# line will be displayed with the leading + and the tabs
-@@ -647,7 +692,7 @@ sub process {
- 		$opline = expand_tabs($opline);
- 		$opline =~ s/^./ /;
- 		if (!($line=~/\#\s*include/)) {
--			my @elements = split(/(<<=|>>=|<=|>=|==|!=|\+=|-=|\*=|\/=|%=|\^=|\|=|&=|->|<<|>>|<|>|=|!|~|&&|\|\||,|\^|\+\+|--|;|&|\||\+|-|\*|\/\/|\/)/, $opline);
-+			my @elements = split(/(<<=|>>=|<=|>=|==|!=|\+=|-=|\*=|\/=|%=|\^=|\|=|&=|=>|->|<<|>>|<|>|=|!|~|&&|\|\||,|\^|\+\+|--|;|&|\||\+|-|\*|\/\/|\/)/, $opline);
- 			my $off = 0;
- 			for (my $n = 0; $n < $#elements; $n += 2) {
- 				$off += length($elements[$n]);
-@@ -773,6 +818,18 @@ sub process {
- 			}
- 		}
- 
-+# check for multiple assignments
-+		if ($line =~ /^.\s*$Lval\s*=\s*$Lval\s*=(?!=)/) {
-+			WARN("multiple assignments should be avoided\n" . $herecurr);
-+		}
-+
-+# check for multiple declarations, allowing for a function declaration
-+# continuation.
-+		if ($line =~ /^.\s*$Type\s+$Ident(?:\s*=[^,{]*)?\s*,\s*$Ident.*/ &&
-+		    $line !~ /^.\s*$Type\s+$Ident(?:\s*=[^,{]*)?\s*,\s*$Type\s*$Ident.*/) {
-+			WARN("declaring multiple variables together should be avoided\n" . $herecurr);
-+		}
-+
- #need space before brace following if, while, etc
- 		if ($line =~ /\(.*\){/ || $line =~ /do{/) {
- 			ERROR("need a space before the open brace '{'\n" . $herecurr);
-@@ -847,13 +904,18 @@ sub process {
- 			# or the one below.
- 			my $ln = $linenr;
- 			my $cnt = $realcnt;
-+			my $off = 0;
- 
--			# If the macro starts on the define line start there.
--			if ($prevline !~ m{^.#\s*define\s*$Ident(?:\([^\)]*\))?\s*\\\s*$}) {
-+			# If the macro starts on the define line start
-+			# grabbing the statement after the identifier
-+			$prevline =~ m{^(.#\s*define\s*$Ident(?:\([^\)]*\))?\s*)(.*)\\\s*$};
-+			##print "1<$1> 2<$2>\n";
-+			if ($2 ne '') {
-+				$off = length($1);
- 				$ln--;
- 				$cnt++;
- 			}
--			my @ctx = ctx_statement($ln, $cnt);
-+			my @ctx = ctx_statement($ln, $cnt, $off);
- 			my $ctx_ln = $ln + $#ctx + 1;
- 			my $ctx = join("\n", @ctx);
- 
-@@ -873,6 +935,44 @@ sub process {
- 			}
- 		}
- 
-+# check for redundant bracing round if etc
-+		if ($line =~ /\b(if|while|for|else)\b/) {
-+			# Locate the end of the opening statement.
-+			my @control = ctx_statement($linenr, $realcnt, 0);
-+			my $nr = $linenr + (scalar(@control) - 1);
-+			my $cnt = $realcnt - (scalar(@control) - 1);
-+
-+			my $off = $realcnt - $cnt;
-+			#print "$off: line<$line>end<" . $lines[$nr - 1] . ">\n";
-+
-+			# If this is is a braced statement group check it
-+			if ($lines[$nr - 1] =~ /{\s*$/) {
-+				my ($lvl, @block) = ctx_block_level($nr, $cnt);
-+
-+				my $stmt = join(' ', @block);
-+				$stmt =~ s/^[^{]*{//;
-+				$stmt =~ s/}[^}]*$//;
-+
-+				#print "block<" . join(' ', @block) . "><" . scalar(@block) . ">\n";
-+				#print "stmt<$stmt>\n\n";
-+
-+				# Count the ;'s if there is fewer than two
-+				# then there can only be one statement,
-+				# if there is a brace inside we cannot
-+				# trivially detect if its one statement.
-+				# Also nested if's often require braces to
-+				# disambiguate the else binding so shhh there.
-+				my @semi = ($stmt =~ /;/g);
-+				##print "semi<" . scalar(@semi) . ">\n";
-+				if ($lvl == 0 && scalar(@semi) < 2 &&
-+				    $stmt !~ /{/ && $stmt !~ /\bif\b/) {
-+				    	my $herectx = "$here\n" . join("\n", @control, @block[1 .. $#block]) . "\n";
-+				    	shift(@block);
-+					ERROR("braces {} are not necessary for single statement blocks\n" . $herectx);
-+				}
-+			}
-+		}
-+
- # don't include deprecated include files (uses RAW line)
- 		for my $inc (@dep_includes) {
- 			if ($rawline =~ m@\#\s*include\s*\<$inc>@) {
-@@ -898,6 +998,14 @@ sub process {
- 				$herecurr);
- 		}
- 
-+# check for needless kfree() checks
-+		if ($prevline =~ /\bif\s*\(([^\)]*)\)/) {
-+			my $expr = $1;
-+			if ($line =~ /\bkfree\(\Q$expr\E\);/) {
-+				WARN("kfree(NULL) is safe this check is probabally not required\n" . $hereprev);
-+			}
-+		}
-+
- # warn about #ifdefs in C files
- #		if ($line =~ /^.#\s*if(|n)def/ && ($realfile =~ /\.c$/)) {
- #			print "#ifdef in C files should be avoided\n";
-@@ -952,6 +1060,9 @@ sub process {
- 		ERROR("Missing Signed-off-by: line(s)\n");
- 	}
- 
-+	if ($clean == 0 && ($chk_patch || $is_patch)) {
-+		print report_dump();
-+	}
- 	if ($clean == 1 && $quiet == 0) {
- 		print "Your patch has no obvious style problems and is ready for submission.\n"
- 	}
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-move-free-pages-between-lists-on-steal.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-page-owner-tracking-leak-detector.patch
+git-acpi.patch
+acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+clockevents-remove-prototypes-of-removed-functions.patch
+clockevents-fix-resume-logic.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+clockevents-fix-device-replacement.patch
+tick-management-spread-timer-interrupt.patch
+highres-improve-debug-output.patch
+hrtimer-speedup-hrtimer_enqueue.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
+acpi-remove-the-useless-ifdef-code.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+geode-mfgpt-clock-event-device-support.patch
