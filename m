@@ -1,88 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:36 -0700
-Message-ID: <200707192009.l6JK9aNq020593@imap1.linux-foundation.org>
+Subject: - remove-unneeded-test-of-task-in-dump_trace.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:09:56 -0700
+Message-ID: <200707192009.l6JK9ueJ020620@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38868 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33530 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756201AbXGSUPJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752378AbXGSUPH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:09 -0400
+	Thu, 19 Jul 2007 16:15:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muli@il.ibm.com, ak@suse.de, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary - fix few style problems pointed out by checkpatch.pl
+     Remove unneeded test of 'task' in dump_trace()
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl.patch
+     remove-unneeded-test-of-task-in-dump_trace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: Calgary - fix few style problems pointed out by checkpatch.pl
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: Remove unneeded test of 'task' in dump_trace()
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-No actual code was harmed in the production of this patch.
+Remove unneeded test of task != NULL from
+arch/i386/kernel/traps.c::dump_trace()
 
-Thanks to Andrew Morton <akpm@linux-foundation.org> for telling me
-about checkpatch.pl.
+At the start of the function we have this test:
+        if (!task)
+                task = current;
+so further down there's no need to test 'task'.
 
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ arch/i386/kernel/traps.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-fix-few-style-problems-pointed-out-by-checkpatchpl
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -375,7 +375,9 @@ static inline struct iommu_table *find_i
- 		pbus = pdev->bus;
+diff -puN arch/i386/kernel/traps.c~remove-unneeded-test-of-task-in-dump_trace arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~remove-unneeded-test-of-task-in-dump_trace
++++ a/arch/i386/kernel/traps.c
+@@ -216,7 +216,7 @@ void dump_trace(struct task_struct *task
+ 	if (!stack) {
+ 		unsigned long dummy;
+ 		stack = &dummy;
+-		if (task && task != current)
++		if (task != current)
+ 			stack = (unsigned long *)task->thread.esp;
+ 	}
  
- 	tbl = pbus->self->sysdata;
--	BUG_ON(pdev->bus->parent && (tbl->it_busno != pdev->bus->parent->number));
-+
-+	BUG_ON(pdev->bus->parent &&
-+	       (tbl->it_busno != pdev->bus->parent->number));
- 
- 	return tbl;
- }
-@@ -941,7 +943,8 @@ static void calioc2_dump_error_regs(stru
- 	/* dump rest of error regs */
- 	printk(KERN_EMERG "Calgary: ");
- 	for (i = 0; i < ARRAY_SIZE(errregs); i++) {
--		erroff = (0x810 + (i * 0x10)); /* err regs are at 0x810 - 0x870 */
-+		/* err regs are at 0x810 - 0x870 */
-+		erroff = (0x810 + (i * 0x10));
- 		target = calgary_reg(bbar, phboff | erroff);
- 		errregs[i] = be32_to_cpu(readl(target));
- 		printk("0x%08x@0x%lx ", errregs[i], erroff);
-@@ -1207,7 +1210,7 @@ static int __init calgary_init(void)
- {
- 	int ret;
- 	struct pci_dev *dev = NULL;
--	void* tce_space;
-+	void *tce_space;
- 
- 	ret = calgary_locate_bbars();
- 	if (ret)
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+fix-acpi_ev_pci_config_region_setup-to-avoid-memory-leak.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+git-xfs.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
