@@ -1,111 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-untangle-asm-hpeth-from-asm-timexh.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:41 -0700
-Message-ID: <200707192010.l6JKAf62020695@imap1.linux-foundation.org>
+Subject: - nfsd-return-errors-not-null-from-export-functions.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:04:38 -0700
+Message-ID: <200707192004.l6JK4cFW019967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37671 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59738 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932095AbXGSUTS (ORCPT
+	by vger.kernel.org with ESMTP id S1760803AbXGSUR6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:19:18 -0400
+	Thu, 19 Jul 2007 16:17:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chrisw@sous-sol.org, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: untangle asm/hpet.h from asm/timex.h
+     nfsd: return errors, not NULL, from export functions
 has been removed from the -mm tree.  Its filename was
-     x86_64-untangle-asm-hpeth-from-asm-timexh.patch
+     nfsd-return-errors-not-null-from-export-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: untangle asm/hpet.h from asm/timex.h
-From: Chris Wright <chrisw@sous-sol.org>
+Subject: nfsd: return errors, not NULL, from export functions
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-When making changes to x86_64 timers, I noticed that touching hpet.h triggered
-an unreasonably large rebuild.  Untangling it from timex.h quiets the extra
-rebuild quite a bit.
+I converted the various export-returning functions to return -ENOENT instead
+of NULL, but missed a few cases.
 
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+This particular case could cause actual bugs in the case of a krb5 client that
+doesn't match any ip-based client and that is trying to access a filesystem
+not exported to krb5 clients.
+
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Acked-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rtc.c         |    2 +-
- include/asm-x86_64/apic.h  |    2 ++
- include/asm-x86_64/hpet.h  |    1 -
- include/asm-x86_64/timex.h |    1 -
- 4 files changed, 3 insertions(+), 3 deletions(-)
+ fs/nfsd/export.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/rtc.c~x86_64-untangle-asm-hpeth-from-asm-timexh drivers/char/rtc.c
---- a/drivers/char/rtc.c~x86_64-untangle-asm-hpeth-from-asm-timexh
-+++ a/drivers/char/rtc.c
-@@ -82,7 +82,7 @@
- #include <asm/uaccess.h>
- #include <asm/system.h>
+diff -puN fs/nfsd/export.c~nfsd-return-errors-not-null-from-export-functions fs/nfsd/export.c
+--- a/fs/nfsd/export.c~nfsd-return-errors-not-null-from-export-functions
++++ a/fs/nfsd/export.c
+@@ -1265,7 +1265,7 @@ struct svc_export *
+ rqst_exp_get_by_name(struct svc_rqst *rqstp, struct vfsmount *mnt,
+ 		struct dentry *dentry)
+ {
+-	struct svc_export *gssexp, *exp = NULL;
++	struct svc_export *gssexp, *exp = ERR_PTR(-ENOENT);
  
--#if defined(__i386__)
-+#ifdef CONFIG_X86
- #include <asm/hpet.h>
- #endif
+ 	if (rqstp->rq_client == NULL)
+ 		goto gss;
+@@ -1288,7 +1288,7 @@ gss:
+ 						&rqstp->rq_chandle);
+ 	if (PTR_ERR(gssexp) == -ENOENT)
+ 		return exp;
+-	if (exp && !IS_ERR(exp))
++	if (!IS_ERR(exp))
+ 		exp_put(exp);
+ 	return gssexp;
+ }
+@@ -1296,7 +1296,7 @@ gss:
+ struct svc_export *
+ rqst_exp_find(struct svc_rqst *rqstp, int fsid_type, u32 *fsidv)
+ {
+-	struct svc_export *gssexp, *exp = NULL;
++	struct svc_export *gssexp, *exp = ERR_PTR(-ENOENT);
  
-diff -puN include/asm-x86_64/apic.h~x86_64-untangle-asm-hpeth-from-asm-timexh include/asm-x86_64/apic.h
---- a/include/asm-x86_64/apic.h~x86_64-untangle-asm-hpeth-from-asm-timexh
-+++ a/include/asm-x86_64/apic.h
-@@ -86,6 +86,8 @@ extern void setup_apic_routing(void);
- extern void setup_APIC_extened_lvt(unsigned char lvt_off, unsigned char vector,
- 				   unsigned char msg_type, unsigned char mask);
- 
-+extern int apic_is_clustered_box(void);
-+
- #define K8_APIC_EXT_LVT_BASE    0x500
- #define K8_APIC_EXT_INT_MSG_FIX 0x0
- #define K8_APIC_EXT_INT_MSG_SMI 0x2
-diff -puN include/asm-x86_64/hpet.h~x86_64-untangle-asm-hpeth-from-asm-timexh include/asm-x86_64/hpet.h
---- a/include/asm-x86_64/hpet.h~x86_64-untangle-asm-hpeth-from-asm-timexh
-+++ a/include/asm-x86_64/hpet.h
-@@ -55,7 +55,6 @@
- 
- extern int is_hpet_enabled(void);
- extern int hpet_rtc_timer_init(void);
--extern int apic_is_clustered_box(void);
- extern int hpet_arch_init(void);
- extern int hpet_timer_stop_set_go(unsigned long tick);
- extern int hpet_reenable(void);
-diff -puN include/asm-x86_64/timex.h~x86_64-untangle-asm-hpeth-from-asm-timexh include/asm-x86_64/timex.h
---- a/include/asm-x86_64/timex.h~x86_64-untangle-asm-hpeth-from-asm-timexh
-+++ a/include/asm-x86_64/timex.h
-@@ -9,7 +9,6 @@
- #include <asm/8253pit.h>
- #include <asm/msr.h>
- #include <asm/vsyscall.h>
--#include <asm/hpet.h>
- #include <asm/system.h>
- #include <asm/processor.h>
- #include <asm/tsc.h>
+ 	if (rqstp->rq_client == NULL)
+ 		goto gss;
+@@ -1318,7 +1318,7 @@ gss:
+ 						&rqstp->rq_chandle);
+ 	if (PTR_ERR(gssexp) == -ENOENT)
+ 		return exp;
+-	if (exp && !IS_ERR(exp))
++	if (!IS_ERR(exp))
+ 		exp_put(exp);
+ 	return gssexp;
+ }
 _
 
-Patches currently in -mm which might be from chrisw@sous-sol.org are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
 origin.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-security-convert-lsm-into-a-static-interface.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-file-capabilities-introduce-cap_setfcap.patch
-file-capabilities-get_file_caps-cleanups.patch
-file-caps-update-selinux-xattr-hooks.patch
-file-capabilities-clear-caps-cleanup.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-file-capabilities-change-xattr-format-v2.patch
-file-capabilities-change-fe-to-a-bool.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+vfs-fix-a-race-in-lease-breaking-during-truncate.patch
+locks-kill-redundant-local-variable.patch
