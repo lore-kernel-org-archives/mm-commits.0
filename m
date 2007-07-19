@@ -1,61 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-coreh-fix-scrubdefs.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:05:33 -0700
-Message-ID: <200707192005.l6JK5Xeh020053@imap1.linux-foundation.org>
+Subject: - arch-x86_64-kernel-aperturec-lower-printk-severity.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:10:55 -0700
+Message-ID: <200707192010.l6JKAtG0020716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36691 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46114 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757112AbXGSUPH (ORCPT
+	by vger.kernel.org with ESMTP id S1757280AbXGSUPJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:07 -0400
+	Thu, 19 Jul 2007 16:15:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: da-x@monatomic.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: core.h fix scrubdefs
+     arch/x86_64/kernel/aperture.c: lower printk severity
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-coreh-fix-scrubdefs.patch
+     arch-x86_64-kernel-aperturec-lower-printk-severity.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: core.h fix scrubdefs
-From: Douglas Thompson <dougthompson@xmission.com>
+Subject: arch/x86_64/kernel/aperture.c: lower printk severity
+From: Dan Aloni <da-x@monatomic.org>
 
-Patch to fix some scrubbing #defines in the edac_core.h file
+Users that use kernel log filtering (e.g.  via syslogd or a proprietry method)
+wouldn't like to see warning prints that are not really warnings.
 
-Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
+Signed-off-by: Dan Aloni <da-x@monatomic.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_core.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86_64/kernel/aperture.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/edac_core.h~drivers-edac-coreh-fix-scrubdefs drivers/edac/edac_core.h
---- a/drivers/edac/edac_core.h~drivers-edac-coreh-fix-scrubdefs
-+++ a/drivers/edac/edac_core.h
-@@ -194,12 +194,12 @@ enum scrub_type {
- };
+diff -puN arch/x86_64/kernel/aperture.c~arch-x86_64-kernel-aperturec-lower-printk-severity arch/x86_64/kernel/aperture.c
+--- a/arch/x86_64/kernel/aperture.c~arch-x86_64-kernel-aperturec-lower-printk-severity
++++ a/arch/x86_64/kernel/aperture.c
+@@ -214,7 +214,7 @@ void __init iommu_hole_init(void) 
+ 	if (iommu_aperture_disabled || !fix_aperture || !early_pci_allowed())
+ 		return;
  
- #define SCRUB_FLAG_SW_PROG	BIT(SCRUB_SW_PROG)
--#define SCRUB_FLAG_SW_SRC	BIT(SCRUB_SW_SRC_CORR)
--#define SCRUB_FLAG_SW_PROG_SRC	BIT(SCRUB_SW_PROG_SRC_CORR)
-+#define SCRUB_FLAG_SW_SRC	BIT(SCRUB_SW_SRC)
-+#define SCRUB_FLAG_SW_PROG_SRC	BIT(SCRUB_SW_PROG_SRC)
- #define SCRUB_FLAG_SW_TUN	BIT(SCRUB_SW_SCRUB_TUNABLE)
- #define SCRUB_FLAG_HW_PROG	BIT(SCRUB_HW_PROG)
--#define SCRUB_FLAG_HW_SRC	BIT(SCRUB_HW_SRC_CORR)
--#define SCRUB_FLAG_HW_PROG_SRC	BIT(SCRUB_HW_PROG_SRC_CORR)
-+#define SCRUB_FLAG_HW_SRC	BIT(SCRUB_HW_SRC)
-+#define SCRUB_FLAG_HW_PROG_SRC	BIT(SCRUB_HW_PROG_SRC)
- #define SCRUB_FLAG_HW_TUN	BIT(SCRUB_HW_TUNABLE)
+-	printk("Checking aperture...\n"); 
++	printk(KERN_INFO  "Checking aperture...\n");
  
- /* FIXME - should have notify capabilities: NMI, LOG, PROC, etc */
+ 	fix = 0;
+ 	for (num = 24; num < 32; num++) {		
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from da-x@monatomic.org are
 
 origin.patch
+drivers-acpi-pci_linkc-lower-printk-severity.patch
