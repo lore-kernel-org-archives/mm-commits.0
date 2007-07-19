@@ -1,130 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: - pcspkr-use-the-global-pit-lock.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:33 -0700
-Message-ID: <200707192010.l6JKAXMU020683@imap1.linux-foundation.org>
+Subject: - drivers-edac-lindent-amd76x.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:06:14 -0700
+Message-ID: <200707192006.l6JK6EGM020119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60288 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37796 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760984AbXGSUR2 (ORCPT
+	by vger.kernel.org with ESMTP id S1762095AbXGSURM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:17:28 -0400
+	Thu, 19 Jul 2007 16:17:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, dtor@mail.ru, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, djiang@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcspkr: use the global PIT lock
+     drivers/edac: Lindent amd76x
 has been removed from the -mm tree.  Its filename was
-     pcspkr-use-the-global-pit-lock.patch
+     drivers-edac-lindent-amd76x.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pcspkr: use the global PIT lock
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: drivers/edac: Lindent amd76x
+From: Douglas Thompson <dougthompson@xmission.com>
 
-Replace the pcspkr private PIT lock by the global PIT lock to serialize the
-PIT access all over the place.
+Ran this driver through Lindent for cleanup
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Dave Jiang <djiang@mvista.com>
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/time.c   |    2 ++
- drivers/input/misc/pcspkr.c |   11 ++++++++---
- include/asm-x86_64/i8253.h  |    6 ++++++
- 3 files changed, 16 insertions(+), 3 deletions(-)
+ drivers/edac/amd76x_edac.c |   54 ++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 29 deletions(-)
 
-diff -puN arch/x86_64/kernel/time.c~pcspkr-use-the-global-pit-lock arch/x86_64/kernel/time.c
---- a/arch/x86_64/kernel/time.c~pcspkr-use-the-global-pit-lock
-+++ a/arch/x86_64/kernel/time.c
-@@ -33,6 +33,7 @@
- #include <acpi/acpi_bus.h>
- #endif
- #include <asm/8253pit.h>
-+#include <asm/i8253.h>
- #include <asm/pgtable.h>
- #include <asm/vsyscall.h>
- #include <asm/timex.h>
-@@ -51,6 +52,7 @@ static char *timename = NULL;
- DEFINE_SPINLOCK(rtc_lock);
- EXPORT_SYMBOL(rtc_lock);
- DEFINE_SPINLOCK(i8253_lock);
-+EXPORT_SYMBOL(i8253_lock);
+diff -puN drivers/edac/amd76x_edac.c~drivers-edac-lindent-amd76x drivers/edac/amd76x_edac.c
+--- a/drivers/edac/amd76x_edac.c~drivers-edac-lindent-amd76x
++++ a/drivers/edac/amd76x_edac.c
+@@ -86,11 +86,9 @@ struct amd76x_dev_info {
  
- volatile unsigned long __jiffies __section_jiffies = INITIAL_JIFFIES;
+ static const struct amd76x_dev_info amd76x_devs[] = {
+ 	[AMD761] = {
+-		.ctl_name = "AMD761"
+-	},
++		    .ctl_name = "AMD761"},
+ 	[AMD762] = {
+-		.ctl_name = "AMD762"
+-	},
++		    .ctl_name = "AMD762"},
+ };
  
-diff -puN drivers/input/misc/pcspkr.c~pcspkr-use-the-global-pit-lock drivers/input/misc/pcspkr.c
---- a/drivers/input/misc/pcspkr.c~pcspkr-use-the-global-pit-lock
-+++ a/drivers/input/misc/pcspkr.c
-@@ -24,7 +24,12 @@ MODULE_AUTHOR("Vojtech Pavlik <vojtech@u
- MODULE_DESCRIPTION("PC Speaker beeper driver");
- MODULE_LICENSE("GPL");
- 
--static DEFINE_SPINLOCK(i8253_beep_lock);
-+#ifdef CONFIG_X86
-+/* Use the global PIT lock ! */
-+#include <asm/i8253.h>
-+#else
-+static DEFINE_SPINLOCK(i8253_lock);
-+#endif
- 
- static int pcspkr_event(struct input_dev *dev, unsigned int type, unsigned int code, int value)
+ /**
+@@ -102,21 +100,21 @@ static const struct amd76x_dev_info amd7
+  *	on the chip so that further errors will be reported
+  */
+ static void amd76x_get_error_info(struct mem_ctl_info *mci,
+-		struct amd76x_error_info *info)
++				  struct amd76x_error_info *info)
  {
-@@ -43,7 +48,7 @@ static int pcspkr_event(struct input_dev
- 	if (value > 20 && value < 32767)
- 		count = PIT_TICK_RATE / value;
+ 	struct pci_dev *pdev;
  
--	spin_lock_irqsave(&i8253_beep_lock, flags);
-+	spin_lock_irqsave(&i8253_lock, flags);
+ 	pdev = to_pci_dev(mci->dev);
+ 	pci_read_config_dword(pdev, AMD76X_ECC_MODE_STATUS,
+-				&info->ecc_mode_status);
++			      &info->ecc_mode_status);
  
- 	if (count) {
- 		/* enable counter 2 */
-@@ -58,7 +63,7 @@ static int pcspkr_event(struct input_dev
- 		outb(inb_p(0x61) & 0xFC, 0x61);
+ 	if (info->ecc_mode_status & BIT(8))
+ 		pci_write_bits32(pdev, AMD76X_ECC_MODE_STATUS,
+-				(u32) BIT(8), (u32) BIT(8));
++				 (u32) BIT(8), (u32) BIT(8));
+ 
+ 	if (info->ecc_mode_status & BIT(9))
+ 		pci_write_bits32(pdev, AMD76X_ECC_MODE_STATUS,
+-				(u32) BIT(9), (u32) BIT(9));
++				 (u32) BIT(9), (u32) BIT(9));
+ }
+ 
+ /**
+@@ -130,7 +128,8 @@ static void amd76x_get_error_info(struct
+  *	then attempt to handle and clean up after the error
+  */
+ static int amd76x_process_error_info(struct mem_ctl_info *mci,
+-		struct amd76x_error_info *info, int handle_errors)
++				     struct amd76x_error_info *info,
++				     int handle_errors)
+ {
+ 	int error_found;
+ 	u32 row;
+@@ -138,7 +137,7 @@ static int amd76x_process_error_info(str
+ 	error_found = 0;
+ 
+ 	/*
+-	 *	Check for an uncorrectable error
++	 *      Check for an uncorrectable error
+ 	 */
+ 	if (info->ecc_mode_status & BIT(8)) {
+ 		error_found = 1;
+@@ -146,12 +145,12 @@ static int amd76x_process_error_info(str
+ 		if (handle_errors) {
+ 			row = (info->ecc_mode_status >> 4) & 0xf;
+ 			edac_mc_handle_ue(mci, mci->csrows[row].first_page, 0,
+-				row, mci->ctl_name);
++					  row, mci->ctl_name);
+ 		}
  	}
  
--	spin_unlock_irqrestore(&i8253_beep_lock, flags);
-+	spin_unlock_irqrestore(&i8253_lock, flags);
+ 	/*
+-	 *	Check for a correctable error
++	 *      Check for a correctable error
+ 	 */
+ 	if (info->ecc_mode_status & BIT(9)) {
+ 		error_found = 1;
+@@ -159,7 +158,7 @@ static int amd76x_process_error_info(str
+ 		if (handle_errors) {
+ 			row = info->ecc_mode_status & 0xf;
+ 			edac_mc_handle_ce(mci, mci->csrows[row].first_page, 0,
+-				0, row, 0, mci->ctl_name);
++					  0, row, 0, mci->ctl_name);
+ 		}
+ 	}
  
- 	return 0;
+@@ -182,7 +181,7 @@ static void amd76x_check(struct mem_ctl_
  }
-diff -puN /dev/null include/asm-x86_64/i8253.h
---- /dev/null
-+++ a/include/asm-x86_64/i8253.h
-@@ -0,0 +1,6 @@
-+#ifndef __ASM_I8253_H__
-+#define __ASM_I8253_H__
-+
-+extern spinlock_t i8253_lock;
-+
-+#endif	/* __ASM_I8253_H__ */
+ 
+ static void amd76x_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev,
+-		enum edac_type edac_mode)
++			       enum edac_type edac_mode)
+ {
+ 	struct csrow_info *csrow;
+ 	u32 mba, mba_base, mba_mask, dms;
+@@ -193,8 +192,7 @@ static void amd76x_init_csrows(struct me
+ 
+ 		/* find the DRAM Chip Select Base address and mask */
+ 		pci_read_config_dword(pdev,
+-				      AMD76X_MEM_BASE_ADDR + (index * 4),
+-				      &mba);
++				      AMD76X_MEM_BASE_ADDR + (index * 4), &mba);
+ 
+ 		if (!(mba & BIT(0)))
+ 			continue;
+@@ -249,7 +247,7 @@ static int amd76x_probe1(struct pci_dev 
+ 	mci->mtype_cap = MEM_FLAG_RDDR;
+ 	mci->edac_ctl_cap = EDAC_FLAG_NONE | EDAC_FLAG_EC | EDAC_FLAG_SECDED;
+ 	mci->edac_cap = ems_mode ?
+-			(EDAC_FLAG_EC | EDAC_FLAG_SECDED) : EDAC_FLAG_NONE;
++	    (EDAC_FLAG_EC | EDAC_FLAG_SECDED) : EDAC_FLAG_NONE;
+ 	mci->mod_name = EDAC_MOD_STR;
+ 	mci->mod_ver = AMD76X_REVISION;
+ 	mci->ctl_name = amd76x_devs[dev_idx].ctl_name;
+@@ -258,12 +256,12 @@ static int amd76x_probe1(struct pci_dev 
+ 	mci->ctl_page_to_phys = NULL;
+ 
+ 	amd76x_init_csrows(mci, pdev, ems_modes[ems_mode]);
+-	amd76x_get_error_info(mci, &discard);  /* clear counters */
++	amd76x_get_error_info(mci, &discard);	/* clear counters */
+ 
+ 	/* Here we assume that we will never see multiple instances of this
+ 	 * type of memory controller.  The ID is therefore hardcoded to 0.
+ 	 */
+-	if (edac_mc_add_mc(mci,0)) {
++	if (edac_mc_add_mc(mci, 0)) {
+ 		debugf3("%s(): failed edac_mc_add_mc()\n", __func__);
+ 		goto fail;
+ 	}
+@@ -272,14 +270,14 @@ static int amd76x_probe1(struct pci_dev 
+ 	debugf3("%s(): success\n", __func__);
+ 	return 0;
+ 
+-fail:
++      fail:
+ 	edac_mc_free(mci);
+ 	return -ENODEV;
+ }
+ 
+ /* returns count (>= 0), or negative on error */
+ static int __devinit amd76x_init_one(struct pci_dev *pdev,
+-		const struct pci_device_id *ent)
++				     const struct pci_device_id *ent)
+ {
+ 	debugf0("%s()\n", __func__);
+ 
+@@ -309,16 +307,14 @@ static void __devexit amd76x_remove_one(
+ 
+ static const struct pci_device_id amd76x_pci_tbl[] __devinitdata = {
+ 	{
+-		PCI_VEND_DEV(AMD, FE_GATE_700C), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+-		AMD762
+-	},
++	 PCI_VEND_DEV(AMD, FE_GATE_700C), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
++	 AMD762},
+ 	{
+-		PCI_VEND_DEV(AMD, FE_GATE_700E), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+-		AMD761
+-	},
++	 PCI_VEND_DEV(AMD, FE_GATE_700E), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
++	 AMD761},
+ 	{
+-		0,
+-	}	/* 0 terminated list. */
++	 0,
++	 }			/* 0 terminated list. */
+ };
+ 
+ MODULE_DEVICE_TABLE(pci, amd76x_pci_tbl);
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
 origin.patch
-git-acpi.patch
-acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-clockevents-remove-prototypes-of-removed-functions.patch
-clockevents-fix-resume-logic.patch
-lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
-clockevents-fix-device-replacement.patch
-tick-management-spread-timer-interrupt.patch
-highres-improve-debug-output.patch
-hrtimer-speedup-hrtimer_enqueue.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
-acpi-remove-the-useless-ifdef-code.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-geode-mfgpt-clock-event-device-support.patch
