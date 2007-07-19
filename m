@@ -1,32 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - ich-force-hpet-restructure-hpet-generic-clock-code.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 12:48:50 -0700
-Message-ID: <200707191948.l6JJmoR8018932@imap1.linux-foundation.org>
+Subject: - ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 12:48:46 -0700
+Message-ID: <200707191948.l6JJmlp8018929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48431 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41661 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754799AbXGSTtk (ORCPT
+	by vger.kernel.org with ESMTP id S1764006AbXGSTtn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 15:49:40 -0400
+	Thu, 19 Jul 2007 15:49:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: venkatesh.pallipadi@intel.com, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ICH Force HPET: restructure hpet generic clock code
+     ICH Force HPET: make generic time capable of switching broadcast timer
 has been removed from the -mm tree.  Its filename was
-     ich-force-hpet-restructure-hpet-generic-clock-code.patch
+     ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
 
 This patch was dropped because Changes in Andi's tree destroyed this patch series
 
 ------------------------------------------------------
-Subject: ICH Force HPET: restructure hpet generic clock code
+Subject: ICH Force HPET: make generic time capable of switching broadcast timer
 From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Restructure and rename legacy replacement mode HPET timer support.  Just the
-code structural changes and should be zero functionality change.
+Auto-detect the presence of HPET on ICH5 or newer platforms and enable HPET
+for broadcast timer.  This gives a bigger upperlimit for tickless time tick
+and improves the power consumption in comparison to PIT as broadcast timer.
+
+This patch:
+
+Change the broadcast timer, if a timer with higher rating becomes available.
 
 Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -37,227 +42,61 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/hpet.c |  148 +++++++++++++++++++++-----------------
- 1 files changed, 83 insertions(+), 65 deletions(-)
+ kernel/time/tick-broadcast.c |   13 ++++++-------
+ kernel/time/tick-common.c    |    4 ++--
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN arch/i386/kernel/hpet.c~ich-force-hpet-restructure-hpet-generic-clock-code arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~ich-force-hpet-restructure-hpet-generic-clock-code
-+++ a/arch/i386/kernel/hpet.c
-@@ -158,9 +158,9 @@ static void hpet_reserve_platform_timers
+diff -puN kernel/time/tick-broadcast.c~ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer
++++ a/kernel/time/tick-broadcast.c
+@@ -64,8 +64,9 @@ static void tick_broadcast_start_periodi
   */
- static unsigned long hpet_period;
+ int tick_check_broadcast_device(struct clock_event_device *dev)
+ {
+-	if (tick_broadcast_device.evtdev ||
+-	    (dev->features & CLOCK_EVT_FEAT_C3STOP))
++	if ((tick_broadcast_device.evtdev &&
++	     tick_broadcast_device.evtdev->rating >= dev->rating) ||
++	     (dev->features & CLOCK_EVT_FEAT_C3STOP))
+ 		return 0;
  
--static void hpet_set_mode(enum clock_event_mode mode,
-+static void hpet_legacy_set_mode(enum clock_event_mode mode,
- 			  struct clock_event_device *evt);
--static int hpet_next_event(unsigned long delta,
-+static int hpet_legacy_next_event(unsigned long delta,
- 			   struct clock_event_device *evt);
+ 	clockevents_exchange_device(NULL, dev);
+@@ -519,11 +520,9 @@ static void tick_broadcast_clear_oneshot
+  */
+ void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
+ {
+-	if (bc->mode != CLOCK_EVT_MODE_ONESHOT) {
+-		bc->event_handler = tick_handle_oneshot_broadcast;
+-		clockevents_set_mode(bc, CLOCK_EVT_MODE_ONESHOT);
+-		bc->next_event.tv64 = KTIME_MAX;
+-	}
++	bc->event_handler = tick_handle_oneshot_broadcast;
++	clockevents_set_mode(bc, CLOCK_EVT_MODE_ONESHOT);
++	bc->next_event.tv64 = KTIME_MAX;
+ }
  
  /*
-@@ -169,8 +169,8 @@ static int hpet_next_event(unsigned long
- static struct clock_event_device hpet_clockevent = {
- 	.name		= "hpet",
- 	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
--	.set_mode	= hpet_set_mode,
--	.set_next_event = hpet_next_event,
-+	.set_mode	= hpet_legacy_set_mode,
-+	.set_next_event = hpet_legacy_next_event,
- 	.shift		= 32,
- 	.irq		= 0,
- };
-@@ -187,7 +187,7 @@ static void hpet_start_counter(void)
- 	hpet_writel(cfg, HPET_CFG);
- }
+diff -puN kernel/time/tick-common.c~ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer kernel/time/tick-common.c
+--- a/kernel/time/tick-common.c~ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer
++++ a/kernel/time/tick-common.c
+@@ -200,7 +200,7 @@ static int tick_check_new_device(struct 
  
--static void hpet_enable_int(void)
-+static void hpet_enable_legacy_int(void)
- {
- 	unsigned long cfg = hpet_readl(HPET_CFG);
+ 	cpu = smp_processor_id();
+ 	if (!cpu_isset(cpu, newdev->cpumask))
+-		goto out;
++		goto out_bc;
  
-@@ -196,7 +196,39 @@ static void hpet_enable_int(void)
- 	hpet_legacy_int_enabled = 1;
- }
+ 	td = &per_cpu(tick_cpu_device, cpu);
+ 	curdev = td->evtdev;
+@@ -265,7 +265,7 @@ out_bc:
+ 	 */
+ 	if (tick_check_broadcast_device(newdev))
+ 		ret = NOTIFY_STOP;
+-out:
++
+ 	spin_unlock_irqrestore(&tick_device_lock, flags);
  
--static void hpet_set_mode(enum clock_event_mode mode,
-+static void hpet_legacy_clockevent_register(void)
-+{
-+	uint64_t hpet_freq;
-+
-+	/* Start HPET legacy interrupts */
-+	hpet_enable_legacy_int();
-+
-+	/*
-+	 * The period is a femto seconds value. We need to calculate the
-+	 * scaled math multiplication factor for nanosecond to hpet tick
-+	 * conversion.
-+	 */
-+	hpet_freq = 1000000000000000ULL;
-+	do_div(hpet_freq, hpet_period);
-+	hpet_clockevent.mult = div_sc((unsigned long) hpet_freq,
-+				      NSEC_PER_SEC, 32);
-+	/* Calculate the min / max delta */
-+	hpet_clockevent.max_delta_ns = clockevent_delta2ns(0x7FFFFFFF,
-+							   &hpet_clockevent);
-+	hpet_clockevent.min_delta_ns = clockevent_delta2ns(0x30,
-+							   &hpet_clockevent);
-+
-+	/*
-+	 * Start hpet with the boot cpu mask and make it
-+	 * global after the IO_APIC has been initialized.
-+	 */
-+	hpet_clockevent.cpumask = cpumask_of_cpu(smp_processor_id());
-+	clockevents_register_device(&hpet_clockevent);
-+	global_clock_event = &hpet_clockevent;
-+	printk(KERN_DEBUG "hpet clockevent registered\n");
-+}
-+
-+static void hpet_legacy_set_mode(enum clock_event_mode mode,
- 			  struct clock_event_device *evt)
- {
- 	unsigned long cfg, cmp, now;
-@@ -237,12 +269,12 @@ static void hpet_set_mode(enum clock_eve
- 		break;
- 
- 	case CLOCK_EVT_MODE_RESUME:
--		hpet_enable_int();
-+		hpet_enable_legacy_int();
- 		break;
- 	}
- }
- 
--static int hpet_next_event(unsigned long delta,
-+static int hpet_legacy_next_event(unsigned long delta,
- 			   struct clock_event_device *evt)
- {
- 	unsigned long cnt;
-@@ -282,58 +314,11 @@ static struct clocksource clocksource_hp
- #endif
- };
- 
--/*
-- * Try to setup the HPET timer
-- */
--int __init hpet_enable(void)
-+static int hpet_clocksource_register(void)
- {
--	unsigned long id;
--	uint64_t hpet_freq;
- 	u64 tmp, start, now;
- 	cycle_t t1;
- 
--	if (!is_hpet_capable())
--		return 0;
--
--	hpet_set_mapping();
--
--	/*
--	 * Read the period and check for a sane value:
--	 */
--	hpet_period = hpet_readl(HPET_PERIOD);
--	if (hpet_period < HPET_MIN_PERIOD || hpet_period > HPET_MAX_PERIOD)
--		goto out_nohpet;
--
--	/*
--	 * The period is a femto seconds value. We need to calculate the
--	 * scaled math multiplication factor for nanosecond to hpet tick
--	 * conversion.
--	 */
--	hpet_freq = 1000000000000000ULL;
--	do_div(hpet_freq, hpet_period);
--	hpet_clockevent.mult = div_sc((unsigned long) hpet_freq,
--				      NSEC_PER_SEC, 32);
--	/* Calculate the min / max delta */
--	hpet_clockevent.max_delta_ns = clockevent_delta2ns(0x7FFFFFFF,
--							   &hpet_clockevent);
--	hpet_clockevent.min_delta_ns = clockevent_delta2ns(0x30,
--							   &hpet_clockevent);
--
--	/*
--	 * Read the HPET ID register to retrieve the IRQ routing
--	 * information and the number of channels
--	 */
--	id = hpet_readl(HPET_ID);
--
--#ifdef CONFIG_HPET_EMULATE_RTC
--	/*
--	 * The legacy routing mode needs at least two channels, tick timer
--	 * and the rtc emulation channel.
--	 */
--	if (!(id & HPET_ID_NUMBER))
--		goto out_nohpet;
--#endif
--
- 	/* Start the counter */
- 	hpet_start_counter();
- 
-@@ -355,7 +340,7 @@ int __init hpet_enable(void)
- 	if (t1 == read_hpet()) {
- 		printk(KERN_WARNING
- 		       "HPET counter not counting. HPET disabled\n");
--		goto out_nohpet;
-+		return -ENODEV;
- 	}
- 
- 	/* Initialize and register HPET clocksource
-@@ -376,16 +361,49 @@ int __init hpet_enable(void)
- 
- 	clocksource_register(&clocksource_hpet);
- 
-+	return 0;
-+}
-+
-+/*
-+ * Try to setup the HPET timer
-+ */
-+int __init hpet_enable(void)
-+{
-+	unsigned long id;
-+
-+	if (!is_hpet_capable())
-+		return 0;
-+
-+	hpet_set_mapping();
-+
-+	/*
-+	 * Read the period and check for a sane value:
-+	 */
-+	hpet_period = hpet_readl(HPET_PERIOD);
-+	if (hpet_period < HPET_MIN_PERIOD || hpet_period > HPET_MAX_PERIOD)
-+		goto out_nohpet;
-+
-+	/*
-+	 * Read the HPET ID register to retrieve the IRQ routing
-+	 * information and the number of channels
-+	 */
-+	id = hpet_readl(HPET_ID);
-+
-+#ifdef CONFIG_HPET_EMULATE_RTC
-+	/*
-+	 * The legacy routing mode needs at least two channels, tick timer
-+	 * and the rtc emulation channel.
-+	 */
-+	if (!(id & HPET_ID_NUMBER))
-+		goto out_nohpet;
-+#endif
-+
-+	if (hpet_clocksource_register())
-+		goto out_nohpet;
-+
- 	if (0 && (id & HPET_ID_LEGSUP)) {
--		hpet_enable_int();
-+		hpet_legacy_clockevent_register();
- 		hpet_reserve_platform_timers(id);
--		/*
--		 * Start hpet with the boot cpu mask and make it
--		 * global after the IO_APIC has been initialized.
--		 */
--		hpet_clockevent.cpumask = cpumask_of_cpu(smp_processor_id());
--		clockevents_register_device(&hpet_clockevent);
--		global_clock_event = &hpet_clockevent;
- 		return 1;
- 	}
- 	return 0;
+ 	return ret;
 _
 
 Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
@@ -266,6 +105,7 @@ origin.patch
 git-acpi.patch
 cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
 x86_64-block-irq-balancing-for-timer.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
 ich-force-hpet-restructure-hpet-generic-clock-code.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
 ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
