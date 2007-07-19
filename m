@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-use-non-locked-version-for-local_cmpxchg.patch added to -mm tree
-Date: Wed, 18 Jul 2007 22:31:59 -0700
-Message-ID: <200707190531.l6J5Vx88015765@imap1.linux-foundation.org>
+Subject: + sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks.patch added to -mm tree
+Date: Wed, 18 Jul 2007 22:33:20 -0700
+Message-ID: <200707190533.l6J5XK72015803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32939 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50817 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751633AbXGSFcT (ORCPT
+	by vger.kernel.org with ESMTP id S936281AbXGSFdd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 01:32:19 -0400
+	Thu, 19 Jul 2007 01:33:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, andi@firstfloor.org, clameter@sgi.com
+Cc: Trond.Myklebust@netapp.com, davem@davemloft.net, dwmw2@infradead.org
 
 
 The patch titled
-     x86_64: use non locked version for local_cmpxchg()
+     SUNRPC: convert rpc_pipefs to use the generic filesystem notification hooks
 has been added to the -mm tree.  Its filename is
-     x86_64-use-non-locked-version-for-local_cmpxchg.patch
+     sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: use non locked version for local_cmpxchg()
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: SUNRPC: convert rpc_pipefs to use the generic filesystem notification hooks
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
 
-local_cmpxchg() should not use any LOCK prefix.  This change probably got
-lost in the move to cmpxchg.h.
+This will allow rpc.gssd to use inotify instead of dnotify in order to
+locate new rpc upcall pipes.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+This also requires the exporting of __audit_inode_child(), which is used by
+fsnotify_create() and fsnotify_mkdir().  Ccing David Woodhouse.
+
+Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/cmpxchg.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/auditsc.c      |    1 +
+ net/sunrpc/rpc_pipe.c |    7 ++++---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-x86_64/cmpxchg.h~x86_64-use-non-locked-version-for-local_cmpxchg include/asm-x86_64/cmpxchg.h
---- a/include/asm-x86_64/cmpxchg.h~x86_64-use-non-locked-version-for-local_cmpxchg
-+++ a/include/asm-x86_64/cmpxchg.h
-@@ -128,7 +128,7 @@ static inline unsigned long __cmpxchg_lo
- 	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
- 					(unsigned long)(n),sizeof(*(ptr))))
- #define cmpxchg_local(ptr,o,n)\
--	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
-+	((__typeof__(*(ptr)))__cmpxchg_local((ptr),(unsigned long)(o),\
- 					(unsigned long)(n),sizeof(*(ptr))))
+diff -puN kernel/auditsc.c~sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks kernel/auditsc.c
+--- a/kernel/auditsc.c~sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks
++++ a/kernel/auditsc.c
+@@ -1540,6 +1540,7 @@ add_names:
+ 			context->names[idx].ino = (unsigned long)-1;
+ 	}
+ }
++EXPORT_SYMBOL_GPL(__audit_inode_child);
  
- #endif
+ /**
+  * auditsc_get_stamp - get local copies of audit_context values
+diff -puN net/sunrpc/rpc_pipe.c~sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks net/sunrpc/rpc_pipe.c
+--- a/net/sunrpc/rpc_pipe.c~sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks
++++ a/net/sunrpc/rpc_pipe.c
+@@ -14,7 +14,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/mount.h>
+ #include <linux/namei.h>
+-#include <linux/dnotify.h>
++#include <linux/fsnotify.h>
+ #include <linux/kernel.h>
+ 
+ #include <asm/ioctls.h>
+@@ -586,6 +586,7 @@ rpc_populate(struct dentry *parent,
+ 		if (S_ISDIR(mode))
+ 			inc_nlink(dir);
+ 		d_add(dentry, inode);
++		fsnotify_create(dir, dentry);
+ 	}
+ 	mutex_unlock(&dir->i_mutex);
+ 	return 0;
+@@ -607,7 +608,7 @@ __rpc_mkdir(struct inode *dir, struct de
+ 	inode->i_ino = iunique(dir->i_sb, 100);
+ 	d_instantiate(dentry, inode);
+ 	inc_nlink(dir);
+-	inode_dir_notify(dir, DN_CREATE);
++	fsnotify_mkdir(dir, dentry);
+ 	return 0;
+ out_err:
+ 	printk(KERN_WARNING "%s: %s failed to allocate inode for dentry %s\n",
+@@ -749,7 +750,7 @@ rpc_mkpipe(struct dentry *parent, const 
+ 	rpci->flags = flags;
+ 	rpci->ops = ops;
+ 	rpci->nkern_readwriters = 1;
+-	inode_dir_notify(dir, DN_CREATE);
++	fsnotify_create(dir, dentry);
+ 	dget(dentry);
+ out:
+ 	mutex_unlock(&dir->i_mutex);
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
 
 origin.patch
-powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
-git-kbuild.patch
-x86_64-use-non-locked-version-for-local_cmpxchg.patch
+sunrpc-use-vfs_path_lookup.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+git-vfs-lease-api.patch
+nfs-convert-to-new-aops.patch
+sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks.patch
