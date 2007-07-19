@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + trivial-in-string-typos-of-error.patch added to -mm tree
-Date: Wed, 18 Jul 2007 18:12:17 -0700
-Message-ID: <200707190112.l6J1CHCu006582@imap1.linux-foundation.org>
+Subject: + unexport-asm-shmparamh.patch added to -mm tree
+Date: Wed, 18 Jul 2007 18:13:11 -0700
+Message-ID: <200707190113.l6J1DBYm006606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54492 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41796 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753553AbXGSBMn (ORCPT
+	by vger.kernel.org with ESMTP id S1753335AbXGSBNY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 18 Jul 2007 21:12:43 -0400
+	Wed, 18 Jul 2007 21:13:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eddy@klopper.net, rolandd@cisco.com, zippel@linux-m68k.org
+Cc: olaf@aepfle.de, benh@kernel.crashing.org, davem@davemloft.net, paulus@samba.org
 
 
 The patch titled
-     in-string typos of "error"
+     unexport asm/shmparam.h
 has been added to the -mm tree.  Its filename is
-     trivial-in-string-typos-of-error.patch
+     unexport-asm-shmparamh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: in-string typos of "error"
-From: "Eddy L O Jansson" <eddy@klopper.net>
+Subject: unexport asm/shmparam.h
+From: Olaf Hering <olaf@aepfle.de>
 
-One patch for two trivial typos of 'error' with three R's, appearing in message strings.
+SHMLBA cant possible be used in userspace, see sparc versions of that header.
 
-There's a bunch more of the same in comments, not dealt with here.
+Do not export asm/shmparam.h during make headers_install_all
+This removes another uservisible place of PAGE_SIZE
 
-Signed-off-by: Eddy L O Jansson <eddy@klopper.net>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ehca/ehca_irq.c |    2 +-
- drivers/net/via-velocity.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/asm-generic/Kbuild.asm |    1 -
+ include/asm-powerpc/Kbuild     |    1 -
+ include/asm-sparc64/shmparam.h |    2 --
+ include/linux/shm.h            |    2 ++
+ 4 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/infiniband/hw/ehca/ehca_irq.c~trivial-in-string-typos-of-error drivers/infiniband/hw/ehca/ehca_irq.c
---- a/drivers/infiniband/hw/ehca/ehca_irq.c~trivial-in-string-typos-of-error
-+++ a/drivers/infiniband/hw/ehca/ehca_irq.c
-@@ -116,7 +116,7 @@ static void print_error_data(struct ehca
- 	}
- 	default:
- 		ehca_err(&shca->ib_device,
--			 "Unknown errror type: %lx on %s.",
-+			 "Unknown error type: %lx on %s.",
- 			 type, shca->ib_device.name);
- 		break;
- 	}
-diff -puN drivers/net/via-velocity.c~trivial-in-string-typos-of-error drivers/net/via-velocity.c
---- a/drivers/net/via-velocity.c~trivial-in-string-typos-of-error
-+++ a/drivers/net/via-velocity.c
-@@ -1613,7 +1613,7 @@ static void velocity_error(struct veloci
- 	if (status & ISR_TXSTLI) {
- 		struct mac_regs __iomem * regs = vptr->mac_regs;
+diff -puN include/asm-generic/Kbuild.asm~unexport-asm-shmparamh include/asm-generic/Kbuild.asm
+--- a/include/asm-generic/Kbuild.asm~unexport-asm-shmparamh
++++ a/include/asm-generic/Kbuild.asm
+@@ -30,6 +30,5 @@ unifdef-y += unistd.h
+ unifdef-y += user.h
  
--		printk(KERN_ERR "TD structure errror TDindex=%hx\n", readw(&regs->TDIdx[0]));
-+		printk(KERN_ERR "TD structure error TDindex=%hx\n", readw(&regs->TDIdx[0]));
- 		BYTE_REG_BITS_ON(TXESR_TDSTR, &regs->TXESR);
- 		writew(TRDCSR_RUN, &regs->TDCSRClr);
- 		netif_stop_queue(vptr->dev);
+ # These probably shouldn't be exported
+-unifdef-y += shmparam.h
+ unifdef-y += elf.h
+ unifdef-y += page.h
+diff -puN include/asm-powerpc/Kbuild~unexport-asm-shmparamh include/asm-powerpc/Kbuild
+--- a/include/asm-powerpc/Kbuild~unexport-asm-shmparamh
++++ a/include/asm-powerpc/Kbuild
+@@ -15,7 +15,6 @@ header-y += termbits.h
+ header-y += fcntl.h
+ header-y += ipc.h
+ header-y += poll.h
+-header-y += shmparam.h
+ header-y += sockios.h
+ header-y += ucontext.h
+ header-y += ioctl.h
+diff -puN include/asm-sparc64/shmparam.h~unexport-asm-shmparamh include/asm-sparc64/shmparam.h
+--- a/include/asm-sparc64/shmparam.h~unexport-asm-shmparamh
++++ a/include/asm-sparc64/shmparam.h
+@@ -1,7 +1,6 @@
+ /* $Id: shmparam.h,v 1.5 2001/09/24 21:17:57 kanoj Exp $ */
+ #ifndef _ASMSPARC64_SHMPARAM_H
+ #define _ASMSPARC64_SHMPARAM_H
+-#ifdef __KERNEL__
+ 
+ #include <asm/spitfire.h>
+ 
+@@ -9,5 +8,4 @@
+ /* attach addr a multiple of this */
+ #define	SHMLBA	((PAGE_SIZE > L1DCACHE_SIZE) ? PAGE_SIZE : L1DCACHE_SIZE)
+ 
+-#endif /* __KERNEL__ */
+ #endif /* _ASMSPARC64_SHMPARAM_H */
+diff -puN include/linux/shm.h~unexport-asm-shmparamh include/linux/shm.h
+--- a/include/linux/shm.h~unexport-asm-shmparamh
++++ a/include/linux/shm.h
+@@ -16,7 +16,9 @@
+ #define SHMALL (SHMMAX/PAGE_SIZE*(SHMMNI/16)) /* max shm system wide (pages) */
+ #define SHMSEG SHMMNI			 /* max shared segs per process */
+ 
++#ifdef __KERNEL__
+ #include <asm/shmparam.h>
++#endif
+ 
+ /* Obsolete, used only for backwards compatibility and libc5 compiles */
+ struct shmid_ds {
 _
 
-Patches currently in -mm which might be from eddy@klopper.net are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
-trivial-in-string-typos-of-error.patch
+origin.patch
+unexport-asm-shmparamh.patch
+keep-track-of-network-interface-renaming.patch
