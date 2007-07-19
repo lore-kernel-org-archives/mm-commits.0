@@ -1,92 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - add-posix-clocks-and-timers-maintainer.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:02:30 -0700
-Message-ID: <200707192002.l6JK2Us3019675@imap1.linux-foundation.org>
+Subject: - aio-sparse-fix-type-of-ki_flags.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:00:59 -0700
+Message-ID: <200707192000.l6JK0xv2019495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41723 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42147 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755357AbXGSUSI (ORCPT
+	by vger.kernel.org with ESMTP id S1760834AbXGSUSH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:18:08 -0400
+	Thu, 19 Jul 2007 16:18:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, bcrl@kvack.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add POSIX clocks and timers maintainer
+     AIO sparse fix (type of ki_flags)
 has been removed from the -mm tree.  Its filename was
-     add-posix-clocks-and-timers-maintainer.patch
+     aio-sparse-fix-type-of-ki_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add POSIX clocks and timers maintainer
-From: Ingo Molnar <mingo@elte.hu>
+Subject: AIO sparse fix (type of ki_flags)
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Update the MAINTAINERS file: Thomas Gleixner has been the de-facto
-maintainer of POSIX timers and clocks for quite some time.
+Fix type issue reported by latest 'sparse': kiocb.ki_flags should be
+"unsigned long" (not "long"), to match bitop type signature.
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/aio.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~add-posix-clocks-and-timers-maintainer MAINTAINERS
---- a/MAINTAINERS~add-posix-clocks-and-timers-maintainer
-+++ a/MAINTAINERS
-@@ -2857,8 +2857,8 @@ L:	linux-kernel@vger.kernel.org
- S:	Maintained
- 
- POSIX CLOCKS and TIMERS
--P:	George Anzinger
--M:	george@mvista.com
-+P:	Thomas Gleixner
-+M:	tglx@linutronix.de
- L:	linux-kernel@vger.kernel.org
- S:	Supported
+diff -puN include/linux/aio.h~aio-sparse-fix-type-of-ki_flags include/linux/aio.h
+--- a/include/linux/aio.h~aio-sparse-fix-type-of-ki_flags
++++ a/include/linux/aio.h
+@@ -86,7 +86,7 @@ struct kioctx;
+  */
+ struct kiocb {
+ 	struct list_head	ki_run_list;
+-	long			ki_flags;
++	unsigned long		ki_flags;
+ 	int			ki_users;
+ 	unsigned		ki_key;		/* id of this request */
  
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
-git-acpi.patch
-git-kvm.patch
-git-sched.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-tick-management-spread-timer-interrupt.patch
-highres-improve-debug-output.patch
-hrtimer-speedup-hrtimer_enqueue.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
-acpi-remove-the-useless-ifdef-code.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-geode-mfgpt-clock-event-device-support.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-sys_time-use-barrier-instead-of-smp_rmb.patch
-immunize-rcu_dereference-against-crazy-compiler-writers.patch
-remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
-fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
-fix-the-softlockup-watchdog-to-actually-work.patch
-softlockup-make-asm-irq_regsh-available-on-every-platform.patch
-softlockup-improve-debug-output.patch
-softlockup-watchdog-style-cleanups.patch
-futex-pass-nr_wake2-to-futex_wake_op.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
-random-warning-squishes.patch
+git-input.patch
+git-leds.patch
+git-mtd.patch
+git-backlight.patch
