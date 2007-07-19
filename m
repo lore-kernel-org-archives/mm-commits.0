@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-grab-plssr-too-when-a-dma-error-occurs.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:21 -0700
-Message-ID: <200707192009.l6JK9L0d020572@imap1.linux-foundation.org>
+Subject: - x86-64-calgary-only-reserve-the-first-1mb-of-io-space-for-calioc2.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:09:32 -0700
+Message-ID: <200707192009.l6JK9WFS020585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52346 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37651 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756075AbXGSUPZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757932AbXGSUPZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 19 Jul 2007 16:15:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,14 +15,14 @@ To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary: grab PLSSR too when a DMA error occurs
+     x86-64: Calgary: only reserve the first 1MB of IO space for CalIOC2
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-grab-plssr-too-when-a-dma-error-occurs.patch
+     x86-64-calgary-only-reserve-the-first-1mb-of-io-space-for-calioc2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: Calgary: grab PLSSR too when a DMA error occurs
+Subject: x86-64: Calgary: only reserve the first 1MB of IO space for CalIOC2
 From: Muli Ben-Yehuda <muli@il.ibm.com>
 
 Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
@@ -30,34 +30,28 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ arch/x86_64/kernel/pci-calgary.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-grab-plssr-too-when-a-dma-error-occurs arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-grab-plssr-too-when-a-dma-error-occurs
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-only-reserve-the-first-1mb-of-io-space-for-calioc2 arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-only-reserve-the-first-1mb-of-io-space-for-calioc2
 +++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -900,15 +900,18 @@ static void __init calgary_free_bus(stru
- static void calgary_dump_error_regs(struct iommu_table *tbl)
- {
- 	void __iomem *bbar = tbl->bbar;
--	u32 val32;
- 	void __iomem *target;
-+	u32 csr, plssr;
+@@ -806,13 +806,13 @@ static void __init calgary_reserve_regio
+ 	iommu_range_reserve(tbl, bad_dma_address, EMERGENCY_PAGES);
  
- 	target = calgary_reg(bbar, phb_offset(tbl->it_busno) | PHB_CSR_OFFSET);
--	val32 = be32_to_cpu(readl(target));
-+	csr = be32_to_cpu(readl(target));
-+
-+	target = calgary_reg(bbar, phb_offset(tbl->it_busno) | PHB_PLSSR_OFFSET);
-+	plssr = be32_to_cpu(readl(target));
+ 	/* avoid the BIOS/VGA first 640KB-1MB region */
+-	/* for CalIOC2 - avoid the entire first 2MB */
++	/* for CalIOC2 - avoid the entire first MB */
+ 	if (is_calgary(dev->device)) {
+ 		start = (640 * 1024);
+ 		npages = ((1024 - 640) * 1024) >> PAGE_SHIFT;
+ 	} else { /* calioc2 */
+ 		start = 0;
+-		npages = (2 * 1024 * 1024) >> PAGE_SHIFT;
++		npages = (1 * 1024 * 1024) >> PAGE_SHIFT;
+ 	}
+ 	iommu_range_reserve(tbl, start, npages);
  
- 	/* If no error, the agent ID in the CSR is not valid */
- 	printk(KERN_EMERG "Calgary: DMA error on Calgary PHB 0x%x, "
--	       "CSR = 0x%08x\n", tbl->it_busno, val32);
-+	       "0x%08x@CSR 0x%08x@PLSSR\n", tbl->it_busno, csr, plssr);
- }
- 
- static void calioc2_dump_error_regs(struct iommu_table *tbl)
 _
 
 Patches currently in -mm which might be from muli@il.ibm.com are
