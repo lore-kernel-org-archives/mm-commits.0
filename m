@@ -1,25 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-fix.patch removed from -mm tree
-Date: Wed, 18 Jul 2007 23:22:52 -0700
-Message-ID: <200707190627.l6J6RJch017733@imap1.linux-foundation.org>
+Subject: + lguest-fix.patch added to -mm tree
+Date: Wed, 18 Jul 2007 23:22:44 -0700
+Message-ID: <200707190627.l6J6RCf5017730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44429 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41970 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754657AbXGSG13 (ORCPT
+	by vger.kernel.org with ESMTP id S1754208AbXGSG1W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 02:27:29 -0400
+	Thu, 19 Jul 2007 02:27:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au
 
 
 The patch titled
      lguest fix
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      lguest-fix.patch
 
-This patch was dropped because it was folded into lguest-the-host-code.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: lguest fix
