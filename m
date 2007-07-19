@@ -1,96 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - driver-edac-mod-race-fix-i82875p.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:06:47 -0700
-Message-ID: <200707192006.l6JK6lPi020173@imap1.linux-foundation.org>
+Subject: - x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:09:15 -0700
+Message-ID: <200707192009.l6JK9Fa9020561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39995 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43409 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761375AbXGSUQG (ORCPT
+	by vger.kernel.org with ESMTP id S1760951AbXGSUPc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:06 -0400
+	Thu, 19 Jul 2007 16:15:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: juhlenko@akamai.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: mod race fix i82875p
+     x86-64: Calgary: add chip_ops and a quirk function for CalIOC2
 has been removed from the -mm tree.  Its filename was
-     driver-edac-mod-race-fix-i82875p.patch
+     x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: mod race fix i82875p
-From: Jason Uhlenkott <juhlenko@akamai.com>
+Subject: x86-64: Calgary: add chip_ops and a quirk function for CalIOC2
+From: Muli Ben-Yehuda <muli@il.ibm.com>
 
-If ERRSTS indicates that there's no error then we don't need to bother reading
-the other registers.
-
-In addition to making the common case faster, this actually fixes a small race
-where we don't see an error but we clear the error bits anyway, potentially
-wiping away info on an error that happened in the interim (or where a CE
-arrives between the first and second read of ERRSTS, causing us to falsely
-claim "UE overwrote CE").
-
-Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
-Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+[akpm@linux-foundation.org>: make calioc2_chip_ops static]
+Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i82875p_edac.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ arch/x86_64/kernel/pci-calgary.c |   37 +++++++++++++++++++++++++----
+ 1 files changed, 33 insertions(+), 4 deletions(-)
 
-diff -puN drivers/edac/i82875p_edac.c~driver-edac-mod-race-fix-i82875p drivers/edac/i82875p_edac.c
---- a/drivers/edac/i82875p_edac.c~driver-edac-mod-race-fix-i82875p
-+++ a/drivers/edac/i82875p_edac.c
-@@ -198,27 +198,28 @@ static void i82875p_get_error_info(struc
- 	 * overwritten by UE.
- 	 */
- 	pci_read_config_word(pdev, I82875P_ERRSTS, &info->errsts);
-+
-+	if (!(info->errsts & 0x0081))
-+		return;
-+
- 	pci_read_config_dword(pdev, I82875P_EAP, &info->eap);
- 	pci_read_config_byte(pdev, I82875P_DES, &info->des);
- 	pci_read_config_byte(pdev, I82875P_DERRSYN, &info->derrsyn);
- 	pci_read_config_word(pdev, I82875P_ERRSTS, &info->errsts2);
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2 arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -79,6 +79,9 @@ int use_calgary __read_mostly = 0;
+ #define PHB_MEM_2_SIZE_LOW	0x02E0
+ #define PHB_DOSHOLE_OFFSET	0x08E0
  
--	pci_write_bits16(pdev, I82875P_ERRSTS, 0x0081, 0x0081);
--
- 	/*
- 	 * If the error is the same then we can for both reads then
- 	 * the first set of reads is valid.  If there is a change then
- 	 * there is a CE no info and the second set of reads is valid
- 	 * and should be UE info.
- 	 */
--	if (!(info->errsts2 & 0x0081))
--		return;
--
- 	if ((info->errsts ^ info->errsts2) & 0x0081) {
- 		pci_read_config_dword(pdev, I82875P_EAP, &info->eap);
- 		pci_read_config_byte(pdev, I82875P_DES, &info->des);
- 		pci_read_config_byte(pdev, I82875P_DERRSYN, &info->derrsyn);
- 	}
++/* CalIOC2 specific */
++#define PHB_SAVIOR_L2           0x0DB0
 +
-+	pci_write_bits16(pdev, I82875P_ERRSTS, 0x0081, 0x0081);
+ /* PHB_CONFIG_RW */
+ #define PHB_TCE_ENABLE		0x20000000
+ #define PHB_SLOT_DISABLE	0x1C000000
+@@ -156,12 +159,18 @@ struct calgary_bus_info {
+ 
+ static void calgary_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
+ static void calgary_tce_cache_blast(struct iommu_table *tbl);
++static void calioc2_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
+ 
+ static struct cal_chipset_ops calgary_chip_ops = {
+ 	.handle_quirks = calgary_handle_quirks,
+ 	.tce_cache_blast = calgary_tce_cache_blast
+ };
+ 
++static struct cal_chipset_ops calioc2_chip_ops = {
++	.handle_quirks = calioc2_handle_quirks,
++	.tce_cache_blast = NULL
++};
++
+ static struct calgary_bus_info bus_info[MAX_PHB_BUS_NUM] = { { NULL, 0, 0 }, };
+ 
+ /* enable this to stress test the chip's TCE cache */
+@@ -743,7 +752,12 @@ static int __init calgary_setup_tar(stru
+ 	tbl->it_base = (unsigned long)bus_info[dev->bus->number].tce_space;
+ 	tce_free(tbl, 0, tbl->it_size);
+ 
+-	tbl->chip_ops = &calgary_chip_ops;
++  	if (is_calgary(dev->device))
++  		tbl->chip_ops = &calgary_chip_ops;
++	else if (is_calioc2(dev->device))
++		tbl->chip_ops = &calioc2_chip_ops;
++  	else
++  		BUG();
+ 
+ 	calgary_reserve_regions(dev);
+ 
+@@ -894,8 +908,23 @@ static void __init calgary_set_split_com
+ 	readq(target); /* flush */
  }
  
- static int i82875p_process_error_info(struct mem_ctl_info *mci,
-@@ -229,7 +230,7 @@ static int i82875p_process_error_info(st
+-static void __init calgary_handle_quirks(struct iommu_table *tbl,
+-	struct pci_dev *dev)
++static void calioc2_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev)
++{
++	unsigned char busnum = dev->bus->number;
++	void __iomem *bbar = tbl->bbar;
++	void __iomem *target;
++	u32 val;
++
++ 	/*
++ 	 * CalIOC2 designers recommend setting bit 8 in 0xnDB0 to 1
++ 	 */
++ 	target = calgary_reg(bbar, phb_offset(busnum) | PHB_SAVIOR_L2);
++ 	val = cpu_to_be32(readl(target));
++ 	val |= 0x00800000;
++ 	writel(cpu_to_be32(val), target);
++}
++
++static void calgary_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev)
+ {
+ 	unsigned char busnum = dev->bus->number;
  
- 	multi_chan = mci->csrows[0].nr_channels - 1;
- 
--	if (!(info->errsts2 & 0x0081))
-+	if (!(info->errsts & 0x0081))
- 		return 0;
- 
- 	if (!handle_errors)
+@@ -903,7 +932,7 @@ static void __init calgary_handle_quirks
+ 	 * Give split completion a longer timeout on bus 1 for aic94xx
+ 	 * http://bugzilla.kernel.org/show_bug.cgi?id=7180
+ 	 */
+-	if (busnum == 1)
++	if (is_calgary(dev->device) && (busnum == 1))
+ 		calgary_set_split_completion_timeout(tbl->bbar, busnum,
+ 						     CCR_2SEC_TIMEOUT);
+ }
 _
 
-Patches currently in -mm which might be from juhlenko@akamai.com are
+Patches currently in -mm which might be from muli@il.ibm.com are
 
 origin.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
