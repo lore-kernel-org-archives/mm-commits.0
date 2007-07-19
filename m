@@ -1,162 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-disable-the-gart-in-shutdown.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:10 -0700
-Message-ID: <200707192010.l6JKAAiY020647@imap1.linux-foundation.org>
+Subject: - coredump-masking-elf-fdpic-enable-core-dump-filtering.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:02:24 -0700
+Message-ID: <200707192002.l6JK2O61019663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34517 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43341 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932227AbXGSUa6 (ORCPT
+	by vger.kernel.org with ESMTP id S932946AbXGSUbP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:30:58 -0400
+	Thu, 19 Jul 2007 16:31:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk, ebiederm@xmission.com, muli@il.ibm.com, vgoyal@in.ibm.com, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: disable the GART in shutdown
+     coredump masking: ELF-FDPIC: enable core dump filtering
 has been removed from the -mm tree.  Its filename was
-     x86-64-disable-the-gart-in-shutdown.patch
+     coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: disable the GART in shutdown
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: coredump masking: ELF-FDPIC: enable core dump filtering
+From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
 
-For K8 system: 4G RAM with memory hole remapping enabled, or more than 4G
-RAM installed.  when using kexec to load second kernel.  In the second
-kernel, when mem is allocated for GART, it will do the memset for clear, it
-will cause restart, because some device still used that for dma.  solution
-will be:
+This patch enables core dump filtering for ELF-FDPIC-formatted core file.
 
-in second kernel: disable that at first before we try to allocate mem for
-it.  or in the first kernel: do disable that before shutdown. 
-Andi/Eric/Alan prefer to second one for clean shutdown in first kernel. 
-Andi also point out need to consider to AGP enable but mem less 4G case
-too.
-
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-dma.c  |    5 +++++
- arch/x86_64/kernel/pci-gart.c |   20 ++++++++++++++++++++
- arch/x86_64/kernel/reboot.c   |    4 ++++
- include/asm-x86_64/proto.h    |    7 +++++++
- 4 files changed, 36 insertions(+)
+ fs/binfmt_elf_fdpic.c |   52 ++++++++++++++++++++++++++--------------
+ 1 file changed, 35 insertions(+), 17 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-dma.c
---- a/arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown
-+++ a/arch/x86_64/kernel/pci-dma.c
-@@ -321,6 +321,11 @@ static int __init pci_iommu_init(void)
- 	return 0;
- }
- 
-+void pci_iommu_shutdown(void)
-+{
-+	gart_iommu_shutdown();
-+}
-+
- #ifdef CONFIG_PCI
- /* Many VIA bridges seem to corrupt data for DAC. Disable it here */
- 
-diff -puN arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-gart.c
---- a/arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown
-+++ a/arch/x86_64/kernel/pci-gart.c
-@@ -571,6 +571,26 @@ static const struct dma_mapping_ops gart
- 	.unmap_sg = gart_unmap_sg,
- };
- 
-+void gart_iommu_shutdown(void)
-+{
-+	struct pci_dev *dev;
-+	int i;
-+
-+	if (no_agp && (dma_ops != &gart_dma_ops))
-+		return;
-+
-+        for (i = 0; i < num_k8_northbridges; i++) {
-+                u32 ctl;
-+
-+                dev = k8_northbridges[i];
-+                pci_read_config_dword(dev, 0x90, &ctl);
-+
-+                ctl &= ~1;
-+
-+                pci_write_config_dword(dev, 0x90, ctl);
-+        }
-+}
-+
- void __init gart_iommu_init(void)
- { 
- 	struct agp_kern_info info;
-diff -puN arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/reboot.c
---- a/arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown
-+++ a/arch/x86_64/kernel/reboot.c
-@@ -16,6 +16,7 @@
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
- #include <asm/apic.h>
-+#include <asm/proto.h>
- 
- /*
-  * Power off function, if any
-@@ -81,6 +82,7 @@ static inline void kb_wait(void)
- void machine_shutdown(void)
+diff -puN fs/binfmt_elf_fdpic.c~coredump-masking-elf-fdpic-enable-core-dump-filtering fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~coredump-masking-elf-fdpic-enable-core-dump-filtering
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1181,8 +1181,10 @@ static int dump_seek(struct file *file, 
+  *
+  * I think we should skip something. But I am not sure how. H.J.
+  */
+-static int maydump(struct vm_area_struct *vma)
++static int maydump(struct vm_area_struct *vma, unsigned long mm_flags)
  {
- 	unsigned long flags;
++	int dump_ok;
 +
- 	/* Stop the cpus and apics */
- #ifdef CONFIG_SMP
- 	int reboot_cpu_id;
-@@ -111,6 +113,8 @@ void machine_shutdown(void)
- 	disable_IO_APIC();
+ 	/* Do not dump I/O mapped devices or special mappings */
+ 	if (vma->vm_flags & (VM_IO | VM_RESERVED)) {
+ 		kdcore("%08lx: %08lx: no (IO)", vma->vm_start, vma->vm_flags);
+@@ -1197,27 +1199,35 @@ static int maydump(struct vm_area_struct
+ 		return 0;
+ 	}
  
- 	local_irq_restore(flags);
-+
-+	pci_iommu_shutdown();
- }
+-	/* Dump shared memory only if mapped from an anonymous file. */
++	/* By default, dump shared memory if mapped from an anonymous file. */
+ 	if (vma->vm_flags & VM_SHARED) {
+ 		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0) {
+-			kdcore("%08lx: %08lx: no (share)", vma->vm_start, vma->vm_flags);
+-			return 1;
++			dump_ok = test_bit(MMF_DUMP_ANON_SHARED, &mm_flags);
++			kdcore("%08lx: %08lx: %s (share)", vma->vm_start,
++			       vma->vm_flags, dump_ok ? "yes" : "no");
++			return dump_ok;
+ 		}
  
- void machine_emergency_restart(void)
-diff -puN include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown
-+++ a/include/asm-x86_64/proto.h
-@@ -85,11 +85,13 @@ extern int exception_trace;
- extern unsigned cpu_khz;
- extern unsigned tsc_khz;
+-		kdcore("%08lx: %08lx: no (share)", vma->vm_start, vma->vm_flags);
+-		return 0;
++		dump_ok = test_bit(MMF_DUMP_MAPPED_SHARED, &mm_flags);
++		kdcore("%08lx: %08lx: %s (share)", vma->vm_start,
++		       vma->vm_flags, dump_ok ? "yes" : "no");
++		return dump_ok;
+ 	}
  
-+extern void pci_iommu_shutdown(void);
- extern void no_iommu_init(void);
- extern int force_iommu, no_iommu;
- extern int iommu_detected;
- #ifdef CONFIG_IOMMU
- extern void gart_iommu_init(void);
-+extern void gart_iommu_shutdown(void);
- extern void __init gart_parse_options(char *);
- extern void iommu_hole_init(void);
- extern int fallback_aper_order;
-@@ -101,6 +103,11 @@ extern int fix_aperture;
- #else
- #define iommu_aperture 0
- #define iommu_aperture_allowed 0
-+
-+static inline void gart_iommu_shutdown(void)
-+{
-+}
-+
+ #ifdef CONFIG_MMU
+-	/* If it hasn't been written to, don't write it out */
++	/* By default, if it hasn't been written to, don't write it out */
+ 	if (!vma->anon_vma) {
+-		kdcore("%08lx: %08lx: no (!anon)", vma->vm_start, vma->vm_flags);
+-		return 0;
++		dump_ok = test_bit(MMF_DUMP_MAPPED_PRIVATE, &mm_flags);
++		kdcore("%08lx: %08lx: %s (!anon)", vma->vm_start,
++		       vma->vm_flags, dump_ok ? "yes" : "no");
++		return dump_ok;
+ 	}
  #endif
  
- extern int reboot_force;
+-	kdcore("%08lx: %08lx: yes", vma->vm_start, vma->vm_flags);
+-	return 1;
++	dump_ok = test_bit(MMF_DUMP_ANON_PRIVATE, &mm_flags);
++	kdcore("%08lx: %08lx: %s", vma->vm_start, vma->vm_flags,
++	       dump_ok ? "yes" : "no");
++	return dump_ok;
+ }
+ 
+ /* An ELF note in memory */
+@@ -1457,14 +1467,14 @@ static int elf_dump_thread_status(long s
+  */
+ #ifdef CONFIG_MMU
+ static int elf_fdpic_dump_segments(struct file *file, size_t *size,
+-				   unsigned long *limit)
++			   unsigned long *limit, unsigned long mm_flags)
+ {
+ 	struct vm_area_struct *vma;
+ 
+ 	for (vma = current->mm->mmap; vma; vma = vma->vm_next) {
+ 		unsigned long addr;
+ 
+-		if (!maydump(vma))
++		if (!maydump(vma, mm_flags))
+ 			continue;
+ 
+ 		for (addr = vma->vm_start;
+@@ -1512,14 +1522,14 @@ end_coredump:
+  */
+ #ifndef CONFIG_MMU
+ static int elf_fdpic_dump_segments(struct file *file, size_t *size,
+-				   unsigned long *limit)
++			   unsigned long *limit, unsigned long mm_flags)
+ {
+ 	struct vm_list_struct *vml;
+ 
+ 	for (vml = current->mm->context.vmlist; vml; vml = vml->next) {
+ 	struct vm_area_struct *vma = vml->vma;
+ 
+-		if (!maydump(vma))
++		if (!maydump(vma, mm_flags))
+ 			continue;
+ 
+ 		if ((*size += PAGE_SIZE) > *limit)
+@@ -1570,6 +1580,7 @@ static int elf_fdpic_core_dump(long sign
+ 	struct vm_list_struct *vml;
+ #endif
+ 	elf_addr_t *auxv;
++	unsigned long mm_flags;
+ 
+ 	/*
+ 	 * We no longer stop all VM operations.
+@@ -1707,6 +1718,13 @@ static int elf_fdpic_core_dump(long sign
+ 	/* Page-align dumped data */
+ 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
+ 
++	/*
++	 * We must use the same mm->flags while dumping core to avoid
++	 * inconsistency between the program headers and bodies, otherwise an
++	 * unusable core file can be generated.
++	 */
++	mm_flags = current->mm->flags;
++
+ 	/* write program headers for segments dump */
+ 	for (
+ #ifdef CONFIG_MMU
+@@ -1728,7 +1746,7 @@ static int elf_fdpic_core_dump(long sign
+ 		phdr.p_offset = offset;
+ 		phdr.p_vaddr = vma->vm_start;
+ 		phdr.p_paddr = 0;
+-		phdr.p_filesz = maydump(vma) ? sz : 0;
++		phdr.p_filesz = maydump(vma, mm_flags) ? sz : 0;
+ 		phdr.p_memsz = sz;
+ 		offset += phdr.p_filesz;
+ 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
+@@ -1762,7 +1780,7 @@ static int elf_fdpic_core_dump(long sign
+ 
+ 	DUMP_SEEK(dataoff);
+ 
+-	if (elf_fdpic_dump_segments(file, current->mm, &size, &limit) < 0)
++	if (elf_fdpic_dump_segments(file, &size, &limit, mm_flags) < 0)
+ 		goto end_coredump;
+ 
+ #ifdef ELF_CORE_WRITE_EXTRA_DATA
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
 
 origin.patch
