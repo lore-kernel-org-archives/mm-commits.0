@@ -1,86 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: + isofs-mounting-to-regular-file-may-succeed.patch added to -mm tree
-Date: Wed, 18 Jul 2007 22:40:16 -0700
-Message-ID: <200707190540.l6J5eGHt016043@imap1.linux-foundation.org>
+Subject: - mm-fault-feedback-2-fix.patch removed from -mm tree
+Date: Wed, 18 Jul 2007 22:50:13 -0700
+Message-ID: <200707190550.l6J5oEAm016425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54771 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33200 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751633AbXGSFk3 (ORCPT
+	by vger.kernel.org with ESMTP id S1755051AbXGSFuY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 01:40:29 -0400
+	Thu, 19 Jul 2007 01:50:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kuvkir@epsmu.com
+To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isofs: mounting to regular file may succeed
-has been added to the -mm tree.  Its filename is
-     isofs-mounting-to-regular-file-may-succeed.patch
+     mm-fault-feedback-2-fix
+has been removed from the -mm tree.  Its filename was
+     mm-fault-feedback-2-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-fault-feedback-2.patch
 
 ------------------------------------------------------
-Subject: isofs: mounting to regular file may succeed
-From: Kirill Kuvaldin <kuvkir@epsmu.com>
+Subject: mm-fault-feedback-2-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-It turned out that mounting a corrupted ISO image to a regular file may
-succeed, e.g.  if an image was prepared as follows:
-
-$ dd if=correct.iso of=bad.iso bs=4k count=8
-
-We then can mount it to a regular file:
-
-# mount -o loop -t iso9660 bad.iso /tmp/file
-
-But mounting it to a directory fails with -ENOTDIR, simply because
-the root directory inode doesn't have S_IFDIR set and the condition
-in graft_tree() is met:
-
-	if (S_ISDIR(nd->dentry->d_inode->i_mode) !=
-	      S_ISDIR(mnt->mnt_root->d_inode->i_mode))
-		return -ENOTDIR
-
-This is because the root directory inode was read from an incorrect
-block. It's supposed to be read from sbi->s_firstdatazone, which is
-an absolute value and gets messed up in the case of an incorrect image.
-
-In order to somehow circumvent this we have to check that the root
-directory inode is actually a directory after all.
-
-Signed-off-by: Kirill Kuvaldin <kuvkir@epsmu.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/inode.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/alpha/mm/fault.c      |    4 ++--
+ arch/s390/lib/uaccess_pt.c |    2 +-
+ arch/sparc/mm/fault.c      |    1 +
+ arch/sparc64/mm/fault.c    |    4 ++--
+ 4 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/isofs/inode.c~isofs-mounting-to-regular-file-may-succeed fs/isofs/inode.c
---- a/fs/isofs/inode.c~isofs-mounting-to-regular-file-may-succeed
-+++ a/fs/isofs/inode.c
-@@ -846,6 +846,15 @@ root_found:
- 		goto out_no_root;
- 	if (!inode->i_op)
- 		goto out_bad_root;
-+
-+	/* Make sure the root inode is a directory */
-+	if (!S_ISDIR(inode->i_mode)) {
-+		printk(KERN_WARNING
-+			"isofs_fill_super: root inode is not a directory. "
-+			"Corrupted media?\n");
-+		goto out_iput;
-+	}
-+
- 	/* get the root dentry */
- 	s->s_root = d_alloc_root(inode);
- 	if (!(s->s_root))
+diff -puN arch/alpha/mm/fault.c~mm-fault-feedback-2-fix arch/alpha/mm/fault.c
+--- a/arch/alpha/mm/fault.c~mm-fault-feedback-2-fix
++++ a/arch/alpha/mm/fault.c
+@@ -156,9 +156,9 @@ do_page_fault(unsigned long address, uns
+ 		BUG();
+ 	}
+ 	if (fault & VM_FAULT_MAJOR)
+-		tsk->maj_flt++;
++		current->maj_flt++;
+ 	else
+-		tsk->min_flt++;
++		current->min_flt++;
+ 	return;
+ 
+ 	/* Something tried to access memory that isn't in our memory map.
+diff -puN arch/s390/lib/uaccess_pt.c~mm-fault-feedback-2-fix arch/s390/lib/uaccess_pt.c
+--- a/arch/s390/lib/uaccess_pt.c~mm-fault-feedback-2-fix
++++ a/arch/s390/lib/uaccess_pt.c
+@@ -50,7 +50,7 @@ survive:
+ 		if (fault & VM_FAULT_OOM)
+ 			goto out_of_memory;
+ 		else if (fault & VM_FAULT_SIGBUS)
+-			goto do_sigbus;
++			goto out_sigbus;
+ 		BUG();
+ 	}
+ 	if (fault & VM_FAULT_MAJOR)
+diff -puN arch/sparc/mm/fault.c~mm-fault-feedback-2-fix arch/sparc/mm/fault.c
+--- a/arch/sparc/mm/fault.c~mm-fault-feedback-2-fix
++++ a/arch/sparc/mm/fault.c
+@@ -226,6 +226,7 @@ asmlinkage void do_sparc_fault(struct pt
+ 	unsigned long g2;
+ 	siginfo_t info;
+ 	int from_user = !(regs->psr & PSR_PS);
++	int fault;
+ 
+ 	if(text_fault)
+ 		address = regs->pc;
+diff -puN arch/sparc64/mm/fault.c~mm-fault-feedback-2-fix arch/sparc64/mm/fault.c
+--- a/arch/sparc64/mm/fault.c~mm-fault-feedback-2-fix
++++ a/arch/sparc64/mm/fault.c
+@@ -424,9 +424,9 @@ good_area:
+ 		BUG();
+ 	}
+ 	if (fault & VM_FAULT_MAJOR)
+-		tsk->maj_flt++;
++		current->maj_flt++;
+ 	else
+-		tsk->min_flt++;
++		current->min_flt++;
+ 
+ 	up_read(&mm->mmap_sem);
+ 
 _
 
-Patches currently in -mm which might be from kuvkir@epsmu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-isofs-mounting-to-regular-file-may-succeed.patch
+origin.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-fault-feedback-2.patch
+mm-fault-feedback-2-fix.patch
+mm-fault-feedback-2-fix-2.patch
+readahead-split-ondemand-readahead-interface-into-two-functions-fix.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+add-sys-kernel-notes-fix.patch
+lockstat-core-infrastructure.patch
+lockstat-human-readability-tweaks-fix.patch
+lockdep-various-fixes.patch
+lockstat-measure-lock-bouncing.patch
+some-kmalloc-memset-kzalloc-tree-wide.patch
+dequeue_huge_page-warning-fix.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+drivers-edac-fix-e752x-reversed-csrows-fix.patch
+drivers-edac-new-pasemi-driver-fix.patch
+drivers-edac-new-i82975x-driver-fix.patch
