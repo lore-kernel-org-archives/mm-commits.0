@@ -1,150 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - fs-introduce-vfs_path_lookup.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:01:51 -0700
-Message-ID: <200707192001.l6JK1p0r019599@imap1.linux-foundation.org>
+Subject: - use-the-new-percpu-interface-for-shared-data-version-4.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:01:44 -0700
+Message-ID: <200707192001.l6JK1iQx019564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45333 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49941 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760315AbXGSUdx (ORCPT
+	by vger.kernel.org with ESMTP id S1760422AbXGSUdy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:33:53 -0400
+	Thu, 19 Jul 2007 16:33:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jsipek@cs.sunysb.edu, hch@lst.de, mhalcrow@us.ibm.com, neilb@suse.de, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: fenghua.yu@intel.com, ak@suse.de, clameter@sgi.com, rusty@rustcorp.com.au, suresh.b.siddha@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: introduce vfs_path_lookup
+     use the new percpu interface for shared data
 has been removed from the -mm tree.  Its filename was
-     fs-introduce-vfs_path_lookup.patch
+     use-the-new-percpu-interface-for-shared-data-version-4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs: introduce vfs_path_lookup
-From: "Josef 'Jeff' Sipek" <jsipek@cs.sunysb.edu>
+Subject: use the new percpu interface for shared data
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-Stackable file systems, among others, frequently need to lookup paths or
-path components starting from an arbitrary point in the namespace
-(identified by a dentry and a vfsmount).  Currently, such file systems use
-lookup_one_len, which is frowned upon [1] as it does not pass the lookup
-intent along; not passing a lookup intent, for example, can trigger BUG_ON's
-when stacking on top of NFSv4.
+Currently most of the per cpu data, which is accessed by different cpus,
+has a ____cacheline_aligned_in_smp attribute.  Move all this data to the
+new per cpu shared data section: .data.percpu.shared_aligned.
 
-The first patch introduces a new lookup function to allow lookup starting
-from an arbitrary point in the namespace.  This approach has been suggested
-by Christoph Hellwig [2].
+This will seperate the percpu data which is referenced frequently by other
+cpus from the local only percpu data.
 
-The second patch changes sunrpc to use vfs_path_lookup.
-
-The third patch changes nfsctl.c to use vfs_path_lookup.
-
-The fourth patch marks link_path_walk static.
-
-The fifth, and last patch, unexports path_walk because it is no longer
-unnecessary to call it directly, and using the new vfs_path_lookup is
-cleaner.
-
-For example, the following snippet of code, looks up "some/path/component"
-in a directory pointed to by parent_{dentry,vfsmnt}:
-
-err = vfs_path_lookup(parent_dentry, parent_vfsmnt,
-		      "some/path/component", 0, &nd);
-if (!err) {
-	/* exits */
-
-	...
-
-	/* once done, release the references */
-	path_release(&nd);
-} else if (err == -ENOENT) {
-	/* doesn't exist */
-} else {
-	/* other error */
-}
-
-VFS functions such as lookup_create can be used on the nameidata structure
-to pass the create intent to the file system.
-
-Signed-off-by: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Acked-by: Christoph Hellwig <hch@lst.de>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c            |   32 ++++++++++++++++++++++++++++++++
- include/linux/namei.h |    2 ++
- 2 files changed, 34 insertions(+)
+ arch/i386/kernel/init_task.c   |    2 +-
+ arch/i386/kernel/irq.c         |    2 +-
+ arch/ia64/kernel/smp.c         |    2 +-
+ arch/x86_64/kernel/init_task.c |    2 +-
+ kernel/sched.c                 |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/namei.c~fs-introduce-vfs_path_lookup fs/namei.c
---- a/fs/namei.c~fs-introduce-vfs_path_lookup
-+++ a/fs/namei.c
-@@ -1172,6 +1172,37 @@ int fastcall path_lookup(const char *nam
- 	return do_path_lookup(AT_FDCWD, name, flags, nd);
- }
+diff -puN arch/i386/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data-version-4 arch/i386/kernel/init_task.c
+--- a/arch/i386/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data-version-4
++++ a/arch/i386/kernel/init_task.c
+@@ -42,5 +42,5 @@ EXPORT_SYMBOL(init_task);
+  * per-CPU TSS segments. Threads are completely 'soft' on Linux,
+  * no more per-task TSS's.
+  */ 
+-DEFINE_PER_CPU(struct tss_struct, init_tss) ____cacheline_internodealigned_in_smp = INIT_TSS;
++DEFINE_PER_CPU_SHARED_ALIGNED(struct tss_struct, init_tss) = INIT_TSS;
  
-+/**
-+ * vfs_path_lookup - lookup a file path relative to a dentry-vfsmount pair
-+ * @dentry:  pointer to dentry of the base directory
-+ * @mnt: pointer to vfs mount of the base directory
-+ * @name: pointer to file name
-+ * @flags: lookup flags
-+ * @nd: pointer to nameidata
-+ */
-+int vfs_path_lookup(struct dentry *dentry, struct vfsmount *mnt,
-+		    const char *name, unsigned int flags,
-+		    struct nameidata *nd)
-+{
-+	int retval;
-+
-+	/* same as do_path_lookup */
-+	nd->last_type = LAST_ROOT;
-+	nd->flags = flags;
-+	nd->depth = 0;
-+
-+	nd->mnt = mntget(mnt);
-+	nd->dentry = dget(dentry);
-+
-+	retval = path_walk(name, nd);
-+	if (unlikely(!retval && !audit_dummy_context() && nd->dentry &&
-+				nd->dentry->d_inode))
-+		audit_inode(name, nd->dentry->d_inode);
-+
-+	return retval;
-+
-+}
-+
- static int __path_lookup_intent_open(int dfd, const char *name,
- 		unsigned int lookup_flags, struct nameidata *nd,
- 		int open_flags, int create_mode)
-@@ -2774,6 +2805,7 @@ EXPORT_SYMBOL(__page_symlink);
- EXPORT_SYMBOL(page_symlink);
- EXPORT_SYMBOL(page_symlink_inode_operations);
- EXPORT_SYMBOL(path_lookup);
-+EXPORT_SYMBOL(vfs_path_lookup);
- EXPORT_SYMBOL(path_release);
- EXPORT_SYMBOL(path_walk);
- EXPORT_SYMBOL(permission);
-diff -puN include/linux/namei.h~fs-introduce-vfs_path_lookup include/linux/namei.h
---- a/include/linux/namei.h~fs-introduce-vfs_path_lookup
-+++ a/include/linux/namei.h
-@@ -69,6 +69,8 @@ extern int FASTCALL(__user_walk_fd(int d
- #define user_path_walk_link(name,nd) \
- 	__user_walk_fd(AT_FDCWD, name, 0, nd)
- extern int FASTCALL(path_lookup(const char *, unsigned, struct nameidata *));
-+extern int vfs_path_lookup(struct dentry *, struct vfsmount *,
-+			   const char *, unsigned int, struct nameidata *);
- extern int FASTCALL(path_walk(const char *, struct nameidata *));
- extern int FASTCALL(link_path_walk(const char *, struct nameidata *));
- extern void path_release(struct nameidata *);
+diff -puN arch/i386/kernel/irq.c~use-the-new-percpu-interface-for-shared-data-version-4 arch/i386/kernel/irq.c
+--- a/arch/i386/kernel/irq.c~use-the-new-percpu-interface-for-shared-data-version-4
++++ a/arch/i386/kernel/irq.c
+@@ -21,7 +21,7 @@
+ #include <asm/apic.h>
+ #include <asm/uaccess.h>
+ 
+-DEFINE_PER_CPU(irq_cpustat_t, irq_stat) ____cacheline_internodealigned_in_smp;
++DEFINE_PER_CPU_SHARED_ALIGNED(irq_cpustat_t, irq_stat);
+ EXPORT_PER_CPU_SYMBOL(irq_stat);
+ 
+ DEFINE_PER_CPU(struct pt_regs *, irq_regs);
+diff -puN arch/ia64/kernel/smp.c~use-the-new-percpu-interface-for-shared-data-version-4 arch/ia64/kernel/smp.c
+--- a/arch/ia64/kernel/smp.c~use-the-new-percpu-interface-for-shared-data-version-4
++++ a/arch/ia64/kernel/smp.c
+@@ -82,7 +82,7 @@ static volatile struct call_data_struct 
+ #define IPI_KDUMP_CPU_STOP	3
+ 
+ /* This needs to be cacheline aligned because it is written to by *other* CPUs.  */
+-static DEFINE_PER_CPU(u64, ipi_operation) ____cacheline_aligned;
++static DEFINE_PER_CPU_SHARED_ALIGNED(u64, ipi_operation);
+ 
+ extern void cpu_halt (void);
+ 
+diff -puN arch/x86_64/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data-version-4 arch/x86_64/kernel/init_task.c
+--- a/arch/x86_64/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data-version-4
++++ a/arch/x86_64/kernel/init_task.c
+@@ -44,7 +44,7 @@ EXPORT_SYMBOL(init_task);
+  * section. Since TSS's are completely CPU-local, we want them
+  * on exact cacheline boundaries, to eliminate cacheline ping-pong.
+  */ 
+-DEFINE_PER_CPU(struct tss_struct, init_tss) ____cacheline_internodealigned_in_smp = INIT_TSS;
++DEFINE_PER_CPU_SHARED_ALIGNED(struct tss_struct, init_tss) = INIT_TSS;
+ 
+ /* Copies of the original ist values from the tss are only accessed during
+  * debugging, no special alignment required.
+diff -puN kernel/sched.c~use-the-new-percpu-interface-for-shared-data-version-4 kernel/sched.c
+--- a/kernel/sched.c~use-the-new-percpu-interface-for-shared-data-version-4
++++ a/kernel/sched.c
+@@ -301,7 +301,7 @@ struct rq {
+ 	struct lock_class_key rq_lock_key;
+ };
+ 
+-static DEFINE_PER_CPU(struct rq, runqueues) ____cacheline_aligned_in_smp;
++static DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
+ static DEFINE_MUTEX(sched_hotcpu_mutex);
+ 
+ static inline void check_preempt_curr(struct rq *rq, struct task_struct *p)
 _
 
-Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
+Patches currently in -mm which might be from fenghua.yu@intel.com are
 
 origin.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
