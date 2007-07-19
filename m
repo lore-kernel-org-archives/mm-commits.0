@@ -1,103 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - x86-fix-iounmaps-use-of-vm_structs-size-field.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:10:53 -0700
-Message-ID: <200707192010.l6JKAr6e020711@imap1.linux-foundation.org>
+Subject: - m68knommu-remove-is_in_rom-function.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:04:27 -0700
+Message-ID: <200707192004.l6JK4RRp019950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52446 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53029 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932188AbXGSUTb (ORCPT
+	by vger.kernel.org with ESMTP id S1760849AbXGSUUk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:19:31 -0400
+	Thu, 19 Jul 2007 16:20:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, cebbert@redhat.com, hidave.darkstar@gmail.com, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: gerg@snapgear.com, gerg@uclinux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: fix iounmap's use of vm_struct's size field
+     m68knommu: remove is_in_rom() function
 has been removed from the -mm tree.  Its filename was
-     x86-fix-iounmaps-use-of-vm_structs-size-field.patch
+     m68knommu-remove-is_in_rom-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: fix iounmap's use of vm_struct's size field
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: m68knommu: remove is_in_rom() function
+From: Greg Ungerer <gerg@snapgear.com>
 
-get_vm_area always returns an area with an adjacent guard page.  That guard
-page is included in vm_struct.size.  iounmap uses vm_struct.size to
-determine how much address space needs to have change_page_attr applied to
-it, which will BUG if applied to the guard page.
+Remove is_in_rom() function.  It doesn't actually serve the purpose it was
+intended to.  If you look at the use of it _access_ok() (which is the only use
+of it) then it is obvious that most of memory is marked as access_ok.  No
+point having is_in_rom() then, so remove it.
 
-This patch adds a helper function - get_vm_area_size() in linux/vmalloc.h -
-to return the actual size of a vm area, and uses it to make iounmap do the
-right thing.  There are probably other places which should be using
-get_vm_area_size().
-
-Thanks to Dave Young <hidave.darkstar@gmail.com> for debugging the
-problem.
-
-[ Andi, it wasn't clear to me whether x86_64 needs the same fix. ]
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Chuck Ebbert <cebbert@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/ioremap.c  |    2 +-
- include/linux/vmalloc.h |    6 ++++++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ arch/m68knommu/kernel/m68k_ksyms.c |    2 --
+ arch/m68knommu/mm/memory.c         |   20 --------------------
+ include/asm-m68knommu/pgtable.h    |    1 -
+ include/asm-m68knommu/uaccess.h    |   11 +++++++----
+ 4 files changed, 7 insertions(+), 27 deletions(-)
 
-diff -puN arch/i386/mm/ioremap.c~x86-fix-iounmaps-use-of-vm_structs-size-field arch/i386/mm/ioremap.c
---- a/arch/i386/mm/ioremap.c~x86-fix-iounmaps-use-of-vm_structs-size-field
-+++ a/arch/i386/mm/ioremap.c
-@@ -196,7 +196,7 @@ void iounmap(volatile void __iomem *addr
- 	/* Reset the direct mapping. Can block */
- 	if ((p->flags >> 20) && p->phys_addr < virt_to_phys(high_memory) - 1) {
- 		change_page_attr(virt_to_page(__va(p->phys_addr)),
--				 p->size >> PAGE_SHIFT,
-+				 get_vm_area_size(p) >> PAGE_SHIFT,
- 				 PAGE_KERNEL);
- 		global_flush_tlb();
- 	} 
-diff -puN include/linux/vmalloc.h~x86-fix-iounmaps-use-of-vm_structs-size-field include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~x86-fix-iounmaps-use-of-vm_structs-size-field
-+++ a/include/linux/vmalloc.h
-@@ -70,6 +70,12 @@ extern int map_vm_area(struct vm_struct 
- 			struct page ***pages);
- extern void unmap_kernel_range(unsigned long addr, unsigned long size);
+diff -puN arch/m68knommu/kernel/m68k_ksyms.c~m68knommu-remove-is_in_rom-function arch/m68knommu/kernel/m68k_ksyms.c
+--- a/arch/m68knommu/kernel/m68k_ksyms.c~m68knommu-remove-is_in_rom-function
++++ a/arch/m68knommu/kernel/m68k_ksyms.c
+@@ -81,8 +81,6 @@ EXPORT_SYMBOL(__mulsi3);
+ EXPORT_SYMBOL(__udivsi3);
+ EXPORT_SYMBOL(__umodsi3);
  
-+static inline size_t get_vm_area_size(const struct vm_struct *area)
-+{
-+	/* return actual size without guard page */
-+	return area->size - PAGE_SIZE;
-+}
-+
- /* Allocate/destroy a 'vmalloc' VM area. */
- extern struct vm_struct *alloc_vm_area(size_t size);
- extern void free_vm_area(struct vm_struct *area);
+-EXPORT_SYMBOL(is_in_rom);
+-
+ #ifdef CONFIG_COLDFIRE
+ extern unsigned int *dma_device_address;
+ extern unsigned long dma_base_addr, _ramend;
+diff -puN arch/m68knommu/mm/memory.c~m68knommu-remove-is_in_rom-function arch/m68knommu/mm/memory.c
+--- a/arch/m68knommu/mm/memory.c~m68knommu-remove-is_in_rom-function
++++ a/arch/m68knommu/mm/memory.c
+@@ -33,23 +33,3 @@ unsigned long kernel_map(unsigned long p
+ 	return paddr;
+ }
+ 
+-
+-int is_in_rom(unsigned long addr)
+-{
+-	extern unsigned long _ramstart, _ramend;
+-
+-	/*
+-	 *	What we are really trying to do is determine if addr is
+-	 *	in an allocated kernel memory region. If not then assume
+-	 *	we cannot free it or otherwise de-allocate it. Ideally
+-	 *	we could restrict this to really being in a ROM or flash,
+-	 *	but that would need to be done on a board by board basis,
+-	 *	not globally.
+-	 */
+-	if ((addr < _ramstart) || (addr >= _ramend))
+-		return(1);
+-
+-	/* Default case, not in ROM */
+-	return(0);
+-}
+-
+diff -puN include/asm-m68knommu/pgtable.h~m68knommu-remove-is_in_rom-function include/asm-m68knommu/pgtable.h
+--- a/include/asm-m68knommu/pgtable.h~m68knommu-remove-is_in_rom-function
++++ a/include/asm-m68knommu/pgtable.h
+@@ -49,7 +49,6 @@ static inline int pte_file(pte_t pte) { 
+  * These would be in other places but having them here reduces the diffs.
+  */
+ extern unsigned int kobjsize(const void *objp);
+-extern int is_in_rom(unsigned long);
+ 
+ /*
+  * No page table caches to initialise.
+diff -puN include/asm-m68knommu/uaccess.h~m68knommu-remove-is_in_rom-function include/asm-m68knommu/uaccess.h
+--- a/include/asm-m68knommu/uaccess.h~m68knommu-remove-is_in_rom-function
++++ a/include/asm-m68knommu/uaccess.h
+@@ -15,12 +15,15 @@
+ 
+ #define access_ok(type,addr,size)	_access_ok((unsigned long)(addr),(size))
+ 
++/*
++ * It is not enough to just have access_ok check for a real RAM address.
++ * This would disallow the case of code/ro-data running XIP in flash/rom.
++ * Ideally we would check the possible flash ranges too, but that is
++ * currently not so easy.
++ */
+ static inline int _access_ok(unsigned long addr, unsigned long size)
+ {
+-	extern unsigned long memory_start, memory_end;
+-
+-	return (((addr >= memory_start) && (addr+size < memory_end)) ||
+-		(is_in_rom(addr) && is_in_rom(addr+size)));
++	return 1;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from gerg@snapgear.com are
 
 origin.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-git-kbuild.patch
-acpiphp_ibm-add-missing-n.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-fix-the-softlockup-watchdog-to-actually-work.patch
+git-mtd.patch
