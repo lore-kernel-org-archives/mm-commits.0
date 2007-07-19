@@ -1,84 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-asm-offsets.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:04:58 -0700
-Message-ID: <200707192004.l6JK4wQK019993@imap1.linux-foundation.org>
+Subject: - x86-64-calgary-update-copyright-notice.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:09:05 -0700
+Message-ID: <200707192009.l6JK95uM020543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37777 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58985 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760704AbXGSUPZ (ORCPT
+	by vger.kernel.org with ESMTP id S1760631AbXGSUPW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:25 -0400
+	Thu, 19 Jul 2007 16:15:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
+To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: the asm offsets
+     x86-64: Calgary: update copyright notice
 has been removed from the -mm tree.  Its filename was
-     lguest-the-asm-offsets.patch
+     x86-64-calgary-update-copyright-notice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lguest: the asm offsets
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: x86-64: Calgary: update copyright notice
+From: Muli Ben-Yehuda <muli@il.ibm.com>
 
-This is the structure offsets required by lg.ko's switcher.S.
-
-Unfortunately we don't have infrastructure for private asm-offsets
-creation.
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/asm-offsets.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ arch/x86_64/kernel/pci-calgary.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/asm-offsets.c~lguest-the-asm-offsets arch/i386/kernel/asm-offsets.c
---- a/arch/i386/kernel/asm-offsets.c~lguest-the-asm-offsets
-+++ a/arch/i386/kernel/asm-offsets.c
-@@ -19,6 +19,11 @@
- 
- #include <xen/interface/xen.h>
- 
-+#ifdef CONFIG_LGUEST_GUEST
-+#include <linux/lguest.h>
-+#include "../../../drivers/lguest/lg.h"
-+#endif
-+
- #define DEFINE(sym, val) \
-         asm volatile("\n->" #sym " %0 " #val : : "i" (val))
- 
-@@ -124,4 +129,19 @@ void foo(void)
- 	OFFSET(XEN_vcpu_info_mask, vcpu_info, evtchn_upcall_mask);
- 	OFFSET(XEN_vcpu_info_pending, vcpu_info, evtchn_upcall_pending);
- #endif
-+
-+#ifdef CONFIG_LGUEST_GUEST
-+	BLANK();
-+	OFFSET(LGUEST_DATA_irq_enabled, lguest_data, irq_enabled);
-+	OFFSET(LGUEST_PAGES_host_gdt_desc, lguest_pages, state.host_gdt_desc);
-+	OFFSET(LGUEST_PAGES_host_idt_desc, lguest_pages, state.host_idt_desc);
-+	OFFSET(LGUEST_PAGES_host_cr3, lguest_pages, state.host_cr3);
-+	OFFSET(LGUEST_PAGES_host_sp, lguest_pages, state.host_sp);
-+	OFFSET(LGUEST_PAGES_guest_gdt_desc, lguest_pages,state.guest_gdt_desc);
-+	OFFSET(LGUEST_PAGES_guest_idt_desc, lguest_pages,state.guest_idt_desc);
-+	OFFSET(LGUEST_PAGES_guest_gdt, lguest_pages, state.guest_gdt);
-+	OFFSET(LGUEST_PAGES_regs_trapnum, lguest_pages, regs.trapnum);
-+	OFFSET(LGUEST_PAGES_regs_errcode, lguest_pages, regs.errcode);
-+	OFFSET(LGUEST_PAGES_regs, lguest_pages, regs);
-+#endif
- }
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-update-copyright-notice arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-update-copyright-notice
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -1,7 +1,7 @@
+ /*
+  * Derived from arch/powerpc/kernel/iommu.c
+  *
+- * Copyright (C) IBM Corporation, 2006
++ * Copyright IBM Corporation, 2006-2007
+  * Copyright (C) 2006  Jon Mason <jdmason@kudzu.us>
+  *
+  * Author: Jon Mason <jdmason@kudzu.us>
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from muli@il.ibm.com are
 
 origin.patch
-git-kbuild.patch
-git-kvm.patch
-lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
