@@ -1,86 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-debugging-give-stacktrace-for-init_error.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:03:56 -0700
-Message-ID: <200707192003.l6JK3u6a019903@imap1.linux-foundation.org>
+Subject: - readahead-convert-ext3-ext4-invocations.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:01:18 -0700
+Message-ID: <200707192001.l6JK1IfF019525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35129 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41616 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932126AbXGSU2V (ORCPT
+	by vger.kernel.org with ESMTP id S932149AbXGSU2S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:28:21 -0400
+	Thu, 19 Jul 2007 16:28:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johannes@sipsolutions.net, a.p.zijlstra@chello.nl, arjan@infradead.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, linuxram@us.ibm.com, rusty@rustcorp.com.au, slpratt@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep debugging: give stacktrace for init_error
+     readahead: convert ext3/ext4 invocations
 has been removed from the -mm tree.  Its filename was
-     lockdep-debugging-give-stacktrace-for-init_error.patch
+     readahead-convert-ext3-ext4-invocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep debugging: give stacktrace for init_error
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: readahead: convert ext3/ext4 invocations
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-When I started adding support for lockdep to 64-bit powerpc, I got a
-lockdep_init_error and with this patch was able to pinpoint why and where
-to put lockdep_init().  Let's support this generally for others adding
-lockdep support to their architecture.
+Convert ext3/ext4 dir reads to use on-demand readahead.
 
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Readahead for dirs operates _not_ on file level, but on blockdev level.  This
+makes a difference when the data blocks are not continuous.  And the read
+routine is somehow opaque: there's no handy info about the status of current
+page.  So a simplified call scheme is employed: to call into readahead
+whenever the current page falls out of readahead windows.
+
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Steven Pratt <slpratt@austin.ibm.com>
+Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ fs/ext3/dir.c |   14 ++++++++------
+ fs/ext4/dir.c |   14 ++++++++------
+ 2 files changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-debugging-give-stacktrace-for-init_error kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-debugging-give-stacktrace-for-init_error
-+++ a/kernel/lockdep.c
-@@ -375,6 +375,11 @@ unsigned int max_recursion_depth;
-  * about it later on, in lockdep_info().
-  */
- static int lockdep_init_error;
-+static unsigned long lockdep_init_trace_data[20];
-+static struct stack_trace lockdep_init_trace = {
-+	.max_entries = ARRAY_SIZE(lockdep_init_trace_data),
-+	.entries = lockdep_init_trace_data,
-+};
+diff -puN fs/ext3/dir.c~readahead-convert-ext3-ext4-invocations fs/ext3/dir.c
+--- a/fs/ext3/dir.c~readahead-convert-ext3-ext4-invocations
++++ a/fs/ext3/dir.c
+@@ -136,12 +136,14 @@ static int ext3_readdir(struct file * fi
+ 		err = ext3_get_blocks_handle(NULL, inode, blk, 1,
+ 						&map_bh, 0, 0);
+ 		if (err > 0) {
+-			page_cache_readahead(sb->s_bdev->bd_inode->i_mapping,
+-				&filp->f_ra,
+-				filp,
+-				map_bh.b_blocknr >>
+-					(PAGE_CACHE_SHIFT - inode->i_blkbits),
+-				1);
++			pgoff_t index = map_bh.b_blocknr >>
++					(PAGE_CACHE_SHIFT - inode->i_blkbits);
++			if (!ra_has_index(&filp->f_ra, index))
++				page_cache_readahead_ondemand(
++					sb->s_bdev->bd_inode->i_mapping,
++					&filp->f_ra, filp,
++					NULL, index, 1);
++			filp->f_ra.prev_index = index;
+ 			bh = ext3_bread(NULL, inode, blk, 0, &err);
+ 		}
  
- /*
-  * Various lockdep statistics:
-@@ -662,6 +667,7 @@ look_up_lock_class(struct lockdep_map *l
- 	if (unlikely(!lockdep_initialized)) {
- 		lockdep_init();
- 		lockdep_init_error = 1;
-+		save_stack_trace(&lockdep_init_trace);
- 	}
- #endif
- 
-@@ -3040,8 +3046,11 @@ void __init lockdep_info(void)
- 		sizeof(struct held_lock) * MAX_LOCK_DEPTH);
- 
- #ifdef CONFIG_DEBUG_LOCKDEP
--	if (lockdep_init_error)
--		printk("WARNING: lockdep init error! Arch code didnt call lockdep_init() early enough?\n");
-+	if (lockdep_init_error) {
-+		printk("WARNING: lockdep init error! Arch code didn't call lockdep_init() early enough?\n");
-+		printk("Call stack leading to lockdep invocation was:\n");
-+		print_stack_trace(&lockdep_init_trace, 0);
-+	}
- #endif
- }
+diff -puN fs/ext4/dir.c~readahead-convert-ext3-ext4-invocations fs/ext4/dir.c
+--- a/fs/ext4/dir.c~readahead-convert-ext3-ext4-invocations
++++ a/fs/ext4/dir.c
+@@ -135,12 +135,14 @@ static int ext4_readdir(struct file * fi
+ 		map_bh.b_state = 0;
+ 		err = ext4_get_blocks_wrap(NULL, inode, blk, 1, &map_bh, 0, 0);
+ 		if (err > 0) {
+-			page_cache_readahead(sb->s_bdev->bd_inode->i_mapping,
+-				&filp->f_ra,
+-				filp,
+-				map_bh.b_blocknr >>
+-					(PAGE_CACHE_SHIFT - inode->i_blkbits),
+-				1);
++			pgoff_t index = map_bh.b_blocknr >>
++					(PAGE_CACHE_SHIFT - inode->i_blkbits);
++			if (!ra_has_index(&filp->f_ra, index))
++				page_cache_readahead_ondemand(
++					sb->s_bdev->bd_inode->i_mapping,
++					&filp->f_ra, filp,
++					NULL, index, 1);
++			filp->f_ra.prev_index = index;
+ 			bh = ext4_bread(NULL, inode, blk, 0, &err);
+ 		}
  
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-appletouch-powersaving.patch
-git-net.patch
