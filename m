@@ -1,129 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-calgary-tabify-and-trim-trailing-whitespace.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:09:30 -0700
-Message-ID: <200707192009.l6JK9UPU020582@imap1.linux-foundation.org>
+Subject: - driver-edac-mod-race-fix-i82875p.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:06:47 -0700
+Message-ID: <200707192006.l6JK6lPi020173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43424 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39995 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760913AbXGSUPb (ORCPT
+	by vger.kernel.org with ESMTP id S1761375AbXGSUQG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:31 -0400
+	Thu, 19 Jul 2007 16:16:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muli@il.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
+To: juhlenko@akamai.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary: tabify and trim trailing whitespace
+     drivers/edac: mod race fix i82875p
 has been removed from the -mm tree.  Its filename was
-     x86-64-calgary-tabify-and-trim-trailing-whitespace.patch
+     driver-edac-mod-race-fix-i82875p.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86-64: Calgary: tabify and trim trailing whitespace
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: drivers/edac: mod race fix i82875p
+From: Jason Uhlenkott <juhlenko@akamai.com>
 
-Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
+If ERRSTS indicates that there's no error then we don't need to bother reading
+the other registers.
+
+In addition to making the common case faster, this actually fixes a small race
+where we don't see an error but we clear the error bits anyway, potentially
+wiping away info on an error that happened in the interim (or where a CE
+arrives between the first and second read of ERRSTS, causing us to falsely
+claim "UE overwrote CE").
+
+Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |   38 ++++++++++++++---------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ drivers/edac/i82875p_edac.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-tabify-and-trim-trailing-whitespace arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-tabify-and-trim-trailing-whitespace
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -75,9 +75,9 @@ int use_calgary __read_mostly = 0;
- #define PHB_DOSHOLE_OFFSET	0x08E0
+diff -puN drivers/edac/i82875p_edac.c~driver-edac-mod-race-fix-i82875p drivers/edac/i82875p_edac.c
+--- a/drivers/edac/i82875p_edac.c~driver-edac-mod-race-fix-i82875p
++++ a/drivers/edac/i82875p_edac.c
+@@ -198,27 +198,28 @@ static void i82875p_get_error_info(struc
+ 	 * overwritten by UE.
+ 	 */
+ 	pci_read_config_word(pdev, I82875P_ERRSTS, &info->errsts);
++
++	if (!(info->errsts & 0x0081))
++		return;
++
+ 	pci_read_config_dword(pdev, I82875P_EAP, &info->eap);
+ 	pci_read_config_byte(pdev, I82875P_DES, &info->des);
+ 	pci_read_config_byte(pdev, I82875P_DERRSYN, &info->derrsyn);
+ 	pci_read_config_word(pdev, I82875P_ERRSTS, &info->errsts2);
  
- /* CalIOC2 specific */
--#define PHB_SAVIOR_L2           0x0DB0
--#define PHB_PAGE_MIG_CTRL       0x0DA8
--#define PHB_PAGE_MIG_DEBUG      0x0DA0
-+#define PHB_SAVIOR_L2		0x0DB0
-+#define PHB_PAGE_MIG_CTRL	0x0DA8
-+#define PHB_PAGE_MIG_DEBUG	0x0DA0
- #define PHB_ROOT_COMPLEX_STATUS 0x0CB0
- 
- /* PHB_CONFIG_RW */
-@@ -92,11 +92,11 @@ int use_calgary __read_mostly = 0;
- /* CSR (Channel/DMA Status Register) */
- #define CSR_AGENT_MASK		0xffe0ffff
- /* CCR (Calgary Configuration Register) */
--#define CCR_2SEC_TIMEOUT        0x000000000000000EUL
-+#define CCR_2SEC_TIMEOUT	0x000000000000000EUL
- /* PMCR/PMDR (Page Migration Control/Debug Registers */
--#define PMR_SOFTSTOP            0x80000000
--#define PMR_SOFTSTOPFAULT       0x40000000
--#define PMR_HARDSTOP            0x20000000
-+#define PMR_SOFTSTOP		0x80000000
-+#define PMR_SOFTSTOPFAULT	0x40000000
-+#define PMR_HARDSTOP		0x20000000
- 
- #define MAX_NUM_OF_PHBS		8 /* how many PHBs in total? */
- #define MAX_NUM_CHASSIS		8 /* max number of chassis */
-@@ -228,7 +228,7 @@ static inline int translate_phb(struct p
+-	pci_write_bits16(pdev, I82875P_ERRSTS, 0x0081, 0x0081);
+-
+ 	/*
+ 	 * If the error is the same then we can for both reads then
+ 	 * the first set of reads is valid.  If there is a change then
+ 	 * there is a CE no info and the second set of reads is valid
+ 	 * and should be UE info.
+ 	 */
+-	if (!(info->errsts2 & 0x0081))
+-		return;
+-
+ 	if ((info->errsts ^ info->errsts2) & 0x0081) {
+ 		pci_read_config_dword(pdev, I82875P_EAP, &info->eap);
+ 		pci_read_config_byte(pdev, I82875P_DES, &info->des);
+ 		pci_read_config_byte(pdev, I82875P_DERRSYN, &info->derrsyn);
+ 	}
++
++	pci_write_bits16(pdev, I82875P_ERRSTS, 0x0081, 0x0081);
  }
  
- static void iommu_range_reserve(struct iommu_table *tbl,
--        unsigned long start_addr, unsigned int npages)
-+	unsigned long start_addr, unsigned int npages)
- {
- 	unsigned long index;
- 	unsigned long end;
-@@ -838,12 +838,12 @@ static int __init calgary_setup_tar(stru
- 	tbl->it_base = (unsigned long)bus_info[dev->bus->number].tce_space;
- 	tce_free(tbl, 0, tbl->it_size);
+ static int i82875p_process_error_info(struct mem_ctl_info *mci,
+@@ -229,7 +230,7 @@ static int i82875p_process_error_info(st
  
--  	if (is_calgary(dev->device))
--  		tbl->chip_ops = &calgary_chip_ops;
-+	if (is_calgary(dev->device))
-+		tbl->chip_ops = &calgary_chip_ops;
- 	else if (is_calioc2(dev->device))
- 		tbl->chip_ops = &calioc2_chip_ops;
--  	else
--  		BUG();
-+	else
-+		BUG();
+ 	multi_chan = mci->csrows[0].nr_channels - 1;
  
- 	calgary_reserve_regions(dev);
+-	if (!(info->errsts2 & 0x0081))
++	if (!(info->errsts & 0x0081))
+ 		return 0;
  
-@@ -1025,13 +1025,13 @@ static void calioc2_handle_quirks(struct
- 	void __iomem *target;
- 	u32 val;
- 
-- 	/*
-- 	 * CalIOC2 designers recommend setting bit 8 in 0xnDB0 to 1
-- 	 */
-- 	target = calgary_reg(bbar, phb_offset(busnum) | PHB_SAVIOR_L2);
-- 	val = cpu_to_be32(readl(target));
-- 	val |= 0x00800000;
-- 	writel(cpu_to_be32(val), target);
-+	/*
-+	 * CalIOC2 designers recommend setting bit 8 in 0xnDB0 to 1
-+	 */
-+	target = calgary_reg(bbar, phb_offset(busnum) | PHB_SAVIOR_L2);
-+	val = cpu_to_be32(readl(target));
-+	val |= 0x00800000;
-+	writel(cpu_to_be32(val), target);
- }
- 
- static void calgary_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev)
+ 	if (!handle_errors)
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from juhlenko@akamai.com are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
