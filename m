@@ -1,211 +1,421 @@
 From: akpm@linux-foundation.org
-Subject: - coda-cleanup-for-upcall-handling-path.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:03:09 -0700
-Message-ID: <200707192003.l6JK39FL019832@imap1.linux-foundation.org>
+Subject: - lguest-the-net-driver.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:05:04 -0700
+Message-ID: <200707192005.l6JK5480020011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32943 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49660 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760286AbXGSUQb (ORCPT
+	by vger.kernel.org with ESMTP id S1762035AbXGSURH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:16:31 -0400
+	Thu, 19 Jul 2007 16:17:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, ak@suse.de, jeff@garzik.org, jmorris@namei.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coda: cleanup for upcall handling path
+     lguest: the net driver
 has been removed from the -mm tree.  Its filename was
-     coda-cleanup-for-upcall-handling-path.patch
+     lguest-the-net-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: coda: cleanup for upcall handling path
-From: Jan Harkes <jaharkes@cs.cmu.edu>
+Subject: lguest: the net driver
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Make the code that processes upcall responses more straightforward, uncovered
-at least one bad assumption.  We trusted that vc_inuse would be 0 when upcalls
-are aborted, however the device may have been reopened.
+Lguest net driver
 
-Signed-off-by: Jan Harkes <jaharkes@cs.cmu.edu>
+A simple net driver for lguest.
+
+[akpm@linux-foundation.org: include fix]
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jeff Garzik <jeff@garzik.org>
+Acked-by: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/upcall.c |  121 +++++++++++++++++++++------------------------
- 1 file changed, 58 insertions(+), 63 deletions(-)
+ drivers/net/Makefile     |    1 
+ drivers/net/lguest_net.c |  354 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 355 insertions(+)
 
-diff -puN fs/coda/upcall.c~coda-cleanup-for-upcall-handling-path fs/coda/upcall.c
---- a/fs/coda/upcall.c~coda-cleanup-for-upcall-handling-path
-+++ a/fs/coda/upcall.c
-@@ -687,27 +687,27 @@ static inline void coda_waitfor_upcall(s
-  * are all mapped to -EINTR, while showing a nice warning message. (jh)
-  * 
-  */
--static int coda_upcall(struct coda_sb_info *sbi, 
--		int inSize, int *outSize, 
--		union inputArgs *buffer) 
-+static int coda_upcall(struct coda_sb_info *sbi,
-+		       int inSize, int *outSize,
-+		       union inputArgs *buffer)
- {
- 	struct venus_comm *vcommp;
- 	union outputArgs *out;
--	struct upc_req *req;
-+	union inputArgs *sig_inputArgs;
-+	struct upc_req *req, *sig_req;
- 	int error = 0;
- 
- 	vcommp = sbi->sbi_vcomm;
--	if ( !vcommp->vc_inuse ) {
--		printk("No pseudo device in upcall comms at %p\n", vcommp);
--                return -ENXIO;
-+	if (!vcommp->vc_inuse) {
-+		printk(KERN_NOTICE "coda: Venus dead, not sending upcall\n");
-+		return -ENXIO;
- 	}
- 
- 	/* Format the request message. */
- 	req = upc_alloc();
--	if (!req) {
--		printk("Failed to allocate upc_req structure\n");
-+	if (!req)
- 		return -ENOMEM;
--	}
+diff -puN drivers/net/Makefile~lguest-the-net-driver drivers/net/Makefile
+--- a/drivers/net/Makefile~lguest-the-net-driver
++++ a/drivers/net/Makefile
+@@ -177,6 +177,7 @@ obj-$(CONFIG_ZORRO8390) += zorro8390.o
+ obj-$(CONFIG_HPLANCE) += hplance.o 7990.o
+ obj-$(CONFIG_MVME147_NET) += mvme147.o 7990.o
+ obj-$(CONFIG_EQUALIZER) += eql.o
++obj-$(CONFIG_LGUEST_GUEST) += lguest_net.o
+ obj-$(CONFIG_MIPS_JAZZ_SONIC) += jazzsonic.o
+ obj-$(CONFIG_MIPS_AU1X00_ENET) += au1000_eth.o
+ obj-$(CONFIG_MIPS_SIM_NET) += mipsnet.o
+diff -puN /dev/null drivers/net/lguest_net.c
+--- /dev/null
++++ a/drivers/net/lguest_net.c
+@@ -0,0 +1,354 @@
++/* A simple network driver for lguest.
++ *
++ * Copyright 2006 Rusty Russell <rusty@rustcorp.com.au> IBM Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++//#define DEBUG
++#include <linux/netdevice.h>
++#include <linux/etherdevice.h>
++#include <linux/module.h>
++#include <linux/mm_types.h>
++#include <linux/io.h>
++#include <linux/lguest_bus.h>
 +
- 	req->uc_data = (void *)buffer;
- 	req->uc_flags = 0;
- 	req->uc_inSize = inSize;
-@@ -715,13 +715,13 @@ static int coda_upcall(struct coda_sb_in
- 	req->uc_opcode = ((union inputArgs *)buffer)->ih.opcode;
- 	req->uc_unique = ++vcommp->vc_seq;
- 	init_waitqueue_head(&req->uc_sleep);
--	
++#define SHARED_SIZE		PAGE_SIZE
++#define MAX_LANS		4
++#define NUM_SKBS		8
 +
- 	/* Fill in the common input args. */
- 	((union inputArgs *)buffer)->ih.unique = req->uc_unique;
- 
- 	/* Append msg to pending queue and poke Venus. */
--	list_add_tail(&(req->uc_chain), &vcommp->vc_pending);
--        
-+	list_add_tail(&req->uc_chain, &vcommp->vc_pending);
++struct lguestnet_info
++{
++	/* The shared page(s). */
++	struct lguest_net *peer;
++	unsigned long peer_phys;
++	unsigned long mapsize;
 +
- 	wake_up_interruptible(&vcommp->vc_waitq);
- 	/* We can be interrupted while we wait for Venus to process
- 	 * our request.  If the interrupt occurs before Venus has read
-@@ -735,64 +735,59 @@ static int coda_upcall(struct coda_sb_in
- 	/* Go to sleep.  Wake up on signals only after the timeout. */
- 	coda_waitfor_upcall(req);
- 
--	if (vcommp->vc_inuse) {      /* i.e. Venus is still alive */
--	    /* Op went through, interrupt or not... */
--	    if (req->uc_flags & REQ_WRITE) {
-+	/* Op went through, interrupt or not... */
-+	if (req->uc_flags & REQ_WRITE) {
- 		out = (union outputArgs *)req->uc_data;
- 		/* here we map positive Venus errors to kernel errors */
- 		error = -out->oh.result;
- 		*outSize = req->uc_outSize;
- 		goto exit;
--	    }
--	    if ( !(req->uc_flags & REQ_READ) && signal_pending(current)) { 
--		/* Interrupted before venus read it. */
--		list_del(&(req->uc_chain));
--		/* perhaps the best way to convince the app to
--		   give up? */
--		error = -EINTR;
++	/* The lguest_device I come from */
++	struct lguest_device *lgdev;
++
++	/* My peerid. */
++	unsigned int me;
++
++	/* Receive queue. */
++	struct sk_buff *skb[NUM_SKBS];
++	struct lguest_dma dma[NUM_SKBS];
++};
++
++/* How many bytes left in this page. */
++static unsigned int rest_of_page(void *data)
++{
++	return PAGE_SIZE - ((unsigned long)data % PAGE_SIZE);
++}
++
++/* Simple convention: offset 4 * peernum. */
++static unsigned long peer_key(struct lguestnet_info *info, unsigned peernum)
++{
++	return info->peer_phys + 4 * peernum;
++}
++
++static void skb_to_dma(const struct sk_buff *skb, unsigned int headlen,
++		       struct lguest_dma *dma)
++{
++	unsigned int i, seg;
++
++	for (i = seg = 0; i < headlen; seg++, i += rest_of_page(skb->data+i)) {
++		dma->addr[seg] = virt_to_phys(skb->data + i);
++		dma->len[seg] = min((unsigned)(headlen - i),
++				    rest_of_page(skb->data + i));
++	}
++	for (i = 0; i < skb_shinfo(skb)->nr_frags; i++, seg++) {
++		const skb_frag_t *f = &skb_shinfo(skb)->frags[i];
++		/* Should not happen with MTU less than 64k - 2 * PAGE_SIZE. */
++		if (seg == LGUEST_MAX_DMA_SECTIONS) {
++			printk("Woah dude!  Megapacket!\n");
++			break;
++		}
++		dma->addr[seg] = page_to_phys(f->page) + f->page_offset;
++		dma->len[seg] = f->size;
++	}
++	if (seg < LGUEST_MAX_DMA_SECTIONS)
++		dma->len[seg] = 0;
++}
++
++/* We overload multicast bit to show promiscuous mode. */
++#define PROMISC_BIT		0x01
++
++static void lguestnet_set_multicast(struct net_device *dev)
++{
++	struct lguestnet_info *info = netdev_priv(dev);
++
++	if ((dev->flags & (IFF_PROMISC|IFF_ALLMULTI)) || dev->mc_count)
++		info->peer[info->me].mac[0] |= PROMISC_BIT;
++	else
++		info->peer[info->me].mac[0] &= ~PROMISC_BIT;
++}
++
++static int promisc(struct lguestnet_info *info, unsigned int peer)
++{
++	return info->peer[peer].mac[0] & PROMISC_BIT;
++}
++
++static int mac_eq(const unsigned char mac[ETH_ALEN],
++		  struct lguestnet_info *info, unsigned int peer)
++{
++	/* Ignore multicast bit, which peer turns on to mean promisc. */
++	if ((info->peer[peer].mac[0] & (~PROMISC_BIT)) != mac[0])
++		return 0;
++	return memcmp(mac+1, info->peer[peer].mac+1, ETH_ALEN-1) == 0;
++}
++
++static void transfer_packet(struct net_device *dev,
++			    struct sk_buff *skb,
++			    unsigned int peernum)
++{
++	struct lguestnet_info *info = netdev_priv(dev);
++	struct lguest_dma dma;
++
++	skb_to_dma(skb, skb_headlen(skb), &dma);
++	pr_debug("xfer length %04x (%u)\n", htons(skb->len), skb->len);
++
++	lguest_send_dma(peer_key(info, peernum), &dma);
++	if (dma.used_len != skb->len) {
++		dev->stats.tx_carrier_errors++;
++		pr_debug("Bad xfer to peer %i: %i of %i (dma %p/%i)\n",
++			 peernum, dma.used_len, skb->len,
++			 (void *)dma.addr[0], dma.len[0]);
++	} else {
++		dev->stats.tx_bytes += skb->len;
++		dev->stats.tx_packets++;
++	}
++}
++
++static int unused_peer(const struct lguest_net peer[], unsigned int num)
++{
++	return peer[num].mac[0] == 0;
++}
++
++static int lguestnet_start_xmit(struct sk_buff *skb, struct net_device *dev)
++{
++	unsigned int i;
++	int broadcast;
++	struct lguestnet_info *info = netdev_priv(dev);
++	const unsigned char *dest = ((struct ethhdr *)skb->data)->h_dest;
++
++	pr_debug("%s: xmit %02x:%02x:%02x:%02x:%02x:%02x\n",
++		 dev->name, dest[0],dest[1],dest[2],dest[3],dest[4],dest[5]);
++
++	broadcast = is_multicast_ether_addr(dest);
++	for (i = 0; i < info->mapsize/sizeof(struct lguest_net); i++) {
++		if (i == info->me || unused_peer(info->peer, i))
++			continue;
++
++		if (!broadcast && !promisc(info, i) && !mac_eq(dest, info, i))
++			continue;
++
++		pr_debug("lguestnet %s: sending from %i to %i\n",
++			 dev->name, info->me, i);
++		transfer_packet(dev, skb, i);
++	}
++	dev_kfree_skb(skb);
++	return 0;
++}
++
++/* Find a new skb to put in this slot in shared mem. */
++static int fill_slot(struct net_device *dev, unsigned int slot)
++{
++	struct lguestnet_info *info = netdev_priv(dev);
++	/* Try to create and register a new one. */
++	info->skb[slot] = netdev_alloc_skb(dev, ETH_HLEN + ETH_DATA_LEN);
++	if (!info->skb[slot]) {
++		printk("%s: could not fill slot %i\n", dev->name, slot);
++		return -ENOMEM;
 +	}
 +
-+	error = -EINTR;
-+	if ((req->uc_flags & REQ_ABORT) || !signal_pending(current)) {
-+		printk(KERN_WARNING "coda: Unexpected interruption.\n");
-+		goto exit;
++	skb_to_dma(info->skb[slot], ETH_HLEN + ETH_DATA_LEN, &info->dma[slot]);
++	wmb();
++	/* Now we tell hypervisor it can use the slot. */
++	info->dma[slot].used_len = 0;
++	return 0;
++}
++
++static irqreturn_t lguestnet_rcv(int irq, void *dev_id)
++{
++	struct net_device *dev = dev_id;
++	struct lguestnet_info *info = netdev_priv(dev);
++	unsigned int i, done = 0;
++
++	for (i = 0; i < ARRAY_SIZE(info->dma); i++) {
++		unsigned int length;
++		struct sk_buff *skb;
++
++		length = info->dma[i].used_len;
++		if (length == 0)
++			continue;
++
++		done++;
++		skb = info->skb[i];
++		fill_slot(dev, i);
++
++		if (length < ETH_HLEN || length > ETH_HLEN + ETH_DATA_LEN) {
++			pr_debug(KERN_WARNING "%s: unbelievable skb len: %i\n",
++				 dev->name, length);
++			dev_kfree_skb(skb);
++			continue;
++		}
++
++		skb_put(skb, length);
++		skb->protocol = eth_type_trans(skb, dev);
++		/* This is a reliable transport. */
++		if (dev->features & NETIF_F_NO_CSUM)
++			skb->ip_summed = CHECKSUM_UNNECESSARY;
++		pr_debug("Receiving skb proto 0x%04x len %i type %i\n",
++			 ntohs(skb->protocol), skb->len, skb->pkt_type);
++
++		dev->stats.rx_bytes += skb->len;
++		dev->stats.rx_packets++;
++		netif_rx(skb);
++	}
++	return done ? IRQ_HANDLED : IRQ_NONE;
++}
++
++static int lguestnet_open(struct net_device *dev)
++{
++	int i;
++	struct lguestnet_info *info = netdev_priv(dev);
++
++	/* Set up our MAC address */
++	memcpy(info->peer[info->me].mac, dev->dev_addr, ETH_ALEN);
++
++	/* Turn on promisc mode if needed */
++	lguestnet_set_multicast(dev);
++
++	for (i = 0; i < ARRAY_SIZE(info->dma); i++) {
++		if (fill_slot(dev, i) != 0)
++			goto cleanup;
++	}
++	if (lguest_bind_dma(peer_key(info,info->me), info->dma,
++			    NUM_SKBS, lgdev_irq(info->lgdev)) != 0)
++		goto cleanup;
++	return 0;
++
++cleanup:
++	while (--i >= 0)
++		dev_kfree_skb(info->skb[i]);
++	return -ENOMEM;
++}
++
++static int lguestnet_close(struct net_device *dev)
++{
++	unsigned int i;
++	struct lguestnet_info *info = netdev_priv(dev);
++
++	/* Clear all trace: others might deliver packets, we'll ignore it. */
++	memset(&info->peer[info->me], 0, sizeof(info->peer[info->me]));
++
++	/* Deregister sg lists. */
++	lguest_unbind_dma(peer_key(info, info->me), info->dma);
++	for (i = 0; i < ARRAY_SIZE(info->dma); i++)
++		dev_kfree_skb(info->skb[i]);
++	return 0;
++}
++
++static int lguestnet_probe(struct lguest_device *lgdev)
++{
++	int err, irqf = IRQF_SHARED;
++	struct net_device *dev;
++	struct lguestnet_info *info;
++	struct lguest_device_desc *desc = &lguest_devices[lgdev->index];
++
++	pr_debug("lguest_net: probing for device %i\n", lgdev->index);
++
++	dev = alloc_etherdev(sizeof(struct lguestnet_info));
++	if (!dev)
++		return -ENOMEM;
++
++	SET_MODULE_OWNER(dev);
++
++	/* Ethernet defaults with some changes */
++	ether_setup(dev);
++	dev->set_mac_address = NULL;
++
++	dev->dev_addr[0] = 0x02; /* set local assignment bit (IEEE802) */
++	dev->dev_addr[1] = 0x00;
++	memcpy(&dev->dev_addr[2], &lguest_data.guestid, 2);
++	dev->dev_addr[4] = 0x00;
++	dev->dev_addr[5] = 0x00;
++
++	dev->open = lguestnet_open;
++	dev->stop = lguestnet_close;
++	dev->hard_start_xmit = lguestnet_start_xmit;
++
++	/* Turning on/off promisc will call dev->set_multicast_list.
++	 * We don't actually support multicast yet */
++	dev->set_multicast_list = lguestnet_set_multicast;
++	SET_NETDEV_DEV(dev, &lgdev->dev);
++	if (desc->features & LGUEST_NET_F_NOCSUM)
++		dev->features = NETIF_F_SG|NETIF_F_NO_CSUM;
++
++	info = netdev_priv(dev);
++	info->mapsize = PAGE_SIZE * desc->num_pages;
++	info->peer_phys = ((unsigned long)desc->pfn << PAGE_SHIFT);
++	info->lgdev = lgdev;
++	info->peer = lguest_map(info->peer_phys, desc->num_pages);
++	if (!info->peer) {
++		err = -ENOMEM;
++		goto free;
 +	}
 +
-+	list_del(&(req->uc_chain));
++	/* This stores our peerid (upper bits reserved for future). */
++	info->me = (desc->features & (info->mapsize-1));
 +
-+	/* Interrupted before venus read it. */
-+	if (!(req->uc_flags & REQ_READ))
-+		goto exit;
-+
-+	/* Venus saw the upcall, make sure we can send interrupt signal */
-+	if (!vcommp->vc_inuse) {
-+		printk(KERN_INFO "coda: Venus dead, not sending signal.\n");
- 		goto exit;
--	    } 
--	    if ( (req->uc_flags & REQ_READ) && signal_pending(current) ) {
--		    /* interrupted after Venus did its read, send signal */
--		    union inputArgs *sig_inputArgs;
--		    struct upc_req *sig_req;
--		    
--		    list_del(&(req->uc_chain));
--		    error = -ENOMEM;
--		    sig_req = upc_alloc();
--		    if (!sig_req) goto exit;
--
--		    CODA_ALLOC((sig_req->uc_data), char *, sizeof(struct coda_in_hdr));
--		    if (!sig_req->uc_data) {
--			upc_free(sig_req);
--			goto exit;
--		    }
--		    
--		    error = -EINTR;
--		    sig_inputArgs = (union inputArgs *)sig_req->uc_data;
--		    sig_inputArgs->ih.opcode = CODA_SIGNAL;
--		    sig_inputArgs->ih.unique = req->uc_unique;
--		    
--		    sig_req->uc_flags = REQ_ASYNC;
--		    sig_req->uc_opcode = sig_inputArgs->ih.opcode;
--		    sig_req->uc_unique = sig_inputArgs->ih.unique;
--		    sig_req->uc_inSize = sizeof(struct coda_in_hdr);
--		    sig_req->uc_outSize = sizeof(struct coda_in_hdr);
--		    
--		    /* insert at head of queue! */
--		    list_add(&(sig_req->uc_chain), &vcommp->vc_pending);
--		    wake_up_interruptible(&vcommp->vc_waitq);
--	    } else {
--		    printk("Coda: Strange interruption..\n");
--		    error = -EINTR;
--	    }
--	} else {	/* If venus died i.e. !VC_OPEN(vcommp) */
--	        printk("coda_upcall: Venus dead on (op,un) (%d.%d) flags %d\n",
--		       req->uc_opcode, req->uc_unique, req->uc_flags);
--		error = -ENODEV;
- 	}
- 
-- exit:
-+	error = -ENOMEM;
-+	sig_req = upc_alloc();
-+	if (!sig_req) goto exit;
-+
-+	CODA_ALLOC((sig_req->uc_data), char *, sizeof(struct coda_in_hdr));
-+	if (!sig_req->uc_data) {
-+		upc_free(sig_req);
-+		goto exit;
++	err = register_netdev(dev);
++	if (err) {
++		pr_debug("lguestnet: registering device failed\n");
++		goto unmap;
 +	}
 +
-+	error = -EINTR;
-+	sig_inputArgs = (union inputArgs *)sig_req->uc_data;
-+	sig_inputArgs->ih.opcode = CODA_SIGNAL;
-+	sig_inputArgs->ih.unique = req->uc_unique;
++	if (lguest_devices[lgdev->index].features & LGUEST_DEVICE_F_RANDOMNESS)
++		irqf |= IRQF_SAMPLE_RANDOM;
++	if (request_irq(lgdev_irq(lgdev), lguestnet_rcv, irqf, "lguestnet",
++			dev) != 0) {
++		pr_debug("lguestnet: cannot get irq %i\n", lgdev_irq(lgdev));
++		goto unregister;
++	}
 +
-+	sig_req->uc_flags = REQ_ASYNC;
-+	sig_req->uc_opcode = sig_inputArgs->ih.opcode;
-+	sig_req->uc_unique = sig_inputArgs->ih.unique;
-+	sig_req->uc_inSize = sizeof(struct coda_in_hdr);
-+	sig_req->uc_outSize = sizeof(struct coda_in_hdr);
++	pr_debug("lguestnet: registered device %s\n", dev->name);
++	lgdev->private = dev;
++	return 0;
 +
-+	/* insert at head of queue! */
-+	list_add(&(sig_req->uc_chain), &vcommp->vc_pending);
-+	wake_up_interruptible(&vcommp->vc_waitq);
++unregister:
++	unregister_netdev(dev);
++unmap:
++	lguest_unmap(info->peer);
++free:
++	free_netdev(dev);
++	return err;
++}
 +
-+exit:
- 	upc_free(req);
- 	return error;
- }
++static struct lguest_driver lguestnet_drv = {
++	.name = "lguestnet",
++	.owner = THIS_MODULE,
++	.device_type = LGUEST_DEVICE_T_NET,
++	.probe = lguestnet_probe,
++};
++
++static __init int lguestnet_init(void)
++{
++	return register_lguest_driver(&lguestnet_drv);
++}
++module_init(lguestnet_init);
++
++MODULE_DESCRIPTION("Lguest network driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from jaharkes@cs.cmu.edu are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
+git-kbuild.patch
+git-kvm.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
