@@ -1,57 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: + git-kgdb-fixup-2.patch added to -mm tree
-Date: Thu, 19 Jul 2007 12:52:45 -0700
-Message-ID: <200707191952.l6JJqjcA019109@imap1.linux-foundation.org>
+Subject: - git-kgdb-fixup.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 12:54:40 -0700
+Message-ID: <200707191954.l6JJseae019148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47852 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43719 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751210AbXGSTww (ORCPT
+	by vger.kernel.org with ESMTP id S1751379AbXGSTyr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 15:52:52 -0400
+	Thu, 19 Jul 2007 15:54:47 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6JJqonu012225
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6JJsjPr012302
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2007 12:52:51 -0700
+	for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2007 12:54:46 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-kgdb-fixup-2
-has been added to the -mm tree.  Its filename is
-     git-kgdb-fixup-2.patch
+     git-kgdb-fixup
+has been removed from the -mm tree.  Its filename was
+     git-kgdb-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-kgdb-fixup-2
+Subject: git-kgdb-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
+
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile                  |    0 
- arch/i386/kernel/Makefile |    1 +
- 2 files changed, 1 insertion(+)
+ arch/arm/mach-ixp4xx/ixdp425-setup.c |    3 ++-
+ arch/ppc/platforms/4xx/bamboo.c      |    1 +
+ arch/ppc/platforms/4xx/bubinga.c     |    1 +
+ arch/ppc/platforms/4xx/ebony.c       |    1 +
+ arch/ppc/platforms/4xx/luan.c        |    1 +
+ arch/ppc/platforms/4xx/ocotea.c      |    1 +
+ arch/ppc/platforms/spruce.c          |    1 +
+ 7 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/Makefile~git-kgdb-fixup-2 arch/i386/kernel/Makefile
---- a/arch/i386/kernel/Makefile~git-kgdb-fixup-2
-+++ a/arch/i386/kernel/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_X86_REBOOTFIXUPS)	+= reboot
- obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o crash.o
- obj-$(CONFIG_CRASH_DUMP)	+= crash_dump.o
- obj-$(CONFIG_X86_NUMAQ)		+= numaq.o
-+obj-$(CONFIG_KGDB)		+= kgdb.o kgdb-jmp.o
- obj-$(CONFIG_X86_SUMMIT_NUMA)	+= summit.o
- obj-$(CONFIG_KPROBES)		+= kprobes.o
- obj-$(CONFIG_MODULES)		+= module.o
-diff -puN Makefile~git-kgdb-fixup-2 Makefile
+diff -puN arch/arm/mach-ixp4xx/ixdp425-setup.c~git-kgdb-fixup arch/arm/mach-ixp4xx/ixdp425-setup.c
+--- a/arch/arm/mach-ixp4xx/ixdp425-setup.c~git-kgdb-fixup
++++ a/arch/arm/mach-ixp4xx/ixdp425-setup.c
+@@ -29,6 +29,7 @@
+ #include <asm/irq.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/flash.h>
++#include <asm/kgdb.h>
+ #include <asm/delay.h>
+ 
+ static struct flash_platform_data ixdp425_flash_data = {
+@@ -263,7 +264,7 @@ MACHINE_START(IXCDP1100, "Intel IXCDP110
+ 	/* Maintainer: MontaVista Software, Inc. */
+ 	.phys_io	= IXP4XX_PERIPHERAL_BASE_PHYS,
+ 	.io_pg_offst	= ((IXP4XX_PERIPHERAL_BASE_VIRT) >> 18) & 0xfffc,
+-	.map_io		= ixp4xx_map_io,
++	.map_io		= ixdp425_map_io,
+ 	.init_irq	= ixp4xx_init_irq,
+ 	.timer		= &ixp4xx_timer,
+ 	.boot_params	= 0x0100,
+diff -puN arch/i386/kernel/Makefile~git-kgdb-fixup arch/i386/kernel/Makefile
+diff -puN arch/mips/mips-boards/generic/Makefile~git-kgdb-fixup arch/mips/mips-boards/generic/Makefile
+diff -puN Makefile~git-kgdb-fixup Makefile
+diff -puN arch/sh/Kconfig.debug~git-kgdb-fixup arch/sh/Kconfig.debug
+diff -puN arch/ppc/platforms/spruce.c~git-kgdb-fixup arch/ppc/platforms/spruce.c
+--- a/arch/ppc/platforms/spruce.c~git-kgdb-fixup
++++ a/arch/ppc/platforms/spruce.c
+@@ -15,6 +15,7 @@
+ #include <linux/errno.h>
+ #include <linux/reboot.h>
+ #include <linux/pci.h>
++#include <linux/kgdb.h>
+ #include <linux/kdev_t.h>
+ #include <linux/types.h>
+ #include <linux/major.h>
+diff -puN arch/ppc/platforms/4xx/ocotea.c~git-kgdb-fixup arch/ppc/platforms/4xx/ocotea.c
+--- a/arch/ppc/platforms/4xx/ocotea.c~git-kgdb-fixup
++++ a/arch/ppc/platforms/4xx/ocotea.c
+@@ -17,6 +17,7 @@
+ #include <linux/errno.h>
+ #include <linux/reboot.h>
+ #include <linux/pci.h>
++#include <linux/kgdb.h>
+ #include <linux/kdev_t.h>
+ #include <linux/types.h>
+ #include <linux/major.h>
+diff -puN arch/ppc/platforms/4xx/luan.c~git-kgdb-fixup arch/ppc/platforms/4xx/luan.c
+--- a/arch/ppc/platforms/4xx/luan.c~git-kgdb-fixup
++++ a/arch/ppc/platforms/4xx/luan.c
+@@ -17,6 +17,7 @@
+ #include <linux/errno.h>
+ #include <linux/reboot.h>
+ #include <linux/pci.h>
++#include <linux/kgdb.h>
+ #include <linux/kdev_t.h>
+ #include <linux/types.h>
+ #include <linux/major.h>
+diff -puN arch/ppc/platforms/4xx/ebony.c~git-kgdb-fixup arch/ppc/platforms/4xx/ebony.c
+--- a/arch/ppc/platforms/4xx/ebony.c~git-kgdb-fixup
++++ a/arch/ppc/platforms/4xx/ebony.c
+@@ -19,6 +19,7 @@
+ #include <linux/errno.h>
+ #include <linux/reboot.h>
+ #include <linux/pci.h>
++#include <linux/kgdb.h>
+ #include <linux/kdev_t.h>
+ #include <linux/types.h>
+ #include <linux/major.h>
+diff -puN arch/ppc/platforms/4xx/bubinga.c~git-kgdb-fixup arch/ppc/platforms/4xx/bubinga.c
+--- a/arch/ppc/platforms/4xx/bubinga.c~git-kgdb-fixup
++++ a/arch/ppc/platforms/4xx/bubinga.c
+@@ -15,6 +15,7 @@
+ #include <linux/threads.h>
+ #include <linux/param.h>
+ #include <linux/string.h>
++#include <linux/kgdb.h>
+ #include <linux/blkdev.h>
+ #include <linux/pci.h>
+ #include <linux/rtc.h>
+diff -puN arch/ppc/platforms/4xx/bamboo.c~git-kgdb-fixup arch/ppc/platforms/4xx/bamboo.c
+--- a/arch/ppc/platforms/4xx/bamboo.c~git-kgdb-fixup
++++ a/arch/ppc/platforms/4xx/bamboo.c
+@@ -16,6 +16,7 @@
+ #include <linux/errno.h>
+ #include <linux/reboot.h>
+ #include <linux/pci.h>
++#include <linux/kgdb.h>
+ #include <linux/kdev_t.h>
+ #include <linux/types.h>
+ #include <linux/major.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
