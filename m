@@ -1,372 +1,464 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-lindent-i82443bxgx.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:06:29 -0700
-Message-ID: <200707192006.l6JK6TFe020140@imap1.linux-foundation.org>
+Subject: - drivers-edac-mod-pci-poll-names.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:05:58 -0700
+Message-ID: <200707192005.l6JK5wLO020092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51422 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51520 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762050AbXGSURL (ORCPT
+	by vger.kernel.org with ESMTP id S1762098AbXGSURO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:17:11 -0400
+	Thu, 19 Jul 2007 16:17:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dougthompson@xmission.com, djiang@mvista.com, mm-commits@vger.kernel.org
+To: djiang@mvista.com, dougthompson@xmissin.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: Lindent i82443bxgx
+     drivers/edac: mod PCI poll names
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-lindent-i82443bxgx.patch
+     drivers-edac-mod-pci-poll-names.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: Lindent i82443bxgx
-From: Douglas Thompson <dougthompson@xmission.com>
+Subject: drivers/edac: mod PCI poll names
+From: Dave Jiang <djiang@mvista.com>
 
-Run i82443bxgx.c file through Lindent for cleanup
+Fixup poll values for MC and PCI.
+Also make mc function names unique to mc.
 
-Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Dave Jiang <djiang@mvista.com>
+Signed-off-by: Douglas Thompson <dougthompson@xmissin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i82443bxgx_edac.c |  158 +++++++++++++------------------
- 1 file changed, 71 insertions(+), 87 deletions(-)
+ drivers/edac/edac_core.h      |    7 --
+ drivers/edac/edac_mc.c        |   21 ++++----
+ drivers/edac/edac_mc_sysfs.c  |   76 ++++++++++++++++++--------------
+ drivers/edac/edac_module.h    |    7 ++
+ drivers/edac/edac_pci.c       |   21 ++------
+ drivers/edac/edac_pci_sysfs.c |   56 ++++++++++++++++++-----
+ 6 files changed, 111 insertions(+), 77 deletions(-)
 
-diff -puN drivers/edac/i82443bxgx_edac.c~drivers-edac-lindent-i82443bxgx drivers/edac/i82443bxgx_edac.c
---- a/drivers/edac/i82443bxgx_edac.c~drivers-edac-lindent-i82443bxgx
-+++ a/drivers/edac/i82443bxgx_edac.c
-@@ -35,7 +35,6 @@
+diff -puN drivers/edac/edac_core.h~drivers-edac-mod-pci-poll-names drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~drivers-edac-mod-pci-poll-names
++++ a/drivers/edac/edac_core.h
+@@ -646,13 +646,6 @@ struct edac_pci_ctl_info {
  
- #define EDAC_MOD_STR    "i82443bxgx_edac"
+ 	int pci_idx;
  
+-	/* Per instance controls for this edac_device */
+-	int check_parity_error;	/* boolean for checking parity errs */
+-	int log_parity_error;	/* boolean for logging parity errs */
+-	int panic_on_pe;	/* boolean for panic'ing on a PE */
+-	unsigned poll_msec;	/* number of milliseconds to poll interval */
+-	unsigned long delay;	/* number of jiffies for poll_msec */
 -
- /* The 82443BX supports SDRAM, or EDO (EDO for mobile only), "Memory
-  * Size: 8 MB to 512 MB (1GB with Registered DIMMs) with eight memory
-  * rows" "The 82443BX supports multiple-bit error detection and
-@@ -61,67 +60,60 @@
- #define I82443BXGX_NR_CHANS  1
- #define I82443BXGX_NR_DIMMS  4
+ 	struct sysdev_class *edac_class;	/* pointer to class */
  
--
--
- /* 82443 PCI Device 0 */
--#define I82443BXGX_NBXCFG 0x50   /* 32bit register starting at this PCI
--				* config space offset */
--#define I82443BXGX_NBXCFG_OFFSET_NON_ECCROW 24 /* Array of bits, zero if
--					      * row is non-ECC */
--#define I82443BXGX_NBXCFG_OFFSET_DRAM_FREQ 12 /* 2 bits,00=100MHz,10=66 MHz */
--
--#define I82443BXGX_NBXCFG_OFFSET_DRAM_INTEGRITY 7 /* 2 bits:       */
--#define I82443BXGX_NBXCFG_INTEGRITY_NONE   0x0    /* 00 = Non-ECC */
--#define I82443BXGX_NBXCFG_INTEGRITY_EC     0x1    /* 01 = EC (only) */
--#define I82443BXGX_NBXCFG_INTEGRITY_ECC    0x2    /* 10 = ECC */
--#define I82443BXGX_NBXCFG_INTEGRITY_SCRUB  0x3    /* 11 = ECC + HW Scrub */
-+#define I82443BXGX_NBXCFG 0x50	/* 32bit register starting at this PCI
-+				 * config space offset */
-+#define I82443BXGX_NBXCFG_OFFSET_NON_ECCROW 24	/* Array of bits, zero if
-+						 * row is non-ECC */
-+#define I82443BXGX_NBXCFG_OFFSET_DRAM_FREQ 12	/* 2 bits,00=100MHz,10=66 MHz */
-+
-+#define I82443BXGX_NBXCFG_OFFSET_DRAM_INTEGRITY 7	/* 2 bits:       */
-+#define I82443BXGX_NBXCFG_INTEGRITY_NONE   0x0	/* 00 = Non-ECC */
-+#define I82443BXGX_NBXCFG_INTEGRITY_EC     0x1	/* 01 = EC (only) */
-+#define I82443BXGX_NBXCFG_INTEGRITY_ECC    0x2	/* 10 = ECC */
-+#define I82443BXGX_NBXCFG_INTEGRITY_SCRUB  0x3	/* 11 = ECC + HW Scrub */
+ 	/* the internal state of this controller instance */
+diff -puN drivers/edac/edac_mc.c~drivers-edac-mod-pci-poll-names drivers/edac/edac_mc.c
+--- a/drivers/edac/edac_mc.c~drivers-edac-mod-pci-poll-names
++++ a/drivers/edac/edac_mc.c
+@@ -263,7 +263,8 @@ static void edac_mc_workq_function(void 
+ 	mutex_unlock(&mem_ctls_mutex);
  
- #define I82443BXGX_NBXCFG_OFFSET_ECC_DIAG_ENABLE  6
- 
--
- /* 82443 PCI Device 0 */
--#define I82443BXGX_EAP   0x80   /* 32bit register starting at this PCI
--				* config space offset, Error Address
--				* Pointer Register */
--#define I82443BXGX_EAP_OFFSET_EAP  12   /* High 20 bits of error address */
--#define I82443BXGX_EAP_OFFSET_MBE  BIT(1) /* Err at EAP was multi-bit (W1TC) */
--#define I82443BXGX_EAP_OFFSET_SBE  BIT(0) /* Err at EAP was single-bit (W1TC)*/
-+#define I82443BXGX_EAP   0x80	/* 32bit register starting at this PCI
-+				 * config space offset, Error Address
-+				 * Pointer Register */
-+#define I82443BXGX_EAP_OFFSET_EAP  12	/* High 20 bits of error address */
-+#define I82443BXGX_EAP_OFFSET_MBE  BIT(1)	/* Err at EAP was multi-bit (W1TC) */
-+#define I82443BXGX_EAP_OFFSET_SBE  BIT(0)	/* Err at EAP was single-bit (W1TC) */
- 
--#define I82443BXGX_ERRCMD  0x90   /* 8bit register starting at this PCI
-+#define I82443BXGX_ERRCMD  0x90	/* 8bit register starting at this PCI
- 				 * config space offset. */
--#define I82443BXGX_ERRCMD_OFFSET_SERR_ON_MBE BIT(1) /* 1 = enable */
--#define I82443BXGX_ERRCMD_OFFSET_SERR_ON_SBE BIT(0) /* 1 = enable */
-+#define I82443BXGX_ERRCMD_OFFSET_SERR_ON_MBE BIT(1)	/* 1 = enable */
-+#define I82443BXGX_ERRCMD_OFFSET_SERR_ON_SBE BIT(0)	/* 1 = enable */
- 
--#define I82443BXGX_ERRSTS  0x91   /* 16bit register starting at this PCI
-+#define I82443BXGX_ERRSTS  0x91	/* 16bit register starting at this PCI
- 				 * config space offset. */
--#define I82443BXGX_ERRSTS_OFFSET_MBFRE 5 /* 3 bits - first err row multibit */
--#define I82443BXGX_ERRSTS_OFFSET_MEF   BIT(4) /* 1 = MBE occurred */
--#define I82443BXGX_ERRSTS_OFFSET_SBFRE 1 /* 3 bits - first err row singlebit */
--#define I82443BXGX_ERRSTS_OFFSET_SEF   BIT(0) /* 1 = SBE occurred */
--
-+#define I82443BXGX_ERRSTS_OFFSET_MBFRE 5	/* 3 bits - first err row multibit */
-+#define I82443BXGX_ERRSTS_OFFSET_MEF   BIT(4)	/* 1 = MBE occurred */
-+#define I82443BXGX_ERRSTS_OFFSET_SBFRE 1	/* 3 bits - first err row singlebit */
-+#define I82443BXGX_ERRSTS_OFFSET_SEF   BIT(0)	/* 1 = SBE occurred */
- 
--#define I82443BXGX_DRAMC 0x57   /* 8bit register starting at this PCI
--			       * config space offset. */
--#define I82443BXGX_DRAMC_OFFSET_DT 3      /* 2 bits, DRAM Type */
--#define I82443BXGX_DRAMC_DRAM_IS_EDO 0    /* 00 = EDO */
-+#define I82443BXGX_DRAMC 0x57	/* 8bit register starting at this PCI
-+				 * config space offset. */
-+#define I82443BXGX_DRAMC_OFFSET_DT 3	/* 2 bits, DRAM Type */
-+#define I82443BXGX_DRAMC_DRAM_IS_EDO 0	/* 00 = EDO */
- #define I82443BXGX_DRAMC_DRAM_IS_SDRAM 1	/* 01 = SDRAM */
--#define I82443BXGX_DRAMC_DRAM_IS_RSDRAM 2 /* 10 = Registered SDRAM */
--
--
--#define I82443BXGX_DRB 0x60   /* 8x 8bit registers starting at this PCI
--			     * config space offset. */
-+#define I82443BXGX_DRAMC_DRAM_IS_RSDRAM 2	/* 10 = Registered SDRAM */
- 
-+#define I82443BXGX_DRB 0x60	/* 8x 8bit registers starting at this PCI
-+				 * config space offset. */
- 
- /* FIXME - don't poll when ECC disabled? */
- 
--
- struct i82443bxgx_edacmc_error_info {
- 	u32 eap;
- };
- 
--
--static void i82443bxgx_edacmc_get_error_info (struct mem_ctl_info *mci,
--		struct i82443bxgx_edacmc_error_info *info)
-+static void i82443bxgx_edacmc_get_error_info(struct mem_ctl_info *mci,
-+					     struct i82443bxgx_edacmc_error_info
-+					     *info)
- {
- 	struct pci_dev *pdev;
- 	pdev = to_pci_dev(mci->dev);
-@@ -139,9 +131,10 @@ static void i82443bxgx_edacmc_get_error_
- 				 I82443BXGX_EAP_OFFSET_MBE);
+ 	/* Reschedule */
+-	queue_delayed_work(edac_workqueue, &mci->work, edac_mc_get_poll_msec());
++	queue_delayed_work(edac_workqueue, &mci->work,
++			msecs_to_jiffies(edac_mc_get_poll_msec()));
  }
  
--
--static int i82443bxgx_edacmc_process_error_info (struct mem_ctl_info *mci,
--		struct i82443bxgx_edacmc_error_info *info, int handle_errors)
-+static int i82443bxgx_edacmc_process_error_info(struct mem_ctl_info *mci,
-+						struct
-+						i82443bxgx_edacmc_error_info
-+						*info, int handle_errors)
- {
- 	int error_found = 0;
- 	u32 eapaddr, page, pageoffset;
-@@ -152,31 +145,26 @@ static int i82443bxgx_edacmc_process_err
- 	page = eapaddr >> PAGE_SHIFT;
- 	pageoffset = eapaddr - (page << PAGE_SHIFT);
- 
--	if (info->eap  & I82443BXGX_EAP_OFFSET_SBE) {
-+	if (info->eap & I82443BXGX_EAP_OFFSET_SBE) {
- 		error_found = 1;
- 		if (handle_errors)
--			edac_mc_handle_ce(
--				mci, page, pageoffset,
--				/* 440BX/GX don't make syndrome information available */
--				0,
--				edac_mc_find_csrow_by_page(mci, page),
--				0,	/* channel */
--				mci->ctl_name);
-+			edac_mc_handle_ce(mci, page, pageoffset,
-+					  /* 440BX/GX don't make syndrome information available */
-+					  0, edac_mc_find_csrow_by_page(mci, page), 0,	/* channel */
-+					  mci->ctl_name);
- 	}
- 
--	if (info->eap  & I82443BXGX_EAP_OFFSET_MBE) {
-+	if (info->eap & I82443BXGX_EAP_OFFSET_MBE) {
- 		error_found = 1;
- 		if (handle_errors)
--			edac_mc_handle_ue(
--				mci, page, pageoffset,
--				edac_mc_find_csrow_by_page(mci, page),
--				mci->ctl_name);
-+			edac_mc_handle_ue(mci, page, pageoffset,
-+					  edac_mc_find_csrow_by_page(mci, page),
-+					  mci->ctl_name);
- 	}
- 
- 	return error_found;
- }
- 
--
- static void i82443bxgx_edacmc_check(struct mem_ctl_info *mci)
- {
- 	struct i82443bxgx_edacmc_error_info info;
-@@ -186,11 +174,10 @@ static void i82443bxgx_edacmc_check(stru
- 	i82443bxgx_edacmc_process_error_info(mci, &info, 1);
- }
- 
--
- static void i82443bxgx_init_csrows(struct mem_ctl_info *mci,
--					struct pci_dev *pdev,
--					enum edac_type edac_mode,
--					enum mem_type mtype)
-+				   struct pci_dev *pdev,
-+				   enum edac_type edac_mode,
-+				   enum mem_type mtype)
- {
- 	struct csrow_info *csrow;
- 	int index;
-@@ -233,8 +220,7 @@ static void i82443bxgx_init_csrows(struc
- 	}
- }
- 
--
--static int  i82443bxgx_edacmc_probe1(struct pci_dev *pdev, int dev_idx)
-+static int i82443bxgx_edacmc_probe1(struct pci_dev *pdev, int dev_idx)
- {
- 	struct mem_ctl_info *mci;
- 	u8 dramc;
-@@ -260,7 +246,7 @@ static int  i82443bxgx_edacmc_probe1(str
- 	mci->edac_ctl_cap = EDAC_FLAG_NONE | EDAC_FLAG_EC | EDAC_FLAG_SECDED;
- 	pci_read_config_byte(pdev, I82443BXGX_DRAMC, &dramc);
- 	switch ((dramc >> I82443BXGX_DRAMC_OFFSET_DT) & (BIT(0) | BIT(1))) {
--	case  I82443BXGX_DRAMC_DRAM_IS_EDO:
-+	case I82443BXGX_DRAMC_DRAM_IS_EDO:
- 		mtype = MEM_EDO;
- 		break;
- 	case I82443BXGX_DRAMC_DRAM_IS_SDRAM:
-@@ -270,7 +256,8 @@ static int  i82443bxgx_edacmc_probe1(str
- 		mtype = MEM_RDR;
- 		break;
- 	default:
--		debugf0("Unknown/reserved DRAM type value in DRAMC register!\n");
-+		debugf0
-+		    ("Unknown/reserved DRAM type value in DRAMC register!\n");
- 		mtype = -MEM_UNKNOWN;
- 	}
- 
-@@ -282,13 +269,12 @@ static int  i82443bxgx_edacmc_probe1(str
- 	mci->scrub_cap = SCRUB_FLAG_HW_SRC;
- 	pci_read_config_dword(pdev, I82443BXGX_NBXCFG, &nbxcfg);
- 	ecc_mode = ((nbxcfg >> I82443BXGX_NBXCFG_OFFSET_DRAM_INTEGRITY) &
--				(BIT(0) | BIT(1)));
-+		    (BIT(0) | BIT(1)));
- 
- 	mci->scrub_mode = (ecc_mode == I82443BXGX_NBXCFG_INTEGRITY_SCRUB)
--		? SCRUB_HW_SRC
--		: SCRUB_NONE;
-+	    ? SCRUB_HW_SRC : SCRUB_NONE;
- 
--	switch(ecc_mode) {
-+	switch (ecc_mode) {
- 	case I82443BXGX_NBXCFG_INTEGRITY_NONE:
- 		edac_mode = EDAC_NONE;
- 		break;
-@@ -300,8 +286,9 @@ static int  i82443bxgx_edacmc_probe1(str
- 		edac_mode = EDAC_SECDED;
- 		break;
- 	default:
--		debugf0("%s(): Unknown/reserved ECC state in NBXCFG register!\n",
--			__func__);
-+		debugf0
-+		    ("%s(): Unknown/reserved ECC state in NBXCFG register!\n",
-+		     __func__);
- 		edac_mode = EDAC_UNKNOWN;
- 		break;
- 	}
-@@ -312,8 +299,10 @@ static int  i82443bxgx_edacmc_probe1(str
- 	 * here, or we get "phantom" errors occuring at module-load
- 	 * time. */
- 	pci_write_bits32(pdev, I82443BXGX_EAP,
--			 (I82443BXGX_EAP_OFFSET_SBE | I82443BXGX_EAP_OFFSET_MBE),
--			 (I82443BXGX_EAP_OFFSET_SBE | I82443BXGX_EAP_OFFSET_MBE));
-+			 (I82443BXGX_EAP_OFFSET_SBE |
-+			  I82443BXGX_EAP_OFFSET_MBE),
-+			 (I82443BXGX_EAP_OFFSET_SBE |
-+			  I82443BXGX_EAP_OFFSET_MBE));
- 
- 	mci->mod_name = EDAC_MOD_STR;
- 	mci->mod_ver = I82443_REVISION;
-@@ -330,36 +319,36 @@ static int  i82443bxgx_edacmc_probe1(str
- 	debugf3("MC: " __FILE__ ": %s(): success\n", __func__);
- 	return 0;
- 
--fail:
-+      fail:
- 	edac_mc_free(mci);
- 	return -ENODEV;
- }
-+
- EXPORT_SYMBOL_GPL(i82443bxgx_edacmc_probe1);
- 
- /* returns count (>= 0), or negative on error */
- static int __devinit i82443bxgx_edacmc_init_one(struct pci_dev *pdev,
--				     const struct pci_device_id *ent)
-+						const struct pci_device_id *ent)
- {
- 	debugf0("MC: " __FILE__ ": %s()\n", __func__);
- 
- 	/* don't need to call pci_device_enable() */
--	return  i82443bxgx_edacmc_probe1(pdev, ent->driver_data);
-+	return i82443bxgx_edacmc_probe1(pdev, ent->driver_data);
- }
- 
--
- static void __devexit i82443bxgx_edacmc_remove_one(struct pci_dev *pdev)
- {
- 	struct mem_ctl_info *mci;
- 
- 	debugf0(__FILE__ ": %s()\n", __func__);
- 
--	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL )
-+	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
+ /*
+@@ -611,7 +612,7 @@ void edac_mc_handle_ce(struct mem_ctl_in
  		return;
+ 	}
  
- 	edac_mc_free(mci);
+-	if (edac_get_log_ce())
++	if (edac_mc_get_log_ce())
+ 		/* FIXME - put in DIMM location */
+ 		edac_mc_printk(mci, KERN_WARNING,
+ 			"CE page 0x%lx, offset 0x%lx, grain %d, syndrome "
+@@ -646,7 +647,7 @@ EXPORT_SYMBOL_GPL(edac_mc_handle_ce);
+ 
+ void edac_mc_handle_ce_no_info(struct mem_ctl_info *mci, const char *msg)
+ {
+-	if (edac_get_log_ce())
++	if (edac_mc_get_log_ce())
+ 		edac_mc_printk(mci, KERN_WARNING,
+ 			"CE - no information available: %s\n", msg);
+ 
+@@ -690,14 +691,14 @@ void edac_mc_handle_ue(struct mem_ctl_in
+ 		pos += chars;
+ 	}
+ 
+-	if (edac_get_log_ue())
++	if (edac_mc_get_log_ue())
+ 		edac_mc_printk(mci, KERN_EMERG,
+ 			"UE page 0x%lx, offset 0x%lx, grain %d, row %d, "
+ 			"labels \"%s\": %s\n", page_frame_number,
+ 			offset_in_page, mci->csrows[row].grain, row, labels,
+ 			msg);
+ 
+-	if (edac_get_panic_on_ue())
++	if (edac_mc_get_panic_on_ue())
+ 		panic("EDAC MC%d: UE page 0x%lx, offset 0x%lx, grain %d, "
+ 			"row %d, labels \"%s\": %s\n", mci->mc_idx,
+ 			page_frame_number, offset_in_page,
+@@ -710,10 +711,10 @@ EXPORT_SYMBOL_GPL(edac_mc_handle_ue);
+ 
+ void edac_mc_handle_ue_no_info(struct mem_ctl_info *mci, const char *msg)
+ {
+-	if (edac_get_panic_on_ue())
++	if (edac_mc_get_panic_on_ue())
+ 		panic("EDAC MC%d: Uncorrected Error", mci->mc_idx);
+ 
+-	if (edac_get_log_ue())
++	if (edac_mc_get_log_ue())
+ 		edac_mc_printk(mci, KERN_WARNING,
+ 			"UE - no information available: %s\n", msg);
+ 	mci->ue_noinfo_count++;
+@@ -776,13 +777,13 @@ void edac_mc_handle_fbd_ue(struct mem_ct
+ 	chars = snprintf(pos, len + 1, "-%s",
+ 			 mci->csrows[csrow].channels[channelb].label);
+ 
+-	if (edac_get_log_ue())
++	if (edac_mc_get_log_ue())
+ 		edac_mc_printk(mci, KERN_EMERG,
+ 			"UE row %d, channel-a= %d channel-b= %d "
+ 			"labels \"%s\": %s\n", csrow, channela, channelb,
+ 			labels, msg);
+ 
+-	if (edac_get_panic_on_ue())
++	if (edac_mc_get_panic_on_ue())
+ 		panic("UE row %d, channel-a= %d channel-b= %d "
+ 				"labels \"%s\": %s\n", csrow, channela,
+ 				channelb, labels, msg);
+@@ -817,7 +818,7 @@ void edac_mc_handle_fbd_ce(struct mem_ct
+ 		return;
+ 	}
+ 
+-	if (edac_get_log_ce())
++	if (edac_mc_get_log_ce())
+ 		/* FIXME - put in DIMM location */
+ 		edac_mc_printk(mci, KERN_WARNING,
+ 			"CE row %d, channel %d, label \"%s\": %s\n",
+diff -puN drivers/edac/edac_mc_sysfs.c~drivers-edac-mod-pci-poll-names drivers/edac/edac_mc_sysfs.c
+--- a/drivers/edac/edac_mc_sysfs.c~drivers-edac-mod-pci-poll-names
++++ a/drivers/edac/edac_mc_sysfs.c
+@@ -16,47 +16,44 @@
+ #include "edac_module.h"
+ 
+ /* MC EDAC Controls, setable by module parameter, and sysfs */
+-static int log_ue = 1;
+-static int log_ce = 1;
+-static int panic_on_ue;
+-static int poll_msec = 1000;
++static int edac_mc_log_ue = 1;
++static int edac_mc_log_ce = 1;
++static int edac_mc_panic_on_ue = 0;
++static int edac_mc_poll_msec = 1000;
+ 
+ /* Getter functions for above */
+-int edac_get_log_ue(void)
++int edac_mc_get_log_ue(void)
+ {
+-	return log_ue;
++	return edac_mc_log_ue;
  }
--EXPORT_SYMBOL_GPL(i82443bxgx_edacmc_remove_one);
  
-+EXPORT_SYMBOL_GPL(i82443bxgx_edacmc_remove_one);
+-int edac_get_log_ce(void)
++int edac_mc_get_log_ce(void)
+ {
+-	return log_ce;
++	return edac_mc_log_ce;
+ }
  
- static const struct pci_device_id i82443bxgx_pci_tbl[] __devinitdata = {
- 	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82443BX_0)},
-@@ -371,7 +360,6 @@ static const struct pci_device_id i82443
+-int edac_get_panic_on_ue(void)
++int edac_mc_get_panic_on_ue(void)
+ {
+-	return panic_on_ue;
++	return edac_mc_panic_on_ue;
+ }
  
- MODULE_DEVICE_TABLE(pci, i82443bxgx_pci_tbl);
- 
+ /* this is temporary */
+ int edac_mc_get_poll_msec(void)
+ {
+-	return edac_get_poll_msec();
+-}
 -
- static struct pci_driver i82443bxgx_edacmc_driver = {
- 	.name = EDAC_MOD_STR,
- 	.probe = i82443bxgx_edacmc_init_one,
-@@ -379,23 +367,19 @@ static struct pci_driver i82443bxgx_edac
- 	.id_table = i82443bxgx_pci_tbl,
+-int edac_get_poll_msec(void)
+-{
+-	return poll_msec;
++	return edac_mc_poll_msec;
+ }
+ 
+ /* Parameter declarations for above */
+-module_param(panic_on_ue, int, 0644);
+-MODULE_PARM_DESC(panic_on_ue, "Panic on uncorrected error: 0=off 1=on");
+-module_param(log_ue, int, 0644);
+-MODULE_PARM_DESC(log_ue, "Log uncorrectable error to console: 0=off 1=on");
+-module_param(log_ce, int, 0644);
+-MODULE_PARM_DESC(log_ce, "Log correctable error to console: 0=off 1=on");
+-module_param(poll_msec, int, 0644);
+-MODULE_PARM_DESC(poll_msec, "Polling period in milliseconds");
++module_param(edac_mc_panic_on_ue, int, 0644);
++MODULE_PARM_DESC(edac_mc_panic_on_ue, "Panic on uncorrected error: 0=off 1=on");
++module_param(edac_mc_log_ue, int, 0644);
++MODULE_PARM_DESC(edac_mc_log_ue,
++		"Log uncorrectable error to console: 0=off 1=on");
++module_param(edac_mc_log_ce, int, 0644);
++MODULE_PARM_DESC(edac_mc_log_ce,
++		"Log correctable error to console: 0=off 1=on");
++module_param(edac_mc_poll_msec, int, 0644);
++MODULE_PARM_DESC(edac_mc_poll_msec, "Polling period in milliseconds");
+ 
+ 
+ /*
+@@ -187,17 +184,32 @@ static struct memctrl_dev_attribute attr
  };
  
--
- static int __init i82443bxgx_edacmc_init(void)
- {
- 	return pci_register_driver(&i82443bxgx_edacmc_driver);
+ /* csrow<id> control files */
+-MEMCTRL_ATTR(panic_on_ue,S_IRUGO|S_IWUSR,memctrl_int_show,memctrl_int_store);
+-MEMCTRL_ATTR(log_ue,S_IRUGO|S_IWUSR,memctrl_int_show,memctrl_int_store);
+-MEMCTRL_ATTR(log_ce,S_IRUGO|S_IWUSR,memctrl_int_show,memctrl_int_store);
+-MEMCTRL_ATTR(poll_msec,S_IRUGO|S_IWUSR,memctrl_int_show,memctrl_int_store);
++MEMCTRL_ATTR(edac_mc_panic_on_ue,
++		S_IRUGO | S_IWUSR,
++		memctrl_int_show,
++		memctrl_int_store);
++
++MEMCTRL_ATTR(edac_mc_log_ue,
++		S_IRUGO|S_IWUSR,
++		memctrl_int_show,
++		memctrl_int_store);
++
++MEMCTRL_ATTR(edac_mc_log_ce,
++		S_IRUGO|S_IWUSR,
++		memctrl_int_show,
++		memctrl_int_store);
++
++MEMCTRL_ATTR(edac_mc_poll_msec,
++		S_IRUGO|S_IWUSR,
++		memctrl_int_show,
++		memctrl_int_store);
+ 
+ /* Base Attributes of the memory ECC object */
+ static struct memctrl_dev_attribute *memctrl_attr[] = {
+-	&attr_panic_on_ue,
+-	&attr_log_ue,
+-	&attr_log_ce,
+-	&attr_poll_msec,
++	&attr_edac_mc_panic_on_ue,
++	&attr_edac_mc_log_ue,
++	&attr_edac_mc_log_ce,
++	&attr_edac_mc_poll_msec,
+ 	NULL,
+ };
+ 
+diff -puN drivers/edac/edac_module.h~drivers-edac-mod-pci-poll-names drivers/edac/edac_module.h
+--- a/drivers/edac/edac_module.h~drivers-edac-mod-pci-poll-names
++++ a/drivers/edac/edac_module.h
+@@ -27,6 +27,9 @@ extern void edac_check_mc_devices(void);
+ extern int edac_get_log_ue(void);
+ extern int edac_get_log_ce(void);
+ extern int edac_get_panic_on_ue(void);
++extern int edac_mc_get_log_ue(void);
++extern int edac_mc_get_log_ce(void);
++extern int edac_mc_get_panic_on_ue(void);
+ extern int edac_get_poll_msec(void);
+ extern int edac_mc_get_poll_msec(void);
+ 
+@@ -52,12 +55,16 @@ extern void edac_pci_do_parity_check(voi
+ extern void edac_pci_clear_parity_errors(void);
+ extern int edac_sysfs_pci_setup(void);
+ extern void edac_sysfs_pci_teardown(void);
++extern int edac_pci_get_check_errors(void);
++extern int edac_pci_get_poll_msec(void);
+ #else   /* CONFIG_PCI */
+ /* pre-process these away */
+ #define edac_pci_do_parity_check()
+ #define edac_pci_clear_parity_errors()
+ #define edac_sysfs_pci_setup()  (0)
+ #define edac_sysfs_pci_teardown()
++#define edac_pci_get_check_errors()
++#define edac_pci_get_poll_msec()
+ #endif  /* CONFIG_PCI */
+ 
+ 
+diff -puN drivers/edac/edac_pci.c~drivers-edac-mod-pci-poll-names drivers/edac/edac_pci.c
+--- a/drivers/edac/edac_pci.c~drivers-edac-mod-pci-poll-names
++++ a/drivers/edac/edac_pci.c
+@@ -226,13 +226,14 @@ static void edac_pci_workq_function(void
+ 
+ 	if ((pci->op_state == OP_RUNNING_POLL) &&
+ 		(pci->edac_check != NULL) &&
+-		(pci->check_parity_error))
++		(edac_pci_get_check_errors()))
+ 		pci->edac_check(pci);
+ 
+ 	edac_unlock_pci_list();
+ 
+ 	/* Reschedule */
+-	queue_delayed_work(edac_workqueue, &pci->work, pci->delay);
++	queue_delayed_work(edac_workqueue, &pci->work,
++			msecs_to_jiffies(edac_pci_get_poll_msec()));
  }
  
--
- static void __exit i82443bxgx_edacmc_exit(void)
+ /*
+@@ -245,15 +246,13 @@ static void edac_pci_workq_setup(struct 
  {
- 	pci_unregister_driver(&i82443bxgx_edacmc_driver);
+ 	debugf0("%s()\n", __func__);
+ 
+-	pci->poll_msec = msec;
+-	edac_calc_delay(pci);
+-
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,20))
+ 	INIT_DELAYED_WORK(&pci->work, edac_pci_workq_function);
+ #else
+ 	INIT_WORK(&pci->work, edac_pci_workq_function, pci);
+ #endif
+-	queue_delayed_work(edac_workqueue, &pci->work, pci->delay);
++	queue_delayed_work(edac_workqueue, &pci->work,
++			msecs_to_jiffies(edac_pci_get_poll_msec()));
  }
  
--
- module_init(i82443bxgx_edacmc_init);
- module_exit(i82443bxgx_edacmc_exit);
+ /*
+@@ -390,16 +389,6 @@ struct edac_pci_ctl_info * edac_pci_del_
+ }
+ EXPORT_SYMBOL_GPL(edac_pci_del_device);
  
+-static inline int edac_pci_get_log_pe(struct edac_pci_ctl_info *pci)
+-{
+-	return pci->log_parity_error;
+-}
 -
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Tim Small <tim@buttersideup.com> - WPAD");
- MODULE_DESCRIPTION("EDAC MC support for Intel 82443BX/GX memory controllers");
+-static inline int edac_pci_get_panic_on_pe(struct edac_pci_ctl_info *pci)
+-{
+-	return pci->panic_on_pe;
+-}
+-
+ void edac_pci_generic_check(struct edac_pci_ctl_info *pci)
+ {
+ 	edac_pci_do_parity_check();
+diff -puN drivers/edac/edac_pci_sysfs.c~drivers-edac-mod-pci-poll-names drivers/edac/edac_pci_sysfs.c
+--- a/drivers/edac/edac_pci_sysfs.c~drivers-edac-mod-pci-poll-names
++++ a/drivers/edac/edac_pci_sysfs.c
+@@ -19,15 +19,42 @@
+ #define EDAC_PCI_SYMLINK	"device"
+ 
+ static int check_pci_errors = 0;	/* default YES check PCI parity */
+-static int panic_on_pci_parity = 0;	/* default no panic on PCI Parity */
+-static int log_pci_errs = 1;
++static int edac_pci_panic_on_pe = 0;	/* default no panic on PCI Parity */
++static int edac_pci_log_pe = 1;	/* log PCI parity errors */
++static int edac_pci_log_npe = 1;	/* log PCI non-parity error errors */
+ static atomic_t pci_parity_count = ATOMIC_INIT(0);
+ static atomic_t pci_nonparity_count = ATOMIC_INIT(0);
++static int edac_pci_poll_msec = 1000;
+ 
+ static struct kobject edac_pci_kobj; /* /sys/devices/system/edac/pci */
+ static struct completion edac_pci_kobj_complete;
+ static atomic_t edac_pci_sysfs_refcount = ATOMIC_INIT(0);
+ 
++int edac_pci_get_check_errors(void)
++{
++	return check_pci_errors;
++}
++
++int edac_pci_get_log_pe(void)
++{
++	return edac_pci_log_pe;
++}
++
++int edac_pci_get_log_npe(void)
++{
++	return edac_pci_log_npe;
++}
++
++int edac_pci_get_panic_on_pe(void)
++{
++	return edac_pci_panic_on_pe;
++}
++
++int edac_pci_get_poll_msec(void)
++{
++	return edac_pci_poll_msec;
++}
++
+ /**************************** EDAC PCI sysfs instance *******************/
+ static ssize_t instance_pe_count_show(struct edac_pci_ctl_info *pci, char *data)
+ {
+@@ -222,9 +249,11 @@ static struct edac_pci_dev_attribute eda
+ /* PCI Parity control files */
+ EDAC_PCI_ATTR(check_pci_errors, S_IRUGO|S_IWUSR, edac_pci_int_show,
+ 	edac_pci_int_store);
+-EDAC_PCI_ATTR(log_pci_errs, S_IRUGO|S_IWUSR, edac_pci_int_show,
++EDAC_PCI_ATTR(edac_pci_log_pe, S_IRUGO|S_IWUSR, edac_pci_int_show,
++	edac_pci_int_store);
++EDAC_PCI_ATTR(edac_pci_log_npe, S_IRUGO|S_IWUSR, edac_pci_int_show,
+ 	edac_pci_int_store);
+-EDAC_PCI_ATTR(panic_on_pci_parity, S_IRUGO|S_IWUSR, edac_pci_int_show,
++EDAC_PCI_ATTR(edac_pci_panic_on_pe, S_IRUGO|S_IWUSR, edac_pci_int_show,
+ 	edac_pci_int_store);
+ EDAC_PCI_ATTR(pci_parity_count, S_IRUGO, edac_pci_int_show, NULL);
+ EDAC_PCI_ATTR(pci_nonparity_count, S_IRUGO, edac_pci_int_show, NULL);
+@@ -232,8 +261,9 @@ EDAC_PCI_ATTR(pci_nonparity_count, S_IRU
+ /* Base Attributes of the memory ECC object */
+ static struct edac_pci_dev_attribute *edac_pci_attr[] = {
+ 	&edac_pci_attr_check_pci_errors,
+-	&edac_pci_attr_log_pci_errs,
+-	&edac_pci_attr_panic_on_pci_parity,
++	&edac_pci_attr_edac_pci_log_pe,
++	&edac_pci_attr_edac_pci_log_npe,
++	&edac_pci_attr_edac_pci_panic_on_pe,
+ 	&edac_pci_attr_pci_parity_count,
+ 	&edac_pci_attr_pci_nonparity_count,
+ 	NULL,
+@@ -529,7 +559,7 @@ void edac_pci_do_parity_check(void)
+ 	local_irq_restore(flags);
+ 
+ 	/* Only if operator has selected panic on PCI Error */
+-	if (panic_on_pci_parity) {
++	if (edac_pci_get_panic_on_pe()) {
+ 		/* If the count is different 'after' from 'before' */
+ 		if (before_count != atomic_read(&pci_parity_count))
+ 			panic("EDAC: PCI Parity Error");
+@@ -549,7 +579,7 @@ void edac_pci_handle_pe(struct edac_pci_
+ 	/* global PE counter incremented by edac_pci_do_parity_check() */
+ 	atomic_inc(&pci->counters.pe_count);
+ 
+-	if (log_pci_errs)
++	if (edac_pci_get_log_pe())
+ 		edac_pci_printk(pci, KERN_WARNING,
+ 				"Parity Error ctl: %s %d: %s\n",
+ 				pci->ctl_name, pci->pci_idx, msg);
+@@ -568,7 +598,7 @@ void edac_pci_handle_npe(struct edac_pci
+ 	/* global NPE counter incremented by edac_pci_do_parity_check() */
+ 	atomic_inc(&pci->counters.npe_count);
+ 
+-	if (log_pci_errs)
++	if (edac_pci_get_log_npe())
+ 		edac_pci_printk(pci, KERN_WARNING,
+ 				"Non-Parity Error ctl: %s %d: %s\n",
+ 				pci->ctl_name, pci->pci_idx, msg);
+@@ -585,8 +615,10 @@ EXPORT_SYMBOL_GPL(edac_pci_handle_npe);
+  * Define the PCI parameter to the module
+  */
+ module_param(check_pci_errors, int, 0644);
+-MODULE_PARM_DESC(check_pci_errors, "Check for PCI bus parity errors: 0=off 1=on");
+-module_param(panic_on_pci_parity, int, 0644);
+-MODULE_PARM_DESC(panic_on_pci_parity, "Panic on PCI Bus Parity error: 0=off 1=on");
++MODULE_PARM_DESC(check_pci_errors,
++		"Check for PCI bus parity errors: 0=off 1=on");
++module_param(edac_pci_panic_on_pe, int, 0644);
++MODULE_PARM_DESC(edac_pci_panic_on_pe,
++		"Panic on PCI Bus Parity error: 0=off 1=on");
+ 
+ #endif	/* CONFIG_PCI */
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from djiang@mvista.com are
 
 origin.patch
