@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-read-support-fix.patch added to -mm tree
-Date: Wed, 18 Jul 2007 22:22:01 -0700
-Message-ID: <200707190522.l6J5M1fX015434@imap1.linux-foundation.org>
+Subject: + pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch added to -mm tree
+Date: Wed, 18 Jul 2007 22:23:58 -0700
+Message-ID: <200707190523.l6J5NwHo015465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56538 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59249 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752411AbXGSFWR (ORCPT
+	by vger.kernel.org with ESMTP id S932182AbXGSFYo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 01:22:17 -0400
+	Thu, 19 Jul 2007 01:24:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bill.irwin@oracle.com, nickpiggin@yahoo.com.au, pbadari@us.ibm.com
+Cc: akpm@linux-foundation.org, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, herbert@13thfloor.at, sukadev@us.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     hugetlbfs-read-support-fix
+     pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-read-support-fix.patch
+     pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hugetlbfs-read-support-fix
+Subject: pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- nuke nasty gccism, do it the same way as we do it everywhere else
-
-- fix leak
-
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: William Irwin <bill.irwin@oracle.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/pid_namespace.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-read-support-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-read-support-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -267,7 +267,9 @@ hugetlbfs_read(struct file *filp, char _
- 		 */
- 		ret = hugetlbfs_read_actor(page, offset, buf, len, nr);
- 		if (ret < 0) {
--			retval = retval ? : ret;
-+			if (retval == 0)
-+				retval = ret;
-+			page_cache_release(page);
- 			goto out;
- 		}
+diff -puN include/linux/pid_namespace.h~pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix include/linux/pid_namespace.h
+--- a/include/linux/pid_namespace.h~pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix
++++ a/include/linux/pid_namespace.h
+@@ -20,7 +20,7 @@ struct pid_namespace {
+ 	struct pidmap pidmap[PIDMAP_ENTRIES];
+ 	int last_pid;
+ 	struct task_struct *child_reaper;
+-	struct kmem_cache_t *pid_cachep;
++	struct kmem_cache *pid_cachep;
+ };
  
+ extern struct pid_namespace init_pid_ns;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -169,6 +166,7 @@ containersv10-share-css_group-arrays-between-tasks-with-same-container-membershi
 containersv10-simple-debug-info-subsystem-fix.patch
 containersv10-simple-debug-info-subsystem-fix-2.patch
 add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
 reiser4.patch
 git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
