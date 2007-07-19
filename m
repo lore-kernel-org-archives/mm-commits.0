@@ -1,58 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-mc-sysfs-add-missing-mem-types.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 13:05:25 -0700
-Message-ID: <200707192005.l6JK5PCp020044@imap1.linux-foundation.org>
+Subject: - sysfs-avoid-kmem_cache_freenull.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 13:07:48 -0700
+Message-ID: <200707192007.l6JK7mtp020372@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36460 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53543 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760666AbXGSUPY (ORCPT
+	by vger.kernel.org with ESMTP id S1759813AbXGSUPX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 16:15:24 -0400
+	Thu, 19 Jul 2007 16:15:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djiang@mvista.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: mc sysfs add missing mem types
+     sysfs: avoid kmem_cache_free(NULL)
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-mc-sysfs-add-missing-mem-types.patch
+     sysfs-avoid-kmem_cache_freenull.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: mc sysfs add missing mem types
-From: Dave Jiang <djiang@mvista.com>
+Subject: sysfs: avoid kmem_cache_free(NULL)
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Adding missing mem types for use in the sysfs presentation file for
-Memory Controller device objects.
+kmem_cache_free() with NULL is not allowed.  But it may happen if out of
+memory error is triggered in sysfs_new_dirent().  This patch fixes that
+error handling.
 
-Signed-off-by: Dave Jiang <djiang@mvista.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_mc_sysfs.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/sysfs/dir.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/edac/edac_mc_sysfs.c~drivers-edac-mc-sysfs-add-missing-mem-types drivers/edac/edac_mc_sysfs.c
---- a/drivers/edac/edac_mc_sysfs.c~drivers-edac-mc-sysfs-add-missing-mem-types
-+++ a/drivers/edac/edac_mc_sysfs.c
-@@ -67,7 +67,10 @@ static const char *mem_types[] = {
- 	[MEM_RDR] = "Registered-SDR",
- 	[MEM_DDR] = "Unbuffered-DDR",
- 	[MEM_RDDR] = "Registered-DDR",
--	[MEM_RMBS] = "RMBS"
-+	[MEM_RMBS] = "RMBS",
-+	[MEM_DDR2] = "Unbuffered-DDR2",
-+	[MEM_FB_DDR2] = "FullyBuffered-DDR2",
-+	[MEM_RDDR2] = "Registered-DDR2"
- };
+diff -puN fs/sysfs/dir.c~sysfs-avoid-kmem_cache_freenull fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~sysfs-avoid-kmem_cache_freenull
++++ a/fs/sysfs/dir.c
+@@ -361,20 +361,20 @@ static struct dentry_operations sysfs_de
+ struct sysfs_dirent *sysfs_new_dirent(const char *name, umode_t mode, int type)
+ {
+ 	char *dup_name = NULL;
+-	struct sysfs_dirent *sd = NULL;
++	struct sysfs_dirent *sd;
  
- static const char *dev_types[] = {
+ 	if (type & SYSFS_COPY_NAME) {
+ 		name = dup_name = kstrdup(name, GFP_KERNEL);
+ 		if (!name)
+-			goto err_out;
++			return NULL;
+ 	}
+ 
+ 	sd = kmem_cache_zalloc(sysfs_dir_cachep, GFP_KERNEL);
+ 	if (!sd)
+-		goto err_out;
++		goto err_out1;
+ 
+ 	if (sysfs_alloc_ino(&sd->s_ino))
+-		goto err_out;
++		goto err_out2;
+ 
+ 	atomic_set(&sd->s_count, 1);
+ 	atomic_set(&sd->s_active, 0);
+@@ -386,9 +386,10 @@ struct sysfs_dirent *sysfs_new_dirent(co
+ 
+ 	return sd;
+ 
+- err_out:
+-	kfree(dup_name);
++ err_out2:
+ 	kmem_cache_free(sysfs_dir_cachep, sd);
++ err_out1:
++	kfree(dup_name);
+ 	return NULL;
+ }
+ 
 _
 
-Patches currently in -mm which might be from djiang@mvista.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
