@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + do_poll-return-eintr-when-signalled.patch added to -mm tree
-Date: Thu, 19 Jul 2007 18:04:34 -0700
-Message-ID: <200707200104.l6K14YS2032290@imap1.linux-foundation.org>
+Subject: + kthread-silence-bogus-section-mismatch-warning.patch added to -mm tree
+Date: Thu, 19 Jul 2007 18:08:27 -0700
+Message-ID: <200707200108.l6K18R1Z032369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60709 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53136 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755425AbXGTBEz (ORCPT
+	by vger.kernel.org with ESMTP id S1756201AbXGTBIx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 21:04:55 -0400
+	Thu, 19 Jul 2007 21:08:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ak@suse.de, davidel@xmailserver.org, vlobanov@speakeasy.net
+Cc: ssatyam@cse.iitk.ac.in, randy.dunlap@oracle.com
 
 
 The patch titled
-     do_poll: return -EINTR when signalled
+     kthread: silence bogus section mismatch warning
 has been added to the -mm tree.  Its filename is
-     do_poll-return-eintr-when-signalled.patch
+     kthread-silence-bogus-section-mismatch-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: do_poll: return -EINTR when signalled
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: kthread: silence bogus section mismatch warning
+From: Satyam Sharma <ssatyam@cse.iitk.ac.in>
 
-do_poll() checks signal_pending() but returns 0 when interrupted.  This means
-the caller has to check signal_pending() again.
+WARNING: kernel/built-in.o(.text+0x16910): Section mismatch:
+reference to .init.text: (between 'kthreadd' and 'init_waitqueue_head')
 
-Change it to return -EINTR when signal_pending() and count == 0.
+comes because kernel/kthread.c:kthreadd() is not __init but calls
+kthreadd_setup() which is __init. But this is ok, because kthreadd_setup()
+is only ever called at init time, and then kthreadd() proceeds into its
+"for (;;)" loop. We could mark kthreadd __init_refok, but kthreadd_setup()
+with just one callsite and 4 lines in it (it's been that small since
+10ab825bdef8df51) doesn't need to be a separate function at all -- so let's
+just move those four lines at beginning of kthreadd() itself.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Vadim Lobanov <vlobanov@speakeasy.net>
+Signed-off-by: Satyam Sharma <ssatyam@cse.iitk.ac.in>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ kernel/kthread.c |   12 ++----------
+ 1 files changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN fs/select.c~do_poll-return-eintr-when-signalled fs/select.c
---- a/fs/select.c~do_poll-return-eintr-when-signalled
-+++ a/fs/select.c
-@@ -588,7 +588,7 @@ static int do_poll(unsigned int nfds,  s
- 	/* Optimise the no-wait case */
- 	if (!(*timeout))
- 		pt = NULL;
-- 
-+
- 	for (;;) {
- 		struct poll_list *walk;
- 		long __timeout;
-@@ -618,10 +618,12 @@ static int do_poll(unsigned int nfds,  s
- 		 * a poll_table to them on the next loop iteration.
- 		 */
- 		pt = NULL;
--		if (count || !*timeout || signal_pending(current))
--			break;
--		count = wait->error;
--		if (count)
-+		if (!count) {
-+			count = wait->error;
-+			if (signal_pending(current))
-+				count = -EINTR;
-+		}
-+		if (count || !*timeout)
- 			break;
+diff -puN kernel/kthread.c~kthread-silence-bogus-section-mismatch-warning kernel/kthread.c
+--- a/kernel/kthread.c~kthread-silence-bogus-section-mismatch-warning
++++ a/kernel/kthread.c
+@@ -214,23 +214,15 @@ int kthread_stop(struct task_struct *k)
+ }
+ EXPORT_SYMBOL(kthread_stop);
  
- 		if (*timeout < 0) {
-@@ -691,8 +693,6 @@ int do_sys_poll(struct pollfd __user *uf
+-
+-static noinline __init_refok void kthreadd_setup(void)
++int kthreadd(void *unused)
+ {
+ 	struct task_struct *tsk = current;
  
- 	poll_initwait(&table);
- 	fdcount = do_poll(nfds, head, &table, timeout);
--	if (!fdcount && signal_pending(current))
--		fdcount = -EINTR;
- 	poll_freewait(&table);
++	/* Setup a clean context for our children to inherit. */
+ 	set_task_comm(tsk, "kthreadd");
+-
+ 	ignore_signals(tsk);
+-
+ 	set_user_nice(tsk, -5);
+ 	set_cpus_allowed(tsk, CPU_MASK_ALL);
+-}
+-
+-int kthreadd(void *unused)
+-{
+-	/* Setup a clean context for our children to inherit. */
+-	kthreadd_setup();
  
- 	for (walk = head; walk; walk = walk->next) {
+ 	current->flags |= PF_NOFREEZE;
+ 
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from ssatyam@cse.iitk.ac.in are
 
 origin.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-sys_time-use-barrier-instead-of-smp_rmb.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-do_poll-return-eintr-when-signalled.patch
+kthread-silence-bogus-section-mismatch-warning.patch
