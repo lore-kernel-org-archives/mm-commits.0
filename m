@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fore200e_param_bs_queue-must-be-__devinit.patch added to -mm tree
-Date: Thu, 19 Jul 2007 17:17:30 -0700
-Message-ID: <200707200017.l6K0HU93030250@imap1.linux-foundation.org>
+Subject: + rivafb_setup-must-be-__devinit.patch added to -mm tree
+Date: Thu, 19 Jul 2007 17:18:14 -0700
+Message-ID: <200707200018.l6K0IENY030270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34255 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38306 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756782AbXGTARo (ORCPT
+	by vger.kernel.org with ESMTP id S1757063AbXGTASb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 20:17:44 -0400
+	Thu, 19 Jul 2007 20:18:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: bunk@stusta.de, adaplas@pol.net
 
 
 The patch titled
-     fore200e_param_bs_queue() must be __devinit
+     rivafb_setup() must be __devinit
 has been added to the -mm tree.  Its filename is
-     fore200e_param_bs_queue-must-be-__devinit.patch
+     rivafb_setup-must-be-__devinit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fore200e_param_bs_queue() must be __devinit
+Subject: rivafb_setup() must be __devinit
 From: Adrian Bunk <bunk@stusta.de>
 
-WARNING: drivers/built-in.o(.text+0x6203bb): Section mismatch: reference to .init.text:fore200e_param_bs_queue (between 'fore200e_initialize' and 'fore200e_monitor_putc')
+WARNING: drivers/built-in.o(.text+0x57106): Section mismatch: reference to .init.text:rivafb_setup (between 'rivafb_init' and 'nv3Busy')
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/fore200e.c |    2 +-
+ drivers/video/riva/fbdev.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/atm/fore200e.c~fore200e_param_bs_queue-must-be-__devinit drivers/atm/fore200e.c
---- a/drivers/atm/fore200e.c~fore200e_param_bs_queue-must-be-__devinit
-+++ a/drivers/atm/fore200e.c
-@@ -2435,7 +2435,7 @@ fore200e_init_cmd_queue(struct fore200e*
- }
+diff -puN drivers/video/riva/fbdev.c~rivafb_setup-must-be-__devinit drivers/video/riva/fbdev.c
+--- a/drivers/video/riva/fbdev.c~rivafb_setup-must-be-__devinit
++++ a/drivers/video/riva/fbdev.c
+@@ -2146,7 +2146,7 @@ static void __devexit rivafb_remove(stru
+  * ------------------------------------------------------------------------- */
  
+ #ifndef MODULE
+-static int __init rivafb_setup(char *options)
++static int __devinit rivafb_setup(char *options)
+ {
+ 	char *this_opt;
  
--static void __init
-+static void __devinit
- fore200e_param_bs_queue(struct fore200e* fore200e,
- 			enum buffer_scheme scheme, enum buffer_magn magn,
- 			int queue_length, int pool_size, int supply_blksize)
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -79,6 +80,7 @@ anon_inodes-shouldnt-be-user-visible.patch
 introduce-i_sync-fix.patch
 spicscan_boardinfo-mustnt-be-__init_or_module.patch
 ext2-reservations.patch
+rivafb_setup-must-be-__devinit.patch
 intel-iommu-intel-iommu-driver.patch
 revoke-core-code.patch
 mm-implement-swap-prefetching.patch
