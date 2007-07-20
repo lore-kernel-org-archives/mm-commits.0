@@ -1,300 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - udf-coding-style-conversion-lindent-fixups-2.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 09:03:17 -0700
-Message-ID: <200707201603.l6KG3HQX004375@imap1.linux-foundation.org>
+Subject: + x86_64-wbinvd-macro-fix.patch added to -mm tree
+Date: Fri, 20 Jul 2007 08:55:21 -0700
+Message-ID: <200707201555.l6KFtLAY004009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58114 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45206 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765900AbXGTQD4 (ORCPT
+	by vger.kernel.org with ESMTP id S939682AbXGTQEX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 12:03:56 -0400
+	Fri, 20 Jul 2007 12:04:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: npiggin@suse.de, ak@suse.de
 
 
 The patch titled
-     UDF: coding style conversion - lindent fixups 2
-has been removed from the -mm tree.  Its filename was
-     udf-coding-style-conversion-lindent-fixups-2.patch
+     x86_64: wbinvd macro fix
+has been added to the -mm tree.  Its filename is
+     x86_64-wbinvd-macro-fix.patch
 
-This patch was dropped because it was folded into udf-coding-style-conversion-lindent-fixups.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: UDF: coding style conversion - lindent fixups 2
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: x86_64: wbinvd macro fix
+From: Nick Piggin <npiggin@suse.de>
 
-This patch fixes sources were converted to kernel coding style by Lindent
-for first and then by hands.  But some messed things were accidentally
-skipped.
+Too many semicolons in this macro.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c    |   14 +++--
- fs/udf/truncate.c |  109 ++++++++++++++------------------------------
- 2 files changed, 45 insertions(+), 78 deletions(-)
+ include/asm-x86_64/system.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/udf/inode.c~udf-coding-style-conversion-lindent-fixups-2 fs/udf/inode.c
---- a/fs/udf/inode.c~udf-coding-style-conversion-lindent-fixups-2
-+++ a/fs/udf/inode.c
-@@ -1101,7 +1101,8 @@ static void udf_fill_inode(struct inode 
- 			make_bad_inode(inode);
- 			return;
- 		}
--		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry), inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
-+		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry),
-+		       inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
- 	} else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_FE) {
- 		UDF_I_EFE(inode) = 0;
- 		UDF_I_USE(inode) = 0;
-@@ -1803,7 +1804,8 @@ int8_t udf_current_aext(struct inode * i
- 		if (!epos->offset)
- 			epos->offset = sizeof(struct allocExtDesc);
- 		ptr = epos->bh->b_data + epos->offset;
--		alen = sizeof(struct allocExtDesc) + le32_to_cpu(((struct allocExtDesc *)epos->bh->b_data)->lengthAllocDescs);
-+		alen = sizeof(struct allocExtDesc) +
-+			le32_to_cpu(((struct allocExtDesc *)epos->bh->b_data)->lengthAllocDescs);
- 	}
+diff -puN include/asm-x86_64/system.h~x86_64-wbinvd-macro-fix include/asm-x86_64/system.h
+--- a/include/asm-x86_64/system.h~x86_64-wbinvd-macro-fix
++++ a/include/asm-x86_64/system.h
+@@ -109,7 +109,7 @@ static inline void write_cr4(unsigned lo
+ #define stts() write_cr0(8 | read_cr0())
  
- 	switch (UDF_I_ALLOCTYPE(inode)) {
-@@ -1830,9 +1832,8 @@ int8_t udf_current_aext(struct inode * i
- 	return etype;
- }
+ #define wbinvd() \
+-	__asm__ __volatile__ ("wbinvd": : :"memory");
++	__asm__ __volatile__ ("wbinvd": : :"memory")
  
--static int8_t
--udf_insert_aext(struct inode *inode, struct extent_position epos,
--		kernel_lb_addr neloc, uint32_t nelen)
-+static int8_t udf_insert_aext(struct inode *inode, struct extent_position epos,
-+			      kernel_lb_addr neloc, uint32_t nelen)
- {
- 	kernel_lb_addr oeloc;
- 	uint32_t oelen;
-@@ -1916,7 +1917,8 @@ int8_t udf_delete_aext(struct inode * in
- 			aed = (struct allocExtDesc *)oepos.bh->b_data;
- 			aed->lengthAllocDescs =
- 				cpu_to_le32(le32_to_cpu(aed->lengthAllocDescs) - adsize);
--			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
-+			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) ||
-+			    UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
- 				udf_update_tag(oepos.bh->b_data, epos.offset - adsize);
- 			else
- 				udf_update_tag(oepos.bh->b_data, sizeof(struct allocExtDesc));
-diff -puN fs/udf/truncate.c~udf-coding-style-conversion-lindent-fixups-2 fs/udf/truncate.c
---- a/fs/udf/truncate.c~udf-coding-style-conversion-lindent-fixups-2
-+++ a/fs/udf/truncate.c
-@@ -33,12 +33,10 @@ static void extent_trunc(struct inode *i
- 			 uint32_t nelen)
- {
- 	kernel_lb_addr neloc = {};
--	int last_block =
--	    (elen + inode->i_sb->s_blocksize -
--	     1) >> inode->i_sb->s_blocksize_bits;
--	int first_block =
--	    (nelen + inode->i_sb->s_blocksize -
--	     1) >> inode->i_sb->s_blocksize_bits;
-+	int last_block = (elen + inode->i_sb->s_blocksize - 1) >>
-+		inode->i_sb->s_blocksize_bits;
-+	int first_block = (nelen + inode->i_sb->s_blocksize - 1) >>
-+		inode->i_sb->s_blocksize_bits;
+ #endif	/* __KERNEL__ */
  
- 	if (nelen) {
- 		if (etype == (EXT_NOT_RECORDED_ALLOCATED >> 30)) {
-@@ -156,16 +154,16 @@ void udf_discard_prealloc(struct inode *
- 		extent_trunc(inode, &epos, eloc, etype, elen, 0);
- 		if (!epos.bh) {
- 			UDF_I_LENALLOC(inode) =
--			    epos.offset - udf_file_entry_alloc_offset(inode);
-+				epos.offset - udf_file_entry_alloc_offset(inode);
- 			mark_inode_dirty(inode);
- 		} else {
- 			struct allocExtDesc *aed =
--			    (struct allocExtDesc *)(epos.bh->b_data);
-+				(struct allocExtDesc *)(epos.bh->b_data);
- 			aed->lengthAllocDescs =
--			    cpu_to_le32(epos.offset -
--					sizeof(struct allocExtDesc));
--			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT)
--			    || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
-+				cpu_to_le32(epos.offset -
-+					    sizeof(struct allocExtDesc));
-+			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) ||
-+			    UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
- 				udf_update_tag(epos.bh->b_data, epos.offset);
- 			else
- 				udf_update_tag(epos.bh->b_data,
-@@ -182,7 +180,7 @@ void udf_discard_prealloc(struct inode *
- void udf_truncate_extents(struct inode *inode)
- {
- 	struct extent_position epos;
--	kernel_lb_addr eloc, neloc = { 0, 0 };
-+	kernel_lb_addr eloc, neloc = {};
- 	uint32_t elen, nelen = 0, indirect_ext_len = 0, lenalloc;
- 	int8_t etype;
- 	struct super_block *sb = inode->i_sb;
-@@ -198,9 +196,8 @@ void udf_truncate_extents(struct inode *
- 		BUG();
- 
- 	etype = inode_bmap(inode, first_block, &epos, &eloc, &elen, &offset);
--	byte_offset =
--	    (offset << sb->s_blocksize_bits) +
--	    (inode->i_size & (sb->s_blocksize - 1));
-+	byte_offset = (offset << sb->s_blocksize_bits) +
-+		(inode->i_size & (sb->s_blocksize - 1));
- 	if (etype != -1) {
- 		epos.offset -= adsize;
- 		extent_trunc(inode, &epos, eloc, etype, elen, byte_offset);
-@@ -215,9 +212,7 @@ void udf_truncate_extents(struct inode *
- 		else
- 			lenalloc -= sizeof(struct allocExtDesc);
- 
--		while ((etype =
--			udf_current_aext(inode, &epos, &eloc, &elen,
--					 0)) != -1) {
-+		while ((etype = udf_current_aext(inode, &epos, &eloc, &elen, 0)) != -1) {
- 			if (etype == (EXT_NEXT_EXTENT_ALLOCDECS >> 30)) {
- 				udf_write_aext(inode, &epos, neloc, nelen, 0);
- 				if (indirect_ext_len) {
-@@ -229,52 +224,35 @@ void udf_truncate_extents(struct inode *
- 							0, indirect_ext_len);
- 				} else {
- 					if (!epos.bh) {
--						UDF_I_LENALLOC(inode) =
--						    lenalloc;
-+						UDF_I_LENALLOC(inode) = lenalloc;
- 						mark_inode_dirty(inode);
- 					} else {
- 						struct allocExtDesc *aed =
--						    (struct allocExtDesc
--						     *)(epos.bh->b_data);
-+							(struct allocExtDesc *)(epos.bh->b_data);
- 						aed->lengthAllocDescs =
- 						    cpu_to_le32(lenalloc);
--						if (!UDF_QUERY_FLAG
--						    (sb, UDF_FLAG_STRICT)
--						    || UDF_SB_UDFREV(sb) >=
--						    0x0201)
--							udf_update_tag(epos.bh->
--								       b_data,
--								       lenalloc
--								       +
--								       sizeof
--								       (struct
--									allocExtDesc));
-+						if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) ||
-+						    UDF_SB_UDFREV(sb) >= 0x0201)
-+							udf_update_tag(epos.bh->b_data,
-+								       lenalloc +
-+								       sizeof(struct allocExtDesc));
- 						else
--							udf_update_tag(epos.bh->
--								       b_data,
--								       sizeof
--								       (struct
--									allocExtDesc));
--						mark_buffer_dirty_inode(epos.bh,
--									inode);
-+							udf_update_tag(epos.bh->b_data,
-+								       sizeof(struct allocExtDesc));
-+						mark_buffer_dirty_inode(epos.bh, inode);
- 					}
- 				}
- 				brelse(epos.bh);
- 				epos.offset = sizeof(struct allocExtDesc);
- 				epos.block = eloc;
--				epos.bh =
--				    udf_tread(sb,
--					      udf_get_lb_pblock(sb, eloc, 0));
-+				epos.bh = udf_tread(sb, udf_get_lb_pblock(sb, eloc, 0));
- 				if (elen)
--					indirect_ext_len = (elen +
--							    sb->s_blocksize -
--							    1) >> sb->
--					    s_blocksize_bits;
-+					indirect_ext_len = (elen + sb->s_blocksize -1) >>
-+						sb->s_blocksize_bits;
- 				else
- 					indirect_ext_len = 1;
- 			} else {
--				extent_trunc(inode, &epos, eloc, etype, elen,
--					     0);
-+				extent_trunc(inode, &epos, eloc, etype, elen, 0);
- 				epos.offset += adsize;
- 			}
- 		}
-@@ -292,16 +270,13 @@ void udf_truncate_extents(struct inode *
- 				struct allocExtDesc *aed =
- 				    (struct allocExtDesc *)(epos.bh->b_data);
- 				aed->lengthAllocDescs = cpu_to_le32(lenalloc);
--				if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT)
--				    || UDF_SB_UDFREV(sb) >= 0x0201)
-+				if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) ||
-+				    UDF_SB_UDFREV(sb) >= 0x0201)
- 					udf_update_tag(epos.bh->b_data,
--						       lenalloc +
--						       sizeof(struct
--							      allocExtDesc));
-+						       lenalloc + sizeof(struct allocExtDesc));
- 				else
- 					udf_update_tag(epos.bh->b_data,
--						       sizeof(struct
--							      allocExtDesc));
-+						       sizeof(struct allocExtDesc));
- 				mark_buffer_dirty_inode(epos.bh, inode);
- 			}
- 		}
-@@ -314,21 +289,14 @@ void udf_truncate_extents(struct inode *
- 			 *  no extent above inode->i_size => truncate is
- 			 *  extending the file by 'offset' blocks.
- 			 */
--			if ((!epos.bh
--			     && epos.offset ==
--			     udf_file_entry_alloc_offset(inode)) || (epos.bh
--								     && epos.
--								     offset ==
--								     sizeof
--								     (struct
--								      allocExtDesc)))
--			{
-+			if ((!epos.bh &&
-+			     epos.offset == udf_file_entry_alloc_offset(inode)) ||
-+			    (epos.bh && epos.offset == sizeof(struct allocExtDesc))) {
- 				/* File has no extents at all or has empty last
- 				 * indirect extent! Create a fake extent... */
- 				extent.extLocation.logicalBlockNum = 0;
- 				extent.extLocation.partitionReferenceNum = 0;
--				extent.extLength =
--				    EXT_NOT_RECORDED_NOT_ALLOCATED;
-+				extent.extLength = EXT_NOT_RECORDED_NOT_ALLOCATED;
- 			} else {
- 				epos.offset -= adsize;
- 				etype = udf_next_aext(inode, &epos,
-@@ -337,10 +305,7 @@ void udf_truncate_extents(struct inode *
- 				extent.extLength |= etype << 30;
- 			}
- 			udf_extend_file(inode, &epos, &extent,
--					offset +
--					((inode->
--					  i_size & (sb->s_blocksize - 1)) !=
--					 0));
-+					offset + ((inode->i_size & (sb->s_blocksize - 1)) != 0));
- 		}
- 	}
- 	UDF_I_LENEXTENTS(inode) = inode->i_size;
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-udf-coding-style-conversion-lindent-fixups.patch
-udf-coding-style-conversion-lindent-fixups-2.patch
-sky-cpu-and-nexus-code-style-improvement.patch
-sky-cpu-and-nexus-include-ioh.patch
-sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
-sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
-sky-cpu-use-c99-style-for-struct-init.patch
-sky-cpu-and-nexus-get-rid-of-useless-null-init.patch
-sky-cpu-and-nexus-use-seq_file-single_open-on-proc-interface.patch
-git-dvb.patch
+x86_64-wbinvd-macro-fix.patch
+fix-some-conversion-overflows.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+introduce-write_begin-write_end-aops-important-fix.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-convert-to-new-aops-fix.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+hostfs-convert-to-new-aops-fix.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+udf-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix.patch
+ocfs2-convert-to-new-aops.patch
+fs-remove-some-aop_truncated_page.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
