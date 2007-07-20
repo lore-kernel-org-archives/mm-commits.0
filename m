@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + fix-some-conversion-overflows.patch added to -mm tree
-Date: Thu, 19 Jul 2007 23:10:43 -0700
-Message-ID: <200707200610.l6K6AhwV010852@imap1.linux-foundation.org>
+Date: Thu, 19 Jul 2007 23:14:23 -0700
+Message-ID: <200707200614.l6K6ENuo011004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49622 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60359 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754441AbXGTGL0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754596AbXGTGPE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 02:11:26 -0400
+	Fri, 20 Jul 2007 02:15:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -41,10 +41,23 @@ Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ fs/buffer.c        |    2 +-
  fs/ecryptfs/mmap.c |    5 ++---
  fs/ocfs2/mmap.c    |    2 +-
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
+diff -puN fs/buffer.c~fix-some-conversion-overflows fs/buffer.c
+--- a/fs/buffer.c~fix-some-conversion-overflows
++++ a/fs/buffer.c
+@@ -2221,7 +2221,7 @@ block_page_mkwrite(struct vm_area_struct
+ 	lock_page(page);
+ 	size = i_size_read(inode);
+ 	if ((page->mapping != inode->i_mapping) ||
+-	    ((page->index << PAGE_CACHE_SHIFT) > size)) {
++	    (page_offset(page) > size)) {
+ 		/* page got truncated out from underneath us */
+ 		goto out_unlock;
+ 	}
 diff -puN fs/ecryptfs/mmap.c~fix-some-conversion-overflows fs/ecryptfs/mmap.c
 --- a/fs/ecryptfs/mmap.c~fix-some-conversion-overflows
 +++ a/fs/ecryptfs/mmap.c
