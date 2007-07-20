@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sb1250-duart-__maybe_unused-etc-fixes.patch added to -mm tree
-Date: Fri, 20 Jul 2007 14:01:55 -0700
-Message-ID: <200707202101.l6KL1tbO016156@imap1.linux-foundation.org>
+Subject: + defxx-use-__maybe_unused-rather-than-a-local-hack.patch added to -mm tree
+Date: Fri, 20 Jul 2007 14:02:34 -0700
+Message-ID: <200707202102.l6KL2YGt016243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40865 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45817 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759508AbXGTVCX (ORCPT
+	by vger.kernel.org with ESMTP id S1755623AbXGTVC6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 17:02:23 -0400
+	Fri, 20 Jul 2007 17:02:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org, ralf@linux-mips.org
+Cc: macro@linux-mips.org
 
 
 The patch titled
-     sb1250-duart: __maybe_unused, etc. fixes
+     defxx: use __maybe_unused rather than a local hack
 has been added to the -mm tree.  Its filename is
-     sb1250-duart-__maybe_unused-etc-fixes.patch
+     defxx-use-__maybe_unused-rather-than-a-local-hack.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sb1250-duart: __maybe_unused, etc. fixes
+Subject: defxx: use __maybe_unused rather than a local hack
 From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-This is a set of small fixes addressing points raised with the original
-driver submission.  In particular, __maybe_unused is used rather than a
-local hack and sbd_ops is made const.  Additionally I have made two local
-string variables automatic as rodata space was wasted for pointers
-unnecessarily.
+This is a change to remove a local hack in favour to __maybe_unused that
+has been recently added.
 
 Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/sb1250-duart.c |   14 ++++++--------
- 1 files changed, 6 insertions(+), 8 deletions(-)
+ drivers/net/defxx.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/serial/sb1250-duart.c~sb1250-duart-__maybe_unused-etc-fixes drivers/serial/sb1250-duart.c
---- a/drivers/serial/sb1250-duart.c~sb1250-duart-__maybe_unused-etc-fixes
-+++ a/drivers/serial/sb1250-duart.c
-@@ -25,6 +25,7 @@
- #define SUPPORT_SYSRQ
- #endif
+diff -puN drivers/net/defxx.c~defxx-use-__maybe_unused-rather-than-a-local-hack drivers/net/defxx.c
+--- a/drivers/net/defxx.c~defxx-use-__maybe_unused-rather-than-a-local-hack
++++ a/drivers/net/defxx.c
+@@ -200,6 +200,7 @@
  
+ /* Include files */
+ #include <linux/bitops.h>
 +#include <linux/compiler.h>
- #include <linux/console.h>
  #include <linux/delay.h>
- #include <linux/errno.h>
-@@ -103,8 +104,6 @@ struct sbd_duart {
+ #include <linux/dma-mapping.h>
+ #include <linux/eisa.h>
+@@ -240,8 +241,6 @@ static char version[] __devinitdata =
+  */
+ #define NEW_SKB_SIZE (PI_RCV_DATA_K_SIZE_MAX+128)
  
- static struct sbd_duart sbd_duarts[DUART_MAX_CHIP];
- 
--#define __unused __attribute__((__unused__))
+-#define __unused __attribute__ ((unused))
 -
+ #ifdef CONFIG_PCI
+ #define DFX_BUS_PCI(dev) (dev->bus == &pci_bus_type)
+ #else
+@@ -375,7 +374,7 @@ static inline void dfx_outl(DFX_board_t 
  
- /*
-  * Reading and writing SB1250 DUART registers.
-@@ -204,12 +203,12 @@ static int sbd_receive_drain(struct sbd_
- 	return loops;
- }
- 
--static int __unused sbd_transmit_ready(struct sbd_port *sport)
-+static int __maybe_unused sbd_transmit_ready(struct sbd_port *sport)
+ static void dfx_port_write_long(DFX_board_t *bp, int offset, u32 data)
  {
- 	return read_sbdchn(sport, R_DUART_STATUS) & M_DUART_TX_RDY;
- }
+-	struct device __unused *bdev = bp->bus_dev;
++	struct device __maybe_unused *bdev = bp->bus_dev;
+ 	int dfx_bus_tc = DFX_BUS_TC(bdev);
+ 	int dfx_use_mmio = DFX_MMIO || dfx_bus_tc;
  
--static int __unused sbd_transmit_drain(struct sbd_port *sport)
-+static int __maybe_unused sbd_transmit_drain(struct sbd_port *sport)
+@@ -399,7 +398,7 @@ static inline void dfx_inl(DFX_board_t *
+ 
+ static void dfx_port_read_long(DFX_board_t *bp, int offset, u32 *data)
  {
- 	int loops = 10000;
+-	struct device __unused *bdev = bp->bus_dev;
++	struct device __maybe_unused *bdev = bp->bus_dev;
+ 	int dfx_bus_tc = DFX_BUS_TC(bdev);
+ 	int dfx_use_mmio = DFX_MMIO || dfx_bus_tc;
  
-@@ -664,7 +663,7 @@ static void sbd_release_port(struct uart
+@@ -866,7 +865,7 @@ static void __devinit dfx_bus_uninit(str
  
- static int sbd_map_port(struct uart_port *uport)
+ static void __devinit dfx_bus_config_check(DFX_board_t *bp)
  {
--	static const char *err = KERN_ERR "sbd: Cannot map MMIO\n";
-+	const char *err = KERN_ERR "sbd: Cannot map MMIO\n";
- 	struct sbd_port *sport = to_sport(uport);
- 	struct sbd_duart *duart = sport->duart;
- 
-@@ -691,8 +690,7 @@ static int sbd_map_port(struct uart_port
- 
- static int sbd_request_port(struct uart_port *uport)
- {
--	static const char *err = KERN_ERR
--				 "sbd: Unable to reserve MMIO resource\n";
-+	const char *err = KERN_ERR "sbd: Unable to reserve MMIO resource\n";
- 	struct sbd_duart *duart = to_sport(uport)->duart;
- 	int map_guard;
- 	int ret = 0;
-@@ -755,7 +753,7 @@ static int sbd_verify_port(struct uart_p
+-	struct device __unused *bdev = bp->bus_dev;
++	struct device __maybe_unused *bdev = bp->bus_dev;
+ 	int dfx_bus_eisa = DFX_BUS_EISA(bdev);
+ 	int	status;				/* return code from adapter port control call */
+ 	u32	host_data;			/* LW data returned from port control call */
+@@ -3624,8 +3623,8 @@ static void __devexit dfx_unregister(str
  }
  
  
--static struct uart_ops sbd_ops = {
-+static const struct uart_ops sbd_ops = {
- 	.tx_empty	= sbd_tx_empty,
- 	.set_mctrl	= sbd_set_mctrl,
- 	.get_mctrl	= sbd_get_mctrl,
+-static int __devinit __unused dfx_dev_register(struct device *);
+-static int __devexit __unused dfx_dev_unregister(struct device *);
++static int __devinit __maybe_unused dfx_dev_register(struct device *);
++static int __devexit __maybe_unused dfx_dev_unregister(struct device *);
+ 
+ #ifdef CONFIG_PCI
+ static int __devinit dfx_pci_register(struct pci_dev *,
+@@ -3699,7 +3698,7 @@ static struct tc_driver dfx_tc_driver = 
+ };
+ #endif /* CONFIG_TC */
+ 
+-static int __devinit __unused dfx_dev_register(struct device *dev)
++static int __devinit __maybe_unused dfx_dev_register(struct device *dev)
+ {
+ 	int status;
+ 
+@@ -3709,7 +3708,7 @@ static int __devinit __unused dfx_dev_re
+ 	return status;
+ }
+ 
+-static int __devexit __unused dfx_dev_unregister(struct device *dev)
++static int __devexit __maybe_unused dfx_dev_unregister(struct device *dev)
+ {
+ 	put_device(dev);
+ 	dfx_unregister(dev);
 _
 
 Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
+defxx-use-__maybe_unused-rather-than-a-local-hack.patch
 sb1250-duart-__maybe_unused-etc-fixes.patch
