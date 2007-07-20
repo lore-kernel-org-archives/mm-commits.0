@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-containerstats-v3-fix.patch added to -mm tree
-Date: Fri, 20 Jul 2007 14:26:03 -0700
-Message-ID: <200707202126.l6KLQ3Yr017179@imap1.linux-foundation.org>
+Subject: + update-getdelays-to-become-containerstats-aware.patch added to -mm tree
+Date: Fri, 20 Jul 2007 14:26:05 -0700
+Message-ID: <200707202126.l6KLQ5hZ017182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42042 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50759 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764147AbXGTV01 (ORCPT
+	by vger.kernel.org with ESMTP id S1755487AbXGTV03 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 17:26:27 -0400
+	Fri, 20 Jul 2007 17:26:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, menage@google.com
+Cc: balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, menage@google.com
 
 
 The patch titled
-     add-containerstats-v3-fix
+     Update getdelays to become containerstats aware
 has been added to the -mm tree.  Its filename is
-     add-containerstats-v3-fix.patch
+     update-getdelays-to-become-containerstats-aware.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,108 +26,139 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-containerstats-v3-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Update getdelays to become containerstats aware
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-kernel/taskstats.c: In function 'containerstats_user_cmd':
-kernel/taskstats.c:414: error: dereferencing pointer to incomplete type
+Update the getdelays utility to become containerstats aware.  A new -C
+option has been added.  It takes in a container path and prints out a
+summary of task states in the container.
 
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Paul Menage <menage@google.com>
 Cc: Jay Lan <jlan@engr.sgi.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    1 +
- 1 files changed, 1 insertion(+)
+ Documentation/accounting/getdelays.c |   43 ++++++++++++++++++++++++-
+ 1 files changed, 42 insertions(+), 1 deletion(-)
 
-diff -puN kernel/taskstats.c~add-containerstats-v3-fix kernel/taskstats.c
---- a/kernel/taskstats.c~add-containerstats-v3-fix
-+++ a/kernel/taskstats.c
-@@ -25,6 +25,7 @@
- #include <linux/percpu.h>
- #include <linux/containerstats.h>
- #include <linux/container.h>
-+#include <linux/fs.h>
- #include <linux/file.h>
- #include <net/genetlink.h>
- #include <asm/atomic.h>
+diff -puN Documentation/accounting/getdelays.c~update-getdelays-to-become-containerstats-aware Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~update-getdelays-to-become-containerstats-aware
++++ a/Documentation/accounting/getdelays.c
+@@ -26,6 +26,7 @@
+ 
+ #include <linux/genetlink.h>
+ #include <linux/taskstats.h>
++#include <linux/containerstats.h>
+ 
+ /*
+  * Generic macros for dealing with netlink sockets. Might be duplicated
+@@ -79,6 +80,7 @@ static void usage(void)
+ 	fprintf(stderr, "  -i: print IO accounting (works only with -p)\n");
+ 	fprintf(stderr, "  -l: listen forever\n");
+ 	fprintf(stderr, "  -v: debug on\n");
++	fprintf(stderr, "  -C: container path\n");
+ }
+ 
+ /*
+@@ -213,6 +215,14 @@ void task_context_switch_counts(struct t
+ 	       t->nvcsw, t->nivcsw);
+ }
+ 
++void print_containerstats(struct containerstats *c)
++{
++	printf("sleeping %llu, blocked %llu, running %llu, stopped %llu, "
++		"uninterruptible %llu\n", c->nr_sleeping, c->nr_io_wait,
++		c->nr_running, c->nr_stopped, c->nr_uninterruptible);
++}
++
++
+ void print_ioacct(struct taskstats *t)
+ {
+ 	printf("%s: read=%llu, write=%llu, cancelled_write=%llu\n",
+@@ -240,11 +250,14 @@ int main(int argc, char *argv[])
+ 	int maskset = 0;
+ 	char *logfile = NULL;
+ 	int loop = 0;
++	int containerset = 0;
++	char containerpath[1024];
++	int cfd = 0;
+ 
+ 	struct msgtemplate msg;
+ 
+ 	while (1) {
+-		c = getopt(argc, argv, "qdiw:r:m:t:p:vl");
++		c = getopt(argc, argv, "qdiw:r:m:t:p:vlC:");
+ 		if (c < 0)
+ 			break;
+ 
+@@ -261,6 +274,10 @@ int main(int argc, char *argv[])
+ 			printf("printing task/process context switch rates\n");
+ 			print_task_context_switch_counts = 1;
+ 			break;
++		case 'C':
++			containerset = 1;
++			strncpy(containerpath, optarg, strlen(optarg) + 1);
++			break;
+ 		case 'w':
+ 			logfile = strdup(optarg);
+ 			printf("write to file %s\n", logfile);
+@@ -335,6 +352,11 @@ int main(int argc, char *argv[])
+ 		}
+ 	}
+ 
++	if (tid && containerset) {
++		fprintf(stderr, "Select either -t or -C, not both\n");
++		goto err;
++	}
++
+ 	if (tid) {
+ 		rc = send_cmd(nl_sd, id, mypid, TASKSTATS_CMD_GET,
+ 			      cmd_type, &tid, sizeof(__u32));
+@@ -345,6 +367,20 @@ int main(int argc, char *argv[])
+ 		}
+ 	}
+ 
++	if (containerset) {
++		cfd = open(containerpath, O_RDONLY);
++		if (cfd < 0) {
++			perror("error opening container file");
++			goto err;
++		}
++		rc = send_cmd(nl_sd, id, mypid, CONTAINERSTATS_CMD_GET,
++			      CONTAINERSTATS_CMD_ATTR_FD, &cfd, sizeof(__u32));
++		if (rc < 0) {
++			perror("error sending containerstats command");
++			goto err;
++		}
++	}
++
+ 	do {
+ 		int i;
+ 
+@@ -423,6 +459,9 @@ int main(int argc, char *argv[])
+ 				}
+ 				break;
+ 
++			case CONTAINERSTATS_TYPE_CONTAINER_STATS:
++				print_containerstats(NLA_DATA(na));
++				break;
+ 			default:
+ 				fprintf(stderr, "Unknown nla_type %d\n",
+ 					na->nla_type);
+@@ -444,5 +483,7 @@ err:
+ 	close(nl_sd);
+ 	if (fd)
+ 		close(fd);
++	if (cfd)
++		close(cfd);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
 origin.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-dvb.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mtd.patch
-mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-git-scsi-misc.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-clockevents-fix-resume-logic-xen-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-xfs-fixup.patch
-git-kgdb-fixup-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
+add-containerstats-v3.patch
 add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+update-getdelays-to-become-containerstats-aware.patch
