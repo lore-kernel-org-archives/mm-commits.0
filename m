@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-several-memory-leaks-in-cr_backlight_probe.patch added to -mm tree
-Date: Fri, 20 Jul 2007 16:11:27 -0700
-Message-ID: <200707202311.l6KNBRDK021376@imap1.linux-foundation.org>
+Subject: + rtc-update-and-use-the-max6900-century-byte.patch added to -mm tree
+Date: Fri, 20 Jul 2007 16:23:38 -0700
+Message-ID: <200707202323.l6KNNcus021836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33556 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44346 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757636AbXGTXLo (ORCPT
+	by vger.kernel.org with ESMTP id S1756477AbXGTXYA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 19:11:44 -0400
+	Fri, 20 Jul 2007 19:24:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, alanh@tungstengraphics.com, rpurdie@rpsys.net, thomas@tungstengraphics.com
+Cc: dale@farnsworth.org, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     Fix several memory leaks in cr_backlight_probe()
+     rtc: update and use the MAX6900 century byte
 has been added to the -mm tree.  Its filename is
-     fix-several-memory-leaks-in-cr_backlight_probe.patch
+     rtc-update-and-use-the-max6900-century-byte.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,118 +26,198 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix several memory leaks in cr_backlight_probe()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: rtc: update and use the MAX6900 century byte
+From: "Dale Farnsworth" <dale@farnsworth.org>
 
-After fixing the too small memory allocation in cr_backlight_probe()
-from drivers/video/backlight/cr_bllcd.c
-(commit e3bbb3f05339de438faf54124f25c92e6fe4ac2e) I noticed that the
-Coverity checker also thought there were a few memory leaks in there.
-I took a closer look and confirmed that there were indeed several
-leaks.
+We now read and write the century byte in the max6900 chip.  We probably
+don't need to do so on Linux-only system, but it's necessary when the chip
+is shared by another OS that uses the century byte.
 
-At the start of the function we allocate storage for a
-'struct cr_panel' and store the pointer in a variable named 'crp'.
-
-Then we call pci_get_device() and pci_read_config_byte() and if
-either of them fail we return without freeing the memory allocated
-for the 'struct cr_panel'. These two leaks are easy to fix since we
-don't even use 'crp' for anything up to this point, so I simply
-moved the allocation further down in the function so it only happens
-just before we actually need it.
-
-A bit further down we call backlight_device_register() and store the
-result in 'crp->cr_backlight_device'. In case of error we return
-'crp->cr_backlight_device' from the function, thus leaking 'crp'
-itself. The same thing happens with the call to lcd_device_register().
-To fix these two leaks I declare two new pointers to hold the return
-values, so that in case of error we can return the pointer (as before)
-but without leaking 'crp'.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Thomas Hellstrom <thomas@tungstengraphics.com>
-Cc: Alan Hourihane <alanh@tungstengraphics.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Dale Farnsworth <dale@farnsworth.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/cr_bllcd.c |   30 +++++++++++++--------------
- 1 files changed, 15 insertions(+), 15 deletions(-)
+ drivers/rtc/rtc-max6900.c |   96 +++++++++++++++++++++++++++---------
+ 1 files changed, 72 insertions(+), 24 deletions(-)
 
-diff -puN drivers/video/backlight/cr_bllcd.c~fix-several-memory-leaks-in-cr_backlight_probe drivers/video/backlight/cr_bllcd.c
---- a/drivers/video/backlight/cr_bllcd.c~fix-several-memory-leaks-in-cr_backlight_probe
-+++ a/drivers/video/backlight/cr_bllcd.c
-@@ -171,13 +171,11 @@ static struct lcd_ops cr_lcd_ops = {
+diff -puN drivers/rtc/rtc-max6900.c~rtc-update-and-use-the-max6900-century-byte drivers/rtc/rtc-max6900.c
+--- a/drivers/rtc/rtc-max6900.c~rtc-update-and-use-the-max6900-century-byte
++++ a/drivers/rtc/rtc-max6900.c
+@@ -31,17 +31,24 @@
+ #define MAX6900_REG_DW			5	/* day of week	 1-7  */
+ #define MAX6900_REG_YR			6	/* year		00-99 */
+ #define MAX6900_REG_CT			7	/* control */
+-#define MAX6900_REG_LEN			8
++						/* register 8 is undocumented */
++#define MAX6900_REG_CENTURY		9	/* century */
++#define MAX6900_REG_LEN			10
++
++#define MAX6900_BURST_LEN		8	/* can burst r/w first 8 regs */
  
- static int cr_backlight_probe(struct platform_device *pdev)
+ #define MAX6900_REG_CT_WP		(1 << 7)	/* Write Protect */
+ 
++
+ /*
+  * register read/write commands
+  */
+ #define MAX6900_REG_CONTROL_WRITE	0x8e
+-#define MAX6900_REG_BURST_READ		0xbf
+-#define MAX6900_REG_BURST_WRITE		0xbe
++#define MAX6900_REG_CENTURY_WRITE	0x92
++#define MAX6900_REG_CENTURY_READ	0x93
+ #define MAX6900_REG_RESERVED_READ	0x96
++#define MAX6900_REG_BURST_WRITE		0xbe
++#define MAX6900_REG_BURST_READ		0xbf
+ 
+ #define MAX6900_IDLE_TIME_AFTER_WRITE	3	/* specification says 2.5 mS */
+ 
+@@ -58,19 +65,32 @@ static int max6900_probe(struct i2c_adap
+ 
+ static int max6900_i2c_read_regs(struct i2c_client *client, u8 *buf)
  {
-+	struct backlight_device *bdp;
-+	struct lcd_device *ldp;
- 	struct cr_panel *crp;
- 	u8 dev_en;
+-	u8 reg_addr[1] = { MAX6900_REG_BURST_READ };
+-	struct i2c_msg msgs[2] = {
++	u8 reg_burst_read[1] = { MAX6900_REG_BURST_READ };
++	u8 reg_century_read[1] = { MAX6900_REG_CENTURY_READ };
++	struct i2c_msg msgs[4] = {
+ 		{
+ 			.addr	= client->addr,
+ 			.flags	= 0, /* write */
+-			.len	= sizeof(reg_addr),
+-			.buf	= reg_addr
++			.len	= sizeof(reg_burst_read),
++			.buf	= reg_burst_read
+ 		},
+ 		{
+ 			.addr	= client->addr,
+ 			.flags	= I2C_M_RD,
+-			.len	= MAX6900_REG_LEN,
++			.len	= MAX6900_BURST_LEN,
+ 			.buf	= buf
++		},
++		{
++			.addr	= client->addr,
++			.flags	= 0, /* write */
++			.len	= sizeof(reg_century_read),
++			.buf	= reg_century_read
++		},
++		{
++			.addr	= client->addr,
++			.flags	= I2C_M_RD,
++			.len	= sizeof(buf[MAX6900_REG_CENTURY]),
++			.buf	= &buf[MAX6900_REG_CENTURY]
+ 		}
+ 	};
+ 	int rc;
+@@ -86,33 +106,58 @@ static int max6900_i2c_read_regs(struct 
  
--	crp = kzalloc(sizeof(*crp), GFP_KERNEL);
--	if (crp == NULL)
--		return -ENOMEM;
--
- 	lpc_dev = pci_get_device(PCI_VENDOR_ID_INTEL,
- 					CRVML_DEVICE_LPC, NULL);
- 	if (!lpc_dev) {
-@@ -193,27 +191,29 @@ static int cr_backlight_probe(struct pla
- 		return -ENODEV;
+ static int max6900_i2c_write_regs(struct i2c_client *client, u8 const *buf)
+ {
+-	u8 i2c_buf[MAX6900_REG_LEN + 1] = { MAX6900_REG_BURST_WRITE };
+-	struct i2c_msg msgs[1] = {
++	u8 i2c_century_buf[1 + 1] = { MAX6900_REG_CENTURY_WRITE };
++	struct i2c_msg century_msgs[1] = {
+ 		{
+ 			.addr	= client->addr,
+ 			.flags	= 0, /* write */
+-			.len	= MAX6900_REG_LEN + 1,
+-			.buf	= i2c_buf
++			.len	= sizeof(i2c_century_buf),
++			.buf	= i2c_century_buf
++		}
++	};
++	u8 i2c_burst_buf[MAX6900_BURST_LEN + 1] = { MAX6900_REG_BURST_WRITE };
++	struct i2c_msg burst_msgs[1] = {
++		{
++			.addr	= client->addr,
++			.flags	= 0, /* write */
++			.len	= sizeof(i2c_burst_buf),
++			.buf	= i2c_burst_buf
+ 		}
+ 	};
+ 	int rc;
+ 
+-	memcpy(&i2c_buf[1], buf, MAX6900_REG_LEN);
++	/*
++	 * We have to make separate calls to i2c_transfer because of
++	 * the need to delay after each write to the chip.  Also,
++	 * we write the century byte first, since we set the write-protect
++	 * bit as part of the burst write.
++	 */
++	i2c_century_buf[1] = buf[MAX6900_REG_CENTURY];
++	rc = i2c_transfer(client->adapter, century_msgs,
++			  ARRAY_SIZE(century_msgs));
++	if (rc != ARRAY_SIZE(century_msgs))
++		goto write_failed;
++	msleep(MAX6900_IDLE_TIME_AFTER_WRITE);
+ 
+-	rc = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+-	if (rc != ARRAY_SIZE(msgs)) {
+-		dev_err(&client->dev, "%s: register write failed\n",
+-			__FUNCTION__);
+-		return -EIO;
+-	}
++	memcpy(&i2c_burst_buf[1], buf, MAX6900_BURST_LEN);
++
++	rc = i2c_transfer(client->adapter, burst_msgs, ARRAY_SIZE(burst_msgs));
++	if (rc != ARRAY_SIZE(burst_msgs))
++		goto write_failed;
+ 	msleep(MAX6900_IDLE_TIME_AFTER_WRITE);
++
+ 	return 0;
++
++write_failed:
++	dev_err(&client->dev, "%s: register write failed\n",
++		__FUNCTION__);
++	return -EIO;
+ }
+ 
+ static int max6900_i2c_validate_client(struct i2c_client *client)
+ {
+ 	u8 regs[MAX6900_REG_LEN];
+-	u8 zero_mask[MAX6900_REG_LEN] = {
++	u8 zero_mask[] = {
+ 		0x80,	/* seconds */
+ 		0x80,	/* minutes */
+ 		0x40,	/* hours */
+@@ -134,7 +179,7 @@ static int max6900_i2c_validate_client(s
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	for (i = 0; i < MAX6900_REG_LEN; ++i) {
++	for (i = 0; i < ARRAY_SIZE(zero_mask); ++i) {
+ 		if (regs[i] & zero_mask[i])
+ 			return -ENODEV;
  	}
+@@ -156,7 +201,8 @@ static int max6900_i2c_read_time(struct 
+ 	tm->tm_hour = BCD2BIN(regs[MAX6900_REG_HR] & 0x3f);
+ 	tm->tm_mday = BCD2BIN(regs[MAX6900_REG_DT]);
+ 	tm->tm_mon = BCD2BIN(regs[MAX6900_REG_MO]) - 1;
+-	tm->tm_year = BCD2BIN(regs[MAX6900_REG_YR]) + 100;
++	tm->tm_year = BCD2BIN(regs[MAX6900_REG_YR]) +
++		      BCD2BIN(regs[MAX6900_REG_CENTURY]) * 100 - 1900;
+ 	tm->tm_wday = BCD2BIN(regs[MAX6900_REG_DW]);
  
--	crp->cr_backlight_device = backlight_device_register("cr-backlight",
--							     &pdev->dev, NULL,
--							     &cr_backlight_ops);
--	if (IS_ERR(crp->cr_backlight_device)) {
-+	bdp = backlight_device_register("cr-backlight",
-+					&pdev->dev, NULL,
-+					&cr_backlight_ops);
-+	if (IS_ERR(bdp)) {
- 		pci_dev_put(lpc_dev);
--		return PTR_ERR(crp->cr_backlight_device);
-+		return PTR_ERR(bdp);
- 	}
+ 	return 0;
+@@ -189,9 +235,11 @@ static int max6900_i2c_set_time(struct i
+ 	regs[MAX6900_REG_HR] = BIN2BCD(tm->tm_hour);
+ 	regs[MAX6900_REG_DT] = BIN2BCD(tm->tm_mday);
+ 	regs[MAX6900_REG_MO] = BIN2BCD(tm->tm_mon + 1);
+-	regs[MAX6900_REG_YR] = BIN2BCD(tm->tm_year - 100);
+ 	regs[MAX6900_REG_DW] = BIN2BCD(tm->tm_wday);
+-	regs[MAX6900_REG_CT] = MAX6900_REG_CT_WP;	/* set write protect */
++	regs[MAX6900_REG_YR] = BIN2BCD(tm->tm_year % 100);
++	regs[MAX6900_REG_CENTURY] = BIN2BCD((tm->tm_year + 1900) / 100);
++	/* set write protect */
++	regs[MAX6900_REG_CT] = MAX6900_REG_CT_WP;
  
--	crp->cr_lcd_device = lcd_device_register("cr-lcd",
--							&pdev->dev, NULL,
--							&cr_lcd_ops);
--
--	if (IS_ERR(crp->cr_lcd_device)) {
-+	ldp = lcd_device_register("cr-lcd", &pdev->dev, &cr_lcd_ops);
-+	if (IS_ERR(ldp)) {
- 		pci_dev_put(lpc_dev);
--		return PTR_ERR(crp->cr_backlight_device);
-+		return PTR_ERR(bdp);
- 	}
- 
- 	pci_read_config_dword(lpc_dev, CRVML_REG_GPIOBAR,
- 			      &gpio_bar);
- 	gpio_bar &= ~0x3F;
- 
-+	crp = kzalloc(sizeof(*crp), GFP_KERNEL);
-+	if (crp == NULL)
-+		return -ENOMEM;
-+	crp->cr_backlight_device = bdp;
-+	crp->cr_lcd_device = ldp;
- 	crp->cr_backlight_device->props.power = FB_BLANK_UNBLANK;
- 	crp->cr_backlight_device->props.brightness = 0;
- 	crp->cr_backlight_device->props.max_brightness = 0;
+ 	rc = max6900_i2c_write_regs(client, regs);
+ 	if (rc < 0)
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from dale@farnsworth.org are
 
 origin.patch
-memory-leak-in-tpm_ascii_bios_measurements_open-fix.patch
-fix-acpi_ev_pci_config_region_setup-to-avoid-memory-leak.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-fix-several-memory-leaks-in-cr_backlight_probe.patch
-git-xfs.patch
-ipmi-fix-mem-leak-in-try_init_dmi.patch
-fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
+rtc-update-and-use-the-max6900-century-byte.patch
