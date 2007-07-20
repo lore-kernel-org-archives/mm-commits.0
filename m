@@ -1,101 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - user-namespace-fix-copy_user_ns-return-value.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 23:43:14 -0700
-Message-ID: <200707200643.l6K6hEbR011953@imap1.linux-foundation.org>
+Subject: - fix-spufs-build-after-fault-changes.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 23:43:05 -0700
+Message-ID: <200707200643.l6K6h5Ge011944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35333 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56276 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753466AbXGTGna (ORCPT
+	by vger.kernel.org with ESMTP id S1753466AbXGTGnk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 02:43:30 -0400
+	Fri, 20 Jul 2007 02:43:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serue@us.ibm.com, clg@fr.ibm.com, sukadev@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: hch@lst.de, arnd@arndb.de, geoffrey.levand@am.sony.com, nickpiggin@yahoo.com.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     user namespace: fix copy_user_ns return value
+     fix spufs build after ->fault changes
 has been removed from the -mm tree.  Its filename was
-     user-namespace-fix-copy_user_ns-return-value.patch
+     fix-spufs-build-after-fault-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: user namespace: fix copy_user_ns return value
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: fix spufs build after ->fault changes
+From: Christoph Hellwig <hch@lst.de>
 
-When a CONFIG_USER_NS=n and a user tries to unshare some namespace other
-than the user namespace, the dummy copy_user_ns returns NULL rather than
-the old_ns.  This value then gets assigned to task->nsproxy->user_ns, so
-that a subsequent setuid, which uses task->nsproxy->user_ns, causes a NULL
-pointer deref.
+83c54070ee1a2d05c89793884bea1a03f2851ed4 broke spufs by incorrectly
+updating the code, this patch gets it to compile again.
 
-Fix this by returning old_ns.
+It's probably still broken due to the scheduler changes, but this
+at least makes sure cell kernels can still be built.
 
-I believe this is a bug both in -mm and mainline.
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Geoff Levand <geoffrey.levand@am.sony.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/user_namespace.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/platforms/cell/spufs/fault.c |   22 ++++++++++----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/user_namespace.h~user-namespace-fix-copy_user_ns-return-value include/linux/user_namespace.h
---- a/include/linux/user_namespace.h~user-namespace-fix-copy_user_ns-return-value
-+++ a/include/linux/user_namespace.h
-@@ -49,7 +49,7 @@ static inline struct user_namespace *cop
- 	if (flags & CLONE_NEWUSER)
- 		return ERR_PTR(-EINVAL);
+diff -puN arch/powerpc/platforms/cell/spufs/fault.c~fix-spufs-build-after-fault-changes arch/powerpc/platforms/cell/spufs/fault.c
+--- a/arch/powerpc/platforms/cell/spufs/fault.c~fix-spufs-build-after-fault-changes
++++ a/arch/powerpc/platforms/cell/spufs/fault.c
+@@ -74,18 +74,18 @@ good_area:
+ 			goto bad_area;
+ 	}
+ 	ret = 0;
+-	fault = handle_mm_fault(mm, vma, ea, is_write);
+-	if (unlikely(fault & VM_FAULT_ERROR)) {
+-		if (fault & VM_FAULT_OOM) {
++	*flt = handle_mm_fault(mm, vma, ea, is_write);
++	if (unlikely(*flt & VM_FAULT_ERROR)) {
++		if (*flt & VM_FAULT_OOM) {
+ 			ret = -ENOMEM;
+ 			goto bad_area;
+-		} else if (fault & VM_FAULT_SIGBUS) {
++		} else if (*flt & VM_FAULT_SIGBUS) {
+ 			ret = -EFAULT;
+ 			goto bad_area;
+ 		}
+ 		BUG();
+ 	}
+-	if (fault & VM_FAULT_MAJOR)
++	if (*flt & VM_FAULT_MAJOR)
+ 		current->maj_flt++;
+ 	else
+ 		current->min_flt++;
+@@ -210,15 +210,15 @@ int spufs_handle_class1(struct spu_conte
+ 	 * In case of unhandled error report the problem to user space.
+ 	 */
+ 	if (!ret) {
+-		if (flt == VM_FAULT_MINOR)
+-			ctx->stats.min_flt++;
+-		else
++		if (flt & VM_FAULT_MAJOR)
+ 			ctx->stats.maj_flt++;
++		else
++			ctx->stats.min_flt++;
+ 		if (ctx->state == SPU_STATE_RUNNABLE) {
+-			if (flt == VM_FAULT_MINOR)
+-				ctx->spu->stats.min_flt++;
+-			else
++			if (flt & VM_FAULT_MAJOR)
+ 				ctx->spu->stats.maj_flt++;
++			else
++				ctx->spu->stats.min_flt++;
+ 		}
  
--	return NULL;
-+	return old_ns;
- }
- 
- static inline void put_user_ns(struct user_namespace *ns)
+ 		if (ctx->spu)
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-security-convert-lsm-into-a-static-interface.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-file-capabilities-introduce-cap_setfcap.patch
-file-capabilities-get_file_caps-cleanups.patch
-file-caps-update-selinux-xattr-hooks.patch
-file-capabilities-clear-caps-cleanup.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-file-capabilities-change-xattr-format-v2.patch
-file-capabilities-change-fe-to-a-bool.patch
-file-caps-clean-up-for-linux-capabilityh.patch
-capabilityh-remove-include-of-currenth.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-containers-implement-subsys-post_clone.patch
-containers-implement-namespace-tracking-subsystem-v3.patch
-pid-namespaces-round-up-the-api.patch
+gdth-remove-redundant-pci-stuff.patch
+gdth-remove-redundant-pci-stuff-update.patch
+git-xfs.patch
+remove-handle_mm_fault-export.patch
+sysv-convert-to-new-aops.patch
+kill-declare_mutex_locked.patch
+remove-unneded-lock_kernel-in-driver-block-loopc.patch
+loop-use-unlocked_ioctl.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
