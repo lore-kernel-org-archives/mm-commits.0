@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + write-only-stuff-in-cfq-data-structures.patch added to -mm tree
-Date: Thu, 19 Jul 2007 18:14:39 -0700
-Message-ID: <200707200114.l6K1EdRx032660@imap1.linux-foundation.org>
+Subject: + fallout-from-kbuild-changes.patch added to -mm tree
+Date: Thu, 19 Jul 2007 18:26:44 -0700
+Message-ID: <200707200126.l6K1QiYW000576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37795 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60057 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759364AbXGTBVf (ORCPT
+	by vger.kernel.org with ESMTP id S934006AbXGTB11 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 21:21:35 -0400
+	Thu, 19 Jul 2007 21:27:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, jens.axboe@oracle.com
+Cc: viro@ftp.linux.org.uk, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Write-only stuff in CFQ data structures
+     fallout from kbuild changes
 has been added to the -mm tree.  Its filename is
-     write-only-stuff-in-cfq-data-structures.patch
+     fallout-from-kbuild-changes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Write-only stuff in CFQ data structures
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: fallout from kbuild changes
+From: Al Viro <viro@ftp.linux.org.uk>
 
-There are some write-only fields in cfq_data and cfq_queue.
+Change in 'kbuild: do section mismatch check on full vmlinux' should've
+been replicated in arch/um/Makefile.
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cfq-iosched.c |   11 -----------
- 1 files changed, 11 deletions(-)
+ arch/um/Makefile |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN block/cfq-iosched.c~write-only-stuff-in-cfq-data-structures block/cfq-iosched.c
---- a/block/cfq-iosched.c~write-only-stuff-in-cfq-data-structures
-+++ a/block/cfq-iosched.c
-@@ -111,9 +111,6 @@ struct cfq_data {
- 	unsigned int cfq_slice_idle;
+diff -puN arch/um/Makefile~fallout-from-kbuild-changes arch/um/Makefile
+--- a/arch/um/Makefile~fallout-from-kbuild-changes
++++ a/arch/um/Makefile
+@@ -146,7 +146,7 @@ define cmd_vmlinux__
+ 	-Wl,-T,$(vmlinux-lds) $(vmlinux-init) \
+ 	-Wl,--start-group $(vmlinux-main) -Wl,--end-group \
+ 	-lutil \
+-	$(filter-out $(vmlinux-lds) $(vmlinux-init) $(vmlinux-main) \
++	$(filter-out $(vmlinux-lds) $(vmlinux-init) $(vmlinux-main) vmlinux.o \
+ 	FORCE ,$^) ; rm -f linux
+ endef
  
- 	struct list_head cic_list;
--
--	sector_t new_seek_mean;
--	u64 new_seek_total;
- };
- 
- /*
-@@ -153,8 +150,6 @@ struct cfq_queue {
- 
- 	/* various state flags, see below */
- 	unsigned int flags;
--
--	sector_t last_request_pos;
- };
- 
- enum cfqq_state_flags {
-@@ -1597,11 +1592,6 @@ cfq_update_io_seektime(struct cfq_data *
- 	else
- 		sdist = cic->last_request_pos - rq->sector;
- 
--	if (!cic->seek_samples) {
--		cfqd->new_seek_total = (7*cic->seek_total + (u64)256*sdist) / 8;
--		cfqd->new_seek_mean = cfqd->new_seek_total / 256;
--	}
--
- 	/*
- 	 * Don't allow the seek distance to get too large from the
- 	 * odd fragment, pagein, etc
-@@ -1737,7 +1727,6 @@ cfq_rq_enqueued(struct cfq_data *cfqd, s
- 	cfq_update_idle_window(cfqd, cfqq, cic);
- 
- 	cic->last_request_pos = rq->sector + rq->nr_sectors;
--	cfqq->last_request_pos = cic->last_request_pos;
- 
- 	if (cfqq == cfqd->active_queue) {
- 		/*
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from viro@ftp.linux.org.uk are
 
 origin.patch
-consolidate-ptrace_detach.patch
-git-dvb.patch
-write-only-stuff-in-cfq-data-structures.patch
-use-list_head-in-binfmt-handling.patch
-make-unregister_binfmt-return-void.patch
-fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
-fix-leak-on-proc-lockdep_stats.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
+coda-breakage.patch
+fallout-from-kbuild-changes.patch
+introduce-i_sync.patch
+slab-leaks3-default-y.patch
