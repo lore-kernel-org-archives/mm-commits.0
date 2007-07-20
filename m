@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - containersv10-simple-debug-info-subsystem-fix.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:29:52 -0700
-Message-ID: <200707202029.l6KKTqMW014906@imap1.linux-foundation.org>
+Subject: - containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 13:29:43 -0700
+Message-ID: <200707202029.l6KKTheM014897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48701 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34120 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934842AbXGTUix (ORCPT
+	by vger.kernel.org with ESMTP id S934809AbXGTUi6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:38:53 -0400
+	Fri, 20 Jul 2007 16:38:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     containersv10-simple-debug-info-subsystem-fix
+     containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix
 has been removed from the -mm tree.  Its filename was
-     containersv10-simple-debug-info-subsystem-fix.patch
+     containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: containersv10-simple-debug-info-subsystem-fix
+Subject: containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -37,52 +37,21 @@ Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/container_debug.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ kernel/container.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/container_debug.c~containersv10-simple-debug-info-subsystem-fix kernel/container_debug.c
---- a/kernel/container_debug.c~containersv10-simple-debug-info-subsystem-fix
-+++ a/kernel/container_debug.c
-@@ -10,10 +10,15 @@
- 
- #include <linux/container.h>
- #include <linux/fs.h>
-+#include <linux/slab.h>
-+#include <linux/rcupdate.h>
-+
-+#include <asm/atomic.h>
- 
- static int debug_create(struct container_subsys *ss, struct container *cont)
+diff -puN kernel/container.c~containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix kernel/container.c
+--- a/kernel/container.c~containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix
++++ a/kernel/container.c
+@@ -2086,7 +2086,7 @@ void container_fork_callbacks(struct tas
+ void container_exit(struct task_struct *tsk, int run_callbacks)
  {
- 	struct container_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
-+
- 	if (!css)
- 		return -ENOMEM;
- 	cont->subsys[debug_subsys_id] = css;
-@@ -33,6 +38,7 @@ static u64 container_refcount_read(struc
- static u64 taskcount_read(struct container *cont, struct cftype *cft)
- {
- 	u64 count;
-+
- 	container_lock();
- 	count = container_task_count(cont);
- 	container_unlock();
-@@ -41,13 +47,14 @@ static u64 taskcount_read(struct contain
+ 	int i;
+-	struct css_group *cg = NULL;
++	struct css_group *cg;
  
- static u64 current_css_group_read(struct container *cont, struct cftype *cft)
- {
--	return (u64) current->containers;
-+	return (u64)current->containers;
- }
- 
- static u64 current_css_group_refcount_read(struct container *cont,
- 					   struct cftype *cft)
- {
- 	u64 count;
-+
- 	rcu_read_lock();
- 	count = atomic_read(&current->containers->ref.refcount);
- 	rcu_read_unlock();
+ 	if (run_callbacks && need_forkexit_callback) {
+ 		for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,6 +123,7 @@ intel-iommu-intel-iommu-driver.patch
 intel-iommu-iommu-floppy-workaround.patch
 revoke-wire-up-i386-system-calls.patch
 revoke-vs-git-block.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
 containersv10-simple-debug-info-subsystem-fix.patch
 containersv10-simple-debug-info-subsystem-fix-2.patch
 add-containerstats-v3-fix.patch
