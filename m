@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch added to -mm tree
-Date: Thu, 19 Jul 2007 18:27:08 -0700
-Message-ID: <200707200127.l6K1R8Vq000587@imap1.linux-foundation.org>
+Subject: + fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch added to -mm tree
+Date: Thu, 19 Jul 2007 18:29:56 -0700
+Message-ID: <200707200129.l6K1Tugq000726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33669 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38427 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758829AbXGTB2E (ORCPT
+	by vger.kernel.org with ESMTP id S1761012AbXGTBbL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 21:28:04 -0400
+	Thu, 19 Jul 2007 21:31:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, bjorn.helgaas@hp.com, rmk+lkml@arm.linux.org.uk, schmidt@digadd.de, yinghai.lu@sun.com
+Cc: jesper.juhl@gmail.com, karim@opersys.com, mathieu.desnoyers@polymtl.ca, wilder@us.ibm.com, zanussi@us.ibm.com
 
 
 The patch titled
-     add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix
+     Fix a use after free bug in kernel->userspace relay file support
 has been added to the -mm tree.  Its filename is
-     add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+     fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,150 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix a use after free bug in kernel->userspace relay file support
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-- ARRAY_SIZE is neater and tighter than the terminate-it-in-null thing.
+Coverity spotted what looks like a real possible case of using a variable
+after it has been freed.  The problem is in
+kernel/relay.c::relay_open_buf()
 
-- fix lots of broken whitespace
+If the code hits "goto free_buf;" it ends up in this code :
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Christian Schmidt <schmidt@digadd.de>
-Cc: Russell King <rmk+lkml@arm.linux.org.uk>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+  free_buf:
+    	relay_destroy_buf(buf);	<--- calls kfree() on 'buf'.
+  free_name:
+   	kfree(tmpname);
+  end:
+  	return buf;		<-- use after free of 'buf'.
+
+I read through the callers and they all handle a NULL return from this
+function as an error (and hitting the 'free_buf' label only happens on
+failure to chan->cb->create_buf_file(), so that looks like a clear error to
+me).
+
+The patch simply sets 'buf' to NULL after the call to
+relay_destroy_buf(buf); - as far as I can see that should take care of the
+problem.
+
+The patch also corrects a reference to a documentation file while
+I was at it.
+
+Note from Mathieu: the documentation reference change should have been
+done in a separate patch, but I guess no one will really care.
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: "David J. Wilder" <wilder@us.ibm.com>
+Tested-by: "David J. Wilder" <wilder@us.ibm.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Tom Zanussi <zanussi@us.ibm.com>
+Cc: Karim Yaghmour <karim@opersys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ kernel/relay.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_pci.c~add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix
-+++ a/drivers/serial/8250_pci.c
-@@ -1666,8 +1666,7 @@ static struct pciserial_board pci_boards
- };
- 
- static const struct pci_device_id softmodem_blacklist[] = {
--     { PCI_VDEVICE ( AL, 0x5457 ), }, /* ALi Corporation M5457 AC'97 Modem */
--     { }
-+	{ PCI_VDEVICE ( AL, 0x5457 ), }, /* ALi Corporation M5457 AC'97 Modem */
- };
- 
+diff -puN kernel/relay.c~fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support kernel/relay.c
+--- a/kernel/relay.c~fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support
++++ a/kernel/relay.c
+@@ -1,7 +1,7 @@
  /*
-@@ -1678,7 +1677,7 @@ static const struct pci_device_id softmo
- static int __devinit
- serial_pci_guess_board(struct pci_dev *dev, struct pciserial_board *board)
- {
--        const struct pci_device_id * blacklist;
-+	const struct pci_device_id *blacklist;
- 	int num_iomem, num_port, first_port = -1, i;
- 	
- 	/*
-@@ -1697,10 +1696,12 @@ serial_pci_guess_board(struct pci_dev *d
- 	 * Do not access blacklisted devices that are known not to
- 	 * feature serial ports.
- 	 */
--	for (blacklist = softmodem_blacklist; blacklist->vendor; blacklist++) {
--	        if ((dev->vendor == blacklist->vendor) &&
--	            (dev->device == blacklist->device))
--		        return -ENODEV;
-+	for (blacklist = softmodem_blacklist;
-+	     blacklist < softmodem_blacklist + ARRAY_SIZE(softmodem_blacklist);
-+	     blacklist++) {
-+		if (dev->vendor == blacklist->vendor &&
-+		    dev->device == blacklist->device)
-+			return -ENODEV;
- 	}
+  * Public API and common code for kernel->userspace relay file support.
+  *
+- * See Documentation/filesystems/relayfs.txt for an overview of relayfs.
++ * See Documentation/filesystems/relay.txt for an overview.
+  *
+  * Copyright (C) 2002-2005 - Tom Zanussi (zanussi@us.ibm.com), IBM Corp
+  * Copyright (C) 1999-2005 - Karim Yaghmour (karim@opersys.com)
+@@ -426,6 +426,7 @@ static struct rchan_buf *relay_open_buf(
  
- 	num_iomem = num_port = 0;
+ free_buf:
+  	relay_destroy_buf(buf);
++ 	buf = NULL;
+ free_name:
+  	kfree(tmpname);
+ end:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-dvb.patch
-git-input.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+fix-acpi_ev_pci_config_region_setup-to-avoid-memory-leak.patch
+git-gfs2-nmw.patch
 git-mtd.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-git-scsi-misc.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-clockevents-fix-resume-logic-xen-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
 git-xfs.patch
-git-kgdb-fixup-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fix-swiotlb_sync_single_range.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+ipmi-fix-mem-leak-in-try_init_dmi.patch
+fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
