@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch added to -mm tree
-Date: Thu, 19 Jul 2007 18:29:56 -0700
-Message-ID: <200707200129.l6K1Tugq000726@imap1.linux-foundation.org>
+Subject: + mmaps2-vma-out-of-mem_size_stats.patch added to -mm tree
+Date: Thu, 19 Jul 2007 18:38:11 -0700
+Message-ID: <200707200138.l6K1cBXc000978@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38427 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36754 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761012AbXGTBbL (ORCPT
+	by vger.kernel.org with ESMTP id S1759851AbXGTBic (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 21:31:11 -0400
+	Thu, 19 Jul 2007 21:38:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, karim@opersys.com, mathieu.desnoyers@polymtl.ca, wilder@us.ibm.com, zanussi@us.ibm.com
+Cc: rusty@rustcorp.com.au, mpm@selenic.com
 
 
 The patch titled
-     Fix a use after free bug in kernel->userspace relay file support
+     maps2: vma out of mem_size_stats
 has been added to the -mm tree.  Its filename is
-     fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
+     mmaps2-vma-out-of-mem_size_stats.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +26,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix a use after free bug in kernel->userspace relay file support
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: maps2: vma out of mem_size_stats
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Coverity spotted what looks like a real possible case of using a variable
-after it has been freed.  The problem is in
-kernel/relay.c::relay_open_buf()
+Putting the vma inside "struct mem_size_stats" to hand it through the
+pagewalker is a little gross.  Making a separate struct is more verbose, but
+clearer.
 
-If the code hits "goto free_buf;" it ends up in this code :
-
-  free_buf:
-    	relay_destroy_buf(buf);	<--- calls kfree() on 'buf'.
-  free_name:
-   	kfree(tmpname);
-  end:
-  	return buf;		<-- use after free of 'buf'.
-
-I read through the callers and they all handle a NULL return from this
-function as an error (and hitting the 'free_buf' label only happens on
-failure to chan->cb->create_buf_file(), so that looks like a clear error to
-me).
-
-The patch simply sets 'buf' to NULL after the call to
-relay_destroy_buf(buf); - as far as I can see that should take care of the
-problem.
-
-The patch also corrects a reference to a documentation file while
-I was at it.
-
-Note from Mathieu: the documentation reference change should have been
-done in a separate patch, but I guess no one will really care.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: "David J. Wilder" <wilder@us.ibm.com>
-Tested-by: "David J. Wilder" <wilder@us.ibm.com>
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Tom Zanussi <zanussi@us.ibm.com>
-Cc: Karim Yaghmour <karim@opersys.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   32 +++++++++++++++++++-------------
+ 1 files changed, 19 insertions(+), 13 deletions(-)
 
-diff -puN kernel/relay.c~fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support kernel/relay.c
---- a/kernel/relay.c~fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support
-+++ a/kernel/relay.c
-@@ -1,7 +1,7 @@
- /*
-  * Public API and common code for kernel->userspace relay file support.
-  *
-- * See Documentation/filesystems/relayfs.txt for an overview of relayfs.
-+ * See Documentation/filesystems/relay.txt for an overview.
-  *
-  * Copyright (C) 2002-2005 - Tom Zanussi (zanussi@us.ibm.com), IBM Corp
-  * Copyright (C) 1999-2005 - Karim Yaghmour (karim@opersys.com)
-@@ -426,6 +426,7 @@ static struct rchan_buf *relay_open_buf(
+diff -puN fs/proc/task_mmu.c~mmaps2-vma-out-of-mem_size_stats fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mmaps2-vma-out-of-mem_size_stats
++++ a/fs/proc/task_mmu.c
+@@ -318,7 +318,6 @@ const struct file_operations proc_maps_o
+ #ifdef CONFIG_PROC_SMAPS
+ struct mem_size_stats
+ {
+-	struct vm_area_struct *vma;
+ 	unsigned long resident;
+ 	unsigned long shared_clean;
+ 	unsigned long shared_dirty;
+@@ -327,11 +326,18 @@ struct mem_size_stats
+ 	unsigned long referenced;
+ };
  
- free_buf:
-  	relay_destroy_buf(buf);
-+ 	buf = NULL;
- free_name:
-  	kfree(tmpname);
- end:
++struct smaps_arg
++{
++	struct mem_size_stats mss;
++	struct vm_area_struct *vma;
++};
++
+ static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			   void *private)
+ {
+-	struct mem_size_stats *mss = private;
+-	struct vm_area_struct *vma = mss->vma;
++	struct smaps_arg *sarg = private;
++	struct vm_area_struct *vma = sarg->vma;
++	struct mem_size_stats *mss = &sarg->mss;
+ 	pte_t *pte, ptent;
+ 	spinlock_t *ptl;
+ 	struct page *page;
+@@ -373,14 +379,14 @@ static struct mm_walk smaps_walk = { .pm
+ static int show_smap(struct seq_file *m, void *v)
+ {
+ 	struct vm_area_struct *vma = v;
+-	struct mem_size_stats mss;
++	struct smaps_arg sarg;
+ 	int ret;
+ 
+-	memset(&mss, 0, sizeof mss);
+-	mss.vma = vma;
++	memset(&sarg.mss, 0, sizeof sarg.mss);
++	sarg.vma = vma;
+ 	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
+ 		walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
+-				&smaps_walk, &mss);
++				&smaps_walk, &sarg);
+ 
+ 	ret = show_map(m, v);
+ 	if (ret)
+@@ -395,12 +401,12 @@ static int show_smap(struct seq_file *m,
+ 		   "Private_Dirty:  %8lu kB\n"
+ 		   "Referenced:     %8lu kB\n",
+ 		   (vma->vm_end - vma->vm_start) >> 10,
+-		   mss.resident >> 10,
+-		   mss.shared_clean  >> 10,
+-		   mss.shared_dirty  >> 10,
+-		   mss.private_clean >> 10,
+-		   mss.private_dirty >> 10,
+-		   mss.referenced >> 10);
++		   sarg.mss.resident >> 10,
++		   sarg.mss.shared_clean  >> 10,
++		   sarg.mss.shared_dirty  >> 10,
++		   sarg.mss.private_clean >> 10,
++		   sarg.mss.private_dirty >> 10,
++		   sarg.mss.referenced >> 10);
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-fix-acpi_ev_pci_config_region_setup-to-avoid-memory-leak.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-xfs.patch
-ipmi-fix-mem-leak-in-try_init_dmi.patch
-fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
+git-kbuild.patch
+git-kvm.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
