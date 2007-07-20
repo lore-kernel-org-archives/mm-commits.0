@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slubcearly_kmem_cache_node_alloc-shouldnt-be.patch added to -mm tree
-Date: Thu, 19 Jul 2007 16:59:11 -0700
-Message-ID: <200707192359.l6JNxBZe029640@imap1.linux-foundation.org>
+Subject: + i386-intel_cacheinfocfind_num_cache_leaves-should.patch added to -mm tree
+Date: Thu, 19 Jul 2007 17:00:09 -0700
+Message-ID: <200707200000.l6K009TT029675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37955 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34875 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934253AbXGSX7y (ORCPT
+	by vger.kernel.org with ESMTP id S1759471AbXGTAA5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 19:59:54 -0400
+	Thu, 19 Jul 2007 20:00:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, clameter@sgi.com
+Cc: bunk@stusta.de, ak@suse.de
 
 
 The patch titled
-     slub.c:early_kmem_cache_node_alloc() shouldn't be __init
+     i386: intel_cacheinfo.c:find_num_cache_leaves() should be __cpuinit
 has been added to the -mm tree.  Its filename is
-     slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+     i386-intel_cacheinfocfind_num_cache_leaves-should.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub.c:early_kmem_cache_node_alloc() shouldn't be __init
+Subject: i386: intel_cacheinfo.c:find_num_cache_leaves() should be __cpuinit
 From: Adrian Bunk <bunk@stusta.de>
 
-WARNING: mm/built-in.o(.text+0x24bd3): Section mismatch: reference to .init.text:early_kmem_cache_node_alloc (between 'init_kmem_cache_nodes' and 'calculate_sizes')
-...
+WARNING: arch/i386/kernel/built-in.o(.text+0xb6a7): Section mismatch: reference to .init.text:find_num_cache_leaves (between 'init_intel_cacheinfo' and 'cache_shared_cpu_map_setup')
+
+It could be __init_refok, but gcc >= 4.0 anyway inlines it into the
+__cpuinit init_intel_cacheinfo(), and IMHO it's too small for "noinline
+__init".
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/cpu/intel_cacheinfo.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slubcearly_kmem_cache_node_alloc-shouldnt-be mm/slub.c
---- a/mm/slub.c~slubcearly_kmem_cache_node_alloc-shouldnt-be
-+++ a/mm/slub.c
-@@ -1867,8 +1867,8 @@ static void init_kmem_cache_node(struct 
-  * Note that this function only works on the kmalloc_node_cache
-  * when allocating for the kmalloc_node_cache.
-  */
--static struct kmem_cache_node * __init early_kmem_cache_node_alloc(gfp_t gfpflags,
--								int node)
-+static struct kmem_cache_node *early_kmem_cache_node_alloc(gfp_t gfpflags,
-+							   int node)
+diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~i386-intel_cacheinfocfind_num_cache_leaves-should arch/i386/kernel/cpu/intel_cacheinfo.c
+--- a/arch/i386/kernel/cpu/intel_cacheinfo.c~i386-intel_cacheinfocfind_num_cache_leaves-should
++++ a/arch/i386/kernel/cpu/intel_cacheinfo.c
+@@ -275,8 +275,7 @@ static int __cpuinit cpuid4_cache_lookup
+ 	return 0;
+ }
+ 
+-/* will only be called once; __init is safe here */
+-static int __init find_num_cache_leaves(void)
++static int __cpuinit find_num_cache_leaves(void)
  {
- 	struct page *page;
- 	struct kmem_cache_node *n;
+ 	unsigned int		eax, ebx, ecx, edx;
+ 	union _cpuid4_leaf_eax	cache_eax;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -73,6 +75,7 @@ git-scsi-misc.patch
 drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
 git-unionfs.patch
 git-ipwireless_cs.patch
+i386-intel_cacheinfocfind_num_cache_leaves-should.patch
 arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
 slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
 maps2-add-proc-kpagemap-interface.patch
