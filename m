@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sparc64-fix-section-mismatch-warning-in-mdescc.patch added to -mm tree
-Date: Fri, 20 Jul 2007 14:53:19 -0700
-Message-ID: <200707202153.l6KLrJhu018414@imap1.linux-foundation.org>
+Subject: + sparc64-fix-section-mismatch-warning-in-pci_sunv4.patch added to -mm tree
+Date: Fri, 20 Jul 2007 14:53:15 -0700
+Message-ID: <200707202153.l6KLrFHq018410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46359 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53423 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754969AbXGTVx1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752505AbXGTVxX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 17:53:27 -0400
+	Fri, 20 Jul 2007 17:53:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: sam@ravnborg.org
 
 
 The patch titled
-     sparc64: fix section mismatch warning in mdesc.c
+     sparc64: fix section mismatch warning in pci_sunv4
 has been added to the -mm tree.  Its filename is
-     sparc64-fix-section-mismatch-warning-in-mdescc.patch
+     sparc64-fix-section-mismatch-warning-in-pci_sunv4.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sparc64: fix section mismatch warning in mdesc.c
+Subject: sparc64: fix section mismatch warning in pci_sunv4
 From: Sam Ravnborg <sam@ravnborg.org>
 
 Fix following warning:
-WARNING: vmlinux.o(.text+0x35264): Section mismatch: reference to .init.text:__alloc_bootmem (between 'mdesc_bootmem_alloc' and 'mdesc_bootmem_free')
+WARNING: vmlinux.o(.text+0x3cf50): Section mismatch: reference to .init.text:page_in_phys_avail (between 'pci_sun4v_pbm_init' and 'sun4v_pci_init')
 
-Rename mdesc_mem_ops to *_ops so modpost ignores __init references and declare
-mdesc_bootmem_alloc __init since it is only used during __init context.
+pci_sun4v_pbm_init and sun4v_pci_init was only used under __init
+context so declare them _init.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/mdesc.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ arch/sparc64/kernel/pci_sun4v.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/sparc64/kernel/mdesc.c~sparc64-fix-section-mismatch-warning-in-mdescc arch/sparc64/kernel/mdesc.c
---- a/arch/sparc64/kernel/mdesc.c~sparc64-fix-section-mismatch-warning-in-mdescc
-+++ a/arch/sparc64/kernel/mdesc.c
-@@ -83,7 +83,7 @@ static void mdesc_handle_init(struct mde
- 	hp->handle_size = handle_size;
+diff -puN arch/sparc64/kernel/pci_sun4v.c~sparc64-fix-section-mismatch-warning-in-pci_sunv4 arch/sparc64/kernel/pci_sun4v.c
+--- a/arch/sparc64/kernel/pci_sun4v.c~sparc64-fix-section-mismatch-warning-in-pci_sunv4
++++ a/arch/sparc64/kernel/pci_sun4v.c
+@@ -1129,7 +1129,7 @@ static void pci_sun4v_msi_init(struct pc
  }
+ #endif /* !(CONFIG_PCI_MSI) */
  
--static struct mdesc_handle *mdesc_bootmem_alloc(unsigned int mdesc_size)
-+static struct mdesc_handle * __init mdesc_bootmem_alloc(unsigned int mdesc_size)
+-static void pci_sun4v_pbm_init(struct pci_controller_info *p, struct device_node *dp, u32 devhandle)
++static void __init pci_sun4v_pbm_init(struct pci_controller_info *p, struct device_node *dp, u32 devhandle)
  {
- 	struct mdesc_handle *hp;
- 	unsigned int handle_size, alloc_size;
-@@ -123,7 +123,7 @@ static void mdesc_bootmem_free(struct md
- 	}
+ 	struct pci_pbm_info *pbm;
+ 
+@@ -1163,7 +1163,7 @@ static void pci_sun4v_pbm_init(struct pc
+ 	pci_sun4v_msi_init(pbm);
  }
  
--static struct mdesc_mem_ops bootmem_mdesc_memops = {
-+static struct mdesc_mem_ops bootmem_mdesc_ops = {
- 	.alloc = mdesc_bootmem_alloc,
- 	.free  = mdesc_bootmem_free,
- };
-@@ -860,7 +860,7 @@ void __init sun4v_mdesc_init(void)
- 
- 	printk("MDESC: Size is %lu bytes.\n", len);
- 
--	hp = mdesc_alloc(len, &bootmem_mdesc_memops);
-+	hp = mdesc_alloc(len, &bootmem_mdesc_ops);
- 	if (hp == NULL) {
- 		prom_printf("MDESC: alloc of %lu bytes failed.\n", len);
- 		prom_halt();
+-void sun4v_pci_init(struct device_node *dp, char *model_name)
++void __init sun4v_pci_init(struct device_node *dp, char *model_name)
+ {
+ 	static int hvapi_negotiated = 0;
+ 	struct pci_controller_info *p;
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
