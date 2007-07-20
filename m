@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-backlight-cr_bllcdc-build-fix.patch added to -mm tree
-Date: Fri, 20 Jul 2007 16:10:52 -0700
-Message-ID: <200707202310.l6KNAqqa021361@imap1.linux-foundation.org>
+Subject: + fix-several-memory-leaks-in-cr_backlight_probe.patch added to -mm tree
+Date: Fri, 20 Jul 2007 16:11:27 -0700
+Message-ID: <200707202311.l6KNBRDK021376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58917 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33556 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751533AbXGTXLI (ORCPT
+	by vger.kernel.org with ESMTP id S1757636AbXGTXLo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 19:11:08 -0400
+	Fri, 20 Jul 2007 19:11:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rpurdie@rpsys.net
+Cc: jesper.juhl@gmail.com, alanh@tungstengraphics.com, rpurdie@rpsys.net, thomas@tungstengraphics.com
 
 
 The patch titled
-     git-backlight: cr_bllcd.c: build fix
+     Fix several memory leaks in cr_backlight_probe()
 has been added to the -mm tree.  Its filename is
-     git-backlight-cr_bllcdc-build-fix.patch
+     fix-several-memory-leaks-in-cr_backlight_probe.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,106 +26,118 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-backlight: cr_bllcd.c: build fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix several memory leaks in cr_backlight_probe()
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
+After fixing the too small memory allocation in cr_backlight_probe()
+from drivers/video/backlight/cr_bllcd.c
+(commit e3bbb3f05339de438faf54124f25c92e6fe4ac2e) I noticed that the
+Coverity checker also thought there were a few memory leaks in there.
+I took a closer look and confirmed that there were indeed several
+leaks.
+
+At the start of the function we allocate storage for a
+'struct cr_panel' and store the pointer in a variable named 'crp'.
+
+Then we call pci_get_device() and pci_read_config_byte() and if
+either of them fail we return without freeing the memory allocated
+for the 'struct cr_panel'. These two leaks are easy to fix since we
+don't even use 'crp' for anything up to this point, so I simply
+moved the allocation further down in the function so it only happens
+just before we actually need it.
+
+A bit further down we call backlight_device_register() and store the
+result in 'crp->cr_backlight_device'. In case of error we return
+'crp->cr_backlight_device' from the function, thus leaking 'crp'
+itself. The same thing happens with the call to lcd_device_register().
+To fix these two leaks I declare two new pointers to hold the return
+values, so that in case of error we can return the pointer (as before)
+but without leaking 'crp'.
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Thomas Hellstrom <thomas@tungstengraphics.com>
+Cc: Alan Hourihane <alanh@tungstengraphics.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/cr_bllcd.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/cr_bllcd.c |   30 +++++++++++++--------------
+ 1 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN drivers/video/backlight/cr_bllcd.c~git-backlight-cr_bllcdc-build-fix drivers/video/backlight/cr_bllcd.c
---- a/drivers/video/backlight/cr_bllcd.c~git-backlight-cr_bllcdc-build-fix
+diff -puN drivers/video/backlight/cr_bllcd.c~fix-several-memory-leaks-in-cr_backlight_probe drivers/video/backlight/cr_bllcd.c
+--- a/drivers/video/backlight/cr_bllcd.c~fix-several-memory-leaks-in-cr_backlight_probe
 +++ a/drivers/video/backlight/cr_bllcd.c
-@@ -202,7 +202,7 @@ static int cr_backlight_probe(struct pla
+@@ -171,13 +171,11 @@ static struct lcd_ops cr_lcd_ops = {
+ 
+ static int cr_backlight_probe(struct platform_device *pdev)
+ {
++	struct backlight_device *bdp;
++	struct lcd_device *ldp;
+ 	struct cr_panel *crp;
+ 	u8 dev_en;
+ 
+-	crp = kzalloc(sizeof(*crp), GFP_KERNEL);
+-	if (crp == NULL)
+-		return -ENOMEM;
+-
+ 	lpc_dev = pci_get_device(PCI_VENDOR_ID_INTEL,
+ 					CRVML_DEVICE_LPC, NULL);
+ 	if (!lpc_dev) {
+@@ -193,27 +191,29 @@ static int cr_backlight_probe(struct pla
+ 		return -ENODEV;
  	}
  
- 	crp->cr_lcd_device = lcd_device_register("cr-lcd",
--							&pdev->dev, NULL
-+							&pdev->dev, NULL,
- 							&cr_lcd_ops);
+-	crp->cr_backlight_device = backlight_device_register("cr-backlight",
+-							     &pdev->dev, NULL,
+-							     &cr_backlight_ops);
+-	if (IS_ERR(crp->cr_backlight_device)) {
++	bdp = backlight_device_register("cr-backlight",
++					&pdev->dev, NULL,
++					&cr_backlight_ops);
++	if (IS_ERR(bdp)) {
+ 		pci_dev_put(lpc_dev);
+-		return PTR_ERR(crp->cr_backlight_device);
++		return PTR_ERR(bdp);
+ 	}
  
- 	if (IS_ERR(crp->cr_lcd_device)) {
+-	crp->cr_lcd_device = lcd_device_register("cr-lcd",
+-							&pdev->dev, NULL,
+-							&cr_lcd_ops);
+-
+-	if (IS_ERR(crp->cr_lcd_device)) {
++	ldp = lcd_device_register("cr-lcd", &pdev->dev, &cr_lcd_ops);
++	if (IS_ERR(ldp)) {
+ 		pci_dev_put(lpc_dev);
+-		return PTR_ERR(crp->cr_backlight_device);
++		return PTR_ERR(bdp);
+ 	}
+ 
+ 	pci_read_config_dword(lpc_dev, CRVML_REG_GPIOBAR,
+ 			      &gpio_bar);
+ 	gpio_bar &= ~0x3F;
+ 
++	crp = kzalloc(sizeof(*crp), GFP_KERNEL);
++	if (crp == NULL)
++		return -ENOMEM;
++	crp->cr_backlight_device = bdp;
++	crp->cr_lcd_device = ldp;
+ 	crp->cr_backlight_device->props.power = FB_BLANK_UNBLANK;
+ 	crp->cr_backlight_device->props.brightness = 0;
+ 	crp->cr_backlight_device->props.max_brightness = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-dvb.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+memory-leak-in-tpm_ascii_bios_measurements_open-fix.patch
+fix-acpi_ev_pci_config_region_setup-to-avoid-memory-leak.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+git-gfs2-nmw.patch
 git-mtd.patch
-mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-git-backlight-cr_bllcdc-build-fix.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-git-scsi-misc.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-clockevents-fix-resume-logic-xen-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
+fix-several-memory-leaks-in-cr_backlight_probe.patch
 git-xfs.patch
-git-xfs-fixup.patch
-git-kgdb-fixup-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+ipmi-fix-mem-leak-in-try_init_dmi.patch
+fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
