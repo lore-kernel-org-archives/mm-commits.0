@@ -1,93 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - containersv10-basic-container-framework-fix-3.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:28:55 -0700
-Message-ID: <200707202028.l6KKStVg014837@imap1.linux-foundation.org>
+Subject: - containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 13:28:58 -0700
+Message-ID: <200707202028.l6KKSx0D014840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59879 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33036 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757674AbXGTU3w (ORCPT
+	by vger.kernel.org with ESMTP id S1758139AbXGTU3x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:29:52 -0400
+	Fri, 20 Jul 2007 16:29:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dhaval@linux.vnet.ibm.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     containersv10-basic-container-framework-fix-3
+     Fix for bad lock balance in Containers
 has been removed from the -mm tree.  Its filename was
-     containersv10-basic-container-framework-fix-3.patch
+     containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: containersv10-basic-container-framework-fix-3
+Subject: Fix for bad lock balance in Containers
 From: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 
-Hi,
+I have been going through the containers code and trying it out. I tried
+mounting the same hierarchy at two different points and I got a bad
+locking balance warning.
 
-On Tue, May 29, 2007 at 06:01:05AM -0700, menage@google.com wrote:
-> +1.5 How do I use containers ?
-> +--------------------------
-> +
-> +To start a new job that is to be contained within a container, using
-> +the "cpuset" container subsystem, the steps are something like:
-> +
-> + 1) mkdir /dev/container
-> + 2) mount -t container -ocpuset cpuset /dev/container
-> + 3) Create the new container by doing mkdir's and write's (or echo's) in
-> +    the /dev/container virtual file system.
-> + 4) Start a task that will be the "founding father" of the new job.
-> + 5) Attach that task to the new container by writing its pid to the
-> +    /dev/container tasks file for that container.
-> + 6) fork, exec or clone the job tasks from this founding father task.
-> +
-> +For example, the following sequence of commands will setup a container
-> +named "Charlie", containing just CPUs 2 and 3, and Memory Node 1,
-> +and then start a subshell 'sh' in that container:
-> +
-> +  mount -t container cpuset -ocpuset /dev/container
-> +  cd /dev/container
-> +  mkdir Charlie
-> +  cd Charlie
+=====================================
+[ BUG: bad unlock balance detected! ]
+-------------------------------------
+mount/4467 is trying to release lock (&type->s_umount_key) at:
+[<c017de3b>] vfs_kern_mount+0x5b/0x70
+but there are no more locks to release!
 
-This example does not work. To do so we need to do
+other info that might help us debug this:
+no locks held by mount/4467.
 
-  /bin/echo 2-3 > cpus
-  /bin/echo 1 > mems
+stack backtrace:
+ [<c0105b9f>] show_trace_log_lvl+0x19/0x2e
+ [<c0105bc6>] show_trace+0x12/0x14
+ [<c0105cb1>] dump_stack+0x14/0x16
+ [<c0142c1a>] print_unlock_inbalance_bug+0xcc/0xd6
+ [<c0142c93>] check_unlock+0x6f/0x75
+ [<c0142ee0>] __lock_release+0x1e/0x51
+ [<c014312c>] lock_release+0x4c/0x64
+ [<c013bd9d>] up_write+0x16/0x2b
+ [<c017de3b>] vfs_kern_mount+0x5b/0x70
+ [<c018fae7>] do_new_mount+0x85/0xe6
+ [<c019013f>] do_mount+0x185/0x199
+ [<c01903ab>] sys_mount+0x71/0xa6
+ [<c0104d6a>] sysenter_past_esp+0x5f/0x99
+ =======================
 
-> +  /bin/echo $$ > tasks
-> +  sh
-> +  # The subshell 'sh' is now running in container Charlie
-> +  # The next line should display '/Charlie'
-> +  cat /proc/self/container
+Going through the code, I realised this is because when the container is
+already mounted at one point, when being remounted, it just does a
+simple_set_mnt which does not update s_umount which causes the warning
+to come. This also cause umount to hang the second time.
 
-The following patch does that.
+The correct method would be allocate the superblock using sget (or a
+variant) which would call grab_super correctly and set these locks.
+Seeing the code which is there, some part of grab_super is already done
+in container_get_sb where the root->sb->s_active is updated. So I have
+called down_write there as well to get the locking balance. However I
+believe that this is not the correct approach.
+
+There are a few questions I had with respect to the current code,
+
+Why is the increment of s_active dependent on the return value of
+simple_set_mnt? All the other functions which I have seen (fs ones),
+grab_super (which increments s_active) is called followed by a
+simple_set_mnt.
+
+What should be the correct approach to get the locking balance? As far
+as I can see, the correct method would be to call sget which would then
+correctly handle everything. But that would require a test function. I
+saw functionality similar to a test function in the beginning of
+container_get_sb(). Should that be seperated and put in a seperate test
+function so that sget can be called?
+
+Another possible approach would be to call grab_super directly (since we
+know the test function is going to return true), but this cannot be done
+since grab_super is static right now. Or maybe we could duplicate
+grab_super's functionality.
+
+In the meantime a temporary fix.
 
 Signed-off-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/containers.txt |    2 ++
- 1 files changed, 2 insertions(+)
+ kernel/container.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/containers.txt~containersv10-basic-container-framework-fix-3 Documentation/containers.txt
---- a/Documentation/containers.txt~containersv10-basic-container-framework-fix-3
-+++ a/Documentation/containers.txt
-@@ -298,6 +298,8 @@ and then start a subshell 'sh' in that c
-   cd /dev/container
-   mkdir Charlie
-   cd Charlie
-+  /bin/echo 2-3 > cpus
-+  /bin/echo 1 > mems
-   /bin/echo $$ > tasks
-   sh
-   # The subshell 'sh' is now running in container Charlie
+diff -puN kernel/container.c~containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers kernel/container.c
+--- a/kernel/container.c~containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers
++++ a/kernel/container.c
+@@ -602,6 +602,7 @@ static int container_get_sb(struct file_
+ 		BUG_ON(ret);
+ 	} else {
+ 		/* Reuse the existing superblock */
++		down_write(&(root->sb->s_umount));
+ 		ret = simple_set_mnt(mnt, root->sb);
+ 		if (!ret)
+ 			atomic_inc(&root->sb->s_active);
 _
 
 Patches currently in -mm which might be from dhaval@linux.vnet.ibm.com are
 
-containersv10-basic-container-framework-fix-3.patch
 containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch
