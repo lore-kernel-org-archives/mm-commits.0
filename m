@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-swiotlb_sync_single_range.patch added to -mm tree
-Date: Thu, 19 Jul 2007 17:19:25 -0700
-Message-ID: <200707200019.l6K0JPxn030382@imap1.linux-foundation.org>
+Subject: + usb-devices-misc-build-the-iowarrior-when-it-is-selected-in-kconfig.patch added to -mm tree
+Date: Thu, 19 Jul 2007 17:21:33 -0700
+Message-ID: <200707200021.l6K0LX9f030452@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49323 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54739 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757274AbXGTATm (ORCPT
+	by vger.kernel.org with ESMTP id S1754735AbXGTAVo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 20:19:42 -0400
+	Thu, 19 Jul 2007 20:21:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Keir.Fraser@cl.cam.ac.uk, ak@suse.de, akpm@linux-foundation.org, keir.fraser@cl.cam.ac.uk, tony.luck@intel.com
+Cc: juergen@kreuzholzen.de, greg@kroah.com
 
 
 The patch titled
-     Fix swiotlb_sync_single_range()
+     USB devices misc: build the IOWARRIOR when it is selected in Kconfig
 has been added to the -mm tree.  Its filename is
-     fix-swiotlb_sync_single_range.patch
+     usb-devices-misc-build-the-iowarrior-when-it-is-selected-in-kconfig.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix swiotlb_sync_single_range()
-From: Keir Fraser <Keir.Fraser@cl.cam.ac.uk>
+Subject: USB devices misc: build the IOWARRIOR when it is selected in Kconfig
+From: Juergen Beisert <juergen@kreuzholzen.de>
 
-If the swiotlb maps a multi-slab region, swiotlb_sync_single_range() can be
-invoked to sync a sub-region which does not include the first slab. 
-Unfortunately io_tlb_orig_addr[] is only initialised for the first slab,
-and hence the call to sync_single() will read a garbage orig_addr in this
-case.
-
-This patch fixes the issue by initialising all mapped slabs in
-io_tlb_orig_addr[].  It also correctly adjusts the buffer pointer in
-sync_single() to handle the case that the given dma_addr is not aligned on
-a slab boundary.
-
-Signed-off-by: Keir Fraser <keir.fraser@cl.cam.ac.uk>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Juergen Beisert <juergen@kreuzholzen.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/swiotlb.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/usb/Makefile |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN lib/swiotlb.c~fix-swiotlb_sync_single_range lib/swiotlb.c
---- a/lib/swiotlb.c~fix-swiotlb_sync_single_range
-+++ a/lib/swiotlb.c
-@@ -357,7 +357,8 @@ map_single(struct device *hwdev, char *b
- 	 * This is needed when we sync the memory.  Then we sync the buffer if
- 	 * needed.
- 	 */
--	io_tlb_orig_addr[index] = buffer;
-+	for (i = 0; i < nslots; i++)
-+		io_tlb_orig_addr[index+i] = buffer + (i << IO_TLB_SHIFT);
- 	if (dir == DMA_TO_DEVICE || dir == DMA_BIDIRECTIONAL)
- 		memcpy(dma_addr, buffer, size);
+diff -puN drivers/usb/Makefile~usb-devices-misc-build-the-iowarrior-when-it-is-selected-in-kconfig drivers/usb/Makefile
+--- a/drivers/usb/Makefile~usb-devices-misc-build-the-iowarrior-when-it-is-selected-in-kconfig
++++ a/drivers/usb/Makefile
+@@ -49,6 +49,7 @@ obj-$(CONFIG_USB_SISUSBVGA)	+= misc/
+ obj-$(CONFIG_USB_TEST)		+= misc/
+ obj-$(CONFIG_USB_TRANCEVIBRATOR)+= misc/
+ obj-$(CONFIG_USB_USS720)	+= misc/
++obj-$(CONFIG_USB_IOWARRIOR)	+= misc/
  
-@@ -418,6 +419,8 @@ sync_single(struct device *hwdev, char *
- 	int index = (dma_addr - io_tlb_start) >> IO_TLB_SHIFT;
- 	char *buffer = io_tlb_orig_addr[index];
- 
-+	buffer += ((unsigned long)dma_addr & ((1 << IO_TLB_SHIFT) - 1));
-+
- 	switch (target) {
- 	case SYNC_FOR_CPU:
- 		if (likely(dir == DMA_FROM_DEVICE || dir == DMA_BIDIRECTIONAL))
+ obj-$(CONFIG_USB_ATM)		+= atm/
+ obj-$(CONFIG_USB_SPEEDTOUCH)	+= atm/
 _
 
-Patches currently in -mm which might be from Keir.Fraser@cl.cam.ac.uk are
+Patches currently in -mm which might be from juergen@kreuzholzen.de are
 
-origin.patch
-fix-swiotlb_sync_single_range.patch
+usb-devices-misc-build-the-iowarrior-when-it-is-selected-in-kconfig.patch
+geode-setup-correct-chipset-access-functions.patch
