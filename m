@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atl1-use-kernel-provided-ethernet-length-constants.patch added to -mm tree
-Date: Fri, 20 Jul 2007 14:45:21 -0700
-Message-ID: <200707202145.l6KLjLOt018088@imap1.linux-foundation.org>
+Subject: + containers-implement-namespace-tracking-subsystem.patch added to -mm tree
+Date: Fri, 20 Jul 2007 14:49:28 -0700
+Message-ID: <200707202149.l6KLnSP5018266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52820 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60460 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759317AbXGTVp3 (ORCPT
+	by vger.kernel.org with ESMTP id S1759638AbXGTVtp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 17:45:29 -0400
+	Fri, 20 Jul 2007 17:49:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jacliburn@bellsouth.net
+Cc: serue@us.ibm.com, akpm@linux-foundation.org, menage@google.com
 
 
 The patch titled
-     atl1: use kernel provided ethernet length constants
+     containers: implement namespace tracking subsystem
 has been added to the -mm tree.  Its filename is
-     atl1-use-kernel-provided-ethernet-length-constants.patch
+     containers-implement-namespace-tracking-subsystem.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,93 +26,271 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atl1: use kernel provided ethernet length constants
-From: Jay Cliburn <jacliburn@bellsouth.net>
+Subject: containers: implement namespace tracking subsystem
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-Use constants already provided by the kernel for ethernet related lengths.
+When a task enters a new namespace via a clone() or unshare(), a new container
+is created and the task moves into it.
 
-Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
+This version names containers which are automatically created using
+container_clone() as "node_<pid>" where pid is the pid of the unsharing or
+cloned process.  (Thanks Pavel for the idea) This is safe because if the
+process unshares again, it will create
+
+	/containers/(...)/node_<pid>/node_<pid>
+
+The only possibilities (AFAICT) for a -EEXIST on unshare are
+
+	1. pid wraparound
+	2. a process fails an unshare, then tries again.
+
+Case 1 is unlikely enough that I ignore it (at least for now).  In case 2, the
+node_<pid> will be empty and can be rmdir'ed to make the subsequent unshare()
+succeed.
+
+Changelog:
+	Name cloned containers as "node_<pid>".
+
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atl1/atl1_hw.h   |    5 -----
- drivers/net/atl1/atl1_main.c |   13 +++++++------
- 2 files changed, 7 insertions(+), 11 deletions(-)
+ include/linux/container_subsys.h |    6 +
+ include/linux/nsproxy.h          |    7 ++
+ init/Kconfig                     |    9 ++
+ kernel/Makefile                  |    1 
+ kernel/ns_container.c            |  100 +++++++++++++++++++++++++++++
+ kernel/nsproxy.c                 |   17 ++++
+ 6 files changed, 139 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/atl1/atl1_hw.h~atl1-use-kernel-provided-ethernet-length-constants drivers/net/atl1/atl1_hw.h
---- a/drivers/net/atl1/atl1_hw.h~atl1-use-kernel-provided-ethernet-length-constants
-+++ a/drivers/net/atl1/atl1_hw.h
-@@ -680,11 +680,6 @@ void atl1_check_options(struct atl1_adap
- #define AUTONEG_ADVERTISE_10_100_ALL	0x000F	/* All 10/100 speeds */
- #define AUTONEG_ADVERTISE_10_ALL	0x0003	/* 10Mbps Full & Half speeds */
+diff -puN include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem include/linux/container_subsys.h
+--- a/include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem
++++ a/include/linux/container_subsys.h
+@@ -24,3 +24,9 @@ SUBSYS(debug)
+ #endif
  
--/* The size (in bytes) of a ethernet packet */
--#define ENET_HEADER_SIZE		14
--#define MAXIMUM_ETHERNET_FRAME_SIZE	1518	/* with FCS */
--#define MINIMUM_ETHERNET_FRAME_SIZE	64	/* with FCS */
--#define ETHERNET_FCS_SIZE		4
- #define MAX_JUMBO_FRAME_SIZE		0x2800
+ /* */
++
++#ifdef CONFIG_CONTAINER_NS
++SUBSYS(ns)
++#endif
++
++/* */
+diff -puN include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem
++++ a/include/linux/nsproxy.h
+@@ -55,4 +55,11 @@ static inline void exit_task_namespaces(
+ 		put_nsproxy(ns);
+ 	}
+ }
++
++#ifdef CONFIG_CONTAINER_NS
++int ns_container_clone(struct task_struct *tsk);
++#else
++static inline int ns_container_clone(struct task_struct *tsk) { return 0; }
++#endif
++
+ #endif
+diff -puN init/Kconfig~containers-implement-namespace-tracking-subsystem init/Kconfig
+--- a/init/Kconfig~containers-implement-namespace-tracking-subsystem
++++ a/init/Kconfig
+@@ -344,6 +344,15 @@ config SYSFS_DEPRECATED
+ 	  If you are using a distro that was released in 2006 or later,
+ 	  it should be safe to say N here.
  
- #define PHY_AUTO_NEG_TIME	45	/* 4.5 Seconds */
-diff -puN drivers/net/atl1/atl1_main.c~atl1-use-kernel-provided-ethernet-length-constants drivers/net/atl1/atl1_main.c
---- a/drivers/net/atl1/atl1_main.c~atl1-use-kernel-provided-ethernet-length-constants
-+++ a/drivers/net/atl1/atl1_main.c
-@@ -59,6 +59,7 @@
- #include <linux/skbuff.h>
- #include <linux/etherdevice.h>
- #include <linux/if_vlan.h>
-+#include <linux/if_ether.h>
- #include <linux/irqreturn.h>
- #include <linux/workqueue.h>
- #include <linux/timer.h>
-@@ -120,8 +121,8 @@ static int __devinit atl1_sw_init(struct
- 	struct atl1_hw *hw = &adapter->hw;
- 	struct net_device *netdev = adapter->netdev;
++config CONTAINER_NS
++        bool "Namespace container subsystem"
++        select CONTAINERS
++        help
++          Provides a simple namespace container subsystem to
++          provide hierarchical naming of sets of namespaces,
++          for instance virtual servers and checkpoint/restart
++          jobs.
++
+ config PROC_PID_CPUSET
+ 	bool "Include legacy /proc/<pid>/cpuset file"
+ 	depends on CPUSETS
+diff -puN kernel/Makefile~containers-implement-namespace-tracking-subsystem kernel/Makefile
+--- a/kernel/Makefile~containers-implement-namespace-tracking-subsystem
++++ a/kernel/Makefile
+@@ -40,6 +40,7 @@ obj-$(CONFIG_CONTAINERS) += container.o
+ obj-$(CONFIG_CONTAINER_DEBUG) += container_debug.o
+ obj-$(CONFIG_CPUSETS) += cpuset.o
+ obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_acct.o
++obj-$(CONFIG_CONTAINER_NS) += ns_container.o
+ obj-$(CONFIG_IKCONFIG) += configs.o
+ obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
+ obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
+diff -puN /dev/null kernel/ns_container.c
+--- /dev/null
++++ a/kernel/ns_container.c
+@@ -0,0 +1,100 @@
++/*
++ * ns_container.c - namespace container subsystem
++ *
++ * Copyright 2006, 2007 IBM Corp
++ */
++
++#include <linux/module.h>
++#include <linux/container.h>
++#include <linux/fs.h>
++
++struct ns_container {
++	struct container_subsys_state css;
++	spinlock_t lock;
++};
++
++struct container_subsys ns_subsys;
++
++static inline struct ns_container *container_to_ns(
++		struct container *container)
++{
++	return container_of(container_subsys_state(container, ns_subsys_id),
++			    struct ns_container, css);
++}
++
++int ns_container_clone(struct task_struct *task)
++{
++	return container_clone(task, &ns_subsys);
++}
++
++/*
++ * Rules:
++ *   1. you can only enter a container which is a child of your current
++ *     container
++ *   2. you can only place another process into a container if
++ *     a. you have CAP_SYS_ADMIN
++ *     b. your container is an ancestor of task's destination container
++ *       (hence either you are in the same container as task, or in an
++ *        ancestor container thereof)
++ */
++static int ns_can_attach(struct container_subsys *ss,
++		struct container *new_container, struct task_struct *task)
++{
++	struct container *orig;
++
++	if (current != task) {
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
++
++		if (!container_is_descendant(new_container))
++			return -EPERM;
++	}
++
++	if (atomic_read(&new_container->count) != 0)
++		return -EPERM;
++
++	orig = task_container(task, ns_subsys_id);
++	if (orig && orig != new_container->parent)
++		return -EPERM;
++
++	return 0;
++}
++
++/*
++ * Rules: you can only create a container if
++ *     1. you are capable(CAP_SYS_ADMIN)
++ *     2. the target container is a descendant of your own container
++ */
++static struct container_subsys_state *ns_create(struct container_subsys *ss,
++						struct container *container)
++{
++	struct ns_container *ns_container;
++
++	if (!capable(CAP_SYS_ADMIN))
++		return ERR_PTR(-EPERM);
++	if (!container_is_descendant(container))
++		return ERR_PTR(-EPERM);
++
++	ns_container = kzalloc(sizeof(*ns_container), GFP_KERNEL);
++	if (!ns_container)
++		return ERR_PTR(-ENOMEM);
++	spin_lock_init(&ns_container->lock);
++	return &ns_container->css;
++}
++
++static void ns_destroy(struct container_subsys *ss,
++			struct container *container)
++{
++	struct ns_container *ns_container;
++
++	ns_container = container_to_ns(container);
++	kfree(ns_container);
++}
++
++struct container_subsys ns_subsys = {
++	.name = "ns",
++	.can_attach = ns_can_attach,
++	.create = ns_create,
++	.destroy  = ns_destroy,
++	.subsys_id = ns_subsys_id,
++};
+diff -puN kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem kernel/nsproxy.c
+--- a/kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem
++++ a/kernel/nsproxy.c
+@@ -146,7 +146,14 @@ int copy_namespaces(unsigned long flags,
+ 		goto out;
+ 	}
  
--	hw->max_frame_size = netdev->mtu + ENET_HEADER_SIZE + ETHERNET_FCS_SIZE;
--	hw->min_frame_size = MINIMUM_ETHERNET_FRAME_SIZE;
-+	hw->max_frame_size = netdev->mtu + ETH_HLEN + ETH_FCS_LEN;
-+	hw->min_frame_size = ETH_ZLEN + ETH_FCS_LEN;
++	err = ns_container_clone(tsk);
++	if (err) {
++		put_nsproxy(new_ns);
++		goto out;
++	}
++
+ 	tsk->nsproxy = new_ns;
++
+ out:
+ 	put_nsproxy(old_ns);
+ 	return err;
+@@ -185,8 +192,16 @@ int unshare_nsproxy_namespaces(unsigned 
  
- 	adapter->wol = 0;
- 	adapter->rx_buffer_len = (hw->max_frame_size + 7) & ~7;
-@@ -688,9 +689,9 @@ static int atl1_change_mtu(struct net_de
- {
- 	struct atl1_adapter *adapter = netdev_priv(netdev);
- 	int old_mtu = netdev->mtu;
--	int max_frame = new_mtu + ENET_HEADER_SIZE + ETHERNET_FCS_SIZE;
-+	int max_frame = new_mtu + ETH_HLEN + ETH_FCS_LEN;
+ 	*new_nsp = create_new_namespaces(unshare_flags, current,
+ 				new_fs ? new_fs : current->fs);
+-	if (IS_ERR(*new_nsp))
++	if (IS_ERR(*new_nsp)) {
+ 		err = PTR_ERR(*new_nsp);
++		goto out;
++	}
++
++	err = ns_container_clone(current);
++	if (err)
++		put_nsproxy(*new_nsp);
++
++out:
+ 	return err;
+ }
  
--	if ((max_frame < MINIMUM_ETHERNET_FRAME_SIZE) ||
-+	if ((max_frame < ETH_ZLEN + ETH_FCS_LEN) ||
- 	    (max_frame > MAX_JUMBO_FRAME_SIZE)) {
- 		dev_warn(&adapter->pdev->dev, "invalid MTU setting\n");
- 		return -EINVAL;
-@@ -1337,7 +1338,7 @@ rrd_ok:
- 		skb = buffer_info->skb;
- 		length = le16_to_cpu(rrd->xsz.xsum_sz.pkt_size);
- 
--		skb_put(skb, length - ETHERNET_FCS_SIZE);
-+		skb_put(skb, length - ETH_FCS_LEN);
- 
- 		/* Receive Checksum Offload */
- 		atl1_rx_checksum(adapter, rrd, skb);
-@@ -1456,7 +1457,7 @@ static int atl1_tso(struct atl1_adapter 
- 			tcp_hdr(skb)->check = ~csum_tcpudp_magic(iph->saddr,
- 				iph->daddr, 0, IPPROTO_TCP, 0);
- 			ipofst = skb_network_offset(skb);
--			if (ipofst != ENET_HEADER_SIZE) /* 802.3 frame */
-+			if (ipofst != ETH_HLEN) /* 802.3 frame */
- 				tso->tsopl |= 1 << TSO_PARAM_ETHTYPE_SHIFT;
- 
- 			tso->tsopl |= (iph->ihl &
 _
 
-Patches currently in -mm which might be from jacliburn@bellsouth.net are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
 origin.patch
-atl1-change-tpd_avail-function-name.patch
-atl1-fix-typo-in-dma-engine-setup.patch
-atl1-change-cmb-write-threshold.patch
-atl1-fix-typo-in-dma_req_block.patch
-atl1-use-kernel-provided-ethernet-length-constants.patch
+security-convert-lsm-into-a-static-interface.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+file-capabilities-introduce-cap_setfcap.patch
+file-capabilities-get_file_caps-cleanups.patch
+file-caps-update-selinux-xattr-hooks.patch
+file-capabilities-clear-caps-cleanup.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+file-capabilities-change-xattr-format-v2.patch
+file-capabilities-change-fe-to-a-bool.patch
+file-caps-clean-up-for-linux-capabilityh.patch
+capabilityh-remove-include-of-currenth.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+containers-implement-namespace-tracking-subsystem.patch
+pid-namespaces-round-up-the-api.patch
