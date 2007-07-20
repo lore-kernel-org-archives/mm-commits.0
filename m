@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cr_backlight_probe-allocates-too-little-storage-for-struct-cr_panel.patch added to -mm tree
-Date: Thu, 19 Jul 2007 23:25:08 -0700
-Message-ID: <200707200625.l6K6P8De011371@imap1.linux-foundation.org>
+Subject: + m68knommu-reformat-show_cpuinfo.patch added to -mm tree
+Date: Thu, 19 Jul 2007 23:25:50 -0700
+Message-ID: <200707200625.l6K6PoY8011375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59152 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56911 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753710AbXGTGZm (ORCPT
+	by vger.kernel.org with ESMTP id S1754072AbXGTG0x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 02:25:42 -0400
+	Fri, 20 Jul 2007 02:26:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, alanh@tungstengraphics.com, stable@kernel.org, thomas@tungstengraphics.com
+Cc: gerg@snapgear.com, gerg@uclinux.org
 
 
 The patch titled
-     cr_backlight_probe() allocates too little storage for struct cr_panel
+     m68knommu: reformat show_cpuinfo()
 has been added to the -mm tree.  Its filename is
-     cr_backlight_probe-allocates-too-little-storage-for-struct-cr_panel.patch
+     m68knommu-reformat-show_cpuinfo.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cr_backlight_probe() allocates too little storage for struct cr_panel
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: m68knommu: reformat show_cpuinfo()
+From: Greg Ungerer <gerg@snapgear.com>
 
-The Coverity checker noticed that we allocate too little storage for
-"struct cr_panel *crp" in cr_backlight_probe().
+Reformat show_cpuinfo() to be consistent with normal coding style
+(and rest of this file).
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Thomas Hellstrom <thomas@tungstengraphics.com>
-Cc: Alan Hourihane <alanh@tungstengraphics.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/cr_bllcd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m68knommu/kernel/setup.c |   37 ++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
 
-diff -puN drivers/video/backlight/cr_bllcd.c~cr_backlight_probe-allocates-too-little-storage-for-struct-cr_panel drivers/video/backlight/cr_bllcd.c
---- a/drivers/video/backlight/cr_bllcd.c~cr_backlight_probe-allocates-too-little-storage-for-struct-cr_panel
-+++ a/drivers/video/backlight/cr_bllcd.c
-@@ -174,7 +174,7 @@ static int cr_backlight_probe(struct pla
- 	struct cr_panel *crp;
- 	u8 dev_en;
+diff -puN arch/m68knommu/kernel/setup.c~m68knommu-reformat-show_cpuinfo arch/m68knommu/kernel/setup.c
+--- a/arch/m68knommu/kernel/setup.c~m68knommu-reformat-show_cpuinfo
++++ a/arch/m68knommu/kernel/setup.c
+@@ -231,32 +231,33 @@ void setup_arch(char **cmdline_p)
+ /*
+  *	Get CPU information for use by the procfs.
+  */
+-
+ static int show_cpuinfo(struct seq_file *m, void *v)
+ {
+-    char *cpu, *mmu, *fpu;
+-    u_long clockfreq;
++	char *cpu, *mmu, *fpu;
++	u_long clockfreq;
  
--	crp = kzalloc(sizeof(crp), GFP_KERNEL);
-+	crp = kzalloc(sizeof(*crp), GFP_KERNEL);
- 	if (crp == NULL)
- 		return -ENOMEM;
+-    cpu = CPU;
+-    mmu = "none";
+-    fpu = "none";
++	cpu = CPU;
++	mmu = "none";
++	fpu = "none";
  
+ #ifdef CONFIG_COLDFIRE
+-    clockfreq = (loops_per_jiffy*HZ)*3;
++	clockfreq = (loops_per_jiffy * HZ) * 3;
+ #else
+-    clockfreq = (loops_per_jiffy*HZ)*16;
++	clockfreq = (loops_per_jiffy * HZ) * 16;
+ #endif
+ 
+-    seq_printf(m, "CPU:\t\t%s\n"
+-		   "MMU:\t\t%s\n"
+-		   "FPU:\t\t%s\n"
+-		   "Clocking:\t%lu.%1luMHz\n"
+-		   "BogoMips:\t%lu.%02lu\n"
+-		   "Calibration:\t%lu loops\n",
+-		   cpu, mmu, fpu,
+-		   clockfreq/1000000,(clockfreq/100000)%10,
+-		   (loops_per_jiffy*HZ)/500000,((loops_per_jiffy*HZ)/5000)%100,
+-		   (loops_per_jiffy*HZ));
++	seq_printf(m, "CPU:\t\t%s\n"
++		      "MMU:\t\t%s\n"
++		      "FPU:\t\t%s\n"
++		      "Clocking:\t%lu.%1luMHz\n"
++		      "BogoMips:\t%lu.%02lu\n"
++		      "Calibration:\t%lu loops\n",
++		      cpu, mmu, fpu,
++		      clockfreq / 1000000,
++		      (clockfreq / 100000) % 10,
++		      (loops_per_jiffy * HZ) / 500000,
++		      ((loops_per_jiffy * HZ) / 5000) % 100,
++		      (loops_per_jiffy * HZ));
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from gerg@snapgear.com are
 
 origin.patch
-cr_backlight_probe-allocates-too-little-storage-for-struct-cr_panel.patch
-fix-acpi_ev_pci_config_region_setup-to-avoid-memory-leak.patch
-git-gfs2-nmw.patch
+m68knommu-reformat-show_cpuinfo.patch
 git-mtd.patch
-git-xfs.patch
-ipmi-fix-mem-leak-in-try_init_dmi.patch
-fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
