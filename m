@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + netdev-i82596-ethernet-needs-asm-cacheflushh.patch added to -mm tree
-Date: Fri, 20 Jul 2007 11:06:35 -0700
-Message-ID: <200707201806.l6KI6bSc009232@imap1.linux-foundation.org>
+Subject: + idr_remove_all-kill-unused-variable.patch added to -mm tree
+Date: Fri, 20 Jul 2007 11:07:18 -0700
+Message-ID: <200707201807.l6KI7IOq009266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40503 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43308 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752255AbXGTSHf (ORCPT
+	by vger.kernel.org with ESMTP id S1754216AbXGTSIA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 14:07:35 -0400
+	Fri, 20 Jul 2007 14:08:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, jeff@garzik.org
+Cc: oleg@tv-sign.ru
 
 
 The patch titled
-     ] netdev: i82596 Ethernet needs <asm/cacheflush.h>
+     idr_remove_all: kill unused variable
 has been added to the -mm tree.  Its filename is
-     netdev-i82596-ethernet-needs-asm-cacheflushh.patch
+     idr_remove_all-kill-unused-variable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ] netdev: i82596 Ethernet needs <asm/cacheflush.h>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: idr_remove_all: kill unused variable
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-netdev: i82596 Ethernet needs <asm/cacheflush.h> on m68k
+"error" is always equal to 0.
 
-drivers/net/82596.c: In function 'init_rx_bufs':
-drivers/net/82596.c:552: error: implicit declaration of function 'cache_clear'
-drivers/net/82596.c: In function 'i596_start_xmit':
-drivers/net/82596.c:1104: error: implicit declaration of function 'cache_push'
-
-The driver still compiles on ia32 (CONFIG_APRICOT=y)
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/82596.c |    1 +
- 1 files changed, 1 insertion(+)
+ lib/idr.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/82596.c~netdev-i82596-ethernet-needs-asm-cacheflushh drivers/net/82596.c
---- a/drivers/net/82596.c~netdev-i82596-ethernet-needs-asm-cacheflushh
-+++ a/drivers/net/82596.c
-@@ -57,6 +57,7 @@
- #include <asm/io.h>
- #include <asm/dma.h>
- #include <asm/pgtable.h>
-+#include <asm/cacheflush.h>
+diff -puN lib/idr.c~idr_remove_all-kill-unused-variable lib/idr.c
+--- a/lib/idr.c~idr_remove_all-kill-unused-variable
++++ a/lib/idr.c
+@@ -405,7 +405,7 @@ EXPORT_SYMBOL(idr_remove);
+  */
+ void idr_remove_all(struct idr *idp)
+ {
+-	int n, id, max, error = 0;
++	int n, id, max;
+ 	struct idr_layer *p;
+ 	struct idr_layer *pa[MAX_LEVEL];
+ 	struct idr_layer **paa = &pa[0];
+@@ -415,7 +415,7 @@ void idr_remove_all(struct idr *idp)
+ 	max = 1 << n;
  
- static char version[] __initdata =
- 	"82596.c $Revision: 1.5 $\n";
+ 	id = 0;
+-	while (id < max && !error) {
++	while (id < max) {
+ 		while (n > IDR_BITS && p) {
+ 			n -= IDR_BITS;
+ 			*paa++ = p;
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-netdev-i82596-ethernet-needs-asm-cacheflushh.patch
-git-scsi-misc.patch
+i386-remove-unnecessary-code.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+sys_time-use-barrier-instead-of-smp_rmb.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+do_poll-return-eintr-when-signalled.patch
+idr_remove_all-kill-unused-variable.patch
