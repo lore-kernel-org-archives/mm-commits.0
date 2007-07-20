@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + containers-implement-namespace-tracking-subsystem.patch added to -mm tree
-Date: Fri, 20 Jul 2007 14:49:28 -0700
-Message-ID: <200707202149.l6KLnSP5018266@imap1.linux-foundation.org>
+Subject: + console-fix-section-mismatch-warning-in-vgaconc.patch added to -mm tree
+Date: Fri, 20 Jul 2007 14:50:37 -0700
+Message-ID: <200707202150.l6KLobbf018281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60460 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54280 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759638AbXGTVtp (ORCPT
+	by vger.kernel.org with ESMTP id S1751896AbXGTVu4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 17:49:45 -0400
+	Fri, 20 Jul 2007 17:50:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, akpm@linux-foundation.org, menage@google.com
+Cc: sam@ravnborg.org, adaplas@pol.net
 
 
 The patch titled
-     containers: implement namespace tracking subsystem
+     console: fix section mismatch warning in vgacon.c
 has been added to the -mm tree.  Its filename is
-     containers-implement-namespace-tracking-subsystem.patch
+     console-fix-section-mismatch-warning-in-vgaconc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,271 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: containers: implement namespace tracking subsystem
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: console: fix section mismatch warning in vgacon.c
+From: Sam Ravnborg <sam@ravnborg.org>
 
-When a task enters a new namespace via a clone() or unshare(), a new container
-is created and the task moves into it.
+Fix following section mismatch warning:
+WARNING: vmlinux.o(.text+0x121e62): Section mismatch: reference to .init.text:__alloc_bootmem (between 'vgacon_startup' and 'vgacon_scrolldelta')
 
-This version names containers which are automatically created using
-container_clone() as "node_<pid>" where pid is the pid of the unsharing or
-cloned process.  (Thanks Pavel for the idea) This is safe because if the
-process unshares again, it will create
+Browsing the code it seems that vgacon_scrollback_startup() is only called
+during the init phase so the reference to the .init.text section is OK.
 
-	/containers/(...)/node_<pid>/node_<pid>
+Teach modpost not to warn using ___init_refok.
 
-The only possibilities (AFAICT) for a -EEXIST on unshare are
-
-	1. pid wraparound
-	2. a process fails an unshare, then tries again.
-
-Case 1 is unlikely enough that I ignore it (at least for now).  In case 2, the
-node_<pid> will be empty and can be rmdir'ed to make the subsequent unshare()
-succeed.
-
-Changelog:
-	Name cloned containers as "node_<pid>".
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/container_subsys.h |    6 +
- include/linux/nsproxy.h          |    7 ++
- init/Kconfig                     |    9 ++
- kernel/Makefile                  |    1 
- kernel/ns_container.c            |  100 +++++++++++++++++++++++++++++
- kernel/nsproxy.c                 |   17 ++++
- 6 files changed, 139 insertions(+), 1 deletion(-)
+ drivers/video/console/vgacon.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem include/linux/container_subsys.h
---- a/include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem
-+++ a/include/linux/container_subsys.h
-@@ -24,3 +24,9 @@ SUBSYS(debug)
- #endif
- 
- /* */
-+
-+#ifdef CONFIG_CONTAINER_NS
-+SUBSYS(ns)
-+#endif
-+
-+/* */
-diff -puN include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem
-+++ a/include/linux/nsproxy.h
-@@ -55,4 +55,11 @@ static inline void exit_task_namespaces(
- 		put_nsproxy(ns);
+diff -puN drivers/video/console/vgacon.c~console-fix-section-mismatch-warning-in-vgaconc drivers/video/console/vgacon.c
+--- a/drivers/video/console/vgacon.c~console-fix-section-mismatch-warning-in-vgaconc
++++ a/drivers/video/console/vgacon.c
+@@ -187,7 +187,11 @@ static void vgacon_scrollback_init(int p
  	}
  }
-+
-+#ifdef CONFIG_CONTAINER_NS
-+int ns_container_clone(struct task_struct *tsk);
-+#else
-+static inline int ns_container_clone(struct task_struct *tsk) { return 0; }
-+#endif
-+
- #endif
-diff -puN init/Kconfig~containers-implement-namespace-tracking-subsystem init/Kconfig
---- a/init/Kconfig~containers-implement-namespace-tracking-subsystem
-+++ a/init/Kconfig
-@@ -344,6 +344,15 @@ config SYSFS_DEPRECATED
- 	  If you are using a distro that was released in 2006 or later,
- 	  it should be safe to say N here.
  
-+config CONTAINER_NS
-+        bool "Namespace container subsystem"
-+        select CONTAINERS
-+        help
-+          Provides a simple namespace container subsystem to
-+          provide hierarchical naming of sets of namespaces,
-+          for instance virtual servers and checkpoint/restart
-+          jobs.
-+
- config PROC_PID_CPUSET
- 	bool "Include legacy /proc/<pid>/cpuset file"
- 	depends on CPUSETS
-diff -puN kernel/Makefile~containers-implement-namespace-tracking-subsystem kernel/Makefile
---- a/kernel/Makefile~containers-implement-namespace-tracking-subsystem
-+++ a/kernel/Makefile
-@@ -40,6 +40,7 @@ obj-$(CONFIG_CONTAINERS) += container.o
- obj-$(CONFIG_CONTAINER_DEBUG) += container_debug.o
- obj-$(CONFIG_CPUSETS) += cpuset.o
- obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_acct.o
-+obj-$(CONFIG_CONTAINER_NS) += ns_container.o
- obj-$(CONFIG_IKCONFIG) += configs.o
- obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
- obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
-diff -puN /dev/null kernel/ns_container.c
---- /dev/null
-+++ a/kernel/ns_container.c
-@@ -0,0 +1,100 @@
+-static void vgacon_scrollback_startup(void)
 +/*
-+ * ns_container.c - namespace container subsystem
-+ *
-+ * Copyright 2006, 2007 IBM Corp
++ * Called only duing init so call of alloc_bootmen is ok.
++ * Marked __init_refok to silence modpost.
 + */
-+
-+#include <linux/module.h>
-+#include <linux/container.h>
-+#include <linux/fs.h>
-+
-+struct ns_container {
-+	struct container_subsys_state css;
-+	spinlock_t lock;
-+};
-+
-+struct container_subsys ns_subsys;
-+
-+static inline struct ns_container *container_to_ns(
-+		struct container *container)
-+{
-+	return container_of(container_subsys_state(container, ns_subsys_id),
-+			    struct ns_container, css);
-+}
-+
-+int ns_container_clone(struct task_struct *task)
-+{
-+	return container_clone(task, &ns_subsys);
-+}
-+
-+/*
-+ * Rules:
-+ *   1. you can only enter a container which is a child of your current
-+ *     container
-+ *   2. you can only place another process into a container if
-+ *     a. you have CAP_SYS_ADMIN
-+ *     b. your container is an ancestor of task's destination container
-+ *       (hence either you are in the same container as task, or in an
-+ *        ancestor container thereof)
-+ */
-+static int ns_can_attach(struct container_subsys *ss,
-+		struct container *new_container, struct task_struct *task)
-+{
-+	struct container *orig;
-+
-+	if (current != task) {
-+		if (!capable(CAP_SYS_ADMIN))
-+			return -EPERM;
-+
-+		if (!container_is_descendant(new_container))
-+			return -EPERM;
-+	}
-+
-+	if (atomic_read(&new_container->count) != 0)
-+		return -EPERM;
-+
-+	orig = task_container(task, ns_subsys_id);
-+	if (orig && orig != new_container->parent)
-+		return -EPERM;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Rules: you can only create a container if
-+ *     1. you are capable(CAP_SYS_ADMIN)
-+ *     2. the target container is a descendant of your own container
-+ */
-+static struct container_subsys_state *ns_create(struct container_subsys *ss,
-+						struct container *container)
-+{
-+	struct ns_container *ns_container;
-+
-+	if (!capable(CAP_SYS_ADMIN))
-+		return ERR_PTR(-EPERM);
-+	if (!container_is_descendant(container))
-+		return ERR_PTR(-EPERM);
-+
-+	ns_container = kzalloc(sizeof(*ns_container), GFP_KERNEL);
-+	if (!ns_container)
-+		return ERR_PTR(-ENOMEM);
-+	spin_lock_init(&ns_container->lock);
-+	return &ns_container->css;
-+}
-+
-+static void ns_destroy(struct container_subsys *ss,
-+			struct container *container)
-+{
-+	struct ns_container *ns_container;
-+
-+	ns_container = container_to_ns(container);
-+	kfree(ns_container);
-+}
-+
-+struct container_subsys ns_subsys = {
-+	.name = "ns",
-+	.can_attach = ns_can_attach,
-+	.create = ns_create,
-+	.destroy  = ns_destroy,
-+	.subsys_id = ns_subsys_id,
-+};
-diff -puN kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem kernel/nsproxy.c
---- a/kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem
-+++ a/kernel/nsproxy.c
-@@ -146,7 +146,14 @@ int copy_namespaces(unsigned long flags,
- 		goto out;
- 	}
- 
-+	err = ns_container_clone(tsk);
-+	if (err) {
-+		put_nsproxy(new_ns);
-+		goto out;
-+	}
-+
- 	tsk->nsproxy = new_ns;
-+
- out:
- 	put_nsproxy(old_ns);
- 	return err;
-@@ -185,8 +192,16 @@ int unshare_nsproxy_namespaces(unsigned 
- 
- 	*new_nsp = create_new_namespaces(unshare_flags, current,
- 				new_fs ? new_fs : current->fs);
--	if (IS_ERR(*new_nsp))
-+	if (IS_ERR(*new_nsp)) {
- 		err = PTR_ERR(*new_nsp);
-+		goto out;
-+	}
-+
-+	err = ns_container_clone(current);
-+	if (err)
-+		put_nsproxy(*new_nsp);
-+
-+out:
- 	return err;
- }
- 
++static void __init_refok vgacon_scrollback_startup(void)
+ {
+ 	vgacon_scrollback = alloc_bootmem(CONFIG_VGACON_SOFT_SCROLLBACK_SIZE
+ 					  * 1024);
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-security-convert-lsm-into-a-static-interface.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-file-capabilities-introduce-cap_setfcap.patch
-file-capabilities-get_file_caps-cleanups.patch
-file-caps-update-selinux-xattr-hooks.patch
-file-capabilities-clear-caps-cleanup.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-file-capabilities-change-xattr-format-v2.patch
-file-capabilities-change-fe-to-a-bool.patch
-file-caps-clean-up-for-linux-capabilityh.patch
-capabilityh-remove-include-of-currenth.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-containers-implement-namespace-tracking-subsystem.patch
-pid-namespaces-round-up-the-api.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+mkmakefile-include-arch-on-o=-builds.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+whitelist-references-from-__dbe_table-to-init.patch
+broken-lilo-check-on-make-install.patch
+console-fix-section-mismatch-warning-in-vgaconc.patch
