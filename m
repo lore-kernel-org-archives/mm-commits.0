@@ -1,121 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - fix-spufs-build-after-fault-changes.patch removed from -mm tree
-Date: Thu, 19 Jul 2007 23:43:05 -0700
-Message-ID: <200707200643.l6K6h5Ge011944@imap1.linux-foundation.org>
+Subject: - random-fix-bound-check-ordering.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 23:43:16 -0700
+Message-ID: <200707200643.l6K6hGtW011956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56276 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37081 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753466AbXGTGnk (ORCPT
+	by vger.kernel.org with ESMTP id S1751758AbXGTGnv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 02:43:40 -0400
+	Fri, 20 Jul 2007 02:43:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, arnd@arndb.de, geoffrey.levand@am.sony.com, nickpiggin@yahoo.com.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: mpm@selenic.com, chrisw@sous-sol.org, pageexec@freemail.hu, stable@kernel.org, tytso@mit.edu, w@1wt.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix spufs build after ->fault changes
+     random: fix bound check ordering
 has been removed from the -mm tree.  Its filename was
-     fix-spufs-build-after-fault-changes.patch
+     random-fix-bound-check-ordering.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix spufs build after ->fault changes
-From: Christoph Hellwig <hch@lst.de>
+Subject: random: fix bound check ordering
+From: Matt Mackall <mpm@selenic.com>
 
-83c54070ee1a2d05c89793884bea1a03f2851ed4 broke spufs by incorrectly
-updating the code, this patch gets it to compile again.
+If root raised the default wakeup threshold over the size of the output
+pool, the pool transfer function could overflow the stack with RNG bytes,
+causing a DoS or potential privilege escalation.
 
-It's probably still broken due to the scheduler changes, but this
-at least makes sure cell kernels can still be built.
+(Bug reported by the PaX Team <pageexec@freemail.hu>)
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Geoff Levand <geoffrey.levand@am.sony.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+This fix is already part of PaX, so can be considered public.  I updated
+the changelog to reflect the PaX Team's preferred credit, and to note
+the privilege escalation potential.  I've also verified the fix.
+
+Cc: Theodore Tso <tytso@mit.edu>
+Cc: Willy Tarreau <w@1wt.eu>
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/fault.c |   22 ++++++++++----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/char/random.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/spufs/fault.c~fix-spufs-build-after-fault-changes arch/powerpc/platforms/cell/spufs/fault.c
---- a/arch/powerpc/platforms/cell/spufs/fault.c~fix-spufs-build-after-fault-changes
-+++ a/arch/powerpc/platforms/cell/spufs/fault.c
-@@ -74,18 +74,18 @@ good_area:
- 			goto bad_area;
- 	}
- 	ret = 0;
--	fault = handle_mm_fault(mm, vma, ea, is_write);
--	if (unlikely(fault & VM_FAULT_ERROR)) {
--		if (fault & VM_FAULT_OOM) {
-+	*flt = handle_mm_fault(mm, vma, ea, is_write);
-+	if (unlikely(*flt & VM_FAULT_ERROR)) {
-+		if (*flt & VM_FAULT_OOM) {
- 			ret = -ENOMEM;
- 			goto bad_area;
--		} else if (fault & VM_FAULT_SIGBUS) {
-+		} else if (*flt & VM_FAULT_SIGBUS) {
- 			ret = -EFAULT;
- 			goto bad_area;
- 		}
- 		BUG();
- 	}
--	if (fault & VM_FAULT_MAJOR)
-+	if (*flt & VM_FAULT_MAJOR)
- 		current->maj_flt++;
- 	else
- 		current->min_flt++;
-@@ -210,15 +210,15 @@ int spufs_handle_class1(struct spu_conte
- 	 * In case of unhandled error report the problem to user space.
- 	 */
- 	if (!ret) {
--		if (flt == VM_FAULT_MINOR)
--			ctx->stats.min_flt++;
--		else
-+		if (flt & VM_FAULT_MAJOR)
- 			ctx->stats.maj_flt++;
-+		else
-+			ctx->stats.min_flt++;
- 		if (ctx->state == SPU_STATE_RUNNABLE) {
--			if (flt == VM_FAULT_MINOR)
--				ctx->spu->stats.min_flt++;
--			else
-+			if (flt & VM_FAULT_MAJOR)
- 				ctx->spu->stats.maj_flt++;
-+			else
-+				ctx->spu->stats.min_flt++;
- 		}
+diff -puN drivers/char/random.c~random-fix-bound-check-ordering drivers/char/random.c
+--- a/drivers/char/random.c~random-fix-bound-check-ordering
++++ a/drivers/char/random.c
+@@ -693,9 +693,14 @@ static void xfer_secondary_pool(struct e
  
- 		if (ctx->spu)
+ 	if (r->pull && r->entropy_count < nbytes * 8 &&
+ 	    r->entropy_count < r->poolinfo->POOLBITS) {
+-		int bytes = max_t(int, random_read_wakeup_thresh / 8,
+-				min_t(int, nbytes, sizeof(tmp)));
++		/* If we're limited, always leave two wakeup worth's BITS */
+ 		int rsvd = r->limit ? 0 : random_read_wakeup_thresh/4;
++		int bytes = nbytes;
++
++		/* pull at least as many as BYTES as wakeup BITS */
++		bytes = max_t(int, bytes, random_read_wakeup_thresh / 8);
++		/* but never more than the buffer size */
++		bytes = min_t(int, bytes, sizeof(tmp));
+ 
+ 		DEBUG_ENT("going to reseed %s with %d bits "
+ 			  "(%d of %d requested)\n",
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
-gdth-remove-redundant-pci-stuff.patch
-gdth-remove-redundant-pci-stuff-update.patch
-git-xfs.patch
-remove-handle_mm_fault-export.patch
-sysv-convert-to-new-aops.patch
-kill-declare_mutex_locked.patch
-remove-unneded-lock_kernel-in-driver-block-loopc.patch
-loop-use-unlocked_ioctl.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
+slob-reduce-list-scanning.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
+hwrng-add-type-categories.patch
