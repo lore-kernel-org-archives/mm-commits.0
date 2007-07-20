@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-fix-tag-3-parsing-code.patch added to -mm tree
-Date: Fri, 20 Jul 2007 15:27:04 -0700
-Message-ID: <200707202227.l6KMR4fm019749@imap1.linux-foundation.org>
+Subject: + ecryptfs-fix-tag-11-parsing-code.patch added to -mm tree
+Date: Fri, 20 Jul 2007 15:27:06 -0700
+Message-ID: <200707202227.l6KMR6OJ019752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49666 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46919 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762718AbXGTW1N (ORCPT
+	by vger.kernel.org with ESMTP id S1762862AbXGTW1O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 18:27:13 -0400
+	Fri, 20 Jul 2007 18:27:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mhalcrow@us.ibm.com
 
 
 The patch titled
-     eCryptfs: fix Tag 3 parsing code
+     eCryptfs: fix Tag 11 parsing code
 has been added to the -mm tree.  Its filename is
-     ecryptfs-fix-tag-3-parsing-code.patch
+     ecryptfs-fix-tag-11-parsing-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,179 +26,133 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: fix Tag 3 parsing code
+Subject: eCryptfs: fix Tag 11 parsing code
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Fix up the Tag 3 parsing code to handle size limits and boundaries more
-explicitly.
+Fix up the Tag 11 parsing code to handle size limits and boundaries more
+explicitly.  Pay attention to *8* bytes for the key identifier (literal data),
+no more, no less.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/keystore.c |   89 +++++++++++++++------------------------
- 1 files changed, 35 insertions(+), 54 deletions(-)
+ fs/ecryptfs/keystore.c |   76 +++++++++++++--------------------------
+ 1 files changed, 27 insertions(+), 49 deletions(-)
 
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-fix-tag-3-parsing-code fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-fix-tag-3-parsing-code
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-fix-tag-11-parsing-code fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-fix-tag-11-parsing-code
 +++ a/fs/ecryptfs/keystore.c
-@@ -643,22 +643,30 @@ parse_tag_3_packet(struct ecryptfs_crypt
+@@ -803,82 +803,60 @@ parse_tag_11_packet(unsigned char *data,
  
  	(*packet_size) = 0;
- 	(*new_auth_tok) = NULL;
+ 	(*tag_11_contents_size) = 0;
 -
--	/* we check that:
--	 *   one byte for the Tag 3 ID flag
--	 *   two bytes for the body size
+-	/* check that:
+-	 *   one byte for the Tag 11 ID flag
+-	 *   two bytes for the Tag 11 length
 -	 * do not exceed the maximum_packet_size
-+	/**
-+	 *This format is inspired by OpenPGP; see RFC 2440
-+	 * packet tag 3
++	/* This format is inspired by OpenPGP; see RFC 2440
++	 * packet tag 11
 +	 *
-+	 * Tag 3 identifier (1 byte)
-+	 * Max Tag 3 packet size (max 3 bytes)
-+	 * Version (1 byte)
-+	 * Cipher code (1 byte)
-+	 * S2K specifier (1 byte)
-+	 * Hash identifier (1 byte)
-+	 * Salt (ECRYPTFS_SALT_SIZE)
-+	 * Hash iterations (1 byte)
-+	 * Encrypted key (arbitrary)
++	 * Tag 11 identifier (1 byte)
++	 * Max Tag 11 packet size (max 3 bytes)
++	 * Binary format specifier (1 byte)
++	 * Filename length (1 byte)
++	 * Filename ("_CONSOLE") (8 bytes)
++	 * Modification date (4 bytes)
++	 * Literal data (arbitrary)
 +	 *
-+	 * (ECRYPTFS_SALT_SIZE + 7) minimum packet size
++	 * We need at least 16 bytes of data for the packet to even be
++	 * valid.
  	 */
 -	if (unlikely((*packet_size) + 3 > max_packet_size)) {
 -		ecryptfs_printk(KERN_ERR, "Packet size exceeds max\n");
-+	if (max_packet_size < (ECRYPTFS_SALT_SIZE + 7)) {
-+		printk(KERN_ERR "Max packet size too large\n");
++	if (max_packet_size < 16) {
++		printk(KERN_ERR "Maximum packet size too small\n");
  		rc = -EINVAL;
  		goto out;
  	}
 -
--	/* check for Tag 3 identifyer - one byte */
- 	if (data[(*packet_size)++] != ECRYPTFS_TAG_3_PACKET_TYPE) {
--		ecryptfs_printk(KERN_ERR, "Enter w/ first byte != 0x%.2x\n",
--				ECRYPTFS_TAG_3_PACKET_TYPE);
-+		printk(KERN_ERR "First byte != 0x%.2x; invalid packet\n",
-+		       ECRYPTFS_TAG_3_PACKET_TYPE);
+-	/* check for Tag 11 identifyer - one byte */
+ 	if (data[(*packet_size)++] != ECRYPTFS_TAG_11_PACKET_TYPE) {
+-		ecryptfs_printk(KERN_WARNING,
+-				"Invalid tag 11 packet format\n");
++		printk(KERN_WARNING "Invalid tag 11 packet format\n");
  		rc = -EINVAL;
  		goto out;
  	}
-@@ -667,56 +675,36 @@ parse_tag_3_packet(struct ecryptfs_crypt
- 	auth_tok_list_item =
- 	    kmem_cache_zalloc(ecryptfs_auth_tok_list_item_cache, GFP_KERNEL);
- 	if (!auth_tok_list_item) {
--		ecryptfs_printk(KERN_ERR, "Unable to allocate memory\n");
-+		printk(KERN_ERR "Unable to allocate memory\n");
- 		rc = -ENOMEM;
- 		goto out;
- 	}
- 	(*new_auth_tok) = &auth_tok_list_item->auth_tok;
 -
--	/* check for body size - one to two bytes */
+-	/* get Tag 11 content length - one or two bytes */
 -	rc = parse_packet_length(&data[(*packet_size)], &body_size,
 -				 &length_size);
 -	if (rc) {
--		ecryptfs_printk(KERN_WARNING, "Error parsing packet length; "
--				"rc = [%d]\n", rc);
+-		ecryptfs_printk(KERN_WARNING,
+-				"Invalid tag 11 packet format\n");
 +	if ((rc = parse_packet_length(&data[(*packet_size)], &body_size,
 +				      &length_size))) {
-+		printk(KERN_WARNING "Error parsing packet length; rc = [%d]\n",
-+		       rc);
- 		goto out_free;
++		printk(KERN_WARNING "Invalid tag 11 packet format\n");
+ 		goto out;
  	}
--	if (unlikely(body_size < (0x05 + ECRYPTFS_SALT_SIZE))) {
+-	(*packet_size) += length_size;
+-
+-	if (body_size < 13) {
 -		ecryptfs_printk(KERN_WARNING, "Invalid body size ([%d])\n",
 -				body_size);
-+	if (unlikely(body_size < (ECRYPTFS_SALT_SIZE + 5))) {
++	if (body_size < 14) {
 +		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
  		rc = -EINVAL;
- 		goto out_free;
+ 		goto out;
  	}
- 	(*packet_size) += length_size;
+-	/* We have 13 bytes of surrounding packet values */
+-	(*tag_11_contents_size) = (body_size - 13);
 -
--	/* now we know the length of the remainting Tag 3 packet size:
--	 *   5 fix bytes for: version string, cipher, S2K ID, hash algo,
--	 *                    number of hash iterations
--	 *   ECRYPTFS_SALT_SIZE bytes for salt
--	 *   body_size bytes minus the stuff above is the encrypted key size
+-	/* now we know the length of the remainting Tag 11 packet size:
+-	 *   14 fix bytes for: special flag one, special flag two,
+-	 *   		       12 skipped bytes
+-	 *   body_size bytes minus the stuff above is the Tag 11 content
 -	 */
- 	if (unlikely((*packet_size) + body_size > max_packet_size)) {
+-	/* FIXME why is the body size one byte smaller than the actual
+-	 * size of the body?
+-	 * this seems to be an error here as well as in
+-	 * write_tag_11_packet() */
++	(*packet_size) += length_size;
++	(*tag_11_contents_size) = (body_size - 14);
+ 	if (unlikely((*packet_size) + body_size + 1 > max_packet_size)) {
 -		ecryptfs_printk(KERN_ERR, "Packet size exceeds max\n");
 +		printk(KERN_ERR "Packet size exceeds max\n");
  		rc = -EINVAL;
- 		goto out_free;
+ 		goto out;
  	}
 -
--	/* There are 5 characters of additional information in the
--	 * packet */
- 	(*new_auth_tok)->session_key.encrypted_key_size =
--		body_size - (0x05 + ECRYPTFS_SALT_SIZE);
--	ecryptfs_printk(KERN_DEBUG, "Encrypted key size = [%d]\n",
--			(*new_auth_tok)->session_key.encrypted_key_size);
--
--	/* Version 4 (from RFC2440) - one byte */
-+		(body_size - (ECRYPTFS_SALT_SIZE + 5));
- 	if (unlikely(data[(*packet_size)++] != 0x04)) {
--		ecryptfs_printk(KERN_DEBUG, "Unknown version number "
--				"[%d]\n", data[(*packet_size) - 1]);
-+		printk(KERN_WARNING "Unknown version number [%d]\n",
-+		       data[(*packet_size) - 1]);
+-	/* special flag one - one byte */
+ 	if (data[(*packet_size)++] != 0x62) {
+-		ecryptfs_printk(KERN_WARNING, "Unrecognizable packet\n");
++		printk(KERN_WARNING "Unrecognizable packet\n");
  		rc = -EINVAL;
- 		goto out_free;
+ 		goto out;
  	}
 -
--	/* cipher - one byte */
- 	ecryptfs_cipher_code_to_string(crypt_stat->cipher,
- 				       (u16)data[(*packet_size)]);
- 	/* A little extra work to differentiate among the AES key
-@@ -730,33 +718,26 @@ parse_tag_3_packet(struct ecryptfs_crypt
- 			(*new_auth_tok)->session_key.encrypted_key_size;
- 	}
- 	ecryptfs_init_crypt_ctx(crypt_stat);
--	/* S2K identifier 3 (from RFC2440) */
- 	if (unlikely(data[(*packet_size)++] != 0x03)) {
--		ecryptfs_printk(KERN_ERR, "Only S2K ID 3 is currently "
--				"supported\n");
-+		printk(KERN_WARNING "Only S2K ID 3 is currently supported\n");
- 		rc = -ENOSYS;
- 		goto out_free;
+-	/* special flag two - one byte */
+ 	if (data[(*packet_size)++] != 0x08) {
+-		ecryptfs_printk(KERN_WARNING, "Unrecognizable packet\n");
++		printk(KERN_WARNING "Unrecognizable packet\n");
+ 		rc = -EINVAL;
+ 		goto out;
  	}
 -
- 	/* TODO: finish the hash mapping */
--	/* hash algorithm - one byte */
- 	switch (data[(*packet_size)++]) {
- 	case 0x01: /* See RFC2440 for these numbers and their mappings */
- 		/* Choose MD5 */
--		/* salt - ECRYPTFS_SALT_SIZE bytes */
- 		memcpy((*new_auth_tok)->token.password.salt,
- 		       &data[(*packet_size)], ECRYPTFS_SALT_SIZE);
- 		(*packet_size) += ECRYPTFS_SALT_SIZE;
+-	/* skip the next 12 bytes */
+-	(*packet_size) += 12; /* We don't care about the filename or
+-			       * the timestamp */
 -
- 		/* This conversion was taken straight from RFC2440 */
--		/* number of hash iterations - one byte */
- 		(*new_auth_tok)->token.password.hash_iterations =
- 			((u32) 16 + (data[(*packet_size)] & 15))
- 				<< ((data[(*packet_size)] >> 4) + 6);
- 		(*packet_size)++;
+-	/* get the Tag 11 contents - tag_11_contents_size bytes */
++	(*packet_size) += 12; /* Ignore filename and modification date */
+ 	memcpy(contents, &data[(*packet_size)], (*tag_11_contents_size));
+ 	(*packet_size) += (*tag_11_contents_size);
 -
--		/* encrypted session key -
--		 *   (body_size-5-ECRYPTFS_SALT_SIZE) bytes */
-+		/* Friendly reminder:
-+		 * (*new_auth_tok)->session_key.encrypted_key_size =
-+		 *         (body_size - (ECRYPTFS_SALT_SIZE + 5)); */
- 		memcpy((*new_auth_tok)->session_key.encrypted_key,
- 		       &data[(*packet_size)],
- 		       (*new_auth_tok)->session_key.encrypted_key_size);
-@@ -766,7 +747,7 @@ parse_tag_3_packet(struct ecryptfs_crypt
- 			~ECRYPTFS_CONTAINS_DECRYPTED_KEY;
- 		(*new_auth_tok)->session_key.flags |=
- 			ECRYPTFS_CONTAINS_ENCRYPTED_KEY;
--		(*new_auth_tok)->token.password.hash_algo = 0x01;
-+		(*new_auth_tok)->token.password.hash_algo = 0x01; /* MD5 */
- 		break;
- 	default:
- 		ecryptfs_printk(KERN_ERR, "Unsupported hash algorithm: "
+ out:
+ 	if (rc) {
+ 		(*packet_size) = 0;
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
