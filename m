@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-selinux-fixup.patch added to -mm tree
-Date: Fri, 20 Jul 2007 00:17:13 -0700
-Message-ID: <200707200721.l6K7LfZJ013376@imap1.linux-foundation.org>
+Subject: + git-block-fix.patch added to -mm tree
+Date: Fri, 20 Jul 2007 00:23:13 -0700
+Message-ID: <200707200727.l6K7Rffo013567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47819 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50579 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753723AbXGTHVs (ORCPT
+	by vger.kernel.org with ESMTP id S1757160AbXGTH21 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 03:21:48 -0400
+	Fri, 20 Jul 2007 03:28:27 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6K7LkTK013696
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6K7Rk8e013977
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jul 2007 00:21:47 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 20 Jul 2007 00:27:47 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-selinux-fixup
+     git-block-fix
 has been added to the -mm tree.  Its filename is
-     git-selinux-fixup.patch
+     git-block-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,86 +30,26 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-selinux-fixup
+Subject: git-block-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/netlabel.h       |    9 +--------
- net/netlabel/netlabel_kapi.c |   23 -----------------------
- 2 files changed, 1 insertion(+), 31 deletions(-)
+ drivers/ide/ide-taskfile.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/net/netlabel.h~git-selinux-fixup include/net/netlabel.h
---- a/include/net/netlabel.h~git-selinux-fixup
-+++ a/include/net/netlabel.h
-@@ -343,12 +343,6 @@ static inline int netlbl_secattr_catmap_
- {
- 	return 0;
- }
--<<<<<<< HEAD/include/net/netlabel.h
--static inline int netlbl_enabled(void)
--{
--	return 0;
--}
--=======
- #endif
- 
- /*
-@@ -365,12 +359,11 @@ int netlbl_skbuff_getattr(const struct s
- 			  struct netlbl_lsm_secattr *secattr);
- void netlbl_skbuff_err(struct sk_buff *skb, int error);
- #else
--int netlbl_enabled(void)
-+static inline int netlbl_enabled(void)
- {
- 	return 0;
- }
- 
-->>>>>>> /include/net/netlabel.h
- static inline int netlbl_sock_setattr(struct sock *sk,
- 				     const struct netlbl_lsm_secattr *secattr)
- {
-diff -puN net/netlabel/netlabel_kapi.c~git-selinux-fixup net/netlabel/netlabel_kapi.c
---- a/net/netlabel/netlabel_kapi.c~git-selinux-fixup
-+++ a/net/netlabel/netlabel_kapi.c
-@@ -246,7 +246,6 @@ int netlbl_secattr_catmap_setrng(struct 
-  */
- 
- /**
--<<<<<<< HEAD/net/netlabel/netlabel_kapi.c
-  * netlbl_enabled - Determine if the NetLabel subsystem is enabled
-  *
-  * Description:
-@@ -267,28 +266,6 @@ int netlbl_enabled(void)
- }
- 
- /**
--=======
-- * netlbl_enabled - Determine if the NetLabel subsystem is enabled
-- *
-- * Description:
-- * The LSM can use this function to determine if it should use NetLabel
-- * security attributes in it's enforcement mechanism.  Currently, NetLabel is
-- * considered to be enabled when it's configuration contains a valid setup for
-- * at least one labeled protocol (i.e. NetLabel can understand incoming
-- * labeled packets of at least one type); otherwise NetLabel is considered to
-- * be disabled.
-- *
-- */
--int netlbl_enabled(void)
--{
--	/* At some point we probably want to expose this mechanism to the
--	 * user as well so that admins can toggle NetLabel regardless of
--	 * the configuration */
--	return (netlbl_mgmt_protocount_value() > 0 ? 1 : 0);
--}
--
--/**
-->>>>>>> /net/netlabel/netlabel_kapi.c
-  * netlbl_socket_setattr - Label a socket using the correct protocol
-  * @sk: the socket to label
-  * @secattr: the security attributes
+diff -puN drivers/ide/ide-taskfile.c~git-block-fix drivers/ide/ide-taskfile.c
+--- a/drivers/ide/ide-taskfile.c~git-block-fix
++++ a/drivers/ide/ide-taskfile.c
+@@ -41,6 +41,7 @@
+ #include <linux/blkpg.h>
+ #include <linux/slab.h>
+ #include <linux/pci.h>
++#include <linux/scatterlist.h>
+ #include <linux/delay.h>
+ #include <linux/hdreg.h>
+ #include <linux/ide.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,6 +81,7 @@ i386-add-support-for-picopower-irq-router.patch
 try-parent-numa_node-at-first-before-using-default-v2-fix.patch
 git-scsi-misc.patch
 aacraid-rename-check_reset.patch
+git-block-fix.patch
 git-unionfs.patch
 git-block-vs-git-unionfs.patch
 x86_64-clean-up-apicid_to_node-declaration.patch
