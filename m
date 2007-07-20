@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-support-for-stk17ta8-chip.patch added to -mm tree
-Date: Fri, 20 Jul 2007 16:31:25 -0700
-Message-ID: <200707202331.l6KNVPm5022093@imap1.linux-foundation.org>
+Subject: + documentation-update-sched-stattxt.patch added to -mm tree
+Date: Fri, 20 Jul 2007 16:34:57 -0700
+Message-ID: <200707202334.l6KNYveB022268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46721 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39900 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758781AbXGTXbr (ORCPT
+	by vger.kernel.org with ESMTP id S1751386AbXGTXfQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 19:31:47 -0400
+	Fri, 20 Jul 2007 19:35:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thomas.hommel@gefanuc.com, a.zummo@towertech.it, david-b@pacbell.net
+Cc: joachim.deguara@amd.com, npiggin@suse.de, ricklind@us.ibm.com
 
 
 The patch titled
-     rtc: add support for STK17TA8 chip
+     Documentation: update sched-stat.txt
 has been added to the -mm tree.  Its filename is
-     rtc-add-support-for-stk17ta8-chip.patch
+     documentation-update-sched-stattxt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,484 +26,265 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc: add support for STK17TA8 chip
-From: Thomas Hommel <thomas.hommel@gefanuc.com>
+Subject: Documentation: update sched-stat.txt
+From: "Joachim Deguara" <joachim.deguara@amd.com>
 
-This patch adds support for the Simtek STK17TA8 timekeeping chip.
+While learning about schedstats I found that the documentation in the tree
+is old.  I updated it and found some interesting stuff like schedstats
+version 14 is the same as version and version 13 never saw a kernel
+release!  Also there are 6 fields in the current schedstats that are not
+used anymore.  Nick had made them irrelevant in commit
+476d139c218e44e045e4bc6d4cc02b010b343939 but never removed them.
 
-The STK17TA8 is quite similar to the DS1553, but differs in register layout
-and in various control bits in the registers.  I chose to make this a new
-driver to avoid confusion in the code and to not get lost in #ifdefs.
+Thanks to Rick's perl script who I borrowed some of the updated descriptions
+from.
 
-Signed-off-by: Thomas Hommel <thomas.hommel@gefanuc.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Joachim Deguara <joachim.deguara@amd.com>
+Acked-by: Nick Piggin <npiggin@suse.de>
+Cc: Rick Lindsley <ricklind@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig        |   10 
- drivers/rtc/Makefile       |    1 
- drivers/rtc/rtc-stk17ta8.c |  420 +++++++++++++++++++++++++++++++++++
- 3 files changed, 431 insertions(+)
+ Documentation/sched-stats.txt |  191 ++++++++++++++++----------------
+ 1 files changed, 97 insertions(+), 94 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-support-for-stk17ta8-chip drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-support-for-stk17ta8-chip
-+++ a/drivers/rtc/Kconfig
-@@ -308,6 +308,16 @@ config RTC_DRV_DS1553
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-ds1553.
+diff -puN Documentation/sched-stats.txt~documentation-update-sched-stattxt Documentation/sched-stats.txt
+--- a/Documentation/sched-stats.txt~documentation-update-sched-stattxt
++++ a/Documentation/sched-stats.txt
+@@ -1,10 +1,11 @@
+-Version 10 of schedstats includes support for sched_domains, which
+-hit the mainline kernel in 2.6.7.  Some counters make more sense to be
+-per-runqueue; other to be per-domain.  Note that domains (and their associated
+-information) will only be pertinent and available on machines utilizing
+-CONFIG_SMP.
++Version 14 of schedstats includes support for sched_domains, which hit the
++mainline kernel in 2.6.20 although it is identical to the stats from version
++12 which was in the kernel from 2.6.13-2.6.19 (version 13 never saw a kernel
++release).  Some counters make more sense to be per-runqueue; other to be
++per-domain.  Note that domains (and their associated information) will only
++be pertinent and available on machines utilizing CONFIG_SMP.
  
-+config RTC_DRV_STK17TA8
-+	tristate "Simtek STK17TA8"
-+	depends on RTC_CLASS
-+	help
-+	  If you say yes here you get support for the
-+	  Simtek STK17TA8 timekeeping chip.
+-In version 10 of schedstat, there is at least one level of domain
++In version 14 of schedstat, there is at least one level of domain
+ statistics for each cpu listed, and there may well be more than one
+ domain.  Domains have no particular names in this implementation, but
+ the highest numbered one typically arbitrates balancing across all the
+@@ -27,7 +28,7 @@ to write their own scripts, the fields a
+ 
+ CPU statistics
+ --------------
+-cpu<N> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
++cpu<N> 1 2 3 4 5 6 7 8 9 10 11 12
+ 
+ NOTE: In the sched_yield() statistics, the active queue is considered empty
+     if it has only one process in it, since obviously the process calling
+@@ -39,48 +40,20 @@ First four fields are sched_yield() stat
+      3) # of times just the expired queue was empty
+      4) # of times sched_yield() was called
+ 
+-Next four are schedule() statistics:
+-     5) # of times the active queue had at least one other process on it
+-     6) # of times we switched to the expired queue and reused it
+-     7) # of times schedule() was called
+-     8) # of times schedule() left the processor idle
+-
+-Next four are active_load_balance() statistics:
+-     9) # of times active_load_balance() was called
+-    10) # of times active_load_balance() caused this cpu to gain a task
+-    11) # of times active_load_balance() caused this cpu to lose a task
+-    12) # of times active_load_balance() tried to move a task and failed
+-
+-Next three are try_to_wake_up() statistics:
+-    13) # of times try_to_wake_up() was called
+-    14) # of times try_to_wake_up() successfully moved the awakening task
+-    15) # of times try_to_wake_up() attempted to move the awakening task
+-
+-Next two are wake_up_new_task() statistics:
+-    16) # of times wake_up_new_task() was called
+-    17) # of times wake_up_new_task() successfully moved the new task
++Next three are schedule() statistics:
++     5) # of times we switched to the expired queue and reused it
++     6) # of times schedule() was called
++     7) # of times schedule() left the processor idle
+ 
+-Next one is a sched_migrate_task() statistic:
+-    18) # of times sched_migrate_task() was called
+-
+-Next one is a sched_balance_exec() statistic:
+-    19) # of times sched_balance_exec() was called
++Next two are try_to_wake_up() statistics:
++     8) # of times try_to_wake_up() was called
++     9) # of times try_to_wake_up() was called to wake up the local cpu
+ 
+ Next three are statistics describing scheduling latency:
+-    20) sum of all time spent running by tasks on this processor (in ms)
+-    21) sum of all time spent waiting to run by tasks on this processor (in ms)
+-    22) # of tasks (not necessarily unique) given to the processor
+-
+-The last six are statistics dealing with pull_task():
+-    23) # of times pull_task() moved a task to this cpu when newly idle
+-    24) # of times pull_task() stole a task from this cpu when another cpu
+-	was newly idle
+-    25) # of times pull_task() moved a task to this cpu when idle
+-    26) # of times pull_task() stole a task from this cpu when another cpu
+-	was idle
+-    27) # of times pull_task() moved a task to this cpu when busy
+-    28) # of times pull_task() stole a task from this cpu when another cpu
+-	was busy
++    10) sum of all time spent running by tasks on this processor (in jiffies)
++    11) sum of all time spent waiting to run by tasks on this processor (in
++        jiffies)
++    12) # of timeslices run on this cpu
+ 
+ 
+ Domain statistics
+@@ -89,65 +62,95 @@ One of these is produced per domain for 
+ CONFIG_SMP is not defined, *no* domains are utilized and these lines
+ will not appear in the output.)
+ 
+-domain<N> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
++domain<N> <cpumask> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36
+ 
+ The first field is a bit mask indicating what cpus this domain operates over.
+ 
+-The next fifteen are a variety of load_balance() statistics:
+-
+-     1) # of times in this domain load_balance() was called when the cpu
+-	was idle
+-     2) # of times in this domain load_balance() was called when the cpu
+-	was busy
+-     3) # of times in this domain load_balance() was called when the cpu
+-	was just becoming idle
+-     4) # of times in this domain load_balance() tried to move one or more
+-	tasks and failed, when the cpu was idle
+-     5) # of times in this domain load_balance() tried to move one or more
+-	tasks and failed, when the cpu was busy
+-     6) # of times in this domain load_balance() tried to move one or more
+-	tasks and failed, when the cpu was just becoming idle
+-     7) sum of imbalances discovered (if any) with each call to
+-	load_balance() in this domain when the cpu was idle
+-     8) sum of imbalances discovered (if any) with each call to
+-	load_balance() in this domain when the cpu was busy
+-     9) sum of imbalances discovered (if any) with each call to
+-	load_balance() in this domain when the cpu was just becoming idle
+-    10) # of times in this domain load_balance() was called but did not find
+-	a busier queue while the cpu was idle
+-    11) # of times in this domain load_balance() was called but did not find
+-	a busier queue while the cpu was busy
+-    12) # of times in this domain load_balance() was called but did not find
+-	a busier queue while the cpu was just becoming idle
+-    13) # of times in this domain a busier queue was found while the cpu was
+-	idle but no busier group was found
+-    14) # of times in this domain a busier queue was found while the cpu was
+-	busy but no busier group was found
+-    15) # of times in this domain a busier queue was found while the cpu was
+-	just becoming idle but no busier group was found
+-
+-Next two are sched_balance_exec() statistics:
+-    17) # of times in this domain sched_balance_exec() successfully pushed
+-	a task to a new cpu
+-    18) # of times in this domain sched_balance_exec() tried but failed to
+-	push a task to a new cpu
+-
+-Next two are try_to_wake_up() statistics:
+-    19) # of times in this domain try_to_wake_up() tried to move a task based
+-	on affinity and cache warmth
+-    20) # of times in this domain try_to_wake_up() tried to move a task based
+-	on load balancing
++The next 24 are a variety of load_balance() statistics in grouped into types
++of idleness (idle, busy, and newly idle):
+ 
++     1) # of times in this domain load_balance() was called when the
++        cpu was idle
++     2) # of times in this domain load_balance() checked but found
++        the load did not require balancing when the cpu was idle
++     3) # of times in this domain load_balance() tried to move one or
++        more tasks and failed, when the cpu was idle
++     4) sum of imbalances discovered (if any) with each call to
++        load_balance() in this domain when the cpu was idle
++     5) # of times in this domain pull_task() was called when the cpu
++        was idle
++     6) # of times in this domain pull_task() was called even though
++        the target task was cache-hot when idle
++     7) # of times in this domain load_balance() was called but did
++        not find a busier queue while the cpu was idle
++     8) # of times in this domain a busier queue was found while the
++        cpu was idle but no busier group was found
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-stk17ta8.
++     9) # of times in this domain load_balance() was called when the
++        cpu was busy
++    10) # of times in this domain load_balance() checked but found the
++        load did not require balancing when busy
++    11) # of times in this domain load_balance() tried to move one or
++        more tasks and failed, when the cpu was busy
++    12) sum of imbalances discovered (if any) with each call to
++        load_balance() in this domain when the cpu was busy
++    13) # of times in this domain pull_task() was called when busy
++    14) # of times in this domain pull_task() was called even though the
++        target task was cache-hot when busy
++    15) # of times in this domain load_balance() was called but did not
++        find a busier queue while the cpu was busy
++    16) # of times in this domain a busier queue was found while the cpu
++        was busy but no busier group was found
 +
- config RTC_DRV_DS1742
- 	tristate "Dallas DS1742/1743"
- 	depends on RTC_CLASS
-diff -puN drivers/rtc/Makefile~rtc-add-support-for-stk17ta8-chip drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-support-for-stk17ta8-chip
-+++ a/drivers/rtc/Makefile
-@@ -32,6 +32,7 @@ obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5
- obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
- obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
- obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
-+obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
- obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
- obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
- obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
-diff -puN /dev/null drivers/rtc/rtc-stk17ta8.c
---- /dev/null
-+++ a/drivers/rtc/rtc-stk17ta8.c
-@@ -0,0 +1,420 @@
-+/*
-+ * A RTC driver for the Simtek STK17TA8
-+ *
-+ * By Thomas Hommel <thomas.hommel@gefanuc.com>
-+ *
-+ * Based on the DS1553 driver from
-+ * Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++    17) # of times in this domain load_balance() was called when the
++        cpu was just becoming idle
++    18) # of times in this domain load_balance() checked but found the
++        load did not require balancing when the cpu was just becoming idle
++    19) # of times in this domain load_balance() tried to move one or more
++        tasks and failed, when the cpu was just becoming idle
++    20) sum of imbalances discovered (if any) with each call to
++        load_balance() in this domain when the cpu was just becoming idle
++    21) # of times in this domain pull_task() was called when newly idle
++    22) # of times in this domain pull_task() was called even though the
++        target task was cache-hot when just becoming idle
++    23) # of times in this domain load_balance() was called but did not
++        find a busier queue while the cpu was just becoming idle
++    24) # of times in this domain a busier queue was found while the cpu
++        was just becoming idle but no busier group was found
 +
-+#include <linux/bcd.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/jiffies.h>
-+#include <linux/interrupt.h>
-+#include <linux/rtc.h>
-+#include <linux/platform_device.h>
-+#include <linux/io.h>
++   Next three are active_load_balance() statistics:
++    25) # of times active_load_balance() was called
++    26) # of times active_load_balance() tried to move a task and failed
++    27) # of times active_load_balance() successfully moved a task
 +
-+#define DRV_VERSION "0.1"
++   Next three are sched_balance_exec() statistics:
++    28) sbe_cnt is not used
++    29) sbe_balanced is not used
++    30) sbe_pushed is not used
 +
-+#define RTC_REG_SIZE		0x20000
-+#define RTC_OFFSET		0x1fff0
++   Next three are sched_balance_fork() statistics:
++    31) sbf_cnt is not used
++    32) sbf_balanced is not used
++    33) sbf_pushed is not used
 +
-+#define RTC_FLAGS		(RTC_OFFSET + 0)
-+#define RTC_CENTURY		(RTC_OFFSET + 1)
-+#define RTC_SECONDS_ALARM	(RTC_OFFSET + 2)
-+#define RTC_MINUTES_ALARM	(RTC_OFFSET + 3)
-+#define RTC_HOURS_ALARM		(RTC_OFFSET + 4)
-+#define RTC_DATE_ALARM		(RTC_OFFSET + 5)
-+#define RTC_INTERRUPTS		(RTC_OFFSET + 6)
-+#define RTC_WATCHDOG		(RTC_OFFSET + 7)
-+#define RTC_CALIBRATION		(RTC_OFFSET + 8)
-+#define RTC_SECONDS		(RTC_OFFSET + 9)
-+#define RTC_MINUTES		(RTC_OFFSET + 10)
-+#define RTC_HOURS		(RTC_OFFSET + 11)
-+#define RTC_DAY			(RTC_OFFSET + 12)
-+#define RTC_DATE		(RTC_OFFSET + 13)
-+#define RTC_MONTH		(RTC_OFFSET + 14)
-+#define RTC_YEAR		(RTC_OFFSET + 15)
-+
-+#define RTC_SECONDS_MASK	0x7f
-+#define RTC_DAY_MASK		0x07
-+#define RTC_CAL_MASK		0x3f
-+
-+/* Bits in the Calibration register */
-+#define RTC_STOP		0x80
-+
-+/* Bits in the Flags register */
-+#define RTC_FLAGS_AF		0x40
-+#define RTC_FLAGS_PF		0x20
-+#define RTC_WRITE		0x02
-+#define RTC_READ		0x01
-+
-+/* Bits in the Interrupts register */
-+#define RTC_INTS_AIE		0x40
-+
-+struct rtc_plat_data {
-+	struct rtc_device *rtc;
-+	void __iomem *ioaddr;
-+	unsigned long baseaddr;
-+	unsigned long last_jiffies;
-+	int irq;
-+	unsigned int irqen;
-+	int alrm_sec;
-+	int alrm_min;
-+	int alrm_hour;
-+	int alrm_mday;
-+};
-+
-+static int stk17ta8_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+	void __iomem *ioaddr = pdata->ioaddr;
-+	u8 flags;
-+
-+	flags = readb(pdata->ioaddr + RTC_FLAGS);
-+	writeb(flags | RTC_WRITE, pdata->ioaddr + RTC_FLAGS);
-+
-+	writeb(BIN2BCD(tm->tm_year % 100), ioaddr + RTC_YEAR);
-+	writeb(BIN2BCD(tm->tm_mon + 1), ioaddr + RTC_MONTH);
-+	writeb(BIN2BCD(tm->tm_wday) & RTC_DAY_MASK, ioaddr + RTC_DAY);
-+	writeb(BIN2BCD(tm->tm_mday), ioaddr + RTC_DATE);
-+	writeb(BIN2BCD(tm->tm_hour), ioaddr + RTC_HOURS);
-+	writeb(BIN2BCD(tm->tm_min), ioaddr + RTC_MINUTES);
-+	writeb(BIN2BCD(tm->tm_sec) & RTC_SECONDS_MASK, ioaddr + RTC_SECONDS);
-+	writeb(BIN2BCD((tm->tm_year + 1900) / 100), ioaddr + RTC_CENTURY);
-+
-+	writeb(flags & ~RTC_WRITE, pdata->ioaddr + RTC_FLAGS);
-+	return 0;
-+}
-+
-+static int stk17ta8_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+	void __iomem *ioaddr = pdata->ioaddr;
-+	unsigned int year, month, day, hour, minute, second, week;
-+	unsigned int century;
-+	u8 flags;
-+
-+	/* give enough time to update RTC in case of continuous read */
-+	if (pdata->last_jiffies == jiffies)
-+		msleep(1);
-+	pdata->last_jiffies = jiffies;
-+
-+	flags = readb(pdata->ioaddr + RTC_FLAGS);
-+	writeb(flags | RTC_READ, ioaddr + RTC_FLAGS);
-+	second = readb(ioaddr + RTC_SECONDS) & RTC_SECONDS_MASK;
-+	minute = readb(ioaddr + RTC_MINUTES);
-+	hour = readb(ioaddr + RTC_HOURS);
-+	day = readb(ioaddr + RTC_DATE);
-+	week = readb(ioaddr + RTC_DAY) & RTC_DAY_MASK;
-+	month = readb(ioaddr + RTC_MONTH);
-+	year = readb(ioaddr + RTC_YEAR);
-+	century = readb(ioaddr + RTC_CENTURY);
-+	writeb(flags & ~RTC_READ, ioaddr + RTC_FLAGS);
-+	tm->tm_sec = BCD2BIN(second);
-+	tm->tm_min = BCD2BIN(minute);
-+	tm->tm_hour = BCD2BIN(hour);
-+	tm->tm_mday = BCD2BIN(day);
-+	tm->tm_wday = BCD2BIN(week);
-+	tm->tm_mon = BCD2BIN(month) - 1;
-+	/* year is 1900 + tm->tm_year */
-+	tm->tm_year = BCD2BIN(year) + BCD2BIN(century) * 100 - 1900;
-+
-+	if (rtc_valid_tm(tm) < 0) {
-+		dev_err(dev, "retrieved date/time is not valid.\n");
-+		rtc_time_to_tm(0, tm);
-+	}
-+	return 0;
-+}
-+
-+static void stk17ta8_rtc_update_alarm(struct rtc_plat_data *pdata)
-+{
-+	void __iomem *ioaddr = pdata->ioaddr;
-+	unsigned long irqflags;
-+	u8 flags;
-+
-+	spin_lock_irqsave(&pdata->rtc->irq_lock, irqflags);
-+
-+	flags = readb(ioaddr + RTC_FLAGS);
-+	writeb(flags | RTC_WRITE, ioaddr + RTC_FLAGS);
-+
-+	writeb(pdata->alrm_mday < 0 || (pdata->irqen & RTC_UF) ?
-+	       0x80 : BIN2BCD(pdata->alrm_mday),
-+	       ioaddr + RTC_DATE_ALARM);
-+	writeb(pdata->alrm_hour < 0 || (pdata->irqen & RTC_UF) ?
-+	       0x80 : BIN2BCD(pdata->alrm_hour),
-+	       ioaddr + RTC_HOURS_ALARM);
-+	writeb(pdata->alrm_min < 0 || (pdata->irqen & RTC_UF) ?
-+	       0x80 : BIN2BCD(pdata->alrm_min),
-+	       ioaddr + RTC_MINUTES_ALARM);
-+	writeb(pdata->alrm_sec < 0 || (pdata->irqen & RTC_UF) ?
-+	       0x80 : BIN2BCD(pdata->alrm_sec),
-+	       ioaddr + RTC_SECONDS_ALARM);
-+	writeb(pdata->irqen ? RTC_INTS_AIE : 0, ioaddr + RTC_INTERRUPTS);
-+	readb(ioaddr + RTC_FLAGS);	/* clear interrupts */
-+	writeb(flags & ~RTC_WRITE, ioaddr + RTC_FLAGS);
-+	spin_unlock_irqrestore(&pdata->rtc->irq_lock, irqflags);
-+}
-+
-+static int stk17ta8_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	if (pdata->irq < 0)
-+		return -EINVAL;
-+	pdata->alrm_mday = alrm->time.tm_mday;
-+	pdata->alrm_hour = alrm->time.tm_hour;
-+	pdata->alrm_min = alrm->time.tm_min;
-+	pdata->alrm_sec = alrm->time.tm_sec;
-+	if (alrm->enabled)
-+		pdata->irqen |= RTC_AF;
-+	stk17ta8_rtc_update_alarm(pdata);
-+	return 0;
-+}
-+
-+static int stk17ta8_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	if (pdata->irq < 0)
-+		return -EINVAL;
-+	alrm->time.tm_mday = pdata->alrm_mday < 0 ? 0 : pdata->alrm_mday;
-+	alrm->time.tm_hour = pdata->alrm_hour < 0 ? 0 : pdata->alrm_hour;
-+	alrm->time.tm_min = pdata->alrm_min < 0 ? 0 : pdata->alrm_min;
-+	alrm->time.tm_sec = pdata->alrm_sec < 0 ? 0 : pdata->alrm_sec;
-+	alrm->enabled = (pdata->irqen & RTC_AF) ? 1 : 0;
-+	return 0;
-+}
-+
-+static irqreturn_t stk17ta8_rtc_interrupt(int irq, void *dev_id)
-+{
-+	struct platform_device *pdev = dev_id;
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+	void __iomem *ioaddr = pdata->ioaddr;
-+	unsigned long events = RTC_IRQF;
-+
-+	/* read and clear interrupt */
-+	if (!(readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF))
-+		return IRQ_NONE;
-+	if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
-+		events |= RTC_UF;
-+	else
-+		events |= RTC_AF;
-+	rtc_update_irq(pdata->rtc, 1, events);
-+	return IRQ_HANDLED;
-+}
-+
-+static void stk17ta8_rtc_release(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	if (pdata->irq >= 0) {
-+		pdata->irqen = 0;
-+		stk17ta8_rtc_update_alarm(pdata);
-+	}
-+}
-+
-+static int stk17ta8_rtc_ioctl(struct device *dev, unsigned int cmd,
-+			    unsigned long arg)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	if (pdata->irq < 0)
-+		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
-+	switch (cmd) {
-+	case RTC_AIE_OFF:
-+		pdata->irqen &= ~RTC_AF;
-+		stk17ta8_rtc_update_alarm(pdata);
-+		break;
-+	case RTC_AIE_ON:
-+		pdata->irqen |= RTC_AF;
-+		stk17ta8_rtc_update_alarm(pdata);
-+		break;
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+	return 0;
-+}
-+
-+static const struct rtc_class_ops stk17ta8_rtc_ops = {
-+	.read_time	= stk17ta8_rtc_read_time,
-+	.set_time	= stk17ta8_rtc_set_time,
-+	.read_alarm	= stk17ta8_rtc_read_alarm,
-+	.set_alarm	= stk17ta8_rtc_set_alarm,
-+	.release	= stk17ta8_rtc_release,
-+	.ioctl		= stk17ta8_rtc_ioctl,
-+};
-+
-+static ssize_t stk17ta8_nvram_read(struct kobject *kobj, char *buf,
-+				 loff_t pos, size_t size)
-+{
-+	struct platform_device *pdev =
-+		to_platform_device(container_of(kobj, struct device, kobj));
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+	void __iomem *ioaddr = pdata->ioaddr;
-+	ssize_t count;
-+
-+	for (count = 0; size > 0 && pos < RTC_OFFSET; count++, size--)
-+		*buf++ = readb(ioaddr + pos++);
-+	return count;
-+}
-+
-+static ssize_t stk17ta8_nvram_write(struct kobject *kobj, char *buf,
-+				  loff_t pos, size_t size)
-+{
-+	struct platform_device *pdev =
-+		to_platform_device(container_of(kobj, struct device, kobj));
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+	void __iomem *ioaddr = pdata->ioaddr;
-+	ssize_t count;
-+
-+	for (count = 0; size > 0 && pos < RTC_OFFSET; count++, size--)
-+		writeb(*buf++, ioaddr + pos++);
-+	return count;
-+}
-+
-+static struct bin_attribute stk17ta8_nvram_attr = {
-+	.attr = {
-+		.name = "nvram",
-+		.mode = S_IRUGO | S_IWUGO,
-+		.owner = THIS_MODULE,
-+	},
-+	.size = RTC_OFFSET,
-+	.read = stk17ta8_nvram_read,
-+	.write = stk17ta8_nvram_write,
-+};
-+
-+static int __init stk17ta8_rtc_probe(struct platform_device *pdev)
-+{
-+	struct rtc_device *rtc;
-+	struct resource *res;
-+	unsigned int cal;
-+	unsigned int flags;
-+	struct rtc_plat_data *pdata = NULL;
-+	void __iomem *ioaddr = NULL;
-+	int ret = 0;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res)
-+		return -ENODEV;
-+
-+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return -ENOMEM;
-+	pdata->irq = -1;
-+	if (!request_mem_region(res->start, RTC_REG_SIZE, pdev->name)) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+	pdata->baseaddr = res->start;
-+	ioaddr = ioremap(pdata->baseaddr, RTC_REG_SIZE);
-+	if (!ioaddr) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+	pdata->ioaddr = ioaddr;
-+	pdata->irq = platform_get_irq(pdev, 0);
-+
-+	/* turn RTC on if it was not on */
-+	cal = readb(ioaddr + RTC_CALIBRATION);
-+	if (cal & RTC_STOP) {
-+		cal &= RTC_CAL_MASK;
-+		flags = readb(ioaddr + RTC_FLAGS);
-+		writeb(flags | RTC_WRITE, ioaddr + RTC_FLAGS);
-+		writeb(cal, ioaddr + RTC_CALIBRATION);
-+		writeb(flags & ~RTC_WRITE, ioaddr + RTC_FLAGS);
-+	}
-+	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_PF)
-+		dev_warn(&pdev->dev, "voltage-low detected.\n");
-+
-+	if (pdata->irq >= 0) {
-+		writeb(0, ioaddr + RTC_INTERRUPTS);
-+		if (request_irq(pdata->irq, stk17ta8_rtc_interrupt,
-+				IRQF_DISABLED | IRQF_SHARED,
-+				pdev->name, pdev) < 0) {
-+			dev_warn(&pdev->dev, "interrupt not available.\n");
-+			pdata->irq = -1;
-+		}
-+	}
-+
-+	rtc = rtc_device_register(pdev->name, &pdev->dev,
-+				  &stk17ta8_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc)) {
-+		ret = PTR_ERR(rtc);
-+		goto out;
-+	}
-+	pdata->rtc = rtc;
-+	pdata->last_jiffies = jiffies;
-+	platform_set_drvdata(pdev, pdata);
-+	ret = sysfs_create_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
-+	if (ret)
-+		goto out;
-+	return 0;
-+ out:
-+	if (pdata->rtc)
-+		rtc_device_unregister(pdata->rtc);
-+	if (pdata->irq >= 0)
-+		free_irq(pdata->irq, pdev);
-+	if (ioaddr)
-+		iounmap(ioaddr);
-+	if (pdata->baseaddr)
-+		release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
-+	kfree(pdata);
-+	return ret;
-+}
-+
-+static int __devexit stk17ta8_rtc_remove(struct platform_device *pdev)
-+{
-+	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
-+
-+	sysfs_remove_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
-+	rtc_device_unregister(pdata->rtc);
-+	if (pdata->irq >= 0) {
-+		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
-+		free_irq(pdata->irq, pdev);
-+	}
-+	iounmap(pdata->ioaddr);
-+	release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
-+	kfree(pdata);
-+	return 0;
-+}
-+
-+static struct platform_driver stk17ta8_rtc_driver = {
-+	.probe		= stk17ta8_rtc_probe,
-+	.remove		= __devexit_p(stk17ta8_rtc_remove),
-+	.driver		= {
-+		.name	= "stk17ta8",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static __init int stk17ta8_init(void)
-+{
-+	return platform_driver_register(&stk17ta8_rtc_driver);
-+}
-+
-+static __exit void stk17ta8_exit(void)
-+{
-+	return platform_driver_unregister(&stk17ta8_rtc_driver);
-+}
-+
-+module_init(stk17ta8_init);
-+module_exit(stk17ta8_exit);
-+
-+MODULE_AUTHOR("Thomas Hommel <thomas.hommel@gefanuc.com>");
-+MODULE_DESCRIPTION("Simtek STK17TA8 RTC driver");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION(DRV_VERSION);
++   Next three are try_to_wake_up() statistics:
++    34) # of times in this domain try_to_wake_up() awoke a task that
++        last ran on a different cpu in this domain
++    35) # of times in this domain try_to_wake_up() moved a task to the
++        waking cpu because it was cache-cold on its own cpu anyway
++    36) # of times in this domain try_to_wake_up() started passive balancing
+ 
+ /proc/<pid>/schedstat
+ ----------------
+ schedstats also adds a new /proc/<pid/schedstat file to include some of
+ the same information on a per-process level.  There are three fields in
+-this file correlating to fields 20, 21, and 22 in the CPU fields, but
+-they only apply for that process.
++this file correlating for that process to:
++     1) time spent on the cpu
++     2) time spent waiting on a runqueue
++     3) # of timeslices run on this cpu
+ 
+ A program could be easily written to make use of these extra fields to
+ report on how well a particular process or set of processes is faring
+ under the scheduler's policies.  A simple version of such a program is
+ available at
+-    http://eaglet.rain.com/rick/linux/schedstat/v10/latency.c
++    http://eaglet.rain.com/rick/linux/schedstat/v12/latency.c
 _
 
-Patches currently in -mm which might be from thomas.hommel@gefanuc.com are
+Patches currently in -mm which might be from joachim.deguara@amd.com are
 
-rtc-add-support-for-stk17ta8-chip.patch
-rtc-add-support-for-stk17ta8-chip-fix.patch
+origin.patch
+documentation-update-sched-stattxt.patch
