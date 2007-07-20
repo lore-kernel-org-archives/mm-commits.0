@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - containersv10-add-fork-exit-hooks-fix.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:29:20 -0700
-Message-ID: <200707202029.l6KKTKKR014873@imap1.linux-foundation.org>
+Subject: - containersv10-example-cpu-accounting-subsystem-fix.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 13:29:05 -0700
+Message-ID: <200707202029.l6KKT5wD014852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49330 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38956 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763056AbXGTUa1 (ORCPT
+	by vger.kernel.org with ESMTP id S1762448AbXGTUaV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:30:27 -0400
+	Fri, 20 Jul 2007 16:30:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     containersv10-add-fork-exit-hooks-fix
+     containersv10-example-cpu-accounting-subsystem-fix
 has been removed from the -mm tree.  Its filename was
-     containersv10-add-fork-exit-hooks-fix.patch
+     containersv10-example-cpu-accounting-subsystem-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: containersv10-add-fork-exit-hooks-fix
+Subject: containersv10-example-cpu-accounting-subsystem-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -37,87 +37,89 @@ Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/container.c |   23 ++++++++---------------
- 1 file changed, 8 insertions(+), 15 deletions(-)
+ kernel/cpu_acct.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN kernel/container.c~containersv10-add-fork-exit-hooks-fix kernel/container.c
---- a/kernel/container.c~containersv10-add-fork-exit-hooks-fix
-+++ a/kernel/container.c
-@@ -144,21 +144,18 @@ list_for_each_entry(_root, &roots, root_
-  * it's better for performance to ref-count every subsystem, or to
-  * take a global lock and only add one ref count to each hierarchy.
-  */
--
- static void get_css_group(struct css_group *cg)
- {
- 	int i;
--	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
-+	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++)
- 		atomic_inc(&cg->subsys[i]->container->count);
--	}
- }
- 
- static void put_css_group(struct css_group *cg)
- {
- 	int i;
--	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
-+	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++)
- 		atomic_dec(&cg->subsys[i]->container->count);
--	}
- }
- 
- /*
-@@ -1533,8 +1530,7 @@ out:
-  *
-  * At the point that container_fork() is called, 'current' is the parent
-  * task, and the passed argument 'child' points to the child task.
-- **/
--
-+ */
- void container_fork(struct task_struct *child)
- {
- 	rcu_read_lock();
-@@ -1547,17 +1543,15 @@ void container_fork(struct task_struct *
-  * container_fork_callbacks - called on a new task very soon before
-  * adding it to the tasklist. No need to take any locks since no-one
-  * can be operating on this task
-- **/
--
-+ */
- void container_fork_callbacks(struct task_struct *child)
- {
- 	if (need_forkexit_callback) {
- 		int i;
- 		for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
- 			struct container_subsys *ss = subsys[i];
--			if (ss->fork) {
-+			if (ss->fork)
- 				ss->fork(ss, child);
--			}
- 		}
- 	}
- }
-@@ -1596,17 +1590,16 @@ void container_fork_callbacks(struct tas
-  *    which wards off any attach_task() attempts, or task is a failed
-  *    fork, never visible to attach_task.
-  *
-- **/
--
-+ */
- void container_exit(struct task_struct *tsk, int run_callbacks)
- {
- 	int i;
+diff -puN kernel/cpu_acct.c~containersv10-example-cpu-accounting-subsystem-fix kernel/cpu_acct.c
+--- a/kernel/cpu_acct.c~containersv10-example-cpu-accounting-subsystem-fix
++++ a/kernel/cpu_acct.c
+@@ -16,6 +16,8 @@
+ #include <linux/module.h>
+ #include <linux/container.h>
+ #include <linux/fs.h>
++#include <linux/rcupdate.h>
 +
- 	if (run_callbacks && need_forkexit_callback) {
- 		for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
- 			struct container_subsys *ss = subsys[i];
--			if (ss->exit) {
-+			if (ss->exit)
- 				ss->exit(ss, tsk);
--			}
- 		}
+ #include <asm/div64.h>
+ 
+ struct cpuacct {
+@@ -50,7 +52,8 @@ static inline struct cpuacct *task_ca(st
+ 
+ #define INTERVAL (HZ * 10)
+ 
+-static inline u64 next_interval_boundary(u64 now) {
++static inline u64 next_interval_boundary(u64 now)
++{
+ 	/* calculate the next interval boundary beyond the
+ 	 * current time */
+ 	do_div(now, INTERVAL);
+@@ -60,6 +63,7 @@ static inline u64 next_interval_boundary
+ static int cpuacct_create(struct container_subsys *ss, struct container *cont)
+ {
+ 	struct cpuacct *ca = kzalloc(sizeof(*ca), GFP_KERNEL);
++
+ 	if (!ca)
+ 		return -ENOMEM;
+ 	spin_lock_init(&ca->lock);
+@@ -78,6 +82,7 @@ static void cpuacct_destroy(struct conta
+ static void cpuusage_update(struct cpuacct *ca)
+ {
+ 	u64 now = get_jiffies_64();
++
+ 	/* If we're not due for an update, return */
+ 	if (ca->next_interval_check > now)
+ 		return;
+@@ -91,18 +96,16 @@ static void cpuusage_update(struct cpuac
+ 	} else {
+ 		/* If a steal takes the last interval time negative,
+ 		 * then we just ignore it */
+-		if ((s64)ca->current_interval_time > 0) {
++		if ((s64)ca->current_interval_time > 0)
+ 			ca->last_interval_time = ca->current_interval_time;
+-		} else {
++		else
+ 			ca->last_interval_time = 0;
+-		}
+ 		ca->next_interval_check += INTERVAL;
  	}
- 	/* Reassign the task to the init_css_group. */
+ 	ca->current_interval_time = 0;
+ }
+ 
+-static u64 cpuusage_read(struct container *cont,
+-			 struct cftype *cft)
++static u64 cpuusage_read(struct container *cont, struct cftype *cft)
+ {
+ 	struct cpuacct *ca = container_ca(cont);
+ 	u64 time;
+@@ -118,8 +121,7 @@ static u64 cpuusage_read(struct containe
+ 	return time;
+ }
+ 
+-static u64 load_read(struct container *cont,
+-		     struct cftype *cft)
++static u64 load_read(struct container *cont, struct cftype *cft)
+ {
+ 	struct cpuacct *ca = container_ca(cont);
+ 	u64 time;
+@@ -149,8 +151,7 @@ static struct cftype files[] = {
+ 	}
+ };
+ 
+-static int cpuacct_populate(struct container_subsys *ss,
+-			    struct container *cont)
++static int cpuacct_populate(struct container_subsys *ss, struct container *cont)
+ {
+ 	return container_add_files(cont, files, ARRAY_SIZE(files));
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -189,6 +191,8 @@ intel-iommu-intel-iommu-driver.patch
 intel-iommu-iommu-floppy-workaround.patch
 revoke-wire-up-i386-system-calls.patch
 revoke-vs-git-block.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
 containersv10-add-fork-exit-hooks-fix.patch
 containersv10-add-container_clone-interface-fix.patch
 containersv10-add-procfs-interface-fix.patch
