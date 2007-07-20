@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-update-sched-stattxt.patch added to -mm tree
-Date: Fri, 20 Jul 2007 16:34:57 -0700
-Message-ID: <200707202334.l6KNYveB022268@imap1.linux-foundation.org>
+Subject: + pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch added to -mm tree
+Date: Fri, 20 Jul 2007 16:48:58 -0700
+Message-ID: <200707202348.l6KNmwn9022805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39900 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53437 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751386AbXGTXfQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754541AbXGTXtX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 19:35:16 -0400
+	Fri, 20 Jul 2007 19:49:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joachim.deguara@amd.com, npiggin@suse.de, ricklind@us.ibm.com
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, galak@gate.crashing.org, hch@infradead.org, linux@dominikbrodowski.net, miltonm@bga.com, olof@lixom.net, paulus@samba.org
 
 
 The patch titled
-     Documentation: update sched-stat.txt
+     pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix
 has been added to the -mm tree.  Its filename is
-     documentation-update-sched-stattxt.patch
+     pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,265 +26,140 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Documentation: update sched-stat.txt
-From: "Joachim Deguara" <joachim.deguara@amd.com>
+Subject: pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-While learning about schedstats I found that the documentation in the tree
-is old.  I updated it and found some interesting stuff like schedstats
-version 14 is the same as version and version 13 never saw a kernel
-release!  Also there are 6 fields in the current schedstats that are not
-used anymore.  Nick had made them irrelevant in commit
-476d139c218e44e045e4bc6d4cc02b010b343939 but never removed them.
-
-Thanks to Rick's perl script who I borrowed some of the updated descriptions
-from.
-
-Signed-off-by: Joachim Deguara <joachim.deguara@amd.com>
-Acked-by: Nick Piggin <npiggin@suse.de>
-Cc: Rick Lindsley <ricklind@us.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Milton Miller <miltonm@bga.com>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sched-stats.txt |  191 ++++++++++++++++----------------
- 1 files changed, 97 insertions(+), 94 deletions(-)
+ drivers/pcmcia/electra_cf.c |   11 +++--------
+ 1 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/sched-stats.txt~documentation-update-sched-stattxt Documentation/sched-stats.txt
---- a/Documentation/sched-stats.txt~documentation-update-sched-stattxt
-+++ a/Documentation/sched-stats.txt
-@@ -1,10 +1,11 @@
--Version 10 of schedstats includes support for sched_domains, which
--hit the mainline kernel in 2.6.7.  Some counters make more sense to be
--per-runqueue; other to be per-domain.  Note that domains (and their associated
--information) will only be pertinent and available on machines utilizing
--CONFIG_SMP.
-+Version 14 of schedstats includes support for sched_domains, which hit the
-+mainline kernel in 2.6.20 although it is identical to the stats from version
-+12 which was in the kernel from 2.6.13-2.6.19 (version 13 never saw a kernel
-+release).  Some counters make more sense to be per-runqueue; other to be
-+per-domain.  Note that domains (and their associated information) will only
-+be pertinent and available on machines utilizing CONFIG_SMP.
+diff -puN drivers/pcmcia/electra_cf.c~pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix drivers/pcmcia/electra_cf.c
+--- a/drivers/pcmcia/electra_cf.c~pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix
++++ a/drivers/pcmcia/electra_cf.c
+@@ -201,9 +201,7 @@ static int __devinit electra_cf_probe(st
+ 	if (!cf)
+ 		return -ENOMEM;
  
--In version 10 of schedstat, there is at least one level of domain
-+In version 14 of schedstat, there is at least one level of domain
- statistics for each cpu listed, and there may well be more than one
- domain.  Domains have no particular names in this implementation, but
- the highest numbered one typically arbitrates balancing across all the
-@@ -27,7 +28,7 @@ to write their own scripts, the fields a
+-	init_timer(&cf->timer);
+-	cf->timer.function = electra_cf_timer;
+-	cf->timer.data = (unsigned long) cf;
++	setup_timer(&cf->timer, electra_cf_timer, (unsigned long)cf);
+ 	cf->irq = NO_IRQ;
  
- CPU statistics
- --------------
--cpu<N> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-+cpu<N> 1 2 3 4 5 6 7 8 9 10 11 12
+ 	cf->ofdev = ofdev;
+@@ -340,16 +338,14 @@ static int __devexit electra_cf_remove(s
+ 	return 0;
+ }
  
- NOTE: In the sched_yield() statistics, the active queue is considered empty
-     if it has only one process in it, since obviously the process calling
-@@ -39,48 +40,20 @@ First four fields are sched_yield() stat
-      3) # of times just the expired queue was empty
-      4) # of times sched_yield() was called
+-static struct of_device_id electra_cf_match[] =
+-{
++static struct of_device_id electra_cf_match[] = {
+ 	{
+ 		.compatible   = "electra-cf",
+ 	},
+ 	{},
+ };
  
--Next four are schedule() statistics:
--     5) # of times the active queue had at least one other process on it
--     6) # of times we switched to the expired queue and reused it
--     7) # of times schedule() was called
--     8) # of times schedule() left the processor idle
+-static struct of_platform_driver electra_cf_driver =
+-{
++static struct of_platform_driver electra_cf_driver = {
+ 	.name	   = (char *)driver_name,
+ 	.match_table    = electra_cf_match,
+ 	.probe	  = electra_cf_probe,
+@@ -371,4 +367,3 @@ module_exit(electra_cf_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR ("Olof Johansson <olof@lixom.net>");
+ MODULE_DESCRIPTION("PA Semi Electra CF driver");
 -
--Next four are active_load_balance() statistics:
--     9) # of times active_load_balance() was called
--    10) # of times active_load_balance() caused this cpu to gain a task
--    11) # of times active_load_balance() caused this cpu to lose a task
--    12) # of times active_load_balance() tried to move a task and failed
--
--Next three are try_to_wake_up() statistics:
--    13) # of times try_to_wake_up() was called
--    14) # of times try_to_wake_up() successfully moved the awakening task
--    15) # of times try_to_wake_up() attempted to move the awakening task
--
--Next two are wake_up_new_task() statistics:
--    16) # of times wake_up_new_task() was called
--    17) # of times wake_up_new_task() successfully moved the new task
-+Next three are schedule() statistics:
-+     5) # of times we switched to the expired queue and reused it
-+     6) # of times schedule() was called
-+     7) # of times schedule() left the processor idle
- 
--Next one is a sched_migrate_task() statistic:
--    18) # of times sched_migrate_task() was called
--
--Next one is a sched_balance_exec() statistic:
--    19) # of times sched_balance_exec() was called
-+Next two are try_to_wake_up() statistics:
-+     8) # of times try_to_wake_up() was called
-+     9) # of times try_to_wake_up() was called to wake up the local cpu
- 
- Next three are statistics describing scheduling latency:
--    20) sum of all time spent running by tasks on this processor (in ms)
--    21) sum of all time spent waiting to run by tasks on this processor (in ms)
--    22) # of tasks (not necessarily unique) given to the processor
--
--The last six are statistics dealing with pull_task():
--    23) # of times pull_task() moved a task to this cpu when newly idle
--    24) # of times pull_task() stole a task from this cpu when another cpu
--	was newly idle
--    25) # of times pull_task() moved a task to this cpu when idle
--    26) # of times pull_task() stole a task from this cpu when another cpu
--	was idle
--    27) # of times pull_task() moved a task to this cpu when busy
--    28) # of times pull_task() stole a task from this cpu when another cpu
--	was busy
-+    10) sum of all time spent running by tasks on this processor (in jiffies)
-+    11) sum of all time spent waiting to run by tasks on this processor (in
-+        jiffies)
-+    12) # of timeslices run on this cpu
- 
- 
- Domain statistics
-@@ -89,65 +62,95 @@ One of these is produced per domain for 
- CONFIG_SMP is not defined, *no* domains are utilized and these lines
- will not appear in the output.)
- 
--domain<N> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
-+domain<N> <cpumask> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36
- 
- The first field is a bit mask indicating what cpus this domain operates over.
- 
--The next fifteen are a variety of load_balance() statistics:
--
--     1) # of times in this domain load_balance() was called when the cpu
--	was idle
--     2) # of times in this domain load_balance() was called when the cpu
--	was busy
--     3) # of times in this domain load_balance() was called when the cpu
--	was just becoming idle
--     4) # of times in this domain load_balance() tried to move one or more
--	tasks and failed, when the cpu was idle
--     5) # of times in this domain load_balance() tried to move one or more
--	tasks and failed, when the cpu was busy
--     6) # of times in this domain load_balance() tried to move one or more
--	tasks and failed, when the cpu was just becoming idle
--     7) sum of imbalances discovered (if any) with each call to
--	load_balance() in this domain when the cpu was idle
--     8) sum of imbalances discovered (if any) with each call to
--	load_balance() in this domain when the cpu was busy
--     9) sum of imbalances discovered (if any) with each call to
--	load_balance() in this domain when the cpu was just becoming idle
--    10) # of times in this domain load_balance() was called but did not find
--	a busier queue while the cpu was idle
--    11) # of times in this domain load_balance() was called but did not find
--	a busier queue while the cpu was busy
--    12) # of times in this domain load_balance() was called but did not find
--	a busier queue while the cpu was just becoming idle
--    13) # of times in this domain a busier queue was found while the cpu was
--	idle but no busier group was found
--    14) # of times in this domain a busier queue was found while the cpu was
--	busy but no busier group was found
--    15) # of times in this domain a busier queue was found while the cpu was
--	just becoming idle but no busier group was found
--
--Next two are sched_balance_exec() statistics:
--    17) # of times in this domain sched_balance_exec() successfully pushed
--	a task to a new cpu
--    18) # of times in this domain sched_balance_exec() tried but failed to
--	push a task to a new cpu
--
--Next two are try_to_wake_up() statistics:
--    19) # of times in this domain try_to_wake_up() tried to move a task based
--	on affinity and cache warmth
--    20) # of times in this domain try_to_wake_up() tried to move a task based
--	on load balancing
-+The next 24 are a variety of load_balance() statistics in grouped into types
-+of idleness (idle, busy, and newly idle):
- 
-+     1) # of times in this domain load_balance() was called when the
-+        cpu was idle
-+     2) # of times in this domain load_balance() checked but found
-+        the load did not require balancing when the cpu was idle
-+     3) # of times in this domain load_balance() tried to move one or
-+        more tasks and failed, when the cpu was idle
-+     4) sum of imbalances discovered (if any) with each call to
-+        load_balance() in this domain when the cpu was idle
-+     5) # of times in this domain pull_task() was called when the cpu
-+        was idle
-+     6) # of times in this domain pull_task() was called even though
-+        the target task was cache-hot when idle
-+     7) # of times in this domain load_balance() was called but did
-+        not find a busier queue while the cpu was idle
-+     8) # of times in this domain a busier queue was found while the
-+        cpu was idle but no busier group was found
-+
-+     9) # of times in this domain load_balance() was called when the
-+        cpu was busy
-+    10) # of times in this domain load_balance() checked but found the
-+        load did not require balancing when busy
-+    11) # of times in this domain load_balance() tried to move one or
-+        more tasks and failed, when the cpu was busy
-+    12) sum of imbalances discovered (if any) with each call to
-+        load_balance() in this domain when the cpu was busy
-+    13) # of times in this domain pull_task() was called when busy
-+    14) # of times in this domain pull_task() was called even though the
-+        target task was cache-hot when busy
-+    15) # of times in this domain load_balance() was called but did not
-+        find a busier queue while the cpu was busy
-+    16) # of times in this domain a busier queue was found while the cpu
-+        was busy but no busier group was found
-+
-+    17) # of times in this domain load_balance() was called when the
-+        cpu was just becoming idle
-+    18) # of times in this domain load_balance() checked but found the
-+        load did not require balancing when the cpu was just becoming idle
-+    19) # of times in this domain load_balance() tried to move one or more
-+        tasks and failed, when the cpu was just becoming idle
-+    20) sum of imbalances discovered (if any) with each call to
-+        load_balance() in this domain when the cpu was just becoming idle
-+    21) # of times in this domain pull_task() was called when newly idle
-+    22) # of times in this domain pull_task() was called even though the
-+        target task was cache-hot when just becoming idle
-+    23) # of times in this domain load_balance() was called but did not
-+        find a busier queue while the cpu was just becoming idle
-+    24) # of times in this domain a busier queue was found while the cpu
-+        was just becoming idle but no busier group was found
-+
-+   Next three are active_load_balance() statistics:
-+    25) # of times active_load_balance() was called
-+    26) # of times active_load_balance() tried to move a task and failed
-+    27) # of times active_load_balance() successfully moved a task
-+
-+   Next three are sched_balance_exec() statistics:
-+    28) sbe_cnt is not used
-+    29) sbe_balanced is not used
-+    30) sbe_pushed is not used
-+
-+   Next three are sched_balance_fork() statistics:
-+    31) sbf_cnt is not used
-+    32) sbf_balanced is not used
-+    33) sbf_pushed is not used
-+
-+   Next three are try_to_wake_up() statistics:
-+    34) # of times in this domain try_to_wake_up() awoke a task that
-+        last ran on a different cpu in this domain
-+    35) # of times in this domain try_to_wake_up() moved a task to the
-+        waking cpu because it was cache-cold on its own cpu anyway
-+    36) # of times in this domain try_to_wake_up() started passive balancing
- 
- /proc/<pid>/schedstat
- ----------------
- schedstats also adds a new /proc/<pid/schedstat file to include some of
- the same information on a per-process level.  There are three fields in
--this file correlating to fields 20, 21, and 22 in the CPU fields, but
--they only apply for that process.
-+this file correlating for that process to:
-+     1) time spent on the cpu
-+     2) time spent waiting on a runqueue
-+     3) # of timeslices run on this cpu
- 
- A program could be easily written to make use of these extra fields to
- report on how well a particular process or set of processes is faring
- under the scheduler's policies.  A simple version of such a program is
- available at
--    http://eaglet.rain.com/rick/linux/schedstat/v10/latency.c
-+    http://eaglet.rain.com/rick/linux/schedstat/v12/latency.c
 _
 
-Patches currently in -mm which might be from joachim.deguara@amd.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-documentation-update-sched-stattxt.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+git-dvb.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mtd.patch
+mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+git-backlight-cr_bllcdc-build-fix.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+try-parent-numa_node-at-first-before-using-default-v2-fix.patch
+git-scsi-misc.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+clockevents-fix-resume-logic-xen-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-xfs.patch
+git-xfs-fixup.patch
+git-kgdb-fixup-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
+loop-use-unlocked_ioctl.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+rtc-add-support-for-stk17ta8-chip-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
