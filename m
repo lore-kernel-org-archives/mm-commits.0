@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-fix-tag-11-parsing-code.patch added to -mm tree
-Date: Fri, 20 Jul 2007 15:27:06 -0700
-Message-ID: <200707202227.l6KMR6OJ019752@imap1.linux-foundation.org>
+Subject: + ecryptfs-fix-tag-11-writing-code.patch added to -mm tree
+Date: Fri, 20 Jul 2007 15:27:08 -0700
+Message-ID: <200707202227.l6KMR8K9019755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46919 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43677 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762862AbXGTW1O (ORCPT
+	by vger.kernel.org with ESMTP id S1763329AbXGTW1T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 18:27:14 -0400
+	Fri, 20 Jul 2007 18:27:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mhalcrow@us.ibm.com
 
 
 The patch titled
-     eCryptfs: fix Tag 11 parsing code
+     eCryptfs: fix Tag 11 writing code
 has been added to the -mm tree.  Its filename is
-     ecryptfs-fix-tag-11-parsing-code.patch
+     ecryptfs-fix-tag-11-writing-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,133 +26,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: fix Tag 11 parsing code
+Subject: eCryptfs: fix Tag 11 writing code
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Fix up the Tag 11 parsing code to handle size limits and boundaries more
-explicitly.  Pay attention to *8* bytes for the key identifier (literal data),
-no more, no less.
+Fix up the Tag 11 writing code to handle size limits and boundaries more
+explicitly.  It looks like the packet length was 1 shorter than it should have
+been, chopping off the last byte of the key identifier.  This is largely
+inconsequential, since it is not much more likely that a key identifier
+collision will occur with 7 bytes rather than 8.  This patch fixes the packet
+to use the full number of bytes that were originally intended to be used for
+the key identifier.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/keystore.c |   76 +++++++++++++--------------------------
- 1 files changed, 27 insertions(+), 49 deletions(-)
+ fs/ecryptfs/keystore.c |   39 ++++++++++++++++++++++-----------------
+ 1 files changed, 22 insertions(+), 17 deletions(-)
 
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-fix-tag-11-parsing-code fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-fix-tag-11-parsing-code
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-fix-tag-11-writing-code fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-fix-tag-11-writing-code
 +++ a/fs/ecryptfs/keystore.c
-@@ -803,82 +803,60 @@ parse_tag_11_packet(unsigned char *data,
+@@ -1449,47 +1449,52 @@ out:
+  * Returns zero on success; non-zero on error.
+  */
+ static int
+-write_tag_11_packet(char *dest, int max, char *contents, size_t contents_length,
+-		    size_t *packet_length)
++write_tag_11_packet(char *dest, int *remaining_bytes, char *contents,
++		    size_t contents_length, size_t *packet_length)
+ {
+ 	size_t packet_size_length;
++	size_t max_packet_size;
+ 	int rc = 0;
  
- 	(*packet_size) = 0;
- 	(*tag_11_contents_size) = 0;
--
--	/* check that:
--	 *   one byte for the Tag 11 ID flag
--	 *   two bytes for the Tag 11 length
--	 * do not exceed the maximum_packet_size
+ 	(*packet_length) = 0;
+-	if ((13 + contents_length) > max) {
 +	/* This format is inspired by OpenPGP; see RFC 2440
-+	 * packet tag 11
-+	 *
-+	 * Tag 11 identifier (1 byte)
-+	 * Max Tag 11 packet size (max 3 bytes)
-+	 * Binary format specifier (1 byte)
-+	 * Filename length (1 byte)
-+	 * Filename ("_CONSOLE") (8 bytes)
-+	 * Modification date (4 bytes)
-+	 * Literal data (arbitrary)
-+	 *
-+	 * We need at least 16 bytes of data for the packet to even be
-+	 * valid.
- 	 */
--	if (unlikely((*packet_size) + 3 > max_packet_size)) {
--		ecryptfs_printk(KERN_ERR, "Packet size exceeds max\n");
-+	if (max_packet_size < 16) {
-+		printk(KERN_ERR "Maximum packet size too small\n");
++	 * packet tag 11 */
++	max_packet_size = (1                   /* Tag 11 identifier */
++			   + 3                 /* Max Tag 11 packet size */
++			   + 1                 /* Binary format specifier */
++			   + 1                 /* Filename length */
++			   + 8                 /* Filename ("_CONSOLE") */
++			   + 4                 /* Modification date */
++			   + contents_length); /* Literal data */
++	if (max_packet_size > (*remaining_bytes)) {
++		printk(KERN_ERR "Packet length larger than maximum allowable; "
++		       "need up to [%d] bytes, but there are only [%d] "
++		       "available\n", max_packet_size, (*remaining_bytes));
  		rc = -EINVAL;
+-		ecryptfs_printk(KERN_ERR, "Packet length larger than "
+-				"maximum allowable\n");
  		goto out;
  	}
--
--	/* check for Tag 11 identifyer - one byte */
- 	if (data[(*packet_size)++] != ECRYPTFS_TAG_11_PACKET_TYPE) {
--		ecryptfs_printk(KERN_WARNING,
--				"Invalid tag 11 packet format\n");
-+		printk(KERN_WARNING "Invalid tag 11 packet format\n");
- 		rc = -EINVAL;
- 		goto out;
- 	}
--
--	/* get Tag 11 content length - one or two bytes */
--	rc = parse_packet_length(&data[(*packet_size)], &body_size,
--				 &length_size);
--	if (rc) {
--		ecryptfs_printk(KERN_WARNING,
--				"Invalid tag 11 packet format\n");
-+	if ((rc = parse_packet_length(&data[(*packet_size)], &body_size,
-+				      &length_size))) {
-+		printk(KERN_WARNING "Invalid tag 11 packet format\n");
- 		goto out;
- 	}
--	(*packet_size) += length_size;
--
--	if (body_size < 13) {
--		ecryptfs_printk(KERN_WARNING, "Invalid body size ([%d])\n",
--				body_size);
-+	if (body_size < 14) {
-+		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
- 		rc = -EINVAL;
- 		goto out;
- 	}
--	/* We have 13 bytes of surrounding packet values */
--	(*tag_11_contents_size) = (body_size - 13);
--
--	/* now we know the length of the remainting Tag 11 packet size:
--	 *   14 fix bytes for: special flag one, special flag two,
--	 *   		       12 skipped bytes
--	 *   body_size bytes minus the stuff above is the Tag 11 content
--	 */
--	/* FIXME why is the body size one byte smaller than the actual
--	 * size of the body?
--	 * this seems to be an error here as well as in
--	 * write_tag_11_packet() */
-+	(*packet_size) += length_size;
-+	(*tag_11_contents_size) = (body_size - 14);
- 	if (unlikely((*packet_size) + body_size + 1 > max_packet_size)) {
--		ecryptfs_printk(KERN_ERR, "Packet size exceeds max\n");
-+		printk(KERN_ERR "Packet size exceeds max\n");
- 		rc = -EINVAL;
- 		goto out;
- 	}
--
--	/* special flag one - one byte */
- 	if (data[(*packet_size)++] != 0x62) {
--		ecryptfs_printk(KERN_WARNING, "Unrecognizable packet\n");
-+		printk(KERN_WARNING "Unrecognizable packet\n");
- 		rc = -EINVAL;
- 		goto out;
- 	}
--
--	/* special flag two - one byte */
- 	if (data[(*packet_size)++] != 0x08) {
--		ecryptfs_printk(KERN_WARNING, "Unrecognizable packet\n");
-+		printk(KERN_WARNING "Unrecognizable packet\n");
- 		rc = -EINVAL;
- 		goto out;
- 	}
--
--	/* skip the next 12 bytes */
--	(*packet_size) += 12; /* We don't care about the filename or
--			       * the timestamp */
--
--	/* get the Tag 11 contents - tag_11_contents_size bytes */
-+	(*packet_size) += 12; /* Ignore filename and modification date */
- 	memcpy(contents, &data[(*packet_size)], (*tag_11_contents_size));
- 	(*packet_size) += (*tag_11_contents_size);
--
- out:
+-	/* General packet header */
+-	/* Packet tag */
+ 	dest[(*packet_length)++] = ECRYPTFS_TAG_11_PACKET_TYPE;
+-	/* Packet length */
+ 	rc = write_packet_length(&dest[(*packet_length)],
+-				 (13 + contents_length), &packet_size_length);
++				 (max_packet_size - 4), &packet_size_length);
  	if (rc) {
- 		(*packet_size) = 0;
+-		ecryptfs_printk(KERN_ERR, "Error generating tag 11 packet "
+-				"header; cannot generate packet length\n");
++		printk(KERN_ERR "Error generating tag 11 packet header; cannot "
++		       "generate packet length. rc = [%d]\n", rc);
+ 		goto out;
+ 	}
+ 	(*packet_length) += packet_size_length;
+-	/* Tag 11 specific */
+-	/* One-octet field that describes how the data is formatted */
+-	dest[(*packet_length)++] = 0x62; /* binary data */
+-	/* One-octet filename length followed by filename */
++	dest[(*packet_length)++] = 0x62; /* binary data format specifier */
+ 	dest[(*packet_length)++] = 8;
+ 	memcpy(&dest[(*packet_length)], "_CONSOLE", 8);
+ 	(*packet_length) += 8;
+-	/* Four-octet number indicating modification date */
+ 	memset(&dest[(*packet_length)], 0x00, 4);
+ 	(*packet_length) += 4;
+-	/* Remainder is literal data */
+ 	memcpy(&dest[(*packet_length)], contents, contents_length);
+ 	(*packet_length) += contents_length;
+  out:
+ 	if (rc)
+ 		(*packet_length) = 0;
++	else
++		(*remaining_bytes) -= (*packet_length);
+ 	return rc;
+ }
+ 
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
