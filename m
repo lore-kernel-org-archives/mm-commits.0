@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ps3-fix-build-with-32-bit-toolchains.patch added to -mm tree
-Date: Fri, 20 Jul 2007 11:10:51 -0700
-Message-ID: <200707201810.l6KIApXa009362@imap1.linux-foundation.org>
+Subject: + ps3fb-enable-vt_hw_console_binding-for-proper-kexec.patch added to -mm tree
+Date: Fri, 20 Jul 2007 11:12:37 -0700
+Message-ID: <200707201812.l6KICbaR009476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53239 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46642 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763473AbXGTSLx (ORCPT
+	by vger.kernel.org with ESMTP id S1761134AbXGTSOB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 14:11:53 -0400
+	Fri, 20 Jul 2007 14:14:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geoffrey.levand@am.sony.com, geert@linux-m68k.org, grant.likely@secretlab.ca, paulus@samba.org
+Cc: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, geoffrey.levand@am.sony.com, paulus@samba.org
 
 
 The patch titled
-     PS3: Fix build with 32-bit toolchains
+     ps3fb: Enable VT_HW_CONSOLE_BINDING for proper kexec
 has been added to the -mm tree.  Its filename is
-     ps3-fix-build-with-32-bit-toolchains.patch
+     ps3fb-enable-vt_hw_console_binding-for-proper-kexec.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,54 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PS3: Fix build with 32-bit toolchains
-From: Geoff Levand <geoffrey.levand@am.sony.com>
+Subject: ps3fb: Enable VT_HW_CONSOLE_BINDING for proper kexec
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-The PS3 bootwrapper files use instructions only available on 64-bit CPUs. 
-Add the code generation directive '.machine "ppc64"' for toolchains
-configured for 32-bit CPUs.
+ps3fb: VT_HW_CONSOLE_BINDING must be enabled to make console unbinding work,
+which is needed to give up all hypervisor resources before reboot or kexec.
 
-Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: Geoff Levand <geoffrey.levand@am.sony.com>
 Cc: Paul Mackerras <paulus@samba.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/ps3-head.S   |    2 ++
- arch/powerpc/boot/ps3-hvcall.S |    2 ++
- 2 files changed, 4 insertions(+)
+ drivers/video/Kconfig |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/powerpc/boot/ps3-head.S~ps3-fix-build-with-32-bit-toolchains arch/powerpc/boot/ps3-head.S
---- a/arch/powerpc/boot/ps3-head.S~ps3-fix-build-with-32-bit-toolchains
-+++ a/arch/powerpc/boot/ps3-head.S
-@@ -20,6 +20,8 @@
+diff -puN drivers/video/Kconfig~ps3fb-enable-vt_hw_console_binding-for-proper-kexec drivers/video/Kconfig
+--- a/drivers/video/Kconfig~ps3fb-enable-vt_hw_console_binding-for-proper-kexec
++++ a/drivers/video/Kconfig
+@@ -1791,6 +1791,7 @@ config FB_PS3
+ 	select FB_SYS_COPYAREA
+ 	select FB_SYS_IMAGEBLIT
+ 	select FB_SYS_FOPS
++	select VT_HW_CONSOLE_BINDING if FRAMEBUFFER_CONSOLE
+ 	---help---
+ 	  Include support for the virtual frame buffer in the PS3 platform.
  
- #include "ppc_asm.h"
- 
-+	.machine "ppc64"
-+
- 	.text
- 
- /*
-diff -puN arch/powerpc/boot/ps3-hvcall.S~ps3-fix-build-with-32-bit-toolchains arch/powerpc/boot/ps3-hvcall.S
---- a/arch/powerpc/boot/ps3-hvcall.S~ps3-fix-build-with-32-bit-toolchains
-+++ a/arch/powerpc/boot/ps3-hvcall.S
-@@ -20,6 +20,8 @@
- 
- #include "ppc_asm.h"
- 
-+	.machine "ppc64"
-+
- /*
-  * The PS3 hypervisor uses a 64 bit "C" language calling convention.
-  * The routines here marshal arguments between the 32 bit wrapper
 _
 
-Patches currently in -mm which might be from geoffrey.levand@am.sony.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-git-kgdb.patch
 ps3-disk-storage-driver.patch
 ps3-disk-storage-driver-use-correct-bio-vector-size.patch
 ps3-disk-storage-driver-updates-after-final-review.patch
@@ -81,4 +65,6 @@ ps3-bd-dvd-cd-rom-storage-driver.patch
 ps3-bd-dvd-cd-rom-storage-driver-updates-after-final-review.patch
 ps3-flash-rom-storage-driver.patch
 ps3-flash-rom-storage-driver-updates-after-final-review.patch
-ps3-fix-build-with-32-bit-toolchains.patch
+ps3fb-enable-vt_hw_console_binding-for-proper-kexec.patch
+ps3fb-shrink-default-virtual-frame-buffer-size-from-18-to-9-mib.patch
+ps3fb-set-fbinfo_reads_fast-to-speed-up-text-console-scrolling.patch
