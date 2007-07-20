@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-xfs-fixup.patch added to -mm tree
-Date: Thu, 19 Jul 2007 23:59:58 -0700
-Message-ID: <200707200704.l6K74SvN012711@imap1.linux-foundation.org>
+Subject: + maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch added to -mm tree
+Date: Fri, 20 Jul 2007 00:16:18 -0700
+Message-ID: <200707200720.l6K7KkuU013348@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39018 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57921 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754994AbXGTHEf (ORCPT
+	by vger.kernel.org with ESMTP id S1754288AbXGTHVI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 03:04:35 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6K74Yus013060
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jul 2007 00:04:35 -0700
+	Fri, 20 Jul 2007 03:21:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, mpm@selenic.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     git-xfs-fixup
+     maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix
 has been added to the -mm tree.  Its filename is
-     git-xfs-fixup.patch
+     maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,45 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-xfs-fixup
+Subject: maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+fs/proc/proc_misc.c: In function 'kpagemap_read':
+fs/proc/proc_misc.c:701: warning: comparison of distinct pointer types lacks a cast
+
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_file.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ fs/proc/proc_misc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_file.c~git-xfs-fixup fs/xfs/linux-2.6/xfs_file.c
---- a/fs/xfs/linux-2.6/xfs_file.c~git-xfs-fixup
-+++ a/fs/xfs/linux-2.6/xfs_file.c
-@@ -478,26 +478,16 @@ const struct file_operations xfs_dir_fil
- };
+diff -puN fs/proc/proc_misc.c~maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix
++++ a/fs/proc/proc_misc.c
+@@ -698,7 +698,7 @@ static ssize_t kpagemap_read(struct file
+ 	int chunk, i;
  
- static struct vm_operations_struct xfs_file_vm_ops = {
--<<<<<<< HEAD/fs/xfs/linux-2.6/xfs_file.c
- 	.fault		= filemap_fault,
- 	.page_mkwrite	= xfs_vm_page_mkwrite,
--=======
--	.nopage		= filemap_nopage,
- 	.populate	= filemap_populate,
--	.page_mkwrite	= xfs_vm_page_mkwrite,
-->>>>>>> /fs/xfs/linux-2.6/xfs_file.c
- };
+ 	pfn = src / KPMSIZE - 1;
+-	count = min(count, ((max_pfn + 1) * KPMSIZE) - src);
++	count = min_t(unsigned long, count, ((max_pfn + 1) * KPMSIZE) - src);
+ 	if (src & KPMMASK || count & KPMMASK)
+ 		return -EIO;
  
- #ifdef CONFIG_XFS_DMAPI
- static struct vm_operations_struct xfs_dmapi_file_vm_ops = {
--<<<<<<< HEAD/fs/xfs/linux-2.6/xfs_file.c
- 	.fault		= xfs_vm_fault,
- 	.page_mkwrite	= xfs_vm_page_mkwrite,
--=======
--	.nopage		= xfs_vm_nopage,
- 	.populate	= filemap_populate,
--	.page_mkwrite	= xfs_vm_page_mkwrite,
-->>>>>>> /fs/xfs/linux-2.6/xfs_file.c
- #ifdef HAVE_VMOP_MPROTECT
- 	.mprotect	= xfs_vm_mprotect,
- #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,6 +99,7 @@ fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 maps2-move-the-page-walker-code-to-lib.patch
 maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
 slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
 hugetlbfs-read-support-fix.patch
 security-convert-lsm-into-a-static-interface-fix.patch
