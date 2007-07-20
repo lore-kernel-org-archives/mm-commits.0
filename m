@@ -1,22 +1,22 @@
 From: akpm@linux-foundation.org
 Subject: + remove-unneded-lock_kernel-in-driver-block-loopc.patch added to -mm tree
-Date: Thu, 19 Jul 2007 17:33:18 -0700
-Message-ID: <200707200033.l6K0XIXb030888@imap1.linux-foundation.org>
+Date: Thu, 19 Jul 2007 17:37:18 -0700
+Message-ID: <200707200037.l6K0bIlj031057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36564 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36130 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755986AbXGTAdZ (ORCPT
+	by vger.kernel.org with ESMTP id S1758423AbXGTAhd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 20:33:25 -0400
+	Thu, 19 Jul 2007 20:37:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: diego@woitasen.com.ar
+Cc: diego@woitasen.com.ar, hch@lst.de
 
 
 The patch titled
-     Remove unneded lock_kernel() in driver/block/loop.c
+     Remove unneeded lock_kernel() in driver/block/loop.c
 has been added to the -mm tree.  Its filename is
      remove-unneded-lock_kernel-in-driver-block-loopc.patch
 
@@ -26,10 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove unneded lock_kernel() in driver/block/loop.c
+Subject: Remove unneeded lock_kernel() in driver/block/loop.c
 From: Diego Woitasen <diego@woitasen.com.ar>
 
 Signed-off-by: Diego Woitasen <diego@woitasen.com.ar>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -60,3 +61,4 @@ _
 Patches currently in -mm which might be from diego@woitasen.com.ar are
 
 remove-unneded-lock_kernel-in-driver-block-loopc.patch
+loop-use-unlocked_ioctl.patch
