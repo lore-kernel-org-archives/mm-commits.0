@@ -1,54 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - containersv10-make-cpusets-a-client-of-containers-whitespace.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:29:38 -0700
-Message-ID: <200707202029.l6KKTcIf014891@imap1.linux-foundation.org>
+Subject: - add-containerstats-v3-fix.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 13:30:07 -0700
+Message-ID: <200707202030.l6KKU7wM014927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57040 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50302 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932138AbXGTUbH (ORCPT
+	by vger.kernel.org with ESMTP id S1760313AbXGTUfp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:31:07 -0400
+	Fri, 20 Jul 2007 16:35:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, menage@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     trivial whitespace fixes in kernel/cpuset.c
+     add-containerstats-v3-fix
 has been removed from the -mm tree.  Its filename was
-     containersv10-make-cpusets-a-client-of-containers-whitespace.patch
+     add-containerstats-v3-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: trivial whitespace fixes in kernel/cpuset.c
-From: Daniel Walker <dwalker@mvista.com>
+Subject: add-containerstats-v3-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+kernel/taskstats.c: In function 'containerstats_user_cmd':
+kernel/taskstats.c:414: error: dereferencing pointer to incomplete type
+
 Cc: Paul Menage <menage@google.com>
+Cc: Jay Lan <jlan@engr.sgi.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ kernel/taskstats.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/cpuset.c~containersv10-make-cpusets-a-client-of-containers-whitespace kernel/cpuset.c
---- a/kernel/cpuset.c~containersv10-make-cpusets-a-client-of-containers-whitespace
-+++ a/kernel/cpuset.c
-@@ -513,7 +513,7 @@ static int update_cpumask(struct cpuset 
- 	cpus_and(trialcs.cpus_allowed, trialcs.cpus_allowed, cpu_online_map);
- 	/* cpus_allowed cannot be empty for a cpuset with attached tasks. */
- 	if (container_task_count(cs->css.container) &&
--            cpus_empty(trialcs.cpus_allowed))
-+	    cpus_empty(trialcs.cpus_allowed))
- 		return -ENOSPC;
- 	retval = validate_change(cs, &trialcs);
- 	if (retval < 0)
+diff -puN kernel/taskstats.c~add-containerstats-v3-fix kernel/taskstats.c
+--- a/kernel/taskstats.c~add-containerstats-v3-fix
++++ a/kernel/taskstats.c
+@@ -25,6 +25,7 @@
+ #include <linux/percpu.h>
+ #include <linux/containerstats.h>
+ #include <linux/container.h>
++#include <linux/fs.h>
+ #include <linux/file.h>
+ #include <net/genetlink.h>
+ #include <asm/atomic.h>
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-containersv10-make-cpusets-a-client-of-containers-whitespace.patch
-containersv10-support-for-automatic-userspace-release-agents-whitespace.patch
-profile-likely-unlikely-macros.patch
+origin.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+git-dvb.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mtd.patch
+mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+try-parent-numa_node-at-first-before-using-default-v2-fix.patch
+git-scsi-misc.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+clockevents-fix-resume-logic-xen-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-xfs.patch
+git-xfs-fixup.patch
+git-kgdb-fixup-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
+loop-use-unlocked_ioctl.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
