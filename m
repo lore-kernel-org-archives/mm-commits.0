@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-include-asm-bugsh-in-bugsc-for-check_bugs.patch added to -mm tree
-Date: Fri, 20 Jul 2007 13:42:43 -0700
-Message-ID: <200707202042.l6KKghBX015503@imap1.linux-foundation.org>
+Subject: + cfs-mark-print_cfs_stats-static.patch added to -mm tree
+Date: Fri, 20 Jul 2007 13:42:49 -0700
+Message-ID: <200707202042.l6KKgnLS015519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56332 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58294 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754885AbXGTUnX (ORCPT
+	by vger.kernel.org with ESMTP id S1755893AbXGTUn2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:43:23 -0400
+	Fri, 20 Jul 2007 16:43:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: josh@kernel.org, ak@suse.de
+Cc: josh@kernel.org, mingo@elte.hu
 
 
 The patch titled
-     x86_64: include asm/bugs.h in bugs.c for check_bugs prototype
+     CFS: mark print_cfs_stats static
 has been added to the -mm tree.  Its filename is
-     x86_64-include-asm-bugsh-in-bugsc-for-check_bugs.patch
+     cfs-mark-print_cfs_stats-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: include asm/bugs.h in bugs.c for check_bugs prototype
+Subject: CFS: mark print_cfs_stats static
 From: Josh Triplett <josh@kernel.org>
 
-C files should include the header files that prototype their functions.
+sched_fair.c defines print_cfs_stats, and sched_debug.c uses it, but sched.c
+includes both sched_fair.c and sched_debug.c, so all the references to
+print_cfs_stats occur in the same compilation unit.  Thus, mark
+print_cfs_stats static.
 
 Eliminates a sparse warning:
-warning: symbol 'check_bugs' was not declared. Should it be static?
+warning: symbol 'print_cfs_stats' was not declared. Should it be static?
 
 Signed-off-by: Josh Triplett <josh@kernel.org>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/bugs.c |    1 +
- 1 files changed, 1 insertion(+)
+ kernel/sched_fair.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/bugs.c~x86_64-include-asm-bugsh-in-bugsc-for-check_bugs arch/x86_64/kernel/bugs.c
---- a/arch/x86_64/kernel/bugs.c~x86_64-include-asm-bugsh-in-bugsc-for-check_bugs
-+++ a/arch/x86_64/kernel/bugs.c
-@@ -8,6 +8,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <asm/alternative.h>
-+#include <asm/bugs.h>
- #include <asm/processor.h>
- #include <asm/mtrr.h>
+diff -puN kernel/sched_fair.c~cfs-mark-print_cfs_stats-static kernel/sched_fair.c
+--- a/kernel/sched_fair.c~cfs-mark-print_cfs_stats-static
++++ a/kernel/sched_fair.c
+@@ -1120,7 +1120,7 @@ struct sched_class fair_sched_class __re
+ };
  
+ #ifdef CONFIG_SCHED_DEBUG
+-void print_cfs_stats(struct seq_file *m, int cpu, u64 now)
++static void print_cfs_stats(struct seq_file *m, int cpu, u64 now)
+ {
+ 	struct rq *rq = cpu_rq(cpu);
+ 	struct cfs_rq *cfs_rq;
 _
 
 Patches currently in -mm which might be from josh@kernel.org are
