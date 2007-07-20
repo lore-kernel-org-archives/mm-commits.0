@@ -1,465 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - containersv10-example-cpu-accounting-subsystem.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:29:02 -0700
-Message-ID: <200707202029.l6KKT2wS014849@imap1.linux-foundation.org>
+Subject: - containersv10-add-fork-exit-hooks-fix.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 13:29:20 -0700
+Message-ID: <200707202029.l6KKTKKR014873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38101 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49330 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762159AbXGTUaQ (ORCPT
+	by vger.kernel.org with ESMTP id S1763056AbXGTUa1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:30:16 -0400
+	Fri, 20 Jul 2007 16:30:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Containers: example CPU accounting subsystem
+     containersv10-add-fork-exit-hooks-fix
 has been removed from the -mm tree.  Its filename was
-     containersv10-example-cpu-accounting-subsystem.patch
+     containersv10-add-fork-exit-hooks-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Containers: example CPU accounting subsystem
-From: Paul Menage <menage@google.com>
+Subject: containersv10-add-fork-exit-hooks-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Generic Process Containers
---------------------------
-
-There have recently been various proposals floating around for
-resource management/accounting and other task grouping subsystems in
-the kernel, including ResGroups, User BeanCounters, NSProxy
-containers, and others.  These all need the basic abstraction of being
-able to group together multiple processes in an aggregate, in order to
-track/limit the resources permitted to those processes, or control
-other behaviour of the processes, and all implement this grouping in
-different ways.
-
-Already existing in the kernel is the cpuset subsystem; this has a
-process grouping mechanism that is mature, tested, and well documented
-(particularly with regards to synchronization rules).
-
-This patchset extracts the process grouping code from cpusets into a
-generic container system, and makes the cpusets code a client of the
-container system, along with a couple of simple example subsystems.
-
-The patch set is structured as follows:
-
-1) Basic container framework - filesystem and tracking structures
-
-2) Simple CPU Accounting example subsystem
-
-3) Support for the "tasks" control file
-
-4) Hooks for fork() and exit()
-
-5) Support for the container_clone() operation
-
-6) Add /proc reporting interface
-
-7) Make cpusets a container subsystem
-
-8) Share container subsystem pointer arrays between tasks with the
-   same assignments
-
-9) Simple container debugging subsystem
-
-10) Support for a userspace "release agent", similar to the cpusets
-    release agent functionality
-
-The intention is that the various resource management and
-virtualization efforts can also become container clients, with the
-result that:
-
-- the userspace APIs are (somewhat) normalised
-
-- it's easier to test out e.g. the ResGroups CPU controller in
- conjunction with the BeanCounters memory controller, or use either of
-them as the resource-control portion of a virtual server system.
-
-- the additional kernel footprint of any of the competing resource
- management systems is substantially reduced, since it doesn't need
- to provide process grouping/containment, hence improving their
- chances of getting into the kernel
-
-
-Still TODO:
-
-- decide whether "Containers" is an acceptable name for the system
-given its usage by some other development groups, or whether something
-else (ProcessSets? ResourceGroups? TaskGroups?) would be better. I'm
-inclined to leave this political decision to Andrew/Linus once they're
-happy with the technical aspects of the patches.
-
-- add a hash-table based lookup for css_group objects.
-
-- use seq_file properly in container tasks files to avoid having to
- allocate a big array for all the container's task pointers.
-
-- lots more testing
-
-- define standards for container file names
-
-
-
-This patch:
-
-This example demonstrates how to use the generic container subsystem for a
-simple resource tracker that counts, for the processes in a container, the
-total CPU time used and the %CPU used in the last complete 10 second interval.
-
-Portions contributed by Balbir Singh <balbir@in.ibm.com>
-
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
 Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/container_subsys.h |    6 
- include/linux/cpu_acct.h         |   14 ++
- init/Kconfig                     |    7 +
- kernel/Makefile                  |    1 
- kernel/cpu_acct.c                |  185 +++++++++++++++++++++++++++++
- kernel/sched.c                   |   14 +-
- 6 files changed, 224 insertions(+), 3 deletions(-)
+ kernel/container.c |   23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/container_subsys.h~containersv10-example-cpu-accounting-subsystem include/linux/container_subsys.h
---- a/include/linux/container_subsys.h~containersv10-example-cpu-accounting-subsystem
-+++ a/include/linux/container_subsys.h
-@@ -7,4 +7,10 @@
- 
- /* */
- 
-+#ifdef CONFIG_CONTAINER_CPUACCT
-+SUBSYS(cpuacct)
-+#endif
-+
-+/* */
-+
- /* */
-diff -puN /dev/null include/linux/cpu_acct.h
---- /dev/null
-+++ a/include/linux/cpu_acct.h
-@@ -0,0 +1,14 @@
-+
-+#ifndef _LINUX_CPU_ACCT_H
-+#define _LINUX_CPU_ACCT_H
-+
-+#include <linux/container.h>
-+#include <asm/cputime.h>
-+
-+#ifdef CONFIG_CONTAINER_CPUACCT
-+extern void cpuacct_charge(struct task_struct *, cputime_t cputime);
-+#else
-+static void inline cpuacct_charge(struct task_struct *p, cputime_t cputime) {}
-+#endif
-+
-+#endif
-diff -puN init/Kconfig~containersv10-example-cpu-accounting-subsystem init/Kconfig
---- a/init/Kconfig~containersv10-example-cpu-accounting-subsystem
-+++ a/init/Kconfig
-@@ -329,6 +329,13 @@ config SYSFS_DEPRECATED
- 	  If you are using a distro that was released in 2006 or later,
- 	  it should be safe to say N here.
- 
-+config CONTAINER_CPUACCT
-+	bool "Simple CPU accounting container subsystem"
-+	select CONTAINERS
-+	help
-+	  Provides a simple Resource Controller for monitoring the
-+	  total CPU consumed by the tasks in a container
-+
- config RELAY
- 	bool "Kernel->user space relay support (formerly relayfs)"
- 	help
-diff -puN kernel/Makefile~containersv10-example-cpu-accounting-subsystem kernel/Makefile
---- a/kernel/Makefile~containersv10-example-cpu-accounting-subsystem
-+++ a/kernel/Makefile
-@@ -39,6 +39,7 @@ obj-$(CONFIG_KEXEC) += kexec.o
- obj-$(CONFIG_COMPAT) += compat.o
- obj-$(CONFIG_CONTAINERS) += container.o
- obj-$(CONFIG_CPUSETS) += cpuset.o
-+obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_acct.o
- obj-$(CONFIG_IKCONFIG) += configs.o
- obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
- obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
-diff -puN /dev/null kernel/cpu_acct.c
---- /dev/null
-+++ a/kernel/cpu_acct.c
-@@ -0,0 +1,185 @@
-+/*
-+ * kernel/cpu_acct.c - CPU accounting container subsystem
-+ *
-+ * Copyright (C) Google Inc, 2006
-+ *
-+ * Developed by Paul Menage (menage@google.com) and Balbir Singh
-+ * (balbir@in.ibm.com)
-+ *
-+ */
-+
-+/*
-+ * Example container subsystem for reporting total CPU usage of tasks in a
-+ * container, along with percentage load over a time interval
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/container.h>
-+#include <linux/fs.h>
-+#include <asm/div64.h>
-+
-+struct cpuacct {
-+	struct container_subsys_state css;
-+	spinlock_t lock;
-+	/* total time used by this class */
-+	cputime64_t time;
-+
-+	/* time when next load calculation occurs */
-+	u64 next_interval_check;
-+
-+	/* time used in current period */
-+	cputime64_t current_interval_time;
-+
-+	/* time used in last period */
-+	cputime64_t last_interval_time;
-+};
-+
-+struct container_subsys cpuacct_subsys;
-+
-+static inline struct cpuacct *container_ca(struct container *cont)
-+{
-+	return container_of(container_subsys_state(cont, cpuacct_subsys_id),
-+			    struct cpuacct, css);
-+}
-+
-+static inline struct cpuacct *task_ca(struct task_struct *task)
-+{
-+	return container_of(task_subsys_state(task, cpuacct_subsys_id),
-+			    struct cpuacct, css);
-+}
-+
-+#define INTERVAL (HZ * 10)
-+
-+static inline u64 next_interval_boundary(u64 now) {
-+	/* calculate the next interval boundary beyond the
-+	 * current time */
-+	do_div(now, INTERVAL);
-+	return (now + 1) * INTERVAL;
-+}
-+
-+static int cpuacct_create(struct container_subsys *ss, struct container *cont)
-+{
-+	struct cpuacct *ca = kzalloc(sizeof(*ca), GFP_KERNEL);
-+	if (!ca)
-+		return -ENOMEM;
-+	spin_lock_init(&ca->lock);
-+	ca->next_interval_check = next_interval_boundary(get_jiffies_64());
-+	cont->subsys[cpuacct_subsys_id] = &ca->css;
-+	return 0;
-+}
-+
-+static void cpuacct_destroy(struct container_subsys *ss,
-+			    struct container *cont)
-+{
-+	kfree(container_ca(cont));
-+}
-+
-+/* Lazily update the load calculation if necessary. Called with ca locked */
-+static void cpuusage_update(struct cpuacct *ca)
-+{
-+	u64 now = get_jiffies_64();
-+	/* If we're not due for an update, return */
-+	if (ca->next_interval_check > now)
-+		return;
-+
-+	if (ca->next_interval_check <= (now - INTERVAL)) {
-+		/* If it's been more than an interval since the last
-+		 * check, then catch up - the last interval must have
-+		 * been zero load */
-+		ca->last_interval_time = 0;
-+		ca->next_interval_check = next_interval_boundary(now);
-+	} else {
-+		/* If a steal takes the last interval time negative,
-+		 * then we just ignore it */
-+		if ((s64)ca->current_interval_time > 0) {
-+			ca->last_interval_time = ca->current_interval_time;
-+		} else {
-+			ca->last_interval_time = 0;
-+		}
-+		ca->next_interval_check += INTERVAL;
-+	}
-+	ca->current_interval_time = 0;
-+}
-+
-+static u64 cpuusage_read(struct container *cont,
-+			 struct cftype *cft)
-+{
-+	struct cpuacct *ca = container_ca(cont);
-+	u64 time;
-+
-+	spin_lock_irq(&ca->lock);
-+	cpuusage_update(ca);
-+	time = cputime64_to_jiffies64(ca->time);
-+	spin_unlock_irq(&ca->lock);
-+
-+	/* Convert 64-bit jiffies to seconds */
-+	time *= 1000;
-+	do_div(time, HZ);
-+	return time;
-+}
-+
-+static u64 load_read(struct container *cont,
-+		     struct cftype *cft)
-+{
-+	struct cpuacct *ca = container_ca(cont);
-+	u64 time;
-+
-+	/* Find the time used in the previous interval */
-+	spin_lock_irq(&ca->lock);
-+	cpuusage_update(ca);
-+	time = cputime64_to_jiffies64(ca->last_interval_time);
-+	spin_unlock_irq(&ca->lock);
-+
-+	/* Convert time to a percentage, to give the load in the
-+	 * previous period */
-+	time *= 100;
-+	do_div(time, INTERVAL);
-+
-+	return time;
-+}
-+
-+static struct cftype files[] = {
-+	{
-+		.name = "cpuacct.usage",
-+		.read_uint = cpuusage_read,
-+	},
-+	{
-+		.name = "cpuacct.load",
-+		.read_uint = load_read,
-+	}
-+};
-+
-+static int cpuacct_populate(struct container_subsys *ss,
-+			    struct container *cont)
-+{
-+	return container_add_files(cont, files, ARRAY_SIZE(files));
-+}
-+
-+void cpuacct_charge(struct task_struct *task, cputime_t cputime)
-+{
-+
-+	struct cpuacct *ca;
-+	unsigned long flags;
-+
-+	if (!cpuacct_subsys.active)
-+		return;
-+	rcu_read_lock();
-+	ca = task_ca(task);
-+	if (ca) {
-+		spin_lock_irqsave(&ca->lock, flags);
-+		cpuusage_update(ca);
-+		ca->time = cputime64_add(ca->time, cputime);
-+		ca->current_interval_time =
-+			cputime64_add(ca->current_interval_time, cputime);
-+		spin_unlock_irqrestore(&ca->lock, flags);
-+	}
-+	rcu_read_unlock();
-+}
-+
-+struct container_subsys cpuacct_subsys = {
-+	.name = "cpuacct",
-+	.create = cpuacct_create,
-+	.destroy = cpuacct_destroy,
-+	.populate = cpuacct_populate,
-+	.subsys_id = cpuacct_subsys_id,
-+};
-diff -puN kernel/sched.c~containersv10-example-cpu-accounting-subsystem kernel/sched.c
---- a/kernel/sched.c~containersv10-example-cpu-accounting-subsystem
-+++ a/kernel/sched.c
-@@ -53,6 +53,7 @@
- #include <linux/percpu.h>
- #include <linux/kthread.h>
- #include <linux/seq_file.h>
-+#include <linux/cpu_acct.h>
- #include <linux/sysctl.h>
- #include <linux/syscalls.h>
- #include <linux/times.h>
-@@ -3140,9 +3141,13 @@ void account_user_time(struct task_struc
+diff -puN kernel/container.c~containersv10-add-fork-exit-hooks-fix kernel/container.c
+--- a/kernel/container.c~containersv10-add-fork-exit-hooks-fix
++++ a/kernel/container.c
+@@ -144,21 +144,18 @@ list_for_each_entry(_root, &roots, root_
+  * it's better for performance to ref-count every subsystem, or to
+  * take a global lock and only add one ref count to each hierarchy.
+  */
+-
+ static void get_css_group(struct css_group *cg)
  {
- 	struct cpu_usage_stat *cpustat = &kstat_this_cpu.cpustat;
- 	cputime64_t tmp;
-+	struct rq *rq = this_rq();
+ 	int i;
+-	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
++	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++)
+ 		atomic_inc(&cg->subsys[i]->container->count);
+-	}
+ }
  
- 	p->utime = cputime_add(p->utime, cputime);
- 
-+	if (p != rq->idle)
-+		cpuacct_charge(p, cputime);
-+
- 	/* Add user time to cpustat. */
- 	tmp = cputime_to_cputime64(cputime);
- 	if (TASK_NICE(p) > 0)
-@@ -3172,9 +3177,10 @@ void account_system_time(struct task_str
- 		cpustat->irq = cputime64_add(cpustat->irq, tmp);
- 	else if (softirq_count())
- 		cpustat->softirq = cputime64_add(cpustat->softirq, tmp);
--	else if (p != rq->idle)
-+	else if (p != rq->idle) {
- 		cpustat->system = cputime64_add(cpustat->system, tmp);
--	else if (atomic_read(&rq->nr_iowait) > 0)
-+		cpuacct_charge(p, cputime);
-+	} else if (atomic_read(&rq->nr_iowait) > 0)
- 		cpustat->iowait = cputime64_add(cpustat->iowait, tmp);
- 	else
- 		cpustat->idle = cputime64_add(cpustat->idle, tmp);
-@@ -3199,8 +3205,10 @@ void account_steal_time(struct task_stru
- 			cpustat->iowait = cputime64_add(cpustat->iowait, tmp);
- 		else
- 			cpustat->idle = cputime64_add(cpustat->idle, tmp);
--	} else
-+	} else {
- 		cpustat->steal = cputime64_add(cpustat->steal, tmp);
-+		cpuacct_charge(p, -tmp);
-+	}
+ static void put_css_group(struct css_group *cg)
+ {
+ 	int i;
+-	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
++	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++)
+ 		atomic_dec(&cg->subsys[i]->container->count);
+-	}
  }
  
  /*
+@@ -1533,8 +1530,7 @@ out:
+  *
+  * At the point that container_fork() is called, 'current' is the parent
+  * task, and the passed argument 'child' points to the child task.
+- **/
+-
++ */
+ void container_fork(struct task_struct *child)
+ {
+ 	rcu_read_lock();
+@@ -1547,17 +1543,15 @@ void container_fork(struct task_struct *
+  * container_fork_callbacks - called on a new task very soon before
+  * adding it to the tasklist. No need to take any locks since no-one
+  * can be operating on this task
+- **/
+-
++ */
+ void container_fork_callbacks(struct task_struct *child)
+ {
+ 	if (need_forkexit_callback) {
+ 		int i;
+ 		for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
+ 			struct container_subsys *ss = subsys[i];
+-			if (ss->fork) {
++			if (ss->fork)
+ 				ss->fork(ss, child);
+-			}
+ 		}
+ 	}
+ }
+@@ -1596,17 +1590,16 @@ void container_fork_callbacks(struct tas
+  *    which wards off any attach_task() attempts, or task is a failed
+  *    fork, never visible to attach_task.
+  *
+- **/
+-
++ */
+ void container_exit(struct task_struct *tsk, int run_callbacks)
+ {
+ 	int i;
++
+ 	if (run_callbacks && need_forkexit_callback) {
+ 		for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
+ 			struct container_subsys *ss = subsys[i];
+-			if (ss->exit) {
++			if (ss->exit)
+ 				ss->exit(ss, tsk);
+-			}
+ 		}
+ 	}
+ 	/* Reassign the task to the init_css_group. */
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-tasks-file-interface-fix-2.patch
-containersv10-add-fork-exit-hooks.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+git-dvb.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mtd.patch
+mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+try-parent-numa_node-at-first-before-using-default-v2-fix.patch
+git-scsi-misc.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+clockevents-fix-resume-logic-xen-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-xfs.patch
+git-xfs-fixup.patch
+git-kgdb-fixup-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
+loop-use-unlocked_ioctl.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
 containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
 containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
 containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-make-cpusets-a-client-of-containers-whitespace.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
 containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
 containersv10-simple-debug-info-subsystem-fix.patch
 containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-containersv10-support-for-automatic-userspace-release-agents-whitespace.patch
-add-containerstats-v3.patch
 add-containerstats-v3-fix.patch
-update-getdelays-to-become-containerstats-aware.patch
-containers-implement-subsys-post_clone.patch
-containers-implement-namespace-tracking-subsystem-v3.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
