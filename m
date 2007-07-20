@@ -1,52 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - containersv10-support-for-automatic-userspace-release-agents.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:29:58 -0700
-Message-ID: <200707202029.l6KKTwXe014912@imap1.linux-foundation.org>
+Subject: - containers-implement-namespace-tracking-subsystem-v3.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 13:30:16 -0700
+Message-ID: <200707202030.l6KKUGXg014936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37036 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51514 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936559AbXGTUlO (ORCPT
+	by vger.kernel.org with ESMTP id S936578AbXGTUlQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:41:14 -0400
+	Fri, 20 Jul 2007 16:41:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
+To: serue@us.ibm.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Containers: support for automatic userspace release agents
+     containers: implement namespace tracking subsystem (v3)
 has been removed from the -mm tree.  Its filename was
-     containersv10-support-for-automatic-userspace-release-agents.patch
+     containers-implement-namespace-tracking-subsystem-v3.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Containers: support for automatic userspace release agents
-From: Paul Menage <menage@google.com>
+Subject: containers: implement namespace tracking subsystem (v3)
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-This patch adds the following files to the container filesystem:
+When a task enters a new namespace via a clone() or unshare(), a new container
+is created and the task moves into it.
 
-notify_on_release - configures/reports whether the container subsystem should
-attempt to run a release script when this container becomes unused
+This version names containers which are automatically created using
+container_clone() as "node_<pid>" where pid is the pid of the unsharing or
+cloned process.  (Thanks Pavel for the idea) This is safe because if the
+process unshares again, it will create
 
-release_agent - configures/reports the release agent to be used for
-this hierarchy (top level in each hierarchy only)
+	/containers/(...)/node_<pid>/node_<pid>
 
-releasable - reports whether this container would have been auto-released if
-notify_on_release was true and a release agent was configured (mainly useful
-for debugging)
+The only possibilities (AFAICT) for a -EEXIST on unshare are
 
-To avoid locking issues, invoking the userspace release agent is done via a
-workqueue task; containers that need to have their release agents invoked by
-the workqueue task are linked on to a list.
+	1. pid wraparound
+	2. a process fails an unshare, then tries again.
 
-When the "cpuset" filesystem is mounted, it automatically sets the hierarchy's
-release agent to be /sbin/cpuset_release_agent for backward-compatibility with
-existing cpusets users.
+Case 1 is unlikely enough that I ignore it (at least for now).  In case 2, the
+node_<pid> will be empty and can be rmdir'ed to make the subsequent unshare()
+succeed.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Changelog:
+	Name cloned containers as "node_<pid>".
+
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -57,627 +59,299 @@ Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/container.h |   15 -
- kernel/container.c        |  368 ++++++++++++++++++++++++++++++++----
- kernel/cpuset.c           |    5 
- 3 files changed, 350 insertions(+), 38 deletions(-)
+ include/linux/container_subsys.h |    6 +
+ include/linux/nsproxy.h          |    7 ++
+ init/Kconfig                     |    9 ++
+ kernel/Makefile                  |    1 
+ kernel/container.c               |   23 ++++--
+ kernel/ns_container.c            |   99 +++++++++++++++++++++++++++++
+ kernel/nsproxy.c                 |   17 ++++
+ 7 files changed, 152 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/container.h~containersv10-support-for-automatic-userspace-release-agents include/linux/container.h
---- a/include/linux/container.h~containersv10-support-for-automatic-userspace-release-agents
-+++ a/include/linux/container.h
-@@ -65,11 +65,7 @@ static inline void css_get(struct contai
-  * css_put() should be called to release a reference taken by
-  * css_get()
-  */
--
--static inline void css_put(struct container_subsys_state *css)
--{
--	atomic_dec(&css->refcnt);
--}
-+void css_put(struct container_subsys_state *css);
+diff -puN include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem-v3 include/linux/container_subsys.h
+--- a/include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem-v3
++++ a/include/linux/container_subsys.h
+@@ -24,3 +24,9 @@ SUBSYS(debug)
+ #endif
  
- struct container {
- 	unsigned long flags;		/* "unsigned long" so bitops work */
-@@ -100,6 +96,13 @@ struct container {
- 	 * tasks in this container. Protected by css_group_lock
- 	 */
- 	struct list_head css_groups;
+ /* */
 +
-+	/*
-+	 * Linked list running through all containers that can
-+	 * potentially be reaped by the release agent. Protected by
-+	 * container_mutex
-+	 */
-+	struct list_head release_list;
- };
++#ifdef CONFIG_CONTAINER_NS
++SUBSYS(ns)
++#endif
++
++/* */
+diff -puN include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem-v3 include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem-v3
++++ a/include/linux/nsproxy.h
+@@ -55,4 +55,11 @@ static inline void exit_task_namespaces(
+ 		put_nsproxy(ns);
+ 	}
+ }
++
++#ifdef CONFIG_CONTAINER_NS
++int ns_container_clone(struct task_struct *tsk);
++#else
++static inline int ns_container_clone(struct task_struct *tsk) { return 0; }
++#endif
++
+ #endif
+diff -puN init/Kconfig~containers-implement-namespace-tracking-subsystem-v3 init/Kconfig
+--- a/init/Kconfig~containers-implement-namespace-tracking-subsystem-v3
++++ a/init/Kconfig
+@@ -347,6 +347,15 @@ config CONTAINER_CPUACCT
+ 	  Provides a simple Resource Controller for monitoring the
+ 	  total CPU consumed by the tasks in a container
  
- /* A css_group is a structure holding pointers to a set of
-@@ -271,6 +274,8 @@ struct task_struct *container_iter_next(
- 					struct container_iter *it);
- void container_iter_end(struct container *cont, struct container_iter *it);
- 
-+void container_set_release_agent_path(struct container_subsys *ss,
-+				      const char *path);
- 
- #else /* !CONFIG_CONTAINERS */
- 
-diff -puN kernel/container.c~containersv10-support-for-automatic-userspace-release-agents kernel/container.c
---- a/kernel/container.c~containersv10-support-for-automatic-userspace-release-agents
++config CONTAINER_NS
++        bool "Namespace container subsystem"
++        select CONTAINERS
++        help
++          Provides a simple namespace container subsystem to
++          provide hierarchical naming of sets of namespaces,
++          for instance virtual servers and checkpoint/restart
++          jobs.
++
+ config PROC_PID_CPUSET
+ 	bool "Include legacy /proc/<pid>/cpuset file"
+ 	depends on CPUSETS
+diff -puN kernel/Makefile~containers-implement-namespace-tracking-subsystem-v3 kernel/Makefile
+--- a/kernel/Makefile~containers-implement-namespace-tracking-subsystem-v3
++++ a/kernel/Makefile
+@@ -41,6 +41,7 @@ obj-$(CONFIG_CONTAINERS) += container.o
+ obj-$(CONFIG_CONTAINER_DEBUG) += container_debug.o
+ obj-$(CONFIG_CPUSETS) += cpuset.o
+ obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_acct.o
++obj-$(CONFIG_CONTAINER_NS) += ns_container.o
+ obj-$(CONFIG_IKCONFIG) += configs.o
+ obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
+ obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
+diff -puN kernel/container.c~containers-implement-namespace-tracking-subsystem-v3 kernel/container.c
+--- a/kernel/container.c~containers-implement-namespace-tracking-subsystem-v3
 +++ a/kernel/container.c
-@@ -61,6 +61,8 @@
- 
- #include <asm/atomic.h>
- 
-+static DEFINE_MUTEX(container_mutex);
-+
- /* Generate an array of container subsystem pointers */
- #define SUBSYS(_x) &_x ## _subsys,
- 
-@@ -88,6 +90,13 @@ struct containerfs_root {
- 
- 	/* A list running through the mounted hierarchies */
- 	struct list_head root_list;
-+
-+	/* The path to use for release notifications. No locking
-+	 * between setting and use - so if userspace updates this
-+	 * while subcontainers exist, you could miss a
-+	 * notification. We ensure that it's always a valid
-+	 * NUL-terminated string */
-+	char release_agent_path[PATH_MAX];
- };
- 
- 
-@@ -114,7 +123,13 @@ static int need_forkexit_callback;
- 
- /* bits in struct container flags field */
- enum {
-+	/* Container is dead */
- 	CONT_REMOVED,
-+	/* Container has previously had a child container or a task,
-+	 * but no longer (only if CONT_NOTIFY_ON_RELEASE is set) */
-+	CONT_RELEASABLE,
-+	/* Container requires release notifications to userspace */
-+	CONT_NOTIFY_ON_RELEASE,
- };
- 
- /* convenient tests for these bits */
-@@ -123,6 +138,19 @@ inline int container_is_removed(const st
- 	return test_bit(CONT_REMOVED, &cont->flags);
+@@ -2355,12 +2355,6 @@ void container_exit(struct task_struct *
+ 		put_css_group_taskexit(cg);
  }
  
-+inline int container_is_releasable(const struct container *cont)
-+{
-+	const int bits =
-+		(1 << CONT_RELEASABLE) |
-+		(1 << CONT_NOTIFY_ON_RELEASE);
-+	return (cont->flags & bits) == bits;
-+}
-+
-+inline int notify_on_release(const struct container *cont)
-+{
-+	return test_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
-+}
-+
- /* for_each_subsys() allows you to iterate on each subsystem attached to
-  * an active hierarchy */
- #define for_each_subsys(_root, _ss) \
-@@ -132,6 +160,12 @@ list_for_each_entry(_ss, &_root->subsys_
- #define for_each_root(_root) \
- list_for_each_entry(_root, &roots, root_list)
- 
-+/* the list of containers eligible for automatic release */
-+static LIST_HEAD(release_list);
-+static void container_release_agent(struct work_struct *work);
-+static DECLARE_WORK(release_agent_work, container_release_agent);
-+static void check_for_release(struct container *cont);
-+
- /* Link structure for associating css_group objects with containers */
- struct cg_container_link {
- 	/*
-@@ -180,11 +214,8 @@ static int css_group_count;
- /*
-  * unlink a css_group from the list and free it
-  */
--static void release_css_group(struct kref *k)
-+static void unlink_css_group(struct css_group *cg)
- {
--	struct css_group *cg = container_of(k, struct css_group, ref);
--	int i;
+-static atomic_t namecnt;
+-static void get_unused_name(char *buf)
+-{
+-	sprintf(buf, "node%d", atomic_inc_return(&namecnt));
+-}
 -
- 	write_lock(&css_group_lock);
- 	list_del(&cg->list);
- 	css_group_count--;
-@@ -197,8 +228,48 @@ static void release_css_group(struct kre
- 		kfree(link);
+ /**
+  * container_clone - duplicate the current container in the hierarchy
+  * that the given subsystem is attached to, and move this task into
+@@ -2370,7 +2364,7 @@ int container_clone(struct task_struct *
+ {
+ 	struct dentry *dentry;
+ 	int ret = 0;
+-	char nodename[32];
++	char nodename[MAX_CONTAINER_TYPE_NAMELEN];
+ 	struct container *parent, *child;
+ 	struct inode *inode;
+ 	struct css_group *cg;
+@@ -2394,6 +2388,9 @@ int container_clone(struct task_struct *
  	}
- 	write_unlock(&css_group_lock);
--	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++)
--		atomic_dec(&cg->subsys[i]->container->count);
+ 	cg = tsk->containers;
+ 	parent = task_container(tsk, subsys->subsys_id);
++
++	snprintf(nodename, MAX_CONTAINER_TYPE_NAMELEN, "node_%d", tsk->pid);
++
+ 	/* Pin the hierarchy */
+ 	atomic_inc(&parent->root->sb->s_active);
+ 
+@@ -2402,7 +2399,6 @@ int container_clone(struct task_struct *
+ 	mutex_unlock(&container_mutex);
+ 
+ 	/* Now do the VFS work to create a container */
+-	get_unused_name(nodename);
+ 	inode = parent->dentry->d_inode;
+ 
+ 	/* Hold the parent directory mutex across this operation to
+@@ -2475,8 +2471,14 @@ int container_clone(struct task_struct *
+ 	return ret;
+ }
+ 
+-/* See if "cont" is a descendant of the current task's container in
++/*
++ * See if "cont" is a descendant of the current task's container in
+  * the appropriate hierarchy
++ *
++ * If we are sending in dummytop, then presumably we are creating
++ * the top container in the subsystem.
++ *
++ * Called only by the ns (nsproxy) container.
+  */
+ int container_is_descendant(const struct container *cont)
+ {
+@@ -2484,6 +2486,9 @@ int container_is_descendant(const struct
+ 	struct container *target;
+ 	int subsys_id;
+ 
++	if (cont == dummytop)
++		return 1;
++
+ 	get_first_subsys(cont, NULL, &subsys_id);
+ 	target = task_container(current, subsys_id);
+ 	while (cont != target && cont!= cont->top_container)
+diff -puN /dev/null kernel/ns_container.c
+--- /dev/null
++++ a/kernel/ns_container.c
+@@ -0,0 +1,99 @@
++/*
++ * ns_container.c - namespace container subsystem
++ *
++ * Copyright 2006, 2007 IBM Corp
++ */
++
++#include <linux/module.h>
++#include <linux/container.h>
++#include <linux/fs.h>
++
++struct ns_container {
++	struct container_subsys_state css;
++	spinlock_t lock;
++};
++
++struct container_subsys ns_subsys;
++
++static inline struct ns_container *container_to_ns(
++		struct container *container)
++{
++	return container_of(container_subsys_state(container, ns_subsys_id),
++			    struct ns_container, css);
 +}
 +
-+static void release_css_group(struct kref *k)
++int ns_container_clone(struct task_struct *task)
 +{
-+	int i;
-+	struct css_group *cg = container_of(k, struct css_group, ref);
-+
-+	BUG_ON(!mutex_is_locked(&container_mutex));
-+	unlink_css_group(cg);
-+	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
-+		struct container *cont = cg->subsys[i]->container;
-+		if (atomic_dec_and_test(&cont->count) &&
-+		    container_is_releasable(cont)) {
-+			check_for_release(cont);
-+		}
-+	}
-+	kfree(cg);
++	return container_clone(task, &ns_subsys);
 +}
 +
 +/*
-+ * In the task exit path we want to avoid taking container_mutex
-+ * unless absolutely necessary, so the release process is slightly
-+ * different.
++ * Rules:
++ *   1. you can only enter a container which is a child of your current
++ *     container
++ *   2. you can only place another process into a container if
++ *     a. you have CAP_SYS_ADMIN
++ *     b. your container is an ancestor of task's destination container
++ *       (hence either you are in the same container as task, or in an
++ *        ancestor container thereof)
 + */
-+static void release_css_group_taskexit(struct kref *k)
++static int ns_can_attach(struct container_subsys *ss,
++		struct container *new_container, struct task_struct *task)
 +{
-+	int i;
-+	struct css_group *cg = container_of(k, struct css_group, ref);
++	struct container *orig;
 +
-+	unlink_css_group(cg);
-+	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
-+		struct container *cont = cg->subsys[i]->container;
-+		if (notify_on_release(cont)) {
-+			mutex_lock(&container_mutex);
-+			set_bit(CONT_RELEASABLE, &cont->flags);
-+			if (atomic_dec_and_test(&cont->count))
-+				check_for_release(cont);
-+			mutex_unlock(&container_mutex);
-+		} else {
-+			atomic_dec(&cont->count);
-+		}
-+	}
- 	kfree(cg);
- }
- 
-@@ -215,6 +286,11 @@ static inline void put_css_group(struct 
- 	kref_put(&cg->ref, release_css_group);
- }
- 
-+static inline void put_css_group_taskexit(struct css_group *cg)
-+{
-+	kref_put(&cg->ref, release_css_group_taskexit);
-+}
++	if (current != task) {
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
 +
- /*
-  * find_existing_css_group() is a helper for
-  * find_css_group(), and checks to see whether an existing
-@@ -444,8 +520,6 @@ static struct css_group *find_css_group(
-  * update of a tasks container pointer by attach_task()
-  */
- 
--static DEFINE_MUTEX(container_mutex);
--
- /**
-  * container_lock - lock out any changes to container structures
-  *
-@@ -790,6 +864,7 @@ static int container_fill_super(struct s
- 	root->d_fsdata = &hroot->top_container;
- 	hroot->top_container.dentry = root;
- 
-+	strcpy(hroot->release_agent_path, "");
- 	sb->s_fs_info = hroot;
- 	hroot->sb = sb;
- 
-@@ -806,6 +881,7 @@ static void init_container_root(struct c
- 	INIT_LIST_HEAD(&cont->sibling);
- 	INIT_LIST_HEAD(&cont->children);
- 	INIT_LIST_HEAD(&cont->css_groups);
-+	INIT_LIST_HEAD(&cont->release_list);
- 	list_add(&root->root_list, &roots);
- 	root_count++;
- }
-@@ -1050,7 +1126,7 @@ static int attach_task(struct container 
- 			ss->attach(ss, cont, oldcont, tsk);
- 		}
- 	}
--
-+	set_bit(CONT_RELEASABLE, &oldcont->flags);
- 	synchronize_rcu();
- 	put_css_group(cg);
- 	return 0;
-@@ -1100,6 +1176,9 @@ enum container_filetype {
- 	FILE_ROOT,
- 	FILE_DIR,
- 	FILE_TASKLIST,
-+	FILE_NOTIFY_ON_RELEASE,
-+	FILE_RELEASABLE,
-+	FILE_RELEASE_AGENT,
- };
- 
- static ssize_t container_common_file_write(struct container *cont,
-@@ -1137,6 +1216,28 @@ static ssize_t container_common_file_wri
- 	case FILE_TASKLIST:
- 		retval = attach_task_by_pid(cont, buffer);
- 		break;
-+	case FILE_NOTIFY_ON_RELEASE:
-+		clear_bit(CONT_RELEASABLE, &cont->flags);
-+		if (simple_strtoul(buffer, NULL, 10) != 0)
-+			set_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
-+		else
-+			clear_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
-+		break;
-+	case FILE_RELEASE_AGENT:
-+	{
-+		struct containerfs_root *root = cont->root;
-+		if (nbytes < sizeof(root->release_agent_path)) {
-+			/* We never write anything other than '\0'
-+			 * into the last char of release_agent_path,
-+			 * so it always remains a NUL-terminated
-+			 * string */
-+			strncpy(root->release_agent_path, buffer, nbytes);
-+			root->release_agent_path[nbytes] = 0;
-+		} else {
-+			retval = -ENOSPC;
-+		}
-+		break;
-+	}
- 	default:
- 		retval = -EINVAL;
- 		goto out2;
-@@ -1177,6 +1278,49 @@ static ssize_t container_read_uint(struc
- 	return simple_read_from_buffer(buf, nbytes, ppos, tmp, len);
- }
- 
-+static ssize_t container_common_file_read(struct container *cont,
-+					  struct cftype *cft,
-+					  struct file *file,
-+					  char __user *buf,
-+					  size_t nbytes, loff_t *ppos)
-+{
-+	enum container_filetype type = cft->private;
-+	char *page;
-+	ssize_t retval = 0;
-+	char *s;
-+
-+	if (!(page = (char *)__get_free_page(GFP_KERNEL)))
-+		return -ENOMEM;
-+
-+	s = page;
-+
-+	switch (type) {
-+	case FILE_RELEASE_AGENT:
-+	{
-+		struct containerfs_root *root;
-+		size_t n;
-+		mutex_lock(&container_mutex);
-+		root = cont->root;
-+		n = strnlen(root->release_agent_path,
-+			    sizeof(root->release_agent_path));
-+		n = min(n, (size_t) PAGE_SIZE);
-+		strncpy(s, root->release_agent_path, n);
-+		mutex_unlock(&container_mutex);
-+		s += n;
-+		break;
-+	}
-+	default:
-+		retval = -EINVAL;
-+		goto out;
-+	}
-+	*s++ = '\n';
-+
-+	retval = simple_read_from_buffer(buf, nbytes, ppos, page, s - page);
-+out:
-+	free_page((unsigned long)page);
-+	return retval;
-+}
-+
- static ssize_t container_file_read(struct file *file, char __user *buf,
- 				   size_t nbytes, loff_t *ppos)
- {
-@@ -1562,16 +1706,49 @@ static int container_tasks_release(struc
- 	return 0;
- }
- 
-+static u64 container_read_notify_on_release(struct container *cont,
-+					    struct cftype *cft)
-+{
-+	return notify_on_release(cont);
-+}
-+
-+static u64 container_read_releasable(struct container *cont, struct cftype *cft)
-+{
-+	return test_bit(CONT_RELEASABLE, &cont->flags);
-+}
-+
- /*
-  * for the common functions, 'private' gives the type of file
-  */
--static struct cftype cft_tasks = {
--	.name = "tasks",
--	.open = container_tasks_open,
--	.read = container_tasks_read,
-+static struct cftype files[] = {
-+	{
-+		.name = "tasks",
-+		.open = container_tasks_open,
-+		.read = container_tasks_read,
-+		.write = container_common_file_write,
-+		.release = container_tasks_release,
-+		.private = FILE_TASKLIST,
-+	},
-+
-+	{
-+		.name = "notify_on_release",
-+		.read_uint = container_read_notify_on_release,
-+		.write = container_common_file_write,
-+		.private = FILE_NOTIFY_ON_RELEASE,
-+	},
-+
-+	{
-+		.name = "releasable",
-+		.read_uint = container_read_releasable,
-+		.private = FILE_RELEASABLE,
-+	}
-+};
-+
-+static struct cftype cft_release_agent = {
-+	.name = "release_agent",
-+	.read = container_common_file_read,
- 	.write = container_common_file_write,
--	.release = container_tasks_release,
--	.private = FILE_TASKLIST,
-+	.private = FILE_RELEASE_AGENT,
- };
- 
- static int container_populate_dir(struct container *cont)
-@@ -1582,10 +1759,15 @@ static int container_populate_dir(struct
- 	/* First clear out any existing files */
- 	container_clear_directory(cont->dentry);
- 
--	err = container_add_file(cont, &cft_tasks);
--	if (err < 0)
-+	err = container_add_files(cont, files, ARRAY_SIZE(files));
-+     	if (err < 0)
- 		return err;
- 
-+	if (cont == cont->top_container) {
-+		if ((err = container_add_file(cont, &cft_release_agent)) < 0)
-+			return err;
++		if (!container_is_descendant(new_container))
++			return -EPERM;
 +	}
 +
- 	for_each_subsys(cont->root, ss) {
- 		if (ss->populate && (err = ss->populate(ss, cont)) < 0)
- 			return err;
-@@ -1637,6 +1819,7 @@ static long container_create(struct cont
- 	INIT_LIST_HEAD(&cont->sibling);
- 	INIT_LIST_HEAD(&cont->children);
- 	INIT_LIST_HEAD(&cont->css_groups);
-+	INIT_LIST_HEAD(&cont->release_list);
- 
- 	cont->parent = parent;
- 	cont->root = parent->root;
-@@ -1696,6 +1879,24 @@ static int container_mkdir(struct inode 
- 	return container_create(c_parent, dentry, mode | S_IFDIR);
- }
- 
-+static inline int container_has_css_refs(struct container *cont)
-+{
-+	/* Check the reference count on each subsystem. Since we
-+	 * already established that there are no tasks in the
-+	 * container, if the css refcount is also 0, then there should
-+	 * be no outstanding references, so the subsystem is safe to
-+	 * destroy */
-+	struct container_subsys *ss;
-+	for_each_subsys(cont->root, ss) {
-+		struct container_subsys_state *css;
-+		css = cont->subsys[ss->subsys_id];
-+		if (atomic_read(&css->refcnt)) {
-+			return 1;
-+		}
-+	}
++	if (atomic_read(&new_container->count) != 0)
++		return -EPERM;
++
++	orig = task_container(task, ns_subsys_id);
++	if (orig && orig != new_container->parent)
++		return -EPERM;
++
 +	return 0;
 +}
 +
- static int container_rmdir(struct inode *unused_dir, struct dentry *dentry)
- {
- 	struct container *cont = dentry->d_fsdata;
-@@ -1704,7 +1905,6 @@ static int container_rmdir(struct inode 
- 	struct container_subsys *ss;
- 	struct super_block *sb;
- 	struct containerfs_root *root;
--	int css_busy = 0;
- 
- 	/* the vfs holds both inode->i_mutex already */
- 
-@@ -1722,20 +1922,7 @@ static int container_rmdir(struct inode 
- 	root = cont->root;
- 	sb = root->sb;
- 
--	/* Check the reference count on each subsystem. Since we
--	 * already established that there are no tasks in the
--	 * container, if the css refcount is also 0, then there should
--	 * be no outstanding references, so the subsystem is safe to
--	 * destroy */
--	for_each_subsys(root, ss) {
--		struct container_subsys_state *css;
--		css = cont->subsys[ss->subsys_id];
--		if (atomic_read(&css->refcnt)) {
--			css_busy = 1;
--			break;
--		}
--	}
--	if (css_busy) {
-+	if (container_has_css_refs(cont)) {
- 		mutex_unlock(&container_mutex);
- 		return -EBUSY;
- 	}
-@@ -1757,6 +1944,11 @@ static int container_rmdir(struct inode 
- 	dput(d);
- 	root->number_of_containers--;
- 
-+	if (!list_empty(&cont->release_list))
-+		list_del(&cont->release_list);
-+	set_bit(CONT_RELEASABLE, &parent->flags);
-+	check_for_release(parent);
-+
- 	mutex_unlock(&container_mutex);
- 	/* Drop the active superblock reference that we took when we
- 	 * created the container */
-@@ -2106,7 +2298,7 @@ void container_exit(struct task_struct *
- 	tsk->containers = &init_css_group;
- 	task_unlock(tsk);
- 	if (cg)
--		put_css_group(cg);
-+		put_css_group_taskexit(cg);
- }
- 
- static atomic_t namecnt;
-@@ -2214,7 +2406,10 @@ int container_clone(struct task_struct *
- 
-  out_release:
- 	mutex_unlock(&inode->i_mutex);
-+
-+	mutex_lock(&container_mutex);
- 	put_css_group(cg);
-+	mutex_unlock(&container_mutex);
- 	deactivate_super(parent->root->sb);
- 	return ret;
- }
-@@ -2235,3 +2430,110 @@ int container_is_descendant(const struct
- 	ret = (cont == target);
- 	return ret;
- }
-+
-+static void check_for_release(struct container *cont)
-+{
-+	BUG_ON(!mutex_is_locked(&container_mutex));
-+	if (container_is_releasable(cont) && !atomic_read(&cont->count)
-+	    && list_empty(&cont->children) && !container_has_css_refs(cont)) {
-+		/* Container is currently removeable. If it's not
-+		 * already queued for a userspace notification, queue
-+		 * it now */
-+		if (list_empty(&cont->release_list)) {
-+			list_add(&cont->release_list, &release_list);
-+			schedule_work(&release_agent_work);
-+		}
-+	}
-+}
-+
-+void css_put(struct container_subsys_state *css)
-+{
-+	struct container *cont = css->container;
-+	if (notify_on_release(cont)) {
-+		mutex_lock(&container_mutex);
-+		set_bit(CONT_RELEASABLE, &cont->flags);
-+		if (atomic_dec_and_test(&css->refcnt)) {
-+			check_for_release(cont);
-+		}
-+		mutex_unlock(&container_mutex);
-+	} else {
-+		atomic_dec(&css->refcnt);
-+	}
-+}
-+
-+void container_set_release_agent_path(struct container_subsys *ss,
-+				      const char *path)
-+{
-+	mutex_lock(&container_mutex);
-+	strcpy(ss->root->release_agent_path, path);
-+	mutex_unlock(&container_mutex);
-+}
-+
 +/*
-+ * Notify userspace when a container is released, by running the
-+ * configured release agent with the name of the container (path
-+ * relative to the root of container file system) as the argument.
-+ *
-+ * Most likely, this user command will try to rmdir this container.
-+ *
-+ * This races with the possibility that some other task will be
-+ * attached to this container before it is removed, or that some other
-+ * user task will 'mkdir' a child container of this container.  That's ok.
-+ * The presumed 'rmdir' will fail quietly if this container is no longer
-+ * unused, and this container will be reprieved from its death sentence,
-+ * to continue to serve a useful existence.  Next time it's released,
-+ * we will get notified again, if it still has 'notify_on_release' set.
-+ *
-+ * The final arg to call_usermodehelper() is UMH_WAIT_EXEC, which
-+ * means only wait until the task is successfully execve()'d.  The
-+ * separate release agent task is forked by call_usermodehelper(),
-+ * then control in this thread returns here, without waiting for the
-+ * release agent task.  We don't bother to wait because the caller of
-+ * this routine has no use for the exit status of the release agent
-+ * task, so no sense holding our caller up for that.
-+ *
++ * Rules: you can only create a container if
++ *     1. you are capable(CAP_SYS_ADMIN)
++ *     2. the target container is a descendant of your own container
 + */
-+
-+static void container_release_agent(struct work_struct *work)
++static int ns_create(struct container_subsys *ss, struct container *container)
 +{
-+	BUG_ON(work != &release_agent_work);
-+	mutex_lock(&container_mutex);
-+	while (!list_empty(&release_list)) {
-+		char *argv[3], *envp[3];
-+		int i;
-+		char *pathbuf;
-+		struct container *cont = list_entry(release_list.next,
-+						    struct container,
-+						    release_list);
-+		list_del_init(&cont->release_list);
++	struct ns_container *ns_container;
 +
-+		pathbuf = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+		if (!pathbuf)
-+			continue;
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	if (!container_is_descendant(container))
++		return -EPERM;
 +
-+		if (container_path(cont, pathbuf, PAGE_SIZE) < 0) {
-+			kfree(pathbuf);
-+			continue;
-+		}
-+
-+		i = 0;
-+		argv[i++] = cont->root->release_agent_path;
-+		argv[i++] = (char *)pathbuf;
-+		argv[i] = NULL;
-+
-+		i = 0;
-+		/* minimal command environment */
-+		envp[i++] = "HOME=/";
-+		envp[i++] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
-+		envp[i] = NULL;
-+
-+		/* Drop the lock while we invoke the usermode helper,
-+		 * since the exec could involve hitting disk and hence
-+		 * be a slow process */
-+		mutex_unlock(&container_mutex);
-+		call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
-+		kfree(pathbuf);
-+		mutex_lock(&container_mutex);
-+	}
-+	mutex_unlock(&container_mutex);
++	ns_container = kzalloc(sizeof(*ns_container), GFP_KERNEL);
++	if (!ns_container) return -ENOMEM;
++	spin_lock_init(&ns_container->lock);
++	container->subsys[ns_subsys.subsys_id] = &ns_container->css;
++	return 0;
 +}
-diff -puN kernel/cpuset.c~containersv10-support-for-automatic-userspace-release-agents kernel/cpuset.c
---- a/kernel/cpuset.c~containersv10-support-for-automatic-userspace-release-agents
-+++ a/kernel/cpuset.c
-@@ -275,6 +275,11 @@ static int cpuset_get_sb(struct file_sys
- 					   unused_dev_name,
- 					   "cpuset", mnt);
- 		put_filesystem(container_fs);
-+		if (!ret) {
-+			container_set_release_agent_path(
-+				&cpuset_subsys,
-+				"/sbin/cpuset_release_agent");
-+		}
++
++static void ns_destroy(struct container_subsys *ss,
++			struct container *container)
++{
++	struct ns_container *ns_container;
++
++	ns_container = container_to_ns(container);
++	kfree(ns_container);
++}
++
++struct container_subsys ns_subsys = {
++	.name = "ns",
++	.can_attach = ns_can_attach,
++	.create = ns_create,
++	.destroy  = ns_destroy,
++	.subsys_id = ns_subsys_id,
++};
+diff -puN kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem-v3 kernel/nsproxy.c
+--- a/kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem-v3
++++ a/kernel/nsproxy.c
+@@ -146,7 +146,14 @@ int copy_namespaces(unsigned long flags,
+ 		goto out;
  	}
- 	return ret;
+ 
++	err = ns_container_clone(tsk);
++	if (err) {
++		put_nsproxy(new_ns);
++		goto out;
++	}
++
+ 	tsk->nsproxy = new_ns;
++
+ out:
+ 	put_nsproxy(old_ns);
+ 	return err;
+@@ -185,8 +192,16 @@ int unshare_nsproxy_namespaces(unsigned 
+ 
+ 	*new_nsp = create_new_namespaces(unshare_flags, current,
+ 				new_fs ? new_fs : current->fs);
+-	if (IS_ERR(*new_nsp))
++	if (IS_ERR(*new_nsp)) {
+ 		err = PTR_ERR(*new_nsp);
++		goto out;
++	}
++
++	err = ns_container_clone(current);
++	if (err)
++		put_nsproxy(*new_nsp);
++
++out:
+ 	return err;
  }
+ 
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
 origin.patch
+security-convert-lsm-into-a-static-interface.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+file-capabilities-introduce-cap_setfcap.patch
+file-capabilities-get_file_caps-cleanups.patch
+file-caps-update-selinux-xattr-hooks.patch
+file-capabilities-clear-caps-cleanup.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+file-capabilities-change-xattr-format-v2.patch
+file-capabilities-change-fe-to-a-bool.patch
+file-caps-clean-up-for-linux-capabilityh.patch
+capabilityh-remove-include-of-currenth.patch
 cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-containersv10-support-for-automatic-userspace-release-agents-whitespace.patch
-add-containerstats-v3.patch
-add-containerstats-v3-fix.patch
-update-getdelays-to-become-containerstats-aware.patch
-containers-implement-subsys-post_clone.patch
 containers-implement-namespace-tracking-subsystem-v3.patch
+pid-namespaces-round-up-the-api.patch
