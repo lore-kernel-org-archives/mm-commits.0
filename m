@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - containersv10-add-procfs-interface-fix.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:29:32 -0700
-Message-ID: <200707202029.l6KKTWku014885@imap1.linux-foundation.org>
+Subject: - containersv10-add-container_clone-interface-fix.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 13:29:26 -0700
+Message-ID: <200707202029.l6KKTQBM014879@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33762 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52565 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764238AbXGTUaj (ORCPT
+	by vger.kernel.org with ESMTP id S1764301AbXGTUaq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:30:39 -0400
+	Fri, 20 Jul 2007 16:30:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     containersv10-add-procfs-interface-fix
+     containersv10-add-container_clone-interface-fix
 has been removed from the -mm tree.  Its filename was
-     containersv10-add-procfs-interface-fix.patch
+     containersv10-add-container_clone-interface-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: containersv10-add-procfs-interface-fix
+Subject: containersv10-add-container_clone-interface-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -37,73 +37,35 @@ Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/container.h |    2 ++
- kernel/container.c        |   13 ++++++++-----
- 2 files changed, 10 insertions(+), 5 deletions(-)
+ kernel/container.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/container.h~containersv10-add-procfs-interface-fix include/linux/container.h
---- a/include/linux/container.h~containersv10-add-procfs-interface-fix
-+++ a/include/linux/container.h
-@@ -28,6 +28,8 @@ extern void container_fork(struct task_s
- extern void container_fork_callbacks(struct task_struct *p);
- extern void container_exit(struct task_struct *p, int run_callbacks);
- 
-+extern struct file_operations proc_container_operations;
-+
- /* Per-subsystem/per-container state maintained by the system. */
- struct container_subsys_state {
- 	/* The container that this subsystem is attached to. Useful
-diff -puN kernel/container.c~containersv10-add-procfs-interface-fix kernel/container.c
---- a/kernel/container.c~containersv10-add-procfs-interface-fix
+diff -puN kernel/container.c~containersv10-add-container_clone-interface-fix kernel/container.c
+--- a/kernel/container.c~containersv10-add-container_clone-interface-fix
 +++ a/kernel/container.c
-@@ -246,7 +246,7 @@ static int container_mkdir(struct inode 
- static int container_rmdir(struct inode *unused_dir, struct dentry *dentry);
- static int container_populate_dir(struct container *cont);
- static struct inode_operations container_dir_inode_operations;
--struct file_operations proc_containerstats_operations;
-+static struct file_operations proc_containerstats_operations;
- 
- static struct inode *container_new_inode(mode_t mode, struct super_block *sb)
- {
-@@ -1562,11 +1562,12 @@ static int proc_container_show(struct se
- 		struct container *cont;
- 		int subsys_id;
- 		int count = 0;
-+
- 		/* Skip this hierarchy if it has no active subsystems */
--		if (!root->subsys_bits) continue;
--		for_each_subsys(root, ss) {
-+		if (!root->subsys_bits)
-+			continue;
-+		for_each_subsys(root, ss)
- 			seq_printf(m, "%s%s", count++ ? "," : "", ss->name);
--		}
- 		seq_putc(m, ':');
- 		get_first_subsys(&root->top_container, NULL, &subsys_id);
- 		cont = task_container(tsk, subsys_id);
-@@ -1604,6 +1605,7 @@ static int proc_containerstats_show(stru
- {
- 	int i;
- 	struct containerfs_root *root;
-+
- 	mutex_lock(&container_mutex);
- 	seq_puts(m, "Hierarchies:\n");
- 	for_each_root(root) {
-@@ -1637,12 +1639,13 @@ static int containerstats_open(struct in
- 	return single_open(file, proc_containerstats_show, 0);
+@@ -1716,18 +1716,18 @@ int container_clone(struct task_struct *
  }
  
--struct file_operations proc_containerstats_operations = {
-+static struct file_operations proc_containerstats_operations = {
- 	.open = containerstats_open,
- 	.read = seq_read,
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
+ /* See if "cont" is a descendant of the current task's container in
+- * the appropriate hierarchy */
+-
++ * the appropriate hierarchy
++ */
+ int container_is_descendant(const struct container *cont)
+ {
+ 	int ret;
+ 	struct container *target;
+ 	int subsys_id;
 +
- /**
-  * container_fork - attach newly forked task to its parents container.
-  * @tsk: pointer to task_struct of forking parent process.
+ 	get_first_subsys(cont, NULL, &subsys_id);
+ 	target = task_container(current, subsys_id);
+-	while (cont != target && cont!= cont->top_container) {
++	while (cont != target && cont!= cont->top_container)
+ 		cont = cont->parent;
+-	}
+ 	ret = (cont == target);
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -175,6 +137,7 @@ intel-iommu-intel-iommu-driver.patch
 intel-iommu-iommu-floppy-workaround.patch
 revoke-wire-up-i386-system-calls.patch
 revoke-vs-git-block.patch
+containersv10-add-container_clone-interface-fix.patch
 containersv10-add-procfs-interface-fix.patch
 containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
 containersv10-simple-debug-info-subsystem-fix.patch
