@@ -1,357 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - containers-implement-namespace-tracking-subsystem-v3.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:30:16 -0700
-Message-ID: <200707202030.l6KKUGXg014936@imap1.linux-foundation.org>
+Subject: - containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 13:29:46 -0700
+Message-ID: <200707202029.l6KKTkUp014900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51514 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53327 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936578AbXGTUlQ (ORCPT
+	by vger.kernel.org with ESMTP id S935823AbXGTUln (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:41:16 -0400
+	Fri, 20 Jul 2007 16:41:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serue@us.ibm.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
+To: pj@sgi.com, balbir@in.ibm.com, clameter@sgi.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, serue@us.ibm.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     containers: implement namespace tracking subsystem (v3)
+     cpuset: zero malloc - fix for new containers
 has been removed from the -mm tree.  Its filename was
-     containers-implement-namespace-tracking-subsystem-v3.patch
+     containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: containers: implement namespace tracking subsystem (v3)
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: cpuset: zero malloc - fix for new containers
+From: Paul Jackson <pj@sgi.com>
 
-When a task enters a new namespace via a clone() or unshare(), a new container
-is created and the task moves into it.
+The container code to present a list of tasks using a container to user space
+could write to an array that it had kmalloc'd, after a kmalloc request of zero
+size.
 
-This version names containers which are automatically created using
-container_clone() as "node_<pid>" where pid is the pid of the unsharing or
-cloned process.  (Thanks Pavel for the idea) This is safe because if the
-process unshares again, it will create
+The problem was that the code didn't check for writes past the allocated end
+of the array until -after- the first write.
 
-	/containers/(...)/node_<pid>/node_<pid>
+This is a race condition that is likely rare -- it would only show up if a
+container went from being empty to having a task in it, during the brief time
+between the allocation and the first write.
 
-The only possibilities (AFAICT) for a -EEXIST on unshare are
+Prior to roughly 2.6.22 kernels, this was also a benign problem, because a
+zero kmalloc returned a few usable bytes anyway, and no harm was done with the
+bogus write.
 
-	1. pid wraparound
-	2. a process fails an unshare, then tries again.
+With the 2.6.22 kernel changes to make issue a warning if code tries to write
+to the location returned from a zero size allocation, this problem is no
+longer benign.  This container code would occassionally trigger that warning.
 
-Case 1 is unlikely enough that I ignore it (at least for now).  In case 2, the
-node_<pid> will be empty and can be rmdir'ed to make the subsequent unshare()
-succeed.
+The fix is trivial -- check before storing into the array, not after, whether
+the array is big enough to hold the store.
 
-Changelog:
-	Name cloned containers as "node_<pid>".
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Paul Menage <menage@google.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Paul Menage <menage@google.com>
 Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/container_subsys.h |    6 +
- include/linux/nsproxy.h          |    7 ++
- init/Kconfig                     |    9 ++
- kernel/Makefile                  |    1 
- kernel/container.c               |   23 ++++--
- kernel/ns_container.c            |   99 +++++++++++++++++++++++++++++
- kernel/nsproxy.c                 |   17 ++++
- 7 files changed, 152 insertions(+), 10 deletions(-)
+ kernel/container.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem-v3 include/linux/container_subsys.h
---- a/include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem-v3
-+++ a/include/linux/container_subsys.h
-@@ -24,3 +24,9 @@ SUBSYS(debug)
- #endif
- 
- /* */
-+
-+#ifdef CONFIG_CONTAINER_NS
-+SUBSYS(ns)
-+#endif
-+
-+/* */
-diff -puN include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem-v3 include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem-v3
-+++ a/include/linux/nsproxy.h
-@@ -55,4 +55,11 @@ static inline void exit_task_namespaces(
- 		put_nsproxy(ns);
- 	}
- }
-+
-+#ifdef CONFIG_CONTAINER_NS
-+int ns_container_clone(struct task_struct *tsk);
-+#else
-+static inline int ns_container_clone(struct task_struct *tsk) { return 0; }
-+#endif
-+
- #endif
-diff -puN init/Kconfig~containers-implement-namespace-tracking-subsystem-v3 init/Kconfig
---- a/init/Kconfig~containers-implement-namespace-tracking-subsystem-v3
-+++ a/init/Kconfig
-@@ -347,6 +347,15 @@ config CONTAINER_CPUACCT
- 	  Provides a simple Resource Controller for monitoring the
- 	  total CPU consumed by the tasks in a container
- 
-+config CONTAINER_NS
-+        bool "Namespace container subsystem"
-+        select CONTAINERS
-+        help
-+          Provides a simple namespace container subsystem to
-+          provide hierarchical naming of sets of namespaces,
-+          for instance virtual servers and checkpoint/restart
-+          jobs.
-+
- config PROC_PID_CPUSET
- 	bool "Include legacy /proc/<pid>/cpuset file"
- 	depends on CPUSETS
-diff -puN kernel/Makefile~containers-implement-namespace-tracking-subsystem-v3 kernel/Makefile
---- a/kernel/Makefile~containers-implement-namespace-tracking-subsystem-v3
-+++ a/kernel/Makefile
-@@ -41,6 +41,7 @@ obj-$(CONFIG_CONTAINERS) += container.o
- obj-$(CONFIG_CONTAINER_DEBUG) += container_debug.o
- obj-$(CONFIG_CPUSETS) += cpuset.o
- obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_acct.o
-+obj-$(CONFIG_CONTAINER_NS) += ns_container.o
- obj-$(CONFIG_IKCONFIG) += configs.o
- obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
- obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
-diff -puN kernel/container.c~containers-implement-namespace-tracking-subsystem-v3 kernel/container.c
---- a/kernel/container.c~containers-implement-namespace-tracking-subsystem-v3
+diff -puN kernel/container.c~containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers kernel/container.c
+--- a/kernel/container.c~containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers
 +++ a/kernel/container.c
-@@ -2355,12 +2355,6 @@ void container_exit(struct task_struct *
- 		put_css_group_taskexit(cg);
- }
- 
--static atomic_t namecnt;
--static void get_unused_name(char *buf)
--{
--	sprintf(buf, "node%d", atomic_inc_return(&namecnt));
--}
--
- /**
-  * container_clone - duplicate the current container in the hierarchy
-  * that the given subsystem is attached to, and move this task into
-@@ -2370,7 +2364,7 @@ int container_clone(struct task_struct *
- {
- 	struct dentry *dentry;
- 	int ret = 0;
--	char nodename[32];
-+	char nodename[MAX_CONTAINER_TYPE_NAMELEN];
- 	struct container *parent, *child;
- 	struct inode *inode;
- 	struct css_group *cg;
-@@ -2394,6 +2388,9 @@ int container_clone(struct task_struct *
+@@ -1452,9 +1452,9 @@ static int pid_array_load(pid_t *pidarra
+ 	struct task_struct *tsk;
+ 	container_iter_start(cont, &it);
+ 	while ((tsk = container_iter_next(cont, &it))) {
+-		pidarray[n++] = pid_nr(task_pid(tsk));
+ 		if (unlikely(n == npids))
+ 			break;
++		pidarray[n++] = pid_nr(task_pid(tsk));
  	}
- 	cg = tsk->containers;
- 	parent = task_container(tsk, subsys->subsys_id);
-+
-+	snprintf(nodename, MAX_CONTAINER_TYPE_NAMELEN, "node_%d", tsk->pid);
-+
- 	/* Pin the hierarchy */
- 	atomic_inc(&parent->root->sb->s_active);
- 
-@@ -2402,7 +2399,6 @@ int container_clone(struct task_struct *
- 	mutex_unlock(&container_mutex);
- 
- 	/* Now do the VFS work to create a container */
--	get_unused_name(nodename);
- 	inode = parent->dentry->d_inode;
- 
- 	/* Hold the parent directory mutex across this operation to
-@@ -2475,8 +2471,14 @@ int container_clone(struct task_struct *
- 	return ret;
- }
- 
--/* See if "cont" is a descendant of the current task's container in
-+/*
-+ * See if "cont" is a descendant of the current task's container in
-  * the appropriate hierarchy
-+ *
-+ * If we are sending in dummytop, then presumably we are creating
-+ * the top container in the subsystem.
-+ *
-+ * Called only by the ns (nsproxy) container.
-  */
- int container_is_descendant(const struct container *cont)
- {
-@@ -2484,6 +2486,9 @@ int container_is_descendant(const struct
- 	struct container *target;
- 	int subsys_id;
- 
-+	if (cont == dummytop)
-+		return 1;
-+
- 	get_first_subsys(cont, NULL, &subsys_id);
- 	target = task_container(current, subsys_id);
- 	while (cont != target && cont!= cont->top_container)
-diff -puN /dev/null kernel/ns_container.c
---- /dev/null
-+++ a/kernel/ns_container.c
-@@ -0,0 +1,99 @@
-+/*
-+ * ns_container.c - namespace container subsystem
-+ *
-+ * Copyright 2006, 2007 IBM Corp
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/container.h>
-+#include <linux/fs.h>
-+
-+struct ns_container {
-+	struct container_subsys_state css;
-+	spinlock_t lock;
-+};
-+
-+struct container_subsys ns_subsys;
-+
-+static inline struct ns_container *container_to_ns(
-+		struct container *container)
-+{
-+	return container_of(container_subsys_state(container, ns_subsys_id),
-+			    struct ns_container, css);
-+}
-+
-+int ns_container_clone(struct task_struct *task)
-+{
-+	return container_clone(task, &ns_subsys);
-+}
-+
-+/*
-+ * Rules:
-+ *   1. you can only enter a container which is a child of your current
-+ *     container
-+ *   2. you can only place another process into a container if
-+ *     a. you have CAP_SYS_ADMIN
-+ *     b. your container is an ancestor of task's destination container
-+ *       (hence either you are in the same container as task, or in an
-+ *        ancestor container thereof)
-+ */
-+static int ns_can_attach(struct container_subsys *ss,
-+		struct container *new_container, struct task_struct *task)
-+{
-+	struct container *orig;
-+
-+	if (current != task) {
-+		if (!capable(CAP_SYS_ADMIN))
-+			return -EPERM;
-+
-+		if (!container_is_descendant(new_container))
-+			return -EPERM;
-+	}
-+
-+	if (atomic_read(&new_container->count) != 0)
-+		return -EPERM;
-+
-+	orig = task_container(task, ns_subsys_id);
-+	if (orig && orig != new_container->parent)
-+		return -EPERM;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Rules: you can only create a container if
-+ *     1. you are capable(CAP_SYS_ADMIN)
-+ *     2. the target container is a descendant of your own container
-+ */
-+static int ns_create(struct container_subsys *ss, struct container *container)
-+{
-+	struct ns_container *ns_container;
-+
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+	if (!container_is_descendant(container))
-+		return -EPERM;
-+
-+	ns_container = kzalloc(sizeof(*ns_container), GFP_KERNEL);
-+	if (!ns_container) return -ENOMEM;
-+	spin_lock_init(&ns_container->lock);
-+	container->subsys[ns_subsys.subsys_id] = &ns_container->css;
-+	return 0;
-+}
-+
-+static void ns_destroy(struct container_subsys *ss,
-+			struct container *container)
-+{
-+	struct ns_container *ns_container;
-+
-+	ns_container = container_to_ns(container);
-+	kfree(ns_container);
-+}
-+
-+struct container_subsys ns_subsys = {
-+	.name = "ns",
-+	.can_attach = ns_can_attach,
-+	.create = ns_create,
-+	.destroy  = ns_destroy,
-+	.subsys_id = ns_subsys_id,
-+};
-diff -puN kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem-v3 kernel/nsproxy.c
---- a/kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem-v3
-+++ a/kernel/nsproxy.c
-@@ -146,7 +146,14 @@ int copy_namespaces(unsigned long flags,
- 		goto out;
- 	}
- 
-+	err = ns_container_clone(tsk);
-+	if (err) {
-+		put_nsproxy(new_ns);
-+		goto out;
-+	}
-+
- 	tsk->nsproxy = new_ns;
-+
- out:
- 	put_nsproxy(old_ns);
- 	return err;
-@@ -185,8 +192,16 @@ int unshare_nsproxy_namespaces(unsigned 
- 
- 	*new_nsp = create_new_namespaces(unshare_flags, current,
- 				new_fs ? new_fs : current->fs);
--	if (IS_ERR(*new_nsp))
-+	if (IS_ERR(*new_nsp)) {
- 		err = PTR_ERR(*new_nsp);
-+		goto out;
-+	}
-+
-+	err = ns_container_clone(current);
-+	if (err)
-+		put_nsproxy(*new_nsp);
-+
-+out:
- 	return err;
- }
- 
+ 	container_iter_end(cont, &it);
+ 	return n;
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from pj@sgi.com are
 
 origin.patch
-security-convert-lsm-into-a-static-interface.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-file-capabilities-introduce-cap_setfcap.patch
-file-capabilities-get_file_caps-cleanups.patch
-file-caps-update-selinux-xattr-hooks.patch
-file-capabilities-clear-caps-cleanup.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-file-capabilities-change-xattr-format-v2.patch
-file-capabilities-change-fe-to-a-bool.patch
-file-caps-clean-up-for-linux-capabilityh.patch
-capabilityh-remove-include-of-currenth.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
 cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
+containers-implement-subsys-post_clone.patch
 containers-implement-namespace-tracking-subsystem-v3.patch
-pid-namespaces-round-up-the-api.patch
