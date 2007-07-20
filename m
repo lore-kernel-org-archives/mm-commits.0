@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_platform-fix-null-pointer-dereference.patch added to -mm tree
-Date: Fri, 20 Jul 2007 11:52:32 -0700
-Message-ID: <200707201852.l6KIqWwQ010990@imap1.linux-foundation.org>
+Subject: + mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch added to -mm tree
+Date: Fri, 20 Jul 2007 11:56:19 -0700
+Message-ID: <200707201856.l6KIuJs7011077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52405 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32793 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757187AbXGTSxA (ORCPT
+	by vger.kernel.org with ESMTP id S1762493AbXGTS4c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 14:53:00 -0400
+	Fri, 20 Jul 2007 14:56:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: magnus.damm@gmail.com, alan@lxorguk.ukuu.org.uk, damm@igel.co.jp, jeff@garzik.org, lethal@linux-sh.org
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org, fmalita@gmail.com
 
 
 The patch titled
-     pata_platform: Fix NULL pointer dereference
+     mtd-potential-leak-in-rfd_ftl_add_mtd-fix
 has been added to the -mm tree.  Its filename is
-     pata_platform-fix-null-pointer-dereference.patch
+     mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,135 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_platform: Fix NULL pointer dereference
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: mtd-potential-leak-in-rfd_ftl_add_mtd-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-pata_platform: Fix NULL pointer dereference
+embedded returns are evil.
 
-pata_platform currently dereferences a NULL pointer in pata_platform_probe()
-if pdev->dev.platform_data is set to NULL. This breakage was most likely
-introduced by commit 5f45bc50976ee1f408f7171af155aec646655a37.
-
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Florin Malita <fmalita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_platform.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/mtd/rfd_ftl.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/ata/pata_platform.c~pata_platform-fix-null-pointer-dereference drivers/ata/pata_platform.c
---- a/drivers/ata/pata_platform.c~pata_platform-fix-null-pointer-dereference
-+++ a/drivers/ata/pata_platform.c
-@@ -213,8 +213,9 @@ static int __devinit pata_platform_probe
- 	pata_platform_setup_port(&ap->ioaddr, pp_info);
+diff -puN drivers/mtd/rfd_ftl.c~mtd-potential-leak-in-rfd_ftl_add_mtd-fix drivers/mtd/rfd_ftl.c
+--- a/drivers/mtd/rfd_ftl.c~mtd-potential-leak-in-rfd_ftl_add_mtd-fix
++++ a/drivers/mtd/rfd_ftl.c
+@@ -779,10 +779,8 @@ static void rfd_ftl_add_mtd(struct mtd_b
+ 	else {
+ 		if (!mtd->erasesize) {
+ 			printk(KERN_WARNING PREFIX "please provide block_size");
+-			kfree(part);
+-			return;
+-		}
+-		else
++			goto out;
++		} else
+ 			part->block_size = mtd->erasesize;
+ 	}
  
- 	/* activate */
--	return ata_host_activate(host, platform_get_irq(pdev, 0), ata_interrupt,
--				 pp_info->irq_flags, &pata_platform_sht);
-+	return ata_host_activate(host, platform_get_irq(pdev, 0),
-+				 ata_interrupt, pp_info ? pp_info->irq_flags
-+				 : 0, &pata_platform_sht);
+@@ -804,7 +802,7 @@ static void rfd_ftl_add_mtd(struct mtd_b
+ 		if (!add_mtd_blktrans_dev((void*)part))
+ 			return;
+ 	}
+-
++out:
+ 	kfree(part);
  }
  
- /**
 _
 
-Patches currently in -mm which might be from magnus.damm@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pata_platform-fix-null-pointer-dereference.patch
+origin.patch
+async_tx-fix-kmap_atomic-usage-in-async_memcpy.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fix-git-rejects.patch
+acpi-add-reboot-mechanism-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+git-dvb.patch
+git-input.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+git-kvm.patch
+git-leds.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+git-mtd.patch
+mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+git-selinux-fixup.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+try-parent-numa_node-at-first-before-using-default-v2-fix.patch
+git-scsi-misc.patch
+aacraid-rename-check_reset.patch
+git-block-fix.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+clockevents-fix-resume-logic-xen-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-xfs.patch
+git-xfs-fixup.patch
+git-kgdb-fixup-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
+loop-use-unlocked_ioctl.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
