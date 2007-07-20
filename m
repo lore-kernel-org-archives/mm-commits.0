@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer-iomap-allow-space-for-64bit-i-o-ports.patch added to -mm tree
-Date: Fri, 20 Jul 2007 14:00:30 -0700
-Message-ID: <200707202100.l6KL0U0V016114@imap1.linux-foundation.org>
+Subject: + sb1250-duart-__maybe_unused-etc-fixes.patch added to -mm tree
+Date: Fri, 20 Jul 2007 14:01:55 -0700
+Message-ID: <200707202101.l6KL1tbO016156@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51359 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760423AbXGTVAt (ORCPT
+	by vger.kernel.org with ESMTP id S1759508AbXGTVCX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 17:00:49 -0400
+	Fri, 20 Jul 2007 17:02:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
+Cc: macro@linux-mips.org, ralf@linux-mips.org
 
 
 The patch titled
-     iomap: allow space for 64bit I/O ports
+     sb1250-duart: __maybe_unused, etc. fixes
 has been added to the -mm tree.  Its filename is
-     iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer-iomap-allow-space-for-64bit-i-o-ports.patch
+     sb1250-duart-__maybe_unused-etc-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iomap: allow space for 64bit I/O ports
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: sb1250-duart: __maybe_unused, etc. fixes
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Allow for 64bit MMIO ports in the iomap printing buffer
+This is a set of small fixes addressing points raised with the original
+driver submission.  In particular, __maybe_unused is used rather than a
+local hack and sbd_ops is made const.  Additionally I have made two local
+string variables automatic as rodata space was wasted for pointers
+unnecessarily.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/iomap.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/sb1250-duart.c |   14 ++++++--------
+ 1 files changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN include/asm-generic/iomap.h~iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer-iomap-allow-space-for-64bit-i-o-ports include/asm-generic/iomap.h
---- a/include/asm-generic/iomap.h~iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer-iomap-allow-space-for-64bit-i-o-ports
-+++ a/include/asm-generic/iomap.h
-@@ -67,7 +67,7 @@ extern void pci_iounmap(struct pci_dev *
- 
- /* Convert an iomap to text for this platform */
- extern char *iomap_name(void __iomem *addr, char *buf, size_t len);
--#define IOMAP_NAMELEN	12
-+#define IOMAP_NAMELEN	20
- 
- 
+diff -puN drivers/serial/sb1250-duart.c~sb1250-duart-__maybe_unused-etc-fixes drivers/serial/sb1250-duart.c
+--- a/drivers/serial/sb1250-duart.c~sb1250-duart-__maybe_unused-etc-fixes
++++ a/drivers/serial/sb1250-duart.c
+@@ -25,6 +25,7 @@
+ #define SUPPORT_SYSRQ
  #endif
+ 
++#include <linux/compiler.h>
+ #include <linux/console.h>
+ #include <linux/delay.h>
+ #include <linux/errno.h>
+@@ -103,8 +104,6 @@ struct sbd_duart {
+ 
+ static struct sbd_duart sbd_duarts[DUART_MAX_CHIP];
+ 
+-#define __unused __attribute__((__unused__))
+-
+ 
+ /*
+  * Reading and writing SB1250 DUART registers.
+@@ -204,12 +203,12 @@ static int sbd_receive_drain(struct sbd_
+ 	return loops;
+ }
+ 
+-static int __unused sbd_transmit_ready(struct sbd_port *sport)
++static int __maybe_unused sbd_transmit_ready(struct sbd_port *sport)
+ {
+ 	return read_sbdchn(sport, R_DUART_STATUS) & M_DUART_TX_RDY;
+ }
+ 
+-static int __unused sbd_transmit_drain(struct sbd_port *sport)
++static int __maybe_unused sbd_transmit_drain(struct sbd_port *sport)
+ {
+ 	int loops = 10000;
+ 
+@@ -664,7 +663,7 @@ static void sbd_release_port(struct uart
+ 
+ static int sbd_map_port(struct uart_port *uport)
+ {
+-	static const char *err = KERN_ERR "sbd: Cannot map MMIO\n";
++	const char *err = KERN_ERR "sbd: Cannot map MMIO\n";
+ 	struct sbd_port *sport = to_sport(uport);
+ 	struct sbd_duart *duart = sport->duart;
+ 
+@@ -691,8 +690,7 @@ static int sbd_map_port(struct uart_port
+ 
+ static int sbd_request_port(struct uart_port *uport)
+ {
+-	static const char *err = KERN_ERR
+-				 "sbd: Unable to reserve MMIO resource\n";
++	const char *err = KERN_ERR "sbd: Unable to reserve MMIO resource\n";
+ 	struct sbd_duart *duart = to_sport(uport)->duart;
+ 	int map_guard;
+ 	int ret = 0;
+@@ -755,7 +753,7 @@ static int sbd_verify_port(struct uart_p
+ }
+ 
+ 
+-static struct uart_ops sbd_ops = {
++static const struct uart_ops sbd_ops = {
+ 	.tx_empty	= sbd_tx_empty,
+ 	.set_mctrl	= sbd_set_mctrl,
+ 	.get_mctrl	= sbd_get_mctrl,
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-pata_ali-correct-hp-detect.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-geode-setup-correct-chipset-access-functions.patch
-geode-setup-correct-chipset-access-functions-fix.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-update-coredump-path-in-kernel-to-not-check-coredump-rlim-if-core_pattern-is-a-pipe.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer-iomap-allow-space-for-64bit-i-o-ports.patch
-ata-use-iomap_name.patch
+sb1250-duart-__maybe_unused-etc-fixes.patch
