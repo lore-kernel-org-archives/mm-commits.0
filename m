@@ -1,49 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - containers-implement-subsys-post_clone.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:30:13 -0700
-Message-ID: <200707202030.l6KKUDnT014933@imap1.linux-foundation.org>
+Subject: - containersv10-simple-debug-info-subsystem.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 13:29:49 -0700
+Message-ID: <200707202029.l6KKTndJ014903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42309 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43214 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761196AbXGTUjw (ORCPT
+	by vger.kernel.org with ESMTP id S1762196AbXGTUkF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:39:52 -0400
+	Fri, 20 Jul 2007 16:40:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serue@us.ibm.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
+To: menage@google.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     containers: implement subsys->post_clone()
+     Containers: simple debug info subsystem
 has been removed from the -mm tree.  Its filename was
-     containers-implement-subsys-post_clone.patch
+     containersv10-simple-debug-info-subsystem.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: containers: implement subsys->post_clone()
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: Containers: simple debug info subsystem
+From: Paul Menage <menage@google.com>
 
-container_clone() in one step creates a new container and moves the current
-task into it.  Since cpusets do not automatically fill in the allowed cpus and
-mems, and do not allow a task to be attached without these filled in,
-composing the ns subsystem, which uses container_clone(), and the cpuset
-subsystem, results in sys_unshare() (and clone(CLONE_NEWNS)) always being
-denied.
+This example subsystem exports debugging information as an aid to diagnosing
+refcount leaks, etc, in the container framework.
 
-To allow the two subsystems to be meaningfully composed, implement
-subsystem->post_clone(), called from container_clone() after creating the new
-container.
-
-Only the cpuset_post_clone() is currently implemented.  If any sibling
-containers have exclusive cpus or mems, then the cpus and mems are not filled
-in for the new container, meaning that unshare/clone(CLONE_NEWNS) will be
-denied.  However so long as no siblings have exclusive cpus or mems, the new
-container's cpus and mems are inherited from the parent container.
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -54,137 +40,161 @@ Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/containers.txt |    7 ++++++
- include/linux/container.h    |    1 
- kernel/container.c           |    7 ++++++
- kernel/cpuset.c              |   37 +++++++++++++++++++++++++++++++++
- 4 files changed, 52 insertions(+)
+ include/linux/container_subsys.h |    4 +
+ init/Kconfig                     |   10 +++
+ kernel/Makefile                  |    1 
+ kernel/container_debug.c         |   89 +++++++++++++++++++++++++++++
+ 4 files changed, 104 insertions(+)
 
-diff -puN Documentation/containers.txt~containers-implement-subsys-post_clone Documentation/containers.txt
---- a/Documentation/containers.txt~containers-implement-subsys-post_clone
-+++ a/Documentation/containers.txt
-@@ -516,6 +516,13 @@ include/linux/container.h for details). 
- method can return an error code, the error code is currently not
- always handled well.
+diff -puN include/linux/container_subsys.h~containersv10-simple-debug-info-subsystem include/linux/container_subsys.h
+--- a/include/linux/container_subsys.h~containersv10-simple-debug-info-subsystem
++++ a/include/linux/container_subsys.h
+@@ -19,4 +19,8 @@ SUBSYS(cpuset)
  
-+void post_clone(struct container_subsys *ss, struct container *cont)
+ /* */
+ 
++#ifdef CONFIG_CONTAINER_DEBUG
++SUBSYS(debug)
++#endif
 +
-+Called at the end of container_clone() to do any paramater
-+initialization which might be required before a task could attach.  For
-+example in cpusets, no task may attach before 'cpus' and 'mems' are set
-+up.
+ /* */
+diff -puN init/Kconfig~containersv10-simple-debug-info-subsystem init/Kconfig
+--- a/init/Kconfig~containersv10-simple-debug-info-subsystem
++++ a/init/Kconfig
+@@ -298,6 +298,16 @@ config LOG_BUF_SHIFT
+ config CONTAINERS
+ 	bool
+ 
++config CONTAINER_DEBUG
++	bool "Example debug container subsystem"
++	select CONTAINERS
++	help
++	  This option enables a simple container subsystem that
++	  exports useful debugging information about the containers
++	  framework
 +
- void bind(struct container_subsys *ss, struct container *root)
- LL=callback_mutex
- 
-diff -puN include/linux/container.h~containers-implement-subsys-post_clone include/linux/container.h
---- a/include/linux/container.h~containers-implement-subsys-post_clone
-+++ a/include/linux/container.h
-@@ -216,6 +216,7 @@ struct container_subsys {
- 	void (*exit)(struct container_subsys *ss, struct task_struct *task);
- 	int (*populate)(struct container_subsys *ss,
- 			struct container *cont);
-+	void (*post_clone)(struct container_subsys *ss, struct container *cont);
- 	void (*bind)(struct container_subsys *ss, struct container *root);
- 	int subsys_id;
- 	int active;
-diff -puN kernel/container.c~containers-implement-subsys-post_clone kernel/container.c
---- a/kernel/container.c~containers-implement-subsys-post_clone
-+++ a/kernel/container.c
-@@ -2375,6 +2375,7 @@ int container_clone(struct task_struct *
- 	struct inode *inode;
- 	struct css_group *cg;
- 	struct containerfs_root *root;
-+	struct container_subsys *ss;
- 
- 	/* We shouldn't be called by an unregistered subsystem */
- 	BUG_ON(!subsys->active);
-@@ -2454,6 +2455,12 @@ int container_clone(struct task_struct *
- 		goto again;
- 	}
- 
-+	/* do any required auto-setup */
-+	for_each_subsys(root, ss) {
-+		if (ss->post_clone)
-+			ss->post_clone(ss, child);
-+	}
++	  Say N if unsure
 +
- 	/* All seems fine. Finish by moving the task into the new container */
- 	ret = attach_task(child, tsk);
- 	mutex_unlock(&container_mutex);
-diff -puN kernel/cpuset.c~containers-implement-subsys-post_clone kernel/cpuset.c
---- a/kernel/cpuset.c~containers-implement-subsys-post_clone
-+++ a/kernel/cpuset.c
-@@ -1190,6 +1190,42 @@ int cpuset_populate(struct container_sub
- }
- 
- /*
-+ * post_clone() is called at the end of container_clone().
-+ * 'container' was just created automatically as a result of
-+ * a container_clone(), and the current task is about to
-+ * be moved into 'container'.
+ config CPUSETS
+ 	bool "Cpuset support"
+ 	depends on SMP
+diff -puN kernel/Makefile~containersv10-simple-debug-info-subsystem kernel/Makefile
+--- a/kernel/Makefile~containersv10-simple-debug-info-subsystem
++++ a/kernel/Makefile
+@@ -38,6 +38,7 @@ obj-$(CONFIG_BSD_PROCESS_ACCT) += acct.o
+ obj-$(CONFIG_KEXEC) += kexec.o
+ obj-$(CONFIG_COMPAT) += compat.o
+ obj-$(CONFIG_CONTAINERS) += container.o
++obj-$(CONFIG_CONTAINER_DEBUG) += container_debug.o
+ obj-$(CONFIG_CPUSETS) += cpuset.o
+ obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_acct.o
+ obj-$(CONFIG_IKCONFIG) += configs.o
+diff -puN /dev/null kernel/container_debug.c
+--- /dev/null
++++ a/kernel/container_debug.c
+@@ -0,0 +1,89 @@
++/*
++ * kernel/ccontainer_debug.c - Example container subsystem that
++ * exposes debug info
 + *
-+ * Currently we refuse to set up the container - thereby
-+ * refusing the task to be entered, and as a result refusing
-+ * the sys_unshare() or clone() which initiated it - if any
-+ * sibling cpusets have exclusive cpus or mem.
++ * Copyright (C) Google Inc, 2007
 + *
-+ * If this becomes a problem for some users who wish to
-+ * allow that scenario, then cpuset_post_clone() could be
-+ * changed to grant parent->cpus_allowed-sibling_cpus_exclusive
-+ * (and likewise for mems) to the new container.
++ * Developed by Paul Menage (menage@google.com)
++ *
 + */
-+void cpuset_post_clone(struct container_subsys *ss,
-+		struct container *container)
++
++#include <linux/container.h>
++#include <linux/fs.h>
++
++static int debug_create(struct container_subsys *ss, struct container *cont)
 +{
-+	struct container *parent, *child;
-+	struct cpuset *cs, *parent_cs;
-+
-+	parent = container->parent;
-+	list_for_each_entry(child, &parent->children, sibling) {
-+		cs = container_cs(child);
-+		if (is_mem_exclusive(cs) || is_cpu_exclusive(cs))
-+			return;
-+	}
-+	cs = container_cs(container);
-+	parent_cs = container_cs(parent);
-+
-+	cs->mems_allowed = parent_cs->mems_allowed;
-+	cs->cpus_allowed = parent_cs->cpus_allowed;
-+	return;
++	struct container_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
++	if (!css)
++		return -ENOMEM;
++	cont->subsys[debug_subsys_id] = css;
++	return 0;
 +}
 +
-+/*
-  *	cpuset_create - create a cpuset
-  *	parent:	cpuset that will be parent of the new cpuset.
-  *	name:		name of the new cpuset. Will be strcpy'ed.
-@@ -1249,6 +1285,7 @@ struct container_subsys cpuset_subsys = 
- 	.can_attach = cpuset_can_attach,
- 	.attach = cpuset_attach,
- 	.populate = cpuset_populate,
-+	.post_clone = cpuset_post_clone,
- 	.subsys_id = cpuset_subsys_id,
- 	.early_init = 1,
- };
++static void debug_destroy(struct container_subsys *ss, struct container *cont)
++{
++	kfree(cont->subsys[debug_subsys_id]);
++}
++
++static u64 container_refcount_read(struct container *cont, struct cftype *cft)
++{
++	return atomic_read(&cont->count);
++}
++
++static u64 taskcount_read(struct container *cont, struct cftype *cft)
++{
++	u64 count;
++	container_lock();
++	count = container_task_count(cont);
++	container_unlock();
++	return count;
++}
++
++static u64 current_css_group_read(struct container *cont, struct cftype *cft)
++{
++	return (u64) current->containers;
++}
++
++static u64 current_css_group_refcount_read(struct container *cont,
++					   struct cftype *cft)
++{
++	u64 count;
++	rcu_read_lock();
++	count = atomic_read(&current->containers->ref.refcount);
++	rcu_read_unlock();
++	return count;
++}
++
++static struct cftype files[] =  {
++	{
++		.name = "debug.container_refcount",
++		.read_uint = container_refcount_read,
++	},
++	{
++		.name = "debug.taskcount",
++		.read_uint = taskcount_read,
++	},
++
++	{
++		.name = "debug.current_css_group",
++		.read_uint = current_css_group_read,
++	},
++
++	{
++		.name = "debug.current_css_group_refcount",
++		.read_uint = current_css_group_refcount_read,
++	},
++};
++
++static int debug_populate(struct container_subsys *ss, struct container *cont)
++{
++	return container_add_files(cont, files, ARRAY_SIZE(files));
++}
++
++struct container_subsys debug_subsys = {
++	.name = "debug",
++	.create = debug_create,
++	.destroy = debug_destroy,
++	.populate = debug_populate,
++	.subsys_id = debug_subsys_id,
++};
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from menage@google.com are
 
 origin.patch
-security-convert-lsm-into-a-static-interface.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-file-capabilities-introduce-cap_setfcap.patch
-file-capabilities-get_file_caps-cleanups.patch
-file-caps-update-selinux-xattr-hooks.patch
-file-capabilities-clear-caps-cleanup.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-file-capabilities-change-xattr-format-v2.patch
-file-capabilities-change-fe-to-a-bool.patch
-file-caps-clean-up-for-linux-capabilityh.patch
-capabilityh-remove-include-of-currenth.patch
 cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
+containersv10-support-for-automatic-userspace-release-agents-whitespace.patch
+add-containerstats-v3.patch
+add-containerstats-v3-fix.patch
+update-getdelays-to-become-containerstats-aware.patch
 containers-implement-subsys-post_clone.patch
 containers-implement-namespace-tracking-subsystem-v3.patch
-pid-namespaces-round-up-the-api.patch
