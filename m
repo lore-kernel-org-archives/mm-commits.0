@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch added to -mm tree
-Date: Fri, 20 Jul 2007 11:56:19 -0700
-Message-ID: <200707201856.l6KIuJs7011077@imap1.linux-foundation.org>
+Subject: + typo-fixes-errror-error.patch added to -mm tree
+Date: Fri, 20 Jul 2007 12:01:30 -0700
+Message-ID: <200707201901.l6KJ1URP011279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32793 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40030 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762493AbXGTS4c (ORCPT
+	by vger.kernel.org with ESMTP id S1761672AbXGTTBq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 14:56:32 -0400
+	Fri, 20 Jul 2007 15:01:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org, fmalita@gmail.com
+Cc: nix.or.die@googlemail.com, jeff@garzik.org, schwidefsky@de.ibm.com, sds@tycho.nsa.gov
 
 
 The patch titled
-     mtd-potential-leak-in-rfd_ftl_add_mtd-fix
+     Typo fixes errror -> error
 has been added to the -mm tree.  Its filename is
-     mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
+     typo-fixes-errror-error.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,135 +26,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mtd-potential-leak-in-rfd_ftl_add_mtd-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Typo fixes errror -> error
+From: Gabriel Craciunescu <nix.or.die@googlemail.com>
 
-embedded returns are evil.
+Typo fixes errror -> error
 
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Florin Malita <fmalita@gmail.com>
+Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/rfd_ftl.c |    8 +++-----
- 1 files changed, 3 insertions(+), 5 deletions(-)
+ drivers/net/skfp/pmf.c         |    2 +-
+ drivers/s390/block/dasd_eckd.c |    4 ++--
+ security/selinux/ss/services.c |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mtd/rfd_ftl.c~mtd-potential-leak-in-rfd_ftl_add_mtd-fix drivers/mtd/rfd_ftl.c
---- a/drivers/mtd/rfd_ftl.c~mtd-potential-leak-in-rfd_ftl_add_mtd-fix
-+++ a/drivers/mtd/rfd_ftl.c
-@@ -779,10 +779,8 @@ static void rfd_ftl_add_mtd(struct mtd_b
- 	else {
- 		if (!mtd->erasesize) {
- 			printk(KERN_WARNING PREFIX "please provide block_size");
--			kfree(part);
--			return;
--		}
--		else
-+			goto out;
-+		} else
- 			part->block_size = mtd->erasesize;
- 	}
+diff -puN drivers/net/skfp/pmf.c~typo-fixes-errror-error drivers/net/skfp/pmf.c
+--- a/drivers/net/skfp/pmf.c~typo-fixes-errror-error
++++ a/drivers/net/skfp/pmf.c
+@@ -575,7 +575,7 @@ void smt_add_para(struct s_smc *smc, str
+ 	int		sp_len ;
  
-@@ -804,7 +802,7 @@ static void rfd_ftl_add_mtd(struct mtd_b
- 		if (!add_mtd_blktrans_dev((void*)part))
- 			return;
- 	}
--
-+out:
- 	kfree(part);
- }
- 
+ 	/*
+-	 * skip if errror
++	 * skip if error
+ 	 */
+ 	if (pcon->pc_err)
+ 		return ;
+diff -puN drivers/s390/block/dasd_eckd.c~typo-fixes-errror-error drivers/s390/block/dasd_eckd.c
+--- a/drivers/s390/block/dasd_eckd.c~typo-fixes-errror-error
++++ a/drivers/s390/block/dasd_eckd.c
+@@ -555,7 +555,7 @@ dasd_eckd_read_conf(struct dasd_device *
+ 			if (conf_data == NULL) {
+ 				MESSAGE(KERN_WARNING, "%s", "No configuration "
+ 					"data retrieved");
+-				continue;	/* no errror */
++				continue;	/* no error */
+ 			}
+ 			if (conf_len != sizeof (struct dasd_eckd_confdata)) {
+ 				MESSAGE(KERN_WARNING,
+@@ -564,7 +564,7 @@ dasd_eckd_read_conf(struct dasd_device *
+ 					conf_len,
+ 					sizeof (struct dasd_eckd_confdata));
+ 				kfree(conf_data);
+-				continue;	/* no errror */
++				continue;	/* no error */
+ 			}
+ 			/* save first valid configuration data */
+ 			if (!conf_data_saved){
+diff -puN security/selinux/ss/services.c~typo-fixes-errror-error security/selinux/ss/services.c
+--- a/security/selinux/ss/services.c~typo-fixes-errror-error
++++ a/security/selinux/ss/services.c
+@@ -792,7 +792,7 @@ int security_context_to_sid(char *sconte
+  * @scontext: security context
+  * @scontext_len: length in bytes
+  * @sid: security identifier, SID
+- * @def_sid: default SID to assign on errror
++ * @def_sid: default SID to assign on error
+  *
+  * Obtains a SID associated with the security context that
+  * has the string representation specified by @scontext.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nix.or.die@googlemail.com are
 
 origin.patch
-async_tx-fix-kmap_atomic-usage-in-async_memcpy.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-dvb.patch
-git-input.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mtd.patch
-mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-git-selinux-fixup.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-git-scsi-misc.patch
-aacraid-rename-check_reset.patch
-git-block-fix.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-clockevents-fix-resume-logic-xen-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-xfs-fixup.patch
-git-kgdb-fixup-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+broken-lilo-check-on-make-install.patch
+typo-fixes-errror-error.patch
