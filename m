@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - containersv10-add-tasks-file-interface.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:29:08 -0700
-Message-ID: <200707202029.l6KKT8g4014856@imap1.linux-foundation.org>
+Subject: - containersv10-add-container_clone-interface.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 13:29:23 -0700
+Message-ID: <200707202029.l6KKTNoM014876@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58137 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39314 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763686AbXGTUaa (ORCPT
+	by vger.kernel.org with ESMTP id S1763872AbXGTUae (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:30:30 -0400
+	Fri, 20 Jul 2007 16:30:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: menage@google.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Containers: add tasks file interface
+     Containers: add container_clone() interface
 has been removed from the -mm tree.  Its filename was
-     containersv10-add-tasks-file-interface.patch
+     containersv10-add-container_clone-interface.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Containers: add tasks file interface
+Subject: Containers: add container_clone() interface
 From: Paul Menage <menage@google.com>
 
-This patch adds the per-directory "tasks" file for containerfs mounts; this
-allows the user to determine which tasks are members of a container by reading
-a container's "tasks", and to move a task into a container by writing its pid
-to its "tasks".
+This patch adds support for container_clone(), a speculative interface to
+creating new containers intended to be used for systems such as namespace
+unsharing.
 
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: "Serge E. Hallyn" <serue@us.ibm.com>
@@ -42,407 +41,158 @@ Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/container.h |   10 +
- kernel/container.c        |  335 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 345 insertions(+)
+ include/linux/container.h |    2 
+ kernel/container.c        |  123 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 125 insertions(+)
 
-diff -puN include/linux/container.h~containersv10-add-tasks-file-interface include/linux/container.h
---- a/include/linux/container.h~containersv10-add-tasks-file-interface
+diff -puN include/linux/container.h~containersv10-add-container_clone-interface include/linux/container.h
+--- a/include/linux/container.h~containersv10-add-container_clone-interface
 +++ a/include/linux/container.h
-@@ -126,6 +126,16 @@ int container_is_removed(const struct co
+@@ -195,6 +195,8 @@ static inline struct container* task_con
  
  int container_path(const struct container *cont, char *buf, int buflen);
  
-+int __container_task_count(const struct container *cont);
-+static inline int container_task_count(const struct container *cont)
-+{
-+	int task_count;
-+	rcu_read_lock();
-+	task_count = __container_task_count(cont);
-+	rcu_read_unlock();
-+	return task_count;
-+}
++int container_clone(struct task_struct *tsk, struct container_subsys *ss);
 +
- /* Return true if the container is a descendant of the current container */
- int container_is_descendant(const struct container *cont);
+ #else /* !CONFIG_CONTAINERS */
  
-diff -puN kernel/container.c~containersv10-add-tasks-file-interface kernel/container.c
---- a/kernel/container.c~containersv10-add-tasks-file-interface
+ static inline int container_init_early(void) { return 0; }
+diff -puN kernel/container.c~containersv10-add-container_clone-interface kernel/container.c
+--- a/kernel/container.c~containersv10-add-container_clone-interface
 +++ a/kernel/container.c
-@@ -674,6 +674,109 @@ static void get_first_subsys(const struc
- 		*subsys_id = test_ss->subsys_id;
+@@ -1608,3 +1608,126 @@ void container_exit(struct task_struct *
+ 	tsk->containers = init_task.containers;
+ 	task_unlock(tsk);
  }
- 
-+/*
-+ * Attach task 'tsk' to container 'cont'
-+ *
-+ * Call holding container_mutex.  May take task_lock of
-+ * the task 'pid' during call.
-+ */
 +
-+static int attach_task(struct container *cont, struct task_struct *tsk)
++static atomic_t namecnt;
++static void get_unused_name(char *buf)
 +{
-+	int retval = 0;
-+	struct container_subsys *ss;
-+	struct container *oldcont;
-+	struct css_group *cg = &tsk->containers;
-+	struct containerfs_root *root = cont->root;
-+	int i;
-+
-+	int subsys_id;
-+	get_first_subsys(cont, NULL, &subsys_id);
-+
-+	/* Nothing to do if the task is already in that container */
-+	oldcont = task_container(tsk, subsys_id);
-+	if (cont == oldcont)
-+		return 0;
-+
-+	for_each_subsys(root, ss) {
-+		if (ss->can_attach) {
-+			retval = ss->can_attach(ss, cont, tsk);
-+			if (retval) {
-+				return retval;
-+			}
-+		}
-+	}
-+
-+	task_lock(tsk);
-+	if (tsk->flags & PF_EXITING) {
-+		task_unlock(tsk);
-+		return -ESRCH;
-+	}
-+	/* Update the css_group pointers for the subsystems in this
-+	 * hierarchy */
-+	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
-+		if (root->subsys_bits & (1ull << i)) {
-+			/* Subsystem is in this hierarchy. So we want
-+			 * the subsystem state from the new
-+			 * container. Transfer the refcount from the
-+			 * old to the new */
-+			atomic_inc(&cont->count);
-+			atomic_dec(&cg->subsys[i]->container->count);
-+			rcu_assign_pointer(cg->subsys[i], cont->subsys[i]);
-+		}
-+	}
-+	task_unlock(tsk);
-+
-+	for_each_subsys(root, ss) {
-+		if (ss->attach) {
-+			ss->attach(ss, cont, oldcont, tsk);
-+		}
-+	}
-+
-+	synchronize_rcu();
-+	return 0;
++	sprintf(buf, "node%d", atomic_inc_return(&namecnt));
 +}
 +
-+/*
-+ * Attach task with pid 'pid' to container 'cont'. Call with
-+ * container_mutex, may take task_lock of task
-+ *
++/**
++ * container_clone - duplicate the current container in the hierarchy
++ * that the given subsystem is attached to, and move this task into
++ * the new child
 + */
-+
-+static int attach_task_by_pid(struct container *cont, char *pidbuf)
++int container_clone(struct task_struct *tsk, struct container_subsys *subsys)
 +{
-+	pid_t pid;
-+	struct task_struct *tsk;
-+	int ret;
++	struct dentry *dentry;
++	int ret = 0;
++	char nodename[32];
++	struct container *parent, *child;
++	struct inode *inode;
++	struct css_group *cg;
++	struct containerfs_root *root;
 +
-+	if (sscanf(pidbuf, "%d", &pid) != 1)
-+		return -EIO;
++	/* We shouldn't be called by an unregistered subsystem */
++	BUG_ON(!subsys->active);
 +
-+	if (pid) {
-+		rcu_read_lock();
-+		tsk = find_task_by_pid(pid);
-+		if (!tsk || tsk->flags & PF_EXITING) {
-+			rcu_read_unlock();
-+			return -ESRCH;
-+		}
-+		get_task_struct(tsk);
-+		rcu_read_unlock();
++	/* First figure out what hierarchy and container we're dealing
++	 * with, and pin them so we can drop container_mutex */
++	mutex_lock(&container_mutex);
++ again:
++	root = subsys->root;
++	if (root == &rootnode) {
++		printk(KERN_INFO
++		       "Not cloning container for unused subsystem %s\n",
++		       subsys->name);
++		mutex_unlock(&container_mutex);
++		return 0;
++	}
++	cg = &tsk->containers;
++	parent = task_container(tsk, subsys->subsys_id);
++	/* Pin the hierarchy */
++	atomic_inc(&parent->root->sb->s_active);
 +
-+		if ((current->euid) && (current->euid != tsk->uid)
-+		    && (current->euid != tsk->suid)) {
-+			put_task_struct(tsk);
-+			return -EACCES;
-+		}
-+	} else {
-+		tsk = current;
-+		get_task_struct(tsk);
++	mutex_unlock(&container_mutex);
++
++	/* Now do the VFS work to create a container */
++	get_unused_name(nodename);
++	inode = parent->dentry->d_inode;
++
++	/* Hold the parent directory mutex across this operation to
++	 * stop anyone else deleting the new container */
++	mutex_lock(&inode->i_mutex);
++	dentry = container_get_dentry(parent->dentry, nodename);
++	if (IS_ERR(dentry)) {
++		printk(KERN_INFO
++		       "Couldn't allocate dentry for %s: %ld\n", nodename,
++		       PTR_ERR(dentry));
++		ret = PTR_ERR(dentry);
++		goto out_release;
 +	}
 +
-+	ret = attach_task(cont, tsk);
-+	put_task_struct(tsk);
++	/* Create the container directory, which also creates the container */
++	ret = vfs_mkdir(inode, dentry, S_IFDIR | 0755);
++	child = __d_cont(dentry);
++	dput(dentry);
++	if (ret) {
++		printk(KERN_INFO
++		       "Failed to create container %s: %d\n", nodename,
++		       ret);
++		goto out_release;
++	}
++
++	if (!child) {
++		printk(KERN_INFO
++		       "Couldn't find new container %s\n", nodename);
++		ret = -ENOMEM;
++		goto out_release;
++	}
++
++	/* The container now exists. Retake container_mutex and check
++	 * that we're still in the same state that we thought we
++	 * were. */
++	mutex_lock(&container_mutex);
++	if ((root != subsys->root) ||
++	    (parent != task_container(tsk, subsys->subsys_id))) {
++		/* Aargh, we raced ... */
++		mutex_unlock(&inode->i_mutex);
++
++		deactivate_super(parent->root->sb);
++		/* The container is still accessible in the VFS, but
++		 * we're not going to try to rmdir() it at this
++		 * point. */
++		printk(KERN_INFO
++		       "Race in container_clone() - leaking container %s\n",
++		       nodename);
++		goto again;
++	}
++
++	/* All seems fine. Finish by moving the task into the new container */
++	ret = attach_task(child, tsk);
++	mutex_unlock(&container_mutex);
++
++ out_release:
++	mutex_unlock(&inode->i_mutex);
++	deactivate_super(parent->root->sb);
 +	return ret;
 +}
 +
- /* The various types of files and directories in a container file system */
- 
- enum container_filetype {
-@@ -682,6 +785,54 @@ enum container_filetype {
- 	FILE_TASKLIST,
- };
- 
-+static ssize_t container_common_file_write(struct container *cont,
-+					   struct cftype *cft,
-+					   struct file *file,
-+					   const char __user *userbuf,
-+					   size_t nbytes, loff_t *unused_ppos)
++/* See if "cont" is a descendant of the current task's container in
++ * the appropriate hierarchy */
++
++int container_is_descendant(const struct container *cont)
 +{
-+	enum container_filetype type = cft->private;
-+	char *buffer;
-+	int retval = 0;
-+
-+	if (nbytes >= PATH_MAX)
-+		return -E2BIG;
-+
-+	/* +1 for nul-terminator */
-+	if ((buffer = kmalloc(nbytes + 1, GFP_KERNEL)) == 0)
-+		return -ENOMEM;
-+
-+	if (copy_from_user(buffer, userbuf, nbytes)) {
-+		retval = -EFAULT;
-+		goto out1;
-+	}
-+	buffer[nbytes] = 0;	/* nul-terminate */
-+
-+	mutex_lock(&container_mutex);
-+
-+	if (container_is_removed(cont)) {
-+		retval = -ENODEV;
-+		goto out2;
-+	}
-+
-+	switch (type) {
-+	case FILE_TASKLIST:
-+		retval = attach_task_by_pid(cont, buffer);
-+		break;
-+	default:
-+		retval = -EINVAL;
-+		goto out2;
-+	}
-+
-+	if (retval == 0)
-+		retval = nbytes;
-+out2:
-+	mutex_unlock(&container_mutex);
-+out1:
-+	kfree(buffer);
-+	return retval;
-+}
-+
- static ssize_t container_file_write(struct file *file, const char __user *buf,
- 						size_t nbytes, loff_t *ppos)
- {
-@@ -875,6 +1026,187 @@ int container_add_files(struct container
- 	return 0;
- }
- 
-+/* Count the number of tasks in a container. Could be made more
-+ * time-efficient but less space-efficient with more linked lists
-+ * running through each container and the css_group structures that
-+ * referenced it. Must be called with tasklist_lock held for read or
-+ * write or in an rcu critical section. */
-+
-+int __container_task_count(const struct container *cont)
-+{
-+	int count = 0;
-+	struct task_struct *g, *p;
-+	struct container_subsys_state *css;
++	int ret;
++	struct container *target;
 +	int subsys_id;
-+	get_first_subsys(cont, &css, &subsys_id);
-+
-+	do_each_thread(g, p) {
-+		if (task_subsys_state(p, subsys_id) == css)
-+			count ++;
-+	} while_each_thread(g, p);
-+	return count;
-+}
-+
-+/*
-+ * Stuff for reading the 'tasks' file.
-+ *
-+ * Reading this file can return large amounts of data if a container has
-+ * *lots* of attached tasks. So it may need several calls to read(),
-+ * but we cannot guarantee that the information we produce is correct
-+ * unless we produce it entirely atomically.
-+ *
-+ * Upon tasks file open(), a struct ctr_struct is allocated, that
-+ * will have a pointer to an array (also allocated here).  The struct
-+ * ctr_struct * is stored in file->private_data.  Its resources will
-+ * be freed by release() when the file is closed.  The array is used
-+ * to sprintf the PIDs and then used by read().
-+ */
-+
-+/* containers_tasks_read array */
-+
-+struct ctr_struct {
-+	char *buf;
-+	int bufsz;
-+};
-+
-+/*
-+ * Load into 'pidarray' up to 'npids' of the tasks using container
-+ * 'cont'.  Return actual number of pids loaded.  No need to
-+ * task_lock(p) when reading out p->container, since we're in an RCU
-+ * read section, so the css_group can't go away, and is
-+ * immutable after creation.
-+ */
-+static int pid_array_load(pid_t *pidarray, int npids, struct container *cont)
-+{
-+	int n = 0;
-+	struct task_struct *g, *p;
-+	struct container_subsys_state *css;
-+	int subsys_id;
-+	get_first_subsys(cont, &css, &subsys_id);
-+	rcu_read_lock();
-+
-+	do_each_thread(g, p) {
-+		if (task_subsys_state(p, subsys_id) == css) {
-+			pidarray[n++] = pid_nr(task_pid(p));
-+			if (unlikely(n == npids))
-+				goto array_full;
-+		}
-+	} while_each_thread(g, p);
-+
-+array_full:
-+	rcu_read_unlock();
-+	return n;
-+}
-+
-+static int cmppid(const void *a, const void *b)
-+{
-+	return *(pid_t *)a - *(pid_t *)b;
-+}
-+
-+/*
-+ * Convert array 'a' of 'npids' pid_t's to a string of newline separated
-+ * decimal pids in 'buf'.  Don't write more than 'sz' chars, but return
-+ * count 'cnt' of how many chars would be written if buf were large enough.
-+ */
-+static int pid_array_to_buf(char *buf, int sz, pid_t *a, int npids)
-+{
-+	int cnt = 0;
-+	int i;
-+
-+	for (i = 0; i < npids; i++)
-+		cnt += snprintf(buf + cnt, max(sz - cnt, 0), "%d\n", a[i]);
-+	return cnt;
-+}
-+
-+/*
-+ * Handle an open on 'tasks' file.  Prepare a buffer listing the
-+ * process id's of tasks currently attached to the container being opened.
-+ *
-+ * Does not require any specific container mutexes, and does not take any.
-+ */
-+static int container_tasks_open(struct inode *unused, struct file *file)
-+{
-+	struct container *cont = __d_cont(file->f_dentry->d_parent);
-+	struct ctr_struct *ctr;
-+	pid_t *pidarray;
-+	int npids;
-+	char c;
-+
-+	if (!(file->f_mode & FMODE_READ))
-+		return 0;
-+
-+	ctr = kmalloc(sizeof(*ctr), GFP_KERNEL);
-+	if (!ctr)
-+		goto err0;
-+
-+	/*
-+	 * If container gets more users after we read count, we won't have
-+	 * enough space - tough.  This race is indistinguishable to the
-+	 * caller from the case that the additional container users didn't
-+	 * show up until sometime later on.
-+	 */
-+	npids = container_task_count(cont);
-+	pidarray = kmalloc(npids * sizeof(pid_t), GFP_KERNEL);
-+	if (!pidarray)
-+		goto err1;
-+
-+	npids = pid_array_load(pidarray, npids, cont);
-+	sort(pidarray, npids, sizeof(pid_t), cmppid, NULL);
-+
-+	/* Call pid_array_to_buf() twice, first just to get bufsz */
-+	ctr->bufsz = pid_array_to_buf(&c, sizeof(c), pidarray, npids) + 1;
-+	ctr->buf = kmalloc(ctr->bufsz, GFP_KERNEL);
-+	if (!ctr->buf)
-+		goto err2;
-+	ctr->bufsz = pid_array_to_buf(ctr->buf, ctr->bufsz, pidarray, npids);
-+
-+	kfree(pidarray);
-+	file->private_data = ctr;
-+	return 0;
-+
-+err2:
-+	kfree(pidarray);
-+err1:
-+	kfree(ctr);
-+err0:
-+	return -ENOMEM;
-+}
-+
-+static ssize_t container_tasks_read(struct container *cont,
-+				    struct cftype *cft,
-+				    struct file *file, char __user *buf,
-+				    size_t nbytes, loff_t *ppos)
-+{
-+	struct ctr_struct *ctr = file->private_data;
-+
-+        return simple_read_from_buffer(buf, nbytes, ppos, ctr->buf, ctr->bufsz);
-+}
-+
-+static int container_tasks_release(struct inode *unused_inode, struct file *file)
-+{
-+	struct ctr_struct *ctr;
-+
-+	if (file->f_mode & FMODE_READ) {
-+		ctr = file->private_data;
-+		kfree(ctr->buf);
-+		kfree(ctr);
++	get_first_subsys(cont, NULL, &subsys_id);
++	target = task_container(current, subsys_id);
++	while (cont != target && cont!= cont->top_container) {
++		cont = cont->parent;
 +	}
-+	return 0;
++	ret = (cont == target);
++	return ret;
 +}
-+
-+/*
-+ * for the common functions, 'private' gives the type of file
-+ */
-+
-+static struct cftype cft_tasks = {
-+	.name = "tasks",
-+	.open = container_tasks_open,
-+	.read = container_tasks_read,
-+	.write = container_common_file_write,
-+	.release = container_tasks_release,
-+	.private = FILE_TASKLIST,
-+};
-+
- static int container_populate_dir(struct container *cont)
- {
- 	int err;
-@@ -883,6 +1215,9 @@ static int container_populate_dir(struct
- 	/* First clear out any existing files */
- 	container_clear_directory(cont->dentry);
- 
-+	if ((err = container_add_file(cont, &cft_tasks)) < 0)
-+		return err;
-+
- 	for_each_subsys(cont->root, ss) {
- 		if (ss->populate && (err = ss->populate(ss, cont)) < 0)
- 			return err;
 _
 
 Patches currently in -mm which might be from menage@google.com are
 
 origin.patch
 cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-tasks-file-interface-fix-2.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
 containersv10-add-container_clone-interface.patch
 containersv10-add-container_clone-interface-fix.patch
 containersv10-add-procfs-interface.patch
