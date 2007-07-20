@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spufs-remove-spurious-warn_on-for-spu_deactivate-for-nosched-contexts.patch added to -mm tree
-Date: Fri, 20 Jul 2007 11:50:53 -0700
-Message-ID: <200707201850.l6KIorNp010859@imap1.linux-foundation.org>
+Subject: + spufs-avoid-unexpectedly-restaring-mfc-during-context-save.patch added to -mm tree
+Date: Fri, 20 Jul 2007 11:50:49 -0700
+Message-ID: <200707201850.l6KIonaP010853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36901 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36441 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757350AbXGTSvF (ORCPT
+	by vger.kernel.org with ESMTP id S1757285AbXGTSvE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 14:51:05 -0400
+	Fri, 20 Jul 2007 14:51:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jk@ozlabs.org, benh@kernel.crashing.org, paulus@samba.org
+Cc: asayama@sm.sony.co.jp, benh@kernel.crashing.org, jk@ozlabs.org, paulus@samba.org
 
 
 The patch titled
-     spufs: remove spurious WARN_ON for spu_deactivate for NOSCHED contexts
+     spufs: avoid unexpectedly restaring MFC during context save
 has been added to the -mm tree.  Its filename is
-     spufs-remove-spurious-warn_on-for-spu_deactivate-for-nosched-contexts.patch
+     spufs-avoid-unexpectedly-restaring-mfc-during-context-save.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spufs: remove spurious WARN_ON for spu_deactivate for NOSCHED contexts
-From: Jeremy Kerr <jk@ozlabs.org>
+Subject: spufs: avoid unexpectedly restaring MFC during context save
+From: Kazunori Asayama <asayama@sm.sony.co.jp>
 
-In 6cbf93960e64f313f6e247cbca7afaa50e3ee2c we added a WARN_ON for calling
-spu_deactivate on contexts created with the SPU_CREATE_NOSCHED flag.  However,
-all NOSCHED contexts will need to be deactivated when the context is
-destroyed, so this gives a spurious warning when any NOSCHED context is
-closed.
+The current SPU context saving procedure in SPUFS unexpectedly restarts MFC
+when halting decrementer, because MFC_CNTL[Dh] is set without MFC_CNTL[Sm]. 
+This bug causes, for example, saving broken DMA queues.  Here is a patch to
+fix the problem.
 
-This change removes the WARN_ON.
-
+Signed-off-by: Kazunori Asayama <asayama@sm.sony.co.jp>
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/sched.c |    9 ---------
- 1 files changed, 9 deletions(-)
+ arch/powerpc/platforms/cell/spufs/switch.c |    3 ++-
+ include/asm-powerpc/spu.h                  |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/cell/spufs/sched.c~spufs-remove-spurious-warn_on-for-spu_deactivate-for-nosched-contexts arch/powerpc/platforms/cell/spufs/sched.c
---- a/arch/powerpc/platforms/cell/spufs/sched.c~spufs-remove-spurious-warn_on-for-spu_deactivate-for-nosched-contexts
-+++ a/arch/powerpc/platforms/cell/spufs/sched.c
-@@ -581,15 +581,6 @@ static int __spu_deactivate(struct spu_c
-  */
- void spu_deactivate(struct spu_context *ctx)
- {
--	/*
--	 * We must never reach this for a nosched context,
--	 * but handle the case gracefull instead of panicing.
--	 */
--	if (ctx->flags & SPU_CREATE_NOSCHED) {
--		WARN_ON(1);
--		return;
--	}
--
- 	__spu_deactivate(ctx, 1, MAX_PRIO);
- 	spuctx_switch_state(ctx, SPUCTX_UTIL_USER);
+diff -puN arch/powerpc/platforms/cell/spufs/switch.c~spufs-avoid-unexpectedly-restaring-mfc-during-context-save arch/powerpc/platforms/cell/spufs/switch.c
+--- a/arch/powerpc/platforms/cell/spufs/switch.c~spufs-avoid-unexpectedly-restaring-mfc-during-context-save
++++ a/arch/powerpc/platforms/cell/spufs/switch.c
+@@ -271,7 +271,8 @@ static inline void halt_mfc_decr(struct 
+ 	 *     Write MFC_CNTL[Dh] set to a '1' to halt
+ 	 *     the decrementer.
+ 	 */
+-	out_be64(&priv2->mfc_control_RW, MFC_CNTL_DECREMENTER_HALTED);
++	out_be64(&priv2->mfc_control_RW,
++		 MFC_CNTL_DECREMENTER_HALTED | MFC_CNTL_SUSPEND_MASK);
+ 	eieio();
  }
+ 
+diff -puN include/asm-powerpc/spu.h~spufs-avoid-unexpectedly-restaring-mfc-during-context-save include/asm-powerpc/spu.h
+--- a/include/asm-powerpc/spu.h~spufs-avoid-unexpectedly-restaring-mfc-during-context-save
++++ a/include/asm-powerpc/spu.h
+@@ -418,6 +418,7 @@ struct spu_priv2 {
+ #define MFC_CNTL_RESUME_DMA_QUEUE		(0ull << 0)
+ #define MFC_CNTL_SUSPEND_DMA_QUEUE		(1ull << 0)
+ #define MFC_CNTL_SUSPEND_DMA_QUEUE_MASK		(1ull << 0)
++#define MFC_CNTL_SUSPEND_MASK			(1ull << 4)
+ #define MFC_CNTL_NORMAL_DMA_QUEUE_OPERATION	(0ull << 8)
+ #define MFC_CNTL_SUSPEND_IN_PROGRESS		(1ull << 8)
+ #define MFC_CNTL_SUSPEND_COMPLETE		(3ull << 8)
 _
 
-Patches currently in -mm which might be from jk@ozlabs.org are
+Patches currently in -mm which might be from asayama@sm.sony.co.jp are
 
 origin.patch
 spufs-avoid-unexpectedly-restaring-mfc-during-context-save.patch
-spufs-make-signal-notification-files-readonly-for-nosched-contexts.patch
-spufs-remove-spurious-warn_on-for-spu_deactivate-for-nosched-contexts.patch
-spufs-add-spu-stats-in-sysfs-and-ctx-stat-file-in-spufs.patch
-spufs-make-sure-context-are-scheduled-again-after-spu_acquire_saved.patch
-spufs-fix-array-size-of-channel-index.patch
-spufs-remove-needless-context-save-restore-code.patch
-spufs-fix-decr_status-meanings.patch
-spufs-fix-read-and-write-for-decr_status-file.patch
-spufs-limit-saving-mfc_cntl-bits.patch
-spufs-dont-halt-decrementer-at-restore-step-47.patch
-spufs-change-decrementer-restore-timing.patch
-spufs-remove-unused-file-argument-from-spufs_run_spu.patch
-spufs-use-find_first_bit-instead-of-sched_find_first_bit.patch
