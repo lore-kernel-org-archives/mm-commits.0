@@ -1,63 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - sys_time-use-barrier-instead-of-smp_rmb.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 14:54:20 -0700
-Message-ID: <200707202154.l6KLsKAH018458@imap1.linux-foundation.org>
+Subject: + ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch added to -mm tree
+Date: Fri, 20 Jul 2007 15:26:58 -0700
+Message-ID: <200707202226.l6KMQw5H019666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53703 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36328 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759016AbXGTVys (ORCPT
+	by vger.kernel.org with ESMTP id S1760551AbXGTW1I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 17:54:48 -0400
+	Fri, 20 Jul 2007 18:27:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, csnook@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mhalcrow@us.ibm.com
 
 
 The patch titled
-     sys_time: use barrier() instead of smp_rmb()
-has been removed from the -mm tree.  Its filename was
-     sys_time-use-barrier-instead-of-smp_rmb.patch
+     eCryptfs: use list_for_each_entry_safe() when wiping auth toks
+has been added to the -mm tree.  Its filename is
+     ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: sys_time: use barrier() instead of smp_rmb()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: eCryptfs: use list_for_each_entry_safe() when wiping auth toks
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-There is no reason to use rmb(), we don't do any LOADs which could be
-reordered.  What we need is a simple compiler barrier, to prevent the
-reading of the "volatile" xtime.tv_sec twice.
+Use list_for_each_entry_safe() when wiping the authentication token list.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Chris Snook <csnook@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/ecryptfs/keystore.c |   15 ++++-----------
+ 1 files changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN kernel/time.c~sys_time-use-barrier-instead-of-smp_rmb kernel/time.c
---- a/kernel/time.c~sys_time-use-barrier-instead-of-smp_rmb
-+++ a/kernel/time.c
-@@ -64,7 +64,7 @@ asmlinkage long sys_time(time_t __user *
- 	 */
- 	time_t i = xtime.tv_sec;
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks
++++ a/fs/ecryptfs/keystore.c
+@@ -469,26 +469,19 @@ out:
  
--	smp_rmb(); /* sys_time() results are coherent */
-+	barrier(); /* sys_time() results are coherent */
+ static void wipe_auth_tok_list(struct list_head *auth_tok_list_head)
+ {
+-	struct list_head *walker;
+ 	struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
++	struct ecryptfs_auth_tok_list_item *auth_tok_list_item_tmp;
  
- 	if (tloc) {
- 		if (put_user(i, tloc))
+-	walker = auth_tok_list_head->next;
+-	while (walker != auth_tok_list_head) {
+-		auth_tok_list_item =
+-		    list_entry(walker, struct ecryptfs_auth_tok_list_item,
+-			       list);
+-		walker = auth_tok_list_item->list.next;
+-		memset(auth_tok_list_item, 0,
+-		       sizeof(struct ecryptfs_auth_tok_list_item));
++	list_for_each_entry_safe(auth_tok_list_item, auth_tok_list_item_tmp,
++				 auth_tok_list_head, list) {
++		list_del(&auth_tok_list_item->list);
+ 		kmem_cache_free(ecryptfs_auth_tok_list_item_cache,
+ 				auth_tok_list_item);
+ 	}
+-	auth_tok_list_head->next = NULL;
+ }
+ 
+ struct kmem_cache *ecryptfs_auth_tok_list_item_cache;
+ 
+-
+ /**
+  * parse_tag_1_packet
+  * @crypt_stat: The cryptographic context to modify based on packet
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-i386-remove-unnecessary-code.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-sys_time-use-barrier-instead-of-smp_rmb.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-do_poll-return-eintr-when-signalled.patch
-idr_remove_all-kill-unused-variable.patch
+git-unionfs.patch
+fs-remove-some-aop_truncated_page.patch
+fs-remove-some-aop_truncated_page-fix.patch
+ecryptfs-add-key-list-structure-search-keyring.patch
+ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch
+ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions.patch
+ecryptfs-fix-tag-1-parsing-code.patch
+ecryptfs-fix-tag-3-parsing-code.patch
+ecryptfs-fix-tag-11-parsing-code.patch
+ecryptfs-fix-tag-11-writing-code.patch
+ecryptfs-update-comment-and-debug-statement.patch
