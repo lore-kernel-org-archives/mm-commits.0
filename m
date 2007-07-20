@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + spufs-fix-read-and-write-for-decr_status-file.patch added to -mm tree
-Date: Fri, 20 Jul 2007 11:51:05 -0700
-Message-ID: <200707201851.l6KIp5c1010884@imap1.linux-foundation.org>
+Subject: + spufs-fix-decr_status-meanings.patch added to -mm tree
+Date: Fri, 20 Jul 2007 11:51:03 -0700
+Message-ID: <200707201851.l6KIp49N010880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48980 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33816 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763527AbXGTSvW (ORCPT
+	by vger.kernel.org with ESMTP id S1762595AbXGTSvW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 20 Jul 2007 14:51:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: Masato.Noguchi@jp.sony.com, benh@kernel.crashing.org, jk@ozlabs.org, paulus@
 
 
 The patch titled
-     spufs: fix read and write for decr_status file
+     spufs: fix decr_status meanings
 has been added to the -mm tree.  Its filename is
-     spufs-fix-read-and-write-for-decr_status-file.patch
+     spufs-fix-decr_status-meanings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,13 +26,16 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spufs: fix read and write for decr_status file
+Subject: spufs: fix decr_status meanings
 From: Masato Noguchi <Masato.Noguchi@jp.sony.com>
 
-The decr_status in the LSCSA is valid only in the sequence of context restore.
- Thus, it's nonsense to read and/or write it through spufs.
+The decr_status in the LSCSA is confusedly used as two meanings:
+ * SPU decrementer was running
+ * SPU decrementer was wrapped as a result of adjust
+and the code to set decr_status is missing.
 
-This patch changes decr_status node to access MFC_CNTL[Ds] in the CSA.
+This patch fixes these problems by using the decr_status argument as a set of
+flags.  This requires a rebuild of the shipped spu_restore code.
 
 Signed-off-by: Masato Noguchi <Masato.Noguchi@jp.sony.com>
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
@@ -41,38 +44,635 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/file.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+ arch/powerpc/platforms/cell/spufs/spu_restore.c              |    2 
+ arch/powerpc/platforms/cell/spufs/spu_restore_dump.h_shipped |  472 +++++-----
+ arch/powerpc/platforms/cell/spufs/switch.c                   |   12 
+ include/asm-powerpc/spu_csa.h                                |    8 
+ 4 files changed, 270 insertions(+), 224 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/spufs/file.c~spufs-fix-read-and-write-for-decr_status-file arch/powerpc/platforms/cell/spufs/file.c
---- a/arch/powerpc/platforms/cell/spufs/file.c~spufs-fix-read-and-write-for-decr_status-file
-+++ a/arch/powerpc/platforms/cell/spufs/file.c
-@@ -1651,17 +1651,21 @@ DEFINE_SIMPLE_ATTRIBUTE(spufs_decr_ops, 
- static void spufs_decr_status_set(void *data, u64 val)
- {
- 	struct spu_context *ctx = data;
--	struct spu_lscsa *lscsa = ctx->csa.lscsa;
- 	spu_acquire_saved(ctx);
--	lscsa->decr_status.slot[0] = (u32) val;
-+	if (val)
-+		ctx->csa.priv2.mfc_control_RW |= MFC_CNTL_DECREMENTER_RUNNING;
-+	else
-+		ctx->csa.priv2.mfc_control_RW &= ~MFC_CNTL_DECREMENTER_RUNNING;
- 	spu_release_saved(ctx);
+diff -puN arch/powerpc/platforms/cell/spufs/spu_restore.c~spufs-fix-decr_status-meanings arch/powerpc/platforms/cell/spufs/spu_restore.c
+--- a/arch/powerpc/platforms/cell/spufs/spu_restore.c~spufs-fix-decr_status-meanings
++++ a/arch/powerpc/platforms/cell/spufs/spu_restore.c
+@@ -90,7 +90,7 @@ static inline void restore_decr(void)
+ 	 *    decrementer value from LSCSA.
+ 	 */
+ 	offset = LSCSA_QW_OFFSET(decr_status);
+-	decr_running = regs_spill[offset].slot[0];
++	decr_running = regs_spill[offset].slot[0] & SPU_DECR_STATUS_RUNNING;
+ 	if (decr_running) {
+ 		offset = LSCSA_QW_OFFSET(decr);
+ 		decr = regs_spill[offset].slot[0];
+diff -puN arch/powerpc/platforms/cell/spufs/spu_restore_dump.h_shipped~spufs-fix-decr_status-meanings arch/powerpc/platforms/cell/spufs/spu_restore_dump.h_shipped
+--- a/arch/powerpc/platforms/cell/spufs/spu_restore_dump.h_shipped~spufs-fix-decr_status-meanings
++++ a/arch/powerpc/platforms/cell/spufs/spu_restore_dump.h_shipped
+@@ -10,7 +10,7 @@ static unsigned int spu_restore_code[]  
+ 0x24fd8081,
+ 0x1cd80081,
+ 0x33001180,
+-0x42030003,
++0x42034003,
+ 0x33800284,
+ 0x1c010204,
+ 0x40200000,
+@@ -24,22 +24,22 @@ static unsigned int spu_restore_code[]  
+ 0x23fffd84,
+ 0x1c100183,
+ 0x217ffa85,
+-0x3080a000,
+-0x3080a201,
+-0x3080a402,
+-0x3080a603,
+-0x3080a804,
+-0x3080aa05,
+-0x3080ac06,
+-0x3080ae07,
+-0x3080b008,
+-0x3080b209,
+-0x3080b40a,
+-0x3080b60b,
+-0x3080b80c,
+-0x3080ba0d,
+-0x3080bc0e,
+-0x3080be0f,
++0x3080b000,
++0x3080b201,
++0x3080b402,
++0x3080b603,
++0x3080b804,
++0x3080ba05,
++0x3080bc06,
++0x3080be07,
++0x3080c008,
++0x3080c209,
++0x3080c40a,
++0x3080c60b,
++0x3080c80c,
++0x3080ca0d,
++0x3080cc0e,
++0x3080ce0f,
+ 0x00003ffc,
+ 0x00000000,
+ 0x00000000,
+@@ -48,19 +48,18 @@ static unsigned int spu_restore_code[]  
+ 0x3ec00083,
+ 0xb0a14103,
+ 0x01a00204,
+-0x3ec10082,
+-0x4202800e,
+-0x04000703,
+-0xb0a14202,
+-0x21a00803,
+-0x3fbf028d,
+-0x3f20068d,
+-0x3fbe0682,
++0x3ec10083,
++0x4202c002,
++0xb0a14203,
++0x21a00802,
++0x3fbf028a,
++0x3f20050a,
++0x3fbe0502,
+ 0x3fe30102,
+ 0x21a00882,
+-0x3f82028f,
+-0x3fe3078f,
+-0x3fbf0784,
++0x3f82028b,
++0x3fe3058b,
++0x3fbf0584,
+ 0x3f200204,
+ 0x3fbe0204,
+ 0x3fe30204,
+@@ -75,52 +74,46 @@ static unsigned int spu_restore_code[]  
+ 0x21a00083,
+ 0x40800082,
+ 0x21a00b02,
+-0x10002818,
+-0x42a00002,
+-0x32800007,
+-0x4207000c,
+-0x18008208,
+-0x40a0000b,
+-0x4080020a,
+-0x40800709,
+-0x00200000,
+-0x42070002,
+-0x3ac30384,
++0x10002612,
++0x42a00003,
++0x42074006,
++0x1800c204,
++0x40a00008,
++0x40800789,
++0x1c010305,
++0x34000302,
+ 0x1cffc489,
+-0x00200000,
+-0x18008383,
+-0x38830382,
+-0x4cffc486,
+-0x3ac28185,
+-0xb0408584,
+-0x28830382,
+-0x1c020387,
+-0x38828182,
+-0xb0408405,
+-0x1802c408,
+-0x28828182,
+-0x217ff886,
+-0x04000583,
++0x3ec00303,
++0x3ec00287,
++0xb0408403,
++0x24000302,
++0x34000282,
++0x1c020306,
++0xb0408207,
++0x18020204,
++0x24000282,
++0x217ffa09,
++0x04000403,
+ 0x21a00803,
+-0x3fbe0682,
++0x3fbe0502,
+ 0x3fe30102,
+-0x04000106,
+-0x21a00886,
+-0x04000603,
+-0x21a00903,
+-0x40803c02,
+-0x21a00982,
+-0x40800003,
+-0x04000184,
++0x04000105,
++0x21a00885,
++0x42074002,
++0x21a00902,
++0x40803c03,
++0x21a00983,
++0x04000484,
+ 0x21a00a04,
+ 0x40802202,
+ 0x21a00a82,
+-0x42028005,
+-0x34208702,
+-0x21002282,
++0x30809c03,
++0x34000182,
++0x14004102,
++0x21002782,
+ 0x21a00804,
+-0x21a00886,
+-0x3fbf0782,
++0x21a00885,
++0x3fbf0582,
+ 0x3f200102,
+ 0x3fbe0102,
+ 0x3fe30102,
+@@ -133,194 +126,233 @@ static unsigned int spu_restore_code[]  
+ 0x40800083,
+ 0x21a00b83,
+ 0x01a00c02,
+-0x01a00d83,
+-0x3420c282,
++0x01a00d84,
++0x3080a003,
++0x34000182,
+ 0x21a00e02,
+-0x34210283,
+-0x21a00f03,
+-0x34200284,
+-0x77400200,
+-0x3421c282,
++0x3080a203,
++0x34000182,
++0x21a00f02,
++0x3080a403,
++0x34000182,
++0x77400100,
++0x3080a603,
++0x34000182,
+ 0x21a00702,
+-0x34218283,
+-0x21a00083,
+-0x34214282,
++0x3080a803,
++0x34000182,
++0x21a00082,
++0x3080aa03,
++0x34000182,
+ 0x21a00b02,
+-0x4200480c,
+-0x00200000,
+-0x1c010286,
+-0x34220284,
+-0x34220302,
+-0x0f608203,
+-0x5c024204,
+-0x3b81810b,
+-0x42013c02,
+-0x00200000,
+-0x18008185,
+-0x38808183,
+-0x3b814182,
+-0x21004e84,
++0x3080ae02,
++0x3080ac04,
++0x42004805,
++0x34000103,
++0x34000202,
++0x1cffc183,
++0x3b810106,
++0x0f608184,
++0x42013802,
++0x5c020183,
++0x38810102,
++0x3b810102,
++0x21000e83,
+ 0x4020007f,
+ 0x35000100,
+-0x000004e0,
+-0x000002a0,
+-0x000002e8,
+-0x00000428,
++0x00000470,
++0x000002f8,
++0x00000430,
+ 0x00000360,
+-0x000002e8,
+-0x000004a0,
+-0x00000468,
++0x000002f8,
+ 0x000003c8,
++0x000004a8,
++0x00000298,
+ 0x00000360,
++0x00200000,
+ 0x409ffe02,
+ 0x30801203,
+-0x40800204,
+-0x3ec40085,
+-0x10009c09,
+-0x3ac10606,
+-0xb060c105,
+-0x4020007f,
+-0x4020007f,
++0x40800208,
++0x3ec40084,
++0x40800407,
++0x3ac20289,
++0xb060c104,
++0x3ac1c284,
+ 0x20801203,
+-0x38810602,
+-0xb0408586,
+-0x28810602,
+-0x32004180,
+-0x34204702,
++0x38820282,
++0x41004003,
++0xb0408189,
++0x28820282,
++0x3881c282,
++0xb0408304,
++0x2881c282,
++0x00400000,
++0x40800003,
++0x35000000,
++0x30809e03,
++0x34000182,
+ 0x21a00382,
+ 0x4020007f,
+-0x327fdc80,
++0x327fd700,
+ 0x409ffe02,
+ 0x30801203,
+-0x40800204,
+-0x3ec40087,
+-0x40800405,
+-0x00200000,
+-0x40800606,
+-0x3ac10608,
+-0x3ac14609,
+-0x3ac1860a,
+-0xb060c107,
++0x40800206,
++0x3ec40084,
++0x40800407,
++0x40800608,
++0x3ac1828a,
++0x3ac20289,
++0xb060c104,
++0x3ac1c284,
+ 0x20801203,
++0x38818282,
+ 0x41004003,
+-0x38810602,
+-0x4020007f,
+-0xb0408188,
+-0x4020007f,
+-0x28810602,
+-0x41201002,
+-0x38814603,
+-0x10009c09,
+-0xb060c109,
+-0x4020007f,
+-0x28814603,
++0xb040818a,
++0x10005b0b,
++0x41201003,
++0x28818282,
++0x3881c282,
++0xb0408184,
+ 0x41193f83,
+-0x38818602,
+ 0x60ffc003,
+-0xb040818a,
+-0x28818602,
+-0x32003080,
++0x2881c282,
++0x38820282,
++0xb0408189,
++0x28820282,
++0x327fef80,
+ 0x409ffe02,
+ 0x30801203,
+-0x40800204,
+-0x3ec40087,
+-0x41201008,
+-0x10009c14,
+-0x40800405,
+-0x3ac10609,
+-0x40800606,
+-0x3ac1460a,
+-0xb060c107,
+-0x3ac1860b,
++0x40800207,
++0x3ec40086,
++0x4120100b,
++0x10005b14,
++0x40800404,
++0x3ac1c289,
++0x40800608,
++0xb060c106,
++0x3ac10286,
++0x3ac2028a,
+ 0x20801203,
+-0x38810602,
+-0xb0408409,
+-0x28810602,
+-0x38814603,
+-0xb060c40a,
+-0x4020007f,
+-0x28814603,
++0x3881c282,
+ 0x41193f83,
+-0x38818602,
+ 0x60ffc003,
+-0xb040818b,
+-0x28818602,
+-0x32002380,
+-0x409ffe02,
+-0x30801204,
+-0x40800205,
+-0x3ec40083,
+-0x40800406,
+-0x3ac14607,
+-0x3ac18608,
+-0xb0810103,
+-0x41004002,
+-0x20801204,
+-0x4020007f,
+-0x38814603,
+-0x10009c0b,
+-0xb060c107,
+-0x4020007f,
+-0x4020007f,
+-0x28814603,
+-0x38818602,
+-0x4020007f,
+-0x4020007f,
+-0xb0408588,
+-0x28818602,
++0xb0408589,
++0x2881c282,
++0x38810282,
++0xb0408586,
++0x28810282,
++0x38820282,
++0xb040818a,
++0x28820282,
+ 0x4020007f,
+-0x32001780,
++0x327fe280,
+ 0x409ffe02,
+-0x1000640e,
+-0x40800204,
+ 0x30801203,
+-0x40800405,
+-0x3ec40087,
+-0x40800606,
+-0x3ac10608,
+-0x3ac14609,
+-0x3ac1860a,
+-0xb060c107,
++0x40800207,
++0x3ec40084,
++0x40800408,
++0x10005b14,
++0x40800609,
++0x3ac1c28a,
++0x3ac2028b,
++0xb060c104,
++0x3ac24284,
+ 0x20801203,
+-0x413d8003,
+-0x38810602,
++0x41201003,
++0x3881c282,
++0xb040830a,
++0x2881c282,
++0x38820282,
++0xb040818b,
++0x41193f83,
++0x60ffc003,
++0x28820282,
++0x38824282,
++0xb0408184,
++0x28824282,
+ 0x4020007f,
+-0x327fd780,
++0x327fd580,
+ 0x409ffe02,
+-0x10007f0c,
+-0x40800205,
+-0x30801204,
+-0x40800406,
+-0x3ec40083,
+-0x3ac14607,
+-0x3ac18608,
+-0xb0810103,
+-0x413d8002,
+-0x20801204,
+-0x38814603,
++0x1000658e,
++0x40800206,
++0x30801203,
++0x40800407,
++0x3ec40084,
++0x40800608,
++0x3ac1828a,
++0x3ac20289,
++0xb060c104,
++0x3ac1c284,
++0x20801203,
++0x413d8003,
++0x38818282,
+ 0x4020007f,
+-0x327feb80,
++0x327fd800,
++0x409ffe03,
++0x30801202,
++0x40800207,
++0x3ec40084,
++0x10005b09,
++0x3ac1c288,
++0xb0408184,
++0x4020007f,
++0x4020007f,
++0x20801202,
++0x3881c282,
++0xb0408308,
++0x2881c282,
++0x327fc680,
+ 0x409ffe02,
++0x1000588b,
++0x40800208,
+ 0x30801203,
+-0x40800204,
+-0x3ec40087,
+-0x40800405,
+-0x1000650a,
+-0x40800606,
+-0x3ac10608,
+-0x3ac14609,
+-0x3ac1860a,
+-0xb060c107,
++0x40800407,
++0x3ec40084,
++0x3ac20289,
++0xb060c104,
++0x3ac1c284,
+ 0x20801203,
+-0x38810602,
+-0xb0408588,
+-0x4020007f,
+-0x327fc980,
+-0x00400000,
+-0x40800003,
+-0x4020007f,
+-0x35000000,
++0x413d8003,
++0x38820282,
++0x327fbd80,
++0x00200000,
++0x00000da0,
++0x00000000,
++0x00000000,
++0x00000000,
++0x00000d90,
++0x00000000,
++0x00000000,
++0x00000000,
++0x00000db0,
++0x00000000,
++0x00000000,
++0x00000000,
++0x00000dc0,
++0x00000000,
++0x00000000,
++0x00000000,
++0x00000d80,
++0x00000000,
++0x00000000,
++0x00000000,
++0x00000df0,
++0x00000000,
++0x00000000,
++0x00000000,
++0x00000de0,
++0x00000000,
++0x00000000,
++0x00000000,
++0x00000dd0,
++0x00000000,
++0x00000000,
++0x00000000,
++0x00000e04,
++0x00000000,
++0x00000000,
+ 0x00000000,
++0x00000e00,
+ 0x00000000,
+ 0x00000000,
+ 0x00000000,
+diff -puN arch/powerpc/platforms/cell/spufs/switch.c~spufs-fix-decr_status-meanings arch/powerpc/platforms/cell/spufs/switch.c
+--- a/arch/powerpc/platforms/cell/spufs/switch.c~spufs-fix-decr_status-meanings
++++ a/arch/powerpc/platforms/cell/spufs/switch.c
+@@ -1285,7 +1285,15 @@ static inline void setup_decr(struct spu
+ 		cycles_t resume_time = get_cycles();
+ 		cycles_t delta_time = resume_time - csa->suspend_time;
+ 
++		csa->lscsa->decr_status.slot[0] = SPU_DECR_STATUS_RUNNING;
++		if (csa->lscsa->decr.slot[0] < delta_time) {
++			csa->lscsa->decr_status.slot[0] |=
++				 SPU_DECR_STATUS_WRAPPED;
++		}
++
+ 		csa->lscsa->decr.slot[0] -= delta_time;
++	} else {
++		csa->lscsa->decr_status.slot[0] = 0;
+ 	}
  }
  
- static u64 __spufs_decr_status_get(void *data)
- {
- 	struct spu_context *ctx = data;
--	struct spu_lscsa *lscsa = ctx->csa.lscsa;
--	return lscsa->decr_status.slot[0];
-+	if (ctx->csa.priv2.mfc_control_RW & MFC_CNTL_DECREMENTER_RUNNING)
-+		return SPU_DECR_STATUS_RUNNING;
-+	else
-+		return 0;
- }
+@@ -1544,10 +1552,10 @@ static inline void restore_decr_wrapped(
+ 	 *     "wrapped" flag is set, OR in a '1' to
+ 	 *     CSA.SPU_Event_Status[Tm].
+ 	 */
+-	if (csa->lscsa->decr_status.slot[0] == 1) {
++	if (csa->lscsa->decr_status.slot[0] & SPU_DECR_STATUS_WRAPPED) {
+ 		csa->spu_chnldata_RW[0] |= 0x20;
+ 	}
+-	if ((csa->lscsa->decr_status.slot[0] == 1) &&
++	if ((csa->lscsa->decr_status.slot[0] & SPU_DECR_STATUS_WRAPPED) &&
+ 	    (csa->spu_chnlcnt_RW[0] == 0 &&
+ 	     ((csa->spu_chnldata_RW[2] & 0x20) == 0x0) &&
+ 	     ((csa->spu_chnldata_RW[0] & 0x20) != 0x1))) {
+diff -puN include/asm-powerpc/spu_csa.h~spufs-fix-decr_status-meanings include/asm-powerpc/spu_csa.h
+--- a/include/asm-powerpc/spu_csa.h~spufs-fix-decr_status-meanings
++++ a/include/asm-powerpc/spu_csa.h
+@@ -50,6 +50,12 @@
+ #define SPU_STOPPED_STATUS_P_I  8
+ #define SPU_STOPPED_STATUS_R    9
  
- static u64 spufs_decr_status_get(void *data)
++/*
++ * Definitions for software decrementer status flag.
++ */
++#define SPU_DECR_STATUS_RUNNING 0x1
++#define SPU_DECR_STATUS_WRAPPED 0x2
++
+ #ifndef  __ASSEMBLY__
+ /**
+  * spu_reg128 - generic 128-bit register definition.
+@@ -63,7 +69,7 @@ struct spu_reg128 {
+  * @gprs: Array of saved registers.
+  * @fpcr: Saved floating point status control register.
+  * @decr: Saved decrementer value.
+- * @decr_status: Indicates decrementer run status.
++ * @decr_status: Indicates software decrementer status flags.
+  * @ppu_mb: Saved PPU mailbox data.
+  * @ppuint_mb: Saved PPU interrupting mailbox data.
+  * @tag_mask: Saved tag group mask.
 _
 
 Patches currently in -mm which might be from Masato.Noguchi@jp.sony.com are
