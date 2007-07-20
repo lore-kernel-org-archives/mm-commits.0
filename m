@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + task-containersv11-add-container_clone-interface.patch added to -mm tree
-Date: Fri, 20 Jul 2007 13:36:47 -0700
-Message-ID: <200707202036.l6KKalCi015157@imap1.linux-foundation.org>
+Subject: + task-containersv11-add-procfs-interface.patch added to -mm tree
+Date: Fri, 20 Jul 2007 13:36:49 -0700
+Message-ID: <200707202036.l6KKaneI015161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58204 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52292 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755055AbXGTUqI (ORCPT
+	by vger.kernel.org with ESMTP id S1755511AbXGTUqh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:46:08 -0400
+	Fri, 20 Jul 2007 16:46:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: menage@google.com, balbir@in.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiede
 
 
 The patch titled
-     Task Containers:  add container_clone() interface
+     Task Containers:  add procfs interface
 has been added to the -mm tree.  Its filename is
-     task-containersv11-add-container_clone-interface.patch
+     task-containersv11-add-procfs-interface.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,13 +26,14 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Task Containers:  add container_clone() interface
+Subject: Task Containers:  add procfs interface
 From: Paul Menage <menage@google.com>
 
-Add support for container_clone(), a way to create new containers intended to
-be used for systems such as namespace unsharing.  A new subsystem callback,
-post_clone(), is added to allow subsystems to automatically configure cloned
-containers.
+Add:
+
+/proc/containers - general system info
+
+/proc/*/container - per-task container membership info
 
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: Serge E. Hallyn <serue@us.ibm.com>
@@ -47,190 +48,221 @@ Cc: Cedric Le Goater <clg@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/containers.txt |    7 +
- include/linux/container.h    |    3 
- kernel/container.c           |  135 +++++++++++++++++++++++++++++++++
- 3 files changed, 145 insertions(+)
+ fs/proc/base.c            |    7 +
+ include/linux/container.h |    2 
+ kernel/container.c        |  132 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 141 insertions(+)
 
-diff -puN Documentation/containers.txt~task-containersv11-add-container_clone-interface Documentation/containers.txt
---- a/Documentation/containers.txt~task-containersv11-add-container_clone-interface
-+++ a/Documentation/containers.txt
-@@ -504,6 +504,13 @@ include/linux/container.h for details). 
- method can return an error code, the error code is currently not
- always handled well.
- 
-+void post_clone(struct container_subsys *ss, struct container *cont)
-+
-+Called at the end of container_clone() to do any paramater
-+initialization which might be required before a task could attach.  For
-+example in cpusets, no task may attach before 'cpus' and 'mems' are set
-+up.
-+
- void bind(struct container_subsys *ss, struct container *root)
- LL=callback_mutex
- 
-diff -puN include/linux/container.h~task-containersv11-add-container_clone-interface include/linux/container.h
---- a/include/linux/container.h~task-containersv11-add-container_clone-interface
+diff -puN fs/proc/base.c~task-containersv11-add-procfs-interface fs/proc/base.c
+--- a/fs/proc/base.c~task-containersv11-add-procfs-interface
++++ a/fs/proc/base.c
+@@ -67,6 +67,7 @@
+ #include <linux/mount.h>
+ #include <linux/security.h>
+ #include <linux/ptrace.h>
++#include <linux/container.h>
+ #include <linux/cpuset.h>
+ #include <linux/audit.h>
+ #include <linux/poll.h>
+@@ -2051,6 +2052,9 @@ static const struct pid_entry tgid_base_
+ #ifdef CONFIG_CPUSETS
+ 	REG("cpuset",     S_IRUGO, cpuset),
+ #endif
++#ifdef CONFIG_CONTAINERS
++	REG("container",  S_IRUGO, container),
++#endif
+ 	INF("oom_score",  S_IRUGO, oom_score),
+ 	REG("oom_adj",    S_IRUGO|S_IWUSR, oom_adjust),
+ #ifdef CONFIG_AUDITSYSCALL
+@@ -2340,6 +2344,9 @@ static const struct pid_entry tid_base_s
+ #ifdef CONFIG_CPUSETS
+ 	REG("cpuset",    S_IRUGO, cpuset),
+ #endif
++#ifdef CONFIG_CONTAINERS
++	REG("container",  S_IRUGO, container),
++#endif
+ 	INF("oom_score", S_IRUGO, oom_score),
+ 	REG("oom_adj",   S_IRUGO|S_IWUSR, oom_adjust),
+ #ifdef CONFIG_AUDITSYSCALL
+diff -puN include/linux/container.h~task-containersv11-add-procfs-interface include/linux/container.h
+--- a/include/linux/container.h~task-containersv11-add-procfs-interface
 +++ a/include/linux/container.h
-@@ -174,6 +174,7 @@ struct container_subsys {
- 	void (*exit)(struct container_subsys *ss, struct task_struct *task);
- 	int (*populate)(struct container_subsys *ss,
- 			struct container *cont);
-+	void (*post_clone)(struct container_subsys *ss, struct container *cont);
- 	void (*bind)(struct container_subsys *ss, struct container *root);
- 	int subsys_id;
- 	int active;
-@@ -213,6 +214,8 @@ static inline struct container* task_con
+@@ -29,6 +29,8 @@ extern void container_fork(struct task_s
+ extern void container_fork_callbacks(struct task_struct *p);
+ extern void container_exit(struct task_struct *p, int run_callbacks);
  
- int container_path(const struct container *cont, char *buf, int buflen);
- 
-+int container_clone(struct task_struct *tsk, struct container_subsys *ss);
++extern struct file_operations proc_container_operations;
 +
- #else /* !CONFIG_CONTAINERS */
- 
- static inline int container_init_early(void) { return 0; }
-diff -puN kernel/container.c~task-containersv11-add-container_clone-interface kernel/container.c
---- a/kernel/container.c~task-containersv11-add-container_clone-interface
+ /* Per-subsystem/per-container state maintained by the system. */
+ struct container_subsys_state {
+ 	/* The container that this subsystem is attached to. Useful
+diff -puN kernel/container.c~task-containersv11-add-procfs-interface kernel/container.c
+--- a/kernel/container.c~task-containersv11-add-procfs-interface
 +++ a/kernel/container.c
-@@ -1675,3 +1675,138 @@ void container_exit(struct task_struct *
- 	tsk->containers = init_task.containers;
- 	task_unlock(tsk);
+@@ -33,6 +33,7 @@
+ #include <linux/mutex.h>
+ #include <linux/mount.h>
+ #include <linux/pagemap.h>
++#include <linux/proc_fs.h>
+ #include <linux/rcupdate.h>
+ #include <linux/sched.h>
+ #include <linux/seq_file.h>
+@@ -247,6 +248,7 @@ static int container_mkdir(struct inode 
+ static int container_rmdir(struct inode *unused_dir, struct dentry *dentry);
+ static int container_populate_dir(struct container *cont);
+ static struct inode_operations container_dir_inode_operations;
++static struct file_operations proc_containerstats_operations;
+ 
+ static struct inode *container_new_inode(mode_t mode, struct super_block *sb)
+ {
+@@ -1567,6 +1569,7 @@ int __init container_init(void)
+ {
+ 	int err;
+ 	int i;
++	struct proc_dir_entry *entry;
+ 
+ 	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
+ 		struct container_subsys *ss = subsys[i];
+@@ -1578,10 +1581,139 @@ int __init container_init(void)
+ 	if (err < 0)
+ 		goto out;
+ 
++	entry = create_proc_entry("containers", 0, NULL);
++	if (entry)
++		entry->proc_fops = &proc_containerstats_operations;
++
+ out:
+ 	return err;
  }
-+
-+/**
-+ * container_clone - duplicate the current container in the hierarchy
-+ * that the given subsystem is attached to, and move this task into
-+ * the new child
-+ */
-+int container_clone(struct task_struct *tsk, struct container_subsys *subsys)
-+{
-+	struct dentry *dentry;
-+	int ret = 0;
-+	char nodename[MAX_CONTAINER_TYPE_NAMELEN];
-+	struct container *parent, *child;
-+	struct inode *inode;
-+	struct css_group *cg;
-+	struct containerfs_root *root;
-+	struct container_subsys *ss;
-+
-+	/* We shouldn't be called by an unregistered subsystem */
-+	BUG_ON(!subsys->active);
-+
-+	/* First figure out what hierarchy and container we're dealing
-+	 * with, and pin them so we can drop container_mutex */
-+	mutex_lock(&container_mutex);
-+ again:
-+	root = subsys->root;
-+	if (root == &rootnode) {
-+		printk(KERN_INFO
-+		       "Not cloning container for unused subsystem %s\n",
-+		       subsys->name);
-+		mutex_unlock(&container_mutex);
-+		return 0;
-+	}
-+	cg = &tsk->containers;
-+	parent = task_container(tsk, subsys->subsys_id);
-+
-+	snprintf(nodename, MAX_CONTAINER_TYPE_NAMELEN, "node_%d", tsk->pid);
-+
-+	/* Pin the hierarchy */
-+	atomic_inc(&parent->root->sb->s_active);
-+
-+	mutex_unlock(&container_mutex);
-+
-+	/* Now do the VFS work to create a container */
-+	inode = parent->dentry->d_inode;
-+
-+	/* Hold the parent directory mutex across this operation to
-+	 * stop anyone else deleting the new container */
-+	mutex_lock(&inode->i_mutex);
-+	dentry = container_get_dentry(parent->dentry, nodename);
-+	if (IS_ERR(dentry)) {
-+		printk(KERN_INFO
-+		       "Couldn't allocate dentry for %s: %ld\n", nodename,
-+		       PTR_ERR(dentry));
-+		ret = PTR_ERR(dentry);
-+		goto out_release;
-+	}
-+
-+	/* Create the container directory, which also creates the container */
-+	ret = vfs_mkdir(inode, dentry, S_IFDIR | 0755);
-+	child = __d_cont(dentry);
-+	dput(dentry);
-+	if (ret) {
-+		printk(KERN_INFO
-+		       "Failed to create container %s: %d\n", nodename,
-+		       ret);
-+		goto out_release;
-+	}
-+
-+	if (!child) {
-+		printk(KERN_INFO
-+		       "Couldn't find new container %s\n", nodename);
-+		ret = -ENOMEM;
-+		goto out_release;
-+	}
-+
-+	/* The container now exists. Retake container_mutex and check
-+	 * that we're still in the same state that we thought we
-+	 * were. */
-+	mutex_lock(&container_mutex);
-+	if ((root != subsys->root) ||
-+	    (parent != task_container(tsk, subsys->subsys_id))) {
-+		/* Aargh, we raced ... */
-+		mutex_unlock(&inode->i_mutex);
-+
-+		deactivate_super(parent->root->sb);
-+		/* The container is still accessible in the VFS, but
-+		 * we're not going to try to rmdir() it at this
-+		 * point. */
-+		printk(KERN_INFO
-+		       "Race in container_clone() - leaking container %s\n",
-+		       nodename);
-+		goto again;
-+	}
-+
-+	/* do any required auto-setup */
-+	for_each_subsys(root, ss) {
-+		if (ss->post_clone)
-+			ss->post_clone(ss, child);
-+	}
-+
-+	/* All seems fine. Finish by moving the task into the new container */
-+	ret = attach_task(child, tsk);
-+	mutex_unlock(&container_mutex);
-+
-+ out_release:
-+	mutex_unlock(&inode->i_mutex);
-+	deactivate_super(parent->root->sb);
-+	return ret;
-+}
-+
+ 
 +/*
-+ * See if "cont" is a descendant of the current task's container in
-+ * the appropriate hierarchy
-+ *
-+ * If we are sending in dummytop, then presumably we are creating
-+ * the top container in the subsystem.
-+ *
-+ * Called only by the ns (nsproxy) container.
++ * proc_container_show()
++ *  - Print task's container paths into seq_file, one line for each hierarchy
++ *  - Used for /proc/<pid>/container.
++ *  - No need to task_lock(tsk) on this tsk->container reference, as it
++ *    doesn't really matter if tsk->container changes after we read it,
++ *    and we take container_mutex, keeping attach_task() from changing it
++ *    anyway.  No need to check that tsk->container != NULL, thanks to
++ *    the_top_container_hack in container_exit(), which sets an exiting tasks
++ *    container to top_container.
 + */
-+int container_is_descendant(const struct container *cont)
++
++/* TODO: Use a proper seq_file iterator */
++static int proc_container_show(struct seq_file *m, void *v)
 +{
-+	int ret;
-+	struct container *target;
-+	int subsys_id;
++	struct pid *pid;
++	struct task_struct *tsk;
++	char *buf;
++	int retval;
++	struct containerfs_root *root;
 +
-+	if (cont == dummytop)
-+		return 1;
++	retval = -ENOMEM;
++	buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!buf)
++		goto out;
 +
-+	get_first_subsys(cont, NULL, &subsys_id);
-+	target = task_container(current, subsys_id);
-+	while (cont != target && cont!= cont->top_container)
-+		cont = cont->parent;
-+	ret = (cont == target);
-+	return ret;
++	retval = -ESRCH;
++	pid = m->private;
++	tsk = get_pid_task(pid, PIDTYPE_PID);
++	if (!tsk)
++		goto out_free;
++
++	retval = 0;
++
++	mutex_lock(&container_mutex);
++
++	for_each_root(root) {
++		struct container_subsys *ss;
++		struct container *cont;
++		int subsys_id;
++		int count = 0;
++
++		/* Skip this hierarchy if it has no active subsystems */
++		if (!root->actual_subsys_bits)
++			continue;
++		for_each_subsys(root, ss)
++			seq_printf(m, "%s%s", count++ ? "," : "", ss->name);
++		seq_putc(m, ':');
++		get_first_subsys(&root->top_container, NULL, &subsys_id);
++		cont = task_container(tsk, subsys_id);
++		retval = container_path(cont, buf, PAGE_SIZE);
++		if (retval < 0)
++			goto out_unlock;
++		seq_puts(m, buf);
++		seq_putc(m, '\n');
++	}
++
++out_unlock:
++	mutex_unlock(&container_mutex);
++	put_task_struct(tsk);
++out_free:
++	kfree(buf);
++out:
++	return retval;
 +}
++
++static int container_open(struct inode *inode, struct file *file)
++{
++	struct pid *pid = PROC_I(inode)->pid;
++	return single_open(file, proc_container_show, pid);
++}
++
++struct file_operations proc_container_operations = {
++	.open		= container_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++/* Display information about each subsystem and each hierarchy */
++static int proc_containerstats_show(struct seq_file *m, void *v)
++{
++	int i;
++	struct containerfs_root *root;
++
++	mutex_lock(&container_mutex);
++	seq_puts(m, "Hierarchies:\n");
++	for_each_root(root) {
++		struct container_subsys *ss;
++		int first = 1;
++		seq_printf(m, "%p: bits=%lx containers=%d (", root,
++			   root->subsys_bits, root->number_of_containers);
++		for_each_subsys(root, ss) {
++			seq_printf(m, "%s%s", first ? "" : ", ", ss->name);
++			first = false;
++		}
++		seq_putc(m, ')');
++		if (root->sb) {
++			seq_printf(m, " s_active=%d",
++				   atomic_read(&root->sb->s_active));
++		}
++		seq_putc(m, '\n');
++	}
++	seq_puts(m, "Subsystems:\n");
++	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
++		struct container_subsys *ss = subsys[i];
++		seq_printf(m, "%d: name=%s hierarchy=%p\n",
++			   i, ss->name, ss->root);
++	}
++	mutex_unlock(&container_mutex);
++	return 0;
++}
++
++static int containerstats_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, proc_containerstats_show, 0);
++}
++
++static struct file_operations proc_containerstats_operations = {
++	.open = containerstats_open,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++
+ /**
+  * container_fork - attach newly forked task to its parents container.
+  * @tsk: pointer to task_struct of forking parent process.
 _
 
 Patches currently in -mm which might be from menage@google.com are
