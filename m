@@ -1,129 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - add-containerstats-v3-fix.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:30:07 -0700
-Message-ID: <200707202030.l6KKU7wM014927@imap1.linux-foundation.org>
+Subject: - containersv10-support-for-automatic-userspace-release-agents-whitespace.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 13:30:01 -0700
+Message-ID: <200707202030.l6KKU1HM014921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50302 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43259 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760313AbXGTUfp (ORCPT
+	by vger.kernel.org with ESMTP id S933811AbXGTUgq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:35:45 -0400
+	Fri, 20 Jul 2007 16:36:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, menage@google.com, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-containerstats-v3-fix
+     trivial whitespace fixes in kernel/container.c
 has been removed from the -mm tree.  Its filename was
-     add-containerstats-v3-fix.patch
+     containersv10-support-for-automatic-userspace-release-agents-whitespace.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: add-containerstats-v3-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: trivial whitespace fixes in kernel/container.c
+From: Daniel Walker <dwalker@mvista.com>
 
-kernel/taskstats.c: In function 'containerstats_user_cmd':
-kernel/taskstats.c:414: error: dereferencing pointer to incomplete type
-
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Cc: Paul Menage <menage@google.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/container.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN kernel/taskstats.c~add-containerstats-v3-fix kernel/taskstats.c
---- a/kernel/taskstats.c~add-containerstats-v3-fix
-+++ a/kernel/taskstats.c
-@@ -25,6 +25,7 @@
- #include <linux/percpu.h>
- #include <linux/containerstats.h>
- #include <linux/container.h>
-+#include <linux/fs.h>
- #include <linux/file.h>
- #include <net/genetlink.h>
- #include <asm/atomic.h>
+diff -puN kernel/container.c~containersv10-support-for-automatic-userspace-release-agents-whitespace kernel/container.c
+--- a/kernel/container.c~containersv10-support-for-automatic-userspace-release-agents-whitespace
++++ a/kernel/container.c
+@@ -1760,7 +1760,7 @@ static int container_populate_dir(struct
+ 	container_clear_directory(cont->dentry);
+ 
+ 	err = container_add_files(cont, files, ARRAY_SIZE(files));
+-     	if (err < 0)
++	if (err < 0)
+ 		return err;
+ 
+ 	if (cont == cont->top_container) {
+@@ -1988,15 +1988,15 @@ static void container_init_subsys(struct
+  	/* If this subsystem requested that it be notified with fork
+  	 * events, we should send it one now for every process in the
+  	 * system */
+- 	if (ss->fork) {
+- 		struct task_struct *g, *p;
++	if (ss->fork) {
++		struct task_struct *g, *p;
+ 
+- 		read_lock(&tasklist_lock);
+- 		do_each_thread(g, p) {
+- 			ss->fork(ss, p);
+- 		} while_each_thread(g, p);
+- 		read_unlock(&tasklist_lock);
+- 	}
++		read_lock(&tasklist_lock);
++		do_each_thread(g, p) {
++			ss->fork(ss, p);
++		} while_each_thread(g, p);
++		read_unlock(&tasklist_lock);
++	}
+ 
+ 	need_forkexit_callback |= ss->fork || ss->exit;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-origin.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-dvb.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mtd.patch
-mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-git-scsi-misc.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-clockevents-fix-resume-logic-xen-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-xfs-fixup.patch
-git-kgdb-fixup-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+containersv10-support-for-automatic-userspace-release-agents-whitespace.patch
+profile-likely-unlikely-macros.patch
