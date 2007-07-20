@@ -1,146 +1,300 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fix.patch added to -mm tree
-Date: Fri, 20 Jul 2007 00:23:13 -0700
-Message-ID: <200707200727.l6K7Rffo013567@imap1.linux-foundation.org>
+Subject: - udf-coding-style-conversion-lindent-fixups-2.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 09:03:17 -0700
+Message-ID: <200707201603.l6KG3HQX004375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50579 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58114 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757160AbXGTH21 (ORCPT
+	by vger.kernel.org with ESMTP id S1765900AbXGTQD4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 03:28:27 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6K7Rk8e013977
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 20 Jul 2007 00:27:47 -0700
+	Fri, 20 Jul 2007 12:03:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: gorcunov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-fix
-has been added to the -mm tree.  Its filename is
-     git-block-fix.patch
+     UDF: coding style conversion - lindent fixups 2
+has been removed from the -mm tree.  Its filename was
+     udf-coding-style-conversion-lindent-fixups-2.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into udf-coding-style-conversion-lindent-fixups.patch
 
 ------------------------------------------------------
-Subject: git-block-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: UDF: coding style conversion - lindent fixups 2
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
+This patch fixes sources were converted to kernel coding style by Lindent
+for first and then by hands.  But some messed things were accidentally
+skipped.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-taskfile.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/udf/inode.c    |   14 +++--
+ fs/udf/truncate.c |  109 ++++++++++++++------------------------------
+ 2 files changed, 45 insertions(+), 78 deletions(-)
 
-diff -puN drivers/ide/ide-taskfile.c~git-block-fix drivers/ide/ide-taskfile.c
---- a/drivers/ide/ide-taskfile.c~git-block-fix
-+++ a/drivers/ide/ide-taskfile.c
-@@ -41,6 +41,7 @@
- #include <linux/blkpg.h>
- #include <linux/slab.h>
- #include <linux/pci.h>
-+#include <linux/scatterlist.h>
- #include <linux/delay.h>
- #include <linux/hdreg.h>
- #include <linux/ide.h>
+diff -puN fs/udf/inode.c~udf-coding-style-conversion-lindent-fixups-2 fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-coding-style-conversion-lindent-fixups-2
++++ a/fs/udf/inode.c
+@@ -1101,7 +1101,8 @@ static void udf_fill_inode(struct inode 
+ 			make_bad_inode(inode);
+ 			return;
+ 		}
+-		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry), inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
++		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry),
++		       inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
+ 	} else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_FE) {
+ 		UDF_I_EFE(inode) = 0;
+ 		UDF_I_USE(inode) = 0;
+@@ -1803,7 +1804,8 @@ int8_t udf_current_aext(struct inode * i
+ 		if (!epos->offset)
+ 			epos->offset = sizeof(struct allocExtDesc);
+ 		ptr = epos->bh->b_data + epos->offset;
+-		alen = sizeof(struct allocExtDesc) + le32_to_cpu(((struct allocExtDesc *)epos->bh->b_data)->lengthAllocDescs);
++		alen = sizeof(struct allocExtDesc) +
++			le32_to_cpu(((struct allocExtDesc *)epos->bh->b_data)->lengthAllocDescs);
+ 	}
+ 
+ 	switch (UDF_I_ALLOCTYPE(inode)) {
+@@ -1830,9 +1832,8 @@ int8_t udf_current_aext(struct inode * i
+ 	return etype;
+ }
+ 
+-static int8_t
+-udf_insert_aext(struct inode *inode, struct extent_position epos,
+-		kernel_lb_addr neloc, uint32_t nelen)
++static int8_t udf_insert_aext(struct inode *inode, struct extent_position epos,
++			      kernel_lb_addr neloc, uint32_t nelen)
+ {
+ 	kernel_lb_addr oeloc;
+ 	uint32_t oelen;
+@@ -1916,7 +1917,8 @@ int8_t udf_delete_aext(struct inode * in
+ 			aed = (struct allocExtDesc *)oepos.bh->b_data;
+ 			aed->lengthAllocDescs =
+ 				cpu_to_le32(le32_to_cpu(aed->lengthAllocDescs) - adsize);
+-			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
++			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) ||
++			    UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
+ 				udf_update_tag(oepos.bh->b_data, epos.offset - adsize);
+ 			else
+ 				udf_update_tag(oepos.bh->b_data, sizeof(struct allocExtDesc));
+diff -puN fs/udf/truncate.c~udf-coding-style-conversion-lindent-fixups-2 fs/udf/truncate.c
+--- a/fs/udf/truncate.c~udf-coding-style-conversion-lindent-fixups-2
++++ a/fs/udf/truncate.c
+@@ -33,12 +33,10 @@ static void extent_trunc(struct inode *i
+ 			 uint32_t nelen)
+ {
+ 	kernel_lb_addr neloc = {};
+-	int last_block =
+-	    (elen + inode->i_sb->s_blocksize -
+-	     1) >> inode->i_sb->s_blocksize_bits;
+-	int first_block =
+-	    (nelen + inode->i_sb->s_blocksize -
+-	     1) >> inode->i_sb->s_blocksize_bits;
++	int last_block = (elen + inode->i_sb->s_blocksize - 1) >>
++		inode->i_sb->s_blocksize_bits;
++	int first_block = (nelen + inode->i_sb->s_blocksize - 1) >>
++		inode->i_sb->s_blocksize_bits;
+ 
+ 	if (nelen) {
+ 		if (etype == (EXT_NOT_RECORDED_ALLOCATED >> 30)) {
+@@ -156,16 +154,16 @@ void udf_discard_prealloc(struct inode *
+ 		extent_trunc(inode, &epos, eloc, etype, elen, 0);
+ 		if (!epos.bh) {
+ 			UDF_I_LENALLOC(inode) =
+-			    epos.offset - udf_file_entry_alloc_offset(inode);
++				epos.offset - udf_file_entry_alloc_offset(inode);
+ 			mark_inode_dirty(inode);
+ 		} else {
+ 			struct allocExtDesc *aed =
+-			    (struct allocExtDesc *)(epos.bh->b_data);
++				(struct allocExtDesc *)(epos.bh->b_data);
+ 			aed->lengthAllocDescs =
+-			    cpu_to_le32(epos.offset -
+-					sizeof(struct allocExtDesc));
+-			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT)
+-			    || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
++				cpu_to_le32(epos.offset -
++					    sizeof(struct allocExtDesc));
++			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) ||
++			    UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
+ 				udf_update_tag(epos.bh->b_data, epos.offset);
+ 			else
+ 				udf_update_tag(epos.bh->b_data,
+@@ -182,7 +180,7 @@ void udf_discard_prealloc(struct inode *
+ void udf_truncate_extents(struct inode *inode)
+ {
+ 	struct extent_position epos;
+-	kernel_lb_addr eloc, neloc = { 0, 0 };
++	kernel_lb_addr eloc, neloc = {};
+ 	uint32_t elen, nelen = 0, indirect_ext_len = 0, lenalloc;
+ 	int8_t etype;
+ 	struct super_block *sb = inode->i_sb;
+@@ -198,9 +196,8 @@ void udf_truncate_extents(struct inode *
+ 		BUG();
+ 
+ 	etype = inode_bmap(inode, first_block, &epos, &eloc, &elen, &offset);
+-	byte_offset =
+-	    (offset << sb->s_blocksize_bits) +
+-	    (inode->i_size & (sb->s_blocksize - 1));
++	byte_offset = (offset << sb->s_blocksize_bits) +
++		(inode->i_size & (sb->s_blocksize - 1));
+ 	if (etype != -1) {
+ 		epos.offset -= adsize;
+ 		extent_trunc(inode, &epos, eloc, etype, elen, byte_offset);
+@@ -215,9 +212,7 @@ void udf_truncate_extents(struct inode *
+ 		else
+ 			lenalloc -= sizeof(struct allocExtDesc);
+ 
+-		while ((etype =
+-			udf_current_aext(inode, &epos, &eloc, &elen,
+-					 0)) != -1) {
++		while ((etype = udf_current_aext(inode, &epos, &eloc, &elen, 0)) != -1) {
+ 			if (etype == (EXT_NEXT_EXTENT_ALLOCDECS >> 30)) {
+ 				udf_write_aext(inode, &epos, neloc, nelen, 0);
+ 				if (indirect_ext_len) {
+@@ -229,52 +224,35 @@ void udf_truncate_extents(struct inode *
+ 							0, indirect_ext_len);
+ 				} else {
+ 					if (!epos.bh) {
+-						UDF_I_LENALLOC(inode) =
+-						    lenalloc;
++						UDF_I_LENALLOC(inode) = lenalloc;
+ 						mark_inode_dirty(inode);
+ 					} else {
+ 						struct allocExtDesc *aed =
+-						    (struct allocExtDesc
+-						     *)(epos.bh->b_data);
++							(struct allocExtDesc *)(epos.bh->b_data);
+ 						aed->lengthAllocDescs =
+ 						    cpu_to_le32(lenalloc);
+-						if (!UDF_QUERY_FLAG
+-						    (sb, UDF_FLAG_STRICT)
+-						    || UDF_SB_UDFREV(sb) >=
+-						    0x0201)
+-							udf_update_tag(epos.bh->
+-								       b_data,
+-								       lenalloc
+-								       +
+-								       sizeof
+-								       (struct
+-									allocExtDesc));
++						if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) ||
++						    UDF_SB_UDFREV(sb) >= 0x0201)
++							udf_update_tag(epos.bh->b_data,
++								       lenalloc +
++								       sizeof(struct allocExtDesc));
+ 						else
+-							udf_update_tag(epos.bh->
+-								       b_data,
+-								       sizeof
+-								       (struct
+-									allocExtDesc));
+-						mark_buffer_dirty_inode(epos.bh,
+-									inode);
++							udf_update_tag(epos.bh->b_data,
++								       sizeof(struct allocExtDesc));
++						mark_buffer_dirty_inode(epos.bh, inode);
+ 					}
+ 				}
+ 				brelse(epos.bh);
+ 				epos.offset = sizeof(struct allocExtDesc);
+ 				epos.block = eloc;
+-				epos.bh =
+-				    udf_tread(sb,
+-					      udf_get_lb_pblock(sb, eloc, 0));
++				epos.bh = udf_tread(sb, udf_get_lb_pblock(sb, eloc, 0));
+ 				if (elen)
+-					indirect_ext_len = (elen +
+-							    sb->s_blocksize -
+-							    1) >> sb->
+-					    s_blocksize_bits;
++					indirect_ext_len = (elen + sb->s_blocksize -1) >>
++						sb->s_blocksize_bits;
+ 				else
+ 					indirect_ext_len = 1;
+ 			} else {
+-				extent_trunc(inode, &epos, eloc, etype, elen,
+-					     0);
++				extent_trunc(inode, &epos, eloc, etype, elen, 0);
+ 				epos.offset += adsize;
+ 			}
+ 		}
+@@ -292,16 +270,13 @@ void udf_truncate_extents(struct inode *
+ 				struct allocExtDesc *aed =
+ 				    (struct allocExtDesc *)(epos.bh->b_data);
+ 				aed->lengthAllocDescs = cpu_to_le32(lenalloc);
+-				if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT)
+-				    || UDF_SB_UDFREV(sb) >= 0x0201)
++				if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) ||
++				    UDF_SB_UDFREV(sb) >= 0x0201)
+ 					udf_update_tag(epos.bh->b_data,
+-						       lenalloc +
+-						       sizeof(struct
+-							      allocExtDesc));
++						       lenalloc + sizeof(struct allocExtDesc));
+ 				else
+ 					udf_update_tag(epos.bh->b_data,
+-						       sizeof(struct
+-							      allocExtDesc));
++						       sizeof(struct allocExtDesc));
+ 				mark_buffer_dirty_inode(epos.bh, inode);
+ 			}
+ 		}
+@@ -314,21 +289,14 @@ void udf_truncate_extents(struct inode *
+ 			 *  no extent above inode->i_size => truncate is
+ 			 *  extending the file by 'offset' blocks.
+ 			 */
+-			if ((!epos.bh
+-			     && epos.offset ==
+-			     udf_file_entry_alloc_offset(inode)) || (epos.bh
+-								     && epos.
+-								     offset ==
+-								     sizeof
+-								     (struct
+-								      allocExtDesc)))
+-			{
++			if ((!epos.bh &&
++			     epos.offset == udf_file_entry_alloc_offset(inode)) ||
++			    (epos.bh && epos.offset == sizeof(struct allocExtDesc))) {
+ 				/* File has no extents at all or has empty last
+ 				 * indirect extent! Create a fake extent... */
+ 				extent.extLocation.logicalBlockNum = 0;
+ 				extent.extLocation.partitionReferenceNum = 0;
+-				extent.extLength =
+-				    EXT_NOT_RECORDED_NOT_ALLOCATED;
++				extent.extLength = EXT_NOT_RECORDED_NOT_ALLOCATED;
+ 			} else {
+ 				epos.offset -= adsize;
+ 				etype = udf_next_aext(inode, &epos,
+@@ -337,10 +305,7 @@ void udf_truncate_extents(struct inode *
+ 				extent.extLength |= etype << 30;
+ 			}
+ 			udf_extend_file(inode, &epos, &extent,
+-					offset +
+-					((inode->
+-					  i_size & (sb->s_blocksize - 1)) !=
+-					 0));
++					offset + ((inode->i_size & (sb->s_blocksize - 1)) != 0));
+ 		}
+ 	}
+ 	UDF_I_LENEXTENTS(inode) = inode->i_size;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-async_tx-fix-kmap_atomic-usage-in-async_memcpy.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
+udf-coding-style-conversion-lindent-fixups.patch
+udf-coding-style-conversion-lindent-fixups-2.patch
+sky-cpu-and-nexus-code-style-improvement.patch
+sky-cpu-and-nexus-include-ioh.patch
+sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
+sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
+sky-cpu-use-c99-style-for-struct-init.patch
+sky-cpu-and-nexus-get-rid-of-useless-null-init.patch
+sky-cpu-and-nexus-use-seq_file-single_open-on-proc-interface.patch
 git-dvb.patch
-git-input.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-git-kvm.patch
-git-leds.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mtd.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-git-selinux-fixup.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-git-scsi-misc.patch
-aacraid-rename-check_reset.patch
-git-block-fix.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-clockevents-fix-resume-logic-xen-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-xfs-fixup.patch
-git-kgdb-fixup-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fix-swiotlb_sync_single_range.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
