@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + task-containersv11-shared-container-subsystem-group-arrays.patch added to -mm tree
-Date: Fri, 20 Jul 2007 13:36:51 -0700
-Message-ID: <200707202036.l6KKapkO015164@imap1.linux-foundation.org>
+Subject: + task-containersv11-automatic-userspace-notification-of-idle-containers.patch added to -mm tree
+Date: Fri, 20 Jul 2007 13:36:53 -0700
+Message-ID: <200707202036.l6KKaraj015167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37264 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55426 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932349AbXGTUi0 (ORCPT
+	by vger.kernel.org with ESMTP id S934690AbXGTUib (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:38:26 -0400
+	Fri, 20 Jul 2007 16:38:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: menage@google.com, balbir@in.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiede
 
 
 The patch titled
-     Task Containers:  shared container subsystem group arrays
+     Task Containers:  automatic userspace notification of idle containers
 has been added to the -mm tree.  Its filename is
-     task-containersv11-shared-container-subsystem-group-arrays.patch
+     task-containersv11-automatic-userspace-notification-of-idle-containers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,18 +26,24 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Task Containers:  shared container subsystem group arrays
+Subject: Task Containers:  automatic userspace notification of idle containers
 From: Paul Menage <menage@google.com>
 
-Replace the struct css_group embedded in task_struct with a pointer; all tasks
-that have the same set of memberships across all hierarchies will share a
-css_group object, and will be linked via their css_groups field to the "tasks"
-list_head in the css_group.
+Add the following files to the container filesystem:
 
-Assuming that many tasks share the same container assignments, this reduces
-overall space usage and keeps the size of the task_struct down (three pointers
-added to task_struct compared to a non-containers kernel, no matter how many
-subsystems are registered).
+notify_on_release - configures/reports whether the container subsystem should
+attempt to run a release script when this container becomes unused
+
+release_agent - configures/reports the release agent to be used for this
+hierarchy (top level in each hierarchy only)
+
+releasable - reports whether this container would have been auto-released if
+notify_on_release was true and a release agent was configured (mainly useful
+for debugging)
+
+To avoid locking issues, invoking the userspace release agent is done via a
+workqueue task; containers that need to have their release agents invoked by
+the workqueue task are linked on to a list.
 
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: Serge E. Hallyn <serue@us.ibm.com>
@@ -52,1085 +58,728 @@ Cc: Cedric Le Goater <clg@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/containers.txt |   14 
- include/linux/container.h    |   89 ++++
- include/linux/sched.h        |   33 -
- kernel/container.c           |  606 ++++++++++++++++++++++++++++-----
- kernel/fork.c                |    1 
- 5 files changed, 620 insertions(+), 123 deletions(-)
+ include/linux/container.h |   11 
+ kernel/container.c        |  425 ++++++++++++++++++++++++++++++++----
+ 2 files changed, 393 insertions(+), 43 deletions(-)
 
-diff -puN Documentation/containers.txt~task-containersv11-shared-container-subsystem-group-arrays Documentation/containers.txt
---- a/Documentation/containers.txt~task-containersv11-shared-container-subsystem-group-arrays
-+++ a/Documentation/containers.txt
-@@ -176,7 +176,9 @@ Containers extends the kernel as follows
-    subsystem state is something that's expected to happen frequently
-    and in performance-critical code, whereas operations that require a
-    task's actual container assignments (in particular, moving between
--   containers) are less common.
-+   containers) are less common. A linked list runs through the cg_list
-+   field of each task_struct using the css_group, anchored at
-+   css_group->tasks.
- 
-  - A container hierarchy filesystem can be mounted  for browsing and
-    manipulation from user space.
-@@ -252,6 +254,16 @@ linear search to locate an appropriate e
- very efficient. A future version will use a hash table for better
- performance.
- 
-+To allow access from a container to the css_groups (and hence tasks)
-+that comprise it, a set of cg_container_link objects form a lattice;
-+each cg_container_link is linked into a list of cg_container_links for
-+a single container on its cont_link_list field, and a list of
-+cg_container_links for a single css_group on its cg_link_list.
-+
-+Thus the set of tasks in a container can be listed by iterating over
-+each css_group that references the container, and sub-iterating over
-+each css_group's task set.
-+
- The use of a Linux virtual file system (vfs) to represent the
- container hierarchy provides for a familiar permission and name space
- for containers, with a minimum of additional kernel code.
-diff -puN include/linux/container.h~task-containersv11-shared-container-subsystem-group-arrays include/linux/container.h
---- a/include/linux/container.h~task-containersv11-shared-container-subsystem-group-arrays
+diff -puN include/linux/container.h~task-containersv11-automatic-userspace-notification-of-idle-containers include/linux/container.h
+--- a/include/linux/container.h~task-containersv11-automatic-userspace-notification-of-idle-containers
 +++ a/include/linux/container.h
-@@ -27,10 +27,19 @@ extern void container_lock(void);
- extern void container_unlock(void);
- extern void container_fork(struct task_struct *p);
- extern void container_fork_callbacks(struct task_struct *p);
-+extern void container_post_fork(struct task_struct *p);
- extern void container_exit(struct task_struct *p, int run_callbacks);
+@@ -77,10 +77,11 @@ static inline void css_get(struct contai
+  * css_get()
+  */
  
- extern struct file_operations proc_container_operations;
- 
-+/* Define the enumeration of all container subsystems */
-+#define SUBSYS(_x) _x ## _subsys_id,
-+enum container_subsys_id {
-+#include <linux/container_subsys.h>
-+	CONTAINER_SUBSYS_COUNT
-+};
-+#undef SUBSYS
-+
- /* Per-subsystem/per-container state maintained by the system. */
- struct container_subsys_state {
- 	/* The container that this subsystem is attached to. Useful
-@@ -97,6 +106,52 @@ struct container {
- 
- 	struct containerfs_root *root;
- 	struct container *top_container;
-+
-+	/*
-+	 * List of cg_container_links pointing at css_groups with
-+	 * tasks in this container. Protected by css_group_lock
-+	 */
-+	struct list_head css_groups;
-+};
-+
-+/* A css_group is a structure holding pointers to a set of
-+ * container_subsys_state objects. This saves space in the task struct
-+ * object and speeds up fork()/exit(), since a single inc/dec and a
-+ * list_add()/del() can bump the reference count on the entire
-+ * container set for a task.
-+ */
-+
-+struct css_group {
-+
-+	/* Reference count */
-+	struct kref ref;
-+
-+	/*
-+	 * List running through all container groups. Protected by
-+	 * css_group_lock
-+	 */
-+	struct list_head list;
-+
-+	/*
-+	 * List running through all tasks using this container
-+	 * group. Protected by css_group_lock
-+	 */
-+	struct list_head tasks;
-+
-+	/*
-+	 * List of cg_container_link objects on link chains from
-+	 * containers referenced from this css_group. Protected by
-+	 * css_group_lock
-+	 */
-+	struct list_head cg_links;
-+
-+	/*
-+	 * Set of subsystem states, one for each subsystem. This array
-+	 * is immutable after creation apart from the init_css_group
-+	 * during subsystem registration (at boot time).
-+	 */
-+	struct container_subsys_state *subsys[CONTAINER_SUBSYS_COUNT];
-+
- };
- 
- /* struct cftype:
-@@ -149,15 +204,7 @@ int container_is_removed(const struct co
- 
- int container_path(const struct container *cont, char *buf, int buflen);
- 
--int __container_task_count(const struct container *cont);
--static inline int container_task_count(const struct container *cont)
--{
--	int task_count;
--	rcu_read_lock();
--	task_count = __container_task_count(cont);
--	rcu_read_unlock();
--	return task_count;
--}
-+int container_task_count(const struct container *cont);
- 
- /* Return true if the container is a descendant of the current container */
- int container_is_descendant(const struct container *cont);
-@@ -205,7 +252,7 @@ static inline struct container_subsys_st
- static inline struct container_subsys_state *task_subsys_state(
- 	struct task_struct *task, int subsys_id)
++extern void __css_put(struct container_subsys_state *css);
+ static inline void css_put(struct container_subsys_state *css)
  {
--	return rcu_dereference(task->containers.subsys[subsys_id]);
-+	return rcu_dereference(task->containers->subsys[subsys_id]);
+ 	if (!test_bit(CSS_ROOT, &css->flags))
+-		atomic_dec(&css->refcnt);
++		__css_put(css);
  }
  
- static inline struct container* task_container(struct task_struct *task,
-@@ -218,6 +265,27 @@ int container_path(const struct containe
+ struct container {
+@@ -112,6 +113,13 @@ struct container {
+ 	 * tasks in this container. Protected by css_group_lock
+ 	 */
+ 	struct list_head css_groups;
++
++	/*
++	 * Linked list running through all containers that can
++	 * potentially be reaped by the release agent. Protected by
++	 * release_list_lock
++	 */
++	struct list_head release_list;
+ };
  
- int container_clone(struct task_struct *tsk, struct container_subsys *ss);
+ /* A css_group is a structure holding pointers to a set of
+@@ -285,7 +293,6 @@ struct task_struct *container_iter_next(
+ 					struct container_iter *it);
+ void container_iter_end(struct container *cont, struct container_iter *it);
  
-+/* A container_iter should be treated as an opaque object */
-+struct container_iter {
-+	struct list_head *cg_link;
-+	struct list_head *task;
-+};
-+
-+/* To iterate across the tasks in a container:
-+ *
-+ * 1) call container_iter_start to intialize an iterator
-+ *
-+ * 2) call container_iter_next() to retrieve member tasks until it
-+ *    returns NULL or until you want to end the iteration
-+ *
-+ * 3) call container_iter_end() to destroy the iterator.
-+ */
-+void container_iter_start(struct container *cont, struct container_iter *it);
-+struct task_struct *container_iter_next(struct container *cont,
-+					struct container_iter *it);
-+void container_iter_end(struct container *cont, struct container_iter *it);
-+
-+
+-
  #else /* !CONFIG_CONTAINERS */
  
  static inline int container_init_early(void) { return 0; }
-@@ -225,6 +293,7 @@ static inline int container_init(void) {
- static inline void container_init_smp(void) {}
- static inline void container_fork(struct task_struct *p) {}
- static inline void container_fork_callbacks(struct task_struct *p) {}
-+static inline void container_post_fork(struct task_struct *p) {}
- static inline void container_exit(struct task_struct *p, int callbacks) {}
+diff -puN kernel/container.c~task-containersv11-automatic-userspace-notification-of-idle-containers kernel/container.c
+--- a/kernel/container.c~task-containersv11-automatic-userspace-notification-of-idle-containers
++++ a/kernel/container.c
+@@ -44,6 +44,8 @@
+ #include <linux/sort.h>
+ #include <asm/atomic.h>
  
- static inline void container_lock(void) {}
-diff -puN include/linux/sched.h~task-containersv11-shared-container-subsystem-group-arrays include/linux/sched.h
---- a/include/linux/sched.h~task-containersv11-shared-container-subsystem-group-arrays
-+++ a/include/linux/sched.h
-@@ -928,34 +928,6 @@ struct sched_entity {
- #endif
++static DEFINE_MUTEX(container_mutex);
++
+ /* Generate an array of container subsystem pointers */
+ #define SUBSYS(_x) &_x ## _subsys,
+ 
+@@ -82,6 +84,13 @@ struct containerfs_root {
+ 
+ 	/* Hierarchy-specific flags */
+ 	unsigned long flags;
++
++	/* The path to use for release notifications. No locking
++	 * between setting and use - so if userspace updates this
++	 * while subcontainers exist, you could miss a
++	 * notification. We ensure that it's always a valid
++	 * NUL-terminated string */
++	char release_agent_path[PATH_MAX];
  };
  
--#ifdef CONFIG_CONTAINERS
--
--#define SUBSYS(_x) _x ## _subsys_id,
--enum container_subsys_id {
--#include <linux/container_subsys.h>
--	CONTAINER_SUBSYS_COUNT
--};
--#undef SUBSYS
--
--/* A css_group is a structure holding pointers to a set of
-- * container_subsys_state objects.
-- */
--
--struct css_group {
--
--	/* Set of subsystem states, one for each subsystem. NULL for
--	 * subsystems that aren't part of this hierarchy. These
--	 * pointers reduce the number of dereferences required to get
--	 * from a task to its state for a given container, but result
--	 * in increased space usage if tasks are in wildly different
--	 * groupings across different hierarchies. This array is
--	 * immutable after creation */
--	struct container_subsys_state *subsys[CONTAINER_SUBSYS_COUNT];
--
--};
--
--#endif /* CONFIG_CONTAINERS */
--
- struct task_struct {
- 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
- 	void *stack;
-@@ -1193,7 +1165,10 @@ struct task_struct {
- 	int cpuset_mem_spread_rotor;
- #endif
- #ifdef CONFIG_CONTAINERS
--	struct css_group containers;
-+	/* Container info protected by css_group_lock */
-+	struct css_group *containers;
-+	/* cg_list protected by css_group_lock and tsk->alloc_lock */
-+	struct list_head cg_list;
- #endif
- 	struct robust_list_head __user *robust_list;
- #ifdef CONFIG_COMPAT
-diff -puN kernel/container.c~task-containersv11-shared-container-subsystem-group-arrays kernel/container.c
---- a/kernel/container.c~task-containersv11-shared-container-subsystem-group-arrays
-+++ a/kernel/container.c
-@@ -95,6 +95,7 @@ static struct containerfs_root rootnode;
- /* The list of hierarchy roots */
  
- static LIST_HEAD(roots);
-+static int root_count;
+@@ -109,7 +118,13 @@ static int need_forkexit_callback;
  
- /* dummytop is a shorthand for the dummy hierarchy's top container */
- #define dummytop (&rootnode.top_container)
-@@ -133,12 +134,49 @@ list_for_each_entry(_ss, &_root->subsys_
+ /* bits in struct container flags field */
+ enum {
++	/* Container is dead */
+ 	CONT_REMOVED,
++	/* Container has previously had a child container or a task,
++	 * but no longer (only if CONT_NOTIFY_ON_RELEASE is set) */
++	CONT_RELEASABLE,
++	/* Container requires release notifications to userspace */
++	CONT_NOTIFY_ON_RELEASE,
+ };
+ 
+ /* convenient tests for these bits */
+@@ -123,6 +138,19 @@ enum {
+ 	ROOT_NOPREFIX, /* mounted subsystems have no named prefix */
+ };
+ 
++inline int container_is_releasable(const struct container *cont)
++{
++	const int bits =
++		(1 << CONT_RELEASABLE) |
++		(1 << CONT_NOTIFY_ON_RELEASE);
++	return (cont->flags & bits) == bits;
++}
++
++inline int notify_on_release(const struct container *cont)
++{
++	return test_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
++}
++
+ /*
+  * for_each_subsys() allows you to iterate on each subsystem attached to
+  * an active hierarchy
+@@ -134,6 +162,14 @@ list_for_each_entry(_ss, &_root->subsys_
  #define for_each_root(_root) \
  list_for_each_entry(_root, &roots, root_list)
  
--/* Each task_struct has an embedded css_group, so the get/put
-- * operation simply takes a reference count on all the containers
-- * referenced by subsystems in this css_group. This can end up
-- * multiple-counting some containers, but that's OK - the ref-count is
-- * just a busy/not-busy indicator; ensuring that we only count each
-- * container once would require taking a global lock to ensure that no
-+/* Link structure for associating css_group objects with containers */
-+struct cg_container_link {
-+	/*
-+	 * List running through cg_container_links associated with a
-+	 * container, anchored on container->css_groups
-+	 */
-+	struct list_head cont_link_list;
-+	/*
-+	 * List running through cg_container_links pointing at a
-+	 * single css_group object, anchored on css_group->cg_links
-+	 */
-+	struct list_head cg_link_list;
-+	struct css_group *cg;
-+};
++/* the list of containers eligible for automatic release. Protected by
++ * release_list_lock */
++static LIST_HEAD(release_list);
++static DEFINE_SPINLOCK(release_list_lock);
++static void container_release_agent(struct work_struct *work);
++static DECLARE_WORK(release_agent_work, container_release_agent);
++static void check_for_release(struct container *cont);
 +
-+/* The default css_group - used by init and its children prior to any
-+ * hierarchies being mounted. It contains a pointer to the root state
-+ * for each subsystem. Also used to anchor the list of css_groups. Not
-+ * reference-counted, to improve performance when child containers
-+ * haven't been created.
-+ */
-+
-+static struct css_group init_css_group;
-+static struct cg_container_link init_css_group_link;
-+
-+/* css_group_lock protects the list of css_group objects, and the
-+ * chain of tasks off each css_group.  Nests outside task->alloc_lock
-+ * due to container_iter_start() */
-+static DEFINE_RWLOCK(css_group_lock);
-+static int css_group_count;
-+
-+/* We don't maintain the lists running through each css_group to its
-+ * task until after the first call to container_iter_start(). This
-+ * reduces the fork()/exit() overhead for people who have containers
-+ * compiled into their kernel but not actually in use */
-+static int use_task_css_group_links;
-+
-+/* When we create or destroy a css_group, the operation simply
-+ * takes/releases a reference count on all the containers referenced
-+ * by subsystems in this css_group. This can end up multiple-counting
-+ * some containers, but that's OK - the ref-count is just a
-+ * busy/not-busy indicator; ensuring that we only count each container
-+ * once would require taking a global lock to ensure that no
-  * subsystems moved between hierarchies while we were doing so.
-  *
-  * Possible TODO: decide at boot time based on the number of
-@@ -146,18 +184,230 @@ list_for_each_entry(_root, &roots, root_
-  * it's better for performance to ref-count every subsystem, or to
-  * take a global lock and only add one ref count to each hierarchy.
+ /* Link structure for associating css_group objects with containers */
+ struct cg_container_link {
+ 	/*
+@@ -188,11 +224,8 @@ static int use_task_css_group_links;
+ /*
+  * unlink a css_group from the list and free it
   */
--static void get_css_group(struct css_group *cg)
-+
-+/*
-+ * unlink a css_group from the list and free it
-+ */
-+static void release_css_group(struct kref *k)
+-static void release_css_group(struct kref *k)
++static void unlink_css_group(struct css_group *cg)
  {
-+	struct css_group *cg = container_of(k, struct css_group, ref);
- 	int i;
-+
-+	write_lock(&css_group_lock);
-+	list_del(&cg->list);
-+	css_group_count--;
-+	while (!list_empty(&cg->cg_links)) {
-+		struct cg_container_link *link;
-+		link = list_entry(cg->cg_links.next,
-+				  struct cg_container_link, cg_link_list);
-+		list_del(&link->cg_link_list);
-+		list_del(&link->cont_link_list);
-+		kfree(link);
-+	}
-+	write_unlock(&css_group_lock);
- 	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++)
--		atomic_inc(&cg->subsys[i]->container->count);
-+		atomic_dec(&cg->subsys[i]->container->count);
-+	kfree(cg);
-+}
-+
-+/*
-+ * refcounted get/put for css_group objects
-+ */
-+static inline void get_css_group(struct css_group *cg)
-+{
-+	kref_get(&cg->ref);
- }
- 
--static void put_css_group(struct css_group *cg)
-+static inline void put_css_group(struct css_group *cg)
-+{
-+	kref_put(&cg->ref, release_css_group);
-+}
-+
-+/*
-+ * find_existing_css_group() is a helper for
-+ * find_css_group(), and checks to see whether an existing
-+ * css_group is suitable. This currently walks a linked-list for
-+ * simplicity; a later patch will use a hash table for better
-+ * performance
-+ *
-+ * oldcg: the container group that we're using before the container
-+ * transition
-+ *
-+ * cont: the container that we're moving into
-+ *
-+ * template: location in which to build the desired set of subsystem
-+ * state objects for the new container group
-+ */
-+
-+static struct css_group *find_existing_css_group(
-+	struct css_group *oldcg,
-+	struct container *cont,
-+	struct container_subsys_state *template[])
- {
- 	int i;
+-	struct css_group *cg = container_of(k, struct css_group, ref);
+-	int i;
+-
+ 	write_lock(&css_group_lock);
+ 	list_del(&cg->list);
+ 	css_group_count--;
+@@ -205,11 +238,39 @@ static void release_css_group(struct kre
+ 		kfree(link);
+ 	}
+ 	write_unlock(&css_group_lock);
 -	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++)
 -		atomic_dec(&cg->subsys[i]->container->count);
-+	struct containerfs_root *root = cont->root;
-+	struct list_head *l = &init_css_group.list;
-+
-+	/* Built the set of subsystem state objects that we want to
-+	 * see in the new css_group */
-+	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
-+		if (root->subsys_bits & (1ull << i)) {
-+			/* Subsystem is in this hierarchy. So we want
-+			 * the subsystem state from the new
-+			 * container */
-+			template[i] = cont->subsys[i];
-+		} else {
-+			/* Subsystem is not in this hierarchy, so we
-+			 * don't want to change the subsystem state */
-+			template[i] = oldcg->subsys[i];
-+		}
-+	}
-+
-+	/* Look through existing container groups to find one to reuse */
-+	do {
-+		struct css_group *cg =
-+			list_entry(l, struct css_group, list);
-+
-+		if (!memcmp(template, cg->subsys, sizeof(cg->subsys))) {
-+			/* All subsystems matched */
-+			return cg;
-+		}
-+		/* Try the next container group */
-+		l = l->next;
-+	} while (l != &init_css_group.list);
-+
-+	/* No existing container group matched */
-+	return NULL;
 +}
 +
-+/*
-+ * allocate_cg_links() allocates "count" cg_container_link structures
-+ * and chains them on tmp through their cont_link_list fields. Returns 0 on
-+ * success or a negative error
-+ */
-+
-+static int allocate_cg_links(int count, struct list_head *tmp)
++static void __release_css_group(struct kref *k, int taskexit)
 +{
-+	struct cg_container_link *link;
 +	int i;
-+	INIT_LIST_HEAD(tmp);
-+	for (i = 0; i < count; i++) {
-+		link = kmalloc(sizeof(*link), GFP_KERNEL);
-+		if (!link) {
-+			while (!list_empty(tmp)) {
-+				link = list_entry(tmp->next,
-+						  struct cg_container_link,
-+						  cont_link_list);
-+				list_del(&link->cont_link_list);
-+				kfree(link);
-+			}
-+			return -ENOMEM;
++	struct css_group *cg = container_of(k, struct css_group, ref);
++
++	unlink_css_group(cg);
++
++	rcu_read_lock();
++	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
++		struct container *cont = cg->subsys[i]->container;
++		if (atomic_dec_and_test(&cont->count) &&
++		    notify_on_release(cont)) {
++			if (taskexit)
++				set_bit(CONT_RELEASABLE, &cont->flags);
++			check_for_release(cont);
 +		}
-+		list_add(&link->cont_link_list, tmp);
++	}
++	rcu_read_unlock();
+ 	kfree(cg);
+ }
+ 
++static void release_css_group(struct kref *k)
++{
++	__release_css_group(k, 0);
++}
++
++static void release_css_group_taskexit(struct kref *k)
++{
++	__release_css_group(k, 1);
++}
++
+ /*
+  * refcounted get/put for css_group objects
+  */
+@@ -223,6 +284,11 @@ static inline void put_css_group(struct 
+ 	kref_put(&cg->ref, release_css_group);
+ }
+ 
++static inline void put_css_group_taskexit(struct css_group *cg)
++{
++	kref_put(&cg->ref, release_css_group_taskexit);
++}
++
+ /*
+  * find_existing_css_group() is a helper for
+  * find_css_group(), and checks to see whether an existing
+@@ -464,8 +530,6 @@ static struct css_group *find_css_group(
+  * update of a tasks container pointer by attach_task()
+  */
+ 
+-static DEFINE_MUTEX(container_mutex);
+-
+ /**
+  * container_lock - lock out any changes to container structures
+  *
+@@ -524,6 +588,13 @@ static void container_diput(struct dentr
+ 	if (S_ISDIR(inode->i_mode)) {
+ 		struct container *cont = dentry->d_fsdata;
+ 		BUG_ON(!(container_is_removed(cont)));
++		/* It's possible for external users to be holding css
++		 * reference counts on a container; css_put() needs to
++		 * be able to access the container after decrementing
++		 * the reference count in order to know if it needs to
++		 * queue the container to be handled by the release
++		 * agent */
++		synchronize_rcu();
+ 		kfree(cont);
+ 	}
+ 	iput(inode);
+@@ -668,6 +739,8 @@ static int container_show_options(struct
+ 		seq_printf(seq, ",%s", ss->name);
+ 	if (test_bit(ROOT_NOPREFIX, &root->flags))
+ 		seq_puts(seq, ",noprefix");
++	if (strlen(root->release_agent_path))
++		seq_printf(seq, ",release_agent=%s", root->release_agent_path);
+ 	mutex_unlock(&container_mutex);
+ 	return 0;
+ }
+@@ -675,6 +748,7 @@ static int container_show_options(struct
+ struct container_sb_opts {
+ 	unsigned long subsys_bits;
+ 	unsigned long flags;
++	char *release_agent;
+ };
+ 
+ /* Convert a hierarchy specifier into a bitmask of subsystems and
+@@ -686,6 +760,7 @@ static int parse_containerfs_options(cha
+ 
+ 	opts->subsys_bits = 0;
+ 	opts->flags = 0;
++	opts->release_agent = NULL;
+ 
+ 	while ((token = strsep(&o, ",")) != NULL) {
+ 		if (!*token)
+@@ -694,6 +769,15 @@ static int parse_containerfs_options(cha
+ 			opts->subsys_bits = (1 << CONTAINER_SUBSYS_COUNT) - 1;
+ 		} else if (!strcmp(token, "noprefix")) {
+ 			set_bit(ROOT_NOPREFIX, &opts->flags);
++		} else if (!strncmp(token, "release_agent=", 14)) {
++			/* Specifying two release agents is forbidden */
++			if (opts->release_agent)
++				return -EINVAL;
++			opts->release_agent = kzalloc(PATH_MAX, GFP_KERNEL);
++			if (!opts->release_agent)
++				return -ENOMEM;
++			strncpy(opts->release_agent, token + 14, PATH_MAX - 1);
++			opts->release_agent[PATH_MAX - 1] = 0;
+ 		} else {
+ 			struct container_subsys *ss;
+ 			int i;
+@@ -743,7 +827,11 @@ static int container_remount(struct supe
+ 	if (!ret)
+ 		container_populate_dir(cont);
+ 
++	if (opts.release_agent)
++		strcpy(root->release_agent_path, opts.release_agent);
+  out_unlock:
++	if (opts.release_agent)
++		kfree(opts.release_agent);
+ 	mutex_unlock(&container_mutex);
+ 	mutex_unlock(&cont->dentry->d_inode->i_mutex);
+ 	return ret;
+@@ -767,6 +855,7 @@ static void init_container_root(struct c
+ 	INIT_LIST_HEAD(&cont->sibling);
+ 	INIT_LIST_HEAD(&cont->children);
+ 	INIT_LIST_HEAD(&cont->css_groups);
++	INIT_LIST_HEAD(&cont->release_list);
+ }
+ 
+ static int container_test_super(struct super_block *sb, void *data)
+@@ -841,8 +930,11 @@ static int container_get_sb(struct file_
+ 
+ 	/* First find the desired set of subsystems */
+ 	ret = parse_containerfs_options(data, &opts);
+-	if (ret)
++	if (ret) {
++		if (opts.release_agent)
++			kfree(opts.release_agent);
+ 		return ret;
++	}
+ 
+ 	root = kzalloc(sizeof(*root), GFP_KERNEL);
+ 	if (!root)
+@@ -851,6 +943,10 @@ static int container_get_sb(struct file_
+ 	init_container_root(root);
+ 	root->subsys_bits = opts.subsys_bits;
+ 	root->flags = opts.flags;
++	if (opts.release_agent) {
++		strcpy(root->release_agent_path, opts.release_agent);
++		kfree(opts.release_agent);
++	}
+ 
+ 	sb = sget(fs_type, container_test_super, container_set_super, root);
+ 
+@@ -1125,7 +1221,7 @@ static int attach_task(struct container 
+ 			ss->attach(ss, cont, oldcont, tsk);
+ 		}
+ 	}
+-
++	set_bit(CONT_RELEASABLE, &oldcont->flags);
+ 	synchronize_rcu();
+ 	put_css_group(cg);
+ 	return 0;
+@@ -1175,6 +1271,9 @@ enum container_filetype {
+ 	FILE_ROOT,
+ 	FILE_DIR,
+ 	FILE_TASKLIST,
++	FILE_NOTIFY_ON_RELEASE,
++	FILE_RELEASABLE,
++	FILE_RELEASE_AGENT,
+ };
+ 
+ static ssize_t container_common_file_write(struct container *cont,
+@@ -1212,6 +1311,32 @@ static ssize_t container_common_file_wri
+ 	case FILE_TASKLIST:
+ 		retval = attach_task_by_pid(cont, buffer);
+ 		break;
++	case FILE_NOTIFY_ON_RELEASE:
++		clear_bit(CONT_RELEASABLE, &cont->flags);
++		if (simple_strtoul(buffer, NULL, 10) != 0)
++			set_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
++		else
++			clear_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
++		break;
++	case FILE_RELEASE_AGENT:
++	{
++		struct containerfs_root *root = cont->root;
++		/* Strip trailing newline */
++		if (nbytes && (buffer[nbytes-1] == '\n')) {
++			buffer[nbytes-1] = 0;
++		}
++		if (nbytes < sizeof(root->release_agent_path)) {
++			/* We never write anything other than '\0'
++			 * into the last char of release_agent_path,
++			 * so it always remains a NUL-terminated
++			 * string */
++			strncpy(root->release_agent_path, buffer, nbytes);
++			root->release_agent_path[nbytes] = 0;
++		} else {
++			retval = -ENOSPC;
++		}
++		break;
++	}
+ 	default:
+ 		retval = -EINVAL;
+ 		goto out2;
+@@ -1252,6 +1377,49 @@ static ssize_t container_read_uint(struc
+ 	return simple_read_from_buffer(buf, nbytes, ppos, tmp, len);
+ }
+ 
++static ssize_t container_common_file_read(struct container *cont,
++					  struct cftype *cft,
++					  struct file *file,
++					  char __user *buf,
++					  size_t nbytes, loff_t *ppos)
++{
++	enum container_filetype type = cft->private;
++	char *page;
++	ssize_t retval = 0;
++	char *s;
++
++	if (!(page = (char *)__get_free_page(GFP_KERNEL)))
++		return -ENOMEM;
++
++	s = page;
++
++	switch (type) {
++	case FILE_RELEASE_AGENT:
++	{
++		struct containerfs_root *root;
++		size_t n;
++		mutex_lock(&container_mutex);
++		root = cont->root;
++		n = strnlen(root->release_agent_path,
++			    sizeof(root->release_agent_path));
++		n = min(n, (size_t) PAGE_SIZE);
++		strncpy(s, root->release_agent_path, n);
++		mutex_unlock(&container_mutex);
++		s += n;
++		break;
++	}
++	default:
++		retval = -EINVAL;
++		goto out;
++	}
++	*s++ = '\n';
++
++	retval = simple_read_from_buffer(buf, nbytes, ppos, page, s - page);
++out:
++	free_page((unsigned long)page);
++	return retval;
++}
++
+ static ssize_t container_file_read(struct file *file, char __user *buf,
+ 				   size_t nbytes, loff_t *ppos)
+ {
+@@ -1667,16 +1835,49 @@ static int container_tasks_release(struc
+ 	return 0;
+ }
+ 
++static u64 container_read_notify_on_release(struct container *cont,
++					    struct cftype *cft)
++{
++	return notify_on_release(cont);
++}
++
++static u64 container_read_releasable(struct container *cont, struct cftype *cft)
++{
++	return test_bit(CONT_RELEASABLE, &cont->flags);
++}
++
+ /*
+  * for the common functions, 'private' gives the type of file
+  */
+-static struct cftype cft_tasks = {
+-	.name = "tasks",
+-	.open = container_tasks_open,
+-	.read = container_tasks_read,
++static struct cftype files[] = {
++	{
++		.name = "tasks",
++		.open = container_tasks_open,
++		.read = container_tasks_read,
++		.write = container_common_file_write,
++		.release = container_tasks_release,
++		.private = FILE_TASKLIST,
++	},
++
++	{
++		.name = "notify_on_release",
++		.read_uint = container_read_notify_on_release,
++		.write = container_common_file_write,
++		.private = FILE_NOTIFY_ON_RELEASE,
++	},
++
++	{
++		.name = "releasable",
++		.read_uint = container_read_releasable,
++		.private = FILE_RELEASABLE,
++	}
++};
++
++static struct cftype cft_release_agent = {
++	.name = "release_agent",
++	.read = container_common_file_read,
+ 	.write = container_common_file_write,
+-	.release = container_tasks_release,
+-	.private = FILE_TASKLIST,
++	.private = FILE_RELEASE_AGENT,
+ };
+ 
+ static int container_populate_dir(struct container *cont)
+@@ -1687,10 +1888,15 @@ static int container_populate_dir(struct
+ 	/* First clear out any existing files */
+ 	container_clear_directory(cont->dentry);
+ 
+-	err = container_add_file(cont, NULL, &cft_tasks);
++	err = container_add_files(cont, NULL, files, ARRAY_SIZE(files));
+ 	if (err < 0)
+ 		return err;
+ 
++	if (cont == cont->top_container) {
++		if ((err = container_add_file(cont, NULL, &cft_release_agent)) < 0)
++			return err;
++	}
++
+ 	for_each_subsys(cont->root, ss) {
+ 		if (ss->populate && (err = ss->populate(ss, cont)) < 0)
+ 			return err;
+@@ -1747,6 +1953,7 @@ static long container_create(struct cont
+ 	INIT_LIST_HEAD(&cont->sibling);
+ 	INIT_LIST_HEAD(&cont->children);
+ 	INIT_LIST_HEAD(&cont->css_groups);
++	INIT_LIST_HEAD(&cont->release_list);
+ 
+ 	cont->parent = parent;
+ 	cont->root = parent->root;
+@@ -1808,6 +2015,38 @@ static int container_mkdir(struct inode 
+ 	return container_create(c_parent, dentry, mode | S_IFDIR);
+ }
+ 
++static inline int container_has_css_refs(struct container *cont)
++{
++	/* Check the reference count on each subsystem. Since we
++	 * already established that there are no tasks in the
++	 * container, if the css refcount is also 0, then there should
++	 * be no outstanding references, so the subsystem is safe to
++	 * destroy. We scan across all subsystems rather than using
++	 * the per-hierarchy linked list of mounted subsystems since
++	 * we can be called via check_for_release() with no
++	 * synchronization other than RCU, and the subsystem linked
++	 * list isn't RCU-safe */
++	int i;
++	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
++		struct container_subsys *ss = subsys[i];
++		struct container_subsys_state *css;
++		/* Skip subsystems not in this hierarchy */
++		if (ss->root != cont->root)
++			continue;
++		css = cont->subsys[ss->subsys_id];
++		/* When called from check_for_release() it's possible
++		 * that by this point the container has been removed
++		 * and the css deleted. But a false-positive doesn't
++		 * matter, since it can only happen if the container
++		 * has been deleted and hence no longer needs the
++		 * release agent to be called anyway. */
++		if (css && atomic_read(&css->refcnt)) {
++			return 1;
++		}
 +	}
 +	return 0;
 +}
 +
-+static void free_cg_links(struct list_head *tmp)
-+{
-+	while (!list_empty(tmp)) {
-+		struct cg_container_link *link;
-+		link = list_entry(tmp->next,
-+				  struct cg_container_link,
-+				  cont_link_list);
-+		list_del(&link->cont_link_list);
-+		kfree(link);
-+	}
-+}
-+
-+/*
-+ * find_css_group() takes an existing container group and a
-+ * container object, and returns a css_group object that's
-+ * equivalent to the old group, but with the given container
-+ * substituted into the appropriate hierarchy. Must be called with
-+ * container_mutex held
-+ */
-+
-+static struct css_group *find_css_group(
-+	struct css_group *oldcg, struct container *cont)
-+{
-+	struct css_group *res;
-+	struct container_subsys_state *template[CONTAINER_SUBSYS_COUNT];
-+	int i;
-+
-+	struct list_head tmp_cg_links;
-+	struct cg_container_link *link;
-+
-+	/* First see if we already have a container group that matches
-+	 * the desired set */
-+	write_lock(&css_group_lock);
-+	res = find_existing_css_group(oldcg, cont, template);
-+	if (res)
-+		get_css_group(res);
-+	write_unlock(&css_group_lock);
-+
-+	if (res)
-+		return res;
-+
-+	res = kmalloc(sizeof(*res), GFP_KERNEL);
-+	if (!res)
-+		return NULL;
-+
-+	/* Allocate all the cg_container_link objects that we'll need */
-+	if (allocate_cg_links(root_count, &tmp_cg_links) < 0) {
-+		kfree(res);
-+		return NULL;
-+	}
-+
-+	kref_init(&res->ref);
-+	INIT_LIST_HEAD(&res->cg_links);
-+	INIT_LIST_HEAD(&res->tasks);
-+
-+	/* Copy the set of subsystem state objects generated in
-+	 * find_existing_css_group() */
-+	memcpy(res->subsys, template, sizeof(res->subsys));
-+
-+	write_lock(&css_group_lock);
-+	/* Add reference counts and links from the new css_group. */
-+	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
-+		struct container *cont = res->subsys[i]->container;
-+		struct container_subsys *ss = subsys[i];
-+		atomic_inc(&cont->count);
-+		/*
-+		 * We want to add a link once per container, so we
-+		 * only do it for the first subsystem in each
-+		 * hierarchy
-+		 */
-+		if (ss->root->subsys_list.next == &ss->sibling) {
-+			BUG_ON(list_empty(&tmp_cg_links));
-+			link = list_entry(tmp_cg_links.next,
-+					  struct cg_container_link,
-+					  cont_link_list);
-+			list_del(&link->cont_link_list);
-+			list_add(&link->cont_link_list, &cont->css_groups);
-+			link->cg = res;
-+			list_add(&link->cg_link_list, &res->cg_links);
-+		}
-+	}
-+	if (list_empty(&rootnode.subsys_list)) {
-+		link = list_entry(tmp_cg_links.next,
-+				  struct cg_container_link,
-+				  cont_link_list);
-+		list_del(&link->cont_link_list);
-+		list_add(&link->cont_link_list, &dummytop->css_groups);
-+		link->cg = res;
-+		list_add(&link->cg_link_list, &res->cg_links);
-+	}
-+
-+	BUG_ON(!list_empty(&tmp_cg_links));
-+
-+	/* Link this container group into the list */
-+	list_add(&res->list, &init_css_group.list);
-+	css_group_count++;
-+	INIT_LIST_HEAD(&res->tasks);
-+	write_unlock(&css_group_lock);
-+
-+	return res;
- }
- 
- /*
-@@ -516,6 +766,7 @@ static void init_container_root(struct c
- 	cont->top_container = cont;
- 	INIT_LIST_HEAD(&cont->sibling);
- 	INIT_LIST_HEAD(&cont->children);
-+	INIT_LIST_HEAD(&cont->css_groups);
- }
- 
- static int container_test_super(struct super_block *sb, void *data)
-@@ -585,6 +836,8 @@ static int container_get_sb(struct file_
- 	int ret = 0;
+ static int container_rmdir(struct inode *unused_dir, struct dentry *dentry)
+ {
+ 	struct container *cont = dentry->d_fsdata;
+@@ -1816,7 +2055,6 @@ static int container_rmdir(struct inode 
+ 	struct container_subsys *ss;
  	struct super_block *sb;
  	struct containerfs_root *root;
-+	struct list_head tmp_cg_links, *l;
-+	INIT_LIST_HEAD(&tmp_cg_links);
+-	int css_busy = 0;
  
- 	/* First find the desired set of subsystems */
- 	ret = parse_containerfs_options(data, &opts);
-@@ -623,6 +876,19 @@ static int container_get_sb(struct file_
+ 	/* the vfs holds both inode->i_mutex already */
  
- 		mutex_lock(&container_mutex);
+@@ -1834,20 +2072,7 @@ static int container_rmdir(struct inode 
+ 	root = cont->root;
+ 	sb = root->sb;
  
-+		/*
-+		 * We're accessing css_group_count without locking
-+		 * css_group_lock here, but that's OK - it can only be
-+		 * increased by someone holding container_lock, and
-+		 * that's us. The worst that can happen is that we
-+		 * have some link structures left over
-+		 */
-+		ret = allocate_cg_links(css_group_count, &tmp_cg_links);
-+		if (ret) {
-+			mutex_unlock(&container_mutex);
-+			goto drop_new_super;
-+		}
-+
- 		ret = rebind_subsystems(root, root->subsys_bits);
- 		if (ret == -EBUSY) {
- 			mutex_unlock(&container_mutex);
-@@ -633,10 +899,34 @@ static int container_get_sb(struct file_
- 		BUG_ON(ret);
- 
- 		list_add(&root->root_list, &roots);
-+		root_count++;
- 
- 		sb->s_root->d_fsdata = &root->top_container;
- 		root->top_container.dentry = sb->s_root;
- 
-+		/* Link the top container in this hierarchy into all
-+		 * the css_group objects */
-+		write_lock(&css_group_lock);
-+		l = &init_css_group.list;
-+		do {
-+			struct css_group *cg;
-+			struct cg_container_link *link;
-+			cg = list_entry(l, struct css_group, list);
-+			BUG_ON(list_empty(&tmp_cg_links));
-+			link = list_entry(tmp_cg_links.next,
-+					  struct cg_container_link,
-+					  cont_link_list);
-+			list_del(&link->cont_link_list);
-+			link->cg = cg;
-+			list_add(&link->cont_link_list,
-+				 &root->top_container.css_groups);
-+			list_add(&link->cg_link_list, &cg->cg_links);
-+			l = l->next;
-+		} while (l != &init_css_group.list);
-+		write_unlock(&css_group_lock);
-+
-+		free_cg_links(&tmp_cg_links);
-+
- 		BUG_ON(!list_empty(&cont->sibling));
- 		BUG_ON(!list_empty(&cont->children));
- 		BUG_ON(root->number_of_containers != 1);
-@@ -659,6 +949,7 @@ static int container_get_sb(struct file_
-  drop_new_super:
- 	up_write(&sb->s_umount);
- 	deactivate_super(sb);
-+	free_cg_links(&tmp_cg_links);
- 	return ret;
- }
- 
-@@ -680,8 +971,25 @@ static void container_kill_sb(struct sup
- 	/* Shouldn't be able to fail ... */
- 	BUG_ON(ret);
- 
--	if (!list_empty(&root->root_list))
-+	/*
-+	 * Release all the links from css_groups to this hierarchy's
-+	 * root container
-+	 */
-+	write_lock(&css_group_lock);
-+	while (!list_empty(&cont->css_groups)) {
-+		struct cg_container_link *link;
-+		link = list_entry(cont->css_groups.next,
-+				  struct cg_container_link, cont_link_list);
-+		list_del(&link->cg_link_list);
-+		list_del(&link->cont_link_list);
-+		kfree(link);
-+	}
-+	write_unlock(&css_group_lock);
-+
-+	if (!list_empty(&root->root_list)) {
- 		list_del(&root->root_list);
-+		root_count--;
-+	}
- 	mutex_unlock(&container_mutex);
- 
- 	kfree(root);
-@@ -765,9 +1073,9 @@ static int attach_task(struct container 
- 	int retval = 0;
- 	struct container_subsys *ss;
- 	struct container *oldcont;
--	struct css_group *cg = &tsk->containers;
-+	struct css_group *cg = tsk->containers;
-+	struct css_group *newcg;
- 	struct containerfs_root *root = cont->root;
--	int i;
- 	int subsys_id;
- 
- 	get_first_subsys(cont, NULL, &subsys_id);
-@@ -786,26 +1094,32 @@ static int attach_task(struct container 
- 		}
- 	}
- 
-+	/*
-+	 * Locate or allocate a new css_group for this task,
-+	 * based on its final set of containers
-+	 */
-+	newcg = find_css_group(cg, cont);
-+	if (!newcg) {
-+		return -ENOMEM;
-+	}
-+
- 	task_lock(tsk);
- 	if (tsk->flags & PF_EXITING) {
- 		task_unlock(tsk);
-+		put_css_group(newcg);
- 		return -ESRCH;
- 	}
--	/* Update the css_group pointers for the subsystems in this
--	 * hierarchy */
--	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
--		if (root->subsys_bits & (1ull << i)) {
--			/* Subsystem is in this hierarchy. So we want
--			 * the subsystem state from the new
--			 * container. Transfer the refcount from the
--			 * old to the new */
--			atomic_inc(&cont->count);
--			atomic_dec(&cg->subsys[i]->container->count);
--			rcu_assign_pointer(cg->subsys[i], cont->subsys[i]);
+-	/* Check the reference count on each subsystem. Since we
+-	 * already established that there are no tasks in the
+-	 * container, if the css refcount is also 0, then there should
+-	 * be no outstanding references, so the subsystem is safe to
+-	 * destroy */
+-	for_each_subsys(root, ss) {
+-		struct container_subsys_state *css;
+-		css = cont->subsys[ss->subsys_id];
+-		if (atomic_read(&css->refcnt)) {
+-			css_busy = 1;
+-			break;
 -		}
 -	}
-+	rcu_assign_pointer(tsk->containers, newcg);
- 	task_unlock(tsk);
- 
-+	/* Update the css_group linked lists if we're using them */
-+	write_lock(&css_group_lock);
-+	if (!list_empty(&tsk->cg_list)) {
-+		list_del(&tsk->cg_list);
-+		list_add(&tsk->cg_list, &newcg->tasks);
-+	}
-+	write_unlock(&css_group_lock);
-+
- 	for_each_subsys(root, ss) {
- 		if (ss->attach) {
- 			ss->attach(ss, cont, oldcont, tsk);
-@@ -813,6 +1127,7 @@ static int attach_task(struct container 
+-	if (css_busy) {
++	if (container_has_css_refs(cont)) {
+ 		mutex_unlock(&container_mutex);
+ 		return -EBUSY;
+ 	}
+@@ -1857,7 +2082,11 @@ static int container_rmdir(struct inode 
+ 			ss->destroy(ss, cont);
  	}
  
- 	synchronize_rcu();
-+	put_css_group(cg);
- 	return 0;
- }
++	spin_lock(&release_list_lock);
+ 	set_bit(CONT_REMOVED, &cont->flags);
++	if (!list_empty(&cont->release_list))
++		list_del(&cont->release_list);
++	spin_unlock(&release_list_lock);
+ 	/* delete my sibling from parent->children */
+ 	list_del(&cont->sibling);
+ 	spin_lock(&cont->dentry->d_lock);
+@@ -1869,6 +2098,9 @@ static int container_rmdir(struct inode 
+ 	dput(d);
+ 	root->number_of_containers--;
  
-@@ -1114,28 +1429,102 @@ int container_add_files(struct container
- 	return 0;
- }
- 
--/* Count the number of tasks in a container. Could be made more
-- * time-efficient but less space-efficient with more linked lists
-- * running through each container and the css_group structures that
-- * referenced it. Must be called with tasklist_lock held for read or
-- * write or in an rcu critical section.
-- */
--int __container_task_count(const struct container *cont)
-+/* Count the number of tasks in a container. */
++	set_bit(CONT_RELEASABLE, &parent->flags);
++	check_for_release(parent);
 +
-+int container_task_count(const struct container *cont)
- {
- 	int count = 0;
--	struct task_struct *g, *p;
--	struct container_subsys_state *css;
--	int subsys_id;
-+	struct list_head *l;
- 
--	get_first_subsys(cont, &css, &subsys_id);
--	do_each_thread(g, p) {
--		if (task_subsys_state(p, subsys_id) == css)
--			count ++;
--	} while_each_thread(g, p);
-+	read_lock(&css_group_lock);
-+	l = cont->css_groups.next;
-+	while (l != &cont->css_groups) {
-+		struct cg_container_link *link =
-+			list_entry(l, struct cg_container_link, cont_link_list);
-+		count += atomic_read(&link->cg->ref.refcount);
-+		l = l->next;
-+	}
-+	read_unlock(&css_group_lock);
- 	return count;
- }
- 
- /*
-+ * Advance a list_head iterator.  The iterator should be positioned at
-+ * the start of a css_group
-+ */
-+static void container_advance_iter(struct container *cont,
-+					  struct container_iter *it)
-+{
-+	struct list_head *l = it->cg_link;
-+	struct cg_container_link *link;
-+	struct css_group *cg;
-+
-+	/* Advance to the next non-empty css_group */
-+	do {
-+		l = l->next;
-+		if (l == &cont->css_groups) {
-+			it->cg_link = NULL;
-+			return;
-+		}
-+		link = list_entry(l, struct cg_container_link, cont_link_list);
-+		cg = link->cg;
-+	} while (list_empty(&cg->tasks));
-+	it->cg_link = l;
-+	it->task = cg->tasks.next;
-+}
-+
-+void container_iter_start(struct container *cont, struct container_iter *it)
-+{
-+	/*
-+	 * The first time anyone tries to iterate across a container,
-+	 * we need to enable the list linking each css_group to its
-+	 * tasks, and fix up all existing tasks.
-+	 */
-+	if (!use_task_css_group_links) {
-+		struct task_struct *p, *g;
-+		write_lock(&css_group_lock);
-+		use_task_css_group_links = 1;
-+ 		do_each_thread(g, p) {
-+			task_lock(p);
-+			if (list_empty(&p->cg_list))
-+				list_add(&p->cg_list, &p->containers->tasks);
-+			task_unlock(p);
-+ 		} while_each_thread(g, p);
-+		write_unlock(&css_group_lock);
-+	}
-+	read_lock(&css_group_lock);
-+	it->cg_link = &cont->css_groups;
-+	container_advance_iter(cont, it);
-+}
-+
-+struct task_struct *container_iter_next(struct container *cont,
-+					struct container_iter *it)
-+{
-+	struct task_struct *res;
-+	struct list_head *l = it->task;
-+
-+	/* If the iterator cg is NULL, we have no tasks */
-+	if (!it->cg_link)
-+		return NULL;
-+	res = list_entry(l, struct task_struct, cg_list);
-+	/* Advance iterator to find next entry */
-+	l = l->next;
-+	if (l == &res->containers->tasks) {
-+		/* We reached the end of this task list - move on to
-+		 * the next cg_container_link */
-+		container_advance_iter(cont, it);
-+	} else {
-+		it->task = l;
-+	}
-+	return res;
-+}
-+
-+void container_iter_end(struct container *cont, struct container_iter *it)
-+{
-+	read_unlock(&css_group_lock);
-+}
-+
-+/*
-  * Stuff for reading the 'tasks' file.
-  *
-  * Reading this file can return large amounts of data if a container has
-@@ -1164,22 +1553,15 @@ struct ctr_struct {
- static int pid_array_load(pid_t *pidarray, int npids, struct container *cont)
- {
- 	int n = 0;
--	struct task_struct *g, *p;
--	struct container_subsys_state *css;
--	int subsys_id;
--
--	get_first_subsys(cont, &css, &subsys_id);
--	rcu_read_lock();
--	do_each_thread(g, p) {
--		if (task_subsys_state(p, subsys_id) == css) {
--			pidarray[n++] = pid_nr(task_pid(p));
--			if (unlikely(n == npids))
--				goto array_full;
--		}
--	} while_each_thread(g, p);
--
--array_full:
--	rcu_read_unlock();
-+	struct container_iter it;
-+	struct task_struct *tsk;
-+	container_iter_start(cont, &it);
-+	while ((tsk = container_iter_next(cont, &it))) {
-+		if (unlikely(n == npids))
-+			break;
-+		pidarray[n++] = pid_nr(task_pid(tsk));
-+	}
-+	container_iter_end(cont, &it);
- 	return n;
- }
- 
-@@ -1364,6 +1746,7 @@ static long container_create(struct cont
- 	cont->flags = 0;
- 	INIT_LIST_HEAD(&cont->sibling);
- 	INIT_LIST_HEAD(&cont->children);
-+	INIT_LIST_HEAD(&cont->css_groups);
- 
- 	cont->parent = parent;
- 	cont->root = parent->root;
-@@ -1495,8 +1878,8 @@ static int container_rmdir(struct inode 
- 
- static void container_init_subsys(struct container_subsys *ss)
- {
--	struct task_struct *g, *p;
- 	struct container_subsys_state *css;
-+	struct list_head *l;
- 	printk(KERN_ERR "Initializing container subsys %s\n", ss->name);
- 
- 	/* Create the top container state for this subsystem */
-@@ -1506,26 +1889,32 @@ static void container_init_subsys(struct
- 	BUG_ON(IS_ERR(css));
- 	init_container_css(css, ss, dummytop);
- 
--	/* Update all tasks to contain a subsys pointer to this state
--	 * - since the subsystem is newly registered, all tasks are in
--	 * the subsystem's top container. */
-+	/* Update all container groups to contain a subsys
-+	 * pointer to this state - since the subsystem is
-+	 * newly registered, all tasks and hence all container
-+	 * groups are in the subsystem's top container. */
-+	write_lock(&css_group_lock);
-+	l = &init_css_group.list;
-+	do {
-+		struct css_group *cg =
-+			list_entry(l, struct css_group, list);
-+		cg->subsys[ss->subsys_id] = dummytop->subsys[ss->subsys_id];
-+		l = l->next;
-+	} while (l != &init_css_group.list);
-+	write_unlock(&css_group_lock);
- 
+ 	mutex_unlock(&container_mutex);
+ 	/* Drop the active superblock reference that we took when we
+ 	 * created the container */
+@@ -1906,15 +2138,15 @@ static void container_init_subsys(struct
   	/* If this subsystem requested that it be notified with fork
   	 * events, we should send it one now for every process in the
   	 * system */
-+ 	if (ss->fork) {
-+ 		struct task_struct *g, *p;
+- 	if (ss->fork) {
+- 		struct task_struct *g, *p;
++	if (ss->fork) {
++		struct task_struct *g, *p;
  
--	read_lock(&tasklist_lock);
--	init_task.containers.subsys[ss->subsys_id] = css;
--	if (ss->fork)
--		ss->fork(ss, &init_task);
--
--	do_each_thread(g, p) {
--		printk(KERN_INFO "Setting task %p css to %p (%d)\n", css, p, p->pid);
--		p->containers.subsys[ss->subsys_id] = css;
--		if (ss->fork)
--			ss->fork(ss, p);
--	} while_each_thread(g, p);
--	read_unlock(&tasklist_lock);
-+ 		read_lock(&tasklist_lock);
-+ 		do_each_thread(g, p) {
-+ 			ss->fork(ss, p);
-+ 		} while_each_thread(g, p);
-+ 		read_unlock(&tasklist_lock);
-+ 	}
+- 		read_lock(&tasklist_lock);
+- 		do_each_thread(g, p) {
+- 			ss->fork(ss, p);
+- 		} while_each_thread(g, p);
+- 		read_unlock(&tasklist_lock);
+- 	}
++		read_lock(&tasklist_lock);
++		do_each_thread(g, p) {
++			ss->fork(ss, p);
++		} while_each_thread(g, p);
++		read_unlock(&tasklist_lock);
++	}
  
  	need_forkexit_callback |= ss->fork || ss->exit;
  
-@@ -1539,8 +1928,22 @@ static void container_init_subsys(struct
- int __init container_init_early(void)
- {
- 	int i;
-+	kref_init(&init_css_group.ref);
-+	kref_get(&init_css_group.ref);
-+	INIT_LIST_HEAD(&init_css_group.list);
-+	INIT_LIST_HEAD(&init_css_group.cg_links);
-+	INIT_LIST_HEAD(&init_css_group.tasks);
-+	css_group_count = 1;
- 	init_container_root(&rootnode);
- 	list_add(&rootnode.root_list, &roots);
-+	root_count = 1;
-+	init_task.containers = &init_css_group;
-+
-+	init_css_group_link.cg = &init_css_group;
-+	list_add(&init_css_group_link.cont_link_list,
-+		 &rootnode.top_container.css_groups);
-+	list_add(&init_css_group_link.cg_link_list,
-+		 &init_css_group.cg_links);
- 
- 	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
- 		struct container_subsys *ss = subsys[i];
-@@ -1698,6 +2101,7 @@ static int proc_containerstats_show(stru
- 		seq_printf(m, "%d: name=%s hierarchy=%p\n",
- 			   i, ss->name, ss->root);
- 	}
-+	seq_printf(m, "Container groups: %d\n", css_group_count);
- 	mutex_unlock(&container_mutex);
- 	return 0;
- }
-@@ -1724,18 +2128,19 @@ static struct file_operations proc_conta
-  * fork.c by dup_task_struct().  However, we ignore that copy, since
-  * it was not made under the protection of RCU or container_mutex, so
-  * might no longer be a valid container pointer.  attach_task() might
-- * have already changed current->container, allowing the previously
-- * referenced container to be removed and freed.
-+ * have already changed current->containers, allowing the previously
-+ * referenced container group to be removed and freed.
-  *
-  * At the point that container_fork() is called, 'current' is the parent
-  * task, and the passed argument 'child' points to the child task.
-  */
- void container_fork(struct task_struct *child)
- {
--	rcu_read_lock();
--	child->containers = rcu_dereference(current->containers);
--	get_css_group(&child->containers);
--	rcu_read_unlock();
-+	task_lock(current);
-+	child->containers = current->containers;
-+	get_css_group(child->containers);
-+	task_unlock(current);
-+	INIT_LIST_HEAD(&child->cg_list);
- }
- 
- /**
-@@ -1756,6 +2161,21 @@ void container_fork_callbacks(struct tas
- }
- 
- /**
-+ * container_post_fork - called on a new task after adding it to the
-+ * task list. Adds the task to the list running through its css_group
-+ * if necessary. Has to be after the task is visible on the task list
-+ * in case we race with the first call to container_iter_start() - to
-+ * guarantee that the new task ends up on its list. */
-+void container_post_fork(struct task_struct *child)
-+{
-+	if (use_task_css_group_links) {
-+		write_lock(&css_group_lock);
-+		if (list_empty(&child->cg_list))
-+			list_add(&child->cg_list, &child->containers->tasks);
-+		write_unlock(&css_group_lock);
-+	}
-+}
-+/**
-  * container_exit - detach container from exiting task
-  * @tsk: pointer to task_struct of exiting process
-  *
-@@ -1793,6 +2213,7 @@ void container_fork_callbacks(struct tas
- void container_exit(struct task_struct *tsk, int run_callbacks)
- {
- 	int i;
-+	struct css_group *cg;
- 
- 	if (run_callbacks && need_forkexit_callback) {
- 		for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
-@@ -1801,11 +2222,26 @@ void container_exit(struct task_struct *
- 				ss->exit(ss, tsk);
- 		}
- 	}
-+
-+	/*
-+	 * Unlink from the css_group task list if necessary.
-+	 * Optimistically check cg_list before taking
-+	 * css_group_lock
-+	 */
-+	if (!list_empty(&tsk->cg_list)) {
-+		write_lock(&css_group_lock);
-+		if (!list_empty(&tsk->cg_list))
-+			list_del(&tsk->cg_list);
-+		write_unlock(&css_group_lock);
-+	}
-+
- 	/* Reassign the task to the init_css_group. */
- 	task_lock(tsk);
--	put_css_group(&tsk->containers);
--	tsk->containers = init_task.containers;
-+	cg = tsk->containers;
-+	tsk->containers = &init_css_group;
+@@ -2241,7 +2473,7 @@ void container_exit(struct task_struct *
+ 	tsk->containers = &init_css_group;
  	task_unlock(tsk);
-+	if (cg)
-+		put_css_group(cg);
+ 	if (cg)
+-		put_css_group(cg);
++		put_css_group_taskexit(cg);
  }
  
  /**
-@@ -1839,7 +2275,7 @@ int container_clone(struct task_struct *
- 		mutex_unlock(&container_mutex);
- 		return 0;
- 	}
--	cg = &tsk->containers;
-+	cg = tsk->containers;
- 	parent = task_container(tsk, subsys->subsys_id);
- 
- 	snprintf(nodename, MAX_CONTAINER_TYPE_NAMELEN, "node_%d", tsk->pid);
-@@ -1847,6 +2283,8 @@ int container_clone(struct task_struct *
- 	/* Pin the hierarchy */
- 	atomic_inc(&parent->root->sb->s_active);
- 
-+	/* Keep the container alive */
-+	get_css_group(cg);
- 	mutex_unlock(&container_mutex);
- 
- 	/* Now do the VFS work to create a container */
-@@ -1890,6 +2328,7 @@ int container_clone(struct task_struct *
- 	    (parent != task_container(tsk, subsys->subsys_id))) {
- 		/* Aargh, we raced ... */
- 		mutex_unlock(&inode->i_mutex);
-+		put_css_group(cg);
- 
- 		deactivate_super(parent->root->sb);
- 		/* The container is still accessible in the VFS, but
-@@ -1913,6 +2352,7 @@ int container_clone(struct task_struct *
+@@ -2352,7 +2584,10 @@ int container_clone(struct task_struct *
  
   out_release:
  	mutex_unlock(&inode->i_mutex);
-+	put_css_group(cg);
++
++	mutex_lock(&container_mutex);
+ 	put_css_group(cg);
++	mutex_unlock(&container_mutex);
  	deactivate_super(parent->root->sb);
  	return ret;
  }
-diff -puN kernel/fork.c~task-containersv11-shared-container-subsystem-group-arrays kernel/fork.c
---- a/kernel/fork.c~task-containersv11-shared-container-subsystem-group-arrays
-+++ a/kernel/fork.c
-@@ -1286,6 +1286,7 @@ static struct task_struct *copy_process(
- 		put_user(p->pid, parent_tidptr);
- 
- 	proc_fork_connector(p);
-+	container_post_fork(p);
- 	return p;
- 
- bad_fork_cleanup_namespaces:
+@@ -2382,3 +2617,111 @@ int container_is_descendant(const struct
+ 	ret = (cont == target);
+ 	return ret;
+ }
++
++static void check_for_release(struct container *cont)
++{
++	/* All of these checks rely on RCU to keep the container
++	 * structure alive */
++	if (container_is_releasable(cont) && !atomic_read(&cont->count)
++	    && list_empty(&cont->children) && !container_has_css_refs(cont)) {
++		/* Container is currently removeable. If it's not
++		 * already queued for a userspace notification, queue
++		 * it now */
++		int need_schedule_work = 0;
++		spin_lock(&release_list_lock);
++		if (!container_is_removed(cont) &&
++		    list_empty(&cont->release_list)) {
++			list_add(&cont->release_list, &release_list);
++			need_schedule_work = 1;
++		}
++		spin_unlock(&release_list_lock);
++		if (need_schedule_work)
++			schedule_work(&release_agent_work);
++	}
++}
++
++void __css_put(struct container_subsys_state *css)
++{
++	struct container *cont = css->container;
++	rcu_read_lock();
++	if (atomic_dec_and_test(&css->refcnt) && notify_on_release(cont)) {
++		set_bit(CONT_RELEASABLE, &cont->flags);
++		check_for_release(cont);
++	}
++	rcu_read_unlock();
++}
++
++/*
++ * Notify userspace when a container is released, by running the
++ * configured release agent with the name of the container (path
++ * relative to the root of container file system) as the argument.
++ *
++ * Most likely, this user command will try to rmdir this container.
++ *
++ * This races with the possibility that some other task will be
++ * attached to this container before it is removed, or that some other
++ * user task will 'mkdir' a child container of this container.  That's ok.
++ * The presumed 'rmdir' will fail quietly if this container is no longer
++ * unused, and this container will be reprieved from its death sentence,
++ * to continue to serve a useful existence.  Next time it's released,
++ * we will get notified again, if it still has 'notify_on_release' set.
++ *
++ * The final arg to call_usermodehelper() is UMH_WAIT_EXEC, which
++ * means only wait until the task is successfully execve()'d.  The
++ * separate release agent task is forked by call_usermodehelper(),
++ * then control in this thread returns here, without waiting for the
++ * release agent task.  We don't bother to wait because the caller of
++ * this routine has no use for the exit status of the release agent
++ * task, so no sense holding our caller up for that.
++ *
++ */
++
++static void container_release_agent(struct work_struct *work)
++{
++	BUG_ON(work != &release_agent_work);
++	mutex_lock(&container_mutex);
++	spin_lock(&release_list_lock);
++	while (!list_empty(&release_list)) {
++		char *argv[3], *envp[3];
++		int i;
++		char *pathbuf;
++		struct container *cont = list_entry(release_list.next,
++						    struct container,
++						    release_list);
++		list_del_init(&cont->release_list);
++		spin_unlock(&release_list_lock);
++		pathbuf = kmalloc(PAGE_SIZE, GFP_KERNEL);
++		if (!pathbuf) {
++			spin_lock(&release_list_lock);
++			continue;
++		}
++
++		if (container_path(cont, pathbuf, PAGE_SIZE) < 0) {
++			kfree(pathbuf);
++			spin_lock(&release_list_lock);
++			continue;
++		}
++
++		i = 0;
++		argv[i++] = cont->root->release_agent_path;
++		argv[i++] = (char *)pathbuf;
++		argv[i] = NULL;
++
++		i = 0;
++		/* minimal command environment */
++		envp[i++] = "HOME=/";
++		envp[i++] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
++		envp[i] = NULL;
++
++		/* Drop the lock while we invoke the usermode helper,
++		 * since the exec could involve hitting disk and hence
++		 * be a slow process */
++		mutex_unlock(&container_mutex);
++		call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
++		kfree(pathbuf);
++		mutex_lock(&container_mutex);
++		spin_lock(&release_list_lock);
++	}
++	spin_unlock(&release_list_lock);
++	mutex_unlock(&container_mutex);
++}
 _
 
 Patches currently in -mm which might be from menage@google.com are
