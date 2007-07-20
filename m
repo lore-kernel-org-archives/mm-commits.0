@@ -1,124 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: + mmaps2-vma-out-of-mem_size_stats.patch added to -mm tree
-Date: Thu, 19 Jul 2007 18:38:11 -0700
-Message-ID: <200707200138.l6K1cBXc000978@imap1.linux-foundation.org>
+Subject: - write-only-stuff-in-cfq-data-structures.patch removed from -mm tree
+Date: Thu, 19 Jul 2007 22:58:55 -0700
+Message-ID: <200707200558.l6K5wtpH010334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36754 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50095 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759851AbXGTBic (ORCPT
+	by vger.kernel.org with ESMTP id S1753196AbXGTGFQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 21:38:32 -0400
+	Fri, 20 Jul 2007 02:05:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, mpm@selenic.com
+To: adobriyan@sw.ru, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps2: vma out of mem_size_stats
-has been added to the -mm tree.  Its filename is
-     mmaps2-vma-out-of-mem_size_stats.patch
+     Write-only stuff in CFQ data structures
+has been removed from the -mm tree.  Its filename was
+     write-only-stuff-in-cfq-data-structures.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: maps2: vma out of mem_size_stats
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Write-only stuff in CFQ data structures
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Putting the vma inside "struct mem_size_stats" to hand it through the
-pagewalker is a little gross.  Making a separate struct is more verbose, but
-clearer.
+There are some write-only fields in cfq_data and cfq_queue.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Matt Mackall <mpm@selenic.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   32 +++++++++++++++++++-------------
- 1 files changed, 19 insertions(+), 13 deletions(-)
+ block/cfq-iosched.c |   11 -----------
+ 1 files changed, 11 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mmaps2-vma-out-of-mem_size_stats fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mmaps2-vma-out-of-mem_size_stats
-+++ a/fs/proc/task_mmu.c
-@@ -318,7 +318,6 @@ const struct file_operations proc_maps_o
- #ifdef CONFIG_PROC_SMAPS
- struct mem_size_stats
- {
--	struct vm_area_struct *vma;
- 	unsigned long resident;
- 	unsigned long shared_clean;
- 	unsigned long shared_dirty;
-@@ -327,11 +326,18 @@ struct mem_size_stats
- 	unsigned long referenced;
+diff -puN block/cfq-iosched.c~write-only-stuff-in-cfq-data-structures block/cfq-iosched.c
+--- a/block/cfq-iosched.c~write-only-stuff-in-cfq-data-structures
++++ a/block/cfq-iosched.c
+@@ -111,9 +111,6 @@ struct cfq_data {
+ 	unsigned int cfq_slice_idle;
+ 
+ 	struct list_head cic_list;
+-
+-	sector_t new_seek_mean;
+-	u64 new_seek_total;
  };
  
-+struct smaps_arg
-+{
-+	struct mem_size_stats mss;
-+	struct vm_area_struct *vma;
-+};
-+
- static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			   void *private)
- {
--	struct mem_size_stats *mss = private;
--	struct vm_area_struct *vma = mss->vma;
-+	struct smaps_arg *sarg = private;
-+	struct vm_area_struct *vma = sarg->vma;
-+	struct mem_size_stats *mss = &sarg->mss;
- 	pte_t *pte, ptent;
- 	spinlock_t *ptl;
- 	struct page *page;
-@@ -373,14 +379,14 @@ static struct mm_walk smaps_walk = { .pm
- static int show_smap(struct seq_file *m, void *v)
- {
- 	struct vm_area_struct *vma = v;
--	struct mem_size_stats mss;
-+	struct smaps_arg sarg;
- 	int ret;
+ /*
+@@ -153,8 +150,6 @@ struct cfq_queue {
  
--	memset(&mss, 0, sizeof mss);
--	mss.vma = vma;
-+	memset(&sarg.mss, 0, sizeof sarg.mss);
-+	sarg.vma = vma;
- 	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
- 		walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
--				&smaps_walk, &mss);
-+				&smaps_walk, &sarg);
+ 	/* various state flags, see below */
+ 	unsigned int flags;
+-
+-	sector_t last_request_pos;
+ };
  
- 	ret = show_map(m, v);
- 	if (ret)
-@@ -395,12 +401,12 @@ static int show_smap(struct seq_file *m,
- 		   "Private_Dirty:  %8lu kB\n"
- 		   "Referenced:     %8lu kB\n",
- 		   (vma->vm_end - vma->vm_start) >> 10,
--		   mss.resident >> 10,
--		   mss.shared_clean  >> 10,
--		   mss.shared_dirty  >> 10,
--		   mss.private_clean >> 10,
--		   mss.private_dirty >> 10,
--		   mss.referenced >> 10);
-+		   sarg.mss.resident >> 10,
-+		   sarg.mss.shared_clean  >> 10,
-+		   sarg.mss.shared_dirty  >> 10,
-+		   sarg.mss.private_clean >> 10,
-+		   sarg.mss.private_dirty >> 10,
-+		   sarg.mss.referenced >> 10);
+ enum cfqq_state_flags {
+@@ -1597,11 +1592,6 @@ cfq_update_io_seektime(struct cfq_data *
+ 	else
+ 		sdist = cic->last_request_pos - rq->sector;
  
- 	return ret;
- }
+-	if (!cic->seek_samples) {
+-		cfqd->new_seek_total = (7*cic->seek_total + (u64)256*sdist) / 8;
+-		cfqd->new_seek_mean = cfqd->new_seek_total / 256;
+-	}
+-
+ 	/*
+ 	 * Don't allow the seek distance to get too large from the
+ 	 * odd fragment, pagein, etc
+@@ -1737,7 +1727,6 @@ cfq_rq_enqueued(struct cfq_data *cfqd, s
+ 	cfq_update_idle_window(cfqd, cfqq, cic);
+ 
+ 	cic->last_request_pos = rq->sector + rq->nr_sectors;
+-	cfqq->last_request_pos = cic->last_request_pos;
+ 
+ 	if (cfqq == cfqd->active_queue) {
+ 		/*
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-git-kbuild.patch
-git-kvm.patch
-lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
-mmaps2-vma-out-of-mem_size_stats.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+consolidate-ptrace_detach.patch
+git-dvb.patch
+write-only-stuff-in-cfq-data-structures.patch
+use-list_head-in-binfmt-handling.patch
+make-unregister_binfmt-return-void.patch
+fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
+fix-leak-on-proc-lockdep_stats.patch
+slab_panic-more-proc-posix-timers-shmem.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
