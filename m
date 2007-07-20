@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-__val-in-__get_unaligned.patch added to -mm tree
-Date: Thu, 19 Jul 2007 17:15:47 -0700
-Message-ID: <200707200015.l6K0FlPQ030201@imap1.linux-foundation.org>
+Subject: + spicscan_boardinfo-mustnt-be-__init_or_module.patch added to -mm tree
+Date: Thu, 19 Jul 2007 17:16:39 -0700
+Message-ID: <200707200016.l6K0GdpI030232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55322 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755635AbXGTAPz (ORCPT
+	by vger.kernel.org with ESMTP id S1755579AbXGTAQ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 20:15:55 -0400
+	Thu, 19 Jul 2007 20:16:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org
+Cc: bunk@stusta.de, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     use __val in __get_unaligned
+     spi.c:scan_boardinfo() mustn't be __init_or_module
 has been added to the -mm tree.  Its filename is
-     use-__val-in-__get_unaligned.patch
+     spicscan_boardinfo-mustnt-be-__init_or_module.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use __val in __get_unaligned
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: spi.c:scan_boardinfo() mustn't be __init_or_module
+From: Adrian Bunk <bunk@stusta.de>
 
-Use "__val" rather than "val" in the __get_unaligned macro in
-asm-generic/unaligned.h.  This way gcc wont warn if you happen to also name
-something in the same scope "val".
+WARNING: drivers/built-in.o(.text+0x889735): Section mismatch: reference to .init.text:scan_boardinfo (between 'spi_register_master' and '__unregister')
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/unaligned.h |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/spi/spi.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/asm-generic/unaligned.h~use-__val-in-__get_unaligned include/asm-generic/unaligned.h
---- a/include/asm-generic/unaligned.h~use-__val-in-__get_unaligned
-+++ a/include/asm-generic/unaligned.h
-@@ -79,24 +79,24 @@ static inline void __ustw(__u16 val, __u
+diff -puN drivers/spi/spi.c~spicscan_boardinfo-mustnt-be-__init_or_module drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spicscan_boardinfo-mustnt-be-__init_or_module
++++ a/drivers/spi/spi.c
+@@ -303,8 +303,7 @@ spi_register_board_info(struct spi_board
+  * creates board info from kernel command lines
+  */
  
- #define __get_unaligned(ptr, size) ({		\
- 	const void *__gu_p = ptr;		\
--	__u64 val;				\
-+	__u64 __val;				\
- 	switch (size) {				\
- 	case 1:					\
--		val = *(const __u8 *)__gu_p;	\
-+		__val = *(const __u8 *)__gu_p;	\
- 		break;				\
- 	case 2:					\
--		val = __uldw(__gu_p);		\
-+		__val = __uldw(__gu_p);		\
- 		break;				\
- 	case 4:					\
--		val = __uldl(__gu_p);		\
-+		__val = __uldl(__gu_p);		\
- 		break;				\
- 	case 8:					\
--		val = __uldq(__gu_p);		\
-+		__val = __uldq(__gu_p);		\
- 		break;				\
- 	default:				\
- 		bad_unaligned_access_length();	\
- 	};					\
--	(__force __typeof__(*(ptr)))val;	\
-+	(__force __typeof__(*(ptr)))__val;	\
- })
- 
- #define __put_unaligned(val, ptr, size)		\
+-static void __init_or_module
+-scan_boardinfo(struct spi_master *master)
++static void scan_boardinfo(struct spi_master *master)
+ {
+ 	struct boardinfo	*bi;
+ 	struct device		*dev = master->cdev.dev;
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
+origin.patch
+fix-x86_64-mm-xen-xen-event-channels.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+git-hwmon.patch
 git-kbuild.patch
-x86_64-hide-cond_syscall-behind-__kernel__.patch
-use-__val-in-__get_unaligned.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+git-scsi-misc.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+i386-intel_cacheinfocfind_num_cache_leaves-should.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+maps2-add-proc-kpagemap-interface.patch
+fs-reiserfs-cleanups.patch
+anon_inodes-shouldnt-be-user-visible.patch
+introduce-i_sync-fix.patch
+spicscan_boardinfo-mustnt-be-__init_or_module.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
