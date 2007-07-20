@@ -1,151 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - fix-some-conversion-overflows.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 12:41:52 -0700
-Message-ID: <200707201941.l6KJfq8v012976@imap1.linux-foundation.org>
+Subject: - async_tx-fix-kmap_atomic-usage-in-async_memcpy.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 12:41:56 -0700
+Message-ID: <200707201941.l6KJfu2R012982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60475 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53088 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762720AbXGTTmE (ORCPT
+	by vger.kernel.org with ESMTP id S1757250AbXGTTmM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 15:42:04 -0400
+	Fri, 20 Jul 2007 15:42:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mark.fasheh@oracle.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, akpm@linux-foundation.org, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix some conversion overflows
+     async_tx: fix kmap_atomic usage in async_memcpy
 has been removed from the -mm tree.  Its filename was
-     fix-some-conversion-overflows.patch
+     async_tx-fix-kmap_atomic-usage-in-async_memcpy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix some conversion overflows
-From: Nick Piggin <npiggin@suse.de>
+Subject: async_tx: fix kmap_atomic usage in async_memcpy
+From: Dan Williams <dan.j.williams@intel.com>
 
-Fix page index to offset conversion overflows in buffer layer, ecryptfs,
-and ocfs2.
+Andrew Morton:
+	[async_memcpy] is very wrong if both ASYNC_TX_KMAP_DST and
+	ASYNC_TX_KMAP_SRC can ever be set.  We'll end up using the same kmap
+	slot for both src add dest and we get either corrupted data or a BUG.
 
-It would be nice to convert the whole tree to page_offset, but for now
-just fix the bugs.
+Evgeniy Polyakov:
+	Btw, shouldn't it always be kmap_atomic() even if flag is not set.
+	That pages are usual one returned by alloc_page().
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+So fix the usage of kmap_atomic and kill the ASYNC_TX_KMAP_DST and
+ASYNC_TX_KMAP_SRC flags.
+
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c        |    2 +-
- fs/ecryptfs/mmap.c |    5 ++---
- fs/ocfs2/mmap.c    |    2 +-
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ crypto/async_tx/async_memcpy.c |   19 ++++---------------
+ drivers/md/raid5.c             |    4 ++--
+ include/linux/async_tx.h       |    6 ------
+ 3 files changed, 6 insertions(+), 23 deletions(-)
 
-diff -puN fs/buffer.c~fix-some-conversion-overflows fs/buffer.c
---- a/fs/buffer.c~fix-some-conversion-overflows
-+++ a/fs/buffer.c
-@@ -2221,7 +2221,7 @@ block_page_mkwrite(struct vm_area_struct
- 	lock_page(page);
- 	size = i_size_read(inode);
- 	if ((page->mapping != inode->i_mapping) ||
--	    ((page->index << PAGE_CACHE_SHIFT) > size)) {
-+	    (page_offset(page) > size)) {
- 		/* page got truncated out from underneath us */
- 		goto out_unlock;
- 	}
-diff -puN fs/ecryptfs/mmap.c~fix-some-conversion-overflows fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~fix-some-conversion-overflows
-+++ a/fs/ecryptfs/mmap.c
-@@ -409,8 +409,7 @@ static int ecryptfs_prepare_write(struct
- 	if (!PageUptodate(page))
- 		rc = ecryptfs_do_readpage(file, page, page->index);
- 	if (page->index != 0) {
--		loff_t end_of_prev_pg_pos =
--			(((loff_t)page->index << PAGE_CACHE_SHIFT) - 1);
-+		loff_t end_of_prev_pg_pos = page_offset(page) - 1;
+diff -puN crypto/async_tx/async_memcpy.c~async_tx-fix-kmap_atomic-usage-in-async_memcpy crypto/async_tx/async_memcpy.c
+--- a/crypto/async_tx/async_memcpy.c~async_tx-fix-kmap_atomic-usage-in-async_memcpy
++++ a/crypto/async_tx/async_memcpy.c
+@@ -36,7 +36,6 @@
+  * @offset: offset in pages to start transaction
+  * @len: length in bytes
+  * @flags: ASYNC_TX_ASSUME_COHERENT, ASYNC_TX_ACK, ASYNC_TX_DEP_ACK,
+- *	ASYNC_TX_KMAP_SRC, ASYNC_TX_KMAP_DST
+  * @depend_tx: memcpy depends on the result of this transaction
+  * @cb_fn: function to call when the memcpy completes
+  * @cb_param: parameter to pass to the callback routine
+@@ -88,23 +87,13 @@ async_memcpy(struct page *dest, struct p
+ 					__FUNCTION__);
+ 		}
  
- 		if (end_of_prev_pg_pos > i_size_read(page->mapping->host)) {
- 			rc = ecryptfs_truncate(file->f_path.dentry,
-@@ -736,7 +735,7 @@ static int ecryptfs_commit_write(struct 
- 		goto out;
+-		if (flags & ASYNC_TX_KMAP_DST)
+-			dest_buf = kmap_atomic(dest, KM_USER0) + dest_offset;
+-		else
+-			dest_buf = page_address(dest) + dest_offset;
+-
+-		if (flags & ASYNC_TX_KMAP_SRC)
+-			src_buf = kmap_atomic(src, KM_USER0) + src_offset;
+-		else
+-			src_buf = page_address(src) + src_offset;
++		dest_buf = kmap_atomic(dest, KM_USER0) + dest_offset;
++		src_buf = kmap_atomic(src, KM_USER1) + src_offset;
+ 
+ 		memcpy(dest_buf, src_buf, len);
+ 
+-		if (flags & ASYNC_TX_KMAP_DST)
+-			kunmap_atomic(dest_buf, KM_USER0);
+-
+-		if (flags & ASYNC_TX_KMAP_SRC)
+-			kunmap_atomic(src_buf, KM_USER0);
++		kunmap_atomic(dest_buf, KM_USER0);
++		kunmap_atomic(src_buf, KM_USER1);
+ 
+ 		async_tx_sync_epilog(flags, depend_tx, cb_fn, cb_param);
  	}
- 	inode->i_blocks = lower_inode->i_blocks;
--	pos = (page->index << PAGE_CACHE_SHIFT) + to;
-+	pos = page_offset(page) + to;
- 	if (pos > i_size_read(inode)) {
- 		i_size_write(inode, pos);
- 		ecryptfs_printk(KERN_DEBUG, "Expanded file size to "
-diff -puN fs/ocfs2/mmap.c~fix-some-conversion-overflows fs/ocfs2/mmap.c
---- a/fs/ocfs2/mmap.c~fix-some-conversion-overflows
-+++ a/fs/ocfs2/mmap.c
-@@ -89,7 +89,7 @@ static int __ocfs2_page_mkwrite(struct i
- {
- 	int ret;
- 	struct address_space *mapping = inode->i_mapping;
--	loff_t pos = page->index << PAGE_CACHE_SHIFT;
-+	loff_t pos = page_offset(page);
- 	unsigned int len = PAGE_CACHE_SIZE;
- 	pgoff_t last_index;
- 	struct page *locked_page = NULL;
+diff -puN drivers/md/raid5.c~async_tx-fix-kmap_atomic-usage-in-async_memcpy drivers/md/raid5.c
+--- a/drivers/md/raid5.c~async_tx-fix-kmap_atomic-usage-in-async_memcpy
++++ a/drivers/md/raid5.c
+@@ -493,12 +493,12 @@ async_copy_data(int frombio, struct bio 
+ 			if (frombio)
+ 				tx = async_memcpy(page, bio_page, page_offset,
+ 					b_offset, clen,
+-					ASYNC_TX_DEP_ACK | ASYNC_TX_KMAP_SRC,
++					ASYNC_TX_DEP_ACK,
+ 					tx, NULL, NULL);
+ 			else
+ 				tx = async_memcpy(bio_page, page, b_offset,
+ 					page_offset, clen,
+-					ASYNC_TX_DEP_ACK | ASYNC_TX_KMAP_DST,
++					ASYNC_TX_DEP_ACK,
+ 					tx, NULL, NULL);
+ 		}
+ 		if (clen < len) /* hit end of page */
+diff -puN include/linux/async_tx.h~async_tx-fix-kmap_atomic-usage-in-async_memcpy include/linux/async_tx.h
+--- a/include/linux/async_tx.h~async_tx-fix-kmap_atomic-usage-in-async_memcpy
++++ a/include/linux/async_tx.h
+@@ -51,10 +51,6 @@ struct dma_chan_ref {
+  * @ASYNC_TX_ACK: immediately ack the descriptor, precludes setting up a
+  * dependency chain
+  * @ASYNC_TX_DEP_ACK: ack the dependency descriptor.  Useful for chaining.
+- * @ASYNC_TX_KMAP_SRC: if the transaction is to be performed synchronously
+- * take an atomic mapping (KM_USER0) on the source page(s)
+- * @ASYNC_TX_KMAP_DST: if the transaction is to be performed synchronously
+- * take an atomic mapping (KM_USER0) on the dest page(s)
+  */
+ enum async_tx_flags {
+ 	ASYNC_TX_XOR_ZERO_DST	 = (1 << 0),
+@@ -62,8 +58,6 @@ enum async_tx_flags {
+ 	ASYNC_TX_ASSUME_COHERENT = (1 << 2),
+ 	ASYNC_TX_ACK		 = (1 << 3),
+ 	ASYNC_TX_DEP_ACK	 = (1 << 4),
+-	ASYNC_TX_KMAP_SRC	 = (1 << 5),
+-	ASYNC_TX_KMAP_DST	 = (1 << 6),
+ };
+ 
+ #ifdef CONFIG_DMA_ENGINE
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 origin.patch
-x86_64-wbinvd-macro-fix.patch
-geode-setup-correct-chipset-access-functions-fix.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
-xfs-convert-to-new-aops.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-convert-to-new-aops-fix.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
-hostfs-convert-to-new-aops.patch
-hostfs-convert-to-new-aops-fix.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-udf-convert-to-new-aops.patch
-udf-convert-to-new-aops-fix.patch
-sysv-convert-to-new-aops.patch
-minix-convert-to-new-aops.patch
-jfs-convert-to-new-aops.patch
-fs-adfs-convert-to-new-aops.patch
-fs-affs-convert-to-new-aops.patch
-affs-convert-to-new-aops-fix.patch
-ocfs2-convert-to-new-aops.patch
-fs-remove-some-aop_truncated_page.patch
-fs-reiserfs-cleanups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-reiser4-fix-for-new-aops-patches.patch
+git-arm.patch
+raid5-add-the-stripe_queue-object-for-tracking-raid.patch
+raid5-add-the-stripe_queue-object-for-tracking-raid-io-requests-take2.patch
+raid5-use-stripe_queues-to-prioritize-the-most.patch
