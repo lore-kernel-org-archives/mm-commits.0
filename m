@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-use-descriptors-functions-instead-of-inline-assembly.patch added to -mm tree
-Date: Fri, 20 Jul 2007 13:43:34 -0700
-Message-ID: <200707202043.l6KKhYmh015542@imap1.linux-foundation.org>
+Subject: + task-containersv11-simple-task-container-debug-info-subsystem.patch added to -mm tree
+Date: Fri, 20 Jul 2007 13:36:59 -0700
+Message-ID: <200707202036.l6KKaxlE015178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49603 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34123 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765690AbXGTUoP (ORCPT
+	by vger.kernel.org with ESMTP id S1758828AbXGTUp4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:44:15 -0400
+	Fri, 20 Jul 2007 16:45:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gcosta@redhat.com, ak@suse.de
+Cc: menage@google.com, balbir@in.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
 
 
 The patch titled
-     x86_64: use descriptor's functions instead of inline assembly
+     Task Containers:  simple task container debug info subsystem
 has been added to the -mm tree.  Its filename is
-     x86_64-use-descriptors-functions-instead-of-inline-assembly.patch
+     task-containersv11-simple-task-container-debug-info-subsystem.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,156 +26,188 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: use descriptor's functions instead of inline assembly
-From: Glauber de Oliveira Costa <gcosta@redhat.com>
+Subject: Task Containers:  simple task container debug info subsystem
+From: Paul Menage <menage@google.com>
 
-This patch provides a new set of functions for managing the descriptor
-tables that can be used instead of putting the raw assembly in .c files.
+This example subsystem exports debugging information as an aid to diagnosing
+refcount leaks, etc, in the container framework.
 
-Remodeling of store_tr() suggested by Frederik Deweerdt.
-
-Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/head64.c  |    2 +-
- arch/x86_64/kernel/reboot.c  |    3 ++-
- arch/x86_64/kernel/setup64.c |    4 ++--
- arch/x86_64/kernel/suspend.c |   11 ++++++-----
- include/asm-x86_64/desc.h    |   29 +++++++++++++++++++++++++++++
- 5 files changed, 40 insertions(+), 9 deletions(-)
+ include/linux/container_subsys.h |    4 +
+ init/Kconfig                     |   10 ++
+ kernel/Makefile                  |    1 
+ kernel/container_debug.c         |   97 +++++++++++++++++++++++++++++
+ 4 files changed, 112 insertions(+)
 
-diff -puN arch/x86_64/kernel/head64.c~x86_64-use-descriptors-functions-instead-of-inline-assembly arch/x86_64/kernel/head64.c
---- a/arch/x86_64/kernel/head64.c~x86_64-use-descriptors-functions-instead-of-inline-assembly
-+++ a/arch/x86_64/kernel/head64.c
-@@ -61,7 +61,7 @@ void __init x86_64_start_kernel(char * r
+diff -puN include/linux/container_subsys.h~task-containersv11-simple-task-container-debug-info-subsystem include/linux/container_subsys.h
+--- a/include/linux/container_subsys.h~task-containersv11-simple-task-container-debug-info-subsystem
++++ a/include/linux/container_subsys.h
+@@ -19,4 +19,8 @@ SUBSYS(cpuacct)
  
- 	for (i = 0; i < IDT_ENTRIES; i++)
- 		set_intr_gate(i, early_idt_handler);
--	asm volatile("lidt %0" :: "m" (idt_descr));
-+	load_idt((const struct desc_ptr *)&idt_descr);
+ /* */
  
- 	early_printk("Kernel alive\n");
++#ifdef CONFIG_CONTAINER_DEBUG
++SUBSYS(debug)
++#endif
++
+ /* */
+diff -puN init/Kconfig~task-containersv11-simple-task-container-debug-info-subsystem init/Kconfig
+--- a/init/Kconfig~task-containersv11-simple-task-container-debug-info-subsystem
++++ a/init/Kconfig
+@@ -303,6 +303,16 @@ config CONTAINERS
  
-diff -puN arch/x86_64/kernel/reboot.c~x86_64-use-descriptors-functions-instead-of-inline-assembly arch/x86_64/kernel/reboot.c
---- a/arch/x86_64/kernel/reboot.c~x86_64-use-descriptors-functions-instead-of-inline-assembly
-+++ a/arch/x86_64/kernel/reboot.c
-@@ -12,6 +12,7 @@
- #include <acpi/reboot.h>
- #include <asm/io.h>
- #include <asm/delay.h>
-+#include <asm/desc.h>
- #include <asm/hw_irq.h>
- #include <asm/system.h>
- #include <asm/pgtable.h>
-@@ -140,7 +141,7 @@ void machine_emergency_restart(void)
- 		}
+ 	  Say N if unsure.
  
- 		case BOOT_TRIPLE: 
--			__asm__ __volatile__("lidt (%0)": :"r" (&no_idt));
-+			load_idt((const struct desc_ptr *)&no_idt);
- 			__asm__ __volatile__("int3");
- 
- 			reboot_type = BOOT_KBD;
-diff -puN arch/x86_64/kernel/setup64.c~x86_64-use-descriptors-functions-instead-of-inline-assembly arch/x86_64/kernel/setup64.c
---- a/arch/x86_64/kernel/setup64.c~x86_64-use-descriptors-functions-instead-of-inline-assembly
-+++ a/arch/x86_64/kernel/setup64.c
-@@ -224,8 +224,8 @@ void __cpuinit cpu_init (void)
-  		memcpy(cpu_gdt(cpu), cpu_gdt_table, GDT_SIZE);
- 
- 	cpu_gdt_descr[cpu].size = GDT_SIZE;
--	asm volatile("lgdt %0" :: "m" (cpu_gdt_descr[cpu]));
--	asm volatile("lidt %0" :: "m" (idt_descr));
-+	load_gdt((const struct desc_ptr *)&cpu_gdt_descr[cpu]);
-+	load_idt((const struct desc_ptr *)&idt_descr);
- 
- 	memset(me->thread.tls_array, 0, GDT_ENTRY_TLS_ENTRIES * 8);
- 	syscall_init();
-diff -puN arch/x86_64/kernel/suspend.c~x86_64-use-descriptors-functions-instead-of-inline-assembly arch/x86_64/kernel/suspend.c
---- a/arch/x86_64/kernel/suspend.c~x86_64-use-descriptors-functions-instead-of-inline-assembly
-+++ a/arch/x86_64/kernel/suspend.c
-@@ -32,9 +32,9 @@ void __save_processor_state(struct saved
- 	/*
- 	 * descriptor tables
- 	 */
--	asm volatile ("sgdt %0" : "=m" (ctxt->gdt_limit));
--	asm volatile ("sidt %0" : "=m" (ctxt->idt_limit));
--	asm volatile ("str %0"  : "=m" (ctxt->tr));
-+	store_gdt((struct desc_ptr *)&ctxt->gdt_limit);
-+	store_idt((struct desc_ptr *)&ctxt->idt_limit);
-+	store_tr(ctxt->tr);
- 
- 	/* XMM0..XMM15 should be handled by kernel_fpu_begin(). */
- 	/*
-@@ -91,8 +91,9 @@ void __restore_processor_state(struct sa
- 	 * now restore the descriptor tables to their proper values
- 	 * ltr is done i fix_processor_context().
- 	 */
--	asm volatile ("lgdt %0" :: "m" (ctxt->gdt_limit));
--	asm volatile ("lidt %0" :: "m" (ctxt->idt_limit));
-+	load_gdt((const struct desc_ptr *)&ctxt->gdt_limit);
-+	load_idt((const struct desc_ptr *)&ctxt->idt_limit);
-+	
- 
- 	/*
- 	 * segment registers
-diff -puN include/asm-x86_64/desc.h~x86_64-use-descriptors-functions-instead-of-inline-assembly include/asm-x86_64/desc.h
---- a/include/asm-x86_64/desc.h~x86_64-use-descriptors-functions-instead-of-inline-assembly
-+++ a/include/asm-x86_64/desc.h
-@@ -20,6 +20,15 @@ extern struct desc_struct cpu_gdt_table[
- #define load_LDT_desc() asm volatile("lldt %w0"::"r" (GDT_ENTRY_LDT*8))
- #define clear_LDT()  asm volatile("lldt %w0"::"r" (0))
- 
-+static inline unsigned long __store_tr(void)
++config CONTAINER_DEBUG
++	bool "Example debug container subsystem"
++	depends on CONTAINERS
++	help
++	  This option enables a simple container subsystem that
++	  exports useful debugging information about the containers
++	  framework
++
++	  Say N if unsure
++
+ config CPUSETS
+ 	bool "Cpuset support"
+ 	depends on SMP && CONTAINERS
+diff -puN kernel/Makefile~task-containersv11-simple-task-container-debug-info-subsystem kernel/Makefile
+--- a/kernel/Makefile~task-containersv11-simple-task-container-debug-info-subsystem
++++ a/kernel/Makefile
+@@ -37,6 +37,7 @@ obj-$(CONFIG_BSD_PROCESS_ACCT) += acct.o
+ obj-$(CONFIG_KEXEC) += kexec.o
+ obj-$(CONFIG_COMPAT) += compat.o
+ obj-$(CONFIG_CONTAINERS) += container.o
++obj-$(CONFIG_CONTAINER_DEBUG) += container_debug.o
+ obj-$(CONFIG_CPUSETS) += cpuset.o
+ obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_acct.o
+ obj-$(CONFIG_IKCONFIG) += configs.o
+diff -puN /dev/null kernel/container_debug.c
+--- /dev/null
++++ a/kernel/container_debug.c
+@@ -0,0 +1,97 @@
++/*
++ * kernel/ccontainer_debug.c - Example container subsystem that
++ * exposes debug info
++ *
++ * Copyright (C) Google Inc, 2007
++ *
++ * Developed by Paul Menage (menage@google.com)
++ *
++ */
++
++#include <linux/container.h>
++#include <linux/fs.h>
++#include <linux/slab.h>
++#include <linux/rcupdate.h>
++
++#include <asm/atomic.h>
++
++static struct container_subsys_state *debug_create(struct container_subsys *ss,
++						   struct container *cont)
 +{
-+       unsigned long tr;
-+       asm volatile ("str %w0":"=r" (tr));
-+       return tr;
++	struct container_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
++
++	if (!css)
++		return ERR_PTR(-ENOMEM);
++
++	return css;
 +}
 +
-+#define store_tr(tr) (tr) = __store_tr()
-+
- /*
-  * This is the ldt that every process will get unless we need
-  * something other than this.
-@@ -31,6 +40,16 @@ extern struct desc_ptr cpu_gdt_descr[];
- /* the cpu gdt accessor */
- #define cpu_gdt(_cpu) ((struct desc_struct *)cpu_gdt_descr[_cpu].address)
- 
-+static inline void load_gdt(const struct desc_ptr *ptr)
++static void debug_destroy(struct container_subsys *ss, struct container *cont)
 +{
-+	asm volatile("lgdt %w0"::"m" (*ptr));
++	kfree(cont->subsys[debug_subsys_id]);
 +}
 +
-+static inline void store_gdt(struct desc_ptr *ptr)
++static u64 container_refcount_read(struct container *cont, struct cftype *cft)
 +{
-+       asm ("sgdt %w0":"=m" (*ptr));
++	return atomic_read(&cont->count);
 +}
 +
- static inline void _set_gate(void *adr, unsigned type, unsigned long func, unsigned dpl, unsigned ist)  
- {
- 	struct gate_struct s; 	
-@@ -71,6 +90,16 @@ static inline void set_system_gate_ist(i
- 	_set_gate(&idt_table[nr], GATE_INTERRUPT, (unsigned long) func, 3, ist);
- }
- 
-+static inline void load_idt(const struct desc_ptr *ptr)
++static u64 taskcount_read(struct container *cont, struct cftype *cft)
 +{
-+	asm volatile("lidt %w0"::"m" (*ptr));
++	u64 count;
++
++	container_lock();
++	count = container_task_count(cont);
++	container_unlock();
++	return count;
 +}
 +
-+static inline void store_idt(struct desc_ptr *dtr)
++static u64 current_css_group_read(struct container *cont, struct cftype *cft)
 +{
-+       asm ("sidt %w0":"=m" (*dtr));
++	return (u64)(long)current->containers;
 +}
 +
- static inline void set_tssldt_descriptor(void *ptr, unsigned long tss, unsigned type, 
- 					 unsigned size) 
- { 
++static u64 current_css_group_refcount_read(struct container *cont,
++					   struct cftype *cft)
++{
++	u64 count;
++
++	rcu_read_lock();
++	count = atomic_read(&current->containers->ref.refcount);
++	rcu_read_unlock();
++	return count;
++}
++
++static struct cftype files[] =  {
++	{
++		.name = "container_refcount",
++		.read_uint = container_refcount_read,
++	},
++	{
++		.name = "taskcount",
++		.read_uint = taskcount_read,
++	},
++
++	{
++		.name = "current_css_group",
++		.read_uint = current_css_group_read,
++	},
++
++	{
++		.name = "current_css_group_refcount",
++		.read_uint = current_css_group_refcount_read,
++	},
++};
++
++static int debug_populate(struct container_subsys *ss, struct container *cont)
++{
++	return container_add_files(cont, ss, files, ARRAY_SIZE(files));
++}
++
++struct container_subsys debug_subsys = {
++	.name = "debug",
++	.create = debug_create,
++	.destroy = debug_destroy,
++	.populate = debug_populate,
++	.subsys_id = debug_subsys_id,
++};
 _
 
-Patches currently in -mm which might be from gcosta@redhat.com are
+Patches currently in -mm which might be from menage@google.com are
 
-x86_64-use-wbinvd-macro-instead-of-raw-inline-assembly-in-c-files.patch
-x86_64-use-descriptors-functions-instead-of-inline-assembly.patch
+origin.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
