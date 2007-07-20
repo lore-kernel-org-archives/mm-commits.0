@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ps3fb-set-fbinfo_reads_fast-to-speed-up-text-console-scrolling.patch added to -mm tree
-Date: Fri, 20 Jul 2007 11:12:42 -0700
-Message-ID: <200707201812.l6KICgFo009482@imap1.linux-foundation.org>
+Subject: + ps3fb-shrink-default-virtual-frame-buffer-size-from-18-to-9-mib.patch added to -mm tree
+Date: Fri, 20 Jul 2007 11:12:40 -0700
+Message-ID: <200707201812.l6KICeUr009479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50975 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52155 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765272AbXGTSOL (ORCPT
+	by vger.kernel.org with ESMTP id S1764338AbXGTSOH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 14:14:11 -0400
+	Fri, 20 Jul 2007 14:14:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, geoffrey.levand@am.sony.com
 
 
 The patch titled
-     ps3fb: Set FBINFO_READS_FAST to speed up text console scrolling
+     ps3fb: Shrink default virtual frame buffer size from 18 to 9 MiB
 has been added to the -mm tree.  Its filename is
-     ps3fb-set-fbinfo_reads_fast-to-speed-up-text-console-scrolling.patch
+     ps3fb-shrink-default-virtual-frame-buffer-size-from-18-to-9-mib.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ps3fb: Set FBINFO_READS_FAST to speed up text console scrolling
+Subject: ps3fb: Shrink default virtual frame buffer size from 18 to 9 MiB
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-ps3fb: Set FBINFO_READS_FAST to speed up text console scrolling (on average
-50%, according to my tests)
+ps3fb: Shrink the default virtual frame buffer size from 18 to 9 MiB, as
+nobody really uses the double buffering feature and Linux can use an
+additional 9 MiB.  It can still be overridden on the kernel command line using
+`ps3fb=18M'.
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Cc: Geoff Levand <geoffrey.levand@am.sony.com>
@@ -39,21 +41,21 @@ Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ps3fb.c |    2 +-
+ drivers/video/Kconfig |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/ps3fb.c~ps3fb-set-fbinfo_reads_fast-to-speed-up-text-console-scrolling drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3fb-set-fbinfo_reads_fast-to-speed-up-text-console-scrolling
-+++ a/drivers/video/ps3fb.c
-@@ -1067,7 +1067,7 @@ static int __devinit ps3fb_probe(struct 
- 	info->fix.smem_len = ps3fb_videomemory.size - offset;
- 	info->pseudo_palette = info->par;
- 	info->par = NULL;
--	info->flags = FBINFO_FLAG_DEFAULT;
-+	info->flags = FBINFO_DEFAULT | FBINFO_READS_FAST;
- 
- 	retval = fb_alloc_cmap(&info->cmap, 256, 0);
- 	if (retval < 0)
+diff -puN drivers/video/Kconfig~ps3fb-shrink-default-virtual-frame-buffer-size-from-18-to-9-mib drivers/video/Kconfig
+--- a/drivers/video/Kconfig~ps3fb-shrink-default-virtual-frame-buffer-size-from-18-to-9-mib
++++ a/drivers/video/Kconfig
+@@ -1798,7 +1798,7 @@ config FB_PS3
+ config FB_PS3_DEFAULT_SIZE_M
+ 	int "PS3 default frame buffer size (in MiB)"
+ 	depends on FB_PS3
+-	default 18
++	default 9
+ 	---help---
+ 	  This is the default size (in MiB) of the virtual frame buffer in
+ 	  the PS3.
 _
 
 Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
