@@ -1,464 +1,486 @@
 From: akpm@linux-foundation.org
-Subject: - add-containerstats-v3.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 13:30:04 -0700
-Message-ID: <200707202030.l6KKU4s4014924@imap1.linux-foundation.org>
+Subject: + task-containersv11-add-tasks-file-interface.patch added to -mm tree
+Date: Fri, 20 Jul 2007 13:36:42 -0700
+Message-ID: <200707202036.l6KKagAw015149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56849 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934728AbXGTUhN (ORCPT
+	by vger.kernel.org with ESMTP id S935878AbXGTUhp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 16:37:13 -0400
+	Fri, 20 Jul 2007 16:37:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, menage@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: menage@google.com, balbir@in.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
 
 
 The patch titled
-     Add containerstats
-has been removed from the -mm tree.  Its filename was
-     add-containerstats-v3.patch
+     Task Containers:  add tasks file interface
+has been added to the -mm tree.  Its filename is
+     task-containersv11-add-tasks-file-interface.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Add containerstats
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: Task Containers:  add tasks file interface
+From: Paul Menage <menage@google.com>
 
-This patch is inspired by the discussion at
-http://lkml.org/lkml/2007/4/11/187 and implements per container statistics
-as suggested by Andrew Morton in http://lkml.org/lkml/2007/4/11/263.  The
-patch is on top of 2.6.21-mm1 with Paul's containers v9 patches (forward
-ported)
+Add the per-directory "tasks" file for containerfs mounts; this allows the
+user to determine which tasks are members of a container by reading a
+container's "tasks", and to move a task into a container by writing its pid to
+its "tasks".
 
-This patch implements per container statistics infrastructure and re-uses
-code from the taskstats interface.  A new set of container operations are
-registered with commands and attributes.  It should be very easy to
-*extend* per container statistics, by adding members to the containerstats
-structure.
-
-The current model for containerstats is a pull, a push model (to post
-statistics on interesting events), should be very easy to add.  Currently
-user space requests for statistics by passing the container file
-descriptor.  Statistics about the state of all the tasks in the container
-is returned to user space.
-
-TODO's/NOTE:
-
-This patch provides an infrastructure for implementing container statistics.
-Based on the needs of each controller, we can incrementally add more statistics,
-event based support for notification of statistics, accumulation of taskstats
-into container statistics in the future.
-
-Sample output
-
-# ./containerstats -C /container/a
-sleeping 2, blocked 0, running 1, stopped 0, uninterruptible 0
-
-# ./containerstats -C /container/
-sleeping 154, blocked 0, running 0, stopped 0, uninterruptible 0
-
-If the approach looks good, I'll enhance and post the user space utility for
-the same
-
-Feedback, comments, test results are always welcome!
-
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/containerstats.txt |   27 ++++++
- include/linux/Kbuild                        |    1 
- include/linux/container.h                   |    8 ++
- include/linux/containerstats.h              |   70 ++++++++++++++++++
- include/linux/delayacct.h                   |   13 +++
- kernel/container.c                          |   54 +++++++++++++
- kernel/taskstats.c                          |   66 ++++++++++++++++
- 7 files changed, 239 insertions(+)
+ include/linux/container.h |   10 +
+ kernel/container.c        |  359 +++++++++++++++++++++++++++++++++++-
+ 2 files changed, 368 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/accounting/containerstats.txt
---- /dev/null
-+++ a/Documentation/accounting/containerstats.txt
-@@ -0,0 +1,27 @@
-+Containerstats is inspired by the discussion at
-+http://lkml.org/lkml/2007/4/11/187 and implements per container statistics as
-+suggested by Andrew Morton in http://lkml.org/lkml/2007/4/11/263.
-+
-+Per container statistics infrastructure re-uses code from the taskstats
-+interface. A new set of container operations are registered with commands
-+and attributes specific to containers. It should be very easy to
-+extend per container statistics, by adding members to the containerstats
-+structure.
-+
-+The current model for containerstats is a pull, a push model (to post
-+statistics on interesting events), should be very easy to add. Currently
-+user space requests for statistics by passing the container path.
-+Statistics about the state of all the tasks in the container is returned to
-+user space.
-+
-+NOTE: We currently rely on delay accounting for extracting information
-+about tasks blocked on I/O. If CONFIG_TASK_DELAY_ACCT is disabled, this
-+information will not be available.
-+
-+To extract container statistics a utility very similar to getdelays.c
-+has been developed, the sample output of the utility is shown below
-+
-+~/balbir/containerstats # ./getdelays  -C "/container/a"
-+sleeping 1, blocked 0, running 1, stopped 0, uninterruptible 0
-+~/balbir/containerstats # ./getdelays  -C "/container"
-+sleeping 155, blocked 0, running 1, stopped 0, uninterruptible 2
-diff -puN include/linux/Kbuild~add-containerstats-v3 include/linux/Kbuild
---- a/include/linux/Kbuild~add-containerstats-v3
-+++ a/include/linux/Kbuild
-@@ -47,6 +47,7 @@ header-y += coff.h
- header-y += comstats.h
- header-y += consolemap.h
- header-y += const.h
-+header-y += containerstats.h
- header-y += cycx_cfm.h
- header-y += dlm_device.h
- header-y += dlm_netlink.h
-diff -puN include/linux/container.h~add-containerstats-v3 include/linux/container.h
---- a/include/linux/container.h~add-containerstats-v3
+diff -puN include/linux/container.h~task-containersv11-add-tasks-file-interface include/linux/container.h
+--- a/include/linux/container.h~task-containersv11-add-tasks-file-interface
 +++ a/include/linux/container.h
-@@ -13,6 +13,7 @@
- #include <linux/cpumask.h>
- #include <linux/nodemask.h>
- #include <linux/rcupdate.h>
-+#include <linux/containerstats.h>
+@@ -144,6 +144,16 @@ int container_is_removed(const struct co
  
- #ifdef CONFIG_CONTAINERS
+ int container_path(const struct container *cont, char *buf, int buflen);
  
-@@ -27,6 +28,8 @@ extern void container_unlock(void);
- extern void container_fork(struct task_struct *p);
- extern void container_fork_callbacks(struct task_struct *p);
- extern void container_exit(struct task_struct *p, int run_callbacks);
-+extern int containerstats_build(struct containerstats *stats,
-+				struct dentry *dentry);
- 
- extern struct file_operations proc_container_operations;
- 
-@@ -288,6 +291,11 @@ static inline void container_exit(struct
- 
- static inline void container_lock(void) {}
- static inline void container_unlock(void) {}
-+static inline int containerstats_build(struct containerstats *stats,
-+					struct dentry *dentry)
++int __container_task_count(const struct container *cont);
++static inline int container_task_count(const struct container *cont)
 +{
-+	return -EINVAL;
-+}
- 
- #endif /* !CONFIG_CONTAINERS */
- 
-diff -puN /dev/null include/linux/containerstats.h
---- /dev/null
-+++ a/include/linux/containerstats.h
-@@ -0,0 +1,70 @@
-+/* containerstats.h - exporting per-container statistics
-+ *
-+ * Copyright IBM Corporation, 2007
-+ * Author Balbir Singh <balbir@linux.vnet.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of version 2.1 of the GNU Lesser General Public License
-+ * as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it would be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+
-+#ifndef _LINUX_CONTAINERSTATS_H
-+#define _LINUX_CONTAINERSTATS_H
-+
-+#include <linux/taskstats.h>
-+
-+/*
-+ * Data shared between user space and kernel space on a per container
-+ * basis. This data is shared using taskstats.
-+ *
-+ * Most of these states are derived by looking at the task->state value
-+ * For the nr_io_wait state, a flag in the delay accounting structure
-+ * indicates that the task is waiting on IO
-+ *
-+ * Each member is aligned to a 8 byte boundary.
-+ */
-+struct containerstats {
-+	__u64	nr_sleeping;		/* Number of tasks sleeping */
-+	__u64	nr_running;		/* Number of tasks running */
-+	__u64	nr_stopped;		/* Number of tasks in stopped state */
-+	__u64	nr_uninterruptible;	/* Number of tasks in uninterruptible */
-+					/* state */
-+	__u64	nr_io_wait;		/* Number of tasks waiting on IO */
-+};
-+
-+/*
-+ * Commands sent from userspace
-+ * Not versioned. New commands should only be inserted at the enum's end
-+ * prior to __CONTAINERSTATS_CMD_MAX
-+ */
-+
-+enum {
-+	CONTAINERSTATS_CMD_UNSPEC = __TASKSTATS_CMD_MAX,	/* Reserved */
-+	CONTAINERSTATS_CMD_GET,		/* user->kernel request/get-response */
-+	CONTAINERSTATS_CMD_NEW,		/* kernel->user event */
-+	__CONTAINERSTATS_CMD_MAX,
-+};
-+
-+#define CONTAINERSTATS_CMD_MAX (__CONTAINERSTATS_CMD_MAX - 1)
-+
-+enum {
-+	CONTAINERSTATS_TYPE_UNSPEC = 0,	/* Reserved */
-+	CONTAINERSTATS_TYPE_CONTAINER_STATS,	/* contains name + stats */
-+	__CONTAINERSTATS_TYPE_MAX,
-+};
-+
-+#define CONTAINERSTATS_TYPE_MAX (__CONTAINERSTATS_TYPE_MAX - 1)
-+
-+enum {
-+	CONTAINERSTATS_CMD_ATTR_UNSPEC = 0,
-+	CONTAINERSTATS_CMD_ATTR_FD,
-+	__CONTAINERSTATS_CMD_ATTR_MAX,
-+};
-+
-+#define CONTAINERSTATS_CMD_ATTR_MAX (__CONTAINERSTATS_CMD_ATTR_MAX - 1)
-+
-+#endif /* _LINUX_CONTAINERSTATS_H */
-diff -puN include/linux/delayacct.h~add-containerstats-v3 include/linux/delayacct.h
---- a/include/linux/delayacct.h~add-containerstats-v3
-+++ a/include/linux/delayacct.h
-@@ -26,6 +26,7 @@
-  * Used to set current->delays->flags
-  */
- #define DELAYACCT_PF_SWAPIN	0x00000001	/* I am doing a swapin */
-+#define DELAYACCT_PF_BLKIO	0x00000002	/* I am waiting on IO */
- 
- #ifdef CONFIG_TASK_DELAY_ACCT
- 
-@@ -39,6 +40,14 @@ extern void __delayacct_blkio_end(void);
- extern int __delayacct_add_tsk(struct taskstats *, struct task_struct *);
- extern __u64 __delayacct_blkio_ticks(struct task_struct *);
- 
-+static inline int delayacct_is_task_waiting_on_io(struct task_struct *p)
-+{
-+	if (p->delays)
-+		return (p->delays->flags & DELAYACCT_PF_BLKIO);
-+	else
-+		return 0;
++	int task_count;
++	rcu_read_lock();
++	task_count = __container_task_count(cont);
++	rcu_read_unlock();
++	return task_count;
 +}
 +
- static inline void delayacct_set_flag(int flag)
- {
- 	if (current->delays)
-@@ -71,6 +80,7 @@ static inline void delayacct_tsk_free(st
+ /* Return true if the container is a descendant of the current container */
+ int container_is_descendant(const struct container *cont);
  
- static inline void delayacct_blkio_start(void)
- {
-+	delayacct_set_flag(DELAYACCT_PF_BLKIO);
- 	if (current->delays)
- 		__delayacct_blkio_start();
- }
-@@ -79,6 +89,7 @@ static inline void delayacct_blkio_end(v
- {
- 	if (current->delays)
- 		__delayacct_blkio_end();
-+	delayacct_clear_flag(DELAYACCT_PF_BLKIO);
- }
- 
- static inline int delayacct_add_tsk(struct taskstats *d,
-@@ -116,6 +127,8 @@ static inline int delayacct_add_tsk(stru
- { return 0; }
- static inline __u64 delayacct_blkio_ticks(struct task_struct *tsk)
- { return 0; }
-+static inline int delayacct_is_task_waiting_on_io(struct task_struct *p)
-+{ return 0; }
- #endif /* CONFIG_TASK_DELAY_ACCT */
- 
- #endif
-diff -puN kernel/container.c~add-containerstats-v3 kernel/container.c
---- a/kernel/container.c~add-containerstats-v3
+diff -puN kernel/container.c~task-containersv11-add-tasks-file-interface kernel/container.c
+--- a/kernel/container.c~task-containersv11-add-tasks-file-interface
 +++ a/kernel/container.c
-@@ -58,6 +58,8 @@
- #include <linux/time.h>
- #include <linux/backing-dev.h>
- #include <linux/sort.h>
-+#include <linux/delayacct.h>
-+#include <linux/containerstats.h>
- 
+@@ -40,7 +40,7 @@
+ #include <linux/magic.h>
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
+-
++#include <linux/sort.h>
  #include <asm/atomic.h>
  
-@@ -1604,6 +1606,58 @@ static int pid_array_load(pid_t *pidarra
- 	return n;
+ /* Generate an array of container subsystem pointers */
+@@ -704,6 +704,127 @@ int container_path(const struct containe
+ 	return 0;
  }
  
-+/**
-+ * Build and fill containerstats so that taskstats can export it to user
-+ * space.
-+ *
-+ * @stats: containerstats to fill information into
-+ * @dentry: A dentry entry belonging to the container for which stats have
-+ * been requested.
++/*
++ * Return the first subsystem attached to a container's hierarchy, and
++ * its subsystem id.
 + */
-+int containerstats_build(struct containerstats *stats, struct dentry *dentry)
++
++static void get_first_subsys(const struct container *cont,
++			struct container_subsys_state **css, int *subsys_id)
 +{
-+	int ret = -EINVAL;
-+	struct container *cont;
-+	struct container_iter it;
-+	struct task_struct *tsk;
-+	/*
-+	 * Validate dentry by checking the superblock operations
-+	 */
-+	if (dentry->d_sb->s_op != &container_ops)
-+		 goto err;
++	const struct containerfs_root *root = cont->root;
++	const struct container_subsys *test_ss;
++	BUG_ON(list_empty(&root->subsys_list));
++	test_ss = list_entry(root->subsys_list.next,
++			     struct container_subsys, sibling);
++	if (css) {
++		*css = cont->subsys[test_ss->subsys_id];
++		BUG_ON(!*css);
++	}
++	if (subsys_id)
++		*subsys_id = test_ss->subsys_id;
++}
 +
-+	ret = 0;
-+	cont = dentry->d_fsdata;
-+	rcu_read_lock();
++/*
++ * Attach task 'tsk' to container 'cont'
++ *
++ * Call holding container_mutex.  May take task_lock of
++ * the task 'pid' during call.
++ */
++static int attach_task(struct container *cont, struct task_struct *tsk)
++{
++	int retval = 0;
++	struct container_subsys *ss;
++	struct container *oldcont;
++	struct css_group *cg = &tsk->containers;
++	struct containerfs_root *root = cont->root;
++	int i;
++	int subsys_id;
 +
-+	container_iter_start(cont, &it);
-+	while ((tsk = container_iter_next(cont, &it))) {
-+		switch (tsk->state) {
-+		case TASK_RUNNING:
-+			stats->nr_running++;
-+			break;
-+		case TASK_INTERRUPTIBLE:
-+			stats->nr_sleeping++;
-+			break;
-+		case TASK_UNINTERRUPTIBLE:
-+			stats->nr_uninterruptible++;
-+			break;
-+		case TASK_STOPPED:
-+			stats->nr_stopped++;
-+			break;
-+		default:
-+			if (delayacct_is_task_waiting_on_io(tsk))
-+				stats->nr_io_wait++;
-+			break;
++	get_first_subsys(cont, NULL, &subsys_id);
++
++	/* Nothing to do if the task is already in that container */
++	oldcont = task_container(tsk, subsys_id);
++	if (cont == oldcont)
++		return 0;
++
++	for_each_subsys(root, ss) {
++		if (ss->can_attach) {
++			retval = ss->can_attach(ss, cont, tsk);
++			if (retval) {
++				return retval;
++			}
 +		}
 +	}
-+	container_iter_end(cont, &it);
 +
-+	rcu_read_unlock();
-+err:
++	task_lock(tsk);
++	if (tsk->flags & PF_EXITING) {
++		task_unlock(tsk);
++		return -ESRCH;
++	}
++	/* Update the css_group pointers for the subsystems in this
++	 * hierarchy */
++	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
++		if (root->subsys_bits & (1ull << i)) {
++			/* Subsystem is in this hierarchy. So we want
++			 * the subsystem state from the new
++			 * container. Transfer the refcount from the
++			 * old to the new */
++			atomic_inc(&cont->count);
++			atomic_dec(&cg->subsys[i]->container->count);
++			rcu_assign_pointer(cg->subsys[i], cont->subsys[i]);
++		}
++	}
++	task_unlock(tsk);
++
++	for_each_subsys(root, ss) {
++		if (ss->attach) {
++			ss->attach(ss, cont, oldcont, tsk);
++		}
++	}
++
++	synchronize_rcu();
++	return 0;
++}
++
++/*
++ * Attach task with pid 'pid' to container 'cont'. Call with
++ * container_mutex, may take task_lock of task
++ */
++static int attach_task_by_pid(struct container *cont, char *pidbuf)
++{
++	pid_t pid;
++	struct task_struct *tsk;
++	int ret;
++
++	if (sscanf(pidbuf, "%d", &pid) != 1)
++		return -EIO;
++
++	if (pid) {
++		rcu_read_lock();
++		tsk = find_task_by_pid(pid);
++		if (!tsk || tsk->flags & PF_EXITING) {
++			rcu_read_unlock();
++			return -ESRCH;
++		}
++		get_task_struct(tsk);
++		rcu_read_unlock();
++
++		if ((current->euid) && (current->euid != tsk->uid)
++		    && (current->euid != tsk->suid)) {
++			put_task_struct(tsk);
++			return -EACCES;
++		}
++	} else {
++		tsk = current;
++		get_task_struct(tsk);
++	}
++
++	ret = attach_task(cont, tsk);
++	put_task_struct(tsk);
 +	return ret;
 +}
 +
- static int cmppid(const void *a, const void *b)
- {
- 	return *(pid_t *)a - *(pid_t *)b;
-diff -puN kernel/taskstats.c~add-containerstats-v3 kernel/taskstats.c
---- a/kernel/taskstats.c~add-containerstats-v3
-+++ a/kernel/taskstats.c
-@@ -23,6 +23,9 @@
- #include <linux/tsacct_kern.h>
- #include <linux/cpumask.h>
- #include <linux/percpu.h>
-+#include <linux/containerstats.h>
-+#include <linux/container.h>
-+#include <linux/file.h>
- #include <net/genetlink.h>
- #include <asm/atomic.h>
+ /* The various types of files and directories in a container file system */
  
-@@ -50,6 +53,11 @@ __read_mostly = {
- 	[TASKSTATS_CMD_ATTR_REGISTER_CPUMASK] = { .type = NLA_STRING },
- 	[TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK] = { .type = NLA_STRING },};
- 
-+static struct nla_policy
-+containerstats_cmd_get_policy[CONTAINERSTATS_CMD_ATTR_MAX+1] __read_mostly = {
-+	[CONTAINERSTATS_CMD_ATTR_FD] = { .type = NLA_U32 },
-+};
-+
- struct listener {
- 	struct list_head list;
- 	pid_t pid;
-@@ -373,6 +381,51 @@ err:
- 	return NULL;
- }
- 
-+static int containerstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
-+{
-+	int rc = 0;
-+	struct sk_buff *rep_skb;
-+	struct containerstats *stats;
-+	struct nlattr *na;
-+	size_t size;
-+	u32 fd;
-+	struct file *file;
-+	int fput_needed;
-+
-+	na = info->attrs[CONTAINERSTATS_CMD_ATTR_FD];
-+	if (!na)
-+		return -EINVAL;
-+
-+	fd = nla_get_u32(info->attrs[CONTAINERSTATS_CMD_ATTR_FD]);
-+	file = fget_light(fd, &fput_needed);
-+	if (file) {
-+		size = nla_total_size(sizeof(struct containerstats));
-+
-+		rc = prepare_reply(info, CONTAINERSTATS_CMD_NEW, &rep_skb,
-+					size);
-+		if (rc < 0)
-+			goto err;
-+
-+		na = nla_reserve(rep_skb, CONTAINERSTATS_TYPE_CONTAINER_STATS,
-+					sizeof(struct containerstats));
-+		stats = nla_data(na);
-+		memset(stats, 0, sizeof(*stats));
-+
-+		rc = containerstats_build(stats, file->f_dentry);
-+		if (rc < 0)
-+			goto err;
-+
-+		fput_light(file, fput_needed);
-+		return send_reply(rep_skb, info->snd_pid);
-+	}
-+
-+err:
-+	if (file)
-+		fput_light(file, fput_needed);
-+	nlmsg_free(rep_skb);
-+	return rc;
-+}
-+
- static int taskstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
- {
- 	int rc = 0;
-@@ -523,6 +576,12 @@ static struct genl_ops taskstats_ops = {
- 	.policy		= taskstats_cmd_get_policy,
+ enum container_filetype {
+@@ -712,6 +833,55 @@ enum container_filetype {
+ 	FILE_TASKLIST,
  };
  
-+static struct genl_ops containerstats_ops = {
-+	.cmd		= CONTAINERSTATS_CMD_GET,
-+	.doit		= containerstats_user_cmd,
-+	.policy		= containerstats_cmd_get_policy,
++static ssize_t container_common_file_write(struct container *cont,
++					   struct cftype *cft,
++					   struct file *file,
++					   const char __user *userbuf,
++					   size_t nbytes, loff_t *unused_ppos)
++{
++	enum container_filetype type = cft->private;
++	char *buffer;
++	int retval = 0;
++
++	if (nbytes >= PATH_MAX)
++		return -E2BIG;
++
++	/* +1 for nul-terminator */
++	buffer = kmalloc(nbytes + 1, GFP_KERNEL);
++	if (buffer == NULL)
++		return -ENOMEM;
++
++	if (copy_from_user(buffer, userbuf, nbytes)) {
++		retval = -EFAULT;
++		goto out1;
++	}
++	buffer[nbytes] = 0;	/* nul-terminate */
++
++	mutex_lock(&container_mutex);
++
++	if (container_is_removed(cont)) {
++		retval = -ENODEV;
++		goto out2;
++	}
++
++	switch (type) {
++	case FILE_TASKLIST:
++		retval = attach_task_by_pid(cont, buffer);
++		break;
++	default:
++		retval = -EINVAL;
++		goto out2;
++	}
++
++	if (retval == 0)
++		retval = nbytes;
++out2:
++	mutex_unlock(&container_mutex);
++out1:
++	kfree(buffer);
++	return retval;
++}
++
+ static ssize_t container_file_write(struct file *file, const char __user *buf,
+ 						size_t nbytes, loff_t *ppos)
+ {
+@@ -915,6 +1085,189 @@ int container_add_files(struct container
+ 	return 0;
+ }
+ 
++/* Count the number of tasks in a container. Could be made more
++ * time-efficient but less space-efficient with more linked lists
++ * running through each container and the css_group structures that
++ * referenced it. Must be called with tasklist_lock held for read or
++ * write or in an rcu critical section.
++ */
++int __container_task_count(const struct container *cont)
++{
++	int count = 0;
++	struct task_struct *g, *p;
++	struct container_subsys_state *css;
++	int subsys_id;
++
++	get_first_subsys(cont, &css, &subsys_id);
++	do_each_thread(g, p) {
++		if (task_subsys_state(p, subsys_id) == css)
++			count ++;
++	} while_each_thread(g, p);
++	return count;
++}
++
++/*
++ * Stuff for reading the 'tasks' file.
++ *
++ * Reading this file can return large amounts of data if a container has
++ * *lots* of attached tasks. So it may need several calls to read(),
++ * but we cannot guarantee that the information we produce is correct
++ * unless we produce it entirely atomically.
++ *
++ * Upon tasks file open(), a struct ctr_struct is allocated, that
++ * will have a pointer to an array (also allocated here).  The struct
++ * ctr_struct * is stored in file->private_data.  Its resources will
++ * be freed by release() when the file is closed.  The array is used
++ * to sprintf the PIDs and then used by read().
++ */
++struct ctr_struct {
++	char *buf;
++	int bufsz;
 +};
 +
- /* Needed early in initialization */
- void __init taskstats_init_early(void)
- {
-@@ -547,8 +606,15 @@ static int __init taskstats_init(void)
- 	if (rc < 0)
- 		goto err;
- 
-+	rc = genl_register_ops(&family, &containerstats_ops);
-+	if (rc < 0)
-+		goto err_container_ops;
++/*
++ * Load into 'pidarray' up to 'npids' of the tasks using container
++ * 'cont'.  Return actual number of pids loaded.  No need to
++ * task_lock(p) when reading out p->container, since we're in an RCU
++ * read section, so the css_group can't go away, and is
++ * immutable after creation.
++ */
++static int pid_array_load(pid_t *pidarray, int npids, struct container *cont)
++{
++	int n = 0;
++	struct task_struct *g, *p;
++	struct container_subsys_state *css;
++	int subsys_id;
 +
- 	family_registered = 1;
-+	printk("registered taskstats version %d\n", TASKSTATS_GENL_VERSION);
- 	return 0;
-+err_container_ops:
-+	genl_unregister_ops(&family, &taskstats_ops);
- err:
- 	genl_unregister_family(&family);
- 	return rc;
++	get_first_subsys(cont, &css, &subsys_id);
++	rcu_read_lock();
++	do_each_thread(g, p) {
++		if (task_subsys_state(p, subsys_id) == css) {
++			pidarray[n++] = pid_nr(task_pid(p));
++			if (unlikely(n == npids))
++				goto array_full;
++		}
++	} while_each_thread(g, p);
++
++array_full:
++	rcu_read_unlock();
++	return n;
++}
++
++static int cmppid(const void *a, const void *b)
++{
++	return *(pid_t *)a - *(pid_t *)b;
++}
++
++/*
++ * Convert array 'a' of 'npids' pid_t's to a string of newline separated
++ * decimal pids in 'buf'.  Don't write more than 'sz' chars, but return
++ * count 'cnt' of how many chars would be written if buf were large enough.
++ */
++static int pid_array_to_buf(char *buf, int sz, pid_t *a, int npids)
++{
++	int cnt = 0;
++	int i;
++
++	for (i = 0; i < npids; i++)
++		cnt += snprintf(buf + cnt, max(sz - cnt, 0), "%d\n", a[i]);
++	return cnt;
++}
++
++/*
++ * Handle an open on 'tasks' file.  Prepare a buffer listing the
++ * process id's of tasks currently attached to the container being opened.
++ *
++ * Does not require any specific container mutexes, and does not take any.
++ */
++static int container_tasks_open(struct inode *unused, struct file *file)
++{
++	struct container *cont = __d_cont(file->f_dentry->d_parent);
++	struct ctr_struct *ctr;
++	pid_t *pidarray;
++	int npids;
++	char c;
++
++	if (!(file->f_mode & FMODE_READ))
++		return 0;
++
++	ctr = kmalloc(sizeof(*ctr), GFP_KERNEL);
++	if (!ctr)
++		goto err0;
++
++	/*
++	 * If container gets more users after we read count, we won't have
++	 * enough space - tough.  This race is indistinguishable to the
++	 * caller from the case that the additional container users didn't
++	 * show up until sometime later on.
++	 */
++	npids = container_task_count(cont);
++	if (npids) {
++		pidarray = kmalloc(npids * sizeof(pid_t), GFP_KERNEL);
++		if (!pidarray)
++			goto err1;
++
++		npids = pid_array_load(pidarray, npids, cont);
++		sort(pidarray, npids, sizeof(pid_t), cmppid, NULL);
++
++		/* Call pid_array_to_buf() twice, first just to get bufsz */
++		ctr->bufsz = pid_array_to_buf(&c, sizeof(c), pidarray, npids) + 1;
++		ctr->buf = kmalloc(ctr->bufsz, GFP_KERNEL);
++		if (!ctr->buf)
++			goto err2;
++		ctr->bufsz = pid_array_to_buf(ctr->buf, ctr->bufsz, pidarray, npids);
++
++		kfree(pidarray);
++	} else {
++		ctr->buf = 0;
++		ctr->bufsz = 0;
++	}
++	file->private_data = ctr;
++	return 0;
++
++err2:
++	kfree(pidarray);
++err1:
++	kfree(ctr);
++err0:
++	return -ENOMEM;
++}
++
++static ssize_t container_tasks_read(struct container *cont,
++				    struct cftype *cft,
++				    struct file *file, char __user *buf,
++				    size_t nbytes, loff_t *ppos)
++{
++	struct ctr_struct *ctr = file->private_data;
++
++	return simple_read_from_buffer(buf, nbytes, ppos, ctr->buf, ctr->bufsz);
++}
++
++static int container_tasks_release(struct inode *unused_inode,
++					struct file *file)
++{
++	struct ctr_struct *ctr;
++
++	if (file->f_mode & FMODE_READ) {
++		ctr = file->private_data;
++		kfree(ctr->buf);
++		kfree(ctr);
++	}
++	return 0;
++}
++
++/*
++ * for the common functions, 'private' gives the type of file
++ */
++static struct cftype cft_tasks = {
++	.name = "tasks",
++	.open = container_tasks_open,
++	.read = container_tasks_read,
++	.write = container_common_file_write,
++	.release = container_tasks_release,
++	.private = FILE_TASKLIST,
++};
++
+ static int container_populate_dir(struct container *cont)
+ {
+ 	int err;
+@@ -923,6 +1276,10 @@ static int container_populate_dir(struct
+ 	/* First clear out any existing files */
+ 	container_clear_directory(cont->dentry);
+ 
++	err = container_add_file(cont, NULL, &cft_tasks);
++	if (err < 0)
++		return err;
++
+ 	for_each_subsys(cont->root, ss) {
+ 		if (ss->populate && (err = ss->populate(ss, cont)) < 0)
+ 			return err;
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from menage@google.com are
 
 origin.patch
-add-containerstats-v3.patch
-add-containerstats-v3-fix.patch
-update-getdelays-to-become-containerstats-aware.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
