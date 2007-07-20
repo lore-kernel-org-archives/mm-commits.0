@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rename-setleast-to-generic_setlease.patch added to -mm tree
-Date: Fri, 20 Jul 2007 14:27:07 -0700
-Message-ID: <200707202127.l6KLR7Tk017284@imap1.linux-foundation.org>
+Subject: + softlockup-add-a-proc-tuning-parameter.patch added to -mm tree
+Date: Fri, 20 Jul 2007 14:29:53 -0700
+Message-ID: <200707202129.l6KLTrhe017379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57952 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34158 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932389AbXGTV1i (ORCPT
+	by vger.kernel.org with ESMTP id S1754832AbXGTVaR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 17:27:38 -0400
+	Fri, 20 Jul 2007 17:30:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, bfields@fieldses.org, swhiteho@redhat.com
+Cc: kiran@scalex86.org, mingo@elte.hu, shai@scalex86.org
 
 
 The patch titled
-     rename setleast to generic_setlease
+     softlockup: add a /proc tuning parameter
 has been added to the -mm tree.  Its filename is
-     rename-setleast-to-generic_setlease.patch
+     softlockup-add-a-proc-tuning-parameter.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,114 +26,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rename setleast to generic_setlease
-From: Christoph Hellwig <hch@lst.de>
+Subject: softlockup: add a /proc tuning parameter
+From: Ravikiran G Thirumalai <kiran@scalex86.org>
 
-Make it a little more clear that this is the default implemenation for
-the setleast operation.
+Control the trigger limit for softlockup warnings.  This is useful for
+debugging softlockups, by lowering the softlockup_thresh to identify
+possible softlockups earlier.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+This patch:
+1. Adds a sysctl softlockup_thresh with valid values of 1-60s
+   (Higher value to disable false positives)
+2. Changes the softlockup printk to print the cpu softlockup time
+
+Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
+Signed-off-by: Shai Fultheim <shai@scalex86.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/ops_file.c |    2 +-
- fs/locks.c         |    8 ++++----
- include/linux/fs.h |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ Documentation/sysctl/kernel.txt |    8 ++++++++
+ include/linux/sched.h           |    1 +
+ kernel/softlockup.c             |    8 +++++---
+ kernel/sysctl.c                 |   26 +++++++++++++++++++-------
+ 4 files changed, 33 insertions(+), 10 deletions(-)
 
-diff -puN fs/gfs2/ops_file.c~rename-setleast-to-generic_setlease fs/gfs2/ops_file.c
---- a/fs/gfs2/ops_file.c~rename-setleast-to-generic_setlease
-+++ a/fs/gfs2/ops_file.c
-@@ -513,7 +513,7 @@ static int gfs2_setlease(struct file *fi
- 	 */
- 	if (!sdp->sd_args.ar_localflocks)
- 		return -EINVAL;
--	return setlease(file, arg, fl);
-+	return generic_setlease(file, arg, fl);
- }
+diff -puN Documentation/sysctl/kernel.txt~softlockup-add-a-proc-tuning-parameter Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~softlockup-add-a-proc-tuning-parameter
++++ a/Documentation/sysctl/kernel.txt
+@@ -320,6 +320,14 @@ kernel.  This value defaults to SHMMAX.
  
- /**
-diff -puN fs/locks.c~rename-setleast-to-generic_setlease fs/locks.c
---- a/fs/locks.c~rename-setleast-to-generic_setlease
-+++ a/fs/locks.c
-@@ -1324,7 +1324,7 @@ int fcntl_getlease(struct file *filp)
- }
+ ==============================================================
  
- /**
-- *	setlease	-	sets a lease on an open file
-+ *	generic_setlease	-	sets a lease on an open file
-  *	@filp: file pointer
-  *	@arg: type of lease to obtain
-  *	@flp: input - file_lock to use, output - file_lock inserted
-@@ -1334,7 +1334,7 @@ int fcntl_getlease(struct file *filp)
-  *
-  *	Called with kernel lock held.
-  */
--int setlease(struct file *filp, long arg, struct file_lock **flp)
-+int generic_setlease(struct file *filp, long arg, struct file_lock **flp)
++softlockup_thresh:
++
++This value can be used to lower the softlockup tolerance
++threshold. The default threshold is 10s.  If a cpu is locked up
++for 10s, the kernel complains.  Valid values are 1-60s.
++
++==============================================================
++
+ tainted: 
+ 
+ Non-zero if the kernel has been tainted.  Numeric values, which
+diff -puN include/linux/sched.h~softlockup-add-a-proc-tuning-parameter include/linux/sched.h
+--- a/include/linux/sched.h~softlockup-add-a-proc-tuning-parameter
++++ a/include/linux/sched.h
+@@ -260,6 +260,7 @@ extern void softlockup_tick(void);
+ extern void spawn_softlockup_task(void);
+ extern void touch_softlockup_watchdog(void);
+ extern void touch_all_softlockup_watchdogs(void);
++extern int softlockup_thresh;
+ #else
+ static inline void softlockup_tick(void)
  {
- 	struct file_lock *fl, **before, **my_before = NULL, *lease;
- 	struct dentry *dentry = filp->f_path.dentry;
-@@ -1419,7 +1419,7 @@ int setlease(struct file *filp, long arg
- out:
- 	return error;
- }
--EXPORT_SYMBOL(setlease);
-+EXPORT_SYMBOL(generic_setlease);
+diff -puN kernel/softlockup.c~softlockup-add-a-proc-tuning-parameter kernel/softlockup.c
+--- a/kernel/softlockup.c~softlockup-add-a-proc-tuning-parameter
++++ a/kernel/softlockup.c
+@@ -25,6 +25,7 @@ static DEFINE_PER_CPU(unsigned long, pri
+ static DEFINE_PER_CPU(struct task_struct *, watchdog_task);
  
-  /**
-  *	vfs_setlease        -       sets a lease on an open file
-@@ -1456,7 +1456,7 @@ int vfs_setlease(struct file *filp, long
- 	if (filp->f_op && filp->f_op->setlease)
- 		error = filp->f_op->setlease(filp, arg, lease);
+ static int did_panic;
++int softlockup_thresh = 10;
+ 
+ static int
+ softlock_panic(struct notifier_block *this, unsigned long event, void *ptr)
+@@ -106,7 +107,7 @@ void softlockup_tick(void)
+ 		wake_up_process(per_cpu(watchdog_task, this_cpu));
+ 
+ 	/* Warn about unreasonable 10+ seconds delays: */
+-	if (now <= (touch_timestamp + 10))
++	if (now <= (touch_timestamp + softlockup_thresh))
+ 		return;
+ 
+ 	regs = get_irq_regs();
+@@ -114,8 +115,9 @@ void softlockup_tick(void)
+ 	per_cpu(print_timestamp, this_cpu) = touch_timestamp;
+ 
+ 	spin_lock(&print_lock);
+-	printk(KERN_ERR "BUG: soft lockup detected on CPU#%d! [%s:%d]\n",
+-			this_cpu, current->comm, current->pid);
++	printk(KERN_ERR "BUG: soft lockup - CPU#%d stuck for %lus! [%s:%d]\n",
++			this_cpu, now - touch_timestamp,
++				current->comm, current->pid);
+ 	if (regs)
+ 		show_regs(regs);
  	else
--		error = setlease(filp, arg, lease);
-+		error = generic_setlease(filp, arg, lease);
- 	unlock_kernel();
+diff -puN kernel/sysctl.c~softlockup-add-a-proc-tuning-parameter kernel/sysctl.c
+--- a/kernel/sysctl.c~softlockup-add-a-proc-tuning-parameter
++++ a/kernel/sysctl.c
+@@ -80,6 +80,12 @@ extern int maps_protect;
+ extern int sysctl_stat_interval;
+ extern int audit_argv_kb;
  
- 	return error;
-diff -puN include/linux/fs.h~rename-setleast-to-generic_setlease include/linux/fs.h
---- a/include/linux/fs.h~rename-setleast-to-generic_setlease
-+++ a/include/linux/fs.h
-@@ -934,7 +934,7 @@ extern int vfs_cancel_lock(struct file *
- extern int flock_lock_file_wait(struct file *filp, struct file_lock *fl);
- extern int __break_lease(struct inode *inode, unsigned int flags);
- extern void lease_get_mtime(struct inode *, struct timespec *time);
--extern int setlease(struct file *, long, struct file_lock **);
-+extern int generic_setlease(struct file *, long, struct file_lock **);
- extern int vfs_setlease(struct file *, long, struct file_lock **);
- extern int lease_modify(struct file_lock **, int);
- extern int lock_may_read(struct inode *, loff_t start, unsigned long count);
++/* Constants used for minimum and  maximum */
++static int one = 1;
++static int zero;
++static int sixty = 60;
++static int one_hundred = 100;
++
+ /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
+ static int maxolduid = 65535;
+ static int minolduid;
+@@ -709,6 +715,19 @@ static ctl_table kern_table[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+ #endif
++#ifdef CONFIG_DETECT_SOFTLOCKUP
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "softlockup_thresh",
++		.data		= &softlockup_thresh,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &one,
++		.extra2		= &sixty,
++	},
++#endif
+ #ifdef CONFIG_COMPAT
+ 	{
+ 		.ctl_name	= KERN_COMPAT_LOG,
+@@ -755,13 +774,6 @@ static ctl_table kern_table[] = {
+ 	{ .ctl_name = 0 }
+ };
+ 
+-/* Constants for minimum and maximum testing in vm_table.
+-   We use these as one-element integer vectors. */
+-static int zero;
+-static int two = 2;
+-static int one_hundred = 100;
+-
+-
+ static ctl_table vm_table[] = {
+ 	{
+ 		.ctl_name	= VM_OVERCOMMIT_MEMORY,
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from kiran@scalex86.org are
 
 origin.patch
-coda-remove-coda_store-coda_release-upcalls.patch
-gdth-remove-redundant-pci-stuff.patch
-gdth-remove-redundant-pci-stuff-update.patch
-git-xfs.patch
-remove-handle_mm_fault-export.patch
-sysv-convert-to-new-aops.patch
-kill-declare_mutex_locked.patch
-remove-unneded-lock_kernel-in-driver-block-loopc.patch
-loop-use-unlocked_ioctl.patch
-rename-setleast-to-generic_setlease.patch
-spufs-make-sure-context-are-scheduled-again-after-spu_acquire_saved.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
+softlockup-add-a-proc-tuning-parameter.patch
+slab-leaks3-default-y.patch
