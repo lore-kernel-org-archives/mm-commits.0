@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-kernel-notifierc-fix-2.patch added to -mm tree
-Date: Fri, 20 Jul 2007 11:24:51 -0700
-Message-ID: <200707201824.l6KIOpNe009942@imap1.linux-foundation.org>
+Subject: + geode-setup-correct-chipset-access-functions-fix.patch added to -mm tree
+Date: Fri, 20 Jul 2007 11:22:26 -0700
+Message-ID: <200707201822.l6KIMQQr009878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp2.linux-foundation.org ([207.189.120.14]:50788 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752157AbXGTSeW (ORCPT
+	by vger.kernel.org with ESMTP id S1753251AbXGTSeX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 14:34:22 -0400
+	Fri, 20 Jul 2007 14:34:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru
+Cc: npiggin@suse.de, ak@suse.de, alan@lxorguk.ukuu.org.uk, dilinger@debian.org, jordan.crouse@amd.com, takada@mbf.nifty.com
 
 
 The patch titled
-     add-kernel-notifierc-fix 2
+     geode setup correct chipset access functions fix
 has been added to the -mm tree.  Its filename is
-     add-kernel-notifierc-fix-2.patch
+     geode-setup-correct-chipset-access-functions-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,173 +26,115 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-kernel-notifierc-fix 2
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: geode setup correct chipset access functions fix
+From: Nick Piggin <npiggin@suse.de>
 
-It fixes [Space][Tab][Space] places and removes lines between kernel-doc
-comment and function itself.
+Should probably be reworked not to require this, but get it building.
 
-
+Cc: TAKADA Yoshihito <takada@mbf.nifty.com>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Andres Salomon <dilinger@debian.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/notifier.c |   31 ++++++++-----------------------
- 1 files changed, 8 insertions(+), 23 deletions(-)
+ include/asm-x86_64/processor-cyrix.h |   30 +++++++++++++++++++++++++
+ 1 files changed, 30 insertions(+)
 
-diff -puN kernel/notifier.c~add-kernel-notifierc-fix-2 kernel/notifier.c
---- a/kernel/notifier.c~add-kernel-notifierc-fix-2
-+++ a/kernel/notifier.c
-@@ -10,7 +10,6 @@
-  *	at shutdown. This is used to stop any idling DMA operations
-  *	and the like.
-  */
--
- BLOCKING_NOTIFIER_HEAD(reboot_notifier_list);
- 
- /*
-@@ -50,13 +49,12 @@ static int notifier_chain_unregister(str
-  *	@val:		Value passed unmodified to notifier function
-  *	@v:		Pointer passed unmodified to notifier function
-  *	@nr_to_call:	Number of notifier functions to be called. Don't care
-- *		     	value of this parameter is -1.
-+ *			value of this parameter is -1.
-  *	@nr_calls:	Records the number of notifications sent. Don't care
-- *		   	value of this field is NULL.
-- * 	@returns:	notifier_call_chain returns the value returned by the
-+ *			value of this field is NULL.
-+ *	@returns:	notifier_call_chain returns the value returned by the
-  *			last notifier function called.
-  */
--
- static int __kprobes notifier_call_chain(struct notifier_block **nl,
- 					unsigned long val, void *v,
- 					int nr_to_call,	int *nr_calls)
-@@ -95,7 +93,6 @@ static int __kprobes notifier_call_chain
-  *
-  *	Currently always returns zero.
-  */
--
- int atomic_notifier_chain_register(struct atomic_notifier_head *nh,
- 		struct notifier_block *n)
- {
-@@ -151,7 +148,6 @@ EXPORT_SYMBOL_GPL(atomic_notifier_chain_
-  *	Otherwise the return value is the return value
-  *	of the last notifier function called.
-  */
--
- int __kprobes __atomic_notifier_call_chain(struct atomic_notifier_head *nh,
- 					unsigned long val, void *v,
- 					int nr_to_call, int *nr_calls)
-@@ -187,7 +183,6 @@ EXPORT_SYMBOL_GPL(atomic_notifier_call_c
-  *
-  *	Currently always returns zero.
-  */
--
- int blocking_notifier_chain_register(struct blocking_notifier_head *nh,
- 		struct notifier_block *n)
- {
-@@ -256,7 +251,6 @@ EXPORT_SYMBOL_GPL(blocking_notifier_chai
-  *	Otherwise the return value is the return value
-  *	of the last notifier function called.
-  */
--
- int __blocking_notifier_call_chain(struct blocking_notifier_head *nh,
- 				   unsigned long val, void *v,
- 				   int nr_to_call, int *nr_calls)
-@@ -300,7 +294,6 @@ EXPORT_SYMBOL_GPL(blocking_notifier_call
-  *
-  *	Currently always returns zero.
-  */
--
- int raw_notifier_chain_register(struct raw_notifier_head *nh,
- 		struct notifier_block *n)
- {
-@@ -344,7 +337,6 @@ EXPORT_SYMBOL_GPL(raw_notifier_chain_unr
-  *	Otherwise the return value is the return value
-  *	of the last notifier function called.
-  */
--
- int __raw_notifier_call_chain(struct raw_notifier_head *nh,
- 			      unsigned long val, void *v,
- 			      int nr_to_call, int *nr_calls)
-@@ -375,7 +367,6 @@ EXPORT_SYMBOL_GPL(raw_notifier_call_chai
-  *
-  *	Currently always returns zero.
-  */
--
- int srcu_notifier_chain_register(struct srcu_notifier_head *nh,
- 		struct notifier_block *n)
- {
-@@ -445,7 +436,6 @@ EXPORT_SYMBOL_GPL(srcu_notifier_chain_un
-  *	Otherwise the return value is the return value
-  *	of the last notifier function called.
-  */
--
- int __srcu_notifier_call_chain(struct srcu_notifier_head *nh,
- 			       unsigned long val, void *v,
- 			       int nr_to_call, int *nr_calls)
-@@ -479,7 +469,6 @@ EXPORT_SYMBOL_GPL(srcu_notifier_call_cha
-  *	up by calling srcu_cleanup_notifier_head().  Otherwise the head's
-  *	per-cpu data (used by the SRCU mechanism) will leak.
-  */
--
- void srcu_init_notifier_head(struct srcu_notifier_head *nh)
- {
- 	mutex_init(&nh->mutex);
-@@ -499,7 +488,6 @@ EXPORT_SYMBOL_GPL(srcu_init_notifier_hea
-  *	Currently always returns zero, as blocking_notifier_chain_register()
-  *	always returns zero.
-  */
--
- int register_reboot_notifier(struct notifier_block *nb)
- {
- 	return blocking_notifier_chain_register(&reboot_notifier_list, nb);
-@@ -515,28 +503,25 @@ EXPORT_SYMBOL(register_reboot_notifier);
-  *
-  *	Returns zero on success, or %-ENOENT on failure.
-  */
--
- int unregister_reboot_notifier(struct notifier_block *nb)
- {
- 	return blocking_notifier_chain_unregister(&reboot_notifier_list, nb);
- }
- EXPORT_SYMBOL(unregister_reboot_notifier);
- 
--
- static ATOMIC_NOTIFIER_HEAD(die_chain);
- 
- int notify_die(enum die_val val, const char *str,
- 	       struct pt_regs *regs, long err, int trap, int sig)
- {
- 	struct die_args args = {
--		.regs		= regs,
--		.str		= str,
--		.err		= err,
--		.trapnr		= trap,
--		.signr		= sig,
-+		.regs	= regs,
-+		.str	= str,
-+		.err	= err,
-+		.trapnr	= trap,
-+		.signr	= sig,
- 
- 	};
--
- 	return atomic_notifier_call_chain(&die_chain, val, &args);
- }
- 
+diff -puN /dev/null include/asm-x86_64/processor-cyrix.h
+--- /dev/null
++++ a/include/asm-x86_64/processor-cyrix.h
+@@ -0,0 +1,30 @@
++/*
++ * NSC/Cyrix CPU indexed register access. Must be inlined instead of
++ * macros to ensure correct access ordering
++ * Access order is always 0x22 (=offset), 0x23 (=value)
++ *
++ * When using the old macros a line like
++ *   setCx86(CX86_CCR2, getCx86(CX86_CCR2) | 0x88);
++ * gets expanded to:
++ *  do {
++ *    outb((CX86_CCR2), 0x22);
++ *    outb((({
++ *        outb((CX86_CCR2), 0x22);
++ *        inb(0x23);
++ *    }) | 0x88), 0x23);
++ *  } while (0);
++ *
++ * which in fact violates the access order (= 0x22, 0x22, 0x23, 0x23).
++ */
++
++static inline u8 getCx86(u8 reg)
++{
++	outb(reg, 0x22);
++	return inb(0x23);
++}
++
++static inline void setCx86(u8 reg, u8 data)
++{
++	outb(reg, 0x22);
++	outb(data, 0x23);
++}
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-consolidate-ptrace_detach.patch
-git-dvb.patch
-use-list_head-in-binfmt-handling.patch
-make-unregister_binfmt-return-void.patch
-fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
-fix-leak-on-proc-lockdep_stats.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
+x86_64-wbinvd-macro-fix.patch
+fix-some-conversion-overflows.patch
+geode-setup-correct-chipset-access-functions-fix.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+introduce-write_begin-write_end-aops-important-fix.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-convert-to-new-aops-fix.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+hostfs-convert-to-new-aops-fix.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+udf-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix.patch
+ocfs2-convert-to-new-aops.patch
+fs-remove-some-aop_truncated_page.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
