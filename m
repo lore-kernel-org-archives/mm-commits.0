@@ -1,63 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - pata_platform-fix-null-pointer-dereference.patch removed from -mm tree
-Date: Fri, 20 Jul 2007 12:42:24 -0700
-Message-ID: <200707201942.l6KJgOTm013087@imap1.linux-foundation.org>
+Subject: - m68knommu-reformat-show_cpuinfo.patch removed from -mm tree
+Date: Fri, 20 Jul 2007 12:42:04 -0700
+Message-ID: <200707201942.l6KJg49N013060@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58334 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46629 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763613AbXGTTmi (ORCPT
+	by vger.kernel.org with ESMTP id S1763578AbXGTTmp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 15:42:38 -0400
+	Fri, 20 Jul 2007 15:42:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: magnus.damm@gmail.com, alan@lxorguk.ukuu.org.uk, damm@igel.co.jp, jeff@garzik.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: gerg@snapgear.com, gerg@uclinux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_platform: Fix NULL pointer dereference
+     m68knommu: reformat show_cpuinfo()
 has been removed from the -mm tree.  Its filename was
-     pata_platform-fix-null-pointer-dereference.patch
+     m68knommu-reformat-show_cpuinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_platform: Fix NULL pointer dereference
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: m68knommu: reformat show_cpuinfo()
+From: Greg Ungerer <gerg@snapgear.com>
 
-pata_platform: Fix NULL pointer dereference
+Reformat show_cpuinfo() to be consistent with normal coding style
+(and rest of this file).
 
-pata_platform currently dereferences a NULL pointer in pata_platform_probe()
-if pdev->dev.platform_data is set to NULL. This breakage was most likely
-introduced by commit 5f45bc50976ee1f408f7171af155aec646655a37.
-
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_platform.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ arch/m68knommu/kernel/setup.c |   37 ++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
 
-diff -puN drivers/ata/pata_platform.c~pata_platform-fix-null-pointer-dereference drivers/ata/pata_platform.c
---- a/drivers/ata/pata_platform.c~pata_platform-fix-null-pointer-dereference
-+++ a/drivers/ata/pata_platform.c
-@@ -213,8 +213,9 @@ static int __devinit pata_platform_probe
- 	pata_platform_setup_port(&ap->ioaddr, pp_info);
+diff -puN arch/m68knommu/kernel/setup.c~m68knommu-reformat-show_cpuinfo arch/m68knommu/kernel/setup.c
+--- a/arch/m68knommu/kernel/setup.c~m68knommu-reformat-show_cpuinfo
++++ a/arch/m68knommu/kernel/setup.c
+@@ -231,32 +231,33 @@ void setup_arch(char **cmdline_p)
+ /*
+  *	Get CPU information for use by the procfs.
+  */
+-
+ static int show_cpuinfo(struct seq_file *m, void *v)
+ {
+-    char *cpu, *mmu, *fpu;
+-    u_long clockfreq;
++	char *cpu, *mmu, *fpu;
++	u_long clockfreq;
  
- 	/* activate */
--	return ata_host_activate(host, platform_get_irq(pdev, 0), ata_interrupt,
--				 pp_info->irq_flags, &pata_platform_sht);
-+	return ata_host_activate(host, platform_get_irq(pdev, 0),
-+				 ata_interrupt, pp_info ? pp_info->irq_flags
-+				 : 0, &pata_platform_sht);
+-    cpu = CPU;
+-    mmu = "none";
+-    fpu = "none";
++	cpu = CPU;
++	mmu = "none";
++	fpu = "none";
+ 
+ #ifdef CONFIG_COLDFIRE
+-    clockfreq = (loops_per_jiffy*HZ)*3;
++	clockfreq = (loops_per_jiffy * HZ) * 3;
+ #else
+-    clockfreq = (loops_per_jiffy*HZ)*16;
++	clockfreq = (loops_per_jiffy * HZ) * 16;
+ #endif
+ 
+-    seq_printf(m, "CPU:\t\t%s\n"
+-		   "MMU:\t\t%s\n"
+-		   "FPU:\t\t%s\n"
+-		   "Clocking:\t%lu.%1luMHz\n"
+-		   "BogoMips:\t%lu.%02lu\n"
+-		   "Calibration:\t%lu loops\n",
+-		   cpu, mmu, fpu,
+-		   clockfreq/1000000,(clockfreq/100000)%10,
+-		   (loops_per_jiffy*HZ)/500000,((loops_per_jiffy*HZ)/5000)%100,
+-		   (loops_per_jiffy*HZ));
++	seq_printf(m, "CPU:\t\t%s\n"
++		      "MMU:\t\t%s\n"
++		      "FPU:\t\t%s\n"
++		      "Clocking:\t%lu.%1luMHz\n"
++		      "BogoMips:\t%lu.%02lu\n"
++		      "Calibration:\t%lu loops\n",
++		      cpu, mmu, fpu,
++		      clockfreq / 1000000,
++		      (clockfreq / 100000) % 10,
++		      (loops_per_jiffy * HZ) / 500000,
++		      ((loops_per_jiffy * HZ) / 5000) % 100,
++		      (loops_per_jiffy * HZ));
+ 
+ 	return 0;
  }
- 
- /**
 _
 
-Patches currently in -mm which might be from magnus.damm@gmail.com are
+Patches currently in -mm which might be from gerg@snapgear.com are
 
 origin.patch
+git-mtd.patch
