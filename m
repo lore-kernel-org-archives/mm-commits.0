@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rivafb_setup-must-be-__devinit.patch added to -mm tree
-Date: Thu, 19 Jul 2007 17:18:14 -0700
-Message-ID: <200707200018.l6K0IENY030270@imap1.linux-foundation.org>
+Subject: + fix-swiotlb_sync_single_range.patch added to -mm tree
+Date: Thu, 19 Jul 2007 17:19:25 -0700
+Message-ID: <200707200019.l6K0JPxn030382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38306 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49323 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757063AbXGTASb (ORCPT
+	by vger.kernel.org with ESMTP id S1757274AbXGTATm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Jul 2007 20:18:31 -0400
+	Thu, 19 Jul 2007 20:19:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, adaplas@pol.net
+Cc: Keir.Fraser@cl.cam.ac.uk, ak@suse.de, akpm@linux-foundation.org, keir.fraser@cl.cam.ac.uk, tony.luck@intel.com
 
 
 The patch titled
-     rivafb_setup() must be __devinit
+     Fix swiotlb_sync_single_range()
 has been added to the -mm tree.  Its filename is
-     rivafb_setup-must-be-__devinit.patch
+     fix-swiotlb_sync_single_range.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rivafb_setup() must be __devinit
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Fix swiotlb_sync_single_range()
+From: Keir Fraser <Keir.Fraser@cl.cam.ac.uk>
 
-WARNING: drivers/built-in.o(.text+0x57106): Section mismatch: reference to .init.text:rivafb_setup (between 'rivafb_init' and 'nv3Busy')
+If the swiotlb maps a multi-slab region, swiotlb_sync_single_range() can be
+invoked to sync a sub-region which does not include the first slab. 
+Unfortunately io_tlb_orig_addr[] is only initialised for the first slab,
+and hence the call to sync_single() will read a garbage orig_addr in this
+case.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+This patch fixes the issue by initialising all mapped slabs in
+io_tlb_orig_addr[].  It also correctly adjusts the buffer pointer in
+sync_single() to handle the case that the given dma_addr is not aligned on
+a slab boundary.
+
+Signed-off-by: Keir Fraser <keir.fraser@cl.cam.ac.uk>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/riva/fbdev.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ lib/swiotlb.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/riva/fbdev.c~rivafb_setup-must-be-__devinit drivers/video/riva/fbdev.c
---- a/drivers/video/riva/fbdev.c~rivafb_setup-must-be-__devinit
-+++ a/drivers/video/riva/fbdev.c
-@@ -2146,7 +2146,7 @@ static void __devexit rivafb_remove(stru
-  * ------------------------------------------------------------------------- */
+diff -puN lib/swiotlb.c~fix-swiotlb_sync_single_range lib/swiotlb.c
+--- a/lib/swiotlb.c~fix-swiotlb_sync_single_range
++++ a/lib/swiotlb.c
+@@ -357,7 +357,8 @@ map_single(struct device *hwdev, char *b
+ 	 * This is needed when we sync the memory.  Then we sync the buffer if
+ 	 * needed.
+ 	 */
+-	io_tlb_orig_addr[index] = buffer;
++	for (i = 0; i < nslots; i++)
++		io_tlb_orig_addr[index+i] = buffer + (i << IO_TLB_SHIFT);
+ 	if (dir == DMA_TO_DEVICE || dir == DMA_BIDIRECTIONAL)
+ 		memcpy(dma_addr, buffer, size);
  
- #ifndef MODULE
--static int __init rivafb_setup(char *options)
-+static int __devinit rivafb_setup(char *options)
- {
- 	char *this_opt;
+@@ -418,6 +419,8 @@ sync_single(struct device *hwdev, char *
+ 	int index = (dma_addr - io_tlb_start) >> IO_TLB_SHIFT;
+ 	char *buffer = io_tlb_orig_addr[index];
  
++	buffer += ((unsigned long)dma_addr & ((1 << IO_TLB_SHIFT) - 1));
++
+ 	switch (target) {
+ 	case SYNC_FOR_CPU:
+ 		if (likely(dir == DMA_FROM_DEVICE || dir == DMA_BIDIRECTIONAL))
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from Keir.Fraser@cl.cam.ac.uk are
 
 origin.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-git-hwmon.patch
-git-kbuild.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-fore200e_param_bs_queue-must-be-__devinit.patch
-git-scsi-misc.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-i386-intel_cacheinfocfind_num_cache_leaves-should.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-maps2-add-proc-kpagemap-interface.patch
-fs-reiserfs-cleanups.patch
-anon_inodes-shouldnt-be-user-visible.patch
-introduce-i_sync-fix.patch
-spicscan_boardinfo-mustnt-be-__init_or_module.patch
-ext2-reservations.patch
-rivafb_setup-must-be-__devinit.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+fix-swiotlb_sync_single_range.patch
