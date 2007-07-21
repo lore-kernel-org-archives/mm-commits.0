@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + whitespace-fixes-syscall-auditing.patch added to -mm tree
-Date: Fri, 20 Jul 2007 17:18:56 -0700
-Message-ID: <200707210018.l6L0IuxE023899@imap1.linux-foundation.org>
+Subject: + whitespace-fixes-capability-syscalls.patch added to -mm tree
+Date: Fri, 20 Jul 2007 17:18:54 -0700
+Message-ID: <200707210018.l6L0IsGp023896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37959 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51036 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759646AbXGUAU1 (ORCPT
+	by vger.kernel.org with ESMTP id S1759814AbXGUAU3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 20:20:27 -0400
+	Fri, 20 Jul 2007 20:20:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, dwmw2@infradead.org
+Cc: dwalker@mvista.com, chrisw@sous-sol.org
 
 
 The patch titled
-     whitespace fixes: syscall auditing
+     whitespace fixes: capability syscalls
 has been added to the -mm tree.  Its filename is
-     whitespace-fixes-syscall-auditing.patch
+     whitespace-fixes-capability-syscalls.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,256 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: whitespace fixes: syscall auditing
+Subject: whitespace fixes: capability syscalls
 From: Daniel Walker <dwalker@mvista.com>
 
+Large chunks of 5 spaces instead of tabs.
+
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ kernel/capability.c |  198 +++++++++++++++++++++---------------------
+ 1 files changed, 99 insertions(+), 99 deletions(-)
 
-diff -puN kernel/auditsc.c~whitespace-fixes-syscall-auditing kernel/auditsc.c
---- a/kernel/auditsc.c~whitespace-fixes-syscall-auditing
-+++ a/kernel/auditsc.c
-@@ -327,7 +327,7 @@ static int audit_filter_rules(struct tas
- 			result = audit_comparator(tsk->personality, f->op, f->val);
- 			break;
- 		case AUDIT_ARCH:
-- 			if (ctx)
-+			if (ctx)
- 				result = audit_comparator(ctx->arch, f->op, f->val);
- 			break;
+diff -puN kernel/capability.c~whitespace-fixes-capability-syscalls kernel/capability.c
+--- a/kernel/capability.c~whitespace-fixes-capability-syscalls
++++ a/kernel/capability.c
+@@ -5,7 +5,7 @@
+  *
+  * Integrated into 2.1.97+,  Andrew G. Morgan <morgan@transmeta.com>
+  * 30 May 2002:	Cleanup, Robert M. Love <rml@tech9.net>
+- */ 
++ */
  
-@@ -909,7 +909,7 @@ static void audit_log_exit(struct audit_
- 	if (context->personality != PER_LINUX)
- 		audit_log_format(ab, " per=%lx", context->personality);
- 	if (context->return_valid)
--		audit_log_format(ab, " success=%s exit=%ld", 
-+		audit_log_format(ab, " success=%s exit=%ld",
- 				 (context->return_valid==AUDITSC_SUCCESS)?"yes":"no",
- 				 context->return_code);
- 
-@@ -994,7 +994,7 @@ static void audit_log_exit(struct audit_
- 
- 		case AUDIT_IPC: {
- 			struct audit_aux_data_ipcctl *axi = (void *)aux;
--			audit_log_format(ab, 
-+			audit_log_format(ab,
- 				 "ouid=%u ogid=%u mode=%x",
- 				 axi->uid, axi->gid, axi->mode);
- 			if (axi->osid != 0) {
-@@ -1151,8 +1151,8 @@ void audit_free(struct task_struct *tsk)
- 		return;
- 
- 	/* Check for system calls that do not go through the exit
--	 * function (e.g., exit_group), then free context block. 
--	 * We use GFP_ATOMIC here because we might be doing this 
-+	 * function (e.g., exit_group), then free context block.
-+	 * We use GFP_ATOMIC here because we might be doing this
- 	 * in the context of the idle thread */
- 	/* that can happen only if we are called from do_exit() */
- 	if (context->in_syscall && context->auditable)
-@@ -1332,7 +1332,7 @@ void __audit_getname(const char *name)
- 		context->pwdmnt = mntget(current->fs->pwdmnt);
- 		read_unlock(&current->fs->lock);
- 	}
--		
+ #include <linux/capability.h>
+ #include <linux/mm.h>
+@@ -44,49 +44,49 @@ static DEFINE_SPINLOCK(task_capability_l
+  */
+ asmlinkage long sys_capget(cap_user_header_t header, cap_user_data_t dataptr)
+ {
+-     int ret = 0;
+-     pid_t pid;
+-     __u32 version;
+-     struct task_struct *target;
+-     struct __user_cap_data_struct data;
+-
+-     if (get_user(version, &header->version))
+-	     return -EFAULT;
+-
+-     if (version != _LINUX_CAPABILITY_VERSION) {
+-	     if (put_user(_LINUX_CAPABILITY_VERSION, &header->version))
+-		     return -EFAULT; 
+-             return -EINVAL;
+-     }
+-
+-     if (get_user(pid, &header->pid))
+-	     return -EFAULT;
+-
+-     if (pid < 0) 
+-             return -EINVAL;
+-
+-     spin_lock(&task_capability_lock);
+-     read_lock(&tasklist_lock); 
+-
+-     if (pid && pid != current->pid) {
+-	     target = find_task_by_pid(pid);
+-	     if (!target) {
+-	          ret = -ESRCH;
+-	          goto out;
+-	     }
+-     } else
+-	     target = current;
++	int ret = 0;
++	pid_t pid;
++	__u32 version;
++	struct task_struct *target;
++	struct __user_cap_data_struct data;
 +
++	if (get_user(version, &header->version))
++		return -EFAULT;
++
++	if (version != _LINUX_CAPABILITY_VERSION) {
++		if (put_user(_LINUX_CAPABILITY_VERSION, &header->version))
++			return -EFAULT;
++		return -EINVAL;
++	}
++
++	if (get_user(pid, &header->pid))
++		return -EFAULT;
++
++	if (pid < 0)
++		return -EINVAL;
++
++	spin_lock(&task_capability_lock);
++	read_lock(&tasklist_lock);
+ 
+-     ret = security_capget(target, &data.effective, &data.inheritable, &data.permitted);
++	if (pid && pid != current->pid) {
++		target = find_task_by_pid(pid);
++		if (!target) {
++			ret = -ESRCH;
++			goto out;
++		}
++	} else
++		target = current;
++
++	ret = security_capget(target, &data.effective, &data.inheritable, &data.permitted);
+ 
+ out:
+-     read_unlock(&tasklist_lock); 
+-     spin_unlock(&task_capability_lock);
++	read_unlock(&tasklist_lock);
++	spin_unlock(&task_capability_lock);
+ 
+-     if (!ret && copy_to_user(dataptr, &data, sizeof data))
+-          return -EFAULT; 
++	if (!ret && copy_to_user(dataptr, &data, sizeof data))
++		return -EFAULT;
+ 
+-     return ret;
++	return ret;
  }
  
- /* audit_putname - intercept a putname request
+ /*
+@@ -119,7 +119,7 @@ static inline int cap_set_pg(int pgrp_nr
+ 	} while_each_pid_task(pgrp, PIDTYPE_PGID, g);
+ 
+ 	if (!found)
+-	     ret = 0;
++		ret = 0;
+ 	return ret;
+ }
+ 
+@@ -173,68 +173,68 @@ static inline int cap_set_all(kernel_cap
+  */
+ asmlinkage long sys_capset(cap_user_header_t header, const cap_user_data_t data)
+ {
+-     kernel_cap_t inheritable, permitted, effective;
+-     __u32 version;
+-     struct task_struct *target;
+-     int ret;
+-     pid_t pid;
+-
+-     if (get_user(version, &header->version))
+-	     return -EFAULT; 
+-
+-     if (version != _LINUX_CAPABILITY_VERSION) {
+-	     if (put_user(_LINUX_CAPABILITY_VERSION, &header->version))
+-		     return -EFAULT; 
+-             return -EINVAL;
+-     }
+-
+-     if (get_user(pid, &header->pid))
+-	     return -EFAULT; 
+-
+-     if (pid && pid != current->pid && !capable(CAP_SETPCAP))
+-             return -EPERM;
+-
+-     if (copy_from_user(&effective, &data->effective, sizeof(effective)) ||
+-	 copy_from_user(&inheritable, &data->inheritable, sizeof(inheritable)) ||
+-	 copy_from_user(&permitted, &data->permitted, sizeof(permitted)))
+-	     return -EFAULT; 
+-
+-     spin_lock(&task_capability_lock);
+-     read_lock(&tasklist_lock);
+-
+-     if (pid > 0 && pid != current->pid) {
+-          target = find_task_by_pid(pid);
+-          if (!target) {
+-               ret = -ESRCH;
+-               goto out;
+-          }
+-     } else
+-               target = current;
+-
+-     ret = 0;
+-
+-     /* having verified that the proposed changes are legal,
+-           we now put them into effect. */
+-     if (pid < 0) {
+-             if (pid == -1)  /* all procs other than current and init */
+-                     ret = cap_set_all(&effective, &inheritable, &permitted);
+-
+-             else            /* all procs in process group */
+-                     ret = cap_set_pg(-pid, &effective, &inheritable,
+-		     					&permitted);
+-     } else {
+-	     ret = security_capset_check(target, &effective, &inheritable,
+-	     						&permitted);
+-	     if (!ret)
+-		     security_capset_set(target, &effective, &inheritable,
+-		     					&permitted);
+-     }
++	kernel_cap_t inheritable, permitted, effective;
++	__u32 version;
++	struct task_struct *target;
++	int ret;
++	pid_t pid;
++
++	if (get_user(version, &header->version))
++		return -EFAULT;
++
++	if (version != _LINUX_CAPABILITY_VERSION) {
++		if (put_user(_LINUX_CAPABILITY_VERSION, &header->version))
++			return -EFAULT;
++		return -EINVAL;
++	}
++
++	if (get_user(pid, &header->pid))
++		return -EFAULT;
++
++	if (pid && pid != current->pid && !capable(CAP_SETPCAP))
++		return -EPERM;
++
++	if (copy_from_user(&effective, &data->effective, sizeof(effective)) ||
++	    copy_from_user(&inheritable, &data->inheritable, sizeof(inheritable)) ||
++	    copy_from_user(&permitted, &data->permitted, sizeof(permitted)))
++		return -EFAULT;
++
++	spin_lock(&task_capability_lock);
++	read_lock(&tasklist_lock);
++
++	if (pid > 0 && pid != current->pid) {
++		target = find_task_by_pid(pid);
++		if (!target) {
++			ret = -ESRCH;
++			goto out;
++		}
++	} else
++		target = current;
++
++	ret = 0;
++
++	/* having verified that the proposed changes are legal,
++	   we now put them into effect. */
++	if (pid < 0) {
++		if (pid == -1)	/* all procs other than current and init */
++			ret = cap_set_all(&effective, &inheritable, &permitted);
++
++		else		/* all procs in process group */
++			ret = cap_set_pg(-pid, &effective, &inheritable,
++					 &permitted);
++	} else {
++		ret = security_capset_check(target, &effective, &inheritable,
++					    &permitted);
++		if (!ret)
++			security_capset_set(target, &effective, &inheritable,
++					    &permitted);
++	}
+ 
+ out:
+-     read_unlock(&tasklist_lock);
+-     spin_unlock(&task_capability_lock);
++	read_unlock(&tasklist_lock);
++	spin_unlock(&task_capability_lock);
+ 
+-     return ret;
++	return ret;
+ }
+ 
+ int __capable(struct task_struct *t, int cap)
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
