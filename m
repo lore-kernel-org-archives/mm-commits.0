@@ -1,84 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - spufs-remove-unused-file-argument-from-spufs_run_spu.patch removed from -mm tree
-Date: Sat, 21 Jul 2007 03:25:46 -0700
-Message-ID: <200707211025.l6LAPkWM012023@imap1.linux-foundation.org>
+Subject: - clockevents-fix-resume-logic-xen-fix.patch removed from -mm tree
+Date: Sat, 21 Jul 2007 04:33:25 -0700
+Message-ID: <200707211133.l6LBXPva014206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55945 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52529 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756378AbXGUKf2 (ORCPT
+	by vger.kernel.org with ESMTP id S937564AbXGULeI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Jul 2007 06:35:28 -0400
+	Sat, 21 Jul 2007 07:34:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cbe-oss-dev@ml.breakpoint.cc, benh@kernel.crashing.org, jk@ozlabs.org, paulus@samba.org, sebastian@breakpoint.cc, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeremy@goop.org, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spufs: remove unused file argument from spufs_run_spu()
+     clockevents-fix-resume-logic-xen-fix
 has been removed from the -mm tree.  Its filename was
-     spufs-remove-unused-file-argument-from-spufs_run_spu.patch
+     clockevents-fix-resume-logic-xen-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into clockevents-fix-resume-logic.patch
 
 ------------------------------------------------------
-Subject: spufs: remove unused file argument from spufs_run_spu()
-From: Sebastian Siewior <cbe-oss-dev@ml.breakpoint.cc>
+Subject: clockevents-fix-resume-logic-xen-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The 'file' argument is unused in spufs_run_spu().  This change removes it.
+arch/i386/xen/time.c: In function 'xen_vcpuop_set_mode':
+arch/i386/xen/time.c:462: warning: enumeration value 'CLOCK_EVT_MODE_RESUME' not handled in switch
 
-Signed-off-by: Sebastian Siewior <sebastian@breakpoint.cc>
-Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Is this right?
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/run.c      |    3 +--
- arch/powerpc/platforms/cell/spufs/spufs.h    |    3 +--
- arch/powerpc/platforms/cell/spufs/syscalls.c |    2 +-
- 3 files changed, 3 insertions(+), 5 deletions(-)
+ arch/i386/xen/time.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/powerpc/platforms/cell/spufs/run.c~spufs-remove-unused-file-argument-from-spufs_run_spu arch/powerpc/platforms/cell/spufs/run.c
---- a/arch/powerpc/platforms/cell/spufs/run.c~spufs-remove-unused-file-argument-from-spufs_run_spu
-+++ a/arch/powerpc/platforms/cell/spufs/run.c
-@@ -297,8 +297,7 @@ static inline int spu_process_events(str
- 	return ret;
+diff -puN arch/i386/xen/time.c~clockevents-fix-resume-logic-xen-fix arch/i386/xen/time.c
+--- a/arch/i386/xen/time.c~clockevents-fix-resume-logic-xen-fix
++++ a/arch/i386/xen/time.c
+@@ -475,6 +475,8 @@ static void xen_vcpuop_set_mode(enum clo
+ 		    HYPERVISOR_vcpu_op(VCPUOP_stop_periodic_timer, cpu, NULL))
+ 			BUG();
+ 		break;
++	case CLOCK_EVT_MODE_RESUME:
++		break;
+ 	}
  }
  
--long spufs_run_spu(struct file *file, struct spu_context *ctx,
--		   u32 *npc, u32 *event)
-+long spufs_run_spu(struct spu_context *ctx, u32 *npc, u32 *event)
- {
- 	int ret;
- 	struct spu *spu;
-diff -puN arch/powerpc/platforms/cell/spufs/spufs.h~spufs-remove-unused-file-argument-from-spufs_run_spu arch/powerpc/platforms/cell/spufs/spufs.h
---- a/arch/powerpc/platforms/cell/spufs/spufs.h~spufs-remove-unused-file-argument-from-spufs_run_spu
-+++ a/arch/powerpc/platforms/cell/spufs/spufs.h
-@@ -188,8 +188,7 @@ extern struct tree_descr spufs_dir_conte
- extern struct tree_descr spufs_dir_nosched_contents[];
- 
- /* system call implementation */
--long spufs_run_spu(struct file *file,
--		   struct spu_context *ctx, u32 *npc, u32 *status);
-+long spufs_run_spu(struct spu_context *ctx, u32 *npc, u32 *status);
- long spufs_create(struct nameidata *nd,
- 			 unsigned int flags, mode_t mode);
- extern const struct file_operations spufs_context_fops;
-diff -puN arch/powerpc/platforms/cell/spufs/syscalls.c~spufs-remove-unused-file-argument-from-spufs_run_spu arch/powerpc/platforms/cell/spufs/syscalls.c
---- a/arch/powerpc/platforms/cell/spufs/syscalls.c~spufs-remove-unused-file-argument-from-spufs_run_spu
-+++ a/arch/powerpc/platforms/cell/spufs/syscalls.c
-@@ -47,7 +47,7 @@ static long do_spu_run(struct file *filp
- 		goto out;
- 
- 	i = SPUFS_I(filp->f_path.dentry->d_inode);
--	ret = spufs_run_spu(filp, i->i_ctx, &npc, &status);
-+	ret = spufs_run_spu(i->i_ctx, &npc, &status);
- 
- 	if (put_user(npc, unpc))
- 		ret = -EFAULT;
 _
 
-Patches currently in -mm which might be from cbe-oss-dev@ml.breakpoint.cc are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+revert-pie-randomization.patch
+clockevents-fix-resume-logic.patch
+clockevents-fix-resume-logic-xen-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+rtc-add-support-for-stk17ta8-chip-fix.patch
