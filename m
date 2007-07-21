@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + whitespace-fixes-process-accounting.patch added to -mm tree
-Date: Fri, 20 Jul 2007 17:18:38 -0700
-Message-ID: <200707210018.l6L0IcKL023849@imap1.linux-foundation.org>
+Subject: + whitespace-fixes-cpuset.patch added to -mm tree
+Date: Fri, 20 Jul 2007 17:18:40 -0700
+Message-ID: <200707210018.l6L0Ie4u023852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33734 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41781 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753482AbXGUATX (ORCPT
+	by vger.kernel.org with ESMTP id S1757449AbXGUAT2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 20:19:23 -0400
+	Fri, 20 Jul 2007 20:19:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com
+Cc: dwalker@mvista.com, pj@sgi.com
 
 
 The patch titled
-     whitespace fixes: process accounting
+     whitespace fixes: cpuset
 has been added to the -mm tree.  Its filename is
-     whitespace-fixes-process-accounting.patch
+     whitespace-fixes-cpuset.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,116 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: whitespace fixes: process accounting
+Subject: whitespace fixes: cpuset
 From: Daniel Walker <dwalker@mvista.com>
 
-Lots of converting spaces to tabs.
-
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |   64 ++++++++++++++++++++++++------------------------
- 1 files changed, 32 insertions(+), 32 deletions(-)
+ kernel/cpuset.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/acct.c~whitespace-fixes-process-accounting kernel/acct.c
---- a/kernel/acct.c~whitespace-fixes-process-accounting
-+++ a/kernel/acct.c
-@@ -329,16 +329,16 @@ static comp_t encode_comp_t(unsigned lon
- 	}
- 
- 	/*
--         * If we need to round up, do it (and handle overflow correctly).
--         */
-+	 * If we need to round up, do it (and handle overflow correctly).
-+	 */
- 	if (rnd && (++value > MAXFRACT)) {
- 		value >>= EXPSIZE;
- 		exp++;
- 	}
- 
- 	/*
--         * Clean it up and polish it off.
--         */
-+	 * Clean it up and polish it off.
-+	 */
- 	exp <<= MANTSIZE;		/* Shift the exponent into place */
- 	exp += value;			/* and add on the mantissa. */
- 	return exp;
-@@ -361,30 +361,30 @@ static comp_t encode_comp_t(unsigned lon
- 
- static comp2_t encode_comp2_t(u64 value)
- {
--        int exp, rnd;
-+	int exp, rnd;
- 
--        exp = (value > (MAXFRACT2>>1));
--        rnd = 0;
--        while (value > MAXFRACT2) {
--                rnd = value & 1;
--                value >>= 1;
--                exp++;
--        }
--
+diff -puN kernel/cpuset.c~whitespace-fixes-cpuset kernel/cpuset.c
+--- a/kernel/cpuset.c~whitespace-fixes-cpuset
++++ a/kernel/cpuset.c
+@@ -1647,12 +1647,12 @@ int __cpuset_zone_allowed_hardwall(struc
+ 	node = zone_to_nid(z);
+ 	if (node_isset(node, current->mems_allowed))
+ 		return 1;
 -        /*
--         * If we need to round up, do it (and handle overflow correctly).
+-         * Allow tasks that have access to memory reserves because they have
+-         * been OOM killed to get memory anywhere.
 -         */
--        if (rnd && (++value > MAXFRACT2)) {
--                value >>= 1;
--                exp++;
--        }
--
--        if (exp > MAXEXP2) {
--                /* Overflow. Return largest representable number instead. */
--                return (1ul << (MANTSIZE2+EXPSIZE2-1)) - 1;
--        } else {
--                return (value & (MAXFRACT2>>1)) | (exp << (MANTSIZE2-1));
--        }
-+	exp = (value > (MAXFRACT2>>1));
-+	rnd = 0;
-+	while (value > MAXFRACT2) {
-+		rnd = value & 1;
-+		value >>= 1;
-+		exp++;
-+	}
-+
+-        if (unlikely(test_thread_flag(TIF_MEMDIE)))
+-                return 1;
 +	/*
-+	 * If we need to round up, do it (and handle overflow correctly).
++	 * Allow tasks that have access to memory reserves because they have
++	 * been OOM killed to get memory anywhere.
 +	 */
-+	if (rnd && (++value > MAXFRACT2)) {
-+		value >>= 1;
-+		exp++;
-+	}
-+
-+	if (exp > MAXEXP2) {
-+		/* Overflow. Return largest representable number instead. */
-+		return (1ul << (MANTSIZE2+EXPSIZE2-1)) - 1;
-+	} else {
-+		return (value & (MAXFRACT2>>1)) | (exp << (MANTSIZE2-1));
-+	}
++	if (unlikely(test_thread_flag(TIF_MEMDIE)))
++		return 1;
+ 	return 0;
  }
- #endif
  
-@@ -501,14 +501,14 @@ static void do_acct_process(struct file 
- 	ac.ac_swaps = encode_comp_t(0);
- 
- 	/*
--         * Kernel segment override to datasegment and write it
--         * to the accounting file.
--         */
-+	 * Kernel segment override to datasegment and write it
-+	 * to the accounting file.
-+	 */
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
- 	/*
-- 	 * Accounting records are not subject to resource limits.
-- 	 */
-+	 * Accounting records are not subject to resource limits.
-+	 */
- 	flim = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
- 	current->signal->rlim[RLIMIT_FSIZE].rlim_cur = RLIM_INFINITY;
- 	file->f_op->write(file, (char *)&ac,
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
