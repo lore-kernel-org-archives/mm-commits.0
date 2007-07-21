@@ -1,31 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - spufs-change-decrementer-restore-timing.patch removed from -mm tree
-Date: Sat, 21 Jul 2007 03:25:44 -0700
-Message-ID: <200707211025.l6LAPiIO012020@imap1.linux-foundation.org>
+Subject: - spufs-use-find_first_bit-instead-of-sched_find_first_bit.patch removed from -mm tree
+Date: Sat, 21 Jul 2007 03:25:49 -0700
+Message-ID: <200707211025.l6LAPnd0012029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49410 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35590 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933578AbXGUK02 (ORCPT
+	by vger.kernel.org with ESMTP id S933252AbXGUK0c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Jul 2007 06:26:28 -0400
+	Sat, 21 Jul 2007 06:26:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Masato.Noguchi@jp.sony.com, benh@kernel.crashing.org, jk@ozlabs.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spufs: change decrementer restore timing
+     spufs: use find_first_bit() instead of sched_find_first_bit()
 has been removed from the -mm tree.  Its filename was
-     spufs-change-decrementer-restore-timing.patch
+     spufs-use-find_first_bit-instead-of-sched_find_first_bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spufs: change decrementer restore timing
+Subject: spufs: use find_first_bit() instead of sched_find_first_bit()
 From: Masato Noguchi <Masato.Noguchi@jp.sony.com>
 
-The SPU decrementer should be restored after the LSCSA DMA has completed.
+spu_sched->bitmap has MAX_PRIO(=140) width in bits.However, since
+ff80a77f20f811c0cc5b251d0f657cbc6f788385, sched_find_first_bit() only supports
+100-bit bitmaps.
+
+Thus, spu_sched->bitmap should be treated by generic find_first_bit().
 
 Signed-off-by: Masato Noguchi <Masato.Noguchi@jp.sony.com>
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
@@ -34,114 +38,29 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/spu_restore.c              |    4 -
- arch/powerpc/platforms/cell/spufs/spu_restore_dump.h_shipped |   36 +++++-----
- 2 files changed, 20 insertions(+), 20 deletions(-)
+ arch/powerpc/platforms/cell/spufs/sched.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/spufs/spu_restore.c~spufs-change-decrementer-restore-timing arch/powerpc/platforms/cell/spufs/spu_restore.c
---- a/arch/powerpc/platforms/cell/spufs/spu_restore.c~spufs-change-decrementer-restore-timing
-+++ a/arch/powerpc/platforms/cell/spufs/spu_restore.c
-@@ -84,7 +84,7 @@ static inline void restore_decr(void)
- 	unsigned int decr_running;
- 	unsigned int decr;
+diff -puN arch/powerpc/platforms/cell/spufs/sched.c~spufs-use-find_first_bit-instead-of-sched_find_first_bit arch/powerpc/platforms/cell/spufs/sched.c
+--- a/arch/powerpc/platforms/cell/spufs/sched.c~spufs-use-find_first_bit-instead-of-sched_find_first_bit
++++ a/arch/powerpc/platforms/cell/spufs/sched.c
+@@ -533,7 +533,7 @@ static struct spu_context *grab_runnable
+ 	int best;
  
--	/* Restore, Step 6:
-+	/* Restore, Step 6(moved):
- 	 *    If the LSCSA "decrementer running" flag is set
- 	 *    then write the SPU_WrDec channel with the
- 	 *    decrementer value from LSCSA.
-@@ -318,10 +318,10 @@ int main()
- 	build_dma_list(lscsa_ea);	/* Step 3.  */
- 	restore_upper_240kb(lscsa_ea);	/* Step 4.  */
- 					/* Step 5: done by 'exit'. */
--	restore_decr();			/* Step 6. */
- 	enqueue_putllc(lscsa_ea);	/* Step 7. */
- 	set_tag_update();		/* Step 8. */
- 	read_tag_status();		/* Step 9. */
-+	restore_decr();			/* moved Step 6. */
- 	read_llar_status();		/* Step 10. */
- 	write_ppu_mb();			/* Step 11. */
- 	write_ppuint_mb();		/* Step 12. */
-diff -puN arch/powerpc/platforms/cell/spufs/spu_restore_dump.h_shipped~spufs-change-decrementer-restore-timing arch/powerpc/platforms/cell/spufs/spu_restore_dump.h_shipped
---- a/arch/powerpc/platforms/cell/spufs/spu_restore_dump.h_shipped~spufs-change-decrementer-restore-timing
-+++ a/arch/powerpc/platforms/cell/spufs/spu_restore_dump.h_shipped
-@@ -93,26 +93,21 @@ static unsigned int spu_restore_code[]  
- 0x18020204,
- 0x24000282,
- 0x217ffa09,
--0x04000403,
--0x21a00803,
--0x3fbe0502,
--0x3fe30102,
--0x04000105,
--0x21a00885,
-+0x04000402,
-+0x21a00802,
-+0x3fbe0504,
-+0x3fe30204,
-+0x21a00884,
- 0x42074002,
- 0x21a00902,
- 0x40803c03,
- 0x21a00983,
--0x04000484,
--0x21a00a04,
-+0x04000485,
-+0x21a00a05,
- 0x40802202,
- 0x21a00a82,
--0x30809c03,
--0x34000182,
--0x14004102,
--0x21002782,
--0x21a00804,
--0x21a00885,
-+0x21a00805,
-+0x21a00884,
- 0x3fbf0582,
- 0x3f200102,
- 0x3fbe0102,
-@@ -120,13 +115,17 @@ static unsigned int spu_restore_code[]  
- 0x21a00902,
- 0x40804003,
- 0x21a00983,
--0x21a00a04,
-+0x21a00a05,
- 0x40805a02,
- 0x21a00a82,
- 0x40800083,
- 0x21a00b83,
- 0x01a00c02,
--0x01a00d84,
-+0x30809c03,
-+0x34000182,
-+0x14004102,
-+0x21002082,
-+0x01a00d82,
- 0x3080a003,
- 0x34000182,
- 0x21a00e02,
-@@ -145,9 +144,10 @@ static unsigned int spu_restore_code[]  
- 0x3080aa03,
- 0x34000182,
- 0x21a00b02,
-+0x4020007f,
- 0x3080ae02,
--0x3080ac04,
- 0x42004805,
-+0x3080ac04,
- 0x34000103,
- 0x34000202,
- 0x1cffc183,
-@@ -193,7 +193,7 @@ static unsigned int spu_restore_code[]  
- 0x34000182,
- 0x21a00382,
- 0x4020007f,
--0x327fd700,
-+0x327fde00,
- 0x409ffe02,
- 0x30801203,
- 0x40800206,
+ 	spin_lock(&spu_prio->runq_lock);
+-	best = sched_find_first_bit(spu_prio->bitmap);
++	best = find_first_bit(spu_prio->bitmap, prio);
+ 	while (best < prio) {
+ 		struct list_head *rq = &spu_prio->runq[best];
+ 
+@@ -769,7 +769,6 @@ int __init spu_sched_init(void)
+ 		INIT_LIST_HEAD(&spu_prio->runq[i]);
+ 		__clear_bit(i, spu_prio->bitmap);
+ 	}
+-	__set_bit(MAX_PRIO, spu_prio->bitmap);
+ 	for (i = 0; i < MAX_NUMNODES; i++) {
+ 		mutex_init(&spu_prio->active_mutex[i]);
+ 		INIT_LIST_HEAD(&spu_prio->active_list[i]);
 _
 
 Patches currently in -mm which might be from Masato.Noguchi@jp.sony.com are
