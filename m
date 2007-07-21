@@ -1,125 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: + whitespace-fixes-system-auditing.patch added to -mm tree
-Date: Fri, 20 Jul 2007 17:19:00 -0700
-Message-ID: <200707210019.l6L0J0g0023905@imap1.linux-foundation.org>
+Subject: + i386-fix-the-k7-nmi-watchdog-checkbit.patch added to -mm tree
+Date: Fri, 20 Jul 2007 17:23:45 -0700
+Message-ID: <200707210023.l6L0NjD1024083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55244 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41682 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760196AbXGUAUh (ORCPT
+	by vger.kernel.org with ESMTP id S1750864AbXGUAYz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 20:20:37 -0400
+	Fri, 20 Jul 2007 20:24:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, dwmw2@infradead.org
+Cc: B.Steinbrink@gmx.de, andi@firstfloor.org, dzickus@redhat.com, eranian@hpl.hp.com
 
 
 The patch titled
-     whitespace fixes: system auditing
+     i386: Fix the K7 NMI watchdog checkbit
 has been added to the -mm tree.  Its filename is
-     whitespace-fixes-system-auditing.patch
+     i386-fix-the-k7-nmi-watchdog-checkbit.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: whitespace fixes: system auditing
-From: Daniel Walker <dwalker@mvista.com>
+Subject: i386: Fix the K7 NMI watchdog checkbit
+=46rom: Bj=F6rn Steinbrink <B.Steinbrink@gmx.de>
 
-Just removing white space at the end of lines.
+The performance counters on K7 are only 48 bits wide, so using bit 63 t=
+o
+check if the counter overflowed is wrong.  Let's use bit 47 instead.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Bj=F6rn Steinbrink <B.Steinbrink@gmx.de>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Stephane Eranian <eranian@hpl.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ arch/i386/kernel/cpu/perfctr-watchdog.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/audit.c~whitespace-fixes-system-auditing kernel/audit.c
---- a/kernel/audit.c~whitespace-fixes-system-auditing
-+++ a/kernel/audit.c
-@@ -664,11 +664,11 @@ static int audit_receive_msg(struct sk_b
- 				if (sid) {
- 					if (selinux_sid_to_string(
- 							sid, &ctx, &len)) {
--						audit_log_format(ab, 
-+						audit_log_format(ab,
- 							" ssid=%u", sid);
- 						/* Maybe call audit_panic? */
- 					} else
--						audit_log_format(ab, 
-+						audit_log_format(ab,
- 							" subj=%s", ctx);
- 					kfree(ctx);
- 				}
-@@ -769,7 +769,7 @@ static int audit_receive_msg(struct sk_b
- 		sig_data->pid = audit_sig_pid;
- 		memcpy(sig_data->ctx, ctx, len);
- 		kfree(ctx);
--		audit_send_reply(NETLINK_CB(skb).pid, seq, AUDIT_SIGNAL_INFO, 
-+		audit_send_reply(NETLINK_CB(skb).pid, seq, AUDIT_SIGNAL_INFO,
- 				0, 0, sig_data, sizeof(*sig_data) + len);
- 		kfree(sig_data);
- 		break;
-@@ -1013,7 +1013,7 @@ unsigned int audit_serial(void)
- 	return ret;
- }
- 
--static inline void audit_get_stamp(struct audit_context *ctx, 
-+static inline void audit_get_stamp(struct audit_context *ctx,
- 				   struct timespec *t, unsigned int *serial)
- {
- 	if (ctx)
-@@ -1064,7 +1064,7 @@ struct audit_buffer *audit_log_start(str
- 	if (gfp_mask & __GFP_WAIT)
- 		reserve = 0;
- 	else
--		reserve = 5; /* Allow atomic callers to go up to five 
-+		reserve = 5; /* Allow atomic callers to go up to five
- 				entries over the normal backlog limit */
- 
- 	while (audit_backlog_limit
-@@ -1327,7 +1327,7 @@ void audit_log_d_path(struct audit_buffe
- 	if (IS_ERR(p)) { /* Should never happen since we send PATH_MAX */
- 		/* FIXME: can we save some information here? */
- 		audit_log_format(ab, "<too long>");
--	} else 
-+	} else
- 		audit_log_untrustedstring(ab, p);
- 	kfree(path);
- }
-@@ -1373,7 +1373,7 @@ void audit_log_end(struct audit_buffer *
-  * audit_log_vformat, and audit_log_end.  It may be called
-  * in any context.
-  */
--void audit_log(struct audit_context *ctx, gfp_t gfp_mask, int type, 
-+void audit_log(struct audit_context *ctx, gfp_t gfp_mask, int type,
- 	       const char *fmt, ...)
- {
- 	struct audit_buffer *ab;
+diff -puN arch/i386/kernel/cpu/perfctr-watchdog.c~i386-fix-the-k7-nmi-w=
+atchdog-checkbit arch/i386/kernel/cpu/perfctr-watchdog.c
+--- a/arch/i386/kernel/cpu/perfctr-watchdog.c~i386-fix-the-k7-nmi-watch=
+dog-checkbit
++++ a/arch/i386/kernel/cpu/perfctr-watchdog.c
+@@ -325,7 +325,7 @@ static struct wd_ops k7_wd_ops =3D {
+ 	.stop =3D single_msr_stop_watchdog,
+ 	.perfctr =3D MSR_K7_PERFCTR0,
+ 	.evntsel =3D MSR_K7_EVNTSEL0,
+-	.checkbit =3D 1ULL<<63,
++	.checkbit =3D 1ULL<<47,
+ };
+=20
+ /* Intel Model 6 (PPro+,P2,P3,P-M,Core1) */
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from B.Steinbrink@gmx.de are
 
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-process-accounting.patch
-whitespace-fixes-cpuset.patch
-whitespace-fixes-relayfs.patch
-whitespace-fixes-audit-filtering.patch
-whitespace-fixes-dma-channel-allocator.patch
-whitespace-fixes-fork.patch
-whitespace-fixes-module-loading.patch
-whitespace-fixes-panic-handling.patch
-whitespace-fixes-capability-syscalls.patch
-whitespace-fixes-syscall-auditing.patch
-whitespace-fixes-compat-syscalls.patch
-whitespace-fixes-system-auditing.patch
-whitespace-fixes-execution-domains.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
-whitespace-fixes-task-exit-handling.patch
-profile-likely-unlikely-macros.patch
+origin.patch
+i386-fix-the-k7-nmi-watchdog-checkbit.patch
