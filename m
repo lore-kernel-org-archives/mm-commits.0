@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + whitespace-fixes-panic-handling.patch added to -mm tree
-Date: Fri, 20 Jul 2007 17:18:52 -0700
-Message-ID: <200707210018.l6L0IqIi023893@imap1.linux-foundation.org>
+Subject: + whitespace-fixes-syscall-auditing.patch added to -mm tree
+Date: Fri, 20 Jul 2007 17:18:56 -0700
+Message-ID: <200707210018.l6L0IuxE023899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55117 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37959 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759646AbXGUAUT (ORCPT
+	by vger.kernel.org with ESMTP id S1759646AbXGUAU1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 20:20:19 -0400
+	Fri, 20 Jul 2007 20:20:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com
+Cc: dwalker@mvista.com, dwmw2@infradead.org
 
 
 The patch titled
-     whitespace fixes: panic handling
+     whitespace fixes: syscall auditing
 has been added to the -mm tree.  Its filename is
-     whitespace-fixes-panic-handling.patch
+     whitespace-fixes-syscall-auditing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: whitespace fixes: panic handling
+Subject: whitespace fixes: syscall auditing
 From: Daniel Walker <dwalker@mvista.com>
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ kernel/auditsc.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/panic.c~whitespace-fixes-panic-handling kernel/panic.c
---- a/kernel/panic.c~whitespace-fixes-panic-handling
-+++ a/kernel/panic.c
-@@ -56,14 +56,14 @@ EXPORT_SYMBOL(panic_blink);
-  *
-  *	This function never returns.
-  */
-- 
-+
- NORET_TYPE void panic(const char * fmt, ...)
- {
- 	long i;
- 	static char buf[1024];
- 	va_list args;
- #if defined(CONFIG_S390)
--        unsigned long caller = (unsigned long) __builtin_return_address(0);
-+	unsigned long caller = (unsigned long) __builtin_return_address(0);
- #endif
+diff -puN kernel/auditsc.c~whitespace-fixes-syscall-auditing kernel/auditsc.c
+--- a/kernel/auditsc.c~whitespace-fixes-syscall-auditing
++++ a/kernel/auditsc.c
+@@ -327,7 +327,7 @@ static int audit_filter_rules(struct tas
+ 			result = audit_comparator(tsk->personality, f->op, f->val);
+ 			break;
+ 		case AUDIT_ARCH:
+- 			if (ctx)
++			if (ctx)
+ 				result = audit_comparator(ctx->arch, f->op, f->val);
+ 			break;
  
- 	/*
-@@ -128,7 +128,7 @@ NORET_TYPE void panic(const char * fmt, 
+@@ -909,7 +909,7 @@ static void audit_log_exit(struct audit_
+ 	if (context->personality != PER_LINUX)
+ 		audit_log_format(ab, " per=%lx", context->personality);
+ 	if (context->return_valid)
+-		audit_log_format(ab, " success=%s exit=%ld", 
++		audit_log_format(ab, " success=%s exit=%ld",
+ 				 (context->return_valid==AUDITSC_SUCCESS)?"yes":"no",
+ 				 context->return_code);
+ 
+@@ -994,7 +994,7 @@ static void audit_log_exit(struct audit_
+ 
+ 		case AUDIT_IPC: {
+ 			struct audit_aux_data_ipcctl *axi = (void *)aux;
+-			audit_log_format(ab, 
++			audit_log_format(ab,
+ 				 "ouid=%u ogid=%u mode=%x",
+ 				 axi->uid, axi->gid, axi->mode);
+ 			if (axi->osid != 0) {
+@@ -1151,8 +1151,8 @@ void audit_free(struct task_struct *tsk)
+ 		return;
+ 
+ 	/* Check for system calls that do not go through the exit
+-	 * function (e.g., exit_group), then free context block. 
+-	 * We use GFP_ATOMIC here because we might be doing this 
++	 * function (e.g., exit_group), then free context block.
++	 * We use GFP_ATOMIC here because we might be doing this
+ 	 * in the context of the idle thread */
+ 	/* that can happen only if we are called from do_exit() */
+ 	if (context->in_syscall && context->auditable)
+@@ -1332,7 +1332,7 @@ void __audit_getname(const char *name)
+ 		context->pwdmnt = mntget(current->fs->pwdmnt);
+ 		read_unlock(&current->fs->lock);
  	}
- #endif
- #if defined(CONFIG_S390)
--        disabled_wait(caller);
-+	disabled_wait(caller);
- #endif
- 	local_irq_enable();
- 	for (i = 0;;) {
-@@ -154,7 +154,7 @@ EXPORT_SYMBOL(panic);
-  *
-  *	The string is overwritten by the next call to print_taint().
-  */
-- 
+-		
 +
- const char *print_tainted(void)
- {
- 	static char buf[20];
-@@ -164,7 +164,7 @@ const char *print_tainted(void)
- 			tainted & TAINT_FORCED_MODULE ? 'F' : ' ',
- 			tainted & TAINT_UNSAFE_SMP ? 'S' : ' ',
- 			tainted & TAINT_FORCED_RMMOD ? 'R' : ' ',
-- 			tainted & TAINT_MACHINE_CHECK ? 'M' : ' ',
-+			tainted & TAINT_MACHINE_CHECK ? 'M' : ' ',
- 			tainted & TAINT_BAD_PAGE ? 'B' : ' ',
- 			tainted & TAINT_USER ? 'U' : ' ',
- 			tainted & TAINT_DIE ? 'D' : ' ');
+ }
+ 
+ /* audit_putname - intercept a putname request
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
