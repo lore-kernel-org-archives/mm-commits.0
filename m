@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + whitespace-fixes-audit-filtering.patch added to -mm tree
-Date: Fri, 20 Jul 2007 17:18:44 -0700
-Message-ID: <200707210018.l6L0IioQ023861@imap1.linux-foundation.org>
+Subject: + whitespace-fixes-panic-handling.patch added to -mm tree
+Date: Fri, 20 Jul 2007 17:18:52 -0700
+Message-ID: <200707210018.l6L0IqIi023893@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33004 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55117 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757629AbXGUAUM (ORCPT
+	by vger.kernel.org with ESMTP id S1759646AbXGUAUT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 20:20:12 -0400
+	Fri, 20 Jul 2007 20:20:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, dwmw2@infradead.org
+Cc: dwalker@mvista.com
 
 
 The patch titled
-     whitespace fixes: audit filtering
+     whitespace fixes: panic handling
 has been added to the -mm tree.  Its filename is
-     whitespace-fixes-audit-filtering.patch
+     whitespace-fixes-panic-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: whitespace fixes: audit filtering
+Subject: whitespace fixes: panic handling
 From: Daniel Walker <dwalker@mvista.com>
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditfilter.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/panic.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/auditfilter.c~whitespace-fixes-audit-filtering kernel/auditfilter.c
---- a/kernel/auditfilter.c~whitespace-fixes-audit-filtering
-+++ a/kernel/auditfilter.c
-@@ -1491,7 +1491,7 @@ int audit_receive_filter(int type, int p
- 		 * auditctl to read from it... which isn't ever going to
- 		 * happen if we're actually running in the context of auditctl
- 		 * trying to _send_ the stuff */
--		 
+diff -puN kernel/panic.c~whitespace-fixes-panic-handling kernel/panic.c
+--- a/kernel/panic.c~whitespace-fixes-panic-handling
++++ a/kernel/panic.c
+@@ -56,14 +56,14 @@ EXPORT_SYMBOL(panic_blink);
+  *
+  *	This function never returns.
+  */
+- 
 +
- 		dest = kmalloc(sizeof(struct audit_netlink_list), GFP_KERNEL);
- 		if (!dest)
- 			return -ENOMEM;
-@@ -1667,7 +1667,7 @@ int audit_filter_type(int type)
+ NORET_TYPE void panic(const char * fmt, ...)
  {
- 	struct audit_entry *e;
- 	int result = 0;
--	
+ 	long i;
+ 	static char buf[1024];
+ 	va_list args;
+ #if defined(CONFIG_S390)
+-        unsigned long caller = (unsigned long) __builtin_return_address(0);
++	unsigned long caller = (unsigned long) __builtin_return_address(0);
+ #endif
+ 
+ 	/*
+@@ -128,7 +128,7 @@ NORET_TYPE void panic(const char * fmt, 
+ 	}
+ #endif
+ #if defined(CONFIG_S390)
+-        disabled_wait(caller);
++	disabled_wait(caller);
+ #endif
+ 	local_irq_enable();
+ 	for (i = 0;;) {
+@@ -154,7 +154,7 @@ EXPORT_SYMBOL(panic);
+  *
+  *	The string is overwritten by the next call to print_taint().
+  */
+- 
 +
- 	rcu_read_lock();
- 	if (list_empty(&audit_filter_list[AUDIT_FILTER_TYPE]))
- 		goto unlock_and_return;
+ const char *print_tainted(void)
+ {
+ 	static char buf[20];
+@@ -164,7 +164,7 @@ const char *print_tainted(void)
+ 			tainted & TAINT_FORCED_MODULE ? 'F' : ' ',
+ 			tainted & TAINT_UNSAFE_SMP ? 'S' : ' ',
+ 			tainted & TAINT_FORCED_RMMOD ? 'R' : ' ',
+- 			tainted & TAINT_MACHINE_CHECK ? 'M' : ' ',
++			tainted & TAINT_MACHINE_CHECK ? 'M' : ' ',
+ 			tainted & TAINT_BAD_PAGE ? 'B' : ' ',
+ 			tainted & TAINT_USER ? 'U' : ' ',
+ 			tainted & TAINT_DIE ? 'D' : ' ');
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
