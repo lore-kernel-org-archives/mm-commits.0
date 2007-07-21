@@ -1,34 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - spufs-fix-read-and-write-for-decr_status-file.patch removed from -mm tree
-Date: Sat, 21 Jul 2007 03:25:38 -0700
-Message-ID: <200707211025.l6LAPcr7012010@imap1.linux-foundation.org>
+Subject: - spufs-limit-saving-mfc_cntl-bits.patch removed from -mm tree
+Date: Sat, 21 Jul 2007 03:25:40 -0700
+Message-ID: <200707211025.l6LAPekG012013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47891 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42974 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933252AbXGUK0T (ORCPT
+	by vger.kernel.org with ESMTP id S932917AbXGUK0V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Jul 2007 06:26:19 -0400
+	Sat, 21 Jul 2007 06:26:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Masato.Noguchi@jp.sony.com, benh@kernel.crashing.org, jk@ozlabs.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spufs: fix read and write for decr_status file
+     spufs: limit saving MFC_CNTL bits
 has been removed from the -mm tree.  Its filename was
-     spufs-fix-read-and-write-for-decr_status-file.patch
+     spufs-limit-saving-mfc_cntl-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spufs: fix read and write for decr_status file
+Subject: spufs: limit saving MFC_CNTL bits
 From: Masato Noguchi <Masato.Noguchi@jp.sony.com>
 
-The decr_status in the LSCSA is valid only in the sequence of context restore.
- Thus, it's nonsense to read and/or write it through spufs.
-
-This patch changes decr_status node to access MFC_CNTL[Ds] in the CSA.
+At save step 8, the mfc control register in the CSA should be written _only_
+with Sc and Sm bits (at least MFC_CNTL[Dh] should be set to 0)
 
 Signed-off-by: Masato Noguchi <Masato.Noguchi@jp.sony.com>
 Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
@@ -37,38 +35,46 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/file.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+ arch/powerpc/platforms/cell/spufs/switch.c |   13 ++++---------
+ 1 files changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/spufs/file.c~spufs-fix-read-and-write-for-decr_status-file arch/powerpc/platforms/cell/spufs/file.c
---- a/arch/powerpc/platforms/cell/spufs/file.c~spufs-fix-read-and-write-for-decr_status-file
-+++ a/arch/powerpc/platforms/cell/spufs/file.c
-@@ -1651,17 +1651,21 @@ DEFINE_SIMPLE_ATTRIBUTE(spufs_decr_ops, 
- static void spufs_decr_status_set(void *data, u64 val)
- {
- 	struct spu_context *ctx = data;
--	struct spu_lscsa *lscsa = ctx->csa.lscsa;
- 	spu_acquire_saved(ctx);
--	lscsa->decr_status.slot[0] = (u32) val;
-+	if (val)
-+		ctx->csa.priv2.mfc_control_RW |= MFC_CNTL_DECREMENTER_RUNNING;
-+	else
-+		ctx->csa.priv2.mfc_control_RW &= ~MFC_CNTL_DECREMENTER_RUNNING;
- 	spu_release_saved(ctx);
+diff -puN arch/powerpc/platforms/cell/spufs/switch.c~spufs-limit-saving-mfc_cntl-bits arch/powerpc/platforms/cell/spufs/switch.c
+--- a/arch/powerpc/platforms/cell/spufs/switch.c~spufs-limit-saving-mfc_cntl-bits
++++ a/arch/powerpc/platforms/cell/spufs/switch.c
+@@ -180,7 +180,7 @@ static inline void save_mfc_cntl(struct 
+ 	case MFC_CNTL_SUSPEND_COMPLETE:
+ 		if (csa) {
+ 			csa->priv2.mfc_control_RW =
+-				in_be64(&priv2->mfc_control_RW) |
++				MFC_CNTL_SUSPEND_MASK |
+ 				MFC_CNTL_SUSPEND_DMA_QUEUE;
+ 		}
+ 		break;
+@@ -190,9 +190,7 @@ static inline void save_mfc_cntl(struct 
+ 				  MFC_CNTL_SUSPEND_DMA_STATUS_MASK) ==
+ 				 MFC_CNTL_SUSPEND_COMPLETE);
+ 		if (csa) {
+-			csa->priv2.mfc_control_RW =
+-				in_be64(&priv2->mfc_control_RW) &
+-				~MFC_CNTL_SUSPEND_DMA_QUEUE;
++			csa->priv2.mfc_control_RW = 0;
+ 		}
+ 		break;
+ 	}
+@@ -251,11 +249,8 @@ static inline void save_mfc_decr(struct 
+ 	 *     Read MFC_CNTL[Ds].  Update saved copy of
+ 	 *     CSA.MFC_CNTL[Ds].
+ 	 */
+-	if (in_be64(&priv2->mfc_control_RW) & MFC_CNTL_DECREMENTER_RUNNING) {
+-		csa->priv2.mfc_control_RW |= MFC_CNTL_DECREMENTER_RUNNING;
+-	} else {
+-		csa->priv2.mfc_control_RW &= ~MFC_CNTL_DECREMENTER_RUNNING;
+-	}
++	csa->priv2.mfc_control_RW |=
++		in_be64(&priv2->mfc_control_RW) & MFC_CNTL_DECREMENTER_RUNNING;
  }
  
- static u64 __spufs_decr_status_get(void *data)
- {
- 	struct spu_context *ctx = data;
--	struct spu_lscsa *lscsa = ctx->csa.lscsa;
--	return lscsa->decr_status.slot[0];
-+	if (ctx->csa.priv2.mfc_control_RW & MFC_CNTL_DECREMENTER_RUNNING)
-+		return SPU_DECR_STATUS_RUNNING;
-+	else
-+		return 0;
- }
- 
- static u64 spufs_decr_status_get(void *data)
+ static inline void halt_mfc_decr(struct spu_state *csa, struct spu *spu)
 _
 
 Patches currently in -mm which might be from Masato.Noguchi@jp.sony.com are
