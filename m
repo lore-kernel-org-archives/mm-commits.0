@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + whitespace-fixes-dma-channel-allocator.patch added to -mm tree
-Date: Fri, 20 Jul 2007 17:18:46 -0700
-Message-ID: <200707210018.l6L0IkBF023864@imap1.linux-foundation.org>
+Subject: + whitespace-fixes-audit-filtering.patch added to -mm tree
+Date: Fri, 20 Jul 2007 17:18:44 -0700
+Message-ID: <200707210018.l6L0IioQ023861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36972 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33004 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758720AbXGUAUR (ORCPT
+	by vger.kernel.org with ESMTP id S1757629AbXGUAUM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 20:20:17 -0400
+	Fri, 20 Jul 2007 20:20:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com
+Cc: dwalker@mvista.com, dwmw2@infradead.org
 
 
 The patch titled
-     whitespace fixes: DMA channel allocator
+     whitespace fixes: audit filtering
 has been added to the -mm tree.  Its filename is
-     whitespace-fixes-dma-channel-allocator.patch
+     whitespace-fixes-audit-filtering.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: whitespace fixes: DMA channel allocator
+Subject: whitespace fixes: audit filtering
 From: Daniel Walker <dwalker@mvista.com>
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/dma.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/auditfilter.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/dma.c~whitespace-fixes-dma-channel-allocator kernel/dma.c
---- a/kernel/dma.c~whitespace-fixes-dma-channel-allocator
-+++ a/kernel/dma.c
-@@ -20,7 +20,7 @@
- #include <asm/dma.h>
- #include <asm/system.h>
- 
-- 
+diff -puN kernel/auditfilter.c~whitespace-fixes-audit-filtering kernel/auditfilter.c
+--- a/kernel/auditfilter.c~whitespace-fixes-audit-filtering
++++ a/kernel/auditfilter.c
+@@ -1491,7 +1491,7 @@ int audit_receive_filter(int type, int p
+ 		 * auditctl to read from it... which isn't ever going to
+ 		 * happen if we're actually running in the context of auditctl
+ 		 * trying to _send_ the stuff */
+-		 
 +
- 
- /* A note on resource allocation:
-  *
-@@ -95,7 +95,7 @@ void free_dma(unsigned int dmanr)
- 	if (xchg(&dma_chan_busy[dmanr].lock, 0) == 0) {
- 		printk(KERN_WARNING "Trying to free free DMA%d\n", dmanr);
- 		return;
--	}	
-+	}
- 
- } /* free_dma */
- 
-@@ -121,8 +121,8 @@ static int proc_dma_show(struct seq_file
- 
- 	for (i = 0 ; i < MAX_DMA_CHANNELS ; i++) {
- 		if (dma_chan_busy[i].lock) {
--		    seq_printf(m, "%2d: %s\n", i,
--			       dma_chan_busy[i].device_id);
-+			seq_printf(m, "%2d: %s\n", i,
-+				   dma_chan_busy[i].device_id);
- 		}
- 	}
- 	return 0;
+ 		dest = kmalloc(sizeof(struct audit_netlink_list), GFP_KERNEL);
+ 		if (!dest)
+ 			return -ENOMEM;
+@@ -1667,7 +1667,7 @@ int audit_filter_type(int type)
+ {
+ 	struct audit_entry *e;
+ 	int result = 0;
+-	
++
+ 	rcu_read_lock();
+ 	if (list_empty(&audit_filter_list[AUDIT_FILTER_TYPE]))
+ 		goto unlock_and_return;
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
