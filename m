@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + whitespace-fixes-system-timers.patch added to -mm tree
-Date: Fri, 20 Jul 2007 17:19:06 -0700
-Message-ID: <200707210019.l6L0J6On023920@imap1.linux-foundation.org>
+Subject: + whitespace-fixes-interval-timers.patch added to -mm tree
+Date: Fri, 20 Jul 2007 17:19:04 -0700
+Message-ID: <200707210019.l6L0J4Or023917@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59234 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43868 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752660AbXGUA1t (ORCPT
+	by vger.kernel.org with ESMTP id S1755469AbXGUA2R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 20:27:49 -0400
+	Fri, 20 Jul 2007 20:28:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dwalker@mvista.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     whitespace fixes: system timers
+     whitespace fixes: interval timers
 has been added to the -mm tree.  Its filename is
-     whitespace-fixes-system-timers.patch
+     whitespace-fixes-interval-timers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: whitespace fixes: system timers
+Subject: whitespace fixes: interval timers
 From: Daniel Walker <dwalker@mvista.com>
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
@@ -35,21 +35,29 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ kernel/itimer.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/timer.c~whitespace-fixes-system-timers kernel/timer.c
---- a/kernel/timer.c~whitespace-fixes-system-timers
-+++ a/kernel/timer.c
-@@ -818,7 +818,7 @@ unsigned long next_timer_interrupt(void)
- #endif
+diff -puN kernel/itimer.c~whitespace-fixes-interval-timers kernel/itimer.c
+--- a/kernel/itimer.c~whitespace-fixes-interval-timers
++++ a/kernel/itimer.c
+@@ -130,7 +130,7 @@ asmlinkage long sys_getitimer(int which,
+ enum hrtimer_restart it_real_fn(struct hrtimer *timer)
+ {
+ 	struct signal_struct *sig =
+-	    container_of(timer, struct signal_struct, real_timer);
++		container_of(timer, struct signal_struct, real_timer);
  
- /*
-- * Called from the timer interrupt handler to charge one tick to the current 
-+ * Called from the timer interrupt handler to charge one tick to the current
-  * process.  user_tick is 1 if the tick is user time, 0 for system.
-  */
- void update_process_times(int user_tick)
+ 	send_group_sig_info(SIGALRM, SEND_SIG_PRIV, sig->tsk);
+ 
+@@ -291,6 +291,6 @@ asmlinkage long sys_setitimer(int which,
+ 		return error;
+ 
+ 	if (copy_to_user(ovalue, &get_buffer, sizeof(get_buffer)))
+-		return -EFAULT; 
++		return -EFAULT;
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
