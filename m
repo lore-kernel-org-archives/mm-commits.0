@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + whitespace-fixes-cpuset.patch added to -mm tree
-Date: Fri, 20 Jul 2007 17:18:40 -0700
-Message-ID: <200707210018.l6L0Ie4u023852@imap1.linux-foundation.org>
+Subject: + whitespace-fixes-time-syscalls.patch added to -mm tree
+Date: Fri, 20 Jul 2007 17:18:36 -0700
+Message-ID: <200707210018.l6L0IaMX023846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41781 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50145 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757449AbXGUAT2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757262AbXGUAUJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 20:19:28 -0400
+	Fri, 20 Jul 2007 20:20:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, pj@sgi.com
+Cc: dwalker@mvista.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     whitespace fixes: cpuset
+     whitespace fixes: time syscalls
 has been added to the -mm tree.  Its filename is
-     whitespace-fixes-cpuset.patch
+     whitespace-fixes-time-syscalls.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: whitespace fixes: cpuset
+Subject: whitespace fixes: time syscalls
 From: Daniel Walker <dwalker@mvista.com>
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Paul Jackson <pj@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ kernel/time.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN kernel/cpuset.c~whitespace-fixes-cpuset kernel/cpuset.c
---- a/kernel/cpuset.c~whitespace-fixes-cpuset
-+++ a/kernel/cpuset.c
-@@ -1647,12 +1647,12 @@ int __cpuset_zone_allowed_hardwall(struc
- 	node = zone_to_nid(z);
- 	if (node_isset(node, current->mems_allowed))
- 		return 1;
--        /*
--         * Allow tasks that have access to memory reserves because they have
--         * been OOM killed to get memory anywhere.
--         */
--        if (unlikely(test_thread_flag(TIF_MEMDIE)))
--                return 1;
-+	/*
-+	 * Allow tasks that have access to memory reserves because they have
-+	 * been OOM killed to get memory anywhere.
-+	 */
-+	if (unlikely(test_thread_flag(TIF_MEMDIE)))
-+		return 1;
- 	return 0;
+diff -puN kernel/time.c~whitespace-fixes-time-syscalls kernel/time.c
+--- a/kernel/time.c~whitespace-fixes-time-syscalls
++++ a/kernel/time.c
+@@ -9,9 +9,9 @@
+  */
+ /*
+  * Modification history kernel/time.c
+- * 
++ *
+  * 1993-09-02    Philip Gladstone
+- *      Created file with time related functions from sched.c and adjtimex() 
++ *      Created file with time related functions from sched.c and adjtimex()
+  * 1993-10-08    Torsten Duwe
+  *      adjtime interface update and CMOS clock write code
+  * 1995-08-13    Torsten Duwe
+@@ -39,7 +39,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+ 
+-/* 
++/*
+  * The timezone where the local system is located.  Used as a default by some
+  * programs who obtain this value by using gettimeofday.
+  */
+@@ -79,7 +79,7 @@ asmlinkage long sys_time(time_t __user *
+  * why not move it into the appropriate arch directory (for those
+  * architectures that need it).
+  */
+- 
++
+ asmlinkage long sys_stime(time_t __user *tptr)
+ {
+ 	struct timespec tv;
+@@ -118,10 +118,10 @@ asmlinkage long sys_gettimeofday(struct 
+ /*
+  * Adjust the time obtained from the CMOS to be UTC time instead of
+  * local time.
+- * 
++ *
+  * This is ugly, but preferable to the alternatives.  Otherwise we
+  * would either need to write a program to do it in /etc/rc (and risk
+- * confusion if the program gets run more than once; it would also be 
++ * confusion if the program gets run more than once; it would also be
+  * hard to make the program warp the clock precisely n hours)  or
+  * compile in the timezone information into the kernel.  Bad, bad....
+  *
+@@ -221,16 +221,16 @@ asmlinkage long sys_adjtimex(struct time
+ 
+ inline struct timespec current_kernel_time(void)
+ {
+-        struct timespec now;
+-        unsigned long seq;
++	struct timespec now;
++	unsigned long seq;
+ 
+ 	do {
+ 		seq = read_seqbegin(&xtime_lock);
+-		
++
+ 		now = xtime;
+ 	} while (read_seqretry(&xtime_lock, seq));
+ 
+-	return now; 
++	return now;
  }
  
+ EXPORT_SYMBOL(current_kernel_time);
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
