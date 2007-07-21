@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + whitespace-fixes-task-exit-handling.patch added to -mm tree
-Date: Fri, 20 Jul 2007 17:19:08 -0700
-Message-ID: <200707210019.l6L0J82w023923@imap1.linux-foundation.org>
+Subject: + whitespace-fixes-system-timers.patch added to -mm tree
+Date: Fri, 20 Jul 2007 17:19:06 -0700
+Message-ID: <200707210019.l6L0J6On023920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59556 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59234 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751896AbXGUA0i (ORCPT
+	by vger.kernel.org with ESMTP id S1752660AbXGUA1t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Jul 2007 20:26:38 -0400
+	Fri, 20 Jul 2007 20:27:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com
+Cc: dwalker@mvista.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     whitespace fixes: task exit handling
+     whitespace fixes: system timers
 has been added to the -mm tree.  Its filename is
-     whitespace-fixes-task-exit-handling.patch
+     whitespace-fixes-system-timers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: whitespace fixes: task exit handling
+Subject: whitespace fixes: system timers
 From: Daniel Walker <dwalker@mvista.com>
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ kernel/timer.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~whitespace-fixes-task-exit-handling kernel/exit.c
---- a/kernel/exit.c~whitespace-fixes-task-exit-handling
-+++ a/kernel/exit.c
-@@ -414,7 +414,7 @@ void daemonize(const char *name, ...)
- 	current->nsproxy = init_task.nsproxy;
- 	get_task_namespaces(current);
+diff -puN kernel/timer.c~whitespace-fixes-system-timers kernel/timer.c
+--- a/kernel/timer.c~whitespace-fixes-system-timers
++++ a/kernel/timer.c
+@@ -818,7 +818,7 @@ unsigned long next_timer_interrupt(void)
+ #endif
  
-- 	exit_files(current);
-+	exit_files(current);
- 	current->files = init_task.files;
- 	atomic_inc(&current->files->count);
- 
-@@ -801,9 +801,9 @@ static void exit_notify(struct task_stru
- 	 * and we were the only connection outside, so our pgrp
- 	 * is about to become orphaned.
- 	 */
--	 
-+
- 	t = tsk->real_parent;
--	
-+
- 	pgrp = task_pgrp(tsk);
- 	if ((task_pgrp(t) != pgrp) &&
- 	    (task_session(t) == task_session(tsk)) &&
-@@ -813,10 +813,10 @@ static void exit_notify(struct task_stru
- 		__kill_pgrp_info(SIGCONT, SEND_SIG_PRIV, pgrp);
- 	}
- 
--	/* Let father know we died 
-+	/* Let father know we died
- 	 *
- 	 * Thread signals are configurable, but you aren't going to use
--	 * that to send signals to arbitary processes. 
-+	 * that to send signals to arbitary processes.
- 	 * That stops right now.
- 	 *
- 	 * If the parent exec id doesn't match the exec id we saved
-@@ -826,9 +826,9 @@ static void exit_notify(struct task_stru
- 	 * If our self_exec id doesn't match our parent_exec_id then
- 	 * we have changed execution domain as these two values started
- 	 * the same after a fork.
--	 *	
-+	 *
- 	 */
--	
-+
- 	if (tsk->exit_signal != SIGCHLD && tsk->exit_signal != -1 &&
- 	    ( tsk->parent_exec_id != t->self_exec_id  ||
- 	      tsk->self_exec_id != tsk->parent_exec_id)
+ /*
+- * Called from the timer interrupt handler to charge one tick to the current 
++ * Called from the timer interrupt handler to charge one tick to the current
+  * process.  user_tick is 1 if the tick is user time, 0 for system.
+  */
+ void update_process_times(int user_tick)
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
