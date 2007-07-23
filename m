@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-tas_suspend-resume-build-warning.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:38:11 -0700
-Message-ID: <200707232338.l6NNcBlV017962@imap1.linux-foundation.org>
+Subject: + freezer-document-relationship-with-memory-shrinking.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:48:11 -0700
+Message-ID: <200707232348.l6NNmBW7018369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50955 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58664 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757308AbXGWXjj (ORCPT
+	by vger.kernel.org with ESMTP id S1757328AbXGWXs1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:39:39 -0400
+	Mon, 23 Jul 2007 19:48:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au, johannes@sipsolutions.net, perex@suse.cz, tiwai@suse.de
+Cc: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz
 
 
 The patch titled
-     Fix tas_suspend/resume build warning
+     freezer: document relationship with memory shrinking
 has been added to the -mm tree.  Its filename is
-     fix-tas_suspend-resume-build-warning.patch
+     freezer-document-relationship-with-memory-shrinking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,70 +26,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix tas_suspend/resume build warning
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: freezer: document relationship with memory shrinking
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-sound/aoa/codecs/snd-aoa-codec-tas.c:750: warning: 'tas_suspend' defined but not used
-sound/aoa/codecs/snd-aoa-codec-tas.c:760: warning: 'tas_resume' defined but not used
+One important reason to freeze tasks, which is that we don't want them to
+allocate memory after freeing it for the hibernation image, has not been
+documented.  Fix it.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
-Acked-by:  Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Nigel Cunningham <nigel@nigel.suspend2.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/aoa/codecs/snd-aoa-codec-tas.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ Documentation/power/freezing-of-tasks.txt |   13 +++++++++++--
+ 1 files changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN sound/aoa/codecs/snd-aoa-codec-tas.c~fix-tas_suspend-resume-build-warning sound/aoa/codecs/snd-aoa-codec-tas.c
---- a/sound/aoa/codecs/snd-aoa-codec-tas.c~fix-tas_suspend-resume-build-warning
-+++ a/sound/aoa/codecs/snd-aoa-codec-tas.c
-@@ -743,6 +743,7 @@ static int tas_switch_clock(struct codec
- 	return 0;
- }
+diff -puN Documentation/power/freezing-of-tasks.txt~freezer-document-relationship-with-memory-shrinking Documentation/power/freezing-of-tasks.txt
+--- a/Documentation/power/freezing-of-tasks.txt~freezer-document-relationship-with-memory-shrinking
++++ a/Documentation/power/freezing-of-tasks.txt
+@@ -81,7 +81,16 @@ hibernation image has been created and b
+ The majority of these are user space processes, but if any of the kernel threads
+ may cause something like this to happen, they have to be freezable.
  
-+#ifdef CONFIG_PM
- /* we are controlled via i2c and assume that is always up
-  * If that wasn't the case, we'd have to suspend once
-  * our i2c device is suspended, and then take note of that! */
-@@ -768,7 +769,6 @@ static int tas_resume(struct tas *tas)
- 	return 0;
- }
+-2. The second reason is to prevent user space processes and some kernel threads
++2. Next, to create the hibernation image we need to free a sufficient amount of
++memory (approximately 50% of available RAM) and we need to do that before
++devices are deactivated, because we generally need them for swapping out.  Then,
++after the memory for the image has been freed, we don't want tasks to allocate
++additional memory and we prevent them from doing that by freezing them earlier.
++[Of course, this also means that device drivers should not allocate substantial
++amounts of memory from their .suspend() callbacks before hibernation, but this
++is e separate issue.]
++
++3. The third reason is to prevent user space processes and some kernel threads
+ from interfering with the suspending and resuming of devices.  A user space
+ process running on a second CPU while we are suspending devices may, for
+ example, be troublesome and without the freezing of tasks we would need some
+@@ -111,7 +120,7 @@ frozen before the driver's .suspend() ca
+ thawed after the driver's .resume() callback has run, so it won't be accessing
+ the device while it's suspended.
  
--#ifdef CONFIG_PM
- static int _tas_suspend(struct codec_info_item *cii, pm_message_t state)
- {
- 	return tas_suspend(cii->codec_data);
-@@ -778,7 +778,10 @@ static int _tas_resume(struct codec_info
- {
- 	return tas_resume(cii->codec_data);
- }
--#endif
-+#else /* CONFIG_PM */
-+#define _tas_suspend	NULL
-+#define _tas_resume	NULL
-+#endif /* CONFIG_PM */
- 
- static struct codec_info tas_codec_info = {
- 	.transfers = tas_transfers,
-@@ -791,10 +794,8 @@ static struct codec_info tas_codec_info 
- 	.owner = THIS_MODULE,
- 	.usable = tas_usable,
- 	.switch_clock = tas_switch_clock,
--#ifdef CONFIG_PM
- 	.suspend = _tas_suspend,
- 	.resume = _tas_resume,
--#endif
- };
- 
- static int tas_init_codec(struct aoa_codec *codec)
+-3. Another reason for freezing tasks is to prevent user space processes from
++4. Another reason for freezing tasks is to prevent user space processes from
+ realizing that hibernation (or suspend) operation takes place.  Ideally, user
+ space processes should not notice that such a system-wide operation has occurred
+ and should continue running without any problems after the restore (or resume
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-fault_inject-silence-a-warning.patch
-fix-tas_suspend-resume-build-warning.patch
-stradis-and-zoran-depend-on-virt_to_bus.patch
-dont-compile-the-pmu-power-driver-on-64-bit-powerpc.patch
-clean-up-duplicate-includes-in-drivers-block.patch
+git-acpi.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+shrink_slab-handle-bad-shrinkers.patch
