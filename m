@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-drivers-atm.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:15:37 -0700
-Message-ID: <200707232315.l6NNFbU4017054@imap1.linux-foundation.org>
+Subject: + clean-up-duplicate-includes-in-drivers-mtd.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:15:49 -0700
+Message-ID: <200707232315.l6NNFncD017072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39069 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37964 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758444AbXGWXQb (ORCPT
+	by vger.kernel.org with ESMTP id S1761087AbXGWXQb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 23 Jul 2007 19:16:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, chas@cmf.nrl.navy.mil
+Cc: jesper.juhl@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     Clean up duplicate includes in drivers/atm/
+     Clean up duplicate includes in drivers/mtd/
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-drivers-atm.patch
+     clean-up-duplicate-includes-in-drivers-mtd.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in drivers/atm/
+Subject: Clean up duplicate includes in drivers/mtd/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	drivers/atm/
+	drivers/mtd/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Chas Williams <chas@cmf.nrl.navy.mil>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/lanai.c |    1 -
- 1 files changed, 1 deletion(-)
+ drivers/mtd/chips/jedec_probe.c     |    1 -
+ drivers/mtd/nand/excite_nandflash.c |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN drivers/atm/lanai.c~clean-up-duplicate-includes-in-drivers-atm drivers/atm/lanai.c
---- a/drivers/atm/lanai.c~clean-up-duplicate-includes-in-drivers-atm
-+++ a/drivers/atm/lanai.c
-@@ -65,7 +65,6 @@
- #include <linux/init.h>
- #include <linux/delay.h>
+diff -puN drivers/mtd/chips/jedec_probe.c~clean-up-duplicate-includes-in-drivers-mtd drivers/mtd/chips/jedec_probe.c
+--- a/drivers/mtd/chips/jedec_probe.c~clean-up-duplicate-includes-in-drivers-mtd
++++ a/drivers/mtd/chips/jedec_probe.c
+@@ -17,7 +17,6 @@
+ #include <linux/errno.h>
+ #include <linux/slab.h>
  #include <linux/interrupt.h>
--#include <linux/dma-mapping.h>
+-#include <linux/init.h>
  
- /* -------------------- TUNABLE PARAMATERS: */
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/map.h>
+diff -puN drivers/mtd/nand/excite_nandflash.c~clean-up-duplicate-includes-in-drivers-mtd drivers/mtd/nand/excite_nandflash.c
+--- a/drivers/mtd/nand/excite_nandflash.c~clean-up-duplicate-includes-in-drivers-mtd
++++ a/drivers/mtd/nand/excite_nandflash.c
+@@ -27,7 +27,6 @@
+ #include <linux/platform_device.h>
+ #include <linux/delay.h>
+ #include <linux/err.h>
+-#include <linux/kernel.h>
  
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
