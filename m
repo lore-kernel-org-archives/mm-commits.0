@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-kernel.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:16:17 -0700
-Message-ID: <200707232316.l6NNGHYr017121@imap1.linux-foundation.org>
+Subject: + remove-unsafe-from-module-struct.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:30:51 -0700
+Message-ID: <200707232330.l6NNUpXZ017660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60886 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39837 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758627AbXGWX0f (ORCPT
+	by vger.kernel.org with ESMTP id S1752846AbXGWXbO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:26:35 -0400
+	Mon, 23 Jul 2007 19:31:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, paulmck@linux.vnet.ibm.com, ssatyam@cse.iitk.ac.in
+Cc: rusty@rustcorp.com.au, bunk@stusta.de, dan.j.williams@intel.com, shannon.nelson@intel.com, sri@us.ibm.com, vladislav.yasevich@hp.com
 
 
 The patch titled
-     Clean up duplicate includes in kernel/
+     Remove "unsafe" from module struct
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-kernel.patch
+     remove-unsafe-from-module-struct.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,165 +26,208 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in kernel/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: Remove "unsafe" from module struct
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-This patch cleans up duplicate includes in
-	kernel/
+Adrian Bunk points out that "unsafe" was used to mark modules touched by
+the deprecated MOD_INC_USE_COUNT interface, which has long gone.  It's time
+to remove the member from the module structure, as well.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Reviewed-by: Satyam Sharma <ssatyam@cse.iitk.ac.in>
+If you want a module which can't unload, don't register an exit function.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Shannon Nelson <shannon.nelson@intel.com>
+Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
+Cc: Sridhar Samudrala <sri@us.ibm.com>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c    |    1 -
- kernel/exit.c       |    1 -
- kernel/kexec.c      |    1 -
- kernel/rcupdate.c   |    1 -
- kernel/rcutorture.c |    1 -
- kernel/sysctl.c     |    1 -
- kernel/taskstats.c  |    1 -
- kernel/time.c       |    1 -
- 8 files changed, 8 deletions(-)
+ drivers/dma/ioatdma.c  |    7 +++----
+ drivers/dma/iop-adma.c |    9 ++++-----
+ include/linux/module.h |   15 ---------------
+ kernel/module.c        |   21 +++++----------------
+ net/sctp/protocol.c    |    5 +++--
+ 5 files changed, 15 insertions(+), 42 deletions(-)
 
-diff -puN kernel/auditsc.c~clean-up-duplicate-includes-in-kernel kernel/auditsc.c
---- a/kernel/auditsc.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/auditsc.c
-@@ -45,7 +45,6 @@
- #include <linux/init.h>
- #include <asm/types.h>
- #include <asm/atomic.h>
--#include <asm/types.h>
- #include <linux/fs.h>
- #include <linux/namei.h>
- #include <linux/mm.h>
-diff -puN kernel/exit.c~clean-up-duplicate-includes-in-kernel kernel/exit.c
---- a/kernel/exit.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/exit.c
-@@ -45,7 +45,6 @@
- #include <linux/resource.h>
- #include <linux/blkdev.h>
- #include <linux/task_io_accounting_ops.h>
--#include <linux/freezer.h>
+diff -puN drivers/dma/ioatdma.c~remove-unsafe-from-module-struct drivers/dma/ioatdma.c
+--- a/drivers/dma/ioatdma.c~remove-unsafe-from-module-struct
++++ a/drivers/dma/ioatdma.c
+@@ -811,18 +811,17 @@ MODULE_AUTHOR("Intel Corporation");
  
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
-diff -puN kernel/kexec.c~clean-up-duplicate-includes-in-kernel kernel/kexec.c
---- a/kernel/kexec.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/kexec.c
-@@ -17,7 +17,6 @@
- #include <linux/highmem.h>
- #include <linux/syscalls.h>
- #include <linux/reboot.h>
--#include <linux/syscalls.h>
- #include <linux/ioport.h>
- #include <linux/hardirq.h>
- #include <linux/elf.h>
-diff -puN kernel/rcupdate.c~clean-up-duplicate-includes-in-kernel kernel/rcupdate.c
---- a/kernel/rcupdate.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/rcupdate.c
-@@ -45,7 +45,6 @@
- #include <linux/moduleparam.h>
- #include <linux/percpu.h>
- #include <linux/notifier.h>
--#include <linux/rcupdate.h>
- #include <linux/cpu.h>
- #include <linux/mutex.h>
+ static int __init ioat_init_module(void)
+ {
+-	/* it's currently unsafe to unload this module */
+-	/* if forced, worst case is that rmmod hangs */
+-	__unsafe(THIS_MODULE);
+-
+ 	return pci_register_driver(&ioat_pci_driver);
+ }
  
-diff -puN kernel/rcutorture.c~clean-up-duplicate-includes-in-kernel kernel/rcutorture.c
---- a/kernel/rcutorture.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/rcutorture.c
-@@ -35,7 +35,6 @@
- #include <linux/sched.h>
- #include <asm/atomic.h>
- #include <linux/bitops.h>
--#include <linux/module.h>
- #include <linux/completion.h>
- #include <linux/moduleparam.h>
- #include <linux/percpu.h>
-diff -puN kernel/sysctl.c~clean-up-duplicate-includes-in-kernel kernel/sysctl.c
---- a/kernel/sysctl.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/sysctl.c
-@@ -28,7 +28,6 @@
- #include <linux/capability.h>
- #include <linux/ctype.h>
- #include <linux/utsname.h>
--#include <linux/capability.h>
- #include <linux/smp_lock.h>
- #include <linux/fs.h>
- #include <linux/init.h>
-diff -puN kernel/taskstats.c~clean-up-duplicate-includes-in-kernel kernel/taskstats.c
---- a/kernel/taskstats.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/taskstats.c
-@@ -20,7 +20,6 @@
- #include <linux/taskstats_kern.h>
- #include <linux/tsacct_kern.h>
- #include <linux/delayacct.h>
--#include <linux/tsacct_kern.h>
- #include <linux/cpumask.h>
- #include <linux/percpu.h>
- #include <linux/containerstats.h>
-diff -puN kernel/time.c~clean-up-duplicate-includes-in-kernel kernel/time.c
---- a/kernel/time.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/time.c
-@@ -34,7 +34,6 @@
- #include <linux/syscalls.h>
- #include <linux/security.h>
- #include <linux/fs.h>
--#include <linux/module.h>
+ module_init(ioat_init_module);
  
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
++/* it's currently unsafe to unload this module */
++#if 0
+ static void __exit ioat_exit_module(void)
+ {
+ 	pci_unregister_driver(&ioat_pci_driver);
+ }
+ 
+ module_exit(ioat_exit_module);
++#endif
+diff -puN drivers/dma/iop-adma.c~remove-unsafe-from-module-struct drivers/dma/iop-adma.c
+--- a/drivers/dma/iop-adma.c~remove-unsafe-from-module-struct
++++ a/drivers/dma/iop-adma.c
+@@ -1446,21 +1446,20 @@ static struct platform_driver iop_adma_d
+ 
+ static int __init iop_adma_init (void)
+ {
+-	/* it's currently unsafe to unload this module */
+-	/* if forced, worst case is that rmmod hangs */
+-	__unsafe(THIS_MODULE);
+-
+ 	return platform_driver_register(&iop_adma_driver);
+ }
+ 
++/* it's currently unsafe to unload this module */
++#if 0
+ static void __exit iop_adma_exit (void)
+ {
+ 	platform_driver_unregister(&iop_adma_driver);
+ 	return;
+ }
++module_exit(iop_adma_exit);
++#endif
+ 
+ module_init(iop_adma_init);
+-module_exit(iop_adma_exit);
+ 
+ MODULE_AUTHOR("Intel Corporation");
+ MODULE_DESCRIPTION("IOP ADMA Engine Driver");
+diff -puN include/linux/module.h~remove-unsafe-from-module-struct include/linux/module.h
+--- a/include/linux/module.h~remove-unsafe-from-module-struct
++++ a/include/linux/module.h
+@@ -328,9 +328,6 @@ struct module
+ 	/* Arch-specific module values */
+ 	struct mod_arch_specific arch;
+ 
+-	/* Am I unsafe to unload? */
+-	int unsafe;
+-
+ 	unsigned int taints;	/* same bits as kernel:tainted */
+ 
+ #ifdef CONFIG_GENERIC_BUG
+@@ -457,16 +454,6 @@ static inline void __module_get(struct m
+ 	__mod ? __mod->name : "kernel";		\
+ })
+ 
+-#define __unsafe(mod)							     \
+-do {									     \
+-	if (mod && !(mod)->unsafe) {					     \
+-		printk(KERN_WARNING					     \
+-		       "Module %s cannot be unloaded due to unsafe usage in" \
+-		       " %s:%u\n", (mod)->name, __FILE__, __LINE__);	     \
+-		(mod)->unsafe = 1;					     \
+-	}								     \
+-} while(0)
+-
+ /* For kallsyms to ask for address resolution.  NULL means not found. */
+ const char *module_address_lookup(unsigned long addr,
+ 				  unsigned long *symbolsize,
+@@ -534,8 +521,6 @@ static inline void module_put(struct mod
+ 
+ #define module_name(mod) "kernel"
+ 
+-#define __unsafe(mod)
+-
+ /* For kallsyms to ask for address resolution.  NULL means not found. */
+ static inline const char *module_address_lookup(unsigned long addr,
+ 						unsigned long *symbolsize,
+diff -puN kernel/module.c~remove-unsafe-from-module-struct kernel/module.c
+--- a/kernel/module.c~remove-unsafe-from-module-struct
++++ a/kernel/module.c
+@@ -693,8 +693,7 @@ sys_delete_module(const char __user *nam
+ 	}
+ 
+ 	/* If it has an init func, it must have an exit func to unload */
+-	if ((mod->init != NULL && mod->exit == NULL)
+-	    || mod->unsafe) {
++	if (mod->init && !mod->exit) {
+ 		forced = try_force_unload(flags);
+ 		if (!forced) {
+ 			/* This module can't be removed */
+@@ -753,11 +752,6 @@ static void print_unload_info(struct seq
+ 		seq_printf(m, "%s,", use->module_which_uses->name);
+ 	}
+ 
+-	if (mod->unsafe) {
+-		printed_something = 1;
+-		seq_printf(m, "[unsafe],");
+-	}
+-
+ 	if (mod->init != NULL && mod->exit == NULL) {
+ 		printed_something = 1;
+ 		seq_printf(m, "[permanent],");
+@@ -2074,15 +2068,10 @@ sys_init_module(void __user *umod,
+ 				mod);
+ 		up(&notify_mutex);
+ 		synchronize_sched();
+-		if (mod->unsafe)
+-			printk(KERN_ERR "%s: module is now stuck!\n",
+-			       mod->name);
+-		else {
+-			module_put(mod);
+-			mutex_lock(&module_mutex);
+-			free_module(mod);
+-			mutex_unlock(&module_mutex);
+-		}
++		module_put(mod);
++		mutex_lock(&module_mutex);
++		free_module(mod);
++		mutex_unlock(&module_mutex);
+ 		return ret;
+ 	}
+ 
+diff -puN net/sctp/protocol.c~remove-unsafe-from-module-struct net/sctp/protocol.c
+--- a/net/sctp/protocol.c~remove-unsafe-from-module-struct
++++ a/net/sctp/protocol.c
+@@ -1176,7 +1176,6 @@ SCTP_STATIC __init int sctp_init(void)
+ 	if (status)
+ 		goto err_v6_add_protocol;
+ 
+-	__unsafe(THIS_MODULE);
+ 	status = 0;
+ out:
+ 	return status;
+@@ -1216,6 +1215,7 @@ err_chunk_cachep:
+ 	goto out;
+ }
+ 
++#if 0
+ /* Exit handler for the SCTP protocol.  */
+ SCTP_STATIC __exit void sctp_exit(void)
+ {
+@@ -1263,9 +1263,10 @@ SCTP_STATIC __exit void sctp_exit(void)
+ 
+ 	proto_unregister(&sctp_prot);
+ }
++module_exit(sctp_exit);
++#endif
+ 
+ module_init(sctp_init);
+-module_exit(sctp_exit);
+ 
+ /*
+  * __stringify doesn't likes enums, so use IPPROTO_SCTP value (132) directly.
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-fix-use-after-free--double-free-bug-in-ati_create_gatt_pages--ati_free_gatt_pages.patch
-git-gfs2-nmw.patch
-hid-fix-a-null-pointer-dereference-when-we-fail-to-allocate-memory.patch
-git-kbuild.patch
-git-mtd.patch
-git-selinux.patch
-git-xfs.patch
-ipmi-fix-mem-leak-in-try_init_dmi.patch
-fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-clean-up-duplicate-includes-in-arch-i386-xen.patch
-clean-up-duplicate-includes-in-drivers-atm.patch
-clean-up-duplicate-includes-in-drivers-block.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-hwmon.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-clean-up-duplicate-includes-in-drivers-media.patch
-clean-up-duplicate-includes-in-drivers-mtd.patch
-clean-up-duplicate-includes-in-drivers-net.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-clean-up-duplicate-includes-in-drivers-usb.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-fs-gfs2.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-clean-up-duplicate-includes-in-include-media.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-kernel.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-net-atm.patch
-clean-up-duplicate-includes-in-net-bridge.patch
-clean-up-duplicate-includes-in-net-ipv4.patch
-clean-up-duplicate-includes-in-net-ipv6.patch
-clean-up-duplicate-includes-in-net-netfilter.patch
-clean-up-duplicate-includes-in-net-sched.patch
-clean-up-duplicate-includes-in-net-sunrpc.patch
-clean-up-duplicate-includes-in-net-tipc.patch
-clean-up-duplicate-includes-in-net-xfrm.patch
-clean-up-duplicate-includes-in-sound-core.patch
-clean-up-duplicate-includes-in-sound-ppc.patch
-clean-up-duplicate-includes-in-sound-soc.patch
+resend-link-lguest-example-launcher-non-static.patch
+git-kvm.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+remove-unsafe-from-module-struct.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
