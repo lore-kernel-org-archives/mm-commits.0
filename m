@@ -1,49 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - usb-devices-misc-build-the-iowarrior-when-it-is-selected-in-kconfig.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:35:42 -0700
-Message-ID: <200707230935.l6N9ZgJh016512@imap1.linux-foundation.org>
+Subject: - drivers-acpi-pci_linkc-lower-printk-severity.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:35:21 -0700
+Message-ID: <200707230935.l6N9ZLSi016478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56660 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55530 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758378AbXGWJpO (ORCPT
+	by vger.kernel.org with ESMTP id S1758097AbXGWJpL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 05:45:14 -0400
+	Mon, 23 Jul 2007 05:45:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: juergen@kreuzholzen.de, greg@kroah.com, mm-commits@vger.kernel.org
+To: da-x@monatomic.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB devices misc: build the IOWARRIOR when it is selected in Kconfig
+     drivers/acpi/pci_link.c: lower printk severity
 has been removed from the -mm tree.  Its filename was
-     usb-devices-misc-build-the-iowarrior-when-it-is-selected-in-kconfig.patch
+     drivers-acpi-pci_linkc-lower-printk-severity.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB devices misc: build the IOWARRIOR when it is selected in Kconfig
-From: Juergen Beisert <juergen@kreuzholzen.de>
+Subject: drivers/acpi/pci_link.c: lower printk severity
+From: Dan Aloni <da-x@monatomic.org>
 
-Signed-off-by: Juergen Beisert <juergen@kreuzholzen.de>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Dan Aloni <da-x@monatomic.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/Makefile |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/acpi/pci_link.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/Makefile~usb-devices-misc-build-the-iowarrior-when-it-is-selected-in-kconfig drivers/usb/Makefile
---- a/drivers/usb/Makefile~usb-devices-misc-build-the-iowarrior-when-it-is-selected-in-kconfig
-+++ a/drivers/usb/Makefile
-@@ -49,6 +49,7 @@ obj-$(CONFIG_USB_SISUSBVGA)	+= misc/
- obj-$(CONFIG_USB_TEST)		+= misc/
- obj-$(CONFIG_USB_TRANCEVIBRATOR)+= misc/
- obj-$(CONFIG_USB_USS720)	+= misc/
-+obj-$(CONFIG_USB_IOWARRIOR)	+= misc/
+diff -puN drivers/acpi/pci_link.c~drivers-acpi-pci_linkc-lower-printk-severity drivers/acpi/pci_link.c
+--- a/drivers/acpi/pci_link.c~drivers-acpi-pci_linkc-lower-printk-severity
++++ a/drivers/acpi/pci_link.c
+@@ -733,7 +733,7 @@ static int acpi_pci_link_add(struct acpi
+ 	/* query and set link->irq.active */
+ 	acpi_pci_link_get_current(link);
  
- obj-$(CONFIG_USB_ATM)		+= atm/
- obj-$(CONFIG_USB_SPEEDTOUCH)	+= atm/
+-	printk(PREFIX "%s [%s] (IRQs", acpi_device_name(device),
++	printk(KERN_INFO PREFIX "%s [%s] (IRQs", acpi_device_name(device),
+ 	       acpi_device_bid(device));
+ 	for (i = 0; i < link->irq.possible_count; i++) {
+ 		if (link->irq.active == link->irq.possible[i]) {
 _
 
-Patches currently in -mm which might be from juergen@kreuzholzen.de are
+Patches currently in -mm which might be from da-x@monatomic.org are
