@@ -1,107 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - fix-empty-macros-in-acpi.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:35:19 -0700
-Message-ID: <200707230935.l6N9ZJ0f016475@imap1.linux-foundation.org>
+Subject: - remove-handle_mm_fault-export.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:34:17 -0700
+Message-ID: <200707230934.l6N9YH2a016370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36427 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38283 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759067AbXGWJpY (ORCPT
+	by vger.kernel.org with ESMTP id S1758439AbXGWJpY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 23 Jul 2007 05:45:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: hch@lst.de, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: fix empty macros
+     remove handle_mm_fault export
 has been removed from the -mm tree.  Its filename was
-     fix-empty-macros-in-acpi.patch
+     remove-handle_mm_fault-export.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: acpi: fix empty macros
-From: Dave Jones <davej@redhat.com>
+Subject: remove handle_mm_fault export
+From: Christoph Hellwig <hch@lst.de>
 
-ACPI has a ton of macros which make a bunch of empty if's when configured
-in non-debug mode.
+Now that arch/powerpc/platforms/cell/spufs/fault.c is always built in
+the kernel there is no need to export handle_mm_fault anymore.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/glue.c     |    2 -
- include/acpi/acmacros.h |   40 +++++++++++++++++++-------------------
- 2 files changed, 21 insertions(+), 21 deletions(-)
+ mm/memory.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/acpi/glue.c~fix-empty-macros-in-acpi drivers/acpi/glue.c
---- a/drivers/acpi/glue.c~fix-empty-macros-in-acpi
-+++ a/drivers/acpi/glue.c
-@@ -16,7 +16,7 @@
- #if ACPI_GLUE_DEBUG
- #define DBG(x...) printk(PREFIX x)
- #else
--#define DBG(x...)
-+#define DBG(x...) do { } while(0)
- #endif
- static LIST_HEAD(bus_type_list);
- static DECLARE_RWSEM(bus_type_sem);
-diff -puN include/acpi/acmacros.h~fix-empty-macros-in-acpi include/acpi/acmacros.h
---- a/include/acpi/acmacros.h~fix-empty-macros-in-acpi
-+++ a/include/acpi/acmacros.h
-@@ -622,26 +622,26 @@
- #define ACPI_DEBUG_EXEC(a)
- #define ACPI_NORMAL_EXEC(a)             a;
+diff -puN mm/memory.c~remove-handle_mm_fault-export mm/memory.c
+--- a/mm/memory.c~remove-handle_mm_fault-export
++++ a/mm/memory.c
+@@ -2659,8 +2659,6 @@ int handle_mm_fault(struct mm_struct *mm
+ 	return handle_pte_fault(mm, vma, address, pte, pmd, write_access);
+ }
  
--#define ACPI_DEBUG_DEFINE(a)
--#define ACPI_DEBUG_ONLY_MEMBERS(a)
--#define ACPI_FUNCTION_NAME(a)
--#define ACPI_FUNCTION_TRACE(a)
--#define ACPI_FUNCTION_TRACE_PTR(a,b)
--#define ACPI_FUNCTION_TRACE_U32(a,b)
--#define ACPI_FUNCTION_TRACE_STR(a,b)
--#define ACPI_FUNCTION_EXIT
--#define ACPI_FUNCTION_STATUS_EXIT(s)
--#define ACPI_FUNCTION_VALUE_EXIT(s)
--#define ACPI_FUNCTION_ENTRY()
--#define ACPI_DUMP_STACK_ENTRY(a)
--#define ACPI_DUMP_OPERANDS(a,b,c,d,e)
--#define ACPI_DUMP_ENTRY(a,b)
--#define ACPI_DUMP_TABLES(a,b)
--#define ACPI_DUMP_PATHNAME(a,b,c,d)
--#define ACPI_DUMP_RESOURCE_LIST(a)
--#define ACPI_DUMP_BUFFER(a,b)
--#define ACPI_DEBUG_PRINT(pl)
--#define ACPI_DEBUG_PRINT_RAW(pl)
-+#define ACPI_DEBUG_DEFINE(a)		do { } while(0)
-+#define ACPI_DEBUG_ONLY_MEMBERS(a)	do { } while(0)
-+#define ACPI_FUNCTION_NAME(a)		do { } while(0)
-+#define ACPI_FUNCTION_TRACE(a)		do { } while(0)
-+#define ACPI_FUNCTION_TRACE_PTR(a,b)	do { } while(0)
-+#define ACPI_FUNCTION_TRACE_U32(a,b)	do { } while(0)
-+#define ACPI_FUNCTION_TRACE_STR(a,b)	do { } while(0)
-+#define ACPI_FUNCTION_EXIT		do { } while(0)
-+#define ACPI_FUNCTION_STATUS_EXIT(s)	do { } while(0)
-+#define ACPI_FUNCTION_VALUE_EXIT(s)	do { } while(0)
-+#define ACPI_FUNCTION_ENTRY()		do { } while(0)
-+#define ACPI_DUMP_STACK_ENTRY(a)	do { } while(0)
-+#define ACPI_DUMP_OPERANDS(a,b,c,d,e)	do { } while(0)
-+#define ACPI_DUMP_ENTRY(a,b)		do { } while(0)
-+#define ACPI_DUMP_TABLES(a,b)		do { } while(0)
-+#define ACPI_DUMP_PATHNAME(a,b,c,d)	do { } while(0)
-+#define ACPI_DUMP_RESOURCE_LIST(a)	do { } while(0)
-+#define ACPI_DUMP_BUFFER(a,b)		do { } while(0)
-+#define ACPI_DEBUG_PRINT(pl)		do { } while(0)
-+#define ACPI_DEBUG_PRINT_RAW(pl)	do { } while(0)
- 
- #define return_VOID                     return
- #define return_ACPI_STATUS(s)           return(s)
+-EXPORT_SYMBOL_GPL(handle_mm_fault);
+-
+ #ifndef __PAGETABLE_PUD_FOLDED
+ /*
+  * Allocate page upper directory.
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
+git-xfs.patch
+sysv-convert-to-new-aops.patch
+kill-declare_mutex_locked.patch
+remove-unneded-lock_kernel-in-driver-block-loopc.patch
+loop-use-unlocked_ioctl.patch
+rename-setleast-to-generic_setlease.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
