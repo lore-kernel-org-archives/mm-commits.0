@@ -1,53 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - spicscan_boardinfo-mustnt-be-__init_or_module.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:34:49 -0700
-Message-ID: <200707230934.l6N9Yn4f016426@imap1.linux-foundation.org>
+Subject: - rivafb_setup-must-be-__devinit.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:35:13 -0700
+Message-ID: <200707230935.l6N9ZDEw016466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52520 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39530 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759227AbXGWJpb (ORCPT
+	by vger.kernel.org with ESMTP id S1759452AbXGWJpe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 05:45:31 -0400
+	Mon, 23 Jul 2007 05:45:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: bunk@stusta.de, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi.c:scan_boardinfo() mustn't be __init_or_module
+     rivafb_setup() must be __devinit
 has been removed from the -mm tree.  Its filename was
-     spicscan_boardinfo-mustnt-be-__init_or_module.patch
+     rivafb_setup-must-be-__devinit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi.c:scan_boardinfo() mustn't be __init_or_module
+Subject: rivafb_setup() must be __devinit
 From: Adrian Bunk <bunk@stusta.de>
 
-WARNING: drivers/built-in.o(.text+0x889735): Section mismatch: reference to .init.text:scan_boardinfo (between 'spi_register_master' and '__unregister')
+WARNING: drivers/built-in.o(.text+0x57106): Section mismatch: reference to .init.text:rivafb_setup (between 'rivafb_init' and 'nv3Busy')
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/video/riva/fbdev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi.c~spicscan_boardinfo-mustnt-be-__init_or_module drivers/spi/spi.c
---- a/drivers/spi/spi.c~spicscan_boardinfo-mustnt-be-__init_or_module
-+++ a/drivers/spi/spi.c
-@@ -303,8 +303,7 @@ spi_register_board_info(struct spi_board
-  * creates board info from kernel command lines
-  */
+diff -puN drivers/video/riva/fbdev.c~rivafb_setup-must-be-__devinit drivers/video/riva/fbdev.c
+--- a/drivers/video/riva/fbdev.c~rivafb_setup-must-be-__devinit
++++ a/drivers/video/riva/fbdev.c
+@@ -2146,7 +2146,7 @@ static void __devexit rivafb_remove(stru
+  * ------------------------------------------------------------------------- */
  
--static void __init_or_module
--scan_boardinfo(struct spi_master *master)
-+static void scan_boardinfo(struct spi_master *master)
+ #ifndef MODULE
+-static int __init rivafb_setup(char *options)
++static int __devinit rivafb_setup(char *options)
  {
- 	struct boardinfo	*bi;
- 	struct device		*dev = master->cdev.dev;
+ 	char *this_opt;
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
