@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch added to -mm tree
-Date: Mon, 23 Jul 2007 14:32:58 -0700
-Message-ID: <200707232132.l6NLWwiQ012931@imap1.linux-foundation.org>
+Subject: + rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch added to -mm tree
+Date: Mon, 23 Jul 2007 14:33:46 -0700
+Message-ID: <200707232133.l6NLXk4O012965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38848 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39699 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759108AbXGWVdj (ORCPT
+	by vger.kernel.org with ESMTP id S1759092AbXGWVeS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 17:33:39 -0400
+	Mon, 23 Jul 2007 17:34:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com, johnstul@us.ibm.com, tglx@linutronix.de
+Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     kernel/time/clocksource.c: Use list_for_each_entry instead of list_for_each
+     rtc_irq_set_freq() requires power-of-two and associated kerneldoc
 has been added to the -mm tree.  Its filename is
-     kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+     rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,97 +26,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/time/clocksource.c: Use list_for_each_entry instead of list_for_each
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: rtc_irq_set_freq() requires power-of-two and associated kerneldoc
+From: David Brownell <david-b@pacbell.net>
 
-kernel/time/clocksource.c: Convert list_for_each to
-list_for_each_entry in clocksource_resume(),
-sysfs_override_clocksource() and show_available_clocksources()
+RTC periodic IRQs are only defined to work for 2^N Hz values.  This patch
+moves that validity check into the infrastructure, so drivers don't need to
+check it; and adds kerneldoc for the two interface functions related to
+periodic IRQs.  (One of which was quite mysterious until its first use was
+recently checked in!)
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/clocksource.c |   22 +++++++---------------
- 1 files changed, 7 insertions(+), 15 deletions(-)
+ drivers/rtc/interface.c |   24 ++++++++++++++++++++++++
+ drivers/rtc/rtc-cmos.c  |    8 +++-----
+ 2 files changed, 27 insertions(+), 5 deletions(-)
 
-diff -puN kernel/time/clocksource.c~kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each
-+++ a/kernel/time/clocksource.c
-@@ -207,15 +207,12 @@ static inline void clocksource_resume_wa
-  */
- void clocksource_resume(void)
+diff -puN drivers/rtc/interface.c~rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc
++++ a/drivers/rtc/interface.c
+@@ -12,6 +12,7 @@
+ */
+ 
+ #include <linux/rtc.h>
++#include <linux/log2.h>
+ 
+ int rtc_read_time(struct rtc_device *rtc, struct rtc_time *tm)
  {
--	struct list_head *tmp;
-+	struct clocksource *cs;
- 	unsigned long flags;
+@@ -231,6 +232,16 @@ void rtc_irq_unregister(struct rtc_devic
+ }
+ EXPORT_SYMBOL_GPL(rtc_irq_unregister);
  
- 	spin_lock_irqsave(&clocksource_lock, flags);
- 
--	list_for_each(tmp, &clocksource_list) {
--		struct clocksource *cs;
--
--		cs = list_entry(tmp, struct clocksource, list);
-+	list_for_each_entry(cs, &clocksource_list, list) {
- 		if (cs->resume)
- 			cs->resume();
- 	}
-@@ -369,7 +366,6 @@ static ssize_t sysfs_override_clocksourc
- 					  const char *buf, size_t count)
++/**
++ * rtc_irq_set_state - enable/disable 2^N Hz periodic IRQs
++ * @rtc: the rtc device
++ * @task: currently registered with rtc_irq_register()
++ * @enabled: true to enable periodic IRQs
++ * Context: any
++ *
++ * Note that rtc_irq_set_freq() should previously have been used to
++ * specify the desired frequency of periodic IRQ task->func() callbacks.
++ */
+ int rtc_irq_set_state(struct rtc_device *rtc, struct rtc_task *task, int enabled)
  {
- 	struct clocksource *ovr = NULL;
--	struct list_head *tmp;
- 	size_t ret = count;
- 	int len;
+ 	int err = 0;
+@@ -251,6 +262,16 @@ int rtc_irq_set_state(struct rtc_device 
+ }
+ EXPORT_SYMBOL_GPL(rtc_irq_set_state);
  
-@@ -389,12 +385,11 @@ static ssize_t sysfs_override_clocksourc
++/**
++ * rtc_irq_set_freq - set 2^N Hz periodic IRQ frequency for IRQ
++ * @rtc: the rtc device
++ * @task: currently registered with rtc_irq_register()
++ * @freq: positive frequency with which task->func() will be called
++ * Context: any
++ *
++ * Note that rtc_irq_set_state() is used to enable or disable the
++ * periodic IRQs.
++ */
+ int rtc_irq_set_freq(struct rtc_device *rtc, struct rtc_task *task, int freq)
+ {
+ 	int err = 0;
+@@ -259,6 +280,9 @@ int rtc_irq_set_freq(struct rtc_device *
+ 	if (rtc->ops->irq_set_freq == NULL)
+ 		return -ENXIO;
  
- 	len = strlen(override_name);
- 	if (len) {
-+		struct clocksource *cs;
++	if (!is_power_of_2(freq))
++		return -EINVAL;
 +
- 		ovr = clocksource_override;
- 		/* try to select it: */
--		list_for_each(tmp, &clocksource_list) {
--			struct clocksource *cs;
--
--			cs = list_entry(tmp, struct clocksource, list);
-+		list_for_each_entry(cs, &clocksource_list, list) {
- 			if (strlen(cs->name) == len &&
- 			    !strcmp(cs->name, override_name))
- 				ovr = cs;
-@@ -422,14 +417,11 @@ static ssize_t sysfs_override_clocksourc
- static ssize_t
- sysfs_show_available_clocksources(struct sys_device *dev, char *buf)
- {
--	struct list_head *tmp;
-+	struct clocksource *src;
- 	char *curr = buf;
+ 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
+ 	if (rtc->irq_task != task)
+ 		err = -ENXIO;
+diff -puN drivers/rtc/rtc-cmos.c~rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc
++++ a/drivers/rtc/rtc-cmos.c
+@@ -246,11 +246,9 @@ static int cmos_irq_set_freq(struct devi
  
- 	spin_lock_irq(&clocksource_lock);
--	list_for_each(tmp, &clocksource_list) {
--		struct clocksource *src;
--
--		src = list_entry(tmp, struct clocksource, list);
-+	list_for_each_entry(src, &clocksource_list, list) {
- 		curr += sprintf(curr, "%s ", src->name);
- 	}
- 	spin_unlock_irq(&clocksource_lock);
+ 	/* 0 = no irqs; 1 = 2^15 Hz ... 15 = 2^0 Hz */
+ 	f = ffs(freq);
+-	if (f != 0) {
+-		if (f-- > 16 || freq != (1 << f))
+-			return -EINVAL;
+-		f = 16 - f;
+-	}
++	if (f-- > 16)
++		return -EINVAL;
++	f = 16 - f;
+ 
+ 	spin_lock_irqsave(&rtc_lock, flags);
+ 	CMOS_WRITE(RTC_REF_CLCK_32KHZ | f, RTC_FREQ_SELECT);
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-kcopyd-use-mutex-instead-of-semaphore.patch
+git-acpi.patch
+git-mmc.patch
 git-mtd.patch
-videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
-fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-fs-locksc-use-list_for_each_entry-instead-of-list_for_each.patch
-kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
-kernel-userc-use-list_for_each_entry-instead-of-list_for_each.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
