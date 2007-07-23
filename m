@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + forcedeth-new-device-ids-in-pci_idsh.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:49:18 -0700
-Message-ID: <200707232349.l6NNnIA1018404@imap1.linux-foundation.org>
+Subject: + kconfig-remove-top-level-menu-code-maturity-level-options.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:59:22 -0700
+Message-ID: <200707232359.l6NNxMmE018761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48213 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50479 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761291AbXGWXtg (ORCPT
+	by vger.kernel.org with ESMTP id S1753436AbXGWX7b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:49:36 -0400
+	Mon, 23 Jul 2007 19:59:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aabdulla@nvidia.com
+Cc: a1426z@gawab.com, sam@ravnborg.org
 
 
 The patch titled
-     forcedeth: new device ids in pci_ids.h
+     Kconfig: remove top level menu "Code maturity level options"
 has been added to the -mm tree.  Its filename is
-     forcedeth-new-device-ids-in-pci_idsh.patch
+     kconfig-remove-top-level-menu-code-maturity-level-options.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: forcedeth: new device ids in pci_ids.h
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: Kconfig: remove top level menu "Code maturity level options"
+From: Al Boldi <a1426z@gawab.com>
 
-This patch contains new device ids for MCP73 chipset.
+Remove the top level menu "Code maturity level options", and moves its
+options into menu "General setup".
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+This makes Kconfig less cluttered and easier to setup.
+
+Signed-off-by: Al Boldi <a1426z@gawab.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pci_ids.h |    4 ++++
- 1 files changed, 4 insertions(+)
+ init/Kconfig |    5 +----
+ 1 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/linux/pci_ids.h~forcedeth-new-device-ids-in-pci_idsh include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~forcedeth-new-device-ids-in-pci_idsh
-+++ a/include/linux/pci_ids.h
-@@ -1225,6 +1225,10 @@
- #define PCI_DEVICE_ID_NVIDIA_NVENET_25              0x054D
- #define PCI_DEVICE_ID_NVIDIA_NVENET_26              0x054E
- #define PCI_DEVICE_ID_NVIDIA_NVENET_27              0x054F
-+#define PCI_DEVICE_ID_NVIDIA_NVENET_28              0x07DC
-+#define PCI_DEVICE_ID_NVIDIA_NVENET_29              0x07DD
-+#define PCI_DEVICE_ID_NVIDIA_NVENET_30              0x07DE
-+#define PCI_DEVICE_ID_NVIDIA_NVENET_31              0x07DF
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP67_IDE       0x0560
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP73_IDE       0x056C
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP77_IDE       0x0759
+diff -puN init/Kconfig~kconfig-remove-top-level-menu-code-maturity-level-options init/Kconfig
+--- a/init/Kconfig~kconfig-remove-top-level-menu-code-maturity-level-options
++++ a/init/Kconfig
+@@ -7,7 +7,7 @@ config DEFCONFIG_LIST
+ 	default "/boot/config-$UNAME_RELEASE"
+ 	default "arch/$ARCH/defconfig"
+ 
+-menu "Code maturity level options"
++menu "General setup"
+ 
+ config EXPERIMENTAL
+ 	bool "Prompt for development and/or incomplete code/drivers"
+@@ -61,9 +61,6 @@ config INIT_ENV_ARG_LIMIT
+ 	  Maximum of each of the number of arguments and environment
+ 	  variables passed to init from the kernel command line.
+ 
+-endmenu
+-
+-menu "General setup"
+ 
+ config LOCALVERSION
+ 	string "Local version - append to kernel release"
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from a1426z@gawab.com are
 
-forcedeth-new-device-ids-in-pci_idsh.patch
-forcedeth-mcp73-device-addition.patch
+kconfig-remove-top-level-menu-code-maturity-level-options.patch
