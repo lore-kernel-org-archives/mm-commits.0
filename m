@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-net-atm.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:16:21 -0700
-Message-ID: <200707232316.l6NNGLJf017127@imap1.linux-foundation.org>
+Subject: + clean-up-duplicate-includes-in-drivers-w1.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:16:01 -0700
+Message-ID: <200707232316.l6NNG1O7017094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36992 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757746AbXGWX03 (ORCPT
+	by vger.kernel.org with ESMTP id S1756931AbXGWX03 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 23 Jul 2007 19:26:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, chas@cmf.nrl.navy.mil
+Cc: jesper.juhl@gmail.com, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     Clean up duplicate includes in net/atm/
+     Clean up duplicate includes in drivers/w1/
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-net-atm.patch
+     clean-up-duplicate-includes-in-drivers-w1.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in net/atm/
+Subject: Clean up duplicate includes in drivers/w1/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	net/atm/
+	drivers/w1/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Chas Williams <chas@cmf.nrl.navy.mil>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/atm/lec.c |    1 -
+ drivers/w1/masters/matrox_w1.c |    1 -
  1 files changed, 1 deletion(-)
 
-diff -puN net/atm/lec.c~clean-up-duplicate-includes-in-net-atm net/atm/lec.c
---- a/net/atm/lec.c~clean-up-duplicate-includes-in-net-atm
-+++ a/net/atm/lec.c
-@@ -21,7 +21,6 @@
- #include <net/dst.h>
- #include <linux/proc_fs.h>
- #include <linux/spinlock.h>
--#include <linux/proc_fs.h>
- #include <linux/seq_file.h>
+diff -puN drivers/w1/masters/matrox_w1.c~clean-up-duplicate-includes-in-drivers-w1 drivers/w1/masters/matrox_w1.c
+--- a/drivers/w1/masters/matrox_w1.c~clean-up-duplicate-includes-in-drivers-w1
++++ a/drivers/w1/masters/matrox_w1.c
+@@ -33,7 +33,6 @@
+ #include <linux/slab.h>
+ #include <linux/pci_ids.h>
+ #include <linux/pci.h>
+-#include <linux/timer.h>
  
- /* TokenRing if needed */
+ #include "../w1.h"
+ #include "../w1_int.h"
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
