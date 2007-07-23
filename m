@@ -1,211 +1,528 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-fix-stn-lcd-support.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:35:09 -0700
-Message-ID: <200707230935.l6N9Z9V6016463@imap1.linux-foundation.org>
+Subject: - ps3-flash-rom-storage-driver.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:34:36 -0700
+Message-ID: <200707230934.l6N9YaxO016408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47873 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33197 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759907AbXGWJqU (ORCPT
+	by vger.kernel.org with ESMTP id S1759556AbXGWJqW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 05:46:20 -0400
+	Mon, 23 Jul 2007 05:46:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.ferre@rfo.atmel.com, adaplas@gmail.com, andrew@sanpeople.com, hskinnemoen@atmel.com, jan.altenberg@linutronix.de, patrice.vilchez@rfo.atmel.com, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, James.Bottomley@steeleye.com, benh@kernel.crashing.org, geoffrey.levand@am.sony.com, jens.axboe@oracle.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb: Fix STN LCD support
+     ps3: FLASH ROM Storage Driver
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-fix-stn-lcd-support.patch
+     ps3-flash-rom-storage-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: Fix STN LCD support
-From: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
+Subject: ps3: FLASH ROM Storage Driver
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Fixes STN LCD support for the atmel_lcdfb framebuffer driver.
+Add a FLASH ROM Storage Driver for the PS3:
+  - Implemented as a misc character device driver
+  - Uses a fixed 256 KiB buffer allocated from boot memory as the hypervisor
+    requires the writing of aligned 256 KiB blocks
 
-This patch is the result of a work from Jan Altenberg and has
-been tested on a Hitachi SP06Q002 on at91sam9261ek.
-
-It adds a Kconfig switch that enables the proper LCD in the
-board configuration file (STN or TFT). The switch is used
-in arch/arm/mach-at91/at91sam9261_devices.c & board-sam9261ek.c
-as an example.
-
-This patch includes the "Fix wrong line_length calculation"
-little one from Jan and Haavard (submitted earlier).
-
-AT91 platform informations are directly submitted trough
-the at91 maintainer, here :
-http://article.gmane.org/gmane.linux.kernel/543158
-
-Signed-off-by: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
-Cc: "Antonino A. Daplas" <adaplas@gmail.com>
-Cc: Jan Altenberg <jan.altenberg@linutronix.de>
-Cc: Patrice Vilchez <patrice.vilchez@rfo.atmel.com>
-Cc: Andrew Victor <andrew@sanpeople.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Geoff Levand <geoffrey.levand@am.sony.com>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig       |   10 +++++
- drivers/video/atmel_lcdfb.c |   62 +++++++++++++++++++++++++++++-----
- 2 files changed, 64 insertions(+), 8 deletions(-)
+ arch/powerpc/platforms/ps3/Kconfig |   15 
+ drivers/char/Makefile              |    2 
+ drivers/char/ps3flash.c            |  440 +++++++++++++++++++++++++++
+ 3 files changed, 457 insertions(+)
 
-diff -puN drivers/video/Kconfig~atmel_lcdfb-fix-stn-lcd-support drivers/video/Kconfig
---- a/drivers/video/Kconfig~atmel_lcdfb-fix-stn-lcd-support
-+++ a/drivers/video/Kconfig
-@@ -849,6 +849,16 @@ config FB_INTSRAM
- 	  Say Y if you want to map Frame Buffer in internal SRAM. Say N if you want
- 	  to let frame buffer in external SDRAM.
+diff -puN arch/powerpc/platforms/ps3/Kconfig~ps3-flash-rom-storage-driver arch/powerpc/platforms/ps3/Kconfig
+--- a/arch/powerpc/platforms/ps3/Kconfig~ps3-flash-rom-storage-driver
++++ a/arch/powerpc/platforms/ps3/Kconfig
+@@ -123,4 +123,19 @@ config PS3_ROM
+ 	  In general, all users will say Y or M.
+ 	  Also make sure to say Y or M to "SCSI CDROM support" later.
  
-+config FB_ATMEL_STN
-+	bool "Use a STN display with AT91/AT32 LCD Controller"
-+	depends on FB_ATMEL && MACH_AT91SAM9261EK
-+	default n
++config PS3_FLASH
++	tristate "PS3 FLASH ROM Storage Driver"
++	depends on PPC_PS3
++	select PS3_STORAGE
 +	help
-+	  Say Y if you want to connect a STN LCD display to the AT91/AT32 LCD
-+	  Controller. Say N if you want to connect a TFT.
++	  Include support for the PS3 FLASH ROM Storage.
 +
-+	  If unsure, say N.
++	  This support is required to access the PS3 FLASH ROM, which
++	  contains the boot loader and some boot options.
++	  In general, all users will say Y or M.
 +
- config FB_NVIDIA
- 	tristate "nVidia Framebuffer Support"
- 	depends on FB && PCI
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-fix-stn-lcd-support drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-fix-stn-lcd-support
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -79,6 +79,29 @@ static struct fb_fix_screeninfo atmel_lc
- 	.accel		= FB_ACCEL_NONE,
- };
++	  As this driver needs a fixed buffer of 256 KiB of memory, it can
++	  be disabled on the kernel command line using "ps3flash=off", to
++	  not allocate this fixed buffer.
++
+ endmenu
+diff -puN drivers/char/Makefile~ps3-flash-rom-storage-driver drivers/char/Makefile
+--- a/drivers/char/Makefile~ps3-flash-rom-storage-driver
++++ a/drivers/char/Makefile
+@@ -107,6 +107,8 @@ obj-$(CONFIG_IPMI_HANDLER)	+= ipmi/
+ obj-$(CONFIG_HANGCHECK_TIMER)	+= hangcheck-timer.o
+ obj-$(CONFIG_TCG_TPM)		+= tpm/
  
-+static unsigned long compute_hozval(unsigned long xres, unsigned long lcdcon2)
++obj-$(CONFIG_PS3_FLASH)		+= ps3flash.o
++
+ # Files generated that shall be removed upon make clean
+ clean-files := consolemap_deftbl.c defkeymap.c
+ 
+diff -puN /dev/null drivers/char/ps3flash.c
+--- /dev/null
++++ a/drivers/char/ps3flash.c
+@@ -0,0 +1,440 @@
++/*
++ * PS3 FLASH ROM Storage Driver
++ *
++ * Copyright (C) 2007 Sony Computer Entertainment Inc.
++ * Copyright 2007 Sony Corp.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ */
++
++#include <linux/fs.h>
++#include <linux/miscdevice.h>
++#include <linux/uaccess.h>
++
++#include <asm/lv1call.h>
++#include <asm/ps3stor.h>
++
++
++#define DEVICE_NAME		"ps3flash"
++
++#define FLASH_BLOCK_SIZE	(256*1024)
++
++
++struct ps3flash_private {
++	struct mutex mutex;	/* Bounce buffer mutex */
++};
++
++static struct ps3_storage_device *ps3flash_dev;
++
++static ssize_t ps3flash_read_write_sectors(struct ps3_storage_device *dev,
++					   u64 lpar, u64 start_sector,
++					   u64 sectors, int write)
 +{
-+	unsigned long value;
-+
-+	if (!(cpu_is_at91sam9261() || cpu_is_at32ap7000()))
-+		return xres;
-+
-+	value = xres;
-+	if ((lcdcon2 & ATMEL_LCDC_DISTYPE) != ATMEL_LCDC_DISTYPE_TFT) {
-+		/* STN display */
-+		if ((lcdcon2 & ATMEL_LCDC_DISTYPE) == ATMEL_LCDC_DISTYPE_STNCOLOR) {
-+			value *= 3;
-+		}
-+		if ( (lcdcon2 & ATMEL_LCDC_IFWIDTH) == ATMEL_LCDC_IFWIDTH_4
-+		   || ( (lcdcon2 & ATMEL_LCDC_IFWIDTH) == ATMEL_LCDC_IFWIDTH_8
-+		      && (lcdcon2 & ATMEL_LCDC_SCANMOD) == ATMEL_LCDC_SCANMOD_DUAL ))
-+			value = DIV_ROUND_UP(value, 4);
-+		else
-+			value = DIV_ROUND_UP(value, 8);
++	u64 res = ps3stor_read_write_sectors(dev, lpar, start_sector, sectors,
++					     write);
++	if (res) {
++		dev_err(&dev->sbd.core, "%s:%u: %s failed 0x%lx\n", __func__,
++			__LINE__, write ? "write" : "read", res);
++		return -EIO;
 +	}
-+
-+	return value;
++	return sectors;
 +}
- 
- static void atmel_lcdfb_update_dma(struct fb_info *info,
- 			       struct fb_var_screeninfo *var)
-@@ -181,6 +204,7 @@ static int atmel_lcdfb_check_var(struct 
- 	var->xoffset = var->yoffset = 0;
- 
- 	switch (var->bits_per_pixel) {
-+	case 1:
- 	case 2:
- 	case 4:
- 	case 8:
-@@ -228,8 +252,10 @@ static int atmel_lcdfb_check_var(struct 
- static int atmel_lcdfb_set_par(struct fb_info *info)
- {
- 	struct atmel_lcdfb_info *sinfo = info->par;
-+	unsigned long hozval_linesz;
- 	unsigned long value;
- 	unsigned long clk_value_khz;
-+	unsigned long bits_per_line;
- 
- 	dev_dbg(info->device, "%s:\n", __func__);
- 	dev_dbg(info->device, "  * resolution: %ux%u (%ux%u virtual)\n",
-@@ -241,12 +267,15 @@ static int atmel_lcdfb_set_par(struct fb
- 
- 	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, 0);
- 
--	if (info->var.bits_per_pixel <= 8)
-+	if (info->var.bits_per_pixel == 1)
-+		info->fix.visual = FB_VISUAL_MONO01;
-+	else if (info->var.bits_per_pixel <= 8)
- 		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
- 	else
- 		info->fix.visual = FB_VISUAL_TRUECOLOR;
- 
--	info->fix.line_length = info->var.xres_virtual * (info->var.bits_per_pixel / 8);
-+	bits_per_line = info->var.xres_virtual * info->var.bits_per_pixel;
-+	info->fix.line_length = DIV_ROUND_UP(bits_per_line, 8);
- 
- 	/* Re-initialize the DMA engine... */
- 	dev_dbg(info->device, "  * update DMA engine\n");
-@@ -262,18 +291,21 @@ static int atmel_lcdfb_set_par(struct fb
- 	/* Set pixel clock */
- 	clk_value_khz = clk_get_rate(sinfo->lcdc_clk) / 1000;
- 
--	value = clk_value_khz / PICOS2KHZ(info->var.pixclock);
--
--	if (clk_value_khz % PICOS2KHZ(info->var.pixclock))
--		value++;
-+	value = DIV_ROUND_UP(clk_value_khz, PICOS2KHZ(info->var.pixclock));
- 
- 	value = (value / 2) - 1;
-+	dev_dbg(info->device, "  * programming CLKVAL = 0x%08lx\n", value);
- 
- 	if (value <= 0) {
- 		dev_notice(info->device, "Bypassing pixel clock divider\n");
- 		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1, ATMEL_LCDC_BYPASS);
--	} else
-+	} else {
- 		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1, value << ATMEL_LCDC_CLKVAL_OFFSET);
-+		info->var.pixclock = KHZ2PICOS(clk_value_khz / (2 * (value + 1)));
-+		dev_dbg(info->device, "  updated pixclk:     %lu KHz\n",
-+					PICOS2KHZ(info->var.pixclock));
++
++static ssize_t ps3flash_read_sectors(struct ps3_storage_device *dev,
++				     u64 start_sector, u64 sectors,
++				     unsigned int sector_offset)
++{
++	u64 max_sectors, lpar;
++
++	max_sectors = dev->bounce_size / dev->blk_size;
++	if (sectors > max_sectors) {
++		dev_dbg(&dev->sbd.core, "%s:%u Limiting sectors to %lu\n",
++			__func__, __LINE__, max_sectors);
++		sectors = max_sectors;
 +	}
 +
- 
- 	/* Initialize control register 2 */
- 	value = sinfo->default_lcdcon2;
-@@ -311,9 +343,14 @@ static int atmel_lcdfb_set_par(struct fb
- 	dev_dbg(info->device, "  * LCDTIM2 = %08lx\n", value);
- 	lcdc_writel(sinfo, ATMEL_LCDC_TIM2, value);
- 
-+	/* Horizontal value (aka line size) */
-+	hozval_linesz = compute_hozval(info->var.xres,
-+					lcdc_readl(sinfo, ATMEL_LCDC_LCDCON2));
++	lpar = dev->bounce_lpar + sector_offset * dev->blk_size;
++	return ps3flash_read_write_sectors(dev, lpar, start_sector, sectors,
++					   0);
++}
 +
- 	/* Display size */
--	value = (info->var.xres - 1) << ATMEL_LCDC_HOZVAL_OFFSET;
-+	value = (hozval_linesz - 1) << ATMEL_LCDC_HOZVAL_OFFSET;
- 	value |= info->var.yres - 1;
-+	dev_dbg(info->device, "  * LCDFRMCFG = %08lx\n", value);
- 	lcdc_writel(sinfo, ATMEL_LCDC_LCDFRMCFG, value);
- 
- 	/* FIFO Threshold: Use formula from data sheet */
-@@ -421,6 +458,15 @@ static int atmel_lcdfb_setcolreg(unsigne
- 			ret = 0;
- 		}
- 		break;
++static ssize_t ps3flash_write_chunk(struct ps3_storage_device *dev,
++				    u64 start_sector)
++{
++       u64 sectors = dev->bounce_size / dev->blk_size;
++       return ps3flash_read_write_sectors(dev, dev->bounce_lpar, start_sector,
++					  sectors, 1);
++}
 +
-+	case FB_VISUAL_MONO01:
-+		if (regno < 2) {
-+			val = (regno == 0) ? 0x00 : 0x1F;
-+			lcdc_writel(sinfo, ATMEL_LCDC_LUT(regno), val);
-+			ret = 0;
-+		}
++static loff_t ps3flash_llseek(struct file *file, loff_t offset, int origin)
++{
++	struct ps3_storage_device *dev = ps3flash_dev;
++	loff_t res;
++
++	mutex_lock(&file->f_mapping->host->i_mutex);
++	switch (origin) {
++	case 1:
++		offset += file->f_pos;
 +		break;
++	case 2:
++		offset += dev->regions[dev->region_idx].size*dev->blk_size;
++		break;
++	}
++	if (offset < 0) {
++		res = -EINVAL;
++		goto out;
++	}
 +
- 	}
- 
- 	return ret;
++	file->f_pos = offset;
++	res = file->f_pos;
++
++out:
++	mutex_unlock(&file->f_mapping->host->i_mutex);
++	return res;
++}
++
++static ssize_t ps3flash_read(struct file *file, char __user *buf, size_t count,
++			     loff_t *pos)
++{
++	struct ps3_storage_device *dev = ps3flash_dev;
++	struct ps3flash_private *priv = dev->sbd.core.driver_data;
++	u64 size, start_sector, end_sector, offset;
++	ssize_t sectors_read;
++	size_t remaining, n;
++
++	dev_dbg(&dev->sbd.core,
++		"%s:%u: Reading %zu bytes at position %lld to user 0x%p\n",
++		__func__, __LINE__, count, *pos, buf);
++
++	size = dev->regions[dev->region_idx].size*dev->blk_size;
++	if (*pos >= size || !count)
++		return 0;
++
++	if (*pos + count > size) {
++		dev_dbg(&dev->sbd.core,
++			"%s:%u Truncating count from %zu to %llu\n", __func__,
++			__LINE__, count, size - *pos);
++		count = size - *pos;
++	}
++
++	start_sector = *pos / dev->blk_size;
++	offset = *pos % dev->blk_size;
++	end_sector = DIV_ROUND_UP(*pos + count, dev->blk_size);
++
++	remaining = count;
++	do {
++		mutex_lock(&priv->mutex);
++
++		sectors_read = ps3flash_read_sectors(dev, start_sector,
++						     end_sector-start_sector,
++						     0);
++		if (sectors_read < 0) {
++			mutex_unlock(&priv->mutex);
++			goto fail;
++		}
++
++		n = min(remaining, sectors_read*dev->blk_size-offset);
++		dev_dbg(&dev->sbd.core,
++			"%s:%u: copy %lu bytes from 0x%p to user 0x%p\n",
++			__func__, __LINE__, n, dev->bounce_buf+offset, buf);
++		if (copy_to_user(buf, dev->bounce_buf+offset, n)) {
++			mutex_unlock(&priv->mutex);
++			sectors_read = -EFAULT;
++			goto fail;
++		}
++
++		mutex_unlock(&priv->mutex);
++
++		*pos += n;
++		buf += n;
++		remaining -= n;
++		start_sector += sectors_read;
++		offset = 0;
++	} while (remaining > 0);
++
++	return count;
++
++fail:
++	return sectors_read;
++}
++
++static ssize_t ps3flash_write(struct file *file, const char __user *buf,
++			      size_t count, loff_t *pos)
++{
++	struct ps3_storage_device *dev = ps3flash_dev;
++	struct ps3flash_private *priv = dev->sbd.core.driver_data;
++	u64 size, chunk_sectors, start_write_sector, end_write_sector,
++	    end_read_sector, start_read_sector, head, tail, offset;
++	ssize_t res;
++	size_t remaining, n;
++	unsigned int sec_off;
++
++	dev_dbg(&dev->sbd.core,
++		"%s:%u: Writing %zu bytes at position %lld from user 0x%p\n",
++		__func__, __LINE__, count, *pos, buf);
++
++	size = dev->regions[dev->region_idx].size*dev->blk_size;
++	if (*pos >= size || !count)
++		return 0;
++
++	if (*pos + count > size) {
++		dev_dbg(&dev->sbd.core,
++			"%s:%u Truncating count from %zu to %llu\n", __func__,
++			__LINE__, count, size - *pos);
++		count = size - *pos;
++	}
++
++	chunk_sectors = dev->bounce_size / dev->blk_size;
++
++	start_write_sector = *pos / dev->bounce_size * chunk_sectors;
++	offset = *pos % dev->bounce_size;
++	end_write_sector = DIV_ROUND_UP(*pos + count, dev->bounce_size) *
++			   chunk_sectors;
++
++	end_read_sector = DIV_ROUND_UP(*pos, dev->blk_size);
++	start_read_sector = (*pos + count) / dev->blk_size;
++
++	/*
++	 * As we have to write in 256 KiB chunks, while we can read in blk_size
++	 * (usually 512 bytes) chunks, we perform the following steps:
++	 *   1. Read from start_write_sector to end_read_sector ("head")
++	 *   2. Read from start_read_sector to end_write_sector ("tail")
++	 *   3. Copy data to buffer
++	 *   4. Write from start_write_sector to end_write_sector
++	 * All of this is complicated by using only one 256 KiB bounce buffer.
++	 */
++
++	head = end_read_sector - start_write_sector;
++	tail = end_write_sector - start_read_sector;
++
++	remaining = count;
++	do {
++		mutex_lock(&priv->mutex);
++
++		if (end_read_sector >= start_read_sector) {
++			/* Merge head and tail */
++			dev_dbg(&dev->sbd.core,
++				"Merged head and tail: %lu sectors at %lu\n",
++				chunk_sectors, start_write_sector);
++			res = ps3flash_read_sectors(dev, start_write_sector,
++						    chunk_sectors, 0);
++			if (res < 0)
++				goto fail;
++		} else {
++			if (head) {
++				/* Read head */
++				dev_dbg(&dev->sbd.core,
++					"head: %lu sectors at %lu\n", head,
++					start_write_sector);
++				res = ps3flash_read_sectors(dev,
++							    start_write_sector,
++							    head, 0);
++				if (res < 0)
++					goto fail;
++			}
++			if (start_read_sector <
++			    start_write_sector+chunk_sectors) {
++				/* Read tail */
++				dev_dbg(&dev->sbd.core,
++					"tail: %lu sectors at %lu\n", tail,
++					start_read_sector);
++				sec_off = start_read_sector-start_write_sector;
++				res = ps3flash_read_sectors(dev,
++							    start_read_sector,
++							    tail, sec_off);
++				if (res < 0)
++					goto fail;
++			}
++		}
++
++		n = min(remaining, dev->bounce_size-offset);
++		dev_dbg(&dev->sbd.core,
++			"%s:%u: copy %lu bytes from user 0x%p to 0x%p\n",
++			__func__, __LINE__, n, buf, dev->bounce_buf+offset);
++		if (copy_from_user(dev->bounce_buf+offset, buf, n)) {
++			res = -EFAULT;
++			goto fail;
++		}
++
++		res = ps3flash_write_chunk(dev, start_write_sector);
++		if (res < 0)
++			goto fail;
++
++		mutex_unlock(&priv->mutex);
++
++		*pos += n;
++		buf += n;
++		remaining -= n;
++		start_write_sector += chunk_sectors;
++		head = 0;
++		offset = 0;
++	} while (remaining > 0);
++
++	return count;
++
++fail:
++	mutex_unlock(&priv->mutex);
++	return res;
++}
++
++
++static irqreturn_t ps3flash_interrupt(int irq, void *data)
++{
++	struct ps3_storage_device *dev = data;
++	int res;
++	u64 tag, status;
++
++	res = lv1_storage_get_async_status(dev->sbd.dev_id, &tag, &status);
++
++	if (tag != dev->tag)
++		dev_err(&dev->sbd.core,
++			"%s:%u: tag mismatch, got %lx, expected %lx\n",
++			__func__, __LINE__, tag, dev->tag);
++
++	if (res) {
++		dev_err(&dev->sbd.core, "%s:%u: res=%d status=0x%lx\n",
++			__func__, __LINE__, res, status);
++	} else {
++		dev->lv1_status = status;
++		complete(&dev->done);
++	}
++	return IRQ_HANDLED;
++}
++
++
++static const struct file_operations ps3flash_fops = {
++	.owner	= THIS_MODULE,
++	.llseek	= ps3flash_llseek,
++	.read	= ps3flash_read,
++	.write	= ps3flash_write,
++};
++
++static struct miscdevice ps3flash_misc = {
++	.minor	= MISC_DYNAMIC_MINOR,
++	.name	= DEVICE_NAME,
++	.fops	= &ps3flash_fops,
++};
++
++static int __devinit ps3flash_probe(struct ps3_system_bus_device *_dev)
++{
++	struct ps3_storage_device *dev = to_ps3_storage_device(&_dev->core);
++	struct ps3flash_private *priv;
++	int error;
++	unsigned long tmp;
++
++	tmp = dev->regions[dev->region_idx].start*dev->blk_size;
++	if (tmp % FLASH_BLOCK_SIZE) {
++		dev_err(&dev->sbd.core,
++			"%s:%u region start %lu is not aligned\n", __func__,
++			__LINE__, tmp);
++		return -EINVAL;
++	}
++	tmp = dev->regions[dev->region_idx].size*dev->blk_size;
++	if (tmp % FLASH_BLOCK_SIZE) {
++		dev_err(&dev->sbd.core,
++			"%s:%u region size %lu is not aligned\n", __func__,
++			__LINE__, tmp);
++		return -EINVAL;
++	}
++
++	/* use static buffer, kmalloc cannot allocate 256 KiB */
++	if (!ps3flash_bounce_buffer.address)
++		return -ENODEV;
++
++	if (ps3flash_dev) {
++		dev_err(&dev->sbd.core,
++			"Only one FLASH device is supported\n");
++		return -EBUSY;
++	}
++
++	ps3flash_dev = dev;
++
++	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++	if (!priv) {
++		error = -ENOMEM;
++		goto fail;
++	}
++
++	dev->sbd.core.driver_data = priv;
++	mutex_init(&priv->mutex);
++
++	dev->bounce_size = ps3flash_bounce_buffer.size;
++	dev->bounce_buf = ps3flash_bounce_buffer.address;
++
++	error = ps3stor_setup(dev, ps3flash_interrupt);
++	if (error)
++		goto fail_free_priv;
++
++	ps3flash_misc.parent = &dev->sbd.core;
++	error = misc_register(&ps3flash_misc);
++	if (error) {
++		dev_err(&dev->sbd.core, "%s:%u: misc_register failed %d\n",
++			__func__, __LINE__, error);
++		goto fail_teardown;
++	}
++
++	dev_info(&dev->sbd.core, "%s:%u: registered misc device %d\n",
++		 __func__, __LINE__, ps3flash_misc.minor);
++	return 0;
++
++fail_teardown:
++	ps3stor_teardown(dev);
++fail_free_priv:
++	kfree(priv);
++	dev->sbd.core.driver_data = NULL;
++fail:
++	ps3flash_dev = NULL;
++	return error;
++}
++
++static int ps3flash_remove(struct ps3_system_bus_device *_dev)
++{
++	struct ps3_storage_device *dev = to_ps3_storage_device(&_dev->core);
++
++	misc_deregister(&ps3flash_misc);
++	ps3stor_teardown(dev);
++	kfree(dev->sbd.core.driver_data);
++	dev->sbd.core.driver_data = NULL;
++	ps3flash_dev = NULL;
++	return 0;
++}
++
++
++static struct ps3_system_bus_driver ps3flash = {
++	.match_id	= PS3_MATCH_ID_STOR_FLASH,
++	.core.name	= DEVICE_NAME,
++	.core.owner	= THIS_MODULE,
++	.probe		= ps3flash_probe,
++	.remove		= ps3flash_remove,
++	.shutdown	= ps3flash_remove,
++};
++
++
++static int __init ps3flash_init(void)
++{
++	return ps3_system_bus_driver_register(&ps3flash);
++}
++
++static void __exit ps3flash_exit(void)
++{
++	ps3_system_bus_driver_unregister(&ps3flash);
++}
++
++module_init(ps3flash_init);
++module_exit(ps3flash_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("PS3 FLASH ROM Storage Driver");
++MODULE_AUTHOR("Sony Corporation");
++MODULE_ALIAS(PS3_MODULE_ALIAS_STOR_FLASH);
 _
 
-Patches currently in -mm which might be from nicolas.ferre@rfo.atmel.com are
-
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
