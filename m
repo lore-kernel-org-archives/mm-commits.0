@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-drivers-char.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:15:41 -0700
-Message-ID: <200707232315.l6NNFfCX017060@imap1.linux-foundation.org>
+Subject: + clean-up-duplicate-includes-in-fs.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:16:03 -0700
+Message-ID: <200707232316.l6NNG3tM017099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36170 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40245 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760654AbXGWXQi (ORCPT
+	by vger.kernel.org with ESMTP id S1761140AbXGWXQj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:16:38 -0400
+	Mon, 23 Jul 2007 19:16:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, ralf@linux-mips.org, rpurdie@rpsys.net
+Cc: jesper.juhl@gmail.com
 
 
 The patch titled
-     Clean up duplicate includes in drivers/char/
+     Clean up duplicate includes in fs/
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-drivers-char.patch
+     clean-up-duplicate-includes-in-fs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,74 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in drivers/char/
+Subject: Clean up duplicate includes in fs/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	drivers/char/
+	fs/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/lcd.c      |    1 -
- drivers/char/mbcs.c     |    1 -
- drivers/char/ppdev.c    |    1 -
- drivers/char/synclink.c |    4 ----
- 4 files changed, 7 deletions(-)
+ fs/compat_ioctl.c |    1 -
+ fs/namei.c        |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN drivers/char/lcd.c~clean-up-duplicate-includes-in-drivers-char drivers/char/lcd.c
---- a/drivers/char/lcd.c~clean-up-duplicate-includes-in-drivers-char
-+++ a/drivers/char/lcd.c
-@@ -25,7 +25,6 @@
- #include <asm/io.h>
- #include <asm/uaccess.h>
- #include <asm/system.h>
--#include <linux/delay.h>
+diff -puN fs/compat_ioctl.c~clean-up-duplicate-includes-in-fs fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~clean-up-duplicate-includes-in-fs
++++ a/fs/compat_ioctl.c
+@@ -113,7 +113,6 @@
+ #include <linux/dvb/dmx.h>
+ #include <linux/dvb/frontend.h>
+ #include <linux/dvb/video.h>
+-#include <linux/lp.h>
  
- #include "lcd.h"
- 
-diff -puN drivers/char/mbcs.c~clean-up-duplicate-includes-in-drivers-char drivers/char/mbcs.c
---- a/drivers/char/mbcs.c~clean-up-duplicate-includes-in-drivers-char
-+++ a/drivers/char/mbcs.c
-@@ -22,7 +22,6 @@
- #include <linux/delay.h>
- #include <linux/device.h>
- #include <linux/mm.h>
--#include <linux/fs.h>
- #include <linux/uio.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
-diff -puN drivers/char/ppdev.c~clean-up-duplicate-includes-in-drivers-char drivers/char/ppdev.c
---- a/drivers/char/ppdev.c~clean-up-duplicate-includes-in-drivers-char
-+++ a/drivers/char/ppdev.c
-@@ -66,7 +66,6 @@
- #include <linux/poll.h>
- #include <linux/major.h>
- #include <linux/ppdev.h>
--#include <linux/device.h>
+ static int do_ioctl32_pointer(unsigned int fd, unsigned int cmd,
+ 			      unsigned long arg, struct file *f)
+diff -puN fs/namei.c~clean-up-duplicate-includes-in-fs fs/namei.c
+--- a/fs/namei.c~clean-up-duplicate-includes-in-fs
++++ a/fs/namei.c
+@@ -30,7 +30,6 @@
+ #include <linux/capability.h>
+ #include <linux/file.h>
+ #include <linux/fcntl.h>
+-#include <linux/namei.h>
+ #include <asm/namei.h>
  #include <asm/uaccess.h>
  
- #define PP_VERSION "ppdev: user-space parallel port driver"
-diff -puN drivers/char/synclink.c~clean-up-duplicate-includes-in-drivers-char drivers/char/synclink.c
---- a/drivers/char/synclink.c~clean-up-duplicate-includes-in-drivers-char
-+++ a/drivers/char/synclink.c
-@@ -81,13 +81,9 @@
- #include <linux/mm.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
--
- #include <linux/netdevice.h>
--
- #include <linux/vmalloc.h>
- #include <linux/init.h>
--
--#include <linux/delay.h>
- #include <linux/ioctl.h>
- 
- #include <asm/system.h>
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
