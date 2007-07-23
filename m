@@ -1,338 +1,616 @@
 From: akpm@linux-foundation.org
-Subject: - ntp-move-the-cmos-update-code-into-ntpc.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:34:10 -0700
-Message-ID: <200707230934.l6N9YADt016361@imap1.linux-foundation.org>
+Subject: - ps3-bd-dvd-cd-rom-storage-driver.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:34:33 -0700
+Message-ID: <200707230934.l6N9YX37016405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43369 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46526 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758519AbXGWJqh (ORCPT
+	by vger.kernel.org with ESMTP id S1759476AbXGWJrM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 05:46:37 -0400
+	Mon, 23 Jul 2007 05:47:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, chrisw@sous-sol.org, davem@davemloft.net, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, James.Bottomley@steeleye.com, benh@kernel.crashing.org, geoffrey.levand@am.sony.com, jens.axboe@oracle.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NTP: move the cmos update code into ntp.c
+     ps3: BD/DVD/CD-ROM Storage Driver
 has been removed from the -mm tree.  Its filename was
-     ntp-move-the-cmos-update-code-into-ntpc.patch
+     ps3-bd-dvd-cd-rom-storage-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NTP: move the cmos update code into ntp.c
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: ps3: BD/DVD/CD-ROM Storage Driver
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-i386 and sparc64 have the identical code to update the cmos clock.  Move it
-into kernel/time/ntp.c as there are other architectures coming along with the
-same requirements.
+Add a BD/DVD/CD-ROM Storage Driver for the PS3:
+  - Implemented as a SCSI device driver
+  - Uses software scatter-gather with a 64 KiB bounce buffer as the hypervisor
+    doesn't support scatter-gather
 
-[akpm@linux-foundation.org: build fixes]
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Geoff Levand <geoffrey.levand@am.sony.com>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig          |    4 ++
- arch/i386/kernel/time.c    |   50 +----------------------------
- arch/sparc64/Kconfig       |    4 ++
- arch/sparc64/kernel/time.c |   53 +------------------------------
- include/asm-i386/timer.h   |    1 
- include/linux/time.h       |    3 +
- kernel/time/ntp.c          |   59 +++++++++++++++++++++++++++++++++--
- 7 files changed, 71 insertions(+), 103 deletions(-)
+ arch/powerpc/platforms/ps3/Kconfig |   11 
+ drivers/scsi/Makefile              |    1 
+ drivers/scsi/ps3rom.c              |  533 +++++++++++++++++++++++++++
+ 3 files changed, 545 insertions(+)
 
-diff -puN arch/i386/Kconfig~ntp-move-the-cmos-update-code-into-ntpc arch/i386/Kconfig
---- a/arch/i386/Kconfig~ntp-move-the-cmos-update-code-into-ntpc
-+++ a/arch/i386/Kconfig
-@@ -18,6 +18,10 @@ config GENERIC_TIME
- 	bool
- 	default y
+diff -puN arch/powerpc/platforms/ps3/Kconfig~ps3-bd-dvd-cd-rom-storage-driver arch/powerpc/platforms/ps3/Kconfig
+--- a/arch/powerpc/platforms/ps3/Kconfig~ps3-bd-dvd-cd-rom-storage-driver
++++ a/arch/powerpc/platforms/ps3/Kconfig
+@@ -112,4 +112,15 @@ config PS3_DISK
+ 	  This support is required to access the PS3 hard disk.
+ 	  In general, all users will say Y or M.
  
-+config GENERIC_CMOS_UPDATE
-+	bool
-+	default y
++config PS3_ROM
++	tristate "PS3 BD/DVD/CD-ROM Storage Driver"
++	depends on PPC_PS3 && SCSI
++	select PS3_STORAGE
++	help
++	  Include support for the PS3 ROM Storage.
 +
- config CLOCKSOURCE_WATCHDOG
- 	bool
- 	default y
-diff -puN arch/i386/kernel/time.c~ntp-move-the-cmos-update-code-into-ntpc arch/i386/kernel/time.c
---- a/arch/i386/kernel/time.c~ntp-move-the-cmos-update-code-into-ntpc
-+++ a/arch/i386/kernel/time.c
-@@ -207,55 +207,9 @@ unsigned long read_persistent_clock(void
- 	return retval;
- }
- 
--static void sync_cmos_clock(unsigned long dummy);
--
--static DEFINE_TIMER(sync_cmos_timer, sync_cmos_clock, 0, 0);
--int no_sync_cmos_clock;
--
--static void sync_cmos_clock(unsigned long dummy)
--{
--	struct timeval now, next;
--	int fail = 1;
--
--	/*
--	 * If we have an externally synchronized Linux clock, then update
--	 * CMOS clock accordingly every ~11 minutes. Set_rtc_mmss() has to be
--	 * called as close as possible to 500 ms before the new second starts.
--	 * This code is run on a timer.  If the clock is set, that timer
--	 * may not expire at the correct time.  Thus, we adjust...
--	 */
--	if (!ntp_synced())
--		/*
--		 * Not synced, exit, do not restart a timer (if one is
--		 * running, let it run out).
--		 */
--		return;
--
--	do_gettimeofday(&now);
--	if (now.tv_usec >= USEC_AFTER - ((unsigned) TICK_SIZE) / 2 &&
--	    now.tv_usec <= USEC_BEFORE + ((unsigned) TICK_SIZE) / 2)
--		fail = set_rtc_mmss(now.tv_sec);
--
--	next.tv_usec = USEC_AFTER - now.tv_usec;
--	if (next.tv_usec <= 0)
--		next.tv_usec += USEC_PER_SEC;
--
--	if (!fail)
--		next.tv_sec = 659;
--	else
--		next.tv_sec = 0;
--
--	if (next.tv_usec >= USEC_PER_SEC) {
--		next.tv_sec++;
--		next.tv_usec -= USEC_PER_SEC;
--	}
--	mod_timer(&sync_cmos_timer, jiffies + timeval_to_jiffies(&next));
--}
--
--void notify_arch_cmos_timer(void)
-+int update_persistent_clock(struct timespec now)
- {
--	if (!no_sync_cmos_clock)
--		mod_timer(&sync_cmos_timer, jiffies + 1);
-+	return set_rtc_mmss(now.tv_sec);
- }
- 
- extern void (*late_time_init)(void);
-diff -puN arch/sparc64/Kconfig~ntp-move-the-cmos-update-code-into-ntpc arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~ntp-move-the-cmos-update-code-into-ntpc
-+++ a/arch/sparc64/Kconfig
-@@ -23,6 +23,10 @@ config GENERIC_TIME
- 	bool
- 	default y
- 
-+config GENERIC_CMOS_UPDATE
-+	bool
-+	default y
++	  This support is required to access the PS3 BD/DVD/CD-ROM drive.
++	  In general, all users will say Y or M.
++	  Also make sure to say Y or M to "SCSI CDROM support" later.
 +
- config GENERIC_CLOCKEVENTS
- 	bool
- 	default y
-diff -puN arch/sparc64/kernel/time.c~ntp-move-the-cmos-update-code-into-ntpc arch/sparc64/kernel/time.c
---- a/arch/sparc64/kernel/time.c~ntp-move-the-cmos-update-code-into-ntpc
-+++ a/arch/sparc64/kernel/time.c
-@@ -403,58 +403,9 @@ static struct sparc64_tick_ops hbtick_op
+ endmenu
+diff -puN drivers/scsi/Makefile~ps3-bd-dvd-cd-rom-storage-driver drivers/scsi/Makefile
+--- a/drivers/scsi/Makefile~ps3-bd-dvd-cd-rom-storage-driver
++++ a/drivers/scsi/Makefile
+@@ -132,6 +132,7 @@ obj-$(CONFIG_SCSI_IBMVSCSI)	+= ibmvscsi/
+ obj-$(CONFIG_SCSI_IBMVSCSIS)	+= ibmvscsi/
+ obj-$(CONFIG_SCSI_HPTIOP)	+= hptiop.o
+ obj-$(CONFIG_SCSI_STEX)		+= stex.o
++obj-$(CONFIG_PS3_ROM)		+= ps3rom.o
  
- static unsigned long timer_ticks_per_nsec_quotient __read_mostly;
+ obj-$(CONFIG_ARM)		+= arm/
  
--#define TICK_SIZE (tick_nsec / 1000)
--
--#define USEC_AFTER	500000
--#define USEC_BEFORE	500000
--
--static void sync_cmos_clock(unsigned long dummy);
--
--static DEFINE_TIMER(sync_cmos_timer, sync_cmos_clock, 0, 0);
--
--static void sync_cmos_clock(unsigned long dummy)
--{
--	struct timeval now, next;
--	int fail = 1;
--
--	/*
--	 * If we have an externally synchronized Linux clock, then update
--	 * CMOS clock accordingly every ~11 minutes. Set_rtc_mmss() has to be
--	 * called as close as possible to 500 ms before the new second starts.
--	 * This code is run on a timer.  If the clock is set, that timer
--	 * may not expire at the correct time.  Thus, we adjust...
--	 */
--	if (!ntp_synced())
--		/*
--		 * Not synced, exit, do not restart a timer (if one is
--		 * running, let it run out).
--		 */
--		return;
--
--	do_gettimeofday(&now);
--	if (now.tv_usec >= USEC_AFTER - ((unsigned) TICK_SIZE) / 2 &&
--	    now.tv_usec <= USEC_BEFORE + ((unsigned) TICK_SIZE) / 2)
--		fail = set_rtc_mmss(now.tv_sec);
--
--	next.tv_usec = USEC_AFTER - now.tv_usec;
--	if (next.tv_usec <= 0)
--		next.tv_usec += USEC_PER_SEC;
--
--	if (!fail)
--		next.tv_sec = 659;
--	else
--		next.tv_sec = 0;
--
--	if (next.tv_usec >= USEC_PER_SEC) {
--		next.tv_sec++;
--		next.tv_usec -= USEC_PER_SEC;
--	}
--	mod_timer(&sync_cmos_timer, jiffies + timeval_to_jiffies(&next));
--}
--
--void notify_arch_cmos_timer(void)
-+int update_persistent_clock(struct timespec now)
- {
--	mod_timer(&sync_cmos_timer, jiffies + 1);
-+	return set_rtc_mmss(now.tv_sec);
- }
- 
- /* Kick start a stopped clock (procedure from the Sun NVRAM/hostid FAQ). */
-diff -puN include/asm-i386/timer.h~ntp-move-the-cmos-update-code-into-ntpc include/asm-i386/timer.h
---- a/include/asm-i386/timer.h~ntp-move-the-cmos-update-code-into-ntpc
-+++ a/include/asm-i386/timer.h
-@@ -11,7 +11,6 @@ unsigned long native_calculate_cpu_khz(v
- 
- extern int timer_ack;
- extern int no_timer_check;
--extern int no_sync_cmos_clock;
- extern int recalibrate_cpu_khz(void);
- 
- #ifndef CONFIG_PARAVIRT
-diff -puN include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc include/linux/time.h
---- a/include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc
-+++ a/include/linux/time.h
-@@ -4,6 +4,7 @@
- #include <linux/types.h>
- 
- #ifdef __KERNEL__
-+# include <linux/cache.h>
- # include <linux/seqlock.h>
- #endif
- 
-@@ -94,6 +95,8 @@ extern struct timespec wall_to_monotonic
- extern seqlock_t xtime_lock __attribute__((weak));
- 
- extern unsigned long read_persistent_clock(void);
-+extern int update_persistent_clock(struct timespec now);
-+extern int no_sync_cmos_clock __read_mostly;
- void timekeeping_init(void);
- 
- static inline unsigned long get_seconds(void)
-diff -puN kernel/time/ntp.c~ntp-move-the-cmos-update-code-into-ntpc kernel/time/ntp.c
---- a/kernel/time/ntp.c~ntp-move-the-cmos-update-code-into-ntpc
-+++ a/kernel/time/ntp.c
-@@ -10,6 +10,7 @@
- 
- #include <linux/mm.h>
- #include <linux/time.h>
-+#include <linux/timer.h>
- #include <linux/timex.h>
- #include <linux/jiffies.h>
- #include <linux/hrtimer.h>
-@@ -175,12 +176,64 @@ u64 current_tick_length(void)
- 	return tick_length;
- }
- 
-+#ifdef CONFIG_GENERIC_CMOS_UPDATE
- 
--void __attribute__ ((weak)) notify_arch_cmos_timer(void)
-+/* Disable the cmos update - used by virtualization and embedded */
-+int no_sync_cmos_clock  __read_mostly;
+diff -puN /dev/null drivers/scsi/ps3rom.c
+--- /dev/null
++++ a/drivers/scsi/ps3rom.c
+@@ -0,0 +1,533 @@
++/*
++ * PS3 BD/DVD/CD-ROM Storage Driver
++ *
++ * Copyright (C) 2007 Sony Computer Entertainment Inc.
++ * Copyright 2007 Sony Corp.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ */
 +
-+static void sync_cmos_clock(unsigned long dummy);
++#include <linux/cdrom.h>
++#include <linux/highmem.h>
 +
-+static DEFINE_TIMER(sync_cmos_timer, sync_cmos_clock, 0, 0);
++#include <scsi/scsi.h>
++#include <scsi/scsi_cmnd.h>
++#include <scsi/scsi_dbg.h>
++#include <scsi/scsi_device.h>
++#include <scsi/scsi_host.h>
 +
-+static void sync_cmos_clock(unsigned long dummy)
- {
--	return;
-+	struct timespec now, next;
-+	int fail = 1;
++#include <asm/lv1call.h>
++#include <asm/ps3stor.h>
++
++
++#define DEVICE_NAME			"ps3rom"
++
++#define BOUNCE_SIZE			(64*1024)
++
++#define PS3ROM_MAX_SECTORS		(BOUNCE_SIZE / CD_FRAMESIZE)
++
++
++struct ps3rom_private {
++	struct ps3_storage_device *dev;
++	struct scsi_cmnd *curr_cmd;
++};
++
++
++#define LV1_STORAGE_SEND_ATAPI_COMMAND	(1)
++
++struct lv1_atapi_cmnd_block {
++	u8	pkt[32];	/* packet command block           */
++	u32	pktlen;		/* should be 12 for ATAPI 8020    */
++	u32	blocks;
++	u32	block_size;
++	u32	proto;		/* transfer mode                  */
++	u32	in_out;		/* transfer direction             */
++	u64	buffer;		/* parameter except command block */
++	u32	arglen;		/* length above                   */
++};
++
++enum lv1_atapi_proto {
++	NON_DATA_PROTO     = 0,
++	PIO_DATA_IN_PROTO  = 1,
++	PIO_DATA_OUT_PROTO = 2,
++	DMA_PROTO = 3
++};
++
++enum lv1_atapi_in_out {
++	DIR_WRITE = 0,		/* memory -> device */
++	DIR_READ = 1		/* device -> memory */
++};
++
++
++static int ps3rom_slave_configure(struct scsi_device *scsi_dev)
++{
++	struct ps3rom_private *priv = shost_priv(scsi_dev->host);
++	struct ps3_storage_device *dev = priv->dev;
++
++	dev_dbg(&dev->sbd.core, "%s:%u: id %u, lun %u, channel %u\n", __func__,
++		__LINE__, scsi_dev->id, scsi_dev->lun, scsi_dev->channel);
 +
 +	/*
-+	 * If we have an externally synchronized Linux clock, then update
-+	 * CMOS clock accordingly every ~11 minutes. Set_rtc_mmss() has to be
-+	 * called as close as possible to 500 ms before the new second starts.
-+	 * This code is run on a timer.  If the clock is set, that timer
-+	 * may not expire at the correct time.  Thus, we adjust...
++	 * ATAPI SFF8020 devices use MODE_SENSE_10,
++	 * so we can prohibit MODE_SENSE_6
 +	 */
-+	if (!ntp_synced())
-+		/*
-+		 * Not synced, exit, do not restart a timer (if one is
-+		 * running, let it run out).
-+		 */
-+		return;
++	scsi_dev->use_10_for_ms = 1;
 +
-+	getnstimeofday(&now);
-+	if (abs(xtime.tv_nsec - (NSEC_PER_SEC / 2)) <= tick_nsec / 2)
-+		fail = update_persistent_clock(now);
++	/* we don't support {READ,WRITE}_6 */
++	scsi_dev->use_10_for_rw = 1;
 +
-+	next.tv_nsec = (NSEC_PER_SEC / 2) - now.tv_nsec;
-+	if (next.tv_nsec <= 0)
-+		next.tv_nsec += NSEC_PER_SEC;
-+
-+	if (!fail)
-+		next.tv_sec = 659;
-+	else
-+		next.tv_sec = 0;
-+
-+	if (next.tv_nsec >= NSEC_PER_SEC) {
-+		next.tv_sec++;
-+		next.tv_nsec -= NSEC_PER_SEC;
-+	}
-+	mod_timer(&sync_cmos_timer, jiffies + timespec_to_jiffies(&next));
- }
- 
-+static void notify_cmos_timer(void)
-+{
-+	if (no_sync_cmos_clock)
-+		mod_timer(&sync_cmos_timer, jiffies + 1);
++	return 0;
 +}
 +
-+#else
-+static inline void notify_cmos_timer(void) { }
++/*
++ * copy data from device into scatter/gather buffer
++ */
++static int fill_from_dev_buffer(struct scsi_cmnd *cmd, const void *buf)
++{
++	int k, req_len, act_len, len, active;
++	void *kaddr;
++	struct scatterlist *sgpnt;
++	unsigned int buflen;
++
++	buflen = cmd->request_bufflen;
++	if (!buflen)
++		return 0;
++
++	if (!cmd->request_buffer)
++		return -1;
++
++	sgpnt = cmd->request_buffer;
++	active = 1;
++	for (k = 0, req_len = 0, act_len = 0; k < cmd->use_sg; ++k, ++sgpnt) {
++		if (active) {
++			kaddr = kmap_atomic(sgpnt->page, KM_IRQ0);
++			len = sgpnt->length;
++			if ((req_len + len) > buflen) {
++				active = 0;
++				len = buflen - req_len;
++			}
++			memcpy(kaddr + sgpnt->offset, buf + req_len, len);
++			flush_kernel_dcache_page(sgpnt->page);
++			kunmap_atomic(kaddr, KM_IRQ0);
++			act_len += len;
++		}
++		req_len += sgpnt->length;
++	}
++	cmd->resid = req_len - act_len;
++	return 0;
++}
++
++/*
++ * copy data from scatter/gather into device's buffer
++ */
++static int fetch_to_dev_buffer(struct scsi_cmnd *cmd, void *buf)
++{
++	int k, req_len, len, fin;
++	void *kaddr;
++	struct scatterlist *sgpnt;
++	unsigned int buflen;
++
++	buflen = cmd->request_bufflen;
++	if (!buflen)
++		return 0;
++
++	if (!cmd->request_buffer)
++		return -1;
++
++	sgpnt = cmd->request_buffer;
++	for (k = 0, req_len = 0, fin = 0; k < cmd->use_sg; ++k, ++sgpnt) {
++		kaddr = kmap_atomic(sgpnt->page, KM_IRQ0);
++		len = sgpnt->length;
++		if ((req_len + len) > buflen) {
++			len = buflen - req_len;
++			fin = 1;
++		}
++		memcpy(buf + req_len, kaddr + sgpnt->offset, len);
++		kunmap_atomic(kaddr, KM_IRQ0);
++		if (fin)
++			return req_len + len;
++		req_len += sgpnt->length;
++	}
++	return req_len;
++}
++
++static int ps3rom_atapi_request(struct ps3_storage_device *dev,
++				struct scsi_cmnd *cmd)
++{
++	struct lv1_atapi_cmnd_block atapi_cmnd;
++	unsigned char opcode = cmd->cmnd[0];
++	int res;
++	u64 lpar;
++
++	dev_dbg(&dev->sbd.core, "%s:%u: send ATAPI command 0x%02x\n", __func__,
++		__LINE__, opcode);
++
++	memset(&atapi_cmnd, 0, sizeof(struct lv1_atapi_cmnd_block));
++	memcpy(&atapi_cmnd.pkt, cmd->cmnd, 12);
++	atapi_cmnd.pktlen = 12;
++	atapi_cmnd.block_size = 1; /* transfer size is block_size * blocks */
++	atapi_cmnd.blocks = atapi_cmnd.arglen = cmd->request_bufflen;
++	atapi_cmnd.buffer = dev->bounce_lpar;
++
++	switch (cmd->sc_data_direction) {
++	case DMA_FROM_DEVICE:
++		if (cmd->request_bufflen >= CD_FRAMESIZE)
++			atapi_cmnd.proto = DMA_PROTO;
++		else
++			atapi_cmnd.proto = PIO_DATA_IN_PROTO;
++		atapi_cmnd.in_out = DIR_READ;
++		break;
++
++	case DMA_TO_DEVICE:
++		if (cmd->request_bufflen >= CD_FRAMESIZE)
++			atapi_cmnd.proto = DMA_PROTO;
++		else
++			atapi_cmnd.proto = PIO_DATA_OUT_PROTO;
++		atapi_cmnd.in_out = DIR_WRITE;
++		res = fetch_to_dev_buffer(cmd, dev->bounce_buf);
++		if (res < 0)
++			return DID_ERROR << 16;
++		break;
++
++	default:
++		atapi_cmnd.proto = NON_DATA_PROTO;
++		break;
++	}
++
++	lpar = ps3_mm_phys_to_lpar(__pa(&atapi_cmnd));
++	res = lv1_storage_send_device_command(dev->sbd.dev_id,
++					      LV1_STORAGE_SEND_ATAPI_COMMAND,
++					      lpar, sizeof(atapi_cmnd),
++					      atapi_cmnd.buffer,
++					      atapi_cmnd.arglen, &dev->tag);
++	if (res == LV1_DENIED_BY_POLICY) {
++		dev_dbg(&dev->sbd.core,
++			"%s:%u: ATAPI command 0x%02x denied by policy\n",
++			__func__, __LINE__, opcode);
++		return DID_ERROR << 16;
++	}
++
++	if (res) {
++		dev_err(&dev->sbd.core,
++			"%s:%u: ATAPI command 0x%02x failed %d\n", __func__,
++			__LINE__, opcode, res);
++		return DID_ERROR << 16;
++	}
++
++	return 0;
++}
++
++static inline unsigned int srb10_lba(const struct scsi_cmnd *cmd)
++{
++	return cmd->cmnd[2] << 24 | cmd->cmnd[3] << 16 | cmd->cmnd[4] << 8 |
++	       cmd->cmnd[5];
++}
++
++static inline unsigned int srb10_len(const struct scsi_cmnd *cmd)
++{
++	return cmd->cmnd[7] << 8 | cmd->cmnd[8];
++}
++
++static int ps3rom_read_request(struct ps3_storage_device *dev,
++			       struct scsi_cmnd *cmd, u32 start_sector,
++			       u32 sectors)
++{
++	int res;
++
++	dev_dbg(&dev->sbd.core, "%s:%u: read %u sectors starting at %u\n",
++		__func__, __LINE__, sectors, start_sector);
++
++	res = lv1_storage_read(dev->sbd.dev_id,
++			       dev->regions[dev->region_idx].id, start_sector,
++			       sectors, 0, dev->bounce_lpar, &dev->tag);
++	if (res) {
++		dev_err(&dev->sbd.core, "%s:%u: read failed %d\n", __func__,
++			__LINE__, res);
++		return DID_ERROR << 16;
++	}
++
++	return 0;
++}
++
++static int ps3rom_write_request(struct ps3_storage_device *dev,
++				struct scsi_cmnd *cmd, u32 start_sector,
++				u32 sectors)
++{
++	int res;
++
++	dev_dbg(&dev->sbd.core, "%s:%u: write %u sectors starting at %u\n",
++		__func__, __LINE__, sectors, start_sector);
++
++	res = fetch_to_dev_buffer(cmd, dev->bounce_buf);
++	if (res < 0)
++		return DID_ERROR << 16;
++
++	res = lv1_storage_write(dev->sbd.dev_id,
++				dev->regions[dev->region_idx].id, start_sector,
++				sectors, 0, dev->bounce_lpar, &dev->tag);
++	if (res) {
++		dev_err(&dev->sbd.core, "%s:%u: write failed %d\n", __func__,
++			__LINE__, res);
++		return DID_ERROR << 16;
++	}
++
++	return 0;
++}
++
++static int ps3rom_queuecommand(struct scsi_cmnd *cmd,
++			       void (*done)(struct scsi_cmnd *))
++{
++	struct ps3rom_private *priv = shost_priv(cmd->device->host);
++	struct ps3_storage_device *dev = priv->dev;
++	unsigned char opcode;
++	int res;
++
++#ifdef DEBUG
++	scsi_print_command(cmd);
 +#endif
 +
- /* adjtimex mainly allows reading (and writing, if superuser) of
-  * kernel time-keeping variables. used by xntpd.
-  */
-@@ -345,6 +398,6 @@ leave:	if ((time_status & (STA_UNSYNC|ST
- 	txc->stbcnt	   = 0;
- 	write_sequnlock_irq(&xtime_lock);
- 	do_gettimeofday(&txc->time);
--	notify_arch_cmos_timer();
-+	notify_cmos_timer();
- 	return(result);
- }
++	priv->curr_cmd = cmd;
++	cmd->scsi_done = done;
++
++	opcode = cmd->cmnd[0];
++	/*
++	 * While we can submit READ/WRITE SCSI commands as ATAPI commands,
++	 * it's recommended for various reasons (performance, error handling,
++	 * ...) to use lv1_storage_{read,write}() instead
++	 */
++	switch (opcode) {
++	case READ_10:
++		res = ps3rom_read_request(dev, cmd, srb10_lba(cmd),
++					  srb10_len(cmd));
++		break;
++
++	case WRITE_10:
++		res = ps3rom_write_request(dev, cmd, srb10_lba(cmd),
++					   srb10_len(cmd));
++		break;
++
++	default:
++		res = ps3rom_atapi_request(dev, cmd);
++		break;
++	}
++
++	if (res) {
++		memset(cmd->sense_buffer, 0, SCSI_SENSE_BUFFERSIZE);
++		cmd->result = res;
++		cmd->sense_buffer[0] = 0x70;
++		cmd->sense_buffer[2] = ILLEGAL_REQUEST;
++		priv->curr_cmd = NULL;
++		cmd->scsi_done(cmd);
++	}
++
++	return 0;
++}
++
++static int decode_lv1_status(u64 status, unsigned char *sense_key,
++			     unsigned char *asc, unsigned char *ascq)
++{
++	if (((status >> 24) & 0xff) != SAM_STAT_CHECK_CONDITION)
++		return -1;
++
++	*sense_key = (status >> 16) & 0xff;
++	*asc       = (status >>  8) & 0xff;
++	*ascq      =  status        & 0xff;
++	return 0;
++}
++
++static irqreturn_t ps3rom_interrupt(int irq, void *data)
++{
++	struct ps3_storage_device *dev = data;
++	struct Scsi_Host *host;
++	struct ps3rom_private *priv;
++	struct scsi_cmnd *cmd;
++	int res;
++	u64 tag, status;
++	unsigned char sense_key, asc, ascq;
++
++	res = lv1_storage_get_async_status(dev->sbd.dev_id, &tag, &status);
++	/*
++	 * status = -1 may mean that ATAPI transport completed OK, but
++	 * ATAPI command itself resulted CHECK CONDITION
++	 * so, upper layer should issue REQUEST_SENSE to check the sense data
++	 */
++
++	if (tag != dev->tag)
++		dev_err(&dev->sbd.core,
++			"%s:%u: tag mismatch, got %lx, expected %lx\n",
++			__func__, __LINE__, tag, dev->tag);
++
++	if (res) {
++		dev_err(&dev->sbd.core, "%s:%u: res=%d status=0x%lx\n",
++			__func__, __LINE__, res, status);
++		return IRQ_HANDLED;
++	}
++
++	host = dev->sbd.core.driver_data;
++	priv = shost_priv(host);
++	cmd = priv->curr_cmd;
++
++	if (!status) {
++		/* OK, completed */
++		if (cmd->sc_data_direction == DMA_FROM_DEVICE) {
++			res = fill_from_dev_buffer(cmd, dev->bounce_buf);
++			if (res) {
++				cmd->result = DID_ERROR << 16;
++				goto done;
++			}
++		}
++		cmd->result = DID_OK << 16;
++		goto done;
++	}
++
++	if (cmd->cmnd[0] == REQUEST_SENSE) {
++		/* SCSI spec says request sense should never get error */
++		dev_err(&dev->sbd.core, "%s:%u: end error without autosense\n",
++			__func__, __LINE__);
++		cmd->result = DID_ERROR << 16 | SAM_STAT_CHECK_CONDITION;
++		goto done;
++	}
++
++	if (decode_lv1_status(status, &sense_key, &asc, &ascq)) {
++		cmd->result = DID_ERROR << 16;
++		goto done;
++	}
++
++	cmd->sense_buffer[0]  = 0x70;
++	cmd->sense_buffer[2]  = sense_key;
++	cmd->sense_buffer[7]  = 16 - 6;
++	cmd->sense_buffer[12] = asc;
++	cmd->sense_buffer[13] = ascq;
++	cmd->result = SAM_STAT_CHECK_CONDITION;
++
++done:
++	priv->curr_cmd = NULL;
++	cmd->scsi_done(cmd);
++	return IRQ_HANDLED;
++}
++
++static struct scsi_host_template ps3rom_host_template = {
++	.name =			DEVICE_NAME,
++	.slave_configure =	ps3rom_slave_configure,
++	.queuecommand =		ps3rom_queuecommand,
++	.can_queue =		1,
++	.this_id =		7,
++	.sg_tablesize =		SG_ALL,
++	.cmd_per_lun =		1,
++	.emulated =             1,		/* only sg driver uses this */
++	.max_sectors =		PS3ROM_MAX_SECTORS,
++	.use_clustering =	ENABLE_CLUSTERING,
++	.module =		THIS_MODULE,
++};
++
++
++static int __devinit ps3rom_probe(struct ps3_system_bus_device *_dev)
++{
++	struct ps3_storage_device *dev = to_ps3_storage_device(&_dev->core);
++	int error;
++	struct Scsi_Host *host;
++	struct ps3rom_private *priv;
++
++	if (dev->blk_size != CD_FRAMESIZE) {
++		dev_err(&dev->sbd.core,
++			"%s:%u: cannot handle block size %lu\n", __func__,
++			__LINE__, dev->blk_size);
++		return -EINVAL;
++	}
++
++	dev->bounce_size = BOUNCE_SIZE;
++	dev->bounce_buf = kmalloc(BOUNCE_SIZE, GFP_DMA);
++	if (!dev->bounce_buf)
++		return -ENOMEM;
++
++	error = ps3stor_setup(dev, ps3rom_interrupt);
++	if (error)
++		goto fail_free_bounce;
++
++	host = scsi_host_alloc(&ps3rom_host_template,
++			       sizeof(struct ps3rom_private));
++	if (!host) {
++		dev_err(&dev->sbd.core, "%s:%u: scsi_host_alloc failed\n",
++			__func__, __LINE__);
++		goto fail_teardown;
++	}
++
++	priv = shost_priv(host);
++	dev->sbd.core.driver_data = host;
++	priv->dev = dev;
++
++	/* One device/LUN per SCSI bus */
++	host->max_id = 1;
++	host->max_lun = 1;
++
++	error = scsi_add_host(host, &dev->sbd.core);
++	if (error) {
++		dev_err(&dev->sbd.core, "%s:%u: scsi_host_alloc failed %d\n",
++			__func__, __LINE__, error);
++		error = -ENODEV;
++		goto fail_host_put;
++	}
++
++	scsi_scan_host(host);
++	return 0;
++
++fail_host_put:
++	scsi_host_put(host);
++	dev->sbd.core.driver_data = NULL;
++fail_teardown:
++	ps3stor_teardown(dev);
++fail_free_bounce:
++	kfree(dev->bounce_buf);
++	return error;
++}
++
++static int ps3rom_remove(struct ps3_system_bus_device *_dev)
++{
++	struct ps3_storage_device *dev = to_ps3_storage_device(&_dev->core);
++	struct Scsi_Host *host = dev->sbd.core.driver_data;
++
++	scsi_remove_host(host);
++	ps3stor_teardown(dev);
++	scsi_host_put(host);
++	dev->sbd.core.driver_data = NULL;
++	kfree(dev->bounce_buf);
++	return 0;
++}
++
++static struct ps3_system_bus_driver ps3rom = {
++	.match_id	= PS3_MATCH_ID_STOR_ROM,
++	.core.name	= DEVICE_NAME,
++	.core.owner	= THIS_MODULE,
++	.probe		= ps3rom_probe,
++	.remove		= ps3rom_remove
++};
++
++
++static int __init ps3rom_init(void)
++{
++	return ps3_system_bus_driver_register(&ps3rom);
++}
++
++static void __exit ps3rom_exit(void)
++{
++	ps3_system_bus_driver_unregister(&ps3rom);
++}
++
++module_init(ps3rom_init);
++module_exit(ps3rom_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("PS3 BD/DVD/CD-ROM Storage Driver");
++MODULE_AUTHOR("Sony Corporation");
++MODULE_ALIAS(PS3_MODULE_ALIAS_STOR_ROM);
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
-
-git-acpi.patch
-acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-acpi-remove-the-useless-ifdef-code.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-geode-mfgpt-clock-event-device-support.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
