@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + 3c59x-check-return-of-pci_enable_device.patch added to -mm tree
-Date: Mon, 23 Jul 2007 14:49:11 -0700
-Message-ID: <200707232149.l6NLnBsC013704@imap1.linux-foundation.org>
+Subject: + hid-fix-a-null-pointer-dereference-when-we-fail-to-allocate-memory.patch added to -mm tree
+Date: Mon, 23 Jul 2007 14:50:29 -0700
+Message-ID: <200707232150.l6NLoTg7013734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35731 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57615 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932281AbXGWVuL (ORCPT
+	by vger.kernel.org with ESMTP id S1758738AbXGWVus (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 17:50:11 -0400
+	Mon, 23 Jul 2007 17:50:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mark@hindley.org.uk, klassert@mathematik.tu-chemnitz.de
+Cc: jesper.juhl@gmail.com, dtor@mail.ru, greg@kroah.com, jkosina@suse.cz
 
 
 The patch titled
-     3c59x: check return of pci_enable_device()
+     hid: fix a NULL pointer dereference when we fail to allocate memory
 has been added to the -mm tree.  Its filename is
-     3c59x-check-return-of-pci_enable_device.patch
+     hid-fix-a-null-pointer-dereference-when-we-fail-to-allocate-memory.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 3c59x: check return of pci_enable_device()
-From: Mark Hindley <mark@hindley.org.uk>
+Subject: hid: fix a NULL pointer dereference when we fail to allocate memory
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Check return of pci_enable_device in vortex_up().
+If, in usb_hid_configure(), we fail to allocate storage for 'usbhid',
+ "if (!(usbhid = kzalloc(sizeof(struct usbhid_device), GFP_KERNEL)))",
+then we'll jump to the 'fail:' label where we have this code:
+        usb_free_urb(usbhid->urbin);
+        usb_free_urb(usbhid->urbout);
+        usb_free_urb(usbhid->urbctrl);
+Since we got here because we couldn't allocate storage for 'usbhid',
+what we have here is a NULL pointer dereference - ouch...
 
-Signed-off-by: Mark Hindley <mark@hindley.org.uk>
-Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
+This patch solves that little problem by adding a new
+'fail_no_usbhid:' label after the problematic calls to
+usb_free_urb() and jumps to that one instead, in the problem case.
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/3c59x.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/hid/usbhid/hid-core.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/3c59x.c~3c59x-check-return-of-pci_enable_device drivers/net/3c59x.c
---- a/drivers/net/3c59x.c~3c59x-check-return-of-pci_enable_device
-+++ a/drivers/net/3c59x.c
-@@ -1489,13 +1489,17 @@ vortex_up(struct net_device *dev)
- 	struct vortex_private *vp = netdev_priv(dev);
- 	void __iomem *ioaddr = vp->ioaddr;
- 	unsigned int config;
--	int i, mii_reg1, mii_reg5;
-+	int i, mii_reg1, mii_reg5, err;
+diff -puN drivers/hid/usbhid/hid-core.c~hid-fix-a-null-pointer-dereference-when-we-fail-to-allocate-memory drivers/hid/usbhid/hid-core.c
+--- a/drivers/hid/usbhid/hid-core.c~hid-fix-a-null-pointer-dereference-when-we-fail-to-allocate-memory
++++ a/drivers/hid/usbhid/hid-core.c
+@@ -766,7 +766,7 @@ static struct hid_device *usb_hid_config
+ 	hid->quirks = quirks;
  
- 	if (VORTEX_PCI(vp)) {
- 		pci_set_power_state(VORTEX_PCI(vp), PCI_D0);	/* Go active */
- 		if (vp->pm_state_valid)
- 			pci_restore_state(VORTEX_PCI(vp));
--		pci_enable_device(VORTEX_PCI(vp));
-+		err = pci_enable_device(VORTEX_PCI(vp));
-+		if (err) {
-+			printk(KERN_WARNING "%s: Could not enable device \n",
-+				dev->name);
-+		}
- 	}
+ 	if (!(usbhid = kzalloc(sizeof(struct usbhid_device), GFP_KERNEL)))
+-		goto fail;
++		goto fail_no_usbhid;
  
- 	/* Before initializing select the active media port. */
+ 	hid->driver_data = usbhid;
+ 	usbhid->hid = hid;
+@@ -901,6 +901,7 @@ fail:
+ 	usb_free_urb(usbhid->urbin);
+ 	usb_free_urb(usbhid->urbout);
+ 	usb_free_urb(usbhid->urbctrl);
++fail_no_usbhid:
+ 	hid_free_buffers(dev, hid);
+ 	hid_free_device(hid);
+ 
 _
 
-Patches currently in -mm which might be from mark@hindley.org.uk are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
-3c59x-check-return-of-pci_enable_device.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+git-gfs2-nmw.patch
+hid-fix-a-null-pointer-dereference-when-we-fail-to-allocate-memory.patch
+git-kbuild.patch
+git-mtd.patch
+git-selinux.patch
+git-xfs.patch
+ipmi-fix-mem-leak-in-try_init_dmi.patch
+fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
