@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-net-ipv4.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:16:25 -0700
-Message-ID: <200707232316.l6NNGPCs017133@imap1.linux-foundation.org>
+Subject: + clean-up-duplicate-includes-in-net-ipv6.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:16:27 -0700
+Message-ID: <200707232316.l6NNGRVT017136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59823 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58433 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753860AbXGWX0Q (ORCPT
+	by vger.kernel.org with ESMTP id S1753313AbXGWX0O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:26:16 -0400
+	Mon, 23 Jul 2007 19:26:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jesper.juhl@gmail.com
 
 
 The patch titled
-     Clean up duplicate includes in net/ipv4/
+     Clean up duplicate includes in net/ipv6/
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-net-ipv4.patch
+     clean-up-duplicate-includes-in-net-ipv6.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,54 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in net/ipv4/
+Subject: Clean up duplicate includes in net/ipv6/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	net/ipv4/
+	net/ipv6/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/ip_output.c               |    1 -
- net/ipv4/ipvs/ip_vs_ctl.c          |    1 -
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    1 -
- 3 files changed, 3 deletions(-)
+ net/ipv6/tcp_ipv6.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN net/ipv4/ip_output.c~clean-up-duplicate-includes-in-net-ipv4 net/ipv4/ip_output.c
---- a/net/ipv4/ip_output.c~clean-up-duplicate-includes-in-net-ipv4
-+++ a/net/ipv4/ip_output.c
-@@ -75,7 +75,6 @@
- #include <net/icmp.h>
- #include <net/checksum.h>
- #include <net/inetpeer.h>
--#include <net/checksum.h>
- #include <linux/igmp.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter_bridge.h>
-diff -puN net/ipv4/ipvs/ip_vs_ctl.c~clean-up-duplicate-includes-in-net-ipv4 net/ipv4/ipvs/ip_vs_ctl.c
---- a/net/ipv4/ipvs/ip_vs_ctl.c~clean-up-duplicate-includes-in-net-ipv4
-+++ a/net/ipv4/ipvs/ip_vs_ctl.c
-@@ -29,7 +29,6 @@
- #include <linux/proc_fs.h>
- #include <linux/workqueue.h>
- #include <linux/swap.h>
--#include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- 
- #include <linux/netfilter.h>
-diff -puN net/ipv4/netfilter/ipt_CLUSTERIP.c~clean-up-duplicate-includes-in-net-ipv4 net/ipv4/netfilter/ipt_CLUSTERIP.c
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c~clean-up-duplicate-includes-in-net-ipv4
-+++ a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -19,7 +19,6 @@
- #include <linux/udp.h>
- #include <linux/icmp.h>
- #include <linux/if_arp.h>
--#include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/netfilter_arp.h>
- #include <linux/netfilter/x_tables.h>
+diff -puN net/ipv6/tcp_ipv6.c~clean-up-duplicate-includes-in-net-ipv6 net/ipv6/tcp_ipv6.c
+--- a/net/ipv6/tcp_ipv6.c~clean-up-duplicate-includes-in-net-ipv6
++++ a/net/ipv6/tcp_ipv6.c
+@@ -56,7 +56,6 @@
+ #include <net/inet_ecn.h>
+ #include <net/protocol.h>
+ #include <net/xfrm.h>
+-#include <net/addrconf.h>
+ #include <net/snmp.h>
+ #include <net/dsfield.h>
+ #include <net/timewait_sock.h>
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
