@@ -1,166 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-fix-git-rejects.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:19:50 -0700
-Message-ID: <200707230919.l6N9JpAg015858@imap1.linux-foundation.org>
+Subject: - binfmt_elf-clean-up-the-pie-randomization-code.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:29:26 -0700
+Message-ID: <200707230929.l6N9TQ9x016185@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43290 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45190 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756605AbXGWJUF (ORCPT
+	by vger.kernel.org with ESMTP id S1751333AbXGWJaT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 05:20:05 -0400
+	Mon, 23 Jul 2007 05:30:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lenb@kernel.org, mm-commits@vger.kernel.org
+To: cebbert@redhat.com, honza@jikos.cz, jakub@redhat.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi-fix-git-rejects
+     binfmt_elf: clean up the PIE randomization code
 has been removed from the -mm tree.  Its filename was
-     git-acpi-fix-git-rejects.patch
+     binfmt_elf-clean-up-the-pie-randomization-code.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-acpi-fix-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: binfmt_elf: clean up the PIE randomization code
+From: Chuck Ebbert <cebbert@redhat.com>
 
-Cc: Len Brown <lenb@kernel.org>
+The recent PIE randomization patch changed the BAD_ADDR() macro
+in binfmt_elf.c:
+
+     -#define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
+     +#define BAD_ADDR(x) IS_ERR_VALUE(x)
+
+But in general this is not what is desired.  There was only one piece of
+code that wanted to use a different check.  It is much cleaner and clearer
+to revert part of the patch so the code works like it did before and the
+change to the macro is unnecessary.  (This is what has been done in the Red
+Hat Enterprise kernels.)
+
+Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
+Cc: Jan Kratochvil <honza@jikos.cz>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c         |    8 --------
- include/asm-ia64/pci.h |    9 ---------
- 2 files changed, 17 deletions(-)
+ fs/binfmt_elf.c |   26 +++++++-------------------
+ 1 files changed, 7 insertions(+), 19 deletions(-)
 
-diff -puN fs/sysfs/bin.c~git-acpi-fix-git-rejects fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~git-acpi-fix-git-rejects
-+++ a/fs/sysfs/bin.c
-@@ -44,11 +44,7 @@ fill_read(struct dentry *dentry, char *b
+diff -puN fs/binfmt_elf.c~binfmt_elf-clean-up-the-pie-randomization-code fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-clean-up-the-pie-randomization-code
++++ a/fs/binfmt_elf.c
+@@ -80,7 +80,7 @@ static struct linux_binfmt elf_format = 
+ 		.hasvdso	= 1
+ };
  
- 	sysfs_put_active_two(attr_sd);
+-#define BAD_ADDR(x) IS_ERR_VALUE(x)
++#define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
  
--<<<<<<< HEAD/fs/sysfs/bin.c
--	return rc;
--=======
- 	return attr->read(kobj, attr, buffer, off, count);
-->>>>>>> /fs/sysfs/bin.c
- }
+ static int set_brk(unsigned long start, unsigned long end)
+ {
+@@ -357,7 +357,7 @@ static unsigned long total_mapping_size(
+    an ELF header */
  
- static ssize_t
-@@ -105,11 +101,7 @@ flush_write(struct dentry *dentry, char 
+ static unsigned long load_elf_interp(struct elfhdr *interp_elf_ex,
+-		struct file *interpreter, unsigned long *interp_map_addr,
++		struct file *interpreter, unsigned long *interp_load_addr,
+ 		unsigned long no_base)
+ {
+ 	struct elf_phdr *elf_phdata;
+@@ -434,8 +434,6 @@ static unsigned long load_elf_interp(str
+ 			map_addr = elf_map(interpreter, load_addr + vaddr,
+ 					   eppnt, elf_prot, elf_type, total_size);
+ 			total_size = 0;
+-			if (!*interp_map_addr)
+-				*interp_map_addr = map_addr;
+ 			error = map_addr;
+ 			if (BAD_ADDR(map_addr))
+ 				goto out_close;
+@@ -501,7 +499,8 @@ static unsigned long load_elf_interp(str
+ 			goto out_close;
+ 	}
  
- 	sysfs_put_active_two(attr_sd);
+-	error = load_addr;
++	*interp_load_addr = load_addr;
++	error = ((unsigned long)interp_elf_ex->e_entry) + load_addr;
  
--<<<<<<< HEAD/fs/sysfs/bin.c
--	return rc;
--=======
- 	return attr->write(kobj, attr, buffer, offset, count);
-->>>>>>> /fs/sysfs/bin.c
- }
+ out_close:
+ 	kfree(elf_phdata);
+@@ -1001,25 +1000,14 @@ static int load_elf_binary(struct linux_
+ 	}
  
- static ssize_t write(struct file *file, const char __user *userbuf,
-diff -puN include/asm-ia64/pci.h~git-acpi-fix-git-rejects include/asm-ia64/pci.h
---- a/include/asm-ia64/pci.h~git-acpi-fix-git-rejects
-+++ a/include/asm-ia64/pci.h
-@@ -98,21 +98,12 @@ extern int pci_mmap_page_range (struct p
- #define HAVE_PCI_LEGACY
- extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
- 				      struct vm_area_struct *vma);
--<<<<<<< HEAD/include/asm-ia64/pci.h
--extern ssize_t pci_read_legacy_io(struct kobject *kobj,
--				  struct bin_attribute *bin_attr,
--				  char *buf, loff_t off, size_t count);
--extern ssize_t pci_write_legacy_io(struct kobject *kobj,
--				   struct bin_attribute *bin_attr,
--				   char *buf, loff_t off, size_t count);
--=======
- extern ssize_t pci_read_legacy_io(struct kobject *kobj,
- 			struct bin_attribute *bin_attr, char *buf,
- 			loff_t off, size_t count);
- extern ssize_t pci_write_legacy_io(struct kobject *kobj,
- 			struct bin_attribute *bin_attr, char *buf,
- 			loff_t off, size_t count);
-->>>>>>> /include/asm-ia64/pci.h
- extern int pci_mmap_legacy_mem(struct kobject *kobj,
- 			       struct bin_attribute *attr,
- 			       struct vm_area_struct *vma);
+ 	if (elf_interpreter) {
+-		if (interpreter_type == INTERPRETER_AOUT) {
++		if (interpreter_type == INTERPRETER_AOUT)
+ 			elf_entry = load_aout_interp(&loc->interp_ex,
+ 						     interpreter);
+-		} else {
+-			unsigned long uninitialized_var(interp_map_addr);
+-
++		else
+ 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
+ 						    interpreter,
+-						    &interp_map_addr,
++						    &interp_load_addr,
+ 						    load_bias);
+-			if (!BAD_ADDR(elf_entry)) {
+-				/*
+-				 * load_elf_interp() returns relocation
+-				 * adjustment
+-				 */
+-				interp_load_addr = elf_entry;
+-				elf_entry += loc->interp_elf_ex.e_entry;
+-			}
+-		}
+ 		if (BAD_ADDR(elf_entry)) {
+ 			force_sig(SIGSEGV, current);
+ 			retval = IS_ERR((void *)elf_entry) ?
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cebbert@redhat.com are
 
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fix-git-rejects.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-dvb.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mtd.patch
-mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-ip_auto_config-fix-fix.patch
-git-backlight-cr_bllcdc-build-fix.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-xfs-fixup.patch
-git-kgdb-fixup-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+binfmt_elf-clean-up-the-pie-randomization-code.patch
