@@ -1,108 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - slob-reduce-list-scanning.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:34:19 -0700
-Message-ID: <200707230934.l6N9YJdA016373@imap1.linux-foundation.org>
+Subject: - spicscan_boardinfo-mustnt-be-__init_or_module.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:34:49 -0700
+Message-ID: <200707230934.l6N9Yn4f016426@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39765 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52520 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759281AbXGWJp3 (ORCPT
+	by vger.kernel.org with ESMTP id S1759227AbXGWJpb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 05:45:29 -0400
+	Mon, 23 Jul 2007 05:45:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, clameter@sgi.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slob: reduce list scanning
+     spi.c:scan_boardinfo() mustn't be __init_or_module
 has been removed from the -mm tree.  Its filename was
-     slob-reduce-list-scanning.patch
+     spicscan_boardinfo-mustnt-be-__init_or_module.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slob: reduce list scanning
-From: Matt Mackall <mpm@selenic.com>
+Subject: spi.c:scan_boardinfo() mustn't be __init_or_module
+From: Adrian Bunk <bunk@stusta.de>
 
-The version of SLOB in -mm always scans its free list from the beginning,
-which results in small allocations and free segments clustering at the
-beginning of the list over time.  This causes the average search to scan
-over a large stretch at the beginning on each allocation.
+WARNING: drivers/built-in.o(.text+0x889735): Section mismatch: reference to .init.text:scan_boardinfo (between 'spi_register_master' and '__unregister')
 
-By starting each page search where the last one left off, we evenly
-distribute the allocations and greatly shorten the average search.
-
-Without this patch, kernel compiles on a 1.5G machine take a large amount
-of system time for list scanning.  With this patch, compiles are within a
-few seconds of performance of a SLAB kernel with no notable change in
-system time.
-
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slob.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ drivers/spi/spi.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/slob.c~slob-reduce-list-scanning mm/slob.c
---- a/mm/slob.c~slob-reduce-list-scanning
-+++ a/mm/slob.c
-@@ -293,6 +293,7 @@ static void *slob_page_alloc(struct slob
- static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
+diff -puN drivers/spi/spi.c~spicscan_boardinfo-mustnt-be-__init_or_module drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spicscan_boardinfo-mustnt-be-__init_or_module
++++ a/drivers/spi/spi.c
+@@ -303,8 +303,7 @@ spi_register_board_info(struct spi_board
+  * creates board info from kernel command lines
+  */
+ 
+-static void __init_or_module
+-scan_boardinfo(struct spi_master *master)
++static void scan_boardinfo(struct spi_master *master)
  {
- 	struct slob_page *sp;
-+	struct list_head *prev;
- 	slob_t *b = NULL;
- 	unsigned long flags;
- 
-@@ -307,12 +308,22 @@ static void *slob_alloc(size_t size, gfp
- 		if (node != -1 && page_to_nid(&sp->page) != node)
- 			continue;
- #endif
-+		/* Enough room on this page? */
-+		if (sp->units < SLOB_UNITS(size))
-+			continue;
- 
--		if (sp->units >= SLOB_UNITS(size)) {
--			b = slob_page_alloc(sp, size, align);
--			if (b)
--				break;
--		}
-+		/* Attempt to alloc */
-+		prev = sp->list.prev;
-+		b = slob_page_alloc(sp, size, align);
-+		if (!b)
-+			continue;
-+
-+		/* Improve fragment distribution and reduce our average
-+		 * search time by starting our next search here. (see
-+		 * Knuth vol 1, sec 2.5, pg 449) */
-+		if (free_slob_pages.next != prev->next)
-+			list_move_tail(&free_slob_pages, prev->next);
-+		break;
- 	}
- 	spin_unlock_irqrestore(&slob_lock, flags);
- 
+ 	struct boardinfo	*bi;
+ 	struct device		*dev = master->cdev.dev;
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
+git-acpi.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+fore200e_param_bs_queue-must-be-__devinit.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
 maps2-add-proc-kpagemap-interface.patch
-mmaps2-vma-out-of-mem_size_stats.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-hwrng-add-type-categories.patch
+fs-reiserfs-cleanups.patch
+anon_inodes-shouldnt-be-user-visible.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
