@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-arch-i386-xen.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:15:35 -0700
-Message-ID: <200707232315.l6NNFZBf017049@imap1.linux-foundation.org>
+Subject: + clean-up-duplicate-includes-in-drivers-hwmon.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:15:43 -0700
+Message-ID: <200707232315.l6NNFh1l017063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55841 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40166 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756691AbXGWXQM (ORCPT
+	by vger.kernel.org with ESMTP id S1757121AbXGWXQ0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:16:12 -0400
+	Mon, 23 Jul 2007 19:16:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, jeremy@goop.org
+Cc: jesper.juhl@gmail.com, mhoffman@lightlink.com
 
 
 The patch titled
-     Clean up duplicate includes in arch/i386/xen/
+     Clean up duplicate includes in drivers/hwmon/
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-arch-i386-xen.patch
+     clean-up-duplicate-includes-in-drivers-hwmon.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in arch/i386/xen/
+Subject: Clean up duplicate includes in drivers/hwmon/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	arch/i386/xen/
+	drivers/hwmon/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Mark Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/enlighten.c |    1 -
- arch/i386/xen/mmu.c       |    1 -
- 2 files changed, 2 deletions(-)
+ drivers/hwmon/ams/ams-core.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN arch/i386/xen/enlighten.c~clean-up-duplicate-includes-in-arch-i386-xen arch/i386/xen/enlighten.c
---- a/arch/i386/xen/enlighten.c~clean-up-duplicate-includes-in-arch-i386-xen
-+++ a/arch/i386/xen/enlighten.c
-@@ -25,7 +25,6 @@
- #include <linux/mm.h>
- #include <linux/page-flags.h>
- #include <linux/highmem.h>
--#include <linux/smp.h>
+diff -puN drivers/hwmon/ams/ams-core.c~clean-up-duplicate-includes-in-drivers-hwmon drivers/hwmon/ams/ams-core.c
+--- a/drivers/hwmon/ams/ams-core.c~clean-up-duplicate-includes-in-drivers-hwmon
++++ a/drivers/hwmon/ams/ams-core.c
+@@ -23,7 +23,6 @@
+ #include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/init.h>
+-#include <linux/module.h>
+ #include <asm/pmac_pfunc.h>
+ #include <asm/of_platform.h>
  
- #include <xen/interface/xen.h>
- #include <xen/interface/physdev.h>
-diff -puN arch/i386/xen/mmu.c~clean-up-duplicate-includes-in-arch-i386-xen arch/i386/xen/mmu.c
---- a/arch/i386/xen/mmu.c~clean-up-duplicate-includes-in-arch-i386-xen
-+++ a/arch/i386/xen/mmu.c
-@@ -41,7 +41,6 @@
- #include <linux/sched.h>
- #include <linux/highmem.h>
- #include <linux/bug.h>
--#include <linux/sched.h>
- 
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
