@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-aio-compilation-bug.patch added to -mm tree
-Date: Mon, 23 Jul 2007 13:33:01 -0700
-Message-ID: <200707232033.l6NKX1W9010430@imap1.linux-foundation.org>
+Subject: + uml-fix-string-exporting-on-uml-i386.patch added to -mm tree
+Date: Mon, 23 Jul 2007 13:32:58 -0700
+Message-ID: <200707232032.l6NKWw76010420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59008 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53277 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760316AbXGWUdW (ORCPT
+	by vger.kernel.org with ESMTP id S933333AbXGWUdK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 16:33:22 -0400
+	Mon, 23 Jul 2007 16:33:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, drepper@redhat.com, jdike@linux.intel.com, viro@zeniv.linux.org.uk
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: fix aio compilation bug
+     uml: fix string exporting on UML/i386
 has been added to the -mm tree.  Its filename is
-     uml-fix-aio-compilation-bug.patch
+     uml-fix-string-exporting-on-uml-i386.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,106 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix aio compilation bug
+Subject: uml: fix string exporting on UML/i386
 From: Jeff Dike <jdike@addtoit.com>
 
-Restructure do_aio thanks to commments from Ulrich and Al.
+In 2.6.23-rc1, i386 fiddled its string support such that UML started getting
+undefined references from modules.  The UML asm/string.h was including the
+i386 string.h, which defined __HAVE_ARCH_STR*, but the corresponding
+implementations weren't being pulled in.
 
-Uli started this by seeing that UML's initialization of a struct iocb
-initialized fields that it shouldn't.
+This is fixed by adding arch/i386/lib/string.h to the list of host
+architecture files to be pulled in to UML.
 
-Al followed up by adding the following cleanups:
-	eliminating a variable by just using an anonymous structure in
-its place.
-	hoisting a duplicated line out of the switch.
-	simplifying the error checking at the end.
-
-I added a severity to the printk.
+A complication is that the libc exports file assumed that the generic strlen
+and strstr weren't in use (i.e.  __HAVE_ARCH_STR is defined), then they aren't
+exported.  This is untrue for strlen, which is exported in either case, so
+this logic is not needed.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/aio.c |   47 ++++++++++++++-------------------------
- 1 files changed, 17 insertions(+), 30 deletions(-)
+ arch/um/os-Linux/user_syms.c |    5 +----
+ arch/um/sys-i386/Makefile    |    2 +-
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/os-Linux/aio.c~uml-fix-aio-compilation-bug arch/um/os-Linux/aio.c
---- a/arch/um/os-Linux/aio.c~uml-fix-aio-compilation-bug
-+++ a/arch/um/os-Linux/aio.c
-@@ -14,6 +14,7 @@
- #include "init.h"
- #include "user.h"
- #include "mode.h"
-+#include "kern_constants.h"
+diff -puN arch/um/os-Linux/user_syms.c~uml-fix-string-exporting-on-uml-i386 arch/um/os-Linux/user_syms.c
+--- a/arch/um/os-Linux/user_syms.c~uml-fix-string-exporting-on-uml-i386
++++ a/arch/um/os-Linux/user_syms.c
+@@ -19,10 +19,7 @@ extern void *memmove(void *, const void 
+ extern void *memset(void *, int, size_t);
+ extern int printf(const char *, ...);
  
- struct aio_thread_req {
- 	enum aio_type type;
-@@ -65,47 +66,33 @@ static long io_getevents(aio_context_t c
- static int do_aio(aio_context_t ctx, enum aio_type type, int fd, char *buf,
- 		  int len, unsigned long long offset, struct aio_context *aio)
- {
--	struct iocb iocb, *iocbp = &iocb;
-+	struct iocb *iocbp = & ((struct iocb) {
-+				    .aio_data       = (unsigned long) aio,
-+				    .aio_fildes     = fd,
-+				    .aio_buf        = (unsigned long) buf,
-+				    .aio_nbytes     = len,
-+				    .aio_offset     = offset
-+			     });
- 	char c;
--	int err;
--
--	iocb = ((struct iocb) { .aio_data 	= (unsigned long) aio,
--				.aio_reqprio	= 0,
--				.aio_fildes	= fd,
--				.aio_buf	= (unsigned long) buf,
--				.aio_nbytes	= len,
--				.aio_offset	= offset,
--				.aio_reserved1	= 0,
--				.aio_reserved2	= 0,
--				.aio_reserved3	= 0 });
+-/* If they're not defined, the export is included in lib/string.c.*/
+-#ifdef __HAVE_ARCH_STRLEN
+-EXPORT_SYMBOL(strlen);
+-#endif
++/* If it's not defined, the export is included in lib/string.c.*/
+ #ifdef __HAVE_ARCH_STRSTR
+ EXPORT_SYMBOL(strstr);
+ #endif
+diff -puN arch/um/sys-i386/Makefile~uml-fix-string-exporting-on-uml-i386 arch/um/sys-i386/Makefile
+--- a/arch/um/sys-i386/Makefile~uml-fix-string-exporting-on-uml-i386
++++ a/arch/um/sys-i386/Makefile
+@@ -4,7 +4,7 @@ obj-y = bug.o bugs.o checksum.o delay.o 
  
--	switch(type){
-+	switch (type) {
- 	case AIO_READ:
--		iocb.aio_lio_opcode = IOCB_CMD_PREAD;
--		err = io_submit(ctx, 1, &iocbp);
-+		iocbp->aio_lio_opcode = IOCB_CMD_PREAD;
- 		break;
- 	case AIO_WRITE:
--		iocb.aio_lio_opcode = IOCB_CMD_PWRITE;
--		err = io_submit(ctx, 1, &iocbp);
-+		iocbp->aio_lio_opcode = IOCB_CMD_PWRITE;
- 		break;
- 	case AIO_MMAP:
--		iocb.aio_lio_opcode = IOCB_CMD_PREAD;
--		iocb.aio_buf = (unsigned long) &c;
--		iocb.aio_nbytes = sizeof(c);
--		err = io_submit(ctx, 1, &iocbp);
-+		iocbp->aio_lio_opcode = IOCB_CMD_PREAD;
-+		iocbp->aio_buf = (unsigned long) &c;
-+		iocbp->aio_nbytes = sizeof(c);
- 		break;
- 	default:
--		printk("Bogus op in do_aio - %d\n", type);
--		err = -EINVAL;
--		break;
-+		printk(UM_KERN_ERR "Bogus op in do_aio - %d\n", type);
-+		return -EINVAL;
- 	}
+ obj-$(CONFIG_MODE_SKAS) += stub.o stub_segv.o
  
--	if(err > 0)
--		err = 0;
--	else
--		err = -errno;
--
--	return err;
-+	return (io_submit(ctx, 1, &iocbp) > 0) ? 0 : -errno;
- }
+-subarch-obj-y = lib/bitops.o lib/semaphore.o
++subarch-obj-y = lib/bitops.o lib/semaphore.o lib/string.o
+ subarch-obj-$(CONFIG_HIGHMEM) += mm/highmem.o
+ subarch-obj-$(CONFIG_MODULES) += kernel/module.o
  
- /* Initialized in an initcall and unchanged thereafter */
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
