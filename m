@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-drivers-spi.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:15:57 -0700
-Message-ID: <200707232315.l6NNFvix017081@imap1.linux-foundation.org>
+Subject: + clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:16:13 -0700
+Message-ID: <200707232316.l6NNGDQJ017115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50550 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44197 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756130AbXGWX0c (ORCPT
+	by vger.kernel.org with ESMTP id S1755871AbXGWX0W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:26:32 -0400
+	Mon, 23 Jul 2007 19:26:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, david-b@pacbell.net
+Cc: jesper.juhl@gmail.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     Clean up duplicate includes in drivers/spi/
+     Clean up duplicate includes in include/linux/memory_hotplug.h
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-drivers-spi.patch
+     clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in drivers/spi/
+Subject: Clean up duplicate includes in include/linux/memory_hotplug.h
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	drivers/spi/
+	include/linux/memory_hotplug.h
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: David Brownell <david-b@pacbell.net>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/pxa2xx_spi.c  |    1 -
- drivers/spi/spi_bfin5xx.c |    1 -
- 2 files changed, 2 deletions(-)
+ include/linux/memory_hotplug.h |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/spi/pxa2xx_spi.c~clean-up-duplicate-includes-in-drivers-spi drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~clean-up-duplicate-includes-in-drivers-spi
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -26,7 +26,6 @@
- #include <linux/dma-mapping.h>
- #include <linux/spi/spi.h>
- #include <linux/workqueue.h>
--#include <linux/errno.h>
- #include <linux/delay.h>
+diff -puN include/linux/memory_hotplug.h~clean-up-duplicate-includes-in-include-linux-memory_hotplugh include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~clean-up-duplicate-includes-in-include-linux-memory_hotplugh
++++ a/include/linux/memory_hotplug.h
+@@ -3,7 +3,6 @@
  
- #include <asm/io.h>
-diff -puN drivers/spi/spi_bfin5xx.c~clean-up-duplicate-includes-in-drivers-spi drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~clean-up-duplicate-includes-in-drivers-spi
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -39,7 +39,6 @@
- #include <linux/dma-mapping.h>
- #include <linux/spi/spi.h>
- #include <linux/workqueue.h>
--#include <linux/errno.h>
- #include <linux/delay.h>
+ #include <linux/mmzone.h>
+ #include <linux/spinlock.h>
+-#include <linux/mmzone.h>
+ #include <linux/notifier.h>
  
- #include <asm/io.h>
+ struct page;
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
