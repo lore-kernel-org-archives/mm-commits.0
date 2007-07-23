@@ -1,62 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-kconfig-point-out-need-for-static-linkage.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:35:01 -0700
-Message-ID: <200707230935.l6N9Z1CL016448@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-isdn-gigaset.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:34:56 -0700
+Message-ID: <200707230934.l6N9YuCl016435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34114 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45362 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759099AbXGWJp0 (ORCPT
+	by vger.kernel.org with ESMTP id S1757997AbXGWJp0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 23 Jul 2007 05:45:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: jengelh@computergmbh.de, jengelh@gmx.de, kkeil@suse.de, tilman@imap.cc, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc kconfig: point out need for static linkage
+     Use menuconfig objects: ISDN/Gigaset
 has been removed from the -mm tree.  Its filename was
-     rtc-kconfig-point-out-need-for-static-linkage.patch
+     use-menuconfig-objects-isdn-gigaset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc kconfig: point out need for static linkage
-From: David Brownell <david-b@pacbell.net>
+Subject: Use menuconfig objects: ISDN/Gigaset
+From: Jan Engelhardt <jengelh@computergmbh.de>
 
-Various people have expressed surprise that their modular RTC drivers don't
-seem to work for initializing the system time at boot.  To help avoid such
-unpleasantness, make the Kconfig text point out that the driver probably
-needs to be statically linked.
+Change Kconfig objects from "menu, config" into "menuconfig" so that the user
+can disable the whole feature without having to enter the menu first.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Tilman Schmidt <tilman@imap.cc>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/isdn/gigaset/Kconfig |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-kconfig-point-out-need-for-static-linkage drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-kconfig-point-out-need-for-static-linkage
-+++ a/drivers/rtc/Kconfig
-@@ -38,6 +38,9 @@ config RTC_HCTOSYS_DEVICE
- 	  clock, usually rtc0.  Initialization is done when the system
- 	  starts up, and when it resumes from a low power state.
+diff -puN drivers/isdn/gigaset/Kconfig~use-menuconfig-objects-isdn-gigaset drivers/isdn/gigaset/Kconfig
+--- a/drivers/isdn/gigaset/Kconfig~use-menuconfig-objects-isdn-gigaset
++++ a/drivers/isdn/gigaset/Kconfig
+@@ -1,6 +1,4 @@
+-menu "Siemens Gigaset"
+-
+-config ISDN_DRV_GIGASET
++menuconfig ISDN_DRV_GIGASET
+ 	tristate "Siemens Gigaset support (isdn)"
+ 	select CRC_CCITT
+ 	select BITREVERSE
+@@ -53,6 +51,4 @@ config GIGASET_UNDOCREQ
+ 	  features like configuration mode of M105, say yes. If you
+ 	  care about your device, say no.
  
-+	  The driver for this RTC device must be loaded before late_initcall
-+	  functions run, so it must usually be statically linked.
-+
- 	  This clock should be battery-backed, so that it reads the correct
- 	  time when the system boots from a power-off state.  Otherwise, your
- 	  system will need an external clock source (like an NTP server).
+-endif
+-
+-endmenu
++endif # ISDN_DRV_GIGASET != n
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from jengelh@computergmbh.de are
 
-git-acpi.patch
-git-mmc.patch
-git-mtd.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+intel-iommu-iommu-gfx-workaround-kconfig-fix.patch
+intel-iommu-iommu-floppy-workaround-kconfig-fix.patch
