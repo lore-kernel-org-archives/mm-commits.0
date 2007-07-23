@@ -1,100 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - document-pci_iomap.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:36:01 -0700
-Message-ID: <200707230936.l6N9a1De016536@imap1.linux-foundation.org>
+Subject: - slob-reduce-list-scanning.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:34:19 -0700
+Message-ID: <200707230934.l6N9YJdA016373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42580 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39765 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759252AbXGWJp3 (ORCPT
+	by vger.kernel.org with ESMTP id S1759281AbXGWJp3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 23 Jul 2007 05:45:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eike-kernel@sf-tec.de, greg@kroah.com, htejun@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mpm@selenic.com, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Document pci_iomap()
+     slob: reduce list scanning
 has been removed from the -mm tree.  Its filename was
-     document-pci_iomap.patch
+     slob-reduce-list-scanning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Document pci_iomap()
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Subject: slob: reduce list scanning
+From: Matt Mackall <mpm@selenic.com>
 
-This useful interface is hardly mentioned anywhere in the in-tree
-documentation.
+The version of SLOB in -mm always scans its free list from the beginning,
+which results in small allocations and free segments clustering at the
+beginning of the list over time.  This causes the average search to scan
+over a large stretch at the beginning on each allocation.
 
-Signed-off-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+By starting each page search where the last one left off, we evenly
+distribute the allocations and greatly shorten the average search.
+
+Without this patch, kernel compiles on a 1.5G machine take a large amount
+of system time for list scanning.  With this patch, compiles are within a
+few seconds of performance of a SLAB kernel with no notable change in
+system time.
+
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/deviceiobook.tmpl |    3 ++-
- include/asm-i386/io.h                   |    3 +++
- lib/iomap.c                             |   15 ++++++++++++++-
- 3 files changed, 19 insertions(+), 2 deletions(-)
+ mm/slob.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/DocBook/deviceiobook.tmpl~document-pci_iomap Documentation/DocBook/deviceiobook.tmpl
---- a/Documentation/DocBook/deviceiobook.tmpl~document-pci_iomap
-+++ a/Documentation/DocBook/deviceiobook.tmpl
-@@ -316,7 +316,8 @@ CPU B:  spin_unlock_irqrestore(&amp;dev_
- 
-   <chapter id="pubfunctions">
-      <title>Public Functions Provided</title>
--!Einclude/asm-i386/io.h
-+!Iinclude/asm-i386/io.h
-+!Elib/iomap.c
-   </chapter>
- 
- </book>
-diff -puN include/asm-i386/io.h~document-pci_iomap include/asm-i386/io.h
---- a/include/asm-i386/io.h~document-pci_iomap
-+++ a/include/asm-i386/io.h
-@@ -112,6 +112,9 @@ extern void __iomem * __ioremap(unsigned
-  * writew/writel functions and the other mmio helpers. The returned
-  * address is not guaranteed to be usable directly as a virtual
-  * address. 
-+ *
-+ * If the area you are trying to map is a PCI BAR you should have a
-+ * look at pci_iomap().
-  */
- 
- static inline void __iomem * ioremap(unsigned long offset, unsigned long size)
-diff -puN lib/iomap.c~document-pci_iomap lib/iomap.c
---- a/lib/iomap.c~document-pci_iomap
-+++ a/lib/iomap.c
-@@ -240,7 +240,20 @@ void ioport_unmap(void __iomem *addr)
- EXPORT_SYMBOL(ioport_map);
- EXPORT_SYMBOL(ioport_unmap);
- 
--/* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
-+/**
-+ * pci_iomap - create a virtual mapping cookie for a PCI BAR
-+ * @dev: PCI device that owns the BAR
-+ * @bar: BAR number
-+ * @maxlen: length of the memory to map
-+ *
-+ * Using this function you will get a __iomem address to your device BAR.
-+ * You can access it using ioread*() and iowrite*(). These functions hide
-+ * the details if this is a MMIO or PIO address space and will just do what
-+ * you expect from them in the correct way.
-+ *
-+ * @maxlen specifies the maximum length to map. If you want to get access to
-+ * the complete BAR without checking for its length first, pass %0 here.
-+ * */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
+diff -puN mm/slob.c~slob-reduce-list-scanning mm/slob.c
+--- a/mm/slob.c~slob-reduce-list-scanning
++++ a/mm/slob.c
+@@ -293,6 +293,7 @@ static void *slob_page_alloc(struct slob
+ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
  {
- 	unsigned long start = pci_resource_start(dev, bar);
+ 	struct slob_page *sp;
++	struct list_head *prev;
+ 	slob_t *b = NULL;
+ 	unsigned long flags;
+ 
+@@ -307,12 +308,22 @@ static void *slob_alloc(size_t size, gfp
+ 		if (node != -1 && page_to_nid(&sp->page) != node)
+ 			continue;
+ #endif
++		/* Enough room on this page? */
++		if (sp->units < SLOB_UNITS(size))
++			continue;
+ 
+-		if (sp->units >= SLOB_UNITS(size)) {
+-			b = slob_page_alloc(sp, size, align);
+-			if (b)
+-				break;
+-		}
++		/* Attempt to alloc */
++		prev = sp->list.prev;
++		b = slob_page_alloc(sp, size, align);
++		if (!b)
++			continue;
++
++		/* Improve fragment distribution and reduce our average
++		 * search time by starting our next search here. (see
++		 * Knuth vol 1, sec 2.5, pg 449) */
++		if (free_slob_pages.next != prev->next)
++			list_move_tail(&free_slob_pages, prev->next);
++		break;
+ 	}
+ 	spin_unlock_irqrestore(&slob_lock, flags);
+ 
 _
 
-Patches currently in -mm which might be from eike-kernel@sf-tec.de are
+Patches currently in -mm which might be from mpm@selenic.com are
 
-fix-typos-in-fs-sysfs-filec.patch
-initialize-filp-private_data-only-once-in-em28xx_v4l2_open.patch
-git-r8169.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+hwrng-add-type-categories.patch
