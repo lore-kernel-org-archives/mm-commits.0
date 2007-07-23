@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + resend-link-lguest-example-launcher-non-static.patch added to -mm tree
-Date: Mon, 23 Jul 2007 14:30:30 -0700
-Message-ID: <200707232130.l6NLUUqS012790@imap1.linux-foundation.org>
+Date: Mon, 23 Jul 2007 14:30:39 -0700
+Message-ID: <200707232130.l6NLUerF012793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55879 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56651 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753027AbXGWVak (ORCPT
+	by vger.kernel.org with ESMTP id S1755053AbXGWVau (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 17:30:40 -0400
+	Mon, 23 Jul 2007 17:30:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,7 +16,7 @@ Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     resend: link lguest example launcher non-static
+     link lguest example launcher non-static
 has been added to the -mm tree.  Its filename is
      resend-link-lguest-example-launcher-non-static.patch
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: resend: link lguest example launcher non-static
+Subject: link lguest example launcher non-static
 From: Rusty Russell <rusty@rustcorp.com.au>
 
 S.Caglar Onur points out that many distributions don't ship a static
