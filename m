@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-drivers-scsi.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:15:55 -0700
-Message-ID: <200707232315.l6NNFtoV017078@imap1.linux-foundation.org>
+Subject: + clean-up-duplicate-includes-in-net-sunrpc.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:16:33 -0700
+Message-ID: <200707232316.l6NNGXiw017145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42838 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57803 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756444AbXGWX00 (ORCPT
+	by vger.kernel.org with ESMTP id S1756130AbXGWX01 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:26:26 -0400
+	Mon, 23 Jul 2007 19:26:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, james.smart@emulex.com
+Cc: jesper.juhl@gmail.com, neilb@suse.de, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     Clean up duplicate includes in drivers/scsi/
+     Clean up duplicate includes in net/sunrpc/
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-drivers-scsi.patch
+     clean-up-duplicate-includes-in-net-sunrpc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in drivers/scsi/
+Subject: Clean up duplicate includes in net/sunrpc/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	drivers/scsi/
+	net/sunrpc/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: James Smart <james.smart@emulex.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/NCR_D700.c          |    1 -
- drivers/scsi/lpfc/lpfc_debugfs.c |    1 -
- drivers/scsi/lpfc/lpfc_init.c    |    1 -
- 3 files changed, 3 deletions(-)
+ net/sunrpc/auth_gss/svcauth_gss.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/scsi/NCR_D700.c~clean-up-duplicate-includes-in-drivers-scsi drivers/scsi/NCR_D700.c
---- a/drivers/scsi/NCR_D700.c~clean-up-duplicate-includes-in-drivers-scsi
-+++ a/drivers/scsi/NCR_D700.c
-@@ -97,7 +97,6 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/mca.h>
--#include <linux/interrupt.h>
- #include <asm/io.h>
- #include <scsi/scsi_host.h>
- #include <scsi/scsi_device.h>
-diff -puN drivers/scsi/lpfc/lpfc_debugfs.c~clean-up-duplicate-includes-in-drivers-scsi drivers/scsi/lpfc/lpfc_debugfs.c
---- a/drivers/scsi/lpfc/lpfc_debugfs.c~clean-up-duplicate-includes-in-drivers-scsi
-+++ a/drivers/scsi/lpfc/lpfc_debugfs.c
-@@ -43,7 +43,6 @@
- #include "lpfc_crtn.h"
- #include "lpfc_vport.h"
- #include "lpfc_version.h"
--#include "lpfc_vport.h"
- #include "lpfc_debugfs.h"
+diff -puN net/sunrpc/auth_gss/svcauth_gss.c~clean-up-duplicate-includes-in-net-sunrpc net/sunrpc/auth_gss/svcauth_gss.c
+--- a/net/sunrpc/auth_gss/svcauth_gss.c~clean-up-duplicate-includes-in-net-sunrpc
++++ a/net/sunrpc/auth_gss/svcauth_gss.c
+@@ -42,7 +42,6 @@
+ #include <linux/pagemap.h>
  
- #ifdef CONFIG_LPFC_DEBUG_FS
-diff -puN drivers/scsi/lpfc/lpfc_init.c~clean-up-duplicate-includes-in-drivers-scsi drivers/scsi/lpfc/lpfc_init.c
---- a/drivers/scsi/lpfc/lpfc_init.c~clean-up-duplicate-includes-in-drivers-scsi
-+++ a/drivers/scsi/lpfc/lpfc_init.c
-@@ -43,7 +43,6 @@
- #include "lpfc_crtn.h"
- #include "lpfc_vport.h"
- #include "lpfc_version.h"
--#include "lpfc_vport.h"
- 
- static int lpfc_parse_vpd(struct lpfc_hba *, uint8_t *, int);
- static void lpfc_get_hba_model_desc(struct lpfc_hba *, uint8_t *, uint8_t *);
+ #include <linux/sunrpc/auth_gss.h>
+-#include <linux/sunrpc/svcauth.h>
+ #include <linux/sunrpc/gss_err.h>
+ #include <linux/sunrpc/svcauth.h>
+ #include <linux/sunrpc/svcauth_gss.h>
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
