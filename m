@@ -1,273 +1,502 @@
 From: akpm@linux-foundation.org
-Subject: - gdth-remove-redundant-pci-stuff.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:35:31 -0700
-Message-ID: <200707230935.l6N9ZVV7016497@imap1.linux-foundation.org>
+Subject: - rtc-add-support-for-stk17ta8-chip.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:35:06 -0700
+Message-ID: <200707230935.l6N9Z64P016460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47632 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38454 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758830AbXGWJpZ (ORCPT
+	by vger.kernel.org with ESMTP id S1759131AbXGWJp0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 05:45:25 -0400
+	Mon, 23 Jul 2007 05:45:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, hch@lst.de, mm-commits@vger.kernel.org
+To: thomas.hommel@gefanuc.com, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gdth: remove redundant PCI stuff
+     rtc: add support for STK17TA8 chip
 has been removed from the -mm tree.  Its filename was
-     gdth-remove-redundant-pci-stuff.patch
+     rtc-add-support-for-stk17ta8-chip.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gdth: remove redundant PCI stuff
-From: Jeff Garzik <jeff@garzik.org>
+Subject: rtc: add support for STK17TA8 chip
+From: Thomas Hommel <thomas.hommel@gefanuc.com>
 
-This patch
+This patch adds support for the Simtek STK17TA8 timekeeping chip.
 
-* removes struct members that duplicate pci_dev members
-* replaces ha->stype usage with ha->pdev->device usage where feasible
-* removes PCI IDs that are already in include/linux/pci_ids.h
+The STK17TA8 is quite similar to the DS1553, but differs in register layout
+and in various control bits in the registers.  I chose to make this a new
+driver to avoid confusion in the code and to not get lost in #ifdefs.
 
-I thought it would be a good preparation for PCI hotplug API.  (or at the very
-least, proper pci_dev refcounting)
-
-Signed-off-by: Jeff Garzik <jeff@garzik.org>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Thomas Hommel <thomas.hommel@gefanuc.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |   48 +++++++++++++++++++-----------------------
- drivers/scsi/gdth.h |   45 ---------------------------------------
- 2 files changed, 23 insertions(+), 70 deletions(-)
+ drivers/rtc/Kconfig        |   10 
+ drivers/rtc/Makefile       |    1 
+ drivers/rtc/rtc-stk17ta8.c |  420 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 431 insertions(+)
 
-diff -puN drivers/scsi/gdth.c~gdth-remove-redundant-pci-stuff drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~gdth-remove-redundant-pci-stuff
-+++ a/drivers/scsi/gdth.c
-@@ -902,11 +902,6 @@ static void __init gdth_search_dev(gdth_
-             return;
-         /* GDT PCI controller found, resources are already in pdev */
-         pcistr[*cnt].pdev = pdev;
--        pcistr[*cnt].vendor_id = vendor;
--        pcistr[*cnt].device_id = device;
--        pcistr[*cnt].subdevice_id = pdev->subsystem_device;
--        pcistr[*cnt].bus = pdev->bus->number;
--        pcistr[*cnt].device_fn = pdev->devfn;
-         pcistr[*cnt].irq = pdev->irq;
-         base0 = pci_resource_flags(pdev, 0);
-         base1 = pci_resource_flags(pdev, 1);
-@@ -926,7 +921,8 @@ static void __init gdth_search_dev(gdth_
-             pcistr[*cnt].io    = pci_resource_start(pdev, 1);
-         }
-         TRACE2(("Controller found at %d/%d, irq %d, dpmem 0x%lx\n",
--                pcistr[*cnt].bus, PCI_SLOT(pcistr[*cnt].device_fn), 
-+                pcistr[*cnt].pdev->bus->number,
-+		PCI_SLOT(pcistr[*cnt].pdev->devfn),
-                 pcistr[*cnt].irq, pcistr[*cnt].dpmem));
-         (*cnt)++;
-     }       
-@@ -946,20 +942,20 @@ static void __init gdth_sort_pci(gdth_pc
-         changed = FALSE;
-         for (i = 0; i < cnt-1; ++i) {
-             if (!reverse_scan) {
--                if ((pcistr[i].bus > pcistr[i+1].bus) ||
--                    (pcistr[i].bus == pcistr[i+1].bus &&
--                     PCI_SLOT(pcistr[i].device_fn) > 
--                     PCI_SLOT(pcistr[i+1].device_fn))) {
-+                if ((pcistr[i].pdev->bus->number > pcistr[i+1].pdev->bus->number) ||
-+                    (pcistr[i].pdev->bus->number == pcistr[i+1].pdev->bus->number &&
-+                     PCI_SLOT(pcistr[i].pdev->devfn) >
-+                     PCI_SLOT(pcistr[i+1].pdev->devfn))) {
-                     temp = pcistr[i];
-                     pcistr[i] = pcistr[i+1];
-                     pcistr[i+1] = temp;
-                     changed = TRUE;
-                 }
-             } else {
--                if ((pcistr[i].bus < pcistr[i+1].bus) ||
--                    (pcistr[i].bus == pcistr[i+1].bus &&
--                     PCI_SLOT(pcistr[i].device_fn) < 
--                     PCI_SLOT(pcistr[i+1].device_fn))) {
-+                if ((pcistr[i].pdev->bus->number < pcistr[i+1].pdev->bus->number) ||
-+                    (pcistr[i].pdev->bus->number == pcistr[i+1].pdev->bus->number &&
-+                     PCI_SLOT(pcistr[i].pdev->devfn) <
-+                     PCI_SLOT(pcistr[i+1].pdev->devfn))) {
-                     temp = pcistr[i];
-                     pcistr[i] = pcistr[i+1];
-                     pcistr[i+1] = temp;
-@@ -1176,17 +1172,16 @@ static int __init gdth_init_pci(gdth_pci
+diff -puN drivers/rtc/Kconfig~rtc-add-support-for-stk17ta8-chip drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-support-for-stk17ta8-chip
++++ a/drivers/rtc/Kconfig
+@@ -308,6 +308,16 @@ config RTC_DRV_DS1553
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1553.
  
-     TRACE(("gdth_init_pci()\n"));
- 
--    if (pcistr->vendor_id == PCI_VENDOR_ID_INTEL)
-+    if (pcistr->pdev->vendor == PCI_VENDOR_ID_INTEL)
-         ha->oem_id = OEM_ID_INTEL;
-     else
-         ha->oem_id = OEM_ID_ICP;
--    ha->brd_phys = (pcistr->bus << 8) | (pcistr->device_fn & 0xf8);
--    ha->stype = (ulong32)pcistr->device_id;
--    ha->subdevice_id = pcistr->subdevice_id;
-+    ha->brd_phys = (pcistr->pdev->bus->number << 8) | (pcistr->pdev->devfn & 0xf8);
-+    ha->stype = (ulong32)pcistr->pdev->device;
-     ha->irq = pcistr->irq;
-     ha->pdev = pcistr->pdev;
-     
--    if (ha->stype <= PCI_DEVICE_ID_VORTEX_GDT6000B) {  /* GDT6000/B */
-+    if (ha->pdev->device <= PCI_DEVICE_ID_VORTEX_GDT6000B) {  /* GDT6000/B */
-         TRACE2(("init_pci() dpmem %lx irq %d\n",pcistr->dpmem,ha->irq));
-         ha->brd = ioremap(pcistr->dpmem, sizeof(gdt6_dpram_str));
-         if (ha->brd == NULL) {
-@@ -1293,7 +1288,7 @@ static int __init gdth_init_pci(gdth_pci
- 
-         ha->dma64_support = 0;
- 
--    } else if (ha->stype <= PCI_DEVICE_ID_VORTEX_GDT6555) { /* GDT6110, ... */
-+    } else if (ha->pdev->device <= PCI_DEVICE_ID_VORTEX_GDT6555) { /* GDT6110, ... */
-         ha->plx = (gdt6c_plx_regs *)pcistr->io;
-         TRACE2(("init_pci_new() dpmem %lx irq %d\n",
-             pcistr->dpmem,ha->irq));
-@@ -4601,7 +4596,8 @@ static int __init gdth_detect(Scsi_Host_
-         }
-         /* controller found and initialized */
-         printk("Configuring GDT-PCI HA at %d/%d IRQ %u\n",
--               pcistr[ctr].bus,PCI_SLOT(pcistr[ctr].device_fn),ha->irq);
-+               pcistr[ctr].pdev->bus->number,
-+	       PCI_SLOT(pcistr[ctr].pdev->devfn), ha->irq);
- 
-         if (request_irq(ha->irq, gdth_interrupt,
-                         IRQF_DISABLED|IRQF_SHARED, "gdth", ha))
-@@ -4637,7 +4633,7 @@ static int __init gdth_detect(Scsi_Host_
- #endif
-         ha->scratch_busy = FALSE;
-         ha->req_first = NULL;
--        ha->tid_cnt = pcistr[ctr].device_id >= 0x200 ? MAXID : MAX_HDRIVES;
-+        ha->tid_cnt = pcistr[ctr].pdev->device >= 0x200 ? MAXID : MAX_HDRIVES;
-         if (max_ids > 0 && max_ids < ha->tid_cnt)
-             ha->tid_cnt = max_ids;
-         for (i=0; i<GDTH_MAXCMDS; ++i)
-@@ -4810,7 +4806,7 @@ static const char *gdth_ctr_name(int han
-     } else if (ha->type == GDT_ISA) {
-         return("GDT2000/2020");
-     } else if (ha->type == GDT_PCI) {
--        switch (ha->stype) {
-+        switch (ha->pdev->device) {
-           case PCI_DEVICE_ID_VORTEX_GDT60x0:
-             return("GDT6000/6020/6050");
-           case PCI_DEVICE_ID_VORTEX_GDT6000B:
-@@ -5448,12 +5444,12 @@ static int gdth_ioctl(struct inode *inod
-                 ctrt.type = 
-                     (ha->oem_id == OEM_ID_INTEL ? 0xfd : 0xfe);
-                 if (ha->stype >= 0x300)
--                    ctrt.ext_type = 0x6000 | ha->subdevice_id;
-+                    ctrt.ext_type = 0x6000 | ha->pdev->subsystem_device;
-                 else 
-                     ctrt.ext_type = 0x6000 | ha->stype;
-             }
--            ctrt.device_id = ha->stype;
--            ctrt.sub_device_id = ha->subdevice_id;
-+            ctrt.device_id = ha->pdev->device;
-+            ctrt.sub_device_id = ha->pdev->subsystem_device;
-         }
-         ctrt.info = ha->brd_phys;
-         ctrt.oem_id = ha->oem_id;
-diff -puN drivers/scsi/gdth.h~gdth-remove-redundant-pci-stuff drivers/scsi/gdth.h
---- a/drivers/scsi/gdth.h~gdth-remove-redundant-pci-stuff
-+++ a/drivers/scsi/gdth.h
-@@ -51,45 +51,8 @@
- #define GDT2_ID         0x0120941c              /* GDT2000/2020 */
- 
- /* vendor ID, device IDs (PCI) */
--/* these defines should already exist in <linux/pci.h> */
--#ifndef PCI_VENDOR_ID_VORTEX
--#define PCI_VENDOR_ID_VORTEX            0x1119  /* PCI controller vendor ID */
--#endif
--#ifndef PCI_VENDOR_ID_INTEL
--#define PCI_VENDOR_ID_INTEL             0x8086  
--#endif
-+/* these defines should be moved to <linux/pci.h> */
- 
--#ifndef PCI_DEVICE_ID_VORTEX_GDT60x0
--/* GDT_PCI */
--#define PCI_DEVICE_ID_VORTEX_GDT60x0    0       /* GDT6000/6020/6050 */
--#define PCI_DEVICE_ID_VORTEX_GDT6000B   1       /* GDT6000B/6010 */
--/* GDT_PCINEW */
--#define PCI_DEVICE_ID_VORTEX_GDT6x10    2       /* GDT6110/6510 */
--#define PCI_DEVICE_ID_VORTEX_GDT6x20    3       /* GDT6120/6520 */
--#define PCI_DEVICE_ID_VORTEX_GDT6530    4       /* GDT6530 */
--#define PCI_DEVICE_ID_VORTEX_GDT6550    5       /* GDT6550 */
--/* GDT_PCINEW, wide/ultra SCSI controllers */
--#define PCI_DEVICE_ID_VORTEX_GDT6x17    6       /* GDT6117/6517 */
--#define PCI_DEVICE_ID_VORTEX_GDT6x27    7       /* GDT6127/6527 */
--#define PCI_DEVICE_ID_VORTEX_GDT6537    8       /* GDT6537 */
--#define PCI_DEVICE_ID_VORTEX_GDT6557    9       /* GDT6557/6557-ECC */
--/* GDT_PCINEW, wide SCSI controllers */
--#define PCI_DEVICE_ID_VORTEX_GDT6x15    10      /* GDT6115/6515 */
--#define PCI_DEVICE_ID_VORTEX_GDT6x25    11      /* GDT6125/6525 */
--#define PCI_DEVICE_ID_VORTEX_GDT6535    12      /* GDT6535 */
--#define PCI_DEVICE_ID_VORTEX_GDT6555    13      /* GDT6555/6555-ECC */
--#endif
--
--#ifndef PCI_DEVICE_ID_VORTEX_GDT6x17RP
--/* GDT_MPR, RP series, wide/ultra SCSI */
--#define PCI_DEVICE_ID_VORTEX_GDT6x17RP  0x100   /* GDT6117RP/GDT6517RP */
--#define PCI_DEVICE_ID_VORTEX_GDT6x27RP  0x101   /* GDT6127RP/GDT6527RP */
--#define PCI_DEVICE_ID_VORTEX_GDT6537RP  0x102   /* GDT6537RP */
--#define PCI_DEVICE_ID_VORTEX_GDT6557RP  0x103   /* GDT6557RP */
--/* GDT_MPR, RP series, narrow/ultra SCSI */
--#define PCI_DEVICE_ID_VORTEX_GDT6x11RP  0x104   /* GDT6111RP/GDT6511RP */
--#define PCI_DEVICE_ID_VORTEX_GDT6x21RP  0x105   /* GDT6121RP/GDT6521RP */
--#endif
- #ifndef PCI_DEVICE_ID_VORTEX_GDT6x17RD
- /* GDT_MPR, RD series, wide/ultra SCSI */
- #define PCI_DEVICE_ID_VORTEX_GDT6x17RD  0x110   /* GDT6117RD/GDT6517RD */
-@@ -845,11 +808,6 @@ typedef struct {
- /* PCI resources */
- typedef struct {
-     struct pci_dev      *pdev;
--    ushort              vendor_id;              /* vendor (ICP, Intel, ..) */
--    ushort              device_id;              /* device ID (0,..,9) */
--    ushort              subdevice_id;           /* sub device ID */
--    unchar              bus;                    /* PCI bus */
--    unchar              device_fn;              /* PCI device/function no. */
-     ulong               dpmem;                  /* DPRAM address */
-     ulong               io;                     /* IO address */
-     ulong               io_mm;                  /* IO address mem. mapped */
-@@ -862,7 +820,6 @@ typedef struct {
-     ushort              oem_id;                 /* OEM */
-     ushort              type;                   /* controller class */
-     ulong32             stype;                  /* subtype (PCI: device ID) */
--    ushort              subdevice_id;           /* sub device ID (PCI) */
-     ushort              fw_vers;                /* firmware version */
-     ushort              cache_feat;             /* feat. cache serv. (s/g,..)*/
-     ushort              raw_feat;               /* feat. raw service (s/g,..)*/
++config RTC_DRV_STK17TA8
++	tristate "Simtek STK17TA8"
++	depends on RTC_CLASS
++	help
++	  If you say yes here you get support for the
++	  Simtek STK17TA8 timekeeping chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-stk17ta8.
++
+ config RTC_DRV_DS1742
+ 	tristate "Dallas DS1742/1743"
+ 	depends on RTC_CLASS
+diff -puN drivers/rtc/Makefile~rtc-add-support-for-stk17ta8-chip drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-support-for-stk17ta8-chip
++++ a/drivers/rtc/Makefile
+@@ -32,6 +32,7 @@ obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5
+ obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
+ obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
+ obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
++obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
+ obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
+ obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
+ obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
+diff -puN /dev/null drivers/rtc/rtc-stk17ta8.c
+--- /dev/null
++++ a/drivers/rtc/rtc-stk17ta8.c
+@@ -0,0 +1,420 @@
++/*
++ * A RTC driver for the Simtek STK17TA8
++ *
++ * By Thomas Hommel <thomas.hommel@gefanuc.com>
++ *
++ * Based on the DS1553 driver from
++ * Atsushi Nemoto <anemo@mba.ocn.ne.jp>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/bcd.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/delay.h>
++#include <linux/jiffies.h>
++#include <linux/interrupt.h>
++#include <linux/rtc.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
++
++#define DRV_VERSION "0.1"
++
++#define RTC_REG_SIZE		0x20000
++#define RTC_OFFSET		0x1fff0
++
++#define RTC_FLAGS		(RTC_OFFSET + 0)
++#define RTC_CENTURY		(RTC_OFFSET + 1)
++#define RTC_SECONDS_ALARM	(RTC_OFFSET + 2)
++#define RTC_MINUTES_ALARM	(RTC_OFFSET + 3)
++#define RTC_HOURS_ALARM		(RTC_OFFSET + 4)
++#define RTC_DATE_ALARM		(RTC_OFFSET + 5)
++#define RTC_INTERRUPTS		(RTC_OFFSET + 6)
++#define RTC_WATCHDOG		(RTC_OFFSET + 7)
++#define RTC_CALIBRATION		(RTC_OFFSET + 8)
++#define RTC_SECONDS		(RTC_OFFSET + 9)
++#define RTC_MINUTES		(RTC_OFFSET + 10)
++#define RTC_HOURS		(RTC_OFFSET + 11)
++#define RTC_DAY			(RTC_OFFSET + 12)
++#define RTC_DATE		(RTC_OFFSET + 13)
++#define RTC_MONTH		(RTC_OFFSET + 14)
++#define RTC_YEAR		(RTC_OFFSET + 15)
++
++#define RTC_SECONDS_MASK	0x7f
++#define RTC_DAY_MASK		0x07
++#define RTC_CAL_MASK		0x3f
++
++/* Bits in the Calibration register */
++#define RTC_STOP		0x80
++
++/* Bits in the Flags register */
++#define RTC_FLAGS_AF		0x40
++#define RTC_FLAGS_PF		0x20
++#define RTC_WRITE		0x02
++#define RTC_READ		0x01
++
++/* Bits in the Interrupts register */
++#define RTC_INTS_AIE		0x40
++
++struct rtc_plat_data {
++	struct rtc_device *rtc;
++	void __iomem *ioaddr;
++	unsigned long baseaddr;
++	unsigned long last_jiffies;
++	int irq;
++	unsigned int irqen;
++	int alrm_sec;
++	int alrm_min;
++	int alrm_hour;
++	int alrm_mday;
++};
++
++static int stk17ta8_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	u8 flags;
++
++	flags = readb(pdata->ioaddr + RTC_FLAGS);
++	writeb(flags | RTC_WRITE, pdata->ioaddr + RTC_FLAGS);
++
++	writeb(BIN2BCD(tm->tm_year % 100), ioaddr + RTC_YEAR);
++	writeb(BIN2BCD(tm->tm_mon + 1), ioaddr + RTC_MONTH);
++	writeb(BIN2BCD(tm->tm_wday) & RTC_DAY_MASK, ioaddr + RTC_DAY);
++	writeb(BIN2BCD(tm->tm_mday), ioaddr + RTC_DATE);
++	writeb(BIN2BCD(tm->tm_hour), ioaddr + RTC_HOURS);
++	writeb(BIN2BCD(tm->tm_min), ioaddr + RTC_MINUTES);
++	writeb(BIN2BCD(tm->tm_sec) & RTC_SECONDS_MASK, ioaddr + RTC_SECONDS);
++	writeb(BIN2BCD((tm->tm_year + 1900) / 100), ioaddr + RTC_CENTURY);
++
++	writeb(flags & ~RTC_WRITE, pdata->ioaddr + RTC_FLAGS);
++	return 0;
++}
++
++static int stk17ta8_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	unsigned int year, month, day, hour, minute, second, week;
++	unsigned int century;
++	u8 flags;
++
++	/* give enough time to update RTC in case of continuous read */
++	if (pdata->last_jiffies == jiffies)
++		msleep(1);
++	pdata->last_jiffies = jiffies;
++
++	flags = readb(pdata->ioaddr + RTC_FLAGS);
++	writeb(flags | RTC_READ, ioaddr + RTC_FLAGS);
++	second = readb(ioaddr + RTC_SECONDS) & RTC_SECONDS_MASK;
++	minute = readb(ioaddr + RTC_MINUTES);
++	hour = readb(ioaddr + RTC_HOURS);
++	day = readb(ioaddr + RTC_DATE);
++	week = readb(ioaddr + RTC_DAY) & RTC_DAY_MASK;
++	month = readb(ioaddr + RTC_MONTH);
++	year = readb(ioaddr + RTC_YEAR);
++	century = readb(ioaddr + RTC_CENTURY);
++	writeb(flags & ~RTC_READ, ioaddr + RTC_FLAGS);
++	tm->tm_sec = BCD2BIN(second);
++	tm->tm_min = BCD2BIN(minute);
++	tm->tm_hour = BCD2BIN(hour);
++	tm->tm_mday = BCD2BIN(day);
++	tm->tm_wday = BCD2BIN(week);
++	tm->tm_mon = BCD2BIN(month) - 1;
++	/* year is 1900 + tm->tm_year */
++	tm->tm_year = BCD2BIN(year) + BCD2BIN(century) * 100 - 1900;
++
++	if (rtc_valid_tm(tm) < 0) {
++		dev_err(dev, "retrieved date/time is not valid.\n");
++		rtc_time_to_tm(0, tm);
++	}
++	return 0;
++}
++
++static void stk17ta8_rtc_update_alarm(struct rtc_plat_data *pdata)
++{
++	void __iomem *ioaddr = pdata->ioaddr;
++	unsigned long irqflags;
++	u8 flags;
++
++	spin_lock_irqsave(&pdata->rtc->irq_lock, irqflags);
++
++	flags = readb(ioaddr + RTC_FLAGS);
++	writeb(flags | RTC_WRITE, ioaddr + RTC_FLAGS);
++
++	writeb(pdata->alrm_mday < 0 || (pdata->irqen & RTC_UF) ?
++	       0x80 : BIN2BCD(pdata->alrm_mday),
++	       ioaddr + RTC_DATE_ALARM);
++	writeb(pdata->alrm_hour < 0 || (pdata->irqen & RTC_UF) ?
++	       0x80 : BIN2BCD(pdata->alrm_hour),
++	       ioaddr + RTC_HOURS_ALARM);
++	writeb(pdata->alrm_min < 0 || (pdata->irqen & RTC_UF) ?
++	       0x80 : BIN2BCD(pdata->alrm_min),
++	       ioaddr + RTC_MINUTES_ALARM);
++	writeb(pdata->alrm_sec < 0 || (pdata->irqen & RTC_UF) ?
++	       0x80 : BIN2BCD(pdata->alrm_sec),
++	       ioaddr + RTC_SECONDS_ALARM);
++	writeb(pdata->irqen ? RTC_INTS_AIE : 0, ioaddr + RTC_INTERRUPTS);
++	readb(ioaddr + RTC_FLAGS);	/* clear interrupts */
++	writeb(flags & ~RTC_WRITE, ioaddr + RTC_FLAGS);
++	spin_unlock_irqrestore(&pdata->rtc->irq_lock, irqflags);
++}
++
++static int stk17ta8_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	if (pdata->irq < 0)
++		return -EINVAL;
++	pdata->alrm_mday = alrm->time.tm_mday;
++	pdata->alrm_hour = alrm->time.tm_hour;
++	pdata->alrm_min = alrm->time.tm_min;
++	pdata->alrm_sec = alrm->time.tm_sec;
++	if (alrm->enabled)
++		pdata->irqen |= RTC_AF;
++	stk17ta8_rtc_update_alarm(pdata);
++	return 0;
++}
++
++static int stk17ta8_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	if (pdata->irq < 0)
++		return -EINVAL;
++	alrm->time.tm_mday = pdata->alrm_mday < 0 ? 0 : pdata->alrm_mday;
++	alrm->time.tm_hour = pdata->alrm_hour < 0 ? 0 : pdata->alrm_hour;
++	alrm->time.tm_min = pdata->alrm_min < 0 ? 0 : pdata->alrm_min;
++	alrm->time.tm_sec = pdata->alrm_sec < 0 ? 0 : pdata->alrm_sec;
++	alrm->enabled = (pdata->irqen & RTC_AF) ? 1 : 0;
++	return 0;
++}
++
++static irqreturn_t stk17ta8_rtc_interrupt(int irq, void *dev_id)
++{
++	struct platform_device *pdev = dev_id;
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	unsigned long events = RTC_IRQF;
++
++	/* read and clear interrupt */
++	if (!(readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_AF))
++		return IRQ_NONE;
++	if (readb(ioaddr + RTC_SECONDS_ALARM) & 0x80)
++		events |= RTC_UF;
++	else
++		events |= RTC_AF;
++	rtc_update_irq(pdata->rtc, 1, events);
++	return IRQ_HANDLED;
++}
++
++static void stk17ta8_rtc_release(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	if (pdata->irq >= 0) {
++		pdata->irqen = 0;
++		stk17ta8_rtc_update_alarm(pdata);
++	}
++}
++
++static int stk17ta8_rtc_ioctl(struct device *dev, unsigned int cmd,
++			    unsigned long arg)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	if (pdata->irq < 0)
++		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
++	switch (cmd) {
++	case RTC_AIE_OFF:
++		pdata->irqen &= ~RTC_AF;
++		stk17ta8_rtc_update_alarm(pdata);
++		break;
++	case RTC_AIE_ON:
++		pdata->irqen |= RTC_AF;
++		stk17ta8_rtc_update_alarm(pdata);
++		break;
++	default:
++		return -ENOIOCTLCMD;
++	}
++	return 0;
++}
++
++static const struct rtc_class_ops stk17ta8_rtc_ops = {
++	.read_time	= stk17ta8_rtc_read_time,
++	.set_time	= stk17ta8_rtc_set_time,
++	.read_alarm	= stk17ta8_rtc_read_alarm,
++	.set_alarm	= stk17ta8_rtc_set_alarm,
++	.release	= stk17ta8_rtc_release,
++	.ioctl		= stk17ta8_rtc_ioctl,
++};
++
++static ssize_t stk17ta8_nvram_read(struct kobject *kobj, char *buf,
++				 loff_t pos, size_t size)
++{
++	struct platform_device *pdev =
++		to_platform_device(container_of(kobj, struct device, kobj));
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	ssize_t count;
++
++	for (count = 0; size > 0 && pos < RTC_OFFSET; count++, size--)
++		*buf++ = readb(ioaddr + pos++);
++	return count;
++}
++
++static ssize_t stk17ta8_nvram_write(struct kobject *kobj, char *buf,
++				  loff_t pos, size_t size)
++{
++	struct platform_device *pdev =
++		to_platform_device(container_of(kobj, struct device, kobj));
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	ssize_t count;
++
++	for (count = 0; size > 0 && pos < RTC_OFFSET; count++, size--)
++		writeb(*buf++, ioaddr + pos++);
++	return count;
++}
++
++static struct bin_attribute stk17ta8_nvram_attr = {
++	.attr = {
++		.name = "nvram",
++		.mode = S_IRUGO | S_IWUGO,
++		.owner = THIS_MODULE,
++	},
++	.size = RTC_OFFSET,
++	.read = stk17ta8_nvram_read,
++	.write = stk17ta8_nvram_write,
++};
++
++static int __init stk17ta8_rtc_probe(struct platform_device *pdev)
++{
++	struct rtc_device *rtc;
++	struct resource *res;
++	unsigned int cal;
++	unsigned int flags;
++	struct rtc_plat_data *pdata;
++	void __iomem *ioaddr = NULL;
++	int ret = 0;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++
++	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return -ENOMEM;
++	pdata->irq = -1;
++	if (!request_mem_region(res->start, RTC_REG_SIZE, pdev->name)) {
++		ret = -EBUSY;
++		goto out;
++	}
++	pdata->baseaddr = res->start;
++	ioaddr = ioremap(pdata->baseaddr, RTC_REG_SIZE);
++	if (!ioaddr) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	pdata->ioaddr = ioaddr;
++	pdata->irq = platform_get_irq(pdev, 0);
++
++	/* turn RTC on if it was not on */
++	cal = readb(ioaddr + RTC_CALIBRATION);
++	if (cal & RTC_STOP) {
++		cal &= RTC_CAL_MASK;
++		flags = readb(ioaddr + RTC_FLAGS);
++		writeb(flags | RTC_WRITE, ioaddr + RTC_FLAGS);
++		writeb(cal, ioaddr + RTC_CALIBRATION);
++		writeb(flags & ~RTC_WRITE, ioaddr + RTC_FLAGS);
++	}
++	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_PF)
++		dev_warn(&pdev->dev, "voltage-low detected.\n");
++
++	if (pdata->irq >= 0) {
++		writeb(0, ioaddr + RTC_INTERRUPTS);
++		if (request_irq(pdata->irq, stk17ta8_rtc_interrupt,
++				IRQF_DISABLED | IRQF_SHARED,
++				pdev->name, pdev) < 0) {
++			dev_warn(&pdev->dev, "interrupt not available.\n");
++			pdata->irq = -1;
++		}
++	}
++
++	rtc = rtc_device_register(pdev->name, &pdev->dev,
++				  &stk17ta8_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc)) {
++		ret = PTR_ERR(rtc);
++		goto out;
++	}
++	pdata->rtc = rtc;
++	pdata->last_jiffies = jiffies;
++	platform_set_drvdata(pdev, pdata);
++	ret = sysfs_create_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
++	if (ret)
++		goto out;
++	return 0;
++ out:
++	if (pdata->rtc)
++		rtc_device_unregister(pdata->rtc);
++	if (pdata->irq >= 0)
++		free_irq(pdata->irq, pdev);
++	if (ioaddr)
++		iounmap(ioaddr);
++	if (pdata->baseaddr)
++		release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
++	kfree(pdata);
++	return ret;
++}
++
++static int __devexit stk17ta8_rtc_remove(struct platform_device *pdev)
++{
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	sysfs_remove_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
++	rtc_device_unregister(pdata->rtc);
++	if (pdata->irq >= 0) {
++		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
++		free_irq(pdata->irq, pdev);
++	}
++	iounmap(pdata->ioaddr);
++	release_mem_region(pdata->baseaddr, RTC_REG_SIZE);
++	kfree(pdata);
++	return 0;
++}
++
++static struct platform_driver stk17ta8_rtc_driver = {
++	.probe		= stk17ta8_rtc_probe,
++	.remove		= __devexit_p(stk17ta8_rtc_remove),
++	.driver		= {
++		.name	= "stk17ta8",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static __init int stk17ta8_init(void)
++{
++	return platform_driver_register(&stk17ta8_rtc_driver);
++}
++
++static __exit void stk17ta8_exit(void)
++{
++	return platform_driver_unregister(&stk17ta8_rtc_driver);
++}
++
++module_init(stk17ta8_init);
++module_exit(stk17ta8_exit);
++
++MODULE_AUTHOR("Thomas Hommel <thomas.hommel@gefanuc.com>");
++MODULE_DESCRIPTION("Simtek STK17TA8 RTC driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
-
-git-jg-misc.patch
-git-libata-all.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-libata-adjust-libata-to-ignore-errors-after.patch
-libata-check-for-an-support.patch
-scsi-expose-an-to-user-space.patch
-libata-expose-an-to-user-space.patch
-scsi-save-disk-in-scsi_device.patch
-libata-send-event-when-an-received.patch
-ata-ahci-alpm-store-interrupt-value.patch
-ata-ahci-alpm-expose-power-management-policy-option-to-users.patch
-ata-ahci-alpm-enable-link-power-management-for-ata-drivers.patch
-ata-ahci-alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
-8139too-force-media-setting-fix.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200.patch
-via-rhine-disable-rx_copybreak-on-archs-that.patch
-netdev-i82596-ethernet-needs-asm-cacheflushh.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-e1000new-build-fix.patch
-bpqether-fix-rcu-usage.patch
-typo-fixes-errror-error.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
-iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer-iomap-allow-space-for-64bit-i-o-ports.patch
-ata-use-iomap_name.patch
+Patches currently in -mm which might be from thomas.hommel@gefanuc.com are
