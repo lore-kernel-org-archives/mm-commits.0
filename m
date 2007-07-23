@@ -1,191 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - geode-setup-correct-chipset-access-functions.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:35:44 -0700
-Message-ID: <200707230935.l6N9Zi8X016515@imap1.linux-foundation.org>
+Subject: - highres-improve-debug-output.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:34:06 -0700
+Message-ID: <200707230934.l6N9Y6C3016355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60146 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33209 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759227AbXGWJqK (ORCPT
+	by vger.kernel.org with ESMTP id S1759476AbXGWJqA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 05:46:10 -0400
+	Mon, 23 Jul 2007 05:46:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: juergen@kreuzholzen.de, ak@suse.de, alan@lxorguk.ukuu.org.uk, dilinger@debian.org, jordan.crouse@amd.com, takada@mbf.nifty.com, mm-commits@vger.kernel.org
+To: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     geode: setup correct chipset access functions
+     highres: improve debug output
 has been removed from the -mm tree.  Its filename was
-     geode-setup-correct-chipset-access-functions.patch
+     highres-improve-debug-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: geode: setup correct chipset access functions
-From: Juergen Beisert <juergen@kreuzholzen.de>
+Subject: highres: improve debug output
+From: Ingo Molnar <mingo@elte.hu>
 
-Replace NSC/Cyrix specific chipset access macros by inlined functions. 
-With the macros a line like this fails (and does nothing):
+Add some more debug information to the hrtimer and clock events code.
 
-	setCx86(CX86_CCR2, getCx86(CX86_CCR2) | 0x88);
-
-With inlined functions this line will work as expected.
-
-Note about a side effect: Seems on Geode GX1 based systems the "suspend on
-halt power saving feature" was never enabled due to this wrong macro
-expansion.  With inlined functions it will be enabled, but this will stop
-the TSC when the CPU runs into a HLT instruction.  Kernel output something
-like this:
-
-	Clocksource tsc unstable (delta = -472746897 ns)
-
-This is due to "X86 magic".  The access order is important.  The first access
-must always be the offset at 0x22.  This access enables the next access to
-0x23 (data).  If you do it in wrong order, it fails.  With the macros you get
-something like 0x22, 0x22, 0x23, 0x23.  With the inline functions
-0x22,0x23,0x22,0x23.
-
-Signed-off-by: Juergen Beisert <juergen@kreuzholzen.de>
-Cc: TAKADA Yoshihito <takada@mbf.nifty.com>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: Andi Kleen <ak@suse.de>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/gx-suspmod.c |    2 -
- arch/i386/kernel/cpu/cyrix.c              |    2 -
- arch/i386/kernel/cpu/mtrr/cyrix.c         |    1 
- arch/i386/kernel/cpu/mtrr/state.c         |    1 
- include/asm-i386/processor-cyrix.h        |   30 ++++++++++++++++++++
- include/asm-i386/processor.h              |   11 -------
- include/asm-x86_64/processor.h            |   11 -------
- 7 files changed, 34 insertions(+), 24 deletions(-)
+ arch/i386/kernel/apic.c    |    3 +++
+ kernel/hrtimer.c           |    5 ++++-
+ kernel/time/tick-oneshot.c |   15 ++++++++++++++-
+ 3 files changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/cpufreq/gx-suspmod.c~geode-setup-correct-chipset-access-functions arch/i386/kernel/cpu/cpufreq/gx-suspmod.c
---- a/arch/i386/kernel/cpu/cpufreq/gx-suspmod.c~geode-setup-correct-chipset-access-functions
-+++ a/arch/i386/kernel/cpu/cpufreq/gx-suspmod.c
-@@ -79,7 +79,7 @@
- #include <linux/smp.h>
- #include <linux/cpufreq.h>
- #include <linux/pci.h>
--#include <asm/processor.h>
-+#include <asm/processor-cyrix.h>
- #include <asm/errno.h>
+diff -puN arch/i386/kernel/apic.c~highres-improve-debug-output arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~highres-improve-debug-output
++++ a/arch/i386/kernel/apic.c
+@@ -524,6 +524,9 @@ void __init setup_boot_APIC_clock(void)
+ 		 */
+ 		if (nmi_watchdog != NMI_IO_APIC)
+ 			lapic_clockevent.features &= ~CLOCK_EVT_FEAT_DUMMY;
++		else
++			printk(KERN_WARNING "APIC timer registered as dummy,"
++			       " due to nmi_watchdog=1!\n");
+ 	}
  
- /* PCI config registers, all at F0 */
-diff -puN arch/i386/kernel/cpu/cyrix.c~geode-setup-correct-chipset-access-functions arch/i386/kernel/cpu/cyrix.c
---- a/arch/i386/kernel/cpu/cyrix.c~geode-setup-correct-chipset-access-functions
-+++ a/arch/i386/kernel/cpu/cyrix.c
-@@ -4,7 +4,7 @@
- #include <linux/pci.h>
- #include <asm/dma.h>
- #include <asm/io.h>
--#include <asm/processor.h>
-+#include <asm/processor-cyrix.h>
- #include <asm/timer.h>
- #include <asm/pci-direct.h>
- #include <asm/tsc.h>
-diff -puN arch/i386/kernel/cpu/mtrr/cyrix.c~geode-setup-correct-chipset-access-functions arch/i386/kernel/cpu/mtrr/cyrix.c
---- a/arch/i386/kernel/cpu/mtrr/cyrix.c~geode-setup-correct-chipset-access-functions
-+++ a/arch/i386/kernel/cpu/mtrr/cyrix.c
-@@ -3,6 +3,7 @@
- #include <asm/mtrr.h>
- #include <asm/msr.h>
- #include <asm/io.h>
-+#include <asm/processor-cyrix.h>
- #include "mtrr.h"
- 
- int arr3_protected;
-diff -puN arch/i386/kernel/cpu/mtrr/state.c~geode-setup-correct-chipset-access-functions arch/i386/kernel/cpu/mtrr/state.c
---- a/arch/i386/kernel/cpu/mtrr/state.c~geode-setup-correct-chipset-access-functions
-+++ a/arch/i386/kernel/cpu/mtrr/state.c
-@@ -3,6 +3,7 @@
- #include <asm/io.h>
- #include <asm/mtrr.h>
- #include <asm/msr.h>
-+#include <asm/processor-cyrix.h>
- #include "mtrr.h"
- 
- 
-diff -puN /dev/null include/asm-i386/processor-cyrix.h
---- /dev/null
-+++ a/include/asm-i386/processor-cyrix.h
-@@ -0,0 +1,30 @@
-+/*
-+ * NSC/Cyrix CPU indexed register access. Must be inlined instead of
-+ * macros to ensure correct access ordering
-+ * Access order is always 0x22 (=offset), 0x23 (=value)
-+ *
-+ * When using the old macros a line like
-+ *   setCx86(CX86_CCR2, getCx86(CX86_CCR2) | 0x88);
-+ * gets expanded to:
-+ *  do {
-+ *    outb((CX86_CCR2), 0x22);
-+ *    outb((({
-+ *        outb((CX86_CCR2), 0x22);
-+ *        inb(0x23);
-+ *    }) | 0x88), 0x23);
-+ *  } while (0);
-+ *
-+ * which in fact violates the access order (= 0x22, 0x22, 0x23, 0x23).
-+ */
-+
-+static inline u8 getCx86(u8 reg)
-+{
-+	outb(reg, 0x22);
-+	return inb(0x23);
-+}
-+
-+static inline void setCx86(u8 reg, u8 data)
-+{
-+	outb(reg, 0x22);
-+	outb(data, 0x23);
-+}
-diff -puN include/asm-i386/processor.h~geode-setup-correct-chipset-access-functions include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~geode-setup-correct-chipset-access-functions
-+++ a/include/asm-i386/processor.h
-@@ -168,17 +168,6 @@ static inline void clear_in_cr4 (unsigne
- 	write_cr4(cr4);
- }
- 
--/*
-- *      NSC/Cyrix CPU indexed register access macros
-- */
--
--#define getCx86(reg) ({ outb((reg), 0x22); inb(0x23); })
--
--#define setCx86(reg, data) do { \
--	outb((reg), 0x22); \
--	outb((data), 0x23); \
--} while (0)
--
- /* Stop speculative execution */
- static inline void sync_core(void)
+ 	/* Setup the lapic or request the broadcast */
+diff -puN kernel/hrtimer.c~highres-improve-debug-output kernel/hrtimer.c
+--- a/kernel/hrtimer.c~highres-improve-debug-output
++++ a/kernel/hrtimer.c
+@@ -558,7 +558,8 @@ static inline int hrtimer_enqueue_reprog
+  */
+ static int hrtimer_switch_to_hres(void)
  {
-diff -puN include/asm-x86_64/processor.h~geode-setup-correct-chipset-access-functions include/asm-x86_64/processor.h
---- a/include/asm-x86_64/processor.h~geode-setup-correct-chipset-access-functions
-+++ a/include/asm-x86_64/processor.h
-@@ -391,17 +391,6 @@ static inline void prefetchw(void *x) 
+-	struct hrtimer_cpu_base *base = &__get_cpu_var(hrtimer_bases);
++	int cpu = smp_processor_id();
++	struct hrtimer_cpu_base *base = &per_cpu(hrtimer_bases, cpu);
+ 	unsigned long flags;
  
- #define cpu_relax()   rep_nop()
+ 	if (base->hres_active)
+@@ -568,6 +569,8 @@ static int hrtimer_switch_to_hres(void)
  
--/*
-- *      NSC/Cyrix CPU indexed register access macros
-- */
--
--#define getCx86(reg) ({ outb((reg), 0x22); inb(0x23); })
--
--#define setCx86(reg, data) do { \
--	outb((reg), 0x22); \
--	outb((data), 0x23); \
--} while (0)
--
- static inline void serialize_cpu(void)
- {
- 	__asm__ __volatile__ ("cpuid" : : : "ax", "bx", "cx", "dx");
+ 	if (tick_init_highres()) {
+ 		local_irq_restore(flags);
++		printk(KERN_WARNING "Could not switch to high resolution "
++				    "mode on CPU %d\n", cpu);
+ 		return 0;
+ 	}
+ 	base->hres_active = 1;
+diff -puN kernel/time/tick-oneshot.c~highres-improve-debug-output kernel/time/tick-oneshot.c
+--- a/kernel/time/tick-oneshot.c~highres-improve-debug-output
++++ a/kernel/time/tick-oneshot.c
+@@ -73,8 +73,21 @@ int tick_switch_to_oneshot(void (*handle
+ 	struct clock_event_device *dev = td->evtdev;
+ 
+ 	if (!dev || !(dev->features & CLOCK_EVT_FEAT_ONESHOT) ||
+-	    !tick_device_is_functional(dev))
++		    !tick_device_is_functional(dev)) {
++
++		printk(KERN_INFO "Clockevents: "
++		       "could not switch to one-shot mode:");
++		if (!dev) {
++			printk(" no tick device\n");
++		} else {
++			if (!tick_device_is_functional(dev))
++				printk(" %s is not functional.\n", dev->name);
++			else
++				printk(" %s does not support one-shot mode.\n",
++				       dev->name);
++		}
+ 		return -EINVAL;
++	}
+ 
+ 	td->mode = TICKDEV_MODE_ONESHOT;
+ 	dev->event_handler = handler;
 _
 
-Patches currently in -mm which might be from juergen@kreuzholzen.de are
+Patches currently in -mm which might be from mingo@elte.hu are
+
+git-acpi.patch
+git-kvm.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+acpi-remove-the-useless-ifdef-code.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+geode-mfgpt-clock-event-device-support.patch
+i386-remove-unnecessary-code.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+softlockup-improve-debug-output.patch
+softlockup-watchdog-style-cleanups.patch
+softlockup-add-a-proc-tuning-parameter.patch
+futex-pass-nr_wake2-to-futex_wake_op.patch
+mark-sysrq_sched_debug_show-static.patch
+cfs-mark-print_cfs_stats-static.patch
+remove-kconfig-setting-config_debug_shirq.patch
+debug-handling-of-early-spurious-interrupts.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
