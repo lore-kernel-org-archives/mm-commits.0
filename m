@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:16:13 -0700
-Message-ID: <200707232316.l6NNGDQJ017115@imap1.linux-foundation.org>
+Subject: + clean-up-duplicate-includes-in-kernel.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:16:17 -0700
+Message-ID: <200707232316.l6NNGHYr017121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44197 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60886 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755871AbXGWX0W (ORCPT
+	by vger.kernel.org with ESMTP id S1758627AbXGWX0f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:26:22 -0400
+	Mon, 23 Jul 2007 19:26:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, y-goto@jp.fujitsu.com
+Cc: jesper.juhl@gmail.com, paulmck@linux.vnet.ibm.com, ssatyam@cse.iitk.ac.in
 
 
 The patch titled
-     Clean up duplicate includes in include/linux/memory_hotplug.h
+     Clean up duplicate includes in kernel/
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+     clean-up-duplicate-includes-in-kernel.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,116 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in include/linux/memory_hotplug.h
+Subject: Clean up duplicate includes in kernel/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	include/linux/memory_hotplug.h
+	kernel/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Reviewed-by: Satyam Sharma <ssatyam@cse.iitk.ac.in>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    1 -
- 1 files changed, 1 deletion(-)
+ kernel/auditsc.c    |    1 -
+ kernel/exit.c       |    1 -
+ kernel/kexec.c      |    1 -
+ kernel/rcupdate.c   |    1 -
+ kernel/rcutorture.c |    1 -
+ kernel/sysctl.c     |    1 -
+ kernel/taskstats.c  |    1 -
+ kernel/time.c       |    1 -
+ 8 files changed, 8 deletions(-)
 
-diff -puN include/linux/memory_hotplug.h~clean-up-duplicate-includes-in-include-linux-memory_hotplugh include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~clean-up-duplicate-includes-in-include-linux-memory_hotplugh
-+++ a/include/linux/memory_hotplug.h
-@@ -3,7 +3,6 @@
+diff -puN kernel/auditsc.c~clean-up-duplicate-includes-in-kernel kernel/auditsc.c
+--- a/kernel/auditsc.c~clean-up-duplicate-includes-in-kernel
++++ a/kernel/auditsc.c
+@@ -45,7 +45,6 @@
+ #include <linux/init.h>
+ #include <asm/types.h>
+ #include <asm/atomic.h>
+-#include <asm/types.h>
+ #include <linux/fs.h>
+ #include <linux/namei.h>
+ #include <linux/mm.h>
+diff -puN kernel/exit.c~clean-up-duplicate-includes-in-kernel kernel/exit.c
+--- a/kernel/exit.c~clean-up-duplicate-includes-in-kernel
++++ a/kernel/exit.c
+@@ -45,7 +45,6 @@
+ #include <linux/resource.h>
+ #include <linux/blkdev.h>
+ #include <linux/task_io_accounting_ops.h>
+-#include <linux/freezer.h>
  
- #include <linux/mmzone.h>
- #include <linux/spinlock.h>
--#include <linux/mmzone.h>
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+diff -puN kernel/kexec.c~clean-up-duplicate-includes-in-kernel kernel/kexec.c
+--- a/kernel/kexec.c~clean-up-duplicate-includes-in-kernel
++++ a/kernel/kexec.c
+@@ -17,7 +17,6 @@
+ #include <linux/highmem.h>
+ #include <linux/syscalls.h>
+ #include <linux/reboot.h>
+-#include <linux/syscalls.h>
+ #include <linux/ioport.h>
+ #include <linux/hardirq.h>
+ #include <linux/elf.h>
+diff -puN kernel/rcupdate.c~clean-up-duplicate-includes-in-kernel kernel/rcupdate.c
+--- a/kernel/rcupdate.c~clean-up-duplicate-includes-in-kernel
++++ a/kernel/rcupdate.c
+@@ -45,7 +45,6 @@
+ #include <linux/moduleparam.h>
+ #include <linux/percpu.h>
  #include <linux/notifier.h>
+-#include <linux/rcupdate.h>
+ #include <linux/cpu.h>
+ #include <linux/mutex.h>
  
- struct page;
+diff -puN kernel/rcutorture.c~clean-up-duplicate-includes-in-kernel kernel/rcutorture.c
+--- a/kernel/rcutorture.c~clean-up-duplicate-includes-in-kernel
++++ a/kernel/rcutorture.c
+@@ -35,7 +35,6 @@
+ #include <linux/sched.h>
+ #include <asm/atomic.h>
+ #include <linux/bitops.h>
+-#include <linux/module.h>
+ #include <linux/completion.h>
+ #include <linux/moduleparam.h>
+ #include <linux/percpu.h>
+diff -puN kernel/sysctl.c~clean-up-duplicate-includes-in-kernel kernel/sysctl.c
+--- a/kernel/sysctl.c~clean-up-duplicate-includes-in-kernel
++++ a/kernel/sysctl.c
+@@ -28,7 +28,6 @@
+ #include <linux/capability.h>
+ #include <linux/ctype.h>
+ #include <linux/utsname.h>
+-#include <linux/capability.h>
+ #include <linux/smp_lock.h>
+ #include <linux/fs.h>
+ #include <linux/init.h>
+diff -puN kernel/taskstats.c~clean-up-duplicate-includes-in-kernel kernel/taskstats.c
+--- a/kernel/taskstats.c~clean-up-duplicate-includes-in-kernel
++++ a/kernel/taskstats.c
+@@ -20,7 +20,6 @@
+ #include <linux/taskstats_kern.h>
+ #include <linux/tsacct_kern.h>
+ #include <linux/delayacct.h>
+-#include <linux/tsacct_kern.h>
+ #include <linux/cpumask.h>
+ #include <linux/percpu.h>
+ #include <linux/containerstats.h>
+diff -puN kernel/time.c~clean-up-duplicate-includes-in-kernel kernel/time.c
+--- a/kernel/time.c~clean-up-duplicate-includes-in-kernel
++++ a/kernel/time.c
+@@ -34,7 +34,6 @@
+ #include <linux/syscalls.h>
+ #include <linux/security.h>
+ #include <linux/fs.h>
+-#include <linux/module.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
