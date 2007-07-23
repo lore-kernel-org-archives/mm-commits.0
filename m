@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-drivers-hwmon.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:15:43 -0700
-Message-ID: <200707232315.l6NNFh1l017063@imap1.linux-foundation.org>
+Subject: + clean-up-duplicate-includes-in-drivers-block.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:15:39 -0700
+Message-ID: <200707232315.l6NNFdwg017057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40166 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47106 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757121AbXGWXQ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756799AbXGWXQX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:16:26 -0400
+	Mon, 23 Jul 2007 19:16:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, mhoffman@lightlink.com
+Cc: jesper.juhl@gmail.com, jens.axboe@oracle.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Clean up duplicate includes in drivers/hwmon/
+     Clean up duplicate includes in drivers/block/
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-drivers-hwmon.patch
+     clean-up-duplicate-includes-in-drivers-block.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in drivers/hwmon/
+Subject: Clean up duplicate includes in drivers/block/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	drivers/hwmon/
+	drivers/block/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Mark Hoffman <mhoffman@lightlink.com>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/ams/ams-core.c |    1 -
+ drivers/block/viodasd.c |    1 -
  1 files changed, 1 deletion(-)
 
-diff -puN drivers/hwmon/ams/ams-core.c~clean-up-duplicate-includes-in-drivers-hwmon drivers/hwmon/ams/ams-core.c
---- a/drivers/hwmon/ams/ams-core.c~clean-up-duplicate-includes-in-drivers-hwmon
-+++ a/drivers/hwmon/ams/ams-core.c
-@@ -23,7 +23,6 @@
- #include <linux/types.h>
- #include <linux/errno.h>
- #include <linux/init.h>
--#include <linux/module.h>
- #include <asm/pmac_pfunc.h>
- #include <asm/of_platform.h>
+diff -puN drivers/block/viodasd.c~clean-up-duplicate-includes-in-drivers-block drivers/block/viodasd.c
+--- a/drivers/block/viodasd.c~clean-up-duplicate-includes-in-drivers-block
++++ a/drivers/block/viodasd.c
+@@ -41,7 +41,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/completion.h>
+ #include <linux/device.h>
+-#include <linux/kernel.h>
  
+ #include <asm/uaccess.h>
+ #include <asm/vio.h>
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
