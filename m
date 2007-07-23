@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + 0-null-drivers-usb-gadget.patch added to -mm tree
-Date: Mon, 23 Jul 2007 14:18:41 -0700
-Message-ID: <200707232118.l6NLIftg012326@imap1.linux-foundation.org>
+Subject: + during-vm-oom-condition-kill-all-threads-in-process-group.patch added to -mm tree
+Date: Mon, 23 Jul 2007 14:16:52 -0700
+Message-ID: <200707232116.l6NLGqx1012209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38997 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35599 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751211AbXGWVSt (ORCPT
+	by vger.kernel.org with ESMTP id S1751264AbXGWVTJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 17:18:49 -0400
+	Mon, 23 Jul 2007 17:19:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: padator@wanadoo.fr, greg@kroah.com
+Cc: will_schmidt@vnet.ibm.com, ak@suse.de, benh@kernel.crashing.org, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, hskinnemoen@atmel.com, ink@jurassic.park.msu.ru, kkojima@rr.iij4u.or.jp, kyle@mcmartin.ca, lethal@linux-sh.org, paulus@samba.org, ralf@linux-mips.org, rc@rc0.org.uk, rmk@arm.linux.org.uk, rth@twiddle.net, schwidefsky@de.ibm.com, spyro@f2s.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, willy@debian.org, wli@holomorphy.com, zippel@linux-m68k.org
 
 
 The patch titled
-     0 -> NULL, drivers/usb/gadget/
+     During VM oom condition, kill all threads in process group
 has been added to the -mm tree.  Its filename is
-     0-null-drivers-usb-gadget.patch
+     during-vm-oom-condition-kill-all-threads-in-process-group.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,221 +26,299 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 0 -> NULL, drivers/usb/gadget/
-From: Yoann Padioleau <padator@wanadoo.fr>
+Subject: During VM oom condition, kill all threads in process group
+From: Will Schmidt <will_schmidt@vnet.ibm.com>
 
-When comparing a pointer, it's clearer to compare it to NULL than to 0.
+We have had complaints where a threaded application is left in a bad state
+after one of it's threads is killed when we hit a VM: out_of_memory
+condition.
 
-Here is the semantic patch:
+Killing just one of the process threads can leave the application in a bad
+state, whereas killing the entire process group would allow for the
+application to restart, or be otherwise handled, and makes it very obvious
+that something has gone wrong.
 
-@@
-expression *E;
-@@
+This change allows the entire process group to be taken down, rather
+than just the one thread.
 
-  E ==
-- 0
-+ NULL
-
-@@
-expression *E;
-@@
-
-- 0
-+ NULL
-  == E
-
-@@
-expression *E;
-@@
-
-  E !=
-- 0
-+ NULL
-
-@@
-expression *E;
-@@
-
-- 0
-+ NULL
-  != E
-
-Signed-off-by: Yoann Padioleau <padator@wanadoo.fr>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Will Schmidt <will_schmidt@vnet.ibm.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ian Molton <spyro@f2s.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Matthew Wilcox <willy@debian.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
+Cc: Richard Curnow <rc@rc0.org.uk>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/config.c      |    2 +-
- drivers/usb/gadget/ether.c       |    2 +-
- drivers/usb/gadget/goku_udc.c    |    2 +-
- drivers/usb/gadget/inode.c       |    2 +-
- drivers/usb/gadget/lh7a40x_udc.c |    2 +-
- drivers/usb/gadget/m66592-udc.c  |    2 +-
- drivers/usb/gadget/net2280.c     |    8 ++++----
- drivers/usb/gadget/pxa2xx_udc.c  |    4 ++--
- drivers/usb/gadget/pxa2xx_udc.h  |    2 +-
- drivers/usb/gadget/s3c2410_udc.c |    2 +-
- 10 files changed, 14 insertions(+), 14 deletions(-)
+ arch/alpha/mm/fault.c   |    2 +-
+ arch/arm/mm/fault.c     |    2 +-
+ arch/arm26/mm/fault.c   |    2 +-
+ arch/avr32/mm/fault.c   |    2 +-
+ arch/cris/mm/fault.c    |    2 +-
+ arch/frv/mm/fault.c     |    2 +-
+ arch/i386/mm/fault.c    |    2 +-
+ arch/ia64/mm/fault.c    |    2 +-
+ arch/m32r/mm/fault.c    |    2 +-
+ arch/m68k/mm/fault.c    |    2 +-
+ arch/mips/mm/fault.c    |    2 +-
+ arch/parisc/mm/fault.c  |    2 +-
+ arch/ppc/mm/fault.c     |    2 +-
+ arch/s390/mm/fault.c    |    2 +-
+ arch/sh/mm/fault.c      |    2 +-
+ arch/sh64/mm/fault.c    |    2 +-
+ arch/sparc/mm/fault.c   |    2 +-
+ arch/sparc64/mm/fault.c |    2 +-
+ arch/xtensa/mm/fault.c  |    2 +-
+ 19 files changed, 19 insertions(+), 19 deletions(-)
 
-diff -puN drivers/usb/gadget/config.c~0-null-drivers-usb-gadget drivers/usb/gadget/config.c
---- a/drivers/usb/gadget/config.c~0-null-drivers-usb-gadget
-+++ a/drivers/usb/gadget/config.c
-@@ -50,7 +50,7 @@ usb_descriptor_fillbuf(void *buf, unsign
- 		return -EINVAL;
+diff -puN arch/alpha/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/alpha/mm/fault.c
+--- a/arch/alpha/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/alpha/mm/fault.c
+@@ -197,7 +197,7 @@ do_page_fault(unsigned long address, uns
+ 	       current->comm, current->pid);
+ 	if (!user_mode(regs))
+ 		goto no_context;
+-	do_exit(SIGKILL);
++	do_group_exit(SIGKILL);
  
- 	/* fill buffer from src[] until null descriptor ptr */
--	for (; 0 != *src; src++) {
-+	for (; NULL != *src; src++) {
- 		unsigned		len = (*src)->bLength;
- 
- 		if (len > buflen)
-diff -puN drivers/usb/gadget/ether.c~0-null-drivers-usb-gadget drivers/usb/gadget/ether.c
---- a/drivers/usb/gadget/ether.c~0-null-drivers-usb-gadget
-+++ a/drivers/usb/gadget/ether.c
-@@ -1723,7 +1723,7 @@ rx_submit (struct eth_dev *dev, struct u
- 		size += sizeof (struct rndis_packet_msg_type);
- 	size -= size % dev->out_ep->maxpacket;
- 
--	if ((skb = alloc_skb (size + NET_IP_ALIGN, gfp_flags)) == 0) {
-+	if ((skb = alloc_skb (size + NET_IP_ALIGN, gfp_flags)) == NULL) {
- 		DEBUG (dev, "no rx skb\n");
- 		goto enomem;
+  do_sigbus:
+ 	/* Send a sigbus, regardless of whether we were in kernel
+diff -puN arch/arm/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/arm/mm/fault.c
+--- a/arch/arm/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/arm/mm/fault.c
+@@ -266,7 +266,7 @@ do_page_fault(unsigned long addr, unsign
+ 		 * the page fault gracefully.
+ 		 */
+ 		printk("VM: killing process %s\n", tsk->comm);
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 		return 0;
  	}
-diff -puN drivers/usb/gadget/goku_udc.c~0-null-drivers-usb-gadget drivers/usb/gadget/goku_udc.c
---- a/drivers/usb/gadget/goku_udc.c~0-null-drivers-usb-gadget
-+++ a/drivers/usb/gadget/goku_udc.c
-@@ -776,7 +776,7 @@ goku_queue(struct usb_ep *_ep, struct us
- 
- 	} /* else pio or dma irq handler advances the queue. */
- 
--	if (likely(req != 0))
-+	if (likely(req != NULL))
- 		list_add_tail(&req->queue, &ep->queue);
- 
- 	if (likely(!list_empty(&ep->queue))
-diff -puN drivers/usb/gadget/inode.c~0-null-drivers-usb-gadget drivers/usb/gadget/inode.c
---- a/drivers/usb/gadget/inode.c~0-null-drivers-usb-gadget
-+++ a/drivers/usb/gadget/inode.c
-@@ -1394,7 +1394,7 @@ gadgetfs_setup (struct usb_gadget *gadge
- 	dev->setup_abort = 0;
- 	if (dev->state == STATE_DEV_UNCONNECTED) {
- #ifdef	CONFIG_USB_GADGET_DUALSPEED
--		if (gadget->speed == USB_SPEED_HIGH && dev->hs_config == 0) {
-+		if (gadget->speed == USB_SPEED_HIGH && dev->hs_config == NULL) {
- 			spin_unlock(&dev->lock);
- 			ERROR (dev, "no high speed config??\n");
- 			return -EINVAL;
-diff -puN drivers/usb/gadget/lh7a40x_udc.c~0-null-drivers-usb-gadget drivers/usb/gadget/lh7a40x_udc.c
---- a/drivers/usb/gadget/lh7a40x_udc.c~0-null-drivers-usb-gadget
-+++ a/drivers/usb/gadget/lh7a40x_udc.c
-@@ -1202,7 +1202,7 @@ static int lh7a40x_queue(struct usb_ep *
+ 	if (fault & VM_FAULT_SIGBUS) {
+diff -puN arch/arm26/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/arm26/mm/fault.c
+--- a/arch/arm26/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/arm26/mm/fault.c
+@@ -246,7 +246,7 @@ int do_page_fault(unsigned long addr, un
+ 		 * us that made us unable to handle the page fault gracefully.
+ 		 */
+ 		printk("VM: killing process %s\n", tsk->comm);
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
  	}
- 
- 	/* pio or dma irq handler advances the queue. */
--	if (likely(req != 0))
-+	if (likely(req != NULL))
- 		list_add_tail(&req->queue, &ep->queue);
- 
- 	spin_unlock_irqrestore(&dev->lock, flags);
-diff -puN drivers/usb/gadget/m66592-udc.c~0-null-drivers-usb-gadget drivers/usb/gadget/m66592-udc.c
---- a/drivers/usb/gadget/m66592-udc.c~0-null-drivers-usb-gadget
-+++ a/drivers/usb/gadget/m66592-udc.c
-@@ -1299,7 +1299,7 @@ static int m66592_queue(struct usb_ep *_
- 	req->req.actual = 0;
- 	req->req.status = -EINPROGRESS;
- 
--	if (ep->desc == 0)	/* control */
-+	if (ep->desc == NULL)	/* control */
- 		start_ep0(ep, req);
- 	else {
- 		if (request && !ep->busy)
-diff -puN drivers/usb/gadget/net2280.c~0-null-drivers-usb-gadget drivers/usb/gadget/net2280.c
---- a/drivers/usb/gadget/net2280.c~0-null-drivers-usb-gadget
-+++ a/drivers/usb/gadget/net2280.c
-@@ -2120,7 +2120,7 @@ static void handle_ep_small (struct net2
- 		return;
- 
- 	/* manual DMA queue advance after short OUT */
--	if (likely (ep->dma != 0)) {
-+	if (likely (ep->dma != NULL)) {
- 		if (t & (1 << SHORT_PACKET_TRANSFERRED_INTERRUPT)) {
- 			u32	count;
- 			int	stopped = ep->stopped;
-@@ -2380,7 +2380,7 @@ static void handle_stat0_irqs (struct ne
- 			/* hw handles device and interface status */
- 			if (u.r.bRequestType != (USB_DIR_IN|USB_RECIP_ENDPOINT))
- 				goto delegate;
--			if ((e = get_ep_by_addr (dev, w_index)) == 0
-+			if ((e = get_ep_by_addr (dev, w_index)) == NULL
- 					|| w_length > 2)
- 				goto do_stall;
- 
-@@ -2408,7 +2408,7 @@ static void handle_stat0_irqs (struct ne
- 			if (w_value != USB_ENDPOINT_HALT
- 					|| w_length != 0)
- 				goto do_stall;
--			if ((e = get_ep_by_addr (dev, w_index)) == 0)
-+			if ((e = get_ep_by_addr (dev, w_index)) == NULL)
- 				goto do_stall;
- 			clear_halt (e);
- 			allow_status (ep);
-@@ -2425,7 +2425,7 @@ static void handle_stat0_irqs (struct ne
- 			if (w_value != USB_ENDPOINT_HALT
- 					|| w_length != 0)
- 				goto do_stall;
--			if ((e = get_ep_by_addr (dev, w_index)) == 0)
-+			if ((e = get_ep_by_addr (dev, w_index)) == NULL)
- 				goto do_stall;
- 			set_halt (e);
- 			allow_status (ep);
-diff -puN drivers/usb/gadget/pxa2xx_udc.c~0-null-drivers-usb-gadget drivers/usb/gadget/pxa2xx_udc.c
---- a/drivers/usb/gadget/pxa2xx_udc.c~0-null-drivers-usb-gadget
-+++ a/drivers/usb/gadget/pxa2xx_udc.c
-@@ -688,7 +688,7 @@ pxa2xx_ep_queue(struct usb_ep *_ep, stru
- 
- 	/* kickstart this i/o queue? */
- 	if (list_empty(&ep->queue) && !ep->stopped) {
--		if (ep->desc == 0 /* ep0 */) {
-+		if (ep->desc == NULL /* ep0 */) {
- 			unsigned	length = _req->length;
- 
- 			switch (dev->ep0state) {
-@@ -742,7 +742,7 @@ pxa2xx_ep_queue(struct usb_ep *_ep, stru
+ 	else{
+ 		__do_user_fault(tsk, addr, fsr, fault == -1 ? SEGV_ACCERR : SEGV_MAPERR, regs);
+diff -puN arch/avr32/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/avr32/mm/fault.c
+--- a/arch/avr32/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/avr32/mm/fault.c
+@@ -216,7 +216,7 @@ out_of_memory:
  	}
+ 	printk("VM: Killing process %s\n", tsk->comm);
+ 	if (user_mode(regs))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto no_context;
  
- 	/* pio or dma irq handler advances the queue. */
--	if (likely (req != 0))
-+	if (likely (req != NULL))
- 		list_add_tail(&req->queue, &ep->queue);
- 	local_irq_restore(flags);
+ do_sigbus:
+diff -puN arch/cris/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/cris/mm/fault.c
+--- a/arch/cris/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/cris/mm/fault.c
+@@ -360,7 +360,7 @@ do_page_fault(unsigned long address, str
+ 	up_read(&mm->mmap_sem);
+ 	printk("VM: killing process %s\n", tsk->comm);
+ 	if (user_mode(regs))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto no_context;
  
-diff -puN drivers/usb/gadget/pxa2xx_udc.h~0-null-drivers-usb-gadget drivers/usb/gadget/pxa2xx_udc.h
---- a/drivers/usb/gadget/pxa2xx_udc.h~0-null-drivers-usb-gadget
-+++ a/drivers/usb/gadget/pxa2xx_udc.h
-@@ -232,7 +232,7 @@ dump_state(struct pxa2xx_udc *dev)
- 		dev->stats.read.bytes, dev->stats.read.ops);
+  do_sigbus:
+diff -puN arch/frv/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/frv/mm/fault.c
+--- a/arch/frv/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/frv/mm/fault.c
+@@ -259,7 +259,7 @@ asmlinkage void do_page_fault(int datamm
+ 	up_read(&mm->mmap_sem);
+ 	printk("VM: killing process %s\n", current->comm);
+ 	if (user_mode(__frame))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto no_context;
  
- 	for (i = 1; i < PXA_UDC_NUM_ENDPOINTS; i++) {
--		if (dev->ep [i].desc == 0)
-+		if (dev->ep [i].desc == NULL)
- 			continue;
- 		DMSG ("udccs%d = %02x\n", i, *dev->ep->reg_udccs);
+  do_sigbus:
+diff -puN arch/i386/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/i386/mm/fault.c
+@@ -601,7 +601,7 @@ out_of_memory:
  	}
-diff -puN drivers/usb/gadget/s3c2410_udc.c~0-null-drivers-usb-gadget drivers/usb/gadget/s3c2410_udc.c
---- a/drivers/usb/gadget/s3c2410_udc.c~0-null-drivers-usb-gadget
-+++ a/drivers/usb/gadget/s3c2410_udc.c
-@@ -1294,7 +1294,7 @@ static int s3c2410_udc_queue(struct usb_
+ 	printk("VM: killing process %s\n", tsk->comm);
+ 	if (error_code & 4)
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto no_context;
+ 
+ do_sigbus:
+diff -puN arch/ia64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/ia64/mm/fault.c
+--- a/arch/ia64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/ia64/mm/fault.c
+@@ -277,6 +277,6 @@ ia64_do_page_fault (unsigned long addres
  	}
+ 	printk(KERN_CRIT "VM: killing process %s\n", current->comm);
+ 	if (user_mode(regs))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto no_context;
+ }
+diff -puN arch/m32r/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/m32r/mm/fault.c
+--- a/arch/m32r/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/m32r/mm/fault.c
+@@ -278,7 +278,7 @@ out_of_memory:
+ 	}
+ 	printk("VM: killing process %s\n", tsk->comm);
+ 	if (error_code & ACE_USERMODE)
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto no_context;
  
- 	/* pio or dma irq handler advances the queue. */
--	if (likely (req != 0))
-+	if (likely (req != NULL))
- 		list_add_tail(&req->queue, &ep->queue);
+ do_sigbus:
+diff -puN arch/m68k/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/m68k/mm/fault.c
+--- a/arch/m68k/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/m68k/mm/fault.c
+@@ -188,7 +188,7 @@ out_of_memory:
  
- 	local_irq_restore(flags);
+ 	printk("VM: killing process %s\n", current->comm);
+ 	if (user_mode(regs))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 
+ no_context:
+ 	current->thread.signo = SIGBUS;
+diff -puN arch/mips/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/mips/mm/fault.c
+--- a/arch/mips/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/mips/mm/fault.c
+@@ -180,7 +180,7 @@ out_of_memory:
+ 	}
+ 	printk("VM: killing process %s\n", tsk->comm);
+ 	if (user_mode(regs))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto no_context;
+ 
+ do_sigbus:
+diff -puN arch/parisc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/parisc/mm/fault.c
+--- a/arch/parisc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/parisc/mm/fault.c
+@@ -263,6 +263,6 @@ no_context:
+ 	up_read(&mm->mmap_sem);
+ 	printk(KERN_CRIT "VM: killing process %s\n", current->comm);
+ 	if (user_mode(regs))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto no_context;
+ }
+diff -puN arch/ppc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/ppc/mm/fault.c
+--- a/arch/ppc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/ppc/mm/fault.c
+@@ -298,7 +298,7 @@ out_of_memory:
+ 	}
+ 	printk("VM: killing process %s\n", current->comm);
+ 	if (user_mode(regs))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	return SIGKILL;
+ 
+ do_sigbus:
+diff -puN arch/s390/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/s390/mm/fault.c
+--- a/arch/s390/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/s390/mm/fault.c
+@@ -218,7 +218,7 @@ static int do_out_of_memory(struct pt_re
+ 	}
+ 	printk("VM: killing process %s\n", tsk->comm);
+ 	if (regs->psw.mask & PSW_MASK_PSTATE)
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	do_no_context(regs, error_code, address);
+ 	return 0;
+ }
+diff -puN arch/sh/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/sh/mm/fault.c
+--- a/arch/sh/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/sh/mm/fault.c
+@@ -210,7 +210,7 @@ out_of_memory:
+ 	}
+ 	printk("VM: killing process %s\n", tsk->comm);
+ 	if (user_mode(regs))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto no_context;
+ 
+ do_sigbus:
+diff -puN arch/sh64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/sh64/mm/fault.c
+--- a/arch/sh64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/sh64/mm/fault.c
+@@ -334,7 +334,7 @@ out_of_memory:
+ 	}
+ 	printk("VM: killing process %s\n", tsk->comm);
+ 	if (user_mode(regs))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto no_context;
+ 
+ do_sigbus:
+diff -puN arch/sparc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/sparc/mm/fault.c
+--- a/arch/sparc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/sparc/mm/fault.c
+@@ -369,7 +369,7 @@ out_of_memory:
+ 	up_read(&mm->mmap_sem);
+ 	printk("VM: killing process %s\n", tsk->comm);
+ 	if (from_user)
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto no_context;
+ 
+ do_sigbus:
+diff -puN arch/sparc64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/sparc64/mm/fault.c
+--- a/arch/sparc64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/sparc64/mm/fault.c
+@@ -466,7 +466,7 @@ out_of_memory:
+ 	up_read(&mm->mmap_sem);
+ 	printk("VM: killing process %s\n", current->comm);
+ 	if (!(regs->tstate & TSTATE_PRIV))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	goto handle_kernel_fault;
+ 
+ intr_or_no_mm:
+diff -puN arch/xtensa/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/xtensa/mm/fault.c
+--- a/arch/xtensa/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
++++ a/arch/xtensa/mm/fault.c
+@@ -150,7 +150,7 @@ out_of_memory:
+ 	}
+ 	printk("VM: killing process %s\n", current->comm);
+ 	if (user_mode(regs))
+-		do_exit(SIGKILL);
++		do_group_exit(SIGKILL);
+ 	bad_page_fault(regs, address, SIGKILL);
+ 	return;
+ 
 _
 
-Patches currently in -mm which might be from padator@wanadoo.fr are
+Patches currently in -mm which might be from will_schmidt@vnet.ibm.com are
 
-git-dvb.patch
-0-null-drivers-usb-gadget.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
