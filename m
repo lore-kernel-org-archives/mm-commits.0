@@ -1,49 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - git-backlight-cr_bllcdc-build-fix.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:35:29 -0700
-Message-ID: <200707230935.l6N9ZTpu016494@imap1.linux-foundation.org>
+Subject: - git-block-vs-git-unionfs.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:35:40 -0700
+Message-ID: <200707230935.l6N9ZeI3016509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42492 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45149 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758599AbXGWJpP (ORCPT
+	by vger.kernel.org with ESMTP id S1758786AbXGWJpQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 05:45:15 -0400
+	Mon, 23 Jul 2007 05:45:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-backlight: cr_bllcd.c: build fix
+     git-block-vs-git-unionfs
 has been removed from the -mm tree.  Its filename was
-     git-backlight-cr_bllcdc-build-fix.patch
+     git-block-vs-git-unionfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-backlight: cr_bllcd.c: build fix
+Subject: git-block-vs-git-unionfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/cr_bllcd.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/unionfs/file.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/video/backlight/cr_bllcd.c~git-backlight-cr_bllcdc-build-fix drivers/video/backlight/cr_bllcd.c
---- a/drivers/video/backlight/cr_bllcd.c~git-backlight-cr_bllcdc-build-fix
-+++ a/drivers/video/backlight/cr_bllcd.c
-@@ -202,7 +202,7 @@ static int cr_backlight_probe(struct pla
- 	}
- 
- 	crp->cr_lcd_device = lcd_device_register("cr-lcd",
--							&pdev->dev, NULL
-+							&pdev->dev, NULL,
- 							&cr_lcd_ops);
- 
- 	if (IS_ERR(crp->cr_lcd_device)) {
+diff -puN fs/unionfs/file.c~git-block-vs-git-unionfs fs/unionfs/file.c
+--- a/fs/unionfs/file.c~git-block-vs-git-unionfs
++++ a/fs/unionfs/file.c
+@@ -145,5 +145,4 @@ struct file_operations unionfs_main_fops
+ 	.flush		= unionfs_flush,
+ 	.release	= unionfs_file_release,
+ 	.fsync		= file_fsync,
+-	.sendfile	= generic_file_sendfile,
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
