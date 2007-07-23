@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-fs.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:16:03 -0700
-Message-ID: <200707232316.l6NNG3tM017099@imap1.linux-foundation.org>
+Subject: + clean-up-duplicate-includes-in-fs-ecryptfs.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:16:05 -0700
+Message-ID: <200707232316.l6NNG5ra017103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40245 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57350 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761140AbXGWXQj (ORCPT
+	by vger.kernel.org with ESMTP id S1760654AbXGWXQp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:16:39 -0400
+	Mon, 23 Jul 2007 19:16:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com
+Cc: jesper.juhl@gmail.com, mahalcro@us.ibm.com
 
 
 The patch titled
-     Clean up duplicate includes in fs/
+     Clean up duplicate includes in fs/ecryptfs/
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-fs.patch
+     clean-up-duplicate-includes-in-fs-ecryptfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in fs/
+Subject: Clean up duplicate includes in fs/ecryptfs/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	fs/
+	fs/ecryptfs/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Michael A Halcrow <mahalcro@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    1 -
- fs/namei.c        |    1 -
- 2 files changed, 2 deletions(-)
+ fs/ecryptfs/main.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN fs/compat_ioctl.c~clean-up-duplicate-includes-in-fs fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~clean-up-duplicate-includes-in-fs
-+++ a/fs/compat_ioctl.c
-@@ -113,7 +113,6 @@
- #include <linux/dvb/dmx.h>
- #include <linux/dvb/frontend.h>
- #include <linux/dvb/video.h>
--#include <linux/lp.h>
- 
- static int do_ioctl32_pointer(unsigned int fd, unsigned int cmd,
- 			      unsigned long arg, struct file *f)
-diff -puN fs/namei.c~clean-up-duplicate-includes-in-fs fs/namei.c
---- a/fs/namei.c~clean-up-duplicate-includes-in-fs
-+++ a/fs/namei.c
-@@ -30,7 +30,6 @@
- #include <linux/capability.h>
- #include <linux/file.h>
- #include <linux/fcntl.h>
--#include <linux/namei.h>
- #include <asm/namei.h>
- #include <asm/uaccess.h>
- 
+diff -puN fs/ecryptfs/main.c~clean-up-duplicate-includes-in-fs-ecryptfs fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~clean-up-duplicate-includes-in-fs-ecryptfs
++++ a/fs/ecryptfs/main.c
+@@ -32,7 +32,6 @@
+ #include <linux/crypto.h>
+ #include <linux/netlink.h>
+ #include <linux/mount.h>
+-#include <linux/dcache.h>
+ #include <linux/pagemap.h>
+ #include <linux/key.h>
+ #include <linux/parser.h>
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
