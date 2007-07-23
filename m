@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-duplicate-includes-in-drivers-block.patch added to -mm tree
-Date: Mon, 23 Jul 2007 16:15:39 -0700
-Message-ID: <200707232315.l6NNFdwg017057@imap1.linux-foundation.org>
+Subject: + clean-up-duplicate-includes-in-drivers-media.patch added to -mm tree
+Date: Mon, 23 Jul 2007 16:15:47 -0700
+Message-ID: <200707232315.l6NNFlHr017069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47106 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49229 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756799AbXGWXQX (ORCPT
+	by vger.kernel.org with ESMTP id S1757558AbXGWXQ1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 19:16:23 -0400
+	Mon, 23 Jul 2007 19:16:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, jens.axboe@oracle.com, sfr@canb.auug.org.au
+Cc: jesper.juhl@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     Clean up duplicate includes in drivers/block/
+     Clean up duplicate includes in drivers/media/
 has been added to the -mm tree.  Its filename is
-     clean-up-duplicate-includes-in-drivers-block.patch
+     clean-up-duplicate-includes-in-drivers-media.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in drivers/block/
+Subject: Clean up duplicate includes in drivers/media/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	drivers/block/
+	drivers/media/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Jens Axboe <jens.axboe@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/viodasd.c |    1 -
- 1 files changed, 1 deletion(-)
+ drivers/media/video/arv.c             |    1 -
+ drivers/media/video/cx88/cx88-mpeg.c  |    1 -
+ drivers/media/video/cx88/cx88-video.c |    1 -
+ 3 files changed, 3 deletions(-)
 
-diff -puN drivers/block/viodasd.c~clean-up-duplicate-includes-in-drivers-block drivers/block/viodasd.c
---- a/drivers/block/viodasd.c~clean-up-duplicate-includes-in-drivers-block
-+++ a/drivers/block/viodasd.c
-@@ -41,7 +41,6 @@
- #include <linux/dma-mapping.h>
- #include <linux/completion.h>
+diff -puN drivers/media/video/arv.c~clean-up-duplicate-includes-in-drivers-media drivers/media/video/arv.c
+--- a/drivers/media/video/arv.c~clean-up-duplicate-includes-in-drivers-media
++++ a/drivers/media/video/arv.c
+@@ -23,7 +23,6 @@
+ #include <linux/delay.h>
+ #include <linux/errno.h>
+ #include <linux/fs.h>
+-#include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+diff -puN drivers/media/video/cx88/cx88-mpeg.c~clean-up-duplicate-includes-in-drivers-media drivers/media/video/cx88/cx88-mpeg.c
+--- a/drivers/media/video/cx88/cx88-mpeg.c~clean-up-duplicate-includes-in-drivers-media
++++ a/drivers/media/video/cx88/cx88-mpeg.c
+@@ -28,7 +28,6 @@
  #include <linux/device.h>
--#include <linux/kernel.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/interrupt.h>
+-#include <linux/dma-mapping.h>
+ #include <asm/delay.h>
  
- #include <asm/uaccess.h>
- #include <asm/vio.h>
+ #include "cx88.h"
+diff -puN drivers/media/video/cx88/cx88-video.c~clean-up-duplicate-includes-in-drivers-media drivers/media/video/cx88/cx88-video.c
+--- a/drivers/media/video/cx88/cx88-video.c~clean-up-duplicate-includes-in-drivers-media
++++ a/drivers/media/video/cx88/cx88-video.c
+@@ -36,7 +36,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/delay.h>
+ #include <linux/kthread.h>
+-#include <linux/dma-mapping.h>
+ #include <asm/div64.h>
+ 
+ #include "cx88.h"
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
