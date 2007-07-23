@@ -1,528 +1,338 @@
 From: akpm@linux-foundation.org
-Subject: - ps3-flash-rom-storage-driver.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:34:36 -0700
-Message-ID: <200707230934.l6N9YaxO016408@imap1.linux-foundation.org>
+Subject: - ntp-move-the-cmos-update-code-into-ntpc.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:34:10 -0700
+Message-ID: <200707230934.l6N9YADt016361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33197 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43369 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759556AbXGWJqW (ORCPT
+	by vger.kernel.org with ESMTP id S1758519AbXGWJqh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 05:46:22 -0400
+	Mon, 23 Jul 2007 05:46:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, James.Bottomley@steeleye.com, benh@kernel.crashing.org, geoffrey.levand@am.sony.com, jens.axboe@oracle.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, chrisw@sous-sol.org, davem@davemloft.net, johnstul@us.ibm.com, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3: FLASH ROM Storage Driver
+     NTP: move the cmos update code into ntp.c
 has been removed from the -mm tree.  Its filename was
-     ps3-flash-rom-storage-driver.patch
+     ntp-move-the-cmos-update-code-into-ntpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ps3: FLASH ROM Storage Driver
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: NTP: move the cmos update code into ntp.c
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Add a FLASH ROM Storage Driver for the PS3:
-  - Implemented as a misc character device driver
-  - Uses a fixed 256 KiB buffer allocated from boot memory as the hypervisor
-    requires the writing of aligned 256 KiB blocks
+i386 and sparc64 have the identical code to update the cmos clock.  Move it
+into kernel/time/ntp.c as there are other architectures coming along with the
+same requirements.
 
-Cc: Geoff Levand <geoffrey.levand@am.sony.com>
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+[akpm@linux-foundation.org: build fixes]
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/ps3/Kconfig |   15 
- drivers/char/Makefile              |    2 
- drivers/char/ps3flash.c            |  440 +++++++++++++++++++++++++++
- 3 files changed, 457 insertions(+)
+ arch/i386/Kconfig          |    4 ++
+ arch/i386/kernel/time.c    |   50 +----------------------------
+ arch/sparc64/Kconfig       |    4 ++
+ arch/sparc64/kernel/time.c |   53 +------------------------------
+ include/asm-i386/timer.h   |    1 
+ include/linux/time.h       |    3 +
+ kernel/time/ntp.c          |   59 +++++++++++++++++++++++++++++++++--
+ 7 files changed, 71 insertions(+), 103 deletions(-)
 
-diff -puN arch/powerpc/platforms/ps3/Kconfig~ps3-flash-rom-storage-driver arch/powerpc/platforms/ps3/Kconfig
---- a/arch/powerpc/platforms/ps3/Kconfig~ps3-flash-rom-storage-driver
-+++ a/arch/powerpc/platforms/ps3/Kconfig
-@@ -123,4 +123,19 @@ config PS3_ROM
- 	  In general, all users will say Y or M.
- 	  Also make sure to say Y or M to "SCSI CDROM support" later.
+diff -puN arch/i386/Kconfig~ntp-move-the-cmos-update-code-into-ntpc arch/i386/Kconfig
+--- a/arch/i386/Kconfig~ntp-move-the-cmos-update-code-into-ntpc
++++ a/arch/i386/Kconfig
+@@ -18,6 +18,10 @@ config GENERIC_TIME
+ 	bool
+ 	default y
  
-+config PS3_FLASH
-+	tristate "PS3 FLASH ROM Storage Driver"
-+	depends on PPC_PS3
-+	select PS3_STORAGE
-+	help
-+	  Include support for the PS3 FLASH ROM Storage.
++config GENERIC_CMOS_UPDATE
++	bool
++	default y
 +
-+	  This support is required to access the PS3 FLASH ROM, which
-+	  contains the boot loader and some boot options.
-+	  In general, all users will say Y or M.
-+
-+	  As this driver needs a fixed buffer of 256 KiB of memory, it can
-+	  be disabled on the kernel command line using "ps3flash=off", to
-+	  not allocate this fixed buffer.
-+
- endmenu
-diff -puN drivers/char/Makefile~ps3-flash-rom-storage-driver drivers/char/Makefile
---- a/drivers/char/Makefile~ps3-flash-rom-storage-driver
-+++ a/drivers/char/Makefile
-@@ -107,6 +107,8 @@ obj-$(CONFIG_IPMI_HANDLER)	+= ipmi/
- obj-$(CONFIG_HANGCHECK_TIMER)	+= hangcheck-timer.o
- obj-$(CONFIG_TCG_TPM)		+= tpm/
+ config CLOCKSOURCE_WATCHDOG
+ 	bool
+ 	default y
+diff -puN arch/i386/kernel/time.c~ntp-move-the-cmos-update-code-into-ntpc arch/i386/kernel/time.c
+--- a/arch/i386/kernel/time.c~ntp-move-the-cmos-update-code-into-ntpc
++++ a/arch/i386/kernel/time.c
+@@ -207,55 +207,9 @@ unsigned long read_persistent_clock(void
+ 	return retval;
+ }
  
-+obj-$(CONFIG_PS3_FLASH)		+= ps3flash.o
-+
- # Files generated that shall be removed upon make clean
- clean-files := consolemap_deftbl.c defkeymap.c
+-static void sync_cmos_clock(unsigned long dummy);
+-
+-static DEFINE_TIMER(sync_cmos_timer, sync_cmos_clock, 0, 0);
+-int no_sync_cmos_clock;
+-
+-static void sync_cmos_clock(unsigned long dummy)
+-{
+-	struct timeval now, next;
+-	int fail = 1;
+-
+-	/*
+-	 * If we have an externally synchronized Linux clock, then update
+-	 * CMOS clock accordingly every ~11 minutes. Set_rtc_mmss() has to be
+-	 * called as close as possible to 500 ms before the new second starts.
+-	 * This code is run on a timer.  If the clock is set, that timer
+-	 * may not expire at the correct time.  Thus, we adjust...
+-	 */
+-	if (!ntp_synced())
+-		/*
+-		 * Not synced, exit, do not restart a timer (if one is
+-		 * running, let it run out).
+-		 */
+-		return;
+-
+-	do_gettimeofday(&now);
+-	if (now.tv_usec >= USEC_AFTER - ((unsigned) TICK_SIZE) / 2 &&
+-	    now.tv_usec <= USEC_BEFORE + ((unsigned) TICK_SIZE) / 2)
+-		fail = set_rtc_mmss(now.tv_sec);
+-
+-	next.tv_usec = USEC_AFTER - now.tv_usec;
+-	if (next.tv_usec <= 0)
+-		next.tv_usec += USEC_PER_SEC;
+-
+-	if (!fail)
+-		next.tv_sec = 659;
+-	else
+-		next.tv_sec = 0;
+-
+-	if (next.tv_usec >= USEC_PER_SEC) {
+-		next.tv_sec++;
+-		next.tv_usec -= USEC_PER_SEC;
+-	}
+-	mod_timer(&sync_cmos_timer, jiffies + timeval_to_jiffies(&next));
+-}
+-
+-void notify_arch_cmos_timer(void)
++int update_persistent_clock(struct timespec now)
+ {
+-	if (!no_sync_cmos_clock)
+-		mod_timer(&sync_cmos_timer, jiffies + 1);
++	return set_rtc_mmss(now.tv_sec);
+ }
  
-diff -puN /dev/null drivers/char/ps3flash.c
---- /dev/null
-+++ a/drivers/char/ps3flash.c
-@@ -0,0 +1,440 @@
-+/*
-+ * PS3 FLASH ROM Storage Driver
-+ *
-+ * Copyright (C) 2007 Sony Computer Entertainment Inc.
-+ * Copyright 2007 Sony Corp.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published
-+ * by the Free Software Foundation; version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-+ */
+ extern void (*late_time_init)(void);
+diff -puN arch/sparc64/Kconfig~ntp-move-the-cmos-update-code-into-ntpc arch/sparc64/Kconfig
+--- a/arch/sparc64/Kconfig~ntp-move-the-cmos-update-code-into-ntpc
++++ a/arch/sparc64/Kconfig
+@@ -23,6 +23,10 @@ config GENERIC_TIME
+ 	bool
+ 	default y
+ 
++config GENERIC_CMOS_UPDATE
++	bool
++	default y
 +
-+#include <linux/fs.h>
-+#include <linux/miscdevice.h>
-+#include <linux/uaccess.h>
+ config GENERIC_CLOCKEVENTS
+ 	bool
+ 	default y
+diff -puN arch/sparc64/kernel/time.c~ntp-move-the-cmos-update-code-into-ntpc arch/sparc64/kernel/time.c
+--- a/arch/sparc64/kernel/time.c~ntp-move-the-cmos-update-code-into-ntpc
++++ a/arch/sparc64/kernel/time.c
+@@ -403,58 +403,9 @@ static struct sparc64_tick_ops hbtick_op
+ 
+ static unsigned long timer_ticks_per_nsec_quotient __read_mostly;
+ 
+-#define TICK_SIZE (tick_nsec / 1000)
+-
+-#define USEC_AFTER	500000
+-#define USEC_BEFORE	500000
+-
+-static void sync_cmos_clock(unsigned long dummy);
+-
+-static DEFINE_TIMER(sync_cmos_timer, sync_cmos_clock, 0, 0);
+-
+-static void sync_cmos_clock(unsigned long dummy)
+-{
+-	struct timeval now, next;
+-	int fail = 1;
+-
+-	/*
+-	 * If we have an externally synchronized Linux clock, then update
+-	 * CMOS clock accordingly every ~11 minutes. Set_rtc_mmss() has to be
+-	 * called as close as possible to 500 ms before the new second starts.
+-	 * This code is run on a timer.  If the clock is set, that timer
+-	 * may not expire at the correct time.  Thus, we adjust...
+-	 */
+-	if (!ntp_synced())
+-		/*
+-		 * Not synced, exit, do not restart a timer (if one is
+-		 * running, let it run out).
+-		 */
+-		return;
+-
+-	do_gettimeofday(&now);
+-	if (now.tv_usec >= USEC_AFTER - ((unsigned) TICK_SIZE) / 2 &&
+-	    now.tv_usec <= USEC_BEFORE + ((unsigned) TICK_SIZE) / 2)
+-		fail = set_rtc_mmss(now.tv_sec);
+-
+-	next.tv_usec = USEC_AFTER - now.tv_usec;
+-	if (next.tv_usec <= 0)
+-		next.tv_usec += USEC_PER_SEC;
+-
+-	if (!fail)
+-		next.tv_sec = 659;
+-	else
+-		next.tv_sec = 0;
+-
+-	if (next.tv_usec >= USEC_PER_SEC) {
+-		next.tv_sec++;
+-		next.tv_usec -= USEC_PER_SEC;
+-	}
+-	mod_timer(&sync_cmos_timer, jiffies + timeval_to_jiffies(&next));
+-}
+-
+-void notify_arch_cmos_timer(void)
++int update_persistent_clock(struct timespec now)
+ {
+-	mod_timer(&sync_cmos_timer, jiffies + 1);
++	return set_rtc_mmss(now.tv_sec);
+ }
+ 
+ /* Kick start a stopped clock (procedure from the Sun NVRAM/hostid FAQ). */
+diff -puN include/asm-i386/timer.h~ntp-move-the-cmos-update-code-into-ntpc include/asm-i386/timer.h
+--- a/include/asm-i386/timer.h~ntp-move-the-cmos-update-code-into-ntpc
++++ a/include/asm-i386/timer.h
+@@ -11,7 +11,6 @@ unsigned long native_calculate_cpu_khz(v
+ 
+ extern int timer_ack;
+ extern int no_timer_check;
+-extern int no_sync_cmos_clock;
+ extern int recalibrate_cpu_khz(void);
+ 
+ #ifndef CONFIG_PARAVIRT
+diff -puN include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc include/linux/time.h
+--- a/include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc
++++ a/include/linux/time.h
+@@ -4,6 +4,7 @@
+ #include <linux/types.h>
+ 
+ #ifdef __KERNEL__
++# include <linux/cache.h>
+ # include <linux/seqlock.h>
+ #endif
+ 
+@@ -94,6 +95,8 @@ extern struct timespec wall_to_monotonic
+ extern seqlock_t xtime_lock __attribute__((weak));
+ 
+ extern unsigned long read_persistent_clock(void);
++extern int update_persistent_clock(struct timespec now);
++extern int no_sync_cmos_clock __read_mostly;
+ void timekeeping_init(void);
+ 
+ static inline unsigned long get_seconds(void)
+diff -puN kernel/time/ntp.c~ntp-move-the-cmos-update-code-into-ntpc kernel/time/ntp.c
+--- a/kernel/time/ntp.c~ntp-move-the-cmos-update-code-into-ntpc
++++ a/kernel/time/ntp.c
+@@ -10,6 +10,7 @@
+ 
+ #include <linux/mm.h>
+ #include <linux/time.h>
++#include <linux/timer.h>
+ #include <linux/timex.h>
+ #include <linux/jiffies.h>
+ #include <linux/hrtimer.h>
+@@ -175,12 +176,64 @@ u64 current_tick_length(void)
+ 	return tick_length;
+ }
+ 
++#ifdef CONFIG_GENERIC_CMOS_UPDATE
+ 
+-void __attribute__ ((weak)) notify_arch_cmos_timer(void)
++/* Disable the cmos update - used by virtualization and embedded */
++int no_sync_cmos_clock  __read_mostly;
 +
-+#include <asm/lv1call.h>
-+#include <asm/ps3stor.h>
++static void sync_cmos_clock(unsigned long dummy);
 +
++static DEFINE_TIMER(sync_cmos_timer, sync_cmos_clock, 0, 0);
 +
-+#define DEVICE_NAME		"ps3flash"
-+
-+#define FLASH_BLOCK_SIZE	(256*1024)
-+
-+
-+struct ps3flash_private {
-+	struct mutex mutex;	/* Bounce buffer mutex */
-+};
-+
-+static struct ps3_storage_device *ps3flash_dev;
-+
-+static ssize_t ps3flash_read_write_sectors(struct ps3_storage_device *dev,
-+					   u64 lpar, u64 start_sector,
-+					   u64 sectors, int write)
-+{
-+	u64 res = ps3stor_read_write_sectors(dev, lpar, start_sector, sectors,
-+					     write);
-+	if (res) {
-+		dev_err(&dev->sbd.core, "%s:%u: %s failed 0x%lx\n", __func__,
-+			__LINE__, write ? "write" : "read", res);
-+		return -EIO;
-+	}
-+	return sectors;
-+}
-+
-+static ssize_t ps3flash_read_sectors(struct ps3_storage_device *dev,
-+				     u64 start_sector, u64 sectors,
-+				     unsigned int sector_offset)
-+{
-+	u64 max_sectors, lpar;
-+
-+	max_sectors = dev->bounce_size / dev->blk_size;
-+	if (sectors > max_sectors) {
-+		dev_dbg(&dev->sbd.core, "%s:%u Limiting sectors to %lu\n",
-+			__func__, __LINE__, max_sectors);
-+		sectors = max_sectors;
-+	}
-+
-+	lpar = dev->bounce_lpar + sector_offset * dev->blk_size;
-+	return ps3flash_read_write_sectors(dev, lpar, start_sector, sectors,
-+					   0);
-+}
-+
-+static ssize_t ps3flash_write_chunk(struct ps3_storage_device *dev,
-+				    u64 start_sector)
-+{
-+       u64 sectors = dev->bounce_size / dev->blk_size;
-+       return ps3flash_read_write_sectors(dev, dev->bounce_lpar, start_sector,
-+					  sectors, 1);
-+}
-+
-+static loff_t ps3flash_llseek(struct file *file, loff_t offset, int origin)
-+{
-+	struct ps3_storage_device *dev = ps3flash_dev;
-+	loff_t res;
-+
-+	mutex_lock(&file->f_mapping->host->i_mutex);
-+	switch (origin) {
-+	case 1:
-+		offset += file->f_pos;
-+		break;
-+	case 2:
-+		offset += dev->regions[dev->region_idx].size*dev->blk_size;
-+		break;
-+	}
-+	if (offset < 0) {
-+		res = -EINVAL;
-+		goto out;
-+	}
-+
-+	file->f_pos = offset;
-+	res = file->f_pos;
-+
-+out:
-+	mutex_unlock(&file->f_mapping->host->i_mutex);
-+	return res;
-+}
-+
-+static ssize_t ps3flash_read(struct file *file, char __user *buf, size_t count,
-+			     loff_t *pos)
-+{
-+	struct ps3_storage_device *dev = ps3flash_dev;
-+	struct ps3flash_private *priv = dev->sbd.core.driver_data;
-+	u64 size, start_sector, end_sector, offset;
-+	ssize_t sectors_read;
-+	size_t remaining, n;
-+
-+	dev_dbg(&dev->sbd.core,
-+		"%s:%u: Reading %zu bytes at position %lld to user 0x%p\n",
-+		__func__, __LINE__, count, *pos, buf);
-+
-+	size = dev->regions[dev->region_idx].size*dev->blk_size;
-+	if (*pos >= size || !count)
-+		return 0;
-+
-+	if (*pos + count > size) {
-+		dev_dbg(&dev->sbd.core,
-+			"%s:%u Truncating count from %zu to %llu\n", __func__,
-+			__LINE__, count, size - *pos);
-+		count = size - *pos;
-+	}
-+
-+	start_sector = *pos / dev->blk_size;
-+	offset = *pos % dev->blk_size;
-+	end_sector = DIV_ROUND_UP(*pos + count, dev->blk_size);
-+
-+	remaining = count;
-+	do {
-+		mutex_lock(&priv->mutex);
-+
-+		sectors_read = ps3flash_read_sectors(dev, start_sector,
-+						     end_sector-start_sector,
-+						     0);
-+		if (sectors_read < 0) {
-+			mutex_unlock(&priv->mutex);
-+			goto fail;
-+		}
-+
-+		n = min(remaining, sectors_read*dev->blk_size-offset);
-+		dev_dbg(&dev->sbd.core,
-+			"%s:%u: copy %lu bytes from 0x%p to user 0x%p\n",
-+			__func__, __LINE__, n, dev->bounce_buf+offset, buf);
-+		if (copy_to_user(buf, dev->bounce_buf+offset, n)) {
-+			mutex_unlock(&priv->mutex);
-+			sectors_read = -EFAULT;
-+			goto fail;
-+		}
-+
-+		mutex_unlock(&priv->mutex);
-+
-+		*pos += n;
-+		buf += n;
-+		remaining -= n;
-+		start_sector += sectors_read;
-+		offset = 0;
-+	} while (remaining > 0);
-+
-+	return count;
-+
-+fail:
-+	return sectors_read;
-+}
-+
-+static ssize_t ps3flash_write(struct file *file, const char __user *buf,
-+			      size_t count, loff_t *pos)
-+{
-+	struct ps3_storage_device *dev = ps3flash_dev;
-+	struct ps3flash_private *priv = dev->sbd.core.driver_data;
-+	u64 size, chunk_sectors, start_write_sector, end_write_sector,
-+	    end_read_sector, start_read_sector, head, tail, offset;
-+	ssize_t res;
-+	size_t remaining, n;
-+	unsigned int sec_off;
-+
-+	dev_dbg(&dev->sbd.core,
-+		"%s:%u: Writing %zu bytes at position %lld from user 0x%p\n",
-+		__func__, __LINE__, count, *pos, buf);
-+
-+	size = dev->regions[dev->region_idx].size*dev->blk_size;
-+	if (*pos >= size || !count)
-+		return 0;
-+
-+	if (*pos + count > size) {
-+		dev_dbg(&dev->sbd.core,
-+			"%s:%u Truncating count from %zu to %llu\n", __func__,
-+			__LINE__, count, size - *pos);
-+		count = size - *pos;
-+	}
-+
-+	chunk_sectors = dev->bounce_size / dev->blk_size;
-+
-+	start_write_sector = *pos / dev->bounce_size * chunk_sectors;
-+	offset = *pos % dev->bounce_size;
-+	end_write_sector = DIV_ROUND_UP(*pos + count, dev->bounce_size) *
-+			   chunk_sectors;
-+
-+	end_read_sector = DIV_ROUND_UP(*pos, dev->blk_size);
-+	start_read_sector = (*pos + count) / dev->blk_size;
++static void sync_cmos_clock(unsigned long dummy)
+ {
+-	return;
++	struct timespec now, next;
++	int fail = 1;
 +
 +	/*
-+	 * As we have to write in 256 KiB chunks, while we can read in blk_size
-+	 * (usually 512 bytes) chunks, we perform the following steps:
-+	 *   1. Read from start_write_sector to end_read_sector ("head")
-+	 *   2. Read from start_read_sector to end_write_sector ("tail")
-+	 *   3. Copy data to buffer
-+	 *   4. Write from start_write_sector to end_write_sector
-+	 * All of this is complicated by using only one 256 KiB bounce buffer.
++	 * If we have an externally synchronized Linux clock, then update
++	 * CMOS clock accordingly every ~11 minutes. Set_rtc_mmss() has to be
++	 * called as close as possible to 500 ms before the new second starts.
++	 * This code is run on a timer.  If the clock is set, that timer
++	 * may not expire at the correct time.  Thus, we adjust...
 +	 */
++	if (!ntp_synced())
++		/*
++		 * Not synced, exit, do not restart a timer (if one is
++		 * running, let it run out).
++		 */
++		return;
 +
-+	head = end_read_sector - start_write_sector;
-+	tail = end_write_sector - start_read_sector;
++	getnstimeofday(&now);
++	if (abs(xtime.tv_nsec - (NSEC_PER_SEC / 2)) <= tick_nsec / 2)
++		fail = update_persistent_clock(now);
 +
-+	remaining = count;
-+	do {
-+		mutex_lock(&priv->mutex);
++	next.tv_nsec = (NSEC_PER_SEC / 2) - now.tv_nsec;
++	if (next.tv_nsec <= 0)
++		next.tv_nsec += NSEC_PER_SEC;
 +
-+		if (end_read_sector >= start_read_sector) {
-+			/* Merge head and tail */
-+			dev_dbg(&dev->sbd.core,
-+				"Merged head and tail: %lu sectors at %lu\n",
-+				chunk_sectors, start_write_sector);
-+			res = ps3flash_read_sectors(dev, start_write_sector,
-+						    chunk_sectors, 0);
-+			if (res < 0)
-+				goto fail;
-+		} else {
-+			if (head) {
-+				/* Read head */
-+				dev_dbg(&dev->sbd.core,
-+					"head: %lu sectors at %lu\n", head,
-+					start_write_sector);
-+				res = ps3flash_read_sectors(dev,
-+							    start_write_sector,
-+							    head, 0);
-+				if (res < 0)
-+					goto fail;
-+			}
-+			if (start_read_sector <
-+			    start_write_sector+chunk_sectors) {
-+				/* Read tail */
-+				dev_dbg(&dev->sbd.core,
-+					"tail: %lu sectors at %lu\n", tail,
-+					start_read_sector);
-+				sec_off = start_read_sector-start_write_sector;
-+				res = ps3flash_read_sectors(dev,
-+							    start_read_sector,
-+							    tail, sec_off);
-+				if (res < 0)
-+					goto fail;
-+			}
-+		}
++	if (!fail)
++		next.tv_sec = 659;
++	else
++		next.tv_sec = 0;
 +
-+		n = min(remaining, dev->bounce_size-offset);
-+		dev_dbg(&dev->sbd.core,
-+			"%s:%u: copy %lu bytes from user 0x%p to 0x%p\n",
-+			__func__, __LINE__, n, buf, dev->bounce_buf+offset);
-+		if (copy_from_user(dev->bounce_buf+offset, buf, n)) {
-+			res = -EFAULT;
-+			goto fail;
-+		}
-+
-+		res = ps3flash_write_chunk(dev, start_write_sector);
-+		if (res < 0)
-+			goto fail;
-+
-+		mutex_unlock(&priv->mutex);
-+
-+		*pos += n;
-+		buf += n;
-+		remaining -= n;
-+		start_write_sector += chunk_sectors;
-+		head = 0;
-+		offset = 0;
-+	} while (remaining > 0);
-+
-+	return count;
-+
-+fail:
-+	mutex_unlock(&priv->mutex);
-+	return res;
-+}
-+
-+
-+static irqreturn_t ps3flash_interrupt(int irq, void *data)
++	if (next.tv_nsec >= NSEC_PER_SEC) {
++		next.tv_sec++;
++		next.tv_nsec -= NSEC_PER_SEC;
++	}
++	mod_timer(&sync_cmos_timer, jiffies + timespec_to_jiffies(&next));
+ }
+ 
++static void notify_cmos_timer(void)
 +{
-+	struct ps3_storage_device *dev = data;
-+	int res;
-+	u64 tag, status;
-+
-+	res = lv1_storage_get_async_status(dev->sbd.dev_id, &tag, &status);
-+
-+	if (tag != dev->tag)
-+		dev_err(&dev->sbd.core,
-+			"%s:%u: tag mismatch, got %lx, expected %lx\n",
-+			__func__, __LINE__, tag, dev->tag);
-+
-+	if (res) {
-+		dev_err(&dev->sbd.core, "%s:%u: res=%d status=0x%lx\n",
-+			__func__, __LINE__, res, status);
-+	} else {
-+		dev->lv1_status = status;
-+		complete(&dev->done);
-+	}
-+	return IRQ_HANDLED;
++	if (no_sync_cmos_clock)
++		mod_timer(&sync_cmos_timer, jiffies + 1);
 +}
 +
++#else
++static inline void notify_cmos_timer(void) { }
++#endif
 +
-+static const struct file_operations ps3flash_fops = {
-+	.owner	= THIS_MODULE,
-+	.llseek	= ps3flash_llseek,
-+	.read	= ps3flash_read,
-+	.write	= ps3flash_write,
-+};
-+
-+static struct miscdevice ps3flash_misc = {
-+	.minor	= MISC_DYNAMIC_MINOR,
-+	.name	= DEVICE_NAME,
-+	.fops	= &ps3flash_fops,
-+};
-+
-+static int __devinit ps3flash_probe(struct ps3_system_bus_device *_dev)
-+{
-+	struct ps3_storage_device *dev = to_ps3_storage_device(&_dev->core);
-+	struct ps3flash_private *priv;
-+	int error;
-+	unsigned long tmp;
-+
-+	tmp = dev->regions[dev->region_idx].start*dev->blk_size;
-+	if (tmp % FLASH_BLOCK_SIZE) {
-+		dev_err(&dev->sbd.core,
-+			"%s:%u region start %lu is not aligned\n", __func__,
-+			__LINE__, tmp);
-+		return -EINVAL;
-+	}
-+	tmp = dev->regions[dev->region_idx].size*dev->blk_size;
-+	if (tmp % FLASH_BLOCK_SIZE) {
-+		dev_err(&dev->sbd.core,
-+			"%s:%u region size %lu is not aligned\n", __func__,
-+			__LINE__, tmp);
-+		return -EINVAL;
-+	}
-+
-+	/* use static buffer, kmalloc cannot allocate 256 KiB */
-+	if (!ps3flash_bounce_buffer.address)
-+		return -ENODEV;
-+
-+	if (ps3flash_dev) {
-+		dev_err(&dev->sbd.core,
-+			"Only one FLASH device is supported\n");
-+		return -EBUSY;
-+	}
-+
-+	ps3flash_dev = dev;
-+
-+	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-+	if (!priv) {
-+		error = -ENOMEM;
-+		goto fail;
-+	}
-+
-+	dev->sbd.core.driver_data = priv;
-+	mutex_init(&priv->mutex);
-+
-+	dev->bounce_size = ps3flash_bounce_buffer.size;
-+	dev->bounce_buf = ps3flash_bounce_buffer.address;
-+
-+	error = ps3stor_setup(dev, ps3flash_interrupt);
-+	if (error)
-+		goto fail_free_priv;
-+
-+	ps3flash_misc.parent = &dev->sbd.core;
-+	error = misc_register(&ps3flash_misc);
-+	if (error) {
-+		dev_err(&dev->sbd.core, "%s:%u: misc_register failed %d\n",
-+			__func__, __LINE__, error);
-+		goto fail_teardown;
-+	}
-+
-+	dev_info(&dev->sbd.core, "%s:%u: registered misc device %d\n",
-+		 __func__, __LINE__, ps3flash_misc.minor);
-+	return 0;
-+
-+fail_teardown:
-+	ps3stor_teardown(dev);
-+fail_free_priv:
-+	kfree(priv);
-+	dev->sbd.core.driver_data = NULL;
-+fail:
-+	ps3flash_dev = NULL;
-+	return error;
-+}
-+
-+static int ps3flash_remove(struct ps3_system_bus_device *_dev)
-+{
-+	struct ps3_storage_device *dev = to_ps3_storage_device(&_dev->core);
-+
-+	misc_deregister(&ps3flash_misc);
-+	ps3stor_teardown(dev);
-+	kfree(dev->sbd.core.driver_data);
-+	dev->sbd.core.driver_data = NULL;
-+	ps3flash_dev = NULL;
-+	return 0;
-+}
-+
-+
-+static struct ps3_system_bus_driver ps3flash = {
-+	.match_id	= PS3_MATCH_ID_STOR_FLASH,
-+	.core.name	= DEVICE_NAME,
-+	.core.owner	= THIS_MODULE,
-+	.probe		= ps3flash_probe,
-+	.remove		= ps3flash_remove,
-+	.shutdown	= ps3flash_remove,
-+};
-+
-+
-+static int __init ps3flash_init(void)
-+{
-+	return ps3_system_bus_driver_register(&ps3flash);
-+}
-+
-+static void __exit ps3flash_exit(void)
-+{
-+	ps3_system_bus_driver_unregister(&ps3flash);
-+}
-+
-+module_init(ps3flash_init);
-+module_exit(ps3flash_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("PS3 FLASH ROM Storage Driver");
-+MODULE_AUTHOR("Sony Corporation");
-+MODULE_ALIAS(PS3_MODULE_ALIAS_STOR_FLASH);
+ /* adjtimex mainly allows reading (and writing, if superuser) of
+  * kernel time-keeping variables. used by xntpd.
+  */
+@@ -345,6 +398,6 @@ leave:	if ((time_status & (STA_UNSYNC|ST
+ 	txc->stbcnt	   = 0;
+ 	write_sequnlock_irq(&xtime_lock);
+ 	do_gettimeofday(&txc->time);
+-	notify_arch_cmos_timer();
++	notify_cmos_timer();
+ 	return(result);
+ }
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
+
+git-acpi.patch
+acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+acpi-remove-the-useless-ifdef-code.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+geode-mfgpt-clock-event-device-support.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
