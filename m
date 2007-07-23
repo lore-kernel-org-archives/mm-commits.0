@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-failure-exits-in-asus-laptop.patch added to -mm tree
-Date: Mon, 23 Jul 2007 14:27:24 -0700
-Message-ID: <200707232127.l6NLROui012661@imap1.linux-foundation.org>
+Subject: + use-ldflags_module-only-for-ko-links.patch added to -mm tree
+Date: Mon, 23 Jul 2007 14:28:25 -0700
+Message-ID: <200707232128.l6NLSPgI012750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50044 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58463 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751402AbXGWV2Z (ORCPT
+	by vger.kernel.org with ESMTP id S1761674AbXGWV3W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 17:28:25 -0400
+	Mon, 23 Jul 2007 17:29:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viro@ftp.linux.org.uk, corentincj@iksaif.net, michal.k.k.piotrowski@gmail.com, sziwan@users.sourceforge.net, viro@zeniv.linux.org.uk
+Cc: roland@redhat.com, bunk@stusta.de, davem@davemloft.net, michal.k.k.piotrowski@gmail.com, sam@ravnborg.org
 
 
 The patch titled
-     Fix failure exits in asus-laptop
+     Use LDFLAGS_MODULE only for .ko links
 has been added to the -mm tree.  Its filename is
-     fix-failure-exits-in-asus-laptop.patch
+     use-ldflags_module-only-for-ko-links.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,104 +26,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix failure exits in asus-laptop
-From: Al Viro <viro@ftp.linux.org.uk>
+Subject: Use LDFLAGS_MODULE only for .ko links
+From: Roland McGrath <roland@redhat.com>
 
-Fallout from f8a7c6fe14f556ca8eeddce258cb21392d0c3a2f.  However, looking
-at it shows that checks done in ASUS_LED_UNREGISTER() can't trigger
-at all (we never get to asus_led_exit() if registration fails) and
-if that registration fails, we actually leak stuff.  IOW, it's worse
-than just replacing class_dev with dev in there - the tests themselves
-had been papering over the lousy cleanup logics.
+Sam Ravnborg pointed out that Documentation/kbuild/makefiles.txt already
+says this is what it's for.  This patch makes the reality live up to the
+documentation.  This fixes the problem of LDFLAGS_BUILD_ID getting into too
+many places.
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Karol Kozimor <sziwan@users.sourceforge.net>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: "Sam Ravnborg <sam@ravnborg.org>
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: David Miller <davem@davemloft.net>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/asus-laptop.c |   32 +++++++++++++++++++++-----------
- 1 files changed, 21 insertions(+), 11 deletions(-)
+ Makefile                 |    2 +-
+ scripts/Makefile.build   |    2 +-
+ scripts/Makefile.modpost |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/misc/asus-laptop.c~fix-failure-exits-in-asus-laptop drivers/misc/asus-laptop.c
---- a/drivers/misc/asus-laptop.c~fix-failure-exits-in-asus-laptop
-+++ a/drivers/misc/asus-laptop.c
-@@ -1067,19 +1067,16 @@ static void asus_backlight_exit(void)
- }
+diff -puN Makefile~use-ldflags_module-only-for-ko-links Makefile
+--- a/Makefile~use-ldflags_module-only-for-ko-links
++++ a/Makefile
+@@ -299,7 +299,7 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D
+ MODFLAGS	= -DMODULE
+ CFLAGS_MODULE   = $(MODFLAGS)
+ AFLAGS_MODULE   = $(MODFLAGS)
+-LDFLAGS_MODULE  = -r
++LDFLAGS_MODULE  =
+ CFLAGS_KERNEL	=
+ AFLAGS_KERNEL	=
  
- #define  ASUS_LED_UNREGISTER(object)				\
--	if(object##_led.class_dev				\
--	   && !IS_ERR(object##_led.class_dev))			\
--		led_classdev_unregister(&object##_led)
-+	led_classdev_unregister(&object##_led)
+diff -puN scripts/Makefile.build~use-ldflags_module-only-for-ko-links scripts/Makefile.build
+--- a/scripts/Makefile.build~use-ldflags_module-only-for-ko-links
++++ a/scripts/Makefile.build
+@@ -315,7 +315,7 @@ quiet_cmd_link_multi-y = LD      $@
+ cmd_link_multi-y = $(LD) $(ld_flags) -r -o $@ $(link_multi_deps)
  
- static void asus_led_exit(void)
- {
-+	destroy_workqueue(led_workqueue);
- 	ASUS_LED_UNREGISTER(mled);
- 	ASUS_LED_UNREGISTER(tled);
- 	ASUS_LED_UNREGISTER(pled);
- 	ASUS_LED_UNREGISTER(rled);
- 	ASUS_LED_UNREGISTER(gled);
--
--	destroy_workqueue(led_workqueue);
- }
+ quiet_cmd_link_multi-m = LD [M]  $@
+-cmd_link_multi-m = $(LD) $(ld_flags) $(LDFLAGS_MODULE) -o $@ $(link_multi_deps)
++cmd_link_multi-m = $(cmd_link_multi-y)
  
- static void __exit asus_laptop_exit(void)
-@@ -1135,29 +1132,42 @@ static int asus_led_init(struct device *
+ # We would rather have a list of rules like
+ # 	foo.o: $(foo-objs)
+diff -puN scripts/Makefile.modpost~use-ldflags_module-only-for-ko-links scripts/Makefile.modpost
+--- a/scripts/Makefile.modpost~use-ldflags_module-only-for-ko-links
++++ a/scripts/Makefile.modpost
+@@ -97,7 +97,7 @@ targets += $(modules:.ko=.mod.o)
  
- 	rv = ASUS_LED_REGISTER(mled, dev);
- 	if (rv)
--		return rv;
-+		goto out;
+ # Step 6), final link of the modules
+ quiet_cmd_ld_ko_o = LD [M]  $@
+-      cmd_ld_ko_o = $(LD) $(LDFLAGS) $(LDFLAGS_MODULE) -o $@		\
++      cmd_ld_ko_o = $(LD) -r $(LDFLAGS) $(LDFLAGS_MODULE) -o $@		\
+ 			  $(filter-out FORCE,$^)
  
- 	rv = ASUS_LED_REGISTER(tled, dev);
- 	if (rv)
--		return rv;
-+		goto out1;
- 
- 	rv = ASUS_LED_REGISTER(rled, dev);
- 	if (rv)
--		return rv;
-+		goto out2;
- 
- 	rv = ASUS_LED_REGISTER(pled, dev);
- 	if (rv)
--		return rv;
-+		goto out3;
- 
- 	rv = ASUS_LED_REGISTER(gled, dev);
- 	if (rv)
--		return rv;
-+		goto out4;
- 
- 	led_workqueue = create_singlethread_workqueue("led_workqueue");
- 	if (!led_workqueue)
--		return -ENOMEM;
-+		goto out5;
- 
- 	return 0;
-+out5:
-+	rv = -ENOMEM;
-+	ASUS_LED_UNREGISTER(gled);
-+out4:
-+	ASUS_LED_UNREGISTER(pled);
-+out3:
-+	ASUS_LED_UNREGISTER(rled);
-+out2:
-+	ASUS_LED_UNREGISTER(tled);
-+out1:
-+	ASUS_LED_UNREGISTER(mled);
-+out:
-+	return rv;
- }
- 
- static int __init asus_laptop_init(void)
+ $(modules): %.ko :%.o %.mod.o FORCE
 _
 
-Patches currently in -mm which might be from viro@ftp.linux.org.uk are
+Patches currently in -mm which might be from roland@redhat.com are
 
-fix-failure-exits-in-asus-laptop.patch
-introduce-i_sync.patch
-slab-leaks3-default-y.patch
+use-ldflags_module-only-for-ko-links.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
