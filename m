@@ -1,62 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - i386-fix-the-k7-nmi-watchdog-checkbit.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 02:35:52 -0700
-Message-ID: <200707230935.l6N9ZqAO016524@imap1.linux-foundation.org>
+Subject: - ps3-fix-build-with-32-bit-toolchains.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 02:34:39 -0700
+Message-ID: <200707230934.l6N9Ydp5016411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40819 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35658 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759392AbXGWJpo (ORCPT
+	by vger.kernel.org with ESMTP id S1758864AbXGWJpj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 05:45:44 -0400
+	Mon, 23 Jul 2007 05:45:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: B.Steinbrink@gmx.de, andi@firstfloor.org, dzickus@redhat.com, eranian@hpl.hp.com, mm-commits@vger.kernel.org
+To: geoffrey.levand@am.sony.com, geert@linux-m68k.org, grant.likely@secretlab.ca, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: Fix the K7 NMI watchdog checkbit
+     PS3: Fix build with 32-bit toolchains
 has been removed from the -mm tree.  Its filename was
-     i386-fix-the-k7-nmi-watchdog-checkbit.patch
+     ps3-fix-build-with-32-bit-toolchains.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: Fix the K7 NMI watchdog checkbit
-=46rom: Bj=F6rn Steinbrink <B.Steinbrink@gmx.de>
+Subject: PS3: Fix build with 32-bit toolchains
+From: Geoff Levand <geoffrey.levand@am.sony.com>
 
-The performance counters on K7 are only 48 bits wide, so using bit 63 t=
-o
-check if the counter overflowed is wrong.  Let's use bit 47 instead.
+The PS3 bootwrapper files use instructions only available on 64-bit CPUs. 
+Add the code generation directive '.machine "ppc64"' for toolchains
+configured for 32-bit CPUs.
 
-Signed-off-by: Bj=F6rn Steinbrink <B.Steinbrink@gmx.de>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Stephane Eranian <eranian@hpl.hp.com>
+Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/perfctr-watchdog.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/boot/ps3-head.S   |    2 ++
+ arch/powerpc/boot/ps3-hvcall.S |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN arch/i386/kernel/cpu/perfctr-watchdog.c~i386-fix-the-k7-nmi-w=
-atchdog-checkbit arch/i386/kernel/cpu/perfctr-watchdog.c
---- a/arch/i386/kernel/cpu/perfctr-watchdog.c~i386-fix-the-k7-nmi-watch=
-dog-checkbit
-+++ a/arch/i386/kernel/cpu/perfctr-watchdog.c
-@@ -325,7 +325,7 @@ static struct wd_ops k7_wd_ops =3D {
- 	.stop =3D single_msr_stop_watchdog,
- 	.perfctr =3D MSR_K7_PERFCTR0,
- 	.evntsel =3D MSR_K7_EVNTSEL0,
--	.checkbit =3D 1ULL<<63,
-+	.checkbit =3D 1ULL<<47,
- };
-=20
- /* Intel Model 6 (PPro+,P2,P3,P-M,Core1) */
+diff -puN arch/powerpc/boot/ps3-head.S~ps3-fix-build-with-32-bit-toolchains arch/powerpc/boot/ps3-head.S
+--- a/arch/powerpc/boot/ps3-head.S~ps3-fix-build-with-32-bit-toolchains
++++ a/arch/powerpc/boot/ps3-head.S
+@@ -20,6 +20,8 @@
+ 
+ #include "ppc_asm.h"
+ 
++	.machine "ppc64"
++
+ 	.text
+ 
+ /*
+diff -puN arch/powerpc/boot/ps3-hvcall.S~ps3-fix-build-with-32-bit-toolchains arch/powerpc/boot/ps3-hvcall.S
+--- a/arch/powerpc/boot/ps3-hvcall.S~ps3-fix-build-with-32-bit-toolchains
++++ a/arch/powerpc/boot/ps3-hvcall.S
+@@ -20,6 +20,8 @@
+ 
+ #include "ppc_asm.h"
+ 
++	.machine "ppc64"
++
+ /*
+  * The PS3 hypervisor uses a 64 bit "C" language calling convention.
+  * The routines here marshal arguments between the 32 bit wrapper
 _
 
-Patches currently in -mm which might be from B.Steinbrink@gmx.de are
+Patches currently in -mm which might be from geoffrey.levand@am.sony.com are
+
+git-kgdb.patch
