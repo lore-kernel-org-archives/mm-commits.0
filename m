@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + 64-bit-i_version-afs-fixes.patch added to -mm tree
-Date: Tue, 24 Jul 2007 02:24:07 -0700
-Message-ID: <200707240928.l6O9SehT006417@imap1.linux-foundation.org>
+Subject: + ecryptfs-printk-warning-fixes.patch added to -mm tree
+Date: Tue, 24 Jul 2007 02:32:56 -0700
+Message-ID: <200707240937.l6O9bTcx006713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51690 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48340 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761632AbXGXJaC (ORCPT
+	by vger.kernel.org with ESMTP id S1760384AbXGXJho (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 05:30:02 -0400
+	Tue, 24 Jul 2007 05:37:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, jean-noel.cordenner@bull.net, tytso@mit.edu
+Cc: akpm@linux-foundation.org, mhalcrow@us.ibm.com
 
 
 The patch titled
-     64-bit i_version: afs fixes
+     ecryptfs: printk warning fixes
 has been added to the -mm tree.  Its filename is
-     64-bit-i_version-afs-fixes.patch
+     ecryptfs-printk-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,116 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 64-bit i_version: afs fixes
+Subject: ecryptfs: printk warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Please grep the whole tree and look for any similar bugs which this patch
-introduces.
+fs/ecryptfs/keystore.c: In function 'parse_tag_1_packet':
+fs/ecryptfs/keystore.c:557: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c: In function 'parse_tag_3_packet':
+fs/ecryptfs/keystore.c:690: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c: In function 'parse_tag_11_packet':
+fs/ecryptfs/keystore.c:836: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c: In function 'write_tag_1_packet':
+fs/ecryptfs/keystore.c:1413: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c:1413: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+fs/ecryptfs/keystore.c: In function 'write_tag_11_packet':
+fs/ecryptfs/keystore.c:1472: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c: In function 'write_tag_3_packet':
+fs/ecryptfs/keystore.c:1663: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c:1663: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+fs/ecryptfs/keystore.c: In function 'ecryptfs_generate_key_packet_set':
+fs/ecryptfs/keystore.c:1778: warning: passing argument 2 of 'write_tag_11_packet' from incompatible pointer type
+fs/ecryptfs/main.c: In function 'ecryptfs_parse_options':
+fs/ecryptfs/main.c:363: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
 
-Cc: Jean Noel Cordenner <jean-noel.cordenner@bull.net>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/dir.c   |    9 +++++----
- fs/afs/inode.c |    3 ++-
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ fs/ecryptfs/keystore.c |   16 ++++++++--------
+ fs/ecryptfs/main.c     |    2 +-
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN fs/afs/dir.c~64-bit-i_version-afs-fixes fs/afs/dir.c
---- a/fs/afs/dir.c~64-bit-i_version-afs-fixes
-+++ a/fs/afs/dir.c
-@@ -546,11 +546,11 @@ static struct dentry *afs_lookup(struct 
- 	dentry->d_op = &afs_fs_dentry_operations;
- 
- 	d_add(dentry, inode);
--	_leave(" = 0 { vn=%u u=%u } -> { ino=%lu v=%lu }",
-+	_leave(" = 0 { vn=%u u=%u } -> { ino=%lu v=%llu }",
- 	       fid.vnode,
- 	       fid.unique,
- 	       dentry->d_inode->i_ino,
--	       dentry->d_inode->i_version);
-+	       (unsigned long long)dentry->d_inode->i_version);
- 
- 	return NULL;
- }
-@@ -630,9 +630,10 @@ static int afs_d_revalidate(struct dentr
- 		 * been deleted and replaced, and the original vnode ID has
- 		 * been reused */
- 		if (fid.unique != vnode->fid.unique) {
--			_debug("%s: file deleted (uq %u -> %u I:%lu)",
-+			_debug("%s: file deleted (uq %u -> %u I:%llu)",
- 			       dentry->d_name.name, fid.unique,
--			       vnode->fid.unique, dentry->d_inode->i_version);
-+			       vnode->fid.unique,
-+			       (unsigned long long)dentry->d_inode->i_version);
- 			spin_lock(&vnode->lock);
- 			set_bit(AFS_VNODE_DELETED, &vnode->flags);
- 			spin_unlock(&vnode->lock);
-diff -puN fs/afs/inode.c~64-bit-i_version-afs-fixes fs/afs/inode.c
---- a/fs/afs/inode.c~64-bit-i_version-afs-fixes
-+++ a/fs/afs/inode.c
-@@ -301,7 +301,8 @@ int afs_getattr(struct vfsmount *mnt, st
- 
- 	inode = dentry->d_inode;
- 
--	_enter("{ ino=%lu v=%lu }", inode->i_ino, inode->i_version);
-+	_enter("{ ino=%lu v=%llu }", inode->i_ino,
-+		(unsigned long long)inode->i_version);
- 
- 	generic_fillattr(inode, stat);
- 	return 0;
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-printk-warning-fixes fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-printk-warning-fixes
++++ a/fs/ecryptfs/keystore.c
+@@ -554,7 +554,7 @@ parse_tag_1_packet(struct ecryptfs_crypt
+ 		goto out_free;
+ 	}
+ 	if (unlikely(body_size < (ECRYPTFS_SIG_SIZE + 2))) {
+-		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
++		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
+ 		rc = -EINVAL;
+ 		goto out_free;
+ 	}
+@@ -687,7 +687,7 @@ parse_tag_3_packet(struct ecryptfs_crypt
+ 		goto out_free;
+ 	}
+ 	if (unlikely(body_size < (ECRYPTFS_SALT_SIZE + 5))) {
+-		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
++		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
+ 		rc = -EINVAL;
+ 		goto out_free;
+ 	}
+@@ -833,7 +833,7 @@ parse_tag_11_packet(unsigned char *data,
+ 		goto out;
+ 	}
+ 	if (body_size < 14) {
+-		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
++		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
+ 		rc = -EINVAL;
+ 		goto out;
+ 	}
+@@ -1409,7 +1409,7 @@ encrypted_session_key_set:
+ 			   + key_rec->enc_key_size); /* Encrypted key size */
+ 	if (max_packet_size > (*remaining_bytes)) {
+ 		printk(KERN_ERR "Packet length larger than maximum allowable; "
+-		       "need up to [%d] bytes, but there are only [%d] "
++		       "need up to [%td] bytes, but there are only [%td] "
+ 		       "available\n", max_packet_size, (*remaining_bytes));
+ 		rc = -EINVAL;
+ 		goto out;
+@@ -1449,7 +1449,7 @@ out:
+  * Returns zero on success; non-zero on error.
+  */
+ static int
+-write_tag_11_packet(char *dest, int *remaining_bytes, char *contents,
++write_tag_11_packet(char *dest, size_t *remaining_bytes, char *contents,
+ 		    size_t contents_length, size_t *packet_length)
+ {
+ 	size_t packet_size_length;
+@@ -1468,7 +1468,7 @@ write_tag_11_packet(char *dest, int *rem
+ 			   + contents_length); /* Literal data */
+ 	if (max_packet_size > (*remaining_bytes)) {
+ 		printk(KERN_ERR "Packet length larger than maximum allowable; "
+-		       "need up to [%d] bytes, but there are only [%d] "
++		       "need up to [%td] bytes, but there are only [%td] "
+ 		       "available\n", max_packet_size, (*remaining_bytes));
+ 		rc = -EINVAL;
+ 		goto out;
+@@ -1658,8 +1658,8 @@ encrypted_session_key_set:
+ 			   + 1                       /* Hash iterations */
+ 			   + key_rec->enc_key_size); /* Encrypted key size */
+ 	if (max_packet_size > (*remaining_bytes)) {
+-		printk(KERN_ERR "Packet too large; need up to [%d] bytes, but "
+-		       "there are only [%d] available\n", max_packet_size,
++		printk(KERN_ERR "Packet too large; need up to [%td] bytes, but "
++		       "there are only [%td] available\n", max_packet_size,
+ 		       (*remaining_bytes));
+ 		rc = -EINVAL;
+ 		goto out;
+diff -puN fs/ecryptfs/main.c~ecryptfs-printk-warning-fixes fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-printk-warning-fixes
++++ a/fs/ecryptfs/main.c
+@@ -358,7 +358,7 @@ static int ecryptfs_parse_options(struct
+ 		     NULL, mount_crypt_stat->global_default_cipher_name,
+ 		     mount_crypt_stat->global_default_cipher_key_size))) {
+ 		printk(KERN_ERR "Error attempting to initialize cipher with "
+-		       "name = [%s] and key size = [%d]; rc = [%d]\n",
++		       "name = [%s] and key size = [%td]; rc = [%d]\n",
+ 		       mount_crypt_stat->global_default_cipher_name,
+ 		       mount_crypt_stat->global_default_cipher_key_size, rc);
+ 		rc = -EINVAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -158,6 +209,7 @@ writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
 revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
 intel-iommu-pci-generic-helper-function.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
