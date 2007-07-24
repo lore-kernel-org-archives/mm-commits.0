@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + minix-convert-to-new-aops-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 15:15:11 -0700
-Message-ID: <200707242215.l6OMFBsP003646@imap1.linux-foundation.org>
+Subject: + rtc-ds1307-typo-fix-found-by-coverity.patch added to -mm tree
+Date: Tue, 24 Jul 2007 15:16:33 -0700
+Message-ID: <200707242216.l6OMGXSm003674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37733 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47351 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756673AbXGXWPU (ORCPT
+	by vger.kernel.org with ESMTP id S1751881AbXGXWQv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 18:15:20 -0400
+	Tue, 24 Jul 2007 18:16:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     minix convert to new aops fix
+     rtc-ds1307: typo fix found by coverity
 has been added to the -mm tree.  Its filename is
-     minix-convert-to-new-aops-fix.patch
+     rtc-ds1307-typo-fix-found-by-coverity.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,99 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: minix convert to new aops fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: rtc-ds1307: typo fix found by coverity
+From: David Brownell <david-b@pacbell.net>
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Fix a typo turned up by a Coverity check:  referring to the wrong register,
+which could cause problems with DS1338 RTCs whose oscillators halted.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/dir.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-ds1307.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/minix/dir.c~minix-convert-to-new-aops-fix fs/minix/dir.c
---- a/fs/minix/dir.c~minix-convert-to-new-aops-fix
-+++ a/fs/minix/dir.c
-@@ -311,7 +311,7 @@ int minix_delete_entry(struct minix_dir_
- 	struct address_space *mapping = page->mapping;
- 	struct inode *inode = (struct inode*)mapping->host;
- 	char *kaddr = page_address(page);
--	loff_t pos = (page->index << PAGE_CACHE_SHIFT) + (char*)de - kaddr;
-+	loff_t pos = page_offset(page) + (char*)de - kaddr;
- 	unsigned len = minix_sb(inode->i_sb)->s_dirsize;
- 	int err;
- 
-@@ -435,7 +435,7 @@ void minix_set_link(struct minix_dir_ent
- 	struct address_space *mapping = page->mapping;
- 	struct inode *dir = mapping->host;
- 	struct minix_sb_info *sbi = minix_sb(dir->i_sb);
--	loff_t pos = (page->index << PAGE_CACHE_SHIFT) +
-+	loff_t pos = page_offset(page) +
- 			(char *)de-(char*)page_address(page);
- 	int err;
- 
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-typo-fix-found-by-coverity drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-typo-fix-found-by-coverity
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -352,7 +352,7 @@ read_rtc:
+ 		/* oscillator fault?  clear flag, and warn */
+ 		if (ds1307->regs[DS1307_REG_CONTROL] & DS1338_BIT_OSF) {
+ 			i2c_smbus_write_byte_data(client, DS1307_REG_CONTROL,
+-					ds1307->regs[DS1337_REG_CONTROL]
++					ds1307->regs[DS1307_REG_CONTROL]
+ 					& ~DS1338_BIT_OSF);
+ 			dev_warn(&client->dev, "SET TIME!\n");
+ 			goto read_rtc;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-geode-setup-correct-chipset-access-functions-fix.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext2-convert-to-new-aops-fix.patch
-ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
-xfs-convert-to-new-aops.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-convert-to-new-aops-fix.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
-hostfs-convert-to-new-aops.patch
-hostfs-convert-to-new-aops-fix.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-ufs-convert-to-new-aops-fix.patch
-udf-convert-to-new-aops.patch
-udf-convert-to-new-aops-fix.patch
-sysv-convert-to-new-aops.patch
-sysv-convert-to-new-aops-fix.patch
-minix-convert-to-new-aops.patch
-minix-convert-to-new-aops-fix.patch
-jfs-convert-to-new-aops.patch
-fs-adfs-convert-to-new-aops.patch
-fs-affs-convert-to-new-aops.patch
-affs-convert-to-new-aops-fix.patch
-ocfs2-convert-to-new-aops.patch
-fs-remove-some-aop_truncated_page.patch
-fs-remove-some-aop_truncated_page-fix.patch
-fs-reiserfs-cleanups.patch
-documentation-update-sched-stattxt.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-reiser4-fix-for-new-aops-patches.patch
+minor-gpio-doc-update.patch
+rtc-stk17ta8-update-for-sysfs-api-change.patch
+rtc-ds1307-typo-fix-found-by-coverity.patch
+git-acpi.patch
+git-mmc.patch
+git-mtd.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+spi-kerneldoc-update.patch
+spi-device-setup-gets-better-error-checking.patch
+rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
+use-menuconfig-objects-rtc.patch
