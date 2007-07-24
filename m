@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch added to -mm tree
-Date: Mon, 23 Jul 2007 20:53:08 -0700
-Message-ID: <200707240353.l6O3r8Jq026872@imap1.linux-foundation.org>
+Subject: + readahead-basic-support-of-interleaved-reads.patch added to -mm tree
+Date: Mon, 23 Jul 2007 20:53:14 -0700
+Message-ID: <200707240353.l6O3rEBh026881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41936 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49580 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751021AbXGXDx7 (ORCPT
+	by vger.kernel.org with ESMTP id S1756865AbXGXDyB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 23:53:59 -0400
+	Mon, 23 Jul 2007 23:54:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, peterz@infradead.org, rusty@rustcorp.com.au
+Cc: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au
 
 
 The patch titled
-     readahead: combine file_ra_state.prev_index/prev_offset into prev_pos
+     readahead: basic support of interleaved reads
 has been added to the -mm tree.  Its filename is
-     readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+     readahead-basic-support-of-interleaved-reads.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,170 +26,122 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: combine file_ra_state.prev_index/prev_offset into prev_pos
+Subject: readahead: basic support of interleaved reads
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Combine the file_ra_state members
-				unsigned long prev_index
-				unsigned int prev_offset
-into
-				loff_t prev_pos
+This is a simplified version of the pagecache context based readahead.  It
+handles the case of multiple threads reading on the same fd and invalidating
+each others' readahead state.  It does the trick by scanning the pagecache and
+recovering the current read stream's readahead status.
 
-It is more consistent and better supports huge files.
+The algorithm works in a opportunistic way, in that it does not try to detect
+interleaved reads _actively_, which requires a probe into the page cache
+(which means a little more overhead for random reads).  It only tries to
+handle a previously started sequential readahead whose state was overwritten
+by another concurrent stream, and it can do this job pretty well.
 
-Thanks to Peter for the nice proposal!
+Negative and positive examples(or what you can expect from it):
 
-Cc: Peter Zijlstra <peterz@infradead.org>
+1) it cannot detect and serve perfect request-by-request interleaved reads
+   right:
+	time	stream 1  stream 2
+	0 	1
+	1 	          1001
+	2 	2
+	3 	          1002
+	4 	3
+	5 	          1003
+	6 	4
+	7 	          1004
+	8 	5
+	9	          1005
+
+Here no single readahead will be carried out.
+
+2) However, if it's two concurrent reads by two threads, the chance of the
+   initial sequential readahead be started is huge. Once the first sequential
+   readahead is started for a stream, this patch will ensure that the readahead
+   window continues to rampup and won't be disturbed by other streams.
+
+	time	stream 1  stream 2
+	0 	1
+	1 	2
+	2 	          1001
+	3 	3
+	4 	          1002
+	5 	          1003
+	6 	4
+	7 	5
+	8 	          1004
+	9 	6
+	10	          1005
+	11	7
+	12	          1006
+	13	          1007
+
+Here stream 1 will start a readahead at page 2, and stream 2 will start its
+first readahead at page 1003.  From then on the two streams will be served
+right.
+
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/dir.c      |    2 +-
- fs/ext4/dir.c      |    2 +-
- fs/splice.c        |    2 +-
- include/linux/fs.h |    3 +--
- mm/filemap.c       |   11 ++++++-----
- mm/readahead.c     |   15 ++++++++-------
- 6 files changed, 18 insertions(+), 17 deletions(-)
+ mm/readahead.c |   33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
 
-diff -puN fs/ext3/dir.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos fs/ext3/dir.c
---- a/fs/ext3/dir.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos
-+++ a/fs/ext3/dir.c
-@@ -143,7 +143,7 @@ static int ext3_readdir(struct file * fi
- 					sb->s_bdev->bd_inode->i_mapping,
- 					&filp->f_ra, filp,
- 					index, 1);
--			filp->f_ra.prev_index = index;
-+			filp->f_ra.prev_pos = index << PAGE_CACHE_SHIFT;
- 			bh = ext3_bread(NULL, inode, blk, 0, &err);
- 		}
- 
-diff -puN fs/ext4/dir.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos fs/ext4/dir.c
---- a/fs/ext4/dir.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos
-+++ a/fs/ext4/dir.c
-@@ -142,7 +142,7 @@ static int ext4_readdir(struct file * fi
- 					sb->s_bdev->bd_inode->i_mapping,
- 					&filp->f_ra, filp,
- 					index, 1);
--			filp->f_ra.prev_index = index;
-+			filp->f_ra.prev_pos = index << PAGE_CACHE_SHIFT;
- 			bh = ext4_bread(NULL, inode, blk, 0, &err);
- 		}
- 
-diff -puN fs/splice.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos fs/splice.c
---- a/fs/splice.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos
-+++ a/fs/splice.c
-@@ -454,7 +454,7 @@ fill_it:
- 	 */
- 	while (page_nr < nr_pages)
- 		page_cache_release(pages[page_nr++]);
--	in->f_ra.prev_index = index;
-+	in->f_ra.prev_pos = index << PAGE_CACHE_SHIFT;
- 
- 	if (spd.nr_pages)
- 		return splice_to_pipe(pipe, &spd);
-diff -puN include/linux/fs.h~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos include/linux/fs.h
---- a/include/linux/fs.h~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos
-+++ a/include/linux/fs.h
-@@ -704,8 +704,7 @@ struct file_ra_state {
- 
- 	unsigned int ra_pages;		/* Maximum readahead window */
- 	int mmap_miss;			/* Cache miss stat for mmap accesses */
--	unsigned long prev_index;	/* Cache last read() position */
--	unsigned int prev_offset;	/* Offset where last read() ended in a page */
-+	loff_t prev_pos;		/* Cache last read() position */
- };
- 
- /*
-diff -puN mm/filemap.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos mm/filemap.c
---- a/mm/filemap.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos
-+++ a/mm/filemap.c
-@@ -879,8 +879,8 @@ void do_generic_mapping_read(struct addr
- 	cached_page = NULL;
- 	index = *ppos >> PAGE_CACHE_SHIFT;
- 	next_index = index;
--	prev_index = ra.prev_index;
--	prev_offset = ra.prev_offset;
-+	prev_index = ra.prev_pos >> PAGE_CACHE_SHIFT;
-+	prev_offset = ra.prev_pos & (PAGE_CACHE_SIZE-1);
- 	last_index = (*ppos + desc->count + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
- 	offset = *ppos & ~PAGE_CACHE_MASK;
- 
-@@ -966,7 +966,6 @@ page_ok:
- 		index += offset >> PAGE_CACHE_SHIFT;
- 		offset &= ~PAGE_CACHE_MASK;
- 		prev_offset = offset;
--		ra.prev_offset = offset;
- 
- 		page_cache_release(page);
- 		if (ret == nr && desc->count)
-@@ -1056,7 +1055,9 @@ no_cached_page:
- 
- out:
- 	*_ra = ra;
--	_ra->prev_index = prev_index;
-+	_ra->prev_pos = prev_index;
-+	_ra->prev_pos <<= PAGE_CACHE_SHIFT;
-+	_ra->prev_pos |= prev_offset;
- 
- 	*ppos = ((loff_t) index << PAGE_CACHE_SHIFT) + offset;
- 	if (cached_page)
-@@ -1415,7 +1416,7 @@ retry_find:
- 	 * Found the page and have a reference on it.
- 	 */
- 	mark_page_accessed(page);
--	ra->prev_index = page->index;
-+	ra->prev_pos = page->index << PAGE_CACHE_SHIFT;
- 	vmf->page = page;
- 	return ret | VM_FAULT_LOCKED;
- 
-diff -puN mm/readahead.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos mm/readahead.c
---- a/mm/readahead.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos
+diff -puN mm/readahead.c~readahead-basic-support-of-interleaved-reads mm/readahead.c
+--- a/mm/readahead.c~readahead-basic-support-of-interleaved-reads
 +++ a/mm/readahead.c
-@@ -45,7 +45,7 @@ void
- file_ra_state_init(struct file_ra_state *ra, struct address_space *mapping)
- {
- 	ra->ra_pages = mapping->backing_dev_info->ra_pages;
--	ra->prev_index = -1;
-+	ra->prev_pos = -1;
- }
- EXPORT_SYMBOL_GPL(file_ra_state_init);
- 
-@@ -326,7 +326,7 @@ static unsigned long get_next_ra_size(st
-  * indicator. The flag won't be set on already cached pages, to avoid the
-  * readahead-for-nothing fuss, saving pointless page cache lookups.
-  *
-- * prev_index tracks the last visited page in the _previous_ read request.
-+ * prev_pos tracks the last visited byte in the _previous_ read request.
-  * It should be maintained by the caller, and will be used for detecting
-  * small random reads. Note that the readahead algorithm checks loosely
-  * for sequential patterns. Hence interleaved reads might be served as
-@@ -350,11 +350,9 @@ ondemand_readahead(struct address_space 
- 		   bool hit_readahead_marker, pgoff_t offset,
- 		   unsigned long req_size)
- {
--	int max;	/* max readahead pages */
--	int sequential;
--
--	max = ra->ra_pages;
--	sequential = (offset - ra->prev_index <= 1UL) || (req_size > max);
-+	int	max = ra->ra_pages;	/* max readahead pages */
-+	pgoff_t prev_offset;
-+	int	sequential;
- 
- 	/*
- 	 * It's the expected callback offset, assume sequential access.
-@@ -368,6 +366,9 @@ ondemand_readahead(struct address_space 
- 		goto readit;
+@@ -379,6 +379,29 @@ ondemand_readahead(struct address_space 
  	}
  
-+	prev_offset = ra->prev_pos >> PAGE_CACHE_SHIFT;
-+	sequential = offset - prev_offset <= 1UL || req_size > max;
-+
  	/*
- 	 * Standalone, small read.
- 	 * Read as is, and do not pollute the readahead state.
++	 * Hit a marked page without valid readahead state.
++	 * E.g. interleaved reads.
++	 * Query the pagecache for async_size, which normally equals to
++	 * readahead size. Ramp it up and use it as the new readahead size.
++	 */
++	if (hit_readahead_marker) {
++		pgoff_t start;
++
++		read_lock_irq(&mapping->tree_lock);
++		start = radix_tree_next_hole(&mapping->page_tree, offset, max+1);
++		read_unlock_irq(&mapping->tree_lock);
++
++		if (!start || start - offset > max)
++			return 0;
++
++		ra->start = start;
++		ra->size = start - offset;	/* old async_size */
++		ra->size = get_next_ra_size(ra, max);
++		ra->async_size = ra->size;
++		goto readit;
++	}
++
++	/*
+ 	 * It may be one of
+ 	 * 	- first read on start of file
+ 	 * 	- sequential cache miss
+@@ -389,16 +412,6 @@ ondemand_readahead(struct address_space 
+ 	ra->size = get_init_ra_size(req_size, max);
+ 	ra->async_size = ra->size > req_size ? ra->size - req_size : ra->size;
+ 
+-	/*
+-	 * Hit on a marked page without valid readahead state.
+-	 * E.g. interleaved reads.
+-	 * Not knowing its readahead pos/size, bet on the minimal possible one.
+-	 */
+-	if (hit_readahead_marker) {
+-		ra->start++;
+-		ra->size = get_next_ra_size(ra, max);
+-	}
+-
+ readit:
+ 	return ra_submit(ra, mapping, filp);
+ }
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
