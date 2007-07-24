@@ -1,79 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - fault_inject-silence-a-warning.patch removed from -mm tree
-Date: Tue, 24 Jul 2007 16:24:48 -0700
-Message-ID: <200707242324.l6ONOmm7006304@imap1.linux-foundation.org>
+Subject: - include-asm-xtensa-ioh-must-include.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 16:24:43 -0700
+Message-ID: <200707242324.l6ONOh4b006296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52269 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52507 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757070AbXGXXY6 (ORCPT
+	by vger.kernel.org with ESMTP id S1757256AbXGXXY6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 24 Jul 2007 19:24:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, chris@zankel.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault_inject: silence a warning
+     include/asm-xtensa/io.h must #include <asm/page.h>
 has been removed from the -mm tree.  Its filename was
-     fault_inject-silence-a-warning.patch
+     include-asm-xtensa-ioh-must-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fault_inject: silence a warning
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: include/asm-xtensa/io.h must #include <asm/page.h>
+From: Adrian Bunk <bunk@stusta.de>
 
-lib/fault-inject.c:168: warning: 'debugfs_create_ul_MAX_STACK_TRACE_DEPTH' defined but not used
+  CC      kernel/time/clocksource.o
+In file included from
+/home/bunk/linux/kernel-2.6/linux-2.6.22-rc6-mm1/include/linux/clocksource.h:18,
+                 from
+/home/bunk/linux/kernel-2.6/linux-2.6.22-rc6-mm1/kernel/time/clocksource.c:27:
+include2/asm/io.h: In function 'virt_to_phys':
+include2/asm/io.h:46: error: implicit declaration of function '__pa'
+include2/asm/io.h: In function 'phys_to_virt':
+include2/asm/io.h:51: error: implicit declaration of function '__va'
+include2/asm/io.h:51: warning: return makes pointer from integer without a cast
+make[3]: *** [kernel/time/clocksource.o] Error 1
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/fault-inject.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ include/asm-xtensa/io.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN lib/fault-inject.c~fault_inject-silence-a-warning lib/fault-inject.c
---- a/lib/fault-inject.c~fault_inject-silence-a-warning
-+++ a/lib/fault-inject.c
-@@ -139,12 +139,14 @@ static void debugfs_ul_set(void *data, u
- 	*(unsigned long *)data = val;
- }
+diff -puN include/asm-xtensa/io.h~include-asm-xtensa-ioh-must-include include/asm-xtensa/io.h
+--- a/include/asm-xtensa/io.h~include-asm-xtensa-ioh-must-include
++++ a/include/asm-xtensa/io.h
+@@ -13,6 +13,7 @@
  
-+#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
- static void debugfs_ul_set_MAX_STACK_TRACE_DEPTH(void *data, u64 val)
- {
- 	*(unsigned long *)data =
- 		val < MAX_STACK_TRACE_DEPTH ?
- 		val : MAX_STACK_TRACE_DEPTH;
- }
-+#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+ #ifdef __KERNEL__
+ #include <asm/byteorder.h>
++#include <asm/page.h>
  
- static u64 debugfs_ul_get(void *data)
- {
-@@ -159,6 +161,7 @@ static struct dentry *debugfs_create_ul(
- 	return debugfs_create_file(name, mode, parent, value, &fops_ul);
- }
+ #include <linux/types.h>
  
-+#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
- DEFINE_SIMPLE_ATTRIBUTE(fops_ul_MAX_STACK_TRACE_DEPTH, debugfs_ul_get,
- 			debugfs_ul_set_MAX_STACK_TRACE_DEPTH, "%llu\n");
- 
-@@ -169,6 +172,7 @@ static struct dentry *debugfs_create_ul_
- 	return debugfs_create_file(name, mode, parent, value,
- 				   &fops_ul_MAX_STACK_TRACE_DEPTH);
- }
-+#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
- 
- static void debugfs_atomic_t_set(void *data, u64 val)
- {
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+use-ldflags_module-only-for-ko-links.patch
+x86_powernow_k8_acpi-must-depend-on-acpi.patch
+git-acpi.patch
+drivers-acpi-sbsc-remove-dead-code.patch
 git-alsa.patch
-stradis-and-zoran-depend-on-virt_to_bus.patch
-clean-up-duplicate-includes-in-drivers-block.patch
+git-drm.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+git-netdev-all.patch
+fore200e_param_bs_queue-must-be-__devinit.patch
+git-ocfs2.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+maps2-add-proc-kpagemap-interface.patch
+fs-reiserfs-cleanups.patch
+anon_inodes-shouldnt-be-user-visible.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
