@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-compacting-file_ra_state.patch added to -mm tree
-Date: Mon, 23 Jul 2007 20:53:04 -0700
-Message-ID: <200707240353.l6O3r4vR026865@imap1.linux-foundation.org>
+Subject: + radixtree-introduce-radix_tree_scan_hole.patch added to -mm tree
+Date: Mon, 23 Jul 2007 20:53:12 -0700
+Message-ID: <200707240353.l6O3rCrd026878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37643 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58171 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755756AbXGXDyB (ORCPT
+	by vger.kernel.org with ESMTP id S1756298AbXGXDyA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 23:54:01 -0400
+	Mon, 23 Jul 2007 23:54:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, andi@firstfloor.org, rusty@rustcorp.com.au
+Cc: wfg@mail.ustc.edu.cn, nickpiggin@yahoo.com.au, rusty@rustcorp.com.au
 
 
 The patch titled
-     readahead: compacting file_ra_state
+     radixtree: introduce radix_tree_scan_hole()
 has been added to the -mm tree.  Its filename is
-     readahead-compacting-file_ra_state.patch
+     radixtree-introduce-radix_tree_scan_hole.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: compacting file_ra_state
+Subject: radixtree: introduce radix_tree_scan_hole()
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Use 'unsigned int' instead of 'unsigned long' for readahead sizes.
+Introduce radix_tree_scan_hole(root, index, max_scan) to scan radix tree for
+the first hole.  It will be used in interleaved readahead.
 
-This helps reduce memory consumption on 64bit CPU when a lot of files are
-opened.
+The implementation is dumb and obviously correct.  It can help debug(and
+document) the possible smart one in future.
 
-CC: Andi Kleen <andi@firstfloor.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    8 ++++----
- mm/readahead.c     |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ include/linux/radix-tree.h |    2 +
+ lib/radix-tree.c           |   36 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
-diff -puN include/linux/fs.h~readahead-compacting-file_ra_state include/linux/fs.h
---- a/include/linux/fs.h~readahead-compacting-file_ra_state
-+++ a/include/linux/fs.h
-@@ -697,12 +697,12 @@ struct fown_struct {
-  * Track a single file's readahead state
-  */
- struct file_ra_state {
--	pgoff_t start;                  /* where readahead started */
--	unsigned long size;             /* # of readahead pages */
--	unsigned long async_size;       /* do asynchronous readahead when
-+	pgoff_t start;			/* where readahead started */
-+	unsigned int size;		/* # of readahead pages */
-+	unsigned int async_size;	/* do asynchronous readahead when
- 					   there are only # of pages ahead */
+diff -puN include/linux/radix-tree.h~radixtree-introduce-radix_tree_scan_hole include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radixtree-introduce-radix_tree_scan_hole
++++ a/include/linux/radix-tree.h
+@@ -155,6 +155,8 @@ void *radix_tree_delete(struct radix_tre
+ unsigned int
+ radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
+ 			unsigned long first_index, unsigned int max_items);
++unsigned long radix_tree_next_hole(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan);
+ int radix_tree_preload(gfp_t gfp_mask);
+ void radix_tree_init(void);
+ void *radix_tree_tag_set(struct radix_tree_root *root,
+diff -puN lib/radix-tree.c~radixtree-introduce-radix_tree_scan_hole lib/radix-tree.c
+--- a/lib/radix-tree.c~radixtree-introduce-radix_tree_scan_hole
++++ a/lib/radix-tree.c
+@@ -599,6 +599,42 @@ int radix_tree_tag_get(struct radix_tree
+ EXPORT_SYMBOL(radix_tree_tag_get);
+ #endif
  
--	unsigned long ra_pages;		/* Maximum readahead window */
-+	unsigned int ra_pages;		/* Maximum readahead window */
- 	unsigned long mmap_hit;		/* Cache hit stat for mmap accesses */
- 	unsigned long mmap_miss;	/* Cache miss stat for mmap accesses */
- 	unsigned long prev_index;	/* Cache last read() position */
-diff -puN mm/readahead.c~readahead-compacting-file_ra_state mm/readahead.c
---- a/mm/readahead.c~readahead-compacting-file_ra_state
-+++ a/mm/readahead.c
-@@ -350,7 +350,7 @@ ondemand_readahead(struct address_space 
- 		   bool hit_readahead_marker, pgoff_t offset,
- 		   unsigned long req_size)
- {
--	unsigned long max;	/* max readahead pages */
-+	int max;	/* max readahead pages */
- 	int sequential;
- 
- 	max = ra->ra_pages;
++/**
++ *	radix_tree_next_hole    -    find the next hole (not-present entry)
++ *	@root:		tree root
++ *	@index:		index key
++ *	@max_scan:	maximum range to search
++ *
++ *	Search the set [index, min(index+max_scan-1, MAX_INDEX)] for the lowest
++ *	indexed hole.
++ *
++ *	Returns: the index of the hole if found, otherwise returns an index
++ *	outside of the set specified (in which case 'return - index >= max_scan'
++ *	will be true).
++ *
++ *	radix_tree_next_hole may be called under rcu_read_lock. However, like
++ *	radix_tree_gang_lookup, this will not atomically search a snapshot of the
++ *	tree at a single point in time. For example, if a hole is created at index
++ *	5, then subsequently a hole is created at index 10, radix_tree_next_hole
++ *	covering both indexes may return 10 if called under rcu_read_lock.
++ */
++unsigned long radix_tree_next_hole(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan)
++{
++	unsigned long i;
++
++	for (i = 0; i < max_scan; i++) {
++		if (!radix_tree_lookup(root, index))
++			break;
++		index++;
++		if (index == 0)
++			break;
++	}
++
++	return index;
++}
++EXPORT_SYMBOL(radix_tree_next_hole);
++
+ static unsigned int
+ __lookup(struct radix_tree_node *slot, void **results, unsigned long index,
+ 	unsigned int max_items, unsigned long *next_index)
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
