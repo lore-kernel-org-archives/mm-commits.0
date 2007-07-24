@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 00:04:58 -0700
-Message-ID: <200707240709.l6O79VOK001198@imap1.linux-foundation.org>
+Subject: + git-watchdog-typo.patch added to -mm tree
+Date: Tue, 24 Jul 2007 00:07:27 -0700
+Message-ID: <200707240712.l6O7C0Uu001266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38949 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43408 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765509AbXGXHKZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753029AbXGXHMl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 03:10:25 -0400
+	Tue, 24 Jul 2007 03:12:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kluo@nvidia.com, pchen@nvidia.com, zboszor@dunaweb.hu
+Cc: akpm@linux-foundation.org, wim@iguana.be
 
 
 The patch titled
-     ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
+     git-watchdog-typo
 has been added to the -mm tree.  Its filename is
-     ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+     git-watchdog-typo.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
+Subject: git-watchdog-typo
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this:
+This driver isn't very coding-style friendly.
 
-drivers/ata/sata_nv.c:2260: error: too few arguments to function 'ap->ops->scr_read'
-
-Is this right?
-
-Cc: Kuan Luo <kluo@nvidia.com>
-Cc: Peer Chen <pchen@nvidia.com>
-Cc: Zoltan Boszormenyi <zboszor@dunaweb.hu>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/char/watchdog/cpu5wdt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
-+++ a/drivers/ata/sata_nv.c
-@@ -2256,7 +2256,8 @@ static void nv_swncq_host_interrupt(stru
- 	if (!pp->qc_active)
- 		return;
- 
--	serror = ap->ops->scr_read(ap, SCR_ERROR);
-+	if (ap->ops->scr_read(ap, SCR_ERROR, &serror))
-+		return;
- 	ap->ops->scr_write(ap, SCR_ERROR, serror);
- 
- 	if (ata_stat & ATA_ERR) {
+diff -puN drivers/char/watchdog/cpu5wdt.c~git-watchdog-typo drivers/char/watchdog/cpu5wdt.c
+--- a/drivers/char/watchdog/cpu5wdt.c~git-watchdog-typo
++++ a/drivers/char/watchdog/cpu5wdt.c
+@@ -164,7 +164,7 @@ static int cpu5wdt_ioctl(struct inode *i
+ 			break;
+ 		case WDIOC_GETBOOTSTATUS:
+ 			if ( copy_to_user(argp, &value, sizeof(int)) )
+-				retrun -EFAULT;
++				return -EFAULT;
+ 			break;
+ 		case WDIOC_GETSUPPORT:
+ 			if ( copy_to_user(argp, &ident, sizeof(ident)) )
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +80,7 @@ try-parent-numa_node-at-first-before-using-default-v2-fix.patch
 aacraid-rename-check_reset.patch
 git-scsi-target-fixup.patch
 git-unionfs.patch
+git-watchdog-typo.patch
 x86_64-clean-up-apicid_to_node-declaration.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 mmconfig-validate-against-acpi-motherboard-resources.patch
