@@ -1,107 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-net-bridge.patch removed from -mm tree
-Date: Tue, 24 Jul 2007 16:25:28 -0700
-Message-ID: <200707242325.l6ONPShi006367@imap1.linux-foundation.org>
+Subject: - git-watchdog-typo.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 16:25:38 -0700
+Message-ID: <200707242325.l6ONPcEN006379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57768 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54339 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755490AbXGXXgN (ORCPT
+	by vger.kernel.org with ESMTP id S1756371AbXGXXgP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 19:36:13 -0400
+	Tue, 24 Jul 2007 19:36:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in net/bridge/
+     git-watchdog-typo
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-net-bridge.patch
+     git-watchdog-typo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in net/bridge/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: git-watchdog-typo
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch cleans up duplicate includes in
-	net/bridge/
+This driver isn't very coding-style friendly.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/netfilter/ebt_log.c  |    1 -
- net/bridge/netfilter/ebt_ulog.c |    1 -
- 2 files changed, 2 deletions(-)
+ drivers/char/watchdog/cpu5wdt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/bridge/netfilter/ebt_log.c~clean-up-duplicate-includes-in-net-bridge net/bridge/netfilter/ebt_log.c
---- a/net/bridge/netfilter/ebt_log.c~clean-up-duplicate-includes-in-net-bridge
-+++ a/net/bridge/netfilter/ebt_log.c
-@@ -9,7 +9,6 @@
-  *
-  */
- 
--#include <linux/in.h>
- #include <linux/netfilter_bridge/ebtables.h>
- #include <linux/netfilter_bridge/ebt_log.h>
- #include <linux/netfilter.h>
-diff -puN net/bridge/netfilter/ebt_ulog.c~clean-up-duplicate-includes-in-net-bridge net/bridge/netfilter/ebt_ulog.c
---- a/net/bridge/netfilter/ebt_ulog.c~clean-up-duplicate-includes-in-net-bridge
-+++ a/net/bridge/netfilter/ebt_ulog.c
-@@ -36,7 +36,6 @@
- #include <linux/timer.h>
- #include <linux/netlink.h>
- #include <linux/netdevice.h>
--#include <linux/module.h>
- #include <linux/netfilter_bridge/ebtables.h>
- #include <linux/netfilter_bridge/ebt_ulog.h>
- #include <net/sock.h>
+diff -puN drivers/char/watchdog/cpu5wdt.c~git-watchdog-typo drivers/char/watchdog/cpu5wdt.c
+--- a/drivers/char/watchdog/cpu5wdt.c~git-watchdog-typo
++++ a/drivers/char/watchdog/cpu5wdt.c
+@@ -164,7 +164,7 @@ static int cpu5wdt_ioctl(struct inode *i
+ 			break;
+ 		case WDIOC_GETBOOTSTATUS:
+ 			if ( copy_to_user(argp, &value, sizeof(int)) )
+-				retrun -EFAULT;
++				return -EFAULT;
+ 			break;
+ 		case WDIOC_GETSUPPORT:
+ 			if ( copy_to_user(argp, &ident, sizeof(ident)) )
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-alsa.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-git-dvb.patch
-clean-up-duplicate-includes-in-drivers-hwmon.patch
-git-gfs2-nmw.patch
-hid-fix-a-null-pointer-dereference-when-we-fail-to-allocate-memory.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-git-kbuild.patch
+origin.patch
+rtc-stk17ta8-update-for-sysfs-api-change.patch
+x86_powernow_k8_acpi-must-depend-on-acpi.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+mmc-build-fix.patch
 git-mtd.patch
-clean-up-duplicate-includes-in-drivers-net.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
 git-net.patch
-clean-up-duplicate-includes-in-drivers-atm.patch
-clean-up-duplicate-includes-in-net-atm.patch
-clean-up-duplicate-includes-in-net-ipv4.patch
-clean-up-duplicate-includes-in-net-ipv6.patch
-clean-up-duplicate-includes-in-net-sched.patch
-clean-up-duplicate-includes-in-net-sunrpc.patch
-clean-up-duplicate-includes-in-net-tipc.patch
-clean-up-duplicate-includes-in-net-xfrm.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-git-selinux.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-clean-up-duplicate-includes-in-drivers-block.patch
-clean-up-duplicate-includes-in-drivers-usb.patch
-clean-up-duplicate-includes-in-arch-i386-xen.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-ipmi-fix-mem-leak-in-try_init_dmi.patch
-fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-cciss-fix-memory-leak.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+ip_auto_config-fix-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+try-parent-numa_node-at-first-before-using-default-v2-fix.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-scsi-target-fixup.patch
+git-unionfs.patch
+git-watchdog.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
+loop-use-unlocked_ioctl.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
