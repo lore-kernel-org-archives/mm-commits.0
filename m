@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-mmap-read-around-simplification.patch added to -mm tree
-Date: Mon, 23 Jul 2007 20:53:06 -0700
-Message-ID: <200707240353.l6O3r6wr026868@imap1.linux-foundation.org>
+Subject: + readahead-compacting-file_ra_state.patch added to -mm tree
+Date: Mon, 23 Jul 2007 20:53:04 -0700
+Message-ID: <200707240353.l6O3r4vR026865@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57770 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37643 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765179AbXGXDxY (ORCPT
+	by vger.kernel.org with ESMTP id S1755756AbXGXDyB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 23:53:24 -0400
+	Mon, 23 Jul 2007 23:54:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au
+Cc: wfg@mail.ustc.edu.cn, andi@firstfloor.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     readahead: mmap read-around simplification
+     readahead: compacting file_ra_state
 has been added to the -mm tree.  Its filename is
-     readahead-mmap-read-around-simplification.patch
+     readahead-compacting-file_ra_state.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,54 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: mmap read-around simplification
+Subject: readahead: compacting file_ra_state
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Fold file_ra_state.mmap_hit into file_ra_state.mmap_miss and make it an int.
+Use 'unsigned int' instead of 'unsigned long' for readahead sizes.
 
+This helps reduce memory consumption on 64bit CPU when a lot of files are
+opened.
+
+CC: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    3 +--
- mm/filemap.c       |    4 ++--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ include/linux/fs.h |    8 ++++----
+ mm/readahead.c     |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/fs.h~readahead-mmap-read-around-simplification include/linux/fs.h
---- a/include/linux/fs.h~readahead-mmap-read-around-simplification
+diff -puN include/linux/fs.h~readahead-compacting-file_ra_state include/linux/fs.h
+--- a/include/linux/fs.h~readahead-compacting-file_ra_state
 +++ a/include/linux/fs.h
-@@ -703,8 +703,7 @@ struct file_ra_state {
+@@ -697,12 +697,12 @@ struct fown_struct {
+  * Track a single file's readahead state
+  */
+ struct file_ra_state {
+-	pgoff_t start;                  /* where readahead started */
+-	unsigned long size;             /* # of readahead pages */
+-	unsigned long async_size;       /* do asynchronous readahead when
++	pgoff_t start;			/* where readahead started */
++	unsigned int size;		/* # of readahead pages */
++	unsigned int async_size;	/* do asynchronous readahead when
  					   there are only # of pages ahead */
  
- 	unsigned int ra_pages;		/* Maximum readahead window */
--	unsigned long mmap_hit;		/* Cache hit stat for mmap accesses */
--	unsigned long mmap_miss;	/* Cache miss stat for mmap accesses */
-+	int mmap_miss;			/* Cache miss stat for mmap accesses */
+-	unsigned long ra_pages;		/* Maximum readahead window */
++	unsigned int ra_pages;		/* Maximum readahead window */
+ 	unsigned long mmap_hit;		/* Cache hit stat for mmap accesses */
+ 	unsigned long mmap_miss;	/* Cache miss stat for mmap accesses */
  	unsigned long prev_index;	/* Cache last read() position */
- 	unsigned int prev_offset;	/* Offset where last read() ended in a page */
- };
-diff -puN mm/filemap.c~readahead-mmap-read-around-simplification mm/filemap.c
---- a/mm/filemap.c~readahead-mmap-read-around-simplification
-+++ a/mm/filemap.c
-@@ -1369,7 +1369,7 @@ retry_find:
- 		 * Do we miss much more than hit in this file? If so,
- 		 * stop bothering with read-ahead. It will only hurt.
- 		 */
--		if (ra->mmap_miss > ra->mmap_hit + MMAP_LOTSAMISS)
-+		if (ra->mmap_miss > MMAP_LOTSAMISS)
- 			goto no_cached_page;
+diff -puN mm/readahead.c~readahead-compacting-file_ra_state mm/readahead.c
+--- a/mm/readahead.c~readahead-compacting-file_ra_state
++++ a/mm/readahead.c
+@@ -350,7 +350,7 @@ ondemand_readahead(struct address_space 
+ 		   bool hit_readahead_marker, pgoff_t offset,
+ 		   unsigned long req_size)
+ {
+-	unsigned long max;	/* max readahead pages */
++	int max;	/* max readahead pages */
+ 	int sequential;
  
- 		/*
-@@ -1395,7 +1395,7 @@ retry_find:
- 	}
- 
- 	if (!did_readaround)
--		ra->mmap_hit++;
-+		ra->mmap_miss--;
- 
- 	/*
- 	 * We have a locked page in the page cache, now we need to check
+ 	max = ra->ra_pages;
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
