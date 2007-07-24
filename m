@@ -1,53 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - git-kgdb-fixup-2.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 22:47:13 -0700
-Message-ID: <200707240547.l6O5lDi8030795@imap1.linux-foundation.org>
+Subject: + git-scsi-target-fixup.patch added to -mm tree
+Date: Mon, 23 Jul 2007 22:49:49 -0700
+Message-ID: <200707240549.l6O5nns9030920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43187 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38564 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752338AbXGXFrX (ORCPT
+	by vger.kernel.org with ESMTP id S1752391AbXGXFt5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 01:47:23 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6O5lJCf010320
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2007 22:47:22 -0700
+	Tue, 24 Jul 2007 01:49:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, tomof@acm.org
 
 
 The patch titled
-     git-kgdb-fixup-2
-has been removed from the -mm tree.  Its filename was
-     git-kgdb-fixup-2.patch
+     git-scsi-target-fixup
+has been added to the -mm tree.  Its filename is
+     git-scsi-target-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-kgdb-fixup-2
+Subject: git-scsi-target-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix rejects with mainline
+
+Cc: FUJITA Tomonori <tomof@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile                  |    0 
- arch/i386/kernel/Makefile |    1 +
- 2 files changed, 1 insertion(+)
+ drivers/infiniband/ulp/srp/Kconfig |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/i386/kernel/Makefile~git-kgdb-fixup-2 arch/i386/kernel/Makefile
---- a/arch/i386/kernel/Makefile~git-kgdb-fixup-2
-+++ a/arch/i386/kernel/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_X86_REBOOTFIXUPS)	+= reboot
- obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o crash.o
- obj-$(CONFIG_CRASH_DUMP)	+= crash_dump.o
- obj-$(CONFIG_X86_NUMAQ)		+= numaq.o
-+obj-$(CONFIG_KGDB)		+= kgdb.o kgdb-jmp.o
- obj-$(CONFIG_X86_SUMMIT_NUMA)	+= summit.o
- obj-$(CONFIG_KPROBES)		+= kprobes.o
- obj-$(CONFIG_MODULES)		+= module.o
-diff -puN Makefile~git-kgdb-fixup-2 Makefile
+diff -puN drivers/infiniband/ulp/srp/Kconfig~git-scsi-target-fixup drivers/infiniband/ulp/srp/Kconfig
+--- a/drivers/infiniband/ulp/srp/Kconfig~git-scsi-target-fixup
++++ a/drivers/infiniband/ulp/srp/Kconfig
+@@ -1,11 +1,7 @@
+ config INFINIBAND_SRP
+ 	tristate "InfiniBand SCSI RDMA Protocol"
+-<<<<<<< HEAD/drivers/infiniband/ulp/srp/Kconfig
+-	depends on SCSI
+-=======
+ 	depends on INFINIBAND && SCSI
+ 	select SCSI_SRP_ATTRS
+->>>>>>> /drivers/infiniband/ulp/srp/Kconfig
+ 	---help---
+ 	  Support for the SCSI RDMA Protocol over InfiniBand.  This
+ 	  allows you to access storage devices that speak SRP over
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +86,6 @@ mmconfig-validate-against-acpi-motherboard-resources.patch
 git-newsetup-fixup.patch
 git-xfs.patch
 git-xfs-fixup.patch
-git-kgdb-fixup-2.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
@@ -128,3 +132,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+git-scsi-target-fixup.patch
