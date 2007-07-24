@@ -1,58 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: + git-newsetup-fixup.patch added to -mm tree
-Date: Mon, 23 Jul 2007 22:45:58 -0700
-Message-ID: <200707240545.l6O5jwsh030747@imap1.linux-foundation.org>
+Subject: - git-kgdb-fixup-2.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 22:47:13 -0700
+Message-ID: <200707240547.l6O5lDi8030795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48351 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43187 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751447AbXGXFqJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752338AbXGXFrX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 01:46:09 -0400
+	Tue, 24 Jul 2007 01:47:23 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6O5lJCf010320
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2007 22:47:22 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, rusty@rustcorp.com.au
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-newsetup-fixup
-has been added to the -mm tree.  Its filename is
-     git-newsetup-fixup.patch
+     git-kgdb-fixup-2
+has been removed from the -mm tree.  Its filename was
+     git-kgdb-fixup-2.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-newsetup-fixup
+Subject: git-kgdb-fixup-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix rejects in lguest+rusty-docco-patches versus git-newsetup.
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ Makefile                  |    0 
+ arch/i386/kernel/Makefile |    1 +
+ 2 files changed, 1 insertion(+)
 
-diff -puN drivers/lguest/lguest.c~git-newsetup-fixup drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~git-newsetup-fixup
-+++ a/drivers/lguest/lguest.c
-@@ -869,7 +869,9 @@ static __init char *lguest_memory_setup(
- 
- 	/* The Linux bootloader header contains an "e820" memory map: the
- 	 * Launcher populated the first entry with our memory limit. */
--	add_memory_region(E820_MAP->addr, E820_MAP->size, E820_MAP->type);
-+	add_memory_region(boot_params.e820_map[0].addr,
-+			  boot_params.e820_map[0].size,
-+			  boot_params.e820_map[0].type);
- 
- 	/* This string is for the boot messages. */
- 	return "LGUEST";
+diff -puN arch/i386/kernel/Makefile~git-kgdb-fixup-2 arch/i386/kernel/Makefile
+--- a/arch/i386/kernel/Makefile~git-kgdb-fixup-2
++++ a/arch/i386/kernel/Makefile
+@@ -29,6 +29,7 @@ obj-$(CONFIG_X86_REBOOTFIXUPS)	+= reboot
+ obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o crash.o
+ obj-$(CONFIG_CRASH_DUMP)	+= crash_dump.o
+ obj-$(CONFIG_X86_NUMAQ)		+= numaq.o
++obj-$(CONFIG_KGDB)		+= kgdb.o kgdb-jmp.o
+ obj-$(CONFIG_X86_SUMMIT_NUMA)	+= summit.o
+ obj-$(CONFIG_KPROBES)		+= kprobes.o
+ obj-$(CONFIG_MODULES)		+= module.o
+diff -puN Makefile~git-kgdb-fixup-2 Makefile
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
