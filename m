@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch added to -mm tree
-Date: Mon, 23 Jul 2007 20:53:10 -0700
-Message-ID: <200707240353.l6O3rA6f026875@imap1.linux-foundation.org>
+Subject: + readahead-remove-several-readahead-macros.patch added to -mm tree
+Date: Mon, 23 Jul 2007 20:53:19 -0700
+Message-ID: <200707240353.l6O3rJ2v026888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40500 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47313 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756865AbXGXDyI (ORCPT
+	by vger.kernel.org with ESMTP id S1757504AbXGXDyK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 23:54:08 -0400
+	Mon, 23 Jul 2007 23:54:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, peterz@infradead.org, rusty@rustcorp.com.au, wfg@mail.ustc.edu.cn
+Cc: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au
 
 
 The patch titled
-     readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix
+     readahead: remove several readahead macros
 has been added to the -mm tree.  Its filename is
-     readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+     readahead-remove-several-readahead-macros.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,106 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: readahead: remove several readahead macros
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Cc: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Remove VM_MAX_CACHE_HIT, MAX_RA_PAGES and MIN_RA_PAGES.
+
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |    2 --
+ mm/readahead.c     |   10 +---------
+ 2 files changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN mm/filemap.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix mm/filemap.c
---- a/mm/filemap.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix
-+++ a/mm/filemap.c
-@@ -1416,7 +1416,7 @@ retry_find:
- 	 * Found the page and have a reference on it.
- 	 */
- 	mark_page_accessed(page);
--	ra->prev_pos = page->index << PAGE_CACHE_SHIFT;
-+	ra->prev_pos = (loff_t)page->index << PAGE_CACHE_SHIFT;
- 	vmf->page = page;
- 	return ret | VM_FAULT_LOCKED;
+diff -puN include/linux/mm.h~readahead-remove-several-readahead-macros include/linux/mm.h
+--- a/include/linux/mm.h~readahead-remove-several-readahead-macros
++++ a/include/linux/mm.h
+@@ -1132,8 +1132,6 @@ int write_one_page(struct page *page, in
+ /* readahead.c */
+ #define VM_MAX_READAHEAD	128	/* kbytes */
+ #define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
+-#define VM_MAX_CACHE_HIT    	256	/* max pages in a row in cache before
+-					 * turning readahead off */
  
+ int do_page_cache_readahead(struct address_space *mapping, struct file *filp,
+ 			pgoff_t offset, unsigned long nr_to_read);
+diff -puN mm/readahead.c~readahead-remove-several-readahead-macros mm/readahead.c
+--- a/mm/readahead.c~readahead-remove-several-readahead-macros
++++ a/mm/readahead.c
+@@ -21,16 +21,8 @@ void default_unplug_io_fn(struct backing
+ }
+ EXPORT_SYMBOL(default_unplug_io_fn);
+ 
+-/*
+- * Convienent macros for min/max read-ahead pages.
+- * Note that MAX_RA_PAGES is rounded down, while MIN_RA_PAGES is rounded up.
+- * The latter is necessary for systems with large page size(i.e. 64k).
+- */
+-#define MAX_RA_PAGES	(VM_MAX_READAHEAD*1024 / PAGE_CACHE_SIZE)
+-#define MIN_RA_PAGES	DIV_ROUND_UP(VM_MIN_READAHEAD*1024, PAGE_CACHE_SIZE)
+-
+ struct backing_dev_info default_backing_dev_info = {
+-	.ra_pages	= MAX_RA_PAGES,
++	.ra_pages	= VM_MAX_READAHEAD * 1024 / PAGE_CACHE_SIZE,
+ 	.state		= 0,
+ 	.capabilities	= BDI_CAP_MAP_COPY,
+ 	.unplug_io_fn	= default_unplug_io_fn,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-x86_powernow_k8_acpi-must-depend-on-acpi.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-dvb.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-git-mtd.patch
-mtd-potential-leak-in-rfd_ftl_add_mtd-fix.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-ip_auto_config-fix-fix.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-xfs-fixup.patch
-git-kgdb-fixup-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+radixtree-introduce-radix_tree_scan_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+convert-ill-defined-log2-to-ilog2.patch
