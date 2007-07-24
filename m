@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-basic-support-of-interleaved-reads.patch added to -mm tree
-Date: Mon, 23 Jul 2007 20:53:14 -0700
-Message-ID: <200707240353.l6O3rEBh026881@imap1.linux-foundation.org>
+Subject: + readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch added to -mm tree
+Date: Mon, 23 Jul 2007 20:53:17 -0700
+Message-ID: <200707240353.l6O3rH6p026885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49580 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40115 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756865AbXGXDyB (ORCPT
+	by vger.kernel.org with ESMTP id S1757088AbXGXDyF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 23:54:01 -0400
+	Mon, 23 Jul 2007 23:54:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au
+Cc: wfg@mail.ustc.edu.cn, nickpiggin@yahoo.com.au, rusty@rustcorp.com.au
 
 
 The patch titled
-     readahead: basic support of interleaved reads
+     readahead: remove the local copy of ra in do_generic_mapping_read()
 has been added to the -mm tree.  Its filename is
-     readahead-basic-support-of-interleaved-reads.patch
+     readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,122 +26,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: basic support of interleaved reads
+Subject: readahead: remove the local copy of ra in do_generic_mapping_read()
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-This is a simplified version of the pagecache context based readahead.  It
-handles the case of multiple threads reading on the same fd and invalidating
-each others' readahead state.  It does the trick by scanning the pagecache and
-recovering the current read stream's readahead status.
+The local copy of ra in do_generic_mapping_read() can now go away.
 
-The algorithm works in a opportunistic way, in that it does not try to detect
-interleaved reads _actively_, which requires a probe into the page cache
-(which means a little more overhead for random reads).  It only tries to
-handle a previously started sequential readahead whose state was overwritten
-by another concurrent stream, and it can do this job pretty well.
+It predates readanead(req_size).  In a time when the readahead code was called
+on *every* single page.  Hence a local has to be made to reduce the chance of
+the readahead state being overwritten by a concurrent reader.  More details
+in: Linux: Random File I/O Regressions In 2.6
+<http://kerneltrap.org/node/3039>
 
-Negative and positive examples(or what you can expect from it):
-
-1) it cannot detect and serve perfect request-by-request interleaved reads
-   right:
-	time	stream 1  stream 2
-	0 	1
-	1 	          1001
-	2 	2
-	3 	          1002
-	4 	3
-	5 	          1003
-	6 	4
-	7 	          1004
-	8 	5
-	9	          1005
-
-Here no single readahead will be carried out.
-
-2) However, if it's two concurrent reads by two threads, the chance of the
-   initial sequential readahead be started is huge. Once the first sequential
-   readahead is started for a stream, this patch will ensure that the readahead
-   window continues to rampup and won't be disturbed by other streams.
-
-	time	stream 1  stream 2
-	0 	1
-	1 	2
-	2 	          1001
-	3 	3
-	4 	          1002
-	5 	          1003
-	6 	4
-	7 	5
-	8 	          1004
-	9 	6
-	10	          1005
-	11	7
-	12	          1006
-	13	          1007
-
-Here stream 1 will start a readahead at page 2, and stream 2 will start its
-first readahead at page 1003.  From then on the two streams will be served
-right.
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   33 +++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
+ mm/filemap.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN mm/readahead.c~readahead-basic-support-of-interleaved-reads mm/readahead.c
---- a/mm/readahead.c~readahead-basic-support-of-interleaved-reads
-+++ a/mm/readahead.c
-@@ -379,6 +379,29 @@ ondemand_readahead(struct address_space 
+diff -puN mm/filemap.c~readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read mm/filemap.c
+--- a/mm/filemap.c~readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read
++++ a/mm/filemap.c
+@@ -859,7 +859,7 @@ static void shrink_readahead_size_eio(st
+  * It may be NULL.
+  */
+ void do_generic_mapping_read(struct address_space *mapping,
+-			     struct file_ra_state *_ra,
++			     struct file_ra_state *ra,
+ 			     struct file *filp,
+ 			     loff_t *ppos,
+ 			     read_descriptor_t *desc,
+@@ -874,13 +874,12 @@ void do_generic_mapping_read(struct addr
+ 	unsigned int prev_offset;
+ 	struct page *cached_page;
+ 	int error;
+-	struct file_ra_state ra = *_ra;
+ 
+ 	cached_page = NULL;
+ 	index = *ppos >> PAGE_CACHE_SHIFT;
+ 	next_index = index;
+-	prev_index = ra.prev_pos >> PAGE_CACHE_SHIFT;
+-	prev_offset = ra.prev_pos & (PAGE_CACHE_SIZE-1);
++	prev_index = ra->prev_pos >> PAGE_CACHE_SHIFT;
++	prev_offset = ra->prev_pos & (PAGE_CACHE_SIZE-1);
+ 	last_index = (*ppos + desc->count + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
+ 	offset = *ppos & ~PAGE_CACHE_MASK;
+ 
+@@ -895,7 +894,7 @@ find_page:
+ 		page = find_get_page(mapping, index);
+ 		if (!page) {
+ 			page_cache_sync_readahead(mapping,
+-					&ra, filp,
++					ra, filp,
+ 					index, last_index - index);
+ 			page = find_get_page(mapping, index);
+ 			if (unlikely(page == NULL))
+@@ -903,7 +902,7 @@ find_page:
+ 		}
+ 		if (PageReadahead(page)) {
+ 			page_cache_async_readahead(mapping,
+-					&ra, filp, page,
++					ra, filp, page,
+ 					index, last_index - index);
+ 		}
+ 		if (!PageUptodate(page))
+@@ -1014,7 +1013,7 @@ readpage:
+ 				}
+ 				unlock_page(page);
+ 				error = -EIO;
+-				shrink_readahead_size_eio(filp, &ra);
++				shrink_readahead_size_eio(filp, ra);
+ 				goto readpage_error;
+ 			}
+ 			unlock_page(page);
+@@ -1054,10 +1053,9 @@ no_cached_page:
  	}
  
- 	/*
-+	 * Hit a marked page without valid readahead state.
-+	 * E.g. interleaved reads.
-+	 * Query the pagecache for async_size, which normally equals to
-+	 * readahead size. Ramp it up and use it as the new readahead size.
-+	 */
-+	if (hit_readahead_marker) {
-+		pgoff_t start;
-+
-+		read_lock_irq(&mapping->tree_lock);
-+		start = radix_tree_next_hole(&mapping->page_tree, offset, max+1);
-+		read_unlock_irq(&mapping->tree_lock);
-+
-+		if (!start || start - offset > max)
-+			return 0;
-+
-+		ra->start = start;
-+		ra->size = start - offset;	/* old async_size */
-+		ra->size = get_next_ra_size(ra, max);
-+		ra->async_size = ra->size;
-+		goto readit;
-+	}
-+
-+	/*
- 	 * It may be one of
- 	 * 	- first read on start of file
- 	 * 	- sequential cache miss
-@@ -389,16 +412,6 @@ ondemand_readahead(struct address_space 
- 	ra->size = get_init_ra_size(req_size, max);
- 	ra->async_size = ra->size > req_size ? ra->size - req_size : ra->size;
+ out:
+-	*_ra = ra;
+-	_ra->prev_pos = prev_index;
+-	_ra->prev_pos <<= PAGE_CACHE_SHIFT;
+-	_ra->prev_pos |= prev_offset;
++	ra->prev_pos = prev_index;
++	ra->prev_pos <<= PAGE_CACHE_SHIFT;
++	ra->prev_pos |= prev_offset;
  
--	/*
--	 * Hit on a marked page without valid readahead state.
--	 * E.g. interleaved reads.
--	 * Not knowing its readahead pos/size, bet on the minimal possible one.
--	 */
--	if (hit_readahead_marker) {
--		ra->start++;
--		ra->size = get_next_ra_size(ra, max);
--	}
--
- readit:
- 	return ra_submit(ra, mapping, filp);
- }
+ 	*ppos = ((loff_t) index << PAGE_CACHE_SHIFT) + offset;
+ 	if (cached_page)
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
