@@ -1,88 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-net-netfilter.patch removed from -mm tree
-Date: Tue, 24 Jul 2007 16:25:30 -0700
-Message-ID: <200707242325.l6ONPUR0006370@imap1.linux-foundation.org>
+Subject: - clean-up-duplicate-includes-in-sound-ppc.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 16:25:07 -0700
+Message-ID: <200707242325.l6ONP7FA006337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40245 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49665 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757663AbXGXXgU (ORCPT
+	by vger.kernel.org with ESMTP id S1757825AbXGXXg0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 19:36:20 -0400
+	Tue, 24 Jul 2007 19:36:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, kaber@trash.net, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, geoffrey.levand@am.sony.com, mokuno@sm.sony.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in net/netfilter/
+     Clean up duplicate includes in sound/ppc/
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-net-netfilter.patch
+     clean-up-duplicate-includes-in-sound-ppc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in net/netfilter/
+Subject: Clean up duplicate includes in sound/ppc/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	net/netfilter/
+	sound/ppc/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Patrick McHardy <kaber@trash.net>
+Acked-by: Geoff Levand <geoffrey.levand@am.sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netfilter/nf_conntrack_proto_tcp.c     |    1 -
- net/netfilter/nf_conntrack_proto_udp.c     |    1 -
- net/netfilter/nf_conntrack_proto_udplite.c |    1 -
- net/netfilter/xt_physdev.c                 |    1 -
- 4 files changed, 4 deletions(-)
+ sound/ppc/snd_ps3.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN net/netfilter/nf_conntrack_proto_tcp.c~clean-up-duplicate-includes-in-net-netfilter net/netfilter/nf_conntrack_proto_tcp.c
---- a/net/netfilter/nf_conntrack_proto_tcp.c~clean-up-duplicate-includes-in-net-netfilter
-+++ a/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -8,7 +8,6 @@
- 
- #include <linux/types.h>
- #include <linux/timer.h>
--#include <linux/netfilter.h>
- #include <linux/module.h>
- #include <linux/in.h>
- #include <linux/tcp.h>
-diff -puN net/netfilter/nf_conntrack_proto_udp.c~clean-up-duplicate-includes-in-net-netfilter net/netfilter/nf_conntrack_proto_udp.c
---- a/net/netfilter/nf_conntrack_proto_udp.c~clean-up-duplicate-includes-in-net-netfilter
-+++ a/net/netfilter/nf_conntrack_proto_udp.c
-@@ -9,7 +9,6 @@
- #include <linux/types.h>
- #include <linux/timer.h>
- #include <linux/module.h>
--#include <linux/netfilter.h>
- #include <linux/udp.h>
- #include <linux/seq_file.h>
- #include <linux/skbuff.h>
-diff -puN net/netfilter/nf_conntrack_proto_udplite.c~clean-up-duplicate-includes-in-net-netfilter net/netfilter/nf_conntrack_proto_udplite.c
---- a/net/netfilter/nf_conntrack_proto_udplite.c~clean-up-duplicate-includes-in-net-netfilter
-+++ a/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -10,7 +10,6 @@
- #include <linux/types.h>
- #include <linux/timer.h>
- #include <linux/module.h>
--#include <linux/netfilter.h>
- #include <linux/udp.h>
- #include <linux/seq_file.h>
- #include <linux/skbuff.h>
-diff -puN net/netfilter/xt_physdev.c~clean-up-duplicate-includes-in-net-netfilter net/netfilter/xt_physdev.c
---- a/net/netfilter/xt_physdev.c~clean-up-duplicate-includes-in-net-netfilter
-+++ a/net/netfilter/xt_physdev.c
-@@ -13,7 +13,6 @@
- #include <linux/netfilter_bridge.h>
- #include <linux/netfilter/xt_physdev.h>
- #include <linux/netfilter/x_tables.h>
--#include <linux/netfilter_bridge.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Bart De Schuymer <bdschuym@pandora.be>");
+diff -puN sound/ppc/snd_ps3.c~clean-up-duplicate-includes-in-sound-ppc sound/ppc/snd_ps3.c
+--- a/sound/ppc/snd_ps3.c~clean-up-duplicate-includes-in-sound-ppc
++++ a/sound/ppc/snd_ps3.c
+@@ -33,7 +33,6 @@
+ #include <linux/dmapool.h>
+ #include <linux/dma-mapping.h>
+ #include <asm/firmware.h>
+-#include <linux/io.h>
+ #include <asm/dma.h>
+ #include <asm/lv1call.h>
+ #include <asm/ps3.h>
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
