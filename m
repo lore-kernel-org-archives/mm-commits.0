@@ -1,52 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-sound-soc.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 23:04:41 -0700
-Message-ID: <200707240604.l6O64fK6031432@imap1.linux-foundation.org>
+Subject: - fix-use-after-free--double-free-bug-in-ati_create_gatt_pages--ati_free_gatt_pages.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 23:04:43 -0700
+Message-ID: <200707240604.l6O64h6G031435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57299 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60478 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753543AbXGXGEy (ORCPT
+	by vger.kernel.org with ESMTP id S1753441AbXGXGFA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 02:04:54 -0400
+	Tue, 24 Jul 2007 02:05:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, rpurdie@openedhand.com, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, airlied@linux.ie, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in sound/soc/
+     Fix "use after free" / "double free" bug in ati_create_gatt_pages / ati_free_gatt_pages
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-sound-soc.patch
+     fix-use-after-free--double-free-bug-in-ati_create_gatt_pages--ati_free_gatt_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in sound/soc/
+Subject: Fix "use after free" / "double free" bug in ati_create_gatt_pages / ati_free_gatt_pages
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
-This patch cleans up duplicate includes in
-	sound/soc/
+Coverity spotted a "use after free" bug in
+drivers/char/agp/ati-agp.c::ati_create_gatt_pages().
+
+The same one that was in
+  drivers/char/agp/amd-k7-agp.c::amd_create_gatt_pages()
+
+The problem is this:
+       If "entry = kzalloc(sizeof(struct ati_page_map), GFP_KERNEL);"
+fails, then there's a loop in the function to free all entries
+allocated so far and break out of the allocation loop. That in itself
+is pretty sane, but then the (now freed) 'tables' is assigned to
+ati_generic_private.gatt_pages and 'retval' is set to -ENOMEM which
+causes ati_free_gatt_pages(); to be called at the end of the function.
+The problem with this is that ati_free_gatt_pages() will then loop
+'ati_generic_private.num_tables' times and try to free each entry in
+tables[] - this is bad since tables has already been freed and
+furthermore it will call kfree(tables) at the end - a double free.
+
+This patch removes the freeing loop in ati_create_gatt_pages() and
+instead relies entirely on the call to ati_free_gatt_pages() to free
+everything we allocated in case of an error. It also sets
+ati_generic_private.num_tables to the actual number of entries
+allocated instead of just using the value passed in from the caller -
+this ensures that ati_free_gatt_pages() will only attempt to free
+stuff that was actually allocated.
+
+Note: I'm in no way intimate with this code and I have no way to
+actually test this patch (besides compile test it), so while I've
+tried to be careful in reading the code and make sure the patch
+does the right thing an ACK from someone who actually knows the
+code in-depth would be very much appreciated.
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Richard Purdie <rpurdie@openedhand.com>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/soc/pxa/spitz.c |    1 -
- 1 files changed, 1 deletion(-)
+ drivers/char/agp/ati-agp.c |    9 ++-------
+ 1 files changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN sound/soc/pxa/spitz.c~clean-up-duplicate-includes-in-sound-soc sound/soc/pxa/spitz.c
---- a/sound/soc/pxa/spitz.c~clean-up-duplicate-includes-in-sound-soc
-+++ a/sound/soc/pxa/spitz.c
-@@ -34,7 +34,6 @@
- #include <asm/arch/hardware.h>
- #include <asm/arch/akita.h>
- #include <asm/arch/spitz.h>
--#include <asm/mach-types.h>
- #include "../codecs/wm8750.h"
- #include "pxa2xx-pcm.h"
- #include "pxa2xx-i2s.h"
+diff -puN drivers/char/agp/ati-agp.c~fix-use-after-free--double-free-bug-in-ati_create_gatt_pages--ati_free_gatt_pages drivers/char/agp/ati-agp.c
+--- a/drivers/char/agp/ati-agp.c~fix-use-after-free--double-free-bug-in-ati_create_gatt_pages--ati_free_gatt_pages
++++ a/drivers/char/agp/ati-agp.c
+@@ -123,21 +123,16 @@ static int ati_create_gatt_pages(int nr_
+ 
+ 	for (i = 0; i < nr_tables; i++) {
+ 		entry = kzalloc(sizeof(struct ati_page_map), GFP_KERNEL);
++		tables[i] = entry;
+ 		if (entry == NULL) {
+-			while (i > 0) {
+-				kfree(tables[i-1]);
+-				i--;
+-			}
+-			kfree(tables);
+ 			retval = -ENOMEM;
+ 			break;
+ 		}
+-		tables[i] = entry;
+ 		retval = ati_create_page_map(entry);
+ 		if (retval != 0)
+ 			break;
+ 	}
+-	ati_generic_private.num_tables = nr_tables;
++	ati_generic_private.num_tables = i;
+ 	ati_generic_private.gatt_pages = tables;
+ 
+ 	if (retval != 0)
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
