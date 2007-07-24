@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtdoops-printk-warning-fixes.patch added to -mm tree
-Date: Tue, 24 Jul 2007 02:54:37 -0700
-Message-ID: <200707240959.l6O9xAfe007646@imap1.linux-foundation.org>
+Subject: + slab-correctly-handle-__gfp_zero.patch added to -mm tree
+Date: Tue, 24 Jul 2007 09:31:10 -0700
+Message-ID: <200707241631.l6OGVAtF022368@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51418 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48189 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762286AbXGXJ7V (ORCPT
+	by vger.kernel.org with ESMTP id S1751856AbXGXQbW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 05:59:21 -0400
+	Tue, 24 Jul 2007 12:31:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com, efault@gmx.de
 
 
 The patch titled
-     mtdoops printk warning fixes
+     slab: correctly handle __GFP_ZERO
 has been added to the -mm tree.  Its filename is
-     mtdoops-printk-warning-fixes.patch
+     slab-correctly-handle-__gfp_zero.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mtdoops printk warning fixes
+Subject: slab: correctly handle __GFP_ZERO
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/mtdoops.c: In function 'mtdoops_inc_counter':
-drivers/mtd/mtdoops.c:109: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
-drivers/mtd/mtdoops.c: In function 'mtdoops_console_sync':
-drivers/mtd/mtdoops.c:277: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+Use the correct local variable when calling into the page allocator.  Local
+`flags' can have __GFP_ZERO set, which causes us to pass __GFP_ZERO into the
+page allocator, possibly from illegal contexts.  The page allocator will later
+do prep_zero_page()->kmap_atomic(..., KM_USER0) from irq contexts and will
+then go BUG.
 
-someone buy Dave an x86_64 box.
-
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdoops.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/mtdoops.c~mtdoops-printk-warning-fixes drivers/mtd/mtdoops.c
---- a/drivers/mtd/mtdoops.c~mtdoops-printk-warning-fixes
-+++ a/drivers/mtd/mtdoops.c
-@@ -104,7 +104,7 @@ static int mtdoops_inc_counter(struct mt
- 	ret = mtd->read(mtd, cxt->nextpage * OOPS_PAGE_SIZE, 4,
- 			&retlen, (u_char *) &count);
- 	if ((retlen != 4) || (ret < 0)) {
--		printk(KERN_ERR "mtdoops: Read failure at %d (%d of 4 read)"
-+		printk(KERN_ERR "mtdoops: Read failure at %d (%td of 4 read)"
- 				", err %d.\n", cxt->nextpage * OOPS_PAGE_SIZE,
- 				retlen, ret);
- 		return 1;
-@@ -273,7 +273,7 @@ static void mtdoops_console_sync(void)
- 	cxt->writecount = 0;
+diff -puN mm/slab.c~slab-correctly-handle-__gfp_zero mm/slab.c
+--- a/mm/slab.c~slab-correctly-handle-__gfp_zero
++++ a/mm/slab.c
+@@ -2776,7 +2776,7 @@ static int cache_grow(struct kmem_cache 
+ 	 * 'nodeid'.
+ 	 */
+ 	if (!objp)
+-		objp = kmem_getpages(cachep, flags, nodeid);
++		objp = kmem_getpages(cachep, local_flags, nodeid);
+ 	if (!objp)
+ 		goto failed;
  
- 	if ((retlen != OOPS_PAGE_SIZE) || (ret < 0))
--		printk(KERN_ERR "mtdoops: Write failure at %d (%d of %d written), err %d.\n",
-+		printk(KERN_ERR "mtdoops: Write failure at %d (%td of %d written), err %d.\n",
- 			cxt->nextpage * OOPS_PAGE_SIZE, retlen,	OOPS_PAGE_SIZE, ret);
- 
- 	ret = mtdoops_inc_counter(cxt);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 rtc-stk17ta8-update-for-sysfs-api-change.patch
+slab-correctly-handle-__gfp_zero.patch
 x86_powernow_k8_acpi-must-depend-on-acpi.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
