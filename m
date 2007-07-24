@@ -1,91 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - fix-tas_suspend-resume-build-warning.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 23:04:46 -0700
-Message-ID: <200707240604.l6O64k3L031438@imap1.linux-foundation.org>
+Subject: - clean-up-duplicate-includes-in-fs-gfs2.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 23:04:53 -0700
+Message-ID: <200707240604.l6O64rh7031447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43724 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53533 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752258AbXGXGFk (ORCPT
+	by vger.kernel.org with ESMTP id S1753684AbXGXGFB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 02:05:40 -0400
+	Tue, 24 Jul 2007 02:05:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, johannes@sipsolutions.net, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix tas_suspend/resume build warning
+     Clean up duplicate includes in fs/gfs2/
 has been removed from the -mm tree.  Its filename was
-     fix-tas_suspend-resume-build-warning.patch
+     clean-up-duplicate-includes-in-fs-gfs2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix tas_suspend/resume build warning
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Clean up duplicate includes in fs/gfs2/
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-sound/aoa/codecs/snd-aoa-codec-tas.c:750: warning: 'tas_suspend' defined but not used
-sound/aoa/codecs/snd-aoa-codec-tas.c:760: warning: 'tas_resume' defined but not used
+This patch cleans up duplicate includes in
+	fs/gfs2/
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
-Acked-by:  Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/aoa/codecs/snd-aoa-codec-tas.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ fs/gfs2/glock.c                |    2 --
+ fs/gfs2/locking/dlm/lock_dlm.h |    1 -
+ fs/gfs2/locking/nolock/main.c  |    1 -
+ 3 files changed, 4 deletions(-)
 
-diff -puN sound/aoa/codecs/snd-aoa-codec-tas.c~fix-tas_suspend-resume-build-warning sound/aoa/codecs/snd-aoa-codec-tas.c
---- a/sound/aoa/codecs/snd-aoa-codec-tas.c~fix-tas_suspend-resume-build-warning
-+++ a/sound/aoa/codecs/snd-aoa-codec-tas.c
-@@ -743,6 +743,7 @@ static int tas_switch_clock(struct codec
- 	return 0;
- }
+diff -puN fs/gfs2/glock.c~clean-up-duplicate-includes-in-fs-gfs2 fs/gfs2/glock.c
+--- a/fs/gfs2/glock.c~clean-up-duplicate-includes-in-fs-gfs2
++++ a/fs/gfs2/glock.c
+@@ -25,8 +25,6 @@
+ #include <asm/uaccess.h>
+ #include <linux/seq_file.h>
+ #include <linux/debugfs.h>
+-#include <linux/module.h>
+-#include <linux/kallsyms.h>
  
-+#ifdef CONFIG_PM
- /* we are controlled via i2c and assume that is always up
-  * If that wasn't the case, we'd have to suspend once
-  * our i2c device is suspended, and then take note of that! */
-@@ -768,7 +769,6 @@ static int tas_resume(struct tas *tas)
- 	return 0;
- }
+ #include "gfs2.h"
+ #include "incore.h"
+diff -puN fs/gfs2/locking/dlm/lock_dlm.h~clean-up-duplicate-includes-in-fs-gfs2 fs/gfs2/locking/dlm/lock_dlm.h
+--- a/fs/gfs2/locking/dlm/lock_dlm.h~clean-up-duplicate-includes-in-fs-gfs2
++++ a/fs/gfs2/locking/dlm/lock_dlm.h
+@@ -13,7 +13,6 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+-#include <linux/module.h>
+ #include <linux/types.h>
+ #include <linux/string.h>
+ #include <linux/list.h>
+diff -puN fs/gfs2/locking/nolock/main.c~clean-up-duplicate-includes-in-fs-gfs2 fs/gfs2/locking/nolock/main.c
+--- a/fs/gfs2/locking/nolock/main.c~clean-up-duplicate-includes-in-fs-gfs2
++++ a/fs/gfs2/locking/nolock/main.c
+@@ -9,7 +9,6 @@
  
--#ifdef CONFIG_PM
- static int _tas_suspend(struct codec_info_item *cii, pm_message_t state)
- {
- 	return tas_suspend(cii->codec_data);
-@@ -778,7 +778,10 @@ static int _tas_resume(struct codec_info
- {
- 	return tas_resume(cii->codec_data);
- }
--#endif
-+#else /* CONFIG_PM */
-+#define _tas_suspend	NULL
-+#define _tas_resume	NULL
-+#endif /* CONFIG_PM */
- 
- static struct codec_info tas_codec_info = {
- 	.transfers = tas_transfers,
-@@ -791,10 +794,8 @@ static struct codec_info tas_codec_info 
- 	.owner = THIS_MODULE,
- 	.usable = tas_usable,
- 	.switch_clock = tas_switch_clock,
--#ifdef CONFIG_PM
- 	.suspend = _tas_suspend,
- 	.resume = _tas_resume,
--#endif
- };
- 
- static int tas_init_codec(struct aoa_codec *codec)
+ #include <linux/module.h>
+ #include <linux/slab.h>
+-#include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/fs.h>
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
-fault_inject-silence-a-warning.patch
 git-alsa.patch
-stradis-and-zoran-depend-on-virt_to_bus.patch
-dont-compile-the-pmu-power-driver-on-64-bit-powerpc.patch
+clean-up-duplicate-includes-in-sound-ppc.patch
+git-agpgart.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+git-dvb.patch
+clean-up-duplicate-includes-in-drivers-hwmon.patch
+git-gfs2-nmw.patch
+hid-fix-a-null-pointer-dereference-when-we-fail-to-allocate-memory.patch
+clean-up-duplicate-includes-in-drivers-input.patch
+git-kbuild.patch
+git-mtd.patch
+clean-up-duplicate-includes-in-drivers-net.patch
+clean-up-duplicate-includes-in-drivers-atm.patch
+clean-up-duplicate-includes-in-net-atm.patch
+clean-up-duplicate-includes-in-net-bridge.patch
+clean-up-duplicate-includes-in-net-ipv4.patch
+clean-up-duplicate-includes-in-net-ipv6.patch
+clean-up-duplicate-includes-in-net-netfilter.patch
+clean-up-duplicate-includes-in-net-sched.patch
+clean-up-duplicate-includes-in-net-sunrpc.patch
+clean-up-duplicate-includes-in-net-tipc.patch
+clean-up-duplicate-includes-in-net-xfrm.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+git-selinux.patch
+clean-up-duplicate-includes-in-drivers-scsi.patch
 clean-up-duplicate-includes-in-drivers-block.patch
+clean-up-duplicate-includes-in-drivers-usb.patch
+clean-up-duplicate-includes-in-arch-i386-xen.patch
+git-xfs.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+ipmi-fix-mem-leak-in-try_init_dmi.patch
+fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+cciss-fix-memory-leak.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
