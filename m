@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-watchdog-typo.patch added to -mm tree
-Date: Tue, 24 Jul 2007 00:07:27 -0700
-Message-ID: <200707240712.l6O7C0Uu001266@imap1.linux-foundation.org>
+Subject: + fix-ide-ide-add-ide-set-pio-take3.patch added to -mm tree
+Date: Tue, 24 Jul 2007 00:14:07 -0700
+Message-ID: <200707240718.l6O7Ief1001570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43408 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59961 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753029AbXGXHMl (ORCPT
+	by vger.kernel.org with ESMTP id S1754606AbXGXHSs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 03:12:41 -0400
+	Tue, 24 Jul 2007 03:18:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, wim@iguana.be
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     git-watchdog-typo
+     fix-ide-ide-add-ide-set-pio-take3
 has been added to the -mm tree.  Its filename is
-     git-watchdog-typo.patch
+     fix-ide-ide-add-ide-set-pio-take3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-watchdog-typo
+Subject: fix-ide-ide-add-ide-set-pio-take3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-This driver isn't very coding-style friendly.
+drivers/ide/pci/cmd640.c: In function 'cmd640_set_pio_mode':
+drivers/ide/pci/cmd640.c:646: error: 'mode_wanted' undeclared (first use in this function)
+drivers/ide/pci/cmd640.c:646: error: (Each undeclared identifier is reported only once
+drivers/ide/pci/cmd640.c:646: error: for each function it appears in.)
 
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/watchdog/cpu5wdt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/watchdog/cpu5wdt.c~git-watchdog-typo drivers/char/watchdog/cpu5wdt.c
---- a/drivers/char/watchdog/cpu5wdt.c~git-watchdog-typo
-+++ a/drivers/char/watchdog/cpu5wdt.c
-@@ -164,7 +164,7 @@ static int cpu5wdt_ioctl(struct inode *i
- 			break;
- 		case WDIOC_GETBOOTSTATUS:
- 			if ( copy_to_user(argp, &value, sizeof(int)) )
--				retrun -EFAULT;
-+				return -EFAULT;
- 			break;
- 		case WDIOC_GETSUPPORT:
- 			if ( copy_to_user(argp, &ident, sizeof(ident)) )
+diff -puN drivers/ide/pci/cmd640.c~fix-ide-ide-add-ide-set-pio-take3 drivers/ide/pci/cmd640.c
+diff -puN drivers/ide/Kconfig~fix-ide-ide-add-ide-set-pio-take3 drivers/ide/Kconfig
+--- a/drivers/ide/Kconfig~fix-ide-ide-add-ide-set-pio-take3
++++ a/drivers/ide/Kconfig
+@@ -311,6 +311,7 @@ config IDE_GENERIC
+ config BLK_DEV_CMD640
+ 	bool "CMD640 chipset bugfix/support"
+ 	depends on X86
++	depends on BROKEN
+ 	---help---
+ 	  The CMD-Technologies CMD640 IDE chip is used on many common 486 and
+ 	  Pentium motherboards, usually in combination with a "Neptune" or
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,6 +71,7 @@ m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
 git-kvm.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
 git-mtd.patch
 e1000new-build-fix.patch
 e1000new-build-fix-2.patch
