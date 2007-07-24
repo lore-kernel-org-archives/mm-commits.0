@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-stk17ta8-update-for-sysfs-api-change.patch added to -mm tree
-Date: Tue, 24 Jul 2007 02:52:33 -0700
-Message-ID: <200707240957.l6O9v6QJ007527@imap1.linux-foundation.org>
+Subject: + mtdoops-printk-warning-fixes.patch added to -mm tree
+Date: Tue, 24 Jul 2007 02:54:37 -0700
+Message-ID: <200707240959.l6O9xAfe007646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41611 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51418 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762319AbXGXJ5X (ORCPT
+	by vger.kernel.org with ESMTP id S1762286AbXGXJ7V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 05:57:23 -0400
+	Tue, 24 Jul 2007 05:59:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     rtc-stk17ta8: update for sysfs API change
+     mtdoops printk warning fixes
 has been added to the -mm tree.  Its filename is
-     rtc-stk17ta8-update-for-sysfs-api-change.patch
+     mtdoops-printk-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-stk17ta8: update for sysfs API change
+Subject: mtdoops printk warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/rtc/rtc-stk17ta8.c:296: warning: initialization from incompatible pointer type
-drivers/rtc/rtc-stk17ta8.c:297: warning: initialization from incompatible pointer type
+drivers/mtd/mtdoops.c: In function 'mtdoops_inc_counter':
+drivers/mtd/mtdoops.c:109: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+drivers/mtd/mtdoops.c: In function 'mtdoops_console_sync':
+drivers/mtd/mtdoops.c:277: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+someone buy Dave an x86_64 box.
+
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-stk17ta8.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/mtd/mtdoops.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-update-for-sysfs-api-change drivers/rtc/rtc-stk17ta8.c
---- a/drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-update-for-sysfs-api-change
-+++ a/drivers/rtc/rtc-stk17ta8.c
-@@ -258,8 +258,9 @@ static const struct rtc_class_ops stk17t
- 	.ioctl		= stk17ta8_rtc_ioctl,
- };
+diff -puN drivers/mtd/mtdoops.c~mtdoops-printk-warning-fixes drivers/mtd/mtdoops.c
+--- a/drivers/mtd/mtdoops.c~mtdoops-printk-warning-fixes
++++ a/drivers/mtd/mtdoops.c
+@@ -104,7 +104,7 @@ static int mtdoops_inc_counter(struct mt
+ 	ret = mtd->read(mtd, cxt->nextpage * OOPS_PAGE_SIZE, 4,
+ 			&retlen, (u_char *) &count);
+ 	if ((retlen != 4) || (ret < 0)) {
+-		printk(KERN_ERR "mtdoops: Read failure at %d (%d of 4 read)"
++		printk(KERN_ERR "mtdoops: Read failure at %d (%td of 4 read)"
+ 				", err %d.\n", cxt->nextpage * OOPS_PAGE_SIZE,
+ 				retlen, ret);
+ 		return 1;
+@@ -273,7 +273,7 @@ static void mtdoops_console_sync(void)
+ 	cxt->writecount = 0;
  
--static ssize_t stk17ta8_nvram_read(struct kobject *kobj, char *buf,
--				 loff_t pos, size_t size)
-+static ssize_t stk17ta8_nvram_read(struct kobject *kobj,
-+		struct bin_attribute *bin_attr, char *buf, loff_t pos,
-+		size_t size)
- {
- 	struct platform_device *pdev =
- 		to_platform_device(container_of(kobj, struct device, kobj));
-@@ -272,8 +273,9 @@ static ssize_t stk17ta8_nvram_read(struc
- 	return count;
- }
+ 	if ((retlen != OOPS_PAGE_SIZE) || (ret < 0))
+-		printk(KERN_ERR "mtdoops: Write failure at %d (%d of %d written), err %d.\n",
++		printk(KERN_ERR "mtdoops: Write failure at %d (%td of %d written), err %d.\n",
+ 			cxt->nextpage * OOPS_PAGE_SIZE, retlen,	OOPS_PAGE_SIZE, ret);
  
--static ssize_t stk17ta8_nvram_write(struct kobject *kobj, char *buf,
--				  loff_t pos, size_t size)
-+static ssize_t stk17ta8_nvram_write(struct kobject *kobj,
-+		struct bin_attribute *bin_attr, char *buf, loff_t pos,
-+		size_t size)
- {
- 	struct platform_device *pdev =
- 		to_platform_device(container_of(kobj, struct device, kobj));
+ 	ret = mtdoops_inc_counter(cxt);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,6 +88,7 @@ fix-ide-ide-add-ide-set-pio-take3.patch
 mmc-build-fix.patch
 git-mtd.patch
 git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
 e1000new-build-fix.patch
 e1000new-build-fix-2.patch
 ip_auto_config-fix-fix.patch
