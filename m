@@ -1,51 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-sound-core.patch removed from -mm tree
-Date: Mon, 23 Jul 2007 23:04:38 -0700
-Message-ID: <200707240604.l6O64coL031429@imap1.linux-foundation.org>
+Subject: - clean-up-duplicate-includes-in-sound-soc.patch removed from -mm tree
+Date: Mon, 23 Jul 2007 23:04:41 -0700
+Message-ID: <200707240604.l6O64fK6031432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33250 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752514AbXGXGEq (ORCPT
+	by vger.kernel.org with ESMTP id S1753543AbXGXGEy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 02:04:46 -0400
+	Tue, 24 Jul 2007 02:04:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, rpurdie@openedhand.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in sound/core/
+     Clean up duplicate includes in sound/soc/
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-sound-core.patch
+     clean-up-duplicate-includes-in-sound-soc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in sound/core/
+Subject: Clean up duplicate includes in sound/soc/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	sound/core/
+	sound/soc/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: Richard Purdie <rpurdie@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/core/rawmidi.c |    1 -
+ sound/soc/pxa/spitz.c |    1 -
  1 files changed, 1 deletion(-)
 
-diff -puN sound/core/rawmidi.c~clean-up-duplicate-includes-in-sound-core sound/core/rawmidi.c
---- a/sound/core/rawmidi.c~clean-up-duplicate-includes-in-sound-core
-+++ a/sound/core/rawmidi.c
-@@ -30,7 +30,6 @@
- #include <linux/mutex.h>
- #include <linux/moduleparam.h>
- #include <linux/delay.h>
--#include <linux/wait.h>
- #include <sound/rawmidi.h>
- #include <sound/info.h>
- #include <sound/control.h>
+diff -puN sound/soc/pxa/spitz.c~clean-up-duplicate-includes-in-sound-soc sound/soc/pxa/spitz.c
+--- a/sound/soc/pxa/spitz.c~clean-up-duplicate-includes-in-sound-soc
++++ a/sound/soc/pxa/spitz.c
+@@ -34,7 +34,6 @@
+ #include <asm/arch/hardware.h>
+ #include <asm/arch/akita.h>
+ #include <asm/arch/spitz.h>
+-#include <asm/mach-types.h>
+ #include "../codecs/wm8750.h"
+ #include "pxa2xx-pcm.h"
+ #include "pxa2xx-i2s.h"
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
