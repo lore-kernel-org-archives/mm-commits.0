@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-convert-to-new-aops-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 15:15:06 -0700
-Message-ID: <200707242215.l6OMF6J4003640@imap1.linux-foundation.org>
+Subject: + sysv-convert-to-new-aops-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 15:15:09 -0700
+Message-ID: <200707242215.l6OMF9Fj003643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60886 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37506 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756518AbXGXWPQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756724AbXGXWPT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 18:15:16 -0400
+	Tue, 24 Jul 2007 18:15:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     ufs convert to new aops fix
+     sysv convert to new aops fix
 has been added to the -mm tree.  Its filename is
-     ufs-convert-to-new-aops-fix.patch
+     sysv-convert-to-new-aops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ufs convert to new aops fix
+Subject: sysv convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/dir.c |    6 +++---
+ fs/sysv/dir.c |    6 +++---
  1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ufs/dir.c~ufs-convert-to-new-aops-fix fs/ufs/dir.c
---- a/fs/ufs/dir.c~ufs-convert-to-new-aops-fix
-+++ a/fs/ufs/dir.c
-@@ -89,7 +89,7 @@ ino_t ufs_inode_by_name(struct inode *di
- void ufs_set_link(struct inode *dir, struct ufs_dir_entry *de,
- 		  struct page *page, struct inode *inode)
- {
--	loff_t pos = (page->index << PAGE_CACHE_SHIFT) +
-+	loff_t pos = page_offset(page) +
- 			(char *) de - (char *) page_address(page);
- 	unsigned len = fs16_to_cpu(dir->i_sb, de->d_reclen);
- 	int err;
-@@ -379,7 +379,7 @@ int ufs_add_link(struct dentry *dentry, 
+diff -puN fs/sysv/dir.c~sysv-convert-to-new-aops-fix fs/sysv/dir.c
+--- a/fs/sysv/dir.c~sysv-convert-to-new-aops-fix
++++ a/fs/sysv/dir.c
+@@ -219,7 +219,7 @@ int sysv_add_link(struct dentry *dentry,
  	return -EINVAL;
  
  got_it:
 -	pos = (page->index << PAGE_CACHE_SHIFT) +
 +	pos = page_offset(page) +
  			(char*)de - (char*)page_address(page);
- 	err = __ufs_write_begin(NULL, page->mapping, pos, rec_len,
- 				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
-@@ -547,7 +547,7 @@ int ufs_delete_entry(struct inode *inode
- 	if (pde)
- 		from = (char*)pde - (char*)page_address(page);
- 
--	pos = (page->index << PAGE_CACHE_SHIFT) + from;
-+	pos = page_offset(page) + from;
  	lock_page(page);
- 	err = __ufs_write_begin(NULL, mapping, pos, to - from,
- 				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+ 	err = __sysv_write_begin(NULL, page->mapping, pos, SYSV_DIRSIZE,
+@@ -246,7 +246,7 @@ int sysv_delete_entry(struct sysv_dir_en
+ 	struct address_space *mapping = page->mapping;
+ 	struct inode *inode = (struct inode*)mapping->host;
+ 	char *kaddr = (char*)page_address(page);
+-	loff_t pos = (page->index << PAGE_CACHE_SHIFT) + (char *)de - kaddr;
++	loff_t pos = page_offset(page) + (char *)de - kaddr;
+ 	int err;
+ 
+ 	lock_page(page);
+@@ -347,7 +347,7 @@ void sysv_set_link(struct sysv_dir_entry
+ {
+ 	struct address_space *mapping = page->mapping;
+ 	struct inode *dir = mapping->host;
+-	loff_t pos = (page->index << PAGE_CACHE_SHIFT) +
++	loff_t pos = page_offset(page) +
+ 			(char *)de-(char*)page_address(page);
+ 	int err;
+ 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
