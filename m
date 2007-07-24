@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sysv-convert-to-new-aops-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 15:15:09 -0700
-Message-ID: <200707242215.l6OMF9Fj003643@imap1.linux-foundation.org>
+Subject: + minix-convert-to-new-aops-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 15:15:11 -0700
+Message-ID: <200707242215.l6OMFBsP003646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37506 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37733 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756724AbXGXWPT (ORCPT
+	by vger.kernel.org with ESMTP id S1756673AbXGXWPU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 18:15:19 -0400
+	Tue, 24 Jul 2007 18:15:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     sysv convert to new aops fix
+     minix convert to new aops fix
 has been added to the -mm tree.  Its filename is
-     sysv-convert-to-new-aops-fix.patch
+     minix-convert-to-new-aops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysv convert to new aops fix
+Subject: minix convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysv/dir.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ fs/minix/dir.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/sysv/dir.c~sysv-convert-to-new-aops-fix fs/sysv/dir.c
---- a/fs/sysv/dir.c~sysv-convert-to-new-aops-fix
-+++ a/fs/sysv/dir.c
-@@ -219,7 +219,7 @@ int sysv_add_link(struct dentry *dentry,
- 	return -EINVAL;
- 
- got_it:
--	pos = (page->index << PAGE_CACHE_SHIFT) +
-+	pos = page_offset(page) +
- 			(char*)de - (char*)page_address(page);
- 	lock_page(page);
- 	err = __sysv_write_begin(NULL, page->mapping, pos, SYSV_DIRSIZE,
-@@ -246,7 +246,7 @@ int sysv_delete_entry(struct sysv_dir_en
+diff -puN fs/minix/dir.c~minix-convert-to-new-aops-fix fs/minix/dir.c
+--- a/fs/minix/dir.c~minix-convert-to-new-aops-fix
++++ a/fs/minix/dir.c
+@@ -311,7 +311,7 @@ int minix_delete_entry(struct minix_dir_
  	struct address_space *mapping = page->mapping;
  	struct inode *inode = (struct inode*)mapping->host;
- 	char *kaddr = (char*)page_address(page);
--	loff_t pos = (page->index << PAGE_CACHE_SHIFT) + (char *)de - kaddr;
-+	loff_t pos = page_offset(page) + (char *)de - kaddr;
+ 	char *kaddr = page_address(page);
+-	loff_t pos = (page->index << PAGE_CACHE_SHIFT) + (char*)de - kaddr;
++	loff_t pos = page_offset(page) + (char*)de - kaddr;
+ 	unsigned len = minix_sb(inode->i_sb)->s_dirsize;
  	int err;
  
- 	lock_page(page);
-@@ -347,7 +347,7 @@ void sysv_set_link(struct sysv_dir_entry
- {
+@@ -435,7 +435,7 @@ void minix_set_link(struct minix_dir_ent
  	struct address_space *mapping = page->mapping;
  	struct inode *dir = mapping->host;
+ 	struct minix_sb_info *sbi = minix_sb(dir->i_sb);
 -	loff_t pos = (page->index << PAGE_CACHE_SHIFT) +
 +	loff_t pos = page_offset(page) +
  			(char *)de-(char*)page_address(page);
