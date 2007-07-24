@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + unprivileged-mounts-propagation-inherit-owner-from-parent-fix.patch added to -mm tree
-Date: Mon, 23 Jul 2007 23:24:40 -0700
-Message-ID: <200707240629.l6O6TEMj032304@imap1.linux-foundation.org>
+Subject: + softlockup-add-a-proc-tuning-parameter-fix.patch added to -mm tree
+Date: Mon, 23 Jul 2007 23:38:03 -0700
+Message-ID: <200707240642.l6O6gaqm032719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40632 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57463 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753441AbXGXG3e (ORCPT
+	by vger.kernel.org with ESMTP id S1750910AbXGXGnH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 02:29:34 -0400
+	Tue, 24 Jul 2007 02:43:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@lst.de, linuxram@us.ibm.com, mszeredi@suse.cz, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, kiran@scalex86.org, mingo@elte.hu, shai@scalex86.org
 
 
 The patch titled
-     unprivileged-mounts-propagation-inherit-owner-from-parent-fix
+     softlockup-add-a-proc-tuning-parameter-fix
 has been added to the -mm tree.  Its filename is
-     unprivileged-mounts-propagation-inherit-owner-from-parent-fix.patch
+     softlockup-add-a-proc-tuning-parameter-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unprivileged-mounts-propagation-inherit-owner-from-parent-fix
+Subject: softlockup-add-a-proc-tuning-parameter-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix unprivileged-mounts agaisnt git-audit changes.
+Fix various warnings and add definition of "two".
 
-Compiles, but might not be correct (enough).
+ug.
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ravikiran Thirumalai <kiran@scalex86.org>
+Cc: Shai Fultheim <shai@scalex86.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sysctl.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN fs/namespace.c~unprivileged-mounts-propagation-inherit-owner-from-parent-fix fs/namespace.c
---- a/fs/namespace.c~unprivileged-mounts-propagation-inherit-owner-from-parent-fix
-+++ a/fs/namespace.c
-@@ -856,7 +856,7 @@ struct vfsmount *collect_mounts(struct v
- {
- 	struct vfsmount *tree;
- 	down_read(&namespace_sem);
--	tree = copy_tree(mnt, dentry, CL_COPY_ALL | CL_PRIVATE);
-+	tree = copy_tree(mnt, dentry, CL_COPY_ALL | CL_PRIVATE, current->fsuid);
- 	up_read(&namespace_sem);
- 	return tree;
- }
+diff -puN kernel/sysctl.c~softlockup-add-a-proc-tuning-parameter-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~softlockup-add-a-proc-tuning-parameter-fix
++++ a/kernel/sysctl.c
+@@ -81,9 +81,16 @@ extern int sysctl_stat_interval;
+ extern int audit_argv_kb;
+ 
+ /* Constants used for minimum and  maximum */
++#ifdef CONFIG_DETECT_SOFTLOCKUP
+ static int one = 1;
+-static int zero;
+ static int sixty = 60;
++#endif
++
++#ifdef CONFIG_MMU
++static int two = 2;
++#endif
++
++static int zero;
+ static int one_hundred = 100;
+ 
+ /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +113,7 @@ security-convert-lsm-into-a-static-interface-fix.patch
 file-capabilities-clear-caps-cleanup-fix.patch
 capabilityh-remove-include-of-currenth.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
 force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
 driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
 add-kernel-notifierc-fix.patch
