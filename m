@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch added to -mm tree
-Date: Mon, 23 Jul 2007 20:53:21 -0700
-Message-ID: <200707240353.l6O3rLL3026893@imap1.linux-foundation.org>
+Subject: + radixtree-introduce-radix_tree_next_hole.patch added to -mm tree
+Date: Mon, 23 Jul 2007 20:57:03 -0700
+Message-ID: <200707240357.l6O3v3qI026999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40779 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49780 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751732AbXGXDzM (ORCPT
+	by vger.kernel.org with ESMTP id S1756734AbXGXD5t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 23:55:12 -0400
+	Mon, 23 Jul 2007 23:57:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, jens.axboe@oracle.com, rusty@rustcorp.com.au
+Cc: wfg@mail.ustc.edu.cn, nickpiggin@yahoo.com.au, rusty@rustcorp.com.au
 
 
 The patch titled
-     readahead: remove the limit max_sectors_kb imposed on max_readahead_kb
+     radixtree: introduce radix_tree_next_hole()
 has been added to the -mm tree.  Its filename is
-     readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+     radixtree-introduce-radix_tree_next_hole.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: remove the limit max_sectors_kb imposed on max_readahead_kb
+Subject: radixtree: introduce radix_tree_next_hole()
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Remove the size limit max_sectors_kb imposed on max_readahead_kb.
+Introduce radix_tree_next_hole(root, index, max_scan) to scan radix tree for
+the first hole.  It will be used in interleaved readahead.
 
-The size restriction is unreasonable.  Especially when max_sectors_kb cannot
-grow larger than max_hw_sectors_kb, which can be rather small for some disk
-drives.
+The implementation is dumb and obviously correct.  It can help debug(and
+document) the possible smart one in future.
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Acked-by: Jens Axboe <jens.axboe@oracle.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/ll_rw_blk.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ include/linux/radix-tree.h |    2 +
+ lib/radix-tree.c           |   36 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
-diff -puN block/ll_rw_blk.c~readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb
-+++ a/block/ll_rw_blk.c
-@@ -4054,7 +4054,6 @@ queue_max_sectors_store(struct request_q
- 			max_hw_sectors_kb = q->max_hw_sectors >> 1,
- 			page_kb = 1 << (PAGE_CACHE_SHIFT - 10);
- 	ssize_t ret = queue_var_store(&max_sectors_kb, page, count);
--	int ra_kb;
+diff -puN include/linux/radix-tree.h~radixtree-introduce-radix_tree_next_hole include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radixtree-introduce-radix_tree_next_hole
++++ a/include/linux/radix-tree.h
+@@ -155,6 +155,8 @@ void *radix_tree_delete(struct radix_tre
+ unsigned int
+ radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
+ 			unsigned long first_index, unsigned int max_items);
++unsigned long radix_tree_next_hole(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan);
+ int radix_tree_preload(gfp_t gfp_mask);
+ void radix_tree_init(void);
+ void *radix_tree_tag_set(struct radix_tree_root *root,
+diff -puN lib/radix-tree.c~radixtree-introduce-radix_tree_next_hole lib/radix-tree.c
+--- a/lib/radix-tree.c~radixtree-introduce-radix_tree_next_hole
++++ a/lib/radix-tree.c
+@@ -599,6 +599,42 @@ int radix_tree_tag_get(struct radix_tree
+ EXPORT_SYMBOL(radix_tree_tag_get);
+ #endif
  
- 	if (max_sectors_kb > max_hw_sectors_kb || max_sectors_kb < page_kb)
- 		return -EINVAL;
-@@ -4063,14 +4062,6 @@ queue_max_sectors_store(struct request_q
- 	 * values synchronously:
- 	 */
- 	spin_lock_irq(q->queue_lock);
--	/*
--	 * Trim readahead window as well, if necessary:
--	 */
--	ra_kb = q->backing_dev_info.ra_pages << (PAGE_CACHE_SHIFT - 10);
--	if (ra_kb > max_sectors_kb)
--		q->backing_dev_info.ra_pages =
--				max_sectors_kb >> (PAGE_CACHE_SHIFT - 10);
--
- 	q->max_sectors = max_sectors_kb << 1;
- 	spin_unlock_irq(q->queue_lock);
- 
++/**
++ *	radix_tree_next_hole    -    find the next hole (not-present entry)
++ *	@root:		tree root
++ *	@index:		index key
++ *	@max_scan:	maximum range to search
++ *
++ *	Search the set [index, min(index+max_scan-1, MAX_INDEX)] for the lowest
++ *	indexed hole.
++ *
++ *	Returns: the index of the hole if found, otherwise returns an index
++ *	outside of the set specified (in which case 'return - index >= max_scan'
++ *	will be true).
++ *
++ *	radix_tree_next_hole may be called under rcu_read_lock. However, like
++ *	radix_tree_gang_lookup, this will not atomically search a snapshot of the
++ *	tree at a single point in time. For example, if a hole is created at index
++ *	5, then subsequently a hole is created at index 10, radix_tree_next_hole
++ *	covering both indexes may return 10 if called under rcu_read_lock.
++ */
++unsigned long radix_tree_next_hole(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan)
++{
++	unsigned long i;
++
++	for (i = 0; i < max_scan; i++) {
++		if (!radix_tree_lookup(root, index))
++			break;
++		index++;
++		if (index == 0)
++			break;
++	}
++
++	return index;
++}
++EXPORT_SYMBOL(radix_tree_next_hole);
++
+ static unsigned int
+ __lookup(struct radix_tree_node *slot, void **results, unsigned long index,
+ 	unsigned int max_items, unsigned long *next_index)
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
@@ -79,7 +111,7 @@ readahead-compacting-file_ra_state.patch
 readahead-mmap-read-around-simplification.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-radixtree-introduce-radix_tree_scan_hole.patch
+radixtree-introduce-radix_tree_next_hole.patch
 readahead-basic-support-of-interleaved-reads.patch
 readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
 readahead-remove-several-readahead-macros.patch
