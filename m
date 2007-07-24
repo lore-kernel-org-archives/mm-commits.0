@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-remove-several-readahead-macros.patch added to -mm tree
-Date: Mon, 23 Jul 2007 20:53:19 -0700
-Message-ID: <200707240353.l6O3rJ2v026888@imap1.linux-foundation.org>
+Subject: + filemap-trivial-code-cleanups.patch added to -mm tree
+Date: Mon, 23 Jul 2007 20:53:24 -0700
+Message-ID: <200707240353.l6O3rOTc026896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47313 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57041 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757504AbXGXDyK (ORCPT
+	by vger.kernel.org with ESMTP id S1756464AbXGXDyL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 23:54:10 -0400
+	Mon, 23 Jul 2007 23:54:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au
 
 
 The patch titled
-     readahead: remove several readahead macros
+     filemap: trivial code cleanups
 has been added to the -mm tree.  Its filename is
-     readahead-remove-several-readahead-macros.patch
+     filemap-trivial-code-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: remove several readahead macros
+Subject: filemap: trivial code cleanups
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Remove VM_MAX_CACHE_HIT, MAX_RA_PAGES and MIN_RA_PAGES.
+- remove unused local next_index in do_generic_mapping_read()
+- wrap a long line
+- remove a redudant page_cache_read() declaration
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- mm/readahead.c     |   10 +---------
- 2 files changed, 1 insertion(+), 11 deletions(-)
+ mm/filemap.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mm.h~readahead-remove-several-readahead-macros include/linux/mm.h
---- a/include/linux/mm.h~readahead-remove-several-readahead-macros
-+++ a/include/linux/mm.h
-@@ -1132,8 +1132,6 @@ int write_one_page(struct page *page, in
- /* readahead.c */
- #define VM_MAX_READAHEAD	128	/* kbytes */
- #define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
--#define VM_MAX_CACHE_HIT    	256	/* max pages in a row in cache before
--					 * turning readahead off */
+diff -puN mm/filemap.c~filemap-trivial-code-cleanups mm/filemap.c
+--- a/mm/filemap.c~filemap-trivial-code-cleanups
++++ a/mm/filemap.c
+@@ -869,7 +869,6 @@ void do_generic_mapping_read(struct addr
+ 	unsigned long index;
+ 	unsigned long offset;
+ 	unsigned long last_index;
+-	unsigned long next_index;
+ 	unsigned long prev_index;
+ 	unsigned int prev_offset;
+ 	struct page *cached_page;
+@@ -877,7 +876,6 @@ void do_generic_mapping_read(struct addr
  
- int do_page_cache_readahead(struct address_space *mapping, struct file *filp,
- 			pgoff_t offset, unsigned long nr_to_read);
-diff -puN mm/readahead.c~readahead-remove-several-readahead-macros mm/readahead.c
---- a/mm/readahead.c~readahead-remove-several-readahead-macros
-+++ a/mm/readahead.c
-@@ -21,16 +21,8 @@ void default_unplug_io_fn(struct backing
+ 	cached_page = NULL;
+ 	index = *ppos >> PAGE_CACHE_SHIFT;
+-	next_index = index;
+ 	prev_index = ra->prev_pos >> PAGE_CACHE_SHIFT;
+ 	prev_offset = ra->prev_pos & (PAGE_CACHE_SIZE-1);
+ 	last_index = (*ppos + desc->count + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
+@@ -1217,7 +1215,8 @@ out:
  }
- EXPORT_SYMBOL(default_unplug_io_fn);
+ EXPORT_SYMBOL(generic_file_aio_read);
  
--/*
-- * Convienent macros for min/max read-ahead pages.
-- * Note that MAX_RA_PAGES is rounded down, while MIN_RA_PAGES is rounded up.
-- * The latter is necessary for systems with large page size(i.e. 64k).
-- */
--#define MAX_RA_PAGES	(VM_MAX_READAHEAD*1024 / PAGE_CACHE_SIZE)
--#define MIN_RA_PAGES	DIV_ROUND_UP(VM_MIN_READAHEAD*1024, PAGE_CACHE_SIZE)
--
- struct backing_dev_info default_backing_dev_info = {
--	.ra_pages	= MAX_RA_PAGES,
-+	.ra_pages	= VM_MAX_READAHEAD * 1024 / PAGE_CACHE_SIZE,
- 	.state		= 0,
- 	.capabilities	= BDI_CAP_MAP_COPY,
- 	.unplug_io_fn	= default_unplug_io_fn,
+-int file_send_actor(read_descriptor_t * desc, struct page *page, unsigned long offset, unsigned long size)
++int file_send_actor(read_descriptor_t * desc, struct page *page,
++			unsigned long offset, unsigned long size)
+ {
+ 	ssize_t written;
+ 	unsigned long count = desc->count;
+@@ -1270,7 +1269,6 @@ asmlinkage ssize_t sys_readahead(int fd,
+ }
+ 
+ #ifdef CONFIG_MMU
+-static int FASTCALL(page_cache_read(struct file * file, unsigned long offset));
+ /**
+  * page_cache_read - adds requested page to the page cache if not already there
+  * @file:	file to read
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
