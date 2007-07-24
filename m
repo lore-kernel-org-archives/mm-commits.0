@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-build-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 00:31:59 -0700
-Message-ID: <200707240736.l6O7aWKh002195@imap1.linux-foundation.org>
+Subject: + security-convert-lsm-into-a-static-interface-fix-2.patch added to -mm tree
+Date: Tue, 24 Jul 2007 00:59:08 -0700
+Message-ID: <200707240803.l6O83fGn003184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60638 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48092 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757050AbXGXHg5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753313AbXGXIE1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 03:36:57 -0400
+	Tue, 24 Jul 2007 04:04:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, drzeus@drzeus.cx
+Cc: akpm@linux-foundation.org, arjan@infradead.org, chrisw@sous-sol.org, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com
 
 
 The patch titled
-     mmc-build-fix
+     security-convert-lsm-into-a-static-interface-fix-2
 has been added to the -mm tree.  Its filename is
-     mmc-build-fix.patch
+     security-convert-lsm-into-a-static-interface-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mmc-build-fix
+Subject: security-convert-lsm-into-a-static-interface-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mmc/core/mmc_ops.c: In function 'mmc_lock_unlock':
-drivers/mmc/core/mmc_ops.c:346: error: void value not ignored as it ought to be
-
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc_ops.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ security/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/core/mmc_ops.c~mmc-build-fix drivers/mmc/core/mmc_ops.c
---- a/drivers/mmc/core/mmc_ops.c~mmc-build-fix
-+++ a/drivers/mmc/core/mmc_ops.c
-@@ -343,9 +343,7 @@ int mmc_lock_unlock(struct mmc_card *car
- 	mrq.data = &data;
+diff -puN security/Kconfig~security-convert-lsm-into-a-static-interface-fix-2 security/Kconfig
+--- a/security/Kconfig~security-convert-lsm-into-a-static-interface-fix-2
++++ a/security/Kconfig
+@@ -82,7 +82,7 @@ config SECURITY_CAPABILITIES
  
- 	sg_init_one(&sg, data_buf, data_size);
--	err = mmc_wait_for_req(card->host, &mrq);
--	if (err != MMC_ERR_NONE)
--		goto out;
-+	mmc_wait_for_req(card->host, &mrq);
- 
- 	memset(&cmd, 0, sizeof(struct mmc_command));
- 
+ config SECURITY_ROOTPLUG
+ 	bool "Root Plug Support"
+-	depends on USB && SECURITY
++	depends on USB=y && SECURITY
+ 	help
+ 	  This is a sample LSM module that should only be used as such.
+ 	  It prevents any programs running with egid == 0 if a specific
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,6 +71,7 @@ git-kvm.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 fix-ide-ide-add-ide-set-pio-take3.patch
+mmc-build-fix.patch
 git-mtd.patch
 e1000new-build-fix.patch
 e1000new-build-fix-2.patch
@@ -101,6 +101,7 @@ maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
 slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
 hugetlbfs-read-support-fix.patch
 security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
 file-capabilities-clear-caps-cleanup-fix.patch
 capabilityh-remove-include-of-currenth.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
@@ -137,4 +138,3 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-mmc-build-fix.patch
