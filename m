@@ -1,91 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - minor-gpio-doc-update.patch removed from -mm tree
-Date: Tue, 24 Jul 2007 16:24:52 -0700
-Message-ID: <200707242324.l6ONOqjn006310@imap1.linux-foundation.org>
+Subject: - fix-failure-exits-in-asus-laptop.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 16:24:45 -0700
+Message-ID: <200707242324.l6ONOj1E006299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49308 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51088 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757825AbXGXXZN (ORCPT
+	by vger.kernel.org with ESMTP id S1757969AbXGXXZQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 19:25:13 -0400
+	Tue, 24 Jul 2007 19:25:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, ukleinek@informatik.uni-freiburg.de, mm-commits@vger.kernel.org
+To: viro@ftp.linux.org.uk, corentincj@iksaif.net, michal.k.k.piotrowski@gmail.com, sziwan@users.sourceforge.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     minor gpio doc update
+     Fix failure exits in asus-laptop
 has been removed from the -mm tree.  Its filename was
-     minor-gpio-doc-update.patch
+     fix-failure-exits-in-asus-laptop.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: minor gpio doc update
-=46rom: David Brownell <david-b@pacbell.net>
+Subject: Fix failure exits in asus-laptop
+From: Al Viro <viro@ftp.linux.org.uk>
 
-=46ix doc bug noted by Uwe Kleine-K=F6nig:  gpio_set_direction() is lon=
-g
-gone, replaced by gpio_direction_input() and gpio_direction_output().
+Fallout from f8a7c6fe14f556ca8eeddce258cb21392d0c3a2f.  However, looking
+at it shows that checks done in ASUS_LED_UNREGISTER() can't trigger
+at all (we never get to asus_led_exit() if registration fails) and
+if that registration fails, we actually leak stuff.  IOW, it's worse
+than just replacing class_dev with dev in there - the tests themselves
+had been papering over the lousy cleanup logics.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: <ukleinek@informatik.uni-freiburg.de>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Karol Kozimor <sziwan@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/misc/asus-laptop.c |   32 +++++++++++++++++++++-----------
+ 1 files changed, 21 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/gpio.txt~minor-gpio-doc-update Documentation/gp=
-io.txt
---- a/Documentation/gpio.txt~minor-gpio-doc-update
-+++ a/Documentation/gpio.txt
-@@ -148,7 +148,7 @@ pin ... that won't always match the spec
- issues including wire-OR and output latencies.
-=20
- The get/set calls have no error returns because "invalid GPIO" should =
-have
--been reported earlier in gpio_set_direction().  However, note that not=
- all
-+been reported earlier from gpio_direction_*().  However, note that not=
- all
- platforms can read the value of output pins; those that can't should a=
-lways
- return zero.  Also, using these calls for GPIOs that can't safely be a=
-ccessed
- without sleeping (see below) is an error.
-@@ -239,7 +239,7 @@ map between them using calls like:
- Those return either the corresponding number in the other namespace, o=
-r
- else a negative errno code if the mapping can't be done.  (For example=
-,
- some GPIOs can't used as IRQs.)  It is an unchecked error to use a GPI=
-O
--number that hasn't been marked as an input using gpio_set_direction(),=
- or
-+number that wasn't set up as an input using gpio_direction_input(), or
- to use an IRQ number that didn't originally come from gpio_to_irq().
-=20
- These two mapping calls are expected to cost on the order of a single
+diff -puN drivers/misc/asus-laptop.c~fix-failure-exits-in-asus-laptop drivers/misc/asus-laptop.c
+--- a/drivers/misc/asus-laptop.c~fix-failure-exits-in-asus-laptop
++++ a/drivers/misc/asus-laptop.c
+@@ -1067,19 +1067,16 @@ static void asus_backlight_exit(void)
+ }
+ 
+ #define  ASUS_LED_UNREGISTER(object)				\
+-	if(object##_led.class_dev				\
+-	   && !IS_ERR(object##_led.class_dev))			\
+-		led_classdev_unregister(&object##_led)
++	led_classdev_unregister(&object##_led)
+ 
+ static void asus_led_exit(void)
+ {
++	destroy_workqueue(led_workqueue);
+ 	ASUS_LED_UNREGISTER(mled);
+ 	ASUS_LED_UNREGISTER(tled);
+ 	ASUS_LED_UNREGISTER(pled);
+ 	ASUS_LED_UNREGISTER(rled);
+ 	ASUS_LED_UNREGISTER(gled);
+-
+-	destroy_workqueue(led_workqueue);
+ }
+ 
+ static void __exit asus_laptop_exit(void)
+@@ -1135,29 +1132,42 @@ static int asus_led_init(struct device *
+ 
+ 	rv = ASUS_LED_REGISTER(mled, dev);
+ 	if (rv)
+-		return rv;
++		goto out;
+ 
+ 	rv = ASUS_LED_REGISTER(tled, dev);
+ 	if (rv)
+-		return rv;
++		goto out1;
+ 
+ 	rv = ASUS_LED_REGISTER(rled, dev);
+ 	if (rv)
+-		return rv;
++		goto out2;
+ 
+ 	rv = ASUS_LED_REGISTER(pled, dev);
+ 	if (rv)
+-		return rv;
++		goto out3;
+ 
+ 	rv = ASUS_LED_REGISTER(gled, dev);
+ 	if (rv)
+-		return rv;
++		goto out4;
+ 
+ 	led_workqueue = create_singlethread_workqueue("led_workqueue");
+ 	if (!led_workqueue)
+-		return -ENOMEM;
++		goto out5;
+ 
+ 	return 0;
++out5:
++	rv = -ENOMEM;
++	ASUS_LED_UNREGISTER(gled);
++out4:
++	ASUS_LED_UNREGISTER(pled);
++out3:
++	ASUS_LED_UNREGISTER(rled);
++out2:
++	ASUS_LED_UNREGISTER(tled);
++out1:
++	ASUS_LED_UNREGISTER(mled);
++out:
++	return rv;
+ }
+ 
+ static int __init asus_laptop_init(void)
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from viro@ftp.linux.org.uk are
 
 origin.patch
-rtc-stk17ta8-update-for-sysfs-api-change.patch
-rtc-ds1307-typo-fix-found-by-coverity.patch
-git-acpi.patch
-git-mmc.patch
-git-mtd.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-spi-kerneldoc-update.patch
-spi-device-setup-gets-better-error-checking.patch
-rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
-use-menuconfig-objects-rtc.patch
+introduce-i_sync.patch
+slab-leaks3-default-y.patch
