@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-ide-ide-add-ide-set-pio-take3.patch added to -mm tree
-Date: Tue, 24 Jul 2007 00:14:07 -0700
-Message-ID: <200707240718.l6O7Ief1001570@imap1.linux-foundation.org>
+Subject: + mmc-build-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 00:31:59 -0700
+Message-ID: <200707240736.l6O7aWKh002195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59961 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60638 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754606AbXGXHSs (ORCPT
+	by vger.kernel.org with ESMTP id S1757050AbXGXHg5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 03:18:48 -0400
+	Tue, 24 Jul 2007 03:36:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com
+Cc: akpm@linux-foundation.org, drzeus@drzeus.cx
 
 
 The patch titled
-     fix-ide-ide-add-ide-set-pio-take3
+     mmc-build-fix
 has been added to the -mm tree.  Its filename is
-     fix-ide-ide-add-ide-set-pio-take3.patch
+     mmc-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-ide-ide-add-ide-set-pio-take3
+Subject: mmc-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ide/pci/cmd640.c: In function 'cmd640_set_pio_mode':
-drivers/ide/pci/cmd640.c:646: error: 'mode_wanted' undeclared (first use in this function)
-drivers/ide/pci/cmd640.c:646: error: (Each undeclared identifier is reported only once
-drivers/ide/pci/cmd640.c:646: error: for each function it appears in.)
+drivers/mmc/core/mmc_ops.c: In function 'mmc_lock_unlock':
+drivers/mmc/core/mmc_ops.c:346: error: void value not ignored as it ought to be
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mmc/core/mmc_ops.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/ide/pci/cmd640.c~fix-ide-ide-add-ide-set-pio-take3 drivers/ide/pci/cmd640.c
-diff -puN drivers/ide/Kconfig~fix-ide-ide-add-ide-set-pio-take3 drivers/ide/Kconfig
---- a/drivers/ide/Kconfig~fix-ide-ide-add-ide-set-pio-take3
-+++ a/drivers/ide/Kconfig
-@@ -311,6 +311,7 @@ config IDE_GENERIC
- config BLK_DEV_CMD640
- 	bool "CMD640 chipset bugfix/support"
- 	depends on X86
-+	depends on BROKEN
- 	---help---
- 	  The CMD-Technologies CMD640 IDE chip is used on many common 486 and
- 	  Pentium motherboards, usually in combination with a "Neptune" or
+diff -puN drivers/mmc/core/mmc_ops.c~mmc-build-fix drivers/mmc/core/mmc_ops.c
+--- a/drivers/mmc/core/mmc_ops.c~mmc-build-fix
++++ a/drivers/mmc/core/mmc_ops.c
+@@ -343,9 +343,7 @@ int mmc_lock_unlock(struct mmc_card *car
+ 	mrq.data = &data;
+ 
+ 	sg_init_one(&sg, data_buf, data_size);
+-	err = mmc_wait_for_req(card->host, &mrq);
+-	if (err != MMC_ERR_NONE)
+-		goto out;
++	mmc_wait_for_req(card->host, &mrq);
+ 
+ 	memset(&cmd, 0, sizeof(struct mmc_command));
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -137,4 +137,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-git-block-cciss-fix.patch
+mmc-build-fix.patch
