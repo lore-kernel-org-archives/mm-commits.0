@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-documentation-iii-drivers.patch added to -mm tree
-Date: Mon, 23 Jul 2007 20:18:15 -0700
-Message-ID: <200707240318.l6O3IFHT025672@imap1.linux-foundation.org>
+Subject: + lguest-documentation-iv-launcher.patch added to -mm tree
+Date: Mon, 23 Jul 2007 20:18:18 -0700
+Message-ID: <200707240318.l6O3IIMb025675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51676 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52985 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756086AbXGXDSa (ORCPT
+	by vger.kernel.org with ESMTP id S1755569AbXGXDSe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 23:18:30 -0400
+	Mon, 23 Jul 2007 23:18:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     lguest: documentation III: Drivers
+     lguest: documentation IV: Launcher
 has been added to the -mm tree.  Its filename is
-     lguest-documentation-iii-drivers.patch
+     lguest-documentation-iv-launcher.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,1318 +26,2441 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: documentation III: Drivers
+Subject: lguest: documentation IV: Launcher
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Documentation: The Drivers
+Documentation: The Launcher
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/lguest_blk.c      |  169 +++++++++++++++++++++--
- drivers/char/hvc_lguest.c       |   79 ++++++++++
- drivers/lguest/lguest_bus.c     |   72 +++++++++
- drivers/net/lguest_net.c        |  218 +++++++++++++++++++++++++++---
- include/linux/lguest_bus.h      |    5 
- include/linux/lguest_launcher.h |   60 +++++++-
- 6 files changed, 563 insertions(+), 40 deletions(-)
+ Documentation/lguest/lguest.c |  599 +++++++++++++++++++++++++++++---
+ drivers/lguest/core.c         |   24 +
+ drivers/lguest/io.c           |  247 ++++++++++++-
+ drivers/lguest/lg.h           |   25 +
+ drivers/lguest/lguest_user.c  |  159 ++++++++
+ 5 files changed, 982 insertions(+), 72 deletions(-)
 
-diff -puN drivers/block/lguest_blk.c~lguest-documentation-iii-drivers drivers/block/lguest_blk.c
---- a/drivers/block/lguest_blk.c~lguest-documentation-iii-drivers
-+++ a/drivers/block/lguest_blk.c
-@@ -1,6 +1,12 @@
--/* A simple block driver for lguest.
-+/*D:400
-+ * The Guest block driver
-  *
-- * Copyright 2006 Rusty Russell <rusty@rustcorp.com.au> IBM Corporation
-+ * This is a simple block driver, which appears as /dev/lgba, lgbb, lgbc etc.
-+ * The mechanism is simple: we place the information about the request in the
-+ * device page, then use SEND_DMA (containing the data for a write, or an empty
-+ * "ping" DMA for a read).
-+ :*/
-+/* Copyright 2006 Rusty Russell <rusty@rustcorp.com.au> IBM Corporation
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -25,27 +31,50 @@
- 
- static char next_block_index = 'a';
- 
-+/*D:420 Here is the structure which holds all the information we need about
-+ * each Guest block device.
+diff -puN Documentation/lguest/lguest.c~lguest-documentation-iv-launcher Documentation/lguest/lguest.c
+--- a/Documentation/lguest/lguest.c~lguest-documentation-iv-launcher
++++ a/Documentation/lguest/lguest.c
+@@ -34,12 +34,20 @@
+ #include <termios.h>
+ #include <getopt.h>
+ #include <zlib.h>
++/*L:110 We can ignore the 28 include files we need for this program, but I do
++ * want to draw attention to the use of kernel-style types.
 + *
-+ * I'm sure at this stage, you're wondering "hey, where was the adventure I was
-+ * promised?" and thinking "Rusty sucks, I shall say nasty things about him on
-+ * my blog".  I think Real adventures have boring bits, too, and you're in the
-+ * middle of one.  But it gets better.  Just not quite yet. */
- struct blockdev
++ * As Linus said, "C is a Spartan language, and so should your naming be."  I
++ * like these abbreviations and the header we need uses them, so we define them
++ * here.
++ */
+ typedef unsigned long long u64;
+ typedef uint32_t u32;
+ typedef uint16_t u16;
+ typedef uint8_t u8;
+ #include "../../include/linux/lguest_launcher.h"
+ #include "../../include/asm-i386/e820.h"
++/*:*/
+ 
+ #define PAGE_PRESENT 0x7 	/* Present, RW, Execute */
+ #define NET_PEERNUM 1
+@@ -48,33 +56,52 @@ typedef uint8_t u8;
+ #define SIOCBRADDIF	0x89a2		/* add interface to bridge      */
+ #endif
+ 
++/*L:120 verbose is both a global flag and a macro.  The C preprocessor allows
++ * this, and although I wouldn't recommend it, it works quite nicely here. */
+ static bool verbose;
+ #define verbose(args...) \
+ 	do { if (verbose) printf(args); } while(0)
++/*:*/
++
++/* The pipe to send commands to the waker process */
+ static int waker_fd;
++/* The top of guest physical memory. */
+ static u32 top;
+ 
++/* This is our list of devices. */
+ struct device_list
  {
-+	/* The block queue infrastructure wants a spinlock: it is held while it
-+	 * calls our block request function.  We grab it in our interrupt
-+	 * handler so the responses don't mess with new requests. */
- 	spinlock_t lock;
++	/* Summary information about the devices in our list: ready to pass to
++	 * select() to ask which need servicing.*/
+ 	fd_set infds;
+ 	int max_infd;
  
--	/* The disk structure for the kernel. */
-+	/* The disk structure registered with kernel. */
- 	struct gendisk *disk;
- 
--	/* The major number for this disk. */
-+	/* The major device number for this disk, and the interrupt.  We only
-+	 * really keep them here for completeness; we'd need them if we
-+	 * supported device unplugging. */
- 	int major;
- 	int irq;
- 
-+	/* The physical address of this device's memory page */
- 	unsigned long phys_addr;
--	/* The mapped block page. */
-+	/* The mapped memory page for convenient acces. */
- 	struct lguest_block_page *lb_page;
- 
--	/* We only have a single request outstanding at a time. */
-+	/* We only have a single request outstanding at a time: this is it. */
- 	struct lguest_dma dma;
- 	struct request *req;
++	/* The descriptor page for the devices. */
+ 	struct lguest_device_desc *descs;
++
++	/* A single linked list of devices. */
+ 	struct device *dev;
++	/* ... And an end pointer so we can easily append new devices */
+ 	struct device **lastdev;
  };
  
--/* Jens gave me this nice helper to end all chunks of a request. */
-+/*D:495 We originally used end_request() throughout the driver, but it turns
-+ * out that end_request() is deprecated, and doesn't actually end the request
-+ * (which seems like a good reason to deprecate it!).  It simply ends the first
-+ * bio.  So if we had 3 bios in a "struct request" we would do all 3,
-+ * end_request(), do 2, end_request(), do 1 and end_request(): twice as much
-+ * work as we needed to do.
-+ *
-+ * This reinforced to me that I do not understand the block layer.
-+ *
-+ * Nonetheless, Jens Axboe gave me this nice helper to end all chunks of a
-+ * request.  This improved disk speed by 130%. */
- static void end_entire_request(struct request *req, int uptodate)
++/* The device structure describes a single device. */
+ struct device
  {
- 	if (end_that_request_first(req, uptodate, req->hard_nr_sectors))
-@@ -55,30 +84,62 @@ static void end_entire_request(struct re
- 	end_that_request_last(req, uptodate);
++	/* The linked-list pointer. */
+ 	struct device *next;
++	/* The descriptor for this device, as mapped into the Guest. */
+ 	struct lguest_device_desc *desc;
++	/* The memory page(s) of this device, if any.  Also mapped in Guest. */
+ 	void *mem;
+ 
+-	/* Watch this fd if handle_input non-NULL. */
++	/* If handle_input is set, it wants to be called when this file
++	 * descriptor is ready. */
+ 	int fd;
+ 	bool (*handle_input)(int fd, struct device *me);
+ 
+-	/* Watch DMA to this key if handle_input non-NULL. */
++	/* If handle_output is set, it wants to be called when the Guest sends
++	 * DMA to this key. */
+ 	unsigned long watch_key;
+ 	u32 (*handle_output)(int fd, const struct iovec *iov,
+ 			     unsigned int num, struct device *me);
+@@ -83,6 +110,11 @@ struct device
+ 	void *priv;
+ };
+ 
++/*L:130
++ * Loading the Kernel.
++ *
++ * We start with couple of simple helper routines.  open_or_die() avoids
++ * error-checking code cluttering the callers: */
+ static int open_or_die(const char *name, int flags)
+ {
+ 	int fd = open(name, flags);
+@@ -91,26 +123,38 @@ static int open_or_die(const char *name,
+ 	return fd;
  }
  
-+/* I'm told there are only two stories in the world worth telling: love and
-+ * hate.  So there used to be a love scene here like this:
-+ *
-+ *  Launcher:	We could make beautiful I/O together, you and I.
-+ *  Guest:	My, that's a big disk!
-+ *
-+ * Unfortunately, it was just too raunchy for our otherwise-gentle tale. */
-+
-+/*D:490 This is the interrupt handler, called when a block read or write has
-+ * been completed for us. */
- static irqreturn_t lgb_irq(int irq, void *_bd)
++/* map_zeroed_pages() takes a (page-aligned) address and a number of pages. */
+ static void *map_zeroed_pages(unsigned long addr, unsigned int num)
  {
-+	/* We handed our "struct blockdev" as the argument to request_irq(), so
-+	 * it is passed through to us here.  This tells us which device we're
-+	 * dealing with in case we have more than one. */
- 	struct blockdev *bd = _bd;
- 	unsigned long flags;
++	/* We cache the /dev/zero file-descriptor so we only open it once. */
+ 	static int fd = -1;
  
-+	/* We weren't doing anything?  Strange, but could happen if we shared
-+	 * interrupts (we don't!). */
- 	if (!bd->req) {
- 		pr_debug("No work!\n");
- 		return IRQ_NONE;
- 	}
+ 	if (fd == -1)
+ 		fd = open_or_die("/dev/zero", O_RDONLY);
  
-+	/* Not done yet?  That's equally strange. */
- 	if (!bd->lb_page->result) {
- 		pr_debug("No result!\n");
- 		return IRQ_NONE;
- 	}
- 
-+	/* We have to grab the lock before ending the request. */
- 	spin_lock_irqsave(&bd->lock, flags);
-+	/* "result" is 1 for success, 2 for failure: end_entire_request() wants
-+	 * to know whether this succeeded or not. */
- 	end_entire_request(bd->req, bd->lb_page->result == 1);
-+	/* Clear out request, it's done. */
- 	bd->req = NULL;
-+	/* Reset incoming DMA for next time. */
- 	bd->dma.used_len = 0;
-+	/* Ready for more reads or writes */
- 	blk_start_queue(bd->disk->queue);
- 	spin_unlock_irqrestore(&bd->lock, flags);
++	/* We use a private mapping (ie. if we write to the page, it will be
++	 * copied), and obviously we insist that it be mapped where we ask. */
+ 	if (mmap((void *)addr, getpagesize() * num,
+ 		 PROT_READ|PROT_WRITE|PROT_EXEC, MAP_FIXED|MAP_PRIVATE, fd, 0)
+ 	    != (void *)addr)
+ 		err(1, "Mmaping %u pages of /dev/zero @%p", num, (void *)addr);
 +
-+	/* The interrupt was for us, we dealt with it. */
- 	return IRQ_HANDLED;
++	/* Returning the address is just a courtesy: can simplify callers. */
+ 	return (void *)addr;
  }
  
-+/*D:480 The block layer's "struct request" contains a number of "struct bio"s,
-+ * each of which contains "struct bio_vec"s, each of which contains a page, an
-+ * offset and a length.
-+ *
-+ * Fortunately there are iterators to help us walk through the "struct
-+ * request".  Even more fortunately, there were plenty of places to steal the
-+ * code from.  We pack the "struct request" into our "struct lguest_dma" and
-+ * return the total length. */
- static unsigned int req_to_dma(struct request *req, struct lguest_dma *dma)
+-/* Find magic string marking entry point, return entry point. */
++/* To find out where to start we look for the magic Guest string, which marks
++ * the code we see in lguest_asm.S.  This is a hack which we are currently
++ * plotting to replace with the normal Linux entry point. */
+ static unsigned long entry_point(void *start, void *end,
+ 				 unsigned long page_offset)
  {
- 	unsigned int i = 0, idx, len = 0;
-@@ -87,8 +148,13 @@ static unsigned int req_to_dma(struct re
- 	rq_for_each_bio(bio, req) {
- 		struct bio_vec *bvec;
- 		bio_for_each_segment(bvec, bio, idx) {
-+			/* We told the block layer not to give us too many. */
- 			BUG_ON(i == LGUEST_MAX_DMA_SECTIONS);
-+			/* If we had a zero-length segment, it would look like
-+			 * the end of the data referred to by the "struct
-+			 * lguest_dma", so make sure that doesn't happen. */
- 			BUG_ON(!bvec->bv_len);
-+			/* Convert page & offset to a physical address */
- 			dma->addr[i] = page_to_phys(bvec->bv_page)
- 				+ bvec->bv_offset;
- 			dma->len[i] = bvec->bv_len;
-@@ -96,26 +162,39 @@ static unsigned int req_to_dma(struct re
- 			i++;
- 		}
- 	}
-+	/* If the array isn't full, we mark the end with a 0 length */
- 	if (i < LGUEST_MAX_DMA_SECTIONS)
- 		dma->len[i] = 0;
+ 	void *p;
+ 
++	/* The scan gives us the physical starting address.  We want the
++	 * virtual address in this case, and fortunately, we already figured
++	 * out the physical-virtual difference and passed it here in
++	 * "page_offset". */
+ 	for (p = start; p < end; p++)
+ 		if (memcmp(p, "GenuineLguest", strlen("GenuineLguest")) == 0)
+ 			return (long)p + strlen("GenuineLguest") + page_offset;
+@@ -118,7 +162,17 @@ static unsigned long entry_point(void *s
+ 	err(1, "Is this image a genuine lguest?");
+ }
+ 
+-/* Returns the entry point */
++/* This routine takes an open vmlinux image, which is in ELF, and maps it into
++ * the Guest memory.  ELF = Embedded Linking Format, which is the format used
++ * by all modern binaries on Linux including the kernel.
++ *
++ * The ELF headers give *two* addresses: a physical address, and a virtual
++ * address.  The Guest kernel expects to be placed in memory at the physical
++ * address, and the page tables set up so it will correspond to that virtual
++ * address.  We return the difference between the virtual and physical
++ * addresses in the "page_offset" pointer.
++ *
++ * We return the starting address. */
+ static unsigned long map_elf(int elf_fd, const Elf32_Ehdr *ehdr,
+ 			     unsigned long *page_offset)
+ {
+@@ -127,40 +181,61 @@ static unsigned long map_elf(int elf_fd,
+ 	unsigned int i;
+ 	unsigned long start = -1UL, end = 0;
+ 
+-	/* Sanity checks. */
++	/* Sanity checks on the main ELF header: an x86 executable with a
++	 * reasonable number of correctly-sized program headers. */
+ 	if (ehdr->e_type != ET_EXEC
+ 	    || ehdr->e_machine != EM_386
+ 	    || ehdr->e_phentsize != sizeof(Elf32_Phdr)
+ 	    || ehdr->e_phnum < 1 || ehdr->e_phnum > 65536U/sizeof(Elf32_Phdr))
+ 		errx(1, "Malformed elf header");
+ 
++	/* An ELF executable contains an ELF header and a number of "program"
++	 * headers which indicate which parts ("segments") of the program to
++	 * load where. */
++
++	/* We read in all the program headers at once: */
+ 	if (lseek(elf_fd, ehdr->e_phoff, SEEK_SET) < 0)
+ 		err(1, "Seeking to program headers");
+ 	if (read(elf_fd, phdr, sizeof(phdr)) != sizeof(phdr))
+ 		err(1, "Reading program headers");
+ 
++	/* We don't know page_offset yet. */
+ 	*page_offset = 0;
+-	/* We map the loadable segments at virtual addresses corresponding
+-	 * to their physical addresses (our virtual == guest physical). */
++
++	/* Try all the headers: there are usually only three.  A read-only one,
++	 * a read-write one, and a "note" section which isn't loadable. */
+ 	for (i = 0; i < ehdr->e_phnum; i++) {
++		/* If this isn't a loadable segment, we ignore it */
+ 		if (phdr[i].p_type != PT_LOAD)
+ 			continue;
+ 
+ 		verbose("Section %i: size %i addr %p\n",
+ 			i, phdr[i].p_memsz, (void *)phdr[i].p_paddr);
+ 
+-		/* We expect linear address space. */
++		/* We expect a simple linear address space: every segment must
++		 * have the same difference between virtual (p_vaddr) and
++		 * physical (p_paddr) address. */
+ 		if (!*page_offset)
+ 			*page_offset = phdr[i].p_vaddr - phdr[i].p_paddr;
+ 		else if (*page_offset != phdr[i].p_vaddr - phdr[i].p_paddr)
+ 			errx(1, "Page offset of section %i different", i);
+ 
++		/* We track the first and last address we mapped, so we can
++		 * tell entry_point() where to scan. */
+ 		if (phdr[i].p_paddr < start)
+ 			start = phdr[i].p_paddr;
+ 		if (phdr[i].p_paddr + phdr[i].p_filesz > end)
+ 			end = phdr[i].p_paddr + phdr[i].p_filesz;
+ 
+-		/* We map everything private, writable. */
++		/* We map this section of the file at its physical address.  We
++		 * map it read & write even if the header says this segment is
++		 * read-only.  The kernel really wants to be writable: it
++		 * patches its own instructions which would normally be
++		 * read-only.
++		 *
++		 * MAP_PRIVATE means that the page won't be copied until a
++		 * write is done to it.  This allows us to share much of the
++		 * kernel memory between Guests. */
+ 		addr = mmap((void *)phdr[i].p_paddr,
+ 			    phdr[i].p_filesz,
+ 			    PROT_READ|PROT_WRITE|PROT_EXEC,
+@@ -174,7 +249,31 @@ static unsigned long map_elf(int elf_fd,
+ 	return entry_point((void *)start, (void *)end, *page_offset);
+ }
+ 
+-/* This is amazingly reliable. */
++/*L:170 Prepare to be SHOCKED and AMAZED.  And possibly a trifle nauseated.
++ *
++ * We know that CONFIG_PAGE_OFFSET sets what virtual address the kernel expects
++ * to be.  We don't know what that option was, but we can figure it out
++ * approximately by looking at the addresses in the code.  I chose the common
++ * case of reading a memory location into the %eax register:
++ *
++ *  movl <some-address>, %eax
++ *
++ * This gets encoded as five bytes: "0xA1 <4-byte-address>".  For example,
++ * "0xA1 0x18 0x60 0x47 0xC0" reads the address 0xC0476018 into %eax.
++ *
++ * In this example can guess that the kernel was compiled with
++ * CONFIG_PAGE_OFFSET set to 0xC0000000 (it's always a round number).  If the
++ * kernel were larger than 16MB, we might see 0xC1 addresses show up, but our
++ * kernel isn't that bloated yet.
++ *
++ * Unfortunately, x86 has variable-length instructions, so finding this
++ * particular instruction properly involves writing a disassembler.  Instead,
++ * we rely on statistics.  We look for "0xA1" and tally the different bytes
++ * which occur 4 bytes later (the "0xC0" in our example above).  When one of
++ * those bytes appears three times, we can be reasonably confident that it
++ * forms the start of CONFIG_PAGE_OFFSET.
++ *
++ * This is amazingly reliable. */
+ static unsigned long intuit_page_offset(unsigned char *img, unsigned long len)
+ {
+ 	unsigned int i, possibilities[256] = { 0 };
+@@ -187,30 +286,52 @@ static unsigned long intuit_page_offset(
+ 	errx(1, "could not determine page offset");
+ }
+ 
++/*L:160 Unfortunately the entire ELF image isn't compressed: the segments
++ * which need loading are extracted and compressed raw.  This denies us the
++ * information we need to make a fully-general loader. */
+ static unsigned long unpack_bzimage(int fd, unsigned long *page_offset)
+ {
+ 	gzFile f;
+ 	int ret, len = 0;
++	/* A bzImage always gets loaded at physical address 1M.  This is
++	 * actually configurable as CONFIG_PHYSICAL_START, but as the comment
++	 * there says, "Don't change this unless you know what you are doing".
++	 * Indeed. */
+ 	void *img = (void *)0x100000;
+ 
++	/* gzdopen takes our file descriptor (carefully placed at the start of
++	 * the GZIP header we found) and returns a gzFile. */
+ 	f = gzdopen(fd, "rb");
++	/* We read it into memory in 64k chunks until we hit the end. */
+ 	while ((ret = gzread(f, img + len, 65536)) > 0)
+ 		len += ret;
+ 	if (ret < 0)
+ 		err(1, "reading image from bzImage");
+ 
+ 	verbose("Unpacked size %i addr %p\n", len, img);
++
++	/* Without the ELF header, we can't tell virtual-physical gap.  This is
++	 * CONFIG_PAGE_OFFSET, and people do actually change it.  Fortunately,
++	 * I have a clever way of figuring it out from the code itself.  */
+ 	*page_offset = intuit_page_offset(img, len);
+ 
+ 	return entry_point(img, img + len, *page_offset);
+ }
+ 
++/*L:150 A bzImage, unlike an ELF file, is not meant to be loaded.  You're
++ * supposed to jump into it and it will unpack itself.  We can't do that
++ * because the Guest can't run the unpacking code, and adding features to
++ * lguest kills puppies, so we don't want to.
++ *
++ * The bzImage is formed by putting the decompressing code in front of the
++ * compressed kernel code.  So we can simple scan through it looking for the
++ * first "gzip" header, and start decompressing from there. */
+ static unsigned long load_bzimage(int fd, unsigned long *page_offset)
+ {
+ 	unsigned char c;
+ 	int state = 0;
+ 
+-	/* Ugly brute force search for gzip header. */
++	/* GZIP header is 0x1F 0x8B <method> <flags>... <compressed-by>. */
+ 	while (read(fd, &c, 1) == 1) {
+ 		switch (state) {
+ 		case 0:
+@@ -227,8 +348,10 @@ static unsigned long load_bzimage(int fd
+ 			state++;
+ 			break;
+ 		case 9:
++			/* Seek back to the start of the gzip header. */
+ 			lseek(fd, -10, SEEK_CUR);
+-			if (c != 0x03) /* Compressed under UNIX. */
++			/* One final check: "compressed under UNIX". */
++			if (c != 0x03)
+ 				state = -1;
+ 			else
+ 				return unpack_bzimage(fd, page_offset);
+@@ -237,25 +360,43 @@ static unsigned long load_bzimage(int fd
+ 	errx(1, "Could not find kernel in bzImage");
+ }
+ 
++/*L:140 Loading the kernel is easy when it's a "vmlinux", but most kernels
++ * come wrapped up in the self-decompressing "bzImage" format.  With some funky
++ * coding, we can load those, too. */
+ static unsigned long load_kernel(int fd, unsigned long *page_offset)
+ {
+ 	Elf32_Ehdr hdr;
+ 
++	/* Read in the first few bytes. */
+ 	if (read(fd, &hdr, sizeof(hdr)) != sizeof(hdr))
+ 		err(1, "Reading kernel");
+ 
++	/* If it's an ELF file, it starts with "\177ELF" */
+ 	if (memcmp(hdr.e_ident, ELFMAG, SELFMAG) == 0)
+ 		return map_elf(fd, &hdr, page_offset);
+ 
++	/* Otherwise we assume it's a bzImage, and try to unpack it */
+ 	return load_bzimage(fd, page_offset);
+ }
+ 
++/* This is a trivial little helper to align pages.  Andi Kleen hated it because
++ * it calls getpagesize() twice: "it's dumb code."
++ *
++ * Kernel guys get really het up about optimization, even when it's not
++ * necessary.  I leave this code as a reaction against that. */
+ static inline unsigned long page_align(unsigned long addr)
+ {
++	/* Add upwards and truncate downwards. */
+ 	return ((addr + getpagesize()-1) & ~(getpagesize()-1));
+ }
+ 
+-/* initrd gets loaded at top of memory: return length. */
++/*L:180 An "initial ram disk" is a disk image loaded into memory along with
++ * the kernel which the kernel can use to boot from without needing any
++ * drivers.  Most distributions now use this as standard: the initrd contains
++ * the code to load the appropriate driver modules for the current machine.
++ *
++ * Importantly, James Morris works for RedHat, and Fedora uses initrds for its
++ * kernels.  He sent me this (and tells me when I break it). */
+ static unsigned long load_initrd(const char *name, unsigned long mem)
+ {
+ 	int ifd;
+@@ -264,21 +405,35 @@ static unsigned long load_initrd(const c
+ 	void *iaddr;
+ 
+ 	ifd = open_or_die(name, O_RDONLY);
++	/* fstat() is needed to get the file size. */
+ 	if (fstat(ifd, &st) < 0)
+ 		err(1, "fstat() on initrd '%s'", name);
+ 
++	/* The length needs to be rounded up to a page size: mmap needs the
++	 * address to be page aligned. */
+ 	len = page_align(st.st_size);
++	/* We map the initrd at the top of memory. */
+ 	iaddr = mmap((void *)mem - len, st.st_size,
+ 		     PROT_READ|PROT_EXEC|PROT_WRITE,
+ 		     MAP_FIXED|MAP_PRIVATE, ifd, 0);
+ 	if (iaddr != (void *)mem - len)
+ 		err(1, "Mmaping initrd '%s' returned %p not %p",
+ 		    name, iaddr, (void *)mem - len);
++	/* Once a file is mapped, you can close the file descriptor.  It's a
++	 * little odd, but quite useful. */
+ 	close(ifd);
+ 	verbose("mapped initrd %s size=%lu @ %p\n", name, st.st_size, iaddr);
++
++	/* We return the initrd size. */
  	return len;
  }
  
-+/* This creates an empty DMA, useful for prodding the Host without sending data
-+ * (ie. when we want to do a read) */
- static void empty_dma(struct lguest_dma *dma)
- {
- 	dma->len[0] = 0;
- }
++/* Once we know how much memory we have, and the address the Guest kernel
++ * expects, we can construct simple linear page tables which will get the Guest
++ * far enough into the boot to create its own.
++ *
++ * We lay them out of the way, just below the initrd (which is why we need to
++ * know its size). */
+ static unsigned long setup_pagetables(unsigned long mem,
+ 				      unsigned long initrd_size,
+ 				      unsigned long page_offset)
+@@ -287,23 +442,32 @@ static unsigned long setup_pagetables(un
+ 	unsigned int mapped_pages, i, linear_pages;
+ 	unsigned int ptes_per_page = getpagesize()/sizeof(u32);
  
-+/*D:470 Setting up a request is fairly easy: */
- static void setup_req(struct blockdev *bd,
- 		      int type, struct request *req, struct lguest_dma *dma)
- {
-+	/* The type is 1 (write) or 0 (read). */
- 	bd->lb_page->type = type;
-+	/* The sector on disk where the read or write starts. */
- 	bd->lb_page->sector = req->sector;
-+	/* The result is initialized to 0 (unfinished). */
- 	bd->lb_page->result = 0;
-+	/* The current request (so we can end it in the interrupt handler). */
- 	bd->req = req;
-+	/* The number of bytes: returned as a side-effect of req_to_dma(),
-+	 * which packs the block layer's "struct request" into our "struct
-+	 * lguest_dma" */
- 	bd->lb_page->bytes = req_to_dma(req, dma);
- }
- 
-+/*D:450 Write is pretty straightforward: we pack the request into a "struct
-+ * lguest_dma", then use SEND_DMA to send the request. */
- static void do_write(struct blockdev *bd, struct request *req)
- {
- 	struct lguest_dma send;
-@@ -126,6 +205,9 @@ static void do_write(struct blockdev *bd
- 	lguest_send_dma(bd->phys_addr, &send);
- }
- 
-+/* Read is similar to write, except we pack the request into our receive
-+ * "struct lguest_dma" and send through an empty DMA just to tell the Host that
-+ * there's a request pending. */
- static void do_read(struct blockdev *bd, struct request *req)
- {
- 	struct lguest_dma ping;
-@@ -137,21 +219,30 @@ static void do_read(struct blockdev *bd,
- 	lguest_send_dma(bd->phys_addr, &ping);
- }
- 
-+/*D:440 This where requests come in: we get handed the request queue and are
-+ * expected to pull a "struct request" off it until we've finished them or
-+ * we're waiting for a reply: */
- static void do_lgb_request(request_queue_t *q)
- {
- 	struct blockdev *bd;
- 	struct request *req;
- 
- again:
-+	/* This sometimes returns NULL even on the very first time around.  I
-+	 * wonder if it's something to do with letting elves handle the request
-+	 * queue... */
- 	req = elv_next_request(q);
- 	if (!req)
- 		return;
- 
-+	/* We attached the struct blockdev to the disk: get it back */
- 	bd = req->rq_disk->private_data;
--	/* Sometimes we get repeated requests after blk_stop_queue. */
-+	/* Sometimes we get repeated requests after blk_stop_queue(), but we
-+	 * can only handle one at a time. */
- 	if (bd->req)
- 		return;
- 
-+	/* We only do reads and writes: no tricky business! */
- 	if (!blk_fs_request(req)) {
- 		pr_debug("Got non-command 0x%08x\n", req->cmd_type);
- 		req->errors++;
-@@ -164,20 +255,31 @@ again:
+-	/* If we can map all of memory above page_offset, we do so. */
++	/* Ideally we map all physical memory starting at page_offset.
++	 * However, if page_offset is 0xC0000000 we can only map 1G of physical
++	 * (0xC0000000 + 1G overflows). */
+ 	if (mem <= -page_offset)
+ 		mapped_pages = mem/getpagesize();
  	else
- 		do_read(bd, req);
+ 		mapped_pages = -page_offset/getpagesize();
  
--	/* Wait for interrupt to tell us it's done. */
-+	/* We've put out the request, so stop any more coming in until we get
-+	 * an interrupt, which takes us to lgb_irq() to re-enable the queue. */
- 	blk_stop_queue(q);
+-	/* Each linear PTE page can map ptes_per_page pages. */
++	/* Each PTE page can map ptes_per_page pages: how many do we need? */
+ 	linear_pages = (mapped_pages + ptes_per_page-1)/ptes_per_page;
+ 
+-	/* We lay out top-level then linear mapping immediately below initrd */
++	/* We put the toplevel page directory page at the top of memory. */
+ 	pgdir = (void *)mem - initrd_size - getpagesize();
++
++	/* Now we use the next linear_pages pages as pte pages */
+ 	linear = (void *)pgdir - linear_pages*getpagesize();
+ 
++	/* Linear mapping is easy: put every page's address into the mapping in
++	 * order.  PAGE_PRESENT contains the flags Present, Writable and
++	 * Executable. */
+ 	for (i = 0; i < mapped_pages; i++)
+ 		linear[i] = ((i * getpagesize()) | PAGE_PRESENT);
+ 
+-	/* Now set up pgd so that this memory is at page_offset */
++	/* The top level points to the linear page table pages above.  The
++	 * entry representing page_offset points to the first one, and they
++	 * continue from there. */
+ 	for (i = 0; i < mapped_pages; i += ptes_per_page) {
+ 		pgdir[(i + page_offset/getpagesize())/ptes_per_page]
+ 			= (((u32)linear + i*sizeof(u32)) | PAGE_PRESENT);
+@@ -312,9 +476,13 @@ static unsigned long setup_pagetables(un
+ 	verbose("Linear mapping of %u pages in %u pte pages at %p\n",
+ 		mapped_pages, linear_pages, linear);
+ 
++	/* We return the top level (guest-physical) address: the kernel needs
++	 * to know where it is. */
+ 	return (unsigned long)pgdir;
  }
  
-+/*D:430 This is the "struct block_device_operations" we attach to the disk at
-+ * the end of lguestblk_probe().  It doesn't seem to want much. */
- static struct block_device_operations lguestblk_fops = {
- 	.owner = THIS_MODULE,
++/* Simple routine to roll all the commandline arguments together with spaces
++ * between them. */
+ static void concat(char *dst, char *args[])
+ {
+ 	unsigned int i, len = 0;
+@@ -328,6 +496,10 @@ static void concat(char *dst, char *args
+ 	dst[len] = '\0';
+ }
+ 
++/* This is where we actually tell the kernel to initialize the Guest.  We saw
++ * the arguments it expects when we looked at initialize() in lguest_user.c:
++ * the top physical page to allow, the top level pagetable, the entry point and
++ * the page_offset constant for the Guest. */
+ static int tell_kernel(u32 pgdir, u32 start, u32 page_offset)
+ {
+ 	u32 args[] = { LHREQ_INITIALIZE,
+@@ -337,8 +509,11 @@ static int tell_kernel(u32 pgdir, u32 st
+ 	fd = open_or_die("/dev/lguest", O_RDWR);
+ 	if (write(fd, args, sizeof(args)) < 0)
+ 		err(1, "Writing to /dev/lguest");
++
++	/* We return the /dev/lguest file descriptor to control this Guest */
+ 	return fd;
+ }
++/*:*/
+ 
+ static void set_fd(int fd, struct device_list *devices)
+ {
+@@ -347,61 +522,108 @@ static void set_fd(int fd, struct device
+ 		devices->max_infd = fd;
+ }
+ 
+-/* When input arrives, we tell the kernel to kick lguest out with -EAGAIN. */
++/*L:200
++ * The Waker.
++ *
++ * With a console and network devices, we can have lots of input which we need
++ * to process.  We could try to tell the kernel what file descriptors to watch,
++ * but handing a file descriptor mask through to the kernel is fairly icky.
++ *
++ * Instead, we fork off a process which watches the file descriptors and writes
++ * the LHREQ_BREAK command to the /dev/lguest filedescriptor to tell the Host
++ * loop to stop running the Guest.  This causes it to return from the
++ * /dev/lguest read with -EAGAIN, where it will write to /dev/lguest to reset
++ * the LHREQ_BREAK and wake us up again.
++ *
++ * This, of course, is merely a different *kind* of icky.
++ */
+ static void wake_parent(int pipefd, int lguest_fd, struct device_list *devices)
+ {
++	/* Add the pipe from the Launcher to the fdset in the device_list, so
++	 * we watch it, too. */
+ 	set_fd(pipefd, devices);
+ 
+ 	for (;;) {
+ 		fd_set rfds = devices->infds;
+ 		u32 args[] = { LHREQ_BREAK, 1 };
+ 
++		/* Wait until input is ready from one of the devices. */
+ 		select(devices->max_infd+1, &rfds, NULL, NULL, NULL);
++		/* Is it a message from the Launcher? */
+ 		if (FD_ISSET(pipefd, &rfds)) {
+ 			int ignorefd;
++			/* If read() returns 0, it means the Launcher has
++			 * exited.  We silently follow. */
+ 			if (read(pipefd, &ignorefd, sizeof(ignorefd)) == 0)
+ 				exit(0);
++			/* Otherwise it's telling us there's a problem with one
++			 * of the devices, and we should ignore that file
++			 * descriptor from now on. */
+ 			FD_CLR(ignorefd, &devices->infds);
+-		} else
++		} else /* Send LHREQ_BREAK command. */
+ 			write(lguest_fd, args, sizeof(args));
+ 	}
+ }
+ 
++/* This routine just sets up a pipe to the Waker process. */
+ static int setup_waker(int lguest_fd, struct device_list *device_list)
+ {
+ 	int pipefd[2], child;
+ 
++	/* We create a pipe to talk to the waker, and also so it knows when the
++	 * Launcher dies (and closes pipe). */
+ 	pipe(pipefd);
+ 	child = fork();
+ 	if (child == -1)
+ 		err(1, "forking");
+ 
+ 	if (child == 0) {
++		/* Close the "writing" end of our copy of the pipe */
+ 		close(pipefd[1]);
+ 		wake_parent(pipefd[0], lguest_fd, device_list);
+ 	}
++	/* Close the reading end of our copy of the pipe. */
+ 	close(pipefd[0]);
+ 
++	/* Here is the fd used to talk to the waker. */
+ 	return pipefd[1];
+ }
+ 
++/*L:210
++ * Device Handling.
++ *
++ * When the Guest sends DMA to us, it sends us an array of addresses and sizes.
++ * We need to make sure it's not trying to reach into the Launcher itself, so
++ * we have a convenient routine which check it and exits with an error message
++ * if something funny is going on:
++ */
+ static void *_check_pointer(unsigned long addr, unsigned int size,
+ 			    unsigned int line)
+ {
++	/* We have to separately check addr and addr+size, because size could
++	 * be huge and addr + size might wrap around. */
+ 	if (addr >= top || addr + size >= top)
+ 		errx(1, "%s:%i: Invalid address %li", __FILE__, line, addr);
++	/* We return a pointer for the caller's convenience, now we know it's
++	 * safe to use. */
+ 	return (void *)addr;
+ }
++/* A macro which transparently hands the line number to the real function. */
+ #define check_pointer(addr,size) _check_pointer(addr, size, __LINE__)
+ 
+-/* Returns pointer to dma->used_len */
++/* The Guest has given us the address of a "struct lguest_dma".  We check it's
++ * OK and convert it to an iovec (which is a simple array of ptr/size
++ * pairs). */
+ static u32 *dma2iov(unsigned long dma, struct iovec iov[], unsigned *num)
+ {
+ 	unsigned int i;
+ 	struct lguest_dma *udma;
+ 
++	/* First we make sure that the array memory itself is valid. */
+ 	udma = check_pointer(dma, sizeof(*udma));
++	/* Now we check each element */
+ 	for (i = 0; i < LGUEST_MAX_DMA_SECTIONS; i++) {
++		/* A zero length ends the array. */
+ 		if (!udma->len[i])
+ 			break;
+ 
+@@ -409,9 +631,15 @@ static u32 *dma2iov(unsigned long dma, s
+ 		iov[i].iov_len = udma->len[i];
+ 	}
+ 	*num = i;
++
++	/* We return the pointer to where the caller should write the amount of
++	 * the buffer used. */
+ 	return &udma->used_len;
+ }
+ 
++/* This routine gets a DMA buffer from the Guest for a given key, and converts
++ * it to an iovec array.  It returns the interrupt the Guest wants when we're
++ * finished, and a pointer to the "used_len" field to fill in. */
+ static u32 *get_dma_buffer(int fd, void *key,
+ 			   struct iovec iov[], unsigned int *num, u32 *irq)
+ {
+@@ -419,16 +647,21 @@ static u32 *get_dma_buffer(int fd, void 
+ 	unsigned long udma;
+ 	u32 *res;
+ 
++	/* Ask the kernel for a DMA buffer corresponding to this key. */
+ 	udma = write(fd, buf, sizeof(buf));
++	/* They haven't registered any, or they're all used? */
+ 	if (udma == (unsigned long)-1)
+ 		return NULL;
+ 
+-	/* Kernel stashes irq in ->used_len. */
++	/* Convert it into our iovec array */
+ 	res = dma2iov(udma, iov, num);
++	/* The kernel stashes irq in ->used_len to get it out to us. */
+ 	*irq = *res;
++	/* Return a pointer to ((struct lguest_dma *)udma)->used_len. */
+ 	return res;
+ }
+ 
++/* This is a convenient routine to send the Guest an interrupt. */
+ static void trigger_irq(int fd, u32 irq)
+ {
+ 	u32 buf[] = { LHREQ_IRQ, irq };
+@@ -436,6 +669,10 @@ static void trigger_irq(int fd, u32 irq)
+ 		err(1, "Triggering irq %i", irq);
+ }
+ 
++/* This simply sets up an iovec array where we can put data to be discarded.
++ * This happens when the Guest doesn't want or can't handle the input: we have
++ * to get rid of it somewhere, and if we bury it in the ceiling space it will
++ * start to smell after a week. */
+ static void discard_iovec(struct iovec *iov, unsigned int *num)
+ {
+ 	static char discard_buf[1024];
+@@ -444,19 +681,24 @@ static void discard_iovec(struct iovec *
+ 	iov->iov_len = sizeof(discard_buf);
+ }
+ 
++/* Here is the input terminal setting we save, and the routine to restore them
++ * on exit so the user can see what they type next. */
+ static struct termios orig_term;
+ static void restore_term(void)
+ {
+ 	tcsetattr(STDIN_FILENO, TCSANOW, &orig_term);
+ }
+ 
++/* We associate some data with the console for our exit hack. */
+ struct console_abort
+ {
++	/* How many times have they hit ^C? */
+ 	int count;
++	/* When did they start? */
+ 	struct timeval start;
  };
  
-+/*D:425 Setting up a disk device seems to involve a lot of code.  I'm not sure
-+ * quite why.  I do know that the IDE code sent two or three of the maintainers
-+ * insane, perhaps this is the fringe of the same disease?
-+ *
-+ * As in the console code, the probe function gets handed the generic
-+ * lguest_device from lguest_bus.c: */
- static int lguestblk_probe(struct lguest_device *lgdev)
+-/* We DMA input to buffer bound at start of console page. */
++/* This is the routine which handles console input (ie. stdin). */
+ static bool handle_console_input(int fd, struct device *dev)
  {
- 	struct blockdev *bd;
- 	int err;
- 	int irqflags = IRQF_SHARED;
+ 	u32 irq = 0, *lenp;
+@@ -465,24 +707,38 @@ static bool handle_console_input(int fd,
+ 	struct iovec iov[LGUEST_MAX_DMA_SECTIONS];
+ 	struct console_abort *abort = dev->priv;
  
-+	/* First we allocate our own "struct blockdev" and initialize the easy
-+	 * fields. */
- 	bd = kmalloc(sizeof(*bd), GFP_KERNEL);
- 	if (!bd)
- 		return -ENOMEM;
-@@ -187,59 +289,100 @@ static int lguestblk_probe(struct lguest
- 	bd->req = NULL;
- 	bd->dma.used_len = 0;
- 	bd->dma.len[0] = 0;
-+	/* The descriptor in the lguest_devices array provided by the Host
-+	 * gives the Guest the physical page number of the device's page. */
- 	bd->phys_addr = (lguest_devices[lgdev->index].pfn << PAGE_SHIFT);
- 
-+	/* We use lguest_map() to get a pointer to the device page */
- 	bd->lb_page = lguest_map(bd->phys_addr, 1);
- 	if (!bd->lb_page) {
- 		err = -ENOMEM;
- 		goto out_free_bd;
++	/* First we get the console buffer from the Guest.  The key is dev->mem
++	 * which was set to 0 in setup_console(). */
+ 	lenp = get_dma_buffer(fd, dev->mem, iov, &num, &irq);
+ 	if (!lenp) {
++		/* If it's not ready for input, warn and set up to discard. */
+ 		warn("console: no dma buffer!");
+ 		discard_iovec(iov, &num);
  	}
  
-+	/* We need a major device number: 0 means "assign one dynamically". */
- 	bd->major = register_blkdev(0, "lguestblk");
- 	if (bd->major < 0) {
- 		err = bd->major;
- 		goto out_unmap;
++	/* This is why we convert to iovecs: the readv() call uses them, and so
++	 * it reads straight into the Guest's buffer. */
+ 	len = readv(dev->fd, iov, num);
+ 	if (len <= 0) {
++		/* This implies that the console is closed, is /dev/null, or
++		 * something went terribly wrong.  We still go through the rest
++		 * of the logic, though, especially the exit handling below. */
+ 		warnx("Failed to get console input, ignoring console.");
+ 		len = 0;
  	}
  
-+	/* This allocates a "struct gendisk" where we pack all the information
-+	 * about the disk which the rest of Linux sees.  We ask for one minor
-+	 * number; I do wonder if we should be asking for more. */
- 	bd->disk = alloc_disk(1);
- 	if (!bd->disk) {
- 		err = -ENOMEM;
- 		goto out_unregister_blkdev;
++	/* If we read the data into the Guest, fill in the length and send the
++	 * interrupt. */
+ 	if (lenp) {
+ 		*lenp = len;
+ 		trigger_irq(fd, irq);
  	}
  
-+	/* Every disk needs a queue for requests to come in: we set up the
-+	 * queue with a callback function (the core of our driver) and the lock
-+	 * to use. */
- 	bd->disk->queue = blk_init_queue(do_lgb_request, &bd->lock);
- 	if (!bd->disk->queue) {
- 		err = -ENOMEM;
- 		goto out_put_disk;
- 	}
- 
--	/* We can only handle a certain number of sg entries */
-+	/* We can only handle a certain number of pointers in our SEND_DMA
-+	 * call, so we set that with blk_queue_max_hw_segments().  This is not
-+	 * to be confused with blk_queue_max_phys_segments() of course!  I
-+	 * know, who could possibly confuse the two?
+-	/* Three ^C within one second?  Exit. */
++	/* Three ^C within one second?  Exit.
 +	 *
-+	 * Well, it's simple to tell them apart: this one seems to work and the
-+	 * other one didn't. */
- 	blk_queue_max_hw_segments(bd->disk->queue, LGUEST_MAX_DMA_SECTIONS);
--	/* Buffers must not cross page boundaries */
++	 * This is such a hack, but works surprisingly well.  Each ^C has to be
++	 * in a buffer by itself, so they can't be too fast.  But we check that
++	 * we get three within about a second, so they can't be too slow. */
+ 	if (len == 1 && ((char *)iov[0].iov_base)[0] == 3) {
+ 		if (!abort->count++)
+ 			gettimeofday(&abort->start, NULL);
+@@ -490,43 +746,60 @@ static bool handle_console_input(int fd,
+ 			struct timeval now;
+ 			gettimeofday(&now, NULL);
+ 			if (now.tv_sec <= abort->start.tv_sec+1) {
+-				/* Make sure waker is not blocked in BREAK */
+ 				u32 args[] = { LHREQ_BREAK, 0 };
++				/* Close the fd so Waker will know it has to
++				 * exit. */
+ 				close(waker_fd);
++				/* Just in case waker is blocked in BREAK, send
++				 * unbreak now. */
+ 				write(fd, args, sizeof(args));
+ 				exit(2);
+ 			}
+ 			abort->count = 0;
+ 		}
+ 	} else
++		/* Any other key resets the abort counter. */
+ 		abort->count = 0;
+ 
++	/* Now, if we didn't read anything, put the input terminal back and
++	 * return failure (meaning, don't call us again). */
+ 	if (!len) {
+ 		restore_term();
+ 		return false;
+ 	}
++	/* Everything went OK! */
+ 	return true;
+ }
+ 
++/* Handling console output is much simpler than input. */
+ static u32 handle_console_output(int fd, const struct iovec *iov,
+ 				 unsigned num, struct device*dev)
+ {
++	/* Whatever the Guest sends, write it to standard output.  Return the
++	 * number of bytes written. */
+ 	return writev(STDOUT_FILENO, iov, num);
+ }
+ 
++/* Guest->Host network output is also pretty easy. */
+ static u32 handle_tun_output(int fd, const struct iovec *iov,
+ 			     unsigned num, struct device *dev)
+ {
+-	/* Now we've seen output, we should warn if we can't get buffers. */
++	/* We put a flag in the "priv" pointer of the network device, and set
++	 * it as soon as we see output.  We'll see why in handle_tun_input() */
+ 	*(bool *)dev->priv = true;
++	/* Whatever packet the Guest sent us, write it out to the tun
++	 * device. */
+ 	return writev(dev->fd, iov, num);
+ }
+ 
++/* This matches the peer_key() in lguest_net.c.  The key for any given slot
++ * is the address of the network device's page plus 4 * the slot number. */
+ static unsigned long peer_offset(unsigned int peernum)
+ {
+ 	return 4 * peernum;
+ }
+ 
++/* This is where we handle a packet coming in from the tun device */
+ static bool handle_tun_input(int fd, struct device *dev)
+ {
+ 	u32 irq = 0, *lenp;
+@@ -534,17 +807,28 @@ static bool handle_tun_input(int fd, str
+ 	unsigned num;
+ 	struct iovec iov[LGUEST_MAX_DMA_SECTIONS];
+ 
++	/* First we get a buffer the Guest has bound to its key. */
+ 	lenp = get_dma_buffer(fd, dev->mem+peer_offset(NET_PEERNUM), iov, &num,
+ 			      &irq);
+ 	if (!lenp) {
++		/* Now, it's expected that if we try to send a packet too
++		 * early, the Guest won't be ready yet.  This is why we set a
++		 * flag when the Guest sends its first packet.  If it's sent a
++		 * packet we assume it should be ready to receive them.
++		 *
++		 * Actually, this is what the status bits in the descriptor are
++		 * for: we should *use* them.  FIXME! */
+ 		if (*(bool *)dev->priv)
+ 			warn("network: no dma buffer!");
+ 		discard_iovec(iov, &num);
+ 	}
+ 
++	/* Read the packet from the device directly into the Guest's buffer. */
+ 	len = readv(dev->fd, iov, num);
+ 	if (len <= 0)
+ 		err(1, "reading network");
 +
-+	/* Due to technical limitations of our Host (and simple coding) we
-+	 * can't have a single buffer which crosses a page boundary.  Tell it
-+	 * here.  This means that our maximum request size is 16
-+	 * (LGUEST_MAX_DMA_SECTIONS) pages. */
- 	blk_queue_segment_boundary(bd->disk->queue, PAGE_SIZE-1);
++	/* Write the used_len, and trigger the interrupt for the Guest */
+ 	if (lenp) {
+ 		*lenp = len;
+ 		trigger_irq(fd, irq);
+@@ -552,9 +836,13 @@ static bool handle_tun_input(int fd, str
+ 	verbose("tun input packet len %i [%02x %02x] (%s)\n", len,
+ 		((u8 *)iov[0].iov_base)[0], ((u8 *)iov[0].iov_base)[1],
+ 		lenp ? "sent" : "discarded");
++	/* All good. */
+ 	return true;
+ }
  
-+	/* We name our disk: this becomes the device name when udev does its
-+	 * magic thing and creates the device node, such as /dev/lgba.
-+	 * next_block_index is a global which starts at 'a'.  Unfortunately
-+	 * this simple increment logic means that the 27th disk will be called
-+	 * "/dev/lgb{".  In that case, I recommend having at least 29 disks, so
-+	 * your /dev directory will be balanced. */
- 	sprintf(bd->disk->disk_name, "lgb%c", next_block_index++);
++/* The last device handling routine is block output: the Guest has sent a DMA
++ * to the block device.  It will have placed the command it wants in the
++ * "struct lguest_block_page". */
+ static u32 handle_block_output(int fd, const struct iovec *iov,
+ 			       unsigned num, struct device *dev)
+ {
+@@ -564,36 +852,64 @@ static u32 handle_block_output(int fd, c
+ 	struct iovec reply[LGUEST_MAX_DMA_SECTIONS];
+ 	off64_t device_len, off = (off64_t)p->sector * 512;
+ 
++	/* First we extract the device length from the dev->priv pointer. */
+ 	device_len = *(off64_t *)dev->priv;
+ 
++	/* We first check that the read or write is within the length of the
++	 * block file. */
+ 	if (off >= device_len)
+ 		err(1, "Bad offset %llu vs %llu", off, device_len);
++	/* Move to the right location in the block file.  This shouldn't fail,
++	 * but best to check. */
+ 	if (lseek64(dev->fd, off, SEEK_SET) != off)
+ 		err(1, "Bad seek to sector %i", p->sector);
+ 
+ 	verbose("Block: %s at offset %llu\n", p->type ? "WRITE" : "READ", off);
+ 
++	/* They were supposed to bind a reply buffer at key equal to the start
++	 * of the block device memory.  We need this to tell them when the
++	 * request is finished. */
+ 	lenp = get_dma_buffer(fd, dev->mem, reply, &reply_num, &irq);
+ 	if (!lenp)
+ 		err(1, "Block request didn't give us a dma buffer");
+ 
+ 	if (p->type) {
++		/* A write request.  The DMA they sent contained the data, so
++		 * write it out. */
+ 		len = writev(dev->fd, iov, num);
++		/* Grr... Now we know how long the "struct lguest_dma" they
++		 * sent was, we make sure they didn't try to write over the end
++		 * of the block file (possibly extending it). */
+ 		if (off + len > device_len) {
++			/* Trim it back to the correct length */
+ 			ftruncate(dev->fd, device_len);
++			/* Die, bad Guest, die. */
+ 			errx(1, "Write past end %llu+%u", off, len);
+ 		}
++		/* The reply length is 0: we just send back an empty DMA to
++		 * interrupt them and tell them the write is finished. */
+ 		*lenp = 0;
+ 	} else {
++		/* A read request.  They sent an empty DMA to start the
++		 * request, and we put the read contents into the reply
++		 * buffer. */
+ 		len = readv(dev->fd, reply, reply_num);
+ 		*lenp = len;
+ 	}
+ 
++	/* The result is 1 (done), 2 if there was an error (short read or
++	 * write). */
+ 	p->result = 1 + (p->bytes != len);
++	/* Now tell them we've used their reply buffer. */
+ 	trigger_irq(fd, irq);
 +
-+	/* We look to the device descriptor again to see if this device's
-+	 * interrupts are expected to be random.  If they are, we tell the irq
-+	 * subsystem.  At the moment this bit is always set. */
- 	if (lguest_devices[lgdev->index].features & LGUEST_DEVICE_F_RANDOMNESS)
- 		irqflags |= IRQF_SAMPLE_RANDOM;
-+
-+	/* Now we have the name and irqflags, we can request the interrupt; we
-+	 * give it the "struct blockdev" we have set up to pass to lgb_irq()
-+	 * when there is an interrupt. */
- 	err = request_irq(bd->irq, lgb_irq, irqflags, bd->disk->disk_name, bd);
- 	if (err)
- 		goto out_cleanup_queue;
- 
-+	/* We bind our one-entry DMA pool to the key for this block device so
-+	 * the Host can reply to our requests.  The key is equal to the
-+	 * physical address of the device's page, which is conveniently
-+	 * unique. */
- 	err = lguest_bind_dma(bd->phys_addr, &bd->dma, 1, bd->irq);
- 	if (err)
- 		goto out_free_irq;
- 
-+	/* We finish our disk initialization and add the disk to the system. */
- 	bd->disk->major = bd->major;
- 	bd->disk->first_minor = 0;
- 	bd->disk->private_data = bd;
- 	bd->disk->fops = &lguestblk_fops;
--	/* This is initialized to the disk size by the other end. */
-+	/* This is initialized to the disk size by the Launcher. */
- 	set_capacity(bd->disk, bd->lb_page->num_sectors);
- 	add_disk(bd->disk);
- 
- 	printk(KERN_INFO "%s: device %i at major %d\n",
- 	       bd->disk->disk_name, lgdev->index, bd->major);
- 
-+	/* We don't need to keep the "struct blockdev" around, but if we ever
-+	 * implemented device removal, we'd need this. */
- 	lgdev->private = bd;
++	/* We're supposed to return the number of bytes of the output buffer we
++	 * used.  But the block device uses the "result" field instead, so we
++	 * don't bother. */
  	return 0;
- 
-@@ -258,6 +401,8 @@ out_free_bd:
- 	return err;
  }
  
-+/*D:410 The boilerplate code for registering the lguest block driver is just
-+ * like the console: */
- static struct lguest_driver lguestblk_drv = {
- 	.name = "lguestblk",
- 	.owner = THIS_MODULE,
-diff -puN drivers/char/hvc_lguest.c~lguest-documentation-iii-drivers drivers/char/hvc_lguest.c
---- a/drivers/char/hvc_lguest.c~lguest-documentation-iii-drivers
-+++ a/drivers/char/hvc_lguest.c
-@@ -1,6 +1,19 @@
--/* Simple console for lguest.
-+/*D:300
-+ * The Guest console driver
-  *
-- * Copyright (C) 2006 Rusty Russell, IBM Corporation
-+ * This is a trivial console driver: we use lguest's DMA mechanism to send
-+ * bytes out, and register a DMA buffer to receive bytes in.  It is assumed to
-+ * be present and available from the very beginning of boot.
-+ *
-+ * Writing console drivers is one of the few remaining Dark Arts in Linux.
-+ * Fortunately for us, the path of virtual consoles has been well-trodden by
-+ * the PowerPC folks, who wrote "hvc_console.c" to generically support any
-+ * virtual console.  We use that infrastructure which only requires us to write
-+ * the basic put_chars and get_chars functions and call the right register
-+ * functions.
-+ :*/
-+
-+/* Copyright (C) 2006 Rusty Russell, IBM Corporation
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -21,49 +34,81 @@
- #include <linux/lguest_bus.h>
- #include "hvc_console.h"
- 
-+/*D:340 This is our single console input buffer, with associated "struct
-+ * lguest_dma" referring to it.  Note the 0-terminated length array, and the
-+ * use of physical address for the buffer itself. */
- static char inbuf[256];
- static struct lguest_dma cons_input = { .used_len = 0,
- 					.addr[0] = __pa(inbuf),
- 					.len[0] = sizeof(inbuf),
- 					.len[1] = 0 };
- 
-+/*D:310 The put_chars() callback is pretty straightforward.
-+ *
-+ * First we put the pointer and length in a "struct lguest_dma": we only have
-+ * one pointer, so we set the second length to 0.  Then we use SEND_DMA to send
-+ * the data to (Host) buffers attached to the console key.  Usually a device's
-+ * key is a physical address within the device's memory, but because the
-+ * console device doesn't have any associated physical memory, we use the
-+ * LGUEST_CONSOLE_DMA_KEY constant (aka 0). */
- static int put_chars(u32 vtermno, const char *buf, int count)
++/* This is the generic routine we call when the Guest sends some DMA out. */
+ static void handle_output(int fd, unsigned long dma, unsigned long key,
+ 			  struct device_list *devices)
  {
- 	struct lguest_dma dma;
+@@ -602,30 +918,53 @@ static void handle_output(int fd, unsign
+ 	struct iovec iov[LGUEST_MAX_DMA_SECTIONS];
+ 	unsigned num = 0;
  
--	/* FIXME: what if it's over a page boundary? */
-+	/* FIXME: DMA buffers in a "struct lguest_dma" are not allowed
-+	 * to go over page boundaries.  This never seems to happen,
-+	 * but if it did we'd need to fix this code. */
- 	dma.len[0] = count;
- 	dma.len[1] = 0;
- 	dma.addr[0] = __pa(buf);
- 
- 	lguest_send_dma(LGUEST_CONSOLE_DMA_KEY, &dma);
-+	/* We're expected to return the amount of data we wrote: all of it. */
- 	return count;
- }
- 
-+/*D:350 get_chars() is the callback from the hvc_console infrastructure when
-+ * an interrupt is received.
-+ *
-+ * Firstly we see if our buffer has been filled: if not, we return.  The rest
-+ * of the code deals with the fact that the hvc_console() infrastructure only
-+ * asks us for 16 bytes at a time.  We keep a "cons_offset" variable for
-+ * partially-read buffers. */
- static int get_chars(u32 vtermno, char *buf, int count)
- {
- 	static int cons_offset;
- 
-+	/* Nothing left to see here... */
- 	if (!cons_input.used_len)
- 		return 0;
- 
-+	/* You want more than we have to give?  Well, try wanting less! */
- 	if (cons_input.used_len - cons_offset < count)
- 		count = cons_input.used_len - cons_offset;
- 
-+	/* Copy across to their buffer and increment offset. */
- 	memcpy(buf, inbuf + cons_offset, count);
- 	cons_offset += count;
++	/* Convert the "struct lguest_dma" they're sending to a "struct
++	 * iovec". */
+ 	lenp = dma2iov(dma, iov, &num);
 +
-+	/* Finished?  Zero offset, and reset cons_input so Host will use it
-+	 * again. */
- 	if (cons_offset == cons_input.used_len) {
- 		cons_offset = 0;
- 		cons_input.used_len = 0;
++	/* Check each device: if they expect output to this key, tell them to
++	 * handle it. */
+ 	for (i = devices->dev; i; i = i->next) {
+ 		if (i->handle_output && key == i->watch_key) {
++			/* We write the result straight into the used_len field
++			 * for them. */
+ 			*lenp = i->handle_output(fd, iov, num, i);
+ 			return;
+ 		}
  	}
- 	return count;
++
++	/* This can happen: the kernel sends any SEND_DMA which doesn't match
++	 * another Guest to us.  It could be that another Guest just left a
++	 * network, for example.  But it's unusual. */
+ 	warnx("Pending dma %p, key %p", (void *)dma, (void *)key);
+ }
+ 
++/* This is called when the waker wakes us up: check for incoming file
++ * descriptors. */
+ static void handle_input(int fd, struct device_list *devices)
+ {
++	/* select() wants a zeroed timeval to mean "don't wait". */
+ 	struct timeval poll = { .tv_sec = 0, .tv_usec = 0 };
+ 
+ 	for (;;) {
+ 		struct device *i;
+ 		fd_set fds = devices->infds;
+ 
++		/* If nothing is ready, we're done. */
+ 		if (select(devices->max_infd+1, &fds, NULL, NULL, &poll) == 0)
+ 			break;
+ 
++		/* Otherwise, call the device(s) which have readable
++		 * file descriptors and a method of handling them.  */
+ 		for (i = devices->dev; i; i = i->next) {
+ 			if (i->handle_input && FD_ISSET(i->fd, &fds)) {
++				/* If handle_input() returns false, it means we
++				 * should no longer service it.
++				 * handle_console_input() does this. */
+ 				if (!i->handle_input(fd, i)) {
++					/* Clear it from the set of input file
++					 * descriptors kept at the head of the
++					 * device list. */
+ 					FD_CLR(i->fd, &devices->infds);
+ 					/* Tell waker to ignore it too... */
+ 					write(waker_fd, &i->fd, sizeof(i->fd));
+@@ -635,6 +974,15 @@ static void handle_input(int fd, struct 
+ 	}
+ }
+ 
++/*L:190
++ * Device Setup
++ *
++ * All devices need a descriptor so the Guest knows it exists, and a "struct
++ * device" so the Launcher can keep track of it.  We have common helper
++ * routines to allocate them.
++ *
++ * This routine allocates a new "struct lguest_device_desc" from descriptor
++ * table in the devices array just above the Guest's normal memory. */
+ static struct lguest_device_desc *
+ new_dev_desc(struct lguest_device_desc *descs,
+ 	     u16 type, u16 features, u16 num_pages)
+@@ -646,6 +994,8 @@ new_dev_desc(struct lguest_device_desc *
+ 			descs[i].type = type;
+ 			descs[i].features = features;
+ 			descs[i].num_pages = num_pages;
++			/* If they said the device needs memory, we allocate
++			 * that now, bumping up the top of Guest memory. */
+ 			if (num_pages) {
+ 				map_zeroed_pages(top, num_pages);
+ 				descs[i].pfn = top/getpagesize();
+@@ -657,6 +1007,9 @@ new_dev_desc(struct lguest_device_desc *
+ 	errx(1, "too many devices");
+ }
+ 
++/* This monster routine does all the creation and setup of a new device,
++ * including caling new_dev_desc() to allocate the descriptor and device
++ * memory. */
+ static struct device *new_device(struct device_list *devices,
+ 				 u16 type, u16 num_pages, u16 features,
+ 				 int fd,
+@@ -669,12 +1022,18 @@ static struct device *new_device(struct 
+ {
+ 	struct device *dev = malloc(sizeof(*dev));
+ 
+-	/* Append to device list. */
++	/* Append to device list.  Prepending to a single-linked list is
++	 * easier, but the user expects the devices to be arranged on the bus
++	 * in command-line order.  The first network device on the command line
++	 * is eth0, the first block device /dev/lgba, etc. */
+ 	*devices->lastdev = dev;
+ 	dev->next = NULL;
+ 	devices->lastdev = &dev->next;
+ 
++	/* Now we populate the fields one at a time. */
+ 	dev->fd = fd;
++	/* If we have an input handler for this file descriptor, then we add it
++	 * to the device_list's fdset and maxfd. */
+ 	if (handle_input)
+ 		set_fd(dev->fd, devices);
+ 	dev->desc = new_dev_desc(devices->descs, type, features, num_pages);
+@@ -685,27 +1044,37 @@ static struct device *new_device(struct 
+ 	return dev;
+ }
+ 
++/* Our first setup routine is the console.  It's a fairly simple device, but
++ * UNIX tty handling makes it uglier than it could be. */
+ static void setup_console(struct device_list *devices)
+ {
+ 	struct device *dev;
+ 
++	/* If we can save the initial standard input settings... */
+ 	if (tcgetattr(STDIN_FILENO, &orig_term) == 0) {
+ 		struct termios term = orig_term;
++		/* Then we turn off echo, line buffering and ^C etc.  We want a
++		 * raw input stream to the Guest. */
+ 		term.c_lflag &= ~(ISIG|ICANON|ECHO);
+ 		tcsetattr(STDIN_FILENO, TCSANOW, &term);
++		/* If we exit gracefully, the original settings will be
++		 * restored so the user can see what they're typing. */
+ 		atexit(restore_term);
+ 	}
+ 
+-	/* We don't currently require a page for the console. */
++	/* We don't currently require any memory for the console, so we ask for
++	 * 0 pages. */
+ 	dev = new_device(devices, LGUEST_DEVICE_T_CONSOLE, 0, 0,
+ 			 STDIN_FILENO, handle_console_input,
+ 			 LGUEST_CONSOLE_DMA_KEY, handle_console_output);
++	/* We store the console state in dev->priv, and initialize it. */
+ 	dev->priv = malloc(sizeof(struct console_abort));
+ 	((struct console_abort *)dev->priv)->count = 0;
+ 	verbose("device %p: console\n",
+ 		(void *)(dev->desc->pfn * getpagesize()));
+ }
+ 
++/* Setting up a block file is also fairly straightforward. */
+ static void setup_block_file(const char *filename, struct device_list *devices)
+ {
+ 	int fd;
+@@ -713,20 +1082,47 @@ static void setup_block_file(const char 
+ 	off64_t *device_len;
+ 	struct lguest_block_page *p;
+ 
++	/* We open with O_LARGEFILE because otherwise we get stuck at 2G.  We
++	 * open with O_DIRECT because otherwise our benchmarks go much too
++	 * fast. */
+ 	fd = open_or_die(filename, O_RDWR|O_LARGEFILE|O_DIRECT);
++
++	/* We want one page, and have no input handler (the block file never
++	 * has anything interesting to say to us).  Our timing will be quite
++	 * random, so it should be a reasonable randomness source. */
+ 	dev = new_device(devices, LGUEST_DEVICE_T_BLOCK, 1,
+ 			 LGUEST_DEVICE_F_RANDOMNESS,
+ 			 fd, NULL, 0, handle_block_output);
++
++	/* We store the device size in the private area */
+ 	device_len = dev->priv = malloc(sizeof(*device_len));
++	/* This is the safe way of establishing the size of our device: it
++	 * might be a normal file or an actual block device like /dev/hdb. */
+ 	*device_len = lseek64(fd, 0, SEEK_END);
+-	p = dev->mem;
+ 
++	/* The device memory is a "struct lguest_block_page".  It's zeroed
++	 * already, we just need to put in the device size.  Block devices
++	 * think in sectors (ie. 512 byte chunks), so we translate here. */
++	p = dev->mem;
+ 	p->num_sectors = *device_len/512;
+ 	verbose("device %p: block %i sectors\n",
+ 		(void *)(dev->desc->pfn * getpagesize()), p->num_sectors);
+ }
+ 
+-/* We use fnctl locks to reserve network slots (autocleanup!) */
++/*
++ * Network Devices.
++ *
++ * Setting up network devices is quite a pain, because we have three types.
++ * First, we have the inter-Guest network.  This is a file which is mapped into
++ * the address space of the Guests who are on the network.  Because it is a
++ * shared mapping, the same page underlies all the devices, and they can send
++ * DMA to each other.
++ *
++ * Remember from our network driver, the Guest is told what slot in the page it
++ * is to use.  We use exclusive fnctl locks to reserve a slot.  If another
++ * Guest is using a slot, the lock will fail and we try another.  Because fnctl
++ * locks are cleaned up automatically when we die, this cleverly means that our
++ * reservation on the slot will vanish if we crash. */
+ static unsigned int find_slot(int netfd, const char *filename)
+ {
+ 	struct flock fl;
+@@ -734,26 +1130,33 @@ static unsigned int find_slot(int netfd,
+ 	fl.l_type = F_WRLCK;
+ 	fl.l_whence = SEEK_SET;
+ 	fl.l_len = 1;
++	/* Try a 1 byte lock in each possible position number */
+ 	for (fl.l_start = 0;
+ 	     fl.l_start < getpagesize()/sizeof(struct lguest_net);
+ 	     fl.l_start++) {
++		/* If we succeed, return the slot number. */
+ 		if (fcntl(netfd, F_SETLK, &fl) == 0)
+ 			return fl.l_start;
+ 	}
+ 	errx(1, "No free slots in network file %s", filename);
+ }
+ 
++/* This function sets up the network file */
+ static void setup_net_file(const char *filename,
+ 			   struct device_list *devices)
+ {
+ 	int netfd;
+ 	struct device *dev;
+ 
++	/* We don't use open_or_die() here: for friendliness we create the file
++	 * if it doesn't already exist. */
+ 	netfd = open(filename, O_RDWR, 0);
+ 	if (netfd < 0) {
+ 		if (errno == ENOENT) {
+ 			netfd = open(filename, O_RDWR|O_CREAT, 0600);
+ 			if (netfd >= 0) {
++				/* If we succeeded, initialize the file with a
++				 * blank page. */
+ 				char page[getpagesize()];
+ 				memset(page, 0, sizeof(page));
+ 				write(netfd, page, sizeof(page));
+@@ -763,11 +1166,15 @@ static void setup_net_file(const char *f
+ 			err(1, "cannot open net file '%s'", filename);
+ 	}
+ 
++	/* We need 1 page, and the features indicate the slot to use and that
++	 * no checksum is needed.  We never touch this device again; it's
++	 * between the Guests on the network, so we don't register input or
++	 * output handlers. */
+ 	dev = new_device(devices, LGUEST_DEVICE_T_NET, 1,
+ 			 find_slot(netfd, filename)|LGUEST_NET_F_NOCSUM,
+ 			 -1, NULL, 0, NULL);
+ 
+-	/* We overwrite the /dev/zero mapping with the actual file. */
++	/* Map the shared file. */
+ 	if (mmap(dev->mem, getpagesize(), PROT_READ|PROT_WRITE,
+ 			 MAP_FIXED|MAP_SHARED, netfd, 0) != dev->mem)
+ 			err(1, "could not mmap '%s'", filename);
+@@ -775,6 +1182,7 @@ static void setup_net_file(const char *f
+ 		(void *)(dev->desc->pfn * getpagesize()), filename,
+ 		dev->desc->features & ~LGUEST_NET_F_NOCSUM);
  }
 +/*:*/
  
- static struct hv_ops lguest_cons = {
- 	.get_chars = get_chars,
- 	.put_chars = put_chars,
- };
- 
-+/*D:320 Console drivers are initialized very early so boot messages can go
-+ * out.  At this stage, the console is output-only.  Our driver checks we're a
-+ * Guest, and if so hands hvc_instantiate() the console number (0), priority
-+ * (0), and the struct hv_ops containing the put_chars() function. */
- static int __init cons_init(void)
+ static u32 str2ip(const char *ipaddr)
  {
- 	if (strcmp(paravirt_ops.name, "lguest") != 0)
-@@ -73,21 +118,46 @@ static int __init cons_init(void)
+@@ -784,7 +1192,11 @@ static u32 str2ip(const char *ipaddr)
+ 	return (byte[0] << 24) | (byte[1] << 16) | (byte[2] << 8) | byte[3];
  }
- console_initcall(cons_init);
  
-+/*D:370 To set up and manage our virtual console, we call hvc_alloc() and
-+ * stash the result in the private pointer of the "struct lguest_device".
-+ * Since we never remove the console device we never need this pointer again,
-+ * but using ->private is considered good form, and you never know who's going
-+ * to copy your driver.
+-/* adapted from libbridge */
++/* This code is "adapted" from libbridge: it attaches the Host end of the
++ * network device to the bridge device specified by the command line.
 + *
-+ * Once the console is set up, we bind our input buffer ready for input. */
- static int lguestcons_probe(struct lguest_device *lgdev)
++ * This is yet another James Morris contribution (I'm an IP-level guy, so I
++ * dislike bridging), and I just try not to break it. */
+ static void add_to_bridge(int fd, const char *if_name, const char *br_name)
  {
- 	int err;
- 
-+	/* The first argument of hvc_alloc() is the virtual console number, so
-+	 * we use zero.  The second argument is the interrupt number.
-+	 *
-+	 * The third argument is a "struct hv_ops" containing the put_chars()
-+	 * and get_chars() pointers.  The final argument is the output buffer
-+	 * size: we use 256 and expect the Host to have room for us to send
-+	 * that much. */
- 	lgdev->private = hvc_alloc(0, lgdev_irq(lgdev), &lguest_cons, 256);
- 	if (IS_ERR(lgdev->private))
- 		return PTR_ERR(lgdev->private);
- 
-+	/* We bind a single DMA buffer at key LGUEST_CONSOLE_DMA_KEY.
-+	 * "cons_input" is that statically-initialized global DMA buffer we saw
-+	 * above, and we also give the interrupt we want. */
- 	err = lguest_bind_dma(LGUEST_CONSOLE_DMA_KEY, &cons_input, 1,
- 			      lgdev_irq(lgdev));
- 	if (err)
- 		printk("lguest console: failed to bind buffer.\n");
- 	return err;
+ 	int ifidx;
+@@ -803,12 +1215,16 @@ static void add_to_bridge(int fd, const 
+ 		err(1, "can't add %s to bridge %s", if_name, br_name);
  }
+ 
++/* This sets up the Host end of the network device with an IP address, brings
++ * it up so packets will flow, the copies the MAC address into the hwaddr
++ * pointer (in practice, the Host's slot in the network device's memory). */
+ static void configure_device(int fd, const char *devname, u32 ipaddr,
+ 			     unsigned char hwaddr[6])
+ {
+ 	struct ifreq ifr;
+ 	struct sockaddr_in *sin = (struct sockaddr_in *)&ifr.ifr_addr;
+ 
++	/* Don't read these incantations.  Just cut & paste them like I did! */
+ 	memset(&ifr, 0, sizeof(ifr));
+ 	strcpy(ifr.ifr_name, devname);
+ 	sin->sin_family = AF_INET;
+@@ -819,12 +1235,19 @@ static void configure_device(int fd, con
+ 	if (ioctl(fd, SIOCSIFFLAGS, &ifr) != 0)
+ 		err(1, "Bringing interface %s up", devname);
+ 
++	/* SIOC stands for Socket I/O Control.  G means Get (vs S for Set
++	 * above).  IF means Interface, and HWADDR is hardware address.
++	 * Simple! */
+ 	if (ioctl(fd, SIOCGIFHWADDR, &ifr) != 0)
+ 		err(1, "getting hw address for %s", devname);
 -
-+/* Note the use of lgdev_irq() for the interrupt number.  We tell hvc_alloc()
-+ * to expect input when this interrupt is triggered, and then tell
-+ * lguest_bind_dma() that is the interrupt to send us when input comes in. */
-+
-+/*D:360 From now on the console driver follows standard Guest driver form:
-+ * register_lguest_driver() registers the device type and probe function, and
-+ * the probe function sets up the device.
-+ *
-+ * The standard "struct lguest_driver": */
- static struct lguest_driver lguestcons_drv = {
- 	.name = "lguestcons",
- 	.owner = THIS_MODULE,
-@@ -95,6 +165,7 @@ static struct lguest_driver lguestcons_d
- 	.probe = lguestcons_probe,
- };
- 
-+/* The standard init function */
- static int __init hvc_lguest_init(void)
- {
- 	return register_lguest_driver(&lguestcons_drv);
-diff -puN drivers/lguest/lguest_bus.c~lguest-documentation-iii-drivers drivers/lguest/lguest_bus.c
---- a/drivers/lguest/lguest_bus.c~lguest-documentation-iii-drivers
-+++ a/drivers/lguest/lguest_bus.c
-@@ -46,6 +46,10 @@ static struct device_attribute lguest_de
- 	__ATTR_NULL
- };
- 
-+/*D:130 The generic bus infrastructure requires a function which says whether a
-+ * device matches a driver.  For us, it is simple: "struct lguest_driver"
-+ * contains a "device_type" field which indicates what type of device it can
-+ * handle, so we just cast the args and compare: */
- static int lguest_dev_match(struct device *_dev, struct device_driver *_drv)
- {
- 	struct lguest_device *dev = container_of(_dev,struct lguest_device,dev);
-@@ -53,6 +57,7 @@ static int lguest_dev_match(struct devic
- 
- 	return (drv->device_type == lguest_devices[dev->index].type);
+ 	memcpy(hwaddr, ifr.ifr_hwaddr.sa_data, 6);
  }
-+/*:*/
  
- struct lguest_bus {
- 	struct bus_type bus;
-@@ -71,11 +76,24 @@ static struct lguest_bus lguest_bus = {
- 	}
- };
- 
-+/*D:140 This is the callback which occurs once the bus infrastructure matches
-+ * up a device and driver, ie. in response to add_lguest_device() calling
-+ * device_register(), or register_lguest_driver() calling driver_register().
-+ *
-+ * At the moment it's always the latter: the devices are added first, since
-+ * scan_devices() is called from a "core_initcall", and the drivers themselves
-+ * called later as a normal "initcall".  But it would work the other way too.
-+ *
-+ * So now we have the happy couple, we add the status bit to indicate that we
-+ * found a driver.  If the driver truly loves the device, it will return
-+ * happiness from its probe function (ok, perhaps this wasn't my greatest
-+ * analogy), and we set the final "driver ok" bit so the Host sees it's all
-+ * green. */
- static int lguest_dev_probe(struct device *_dev)
++/*L:195 The other kind of network is a Host<->Guest network.  This can either
++ * use briding or routing, but the principle is the same: it uses the "tun"
++ * device to inject packets into the Host as if they came in from a normal
++ * network card.  We just shunt packets between the Guest and the tun
++ * device. */
+ static void setup_tun_net(const char *arg, struct device_list *devices)
  {
- 	int ret;
--	struct lguest_device *dev = container_of(_dev,struct lguest_device,dev);
--	struct lguest_driver *drv = container_of(dev->dev.driver,
-+	struct lguest_device*dev = container_of(_dev,struct lguest_device,dev);
-+	struct lguest_driver*drv = container_of(dev->dev.driver,
- 						struct lguest_driver, drv);
+ 	struct device *dev;
+@@ -833,36 +1256,56 @@ static void setup_tun_net(const char *ar
+ 	u32 ip;
+ 	const char *br_name = NULL;
  
- 	lguest_devices[dev->index].status |= LGUEST_DEVICE_S_DRIVER;
-@@ -85,6 +103,10 @@ static int lguest_dev_probe(struct devic
++	/* We open the /dev/net/tun device and tell it we want a tap device.  A
++	 * tap device is like a tun device, only somehow different.  To tell
++	 * the truth, I completely blundered my way through this code, but it
++	 * works now! */
+ 	netfd = open_or_die("/dev/net/tun", O_RDWR);
+ 	memset(&ifr, 0, sizeof(ifr));
+ 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+ 	strcpy(ifr.ifr_name, "tap%d");
+ 	if (ioctl(netfd, TUNSETIFF, &ifr) != 0)
+ 		err(1, "configuring /dev/net/tun");
++	/* We don't need checksums calculated for packets coming in this
++	 * device: trust us! */
+ 	ioctl(netfd, TUNSETNOCSUM, 1);
+ 
+-	/* You will be peer 1: we should create enough jitter to randomize */
++	/* We create the net device with 1 page, using the features field of
++	 * the descriptor to tell the Guest it is in slot 1 (NET_PEERNUM), and
++	 * that the device has fairly random timing.  We do *not* specify
++	 * LGUEST_NET_F_NOCSUM: these packets can reach the real world.
++	 *
++	 * We will put our MAC address is slot 0 for the Guest to see, so
++	 * it will send packets to us using the key "peer_offset(0)": */
+ 	dev = new_device(devices, LGUEST_DEVICE_T_NET, 1,
+ 			 NET_PEERNUM|LGUEST_DEVICE_F_RANDOMNESS, netfd,
+ 			 handle_tun_input, peer_offset(0), handle_tun_output);
++
++	/* We keep a flag which says whether we've seen packets come out from
++	 * this network device. */
+ 	dev->priv = malloc(sizeof(bool));
+ 	*(bool *)dev->priv = false;
+ 
++	/* We need a socket to perform the magic network ioctls to bring up the
++	 * tap interface, connect to the bridge etc.  Any socket will do! */
+ 	ipfd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+ 	if (ipfd < 0)
+ 		err(1, "opening IP socket");
+ 
++	/* If the command line was --tunnet=bridge:<name> do bridging. */
+ 	if (!strncmp(BRIDGE_PFX, arg, strlen(BRIDGE_PFX))) {
+ 		ip = INADDR_ANY;
+ 		br_name = arg + strlen(BRIDGE_PFX);
+ 		add_to_bridge(ipfd, ifr.ifr_name, br_name);
+-	} else
++	} else /* It is an IP address to set up the device with */
+ 		ip = str2ip(arg);
+ 
+-	/* We are peer 0, ie. first slot. */
++	/* We are peer 0, ie. first slot, so we hand dev->mem to this routine
++	 * to write the MAC address at the start of the device memory.  */
+ 	configure_device(ipfd, ifr.ifr_name, ip, dev->mem);
+ 
+-	/* Set "promisc" bit: we want every single packet. */
++	/* Set "promisc" bit: we want every single packet if we're going to
++	 * bridge to other machines (and otherwise it doesn't matter). */
+ 	*((u8 *)dev->mem) |= 0x1;
+ 
+ 	close(ipfd);
+@@ -873,7 +1316,10 @@ static void setup_tun_net(const char *ar
+ 	if (br_name)
+ 		verbose("attached to bridge: %s\n", br_name);
+ }
++/* That's the end of device setup. */
+ 
++/*L:220 Finally we reach the core of the Launcher, which runs the Guest, serves
++ * its input and output, and finally, lays it to rest. */
+ static void __attribute__((noreturn))
+ run_guest(int lguest_fd, struct device_list *device_list)
+ {
+@@ -885,20 +1331,37 @@ run_guest(int lguest_fd, struct device_l
+ 		/* We read from the /dev/lguest device to run the Guest. */
+ 		readval = read(lguest_fd, arr, sizeof(arr));
+ 
++		/* The read can only really return sizeof(arr) (the Guest did a
++		 * SEND_DMA to us), or an error. */
++
++		/* For a successful read, arr[0] is the address of the "struct
++		 * lguest_dma", and arr[1] is the key the Guest sent to. */
+ 		if (readval == sizeof(arr)) {
+ 			handle_output(lguest_fd, arr[0], arr[1], device_list);
+ 			continue;
++		/* ENOENT means the Guest died.  Reading tells us why. */
+ 		} else if (errno == ENOENT) {
+ 			char reason[1024] = { 0 };
+ 			read(lguest_fd, reason, sizeof(reason)-1);
+ 			errx(1, "%s", reason);
++		/* EAGAIN means the waker wanted us to look at some input.
++		 * Anything else means a bug or incompatible change. */
+ 		} else if (errno != EAGAIN)
+ 			err(1, "Running guest failed");
++
++		/* Service input, then unset the BREAK which releases
++		 * the Waker. */
+ 		handle_input(lguest_fd, device_list);
+ 		if (write(lguest_fd, args, sizeof(args)) < 0)
+ 			err(1, "Resetting break");
+ 	}
+ }
++/*
++ * This is the end of the Launcher.
++ *
++ * But wait!  We've seen I/O from the Launcher, and we've seen I/O from the
++ * Drivers.  If we were to see the Host kernel I/O code, our understanding
++ * would be complete... :*/
+ 
+ static struct option opts[] = {
+ 	{ "verbose", 0, NULL, 'v' },
+@@ -916,20 +1379,49 @@ static void usage(void)
+ 	     "<mem-in-mb> vmlinux [args...]");
+ }
+ 
++/*L:100 The Launcher code itself takes us out into userspace, that scary place
++ * where pointers run wild and free!  Unfortunately, like most userspace
++ * programs, it's quite boring (which is why everyone like to hack on the
++ * kernel!).  Perhaps if you make up an Lguest Drinking Game at this point, it
++ * will get you through this section.  Or, maybe not.
++ *
++ * The Launcher binary sits up high, usually starting at address 0xB8000000.
++ * Everything below this is the "physical" memory for the Guest.  For example,
++ * if the Guest were to write a "1" at physical address 0, we would see a "1"
++ * in the Launcher at "(int *)0".  Guest physical == Launcher virtual.
++ *
++ * This can be tough to get your head around, but usually it just means that we
++ * don't need to do any conversion when the Guest gives us it's "physical"
++ * addresses.
++ */
+ int main(int argc, char *argv[])
+ {
++	/* Memory, top-level pagetable, code startpoint, PAGE_OFFSET and size
++	 * of the (optional) initrd. */
+ 	unsigned long mem = 0, pgdir, start, page_offset, initrd_size = 0;
++	/* A temporary and the /dev/lguest file descriptor. */
+ 	int i, c, lguest_fd;
++	/* The list of Guest devices, based on command line arguments. */
+ 	struct device_list device_list;
++	/* The boot information for the Guest: at guest-physical address 0. */
+ 	void *boot = (void *)0;
++	/* If they specify an initrd file to load. */
+ 	const char *initrd_name = NULL;
+ 
++	/* First we initialize the device list.  Since console and network
++	 * device receive input from a file descriptor, we keep an fdset
++	 * (infds) and the maximum fd number (max_infd) with the head of the
++	 * list.  We also keep a pointer to the last device, for easy appending
++	 * to the list. */
+ 	device_list.max_infd = -1;
+ 	device_list.dev = NULL;
+ 	device_list.lastdev = &device_list.dev;
+ 	FD_ZERO(&device_list.infds);
+ 
+-	/* We need to know how much memory so we can allocate devices. */
++	/* We need to know how much memory so we can set up the device
++	 * descriptor and memory pages for the devices as we parse the command
++	 * line.  So we quickly look through the arguments to find the amount
++	 * of memory now. */
+ 	for (i = 1; i < argc; i++) {
+ 		if (argv[i][0] != '-') {
+ 			mem = top = atoi(argv[i]) * 1024 * 1024;
+@@ -938,6 +1430,8 @@ int main(int argc, char *argv[])
+ 			break;
+ 		}
+ 	}
++
++	/* The options are fairly straight-forward */
+ 	while ((c = getopt_long(argc, argv, "v", opts, NULL)) != EOF) {
+ 		switch (c) {
+ 		case 'v':
+@@ -960,42 +1454,59 @@ int main(int argc, char *argv[])
+ 			usage();
+ 		}
+ 	}
++	/* After the other arguments we expect memory and kernel image name,
++	 * followed by command line arguments for the kernel. */
+ 	if (optind + 2 > argc)
+ 		usage();
+ 
+-	/* We need a console device */
++	/* We always have a console device */
+ 	setup_console(&device_list);
+ 
+-	/* First we map /dev/zero over all of guest-physical memory. */
++	/* We start by mapping anonymous pages over all of guest-physical
++	 * memory range.  This fills it with 0, and ensures that the Guest
++	 * won't be killed when it tries to access it. */
+ 	map_zeroed_pages(0, mem / getpagesize());
+ 
+ 	/* Now we load the kernel */
+ 	start = load_kernel(open_or_die(argv[optind+1], O_RDONLY),
+ 			    &page_offset);
+ 
+-	/* Map the initrd image if requested */
++	/* Map the initrd image if requested (at top of physical memory) */
+ 	if (initrd_name) {
+ 		initrd_size = load_initrd(initrd_name, mem);
++		/* These are the location in the Linux boot header where the
++		 * start and size of the initrd are expected to be found. */
+ 		*(unsigned long *)(boot+0x218) = mem - initrd_size;
+ 		*(unsigned long *)(boot+0x21c) = initrd_size;
++		/* The bootloader type 0xFF means "unknown"; that's OK. */
+ 		*(unsigned char *)(boot+0x210) = 0xFF;
+ 	}
+ 
+-	/* Set up the initial linar pagetables. */
++	/* Set up the initial linear pagetables, starting below the initrd. */
+ 	pgdir = setup_pagetables(mem, initrd_size, page_offset);
+ 
+-	/* E820 memory map: ours is a simple, single region. */
++	/* The Linux boot header contains an "E820" memory map: ours is a
++	 * simple, single region. */
+ 	*(char*)(boot+E820NR) = 1;
+ 	*((struct e820entry *)(boot+E820MAP))
+ 		= ((struct e820entry) { 0, mem, E820_RAM });
+-	/* Command line pointer and command line (at 4096) */
++	/* The boot header contains a command line pointer: we put the command
++	 * line after the boot header (at address 4096) */
+ 	*(void **)(boot + 0x228) = boot + 4096;
+ 	concat(boot + 4096, argv+optind+2);
+-	/* Paravirt type: 1 == lguest */
++
++	/* The guest type value of "1" tells the Guest it's under lguest. */
+ 	*(int *)(boot + 0x23c) = 1;
+ 
++	/* We tell the kernel to initialize the Guest: this returns the open
++	 * /dev/lguest file descriptor. */
+ 	lguest_fd = tell_kernel(pgdir, start, page_offset);
++
++	/* We fork off a child process, which wakes the Launcher whenever one
++	 * of the input file descriptors needs attention.  Otherwise we would
++	 * run the Guest until it tries to output something. */
+ 	waker_fd = setup_waker(lguest_fd, &device_list);
+ 
++	/* Finally, run the Guest.  This doesn't return. */
+ 	run_guest(lguest_fd, &device_list);
+ }
+diff -puN drivers/lguest/core.c~lguest-documentation-iv-launcher drivers/lguest/core.c
+--- a/drivers/lguest/core.c~lguest-documentation-iv-launcher
++++ a/drivers/lguest/core.c
+@@ -208,24 +208,39 @@ static int emulate_insn(struct lguest *l
+ 	return 1;
+ }
+ 
++/*L:305
++ * Dealing With Guest Memory.
++ *
++ * When the Guest gives us (what it thinks is) a physical address, we can use
++ * the normal copy_from_user() & copy_to_user() on that address: remember,
++ * Guest physical == Launcher virtual.
++ *
++ * But we can't trust the Guest: it might be trying to access the Launcher
++ * code.  We have to check that the range is below the pfn_limit the Launcher
++ * gave us.  We have to make sure that addr + len doesn't give us a false
++ * positive by overflowing, too. */
+ int lguest_address_ok(const struct lguest *lg,
+ 		      unsigned long addr, unsigned long len)
+ {
+ 	return (addr+len) / PAGE_SIZE < lg->pfn_limit && (addr+len >= addr);
+ }
+ 
+-/* Just like get_user, but don't let guest access lguest binary. */
++/* This is a convenient routine to get a 32-bit value from the Guest (a very
++ * common operation).  Here we can see how useful the kill_lguest() routine we
++ * met in the Launcher can be: we return a random value (0) instead of needing
++ * to return an error. */
+ u32 lgread_u32(struct lguest *lg, unsigned long addr)
+ {
+ 	u32 val = 0;
+ 
+-	/* Don't let them access lguest binary */
++	/* Don't let them access lguest binary. */
+ 	if (!lguest_address_ok(lg, addr, sizeof(val))
+ 	    || get_user(val, (u32 __user *)addr) != 0)
+ 		kill_guest(lg, "bad read address %#lx", addr);
+ 	return val;
+ }
+ 
++/* Same thing for writing a value. */
+ void lgwrite_u32(struct lguest *lg, unsigned long addr, u32 val)
+ {
+ 	if (!lguest_address_ok(lg, addr, sizeof(val))
+@@ -233,6 +248,9 @@ void lgwrite_u32(struct lguest *lg, unsi
+ 		kill_guest(lg, "bad write address %#lx", addr);
+ }
+ 
++/* This routine is more generic, and copies a range of Guest bytes into a
++ * buffer.  If the copy_from_user() fails, we fill the buffer with zeroes, so
++ * the caller doesn't end up using uninitialized kernel memory. */
+ void lgread(struct lguest *lg, void *b, unsigned long addr, unsigned bytes)
+ {
+ 	if (!lguest_address_ok(lg, addr, bytes)
+@@ -243,6 +261,7 @@ void lgread(struct lguest *lg, void *b, 
+ 	}
+ }
+ 
++/* Similarly, our generic routine to copy into a range of Guest bytes. */
+ void lgwrite(struct lguest *lg, unsigned long addr, const void *b,
+ 	     unsigned bytes)
+ {
+@@ -250,6 +269,7 @@ void lgwrite(struct lguest *lg, unsigned
+ 	    || copy_to_user((void __user *)addr, b, bytes) != 0)
+ 		kill_guest(lg, "bad write address %#lx len %u", addr, bytes);
+ }
++/* (end of memory access helper routines) :*/
+ 
+ static void set_ts(void)
+ {
+diff -puN drivers/lguest/io.c~lguest-documentation-iv-launcher drivers/lguest/io.c
+--- a/drivers/lguest/io.c~lguest-documentation-iv-launcher
++++ a/drivers/lguest/io.c
+@@ -27,8 +27,36 @@
+ #include <linux/uaccess.h>
+ #include "lg.h"
+ 
++/*L:300
++ * I/O
++ *
++ * Getting data in and out of the Guest is quite an art.  There are numerous
++ * ways to do it, and they all suck differently.  We try to keep things fairly
++ * close to "real" hardware so our Guest's drivers don't look like an alien
++ * visitation in the middle of the Linux code, and yet make sure that Guests
++ * can talk directly to other Guests, not just the Launcher.
++ *
++ * To do this, the Guest gives us a key when it binds or sends DMA buffers.
++ * The key corresponds to a "physical" address inside the Guest (ie. a virtual
++ * address inside the Launcher process).  We don't, however, use this key
++ * directly.
++ *
++ * We want Guests which share memory to be able to DMA to each other: two
++ * Launchers can mmap memory the same file, then the Guests can communicate.
++ * Fortunately, the futex code provides us with a way to get a "union
++ * futex_key" corresponding to the memory lying at a virtual address: if the
++ * two processes share memory, the "union futex_key" for that memory will match
++ * even if the memory is mapped at different addresses in each.  So we always
++ * convert the keys to "union futex_key"s to compare them.
++ *
++ * Before we dive into this though, we need to look at another set of helper
++ * routines used throughout the Host kernel code to access Guest memory.
++ :*/
+ static struct list_head dma_hash[61];
+ 
++/* An unfortunate side effect of the Linux double-linked list implementation is
++ * that there's no good way to statically initialize an array of linked
++ * lists. */
+ void lguest_io_init(void)
+ {
+ 	unsigned int i;
+@@ -60,6 +88,19 @@ kill:
+ 	return 0;
+ }
+ 
++/*L:330 This is our hash function, using the wonderful Jenkins hash.
++ *
++ * The futex key is a union with three parts: an unsigned long word, a pointer,
++ * and an int "offset".  We could use jhash_2words() which takes three u32s.
++ * (Ok, the hash functions are great: the naming sucks though).
++ *
++ * It's nice to be portable to 64-bit platforms, so we use the more generic
++ * jhash2(), which takes an array of u32, the number of u32s, and an initial
++ * u32 to roll in.  This is uglier, but breaks down to almost the same code on
++ * 32-bit platforms like this one.
++ *
++ * We want a position in the array, so we modulo ARRAY_SIZE(dma_hash) (ie. 61).
++ */
+ static unsigned int hash(const union futex_key *key)
+ {
+ 	return jhash2((u32*)&key->both.word,
+@@ -68,6 +109,9 @@ static unsigned int hash(const union fut
+ 		% ARRAY_SIZE(dma_hash);
+ }
+ 
++/* This is a convenience routine to compare two keys.  It's a much bemoaned C
++ * weakness that it doesn't allow '==' on structures or unions, so we have to
++ * open-code it like this. */
+ static inline int key_eq(const union futex_key *a, const union futex_key *b)
+ {
+ 	return (a->both.word == b->both.word
+@@ -75,22 +119,36 @@ static inline int key_eq(const union fut
+ 		&& a->both.offset == b->both.offset);
+ }
+ 
+-/* Must hold read lock on dmainfo owner's current->mm->mmap_sem */
++/*L:360 OK, when we need to actually free up a Guest's DMA array we do several
++ * things, so we have a convenient function to do it.
++ *
++ * The caller must hold a read lock on dmainfo owner's current->mm->mmap_sem
++ * for the drop_futex_key_refs(). */
+ static void unlink_dma(struct lguest_dma_info *dmainfo)
+ {
++	/* You locked this too, right? */
+ 	BUG_ON(!mutex_is_locked(&lguest_lock));
++	/* This is how we know that the entry is free. */
+ 	dmainfo->interrupt = 0;
++	/* Remove it from the hash table. */
+ 	list_del(&dmainfo->list);
++	/* Drop the references we were holding (to the inode or mm). */
+ 	drop_futex_key_refs(&dmainfo->key);
+ }
+ 
++/*L:350 This is the routine which we call when the Guest asks to unregister a
++ * DMA array attached to a given key.  Returns true if the array was found. */
+ static int unbind_dma(struct lguest *lg,
+ 		      const union futex_key *key,
+ 		      unsigned long dmas)
+ {
+ 	int i, ret = 0;
+ 
++	/* We don't bother with the hash table, just look through all this
++	 * Guest's DMA arrays. */
+ 	for (i = 0; i < LGUEST_MAX_DMA; i++) {
++		/* In theory it could have more than one array on the same key,
++		 * or one array on multiple keys, so we check both */
+ 		if (key_eq(key, &lg->dma[i].key) && dmas == lg->dma[i].dmas) {
+ 			unlink_dma(&lg->dma[i]);
+ 			ret = 1;
+@@ -100,51 +158,91 @@ static int unbind_dma(struct lguest *lg,
  	return ret;
  }
  
-+/* The last part of the bus infrastructure is the function lguest drivers use
-+ * to register themselves.  Firstly, we do nothing if there's no lguest bus
-+ * (ie. this is not a Guest), otherwise we fill in the embedded generic "struct
-+ * driver" fields and call the generic driver_register(). */
- int register_lguest_driver(struct lguest_driver *drv)
- {
- 	if (!lguest_devices)
-@@ -97,12 +119,36 @@ int register_lguest_driver(struct lguest
- 
- 	return driver_register(&drv->drv);
- }
-+
-+/* At the moment we build all the drivers into the kernel because they're so
-+ * simple: 8144 bytes for all three of them as I type this.  And as the console
-+ * really needs to be built in, it's actually only 3527 bytes for the network
-+ * and block drivers.
++/*L:340 BIND_DMA: this is the hypercall which sets up an array of "struct
++ * lguest_dma" for receiving I/O.
 + *
-+ * If they get complex it will make sense for them to be modularized, so we
-+ * need to explicitly export the symbol.
++ * The Guest wants to bind an array of "struct lguest_dma"s to a particular key
++ * to receive input.  This only happens when the Guest is setting up a new
++ * device, so it doesn't have to be very fast.
 + *
-+ * I don't think non-GPL modules make sense, so it's a GPL-only export.
++ * It returns 1 on a successful registration (it can fail if we hit the limit
++ * of registrations for this Guest).
 + */
- EXPORT_SYMBOL_GPL(register_lguest_driver);
- 
-+/*D:120 This is the core of the lguest bus: actually adding a new device.
-+ * It's a separate function because it's neater that way, and because an
-+ * earlier version of the code supported hotplug and unplug.  They were removed
-+ * early on because they were never used.
-+ *
-+ * As Andrew Tridgell says, "Untested code is buggy code".
-+ *
-+ * It's worth reading this carefully: we start with an index into the array of
-+ * "struct lguest_device_desc"s indicating the device which is new: */
- static void add_lguest_device(unsigned int index)
- {
- 	struct lguest_device *new;
- 
-+	/* Each "struct lguest_device_desc" has a "status" field, which the
-+	 * Guest updates as the device is probed.  In the worst case, the Host
-+	 * can look at these bits to tell what part of device setup failed,
-+	 * even if the console isn't available. */
- 	lguest_devices[index].status |= LGUEST_DEVICE_S_ACKNOWLEDGE;
- 	new = kmalloc(sizeof(struct lguest_device), GFP_KERNEL);
- 	if (!new) {
-@@ -111,12 +157,17 @@ static void add_lguest_device(unsigned i
- 		return;
- 	}
- 
-+	/* The "struct lguest_device" setup is pretty straight-forward example
-+	 * code. */
- 	new->index = index;
- 	new->private = NULL;
- 	memset(&new->dev, 0, sizeof(new->dev));
- 	new->dev.parent = &lguest_bus.dev;
- 	new->dev.bus = &lguest_bus.bus;
- 	sprintf(new->dev.bus_id, "%u", index);
-+
-+	/* device_register() causes the bus infrastructure to look for a
-+	 * matching driver. */
- 	if (device_register(&new->dev) != 0) {
- 		printk(KERN_EMERG "Cannot register lguest device %u\n", index);
- 		lguest_devices[index].status |= LGUEST_DEVICE_S_FAILED;
-@@ -124,6 +175,9 @@ static void add_lguest_device(unsigned i
- 	}
- }
- 
-+/*D:110 scan_devices() simply iterates through the device array.  The type 0
-+ * is reserved to mean "no device", and anything else means we have found a
-+ * device: add it. */
- static void scan_devices(void)
+ int bind_dma(struct lguest *lg,
+ 	     unsigned long ukey, unsigned long dmas, u16 numdmas, u8 interrupt)
  {
  	unsigned int i;
-@@ -133,12 +187,23 @@ static void scan_devices(void)
- 			add_lguest_device(i);
- }
+ 	int ret = 0;
+ 	union futex_key key;
++	/* Futex code needs the mmap_sem. */
+ 	struct rw_semaphore *fshared = &current->mm->mmap_sem;
  
-+/*D:100 Fairly early in boot, lguest_bus_init() is called to set up the lguest
-+ * bus.  We check that we are a Guest by checking paravirt_ops.name: there are
-+ * other ways of checking, but this seems most obvious to me.
-+ *
-+ * So we can access the array of "struct lguest_device_desc"s easily, we map
-+ * that memory and store the pointer in the global "lguest_devices".  Then we
-+ * register the bus with the core.  Doing two registrations seems clunky to me,
-+ * but it seems to be the correct sysfs incantation.
-+ *
-+ * Finally we call scan_devices() which adds all the devices found in the
-+ * "struct lguest_device_desc" array. */
- static int __init lguest_bus_init(void)
- {
- 	if (strcmp(paravirt_ops.name, "lguest") != 0)
++	/* Invalid interrupt?  (We could kill the guest here). */
+ 	if (interrupt >= LGUEST_IRQS)
  		return 0;
  
--	/* Devices are in page above top of "normal" mem. */
-+	/* Devices are in a single page above top of "normal" mem */
- 	lguest_devices = lguest_map(max_pfn<<PAGE_SHIFT, 1);
- 
- 	if (bus_register(&lguest_bus.bus) != 0
-@@ -148,4 +213,5 @@ static int __init lguest_bus_init(void)
- 	scan_devices();
- 	return 0;
- }
-+/* Do this after core stuff, before devices. */
- postcore_initcall(lguest_bus_init);
-diff -puN drivers/net/lguest_net.c~lguest-documentation-iii-drivers drivers/net/lguest_net.c
---- a/drivers/net/lguest_net.c~lguest-documentation-iii-drivers
-+++ a/drivers/net/lguest_net.c
-@@ -1,6 +1,13 @@
--/* A simple network driver for lguest.
-+/*D:500
-+ * The Guest network driver.
-  *
-- * Copyright 2006 Rusty Russell <rusty@rustcorp.com.au> IBM Corporation
-+ * This is very simple a virtual network driver, and our last Guest driver.
-+ * The only trick is that it can talk directly to multiple other recipients
-+ * (ie. other Guests on the same network).  It can also be used with only the
-+ * Host on the network.
-+ :*/
-+
-+/* Copyright 2006 Rusty Russell <rusty@rustcorp.com.au> IBM Corporation
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -28,23 +35,28 @@
- #define MAX_LANS		4
- #define NUM_SKBS		8
- 
-+/*D:530 The "struct lguestnet_info" contains all the information we need to
-+ * know about the network device. */
- struct lguestnet_info
- {
--	/* The shared page(s). */
-+	/* The mapped device page(s) (an array of "struct lguest_net"). */
- 	struct lguest_net *peer;
-+	/* The physical address of the device page(s) */
- 	unsigned long peer_phys;
-+	/* The size of the device page(s). */
- 	unsigned long mapsize;
- 
- 	/* The lguest_device I come from */
- 	struct lguest_device *lgdev;
- 
--	/* My peerid. */
-+	/* My peerid (ie. my slot in the array). */
- 	unsigned int me;
- 
--	/* Receive queue. */
-+	/* Receive queue: the network packets waiting to be filled. */
- 	struct sk_buff *skb[NUM_SKBS];
- 	struct lguest_dma dma[NUM_SKBS];
- };
-+/*:*/
- 
- /* How many bytes left in this page. */
- static unsigned int rest_of_page(void *data)
-@@ -52,39 +64,82 @@ static unsigned int rest_of_page(void *d
- 	return PAGE_SIZE - ((unsigned long)data % PAGE_SIZE);
- }
- 
--/* Simple convention: offset 4 * peernum. */
-+/*D:570 Each peer (ie. Guest or Host) on the network binds their receive
-+ * buffers to a different key: we simply use the physical address of the
-+ * device's memory page plus the peer number.  The Host insists that all keys
-+ * be a multiple of 4, so we multiply the peer number by 4. */
- static unsigned long peer_key(struct lguestnet_info *info, unsigned peernum)
- {
- 	return info->peer_phys + 4 * peernum;
- }
- 
-+/* This is the routine which sets up a "struct lguest_dma" to point to a
-+ * network packet, similar to req_to_dma() in lguest_blk.c.  The structure of a
-+ * "struct sk_buff" has grown complex over the years: it consists of a "head"
-+ * linear section pointed to by "skb->data", and possibly an array of
-+ * "fragments" in the case of a non-linear packet.
-+ *
-+ * Our receive buffers don't use fragments at all but outgoing skbs might, so
-+ * we handle it. */
- static void skb_to_dma(const struct sk_buff *skb, unsigned int headlen,
- 		       struct lguest_dma *dma)
- {
- 	unsigned int i, seg;
- 
-+	/* First, we put the linear region into the "struct lguest_dma".  Each
-+	 * entry can't go over a page boundary, so even though all our packets
-+	 * are 1514 bytes or less, we might need to use two entries here: */
- 	for (i = seg = 0; i < headlen; seg++, i += rest_of_page(skb->data+i)) {
- 		dma->addr[seg] = virt_to_phys(skb->data + i);
- 		dma->len[seg] = min((unsigned)(headlen - i),
- 				    rest_of_page(skb->data + i));
++	/* We need to grab the Big Lguest Lock, because other Guests may be
++	 * trying to look through this Guest's DMAs to send something while
++	 * we're doing this. */
+ 	mutex_lock(&lguest_lock);
+ 	down_read(fshared);
+ 	if (get_futex_key((u32 __user *)ukey, fshared, &key) != 0) {
+ 		kill_guest(lg, "bad dma key %#lx", ukey);
+ 		goto unlock;
  	}
 +
-+	/* Now we handle the fragments: at least they're guaranteed not to go
-+	 * over a page.  skb_shinfo(skb) returns a pointer to the structure
-+	 * which tells us about the number of fragments and the fragment
-+	 * array. */
- 	for (i = 0; i < skb_shinfo(skb)->nr_frags; i++, seg++) {
- 		const skb_frag_t *f = &skb_shinfo(skb)->frags[i];
- 		/* Should not happen with MTU less than 64k - 2 * PAGE_SIZE. */
- 		if (seg == LGUEST_MAX_DMA_SECTIONS) {
-+			/* We will end up sending a truncated packet should
-+			 * this ever happen.  Plus, a cool log message! */
- 			printk("Woah dude!  Megapacket!\n");
++	/* We want to keep this key valid once we drop mmap_sem, so we have to
++	 * hold a reference. */
+ 	get_futex_key_refs(&key);
+ 
++	/* If the Guest specified an interrupt of 0, that means they want to
++	 * unregister this array of "struct lguest_dma"s. */
+ 	if (interrupt == 0)
+ 		ret = unbind_dma(lg, &key, dmas);
+ 	else {
++		/* Look through this Guest's dma array for an unused entry. */
+ 		for (i = 0; i < LGUEST_MAX_DMA; i++) {
++			/* If the interrupt is non-zero, the entry is already
++			 * used. */
+ 			if (lg->dma[i].interrupt)
+ 				continue;
+ 
++			/* OK, a free one!  Fill on our details. */
+ 			lg->dma[i].dmas = dmas;
+ 			lg->dma[i].num_dmas = numdmas;
+ 			lg->dma[i].next_dma = 0;
+ 			lg->dma[i].key = key;
+ 			lg->dma[i].guestid = lg->guestid;
+ 			lg->dma[i].interrupt = interrupt;
++
++			/* Now we add it to the hash table: the position
++			 * depends on the futex key that we got. */
+ 			list_add(&lg->dma[i].list, &dma_hash[hash(&key)]);
++			/* Success! */
+ 			ret = 1;
+ 			goto unlock;
+ 		}
+ 	}
++	/* If we didn't find a slot to put the key in, drop the reference
++	 * again. */
+ 	drop_futex_key_refs(&key);
+ unlock:
++	/* Unlock and out. */
+  	up_read(fshared);
+ 	mutex_unlock(&lguest_lock);
+ 	return ret;
+ }
+ 
+-/* lgread from another guest */
++/*L:385 Note that our routines to access a different Guest's memory are called
++ * lgread_other() and lgwrite_other(): these names emphasize that they are only
++ * used when the Guest is *not* the current Guest.
++ *
++ * The interface for copying from another process's memory is called
++ * access_process_vm(), with a final argument of 0 for a read, and 1 for a
++ * write.
++ *
++ * We need lgread_other() to read the destination Guest's "struct lguest_dma"
++ * array. */
+ static int lgread_other(struct lguest *lg,
+ 			void *buf, u32 addr, unsigned bytes)
+ {
+@@ -157,7 +255,8 @@ static int lgread_other(struct lguest *l
+ 	return 1;
+ }
+ 
+-/* lgwrite to another guest */
++/* "lgwrite()" to another Guest: used to update the destination "used_len" once
++ * we've transferred data into the buffer. */
+ static int lgwrite_other(struct lguest *lg, u32 addr,
+ 			 const void *buf, unsigned bytes)
+ {
+@@ -170,6 +269,15 @@ static int lgwrite_other(struct lguest *
+ 	return 1;
+ }
+ 
++/*L:400 This is the generic engine which copies from a source "struct
++ * lguest_dma" from this Guest into another Guest's "struct lguest_dma".  The
++ * destination Guest's pages have already been mapped, as contained in the
++ * pages array.
++ *
++ * If you're wondering if there's a nice "copy from one process to another"
++ * routine, so was I.  But Linux isn't really set up to copy between two
++ * unrelated processes, so we have to write it ourselves.
++ */
+ static u32 copy_data(struct lguest *srclg,
+ 		     const struct lguest_dma *src,
+ 		     const struct lguest_dma *dst,
+@@ -178,33 +286,59 @@ static u32 copy_data(struct lguest *srcl
+ 	unsigned int totlen, si, di, srcoff, dstoff;
+ 	void *maddr = NULL;
+ 
++	/* We return the total length transferred. */
+ 	totlen = 0;
++
++	/* We keep indexes into the source and destination "struct lguest_dma",
++	 * and an offset within each region. */
+ 	si = di = 0;
+ 	srcoff = dstoff = 0;
++
++	/* We loop until the source or destination is exhausted. */
+ 	while (si < LGUEST_MAX_DMA_SECTIONS && src->len[si]
+ 	       && di < LGUEST_MAX_DMA_SECTIONS && dst->len[di]) {
++		/* We can only transfer the rest of the src buffer, or as much
++		 * as will fit into the destination buffer. */
+ 		u32 len = min(src->len[si] - srcoff, dst->len[di] - dstoff);
+ 
++		/* For systems using "highmem" we need to use kmap() to access
++		 * the page we want.  We often use the same page over and over,
++		 * so rather than kmap() it on every loop, we set the maddr
++		 * pointer to NULL when we need to move to the next
++		 * destination page. */
+ 		if (!maddr)
+ 			maddr = kmap(pages[di]);
+ 
+-		/* FIXME: This is not completely portable, since
+-		   archs do different things for copy_to_user_page. */
++		/* Copy directly from (this Guest's) source address to the
++		 * destination Guest's kmap()ed buffer.  Note that maddr points
++		 * to the start of the page: we need to add the offset of the
++		 * destination address and offset within the buffer. */
++
++		/* FIXME: This is not completely portable.  I looked at
++		 * copy_to_user_page(), and some arch's seem to need special
++		 * flushes.  x86 is fine. */
+ 		if (copy_from_user(maddr + (dst->addr[di] + dstoff)%PAGE_SIZE,
+ 				   (void __user *)src->addr[si], len) != 0) {
++			/* If a copy failed, it's the source's fault. */
+ 			kill_guest(srclg, "bad address in sending DMA");
+ 			totlen = 0;
  			break;
  		}
- 		dma->addr[seg] = page_to_phys(f->page) + f->page_offset;
- 		dma->len[seg] = f->size;
- 	}
+ 
++		/* Increment the total and src & dst offsets */
+ 		totlen += len;
+ 		srcoff += len;
+ 		dstoff += len;
 +
-+	/* If after all that we didn't use the entire "struct lguest_dma"
-+	 * array, we terminate it with a 0 length. */
- 	if (seg < LGUEST_MAX_DMA_SECTIONS)
- 		dma->len[seg] = 0;
- }
- 
--/* We overload multicast bit to show promiscuous mode. */
-+/*
-+ * Packet transmission.
-+ *
-+ * Our packet transmission is a little unusual.  A real network card would just
-+ * send out the packet and leave the receivers to decide if they're interested.
-+ * Instead, we look through the network device memory page and see if any of
-+ * the ethernet addresses match the packet destination, and if so we send it to
-+ * that Guest.
-+ *
-+ * This is made a little more complicated in two cases.  The first case is
-+ * broadcast packets: for that we send the packet to all Guests on the network,
-+ * one at a time.  The second case is "promiscuous" mode, where a Guest wants
-+ * to see all the packets on the network.  We need a way for the Guest to tell
-+ * us it wants to see all packets, so it sets the "multicast" bit on its
-+ * published MAC address, which is never valid in a real ethernet address.
-+ */
- #define PROMISC_BIT		0x01
- 
-+/* This is the callback which is summoned whenever the network device's
-+ * multicast or promiscuous state changes.  If the card is in promiscuous mode,
-+ * we advertise that in our ethernet address in the device's memory.  We do the
-+ * same if Linux wants any or all multicast traffic.  */
- static void lguestnet_set_multicast(struct net_device *dev)
- {
- 	struct lguestnet_info *info = netdev_priv(dev);
-@@ -95,11 +150,14 @@ static void lguestnet_set_multicast(stru
- 		info->peer[info->me].mac[0] &= ~PROMISC_BIT;
- }
- 
-+/* A simple test function to see if a peer wants to see all packets.*/
- static int promisc(struct lguestnet_info *info, unsigned int peer)
- {
- 	return info->peer[peer].mac[0] & PROMISC_BIT;
- }
- 
-+/* Another simple function to see if a peer's advertised ethernet address
-+ * matches a packet's destination ethernet address. */
- static int mac_eq(const unsigned char mac[ETH_ALEN],
- 		  struct lguestnet_info *info, unsigned int peer)
- {
-@@ -109,6 +167,8 @@ static int mac_eq(const unsigned char ma
- 	return memcmp(mac+1, info->peer[peer].mac+1, ETH_ALEN-1) == 0;
- }
- 
-+/* This is the function which actually sends a packet once we've decided a
-+ * peer wants it: */
- static void transfer_packet(struct net_device *dev,
- 			    struct sk_buff *skb,
- 			    unsigned int peernum)
-@@ -116,76 +176,134 @@ static void transfer_packet(struct net_d
- 	struct lguestnet_info *info = netdev_priv(dev);
- 	struct lguest_dma dma;
- 
-+	/* We use our handy "struct lguest_dma" packing function to prepare
-+	 * the skb for sending. */
- 	skb_to_dma(skb, skb_headlen(skb), &dma);
- 	pr_debug("xfer length %04x (%u)\n", htons(skb->len), skb->len);
- 
-+	/* This is the actual send call which copies the packet. */
- 	lguest_send_dma(peer_key(info, peernum), &dma);
-+
-+	/* Check that the entire packet was transmitted.  If not, it could mean
-+	 * that the other Guest registered a short receive buffer, but this
-+	 * driver should never do that.  More likely, the peer is dead. */
- 	if (dma.used_len != skb->len) {
- 		dev->stats.tx_carrier_errors++;
- 		pr_debug("Bad xfer to peer %i: %i of %i (dma %p/%i)\n",
- 			 peernum, dma.used_len, skb->len,
- 			 (void *)dma.addr[0], dma.len[0]);
- 	} else {
-+		/* On success we update the stats. */
- 		dev->stats.tx_bytes += skb->len;
- 		dev->stats.tx_packets++;
- 	}
- }
- 
-+/* Another helper function to tell is if a slot in the device memory is unused.
-+ * Since we always set the Local Assignment bit in the ethernet address, the
-+ * first byte can never be 0. */
- static int unused_peer(const struct lguest_net peer[], unsigned int num)
- {
- 	return peer[num].mac[0] == 0;
- }
- 
-+/* Finally, here is the routine which handles an outgoing packet.  It's called
-+ * "start_xmit" for traditional reasons. */
- static int lguestnet_start_xmit(struct sk_buff *skb, struct net_device *dev)
- {
- 	unsigned int i;
- 	int broadcast;
- 	struct lguestnet_info *info = netdev_priv(dev);
-+	/* Extract the destination ethernet address from the packet. */
- 	const unsigned char *dest = ((struct ethhdr *)skb->data)->h_dest;
- 
- 	pr_debug("%s: xmit %02x:%02x:%02x:%02x:%02x:%02x\n",
- 		 dev->name, dest[0],dest[1],dest[2],dest[3],dest[4],dest[5]);
- 
-+	/* If it's a multicast packet, we broadcast to everyone.  That's not
-+	 * very efficient, but there are very few applications which actually
-+	 * use multicast, which is a shame really.
-+	 *
-+	 * As etherdevice.h points out: "By definition the broadcast address is
-+	 * also a multicast address."  So we don't have to test for broadcast
-+	 * packets separately. */
- 	broadcast = is_multicast_ether_addr(dest);
-+
-+	/* Look through all the published ethernet addresses to see if we
-+	 * should send this packet. */
- 	for (i = 0; i < info->mapsize/sizeof(struct lguest_net); i++) {
-+		/* We don't send to ourselves (we actually can't SEND_DMA to
-+		 * ourselves anyway), and don't send to unused slots.*/
- 		if (i == info->me || unused_peer(info->peer, i))
- 			continue;
- 
-+		/* If it's broadcast we send it.  If they want every packet we
-+		 * send it.  If the destination matches their address we send
-+		 * it.  Otherwise we go to the next peer. */
- 		if (!broadcast && !promisc(info, i) && !mac_eq(dest, info, i))
- 			continue;
- 
- 		pr_debug("lguestnet %s: sending from %i to %i\n",
- 			 dev->name, info->me, i);
-+		/* Our routine which actually does the transfer. */
- 		transfer_packet(dev, skb, i);
- 	}
-+
-+	/* An xmit routine is expected to dispose of the packet, so we do. */
- 	dev_kfree_skb(skb);
-+
-+	/* As per kernel convention, 0 means success.  This is why I love
-+	 * networking: even if we never sent to anyone, that's still
-+	 * success! */
- 	return 0;
- }
- 
--/* Find a new skb to put in this slot in shared mem. */
-+/*D:560
-+ * Packet receiving.
-+ *
-+ * First, here's a helper routine which fills one of our array of receive
-+ * buffers: */
- static int fill_slot(struct net_device *dev, unsigned int slot)
- {
- 	struct lguestnet_info *info = netdev_priv(dev);
--	/* Try to create and register a new one. */
-+
-+	/* We can receive ETH_DATA_LEN (1500) byte packets, plus a standard
-+	 * ethernet header of ETH_HLEN (14) bytes. */
- 	info->skb[slot] = netdev_alloc_skb(dev, ETH_HLEN + ETH_DATA_LEN);
- 	if (!info->skb[slot]) {
- 		printk("%s: could not fill slot %i\n", dev->name, slot);
- 		return -ENOMEM;
- 	}
- 
-+	/* skb_to_dma() is a helper which sets up the "struct lguest_dma" to
-+	 * point to the data in the skb: we also use it for sending out a
-+	 * packet. */
- 	skb_to_dma(info->skb[slot], ETH_HLEN + ETH_DATA_LEN, &info->dma[slot]);
-+
-+	/* This is a Write Memory Barrier: it ensures that the entry in the
-+	 * receive buffer array is written *before* we set the "used_len" entry
-+	 * to 0.  If the Host were looking at the receive buffer array from a
-+	 * different CPU, it could potentially see "used_len = 0" and not see
-+	 * the updated receive buffer information.  This would be a horribly
-+	 * nasty bug, so make sure the compiler and CPU know this has to happen
-+	 * first. */
- 	wmb();
--	/* Now we tell hypervisor it can use the slot. */
-+	/* Writing 0 to "used_len" tells the Host it can use this receive
-+	 * buffer now. */
- 	info->dma[slot].used_len = 0;
- 	return 0;
- }
- 
-+/* This is the actual receive routine.  When we receive an interrupt from the
-+ * Host to tell us a packet has been delivered, we arrive here: */
- static irqreturn_t lguestnet_rcv(int irq, void *dev_id)
- {
- 	struct net_device *dev = dev_id;
- 	struct lguestnet_info *info = netdev_priv(dev);
- 	unsigned int i, done = 0;
- 
-+	/* Look through our entire receive array for an entry which has data
-+	 * in it. */
- 	for (i = 0; i < ARRAY_SIZE(info->dma); i++) {
- 		unsigned int length;
- 		struct sk_buff *skb;
-@@ -194,10 +312,16 @@ static irqreturn_t lguestnet_rcv(int irq
- 		if (length == 0)
- 			continue;
- 
-+		/* We've found one!  Remember the skb (we grabbed the length
-+		 * above), and immediately refill the slot we've taken it
-+		 * from. */
- 		done++;
- 		skb = info->skb[i];
- 		fill_slot(dev, i);
- 
-+		/* This shouldn't happen: micropackets could be sent by a
-+		 * badly-behaved Guest on the network, but the Host will never
-+		 * stuff more data in the buffer than the buffer length. */
- 		if (length < ETH_HLEN || length > ETH_HLEN + ETH_DATA_LEN) {
- 			pr_debug(KERN_WARNING "%s: unbelievable skb len: %i\n",
- 				 dev->name, length);
-@@ -205,36 +329,72 @@ static irqreturn_t lguestnet_rcv(int irq
- 			continue;
++		/* Presumably we reached the end of the src or dest buffers: */
+ 		if (srcoff == src->len[si]) {
++			/* Move to the next buffer at offset 0 */
+ 			si++;
+ 			srcoff = 0;
  		}
- 
-+		/* skb_put(), what a great function!  I've ranted about this
-+		 * function before (http://lkml.org/lkml/1999/9/26/24).  You
-+		 * call it after you've added data to the end of an skb (in
-+		 * this case, it was the Host which wrote the data). */
- 		skb_put(skb, length);
-+
-+		/* The ethernet header contains a protocol field: we use the
-+		 * standard helper to extract it, and place the result in
-+		 * skb->protocol.  The helper also sets up skb->pkt_type and
-+		 * eats up the ethernet header from the front of the packet. */
- 		skb->protocol = eth_type_trans(skb, dev);
--		/* This is a reliable transport. */
-+
-+		/* If this device doesn't need checksums for sending, we also
-+		 * don't need to check the packets when they come in. */
- 		if (dev->features & NETIF_F_NO_CSUM)
- 			skb->ip_summed = CHECKSUM_UNNECESSARY;
-+
-+		/* As a last resort for debugging the driver or the lguest I/O
-+		 * subsystem, you can uncomment the "#define DEBUG" at the top
-+		 * of this file, which turns all the pr_debug() into printk()
-+		 * and floods the logs. */
- 		pr_debug("Receiving skb proto 0x%04x len %i type %i\n",
- 			 ntohs(skb->protocol), skb->len, skb->pkt_type);
- 
-+		/* Update the packet and byte counts (visible from ifconfig,
-+		 * and good for debugging). */
- 		dev->stats.rx_bytes += skb->len;
- 		dev->stats.rx_packets++;
-+
-+		/* Hand our fresh network packet into the stack's "network
-+		 * interface receive" routine.  That will free the packet
-+		 * itself when it's finished. */
- 		netif_rx(skb);
+ 		if (dstoff == dst->len[di]) {
++			/* We need to unmap that destination page and reset
++			 * maddr ready for the next one. */
+ 			kunmap(pages[di]);
+ 			maddr = NULL;
+ 			di++;
+@@ -212,13 +346,15 @@ static u32 copy_data(struct lguest *srcl
+ 		}
  	}
-+
-+	/* If we found any packets, we assume the interrupt was for us. */
- 	return done ? IRQ_HANDLED : IRQ_NONE;
+ 
++	/* If we still had a page mapped at the end, unmap now. */
+ 	if (maddr)
+ 		kunmap(pages[di]);
+ 
+ 	return totlen;
  }
  
-+/*D:550 This is where we start: when the device is brought up by dhcpd or
-+ * ifconfig.  At this point we advertise our MAC address to the rest of the
-+ * network, and register receive buffers ready for incoming packets. */
- static int lguestnet_open(struct net_device *dev)
+-/* Src is us, ie. current. */
++/*L:390 This is how we transfer a "struct lguest_dma" from the source Guest
++ * (the current Guest which called SEND_DMA) to another Guest. */
+ static u32 do_dma(struct lguest *srclg, const struct lguest_dma *src,
+ 		  struct lguest *dstlg, const struct lguest_dma *dst)
  {
- 	int i;
- 	struct lguestnet_info *info = netdev_priv(dev);
+@@ -226,23 +362,31 @@ static u32 do_dma(struct lguest *srclg, 
+ 	u32 ret;
+ 	struct page *pages[LGUEST_MAX_DMA_SECTIONS];
  
--	/* Set up our MAC address */
-+	/* Copy our MAC address into the device page, so others on the network
-+	 * can find us. */
- 	memcpy(info->peer[info->me].mac, dev->dev_addr, ETH_ALEN);
++	/* We check that both source and destination "struct lguest_dma"s are
++	 * within the bounds of the source and destination Guests */
+ 	if (!check_dma_list(dstlg, dst) || !check_dma_list(srclg, src))
+ 		return 0;
  
--	/* Turn on promisc mode if needed */
-+	/* We might already be in promisc mode (dev->flags & IFF_PROMISC).  Our
-+	 * set_multicast callback handles this already, so we call it now. */
- 	lguestnet_set_multicast(dev);
+-	/* First get the destination pages */
++	/* We need to map the pages which correspond to each parts of
++	 * destination buffer. */
+ 	for (i = 0; i < LGUEST_MAX_DMA_SECTIONS; i++) {
+ 		if (dst->len[i] == 0)
+ 			break;
++		/* get_user_pages() is a complicated function, especially since
++		 * we only want a single page.  But it works, and returns the
++		 * number of pages.  Note that we're holding the destination's
++		 * mmap_sem, as get_user_pages() requires. */
+ 		if (get_user_pages(dstlg->tsk, dstlg->mm,
+ 				   dst->addr[i], 1, 1, 1, pages+i, NULL)
+ 		    != 1) {
++			/* This means the destination gave us a bogus buffer */
+ 			kill_guest(dstlg, "Error mapping DMA pages");
+ 			ret = 0;
+ 			goto drop_pages;
+ 		}
+ 	}
  
-+	/* Allocate packets and put them into our "struct lguest_dma" array.
-+	 * If we fail to allocate all the packets we could still limp along,
-+	 * but it's a sign of real stress so we should probably give up now. */
- 	for (i = 0; i < ARRAY_SIZE(info->dma); i++) {
- 		if (fill_slot(dev, i) != 0)
- 			goto cleanup;
+-	/* Now copy until we run out of src or dst. */
++	/* Now copy the data until we run out of src or dst. */
+ 	ret = copy_data(srclg, src, dst, pages);
+ 
+ drop_pages:
+@@ -251,6 +395,11 @@ drop_pages:
+ 	return ret;
+ }
+ 
++/*L:380 Transferring data from one Guest to another is not as simple as I'd
++ * like.  We've found the "struct lguest_dma_info" bound to the same address as
++ * the send, we need to copy into it.
++ *
++ * This function returns true if the destination array was empty. */
+ static int dma_transfer(struct lguest *srclg,
+ 			unsigned long udma,
+ 			struct lguest_dma_info *dst)
+@@ -259,15 +408,23 @@ static int dma_transfer(struct lguest *s
+ 	struct lguest *dstlg;
+ 	u32 i, dma = 0;
+ 
++	/* From the "struct lguest_dma_info" we found in the hash, grab the
++	 * Guest. */
+ 	dstlg = &lguests[dst->guestid];
+-	/* Get our dma list. */
++	/* Read in the source "struct lguest_dma" handed to SEND_DMA. */
+ 	lgread(srclg, &src_dma, udma, sizeof(src_dma));
+ 
+-	/* We can't deadlock against them dmaing to us, because this
+-	 * is all under the lguest_lock. */
++	/* We need the destination's mmap_sem, and we already hold the source's
++	 * mmap_sem for the futex key lookup.  Normally this would suggest that
++	 * we could deadlock if the destination Guest was trying to send to
++	 * this source Guest at the same time, which is another reason that all
++	 * I/O is done under the big lguest_lock. */
+ 	down_read(&dstlg->mm->mmap_sem);
+ 
++	/* Look through the destination DMA array for an available buffer. */
+ 	for (i = 0; i < dst->num_dmas; i++) {
++		/* We keep a "next_dma" pointer which often helps us avoid
++		 * looking at lots of previously-filled entries. */
+ 		dma = (dst->next_dma + i) % dst->num_dmas;
+ 		if (!lgread_other(dstlg, &dst_dma,
+ 				  dst->dmas + dma * sizeof(struct lguest_dma),
+@@ -277,30 +434,46 @@ static int dma_transfer(struct lguest *s
+ 		if (!dst_dma.used_len)
+ 			break;
  	}
 +
-+	/* Finally we tell the Host where our array of "struct lguest_dma"
-+	 * receive buffers is, binding it to the key corresponding to the
-+	 * device's physical memory plus our peerid. */
- 	if (lguest_bind_dma(peer_key(info,info->me), info->dma,
- 			    NUM_SKBS, lgdev_irq(info->lgdev)) != 0)
- 		goto cleanup;
-@@ -245,22 +405,29 @@ cleanup:
- 		dev_kfree_skb(info->skb[i]);
- 	return -ENOMEM;
- }
-+/*:*/
++	/* If we found a buffer, we do the actual data copy. */
+ 	if (i != dst->num_dmas) {
+ 		unsigned long used_lenp;
+ 		unsigned int ret;
  
-+/* The close routine is called when the device is no longer in use: we clean up
-+ * elegantly. */
- static int lguestnet_close(struct net_device *dev)
- {
- 	unsigned int i;
- 	struct lguestnet_info *info = netdev_priv(dev);
+ 		ret = do_dma(srclg, &src_dma, dstlg, &dst_dma);
+-		/* Put used length in src. */
++		/* Put used length in the source "struct lguest_dma"'s used_len
++		 * field.  It's a little tricky to figure out where that is,
++		 * though. */
+ 		lgwrite_u32(srclg,
+ 			    udma+offsetof(struct lguest_dma, used_len), ret);
++		/* Tranferring 0 bytes is OK if the source buffer was empty. */
+ 		if (ret == 0 && src_dma.len[0] != 0)
+ 			goto fail;
  
--	/* Clear all trace: others might deliver packets, we'll ignore it. */
-+	/* Clear all trace of our existence out of the device memory by setting
-+	 * the slot which held our MAC address to 0 (unused). */
- 	memset(&info->peer[info->me], 0, sizeof(info->peer[info->me]));
+-		/* Make sure destination sees contents before length. */
++		/* The destination Guest might be running on a different CPU:
++		 * we have to make sure that it will see the "used_len" field
++		 * change to non-zero *after* it sees the data we copied into
++		 * the buffer.  Hence a write memory barrier. */
+ 		wmb();
++		/* Figuring out where the destination's used_len field for this
++		 * "struct lguest_dma" in the array is also a little ugly. */
+ 		used_lenp = dst->dmas
+ 			+ dma * sizeof(struct lguest_dma)
+ 			+ offsetof(struct lguest_dma, used_len);
+ 		lgwrite_other(dstlg, used_lenp, &ret, sizeof(ret));
++		/* Move the cursor for next time. */
+ 		dst->next_dma++;
+ 	}
+  	up_read(&dstlg->mm->mmap_sem);
  
--	/* Deregister sg lists. */
-+	/* Unregister our array of receive buffers */
- 	lguest_unbind_dma(peer_key(info, info->me), info->dma);
- 	for (i = 0; i < ARRAY_SIZE(info->dma); i++)
- 		dev_kfree_skb(info->skb[i]);
+-	/* Do this last so dst doesn't simply sleep on lock. */
++	/* We trigger the destination interrupt, even if the destination was
++	 * empty and we didn't transfer anything: this gives them a chance to
++	 * wake up and refill. */
+ 	set_bit(dst->interrupt, dstlg->irqs_pending);
++	/* Wake up the destination process. */
+ 	wake_up_process(dstlg->tsk);
++	/* If we passed the last "struct lguest_dma", the receive had no
++	 * buffers left. */
+ 	return i == dst->num_dmas;
+ 
+ fail:
+@@ -308,6 +481,8 @@ fail:
  	return 0;
  }
  
-+/*D:510 The network device probe function is basically a standard ethernet
-+ * device setup.  It reads the "struct lguest_device_desc" and sets the "struct
-+ * net_device".  Oh, the line-by-line excitement!  Let's skip over it. :*/
- static int lguestnet_probe(struct lguest_device *lgdev)
++/*L:370 This is the counter-side to the BIND_DMA hypercall; the SEND_DMA
++ * hypercall.  We find out who's listening, and send to them. */
+ void send_dma(struct lguest *lg, unsigned long ukey, unsigned long udma)
  {
- 	int err, irqf = IRQF_SHARED;
-@@ -290,10 +457,16 @@ static int lguestnet_probe(struct lguest
- 	dev->stop = lguestnet_close;
- 	dev->hard_start_xmit = lguestnet_start_xmit;
- 
--	/* Turning on/off promisc will call dev->set_multicast_list.
--	 * We don't actually support multicast yet */
-+	/* We don't actually support multicast yet, but turning on/off
-+	 * promisc also calls dev->set_multicast_list. */
- 	dev->set_multicast_list = lguestnet_set_multicast;
- 	SET_NETDEV_DEV(dev, &lgdev->dev);
-+
-+	/* The network code complains if you have "scatter-gather" capability
-+	 * if you don't also handle checksums (it seem that would be
-+	 * "illogical").  So we use a lie of omission and don't tell it that we
-+	 * can handle scattered packets unless we also don't want checksums,
-+	 * even though to us they're completely independent. */
- 	if (desc->features & LGUEST_NET_F_NOCSUM)
- 		dev->features = NETIF_F_SG|NETIF_F_NO_CSUM;
- 
-@@ -325,6 +498,9 @@ static int lguestnet_probe(struct lguest
+ 	union futex_key key;
+@@ -317,31 +492,43 @@ void send_dma(struct lguest *lg, unsigne
+ again:
+ 	mutex_lock(&lguest_lock);
+ 	down_read(fshared);
++	/* Get the futex key for the key the Guest gave us */
+ 	if (get_futex_key((u32 __user *)ukey, fshared, &key) != 0) {
+ 		kill_guest(lg, "bad sending DMA key");
+ 		goto unlock;
  	}
+-	/* Shared mapping?  Look for other guests... */
++	/* Since the key must be a multiple of 4, the futex key uses the lower
++	 * bit of the "offset" field (which would always be 0) to indicate a
++	 * mapping which is shared with other processes (ie. Guests). */
+ 	if (key.shared.offset & 1) {
+ 		struct lguest_dma_info *i;
++		/* Look through the hash for other Guests. */
+ 		list_for_each_entry(i, &dma_hash[hash(&key)], list) {
++			/* Don't send to ourselves. */
+ 			if (i->guestid == lg->guestid)
+ 				continue;
+ 			if (!key_eq(&key, &i->key))
+ 				continue;
  
- 	pr_debug("lguestnet: registered device %s\n", dev->name);
-+	/* Finally, we put the "struct net_device" in the generic "struct
-+	 * lguest_device"s private pointer.  Again, it's not necessary, but
-+	 * makes sure the cool kernel kids don't tease us. */
- 	lgdev->private = dev;
- 	return 0;
- 
-@@ -352,3 +528,11 @@ module_init(lguestnet_init);
- 
- MODULE_DESCRIPTION("Lguest network driver");
- MODULE_LICENSE("GPL");
-+
-+/*D:580
-+ * This is the last of the Drivers, and with this we have covered the many and
-+ * wonderous and fine (and boring) details of the Guest.
-+ *
-+ * "make Launcher" beckons, where we answer questions like "Where do Guests
-+ * come from?", and "What do you do when someone asks for optimization?"
-+ */
-diff -puN include/linux/lguest_bus.h~lguest-documentation-iii-drivers include/linux/lguest_bus.h
---- a/include/linux/lguest_bus.h~lguest-documentation-iii-drivers
-+++ a/include/linux/lguest_bus.h
-@@ -15,11 +15,14 @@ struct lguest_device {
- 	void *private;
- };
- 
--/* By convention, each device can use irq index+1 if it wants to. */
-+/*D:380 Since interrupt numbers are arbitrary, we use a convention: each device
-+ * can use the interrupt number corresponding to its index.  The +1 is because
-+ * interrupt 0 is not usable (it's actually the timer interrupt). */
- static inline int lgdev_irq(const struct lguest_device *dev)
- {
- 	return dev->index + 1;
++			/* If dma_transfer() tells us the destination has no
++			 * available buffers, we increment "empty". */
+ 			empty += dma_transfer(lg, udma, i);
+ 			break;
+ 		}
++		/* If the destination is empty, we release our locks and
++		 * give the destination Guest a brief chance to restock. */
+ 		if (empty == 1) {
+ 			/* Give any recipients one chance to restock. */
+ 			up_read(&current->mm->mmap_sem);
+ 			mutex_unlock(&lguest_lock);
++			/* Next time, we won't try again. */
+ 			empty++;
+ 			goto again;
+ 		}
+ 	} else {
+-		/* Private mapping: tell our userspace. */
++		/* Private mapping: Guest is sending to its Launcher.  We set
++		 * the "dma_is_pending" flag so that the main loop will exit
++		 * and the Launcher's read() from /dev/lguest will return. */
+ 		lg->dma_is_pending = 1;
+ 		lg->pending_dma = udma;
+ 		lg->pending_key = ukey;
+@@ -350,6 +537,7 @@ unlock:
+ 	up_read(fshared);
+ 	mutex_unlock(&lguest_lock);
  }
 +/*:*/
  
- /* dma args must not be vmalloced! */
- void lguest_send_dma(unsigned long key, struct lguest_dma *dma);
-diff -puN include/linux/lguest_launcher.h~lguest-documentation-iii-drivers include/linux/lguest_launcher.h
---- a/include/linux/lguest_launcher.h~lguest-documentation-iii-drivers
-+++ a/include/linux/lguest_launcher.h
-@@ -9,14 +9,45 @@
- /* How many devices?  Assume each one wants up to two dma arrays per device. */
- #define LGUEST_MAX_DEVICES (LGUEST_MAX_DMA/2)
- 
-+/*D:200
-+ * Lguest I/O
-+ *
-+ * The lguest I/O mechanism is the only way Guests can talk to devices.  There
-+ * are two hypercalls involved: SEND_DMA for output and BIND_DMA for input.  In
-+ * each case, "struct lguest_dma" describes the buffer: this contains 16
-+ * addr/len pairs, and if there are fewer buffer elements the len array is
-+ * terminated with a 0.
-+ *
-+ * I/O is organized by keys: BIND_DMA attaches buffers to a particular key, and
-+ * SEND_DMA transfers to buffers bound to particular key.  By convention, keys
-+ * correspond to a physical address within the device's page.  This means that
-+ * devices will never accidentally end up with the same keys, and allows the
-+ * Host use The Futex Trick (as we'll see later in our journey).
-+ *
-+ * SEND_DMA simply indicates a key to send to, and the physical address of the
-+ * "struct lguest_dma" to send.  The Host will write the number of bytes
-+ * transferred into the "struct lguest_dma"'s used_len member.
-+ *
-+ * BIND_DMA indicates a key to bind to, a pointer to an array of "struct
-+ * lguest_dma"s ready for receiving, the size of that array, and an interrupt
-+ * to trigger when data is received.  The Host will only allow transfers into
-+ * buffers with a used_len of zero: it then sets used_len to the number of
-+ * bytes transferred and triggers the interrupt for the Guest to process the
-+ * new input. */
- struct lguest_dma
+ void release_all_dma(struct lguest *lg)
  {
--	/* 0 if free to be used, filled by hypervisor. */
-+	/* 0 if free to be used, filled by the Host. */
-  	u32 used_len;
- 	unsigned long addr[LGUEST_MAX_DMA_SECTIONS];
- 	u16 len[LGUEST_MAX_DMA_SECTIONS];
- };
+@@ -365,7 +553,8 @@ void release_all_dma(struct lguest *lg)
+ 	up_read(&lg->mm->mmap_sem);
+ }
+ 
+-/* Userspace wants a dma buffer from this guest. */
++/*L:320 This routine looks for a DMA buffer registered by the Guest on the
++ * given key (using the BIND_DMA hypercall). */
+ unsigned long get_dma_buffer(struct lguest *lg,
+ 			     unsigned long ukey, unsigned long *interrupt)
+ {
+@@ -374,15 +563,29 @@ unsigned long get_dma_buffer(struct lgue
+ 	struct lguest_dma_info *i;
+ 	struct rw_semaphore *fshared = &current->mm->mmap_sem;
+ 
++	/* Take the Big Lguest Lock to stop other Guests sending this Guest DMA
++	 * at the same time. */
+ 	mutex_lock(&lguest_lock);
++	/* To match between Guests sharing the same underlying memory we steal
++	 * code from the futex infrastructure.  This requires that we hold the
++	 * "mmap_sem" for our process (the Launcher), and pass it to the futex
++	 * code. */
+ 	down_read(fshared);
++
++	/* This can fail if it's not a valid address, or if the address is not
++	 * divisible by 4 (the futex code needs that, we don't really). */
+ 	if (get_futex_key((u32 __user *)ukey, fshared, &key) != 0) {
+ 		kill_guest(lg, "bad registered DMA buffer");
+ 		goto unlock;
+ 	}
++	/* Search the hash table for matching entries (the Launcher can only
++	 * send to its own Guest for the moment, so the entry must be for this
++	 * Guest) */
+ 	list_for_each_entry(i, &dma_hash[hash(&key)], list) {
+ 		if (key_eq(&key, &i->key) && i->guestid == lg->guestid) {
+ 			unsigned int j;
++			/* Look through the registered DMA array for an
++			 * available buffer. */
+ 			for (j = 0; j < i->num_dmas; j++) {
+ 				struct lguest_dma dma;
+ 
+@@ -391,6 +594,8 @@ unsigned long get_dma_buffer(struct lgue
+ 				if (dma.used_len == 0)
+ 					break;
+ 			}
++			/* Store the interrupt the Guest wants when the buffer
++			 * is used. */
+ 			*interrupt = i->interrupt;
+ 			break;
+ 		}
+@@ -400,4 +605,12 @@ unlock:
+ 	mutex_unlock(&lguest_lock);
+ 	return ret;
+ }
 +/*:*/
  
-+/*D:460 This is the layout of a block device memory page.  The Launcher sets up
-+ * the num_sectors initially to tell the Guest the size of the disk.  The Guest
-+ * puts the type, sector and length of the request in the first three fields,
-+ * then DMAs to the Host.  The Host processes the request, sets up the result,
-+ * then DMAs back to the Guest. */
- struct lguest_block_page
- {
- 	/* 0 is a read, 1 is a write. */
-@@ -28,27 +59,47 @@ struct lguest_block_page
- 	u32 num_sectors; /* Disk length = num_sectors * 512 */
- };
- 
--/* There is a shared page of these. */
-+/*D:520 The network device is basically a memory page where all the Guests on
-+ * the network publish their MAC (ethernet) addresses: it's an array of "struct
-+ * lguest_net": */
- struct lguest_net
- {
- 	/* Simply the mac address (with multicast bit meaning promisc). */
- 	unsigned char mac[6];
- };
-+/*:*/
- 
- /* Where the Host expects the Guest to SEND_DMA console output to. */
- #define LGUEST_CONSOLE_DMA_KEY 0
- 
--/* We have a page of these descriptors in the lguest_device page. */
-+/*D:010
-+ * Drivers
++/*L:410 This really has completed the Launcher.  Not only have we now finished
++ * the longest chapter in our journey, but this also means we are over halfway
++ * through!
 + *
-+ * The Guest needs devices to do anything useful.  Since we don't let it touch
-+ * real devices (think of the damage it could do!) we provide virtual devices.
-+ * We could emulate a PCI bus with various devices on it, but that is a fairly
-+ * complex burden for the Host and suboptimal for the Guest, so we have our own
-+ * "lguest" bus and simple drivers.
-+ *
-+ * Devices are described by an array of LGUEST_MAX_DEVICES of these structs,
-+ * placed by the Launcher just above the top of physical memory:
++ * Enough prevaricating around the bush: it is time for us to dive into the
++ * core of the Host, in "make Host".
 + */
- struct lguest_device_desc {
-+	/* The device type: console, network, disk etc. */
- 	u16 type;
- #define LGUEST_DEVICE_T_CONSOLE	1
- #define LGUEST_DEVICE_T_NET	2
- #define LGUEST_DEVICE_T_BLOCK	3
+diff -puN drivers/lguest/lg.h~lguest-documentation-iv-launcher drivers/lguest/lg.h
+--- a/drivers/lguest/lg.h~lguest-documentation-iv-launcher
++++ a/drivers/lguest/lg.h
+@@ -244,6 +244,30 @@ unsigned long get_dma_buffer(struct lgue
+ /* hypercalls.c: */
+ void do_hypercalls(struct lguest *lg);
  
-+	/* The specific features of this device: these depends on device type
-+	 * except for LGUEST_DEVICE_F_RANDOMNESS. */
- 	u16 features;
- #define LGUEST_NET_F_NOCSUM		0x4000 /* Don't bother checksumming */
- #define LGUEST_DEVICE_F_RANDOMNESS	0x8000 /* IRQ is fairly random */
++/*L:035
++ * Let's step aside for the moment, to study one important routine that's used
++ * widely in the Host code.
++ *
++ * There are many cases where the Guest does something invalid, like pass crap
++ * to a hypercall.  Since only the Guest kernel can make hypercalls, it's quite
++ * acceptable to simply terminate the Guest and give the Launcher a nicely
++ * formatted reason.  It's also simpler for the Guest itself, which doesn't
++ * need to check most hypercalls for "success"; if you're still running, it
++ * succeeded.
++ *
++ * Once this is called, the Guest will never run again, so most Host code can
++ * call this then continue as if nothing had happened.  This means many
++ * functions don't have to explicitly return an error code, which keeps the
++ * code simple.
++ *
++ * It also means that this can be called more than once: only the first one is
++ * remembered.  The only trick is that we still need to kill the Guest even if
++ * we can't allocate memory to store the reason.  Linux has a neat way of
++ * packing error codes into invalid pointers, so we use that here.
++ *
++ * Like any macro which uses an "if", it is safely wrapped in a run-once "do {
++ * } while(0)".
++ */
+ #define kill_guest(lg, fmt...)					\
+ do {								\
+ 	if (!(lg)->dead) {					\
+@@ -252,6 +276,7 @@ do {								\
+ 			(lg)->dead = ERR_PTR(-ENOMEM);		\
+ 	}							\
+ } while(0)
++/* (End of aside) :*/
  
-+	/* This is how the Guest reports status of the device: the Host can set
-+	 * LGUEST_DEVICE_S_REMOVED to indicate removal, but the rest are only
-+	 * ever manipulated by the Guest, and only ever set. */
- 	u16 status;
- /* 256 and above are device specific. */
- #define LGUEST_DEVICE_S_ACKNOWLEDGE	1 /* We have seen device. */
-@@ -58,9 +109,12 @@ struct lguest_device_desc {
- #define LGUEST_DEVICE_S_REMOVED_ACK	16 /* Driver has been told. */
- #define LGUEST_DEVICE_S_FAILED		128 /* Something actually failed */
+ static inline unsigned long guest_pa(struct lguest *lg, unsigned long vaddr)
+ {
+diff -puN drivers/lguest/lguest_user.c~lguest-documentation-iv-launcher drivers/lguest/lguest_user.c
+--- a/drivers/lguest/lguest_user.c~lguest-documentation-iv-launcher
++++ a/drivers/lguest/lguest_user.c
+@@ -9,33 +9,62 @@
+ #include <linux/fs.h>
+ #include "lg.h"
  
-+	/* Each device exists somewhere in Guest physical memory, over some
-+	 * number of pages. */
- 	u16 num_pages;
- 	u32 pfn;
++/*L:030 setup_regs() doesn't really belong in this file, but it gives us an
++ * early glimpse deeper into the Host so it's worth having here.
++ *
++ * Most of the Guest's registers are left alone: we used get_zeroed_page() to
++ * allocate the structure, so they will be 0. */
+ static void setup_regs(struct lguest_regs *regs, unsigned long start)
+ {
+-	/* Write out stack in format lguest expects, so we can switch to it. */
++	/* There are four "segment" registers which the Guest needs to boot:
++	 * The "code segment" register (cs) refers to the kernel code segment
++	 * __KERNEL_CS, and the "data", "extra" and "stack" segment registers
++	 * refer to the kernel data segment __KERNEL_DS.
++	 *
++	 * The privilege level is packed into the lower bits.  The Guest runs
++	 * at privilege level 1 (GUEST_PL).*/
+ 	regs->ds = regs->es = regs->ss = __KERNEL_DS|GUEST_PL;
+ 	regs->cs = __KERNEL_CS|GUEST_PL;
+-	regs->eflags = 0x202; 	/* Interrupts enabled. */
++
++	/* The "eflags" register contains miscellaneous flags.  Bit 1 (0x002)
++	 * is supposed to always be "1".  Bit 9 (0x200) controls whether
++	 * interrupts are enabled.  We always leave interrupts enabled while
++	 * running the Guest. */
++	regs->eflags = 0x202;
++
++	/* The "Extended Instruction Pointer" register says where the Guest is
++	 * running. */
+ 	regs->eip = start;
+-	/* esi points to our boot information (physical address 0) */
++
++	/* %esi points to our boot information, at physical address 0, so don't
++	 * touch it. */
+ }
+ 
+-/* + addr */
++/*L:310 To send DMA into the Guest, the Launcher needs to be able to ask for a
++ * DMA buffer.  This is done by writing LHREQ_GETDMA and the key to
++ * /dev/lguest. */
+ static long user_get_dma(struct lguest *lg, const u32 __user *input)
+ {
+ 	unsigned long key, udma, irq;
+ 
++	/* Fetch the key they wrote to us. */
+ 	if (get_user(key, input) != 0)
+ 		return -EFAULT;
++	/* Look for a free Guest DMA buffer bound to that key. */
+ 	udma = get_dma_buffer(lg, key, &irq);
+ 	if (!udma)
+ 		return -ENOENT;
+ 
+-	/* We put irq number in udma->used_len. */
++	/* We need to tell the Launcher what interrupt the Guest expects after
++	 * the buffer is filled.  We stash it in udma->used_len. */
+ 	lgwrite_u32(lg, udma + offsetof(struct lguest_dma, used_len), irq);
++
++	/* The (guest-physical) address of the DMA buffer is returned from
++	 * the write(). */
+ 	return udma;
+ }
+ 
+-/* To force the Guest to stop running and return to the Launcher, the
++/*L:315 To force the Guest to stop running and return to the Launcher, the
+  * Waker sets writes LHREQ_BREAK and the value "1" to /dev/lguest.  The
+  * Launcher then writes LHREQ_BREAK and "0" to release the Waker. */
+ static int break_guest_out(struct lguest *lg, const u32 __user *input)
+@@ -59,7 +88,8 @@ static int break_guest_out(struct lguest
+ 	}
+ }
+ 
+-/* + irq */
++/*L:050 Sending an interrupt is done by writing LHREQ_IRQ and an interrupt
++ * number to /dev/lguest. */
+ static int user_send_irq(struct lguest *lg, const u32 __user *input)
+ {
+ 	u32 irq;
+@@ -68,14 +98,19 @@ static int user_send_irq(struct lguest *
+ 		return -EFAULT;
+ 	if (irq >= LGUEST_IRQS)
+ 		return -EINVAL;
++	/* Next time the Guest runs, the core code will see if it can deliver
++	 * this interrupt. */
+ 	set_bit(irq, lg->irqs_pending);
+ 	return 0;
+ }
+ 
++/*L:040 Once our Guest is initialized, the Launcher makes it run by reading
++ * from /dev/lguest. */
+ static ssize_t read(struct file *file, char __user *user, size_t size,loff_t*o)
+ {
+ 	struct lguest *lg = file->private_data;
+ 
++	/* You must write LHREQ_INITIALIZE first! */
+ 	if (!lg)
+ 		return -EINVAL;
+ 
+@@ -83,27 +118,52 @@ static ssize_t read(struct file *file, c
+ 	if (current != lg->tsk)
+ 		return -EPERM;
+ 
++	/* If the guest is already dead, we indicate why */
+ 	if (lg->dead) {
+ 		size_t len;
+ 
++		/* lg->dead either contains an error code, or a string. */
+ 		if (IS_ERR(lg->dead))
+ 			return PTR_ERR(lg->dead);
+ 
++		/* We can only return as much as the buffer they read with. */
+ 		len = min(size, strlen(lg->dead)+1);
+ 		if (copy_to_user(user, lg->dead, len) != 0)
+ 			return -EFAULT;
+ 		return len;
+ 	}
+ 
++	/* If we returned from read() last time because the Guest sent DMA,
++	 * clear the flag. */
+ 	if (lg->dma_is_pending)
+ 		lg->dma_is_pending = 0;
+ 
++	/* Run the Guest until something interesting happens. */
+ 	return run_guest(lg, (unsigned long __user *)user);
+ }
+ 
+-/* Take: pfnlimit, pgdir, start, pageoffset. */
++/*L:020 The initialization write supplies 4 32-bit values (in addition to the
++ * 32-bit LHREQ_INITIALIZE value).  These are:
++ *
++ * pfnlimit: The highest (Guest-physical) page number the Guest should be
++ * allowed to access.  The Launcher has to live in Guest memory, so it sets
++ * this to ensure the Guest can't reach it.
++ *
++ * pgdir: The (Guest-physical) address of the top of the initial Guest
++ * pagetables (which are set up by the Launcher).
++ *
++ * start: The first instruction to execute ("eip" in x86-speak).
++ *
++ * page_offset: The PAGE_OFFSET constant in the Guest kernel.  We should
++ * probably wean the code off this, but it's a very useful constant!  Any
++ * address above this is within the Guest kernel, and any kernel address can
++ * quickly converted from physical to virtual by adding PAGE_OFFSET.  It's
++ * 0xC0000000 (3G) by default, but it's configurable at kernel build time.
++ */
+ static int initialize(struct file *file, const u32 __user *input)
+ {
++	/* "struct lguest" contains everything we (the Host) know about a
++	 * Guest. */
+ 	struct lguest *lg;
+ 	int err, i;
+ 	u32 args[4];
+@@ -111,7 +171,7 @@ static int initialize(struct file *file,
+ 	/* We grab the Big Lguest lock, which protects the global array
+ 	 * "lguests" and multiple simultaneous initializations. */
+ 	mutex_lock(&lguest_lock);
+-
++	/* You can't initialize twice!  Close the device and start again... */
+ 	if (file->private_data) {
+ 		err = -EBUSY;
+ 		goto unlock;
+@@ -122,37 +182,70 @@ static int initialize(struct file *file,
+ 		goto unlock;
+ 	}
+ 
++	/* Find an unused guest. */
+ 	i = find_free_guest();
+ 	if (i < 0) {
+ 		err = -ENOSPC;
+ 		goto unlock;
+ 	}
++	/* OK, we have an index into the "lguest" array: "lg" is a convenient
++	 * pointer. */
+ 	lg = &lguests[i];
++
++	/* Populate the easy fields of our "struct lguest" */
+ 	lg->guestid = i;
+ 	lg->pfn_limit = args[0];
+ 	lg->page_offset = args[3];
++
++	/* We need a complete page for the Guest registers: they are accessible
++	 * to the Guest and we can only grant it access to whole pages. */
+ 	lg->regs_page = get_zeroed_page(GFP_KERNEL);
+ 	if (!lg->regs_page) {
+ 		err = -ENOMEM;
+ 		goto release_guest;
+ 	}
++	/* We actually put the registers at the bottom of the page. */
+ 	lg->regs = (void *)lg->regs_page + PAGE_SIZE - sizeof(*lg->regs);
+ 
++	/* Initialize the Guest's shadow page tables, using the toplevel
++	 * address the Launcher gave us.  This allocates memory, so can
++	 * fail. */
+ 	err = init_guest_pagetable(lg, args[1]);
+ 	if (err)
+ 		goto free_regs;
+ 
++	/* Now we initialize the Guest's registers, handing it the start
++	 * address. */
+ 	setup_regs(lg->regs, args[2]);
++
++	/* There are a couple of GDT entries the Guest expects when first
++	 * booting. */
+ 	setup_guest_gdt(lg);
++
++	/* The timer for lguest's clock needs initialization. */
+ 	init_clockdev(lg);
++
++	/* We keep a pointer to the Launcher task (ie. current task) for when
++	 * other Guests want to wake this one (inter-Guest I/O). */
+ 	lg->tsk = current;
++	/* We need to keep a pointer to the Launcher's memory map, because if
++	 * the Launcher dies we need to clean it up.  If we don't keep a
++	 * reference, it is destroyed before close() is called. */
+ 	lg->mm = get_task_mm(lg->tsk);
++
++	/* Initialize the queue for the waker to wait on */
+ 	init_waitqueue_head(&lg->break_wq);
++
++	/* We remember which CPU's pages this Guest used last, for optimization
++	 * when the same Guest runs on the same CPU twice. */
+ 	lg->last_pages = NULL;
++
++	/* We keep our "struct lguest" in the file's private_data. */
+ 	file->private_data = lg;
+ 
+ 	mutex_unlock(&lguest_lock);
+ 
++	/* And because this is a write() call, we return the length used. */
+ 	return sizeof(args);
+ 
+ free_regs:
+@@ -164,9 +257,15 @@ unlock:
+ 	return err;
+ }
+ 
++/*L:010 The first operation the Launcher does must be a write.  All writes
++ * start with a 32 bit number: for the first write this must be
++ * LHREQ_INITIALIZE to set up the Guest.  After that the Launcher can use
++ * writes of other values to get DMA buffers and send interrupts. */
+ static ssize_t write(struct file *file, const char __user *input,
+ 		     size_t size, loff_t *off)
+ {
++	/* Once the guest is initialized, we hold the "struct lguest" in the
++	 * file private data. */
+ 	struct lguest *lg = file->private_data;
+ 	u32 req;
+ 
+@@ -174,8 +273,11 @@ static ssize_t write(struct file *file, 
+ 		return -EFAULT;
+ 	input += sizeof(req);
+ 
++	/* If you haven't initialized, you must do that first. */
+ 	if (req != LHREQ_INITIALIZE && !lg)
+ 		return -EINVAL;
++
++	/* Once the Guest is dead, all you can do is read() why it died. */
+ 	if (lg && lg->dead)
+ 		return -ENOENT;
+ 
+@@ -197,33 +299,72 @@ static ssize_t write(struct file *file, 
+ 	}
+ }
+ 
++/*L:060 The final piece of interface code is the close() routine.  It reverses
++ * everything done in initialize().  This is usually called because the
++ * Launcher exited.
++ *
++ * Note that the close routine returns 0 or a negative error number: it can't
++ * really fail, but it can whine.  I blame Sun for this wart, and K&R C for
++ * letting them do it. :*/
+ static int close(struct inode *inode, struct file *file)
+ {
+ 	struct lguest *lg = file->private_data;
+ 
++	/* If we never successfully initialized, there's nothing to clean up */
+ 	if (!lg)
+ 		return 0;
+ 
++	/* We need the big lock, to protect from inter-guest I/O and other
++	 * Launchers initializing guests. */
+ 	mutex_lock(&lguest_lock);
+ 	/* Cancels the hrtimer set via LHCALL_SET_CLOCKEVENT. */
+ 	hrtimer_cancel(&lg->hrt);
++	/* Free any DMA buffers the Guest had bound. */
+ 	release_all_dma(lg);
++	/* Free up the shadow page tables for the Guest. */
+ 	free_guest_pagetable(lg);
++	/* Now all the memory cleanups are done, it's safe to release the
++	 * Launcher's memory management structure. */
+ 	mmput(lg->mm);
++	/* If lg->dead doesn't contain an error code it will be NULL or a
++	 * kmalloc()ed string, either of which is ok to hand to kfree(). */
+ 	if (!IS_ERR(lg->dead))
+ 		kfree(lg->dead);
++	/* We can free up the register page we allocated. */
+ 	free_page(lg->regs_page);
++	/* We clear the entire structure, which also marks it as free for the
++	 * next user. */
+ 	memset(lg, 0, sizeof(*lg));
++	/* Release lock and exit. */
+ 	mutex_unlock(&lguest_lock);
++
+ 	return 0;
+ }
+ 
++/*L:000
++ * Welcome to our journey through the Launcher!
++ *
++ * The Launcher is the Host userspace program which sets up, runs and services
++ * the Guest.  In fact, many comments in the Drivers which refer to "the Host"
++ * doing things are inaccurate: the Launcher does all the device handling for
++ * the Guest.  The Guest can't tell what's done by the the Launcher and what by
++ * the Host.
++ *
++ * Just to confuse you: to the Host kernel, the Launcher *is* the Guest and we
++ * shall see more of that later.
++ *
++ * We begin our understanding with the Host kernel interface which the Launcher
++ * uses: reading and writing a character device called /dev/lguest.  All the
++ * work happens in the read(), write() and close() routines: */
+ static struct file_operations lguest_fops = {
+ 	.owner	 = THIS_MODULE,
+ 	.release = close,
+ 	.write	 = write,
+ 	.read	 = read,
  };
-+/*:*/
- 
- /* Write command first word is a request. */
- enum lguest_req
++
++/* This is a textbook example of a "misc" character device.  Populate a "struct
++ * miscdevice" and register it with misc_register(). */
+ static struct miscdevice lguest_dev = {
+ 	.minor	= MISC_DYNAMIC_MINOR,
+ 	.name	= "lguest",
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
