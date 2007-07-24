@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + softlockup-add-a-proc-tuning-parameter-fix.patch added to -mm tree
-Date: Mon, 23 Jul 2007 23:38:03 -0700
-Message-ID: <200707240642.l6O6gaqm032719@imap1.linux-foundation.org>
+Subject: + ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 00:04:58 -0700
+Message-ID: <200707240709.l6O79VOK001198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57463 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38949 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750910AbXGXGnH (ORCPT
+	by vger.kernel.org with ESMTP id S1765509AbXGXHKZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 02:43:07 -0400
+	Tue, 24 Jul 2007 03:10:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kiran@scalex86.org, mingo@elte.hu, shai@scalex86.org
+Cc: akpm@linux-foundation.org, kluo@nvidia.com, pchen@nvidia.com, zboszor@dunaweb.hu
 
 
 The patch titled
-     softlockup-add-a-proc-tuning-parameter-fix
+     ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
 has been added to the -mm tree.  Its filename is
-     softlockup-add-a-proc-tuning-parameter-fix.patch
+     ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: softlockup-add-a-proc-tuning-parameter-fix
+Subject: ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix various warnings and add definition of "two".
+Fix this:
 
-ug.
+drivers/ata/sata_nv.c:2260: error: too few arguments to function 'ap->ops->scr_read'
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ravikiran Thirumalai <kiran@scalex86.org>
-Cc: Shai Fultheim <shai@scalex86.org>
+Is this right?
+
+Cc: Kuan Luo <kluo@nvidia.com>
+Cc: Peer Chen <pchen@nvidia.com>
+Cc: Zoltan Boszormenyi <zboszor@dunaweb.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/ata/sata_nv.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~softlockup-add-a-proc-tuning-parameter-fix kernel/sysctl.c
---- a/kernel/sysctl.c~softlockup-add-a-proc-tuning-parameter-fix
-+++ a/kernel/sysctl.c
-@@ -81,9 +81,16 @@ extern int sysctl_stat_interval;
- extern int audit_argv_kb;
+diff -puN drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
++++ a/drivers/ata/sata_nv.c
+@@ -2256,7 +2256,8 @@ static void nv_swncq_host_interrupt(stru
+ 	if (!pp->qc_active)
+ 		return;
  
- /* Constants used for minimum and  maximum */
-+#ifdef CONFIG_DETECT_SOFTLOCKUP
- static int one = 1;
--static int zero;
- static int sixty = 60;
-+#endif
-+
-+#ifdef CONFIG_MMU
-+static int two = 2;
-+#endif
-+
-+static int zero;
- static int one_hundred = 100;
+-	serror = ap->ops->scr_read(ap, SCR_ERROR);
++	if (ap->ops->scr_read(ap, SCR_ERROR, &serror))
++		return;
+ 	ap->ops->scr_write(ap, SCR_ERROR, serror);
  
- /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
+ 	if (ata_stat & ATA_ERR) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,6 +74,7 @@ adbhid-produce-all-capslock-key-events-fix.patch
 m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
 git-kvm.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 git-mtd.patch
 e1000new-build-fix.patch
 e1000new-build-fix-2.patch
@@ -96,8 +91,6 @@ x86_64-clean-up-apicid_to_node-declaration.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 mmconfig-validate-against-acpi-motherboard-resources.patch
 git-newsetup-fixup.patch
-git-xfs.patch
-git-xfs-fixup.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
@@ -146,3 +139,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+git-block-cciss-fix.patch
