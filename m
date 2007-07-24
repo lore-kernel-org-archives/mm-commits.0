@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 02:02:16 -0700
-Message-ID: <200707240906.l6O96nbd005600@imap1.linux-foundation.org>
+Subject: + do_sys_poll-simplify-playing-with-on-stack-data-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 02:07:28 -0700
+Message-ID: <200707240912.l6O9C1Xn005799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57133 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60321 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935504AbXGXJHl (ORCPT
+	by vger.kernel.org with ESMTP id S1757822AbXGXJMj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 05:07:41 -0400
+	Tue, 24 Jul 2007 05:12:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, alan@lxorguk.ukuu.org.uk, hidehiro.kawai.ez@hitachi.com, nhorman@tuxdriver.com
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, oleg@tv-sign.ru, vlobanov@speakeasy.net
 
 
 The patch titled
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix
+     do_sys_poll-simplify-playing-with-on-stack-data-fix
 has been added to the -mm tree.  Its filename is
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
+     do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix
+Subject: do_sys_poll-simplify-playing-with-on-stack-data-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/exec.c: In function 'do_coredump':
-fs/exec.c:1761: warning: large integer implicitly truncated to unsigned type
+fs/select.c: In function 'do_sys_poll':
+fs/select.c:670: warning: comparison of distinct pointer types lacks a cast
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
+size_t != uint.
+
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Vadim Lobanov <vlobanov@speakeasy.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 +-
+ fs/select.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix fs/exec.c
---- a/fs/exec.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix
-+++ a/fs/exec.c
-@@ -1703,7 +1703,7 @@ int do_coredump(long signr, int exit_cod
- 	int fsuid = current->fsuid;
- 	int flag = 0;
- 	int ispipe = 0;
--	u32 core_limit = current->signal->rlim[RLIMIT_CORE].rlim_cur;
-+	unsigned long core_limit = current->signal->rlim[RLIMIT_CORE].rlim_cur;
+diff -puN fs/select.c~do_sys_poll-simplify-playing-with-on-stack-data-fix fs/select.c
+--- a/fs/select.c~do_sys_poll-simplify-playing-with-on-stack-data-fix
++++ a/fs/select.c
+@@ -665,7 +665,7 @@ int do_sys_poll(struct pollfd __user *uf
+ 	if (nfds > current->signal->rlim[RLIMIT_NOFILE].rlim_cur)
+ 		return -EINVAL;
  
- 	audit_core_dumps(signr);
- 
+-	len = min(nfds, N_STACK_PPS);
++	len = min_t(unsigned int, nfds, N_STACK_PPS);
+ 	for (;;) {
+ 		walk->next = NULL;
+ 		walk->len = len;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,6 +116,7 @@ driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
 add-kernel-notifierc-fix.patch
 fs-9p-convc-error-path-fix.patch
 loop-use-unlocked_ioctl.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
 pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
 allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
