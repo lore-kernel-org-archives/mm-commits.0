@@ -1,157 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - vlan_ioctl_handler-fix-return-value.patch removed from -mm tree
-Date: Tue, 24 Jul 2007 16:25:32 -0700
-Message-ID: <200707242325.l6ONPWtp006373@imap1.linux-foundation.org>
+Subject: - atl1-change-cmb-write-threshold.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 16:25:18 -0700
+Message-ID: <200707242325.l6ONPIPB006352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46131 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50052 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757577AbXGXXgS (ORCPT
+	by vger.kernel.org with ESMTP id S1757625AbXGXXgT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 19:36:18 -0400
+	Tue, 24 Jul 2007 19:36:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
+To: jacliburn@bellsouth.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vlan_ioctl_handler: fix return value
+     atl1: change cmb write threshold
 has been removed from the -mm tree.  Its filename was
-     vlan_ioctl_handler-fix-return-value.patch
+     atl1-change-cmb-write-threshold.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vlan_ioctl_handler: fix return value
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: atl1: change cmb write threshold
+From: Jay Cliburn <jacliburn@bellsouth.net>
 
-net/8021q/vlan.c: In function 'vlan_ioctl_handler':
-net/8021q/vlan.c:700: warning: 'err' may be used uninitialized in this function
+Change the threshold number of descriptors used to trigger CMB writes.
+The vendor reports that under certain conditions this will reduce the
+number of unnecessary tx interrupts and improve rx performance.
 
-The warning is incorrect, but from my reading this ioctl will return -EINVAL
-on success.
+This change is lifted directly from vendor version 1.2.40.2 of the L1
+driver.
 
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/8021q/vlan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/atl1/atl1_main.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN net/8021q/vlan.c~vlan_ioctl_handler-fix-return-value net/8021q/vlan.c
---- a/net/8021q/vlan.c~vlan_ioctl_handler-fix-return-value
-+++ a/net/8021q/vlan.c
-@@ -810,6 +810,7 @@ static int vlan_ioctl_handler(void __use
- 		err = -EINVAL;
- 		break;
- 	case GET_VLAN_REALDEV_NAME_CMD:
-+		err = 0;
- 		vlan_dev_get_realdev_name(dev, args.u.device2);
- 		if (copy_to_user(arg, &args,
- 				 sizeof(struct vlan_ioctl_args))) {
-@@ -818,6 +819,7 @@ static int vlan_ioctl_handler(void __use
- 		break;
+diff -puN drivers/net/atl1/atl1_main.c~atl1-change-cmb-write-threshold drivers/net/atl1/atl1_main.c
+--- a/drivers/net/atl1/atl1_main.c~atl1-change-cmb-write-threshold
++++ a/drivers/net/atl1/atl1_main.c
+@@ -917,7 +917,10 @@ static u32 atl1_configure(struct atl1_ad
+ 	iowrite32(value, hw->hw_addr + REG_DMA_CTRL);
  
- 	case GET_VLAN_VID_CMD:
-+		err = 0;
- 		vlan_dev_get_vid(dev, &vid);
- 		args.u.VID = vid;
- 		if (copy_to_user(arg, &args,
+ 	/* config CMB / SMB */
+-	value = hw->cmb_rrd | ((u32) hw->cmb_tpd << 16);
++	value = (hw->cmb_tpd > adapter->tpd_ring.count) ?
++		hw->cmb_tpd : adapter->tpd_ring.count;
++	value <<= 16;
++	value |= hw->cmb_rrd;
+ 	iowrite32(value, hw->hw_addr + REG_CMB_WRITE_TH);
+ 	value = hw->cmb_rx_timer | ((u32) hw->cmb_tx_timer << 16);
+ 	iowrite32(value, hw->hw_addr + REG_CMB_WRITE_TIMER);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jacliburn@bellsouth.net are
 
-origin.patch
-rtc-stk17ta8-update-for-sysfs-api-change.patch
-x86_powernow_k8_acpi-must-depend-on-acpi.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-mmc-build-fix.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-git-net.patch
-ip_auto_config-fix-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-scsi-target-fixup.patch
-git-unionfs.patch
-git-watchdog.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+git-netdev-all.patch
