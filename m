@@ -1,72 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - nfsd-fix-possible-oops-on-re-insertion-of-rpcsec_gss.patch removed from -mm tree
-Date: Tue, 24 Jul 2007 16:24:37 -0700
-Message-ID: <200707242324.l6ONOb89006287@imap1.linux-foundation.org>
+Subject: - fix-au1100-fb-dependencies-add-helptext.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 16:24:34 -0700
+Message-ID: <200707242324.l6ONOYVL006284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35648 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34661 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757070AbXGXXZG (ORCPT
+	by vger.kernel.org with ESMTP id S1757601AbXGXXZK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 19:25:06 -0400
+	Tue, 24 Jul 2007 19:25:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@citi.umich.edu, akinobu.mita@gmail.com, neilb@suse.de, stable@kernel.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfsd: fix possible oops on re-insertion of rpcsec_gss modules
+     Fix Au1100 fb dependencies, add helptext
 has been removed from the -mm tree.  Its filename was
-     nfsd-fix-possible-oops-on-re-insertion-of-rpcsec_gss.patch
+     fix-au1100-fb-dependencies-add-helptext.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nfsd: fix possible oops on re-insertion of rpcsec_gss modules
-From: J. Bruce Fields <bfields@citi.umich.edu>
+Subject: Fix Au1100 fb dependencies, add helptext
+From: Ralf Baechle <ralf@linux-mips.org>
 
-The handling of the re-registration case is wrong here; the "test" that was
-returned from auth_domain_lookup will not be used again, so that reference
-should be put.  And auth_domain_lookup never did anything with "new" in
-this case, so we should just clean it up ourself.
-
-Thanks to Akinobu Mita for bug report, analysis, and testing.
-
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: <stable@kernel.org>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/auth_gss/svcauth_gss.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/video/Kconfig |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN net/sunrpc/auth_gss/svcauth_gss.c~nfsd-fix-possible-oops-on-re-insertion-of-rpcsec_gss net/sunrpc/auth_gss/svcauth_gss.c
---- a/net/sunrpc/auth_gss/svcauth_gss.c~nfsd-fix-possible-oops-on-re-insertion-of-rpcsec_gss
-+++ a/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -769,11 +769,12 @@ svcauth_gss_register_pseudoflavor(u32 ps
- 	new->h.flavour = &svcauthops_gss;
- 	new->pseudoflavor = pseudoflavor;
+diff -puN drivers/video/Kconfig~fix-au1100-fb-dependencies-add-helptext drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fix-au1100-fb-dependencies-add-helptext
++++ a/drivers/video/Kconfig
+@@ -1571,7 +1571,14 @@ config FB_PM3
  
-+	stat = 0;
- 	test = auth_domain_lookup(name, &new->h);
--	if (test != &new->h) { /* XXX Duplicate registration? */
--		auth_domain_put(&new->h);
--		/* dangling ref-count... */
--		goto out;
-+	if (test != &new->h) { /* Duplicate registration */
-+		auth_domain_put(test);
-+		kfree(new->h.name);
-+		goto out_free_dom;
- 	}
- 	return 0;
+ config FB_AU1100
+ 	bool "Au1100 LCD Driver"
+-	depends on (FB = y) && EXPERIMENTAL && PCI && MIPS && MIPS_PB1100=y
++	depends on (FB = y) && MIPS && SOC_AU1100
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	help
++	  This is the framebuffer driver for the AMD Au1100 SOC.  It can drive
++	  various panels and CRTs by passing in kernel cmd line option
++	  au1100fb:panel=<name>.
  
+ config FB_AU1200
+ 	bool "Au1200 LCD Driver"
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-locks-kill-redundant-local-variable.patch
-vfs-fix-a-race-in-lease-breaking-during-truncate.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+git-mtd.patch
+serial_txx9-fix-modem-control-line-handling.patch
+serial_txx9-cleanup-includes.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+whitelist-references-from-__dbe_table-to-init.patch
+bpqether-fix-rcu-usage.patch
+serial-fix-section-mismatch-vr41xx_siu.patch
+serial-fix-vr41xx_siu-interface-select.patch
+serial-fix-vr41xx_siu-serial-console-support.patch
+remove-tx3912fb.patch
+sb1250-duart-__maybe_unused-etc-fixes.patch
+clean-up-duplicate-includes-in-drivers-char.patch
