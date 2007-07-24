@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch added to -mm tree
-Date: Tue, 24 Jul 2007 02:48:16 -0700
-Message-ID: <200707240952.l6O9qn04007366@imap1.linux-foundation.org>
+Subject: + rtc-stk17ta8-update-for-sysfs-api-change.patch added to -mm tree
+Date: Tue, 24 Jul 2007 02:52:33 -0700
+Message-ID: <200707240957.l6O9v6QJ007527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34738 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41611 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762319AbXGXJx3 (ORCPT
+	by vger.kernel.org with ESMTP id S1762319AbXGXJ5X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 05:53:29 -0400
+	Tue, 24 Jul 2007 05:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     git-mtd: fix printk warning in jffs2_block_check_erase()
+     rtc-stk17ta8: update for sysfs API change
 has been added to the -mm tree.  Its filename is
-     git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+     rtc-stk17ta8-update-for-sysfs-api-change.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mtd: fix printk warning in jffs2_block_check_erase()
+Subject: rtc-stk17ta8: update for sysfs API change
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/jffs2/erase.c: In function 'jffs2_block_check_erase':
-fs/jffs2/erase.c:355: warning: format '%08x' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
+drivers/rtc/rtc-stk17ta8.c:296: warning: initialization from incompatible pointer type
+drivers/rtc/rtc-stk17ta8.c:297: warning: initialization from incompatible pointer type
 
-and
-
-fs/jffs2/erase.c: In function 'jffs2_erase_pending_blocks':
-fs/jffs2/erase.c:404: warning: 'bad_offset' may be used uninitialized in this function
-
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/erase.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-stk17ta8.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/jffs2/erase.c~git-mtd-fix-printk-warning-in-jffs2_block_check_erase fs/jffs2/erase.c
---- a/fs/jffs2/erase.c~git-mtd-fix-printk-warning-in-jffs2_block_check_erase
-+++ a/fs/jffs2/erase.c
-@@ -351,7 +351,7 @@ static int jffs2_block_check_erase(struc
- 		} while(--retlen);
- 		c->mtd->unpoint(c->mtd, ebuf, jeb->offset, c->sector_size);
- 		if (retlen)
--			printk(KERN_WARNING "Newly-erased block contained word 0x%lx at offset 0x%08x\n",
-+			printk(KERN_WARNING "Newly-erased block contained word 0x%lx at offset 0x%08tx\n",
- 			       *wordebuf, jeb->offset + c->sector_size-retlen*sizeof(*wordebuf));
- 		return 0;
- 	}
-@@ -401,7 +401,7 @@ static void jffs2_mark_erased_block(stru
- {
- 	size_t retlen;
- 	int ret;
--	uint32_t bad_offset;
-+	uint32_t uninitialized_var(bad_offset);
+diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-update-for-sysfs-api-change drivers/rtc/rtc-stk17ta8.c
+--- a/drivers/rtc/rtc-stk17ta8.c~rtc-stk17ta8-update-for-sysfs-api-change
++++ a/drivers/rtc/rtc-stk17ta8.c
+@@ -258,8 +258,9 @@ static const struct rtc_class_ops stk17t
+ 	.ioctl		= stk17ta8_rtc_ioctl,
+ };
  
- 	switch (jffs2_block_check_erase(c, jeb, &bad_offset)) {
- 	case -EAGAIN:	goto refile;
+-static ssize_t stk17ta8_nvram_read(struct kobject *kobj, char *buf,
+-				 loff_t pos, size_t size)
++static ssize_t stk17ta8_nvram_read(struct kobject *kobj,
++		struct bin_attribute *bin_attr, char *buf, loff_t pos,
++		size_t size)
+ {
+ 	struct platform_device *pdev =
+ 		to_platform_device(container_of(kobj, struct device, kobj));
+@@ -272,8 +273,9 @@ static ssize_t stk17ta8_nvram_read(struc
+ 	return count;
+ }
+ 
+-static ssize_t stk17ta8_nvram_write(struct kobject *kobj, char *buf,
+-				  loff_t pos, size_t size)
++static ssize_t stk17ta8_nvram_write(struct kobject *kobj,
++		struct bin_attribute *bin_attr, char *buf, loff_t pos,
++		size_t size)
+ {
+ 	struct platform_device *pdev =
+ 		to_platform_device(container_of(kobj, struct device, kobj));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+rtc-stk17ta8-update-for-sysfs-api-change.patch
 x86_powernow_k8_acpi-must-depend-on-acpi.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
