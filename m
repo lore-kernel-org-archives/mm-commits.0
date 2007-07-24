@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + udf-fix-uid-and-gid-mount-option-ignorance.patch added to -mm tree
-Date: Tue, 24 Jul 2007 12:24:18 -0700
-Message-ID: <200707241924.l6OJOIGn029003@imap1.linux-foundation.org>
+Subject: + megaraid-add-cerc_ata100-support.patch added to -mm tree
+Date: Tue, 24 Jul 2007 12:47:16 -0700
+Message-ID: <200707241947.l6OJlGaK029908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57501 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37564 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754165AbXGXTZR (ORCPT
+	by vger.kernel.org with ESMTP id S1750960AbXGXTrl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 15:25:17 -0400
+	Tue, 24 Jul 2007 15:47:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@gmail.com, auslands-kv@gmx.de, jack@ucw.cz, sandeen@redhat.com
+Cc: tkrah@fachschaft.imn.htwk-leipzig.de, protasnb@gmail.com
 
 
 The patch titled
-     UDF: fix UID and GID mount option ignorance
+     megaraid: add CERC_ATA100 support
 has been added to the -mm tree.  Its filename is
-     udf-fix-uid-and-gid-mount-option-ignorance.patch
+     megaraid-add-cerc_ata100-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: UDF: fix UID and GID mount option ignorance
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: megaraid: add CERC_ATA100 support
+From: Torsten Krah <tkrah@fachschaft.imn.htwk-leipzig.de>
 
-This patch fix weird behaviour of UDF mounting procedure.  To get UID
-changed (for now) we have to type
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=6695
 
-	mount -t udf -o uid=some_user,uid=ignore /dev/device /mnt/moun_point
+Add support for this device to the old megaraid driver.
 
-and specifying two uid at once is strange a bit.  So with the patch we are
-able to mount without additional 'uid=ignore' option.  The same for GID
-option is done.
-
-This patch will not break current mount scheme (with two option).
-
-Btw this does fix (I hope) the following
-
-	[BUG 6124] mount of UDF fs ignores UID and GID options
-        http://bugzilla.kernel.org/show_bug.cgi?id=6124
-
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Michael <auslands-kv@gmx.de>
-Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Natalie Protasevich <protasnb@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c  |   10 ++++++----
- fs/udf/super.c  |    2 ++
- fs/udf/udf_sb.h |    2 ++
- 3 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/scsi/megaraid.c |    2 ++
+ drivers/scsi/megaraid.h |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN fs/udf/inode.c~udf-fix-uid-and-gid-mount-option-ignorance fs/udf/inode.c
---- a/fs/udf/inode.c~udf-fix-uid-and-gid-mount-option-ignorance
-+++ a/fs/udf/inode.c
-@@ -1127,13 +1127,15 @@ static void udf_fill_inode(struct inode 
- 	}
+diff -puN drivers/scsi/megaraid.c~megaraid-add-cerc_ata100-support drivers/scsi/megaraid.c
+--- a/drivers/scsi/megaraid.c~megaraid-add-cerc_ata100-support
++++ a/drivers/scsi/megaraid.c
+@@ -4967,6 +4967,8 @@ static struct pci_device_id megaraid_pci
+ 		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+ 	{PCI_VENDOR_ID_AMI, PCI_DEVICE_ID_AMI_MEGARAID2,
+ 		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_AMI, PCI_DEVICE_ID_AMI_MEGARAID3,
++		PCI_VENDOR_ID_DELL, PCI_SUBSYS_ID_CERC_ATA100, 0, 0, 0},
+ 	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_AMI_MEGARAID3,
+ 		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+ 	{0,}
+diff -puN drivers/scsi/megaraid.h~megaraid-add-cerc_ata100-support drivers/scsi/megaraid.h
+--- a/drivers/scsi/megaraid.h~megaraid-add-cerc_ata100-support
++++ a/drivers/scsi/megaraid.h
+@@ -84,6 +84,8 @@
+ #define LSI_SUBSYS_VID			0x1000
+ #define INTEL_SUBSYS_VID		0x8086
  
- 	inode->i_uid = le32_to_cpu(fe->uid);
--	if (inode->i_uid == -1 || UDF_QUERY_FLAG(inode->i_sb,
--						 UDF_FLAG_UID_IGNORE))
-+	if (inode->i_uid == -1 ||
-+	    UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_UID_IGNORE) ||
-+	    UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_UID_SET))
- 		inode->i_uid = UDF_SB(inode->i_sb)->s_uid;
- 
- 	inode->i_gid = le32_to_cpu(fe->gid);
--	if (inode->i_gid == -1 || UDF_QUERY_FLAG(inode->i_sb,
--						 UDF_FLAG_GID_IGNORE))
-+	if (inode->i_gid == -1 ||
-+	    UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_GID_IGNORE) ||
-+	    UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_GID_SET))
- 		inode->i_gid = UDF_SB(inode->i_sb)->s_gid;
- 
- 	inode->i_nlink = le16_to_cpu(fe->fileLinkCount);
-diff -puN fs/udf/super.c~udf-fix-uid-and-gid-mount-option-ignorance fs/udf/super.c
---- a/fs/udf/super.c~udf-fix-uid-and-gid-mount-option-ignorance
-+++ a/fs/udf/super.c
-@@ -366,11 +366,13 @@ static int udf_parse_options(char *optio
- 			if (match_int(args, &option))
- 				return 0;
- 			uopt->gid = option;
-+			uopt->flags |= (1 << UDF_FLAG_GID_SET);
- 			break;
- 		case Opt_uid:
- 			if (match_int(args, &option))
- 				return 0;
- 			uopt->uid = option;
-+			uopt->flags |= (1 << UDF_FLAG_UID_SET);
- 			break;
- 		case Opt_umask:
- 			if (match_octal(args, &option))
-diff -puN fs/udf/udf_sb.h~udf-fix-uid-and-gid-mount-option-ignorance fs/udf/udf_sb.h
---- a/fs/udf/udf_sb.h~udf-fix-uid-and-gid-mount-option-ignorance
-+++ a/fs/udf/udf_sb.h
-@@ -24,6 +24,8 @@
- #define UDF_FLAG_UID_IGNORE     12    /* use sb uid instead of on disk uid */
- #define UDF_FLAG_GID_FORGET     13
- #define UDF_FLAG_GID_IGNORE     14
-+#define UDF_FLAG_UID_SET	15
-+#define UDF_FLAG_GID_SET	16
- 
- #define UDF_PART_FLAG_UNALLOC_BITMAP	0x0001
- #define UDF_PART_FLAG_UNALLOC_TABLE	0x0002
++#define PCI_SUBSYS_ID_CERC_ATA100	0x0511
++
+ #define HBA_SIGNATURE	      		0x3344
+ #define HBA_SIGNATURE_471	  	0xCCCC
+ #define HBA_SIGNATURE_64BIT		0x0299
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from tkrah@fachschaft.imn.htwk-leipzig.de are
 
-sky-cpu-and-nexus-code-style-improvement.patch
-sky-cpu-and-nexus-include-ioh.patch
-sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
-sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
-sky-cpu-use-c99-style-for-struct-init.patch
-sky-cpu-and-nexus-get-rid-of-useless-null-init.patch
-sky-cpu-and-nexus-use-seq_file-single_open-on-proc-interface.patch
-udf-fix-uid-and-gid-mount-option-ignorance.patch
+megaraid-add-cerc_ata100-support.patch
