@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + spi-kerneldoc-update.patch added to -mm tree
-Date: Tue, 24 Jul 2007 15:04:26 -0700
-Message-ID: <200707242204.l6OM4QDS003237@imap1.linux-foundation.org>
+Subject: + spi-device-setup-gets-better-error-checking.patch added to -mm tree
+Date: Tue, 24 Jul 2007 15:04:28 -0700
+Message-ID: <200707242204.l6OM4SnP003240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44098 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44220 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752243AbXGXWEl (ORCPT
+	by vger.kernel.org with ESMTP id S1755829AbXGXWEp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 18:04:41 -0400
+	Tue, 24 Jul 2007 18:04:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     spi kerneldoc update
+     spi device setup gets better error checking
 has been added to the -mm tree.  Its filename is
-     spi-kerneldoc-update.patch
+     spi-device-setup-gets-better-error-checking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,94 +26,135 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi kerneldoc update
+Subject: spi device setup gets better error checking
 From: David Brownell <david-b@pacbell.net>
 
-This adds kerneldoc to the SPI framework.  The "spi_driver" and
-"spi_board_info" structs were previously not described.
+This updates some error reporting paths in SPI device setup:
+
+ - Move validation logic for SPI chipselects to spi_new_device(),
+   which is where it should always have been.
+
+ - In spi_new_device(), emit error messages if the device can't
+   be created.  This is LOTS better than a silent failure; though
+   eventually, the calling convention should probably change to
+   use the <linux/err.h> conventions.
+
+ - Includes one previously-missing check:  SPI masters must always
+   have at least one chipselect, even for dedicated busses which
+   always keep it selected!
+
+It also adds a FIXME (IDR for dynamic ID allocation) so the issue doesn't live
+purely in my mailbox.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spi/spi.h |   58 +++++++++++++++++++++++++++++++++++++-
- 1 files changed, 57 insertions(+), 1 deletion(-)
+ drivers/spi/spi.c |   45 +++++++++++++++++++++++++++++---------------
+ 1 files changed, 30 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/spi/spi.h~spi-kerneldoc-update include/linux/spi/spi.h
---- a/include/linux/spi/spi.h~spi-kerneldoc-update
-+++ a/include/linux/spi/spi.h
-@@ -138,6 +138,32 @@ struct spi_message;
- 
- 
- 
-+/**
-+ * struct spi_driver - Host side "protocol" driver
-+ * @probe: Binds this driver to the spi device.  Drivers can verify
-+ *	that the device is actually present, and may need to configure
-+ *	characteristics (such as bits_per_word) which weren't needed for
-+ *	the initial configuration done during system setup.
-+ * @remove: Unbinds this driver from the spi device
-+ * @shutdown: Standard shutdown callback used during system state
-+ *	transitions such as powerdown/halt and kexec
-+ * @suspend: Standard suspend callback used during system state transitions
-+ * @resume: Standard resume callback used during system state transitions
-+ * @driver: SPI device drivers should initialize the name and owner
-+ *	field of this structure.
+diff -puN drivers/spi/spi.c~spi-device-setup-gets-better-error-checking drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-device-setup-gets-better-error-checking
++++ a/drivers/spi/spi.c
+@@ -200,6 +200,8 @@ static DEFINE_MUTEX(board_lock);
+  * platforms may not be able to use spi_register_board_info though, and
+  * this is exported so that for example a USB or parport based adapter
+  * driver could add devices (which it would learn about out-of-band).
 + *
-+ * This represents the kind of device driver that uses SPI messages to
-+ * interact with the hardware at the other end of a SPI link.  It's called
-+ * a "protocol" driver because it works through messages rather than talking
-+ * directly to SPI hardware (which is what the underlying SPI controller
-+ * driver does to pass those messages).  These protocols are defined in the
-+ * specification for the device(s) supported by the driver.
-+ *
-+ * As a rule, those device protocols represent the lowest level interface
-+ * supported by a driver, and it will support upper level interfaces too.
-+ * Examples of such upper levels include frameworks like MTD, networking,
-+ * MMC, RTC, filesystem character device nodes, and hardware monitoring.
-+ */
- struct spi_driver {
- 	int			(*probe)(struct spi_device *spi);
- 	int			(*remove)(struct spi_device *spi);
-@@ -667,7 +693,37 @@ static inline ssize_t spi_w8r16(struct s
-  * parport adapters, or microcontrollers acting as USB-to-SPI bridges.
++ * Returns the new device, or NULL.
   */
+ struct spi_device *spi_new_device(struct spi_master *master,
+ 				  struct spi_board_info *chip)
+@@ -208,7 +210,20 @@ struct spi_device *spi_new_device(struct
+ 	struct device		*dev = master->cdev.dev;
+ 	int			status;
  
--/* board-specific information about each SPI device */
-+/**
-+ * struct spi_board_info - board-specific template for a SPI device
-+ * @modalias: Initializes spi_device.modalias; identifies the driver.
-+ * @platform_data: Initializes spi_device.platform_data; the particular
-+ *	data stored there is driver-specific.
-+ * @controller_data: Initializes spi_device.controller_data; some
-+ *	controllers need hints about hardware setup, e.g. for DMA.
-+ * @irq: Initializes spi_device.irq; depends on how the board is wired.
-+ * @max_speed_hz: Initializes spi_device.max_speed_hz; based on limits
-+ *	from the chip datasheet and board-specific signal quality issues.
-+ * @bus_num: Identifies which spi_master parents the spi_device; unused
-+ *	by spi_new_device(), and otherwise depends on board wiring.
-+ * @chip_select: Initializes spi_device.chip_select; depends on how
-+ *	the board is wired.
-+ * @mode: Initializes spi_device.mode; based on the chip datasheet, board
-+ *	wiring (some devices support both 3WIRE and standard modes), and
-+ *	possibly presence of an inverter in the chipselect path.
-+ *
-+ * When adding new SPI devices to the device tree, these structures serve
-+ * as a partial device template.  They hold information which can't always
-+ * be determined by drivers.  Information that probe() can establish (such
-+ * as the default transfer wordsize) is not included here.
-+ *
-+ * These structures are used in two places.  Their primary role is to
-+ * be stored in tables of board-specific device descriptors, which are
-+ * declared early in board initialization and then used (much later) to
-+ * populate a controller's device tree after the that controller's driver
-+ * initializes.  A secondary (and atypical) role is as a parameter to
-+ * spi_new_device() call, which happens after those controller drivers
-+ * are active in some dynamic board configuration models.
-+ */
- struct spi_board_info {
- 	/* the device name and module name are coupled, like platform_bus;
- 	 * "modalias" is normally the driver name.
+-	/* NOTE:  caller did any chip->bus_num checks necessary */
++	/* NOTE:  caller did any chip->bus_num checks necessary.
++	 *
++	 * Also, unless we change the return value convention to use
++	 * error-or-pointer (not NULL-or-pointer), troubleshootability
++	 * suggests syslogged diagnostics are best here (ugh).
++	 */
++
++	/* Chipselects are numbered 0..max; validate. */
++	if (chip->chip_select >= master->num_chipselect) {
++		dev_err(dev, "cs%d > max %d\n",
++			chip->chip_select,
++			master->num_chipselect);
++		return NULL;
++	}
+ 
+ 	if (!spi_master_get(master))
+ 		return NULL;
+@@ -236,10 +251,10 @@ struct spi_device *spi_new_device(struct
+ 	proxy->controller_state = NULL;
+ 	proxy->dev.release = spidev_release;
+ 
+-	/* drivers may modify this default i/o setup */
++	/* drivers may modify this initial i/o setup */
+ 	status = master->setup(proxy);
+ 	if (status < 0) {
+-		dev_dbg(dev, "can't %s %s, status %d\n",
++		dev_err(dev, "can't %s %s, status %d\n",
+ 				"setup", proxy->dev.bus_id, status);
+ 		goto fail;
+ 	}
+@@ -249,7 +264,7 @@ struct spi_device *spi_new_device(struct
+ 	 */
+ 	status = device_register(&proxy->dev);
+ 	if (status < 0) {
+-		dev_dbg(dev, "can't %s %s, status %d\n",
++		dev_err(dev, "can't %s %s, status %d\n",
+ 				"add", proxy->dev.bus_id, status);
+ 		goto fail;
+ 	}
+@@ -306,7 +321,6 @@ spi_register_board_info(struct spi_board
+ static void scan_boardinfo(struct spi_master *master)
+ {
+ 	struct boardinfo	*bi;
+-	struct device		*dev = master->cdev.dev;
+ 
+ 	mutex_lock(&board_lock);
+ 	list_for_each_entry(bi, &board_list, list) {
+@@ -316,17 +330,9 @@ static void scan_boardinfo(struct spi_ma
+ 		for (n = bi->n_board_info; n > 0; n--, chip++) {
+ 			if (chip->bus_num != master->bus_num)
+ 				continue;
+-			/* some controllers only have one chip, so they
+-			 * might not use chipselects.  otherwise, the
+-			 * chipselects are numbered 0..max.
++			/* NOTE: this relies on spi_new_device to
++			 * issue diagnostics when given bogus inputs
+ 			 */
+-			if (chip->chip_select >= master->num_chipselect
+-					&& master->num_chipselect) {
+-				dev_dbg(dev, "cs%d > max %d\n",
+-					chip->chip_select,
+-					master->num_chipselect);
+-				continue;
+-			}
+ 			(void) spi_new_device(master, chip);
+ 		}
+ 	}
+@@ -419,8 +425,17 @@ int spi_register_master(struct spi_maste
+ 	if (!dev)
+ 		return -ENODEV;
+ 
++	/* even if it's just one always-selected device, there must
++	 * be at least one chipselect
++	 */
++	if (master->num_chipselect == 0)
++		return -EINVAL;
++
+ 	/* convention:  dynamically assigned bus IDs count down from the max */
+ 	if (master->bus_num < 0) {
++		/* FIXME switch to an IDR based scheme, something like
++		 * I2C now uses, so we can't run out of "dynamic" IDs
++		 */
+ 		master->bus_num = atomic_dec_return(&dyn_bus_id);
+ 		dynamic = 1;
+ 	}
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
