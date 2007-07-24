@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vlan_ioctl_handler-fix-return-value.patch added to -mm tree
-Date: Tue, 24 Jul 2007 02:44:37 -0700
-Message-ID: <200707240949.l6O9nAXL007271@imap1.linux-foundation.org>
+Subject: + git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch added to -mm tree
+Date: Tue, 24 Jul 2007 02:48:16 -0700
+Message-ID: <200707240952.l6O9qn04007366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41345 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34738 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763550AbXGXJtw (ORCPT
+	by vger.kernel.org with ESMTP id S1762319AbXGXJx3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 05:49:52 -0400
+	Tue, 24 Jul 2007 05:53:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, kaber@trash.net
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     vlan_ioctl_handler: fix return value
+     git-mtd: fix printk warning in jffs2_block_check_erase()
 has been added to the -mm tree.  Its filename is
-     vlan_ioctl_handler-fix-return-value.patch
+     git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vlan_ioctl_handler: fix return value
+Subject: git-mtd: fix printk warning in jffs2_block_check_erase()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/8021q/vlan.c: In function 'vlan_ioctl_handler':
-net/8021q/vlan.c:700: warning: 'err' may be used uninitialized in this function
+fs/jffs2/erase.c: In function 'jffs2_block_check_erase':
+fs/jffs2/erase.c:355: warning: format '%08x' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
 
-The warning is incorrect, but from my reading this ioctl will return -EINVAL
-on success.
+and
 
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+fs/jffs2/erase.c: In function 'jffs2_erase_pending_blocks':
+fs/jffs2/erase.c:404: warning: 'bad_offset' may be used uninitialized in this function
+
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/8021q/vlan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/jffs2/erase.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/8021q/vlan.c~vlan_ioctl_handler-fix-return-value net/8021q/vlan.c
---- a/net/8021q/vlan.c~vlan_ioctl_handler-fix-return-value
-+++ a/net/8021q/vlan.c
-@@ -810,6 +810,7 @@ static int vlan_ioctl_handler(void __use
- 		err = -EINVAL;
- 		break;
- 	case GET_VLAN_REALDEV_NAME_CMD:
-+		err = 0;
- 		vlan_dev_get_realdev_name(dev, args.u.device2);
- 		if (copy_to_user(arg, &args,
- 				 sizeof(struct vlan_ioctl_args))) {
-@@ -818,6 +819,7 @@ static int vlan_ioctl_handler(void __use
- 		break;
+diff -puN fs/jffs2/erase.c~git-mtd-fix-printk-warning-in-jffs2_block_check_erase fs/jffs2/erase.c
+--- a/fs/jffs2/erase.c~git-mtd-fix-printk-warning-in-jffs2_block_check_erase
++++ a/fs/jffs2/erase.c
+@@ -351,7 +351,7 @@ static int jffs2_block_check_erase(struc
+ 		} while(--retlen);
+ 		c->mtd->unpoint(c->mtd, ebuf, jeb->offset, c->sector_size);
+ 		if (retlen)
+-			printk(KERN_WARNING "Newly-erased block contained word 0x%lx at offset 0x%08x\n",
++			printk(KERN_WARNING "Newly-erased block contained word 0x%lx at offset 0x%08tx\n",
+ 			       *wordebuf, jeb->offset + c->sector_size-retlen*sizeof(*wordebuf));
+ 		return 0;
+ 	}
+@@ -401,7 +401,7 @@ static void jffs2_mark_erased_block(stru
+ {
+ 	size_t retlen;
+ 	int ret;
+-	uint32_t bad_offset;
++	uint32_t uninitialized_var(bad_offset);
  
- 	case GET_VLAN_VID_CMD:
-+		err = 0;
- 		vlan_dev_get_vid(dev, &vid);
- 		args.u.VID = vid;
- 		if (copy_to_user(arg, &args,
+ 	switch (jffs2_block_check_erase(c, jeb, &bad_offset)) {
+ 	case -EAGAIN:	goto refile;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,9 +87,11 @@ ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 fix-ide-ide-add-ide-set-pio-take3.patch
 mmc-build-fix.patch
 git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
 e1000new-build-fix.patch
 e1000new-build-fix-2.patch
 ip_auto_config-fix-fix.patch
+vlan_ioctl_handler-fix-return-value.patch
 serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
@@ -153,4 +158,3 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-vlan_ioctl_handler-fix-return-value.patch
