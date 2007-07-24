@@ -1,150 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - slab-correctly-handle-__gfp_zero.patch removed from -mm tree
-Date: Tue, 24 Jul 2007 16:25:00 -0700
-Message-ID: <200707242325.l6ONP0jN006322@imap1.linux-foundation.org>
+Subject: - minor-gpio-doc-update.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 16:24:52 -0700
+Message-ID: <200707242324.l6ONOqjn006310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51414 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49308 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757392AbXGXXZM (ORCPT
+	by vger.kernel.org with ESMTP id S1757825AbXGXXZN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 19:25:12 -0400
+	Tue, 24 Jul 2007 19:25:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, efault@gmx.de, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, ukleinek@informatik.uni-freiburg.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: correctly handle __GFP_ZERO
+     minor gpio doc update
 has been removed from the -mm tree.  Its filename was
-     slab-correctly-handle-__gfp_zero.patch
+     minor-gpio-doc-update.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: slab: correctly handle __GFP_ZERO
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: minor gpio doc update
+=46rom: David Brownell <david-b@pacbell.net>
 
-Use the correct local variable when calling into the page allocator.  Local
-`flags' can have __GFP_ZERO set, which causes us to pass __GFP_ZERO into the
-page allocator, possibly from illegal contexts.  The page allocator will later
-do prep_zero_page()->kmap_atomic(..., KM_USER0) from irq contexts and will
-then go BUG.
+=46ix doc bug noted by Uwe Kleine-K=F6nig:  gpio_set_direction() is lon=
+g
+gone, replaced by gpio_direction_input() and gpio_direction_output().
 
-Cc: Mike Galbraith <efault@gmx.de>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: <ukleinek@informatik.uni-freiburg.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ Documentation/gpio.txt |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~slab-correctly-handle-__gfp_zero mm/slab.c
---- a/mm/slab.c~slab-correctly-handle-__gfp_zero
-+++ a/mm/slab.c
-@@ -2776,7 +2776,7 @@ static int cache_grow(struct kmem_cache 
- 	 * 'nodeid'.
- 	 */
- 	if (!objp)
--		objp = kmem_getpages(cachep, flags, nodeid);
-+		objp = kmem_getpages(cachep, local_flags, nodeid);
- 	if (!objp)
- 		goto failed;
- 
+diff -puN Documentation/gpio.txt~minor-gpio-doc-update Documentation/gp=
+io.txt
+--- a/Documentation/gpio.txt~minor-gpio-doc-update
++++ a/Documentation/gpio.txt
+@@ -148,7 +148,7 @@ pin ... that won't always match the spec
+ issues including wire-OR and output latencies.
+=20
+ The get/set calls have no error returns because "invalid GPIO" should =
+have
+-been reported earlier in gpio_set_direction().  However, note that not=
+ all
++been reported earlier from gpio_direction_*().  However, note that not=
+ all
+ platforms can read the value of output pins; those that can't should a=
+lways
+ return zero.  Also, using these calls for GPIOs that can't safely be a=
+ccessed
+ without sleeping (see below) is an error.
+@@ -239,7 +239,7 @@ map between them using calls like:
+ Those return either the corresponding number in the other namespace, o=
+r
+ else a negative errno code if the mapping can't be done.  (For example=
+,
+ some GPIOs can't used as IRQs.)  It is an unchecked error to use a GPI=
+O
+-number that hasn't been marked as an input using gpio_set_direction(),=
+ or
++number that wasn't set up as an input using gpio_direction_input(), or
+ to use an IRQ number that didn't originally come from gpio_to_irq().
+=20
+ These two mapping calls are expected to cost on the order of a single
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
 rtc-stk17ta8-update-for-sysfs-api-change.patch
-x86_powernow_k8_acpi-must-depend-on-acpi.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
+rtc-ds1307-typo-fix-found-by-coverity.patch
 git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-mmc-build-fix.patch
+git-mmc.patch
 git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-git-net.patch
-ip_auto_config-fix-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-scsi-target-fixup.patch
-git-unionfs.patch
-git-watchdog.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+spi-kerneldoc-update.patch
+spi-device-setup-gets-better-error-checking.patch
+rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
+use-menuconfig-objects-rtc.patch
