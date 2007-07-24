@@ -1,64 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - fallocate-syscall-interface-deficiency.patch removed from -mm tree
-Date: Tue, 24 Jul 2007 16:24:23 -0700
-Message-ID: <200707242324.l6ONONIj006266@imap1.linux-foundation.org>
+Subject: - uml-fix-aio-compilation-bug.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 16:24:29 -0700
+Message-ID: <200707242324.l6ONOT1U006277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54686 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50947 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757052AbXGXXYr (ORCPT
+	by vger.kernel.org with ESMTP id S1756724AbXGXXYp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 19:24:47 -0400
+	Tue, 24 Jul 2007 19:24:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drepper@redhat.com, aarora@in.ibm.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, drepper@redhat.com, jdike@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fallocate syscall interface deficiency
+     uml: fix aio compilation bug
 has been removed from the -mm tree.  Its filename was
-     fallocate-syscall-interface-deficiency.patch
+     uml-fix-aio-compilation-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fallocate syscall interface deficiency
-From: Ulrich Drepper <drepper@redhat.com>
+Subject: uml: fix aio compilation bug
+From: Jeff Dike <jdike@addtoit.com>
 
-The fallocate syscall returns ENOSYS in case the filesystem does not support
-the operation and expects the userlevel code to fill in.  This is good in
-concept.
+Restructure do_aio thanks to commments from Ulrich and Al.
 
-The problem is that the libc code for old kernels should be able to
-distinguish the case where the syscall is not at all available vs not
-functioning for a specific mount point.  As is this is not possible and we
-always have to invoke the syscall even if the kernel doesn't support it.
+Uli started this by seeing that UML's initialization of a struct iocb
+initialized fields that it shouldn't.
 
-I suggest the following patch.  Using EOPNOTSUPP is IMO the right thing to do.
+Al followed up by adding the following cleanups:
+	eliminating a variable by just using an anonymous structure in
+its place.
+	hoisting a duplicated line out of the switch.
+	simplifying the error checking at the end.
 
-Cc: Amit Arora <aarora@in.ibm.com>
+I added a severity to the printk.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/um/os-Linux/aio.c |   47 ++++++++++++++-------------------------
+ 1 files changed, 17 insertions(+), 30 deletions(-)
 
-diff -puN fs/open.c~fallocate-syscall-interface-deficiency fs/open.c
---- a/fs/open.c~fallocate-syscall-interface-deficiency
-+++ a/fs/open.c
-@@ -403,7 +403,7 @@ asmlinkage long sys_fallocate(int fd, in
- 	if (inode->i_op && inode->i_op->fallocate)
- 		ret = inode->i_op->fallocate(inode, mode, offset, len);
- 	else
--		ret = -ENOSYS;
-+		ret = -EOPNOTSUPP;
+diff -puN arch/um/os-Linux/aio.c~uml-fix-aio-compilation-bug arch/um/os-Linux/aio.c
+--- a/arch/um/os-Linux/aio.c~uml-fix-aio-compilation-bug
++++ a/arch/um/os-Linux/aio.c
+@@ -14,6 +14,7 @@
+ #include "init.h"
+ #include "user.h"
+ #include "mode.h"
++#include "kern_constants.h"
  
- out_fput:
- 	fput(file);
+ struct aio_thread_req {
+ 	enum aio_type type;
+@@ -65,47 +66,33 @@ static long io_getevents(aio_context_t c
+ static int do_aio(aio_context_t ctx, enum aio_type type, int fd, char *buf,
+ 		  int len, unsigned long long offset, struct aio_context *aio)
+ {
+-	struct iocb iocb, *iocbp = &iocb;
++	struct iocb *iocbp = & ((struct iocb) {
++				    .aio_data       = (unsigned long) aio,
++				    .aio_fildes     = fd,
++				    .aio_buf        = (unsigned long) buf,
++				    .aio_nbytes     = len,
++				    .aio_offset     = offset
++			     });
+ 	char c;
+-	int err;
+-
+-	iocb = ((struct iocb) { .aio_data 	= (unsigned long) aio,
+-				.aio_reqprio	= 0,
+-				.aio_fildes	= fd,
+-				.aio_buf	= (unsigned long) buf,
+-				.aio_nbytes	= len,
+-				.aio_offset	= offset,
+-				.aio_reserved1	= 0,
+-				.aio_reserved2	= 0,
+-				.aio_reserved3	= 0 });
+ 
+-	switch(type){
++	switch (type) {
+ 	case AIO_READ:
+-		iocb.aio_lio_opcode = IOCB_CMD_PREAD;
+-		err = io_submit(ctx, 1, &iocbp);
++		iocbp->aio_lio_opcode = IOCB_CMD_PREAD;
+ 		break;
+ 	case AIO_WRITE:
+-		iocb.aio_lio_opcode = IOCB_CMD_PWRITE;
+-		err = io_submit(ctx, 1, &iocbp);
++		iocbp->aio_lio_opcode = IOCB_CMD_PWRITE;
+ 		break;
+ 	case AIO_MMAP:
+-		iocb.aio_lio_opcode = IOCB_CMD_PREAD;
+-		iocb.aio_buf = (unsigned long) &c;
+-		iocb.aio_nbytes = sizeof(c);
+-		err = io_submit(ctx, 1, &iocbp);
++		iocbp->aio_lio_opcode = IOCB_CMD_PREAD;
++		iocbp->aio_buf = (unsigned long) &c;
++		iocbp->aio_nbytes = sizeof(c);
+ 		break;
+ 	default:
+-		printk("Bogus op in do_aio - %d\n", type);
+-		err = -EINVAL;
+-		break;
++		printk(UM_KERN_ERR "Bogus op in do_aio - %d\n", type);
++		return -EINVAL;
+ 	}
+ 
+-	if(err > 0)
+-		err = 0;
+-	else
+-		err = -errno;
+-
+-	return err;
++	return (io_submit(ctx, 1, &iocbp) > 0) ? 0 : -errno;
+ }
+ 
+ /* Initialized in an initcall and unchanged thereafter */
 _
 
-Patches currently in -mm which might be from drepper@redhat.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-tiny-signalfd-cleanup.patch
-futex-pass-nr_wake2-to-futex_wake_op.patch
+git-kvm.patch
+hostfs-convert-to-new-aops.patch
