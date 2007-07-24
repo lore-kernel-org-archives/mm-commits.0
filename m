@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-printk-warning-fixes.patch added to -mm tree
-Date: Tue, 24 Jul 2007 02:32:56 -0700
-Message-ID: <200707240937.l6O9bTcx006713@imap1.linux-foundation.org>
+Subject: + vlan_ioctl_handler-fix-return-value.patch added to -mm tree
+Date: Tue, 24 Jul 2007 02:44:37 -0700
+Message-ID: <200707240949.l6O9nAXL007271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48340 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41345 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760384AbXGXJho (ORCPT
+	by vger.kernel.org with ESMTP id S1763550AbXGXJtw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 05:37:44 -0400
+	Tue, 24 Jul 2007 05:49:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mhalcrow@us.ibm.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, kaber@trash.net
 
 
 The patch titled
-     ecryptfs: printk warning fixes
+     vlan_ioctl_handler: fix return value
 has been added to the -mm tree.  Its filename is
-     ecryptfs-printk-warning-fixes.patch
+     vlan_ioctl_handler-fix-return-value.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,116 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ecryptfs: printk warning fixes
+Subject: vlan_ioctl_handler: fix return value
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ecryptfs/keystore.c: In function 'parse_tag_1_packet':
-fs/ecryptfs/keystore.c:557: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c: In function 'parse_tag_3_packet':
-fs/ecryptfs/keystore.c:690: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c: In function 'parse_tag_11_packet':
-fs/ecryptfs/keystore.c:836: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c: In function 'write_tag_1_packet':
-fs/ecryptfs/keystore.c:1413: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c:1413: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-fs/ecryptfs/keystore.c: In function 'write_tag_11_packet':
-fs/ecryptfs/keystore.c:1472: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c: In function 'write_tag_3_packet':
-fs/ecryptfs/keystore.c:1663: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c:1663: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-fs/ecryptfs/keystore.c: In function 'ecryptfs_generate_key_packet_set':
-fs/ecryptfs/keystore.c:1778: warning: passing argument 2 of 'write_tag_11_packet' from incompatible pointer type
-fs/ecryptfs/main.c: In function 'ecryptfs_parse_options':
-fs/ecryptfs/main.c:363: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+net/8021q/vlan.c: In function 'vlan_ioctl_handler':
+net/8021q/vlan.c:700: warning: 'err' may be used uninitialized in this function
 
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+The warning is incorrect, but from my reading this ioctl will return -EINVAL
+on success.
+
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/keystore.c |   16 ++++++++--------
- fs/ecryptfs/main.c     |    2 +-
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ net/8021q/vlan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-printk-warning-fixes fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-printk-warning-fixes
-+++ a/fs/ecryptfs/keystore.c
-@@ -554,7 +554,7 @@ parse_tag_1_packet(struct ecryptfs_crypt
- 		goto out_free;
- 	}
- 	if (unlikely(body_size < (ECRYPTFS_SIG_SIZE + 2))) {
--		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
-+		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
-@@ -687,7 +687,7 @@ parse_tag_3_packet(struct ecryptfs_crypt
- 		goto out_free;
- 	}
- 	if (unlikely(body_size < (ECRYPTFS_SALT_SIZE + 5))) {
--		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
-+		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
-@@ -833,7 +833,7 @@ parse_tag_11_packet(unsigned char *data,
- 		goto out;
- 	}
- 	if (body_size < 14) {
--		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
-+		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
- 		rc = -EINVAL;
- 		goto out;
- 	}
-@@ -1409,7 +1409,7 @@ encrypted_session_key_set:
- 			   + key_rec->enc_key_size); /* Encrypted key size */
- 	if (max_packet_size > (*remaining_bytes)) {
- 		printk(KERN_ERR "Packet length larger than maximum allowable; "
--		       "need up to [%d] bytes, but there are only [%d] "
-+		       "need up to [%td] bytes, but there are only [%td] "
- 		       "available\n", max_packet_size, (*remaining_bytes));
- 		rc = -EINVAL;
- 		goto out;
-@@ -1449,7 +1449,7 @@ out:
-  * Returns zero on success; non-zero on error.
-  */
- static int
--write_tag_11_packet(char *dest, int *remaining_bytes, char *contents,
-+write_tag_11_packet(char *dest, size_t *remaining_bytes, char *contents,
- 		    size_t contents_length, size_t *packet_length)
- {
- 	size_t packet_size_length;
-@@ -1468,7 +1468,7 @@ write_tag_11_packet(char *dest, int *rem
- 			   + contents_length); /* Literal data */
- 	if (max_packet_size > (*remaining_bytes)) {
- 		printk(KERN_ERR "Packet length larger than maximum allowable; "
--		       "need up to [%d] bytes, but there are only [%d] "
-+		       "need up to [%td] bytes, but there are only [%td] "
- 		       "available\n", max_packet_size, (*remaining_bytes));
- 		rc = -EINVAL;
- 		goto out;
-@@ -1658,8 +1658,8 @@ encrypted_session_key_set:
- 			   + 1                       /* Hash iterations */
- 			   + key_rec->enc_key_size); /* Encrypted key size */
- 	if (max_packet_size > (*remaining_bytes)) {
--		printk(KERN_ERR "Packet too large; need up to [%d] bytes, but "
--		       "there are only [%d] available\n", max_packet_size,
-+		printk(KERN_ERR "Packet too large; need up to [%td] bytes, but "
-+		       "there are only [%td] available\n", max_packet_size,
- 		       (*remaining_bytes));
- 		rc = -EINVAL;
- 		goto out;
-diff -puN fs/ecryptfs/main.c~ecryptfs-printk-warning-fixes fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-printk-warning-fixes
-+++ a/fs/ecryptfs/main.c
-@@ -358,7 +358,7 @@ static int ecryptfs_parse_options(struct
- 		     NULL, mount_crypt_stat->global_default_cipher_name,
- 		     mount_crypt_stat->global_default_cipher_key_size))) {
- 		printk(KERN_ERR "Error attempting to initialize cipher with "
--		       "name = [%s] and key size = [%d]; rc = [%d]\n",
-+		       "name = [%s] and key size = [%td]; rc = [%d]\n",
- 		       mount_crypt_stat->global_default_cipher_name,
- 		       mount_crypt_stat->global_default_cipher_key_size, rc);
- 		rc = -EINVAL;
+diff -puN net/8021q/vlan.c~vlan_ioctl_handler-fix-return-value net/8021q/vlan.c
+--- a/net/8021q/vlan.c~vlan_ioctl_handler-fix-return-value
++++ a/net/8021q/vlan.c
+@@ -810,6 +810,7 @@ static int vlan_ioctl_handler(void __use
+ 		err = -EINVAL;
+ 		break;
+ 	case GET_VLAN_REALDEV_NAME_CMD:
++		err = 0;
+ 		vlan_dev_get_realdev_name(dev, args.u.device2);
+ 		if (copy_to_user(arg, &args,
+ 				 sizeof(struct vlan_ioctl_args))) {
+@@ -818,6 +819,7 @@ static int vlan_ioctl_handler(void __use
+ 		break;
+ 
+ 	case GET_VLAN_VID_CMD:
++		err = 0;
+ 		vlan_dev_get_vid(dev, &vid);
+ 		args.u.VID = vid;
+ 		if (copy_to_user(arg, &args,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -227,3 +153,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+vlan_ioctl_handler-fix-return-value.patch
