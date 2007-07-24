@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + security-convert-lsm-into-a-static-interface-fix-2.patch added to -mm tree
-Date: Tue, 24 Jul 2007 00:59:08 -0700
-Message-ID: <200707240803.l6O83fGn003184@imap1.linux-foundation.org>
+Subject: + security-convert-lsm-into-a-static-interface-fix-unionfs.patch added to -mm tree
+Date: Tue, 24 Jul 2007 01:09:35 -0700
+Message-ID: <200707240814.l6O8E8xj003581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48092 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38695 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753313AbXGXIE1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751771AbXGXIOg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 04:04:27 -0400
+	Tue, 24 Jul 2007 04:14:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@infradead.org, chrisw@sous-sol.org, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, arjan@infradead.org, chrisw@sous-sol.org, jmorris@namei.org, jsipek@cs.sunysb.edu, sds@tycho.nsa.gov, serue@us.ibm.com
 
 
 The patch titled
-     security-convert-lsm-into-a-static-interface-fix-2
+     security-convert-lsm-into-a-static-interface :fix unionfs
 has been added to the -mm tree.  Its filename is
-     security-convert-lsm-into-a-static-interface-fix-2.patch
+     security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: security-convert-lsm-into-a-static-interface-fix-2
+Subject: security-convert-lsm-into-a-static-interface :fix unionfs
 From: Andrew Morton <akpm@linux-foundation.org>
+
+ERROR: "security_inode_permission" [fs/unionfs/unionfs.ko] undefined!
+ERROR: "security_file_ioctl" [fs/unionfs/unionfs.ko] undefined!
+
+Need these back.
 
 Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: James Morris <jmorris@namei.org>
 Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ security/security.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN security/Kconfig~security-convert-lsm-into-a-static-interface-fix-2 security/Kconfig
---- a/security/Kconfig~security-convert-lsm-into-a-static-interface-fix-2
-+++ a/security/Kconfig
-@@ -82,7 +82,7 @@ config SECURITY_CAPABILITIES
+diff -puN security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs security/security.c
+--- a/security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs
++++ a/security/security.c
+@@ -455,6 +455,7 @@ int security_inode_permission(struct ino
+ 		return 0;
+ 	return security_ops->inode_permission(inode, mask, nd);
+ }
++EXPORT_SYMBOL(security_inode_permission);
  
- config SECURITY_ROOTPLUG
- 	bool "Root Plug Support"
--	depends on USB && SECURITY
-+	depends on USB=y && SECURITY
- 	help
- 	  This is a sample LSM module that should only be used as such.
- 	  It prevents any programs running with egid == 0 if a specific
+ int security_inode_setattr(struct dentry *dentry, struct iattr *attr)
+ {
+@@ -559,6 +560,7 @@ int security_file_ioctl(struct file *fil
+ {
+ 	return security_ops->file_ioctl(file, cmd, arg);
+ }
++EXPORT_SYMBOL(security_file_ioctl);
+ 
+ int security_file_mmap(struct file *file, unsigned long reqprot,
+ 			unsigned long prot, unsigned long flags,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +115,7 @@ slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
 hugetlbfs-read-support-fix.patch
 security-convert-lsm-into-a-static-interface-fix.patch
 security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 file-capabilities-clear-caps-cleanup-fix.patch
 capabilityh-remove-include-of-currenth.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
