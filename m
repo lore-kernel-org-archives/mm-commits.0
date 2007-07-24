@@ -1,153 +1,238 @@
 From: akpm@linux-foundation.org
-Subject: + slab-correctly-handle-__gfp_zero.patch added to -mm tree
-Date: Tue, 24 Jul 2007 09:31:10 -0700
-Message-ID: <200707241631.l6OGVAtF022368@imap1.linux-foundation.org>
+Subject: - remove-unsafe-from-module-struct.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 09:45:01 -0700
+Message-ID: <200707241645.l6OGj16Z022836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48189 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38197 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751856AbXGXQbW (ORCPT
+	by vger.kernel.org with ESMTP id S1750933AbXGXQpn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 12:31:22 -0400
+	Tue, 24 Jul 2007 12:45:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, efault@gmx.de
+To: rusty@rustcorp.com.au, bunk@stusta.de, dan.j.williams@intel.com, shannon.nelson@intel.com, sri@us.ibm.com, vladislav.yasevich@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: correctly handle __GFP_ZERO
-has been added to the -mm tree.  Its filename is
-     slab-correctly-handle-__gfp_zero.patch
+     Remove "unsafe" from module struct
+has been removed from the -mm tree.  Its filename was
+     remove-unsafe-from-module-struct.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: slab: correctly handle __GFP_ZERO
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Remove "unsafe" from module struct
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Use the correct local variable when calling into the page allocator.  Local
-`flags' can have __GFP_ZERO set, which causes us to pass __GFP_ZERO into the
-page allocator, possibly from illegal contexts.  The page allocator will later
-do prep_zero_page()->kmap_atomic(..., KM_USER0) from irq contexts and will
-then go BUG.
+Adrian Bunk points out that "unsafe" was used to mark modules touched by
+the deprecated MOD_INC_USE_COUNT interface, which has long gone.  It's time
+to remove the member from the module structure, as well.
 
-Cc: Mike Galbraith <efault@gmx.de>
-Cc: Christoph Lameter <clameter@sgi.com>
+If you want a module which can't unload, don't register an exit function.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Shannon Nelson <shannon.nelson@intel.com>
+Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
+Cc: Sridhar Samudrala <sri@us.ibm.com>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/dma/ioat.c     |    3 ---
+ drivers/dma/iop-adma.c |    9 ++++-----
+ include/linux/module.h |   15 ---------------
+ kernel/module.c        |   21 +++++----------------
+ net/sctp/protocol.c    |    5 +++--
+ 5 files changed, 12 insertions(+), 41 deletions(-)
 
-diff -puN mm/slab.c~slab-correctly-handle-__gfp_zero mm/slab.c
---- a/mm/slab.c~slab-correctly-handle-__gfp_zero
-+++ a/mm/slab.c
-@@ -2776,7 +2776,7 @@ static int cache_grow(struct kmem_cache 
- 	 * 'nodeid'.
- 	 */
- 	if (!objp)
--		objp = kmem_getpages(cachep, flags, nodeid);
-+		objp = kmem_getpages(cachep, local_flags, nodeid);
- 	if (!objp)
- 		goto failed;
+diff -puN /dev/null /dev/null
+diff -puN drivers/dma/iop-adma.c~remove-unsafe-from-module-struct drivers/dma/iop-adma.c
+--- a/drivers/dma/iop-adma.c~remove-unsafe-from-module-struct
++++ a/drivers/dma/iop-adma.c
+@@ -1446,21 +1446,20 @@ static struct platform_driver iop_adma_d
  
+ static int __init iop_adma_init (void)
+ {
+-	/* it's currently unsafe to unload this module */
+-	/* if forced, worst case is that rmmod hangs */
+-	__unsafe(THIS_MODULE);
+-
+ 	return platform_driver_register(&iop_adma_driver);
+ }
+ 
++/* it's currently unsafe to unload this module */
++#if 0
+ static void __exit iop_adma_exit (void)
+ {
+ 	platform_driver_unregister(&iop_adma_driver);
+ 	return;
+ }
++module_exit(iop_adma_exit);
++#endif
+ 
+ module_init(iop_adma_init);
+-module_exit(iop_adma_exit);
+ 
+ MODULE_AUTHOR("Intel Corporation");
+ MODULE_DESCRIPTION("IOP ADMA Engine Driver");
+diff -puN include/linux/module.h~remove-unsafe-from-module-struct include/linux/module.h
+--- a/include/linux/module.h~remove-unsafe-from-module-struct
++++ a/include/linux/module.h
+@@ -328,9 +328,6 @@ struct module
+ 	/* Arch-specific module values */
+ 	struct mod_arch_specific arch;
+ 
+-	/* Am I unsafe to unload? */
+-	int unsafe;
+-
+ 	unsigned int taints;	/* same bits as kernel:tainted */
+ 
+ #ifdef CONFIG_GENERIC_BUG
+@@ -457,16 +454,6 @@ static inline void __module_get(struct m
+ 	__mod ? __mod->name : "kernel";		\
+ })
+ 
+-#define __unsafe(mod)							     \
+-do {									     \
+-	if (mod && !(mod)->unsafe) {					     \
+-		printk(KERN_WARNING					     \
+-		       "Module %s cannot be unloaded due to unsafe usage in" \
+-		       " %s:%u\n", (mod)->name, __FILE__, __LINE__);	     \
+-		(mod)->unsafe = 1;					     \
+-	}								     \
+-} while(0)
+-
+ /* For kallsyms to ask for address resolution.  NULL means not found. */
+ const char *module_address_lookup(unsigned long addr,
+ 				  unsigned long *symbolsize,
+@@ -534,8 +521,6 @@ static inline void module_put(struct mod
+ 
+ #define module_name(mod) "kernel"
+ 
+-#define __unsafe(mod)
+-
+ /* For kallsyms to ask for address resolution.  NULL means not found. */
+ static inline const char *module_address_lookup(unsigned long addr,
+ 						unsigned long *symbolsize,
+diff -puN kernel/module.c~remove-unsafe-from-module-struct kernel/module.c
+--- a/kernel/module.c~remove-unsafe-from-module-struct
++++ a/kernel/module.c
+@@ -693,8 +693,7 @@ sys_delete_module(const char __user *nam
+ 	}
+ 
+ 	/* If it has an init func, it must have an exit func to unload */
+-	if ((mod->init != NULL && mod->exit == NULL)
+-	    || mod->unsafe) {
++	if (mod->init && !mod->exit) {
+ 		forced = try_force_unload(flags);
+ 		if (!forced) {
+ 			/* This module can't be removed */
+@@ -753,11 +752,6 @@ static void print_unload_info(struct seq
+ 		seq_printf(m, "%s,", use->module_which_uses->name);
+ 	}
+ 
+-	if (mod->unsafe) {
+-		printed_something = 1;
+-		seq_printf(m, "[unsafe],");
+-	}
+-
+ 	if (mod->init != NULL && mod->exit == NULL) {
+ 		printed_something = 1;
+ 		seq_printf(m, "[permanent],");
+@@ -2074,15 +2068,10 @@ sys_init_module(void __user *umod,
+ 				mod);
+ 		up(&notify_mutex);
+ 		synchronize_sched();
+-		if (mod->unsafe)
+-			printk(KERN_ERR "%s: module is now stuck!\n",
+-			       mod->name);
+-		else {
+-			module_put(mod);
+-			mutex_lock(&module_mutex);
+-			free_module(mod);
+-			mutex_unlock(&module_mutex);
+-		}
++		module_put(mod);
++		mutex_lock(&module_mutex);
++		free_module(mod);
++		mutex_unlock(&module_mutex);
+ 		return ret;
+ 	}
+ 
+diff -puN net/sctp/protocol.c~remove-unsafe-from-module-struct net/sctp/protocol.c
+--- a/net/sctp/protocol.c~remove-unsafe-from-module-struct
++++ a/net/sctp/protocol.c
+@@ -1176,7 +1176,6 @@ SCTP_STATIC __init int sctp_init(void)
+ 	if (status)
+ 		goto err_v6_add_protocol;
+ 
+-	__unsafe(THIS_MODULE);
+ 	status = 0;
+ out:
+ 	return status;
+@@ -1216,6 +1215,7 @@ err_chunk_cachep:
+ 	goto out;
+ }
+ 
++#if 0
+ /* Exit handler for the SCTP protocol.  */
+ SCTP_STATIC __exit void sctp_exit(void)
+ {
+@@ -1263,9 +1263,10 @@ SCTP_STATIC __exit void sctp_exit(void)
+ 
+ 	proto_unregister(&sctp_prot);
+ }
++module_exit(sctp_exit);
++#endif
+ 
+ module_init(sctp_init);
+-module_exit(sctp_exit);
+ 
+ /*
+  * __stringify doesn't likes enums, so use IPPROTO_SCTP value (132) directly.
+diff -puN drivers/dma/ioat.c~remove-unsafe-from-module-struct drivers/dma/ioat.c
+--- a/drivers/dma/ioat.c~remove-unsafe-from-module-struct
++++ a/drivers/dma/ioat.c
+@@ -182,9 +182,6 @@ static void __devexit ioat_remove(struct
+ 
+ static int __init ioat_init_module(void)
+ {
+-	/* it's currently unsafe to unload this module */
+-	/* if forced, worst case is that rmmod hangs */
+-	__unsafe(THIS_MODULE);
+ 	return pci_register_driver(&ioat_pci_drv);
+ }
+ module_init(ioat_init_module);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-rtc-stk17ta8-update-for-sysfs-api-change.patch
-slab-correctly-handle-__gfp_zero.patch
-x86_powernow_k8_acpi-must-depend-on-acpi.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-alsa-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+resend-link-lguest-example-launcher-non-static.patch
+lguest-documentation-i-preparation.patch
+lguest-documentation-ii-guest.patch
+lguest-documentation-iii-drivers.patch
+lguest-documentation-iv-launcher.patch
+lguest-documentation-v-host.patch
+lguest-documentation-vi-switcher.patch
+lguest-documentation-vii-fixmes.patch
 git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-mmc-build-fix.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-ip_auto_config-fix-fix.patch
-vlan_ioctl_handler-fix-return-value.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-aacraid-rename-check_reset.patch
-git-scsi-target-fixup.patch
-git-unionfs.patch
-git-watchdog-typo.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
 git-newsetup-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
+radixtree-introduce-radix_tree_next_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
 maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+remove-unsafe-from-module-struct.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
