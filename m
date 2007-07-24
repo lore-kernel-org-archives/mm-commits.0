@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-fix-memory-leak.patch added to -mm tree
-Date: Mon, 23 Jul 2007 17:26:33 -0700
-Message-ID: <200707240026.l6O0QXE2019642@imap1.linux-foundation.org>
+Subject: + x86_powernow_k8_acpi-must-depend-on-acpi.patch added to -mm tree
+Date: Mon, 23 Jul 2007 17:50:44 -0700
+Message-ID: <200707240050.l6O0oiZ3020476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59156 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57334 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750710AbXGXA0m (ORCPT
+	by vger.kernel.org with ESMTP id S1752537AbXGXAwa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Jul 2007 20:26:42 -0400
+	Mon, 23 Jul 2007 20:52:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, mike.miller@hp.com
+Cc: bunk@stusta.de, adobriyan@sw.ru, akpm@linux-foundation.org, davej@redhat.com, jhoblitt@ifa.hawaii.edu, lenb@kernel.org, michal.k.k.piotrowski@gmail.com
 
 
 The patch titled
-     cciss: fix memory leak
+     X86_POWERNOW_K8_ACPI must depend on ACPI
 has been added to the -mm tree.  Its filename is
-     cciss-fix-memory-leak.patch
+     x86_powernow_k8_acpi-must-depend-on-acpi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cciss: fix memory leak
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: X86_POWERNOW_K8_ACPI must depend on ACPI
+From: Adrian Bunk <bunk@stusta.de>
 
-There's a memory leak in the cciss driver.
+This patch fixes the following compile error introduced by
+commit e8666b2718fdb5bf0ea7c3126f7e292bbbf2946b and reported
+by Alexey Dobriyan:
 
-in alloc_cciss_hba() we may leak sizeof(ctlr_info_t) bytes if a
-call to alloc_disk(1 << NWD_SHIFT) fails.
-This patch should fix the issue.
+<--  snip  -->
 
-Spotted by the Coverity checker.
+   CC      arch/i386/kernel/acpi/cstate.o
+In file included from arch/i386/kernel/acpi/cstate.c:17:
+include/acpi/processor.h:88: error: expected specifier-qualifier-list before 'acpi_integer'
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Mike Miller <mike.miller@hp.com>
+<--  snip  -->
+
+If you select something you must ensure that the dependencies of what
+you are selecting are fulfilled.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Joshua Hoblitt <jhoblitt@ifa.hawaii.edu>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ arch/i386/kernel/cpu/cpufreq/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-memory-leak drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-memory-leak
-+++ a/drivers/block/cciss.c
-@@ -3227,12 +3227,15 @@ static int alloc_cciss_hba(void)
- 	for (i = 0; i < MAX_CTLR; i++) {
- 		if (!hba[i]) {
- 			ctlr_info_t *p;
-+
- 			p = kzalloc(sizeof(ctlr_info_t), GFP_KERNEL);
- 			if (!p)
- 				goto Enomem;
- 			p->gendisk[0] = alloc_disk(1 << NWD_SHIFT);
--			if (!p->gendisk[0])
-+			if (!p->gendisk[0]) {
-+				kfree(p);
- 				goto Enomem;
-+			}
- 			hba[i] = p;
- 			return i;
- 		}
+diff -puN arch/i386/kernel/cpu/cpufreq/Kconfig~x86_powernow_k8_acpi-must-depend-on-acpi arch/i386/kernel/cpu/cpufreq/Kconfig
+--- a/arch/i386/kernel/cpu/cpufreq/Kconfig~x86_powernow_k8_acpi-must-depend-on-acpi
++++ a/arch/i386/kernel/cpu/cpufreq/Kconfig
+@@ -92,7 +92,7 @@ config X86_POWERNOW_K8
+ config X86_POWERNOW_K8_ACPI
+ 	bool "ACPI Support"
+ 	select ACPI_PROCESSOR
+-	depends on X86_POWERNOW_K8
++	depends on ACPI && X86_POWERNOW_K8
+ 	default y
+ 	help
+ 	  This provides access to the K8s Processor Performance States via ACPI.
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-clean-up-duplicate-includes-in-sound-core.patch
-clean-up-duplicate-includes-in-sound-ppc.patch
-clean-up-duplicate-includes-in-sound-soc.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-fix-use-after-free--double-free-bug-in-ati_create_gatt_pages--ati_free_gatt_pages.patch
-clean-up-duplicate-includes-in-drivers-media.patch
-clean-up-duplicate-includes-in-include-media.patch
-clean-up-duplicate-includes-in-drivers-hwmon.patch
-git-gfs2-nmw.patch
-clean-up-duplicate-includes-in-fs-gfs2.patch
-hid-fix-a-null-pointer-dereference-when-we-fail-to-allocate-memory.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-git-kbuild.patch
+include-asm-xtensa-ioh-must-include.patch
+use-ldflags_module-only-for-ko-links.patch
+git-acpi.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 git-mtd.patch
-clean-up-duplicate-includes-in-drivers-mtd.patch
-clean-up-duplicate-includes-in-drivers-net.patch
-clean-up-duplicate-includes-in-drivers-atm.patch
-clean-up-duplicate-includes-in-net-atm.patch
-clean-up-duplicate-includes-in-net-bridge.patch
-clean-up-duplicate-includes-in-net-ipv4.patch
-clean-up-duplicate-includes-in-net-ipv6.patch
-clean-up-duplicate-includes-in-net-netfilter.patch
-clean-up-duplicate-includes-in-net-sched.patch
-clean-up-duplicate-includes-in-net-sunrpc.patch
-clean-up-duplicate-includes-in-net-tipc.patch
-clean-up-duplicate-includes-in-net-xfrm.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-git-selinux.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-clean-up-duplicate-includes-in-drivers-block.patch
-clean-up-duplicate-includes-in-drivers-usb.patch
-clean-up-duplicate-includes-in-arch-i386-xen.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-ipmi-fix-mem-leak-in-try_init_dmi.patch
-fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-cciss-fix-memory-leak.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+fore200e_param_bs_queue-must-be-__devinit.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+maps2-add-proc-kpagemap-interface.patch
+fs-reiserfs-cleanups.patch
+anon_inodes-shouldnt-be-user-visible.patch
+remove-unsafe-from-module-struct.patch
+x86_powernow_k8_acpi-must-depend-on-acpi.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
