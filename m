@@ -1,160 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-show-all-mount-options.patch added to -mm tree
-Date: Tue, 24 Jul 2007 15:20:17 -0700
-Message-ID: <200707242220.l6OMKHv4003882@imap1.linux-foundation.org>
+Subject: - random-warning-squishes.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 16:24:12 -0700
+Message-ID: <200707242324.l6ONOCpg006255@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39030 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36149 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755487AbXGXWUo (ORCPT
+	by vger.kernel.org with ESMTP id S1755047AbXGXXYX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 18:20:44 -0400
+	Tue, 24 Jul 2007 19:24:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, linux-ext4@vger.kernel.org
+To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: show all mount options
-has been added to the -mm tree.  Its filename is
-     ext3-show-all-mount-options.patch
+     random warning squishes
+has been removed from the -mm tree.  Its filename was
+     random-warning-squishes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: ext3: show all mount options
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: random warning squishes
+From: Ingo Molnar <mingo@elte.hu>
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: <linux-ext4@vger.kernel.org>
+grumble.
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c            |   70 +++++++++++++++++++++++++++++++++++
- include/linux/ext3_fs_sb.h |    1 
- 2 files changed, 71 insertions(+)
+ fs/isofs/namei.c            |    2 +-
+ kernel/audit.c              |    2 +-
+ net/core/flow.c             |    2 +-
+ net/sunrpc/svc.c            |    2 +-
+ sound/core/control_compat.c |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext3/super.c~ext3-show-all-mount-options fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-show-all-mount-options
-+++ a/fs/ext3/super.c
-@@ -545,9 +545,78 @@ static inline void ext3_show_quota_optio
- #endif
- }
- 
-+/*
-+ * Show an option if
-+ *  - it's set to a non-default value OR
-+ *  - if the per-sb default is different from the global default
-+ */
- static int ext3_show_options(struct seq_file *seq, struct vfsmount *vfs)
+diff -puN fs/isofs/namei.c~random-warning-squishes fs/isofs/namei.c
+--- a/fs/isofs/namei.c~random-warning-squishes
++++ a/fs/isofs/namei.c
+@@ -158,7 +158,7 @@ isofs_find_entry(struct inode *dir, stru
+ struct dentry *isofs_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
  {
- 	struct super_block *sb = vfs->mnt_sb;
-+	struct ext3_sb_info *sbi = EXT3_SB(sb);
-+	struct ext3_super_block *es = sbi->s_es;
-+	unsigned long def_mount_opts;
-+
-+	def_mount_opts = le32_to_cpu(es->s_default_mount_opts);
-+
-+	if (sbi->s_sb_block != 1)
-+		seq_printf(seq, ",sb=%lu", sbi->s_sb_block);
-+	if (test_opt(sb, MINIX_DF))
-+		seq_puts(seq, ",minixdf");
-+	if (test_opt(sb, GRPID))
-+		seq_puts(seq, ",grpid");
-+	if (!test_opt(sb, GRPID) && (def_mount_opts & EXT3_DEFM_BSDGROUPS))
-+		seq_puts(seq, ",nogrpid");
-+	if (sbi->s_resuid != EXT3_DEF_RESUID ||
-+	    le16_to_cpu(es->s_def_resuid) != EXT3_DEF_RESUID) {
-+		seq_printf(seq, ",resuid=%u", sbi->s_resuid);
-+	}
-+	if (sbi->s_resgid != EXT3_DEF_RESGID ||
-+	    le16_to_cpu(es->s_def_resgid) != EXT3_DEF_RESGID) {
-+		seq_printf(seq, ",resgid=%u", sbi->s_resgid);
-+	}
-+	if (test_opt(sb, ERRORS_CONT)) {
-+		int def_errors = le16_to_cpu(es->s_errors);
-+
-+		if (def_errors == EXT3_ERRORS_PANIC ||
-+		    def_errors == EXT3_ERRORS_RO) {
-+			seq_puts(seq, ",errors=continue");
-+		}
-+	}
-+	if (test_opt(sb, ERRORS_RO))
-+		seq_puts(seq, ",errors=remount-ro");
-+	if (test_opt(sb, ERRORS_PANIC))
-+		seq_puts(seq, ",errors=panic");
-+	if (test_opt(sb, NO_UID32))
-+		seq_puts(seq, ",nouid32");
-+	if (test_opt(sb, DEBUG))
-+		seq_puts(seq, ",debug");
-+	if (test_opt(sb, OLDALLOC))
-+		seq_puts(seq, ",oldalloc");
-+#ifdef CONFIG_EXT3_FS_XATTR
-+	if (test_opt(sb, XATTR_USER))
-+		seq_puts(seq, ",user_xattr");
-+	if (!test_opt(sb, XATTR_USER) &&
-+	    (def_mount_opts & EXT3_DEFM_XATTR_USER)) {
-+		seq_puts(seq, ",nouser_xattr");
-+	}
-+#endif
-+#ifdef CONFIG_EXT3_FS_POSIX_ACL
-+	if (test_opt(sb, POSIX_ACL))
-+		seq_puts(seq, ",acl");
-+	if (!test_opt(sb, POSIX_ACL) && (def_mount_opts & EXT3_DEFM_ACL))
-+		seq_puts(seq, ",noacl");
-+#endif
-+	if (!test_opt(sb, RESERVATION))
-+		seq_puts(seq, ",noreservation");
-+	if (sbi->s_commit_interval) {
-+		seq_printf(seq, ",commit=%u",
-+			   (unsigned) (sbi->s_commit_interval / HZ));
-+	}
-+	if (test_opt(sb, BARRIER))
-+		seq_puts(seq, ",barrier=1");
-+	if (test_opt(sb, NOBH))
-+		seq_puts(seq, ",nobh");
+ 	int found;
+-	unsigned long block, offset;
++	unsigned long block = 0, offset = 0 /* avoid stupid gcc warning */;
+ 	struct inode *inode;
+ 	struct page *page;
  
- 	if (test_opt(sb, DATA_FLAGS) == EXT3_MOUNT_JOURNAL_DATA)
- 		seq_puts(seq, ",data=journal");
-@@ -1424,6 +1493,7 @@ static int ext3_fill_super (struct super
- 	sbi->s_mount_opt = 0;
- 	sbi->s_resuid = EXT3_DEF_RESUID;
- 	sbi->s_resgid = EXT3_DEF_RESGID;
-+	sbi->s_sb_block = sb_block;
+diff -puN fs/jffs2/erase.c~random-warning-squishes fs/jffs2/erase.c
+diff -puN kernel/audit.c~random-warning-squishes kernel/audit.c
+--- a/kernel/audit.c~random-warning-squishes
++++ a/kernel/audit.c
+@@ -1133,7 +1133,7 @@ struct audit_buffer *audit_log_start(str
+ {
+ 	struct audit_buffer	*ab	= NULL;
+ 	struct timespec		t;
+-	unsigned int		serial;
++	unsigned int		serial = 0 /* shut up gcc */;
+ 	int reserve;
+ 	unsigned long timeout_start = jiffies;
  
- 	unlock_kernel();
+diff -puN net/core/flow.c~random-warning-squishes net/core/flow.c
+--- a/net/core/flow.c~random-warning-squishes
++++ a/net/core/flow.c
+@@ -172,7 +172,7 @@ static int flow_key_compare(struct flowi
+ void *flow_cache_lookup(struct flowi *key, u16 family, u8 dir,
+ 			flow_resolve_t resolver)
+ {
+-	struct flow_cache_entry *fle, **head;
++	struct flow_cache_entry *fle, **head = NULL /* shut up GCC */;
+ 	unsigned int hash;
+ 	int cpu;
  
-diff -puN include/linux/ext3_fs_sb.h~ext3-show-all-mount-options include/linux/ext3_fs_sb.h
---- a/include/linux/ext3_fs_sb.h~ext3-show-all-mount-options
-+++ a/include/linux/ext3_fs_sb.h
-@@ -44,6 +44,7 @@ struct ext3_sb_info {
- 	struct ext3_super_block * s_es;	/* Pointer to the super block in the buffer */
- 	struct buffer_head ** s_group_desc;
- 	unsigned long  s_mount_opt;
-+	ext3_fsblk_t s_sb_block;
- 	uid_t s_resuid;
- 	gid_t s_resgid;
- 	unsigned short s_mount_state;
+diff -puN net/sunrpc/svc.c~random-warning-squishes net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~random-warning-squishes
++++ a/net/sunrpc/svc.c
+@@ -547,7 +547,7 @@ __svc_create_thread(svc_thread_fn func, 
+ 	struct svc_rqst	*rqstp;
+ 	int		error = -ENOMEM;
+ 	int		have_oldmask = 0;
+-	cpumask_t	oldmask;
++	cpumask_t	oldmask = CPU_MASK_NONE /* shut up GCC */;
+ 
+ 	rqstp = kzalloc(sizeof(*rqstp), GFP_KERNEL);
+ 	if (!rqstp)
+diff -puN sound/core/control_compat.c~random-warning-squishes sound/core/control_compat.c
+--- a/sound/core/control_compat.c~random-warning-squishes
++++ a/sound/core/control_compat.c
+@@ -219,7 +219,7 @@ static int copy_ctl_value_from_user(stru
+ 				    struct snd_ctl_elem_value32 __user *data32,
+ 				    int *typep, int *countp)
+ {
+-	int i, type, count, size;
++	int i, type, count = 0 /* shut up gcc warning */, size;
+ 	unsigned int indirect;
+ 
+ 	if (copy_from_user(&data->id, &data32->id, sizeof(data->id)))
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-fuse-convert-to-new-aops.patch
-ext2-show-all-mount-options.patch
-ext3-show-all-mount-options.patch
-ext4-show-all-mount-options.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
-unprivileged-mounts-add-no-submounts-flag.patch
+git-acpi.patch
+git-kvm.patch
+fix-theoretical-ccids_readwrite_lock-race.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+geode-mfgpt-clock-event-device-support.patch
+i386-remove-unnecessary-code.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+softlockup-improve-debug-output.patch
+softlockup-watchdog-style-cleanups.patch
+softlockup-add-a-proc-tuning-parameter.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+futex-pass-nr_wake2-to-futex_wake_op.patch
+mark-sysrq_sched_debug_show-static.patch
+cfs-mark-print_cfs_stats-static.patch
+remove-kconfig-setting-config_debug_shirq.patch
+debug-handling-of-early-spurious-interrupts.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
