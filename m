@@ -1,51 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - git-audit-temp-fix.patch removed from -mm tree
-Date: Tue, 24 Jul 2007 20:41:59 -0700
-Message-ID: <200707250341.l6P3fxxD015123@imap1.linux-foundation.org>
+Subject: + i2c-ds1682-warning-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 20:44:58 -0700
+Message-ID: <200707250349.l6P3nW7h015387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54013 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42243 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755994AbXGYDmG (ORCPT
+	by vger.kernel.org with ESMTP id S1752773AbXGYDt4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 23:42:06 -0400
+	Tue, 24 Jul 2007 23:49:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, khali@linux-fr.org
 
 
 The patch titled
-     git-audit-temp-fix
-has been removed from the -mm tree.  Its filename was
-     git-audit-temp-fix.patch
+     i2c: ds1682 warning fix
+has been added to the -mm tree.  Its filename is
+     i2c-ds1682-warning-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-audit-temp-fix
+Subject: i2c: ds1682 warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+ia64:
+
+drivers/i2c/chips/ds1682.c: In function `ds1682_show':
+drivers/i2c/chips/ds1682.c:78: warning: long long unsigned int format, long unsigned int arg (arg 3)
+drivers/i2c/chips/ds1682.c:78: warning: long long unsigned int format, long unsigned int arg (arg 3)
+
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/chips/ds1682.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/Makefile~git-audit-temp-fix kernel/Makefile
---- a/kernel/Makefile~git-audit-temp-fix
-+++ a/kernel/Makefile
-@@ -39,8 +39,8 @@ obj-$(CONFIG_COMPAT) += compat.o
- obj-$(CONFIG_CPUSETS) += cpuset.o
- obj-$(CONFIG_IKCONFIG) += configs.o
- obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
--obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
--obj-$(CONFIG_AUDITSYSCALL) += auditsc.o audit_tree.o
-+obj-$(CONFIG_AUDIT) += audit.o auditfilter.o audit_tree.o
-+obj-$(CONFIG_AUDITSYSCALL) += auditsc.o
- obj-$(CONFIG_KPROBES) += kprobes.o
- obj-$(CONFIG_SYSFS) += ksysfs.o
- obj-$(CONFIG_DETECT_SOFTLOCKUP) += softlockup.o
+diff -puN drivers/i2c/chips/ds1682.c~i2c-ds1682-warning-fix drivers/i2c/chips/ds1682.c
+--- a/drivers/i2c/chips/ds1682.c~i2c-ds1682-warning-fix
++++ a/drivers/i2c/chips/ds1682.c
+@@ -75,7 +75,8 @@ static ssize_t ds1682_show(struct device
+ 	/* Special case: the 32 bit regs are time values with 1/4s
+ 	 * resolution, scale them up to milliseconds */
+ 	if (sattr->nr == 4)
+-		return sprintf(buf, "%llu\n", ((u64) le32_to_cpu(val)) * 250);
++		return sprintf(buf, "%llu\n",
++			((unsigned long long)le32_to_cpu(val)) * 250);
+ 
+ 	/* Format the output string and return # of bytes */
+ 	return sprintf(buf, "%li\n", (long)le32_to_cpu(val));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -158,3 +167,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+i2c-ds1682-warning-fix.patch
