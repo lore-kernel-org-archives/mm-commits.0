@@ -1,194 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - more-request_queue_t-removal.patch removed from -mm tree
-Date: Wed, 25 Jul 2007 13:08:44 -0700
-Message-ID: <200707252008.l6PK8jMG019642@imap1.linux-foundation.org>
+Subject: + chipsfb-use-correct-pm-state.patch added to -mm tree
+Date: Wed, 25 Jul 2007 13:22:33 -0700
+Message-ID: <200707252022.l6PKMXJa020166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51741 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52908 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751873AbXGYUI6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754070AbXGYUXF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 16:08:58 -0400
+	Wed, 25 Jul 2007 16:23:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rjw@sisk.pl, adaplas@pol.net, clg@fr.ibm.com
 
 
 The patch titled
-     more request_queue_t removal
-has been removed from the -mm tree.  Its filename was
-     more-request_queue_t-removal.patch
+     chipsfb: use correct pm state
+has been added to the -mm tree.  Its filename is
+     chipsfb-use-correct-pm-state.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: more request_queue_t removal
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: chipsfb: use correct pm state
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+chipsfb.c shouldn't use PM_SUSPEND_MEM in there, but PM_EVENT_SUSPEND.
+
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/mmc_queue.c |    8 ++++----
- scsi/sd.h               |    0 
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/chipsfb.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/mmc_queue.c~more-request_queue_t-removal drivers/mmc/mmc_queue.c
---- a/drivers/mmc/mmc_queue.c~more-request_queue_t-removal
-+++ a/drivers/mmc/mmc_queue.c
-@@ -102,7 +102,7 @@ static int mmc_queue_thread(void *d)
-  * on any queue on this host, and attempt to issue it.  This may
-  * not be the queue we were asked to process.
-  */
--static void mmc_request(request_queue_t *q)
-+static void mmc_request(struct request_queue *q)
- {
- 	struct mmc_queue *mq = q->queuedata;
- 	struct request *req;
-@@ -183,7 +183,7 @@ EXPORT_SYMBOL(mmc_init_queue);
+diff -puN drivers/video/chipsfb.c~chipsfb-use-correct-pm-state drivers/video/chipsfb.c
+--- a/drivers/video/chipsfb.c~chipsfb-use-correct-pm-state
++++ a/drivers/video/chipsfb.c
+@@ -24,6 +24,7 @@
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+ #include <linux/fb.h>
++#include <linux/pm.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+ #include <linux/console.h>
+@@ -458,7 +459,7 @@ static int chipsfb_pci_suspend(struct pc
  
- void mmc_cleanup_queue(struct mmc_queue *mq)
- {
--	request_queue_t *q = mq->queue;
-+	struct request_queue *q = mq->queue;
- 	unsigned long flags;
+ 	if (state.event == pdev->dev.power.power_state.event)
+ 		return 0;
+-	if (state.event != PM_SUSPEND_MEM)
++	if (state.event != PM_EVENT_SUSPEND)
+ 		goto done;
  
- 	/* Mark that we should start throwing out stragglers */
-@@ -213,7 +213,7 @@ EXPORT_SYMBOL(mmc_cleanup_queue);
-  */
- void mmc_queue_suspend(struct mmc_queue *mq)
- {
--	request_queue_t *q = mq->queue;
-+	struct request_queue *q = mq->queue;
- 	unsigned long flags;
- 
- 	if (!(mq->flags & MMC_QUEUE_SUSPENDED)) {
-@@ -234,7 +234,7 @@ EXPORT_SYMBOL(mmc_queue_suspend);
-  */
- void mmc_queue_resume(struct mmc_queue *mq)
- {
--	request_queue_t *q = mq->queue;
-+	struct request_queue *q = mq->queue;
- 	unsigned long flags;
- 
- 	if (mq->flags & MMC_QUEUE_SUSPENDED) {
-diff -puN drivers/scsi/sd.c~more-request_queue_t-removal drivers/scsi/sd.c
-diff -puN include/linux/blkdev.h~more-request_queue_t-removal include/linux/blkdev.h
-diff -puN include/scsi/sd.h~more-request_queue_t-removal include/scsi/sd.h
+ 	acquire_console_sem();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-origin.patch
-rtc-stk17ta8-update-for-sysfs-api-change.patch
-x86_powernow_k8_acpi-must-depend-on-acpi.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-ufs-printk-warning-fix.patch
-i2c-ds1682-warning-fix.patch
-edac-is-bust-on-mips.patch
-kdebugh-forward-declare-struct-struct-notifier_block.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
+pm-fix-compiler-error-of-ppc-dart_iommu.patch
+chipsfb-use-correct-pm-state.patch
 git-acpi.patch
-git-acpi-build-fix.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-ia64-rename-partial_page.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-ide-bodge-things-around-to-make-arm-work.patch
-mmc-build-fix.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-ip_auto_config-fix-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-scsi-rc-fixes.patch
-git-scsi-target-fixup.patch
-more-request_queue_t-removal.patch
-git-unionfs.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-git-watchdog.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-kgdb-fixup.patch
-git-kgdb-arm-fix.patch
-git-kgdb-mips-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-list_head-in-binfmt-handling-fix.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
-ip2main-warning-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+acpi-remove-references-to-acpi_state_s2-from-acpi_pm_enter.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+shrink_slab-handle-bad-shrinkers.patch
