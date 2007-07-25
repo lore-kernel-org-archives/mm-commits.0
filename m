@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + more-request_queue_t-removal.patch added to -mm tree
-Date: Tue, 24 Jul 2007 17:43:55 -0700
-Message-ID: <200707250043.l6P0htAA009217@imap1.linux-foundation.org>
+Subject: + allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 18:03:50 -0700
+Message-ID: <200707250108.l6P18O7H010019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52651 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36977 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759214AbXGYAob (ORCPT
+	by vger.kernel.org with ESMTP id S1761224AbXGYBJu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 20:44:31 -0400
+	Tue, 24 Jul 2007 21:09:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org, hidehiro.kawai.ez@hitachi.com, nhorman@tuxdriver.com
 
 
 The patch titled
-     more request_queue_t removal
+     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix
 has been added to the -mm tree.  Its filename is
-     more-request_queue_t-removal.patch
+     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: more request_queue_t removal
+Subject: allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+fs/binfmt_aout.c:40: warning: initialization from incompatible pointer type
+fs/binfmt_aout.c:92: error: conflicting types for 'aout_core_dump'
+fs/binfmt_aout.c:34: error: previous declaration of 'aout_core_dump' was here
+
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/mmc_queue.c |    8 ++++----
- scsi/sd.h               |    0 
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ fs/binfmt_aout.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/mmc_queue.c~more-request_queue_t-removal drivers/mmc/mmc_queue.c
---- a/drivers/mmc/mmc_queue.c~more-request_queue_t-removal
-+++ a/drivers/mmc/mmc_queue.c
-@@ -102,7 +102,7 @@ static int mmc_queue_thread(void *d)
-  * on any queue on this host, and attempt to issue it.  This may
-  * not be the queue we were asked to process.
-  */
--static void mmc_request(request_queue_t *q)
-+static void mmc_request(struct request_queue *q)
- {
- 	struct mmc_queue *mq = q->queuedata;
- 	struct request *req;
-@@ -183,7 +183,7 @@ EXPORT_SYMBOL(mmc_init_queue);
+diff -puN fs/binfmt_aout.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix
++++ a/fs/binfmt_aout.c
+@@ -31,7 +31,8 @@
  
- void mmc_cleanup_queue(struct mmc_queue *mq)
- {
--	request_queue_t *q = mq->queue;
-+	struct request_queue *q = mq->queue;
- 	unsigned long flags;
+ static int load_aout_binary(struct linux_binprm *, struct pt_regs * regs);
+ static int load_aout_library(struct file*);
+-static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file, u32 limit);
++static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file,
++				unsigned long limit);
  
- 	/* Mark that we should start throwing out stragglers */
-@@ -213,7 +213,7 @@ EXPORT_SYMBOL(mmc_cleanup_queue);
-  */
- void mmc_queue_suspend(struct mmc_queue *mq)
- {
--	request_queue_t *q = mq->queue;
-+	struct request_queue *q = mq->queue;
- 	unsigned long flags;
- 
- 	if (!(mq->flags & MMC_QUEUE_SUSPENDED)) {
-@@ -234,7 +234,7 @@ EXPORT_SYMBOL(mmc_queue_suspend);
-  */
- void mmc_queue_resume(struct mmc_queue *mq)
- {
--	request_queue_t *q = mq->queue;
-+	struct request_queue *q = mq->queue;
- 	unsigned long flags;
- 
- 	if (mq->flags & MMC_QUEUE_SUSPENDED) {
-diff -puN drivers/scsi/sd.c~more-request_queue_t-removal drivers/scsi/sd.c
-diff -puN include/linux/blkdev.h~more-request_queue_t-removal include/linux/blkdev.h
-diff -puN include/scsi/sd.h~more-request_queue_t-removal include/scsi/sd.h
+ static struct linux_binfmt aout_format = {
+ 	.module		= THIS_MODULE,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -152,6 +127,7 @@ loop-use-unlocked_ioctl.patch
 do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
 pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
 allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
