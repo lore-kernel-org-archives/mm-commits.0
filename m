@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-audit-temp-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 19:25:57 -0700
-Message-ID: <200707250230.l6P2UVsU012808@imap1.linux-foundation.org>
+Subject: + ide-bodge-things-around-to-make-arm-work.patch added to -mm tree
+Date: Tue, 24 Jul 2007 19:27:15 -0700
+Message-ID: <200707250231.l6P2Vnir012851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38447 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41834 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753440AbXGYCai (ORCPT
+	by vger.kernel.org with ESMTP id S1762316AbXGYCcC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 22:30:38 -0400
+	Tue, 24 Jul 2007 22:32:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     git-audit-temp-fix
+     ide: bodge things around to make arm work
 has been added to the -mm tree.  Its filename is
-     git-audit-temp-fix.patch
+     ide-bodge-things-around-to-make-arm-work.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-audit-temp-fix
+Subject: ide: bodge things around to make arm work
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+drivers/ide/pci/amd74xx.c: In function `init_hwif_amd74xx':
+drivers/ide/pci/amd74xx.c:397: error: implicit declaration of function `pci_get_legacy_ide_irq'
+
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/ide/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/Makefile~git-audit-temp-fix kernel/Makefile
---- a/kernel/Makefile~git-audit-temp-fix
-+++ a/kernel/Makefile
-@@ -43,8 +43,8 @@ obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_a
- obj-$(CONFIG_CONTAINER_NS) += ns_container.o
- obj-$(CONFIG_IKCONFIG) += configs.o
- obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
--obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
--obj-$(CONFIG_AUDITSYSCALL) += auditsc.o audit_tree.o
-+obj-$(CONFIG_AUDIT) += audit.o auditfilter.o audit_tree.o
-+obj-$(CONFIG_AUDITSYSCALL) += auditsc.o
- obj-$(CONFIG_KPROBES) += kprobes.o
- obj-$(CONFIG_KGDB) += kgdb.o
- obj-$(CONFIG_SYSFS) += ksysfs.o
+diff -puN drivers/ide/Kconfig~ide-bodge-things-around-to-make-arm-work drivers/ide/Kconfig
+--- a/drivers/ide/Kconfig~ide-bodge-things-around-to-make-arm-work
++++ a/drivers/ide/Kconfig
+@@ -485,6 +485,7 @@ config WDC_ALI15X3
+ config BLK_DEV_AMD74XX
+ 	tristate "AMD and nVidia IDE support"
+ 	select BLK_DEV_IDEDMA_PCI
++	depends on !ARM
+ 	help
+ 	  This driver adds explicit support for AMD-7xx and AMD-8111 chips
+ 	  and also for the nVidia nForce chip.  This allows the kernel to
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,6 +65,7 @@ slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
 acpi-add-reboot-mechanism-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-audit-temp-fix.patch
 revert-gregkh-driver-block-device.patch
 dma-arch-fix.patch
 adbhid-produce-all-capslock-key-events-fix.patch
@@ -158,5 +160,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-a.patch
-git-audit-temp-fix.patch
+ide-bodge-things-around-to-make-arm-work.patch
