@@ -1,422 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: - hwrng-add-type-categories.patch removed from -mm tree
-Date: Wed, 25 Jul 2007 13:04:01 -0700
-Message-ID: <200707252004.l6PK42X5019464@imap1.linux-foundation.org>
+Subject: - more-request_queue_t-removal.patch removed from -mm tree
+Date: Wed, 25 Jul 2007 13:08:44 -0700
+Message-ID: <200707252008.l6PK8jMG019642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53150 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51741 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751154AbXGYUFT (ORCPT
+	by vger.kernel.org with ESMTP id S1751873AbXGYUI6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 16:05:19 -0400
+	Wed, 25 Jul 2007 16:08:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mb@bu3sch.de, hmh@hmh.eng.br, mpm@selenic.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwrng: add type categories
+     more request_queue_t removal
 has been removed from the -mm tree.  Its filename was
-     hwrng-add-type-categories.patch
+     more-request_queue_t-removal.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: hwrng: add type categories
-From: Michael Buesch <mb@bu3sch.de>
+Subject: more request_queue_t removal
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Don't use the word "quality", as people seem to think of the entropy
-quality when hearing that word.  This uses the word "type", which is
-probably better for understanding what the value really means.
-
-This is just for building up a default policy on which device to use by
-default after boot/insmod.  It has only implicitely to do with the entropy
-quality of the device.
-
-No functional change since the last patch. Just renaming.
-
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hw_random/amd-rng.c            |    1 
- drivers/char/hw_random/core.c               |  141 ++++++++++++++----
- drivers/char/hw_random/geode-rng.c          |    1 
- drivers/char/hw_random/intel-rng.c          |    1 
- drivers/char/hw_random/ixp4xx-rng.c         |    1 
- drivers/char/hw_random/omap-rng.c           |    1 
- drivers/char/hw_random/pasemi-rng.c         |    1 
- drivers/char/hw_random/via-rng.c            |    1 
- drivers/net/wireless/bcm43xx/bcm43xx_main.c |    1 
- include/linux/hw_random.h                   |   25 +++
- 10 files changed, 149 insertions(+), 25 deletions(-)
+ drivers/mmc/mmc_queue.c |    8 ++++----
+ scsi/sd.h               |    0 
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/hw_random/amd-rng.c~hwrng-add-type-categories drivers/char/hw_random/amd-rng.c
---- a/drivers/char/hw_random/amd-rng.c~hwrng-add-type-categories
-+++ a/drivers/char/hw_random/amd-rng.c
-@@ -99,6 +99,7 @@ static struct hwrng amd_rng = {
- 	.cleanup	= amd_rng_cleanup,
- 	.data_present	= amd_rng_data_present,
- 	.data_read	= amd_rng_data_read,
-+	.type		= HWRNG_TYPE_ONBOARD,
- };
- 
- 
-diff -puN drivers/char/hw_random/core.c~hwrng-add-type-categories drivers/char/hw_random/core.c
---- a/drivers/char/hw_random/core.c~hwrng-add-type-categories
-+++ a/drivers/char/hw_random/core.c
-@@ -78,6 +78,20 @@ static inline int hwrng_data_read(struct
- 	return rng->data_read(rng, data);
- }
- 
-+static const char * hwrng_type_string(enum hwrng_type type)
-+{
-+	switch (type) {
-+	case HWRNG_TYPE_DEDIC:
-+		return "dedicated";
-+	case HWRNG_TYPE_ONBOARD:
-+		return "onboard";
-+	case HWRNG_TYPE_BAD:
-+		return "bad";
-+	case HWRNG_TYPE_PSEUDO:
-+		return "pseudo";
-+	}
-+	return "unknown";
-+}
- 
- static int rng_dev_open(struct inode *inode, struct file *filp)
- {
-@@ -210,7 +224,7 @@ static ssize_t hwrng_attr_current_show(s
- 	ret = snprintf(buf, PAGE_SIZE, "%s\n", name);
- 	mutex_unlock(&rng_mutex);
- 
--	return ret;
-+	return min(ret, (ssize_t)PAGE_SIZE);
- }
- 
- static ssize_t hwrng_attr_available_show(struct device *dev,
-@@ -235,7 +249,36 @@ static ssize_t hwrng_attr_available_show
- 	ret++;
- 	mutex_unlock(&rng_mutex);
- 
--	return ret;
-+	return min(ret, (ssize_t)PAGE_SIZE);
-+}
-+
-+static ssize_t hwrng_attr_types_show(struct device *dev,
-+				     struct device_attribute *attr,
-+				     char *buf)
-+{
-+	int err;
-+	ssize_t ret = 0;
-+	struct hwrng *rng;
-+	const char *type;
-+
-+	err = mutex_lock_interruptible(&rng_mutex);
-+	if (err)
-+		return -ERESTARTSYS;
-+	buf[0] = '\0';
-+	list_for_each_entry(rng, &rng_list, list) {
-+		strncat(buf, rng->name, PAGE_SIZE - ret - 1);
-+		ret += strlen(rng->name);
-+		strncat(buf, " type: \"", PAGE_SIZE - ret - 1);
-+		ret += 8;
-+		type = hwrng_type_string(rng->type);
-+		strncat(buf, type, PAGE_SIZE - ret - 1);
-+		ret += strlen(type);
-+		strncat(buf, "\"\n", PAGE_SIZE - ret - 1);
-+		ret += 2;
-+	}
-+	mutex_unlock(&rng_mutex);
-+
-+	return min(ret, (ssize_t)PAGE_SIZE);
- }
- 
- static DEVICE_ATTR(rng_current, S_IRUGO | S_IWUSR,
-@@ -244,10 +287,58 @@ static DEVICE_ATTR(rng_current, S_IRUGO 
- static DEVICE_ATTR(rng_available, S_IRUGO,
- 		   hwrng_attr_available_show,
- 		   NULL);
-+static DEVICE_ATTR(rng_types, S_IRUGO,
-+		   hwrng_attr_types_show,
-+		   NULL);
-+
-+
-+/* Returns the RNG with the highest type value
-+ * Expects rng_mutex locked. */
-+static struct hwrng * select_best_hwrng(void)
-+{
-+	struct hwrng *rng, *ret = NULL;
-+
-+	list_for_each_entry(rng, &rng_list, list) {
-+		if (!ret || (rng->type > ret->type))
-+			ret = rng;
-+	}
-+
-+	return ret;
-+}
-+
-+/* Initializes the RNG with the highest type value.
-+ * Expects rng_mutex locked. */
-+static int init_best_hwrng(void)
-+{
-+	struct hwrng *rng, *prev_rng = NULL;
-+	int err;
- 
-+	rng = select_best_hwrng();
-+	if (!rng)
-+		return -ENODEV;
-+	if (rng == current_rng)
-+		return 0;
-+	if (current_rng) {
-+		/* Shutdown current RNG */
-+		prev_rng = current_rng;
-+		hwrng_cleanup(current_rng);
-+		current_rng = NULL;
-+	}
-+	err = hwrng_init(rng);
-+	if (err) {
-+		/* Try to enable the old one again. */
-+		if (prev_rng && (hwrng_init(prev_rng) == 0))
-+			current_rng = prev_rng;
-+		return err;
-+	}
-+	current_rng = rng;
-+
-+	return 0;
-+}
- 
- static void unregister_miscdev(void)
- {
-+	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_types);
- 	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_available);
- 	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_current);
- 	misc_deregister(&rng_miscdev);
-@@ -268,9 +359,16 @@ static int register_miscdev(void)
- 				 &dev_attr_rng_available);
- 	if (err)
- 		goto err_remove_current;
-+	err = device_create_file(rng_miscdev.this_device,
-+				 &dev_attr_rng_types);
-+	if (err)
-+		goto err_remove_available;
-+
- out:
- 	return err;
- 
-+err_remove_available:
-+	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_available);
- err_remove_current:
- 	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_current);
- err_misc_dereg:
-@@ -282,7 +380,7 @@ int hwrng_register(struct hwrng *rng)
- {
- 	int must_register_misc;
- 	int err = -EINVAL;
--	struct hwrng *old_rng, *tmp;
-+	struct hwrng *tmp;
- 
- 	if (rng->name == NULL ||
- 	    rng->data_read == NULL)
-@@ -297,27 +395,26 @@ int hwrng_register(struct hwrng *rng)
- 			goto out_unlock;
- 	}
- 
--	must_register_misc = (current_rng == NULL);
--	old_rng = current_rng;
--	if (!old_rng) {
--		err = hwrng_init(rng);
--		if (err)
--			goto out_unlock;
--		current_rng = rng;
--	}
-+	must_register_misc = list_empty(&rng_list);
-+	INIT_LIST_HEAD(&rng->list);
-+	list_add(&rng->list, &rng_list);
-+
-+	init_best_hwrng();
-+	/* We ignore the error code of init_best_hwrng(), as
-+	 * it doesn't matter for hwrng_register(). */
- 	err = 0;
- 	if (must_register_misc) {
- 		err = register_miscdev();
- 		if (err) {
--			if (!old_rng) {
--				hwrng_cleanup(rng);
-+			if (current_rng) {
-+				hwrng_cleanup(current_rng);
- 				current_rng = NULL;
- 			}
-+			list_del(&rng->list);
- 			goto out_unlock;
- 		}
- 	}
--	INIT_LIST_HEAD(&rng->list);
--	list_add_tail(&rng->list, &rng_list);
-+
- out_unlock:
- 	mutex_unlock(&rng_mutex);
- out:
-@@ -327,21 +424,15 @@ EXPORT_SYMBOL_GPL(hwrng_register);
- 
- void hwrng_unregister(struct hwrng *rng)
- {
--	int err;
--
- 	mutex_lock(&rng_mutex);
- 
- 	list_del(&rng->list);
- 	if (current_rng == rng) {
- 		hwrng_cleanup(rng);
--		if (list_empty(&rng_list)) {
--			current_rng = NULL;
--		} else {
--			current_rng = list_entry(rng_list.prev, struct hwrng, list);
--			err = hwrng_init(current_rng);
--			if (err)
--				current_rng = NULL;
--		}
-+		current_rng = NULL;
-+		/* Now try to init another hwrng, if any.
-+		 * We're not interested if this fails or not. */
-+		init_best_hwrng();
- 	}
- 	if (list_empty(&rng_list))
- 		unregister_miscdev();
-diff -puN drivers/char/hw_random/geode-rng.c~hwrng-add-type-categories drivers/char/hw_random/geode-rng.c
---- a/drivers/char/hw_random/geode-rng.c~hwrng-add-type-categories
-+++ a/drivers/char/hw_random/geode-rng.c
-@@ -73,6 +73,7 @@ static struct hwrng geode_rng = {
- 	.name		= "geode",
- 	.data_present	= geode_rng_data_present,
- 	.data_read	= geode_rng_data_read,
-+	.type		= HWRNG_TYPE_ONBOARD,
- };
- 
- 
-diff -puN drivers/char/hw_random/intel-rng.c~hwrng-add-type-categories drivers/char/hw_random/intel-rng.c
---- a/drivers/char/hw_random/intel-rng.c~hwrng-add-type-categories
-+++ a/drivers/char/hw_random/intel-rng.c
-@@ -216,6 +216,7 @@ static struct hwrng intel_rng = {
- 	.cleanup	= intel_rng_cleanup,
- 	.data_present	= intel_rng_data_present,
- 	.data_read	= intel_rng_data_read,
-+	.type		= HWRNG_TYPE_ONBOARD,
- };
- 
- struct intel_rng_hw {
-diff -puN drivers/char/hw_random/ixp4xx-rng.c~hwrng-add-type-categories drivers/char/hw_random/ixp4xx-rng.c
---- a/drivers/char/hw_random/ixp4xx-rng.c~hwrng-add-type-categories
-+++ a/drivers/char/hw_random/ixp4xx-rng.c
-@@ -38,6 +38,7 @@ static int ixp4xx_rng_data_read(struct h
- static struct hwrng ixp4xx_rng_ops = {
- 	.name		= "ixp4xx",
- 	.data_read	= ixp4xx_rng_data_read,
-+	.type		= HWRNG_TYPE_ONBOARD,
- };
- 
- static int __init ixp4xx_rng_init(void)
-diff -puN drivers/char/hw_random/omap-rng.c~hwrng-add-type-categories drivers/char/hw_random/omap-rng.c
---- a/drivers/char/hw_random/omap-rng.c~hwrng-add-type-categories
-+++ a/drivers/char/hw_random/omap-rng.c
-@@ -81,6 +81,7 @@ static struct hwrng omap_rng_ops = {
- 	.name		= "omap",
- 	.data_present	= omap_rng_data_present,
- 	.data_read	= omap_rng_data_read,
-+	.type		= HWRNG_TYPE_ONBOARD,
- };
- 
- static int __init omap_rng_probe(struct platform_device *pdev)
-diff -puN drivers/char/hw_random/pasemi-rng.c~hwrng-add-type-categories drivers/char/hw_random/pasemi-rng.c
---- a/drivers/char/hw_random/pasemi-rng.c~hwrng-add-type-categories
-+++ a/drivers/char/hw_random/pasemi-rng.c
-@@ -137,6 +137,7 @@ static struct of_platform_driver rng_dri
- 	.match_table	= rng_match,
- 	.probe		= rng_probe,
- 	.remove		= rng_remove,
-+	.type		= HWRNG_TYPE_ONBOARD,
- };
- 
- static int __init rng_init(void)
-diff -puN drivers/char/hw_random/via-rng.c~hwrng-add-type-categories drivers/char/hw_random/via-rng.c
---- a/drivers/char/hw_random/via-rng.c~hwrng-add-type-categories
-+++ a/drivers/char/hw_random/via-rng.c
-@@ -150,6 +150,7 @@ static struct hwrng via_rng = {
- 	.init		= via_rng_init,
- 	.data_present	= via_rng_data_present,
- 	.data_read	= via_rng_data_read,
-+	.type		= HWRNG_TYPE_ONBOARD,
- };
- 
- 
-diff -puN drivers/net/wireless/bcm43xx/bcm43xx_main.c~hwrng-add-type-categories drivers/net/wireless/bcm43xx/bcm43xx_main.c
---- a/drivers/net/wireless/bcm43xx/bcm43xx_main.c~hwrng-add-type-categories
-+++ a/drivers/net/wireless/bcm43xx/bcm43xx_main.c
-@@ -3278,6 +3278,7 @@ static int bcm43xx_rng_init(struct bcm43
- 	bcm->rng.name = bcm->rng_name;
- 	bcm->rng.data_read = bcm43xx_rng_read;
- 	bcm->rng.priv = (unsigned long)bcm;
-+	bcm->rng.type = HWRNG_TYPE_BAD;
- 	err = hwrng_register(&bcm->rng);
- 	if (err)
- 		printk(KERN_ERR PFX "RNG init failed (%d)\n", err);
-diff -puN include/linux/hw_random.h~hwrng-add-type-categories include/linux/hw_random.h
---- a/include/linux/hw_random.h~hwrng-add-type-categories
-+++ a/include/linux/hw_random.h
-@@ -16,6 +16,29 @@
- #include <linux/types.h>
- #include <linux/list.h>
- 
-+
-+/**
-+ * enum hwrng_type - Type identifier for RNG hardware
-+ * @HWRNG_TYPE_DEDIC:	Dedicated RNG extension board/device.
-+ * 			Use for special (non-onboard) RNG boards
-+ * 			that gather entropy from good sources.
-+ * @HWRNG_TYPE_ONBOARD:	Onboard-RNG or In-CPU-RNG devices.
-+ * @HWRNG_TYPE_BAD:	RNG devices with an unknown quality of the
-+ * 			entropy or entropy sources that could
-+ * 			be influenced from outside (like normal radio
-+ * 			receivers)
-+ * @HWRNG_TYPE_PSEUDO:	Pseudo RNG device. Use this for devices
-+ * 			which are not RNG devices by definition, but
-+ * 			could be used as such. For example various
-+ * 			hardware sensors, like a motion sensor.
-+ */
-+enum hwrng_type {
-+	HWRNG_TYPE_DEDIC	= 3,
-+	HWRNG_TYPE_ONBOARD	= 2,
-+	HWRNG_TYPE_BAD		= 1,
-+	HWRNG_TYPE_PSEUDO	= 0,
-+};
-+
- /**
-  * struct hwrng - Hardware Random Number Generator driver
-  * @name:		Unique RNG name.
-@@ -28,6 +51,7 @@
-  *			Returns the number of lower random bytes in "data".
-  *			Must not be NULL.
-  * @priv:		Private data, for use by the RNG driver.
-+ * @type:		The type identifier of the RNG device.
+diff -puN drivers/mmc/mmc_queue.c~more-request_queue_t-removal drivers/mmc/mmc_queue.c
+--- a/drivers/mmc/mmc_queue.c~more-request_queue_t-removal
++++ a/drivers/mmc/mmc_queue.c
+@@ -102,7 +102,7 @@ static int mmc_queue_thread(void *d)
+  * on any queue on this host, and attempt to issue it.  This may
+  * not be the queue we were asked to process.
   */
- struct hwrng {
- 	const char *name;
-@@ -36,6 +60,7 @@ struct hwrng {
- 	int (*data_present)(struct hwrng *rng);
- 	int (*data_read)(struct hwrng *rng, u32 *data);
- 	unsigned long priv;
-+	enum hwrng_type type;
+-static void mmc_request(request_queue_t *q)
++static void mmc_request(struct request_queue *q)
+ {
+ 	struct mmc_queue *mq = q->queuedata;
+ 	struct request *req;
+@@ -183,7 +183,7 @@ EXPORT_SYMBOL(mmc_init_queue);
  
- 	/* internal. */
- 	struct list_head list;
+ void mmc_cleanup_queue(struct mmc_queue *mq)
+ {
+-	request_queue_t *q = mq->queue;
++	struct request_queue *q = mq->queue;
+ 	unsigned long flags;
+ 
+ 	/* Mark that we should start throwing out stragglers */
+@@ -213,7 +213,7 @@ EXPORT_SYMBOL(mmc_cleanup_queue);
+  */
+ void mmc_queue_suspend(struct mmc_queue *mq)
+ {
+-	request_queue_t *q = mq->queue;
++	struct request_queue *q = mq->queue;
+ 	unsigned long flags;
+ 
+ 	if (!(mq->flags & MMC_QUEUE_SUSPENDED)) {
+@@ -234,7 +234,7 @@ EXPORT_SYMBOL(mmc_queue_suspend);
+  */
+ void mmc_queue_resume(struct mmc_queue *mq)
+ {
+-	request_queue_t *q = mq->queue;
++	struct request_queue *q = mq->queue;
+ 	unsigned long flags;
+ 
+ 	if (mq->flags & MMC_QUEUE_SUSPENDED) {
+diff -puN drivers/scsi/sd.c~more-request_queue_t-removal drivers/scsi/sd.c
+diff -puN include/linux/blkdev.h~more-request_queue_t-removal include/linux/blkdev.h
+diff -puN include/scsi/sd.h~more-request_queue_t-removal include/scsi/sd.h
 _
 
-Patches currently in -mm which might be from mb@bu3sch.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-merge-the-sonics-silicon-backplane-subsystem.patch
+origin.patch
+rtc-stk17ta8-update-for-sysfs-api-change.patch
+x86_powernow_k8_acpi-must-depend-on-acpi.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+ufs-printk-warning-fix.patch
+i2c-ds1682-warning-fix.patch
+edac-is-bust-on-mips.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+ia64-rename-partial_page.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+ide-bodge-things-around-to-make-arm-work.patch
+mmc-build-fix.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+e1000new-build-fix.patch
+e1000new-build-fix-2.patch
+ip_auto_config-fix-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+try-parent-numa_node-at-first-before-using-default-v2-fix.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-scsi-rc-fixes.patch
+git-scsi-target-fixup.patch
+more-request_queue_t-removal.patch
+git-unionfs.patch
 merge-the-sonics-silicon-backplane-subsystem-fix.patch
-ssb-add-a-driver-for-the-broadcom-ohci-core.patch
-hwrng-add-type-categories.patch
-pure_initcall-id-inconsistency.patch
+git-watchdog.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-list_head-in-binfmt-handling-fix.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
+loop-use-unlocked_ioctl.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
+ip2main-warning-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
