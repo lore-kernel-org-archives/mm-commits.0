@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fixup-2.patch added to -mm tree
-Date: Tue, 24 Jul 2007 17:43:22 -0700
-Message-ID: <200707250043.l6P0hMka009210@imap1.linux-foundation.org>
+Subject: + more-request_queue_t-removal.patch added to -mm tree
+Date: Tue, 24 Jul 2007 17:43:55 -0700
+Message-ID: <200707250043.l6P0htAA009217@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34844 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52651 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758177AbXGYAoF (ORCPT
+	by vger.kernel.org with ESMTP id S1759214AbXGYAob (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 20:44:05 -0400
+	Tue, 24 Jul 2007 20:44:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     git-block-fixup-2
+     more request_queue_t removal
 has been added to the -mm tree.  Its filename is
-     git-block-fixup-2.patch
+     more-request_queue_t-removal.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,295 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block-fixup-2
+Subject: more request_queue_t removal
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid0.c              |   23 --------------------
- drivers/md/raid1.c              |   33 ------------------------------
- drivers/md/raid10.c             |   33 ------------------------------
- drivers/md/raid5.c              |   33 ------------------------------
- drivers/message/i2o/i2o_block.c |   26 -----------------------
- drivers/scsi/scsi_lib.c         |   19 -----------------
- drivers/scsi/sd.c               |   18 ----------------
- include/scsi/sd.h               |    5 ----
- 8 files changed, 190 deletions(-)
+ drivers/mmc/mmc_queue.c |    8 ++++----
+ scsi/sd.h               |    0 
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/md/raid0.c~git-block-fixup-2 drivers/md/raid0.c
---- a/drivers/md/raid0.c~git-block-fixup-2
-+++ a/drivers/md/raid0.c
-@@ -40,29 +40,6 @@ static void raid0_unplug(struct request_
- 	}
- }
- 
--<<<<<<< HEAD/drivers/md/raid0.c
--static int raid0_issue_flush(struct request_queue *q, struct gendisk *disk,
--			     sector_t *error_sector)
--{
--	mddev_t *mddev = q->queuedata;
--	raid0_conf_t *conf = mddev_to_conf(mddev);
--	mdk_rdev_t **devlist = conf->strip_zone[0].dev;
--	int i, ret = 0;
--
--	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
--		struct block_device *bdev = devlist[i]->bdev;
--		struct request_queue *r_queue = bdev_get_queue(bdev);
--
--		if (!r_queue->issue_flush_fn)
--			ret = -EOPNOTSUPP;
--		else
--			ret = r_queue->issue_flush_fn(r_queue, bdev->bd_disk, error_sector);
--	}
--	return ret;
--}
--
--=======
-->>>>>>> /drivers/md/raid0.c
- static int raid0_congested(void *data, int bits)
+diff -puN drivers/mmc/mmc_queue.c~more-request_queue_t-removal drivers/mmc/mmc_queue.c
+--- a/drivers/mmc/mmc_queue.c~more-request_queue_t-removal
++++ a/drivers/mmc/mmc_queue.c
+@@ -102,7 +102,7 @@ static int mmc_queue_thread(void *d)
+  * on any queue on this host, and attempt to issue it.  This may
+  * not be the queue we were asked to process.
+  */
+-static void mmc_request(request_queue_t *q)
++static void mmc_request(struct request_queue *q)
  {
- 	mddev_t *mddev = data;
-diff -puN drivers/md/raid1.c~git-block-fixup-2 drivers/md/raid1.c
---- a/drivers/md/raid1.c~git-block-fixup-2
-+++ a/drivers/md/raid1.c
-@@ -575,39 +575,6 @@ static void raid1_unplug(struct request_
- 	md_wakeup_thread(mddev->thread);
- }
+ 	struct mmc_queue *mq = q->queuedata;
+ 	struct request *req;
+@@ -183,7 +183,7 @@ EXPORT_SYMBOL(mmc_init_queue);
  
--<<<<<<< HEAD/drivers/md/raid1.c
--static int raid1_issue_flush(struct request_queue *q, struct gendisk *disk,
--			     sector_t *error_sector)
--{
--	mddev_t *mddev = q->queuedata;
--	conf_t *conf = mddev_to_conf(mddev);
--	int i, ret = 0;
--
--	rcu_read_lock();
--	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
--		mdk_rdev_t *rdev = rcu_dereference(conf->mirrors[i].rdev);
--		if (rdev && !test_bit(Faulty, &rdev->flags)) {
--			struct block_device *bdev = rdev->bdev;
--			struct request_queue *r_queue = bdev_get_queue(bdev);
--
--			if (!r_queue->issue_flush_fn)
--				ret = -EOPNOTSUPP;
--			else {
--				atomic_inc(&rdev->nr_pending);
--				rcu_read_unlock();
--				ret = r_queue->issue_flush_fn(r_queue, bdev->bd_disk,
--							      error_sector);
--				rdev_dec_pending(rdev, mddev);
--				rcu_read_lock();
--			}
--		}
--	}
--	rcu_read_unlock();
--	return ret;
--}
--
--=======
-->>>>>>> /drivers/md/raid1.c
- static int raid1_congested(void *data, int bits)
+ void mmc_cleanup_queue(struct mmc_queue *mq)
  {
- 	mddev_t *mddev = data;
-diff -puN drivers/md/raid10.c~git-block-fixup-2 drivers/md/raid10.c
---- a/drivers/md/raid10.c~git-block-fixup-2
-+++ a/drivers/md/raid10.c
-@@ -618,39 +618,6 @@ static void raid10_unplug(struct request
- 	md_wakeup_thread(mddev->thread);
- }
+-	request_queue_t *q = mq->queue;
++	struct request_queue *q = mq->queue;
+ 	unsigned long flags;
  
--<<<<<<< HEAD/drivers/md/raid10.c
--static int raid10_issue_flush(struct request_queue *q, struct gendisk *disk,
--			     sector_t *error_sector)
--{
--	mddev_t *mddev = q->queuedata;
--	conf_t *conf = mddev_to_conf(mddev);
--	int i, ret = 0;
--
--	rcu_read_lock();
--	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
--		mdk_rdev_t *rdev = rcu_dereference(conf->mirrors[i].rdev);
--		if (rdev && !test_bit(Faulty, &rdev->flags)) {
--			struct block_device *bdev = rdev->bdev;
--			struct request_queue *r_queue = bdev_get_queue(bdev);
--
--			if (!r_queue->issue_flush_fn)
--				ret = -EOPNOTSUPP;
--			else {
--				atomic_inc(&rdev->nr_pending);
--				rcu_read_unlock();
--				ret = r_queue->issue_flush_fn(r_queue, bdev->bd_disk,
--							      error_sector);
--				rdev_dec_pending(rdev, mddev);
--				rcu_read_lock();
--			}
--		}
--	}
--	rcu_read_unlock();
--	return ret;
--}
--
--=======
-->>>>>>> /drivers/md/raid10.c
- static int raid10_congested(void *data, int bits)
+ 	/* Mark that we should start throwing out stragglers */
+@@ -213,7 +213,7 @@ EXPORT_SYMBOL(mmc_cleanup_queue);
+  */
+ void mmc_queue_suspend(struct mmc_queue *mq)
  {
- 	mddev_t *mddev = data;
-diff -puN drivers/md/raid5.c~git-block-fixup-2 drivers/md/raid5.c
---- a/drivers/md/raid5.c~git-block-fixup-2
-+++ a/drivers/md/raid5.c
-@@ -3768,39 +3768,6 @@ static void raid5_unplug_device(struct r
- 	unplug_slaves(mddev);
- }
+-	request_queue_t *q = mq->queue;
++	struct request_queue *q = mq->queue;
+ 	unsigned long flags;
  
--<<<<<<< HEAD/drivers/md/raid5.c
--static int raid5_issue_flush(struct request_queue *q, struct gendisk *disk,
--			     sector_t *error_sector)
--{
--	mddev_t *mddev = q->queuedata;
--	raid5_conf_t *conf = mddev_to_conf(mddev);
--	int i, ret = 0;
--
--	rcu_read_lock();
--	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
--		mdk_rdev_t *rdev = rcu_dereference(conf->disks[i].rdev);
--		if (rdev && !test_bit(Faulty, &rdev->flags)) {
--			struct block_device *bdev = rdev->bdev;
--			struct request_queue *r_queue = bdev_get_queue(bdev);
--
--			if (!r_queue->issue_flush_fn)
--				ret = -EOPNOTSUPP;
--			else {
--				atomic_inc(&rdev->nr_pending);
--				rcu_read_unlock();
--				ret = r_queue->issue_flush_fn(r_queue, bdev->bd_disk,
--							      error_sector);
--				rdev_dec_pending(rdev, mddev);
--				rcu_read_lock();
--			}
--		}
--	}
--	rcu_read_unlock();
--	return ret;
--}
--
--=======
-->>>>>>> /drivers/md/raid5.c
- static int raid5_congested(void *data, int bits)
+ 	if (!(mq->flags & MMC_QUEUE_SUSPENDED)) {
+@@ -234,7 +234,7 @@ EXPORT_SYMBOL(mmc_queue_suspend);
+  */
+ void mmc_queue_resume(struct mmc_queue *mq)
  {
- 	mddev_t *mddev = data;
-diff -puN drivers/message/i2o/i2o_block.c~git-block-fixup-2 drivers/message/i2o/i2o_block.c
---- a/drivers/message/i2o/i2o_block.c~git-block-fixup-2
-+++ a/drivers/message/i2o/i2o_block.c
-@@ -149,32 +149,6 @@ static int i2o_block_device_flush(struct
- };
+-	request_queue_t *q = mq->queue;
++	struct request_queue *q = mq->queue;
+ 	unsigned long flags;
  
- /**
--<<<<<<< HEAD/drivers/message/i2o/i2o_block.c
-- *	i2o_block_issue_flush - device-flush interface for block-layer
-- *	@queue: the request queue of the device which should be flushed
-- *	@disk: gendisk
-- *	@error_sector: error offset
-- *
-- *	Helper function to provide flush functionality to block-layer.
-- *
-- *	Returns 0 on success or negative error code on failure.
-- */
--
--static int i2o_block_issue_flush(struct request_queue * queue, struct gendisk *disk,
--				 sector_t * error_sector)
--{
--	struct i2o_block_device *i2o_blk_dev = queue->queuedata;
--	int rc = -ENODEV;
--
--	if (likely(i2o_blk_dev))
--		rc = i2o_block_device_flush(i2o_blk_dev->i2o_dev);
--
--	return rc;
--}
--
--/**
--=======
-->>>>>>> /drivers/message/i2o/i2o_block.c
-  *	i2o_block_device_mount - Mount (load) the media of device dev
-  *	@dev: I2O device which should receive the mount request
-  *	@media_id: Media Identifier
-diff -puN drivers/scsi/scsi_lib.c~git-block-fixup-2 drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~git-block-fixup-2
-+++ a/drivers/scsi/scsi_lib.c
-@@ -1143,25 +1143,6 @@ static int scsi_init_io(struct scsi_cmnd
- 	return BLKPREP_KILL;
- }
- 
--<<<<<<< HEAD/drivers/scsi/scsi_lib.c
--static int scsi_issue_flush_fn(struct request_queue *q, struct gendisk *disk,
--			       sector_t *error_sector)
--{
--	struct scsi_device *sdev = q->queuedata;
--	struct scsi_driver *drv;
--
--	if (sdev->sdev_state != SDEV_RUNNING)
--		return -ENXIO;
--
--	drv = *(struct scsi_driver **) disk->private_data;
--	if (drv->issue_flush)
--		return drv->issue_flush(&sdev->sdev_gendev, error_sector);
--
--	return -EOPNOTSUPP;
--}
--
--=======
-->>>>>>> /drivers/scsi/scsi_lib.c
- static struct scsi_cmnd *scsi_get_cmd_from_req(struct scsi_device *sdev,
- 		struct request *req)
- {
-diff -puN drivers/scsi/sd.c~git-block-fixup-2 drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~git-block-fixup-2
-+++ a/drivers/scsi/sd.c
-@@ -799,25 +799,7 @@ static int sd_sync_cache(struct scsi_dis
- 	return 0;
- }
- 
--<<<<<<< HEAD/drivers/scsi/sd.c
--static int sd_issue_flush(struct device *dev, sector_t *error_sector)
--{
--	int ret = 0;
--	struct scsi_disk *sdkp = scsi_disk_get_from_dev(dev);
--
--	if (!sdkp)
--               return -ENODEV;
--
--	if (sdkp->WCE)
--		ret = sd_sync_cache(sdkp);
--	scsi_disk_put(sdkp);
--	return ret;
--}
--
- static void sd_prepare_flush(struct request_queue *q, struct request *rq)
--=======
--static void sd_prepare_flush(request_queue_t *q, struct request *rq)
-->>>>>>> /drivers/scsi/sd.c
- {
- 	memset(rq->cmd, 0, sizeof(rq->cmd));
- 	rq->cmd_type = REQ_TYPE_BLOCK_PC;
-diff -puN include/scsi/sd.h~git-block-fixup-2 include/scsi/sd.h
---- a/include/scsi/sd.h~git-block-fixup-2
-+++ a/include/scsi/sd.h
-@@ -56,12 +56,7 @@ static int sd_suspend(struct device *dev
- static int sd_resume(struct device *dev);
- static void sd_rescan(struct device *);
- static int  sd_init_command(struct scsi_cmnd *);
--<<<<<<< HEAD/include/scsi/sd.h
--static int  sd_issue_flush(struct device *, sector_t *);
- static void sd_prepare_flush(struct request_queue *, struct request *);
--=======
--static void sd_prepare_flush(request_queue_t *, struct request *);
-->>>>>>> /include/scsi/sd.h
- static void sd_read_capacity(struct scsi_disk *sdkp, unsigned char *buffer);
- static void scsi_disk_release(struct class_device *cdev);
- static void sd_print_sense_hdr(struct scsi_disk *, struct scsi_sense_hdr *);
+ 	if (mq->flags & MMC_QUEUE_SUSPENDED) {
+diff -puN drivers/scsi/sd.c~more-request_queue_t-removal drivers/scsi/sd.c
+diff -puN include/linux/blkdev.h~more-request_queue_t-removal include/linux/blkdev.h
+diff -puN include/scsi/sd.h~more-request_queue_t-removal include/scsi/sd.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
