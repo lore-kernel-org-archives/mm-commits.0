@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 18:03:50 -0700
-Message-ID: <200707250108.l6P18O7H010019@imap1.linux-foundation.org>
+Subject: + git-block-fix-headers_check.patch added to -mm tree
+Date: Tue, 24 Jul 2007 18:20:30 -0700
+Message-ID: <200707250125.l6P1P4Rd010588@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36977 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51679 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761224AbXGYBJu (ORCPT
+	by vger.kernel.org with ESMTP id S1758897AbXGYBZO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 21:09:50 -0400
+	Tue, 24 Jul 2007 21:25:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hidehiro.kawai.ez@hitachi.com, nhorman@tuxdriver.com
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix
+     git-block: fix headers_check
 has been added to the -mm tree.  Its filename is
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
+     git-block-fix-headers_check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix
+Subject: git-block: fix headers_check
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/binfmt_aout.c:40: warning: initialization from incompatible pointer type
-fs/binfmt_aout.c:92: error: conflicting types for 'aout_core_dump'
-fs/binfmt_aout.c:34: error: previous declaration of 'aout_core_dump' was here
-
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_aout.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/net.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/binfmt_aout.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix
-+++ a/fs/binfmt_aout.c
-@@ -31,7 +31,8 @@
+diff -puN include/linux/net.h~git-block-fix-headers_check include/linux/net.h
+--- a/include/linux/net.h~git-block-fix-headers_check
++++ a/include/linux/net.h
+@@ -19,7 +19,9 @@
+ #define _LINUX_NET_H
  
- static int load_aout_binary(struct linux_binprm *, struct pt_regs * regs);
- static int load_aout_library(struct file*);
--static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file, u32 limit);
-+static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file,
-+				unsigned long limit);
+ #include <linux/wait.h>
++#ifdef __KERNEL__
+ #include <linux/splice.h>
++#endif
+ #include <asm/socket.h>
  
- static struct linux_binfmt aout_format = {
- 	.module		= THIS_MODULE,
+ struct poll_table_struct;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +88,7 @@ git-scsi-rc-fixes.patch
 git-scsi-target-fixup.patch
 git-block-fixup.patch
 git-block-fixup-2.patch
+git-block-fix-headers_check.patch
 more-request_queue_t-removal.patch
 git-unionfs.patch
 git-watchdog.patch
