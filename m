@@ -1,184 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: + allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 22:21:07 -0700
-Message-ID: <200707250525.l6P5PfGN018705@imap1.linux-foundation.org>
+Subject: - print-utsname-on-oops-on-all-architectures.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 22:42:47 -0700
+Message-ID: <200707250542.l6P5glI0019270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38689 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60427 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751439AbXGYF0w (ORCPT
+	by vger.kernel.org with ESMTP id S1752176AbXGYFnz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 01:26:52 -0400
+	Wed, 25 Jul 2007 01:43:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hidehiro.kawai.ez@hitachi.com, nhorman@tuxdriver.com
+To: jwise@google.com, ak@suse.de, benh@kernel.crashing.org, ink@jurassic.park.msu.ru, linux-arch@vger.kernel.org, paulus@samba.org, rmk@arm.linux.org.uk, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix
-has been added to the -mm tree.  Its filename is
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
+     Print utsname on Oops on all architectures
+has been removed from the -mm tree.  Its filename was
+     print-utsname-on-oops-on-all-architectures.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Print utsname on Oops on all architectures
+From: Joshua Wise <jwise@google.com>
 
-arch/sparc64/kernel/binfmt_aout32.c:46: warning: initialization from incompatible pointer type
+Background:
+ This patch is a follow-on to "Info dump on Oops or panic()" [1].
 
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
+ On some architectures, the kernel printed some information on the running
+ kernel, but not on all architectures. The information printed was generally
+ the version and build number, but it was not located in a consistant place,
+ and some architectures did not print it at all.
+
+Description:
+ This patch uses the already-existing die_chain to print utsname information
+ on Oops. This patch also removes the architecture-specific utsname
+ printers. To avoid crashing the system further (and hence not printing the
+ Oops) in the case where the system is so hopelessly smashed that utsname
+ might be destroyed, we vsprintf the utsname data into a static buffer
+ first, and then just print that on crash.
+
+Testing:
+ I wrote a module that does a *(int*)0 = 0; and observed that I got my
+ utsname data printed.
+
+Potential impact:
+ This adds another line to the Oops output, causing the first few lines to
+ potentially scroll off the screen. This also adds a few more pointer
+ dereferences in the Oops path, because it adds to the die_chain notifier
+ chain, reducing the likelihood that the Oops will be printed if there is
+ very bad memory corruption.
+
+Signed-off-by: Joshua Wise <jwise@google.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/binfmt_aout32.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/alpha/kernel/process.c   |    1 -
+ arch/i386/kernel/process.c    |    7 ++-----
+ arch/powerpc/kernel/process.c |    5 ++---
+ arch/x86_64/kernel/process.c  |    8 ++------
+ kernel/sys.c                  |   31 +++++++++++++++++++++++++++++++
+ 5 files changed, 37 insertions(+), 15 deletions(-)
 
-diff -puN arch/sparc64/kernel/binfmt_aout32.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix arch/sparc64/kernel/binfmt_aout32.c
---- a/arch/sparc64/kernel/binfmt_aout32.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix
-+++ a/arch/sparc64/kernel/binfmt_aout32.c
-@@ -36,7 +36,7 @@
- static int load_aout32_binary(struct linux_binprm *, struct pt_regs * regs);
- static int load_aout32_library(struct file*);
- static int aout32_core_dump(long signr, struct pt_regs * regs,
--			struct file *file, u32);
-+			struct file *file, unsigned long);
+diff -puN arch/alpha/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/alpha/kernel/process.c
+--- a/arch/alpha/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/alpha/kernel/process.c
+@@ -20,7 +20,6 @@
+ #include <linux/slab.h>
+ #include <linux/user.h>
+ #include <linux/a.out.h>
+-#include <linux/utsname.h>
+ #include <linux/time.h>
+ #include <linux/major.h>
+ #include <linux/stat.h>
+diff -puN arch/arm/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/arm/kernel/process.c
+diff -puN arch/i386/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/i386/kernel/process.c
+@@ -27,7 +27,6 @@
+ #include <linux/user.h>
+ #include <linux/a.out.h>
+ #include <linux/interrupt.h>
+-#include <linux/utsname.h>
+ #include <linux/delay.h>
+ #include <linux/reboot.h>
+ #include <linux/init.h>
+@@ -309,10 +308,8 @@ void show_regs(struct pt_regs * regs)
  
- static struct linux_binfmt aout32_format = {
- 	.lh	=	LIST_HEAD_INIT(aout32_format.lh),
-@@ -88,7 +88,8 @@ if (file->f_op->llseek) { \
-  * dumping of the process results in another error..
-  */
+ 	if (user_mode_vm(regs))
+ 		printk(" ESP: %04x:%08lx",0xffff & regs->xss,regs->esp);
+-	printk(" EFLAGS: %08lx    %s  (%s %.*s)\n",
+-	       regs->eflags, print_tainted(), init_utsname()->release,
+-	       (int)strcspn(init_utsname()->version, " "),
+-	       init_utsname()->version);
++	printk(" EFLAGS: %08lx    %s\n",
++	       regs->eflags, print_tainted());
+ 	printk("EAX: %08lx EBX: %08lx ECX: %08lx EDX: %08lx\n",
+ 		regs->eax,regs->ebx,regs->ecx,regs->edx);
+ 	printk("ESI: %08lx EDI: %08lx EBP: %08lx",
+diff -puN arch/powerpc/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/powerpc/kernel/process.c
+--- a/arch/powerpc/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/powerpc/kernel/process.c
+@@ -32,7 +32,6 @@
+ #include <linux/kallsyms.h>
+ #include <linux/mqueue.h>
+ #include <linux/hardirq.h>
+-#include <linux/utsname.h>
  
--static int aout32_core_dump(long signr, struct pt_regs *regs, struct file *file, u32 limit)
-+static int aout32_core_dump(long signr, struct pt_regs *regs, struct file *file,
-+			unsigned long limit)
- {
- 	mm_segment_t fs;
- 	int has_dumped = 0;
+ #include <asm/pgtable.h>
+ #include <asm/uaccess.h>
+@@ -416,8 +415,8 @@ void show_regs(struct pt_regs * regs)
+ 
+ 	printk("NIP: "REG" LR: "REG" CTR: "REG"\n",
+ 	       regs->nip, regs->link, regs->ctr);
+-	printk("REGS: %p TRAP: %04lx   %s  (%s)\n",
+-	       regs, regs->trap, print_tainted(), init_utsname()->release);
++	printk("REGS: %p TRAP: %04lx   %s\n",
++	       regs, regs->trap, print_tainted());
+ 	printk("MSR: "REG" ", regs->msr);
+ 	printbits(regs->msr, msr_bits);
+ 	printk("  CR: %08lx  XER: %08lx\n", regs->ccr, regs->xer);
+diff -puN arch/x86_64/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/x86_64/kernel/process.c
+--- a/arch/x86_64/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/x86_64/kernel/process.c
+@@ -32,7 +32,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+ #include <linux/ptrace.h>
+-#include <linux/utsname.h>
+ #include <linux/random.h>
+ #include <linux/notifier.h>
+ #include <linux/kprobes.h>
+@@ -316,11 +315,8 @@ void __show_regs(struct pt_regs * regs)
+ 
+ 	printk("\n");
+ 	print_modules();
+-	printk("Pid: %d, comm: %.20s %s %s %.*s\n",
+-		current->pid, current->comm, print_tainted(),
+-		init_utsname()->release,
+-		(int)strcspn(init_utsname()->version, " "),
+-		init_utsname()->version);
++	printk("Pid: %d, comm: %.20s %s\n",
++		current->pid, current->comm, print_tainted());
+ 	printk("RIP: %04lx:[<%016lx>] ", regs->cs & 0xffff, regs->rip);
+ 	printk_address(regs->rip); 
+ 	printk("RSP: %04lx:%016lx  EFLAGS: %08lx\n", regs->ss, regs->rsp,
+diff -puN kernel/sys.c~print-utsname-on-oops-on-all-architectures kernel/sys.c
+--- a/kernel/sys.c~print-utsname-on-oops-on-all-architectures
++++ a/kernel/sys.c
+@@ -27,6 +27,7 @@
+ #include <linux/dcookies.h>
+ #include <linux/suspend.h>
+ #include <linux/tty.h>
++#include <linux/kdebug.h>
+ #include <linux/signal.h>
+ #include <linux/cn_proc.h>
+ #include <linux/getcpu.h>
+@@ -107,6 +108,36 @@ void (*pm_power_off_prepare)(void);
+ EXPORT_SYMBOL(pm_power_off_prepare);
+ 
+ /*
++ * Dump out UTS info on oops / panic.  We pregenerate utsname_info so that
++ * we don't access utsname() if the machine is in a potentially bad state.
++ */
++
++static char *utsname_info;
++
++static int dump_utsname(struct notifier_block *self, unsigned long diecode,
++		void *p)
++{
++	printk(KERN_EMERG "%s\n", utsname_info);
++	return 0;
++}
++
++static struct notifier_block utsname_notifier = {
++	.notifier_call = dump_utsname
++};
++
++static int __init register_utsname_dump(void)
++{
++	utsname_info = kasprintf(GFP_KERNEL, "%s %s %s %s",
++		utsname()->sysname,
++		utsname()->release,
++		utsname()->version,
++		utsname()->machine);
++	register_die_notifier(&utsname_notifier);
++	return 0;
++}
++module_init(register_utsname_dump);
++
++/*
+  *	Notifier list for kernel code which wants to be called
+  *	at shutdown. This is used to stop any idling DMA operations
+  *	and the like. 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jwise@google.com are
 
-origin.patch
-rtc-stk17ta8-update-for-sysfs-api-change.patch
-x86_powernow_k8_acpi-must-depend-on-acpi.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-ufs-printk-warning-fix.patch
-i2c-ds1682-warning-fix.patch
-edac-is-bust-on-mips.patch
-kdebugh-forward-declare-struct-struct-notifier_block.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-build-fix.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-ia64-rename-partial_page.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-arm-ioh-needs-iomaph.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-ide-bodge-things-around-to-make-arm-work.patch
-mmc-build-fix.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-ip_auto_config-fix-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-scsi-rc-fixes.patch
-git-scsi-target-fixup.patch
-git-block-fixup.patch
-git-block-fixup-2.patch
-git-block-fix-headers_check.patch
-git-block-whoops.patch
-more-request_queue_t-removal.patch
-git-unionfs.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-git-watchdog.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
-git-kgdb-fixup.patch
-git-kgdb-arm-fix.patch
-git-kgdb-mips-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-list_head-in-binfmt-handling-fix.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
-ip2main-warning-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+print-utsname-on-oops-on-all-architectures.patch
