@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ax88796-printk-fixes.patch added to -mm tree
-Date: Tue, 24 Jul 2007 19:21:33 -0700
-Message-ID: <200707250226.l6P2Q7D0012666@imap1.linux-foundation.org>
+Subject: + git-audit-temp-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 19:25:57 -0700
+Message-ID: <200707250230.l6P2UVsU012808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55300 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38447 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753440AbXGYC0Q (ORCPT
+	by vger.kernel.org with ESMTP id S1753440AbXGYCai (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 22:26:16 -0400
+	Tue, 24 Jul 2007 22:30:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     ax88796 printk fixes
+     git-audit-temp-fix
 has been added to the -mm tree.  Its filename is
-     ax88796-printk-fixes.patch
+     git-audit-temp-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ax88796 printk fixes
+Subject: git-audit-temp-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/ax88796.c: In function `ax_probe':
-drivers/net/ax88796.c:825: warning: size_t format, different type arg (arg 4)
-drivers/net/ax88796.c:825: warning: size_t format, different type arg (arg 5)
-
-resource_size_t isn't size_t.
-
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ax88796.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/Makefile |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/ax88796.c~ax88796-printk-fixes drivers/net/ax88796.c
---- a/drivers/net/ax88796.c~ax88796-printk-fixes
-+++ a/drivers/net/ax88796.c
-@@ -822,8 +822,9 @@ static int ax_probe(struct platform_devi
- 	dev->base_addr = (long)ei_status.mem;
- 
- 	if (ei_status.mem == NULL) {
--		dev_err(&pdev->dev, "Cannot ioremap area (%08zx,%08zx)\n",
--			res->start, res->end);
-+		dev_err(&pdev->dev, "Cannot ioremap area (%08llx,%08llx)\n",
-+			(unsigned long long)res->start,
-+			(unsigned long long)res->end);
- 
-  		ret = -ENXIO;
- 		goto exit_req;
+diff -puN kernel/Makefile~git-audit-temp-fix kernel/Makefile
+--- a/kernel/Makefile~git-audit-temp-fix
++++ a/kernel/Makefile
+@@ -43,8 +43,8 @@ obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_a
+ obj-$(CONFIG_CONTAINER_NS) += ns_container.o
+ obj-$(CONFIG_IKCONFIG) += configs.o
+ obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
+-obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
+-obj-$(CONFIG_AUDITSYSCALL) += auditsc.o audit_tree.o
++obj-$(CONFIG_AUDIT) += audit.o auditfilter.o audit_tree.o
++obj-$(CONFIG_AUDITSYSCALL) += auditsc.o
+ obj-$(CONFIG_KPROBES) += kprobes.o
+ obj-$(CONFIG_KGDB) += kgdb.o
+ obj-$(CONFIG_SYSFS) += ksysfs.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,6 +77,7 @@ mmc-build-fix.patch
 git-mtd.patch
 git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
 mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
 e1000new-build-fix.patch
 e1000new-build-fix-2.patch
 ip_auto_config-fix-fix.patch
@@ -165,4 +159,4 @@ check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
 a.patch
-ax88796-printk-fixes.patch
+git-audit-temp-fix.patch
