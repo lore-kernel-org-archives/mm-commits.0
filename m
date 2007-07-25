@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fix-headers_check.patch added to -mm tree
-Date: Tue, 24 Jul 2007 18:20:30 -0700
-Message-ID: <200707250125.l6P1P4Rd010588@imap1.linux-foundation.org>
+Subject: + reorder-rtc-makefile.patch added to -mm tree
+Date: Tue, 24 Jul 2007 18:44:08 -0700
+Message-ID: <200707250144.l6P1i8F0011288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51679 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34612 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758897AbXGYBZO (ORCPT
+	by vger.kernel.org with ESMTP id S1756068AbXGYBoU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 21:25:14 -0400
+	Tue, 24 Jul 2007 21:44:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: alessandro.zummo@towertech.it, a.zummo@towertech.it
 
 
 The patch titled
-     git-block: fix headers_check
+     Reorder RTC Makefile
 has been added to the -mm tree.  Its filename is
-     git-block-fix-headers_check.patch
+     reorder-rtc-makefile.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,128 +26,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block: fix headers_check
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Reorder RTC Makefile
+From: Alessandro Zummo <alessandro.zummo@towertech.it>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Alphabetic reordering of the drivers in the rtc subsys makefile.
+
+(akpm: merge this asap!  Makefiles are the source of many patch conflicts..)
+
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/net.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/Makefile |   42 +++++++++++++++++++++--------------------
+ 1 file changed, 22 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/net.h~git-block-fix-headers_check include/linux/net.h
---- a/include/linux/net.h~git-block-fix-headers_check
-+++ a/include/linux/net.h
-@@ -19,7 +19,9 @@
- #define _LINUX_NET_H
+diff -puN drivers/rtc/Makefile~reorder-rtc-makefile drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~reorder-rtc-makefile
++++ a/drivers/rtc/Makefile
+@@ -15,34 +15,36 @@ rtc-core-$(CONFIG_RTC_INTF_DEV)	+= rtc-d
+ rtc-core-$(CONFIG_RTC_INTF_PROC) += rtc-proc.o
+ rtc-core-$(CONFIG_RTC_INTF_SYSFS) += rtc-sysfs.o
  
- #include <linux/wait.h>
-+#ifdef __KERNEL__
- #include <linux/splice.h>
-+#endif
- #include <asm/socket.h>
- 
- struct poll_table_struct;
++# Keep the list ordered.
++
++obj-$(CONFIG_RTC_DRV_AT32AP700X)+= rtc-at32ap700x.o
++obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-at91rm9200.o
++obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
+ obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
+-obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
+-obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
+-obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
+-obj-$(CONFIG_RTC_DRV_AT32AP700X)	+= rtc-at32ap700x.o
++obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
+ obj-$(CONFIG_RTC_DRV_DS1307)	+= rtc-ds1307.o
++obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
+ obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
+ obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
++obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
++obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
++obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
++obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
++obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
++obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
++obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
+ obj-$(CONFIG_RTC_DRV_OMAP)	+= rtc-omap.o
+ obj-$(CONFIG_RTC_DRV_PCF8563)	+= rtc-pcf8563.o
+ obj-$(CONFIG_RTC_DRV_PCF8583)	+= rtc-pcf8583.o
++obj-$(CONFIG_RTC_DRV_PL031)	+= rtc-pl031.o
++obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
++obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5c348.o
+ obj-$(CONFIG_RTC_DRV_RS5C372)	+= rtc-rs5c372.o
+ obj-$(CONFIG_RTC_DRV_S3C)	+= rtc-s3c.o
+-obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5c348.o
+-obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
+-obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
+-obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
+-obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
+-obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
+-obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
+ obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
+-obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
+-obj-$(CONFIG_RTC_DRV_PL031)	+= rtc-pl031.o
+-obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
+-obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
+-obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
+-obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-at91rm9200.o
+ obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
+-obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
+-obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
+-obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
++obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
++obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
++obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
++obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
++obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alessandro.zummo@towertech.it are
 
-origin.patch
-rtc-stk17ta8-update-for-sysfs-api-change.patch
-x86_powernow_k8_acpi-must-depend-on-acpi.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-mmc-build-fix.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-ip_auto_config-fix-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-scsi-rc-fixes.patch
-git-scsi-target-fixup.patch
-git-block-fixup.patch
-git-block-fixup-2.patch
-git-block-fix-headers_check.patch
-more-request_queue_t-removal.patch
-git-unionfs.patch
-git-watchdog.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+reorder-rtc-makefile.patch
