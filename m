@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ip2main-warning-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 21:24:55 -0700
-Message-ID: <200707250429.l6P4TTw2016718@imap1.linux-foundation.org>
+Subject: + use-list_head-in-binfmt-handling-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 22:16:44 -0700
+Message-ID: <200707250521.l6P5LIOp018521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44079 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41839 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751034AbXGYEaC (ORCPT
+	by vger.kernel.org with ESMTP id S1751868AbXGYFWY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 00:30:02 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6P4TYhN004701
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2007 21:29:35 -0700
+	Wed, 25 Jul 2007 01:22:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, adobriyan@sw.ru
 
 
 The patch titled
-     ip2main warning fix
+     use-list_head-in-binfmt-handling fix
 has been added to the -mm tree.  Its filename is
-     ip2main-warning-fix.patch
+     use-list_head-in-binfmt-handling-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,41 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ip2main warning fix
+Subject: use-list_head-in-binfmt-handling fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-CONFIG_PCI=n:
+arch/sparc64/kernel/binfmt_aout32.c:41: warning: missing braces around initializer
+arch/sparc64/kernel/binfmt_aout32.c:41: warning: (near initialization for `aout32_format.lh')
+arch/sparc64/kernel/binfmt_aout32.c:41: warning: initialization from incompatible pointer type
+arch/sparc64/kernel/binfmt_aout32.c:41: warning: initialization from incompatible pointer type
+arch/sparc64/kernel/binfmt_aout32.c:41: warning: initialization from incompatible pointer type
+arch/sparc64/kernel/binfmt_aout32.c:41: warning: initialization from incompatible pointer type
+arch/sparc64/kernel/binfmt_aout32.c:43: warning: initialization makes pointer from integer without a cast
 
-drivers/char/ip2/ip2main.c: In function `ip2_loadmain':
-drivers/char/ip2/ip2main.c:503: warning: unused variable `status'
+please grep for more missed instances?
 
-
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sparc64/kernel/binfmt_aout32.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/ip2/ip2main.c~ip2main-warning-fix drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~ip2main-warning-fix
-+++ a/drivers/char/ip2/ip2main.c
-@@ -500,7 +500,6 @@ ip2_loadmain(int *iop, int *irqp, unsign
- {
- 	int i, j, box;
- 	int err = 0;
--	int status = 0;
- 	static int loaded;
- 	i2eBordStrPtr pB = NULL;
- 	int rc = -1;
-@@ -588,6 +587,8 @@ ip2_loadmain(int *iop, int *irqp, unsign
- 		case PCI:
- #ifdef CONFIG_PCI
- 			{
-+				int status;
-+
- 				pci_dev_i = pci_get_device(PCI_VENDOR_ID_COMPUTONE,
- 							  PCI_DEVICE_ID_COMPUTONE_IP2EX, pci_dev_i);
- 				if (pci_dev_i != NULL) {
+diff -puN arch/sparc64/kernel/binfmt_aout32.c~use-list_head-in-binfmt-handling-fix arch/sparc64/kernel/binfmt_aout32.c
+--- a/arch/sparc64/kernel/binfmt_aout32.c~use-list_head-in-binfmt-handling-fix
++++ a/arch/sparc64/kernel/binfmt_aout32.c
+@@ -38,8 +38,12 @@ static int load_aout32_library(struct fi
+ static int aout32_core_dump(long signr, struct pt_regs * regs, struct file *file);
+ 
+ static struct linux_binfmt aout32_format = {
+-	NULL, THIS_MODULE, load_aout32_binary, load_aout32_library, aout32_core_dump,
+-	PAGE_SIZE
++	.lh	=	LIST_HEAD_INIT(aout32_format.lh),
++	.module =	THIS_MODULE,
++	.load_binary =	load_aout32_binary,
++	.load_shlib =	load_aout32_library,
++	.core_dump =	aout32_core_dump,
++	.min_coredump =	PAGE_SIZE,
+ };
+ 
+ static void set_brk(unsigned long start, unsigned long end)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -145,6 +144,7 @@ security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 file-capabilities-clear-caps-cleanup-fix.patch
 capabilityh-remove-include-of-currenth.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-list_head-in-binfmt-handling-fix.patch
 softlockup-add-a-proc-tuning-parameter-fix.patch
 force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
 driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
@@ -155,6 +155,7 @@ do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
 pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
 allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
 allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
+ip2main-warning-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
@@ -182,4 +183,3 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-ip2main-warning-fix.patch
