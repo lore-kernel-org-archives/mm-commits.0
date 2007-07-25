@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-oops-due-to-typo-in-new-throttling-code.patch added to -mm tree
-Date: Wed, 25 Jul 2007 00:01:12 -0700
-Message-ID: <200707250701.l6P71C0c022115@imap1.linux-foundation.org>
+Subject: + fix-inode_table-test-in-ext234_check_descriptors.patch added to -mm tree
+Date: Wed, 25 Jul 2007 00:06:47 -0700
+Message-ID: <200707250706.l6P76lGC022314__37612.9492455677$1185347231$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60533 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33635 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754129AbXGYHB1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750944AbXGYHHB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 03:01:27 -0400
+	Wed, 25 Jul 2007 03:07:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: luming.yu@gmail.com, len.brown@intel.com
+Cc: sandeen@redhat.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     fix oops due to typo in new throttling code
+     fix inode_table test in ext234_check_descriptors
 has been added to the -mm tree.  Its filename is
-     acpi-fix-oops-due-to-typo-in-new-throttling-code.patch
+     fix-inode_table-test-in-ext234_check_descriptors.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix oops due to typo in new throttling code
-From: Luming Yu <luming.yu@gmail.com>
+Subject: fix inode_table test in ext234_check_descriptors
+From: Eric Sandeen <sandeen@redhat.com>
 
-Signed-off-by: Luming Yu <luming.yu@gmail.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
+ext[234]_check_descriptors sanity checks block group descriptor geometry at
+mount time, testing whether the block bitmap, inode bitmap, and inode table
+reside wholly within the blockgroup.  However, the inode table test is off
+by one so that if the last block in the inode table resides on the last
+block of the block group, the test incorrectly fails.  This is because it
+tests the last block as (start + length) rather than (start + length - 1).
+
+This can be seen by trying to mount a filesystem made such as:
+
+ mkfs.ext2 -F -b 1024 -m 0 -g 256 -N 3744 fsfile 1024
+
+which yields:
+
+ EXT2-fs error (device loop0): ext2_check_descriptors: Inode table for group 0 not in group (block 101)!
+ EXT2-fs: group descriptors corrupted!
+
+There is a similar bug in e2fsprogs, patch already sent for that.
+
+(I wonder if inside(), outside(), and/or in_range() should someday be
+used in this and other tests throughout the ext filesystems...)
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_throttling.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/ext2/super.c |    2 +-
+ fs/ext3/super.c |    2 +-
+ fs/ext4/super.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/processor_throttling.c~acpi-fix-oops-due-to-typo-in-new-throttling-code drivers/acpi/processor_throttling.c
---- a/drivers/acpi/processor_throttling.c~acpi-fix-oops-due-to-typo-in-new-throttling-code
-+++ a/drivers/acpi/processor_throttling.c
-@@ -658,18 +658,20 @@ static int acpi_processor_throttling_seq
- 		   pr->throttling.state_count - 1);
- 
- 	seq_puts(seq, "states:\n");
--	if (acpi_processor_get_throttling == acpi_processor_get_throttling_fadt)
-+	if (pr->throttling.acpi_processor_get_throttling ==
-+			acpi_processor_get_throttling_fadt) {
- 		for (i = 0; i < pr->throttling.state_count; i++)
- 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
- 				   (i == pr->throttling.state ? '*' : ' '), i,
- 				   (pr->throttling.states[i].performance ? pr->
- 				    throttling.states[i].performance / 10 : 0));
--	else
-+	} else {
- 		for (i = 0; i < pr->throttling.state_count; i++)
- 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
- 				   (i == pr->throttling.state ? '*' : ' '), i,
- 				   (int)pr->throttling.states_tss[i].
- 				   freqpercentage);
-+	}
- 
-       end:
- 	return 0;
+diff -puN fs/ext2/super.c~fix-inode_table-test-in-ext234_check_descriptors fs/ext2/super.c
+--- a/fs/ext2/super.c~fix-inode_table-test-in-ext234_check_descriptors
++++ a/fs/ext2/super.c
+@@ -580,7 +580,7 @@ static int ext2_check_descriptors (struc
+ 			return 0;
+ 		}
+ 		if (le32_to_cpu(gdp->bg_inode_table) < first_block ||
+-		    le32_to_cpu(gdp->bg_inode_table) + sbi->s_itb_per_group >
++		    le32_to_cpu(gdp->bg_inode_table) + sbi->s_itb_per_group - 1 >
+ 		    last_block)
+ 		{
+ 			ext2_error (sb, "ext2_check_descriptors",
+diff -puN fs/ext3/super.c~fix-inode_table-test-in-ext234_check_descriptors fs/ext3/super.c
+--- a/fs/ext3/super.c~fix-inode_table-test-in-ext234_check_descriptors
++++ a/fs/ext3/super.c
+@@ -1221,7 +1221,7 @@ static int ext3_check_descriptors (struc
+ 			return 0;
+ 		}
+ 		if (le32_to_cpu(gdp->bg_inode_table) < first_block ||
+-		    le32_to_cpu(gdp->bg_inode_table) + sbi->s_itb_per_group >
++		    le32_to_cpu(gdp->bg_inode_table) + sbi->s_itb_per_group - 1 >
+ 		    last_block)
+ 		{
+ 			ext3_error (sb, "ext3_check_descriptors",
+diff -puN fs/ext4/super.c~fix-inode_table-test-in-ext234_check_descriptors fs/ext4/super.c
+--- a/fs/ext4/super.c~fix-inode_table-test-in-ext234_check_descriptors
++++ a/fs/ext4/super.c
+@@ -1283,7 +1283,7 @@ static int ext4_check_descriptors (struc
+ 		}
+ 		inode_table = ext4_inode_table(sb, gdp);
+ 		if (inode_table < first_block ||
+-		    inode_table + sbi->s_itb_per_group > last_block)
++		    inode_table + sbi->s_itb_per_group - 1 > last_block)
+ 		{
+ 			ext4_error (sb, "ext4_check_descriptors",
+ 				    "Inode table for group %d"
 _
 
-Patches currently in -mm which might be from luming.yu@gmail.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-acpi-fix-oops-due-to-typo-in-new-throttling-code.patch
+fix-inode_table-test-in-ext234_check_descriptors.patch
+udf-fix-uid-and-gid-mount-option-ignorance.patch
