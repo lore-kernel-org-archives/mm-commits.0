@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-whoops.patch added to -mm tree
-Date: Tue, 24 Jul 2007 20:49:00 -0700
-Message-ID: <200707250353.l6P3rYxD015539@imap1.linux-foundation.org>
+Subject: + ufs-printk-warning-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 20:52:59 -0700
+Message-ID: <200707250357.l6P3vXhA015619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58340 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33390 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752535AbXGYDyD (ORCPT
+	by vger.kernel.org with ESMTP id S1752338AbXGYD6M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 23:54:03 -0400
+	Tue, 24 Jul 2007 23:58:12 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6P3vc5A003827
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2007 20:57:40 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-block-whoops
+     ufs: printk warning fix
 has been added to the -mm tree.  Its filename is
-     git-block-whoops.patch
+     ufs-printk-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +30,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block-whoops
+Subject: ufs: printk warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ide/pci/sgiioc4.c: In function `sgiioc4_build_dma_table':
-drivers/ide/pci/sgiioc4.c:544: error: implicit declaration of function `sg_next'
-drivers/ide/pci/sgiioc4.c:544: warning: assignment makes pointer from integer without a cast
+fs/ufs/balloc.c: In function `ufs_change_blocknr':
+fs/ufs/balloc.c:316: warning: long long unsigned int format, long unsigned int arg (arg 2)
+fs/ufs/balloc.c:316: warning: long long unsigned int format, long unsigned int arg (arg 3)
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Odd.  It seems to have decided that ull+ul = ul.
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ufs/balloc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null /dev/null
-diff -puN drivers/ide/Kconfig~git-block-whoops drivers/ide/Kconfig
---- a/drivers/ide/Kconfig~git-block-whoops
-+++ a/drivers/ide/Kconfig
-@@ -704,6 +704,7 @@ config BLK_DEV_SVWKS
- config BLK_DEV_SGIIOC4
- 	tristate "Silicon Graphics IOC4 chipset ATA/ATAPI support"
- 	depends on (IA64_SGI_SN2 || IA64_GENERIC) && SGI_IOC4
-+	depends on BROKEN
- 	select IDEPCI_SHARE_IRQ
- 	select BLK_DEV_IDEDMA_PCI
- 	help
+diff -puN fs/ufs/balloc.c~ufs-printk-warning-fix fs/ufs/balloc.c
+--- a/fs/ufs/balloc.c~ufs-printk-warning-fix
++++ a/fs/ufs/balloc.c
+@@ -314,8 +314,9 @@ static void ufs_change_blocknr(struct in
+ 			}
+ 
+ 			UFSD(" change from %llu to %llu, pos %u\n",
+-			     (unsigned long long)pos + oldb,
+-			     (unsigned long long)pos + newb, pos);
++			     (unsigned long long)pos + (unsigned long long)oldb,
++			     (unsigned long long)pos + (unsigned long long)newb,
++			     pos);
+ 
+ 			bh->b_blocknr = newb + pos;
+ 			unmap_underlying_metadata(bh->b_bdev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +111,7 @@ git-scsi-target-fixup.patch
 git-block-fixup.patch
 git-block-fixup-2.patch
 git-block-fix-headers_check.patch
+git-block-whoops.patch
 more-request_queue_t-removal.patch
 git-unionfs.patch
 merge-the-sonics-silicon-backplane-subsystem-fix.patch
@@ -166,5 +176,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-git-block-whoops.patch
-git-block-whoops.patch
+ufs-printk-warning-fix.patch
