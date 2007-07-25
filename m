@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libata-arm-ioh-needs-iomaph.patch added to -mm tree
-Date: Tue, 24 Jul 2007 19:14:54 -0700
-Message-ID: <200707250219.l6P2JSET012479@imap1.linux-foundation.org>
+Subject: + ax88796-printk-fixes.patch added to -mm tree
+Date: Tue, 24 Jul 2007 19:21:33 -0700
+Message-ID: <200707250226.l6P2Q7D0012666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44365 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55300 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753440AbXGYCUS (ORCPT
+	by vger.kernel.org with ESMTP id S1753440AbXGYC0Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 22:20:18 -0400
+	Tue, 24 Jul 2007 22:26:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org, rmk@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     libata: arm/io.h needs iomap.h
+     ax88796 printk fixes
 has been added to the -mm tree.  Its filename is
-     libata-arm-ioh-needs-iomaph.patch
+     ax88796-printk-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: arm/io.h needs iomap.h
+Subject: ax88796 printk fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from drivers/ata/libata-core.c:55:
-include/linux/libata.h: In function `ata_wait_idle':
-include/linux/libata.h:1127: error: `IOMAP_NAMELEN' undeclared (first use in this function)
-include/linux/libata.h:1127: error: (Each undeclared identifier is reported only once
-include/linux/libata.h:1127: error: for each function it appears in.)
-include/linux/libata.h:1133: error: implicit declaration of function `iomap_name'
-include/linux/libata.h:1133: warning: format argument is not a pointer (arg 3)
-include/linux/libata.h:1127: warning: unused variable `buf'
-drivers/ata/libata-core.c: In function `ata_host_register':
-drivers/ata/libata-core.c:6492: error: `IOMAP_NAMELEN' undeclared (first use in this function)
-drivers/ata/libata-core.c:6549: warning: format argument is not a pointer (arg 5)
-drivers/ata/libata-core.c:6549: warning: format argument is not a pointer (arg 6)
-drivers/ata/libata-core.c:6549: warning: format argument is not a pointer (arg 7)
-drivers/ata/libata-core.c:6492: warning: unused variable `ctlbuf'
-drivers/ata/libata-core.c:6492: warning: unused variable `cmdbuf'
-drivers/ata/libata-core.c:6492: warning: unused variable `dmabuf'
+drivers/net/ax88796.c: In function `ax_probe':
+drivers/net/ax88796.c:825: warning: size_t format, different type arg (arg 4)
+drivers/net/ax88796.c:825: warning: size_t format, different type arg (arg 5)
 
-I hope you guys know what you're doing.
+resource_size_t isn't size_t.
 
-Cc: Tejun Heo <htejun@gmail.com>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/io.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/ax88796.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/libata.h~libata-arm-ioh-needs-iomaph include/linux/libata.h
-diff -puN include/asm-arm/io.h~libata-arm-ioh-needs-iomaph include/asm-arm/io.h
---- a/include/asm-arm/io.h~libata-arm-ioh-needs-iomaph
-+++ a/include/asm-arm/io.h
-@@ -26,6 +26,7 @@
- #include <linux/types.h>
- #include <asm/byteorder.h>
- #include <asm/memory.h>
-+#include <asm-generic/iomap.h>
+diff -puN drivers/net/ax88796.c~ax88796-printk-fixes drivers/net/ax88796.c
+--- a/drivers/net/ax88796.c~ax88796-printk-fixes
++++ a/drivers/net/ax88796.c
+@@ -822,8 +822,9 @@ static int ax_probe(struct platform_devi
+ 	dev->base_addr = (long)ei_status.mem;
  
- /*
-  * ISA I/O bus memory addresses are 1:1 with the physical address.
+ 	if (ei_status.mem == NULL) {
+-		dev_err(&pdev->dev, "Cannot ioremap area (%08zx,%08zx)\n",
+-			res->start, res->end);
++		dev_err(&pdev->dev, "Cannot ioremap area (%08llx,%08llx)\n",
++			(unsigned long long)res->start,
++			(unsigned long long)res->end);
+ 
+  		ret = -ENXIO;
+ 		goto exit_req;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +76,7 @@ dma-arch-fix.patch
 adbhid-produce-all-capslock-key-events-fix.patch
 m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
 git-kvm.patch
+libata-arm-ioh-needs-iomaph.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 fix-ide-ide-add-ide-set-pio-take3.patch
@@ -175,4 +164,5 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-libata-arm-ioh-needs-iomaph.patch
+a.patch
+ax88796-printk-fixes.patch
