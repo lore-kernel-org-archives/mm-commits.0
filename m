@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + softlockup-use-cpu_clock-instead-of-sched_clock.patch added to -mm tree
-Date: Wed, 25 Jul 2007 02:17:47 -0700
-Message-ID: <200707250917.l6P9Hl0w026914@imap1.linux-foundation.org>
+Subject: + blktrace-use-cpu_clock-instead-of-sched_clock.patch added to -mm tree
+Date: Wed, 25 Jul 2007 02:27:50 -0700
+Message-ID: <200707250927.l6P9RolO027259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49222 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39231 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754906AbXGYJST (ORCPT
+	by vger.kernel.org with ESMTP id S1750860AbXGYJ2F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 05:18:19 -0400
+	Wed, 25 Jul 2007 05:28:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu
+Cc: mingo@elte.hu, axboe@kernel.dk
 
 
 The patch titled
-     softlockup: use cpu_clock() instead of sched_clock()
+     blktrace: use cpu_clock() instead of sched_clock()
 has been added to the -mm tree.  Its filename is
-     softlockup-use-cpu_clock-instead-of-sched_clock.patch
+     blktrace-use-cpu_clock-instead-of-sched_clock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: softlockup: use cpu_clock() instead of sched_clock()
+Subject: blktrace: use cpu_clock() instead of sched_clock()
 From: Ingo Molnar <mingo@elte.hu>
 
-sched_clock() is not a reliable time-source, use cpu_clock() instead.
+use cpu_clock() instead of sched_clock(). (the latter is not a proper
+clock-source)
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ block/blktrace.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN kernel/softlockup.c~softlockup-use-cpu_clock-instead-of-sched_clock kernel/softlockup.c
---- a/kernel/softlockup.c~softlockup-use-cpu_clock-instead-of-sched_clock
-+++ a/kernel/softlockup.c
-@@ -41,14 +41,16 @@ static struct notifier_block panic_block
-  * resolution, and we don't need to waste time with a big divide when
-  * 2^30ns == 1.074s.
-  */
--static unsigned long get_timestamp(void)
-+static unsigned long get_timestamp(int this_cpu)
- {
--	return sched_clock() >> 30;  /* 2^30 ~= 10^9 */
-+	return cpu_clock(this_cpu) >> 30;  /* 2^30 ~= 10^9 */
+diff -puN block/blktrace.c~blktrace-use-cpu_clock-instead-of-sched_clock block/blktrace.c
+--- a/block/blktrace.c~blktrace-use-cpu_clock-instead-of-sched_clock
++++ a/block/blktrace.c
+@@ -41,7 +41,7 @@ static void trace_note(struct blk_trace 
+ 		const int cpu = smp_processor_id();
+ 
+ 		t->magic = BLK_IO_TRACE_MAGIC | BLK_IO_TRACE_VERSION;
+-		t->time = sched_clock() - per_cpu(blk_trace_cpu_offset, cpu);
++		t->time = cpu_clock(cpu) - per_cpu(blk_trace_cpu_offset, cpu);
+ 		t->device = bt->dev;
+ 		t->action = action;
+ 		t->pid = pid;
+@@ -159,7 +159,7 @@ void __blk_add_trace(struct blk_trace *b
+ 
+ 		t->magic = BLK_IO_TRACE_MAGIC | BLK_IO_TRACE_VERSION;
+ 		t->sequence = ++(*sequence);
+-		t->time = sched_clock() - per_cpu(blk_trace_cpu_offset, cpu);
++		t->time = cpu_clock(cpu) - per_cpu(blk_trace_cpu_offset, cpu);
+ 		t->sector = sector;
+ 		t->bytes = bytes;
+ 		t->action = what;
+@@ -488,17 +488,17 @@ void blk_trace_shutdown(struct request_q
  }
  
- void touch_softlockup_watchdog(void)
+ /*
+- * Average offset over two calls to sched_clock() with a gettimeofday()
++ * Average offset over two calls to cpu_clock() with a gettimeofday()
+  * in the middle
+  */
+-static void blk_check_time(unsigned long long *t)
++static void blk_check_time(unsigned long long *t, int this_cpu)
  {
--	__raw_get_cpu_var(touch_timestamp) = get_timestamp();
-+	int this_cpu = raw_smp_processor_id();
-+
-+	per_cpu(touch_timestamp, this_cpu) = get_timestamp(this_cpu);
- #ifdef CONFIG_KGDB
- 	atomic_set(&kgdb_sync_softlockup[raw_smp_processor_id()], 0);
- #endif
-@@ -95,7 +97,7 @@ void softlockup_tick(void)
- 		return;
- 	}
+ 	unsigned long long a, b;
+ 	struct timeval tv;
  
--	now = get_timestamp();
-+	now = get_timestamp(this_cpu);
+-	a = sched_clock();
++	a = cpu_clock(this_cpu);
+ 	do_gettimeofday(&tv);
+-	b = sched_clock();
++	b = cpu_clock(this_cpu);
  
- 	/* Wake up the high-prio watchdog task every second: */
- 	if (now > (touch_timestamp + 1))
+ 	*t = tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+ 	*t -= (a + b) / 2;
+@@ -510,16 +510,16 @@ static void blk_check_time(unsigned long
+ static void blk_trace_check_cpu_time(void *data)
+ {
+ 	unsigned long long *t;
+-	int cpu = get_cpu();
++	int this_cpu = get_cpu();
+ 
+-	t = &per_cpu(blk_trace_cpu_offset, cpu);
++	t = &per_cpu(blk_trace_cpu_offset, this_cpu);
+ 
+ 	/*
+ 	 * Just call it twice, hopefully the second call will be cache hot
+ 	 * and a little more precise
+ 	 */
+-	blk_check_time(t);
+-	blk_check_time(t);
++	blk_check_time(t, this_cpu);
++	blk_check_time(t, this_cpu);
+ 
+ 	put_cpu();
+ }
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
@@ -97,6 +131,7 @@ softlockup-improve-debug-output.patch
 softlockup-watchdog-style-cleanups.patch
 softlockup-add-a-proc-tuning-parameter.patch
 softlockup-add-a-proc-tuning-parameter-fix.patch
+blktrace-use-cpu_clock-instead-of-sched_clock.patch
 futex-pass-nr_wake2-to-futex_wake_op.patch
 mark-sysrq_sched_debug_show-static.patch
 cfs-mark-print_cfs_stats-static.patch
