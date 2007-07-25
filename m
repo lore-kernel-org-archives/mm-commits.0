@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-early-quirks-unification.patch added to -mm tree
-Date: Tue, 24 Jul 2007 22:56:29 -0700
-Message-ID: <200707250556.l6P5uTaH019843@imap1.linux-foundation.org>
+Subject: + xenbus_xsc-fix-a-use-after-free.patch added to -mm tree
+Date: Tue, 24 Jul 2007 23:18:48 -0700
+Message-ID: <200707250618.l6P6Imjv020628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54875 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752744AbXGYF4j (ORCPT
+	by vger.kernel.org with ESMTP id S1761526AbXGYGTL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 01:56:39 -0400
+	Wed, 25 Jul 2007 02:19:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+Cc: bunk@stusta.de, jeremy@goop.org
 
 
 The patch titled
-     fix x86_64-mm-early-quirks-unification
+     xenbus_xs.c: fix a use-after-free
 has been added to the -mm tree.  Its filename is
-     fix-x86_64-mm-early-quirks-unification.patch
+     xenbus_xsc-fix-a-use-after-free.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,156 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix x86_64-mm-early-quirks-unification
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: xenbus_xs.c: fix a use-after-free
+From: Adrian Bunk <bunk@stusta.de>
 
-arch/i386/kernel/../../x86_64/kernel/early-quirks.c: In function 'ati_bugs':
-arch/i386/kernel/../../x86_64/kernel/early-quirks.c:58: error: 'timer_over_8254' undeclared (first use in this function)
-arch/i386/kernel/../../x86_64/kernel/early-quirks.c:58: error: (Each undeclared identifier is reported only once
-arch/i386/kernel/../../x86_64/kernel/early-quirks.c:58: error: for each function it appears in.)
-distcc[28590] ERROR: compile arch/i386/kernel/../../x86_64/kernel/early-quirks.c on bix/32 failed
+This patch fixes an obvious use-after-free spotted by the Coverity checker.
 
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/early-quirks.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/xen/xenbus/xenbus_xs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/early-quirks.c~fix-x86_64-mm-early-quirks-unification arch/x86_64/kernel/early-quirks.c
---- a/arch/x86_64/kernel/early-quirks.c~fix-x86_64-mm-early-quirks-unification
-+++ a/arch/x86_64/kernel/early-quirks.c
-@@ -12,9 +12,11 @@
- #include <linux/pci.h>
- #include <linux/acpi.h>
- #include <linux/pci_ids.h>
-+
- #include <asm/pci-direct.h>
- #include <asm/dma.h>
- #include <asm/io_apic.h>
-+#include <asm/apic.h>
+diff -puN drivers/xen/xenbus/xenbus_xs.c~xenbus_xsc-fix-a-use-after-free drivers/xen/xenbus/xenbus_xs.c
+--- a/drivers/xen/xenbus/xenbus_xs.c~xenbus_xsc-fix-a-use-after-free
++++ a/drivers/xen/xenbus/xenbus_xs.c
+@@ -782,8 +782,8 @@ static int process_msg(void)
+ 		msg->u.watch.vec = split(body, msg->hdr.len,
+ 					 &msg->u.watch.vec_size);
+ 		if (IS_ERR(msg->u.watch.vec)) {
+-			kfree(msg);
+ 			err = PTR_ERR(msg->u.watch.vec);
++			kfree(msg);
+ 			goto out;
+ 		}
  
- #ifdef CONFIG_IOMMU
- #include <asm/iommu.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-rtc-stk17ta8-update-for-sysfs-api-change.patch
+use-ldflags_module-only-for-ko-links.patch
 x86_powernow_k8_acpi-must-depend-on-acpi.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-ufs-printk-warning-fix.patch
-i2c-ds1682-warning-fix.patch
-edac-is-bust-on-mips.patch
-kdebugh-forward-declare-struct-struct-notifier_block.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
+xenbus_xsc-fix-a-use-after-free.patch
 git-acpi.patch
-git-acpi-build-fix.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-ia64-rename-partial_page.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+git-drm.patch
 git-kvm.patch
-libata-arm-ioh-needs-iomaph.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-ide-bodge-things-around-to-make-arm-work.patch
-mmc-build-fix.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-ip_auto_config-fix-fix.patch
+fore200e_param_bs_queue-must-be-__devinit.patch
 git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-scsi-rc-fixes.patch
-git-scsi-target-fixup.patch
-git-block-fixup.patch
-git-block-fixup-2.patch
-git-block-fix-headers_check.patch
-git-block-whoops.patch
-more-request_queue_t-removal.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
 git-unionfs.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-git-watchdog.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
-git-kgdb-fixup.patch
-git-kgdb-arm-fix.patch
-git-kgdb-mips-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-list_head-in-binfmt-handling-fix.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
-ip2main-warning-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+maps2-add-proc-kpagemap-interface.patch
+fs-reiserfs-cleanups.patch
+anon_inodes-shouldnt-be-user-visible.patch
+remove-unsafe-from-module-struct.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
 reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
-fix-x86_64-mm-early-quirks-unification.patch
+mutex-subsystem-synchro-test-module.patch
