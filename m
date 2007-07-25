@@ -1,63 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-build-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 19:53:50 -0700
-Message-ID: <200707250258.l6P2wOGa013793@imap1.linux-foundation.org>
+Subject: - git-audit-temp-fix.patch removed from -mm tree
+Date: Tue, 24 Jul 2007 20:41:59 -0700
+Message-ID: <200707250341.l6P3fxxD015123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46218 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54013 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751548AbXGYDEk (ORCPT
+	by vger.kernel.org with ESMTP id S1755994AbXGYDmG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 23:04:40 -0400
+	Tue, 24 Jul 2007 23:42:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, lenb@kernel.org, tglx@linutronix.de, tony.luck@intel.com
+To: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi build fix
-has been added to the -mm tree.  Its filename is
-     git-acpi-build-fix.patch
+     git-audit-temp-fix
+has been removed from the -mm tree.  Its filename was
+     git-audit-temp-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-acpi build fix
+Subject: git-audit-temp-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ia64:
-
-drivers/acpi/processor_idle.c: In function `acpi_idle_enter_c2':
-drivers/acpi/processor_idle.c:941: error: implicit declaration of function `mark_tsc_unstable'
-
-ugly fix (please fix properly):
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/Makefile |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~git-acpi-build-fix drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~git-acpi-build-fix
-+++ a/drivers/acpi/processor_idle.c
-@@ -936,7 +936,7 @@ static int acpi_idle_enter_c2(struct cpu
- 	acpi_idle_do_entry(cx);
- 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 
--#ifdef CONFIG_GENERIC_TIME
-+#if defined(CONFIG_GENERIC_TIME) && defined(CONFIG_X86)
- 	/* TSC halts in C2, so notify users */
- 	mark_tsc_unstable("possible TSC halt in C2");
- #endif
+diff -puN kernel/Makefile~git-audit-temp-fix kernel/Makefile
+--- a/kernel/Makefile~git-audit-temp-fix
++++ a/kernel/Makefile
+@@ -39,8 +39,8 @@ obj-$(CONFIG_COMPAT) += compat.o
+ obj-$(CONFIG_CPUSETS) += cpuset.o
+ obj-$(CONFIG_IKCONFIG) += configs.o
+ obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
+-obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
+-obj-$(CONFIG_AUDITSYSCALL) += auditsc.o audit_tree.o
++obj-$(CONFIG_AUDIT) += audit.o auditfilter.o audit_tree.o
++obj-$(CONFIG_AUDITSYSCALL) += auditsc.o
+ obj-$(CONFIG_KPROBES) += kprobes.o
+ obj-$(CONFIG_SYSFS) += ksysfs.o
+ obj-$(CONFIG_DETECT_SOFTLOCKUP) += softlockup.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
