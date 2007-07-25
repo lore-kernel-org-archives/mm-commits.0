@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iforce-warning-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 20:46:17 -0700
-Message-ID: <200707250350.l6P3opkC015404@imap1.linux-foundation.org>
+Subject: + git-block-whoops.patch added to -mm tree
+Date: Tue, 24 Jul 2007 20:49:00 -0700
+Message-ID: <200707250353.l6P3rYxD015539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37228 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58340 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753113AbXGYDvB (ORCPT
+	by vger.kernel.org with ESMTP id S1752535AbXGYDyD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 23:51:01 -0400
+	Tue, 24 Jul 2007 23:54:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dtor@mail.ru
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     iforce warning fix
+     git-block-whoops
 has been added to the -mm tree.  Its filename is
-     iforce-warning-fix.patch
+     git-block-whoops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iforce warning fix
+Subject: git-block-whoops
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/input/joystick/iforce/iforce-packets.c: In function `iforce_get_id_packet':
-drivers/input/joystick/iforce/iforce-packets.c:249: warning: unused variable `status'
+drivers/ide/pci/sgiioc4.c: In function `sgiioc4_build_dma_table':
+drivers/ide/pci/sgiioc4.c:544: error: implicit declaration of function `sg_next'
+drivers/ide/pci/sgiioc4.c:544: warning: assignment makes pointer from integer without a cast
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/joystick/iforce/iforce-packets.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/ide/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/input/joystick/iforce/iforce-packets.c~iforce-warning-fix drivers/input/joystick/iforce/iforce-packets.c
---- a/drivers/input/joystick/iforce/iforce-packets.c~iforce-warning-fix
-+++ a/drivers/input/joystick/iforce/iforce-packets.c
-@@ -246,13 +246,12 @@ void iforce_process_packet(struct iforce
- 
- int iforce_get_id_packet(struct iforce *iforce, char *packet)
- {
--	int status;
--
- 	switch (iforce->bus) {
- 
- 	case IFORCE_USB:
--
- #ifdef CONFIG_JOYSTICK_IFORCE_USB
-+		int status;
-+
- 		iforce->cr.bRequest = packet[0];
- 		iforce->ctrl->dev = iforce->usbdev;
- 
+diff -puN /dev/null /dev/null
+diff -puN drivers/ide/Kconfig~git-block-whoops drivers/ide/Kconfig
+--- a/drivers/ide/Kconfig~git-block-whoops
++++ a/drivers/ide/Kconfig
+@@ -704,6 +704,7 @@ config BLK_DEV_SVWKS
+ config BLK_DEV_SGIIOC4
+ 	tristate "Silicon Graphics IOC4 chipset ATA/ATAPI support"
+ 	depends on (IA64_SGI_SN2 || IA64_GENERIC) && SGI_IOC4
++	depends on BROKEN
+ 	select IDEPCI_SHARE_IRQ
+ 	select BLK_DEV_IDEDMA_PCI
+ 	help
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,6 +74,7 @@ dma-arch-fix.patch
 ia64-rename-partial_page.patch
 adbhid-produce-all-capslock-key-events-fix.patch
 m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
 git-kvm.patch
 libata-arm-ioh-needs-iomaph.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
@@ -171,4 +166,5 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-iforce-warning-fix.patch
+git-block-whoops.patch
+git-block-whoops.patch
