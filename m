@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + merge-the-sonics-silicon-backplane-subsystem-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 19:01:03 -0700
-Message-ID: <200707250205.l6P25b8H011986@imap1.linux-foundation.org>
+Subject: + git-kgdb-arm-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 19:07:40 -0700
+Message-ID: <200707250212.l6P2CEX7012211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51292 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38545 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758560AbXGYCGy (ORCPT
+	by vger.kernel.org with ESMTP id S1759065AbXGYCMV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 22:06:54 -0400
+	Tue, 24 Jul 2007 22:12:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com, mb@bu3sch.de
+Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
 
 
 The patch titled
-     merge-the-sonics-silicon-backplane-subsystem fix
+     git-kgdb: arm fix
 has been added to the -mm tree.  Its filename is
-     merge-the-sonics-silicon-backplane-subsystem-fix.patch
+     git-kgdb-arm-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: merge-the-sonics-silicon-backplane-subsystem fix
+Subject: git-kgdb: arm fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
+- fix build
 
-drivers/ssb/main.c: In function 'ssb_dma_set_mask':
-drivers/ssb/main.c:933: error: implicit declaration of function 'dma_supported'
+- return is not a function
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Michael Buesch <mb@bu3sch.de>
+- we need to get this sort of stuff reviewed by the maintainer early.
+
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ssb/main.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-arm/system.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ssb/main.c~merge-the-sonics-silicon-backplane-subsystem-fix drivers/ssb/main.c
---- a/drivers/ssb/main.c~merge-the-sonics-silicon-backplane-subsystem-fix
-+++ a/drivers/ssb/main.c
-@@ -13,6 +13,7 @@
- #include <linux/delay.h>
- #include <linux/ssb/ssb.h>
- #include <linux/ssb/ssb_regs.h>
-+#include <linux/dma-mapping.h>
+diff -puN include/asm-arm/system.h~git-kgdb-arm-fix include/asm-arm/system.h
+--- a/include/asm-arm/system.h~git-kgdb-arm-fix
++++ a/include/asm-arm/system.h
+@@ -367,11 +367,11 @@ static inline unsigned long __cmpxchg(vo
  
- #ifdef CONFIG_SSB_PCIHOST
- # include <linux/pci.h>
+ 	if (size == 4) {
+ 		local_irq_save(flags);
+-		pref = *p;
++		prev = *p;
+ 		if (prev == old)
+ 			*p = new;
+ 		local_irq_restore(flags);
+-		return(prev);
++		return prev;
+ 	} else
+ 		return wrong_size_cmpxchg(ptr);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +103,7 @@ git-block-fixup-2.patch
 git-block-fix-headers_check.patch
 more-request_queue_t-removal.patch
 git-unionfs.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
 git-watchdog.patch
 x86_64-clean-up-apicid_to_node-declaration.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
@@ -157,4 +164,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
+git-kgdb-arm-fix.patch
