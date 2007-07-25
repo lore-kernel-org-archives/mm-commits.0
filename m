@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kdebugh-forward-declare-struct-struct-notifier_block.patch added to -mm tree
-Date: Tue, 24 Jul 2007 18:56:10 -0700
-Message-ID: <200707250200.l6P20iT0011817@imap1.linux-foundation.org>
+Subject: + merge-the-sonics-silicon-backplane-subsystem-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 19:01:03 -0700
+Message-ID: <200707250205.l6P25b8H011986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40241 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51292 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758560AbXGYCAw (ORCPT
+	by vger.kernel.org with ESMTP id S1758560AbXGYCGy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 22:00:52 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6P20nxJ032672
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2007 19:00:50 -0700
+	Tue, 24 Jul 2007 22:06:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com, mb@bu3sch.de
 
 
 The patch titled
-     kdebug.h: forward-declare struct struct notifier_block
+     merge-the-sonics-silicon-backplane-subsystem fix
 has been added to the -mm tree.  Its filename is
-     kdebugh-forward-declare-struct-struct-notifier_block.patch
+     merge-the-sonics-silicon-backplane-subsystem-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,43 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kdebug.h: forward-declare struct struct notifier_block
+Subject: merge-the-sonics-silicon-backplane-subsystem fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 alpha:
 
-In file included from kernel/notifier.c:1:
-include/linux/kdebug.h:14: warning: 'struct notifier_block' declared inside parameter list
-include/linux/kdebug.h:14: warning: its scope is only this definition or declaration, which is probably not what you want
-include/linux/kdebug.h:15: warning: 'struct notifier_block' declared inside parameter list
-kernel/notifier.c:529: error: conflicting types for 'register_die_notifier'
-include/linux/kdebug.h:14: error: previous declaration of 'register_die_notifier' was here
-kernel/notifier.c:533: error: conflicting types for 'register_die_notifier'
-include/linux/kdebug.h:14: error: previous declaration of 'register_die_notifier' was here
-kernel/notifier.c:536: error: conflicting types for 'unregister_die_notifier'
-include/linux/kdebug.h:15: error: previous declaration of 'unregister_die_notifier' was here
-kernel/notifier.c:539: error: conflicting types for 'unregister_die_notifier'
-include/linux/kdebug.h:15: error: previous declaration of 'unregister_die_notifier' was here
+drivers/ssb/main.c: In function 'ssb_dma_set_mask':
+drivers/ssb/main.c:933: error: implicit declaration of function 'dma_supported'
 
-
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kdebug.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/ssb/main.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/kdebug.h~kdebugh-forward-declare-struct-struct-notifier_block include/linux/kdebug.h
---- a/include/linux/kdebug.h~kdebugh-forward-declare-struct-struct-notifier_block
-+++ a/include/linux/kdebug.h
-@@ -3,6 +3,8 @@
+diff -puN drivers/ssb/main.c~merge-the-sonics-silicon-backplane-subsystem-fix drivers/ssb/main.c
+--- a/drivers/ssb/main.c~merge-the-sonics-silicon-backplane-subsystem-fix
++++ a/drivers/ssb/main.c
+@@ -13,6 +13,7 @@
+ #include <linux/delay.h>
+ #include <linux/ssb/ssb.h>
+ #include <linux/ssb/ssb_regs.h>
++#include <linux/dma-mapping.h>
  
- #include <asm/kdebug.h>
- 
-+struct notifier_block;
-+
- struct die_args {
- 	struct pt_regs *regs;
- 	const char *str;
+ #ifdef CONFIG_SSB_PCIHOST
+ # include <linux/pci.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +61,7 @@ origin.patch
 rtc-stk17ta8-update-for-sysfs-api-change.patch
 x86_powernow_k8_acpi-must-depend-on-acpi.patch
 revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
@@ -170,4 +157,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-kdebugh-forward-declare-struct-struct-notifier_block.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
