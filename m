@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-ds1682-warning-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 20:44:58 -0700
-Message-ID: <200707250349.l6P3nW7h015387@imap1.linux-foundation.org>
+Subject: + iforce-warning-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 20:46:17 -0700
+Message-ID: <200707250350.l6P3opkC015404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42243 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37228 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752773AbXGYDt4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753113AbXGYDvB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 23:49:56 -0400
+	Tue, 24 Jul 2007 23:51:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, khali@linux-fr.org
+Cc: akpm@linux-foundation.org, dtor@mail.ru
 
 
 The patch titled
-     i2c: ds1682 warning fix
+     iforce warning fix
 has been added to the -mm tree.  Its filename is
-     i2c-ds1682-warning-fix.patch
+     iforce-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i2c: ds1682 warning fix
+Subject: iforce warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ia64:
+drivers/input/joystick/iforce/iforce-packets.c: In function `iforce_get_id_packet':
+drivers/input/joystick/iforce/iforce-packets.c:249: warning: unused variable `status'
 
-drivers/i2c/chips/ds1682.c: In function `ds1682_show':
-drivers/i2c/chips/ds1682.c:78: warning: long long unsigned int format, long unsigned int arg (arg 3)
-drivers/i2c/chips/ds1682.c:78: warning: long long unsigned int format, long unsigned int arg (arg 3)
-
-Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/chips/ds1682.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/input/joystick/iforce/iforce-packets.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/i2c/chips/ds1682.c~i2c-ds1682-warning-fix drivers/i2c/chips/ds1682.c
---- a/drivers/i2c/chips/ds1682.c~i2c-ds1682-warning-fix
-+++ a/drivers/i2c/chips/ds1682.c
-@@ -75,7 +75,8 @@ static ssize_t ds1682_show(struct device
- 	/* Special case: the 32 bit regs are time values with 1/4s
- 	 * resolution, scale them up to milliseconds */
- 	if (sattr->nr == 4)
--		return sprintf(buf, "%llu\n", ((u64) le32_to_cpu(val)) * 250);
-+		return sprintf(buf, "%llu\n",
-+			((unsigned long long)le32_to_cpu(val)) * 250);
+diff -puN drivers/input/joystick/iforce/iforce-packets.c~iforce-warning-fix drivers/input/joystick/iforce/iforce-packets.c
+--- a/drivers/input/joystick/iforce/iforce-packets.c~iforce-warning-fix
++++ a/drivers/input/joystick/iforce/iforce-packets.c
+@@ -246,13 +246,12 @@ void iforce_process_packet(struct iforce
  
- 	/* Format the output string and return # of bytes */
- 	return sprintf(buf, "%li\n", (long)le32_to_cpu(val));
+ int iforce_get_id_packet(struct iforce *iforce, char *packet)
+ {
+-	int status;
+-
+ 	switch (iforce->bus) {
+ 
+ 	case IFORCE_USB:
+-
+ #ifdef CONFIG_JOYSTICK_IFORCE_USB
++		int status;
++
+ 		iforce->cr.bRequest = packet[0];
+ 		iforce->ctrl->dev = iforce->usbdev;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,6 +66,7 @@ origin.patch
 rtc-stk17ta8-update-for-sysfs-api-change.patch
 x86_powernow_k8_acpi-must-depend-on-acpi.patch
 revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+i2c-ds1682-warning-fix.patch
 kdebugh-forward-declare-struct-struct-notifier_block.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
@@ -167,4 +171,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-i2c-ds1682-warning-fix.patch
+iforce-warning-fix.patch
