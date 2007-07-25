@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-printk-warning-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 20:52:59 -0700
-Message-ID: <200707250357.l6P3vXhA015619@imap1.linux-foundation.org>
+Subject: + iforce-warning-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 21:04:26 -0700
+Message-ID: <200707250409.l6P4908D016043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33390 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52750 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752338AbXGYD6M (ORCPT
+	by vger.kernel.org with ESMTP id S1750712AbXGYEJK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 23:58:12 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6P3vc5A003827
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2007 20:57:40 -0700
+	Wed, 25 Jul 2007 00:09:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, dtor@mail.ru
 
 
 The patch titled
-     ufs: printk warning fix
+     iforce warning fix
 has been added to the -mm tree.  Its filename is
-     ufs-printk-warning-fix.patch
+     iforce-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,37 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ufs: printk warning fix
+Subject: iforce warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ufs/balloc.c: In function `ufs_change_blocknr':
-fs/ufs/balloc.c:316: warning: long long unsigned int format, long unsigned int arg (arg 2)
-fs/ufs/balloc.c:316: warning: long long unsigned int format, long unsigned int arg (arg 3)
+drivers/input/joystick/iforce/iforce-packets.c: In function `iforce_get_id_packet':
+drivers/input/joystick/iforce/iforce-packets.c:249: warning: unused variable `status'
 
-Odd.  It seems to have decided that ull+ul = ul.
-
-
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/balloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/input/joystick/iforce/iforce-packets.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ufs/balloc.c~ufs-printk-warning-fix fs/ufs/balloc.c
---- a/fs/ufs/balloc.c~ufs-printk-warning-fix
-+++ a/fs/ufs/balloc.c
-@@ -314,8 +314,9 @@ static void ufs_change_blocknr(struct in
- 			}
+diff -puN drivers/input/joystick/iforce/iforce-packets.c~iforce-warning-fix drivers/input/joystick/iforce/iforce-packets.c
+--- a/drivers/input/joystick/iforce/iforce-packets.c~iforce-warning-fix
++++ a/drivers/input/joystick/iforce/iforce-packets.c
+@@ -246,13 +246,12 @@ void iforce_process_packet(struct iforce
  
- 			UFSD(" change from %llu to %llu, pos %u\n",
--			     (unsigned long long)pos + oldb,
--			     (unsigned long long)pos + newb, pos);
-+			     (unsigned long long)pos + (unsigned long long)oldb,
-+			     (unsigned long long)pos + (unsigned long long)newb,
-+			     pos);
+ int iforce_get_id_packet(struct iforce *iforce, char *packet)
+ {
+-	int status;
+-
+ 	switch (iforce->bus) {
  
- 			bh->b_blocknr = newb + pos;
- 			unmap_underlying_metadata(bh->b_bdev,
+-	case IFORCE_USB:
+-
++	case IFORCE_USB: {
+ #ifdef CONFIG_JOYSTICK_IFORCE_USB
++		int status;
++
+ 		iforce->cr.bRequest = packet[0];
+ 		iforce->ctrl->dev = iforce->usbdev;
+ 
+@@ -273,6 +272,7 @@ int iforce_get_id_packet(struct iforce *
+ #else
+ 		dbg("iforce_get_id_packet: iforce->bus = USB!");
+ #endif
++		}
+ 		break;
+ 
+ 	case IFORCE_232:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +75,7 @@ origin.patch
 rtc-stk17ta8-update-for-sysfs-api-change.patch
 x86_powernow_k8_acpi-must-depend-on-acpi.patch
 revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+ufs-printk-warning-fix.patch
 i2c-ds1682-warning-fix.patch
 kdebugh-forward-declare-struct-struct-notifier_block.patch
 slow-down-printk-during-boot.patch
@@ -77,7 +84,6 @@ git-acpi.patch
 git-acpi-build-fix.patch
 acpi-add-reboot-mechanism-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-audit-temp-fix.patch
 revert-gregkh-driver-block-device.patch
 dma-arch-fix.patch
 ia64-rename-partial_page.patch
@@ -176,4 +182,3 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-ufs-printk-warning-fix.patch
