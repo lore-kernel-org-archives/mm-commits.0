@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + dma-arch-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 18:51:25 -0700
-Message-ID: <200707250155.l6P1txjd011639@imap1.linux-foundation.org>
+Subject: + kdebugh-forward-declare-struct-struct-notifier_block.patch added to -mm tree
+Date: Tue, 24 Jul 2007 18:56:10 -0700
+Message-ID: <200707250200.l6P20iT0011817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45012 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40241 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759065AbXGYB4I (ORCPT
+	by vger.kernel.org with ESMTP id S1758560AbXGYCAw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 21:56:08 -0400
+	Tue, 24 Jul 2007 22:00:52 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6P20nxJ032672
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2007 19:00:50 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, shannon.nelson@intel.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     dma arch fix
+     kdebug.h: forward-declare struct struct notifier_block
 has been added to the -mm tree.  Its filename is
-     dma-arch-fix.patch
+     kdebugh-forward-declare-struct-struct-notifier_block.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +30,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dma arch fix
+Subject: kdebug.h: forward-declare struct struct notifier_block
 From: Andrew Morton <akpm@linux-foundation.org>
 
 alpha:
 
-drivers/dma/ioat_dca.c: In function 'dca_enabled_in_bios':                      drivers/dma/ioat_dca.c:71: error: implicit declaration of function 'cpuid_eax'
-drivers/dma/ioat_dca.c: In function 'system_has_dca_enabled':                   drivers/dma/ioat_dca.c:81: error: implicit declaration of function 'boot_cpu_has'
-drivers/dma/ioat_dca.c:177: error: implicit declaration of function 'cpu_physical_id'
+In file included from kernel/notifier.c:1:
+include/linux/kdebug.h:14: warning: 'struct notifier_block' declared inside parameter list
+include/linux/kdebug.h:14: warning: its scope is only this definition or declaration, which is probably not what you want
+include/linux/kdebug.h:15: warning: 'struct notifier_block' declared inside parameter list
+kernel/notifier.c:529: error: conflicting types for 'register_die_notifier'
+include/linux/kdebug.h:14: error: previous declaration of 'register_die_notifier' was here
+kernel/notifier.c:533: error: conflicting types for 'register_die_notifier'
+include/linux/kdebug.h:14: error: previous declaration of 'register_die_notifier' was here
+kernel/notifier.c:536: error: conflicting types for 'unregister_die_notifier'
+include/linux/kdebug.h:15: error: previous declaration of 'unregister_die_notifier' was here
+kernel/notifier.c:539: error: conflicting types for 'unregister_die_notifier'
+include/linux/kdebug.h:15: error: previous declaration of 'unregister_die_notifier' was here
 
-Cc: "Nelson, Shannon" <shannon.nelson@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kdebug.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/dma/Kconfig~dma-arch-fix drivers/dma/Kconfig
---- a/drivers/dma/Kconfig~dma-arch-fix
-+++ a/drivers/dma/Kconfig
-@@ -3,7 +3,7 @@
- #
+diff -puN include/linux/kdebug.h~kdebugh-forward-declare-struct-struct-notifier_block include/linux/kdebug.h
+--- a/include/linux/kdebug.h~kdebugh-forward-declare-struct-struct-notifier_block
++++ a/include/linux/kdebug.h
+@@ -3,6 +3,8 @@
  
- menu "DMA Engine support"
--	depends on HAS_DMA
-+	depends on HAS_DMA && X86
+ #include <asm/kdebug.h>
  
- config DMA_ENGINE
- 	bool "Support for DMA engines"
++struct notifier_block;
++
+ struct die_args {
+ 	struct pt_regs *regs;
+ 	const char *str;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +81,7 @@ git-acpi.patch
 acpi-add-reboot-mechanism-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
 adbhid-produce-all-capslock-key-events-fix.patch
 m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
 git-kvm.patch
@@ -157,4 +170,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-dma-arch-fix.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
