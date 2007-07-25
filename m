@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ide-bodge-things-around-to-make-arm-work.patch added to -mm tree
-Date: Tue, 24 Jul 2007 19:27:15 -0700
-Message-ID: <200707250231.l6P2Vnir012851@imap1.linux-foundation.org>
+Subject: + no-need-to-convert-file-private_data-to-rtc-device.patch added to -mm tree
+Date: Tue, 24 Jul 2007 19:34:59 -0700
+Message-ID: <200707250234.l6P2YxNY012986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41834 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45040 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762316AbXGYCcC (ORCPT
+	by vger.kernel.org with ESMTP id S1759365AbXGYCfJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Jul 2007 22:32:02 -0400
+	Tue, 24 Jul 2007 22:35:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com, rmk@arm.linux.org.uk
+Cc: rongkai.zhan@windriver.com, a.zummo@towertech.it
 
 
 The patch titled
-     ide: bodge things around to make arm work
+     rtc-dev: no need to convert file->private_data to rtc device
 has been added to the -mm tree.  Its filename is
-     ide-bodge-things-around-to-make-arm-work.patch
+     no-need-to-convert-file-private_data-to-rtc-device.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,138 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ide: bodge things around to make arm work
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-dev: no need to convert file->private_data to rtc device
+From: Mark Zhan <rongkai.zhan@windriver.com>
 
-drivers/ide/pci/amd74xx.c: In function `init_hwif_amd74xx':
-drivers/ide/pci/amd74xx.c:397: error: implicit declaration of function `pci_get_legacy_ide_irq'
+In rtc-dev.c, when a rtc device is opened, file->private_data is already
+attached with the rtc device pointer, so there is no need to call
+to_rtc_device() to convert file->private_data to a rtc device pointer.
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-dev.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ide/Kconfig~ide-bodge-things-around-to-make-arm-work drivers/ide/Kconfig
---- a/drivers/ide/Kconfig~ide-bodge-things-around-to-make-arm-work
-+++ a/drivers/ide/Kconfig
-@@ -485,6 +485,7 @@ config WDC_ALI15X3
- config BLK_DEV_AMD74XX
- 	tristate "AMD and nVidia IDE support"
- 	select BLK_DEV_IDEDMA_PCI
-+	depends on !ARM
- 	help
- 	  This driver adds explicit support for AMD-7xx and AMD-8111 chips
- 	  and also for the nVidia nForce chip.  This allows the kernel to
+diff -puN drivers/rtc/rtc-dev.c~no-need-to-convert-file-private_data-to-rtc-device drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~no-need-to-convert-file-private_data-to-rtc-device
++++ a/drivers/rtc/rtc-dev.c
+@@ -142,7 +142,7 @@ static int set_uie(struct rtc_device *rt
+ static ssize_t
+ rtc_dev_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+ {
+-	struct rtc_device *rtc = to_rtc_device(file->private_data);
++	struct rtc_device *rtc = file->private_data;
+ 
+ 	DECLARE_WAITQUEUE(wait, current);
+ 	unsigned long data;
+@@ -196,7 +196,7 @@ rtc_dev_read(struct file *file, char __u
+ 
+ static unsigned int rtc_dev_poll(struct file *file, poll_table *wait)
+ {
+-	struct rtc_device *rtc = to_rtc_device(file->private_data);
++	struct rtc_device *rtc = file->private_data;
+ 	unsigned long data;
+ 
+ 	poll_wait(file, &rtc->irq_queue, wait);
+@@ -403,7 +403,7 @@ static int rtc_dev_ioctl(struct inode *i
+ 
+ static int rtc_dev_release(struct inode *inode, struct file *file)
+ {
+-	struct rtc_device *rtc = to_rtc_device(file->private_data);
++	struct rtc_device *rtc = file->private_data;
+ 
+ #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
+ 	clear_uie(rtc);
+@@ -417,7 +417,7 @@ static int rtc_dev_release(struct inode 
+ 
+ static int rtc_dev_fasync(int fd, struct file *file, int on)
+ {
+-	struct rtc_device *rtc = to_rtc_device(file->private_data);
++	struct rtc_device *rtc = file->private_data;
+ 	return fasync_helper(fd, file, on, &rtc->async_queue);
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rongkai.zhan@windriver.com are
 
-origin.patch
-rtc-stk17ta8-update-for-sysfs-api-change.patch
-x86_powernow_k8_acpi-must-depend-on-acpi.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-kdebugh-forward-declare-struct-struct-notifier_block.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-audit-temp-fix.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-git-kvm.patch
-libata-arm-ioh-needs-iomaph.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-mmc-build-fix.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-e1000new-build-fix.patch
-e1000new-build-fix-2.patch
-ip_auto_config-fix-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-try-parent-numa_node-at-first-before-using-default-v2-fix.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-scsi-rc-fixes.patch
-git-scsi-target-fixup.patch
-git-block-fixup.patch
-git-block-fixup-2.patch
-git-block-fix-headers_check.patch
-more-request_queue_t-removal.patch
-git-unionfs.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-git-watchdog.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
-git-kgdb-fixup.patch
-git-kgdb-arm-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
-ide-bodge-things-around-to-make-arm-work.patch
+no-need-to-convert-file-private_data-to-rtc-device.patch
