@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-is-bust-on-mips.patch added to -mm tree
-Date: Tue, 24 Jul 2007 21:20:42 -0700
-Message-ID: <200707250425.l6P4PGR9016560@imap1.linux-foundation.org>
+Subject: + git-kgdb-mips-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 21:22:03 -0700
+Message-ID: <200707250426.l6P4Qb4x016573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44997 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56347 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750712AbXGYEZg (ORCPT
+	by vger.kernel.org with ESMTP id S1750799AbXGYE0o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 00:25:36 -0400
+	Wed, 25 Jul 2007 00:26:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dougthompson@xmission.com, ralf@linux-mips.org
+Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
 
 
 The patch titled
-     edac is bust on mips
+     git-kgdb: mips fix
 has been added to the -mm tree.  Its filename is
-     edac-is-bust-on-mips.patch
+     git-kgdb-mips-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: edac is bust on mips
+Subject: git-kgdb: mips fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/edac/edac_stub.c:15:22: asm/edac.h: No such file or directory
+In file included from include/asm/kgdb.h:6,
+                 from include/linux/kgdb.h:22,
+                 from arch/mips/kernel/kgdb-jmp.c:19:
+include/asm-generic/kgdb.h:32: warning: "struct pt_regs" declared inside parameter list
+include/asm-generic/kgdb.h:32: warning: its scope is only this definition or declaration, which is probably not what you want
 
-was it even supposed to work?
-
-Cc: Douglas Thompson <dougthompson@xmission.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/kgdb.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/edac/Kconfig~edac-is-bust-on-mips drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~edac-is-bust-on-mips
-+++ a/drivers/edac/Kconfig
-@@ -8,7 +8,7 @@ menuconfig EDAC
- 	bool "EDAC - error detection and reporting (EXPERIMENTAL)"
- 	depends on HAS_IOMEM
- 	depends on EXPERIMENTAL
--	depends on X86 || MIPS || PPC
-+	depends on X86 || PPC
- 	help
- 	  EDAC is designed to report errors in the core system.
- 	  These are low-level errors that are reported in the CPU or
+diff -puN include/asm-generic/kgdb.h~git-kgdb-mips-fix include/asm-generic/kgdb.h
+--- a/include/asm-generic/kgdb.h~git-kgdb-mips-fix
++++ a/include/asm-generic/kgdb.h
+@@ -18,6 +18,8 @@
+ #ifndef __ASM_GENERIC_KGDB_H__
+ #define __ASM_GENERIC_KGDB_H__
+ 
++struct pt_regs;
++
+ #ifdef CONFIG_X86
+ /**
+  *	kgdb_skipexception - Bail of of KGDB when we've been triggered.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,6 +64,7 @@ x86_powernow_k8_acpi-must-depend-on-acpi.patch
 revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
 ufs-printk-warning-fix.patch
 i2c-ds1682-warning-fix.patch
+edac-is-bust-on-mips.patch
 kdebugh-forward-declare-struct-struct-notifier_block.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
@@ -168,4 +170,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-edac-is-bust-on-mips.patch
+git-kgdb-mips-fix.patch
