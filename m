@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 22:19:42 -0700
-Message-ID: <200707250524.l6P5OGOR018680@imap1.linux-foundation.org>
+Subject: + allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 22:21:07 -0700
+Message-ID: <200707250525.l6P5PfGN018705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56106 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38689 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750860AbXGYFZc (ORCPT
+	by vger.kernel.org with ESMTP id S1751439AbXGYF0w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 01:25:32 -0400
+	Wed, 25 Jul 2007 01:26:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, hidehiro.kawai.ez@hitachi.com, nhorman@tuxdriver.
 
 
 The patch titled
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix
+     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix
 has been added to the -mm tree.  Its filename is
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
+     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix
+Subject: allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/sparc64/kernel/binfmt_aout32.c:45: warning: initialization from incompatible pointer type
-arch/sparc64/kernel/binfmt_aout32.c:91: error: conflicting types for 'aout32_core_dump'
-arch/sparc64/kernel/binfmt_aout32.c:38: error: previous declaration of 'aout32_core_dump' was here
-arch/sparc64/kernel/binfmt_aout32.c:91: error: conflicting types for 'aout32_core_dump'
-arch/sparc64/kernel/binfmt_aout32.c:38: error: previous declaration of 'aout32_core_dump' was here
-arch/sparc64/kernel/binfmt_aout32.c:38: warning: 'aout32_core_dump' used but never defined
-arch/sparc64/kernel/binfmt_aout32.c:91: warning: 'aout32_core_dump' defined but not used
+arch/sparc64/kernel/binfmt_aout32.c:46: warning: initialization from incompatible pointer type
 
 Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/binfmt_aout32.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sparc64/kernel/binfmt_aout32.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/sparc64/kernel/binfmt_aout32.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix arch/sparc64/kernel/binfmt_aout32.c
---- a/arch/sparc64/kernel/binfmt_aout32.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix
+diff -puN arch/sparc64/kernel/binfmt_aout32.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix arch/sparc64/kernel/binfmt_aout32.c
+--- a/arch/sparc64/kernel/binfmt_aout32.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix
 +++ a/arch/sparc64/kernel/binfmt_aout32.c
-@@ -35,7 +35,8 @@
- 
+@@ -36,7 +36,7 @@
  static int load_aout32_binary(struct linux_binprm *, struct pt_regs * regs);
  static int load_aout32_library(struct file*);
--static int aout32_core_dump(long signr, struct pt_regs * regs, struct file *file);
-+static int aout32_core_dump(long signr, struct pt_regs * regs,
-+			struct file *file, u32);
+ static int aout32_core_dump(long signr, struct pt_regs * regs,
+-			struct file *file, u32);
++			struct file *file, unsigned long);
  
  static struct linux_binfmt aout32_format = {
  	.lh	=	LIST_HEAD_INIT(aout32_format.lh),
+@@ -88,7 +88,8 @@ if (file->f_op->llseek) { \
+  * dumping of the process results in another error..
+  */
+ 
+-static int aout32_core_dump(long signr, struct pt_regs *regs, struct file *file, u32 limit)
++static int aout32_core_dump(long signr, struct pt_regs *regs, struct file *file,
++			unsigned long limit)
+ {
+ 	mm_segment_t fs;
+ 	int has_dumped = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,6 +153,7 @@ pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
 allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
 allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
 allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
 ip2main-warning-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
