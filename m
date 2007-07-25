@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-kgdb-mips-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2007 21:22:03 -0700
-Message-ID: <200707250426.l6P4Qb4x016573@imap1.linux-foundation.org>
+Subject: + ip2main-warning-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2007 21:24:55 -0700
+Message-ID: <200707250429.l6P4TTw2016718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56347 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44079 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750799AbXGYE0o (ORCPT
+	by vger.kernel.org with ESMTP id S1751034AbXGYEaC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 00:26:44 -0400
+	Wed, 25 Jul 2007 00:30:02 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6P4TYhN004701
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2007 21:29:35 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-kgdb: mips fix
+     ip2main warning fix
 has been added to the -mm tree.  Its filename is
-     git-kgdb-mips-fix.patch
+     ip2main-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +30,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-kgdb: mips fix
+Subject: ip2main warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/asm/kgdb.h:6,
-                 from include/linux/kgdb.h:22,
-                 from arch/mips/kernel/kgdb-jmp.c:19:
-include/asm-generic/kgdb.h:32: warning: "struct pt_regs" declared inside parameter list
-include/asm-generic/kgdb.h:32: warning: its scope is only this definition or declaration, which is probably not what you want
+CONFIG_PCI=n:
 
-Cc: Jason Wessel <jason.wessel@windriver.com>
+drivers/char/ip2/ip2main.c: In function `ip2_loadmain':
+drivers/char/ip2/ip2main.c:503: warning: unused variable `status'
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/kgdb.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/char/ip2/ip2main.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-generic/kgdb.h~git-kgdb-mips-fix include/asm-generic/kgdb.h
---- a/include/asm-generic/kgdb.h~git-kgdb-mips-fix
-+++ a/include/asm-generic/kgdb.h
-@@ -18,6 +18,8 @@
- #ifndef __ASM_GENERIC_KGDB_H__
- #define __ASM_GENERIC_KGDB_H__
- 
-+struct pt_regs;
+diff -puN drivers/char/ip2/ip2main.c~ip2main-warning-fix drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~ip2main-warning-fix
++++ a/drivers/char/ip2/ip2main.c
+@@ -500,7 +500,6 @@ ip2_loadmain(int *iop, int *irqp, unsign
+ {
+ 	int i, j, box;
+ 	int err = 0;
+-	int status = 0;
+ 	static int loaded;
+ 	i2eBordStrPtr pB = NULL;
+ 	int rc = -1;
+@@ -588,6 +587,8 @@ ip2_loadmain(int *iop, int *irqp, unsign
+ 		case PCI:
+ #ifdef CONFIG_PCI
+ 			{
++				int status;
 +
- #ifdef CONFIG_X86
- /**
-  *	kgdb_skipexception - Bail of of KGDB when we've been triggered.
+ 				pci_dev_i = pci_get_device(PCI_VENDOR_ID_COMPUTONE,
+ 							  PCI_DEVICE_ID_COMPUTONE_IP2EX, pci_dev_i);
+ 				if (pci_dev_i != NULL) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,6 +127,7 @@ mmconfig-validate-against-acpi-motherboard-resources.patch
 git-newsetup-fixup.patch
 git-kgdb-fixup.patch
 git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
@@ -170,4 +182,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-git-kgdb-mips-fix.patch
+ip2main-warning-fix.patch
