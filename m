@@ -1,73 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - pata_ali-correct-hp-detect.patch removed from -mm tree
-Date: Wed, 25 Jul 2007 21:23:44 -0700
-Message-ID: <200707260423.l6Q4NiJB013729@imap1.linux-foundation.org>
+Subject: - acpi-fix-oops-due-to-typo-in-new-throttling-code.patch removed from -mm tree
+Date: Wed, 25 Jul 2007 21:23:56 -0700
+Message-ID: <200707260423.l6Q4Nu7j013745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45344 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37894 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751019AbXGZEX7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751163AbXGZEYD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 00:23:59 -0400
+	Thu, 26 Jul 2007 00:24:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: luming.yu@gmail.com, len.brown@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_ali: Correct HP detect
+     fix oops due to typo in new throttling code
 has been removed from the -mm tree.  Its filename was
-     pata_ali-correct-hp-detect.patch
+     acpi-fix-oops-due-to-typo-in-new-throttling-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_ali: Correct HP detect
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: fix oops due to typo in new throttling code
+From: Luming Yu <luming.yu@gmail.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Luming Yu <luming.yu@gmail.com>
+Signed-off-by: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ali.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_throttling.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_ali.c~pata_ali-correct-hp-detect drivers/ata/pata_ali.c
---- a/drivers/ata/pata_ali.c~pata_ali-correct-hp-detect
-+++ a/drivers/ata/pata_ali.c
-@@ -45,7 +45,7 @@ static struct dmi_system_id cable_dmi_ta
- 		.ident = "HP Pavilion N5430",
- 		.matches = {
- 			DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
--			DMI_MATCH(DMI_BOARD_NAME, "OmniBook N32N-736"),
-+			DMI_MATCH(DMI_BOARD_VERSION, "OmniBook N32N-736"),
- 		},
- 	},
- 	{ }
+diff -puN drivers/acpi/processor_throttling.c~acpi-fix-oops-due-to-typo-in-new-throttling-code drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-fix-oops-due-to-typo-in-new-throttling-code
++++ a/drivers/acpi/processor_throttling.c
+@@ -658,18 +658,20 @@ static int acpi_processor_throttling_seq
+ 		   pr->throttling.state_count - 1);
+ 
+ 	seq_puts(seq, "states:\n");
+-	if (acpi_processor_get_throttling == acpi_processor_get_throttling_fadt)
++	if (pr->throttling.acpi_processor_get_throttling ==
++			acpi_processor_get_throttling_fadt) {
+ 		for (i = 0; i < pr->throttling.state_count; i++)
+ 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
+ 				   (i == pr->throttling.state ? '*' : ' '), i,
+ 				   (pr->throttling.states[i].performance ? pr->
+ 				    throttling.states[i].performance / 10 : 0));
+-	else
++	} else {
+ 		for (i = 0; i < pr->throttling.state_count; i++)
+ 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
+ 				   (i == pr->throttling.state ? '*' : ' '), i,
+ 				   (int)pr->throttling.states_tss[i].
+ 				   freqpercentage);
++	}
+ 
+       end:
+ 	return 0;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from luming.yu@gmail.com are
 
 origin.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-git-scsi-rc-fixes.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-geode-setup-correct-chipset-access-functions-fix.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-update-coredump-path-in-kernel-to-not-check-coredump-rlim-if-core_pattern-is-a-pipe.patch
-remove-kconfig-setting-config_debug_shirq.patch
-debug-handling-of-early-spurious-interrupts.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
