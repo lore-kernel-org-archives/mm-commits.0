@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-intel_ioatdma-build-fix.patch added to -mm tree
-Date: Wed, 25 Jul 2007 22:05:11 -0700
-Message-ID: <200707260505.l6Q55BLL015092@imap1.linux-foundation.org>
+Subject: + char-moxa-fix-and-optimise-empty-timer.patch added to -mm tree
+Date: Wed, 25 Jul 2007 22:08:31 -0700
+Message-ID: <200707260508.l6Q58VLg015232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50358 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55057 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751415AbXGZFF6 (ORCPT
+	by vger.kernel.org with ESMTP id S1761595AbXGZFJZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 01:05:58 -0400
+	Thu, 26 Jul 2007 01:09:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ssatyam@cse.iitk.ac.in, shannon.nelson@intel.com
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     dma: INTEL_IOATDMA build fix
+     Char: moxa, fix and optimise empty timer
 has been added to the -mm tree.  Its filename is
-     dma-intel_ioatdma-build-fix.patch
+     char-moxa-fix-and-optimise-empty-timer.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dma: INTEL_IOATDMA build fix
-From: Satyam Sharma <ssatyam@cse.iitk.ac.in>
+Subject: Char: moxa, fix and optimise empty timer
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Make CONFIG_INTEL_IOATDMA select CONFIG_DCA because it uses code
-exported from said dependency:
+moxa, fix and optimise empty timer
 
-# CONFIG_DCA is not set
-CONFIG_INTEL_IOATDMA=m
+don't wait and delete empty timer in empty timer function. Also fire next
+empty timer at rounded jiffies to save power.
 
-ERROR: "alloc_dca_provider" [drivers/dma/ioatdma.ko] undefined!
-ERROR: "register_dca_provider" [drivers/dma/ioatdma.ko] undefined!
-ERROR: "unregister_dca_provider" [drivers/dma/ioatdma.ko] undefined!
-ERROR: "free_dca_provider" [drivers/dma/ioatdma.ko] undefined!
-make[1]: *** [__modpost] Error 1
-
-"select" seems ok because CONFIG_DCA looks library-like and doesn't itself
-depend upon anything else.
-
-Signed-off-by: Satyam Sharma <ssatyam@cse.iitk.ac.in>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/moxa.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/dma/Kconfig~dma-intel_ioatdma-build-fix drivers/dma/Kconfig
---- a/drivers/dma/Kconfig~dma-intel_ioatdma-build-fix
-+++ a/drivers/dma/Kconfig
-@@ -28,6 +28,7 @@ comment "DMA Devices"
- config INTEL_IOATDMA
- 	tristate "Intel I/OAT DMA support"
- 	depends on DMA_ENGINE && PCI
-+	select DCA
- 	default m
- 	---help---
- 	  Enable support for the Intel(R) I/OAT DMA engine.
+diff -puN drivers/char/moxa.c~char-moxa-fix-and-optimise-empty-timer drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-fix-and-optimise-empty-timer
++++ a/drivers/char/moxa.c
+@@ -1040,14 +1040,14 @@ static void check_xmit_empty(unsigned lo
+ 	struct moxa_port *ch;
+ 
+ 	ch = (struct moxa_port *) data;
+-	del_timer_sync(&moxa_ports[ch->port].emptyTimer);
+ 	if (ch->tty && (ch->statusflags & EMPTYWAIT)) {
+ 		if (MoxaPortTxQueue(ch->port) == 0) {
+ 			ch->statusflags &= ~EMPTYWAIT;
+ 			tty_wakeup(ch->tty);
+ 			return;
+ 		}
+-		mod_timer(&moxa_ports[ch->port].emptyTimer, jiffies + HZ);
++		mod_timer(&moxa_ports[ch->port].emptyTimer,
++				round_jiffies(jiffies + HZ));
+ 	} else
+ 		ch->statusflags &= ~EMPTYWAIT;
+ }
 _
 
-Patches currently in -mm which might be from ssatyam@cse.iitk.ac.in are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-dma-intel_ioatdma-build-fix.patch
-kthread-silence-bogus-section-mismatch-warning.patch
-clean-up-duplicate-includes-in-kernel.patch
+char-moxa-fix-and-optimise-empty-timer.patch
+shrink_slab-handle-bad-shrinkers.patch
