@@ -1,62 +1,244 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-fixup-2.patch removed from -mm tree
-Date: Wed, 25 Jul 2007 21:02:41 -0700
-Message-ID: <200707260402.l6Q42gTs012927@imap1.linux-foundation.org>
+Subject: - git-block-fixup.patch removed from -mm tree
+Date: Wed, 25 Jul 2007 21:02:37 -0700
+Message-ID: <200707260402.l6Q42bW9012923@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33516 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53485 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750932AbXGZECy (ORCPT
+	by vger.kernel.org with ESMTP id S1750814AbXGZECt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 00:02:54 -0400
+	Thu, 26 Jul 2007 00:02:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-fixup-2
+     git-block-fixup
 has been removed from the -mm tree.  Its filename was
-     git-block-fixup-2.patch
+     git-block-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-block-fixup-2
+Subject: git-block-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
+
+Fix rejects in git-block
 
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid0.c              |   23 --------------------
- drivers/md/raid1.c              |   33 ------------------------------
- drivers/md/raid10.c             |   33 ------------------------------
- drivers/md/raid5.c              |   33 ------------------------------
- drivers/message/i2o/i2o_block.c |   26 -----------------------
- drivers/scsi/scsi_lib.c         |   19 -----------------
- drivers/scsi/sd.c               |   18 ----------------
- include/scsi/sd.h               |    5 ----
- 8 files changed, 190 deletions(-)
+ block/ll_rw_blk.c      |   36 +-----------------------------------
+ drivers/ide/ide-disk.c |   29 -----------------------------
+ drivers/md/dm-table.c  |   30 ------------------------------
+ drivers/md/dm.c        |   19 -------------------
+ drivers/md/linear.c    |   22 ----------------------
+ drivers/md/multipath.c |   32 --------------------------------
+ include/linux/blkdev.h |   17 ++---------------
+ 7 files changed, 3 insertions(+), 182 deletions(-)
 
-diff -puN drivers/md/raid0.c~git-block-fixup-2 drivers/md/raid0.c
---- a/drivers/md/raid0.c~git-block-fixup-2
-+++ a/drivers/md/raid0.c
-@@ -40,29 +40,6 @@ static void raid0_unplug(struct request_
+diff -puN block/ll_rw_blk.c~git-block-fixup block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~git-block-fixup
++++ a/block/ll_rw_blk.c
+@@ -302,26 +302,6 @@ int blk_queue_ordered(struct request_que
+ 
+ EXPORT_SYMBOL(blk_queue_ordered);
+ 
+-<<<<<<< HEAD/block/ll_rw_blk.c
+-/**
+- * blk_queue_issue_flush_fn - set function for issuing a flush
+- * @q:     the request queue
+- * @iff:   the function to be called issuing the flush
+- *
+- * Description:
+- *   If a driver supports issuing a flush command, the support is notified
+- *   to the block layer by defining it through this call.
+- *
+- **/
+-void blk_queue_issue_flush_fn(struct request_queue *q, issue_flush_fn *iff)
+-{
+-	q->issue_flush_fn = iff;
+-}
+-
+-EXPORT_SYMBOL(blk_queue_issue_flush_fn);
+-
+-=======
+->>>>>>> /block/ll_rw_blk.c
+ /*
+  * Cache flushing for ordered writes handling
+  */
+@@ -1331,13 +1311,8 @@ static int blk_hw_contig_segment(struct 
+  * map a request to scatterlist, return number of sg entries setup. Caller
+  * must make sure sg can hold rq->nr_phys_segments entries
+  */
+-<<<<<<< HEAD/block/ll_rw_blk.c
+ int blk_rq_map_sg(struct request_queue *q, struct request *rq,
+-		  struct scatterlist *sg)
+-=======
+-int blk_rq_map_sg(request_queue_t *q, struct request *rq,
+ 		  struct scatterlist *sglist)
+->>>>>>> /block/ll_rw_blk.c
+ {
+ 	struct bio_vec *bvec, *bvprv;
+ 	struct scatterlist *next_sg, *sg;
+@@ -2692,14 +2667,10 @@ static int bio_end_empty_barrier(struct 
+  */
+ int blkdev_issue_flush(struct block_device *bdev, sector_t *error_sector)
+ {
+-<<<<<<< HEAD/block/ll_rw_blk.c
+-	struct request_queue *q;
+-=======
+ 	DECLARE_COMPLETION_ONSTACK(wait);
+-	request_queue_t *q;
++	struct request_queue *q;
+ 	struct bio *bio;
+ 	int ret;
+->>>>>>> /block/ll_rw_blk.c
+ 
+ 	if (bdev->bd_disk == NULL)
+ 		return -ENXIO;
+@@ -3223,12 +3194,7 @@ static inline int bio_check_eod(struct b
+  */
+ static inline void __generic_make_request(struct bio *bio)
+ {
+-<<<<<<< HEAD/block/ll_rw_blk.c
+ 	struct request_queue *q;
+-	sector_t maxsector;
+-=======
+-	request_queue_t *q;
+->>>>>>> /block/ll_rw_blk.c
+ 	sector_t old_sector;
+ 	int ret, nr_sectors = bio_sectors(bio);
+ 	dev_t old_dev;
+diff -puN drivers/ide/ide-disk.c~git-block-fixup drivers/ide/ide-disk.c
+--- a/drivers/ide/ide-disk.c~git-block-fixup
++++ a/drivers/ide/ide-disk.c
+@@ -697,35 +697,6 @@ static void idedisk_prepare_flush(struct
+ 	rq->buffer = rq->cmd;
+ }
+ 
+-<<<<<<< HEAD/drivers/ide/ide-disk.c
+-static int idedisk_issue_flush(struct request_queue *q, struct gendisk *disk,
+-			       sector_t *error_sector)
+-{
+-	ide_drive_t *drive = q->queuedata;
+-	struct request *rq;
+-	int ret;
+-
+-	if (!drive->wcache)
+-		return 0;
+-
+-	rq = blk_get_request(q, WRITE, __GFP_WAIT);
+-
+-	idedisk_prepare_flush(q, rq);
+-
+-	ret = blk_execute_rq(q, disk, rq, 0);
+-
+-	/*
+-	 * if we failed and caller wants error offset, get it
+-	 */
+-	if (ret && error_sector)
+-		*error_sector = ide_get_error_location(drive, rq->cmd);
+-
+-	blk_put_request(rq);
+-	return ret;
+-}
+-
+-=======
+->>>>>>> /drivers/ide/ide-disk.c
+ /*
+  * This is tightly woven into the driver->do_special can not touch.
+  * DON'T do it again until a total personality rewrite is committed.
+diff -puN drivers/md/dm-table.c~git-block-fixup drivers/md/dm-table.c
+--- a/drivers/md/dm-table.c~git-block-fixup
++++ a/drivers/md/dm-table.c
+@@ -999,36 +999,6 @@ void dm_table_unplug_all(struct dm_table
  	}
  }
  
--<<<<<<< HEAD/drivers/md/raid0.c
--static int raid0_issue_flush(struct request_queue *q, struct gendisk *disk,
--			     sector_t *error_sector)
+-<<<<<<< HEAD/drivers/md/dm-table.c
+-int dm_table_flush_all(struct dm_table *t)
+-{
+-	struct list_head *d, *devices = dm_table_get_devices(t);
+-	int ret = 0;
+-	unsigned i;
+-
+-	for (i = 0; i < t->num_targets; i++)
+-		if (t->targets[i].type->flush)
+-			t->targets[i].type->flush(&t->targets[i]);
+-
+-	for (d = devices->next; d != devices; d = d->next) {
+-		struct dm_dev *dd = list_entry(d, struct dm_dev, list);
+-		struct request_queue *q = bdev_get_queue(dd->bdev);
+-		int err;
+-
+-		if (!q->issue_flush_fn)
+-			err = -EOPNOTSUPP;
+-		else
+-			err = q->issue_flush_fn(q, dd->bdev->bd_disk, NULL);
+-
+-		if (!ret)
+-			ret = err;
+-	}
+-
+-	return ret;
+-}
+-
+-=======
+->>>>>>> /drivers/md/dm-table.c
+ struct mapped_device *dm_table_get_md(struct dm_table *t)
+ {
+ 	dm_get(t->md);
+diff -puN drivers/md/dm.c~git-block-fixup drivers/md/dm.c
+--- a/drivers/md/dm.c~git-block-fixup
++++ a/drivers/md/dm.c
+@@ -850,26 +850,7 @@ static int dm_request(struct request_que
+ 	return 0;
+ }
+ 
+-<<<<<<< HEAD/drivers/md/dm.c
+-static int dm_flush_all(struct request_queue *q, struct gendisk *disk,
+-			sector_t *error_sector)
+-{
+-	struct mapped_device *md = q->queuedata;
+-	struct dm_table *map = dm_get_table(md);
+-	int ret = -ENXIO;
+-
+-	if (map) {
+-		ret = dm_table_flush_all(map);
+-		dm_table_put(map);
+-	}
+-
+-	return ret;
+-}
+-
+ static void dm_unplug_all(struct request_queue *q)
+-=======
+-static void dm_unplug_all(request_queue_t *q)
+->>>>>>> /drivers/md/dm.c
+ {
+ 	struct mapped_device *md = q->queuedata;
+ 	struct dm_table *map = dm_get_table(md);
+diff -puN drivers/md/linear.c~git-block-fixup drivers/md/linear.c
+--- a/drivers/md/linear.c~git-block-fixup
++++ a/drivers/md/linear.c
+@@ -92,28 +92,6 @@ static void linear_unplug(struct request
+ 	}
+ }
+ 
+-<<<<<<< HEAD/drivers/md/linear.c
+-static int linear_issue_flush(struct request_queue *q, struct gendisk *disk,
+-			      sector_t *error_sector)
 -{
 -	mddev_t *mddev = q->queuedata;
--	raid0_conf_t *conf = mddev_to_conf(mddev);
--	mdk_rdev_t **devlist = conf->strip_zone[0].dev;
+-	linear_conf_t *conf = mddev_to_conf(mddev);
 -	int i, ret = 0;
 -
--	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
--		struct block_device *bdev = devlist[i]->bdev;
+-	for (i=0; i < mddev->raid_disks && ret == 0; i++) {
+-		struct block_device *bdev = conf->disks[i].rdev->bdev;
 -		struct request_queue *r_queue = bdev_get_queue(bdev);
 -
 -		if (!r_queue->issue_flush_fn)
@@ -68,28 +250,28 @@ diff -puN drivers/md/raid0.c~git-block-fixup-2 drivers/md/raid0.c
 -}
 -
 -=======
-->>>>>>> /drivers/md/raid0.c
- static int raid0_congested(void *data, int bits)
+->>>>>>> /drivers/md/linear.c
+ static int linear_congested(void *data, int bits)
  {
  	mddev_t *mddev = data;
-diff -puN drivers/md/raid1.c~git-block-fixup-2 drivers/md/raid1.c
---- a/drivers/md/raid1.c~git-block-fixup-2
-+++ a/drivers/md/raid1.c
-@@ -575,39 +575,6 @@ static void raid1_unplug(struct request_
- 	md_wakeup_thread(mddev->thread);
+diff -puN drivers/md/multipath.c~git-block-fixup drivers/md/multipath.c
+--- a/drivers/md/multipath.c~git-block-fixup
++++ a/drivers/md/multipath.c
+@@ -199,38 +199,6 @@ static void multipath_status (struct seq
+ 	seq_printf (seq, "]");
  }
  
--<<<<<<< HEAD/drivers/md/raid1.c
--static int raid1_issue_flush(struct request_queue *q, struct gendisk *disk,
--			     sector_t *error_sector)
+-<<<<<<< HEAD/drivers/md/multipath.c
+-static int multipath_issue_flush(struct request_queue *q, struct gendisk *disk,
+-				 sector_t *error_sector)
 -{
 -	mddev_t *mddev = q->queuedata;
--	conf_t *conf = mddev_to_conf(mddev);
+-	multipath_conf_t *conf = mddev_to_conf(mddev);
 -	int i, ret = 0;
 -
 -	rcu_read_lock();
 -	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
--		mdk_rdev_t *rdev = rcu_dereference(conf->mirrors[i].rdev);
+-		mdk_rdev_t *rdev = rcu_dereference(conf->multipaths[i].rdev);
 -		if (rdev && !test_bit(Faulty, &rdev->flags)) {
 -			struct block_device *bdev = rdev->bdev;
 -			struct request_queue *r_queue = bdev_get_queue(bdev);
@@ -109,208 +291,48 @@ diff -puN drivers/md/raid1.c~git-block-fixup-2 drivers/md/raid1.c
 -	rcu_read_unlock();
 -	return ret;
 -}
--
 -=======
-->>>>>>> /drivers/md/raid1.c
- static int raid1_congested(void *data, int bits)
+->>>>>>> /drivers/md/multipath.c
+ static int multipath_congested(void *data, int bits)
  {
  	mddev_t *mddev = data;
-diff -puN drivers/md/raid10.c~git-block-fixup-2 drivers/md/raid10.c
---- a/drivers/md/raid10.c~git-block-fixup-2
-+++ a/drivers/md/raid10.c
-@@ -618,39 +618,6 @@ static void raid10_unplug(struct request
- 	md_wakeup_thread(mddev->thread);
- }
+diff -puN include/linux/blkdev.h~git-block-fixup include/linux/blkdev.h
+--- a/include/linux/blkdev.h~git-block-fixup
++++ a/include/linux/blkdev.h
+@@ -343,14 +343,8 @@ typedef int (prep_rq_fn) (struct request
+ typedef void (unplug_fn) (struct request_queue *);
  
--<<<<<<< HEAD/drivers/md/raid10.c
--static int raid10_issue_flush(struct request_queue *q, struct gendisk *disk,
--			     sector_t *error_sector)
--{
--	mddev_t *mddev = q->queuedata;
--	conf_t *conf = mddev_to_conf(mddev);
--	int i, ret = 0;
--
--	rcu_read_lock();
--	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
--		mdk_rdev_t *rdev = rcu_dereference(conf->mirrors[i].rdev);
--		if (rdev && !test_bit(Faulty, &rdev->flags)) {
--			struct block_device *bdev = rdev->bdev;
--			struct request_queue *r_queue = bdev_get_queue(bdev);
--
--			if (!r_queue->issue_flush_fn)
--				ret = -EOPNOTSUPP;
--			else {
--				atomic_inc(&rdev->nr_pending);
--				rcu_read_unlock();
--				ret = r_queue->issue_flush_fn(r_queue, bdev->bd_disk,
--							      error_sector);
--				rdev_dec_pending(rdev, mddev);
--				rcu_read_lock();
--			}
--		}
--	}
--	rcu_read_unlock();
--	return ret;
--}
--
+ struct bio_vec;
+-<<<<<<< HEAD/include/linux/blkdev.h
+-typedef int (merge_bvec_fn) (struct request_queue *, struct bio *, struct bio_vec *);
+-typedef int (issue_flush_fn) (struct request_queue *, struct gendisk *, sector_t *);
+-typedef void (prepare_flush_fn) (struct request_queue *, struct request *);
 -=======
-->>>>>>> /drivers/md/raid10.c
- static int raid10_congested(void *data, int bits)
- {
- 	mddev_t *mddev = data;
-diff -puN drivers/md/raid5.c~git-block-fixup-2 drivers/md/raid5.c
---- a/drivers/md/raid5.c~git-block-fixup-2
-+++ a/drivers/md/raid5.c
-@@ -3768,39 +3768,6 @@ static void raid5_unplug_device(struct r
- 	unplug_slaves(mddev);
- }
+-typedef int (merge_bvec_fn) (request_queue_t *, struct bio *, struct bio_vec *);
+-typedef void (prepare_flush_fn) (request_queue_t *, struct request *);
+->>>>>>> /include/linux/blkdev.h
++typedef int (merge_bvec_fn)(struct request_queue *, struct bio *, struct bio_vec *);
++typedef void (prepare_flush_fn)(struct request_queue *, struct request *);
+ typedef void (softirq_done_fn)(struct request *);
  
--<<<<<<< HEAD/drivers/md/raid5.c
--static int raid5_issue_flush(struct request_queue *q, struct gendisk *disk,
--			     sector_t *error_sector)
--{
--	mddev_t *mddev = q->queuedata;
--	raid5_conf_t *conf = mddev_to_conf(mddev);
--	int i, ret = 0;
--
--	rcu_read_lock();
--	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
--		mdk_rdev_t *rdev = rcu_dereference(conf->disks[i].rdev);
--		if (rdev && !test_bit(Faulty, &rdev->flags)) {
--			struct block_device *bdev = rdev->bdev;
--			struct request_queue *r_queue = bdev_get_queue(bdev);
--
--			if (!r_queue->issue_flush_fn)
--				ret = -EOPNOTSUPP;
--			else {
--				atomic_inc(&rdev->nr_pending);
--				rcu_read_unlock();
--				ret = r_queue->issue_flush_fn(r_queue, bdev->bd_disk,
--							      error_sector);
--				rdev_dec_pending(rdev, mddev);
--				rcu_read_lock();
--			}
--		}
--	}
--	rcu_read_unlock();
--	return ret;
--}
--
+ enum blk_queue_state {
+@@ -774,16 +768,9 @@ extern void blk_queue_merge_bvec(struct 
+ extern void blk_queue_dma_alignment(struct request_queue *, int);
+ extern void blk_queue_softirq_done(struct request_queue *, softirq_done_fn *);
+ extern struct backing_dev_info *blk_get_backing_dev_info(struct block_device *bdev);
+-<<<<<<< HEAD/include/linux/blkdev.h
+ extern int blk_queue_ordered(struct request_queue *, unsigned, prepare_flush_fn *);
+-extern void blk_queue_issue_flush_fn(struct request_queue *, issue_flush_fn *);
+ extern int blk_do_ordered(struct request_queue *, struct request **);
+ extern unsigned blk_ordered_cur_seq(struct request_queue *);
 -=======
-->>>>>>> /drivers/md/raid5.c
- static int raid5_congested(void *data, int bits)
- {
- 	mddev_t *mddev = data;
-diff -puN drivers/message/i2o/i2o_block.c~git-block-fixup-2 drivers/message/i2o/i2o_block.c
---- a/drivers/message/i2o/i2o_block.c~git-block-fixup-2
-+++ a/drivers/message/i2o/i2o_block.c
-@@ -149,32 +149,6 @@ static int i2o_block_device_flush(struct
- };
+-extern int blk_queue_ordered(request_queue_t *, unsigned, prepare_flush_fn *);
+-extern int blk_do_ordered(request_queue_t *, struct request **);
+-extern unsigned blk_ordered_cur_seq(request_queue_t *);
+->>>>>>> /include/linux/blkdev.h
+ extern unsigned blk_ordered_req_seq(struct request *);
+ extern void blk_ordered_complete_seq(struct request_queue *, unsigned, int);
  
- /**
--<<<<<<< HEAD/drivers/message/i2o/i2o_block.c
-- *	i2o_block_issue_flush - device-flush interface for block-layer
-- *	@queue: the request queue of the device which should be flushed
-- *	@disk: gendisk
-- *	@error_sector: error offset
-- *
-- *	Helper function to provide flush functionality to block-layer.
-- *
-- *	Returns 0 on success or negative error code on failure.
-- */
--
--static int i2o_block_issue_flush(struct request_queue * queue, struct gendisk *disk,
--				 sector_t * error_sector)
--{
--	struct i2o_block_device *i2o_blk_dev = queue->queuedata;
--	int rc = -ENODEV;
--
--	if (likely(i2o_blk_dev))
--		rc = i2o_block_device_flush(i2o_blk_dev->i2o_dev);
--
--	return rc;
--}
--
--/**
--=======
-->>>>>>> /drivers/message/i2o/i2o_block.c
-  *	i2o_block_device_mount - Mount (load) the media of device dev
-  *	@dev: I2O device which should receive the mount request
-  *	@media_id: Media Identifier
-diff -puN drivers/scsi/scsi_lib.c~git-block-fixup-2 drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~git-block-fixup-2
-+++ a/drivers/scsi/scsi_lib.c
-@@ -1143,25 +1143,6 @@ static int scsi_init_io(struct scsi_cmnd
- 	return BLKPREP_KILL;
- }
- 
--<<<<<<< HEAD/drivers/scsi/scsi_lib.c
--static int scsi_issue_flush_fn(struct request_queue *q, struct gendisk *disk,
--			       sector_t *error_sector)
--{
--	struct scsi_device *sdev = q->queuedata;
--	struct scsi_driver *drv;
--
--	if (sdev->sdev_state != SDEV_RUNNING)
--		return -ENXIO;
--
--	drv = *(struct scsi_driver **) disk->private_data;
--	if (drv->issue_flush)
--		return drv->issue_flush(&sdev->sdev_gendev, error_sector);
--
--	return -EOPNOTSUPP;
--}
--
--=======
-->>>>>>> /drivers/scsi/scsi_lib.c
- static struct scsi_cmnd *scsi_get_cmd_from_req(struct scsi_device *sdev,
- 		struct request *req)
- {
-diff -puN drivers/scsi/sd.c~git-block-fixup-2 drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~git-block-fixup-2
-+++ a/drivers/scsi/sd.c
-@@ -799,25 +799,7 @@ static int sd_sync_cache(struct scsi_dis
- 	return 0;
- }
- 
--<<<<<<< HEAD/drivers/scsi/sd.c
--static int sd_issue_flush(struct device *dev, sector_t *error_sector)
--{
--	int ret = 0;
--	struct scsi_disk *sdkp = scsi_disk_get_from_dev(dev);
--
--	if (!sdkp)
--               return -ENODEV;
--
--	if (sdkp->WCE)
--		ret = sd_sync_cache(sdkp);
--	scsi_disk_put(sdkp);
--	return ret;
--}
--
- static void sd_prepare_flush(struct request_queue *q, struct request *rq)
--=======
--static void sd_prepare_flush(request_queue_t *q, struct request *rq)
-->>>>>>> /drivers/scsi/sd.c
- {
- 	memset(rq->cmd, 0, sizeof(rq->cmd));
- 	rq->cmd_type = REQ_TYPE_BLOCK_PC;
-diff -puN include/scsi/sd.h~git-block-fixup-2 include/scsi/sd.h
---- a/include/scsi/sd.h~git-block-fixup-2
-+++ a/include/scsi/sd.h
-@@ -56,12 +56,7 @@ static int sd_suspend(struct device *dev
- static int sd_resume(struct device *dev);
- static void sd_rescan(struct device *);
- static int  sd_init_command(struct scsi_cmnd *);
--<<<<<<< HEAD/include/scsi/sd.h
--static int  sd_issue_flush(struct device *, sector_t *);
- static void sd_prepare_flush(struct request_queue *, struct request *);
--=======
--static void sd_prepare_flush(request_queue_t *, struct request *);
-->>>>>>> /include/scsi/sd.h
- static void sd_read_capacity(struct scsi_disk *sdkp, unsigned char *buffer);
- static void scsi_disk_release(struct class_device *cdev);
- static void sd_print_sense_hdr(struct scsi_disk *, struct scsi_sense_hdr *);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -354,6 +376,7 @@ pci-remove-irritating-try-pci=assign-busses-warning.patch
 aacraid-rename-check_reset.patch
 git-scsi-rc-fixes.patch
 git-scsi-target-fixup.patch
+git-block-fixup.patch
 git-block-fixup-2.patch
 git-block-fix-headers_check.patch
 git-block-whoops.patch
