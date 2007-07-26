@@ -1,93 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-drivers-hwmon.patch removed from -mm tree
-Date: Wed, 25 Jul 2007 21:23:58 -0700
-Message-ID: <200707260423.l6Q4NwCd013748@imap1.linux-foundation.org>
+Subject: - use-ldflags_module-only-for-ko-links.patch removed from -mm tree
+Date: Wed, 25 Jul 2007 21:23:51 -0700
+Message-ID: <200707260423.l6Q4Np9A013738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35741 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48395 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751085AbXGZEYH (ORCPT
+	by vger.kernel.org with ESMTP id S1751243AbXGZEYQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 00:24:07 -0400
+	Thu, 26 Jul 2007 00:24:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: roland@redhat.com, bunk@stusta.de, davem@davemloft.net, michal.k.k.piotrowski@gmail.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in drivers/hwmon/
+     Use LDFLAGS_MODULE only for .ko links
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-drivers-hwmon.patch
+     use-ldflags_module-only-for-ko-links.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in drivers/hwmon/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: Use LDFLAGS_MODULE only for .ko links
+From: Roland McGrath <roland@redhat.com>
 
-This patch cleans up duplicate includes in
-	drivers/hwmon/
+Sam Ravnborg pointed out that Documentation/kbuild/makefiles.txt already
+says this is what it's for.  This patch makes the reality live up to the
+documentation.  This fixes the problem of LDFLAGS_BUILD_ID getting into too
+many places.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Mark Hoffman <mhoffman@lightlink.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: David Miller <davem@davemloft.net>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/ams/ams-core.c |    1 -
- 1 files changed, 1 deletion(-)
+ Makefile                 |    2 +-
+ scripts/Makefile.build   |    2 +-
+ scripts/Makefile.modpost |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/hwmon/ams/ams-core.c~clean-up-duplicate-includes-in-drivers-hwmon drivers/hwmon/ams/ams-core.c
---- a/drivers/hwmon/ams/ams-core.c~clean-up-duplicate-includes-in-drivers-hwmon
-+++ a/drivers/hwmon/ams/ams-core.c
-@@ -23,7 +23,6 @@
- #include <linux/types.h>
- #include <linux/errno.h>
- #include <linux/init.h>
--#include <linux/module.h>
- #include <asm/pmac_pfunc.h>
- #include <asm/of_platform.h>
+diff -puN Makefile~use-ldflags_module-only-for-ko-links Makefile
+--- a/Makefile~use-ldflags_module-only-for-ko-links
++++ a/Makefile
+@@ -299,7 +299,7 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D
+ MODFLAGS	= -DMODULE
+ CFLAGS_MODULE   = $(MODFLAGS)
+ AFLAGS_MODULE   = $(MODFLAGS)
+-LDFLAGS_MODULE  = -r
++LDFLAGS_MODULE  =
+ CFLAGS_KERNEL	=
+ AFLAGS_KERNEL	=
  
+diff -puN scripts/Makefile.build~use-ldflags_module-only-for-ko-links scripts/Makefile.build
+--- a/scripts/Makefile.build~use-ldflags_module-only-for-ko-links
++++ a/scripts/Makefile.build
+@@ -315,7 +315,7 @@ quiet_cmd_link_multi-y = LD      $@
+ cmd_link_multi-y = $(LD) $(ld_flags) -r -o $@ $(link_multi_deps)
+ 
+ quiet_cmd_link_multi-m = LD [M]  $@
+-cmd_link_multi-m = $(LD) $(ld_flags) $(LDFLAGS_MODULE) -o $@ $(link_multi_deps)
++cmd_link_multi-m = $(cmd_link_multi-y)
+ 
+ # We would rather have a list of rules like
+ # 	foo.o: $(foo-objs)
+diff -puN scripts/Makefile.modpost~use-ldflags_module-only-for-ko-links scripts/Makefile.modpost
+--- a/scripts/Makefile.modpost~use-ldflags_module-only-for-ko-links
++++ a/scripts/Makefile.modpost
+@@ -97,7 +97,7 @@ targets += $(modules:.ko=.mod.o)
+ 
+ # Step 6), final link of the modules
+ quiet_cmd_ld_ko_o = LD [M]  $@
+-      cmd_ld_ko_o = $(LD) $(LDFLAGS) $(LDFLAGS_MODULE) -o $@		\
++      cmd_ld_ko_o = $(LD) -r $(LDFLAGS) $(LDFLAGS_MODULE) -o $@		\
+ 			  $(filter-out FORCE,$^)
+ 
+ $(modules): %.ko :%.o %.mod.o FORCE
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-git-alsa.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-hid-fix-a-null-pointer-dereference-when-we-fail-to-allocate-memory.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-git-mtd.patch
-clean-up-duplicate-includes-in-drivers-net.patch
-clean-up-duplicate-includes-in-drivers-atm.patch
-clean-up-duplicate-includes-in-net-atm.patch
-clean-up-duplicate-includes-in-net-ipv4.patch
-clean-up-duplicate-includes-in-net-ipv6.patch
-clean-up-duplicate-includes-in-net-sched.patch
-clean-up-duplicate-includes-in-net-sunrpc.patch
-clean-up-duplicate-includes-in-net-tipc.patch
-clean-up-duplicate-includes-in-net-xfrm.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-clean-up-duplicate-includes-in-drivers-block.patch
-clean-up-duplicate-includes-in-drivers-usb.patch
-clean-up-duplicate-includes-in-arch-i386-xen.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-ipmi-fix-mem-leak-in-try_init_dmi.patch
-fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-cciss-fix-memory-leak.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
