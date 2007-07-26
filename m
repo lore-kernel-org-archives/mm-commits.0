@@ -1,92 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - use-ldflags_module-only-for-ko-links.patch removed from -mm tree
-Date: Wed, 25 Jul 2007 21:23:51 -0700
-Message-ID: <200707260423.l6Q4Np9A013738@imap1.linux-foundation.org>
+Subject: - acpi-remove-references-to-acpi_state_s2-from-acpi_pm_enter.patch removed from -mm tree
+Date: Wed, 25 Jul 2007 21:23:54 -0700
+Message-ID: <200707260423.l6Q4NsxQ013741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48395 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40507 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751243AbXGZEYQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751257AbXGZEYR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 00:24:16 -0400
+	Thu, 26 Jul 2007 00:24:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, bunk@stusta.de, davem@davemloft.net, michal.k.k.piotrowski@gmail.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use LDFLAGS_MODULE only for .ko links
+     ACPI: Remove references to ACPI_STATE_S2 from acpi_pm_enter
 has been removed from the -mm tree.  Its filename was
-     use-ldflags_module-only-for-ko-links.patch
+     acpi-remove-references-to-acpi_state_s2-from-acpi_pm_enter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use LDFLAGS_MODULE only for .ko links
-From: Roland McGrath <roland@redhat.com>
+Subject: ACPI: Remove references to ACPI_STATE_S2 from acpi_pm_enter
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Sam Ravnborg pointed out that Documentation/kbuild/makefiles.txt already
-says this is what it's for.  This patch makes the reality live up to the
-documentation.  This fixes the problem of LDFLAGS_BUILD_ID getting into too
-many places.
+Remove references to ACPI_STATE_S2, introduced by
+acpi-implement-the-set_target-callback-from-pm_ops.patch, from acpi_pm_enter().
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: David Miller <davem@davemloft.net>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile                 |    2 +-
- scripts/Makefile.build   |    2 +-
- scripts/Makefile.modpost |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/sleep/main.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN Makefile~use-ldflags_module-only-for-ko-links Makefile
---- a/Makefile~use-ldflags_module-only-for-ko-links
-+++ a/Makefile
-@@ -299,7 +299,7 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D
- MODFLAGS	= -DMODULE
- CFLAGS_MODULE   = $(MODFLAGS)
- AFLAGS_MODULE   = $(MODFLAGS)
--LDFLAGS_MODULE  = -r
-+LDFLAGS_MODULE  =
- CFLAGS_KERNEL	=
- AFLAGS_KERNEL	=
+diff -puN drivers/acpi/sleep/main.c~acpi-remove-references-to-acpi_state_s2-from-acpi_pm_enter drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi-remove-references-to-acpi_state_s2-from-acpi_pm_enter
++++ a/drivers/acpi/sleep/main.c
+@@ -81,8 +81,8 @@ static int acpi_pm_prepare(suspend_state
+  *	acpi_pm_enter - Actually enter a sleep state.
+  *	@pm_state: ignored
+  *
+- *	Flush caches and go to sleep. For STR or S2, we have to call
+- *	arch-specific assembly, which in turn call acpi_enter_sleep_state().
++ *	Flush caches and go to sleep. For STR we have to call arch-specific
++ *	assembly, which in turn call acpi_enter_sleep_state().
+  *	It's unfortunate, but it works. Please fix if you're feeling frisky.
+  */
  
-diff -puN scripts/Makefile.build~use-ldflags_module-only-for-ko-links scripts/Makefile.build
---- a/scripts/Makefile.build~use-ldflags_module-only-for-ko-links
-+++ a/scripts/Makefile.build
-@@ -315,7 +315,7 @@ quiet_cmd_link_multi-y = LD      $@
- cmd_link_multi-y = $(LD) $(ld_flags) -r -o $@ $(link_multi_deps)
+@@ -95,7 +95,7 @@ static int acpi_pm_enter(suspend_state_t
+ 	ACPI_FLUSH_CPU_CACHE();
  
- quiet_cmd_link_multi-m = LD [M]  $@
--cmd_link_multi-m = $(LD) $(ld_flags) $(LDFLAGS_MODULE) -o $@ $(link_multi_deps)
-+cmd_link_multi-m = $(cmd_link_multi-y)
+ 	/* Do arch specific saving of state. */
+-	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3) {
++	if (acpi_state == ACPI_STATE_S3) {
+ 		int error = acpi_save_state_mem();
  
- # We would rather have a list of rules like
- # 	foo.o: $(foo-objs)
-diff -puN scripts/Makefile.modpost~use-ldflags_module-only-for-ko-links scripts/Makefile.modpost
---- a/scripts/Makefile.modpost~use-ldflags_module-only-for-ko-links
-+++ a/scripts/Makefile.modpost
-@@ -97,7 +97,7 @@ targets += $(modules:.ko=.mod.o)
+ 		if (error) {
+@@ -112,7 +112,6 @@ static int acpi_pm_enter(suspend_state_t
+ 		status = acpi_enter_sleep_state(acpi_state);
+ 		break;
  
- # Step 6), final link of the modules
- quiet_cmd_ld_ko_o = LD [M]  $@
--      cmd_ld_ko_o = $(LD) $(LDFLAGS) $(LDFLAGS_MODULE) -o $@		\
-+      cmd_ld_ko_o = $(LD) -r $(LDFLAGS) $(LDFLAGS_MODULE) -o $@		\
- 			  $(filter-out FORCE,$^)
+-	case ACPI_STATE_S2:
+ 	case ACPI_STATE_S3:
+ 		do_suspend_lowlevel();
+ 		break;
+@@ -129,7 +128,7 @@ static int acpi_pm_enter(suspend_state_t
+ 	printk(KERN_DEBUG "Back to C!\n");
  
- $(modules): %.ko :%.o %.mod.o FORCE
+ 	/* restore processor state */
+-	if (acpi_state == ACPI_STATE_S2 || acpi_state == ACPI_STATE_S3)
++	if (acpi_state == ACPI_STATE_S3)
+ 		acpi_restore_state_mem();
+ 
+ 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-pass-g-to-assembler-under-config_debug_info.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+pm-fix-compiler-error-of-ppc-dart_iommu.patch
+chipsfb-use-correct-pm-state.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+shrink_slab-handle-bad-shrinkers.patch
