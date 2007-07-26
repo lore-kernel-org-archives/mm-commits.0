@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch added to -mm tree
-Date: Thu, 26 Jul 2007 14:16:56 -0700
-Message-ID: <200707262116.l6QLGusx021241@imap1.linux-foundation.org>
+Subject: + codingstyle-proscribe-do-while-without-braces.patch added to -mm tree
+Date: Thu, 26 Jul 2007 14:45:57 -0700
+Message-ID: <200707262145.l6QLjvF4022294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54141 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38712 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754395AbXGZVRW (ORCPT
+	by vger.kernel.org with ESMTP id S1762970AbXGZVql (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 17:17:22 -0400
+	Thu, 26 Jul 2007 17:46:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nix.or.die@googlemail.com
+Cc: josht@linux.vnet.ibm.com, josh@kernel.org
 
 
 The patch titled
-     Fix drivers/scsi/fdomain.c CONFIG_PCI=n warnings
+     CodingStyle: proscribe do-while without braces.
 has been added to the -mm tree.  Its filename is
-     fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
+     codingstyle-proscribe-do-while-without-braces.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix drivers/scsi/fdomain.c CONFIG_PCI=n warnings
-From: Gabriel C <nix.or.die@googlemail.com>
+Subject: CodingStyle: proscribe do-while without braces.
+From: Josh Triplett <josht@linux.vnet.ibm.com>
 
-I get this warnings on current git when CONFIG_PCI is not set :
+Sparse warns about do-while loops without braces; Linus's rationale from the
+Sparse Git changelog:
 
-drivers/scsi/fdomain.c:390: warning: 'PCI_dev' defined but not used
-drivers/scsi/fdomain.c:1768: warning: 'fdomain_pci_tbl' defined but not used
+> Add warning message for naked do-while
+>
+> Does it necessarily make sense? Dunno, but it does tend to be bad
+> practice, or at least result in code that can be hard to mentally parse.
+>
+> Maybe that mental parsing is just me.	 Or maybe it should be warned
+> about. You decide.
 
-Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
+Signed-off-by: Josh Triplett <josh@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/fdomain.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ Documentation/CodingStyle |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/scsi/fdomain.c~fix-drivers-scsi-fdomainc-config_pci=n-warnings drivers/scsi/fdomain.c
---- a/drivers/scsi/fdomain.c~fix-drivers-scsi-fdomainc-config_pci=n-warnings
-+++ a/drivers/scsi/fdomain.c
-@@ -387,7 +387,9 @@ static void __iomem *    bios_mem;
- static int               bios_major;
- static int               bios_minor;
- static int               PCI_bus;
-+#ifdef CONFIG_PCI
- static struct pci_dev	*PCI_dev;
-+#endif
- static int               Quantum;	/* Quantum board variant */
- static int               interrupt_level;
- static volatile int      in_command;
-@@ -1764,6 +1766,7 @@ struct scsi_host_template fdomain_driver
- };
+diff -puN Documentation/CodingStyle~codingstyle-proscribe-do-while-without-braces Documentation/CodingStyle
+--- a/Documentation/CodingStyle~codingstyle-proscribe-do-while-without-braces
++++ a/Documentation/CodingStyle
+@@ -175,6 +175,13 @@ if (condition) {
+ 	otherwise();
+ }
  
- #ifndef PCMCIA
-+#ifdef CONFIG_PCI
++This also does not apply to a do-while loop; always use braces with a do-while,
++even if it contains a single statement:
++
++do {
++	this();
++} while(condition);
++
+ 		3.1:  Spaces
  
- static struct pci_device_id fdomain_pci_tbl[] __devinitdata = {
- 	{ PCI_VENDOR_ID_FD, PCI_DEVICE_ID_FD_36C70,
-@@ -1771,7 +1774,7 @@ static struct pci_device_id fdomain_pci_
- 	{ }
- };
- MODULE_DEVICE_TABLE(pci, fdomain_pci_tbl);
--
-+#endif
- #define driver_template fdomain_driver_template
- #include "scsi_module.c"
- 
+ Linux kernel style for use of spaces depends (mostly) on
 _
 
-Patches currently in -mm which might be from nix.or.die@googlemail.com are
+Patches currently in -mm which might be from josht@linux.vnet.ibm.com are
 
-origin.patch
-drivers-scsi-g_ncr5380c-ncr53c400_pseudo_dma-is-not.patch
-fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
-broken-lilo-check-on-make-install.patch
-typo-fixes-errror-error.patch
+codingstyle-proscribe-do-while-without-braces.patch
+i386-mark-pit_clockevent-static.patch
