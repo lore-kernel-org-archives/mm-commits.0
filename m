@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-hotplug-topology-remove-topology_dev_map.patch added to -mm tree
-Date: Thu, 26 Jul 2007 13:51:28 -0700
-Message-ID: <200707262051.l6QKpSWv020282@imap1.linux-foundation.org>
+Subject: + cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch added to -mm tree
+Date: Thu, 26 Jul 2007 13:51:24 -0700
+Message-ID: <200707262051.l6QKpOJa020273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43555 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49922 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934931AbXGZUvo (ORCPT
+	by vger.kernel.org with ESMTP id S932935AbXGZUvp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 16:51:44 -0400
+	Thu, 26 Jul 2007 16:51:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, ego@in.ibm.com, gregkh@suse.de, oleg@tv-sign.ru
+Cc: akinobu.mita@gmail.com, clameter@sgi.com, ego@in.ibm.com, oleg@tv-sign.ru, penberg@cs.helsinki.fi
 
 
 The patch titled
-     cpu hotplug: topology: remove topology_dev_map
+     cpu hotplug: slab: fix memory leak in cpu hotplug error path
 has been added to the -mm tree.  Its filename is
-     cpu-hotplug-topology-remove-topology_dev_map.patch
+     cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpu hotplug: topology: remove topology_dev_map
+Subject: cpu hotplug: slab: fix memory leak in cpu hotplug error path
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-By previous cpu hotplug notifier change, we don't need to track topology_dev
-existence for each cpu by topology_dev_map.
+This patch fixes memory leak in error path.
 
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+In reality, we don't need to call cpuup_canceled(cpu) for now.  But upcoming
+cpu hotplug error handling change needs this.
+
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Gautham R Shenoy <ego@in.ibm.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/topology.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ mm/slab.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/base/topology.c~cpu-hotplug-topology-remove-topology_dev_map drivers/base/topology.c
---- a/drivers/base/topology.c~cpu-hotplug-topology-remove-topology_dev_map
-+++ a/drivers/base/topology.c
-@@ -94,27 +94,18 @@ static struct attribute_group topology_a
- 	.name = "topology"
- };
- 
--static cpumask_t topology_dev_map = CPU_MASK_NONE;
--
- /* Add/Remove cpu_topology interface for CPU device */
- static int __cpuinit topology_add_dev(unsigned int cpu)
- {
--	int rc;
- 	struct sys_device *sys_dev = get_cpu_sysdev(cpu);
- 
--	rc = sysfs_create_group(&sys_dev->kobj, &topology_attr_group);
--	if (!rc)
--		cpu_set(cpu, topology_dev_map);
--	return rc;
-+	return sysfs_create_group(&sys_dev->kobj, &topology_attr_group);
- }
- 
- static void __cpuinit topology_remove_dev(unsigned int cpu)
- {
- 	struct sys_device *sys_dev = get_cpu_sysdev(cpu);
- 
--	if (!cpu_isset(cpu, topology_dev_map))
--		return;
--	cpu_clear(cpu, topology_dev_map);
- 	sysfs_remove_group(&sys_dev->kobj, &topology_attr_group);
+diff -puN mm/slab.c~cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path mm/slab.c
+--- a/mm/slab.c~cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path
++++ a/mm/slab.c
+@@ -1282,13 +1282,18 @@ static int __cpuinit cpuup_prepare(long 
+ 			shared = alloc_arraycache(node,
+ 				cachep->shared * cachep->batchcount,
+ 				0xbaadf00d);
+-			if (!shared)
++			if (!shared) {
++				kfree(nc);
+ 				goto bad;
++			}
+ 		}
+ 		if (use_alien_caches) {
+ 			alien = alloc_alien_cache(node, cachep->limit);
+-			if (!alien)
++			if (!alien) {
++				kfree(shared);
++				kfree(nc);
+ 				goto bad;
++			}
+ 		}
+ 		cachep->array[cpu] = nc;
+ 		l3 = cachep->nodelists[node];
+@@ -1315,6 +1320,7 @@ static int __cpuinit cpuup_prepare(long 
+ 	}
+ 	return 0;
+ bad:
++	cpuup_canceled(cpu);
+ 	return -ENOMEM;
  }
  
 _
