@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch added to -mm tree
-Date: Thu, 26 Jul 2007 13:51:31 -0700
-Message-ID: <200707262051.l6QKpVrm020291@imap1.linux-foundation.org>
+Subject: + cpu-hotplug-topology-remove-topology_dev_map.patch added to -mm tree
+Date: Thu, 26 Jul 2007 13:51:28 -0700
+Message-ID: <200707262051.l6QKpSWv020282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35747 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43555 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932279AbXGZUvo (ORCPT
+	by vger.kernel.org with ESMTP id S934931AbXGZUvo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 26 Jul 2007 16:51:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, ego@in.ibm.com, hpa@zytor.com, oleg@tv-sign.ru
+Cc: akinobu.mita@gmail.com, ego@in.ibm.com, gregkh@suse.de, oleg@tv-sign.ru
 
 
 The patch titled
-     cpu hotplug: cpuid: fix cpu hotplug error handling
+     cpu hotplug: topology: remove topology_dev_map
 has been added to the -mm tree.  Its filename is
-     cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
+     cpu-hotplug-topology-remove-topology_dev_map.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,92 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpu hotplug: cpuid: fix cpu hotplug error handling
+Subject: cpu hotplug: topology: remove topology_dev_map
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Do cpuid_device_create() in CPU_UP_PREPARE instead of CPU_ONLINE.
+By previous cpu hotplug notifier change, we don't need to track topology_dev
+existence for each cpu by topology_dev_map.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Gautham R Shenoy <ego@in.ibm.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpuid.c |   32 +++++++++++++++++++-------------
- 1 file changed, 19 insertions(+), 13 deletions(-)
+ drivers/base/topology.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN arch/i386/kernel/cpuid.c~cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling arch/i386/kernel/cpuid.c
---- a/arch/i386/kernel/cpuid.c~cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling
-+++ a/arch/i386/kernel/cpuid.c
-@@ -136,32 +136,38 @@ static const struct file_operations cpui
- 	.open = cpuid_open,
+diff -puN drivers/base/topology.c~cpu-hotplug-topology-remove-topology_dev_map drivers/base/topology.c
+--- a/drivers/base/topology.c~cpu-hotplug-topology-remove-topology_dev_map
++++ a/drivers/base/topology.c
+@@ -94,27 +94,18 @@ static struct attribute_group topology_a
+ 	.name = "topology"
  };
  
--static int cpuid_device_create(int i)
-+static int cpuid_device_create(int cpu)
+-static cpumask_t topology_dev_map = CPU_MASK_NONE;
+-
+ /* Add/Remove cpu_topology interface for CPU device */
+ static int __cpuinit topology_add_dev(unsigned int cpu)
  {
--	int err = 0;
- 	struct device *dev;
+-	int rc;
+ 	struct sys_device *sys_dev = get_cpu_sysdev(cpu);
  
--	dev = device_create(cpuid_class, NULL, MKDEV(CPUID_MAJOR, i), "cpu%d",i);
--	if (IS_ERR(dev))
--		err = PTR_ERR(dev);
--	return err;
-+	dev = device_create(cpuid_class, NULL, MKDEV(CPUID_MAJOR, cpu),
-+			    "cpu%d", cpu);
-+	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
-+}
-+
-+static void cpuid_device_destroy(int cpu)
-+{
-+	device_destroy(cpuid_class, MKDEV(CPUID_MAJOR, cpu));
+-	rc = sysfs_create_group(&sys_dev->kobj, &topology_attr_group);
+-	if (!rc)
+-		cpu_set(cpu, topology_dev_map);
+-	return rc;
++	return sysfs_create_group(&sys_dev->kobj, &topology_attr_group);
  }
  
- static int cpuid_class_cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
+ static void __cpuinit topology_remove_dev(unsigned int cpu)
  {
- 	unsigned int cpu = (unsigned long)hcpu;
-+	int err = 0;
+ 	struct sys_device *sys_dev = get_cpu_sysdev(cpu);
  
- 	switch (action) {
--	case CPU_ONLINE:
--	case CPU_ONLINE_FROZEN:
--		cpuid_device_create(cpu);
-+	case CPU_UP_PREPARE:
-+	case CPU_UP_PREPARE_FROZEN:
-+		err = cpuid_device_create(cpu);
- 		break;
-+	case CPU_UP_CANCELED:
-+	case CPU_UP_CANCELED_FROZEN:
- 	case CPU_DEAD:
- 	case CPU_DEAD_FROZEN:
--		device_destroy(cpuid_class, MKDEV(CPUID_MAJOR, cpu));
-+		cpuid_device_destroy(cpu);
- 		break;
- 	}
--	return NOTIFY_OK;
-+	return err ? NOTIFY_BAD : NOTIFY_OK;
+-	if (!cpu_isset(cpu, topology_dev_map))
+-		return;
+-	cpu_clear(cpu, topology_dev_map);
+ 	sysfs_remove_group(&sys_dev->kobj, &topology_attr_group);
  }
  
- static struct notifier_block __cpuinitdata cpuid_class_cpu_notifier =
-@@ -198,7 +204,7 @@ static int __init cpuid_init(void)
- out_class:
- 	i = 0;
- 	for_each_online_cpu(i) {
--		device_destroy(cpuid_class, MKDEV(CPUID_MAJOR, i));
-+		cpuid_device_destroy(i);
- 	}
- 	class_destroy(cpuid_class);
- out_chrdev:
-@@ -212,7 +218,7 @@ static void __exit cpuid_exit(void)
- 	int cpu = 0;
- 
- 	for_each_online_cpu(cpu)
--		device_destroy(cpuid_class, MKDEV(CPUID_MAJOR, cpu));
-+		cpuid_device_destroy(cpu);
- 	class_destroy(cpuid_class);
- 	unregister_chrdev(CPUID_MAJOR, "cpu/cpuid");
- 	unregister_hotcpu_notifier(&cpuid_class_cpu_notifier);
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
