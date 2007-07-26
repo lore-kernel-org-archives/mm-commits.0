@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-binfmt_flat-fix.patch added to -mm tree
-Date: Thu, 26 Jul 2007 00:50:04 -0700
-Message-ID: <200707260750.l6Q7o48H020967@imap1.linux-foundation.org>
+Subject: + containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch added to -mm tree
+Date: Thu, 26 Jul 2007 00:55:52 -0700
+Message-ID: <200707260755.l6Q7tqNP021180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40717 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53040 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756667AbXGZHur (ORCPT
+	by vger.kernel.org with ESMTP id S1757863AbXGZH4Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 03:50:47 -0400
+	Thu, 26 Jul 2007 03:56:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nhorman@tuxdriver.com
+Cc: clg@fr.ibm.com, menage@google.com
 
 
 The patch titled
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe binfmt_flat fix
+     fix order of container subsystems in init/Kconfig
 has been added to the -mm tree.  Its filename is
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-binfmt_flat-fix.patch
+     containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,100 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe binfmt_flat fix
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: fix order of container subsystems in init/Kconfig
+From: Cedric Le Goater <clg@fr.ibm.com>
 
-> SuperH allmodconfig broke:
->
-> fs/binfmt_flat.c:83: warning: initialization from incompatible pointer type
-> fs/binfmt_flat.c:94: error: conflicting types for 'flat_core_dump'
-> fs/binfmt_flat.c:78: error: previous declaration of 'flat_core_dump' was here
-> fs/binfmt_flat.c:94: error: conflicting types for 'flat_core_dump'
-> fs/binfmt_flat.c:78: error: previous declaration of 'flat_core_dump' was here
-> fs/binfmt_flat.c: In function `decompress_exec':
-> fs/binfmt_flat.c:293: warning: label `out' defined but not used
-> fs/binfmt_flat.c: In function `load_flat_file':
-> fs/binfmt_flat.c:462: warning: unsigned int format, long int arg (arg 3)
-> fs/binfmt_flat.c:462: warning: unsigned int format, long int arg (arg 4)
-> fs/binfmt_flat.c:518: warning: comparison of distinct pointer types lacks a cast
-> fs/binfmt_flat.c:549: warning: passing arg 1 of `ksize' makes pointer from integer without a cast
-> fs/binfmt_flat.c:601: warning: passing arg 1 of `ksize' makes pointer from integer without a cast
-> fs/binfmt_flat.c: At top level:
-> fs/binfmt_flat.c:78: warning: 'flat_core_dump' used but never defined
-> fs/binfmt_flat.c:94: warning: 'flat_core_dump' defined but not used
+some cosmetic changes to init/Kconfig to make the subsystem list
+under containers look nicer when CONFIG_CONTAINERS=y.
 
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+also changed the 'select' to 'depends on' for the namespace
+subsystem.
+
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_flat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/Kconfig |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN fs/binfmt_flat.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-binfmt_flat-fix fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-binfmt_flat-fix
-+++ a/fs/binfmt_flat.c
-@@ -75,7 +75,7 @@ static int load_flat_shared_library(int 
- #endif
+diff -puN init/Kconfig~containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig init/Kconfig
+--- a/init/Kconfig~containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig
++++ a/init/Kconfig
+@@ -310,6 +310,22 @@ config CONTAINER_DEBUG
  
- static int load_flat_binary(struct linux_binprm *, struct pt_regs * regs);
--static int flat_core_dump(long signr, struct pt_regs * regs, struct file *file, u32 limit);
-+static int flat_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit);
+ 	  Say N if unsure
  
- static struct linux_binfmt flat_format = {
- 	.module		= THIS_MODULE,
++config CONTAINER_NS
++        bool "Namespace container subsystem"
++        depends on CONTAINERS
++        help
++          Provides a simple namespace container subsystem to
++          provide hierarchical naming of sets of namespaces,
++          for instance virtual servers and checkpoint/restart
++          jobs.
++
++config CONTAINER_CPUACCT
++	bool "Simple CPU accounting container subsystem"
++	depends on CONTAINERS
++	help
++	  Provides a simple Resource Controller for monitoring the
++	  total CPU consumed by the tasks in a container
++
+ config CPUSETS
+ 	bool "Cpuset support"
+ 	depends on SMP && CONTAINERS
+@@ -341,27 +357,11 @@ config SYSFS_DEPRECATED
+ 	  If you are using a distro that was released in 2006 or later,
+ 	  it should be safe to say N here.
+ 
+-config CONTAINER_NS
+-        bool "Namespace container subsystem"
+-        select CONTAINERS
+-        help
+-          Provides a simple namespace container subsystem to
+-          provide hierarchical naming of sets of namespaces,
+-          for instance virtual servers and checkpoint/restart
+-          jobs.
+-
+ config PROC_PID_CPUSET
+ 	bool "Include legacy /proc/<pid>/cpuset file"
+ 	depends on CPUSETS
+ 	default y
+ 
+-config CONTAINER_CPUACCT
+-	bool "Simple CPU accounting container subsystem"
+-	depends on CONTAINERS
+-	help
+-	  Provides a simple Resource Controller for monitoring the
+-	  total CPU consumed by the tasks in a container
+-
+ config RELAY
+ 	bool "Kernel->user space relay support (formerly relayfs)"
+ 	help
 _
 
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
+Patches currently in -mm which might be from clg@fr.ibm.com are
 
-update-coredump-path-in-kernel-to-not-check-coredump-rlim-if-core_pattern-is-a-pipe.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-binfmt_flat-fix.patch
+chipsfb-use-correct-pm-state.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
