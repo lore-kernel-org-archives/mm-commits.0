@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + s3c2410fb-fix-s3c2410-compilation.patch added to -mm tree
-Date: Thu, 26 Jul 2007 12:00:05 -0700
-Message-ID: <200707261900.l6QJ05DN015581@imap1.linux-foundation.org>
+Subject: + pm3fb-3-small-fixes.patch added to -mm tree
+Date: Thu, 26 Jul 2007 12:00:29 -0700
+Message-ID: <200707261900.l6QJ0TCX015628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35226 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41810 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764931AbXGZTA6 (ORCPT
+	by vger.kernel.org with ESMTP id S936256AbXGZTBI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 15:00:58 -0400
+	Thu, 26 Jul 2007 15:01:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org, adaplas@gmail.com, arnaud.patard@rtp-net.org
+Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     s3c2410fb: fix s3c2410 compilation
+     pm3fb: 3 small fixes
 has been added to the -mm tree.  Its filename is
-     s3c2410fb-fix-s3c2410-compilation.patch
+     pm3fb-3-small-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,275 +26,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s3c2410fb: fix s3c2410 compilation
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: pm3fb: 3 small fixes
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-The implicit mapping has been removed from the arch
-as this should be handled in the driver, this patch
-fixes the s3c2410_fb driver to ioremap() the necessary
-registers.
+This patch contains 3 small improvements:
+- it corrects scan line width calculation in pm3fb_imageblit()
+- it corrects mmio mapping for big endian machines
+- it enables panning acceleration constants
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Acked-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c2410fb.c |   88 +++++++++++++++++++++++-------------
- drivers/video/s3c2410fb.h |    3 +
- 2 files changed, 60 insertions(+), 31 deletions(-)
+ drivers/video/pm3fb.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/s3c2410fb.c~s3c2410fb-fix-s3c2410-compilation drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c2410fb-fix-s3c2410-compilation
-+++ a/drivers/video/s3c2410fb.c
-@@ -474,6 +474,7 @@ static void schedule_palette_update(stru
- {
- 	unsigned long flags;
- 	unsigned long irqen;
-+	void __iomem *regs = fbi->io;
+diff -puN drivers/video/pm3fb.c~pm3fb-3-small-fixes drivers/video/pm3fb.c
+--- a/drivers/video/pm3fb.c~pm3fb-3-small-fixes
++++ a/drivers/video/pm3fb.c
+@@ -558,7 +558,8 @@ static void pm3fb_imageblit(struct fb_in
  
- 	local_irq_save(flags);
  
-@@ -483,9 +484,9 @@ static void schedule_palette_update(stru
- 		fbi->palette_ready = 1;
+ 	while (height--) {
+-		int width = ((image->width + 7) >> 3) + info->pixmap.scan_align;
++		int width = ((image->width + 7) >> 3)
++				+ info->pixmap.scan_align - 1;
+ 		width >>= 2;
  
- 		/* enable IRQ */
--		irqen = readl(S3C2410_LCDINTMSK);
-+		irqen = readl(regs + S3C2410_LCDINTMSK);
- 		irqen &= ~S3C2410_LCDINT_FRSYNC;
--		writel(irqen, S3C2410_LCDINTMSK);
-+		writel(irqen, regs + S3C2410_LCDINTMSK);
+ 		while (width >= PM3_FIFO_SIZE) {
+@@ -1194,6 +1195,10 @@ static int __devinit pm3fb_probe(struct 
+ 	 */
+ 	pm3fb_fix.mmio_start = pci_resource_start(dev, 0);
+ 	pm3fb_fix.mmio_len = PM3_REGS_SIZE;
++#if defined(__BIG_ENDIAN)
++	pm3fb_fix.mmio_start += PM3_REGS_SIZE;
++	DPRINTK("Adjusting register base for big-endian.\n");
++#endif
+ 
+ 	/* Registers - request region and map it. */
+ 	if (!request_mem_region(pm3fb_fix.mmio_start, pm3fb_fix.mmio_len,
+@@ -1210,10 +1215,6 @@ static int __devinit pm3fb_probe(struct 
+ 		goto err_exit_neither;
  	}
  
- 	local_irq_restore(flags);
-@@ -680,6 +681,7 @@ static inline void modify_gpio(void __io
- static int s3c2410fb_init_registers(struct s3c2410fb_info *fbi)
- {
- 	unsigned long flags;
-+	void __iomem *regs = fbi->io;
- 
- 	/* Initialise LCD with values from haret */
- 
-@@ -694,25 +696,25 @@ static int s3c2410fb_init_registers(stru
- 
- 	local_irq_restore(flags);
- 
--	writel(fbi->regs.lcdcon1, S3C2410_LCDCON1);
--	writel(fbi->regs.lcdcon2, S3C2410_LCDCON2);
--	writel(fbi->regs.lcdcon3, S3C2410_LCDCON3);
--	writel(fbi->regs.lcdcon4, S3C2410_LCDCON4);
--	writel(fbi->regs.lcdcon5, S3C2410_LCDCON5);
-+	writel(fbi->regs.lcdcon1, regs + S3C2410_LCDCON1);
-+	writel(fbi->regs.lcdcon2, regs + S3C2410_LCDCON2);
-+	writel(fbi->regs.lcdcon3, regs + S3C2410_LCDCON3);
-+	writel(fbi->regs.lcdcon4, regs + S3C2410_LCDCON4);
-+	writel(fbi->regs.lcdcon5, regs + S3C2410_LCDCON5);
- 
-  	s3c2410fb_set_lcdaddr(fbi);
- 
- 	dprintk("LPCSEL    = 0x%08lx\n", mach_info->lpcsel);
--	writel(mach_info->lpcsel, S3C2410_LPCSEL);
-+	writel(mach_info->lpcsel, regs + S3C2410_LPCSEL);
- 
--	dprintk("replacing TPAL %08x\n", readl(S3C2410_TPAL));
-+	dprintk("replacing TPAL %08x\n", readl(regs + S3C2410_TPAL));
- 
- 	/* ensure temporary palette disabled */
--	writel(0x00, S3C2410_TPAL);
-+	writel(0x00, regs + S3C2410_TPAL);
- 
- 	/* Enable video by setting the ENVID bit to 1 */
- 	fbi->regs.lcdcon1 |= S3C2410_LCDCON1_ENVID;
--	writel(fbi->regs.lcdcon1, S3C2410_LCDCON1);
-+	writel(fbi->regs.lcdcon1, regs + S3C2410_LCDCON1);
- 	return 0;
- }
- 
-@@ -720,6 +722,7 @@ static void s3c2410fb_write_palette(stru
- {
- 	unsigned int i;
- 	unsigned long ent;
-+	void __iomem *regs = fbi->io;
- 
- 	fbi->palette_ready = 0;
- 
-@@ -727,14 +730,14 @@ static void s3c2410fb_write_palette(stru
- 		if ((ent = fbi->palette_buffer[i]) == PALETTE_BUFF_CLEAR)
- 			continue;
- 
--		writel(ent, S3C2410_TFTPAL(i));
-+		writel(ent, regs + S3C2410_TFTPAL(i));
- 
- 		/* it seems the only way to know exactly
- 		 * if the palette wrote ok, is to check
- 		 * to see if the value verifies ok
- 		 */
- 
--		if (readw(S3C2410_TFTPAL(i)) == ent)
-+		if (readw(regs + S3C2410_TFTPAL(i)) == ent)
- 			fbi->palette_buffer[i] = PALETTE_BUFF_CLEAR;
- 		else
- 			fbi->palette_ready = 1;   /* retry */
-@@ -744,14 +747,15 @@ static void s3c2410fb_write_palette(stru
- static irqreturn_t s3c2410fb_irq(int irq, void *dev_id)
- {
- 	struct s3c2410fb_info *fbi = dev_id;
--	unsigned long lcdirq = readl(S3C2410_LCDINTPND);
-+	void __iomem *regs = fbi->io;
-+	unsigned long lcdirq = readl(regs + S3C2410_LCDINTPND);
- 
- 	if (lcdirq & S3C2410_LCDINT_FRSYNC) {
- 		if (fbi->palette_ready)
- 			s3c2410fb_write_palette(fbi);
- 
--		writel(S3C2410_LCDINT_FRSYNC, S3C2410_LCDINTPND);
--		writel(S3C2410_LCDINT_FRSYNC, S3C2410_LCDSRCPND);
-+		writel(S3C2410_LCDINT_FRSYNC, regs + S3C2410_LCDINTPND);
-+		writel(S3C2410_LCDINT_FRSYNC, regs + S3C2410_LCDSRCPND);
- 	}
- 
- 	return IRQ_HANDLED;
-@@ -764,9 +768,11 @@ static int __init s3c2410fb_probe(struct
- 	struct s3c2410fb_info *info;
- 	struct fb_info	   *fbinfo;
- 	struct s3c2410fb_hw *mregs;
-+	struct resource *res;
- 	int ret;
- 	int irq;
- 	int i;
-+	int size;
- 	u32 lcdcon1;
- 
- 	mach_info = pdev->dev.platform_data;
-@@ -788,11 +794,32 @@ static int __init s3c2410fb_probe(struct
- 		return -ENOMEM;
- 	}
- 
--
- 	info = fbinfo->par;
- 	info->fb = fbinfo;
- 	info->dev = &pdev->dev;
- 
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res == NULL) {
-+		dev_err(&pdev->dev, "failed to get memory registersn");
-+		ret = -ENXIO;
-+		goto dealloc_fb;
-+	}
-+
-+	size = (res->end - res->start)+1;
-+	info->mem = request_mem_region(res->start, size, pdev->name);
-+	if (info->mem == NULL) {
-+		dev_err(&pdev->dev, "failed to get memory region\n");
-+		ret = -ENOENT;
-+		goto dealloc_fb;
-+	}
-+
-+	info->io = ioremap(res->start, size);
-+	if (info->io == NULL) {
-+		dev_err(&pdev->dev, "ioremap() of registers failed\n");
-+		ret = -ENXIO;
-+		goto release_mem;
-+	}
-+
- 	platform_set_drvdata(pdev, fbinfo);
- 
- 	dprintk("devinit\n");
-@@ -803,8 +830,8 @@ static int __init s3c2410fb_probe(struct
- 
- 	/* Stop the video and unset ENVID if set */
- 	info->regs.lcdcon1 &= ~S3C2410_LCDCON1_ENVID;
--	lcdcon1 = readl(S3C2410_LCDCON1);
--	writel(lcdcon1 & ~S3C2410_LCDCON1_ENVID, S3C2410_LCDCON1);
-+	lcdcon1 = readl(info->io + S3C2410_LCDCON1);
-+	writel(lcdcon1 & ~S3C2410_LCDCON1_ENVID, info->io + S3C2410_LCDCON1);
- 
- 	info->mach_info		    = pdev->dev.platform_data;
- 
-@@ -855,19 +882,11 @@ static int __init s3c2410fb_probe(struct
- 	for (i = 0; i < 256; i++)
- 		info->palette_buffer[i] = PALETTE_BUFF_CLEAR;
- 
--	if (!request_mem_region((unsigned long)S3C24XX_VA_LCD, SZ_1M, "s3c2410-lcd")) {
--		ret = -EBUSY;
--		goto dealloc_fb;
--	}
--
--
--	dprintk("got LCD region\n");
--
- 	ret = request_irq(irq, s3c2410fb_irq, IRQF_DISABLED, pdev->name, info);
- 	if (ret) {
- 		dev_err(&pdev->dev, "cannot get irq %d - err %d\n", irq, ret);
- 		ret = -EBUSY;
--		goto release_mem;
-+		goto release_regs;
- 	}
- 
- 	info->clk = clk_get(NULL, "lcd");
-@@ -889,6 +908,7 @@ static int __init s3c2410fb_probe(struct
- 		ret = -ENOMEM;
- 		goto release_clock;
- 	}
-+
- 	dprintk("got video memory\n");
- 
- 	ret = s3c2410fb_init_registers(info);
-@@ -916,8 +936,11 @@ release_clock:
- 	clk_put(info->clk);
- release_irq:
- 	free_irq(irq,info);
-+release_regs:
-+	iounmap(info->io);
- release_mem:
-- 	release_mem_region((unsigned long)S3C24XX_VA_LCD, S3C24XX_SZ_LCD);
-+	release_resource(info->mem);
-+	kfree(info->mem);
- dealloc_fb:
- 	framebuffer_release(fbinfo);
- 	return ret;
-@@ -935,7 +958,7 @@ static void s3c2410fb_stop_lcd(struct s3
- 	local_irq_save(flags);
- 
- 	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_ENVID;
--	writel(fbi->regs.lcdcon1, S3C2410_LCDCON1);
-+	writel(fbi->regs.lcdcon1, fbi->io + S3C2410_LCDCON1);
- 
- 	local_irq_restore(flags);
- }
-@@ -962,7 +985,10 @@ static int s3c2410fb_remove(struct platf
- 
- 	irq = platform_get_irq(pdev, 0);
- 	free_irq(irq,info);
--	release_mem_region((unsigned long)S3C24XX_VA_LCD, S3C24XX_SZ_LCD);
-+
-+	release_resource(info->mem);
-+	kfree(info->mem);
-+	iounmap(info->io);
- 	unregister_framebuffer(fbinfo);
- 
- 	return 0;
-diff -puN drivers/video/s3c2410fb.h~s3c2410fb-fix-s3c2410-compilation drivers/video/s3c2410fb.h
---- a/drivers/video/s3c2410fb.h~s3c2410fb-fix-s3c2410-compilation
-+++ a/drivers/video/s3c2410fb.h
-@@ -30,6 +30,9 @@ struct s3c2410fb_info {
- 	struct device		*dev;
- 	struct clk		*clk;
- 
-+	struct resource		*mem;
-+	void __iomem		*io;
-+
- 	struct s3c2410fb_mach_info *mach_info;
- 
- 	/* raw memory addresses */
+-#if defined(__BIG_ENDIAN)
+-	pm3fb_fix.mmio_start += PM3_REGS_SIZE;
+-	DPRINTK("Adjusting register base for big-endian.\n");
+-#endif
+ 	/* Linear frame buffer - request region and map it. */
+ 	pm3fb_fix.smem_start = pci_resource_start(dev, 1);
+ 	pm3fb_fix.smem_len = pm3fb_size_memory(par);
+@@ -1243,7 +1244,8 @@ static int __devinit pm3fb_probe(struct 
+ 	info->fix = pm3fb_fix;
+ 	info->pseudo_palette = par->palette;
+ 	info->flags = FBINFO_DEFAULT |
+-/*			FBINFO_HWACCEL_YPAN |*/
++			FBINFO_HWACCEL_XPAN |
++			FBINFO_HWACCEL_YPAN |
+ 			FBINFO_HWACCEL_COPYAREA |
+ 			FBINFO_HWACCEL_IMAGEBLIT |
+ 			FBINFO_HWACCEL_FILLRECT;
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-fixup-s3c24xx-build-after-arch-moves.patch
-git-mtd.patch
-git-watchdog.patch
-s3c2410fb-fix-s3c2410-compilation.patch
-sm501fb-update-suspend-and-resume-code.patch
-sm501fb-call-fb-suspend-function-during-suspend-and-resume.patch
-sm501fb-ensure-panel-interface-is-not-tristated-when-setup.patch
+git-hwmon.patch
+pm3fb-copyarea-and-partial-imageblit-suppor.patch
+skeletonfb-wrong-field-name-fix.patch
+pm3fb-header-file-reduction.patch
+pm3fb-imageblit-improved.patch
+pm3fb-3-small-fixes.patch
+pm3fb-improvements-and-cleanups.patch
+pm3fb-mtrr-support-and-noaccel-option.patch
+pm2fb-mtrr-support-and-noaccel-option.patch
+pm2fb-accelerated-imageblit.patch
+pm2fb-source-code-improvements.patch
+pm2fb-permedia-2v-initialization-fixes.patch
+pm2fb-accelerated-24-bit-fillrect.patch
+tdfxfb-coding-style-improvement.patch
+tridentfb-coding-style-improvement.patch
+tdfxfb-3-fixes.patch
+tdfxfb-palette-fixes.patch
