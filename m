@@ -1,57 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + tpm_tis-debug.patch added to -mm tree
-Date: Wed, 25 Jul 2007 20:38:58 -0700
-Message-ID: <200707260338.l6Q3cwRS012179@imap1.linux-foundation.org>
+Subject: - git-acpi-build-fix.patch removed from -mm tree
+Date: Wed, 25 Jul 2007 20:48:07 -0700
+Message-ID: <200707260348.l6Q3m7QN012524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37287 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60643 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756875AbXGZDjH (ORCPT
+	by vger.kernel.org with ESMTP id S1757032AbXGZDs5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 23:39:07 -0400
+	Wed, 25 Jul 2007 23:48:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu
+To: akpm@linux-foundation.org, johnstul@us.ibm.com, lenb@kernel.org, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm_tis debug
-has been added to the -mm tree.  Its filename is
-     tpm_tis-debug.patch
+     git-acpi build fix
+has been removed from the -mm tree.  Its filename was
+     git-acpi-build-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: tpm_tis debug
+Subject: git-acpi build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <Valdis.Kletnieks@vt.edu>
+ia64:
+
+drivers/acpi/processor_idle.c: In function `acpi_idle_enter_c2':
+drivers/acpi/processor_idle.c:941: error: implicit declaration of function `mark_tsc_unstable'
+
+ugly fix (please fix properly):
+
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm_tis.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/acpi/processor_idle.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/tpm/tpm_tis.c~tpm_tis-debug drivers/char/tpm/tpm_tis.c
---- a/drivers/char/tpm/tpm_tis.c~tpm_tis-debug
-+++ a/drivers/char/tpm/tpm_tis.c
-@@ -595,9 +595,11 @@ static int __devinit tpm_tis_pnp_init(st
- 				      const struct pnp_device_id *pnp_id)
- {
- 	resource_size_t start, len;
-+
- 	start = pnp_mem_start(pnp_dev, 0);
- 	len = pnp_mem_len(pnp_dev, 0);
--
-+	printk("%s: start=%llu, len=%llu\n",
-+		(unsigned long long)start, (unsigned long long)end);
- 	return tpm_tis_init(&pnp_dev->dev, start, len);
- }
+diff -puN drivers/acpi/processor_idle.c~git-acpi-build-fix drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~git-acpi-build-fix
++++ a/drivers/acpi/processor_idle.c
+@@ -936,7 +936,7 @@ static int acpi_idle_enter_c2(struct cpu
+ 	acpi_idle_do_entry(cx);
+ 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
  
+-#ifdef CONFIG_GENERIC_TIME
++#if defined(CONFIG_GENERIC_TIME) && defined(CONFIG_X86)
+ 	/* TSC halts in C2, so notify users */
+ 	mark_tsc_unstable("possible TSC halt in C2");
+ #endif
+@@ -1021,7 +1021,7 @@ static int acpi_idle_enter_c3(struct cpu
+ 		spin_unlock(&c3_lock);
+ 	}
+ 
+-#ifdef CONFIG_GENERIC_TIME
++#if defined(CONFIG_GENERIC_TIME) && defined(CONFIG_X86)
+ 	/* TSC halts in C3, so notify users */
+ 	mark_tsc_unstable("TSC halts in C3");
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
