@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-remove-unnecessary-variable-initializations.patch added to -mm tree
-Date: Wed, 25 Jul 2007 23:13:06 -0700
-Message-ID: <200707260613.l6Q6D6XF017505@imap1.linux-foundation.org>
+Subject: + ecryptfs-comments-for-some-structs.patch added to -mm tree
+Date: Wed, 25 Jul 2007 23:13:02 -0700
+Message-ID: <200707260613.l6Q6D27n017499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52809 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754645AbXGZGOB (ORCPT
+	by vger.kernel.org with ESMTP id S1751313AbXGZGTA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 02:14:01 -0400
+	Thu, 26 Jul 2007 02:19:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mhalcrow@us.ibm.com
 
 
 The patch titled
-     eCryptfs: remove unnecessary variable initializations
+     eCryptfs: comments for some structs
 has been added to the -mm tree.  Its filename is
-     ecryptfs-remove-unnecessary-variable-initializations.patch
+     ecryptfs-comments-for-some-structs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: remove unnecessary variable initializations
+Subject: eCryptfs: comments for some structs
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
 Andrew Morton wrote:
-> >       struct mutex *tfm_mutex = NULL;
+> > +struct ecryptfs_global_auth_tok {
+> > +#define ECRYPTFS_AUTH_TOK_INVALID 0x00000001
+> > +     u32 flags;
+> > +     struct list_head mount_crypt_stat_list;
+> > +     struct key *global_auth_tok_key;
+> > +     struct ecryptfs_auth_tok *global_auth_tok;
+> > +     unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1];
+> > +};
+> > +
+> > +struct ecryptfs_key_tfm {
+> > +     struct crypto_blkcipher *key_tfm;
+> > +     size_t key_size;
+> > +     struct mutex key_tfm_mutex;
+> > +     struct list_head key_tfm_list;
+> > +     unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
+> > +};
 >
-> This initialisation looks like it's here to kill bogus gcc warning
-> (if it is, it should have been commented).  Please investigate
-> uninitialized_var() and __maybe_unused sometime.
+> Please consider commenting your struct fields carefully: it's a
+> great way to help other to understand your code.
 
-Remove some unnecessary variable initializations. There may be a few
-more such intializations remaining in the code base; a future patch
-will take care of those.
+Add some comments to the ecryptfs_global_auth_tok and ecryptfs_key_tfm
+structs to make their functions more easily ascertained.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/keystore.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ecryptfs/ecryptfs_kernel.h |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-remove-unnecessary-variable-initializations fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-remove-unnecessary-variable-initializations
-+++ a/fs/ecryptfs/keystore.c
-@@ -1009,7 +1009,7 @@ decrypt_passphrase_encrypted_session_key
- {
- 	struct scatterlist dst_sg;
- 	struct scatterlist src_sg;
--	struct mutex *tfm_mutex = NULL;
-+	struct mutex *tfm_mutex;
- 	struct blkcipher_desc desc = {
- 		.flags = CRYPTO_TFM_REQ_MAY_SLEEP
- 	};
-@@ -1123,8 +1123,8 @@ int ecryptfs_parse_packet_set(struct ecr
- 	size_t found_auth_tok;
- 	size_t next_packet_is_auth_tok_packet;
- 	struct list_head auth_tok_list;
--	struct ecryptfs_auth_tok *matching_auth_tok = NULL;
--	struct ecryptfs_auth_tok *candidate_auth_tok = NULL;
-+	struct ecryptfs_auth_tok *matching_auth_tok;
-+	struct ecryptfs_auth_tok *candidate_auth_tok;
- 	char *candidate_auth_tok_sig;
- 	size_t packet_size;
- 	struct ecryptfs_auth_tok *new_auth_tok;
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-comments-for-some-structs fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-comments-for-some-structs
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -273,20 +273,36 @@ struct ecryptfs_dentry_info {
+ 	struct ecryptfs_crypt_stat *crypt_stat;
+ };
+ 
++/**
++ * ecryptfs_global_auth_tok structs refer to authentication token keys
++ * in the user keyring that apply to newly created files. A list of
++ * these objects hangs off of the mount_crypt_stat struct for any
++ * given eCryptfs mount. This struct maintains a reference to both the
++ * key contents and the key itself so that the key can be put on
++ * unmount.
++ */
+ struct ecryptfs_global_auth_tok {
+ #define ECRYPTFS_AUTH_TOK_INVALID 0x00000001
+ 	u32 flags;
+-	struct list_head mount_crypt_stat_list;
+-	struct key *global_auth_tok_key;
+-	struct ecryptfs_auth_tok *global_auth_tok;
+-	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1];
++	struct list_head mount_crypt_stat_list; /* Default auth_tok list for
++						 * the mount_crypt_stat */
++	struct key *global_auth_tok_key; /* The key from the user's keyring for
++					  * the sig */
++	struct ecryptfs_auth_tok *global_auth_tok; /* The key contents */
++	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1]; /* The key identifier */
+ };
+ 
++/**
++ * Typically, eCryptfs will use the same ciphers repeatedly throughout
++ * the course of its operations. In order to avoid unnecessarily
++ * destroying and initializing the same cipher repeatedly, eCryptfs
++ * keeps a list of crypto API contexts around to use when needed.
++ */
+ struct ecryptfs_key_tfm {
+ 	struct crypto_blkcipher *key_tfm;
+ 	size_t key_size;
+ 	struct mutex key_tfm_mutex;
+-	struct list_head key_tfm_list;
++	struct list_head key_tfm_list; /* The module's tfm list */
+ 	unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
+ };
+ 
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
