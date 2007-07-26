@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-remove-the-unused-mempages-parameter.patch added to -mm tree
-Date: Thu, 26 Jul 2007 13:26:03 -0700
-Message-ID: <200707262026.l6QKQ337019266@imap1.linux-foundation.org>
+Subject: + cpqphp_ctrlc-remove-dead-code.patch added to -mm tree
+Date: Thu, 26 Jul 2007 13:30:23 -0700
+Message-ID: <200707262030.l6QKUNvK019456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57422 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35960 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763420AbXGZU0L (ORCPT
+	by vger.kernel.org with ESMTP id S933310AbXGZUai (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 16:26:11 -0400
+	Thu, 26 Jul 2007 16:30:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: crquan@gmail.com
+Cc: bunk@stusta.de, greg@kroah.com, kristen.c.accardi@intel.com
 
 
 The patch titled
-     fs: remove the unused mempages parameter
+     cpqphp_ctrl.c: remove dead code
 has been added to the -mm tree.  Its filename is
-     fs-remove-the-unused-mempages-parameter.patch
+     cpqphp_ctrlc-remove-dead-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,101 +26,101 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs: remove the unused mempages parameter
-From: Denis Cheng <crquan@gmail.com>
+Subject: cpqphp_ctrl.c: remove dead code
+From: Adrian Bunk <bunk@stusta.de>
 
-Since the mempages parameter is actually not used, they should be removed.
+If !mem_node we did already return -ENOMEM above in the function.
 
-Now there is only files_init use the mempages parameter,
+Spotted by the Coverity checker.
 
- 	files_init(mempages);
-
-but I don't think the adaptation to mempages in files_init is really
-useful; and if files_init also changed to the prototype void (*func)(void),
-the wrapper vfs_caches_init would also not need the mempages parameter.
-
-Signed-off-by: Denis Cheng <crquan@gmail.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c        |    8 ++++----
- fs/inode.c         |    2 +-
- fs/namespace.c     |    2 +-
- include/linux/fs.h |    4 ++--
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/pci/hotplug/cpqphp_ctrl.c |   28 +++++++---------------------
+ 1 file changed, 7 insertions(+), 21 deletions(-)
 
-diff -puN fs/dcache.c~fs-remove-the-unused-mempages-parameter fs/dcache.c
---- a/fs/dcache.c~fs-remove-the-unused-mempages-parameter
-+++ a/fs/dcache.c
-@@ -2108,7 +2108,7 @@ static void __init dcache_init_early(voi
- 		INIT_HLIST_HEAD(&dentry_hashtable[loop]);
- }
+diff -puN drivers/pci/hotplug/cpqphp_ctrl.c~cpqphp_ctrlc-remove-dead-code drivers/pci/hotplug/cpqphp_ctrl.c
+--- a/drivers/pci/hotplug/cpqphp_ctrl.c~cpqphp_ctrlc-remove-dead-code
++++ a/drivers/pci/hotplug/cpqphp_ctrl.c
+@@ -2558,29 +2558,15 @@ static int configure_new_function(struct
+ 			hold_IO_node = NULL;
+ 		}
  
--static void __init dcache_init(unsigned long mempages)
-+static void __init dcache_init(void)
- {
- 	int loop;
+-		/* If we have memory resources copy them and fill in the
+-		 * bridge's memory range registers.  Otherwise, fill in the
+-		 * range registers with values that disable them. */
+-		if (mem_node) {
+-			memcpy(hold_mem_node, mem_node, sizeof(struct pci_resource));
+-			mem_node->next = NULL;
+-
+-			/* set Mem base and Limit registers */
+-			temp_word = mem_node->base >> 16;
+-			rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_BASE, temp_word);
++		memcpy(hold_mem_node, mem_node, sizeof(struct pci_resource));
++		mem_node->next = NULL;
  
-@@ -2170,10 +2170,10 @@ void __init vfs_caches_init(unsigned lon
- 	filp_cachep = kmem_cache_create("filp", sizeof(struct file), 0,
- 			SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL);
+-			temp_word = (mem_node->base + mem_node->length - 1) >> 16;
+-			rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_LIMIT, temp_word);
+-		} else {
+-			temp_word = 0xFFFF;
+-			rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_BASE, temp_word);
+-
+-			temp_word = 0x0000;
+-			rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_LIMIT, temp_word);
++		/* set Mem base and Limit registers */
++		temp_word = mem_node->base >> 16;
++		rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_BASE, temp_word);
  
--	dcache_init(mempages);
--	inode_init(mempages);
-+	dcache_init();
-+	inode_init();
- 	files_init(mempages);
--	mnt_init(mempages);
-+	mnt_init();
- 	bdev_cache_init();
- 	chrdev_init();
- }
-diff -puN fs/inode.c~fs-remove-the-unused-mempages-parameter fs/inode.c
---- a/fs/inode.c~fs-remove-the-unused-mempages-parameter
-+++ a/fs/inode.c
-@@ -1378,7 +1378,7 @@ void __init inode_init_early(void)
- 		INIT_HLIST_HEAD(&inode_hashtable[loop]);
- }
+-			kfree(hold_mem_node);
+-			hold_mem_node = NULL;
+-		}
++		temp_word = (mem_node->base + mem_node->length - 1) >> 16;
++		rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_LIMIT, temp_word);
  
--void __init inode_init(unsigned long mempages)
-+void __init inode_init(void)
- {
- 	int loop;
- 
-diff -puN fs/namespace.c~fs-remove-the-unused-mempages-parameter fs/namespace.c
---- a/fs/namespace.c~fs-remove-the-unused-mempages-parameter
-+++ a/fs/namespace.c
-@@ -1811,7 +1811,7 @@ static void __init init_mount_tree(void)
- 	set_fs_root(current->fs, ns->root, ns->root->mnt_root);
- }
- 
--void __init mnt_init(unsigned long mempages)
-+void __init mnt_init(void)
- {
- 	struct list_head *d;
- 	unsigned int nr_hash;
-diff -puN include/linux/fs.h~fs-remove-the-unused-mempages-parameter include/linux/fs.h
---- a/include/linux/fs.h~fs-remove-the-unused-mempages-parameter
-+++ a/include/linux/fs.h
-@@ -300,9 +300,9 @@ struct kstatfs;
- struct vm_area_struct;
- struct vfsmount;
- 
--extern void __init inode_init(unsigned long);
-+extern void __init inode_init(void);
- extern void __init inode_init_early(void);
--extern void __init mnt_init(unsigned long);
-+extern void __init mnt_init(void);
- extern void __init files_init(unsigned long);
- 
- struct buffer_head;
+ 		memcpy(hold_p_mem_node, p_mem_node, sizeof(struct pci_resource));
+ 		p_mem_node->next = NULL;
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-git-gfs2-nmw.patch
-drivers-net-cxgb3-remove-several-unneeded-zero-initialization.patch
-nbd-use-list_for_each_entry_safe-to-make-it-more-consolidated-and-readable.patch
-nbd-change-a-parameters-type-to-remove-a-memcpy-call.patch
-fs-use-kmem_cache_zalloc-instead.patch
-fs-remove-the-unused-mempages-parameter.patch
+origin.patch
+x86_powernow_k8_acpi-must-depend-on-acpi.patch
+xenbus_xsc-fix-a-use-after-free.patch
+git-acpi.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+kernel-auditscc-fix-an-off-by-one.patch
+git-drm.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+fore200e_param_bs_queue-must-be-__devinit.patch
+git-ocfs2.patch
+cpqphp_ctrlc-remove-dead-code.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+git-unionfs.patch
+dvb-usb-af9005-fec-error-check-fixes.patch
+git-v9fs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+serial-sh-sci-fix-build-failure-from-kgdb-fallout.patch
+net-bluetooth-rfcomm-ttyc-use-after-free.patch
+usb_serial_suspend-buggy-code.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+maps2-add-proc-kpagemap-interface.patch
+fs-reiserfs-cleanups.patch
+anon_inodes-shouldnt-be-user-visible.patch
+remove-unsafe-from-module-struct.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
