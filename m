@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-dynreloc-miscount-link-error-on-powerpc.patch added to -mm tree
-Date: Wed, 25 Jul 2007 23:01:43 -0700
-Message-ID: <200707260601.l6Q61hYd017023@imap1.linux-foundation.org>
+Subject: + ecryptfs-collapse-flag-set-into-one-statement.patch added to -mm tree
+Date: Wed, 25 Jul 2007 23:13:00 -0700
+Message-ID: <200707260613.l6Q6D0WP017485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42190 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53510 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754163AbXGZGCe (ORCPT
+	by vger.kernel.org with ESMTP id S1754896AbXGZGNo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 02:02:34 -0400
+	Thu, 26 Jul 2007 02:13:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, benh@kernel.crashing.org, ntl@pobox.com, paulus@samba.org
+Cc: mhalcrow@us.ibm.com
 
 
 The patch titled
-     fix 'dynreloc miscount' link error on Powerpc
+     eCryptfs: collapse flag set into one statement
 has been added to the -mm tree.  Its filename is
-     fix-dynreloc-miscount-link-error-on-powerpc.patch
+     ecryptfs-collapse-flag-set-into-one-statement.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix 'dynreloc miscount' link error on Powerpc
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: eCryptfs: collapse flag set into one statement
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Nathan Lynch <ntl@pobox.com> reported:
-2.6.23-rc1 breaks the build for 64-bit powerpc for me (using
-maple_defconfig):
+Andrew Morton wrote:
+> > +     crypt_stat->flags |= ECRYPTFS_ENCRYPTED;
+> > +     crypt_stat->flags |= ECRYPTFS_KEY_VALID;
+>
+> Maybe the compiler can optimise those two statements, but we'd
+> normally provide it with some manual help.
 
-  LD      vmlinux.o
-powerpc64-unknown-linux-gnu-ld: dynreloc miscount for
-kernel/built-in.o, section .opd
-powerpc64-unknown-linux-gnu-ld: can not edit opd Bad value
-make: *** [vmlinux.o] Error 1
+This patch provides the compiler with some manual help for
+optimizing the setting of some flags.
 
-However, I see a possibly related binutils patch:
-http://article.gmane.org/gmane.comp.gnu.binutils/33650
-
-It was tracked down to be caused by the weak prototype
-declaration in mm.h:
-__attribute__((weak)) const char *arch_vma_name(struct vm_area_struct *vma);
-
-But there is no need to make the declaration weak - only the definition
-needs to be marked weak.  So drop the weak declaration.  And in the process
-drop the duplicate definition in page.h for powerpc.
-
-Note: the arch_vma_name fix for x86_64 needs to be applied first to avoid
-breaking x86_64
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Nathan Lynch <ntl@pobox.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/page.h |    1 -
- include/linux/mm.h         |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ fs/ecryptfs/crypto.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/asm-powerpc/page.h~fix-dynreloc-miscount-link-error-on-powerpc include/asm-powerpc/page.h
---- a/include/asm-powerpc/page.h~fix-dynreloc-miscount-link-error-on-powerpc
-+++ a/include/asm-powerpc/page.h
-@@ -190,7 +190,6 @@ extern void copy_user_page(void *to, voi
- extern int page_is_ram(unsigned long pfn);
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-collapse-flag-set-into-one-statement fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-collapse-flag-set-into-one-statement
++++ a/fs/ecryptfs/crypto.c
+@@ -1029,8 +1029,7 @@ int ecryptfs_new_file_context(struct den
+ 	int rc = 0;
  
- struct vm_area_struct;
--extern const char *arch_vma_name(struct vm_area_struct *vma);
- 
- #include <asm-generic/memory_model.h>
- #endif /* __ASSEMBLY__ */
-diff -puN include/linux/mm.h~fix-dynreloc-miscount-link-error-on-powerpc include/linux/mm.h
---- a/include/linux/mm.h~fix-dynreloc-miscount-link-error-on-powerpc
-+++ a/include/linux/mm.h
-@@ -1246,7 +1246,7 @@ void drop_slab(void);
- extern int randomize_va_space;
- #endif
- 
--__attribute__((weak)) const char *arch_vma_name(struct vm_area_struct *vma);
-+const char * arch_vma_name(struct vm_area_struct *vma);
- 
- #endif /* __KERNEL__ */
- #endif /* _LINUX_MM_H */
+ 	ecryptfs_set_default_crypt_stat_vals(crypt_stat, mount_crypt_stat);
+-	crypt_stat->flags |= ECRYPTFS_ENCRYPTED;
+-	crypt_stat->flags |= ECRYPTFS_KEY_VALID;
++	crypt_stat->flags |= (ECRYPTFS_ENCRYPTED | ECRYPTFS_KEY_VALID);
+ 	ecryptfs_copy_mount_wide_flags_to_inode_flags(crypt_stat,
+ 						      mount_crypt_stat);
+ 	rc = ecryptfs_copy_mount_wide_sigs_to_inode_sigs(crypt_stat,
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
-origin.patch
-x86_64-fix-arch_vma_name.patch
-fix-dynreloc-miscount-link-error-on-powerpc.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-pass-g-to-assembler-under-config_debug_info.patch
-mkmakefile-include-arch-on-o=-builds.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-whitelist-references-from-__dbe_table-to-init.patch
-broken-lilo-check-on-make-install.patch
-kconfig-remove-top-level-menu-code-maturity-level-options.patch
+git-unionfs.patch
+fs-remove-some-aop_truncated_page.patch
+fs-remove-some-aop_truncated_page-fix.patch
+ecryptfs-add-key-list-structure-search-keyring.patch
+ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch
+ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions.patch
+ecryptfs-fix-tag-1-parsing-code.patch
+ecryptfs-fix-tag-3-parsing-code.patch
+ecryptfs-fix-tag-11-parsing-code.patch
+ecryptfs-fix-tag-11-writing-code.patch
+ecryptfs-update-comment-and-debug-statement.patch
+ecryptfs-printk-warning-fixes.patch
+ecryptfs-remove-unnecessary-bug_on.patch
+ecryptfs-collapse-flag-set-into-one-statement.patch
+ecryptfs-grammatical-fix-destruct-to-destroy.patch
+ecryptfs-comments-for-some-structs.patch
+ecryptfs-kerneldoc-fixes-for-cryptoc-and-keystorec.patch
+ecryptfs-remove-unnecessary-variable-initializations.patch
+ecryptfs-make-needlessly-global-symbols-static.patch
