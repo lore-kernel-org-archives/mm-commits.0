@@ -1,68 +1,316 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-build-fix.patch removed from -mm tree
-Date: Wed, 25 Jul 2007 20:48:07 -0700
-Message-ID: <200707260348.l6Q3m7QN012524@imap1.linux-foundation.org>
+Subject: - git-block-fixup-2.patch removed from -mm tree
+Date: Wed, 25 Jul 2007 21:02:41 -0700
+Message-ID: <200707260402.l6Q42gTs012927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60643 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33516 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757032AbXGZDs5 (ORCPT
+	by vger.kernel.org with ESMTP id S1750932AbXGZECy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2007 23:48:57 -0400
+	Thu, 26 Jul 2007 00:02:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, johnstul@us.ibm.com, lenb@kernel.org, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi build fix
+     git-block-fixup-2
 has been removed from the -mm tree.  Its filename was
-     git-acpi-build-fix.patch
+     git-block-fixup-2.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-acpi build fix
+Subject: git-block-fixup-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ia64:
-
-drivers/acpi/processor_idle.c: In function `acpi_idle_enter_c2':
-drivers/acpi/processor_idle.c:941: error: implicit declaration of function `mark_tsc_unstable'
-
-ugly fix (please fix properly):
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/md/raid0.c              |   23 --------------------
+ drivers/md/raid1.c              |   33 ------------------------------
+ drivers/md/raid10.c             |   33 ------------------------------
+ drivers/md/raid5.c              |   33 ------------------------------
+ drivers/message/i2o/i2o_block.c |   26 -----------------------
+ drivers/scsi/scsi_lib.c         |   19 -----------------
+ drivers/scsi/sd.c               |   18 ----------------
+ include/scsi/sd.h               |    5 ----
+ 8 files changed, 190 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~git-acpi-build-fix drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~git-acpi-build-fix
-+++ a/drivers/acpi/processor_idle.c
-@@ -936,7 +936,7 @@ static int acpi_idle_enter_c2(struct cpu
- 	acpi_idle_do_entry(cx);
- 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 
--#ifdef CONFIG_GENERIC_TIME
-+#if defined(CONFIG_GENERIC_TIME) && defined(CONFIG_X86)
- 	/* TSC halts in C2, so notify users */
- 	mark_tsc_unstable("possible TSC halt in C2");
- #endif
-@@ -1021,7 +1021,7 @@ static int acpi_idle_enter_c3(struct cpu
- 		spin_unlock(&c3_lock);
+diff -puN drivers/md/raid0.c~git-block-fixup-2 drivers/md/raid0.c
+--- a/drivers/md/raid0.c~git-block-fixup-2
++++ a/drivers/md/raid0.c
+@@ -40,29 +40,6 @@ static void raid0_unplug(struct request_
  	}
+ }
  
--#ifdef CONFIG_GENERIC_TIME
-+#if defined(CONFIG_GENERIC_TIME) && defined(CONFIG_X86)
- 	/* TSC halts in C3, so notify users */
- 	mark_tsc_unstable("TSC halts in C3");
- #endif
+-<<<<<<< HEAD/drivers/md/raid0.c
+-static int raid0_issue_flush(struct request_queue *q, struct gendisk *disk,
+-			     sector_t *error_sector)
+-{
+-	mddev_t *mddev = q->queuedata;
+-	raid0_conf_t *conf = mddev_to_conf(mddev);
+-	mdk_rdev_t **devlist = conf->strip_zone[0].dev;
+-	int i, ret = 0;
+-
+-	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
+-		struct block_device *bdev = devlist[i]->bdev;
+-		struct request_queue *r_queue = bdev_get_queue(bdev);
+-
+-		if (!r_queue->issue_flush_fn)
+-			ret = -EOPNOTSUPP;
+-		else
+-			ret = r_queue->issue_flush_fn(r_queue, bdev->bd_disk, error_sector);
+-	}
+-	return ret;
+-}
+-
+-=======
+->>>>>>> /drivers/md/raid0.c
+ static int raid0_congested(void *data, int bits)
+ {
+ 	mddev_t *mddev = data;
+diff -puN drivers/md/raid1.c~git-block-fixup-2 drivers/md/raid1.c
+--- a/drivers/md/raid1.c~git-block-fixup-2
++++ a/drivers/md/raid1.c
+@@ -575,39 +575,6 @@ static void raid1_unplug(struct request_
+ 	md_wakeup_thread(mddev->thread);
+ }
+ 
+-<<<<<<< HEAD/drivers/md/raid1.c
+-static int raid1_issue_flush(struct request_queue *q, struct gendisk *disk,
+-			     sector_t *error_sector)
+-{
+-	mddev_t *mddev = q->queuedata;
+-	conf_t *conf = mddev_to_conf(mddev);
+-	int i, ret = 0;
+-
+-	rcu_read_lock();
+-	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
+-		mdk_rdev_t *rdev = rcu_dereference(conf->mirrors[i].rdev);
+-		if (rdev && !test_bit(Faulty, &rdev->flags)) {
+-			struct block_device *bdev = rdev->bdev;
+-			struct request_queue *r_queue = bdev_get_queue(bdev);
+-
+-			if (!r_queue->issue_flush_fn)
+-				ret = -EOPNOTSUPP;
+-			else {
+-				atomic_inc(&rdev->nr_pending);
+-				rcu_read_unlock();
+-				ret = r_queue->issue_flush_fn(r_queue, bdev->bd_disk,
+-							      error_sector);
+-				rdev_dec_pending(rdev, mddev);
+-				rcu_read_lock();
+-			}
+-		}
+-	}
+-	rcu_read_unlock();
+-	return ret;
+-}
+-
+-=======
+->>>>>>> /drivers/md/raid1.c
+ static int raid1_congested(void *data, int bits)
+ {
+ 	mddev_t *mddev = data;
+diff -puN drivers/md/raid10.c~git-block-fixup-2 drivers/md/raid10.c
+--- a/drivers/md/raid10.c~git-block-fixup-2
++++ a/drivers/md/raid10.c
+@@ -618,39 +618,6 @@ static void raid10_unplug(struct request
+ 	md_wakeup_thread(mddev->thread);
+ }
+ 
+-<<<<<<< HEAD/drivers/md/raid10.c
+-static int raid10_issue_flush(struct request_queue *q, struct gendisk *disk,
+-			     sector_t *error_sector)
+-{
+-	mddev_t *mddev = q->queuedata;
+-	conf_t *conf = mddev_to_conf(mddev);
+-	int i, ret = 0;
+-
+-	rcu_read_lock();
+-	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
+-		mdk_rdev_t *rdev = rcu_dereference(conf->mirrors[i].rdev);
+-		if (rdev && !test_bit(Faulty, &rdev->flags)) {
+-			struct block_device *bdev = rdev->bdev;
+-			struct request_queue *r_queue = bdev_get_queue(bdev);
+-
+-			if (!r_queue->issue_flush_fn)
+-				ret = -EOPNOTSUPP;
+-			else {
+-				atomic_inc(&rdev->nr_pending);
+-				rcu_read_unlock();
+-				ret = r_queue->issue_flush_fn(r_queue, bdev->bd_disk,
+-							      error_sector);
+-				rdev_dec_pending(rdev, mddev);
+-				rcu_read_lock();
+-			}
+-		}
+-	}
+-	rcu_read_unlock();
+-	return ret;
+-}
+-
+-=======
+->>>>>>> /drivers/md/raid10.c
+ static int raid10_congested(void *data, int bits)
+ {
+ 	mddev_t *mddev = data;
+diff -puN drivers/md/raid5.c~git-block-fixup-2 drivers/md/raid5.c
+--- a/drivers/md/raid5.c~git-block-fixup-2
++++ a/drivers/md/raid5.c
+@@ -3768,39 +3768,6 @@ static void raid5_unplug_device(struct r
+ 	unplug_slaves(mddev);
+ }
+ 
+-<<<<<<< HEAD/drivers/md/raid5.c
+-static int raid5_issue_flush(struct request_queue *q, struct gendisk *disk,
+-			     sector_t *error_sector)
+-{
+-	mddev_t *mddev = q->queuedata;
+-	raid5_conf_t *conf = mddev_to_conf(mddev);
+-	int i, ret = 0;
+-
+-	rcu_read_lock();
+-	for (i=0; i<mddev->raid_disks && ret == 0; i++) {
+-		mdk_rdev_t *rdev = rcu_dereference(conf->disks[i].rdev);
+-		if (rdev && !test_bit(Faulty, &rdev->flags)) {
+-			struct block_device *bdev = rdev->bdev;
+-			struct request_queue *r_queue = bdev_get_queue(bdev);
+-
+-			if (!r_queue->issue_flush_fn)
+-				ret = -EOPNOTSUPP;
+-			else {
+-				atomic_inc(&rdev->nr_pending);
+-				rcu_read_unlock();
+-				ret = r_queue->issue_flush_fn(r_queue, bdev->bd_disk,
+-							      error_sector);
+-				rdev_dec_pending(rdev, mddev);
+-				rcu_read_lock();
+-			}
+-		}
+-	}
+-	rcu_read_unlock();
+-	return ret;
+-}
+-
+-=======
+->>>>>>> /drivers/md/raid5.c
+ static int raid5_congested(void *data, int bits)
+ {
+ 	mddev_t *mddev = data;
+diff -puN drivers/message/i2o/i2o_block.c~git-block-fixup-2 drivers/message/i2o/i2o_block.c
+--- a/drivers/message/i2o/i2o_block.c~git-block-fixup-2
++++ a/drivers/message/i2o/i2o_block.c
+@@ -149,32 +149,6 @@ static int i2o_block_device_flush(struct
+ };
+ 
+ /**
+-<<<<<<< HEAD/drivers/message/i2o/i2o_block.c
+- *	i2o_block_issue_flush - device-flush interface for block-layer
+- *	@queue: the request queue of the device which should be flushed
+- *	@disk: gendisk
+- *	@error_sector: error offset
+- *
+- *	Helper function to provide flush functionality to block-layer.
+- *
+- *	Returns 0 on success or negative error code on failure.
+- */
+-
+-static int i2o_block_issue_flush(struct request_queue * queue, struct gendisk *disk,
+-				 sector_t * error_sector)
+-{
+-	struct i2o_block_device *i2o_blk_dev = queue->queuedata;
+-	int rc = -ENODEV;
+-
+-	if (likely(i2o_blk_dev))
+-		rc = i2o_block_device_flush(i2o_blk_dev->i2o_dev);
+-
+-	return rc;
+-}
+-
+-/**
+-=======
+->>>>>>> /drivers/message/i2o/i2o_block.c
+  *	i2o_block_device_mount - Mount (load) the media of device dev
+  *	@dev: I2O device which should receive the mount request
+  *	@media_id: Media Identifier
+diff -puN drivers/scsi/scsi_lib.c~git-block-fixup-2 drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~git-block-fixup-2
++++ a/drivers/scsi/scsi_lib.c
+@@ -1143,25 +1143,6 @@ static int scsi_init_io(struct scsi_cmnd
+ 	return BLKPREP_KILL;
+ }
+ 
+-<<<<<<< HEAD/drivers/scsi/scsi_lib.c
+-static int scsi_issue_flush_fn(struct request_queue *q, struct gendisk *disk,
+-			       sector_t *error_sector)
+-{
+-	struct scsi_device *sdev = q->queuedata;
+-	struct scsi_driver *drv;
+-
+-	if (sdev->sdev_state != SDEV_RUNNING)
+-		return -ENXIO;
+-
+-	drv = *(struct scsi_driver **) disk->private_data;
+-	if (drv->issue_flush)
+-		return drv->issue_flush(&sdev->sdev_gendev, error_sector);
+-
+-	return -EOPNOTSUPP;
+-}
+-
+-=======
+->>>>>>> /drivers/scsi/scsi_lib.c
+ static struct scsi_cmnd *scsi_get_cmd_from_req(struct scsi_device *sdev,
+ 		struct request *req)
+ {
+diff -puN drivers/scsi/sd.c~git-block-fixup-2 drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~git-block-fixup-2
++++ a/drivers/scsi/sd.c
+@@ -799,25 +799,7 @@ static int sd_sync_cache(struct scsi_dis
+ 	return 0;
+ }
+ 
+-<<<<<<< HEAD/drivers/scsi/sd.c
+-static int sd_issue_flush(struct device *dev, sector_t *error_sector)
+-{
+-	int ret = 0;
+-	struct scsi_disk *sdkp = scsi_disk_get_from_dev(dev);
+-
+-	if (!sdkp)
+-               return -ENODEV;
+-
+-	if (sdkp->WCE)
+-		ret = sd_sync_cache(sdkp);
+-	scsi_disk_put(sdkp);
+-	return ret;
+-}
+-
+ static void sd_prepare_flush(struct request_queue *q, struct request *rq)
+-=======
+-static void sd_prepare_flush(request_queue_t *q, struct request *rq)
+->>>>>>> /drivers/scsi/sd.c
+ {
+ 	memset(rq->cmd, 0, sizeof(rq->cmd));
+ 	rq->cmd_type = REQ_TYPE_BLOCK_PC;
+diff -puN include/scsi/sd.h~git-block-fixup-2 include/scsi/sd.h
+--- a/include/scsi/sd.h~git-block-fixup-2
++++ a/include/scsi/sd.h
+@@ -56,12 +56,7 @@ static int sd_suspend(struct device *dev
+ static int sd_resume(struct device *dev);
+ static void sd_rescan(struct device *);
+ static int  sd_init_command(struct scsi_cmnd *);
+-<<<<<<< HEAD/include/scsi/sd.h
+-static int  sd_issue_flush(struct device *, sector_t *);
+ static void sd_prepare_flush(struct request_queue *, struct request *);
+-=======
+-static void sd_prepare_flush(request_queue_t *, struct request *);
+->>>>>>> /include/scsi/sd.h
+ static void sd_read_capacity(struct scsi_disk *sdkp, unsigned char *buffer);
+ static void scsi_disk_release(struct class_device *cdev);
+ static void sd_print_sense_hdr(struct scsi_disk *, struct scsi_sense_hdr *);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,12 +326,10 @@ kdebugh-forward-declare-struct-struct-notifier_block.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
-git-acpi-build-fix.patch
 acpi-add-reboot-mechanism-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 revert-gregkh-driver-block-device.patch
 dma-arch-fix.patch
-ia64-rename-partial_page.patch
 adbhid-produce-all-capslock-key-events-fix.patch
 m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
 iforce-warning-fix.patch
@@ -108,6 +354,9 @@ pci-remove-irritating-try-pci=assign-busses-warning.patch
 aacraid-rename-check_reset.patch
 git-scsi-rc-fixes.patch
 git-scsi-target-fixup.patch
+git-block-fixup-2.patch
+git-block-fix-headers_check.patch
+git-block-whoops.patch
 git-unionfs.patch
 merge-the-sonics-silicon-backplane-subsystem-fix.patch
 git-watchdog.patch
