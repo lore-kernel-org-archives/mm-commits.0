@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-fix-logo-if-logo-depth-is-less-than-framebuffer-depth.patch added to -mm tree
-Date: Thu, 26 Jul 2007 12:00:04 -0700
-Message-ID: <200707261900.l6QJ04JU015578@imap1.linux-foundation.org>
+Subject: + xilinxfb-dont-bail-if-the-xilinxfb-platform-device-doesnt-have-any-pdata.patch added to -mm tree
+Date: Thu, 26 Jul 2007 12:00:11 -0700
+Message-ID: <200707261900.l6QJ0BJK015590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55028 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41593 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753279AbXGZTAM (ORCPT
+	by vger.kernel.org with ESMTP id S1759638AbXGZTAW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 15:00:12 -0400
+	Thu, 26 Jul 2007 15:00:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adaplas@gmail.com
+Cc: grant.likely@secretlab.ca, adaplas@gmail.com, akonovalov@ru.mvista.com
 
 
 The patch titled
-     fbdev: Fix logo if logo depth is less than framebuffer  depth
+     xilinxfb: Don't bail if the xilinxfb platform device  doesn't have any pdata
 has been added to the -mm tree.  Its filename is
-     fbdev-fix-logo-if-logo-depth-is-less-than-framebuffer-depth.patch
+     xilinxfb-dont-bail-if-the-xilinxfb-platform-device-doesnt-have-any-pdata.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,122 +26,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: Fix logo if logo depth is less than framebuffer  depth
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: xilinxfb: Don't bail if the xilinxfb platform device  doesn't have any pdata
+From: Grant Likely <grant.likely@secretlab.ca>
 
-The VGA16 logo (bpp = 4) and monochrome logo (bpp = 1) do not contain any
-color information (no CLUT).  If the fb depth is > logo depth, these logo's
-will not properly display. Fix by using the console palette instead of
-creating a new one.
+Lack of pdata is not a fatal omission.  The driver can still be used even
+if we do not know the screen dimensions.
 
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Cc: Andrei Konovalov <akonovalov@ru.mvista.com>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |   42 ++++++++++++++++++++++++----------------
- 1 file changed, 26 insertions(+), 16 deletions(-)
+ drivers/video/xilinxfb.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fbdev-fix-logo-if-logo-depth-is-less-than-framebuffer-depth drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fbdev-fix-logo-if-logo-depth-is-less-than-framebuffer-depth
-+++ a/drivers/video/fbmem.c
-@@ -244,8 +244,17 @@ static void fb_set_logo(struct fb_info *
- 	u8 xor = (info->fix.visual == FB_VISUAL_MONO01) ? 0xff : 0;
- 	u8 fg = 1, d;
+diff -puN drivers/video/xilinxfb.c~xilinxfb-dont-bail-if-the-xilinxfb-platform-device-doesnt-have-any-pdata drivers/video/xilinxfb.c
+--- a/drivers/video/xilinxfb.c~xilinxfb-dont-bail-if-the-xilinxfb-platform-device-doesnt-have-any-pdata
++++ a/drivers/video/xilinxfb.c
+@@ -212,11 +212,6 @@ xilinxfb_drv_probe(struct device *dev)
+ 	pdev = to_platform_device(dev);
+ 	pdata = pdev->dev.platform_data;
  
--	if (fb_get_color_depth(&info->var, &info->fix) == 3)
-+	switch (fb_get_color_depth(&info->var, &info->fix)) {
-+	case 1:
-+		fg = 1;
-+		break;
-+	case 2:
-+		fg = 3;
-+		break;
-+	default:
- 		fg = 7;
-+		break;
-+	}
- 
- 	if (info->fix.visual == FB_VISUAL_MONO01 ||
- 	    info->fix.visual == FB_VISUAL_MONO10)
-@@ -564,21 +573,6 @@ int fb_prepare_logo(struct fb_info *info
- 		depth = 4;
- 	}
- 
--	if (depth >= 8) {
--		switch (info->fix.visual) {
--		case FB_VISUAL_TRUECOLOR:
--			fb_logo.needs_truepalette = 1;
--			break;
--		case FB_VISUAL_DIRECTCOLOR:
--			fb_logo.needs_directpalette = 1;
--			fb_logo.needs_cmapreset = 1;
--			break;
--		case FB_VISUAL_PSEUDOCOLOR:
--			fb_logo.needs_cmapreset = 1;
--			break;
--		}
+-	if (pdata == NULL) {
+-		printk(KERN_ERR "Couldn't find platform data.\n");
+-		return -EFAULT;
 -	}
 -
- 	/* Return if no suitable logo was found */
- 	fb_logo.logo = fb_find_logo(depth);
+ 	drvdata = kzalloc(sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata) {
+ 		printk(KERN_ERR "Couldn't allocate device private record\n");
+@@ -258,11 +253,9 @@ xilinxfb_drv_probe(struct device *dev)
+ 	xilinx_fb_out_be32(drvdata, REG_FB_ADDR, drvdata->fb_phys);
  
-@@ -604,6 +598,22 @@ int fb_prepare_logo(struct fb_info *info
- 	else
- 		fb_logo.depth = 1;
+ 	/* Turn on the display */
+-	if (pdata->rotate_screen) {
+-		drvdata->reg_ctrl_default = REG_CTRL_ENABLE | REG_CTRL_ROTATE;
+-	} else {
+-		drvdata->reg_ctrl_default = REG_CTRL_ENABLE;
+-	}
++	drvdata->reg_ctrl_default = REG_CTRL_ENABLE;
++	if (pdata && pdata->rotate_screen)
++		drvdata->reg_ctrl_default |= REG_CTRL_ROTATE;
+ 	xilinx_fb_out_be32(drvdata, REG_CTRL, drvdata->reg_ctrl_default);
  
-+
-+ 	if (fb_logo.depth > 4 && depth > 4) {
-+ 		switch (info->fix.visual) {
-+ 		case FB_VISUAL_TRUECOLOR:
-+ 			fb_logo.needs_truepalette = 1;
-+ 			break;
-+ 		case FB_VISUAL_DIRECTCOLOR:
-+ 			fb_logo.needs_directpalette = 1;
-+ 			fb_logo.needs_cmapreset = 1;
-+ 			break;
-+ 		case FB_VISUAL_PSEUDOCOLOR:
-+ 			fb_logo.needs_cmapreset = 1;
-+ 			break;
-+ 		}
-+ 	}
-+
- 	return fb_prepare_extra_logos(info, fb_logo.logo->height, yres);
- }
+ 	/* Fill struct fb_info */
+@@ -281,8 +274,10 @@ xilinxfb_drv_probe(struct device *dev)
+ 	}
  
+ 	drvdata->info.flags = FBINFO_DEFAULT;
+-	xilinx_fb_var.height = pdata->screen_height_mm;
+-	xilinx_fb_var.width = pdata->screen_width_mm;
++	if (pdata) {
++		xilinx_fb_var.height = pdata->screen_height_mm;
++		xilinx_fb_var.width = pdata->screen_width_mm;
++	}
+ 	drvdata->info.var = xilinx_fb_var;
+ 
+ 	/* Register new frame buffer */
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from grant.likely@secretlab.ca are
 
-fbcon-fix-typo-and-bogus-logic-in-get_default_font.patch
-fbdev-fix-logo-if-logo-depth-is-less-than-framebuffer-depth.patch
-s3c2410fb-fix-s3c2410-compilation.patch
 xilinxfbremove-__initdata-from-xilinx_fb_fix-and-xilinx_fb_var.patch
 xilinxfb-dont-bail-if-the-xilinxfb-platform-device-doesnt-have-any-pdata.patch
-lxfb-geode-add-framebuffer-support-for-the-amd-geode-lx.patch
-fbdev-export-fb_destroy_modelist.patch
-connector-change-connectors-max-message-size.patch
-uvesafb-add-connector-entries.patch
-uvesafb-the-driver-core.patch
-uvesafb-documentation.patch
-pm3fb-copyarea-and-partial-imageblit-suppor.patch
-skeletonfb-wrong-field-name-fix.patch
-pm3fb-header-file-reduction.patch
-pm3fb-imageblit-improved.patch
-pm3fb-3-small-fixes.patch
-pm3fb-improvements-and-cleanups.patch
-pm3fb-mtrr-support-and-noaccel-option.patch
-pm2fb-mtrr-support-and-noaccel-option.patch
-pm2fb-accelerated-imageblit.patch
-pm2fb-source-code-improvements.patch
-pm2fb-permedia-2v-initialization-fixes.patch
-pm2fb-accelerated-24-bit-fillrect.patch
-sm501fb-update-suspend-and-resume-code.patch
-sm501fb-call-fb-suspend-function-during-suspend-and-resume.patch
-sm501fb-ensure-panel-interface-is-not-tristated-when-setup.patch
-mbxfb-improvements-and-new-features.patch
-pxafb-add-support-for-other-palette-formats.patch
-stifb-detect-cards-in-double-buffer-mode-more-reliably.patch
-tdfxfb-coding-style-improvement.patch
-tridentfb-coding-style-improvement.patch
-tdfxfb-3-fixes.patch
-tdfxfb-palette-fixes.patch
