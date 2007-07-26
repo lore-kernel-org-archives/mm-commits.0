@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tdfxfb-3-fixes.patch added to -mm tree
-Date: Thu, 26 Jul 2007 12:00:54 -0700
-Message-ID: <200707261900.l6QJ0sgU015683@imap1.linux-foundation.org>
+Subject: + pm2fb-mtrr-support-and-noaccel-option.patch added to -mm tree
+Date: Thu, 26 Jul 2007 12:00:33 -0700
+Message-ID: <200707261900.l6QJ0X3R015637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39306 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39917 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764619AbXGZTMe (ORCPT
+	by vger.kernel.org with ESMTP id S1764507AbXGZTMb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 15:12:34 -0400
+	Thu, 26 Jul 2007 15:12:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     tdfxfb: 3 fixes
+     pm2fb: mtrr support and noaccel option
 has been added to the -mm tree.  Its filename is
-     tdfxfb-3-fixes.patch
+     pm2fb-mtrr-support-and-noaccel-option.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,343 +26,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tdfxfb: 3 fixes
+Subject: pm2fb: mtrr support and noaccel option
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch fixes 3 issues:
-- transparency handling in tdfxfb
-- panning with more than 4096 virtual height and acceleration (acceleration
-with x & y > 4096)
-- exit paths on errors in tdfxfb_probe()
-
-Additionally it sets a FBINFO_READS_FAST flag to use smart blitter scrolling
-(speed up on tdfxfb).
+This patch adds usage of MTRR registers and two new options:
+noaccel and nomtrr.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tdfxfb.c |  172 ++++++++++++++++++++++++---------------
- 1 file changed, 108 insertions(+), 64 deletions(-)
+ drivers/video/pm2fb.c |   44 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 42 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/tdfxfb.c~tdfxfb-3-fixes drivers/video/tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-3-fixes
-+++ a/drivers/video/tdfxfb.c
-@@ -502,6 +502,8 @@ static int tdfxfb_check_var(struct fb_va
- 		return -EINVAL;
- 	}
+diff -puN drivers/video/pm2fb.c~pm2fb-mtrr-support-and-noaccel-option drivers/video/pm2fb.c
+--- a/drivers/video/pm2fb.c~pm2fb-mtrr-support-and-noaccel-option
++++ a/drivers/video/pm2fb.c
+@@ -38,6 +38,9 @@
+ #include <linux/fb.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
++#ifdef CONFIG_MTRR
++#include <asm/mtrr.h>
++#endif
  
-+	var->transp.offset = 0;
-+	var->transp.length = 0;
- 	switch (var->bits_per_pixel) {
- 	case 8:
- 		var->red.length = var->green.length = var->blue.length = 8;
-@@ -515,10 +517,12 @@ static int tdfxfb_check_var(struct fb_va
- 		var->blue.length  = 5;
- 		break;
- 	case 32:
-+		var->transp.offset = 24;
-+		var->transp.length = 8;
- 	case 24:
--		var->red.offset=16;
--		var->green.offset=8;
--		var->blue.offset=0;
-+		var->red.offset = 16;
-+		var->green.offset = 8;
-+		var->blue.offset = 0;
- 		var->red.length = var->green.length = var->blue.length = 8;
- 		break;
- 	}
-@@ -874,13 +878,26 @@ static void tdfxfb_fillrect(struct fb_in
- 	u32 stride = info->fix.line_length;
- 	u32 fmt= stride | ((bpp + ((bpp == 8) ? 0 : 8)) << 13);
- 	int tdfx_rop;
-+	u32 dx = rect->dx;
-+	u32 dy = rect->dy;
-+	u32 dstbase = 0;
- 
- 	if (rect->rop == ROP_COPY)
- 		tdfx_rop = TDFX_ROP_COPY;
- 	else
- 		tdfx_rop = TDFX_ROP_XOR;
- 
--	banshee_make_room(par, 5);
-+	/* asume always rect->height < 4096 */
-+	if (dy + rect->height > 4095) {
-+		dstbase = stride * dy;
-+		dy = 0;
-+	}
-+	/* asume always rect->width < 4096 */
-+	if (dx + rect->width > 4095) {
-+		dstbase += dx * bpp >> 3;
-+		dx = 0;
-+	}
-+	banshee_make_room(par, 6);
- 	tdfx_outl(par, DSTFORMAT, fmt);
- 	if (info->fix.visual == FB_VISUAL_PSEUDOCOLOR) {
- 		tdfx_outl(par, COLORFORE, rect->color);
-@@ -888,8 +905,9 @@ static void tdfxfb_fillrect(struct fb_in
- 		tdfx_outl(par, COLORFORE, par->palette[rect->color]);
- 	}
- 	tdfx_outl(par, COMMAND_2D, COMMAND_2D_FILLRECT | (tdfx_rop << 24));
-+	tdfx_outl(par, DSTBASE, dstbase);
- 	tdfx_outl(par, DSTSIZE, rect->width | (rect->height << 16));
--	tdfx_outl(par, LAUNCH_2D, rect->dx | (rect->dy << 16));
-+	tdfx_outl(par, LAUNCH_2D, dx | (dy << 16));
- }
+ #include <video/permedia2.h>
+ #include <video/cvisionppc.h>
+@@ -71,8 +74,13 @@ static char *mode __devinitdata = NULL;
+  * these flags allow the user to specify that requests for +ve sync
+  * should be silently turned in -ve sync.
+  */
+-static int lowhsync;
+-static int lowvsync;
++static int lowhsync __devinitdata;
++static int lowvsync __devinitdata;
++static int noaccel __devinitdata;
++/* mtrr option */
++#ifdef CONFIG_MTRR
++static int nomtrr __devinitdata;
++#endif
  
  /*
-@@ -904,6 +922,30 @@ static void tdfxfb_copyarea(struct fb_in
- 	u32 stride = info->fix.line_length;
- 	u32 blitcmd = COMMAND_2D_S2S_BITBLT | (TDFX_ROP_COPY << 24);
- 	u32 fmt = stride | ((bpp + ((bpp == 8) ? 0 : 8)) << 13);
-+	u32 dstbase = 0;
-+	u32 srcbase = 0;
-+
-+	/* asume always area->height < 4096 */
-+	if (sy + area->height > 4095) {
-+		srcbase = stride * sy;
-+		sy = 0;
-+	}
-+	/* asume always area->width < 4096 */
-+	if (sx + area->width > 4095) {
-+		srcbase += sx * bpp >> 3;
-+		sx = 0;
-+	}
-+	/* asume always area->height < 4096 */
-+	if (dy + area->height > 4095) {
-+		dstbase = stride * dy;
-+		dy = 0;
-+	}
-+	/* asume always area->width < 4096 */
-+	if (dx + area->width > 4095) {
-+		dstbase += dx * bpp >> 3;
-+		dx = 0;
-+	}
-+
+  * The hardware state of the graphics card that isn't part of the
+@@ -88,6 +96,7 @@ struct pm2fb_par
+ 	u32		mem_control;	/* MemControl reg at probe */
+ 	u32		boot_address;	/* BootAddress reg at probe */
+ 	u32		palette[16];
++	int		mtrr_handle;
+ };
  
- 	if (area->sx <= area->dx) {
- 		//-X
-@@ -918,13 +960,15 @@ static void tdfxfb_copyarea(struct fb_in
- 		dy += area->height - 1;
+ /*
+@@ -1316,6 +1325,15 @@ static int __devinit pm2fb_probe(struct 
+ 		goto err_exit_mmio;
  	}
  
--	banshee_make_room(par, 6);
-+	banshee_make_room(par, 8);
++#ifdef CONFIG_MTRR
++	default_par->mtrr_handle = -1;
++	if (!nomtrr)
++		default_par->mtrr_handle =
++			mtrr_add(pm2fb_fix.smem_start,
++				 pm2fb_fix.smem_len,
++				 MTRR_TYPE_WRCOMB, 1);
++#endif
++
+ 	info->fbops		= &pm2fb_ops;
+ 	info->fix		= pm2fb_fix;
+ 	info->pseudo_palette	= default_par->palette;
+@@ -1324,6 +1342,11 @@ static int __devinit pm2fb_probe(struct 
+ 				  FBINFO_HWACCEL_COPYAREA |
+ 				  FBINFO_HWACCEL_FILLRECT;
  
- 	tdfx_outl(par, SRCFORMAT, fmt);
- 	tdfx_outl(par, DSTFORMAT, fmt);
- 	tdfx_outl(par, COMMAND_2D, blitcmd);
- 	tdfx_outl(par, DSTSIZE, area->width | (area->height << 16));
- 	tdfx_outl(par, DSTXY, dx | (dy << 16));
-+	tdfx_outl(par, SRCBASE, srcbase);
-+	tdfx_outl(par, DSTBASE, dstbase);
- 	tdfx_outl(par, LAUNCH_2D, sx | (sy << 16));
- }
- 
-@@ -938,35 +982,48 @@ static void tdfxfb_imageblit(struct fb_i
- 	u32 dstfmt = stride | ((bpp + ((bpp == 8) ? 0 : 8)) << 13);
- 	u8 *chardata = (u8 *) image->data;
- 	u32 srcfmt;
-+	u32 dx = image->dx;
-+	u32 dy = image->dy;
-+	u32 dstbase = 0;
- 
- 	if (image->depth != 1) {
- 		//banshee_make_room(par, 6 + ((size + 3) >> 2));
- 		//srcfmt = stride | ((bpp+((bpp==8) ? 0 : 8)) << 13) | 0x400000;
- 		cfb_imageblit(info, image);
- 		return;
--	} else {
--		banshee_make_room(par, 8);
--		switch (info->fix.visual) {
--		case FB_VISUAL_PSEUDOCOLOR:
--			tdfx_outl(par, COLORFORE, image->fg_color);
--			tdfx_outl(par, COLORBACK, image->bg_color);
--			break;
--		case FB_VISUAL_TRUECOLOR:
--		default:
--			tdfx_outl(par, COLORFORE,
--				  par->palette[image->fg_color]);
--			tdfx_outl(par, COLORBACK,
--				  par->palette[image->bg_color]);
--		}
-+	}
-+	banshee_make_room(par, 9);
-+	switch (info->fix.visual) {
-+	case FB_VISUAL_PSEUDOCOLOR:
-+		tdfx_outl(par, COLORFORE, image->fg_color);
-+		tdfx_outl(par, COLORBACK, image->bg_color);
-+		break;
-+	case FB_VISUAL_TRUECOLOR:
-+	default:
-+		tdfx_outl(par, COLORFORE,
-+			  par->palette[image->fg_color]);
-+		tdfx_outl(par, COLORBACK,
-+			  par->palette[image->bg_color]);
-+	}
- #ifdef __BIG_ENDIAN
--		srcfmt = 0x400000 | BIT(20);
-+	srcfmt = 0x400000 | BIT(20);
- #else
--		srcfmt = 0x400000;
-+	srcfmt = 0x400000;
- #endif
-+	/* asume always image->height < 4096 */
-+	if (dy + image->height > 4095) {
-+		dstbase = stride * dy;
-+		dy = 0;
-+	}
-+	/* asume always image->width < 4096 */
-+	if (dx + image->width > 4095) {
-+		dstbase += dx * bpp >> 3;
-+		dx = 0;
- 	}
- 
-+	tdfx_outl(par, DSTBASE, dstbase);
- 	tdfx_outl(par, SRCXY, 0);
--	tdfx_outl(par, DSTXY, image->dx | (image->dy << 16));
-+	tdfx_outl(par, DSTXY, dx | (dy << 16));
- 	tdfx_outl(par, COMMAND_2D, COMMAND_2D_H2S_BITBLT | (TDFX_ROP_COPY << 24));
- 	tdfx_outl(par, SRCFORMAT, srcfmt);
- 	tdfx_outl(par, DSTFORMAT, dstfmt);
-@@ -1211,44 +1268,36 @@ static int __devinit tdfxfb_probe(struct
- 
- 	tdfx_fix.mmio_start = pci_resource_start(pdev, 0);
- 	tdfx_fix.mmio_len = pci_resource_len(pdev, 0);
-+	if (!request_mem_region(tdfx_fix.mmio_start, tdfx_fix.mmio_len,
-+				"tdfx regbase")) {
-+		printk(KERN_WARNING "tdfxfb: Can't reserve regbase\n");
-+		goto out_err;
++	if (noaccel) {
++	    	printk(KERN_DEBUG "disabling acceleration\n");
++  		info->flags |= FBINFO_HWACCEL_DISABLED;
 +	}
 +
- 	default_par->regbase_virt =
- 		ioremap_nocache(tdfx_fix.mmio_start, tdfx_fix.mmio_len);
- 	if (!default_par->regbase_virt) {
- 		printk("fb: Can't remap %s register area.\n", tdfx_fix.id);
--		goto out_err;
--	}
--
--	if (!request_mem_region(pci_resource_start(pdev, 0),
--				pci_resource_len(pdev, 0), "tdfx regbase")) {
--		printk(KERN_WARNING "tdfxfb: Can't reserve regbase\n");
--		goto out_err;
-+		goto out_err_regbase;
- 	}
+ 	if (!mode)
+ 		mode = "640x480@60";
  
- 	tdfx_fix.smem_start = pci_resource_start(pdev, 1);
- 	if (!(tdfx_fix.smem_len = do_lfb_size(default_par, pdev->device))) {
- 		printk("fb: Can't count %s memory.\n", tdfx_fix.id);
--		release_mem_region(pci_resource_start(pdev, 0),
--				   pci_resource_len(pdev, 0));
--		goto out_err;
-+		goto out_err_regbase;
- 	}
+@@ -1375,6 +1398,11 @@ static void __devexit pm2fb_remove(struc
  
--	if (!request_mem_region(pci_resource_start(pdev, 1),
-+	if (!request_mem_region(tdfx_fix.smem_start,
- 				pci_resource_len(pdev, 1), "tdfx smem")) {
- 		printk(KERN_WARNING "tdfxfb: Can't reserve smem\n");
--		release_mem_region(pci_resource_start(pdev, 0),
--				   pci_resource_len(pdev, 0));
--		goto out_err;
-+		goto out_err_regbase;
- 	}
+ 	unregister_framebuffer(info);
  
- 	info->screen_base = ioremap_nocache(tdfx_fix.smem_start,
- 					    tdfx_fix.smem_len);
- 	if (!info->screen_base) {
- 		printk("fb: Can't remap %s framebuffer.\n", tdfx_fix.id);
--		release_mem_region(pci_resource_start(pdev, 1),
--				   pci_resource_len(pdev, 1));
--		release_mem_region(pci_resource_start(pdev, 0),
--				   pci_resource_len(pdev, 0));
--		goto out_err;
-+		goto out_err_screenbase;
- 	}
++#ifdef CONFIG_MTRR
++	if (par->mtrr_handle >= 0)
++		mtrr_del(par->mtrr_handle, info->fix.smem_start,
++			 info->fix.smem_len);
++#endif /* CONFIG_MTRR */
+ 	iounmap(info->screen_base);
+ 	release_mem_region(fix->smem_start, fix->smem_len);
+ 	iounmap(par->v_regs);
+@@ -1430,6 +1458,12 @@ static int __init pm2fb_setup(char *opti
+ 			lowhsync = 1;
+ 		} else if(!strcmp(this_opt, "lowvsync")) {
+ 			lowvsync = 1;
++#ifdef CONFIG_MTRR
++		} else if (!strncmp(this_opt, "nomtrr", 6)) {
++			nomtrr = 1;
++#endif
++		} else if (!strncmp(this_opt, "noaccel", 7)) {
++			noaccel = 1;
+ 		} else {
+ 			mode = this_opt;
+ 		}
+@@ -1474,6 +1508,12 @@ module_param(lowhsync, bool, 0);
+ MODULE_PARM_DESC(lowhsync, "Force horizontal sync low regardless of mode");
+ module_param(lowvsync, bool, 0);
+ MODULE_PARM_DESC(lowvsync, "Force vertical sync low regardless of mode");
++module_param(noaccel, bool, 0);
++MODULE_PARM_DESC(noaccel, "Disable acceleration");
++#ifdef CONFIG_MTRR
++module_param(nomtrr, bool, 0);
++MODULE_PARM_DESC(nomtrr, "Disable MTRR support (0 or 1=disabled) (default=0)");
++#endif
  
- 	default_par->iobase = pci_resource_start(pdev, 2);
-@@ -1256,11 +1305,7 @@ static int __devinit tdfxfb_probe(struct
- 	if (!request_region(pci_resource_start(pdev, 2),
- 			    pci_resource_len(pdev, 2), "tdfx iobase")) {
- 		printk(KERN_WARNING "tdfxfb: Can't reserve iobase\n");
--		release_mem_region(pci_resource_start(pdev, 1),
--				   pci_resource_len(pdev, 1));
--		release_mem_region(pci_resource_start(pdev, 0),
--				   pci_resource_len(pdev, 0));
--		goto out_err;
-+		goto out_err_screenbase;
- 	}
- 
- 	printk("fb: %s memory = %dK\n", tdfx_fix.id, tdfx_fix.smem_len >> 10);
-@@ -1274,7 +1319,9 @@ static int __devinit tdfxfb_probe(struct
- 	info->flags		= FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
- #ifdef CONFIG_FB_3DFX_ACCEL
- 	info->flags             |= FBINFO_HWACCEL_FILLRECT |
--		FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_IMAGEBLIT;
-+				   FBINFO_HWACCEL_COPYAREA |
-+				   FBINFO_HWACCEL_IMAGEBLIT |
-+				   FBINFO_READS_FAST;
- #endif
- 
- 	if (!mode_option)
-@@ -1288,27 +1335,17 @@ static int __devinit tdfxfb_probe(struct
- 	lpitch = info->var.xres_virtual * ((info->var.bits_per_pixel + 7) >> 3);
- 	info->var.yres_virtual = info->fix.smem_len / lpitch;
- 	if (info->var.yres_virtual < info->var.yres)
--		goto out_err;
--
--#ifdef CONFIG_FB_3DFX_ACCEL
--	/*
--	 * FIXME: Limit var->yres_virtual to 4096 because of screen artifacts
--	 * during scrolling. This is only present if 2D acceleration is
--	 * enabled.
--	 */
--	if (info->var.yres_virtual > 4096)
--		info->var.yres_virtual = 4096;
--#endif /* CONFIG_FB_3DFX_ACCEL */
-+		goto out_err_iobase;
- 
- 	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
- 		printk(KERN_WARNING "tdfxfb: Can't allocate color map\n");
--		goto out_err;
-+		goto out_err_iobase;
- 	}
- 
- 	if (register_framebuffer(info) < 0) {
- 		printk("tdfxfb: can't register framebuffer\n");
- 		fb_dealloc_cmap(&info->cmap);
--		goto out_err;
-+		goto out_err_iobase;
- 	}
- 	/*
- 	 * Our driver data
-@@ -1316,14 +1353,21 @@ static int __devinit tdfxfb_probe(struct
- 	pci_set_drvdata(pdev, info);
- 	return 0;
- 
--out_err:
-+out_err_iobase:
-+	release_mem_region(pci_resource_start(pdev, 2),
-+			   pci_resource_len(pdev, 2));
-+out_err_screenbase:
-+	if (info->screen_base)
-+		iounmap(info->screen_base);
-+	release_mem_region(tdfx_fix.smem_start, pci_resource_len(pdev, 1));
-+out_err_regbase:
- 	/*
- 	 * Cleanup after anything that was remapped/allocated.
- 	 */
- 	if (default_par->regbase_virt)
- 		iounmap(default_par->regbase_virt);
--	if (info->screen_base)
--		iounmap(info->screen_base);
-+	release_mem_region(tdfx_fix.mmio_start, tdfx_fix.mmio_len);
-+out_err:
- 	framebuffer_release(info);
- 	return -ENXIO;
- }
+ MODULE_AUTHOR("Jim Hague <jim.hague@acm.org>");
+ MODULE_DESCRIPTION("Permedia2 framebuffer device driver");
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
