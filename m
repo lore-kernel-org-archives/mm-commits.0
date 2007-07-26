@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fib_trie-cleanup.patch added to -mm tree
-Date: Thu, 26 Jul 2007 01:58:45 -0700
-Message-ID: <200707260858.l6Q8wjdJ023595@imap1.linux-foundation.org>
+Subject: + sched-make-cpu_clock-not-use-the-rq-clock.patch added to -mm tree
+Date: Thu, 26 Jul 2007 02:06:06 -0700
+Message-ID: <200707260906.l6Q966Av023851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45171 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45755 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754699AbXGZI6y (ORCPT
+	by vger.kernel.org with ESMTP id S1755982AbXGZJGs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 04:58:54 -0400
+	Thu, 26 Jul 2007 05:06:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, davem@davemloft.net
+Cc: mingo@elte.hu
 
 
 The patch titled
-     fib_trie: cleanup
+     sched: make cpu_clock() not use the rq clock
 has been added to the -mm tree.  Its filename is
-     fib_trie-cleanup.patch
+     sched-make-cpu_clock-not-use-the-rq-clock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,218 +26,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fib_trie: cleanup
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: sched: make cpu_clock() not use the rq clock
+From: Ingo Molnar <mingo@elte.hu>
 
-Try this out:
-     * replace macro's with inlines
-     * get rid of places doing multiple evaluations of NODE_PARENT
+It is enough to disable interrupts to get the precise rq-clock of the local
+CPU.
 
-Cc: "David S. Miller" <davem@davemloft.net>
+This also solves an NMI watchdog regression: the NMI watchdog calls
+touch_softlockup_watchdog(), which might deadlock on rq->lock if the NMI
+hits an rq-locked critical section.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/fib_trie.c |   65 +++++++++++++++++++++---------------------
- 1 file changed, 33 insertions(+), 32 deletions(-)
+ kernel/sched.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN net/ipv4/fib_trie.c~fib_trie-cleanup net/ipv4/fib_trie.c
---- a/net/ipv4/fib_trie.c~fib_trie-cleanup
-+++ a/net/ipv4/fib_trie.c
-@@ -93,15 +93,8 @@ typedef unsigned int t_key;
- #define T_TNODE 0
- #define T_LEAF  1
- #define NODE_TYPE_MASK	0x1UL
--#define NODE_PARENT(node) \
--	((struct tnode *)rcu_dereference(((node)->parent & ~NODE_TYPE_MASK)))
--
- #define NODE_TYPE(node) ((node)->parent & NODE_TYPE_MASK)
- 
--#define NODE_SET_PARENT(node, ptr)		\
--	rcu_assign_pointer((node)->parent,	\
--			   ((unsigned long)(ptr)) | NODE_TYPE(node))
--
- #define IS_TNODE(n) (!(n->parent & T_LEAF))
- #define IS_LEAF(n) (n->parent & T_LEAF)
- 
-@@ -174,6 +167,16 @@ static void tnode_free(struct tnode *tn)
- static struct kmem_cache *fn_alias_kmem __read_mostly;
- static struct trie *trie_local = NULL, *trie_main = NULL;
- 
-+static inline struct tnode *node_parent(struct node *node)
-+{
-+	return rcu_dereference((struct tnode *) (node->parent & ~NODE_TYPE_MASK));
-+}
-+
-+static inline void node_set_parent(struct node *node, struct tnode *ptr)
-+{
-+	rcu_assign_pointer(node->parent,
-+			   (unsigned long)ptr | NODE_TYPE(node));
-+}
- 
- /* rcu_read_lock needs to be hold by caller from readside */
- 
-@@ -446,7 +449,7 @@ static void tnode_put_child_reorg(struct
- 		tn->full_children++;
- 
- 	if (n)
--		NODE_SET_PARENT(n, tn);
-+		node_set_parent(n, tn);
- 
- 	rcu_assign_pointer(tn->child[i], n);
- }
-@@ -481,7 +484,7 @@ static struct node *resize(struct trie *
- 				continue;
- 
- 			/* compress one level */
--			NODE_SET_PARENT(n, NULL);
-+			node_set_parent(n, NULL);
- 			tnode_free(tn);
- 			return n;
- 		}
-@@ -636,7 +639,7 @@ static struct node *resize(struct trie *
- 
- 			/* compress one level */
- 
--			NODE_SET_PARENT(n, NULL);
-+			node_set_parent(n, NULL);
- 			tnode_free(tn);
- 			return n;
- 		}
-@@ -961,24 +964,21 @@ fib_find_node(struct trie *t, u32 key)
- static struct node *trie_rebalance(struct trie *t, struct tnode *tn)
+diff -puN kernel/sched.c~sched-make-cpu_clock-not-use-the-rq-clock kernel/sched.c
+--- a/kernel/sched.c~sched-make-cpu_clock-not-use-the-rq-clock
++++ a/kernel/sched.c
+@@ -386,13 +386,12 @@ static inline unsigned long long rq_cloc
+  */
+ unsigned long long cpu_clock(int cpu)
  {
- 	int wasfull;
--	t_key cindex, key;
--	struct tnode *tp = NULL;
--
--	key = tn->key;
-+	t_key cindex, key = tn->key;
-+	struct tnode *tp;
+-	struct rq *rq = cpu_rq(cpu);
+ 	unsigned long long now;
+ 	unsigned long flags;
  
--	while (tn != NULL && NODE_PARENT(tn) != NULL) {
--
--		tp = NODE_PARENT(tn);
-+	while (tn != NULL && (tp = node_parent((struct node *)tn)) != NULL) {
- 		cindex = tkey_extract_bits(key, tp->pos, tp->bits);
- 		wasfull = tnode_full(tp, tnode_get_child(tp, cindex));
- 		tn = (struct tnode *) resize (t, (struct tnode *)tn);
- 		tnode_put_child_reorg((struct tnode *)tp, cindex,(struct node*)tn, wasfull);
+-	spin_lock_irqsave(&rq->lock, flags);
+-	now = rq_clock(rq);
+-	spin_unlock_irqrestore(&rq->lock, flags);
++	local_irq_save(flags);
++	now = rq_clock(cpu_rq(cpu));
++	local_irq_restore(flags);
  
--		if (!NODE_PARENT(tn))
-+		tp = node_parent((struct node *) tn);
-+		if (!tp)
- 			break;
--
--		tn = NODE_PARENT(tn);
-+		tn = tp;
- 	}
-+
- 	/* Handle last (top) tnode */
- 	if (IS_TNODE(tn))
- 		tn = (struct tnode*) resize(t, (struct tnode *)tn);
-@@ -1031,7 +1031,7 @@ fib_insert_node(struct trie *t, int *err
- 			pos = tn->pos + tn->bits;
- 			n = tnode_get_child(tn, tkey_extract_bits(key, tn->pos, tn->bits));
- 
--			BUG_ON(n && NODE_PARENT(n) != tn);
-+			BUG_ON(n && node_parent(n) != tn);
- 		} else
- 			break;
- 	}
-@@ -1083,7 +1083,7 @@ fib_insert_node(struct trie *t, int *err
- 	if (t->trie && n == NULL) {
- 		/* Case 2: n is NULL, and will just insert a new leaf */
- 
--		NODE_SET_PARENT(l, tp);
-+		node_set_parent((struct node *)l, tp);
- 
- 		cindex = tkey_extract_bits(key, tp->pos, tp->bits);
- 		put_child(t, (struct tnode *)tp, cindex, (struct node *)l);
-@@ -1114,7 +1114,7 @@ fib_insert_node(struct trie *t, int *err
- 			goto err;
- 		}
- 
--		NODE_SET_PARENT(tn, tp);
-+		node_set_parent((struct node *)tn, tp);
- 
- 		missbit = tkey_extract_bits(key, newpos, 1);
- 		put_child(t, tn, missbit, (struct node *)l);
-@@ -1495,12 +1495,13 @@ backtrace:
- 		if (chopped_off <= pn->bits) {
- 			cindex &= ~(1 << (chopped_off-1));
- 		} else {
--			if (NODE_PARENT(pn) == NULL)
-+			struct tnode *parent = node_parent((struct node *) pn);
-+			if (!parent)
- 				goto failed;
- 
- 			/* Get Child's index */
--			cindex = tkey_extract_bits(pn->key, NODE_PARENT(pn)->pos, NODE_PARENT(pn)->bits);
--			pn = NODE_PARENT(pn);
-+			cindex = tkey_extract_bits(pn->key, parent->pos, parent->bits);
-+			pn = parent;
- 			chopped_off = 0;
- 
- #ifdef CONFIG_IP_FIB_TRIE_STATS
-@@ -1536,7 +1537,7 @@ static int trie_leaf_remove(struct trie 
- 		check_tnode(tn);
- 		n = tnode_get_child(tn ,tkey_extract_bits(key, tn->pos, tn->bits));
- 
--		BUG_ON(n && NODE_PARENT(n) != tn);
-+		BUG_ON(n && node_parent(n) != tn);
- 	}
- 	l = (struct leaf *) n;
- 
-@@ -1551,7 +1552,7 @@ static int trie_leaf_remove(struct trie 
- 	t->revision++;
- 	t->size--;
- 
--	tp = NODE_PARENT(n);
-+	tp = node_parent(n);
- 	tnode_free((struct tnode *) n);
- 
- 	if (tp) {
-@@ -1703,7 +1704,7 @@ static struct leaf *nextleaf(struct trie
- 
- 		p = (struct tnode*) trie;  /* Start */
- 	} else
--		p = (struct tnode *) NODE_PARENT(c);
-+		p = node_parent(c);
- 
- 	while (p) {
- 		int pos, last;
-@@ -1740,7 +1741,7 @@ static struct leaf *nextleaf(struct trie
- up:
- 		/* No more children go up one step  */
- 		c = (struct node *) p;
--		p = (struct tnode *) NODE_PARENT(p);
-+		p = node_parent(c);
- 	}
- 	return NULL; /* Ready. Root of trie */
+ 	return now;
  }
-@@ -2043,7 +2044,7 @@ rescan:
- 	}
- 
- 	/* Current node exhausted, pop back up */
--	p = NODE_PARENT(tn);
-+	p = node_parent((struct node *)tn);
- 	if (p) {
- 		cindex = tkey_extract_bits(tn->key, p->pos, p->bits)+1;
- 		tn = p;
-@@ -2317,7 +2318,7 @@ static int fib_trie_seq_show(struct seq_
- 	if (v == SEQ_START_TOKEN)
- 		return 0;
- 
--	if (!NODE_PARENT(n)) {
-+	if (!node_parent(n)) {
- 		if (iter->trie == trie_local)
- 			seq_puts(seq, "<local>:\n");
- 		else
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-pci-x-pci-express-read-control-interfaces-mthca.patch
-pci-x-pci-express-read-control-interfaces-myrinet.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-fib_trie-cleanup.patch
+origin.patch
+git-acpi.patch
+git-kvm.patch
+fix-theoretical-ccids_readwrite_lock-race.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+geode-mfgpt-clock-event-device-support.patch
+i386-remove-unnecessary-code.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
+softlockup-use-cpu_clock-instead-of-sched_clock.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+softlockup-improve-debug-output.patch
+softlockup-watchdog-style-cleanups.patch
+softlockup-add-a-proc-tuning-parameter.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+blktrace-use-cpu_clock-instead-of-sched_clock.patch
+sched-make-cpu_clock-not-use-the-rq-clock.patch
+futex-pass-nr_wake2-to-futex_wake_op.patch
+mark-sysrq_sched_debug_show-static.patch
+cfs-mark-print_cfs_stats-static.patch
+remove-kconfig-setting-config_debug_shirq.patch
+debug-handling-of-early-spurious-interrupts.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
