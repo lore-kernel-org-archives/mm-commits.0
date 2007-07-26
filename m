@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-bluetooth-rfcomm-ttyc-use-after-free.patch added to -mm tree
-Date: Thu, 26 Jul 2007 13:18:57 -0700
-Message-ID: <200707262018.l6QKIvfO018943@imap1.linux-foundation.org>
+Subject: + usb_serial_suspend-buggy-code.patch added to -mm tree
+Date: Thu, 26 Jul 2007 13:20:17 -0700
+Message-ID: <200707262020.l6QKKHW8019059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57323 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39395 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933646AbXGZUTQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755914AbXGZUUg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 16:19:16 -0400
+	Thu, 26 Jul 2007 16:20:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcel@holtmann.org, bunk@stusta.de
+Cc: oneukum@suse.de, bunk@stusta.de, greg@kroah.com
 
 
 The patch titled
-     net/bluetooth/rfcomm/tty.c: use-after-free
+     usb_serial_suspend(): fix error return
 has been added to the -mm tree.  Its filename is
-     net-bluetooth-rfcomm-ttyc-use-after-free.patch
+     usb_serial_suspend-buggy-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net/bluetooth/rfcomm/tty.c: use-after-free
-From: Marcel Holtmann <marcel@holtmann.org>
+Subject: usb_serial_suspend(): fix error return
+From: Oliver Neukum <oneukum@suse.de>
 
 Adrian said:
 
-> Commit 8de0a15483b357d0f0b821330ec84d1660cadc4e added the following
-> use-after-free in net/bluetooth/rfcomm/tty.c:
+> Commit ec22559e0b7a05283a3413bda5d177e42c950e23 added the following
+> function to drivers/usb/serial/usb-serial.c:
 >
-> <--  snip  -->
+[..]
 >
-> ...
-> static int rfcomm_dev_add(struct rfcomm_dev_req *req, struct rfcomm_dlc *dlc)
-> {
-> ...
->         if (IS_ERR(dev->tty_dev)) {
->                 list_del(&dev->list);
->                 kfree(dev);
->                 return PTR_ERR(dev->tty_dev);
->         }
-> ...
+> The Coverity checker spotted the inconsequent NULL checking for "serial".
 >
-> <--  snip  -->
->
-> Spotted by the Coverity checker.
+> Looking at the code it also doesn't seem to have been intended to always
+> return 0.
 
-Signed-off-by: Marcel Holtmann <marcel@holtmann.org>
+Coverity is right. The check for NULL is wrongly done and the error
+return is lost.
+
+Signed-off-by: Oliver Neukum <oneukum@suse.de>
 Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/rfcomm/tty.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/usb/serial/usb-serial.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN net/bluetooth/rfcomm/tty.c~net-bluetooth-rfcomm-ttyc-use-after-free net/bluetooth/rfcomm/tty.c
---- a/net/bluetooth/rfcomm/tty.c~net-bluetooth-rfcomm-ttyc-use-after-free
-+++ a/net/bluetooth/rfcomm/tty.c
-@@ -267,7 +267,7 @@ static int rfcomm_dev_add(struct rfcomm_
- out:
- 	write_unlock_bh(&rfcomm_dev_lock);
+diff -puN drivers/usb/serial/usb-serial.c~usb_serial_suspend-buggy-code drivers/usb/serial/usb-serial.c
+--- a/drivers/usb/serial/usb-serial.c~usb_serial_suspend-buggy-code
++++ a/drivers/usb/serial/usb-serial.c
+@@ -1077,16 +1077,17 @@ int usb_serial_suspend(struct usb_interf
+ 	struct usb_serial_port *port;
+ 	int i, r = 0;
  
--	if (err) {
-+	if (err < 0) {
- 		kfree(dev);
- 		return err;
+-	if (serial) {
+-		for (i = 0; i < serial->num_ports; ++i) {
+-			port = serial->port[i];
+-			if (port)
+-				kill_traffic(port);
+-		}
++	if (!serial) /* device has been disconnected */
++		return 0;
++
++	for (i = 0; i < serial->num_ports; ++i) {
++		port = serial->port[i];
++		if (port)
++			kill_traffic(port);
  	}
-@@ -275,9 +275,10 @@ out:
- 	dev->tty_dev = tty_register_device(rfcomm_tty_driver, dev->id, NULL);
  
- 	if (IS_ERR(dev->tty_dev)) {
-+		err = PTR_ERR(dev->tty_dev);
- 		list_del(&dev->list);
- 		kfree(dev);
--		return PTR_ERR(dev->tty_dev);
-+		return err;
- 	}
+ 	if (serial->type->suspend)
+-		serial->type->suspend(serial, message);
++		r = serial->type->suspend(serial, message);
  
- 	return dev->id;
+ 	return r;
+ }
 _
 
-Patches currently in -mm which might be from marcel@holtmann.org are
+Patches currently in -mm which might be from oneukum@suse.de are
 
-net-bluetooth-rfcomm-ttyc-use-after-free.patch
+usb_serial_suspend-buggy-code.patch
