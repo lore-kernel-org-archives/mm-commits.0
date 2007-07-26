@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lxfb-geode-add-framebuffer-support-for-the-amd-geode-lx.patch added to -mm tree
-Date: Thu, 26 Jul 2007 12:00:13 -0700
-Message-ID: <200707261900.l6QJ0D1F015594@imap1.linux-foundation.org>
+Subject: + uvesafb-the-driver-core.patch added to -mm tree
+Date: Thu, 26 Jul 2007 12:00:19 -0700
+Message-ID: <200707261900.l6QJ0JWN015609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44700 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44326 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759810AbXGZTA1 (ORCPT
+	by vger.kernel.org with ESMTP id S1765204AbXGZTAc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 15:00:27 -0400
+	Thu, 26 Jul 2007 15:00:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jordan.crouse@amd.com, adaplas@gmail.com
+Cc: spock@gentoo.org, adaplas@gmail.com
 
 
 The patch titled
-     lxfb: GEODE: Add framebuffer support for the AMD Geode LX
+     uvesafb: the driver core
 has been added to the -mm tree.  Its filename is
-     lxfb-geode-add-framebuffer-support-for-the-amd-geode-lx.patch
+     uvesafb-the-driver-core.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,1433 +26,2331 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lxfb: GEODE: Add framebuffer support for the AMD Geode LX
-From: Jordan Crouse <jordan.crouse@amd.com>
+Subject: uvesafb: the driver core
+From: Michal Januszewski <spock@gentoo.org>
 
-Add framebuffer support for the AMD Geode LX graphics engine.
+uvesafb is an enhanced version of vesafb.  It uses a userspace helper (v86d)
+to execute calls to the x86 Video BIOS functions.  The driver is not limited
+to any specific arch and whether it works on a given arch or not depends on
+that arch being supported by the userspace daemon.  It has been tested on
+x86_32 and x86_64.
 
-Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+A single BIOS call is represented by an instance of the uvesafb_ktask
+structure.  This structure contains a buffer, a completion struct and a
+uvesafb_task substructure, containing the values of the x86 registers, a flags
+field and a field indicating the length of the buffer.  Whenever a BIOS call
+is made in the driver, uvesafb_exec() builds a message using the uvesafb_task
+substructure and the contents of the buffer.  This message is then assigned a
+random ack number and sent to the userspace daemon using the connector
+interface.
+
+The message's sequence number is used as an index for the uvfb_tasks array,
+which provides a mapping from the messages coming from userspace to the
+in-kernel uvesafb_ktask structs.
+
+The userspace daemon performs the requested operation and sends a reply in the
+form of a uvesafb_task struct and, optionally, a buffer.  The seq and ack
+numbers in the reply should be exactly the same as those in the request.
+
+Each message from userspace is processed by uvesafb_cn_callback() and after
+passing a few sanity checks leads to the completion of a BIOS call request.
+
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/Kconfig     |   15 
- drivers/video/geode/Makefile    |    2 
- drivers/video/geode/lxfb.h      |  199 +++++++++
- drivers/video/geode/lxfb_core.c |  621 ++++++++++++++++++++++++++++++
- drivers/video/geode/lxfb_ops.c  |  536 +++++++++++++++++++++++++
- 5 files changed, 1373 insertions(+)
+ drivers/video/Kconfig   |   18 
+ drivers/video/Makefile  |    1 
+ drivers/video/uvesafb.c | 2032 ++++++++++++++++++++++++++++++++++++++
+ include/video/Kbuild    |    2 
+ include/video/uvesafb.h |  193 +++
+ 5 files changed, 2245 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/geode/Kconfig~lxfb-geode-add-framebuffer-support-for-the-amd-geode-lx drivers/video/geode/Kconfig
---- a/drivers/video/geode/Kconfig~lxfb-geode-add-framebuffer-support-for-the-amd-geode-lx
-+++ a/drivers/video/geode/Kconfig
-@@ -8,6 +8,21 @@ config FB_GEODE
- 	  Say 'Y' here to allow you to select framebuffer drivers for
- 	  the AMD Geode family of processors.
+diff -puN drivers/video/Kconfig~uvesafb-the-driver-core drivers/video/Kconfig
+--- a/drivers/video/Kconfig~uvesafb-the-driver-core
++++ a/drivers/video/Kconfig
+@@ -591,6 +591,24 @@ config FB_TGA
  
-+config FB_GEODE_LX
-+	tristate "AMD Geode LX framebuffer support (EXPERIMENTAL)"
-+	depends on FB && FB_GEODE
+ 	  Say Y if you have one of those.
+ 
++config FB_UVESA
++	tristate "Userspace VESA VGA graphics support"
++	depends on FB && CONNECTOR
 +	select FB_CFB_FILLRECT
 +	select FB_CFB_COPYAREA
 +	select FB_CFB_IMAGEBLIT
-+	---help---
-+	  Framebuffer driver for the display controller integrated into the
-+	  AMD Geode LX processors.
++	select FB_MODE_HELPERS
++	help
++	  This is the frame buffer driver for generic VBE 2.0 compliant
++	  graphic cards. It can also take advantage of VBE 3.0 features,
++	  such as refresh rate adjustment.
 +
-+	  To compile this driver as a module, choose M here: the module will
-+	  be called lxfb.
++	  This driver generally provides more features than vesafb but
++	  requires a userspace helper application called 'v86d'. See
++	  <file:Documentation/fb/uvesafb.txt> for more information.
 +
 +	  If unsure, say N.
 +
- config FB_GEODE_GX
- 	tristate "AMD Geode GX framebuffer support (EXPERIMENTAL)"
- 	depends on FB && FB_GEODE && EXPERIMENTAL
-diff -puN drivers/video/geode/Makefile~lxfb-geode-add-framebuffer-support-for-the-amd-geode-lx drivers/video/geode/Makefile
---- a/drivers/video/geode/Makefile~lxfb-geode-add-framebuffer-support-for-the-amd-geode-lx
-+++ a/drivers/video/geode/Makefile
-@@ -2,6 +2,8 @@
+ config FB_VESA
+ 	bool "VESA VGA graphics support"
+ 	depends on (FB = y) && X86
+diff -puN drivers/video/Makefile~uvesafb-the-driver-core drivers/video/Makefile
+--- a/drivers/video/Makefile~uvesafb-the-driver-core
++++ a/drivers/video/Makefile
+@@ -115,6 +115,7 @@ obj-$(CONFIG_FB_XILINX)           += xil
+ obj-$(CONFIG_FB_OMAP)             += omap/
  
- obj-$(CONFIG_FB_GEODE_GX1) += gx1fb.o
- obj-$(CONFIG_FB_GEODE_GX)  += gxfb.o
-+obj-$(CONFIG_FB_GEODE_LX)  += lxfb.o
- 
- gx1fb-objs := gx1fb_core.o display_gx1.o video_cs5530.o
- gxfb-objs  := gxfb_core.o display_gx.o video_gx.o
-+lxfb-objs  := lxfb_core.o lxfb_ops.o
-diff -puN /dev/null drivers/video/geode/lxfb.h
+ # Platform or fallback drivers go here
++obj-$(CONFIG_FB_UVESA)            += uvesafb.o
+ obj-$(CONFIG_FB_VESA)             += vesafb.o
+ obj-$(CONFIG_FB_IMAC)             += imacfb.o
+ obj-$(CONFIG_FB_VGA16)            += vga16fb.o
+diff -puN /dev/null drivers/video/uvesafb.c
 --- /dev/null
-+++ a/drivers/video/geode/lxfb.h
-@@ -0,0 +1,199 @@
-+#ifndef _LXFB_H_
-+#define _LXFB_H_
-+
-+#include <linux/fb.h>
-+
-+#define OUTPUT_CRT   0x01
-+#define OUTPUT_PANEL 0x02
-+
-+struct lxfb_par {
-+	int output;
-+	int panel_width;
-+	int panel_height;
-+
-+	void __iomem *gp_regs;
-+	void __iomem *dc_regs;
-+	void __iomem *df_regs;
-+};
-+
-+static inline unsigned int lx_get_pitch(unsigned int xres, int bpp)
-+{
-+	return (((xres * (bpp >> 3)) + 7) & ~7);
-+}
-+
-+void lx_set_mode(struct fb_info *);
-+void lx_get_gamma(struct fb_info *, unsigned int *, int);
-+void lx_set_gamma(struct fb_info *, unsigned int *, int);
-+unsigned int lx_framebuffer_size(void);
-+int lx_blank_display(struct fb_info *, int);
-+void lx_set_palette_reg(struct fb_info *, unsigned int, unsigned int,
-+			unsigned int, unsigned int);
-+
-+/* MSRS */
-+
-+#define MSR_LX_GLD_CONFIG    0x48002001
-+#define MSR_LX_GLCP_DOTPLL   0x4c000015
-+#define MSR_LX_DF_PADSEL     0x48000011
-+#define MSR_LX_DC_SPARE      0x80000011
-+#define MSR_LX_DF_GLCONFIG   0x48002001
-+
-+#define MSR_LX_GLIU0_P2D_RO0 0x10000029
-+
-+#define GLCP_DOTPLL_RESET    (1 << 0)
-+#define GLCP_DOTPLL_BYPASS   (1 << 15)
-+#define GLCP_DOTPLL_HALFPIX  (1 << 24)
-+#define GLCP_DOTPLL_LOCK     (1 << 25)
-+
-+#define DF_CONFIG_OUTPUT_MASK       0x38
-+#define DF_OUTPUT_PANEL             0x08
-+#define DF_OUTPUT_CRT               0x00
-+#define DF_SIMULTANEOUS_CRT_AND_FP  (1 << 15)
-+
-+#define DF_DEFAULT_TFT_PAD_SEL_LOW  0xDFFFFFFF
-+#define DF_DEFAULT_TFT_PAD_SEL_HIGH 0x0000003F
-+
-+#define DC_SPARE_DISABLE_CFIFO_HGO         0x00000800
-+#define DC_SPARE_VFIFO_ARB_SELECT          0x00000400
-+#define DC_SPARE_WM_LPEN_OVRD              0x00000200
-+#define DC_SPARE_LOAD_WM_LPEN_MASK         0x00000100
-+#define DC_SPARE_DISABLE_INIT_VID_PRI      0x00000080
-+#define DC_SPARE_DISABLE_VFIFO_WM          0x00000040
-+#define DC_SPARE_DISABLE_CWD_CHECK         0x00000020
-+#define DC_SPARE_PIX8_PAN_FIX              0x00000010
-+#define DC_SPARE_FIRST_REQ_MASK            0x00000002
-+
-+/* Registers */
-+
-+#define DC_UNLOCK         0x00
-+#define  DC_UNLOCK_CODE   0x4758
-+
-+#define DC_GENERAL_CFG    0x04
-+#define  DC_GCFG_DFLE     (1 << 0)
-+#define  DC_GCFG_VIDE     (1 << 3)
-+#define  DC_GCFG_VGAE     (1 << 7)
-+#define  DC_GCFG_CMPE     (1 << 5)
-+#define  DC_GCFG_DECE     (1 << 6)
-+#define  DC_GCFG_FDTY     (1 << 17)
-+
-+#define DC_DISPLAY_CFG    0x08
-+#define  DC_DCFG_TGEN     (1 << 0)
-+#define  DC_DCFG_GDEN     (1 << 3)
-+#define  DC_DCFG_VDEN     (1 << 4)
-+#define  DC_DCFG_TRUP     (1 << 6)
-+#define  DC_DCFG_DCEN     (1 << 24)
-+#define  DC_DCFG_PALB     (1 << 25)
-+#define  DC_DCFG_VISL     (1 << 27)
-+
-+#define  DC_DCFG_16BPP           0x0
-+
-+#define  DC_DCFG_DISP_MODE_MASK  0x00000300
-+#define  DC_DCFG_DISP_MODE_8BPP  0x00000000
-+#define  DC_DCFG_DISP_MODE_16BPP 0x00000100
-+#define  DC_DCFG_DISP_MODE_24BPP 0x00000200
-+#define  DC_DCFG_DISP_MODE_32BPP 0x00000300
-+
-+
-+#define DC_ARB_CFG        0x0C
-+
-+#define DC_FB_START       0x10
-+#define DC_CB_START       0x14
-+#define DC_CURSOR_START   0x18
-+
-+#define DC_DV_TOP          0x2C
-+#define DC_DV_TOP_ENABLE   (1 << 0)
-+
-+#define DC_LINE_SIZE       0x30
-+#define DC_GRAPHICS_PITCH  0x34
-+#define DC_H_ACTIVE_TIMING 0x40
-+#define DC_H_BLANK_TIMING  0x44
-+#define DC_H_SYNC_TIMING   0x48
-+#define DC_V_ACTIVE_TIMING 0x50
-+#define DC_V_BLANK_TIMING  0x54
-+#define DC_V_SYNC_TIMING   0x58
-+#define DC_FB_ACTIVE       0x5C
-+
-+#define DC_PAL_ADDRESS     0x70
-+#define DC_PAL_DATA        0x74
-+
-+#define DC_PHY_MEM_OFFSET  0x84
-+
-+#define DC_DV_CTL          0x88
-+#define DC_DV_LINE_SIZE_MASK               0x00000C00
-+#define DC_DV_LINE_SIZE_1024               0x00000000
-+#define DC_DV_LINE_SIZE_2048               0x00000400
-+#define DC_DV_LINE_SIZE_4096               0x00000800
-+#define DC_DV_LINE_SIZE_8192               0x00000C00
-+
-+
-+#define DC_GFX_SCALE       0x90
-+#define DC_IRQ_FILT_CTL    0x94
-+
-+
-+#define DC_IRQ               0xC8
-+#define  DC_IRQ_MASK         (1 << 0)
-+#define  DC_VSYNC_IRQ_MASK   (1 << 1)
-+#define  DC_IRQ_STATUS       (1 << 20)
-+#define  DC_VSYNC_IRQ_STATUS (1 << 21)
-+
-+#define DC_GENLCK_CTRL      0xD4
-+#define  DC_GENLCK_ENABLE   (1 << 18)
-+#define  DC_GC_ALPHA_FLICK_ENABLE  (1 << 25)
-+#define  DC_GC_FLICKER_FILTER_ENABLE (1 << 24)
-+#define  DC_GC_FLICKER_FILTER_MASK (0x0F << 28)
-+
-+#define DC_COLOR_KEY       0xB8
-+#define DC_CLR_KEY_ENABLE (1 << 24)
-+
-+
-+#define DC3_DV_LINE_SIZE_MASK               0x00000C00
-+#define DC3_DV_LINE_SIZE_1024               0x00000000
-+#define DC3_DV_LINE_SIZE_2048               0x00000400
-+#define DC3_DV_LINE_SIZE_4096               0x00000800
-+#define DC3_DV_LINE_SIZE_8192               0x00000C00
-+
-+#define DF_VIDEO_CFG       0x0
-+#define  DF_VCFG_VID_EN    (1 << 0)
-+
-+#define DF_DISPLAY_CFG     0x08
-+
-+#define DF_DCFG_CRT_EN     (1 << 0)
-+#define DF_DCFG_HSYNC_EN   (1 << 1)
-+#define DF_DCFG_VSYNC_EN   (1 << 2)
-+#define DF_DCFG_DAC_BL_EN  (1 << 3)
-+#define DF_DCFG_CRT_HSYNC_POL  (1 << 8)
-+#define DF_DCFG_CRT_VSYNC_POL  (1 << 9)
-+#define DF_DCFG_GV_PAL_BYP     (1 << 21)
-+
-+#define DF_DCFG_CRT_SYNC_SKW_INIT 0x10000
-+#define DF_DCFG_CRT_SYNC_SKW_MASK  0x1c000
-+
-+#define DF_DCFG_PWR_SEQ_DLY_INIT     0x80000
-+#define DF_DCFG_PWR_SEQ_DLY_MASK     0xe0000
-+
-+#define DF_MISC            0x50
-+
-+#define  DF_MISC_GAM_BYPASS (1 << 0)
-+#define  DF_MISC_DAC_PWRDN  (1 << 10)
-+#define  DF_MISC_A_PWRDN    (1 << 11)
-+
-+#define DF_PAR             0x38
-+#define DF_PDR             0x40
-+#define DF_ALPHA_CONTROL_1 0xD8
-+#define DF_VIDEO_REQUEST   0x120
-+
-+#define DF_PANEL_TIM1      0x400
-+#define DF_DEFAULT_TFT_PMTIM1 0x0
-+
-+#define DF_PANEL_TIM2      0x408
-+#define DF_DEFAULT_TFT_PMTIM2 0x08000000
-+
-+#define DF_FP_PM             0x410
-+#define  DF_FP_PM_P          (1 << 24)
-+
-+#define DF_DITHER_CONTROL    0x418
-+#define DF_DEFAULT_TFT_DITHCTL                  0x00000070
-+#define GP_BLT_STATUS      0x44
-+#define  GP_BS_BLT_BUSY    (1 << 0)
-+#define  GP_BS_CB_EMPTY    (1 << 4)
-+
-+#endif
-diff -puN /dev/null drivers/video/geode/lxfb_core.c
---- /dev/null
-+++ a/drivers/video/geode/lxfb_core.c
-@@ -0,0 +1,621 @@
++++ a/drivers/video/uvesafb.c
+@@ -0,0 +1,2032 @@
 +/*
-+ * Geode LX framebuffer driver.
++ * A framebuffer driver for VBE 2.0+ compliant video cards
 + *
-+ * Copyright (C) 2007 Advanced Micro Devices, Inc.
-+ * Built from gxfb (which is Copyright (C) 2006 Arcom Control Systems Ltd.)
++ * (c) 2007 Michal Januszewski <spock@gentoo.org>
++ *     Loosely based upon the vesafb driver.
 + *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
 + */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/string.h>
-+#include <linux/console.h>
-+#include <linux/mm.h>
-+#include <linux/slab.h>
-+#include <linux/delay.h>
-+#include <linux/fb.h>
 +#include <linux/init.h>
-+#include <linux/pci.h>
-+#include <linux/uaccess.h>
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/skbuff.h>
++#include <linux/timer.h>
++#include <linux/completion.h>
++#include <linux/connector.h>
++#include <linux/random.h>
++#include <linux/platform_device.h>
++#include <linux/limits.h>
++#include <linux/fb.h>
++#include <linux/io.h>
++#include <linux/mutex.h>
++#include <video/edid.h>
++#include <video/vga.h>
++#include <video/uvesafb.h>
++#ifdef CONFIG_MTRR
++#include <asm/mtrr.h>
++#endif
++#include "edid.h"
 +
-+#include "lxfb.h"
++static struct cb_id uvesafb_cn_id = {
++	.idx = CN_IDX_V86D,
++	.val = CN_VAL_V86D_UVESAFB
++};
++static char v86d_path[PATH_MAX] = "/sbin/v86d";
++static char v86d_started;	/* has v86d been started by uvesafb? */
 +
-+static char *mode_option;
-+static int noclear, nopanel, nocrt;
-+static int fbsize;
-+
-+/* Most of these modes are sorted in ascending order, but
-+ * since the first entry in this table is the "default" mode,
-+ * we try to make it something sane - 640x480-60 is sane
-+ */
-+
-+const struct fb_videomode geode_modedb[] __initdata = {
-+	/* 640x480-60 */
-+	{ NULL, 60, 640, 480, 39682, 48, 8, 25, 2, 88, 2,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 640x400-70 */
-+	{ NULL, 70, 640, 400, 39770, 40, 8, 28, 5, 96, 2,
-+	  FB_SYNC_HOR_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 640x480-70 */
-+	{ NULL, 70, 640, 480, 35014, 88, 24, 15, 2, 64, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 640x480-72 */
-+	{ NULL, 72, 640, 480, 32102, 120, 16, 20, 1, 40, 3,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 640x480-75 */
-+	{ NULL, 75, 640, 480, 31746, 120, 16, 16, 1, 64, 3,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 640x480-85 */
-+	{ NULL, 85, 640, 480, 27780, 80, 56, 25, 1, 56, 3,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 640x480-90 */
-+	{ NULL, 90, 640, 480, 26392, 96, 32, 22, 1, 64, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 640x480-100 */
-+	{ NULL, 100, 640, 480, 23167, 104, 40, 25, 1, 64, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 640x480-60 */
-+	{ NULL, 60, 640, 480, 39682, 48, 16, 25, 10, 88, 2,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 800x600-56 */
-+	{ NULL, 56, 800, 600, 27901, 128, 24, 22, 1, 72, 2,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 800x600-60 */
-+	{ NULL, 60, 800, 600, 25131, 72, 32, 23, 1, 136, 4,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 800x600-70 */
-+	{ NULL, 70, 800, 600, 21873, 120, 40, 21, 4, 80, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 800x600-72 */
-+	{ NULL, 72, 800, 600, 20052, 64, 56, 23, 37, 120, 6,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 800x600-75 */
-+	{ NULL, 75, 800, 600, 20202, 160, 16, 21, 1, 80, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 800x600-85 */
-+	{ NULL, 85, 800, 600, 17790, 152, 32, 27, 1, 64, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 800x600-90 */
-+	{ NULL, 90, 800, 600, 16648, 128, 40, 28, 1, 88, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 800x600-100 */
-+	{ NULL, 100, 800, 600, 14667, 136, 48, 27, 1, 88, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 800x600-60 */
-+	{ NULL, 60, 800, 600, 25131, 88, 40, 23, 1, 128, 4,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 1024x768-60 */
-+	{ NULL, 60, 1024, 768, 15385, 160, 24, 29, 3, 136, 6,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 1024x768-70 */
-+	{ NULL, 70, 1024, 768, 13346, 144, 24, 29, 3, 136, 6,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 1024x768-72 */
-+	{ NULL, 72, 1024, 768, 12702, 168, 56, 29, 4, 112, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1024x768-75 */
-+	{ NULL, 75, 1024, 768, 12703, 176, 16, 28, 1, 96, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1024x768-85 */
-+	{ NULL, 85, 1024, 768, 10581, 208, 48, 36, 1, 96, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1024x768-90 */
-+	{ NULL, 90, 1024, 768, 9981, 176, 64, 37, 1, 112, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1024x768-100 */
-+	{ NULL, 100, 1024, 768, 8825, 184, 72, 42, 1, 112, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1024x768-60 */
-+	{ NULL, 60, 1024, 768, 15385, 160, 24, 29, 3, 136, 6,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 1152x864-60 */
-+	{ NULL, 60, 1152, 864, 12251, 184, 64, 27, 1, 120, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1152x864-70 */
-+	{ NULL, 70, 1152, 864, 10254, 192, 72, 32, 8, 120, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1152x864-72 */
-+	{ NULL, 72, 1152, 864, 9866, 200, 72, 33, 7, 128, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1152x864-75 */
-+	{ NULL, 75, 1152, 864, 9259, 256, 64, 32, 1, 128, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1152x864-85 */
-+	{ NULL, 85, 1152, 864, 8357, 200, 72, 37, 3, 128, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1152x864-90 */
-+	{ NULL, 90, 1152, 864, 7719, 208, 80, 42, 9, 128, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1152x864-100 */
-+	{ NULL, 100, 1152, 864, 6947, 208, 80, 48, 3, 128, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1152x864-60 */
-+	{ NULL, 60, 1152, 864, 12251, 184, 64, 27, 1, 120, 3,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 1280x1024-60 */
-+	{ NULL, 60, 1280, 1024, 9262, 248, 48, 38, 1, 112, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1280x1024-70 */
-+	{ NULL, 70, 1280, 1024, 7719, 224, 88, 38, 6, 136, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1280x1024-72 */
-+	{ NULL, 72, 1280, 1024, 7490, 224, 88, 39, 7, 136, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1280x1024-75 */
-+	{ NULL, 75, 1280, 1024, 7409, 248, 16, 38, 1, 144, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1280x1024-85 */
-+	{ NULL, 85, 1280, 1024, 6351, 224, 64, 44, 1, 160, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1280x1024-90 */
-+	{ NULL, 90, 1280, 1024, 5791, 240, 96, 51, 12, 144, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1280x1024-100 */
-+	{ NULL, 100, 1280, 1024, 5212, 240, 96, 57, 6, 144, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1280x1024-60 */
-+	{ NULL, 60, 1280, 1024, 9262, 248, 48, 38, 1, 112, 3,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 1600x1200-60 */
-+	{ NULL, 60, 1600, 1200, 6172, 304, 64, 46, 1, 192, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1600x1200-70 */
-+	{ NULL, 70, 1600, 1200, 5291, 304, 64, 46, 1, 192, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1600x1200-72 */
-+	{ NULL, 72, 1600, 1200, 5053, 288, 112, 47, 13, 176, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1600x1200-75 */
-+	{ NULL, 75, 1600, 1200, 4938, 304, 64, 46, 1, 192, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1600x1200-85 */
-+	{ NULL, 85, 1600, 1200, 4357, 304, 64, 46, 1, 192, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1600x1200-90 */
-+	{ NULL, 90, 1600, 1200, 3981, 304, 128, 60, 1, 176, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1600x1200-100 */
-+	{ NULL, 100, 1600, 1200, 3563, 304, 128, 67, 1, 176, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1600x1200-60 */
-+	{ NULL, 60, 1600, 1200, 6172, 304, 64, 46, 1, 192, 3,
-+	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-+	  FB_VMODE_NONINTERLACED, 0 },
-+	/* 1920x1440-60 */
-+	{ NULL, 60, 1920, 1440, 4273, 344, 128, 56, 1, 208, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1920x1440-70 */
-+	{ NULL, 70, 1920, 1440, 3593, 360, 152, 55, 8, 208, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1920x1440-72 */
-+	{ NULL, 72, 1920, 1440, 3472, 360, 152, 68, 4, 208, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1920x1440-75 */
-+	{ NULL, 75, 1920, 1440, 3367, 352, 144, 56, 1, 224, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
-+	/* 1920x1440-85 */
-+	{ NULL, 85, 1920, 1440, 2929, 368, 152, 68, 1, 216, 3,
-+	  0, FB_VMODE_NONINTERLACED, 0 },
++static struct fb_fix_screeninfo uvesafb_fix __devinitdata = {
++	.id	= "VESA VGA",
++	.type	= FB_TYPE_PACKED_PIXELS,
++	.accel	= FB_ACCEL_NONE,
 +};
 +
-+static int lxfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
++static int mtrr		__devinitdata = 3; /* enable mtrr by default */
++static int blank	__devinitdata = 1; /* enable blanking by default */
++static int ypan		__devinitdata = 1; /* 0: scroll, 1: ypan, 2: ywrap */
++static int pmi_setpal	__devinitdata = 1; /* use PMI for palette changes */
++static int nocrtc	__devinitdata; /* ignore CRTC settings */
++static int noedid	__devinitdata; /* don't try DDC transfers */
++static int vram_remap	__devinitdata; /* set amt. of memory to be used */
++static int vram_total	__devinitdata; /* set total amount of memory */
++static u16 maxclk	__devinitdata; /* maximum pixel clock */
++static u16 maxvf	__devinitdata; /* maximum vertical frequency */
++static u16 maxhf	__devinitdata; /* maximum horizontal frequency */
++static u16 vbemode	__devinitdata; /* force use of a specific VBE mode */
++static char *mode_option __devinitdata;
++
++static struct uvesafb_ktask *uvfb_tasks[UVESAFB_TASKS_MAX];
++static DEFINE_MUTEX(uvfb_lock);
++
++/*
++ * A handler for replies from userspace.
++ *
++ * Make sure each message passes consistency checks and if it does,
++ * find the kernel part of the task struct, copy the registers and
++ * the buffer contents and then complete the task.
++ */
++static void uvesafb_cn_callback(void *data)
 +{
-+	if (var->xres > 1920 || var->yres > 1440)
++	struct cn_msg *msg = data;
++	struct uvesafb_task *utask;
++	struct uvesafb_ktask *task;
++
++	if (msg->seq >= UVESAFB_TASKS_MAX)
++		return;
++
++	mutex_lock(&uvfb_lock);
++	task = uvfb_tasks[msg->seq];
++
++	if (!task || msg->ack != task->ack) {
++		mutex_unlock(&uvfb_lock);
++		return;
++	}
++
++	utask = (struct uvesafb_task *)msg->data;
++
++	/* Sanity checks for the buffer length. */
++	if (task->t.buf_len < utask->buf_len ||
++	    utask->buf_len > msg->len - sizeof(*utask)) {
++		mutex_unlock(&uvfb_lock);
++		return;
++	}
++
++	uvfb_tasks[msg->seq] = NULL;
++	mutex_unlock(&uvfb_lock);
++
++	memcpy(&task->t, utask, sizeof(*utask));
++
++	if (task->t.buf_len && task->buf)
++		memcpy(task->buf, utask + 1, task->t.buf_len);
++
++	complete(task->done);
++	return;
++}
++
++static int uvesafb_helper_start(void)
++{
++	char *envp[] = {
++		"HOME=/",
++		"PATH=/sbin:/bin",
++		NULL,
++	};
++
++	char *argv[] = {
++		v86d_path,
++		NULL,
++	};
++
++	return call_usermodehelper(v86d_path, argv, envp, 1);
++}
++
++/*
++ * Execute a uvesafb task.
++ *
++ * Returns 0 if the task is executed successfully.
++ *
++ * A message sent to the userspace consists of the uvesafb_task
++ * struct and (optionally) a buffer. The uvesafb_task struct is
++ * a simplified version of uvesafb_ktask (its kernel counterpart)
++ * containing only the register values, flags and the length of
++ * the buffer.
++ *
++ * Each message is assigned a sequence number (increased linearly)
++ * and a random ack number. The sequence number is used as a key
++ * for the uvfb_tasks array which holds pointers to uvesafb_ktask
++ * structs for all requests.
++ */
++static int uvesafb_exec(struct uvesafb_ktask *task)
++{
++	static int seq;
++	struct cn_msg *m;
++	int err;
++	int len = sizeof(task->t) + task->t.buf_len;
++
++	/*
++	 * Check whether the message isn't longer than the maximum
++	 * allowed by connector.
++	 */
++	if (sizeof(*m) + len > CONNECTOR_MAX_MSG_SIZE) {
++		printk(KERN_WARNING "uvesafb: message too long (%d), "
++			"can't execute task\n", (int)(sizeof(*m) + len));
++		return -E2BIG;
++	}
++
++	m = kzalloc(sizeof(*m) + len, GFP_KERNEL);
++	if (!m)
++		return -ENOMEM;
++
++	init_completion(task->done);
++
++	memcpy(&m->id, &uvesafb_cn_id, sizeof(m->id));
++	m->seq = seq;
++	m->len = len;
++	m->ack = random32();
++
++	/* uvesafb_task structure */
++	memcpy(m + 1, &task->t, sizeof(task->t));
++
++	/* Buffer */
++	memcpy((u8 *)(m + 1) + sizeof(task->t), task->buf, task->t.buf_len);
++
++	/*
++	 * Save the message ack number so that we can find the kernel
++	 * part of this task when a reply is received from userspace.
++	 */
++	task->ack = m->ack;
++
++	mutex_lock(&uvfb_lock);
++
++	/* If all slots are taken -- bail out. */
++	if (uvfb_tasks[seq]) {
++		mutex_unlock(&uvfb_lock);
++		return -EBUSY;
++	}
++
++	/* Save a pointer to the kernel part of the task struct. */
++	uvfb_tasks[seq] = task;
++	mutex_unlock(&uvfb_lock);
++
++	err = cn_netlink_send(m, 0, gfp_any());
++	if (err == -ESRCH) {
++		/*
++		 * Try to start the userspace helper if sending
++		 * the request failed the first time.
++		 */
++		err = uvesafb_helper_start();
++		if (err) {
++			printk(KERN_ERR "uvesafb: failed to execute %s\n",
++					v86d_path);
++			printk(KERN_ERR "uvesafb: make sure that the v86d "
++					"helper is installed and executable\n");
++		} else {
++			v86d_started = 1;
++			err = cn_netlink_send(m, 0, gfp_any());
++		}
++	}
++	kfree(m);
++
++	if (!err && !(task->t.flags & TF_EXIT))
++		err = !wait_for_completion_timeout(task->done,
++				msecs_to_jiffies(UVESAFB_TIMEOUT));
++
++	seq++;
++	if (seq >= UVESAFB_TASKS_MAX)
++		seq = 0;
++
++	return err;
++}
++
++/*
++ * Free a uvesafb_ktask struct.
++ */
++static void uvesafb_free(struct uvesafb_ktask *task)
++{
++	if (task) {
++		if (task->done)
++			kfree(task->done);
++		kfree(task);
++	}
++}
++
++/*
++ * Prepare a uvesafb_ktask struct to be used again.
++ */
++static void uvesafb_reset(struct uvesafb_ktask *task)
++{
++	struct completion *cpl = task->done;
++
++	memset(task, 0, sizeof(*task));
++	task->done = cpl;
++}
++
++/*
++ * Allocate and prepare a uvesafb_ktask struct.
++ */
++static struct uvesafb_ktask *uvesafb_prep(void)
++{
++	struct uvesafb_ktask *task;
++
++	task = kzalloc(sizeof(*task), GFP_KERNEL);
++	if (task) {
++		task->done = kzalloc(sizeof(*task->done), GFP_KERNEL);
++		if (!task->done) {
++			kfree(task);
++			task = NULL;
++		}
++	}
++	return task;
++}
++
++static void uvesafb_setup_var(struct fb_var_screeninfo *var,
++		struct fb_info *info, struct vbe_mode_ib *mode)
++{
++	struct uvesafb_par *par = info->par;
++
++	var->vmode = FB_VMODE_NONINTERLACED;
++	var->sync = FB_SYNC_VERT_HIGH_ACT;
++
++	var->xres = mode->x_res;
++	var->yres = mode->y_res;
++	var->xres_virtual = mode->x_res;
++	var->yres_virtual = (par->ypan) ?
++			info->fix.smem_len / mode->bytes_per_scan_line :
++			mode->y_res;
++	var->xoffset = 0;
++	var->yoffset = 0;
++	var->bits_per_pixel = mode->bits_per_pixel;
++
++	if (var->bits_per_pixel == 15)
++		var->bits_per_pixel = 16;
++
++	if (var->bits_per_pixel > 8) {
++		var->red.offset    = mode->red_off;
++		var->red.length    = mode->red_len;
++		var->green.offset  = mode->green_off;
++		var->green.length  = mode->green_len;
++		var->blue.offset   = mode->blue_off;
++		var->blue.length   = mode->blue_len;
++		var->transp.offset = mode->rsvd_off;
++		var->transp.length = mode->rsvd_len;
++	} else {
++		var->red.offset    = 0;
++		var->green.offset  = 0;
++		var->blue.offset   = 0;
++		var->transp.offset = 0;
++
++		/*
++		 * We're assuming that we can switch the DAC to 8 bits. If
++		 * this proves to be incorrect, we'll update the fields
++		 * later in set_par().
++		 */
++		if (par->vbe_ib.capabilities & VBE_CAP_CAN_SWITCH_DAC) {
++			var->red.length    = 8;
++			var->green.length  = 8;
++			var->blue.length   = 8;
++			var->transp.length = 0;
++		} else {
++			var->red.length    = 6;
++			var->green.length  = 6;
++			var->blue.length   = 6;
++			var->transp.length = 0;
++		}
++	}
++}
++
++static int uvesafb_vbe_find_mode(struct uvesafb_par *par,
++		int xres, int yres, int depth, unsigned char flags)
++{
++	int i, match = -1, h = 0, d = 0x7fffffff;
++
++	for (i = 0; i < par->vbe_modes_cnt; i++) {
++		h = abs(par->vbe_modes[i].x_res - xres) +
++		    abs(par->vbe_modes[i].y_res - yres) +
++		    abs(depth - par->vbe_modes[i].depth);
++
++		/*
++		 * We have an exact match in terms of resolution
++		 * and depth.
++		 */
++		if (h == 0)
++			return i;
++
++		if (h < d || (h == d && par->vbe_modes[i].depth > depth)) {
++			d = h;
++			match = i;
++		}
++	}
++	i = 1;
++
++	if (flags & UVESAFB_EXACT_DEPTH &&
++			par->vbe_modes[match].depth != depth)
++		i = 0;
++
++	if (flags & UVESAFB_EXACT_RES && d > 24)
++		i = 0;
++
++	if (i != 0)
++		return match;
++	else
++		return -1;
++}
++
++static u8 *uvesafb_vbe_state_save(struct uvesafb_par *par)
++{
++	struct uvesafb_ktask *task;
++	u8 *state;
++	int err;
++
++	if (!par->vbe_state_size)
++		return NULL;
++
++	state = kmalloc(par->vbe_state_size, GFP_KERNEL);
++	if (!state)
++		return NULL;
++
++	task = uvesafb_prep();
++	if (!task) {
++		kfree(state);
++		return NULL;
++	}
++
++	task->t.regs.eax = 0x4f04;
++	task->t.regs.ecx = 0x000f;
++	task->t.regs.edx = 0x0001;
++	task->t.flags = TF_BUF_RET | TF_BUF_ESBX;
++	task->t.buf_len = par->vbe_state_size;
++	task->buf = state;
++	err = uvesafb_exec(task);
++
++	if (err || (task->t.regs.eax & 0xffff) != 0x004f) {
++		printk(KERN_WARNING "uvesafb: VBE get state call "
++				"failed (eax=0x%x, err=%d)\n",
++				task->t.regs.eax, err);
++		kfree(state);
++		state = NULL;
++	}
++
++	uvesafb_free(task);
++	return state;
++}
++
++static void uvesafb_vbe_state_restore(struct uvesafb_par *par, u8 *state_buf)
++{
++	struct uvesafb_ktask *task;
++	int err;
++
++	if (!state_buf)
++		return;
++
++	task = uvesafb_prep();
++	if (!task)
++		return;
++
++	task->t.regs.eax = 0x4f04;
++	task->t.regs.ecx = 0x000f;
++	task->t.regs.edx = 0x0002;
++	task->t.buf_len = par->vbe_state_size;
++	task->t.flags = TF_BUF_ESBX;
++	task->buf = state_buf;
++
++	err = uvesafb_exec(task);
++	if (err || (task->t.regs.eax & 0xffff) != 0x004f)
++		printk(KERN_WARNING "vesafb: VBE state restore call "
++				"failed (eax=0x%x, err=%d)\n",
++				task->t.regs.eax, err);
++
++	uvesafb_free(task);
++}
++
++static int __devinit uvesafb_vbe_getinfo(struct uvesafb_ktask *task,
++		struct uvesafb_par *par)
++{
++	int err;
++
++	task->t.regs.eax = 0x4f00;
++	task->t.flags = TF_VBEIB;
++	task->t.buf_len = sizeof(struct vbe_ib);
++	task->buf = &par->vbe_ib;
++	strncpy(par->vbe_ib.vbe_signature, "VBE2", 4);
++
++	err = uvesafb_exec(task);
++	if (err || (task->t.regs.eax & 0xffff) != 0x004f) {
++		printk(KERN_ERR "uvesafb: Getting VBE info block failed "
++				"(eax=0x%x, err=%d)\n", (u32)task->t.regs.eax,
++				err);
++		return -EINVAL;
++	}
++
++	if (par->vbe_ib.vbe_version < 0x0200) {
++		printk(KERN_ERR "uvesafb: Sorry, pre-VBE 2.0 cards are "
++				"not supported.\n");
++		return -EINVAL;
++	}
++
++	if (!par->vbe_ib.mode_list_ptr) {
++		printk(KERN_ERR "uvesafb: Missing mode list!\n");
++		return -EINVAL;
++	}
++
++	printk(KERN_INFO "uvesafb: ");
++
++	/*
++	 * Convert string pointers and the mode list pointer into
++	 * usable addresses. Print informational messages about the
++	 * video adapter and its vendor.
++	 */
++	if (par->vbe_ib.oem_vendor_name_ptr)
++		printk("%s, ",
++			((char *)task->buf) + par->vbe_ib.oem_vendor_name_ptr);
++
++	if (par->vbe_ib.oem_product_name_ptr)
++		printk("%s, ",
++			((char *)task->buf) + par->vbe_ib.oem_product_name_ptr);
++
++	if (par->vbe_ib.oem_product_rev_ptr)
++		printk("%s, ",
++			((char *)task->buf) + par->vbe_ib.oem_product_rev_ptr);
++
++	if (par->vbe_ib.oem_string_ptr)
++		printk("OEM: %s, ",
++			((char *)task->buf) + par->vbe_ib.oem_string_ptr);
++
++	printk("VBE v%d.%d\n", ((par->vbe_ib.vbe_version & 0xff00) >> 8),
++			par->vbe_ib.vbe_version & 0xff);
++
++	return 0;
++}
++
++static int __devinit uvesafb_vbe_getmodes(struct uvesafb_ktask *task,
++		struct uvesafb_par *par)
++{
++	int off = 0, err;
++	u16 *mode;
++
++	par->vbe_modes_cnt = 0;
++
++	/* Count available modes. */
++	mode = (u16 *) (((u8 *)&par->vbe_ib) + par->vbe_ib.mode_list_ptr);
++	while (*mode != 0xffff) {
++		par->vbe_modes_cnt++;
++		mode++;
++	}
++
++	par->vbe_modes = kzalloc(sizeof(struct vbe_mode_ib) *
++				par->vbe_modes_cnt, GFP_KERNEL);
++	if (!par->vbe_modes)
++		return -ENOMEM;
++
++	/* Get info about all available modes. */
++	mode = (u16 *) (((u8 *)&par->vbe_ib) + par->vbe_ib.mode_list_ptr);
++	while (*mode != 0xffff) {
++		struct vbe_mode_ib *mib;
++
++		uvesafb_reset(task);
++		task->t.regs.eax = 0x4f01;
++		task->t.regs.ecx = (u32) *mode;
++		task->t.flags = TF_BUF_RET | TF_BUF_ESDI;
++		task->t.buf_len = sizeof(struct vbe_mode_ib);
++		task->buf = par->vbe_modes + off;
++
++		err = uvesafb_exec(task);
++		if (err || (task->t.regs.eax & 0xffff) != 0x004f) {
++			printk(KERN_ERR "uvesafb: Getting mode info block "
++				"for mode 0x%x failed (eax=0x%x, err=%d)\n",
++				*mode, (u32)task->t.regs.eax, err);
++			return -EINVAL;
++		}
++
++		mib = task->buf;
++		mib->mode_id = *mode;
++
++		/*
++		 * We only want modes that are supported with the current
++		 * hardware configuration, color, graphics and that have
++		 * support for the LFB.
++		 */
++		if ((mib->mode_attr & VBE_MODE_MASK) == VBE_MODE_MASK &&
++				 mib->bits_per_pixel >= 8)
++			off++;
++		else
++			par->vbe_modes_cnt--;
++
++		mode++;
++		mib->depth = mib->red_len + mib->green_len + mib->blue_len;
++
++		/*
++		 * Handle 8bpp modes and modes with broken color component
++		 * lengths.
++		 */
++		if (mib->depth == 0 || (mib->depth == 24 &&
++					mib->bits_per_pixel == 32))
++			mib->depth = mib->bits_per_pixel;
++	}
++
++	return 0;
++}
++
++/*
++ * The Protected Mode Interface is 32-bit x86 code, so we only run it on
++ * x86 and not x86_64.
++ */
++#ifdef CONFIG_X86_32
++static int __devinit uvesafb_vbe_getpmi(struct uvesafb_ktask *task,
++		struct uvesafb_par *par)
++{
++	int i, err;
++
++	uvesafb_reset(task);
++	task->t.regs.eax = 0x4f0a;
++	task->t.regs.ebx = 0x0;
++	err = uvesafb_exec(task);
++
++	if ((task->t.regs.eax & 0xffff) != 0x4f || task->t.regs.es < 0xc000) {
++		par->pmi_setpal = par->ypan = 0;
++	} else {
++		par->pmi_base = (u16 *)phys_to_virt(((u32)task->t.regs.es << 4)
++						+ task->t.regs.edi);
++		par->pmi_start = (u8 *)par->pmi_base + par->pmi_base[1];
++		par->pmi_pal = (u8 *)par->pmi_base + par->pmi_base[2];
++		printk(KERN_INFO "uvesafb: protected mode interface info at "
++				 "%04x:%04x\n",
++				 (u16)task->t.regs.es, (u16)task->t.regs.edi);
++		printk(KERN_INFO "uvesafb: pmi: set display start = %p, "
++				 "set palette = %p\n", par->pmi_start,
++				 par->pmi_pal);
++
++		if (par->pmi_base[3]) {
++			printk(KERN_INFO "uvesafb: pmi: ports = ");
++			for (i = par->pmi_base[3]/2;
++					par->pmi_base[i] != 0xffff; i++)
++				printk("%x ", par->pmi_base[i]);
++			printk("\n");
++
++			if (par->pmi_base[i] != 0xffff) {
++				printk(KERN_INFO "uvesafb: can't handle memory"
++						 " requests, pmi disabled\n");
++				par->ypan = par->pmi_setpal = 0;
++			}
++		}
++	}
++	return 0;
++}
++#endif /* CONFIG_X86_32 */
++
++/*
++ * Check whether a video mode is supported by the Video BIOS and is
++ * compatible with the monitor limits.
++ */
++static int __devinit uvesafb_is_valid_mode(struct fb_videomode *mode,
++		struct fb_info *info)
++{
++	if (info->monspecs.gtf) {
++		fb_videomode_to_var(&info->var, mode);
++		if (fb_validate_mode(&info->var, info))
++			return 0;
++	}
++
++	if (uvesafb_vbe_find_mode(info->par, mode->xres, mode->yres, 8,
++				UVESAFB_EXACT_RES) == -1)
++		return 0;
++
++	return 1;
++}
++
++static int __devinit uvesafb_vbe_getedid(struct uvesafb_ktask *task,
++		struct fb_info *info)
++{
++	struct uvesafb_par *par = info->par;
++	int err = 0;
++
++	if (noedid || par->vbe_ib.vbe_version < 0x0300)
 +		return -EINVAL;
 +
-+	if (var->bits_per_pixel == 32) {
-+		var->red.offset   = 16; var->red.length   = 8;
-+		var->green.offset =  8; var->green.length = 8;
-+		var->blue.offset  =  0; var->blue.length  = 8;
-+	} else if (var->bits_per_pixel == 16) {
-+		var->red.offset   = 11; var->red.length   = 5;
-+		var->green.offset =  5; var->green.length = 6;
-+		var->blue.offset  =  0; var->blue.length  = 5;
-+	} else if (var->bits_per_pixel == 8) {
-+		var->red.offset   = 0; var->red.length   = 8;
-+		var->green.offset = 0; var->green.length = 8;
-+		var->blue.offset  = 0; var->blue.length  = 8;
-+	} else
++	task->t.regs.eax = 0x4f15;
++	task->t.regs.ebx = 0;
++	task->t.regs.ecx = 0;
++	task->t.buf_len = 0;
++	task->t.flags = 0;
++
++	err = uvesafb_exec(task);
++
++	if ((task->t.regs.eax & 0xffff) != 0x004f || err)
 +		return -EINVAL;
 +
-+	var->transp.offset = 0; var->transp.length = 0;
-+
-+	/* Enough video memory? */
-+	if ((lx_get_pitch(var->xres, var->bits_per_pixel) * var->yres)
-+	    > info->fix.smem_len)
-+	  return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int lxfb_set_par(struct fb_info *info)
-+{
-+	if (info->var.bits_per_pixel > 8) {
-+		info->fix.visual = FB_VISUAL_TRUECOLOR;
-+		fb_dealloc_cmap(&info->cmap);
++	if ((task->t.regs.ebx & 0x3) == 3) {
++		printk(KERN_INFO "uvesafb: VBIOS/hardware supports both "
++				 "DDC1 and DDC2 transfers\n");
++	} else if ((task->t.regs.ebx & 0x3) == 2) {
++		printk(KERN_INFO "uvesafb: VBIOS/hardware supports DDC2 "
++				 "transfers\n");
++	} else if ((task->t.regs.ebx & 0x3) == 1) {
++		printk(KERN_INFO "uvesafb: VBIOS/hardware supports DDC1 "
++				 "transfers\n");
 +	} else {
-+		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
-+		fb_alloc_cmap(&info->cmap, 1<<info->var.bits_per_pixel, 0);
++		printk(KERN_INFO "uvesafb: VBIOS/hardware doesn't support "
++				 "DDC transfers\n");
++		return -EINVAL;
 +	}
 +
-+	info->fix.line_length = lx_get_pitch(info->var.xres,
-+		info->var.bits_per_pixel);
++	task->t.regs.eax = 0x4f15;
++	task->t.regs.ebx = 1;
++	task->t.regs.ecx = task->t.regs.edx = 0;
++	task->t.flags = TF_BUF_RET | TF_BUF_ESDI;
++	task->t.buf_len = EDID_LENGTH;
++	task->buf = kzalloc(EDID_LENGTH, GFP_KERNEL);
 +
-+	lx_set_mode(info);
-+	return 0;
-+}
++	err = uvesafb_exec(task);
 +
-+static inline u_int chan_to_field(u_int chan, struct fb_bitfield *bf)
-+{
-+	chan &= 0xffff;
-+	chan >>= 16 - bf->length;
-+	return chan << bf->offset;
-+}
++	if ((task->t.regs.eax & 0xffff) == 0x004f && !err) {
++		fb_edid_to_monspecs(task->buf, &info->monspecs);
 +
-+static int lxfb_setcolreg(unsigned regno, unsigned red, unsigned green,
-+			   unsigned blue, unsigned transp,
-+			   struct fb_info *info)
-+{
-+	if (info->var.grayscale) {
-+		/* grayscale = 0.30*R + 0.59*G + 0.11*B */
-+		red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
++		if (info->monspecs.vfmax && info->monspecs.hfmax) {
++			/*
++			 * If the maximum pixel clock wasn't specified in
++			 * the EDID block, set it to 300 MHz.
++			 */
++			if (info->monspecs.dclkmax == 0)
++				info->monspecs.dclkmax = 300 * 1000000;
++			info->monspecs.gtf = 1;
++		}
++	} else {
++		err = -EINVAL;
 +	}
 +
-+	/* Truecolor has hardware independent palette */
-+	if (info->fix.visual == FB_VISUAL_TRUECOLOR) {
-+		u32 *pal = info->pseudo_palette;
-+		u32 v;
++	kfree(task->buf);
++	return err;
++}
 +
-+		if (regno >= 16)
++static void __devinit uvesafb_vbe_getmonspecs(struct uvesafb_ktask *task,
++		struct fb_info *info)
++{
++	struct uvesafb_par *par = info->par;
++	int i;
++
++	memset(&info->monspecs, 0, sizeof(info->monspecs));
++
++	/*
++	 * If we don't get all necessary data from the EDID block,
++	 * mark it as incompatible with the GTF.
++	 */
++	if (uvesafb_vbe_getedid(task, info))
++		info->monspecs.gtf = 0;
++
++	/* Kernel command line overrides. */
++	if (maxclk)
++		info->monspecs.dclkmax = maxclk * 1000000;
++	if (maxvf)
++		info->monspecs.vfmax = maxvf;
++	if (maxhf)
++		info->monspecs.hfmax = maxhf * 1000;
++
++	/*
++	 * In case DDC transfers are not supported, the user can provide
++	 * monitor limits manually. Lower limits are set to "safe" values.
++	 */
++	if (info->monspecs.gtf == 0 && maxclk && maxvf && maxhf) {
++		info->monspecs.dclkmin = 0;
++		info->monspecs.vfmin = 60;
++		info->monspecs.hfmin = 29000;
++		info->monspecs.gtf = 1;
++	}
++
++	if (info->monspecs.gtf)
++		printk(KERN_INFO
++			"uvesafb: monitor limits: vf = %d Hz, hf = %d kHz, "
++			"clk = %d MHz\n", info->monspecs.vfmax,
++			(int)(info->monspecs.hfmax / 1000),
++			(int)(info->monspecs.dclkmax / 1000000));
++	else
++		printk(KERN_INFO "uvesafb: no monitor limits have been set\n");
++
++	/* Add VBE modes to the modelist. */
++	for (i = 0; i < par->vbe_modes_cnt; i++) {
++		struct fb_var_screeninfo var;
++		struct vbe_mode_ib *mode;
++		struct fb_videomode vmode;
++
++		mode = &par->vbe_modes[i];
++		memset(&var, 0, sizeof(var));
++
++		var.xres = mode->x_res;
++		var.yres = mode->y_res;
++
++		fb_get_mode(FB_VSYNCTIMINGS | FB_IGNOREMON, 60, &var, info);
++		fb_var_to_videomode(&vmode, &var);
++		fb_add_videomode(&vmode, &info->modelist);
++	}
++
++	/* Add valid VESA modes to our modelist. */
++	for (i = 0; i < VESA_MODEDB_SIZE; i++) {
++		if (uvesafb_is_valid_mode((struct fb_videomode *)
++						&vesa_modes[i], info))
++			fb_add_videomode(&vesa_modes[i], &info->modelist);
++	}
++
++	for (i = 0; i < info->monspecs.modedb_len; i++) {
++		if (uvesafb_is_valid_mode(&info->monspecs.modedb[i], info))
++			fb_add_videomode(&info->monspecs.modedb[i],
++					&info->modelist);
++	}
++
++	return;
++}
++
++static void __devinit uvesafb_vbe_getstatesize(struct uvesafb_ktask *task,
++		struct uvesafb_par *par)
++{
++	int err;
++
++	uvesafb_reset(task);
++
++	/*
++	 * Get the VBE state buffer size. We want all available
++	 * hardware state data (CL = 0x0f).
++	 */
++	task->t.regs.eax = 0x4f04;
++	task->t.regs.ecx = 0x000f;
++	task->t.regs.edx = 0x0000;
++	task->t.flags = 0;
++
++	err = uvesafb_exec(task);
++
++	if (err || (task->t.regs.eax & 0xffff) != 0x004f) {
++		printk(KERN_WARNING "uvesafb: VBE state buffer size "
++			"cannot be determined (eax=0x%x, err=%d)\n",
++			task->t.regs.eax, err);
++		par->vbe_state_size = 0;
++		return;
++	}
++
++	par->vbe_state_size = 64 * (task->t.regs.ebx & 0xffff);
++}
++
++static int __devinit uvesafb_vbe_init(struct fb_info *info)
++{
++	struct uvesafb_ktask *task = NULL;
++	struct uvesafb_par *par = info->par;
++	int err;
++
++	task = uvesafb_prep();
++	if (!task)
++		return -ENOMEM;
++
++	err = uvesafb_vbe_getinfo(task, par);
++	if (err)
++		goto out;
++
++	err = uvesafb_vbe_getmodes(task, par);
++	if (err)
++		goto out;
++
++	par->nocrtc = nocrtc;
++#ifdef CONFIG_X86_32
++	par->pmi_setpal = pmi_setpal;
++	par->ypan = ypan;
++
++	if (par->pmi_setpal || par->ypan)
++		uvesafb_vbe_getpmi(task, par);
++#else
++	/* The protected mode interface is not available on non-x86. */
++	par->pmi_setpal = par->ypan = 0;
++#endif
++
++	INIT_LIST_HEAD(&info->modelist);
++	uvesafb_vbe_getmonspecs(task, info);
++	uvesafb_vbe_getstatesize(task, par);
++
++out:	uvesafb_free(task);
++	return err;
++}
++
++static int __devinit uvesafb_vbe_init_mode(struct fb_info *info)
++{
++	struct list_head *pos;
++	struct fb_modelist *modelist;
++	struct fb_videomode *mode;
++	struct uvesafb_par *par = info->par;
++	int i, modeid;
++
++	/* Has the user requested a specific VESA mode? */
++	if (vbemode) {
++		for (i = 0; i < par->vbe_modes_cnt; i++) {
++			if (par->vbe_modes[i].mode_id == vbemode) {
++				fb_get_mode(FB_VSYNCTIMINGS | FB_IGNOREMON, 60,
++							&info->var, info);
++				/*
++				 * With pixclock set to 0, the default BIOS
++				 * timings will be used in set_par().
++				 */
++				info->var.pixclock = 0;
++				modeid = i;
++				goto gotmode;
++			}
++		}
++		printk(KERN_INFO "uvesafb: requested VBE mode 0x%x is "
++				 "unavailable\n", vbemode);
++		vbemode = 0;
++	}
++
++	/* Count the modes in the modelist */
++	i = 0;
++	list_for_each(pos, &info->modelist)
++		i++;
++
++	/*
++	 * Convert the modelist into a modedb so that we can use it with
++	 * fb_find_mode().
++	 */
++	mode = kzalloc(i * sizeof(*mode), GFP_KERNEL);
++	if (mode) {
++		i = 0;
++		list_for_each(pos, &info->modelist) {
++			modelist = list_entry(pos, struct fb_modelist, list);
++			mode[i] = modelist->mode;
++			i++;
++		}
++
++		if (!mode_option)
++			mode_option = UVESAFB_DEFAULT_MODE;
++
++		i = fb_find_mode(&info->var, info, mode_option, mode, i,
++			NULL, 8);
++
++		kfree(mode);
++	}
++
++	/* fb_find_mode() failed */
++	if (i == 0 || i >= 3) {
++		info->var.xres = 640;
++		info->var.yres = 480;
++		mode = (struct fb_videomode *)
++				fb_find_best_mode(&info->var, &info->modelist);
++
++		if (mode) {
++			fb_videomode_to_var(&info->var, mode);
++		} else {
++			modeid = par->vbe_modes[0].mode_id;
++			fb_get_mode(FB_VSYNCTIMINGS | FB_IGNOREMON, 60,
++				    &info->var, info);
++			goto gotmode;
++		}
++	}
++
++	/* Look for a matching VBE mode. */
++	modeid = uvesafb_vbe_find_mode(par, info->var.xres, info->var.yres,
++			info->var.bits_per_pixel, UVESAFB_EXACT_RES);
++
++	if (modeid == -1)
++		return -EINVAL;
++
++gotmode:
++	uvesafb_setup_var(&info->var, info, &par->vbe_modes[modeid]);
++
++	/*
++	 * If we are not VBE3.0+ compliant, we're done -- the BIOS will
++	 * ignore our timings anyway.
++	 */
++	if (par->vbe_ib.vbe_version < 0x0300)
++		fb_get_mode(FB_VSYNCTIMINGS | FB_IGNOREMON, 60,
++					&info->var, info);
++
++	return modeid;
++}
++
++static int uvesafb_setpalette(struct uvesafb_pal_entry *entries, int count,
++		int start, struct fb_info *info)
++{
++	struct uvesafb_ktask *task;
++	struct uvesafb_par *par = info->par;
++	int i = par->mode_idx;
++	int err = 0;
++
++	/*
++	 * We support palette modifications for 8 bpp modes only, so
++	 * there can never be more than 256 entries.
++	 */
++	if (start + count > 256)
++		return -EINVAL;
++
++	/* Use VGA registers if mode is VGA-compatible. */
++	if (i >= 0 && i < par->vbe_modes_cnt &&
++	    par->vbe_modes[i].mode_attr & VBE_MODE_VGACOMPAT) {
++		for (i = 0; i < count; i++) {
++			outb_p(start + i,        dac_reg);
++			outb_p(entries[i].red,   dac_val);
++			outb_p(entries[i].green, dac_val);
++			outb_p(entries[i].blue,  dac_val);
++		}
++	}
++#ifdef CONFIG_X86_32
++	else if (par->pmi_setpal) {
++		__asm__ __volatile__(
++		"call *(%%esi)"
++		: /* no return value */
++		: "a" (0x4f09),         /* EAX */
++		  "b" (0),              /* EBX */
++		  "c" (count),          /* ECX */
++		  "d" (start),          /* EDX */
++		  "D" (entries),        /* EDI */
++		  "S" (&par->pmi_pal)); /* ESI */
++	}
++#endif
++	else {
++		task = uvesafb_prep();
++		if (!task)
++			return -ENOMEM;
++
++		task->t.regs.eax = 0x4f09;
++		task->t.regs.ebx = 0x0;
++		task->t.regs.ecx = count;
++		task->t.regs.edx = start;
++		task->t.flags = TF_BUF_ESDI;
++		task->t.buf_len = sizeof(struct uvesafb_pal_entry) * count;
++		task->buf = entries;
++
++		err = uvesafb_exec(task);
++		if ((task->t.regs.eax & 0xffff) != 0x004f)
++			err = 1;
++
++		uvesafb_free(task);
++	}
++	return err;
++}
++
++static int uvesafb_setcolreg(unsigned regno, unsigned red, unsigned green,
++		unsigned blue, unsigned transp,
++		struct fb_info *info)
++{
++	struct uvesafb_pal_entry entry;
++	int shift = 16 - info->var.green.length;
++	int err = 0;
++
++	if (regno >= info->cmap.len)
++		return -EINVAL;
++
++	if (info->var.bits_per_pixel == 8) {
++		entry.red   = red   >> shift;
++		entry.green = green >> shift;
++		entry.blue  = blue  >> shift;
++		entry.pad   = 0;
++
++		err = uvesafb_setpalette(&entry, 1, regno, info);
++	} else if (regno < 16) {
++		switch (info->var.bits_per_pixel) {
++		case 16:
++			if (info->var.red.offset == 10) {
++				/* 1:5:5:5 */
++				((u32 *) (info->pseudo_palette))[regno] =
++						((red   & 0xf800) >>  1) |
++						((green & 0xf800) >>  6) |
++						((blue  & 0xf800) >> 11);
++			} else {
++				/* 0:5:6:5 */
++				((u32 *) (info->pseudo_palette))[regno] =
++						((red   & 0xf800)      ) |
++						((green & 0xfc00) >>  5) |
++						((blue  & 0xf800) >> 11);
++			}
++			break;
++
++		case 24:
++		case 32:
++			red   >>= 8;
++			green >>= 8;
++			blue  >>= 8;
++			((u32 *)(info->pseudo_palette))[regno] =
++				(red   << info->var.red.offset)   |
++				(green << info->var.green.offset) |
++				(blue  << info->var.blue.offset);
++			break;
++		}
++	}
++	return err;
++}
++
++static int uvesafb_setcmap(struct fb_cmap *cmap, struct fb_info *info)
++{
++	struct uvesafb_pal_entry *entries;
++	int shift = 16 - info->var.green.length;
++	int i, err = 0;
++
++	if (info->var.bits_per_pixel == 8) {
++		if (cmap->start + cmap->len > info->cmap.start +
++		    info->cmap.len || cmap->start < info->cmap.start)
 +			return -EINVAL;
 +
-+		v  = chan_to_field(red, &info->var.red);
-+		v |= chan_to_field(green, &info->var.green);
-+		v |= chan_to_field(blue, &info->var.blue);
++		entries = kmalloc(sizeof(*entries) * cmap->len, GFP_KERNEL);
++		if (!entries)
++			return -ENOMEM;
 +
-+		pal[regno] = v;
++		for (i = 0; i < cmap->len; i++) {
++			entries[i].red   = cmap->red[i]   >> shift;
++			entries[i].green = cmap->green[i] >> shift;
++			entries[i].blue  = cmap->blue[i]  >> shift;
++			entries[i].pad   = 0;
++		}
++		err = uvesafb_setpalette(entries, cmap->len, cmap->start, info);
++		kfree(entries);
 +	} else {
-+		if (regno >= 256)
-+			return -EINVAL;
++		/*
++		 * For modes with bpp > 8, we only set the pseudo palette in
++		 * the fb_info struct. We rely on uvesafb_setcolreg to do all
++		 * sanity checking.
++		 */
++		for (i = 0; i < cmap->len; i++) {
++			err |= uvesafb_setcolreg(cmap->start + i, cmap->red[i],
++						cmap->green[i], cmap->blue[i],
++						0, info);
++		}
++	}
++	return err;
++}
 +
-+		lx_set_palette_reg(info, regno, red, green, blue);
++static int uvesafb_pan_display(struct fb_var_screeninfo *var,
++		struct fb_info *info)
++{
++#ifdef CONFIG_X86_32
++	int offset;
++	struct uvesafb_par *par = info->par;
++
++	offset = (var->yoffset * info->fix.line_length + var->xoffset) / 4;
++
++	/*
++	 * It turns out it's not the best idea to do panning via vm86,
++	 * so we only allow it if we have a PMI.
++	 */
++	if (par->pmi_start) {
++		__asm__ __volatile__(
++			"call *(%%edi)"
++			: /* no return value */
++			: "a" (0x4f07),         /* EAX */
++			  "b" (0),              /* EBX */
++			  "c" (offset),         /* ECX */
++			  "d" (offset >> 16),   /* EDX */
++			  "D" (&par->pmi_start));    /* EDI */
++	}
++#endif
++	return 0;
++}
++
++static int uvesafb_blank(int blank, struct fb_info *info)
++{
++	struct uvesafb_par *par = info->par;
++	struct uvesafb_ktask *task;
++	int err = 1;
++
++	if (par->vbe_ib.capabilities & VBE_CAP_VGACOMPAT) {
++		int loop = 10000;
++		u8 seq = 0, crtc17 = 0;
++
++		if (blank == FB_BLANK_POWERDOWN) {
++			seq = 0x20;
++			crtc17 = 0x00;
++			err = 0;
++		} else {
++			seq = 0x00;
++			crtc17 = 0x80;
++			err = (blank == FB_BLANK_UNBLANK) ? 0 : -EINVAL;
++		}
++
++		vga_wseq(NULL, 0x00, 0x01);
++		seq |= vga_rseq(NULL, 0x01) & ~0x20;
++		vga_wseq(NULL, 0x00, seq);
++
++		crtc17 |= vga_rcrt(NULL, 0x17) & ~0x80;
++		while (loop--);
++		vga_wcrt(NULL, 0x17, crtc17);
++		vga_wseq(NULL, 0x00, 0x03);
++	} else {
++		task = uvesafb_prep();
++		if (!task)
++			return -ENOMEM;
++
++		task->t.regs.eax = 0x4f10;
++		switch (blank) {
++		case FB_BLANK_UNBLANK:
++			task->t.regs.ebx = 0x0001;
++			break;
++		case FB_BLANK_NORMAL:
++			task->t.regs.ebx = 0x0101;	/* standby */
++			break;
++		case FB_BLANK_POWERDOWN:
++			task->t.regs.ebx = 0x0401;	/* powerdown */
++			break;
++		default:
++			goto out;
++		}
++
++		err = uvesafb_exec(task);
++		if (err || (task->t.regs.eax & 0xffff) != 0x004f)
++			err = 1;
++out:		uvesafb_free(task);
++	}
++	return err;
++}
++
++static int uvesafb_open(struct fb_info *info, int user)
++{
++	struct uvesafb_par *par = info->par;
++	int cnt = atomic_read(&par->ref_count);
++
++	if (!cnt && par->vbe_state_size)
++		par->vbe_state_orig = uvesafb_vbe_state_save(par);
++
++	atomic_inc(&par->ref_count);
++	return 0;
++}
++
++static int uvesafb_release(struct fb_info *info, int user)
++{
++	struct uvesafb_ktask *task = NULL;
++	struct uvesafb_par *par = info->par;
++	int cnt = atomic_read(&par->ref_count);
++
++	if (!cnt)
++		return -EINVAL;
++
++	if (cnt != 1)
++		goto out;
++
++	task = uvesafb_prep();
++	if (!task)
++		goto out;
++
++	/* First, try to set the standard 80x25 text mode. */
++	task->t.regs.eax = 0x0003;
++	uvesafb_exec(task);
++
++	/*
++	 * Now try to restore whatever hardware state we might have
++	 * saved when the fb device was first opened.
++	 */
++	uvesafb_vbe_state_restore(par, par->vbe_state_orig);
++out:
++	atomic_dec(&par->ref_count);
++	if (task)
++		uvesafb_free(task);
++	return 0;
++}
++
++static int uvesafb_set_par(struct fb_info *info)
++{
++	struct uvesafb_par *par = info->par;
++	struct uvesafb_ktask *task = NULL;
++	struct vbe_crtc_ib *crtc = NULL;
++	struct vbe_mode_ib *mode = NULL;
++	int i, err = 0, depth = info->var.bits_per_pixel;
++
++	if (depth > 8 && depth != 32)
++		depth = info->var.red.length + info->var.green.length +
++			info->var.blue.length;
++
++	i = uvesafb_vbe_find_mode(par, info->var.xres, info->var.yres, depth,
++				 UVESAFB_EXACT_RES | UVESAFB_EXACT_DEPTH);
++	if (i >= 0)
++		mode = &par->vbe_modes[i];
++	else
++		return -EINVAL;
++
++	task = uvesafb_prep();
++	if (!task)
++		return -ENOMEM;
++	task->t.regs.eax = 0x4f02;
++	task->t.regs.ebx = mode->mode_id | 0x4000;	/* use LFB */
++
++	if (par->vbe_ib.vbe_version >= 0x0300 && !par->nocrtc &&
++	    info->var.pixclock != 0) {
++		task->t.regs.ebx |= 0x0800;		/* use CRTC data */
++		task->t.flags = TF_BUF_ESDI;
++		crtc = kzalloc(sizeof(struct vbe_crtc_ib), GFP_KERNEL);
++		if (!crtc) {
++			err = -ENOMEM;
++			goto out;
++		}
++		crtc->horiz_start = info->var.xres + info->var.right_margin;
++		crtc->horiz_end	  = crtc->horiz_start + info->var.hsync_len;
++		crtc->horiz_total = crtc->horiz_end + info->var.left_margin;
++
++		crtc->vert_start  = info->var.yres + info->var.lower_margin;
++		crtc->vert_end    = crtc->vert_start + info->var.vsync_len;
++		crtc->vert_total  = crtc->vert_end + info->var.upper_margin;
++
++		crtc->pixel_clock = PICOS2KHZ(info->var.pixclock) * 1000;
++		crtc->refresh_rate = (u16)(100 * (crtc->pixel_clock /
++				(crtc->vert_total * crtc->horiz_total)));
++
++		if (info->var.vmode & FB_VMODE_DOUBLE)
++			crtc->flags |= 0x1;
++		if (info->var.vmode & FB_VMODE_INTERLACED)
++			crtc->flags |= 0x2;
++		if (!(info->var.sync & FB_SYNC_HOR_HIGH_ACT))
++			crtc->flags |= 0x4;
++		if (!(info->var.sync & FB_SYNC_VERT_HIGH_ACT))
++			crtc->flags |= 0x8;
++		memcpy(&par->crtc, crtc, sizeof(*crtc));
++	} else {
++		memset(&par->crtc, 0, sizeof(*crtc));
 +	}
 +
++	task->t.buf_len = sizeof(struct vbe_crtc_ib);
++	task->buf = &par->crtc;
++
++	err = uvesafb_exec(task);
++	if (err || (task->t.regs.eax & 0xffff) != 0x004f) {
++		printk(KERN_ERR "uvesafb: mode switch failed (eax=0x%x, "
++				"err=%d)\n", task->t.regs.eax, err);
++		err = -EINVAL;
++		goto out;
++	}
++	par->mode_idx = i;
++
++	/* For 8bpp modes, always try to set the DAC to 8 bits. */
++	if (par->vbe_ib.capabilities & VBE_CAP_CAN_SWITCH_DAC &&
++	    mode->bits_per_pixel <= 8) {
++		uvesafb_reset(task);
++		task->t.regs.eax = 0x4f08;
++		task->t.regs.ebx = 0x0800;
++
++		err = uvesafb_exec(task);
++		if (err || (task->t.regs.eax & 0xffff) != 0x004f ||
++		    ((task->t.regs.ebx & 0xff00) >> 8) != 8) {
++			/*
++			 * We've failed to set the DAC palette format -
++			 * time to correct var.
++			 */
++			info->var.red.length    = 6;
++			info->var.green.length  = 6;
++			info->var.blue.length   = 6;
++		}
++	}
++
++	info->fix.visual = (info->var.bits_per_pixel == 8) ?
++				FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
++	info->fix.line_length = mode->bytes_per_scan_line;
++
++out:	if (crtc != NULL)
++		kfree(crtc);
++	uvesafb_free(task);
++
++	return err;
++}
++
++static void uvesafb_check_limits(struct fb_var_screeninfo *var,
++		struct fb_info *info)
++{
++	const struct fb_videomode *mode;
++	struct uvesafb_par *par = info->par;
++
++	/*
++	 * If pixclock is set to 0, then we're using default BIOS timings
++	 * and thus don't have to perform any checks here.
++	 */
++	if (!var->pixclock)
++		return;
++
++	if (par->vbe_ib.vbe_version < 0x0300) {
++		fb_get_mode(FB_VSYNCTIMINGS | FB_IGNOREMON, 60, var, info);
++		return;
++	}
++
++	if (!fb_validate_mode(var, info))
++		return;
++
++	mode = fb_find_best_mode(var, &info->modelist);
++	if (mode) {
++		if (mode->xres == var->xres && mode->yres == var->yres &&
++		    !(mode->vmode & (FB_VMODE_INTERLACED | FB_VMODE_DOUBLE))) {
++			fb_videomode_to_var(var, mode);
++			return;
++		}
++	}
++
++	if (info->monspecs.gtf && !fb_get_mode(FB_MAXTIMINGS, 0, var, info))
++		return;
++	/* Use default refresh rate */
++	var->pixclock = 0;
++}
++
++static int uvesafb_check_var(struct fb_var_screeninfo *var,
++		struct fb_info *info)
++{
++	struct uvesafb_par *par = info->par;
++	struct vbe_mode_ib *mode = NULL;
++	int match = -1;
++	int depth = var->red.length + var->green.length + var->blue.length;
++
++	/*
++	 * Various apps will use bits_per_pixel to set the color depth,
++	 * which is theoretically incorrect, but which we'll try to handle
++	 * here.
++	 */
++	if (depth == 0 || abs(depth - var->bits_per_pixel) >= 8)
++		depth = var->bits_per_pixel;
++
++	match = uvesafb_vbe_find_mode(par, var->xres, var->yres, depth,
++						UVESAFB_EXACT_RES);
++	if (match == -1)
++		return -EINVAL;
++
++	mode = &par->vbe_modes[match];
++	uvesafb_setup_var(var, info, mode);
++
++	/*
++	 * Check whether we have remapped enough memory for this mode.
++	 * We might be called at an early stage, when we haven't remapped
++	 * any memory yet, in which case we simply skip the check.
++	 */
++	if (var->yres * mode->bytes_per_scan_line > info->fix.smem_len
++						&& info->fix.smem_len)
++		return -EINVAL;
++
++	if ((var->vmode & FB_VMODE_DOUBLE) &&
++				!(par->vbe_modes[match].mode_attr & 0x100))
++		var->vmode &= ~FB_VMODE_DOUBLE;
++
++	if ((var->vmode & FB_VMODE_INTERLACED) &&
++				!(par->vbe_modes[match].mode_attr & 0x200))
++		var->vmode &= ~FB_VMODE_INTERLACED;
++
++	uvesafb_check_limits(var, info);
++
++	var->xres_virtual = var->xres;
++	var->yres_virtual = (par->ypan) ?
++				info->fix.smem_len / mode->bytes_per_scan_line :
++				var->yres;
 +	return 0;
 +}
 +
-+static int lxfb_blank(int blank_mode, struct fb_info *info)
++static void uvesafb_save_state(struct fb_info *info)
 +{
-+	return lx_blank_display(info, blank_mode);
++	struct uvesafb_par *par = info->par;
++
++	if (par->vbe_state_saved)
++		kfree(par->vbe_state_saved);
++
++	par->vbe_state_saved = uvesafb_vbe_state_save(par);
 +}
 +
-+
-+static int __init lxfb_map_video_memory(struct fb_info *info,
-+					struct pci_dev *dev)
++static void uvesafb_restore_state(struct fb_info *info)
 +{
-+	struct lxfb_par *par = info->par;
-+	int ret;
++	struct uvesafb_par *par = info->par;
 +
-+	ret = pci_enable_device(dev);
-+
-+	if (ret)
-+		return ret;
-+
-+	ret = pci_request_region(dev, 0, "lxfb-framebuffer");
-+
-+	if (ret)
-+		return ret;
-+
-+	ret = pci_request_region(dev, 1, "lxfb-gp");
-+
-+	if (ret)
-+		return ret;
-+
-+	ret = pci_request_region(dev, 2, "lxfb-vg");
-+
-+	if (ret)
-+		return ret;
-+
-+	ret = pci_request_region(dev, 3, "lxfb-vip");
-+
-+	if (ret)
-+		return ret;
-+
-+	info->fix.smem_start = pci_resource_start(dev, 0);
-+	info->fix.smem_len = fbsize ? fbsize : lx_framebuffer_size();
-+
-+	info->screen_base = ioremap(info->fix.smem_start, info->fix.smem_len);
-+
-+	ret = -ENOMEM;
-+
-+	if (info->screen_base == NULL)
-+		return ret;
-+
-+	par->gp_regs = ioremap(pci_resource_start(dev, 1),
-+				pci_resource_len(dev, 1));
-+
-+	if (par->gp_regs == NULL)
-+		return ret;
-+
-+	par->dc_regs = ioremap(pci_resource_start(dev, 2),
-+			       pci_resource_len(dev, 2));
-+
-+	if (par->dc_regs == NULL)
-+		return ret;
-+
-+	par->df_regs = ioremap(pci_resource_start(dev, 3),
-+			       pci_resource_len(dev, 3));
-+
-+	if (par->df_regs == NULL)
-+		return ret;
-+
-+	writel(DC_UNLOCK_CODE, par->dc_regs + DC_UNLOCK);
-+
-+	writel(info->fix.smem_start & 0xFF000000,
-+	       par->dc_regs + DC_PHY_MEM_OFFSET);
-+
-+	writel(0, par->dc_regs + DC_UNLOCK);
-+
-+	dev_info(&dev->dev, "%d KB of video memory at 0x%lx\n",
-+		 info->fix.smem_len / 1024, info->fix.smem_start);
-+
-+	return 0;
++	uvesafb_vbe_state_restore(par, par->vbe_state_saved);
 +}
 +
-+static struct fb_ops lxfb_ops = {
++static struct fb_ops uvesafb_ops = {
 +	.owner		= THIS_MODULE,
-+	.fb_check_var	= lxfb_check_var,
-+	.fb_set_par	= lxfb_set_par,
-+	.fb_setcolreg	= lxfb_setcolreg,
-+	.fb_blank       = lxfb_blank,
-+	/* No HW acceleration for now. */
++	.fb_open	= uvesafb_open,
++	.fb_release	= uvesafb_release,
++	.fb_setcolreg	= uvesafb_setcolreg,
++	.fb_setcmap	= uvesafb_setcmap,
++	.fb_pan_display	= uvesafb_pan_display,
++	.fb_blank	= uvesafb_blank,
 +	.fb_fillrect	= cfb_fillrect,
 +	.fb_copyarea	= cfb_copyarea,
 +	.fb_imageblit	= cfb_imageblit,
++	.fb_check_var	= uvesafb_check_var,
++	.fb_set_par	= uvesafb_set_par,
++	.fb_save_state	= uvesafb_save_state,
++	.fb_restore_state = uvesafb_restore_state,
 +};
 +
-+static struct fb_info * __init lxfb_init_fbinfo(struct device *dev)
++static void __devinit uvesafb_init_info(struct fb_info *info,
++		struct vbe_mode_ib *mode)
 +{
-+	struct lxfb_par *par;
-+	struct fb_info *info;
++	unsigned int size_vmode;
++	unsigned int size_remap;
++	unsigned int size_total;
++	struct uvesafb_par *par = info->par;
++	int i, h;
 +
-+	/* Alloc enough space for the pseudo palette. */
-+	info = framebuffer_alloc(sizeof(struct lxfb_par) + sizeof(u32) * 16,
-+				 dev);
-+	if (!info)
-+		return NULL;
++	info->pseudo_palette = ((u8 *)info->par + sizeof(struct uvesafb_par));
++	info->fix = uvesafb_fix;
++	info->fix.ypanstep = par->ypan ? 1 : 0;
++	info->fix.ywrapstep = (par->ypan > 1) ? 1 : 0;
 +
-+	par = info->par;
++	/*
++	 * If we were unable to get the state buffer size, disable
++	 * functions for saving and restoring the hardware state.
++	 */
++	if (par->vbe_state_size == 0) {
++		info->fbops->fb_save_state = NULL;
++		info->fbops->fb_restore_state = NULL;
++	}
 +
-+	strcpy(info->fix.id, "Geode LX");
++	/* Disable blanking if the user requested so. */
++	if (!blank)
++		info->fbops->fb_blank = NULL;
 +
-+	info->fix.type		= FB_TYPE_PACKED_PIXELS;
-+	info->fix.type_aux	= 0;
-+	info->fix.xpanstep	= 0;
-+	info->fix.ypanstep	= 0;
-+	info->fix.ywrapstep	= 0;
-+	info->fix.accel		= FB_ACCEL_NONE;
++	/*
++	 * Find out how much IO memory is required for the mode with
++	 * the highest resolution.
++	 */
++	size_remap = 0;
++	for (i = 0; i < par->vbe_modes_cnt; i++) {
++		h = par->vbe_modes[i].bytes_per_scan_line *
++					par->vbe_modes[i].y_res;
++		if (h > size_remap)
++			size_remap = h;
++	}
++	size_remap *= 2;
 +
-+	info->var.nonstd	= 0;
-+	info->var.activate	= FB_ACTIVATE_NOW;
-+	info->var.height	= -1;
-+	info->var.width	= -1;
-+	info->var.accel_flags = 0;
-+	info->var.vmode	= FB_VMODE_NONINTERLACED;
++	/*
++	 *   size_vmode -- that is the amount of memory needed for the
++	 *                 used video mode, i.e. the minimum amount of
++	 *                 memory we need.
++	 */
++	if (mode != NULL) {
++		size_vmode = info->var.yres * mode->bytes_per_scan_line;
++	} else {
++		size_vmode = info->var.yres * info->var.xres *
++			     ((info->var.bits_per_pixel + 7) >> 3);
++	}
 +
-+	info->fbops		= &lxfb_ops;
-+	info->flags		= FBINFO_DEFAULT;
-+	info->node		= -1;
++	/*
++	 *   size_total -- all video memory we have. Used for mtrr
++	 *                 entries, resource allocation and bounds
++	 *                 checking.
++	 */
++	size_total = par->vbe_ib.total_memory * 65536;
++	if (vram_total)
++		size_total = vram_total * 1024 * 1024;
++	if (size_total < size_vmode)
++		size_total = size_vmode;
 +
-+	info->pseudo_palette	= (void *)par + sizeof(struct lxfb_par);
++	/*
++	 *   size_remap -- the amount of video memory we are going to
++	 *                 use for vesafb.  With modern cards it is no
++	 *                 option to simply use size_total as th
++	 *                 wastes plenty of kernel address space.
++	 */
++	if (vram_remap)
++		size_remap = vram_remap * 1024 * 1024;
++	if (size_remap < size_vmode)
++		size_remap = size_vmode;
++	if (size_remap > size_total)
++		size_remap = size_total;
 +
-+	info->var.grayscale	= 0;
++	info->fix.smem_len = size_remap;
++	info->fix.smem_start = mode->phys_base_ptr;
 +
-+	return info;
++	/*
++	 * We have to set yres_virtual here because when setup_var() was
++	 * called, smem_len wasn't defined yet.
++	 */
++	info->var.yres_virtual = info->fix.smem_len /
++				 mode->bytes_per_scan_line;
++
++	if (par->ypan && info->var.yres_virtual > info->var.yres) {
++		printk(KERN_INFO "uvesafb: scrolling: %s "
++			"using protected mode interface, "
++			"yres_virtual=%d\n",
++			(par->ypan > 1) ? "ywrap" : "ypan",
++			info->var.yres_virtual);
++	} else {
++		printk(KERN_INFO "uvesafb: scrolling: redraw\n");
++		info->var.yres_virtual = info->var.yres;
++		par->ypan = 0;
++	}
++
++	info->flags = FBINFO_FLAG_DEFAULT |
++			(par->ypan) ? FBINFO_HWACCEL_YPAN : 0;
++
++	if (!par->ypan)
++		info->fbops->fb_pan_display = NULL;
 +}
 +
-+static int __init lxfb_probe(struct pci_dev *pdev,
-+			     const struct pci_device_id *id)
++static void uvesafb_init_mtrr(struct fb_info *info)
 +{
-+	struct lxfb_par *par;
-+	struct fb_info *info;
-+	int ret;
++#ifdef CONFIG_MTRR
++	if (mtrr && !(info->fix.smem_start & (PAGE_SIZE - 1))) {
++		int temp_size = info->fix.smem_len;
++		unsigned int type = 0;
 +
-+	struct fb_videomode *modedb_ptr;
-+	int modedb_size;
++		switch (mtrr) {
++		case 1:
++			type = MTRR_TYPE_UNCACHABLE;
++			break;
++		case 2:
++			type = MTRR_TYPE_WRBACK;
++			break;
++		case 3:
++			type = MTRR_TYPE_WRCOMB;
++			break;
++		case 4:
++			type = MTRR_TYPE_WRTHROUGH;
++			break;
++		default:
++			type = 0;
++			break;
++		}
 +
-+	info = lxfb_init_fbinfo(&pdev->dev);
++		if (type) {
++			int rc;
 +
-+	if (info == NULL)
-+		return -ENOMEM;
++			/* Find the largest power-of-two */
++			while (temp_size & (temp_size - 1))
++				temp_size &= (temp_size - 1);
 +
-+	par = info->par;
-+
-+	ret = lxfb_map_video_memory(info, pdev);
-+
-+	if (ret < 0) {
-+		dev_err(&pdev->dev,
-+			"failed to map frame buffer or controller registers\n");
-+		goto err;
++			/* Try and find a power of two to add */
++			do {
++				rc = mtrr_add(info->fix.smem_start,
++					      temp_size, type, 1);
++				temp_size >>= 1;
++			} while (temp_size >= PAGE_SIZE && rc == -EINVAL);
++		}
 +	}
++#endif /* CONFIG_MTRR */
++}
 +
-+	/* Set up the desired outputs */
 +
-+	par->output = 0;
-+	par->output |= (nopanel) ? 0 : OUTPUT_PANEL;
-+	par->output |= (nocrt) ? 0 : OUTPUT_CRT;
++static ssize_t uvesafb_show_vbe_ver(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct fb_info *info = platform_get_drvdata(to_platform_device(dev));
++	struct uvesafb_par *par = info->par;
 +
-+	/* Set up the mode database */
++	return snprintf(buf, PAGE_SIZE, "%.4x\n", par->vbe_ib.vbe_version);
++}
 +
-+	modedb_ptr = (struct fb_videomode *) geode_modedb;
-+	modedb_size = ARRAY_SIZE(geode_modedb);
++static DEVICE_ATTR(vbe_version, S_IRUGO, uvesafb_show_vbe_ver, NULL);
 +
-+	ret = fb_find_mode(&info->var, info, mode_option,
-+			   modedb_ptr, modedb_size, NULL, 16);
++static ssize_t uvesafb_show_vbe_modes(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct fb_info *info = platform_get_drvdata(to_platform_device(dev));
++	struct uvesafb_par *par = info->par;
++	int ret = 0, i;
 +
-+	if (ret == 0 || ret == 4) {
-+		dev_err(&pdev->dev, "could not find valid video mode\n");
-+		ret = -EINVAL;
-+		goto err;
++	for (i = 0; i < par->vbe_modes_cnt && ret < PAGE_SIZE; i++) {
++		ret += snprintf(buf + ret, PAGE_SIZE - ret,
++			"%dx%d-%d, 0x%.4x\n",
++			par->vbe_modes[i].x_res, par->vbe_modes[i].y_res,
++			par->vbe_modes[i].depth, par->vbe_modes[i].mode_id);
 +	}
-+
-+	/* Clear the screen of garbage, unless noclear was specified,
-+	 * in which case we assume the user knows what he is doing */
-+
-+	if (!noclear)
-+		memset_io(info->screen_base, 0, info->fix.smem_len);
-+
-+	/* Set the mode */
-+
-+	lxfb_check_var(&info->var, info);
-+	lxfb_set_par(info);
-+
-+	if (register_framebuffer(info) < 0) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+	pci_set_drvdata(pdev, info);
-+	printk(KERN_INFO "fb%d: %s frame buffer device\n",
-+		info->node, info->fix.id);
-+
-+	return 0;
-+
-+err:
-+	if (info->screen_base) {
-+		iounmap(info->screen_base);
-+		pci_release_region(pdev, 0);
-+	}
-+	if (par->gp_regs) {
-+		iounmap(par->gp_regs);
-+		pci_release_region(pdev, 1);
-+	}
-+	if (par->dc_regs) {
-+		iounmap(par->dc_regs);
-+		pci_release_region(pdev, 2);
-+	}
-+	if (par->df_regs) {
-+		iounmap(par->df_regs);
-+		pci_release_region(pdev, 3);
-+	}
-+
-+	if (info)
-+		framebuffer_release(info);
 +
 +	return ret;
 +}
 +
-+static void lxfb_remove(struct pci_dev *pdev)
++static DEVICE_ATTR(vbe_modes, S_IRUGO, uvesafb_show_vbe_modes, NULL);
++
++static ssize_t uvesafb_show_vendor(struct device *dev,
++		struct device_attribute *attr, char *buf)
 +{
-+	struct fb_info *info = pci_get_drvdata(pdev);
-+	struct lxfb_par *par = info->par;
++	struct fb_info *info = platform_get_drvdata(to_platform_device(dev));
++	struct uvesafb_par *par = info->par;
 +
-+	unregister_framebuffer(info);
-+
-+	iounmap(info->screen_base);
-+	pci_release_region(pdev, 0);
-+
-+	iounmap(par->gp_regs);
-+	pci_release_region(pdev, 1);
-+
-+	iounmap(par->dc_regs);
-+	pci_release_region(pdev, 2);
-+
-+	iounmap(par->df_regs);
-+	pci_release_region(pdev, 3);
-+
-+	pci_set_drvdata(pdev, NULL);
-+	framebuffer_release(info);
++	if (par->vbe_ib.oem_vendor_name_ptr)
++		return snprintf(buf, PAGE_SIZE, "%s\n", (char *)
++			(&par->vbe_ib) + par->vbe_ib.oem_vendor_name_ptr);
++	else
++		return 0;
 +}
 +
-+static struct pci_device_id lxfb_id_table[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_LX_VIDEO) },
-+	{ 0, }
++static DEVICE_ATTR(oem_vendor, S_IRUGO, uvesafb_show_vendor, NULL);
++
++static ssize_t uvesafb_show_product_name(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct fb_info *info = platform_get_drvdata(to_platform_device(dev));
++	struct uvesafb_par *par = info->par;
++
++	if (par->vbe_ib.oem_product_name_ptr)
++		return snprintf(buf, PAGE_SIZE, "%s\n", (char *)
++			(&par->vbe_ib) + par->vbe_ib.oem_product_name_ptr);
++	else
++		return 0;
++}
++
++static DEVICE_ATTR(oem_product_name, S_IRUGO, uvesafb_show_product_name, NULL);
++
++static ssize_t uvesafb_show_product_rev(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct fb_info *info = platform_get_drvdata(to_platform_device(dev));
++	struct uvesafb_par *par = info->par;
++
++	if (par->vbe_ib.oem_product_rev_ptr)
++		return snprintf(buf, PAGE_SIZE, "%s\n", (char *)
++			(&par->vbe_ib) + par->vbe_ib.oem_product_rev_ptr);
++	else
++		return 0;
++}
++
++static DEVICE_ATTR(oem_product_rev, S_IRUGO, uvesafb_show_product_rev, NULL);
++
++static ssize_t uvesafb_show_oem_string(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct fb_info *info = platform_get_drvdata(to_platform_device(dev));
++	struct uvesafb_par *par = info->par;
++
++	if (par->vbe_ib.oem_string_ptr)
++		return snprintf(buf, PAGE_SIZE, "%s\n",
++			(char *)(&par->vbe_ib) + par->vbe_ib.oem_string_ptr);
++	else
++		return 0;
++}
++
++static DEVICE_ATTR(oem_string, S_IRUGO, uvesafb_show_oem_string, NULL);
++
++static ssize_t uvesafb_show_nocrtc(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct fb_info *info = platform_get_drvdata(to_platform_device(dev));
++	struct uvesafb_par *par = info->par;
++
++	return snprintf(buf, PAGE_SIZE, "%d\n", par->nocrtc);
++}
++
++static ssize_t uvesafb_store_nocrtc(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct fb_info *info = platform_get_drvdata(to_platform_device(dev));
++	struct uvesafb_par *par = info->par;
++
++	if (count > 0) {
++		if (buf[0] == '0')
++			par->nocrtc = 0;
++		else
++			par->nocrtc = 1;
++	}
++	return count;
++}
++
++static DEVICE_ATTR(nocrtc, S_IRUGO | S_IWUSR, uvesafb_show_nocrtc,
++			uvesafb_store_nocrtc);
++
++static struct attribute *uvesafb_dev_attrs[] = {
++	&dev_attr_vbe_version.attr,
++	&dev_attr_vbe_modes.attr,
++	&dev_attr_oem_vendor.attr,
++	&dev_attr_oem_product_name.attr,
++	&dev_attr_oem_product_rev.attr,
++	&dev_attr_oem_string.attr,
++	&dev_attr_nocrtc.attr,
++	NULL,
 +};
 +
-+MODULE_DEVICE_TABLE(pci, lxfb_id_table);
-+
-+static struct pci_driver lxfb_driver = {
-+	.name		= "lxfb",
-+	.id_table	= lxfb_id_table,
-+	.probe		= lxfb_probe,
-+	.remove		= lxfb_remove,
++static struct attribute_group uvesafb_dev_attgrp = {
++	.name = NULL,
++	.attrs = uvesafb_dev_attrs,
 +};
++
++static int __devinit uvesafb_probe(struct platform_device *dev)
++{
++	struct fb_info *info;
++	struct vbe_mode_ib *mode = NULL;
++	struct uvesafb_par *par;
++	int err = 0, i;
++
++	info = framebuffer_alloc(sizeof(*par) +	sizeof(u32) * 256, &dev->dev);
++	if (!info)
++		return -ENOMEM;
++
++	par = info->par;
++
++	err = uvesafb_vbe_init(info);
++	if (err) {
++		printk(KERN_ERR "uvesafb: vbe_init() failed with %d\n", err);
++		goto out;
++	}
++
++	info->fbops = &uvesafb_ops;
++
++	i = uvesafb_vbe_init_mode(info);
++	if (i < 0) {
++		err = -EINVAL;
++		goto out;
++	} else {
++		mode = &par->vbe_modes[i];
++	}
++
++	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
++		err = -ENXIO;
++		goto out;
++	}
++
++	uvesafb_init_info(info, mode);
++
++	if (!request_mem_region(info->fix.smem_start, info->fix.smem_len,
++				"uvesafb")) {
++		printk(KERN_ERR "uvesafb: cannot reserve video memory at "
++				"0x%lx\n", info->fix.smem_start);
++		err = -EIO;
++		goto out_mode;
++	}
++
++	info->screen_base = ioremap(info->fix.smem_start, info->fix.smem_len);
++
++	if (!info->screen_base) {
++		printk(KERN_ERR
++			"uvesafb: abort, cannot ioremap 0x%x bytes of video "
++			"memory at 0x%lx\n",
++			info->fix.smem_len, info->fix.smem_start);
++		err = -EIO;
++		goto out_mem;
++	}
++
++	if (!request_region(0x3c0, 32, "uvesafb")) {
++		printk(KERN_ERR "uvesafb: request region 0x3c0-0x3e0 failed\n");
++		err = -EIO;
++		goto out_unmap;
++	}
++
++	uvesafb_init_mtrr(info);
++	platform_set_drvdata(dev, info);
++
++	if (register_framebuffer(info) < 0) {
++		printk(KERN_ERR
++			"uvesafb: failed to register framebuffer device\n");
++		err = -EINVAL;
++		goto out_reg;
++	}
++
++	printk(KERN_INFO "uvesafb: framebuffer at 0x%lx, mapped to 0x%p, "
++			"using %dk, total %dk\n", info->fix.smem_start,
++			info->screen_base, info->fix.smem_len/1024,
++			par->vbe_ib.total_memory * 64);
++	printk(KERN_INFO "fb%d: %s frame buffer device\n", info->node,
++			info->fix.id);
++
++	err = sysfs_create_group(&dev->dev.kobj, &uvesafb_dev_attgrp);
++	if (err != 0)
++		printk(KERN_WARNING "fb%d: failed to register attributes\n",
++			info->node);
++
++	return 0;
++
++out_reg:
++	release_region(0x3c0, 32);
++out_unmap:
++	iounmap(info->screen_base);
++out_mem:
++	release_mem_region(info->fix.smem_start, info->fix.smem_len);
++out_mode:
++	if (!list_empty(&info->modelist))
++		fb_destroy_modelist(&info->modelist);
++	fb_destroy_modedb(info->monspecs.modedb);
++	fb_dealloc_cmap(&info->cmap);
++out:
++	if (par->vbe_modes)
++		kfree(par->vbe_modes);
++
++	framebuffer_release(info);
++	return err;
++}
++
++static int uvesafb_remove(struct platform_device *dev)
++{
++	struct fb_info *info = platform_get_drvdata(dev);
++
++	if (info) {
++		struct uvesafb_par *par = info->par;
++
++		sysfs_remove_group(&dev->dev.kobj, &uvesafb_dev_attgrp);
++		unregister_framebuffer(info);
++		release_region(0x3c0, 32);
++		iounmap(info->screen_base);
++		release_mem_region(info->fix.smem_start, info->fix.smem_len);
++		fb_destroy_modedb(info->monspecs.modedb);
++		fb_dealloc_cmap(&info->cmap);
++
++		if (par) {
++			if (par->vbe_modes)
++				kfree(par->vbe_modes);
++			if (par->vbe_state_orig)
++				kfree(par->vbe_state_orig);
++			if (par->vbe_state_saved)
++				kfree(par->vbe_state_saved);
++		}
++
++		framebuffer_release(info);
++	}
++	return 0;
++}
++
++static struct platform_driver uvesafb_driver = {
++	.probe  = uvesafb_probe,
++	.remove = uvesafb_remove,
++	.driver = {
++		.name = "uvesafb",
++	},
++};
++
++static struct platform_device *uvesafb_device;
 +
 +#ifndef MODULE
-+static int __init lxfb_setup(char *options)
++static int __devinit uvesafb_setup(char *options)
 +{
-+	char *opt;
++	char *this_opt;
 +
 +	if (!options || !*options)
 +		return 0;
 +
-+	while (1) {
-+		char *opt = strsep(&options, ",");
++	while ((this_opt = strsep(&options, ",")) != NULL) {
++		if (!*this_opt) continue;
 +
-+		if (opt == NULL)
-+			break;
-+
-+		if (!*opt)
-+			continue;
-+
-+		if (!strncmp(opt, "fbsize:", 7))
-+			fbsize = simple_strtoul(opt+7, NULL, 0);
-+		else if (!strcmp(opt, "noclear"))
-+			noclear = 1;
-+		else if (!strcmp(opt, "nopanel"))
-+			nopanel = 1;
-+		else if (!strcmp(opt, "nocrt"))
-+			nocrt = 1;
-+		else
-+			mode_option = opt;
-+	}
-+
-+	return 0;
-+}
-+#endif
-+
-+static int __init lxfb_init(void)
-+{
-+#ifndef MODULE
-+	char *option = NULL;
-+
-+	if (fb_get_options("lxfb", &option))
-+		return -ENODEV;
-+
-+	lxfb_setup(option);
-+#endif
-+	return pci_register_driver(&lxfb_driver);
-+}
-+static void __exit lxfb_cleanup(void)
-+{
-+	pci_unregister_driver(&lxfb_driver);
-+}
-+
-+module_init(lxfb_init);
-+module_exit(lxfb_cleanup);
-+
-+module_param(mode_option, charp, 0);
-+MODULE_PARM_DESC(mode_option, "video mode (<x>x<y>[-<bpp>][@<refr>])");
-+
-+module_param(fbsize, int, 0);
-+MODULE_PARM_DESC(fbsize, "video memory size");
-+
-+MODULE_DESCRIPTION("Framebuffer driver for the AMD Geode LX");
-+MODULE_LICENSE("GPL");
-diff -puN /dev/null drivers/video/geode/lxfb_ops.c
---- /dev/null
-+++ a/drivers/video/geode/lxfb_ops.c
-@@ -0,0 +1,536 @@
-+/* Geode LX framebuffer driver
-+ *
-+ * Copyright (C) 2006-2007, Advanced Micro Devices,Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/fb.h>
-+#include <linux/uaccess.h>
-+#include <linux/delay.h>
-+
-+#include "lxfb.h"
-+
-+/* TODO
-+ * Support panel scaling
-+ * Add acceleration
-+ * Add support for interlacing (TV out)
-+ * Support compression
-+ */
-+
-+/* This is the complete list of PLL frequencies that we can set -
-+ * we will choose the closest match to the incoming clock.
-+ * freq is the frequency of the dotclock * 1000 (for example,
-+ * 24823 = 24.983 Mhz).
-+ * pllval is the corresponding PLL value
-+*/
-+
-+static const struct {
-+  unsigned int pllval;
-+  unsigned int freq;
-+} pll_table[] = {
-+  { 0x000031AC, 24923 },
-+  { 0x0000215D, 25175 },
-+  { 0x00001087, 27000 },
-+  { 0x0000216C, 28322 },
-+  { 0x0000218D, 28560 },
-+  { 0x000010C9, 31200 },
-+  { 0x00003147, 31500 },
-+  { 0x000010A7, 33032 },
-+  { 0x00002159, 35112 },
-+  { 0x00004249, 35500 },
-+  { 0x00000057, 36000 },
-+  { 0x0000219A, 37889 },
-+  { 0x00002158, 39168 },
-+  { 0x00000045, 40000 },
-+  { 0x00000089, 43163 },
-+  { 0x000010E7, 44900 },
-+  { 0x00002136, 45720 },
-+  { 0x00003207, 49500 },
-+  { 0x00002187, 50000 },
-+  { 0x00004286, 56250 },
-+  { 0x000010E5, 60065 },
-+  { 0x00004214, 65000 },
-+  { 0x00001105, 68179 },
-+  { 0x000031E4, 74250 },
-+  { 0x00003183, 75000 },
-+  { 0x00004284, 78750 },
-+  { 0x00001104, 81600 },
-+  { 0x00006363, 94500 },
-+  { 0x00005303, 97520 },
-+  { 0x00002183, 100187 },
-+  { 0x00002122, 101420 },
-+  { 0x00001081, 108000 },
-+  { 0x00006201, 113310 },
-+  { 0x00000041, 119650 },
-+  { 0x000041A1, 129600 },
-+  { 0x00002182, 133500 },
-+  { 0x000041B1, 135000 },
-+  { 0x00000051, 144000 },
-+  { 0x000041E1, 148500 },
-+  { 0x000062D1, 157500 },
-+  { 0x000031A1, 162000 },
-+  { 0x00000061, 169203 },
-+  { 0x00004231, 172800 },
-+  { 0x00002151, 175500 },
-+  { 0x000052E1, 189000 },
-+  { 0x00000071, 192000 },
-+  { 0x00003201, 198000 },
-+  { 0x00004291, 202500 },
-+  { 0x00001101, 204750 },
-+  { 0x00007481, 218250 },
-+  { 0x00004170, 229500 },
-+  { 0x00006210, 234000 },
-+  { 0x00003140, 251182 },
-+  { 0x00006250, 261000 },
-+  { 0x000041C0, 278400 },
-+  { 0x00005220, 280640 },
-+  { 0x00000050, 288000 },
-+  { 0x000041E0, 297000 },
-+  { 0x00002130, 320207 }
-+};
-+
-+
-+static void lx_set_dotpll(u32 pllval)
-+{
-+	u32 dotpll_lo, dotpll_hi;
-+	int i;
-+
-+	rdmsr(MSR_LX_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
-+
-+	if ((dotpll_lo & GLCP_DOTPLL_LOCK) && (dotpll_hi == pllval))
-+		return;
-+
-+	dotpll_hi = pllval;
-+	dotpll_lo &= ~(GLCP_DOTPLL_BYPASS | GLCP_DOTPLL_HALFPIX);
-+	dotpll_lo |= GLCP_DOTPLL_RESET;
-+
-+	wrmsr(MSR_LX_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
-+
-+	/* Wait 100us for the PLL to lock */
-+
-+	udelay(100);
-+
-+	/* Now, loop for the lock bit */
-+
-+	for (i = 0; i < 1000; i++) {
-+		rdmsr(MSR_LX_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
-+		if (dotpll_lo & GLCP_DOTPLL_LOCK)
-+			break;
-+	}
-+
-+	/* Clear the reset bit */
-+
-+	dotpll_lo &= ~GLCP_DOTPLL_RESET;
-+	wrmsr(MSR_LX_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
-+}
-+
-+/* Set the clock based on the frequency specified by the current mode */
-+
-+static void lx_set_clock(struct fb_info *info)
-+{
-+	unsigned int diff, min, best = 0;
-+	unsigned int freq, i;
-+
-+	freq = (unsigned int) (0x3b9aca00 / info->var.pixclock);
-+
-+	min = abs(pll_table[0].freq - freq);
-+
-+	for (i = 0; i < ARRAY_SIZE(pll_table); i++) {
-+		diff = abs(pll_table[i].freq - freq);
-+		if (diff < min) {
-+			min = diff;
-+			best = i;
++		if (!strcmp(this_opt, "redraw"))
++			ypan = 0;
++		else if (!strcmp(this_opt, "ypan"))
++			ypan = 1;
++		else if (!strcmp(this_opt, "ywrap"))
++			ypan = 2;
++		else if (!strcmp(this_opt, "vgapal"))
++			pmi_setpal = 0;
++		else if (!strcmp(this_opt, "pmipal"))
++			pmi_setpal = 1;
++		else if (!strncmp(this_opt, "mtrr:", 5))
++			mtrr = simple_strtoul(this_opt+5, NULL, 0);
++		else if (!strcmp(this_opt, "nomtrr"))
++			mtrr = 0;
++		else if (!strcmp(this_opt, "nocrtc"))
++			nocrtc = 1;
++		else if (!strcmp(this_opt, "noedid"))
++			noedid = 1;
++		else if (!strcmp(this_opt, "noblank"))
++			blank = 0;
++		else if (!strncmp(this_opt, "vtotal:", 7))
++			vram_total = simple_strtoul(this_opt + 7, NULL, 0);
++		else if (!strncmp(this_opt, "vremap:", 7))
++			vram_remap = simple_strtoul(this_opt + 7, NULL, 0);
++		else if (!strncmp(this_opt, "maxhf:", 6))
++			maxhf = simple_strtoul(this_opt + 6, NULL, 0);
++		else if (!strncmp(this_opt, "maxvf:", 6))
++			maxvf = simple_strtoul(this_opt + 6, NULL, 0);
++		else if (!strncmp(this_opt, "maxclk:", 7))
++			maxclk = simple_strtoul(this_opt + 7, NULL, 0);
++		else if (!strncmp(this_opt, "vbemode:", 8))
++			vbemode = simple_strtoul(this_opt + 8, NULL, 0);
++		else if (this_opt[0] >= '0' && this_opt[0] <= '9') {
++			mode_option = this_opt;
++		} else {
++			printk(KERN_WARNING
++				"uvesafb: unrecognized option %s\n", this_opt);
 +		}
 +	}
 +
-+	lx_set_dotpll(pll_table[best].pllval & 0x7FFF);
++	return 0;
++}
++#endif /* !MODULE */
++
++static ssize_t show_v86d(struct device_driver *dev, char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "%s\n", v86d_path);
 +}
 +
-+static void lx_graphics_disable(struct fb_info *info)
++static ssize_t store_v86d(struct device_driver *dev, const char *buf,
++		size_t count)
 +{
-+	struct lxfb_par *par = info->par;
-+	unsigned int val, gcfg;
-+
-+	/* Note:  This assumes that the video is in a quitet state */
-+
-+	writel(0, par->df_regs + DF_ALPHA_CONTROL_1);
-+	writel(0, par->df_regs + DF_ALPHA_CONTROL_1 + 32);
-+	writel(0, par->df_regs + DF_ALPHA_CONTROL_1 + 64);
-+
-+	/* Turn off the VGA and video enable */
-+	val = readl (par->dc_regs + DC_GENERAL_CFG) &
-+		~(DC_GCFG_VGAE | DC_GCFG_VIDE);
-+
-+	writel(val, par->dc_regs + DC_GENERAL_CFG);
-+
-+	val = readl(par->df_regs + DF_VIDEO_CFG) & ~DF_VCFG_VID_EN;
-+	writel(val, par->df_regs + DF_VIDEO_CFG);
-+
-+	writel( DC_IRQ_MASK | DC_VSYNC_IRQ_MASK |
-+		DC_IRQ_STATUS | DC_VSYNC_IRQ_STATUS,
-+		par->dc_regs + DC_IRQ);
-+
-+	val = readl(par->dc_regs + DC_GENLCK_CTRL) & ~DC_GENLCK_ENABLE;
-+	writel(val, par->dc_regs + DC_GENLCK_CTRL);
-+
-+	val = readl(par->dc_regs + DC_COLOR_KEY) & ~DC_CLR_KEY_ENABLE;
-+	writel(val & ~DC_CLR_KEY_ENABLE, par->dc_regs + DC_COLOR_KEY);
-+
-+	/* We don't actually blank the panel, due to the long latency
-+	   involved with bringing it back */
-+
-+	val = readl(par->df_regs + DF_MISC) | DF_MISC_DAC_PWRDN;
-+	writel(val, par->df_regs + DF_MISC);
-+
-+	/* Turn off the display */
-+
-+	val = readl(par->df_regs + DF_DISPLAY_CFG);
-+	writel(val & ~(DF_DCFG_CRT_EN | DF_DCFG_HSYNC_EN | DF_DCFG_VSYNC_EN |
-+		       DF_DCFG_DAC_BL_EN), par->df_regs + DF_DISPLAY_CFG);
-+
-+	gcfg = readl(par->dc_regs + DC_GENERAL_CFG);
-+	gcfg &= ~(DC_GCFG_CMPE | DC_GCFG_DECE);
-+	writel(gcfg, par->dc_regs + DC_GENERAL_CFG);
-+
-+	/* Turn off the TGEN */
-+	val = readl(par->dc_regs + DC_DISPLAY_CFG);
-+	val &= ~DC_DCFG_TGEN;
-+	writel(val, par->dc_regs + DC_DISPLAY_CFG);
-+
-+	/* Wait 1000 usecs to ensure that the TGEN is clear */
-+	udelay(1000);
-+
-+	/* Turn off the FIFO loader */
-+
-+	gcfg &= ~DC_GCFG_DFLE;
-+	writel(gcfg, par->dc_regs + DC_GENERAL_CFG);
-+
-+	/* Lastly, wait for the GP to go idle */
-+
-+	do {
-+		val = readl(par->gp_regs + GP_BLT_STATUS);
-+	} while ((val & GP_BS_BLT_BUSY) || !(val & GP_BS_CB_EMPTY));
++	strncpy(v86d_path, buf, PATH_MAX);
++	return count;
 +}
 +
-+static void lx_graphics_enable(struct fb_info *info)
++static DRIVER_ATTR(v86d, S_IRUGO | S_IWUSR, show_v86d, store_v86d);
++
++static int __devinit uvesafb_init(void)
 +{
-+	struct lxfb_par *par = info->par;
-+	u32 temp, config;
++	int err;
 +
-+	/* Set the video request register */
-+	writel(0, par->df_regs + DF_VIDEO_REQUEST);
++#ifndef MODULE
++	char *option = NULL;
 +
-+	/* Set up the polarities */
++	if (fb_get_options("uvesafb", &option))
++		return -ENODEV;
++	uvesafb_setup(option);
++#endif
++	err = cn_add_callback(&uvesafb_cn_id, "uvesafb", uvesafb_cn_callback);
++	if (err)
++		return err;
 +
-+	config = readl(par->df_regs + DF_DISPLAY_CFG);
++	err = platform_driver_register(&uvesafb_driver);
 +
-+	config &= ~(DF_DCFG_CRT_SYNC_SKW_MASK | DF_DCFG_PWR_SEQ_DLY_MASK |
-+		  DF_DCFG_CRT_HSYNC_POL     | DF_DCFG_CRT_VSYNC_POL);
-+
-+	config |= (DF_DCFG_CRT_SYNC_SKW_INIT | DF_DCFG_PWR_SEQ_DLY_INIT  |
-+		   DF_DCFG_GV_PAL_BYP);
-+
-+	if (info->var.sync & FB_SYNC_HOR_HIGH_ACT)
-+		config |= DF_DCFG_CRT_HSYNC_POL;
-+
-+	if (info->var.sync & FB_SYNC_VERT_HIGH_ACT)
-+		config |= DF_DCFG_CRT_VSYNC_POL;
-+
-+	if (par->output & OUTPUT_PANEL) {
-+		u32 msrlo, msrhi;
-+
-+		writel(DF_DEFAULT_TFT_PMTIM1,
-+		       par->df_regs + DF_PANEL_TIM1);
-+		writel(DF_DEFAULT_TFT_PMTIM2,
-+		       par->df_regs + DF_PANEL_TIM2);
-+		writel(DF_DEFAULT_TFT_DITHCTL,
-+		       par->df_regs + DF_DITHER_CONTROL);
-+
-+		msrlo = DF_DEFAULT_TFT_PAD_SEL_LOW;
-+		msrhi = DF_DEFAULT_TFT_PAD_SEL_HIGH;
-+
-+		wrmsr(MSR_LX_DF_PADSEL, msrlo, msrhi);
-+	}
-+
-+	if (par->output & OUTPUT_CRT) {
-+		config |= DF_DCFG_CRT_EN   | DF_DCFG_HSYNC_EN |
-+			DF_DCFG_VSYNC_EN | DF_DCFG_DAC_BL_EN;
-+	}
-+
-+	writel(config, par->df_regs + DF_DISPLAY_CFG);
-+
-+	/* Turn the CRT dacs back on */
-+
-+	if (par->output & OUTPUT_CRT) {
-+		temp = readl(par->df_regs + DF_MISC);
-+		temp &= ~(DF_MISC_DAC_PWRDN  | DF_MISC_A_PWRDN);
-+		writel(temp, par->df_regs + DF_MISC);
-+	}
-+
-+	/* Turn the panel on (if it isn't already) */
-+
-+	if (par->output & OUTPUT_PANEL) {
-+		temp = readl(par->df_regs + DF_FP_PM);
-+
-+		if (!(temp & 0x09))
-+			writel(temp | DF_FP_PM_P, par->df_regs + DF_FP_PM);
-+	}
-+
-+	temp = readl(par->df_regs + DF_MISC);
-+	temp = readl(par->df_regs + DF_DISPLAY_CFG);
-+}
-+
-+unsigned int lx_framebuffer_size(void)
-+{
-+	unsigned int val;
-+
-+	/* The frame buffer size is reported by a VSM in VSA II */
-+	/* Virtual Register Class    = 0x02                     */
-+	/* VG_MEM_SIZE (1MB units)   = 0x00                     */
-+
-+	outw(0xFC53, 0xAC1C);
-+	outw(0x0200, 0xAC1C);
-+
-+	val = (unsigned int)(inw(0xAC1E)) & 0xFE;
-+	return (val << 20);
-+}
-+
-+void lx_set_mode(struct fb_info *info)
-+{
-+	struct lxfb_par *par = info->par;
-+	u64 msrval;
-+
-+	unsigned int max, dv, val, size;
-+
-+	unsigned int gcfg, dcfg;
-+	int hactive, hblankstart, hsyncstart, hsyncend, hblankend, htotal;
-+	int vactive, vblankstart, vsyncstart, vsyncend, vblankend, vtotal;
-+
-+	/* Unlock the DC registers */
-+	writel(DC_UNLOCK_CODE, par->dc_regs + DC_UNLOCK);
-+
-+	lx_graphics_disable(info);
-+
-+	lx_set_clock(info);
-+
-+	/* Set output mode */
-+
-+	rdmsrl(MSR_LX_DF_GLCONFIG, msrval);
-+	msrval &= ~DF_CONFIG_OUTPUT_MASK;
-+
-+	if (par->output & OUTPUT_PANEL) {
-+		msrval |= DF_OUTPUT_PANEL;
-+
-+		if (par->output & OUTPUT_CRT)
-+			msrval |= DF_SIMULTANEOUS_CRT_AND_FP;
++	if (!err) {
++		uvesafb_device = platform_device_alloc("uvesafb", 0);
++		if (uvesafb_device)
++			err = platform_device_add(uvesafb_device);
 +		else
-+			msrval &= ~DF_SIMULTANEOUS_CRT_AND_FP;
-+	} else {
-+		msrval |= DF_OUTPUT_CRT;
++			err = -ENOMEM;
++
++		if (err) {
++			platform_device_put(uvesafb_device);
++			platform_driver_unregister(&uvesafb_driver);
++			cn_del_callback(&uvesafb_cn_id);
++			return err;
++		}
++
++		err = driver_create_file(&uvesafb_driver.driver,
++				&driver_attr_v86d);
++		if (err) {
++			printk(KERN_WARNING "uvesafb: failed to register "
++					"attributes\n");
++			err = 0;
++		}
 +	}
-+
-+	wrmsrl(MSR_LX_DF_GLCONFIG, msrval);
-+
-+	/* Clear the various buffers */
-+	/* FIXME:  Adjust for panning here */
-+
-+	writel(0, par->dc_regs + DC_FB_START);
-+	writel(0, par->dc_regs + DC_CB_START);
-+	writel(0, par->dc_regs + DC_CURSOR_START);
-+
-+	/* FIXME: Add support for interlacing */
-+	/* FIXME: Add support for scaling */
-+
-+	val = readl(par->dc_regs + DC_GENLCK_CTRL);
-+	val &= ~(DC_GC_ALPHA_FLICK_ENABLE |
-+		 DC_GC_FLICKER_FILTER_ENABLE | DC_GC_FLICKER_FILTER_MASK);
-+
-+	/* Default scaling params */
-+
-+	writel((0x4000 << 16) | 0x4000, par->dc_regs + DC_GFX_SCALE);
-+	writel(0, par->dc_regs + DC_IRQ_FILT_CTL);
-+	writel(val, par->dc_regs + DC_GENLCK_CTRL);
-+
-+	/* FIXME:  Support compression */
-+
-+	if (info->fix.line_length > 4096)
-+		dv = DC_DV_LINE_SIZE_8192;
-+	else if (info->fix.line_length > 2048)
-+		dv = DC_DV_LINE_SIZE_4096;
-+	else if (info->fix.line_length > 1024)
-+		dv = DC_DV_LINE_SIZE_2048;
-+	else
-+		dv = DC_DV_LINE_SIZE_1024;
-+
-+	max = info->fix.line_length * info->var.yres;
-+	max = (max + 0x3FF) & 0xFFFFFC00;
-+
-+	writel(max | DC_DV_TOP_ENABLE, par->dc_regs + DC_DV_TOP);
-+
-+	val = readl(par->dc_regs + DC_DV_CTL) & ~DC_DV_LINE_SIZE_MASK;
-+	writel(val | dv, par->dc_regs + DC_DV_CTL);
-+
-+	size = info->var.xres * (info->var.bits_per_pixel >> 3);
-+
-+	writel(info->fix.line_length >> 3, par->dc_regs + DC_GRAPHICS_PITCH);
-+	writel((size + 7) >> 3, par->dc_regs + DC_LINE_SIZE);
-+
-+	/* Set default watermark values */
-+
-+	rdmsrl(MSR_LX_DC_SPARE, msrval);
-+
-+	msrval &= ~(DC_SPARE_DISABLE_CFIFO_HGO | DC_SPARE_VFIFO_ARB_SELECT |
-+		    DC_SPARE_LOAD_WM_LPEN_MASK | DC_SPARE_WM_LPEN_OVRD |
-+		    DC_SPARE_DISABLE_INIT_VID_PRI | DC_SPARE_DISABLE_VFIFO_WM);
-+	msrval |= DC_SPARE_DISABLE_VFIFO_WM | DC_SPARE_DISABLE_INIT_VID_PRI;
-+	wrmsrl(MSR_LX_DC_SPARE, msrval);
-+
-+	gcfg = DC_GCFG_DFLE;   /* Display fifo enable */
-+	gcfg |= 0xB600;         /* Set default priority */
-+	gcfg |= DC_GCFG_FDTY;  /* Set the frame dirty mode */
-+
-+	dcfg  = DC_DCFG_VDEN;  /* Enable video data */
-+	dcfg |= DC_DCFG_GDEN;  /* Enable graphics */
-+	dcfg |= DC_DCFG_TGEN;  /* Turn on the timing generator */
-+	dcfg |= DC_DCFG_TRUP;  /* Update timings immediately */
-+	dcfg |= DC_DCFG_PALB;  /* Palette bypass in > 8 bpp modes */
-+	dcfg |= DC_DCFG_VISL;
-+	dcfg |= DC_DCFG_DCEN;  /* Always center the display */
-+
-+	/* Set the current BPP mode */
-+
-+	switch (info->var.bits_per_pixel) {
-+	case 8:
-+		dcfg |= DC_DCFG_DISP_MODE_8BPP;
-+		break;
-+
-+	case 16:
-+		dcfg |= DC_DCFG_DISP_MODE_16BPP | DC_DCFG_16BPP;
-+		break;
-+
-+	case 32:
-+	case 24:
-+		dcfg |= DC_DCFG_DISP_MODE_24BPP;
-+		break;
-+	}
-+
-+	/* Now - set up the timings */
-+
-+	hactive = info->var.xres;
-+	hblankstart = hactive;
-+	hsyncstart = hblankstart + info->var.right_margin;
-+	hsyncend =  hsyncstart + info->var.hsync_len;
-+	hblankend = hsyncend + info->var.left_margin;
-+	htotal = hblankend;
-+
-+	vactive = info->var.yres;
-+	vblankstart = vactive;
-+	vsyncstart = vblankstart + info->var.lower_margin;
-+	vsyncend =  vsyncstart + info->var.vsync_len;
-+	vblankend = vsyncend + info->var.upper_margin;
-+	vtotal = vblankend;
-+
-+	writel((hactive - 1) | ((htotal - 1) << 16),
-+	       par->dc_regs + DC_H_ACTIVE_TIMING);
-+	writel((hblankstart - 1) | ((hblankend - 1) << 16),
-+	       par->dc_regs + DC_H_BLANK_TIMING);
-+	writel((hsyncstart - 1) | ((hsyncend - 1) << 16),
-+	       par->dc_regs + DC_H_SYNC_TIMING);
-+
-+	writel((vactive - 1) | ((vtotal - 1) << 16),
-+	       par->dc_regs + DC_V_ACTIVE_TIMING);
-+
-+	writel((vblankstart - 1) | ((vblankend - 1) << 16),
-+	       par->dc_regs + DC_V_BLANK_TIMING);
-+
-+	writel((vsyncstart - 1)  | ((vsyncend - 1) << 16),
-+	       par->dc_regs + DC_V_SYNC_TIMING);
-+
-+	writel( (info->var.xres - 1) << 16 | (info->var.yres - 1),
-+		par->dc_regs + DC_FB_ACTIVE);
-+
-+	/* And re-enable the graphics output */
-+	lx_graphics_enable(info);
-+
-+	/* Write the two main configuration registers */
-+	writel(dcfg, par->dc_regs + DC_DISPLAY_CFG);
-+	writel(0, par->dc_regs + DC_ARB_CFG);
-+	writel(gcfg, par->dc_regs + DC_GENERAL_CFG);
-+
-+	/* Lock the DC registers */
-+	writel(0, par->dc_regs + DC_UNLOCK);
++	return err;
 +}
 +
-+void lx_set_palette_reg(struct fb_info *info, unsigned regno,
-+			unsigned red, unsigned green, unsigned blue)
++module_init(uvesafb_init);
++
++static void __devexit uvesafb_exit(void)
 +{
-+	struct lxfb_par *par = info->par;
-+	int val;
++	struct uvesafb_ktask *task;
 +
-+	/* Hardware palette is in RGB 8-8-8 format. */
++	if (v86d_started) {
++		task = uvesafb_prep();
++		if (task) {
++			task->t.flags = TF_EXIT;
++			uvesafb_exec(task);
++			uvesafb_free(task);
++		}
++	}
 +
-+	val  = (red   << 8) & 0xff0000;
-+	val |= (green)      & 0x00ff00;
-+	val |= (blue  >> 8) & 0x0000ff;
-+
-+	writel(regno, par->dc_regs + DC_PAL_ADDRESS);
-+	writel(val, par->dc_regs + DC_PAL_DATA);
++	cn_del_callback(&uvesafb_cn_id);
++	driver_remove_file(&uvesafb_driver.driver, &driver_attr_v86d);
++	platform_device_unregister(uvesafb_device);
++	platform_driver_unregister(&uvesafb_driver);
 +}
 +
-+int lx_blank_display(struct fb_info *info, int blank_mode)
++module_exit(uvesafb_exit);
++
++static inline int param_get_scroll(char *buffer, struct kernel_param *kp)
 +{
-+	struct lxfb_par *par = info->par;
-+	u32 dcfg, fp_pm;
-+	int blank, hsync, vsync;
++	return 0;
++}
 +
-+	/* CRT power saving modes. */
-+	switch (blank_mode) {
-+	case FB_BLANK_UNBLANK:
-+		blank = 0; hsync = 1; vsync = 1;
-+		break;
-+	case FB_BLANK_NORMAL:
-+		blank = 1; hsync = 1; vsync = 1;
-+		break;
-+	case FB_BLANK_VSYNC_SUSPEND:
-+		blank = 1; hsync = 1; vsync = 0;
-+		break;
-+	case FB_BLANK_HSYNC_SUSPEND:
-+		blank = 1; hsync = 0; vsync = 1;
-+		break;
-+	case FB_BLANK_POWERDOWN:
-+		blank = 1; hsync = 0; vsync = 0;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
++static inline int param_set_scroll(const char *val, struct kernel_param *kp)
++{
++	ypan = 0;
 +
-+	dcfg = readl(par->df_regs + DF_DISPLAY_CFG);
-+	dcfg &= ~(DF_DCFG_DAC_BL_EN
-+		  | DF_DCFG_HSYNC_EN | DF_DCFG_VSYNC_EN);
-+	if (!blank)
-+		dcfg |= DF_DCFG_DAC_BL_EN;
-+	if (hsync)
-+		dcfg |= DF_DCFG_HSYNC_EN;
-+	if (vsync)
-+		dcfg |= DF_DCFG_VSYNC_EN;
-+	writel(dcfg, par->df_regs + DF_DISPLAY_CFG);
-+
-+	/* Power on/off flat panel */
-+
-+	if (par->output & OUTPUT_PANEL) {
-+		fp_pm = readl(par->df_regs + DF_FP_PM);
-+		if (blank_mode == FB_BLANK_POWERDOWN)
-+			fp_pm &= ~DF_FP_PM_P;
-+		else
-+			fp_pm |= DF_FP_PM_P;
-+		writel(fp_pm, par->df_regs + DF_FP_PM);
-+	}
++	if (!strcmp(val, "redraw"))
++		ypan = 0;
++	else if (!strcmp(val, "ypan"))
++		ypan = 1;
++	else if (!strcmp(val, "ywrap"))
++		ypan = 2;
 +
 +	return 0;
 +}
++
++#define param_check_scroll(name, p) __param_check(name, p, void);
++
++module_param_named(scroll, ypan, scroll, 0);
++MODULE_PARM_DESC(scroll,
++	"Scrolling mode, set to 'redraw', ''ypan' or 'ywrap'");
++module_param_named(vgapal, pmi_setpal, invbool, 0);
++MODULE_PARM_DESC(vgapal, "Set palette using VGA registers");
++module_param_named(pmipal, pmi_setpal, bool, 0);
++MODULE_PARM_DESC(pmipal, "Set palette using PMI calls");
++module_param(mtrr, uint, 0);
++MODULE_PARM_DESC(mtrr,
++	"Memory Type Range Registers setting. Use 0 to disable.");
++module_param(blank, bool, 0);
++MODULE_PARM_DESC(blank, "Enable hardware blanking");
++module_param(nocrtc, bool, 0);
++MODULE_PARM_DESC(nocrtc, "Ignore CRTC timings when setting modes");
++module_param(noedid, bool, 0);
++MODULE_PARM_DESC(noedid,
++	"Ignore EDID-provided monitor limits when setting modes");
++module_param(vram_remap, uint, 0);
++MODULE_PARM_DESC(vram_remap, "Set amount of video memory to be used [MiB]");
++module_param(vram_total, uint, 0);
++MODULE_PARM_DESC(vram_total, "Set total amount of video memoery [MiB]");
++module_param(maxclk, ushort, 0);
++MODULE_PARM_DESC(maxclk, "Maximum pixelclock [MHz], overrides EDID data");
++module_param(maxhf, ushort, 0);
++MODULE_PARM_DESC(maxhf,
++	"Maximum horizontal frequency [kHz], overrides EDID data");
++module_param(maxvf, ushort, 0);
++MODULE_PARM_DESC(maxvf,
++	"Maximum vertical frequency [Hz], overrides EDID data");
++module_param_named(mode, mode_option, charp, 0);
++MODULE_PARM_DESC(mode,
++	"Specify initial video mode as \"<xres>x<yres>[-<bpp>][@<refresh>]\"");
++module_param(vbemode, ushort, 0);
++MODULE_PARM_DESC(vbemode,
++	"VBE mode number to set, overrides the 'mode' option");
++module_param_string(v86d, v86d_path, PATH_MAX, 0660);
++MODULE_PARM_DESC(v86d, "Path to the v86d userspace helper.");
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Michal Januszewski <spock@gentoo.org>");
++MODULE_DESCRIPTION("Framebuffer driver for VBE2.0+ compliant graphics boards");
++
+diff -puN include/video/Kbuild~uvesafb-the-driver-core include/video/Kbuild
+--- a/include/video/Kbuild~uvesafb-the-driver-core
++++ a/include/video/Kbuild
+@@ -1 +1 @@
+-unifdef-y += sisfb.h
++unifdef-y += sisfb.h uvesafb.h
+diff -puN /dev/null include/video/uvesafb.h
+--- /dev/null
++++ a/include/video/uvesafb.h
+@@ -0,0 +1,193 @@
++#ifndef _UVESAFB_H
++#define _UVESAFB_H
++
++struct v86_regs {
++	__u32 ebx;
++	__u32 ecx;
++	__u32 edx;
++	__u32 esi;
++	__u32 edi;
++	__u32 ebp;
++	__u32 eax;
++	__u32 eip;
++	__u32 eflags;
++	__u32 esp;
++	__u16 cs;
++	__u16 ss;
++	__u16 es;
++	__u16 ds;
++	__u16 fs;
++	__u16 gs;
++};
++
++/* Task flags */
++#define TF_VBEIB	0x01
++#define TF_BUF_ESDI	0x02
++#define TF_BUF_ESBX	0x04
++#define TF_BUF_RET	0x08
++#define TF_EXIT		0x10
++
++struct uvesafb_task {
++	__u8 flags;
++	int buf_len;
++	struct v86_regs regs;
++};
++
++/* Constants for the capabilities field
++ * in vbe_ib */
++#define VBE_CAP_CAN_SWITCH_DAC	0x01
++#define VBE_CAP_VGACOMPAT	0x02
++
++/* The VBE Info Block */
++struct vbe_ib {
++	char  vbe_signature[4];
++	__u16 vbe_version;
++	__u32 oem_string_ptr;
++	__u32 capabilities;
++	__u32 mode_list_ptr;
++	__u16 total_memory;
++	__u16 oem_software_rev;
++	__u32 oem_vendor_name_ptr;
++	__u32 oem_product_name_ptr;
++	__u32 oem_product_rev_ptr;
++	__u8  reserved[222];
++	char  oem_data[256];
++	char  misc_data[512];
++} __attribute__ ((packed));
++
++#ifdef __KERNEL__
++
++/* VBE CRTC Info Block */
++struct vbe_crtc_ib {
++	u16 horiz_total;
++	u16 horiz_start;
++	u16 horiz_end;
++	u16 vert_total;
++	u16 vert_start;
++	u16 vert_end;
++	u8  flags;
++	u32 pixel_clock;
++	u16 refresh_rate;
++	u8  reserved[40];
++} __attribute__ ((packed));
++
++#define VBE_MODE_VGACOMPAT	0x20
++#define VBE_MODE_COLOR		0x08
++#define VBE_MODE_SUPPORTEDHW	0x01
++#define VBE_MODE_GRAPHICS	0x10
++#define VBE_MODE_LFB		0x80
++
++#define VBE_MODE_MASK		(VBE_MODE_COLOR | VBE_MODE_SUPPORTEDHW | \
++				VBE_MODE_GRAPHICS | VBE_MODE_LFB)
++
++/* VBE Mode Info Block */
++struct vbe_mode_ib {
++	/* for all VBE revisions */
++	u16 mode_attr;
++	u8  winA_attr;
++	u8  winB_attr;
++	u16 win_granularity;
++	u16 win_size;
++	u16 winA_seg;
++	u16 winB_seg;
++	u32 win_func_ptr;
++	u16 bytes_per_scan_line;
++
++	/* for VBE 1.2+ */
++	u16 x_res;
++	u16 y_res;
++	u8  x_char_size;
++	u8  y_char_size;
++	u8  planes;
++	u8  bits_per_pixel;
++	u8  banks;
++	u8  memory_model;
++	u8  bank_size;
++	u8  image_pages;
++	u8  reserved1;
++
++	/* Direct color fields for direct/6 and YUV/7 memory models. */
++	/* Offsets are bit positions of lsb in the mask. */
++	u8  red_len;
++	u8  red_off;
++	u8  green_len;
++	u8  green_off;
++	u8  blue_len;
++	u8  blue_off;
++	u8  rsvd_len;
++	u8  rsvd_off;
++	u8  direct_color_info;	/* direct color mode attributes */
++
++	/* for VBE 2.0+ */
++	u32 phys_base_ptr;
++	u8  reserved2[6];
++
++	/* for VBE 3.0+ */
++	u16 lin_bytes_per_scan_line;
++	u8  bnk_image_pages;
++	u8  lin_image_pages;
++	u8  lin_red_len;
++	u8  lin_red_off;
++	u8  lin_green_len;
++	u8  lin_green_off;
++	u8  lin_blue_len;
++	u8  lin_blue_off;
++	u8  lin_rsvd_len;
++	u8  lin_rsvd_off;
++	u32 max_pixel_clock;
++	u16 mode_id;
++	u8  depth;
++} __attribute__ ((packed));
++
++#define UVESAFB_DEFAULT_MODE "640x480-16"
++
++/* How long to wait for a reply from userspace [ms] */
++#define UVESAFB_TIMEOUT 5000
++
++/* Max number of concurrent tasks */
++#define UVESAFB_TASKS_MAX 16
++
++#define dac_reg	(0x3c8)
++#define dac_val	(0x3c9)
++
++struct uvesafb_pal_entry {
++	u_char blue, green, red, pad;
++} __attribute__ ((packed));
++
++struct uvesafb_ktask {
++	struct uvesafb_task t;
++	void *buf;
++	struct completion *done;
++	u32 ack;
++};
++
++static int uvesafb_exec(struct uvesafb_ktask *tsk);
++
++#define UVESAFB_EXACT_RES	1
++#define UVESAFB_EXACT_DEPTH	2
++
++struct uvesafb_par {
++	struct vbe_ib vbe_ib;		/* VBE Info Block */
++	struct vbe_mode_ib *vbe_modes;	/* list of supported VBE modes */
++	int vbe_modes_cnt;
++
++	u8 nocrtc;
++	u8 ypan;			/* 0 - nothing, 1 - ypan, 2 - ywrap */
++	u8 pmi_setpal;			/* PMI for palette changes */
++	u16 *pmi_base;			/* protected mode interface location */
++	void *pmi_start;
++	void *pmi_pal;
++	u8 *vbe_state_orig;		/*
++					 * original hardware state, before the
++					 * driver was loaded
++					 */
++	u8 *vbe_state_saved;		/* state saved by fb_save_state */
++	int vbe_state_size;
++	atomic_t ref_count;
++
++	int mode_idx;
++	struct vbe_crtc_ib crtc;
++};
++
++#endif /* __KERNEL__ */
++#endif /* _UVESAFB_H */
 _
 
-Patches currently in -mm which might be from jordan.crouse@amd.com are
+Patches currently in -mm which might be from spock@gentoo.org are
 
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-geode-setup-correct-chipset-access-functions-fix.patch
-lxfb-geode-add-framebuffer-support-for-the-amd-geode-lx.patch
+fbdev-export-fb_destroy_modelist.patch
+connector-change-connectors-max-message-size.patch
+uvesafb-add-connector-entries.patch
+uvesafb-the-driver-core.patch
+uvesafb-documentation.patch
