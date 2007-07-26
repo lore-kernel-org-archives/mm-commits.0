@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fbcon-fix-typo-and-bogus-logic-in-get_default_font.patch added to -mm tree
-Date: Thu, 26 Jul 2007 12:00:03 -0700
-Message-ID: <200707261900.l6QJ034m015574@imap1.linux-foundation.org>
+Subject: + fbdev-fix-logo-if-logo-depth-is-less-than-framebuffer-depth.patch added to -mm tree
+Date: Thu, 26 Jul 2007 12:00:04 -0700
+Message-ID: <200707261900.l6QJ04JU015578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45211 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55028 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759638AbXGZTAO (ORCPT
+	by vger.kernel.org with ESMTP id S1753279AbXGZTAM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 15:00:14 -0400
+	Thu, 26 Jul 2007 15:00:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     fbcon: Fix typo and bogus logic in get_default_font
+     fbdev: Fix logo if logo depth is less than framebuffer  depth
 has been added to the -mm tree.  Its filename is
-     fbcon-fix-typo-and-bogus-logic-in-get_default_font.patch
+     fbdev-fix-logo-if-logo-depth-is-less-than-framebuffer-depth.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbcon: Fix typo and bogus logic in get_default_font
+Subject: fbdev: Fix logo if logo depth is less than framebuffer  depth
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Reported in: Bugzilla Bug 8727
-
-Fix typo and bogus logic in get_default_font(). The bug results in
-get_default_font() returning a font that may not be displayed properly by a
-framebuffer driver.
+The VGA16 logo (bpp = 4) and monochrome logo (bpp = 1) do not contain any
+color information (no CLUT).  If the fb depth is > logo depth, these logo's
+will not properly display. Fix by using the console palette instead of
+creating a new one.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fonts.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/fbmem.c |   42 ++++++++++++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 16 deletions(-)
 
-diff -puN drivers/video/console/fonts.c~fbcon-fix-typo-and-bogus-logic-in-get_default_font drivers/video/console/fonts.c
---- a/drivers/video/console/fonts.c~fbcon-fix-typo-and-bogus-logic-in-get_default_font
-+++ a/drivers/video/console/fonts.c
-@@ -133,8 +133,8 @@ const struct font_desc *get_default_font
- 	if ((yres < 400) == (f->height <= 8))
- 	    c += 1000;
+diff -puN drivers/video/fbmem.c~fbdev-fix-logo-if-logo-depth-is-less-than-framebuffer-depth drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-fix-logo-if-logo-depth-is-less-than-framebuffer-depth
++++ a/drivers/video/fbmem.c
+@@ -244,8 +244,17 @@ static void fb_set_logo(struct fb_info *
+ 	u8 xor = (info->fix.visual == FB_VISUAL_MONO01) ? 0xff : 0;
+ 	u8 fg = 1, d;
  
--	if (!(font_w & (1 << (f->width - 1))) ||
--	    !(font_w & (1 << (f->height - 1))))
-+	if ((font_w & (1 << (f->width - 1))) &&
-+	    (font_h & (1 << (f->height - 1))))
- 	    c += 1000;
+-	if (fb_get_color_depth(&info->var, &info->fix) == 3)
++	switch (fb_get_color_depth(&info->var, &info->fix)) {
++	case 1:
++		fg = 1;
++		break;
++	case 2:
++		fg = 3;
++		break;
++	default:
+ 		fg = 7;
++		break;
++	}
  
- 	if (c > cc) {
+ 	if (info->fix.visual == FB_VISUAL_MONO01 ||
+ 	    info->fix.visual == FB_VISUAL_MONO10)
+@@ -564,21 +573,6 @@ int fb_prepare_logo(struct fb_info *info
+ 		depth = 4;
+ 	}
+ 
+-	if (depth >= 8) {
+-		switch (info->fix.visual) {
+-		case FB_VISUAL_TRUECOLOR:
+-			fb_logo.needs_truepalette = 1;
+-			break;
+-		case FB_VISUAL_DIRECTCOLOR:
+-			fb_logo.needs_directpalette = 1;
+-			fb_logo.needs_cmapreset = 1;
+-			break;
+-		case FB_VISUAL_PSEUDOCOLOR:
+-			fb_logo.needs_cmapreset = 1;
+-			break;
+-		}
+-	}
+-
+ 	/* Return if no suitable logo was found */
+ 	fb_logo.logo = fb_find_logo(depth);
+ 
+@@ -604,6 +598,22 @@ int fb_prepare_logo(struct fb_info *info
+ 	else
+ 		fb_logo.depth = 1;
+ 
++
++ 	if (fb_logo.depth > 4 && depth > 4) {
++ 		switch (info->fix.visual) {
++ 		case FB_VISUAL_TRUECOLOR:
++ 			fb_logo.needs_truepalette = 1;
++ 			break;
++ 		case FB_VISUAL_DIRECTCOLOR:
++ 			fb_logo.needs_directpalette = 1;
++ 			fb_logo.needs_cmapreset = 1;
++ 			break;
++ 		case FB_VISUAL_PSEUDOCOLOR:
++ 			fb_logo.needs_cmapreset = 1;
++ 			break;
++ 		}
++ 	}
++
+ 	return fb_prepare_extra_logos(info, fb_logo.logo->height, yres);
+ }
+ 
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
