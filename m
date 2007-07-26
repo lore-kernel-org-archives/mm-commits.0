@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c.patch added to -mm tree
-Date: Thu, 26 Jul 2007 00:44:34 -0700
-Message-ID: <200707260744.l6Q7iY3Q020796@imap1.linux-foundation.org>
+Subject: + fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch added to -mm tree
+Date: Thu, 26 Jul 2007 00:47:17 -0700
+Message-ID: <200707260747.l6Q7lHWp020862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56738 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33839 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754667AbXGZHpO (ORCPT
+	by vger.kernel.org with ESMTP id S1754667AbXGZHsC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 03:45:14 -0400
+	Thu, 26 Jul 2007 03:48:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: takata@linux-m32r.org, hitoshiy@linux-m32r.org, jeff@garzik.org
+Cc: mel@csn.ul.ie, apw@shadowen.org
 
 
 The patch titled
-     m32r: Fix ei_tx_timeout() in drivers/net/lib8390.c
+     fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2 fix
 has been added to the -mm tree.  Its filename is
-     m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c.patch
+     fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,69 +26,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m32r: Fix ei_tx_timeout() in drivers/net/lib8390.c
-From: Hirokazu Takata <takata@linux-m32r.org>
+Subject: fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2 fix
+From: Mel Gorman <mel@csn.ul.ie>
 
-Change INT0 trigger mode from edge-sense mode to level-sense mode,
-in order to fix the following timeout error:
-  'NETDEV WATCHDOG: eth0: transmit timed out'.
+On (24/07/07 22:01), Andrew Morton didst pronounce:
+> On Tue, 13 Mar 2007 10:42:02 +0000 mel@skynet.ie (Mel Gorman) wrote:
+>
+> > There are problems in the use of SPARSEMEM and pageblock flags that causes
+> > problems on ia64.
+> >
+> > <SNIP>
+>
+> SuperH allmodconfig blew up:
+>
+> mm/sparse.c: In function `sparse_init':
+> mm/sparse.c:482: error: implicit declaration of function `sparse_early_usemap_alloc'
+> mm/sparse.c:482: warning: assignment makes pointer from integer without a cast
+> mm/sparse.c: In function `sparse_add_one_section':
+> mm/sparse.c:553: error: implicit declaration of function `__kmalloc_section_usemap'
+> mm/sparse.c:553: warning: assignment makes pointer from integer without a cast
 
-This patch is required only for the Mappi platform.
+This error is due to a bad interaction between
+generic-virtual-memmap-support-for-sparsemem.patch and
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+. Functions that are needed whether CONFIG_SPARSEMEM_VMEMMAP is set are
+not are depending on CONFIG_SPARSEMEM_VMEMMAP . This breaks on arch/sh
+for example where SPARSEMEM may be set but not NUMA.
 
-Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Hitoshi Yamamoto <hitoshiy@linux-m32r.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/setup_mappi.c |    5 +++--
- drivers/net/lib8390.c          |    9 ---------
- 2 files changed, 3 insertions(+), 11 deletions(-)
+ mm/sparse.c |   58 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 29 insertions(+), 29 deletions(-)
 
-diff -puN arch/m32r/kernel/setup_mappi.c~m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c arch/m32r/kernel/setup_mappi.c
---- a/arch/m32r/kernel/setup_mappi.c~m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c
-+++ a/arch/m32r/kernel/setup_mappi.c
-@@ -45,7 +45,8 @@ static void mask_and_ack_mappi(unsigned 
- 
- static void end_mappi_irq(unsigned int irq)
- {
--	enable_mappi_irq(irq);
-+	if (!(irq_desc[irq].status & (IRQ_DISABLED | IRQ_INPROGRESS)))
-+		enable_mappi_irq(irq);
+diff -puN mm/sparse.c~fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix mm/sparse.c
+--- a/mm/sparse.c~fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix
++++ a/mm/sparse.c
+@@ -220,6 +220,35 @@ void *alloc_bootmem_high_node(pg_data_t 
+ 	return NULL;
  }
  
- static unsigned int startup_mappi_irq(unsigned int irq)
-@@ -88,7 +89,7 @@ void __init init_IRQ(void)
- 	irq_desc[M32R_IRQ_INT0].chip = &mappi_irq_type;
- 	irq_desc[M32R_IRQ_INT0].action = NULL;
- 	irq_desc[M32R_IRQ_INT0].depth = 1;
--	icu_data[M32R_IRQ_INT0].icucr = M32R_ICUCR_IEN|M32R_ICUCR_ISMOD10;
-+	icu_data[M32R_IRQ_INT0].icucr = M32R_ICUCR_IEN|M32R_ICUCR_ISMOD11;
- 	disable_mappi_irq(M32R_IRQ_INT0);
- #endif /* CONFIG_M32R_NE2000 */
++static unsigned long usemap_size(void)
++{
++	unsigned long size_bytes;
++	size_bytes = roundup(SECTION_BLOCKFLAGS_BITS, 8) / 8;
++	size_bytes = roundup(size_bytes, sizeof(unsigned long));
++	return size_bytes;
++}
++
++#ifdef CONFIG_MEMORY_HOTPLUG
++static unsigned long *__kmalloc_section_usemap(void)
++{
++	return kmalloc(usemap_size(), GFP_KERNEL);
++}
++#endif /* CONFIG_MEMORY_HOTPLUG */
++
++static unsigned long *sparse_early_usemap_alloc(unsigned long pnum)
++{
++	unsigned long *usemap;
++	struct mem_section *ms = __nr_to_section(pnum);
++	int nid = sparse_early_nid(ms);
++
++	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
++	if (usemap)
++		return usemap;
++
++	printk(KERN_WARNING "%s: allocation failed\n", __FUNCTION__);
++	return NULL;
++}
++
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ /*
+  * Virtual Memory Map support
+@@ -254,35 +283,6 @@ void *alloc_bootmem_high_node(pg_data_t 
+  * 	require one PTE/TLB per PAGE_SIZE chunk of the virtual memory map.
+  */
  
-diff -puN drivers/net/lib8390.c~m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c drivers/net/lib8390.c
---- a/drivers/net/lib8390.c~m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c
-+++ a/drivers/net/lib8390.c
-@@ -219,15 +219,6 @@ static void ei_tx_timeout(struct net_dev
- 	int txsr, isr, tickssofar = jiffies - dev->trans_start;
- 	unsigned long flags;
- 
--#if defined(CONFIG_M32R) && defined(CONFIG_SMP)
--	unsigned long icucr;
+-static unsigned long usemap_size(void)
+-{
+-	unsigned long size_bytes;
+- 	size_bytes = roundup(SECTION_BLOCKFLAGS_BITS, 8) / 8;
+-	size_bytes = roundup(size_bytes, sizeof(unsigned long));
+-	return size_bytes;
+-}
 -
--	local_irq_save(flags);
--	icucr = inl(M32R_ICU_CR1_PORTL);
--	icucr |= M32R_ICUCR_ISMOD11;
--	outl(icucr, M32R_ICU_CR1_PORTL);
--	local_irq_restore(flags);
--#endif
- 	ei_local->stat.tx_errors++;
- 
- 	spin_lock_irqsave(&ei_local->page_lock, flags);
+-#ifdef CONFIG_MEMORY_HOTPLUG
+-static unsigned long *__kmalloc_section_usemap(void)
+-{
+-	return kmalloc(usemap_size(), GFP_KERNEL);
+-}
+-#endif /* CONFIG_MEMORY_HOTPLUG */
+-
+-static unsigned long *sparse_early_usemap_alloc(unsigned long pnum)
+-{
+-	unsigned long *usemap;
+-	struct mem_section *ms = __nr_to_section(pnum);
+-	int nid = sparse_early_nid(ms);
+-
+-	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
+-	if (usemap)
+-		return usemap;
+-
+-	printk(KERN_WARNING "%s: allocation failed\n", __FUNCTION__);
+-	return NULL;
+-}
+-
+ /*
+  * Allocate a block of memory to be used to back the virtual memory map
+  * or to back the page tables that are used to create the mapping.
 _
 
-Patches currently in -mm which might be from takata@linux-m32r.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
+allow-nodes-to-exist-that-only-contain-zone_movable.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+sparc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
