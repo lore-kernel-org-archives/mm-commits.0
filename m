@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xilinxfbremove-__initdata-from-xilinx_fb_fix-and-xilinx_fb_var.patch added to -mm tree
-Date: Thu, 26 Jul 2007 12:00:07 -0700
-Message-ID: <200707261900.l6QJ07ZJ015584@imap1.linux-foundation.org>
+Subject: + fbdev-export-fb_destroy_modelist.patch added to -mm tree
+Date: Thu, 26 Jul 2007 12:00:15 -0700
+Message-ID: <200707261900.l6QJ0FFg015598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34822 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42828 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759810AbXGZTAX (ORCPT
+	by vger.kernel.org with ESMTP id S1763168AbXGZTA2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 15:00:23 -0400
+	Thu, 26 Jul 2007 15:00:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: grant.likely@secretlab.ca, adaplas@gmail.com, akonovalov@ru.mvista.com
+Cc: spock@gentoo.org, adaplas@gmail.com
 
 
 The patch titled
-     xilinxfb:Remove __initdata from xilinx_fb_fix and xilinx_fb_var
+     fbdev: export fb_destroy_modelist
 has been added to the -mm tree.  Its filename is
-     xilinxfbremove-__initdata-from-xilinx_fb_fix-and-xilinx_fb_var.patch
+     fbdev-export-fb_destroy_modelist.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xilinxfb:Remove __initdata from xilinx_fb_fix and xilinx_fb_var
-From: Grant Likely <grant.likely@secretlab.ca>
+Subject: fbdev: export fb_destroy_modelist
+From: Michal Januszewski <spock@gentoo.org>
 
-xilinxfb_drv_probe refers to both tables, but it cannot be initdata.
+Make fb_destroy_modelist an exported symbol for use in the uvesafb driver.
 
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-Cc: Andrei Konovalov <akonovalov@ru.mvista.com>
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/xilinxfb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/modedb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/xilinxfb.c~xilinxfbremove-__initdata-from-xilinx_fb_fix-and-xilinx_fb_var drivers/video/xilinxfb.c
---- a/drivers/video/xilinxfb.c~xilinxfbremove-__initdata-from-xilinx_fb_fix-and-xilinx_fb_var
-+++ a/drivers/video/xilinxfb.c
-@@ -79,7 +79,7 @@
- /*
-  * Here are the default fb_fix_screeninfo and fb_var_screeninfo structures
-  */
--static struct fb_fix_screeninfo xilinx_fb_fix __initdata = {
-+static struct fb_fix_screeninfo xilinx_fb_fix = {
- 	.id =		"Xilinx",
- 	.type =		FB_TYPE_PACKED_PIXELS,
- 	.visual =	FB_VISUAL_TRUECOLOR,
-@@ -88,7 +88,7 @@ static struct fb_fix_screeninfo xilinx_f
- 	.accel =	FB_ACCEL_NONE
- };
+diff -puN drivers/video/modedb.c~fbdev-export-fb_destroy_modelist drivers/video/modedb.c
+--- a/drivers/video/modedb.c~fbdev-export-fb_destroy_modelist
++++ a/drivers/video/modedb.c
+@@ -938,6 +938,7 @@ void fb_destroy_modelist(struct list_hea
+ 		kfree(pos);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(fb_destroy_modelist);
  
--static struct fb_var_screeninfo xilinx_fb_var __initdata = {
-+static struct fb_var_screeninfo xilinx_fb_var = {
- 	.xres =			XRES,
- 	.yres =			YRES,
- 	.xres_virtual =		XRES_VIRTUAL,
+ /**
+  * fb_videomode_to_modelist: convert mode array to mode list
 _
 
-Patches currently in -mm which might be from grant.likely@secretlab.ca are
+Patches currently in -mm which might be from spock@gentoo.org are
 
-xilinxfbremove-__initdata-from-xilinx_fb_fix-and-xilinx_fb_var.patch
-xilinxfb-dont-bail-if-the-xilinxfb-platform-device-doesnt-have-any-pdata.patch
+fbdev-export-fb_destroy_modelist.patch
+connector-change-connectors-max-message-size.patch
+uvesafb-add-connector-entries.patch
+uvesafb-the-driver-core.patch
+uvesafb-documentation.patch
