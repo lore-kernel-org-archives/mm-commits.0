@@ -1,69 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - mips-make-resources-for-ds1742-static-__initdata.patch removed from -mm tree
-Date: Wed, 25 Jul 2007 21:23:46 -0700
-Message-ID: <200707260423.l6Q4NkWU013732@imap1.linux-foundation.org>
+Subject: - pata_ali-correct-hp-detect.patch removed from -mm tree
+Date: Wed, 25 Jul 2007 21:23:44 -0700
+Message-ID: <200707260423.l6Q4NiJB013729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34783 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45344 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750953AbXGZEXz (ORCPT
+	by vger.kernel.org with ESMTP id S1751019AbXGZEX7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 00:23:55 -0400
+	Thu, 26 Jul 2007 00:23:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MIPS: Make resources for ds1742 "static __initdata"
+     pata_ali: Correct HP detect
 has been removed from the -mm tree.  Its filename was
-     mips-make-resources-for-ds1742-static-__initdata.patch
+     pata_ali-correct-hp-detect.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MIPS: Make resources for ds1742 "static __initdata"
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: pata_ali: Correct HP detect
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-We can make resources for platform_device_register_simple() "static
-__initdata".
-
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/jmr3927/rbhma3100/setup.c                        |    2 +-
- arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/pata_ali.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mips/jmr3927/rbhma3100/setup.c~mips-make-resources-for-ds1742-static-__initdata arch/mips/jmr3927/rbhma3100/setup.c
---- a/arch/mips/jmr3927/rbhma3100/setup.c~mips-make-resources-for-ds1742-static-__initdata
-+++ a/arch/mips/jmr3927/rbhma3100/setup.c
-@@ -434,7 +434,7 @@ EXPORT_SYMBOL(__swizzle_addr_b);
- 
- static int __init jmr3927_rtc_init(void)
- {
--	struct resource res = {
-+	static struct resource __initdata res = {
- 		.start	= JMR3927_IOC_NVRAMB_ADDR - IO_BASE,
- 		.end	= JMR3927_IOC_NVRAMB_ADDR - IO_BASE + 0x800 - 1,
- 		.flags	= IORESOURCE_MEM,
-diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~mips-make-resources-for-ds1742-static-__initdata arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
---- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~mips-make-resources-for-ds1742-static-__initdata
-+++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
-@@ -1020,7 +1020,7 @@ void __init toshiba_rbtx4927_timer_setup
- 
- static int __init toshiba_rbtx4927_rtc_init(void)
- {
--	struct resource res = {
-+	static struct resource __initdata res = {
- 		.start	= 0x1c010000,
- 		.end	= 0x1c010000 + 0x800 - 1,
- 		.flags	= IORESOURCE_MEM,
+diff -puN drivers/ata/pata_ali.c~pata_ali-correct-hp-detect drivers/ata/pata_ali.c
+--- a/drivers/ata/pata_ali.c~pata_ali-correct-hp-detect
++++ a/drivers/ata/pata_ali.c
+@@ -45,7 +45,7 @@ static struct dmi_system_id cable_dmi_ta
+ 		.ident = "HP Pavilion N5430",
+ 		.matches = {
+ 			DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
+-			DMI_MATCH(DMI_BOARD_NAME, "OmniBook N32N-736"),
++			DMI_MATCH(DMI_BOARD_VERSION, "OmniBook N32N-736"),
+ 		},
+ 	},
+ 	{ }
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-serial_txx9-fix-modem-control-line-handling.patch
-serial_txx9-cleanup-includes.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+git-scsi-rc-fixes.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+geode-setup-correct-chipset-access-functions-fix.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+update-coredump-path-in-kernel-to-not-check-coredump-rlim-if-core_pattern-is-a-pipe.patch
+remove-kconfig-setting-config_debug_shirq.patch
+debug-handling-of-early-spurious-interrupts.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
