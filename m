@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ioc3-switch-hw-checksumming-to-ethtool-configurable.patch added to -mm tree
-Date: Thu, 26 Jul 2007 01:06:43 -0700
-Message-ID: <200707260806.l6Q86hSZ021663@imap1.linux-foundation.org>
+Subject: + fib_trie-cleanup.patch added to -mm tree
+Date: Thu, 26 Jul 2007 01:58:45 -0700
+Message-ID: <200707260858.l6Q8wjdJ023595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49110 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45171 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758282AbXGZIHF (ORCPT
+	by vger.kernel.org with ESMTP id S1754699AbXGZI6y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 04:07:05 -0400
+	Thu, 26 Jul 2007 04:58:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org
+Cc: shemminger@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     IOC3: Switch hw checksumming to ethtool configurable.
+     fib_trie: cleanup
 has been added to the -mm tree.  Its filename is
-     ioc3-switch-hw-checksumming-to-ethtool-configurable.patch
+     fib_trie-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,206 +26,218 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: IOC3: Switch hw checksumming to ethtool configurable.
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: fib_trie: cleanup
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-I've previously sent out this patch a long time ago.  At that time I was
-told NETIF_F_IP_CSUM wouldn't make any sense without NETIF_F_SG.  IOC3's
-S/G abilities are very limited; it can do up to three segments of which the
-first one is up to 104 bytes and part of the packet's TX ring entry, the
-second and 3rd ones can be anywhere in the 64-bit PCI address space but may
-not cross a 16kB page boundary.  So setting NETIF_F_SG isn't really an
-option unless the IOC3 was going to linearize any packet it can't cope with
-itself.
+Try this out:
+     * replace macro's with inlines
+     * get rid of places doing multiple evaluations of NODE_PARENT
 
-So the big question, does NETIF_F_IP_CSUM without NETIF_F_SG make sense?
-
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig    |   20 ----------------
- drivers/net/ioc3-eth.c |   48 ++++++++++++++++++++++++++-------------
- 2 files changed, 32 insertions(+), 36 deletions(-)
+ net/ipv4/fib_trie.c |   65 +++++++++++++++++++++---------------------
+ 1 file changed, 33 insertions(+), 32 deletions(-)
 
-diff -puN drivers/net/ioc3-eth.c~ioc3-switch-hw-checksumming-to-ethtool-configurable drivers/net/ioc3-eth.c
---- a/drivers/net/ioc3-eth.c~ioc3-switch-hw-checksumming-to-ethtool-configurable
-+++ a/drivers/net/ioc3-eth.c
-@@ -5,7 +5,7 @@
-  *
-  * Driver for SGI's IOC3 based Ethernet cards as found in the PCI card.
-  *
-- * Copyright (C) 1999, 2000, 2001, 2003 Ralf Baechle
-+ * Copyright (C) 1999, 2000, 01, 03, 06 Ralf Baechle
-  * Copyright (C) 1995, 1999, 2000, 2001 by Silicon Graphics, Inc.
-  *
-  * References:
-@@ -61,12 +61,7 @@
- #include <asm/pgtable.h>
- #include <asm/uaccess.h>
- #include <asm/sn/types.h>
--#include <asm/sn/sn0/addrs.h>
--#include <asm/sn/sn0/hubni.h>
--#include <asm/sn/sn0/hubio.h>
--#include <asm/sn/klconfig.h>
- #include <asm/sn/ioc3.h>
--#include <asm/sn/sn0/ip27.h>
- #include <asm/pci/bridge.h>
- 
- /*
-@@ -94,6 +89,9 @@ struct ioc3_private {
- 	u32 emcr, ehar_h, ehar_l;
- 	spinlock_t ioc3_lock;
- 	struct mii_if_info mii;
-+	unsigned long flags;
-+#define IOC3_FLAG_RX_CHECKSUMS	1
-+
- 	struct pci_dev *pdev;
- 
- 	/* Members used by autonegotiation  */
-@@ -520,8 +518,6 @@ static struct net_device_stats *ioc3_get
- 	return &ip->stats;
- }
- 
--#ifdef CONFIG_SGI_IOC3_ETH_HW_RX_CSUM
+diff -puN net/ipv4/fib_trie.c~fib_trie-cleanup net/ipv4/fib_trie.c
+--- a/net/ipv4/fib_trie.c~fib_trie-cleanup
++++ a/net/ipv4/fib_trie.c
+@@ -93,15 +93,8 @@ typedef unsigned int t_key;
+ #define T_TNODE 0
+ #define T_LEAF  1
+ #define NODE_TYPE_MASK	0x1UL
+-#define NODE_PARENT(node) \
+-	((struct tnode *)rcu_dereference(((node)->parent & ~NODE_TYPE_MASK)))
 -
- static void ioc3_tcpudp_checksum(struct sk_buff *skb, uint32_t hwsum, int len)
- {
- 	struct ethhdr *eh = eth_hdr(skb);
-@@ -589,7 +585,6 @@ static void ioc3_tcpudp_checksum(struct 
- 	if (csum == 0xffff)
- 		skb->ip_summed = CHECKSUM_UNNECESSARY;
+ #define NODE_TYPE(node) ((node)->parent & NODE_TYPE_MASK)
+ 
+-#define NODE_SET_PARENT(node, ptr)		\
+-	rcu_assign_pointer((node)->parent,	\
+-			   ((unsigned long)(ptr)) | NODE_TYPE(node))
+-
+ #define IS_TNODE(n) (!(n->parent & T_LEAF))
+ #define IS_LEAF(n) (n->parent & T_LEAF)
+ 
+@@ -174,6 +167,16 @@ static void tnode_free(struct tnode *tn)
+ static struct kmem_cache *fn_alias_kmem __read_mostly;
+ static struct trie *trie_local = NULL, *trie_main = NULL;
+ 
++static inline struct tnode *node_parent(struct node *node)
++{
++	return rcu_dereference((struct tnode *) (node->parent & ~NODE_TYPE_MASK));
++}
++
++static inline void node_set_parent(struct node *node, struct tnode *ptr)
++{
++	rcu_assign_pointer(node->parent,
++			   (unsigned long)ptr | NODE_TYPE(node));
++}
+ 
+ /* rcu_read_lock needs to be hold by caller from readside */
+ 
+@@ -446,7 +449,7 @@ static void tnode_put_child_reorg(struct
+ 		tn->full_children++;
+ 
+ 	if (n)
+-		NODE_SET_PARENT(n, tn);
++		node_set_parent(n, tn);
+ 
+ 	rcu_assign_pointer(tn->child[i], n);
  }
--#endif /* CONFIG_SGI_IOC3_ETH_HW_RX_CSUM */
+@@ -481,7 +484,7 @@ static struct node *resize(struct trie *
+ 				continue;
  
- static inline void ioc3_rx(struct ioc3_private *ip)
+ 			/* compress one level */
+-			NODE_SET_PARENT(n, NULL);
++			node_set_parent(n, NULL);
+ 			tnode_free(tn);
+ 			return n;
+ 		}
+@@ -636,7 +639,7 @@ static struct node *resize(struct trie *
+ 
+ 			/* compress one level */
+ 
+-			NODE_SET_PARENT(n, NULL);
++			node_set_parent(n, NULL);
+ 			tnode_free(tn);
+ 			return n;
+ 		}
+@@ -961,24 +964,21 @@ fib_find_node(struct trie *t, u32 key)
+ static struct node *trie_rebalance(struct trie *t, struct tnode *tn)
  {
-@@ -624,9 +619,9 @@ static inline void ioc3_rx(struct ioc3_p
- 				goto next;
- 			}
+ 	int wasfull;
+-	t_key cindex, key;
+-	struct tnode *tp = NULL;
+-
+-	key = tn->key;
++	t_key cindex, key = tn->key;
++	struct tnode *tp;
  
--#ifdef CONFIG_SGI_IOC3_ETH_HW_RX_CSUM
--			ioc3_tcpudp_checksum(skb, w0 & ERXBUF_IPCKSUM_MASK,len);
--#endif
-+			if (likely(ip->flags & IOC3_FLAG_RX_CHECKSUMS))
-+				ioc3_tcpudp_checksum(skb,
-+					w0 & ERXBUF_IPCKSUM_MASK, len);
+-	while (tn != NULL && NODE_PARENT(tn) != NULL) {
+-
+-		tp = NODE_PARENT(tn);
++	while (tn != NULL && (tp = node_parent((struct node *)tn)) != NULL) {
+ 		cindex = tkey_extract_bits(key, tp->pos, tp->bits);
+ 		wasfull = tnode_full(tp, tnode_get_child(tp, cindex));
+ 		tn = (struct tnode *) resize (t, (struct tnode *)tn);
+ 		tnode_put_child_reorg((struct tnode *)tp, cindex,(struct node*)tn, wasfull);
  
- 			netif_rx(skb);
- 
-@@ -1298,9 +1293,7 @@ static int ioc3_probe(struct pci_dev *pd
- 	dev->set_multicast_list	= ioc3_set_multicast_list;
- 	dev->set_mac_address	= ioc3_set_mac_address;
- 	dev->ethtool_ops	= &ioc3_ethtool_ops;
--#ifdef CONFIG_SGI_IOC3_ETH_HW_TX_CSUM
- 	dev->features		= NETIF_F_IP_CSUM;
--#endif
- 
- 	sw_physid1 = ioc3_mdio_read(dev, ip->mii.phy_id, MII_PHYSID1);
- 	sw_physid2 = ioc3_mdio_read(dev, ip->mii.phy_id, MII_PHYSID2);
-@@ -1390,7 +1383,6 @@ static int ioc3_start_xmit(struct sk_buf
- 	uint32_t w0 = 0;
- 	int produce;
- 
--#ifdef CONFIG_SGI_IOC3_ETH_HW_TX_CSUM
- 	/*
- 	 * IOC3 has a fairly simple minded checksumming hardware which simply
- 	 * adds up the 1's complement checksum for the entire packet and
-@@ -1438,7 +1430,6 @@ static int ioc3_start_xmit(struct sk_buf
- 
- 		w0 = ETXD_DOCHECKSUM | (csoff << ETXD_CHKOFF_SHIFT);
+-		if (!NODE_PARENT(tn))
++		tp = node_parent((struct node *) tn);
++		if (!tp)
+ 			break;
+-
+-		tn = NODE_PARENT(tn);
++		tn = tp;
  	}
--#endif /* CONFIG_SGI_IOC3_ETH_HW_TX_CSUM */
++
+ 	/* Handle last (top) tnode */
+ 	if (IS_TNODE(tn))
+ 		tn = (struct tnode*) resize(t, (struct tnode *)tn);
+@@ -1031,7 +1031,7 @@ fib_insert_node(struct trie *t, int *err
+ 			pos = tn->pos + tn->bits;
+ 			n = tnode_get_child(tn, tkey_extract_bits(key, tn->pos, tn->bits));
  
- 	spin_lock_irq(&ip->ioc3_lock);
+-			BUG_ON(n && NODE_PARENT(n) != tn);
++			BUG_ON(n && node_parent(n) != tn);
+ 		} else
+ 			break;
+ 	}
+@@ -1083,7 +1083,7 @@ fib_insert_node(struct trie *t, int *err
+ 	if (t->trie && n == NULL) {
+ 		/* Case 2: n is NULL, and will just insert a new leaf */
  
-@@ -1593,12 +1584,37 @@ static u32 ioc3_get_link(struct net_devi
- 	return rc;
+-		NODE_SET_PARENT(l, tp);
++		node_set_parent((struct node *)l, tp);
+ 
+ 		cindex = tkey_extract_bits(key, tp->pos, tp->bits);
+ 		put_child(t, (struct tnode *)tp, cindex, (struct node *)l);
+@@ -1114,7 +1114,7 @@ fib_insert_node(struct trie *t, int *err
+ 			goto err;
+ 		}
+ 
+-		NODE_SET_PARENT(tn, tp);
++		node_set_parent((struct node *)tn, tp);
+ 
+ 		missbit = tkey_extract_bits(key, newpos, 1);
+ 		put_child(t, tn, missbit, (struct node *)l);
+@@ -1495,12 +1495,13 @@ backtrace:
+ 		if (chopped_off <= pn->bits) {
+ 			cindex &= ~(1 << (chopped_off-1));
+ 		} else {
+-			if (NODE_PARENT(pn) == NULL)
++			struct tnode *parent = node_parent((struct node *) pn);
++			if (!parent)
+ 				goto failed;
+ 
+ 			/* Get Child's index */
+-			cindex = tkey_extract_bits(pn->key, NODE_PARENT(pn)->pos, NODE_PARENT(pn)->bits);
+-			pn = NODE_PARENT(pn);
++			cindex = tkey_extract_bits(pn->key, parent->pos, parent->bits);
++			pn = parent;
+ 			chopped_off = 0;
+ 
+ #ifdef CONFIG_IP_FIB_TRIE_STATS
+@@ -1536,7 +1537,7 @@ static int trie_leaf_remove(struct trie 
+ 		check_tnode(tn);
+ 		n = tnode_get_child(tn ,tkey_extract_bits(key, tn->pos, tn->bits));
+ 
+-		BUG_ON(n && NODE_PARENT(n) != tn);
++		BUG_ON(n && node_parent(n) != tn);
+ 	}
+ 	l = (struct leaf *) n;
+ 
+@@ -1551,7 +1552,7 @@ static int trie_leaf_remove(struct trie 
+ 	t->revision++;
+ 	t->size--;
+ 
+-	tp = NODE_PARENT(n);
++	tp = node_parent(n);
+ 	tnode_free((struct tnode *) n);
+ 
+ 	if (tp) {
+@@ -1703,7 +1704,7 @@ static struct leaf *nextleaf(struct trie
+ 
+ 		p = (struct tnode*) trie;  /* Start */
+ 	} else
+-		p = (struct tnode *) NODE_PARENT(c);
++		p = node_parent(c);
+ 
+ 	while (p) {
+ 		int pos, last;
+@@ -1740,7 +1741,7 @@ static struct leaf *nextleaf(struct trie
+ up:
+ 		/* No more children go up one step  */
+ 		c = (struct node *) p;
+-		p = (struct tnode *) NODE_PARENT(p);
++		p = node_parent(c);
+ 	}
+ 	return NULL; /* Ready. Root of trie */
  }
+@@ -2043,7 +2044,7 @@ rescan:
+ 	}
  
-+static u32 ioc3_get_rx_csum(struct net_device *dev)
-+{
-+	struct ioc3_private *ip = netdev_priv(dev);
-+
-+	return ip->flags & IOC3_FLAG_RX_CHECKSUMS;
-+}
-+
-+static int ioc3_set_rx_csum(struct net_device *dev, u32 data)
-+{
-+	struct ioc3_private *ip = netdev_priv(dev);
-+
-+	spin_lock_bh(&ip->ioc3_lock);
-+	if (data)
-+		ip->flags |= IOC3_FLAG_RX_CHECKSUMS;
-+	else
-+		ip->flags &= ~IOC3_FLAG_RX_CHECKSUMS;
-+	spin_unlock_bh(&ip->ioc3_lock);
-+
-+	return 0;
-+}
-+
- static const struct ethtool_ops ioc3_ethtool_ops = {
- 	.get_drvinfo		= ioc3_get_drvinfo,
- 	.get_settings		= ioc3_get_settings,
- 	.set_settings		= ioc3_set_settings,
- 	.nway_reset		= ioc3_nway_reset,
- 	.get_link		= ioc3_get_link,
-+	.get_rx_csum		= ioc3_get_rx_csum,
-+	.set_rx_csum		= ioc3_set_rx_csum,
-+	.get_tx_csum		= ethtool_op_get_tx_csum,
-+	.set_tx_csum		= ethtool_op_set_tx_csum
- };
+ 	/* Current node exhausted, pop back up */
+-	p = NODE_PARENT(tn);
++	p = node_parent((struct node *)tn);
+ 	if (p) {
+ 		cindex = tkey_extract_bits(tn->key, p->pos, p->bits)+1;
+ 		tn = p;
+@@ -2317,7 +2318,7 @@ static int fib_trie_seq_show(struct seq_
+ 	if (v == SEQ_START_TOKEN)
+ 		return 0;
  
- static int ioc3_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
-diff -puN drivers/net/Kconfig~ioc3-switch-hw-checksumming-to-ethtool-configurable drivers/net/Kconfig
---- a/drivers/net/Kconfig~ioc3-switch-hw-checksumming-to-ethtool-configurable
-+++ a/drivers/net/Kconfig
-@@ -480,26 +480,6 @@ config SGI_IOC3_ETH
- 	  the Ethernet-HOWTO, available from
- 	  <http://www.tldp.org/docs.html#howto>.
- 
--config SGI_IOC3_ETH_HW_RX_CSUM
--	bool "Receive hardware checksums"
--	depends on SGI_IOC3_ETH && INET
--	default y
--	help
--	  The SGI IOC3 network adapter supports TCP and UDP checksums in
--	  hardware to offload processing of these checksums from the CPU.  At
--	  the moment only acceleration of IPv4 is supported.  This option
--	  enables offloading for checksums on receive.  If unsure, say Y.
--
--config SGI_IOC3_ETH_HW_TX_CSUM
--	bool "Transmit hardware checksums"
--	depends on SGI_IOC3_ETH && INET
--	default y
--	help
--	  The SGI IOC3 network adapter supports TCP and UDP checksums in
--	  hardware to offload processing of these checksums from the CPU.  At
--	  the moment only acceleration of IPv4 is supported.  This option
--	  enables offloading for checksums on transmit.  If unsure, say Y.
--
- config MIPS_SIM_NET
- 	tristate "MIPS simulator Network device"
- 	depends on MIPS_SIM
+-	if (!NODE_PARENT(n)) {
++	if (!node_parent(n)) {
+ 		if (iter->trie == trie_local)
+ 			seq_puts(seq, "<local>:\n");
+ 		else
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-origin.patch
-edac-is-bust-on-mips.patch
-include-asm-mips-add-missing-edac-h-file.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-git-mtd.patch
-ioc3-switch-hw-checksumming-to-ethtool-configurable.patch
-serial_txx9-fix-modem-control-line-handling.patch
-serial_txx9-cleanup-includes.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-whitelist-references-from-__dbe_table-to-init.patch
-bpqether-fix-rcu-usage.patch
-serial-fix-section-mismatch-vr41xx_siu.patch
-serial-fix-vr41xx_siu-interface-select.patch
-serial-fix-vr41xx_siu-serial-console-support.patch
-remove-tx3912fb.patch
-sb1250-duart-__maybe_unused-etc-fixes.patch
-clean-up-duplicate-includes-in-drivers-char.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+fib_trie-cleanup.patch
