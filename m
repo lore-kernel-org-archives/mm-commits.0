@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-usb-af9005-fec-error-check-fixes.patch added to -mm tree
-Date: Thu, 26 Jul 2007 13:21:06 -0700
-Message-ID: <200707262021.l6QKL6R8019085@imap1.linux-foundation.org>
+Subject: + kernel-auditscc-fix-an-off-by-one.patch added to -mm tree
+Date: Thu, 26 Jul 2007 13:21:50 -0700
+Message-ID: <200707262021.l6QKLoth019094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46150 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56781 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933646AbXGZUVg (ORCPT
+	by vger.kernel.org with ESMTP id S933646AbXGZUWG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 16:21:36 -0400
+	Thu, 26 Jul 2007 16:22:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, greg@kroah.com, luca@ventoso.org
+Cc: bunk@stusta.de, amy.griffis@hp.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     dvb-usb/af9005-fe.c: error check fixes
+     kernel/auditsc.c: fix an off-by-one
 has been added to the -mm tree.  Its filename is
-     dvb-usb-af9005-fec-error-check-fixes.patch
+     kernel-auditscc-fix-an-off-by-one.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dvb-usb/af9005-fe.c: error check fixes
+Subject: kernel/auditsc.c: fix an off-by-one
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch:
-- adds a missing error check and
-- removes an error check that could never be true
-
-Both spotted by the Coverity checker.
+This patch fixes an off-by-one in a BUG_ON() spotted by the Coverity
+checker.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Luca Olivetti <luca@ventoso.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Amy Griffis <amy.griffis@hp.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/af9005-fe.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ kernel/auditsc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/dvb-usb/af9005-fe.c~dvb-usb-af9005-fec-error-check-fixes drivers/media/dvb/dvb-usb/af9005-fe.c
---- a/drivers/media/dvb/dvb-usb/af9005-fe.c~dvb-usb-af9005-fec-error-check-fixes
-+++ a/drivers/media/dvb/dvb-usb/af9005-fe.c
-@@ -345,8 +345,8 @@ static int af9005_reset_pre_viterbi(stru
- 				       1 & 0xff);
- 	if (ret)
- 		return ret;
--	af9005_write_ofdm_register(state->d, xd_p_fec_super_frm_unit_15_8,
--				   1 >> 8);
-+	ret = af9005_write_ofdm_register(state->d, xd_p_fec_super_frm_unit_15_8,
-+					 1 >> 8);
- 	if (ret)
- 		return ret;
- 	/* reset pre viterbi error count */
-@@ -881,10 +881,8 @@ static int af9005_fe_init(struct dvb_fro
- 	     af9005_write_register_bits(state->d, xd_I2C_reg_ofdm_rst,
- 					reg_ofdm_rst_pos, reg_ofdm_rst_len, 1)))
- 		return ret;
--	if ((ret =
--	     af9005_write_register_bits(state->d, xd_I2C_reg_ofdm_rst,
--					reg_ofdm_rst_pos, reg_ofdm_rst_len, 0)))
--		return ret;
-+	ret = af9005_write_register_bits(state->d, xd_I2C_reg_ofdm_rst,
-+					 reg_ofdm_rst_pos, reg_ofdm_rst_len, 0);
+diff -puN kernel/auditsc.c~kernel-auditscc-fix-an-off-by-one kernel/auditsc.c
+--- a/kernel/auditsc.c~kernel-auditscc-fix-an-off-by-one
++++ a/kernel/auditsc.c
+@@ -2232,7 +2232,7 @@ int __audit_signal_info(int sig, struct 
+ 		axp->d.next = ctx->aux_pids;
+ 		ctx->aux_pids = (void *)axp;
+ 	}
+-	BUG_ON(axp->pid_count > AUDIT_AUX_PIDS);
++	BUG_ON(axp->pid_count >= AUDIT_AUX_PIDS);
  
- 	if (ret)
- 		return ret;
+ 	axp->target_pid[axp->pid_count] = t->tgid;
+ 	selinux_get_task_sid(t, &axp->target_sid[axp->pid_count]);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -81,6 +63,7 @@ xenbus_xsc-fix-a-use-after-free.patch
 git-acpi.patch
 drivers-acpi-sbsc-remove-dead-code.patch
 git-alsa.patch
+kernel-auditscc-fix-an-off-by-one.patch
 git-drm.patch
 git-kvm.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
