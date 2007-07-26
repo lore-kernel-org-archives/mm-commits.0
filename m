@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pm2fb-accelerated-imageblit.patch added to -mm tree
-Date: Thu, 26 Jul 2007 12:00:34 -0700
-Message-ID: <200707261900.l6QJ0YL5015642@imap1.linux-foundation.org>
+Subject: + tdfxfb-3-fixes.patch added to -mm tree
+Date: Thu, 26 Jul 2007 12:00:54 -0700
+Message-ID: <200707261900.l6QJ0sgU015683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51748 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39306 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764507AbXGZTMd (ORCPT
+	by vger.kernel.org with ESMTP id S1764619AbXGZTMe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 15:12:33 -0400
+	Thu, 26 Jul 2007 15:12:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     pm2fb: accelerated imageblit
+     tdfxfb: 3 fixes
 has been added to the -mm tree.  Its filename is
-     pm2fb-accelerated-imageblit.patch
+     tdfxfb-3-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,228 +26,343 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm2fb: accelerated imageblit
+Subject: tdfxfb: 3 fixes
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch adds accelerated imageblit function.
+This patch fixes 3 issues:
+- transparency handling in tdfxfb
+- panning with more than 4096 virtual height and acceleration (acceleration
+with x & y > 4096)
+- exit paths on errors in tdfxfb_probe()
+
+Additionally it sets a FBINFO_READS_FAST flag to use smart blitter scrolling
+(speed up on tdfxfb).
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c     |  123 +++++++++++++++++++++++++++++++++++-
- include/video/permedia2.h |    7 ++
- 2 files changed, 127 insertions(+), 3 deletions(-)
+ drivers/video/tdfxfb.c |  172 ++++++++++++++++++++++++---------------
+ 1 file changed, 108 insertions(+), 64 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-accelerated-imageblit drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-accelerated-imageblit
-+++ a/drivers/video/pm2fb.c
-@@ -60,6 +60,8 @@
- #define DPRINTK(a,b...)
- #endif
- 
-+#define PM2_PIXMAP_SIZE	(1600 * 4)
-+
- /*
-  * Driver data
-  */
-@@ -1166,6 +1168,104 @@ static void pm2fb_copyarea(struct fb_inf
- 			modded.width, modded.height, 0);
- }
- 
-+static void pm2fb_imageblit(struct fb_info *info, const struct fb_image *image)
-+{
-+	struct pm2fb_par *par = info->par;
-+	u32 height = image->height;
-+	u32 fgx, bgx;
-+	const u32 *src = (const u32*)image->data;
-+	u32 xres = (info->var.xres + 31) & ~31;
-+
-+	if (info->state != FBINFO_STATE_RUNNING)
-+		return;
-+	if (info->flags & FBINFO_HWACCEL_DISABLED || image->depth != 1) {
-+		cfb_imageblit(info, image);
-+		return;
-+	}
-+	switch (info->fix.visual) {
-+		case FB_VISUAL_PSEUDOCOLOR:
-+			fgx = image->fg_color;
-+			bgx = image->bg_color;
-+			break;
-+		case FB_VISUAL_TRUECOLOR:
-+		default:
-+			fgx = par->palette[image->fg_color];
-+			bgx = par->palette[image->bg_color];
-+			break;
-+	}
-+	if (info->var.bits_per_pixel == 8) {
-+		fgx |= fgx << 8;
-+		bgx |= bgx << 8;
-+	}
-+	if (info->var.bits_per_pixel <= 16) {
-+		fgx |= fgx << 16;
-+		bgx |= bgx << 16;
-+	}
-+
-+	WAIT_FIFO(par, 13);
-+	pm2_WR(par, PM2R_FB_READ_MODE, partprod(xres));
-+	pm2_WR(par, PM2R_SCISSOR_MIN_XY,
-+			((image->dy & 0xfff) << 16) | (image->dx & 0x0fff));
-+	pm2_WR(par, PM2R_SCISSOR_MAX_XY,
-+			(((image->dy + image->height) & 0x0fff) << 16) |
-+			((image->dx + image->width) & 0x0fff));
-+	pm2_WR(par, PM2R_SCISSOR_MODE, 1);
-+	/* GXcopy & UNIT_ENABLE */
-+	pm2_WR(par, PM2R_LOGICAL_OP_MODE, (0x3 << 1) | 1 );
-+	pm2_WR(par, PM2R_RECTANGLE_ORIGIN,
-+			((image->dy & 0xfff) << 16) | (image->dx & 0x0fff));
-+	pm2_WR(par, PM2R_RECTANGLE_SIZE,
-+			((image->height & 0x0fff) << 16) |
-+			((image->width) & 0x0fff));
-+	if (info->var.bits_per_pixel == 24) {
-+		pm2_WR(par, PM2R_COLOR_DDA_MODE, 1);
-+		/* clear area */
-+		pm2_WR(par, PM2R_CONSTANT_COLOR, bgx);
-+		pm2_WR(par, PM2R_RENDER,
-+			PM2F_RENDER_RECTANGLE |
-+			PM2F_INCREASE_X | PM2F_INCREASE_Y );
-+		/* BitMapPackEachScanline & invert bits and byte order*/
-+		/* force background */
-+		pm2_WR(par, PM2R_RASTERIZER_MODE,  (1<<9) | 1 | (3<<7));
-+		pm2_WR(par, PM2R_CONSTANT_COLOR, fgx);
-+		pm2_WR(par, PM2R_RENDER,
-+			PM2F_RENDER_RECTANGLE |
-+			PM2F_INCREASE_X | PM2F_INCREASE_Y |
-+			PM2F_RENDER_SYNC_ON_BIT_MASK);
-+	} else {
-+		pm2_WR(par, PM2R_COLOR_DDA_MODE, 0);
-+		/* clear area */
-+		pm2_WR(par, PM2R_FB_BLOCK_COLOR, bgx);
-+		pm2_WR(par, PM2R_RENDER,
-+			PM2F_RENDER_RECTANGLE |
-+			PM2F_RENDER_FASTFILL |
-+			PM2F_INCREASE_X | PM2F_INCREASE_Y );
-+		/* invert bits and byte order*/
-+		pm2_WR(par, PM2R_RASTERIZER_MODE,  1 | (3<<7) );
-+		pm2_WR(par, PM2R_FB_BLOCK_COLOR, fgx);
-+		pm2_WR(par, PM2R_RENDER,
-+			PM2F_RENDER_RECTANGLE |
-+			PM2F_INCREASE_X | PM2F_INCREASE_Y |
-+			PM2F_RENDER_FASTFILL |
-+			PM2F_RENDER_SYNC_ON_BIT_MASK);
-+	}
-+
-+	while (height--) {
-+		int width = ((image->width + 7) >> 3)
-+				+ info->pixmap.scan_align - 1;
-+		width >>= 2;
-+		WAIT_FIFO(par, width);
-+		while (width--) {
-+			pm2_WR(par, PM2R_BIT_MASK_PATTERN, *src);
-+			src++;
-+		}
-+	}
-+	WAIT_FIFO(par, 3);
-+	pm2_WR(par, PM2R_RASTERIZER_MODE, 0);
-+	pm2_WR(par, PM2R_COLOR_DDA_MODE, 0);
-+	pm2_WR(par, PM2R_SCISSOR_MODE, 0);
-+}
-+
- /* ------------ Hardware Independent Functions ------------ */
- 
- /*
-@@ -1181,7 +1281,7 @@ static struct fb_ops pm2fb_ops = {
- 	.fb_pan_display	= pm2fb_pan_display,
- 	.fb_fillrect	= pm2fb_fillrect,
- 	.fb_copyarea	= pm2fb_copyarea,
--	.fb_imageblit	= cfb_imageblit,
-+	.fb_imageblit	= pm2fb_imageblit,
- 	.fb_sync	= pm2fb_sync,
- };
- 
-@@ -1340,11 +1440,24 @@ static int __devinit pm2fb_probe(struct 
- 	info->flags		= FBINFO_DEFAULT |
- 				  FBINFO_HWACCEL_YPAN |
- 				  FBINFO_HWACCEL_COPYAREA |
-+				  FBINFO_HWACCEL_IMAGEBLIT |
- 				  FBINFO_HWACCEL_FILLRECT;
- 
-+	info->pixmap.addr = kmalloc(PM2_PIXMAP_SIZE, GFP_KERNEL);
-+	if (!info->pixmap.addr) {
-+		err_retval = -ENOMEM;
-+		goto err_exit_pixmap;
-+	}
-+	info->pixmap.size = PM2_PIXMAP_SIZE;
-+	info->pixmap.buf_align = 4;
-+	info->pixmap.scan_align = 4;
-+	info->pixmap.access_align = 32;
-+	info->pixmap.flags = FB_PIXMAP_SYSTEM;
-+
- 	if (noaccel) {
--	    	printk(KERN_DEBUG "disabling acceleration\n");
--  		info->flags |= FBINFO_HWACCEL_DISABLED;
-+		printk(KERN_DEBUG "disabling acceleration\n");
-+		info->flags |= FBINFO_HWACCEL_DISABLED;
-+		info->pixmap.scan_align = 1;
+diff -puN drivers/video/tdfxfb.c~tdfxfb-3-fixes drivers/video/tdfxfb.c
+--- a/drivers/video/tdfxfb.c~tdfxfb-3-fixes
++++ a/drivers/video/tdfxfb.c
+@@ -502,6 +502,8 @@ static int tdfxfb_check_var(struct fb_va
+ 		return -EINVAL;
  	}
  
- 	if (!mode)
-@@ -1373,6 +1486,8 @@ static int __devinit pm2fb_probe(struct 
-  err_exit_all:
- 	fb_dealloc_cmap(&info->cmap);
-  err_exit_both:
-+	kfree(info->pixmap.addr);
-+ err_exit_pixmap:
- 	iounmap(info->screen_base);
- 	release_mem_region(pm2fb_fix.smem_start, pm2fb_fix.smem_len);
-  err_exit_mmio:
-@@ -1409,6 +1524,8 @@ static void __devexit pm2fb_remove(struc
- 	release_mem_region(fix->mmio_start, fix->mmio_len);
++	var->transp.offset = 0;
++	var->transp.length = 0;
+ 	switch (var->bits_per_pixel) {
+ 	case 8:
+ 		var->red.length = var->green.length = var->blue.length = 8;
+@@ -515,10 +517,12 @@ static int tdfxfb_check_var(struct fb_va
+ 		var->blue.length  = 5;
+ 		break;
+ 	case 32:
++		var->transp.offset = 24;
++		var->transp.length = 8;
+ 	case 24:
+-		var->red.offset=16;
+-		var->green.offset=8;
+-		var->blue.offset=0;
++		var->red.offset = 16;
++		var->green.offset = 8;
++		var->blue.offset = 0;
+ 		var->red.length = var->green.length = var->blue.length = 8;
+ 		break;
+ 	}
+@@ -874,13 +878,26 @@ static void tdfxfb_fillrect(struct fb_in
+ 	u32 stride = info->fix.line_length;
+ 	u32 fmt= stride | ((bpp + ((bpp == 8) ? 0 : 8)) << 13);
+ 	int tdfx_rop;
++	u32 dx = rect->dx;
++	u32 dy = rect->dy;
++	u32 dstbase = 0;
  
- 	pci_set_drvdata(pdev, NULL);
-+	if (info->pixmap.addr)
-+		kfree(info->pixmap.addr);
- 	kfree(info);
+ 	if (rect->rop == ROP_COPY)
+ 		tdfx_rop = TDFX_ROP_COPY;
+ 	else
+ 		tdfx_rop = TDFX_ROP_XOR;
+ 
+-	banshee_make_room(par, 5);
++	/* asume always rect->height < 4096 */
++	if (dy + rect->height > 4095) {
++		dstbase = stride * dy;
++		dy = 0;
++	}
++	/* asume always rect->width < 4096 */
++	if (dx + rect->width > 4095) {
++		dstbase += dx * bpp >> 3;
++		dx = 0;
++	}
++	banshee_make_room(par, 6);
+ 	tdfx_outl(par, DSTFORMAT, fmt);
+ 	if (info->fix.visual == FB_VISUAL_PSEUDOCOLOR) {
+ 		tdfx_outl(par, COLORFORE, rect->color);
+@@ -888,8 +905,9 @@ static void tdfxfb_fillrect(struct fb_in
+ 		tdfx_outl(par, COLORFORE, par->palette[rect->color]);
+ 	}
+ 	tdfx_outl(par, COMMAND_2D, COMMAND_2D_FILLRECT | (tdfx_rop << 24));
++	tdfx_outl(par, DSTBASE, dstbase);
+ 	tdfx_outl(par, DSTSIZE, rect->width | (rect->height << 16));
+-	tdfx_outl(par, LAUNCH_2D, rect->dx | (rect->dy << 16));
++	tdfx_outl(par, LAUNCH_2D, dx | (dy << 16));
  }
  
-diff -puN include/video/permedia2.h~pm2fb-accelerated-imageblit include/video/permedia2.h
---- a/include/video/permedia2.h~pm2fb-accelerated-imageblit
-+++ a/include/video/permedia2.h
-@@ -68,11 +68,14 @@
- #define PM2R_D_Y					0x8028
- #define PM2R_COUNT					0x8030
- #define PM2R_RENDER					0x8038
-+#define PM2R_BIT_MASK_PATTERN				0x8068
- #define PM2R_RASTERIZER_MODE				0x80a0
- #define PM2R_RECTANGLE_ORIGIN				0x80d0
- #define PM2R_RECTANGLE_SIZE				0x80d8
- #define PM2R_PACKED_DATA_LIMITS				0x8150
- #define PM2R_SCISSOR_MODE				0x8180
-+#define PM2R_SCISSOR_MIN_XY				0x8188
-+#define PM2R_SCISSOR_MAX_XY				0x8190
- #define PM2R_SCREEN_SIZE				0x8198
- #define PM2R_AREA_STIPPLE_MODE				0x81a0
- #define PM2R_WINDOW_ORIGIN				0x81c8
-@@ -83,7 +86,9 @@
- #define PM2R_TEXEL_LUT_MODE				0x8678
- #define PM2R_TEXTURE_COLOR_MODE				0x8680
- #define PM2R_FOG_MODE					0x8690
-+#define PM2R_TEXEL0					0x8760
- #define PM2R_COLOR_DDA_MODE				0x87e0
-+#define PM2R_CONSTANT_COLOR				0x87e8
- #define PM2R_ALPHA_BLEND_MODE				0x8810
- #define PM2R_DITHER_MODE				0x8818
- #define PM2R_FB_SOFT_WRITE_MASK				0x8820
-@@ -169,6 +174,8 @@
- #define PM2F_RENDER_TRAPEZOID				(1L<<6)
- #define PM2F_RENDER_POINT				(2L<<6)
- #define PM2F_RENDER_RECTANGLE				(3L<<6)
-+#define PM2F_RENDER_SYNC_ON_BIT_MASK			(1L<<11)
-+#define PM2F_RENDER_TEXTURE_ENABLE			(1L<<13)
- #define PM2F_SYNCHRONIZATION				(1L<<10)
- #define PM2F_PLL_LOCKED					0x10
- #define PM2F_BEING_RESET				(1L<<31)
+ /*
+@@ -904,6 +922,30 @@ static void tdfxfb_copyarea(struct fb_in
+ 	u32 stride = info->fix.line_length;
+ 	u32 blitcmd = COMMAND_2D_S2S_BITBLT | (TDFX_ROP_COPY << 24);
+ 	u32 fmt = stride | ((bpp + ((bpp == 8) ? 0 : 8)) << 13);
++	u32 dstbase = 0;
++	u32 srcbase = 0;
++
++	/* asume always area->height < 4096 */
++	if (sy + area->height > 4095) {
++		srcbase = stride * sy;
++		sy = 0;
++	}
++	/* asume always area->width < 4096 */
++	if (sx + area->width > 4095) {
++		srcbase += sx * bpp >> 3;
++		sx = 0;
++	}
++	/* asume always area->height < 4096 */
++	if (dy + area->height > 4095) {
++		dstbase = stride * dy;
++		dy = 0;
++	}
++	/* asume always area->width < 4096 */
++	if (dx + area->width > 4095) {
++		dstbase += dx * bpp >> 3;
++		dx = 0;
++	}
++
+ 
+ 	if (area->sx <= area->dx) {
+ 		//-X
+@@ -918,13 +960,15 @@ static void tdfxfb_copyarea(struct fb_in
+ 		dy += area->height - 1;
+ 	}
+ 
+-	banshee_make_room(par, 6);
++	banshee_make_room(par, 8);
+ 
+ 	tdfx_outl(par, SRCFORMAT, fmt);
+ 	tdfx_outl(par, DSTFORMAT, fmt);
+ 	tdfx_outl(par, COMMAND_2D, blitcmd);
+ 	tdfx_outl(par, DSTSIZE, area->width | (area->height << 16));
+ 	tdfx_outl(par, DSTXY, dx | (dy << 16));
++	tdfx_outl(par, SRCBASE, srcbase);
++	tdfx_outl(par, DSTBASE, dstbase);
+ 	tdfx_outl(par, LAUNCH_2D, sx | (sy << 16));
+ }
+ 
+@@ -938,35 +982,48 @@ static void tdfxfb_imageblit(struct fb_i
+ 	u32 dstfmt = stride | ((bpp + ((bpp == 8) ? 0 : 8)) << 13);
+ 	u8 *chardata = (u8 *) image->data;
+ 	u32 srcfmt;
++	u32 dx = image->dx;
++	u32 dy = image->dy;
++	u32 dstbase = 0;
+ 
+ 	if (image->depth != 1) {
+ 		//banshee_make_room(par, 6 + ((size + 3) >> 2));
+ 		//srcfmt = stride | ((bpp+((bpp==8) ? 0 : 8)) << 13) | 0x400000;
+ 		cfb_imageblit(info, image);
+ 		return;
+-	} else {
+-		banshee_make_room(par, 8);
+-		switch (info->fix.visual) {
+-		case FB_VISUAL_PSEUDOCOLOR:
+-			tdfx_outl(par, COLORFORE, image->fg_color);
+-			tdfx_outl(par, COLORBACK, image->bg_color);
+-			break;
+-		case FB_VISUAL_TRUECOLOR:
+-		default:
+-			tdfx_outl(par, COLORFORE,
+-				  par->palette[image->fg_color]);
+-			tdfx_outl(par, COLORBACK,
+-				  par->palette[image->bg_color]);
+-		}
++	}
++	banshee_make_room(par, 9);
++	switch (info->fix.visual) {
++	case FB_VISUAL_PSEUDOCOLOR:
++		tdfx_outl(par, COLORFORE, image->fg_color);
++		tdfx_outl(par, COLORBACK, image->bg_color);
++		break;
++	case FB_VISUAL_TRUECOLOR:
++	default:
++		tdfx_outl(par, COLORFORE,
++			  par->palette[image->fg_color]);
++		tdfx_outl(par, COLORBACK,
++			  par->palette[image->bg_color]);
++	}
+ #ifdef __BIG_ENDIAN
+-		srcfmt = 0x400000 | BIT(20);
++	srcfmt = 0x400000 | BIT(20);
+ #else
+-		srcfmt = 0x400000;
++	srcfmt = 0x400000;
+ #endif
++	/* asume always image->height < 4096 */
++	if (dy + image->height > 4095) {
++		dstbase = stride * dy;
++		dy = 0;
++	}
++	/* asume always image->width < 4096 */
++	if (dx + image->width > 4095) {
++		dstbase += dx * bpp >> 3;
++		dx = 0;
+ 	}
+ 
++	tdfx_outl(par, DSTBASE, dstbase);
+ 	tdfx_outl(par, SRCXY, 0);
+-	tdfx_outl(par, DSTXY, image->dx | (image->dy << 16));
++	tdfx_outl(par, DSTXY, dx | (dy << 16));
+ 	tdfx_outl(par, COMMAND_2D, COMMAND_2D_H2S_BITBLT | (TDFX_ROP_COPY << 24));
+ 	tdfx_outl(par, SRCFORMAT, srcfmt);
+ 	tdfx_outl(par, DSTFORMAT, dstfmt);
+@@ -1211,44 +1268,36 @@ static int __devinit tdfxfb_probe(struct
+ 
+ 	tdfx_fix.mmio_start = pci_resource_start(pdev, 0);
+ 	tdfx_fix.mmio_len = pci_resource_len(pdev, 0);
++	if (!request_mem_region(tdfx_fix.mmio_start, tdfx_fix.mmio_len,
++				"tdfx regbase")) {
++		printk(KERN_WARNING "tdfxfb: Can't reserve regbase\n");
++		goto out_err;
++	}
++
+ 	default_par->regbase_virt =
+ 		ioremap_nocache(tdfx_fix.mmio_start, tdfx_fix.mmio_len);
+ 	if (!default_par->regbase_virt) {
+ 		printk("fb: Can't remap %s register area.\n", tdfx_fix.id);
+-		goto out_err;
+-	}
+-
+-	if (!request_mem_region(pci_resource_start(pdev, 0),
+-				pci_resource_len(pdev, 0), "tdfx regbase")) {
+-		printk(KERN_WARNING "tdfxfb: Can't reserve regbase\n");
+-		goto out_err;
++		goto out_err_regbase;
+ 	}
+ 
+ 	tdfx_fix.smem_start = pci_resource_start(pdev, 1);
+ 	if (!(tdfx_fix.smem_len = do_lfb_size(default_par, pdev->device))) {
+ 		printk("fb: Can't count %s memory.\n", tdfx_fix.id);
+-		release_mem_region(pci_resource_start(pdev, 0),
+-				   pci_resource_len(pdev, 0));
+-		goto out_err;
++		goto out_err_regbase;
+ 	}
+ 
+-	if (!request_mem_region(pci_resource_start(pdev, 1),
++	if (!request_mem_region(tdfx_fix.smem_start,
+ 				pci_resource_len(pdev, 1), "tdfx smem")) {
+ 		printk(KERN_WARNING "tdfxfb: Can't reserve smem\n");
+-		release_mem_region(pci_resource_start(pdev, 0),
+-				   pci_resource_len(pdev, 0));
+-		goto out_err;
++		goto out_err_regbase;
+ 	}
+ 
+ 	info->screen_base = ioremap_nocache(tdfx_fix.smem_start,
+ 					    tdfx_fix.smem_len);
+ 	if (!info->screen_base) {
+ 		printk("fb: Can't remap %s framebuffer.\n", tdfx_fix.id);
+-		release_mem_region(pci_resource_start(pdev, 1),
+-				   pci_resource_len(pdev, 1));
+-		release_mem_region(pci_resource_start(pdev, 0),
+-				   pci_resource_len(pdev, 0));
+-		goto out_err;
++		goto out_err_screenbase;
+ 	}
+ 
+ 	default_par->iobase = pci_resource_start(pdev, 2);
+@@ -1256,11 +1305,7 @@ static int __devinit tdfxfb_probe(struct
+ 	if (!request_region(pci_resource_start(pdev, 2),
+ 			    pci_resource_len(pdev, 2), "tdfx iobase")) {
+ 		printk(KERN_WARNING "tdfxfb: Can't reserve iobase\n");
+-		release_mem_region(pci_resource_start(pdev, 1),
+-				   pci_resource_len(pdev, 1));
+-		release_mem_region(pci_resource_start(pdev, 0),
+-				   pci_resource_len(pdev, 0));
+-		goto out_err;
++		goto out_err_screenbase;
+ 	}
+ 
+ 	printk("fb: %s memory = %dK\n", tdfx_fix.id, tdfx_fix.smem_len >> 10);
+@@ -1274,7 +1319,9 @@ static int __devinit tdfxfb_probe(struct
+ 	info->flags		= FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
+ #ifdef CONFIG_FB_3DFX_ACCEL
+ 	info->flags             |= FBINFO_HWACCEL_FILLRECT |
+-		FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_IMAGEBLIT;
++				   FBINFO_HWACCEL_COPYAREA |
++				   FBINFO_HWACCEL_IMAGEBLIT |
++				   FBINFO_READS_FAST;
+ #endif
+ 
+ 	if (!mode_option)
+@@ -1288,27 +1335,17 @@ static int __devinit tdfxfb_probe(struct
+ 	lpitch = info->var.xres_virtual * ((info->var.bits_per_pixel + 7) >> 3);
+ 	info->var.yres_virtual = info->fix.smem_len / lpitch;
+ 	if (info->var.yres_virtual < info->var.yres)
+-		goto out_err;
+-
+-#ifdef CONFIG_FB_3DFX_ACCEL
+-	/*
+-	 * FIXME: Limit var->yres_virtual to 4096 because of screen artifacts
+-	 * during scrolling. This is only present if 2D acceleration is
+-	 * enabled.
+-	 */
+-	if (info->var.yres_virtual > 4096)
+-		info->var.yres_virtual = 4096;
+-#endif /* CONFIG_FB_3DFX_ACCEL */
++		goto out_err_iobase;
+ 
+ 	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
+ 		printk(KERN_WARNING "tdfxfb: Can't allocate color map\n");
+-		goto out_err;
++		goto out_err_iobase;
+ 	}
+ 
+ 	if (register_framebuffer(info) < 0) {
+ 		printk("tdfxfb: can't register framebuffer\n");
+ 		fb_dealloc_cmap(&info->cmap);
+-		goto out_err;
++		goto out_err_iobase;
+ 	}
+ 	/*
+ 	 * Our driver data
+@@ -1316,14 +1353,21 @@ static int __devinit tdfxfb_probe(struct
+ 	pci_set_drvdata(pdev, info);
+ 	return 0;
+ 
+-out_err:
++out_err_iobase:
++	release_mem_region(pci_resource_start(pdev, 2),
++			   pci_resource_len(pdev, 2));
++out_err_screenbase:
++	if (info->screen_base)
++		iounmap(info->screen_base);
++	release_mem_region(tdfx_fix.smem_start, pci_resource_len(pdev, 1));
++out_err_regbase:
+ 	/*
+ 	 * Cleanup after anything that was remapped/allocated.
+ 	 */
+ 	if (default_par->regbase_virt)
+ 		iounmap(default_par->regbase_virt);
+-	if (info->screen_base)
+-		iounmap(info->screen_base);
++	release_mem_region(tdfx_fix.mmio_start, tdfx_fix.mmio_len);
++out_err:
+ 	framebuffer_release(info);
+ 	return -ENXIO;
+ }
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
