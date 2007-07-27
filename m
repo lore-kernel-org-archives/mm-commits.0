@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libata-sff-unbreak-non-dma-capable-controllers-again.patch added to -mm tree
-Date: Thu, 26 Jul 2007 22:31:31 -0700
-Message-ID: <200707270531.l6R5VVQ7007475@imap1.linux-foundation.org>
+Subject: + pata_cmd64x-correct-the-speed-ranges.patch added to -mm tree
+Date: Thu, 26 Jul 2007 22:32:02 -0700
+Message-ID: <200707270532.l6R5W2Op007498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47920 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756787AbXG0Fbq (ORCPT
+	by vger.kernel.org with ESMTP id S1754002AbXG0FcY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 01:31:46 -0400
+	Fri, 27 Jul 2007 01:32:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, sshtylyov@ru.mvista.com
 
 
 The patch titled
-     libata-sff: unbreak non DMA capable controllers again
+     pata_cmd64x: correct the speed ranges
 has been added to the -mm tree.  Its filename is
-     libata-sff-unbreak-non-dma-capable-controllers-again.patch
+     pata_cmd64x-correct-the-speed-ranges.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata-sff: unbreak non DMA capable controllers again
+Subject: pata_cmd64x: correct the speed ranges
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Seems nobody else is checking/testing this case as it keeps getting horked.
-
-If we have no BAR4 mapping on an SFF controller this is *NOT* an error, it
-just means it isn't doing BMDMA.
+I must have been half asleep when doing the original code.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
+Acked-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-sff.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/ata/pata_cmd64x.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/libata-sff.c~libata-sff-unbreak-non-dma-capable-controllers-again drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~libata-sff-unbreak-non-dma-capable-controllers-again
-+++ a/drivers/ata/libata-sff.c
-@@ -573,6 +573,10 @@ int ata_pci_init_bmdma(struct ata_host *
- 	struct pci_dev *pdev = to_pci_dev(gdev);
- 	int i, rc;
+diff -puN drivers/ata/pata_cmd64x.c~pata_cmd64x-correct-the-speed-ranges drivers/ata/pata_cmd64x.c
+--- a/drivers/ata/pata_cmd64x.c~pata_cmd64x-correct-the-speed-ranges
++++ a/drivers/ata/pata_cmd64x.c
+@@ -31,7 +31,7 @@
+ #include <linux/libata.h>
  
-+	/* No BAR4 allocation: No DMA */
-+	if (pci_resource_start(pdev, 4) == 0)
-+		return 0;
-+
- 	/* TODO: If we get no DMA mask we should fall back to PIO */
- 	rc = pci_set_dma_mask(pdev, ATA_DMA_MASK);
- 	if (rc)
+ #define DRV_NAME "pata_cmd64x"
+-#define DRV_VERSION "0.2.3"
++#define DRV_VERSION "0.2.4"
+ 
+ /*
+  * CMD64x specific registers definition.
+@@ -397,7 +397,7 @@ static int cmd64x_init_one(struct pci_de
+ 			.flags = ATA_FLAG_SLAVE_POSS,
+ 			.pio_mask = 0x1f,
+ 			.mwdma_mask = 0x07,
+-			.udma_mask = ATA_UDMA1,
++			.udma_mask = ATA_UDMA2,
+ 			.port_ops = &cmd64x_port_ops
+ 		},
+ 		{	/* CMD 646 rev 1  */
+@@ -412,7 +412,7 @@ static int cmd64x_init_one(struct pci_de
+ 			.flags = ATA_FLAG_SLAVE_POSS,
+ 			.pio_mask = 0x1f,
+ 			.mwdma_mask = 0x07,
+-			.udma_mask = ATA_UDMA2,
++			.udma_mask = ATA_UDMA4,
+ 			.port_ops = &cmd648_port_ops
+ 		},
+ 		{	/* CMD 649 */
+@@ -420,7 +420,7 @@ static int cmd64x_init_one(struct pci_de
+ 			.flags = ATA_FLAG_SLAVE_POSS,
+ 			.pio_mask = 0x1f,
+ 			.mwdma_mask = 0x07,
+-			.udma_mask = ATA_UDMA3,
++			.udma_mask = ATA_UDMA5,
+ 			.port_ops = &cmd648_port_ops
+ 		}
+ 	};
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -73,6 +96,7 @@ libata-acpi-checks-for-80wire-cable-implementation.patch
 libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
 libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
 libata-sff-unbreak-non-dma-capable-controllers-again.patch
+pata_cmd64x-correct-the-speed-ranges.patch
 libata-fix-hopefully-all-the-remaining-problems-with.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 pata_ali-more-work.patch
