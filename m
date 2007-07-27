@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch added to -mm tree
-Date: Thu, 26 Jul 2007 22:19:24 -0700
-Message-ID: <200707270519.l6R5JOYh007088@imap1.linux-foundation.org>
+Subject: + sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch added to -mm tree
+Date: Thu, 26 Jul 2007 22:21:16 -0700
+Message-ID: <200707270521.l6R5LGKY007133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54754 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42685 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753155AbXG0FUG (ORCPT
+	by vger.kernel.org with ESMTP id S1754033AbXG0FWY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 01:20:06 -0400
+	Fri, 27 Jul 2007 01:22:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, clameter@sgi.com
+Cc: akpm@linux-foundation.org, apw@shadowen.org, clameter@sgi.com
 
 
 The patch titled
-     sparsemem: ensure we initialise the node mapping for SPARSEMEM_STATIC
+     sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix
 has been added to the -mm tree.  Its filename is
-     sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+     sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,107 +26,150 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sparsemem: ensure we initialise the node mapping for SPARSEMEM_STATIC
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Booting SPARSEMEM on NUMA systems trips a BUG in page_alloc.c:
-
-	Initializing HighMem for node 0 (00038000:00100000)
-	Initializing HighMem for node 1 (00100000:001ffe00)
-	------------[ cut here ]------------
-	kernel BUG at /home/apw/git/linux-2.6/mm/page_alloc.c:456!
-	[...]
-
-This occurs because the section to node id mapping is not being
-setup correctly during init under SPARSEMEM_STATIC, leading to an
-attempt to free pages from all nodes into the zones on node 0.
-
-When the zone_table[] was removed in the following commit, a new
-section to node mapping table was introduced:
-
-    commit 89689ae7f95995723fbcd5c116c47933a3bb8b13
-    [PATCH] Get rid of zone_table[]
-
-That conversion inadvertantly only initialised the node mapping in
-SPARSEMEM_EXTREME.  Ensure we initialise the node mapping in
-SPARSEMEM_STATIC.
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/sparse.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/sparse.c~sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static mm/sparse.c
---- a/mm/sparse.c~sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static
+diff -puN mm/sparse.c~sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix mm/sparse.c
+--- a/mm/sparse.c~sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix
 +++ a/mm/sparse.c
-@@ -41,6 +41,15 @@ int page_to_nid(struct page *page)
- 	return section_to_node_table[page_to_section(page)];
+@@ -42,12 +42,12 @@ int page_to_nid(struct page *page)
  }
  EXPORT_SYMBOL(page_to_nid);
-+
-+void set_section_nid(unsigned long section_nr, int nid)
-+{
-+	section_to_node_table[section_nr] = nid;
-+}
-+#else /* !NODE_NOT_IN_PAGE_FLAGS */
-+void set_section_nid(unsigned long section_nr, int nid)
-+{
-+}
+ 
+-void set_section_nid(unsigned long section_nr, int nid)
++static void set_section_nid(unsigned long section_nr, int nid)
+ {
+ 	section_to_node_table[section_nr] = nid;
+ }
+ #else /* !NODE_NOT_IN_PAGE_FLAGS */
+-void set_section_nid(unsigned long section_nr, int nid)
++static inline void set_section_nid(unsigned long section_nr, int nid)
+ {
+ }
  #endif
- 
- #ifdef CONFIG_SPARSEMEM_EXTREME
-@@ -68,10 +77,6 @@ static int __meminit sparse_index_init(u
- 	struct mem_section *section;
- 	int ret = 0;
- 
--#ifdef NODE_NOT_IN_PAGE_FLAGS
--	section_to_node_table[section_nr] = nid;
--#endif
--
- 	if (mem_section[root])
- 		return -EEXIST;
- 
-@@ -148,6 +153,7 @@ void __init memory_present(int nid, unsi
- 		struct mem_section *ms;
- 
- 		sparse_index_init(section, nid);
-+		set_section_nid(section, nid);
- 
- 		ms = __nr_to_section(section);
- 		if (!ms->section_mem_map)
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-do-not-trigger-oom-killer-for-high-order-allocation-failures.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-pci-device-ensure-sysdata-initialised-v3.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+origin.patch
+rtc-stk17ta8-update-for-sysfs-api-change.patch
+x86_powernow_k8_acpi-must-depend-on-acpi.patch
+i2c-ds1682-warning-fix.patch
+edac-is-bust-on-mips.patch
+codingstyle-proscribe-do-while-without-braces-fix.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+git-kvm-fixup.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+ide-bodge-things-around-to-make-arm-work.patch
+mmc-build-fix.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+try-parent-numa_node-at-first-before-using-default-v2-fix.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-scsi-rc-fixes.patch
+git-block-fix-headers_check.patch
+git-block-whoops.patch
+git-unionfs.patch
+git-watchdog.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-sparc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-move-free-pages-between-lists-on-steal.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
+loop-use-unlocked_ioctl.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
+ip2main-warning-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+tpm_tis-debug.patch
+w1-build-fix.patch
