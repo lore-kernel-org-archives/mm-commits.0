@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_cmd64x-correct-the-speed-ranges.patch added to -mm tree
-Date: Thu, 26 Jul 2007 22:32:02 -0700
-Message-ID: <200707270532.l6R5W2Op007498@imap1.linux-foundation.org>
+Subject: + nozomi-shoot-defunct-label.patch added to -mm tree
+Date: Thu, 26 Jul 2007 22:32:38 -0700
+Message-ID: <200707270532.l6R5WcqJ007504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47920 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46636 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754002AbXG0FcY (ORCPT
+	by vger.kernel.org with ESMTP id S1756143AbXG0Fcx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 01:32:24 -0400
+	Fri, 27 Jul 2007 01:32:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, sshtylyov@ru.mvista.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     pata_cmd64x: correct the speed ranges
+     nozomi: shoot defunct label
 has been added to the -mm tree.  Its filename is
-     pata_cmd64x-correct-the-speed-ranges.patch
+     nozomi-shoot-defunct-label.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_cmd64x: correct the speed ranges
+Subject: nozomi: shoot defunct label
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-I must have been half asleep when doing the original code.
+No longer called after the cleanup so can go in the bitbucket.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cmd64x.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/nozomi.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/ata/pata_cmd64x.c~pata_cmd64x-correct-the-speed-ranges drivers/ata/pata_cmd64x.c
---- a/drivers/ata/pata_cmd64x.c~pata_cmd64x-correct-the-speed-ranges
-+++ a/drivers/ata/pata_cmd64x.c
-@@ -31,7 +31,7 @@
- #include <linux/libata.h>
+diff -puN drivers/char/nozomi.c~nozomi-shoot-defunct-label drivers/char/nozomi.c
+--- a/drivers/char/nozomi.c~nozomi-shoot-defunct-label
++++ a/drivers/char/nozomi.c
+@@ -1930,7 +1930,6 @@ static void ntty_set_termios(struct tty_
+ 			D1(" - OUTBOUND XON/XOFF is disabled");
+ 	}
  
- #define DRV_NAME "pata_cmd64x"
--#define DRV_VERSION "0.2.3"
-+#define DRV_VERSION "0.2.4"
+-      exit_termios:
+ 	return;
+ }
  
- /*
-  * CMD64x specific registers definition.
-@@ -397,7 +397,7 @@ static int cmd64x_init_one(struct pci_de
- 			.flags = ATA_FLAG_SLAVE_POSS,
- 			.pio_mask = 0x1f,
- 			.mwdma_mask = 0x07,
--			.udma_mask = ATA_UDMA1,
-+			.udma_mask = ATA_UDMA2,
- 			.port_ops = &cmd64x_port_ops
- 		},
- 		{	/* CMD 646 rev 1  */
-@@ -412,7 +412,7 @@ static int cmd64x_init_one(struct pci_de
- 			.flags = ATA_FLAG_SLAVE_POSS,
- 			.pio_mask = 0x1f,
- 			.mwdma_mask = 0x07,
--			.udma_mask = ATA_UDMA2,
-+			.udma_mask = ATA_UDMA4,
- 			.port_ops = &cmd648_port_ops
- 		},
- 		{	/* CMD 649 */
-@@ -420,7 +420,7 @@ static int cmd64x_init_one(struct pci_de
- 			.flags = ATA_FLAG_SLAVE_POSS,
- 			.pio_mask = 0x1f,
- 			.mwdma_mask = 0x07,
--			.udma_mask = ATA_UDMA3,
-+			.udma_mask = ATA_UDMA5,
- 			.port_ops = &cmd648_port_ops
- 		}
- 	};
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -88,6 +60,7 @@ drivers-edac-fix-edac_pci-sysfs.patch
 include-asm-mips-add-missing-edac-h-file.patch
 drivers-edac-fix-pasemi-kconfig-depends.patch
 revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+nozomi-shoot-defunct-label.patch
 pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
