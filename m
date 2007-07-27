@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nsp32_restart_autoscsi-remove-error-check.patch added to -mm tree
-Date: Thu, 26 Jul 2007 15:21:00 -0700
-Message-ID: <200707262221.l6QML0Lg023551@imap1.linux-foundation.org>
+Subject: + fix-uninitialized-local-variable-covered-in-i386-acpi-cpufreq-driver.patch added to -mm tree
+Date: Thu, 26 Jul 2007 17:16:25 -0700
+Message-ID: <200707270016.l6R0GPPQ029220@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43507 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42487 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932384AbXGZWVZ (ORCPT
+	by vger.kernel.org with ESMTP id S1763752AbXG0AQd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 18:21:25 -0400
+	Thu, 26 Jul 2007 20:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, yokota@netlab.is.tsukuba.ac.jp
+Cc: fenghua.yu@intel.com, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     nsp32_restart_autoscsi(): remove error check
+     Fix uninitialized local variable "covered" in i386 acpi-cpufreq driver
 has been added to the -mm tree.  Its filename is
-     nsp32_restart_autoscsi-remove-error-check.patch
+     fix-uninitialized-local-variable-covered-in-i386-acpi-cpufreq-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,78 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nsp32_restart_autoscsi(): remove error check
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Fix uninitialized local variable "covered" in i386 acpi-cpufreq driver
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-The Coverity checker noted that we'll anyway Oops later when we ran into
-this condition - and the error check didn't prevent that.
+The local variable "covered" is used without initialization in i386
+acpi-cpufreq driver.  The initial value of covered should be 0.  The bug
+will cause memory leak when hit.  The following patch fixes this bug.
 
-Considering that the error condition shouldn't be possible, and we are
-not able to handle it easily, this patch simply removes the pointless
-error check.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: <yokota@netlab.is.tsukuba.ac.jp>
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/nsp32.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/scsi/nsp32.c~nsp32_restart_autoscsi-remove-error-check drivers/scsi/nsp32.c
---- a/drivers/scsi/nsp32.c~nsp32_restart_autoscsi-remove-error-check
-+++ a/drivers/scsi/nsp32.c
-@@ -1905,10 +1905,6 @@ static void nsp32_restart_autoscsi(struc
+diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~fix-uninitialized-local-variable-covered-in-i386-acpi-cpufreq-driver arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~fix-uninitialized-local-variable-covered-in-i386-acpi-cpufreq-driver
++++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -511,7 +511,6 @@ acpi_cpufreq_guess_freq(struct acpi_cpuf
+ static int acpi_cpufreq_early_init(void)
+ {
+ 	struct acpi_processor_performance *data;
+-	cpumask_t covered;
+ 	unsigned int i, j;
  
- 	nsp32_dbg(NSP32_DEBUG_RESTART, "enter");
+ 	dprintk("acpi_cpufreq_early_init\n");
+@@ -520,14 +519,13 @@ static int acpi_cpufreq_early_init(void)
+ 		data = kzalloc(sizeof(struct acpi_processor_performance),
+ 			       GFP_KERNEL);
+ 		if (!data) {
+-			for_each_cpu_mask(j, covered) {
++			for_each_possible_cpu(j) {
+ 				kfree(acpi_perf_data[j]);
+ 				acpi_perf_data[j] = NULL;
+ 			}
+ 			return -ENOMEM;
+ 		}
+ 		acpi_perf_data[i] = data;
+-		cpu_set(i, covered);
+ 	}
  
--	if (data->cur_target == NULL || data->cur_lunt == NULL) {
--		nsp32_msg(KERN_ERR, "Target or Lun is invalid");
--	}
--
- 	/*
- 	 * set SYNC_REG
- 	 * Don't set BM_START_ADR before setting this register.
+ 	/* Do initialization in ACPI core */
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from fenghua.yu@intel.com are
 
-origin.patch
-x86_powernow_k8_acpi-must-depend-on-acpi.patch
-xenbus_xsc-fix-a-use-after-free.patch
-git-acpi.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-kernel-auditscc-fix-an-off-by-one.patch
-git-drm.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-fore200e_param_bs_queue-must-be-__devinit.patch
-git-ocfs2.patch
-cpqphp_ctrlc-remove-dead-code.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-git-unionfs.patch
-dvb-usb-af9005-fec-error-check-fixes.patch
-git-v9fs.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-serial-sh-sci-fix-build-failure-from-kgdb-fallout.patch
-net-bluetooth-rfcomm-ttyc-use-after-free.patch
-usb_serial_suspend-buggy-code.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-maps2-add-proc-kpagemap-interface.patch
-fs-reiserfs-cleanups.patch
-anon_inodes-shouldnt-be-user-visible.patch
-remove-unsafe-from-module-struct.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+fix-uninitialized-local-variable-covered-in-i386-acpi-cpufreq-driver.patch
