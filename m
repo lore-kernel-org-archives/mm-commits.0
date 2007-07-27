@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + partially-fix-up-the-lookup_one_noperm-mess.patch added to -mm tree
-Date: Thu, 26 Jul 2007 23:07:30 -0700
-Message-ID: <200707270607.l6R67USn008724@imap1.linux-foundation.org>
+Subject: + git-unionfs-fixup.patch added to -mm tree
+Date: Thu, 26 Jul 2007 23:14:39 -0700
+Message-ID: <200707270614.l6R6EdIW009011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49967 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41043 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754663AbXG0GJA (ORCPT
+	by vger.kernel.org with ESMTP id S1753368AbXG0GP3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 02:09:00 -0400
+	Fri, 27 Jul 2007 02:15:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, jsipek@cs.sunysb.edu, miklos@szeredi.hu, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, hch@lst.de, jsipek@cs.sunysb.edu, miklos@szeredi.hu, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     partially fix up the lookup_one_noperm mess
+     git-unionfs-fixup
 has been added to the -mm tree.  Its filename is
-     partially-fix-up-the-lookup_one_noperm-mess.patch
+     git-unionfs-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,190 +26,173 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: partially fix up the lookup_one_noperm mess
-From: Christoph Hellwig <hch@lst.de>
+Subject: git-unionfs-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Try to fix the mess created by sysfs braindamage.
+Repair git-unionfs after partially-fix-up-the-lookup_one_noperm-mess.patch
 
- - refactor code internal to fs/namei.c a little to avoid too much
-   duplication:
-	o __lookup_hash_kern is renamed back to __lookup_hash
-	o the old __lookup_hash goes away, permission checks moves to
-	  the two callers
-	o useless inline qualifiers on above functions go away
- - lookup_one_len_kern loses it's last argument and is renamed to
-   lookup_one_noperm to make it's useage a little more clear
- - added kerneldoc comments to describe lookup_one_len aswell as
-   lookup_one_noperm and make it very clear that no one should use
-   the latter ever.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c            |   58 ++++++++++++++++++++++++----------------
- fs/sysfs/dir.c        |    3 --
- include/linux/namei.h |    4 +-
- 3 files changed, 39 insertions(+), 26 deletions(-)
+ fs/namei.c            |    3 ++-
+ include/linux/namei.h |    9 ++++++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN fs/namei.c~partially-fix-up-the-lookup_one_noperm-mess fs/namei.c
---- a/fs/namei.c~partially-fix-up-the-lookup_one_noperm-mess
+diff -puN fs/namei.c~git-unionfs-fixup fs/namei.c
+--- a/fs/namei.c~git-unionfs-fixup
 +++ a/fs/namei.c
-@@ -1272,7 +1272,8 @@ int __user_path_lookup_open(const char _
- 	return err;
- }
- 
--static inline struct dentry *__lookup_hash_kern(struct qstr *name, struct dentry *base, struct nameidata *nd)
-+static struct dentry *__lookup_hash(struct qstr *name,
-+		struct dentry *base, struct nameidata *nd)
- {
- 	struct dentry *dentry;
- 	struct inode *inode;
-@@ -1312,31 +1313,18 @@ out:
-  * needs parent already locked. Doesn't follow mounts.
-  * SMP-safe.
+@@ -1357,7 +1357,8 @@ static int __lookup_one_len(const char *
+  * nameidata argument is passed to the filesystem methods and a filesystem
+  * using this helper needs to be prepared for that.
   */
--static inline struct dentry * __lookup_hash(struct qstr *name, struct dentry *base, struct nameidata *nd)
-+static struct dentry *lookup_hash(struct nameidata *nd)
- {
--	struct dentry *dentry;
--	struct inode *inode;
- 	int err;
- 
--	inode = base->d_inode;
--
--	err = permission(inode, MAY_EXEC, nd);
--	dentry = ERR_PTR(err);
-+	err = permission(nd->dentry->d_inode, MAY_EXEC, nd);
- 	if (err)
--		goto out;
--
--	dentry = __lookup_hash_kern(name, base, nd);
--out:
--	return dentry;
--}
--
--static struct dentry *lookup_hash(struct nameidata *nd)
--{
-+		return ERR_PTR(err);
- 	return __lookup_hash(&nd->last, nd->dentry, nd);
- }
- 
--/* SMP-safe */
--static inline int __lookup_one_len(const char *name, struct qstr *this, struct dentry *base, int len)
-+static int __lookup_one_len(const char *name, struct qstr *this,
-+		struct dentry *base, int len)
- {
- 	unsigned long hash;
- 	unsigned int c;
-@@ -1357,6 +1345,17 @@ static inline int __lookup_one_len(const
- 	return 0;
- }
- 
-+/**
-+ * lookup_one_len:  filesystem helper to lookup single pathname component
-+ * @name:	pathname component to lookup
-+ * @base:	base directory to lookup from
-+ * @len:	maximum length @len should be interpreted to
-+ *
-+ * Note that this routine is purely a helper for filesystem useage and should
-+ * not be called by generic code.  Also note that by using this function to
-+ * nameidata argument is passed to the filesystem methods and a filesystem
-+ * using this helper needs to be prepared for that.
-+ */
- struct dentry *lookup_one_len(const char *name, struct dentry *base, int len)
- {
- 	int err;
-@@ -1365,18 +1364,33 @@ struct dentry *lookup_one_len(const char
- 	err = __lookup_one_len(name, &this, base, len);
- 	if (err)
- 		return ERR_PTR(err);
-+
-+	err = permission(base->d_inode, MAY_EXEC, NULL);
-+	if (err)
-+		return ERR_PTR(err);
- 	return __lookup_hash(&this, base, NULL);
- }
- 
--struct dentry *lookup_one_len_kern(const char *name, struct dentry *base, int len)
-+/**
-+ * lookup_one_noperm - bad hack for sysfs
-+ * @name:	pathname component to lookup
-+ * @base:	base directory to lookup from
-+ *
-+ * This is a variant of lookup_one_len that doesn't perform any permission
-+ * checks.   It's a horrible hack to work around the braindead sysfs
-+ * architecture and should not be used anywhere else.
-+ *
-+ * DON'T USE THIS FUNCTION EVER, thanks.
-+ */
-+struct dentry *lookup_one_noperm(const char *name, struct dentry *base)
+-struct dentry *lookup_one_len(const char *name, struct dentry *base, int len)
++struct dentry *lookup_one_len_nd(const char *name, struct dentry *base, int len,
++				struct nameidata *nd)
  {
  	int err;
  	struct qstr this;
- 
--	err = __lookup_one_len(name, &this, base, len);
-+	err = __lookup_one_len(name, &this, base, strlen(name));
- 	if (err)
- 		return ERR_PTR(err);
--	return __lookup_hash_kern(&this, base, NULL);
-+	return __lookup_hash(&this, base, NULL);
- }
- 
- int fastcall __user_walk_fd(int dfd, const char __user *name, unsigned flags,
-diff -puN fs/sysfs/dir.c~partially-fix-up-the-lookup_one_noperm-mess fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~partially-fix-up-the-lookup_one_noperm-mess
-+++ a/fs/sysfs/dir.c
-@@ -151,8 +151,7 @@ struct dentry *sysfs_get_dentry(struct s
- 
- 		/* look it up */
- 		parent_dentry = dentry;
--		dentry = lookup_one_len_kern(cur->s_name, parent_dentry,
--					     strlen(cur->s_name));
-+		dentry = lookup_one_noperm(cur->s_name, parent_dentry);
- 		dput(parent_dentry);
- 
- 		if (IS_ERR(dentry)) {
-diff -puN include/linux/namei.h~partially-fix-up-the-lookup_one_noperm-mess include/linux/namei.h
---- a/include/linux/namei.h~partially-fix-up-the-lookup_one_noperm-mess
+diff -puN include/linux/namei.h~git-unionfs-fixup include/linux/namei.h
+--- a/include/linux/namei.h~git-unionfs-fixup
 +++ a/include/linux/namei.h
-@@ -81,8 +81,8 @@ extern struct file *lookup_instantiate_f
+@@ -82,9 +82,16 @@ extern struct file *lookup_instantiate_f
  extern struct file *nameidata_to_filp(struct nameidata *nd, int flags);
  extern void release_open_intent(struct nameidata *);
  
--extern struct dentry * lookup_one_len(const char *, struct dentry *, int);
--extern struct dentry *lookup_one_len_kern(const char *, struct dentry *, int);
-+extern struct dentry *lookup_one_len(const char *, struct dentry *, int);
-+extern struct dentry *lookup_one_noperm(const char *, struct dentry *);
+-extern struct dentry *lookup_one_len(const char *, struct dentry *, int);
++extern struct dentry *lookup_one_len_nd(const char *, struct dentry *,
++					 int, struct nameidata *);
+ extern struct dentry *lookup_one_noperm(const char *, struct dentry *);
  
++static inline struct dentry *lookup_one_len(const char *name,
++			struct dentry *dir, int len)
++{
++	return lookup_one_len_nd(name, dir, len, NULL);
++}
++
  extern int follow_down(struct vfsmount **, struct dentry **);
  extern int follow_up(struct vfsmount **, struct dentry **);
+ 
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-sysv-convert-to-new-aops.patch
-kill-declare_mutex_locked.patch
-remove-unneded-lock_kernel-in-driver-block-loopc.patch
+rtc-stk17ta8-update-for-sysfs-api-change.patch
+x86_powernow_k8_acpi-must-depend-on-acpi.patch
+i2c-ds1682-warning-fix.patch
+edac-is-bust-on-mips.patch
+codingstyle-proscribe-do-while-without-braces-fix.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+git-kvm-fixup.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+ide-bodge-things-around-to-make-arm-work.patch
+mmc-build-fix.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+try-parent-numa_node-at-first-before-using-default-v2-fix.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-scsi-rc-fixes.patch
+git-block-fix-headers_check.patch
+git-block-whoops.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-watchdog.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
 loop-use-unlocked_ioctl.patch
-rename-setleast-to-generic_setlease.patch
-partially-fix-up-the-lookup_one_noperm-mess.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
+ip2main-warning-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
 revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+tpm_tis-debug.patch
+w1-build-fix.patch
