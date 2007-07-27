@@ -1,50 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - codingstyle-proscribe-do-while-without-braces-fix.patch removed from -mm tree
-Date: Fri, 27 Jul 2007 11:28:06 -0700
-Message-ID: <200707271828.l6RISAN5003664@imap1.linux-foundation.org>
+Subject: + scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor.patch added to -mm tree
+Date: Fri, 27 Jul 2007 13:30:02 -0700
+Message-ID: <200707272030.l6RKU2Vw008612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44941 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42233 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757338AbXG0S2X (ORCPT
+	by vger.kernel.org with ESMTP id S933270AbXG0UaQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 14:28:23 -0400
+	Fri, 27 Jul 2007 16:30:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, josh@kernel.org, josht@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, andmike@us.ibm.com, mog.johnny@gmx.net, protasnb@gmail.com
 
 
 The patch titled
-     codingstyle-proscribe-do-while-without-braces-fix
-has been removed from the -mm tree.  Its filename was
-     codingstyle-proscribe-do-while-without-braces-fix.patch
+     scsi: blacklist the easyRAID F8 IDE2SCSI adaptor
+has been added to the -mm tree.  Its filename is
+     scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: codingstyle-proscribe-do-while-without-braces-fix
+Subject: scsi: blacklist the easyRAID F8 IDE2SCSI adaptor
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Josh Triplett <josh@kernel.org>
-Cc: Josh Triplett <josht@linux.vnet.ibm.com>
+According to http://bugzilla.kernel.org/show_bug.cgi?id=5953, this patch fixes
+easyRAID domain validation.
+
+Cc: Mike Anderson <andmike@us.ibm.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Natalie Protasevich <protasnb@gmail.com>
+Cc: Hans-Christian Armingeon <mog.johnny@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/CodingStyle |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/scsi_devinfo.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN Documentation/CodingStyle~codingstyle-proscribe-do-while-without-braces-fix Documentation/CodingStyle
---- a/Documentation/CodingStyle~codingstyle-proscribe-do-while-without-braces-fix
-+++ a/Documentation/CodingStyle
-@@ -180,7 +180,7 @@ even if it contains a single statement:
- 
- do {
- 	this();
--} while(condition);
-+} while (condition);
- 
- 		3.1:  Spaces
- 
+diff -puN drivers/scsi/scsi_devinfo.c~scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor drivers/scsi/scsi_devinfo.c
+--- a/drivers/scsi/scsi_devinfo.c~scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor
++++ a/drivers/scsi/scsi_devinfo.c
+@@ -154,6 +154,9 @@ static struct {
+ 	{"EMC",  "Invista", "*", BLIST_SPARSELUN | BLIST_LARGELUN},
+ 	{"EMC", "SYMMETRIX", NULL, BLIST_SPARSELUN | BLIST_LARGELUN | BLIST_FORCELUN},
+ 	{"EMULEX", "MD21/S2     ESDI", NULL, BLIST_SINGLELUN},
++	{"easyRAID", "16P", NULL, BLIST_NOREPORTLUN},
++	{"easyRAID", "X6P", NULL, BLIST_NOREPORTLUN},
++	{"easyRAID", "F8", NULL, BLIST_NOREPORTLUN},
+ 	{"FSC", "CentricStor", "*", BLIST_SPARSELUN | BLIST_LARGELUN},
+ 	{"Generic", "USB SD Reader", "1.00", BLIST_FORCELUN | BLIST_INQUIRY_36},
+ 	{"Generic", "USB Storage-SMC", "0180", BLIST_FORCELUN | BLIST_INQUIRY_36},
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -54,7 +64,6 @@ rtc-stk17ta8-update-for-sysfs-api-change.patch
 x86_powernow_k8_acpi-must-depend-on-acpi.patch
 i2c-ds1682-warning-fix.patch
 edac-is-bust-on-mips.patch
-codingstyle-proscribe-do-while-without-braces-fix.patch
 revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
 kdebugh-forward-declare-struct-struct-notifier_block.patch
 slow-down-printk-during-boot.patch
@@ -90,6 +99,7 @@ i386-add-support-for-picopower-irq-router.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
 aacraid-rename-check_reset.patch
 git-scsi-rc-fixes.patch
+scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor.patch
 git-block-fix-headers_check.patch
 git-block-whoops.patch
 git-unionfs.patch
