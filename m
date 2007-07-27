@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-unionfs-fixup.patch added to -mm tree
-Date: Thu, 26 Jul 2007 23:14:39 -0700
-Message-ID: <200707270614.l6R6EdIW009011@imap1.linux-foundation.org>
+Subject: + libata-store-bus-addresses-versus-mm-for-testing-fix.patch added to -mm tree
+Date: Thu, 26 Jul 2007 23:18:21 -0700
+Message-ID: <200707270618.l6R6IL0v009068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41043 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56532 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753368AbXG0GP3 (ORCPT
+	by vger.kernel.org with ESMTP id S934512AbXG0GSd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 02:15:29 -0400
+	Fri, 27 Jul 2007 02:18:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@lst.de, jsipek@cs.sunysb.edu, miklos@szeredi.hu, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     git-unionfs-fixup
+     libata-store-bus-addresses-versus-mm-for-testing-fix
 has been added to the -mm tree.  Its filename is
-     git-unionfs-fixup.patch
+     libata-store-bus-addresses-versus-mm-for-testing-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-unionfs-fixup
+Subject: libata-store-bus-addresses-versus-mm-for-testing-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Repair git-unionfs after partially-fix-up-the-lookup_one_noperm-mess.patch
-
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c            |    3 ++-
- include/linux/namei.h |    9 ++++++++-
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ drivers/ata/pata_isapnp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/namei.c~git-unionfs-fixup fs/namei.c
---- a/fs/namei.c~git-unionfs-fixup
-+++ a/fs/namei.c
-@@ -1357,7 +1357,8 @@ static int __lookup_one_len(const char *
-  * nameidata argument is passed to the filesystem methods and a filesystem
-  * using this helper needs to be prepared for that.
-  */
--struct dentry *lookup_one_len(const char *name, struct dentry *base, int len)
-+struct dentry *lookup_one_len_nd(const char *name, struct dentry *base, int len,
-+				struct nameidata *nd)
- {
- 	int err;
- 	struct qstr this;
-diff -puN include/linux/namei.h~git-unionfs-fixup include/linux/namei.h
---- a/include/linux/namei.h~git-unionfs-fixup
-+++ a/include/linux/namei.h
-@@ -82,9 +82,16 @@ extern struct file *lookup_instantiate_f
- extern struct file *nameidata_to_filp(struct nameidata *nd, int flags);
- extern void release_open_intent(struct nameidata *);
+diff -puN drivers/ata/pata_isapnp.c~libata-store-bus-addresses-versus-mm-for-testing-fix drivers/ata/pata_isapnp.c
+--- a/drivers/ata/pata_isapnp.c~libata-store-bus-addresses-versus-mm-for-testing-fix
++++ a/drivers/ata/pata_isapnp.c
+@@ -112,7 +112,7 @@ static int isapnp_init_one(struct pnp_de
+ 		ap->busaddr.ctl_addr = pnp_port_start(idev, 1);
+ 	}
  
--extern struct dentry *lookup_one_len(const char *, struct dentry *, int);
-+extern struct dentry *lookup_one_len_nd(const char *, struct dentry *,
-+					 int, struct nameidata *);
- extern struct dentry *lookup_one_noperm(const char *, struct dentry *);
+-	ata_std_io_ports(&ap->ioaddr);
++	ata_std_io_ports(&ap->ioaddr, &ap->busaddr);
  
-+static inline struct dentry *lookup_one_len(const char *name,
-+			struct dentry *dir, int len)
-+{
-+	return lookup_one_len_nd(name, dir, len, NULL);
-+}
-+
- extern int follow_down(struct vfsmount **, struct dentry **);
- extern int follow_up(struct vfsmount **, struct dentry **);
- 
+ 	/* activate */
+ 	return ata_host_activate(host, pnp_irq(idev, 0), ata_interrupt, 0,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +77,7 @@ git-kvm.patch
 git-kvm-fixup.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+libata-store-bus-addresses-versus-mm-for-testing-fix.patch
 fix-ide-ide-add-ide-set-pio-take3.patch
 ide-bodge-things-around-to-make-arm-work.patch
 mmc-build-fix.patch
