@@ -1,39 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + use-list_head-in-binfmt-handling-update.patch added to -mm tree
-Date: Thu, 26 Jul 2007 21:50:10 -0700
-Message-ID: <200707270450.l6R4oAEp006094@imap1.linux-foundation.org>
+Subject: - use-list_head-in-binfmt-handling.patch removed from -mm tree
+Date: Thu, 26 Jul 2007 21:50:14 -0700
+Message-ID: <200707270450.l6R4oFVM006097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55795 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751671AbXG0Eux (ORCPT
+	by vger.kernel.org with ESMTP id S1751737AbXG0Eu5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 00:50:53 -0400
+	Fri, 27 Jul 2007 00:50:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru
+To: adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use list_head in binfmt handling
-has been added to the -mm tree.  Its filename is
-     use-list_head-in-binfmt-handling-update.patch
+     Subject: [PATCH 1/2] Use list_head in binfmt handling
+has been removed from the -mm tree.  Its filename was
+     use-list_head-in-binfmt-handling.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Use list_head in binfmt handling
+Subject: Subject: [PATCH 1/2] Use list_head in binfmt handling
 From: Alexey Dobriyan <adobriyan@sw.ru>
 
 Switch single-linked binfmt formats list to usual list_head's.  This leads
 to one-liners in register_binfmt() and unregister_binfmt().  The downside
 is one pointer more in struct linux_binfmt.  This is not a problem, since
-the set of registered binfmts on typical box is very small -- (ELF +
-something distro enabled for you).
+the set of registered binfmts on typical box is very small (ELF + something
+distro enabled for you).
 
 Test-booted, played with executable .txt files, modprobe/rmmod binfmt_misc.
 
@@ -41,48 +37,12 @@ Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/irixelf.c          |    7 +++--
- arch/sparc64/kernel/binfmt_aout32.c |    7 +++--
- fs/exec.c                           |   34 ++++----------------------
- include/linux/binfmts.h             |    2 -
- 4 files changed, 17 insertions(+), 33 deletions(-)
+ fs/exec.c               |   34 ++++++----------------------------
+ include/linux/binfmts.h |    2 +-
+ 2 files changed, 7 insertions(+), 29 deletions(-)
 
-diff -puN arch/mips/kernel/irixelf.c~use-list_head-in-binfmt-handling-update arch/mips/kernel/irixelf.c
---- a/arch/mips/kernel/irixelf.c~use-list_head-in-binfmt-handling-update
-+++ a/arch/mips/kernel/irixelf.c
-@@ -47,8 +47,11 @@ static int irix_core_dump(long signr, st
-                           struct file *file);
- 
- static struct linux_binfmt irix_format = {
--	NULL, THIS_MODULE, load_irix_binary, load_irix_library,
--	irix_core_dump, PAGE_SIZE
-+	.module		= THIS_MODULE,
-+	.load_binary	= load_irix_binary,
-+	.load_shlib	= load_irix_library,
-+	.core_dump	= irix_core_dump,
-+	.min_coredump	= PAGE_SIZE,
- };
- 
- /* Debugging routines. */
-diff -puN arch/sparc64/kernel/binfmt_aout32.c~use-list_head-in-binfmt-handling-update arch/sparc64/kernel/binfmt_aout32.c
---- a/arch/sparc64/kernel/binfmt_aout32.c~use-list_head-in-binfmt-handling-update
-+++ a/arch/sparc64/kernel/binfmt_aout32.c
-@@ -38,8 +38,11 @@ static int load_aout32_library(struct fi
- static int aout32_core_dump(long signr, struct pt_regs * regs, struct file *file);
- 
- static struct linux_binfmt aout32_format = {
--	NULL, THIS_MODULE, load_aout32_binary, load_aout32_library, aout32_core_dump,
--	PAGE_SIZE
-+	.module		= THIS_MODULE,
-+	.load_binary	= load_aout32_binary,
-+	.load_shlib	= load_aout32_library,
-+	.core_dump	= aout32_core_dump,
-+	.min_coredump	= PAGE_SIZE,
- };
- 
- static void set_brk(unsigned long start, unsigned long end)
-diff -puN fs/exec.c~use-list_head-in-binfmt-handling-update fs/exec.c
---- a/fs/exec.c~use-list_head-in-binfmt-handling-update
+diff -puN fs/exec.c~use-list_head-in-binfmt-handling fs/exec.c
+--- a/fs/exec.c~use-list_head-in-binfmt-handling
 +++ a/fs/exec.c
 @@ -67,27 +67,15 @@ int suid_dumpable = 0;
  EXPORT_SYMBOL(suid_dumpable);
@@ -155,8 +115,8 @@ diff -puN fs/exec.c~use-list_head-in-binfmt-handling-update fs/exec.c
  			int (*fn)(struct linux_binprm *, struct pt_regs *) = fmt->load_binary;
  			if (!fn)
  				continue;
-diff -puN include/linux/binfmts.h~use-list_head-in-binfmt-handling-update include/linux/binfmts.h
---- a/include/linux/binfmts.h~use-list_head-in-binfmt-handling-update
+diff -puN include/linux/binfmts.h~use-list_head-in-binfmt-handling include/linux/binfmts.h
+--- a/include/linux/binfmts.h~use-list_head-in-binfmt-handling
 +++ a/include/linux/binfmts.h
 @@ -64,7 +64,7 @@ struct linux_binprm{
   * linux accepts.
