@@ -1,64 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-pegasos-keyboard-detection.patch removed from -mm tree
-Date: Thu, 26 Jul 2007 21:23:06 -0700
-Message-ID: <200707270423.l6R4N6wp005104@imap1.linux-foundation.org>
+Subject: + lguest-fix-bzimage-loading-with-config_relocatable=y.patch added to -mm tree
+Date: Thu, 26 Jul 2007 21:23:49 -0700
+Message-ID: <200707270423.l6R4Nnjh005157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39452 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56569 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750869AbXG0EX0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751315AbXG0EX7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 00:23:26 -0400
+	Fri, 27 Jul 2007 00:23:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pacman@TheWorld.com, benh@kernel.crashing.org, pacman@world.std.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     powerpc: Pegasos keyboard detection
-has been removed from the -mm tree.  Its filename was
-     powerpc-pegasos-keyboard-detection.patch
+     lguest: fix bzImage loading with CONFIG_RELOCATABLE=y
+has been added to the -mm tree.  Its filename is
+     lguest-fix-bzimage-loading-with-config_relocatable=y.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: Pegasos keyboard detection
-From: Alan Curry <pacman@TheWorld.com>
+Subject: lguest: fix bzImage loading with CONFIG_RELOCATABLE=y
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-As of 2.6.22 the kernel doesn't recognize the i8042 keyboard/mouse
-controller on the PegasosPPC.  This is because of a feature/bug in the OF
-device tree: the "device_type" attribute is an empty string instead of
-"8042" as the kernel expects.  This patch (against 2.6.22.1) adds a
-secondary detection which looks for a device whose *name* is "8042" if
-there is no device whose *type* is "8042".
+Jason Yeh sent his crashing .config: bzImages made with
+CONFIG_RELOCATABLE=y put the relocs where the BSS is expected, and we crash
+with unusual results such as:
 
-Signed-off-by: Alan Curry <pacman@world.std.com>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+	lguest: unhandled trap 14 at 0xc0122ae1 (0xa9)
+
+Relying on BSS being zero was merely laziness on my part.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/setup-common.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/lguest/lguest.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN /dev/null /dev/null
-diff -puN arch/powerpc/kernel/setup-common.c~powerpc-pegasos-keyboard-detection arch/powerpc/kernel/setup-common.c
---- a/arch/powerpc/kernel/setup-common.c~powerpc-pegasos-keyboard-detection
-+++ a/arch/powerpc/kernel/setup-common.c
-@@ -496,6 +496,12 @@ int check_legacy_ioport(unsigned long ba
- 			break;
- 		}
- 		np = of_find_node_by_type(NULL, "8042");
-+		/*
-+		 * Pegasos has no device_type on its 8042 node, look for the
-+		 * name instead
-+		 */
-+		if (!np)
-+			np = of_find_node_by_name(NULL, "8042");
- 		break;
- 	case FDC_BASE: /* FDC1 */
- 		np = of_find_node_by_type(NULL, "fdc");
+diff -puN drivers/lguest/lguest.c~lguest-fix-bzimage-loading-with-config_relocatable=y drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-fix-bzimage-loading-with-config_relocatable=y
++++ a/drivers/lguest/lguest.c
+@@ -1019,6 +1019,11 @@ __init void lguest_init(void *boot)
+ 	 * the normal data segment to get through booting. */
+ 	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_DS) : "memory");
+ 
++	/* Clear the part of the kernel data which is expected to be zero.
++	 * Normally it will be anyway, but if we're loading from a bzImage with
++	 * CONFIG_RELOCATALE=y, the relocations will be sitting here. */
++	memset(__bss_start, 0, __bss_stop - __bss_start);
++
+ 	/* The Host uses the top of the Guest's virtual address space for the
+ 	 * Host<->Guest Switcher, and it tells us how much it needs in
+ 	 * lguest_data.reserve_mem, set up on the LGUEST_INIT hypercall. */
 _
 
-Patches currently in -mm which might be from pacman@TheWorld.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-powerpc-pegasos-keyboard-detection.patch
+origin.patch
+lguest-documentation-i-preparation.patch
+lguest-documentation-ii-guest.patch
+lguest-documentation-iii-drivers.patch
+lguest-documentation-iv-launcher.patch
+lguest-documentation-v-host.patch
+lguest-documentation-vi-switcher.patch
+lguest-documentation-vii-fixmes.patch
+lguest-fix-bzimage-loading-with-config_relocatable=y.patch
+git-kvm.patch
+git-newsetup-fixup.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+radixtree-introduce-radix_tree_next_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+remove-unsafe-from-module-struct.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
