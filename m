@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + synclink_gt-fix-transmit-dma-stall.patch added to -mm tree
-Date: Thu, 26 Jul 2007 22:25:40 -0700
-Message-ID: <200707270525.l6R5PeXO007295@imap1.linux-foundation.org>
+Subject: + libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch added to -mm tree
+Date: Thu, 26 Jul 2007 22:29:45 -0700
+Message-ID: <200707270529.l6R5Tjnp007448@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45814 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41669 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753535AbXG0F0X (ORCPT
+	by vger.kernel.org with ESMTP id S1753074AbXG0FaH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 01:26:23 -0400
+	Fri, 27 Jul 2007 01:30:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulkf@microgate.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     synclink_gt: fix transmit DMA stall
+     libata: ACPI checks for 80wire cable: use in pata_via
 has been added to the -mm tree.  Its filename is
-     synclink_gt-fix-transmit-dma-stall.patch
+     libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,152 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: synclink_gt: fix transmit DMA stall
-From: Paul Fulghum <paulkf@microgate.com>
+Subject: libata: ACPI checks for 80wire cable: use in pata_via
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Fix transmit DMA stall when write() called in window after previous
-transmit DMA completes but before previous serial transmission completes.
+Testing this on the VIA boards fixes several problems with otherwise
+undetectable SATA bridge chips
 
-Signed-off-by: Paul Fulghum <paulkf@microgate.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |   75 +++++++++++++++++++++--------------
- 1 file changed, 46 insertions(+), 29 deletions(-)
+ drivers/ata/pata_via.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/char/synclink_gt.c~synclink_gt-fix-transmit-dma-stall drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink_gt-fix-transmit-dma-stall
-+++ a/drivers/char/synclink_gt.c
-@@ -1,5 +1,5 @@
- /*
-- * $Id: synclink_gt.c,v 4.36 2006/08/28 20:47:14 paulkf Exp $
-+ * $Id: synclink_gt.c,v 4.50 2007/07/25 19:29:25 paulkf Exp $
-  *
-  * Device driver for Microgate SyncLink GT serial adapters.
-  *
-@@ -93,7 +93,7 @@
-  * module identification
-  */
- static char *driver_name     = "SyncLink GT";
--static char *driver_version  = "$Revision: 4.36 $";
-+static char *driver_version  = "$Revision: 4.50 $";
- static char *tty_driver_name = "synclink_gt";
- static char *tty_dev_prefix  = "ttySLG";
- MODULE_LICENSE("GPL");
-@@ -477,6 +477,7 @@ static void tx_set_idle(struct slgt_info
- static unsigned int free_tbuf_count(struct slgt_info *info);
- static void reset_tbufs(struct slgt_info *info);
- static void tdma_reset(struct slgt_info *info);
-+static void tdma_start(struct slgt_info *info);
- static void tx_load(struct slgt_info *info, const char *buf, unsigned int count);
- 
- static void get_signals(struct slgt_info *info);
-@@ -904,6 +905,8 @@ start:
- 		spin_lock_irqsave(&info->lock,flags);
- 		if (!info->tx_active)
- 		 	tx_start(info);
-+		else
-+			tdma_start(info);
- 		spin_unlock_irqrestore(&info->lock,flags);
-  	}
- 
-@@ -3871,44 +3874,58 @@ static void tx_start(struct slgt_info *i
- 			slgt_irq_on(info, IRQ_TXUNDER + IRQ_TXIDLE);
- 			/* clear tx idle and underrun status bits */
- 			wr_reg16(info, SSR, (unsigned short)(IRQ_TXIDLE + IRQ_TXUNDER));
--
--			if (!(rd_reg32(info, TDCSR) & BIT0)) {
--				/* tx DMA stopped, restart tx DMA */
--				tdma_reset(info);
--				/* set 1st descriptor address */
--				wr_reg32(info, TDDAR, info->tbufs[info->tbuf_start].pdesc);
--				switch(info->params.mode) {
--				case MGSL_MODE_RAW:
--				case MGSL_MODE_MONOSYNC:
--				case MGSL_MODE_BISYNC:
--					wr_reg32(info, TDCSR, BIT2 + BIT0); /* IRQ + DMA enable */
--					break;
--				default:
--					wr_reg32(info, TDCSR, BIT0); /* DMA enable */
--				}
--			}
--
- 			if (info->params.mode == MGSL_MODE_HDLC)
- 				mod_timer(&info->tx_timer, jiffies +
- 						msecs_to_jiffies(5000));
- 		} else {
--			tdma_reset(info);
--			/* set 1st descriptor address */
--			wr_reg32(info, TDDAR, info->tbufs[info->tbuf_start].pdesc);
--
- 			slgt_irq_off(info, IRQ_TXDATA);
- 			slgt_irq_on(info, IRQ_TXIDLE);
- 			/* clear tx idle status bit */
- 			wr_reg16(info, SSR, IRQ_TXIDLE);
--
--			/* enable tx DMA */
--			wr_reg32(info, TDCSR, BIT0);
- 		}
--
-+		tdma_start(info);
- 		info->tx_active = 1;
- 	}
+diff -puN drivers/ata/pata_via.c~libata-acpi-checks-for-80wire-cable-use-in-pata_via drivers/ata/pata_via.c
+--- a/drivers/ata/pata_via.c~libata-acpi-checks-for-80wire-cable-use-in-pata_via
++++ a/drivers/ata/pata_via.c
+@@ -180,6 +180,9 @@ static int via_cable_detect(struct ata_p
+ 	   two drives */
+ 	if (ata66 & (0x10100000 >> (16 * ap->port_no)))
+ 		return ATA_CBL_PATA80;
++	/* Check with ACPI so we can spot BIOS reported SATA bridges */
++	if (ata_acpi_cbl_80wire(ap))
++		return ATA_CBL_PATA80;
+ 	return ATA_CBL_PATA40;
  }
  
-+/*
-+ * start transmit DMA if inactive and there are unsent buffers
-+ */
-+static void tdma_start(struct slgt_info *info)
-+{
-+	unsigned int i;
-+
-+	if (rd_reg32(info, TDCSR) & BIT0)
-+		return;
-+
-+	/* transmit DMA inactive, check for unsent buffers */
-+	i = info->tbuf_start;
-+	while (!desc_count(info->tbufs[i])) {
-+		if (++i == info->tbuf_count)
-+			i = 0;
-+		if (i == info->tbuf_current)
-+			return;
-+	}
-+	info->tbuf_start = i;
-+
-+	/* there are unsent buffers, start transmit DMA */
-+
-+	/* reset needed if previous error condition */
-+	tdma_reset(info);
-+
-+	/* set 1st descriptor address */
-+	wr_reg32(info, TDDAR, info->tbufs[info->tbuf_start].pdesc);
-+	switch(info->params.mode) {
-+	case MGSL_MODE_RAW:
-+	case MGSL_MODE_MONOSYNC:
-+	case MGSL_MODE_BISYNC:
-+		wr_reg32(info, TDCSR, BIT2 + BIT0); /* IRQ + DMA enable */
-+		break;
-+	default:
-+		wr_reg32(info, TDCSR, BIT0); /* DMA enable */
-+	}
-+}
-+
- static void tx_stop(struct slgt_info *info)
- {
- 	unsigned short val;
-@@ -4642,8 +4659,8 @@ static unsigned int free_tbuf_count(stru
- 			i=0;
- 	} while (i != info->tbuf_current);
- 
--	/* last buffer with zero count may be in use, assume it is */
--	if (count)
-+	/* if tx DMA active, last zero count buffer is in use */
-+	if (count && (rd_reg32(info, TDCSR) & BIT0))
- 		--count;
- 
- 	return count;
 _
 
-Patches currently in -mm which might be from paulkf@microgate.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-synclink_gt-fix-transmit-dma-stall.patch
+origin.patch
+drivers-edac-fix-reset-edac_mc-pollmsec.patch
+drivers-edac-fix-edac_pci-sysfs.patch
+include-asm-mips-add-missing-edac-h-file.patch
+drivers-edac-fix-pasemi-kconfig-depends.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+libata-acpi-checks-for-80wire-cable-headers.patch
+libata-acpi-checks-for-80wire-cable-implementation.patch
+libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
+libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+lib8390-comment-on-locking-by-alan-cox.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+git-scsi-rc-fixes.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+geode-setup-correct-chipset-access-functions-fix.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+update-coredump-path-in-kernel-to-not-check-coredump-rlim-if-core_pattern-is-a-pipe.patch
+remove-kconfig-setting-config_debug_shirq.patch
+debug-handling-of-early-spurious-interrupts.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
