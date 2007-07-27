@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-64-calgary-fix-section-mismatch-warnings-in-tce.patch added to -mm tree
-Date: Thu, 26 Jul 2007 22:17:50 -0700
-Message-ID: <200707270517.l6R5HoIR006957@imap1.linux-foundation.org>
+Subject: + generic-virtual-memmap-support-for-sparsemem-fix.patch added to -mm tree
+Date: Thu, 26 Jul 2007 22:23:59 -0700
+Message-ID: <200707270523.l6R5NxOj007271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58637 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33559 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754033AbXG0FXL (ORCPT
+	by vger.kernel.org with ESMTP id S1753353AbXG0FZJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 01:23:11 -0400
+	Fri, 27 Jul 2007 01:25:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, ak@suse.de, muli@il.ibm.com, sam@ravnborg.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org
 
 
 The patch titled
-     x86-64: Calgary: fix section mismatch warnings in tce
+     sparsemem_vmemamp fix
 has been added to the -mm tree.  Its filename is
-     x86-64-calgary-fix-section-mismatch-warnings-in-tce.patch
+     generic-virtual-memmap-support-for-sparsemem-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,70 +26,134 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-64: Calgary: fix section mismatch warnings in tce
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: sparsemem_vmemamp fix
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Fix section mismatch warnings:
-these functions are called only from __init functions.
+Fix sparsemem_vmemmap init.
 
-WARNING: vmlinux.o(.text+0x1861c): Section mismatch: reference to .init.text:free_bootmem (between 'free_tce_table' and 'build_tce_table')
-WARNING: vmlinux.o(.text+0x187e5): Section mismatch: reference to .init.text:__alloc_bootmem_low (between 'alloc_tce_table' and 'kretprobe_trampoline_holder')
+This patch fixes page table handling in sparsemem_vmammap.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Without this, part of vmem_map is not mapped because each section's start addr of
+mem_map is not aligned to PGD/PMD/PUD.
+(In ia64, secion's mem_map size is 3670016bytes. )
+
+for example,
+
+ addr     pmd_addr_end(addr_end)         addr + PMD_SIZE
+  |XXXXXXXXXX|??????????????????????????????|XXXXXXXXXXXXXXXXXX
+
+  X ... initialized vmem_map
+  ? ... not intialized
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/tce.c |    2 +-
- include/asm-x86_64/tce.h |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/sparse.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86_64/kernel/tce.c~x86-64-calgary-fix-section-mismatch-warnings-in-tce arch/x86_64/kernel/tce.c
---- a/arch/x86_64/kernel/tce.c~x86-64-calgary-fix-section-mismatch-warnings-in-tce
-+++ a/arch/x86_64/kernel/tce.c
-@@ -131,7 +131,7 @@ done:
- 	return ret;
- }
- 
--int build_tce_table(struct pci_dev *dev, void __iomem *bbar)
-+int __init build_tce_table(struct pci_dev *dev, void __iomem *bbar)
+diff -puN mm/sparse.c~generic-virtual-memmap-support-for-sparsemem-fix mm/sparse.c
+--- a/mm/sparse.c~generic-virtual-memmap-support-for-sparsemem-fix
++++ a/mm/sparse.c
+@@ -295,7 +295,7 @@ static int __meminit vmemmap_populate_pt
  {
- 	struct iommu_table *tbl;
- 	int ret;
-diff -puN include/asm-x86_64/tce.h~x86-64-calgary-fix-section-mismatch-warnings-in-tce include/asm-x86_64/tce.h
---- a/include/asm-x86_64/tce.h~x86-64-calgary-fix-section-mismatch-warnings-in-tce
-+++ a/include/asm-x86_64/tce.h
-@@ -41,8 +41,8 @@ struct iommu_table;
- extern void tce_build(struct iommu_table *tbl, unsigned long index,
-         unsigned int npages, unsigned long uaddr, int direction);
- extern void tce_free(struct iommu_table *tbl, long index, unsigned int npages);
--extern void* alloc_tce_table(void);
--extern void free_tce_table(void *tbl);
--extern int build_tce_table(struct pci_dev *dev, void __iomem *bbar);
-+extern void * __init alloc_tce_table(void);
-+extern void __init free_tce_table(void *tbl);
-+extern int __init build_tce_table(struct pci_dev *dev, void __iomem *bbar);
+ 	pte_t *pte;
  
- #endif /* _ASM_X86_64_TCE_H */
+-	for (pte = pte_offset_map(pmd, addr); addr < end;
++	for (pte = pte_offset_kernel(pmd, addr); addr < end;
+ 						pte++, addr += PAGE_SIZE)
+ 		if (pte_none(*pte)) {
+ 			pte_t entry;
+@@ -320,9 +320,10 @@ int __meminit vmemmap_populate_pmd(pud_t
+ {
+ 	pmd_t *pmd;
+ 	int error = 0;
++	unsigned long next;
+ 
+ 	for (pmd = pmd_offset(pud, addr); addr < end && !error;
+-						pmd++, addr += PMD_SIZE) {
++						pmd++, addr = next) {
+ 		if (pmd_none(*pmd)) {
+ 			void *p = vmemmap_alloc_block(PAGE_SIZE, node);
+ 			if (!p)
+@@ -332,9 +333,8 @@ int __meminit vmemmap_populate_pmd(pud_t
+ 		} else
+ 			vmemmap_verify((pte_t *)pmd, node,
+ 					pmd_addr_end(addr, end), end);
+-
+-		error = vmemmap_populate_pte(pmd, addr,
+-					pmd_addr_end(addr, end), node);
++		next = pmd_addr_end(addr, end);
++		error = vmemmap_populate_pte(pmd, addr, next, node);
+ 	}
+ 	return error;
+ }
+@@ -345,9 +345,10 @@ static int __meminit vmemmap_populate_pu
+ {
+ 	pud_t *pud;
+ 	int error = 0;
++	unsigned long next;
+ 
+ 	for (pud = pud_offset(pgd, addr); addr < end && !error;
+-						pud++, addr += PUD_SIZE) {
++						pud++, addr = next) {
+ 		if (pud_none(*pud)) {
+ 			void *p = vmemmap_alloc_block(PAGE_SIZE, node);
+ 			if (!p)
+@@ -355,8 +356,8 @@ static int __meminit vmemmap_populate_pu
+ 
+ 			pud_populate(&init_mm, pud, p);
+ 		}
+-		error = vmemmap_populate_pmd(pud, addr,
+-					pud_addr_end(addr, end), node);
++		next = pud_addr_end(addr, end);
++		error = vmemmap_populate_pmd(pud, addr, next, node);
+ 	}
+ 	return error;
+ }
+@@ -367,13 +368,14 @@ int __meminit vmemmap_populate(struct pa
+ 	pgd_t *pgd;
+ 	unsigned long addr = (unsigned long)start_page;
+ 	unsigned long end = (unsigned long)(start_page + nr);
++	unsigned long next;
+ 	int error = 0;
+ 
+ 	printk(KERN_DEBUG "[%lx-%lx] Virtual memory section"
+ 		" (%ld pages) node %d\n", addr, end - 1, nr, node);
+ 
+ 	for (pgd = pgd_offset_k(addr); addr < end && !error;
+-					pgd++, addr += PGDIR_SIZE) {
++					pgd++, addr = next) {
+ 		if (pgd_none(*pgd)) {
+ 			void *p = vmemmap_alloc_block(PAGE_SIZE, node);
+ 			if (!p)
+@@ -381,8 +383,8 @@ int __meminit vmemmap_populate(struct pa
+ 
+ 			pgd_populate(&init_mm, pgd, p);
+ 		}
+-		error = vmemmap_populate_pud(pgd, addr,
+-					pgd_addr_end(addr, end), node);
++		next = pgd_addr_end(addr,end);
++		error = vmemmap_populate_pud(pgd, addr, next, node);
+ 	}
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-kernel-doc-fix-for-kmodc.patch
-update-dontdiff-file.patch
-kernel-doc-fixes-for-pci-and-drivers-base.patch
-docbook-add-pipes-other-fixes.patch
-x86-64-calgary-fix-section-mismatch-warnings-in-tce.patch
-git-acpi.patch
-git-mtd.patch
-aha152x-in-debug-mode.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-i2ch-kernel-doc-additions.patch
-irqh-fix-kernel-doc.patch
-docbook-bad-file-references.patch
-kthread-silence-bogus-section-mismatch-warning.patch
-profile-likely-unlikely-macros.patch
+memory-unplug-v7-migration-by-kernel.patch
+memory-unplug-v7-isolate_lru_page-fix.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+sparc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support.patch
+memory-unplug-v7-memory-hotplug-cleanup.patch
+memory-unplug-v7-page-isolation.patch
+memory-unplug-v7-page-offline.patch
+memory-unplug-v7-ia64-interface.patch
