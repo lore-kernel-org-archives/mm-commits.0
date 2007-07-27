@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-vunmap-correct-address-in-text_pokekprobes.patch added to -mm tree
-Date: Thu, 26 Jul 2007 21:34:58 -0700
-Message-ID: <200707270434.l6R4YwLR005543@imap1.linux-foundation.org>
+Subject: + bsg-fix-build-for-config_block=n.patch added to -mm tree
+Date: Thu, 26 Jul 2007 21:35:56 -0700
+Message-ID: <200707270435.l6R4ZuLl005561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53595 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40948 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751561AbXG0Efn (ORCPT
+	by vger.kernel.org with ESMTP id S933614AbXG0EgX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 00:35:43 -0400
+	Fri, 27 Jul 2007 00:36:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srinivasa@in.ibm.com, ak@suse.de, prasanna@in.ibm.com, suzuki@in.ibm.com
+Cc: lethal@linux-sh.org, jens.axboe@oracle.com
 
 
 The patch titled
-     x86_64: vunmap correct address in text_poke()(kprobes)
+     bsg: fix build for CONFIG_BLOCK=n
 has been added to the -mm tree.  Its filename is
-     x86_64-vunmap-correct-address-in-text_pokekprobes.patch
+     bsg-fix-build-for-config_block=n.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: vunmap correct address in text_poke()(kprobes)
-From: Srinivasa Ds <srinivasa@in.ibm.com>
+Subject: bsg: fix build for CONFIG_BLOCK=n
+From: Paul Mundt <lethal@linux-sh.org>
 
-Resending patch according to Prasanna's suggestion, CC'ing Andi Kleen.
+BLK_DEV_BSG was added outside of the if BLOCK check, which allows it to be
+enabled when CONFIG_BLOCK=n.  This leads to many screenlengths of errors,
+starting with a parse error on the request_queue_t definition.  Obviously
+this wasn't intended for CONFIG_BLOCK=n usage, so just move the option back
+in to the block.
 
-Hit this issue when testing kprobes on x86_64 systems. We need to align
-vunmap() address to a page boundary in text_poke(). Patch below
-==============================
-Trying to vfree() bad address (ffffc20002233199)
-WARNING: at mm/vmalloc.c:330 __vunmap()
+Caught with a randconfig on sh.
 
-  Call Trace:
-  [<ffffffff8023d199>] sys_gettimeofday+0x0/0x62
-   [<ffffffff8047636c>] text_poke+0x119/0x124
-   [<ffffffff80476b42>] arch_arm_kprobe+0x1c/0x21
-   [<ffffffff80477cfd>] __register_kprobe+0x28a/0x2ed
-   [<ffffffff8815a039>] :gettimeofday:kprobe_init+0x39/0x65
-   [<ffffffff8025b5cf>] sys_init_module+0x1626/0x1788
-   [<ffffffff802aaf12>] dput+0x3f/0xfa
-   [<ffffffff8026bf91>] audit_syscall_entry+0x141/0x174
-   [<ffffffff8020bee5>] tracesys+0xdc/0xe1
-========================================
-
-Signed-off-by: Srinivasa DS <srinivasa@in.ibm.com>
-Signed-off-by: Suzuki K P <suzuki@in.ibm.com>
-Signed-off-by: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/alternative.c~x86_64-vunmap-correct-address-in-text_pokekprobes arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~x86_64-vunmap-correct-address-in-text_pokekprobes
-+++ a/arch/i386/kernel/alternative.c
-@@ -447,5 +447,5 @@ void __kprobes text_poke(void *oaddr, un
- 	if (cpu_has_clflush)
- 		asm("clflush (%0) " :: "r" (oaddr) : "memory");
- 	if (addr != oaddr)
--		vunmap(addr);
-+		vunmap((u8 *)((unsigned long)addr & PAGE_MASK));
- }
+diff -puN block/Kconfig~bsg-fix-build-for-config_block=n block/Kconfig
+--- a/block/Kconfig~bsg-fix-build-for-config_block=n
++++ a/block/Kconfig
+@@ -49,8 +49,6 @@ config LSF
+ 
+ 	  If unsure, say Y.
+ 
+-endif # BLOCK
+-
+ config BLK_DEV_BSG
+ 	bool "Block layer SG support v4 (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+@@ -64,4 +62,6 @@ config BLK_DEV_BSG
+ 	protocols (e.g. Task Management Functions and SMP in Serial
+ 	Attached SCSI).
+ 
++endif # BLOCK
++
+ source block/Kconfig.iosched
 _
 
-Patches currently in -mm which might be from srinivasa@in.ibm.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-x86_64-vunmap-correct-address-in-text_pokekprobes.patch
+bsg-fix-build-for-config_block=n.patch
+git-sh.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+serial-sh-sci-fix-build-failure-from-kgdb-fallout.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+clean-up-duplicate-includes-in-mm.patch
