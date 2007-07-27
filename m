@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + docbook-add-pipes-other-fixes.patch added to -mm tree
-Date: Thu, 26 Jul 2007 21:30:00 -0700
-Message-ID: <200707270430.l6R4U0Qv005351@imap1.linux-foundation.org>
+Subject: + rtc-dev-make-rtc-driver-return-enotty.patch added to -mm tree
+Date: Thu, 26 Jul 2007 21:31:13 -0700
+Message-ID: <200707270431.l6R4VDAI005379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44856 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49497 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751364AbXG0EaO (ORCPT
+	by vger.kernel.org with ESMTP id S1753663AbXG0Eb1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 00:30:14 -0400
+	Fri, 27 Jul 2007 00:31:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: thomas.hommel@gefanuc.com, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     docbook: add pipes, other fixes
+     rtc-dev: Make RTC driver return ENOTTY instead of ENOIOCTLCMD
 has been added to the -mm tree.  Its filename is
-     docbook-add-pipes-other-fixes.patch
+     rtc-dev-make-rtc-driver-return-enotty.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: docbook: add pipes, other fixes
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: rtc-dev: Make RTC driver return ENOTTY instead of ENOIOCTLCMD
+From: Thomas Hommel <thomas.hommel@gefanuc.com>
 
-Fix some typos in pipe.c and splice.c.  Add pipes API to kernel-api.tmpl.
+Prevent the RTC driver from returning ENOIOCTLCMD to userspace.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Thomas Hommel <thomas.hommel@gefanuc.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-api.tmpl |   13 +++++++++++--
- fs/pipe.c                             |    2 +-
- fs/splice.c                           |    4 ++--
- 3 files changed, 14 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-dev.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN Documentation/DocBook/kernel-api.tmpl~docbook-add-pipes-other-fixes Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~docbook-add-pipes-other-fixes
-+++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -704,14 +704,23 @@ X!Idrivers/video/console/fonts.c
+diff -puN drivers/rtc/rtc-dev.c~rtc-dev-make-rtc-driver-return-enotty drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~rtc-dev-make-rtc-driver-return-enotty
++++ a/drivers/rtc/rtc-dev.c
+@@ -348,6 +348,8 @@ static int rtc_dev_ioctl(struct inode *i
+ 	case RTC_IRQP_SET:
+ 		if (ops->irq_set_freq)
+ 			err = rtc_irq_set_freq(rtc, rtc->irq_task, arg);
++		else
++			err = -ENOTTY;
+ 		break;
  
-   <chapter id="splice">
-       <title>splice API</title>
--  <para>)
-+  <para>
- 	splice is a method for moving blocks of data around inside the
--	kernel, without continually transferring it between the kernel
-+	kernel, without continually transferring them between the kernel
- 	and user space.
-   </para>
- !Iinclude/linux/splice.h
- !Ffs/splice.c
-   </chapter>
- 
-+  <chapter id="pipes">
-+      <title>pipes API</title>
-+  <para>
-+	Pipe interfaces are all for in-kernel (builtin image) use.
-+	They are not exported for use by modules.
-+  </para>
-+!Iinclude/linux/pipe_fs_i.h
-+!Ffs/pipe.c
-+  </chapter>
- 
- </book>
-diff -puN fs/pipe.c~docbook-add-pipes-other-fixes fs/pipe.c
---- a/fs/pipe.c~docbook-add-pipes-other-fixes
-+++ a/fs/pipe.c
-@@ -255,7 +255,7 @@ void generic_pipe_buf_get(struct pipe_in
- 
- /**
-  * generic_pipe_buf_confirm - verify contents of the pipe buffer
-- * @pipe:	the pipe that the buffer belongs to
-+ * @info:	the pipe that the buffer belongs to
-  * @buf:	the buffer to confirm
-  *
-  * Description:
-diff -puN fs/splice.c~docbook-add-pipes-other-fixes fs/splice.c
---- a/fs/splice.c~docbook-add-pipes-other-fixes
-+++ a/fs/splice.c
-@@ -164,7 +164,7 @@ static const struct pipe_buf_operations 
-  * @spd:	data to fill
-  *
-  * Description:
-- *    @spd contains a map of pages and len/offset tupples, a long with
-+ *    @spd contains a map of pages and len/offset tuples, along with
-  *    the struct pipe_buf_operations associated with these pages. This
-  *    function will link that data to the pipe.
-  *
-@@ -1000,7 +1000,7 @@ static long do_splice_to(struct file *in
-  * Description:
-  *    This is a special case helper to splice directly between two
-  *    points, without requiring an explicit pipe. Internally an allocated
-- *    pipe is cached in the process, and reused during the life time of
-+ *    pipe is cached in the process, and reused during the lifetime of
-  *    that process.
-  *
-  */
+ #if 0
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from thomas.hommel@gefanuc.com are
 
-kernel-doc-fix-for-kmodc.patch
-update-dontdiff-file.patch
-kernel-doc-fixes-for-pci-and-drivers-base.patch
-docbook-add-pipes-other-fixes.patch
-git-acpi.patch
-git-mtd.patch
-aha152x-in-debug-mode.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-i2ch-kernel-doc-additions.patch
-irqh-fix-kernel-doc.patch
-docbook-bad-file-references.patch
-kthread-silence-bogus-section-mismatch-warning.patch
-profile-likely-unlikely-macros.patch
+rtc-dev-make-rtc-driver-return-enotty.patch
