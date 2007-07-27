@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch added to -mm tree
-Date: Thu, 26 Jul 2007 22:29:44 -0700
-Message-ID: <200707270529.l6R5Ti2Q007444@imap1.linux-foundation.org>
+Subject: + libata-sff-unbreak-non-dma-capable-controllers-again.patch added to -mm tree
+Date: Thu, 26 Jul 2007 22:31:31 -0700
+Message-ID: <200707270531.l6R5VVQ7007475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47650 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57608 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755373AbXG0Faa (ORCPT
+	by vger.kernel.org with ESMTP id S1756787AbXG0Fbq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 01:30:30 -0400
+	Fri, 27 Jul 2007 01:31:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     libata: ACPI checks for 80wire cable: use in pata_amd
+     libata-sff: unbreak non DMA capable controllers again
 has been added to the -mm tree.  Its filename is
-     libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
+     libata-sff-unbreak-non-dma-capable-controllers-again.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: ACPI checks for 80wire cable: use in pata_amd
+Subject: libata-sff: unbreak non DMA capable controllers again
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-We can make use of this on the pata_amd driver as many Nvidia devices don't
-have reliable cable detect.
+Seems nobody else is checking/testing this case as it keeps getting horked.
+
+If we have no BAR4 mapping on an SFF controller this is *NOT* an error, it
+just means it isn't doing BMDMA.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_amd.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/ata/libata-sff.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/ata/pata_amd.c~libata-acpi-checks-for-80wire-cable-use-in-pata_amd drivers/ata/pata_amd.c
---- a/drivers/ata/pata_amd.c~libata-acpi-checks-for-80wire-cable-use-in-pata_amd
-+++ a/drivers/ata/pata_amd.c
-@@ -268,6 +268,9 @@ static int nv_cable_detect(struct ata_po
-  	pci_read_config_word(pdev, 0x62 - 2 * ap->port_no, &udma);
-  	if ((udma & 0xC4) == 0xC4 || (udma & 0xC400) == 0xC400)
- 		cbl = ATA_CBL_PATA80;
-+	/* And a triple check across suspend/resume with ACPI around */
-+	if (ata_acpi_cbl_80wire(ap))
-+		cbl = ATA_CBL_PATA80;
- 	return cbl;
- }
+diff -puN drivers/ata/libata-sff.c~libata-sff-unbreak-non-dma-capable-controllers-again drivers/ata/libata-sff.c
+--- a/drivers/ata/libata-sff.c~libata-sff-unbreak-non-dma-capable-controllers-again
++++ a/drivers/ata/libata-sff.c
+@@ -573,6 +573,10 @@ int ata_pci_init_bmdma(struct ata_host *
+ 	struct pci_dev *pdev = to_pci_dev(gdev);
+ 	int i, rc;
  
++	/* No BAR4 allocation: No DMA */
++	if (pci_resource_start(pdev, 4) == 0)
++		return 0;
++
+ 	/* TODO: If we get no DMA mask we should fall back to PIO */
+ 	rc = pci_set_dma_mask(pdev, ATA_DMA_MASK);
+ 	if (rc)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -69,6 +72,7 @@ libata-acpi-checks-for-80wire-cable-headers.patch
 libata-acpi-checks-for-80wire-cable-implementation.patch
 libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
 libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
+libata-sff-unbreak-non-dma-capable-controllers-again.patch
 libata-fix-hopefully-all-the-remaining-problems-with.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 pata_ali-more-work.patch
