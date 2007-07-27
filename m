@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tpmdd-maintainers.patch added to -mm tree
-Date: Fri, 27 Jul 2007 15:14:31 -0700
-Message-ID: <200707272214.l6RMEVgG012432@imap1.linux-foundation.org>
+Subject: + audit-fix-two-bugs-in-the-new-execve-audit-code.patch added to -mm tree
+Date: Fri, 27 Jul 2007 16:05:50 -0700
+Message-ID: <200707272305.l6RN5oZ3014444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55199 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44223 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753157AbXG0WPT (ORCPT
+	by vger.kernel.org with ESMTP id S1760667AbXG0XGj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 18:15:19 -0400
+	Fri, 27 Jul 2007 19:06:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shpedoikal@gmail.com, kjhall@us.ibm.com, tpm@selhorst.net
+Cc: a.p.zijlstra@chello.nl, sgrubb@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     tpmdd maintainers
+     audit: fix two bugs in the new execve audit code
 has been added to the -mm tree.  Its filename is
-     tpmdd-maintainers.patch
+     audit-fix-two-bugs-in-the-new-execve-audit-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,126 +26,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tpmdd maintainers
-From: "Kent Yoder" <shpedoikal@gmail.com>
+Subject: audit: fix two bugs in the new execve audit code
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Fix up the maintainers info in the tpm drivers.  Kylene will be out for
-some time, so copying the sourceforge list is the best way to get some
-attention.
+On Fri, 2007-07-27 at 16:13 -0400, Steve Grubb wrote:
+> Hi,
+>
+> I was testing our rawhide kernel and I'm scrolling these errors:
+>
+> WARNING: at kernel/auditsc.c:859 audit_log_execve_info() (Not tainted)
+>
+> Call Trace:
+>  [<ffffffff8106b06f>] audit_log_exit+0x5d7/0x964
+>  [<ffffffff81050805>] trace_hardirqs_on+0x12e/0x151
+>  [<ffffffff8106b60b>] audit_syscall_exit+0x9b/0x300
+>  [<ffffffff8100ee62>] syscall_trace_leave+0x2c/0x87
+>  [<ffffffff8100beb1>] int_very_careful+0x3a/0x43
+>
 
-Cc: Marcel Selhorst <tpm@selhorst.net>
-Cc: Kylene Jo Hall <kjhall@us.ibm.com>
+copy_from_user() returns the number of bytes not copied, hence 0 is the
+expected output.
+
+axi->mm might not be valid anymore when not equal to current->mm, do not
+dereference before checking that - thanks to Al for spotting that.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Steve Grubb <sgrubb@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                  |    2 +-
- drivers/char/tpm/tpm.c       |    2 +-
- drivers/char/tpm/tpm.h       |    2 +-
- drivers/char/tpm/tpm_atmel.c |    2 +-
- drivers/char/tpm/tpm_atmel.h |    2 +-
- drivers/char/tpm/tpm_bios.c  |    2 ++
- drivers/char/tpm/tpm_nsc.c   |    2 +-
- drivers/char/tpm/tpm_tis.c   |    2 ++
- 8 files changed, 10 insertions(+), 6 deletions(-)
+ kernel/auditsc.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~tpmdd-maintainers MAINTAINERS
---- a/MAINTAINERS~tpmdd-maintainers
-+++ a/MAINTAINERS
-@@ -3436,7 +3436,7 @@ S:	Maintained
+diff -puN kernel/auditsc.c~audit-fix-two-bugs-in-the-new-execve-audit-code kernel/auditsc.c
+--- a/kernel/auditsc.c~audit-fix-two-bugs-in-the-new-execve-audit-code
++++ a/kernel/auditsc.c
+@@ -824,12 +824,14 @@ static void audit_log_execve_info(struct
+ {
+ 	int i;
+ 	long len, ret;
+-	const char __user *p = (const char __user *)axi->mm->arg_start;
++	const char __user *p;
+ 	char *buf;
  
- TPM DEVICE DRIVER
- P:	Kylene Hall
--M:	kjhall@us.ibm.com
-+M:	tpmdd-devel@lists.sourceforge.net
- W:	http://tpmdd.sourceforge.net
- P:	Marcel Selhorst
- M:	tpm@selhorst.net
-diff -puN drivers/char/tpm/tpm.c~tpmdd-maintainers drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm.c
-@@ -7,7 +7,7 @@
-  * Reiner Sailer <sailer@watson.ibm.com>
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-  *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org	 
-diff -puN drivers/char/tpm/tpm.h~tpmdd-maintainers drivers/char/tpm/tpm.h
---- a/drivers/char/tpm/tpm.h~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm.h
-@@ -7,7 +7,7 @@
-  * Reiner Sailer <sailer@watson.ibm.com>
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-  *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org	 
-diff -puN drivers/char/tpm/tpm_atmel.c~tpmdd-maintainers drivers/char/tpm/tpm_atmel.c
---- a/drivers/char/tpm/tpm_atmel.c~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm_atmel.c
-@@ -7,7 +7,7 @@
-  * Reiner Sailer <sailer@watson.ibm.com>
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-  *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org	 
-diff -puN drivers/char/tpm/tpm_atmel.h~tpmdd-maintainers drivers/char/tpm/tpm_atmel.h
---- a/drivers/char/tpm/tpm_atmel.h~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm_atmel.h
-@@ -4,7 +4,7 @@
-  * Authors:
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-  *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org
-diff -puN drivers/char/tpm/tpm_bios.c~tpmdd-maintainers drivers/char/tpm/tpm_bios.c
---- a/drivers/char/tpm/tpm_bios.c~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm_bios.c
-@@ -7,6 +7,8 @@
-  *	Reiner Sailer <sailer@watson.ibm.com>
-  *	Kylene Hall <kjhall@us.ibm.com>
-  *
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-+ *
-  * Access to the eventlog extended by the TCG BIOS of PC platform
-  *
-  * This program is free software; you can redistribute it and/or
-diff -puN drivers/char/tpm/tpm_nsc.c~tpmdd-maintainers drivers/char/tpm/tpm_nsc.c
---- a/drivers/char/tpm/tpm_nsc.c~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm_nsc.c
-@@ -7,7 +7,7 @@
-  * Reiner Sailer <sailer@watson.ibm.com>
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-  *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org	 
-diff -puN drivers/char/tpm/tpm_tis.c~tpmdd-maintainers drivers/char/tpm/tpm_tis.c
---- a/drivers/char/tpm/tpm_tis.c~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm_tis.c
-@@ -5,6 +5,8 @@
-  * Leendert van Doorn <leendert@watson.ibm.com>
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-+ *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org
-  *
+ 	if (axi->mm != current->mm)
+ 		return; /* execve failed, no additional info */
+ 
++	p = (const char __user *)axi->mm->arg_start;
++
+ 	for (i = 0; i < axi->argc; i++, p += len) {
+ 		len = strnlen_user(p, MAX_ARG_STRLEN);
+ 		/*
+@@ -855,7 +857,7 @@ static void audit_log_execve_info(struct
+ 		 * copied them here, and the mm hasn't been exposed to user-
+ 		 * space yet.
+ 		 */
+-		if (!ret) {
++		if (ret) {
+ 			WARN_ON(1);
+ 			send_sig(SIGKILL, current, 0);
+ 		}
 _
 
-Patches currently in -mm which might be from shpedoikal@gmail.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-tpmdd-maintainers.patch
+slub-add-lock-debugging-check.patch
+audit-fix-two-bugs-in-the-new-execve-audit-code.patch
+slub-fix-bug-in-slub-debug-support.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
