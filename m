@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor.patch added to -mm tree
-Date: Fri, 27 Jul 2007 13:30:02 -0700
-Message-ID: <200707272030.l6RKU2Vw008612@imap1.linux-foundation.org>
+Subject: + remove-frv-usage-of-flush_tlb_pgtables.patch added to -mm tree
+Date: Fri, 27 Jul 2007 14:10:42 -0700
+Message-ID: <200707272110.l6RLAgT4010141@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42233 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933270AbXG0UaQ (ORCPT
+	by vger.kernel.org with ESMTP id S1761271AbXG0VK7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Jul 2007 16:30:16 -0400
+	Fri, 27 Jul 2007 17:10:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, andmike@us.ibm.com, mog.johnny@gmx.net, protasnb@gmail.com
+Cc: benh@kernel.crashing.org, dhowells@redhat.com
 
 
 The patch titled
-     scsi: blacklist the easyRAID F8 IDE2SCSI adaptor
+     remove frv usage of flush_tlb_pgtables()
 has been added to the -mm tree.  Its filename is
-     scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor.patch
+     remove-frv-usage-of-flush_tlb_pgtables.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,152 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scsi: blacklist the easyRAID F8 IDE2SCSI adaptor
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: remove frv usage of flush_tlb_pgtables()
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-According to http://bugzilla.kernel.org/show_bug.cgi?id=5953, this patch fixes
-easyRAID domain validation.
+frv is the last user in the tree of that dubious hook, and it's my
+understanding that it's not even needed.  It's only called by memory.c
+free_pgd_range() which is always called within an mmu_gather, and
+tlb_flush() on frv will do a flush_tlb_mm(), which from my reading of the
+code, seems to do what flush_tlb_ptables() does, which is to clear the
+cached PGE.
 
-Cc: Mike Anderson <andmike@us.ibm.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Natalie Protasevich <protasnb@gmail.com>
-Cc: Hans-Christian Armingeon <mog.johnny@gmx.net>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-By: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_devinfo.c |    3 +++
- 1 files changed, 3 insertions(+)
+ include/asm-frv/tlbflush.h |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/scsi/scsi_devinfo.c~scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor drivers/scsi/scsi_devinfo.c
---- a/drivers/scsi/scsi_devinfo.c~scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor
-+++ a/drivers/scsi/scsi_devinfo.c
-@@ -154,6 +154,9 @@ static struct {
- 	{"EMC",  "Invista", "*", BLIST_SPARSELUN | BLIST_LARGELUN},
- 	{"EMC", "SYMMETRIX", NULL, BLIST_SPARSELUN | BLIST_LARGELUN | BLIST_FORCELUN},
- 	{"EMULEX", "MD21/S2     ESDI", NULL, BLIST_SINGLELUN},
-+	{"easyRAID", "16P", NULL, BLIST_NOREPORTLUN},
-+	{"easyRAID", "X6P", NULL, BLIST_NOREPORTLUN},
-+	{"easyRAID", "F8", NULL, BLIST_NOREPORTLUN},
- 	{"FSC", "CentricStor", "*", BLIST_SPARSELUN | BLIST_LARGELUN},
- 	{"Generic", "USB SD Reader", "1.00", BLIST_FORCELUN | BLIST_INQUIRY_36},
- 	{"Generic", "USB Storage-SMC", "0180", BLIST_FORCELUN | BLIST_INQUIRY_36},
+diff -puN include/asm-frv/tlbflush.h~remove-frv-usage-of-flush_tlb_pgtables include/asm-frv/tlbflush.h
+--- a/include/asm-frv/tlbflush.h~remove-frv-usage-of-flush_tlb_pgtables
++++ a/include/asm-frv/tlbflush.h
+@@ -57,8 +57,7 @@ do {								\
+ #define __flush_tlb_global()			flush_tlb_all()
+ #define flush_tlb()				flush_tlb_all()
+ #define flush_tlb_kernel_range(start, end)	flush_tlb_all()
+-#define flush_tlb_pgtables(mm,start,end) \
+-	asm volatile("movgs %0,scr0 ! movgs %0,scr1" :: "r"(ULONG_MAX) : "memory");
++#define flush_tlb_pgtables(mm,start,end)	do { } while(0)
+ 
+ #else
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-origin.patch
-rtc-stk17ta8-update-for-sysfs-api-change.patch
-x86_powernow_k8_acpi-must-depend-on-acpi.patch
-i2c-ds1682-warning-fix.patch
-edac-is-bust-on-mips.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-kdebugh-forward-declare-struct-struct-notifier_block.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-mark_tsc_unstable-build-fix.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
+fix-dynreloc-miscount-link-error-on-powerpc.patch
+powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+sky-cpu-and-nexus-code-style-improvement.patch
+sky-cpu-and-nexus-include-ioh.patch
+sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
+sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
+sky-cpu-use-c99-style-for-struct-init.patch
+adbhid-produce-all-capslock-key-events.patch
 adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-git-kvm-fixup.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-libata-store-bus-addresses-versus-mm-for-testing-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-ide-bodge-things-around-to-make-arm-work.patch
-mmc-build-fix.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-scsi-rc-fixes.patch
-scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor.patch
-git-block-fix-headers_check.patch
-git-block-whoops.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-watchdog.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
-git-kgdb-fixup.patch
-git-kgdb-arm-fix.patch
-git-kgdb-mips-fix.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+git-libata-all.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+ppc64-sparsemem_vmemmap-support.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+remove-frv-usage-of-flush_tlb_pgtables.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+unexport-asm-shmparamh.patch
+kconfig-make-instrumentation-support-non-experimental.patch
 pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
-ip2main-warning-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-tpm_tis-debug.patch
-w1-build-fix.patch
+report-the-per-irq-statistics-on-allarches.patch
