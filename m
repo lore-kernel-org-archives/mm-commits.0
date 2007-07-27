@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-pegasos-keyboard-detection.patch added to -mm tree
-Date: Thu, 26 Jul 2007 18:48:07 -0700
-Message-ID: <200707270148.l6R1m7dr032529@imap1.linux-foundation.org>
+Subject: - powerpc-pegasos-keyboard-detection.patch removed from -mm tree
+Date: Thu, 26 Jul 2007 21:23:06 -0700
+Message-ID: <200707270423.l6R4N6wp005104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37103 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39452 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755370AbXG0Bs4 (ORCPT
+	by vger.kernel.org with ESMTP id S1750869AbXG0EX0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Jul 2007 21:48:56 -0400
+	Fri, 27 Jul 2007 00:23:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: pacman@TheWorld.com, benh@kernel.crashing.org, pacman@world.std.com
+To: pacman@TheWorld.com, benh@kernel.crashing.org, pacman@world.std.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      powerpc: Pegasos keyboard detection
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      powerpc-pegasos-keyboard-detection.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 Subject: powerpc: Pegasos keyboard detection
