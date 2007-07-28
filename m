@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kgdb-kconfig-fix.patch added to -mm tree
-Date: Sat, 28 Jul 2007 10:26:45 -0700
-Message-ID: <200707281726.l6SHQjA8018670@imap1.linux-foundation.org>
+Subject: - kgdb-kconfig-fix.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 12:50:42 -0700
+Message-ID: <200707281950.l6SJogqS023397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32980 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41355 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754096AbXG1R0y (ORCPT
+	by vger.kernel.org with ESMTP id S1755580AbXG1Tuu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Jul 2007 13:26:54 -0400
+	Sat, 28 Jul 2007 15:50:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jason.wessel@windriver.com, nix.or.die@googlemail.com
+To: akpm@linux-foundation.org, jason.wessel@windriver.com, nix.or.die@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      kgdb-kconfig-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      kgdb-kconfig-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 Subject: kgdb-kconfig-fix
