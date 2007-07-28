@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parport_pc-locking-fix.patch added to -mm tree
-Date: Sat, 28 Jul 2007 10:03:08 -0700
-Message-ID: <200707281703.l6SH38hv017851@imap1.linux-foundation.org>
+Subject: + kgdb-kconfig-fix.patch added to -mm tree
+Date: Sat, 28 Jul 2007 10:26:45 -0700
+Message-ID: <200707281726.l6SHQjA8018670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41283 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32980 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752176AbXG1REN (ORCPT
+	by vger.kernel.org with ESMTP id S1754096AbXG1R0y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Jul 2007 13:04:13 -0400
+	Sat, 28 Jul 2007 13:26:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mike@pikeaero.com, stsp@aknet.ru, tim@cyberelk.net
+Cc: akpm@linux-foundation.org, jason.wessel@windriver.com, nix.or.die@googlemail.com
 
 
 The patch titled
-     parport_pc locking fix
+     kgdb-kconfig-fix
 has been added to the -mm tree.  Its filename is
-     parport_pc-locking-fix.patch
+     kgdb-kconfig-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: parport_pc locking fix
+Subject: kgdb-kconfig-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8821 reports a might_sleep()
-warning due to parport_pc_exit() running platform_device_unregister() while
-holding ports_lock.
+On Sat, 28 Jul 2007 17:44:45 +0200 Gabriel C <nix.or.die@googlemail.com> wrote:
 
-Just remove the locking: nobody else can access ports_list during module_exit.
+> Hi,
+> 
+> I got this compile error with a randconfig ( http://194.231.229.228/MM/randconfig-auto-82.broken.netpoll.c ).
+> 
+> ...
+> 
+> net/core/netpoll.c: In function 'netpoll_poll':
+> net/core/netpoll.c:155: error: 'struct net_device' has no member named 'poll_controller'
+> net/core/netpoll.c:159: error: 'struct net_device' has no member named 'poll_controller'
+> net/core/netpoll.c: In function 'netpoll_setup':
+> net/core/netpoll.c:670: error: 'struct net_device' has no member named 'poll_controller'
+> make[2]: *** [net/core/netpoll.o] Error 1
+> make[1]: *** [net/core] Error 2
+> make: *** [net] Error 2
+> make: *** Waiting for unfinished jobs....
+> 
+> ...
+> 
+> 
+> I think is because KGDBOE selects just NETPOLL.
 
-Cc: "Mike Sharkey" <mike@pikeaero.com>
-Cc: Tim Waugh <tim@cyberelk.net>
-Cc: Stas Sergeev <stsp@aknet.ru>
+Cc: Gabriel C <nix.or.die@googlemail.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |    4 ----
- 1 file changed, 4 deletions(-)
+ lib/Kconfig.kgdb |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/parport/parport_pc.c~parport_pc-locking-fix drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport_pc-locking-fix
-+++ a/drivers/parport/parport_pc.c
-@@ -3445,7 +3445,6 @@ static void __exit parport_pc_exit(void)
- 		pnp_unregister_driver (&parport_pc_pnp_driver);
- 	platform_driver_unregister(&parport_pc_platform_driver);
- 
--	spin_lock(&ports_lock);
- 	while (!list_empty(&ports_list)) {
- 		struct parport_pc_private *priv;
- 		struct parport *port;
-@@ -3455,11 +3454,8 @@ static void __exit parport_pc_exit(void)
- 		if (port->dev && port->dev->bus == &platform_bus_type)
- 			platform_device_unregister(
- 				to_platform_device(port->dev));
--		spin_unlock(&ports_lock);
- 		parport_pc_unregister_port(port);
--		spin_lock(&ports_lock);
- 	}
--	spin_unlock(&ports_lock);
- }
- 
- MODULE_AUTHOR("Phil Blundell, Tim Waugh, others");
+diff -puN lib/Kconfig.kgdb~kgdb-kconfig-fix lib/Kconfig.kgdb
+--- a/lib/Kconfig.kgdb~kgdb-kconfig-fix
++++ a/lib/Kconfig.kgdb
+@@ -175,8 +175,7 @@ endchoice
+ config KGDBOE
+ 	tristate "KGDB: On ethernet" if !KGDBOE_NOMODULE
+ 	depends on m && KGDB
+-	select NETPOLL
+-	select NETPOLL_TRAP
++	depends on NETPOLL_TRAP && NET_POLL_CONTROLLER
+ 	help
+ 	  Uses the NETPOLL API to communicate with the host GDB via UDP.
+ 	  In order for this to work, the ethernet interface specified must
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -130,6 +136,7 @@ git-newsetup-fixup.patch
 git-kgdb-fixup.patch
 git-kgdb-arm-fix.patch
 git-kgdb-mips-fix.patch
+kgdb-kconfig-fix.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
