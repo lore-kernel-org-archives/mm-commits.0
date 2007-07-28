@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libata-store-bus-addresses-versus-mm-for-testing-fix-2.patch added to -mm tree
-Date: Sat, 28 Jul 2007 00:23:17 -0700
-Message-ID: <200707280727.l6S7Rulc031067@imap1.linux-foundation.org>
+Subject: + parport_pc-locking-fix.patch added to -mm tree
+Date: Sat, 28 Jul 2007 10:03:08 -0700
+Message-ID: <200707281703.l6SH38hv017851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37033 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41283 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751570AbXG1H25 (ORCPT
+	by vger.kernel.org with ESMTP id S1752176AbXG1REN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Jul 2007 03:28:57 -0400
+	Sat, 28 Jul 2007 13:04:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
+Cc: akpm@linux-foundation.org, mike@pikeaero.com, stsp@aknet.ru, tim@cyberelk.net
 
 
 The patch titled
-     libata-store-bus-addresses-versus-mm-for-testing-fix-2
+     parport_pc locking fix
 has been added to the -mm tree.  Its filename is
-     libata-store-bus-addresses-versus-mm-for-testing-fix-2.patch
+     parport_pc-locking-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata-store-bus-addresses-versus-mm-for-testing-fix-2
+Subject: parport_pc locking fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-is this right?
+http://bugzilla.kernel.org/show_bug.cgi?id=8821 reports a might_sleep()
+warning due to parport_pc_exit() running platform_device_unregister() while
+holding ports_lock.
 
-Cc: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Just remove the locking: nobody else can access ports_list during module_exit.
+
+Cc: "Mike Sharkey" <mike@pikeaero.com>
+Cc: Tim Waugh <tim@cyberelk.net>
+Cc: Stas Sergeev <stsp@aknet.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_mpiix.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/parport/parport_pc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/ata/pata_mpiix.c~libata-store-bus-addresses-versus-mm-for-testing-fix-2 drivers/ata/pata_mpiix.c
---- a/drivers/ata/pata_mpiix.c~libata-store-bus-addresses-versus-mm-for-testing-fix-2
-+++ a/drivers/ata/pata_mpiix.c
-@@ -249,7 +249,7 @@ static int mpiix_init_one(struct pci_dev
- 	ap->ioaddr.altstatus_addr = ctl_addr;
+diff -puN drivers/parport/parport_pc.c~parport_pc-locking-fix drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~parport_pc-locking-fix
++++ a/drivers/parport/parport_pc.c
+@@ -3445,7 +3445,6 @@ static void __exit parport_pc_exit(void)
+ 		pnp_unregister_driver (&parport_pc_pnp_driver);
+ 	platform_driver_unregister(&parport_pc_platform_driver);
  
- 	/* Let libata fill in the port details */
--	ata_std_ports(&ap->ioaddr);
-+	ata_std_io_ports(&ap->ioaddr, &ap->busaddr);
+-	spin_lock(&ports_lock);
+ 	while (!list_empty(&ports_list)) {
+ 		struct parport_pc_private *priv;
+ 		struct parport *port;
+@@ -3455,11 +3454,8 @@ static void __exit parport_pc_exit(void)
+ 		if (port->dev && port->dev->bus == &platform_bus_type)
+ 			platform_device_unregister(
+ 				to_platform_device(port->dev));
+-		spin_unlock(&ports_lock);
+ 		parport_pc_unregister_port(port);
+-		spin_lock(&ports_lock);
+ 	}
+-	spin_unlock(&ports_lock);
+ }
  
- 	/* activate host */
- 	return ata_host_activate(host, irq, ata_interrupt, IRQF_SHARED,
+ MODULE_AUTHOR("Phil Blundell, Tim Waugh, others");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,6 +76,7 @@ rtc-stk17ta8-update-for-sysfs-api-change.patch
 x86_powernow_k8_acpi-must-depend-on-acpi.patch
 i2c-ds1682-warning-fix.patch
 edac-is-bust-on-mips.patch
+parport_pc-locking-fix.patch
 revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
 kdebugh-forward-declare-struct-struct-notifier_block.patch
 slow-down-printk-during-boot.patch
