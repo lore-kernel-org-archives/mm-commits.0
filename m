@@ -1,286 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-update-sched-stattxt.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:13:35 -0700
-Message-ID: <200707290613.l6T6DZNU011211@imap1.linux-foundation.org>
+Subject: - drivers-edac-fix-pasemi-kconfig-depends.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:12:23 -0700
+Message-ID: <200707290612.l6T6CN2Z011121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57317 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46976 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757706AbXG2GXm (ORCPT
+	by vger.kernel.org with ESMTP id S1758236AbXG2GXo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:23:42 -0400
+	Sun, 29 Jul 2007 02:23:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joachim.deguara@amd.com, npiggin@suse.de, ricklind@us.ibm.com, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, egor@pasemi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation: update sched-stat.txt
+     drivers/edac: fix pasemi kconfig depends
 has been removed from the -mm tree.  Its filename was
-     documentation-update-sched-stattxt.patch
+     drivers-edac-fix-pasemi-kconfig-depends.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Documentation: update sched-stat.txt
-From: "Joachim Deguara" <joachim.deguara@amd.com>
+Subject: drivers/edac: fix pasemi kconfig depends
+From: Doug Thompson <dougthompson@xmission.com>
 
-While learning about schedstats I found that the documentation in the tree
-is old.  I updated it and found some interesting stuff like schedstats
-version 14 is the same as version and version 13 never saw a kernel
-release!  Also there are 6 fields in the current schedstats that are not
-used anymore.  Nick had made them irrelevant in commit
-476d139c218e44e045e4bc6d4cc02b010b343939 but never removed them.
+Fixed 'depends on PPC_PASEMI' in EDAC Kconfig.  Module PASEMI depends ONLY on
+the PASEMI on PPC.
 
-Thanks to Rick's perl script who I borrowed some of the updated descriptions
-from.
+Was previously enabled for ALL PPC
 
-Signed-off-by: Joachim Deguara <joachim.deguara@amd.com>
-Acked-by: Nick Piggin <npiggin@suse.de>
-Cc: Rick Lindsley <ricklind@us.ibm.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Egor N. Martovetsky <egor@pasemi.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sched-stats.txt |  191 ++++++++++++++++----------------
- 1 files changed, 97 insertions(+), 94 deletions(-)
+ drivers/edac/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/sched-stats.txt~documentation-update-sched-stattxt Documentation/sched-stats.txt
---- a/Documentation/sched-stats.txt~documentation-update-sched-stattxt
-+++ a/Documentation/sched-stats.txt
-@@ -1,10 +1,11 @@
--Version 10 of schedstats includes support for sched_domains, which
--hit the mainline kernel in 2.6.7.  Some counters make more sense to be
--per-runqueue; other to be per-domain.  Note that domains (and their associated
--information) will only be pertinent and available on machines utilizing
--CONFIG_SMP.
-+Version 14 of schedstats includes support for sched_domains, which hit the
-+mainline kernel in 2.6.20 although it is identical to the stats from version
-+12 which was in the kernel from 2.6.13-2.6.19 (version 13 never saw a kernel
-+release).  Some counters make more sense to be per-runqueue; other to be
-+per-domain.  Note that domains (and their associated information) will only
-+be pertinent and available on machines utilizing CONFIG_SMP.
- 
--In version 10 of schedstat, there is at least one level of domain
-+In version 14 of schedstat, there is at least one level of domain
- statistics for each cpu listed, and there may well be more than one
- domain.  Domains have no particular names in this implementation, but
- the highest numbered one typically arbitrates balancing across all the
-@@ -27,7 +28,7 @@ to write their own scripts, the fields a
- 
- CPU statistics
- --------------
--cpu<N> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-+cpu<N> 1 2 3 4 5 6 7 8 9 10 11 12
- 
- NOTE: In the sched_yield() statistics, the active queue is considered empty
-     if it has only one process in it, since obviously the process calling
-@@ -39,48 +40,20 @@ First four fields are sched_yield() stat
-      3) # of times just the expired queue was empty
-      4) # of times sched_yield() was called
- 
--Next four are schedule() statistics:
--     5) # of times the active queue had at least one other process on it
--     6) # of times we switched to the expired queue and reused it
--     7) # of times schedule() was called
--     8) # of times schedule() left the processor idle
--
--Next four are active_load_balance() statistics:
--     9) # of times active_load_balance() was called
--    10) # of times active_load_balance() caused this cpu to gain a task
--    11) # of times active_load_balance() caused this cpu to lose a task
--    12) # of times active_load_balance() tried to move a task and failed
--
--Next three are try_to_wake_up() statistics:
--    13) # of times try_to_wake_up() was called
--    14) # of times try_to_wake_up() successfully moved the awakening task
--    15) # of times try_to_wake_up() attempted to move the awakening task
--
--Next two are wake_up_new_task() statistics:
--    16) # of times wake_up_new_task() was called
--    17) # of times wake_up_new_task() successfully moved the new task
-+Next three are schedule() statistics:
-+     5) # of times we switched to the expired queue and reused it
-+     6) # of times schedule() was called
-+     7) # of times schedule() left the processor idle
- 
--Next one is a sched_migrate_task() statistic:
--    18) # of times sched_migrate_task() was called
--
--Next one is a sched_balance_exec() statistic:
--    19) # of times sched_balance_exec() was called
-+Next two are try_to_wake_up() statistics:
-+     8) # of times try_to_wake_up() was called
-+     9) # of times try_to_wake_up() was called to wake up the local cpu
- 
- Next three are statistics describing scheduling latency:
--    20) sum of all time spent running by tasks on this processor (in ms)
--    21) sum of all time spent waiting to run by tasks on this processor (in ms)
--    22) # of tasks (not necessarily unique) given to the processor
--
--The last six are statistics dealing with pull_task():
--    23) # of times pull_task() moved a task to this cpu when newly idle
--    24) # of times pull_task() stole a task from this cpu when another cpu
--	was newly idle
--    25) # of times pull_task() moved a task to this cpu when idle
--    26) # of times pull_task() stole a task from this cpu when another cpu
--	was idle
--    27) # of times pull_task() moved a task to this cpu when busy
--    28) # of times pull_task() stole a task from this cpu when another cpu
--	was busy
-+    10) sum of all time spent running by tasks on this processor (in jiffies)
-+    11) sum of all time spent waiting to run by tasks on this processor (in
-+        jiffies)
-+    12) # of timeslices run on this cpu
- 
- 
- Domain statistics
-@@ -89,65 +62,95 @@ One of these is produced per domain for 
- CONFIG_SMP is not defined, *no* domains are utilized and these lines
- will not appear in the output.)
- 
--domain<N> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
-+domain<N> <cpumask> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36
- 
- The first field is a bit mask indicating what cpus this domain operates over.
- 
--The next fifteen are a variety of load_balance() statistics:
--
--     1) # of times in this domain load_balance() was called when the cpu
--	was idle
--     2) # of times in this domain load_balance() was called when the cpu
--	was busy
--     3) # of times in this domain load_balance() was called when the cpu
--	was just becoming idle
--     4) # of times in this domain load_balance() tried to move one or more
--	tasks and failed, when the cpu was idle
--     5) # of times in this domain load_balance() tried to move one or more
--	tasks and failed, when the cpu was busy
--     6) # of times in this domain load_balance() tried to move one or more
--	tasks and failed, when the cpu was just becoming idle
--     7) sum of imbalances discovered (if any) with each call to
--	load_balance() in this domain when the cpu was idle
--     8) sum of imbalances discovered (if any) with each call to
--	load_balance() in this domain when the cpu was busy
--     9) sum of imbalances discovered (if any) with each call to
--	load_balance() in this domain when the cpu was just becoming idle
--    10) # of times in this domain load_balance() was called but did not find
--	a busier queue while the cpu was idle
--    11) # of times in this domain load_balance() was called but did not find
--	a busier queue while the cpu was busy
--    12) # of times in this domain load_balance() was called but did not find
--	a busier queue while the cpu was just becoming idle
--    13) # of times in this domain a busier queue was found while the cpu was
--	idle but no busier group was found
--    14) # of times in this domain a busier queue was found while the cpu was
--	busy but no busier group was found
--    15) # of times in this domain a busier queue was found while the cpu was
--	just becoming idle but no busier group was found
--
--Next two are sched_balance_exec() statistics:
--    17) # of times in this domain sched_balance_exec() successfully pushed
--	a task to a new cpu
--    18) # of times in this domain sched_balance_exec() tried but failed to
--	push a task to a new cpu
--
--Next two are try_to_wake_up() statistics:
--    19) # of times in this domain try_to_wake_up() tried to move a task based
--	on affinity and cache warmth
--    20) # of times in this domain try_to_wake_up() tried to move a task based
--	on load balancing
-+The next 24 are a variety of load_balance() statistics in grouped into types
-+of idleness (idle, busy, and newly idle):
- 
-+     1) # of times in this domain load_balance() was called when the
-+        cpu was idle
-+     2) # of times in this domain load_balance() checked but found
-+        the load did not require balancing when the cpu was idle
-+     3) # of times in this domain load_balance() tried to move one or
-+        more tasks and failed, when the cpu was idle
-+     4) sum of imbalances discovered (if any) with each call to
-+        load_balance() in this domain when the cpu was idle
-+     5) # of times in this domain pull_task() was called when the cpu
-+        was idle
-+     6) # of times in this domain pull_task() was called even though
-+        the target task was cache-hot when idle
-+     7) # of times in this domain load_balance() was called but did
-+        not find a busier queue while the cpu was idle
-+     8) # of times in this domain a busier queue was found while the
-+        cpu was idle but no busier group was found
-+
-+     9) # of times in this domain load_balance() was called when the
-+        cpu was busy
-+    10) # of times in this domain load_balance() checked but found the
-+        load did not require balancing when busy
-+    11) # of times in this domain load_balance() tried to move one or
-+        more tasks and failed, when the cpu was busy
-+    12) sum of imbalances discovered (if any) with each call to
-+        load_balance() in this domain when the cpu was busy
-+    13) # of times in this domain pull_task() was called when busy
-+    14) # of times in this domain pull_task() was called even though the
-+        target task was cache-hot when busy
-+    15) # of times in this domain load_balance() was called but did not
-+        find a busier queue while the cpu was busy
-+    16) # of times in this domain a busier queue was found while the cpu
-+        was busy but no busier group was found
-+
-+    17) # of times in this domain load_balance() was called when the
-+        cpu was just becoming idle
-+    18) # of times in this domain load_balance() checked but found the
-+        load did not require balancing when the cpu was just becoming idle
-+    19) # of times in this domain load_balance() tried to move one or more
-+        tasks and failed, when the cpu was just becoming idle
-+    20) sum of imbalances discovered (if any) with each call to
-+        load_balance() in this domain when the cpu was just becoming idle
-+    21) # of times in this domain pull_task() was called when newly idle
-+    22) # of times in this domain pull_task() was called even though the
-+        target task was cache-hot when just becoming idle
-+    23) # of times in this domain load_balance() was called but did not
-+        find a busier queue while the cpu was just becoming idle
-+    24) # of times in this domain a busier queue was found while the cpu
-+        was just becoming idle but no busier group was found
-+
-+   Next three are active_load_balance() statistics:
-+    25) # of times active_load_balance() was called
-+    26) # of times active_load_balance() tried to move a task and failed
-+    27) # of times active_load_balance() successfully moved a task
-+
-+   Next three are sched_balance_exec() statistics:
-+    28) sbe_cnt is not used
-+    29) sbe_balanced is not used
-+    30) sbe_pushed is not used
-+
-+   Next three are sched_balance_fork() statistics:
-+    31) sbf_cnt is not used
-+    32) sbf_balanced is not used
-+    33) sbf_pushed is not used
-+
-+   Next three are try_to_wake_up() statistics:
-+    34) # of times in this domain try_to_wake_up() awoke a task that
-+        last ran on a different cpu in this domain
-+    35) # of times in this domain try_to_wake_up() moved a task to the
-+        waking cpu because it was cache-cold on its own cpu anyway
-+    36) # of times in this domain try_to_wake_up() started passive balancing
- 
- /proc/<pid>/schedstat
- ----------------
- schedstats also adds a new /proc/<pid/schedstat file to include some of
- the same information on a per-process level.  There are three fields in
--this file correlating to fields 20, 21, and 22 in the CPU fields, but
--they only apply for that process.
-+this file correlating for that process to:
-+     1) time spent on the cpu
-+     2) time spent waiting on a runqueue
-+     3) # of timeslices run on this cpu
- 
- A program could be easily written to make use of these extra fields to
- report on how well a particular process or set of processes is faring
- under the scheduler's policies.  A simple version of such a program is
- available at
--    http://eaglet.rain.com/rick/linux/schedstat/v10/latency.c
-+    http://eaglet.rain.com/rick/linux/schedstat/v12/latency.c
+diff -puN drivers/edac/Kconfig~drivers-edac-fix-pasemi-kconfig-depends drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~drivers-edac-fix-pasemi-kconfig-depends
++++ a/drivers/edac/Kconfig
+@@ -126,7 +126,7 @@ config EDAC_I5000
+ config EDAC_PASEMI
+ 	tristate "PA Semi PWRficient"
+ 	depends on EDAC_MM_EDAC && PCI
+-	depends on PPC
++	depends on PPC_PASEMI
+ 	help
+ 	  Support for error detection and correction on PA Semi
+ 	  PWRficient.
 _
 
-Patches currently in -mm which might be from joachim.deguara@amd.com are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
 origin.patch
-x86_64-family-10h-and-11h-to-k8topology.patch
