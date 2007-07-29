@@ -1,59 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-ide-pci-cs5535c-array-overrun.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:13:26 -0700
-Message-ID: <200707290613.l6T6DQoH011199@imap1.linux-foundation.org>
+Subject: - sched-make-cpu_clock-not-use-the-rq-clock.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:13:31 -0700
+Message-ID: <200707290613.l6T6DVKL011205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49881 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55659 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757307AbXG2GXe (ORCPT
+	by vger.kernel.org with ESMTP id S1757510AbXG2GXi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:23:34 -0400
+	Sun, 29 Jul 2007 02:23:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jordan.crouse@amd.com, bzolnier@gmail.com, mm-commits@vger.kernel.org
+To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix an ovverun found in the 5535 IDE driver
+     sched: make cpu_clock() not use the rq clock
 has been removed from the -mm tree.  Its filename was
-     drivers-ide-pci-cs5535c-array-overrun.patch
+     sched-make-cpu_clock-not-use-the-rq-clock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix an ovverun found in the 5535 IDE driver
-From: Jordan Crouse <jordan.crouse@amd.com>
+Subject: sched: make cpu_clock() not use the rq clock
+From: Ingo Molnar <mingo@elte.hu>
 
-As found by the Coverity checker, and reported by Adrian Bunk, this fixes a
-overrun error in the 5535 IDE driver.  Somebody got a little excited with
-the if() statement - the 5535 only supports UDMA 0-4.
+It is enough to disable interrupts to get the precise rq-clock of the local
+CPU.
 
-Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+This also solves an NMI watchdog regression: the NMI watchdog calls
+touch_softlockup_watchdog(), which might deadlock on rq->lock if the NMI
+hits an rq-locked critical section.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/pci/cs5535.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ide/pci/cs5535.c~drivers-ide-pci-cs5535c-array-overrun drivers/ide/pci/cs5535.c
---- a/drivers/ide/pci/cs5535.c~drivers-ide-pci-cs5535c-array-overrun
-+++ a/drivers/ide/pci/cs5535.c
-@@ -120,7 +120,7 @@ static void cs5535_set_speed(ide_drive_t
+diff -puN kernel/sched.c~sched-make-cpu_clock-not-use-the-rq-clock kernel/sched.c
+--- a/kernel/sched.c~sched-make-cpu_clock-not-use-the-rq-clock
++++ a/kernel/sched.c
+@@ -386,13 +386,12 @@ static inline unsigned long long rq_cloc
+  */
+ unsigned long long cpu_clock(int cpu)
+ {
+-	struct rq *rq = cpu_rq(cpu);
+ 	unsigned long long now;
+ 	unsigned long flags;
  
- 		reg &= 0x80000000UL;  /* Preserve the PIO format bit */
+-	spin_lock_irqsave(&rq->lock, flags);
+-	now = rq_clock(rq);
+-	spin_unlock_irqrestore(&rq->lock, flags);
++	local_irq_save(flags);
++	now = rq_clock(cpu_rq(cpu));
++	local_irq_restore(flags);
  
--		if (speed >= XFER_UDMA_0 && speed <= XFER_UDMA_7)
-+		if (speed >= XFER_UDMA_0 && speed <= XFER_UDMA_4)
- 			reg |= cs5535_udma_timings[speed - XFER_UDMA_0];
- 		else if (speed >= XFER_MW_DMA_0 && speed <= XFER_MW_DMA_2)
- 			reg |= cs5535_mwdma_timings[speed - XFER_MW_DMA_0];
+ 	return now;
+ }
 _
 
-Patches currently in -mm which might be from jordan.crouse@amd.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-lxfb-geode-add-framebuffer-support-for-the-amd-geode-lx.patch
-geode-mfgpt-support-for-geode-class-machines.patch
+origin.patch
+slub-add-lock-debugging-check.patch
+git-acpi.patch
+git-kvm.patch
+fix-theoretical-ccids_readwrite_lock-race.patch
+pci-hotplug-cpqphp_ctrlc-remove-stale-bkl-use.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 geode-mfgpt-clock-event-device-support.patch
-geode-setup-correct-chipset-access-functions-fix.patch
+i386-remove-unnecessary-code.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
+softlockup-use-cpu_clock-instead-of-sched_clock.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+softlockup-improve-debug-output.patch
+softlockup-watchdog-style-cleanups.patch
+softlockup-add-a-proc-tuning-parameter.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+futex-pass-nr_wake2-to-futex_wake_op.patch
+cfs-mark-print_cfs_stats-static.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+mm-implement-swap-prefetching.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
