@@ -1,123 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:12:49 -0700
-Message-ID: <200707290612.l6T6Cnvq011148@imap1.linux-foundation.org>
+Subject: - m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:12:32 -0700
+Message-ID: <200707290612.l6T6CWsB011133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39386 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59125 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759524AbXG2GXy (ORCPT
+	by vger.kernel.org with ESMTP id S1759531AbXG2GYF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:23:54 -0400
+	Sun, 29 Jul 2007 02:24:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, michal.k.k.piotrowski@gmail.com, yoshfuji@linux-ipv6.org, mm-commits@vger.kernel.org
+To: takata@linux-m32r.org, hitoshiy@linux-m32r.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix ThinkPad T42 poweroff failure by "PM: Introduce pm_power_off_prepare"
+     m32r: Fix ei_tx_timeout() in drivers/net/lib8390.c
 has been removed from the -mm tree.  Its filename was
-     fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare.patch
+     m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix ThinkPad T42 poweroff failure by "PM: Introduce pm_power_off_prepare"
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: m32r: Fix ei_tx_timeout() in drivers/net/lib8390.c
+From: Hirokazu Takata <takata@linux-m32r.org>
 
-Generally, sysdev_shutdown() should be called after the ACPI preparation for
-powering the system off.  To make it happen, we can separate sysdev_shutdown()
-from device_shutdown() and call it directly wherever necessary.
+Change INT0 trigger mode from edge-sense mode to level-sense mode,
+in order to fix the following timeout error:
+  'NETDEV WATCHDOG: eth0: transmit timed out'.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+This patch is required only for the Mappi platform.
+
+Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Hitoshi Yamamoto <hitoshiy@linux-m32r.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/shutdown.c |    2 --
- include/linux/device.h        |    3 +++
- kernel/power/disk.c           |    1 +
- kernel/sys.c                  |    3 +++
- 4 files changed, 7 insertions(+), 2 deletions(-)
+ arch/m32r/kernel/setup_mappi.c |    5 +++--
+ drivers/net/lib8390.c          |    9 ---------
+ 2 files changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN drivers/base/power/shutdown.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare drivers/base/power/shutdown.c
---- a/drivers/base/power/shutdown.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare
-+++ a/drivers/base/power/shutdown.c
-@@ -44,7 +44,5 @@ void device_shutdown(void)
- 			dev->driver->shutdown(dev);
- 		}
- 	}
--
--	sysdev_shutdown();
- }
+diff -puN arch/m32r/kernel/setup_mappi.c~m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c arch/m32r/kernel/setup_mappi.c
+--- a/arch/m32r/kernel/setup_mappi.c~m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c
++++ a/arch/m32r/kernel/setup_mappi.c
+@@ -45,7 +45,8 @@ static void mask_and_ack_mappi(unsigned 
  
-diff -puN include/linux/device.h~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare include/linux/device.h
---- a/include/linux/device.h~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare
-+++ a/include/linux/device.h
-@@ -551,6 +551,9 @@ extern void put_device(struct device * d
- /* drivers/base/power/shutdown.c */
- extern void device_shutdown(void);
- 
-+/* drivers/base/sys.c */
-+extern void sysdev_shutdown(void);
-+
- 
- /* drivers/base/firmware.c */
- extern int __must_check firmware_register(struct kset *);
-diff -puN kernel/power/disk.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare kernel/power/disk.c
---- a/kernel/power/disk.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare
-+++ a/kernel/power/disk.c
-@@ -216,6 +216,7 @@ int hibernation_platform_enter(void)
- 		 * sleep state after all
- 		 */
- 		error = hibernation_ops->prepare();
-+		sysdev_shutdown();
- 		if (!error)
- 			error = hibernation_ops->enter();
- 	} else {
-diff -puN kernel/sys.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare kernel/sys.c
---- a/kernel/sys.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare
-+++ a/kernel/sys.c
-@@ -804,6 +804,7 @@ static void kernel_restart_prepare(char 
- 	blocking_notifier_call_chain(&reboot_notifier_list, SYS_RESTART, cmd);
- 	system_state = SYSTEM_RESTART;
- 	device_shutdown();
-+	sysdev_shutdown();
- }
- 
- /**
-@@ -860,6 +861,7 @@ void kernel_shutdown_prepare(enum system
- void kernel_halt(void)
+ static void end_mappi_irq(unsigned int irq)
  {
- 	kernel_shutdown_prepare(SYSTEM_HALT);
-+	sysdev_shutdown();
- 	printk(KERN_EMERG "System halted.\n");
- 	machine_halt();
+-	enable_mappi_irq(irq);
++	if (!(irq_desc[irq].status & (IRQ_DISABLED | IRQ_INPROGRESS)))
++		enable_mappi_irq(irq);
  }
-@@ -876,6 +878,7 @@ void kernel_power_off(void)
- 	kernel_shutdown_prepare(SYSTEM_POWER_OFF);
- 	if (pm_power_off_prepare)
- 		pm_power_off_prepare();
-+	sysdev_shutdown();
- 	printk(KERN_EMERG "Power down.\n");
- 	machine_power_off();
- }
+ 
+ static unsigned int startup_mappi_irq(unsigned int irq)
+@@ -88,7 +89,7 @@ void __init init_IRQ(void)
+ 	irq_desc[M32R_IRQ_INT0].chip = &mappi_irq_type;
+ 	irq_desc[M32R_IRQ_INT0].action = NULL;
+ 	irq_desc[M32R_IRQ_INT0].depth = 1;
+-	icu_data[M32R_IRQ_INT0].icucr = M32R_ICUCR_IEN|M32R_ICUCR_ISMOD10;
++	icu_data[M32R_IRQ_INT0].icucr = M32R_ICUCR_IEN|M32R_ICUCR_ISMOD11;
+ 	disable_mappi_irq(M32R_IRQ_INT0);
+ #endif /* CONFIG_M32R_NE2000 */
+ 
+diff -puN drivers/net/lib8390.c~m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c drivers/net/lib8390.c
+--- a/drivers/net/lib8390.c~m32r-fix-ei_tx_timeout-in-drivers-net-lib8390c
++++ a/drivers/net/lib8390.c
+@@ -219,15 +219,6 @@ static void ei_tx_timeout(struct net_dev
+ 	int txsr, isr, tickssofar = jiffies - dev->trans_start;
+ 	unsigned long flags;
+ 
+-#if defined(CONFIG_M32R) && defined(CONFIG_SMP)
+-	unsigned long icucr;
+-
+-	local_irq_save(flags);
+-	icucr = inl(M32R_ICU_CR1_PORTL);
+-	icucr |= M32R_ICUCR_ISMOD11;
+-	outl(icucr, M32R_ICU_CR1_PORTL);
+-	local_irq_restore(flags);
+-#endif
+ 	ei_local->stat.tx_errors++;
+ 
+ 	spin_lock_irqsave(&ei_local->page_lock, flags);
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from takata@linux-m32r.org are
 
 origin.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-shrink_slab-handle-bad-shrinkers.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
