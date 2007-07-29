@@ -1,202 +1,286 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-fix-reset-edac_mc-pollmsec.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:12:16 -0700
-Message-ID: <200707290612.l6T6CGgA011112@imap1.linux-foundation.org>
+Subject: - documentation-update-sched-stattxt.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:13:35 -0700
+Message-ID: <200707290613.l6T6DZNU011211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45330 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57317 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758128AbXG2GXo (ORCPT
+	by vger.kernel.org with ESMTP id S1757706AbXG2GXm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:23:44 -0400
+	Sun, 29 Jul 2007 02:23:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: joachim.deguara@amd.com, npiggin@suse.de, ricklind@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: fix reset edac_mc pollmsec
+     Documentation: update sched-stat.txt
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-fix-reset-edac_mc-pollmsec.patch
+     documentation-update-sched-stattxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/edac: fix reset edac_mc pollmsec
-From: Doug Thompson <dougthompson@xmission.com>
+Subject: Documentation: update sched-stat.txt
+From: "Joachim Deguara" <joachim.deguara@amd.com>
 
-This fixes a deadlock that could occur on a 'setup' and 'teardown' sequence of
-the workq for a edac_mc control structure instance.  A similiar fix was
-previously implemented for the edac_device code.
+While learning about schedstats I found that the documentation in the tree
+is old.  I updated it and found some interesting stuff like schedstats
+version 14 is the same as version and version 13 never saw a kernel
+release!  Also there are 6 fields in the current schedstats that are not
+used anymore.  Nick had made them irrelevant in commit
+476d139c218e44e045e4bc6d4cc02b010b343939 but never removed them.
 
-In addition, the edac_mc device code there was missing code to allow the workq
-period valu to be altered via sysfs control.
+Thanks to Rick's perl script who I borrowed some of the updated descriptions
+from.
 
-This patch adds that fix on the code, and allows for the changing of the
-period value as well.
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Joachim Deguara <joachim.deguara@amd.com>
+Acked-by: Nick Piggin <npiggin@suse.de>
+Cc: Rick Lindsley <ricklind@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_mc.c       |   64 +++++++++++++++++++++------------
- drivers/edac/edac_mc_sysfs.c |   19 +++++++++
- drivers/edac/edac_module.h   |    2 +
- 3 files changed, 62 insertions(+), 23 deletions(-)
+ Documentation/sched-stats.txt |  191 ++++++++++++++++----------------
+ 1 files changed, 97 insertions(+), 94 deletions(-)
 
-diff -puN drivers/edac/edac_mc.c~drivers-edac-fix-reset-edac_mc-pollmsec drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~drivers-edac-fix-reset-edac_mc-pollmsec
-+++ a/drivers/edac/edac_mc.c
-@@ -214,6 +214,13 @@ void edac_mc_free(struct mem_ctl_info *m
- }
- EXPORT_SYMBOL_GPL(edac_mc_free);
+diff -puN Documentation/sched-stats.txt~documentation-update-sched-stattxt Documentation/sched-stats.txt
+--- a/Documentation/sched-stats.txt~documentation-update-sched-stattxt
++++ a/Documentation/sched-stats.txt
+@@ -1,10 +1,11 @@
+-Version 10 of schedstats includes support for sched_domains, which
+-hit the mainline kernel in 2.6.7.  Some counters make more sense to be
+-per-runqueue; other to be per-domain.  Note that domains (and their associated
+-information) will only be pertinent and available on machines utilizing
+-CONFIG_SMP.
++Version 14 of schedstats includes support for sched_domains, which hit the
++mainline kernel in 2.6.20 although it is identical to the stats from version
++12 which was in the kernel from 2.6.13-2.6.19 (version 13 never saw a kernel
++release).  Some counters make more sense to be per-runqueue; other to be
++per-domain.  Note that domains (and their associated information) will only
++be pertinent and available on machines utilizing CONFIG_SMP.
  
-+
-+/*
-+ * find_mci_by_dev
-+ *
-+ *	scan list of controllers looking for the one that manages
-+ *	the 'dev' device
-+ */
- static struct mem_ctl_info *find_mci_by_dev(struct device *dev)
- {
- 	struct mem_ctl_info *mci;
-@@ -268,12 +275,6 @@ static void edac_mc_workq_function(struc
- 	if (edac_mc_assert_error_check_and_clear() && (mci->edac_check != NULL))
- 		mci->edac_check(mci);
+-In version 10 of schedstat, there is at least one level of domain
++In version 14 of schedstat, there is at least one level of domain
+ statistics for each cpu listed, and there may well be more than one
+ domain.  Domains have no particular names in this implementation, but
+ the highest numbered one typically arbitrates balancing across all the
+@@ -27,7 +28,7 @@ to write their own scripts, the fields a
  
--	/*
--	 * FIXME: temp place holder for PCI checks,
--	 * goes away when we break out PCI
--	 */
--	edac_pci_do_parity_check();
+ CPU statistics
+ --------------
+-cpu<N> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
++cpu<N> 1 2 3 4 5 6 7 8 9 10 11 12
+ 
+ NOTE: In the sched_yield() statistics, the active queue is considered empty
+     if it has only one process in it, since obviously the process calling
+@@ -39,48 +40,20 @@ First four fields are sched_yield() stat
+      3) # of times just the expired queue was empty
+      4) # of times sched_yield() was called
+ 
+-Next four are schedule() statistics:
+-     5) # of times the active queue had at least one other process on it
+-     6) # of times we switched to the expired queue and reused it
+-     7) # of times schedule() was called
+-     8) # of times schedule() left the processor idle
 -
- 	mutex_unlock(&mem_ctls_mutex);
+-Next four are active_load_balance() statistics:
+-     9) # of times active_load_balance() was called
+-    10) # of times active_load_balance() caused this cpu to gain a task
+-    11) # of times active_load_balance() caused this cpu to lose a task
+-    12) # of times active_load_balance() tried to move a task and failed
+-
+-Next three are try_to_wake_up() statistics:
+-    13) # of times try_to_wake_up() was called
+-    14) # of times try_to_wake_up() successfully moved the awakening task
+-    15) # of times try_to_wake_up() attempted to move the awakening task
+-
+-Next two are wake_up_new_task() statistics:
+-    16) # of times wake_up_new_task() was called
+-    17) # of times wake_up_new_task() successfully moved the new task
++Next three are schedule() statistics:
++     5) # of times we switched to the expired queue and reused it
++     6) # of times schedule() was called
++     7) # of times schedule() left the processor idle
  
- 	/* Reschedule */
-@@ -314,36 +315,55 @@ static void edac_mc_workq_teardown(struc
- {
- 	int status;
+-Next one is a sched_migrate_task() statistic:
+-    18) # of times sched_migrate_task() was called
+-
+-Next one is a sched_balance_exec() statistic:
+-    19) # of times sched_balance_exec() was called
++Next two are try_to_wake_up() statistics:
++     8) # of times try_to_wake_up() was called
++     9) # of times try_to_wake_up() was called to wake up the local cpu
  
--	/* if not running POLL, leave now */
--	if (mci->op_state == OP_RUNNING_POLL) {
--		status = cancel_delayed_work(&mci->work);
--		if (status == 0) {
--			debugf0("%s() not canceled, flush the queue\n",
--				__func__);
-+	status = cancel_delayed_work(&mci->work);
-+	if (status == 0) {
-+		debugf0("%s() not canceled, flush the queue\n",
-+			__func__);
+ Next three are statistics describing scheduling latency:
+-    20) sum of all time spent running by tasks on this processor (in ms)
+-    21) sum of all time spent waiting to run by tasks on this processor (in ms)
+-    22) # of tasks (not necessarily unique) given to the processor
+-
+-The last six are statistics dealing with pull_task():
+-    23) # of times pull_task() moved a task to this cpu when newly idle
+-    24) # of times pull_task() stole a task from this cpu when another cpu
+-	was newly idle
+-    25) # of times pull_task() moved a task to this cpu when idle
+-    26) # of times pull_task() stole a task from this cpu when another cpu
+-	was idle
+-    27) # of times pull_task() moved a task to this cpu when busy
+-    28) # of times pull_task() stole a task from this cpu when another cpu
+-	was busy
++    10) sum of all time spent running by tasks on this processor (in jiffies)
++    11) sum of all time spent waiting to run by tasks on this processor (in
++        jiffies)
++    12) # of timeslices run on this cpu
  
--			/* workq instance might be running, wait for it */
--			flush_workqueue(edac_workqueue);
--		}
-+		/* workq instance might be running, wait for it */
-+		flush_workqueue(edac_workqueue);
- 	}
- }
  
- /*
-- * edac_reset_delay_period
-+ * edac_mc_reset_delay_period(unsigned long value)
-+ *
-+ *	user space has updated our poll period value, need to
-+ *	reset our workq delays
-  */
--static void edac_reset_delay_period(struct mem_ctl_info *mci, unsigned long value)
-+void edac_mc_reset_delay_period(int value)
- {
--	/* cancel the current workq request */
--	edac_mc_workq_teardown(mci);
-+	struct mem_ctl_info *mci;
-+	struct list_head *item;
-+
-+	mutex_lock(&mem_ctls_mutex);
-+
-+	/* scan the list and turn off all workq timers, doing so under lock
-+	 */
-+	list_for_each(item, &mc_devices) {
-+		mci = list_entry(item, struct mem_ctl_info, link);
-+
-+		if (mci->op_state == OP_RUNNING_POLL)
-+			cancel_delayed_work(&mci->work);
-+	}
-+
-+	mutex_unlock(&mem_ctls_mutex);
+ Domain statistics
+@@ -89,65 +62,95 @@ One of these is produced per domain for 
+ CONFIG_SMP is not defined, *no* domains are utilized and these lines
+ will not appear in the output.)
  
--	/* lock the list of devices for the new setup */
-+
-+	/* re-walk the list, and reset the poll delay */
- 	mutex_lock(&mem_ctls_mutex);
+-domain<N> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
++domain<N> <cpumask> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36
  
--	/* restart the workq request, with new delay value */
--	edac_mc_workq_setup(mci, value);
-+	list_for_each(item, &mc_devices) {
-+		mci = list_entry(item, struct mem_ctl_info, link);
-+
-+		edac_mc_workq_setup(mci, (unsigned long) value);
-+	}
+ The first field is a bit mask indicating what cpus this domain operates over.
  
- 	mutex_unlock(&mem_ctls_mutex);
- }
+-The next fifteen are a variety of load_balance() statistics:
+-
+-     1) # of times in this domain load_balance() was called when the cpu
+-	was idle
+-     2) # of times in this domain load_balance() was called when the cpu
+-	was busy
+-     3) # of times in this domain load_balance() was called when the cpu
+-	was just becoming idle
+-     4) # of times in this domain load_balance() tried to move one or more
+-	tasks and failed, when the cpu was idle
+-     5) # of times in this domain load_balance() tried to move one or more
+-	tasks and failed, when the cpu was busy
+-     6) # of times in this domain load_balance() tried to move one or more
+-	tasks and failed, when the cpu was just becoming idle
+-     7) sum of imbalances discovered (if any) with each call to
+-	load_balance() in this domain when the cpu was idle
+-     8) sum of imbalances discovered (if any) with each call to
+-	load_balance() in this domain when the cpu was busy
+-     9) sum of imbalances discovered (if any) with each call to
+-	load_balance() in this domain when the cpu was just becoming idle
+-    10) # of times in this domain load_balance() was called but did not find
+-	a busier queue while the cpu was idle
+-    11) # of times in this domain load_balance() was called but did not find
+-	a busier queue while the cpu was busy
+-    12) # of times in this domain load_balance() was called but did not find
+-	a busier queue while the cpu was just becoming idle
+-    13) # of times in this domain a busier queue was found while the cpu was
+-	idle but no busier group was found
+-    14) # of times in this domain a busier queue was found while the cpu was
+-	busy but no busier group was found
+-    15) # of times in this domain a busier queue was found while the cpu was
+-	just becoming idle but no busier group was found
+-
+-Next two are sched_balance_exec() statistics:
+-    17) # of times in this domain sched_balance_exec() successfully pushed
+-	a task to a new cpu
+-    18) # of times in this domain sched_balance_exec() tried but failed to
+-	push a task to a new cpu
+-
+-Next two are try_to_wake_up() statistics:
+-    19) # of times in this domain try_to_wake_up() tried to move a task based
+-	on affinity and cache warmth
+-    20) # of times in this domain try_to_wake_up() tried to move a task based
+-	on load balancing
++The next 24 are a variety of load_balance() statistics in grouped into types
++of idleness (idle, busy, and newly idle):
  
++     1) # of times in this domain load_balance() was called when the
++        cpu was idle
++     2) # of times in this domain load_balance() checked but found
++        the load did not require balancing when the cpu was idle
++     3) # of times in this domain load_balance() tried to move one or
++        more tasks and failed, when the cpu was idle
++     4) sum of imbalances discovered (if any) with each call to
++        load_balance() in this domain when the cpu was idle
++     5) # of times in this domain pull_task() was called when the cpu
++        was idle
++     6) # of times in this domain pull_task() was called even though
++        the target task was cache-hot when idle
++     7) # of times in this domain load_balance() was called but did
++        not find a busier queue while the cpu was idle
++     8) # of times in this domain a busier queue was found while the
++        cpu was idle but no busier group was found
 +
++     9) # of times in this domain load_balance() was called when the
++        cpu was busy
++    10) # of times in this domain load_balance() checked but found the
++        load did not require balancing when busy
++    11) # of times in this domain load_balance() tried to move one or
++        more tasks and failed, when the cpu was busy
++    12) sum of imbalances discovered (if any) with each call to
++        load_balance() in this domain when the cpu was busy
++    13) # of times in this domain pull_task() was called when busy
++    14) # of times in this domain pull_task() was called even though the
++        target task was cache-hot when busy
++    15) # of times in this domain load_balance() was called but did not
++        find a busier queue while the cpu was busy
++    16) # of times in this domain a busier queue was found while the cpu
++        was busy but no busier group was found
 +
- /* Return 0 on success, 1 on failure.
-  * Before calling this function, caller must
-  * assign a unique value to mci->mc_idx.
-diff -puN drivers/edac/edac_mc_sysfs.c~drivers-edac-fix-reset-edac_mc-pollmsec drivers/edac/edac_mc_sysfs.c
---- a/drivers/edac/edac_mc_sysfs.c~drivers-edac-fix-reset-edac_mc-pollmsec
-+++ a/drivers/edac/edac_mc_sysfs.c
-@@ -122,6 +122,23 @@ static ssize_t memctrl_int_store(void *p
- 	return count;
- }
++    17) # of times in this domain load_balance() was called when the
++        cpu was just becoming idle
++    18) # of times in this domain load_balance() checked but found the
++        load did not require balancing when the cpu was just becoming idle
++    19) # of times in this domain load_balance() tried to move one or more
++        tasks and failed, when the cpu was just becoming idle
++    20) sum of imbalances discovered (if any) with each call to
++        load_balance() in this domain when the cpu was just becoming idle
++    21) # of times in this domain pull_task() was called when newly idle
++    22) # of times in this domain pull_task() was called even though the
++        target task was cache-hot when just becoming idle
++    23) # of times in this domain load_balance() was called but did not
++        find a busier queue while the cpu was just becoming idle
++    24) # of times in this domain a busier queue was found while the cpu
++        was just becoming idle but no busier group was found
++
++   Next three are active_load_balance() statistics:
++    25) # of times active_load_balance() was called
++    26) # of times active_load_balance() tried to move a task and failed
++    27) # of times active_load_balance() successfully moved a task
++
++   Next three are sched_balance_exec() statistics:
++    28) sbe_cnt is not used
++    29) sbe_balanced is not used
++    30) sbe_pushed is not used
++
++   Next three are sched_balance_fork() statistics:
++    31) sbf_cnt is not used
++    32) sbf_balanced is not used
++    33) sbf_pushed is not used
++
++   Next three are try_to_wake_up() statistics:
++    34) # of times in this domain try_to_wake_up() awoke a task that
++        last ran on a different cpu in this domain
++    35) # of times in this domain try_to_wake_up() moved a task to the
++        waking cpu because it was cache-cold on its own cpu anyway
++    36) # of times in this domain try_to_wake_up() started passive balancing
  
-+/*
-+ * mc poll_msec time value
-+ */
-+static ssize_t poll_msec_int_store(void *ptr, const char *buffer, size_t count)
-+{
-+	int *value = (int *)ptr;
-+
-+	if (isdigit(*buffer)) {
-+		*value = simple_strtoul(buffer, NULL, 0);
-+
-+		/* notify edac_mc engine to reset the poll period */
-+		edac_mc_reset_delay_period(*value);
-+	}
-+
-+	return count;
-+}
-+
+ /proc/<pid>/schedstat
+ ----------------
+ schedstats also adds a new /proc/<pid/schedstat file to include some of
+ the same information on a per-process level.  There are three fields in
+-this file correlating to fields 20, 21, and 22 in the CPU fields, but
+-they only apply for that process.
++this file correlating for that process to:
++     1) time spent on the cpu
++     2) time spent waiting on a runqueue
++     3) # of timeslices run on this cpu
  
- /* EDAC sysfs CSROW data structures and methods
-  */
-@@ -704,7 +721,7 @@ MEMCTRL_ATTR(edac_mc_log_ce,
- 	S_IRUGO | S_IWUSR, memctrl_int_show, memctrl_int_store);
- 
- MEMCTRL_ATTR(edac_mc_poll_msec,
--	S_IRUGO | S_IWUSR, memctrl_int_show, memctrl_int_store);
-+	S_IRUGO | S_IWUSR, memctrl_int_show, poll_msec_int_store);
- 
- /* Base Attributes of the memory ECC object */
- static struct memctrl_dev_attribute *memctrl_attr[] = {
-diff -puN drivers/edac/edac_module.h~drivers-edac-fix-reset-edac_mc-pollmsec drivers/edac/edac_module.h
---- a/drivers/edac/edac_module.h~drivers-edac-fix-reset-edac_mc-pollmsec
-+++ a/drivers/edac/edac_module.h
-@@ -52,6 +52,8 @@ extern void edac_device_workq_setup(stru
- extern void edac_device_workq_teardown(struct edac_device_ctl_info *edac_dev);
- extern void edac_device_reset_delay_period(struct edac_device_ctl_info
- 					   *edac_dev, unsigned long value);
-+extern void edac_mc_reset_delay_period(int value);
-+
- extern void *edac_align_ptr(void *ptr, unsigned size);
- 
- /*
+ A program could be easily written to make use of these extra fields to
+ report on how well a particular process or set of processes is faring
+ under the scheduler's policies.  A simple version of such a program is
+ available at
+-    http://eaglet.rain.com/rick/linux/schedstat/v10/latency.c
++    http://eaglet.rain.com/rick/linux/schedstat/v12/latency.c
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from joachim.deguara@amd.com are
 
 origin.patch
+x86_64-family-10h-and-11h-to-k8topology.patch
