@@ -1,79 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-fix-section-mismatch-warnings-in-tce.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:12:25 -0700
-Message-ID: <200707290612.l6T6CP21011124@imap1.linux-foundation.org>
+Subject: - chipsfb-use-correct-pm-state.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:12:07 -0700
+Message-ID: <200707290612.l6T6C7On011103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39828 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43292 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759260AbXG2GXs (ORCPT
+	by vger.kernel.org with ESMTP id S1759039AbXG2GXt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:23:48 -0400
+	Sun, 29 Jul 2007 02:23:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, ak@suse.de, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, adaplas@pol.net, clg@fr.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: fix section mismatch warnings in tce
+     chipsfb: use correct pm state
 has been removed from the -mm tree.  Its filename was
-     x86_64-fix-section-mismatch-warnings-in-tce.patch
+     chipsfb-use-correct-pm-state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: fix section mismatch warnings in tce
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: chipsfb: use correct pm state
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Fix the following two section mismatch warnings:
+chipsfb.c shouldn't use PM_SUSPEND_MEM in there, but PM_EVENT_SUSPEND.
 
-WARNING: vmlinux.o(.text+0x1ce84): Section mismatch: reference to .init.text:free_bootmem (between 'free_tce_table' and 'build_tce_table')
-WARNING: vmlinux.o(.text+0x1d04d): Section mismatch: reference to .init.text:__alloc_bootmem_low (between 'alloc_tce_table' and 'kretprobe_trampoline_holder')
-
-In both cases the functions was used only from __init
-context so mark them __init.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/tce.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/chipsfb.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/tce.c~x86_64-fix-section-mismatch-warnings-in-tce arch/x86_64/kernel/tce.c
---- a/arch/x86_64/kernel/tce.c~x86_64-fix-section-mismatch-warnings-in-tce
-+++ a/arch/x86_64/kernel/tce.c
-@@ -165,7 +165,7 @@ done:
- 	return ret;
- }
+diff -puN drivers/video/chipsfb.c~chipsfb-use-correct-pm-state drivers/video/chipsfb.c
+--- a/drivers/video/chipsfb.c~chipsfb-use-correct-pm-state
++++ a/drivers/video/chipsfb.c
+@@ -24,6 +24,7 @@
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+ #include <linux/fb.h>
++#include <linux/pm.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+ #include <linux/console.h>
+@@ -458,7 +459,7 @@ static int chipsfb_pci_suspend(struct pc
  
--void* alloc_tce_table(void)
-+void * __init alloc_tce_table(void)
- {
- 	unsigned int size;
+ 	if (state.event == pdev->dev.power.power_state.event)
+ 		return 0;
+-	if (state.event != PM_SUSPEND_MEM)
++	if (state.event != PM_EVENT_SUSPEND)
+ 		goto done;
  
-@@ -175,7 +175,7 @@ void* alloc_tce_table(void)
- 	return __alloc_bootmem_low(size, size, 0);
- }
- 
--void free_tce_table(void *tbl)
-+void __init free_tce_table(void *tbl)
- {
- 	unsigned int size;
- 
+ 	acquire_console_sem();
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-x86-64-calgary-fix-section-mismatch-warnings-in-tce.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-pass-g-to-assembler-under-config_debug_info.patch
-mkmakefile-include-arch-on-o=-builds.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-whitelist-references-from-__dbe_table-to-init.patch
-broken-lilo-check-on-make-install.patch
-kconfig-remove-top-level-menu-code-maturity-level-options.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+shrink_slab-handle-bad-shrinkers.patch
