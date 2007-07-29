@@ -1,187 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: - sched2-sched-domain-sysctl.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:13:41 -0700
-Message-ID: <200707290613.l6T6DffU011248@imap1.linux-foundation.org>
+Subject: - mmc-build-fix.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:13:11 -0700
+Message-ID: <200707290613.l6T6DB6s011181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34978 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48355 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756738AbXG2GX2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757436AbXG2GXe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:23:28 -0400
+	Sun, 29 Jul 2007 02:23:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, drzeus@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: sched domain sysctl
+     mmc-build-fix
 has been removed from the -mm tree.  Its filename was
-     sched2-sched-domain-sysctl.patch
+     mmc-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: sched domain sysctl
-From: Nick Piggin <nickpiggin@yahoo.com.au>
+Subject: mmc-build-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/mmc/core/mmc_ops.c: In function 'mmc_lock_unlock':
+drivers/mmc/core/mmc_ops.c:346: error: void value not ignored as it ought to be
 
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |  115 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 115 insertions(+)
+ drivers/mmc/core/mmc_ops.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN kernel/sched.c~sched2-sched-domain-sysctl kernel/sched.c
---- a/kernel/sched.c~sched2-sched-domain-sysctl
-+++ a/kernel/sched.c
-@@ -53,6 +53,7 @@
- #include <linux/percpu.h>
- #include <linux/kthread.h>
- #include <linux/seq_file.h>
-+#include <linux/sysctl.h>
- #include <linux/syscalls.h>
- #include <linux/times.h>
- #include <linux/tsacct_kern.h>
-@@ -5145,6 +5146,118 @@ static void migrate_dead_tasks(unsigned 
- }
- #endif /* CONFIG_HOTPLUG_CPU */
+diff -puN drivers/mmc/core/mmc_ops.c~mmc-build-fix drivers/mmc/core/mmc_ops.c
+--- a/drivers/mmc/core/mmc_ops.c~mmc-build-fix
++++ a/drivers/mmc/core/mmc_ops.c
+@@ -343,9 +343,7 @@ int mmc_lock_unlock(struct mmc_card *car
+ 	mrq.data = &data;
  
-+#if defined(CONFIG_DEBUG_KERNEL) && defined(CONFIG_SYSCTL)
-+static struct ctl_table sd_ctl_dir[] = {
-+	{CTL_UNNUMBERED, "sched_domain", NULL, 0, 0755, NULL, },
-+	{0,},
-+};
-+
-+static struct ctl_table sd_ctl_root[] = {
-+	{CTL_UNNUMBERED, "kernel", NULL, 0, 0755, sd_ctl_dir, },
-+	{0,},
-+};
-+
-+static struct ctl_table *sd_alloc_ctl_entry(int n)
-+{
-+	struct ctl_table *entry =
-+		kmalloc(n * sizeof(struct ctl_table), GFP_KERNEL);
-+	BUG_ON(!entry);
-+	memset(entry, 0, n * sizeof(struct ctl_table));
-+	return entry;
-+}
-+
-+static void set_table_entry(struct ctl_table *entry, int ctl_name,
-+			const char *procname, void *data, int maxlen,
-+			mode_t mode, proc_handler *proc_handler)
-+{
-+	entry->ctl_name = ctl_name;
-+	entry->procname = procname;
-+	entry->data = data;
-+	entry->maxlen = maxlen;
-+	entry->mode = mode;
-+	entry->proc_handler = proc_handler;
-+}
-+
-+static struct ctl_table *
-+sd_alloc_ctl_domain_table(struct sched_domain *sd)
-+{
-+	struct ctl_table *table;
-+	table = sd_alloc_ctl_entry(14);
-+
-+	set_table_entry(&table[0], 1, "min_interval", &sd->min_interval,
-+		sizeof(long), 0644, proc_doulongvec_minmax);
-+	set_table_entry(&table[1], 2, "max_interval", &sd->max_interval,
-+		sizeof(long), 0644, proc_doulongvec_minmax);
-+	set_table_entry(&table[2], 3, "busy_idx", &sd->busy_idx,
-+		sizeof(int), 0644, proc_dointvec_minmax);
-+	set_table_entry(&table[3], 4, "idle_idx", &sd->idle_idx,
-+		sizeof(int), 0644, proc_dointvec_minmax);
-+	set_table_entry(&table[4], 5, "newidle_idx", &sd->newidle_idx,
-+		sizeof(int), 0644, proc_dointvec_minmax);
-+	set_table_entry(&table[5], 6, "wake_idx", &sd->wake_idx,
-+		sizeof(int), 0644, proc_dointvec_minmax);
-+	set_table_entry(&table[6], 7, "forkexec_idx", &sd->forkexec_idx,
-+		sizeof(int), 0644, proc_dointvec_minmax);
-+	set_table_entry(&table[7], 8, "busy_factor", &sd->busy_factor,
-+		sizeof(int), 0644, proc_dointvec_minmax);
-+	set_table_entry(&table[8], 9, "imbalance_pct", &sd->imbalance_pct,
-+		sizeof(int), 0644, proc_dointvec_minmax);
-+	set_table_entry(&table[9], 10, "cache_hot_time", &sd->cache_hot_time,
-+		sizeof(long long), 0644, proc_doulongvec_minmax);
-+	set_table_entry(&table[10], 11, "cache_nice_tries", &sd->cache_nice_tries,
-+		sizeof(int), 0644, proc_dointvec_minmax);
-+	set_table_entry(&table[12], 13, "flags", &sd->flags,
-+		sizeof(int), 0644, proc_dointvec_minmax);
-+	return table;
-+}
-+
-+static ctl_table *sd_alloc_ctl_cpu_table(int cpu)
-+{
-+	struct sched_domain *sd;
-+	int domain_num = 0, i;
-+	struct ctl_table *entry, *table;
-+	char buf[32];
-+	for_each_domain(cpu, sd)
-+		domain_num++;
-+	entry = table = sd_alloc_ctl_entry(domain_num + 1);
-+
-+	i = 0;
-+	for_each_domain(cpu, sd) {
-+		snprintf(buf, 32, "domain%d", i);
-+		entry->ctl_name = i + 1;
-+		entry->procname = kstrdup(buf, GFP_KERNEL);
-+		entry->mode = 0755;
-+		entry->child = sd_alloc_ctl_domain_table(sd);
-+		entry++;
-+		i++;
-+	}
-+	return table;
-+}
-+
-+static struct ctl_table_header *sd_sysctl_header;
-+static void init_sched_domain_sysctl(void)
-+{
-+	int i, cpu_num = num_online_cpus();
-+	char buf[32];
-+	struct ctl_table *entry = sd_alloc_ctl_entry(cpu_num + 1);
-+
-+	sd_ctl_dir[0].child = entry;
-+
-+	for (i = 0; i < cpu_num; i++, entry++) {
-+		snprintf(buf, 32, "cpu%d", i);
-+		entry->ctl_name = i + 1;
-+		entry->procname = kstrdup(buf, GFP_KERNEL);
-+		entry->mode = 0755;
-+		entry->child = sd_alloc_ctl_cpu_table(i);
-+	}
-+	sd_sysctl_header = register_sysctl_table(sd_ctl_root);
-+}
-+#else
-+static void init_sched_domain_sysctl(void)
-+{
-+}
-+#endif
-+
- /*
-  * migration_call - callback that gets triggered when a CPU is added.
-  * Here we can start up the necessary migration thread for the new CPU.
-@@ -6223,6 +6336,8 @@ void __init sched_init_smp(void)
- 	/* XXX: Theoretical race here - CPU may be hotplugged now */
- 	hotcpu_notifier(update_sched_domains, 0);
+ 	sg_init_one(&sg, data_buf, data_size);
+-	err = mmc_wait_for_req(card->host, &mrq);
+-	if (err != MMC_ERR_NONE)
+-		goto out;
++	mmc_wait_for_req(card->host, &mrq);
  
-+	init_sched_domain_sysctl();
-+
- 	/* Move init over to a non-isolated CPU */
- 	if (set_cpus_allowed(current, non_isolated_cpus) < 0)
- 		BUG();
+ 	memset(&cmd, 0, sizeof(struct mmc_command));
+ 
 _
 
-Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-nommu-fix-sysv-ipc-shm.patch
-radixtree-introduce-radix_tree_next_hole.patch
-readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
-deny-partial-write-for-loop-dev-fd.patch
-gfs2-convert-to-new-aops.patch
-hugetlbfs-read-support.patch
+parport_pc-locking-fix.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+libata-store-bus-addresses-versus-mm-for-testing-fix.patch
+libata-store-bus-addresses-versus-mm-for-testing-fix-2.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+ide-bodge-things-around-to-make-arm-work.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-scsi-rc-fixes.patch
+git-block-fix-headers_check.patch
+git-block-whoops.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-watchdog.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
 hugetlbfs-read-support-fix.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
+loop-use-unlocked_ioctl.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
+allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
+ip2main-warning-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+tpm_tis-debug.patch
+w1-build-fix.patch
