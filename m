@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4_ext_put_in_cache-uses-__u32-to-receive-physical.patch added to -mm tree
-Date: Sun, 29 Jul 2007 00:00:04 -0700
-Message-ID: <200707290700.l6T7043g012725@imap1.linux-foundation.org>
+Subject: + fix-integer-overflow-warning-in-i2o_block.patch added to -mm tree
+Date: Sun, 29 Jul 2007 00:04:39 -0700
+Message-ID: <200707290704.l6T74dbj012871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56422 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58506 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759815AbXG2HAb (ORCPT
+	by vger.kernel.org with ESMTP id S1756568AbXG2HFy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 03:00:31 -0400
+	Sun, 29 Jul 2007 03:05:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cmm@us.ibm.com, linux-ext4@vger.kernel.org, stable@kernel.org, yanzheng@21cn.com
+Cc: mroos@linux.ee, mark_salyzyn@adaptec.com
 
 
 The patch titled
-     "ext4_ext_put_in_cache" uses __u32 to receive physical block number
+     fix integer overflow warning in i2o_block
 has been added to the -mm tree.  Its filename is
-     ext4_ext_put_in_cache-uses-__u32-to-receive-physical.patch
+     fix-integer-overflow-warning-in-i2o_block.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: "ext4_ext_put_in_cache" uses __u32 to receive physical block number
-From: Mingming Cao <cmm@us.ibm.com>
+Subject: fix integer overflow warning in i2o_block
+From: Meelis Roos <mroos@linux.ee>
 
-Yan Zheng wrote:
+drivers/message/i2o/i2o_block.c: In function 'i2o_block_transfer':
+drivers/message/i2o/i2o_block.c:837: warning: integer overflow in expression
 
-> I think I found a bug in ext4/extents.c, "ext4_ext_put_in_cache" uses
-> "__u32" to receive physical block number.  "ext4_ext_put_in_cache" is
-> used in "ext4_ext_get_blocks", it sets ext4 inode's extent cache
-> according most recently tree lookup (higher 16 bits of saved physical
-> block number are always zero). when serving a mapping request,
-> "ext4_ext_get_blocks" first check whether the logical block is in
-> inode's extent cache. if the logical block is in the cache and the
-> cached region isn't a gap, "ext4_ext_get_blocks" gets physical block
-> number by using cached region's physical block number and offset in
-> the cached region.  as described above, "ext4_ext_get_blocks" may
-> return wrong result when there are physical block numbers bigger than
-> 0xffffffff.
->
+msg->u.head[1] = cpu_to_le32(I2O_CMD_PRIVATE << 24 | HOST_TID << 12 | tid);
+and I2O_CMD_PRIVATE is defined as 0xFF.  This gets "0xFF0100 | tid" and fits
+into 32-bit unsigned but not into 32-bit signed integer properly.  Target
+value is defined as u32 so the claculation does not fit during computation.
 
-You are right.  Thanks for reporting this!
+Change local variable tid to u32 so the whole expression is of u32 type and
+fits well into u32 result.
 
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
-Cc: Yan Zheng <yanzheng@21cn.com>
-Cc: <stable@kernel.org>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Meelis Roos <mroos@linux.ee>
+Cc: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/extents.c |    2 +-
+ drivers/message/i2o/i2o_block.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/extents.c~ext4_ext_put_in_cache-uses-__u32-to-receive-physical fs/ext4/extents.c
---- a/fs/ext4/extents.c~ext4_ext_put_in_cache-uses-__u32-to-receive-physical
-+++ a/fs/ext4/extents.c
-@@ -1544,7 +1544,7 @@ int ext4_ext_walk_space(struct inode *in
- 
- static void
- ext4_ext_put_in_cache(struct inode *inode, __u32 block,
--			__u32 len, __u32 start, int type)
-+			__u32 len, ext4_fsblk_t start, int type)
+diff -puN drivers/message/i2o/i2o_block.c~fix-integer-overflow-warning-in-i2o_block drivers/message/i2o/i2o_block.c
+--- a/drivers/message/i2o/i2o_block.c~fix-integer-overflow-warning-in-i2o_block
++++ a/drivers/message/i2o/i2o_block.c
+@@ -744,7 +744,7 @@ static int i2o_block_transfer(struct req
  {
- 	struct ext4_ext_cache *cex;
- 	BUG_ON(len == 0);
+ 	struct i2o_block_device *dev = req->rq_disk->private_data;
+ 	struct i2o_controller *c;
+-	int tid = dev->i2o_dev->lct_data.tid;
++	u32 tid = dev->i2o_dev->lct_data.tid;
+ 	struct i2o_message *msg;
+ 	u32 *mptr;
+ 	struct i2o_block_request *ireq = req->special;
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from mroos@linux.ee are
 
-ext4_ext_put_in_cache-uses-__u32-to-receive-physical.patch
-convert-ill-defined-log2-to-ilog2.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
+acpi-cure-run-together-printk-lines.patch
+fix-integer-overflow-warning-in-i2o_block.patch
