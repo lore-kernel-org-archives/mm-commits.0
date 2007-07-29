@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-fix-two-section-mismatch-warnings.patch added to -mm tree
-Date: Sun, 29 Jul 2007 00:36:57 -0700
-Message-ID: <200707290736.l6T7avlb013981@imap1.linux-foundation.org>
+Subject: + reiser4-change-error-code-base.patch added to -mm tree
+Date: Sun, 29 Jul 2007 00:38:58 -0700
+Message-ID: <200707290738.l6T7cwtW014114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48824 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34869 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759824AbXG2HhZ (ORCPT
+	by vger.kernel.org with ESMTP id S1756844AbXG2HjP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 03:37:25 -0400
+	Sun, 29 Jul 2007 03:39:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: edward@namesys.com, vs@namesys.com
 
 
 The patch titled
-     alpha: fix two section mismatch warnings
+     reiser4: change error code base
 has been added to the -mm tree.  Its filename is
-     alpha-fix-two-section-mismatch-warnings.patch
+     reiser4-change-error-code-base.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,54 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: alpha: fix two section mismatch warnings
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: reiser4: change error code base
+From: Edward Shishkin <edward@namesys.com>
 
-Fix the following section mismatch warnings:
+Change REISER4_ERROR_CODE_BASE to 10000 to not overlap real errnos
 
-WARNING: o-alpha/vmlinux.o(.text+0x1a4d4): Section mismatch: reference to .init.text:free_area_init (between 'paging_init' and 'srm_paging_stop')
-WARNING: o-alpha/vmlinux.o(.text+0x1a4dc): Section mismatch: reference to .init.text:free_area_init (between 'paging_init' and 'srm_paging_stop')
-
-One instance of paging_init() was declared __init but not the other one -
-used by defconfig.  Fixed by declaring the second instance ___init too.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Signed-off-by: Edward Shishkin <edward@namesys.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/mm/init.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/reiser4/reiser4.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/mm/init.c~alpha-fix-two-section-mismatch-warnings arch/alpha/mm/init.c
---- a/arch/alpha/mm/init.c~alpha-fix-two-section-mismatch-warnings
-+++ a/arch/alpha/mm/init.c
-@@ -267,8 +267,7 @@ callback_init(void * kernel_end)
- /*
-  * paging_init() sets up the memory map.
-  */
--void
--paging_init(void)
-+void __init paging_init(void)
- {
- 	unsigned long zones_size[MAX_NR_ZONES] = {0, };
- 	unsigned long dma_pfn, high_pfn;
+diff -puN fs/reiser4/reiser4.h~reiser4-change-error-code-base fs/reiser4/reiser4.h
+--- a/fs/reiser4/reiser4.h~reiser4-change-error-code-base
++++ a/fs/reiser4/reiser4.h
+@@ -232,7 +232,7 @@ extern const int REISER4_MAGIC_OFFSET;	/
+ 
+ /** Reiser4 specific error codes **/
+ 
+-#define REISER4_ERROR_CODE_BASE 500
++#define REISER4_ERROR_CODE_BASE 10000
+ 
+ /* Neighbor is not available (side neighbor or parent) */
+ #define E_NO_NEIGHBOR  (REISER4_ERROR_CODE_BASE)
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from edward@namesys.com are
 
-origin.patch
-x86-64-calgary-fix-section-mismatch-warnings-in-tce.patch
-alpha-fix-two-section-mismatch-warnings.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-pass-g-to-assembler-under-config_debug_info.patch
-mkmakefile-include-arch-on-o=-builds.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-x86-add-cpu-codenames-for-kconfigcpu.patch
-change-order-in-kconfigcpu-i386.patch
-whitelist-references-from-__dbe_table-to-init.patch
-broken-lilo-check-on-make-install.patch
-kconfig-remove-top-level-menu-code-maturity-level-options.patch
+lzo-add-some-missing-casts.patch
+reiser4.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+reiser4-fix-extent2tail.patch
+reiser4-fix-read_tail.patch
+reiser4-fix-unix-file-readpages-filler.patch
+reiser4-fix-for-new-aops-patches.patch
+git-block-vs-reiser4.patch
+reiser4-cryptcompress-misc-fixups.patch
+reiser4-change-error-code-base.patch
