@@ -1,169 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:13:17 -0700
-Message-ID: <200707290613.l6T6DHEQ011184@imap1.linux-foundation.org>
+Subject: - blktrace-use-cpu_clock-instead-of-sched_clock.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:13:28 -0700
+Message-ID: <200707290613.l6T6DSWu011202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51922 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758396AbXG2GXr (ORCPT
+	by vger.kernel.org with ESMTP id S1758320AbXG2GXt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:23:47 -0400
+	Sun, 29 Jul 2007 02:23:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, andmike@us.ibm.com, mog.johnny@gmx.net, protasnb@gmail.com, mm-commits@vger.kernel.org
+To: mingo@elte.hu, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: blacklist the easyRAID F8 IDE2SCSI adaptor
+     blktrace: use cpu_clock() instead of sched_clock()
 has been removed from the -mm tree.  Its filename was
-     scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor.patch
+     blktrace-use-cpu_clock-instead-of-sched_clock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: scsi: blacklist the easyRAID F8 IDE2SCSI adaptor
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: blktrace: use cpu_clock() instead of sched_clock()
+From: Ingo Molnar <mingo@elte.hu>
 
-According to http://bugzilla.kernel.org/show_bug.cgi?id=5953, this patch fixes
-easyRAID domain validation.
+use cpu_clock() instead of sched_clock(). (the latter is not a proper
+clock-source)
 
-Cc: Mike Anderson <andmike@us.ibm.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Natalie Protasevich <protasnb@gmail.com>
-Cc: Hans-Christian Armingeon <mog.johnny@gmx.net>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_devinfo.c |    3 +++
- 1 files changed, 3 insertions(+)
+ block/blktrace.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/scsi/scsi_devinfo.c~scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor drivers/scsi/scsi_devinfo.c
---- a/drivers/scsi/scsi_devinfo.c~scsi-blacklist-the-easyraid-f8-ide2scsi-adaptor
-+++ a/drivers/scsi/scsi_devinfo.c
-@@ -154,6 +154,9 @@ static struct {
- 	{"EMC",  "Invista", "*", BLIST_SPARSELUN | BLIST_LARGELUN},
- 	{"EMC", "SYMMETRIX", NULL, BLIST_SPARSELUN | BLIST_LARGELUN | BLIST_FORCELUN},
- 	{"EMULEX", "MD21/S2     ESDI", NULL, BLIST_SINGLELUN},
-+	{"easyRAID", "16P", NULL, BLIST_NOREPORTLUN},
-+	{"easyRAID", "X6P", NULL, BLIST_NOREPORTLUN},
-+	{"easyRAID", "F8", NULL, BLIST_NOREPORTLUN},
- 	{"FSC", "CentricStor", "*", BLIST_SPARSELUN | BLIST_LARGELUN},
- 	{"Generic", "USB SD Reader", "1.00", BLIST_FORCELUN | BLIST_INQUIRY_36},
- 	{"Generic", "USB Storage-SMC", "0180", BLIST_FORCELUN | BLIST_INQUIRY_36},
+diff -puN block/blktrace.c~blktrace-use-cpu_clock-instead-of-sched_clock block/blktrace.c
+--- a/block/blktrace.c~blktrace-use-cpu_clock-instead-of-sched_clock
++++ a/block/blktrace.c
+@@ -41,7 +41,7 @@ static void trace_note(struct blk_trace 
+ 		const int cpu = smp_processor_id();
+ 
+ 		t->magic = BLK_IO_TRACE_MAGIC | BLK_IO_TRACE_VERSION;
+-		t->time = sched_clock() - per_cpu(blk_trace_cpu_offset, cpu);
++		t->time = cpu_clock(cpu) - per_cpu(blk_trace_cpu_offset, cpu);
+ 		t->device = bt->dev;
+ 		t->action = action;
+ 		t->pid = pid;
+@@ -159,7 +159,7 @@ void __blk_add_trace(struct blk_trace *b
+ 
+ 		t->magic = BLK_IO_TRACE_MAGIC | BLK_IO_TRACE_VERSION;
+ 		t->sequence = ++(*sequence);
+-		t->time = sched_clock() - per_cpu(blk_trace_cpu_offset, cpu);
++		t->time = cpu_clock(cpu) - per_cpu(blk_trace_cpu_offset, cpu);
+ 		t->sector = sector;
+ 		t->bytes = bytes;
+ 		t->action = what;
+@@ -488,17 +488,17 @@ void blk_trace_shutdown(struct request_q
+ }
+ 
+ /*
+- * Average offset over two calls to sched_clock() with a gettimeofday()
++ * Average offset over two calls to cpu_clock() with a gettimeofday()
+  * in the middle
+  */
+-static void blk_check_time(unsigned long long *t)
++static void blk_check_time(unsigned long long *t, int this_cpu)
+ {
+ 	unsigned long long a, b;
+ 	struct timeval tv;
+ 
+-	a = sched_clock();
++	a = cpu_clock(this_cpu);
+ 	do_gettimeofday(&tv);
+-	b = sched_clock();
++	b = cpu_clock(this_cpu);
+ 
+ 	*t = tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+ 	*t -= (a + b) / 2;
+@@ -510,16 +510,16 @@ static void blk_check_time(unsigned long
+ static void blk_trace_check_cpu_time(void *data)
+ {
+ 	unsigned long long *t;
+-	int cpu = get_cpu();
++	int this_cpu = get_cpu();
+ 
+-	t = &per_cpu(blk_trace_cpu_offset, cpu);
++	t = &per_cpu(blk_trace_cpu_offset, this_cpu);
+ 
+ 	/*
+ 	 * Just call it twice, hopefully the second call will be cache hot
+ 	 * and a little more precise
+ 	 */
+-	blk_check_time(t);
+-	blk_check_time(t);
++	blk_check_time(t, this_cpu);
++	blk_check_time(t, this_cpu);
+ 
+ 	put_cpu();
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-parport_pc-locking-fix.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-kdebugh-forward-declare-struct-struct-notifier_block.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
+slub-add-lock-debugging-check.patch
 git-acpi.patch
-git-acpi-mark_tsc_unstable-build-fix.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
 git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-libata-store-bus-addresses-versus-mm-for-testing-fix.patch
-libata-store-bus-addresses-versus-mm-for-testing-fix-2.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-ide-bodge-things-around-to-make-arm-work.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-scsi-rc-fixes.patch
-git-block-fix-headers_check.patch
-git-block-whoops.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-watchdog.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
+fix-theoretical-ccids_readwrite_lock-race.patch
+pci-hotplug-cpqphp_ctrlc-remove-stale-bkl-use.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
-git-kgdb-fixup.patch
-git-kgdb-arm-fix.patch
-git-kgdb-mips-fix.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
+geode-mfgpt-clock-event-device-support.patch
+i386-remove-unnecessary-code.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
+softlockup-use-cpu_clock-instead-of-sched_clock.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+softlockup-improve-debug-output.patch
+softlockup-watchdog-style-cleanups.patch
+softlockup-add-a-proc-tuning-parameter.patch
 softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-loop-use-unlocked_ioctl.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-fix.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix-2-sparc64-fix.patch
-ip2main-warning-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-tpm_tis-debug.patch
-w1-build-fix.patch
+futex-pass-nr_wake2-to-futex_wake_op.patch
+cfs-mark-print_cfs_stats-static.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+mm-implement-swap-prefetching.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
