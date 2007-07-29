@@ -1,103 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - reorder-rtc-makefile.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:11:55 -0700
-Message-ID: <200707290611.l6T6Btnx011016@imap1.linux-foundation.org>
+Subject: - char-cyclades-select-fw_loader.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:12:27 -0700
+Message-ID: <200707290612.l6T6CRBf011127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58161 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38909 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758038AbXG2GXm (ORCPT
+	by vger.kernel.org with ESMTP id S1757618AbXG2GXl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:23:42 -0400
+	Sun, 29 Jul 2007 02:23:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alessandro.zummo@towertech.it, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, toralf.foerster@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Reorder RTC Makefile
+     Char: cyclades, select FW_LOADER
 has been removed from the -mm tree.  Its filename was
-     reorder-rtc-makefile.patch
+     char-cyclades-select-fw_loader.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Reorder RTC Makefile
-From: Alessandro Zummo <alessandro.zummo@towertech.it>
+Subject: Char: cyclades, select FW_LOADER
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Alphabetic reordering of the drivers in the rtc subsys makefile.
+Fix link errors below by selecting FW_LOADER
+  LD      .tmp_vmlinux1
+drivers/built-in.o: In function `cyz_load_fw':
+drivers/char/cyclades.c:4908: undefined reference to `request_firmware'
+drivers/char/cyclades.c:4979: undefined reference to `release_firmware'
 
-(akpm: merge this asap!  Makefiles are the source of many patch conflicts..)
-
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <toralf.foerster@gmx.de>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Makefile |   42 +++++++++++++++++++++--------------------
- 1 file changed, 22 insertions(+), 20 deletions(-)
+ drivers/char/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/Makefile~reorder-rtc-makefile drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~reorder-rtc-makefile
-+++ a/drivers/rtc/Makefile
-@@ -15,34 +15,36 @@ rtc-core-$(CONFIG_RTC_INTF_DEV)	+= rtc-d
- rtc-core-$(CONFIG_RTC_INTF_PROC) += rtc-proc.o
- rtc-core-$(CONFIG_RTC_INTF_SYSFS) += rtc-sysfs.o
- 
-+# Keep the list ordered.
-+
-+obj-$(CONFIG_RTC_DRV_AT32AP700X)+= rtc-at32ap700x.o
-+obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-at91rm9200.o
-+obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
- obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
--obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
--obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
--obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
--obj-$(CONFIG_RTC_DRV_AT32AP700X)	+= rtc-at32ap700x.o
-+obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
- obj-$(CONFIG_RTC_DRV_DS1307)	+= rtc-ds1307.o
-+obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
- obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
- obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
-+obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
-+obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
-+obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
-+obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
-+obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
-+obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
-+obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
- obj-$(CONFIG_RTC_DRV_OMAP)	+= rtc-omap.o
- obj-$(CONFIG_RTC_DRV_PCF8563)	+= rtc-pcf8563.o
- obj-$(CONFIG_RTC_DRV_PCF8583)	+= rtc-pcf8583.o
-+obj-$(CONFIG_RTC_DRV_PL031)	+= rtc-pl031.o
-+obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
-+obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5c348.o
- obj-$(CONFIG_RTC_DRV_RS5C372)	+= rtc-rs5c372.o
- obj-$(CONFIG_RTC_DRV_S3C)	+= rtc-s3c.o
--obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5c348.o
--obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
--obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
--obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
--obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
--obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
--obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
- obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
--obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
--obj-$(CONFIG_RTC_DRV_PL031)	+= rtc-pl031.o
--obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
--obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
--obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
--obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-at91rm9200.o
- obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
--obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
--obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
--obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
-+obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
-+obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
-+obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
-+obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
-+obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
+diff -puN drivers/char/Kconfig~char-cyclades-select-fw_loader drivers/char/Kconfig
+--- a/drivers/char/Kconfig~char-cyclades-select-fw_loader
++++ a/drivers/char/Kconfig
+@@ -130,6 +130,7 @@ config ROCKETPORT
+ config CYCLADES
+ 	tristate "Cyclades async mux support"
+ 	depends on SERIAL_NONSTANDARD && (PCI || ISA)
++	select FW_LOADER
+ 	---help---
+ 	  This driver supports Cyclades Z and Y multiserial boards.
+ 	  You would need something like this to connect more than two modems to
 _
 
-Patches currently in -mm which might be from alessandro.zummo@towertech.it are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
+char-moxa-fix-and-optimise-empty-timer.patch
+shrink_slab-handle-bad-shrinkers.patch
