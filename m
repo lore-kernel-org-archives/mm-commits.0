@@ -1,73 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - bsg-fix-build-for-config_block=n.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:13:02 -0700
-Message-ID: <200707290613.l6T6D2WE011169@imap1.linux-foundation.org>
+Subject: - agp-document-boot-options.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:13:07 -0700
+Message-ID: <200707290613.l6T6D7mk011175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37472 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41218 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757570AbXG2GXl (ORCPT
+	by vger.kernel.org with ESMTP id S1757410AbXG2GXl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 29 Jul 2007 02:23:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: cebbert@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bsg: fix build for CONFIG_BLOCK=n
+     AGP: document boot options
 has been removed from the -mm tree.  Its filename was
-     bsg-fix-build-for-config_block=n.patch
+     agp-document-boot-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: bsg: fix build for CONFIG_BLOCK=n
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: AGP: document boot options
+From: Chuck Ebbert <cebbert@redhat.com>
 
-BLK_DEV_BSG was added outside of the if BLOCK check, which allows it to be
-enabled when CONFIG_BLOCK=n.  This leads to many screenlengths of errors,
-starting with a parse error on the request_queue_t definition.  Obviously
-this wasn't intended for CONFIG_BLOCK=n usage, so just move the option back
-in to the block.
+Add documentation for AGP boot options.
 
-Caught with a randconfig on sh.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/kernel-parameters.txt |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN block/Kconfig~bsg-fix-build-for-config_block=n block/Kconfig
---- a/block/Kconfig~bsg-fix-build-for-config_block=n
-+++ a/block/Kconfig
-@@ -49,8 +49,6 @@ config LSF
+diff -puN Documentation/kernel-parameters.txt~agp-document-boot-options Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~agp-document-boot-options
++++ a/Documentation/kernel-parameters.txt
+@@ -30,6 +30,7 @@ the beginning of each description states
+ parameter is applicable:
  
- 	  If unsure, say Y.
+ 	ACPI	ACPI support is enabled.
++	AGP	AGP (Accelerated Graphics Port) is enabled.
+ 	ALSA	ALSA sound support is enabled.
+ 	APIC	APIC support is enabled.
+ 	APM	Advanced Power Management support is enabled.
+@@ -227,6 +228,12 @@ and is between 256 and 4096 characters. 
+ 			to assume that this machine's pmtimer latches its value
+ 			and always returns good values.
  
--endif # BLOCK
--
- config BLK_DEV_BSG
- 	bool "Block layer SG support v4 (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-@@ -64,4 +62,6 @@ config BLK_DEV_BSG
- 	protocols (e.g. Task Management Functions and SMP in Serial
- 	Attached SCSI).
- 
-+endif # BLOCK
++	agp=		[AGP]
++			{ off | try_unsupported }
++			off: disable AGP support
++			try_unsupported: try to drive unsupported chipsets
++				(may crash computer or cause data corruption)
 +
- source block/Kconfig.iosched
+ 	enable_timer_pin_1 [i386,x86-64]
+ 			Enable PIN 1 of APIC timer
+ 			Can be useful to work around chipset bugs
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from cebbert@redhat.com are
 
 origin.patch
-git-sh.patch
-git-scsi-rc-fixes.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-serial-sh-sci-fix-build-failure-from-kgdb-fallout.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-clean-up-duplicate-includes-in-mm.patch
