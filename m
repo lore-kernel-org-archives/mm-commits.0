@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sched-fix-kernel-doc-warnings.patch added to -mm tree
-Date: Sun, 29 Jul 2007 00:06:20 -0700
-Message-ID: <200707290706.l6T76KO2012895@imap1.linux-foundation.org>
+Subject: + numa-generic-management-of-nodemasks-for-various-purposes.patch added to -mm tree
+Date: Sun, 29 Jul 2007 00:15:55 -0700
+Message-ID: <200707290715.l6T7FtN8013215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50369 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40906 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759887AbXG2HHh (ORCPT
+	by vger.kernel.org with ESMTP id S1758030AbXG2HQH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 03:07:37 -0400
+	Sun, 29 Jul 2007 03:16:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mingo@elte.hu
+Cc: lee.schermerhorn@hp.com, bob.picco@hp.com, clameter@sgi.com
 
 
 The patch titled
-     sched: fix kernel-doc warnings
+     NUMA: Generic management of nodemasks for various purposes
 has been added to the -mm tree.  Its filename is
-     sched-fix-kernel-doc-warnings.patch
+     numa-generic-management-of-nodemasks-for-various-purposes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,184 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sched: fix kernel-doc warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: NUMA: Generic management of nodemasks for various purposes
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Fix kernel-doc warnings in sched.c:
+Preparation for memoryless node patches.
 
-Warning(linux-2623-rc1g4//kernel/sched.c:1685): No description found for parameter 'notifier'
-Warning(linux-2623-rc1g4//kernel/sched.c:1696): No description found for parameter 'notifier'
-Warning(linux-2623-rc1g4//kernel/sched.c:1750): No description found for parameter 'prev'
+Provide a generic way to keep nodemasks describing various characteristics of
+NUMA nodes.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Remove the node_online_map and the node_possible map and realize the whole
+thing using two nodes stats: N_POSSIBLE and N_ONLINE.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Tested-by:  Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by:  Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Bob Picco <bob.picco@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/nodemask.h |   87 ++++++++++++++++++++++++++++++-------
+ mm/page_alloc.c          |   13 ++---
+ 2 files changed, 78 insertions(+), 22 deletions(-)
 
-diff -puN kernel/sched.c~sched-fix-kernel-doc-warnings kernel/sched.c
---- a/kernel/sched.c~sched-fix-kernel-doc-warnings
-+++ a/kernel/sched.c
-@@ -1678,8 +1678,8 @@ void fastcall wake_up_new_task(struct ta
- #ifdef CONFIG_PREEMPT_NOTIFIERS
+diff -puN include/linux/nodemask.h~numa-generic-management-of-nodemasks-for-various-purposes include/linux/nodemask.h
+--- a/include/linux/nodemask.h~numa-generic-management-of-nodemasks-for-various-purposes
++++ a/include/linux/nodemask.h
+@@ -338,31 +338,81 @@ static inline void __nodes_remap(nodemas
+ #endif /* MAX_NUMNODES */
  
- /**
-- * preempt_notifier_register - tell me when current is being being preempted
-- *                         and rescheduled
-+ * preempt_notifier_register - tell me when current is being being preempted & rescheduled
-+ * @notifier: notifier struct to register
+ /*
++ * Bitmasks that are kept for all the nodes.
++ */
++enum node_states {
++	N_POSSIBLE,	/* The node could become online at some point */
++	N_ONLINE,	/* The node is online */
++	NR_NODE_STATES
++};
++
++/*
+  * The following particular system nodemasks and operations
+  * on them manage all possible and online nodes.
   */
- void preempt_notifier_register(struct preempt_notifier *notifier)
- {
-@@ -1689,6 +1689,7 @@ EXPORT_SYMBOL_GPL(preempt_notifier_regis
  
- /**
-  * preempt_notifier_unregister - no longer interested in preemption notifications
-+ * @notifier: notifier struct to unregister
-  *
-  * This is safe to call from within a preemption notifier.
+-extern nodemask_t node_online_map;
+-extern nodemask_t node_possible_map;
++extern nodemask_t node_states[NR_NODE_STATES];
+ 
+ #if MAX_NUMNODES > 1
+-#define num_online_nodes()	nodes_weight(node_online_map)
+-#define num_possible_nodes()	nodes_weight(node_possible_map)
+-#define node_online(node)	node_isset((node), node_online_map)
+-#define node_possible(node)	node_isset((node), node_possible_map)
+-#define first_online_node	first_node(node_online_map)
+-#define next_online_node(nid)	next_node((nid), node_online_map)
++static inline int node_state(int node, enum node_states state)
++{
++	return node_isset(node, node_states[state]);
++}
++
++static inline void node_set_state(int node, enum node_states state)
++{
++	__node_set(node, &node_states[state]);
++}
++
++static inline void node_clear_state(int node, enum node_states state)
++{
++	__node_clear(node, &node_states[state]);
++}
++
++static inline int num_node_state(enum node_states state)
++{
++	return nodes_weight(node_states[state]);
++}
++
++#define for_each_node_state(__node, __state) \
++	for_each_node_mask((__node), node_states[__state])
++
++#define first_online_node	first_node(node_states[N_ONLINE])
++#define next_online_node(nid)	next_node((nid), node_states[N_ONLINE])
++
+ extern int nr_node_ids;
+ #else
+-#define num_online_nodes()	1
+-#define num_possible_nodes()	1
+-#define node_online(node)	((node) == 0)
+-#define node_possible(node)	((node) == 0)
++
++static inline int node_state(int node, enum node_states state)
++{
++	return node == 0;
++}
++
++static inline void node_set_state(int node, enum node_states state)
++{
++}
++
++static inline void node_clear_state(int node, enum node_states state)
++{
++}
++
++static inline int num_node_state(enum node_states state)
++{
++	return 1;
++}
++
++#define for_each_node_state(node, __state) \
++	for ( (node) = 0; (node) != 0; (node) = 1)
++
+ #define first_online_node	0
+ #define next_online_node(nid)	(MAX_NUMNODES)
+ #define nr_node_ids		1
++
+ #endif
+ 
++#define node_online_map 	node_states[N_ONLINE]
++#define node_possible_map 	node_states[N_POSSIBLE]
++
+ #define any_online_node(mask)			\
+ ({						\
+ 	int node;				\
+@@ -372,10 +422,15 @@ extern int nr_node_ids;
+ 	node;					\
+ })
+ 
+-#define node_set_online(node)	   set_bit((node), node_online_map.bits)
+-#define node_set_offline(node)	   clear_bit((node), node_online_map.bits)
++#define num_online_nodes()	num_node_state(N_ONLINE)
++#define num_possible_nodes()	num_node_state(N_POSSIBLE)
++#define node_online(node)	node_state((node), N_ONLINE)
++#define node_possible(node)	node_state((node), N_POSSIBLE)
++
++#define node_set_online(node)	   node_set_state((node), N_ONLINE)
++#define node_set_offline(node)	   node_clear_state((node), N_ONLINE)
+ 
+-#define for_each_node(node)	   for_each_node_mask((node), node_possible_map)
+-#define for_each_online_node(node) for_each_node_mask((node), node_online_map)
++#define for_each_node(node)	   for_each_node_state(node, N_POSSIBLE)
++#define for_each_online_node(node) for_each_node_state(node, N_ONLINE)
+ 
+ #endif /* __LINUX_NODEMASK_H */
+diff -puN mm/page_alloc.c~numa-generic-management-of-nodemasks-for-various-purposes mm/page_alloc.c
+--- a/mm/page_alloc.c~numa-generic-management-of-nodemasks-for-various-purposes
++++ a/mm/page_alloc.c
+@@ -48,13 +48,14 @@
+ #include "internal.h"
+ 
+ /*
+- * MCD - HACK: Find somewhere to initialize this EARLY, or make this
+- * initializer cleaner
++ * Array of node states.
   */
-@@ -1735,6 +1736,7 @@ fire_sched_out_preempt_notifiers(struct 
- /**
-  * prepare_task_switch - prepare to switch tasks
-  * @rq: the runqueue preparing to switch
-+ * @prev: the current task that is being switched out
-  * @next: the task we are going to switch to.
-  *
-  * This is called with the rq lock held and interrupts off. It must
+-nodemask_t node_online_map __read_mostly = { { [0] = 1UL } };
+-EXPORT_SYMBOL(node_online_map);
+-nodemask_t node_possible_map __read_mostly = NODE_MASK_ALL;
+-EXPORT_SYMBOL(node_possible_map);
++nodemask_t node_states[NR_NODE_STATES] __read_mostly = {
++	[N_POSSIBLE] = NODE_MASK_ALL,
++	[N_ONLINE] = { { [0] = 1UL } }
++};
++EXPORT_SYMBOL(node_states);
++
+ unsigned long totalram_pages __read_mostly;
+ unsigned long totalreserve_pages __read_mostly;
+ long nr_swap_pages;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
-origin.patch
-update-dontdiff-file.patch
-kernel-doc-fixes-for-pci-and-drivers-base.patch
-x86-64-calgary-fix-section-mismatch-warnings-in-tce.patch
-various-doc-kernel-parameters-fixes.patch
-pnp-fix-kernel-doc-warnings.patch
-sched-fix-kernel-doc-warnings.patch
-git-acpi.patch
-git-mtd.patch
-git-net.patch
-aha152x-in-debug-mode.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-i2ch-kernel-doc-additions.patch
-irqh-fix-kernel-doc.patch
-docbook-bad-file-references.patch
-kthread-silence-bogus-section-mismatch-warning.patch
-profile-likely-unlikely-macros.patch
+numa-generic-management-of-nodemasks-for-various-purposes.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+memoryless-nodes-fix-interleave-behavior.patch
+oom-use-the-n_memory-map-instead-of-constructing-one-on-the-fly.patch
+memoryless-nodes-no-need-for-kswapd.patch
+memoryless-node-slab-support.patch
+memoryless-nodes-slub-support.patch
+uncached-allocator-handle-memoryless-nodes.patch
+memoryless-node-allow-profiling-data-to-fall-back-to-other-nodes.patch
+memoryless-nodes-update-memory-policy-and-page-migration.patch
+add-n_cpu-node-state.patch
+memoryless-nodes-fix-gfp_thisnode-behavior.patch
+memoryless-nodes-use-node_memory_map-for-cpusets.patch
+memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
