@@ -1,69 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-cleanup-tscc-merge-artifact.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:12:35 -0700
-Message-ID: <200707290612.l6T6CZEF011136@imap1.linux-foundation.org>
+Subject: - sched-add-above-background-load-function.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:13:43 -0700
+Message-ID: <200707290613.l6T6Dhvl011251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41929 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44126 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759393AbXG2GYL (ORCPT
+	by vger.kernel.org with ESMTP id S1759555AbXG2GYW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:24:11 -0400
+	Sun, 29 Jul 2007 02:24:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, mm-commits@vger.kernel.org
+To: kernel@kolivas.org, mingo@elte.hu, pwil3058@bigpond.net.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: cleanup tsc.c merge artifact
+     sched: add above background load function
 has been removed from the -mm tree.  Its filename was
-     x86_64-cleanup-tscc-merge-artifact.patch
+     sched-add-above-background-load-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: cleanup tsc.c merge artifact
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: sched: add above background load function
+From: Con Kolivas <kernel@kolivas.org>
 
-tsc_unstable is declared twice.
+Add an above_background_load() function which can be used by other
+subsystems to detect if there is anything besides niced tasks running. 
+Place it in sched.h to allow it to be compiled out if not used.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Con Kolivas <kernel@kolivas.org>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Williams <pwil3058@bigpond.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/tsc.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/sched.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN arch/x86_64/kernel/tsc.c~x86_64-cleanup-tscc-merge-artifact arch/x86_64/kernel/tsc.c
---- a/arch/x86_64/kernel/tsc.c~x86_64-cleanup-tscc-merge-artifact
-+++ a/arch/x86_64/kernel/tsc.c
-@@ -118,8 +118,6 @@ core_initcall(cpufreq_tsc);
+diff -puN include/linux/sched.h~sched-add-above-background-load-function include/linux/sched.h
+--- a/include/linux/sched.h~sched-add-above-background-load-function
++++ a/include/linux/sched.h
+@@ -784,6 +784,22 @@ struct sched_domain {
  
- #endif
+ #endif	/* CONFIG_SMP */
  
--static int tsc_unstable = 0;
--
- /*
-  * Make an educated guess if the TSC is trustworthy and synchronized
-  * over all CPUs.
++/*
++ * A runqueue laden with a single nice 0 task scores a weighted_cpuload of
++ * SCHED_LOAD_SCALE. This function returns 1 if any cpu is laden with a
++ * task of nice 0 or enough lower priority tasks to bring up the
++ * weighted_cpuload
++ */
++static inline int above_background_load(void)
++{
++	unsigned long cpu;
++
++	for_each_online_cpu(cpu) {
++		if (weighted_cpuload(cpu) >= SCHED_LOAD_SCALE)
++			return 1;
++	}
++	return 0;
++}
+ 
+ struct io_context;			/* See blkdev.h */
+ struct cpuset;
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from kernel@kolivas.org are
 
 origin.patch
-git-acpi.patch
-acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-geode-mfgpt-clock-event-device-support.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+mm-implement-swap-prefetching.patch
