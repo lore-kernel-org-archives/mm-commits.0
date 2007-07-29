@@ -1,73 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - memory-unplug-v7-isolate_lru_page-fix.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:11:53 -0700
-Message-ID: <200707290611.l6T6Brhn011013@imap1.linux-foundation.org>
+Subject: - make-timerfd-return-a-u64-and-fix-the-__put_user.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:11:48 -0700
+Message-ID: <200707290611.l6T6BmPe011007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47693 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39116 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757598AbXG2GMG (ORCPT
+	by vger.kernel.org with ESMTP id S1757307AbXG2GMH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:12:06 -0400
+	Sun, 29 Jul 2007 02:12:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, davi@haxent.com.br, mtk-manpages@gmx.net, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory unplug: isolate_lru_page fix
+     make timerfd return a u64 and fix the __put_user
 has been removed from the -mm tree.  Its filename was
-     memory-unplug-v7-isolate_lru_page-fix.patch
+     make-timerfd-return-a-u64-and-fix-the-__put_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: memory unplug: isolate_lru_page fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: make timerfd return a u64 and fix the __put_user
+From: Davide Libenzi <davidel@xmailserver.org>
 
-release_pages() in mm/swap.c changes page_count() to be 0 without removing
-PageLRU flag...
+Davi fixed a missing cast in the __put_user(), that was making timerfd
+return a single byte instead of the full value.
 
-This means isolate_lru_page() can see a page, PageLRU() &&
-page_count(page)==0..  This is BUG.  (get_page() will be called against
-count=0 page.)
+Talking with Michael about the timerfd man page, we think it'd be better to
+use a u64 for the returned value, to align it with the eventfd
+implementation.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+This is an ABI change.  The timerfd code is new in 2.6.22 and if we merge this
+into 2.6.23 then we should also merge it into 2.6.22.x.  That will leave a few
+early 2.6.22 kernels out in the wild which might misbehave when a future
+timerfd-enabled glibc is run on them.
+
+mtk says: The difference would be that read() will only return 4 bytes, while
+the application will expect 8.  If the application is checking the size of
+returned value, as it should, then it will be able to detect the problem (it
+could even be sophisticated enough to know that if this is a 4-byte return,
+then it is running on an old 2.6.22 kernel).  If the application is not
+checking the return from read(), then its 8-byte buffer will not be filled --
+the contents of the last 4 bytes will be undefined, so the u64 value as a
+whole will be junk.
+
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Cc: Davi Arnaut <davi@haxent.com.br>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/timerfd.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/migrate.c~memory-unplug-v7-isolate_lru_page-fix mm/migrate.c
---- a/mm/migrate.c~memory-unplug-v7-isolate_lru_page-fix
-+++ a/mm/migrate.c
-@@ -49,9 +49,8 @@ int isolate_lru_page(struct page *page, 
- 		struct zone *zone = page_zone(page);
+diff -puN fs/timerfd.c~make-timerfd-return-a-u64-and-fix-the-__put_user fs/timerfd.c
+--- a/fs/timerfd.c~make-timerfd-return-a-u64-and-fix-the-__put_user
++++ a/fs/timerfd.c
+@@ -95,7 +95,7 @@ static ssize_t timerfd_read(struct file 
+ {
+ 	struct timerfd_ctx *ctx = file->private_data;
+ 	ssize_t res;
+-	u32 ticks = 0;
++	u64 ticks = 0;
+ 	DECLARE_WAITQUEUE(wait, current);
  
- 		spin_lock_irq(&zone->lru_lock);
--		if (PageLRU(page)) {
-+		if (PageLRU(page) && get_page_unless_zero(page)) {
- 			ret = 0;
--			get_page(page);
- 			ClearPageLRU(page);
- 			if (PageActive(page))
- 				del_page_from_active_list(zone, page);
+ 	if (count < sizeof(ticks))
+@@ -130,7 +130,7 @@ static ssize_t timerfd_read(struct file 
+ 			 * callback to avoid DoS attacks specifying a very
+ 			 * short timer period.
+ 			 */
+-			ticks = (u32)
++			ticks = (u64)
+ 				hrtimer_forward(&ctx->tmr,
+ 						hrtimer_cb_get_time(&ctx->tmr),
+ 						ctx->tintv);
+@@ -140,7 +140,7 @@ static ssize_t timerfd_read(struct file 
+ 	}
+ 	spin_unlock_irq(&ctx->wqh.lock);
+ 	if (ticks)
+-		res = put_user(ticks, buf) ? -EFAULT: sizeof(ticks);
++		res = put_user(ticks, (u64 __user *) buf) ? -EFAULT: sizeof(ticks);
+ 	return res;
+ }
+ 
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-sparc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support.patch
-memory-unplug-v7-memory-hotplug-cleanup.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-ia64-interface.patch
+git-kvm.patch
+anon_inodes-shouldnt-be-user-visible.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+do_poll-return-eintr-when-signalled.patch
