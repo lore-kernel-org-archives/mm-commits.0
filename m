@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-set-the-response-bitmask-for-nfs4_create_exclusive.patch added to -mm tree
-Date: Sun, 29 Jul 2007 00:36:18 -0700
-Message-ID: <200707290736.l6T7aIxi013972@imap1.linux-foundation.org>
+Subject: + alpha-fix-two-section-mismatch-warnings.patch added to -mm tree
+Date: Sun, 29 Jul 2007 00:36:57 -0700
+Message-ID: <200707290736.l6T7avlb013981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52551 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48824 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758451AbXG2Hgg (ORCPT
+	by vger.kernel.org with ESMTP id S1759824AbXG2HhZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 03:36:36 -0400
+	Sun, 29 Jul 2007 03:37:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlayton@redhat.com, bfields@citi.umich.edu, neilb@suse.de
+Cc: sam@ravnborg.org, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     knfsd: set the response bitmask for NFS4_CREATE_EXCLUSIVE
+     alpha: fix two section mismatch warnings
 has been added to the -mm tree.  Its filename is
-     knfsd-set-the-response-bitmask-for-nfs4_create_exclusive.patch
+     alpha-fix-two-section-mismatch-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: set the response bitmask for NFS4_CREATE_EXCLUSIVE
-From: Jeff Layton <jlayton@redhat.com>
+Subject: alpha: fix two section mismatch warnings
+From: Sam Ravnborg <sam@ravnborg.org>
 
-RFC 3530 says:
+Fix the following section mismatch warnings:
 
- If the server uses an attribute to store the exclusive create verifier, it
- will signify which attribute by setting the appropriate bit in the attribute
- mask that is returned in the results.
+WARNING: o-alpha/vmlinux.o(.text+0x1a4d4): Section mismatch: reference to .init.text:free_area_init (between 'paging_init' and 'srm_paging_stop')
+WARNING: o-alpha/vmlinux.o(.text+0x1a4dc): Section mismatch: reference to .init.text:free_area_init (between 'paging_init' and 'srm_paging_stop')
 
-Linux uses the atime and mtime to store the verifier, but sends a zeroed out
-bitmask back to the client.  This patch makes sure that we set the correct
-bits in the bitmask in this situation.
+One instance of paging_init() was declared __init but not the other one -
+used by defconfig.  Fixed by declaring the second instance ___init too.
 
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4proc.c |   10 +++++++++-
- fs/nfsd/vfs.c      |    5 ++++-
- 2 files changed, 13 insertions(+), 2 deletions(-)
+ arch/alpha/mm/init.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/nfsd/nfs4proc.c~knfsd-set-the-response-bitmask-for-nfs4_create_exclusive fs/nfsd/nfs4proc.c
---- a/fs/nfsd/nfs4proc.c~knfsd-set-the-response-bitmask-for-nfs4_create_exclusive
-+++ a/fs/nfsd/nfs4proc.c
-@@ -100,7 +100,15 @@ do_open_lookup(struct svc_rqst *rqstp, s
- 		status = nfsd_create_v3(rqstp, current_fh, open->op_fname.data,
- 					open->op_fname.len, &open->op_iattr,
- 					&resfh, open->op_createmode,
--					(u32 *)open->op_verf.data, &open->op_truncate, &created);
-+					(u32 *)open->op_verf.data,
-+					&open->op_truncate, &created);
-+
-+		/* If we ever decide to use different attrs to store the
-+		 * verifier in nfsd_create_v3, then we'll need to change this
-+		 */
-+		if (open->op_createmode == NFS4_CREATE_EXCLUSIVE && status == 0)
-+			open->op_bmval[1] |= (FATTR4_WORD1_TIME_ACCESS |
-+						FATTR4_WORD1_TIME_MODIFY);
- 	} else {
- 		status = nfsd_lookup(rqstp, current_fh,
- 				     open->op_fname.data, open->op_fname.len, &resfh);
-diff -puN fs/nfsd/vfs.c~knfsd-set-the-response-bitmask-for-nfs4_create_exclusive fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~knfsd-set-the-response-bitmask-for-nfs4_create_exclusive
-+++ a/fs/nfsd/vfs.c
-@@ -1309,7 +1309,10 @@ nfsd_create_v3(struct svc_rqst *rqstp, s
- 
- 	if (createmode == NFS3_CREATE_EXCLUSIVE) {
- 		/* solaris7 gets confused (bugid 4218508) if these have
--		 * the high bit set, so just clear the high bits.
-+		 * the high bit set, so just clear the high bits. If this is
-+		 * ever changed to use different attrs for storing the
-+		 * verifier, then do_open_lookup() will also need to be fixed
-+		 * accordingly.
- 		 */
- 		v_mtime = verifier[0]&0x7fffffff;
- 		v_atime = verifier[1]&0x7fffffff;
+diff -puN arch/alpha/mm/init.c~alpha-fix-two-section-mismatch-warnings arch/alpha/mm/init.c
+--- a/arch/alpha/mm/init.c~alpha-fix-two-section-mismatch-warnings
++++ a/arch/alpha/mm/init.c
+@@ -267,8 +267,7 @@ callback_init(void * kernel_end)
+ /*
+  * paging_init() sets up the memory map.
+  */
+-void
+-paging_init(void)
++void __init paging_init(void)
+ {
+ 	unsigned long zones_size[MAX_NR_ZONES] = {0, };
+ 	unsigned long dma_pfn, high_pfn;
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-knfsd-set-the-response-bitmask-for-nfs4_create_exclusive.patch
+origin.patch
+x86-64-calgary-fix-section-mismatch-warnings-in-tce.patch
+alpha-fix-two-section-mismatch-warnings.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+mkmakefile-include-arch-on-o=-builds.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+x86-add-cpu-codenames-for-kconfigcpu.patch
+change-order-in-kconfigcpu-i386.patch
+whitelist-references-from-__dbe_table-to-init.patch
+broken-lilo-check-on-make-install.patch
+kconfig-remove-top-level-menu-code-maturity-level-options.patch
