@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-integer-overflow-warning-in-i2o_block.patch added to -mm tree
-Date: Sun, 29 Jul 2007 00:04:39 -0700
-Message-ID: <200707290704.l6T74dbj012871@imap1.linux-foundation.org>
+Subject: + pnp-fix-kernel-doc-warnings.patch added to -mm tree
+Date: Sun, 29 Jul 2007 00:05:28 -0700
+Message-ID: <200707290705.l6T75Sua012886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58506 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41644 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756568AbXG2HFy (ORCPT
+	by vger.kernel.org with ESMTP id S1759709AbXG2HGy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 03:05:54 -0400
+	Sun, 29 Jul 2007 03:06:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mroos@linux.ee, mark_salyzyn@adaptec.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     fix integer overflow warning in i2o_block
+     pnp: fix kernel-doc warnings
 has been added to the -mm tree.  Its filename is
-     fix-integer-overflow-warning-in-i2o_block.patch
+     pnp-fix-kernel-doc-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix integer overflow warning in i2o_block
-From: Meelis Roos <mroos@linux.ee>
+Subject: pnp: fix kernel-doc warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-drivers/message/i2o/i2o_block.c: In function 'i2o_block_transfer':
-drivers/message/i2o/i2o_block.c:837: warning: integer overflow in expression
+Fix PNP docbook warnings:
 
-msg->u.head[1] = cpu_to_le32(I2O_CMD_PRIVATE << 24 | HOST_TID << 12 | tid);
-and I2O_CMD_PRIVATE is defined as 0xFF.  This gets "0xFF0100 | tid" and fits
-into 32-bit unsigned but not into 32-bit signed integer properly.  Target
-value is defined as u32 so the claculation does not fit during computation.
+Warning(linux-2623-rc1g4//drivers/pnp/core.c): no structured comments found
+Warning(linux-2623-rc1g4//drivers/pnp/driver.c): no structured comments found
 
-Change local variable tid to u32 so the whole expression is of u32 type and
-fits well into u32 result.
-
-Signed-off-by: Meelis Roos <mroos@linux.ee>
-Cc: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/i2o_block.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/DocBook/kernel-api.tmpl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/message/i2o/i2o_block.c~fix-integer-overflow-warning-in-i2o_block drivers/message/i2o/i2o_block.c
---- a/drivers/message/i2o/i2o_block.c~fix-integer-overflow-warning-in-i2o_block
-+++ a/drivers/message/i2o/i2o_block.c
-@@ -744,7 +744,7 @@ static int i2o_block_transfer(struct req
- {
- 	struct i2o_block_device *dev = req->rq_disk->private_data;
- 	struct i2o_controller *c;
--	int tid = dev->i2o_dev->lct_data.tid;
-+	u32 tid = dev->i2o_dev->lct_data.tid;
- 	struct i2o_message *msg;
- 	u32 *mptr;
- 	struct i2o_block_request *ireq = req->special;
+diff -puN Documentation/DocBook/kernel-api.tmpl~pnp-fix-kernel-doc-warnings Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~pnp-fix-kernel-doc-warnings
++++ a/Documentation/DocBook/kernel-api.tmpl
+@@ -398,12 +398,12 @@ X!Edrivers/acpi/pci_bind.c
+ -->
+      </sect1>
+      <sect1><title>Device drivers PnP support</title>
+-!Edrivers/pnp/core.c
++!Idrivers/pnp/core.c
+ <!-- No correct structured comments
+ X!Edrivers/pnp/system.c
+  -->
+ !Edrivers/pnp/card.c
+-!Edrivers/pnp/driver.c
++!Idrivers/pnp/driver.c
+ !Edrivers/pnp/manager.c
+ !Edrivers/pnp/support.c
+      </sect1>
 _
 
-Patches currently in -mm which might be from mroos@linux.ee are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-acpi-cure-run-together-printk-lines.patch
-fix-integer-overflow-warning-in-i2o_block.patch
+origin.patch
+update-dontdiff-file.patch
+kernel-doc-fixes-for-pci-and-drivers-base.patch
+x86-64-calgary-fix-section-mismatch-warnings-in-tce.patch
+various-doc-kernel-parameters-fixes.patch
+pnp-fix-kernel-doc-warnings.patch
+git-acpi.patch
+git-mtd.patch
+git-net.patch
+aha152x-in-debug-mode.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+i2ch-kernel-doc-additions.patch
+irqh-fix-kernel-doc.patch
+docbook-bad-file-references.patch
+kthread-silence-bogus-section-mismatch-warning.patch
+profile-likely-unlikely-macros.patch
