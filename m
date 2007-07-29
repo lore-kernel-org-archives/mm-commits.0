@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix.patch added to -mm tree
-Date: Sun, 29 Jul 2007 00:31:18 -0700
-Message-ID: <200707290731.l6T7VICH013801@imap1.linux-foundation.org>
+Subject: + core_pattern-allow-passing-of-arguments-to-user-mode-helper-when-core_pattern-is-a-pipe.patch added to -mm tree
+Date: Sun, 29 Jul 2007 00:31:20 -0700
+Message-ID: <200707290731.l6T7VKhg013805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52813 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49907 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751052AbXG2HcQ (ORCPT
+	by vger.kernel.org with ESMTP id S1750916AbXG2HcQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 29 Jul 2007 03:32:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: nhorman@tuxdriver.com, jeremy@goop.org, martin.pitt@ubuntu.com, wwoods@redha
 
 
 The patch titled
-     core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
+     core_pattern: allow passing of arguments to user mode helper when core_pattern is a pipe
 has been added to the -mm tree.  Its filename is
-     core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix.patch
+     core_pattern-allow-passing-of-arguments-to-user-mode-helper-when-core_pattern-is-a-pipe.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,14 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
+Subject: core_pattern: allow passing of arguments to user mode helper when core_pattern is a pipe
 From: Neil Horman <nhorman@tuxdriver.com>
 
-coding-style repairs.
+A rewrite of my previous post for this enhancement.  It uses jeremy's
+split_argv/free_argv library functions to translate core_pattern into an argv
+array to be passed to the user mode helper process.  It also adds a
+translation to format_corename such that the origional value of RLIMIT_CORE
+can be passed to userspace as an argument.
 
 Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
 Cc: <martin.pitt@ubuntu.com>
@@ -38,178 +42,77 @@ Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/irixelf.c          |    2 +-
- arch/sparc64/kernel/binfmt_aout32.c |    6 +++---
- arch/x86_64/ia32/ia32_aout.c        |    8 ++++----
- fs/binfmt_aout.c                    |   12 ++++++------
- fs/binfmt_flat.c                    |    4 ++--
- fs/binfmt_som.c                     |    2 +-
- include/linux/binfmts.h             |    2 +-
- 7 files changed, 18 insertions(+), 18 deletions(-)
+ fs/exec.c |   25 ++++++++++++++++++++++---
+ 1 file changed, 22 insertions(+), 3 deletions(-)
 
-diff -puN arch/mips/kernel/irixelf.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix arch/mips/kernel/irixelf.c
---- a/arch/mips/kernel/irixelf.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/arch/mips/kernel/irixelf.c
-@@ -1091,7 +1091,7 @@ end_coredump:
-  * and then they are actually written out.  If we run out of core limit
-  * we just truncate.
-  */
--static int irix_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit)
-+static int irix_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit)
- {
- 	int has_dumped = 0;
- 	mm_segment_t fs;
-diff -puN arch/sparc64/kernel/binfmt_aout32.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix arch/sparc64/kernel/binfmt_aout32.c
---- a/arch/sparc64/kernel/binfmt_aout32.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/arch/sparc64/kernel/binfmt_aout32.c
-@@ -35,7 +35,7 @@
+diff -puN fs/exec.c~core_pattern-allow-passing-of-arguments-to-user-mode-helper-when-core_pattern-is-a-pipe fs/exec.c
+--- a/fs/exec.c~core_pattern-allow-passing-of-arguments-to-user-mode-helper-when-core_pattern-is-a-pipe
++++ a/fs/exec.c
+@@ -51,6 +51,7 @@
+ #include <linux/cn_proc.h>
+ #include <linux/audit.h>
+ #include <linux/signalfd.h>
++#include <linux/string.h>
  
- static int load_aout32_binary(struct linux_binprm *, struct pt_regs * regs);
- static int load_aout32_library(struct file*);
--static int aout32_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit);
-+static int aout32_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
+ #include <asm/uaccess.h>
+ #include <asm/mmu_context.h>
+@@ -1520,6 +1521,14 @@ static int format_corename(char *corenam
+ 					goto out;
+ 				out_ptr += rc;
+ 				break;
++			/* core limit size */
++			case 'c':
++				rc = snprintf(out_ptr, out_end - out_ptr,
++					      "%lu", current->signal->rlim[RLIMIT_CORE].rlim_cur);
++				if (rc > out_end - out_ptr)
++					goto out;
++				out_ptr += rc;
++				break;
+ 			default:
+ 				break;
+ 			}
+@@ -1704,6 +1713,9 @@ int do_coredump(long signr, int exit_cod
+ 	int flag = 0;
+ 	int ispipe = 0;
+ 	unsigned long core_limit = current->signal->rlim[RLIMIT_CORE].rlim_cur;
++	char **helper_argv = NULL;
++	int helper_argc = 0;
++	char *delimit;
  
- static struct linux_binfmt aout32_format = {
- 	.module		= THIS_MODULE,
-@@ -105,11 +105,11 @@ static int aout32_core_dump(long signr, 
+ 	audit_core_dumps(signr);
  
- /* If the size of the dump file exceeds the rlimit, then see what would happen
-    if we wrote the stack, but not the data area.  */
--	if ((dump.u_dsize+dump.u_ssize) > limit)
-+	if (dump.u_dsize + dump.u_ssize > limit)
- 		dump.u_dsize = 0;
+@@ -1752,14 +1764,18 @@ int do_coredump(long signr, int exit_cod
+ 	 * at which point file size limits and permissions will be imposed
+ 	 * as it does with any other process
+ 	 */
+-	if ((!ispipe) &&
+-	   (core_limit < binfmt->min_coredump))
++	if ((!ispipe) && (core_limit < binfmt->min_coredump))
+ 		goto fail_unlock;
  
- /* Make sure we have enough room to write the stack and data areas. */
--	if ((dump.u_ssize) > limit)
-+	if (dump.u_ssize > limit)
- 		dump.u_ssize = 0;
- 
- /* make sure we actually have a data and stack area to dump */
-diff -puN arch/x86_64/ia32/ia32_aout.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix arch/x86_64/ia32/ia32_aout.c
---- a/arch/x86_64/ia32/ia32_aout.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/arch/x86_64/ia32/ia32_aout.c
-@@ -40,7 +40,7 @@ static int load_aout_binary(struct linux
- static int load_aout_library(struct file*);
- 
- #ifdef CORE_DUMP
--static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit);
-+static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
- 
- /*
-  * fill in the user structure for a core dump..
-@@ -148,7 +148,7 @@ if (file->f_op->llseek) { \
-  * dumping of the process results in another error..
-  */
- 
--static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit)
-+static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit)
- {
- 	mm_segment_t fs;
- 	int has_dumped = 0;
-@@ -168,11 +168,11 @@ static int aout_core_dump(long signr, st
- 
- /* If the size of the dump file exceeds the rlimit, then see what would happen
-    if we wrote the stack, but not the data area.  */
--	if ((dump.u_dsize+dump.u_ssize+1) * PAGE_SIZE > limit)
-+	if ((dump.u_dsize + dump.u_ssize + 1) * PAGE_SIZE > limit)
- 		dump.u_dsize = 0;
- 
- /* Make sure we have enough room to write the stack and data areas. */
--	if ((dump.u_ssize+1) * PAGE_SIZE > limit)
-+	if ((dump.u_ssize + 1) * PAGE_SIZE > limit)
- 		dump.u_ssize = 0;
- 
- /* make sure we actually have a data and stack area to dump */
-diff -puN fs/binfmt_aout.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/fs/binfmt_aout.c
-@@ -31,7 +31,7 @@
- 
- static int load_aout_binary(struct linux_binprm *, struct pt_regs * regs);
- static int load_aout_library(struct file*);
--static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit);
-+static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
- 
- static struct linux_binfmt aout_format = {
- 	.module		= THIS_MODULE,
-@@ -88,7 +88,7 @@ if (file->f_op->llseek) { \
-  * dumping of the process results in another error..
-  */
- 
--static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit)
-+static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit)
- {
- 	mm_segment_t fs;
- 	int has_dumped = 0;
-@@ -123,19 +123,19 @@ static int aout_core_dump(long signr, st
- /* If the size of the dump file exceeds the rlimit, then see what would happen
-    if we wrote the stack, but not the data area.  */
- #ifdef __sparc__
--	if ((dump.u_dsize+dump.u_ssize) > limit)
-+	if ((dump.u_dsize + dump.u_ssize) > limit)
- 		dump.u_dsize = 0;
- #else
--	if ((dump.u_dsize+dump.u_ssize+1) * PAGE_SIZE > limit)
-+	if ((dump.u_dsize + dump.u_ssize+1) * PAGE_SIZE > limit)
- 		dump.u_dsize = 0;
- #endif
- 
- /* Make sure we have enough room to write the stack and data areas. */
- #ifdef __sparc__
--	if ((dump.u_ssize) > limit)
-+	if (dump.u_ssize > limit)
- 		dump.u_ssize = 0;
- #else
--	if ((dump.u_ssize+1) * PAGE_SIZE > limit)
-+	if ((dump.u_ssize + 1) * PAGE_SIZE > limit)
- 		dump.u_ssize = 0;
- #endif
- 
-diff -puN fs/binfmt_flat.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/fs/binfmt_flat.c
-@@ -75,7 +75,7 @@ static int load_flat_shared_library(int 
- #endif
- 
- static int load_flat_binary(struct linux_binprm *, struct pt_regs * regs);
--static int flat_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit);
-+static int flat_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
- 
- static struct linux_binfmt flat_format = {
- 	.module		= THIS_MODULE,
-@@ -90,7 +90,7 @@ static struct linux_binfmt flat_format =
-  * Currently only a stub-function.
-  */
- 
--static int flat_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit)
-+static int flat_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit)
- {
- 	printk("Process %s:%d received signr %d and should have core dumped\n",
- 			current->comm, current->pid, (int) signr);
-diff -puN fs/binfmt_som.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix fs/binfmt_som.c
---- a/fs/binfmt_som.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/fs/binfmt_som.c
-@@ -44,7 +44,7 @@ static int load_som_library(struct file 
-  * don't even try.
-  */
- #if 0
--static int som_core_dump(long signr, struct pt_regs * regs, unsigned long limit);
-+static int som_core_dump(long signr, struct pt_regs *regs, unsigned long limit);
- #else
- #define som_core_dump	NULL
- #endif
-diff -puN include/linux/binfmts.h~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix include/linux/binfmts.h
---- a/include/linux/binfmts.h~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/include/linux/binfmts.h
-@@ -68,7 +68,7 @@ struct linux_binfmt {
- 	struct module *module;
- 	int (*load_binary)(struct linux_binprm *, struct  pt_regs * regs);
- 	int (*load_shlib)(struct file *);
--	int (*core_dump)(long signr, struct pt_regs * regs, struct file * file, unsigned long limit);
-+	int (*core_dump)(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
- 	unsigned long min_coredump;	/* minimal dump size */
- 	int hasvdso;
- };
+  	if (ispipe) {
+ 		core_limit = RLIM_INFINITY;
++		helper_argv = argv_split(GFP_KERNEL, corename+1, &helper_argc);
++		/* Terminate the string before the first option */
++		delimit = strchr(corename, ' ');
++		if (delimit)
++			*delimit = '\0';
+ 		/* SIGPIPE can happen, but it's just never processed */
+- 		if(call_usermodehelper_pipe(corename+1, NULL, NULL, &file)) {
++ 		if(call_usermodehelper_pipe(corename+1, helper_argv, NULL, &file)) {
+  			printk(KERN_INFO "Core dump to %s pipe failed\n",
+ 			       corename);
+  			goto fail_unlock;
+@@ -1794,6 +1810,9 @@ int do_coredump(long signr, int exit_cod
+ close_fail:
+ 	filp_close(file, NULL);
+ fail_unlock:
++	if (helper_argv)
++		argv_free(helper_argv);
++
+ 	current->fsuid = fsuid;
+ 	complete_all(&mm->core_done);
+ fail:
 _
 
 Patches currently in -mm which might be from nhorman@tuxdriver.com are
