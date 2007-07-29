@@ -1,83 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - kgdb-kconfig-fix.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 12:50:42 -0700
-Message-ID: <200707281950.l6SJogqS023397@imap1.linux-foundation.org>
+Subject: - git-kvm-fixup.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 22:54:25 -0700
+Message-ID: <200707290554.l6T5sPSB010471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41355 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34001 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755580AbXG1Tuu (ORCPT
+	by vger.kernel.org with ESMTP id S1755790AbXG2Fye (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Jul 2007 15:50:50 -0400
+	Sun, 29 Jul 2007 01:54:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jason.wessel@windriver.com, nix.or.die@googlemail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kgdb-kconfig-fix
+     git-kvm-fixup
 has been removed from the -mm tree.  Its filename was
-     kgdb-kconfig-fix.patch
+     git-kvm-fixup.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: kgdb-kconfig-fix
+Subject: git-kvm-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-On Sat, 28 Jul 2007 17:44:45 +0200 Gabriel C <nix.or.die@googlemail.com> wrote:
-
-> Hi,
-> 
-> I got this compile error with a randconfig ( http://194.231.229.228/MM/randconfig-auto-82.broken.netpoll.c ).
-> 
-> ...
-> 
-> net/core/netpoll.c: In function 'netpoll_poll':
-> net/core/netpoll.c:155: error: 'struct net_device' has no member named 'poll_controller'
-> net/core/netpoll.c:159: error: 'struct net_device' has no member named 'poll_controller'
-> net/core/netpoll.c: In function 'netpoll_setup':
-> net/core/netpoll.c:670: error: 'struct net_device' has no member named 'poll_controller'
-> make[2]: *** [net/core/netpoll.o] Error 1
-> make[1]: *** [net/core] Error 2
-> make: *** [net] Error 2
-> make: *** Waiting for unfinished jobs....
-> 
-> ...
-> 
-> 
-> I think is because KGDBOE selects just NETPOLL.
-
-Cc: Gabriel C <nix.or.die@googlemail.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kgdb |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/kvm/kvm_main.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN lib/Kconfig.kgdb~kgdb-kconfig-fix lib/Kconfig.kgdb
---- a/lib/Kconfig.kgdb~kgdb-kconfig-fix
-+++ a/lib/Kconfig.kgdb
-@@ -175,8 +175,7 @@ endchoice
- config KGDBOE
- 	tristate "KGDB: On ethernet" if !KGDBOE_NOMODULE
- 	depends on m && KGDB
--	select NETPOLL
--	select NETPOLL_TRAP
-+	depends on NETPOLL_TRAP && NET_POLL_CONTROLLER
- 	help
- 	  Uses the NETPOLL API to communicate with the host GDB via UDP.
- 	  In order for this to work, the ethernet interface specified must
+diff -puN drivers/kvm/kvm_main.c~git-kvm-fixup drivers/kvm/kvm_main.c
+--- a/drivers/kvm/kvm_main.c~git-kvm-fixup
++++ a/drivers/kvm/kvm_main.c
+@@ -1084,13 +1084,8 @@ static int emulator_write_phys(struct kv
+ 		return 0;
+ 	mark_page_dirty(vcpu->kvm, gpa >> PAGE_SHIFT);
+ 	virt = kmap_atomic(page, KM_USER0);
+-<<<<<<< HEAD/drivers/kvm/kvm_main.c
+-	kvm_mmu_pte_write(vcpu, gpa, virt + offset, val, bytes);
+-	memcpy(virt + offset_in_page(gpa), val, bytes);
+-=======
+ 	kvm_mmu_pte_write(vcpu, gpa, val, bytes);
+ 	memcpy(virt + offset_in_page(gpa), val, bytes);
+->>>>>>> /drivers/kvm/kvm_main.c
+ 	kunmap_atomic(virt, KM_USER0);
+ 	return 1;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-rtc-stk17ta8-update-for-sysfs-api-change.patch
-x86_powernow_k8_acpi-must-depend-on-acpi.patch
-i2c-ds1682-warning-fix.patch
-edac-is-bust-on-mips.patch
 parport_pc-locking-fix.patch
 revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
 kdebugh-forward-declare-struct-struct-notifier_block.patch
@@ -89,6 +65,7 @@ acpi-add-reboot-mechanism-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 revert-gregkh-driver-block-device.patch
 dma-arch-fix.patch
+git-dvb.patch
 adbhid-produce-all-capslock-key-events-fix.patch
 m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
 iforce-warning-fix.patch
@@ -132,7 +109,6 @@ git-newsetup-fixup.patch
 git-kgdb-fixup.patch
 git-kgdb-arm-fix.patch
 git-kgdb-mips-fix.patch
-kgdb-kconfig-fix.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
