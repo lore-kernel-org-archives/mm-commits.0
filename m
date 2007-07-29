@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-raid10-fix-use-after-free-of-bio.patch added to -mm tree
-Date: Sat, 28 Jul 2007 23:55:24 -0700
-Message-ID: <200707290655.l6T6tOfA012547@imap1.linux-foundation.org>
+Subject: + uml-console-should-handle-spurious-irqs.patch added to -mm tree
+Date: Sat, 28 Jul 2007 23:56:09 -0700
+Message-ID: <200707290656.l6T6u9dA012560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58662 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36070 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759926AbXG2Gzf (ORCPT
+	by vger.kernel.org with ESMTP id S1759823AbXG2G4T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:55:35 -0400
+	Sun, 29 Jul 2007 02:56:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.hampel@gmx.de, neilb@suse.de
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     md: raid10: fix use-after-free of bio
+     UML: console should handle spurious IRQS
 has been added to the -mm tree.  Its filename is
-     md-raid10-fix-use-after-free-of-bio.patch
+     uml-console-should-handle-spurious-irqs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: raid10: fix use-after-free of bio
-From: Maik Hampel <m.hampel@gmx.de>
+Subject: UML: console should handle spurious IRQS
+From: Jeff Dike <jdike@addtoit.com>
 
-In case of read errors raid10d tries to print a nice error message,
-unfortunately using data from an already put bio.
+The previous DEBUG_SHIRQ patch missed one case.  The console doesn't
+set its host descriptors non-blocking.
 
-Signed-off-by: Maik Hampel <m.hampel@gmx.de>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid10.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/um/drivers/chan_kern.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/raid10.c~md-raid10-fix-use-after-free-of-bio drivers/md/raid10.c
---- a/drivers/md/raid10.c~md-raid10-fix-use-after-free-of-bio
-+++ a/drivers/md/raid10.c
-@@ -1534,7 +1534,6 @@ static void raid10d(mddev_t *mddev)
- 			bio = r10_bio->devs[r10_bio->read_slot].bio;
- 			r10_bio->devs[r10_bio->read_slot].bio =
- 				mddev->ro ? IO_BLOCKED : NULL;
--			bio_put(bio);
- 			mirror = read_balance(conf, r10_bio);
- 			if (mirror == -1) {
- 				printk(KERN_ALERT "raid10: %s: unrecoverable I/O"
-@@ -1542,8 +1541,10 @@ static void raid10d(mddev_t *mddev)
- 				       bdevname(bio->bi_bdev,b),
- 				       (unsigned long long)r10_bio->sector);
- 				raid_end_bio_io(r10_bio);
-+				bio_put(bio);
- 			} else {
- 				const int do_sync = bio_sync(r10_bio->master_bio);
-+				bio_put(bio);
- 				rdev = conf->mirrors[mirror].rdev;
- 				if (printk_ratelimit())
- 					printk(KERN_ERR "raid10: %s: redirecting sector %llu to"
+diff -puN arch/um/drivers/chan_kern.c~uml-console-should-handle-spurious-irqs arch/um/drivers/chan_kern.c
+--- a/arch/um/drivers/chan_kern.c~uml-console-should-handle-spurious-irqs
++++ a/arch/um/drivers/chan_kern.c
+@@ -157,7 +157,7 @@ static void tty_receive_char(struct tty_
+ 
+ static int open_one_chan(struct chan *chan)
+ {
+-	int fd;
++	int fd, err;
+ 
+ 	if(chan->opened)
+ 		return 0;
+@@ -168,6 +168,13 @@ static int open_one_chan(struct chan *ch
+ 				     chan->data, &chan->dev);
+ 	if(fd < 0)
+ 		return fd;
++
++	err = os_set_fd_block(fd, 0);
++	if (err) {
++		(*chan->ops->close)(fd, chan->data);
++		return err;
++	}
++
+ 	chan->fd = fd;
+ 
+ 	chan->opened = 1;
 _
 
-Patches currently in -mm which might be from m.hampel@gmx.de are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-md-raid10-fix-use-after-free-of-bio.patch
+origin.patch
+uml-console-should-handle-spurious-irqs.patch
+git-kvm.patch
+hostfs-convert-to-new-aops.patch
