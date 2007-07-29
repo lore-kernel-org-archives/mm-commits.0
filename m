@@ -1,55 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch removed from -mm tree
-Date: Sun, 29 Jul 2007 00:19:12 -0700
-Message-ID: <200707290719.l6T7JCq0013447@imap1.linux-foundation.org>
+Subject: - allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch removed from -mm tree
+Date: Sun, 29 Jul 2007 00:19:14 -0700
+Message-ID: <200707290719.l6T7JEPw013451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52820 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53867 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759952AbXG2HU0 (ORCPT
+	by vger.kernel.org with ESMTP id S1760079AbXG2HU3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 03:20:26 -0400
+	Sun, 29 Jul 2007 03:20:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, alan@lxorguk.ukuu.org.uk, hidehiro.kawai.ez@hitachi.com, nhorman@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hidehiro.kawai.ez@hitachi.com, nhorman@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix
+     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix
 has been removed from the -mm tree.  Its filename was
-     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
+     allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix
+Subject: allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/exec.c: In function 'do_coredump':
-fs/exec.c:1761: warning: large integer implicitly truncated to unsigned type
+arch/sparc64/kernel/binfmt_aout32.c:45: warning: initialization from incompatible pointer type
+arch/sparc64/kernel/binfmt_aout32.c:91: error: conflicting types for 'aout32_core_dump'
+arch/sparc64/kernel/binfmt_aout32.c:38: error: previous declaration of 'aout32_core_dump' was here
+arch/sparc64/kernel/binfmt_aout32.c:91: error: conflicting types for 'aout32_core_dump'
+arch/sparc64/kernel/binfmt_aout32.c:38: error: previous declaration of 'aout32_core_dump' was here
+arch/sparc64/kernel/binfmt_aout32.c:38: warning: 'aout32_core_dump' used but never defined
+arch/sparc64/kernel/binfmt_aout32.c:91: warning: 'aout32_core_dump' defined but not used
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Andi Kleen <ak@suse.de>
 Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc64/kernel/binfmt_aout32.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/exec.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix fs/exec.c
---- a/fs/exec.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix
-+++ a/fs/exec.c
-@@ -1703,7 +1703,7 @@ int do_coredump(long signr, int exit_cod
- 	int fsuid = current->fsuid;
- 	int flag = 0;
- 	int ispipe = 0;
--	u32 core_limit = current->signal->rlim[RLIMIT_CORE].rlim_cur;
-+	unsigned long core_limit = current->signal->rlim[RLIMIT_CORE].rlim_cur;
+diff -puN arch/sparc64/kernel/binfmt_aout32.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix arch/sparc64/kernel/binfmt_aout32.c
+--- a/arch/sparc64/kernel/binfmt_aout32.c~allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix
++++ a/arch/sparc64/kernel/binfmt_aout32.c
+@@ -35,7 +35,8 @@
  
- 	audit_core_dumps(signr);
+ static int load_aout32_binary(struct linux_binprm *, struct pt_regs * regs);
+ static int load_aout32_library(struct file*);
+-static int aout32_core_dump(long signr, struct pt_regs * regs, struct file *file);
++static int aout32_core_dump(long signr, struct pt_regs * regs,
++			struct file *file, u32);
  
+ static struct linux_binfmt aout32_format = {
+ 	.lh	=	LIST_HEAD_INIT(aout32_format.lh),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,7 +137,6 @@ fs-9p-convc-error-path-fix.patch
 loop-use-unlocked_ioctl.patch
 do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
 pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-fix.patch
 allow-individual-core-dump-methods-to-be-unlimited-when-sending-to-a-pipe-sparc64-fix.patch
 ip2main-warning-fix.patch
 add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
