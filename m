@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memoryless-node-slab-support.patch added to -mm tree
-Date: Sun, 29 Jul 2007 00:16:03 -0700
-Message-ID: <200707290716.l6T7G3La013236@imap1.linux-foundation.org>
+Subject: + add-n_cpu-node-state.patch added to -mm tree
+Date: Sun, 29 Jul 2007 00:16:10 -0700
+Message-ID: <200707290716.l6T7GA8l013251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60856 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60352 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759935AbXG2HQN (ORCPT
+	by vger.kernel.org with ESMTP id S1760214AbXG2HQS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 03:16:13 -0400
+	Sun, 29 Jul 2007 03:16:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lee.schermerhorn@hp.com, bob.picco@hp.com, clameter@sgi.com, nacc@us.ibm.com
+Cc: lee.schermerhorn@hp.com, bob.picco@hp.com, clameter@sgi.com
 
 
 The patch titled
-     Memoryless Node: Slab support
+     Add N_CPU node state
 has been added to the -mm tree.  Its filename is
-     memoryless-node-slab-support.patch
+     add-n_cpu-node-state.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memoryless Node: Slab support
+Subject: Add N_CPU node state
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Slab should not allocate control structures for nodes without memory.  This
-may seem to work right now but its unreliable since not all allocations can
-fall back due to the use of GFP_THISNODE.
-
-Switching a few for_each_online_node's to for_each_memory_node will allow us
-to only allocate for nodes that actually have memory.
+We need the check for a node with cpu in zone reclaim.  Zone reclaim will not
+allow remote zone reclaim if a node has a cpu.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Tested-by:  Lee Schermerhorn <lee.schermerhorn@hp.com>
 Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Acked-by: Bob Picco <bob.picco@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/nodemask.h |    1 +
+ mm/page_alloc.c          |    4 +++-
+ mm/vmscan.c              |    4 +---
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/slab.c~memoryless-node-slab-support mm/slab.c
---- a/mm/slab.c~memoryless-node-slab-support
-+++ a/mm/slab.c
-@@ -1565,7 +1565,7 @@ void __init kmem_cache_init(void)
- 		/* Replace the static kmem_list3 structures for the boot cpu */
- 		init_list(&cache_cache, &initkmem_list3[CACHE_CACHE], node);
+diff -puN include/linux/nodemask.h~add-n_cpu-node-state include/linux/nodemask.h
+--- a/include/linux/nodemask.h~add-n_cpu-node-state
++++ a/include/linux/nodemask.h
+@@ -344,6 +344,7 @@ enum node_states {
+ 	N_POSSIBLE,	/* The node could become online at some point */
+ 	N_ONLINE,	/* The node is online */
+ 	N_MEMORY,	/* The node has memory */
++	N_CPU,		/* The node has cpus */
+ 	NR_NODE_STATES
+ };
  
--		for_each_online_node(nid) {
-+		for_each_node_state(nid, N_MEMORY) {
- 			init_list(malloc_sizes[INDEX_AC].cs_cachep,
- 				  &initkmem_list3[SIZE_AC + nid], nid);
- 
-@@ -1943,7 +1943,7 @@ static void __init set_up_list3s(struct 
+diff -puN mm/page_alloc.c~add-n_cpu-node-state mm/page_alloc.c
+--- a/mm/page_alloc.c~add-n_cpu-node-state
++++ a/mm/page_alloc.c
+@@ -2646,6 +2646,7 @@ static struct per_cpu_pageset boot_pages
+ static int __cpuinit process_zones(int cpu)
  {
- 	int node;
+ 	struct zone *zone, *dzone;
++	int node = cpu_to_node(cpu);
  
--	for_each_online_node(node) {
-+	for_each_node_state(node, N_MEMORY) {
- 		cachep->nodelists[node] = &initkmem_list3[index + node];
- 		cachep->nodelists[node]->next_reap = jiffies +
- 		    REAPTIMEOUT_LIST3 +
-@@ -2074,7 +2074,7 @@ static int __init_refok setup_cpu_cache(
- 			g_cpucache_up = PARTIAL_L3;
- 		} else {
- 			int node;
--			for_each_online_node(node) {
-+			for_each_node_state(node, N_MEMORY) {
- 				cachep->nodelists[node] =
- 				    kmalloc_node(sizeof(struct kmem_list3),
- 						GFP_KERNEL, node);
-@@ -3784,7 +3784,7 @@ static int alloc_kmemlist(struct kmem_ca
- 	struct array_cache *new_shared;
- 	struct array_cache **new_alien = NULL;
+ 	for_each_zone(zone) {
  
--	for_each_online_node(node) {
-+	for_each_node_state(node, N_MEMORY) {
+@@ -2653,7 +2654,7 @@ static int __cpuinit process_zones(int c
+ 			continue;
  
-                 if (use_alien_caches) {
-                         new_alien = alloc_alien_cache(node, cachep->limit);
+ 		zone_pcp(zone, cpu) = kmalloc_node(sizeof(struct per_cpu_pageset),
+-					 GFP_KERNEL, cpu_to_node(cpu));
++					 GFP_KERNEL, node);
+ 		if (!zone_pcp(zone, cpu))
+ 			goto bad;
+ 
+@@ -2664,6 +2665,7 @@ static int __cpuinit process_zones(int c
+ 			 	(zone->present_pages / percpu_pagelist_fraction));
+ 	}
+ 
++	node_set_state(node, N_CPU);
+ 	return 0;
+ bad:
+ 	for_each_zone(dzone) {
+diff -puN mm/vmscan.c~add-n_cpu-node-state mm/vmscan.c
+--- a/mm/vmscan.c~add-n_cpu-node-state
++++ a/mm/vmscan.c
+@@ -1825,7 +1825,6 @@ static int __zone_reclaim(struct zone *z
+ 
+ int zone_reclaim(struct zone *zone, gfp_t gfp_mask, unsigned int order)
+ {
+-	cpumask_t mask;
+ 	int node_id;
+ 
+ 	/*
+@@ -1862,8 +1861,7 @@ int zone_reclaim(struct zone *zone, gfp_
+ 	 * as wide as possible.
+ 	 */
+ 	node_id = zone_to_nid(zone);
+-	mask = node_to_cpumask(node_id);
+-	if (!cpus_empty(mask) && node_id != numa_node_id())
++	if (node_state(node_id, N_CPU) && node_id != numa_node_id())
+ 		return 0;
+ 	return __zone_reclaim(zone, gfp_mask, order);
+ }
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
