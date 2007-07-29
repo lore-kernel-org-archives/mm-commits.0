@@ -1,105 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - sched-make-cpu_clock-not-use-the-rq-clock.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:13:31 -0700
-Message-ID: <200707290613.l6T6DVKL011205@imap1.linux-foundation.org>
+Subject: - lguest-fix-bzimage-loading-with-config_relocatable=y.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:12:54 -0700
+Message-ID: <200707290612.l6T6Csi0011151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55659 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46367 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757510AbXG2GXi (ORCPT
+	by vger.kernel.org with ESMTP id S1757943AbXG2GXi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 29 Jul 2007 02:23:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: make cpu_clock() not use the rq clock
+     lguest: fix bzImage loading with CONFIG_RELOCATABLE=y
 has been removed from the -mm tree.  Its filename was
-     sched-make-cpu_clock-not-use-the-rq-clock.patch
+     lguest-fix-bzimage-loading-with-config_relocatable=y.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: make cpu_clock() not use the rq clock
-From: Ingo Molnar <mingo@elte.hu>
+Subject: lguest: fix bzImage loading with CONFIG_RELOCATABLE=y
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-It is enough to disable interrupts to get the precise rq-clock of the local
-CPU.
+Jason Yeh sent his crashing .config: bzImages made with
+CONFIG_RELOCATABLE=y put the relocs where the BSS is expected, and we crash
+with unusual results such as:
 
-This also solves an NMI watchdog regression: the NMI watchdog calls
-touch_softlockup_watchdog(), which might deadlock on rq->lock if the NMI
-hits an rq-locked critical section.
+	lguest: unhandled trap 14 at 0xc0122ae1 (0xa9)
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Relying on BSS being zero was merely laziness on my part.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/lguest/lguest.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN kernel/sched.c~sched-make-cpu_clock-not-use-the-rq-clock kernel/sched.c
---- a/kernel/sched.c~sched-make-cpu_clock-not-use-the-rq-clock
-+++ a/kernel/sched.c
-@@ -386,13 +386,12 @@ static inline unsigned long long rq_cloc
-  */
- unsigned long long cpu_clock(int cpu)
- {
--	struct rq *rq = cpu_rq(cpu);
- 	unsigned long long now;
- 	unsigned long flags;
+diff -puN drivers/lguest/lguest.c~lguest-fix-bzimage-loading-with-config_relocatable=y drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-fix-bzimage-loading-with-config_relocatable=y
++++ a/drivers/lguest/lguest.c
+@@ -1019,6 +1019,11 @@ __init void lguest_init(void *boot)
+ 	 * the normal data segment to get through booting. */
+ 	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_DS) : "memory");
  
--	spin_lock_irqsave(&rq->lock, flags);
--	now = rq_clock(rq);
--	spin_unlock_irqrestore(&rq->lock, flags);
-+	local_irq_save(flags);
-+	now = rq_clock(cpu_rq(cpu));
-+	local_irq_restore(flags);
- 
- 	return now;
- }
++	/* Clear the part of the kernel data which is expected to be zero.
++	 * Normally it will be anyway, but if we're loading from a bzImage with
++	 * CONFIG_RELOCATALE=y, the relocations will be sitting here. */
++	memset(__bss_start, 0, __bss_stop - __bss_start);
++
+ 	/* The Host uses the top of the Guest's virtual address space for the
+ 	 * Host<->Guest Switcher, and it tells us how much it needs in
+ 	 * lguest_data.reserve_mem, set up on the LGUEST_INIT hypercall. */
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-slub-add-lock-debugging-check.patch
-git-acpi.patch
 git-kvm.patch
-fix-theoretical-ccids_readwrite_lock-race.patch
-pci-hotplug-cpqphp_ctrlc-remove-stale-bkl-use.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-geode-mfgpt-clock-event-device-support.patch
-i386-remove-unnecessary-code.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-immunize-rcu_dereference-against-crazy-compiler-writers.patch
-remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
-fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
-softlockup-use-cpu_clock-instead-of-sched_clock.patch
-fix-the-softlockup-watchdog-to-actually-work.patch
-softlockup-make-asm-irq_regsh-available-on-every-platform.patch
-softlockup-improve-debug-output.patch
-softlockup-watchdog-style-cleanups.patch
-softlockup-add-a-proc-tuning-parameter.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-futex-pass-nr_wake2-to-futex_wake_op.patch
-cfs-mark-print_cfs_stats-static.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-mm-implement-swap-prefetching.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
+git-newsetup-fixup.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+radixtree-introduce-radix_tree_next_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+remove-unsafe-from-module-struct.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
