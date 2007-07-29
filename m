@@ -1,100 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - fix-dynreloc-miscount-link-error-on-powerpc.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:12:13 -0700
-Message-ID: <200707290612.l6T6CDYH011109@imap1.linux-foundation.org>
+Subject: - x86_64-fix-arch_vma_name.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:12:10 -0700
+Message-ID: <200707290612.l6T6CAJg011106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53771 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40381 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759393AbXG2GXw (ORCPT
+	by vger.kernel.org with ESMTP id S1759529AbXG2GXw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 29 Jul 2007 02:23:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, benh@kernel.crashing.org, ntl@pobox.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: roland@redhat.com, ak@suse.de, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix 'dynreloc miscount' link error on Powerpc
+     x86_64: fix arch_vma_name
 has been removed from the -mm tree.  Its filename was
-     fix-dynreloc-miscount-link-error-on-powerpc.patch
+     x86_64-fix-arch_vma_name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix 'dynreloc miscount' link error on Powerpc
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: x86_64: fix arch_vma_name
+From: Roland McGrath <roland@redhat.com>
 
-Nathan Lynch <ntl@pobox.com> reported:
-2.6.23-rc1 breaks the build for 64-bit powerpc for me (using
-maple_defconfig):
+The function arch_vma_name() is declared weak and thus it was
+not noticed that x86_64 had two almost identical implementations.
 
-  LD      vmlinux.o
-powerpc64-unknown-linux-gnu-ld: dynreloc miscount for
-kernel/built-in.o, section .opd
-powerpc64-unknown-linux-gnu-ld: can not edit opd Bad value
-make: *** [vmlinux.o] Error 1
+It was introduced in syscall32.c by: c633090e3105e779c97d4978e5e3d7d66b291cfb
+It was introduced in mm/init.c by: 2aae950b21e4bc789d1fc6668faf67e8748300b7
 
-However, I see a possibly related binutils patch:
-http://article.gmane.org/gmane.comp.gnu.binutils/33650
-
-It was tracked down to be caused by the weak prototype
-declaration in mm.h:
-__attribute__((weak)) const char *arch_vma_name(struct vm_area_struct *vma);
-
-But there is no need to make the declaration weak - only the definition
-needs to be marked weak.  So drop the weak declaration.  And in the process
-drop the duplicate definition in page.h for powerpc.
-
-Note: the arch_vma_name fix for x86_64 needs to be applied first to avoid
-breaking x86_64
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Nathan Lynch <ntl@pobox.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/page.h |    1 -
- include/linux/mm.h         |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ arch/x86_64/ia32/ia32_binfmt.c |    5 +++--
+ arch/x86_64/ia32/syscall32.c   |    8 --------
+ 2 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN include/asm-powerpc/page.h~fix-dynreloc-miscount-link-error-on-powerpc include/asm-powerpc/page.h
---- a/include/asm-powerpc/page.h~fix-dynreloc-miscount-link-error-on-powerpc
-+++ a/include/asm-powerpc/page.h
-@@ -190,7 +190,6 @@ extern void copy_user_page(void *to, voi
- extern int page_is_ram(unsigned long pfn);
+diff -puN arch/x86_64/ia32/ia32_binfmt.c~x86_64-fix-arch_vma_name arch/x86_64/ia32/ia32_binfmt.c
+--- a/arch/x86_64/ia32/ia32_binfmt.c~x86_64-fix-arch_vma_name
++++ a/arch/x86_64/ia32/ia32_binfmt.c
+@@ -41,8 +41,9 @@ int sysctl_vsyscall32 = 1;
+ #undef ARCH_DLINFO
+ #define ARCH_DLINFO do {  \
+ 	if (sysctl_vsyscall32) { \
+-	NEW_AUX_ENT(AT_SYSINFO, (u32)(u64)VSYSCALL32_VSYSCALL); \
+-	NEW_AUX_ENT(AT_SYSINFO_EHDR, VSYSCALL32_BASE);    \
++		current->mm->context.vdso = (void *)VSYSCALL32_BASE;	\
++		NEW_AUX_ENT(AT_SYSINFO, (u32)(u64)VSYSCALL32_VSYSCALL); \
++		NEW_AUX_ENT(AT_SYSINFO_EHDR, VSYSCALL32_BASE);    \
+ 	}	\
+ } while(0)
  
- struct vm_area_struct;
--extern const char *arch_vma_name(struct vm_area_struct *vma);
+diff -puN arch/x86_64/ia32/syscall32.c~x86_64-fix-arch_vma_name arch/x86_64/ia32/syscall32.c
+--- a/arch/x86_64/ia32/syscall32.c~x86_64-fix-arch_vma_name
++++ a/arch/x86_64/ia32/syscall32.c
+@@ -49,14 +49,6 @@ int syscall32_setup_pages(struct linux_b
+ 	return ret;
+ }
  
- #include <asm-generic/memory_model.h>
- #endif /* __ASSEMBLY__ */
-diff -puN include/linux/mm.h~fix-dynreloc-miscount-link-error-on-powerpc include/linux/mm.h
---- a/include/linux/mm.h~fix-dynreloc-miscount-link-error-on-powerpc
-+++ a/include/linux/mm.h
-@@ -1246,7 +1246,7 @@ void drop_slab(void);
- extern int randomize_va_space;
- #endif
- 
--__attribute__((weak)) const char *arch_vma_name(struct vm_area_struct *vma);
-+const char * arch_vma_name(struct vm_area_struct *vma);
- 
- #endif /* __KERNEL__ */
- #endif /* _LINUX_MM_H */
+-const char *arch_vma_name(struct vm_area_struct *vma)
+-{
+-	if (vma->vm_start == VSYSCALL32_BASE &&
+-	    vma->vm_mm && vma->vm_mm->task_size == IA32_PAGE_OFFSET)
+-		return "[vdso]";
+-	return NULL;
+-}
+-
+ static int __init init_syscall32(void)
+ { 
+ 	char *syscall32_page = (void *)get_zeroed_page(GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-x86-64-calgary-fix-section-mismatch-warnings-in-tce.patch
 powerpc-vdso-install-unstripped-copies-on-disk.patch
 pass-g-to-assembler-under-config_debug_info.patch
-mkmakefile-include-arch-on-o=-builds.patch
 i386-vdso-install-unstripped-copies-on-disk.patch
 i386-vdso-install-unstripped-copies-on-disk-fix.patch
 x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-whitelist-references-from-__dbe_table-to-init.patch
-broken-lilo-check-on-make-install.patch
-kconfig-remove-top-level-menu-code-maturity-level-options.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
