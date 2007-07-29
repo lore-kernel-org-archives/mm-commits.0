@@ -1,109 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - dvb-usb-af9005-fec-error-check-fixes.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:13:20 -0700
-Message-ID: <200707290613.l6T6DKqT011193@imap1.linux-foundation.org>
+Subject: - fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:12:49 -0700
+Message-ID: <200707290612.l6T6Cnvq011148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39386 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757706AbXG2GXx (ORCPT
+	by vger.kernel.org with ESMTP id S1759524AbXG2GXy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:23:53 -0400
+	Sun, 29 Jul 2007 02:23:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, greg@kroah.com, luca@ventoso.org, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, michal.k.k.piotrowski@gmail.com, yoshfuji@linux-ipv6.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dvb-usb/af9005-fe.c: error check fixes
+     Fix ThinkPad T42 poweroff failure by "PM: Introduce pm_power_off_prepare"
 has been removed from the -mm tree.  Its filename was
-     dvb-usb-af9005-fec-error-check-fixes.patch
+     fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dvb-usb/af9005-fe.c: error check fixes
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Fix ThinkPad T42 poweroff failure by "PM: Introduce pm_power_off_prepare"
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-This patch:
-- adds a missing error check and
-- removes an error check that could never be true
+Generally, sysdev_shutdown() should be called after the ACPI preparation for
+powering the system off.  To make it happen, we can separate sysdev_shutdown()
+from device_shutdown() and call it directly wherever necessary.
 
-Both spotted by the Coverity checker.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Luca Olivetti <luca@ventoso.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/af9005-fe.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/base/power/shutdown.c |    2 --
+ include/linux/device.h        |    3 +++
+ kernel/power/disk.c           |    1 +
+ kernel/sys.c                  |    3 +++
+ 4 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-usb/af9005-fe.c~dvb-usb-af9005-fec-error-check-fixes drivers/media/dvb/dvb-usb/af9005-fe.c
---- a/drivers/media/dvb/dvb-usb/af9005-fe.c~dvb-usb-af9005-fec-error-check-fixes
-+++ a/drivers/media/dvb/dvb-usb/af9005-fe.c
-@@ -345,8 +345,8 @@ static int af9005_reset_pre_viterbi(stru
- 				       1 & 0xff);
- 	if (ret)
- 		return ret;
--	af9005_write_ofdm_register(state->d, xd_p_fec_super_frm_unit_15_8,
--				   1 >> 8);
-+	ret = af9005_write_ofdm_register(state->d, xd_p_fec_super_frm_unit_15_8,
-+					 1 >> 8);
- 	if (ret)
- 		return ret;
- 	/* reset pre viterbi error count */
-@@ -881,10 +881,8 @@ static int af9005_fe_init(struct dvb_fro
- 	     af9005_write_register_bits(state->d, xd_I2C_reg_ofdm_rst,
- 					reg_ofdm_rst_pos, reg_ofdm_rst_len, 1)))
- 		return ret;
--	if ((ret =
--	     af9005_write_register_bits(state->d, xd_I2C_reg_ofdm_rst,
--					reg_ofdm_rst_pos, reg_ofdm_rst_len, 0)))
--		return ret;
-+	ret = af9005_write_register_bits(state->d, xd_I2C_reg_ofdm_rst,
-+					 reg_ofdm_rst_pos, reg_ofdm_rst_len, 0);
+diff -puN drivers/base/power/shutdown.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare drivers/base/power/shutdown.c
+--- a/drivers/base/power/shutdown.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare
++++ a/drivers/base/power/shutdown.c
+@@ -44,7 +44,5 @@ void device_shutdown(void)
+ 			dev->driver->shutdown(dev);
+ 		}
+ 	}
+-
+-	sysdev_shutdown();
+ }
  
- 	if (ret)
- 		return ret;
+diff -puN include/linux/device.h~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare include/linux/device.h
+--- a/include/linux/device.h~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare
++++ a/include/linux/device.h
+@@ -551,6 +551,9 @@ extern void put_device(struct device * d
+ /* drivers/base/power/shutdown.c */
+ extern void device_shutdown(void);
+ 
++/* drivers/base/sys.c */
++extern void sysdev_shutdown(void);
++
+ 
+ /* drivers/base/firmware.c */
+ extern int __must_check firmware_register(struct kset *);
+diff -puN kernel/power/disk.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare kernel/power/disk.c
+--- a/kernel/power/disk.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare
++++ a/kernel/power/disk.c
+@@ -216,6 +216,7 @@ int hibernation_platform_enter(void)
+ 		 * sleep state after all
+ 		 */
+ 		error = hibernation_ops->prepare();
++		sysdev_shutdown();
+ 		if (!error)
+ 			error = hibernation_ops->enter();
+ 	} else {
+diff -puN kernel/sys.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare kernel/sys.c
+--- a/kernel/sys.c~fix-thinkpad-t42-poweroff-failure-by-pm-introduce-pm_power_off_prepare
++++ a/kernel/sys.c
+@@ -804,6 +804,7 @@ static void kernel_restart_prepare(char 
+ 	blocking_notifier_call_chain(&reboot_notifier_list, SYS_RESTART, cmd);
+ 	system_state = SYSTEM_RESTART;
+ 	device_shutdown();
++	sysdev_shutdown();
+ }
+ 
+ /**
+@@ -860,6 +861,7 @@ void kernel_shutdown_prepare(enum system
+ void kernel_halt(void)
+ {
+ 	kernel_shutdown_prepare(SYSTEM_HALT);
++	sysdev_shutdown();
+ 	printk(KERN_EMERG "System halted.\n");
+ 	machine_halt();
+ }
+@@ -876,6 +878,7 @@ void kernel_power_off(void)
+ 	kernel_shutdown_prepare(SYSTEM_POWER_OFF);
+ 	if (pm_power_off_prepare)
+ 		pm_power_off_prepare();
++	sysdev_shutdown();
+ 	printk(KERN_EMERG "Power down.\n");
+ 	machine_power_off();
+ }
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-git-acpi.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-kernel-auditscc-fix-an-off-by-one.patch
-git-drm.patch
-git-dvb.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-fore200e_param_bs_queue-must-be-__devinit.patch
-git-ocfs2.patch
-cpqphp_ctrlc-remove-dead-code.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-git-unionfs.patch
-git-v9fs.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-serial-sh-sci-fix-build-failure-from-kgdb-fallout.patch
-usb_serial_suspend-buggy-code.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-maps2-add-proc-kpagemap-interface.patch
-fs-reiserfs-cleanups.patch
-anon_inodes-shouldnt-be-user-visible.patch
-remove-unsafe-from-module-struct.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-fix-compilation-of-suspend-code-if-config_pm-is-unset.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+shrink_slab-handle-bad-shrinkers.patch
