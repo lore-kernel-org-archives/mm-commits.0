@@ -1,69 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch added to -mm tree
-Date: Sun, 29 Jul 2007 00:31:24 -0700
-Message-ID: <200707290731.l6T7VOhv013811@imap1.linux-foundation.org>
+Subject: - alloc_pages-debug.patch removed from -mm tree
+Date: Sun, 29 Jul 2007 00:34:35 -0700
+Message-ID: <200707290734.l6T7YZDB013948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52291 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59191 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757222AbXG2HdD (ORCPT
+	by vger.kernel.org with ESMTP id S1759001AbXG2Hem (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 03:33:03 -0400
+	Sun, 29 Jul 2007 03:34:42 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6T7YeL0011028
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 29 Jul 2007 00:34:41 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeremy@goop.org, martin.pitt@ubuntu.com, nhorman@tuxdriver.com, wwoods@redhat.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     core_pattern-fix-up-a-few-miscellaneous-bugs-fix
-has been added to the -mm tree.  Its filename is
-     core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+     alloc_pages debug
+has been removed from the -mm tree.  Its filename was
+     alloc_pages-debug.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: core_pattern-fix-up-a-few-miscellaneous-bugs-fix
+Subject: alloc_pages debug
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <martin.pitt@ubuntu.com>
-Cc: <wwoods@redhat.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Well?  Should it?
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~core_pattern-fix-up-a-few-miscellaneous-bugs-fix fs/exec.c
---- a/fs/exec.c~core_pattern-fix-up-a-few-miscellaneous-bugs-fix
-+++ a/fs/exec.c
-@@ -1778,16 +1778,17 @@ int do_coredump(long signr, int exit_cod
- 			delimit++;
- 		else
- 			delimit = helper_argv[0];
--		if (!strcmp(delimit, current->comm))
--		{
--			printk(KERN_NOTICE "Recursive core dump detected, Aborting\n");
-+		if (!strcmp(delimit, current->comm)) {
-+			printk(KERN_NOTICE "Recursive core dump detected, "
-+					"aborting\n");
- 			goto fail_unlock;
- 		}
+diff -puN mm/page_alloc.c~alloc_pages-debug mm/page_alloc.c
+--- a/mm/page_alloc.c~alloc_pages-debug
++++ a/mm/page_alloc.c
+@@ -1559,7 +1559,7 @@ restart:
+ 	z = zonelist->zones;  /* the list of zones suitable for gfp_mask */
  
- 		core_limit = RLIM_INFINITY;
+ 	if (unlikely(*z == NULL)) {
+-		/* Should this ever happen?? */
++		WARN_ON_ONCE(1);
+ 		return NULL;
+ 	}
  
- 		/* SIGPIPE can happen, but it's just never processed */
-- 		if(call_usermodehelper_pipe(corename+1, helper_argv, NULL, &file)) {
-+ 		if (call_usermodehelper_pipe(corename+1, helper_argv, NULL,
-+				&file)) {
-  			printk(KERN_INFO "Core dump to %s pipe failed\n",
- 			       corename);
-  			goto fail_unlock;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
