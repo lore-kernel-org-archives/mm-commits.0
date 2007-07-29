@@ -1,86 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - net-bluetooth-rfcomm-ttyc-use-after-free.patch removed from -mm tree
-Date: Sat, 28 Jul 2007 23:13:23 -0700
-Message-ID: <200707290613.l6T6DNaa011196@imap1.linux-foundation.org>
+Subject: - x86_64-fix-section-mismatch-warnings-in-tce.patch removed from -mm tree
+Date: Sat, 28 Jul 2007 23:12:25 -0700
+Message-ID: <200707290612.l6T6CP21011124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38948 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39828 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758660AbXG2GXr (ORCPT
+	by vger.kernel.org with ESMTP id S1759260AbXG2GXs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:23:47 -0400
+	Sun, 29 Jul 2007 02:23:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcel@holtmann.org, bunk@stusta.de, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/bluetooth/rfcomm/tty.c: use-after-free
+     x86_64: fix section mismatch warnings in tce
 has been removed from the -mm tree.  Its filename was
-     net-bluetooth-rfcomm-ttyc-use-after-free.patch
+     x86_64-fix-section-mismatch-warnings-in-tce.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net/bluetooth/rfcomm/tty.c: use-after-free
-From: Marcel Holtmann <marcel@holtmann.org>
+Subject: x86_64: fix section mismatch warnings in tce
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Adrian said:
+Fix the following two section mismatch warnings:
 
-> Commit 8de0a15483b357d0f0b821330ec84d1660cadc4e added the following
-> use-after-free in net/bluetooth/rfcomm/tty.c:
->
-> <--  snip  -->
->
-> ...
-> static int rfcomm_dev_add(struct rfcomm_dev_req *req, struct rfcomm_dlc *dlc)
-> {
-> ...
->         if (IS_ERR(dev->tty_dev)) {
->                 list_del(&dev->list);
->                 kfree(dev);
->                 return PTR_ERR(dev->tty_dev);
->         }
-> ...
->
-> <--  snip  -->
->
-> Spotted by the Coverity checker.
+WARNING: vmlinux.o(.text+0x1ce84): Section mismatch: reference to .init.text:free_bootmem (between 'free_tce_table' and 'build_tce_table')
+WARNING: vmlinux.o(.text+0x1d04d): Section mismatch: reference to .init.text:__alloc_bootmem_low (between 'alloc_tce_table' and 'kretprobe_trampoline_holder')
 
-Signed-off-by: Marcel Holtmann <marcel@holtmann.org>
-Cc: Adrian Bunk <bunk@stusta.de>
+In both cases the functions was used only from __init
+context so mark them __init.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/rfcomm/tty.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/tce.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/bluetooth/rfcomm/tty.c~net-bluetooth-rfcomm-ttyc-use-after-free net/bluetooth/rfcomm/tty.c
---- a/net/bluetooth/rfcomm/tty.c~net-bluetooth-rfcomm-ttyc-use-after-free
-+++ a/net/bluetooth/rfcomm/tty.c
-@@ -267,7 +267,7 @@ static int rfcomm_dev_add(struct rfcomm_
- out:
- 	write_unlock_bh(&rfcomm_dev_lock);
+diff -puN arch/x86_64/kernel/tce.c~x86_64-fix-section-mismatch-warnings-in-tce arch/x86_64/kernel/tce.c
+--- a/arch/x86_64/kernel/tce.c~x86_64-fix-section-mismatch-warnings-in-tce
++++ a/arch/x86_64/kernel/tce.c
+@@ -165,7 +165,7 @@ done:
+ 	return ret;
+ }
  
--	if (err) {
-+	if (err < 0) {
- 		kfree(dev);
- 		return err;
- 	}
-@@ -275,9 +275,10 @@ out:
- 	dev->tty_dev = tty_register_device(rfcomm_tty_driver, dev->id, NULL);
+-void* alloc_tce_table(void)
++void * __init alloc_tce_table(void)
+ {
+ 	unsigned int size;
  
- 	if (IS_ERR(dev->tty_dev)) {
-+		err = PTR_ERR(dev->tty_dev);
- 		list_del(&dev->list);
- 		kfree(dev);
--		return PTR_ERR(dev->tty_dev);
-+		return err;
- 	}
+@@ -175,7 +175,7 @@ void* alloc_tce_table(void)
+ 	return __alloc_bootmem_low(size, size, 0);
+ }
  
- 	return dev->id;
+-void free_tce_table(void *tbl)
++void __init free_tce_table(void *tbl)
+ {
+ 	unsigned int size;
+ 
 _
 
-Patches currently in -mm which might be from marcel@holtmann.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-git-net.patch
+origin.patch
+x86-64-calgary-fix-section-mismatch-warnings-in-tce.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+mkmakefile-include-arch-on-o=-builds.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+whitelist-references-from-__dbe_table-to-init.patch
+broken-lilo-check-on-make-install.patch
+kconfig-remove-top-level-menu-code-maturity-level-options.patch
