@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-remove-redundant-memset-from-amd5536udc.patch added to -mm tree
-Date: Sat, 28 Jul 2007 23:57:36 -0700
-Message-ID: <200707290657.l6T6vaRj012643@imap1.linux-foundation.org>
+Subject: + ext4_ext_put_in_cache-uses-__u32-to-receive-physical.patch added to -mm tree
+Date: Sun, 29 Jul 2007 00:00:04 -0700
+Message-ID: <200707290700.l6T7043g012725@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37284 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56422 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759849AbXG2G5p (ORCPT
+	by vger.kernel.org with ESMTP id S1759815AbXG2HAb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Jul 2007 02:57:45 -0400
+	Sun, 29 Jul 2007 03:00:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, greg@kroah.com
+Cc: cmm@us.ibm.com, linux-ext4@vger.kernel.org, stable@kernel.org, yanzheng@21cn.com
 
 
 The patch titled
-     usb: remove redundant memset from amd5536udc
+     "ext4_ext_put_in_cache" uses __u32 to receive physical block number
 has been added to the -mm tree.  Its filename is
-     usb-remove-redundant-memset-from-amd5536udc.patch
+     ext4_ext_put_in_cache-uses-__u32-to-receive-physical.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb: remove redundant memset from amd5536udc
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: "ext4_ext_put_in_cache" uses __u32 to receive physical block number
+From: Mingming Cao <cmm@us.ibm.com>
 
-Remove redundant memset() call from udc_pci_probe().  No functional change.
+Yan Zheng wrote:
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Greg KH <greg@kroah.com>
+> I think I found a bug in ext4/extents.c, "ext4_ext_put_in_cache" uses
+> "__u32" to receive physical block number.  "ext4_ext_put_in_cache" is
+> used in "ext4_ext_get_blocks", it sets ext4 inode's extent cache
+> according most recently tree lookup (higher 16 bits of saved physical
+> block number are always zero). when serving a mapping request,
+> "ext4_ext_get_blocks" first check whether the logical block is in
+> inode's extent cache. if the logical block is in the cache and the
+> cached region isn't a gap, "ext4_ext_get_blocks" gets physical block
+> number by using cached region's physical block number and offset in
+> the cached region.  as described above, "ext4_ext_get_blocks" may
+> return wrong result when there are physical block numbers bigger than
+> 0xffffffff.
+>
+
+You are right.  Thanks for reporting this!
+
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Cc: Yan Zheng <yanzheng@21cn.com>
+Cc: <stable@kernel.org>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/amd5536udc.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ext4/extents.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/gadget/amd5536udc.c~usb-remove-redundant-memset-from-amd5536udc drivers/usb/gadget/amd5536udc.c
---- a/drivers/usb/gadget/amd5536udc.c~usb-remove-redundant-memset-from-amd5536udc
-+++ a/drivers/usb/gadget/amd5536udc.c
-@@ -3244,7 +3244,6 @@ static int udc_pci_probe(
- 		retval = -ENOMEM;
- 		goto finished;
- 	}
--	memset(dev, 0, sizeof(struct udc));
+diff -puN fs/ext4/extents.c~ext4_ext_put_in_cache-uses-__u32-to-receive-physical fs/ext4/extents.c
+--- a/fs/ext4/extents.c~ext4_ext_put_in_cache-uses-__u32-to-receive-physical
++++ a/fs/ext4/extents.c
+@@ -1544,7 +1544,7 @@ int ext4_ext_walk_space(struct inode *in
  
- 	/* pci setup */
- 	if (pci_enable_device(pdev) < 0) {
+ static void
+ ext4_ext_put_in_cache(struct inode *inode, __u32 block,
+-			__u32 len, __u32 start, int type)
++			__u32 len, ext4_fsblk_t start, int type)
+ {
+ 	struct ext4_ext_cache *cex;
+ 	BUG_ON(len == 0);
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from cmm@us.ibm.com are
 
-mtd-add-module-license-to-mtdbdi.patch
-mtd-remove-redundant-dead-code-from-physmap_ofc.patch
-usb-remove-redundant-memset-from-amd5536udc.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
-fs-9p-convc-error-path-fix.patch
+ext4_ext_put_in_cache-uses-__u32-to-receive-physical.patch
+convert-ill-defined-log2-to-ilog2.patch
+ext2-reservations.patch
+fix-for-ext2-reservation.patch
+ext2-balloc-use-io_error-label.patch
