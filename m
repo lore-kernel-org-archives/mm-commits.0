@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-fix-objstripc-compilation-warnings.patch added to -mm tree
-Date: Mon, 30 Jul 2007 13:27:13 -0700
-Message-ID: <200707302027.l6UKRE1L028977@imap1.linux-foundation.org>
+Subject: + alpha-fix-boot-mainc-warning.patch added to -mm tree
+Date: Mon, 30 Jul 2007 13:27:15 -0700
+Message-ID: <200707302027.l6UKRFgW028981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60567 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49887 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937311AbXG3U2Y (ORCPT
+	by vger.kernel.org with ESMTP id S937364AbXG3U2Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 30 Jul 2007 16:28:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mroos@linux.ee, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.
 
 
 The patch titled
-     alpha: fix objstrip.c compilation warnings
+     alpha: fix boot/main.c warning
 has been added to the -mm tree.  Its filename is
-     alpha-fix-objstripc-compilation-warnings.patch
+     alpha-fix-boot-mainc-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,24 +26,17 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: alpha: fix objstrip.c compilation warnings
+Subject: alpha: fix boot/main.c warning
 From: Meelis Roos <mroos@linux.ee>
 
-In current 2.6.23-rc1+git, make bootimage gives the following warnings while
-compiling objstrip.c.  The patch below fixes these warnings by casting strncmp
-argument to char * - it does not seem feasible to change its type in struct
-elfhdr.
+In current 2.6.23-rc1+git, make bootimage gives the following warning while
+compiling arch/alpha/boot/main.c.  The patch below fixes the warning by
+casting callback argument explicitly to void*.  The original value comes from
+START_ADDR macro and is clearly numeric so only cast it for the callback.
 
-  HOSTCC  arch/alpha/boot/tools/objstrip
-arch/alpha/boot/tools/objstrip.c: In function 'main':
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strlen' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strlen' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strlen' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strncmp' differ in signedness
+  CC      arch/alpha/boot/main.o
+arch/alpha/boot/main.c: In function 'load':
+arch/alpha/boot/main.c:135: warning: passing argument 3 of 'callback_read' makes pointer from integer without a cast
 
 Signed-off-by: Meelis Roos <mroos@linux.ee>
 Cc: Jay Estabrook <jay.estabrook@hp.com>
@@ -52,21 +45,21 @@ Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/boot/tools/objstrip.c |    2 +-
+ arch/alpha/boot/main.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/boot/tools/objstrip.c~alpha-fix-objstripc-compilation-warnings arch/alpha/boot/tools/objstrip.c
---- a/arch/alpha/boot/tools/objstrip.c~alpha-fix-objstripc-compilation-warnings
-+++ a/arch/alpha/boot/tools/objstrip.c
-@@ -144,7 +144,7 @@ main (int argc, char *argv[])
- #ifdef __ELF__
-     elf = (struct elfhdr *) buf;
+diff -puN arch/alpha/boot/main.c~alpha-fix-boot-mainc-warning arch/alpha/boot/main.c
+--- a/arch/alpha/boot/main.c~alpha-fix-boot-mainc-warning
++++ a/arch/alpha/boot/main.c
+@@ -132,7 +132,7 @@ static inline long load(long dev, unsign
+ 	if (result)
+ 		srm_printk("Boot file specification (%s) not implemented\n",
+ 		       bootfile);
+-	return callback_read(dev, count, addr, boot_size/512 + 1);
++	return callback_read(dev, count, (void *)addr, boot_size/512 + 1);
+ }
  
--    if (elf->e_ident[0] == 0x7f && strncmp(elf->e_ident + 1, "ELF", 3) == 0) {
-+    if (elf->e_ident[0] == 0x7f && strncmp((char *)elf->e_ident + 1, "ELF", 3) == 0) {
- 	if (elf->e_type != ET_EXEC) {
- 	    fprintf(stderr, "%s: %s is not an ELF executable\n",
- 		    prog_name, inname);
+ /*
 _
 
 Patches currently in -mm which might be from mroos@linux.ee are
