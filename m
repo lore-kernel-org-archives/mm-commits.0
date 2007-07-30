@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-serial-sierrac-make-3-functions-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:07:02 -0700
-Message-ID: <200707302207.l6UM72RK000489@imap1.linux-foundation.org>
+Subject: + net-unix-af_unixc-make-code-static.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:07:00 -0700
+Message-ID: <200707302207.l6UM70kR000414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51009 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41647 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S938944AbXG3WHQ (ORCPT
+	by vger.kernel.org with ESMTP id S939039AbXG3WHQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 30 Jul 2007 18:07:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: bunk@stusta.de
 The patch titled
      From: Adrian Bunk <bunk@stusta.de>
 has been added to the -mm tree.  Its filename is
-     drivers-usb-serial-sierrac-make-3-functions-static.patch
+     net-unix-af_unixc-make-code-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,51 +29,108 @@ out what to do about this
 Subject: From: Adrian Bunk <bunk@stusta.de>
 
 
-This patch makes three needlessly global functions static.
+The following code can now become static:
+- struct unix_socket_table
+- unix_table_lock
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
 ---
 
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/sierra.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ include/net/af_unix.h |   29 -----------------------------
+ net/unix/af_unix.c    |   30 ++++++++++++++++++++++++++++--
+ 2 files changed, 28 insertions(+), 31 deletions(-)
 
-diff -puN drivers/usb/serial/sierra.c~drivers-usb-serial-sierrac-make-3-functions-static drivers/usb/serial/sierra.c
---- a/drivers/usb/serial/sierra.c~drivers-usb-serial-sierrac-make-3-functions-static
-+++ a/drivers/usb/serial/sierra.c
-@@ -45,7 +45,7 @@ enum devicetype {
- 	DEVICE_INSTALLER =	2,
- };
+diff -puN include/net/af_unix.h~net-unix-af_unixc-make-code-static include/net/af_unix.h
+--- a/include/net/af_unix.h~net-unix-af_unixc-make-code-static
++++ a/include/net/af_unix.h
+@@ -12,37 +12,8 @@ extern void unix_gc(void);
  
--int sierra_set_power_state(struct usb_device *udev, __u16 swiState)
-+static int sierra_set_power_state(struct usb_device *udev, __u16 swiState)
- {
- 	int result;
- 	dev_dbg(&udev->dev, "%s", "SET POWER STATE");
-@@ -60,7 +60,7 @@ int sierra_set_power_state(struct usb_de
- 	return result;
- }
+ #define UNIX_HASH_SIZE	256
  
--int sierra_set_ms_mode(struct usb_device *udev, __u16 eSocMode)
-+static int sierra_set_ms_mode(struct usb_device *udev, __u16 eSocMode)
- {
- 	int result;
- 	dev_dbg(&udev->dev, "%s", "DEVICE MODE SWITCH");
-@@ -75,7 +75,8 @@ int sierra_set_ms_mode(struct usb_device
- 	return result;
- }
+-extern struct hlist_head unix_socket_table[UNIX_HASH_SIZE + 1];
+-extern spinlock_t unix_table_lock;
+-
+ extern atomic_t unix_tot_inflight;
  
--int sierra_probe(struct usb_interface *iface, const struct usb_device_id *id)
-+static int sierra_probe(struct usb_interface *iface,
-+			const struct usb_device_id *id)
+-static inline struct sock *first_unix_socket(int *i)
+-{
+-	for (*i = 0; *i <= UNIX_HASH_SIZE; (*i)++) {
+-		if (!hlist_empty(&unix_socket_table[*i]))
+-			return __sk_head(&unix_socket_table[*i]);
+-	}
+-	return NULL;
+-}
+-
+-static inline struct sock *next_unix_socket(int *i, struct sock *s)
+-{
+-	struct sock *next = sk_next(s);
+-	/* More in this chain? */
+-	if (next)
+-		return next;
+-	/* Look for next non-empty chain. */
+-	for ((*i)++; *i <= UNIX_HASH_SIZE; (*i)++) {
+-		if (!hlist_empty(&unix_socket_table[*i]))
+-			return __sk_head(&unix_socket_table[*i]);
+-	}
+-	return NULL;
+-}
+-
+-#define forall_unix_sockets(i, s) \
+-	for (s = first_unix_socket(&(i)); s; s = next_unix_socket(&(i),(s)))
+-
+ struct unix_address {
+ 	atomic_t	refcnt;
+ 	int		len;
+diff -puN net/unix/af_unix.c~net-unix-af_unixc-make-code-static net/unix/af_unix.c
+--- a/net/unix/af_unix.c~net-unix-af_unixc-make-code-static
++++ a/net/unix/af_unix.c
+@@ -118,14 +118,40 @@
+ 
+ int sysctl_unix_max_dgram_qlen __read_mostly = 10;
+ 
+-struct hlist_head unix_socket_table[UNIX_HASH_SIZE + 1];
+-DEFINE_SPINLOCK(unix_table_lock);
++static struct hlist_head unix_socket_table[UNIX_HASH_SIZE + 1];
++static DEFINE_SPINLOCK(unix_table_lock);
+ static atomic_t unix_nr_socks = ATOMIC_INIT(0);
+ 
+ #define unix_sockets_unbound	(&unix_socket_table[UNIX_HASH_SIZE])
+ 
+ #define UNIX_ABSTRACT(sk)	(unix_sk(sk)->addr->hash != UNIX_HASH_SIZE)
+ 
++static struct sock *first_unix_socket(int *i)
++{
++	for (*i = 0; *i <= UNIX_HASH_SIZE; (*i)++) {
++		if (!hlist_empty(&unix_socket_table[*i]))
++			return __sk_head(&unix_socket_table[*i]);
++	}
++	return NULL;
++}
++
++static struct sock *next_unix_socket(int *i, struct sock *s)
++{
++	struct sock *next = sk_next(s);
++	/* More in this chain? */
++	if (next)
++		return next;
++	/* Look for next non-empty chain. */
++	for ((*i)++; *i <= UNIX_HASH_SIZE; (*i)++) {
++		if (!hlist_empty(&unix_socket_table[*i]))
++			return __sk_head(&unix_socket_table[*i]);
++	}
++	return NULL;
++}
++
++#define forall_unix_sockets(i, s) \
++	for (s = first_unix_socket(&(i)); s; s = next_unix_socket(&(i),(s)))
++
+ #ifdef CONFIG_SECURITY_NETWORK
+ static void unix_get_secdata(struct scm_cookie *scm, struct sk_buff *skb)
  {
- 	int result;
- 	struct usb_device *udev;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
