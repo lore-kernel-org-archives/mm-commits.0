@@ -1,212 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: + fs-afs-possible-cleanups.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:47:11 -0700
-Message-ID: <200707302247.l6UMlB6l002489@imap1.linux-foundation.org>
+Subject: + remove-fs-jffs2-ioctlc.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:47:07 -0700
+Message-ID: <200707302247.l6UMl7MX002483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36558 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51238 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755312AbXG3WsE (ORCPT
+	by vger.kernel.org with ESMTP id S1754841AbXG3Wr7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:48:04 -0400
+	Mon, 30 Jul 2007 18:47:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, dhowells@redhat.com
+Cc: bunk@stusta.de, dwmw2@infradead.org
 
 
 The patch titled
-     fs/afs/: possible cleanups
+     remove fs/jffs2/ioctl.c
 has been added to the -mm tree.  Its filename is
-     fs-afs-possible-cleanups.patch
+     remove-fs-jffs2-ioctlc.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/afs/: possible cleanups
-From: Adrian Bunk <bunk@stusta.de>
+Subject: remove fs/jffs2/ioctl.c
+=46rom: Adrian Bunk <bunk@stusta.de>
 
-This patch contains the following possible cleanups:
-- make the following needlessly global functions static:
-  - rxrpc.c: afs_send_pages()
-  - vlocation.c: afs_vlocation_queue_for_updates()
-  - write.c: afs_writepages_region()
-- make the following needlessly global variables static:
-  - mntpt.c: afs_mntpt_expiry_timeout
-  - proc.c: afs_vlocation_states[]
-  - server.c: afs_server_timeout
-  - vlocation.c: afs_vlocation_timeout
-  - vlocation.c: afs_vlocation_update_timeout
-- #if 0 the following unused function:
-  - cell.c: afs_get_cell_maybe()
-- #if 0 the following unused variables:
-  - callback.c: afs_vnode_update_timeout
-  - cmservice.c: struct afs_cm_workqueue
+fs/jffs2/ioctl.c is already for so long in the "might be used later" st=
+ate
+that I doubt it will ever be actually used...
+
+And if it will ever be used, reverting this patch will be trivial.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/callback.c  |    2 ++
- fs/afs/cell.c      |    2 ++
- fs/afs/cmservice.c |    2 ++
- fs/afs/internal.h  |    1 -
- fs/afs/mntpt.c     |    2 +-
- fs/afs/proc.c      |    2 +-
- fs/afs/rxrpc.c     |    3 ++-
- fs/afs/server.c    |    2 +-
- fs/afs/vlocation.c |    6 +++---
- fs/afs/write.c     |    6 +++---
- 10 files changed, 17 insertions(+), 11 deletions(-)
+ fs/jffs2/Makefile   |    2 +-
+ fs/jffs2/dir.c      |    1 -
+ fs/jffs2/file.c     |    1 -
+ fs/jffs2/ioctl.c    |   21 ---------------------
+ fs/jffs2/os-linux.h |    3 ---
+ 5 files changed, 1 insertion(+), 27 deletions(-)
 
-diff -puN fs/afs/callback.c~fs-afs-possible-cleanups fs/afs/callback.c
---- a/fs/afs/callback.c~fs-afs-possible-cleanups
-+++ a/fs/afs/callback.c
-@@ -20,7 +20,9 @@
- #include <linux/sched.h>
- #include "internal.h"
- 
-+#if 0
- unsigned afs_vnode_update_timeout = 10;
-+#endif  /*  0  */
- 
- #define afs_breakring_space(server) \
- 	CIRC_SPACE((server)->cb_break_head, (server)->cb_break_tail,	\
-diff -puN fs/afs/cell.c~fs-afs-possible-cleanups fs/afs/cell.c
---- a/fs/afs/cell.c~fs-afs-possible-cleanups
-+++ a/fs/afs/cell.c
-@@ -265,6 +265,7 @@ struct afs_cell *afs_cell_lookup(const c
- 	return cell;
- }
- 
-+#if 0
- /*
-  * try and get a cell record
-  */
-@@ -280,6 +281,7 @@ struct afs_cell *afs_get_cell_maybe(stru
- 	write_unlock(&afs_cells_lock);
- 	return cell;
- }
-+#endif  /*  0  */
- 
- /*
-  * destroy a cell record
-diff -puN fs/afs/cmservice.c~fs-afs-possible-cleanups fs/afs/cmservice.c
---- a/fs/afs/cmservice.c~fs-afs-possible-cleanups
-+++ a/fs/afs/cmservice.c
-@@ -16,7 +16,9 @@
- #include "internal.h"
- #include "afs_cm.h"
- 
-+#if 0
- struct workqueue_struct *afs_cm_workqueue;
-+#endif  /*  0  */
- 
- static int afs_deliver_cb_init_call_back_state(struct afs_call *,
- 					       struct sk_buff *, bool);
-diff -puN fs/afs/internal.h~fs-afs-possible-cleanups fs/afs/internal.h
---- a/fs/afs/internal.h~fs-afs-possible-cleanups
-+++ a/fs/afs/internal.h
-@@ -570,7 +570,6 @@ extern int afs_abort_to_error(u32);
-  */
- extern const struct inode_operations afs_mntpt_inode_operations;
- extern const struct file_operations afs_mntpt_file_operations;
--extern unsigned long afs_mntpt_expiry_timeout;
- 
- extern int afs_mntpt_check_symlink(struct afs_vnode *, struct key *);
- extern void afs_mntpt_kill_timer(void);
-diff -puN fs/afs/mntpt.c~fs-afs-possible-cleanups fs/afs/mntpt.c
---- a/fs/afs/mntpt.c~fs-afs-possible-cleanups
-+++ a/fs/afs/mntpt.c
-@@ -42,7 +42,7 @@ const struct inode_operations afs_mntpt_
- static LIST_HEAD(afs_vfsmounts);
- static DECLARE_DELAYED_WORK(afs_mntpt_expiry_timer, afs_mntpt_expiry_timed_out);
- 
--unsigned long afs_mntpt_expiry_timeout = 10 * 60;
-+static unsigned long afs_mntpt_expiry_timeout = 10 * 60;
- 
- /*
-  * check a symbolic link to see whether it actually encodes a mountpoint
-diff -puN fs/afs/proc.c~fs-afs-possible-cleanups fs/afs/proc.c
---- a/fs/afs/proc.c~fs-afs-possible-cleanups
-+++ a/fs/afs/proc.c
-@@ -513,7 +513,7 @@ static void afs_proc_cell_volumes_stop(s
- 	up_read(&cell->vl_sem);
- }
- 
--const char afs_vlocation_states[][4] = {
-+static const char afs_vlocation_states[][4] = {
- 	[AFS_VL_NEW]			= "New",
- 	[AFS_VL_CREATING]		= "Crt",
- 	[AFS_VL_VALID]			= "Val",
-diff -puN fs/afs/rxrpc.c~fs-afs-possible-cleanups fs/afs/rxrpc.c
---- a/fs/afs/rxrpc.c~fs-afs-possible-cleanups
-+++ a/fs/afs/rxrpc.c
-@@ -239,7 +239,8 @@ void afs_flat_call_destructor(struct afs
- /*
-  * attach the data from a bunch of pages on an inode to a call
-  */
--int afs_send_pages(struct afs_call *call, struct msghdr *msg, struct kvec *iov)
-+static int afs_send_pages(struct afs_call *call, struct msghdr *msg,
-+			  struct kvec *iov)
+diff -puN fs/jffs2/Makefile~remove-fs-jffs2-ioctlc fs/jffs2/Makefile
+--- a/fs/jffs2/Makefile~remove-fs-jffs2-ioctlc
++++ a/fs/jffs2/Makefile
+@@ -5,7 +5,7 @@
+=20
+ obj-$(CONFIG_JFFS2_FS) +=3D jffs2.o
+=20
+-jffs2-y	:=3D compr.o dir.o file.o ioctl.o nodelist.o malloc.o
++jffs2-y	:=3D compr.o dir.o file.o nodelist.o malloc.o
+ jffs2-y	+=3D read.o nodemgmt.o readinode.o write.o scan.o gc.o
+ jffs2-y	+=3D symlink.o build.o erase.o background.o fs.o writev.o
+ jffs2-y	+=3D super.o debug.o
+diff -puN fs/jffs2/dir.c~remove-fs-jffs2-ioctlc fs/jffs2/dir.c
+--- a/fs/jffs2/dir.c~remove-fs-jffs2-ioctlc
++++ a/fs/jffs2/dir.c
+@@ -38,7 +38,6 @@ const struct file_operations jffs2_dir_o
  {
- 	struct page *pages[8];
- 	unsigned count, n, loop, offset, to;
-diff -puN fs/afs/server.c~fs-afs-possible-cleanups fs/afs/server.c
---- a/fs/afs/server.c~fs-afs-possible-cleanups
-+++ a/fs/afs/server.c
-@@ -13,7 +13,7 @@
- #include <linux/slab.h>
- #include "internal.h"
- 
--unsigned afs_server_timeout = 10;	/* server timeout in seconds */
-+static unsigned afs_server_timeout = 10;	/* server timeout in seconds */
- 
- static void afs_reap_server(struct work_struct *);
- 
-diff -puN fs/afs/vlocation.c~fs-afs-possible-cleanups fs/afs/vlocation.c
---- a/fs/afs/vlocation.c~fs-afs-possible-cleanups
-+++ a/fs/afs/vlocation.c
-@@ -15,8 +15,8 @@
- #include <linux/sched.h>
- #include "internal.h"
- 
--unsigned afs_vlocation_timeout = 10;	/* volume location timeout in seconds */
--unsigned afs_vlocation_update_timeout = 10 * 60;
-+static unsigned afs_vlocation_timeout = 10;	/* volume location timeout in seconds */
-+static unsigned afs_vlocation_update_timeout = 10 * 60;
- 
- static void afs_vlocation_reaper(struct work_struct *);
- static void afs_vlocation_updater(struct work_struct *);
-@@ -335,7 +335,7 @@ static int afs_vlocation_fill_in_record(
- /*
-  * queue a vlocation record for updates
-  */
--void afs_vlocation_queue_for_updates(struct afs_vlocation *vl)
-+static void afs_vlocation_queue_for_updates(struct afs_vlocation *vl)
- {
- 	struct afs_vlocation *xvl;
- 
-diff -puN fs/afs/write.c~fs-afs-possible-cleanups fs/afs/write.c
---- a/fs/afs/write.c~fs-afs-possible-cleanups
-+++ a/fs/afs/write.c
-@@ -510,9 +510,9 @@ int afs_writepage(struct page *page, str
- /*
-  * write a region of pages back to the server
-  */
--int afs_writepages_region(struct address_space *mapping,
--			  struct writeback_control *wbc,
--			  pgoff_t index, pgoff_t end, pgoff_t *_next)
-+static int afs_writepages_region(struct address_space *mapping,
-+				 struct writeback_control *wbc,
-+				 pgoff_t index, pgoff_t end, pgoff_t *_next)
- {
- 	struct backing_dev_info *bdi = mapping->backing_dev_info;
- 	struct afs_writeback *wb;
+ 	.read =3D		generic_read_dir,
+ 	.readdir =3D	jffs2_readdir,
+-	.ioctl =3D	jffs2_ioctl,
+ 	.fsync =3D	jffs2_fsync
+ };
+=20
+diff -puN fs/jffs2/file.c~remove-fs-jffs2-ioctlc fs/jffs2/file.c
+--- a/fs/jffs2/file.c~remove-fs-jffs2-ioctlc
++++ a/fs/jffs2/file.c
+@@ -46,7 +46,6 @@ const struct file_operations jffs2_file_
+  	.aio_read =3D	generic_file_aio_read,
+  	.write =3D	do_sync_write,
+  	.aio_write =3D	generic_file_aio_write,
+-	.ioctl =3D	jffs2_ioctl,
+ 	.mmap =3D		generic_file_readonly_mmap,
+ 	.fsync =3D	jffs2_fsync,
+ 	.splice_read =3D	generic_file_splice_read,
+diff -puN fs/jffs2/ioctl.c~remove-fs-jffs2-ioctlc /dev/null
+--- a/fs/jffs2/ioctl.c
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/*
+- * JFFS2 -- Journalling Flash File System, Version 2.
+- *
+- * Copyright =C2=A9 2001-2007 Red Hat, Inc.
+- *
+- * Created by David Woodhouse <dwmw2@infradead.org>
+- *
+- * For licensing information, see the file 'LICENCE' in this directory=
+=2E
+- *
+- */
+-
+-#include <linux/fs.h>
+-
+-int jffs2_ioctl(struct inode *inode, struct file *filp, unsigned int c=
+md,
+-		unsigned long arg)
+-{
+-	/* Later, this will provide for lsattr.jffs2 and chattr.jffs2, which
+-	   will include compression support etc. */
+-	return -ENOTTY;
+-}
+-
+diff -puN fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc fs/jffs2/os-linux.=
+h
+--- a/fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc
++++ a/fs/jffs2/os-linux.h
+@@ -166,9 +166,6 @@ extern const struct address_space_operat
+ int jffs2_fsync(struct file *, struct dentry *, int);
+ int jffs2_do_readpage_unlock (struct inode *inode, struct page *pg);
+=20
+-/* ioctl.c */
+-int jffs2_ioctl(struct inode *, struct file *, unsigned int, unsigned =
+long);
+-
+ /* symlink.c */
+ extern const struct inode_operations jffs2_symlink_inode_operations;
+=20
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -226,7 +147,8 @@ export-v4l2_int_device_unregister.patch
 drivers-i2c-i2c-corec-make-code-static.patch
 git-hwmon.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-=
+dma.patch
 git-mmc.patch
 git-mtd.patch
 mtd-onenand_simc-make-struct-info-static.patch
@@ -244,7 +166,8 @@ nsp32_restart_autoscsi-remove-error-check.patch
 make-scsi_host_link_pm_policy-static.patch
 git-unionfs.patch
 drivers-usb-serial-sierrac-make-3-functions-static.patch
-fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts.patch
+fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-host=
+s.patch
 git-v9fs.patch
 git-ipwireless_cs.patch
 arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
@@ -273,8 +196,10 @@ unexport-fb_prepare_logo.patch
 intel-iommu-intel-iommu-driver.patch
 revoke-core-code.patch
 mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.pat=
+ch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-=
+remove-unused-exports.patch
 the-next-round-of-scheduled-oss-code-removal.patch
 reiser4-export-remove_from_page_cache.patch
 reiser4.patch
