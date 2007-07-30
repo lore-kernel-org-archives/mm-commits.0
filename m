@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-fix-mkbb-compilation-warnings.patch added to -mm tree
-Date: Mon, 30 Jul 2007 13:27:08 -0700
-Message-ID: <200707302027.l6UKR8ja028973@imap1.linux-foundation.org>
+Subject: + alpha-fix-objstripc-compilation-warnings.patch added to -mm tree
+Date: Mon, 30 Jul 2007 13:27:13 -0700
+Message-ID: <200707302027.l6UKRE1L028977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53716 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60567 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762952AbXG3U2Y (ORCPT
+	by vger.kernel.org with ESMTP id S937311AbXG3U2Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 30 Jul 2007 16:28:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mroos@linux.ee, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.
 
 
 The patch titled
-     alpha: fix mkbb compilation warnings
+     alpha: fix objstrip.c compilation warnings
 has been added to the -mm tree.  Its filename is
-     alpha-fix-mkbb-compilation-warnings.patch
+     alpha-fix-objstripc-compilation-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,25 +26,24 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: alpha: fix mkbb compilation warnings
+Subject: alpha: fix objstrip.c compilation warnings
 From: Meelis Roos <mroos@linux.ee>
 
 In current 2.6.23-rc1+git, make bootimage gives the following warnings while
-compiling mkbb.c.  The patch below fixes these warnings by using the proper
-include for exit() and using appropriate printf format.
+compiling objstrip.c.  The patch below fixes these warnings by casting strncmp
+argument to char * - it does not seem feasible to change its type in struct
+elfhdr.
 
-  HOSTCC  arch/alpha/boot/tools/mkbb
-arch/alpha/boot/tools/mkbb.c: In function 'main':
-arch/alpha/boot/tools/mkbb.c:95: warning: implicit declaration of function 'exit'
-arch/alpha/boot/tools/mkbb.c:95: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:102: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:110: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:117: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-arch/alpha/boot/tools/mkbb.c:118: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:125: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-arch/alpha/boot/tools/mkbb.c:126: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:143: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:148: warning: incompatible implicit declaration of built-in function 'exit'
+  HOSTCC  arch/alpha/boot/tools/objstrip
+arch/alpha/boot/tools/objstrip.c: In function 'main':
+arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strlen' differ in signedness
+arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strlen' differ in signedness
+arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
+arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strlen' differ in signedness
+arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
+arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
+arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
+arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strncmp' differ in signedness
 
 Signed-off-by: Meelis Roos <mroos@linux.ee>
 Cc: Jay Estabrook <jay.estabrook@hp.com>
@@ -53,38 +52,21 @@ Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/boot/tools/mkbb.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ arch/alpha/boot/tools/objstrip.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/boot/tools/mkbb.c~alpha-fix-mkbb-compilation-warnings arch/alpha/boot/tools/mkbb.c
---- a/arch/alpha/boot/tools/mkbb.c~alpha-fix-mkbb-compilation-warnings
-+++ a/arch/alpha/boot/tools/mkbb.c
-@@ -11,6 +11,7 @@
+diff -puN arch/alpha/boot/tools/objstrip.c~alpha-fix-objstripc-compilation-warnings arch/alpha/boot/tools/objstrip.c
+--- a/arch/alpha/boot/tools/objstrip.c~alpha-fix-objstripc-compilation-warnings
++++ a/arch/alpha/boot/tools/objstrip.c
+@@ -144,7 +144,7 @@ main (int argc, char *argv[])
+ #ifdef __ELF__
+     elf = (struct elfhdr *) buf;
  
- #include <fcntl.h>
- #include <unistd.h>
-+#include <stdlib.h>
- #include <stdio.h>
- 
- /* Minimal definition of disklabel, so we don't have to include
-@@ -114,7 +115,7 @@ int main(int argc, char ** argv)
-     nread = read(fd, &bootloader_image, sizeof(bootblock));
-     if(nread != sizeof(bootblock)) {
- 	perror("lxboot read");
--	fprintf(stderr, "expected %d, got %d\n", sizeof(bootblock), nread);
-+	fprintf(stderr, "expected %zd, got %d\n", sizeof(bootblock), nread);
- 	exit(0);
-     }
- 
-@@ -122,7 +123,7 @@ int main(int argc, char ** argv)
-     nread = read(dev, &bootblock_from_disk, sizeof(bootblock));
-     if(nread != sizeof(bootblock)) {
- 	perror("bootblock read");
--	fprintf(stderr, "expected %d, got %d\n", sizeof(bootblock), nread);
-+	fprintf(stderr, "expected %zd, got %d\n", sizeof(bootblock), nread);
- 	exit(0);
-     }
- 
+-    if (elf->e_ident[0] == 0x7f && strncmp(elf->e_ident + 1, "ELF", 3) == 0) {
++    if (elf->e_ident[0] == 0x7f && strncmp((char *)elf->e_ident + 1, "ELF", 3) == 0) {
+ 	if (elf->e_type != ET_EXEC) {
+ 	    fprintf(stderr, "%s: %s is not an ELF executable\n",
+ 		    prog_name, inname);
 _
 
 Patches currently in -mm which might be from mroos@linux.ee are
