@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + net-unix-af_unixc-make-code-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:07:00 -0700
-Message-ID: <200707302207.l6UM70kR000414@imap1.linux-foundation.org>
+Subject: + backlight-make-2-structs-static.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:07:04 -0700
+Message-ID: <200707302207.l6UM74Ka000492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41647 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51559 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S939039AbXG3WHQ (ORCPT
+	by vger.kernel.org with ESMTP id S939309AbXG3WHT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:07:16 -0400
+	Mon, 30 Jul 2007 18:07:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: bunk@stusta.de
 The patch titled
      From: Adrian Bunk <bunk@stusta.de>
 has been added to the -mm tree.  Its filename is
-     net-unix-af_unixc-make-code-static.patch
+     backlight-make-2-structs-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,9 +29,7 @@ out what to do about this
 Subject: From: Adrian Bunk <bunk@stusta.de>
 
 
-The following code can now become static:
-- struct unix_socket_table
-- unix_table_lock
+This patch makes two needlessly global structs static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
@@ -40,96 +38,33 @@ Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/af_unix.h |   29 -----------------------------
- net/unix/af_unix.c    |   30 ++++++++++++++++++++++++++++--
- 2 files changed, 28 insertions(+), 31 deletions(-)
+ drivers/video/backlight/backlight.c |    2 +-
+ drivers/video/backlight/lcd.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/net/af_unix.h~net-unix-af_unixc-make-code-static include/net/af_unix.h
---- a/include/net/af_unix.h~net-unix-af_unixc-make-code-static
-+++ a/include/net/af_unix.h
-@@ -12,37 +12,8 @@ extern void unix_gc(void);
+diff -puN drivers/video/backlight/backlight.c~backlight-make-2-structs-static drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~backlight-make-2-structs-static
++++ a/drivers/video/backlight/backlight.c
+@@ -164,7 +164,7 @@ static ssize_t backlight_show_actual_bri
+ 	return rc;
+ }
  
- #define UNIX_HASH_SIZE	256
+-struct class *backlight_class;
++static struct class *backlight_class;
  
--extern struct hlist_head unix_socket_table[UNIX_HASH_SIZE + 1];
--extern spinlock_t unix_table_lock;
--
- extern atomic_t unix_tot_inflight;
+ static void bl_device_release(struct device *dev)
+ {
+diff -puN drivers/video/backlight/lcd.c~backlight-make-2-structs-static drivers/video/backlight/lcd.c
+--- a/drivers/video/backlight/lcd.c~backlight-make-2-structs-static
++++ a/drivers/video/backlight/lcd.c
+@@ -149,7 +149,7 @@ static ssize_t lcd_show_max_contrast(str
+ 	return sprintf(buf, "%d\n", ld->props.max_contrast);
+ }
  
--static inline struct sock *first_unix_socket(int *i)
--{
--	for (*i = 0; *i <= UNIX_HASH_SIZE; (*i)++) {
--		if (!hlist_empty(&unix_socket_table[*i]))
--			return __sk_head(&unix_socket_table[*i]);
--	}
--	return NULL;
--}
--
--static inline struct sock *next_unix_socket(int *i, struct sock *s)
--{
--	struct sock *next = sk_next(s);
--	/* More in this chain? */
--	if (next)
--		return next;
--	/* Look for next non-empty chain. */
--	for ((*i)++; *i <= UNIX_HASH_SIZE; (*i)++) {
--		if (!hlist_empty(&unix_socket_table[*i]))
--			return __sk_head(&unix_socket_table[*i]);
--	}
--	return NULL;
--}
--
--#define forall_unix_sockets(i, s) \
--	for (s = first_unix_socket(&(i)); s; s = next_unix_socket(&(i),(s)))
--
- struct unix_address {
- 	atomic_t	refcnt;
- 	int		len;
-diff -puN net/unix/af_unix.c~net-unix-af_unixc-make-code-static net/unix/af_unix.c
---- a/net/unix/af_unix.c~net-unix-af_unixc-make-code-static
-+++ a/net/unix/af_unix.c
-@@ -118,14 +118,40 @@
+-struct class *lcd_class;
++static struct class *lcd_class;
  
- int sysctl_unix_max_dgram_qlen __read_mostly = 10;
- 
--struct hlist_head unix_socket_table[UNIX_HASH_SIZE + 1];
--DEFINE_SPINLOCK(unix_table_lock);
-+static struct hlist_head unix_socket_table[UNIX_HASH_SIZE + 1];
-+static DEFINE_SPINLOCK(unix_table_lock);
- static atomic_t unix_nr_socks = ATOMIC_INIT(0);
- 
- #define unix_sockets_unbound	(&unix_socket_table[UNIX_HASH_SIZE])
- 
- #define UNIX_ABSTRACT(sk)	(unix_sk(sk)->addr->hash != UNIX_HASH_SIZE)
- 
-+static struct sock *first_unix_socket(int *i)
-+{
-+	for (*i = 0; *i <= UNIX_HASH_SIZE; (*i)++) {
-+		if (!hlist_empty(&unix_socket_table[*i]))
-+			return __sk_head(&unix_socket_table[*i]);
-+	}
-+	return NULL;
-+}
-+
-+static struct sock *next_unix_socket(int *i, struct sock *s)
-+{
-+	struct sock *next = sk_next(s);
-+	/* More in this chain? */
-+	if (next)
-+		return next;
-+	/* Look for next non-empty chain. */
-+	for ((*i)++; *i <= UNIX_HASH_SIZE; (*i)++) {
-+		if (!hlist_empty(&unix_socket_table[*i]))
-+			return __sk_head(&unix_socket_table[*i]);
-+	}
-+	return NULL;
-+}
-+
-+#define forall_unix_sockets(i, s) \
-+	for (s = first_unix_socket(&(i)); s; s = next_unix_socket(&(i),(s)))
-+
- #ifdef CONFIG_SECURITY_NETWORK
- static void unix_get_secdata(struct scm_cookie *scm, struct sk_buff *skb)
+ static void lcd_device_release(struct device *dev)
  {
 _
 
