@@ -1,133 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: + remove-fs-jffs2-ioctlc.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:47:07 -0700
-Message-ID: <200707302247.l6UMl7MX002483@imap1.linux-foundation.org>
+Subject: + mm-shmemc-make-3-functions-static.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:47:28 -0700
+Message-ID: <200707302247.l6UMlSW8002513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51238 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43276 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754841AbXG3Wr7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755947AbXG3WsS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:47:59 -0400
+	Mon, 30 Jul 2007 18:48:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, dwmw2@infradead.org
+Cc: bunk@stusta.de, hugh@veritas.com
 
 
 The patch titled
-     remove fs/jffs2/ioctl.c
+     mm/shmem.c: make 3 functions static
 has been added to the -mm tree.  Its filename is
-     remove-fs-jffs2-ioctlc.patch
+     mm-shmemc-make-3-functions-static.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove fs/jffs2/ioctl.c
-=46rom: Adrian Bunk <bunk@stusta.de>
+Subject: mm/shmem.c: make 3 functions static
+From: Adrian Bunk <bunk@stusta.de>
 
-fs/jffs2/ioctl.c is already for so long in the "might be used later" st=
-ate
-that I doubt it will ever be actually used...
-
-And if it will ever be used, reverting this patch will be trivial.
+This patch makes three needlessly global functions static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/Makefile   |    2 +-
- fs/jffs2/dir.c      |    1 -
- fs/jffs2/file.c     |    1 -
- fs/jffs2/ioctl.c    |   21 ---------------------
- fs/jffs2/os-linux.h |    3 ---
- 5 files changed, 1 insertion(+), 27 deletions(-)
+ include/linux/mm.h |   15 ---------------
+ mm/shmem.c         |   10 +++++-----
+ 2 files changed, 5 insertions(+), 20 deletions(-)
 
-diff -puN fs/jffs2/Makefile~remove-fs-jffs2-ioctlc fs/jffs2/Makefile
---- a/fs/jffs2/Makefile~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/Makefile
-@@ -5,7 +5,7 @@
-=20
- obj-$(CONFIG_JFFS2_FS) +=3D jffs2.o
-=20
--jffs2-y	:=3D compr.o dir.o file.o ioctl.o nodelist.o malloc.o
-+jffs2-y	:=3D compr.o dir.o file.o nodelist.o malloc.o
- jffs2-y	+=3D read.o nodemgmt.o readinode.o write.o scan.o gc.o
- jffs2-y	+=3D symlink.o build.o erase.o background.o fs.o writev.o
- jffs2-y	+=3D super.o debug.o
-diff -puN fs/jffs2/dir.c~remove-fs-jffs2-ioctlc fs/jffs2/dir.c
---- a/fs/jffs2/dir.c~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/dir.c
-@@ -38,7 +38,6 @@ const struct file_operations jffs2_dir_o
+diff -puN include/linux/mm.h~mm-shmemc-make-3-functions-static include/linux/mm.h
+--- a/include/linux/mm.h~mm-shmemc-make-3-functions-static
++++ a/include/linux/mm.h
+@@ -712,9 +712,6 @@ static inline int page_mapped(struct pag
+ extern void show_free_areas(void);
+ 
+ #ifdef CONFIG_SHMEM
+-int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new);
+-struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
+-					unsigned long addr);
+ int shmem_lock(struct file *file, int lock, struct user_struct *user);
+ #else
+ static inline int shmem_lock(struct file *file, int lock,
+@@ -722,18 +719,6 @@ static inline int shmem_lock(struct file
  {
- 	.read =3D		generic_read_dir,
- 	.readdir =3D	jffs2_readdir,
--	.ioctl =3D	jffs2_ioctl,
- 	.fsync =3D	jffs2_fsync
- };
-=20
-diff -puN fs/jffs2/file.c~remove-fs-jffs2-ioctlc fs/jffs2/file.c
---- a/fs/jffs2/file.c~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/file.c
-@@ -46,7 +46,6 @@ const struct file_operations jffs2_file_
-  	.aio_read =3D	generic_file_aio_read,
-  	.write =3D	do_sync_write,
-  	.aio_write =3D	generic_file_aio_write,
--	.ioctl =3D	jffs2_ioctl,
- 	.mmap =3D		generic_file_readonly_mmap,
- 	.fsync =3D	jffs2_fsync,
- 	.splice_read =3D	generic_file_splice_read,
-diff -puN fs/jffs2/ioctl.c~remove-fs-jffs2-ioctlc /dev/null
---- a/fs/jffs2/ioctl.c
-+++ /dev/null
-@@ -1,21 +0,0 @@
--/*
-- * JFFS2 -- Journalling Flash File System, Version 2.
-- *
-- * Copyright =C2=A9 2001-2007 Red Hat, Inc.
-- *
-- * Created by David Woodhouse <dwmw2@infradead.org>
-- *
-- * For licensing information, see the file 'LICENCE' in this directory=
-=2E
-- *
-- */
+ 	return 0;
+ }
 -
--#include <linux/fs.h>
--
--int jffs2_ioctl(struct inode *inode, struct file *filp, unsigned int c=
-md,
--		unsigned long arg)
+-static inline int shmem_set_policy(struct vm_area_struct *vma,
+-				   struct mempolicy *new)
 -{
--	/* Later, this will provide for lsattr.jffs2 and chattr.jffs2, which
--	   will include compression support etc. */
--	return -ENOTTY;
+-	return 0;
 -}
 -
-diff -puN fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc fs/jffs2/os-linux.=
-h
---- a/fs/jffs2/os-linux.h~remove-fs-jffs2-ioctlc
-+++ a/fs/jffs2/os-linux.h
-@@ -166,9 +166,6 @@ extern const struct address_space_operat
- int jffs2_fsync(struct file *, struct dentry *, int);
- int jffs2_do_readpage_unlock (struct inode *inode, struct page *pg);
-=20
--/* ioctl.c */
--int jffs2_ioctl(struct inode *, struct file *, unsigned int, unsigned =
-long);
--
- /* symlink.c */
- extern const struct inode_operations jffs2_symlink_inode_operations;
-=20
+-static inline struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
+-						 unsigned long addr)
+-{
+-	return NULL;
+-}
+ #endif
+ struct file *shmem_file_setup(char *name, loff_t size, unsigned long flags);
+ 
+diff -puN mm/shmem.c~mm-shmemc-make-3-functions-static mm/shmem.c
+--- a/mm/shmem.c~mm-shmemc-make-3-functions-static
++++ a/mm/shmem.c
+@@ -1024,8 +1024,8 @@ static struct page *shmem_swapin_async(s
+ 	return page;
+ }
+ 
+-struct page *shmem_swapin(struct shmem_inode_info *info, swp_entry_t entry,
+-			  unsigned long idx)
++static struct page *shmem_swapin(struct shmem_inode_info *info,
++				 swp_entry_t entry, unsigned long idx)
+ {
+ 	struct shared_policy *p = &info->policy;
+ 	int i, num;
+@@ -1326,14 +1326,14 @@ static int shmem_fault(struct vm_area_st
+ }
+ 
+ #ifdef CONFIG_NUMA
+-int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
++static int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
+ {
+ 	struct inode *i = vma->vm_file->f_path.dentry->d_inode;
+ 	return mpol_set_shared_policy(&SHMEM_I(i)->policy, vma, new);
+ }
+ 
+-struct mempolicy *
+-shmem_get_policy(struct vm_area_struct *vma, unsigned long addr)
++static struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
++					  unsigned long addr)
+ {
+ 	struct inode *i = vma->vm_file->f_path.dentry->d_inode;
+ 	unsigned long idx;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -147,8 +123,7 @@ export-v4l2_int_device_unregister.patch
 drivers-i2c-i2c-corec-make-code-static.patch
 git-hwmon.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-=
-dma.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 git-mmc.patch
 git-mtd.patch
 mtd-onenand_simc-make-struct-info-static.patch
@@ -166,8 +141,7 @@ nsp32_restart_autoscsi-remove-error-check.patch
 make-scsi_host_link_pm_policy-static.patch
 git-unionfs.patch
 drivers-usb-serial-sierrac-make-3-functions-static.patch
-fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-host=
-s.patch
+fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts.patch
 git-v9fs.patch
 git-ipwireless_cs.patch
 arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
@@ -196,10 +170,8 @@ unexport-fb_prepare_logo.patch
 intel-iommu-intel-iommu-driver.patch
 revoke-core-code.patch
 mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.pat=
-ch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-=
-remove-unused-exports.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
 the-next-round-of-scheduled-oss-code-removal.patch
 reiser4-export-remove_from_page_cache.patch
 reiser4.patch
