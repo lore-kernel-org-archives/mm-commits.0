@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-rtmutex-debugc-cleanups.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:06:48 -0700
-Message-ID: <200707302206.l6UM6m0h000384@imap1.linux-foundation.org>
+Subject: + mm-page_allocc-make-code-static.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:06:52 -0700
+Message-ID: <200707302206.l6UM6qQ3000398@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44275 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35669 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968198AbXG3WHD (ORCPT
+	by vger.kernel.org with ESMTP id S967972AbXG3WHH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:07:03 -0400
+	Mon, 30 Jul 2007 18:07:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: bunk@stusta.de
 The patch titled
      From: Adrian Bunk <bunk@stusta.de>
 has been added to the -mm tree.  Its filename is
-     kernel-rtmutex-debugc-cleanups.patch
+     mm-page_allocc-make-code-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,41 +29,41 @@ out what to do about this
 Subject: From: Adrian Bunk <bunk@stusta.de>
 
 
-This patch contains the following cleanups:
-- make the needlessly global variable rt_trace_on static
-- remove the unused global function deadlock_trace_off()
+This patch makes needlessly global code static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
 ---
 
-This patch has been sent on:
-- 1 Jul 2007
-- 4 Apr 2007
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rtmutex-debug.c |    7 +------
- 1 files changed, 1 insertion(+), 6 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/rtmutex-debug.c~kernel-rtmutex-debugc-cleanups kernel/rtmutex-debug.c
---- a/kernel/rtmutex-debug.c~kernel-rtmutex-debugc-cleanups
-+++ a/kernel/rtmutex-debug.c
-@@ -82,12 +82,7 @@ do {						\
-  * into the tracing code when doing error printk or
-  * executing a BUG():
-  */
--int rt_trace_on = 1;
--
--void deadlock_trace_off(void)
--{
--	rt_trace_on = 0;
--}
-+static int rt_trace_on = 1;
+diff -puN mm/page_alloc.c~mm-page_allocc-make-code-static mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-make-code-static
++++ a/mm/page_alloc.c
+@@ -143,7 +143,7 @@ static unsigned long __meminitdata dma_r
+   static unsigned long __meminitdata node_boundary_end_pfn[MAX_NUMNODES];
+ #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
+   unsigned long __initdata required_kernelcore;
+-  unsigned long __initdata required_movablecore;
++  static unsigned long __initdata required_movablecore;
+   unsigned long __meminitdata zone_movable_pfn[MAX_NUMNODES];
  
- static void printk_task(struct task_struct *p)
+   /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
+@@ -3714,7 +3714,7 @@ unsigned long __init find_max_pfn_with_a
+ 	return max_pfn;
+ }
+ 
+-unsigned long __init early_calculate_totalpages(void)
++static unsigned long __init early_calculate_totalpages(void)
  {
+ 	int i;
+ 	unsigned long totalpages = 0;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
