@@ -1,175 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fixup.patch added to -mm tree
-Date: Mon, 30 Jul 2007 11:16:19 -0700
-Message-ID: <200707301816.l6UIGJQ2023492@imap1.linux-foundation.org>
+Subject: - git-block-whoops.patch removed from -mm tree
+Date: Mon, 30 Jul 2007 11:16:41 -0700
+Message-ID: <200707301816.l6UIGfT5023498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38887 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42440 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966127AbXG3SQc (ORCPT
+	by vger.kernel.org with ESMTP id S966747AbXG3SQw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 14:16:32 -0400
+	Mon, 30 Jul 2007 14:16:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-fixup
-has been added to the -mm tree.  Its filename is
-     git-block-fixup.patch
+     git-block-whoops
+has been removed from the -mm tree.  Its filename was
+     git-block-whoops.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-block-fixup
+Subject: git-block-whoops
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix git-rejects in git-block (badly and wrongly)
+drivers/ide/pci/sgiioc4.c: In function `sgiioc4_build_dma_table':
+drivers/ide/pci/sgiioc4.c:544: error: implicit declaration of function `sg_next'
+drivers/ide/pci/sgiioc4.c:544: warning: assignment makes pointer from integer without a cast
 
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/hp/sim/simscsi.c |   18 ---------
- drivers/scsi/advansys.c    |   67 -----------------------------------
- 2 files changed, 85 deletions(-)
+ drivers/ide/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/ia64/hp/sim/simscsi.c~git-block-fixup arch/ia64/hp/sim/simscsi.c
---- a/arch/ia64/hp/sim/simscsi.c~git-block-fixup
-+++ a/arch/ia64/hp/sim/simscsi.c
-@@ -147,11 +147,8 @@ simscsi_sg_readwrite (struct scsi_cmnd *
- 			return;
- 		}
- 		offset +=  sl->length;
--<<<<<<< HEAD/arch/ia64/hp/sim/simscsi.c
--=======
- 		sl = sg_next(sl);
- 		list_len--;
-->>>>>>> /arch/ia64/hp/sim/simscsi.c
- 	}
- 	sc->result = GOOD;
- }
-@@ -210,23 +207,9 @@ simscsi_readwrite10 (struct scsi_cmnd *s
- static void simscsi_fillresult(struct scsi_cmnd *sc, char *buf, unsigned len)
- {
- 
--<<<<<<< HEAD/arch/ia64/hp/sim/simscsi.c
--	int i;
--	unsigned thislen;
--	struct scatterlist *slp;
--=======
- 	int scatterlen = sc->use_sg, i;
- 	struct scatterlist *sg;
-->>>>>>> /arch/ia64/hp/sim/simscsi.c
- 
--<<<<<<< HEAD/arch/ia64/hp/sim/simscsi.c
--	scsi_for_each_sg(sc, slp, scsi_sg_count(sc), i) {
--		if (!len)
--			break;
--		thislen = min(len, slp->length);
--		memcpy(page_address(slp->page) + slp->offset, buf, thislen);
--		len -= thislen;
--=======
- 	if (scatterlen == 0)
- 		memcpy(sc->request_buffer, buf, len);
- 	else {
-@@ -240,7 +223,6 @@ static void simscsi_fillresult(struct sc
- 			memcpy(page_address(sg->page) + sg->offset, buf, thislen);
- 			len -= thislen;
- 		}
-->>>>>>> /arch/ia64/hp/sim/simscsi.c
- 	}
- }
- 
-diff -puN drivers/scsi/advansys.c~git-block-fixup drivers/scsi/advansys.c
---- a/drivers/scsi/advansys.c~git-block-fixup
-+++ a/drivers/scsi/advansys.c
-@@ -5217,7 +5217,6 @@ static int asc_build_req(asc_board_t *bo
- 		ASC_STATS_ADD(scp->device->host, sg_elem,
- 			      asc_sg_head.entry_cnt);
- 
--<<<<<<< HEAD/drivers/scsi/advansys.c
- 		/*
- 		 * Convert scatter-gather list into ASC_SG_HEAD list.
- 		 */
-@@ -5230,72 +5229,6 @@ static int asc_build_req(asc_board_t *bo
- 				      ASC_CEILING(sg_dma_len(slp), 512));
- 		}
- 	}
--=======
--    /*
--     * Build ASC_SCSI_Q for a contiguous buffer or a scatter-gather
--     * buffer command.
--     */
--    if (scp->use_sg == 0) {
--        /*
--         * CDB request of single contiguous buffer.
--         */
--        ASC_STATS(scp->device->host, cont_cnt);
--	scp->SCp.dma_handle = scp->request_bufflen ?
--	    dma_map_single(dev, scp->request_buffer,
--			   scp->request_bufflen, scp->sc_data_direction) : 0;
--	asc_scsi_q.q1.data_addr = cpu_to_le32(scp->SCp.dma_handle);
--        asc_scsi_q.q1.data_cnt = cpu_to_le32(scp->request_bufflen);
--        ASC_STATS_ADD(scp->device->host, cont_xfer,
--                      ASC_CEILING(scp->request_bufflen, 512));
--        asc_scsi_q.q1.sg_queue_cnt = 0;
--        asc_scsi_q.sg_head = NULL;
--    } else {
--        /*
--         * CDB scatter-gather request list.
--         */
--        int                     sgcnt;
--	int			use_sg;
--        struct scatterlist      *slp, *sg;
--
--	slp = (struct scatterlist *)scp->request_buffer;
--	use_sg = dma_map_sg(dev, slp, scp->use_sg, scp->sc_data_direction);
--
--	if (use_sg > scp->device->host->sg_tablesize) {
--            ASC_PRINT3(
--"asc_build_req: board %d: use_sg %d > sg_tablesize %d\n",
--		boardp->id, use_sg, scp->device->host->sg_tablesize);
--	    dma_unmap_sg(dev, slp, scp->use_sg, scp->sc_data_direction);
--            scp->result = HOST_BYTE(DID_ERROR);
--            asc_enqueue(&boardp->done, scp, ASC_BACK);
--            return ASC_ERROR;
--        }
--
--        ASC_STATS(scp->device->host, sg_cnt);
--
--        /*
--         * Use global ASC_SG_HEAD structure and set the ASC_SCSI_Q
--         * structure to point to it.
--         */
--        memset(&asc_sg_head, 0, sizeof(ASC_SG_HEAD));
--
--        asc_scsi_q.q1.cntl |= QC_SG_HEAD;
--        asc_scsi_q.sg_head = &asc_sg_head;
--        asc_scsi_q.q1.data_cnt = 0;
--        asc_scsi_q.q1.data_addr = 0;
--        /* This is a byte value, otherwise it would need to be swapped. */
--	asc_sg_head.entry_cnt = asc_scsi_q.q1.sg_queue_cnt = use_sg;
--        ASC_STATS_ADD(scp->device->host, sg_elem, asc_sg_head.entry_cnt);
--
--        /*
--         * Convert scatter-gather list into ASC_SG_HEAD list.
--         */
--	scsi_for_each_sg(scp, sg, use_sg, sgcnt) {
--	    asc_sg_head.sg_list[sgcnt].addr = cpu_to_le32(sg_dma_address(sg));
--	    asc_sg_head.sg_list[sgcnt].bytes = cpu_to_le32(sg_dma_len(sg));
--	    ASC_STATS_ADD(scp->device->host, sg_xfer, ASC_CEILING(sg_dma_len(sg), 512));
--        }
--    }
-->>>>>>> /drivers/scsi/advansys.c
- 
- 	ASC_DBG_PRT_ASC_SCSI_Q(2, &asc_scsi_q);
- 	ASC_DBG_PRT_CDB(1, scp->cmnd, scp->cmd_len);
+diff -puN /dev/null /dev/null
+diff -puN drivers/ide/Kconfig~git-block-whoops drivers/ide/Kconfig
+--- a/drivers/ide/Kconfig~git-block-whoops
++++ a/drivers/ide/Kconfig
+@@ -711,6 +711,7 @@ config BLK_DEV_SVWKS
+ config BLK_DEV_SGIIOC4
+ 	tristate "Silicon Graphics IOC4 chipset ATA/ATAPI support"
+ 	depends on (IA64_SGI_SN2 || IA64_GENERIC) && SGI_IOC4
++	depends on BROKEN
+ 	select IDEPCI_SHARE_IRQ
+ 	select BLK_DEV_IDEDMA_PCI
+ 	help
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
