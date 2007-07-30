@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + unexport-pm_power_off_prepare.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:10:03 -0700
-Message-ID: <200707302210.l6UMAC5I000595@imap1.linux-foundation.org>
+Subject: + unexport-fb_prepare_logo.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:10:14 -0700
+Message-ID: <200707302210.l6UMAFBJ000598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58264 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43655 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969176AbXG3WKb (ORCPT
+	by vger.kernel.org with ESMTP id S969176AbXG3WKc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:10:31 -0400
+	Mon, 30 Jul 2007 18:10:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, rjw@sisk.pl
+Cc: bunk@stusta.de, adaplas@pol.net
 
 
 The patch titled
-     unexport pm_power_off_prepare
+     unexport fb_prepare_logo
 has been added to the -mm tree.  Its filename is
-     unexport-pm_power_off_prepare.patch
+     unexport-fb_prepare_logo.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unexport pm_power_off_prepare
+Subject: unexport fb_prepare_logo
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch removes the unused EXPORT_SYMBOL(pm_power_off_prepare).
+The logo code is not and should not be used by modules.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    1 -
+ drivers/video/fbmem.c |    1 -
  1 files changed, 1 deletion(-)
 
-diff -puN kernel/sys.c~unexport-pm_power_off_prepare kernel/sys.c
---- a/kernel/sys.c~unexport-pm_power_off_prepare
-+++ a/kernel/sys.c
-@@ -104,7 +104,6 @@ EXPORT_SYMBOL(cad_pid);
-  */
- 
- void (*pm_power_off_prepare)(void);
--EXPORT_SYMBOL(pm_power_off_prepare);
- 
- static int set_one_prio(struct task_struct *p, int niceval, int error)
- {
+diff -puN drivers/video/fbmem.c~unexport-fb_prepare_logo drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~unexport-fb_prepare_logo
++++ a/drivers/video/fbmem.c
+@@ -1663,7 +1663,6 @@ EXPORT_SYMBOL(register_framebuffer);
+ EXPORT_SYMBOL(unregister_framebuffer);
+ EXPORT_SYMBOL(num_registered_fb);
+ EXPORT_SYMBOL(registered_fb);
+-EXPORT_SYMBOL(fb_prepare_logo);
+ EXPORT_SYMBOL(fb_show_logo);
+ EXPORT_SYMBOL(fb_set_var);
+ EXPORT_SYMBOL(fb_blank);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
