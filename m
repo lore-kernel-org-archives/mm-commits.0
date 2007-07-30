@@ -1,953 +1,2222 @@
 From: akpm@linux-foundation.org
-Subject: - libata-store-bus-addresses-versus-mm-for-testing.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 11:59:13 -0700
-Message-ID: <200707301859.l6UIxDuT025203@imap1.linux-foundation.org>
+Subject: + ddb5477-remove-driver-bits-of-support.patch added to -mm tree
+Date: Mon, 30 Jul 2007 12:04:07 -0700
+Message-ID: <200707301904.l6UJ47vV025453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39260 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55109 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966383AbXG3TAM (ORCPT
+	by vger.kernel.org with ESMTP id S967139AbXG3TFq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 15:00:12 -0400
+	Mon, 30 Jul 2007 15:05:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: yoichi_yuasa@tripeaks.co.jp, jeff@garzik.org, ralf@linux-mips.org
 
 
 The patch titled
-     libata: Store bus addresses (versus -mm for testing)
-has been removed from the -mm tree.  Its filename was
-     libata-store-bus-addresses-versus-mm-for-testing.patch
+     DDB5477: remove driver bits of support
+has been added to the -mm tree.  Its filename is
+     ddb5477-remove-driver-bits-of-support.patch
 
-This patch was dropped because it was withdrawn
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: libata: Store bus addresses (versus -mm for testing)
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: DDB5477: remove driver bits of support
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-As we cannot reverse iomap results portably as we tried before the libata
-layer needs to keep bus addresses around for reporting.  This first big
-patch adds a structure for it and teaches the drivers to keep the
-information.  Thankfully most drivers go via libata-sff and it can do the
-work for them.
-
-For the others we replace ata_std_ports with ata_std_io_ports /
-std_mmio_ports and pass both the mapped and some bus address info.
-
-We don't keep all the mappings in both forms.  We only need cmd, ctrl and
-status (for wait_status() reporting).  We also keep a "base" for devices
-where the taskfile (cmd/ctl) mapping makes no sense.
-
-This patch stores all the data but doesn't yet change the display side. 
-I've got a couple of variants I'm playing with on the display side and want
-to get that right.  In the mean time this should store all the data and
-have no side effects for anyone, so is a good first chunk for testing
-alone.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Acked-by: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ahci.c           |   10 ++++-
- drivers/ata/libata-core.c    |   60 +++++++++++++++++++++++++++++++--
- drivers/ata/libata-sff.c     |    6 ++-
- drivers/ata/pata_cs5520.c    |   17 ++++++++-
- drivers/ata/pata_hpt3x3.c    |   11 +++++-
- drivers/ata/pata_isapnp.c    |    4 +-
- drivers/ata/pata_ixp4xx_cf.c |   10 +++--
- drivers/ata/pata_legacy.c    |    4 +-
- drivers/ata/pata_pcmcia.c    |    7 +++
- drivers/ata/pata_qdi.c       |    5 ++
- drivers/ata/pata_sil680.c    |   18 ++++++++-
- drivers/ata/pata_winbond.c   |    5 ++
- drivers/ata/sata_inic162x.c  |    5 ++
- drivers/ata/sata_mv.c        |    5 ++
- drivers/ata/sata_nv.c        |   15 ++++++++
- drivers/ata/sata_promise.c   |    2 +
- drivers/ata/sata_qstor.c     |    8 ++++
- drivers/ata/sata_sil.c       |   10 ++++-
- drivers/ata/sata_sil24.c     |    5 ++
- drivers/ata/sata_svw.c       |   19 ++++++++--
- drivers/ata/sata_sx4.c       |   24 ++++++++++---
- drivers/ata/sata_uli.c       |   17 ++++++++-
- drivers/ata/sata_via.c       |   11 ++++--
- drivers/ata/sata_vsc.c       |   20 ++++++++---
- include/linux/libata.h       |   28 ++++++++++++++-
- 25 files changed, 287 insertions(+), 39 deletions(-)
+ drivers/net/tulip/tulip_core.c |    8 
+ drivers/serial/8250_pci.c      |   20 
+ include/linux/pci_ids.h        |    1 
+ sound/oss/Kconfig              |    8 
+ sound/oss/Makefile             |    1 
+ sound/oss/nec_vrc5477.c        | 2060 -------------------------------
+ 6 files changed, 2098 deletions(-)
 
-diff -puN drivers/ata/ahci.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/ahci.c
---- a/drivers/ata/ahci.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/ahci.c
-@@ -518,12 +518,17 @@ static inline int ahci_nr_ports(u32 cap)
- 	return (cap & 0x1f) + 1;
- }
- 
-+static inline unsigned int __ahci_port_offset(unsigned int port_no)
-+{
-+	return 0x100 + (port_no * 0x80);
-+}
-+
- static inline void __iomem *__ahci_port_base(struct ata_host *host,
- 					     unsigned int port_no)
- {
- 	void __iomem *mmio = host->iomap[AHCI_PCI_BAR];
- 
--	return mmio + 0x100 + (port_no * 0x80);
-+	return mmio + __ahci_port_offset(port_no);
- }
- 
- static inline void __iomem *ahci_port_base(struct ata_port *ap)
-@@ -2042,6 +2047,9 @@ static int ahci_init_one(struct pci_dev 
- 
- 		/* standard SATA port setup */
- 		if (hpriv->port_map & (1 << i)) {
-+			ap->busaddr.base_addr = pci_resource_start(pdev, AHCI_PCI_BAR)
-+						+ __ahci_port_offset(i);
-+			ap->busaddr.base_type = ATA_ADDR_MMIO;
- 			ap->ioaddr.cmd_addr = port_mmio;
- 			ap->pm_policy = SHOST_NOT_AVAILABLE;
+diff -puN drivers/net/tulip/tulip_core.c~ddb5477-remove-driver-bits-of-support drivers/net/tulip/tulip_core.c
+--- a/drivers/net/tulip/tulip_core.c~ddb5477-remove-driver-bits-of-support
++++ a/drivers/net/tulip/tulip_core.c
+@@ -1471,14 +1471,6 @@ static int __devinit tulip_init_one (str
+ 			sa_offset = 2;		/* Grrr, damn Matrox boards. */
+ 			multiport_cnt = 4;
  		}
-diff -puN drivers/ata/libata-core.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/libata-core.c
-@@ -6738,7 +6738,7 @@ void ata_host_detach(struct ata_host *ho
-  *	Does not set ctl_addr, altstatus_addr, bmdma_addr, or scr_addr.
-  */
- 
--void ata_std_ports(struct ata_ioports *ioaddr)
-+static void ata_std_ports(struct ata_ioports *ioaddr)
- {
- 	ioaddr->data_addr = ioaddr->cmd_addr + ATA_REG_DATA;
- 	ioaddr->error_addr = ioaddr->cmd_addr + ATA_REG_ERR;
-@@ -6752,6 +6752,61 @@ void ata_std_ports(struct ata_ioports *i
- 	ioaddr->command_addr = ioaddr->cmd_addr + ATA_REG_CMD;
- }
- 
-+/**
-+ *	ata_std_io_ports - initialize ioaddr with standard port offsets.
-+ *	@ioaddr: IO address structure to be initialized
-+ *	@busaddr: Bus addresses to report
-+ *
-+ *	Utility function which initializes data_addr, error_addr,
-+ *	feature_addr, nsect_addr, lbal_addr, lbam_addr, lbah_addr,
-+ *	device_addr, status_addr, and command_addr to standard offsets
-+ *	relative to cmd_addr.
-+ *
-+ *	Does not set ctl_addr, altstatus_addr, bmdma_addr, or scr_addr.
-+ *
-+ *	Sets up the types of the prepared physical bus registers as I/O
-+ */
-+
-+void ata_std_io_ports(struct ata_ioports *ioaddr, struct ata_busports *busaddr)
-+{
-+	ata_std_ports(ioaddr);
-+	busaddr->cmd_type = ATA_ADDR_PIO;
-+	if (busaddr->status_addr == 0)
-+		busaddr->status_addr = busaddr->cmd_addr + ATA_REG_STATUS;
-+	busaddr->status_type = ATA_ADDR_PIO;
-+	if (busaddr->bmdma_addr)
-+		busaddr->bmdma_type = ATA_ADDR_PIO;
-+	if (busaddr->ctl_addr)
-+		busaddr->ctl_type = ATA_ADDR_PIO;
-+}
-+
-+/**
-+ *	ata_std_mmio_ports - initialize ioaddr with standard port offsets.
-+ *	@ioaddr: IO address structure to be initialized
-+ *	@busaddr: Bus addresses to report
-+ *
-+ *	Utility function which initializes data_addr, error_addr,
-+ *	feature_addr, nsect_addr, lbal_addr, lbam_addr, lbah_addr,
-+ *	device_addr, status_addr, and command_addr to standard offsets
-+ *	relative to cmd_addr.
-+ *
-+ *	Does not set ctl_addr, altstatus_addr, bmdma_addr, or scr_addr.
-+ *
-+ *	Sets up the types of the prepared physical bus registers as MMIO
-+ */
-+
-+void ata_std_mmio_ports(struct ata_ioports *ioaddr, struct ata_busports *busaddr)
-+{
-+	ata_std_ports(ioaddr);
-+	busaddr->cmd_type = ATA_ADDR_MMIO;
-+	if (busaddr->status_addr == 0)
-+		busaddr->status_addr = busaddr->cmd_addr + ATA_REG_STATUS;
-+	busaddr->status_type = ATA_ADDR_MMIO;
-+	if (busaddr->bmdma_addr)
-+		busaddr->bmdma_type = ATA_ADDR_MMIO;
-+	if (busaddr->ctl_addr)
-+		busaddr->ctl_type = ATA_ADDR_MMIO;
-+}
- 
- #ifdef CONFIG_PCI
- 
-@@ -7008,7 +7063,8 @@ EXPORT_SYMBOL_GPL(sata_deb_timing_long);
- EXPORT_SYMBOL_GPL(ata_dummy_port_ops);
- EXPORT_SYMBOL_GPL(ata_dummy_port_info);
- EXPORT_SYMBOL_GPL(ata_std_bios_param);
--EXPORT_SYMBOL_GPL(ata_std_ports);
-+EXPORT_SYMBOL_GPL(ata_std_io_ports);
-+EXPORT_SYMBOL_GPL(ata_std_mmio_ports);
- EXPORT_SYMBOL_GPL(ata_host_init);
- EXPORT_SYMBOL_GPL(ata_host_alloc);
- EXPORT_SYMBOL_GPL(ata_host_alloc_pinfo);
-diff -puN drivers/ata/libata-sff.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/libata-sff.c
-@@ -601,6 +601,8 @@ int ata_pci_init_bmdma(struct ata_host *
- 			continue;
- 
- 		ap->ioaddr.bmdma_addr = bmdma;
-+		ap->busaddr.bmdma_addr = pci_resource_start(pdev, 4) + 8 * i;
-+		ap->busaddr.bmdma_type = ATA_ADDR_PIO;
- 		if ((!(ap->flags & ATA_FLAG_IGN_SIMPLEX)) &&
- 		    (ioread8(bmdma + 2) & 0x80))
- 			host->flags |= ATA_HOST_SIMPLEX;
-@@ -669,7 +671,9 @@ int ata_pci_init_sff_host(struct ata_hos
- 		ap->ioaddr.altstatus_addr =
- 		ap->ioaddr.ctl_addr = (void __iomem *)
- 			((unsigned long)iomap[base + 1] | ATA_PCI_CTL_OFS);
--		ata_std_ports(&ap->ioaddr);
-+		ap->busaddr.cmd_addr = pci_resource_start(pdev, base);
-+		ap->busaddr.ctl_addr = pci_resource_start(pdev, base + 1) | ATA_PCI_CTL_OFS;
-+		ata_std_io_ports(&ap->ioaddr, &ap->busaddr);
- 
- 		mask |= 1 << i;
- 	}
-diff -puN drivers/ata/pata_cs5520.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/pata_cs5520.c
---- a/drivers/ata/pata_cs5520.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/pata_cs5520.c
-@@ -201,6 +201,7 @@ static int __devinit cs5520_init_one(str
- 	void *iomap[5];
- 	struct ata_host *host;
- 	struct ata_ioports *ioaddr;
-+	struct ata_busports *busaddr;
- 	int i, rc;
- 
- 	/* IDE port enable bits */
-@@ -258,14 +259,26 @@ static int __devinit cs5520_init_one(str
- 	ioaddr->ctl_addr = iomap[1];
- 	ioaddr->altstatus_addr = iomap[1];
- 	ioaddr->bmdma_addr = iomap[4];
--	ata_std_ports(ioaddr);
-+
-+	busaddr = &host->ports[0]->busaddr;
-+	busaddr->cmd_addr = 0x1F0;
-+	busaddr->ctl_addr = 0x3F6;
-+	busaddr->bmdma_addr = pci_resource_start(pdev, 2);
-+
-+	ata_std_io_ports(ioaddr, busaddr);
- 
- 	ioaddr = &host->ports[1]->ioaddr;
- 	ioaddr->cmd_addr = iomap[2];
- 	ioaddr->ctl_addr = iomap[3];
- 	ioaddr->altstatus_addr = iomap[3];
- 	ioaddr->bmdma_addr = iomap[4] + 8;
--	ata_std_ports(ioaddr);
-+
-+	busaddr = &host->ports[1]->busaddr;
-+	busaddr->cmd_addr = 0x170;
-+	busaddr->ctl_addr = 0x376;
-+	busaddr->bmdma_addr = pci_resource_start(pdev, 2) + 8;
-+
-+	ata_std_io_ports(ioaddr, busaddr);
- 
- 	/* activate the host */
- 	pci_set_master(pdev);
-diff -puN drivers/ata/pata_hpt3x3.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/pata_hpt3x3.c
---- a/drivers/ata/pata_hpt3x3.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/pata_hpt3x3.c
-@@ -208,6 +208,7 @@ static int hpt3x3_init_one(struct pci_de
- 	struct ata_host *host;
- 	int i, rc;
- 	void __iomem *base;
-+	unsigned long busbase;
- 
- 	hpt3x3_init_chipset(pdev);
- 
-@@ -237,16 +238,24 @@ static int hpt3x3_init_one(struct pci_de
- 		return rc;
- 
- 	base = host->iomap[4];	/* Bus mastering base */
-+	busbase = pci_resource_start(pdev, 4);
- 
- 	for (i = 0; i < host->n_ports; i++) {
- 		struct ata_ioports *ioaddr = &host->ports[i]->ioaddr;
-+		struct ata_busports *busaddr = &host->ports[i]->busaddr;
- 
- 		ioaddr->cmd_addr = base + offset_cmd[i];
- 		ioaddr->altstatus_addr =
- 		ioaddr->ctl_addr = base + offset_ctl[i];
- 		ioaddr->scr_addr = NULL;
--		ata_std_ports(ioaddr);
- 		ioaddr->bmdma_addr = base + 8 * i;
-+
-+		busaddr->bmdma_addr = busbase + 8 * i;
-+		busaddr->cmd_addr = busbase + offset_cmd[i];
-+		busaddr->ctl_addr = busbase + offset_ctl[i];
-+
-+		ata_std_io_ports(ioaddr, busaddr);
-+
- 	}
- 	pci_set_master(pdev);
- 	return ata_host_activate(host, pdev->irq, ata_interrupt, IRQF_SHARED,
-diff -puN drivers/ata/pata_isapnp.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/pata_isapnp.c
---- a/drivers/ata/pata_isapnp.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/pata_isapnp.c
-@@ -102,15 +102,17 @@ static int isapnp_init_one(struct pnp_de
- 	ap->flags |= ATA_FLAG_SLAVE_POSS;
- 
- 	ap->ioaddr.cmd_addr = cmd_addr;
-+	ap->busaddr.cmd_addr = pnp_port_start(idev, 0);
- 
- 	if (pnp_port_valid(idev, 1) == 0) {
- 		ctl_addr = devm_ioport_map(&idev->dev,
- 					   pnp_port_start(idev, 1), 1);
- 		ap->ioaddr.altstatus_addr = ctl_addr;
- 		ap->ioaddr.ctl_addr = ctl_addr;
-+		ap->busaddr.ctl_addr = pnp_port_start(idev, 1);
- 	}
- 
--	ata_std_ports(&ap->ioaddr);
-+	ata_std_io_ports(&ap->ioaddr);
- 
- 	/* activate */
- 	return ata_host_activate(host, pnp_irq(idev, 0), ata_interrupt, 0,
-diff -puN drivers/ata/pata_ixp4xx_cf.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/pata_ixp4xx_cf.c
---- a/drivers/ata/pata_ixp4xx_cf.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/pata_ixp4xx_cf.c
-@@ -134,13 +134,17 @@ static struct ata_port_operations ixp4xx
- };
- 
- static void ixp4xx_setup_port(struct ata_ioports *ioaddr,
--				struct ixp4xx_pata_data *data)
-+				struct ata_busports *busaddr,
-+				struct ixp4xx_pata_data *data,
-+				unsigned long s0, s1)
- {
- 	ioaddr->cmd_addr	= data->cs0;
- 	ioaddr->altstatus_addr	= data->cs1 + 0x06;
- 	ioaddr->ctl_addr	= data->cs1 + 0x06;
- 
--	ata_std_ports(ioaddr);
-+	busaddr->cmd_addr = s1;
-+	busaddr->ctl_addr = s1 + 0x06;
-+	ata_std_mmio_ports(ioaddr, busaddr);
- 
- #ifndef __ARMEB__
- 
-@@ -203,7 +207,7 @@ static __devinit int ixp4xx_pata_probe(s
- 	ap->pio_mask = 0x1f; /* PIO4 */
- 	ap->flags |= ATA_FLAG_MMIO | ATA_FLAG_NO_LEGACY | ATA_FLAG_NO_ATAPI;
- 
--	ixp4xx_setup_port(&ap->ioaddr, data);
-+	ixp4xx_setup_port(&ap->ioaddr, &ap->busaddr, data, cs0->start, cs1->start);
- 
- 	dev_printk(KERN_INFO, &pdev->dev, "version " DRV_VERSION "\n");
- 
-diff -puN drivers/ata/pata_legacy.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/pata_legacy.c
---- a/drivers/ata/pata_legacy.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/pata_legacy.c
-@@ -811,7 +811,9 @@ static __init int legacy_init_one(int po
- 	ap->ioaddr.cmd_addr = io_addr;
- 	ap->ioaddr.altstatus_addr = ctrl_addr;
- 	ap->ioaddr.ctl_addr = ctrl_addr;
--	ata_std_ports(&ap->ioaddr);
-+	ap->busaddr.cmd_addr = io;
-+	ap->busaddr.ctl_addr = ctrl;
-+	ata_std_io_ports(&ap->ioaddr, &ap->busaddr);
- 	ap->private_data = ld;
- 
- 	ret = ata_host_activate(host, irq, ata_interrupt, 0, &legacy_sht);
-diff -puN drivers/ata/pata_pcmcia.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/pata_pcmcia.c
---- a/drivers/ata/pata_pcmcia.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/pata_pcmcia.c
-@@ -299,10 +299,15 @@ next_entry:
- 	ap->ops = &pcmcia_port_ops;
- 	ap->pio_mask = 1;		/* ISA so PIO 0 cycles */
- 	ap->flags |= ATA_FLAG_SLAVE_POSS;
-+
- 	ap->ioaddr.cmd_addr = io_addr;
- 	ap->ioaddr.altstatus_addr = ctl_addr;
- 	ap->ioaddr.ctl_addr = ctl_addr;
--	ata_std_ports(&ap->ioaddr);
-+
-+	ap->busaddr.cmd_addr = io_base;
-+	ap->busaddr.ctl_addr = ctl_base;
-+
-+	ata_std_io_ports(&ap->ioaddr, &ap->busaddr);
- 
- 	/* activate */
- 	ret = ata_host_activate(host, pdev->irq.AssignedIRQ, ata_interrupt,
-diff -puN drivers/ata/pata_qdi.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/pata_qdi.c
---- a/drivers/ata/pata_qdi.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/pata_qdi.c
-@@ -277,7 +277,10 @@ static __init int qdi_init_one(unsigned 
- 	ap->ioaddr.cmd_addr = io_addr;
- 	ap->ioaddr.altstatus_addr = ctl_addr;
- 	ap->ioaddr.ctl_addr = ctl_addr;
--	ata_std_ports(&ap->ioaddr);
-+
-+	ap->busaddr.cmd_addr = io;
-+	ap->busaddr.ctl_addr = io + 0x0206;
-+	ata_std_io_ports(&ap->ioaddr, &ap->busaddr);
- 
- 	/*
- 	 *	Hook in a private data structure per channel
-diff -puN drivers/ata/pata_sil680.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/pata_sil680.c
---- a/drivers/ata/pata_sil680.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/pata_sil680.c
-@@ -366,6 +366,7 @@ static int __devinit sil680_init_one(str
- 	static int printed_version;
- 	struct ata_host *host;
- 	void __iomem *mmio_base;
-+	unsigned long mmio_bus;
- 	int rc, try_mmio;
- 
- 	if (!printed_version++)
-@@ -409,16 +410,29 @@ static int __devinit sil680_init_one(str
- 
- 	/* Get MMIO base and initialize port addresses */
- 	mmio_base = host->iomap[SIL680_MMIO_BAR];
-+	mmio_bus = pci_resource_start(pdev, SIL680_MMIO_BAR);
-+
- 	host->ports[0]->ioaddr.bmdma_addr = mmio_base + 0x00;
- 	host->ports[0]->ioaddr.cmd_addr = mmio_base + 0x80;
- 	host->ports[0]->ioaddr.ctl_addr = mmio_base + 0x8a;
- 	host->ports[0]->ioaddr.altstatus_addr = mmio_base + 0x8a;
--	ata_std_ports(&host->ports[0]->ioaddr);
-+
-+	host->ports[0]->busaddr.bmdma_addr = mmio_bus + 0x00;
-+	host->ports[0]->busaddr.cmd_addr = mmio_bus + 0x80;
-+	host->ports[0]->busaddr.ctl_addr = mmio_bus + 0x8a;
-+
-+	ata_std_mmio_ports(&host->ports[0]->ioaddr, &host->ports[0]->busaddr);
-+
- 	host->ports[1]->ioaddr.bmdma_addr = mmio_base + 0x08;
- 	host->ports[1]->ioaddr.cmd_addr = mmio_base + 0xc0;
- 	host->ports[1]->ioaddr.ctl_addr = mmio_base + 0xca;
- 	host->ports[1]->ioaddr.altstatus_addr = mmio_base + 0xca;
--	ata_std_ports(&host->ports[1]->ioaddr);
-+
-+	host->ports[1]->busaddr.bmdma_addr = mmio_bus + 0x08;
-+	host->ports[1]->busaddr.cmd_addr = mmio_bus + 0xc0;
-+	host->ports[1]->busaddr.ctl_addr = mmio_bus + 0xca;
-+
-+	ata_std_mmio_ports(&host->ports[1]->ioaddr, &host->ports[1]->busaddr);
- 
- 	/* Register & activate */
- 	return ata_host_activate(host, pdev->irq, ata_interrupt, IRQF_SHARED,
-diff -puN drivers/ata/pata_winbond.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/pata_winbond.c
---- a/drivers/ata/pata_winbond.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/pata_winbond.c
-@@ -228,7 +228,10 @@ static __init int winbond_init_one(unsig
- 		ap->ioaddr.cmd_addr = cmd_addr;
- 		ap->ioaddr.altstatus_addr = ctl_addr;
- 		ap->ioaddr.ctl_addr = ctl_addr;
--		ata_std_ports(&ap->ioaddr);
-+
-+		ap->busaddr.cmd_addr = cmd_port;
-+		ap->busaddr.ctl_addr = cmd_port + 0x0206;
-+		ata_std_io_ports(&ap->ioaddr, &ap->busaddr);
- 
- 		/* hook in a private data structure per channel */
- 		host->private_data = &winbond_data[nr_winbond_host];
-diff -puN drivers/ata/sata_inic162x.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_inic162x.c
---- a/drivers/ata/sata_inic162x.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_inic162x.c
-@@ -694,6 +694,7 @@ static int inic_init_one(struct pci_dev 
- 
- 	for (i = 0; i < NR_PORTS; i++) {
- 		struct ata_ioports *port = &host->ports[i]->ioaddr;
-+		struct ata_busports *busaddr = &host->ports[i]->busaddr;
- 		void __iomem *port_base = iomap[MMIO_BAR] + i * PORT_SIZE;
- 
- 		port->cmd_addr = iomap[2 * i];
-@@ -702,7 +703,9 @@ static int inic_init_one(struct pci_dev 
- 			((unsigned long)iomap[2 * i + 1] | ATA_PCI_CTL_OFS);
- 		port->scr_addr = port_base + PORT_SCR;
- 
--		ata_std_ports(port);
-+		busaddr->cmd_addr = pci_resource_start(pdev, 2 * i);
-+		busaddr->ctl_addr = pci_resource_start(pdev, 2 * i + 1) | ATA_PCI_CTL_OFS;
-+		ata_std_io_ports(port, busaddr);
- 	}
- 
- 	hpriv->cached_hctl = readw(iomap[MMIO_BAR] + HOST_CTL);
-diff -puN drivers/ata/sata_mv.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_mv.c
---- a/drivers/ata/sata_mv.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_mv.c
-@@ -2530,6 +2530,7 @@ static int mv_init_host(struct ata_host 
- 	int rc = 0, n_hc, port, hc;
- 	struct pci_dev *pdev = to_pci_dev(host->dev);
- 	void __iomem *mmio = host->iomap[MV_PRIMARY_BAR];
-+	unsigned long busio = pci_resource_start(pdev, MV_PRIMARY_BAR);
- 	struct mv_host_priv *hpriv = host->private_data;
- 
- 	/* global interrupt mask */
-@@ -2555,7 +2556,6 @@ static int mv_init_host(struct ata_host 
- 	for (port = 0; port < host->n_ports; port++) {
- 		if (IS_GEN_II(hpriv)) {
- 			void __iomem *port_mmio = mv_port_base(mmio, port);
--
- 			u32 ifctl = readl(port_mmio + SATA_INTERFACE_CTL);
- 			ifctl |= (1 << 7);		/* enable gen2i speed */
- 			ifctl = (ifctl & 0xfff) | 0x9b1000; /* from chip spec */
-@@ -2567,7 +2567,10 @@ static int mv_init_host(struct ata_host 
- 
- 	for (port = 0; port < host->n_ports; port++) {
- 		void __iomem *port_mmio = mv_port_base(mmio, port);
-+		struct ata_busports *busaddr = &host->ports[port]->busaddr;
- 		mv_port_init(&host->ports[port]->ioaddr, port_mmio);
-+		busaddr->base_addr = (unsigned long)mv_port_base((void __iomem *)busio, port);
-+		busaddr->base_type = ATA_ADDR_MMIO;
- 	}
- 
- 	for (hc = 0; hc < n_hc; hc++) {
-diff -puN drivers/ata/sata_nv.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_nv.c
-@@ -1270,8 +1270,11 @@ static int nv_adma_port_resume(struct at
- 
- static void nv_adma_setup_port(struct ata_port *ap)
- {
-+	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 	void __iomem *mmio = ap->host->iomap[NV_MMIO_BAR];
-+	unsigned long busio = pci_resource_start(pdev, NV_MMIO_BAR);
- 	struct ata_ioports *ioport = &ap->ioaddr;
-+	struct ata_busports *busaddr = &ap->busaddr;
- 
- 	VPRINTK("ENTER\n");
- 
-@@ -1290,6 +1293,13 @@ static void nv_adma_setup_port(struct at
- 	ioport->command_addr	= mmio + (ATA_REG_STATUS * 4);
- 	ioport->altstatus_addr	=
- 	ioport->ctl_addr	= mmio + 0x20;
-+
-+	busaddr->cmd_addr	= busio;
-+	busaddr->cmd_type	= ATA_ADDR_MMIO;
-+	busaddr->ctl_addr	= busio + 0x20;
-+	busaddr->ctl_type	= ATA_ADDR_MMIO;
-+	busaddr->status_addr	= busio + ATA_REG_STATUS * 4;
-+	busaddr->status_type	= ATA_ADDR_MMIO;
- }
- 
- static int nv_adma_host_init(struct ata_host *host)
-@@ -2427,6 +2437,11 @@ static int nv_init_one (struct pci_dev *
- 	host->ports[0]->ioaddr.scr_addr = base + NV_PORT0_SCR_REG_OFFSET;
- 	host->ports[1]->ioaddr.scr_addr = base + NV_PORT1_SCR_REG_OFFSET;
- 
-+	host->ports[0]->busaddr.base_addr = pci_resource_start(pdev, NV_MMIO_BAR);
-+	host->ports[1]->busaddr.base_type = ATA_ADDR_MMIO;
-+	host->ports[1]->busaddr.base_addr = pci_resource_start(pdev, NV_MMIO_BAR);
-+	host->ports[1]->busaddr.base_type = ATA_ADDR_MMIO;
-+
- 	/* enable SATA space for CK804 */
- 	if (type >= CK804) {
- 		u8 regval;
-diff -puN drivers/ata/sata_promise.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_promise.c
---- a/drivers/ata/sata_promise.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_promise.c
-@@ -1013,6 +1013,8 @@ static int pdc_ata_init_one (struct pci_
- 		pdc_ata_setup_port(host->ports[i],
- 				   base + 0x200 + ata_no * 0x80,
- 				   base + 0x400 + ata_no * 0x100);
-+		host->ports[i]->busaddr.base_type = ATA_ADDR_MMIO;
-+		host->ports[i]->busaddr.base_addr = pci_resource_start(pdev, PDC_MMIO_BAR) + 0x200 + 0x80 * ata_no;
- 	}
- 
- 	/* initialize adapter */
-diff -puN drivers/ata/sata_qstor.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_qstor.c
---- a/drivers/ata/sata_qstor.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_qstor.c
-@@ -637,9 +637,17 @@ static int qs_ata_init_one(struct pci_de
- 		return rc;
- 
- 	for (port_no = 0; port_no < host->n_ports; ++port_no) {
-+		struct ata_busports *busaddr = &host->ports[port_no]->busaddr;
- 		void __iomem *chan =
- 			host->iomap[QS_MMIO_BAR] + (port_no * 0x4000);
-+
- 		qs_ata_setup_port(&host->ports[port_no]->ioaddr, chan);
-+
-+		busaddr->base_type = ATA_ADDR_MMIO;
-+		busaddr->base_addr = pci_resource_start(pdev, QS_MMIO_BAR)
-+								+ 0x4000 * port_no;
-+		busaddr->status_type = ATA_ADDR_MMIO;
-+		busaddr->status_addr = busaddr->base_addr + 0x438;
- 	}
- 
- 	/* initialize adapter */
-diff -puN drivers/ata/sata_sil.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_sil.c
---- a/drivers/ata/sata_sil.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_sil.c
-@@ -649,6 +649,7 @@ static int sil_init_one (struct pci_dev 
- 	const struct ata_port_info *ppi[] = { &sil_port_info[board_id], NULL };
- 	struct ata_host *host;
- 	void __iomem *mmio_base;
-+	unsigned long mmio_bus;
- 	int n_ports, rc;
- 	unsigned int i;
- 
-@@ -684,16 +685,23 @@ static int sil_init_one (struct pci_dev 
- 		return rc;
- 
- 	mmio_base = host->iomap[SIL_MMIO_BAR];
-+	mmio_bus = pci_resource_start(pdev, SIL_MMIO_BAR);
- 
- 	for (i = 0; i < host->n_ports; i++) {
- 		struct ata_ioports *ioaddr = &host->ports[i]->ioaddr;
-+		struct ata_busports *busaddr = &host->ports[i]->busaddr;
- 
- 		ioaddr->cmd_addr = mmio_base + sil_port[i].tf;
- 		ioaddr->altstatus_addr =
- 		ioaddr->ctl_addr = mmio_base + sil_port[i].ctl;
- 		ioaddr->bmdma_addr = mmio_base + sil_port[i].bmdma;
- 		ioaddr->scr_addr = mmio_base + sil_port[i].scr;
--		ata_std_ports(ioaddr);
-+
-+		busaddr->cmd_addr = mmio_bus + sil_port[i].tf;
-+		busaddr->ctl_addr = mmio_bus + sil_port[i].ctl;
-+		busaddr->bmdma_addr = mmio_bus + sil_port[i].bmdma;
-+
-+		ata_std_mmio_ports(ioaddr, busaddr);
- 	}
- 
- 	/* initialize and activate */
-diff -puN drivers/ata/sata_sil24.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_sil24.c
---- a/drivers/ata/sata_sil24.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_sil24.c
-@@ -1115,7 +1115,10 @@ static int sil24_init_one(struct pci_dev
- 		host->ports[i]->ioaddr.cmd_addr = port;
- 		host->ports[i]->ioaddr.scr_addr = port + PORT_SCONTROL;
- 
--		ata_std_ports(&host->ports[i]->ioaddr);
-+		host->ports[i]->busaddr.cmd_addr = pci_resource_start(pdev, SIL24_PORT_BAR)
-+								+ i * PORT_REGS_SIZE;
-+
-+		ata_std_mmio_ports(&host->ports[i]->ioaddr, &host->ports[i]->busaddr);
- 	}
- 
- 	/* configure and activate the device */
-diff -puN drivers/ata/sata_svw.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_svw.c
---- a/drivers/ata/sata_svw.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_svw.c
-@@ -377,7 +377,8 @@ static const struct ata_port_info k2_por
+-#ifdef CONFIG_DDB5477
+-               if ((pdev->bus->number == 0) && (PCI_SLOT(pdev->devfn) == 4)) {
+-                       /* DDB5477 MAC address in first EEPROM locations. */
+-                       sa_offset = 0;
+-                       /* No media table either */
+-                       tp->flags &= ~HAS_MEDIA_TABLE;
+-               }
+-#endif
+ #ifdef CONFIG_MIPS_COBALT
+                if ((pdev->bus->number == 0) &&
+                    ((PCI_SLOT(pdev->devfn) == 7) ||
+diff -puN drivers/serial/8250_pci.c~ddb5477-remove-driver-bits-of-support drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~ddb5477-remove-driver-bits-of-support
++++ a/drivers/serial/8250_pci.c
+@@ -976,7 +976,6 @@ enum pci_board_num_t {
+ 	pbn_oxsemi,
+ 	pbn_intel_i960,
+ 	pbn_sgi_ioc3,
+-	pbn_nec_nile4,
+ 	pbn_computone_4,
+ 	pbn_computone_6,
+ 	pbn_computone_8,
+@@ -1443,18 +1442,6 @@ static struct pciserial_board pci_boards
  	},
- };
  
--static void k2_sata_setup_port(struct ata_ioports *port, void __iomem *base)
-+static void k2_sata_setup_port(struct ata_ioports *port, void __iomem *base,
-+			       struct ata_busports *busaddr, unsigned long busbase)
- {
- 	port->cmd_addr		= base + K2_SATA_TF_CMD_OFFSET;
- 	port->data_addr		= base + K2_SATA_TF_DATA_OFFSET;
-@@ -394,6 +395,15 @@ static void k2_sata_setup_port(struct at
- 	port->ctl_addr		= base + K2_SATA_TF_CTL_OFFSET;
- 	port->bmdma_addr	= base + K2_SATA_DMA_CMD_OFFSET;
- 	port->scr_addr		= base + K2_SATA_SCR_STATUS_OFFSET;
-+
-+	busaddr->cmd_addr	= busbase + K2_SATA_TF_CMD_OFFSET;
-+	busaddr->cmd_type	= ATA_ADDR_MMIO;
-+	busaddr->status_addr	= busbase + K2_SATA_TF_CMDSTAT_OFFSET;
-+	busaddr->status_type	= ATA_ADDR_MMIO;
-+	busaddr->ctl_addr	= busbase + K2_SATA_TF_CTL_OFFSET;
-+	busaddr->ctl_type	= ATA_ADDR_MMIO;
-+	busaddr->bmdma_addr	= busbase + K2_SATA_DMA_CMD_OFFSET;
-+	busaddr->bmdma_type	= ATA_ADDR_MMIO;
- }
- 
- 
-@@ -445,9 +455,12 @@ static int k2_sata_init_one (struct pci_
- 	/* different controllers have different number of ports - currently 4 or 8 */
- 	/* All ports are on the same function. Multi-function device is no
- 	 * longer available. This should not be seen in any system. */
--	for (i = 0; i < host->n_ports; i++)
-+	for (i = 0; i < host->n_ports; i++) {
- 		k2_sata_setup_port(&host->ports[i]->ioaddr,
--				   mmio_base + i * K2_SATA_PORT_OFFSET);
-+				   mmio_base + i * K2_SATA_PORT_OFFSET,
-+				   &host->ports[i]->busaddr,
-+				   pci_resource_start(pdev, 5) + i * K2_SATA_PORT_OFFSET);
-+	}
- 
- 	rc = pci_set_dma_mask(pdev, ATA_DMA_MASK);
- 	if (rc)
-diff -puN drivers/ata/sata_sx4.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_sx4.c
---- a/drivers/ata/sata_sx4.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_sx4.c
-@@ -922,7 +922,8 @@ static void pdc_exec_command_mmio(struct
- }
- 
- 
--static void pdc_sata_setup_port(struct ata_ioports *port, void __iomem *base)
-+static void pdc_sata_setup_port(struct ata_ioports *port, void __iomem *base,
-+				struct ata_busports *busaddr, unsigned long busbase)
- {
- 	port->cmd_addr		= base;
- 	port->data_addr		= base;
-@@ -937,6 +938,13 @@ static void pdc_sata_setup_port(struct a
- 	port->status_addr	= base + 0x1c;
- 	port->altstatus_addr	=
- 	port->ctl_addr		= base + 0x38;
-+
-+	busaddr->cmd_addr	= busbase;
-+	busaddr->cmd_type	= ATA_ADDR_MMIO;
-+	busaddr->ctl_addr	= busbase + 0x38;
-+	busaddr->ctl_type	= ATA_ADDR_MMIO;
-+	busaddr->status_addr	= busbase + 0x1c;
-+	busaddr->status_type	= ATA_ADDR_MMIO;
- }
- 
- 
-@@ -1384,6 +1392,7 @@ static int pdc_sata_init_one (struct pci
- 		{ &pdc_port_info[ent->driver_data], NULL };
- 	struct ata_host *host;
- 	void __iomem *base;
-+	unsigned long busbase;
- 	struct pdc_host_priv *hpriv;
- 	int rc;
- 
-@@ -1412,10 +1421,15 @@ static int pdc_sata_init_one (struct pci
- 	host->iomap = pcim_iomap_table(pdev);
- 
- 	base = host->iomap[PDC_MMIO_BAR] + PDC_CHIP0_OFS;
--	pdc_sata_setup_port(&host->ports[0]->ioaddr, base + 0x200);
--	pdc_sata_setup_port(&host->ports[1]->ioaddr, base + 0x280);
--	pdc_sata_setup_port(&host->ports[2]->ioaddr, base + 0x300);
--	pdc_sata_setup_port(&host->ports[3]->ioaddr, base + 0x380);
-+	busbase = pci_resource_start(pdev, PDC_MMIO_BAR);
-+	pdc_sata_setup_port(&host->ports[0]->ioaddr, base + 0x200,
-+			    &host->ports[0]->busaddr, busbase + 0x200);
-+	pdc_sata_setup_port(&host->ports[1]->ioaddr, base + 0x280,
-+			    &host->ports[1]->busaddr, busbase + 0x280);
-+	pdc_sata_setup_port(&host->ports[2]->ioaddr, base + 0x300,
-+			    &host->ports[2]->busaddr, busbase + 0x300);
-+	pdc_sata_setup_port(&host->ports[3]->ioaddr, base + 0x380,
-+			    &host->ports[3]->busaddr, busbase + 0x380);
- 
- 	/* configure and activate */
- 	rc = pci_set_dma_mask(pdev, ATA_DMA_MASK);
-diff -puN drivers/ata/sata_uli.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_uli.c
---- a/drivers/ata/sata_uli.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_uli.c
-@@ -191,6 +191,7 @@ static int uli_init_one (struct pci_dev 
- 	struct uli_priv *hpriv;
- 	void __iomem * const *iomap;
- 	struct ata_ioports *ioaddr;
-+	struct ata_busports *busaddr;
- 	int n_ports, rc;
- 
- 	if (!printed_version++)
-@@ -234,13 +235,20 @@ static int uli_init_one (struct pci_dev 
- 		hpriv->scr_cfg_addr[1] = ULI5287_BASE + ULI5287_OFFS;
- 
- 		ioaddr = &host->ports[2]->ioaddr;
-+		busaddr = &host->ports[2]->busaddr;
-+
- 		ioaddr->cmd_addr = iomap[0] + 8;
- 		ioaddr->altstatus_addr =
- 		ioaddr->ctl_addr = (void __iomem *)
- 			((unsigned long)iomap[1] | ATA_PCI_CTL_OFS) + 4;
- 		ioaddr->bmdma_addr = iomap[4] + 16;
- 		hpriv->scr_cfg_addr[2] = ULI5287_BASE + ULI5287_OFFS*4;
--		ata_std_ports(ioaddr);
-+
-+		busaddr->cmd_addr = pci_resource_start(pdev, 0) + 8;
-+		busaddr->ctl_addr = (pci_resource_start(pdev, 1) + 4) | ATA_PCI_CTL_OFS;
-+		busaddr->bmdma_addr = pci_resource_start(pdev, 4) + 16;
-+
-+		ata_std_io_ports(ioaddr, busaddr);
- 
- 		ioaddr = &host->ports[3]->ioaddr;
- 		ioaddr->cmd_addr = iomap[2] + 8;
-@@ -249,7 +257,12 @@ static int uli_init_one (struct pci_dev 
- 			((unsigned long)iomap[3] | ATA_PCI_CTL_OFS) + 4;
- 		ioaddr->bmdma_addr = iomap[4] + 24;
- 		hpriv->scr_cfg_addr[3] = ULI5287_BASE + ULI5287_OFFS*5;
--		ata_std_ports(ioaddr);
-+
-+		busaddr->cmd_addr = pci_resource_start(pdev, 2) + 8;
-+		busaddr->ctl_addr = (pci_resource_start(pdev, 3) + 4) | ATA_PCI_CTL_OFS;
-+		busaddr->bmdma_addr = pci_resource_start(pdev, 4) + 24;
-+
-+		ata_std_io_ports(ioaddr, busaddr);
- 		break;
- 
- 	case uli_5289:
-diff -puN drivers/ata/sata_via.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_via.c
---- a/drivers/ata/sata_via.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_via.c
-@@ -392,12 +392,13 @@ static void __iomem * vt6421_scr_addr(vo
- 	return addr + (port * 64);
- }
- 
--static void vt6421_init_addrs(struct ata_port *ap)
-+static void vt6421_init_addrs(struct pci_dev *pdev, struct ata_port *ap)
- {
- 	void __iomem * const * iomap = ap->host->iomap;
- 	void __iomem *reg_addr = iomap[ap->port_no];
- 	void __iomem *bmdma_addr = iomap[4] + (ap->port_no * 8);
- 	struct ata_ioports *ioaddr = &ap->ioaddr;
-+	struct ata_busports *busaddr = &ap->busaddr;
- 
- 	ioaddr->cmd_addr = reg_addr;
- 	ioaddr->altstatus_addr =
-@@ -406,7 +407,11 @@ static void vt6421_init_addrs(struct ata
- 	ioaddr->bmdma_addr = bmdma_addr;
- 	ioaddr->scr_addr = vt6421_scr_addr(iomap[5], ap->port_no);
- 
--	ata_std_ports(ioaddr);
-+	busaddr->bmdma_addr = pci_resource_start(pdev, 4) + 8 * ap->port_no;
-+	busaddr->cmd_addr = pci_resource_start(pdev, ap->port_no);
-+	busaddr->ctl_addr = (busaddr->cmd_addr + 8) | ATA_PCI_CTL_OFS;
-+
-+	ata_std_mmio_ports(ioaddr, busaddr);
- }
- 
- static int vt6420_prepare_host(struct pci_dev *pdev, struct ata_host **r_host)
-@@ -454,7 +459,7 @@ static int vt6421_prepare_host(struct pc
- 	host->iomap = pcim_iomap_table(pdev);
- 
- 	for (i = 0; i < host->n_ports; i++)
--		vt6421_init_addrs(host->ports[i]);
-+		vt6421_init_addrs(pdev, host->ports[i]);
- 
- 	rc = pci_set_dma_mask(pdev, ATA_DMA_MASK);
- 	if (rc)
-diff -puN drivers/ata/sata_vsc.c~libata-store-bus-addresses-versus-mm-for-testing drivers/ata/sata_vsc.c
---- a/drivers/ata/sata_vsc.c~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/drivers/ata/sata_vsc.c
-@@ -343,7 +343,9 @@ static const struct ata_port_operations 
- };
- 
- static void __devinit vsc_sata_setup_port(struct ata_ioports *port,
--					  void __iomem *base)
-+					  void __iomem *base,
-+					  struct ata_busports *busaddr,
-+					  unsigned long busbase)
- {
- 	port->cmd_addr		= base + VSC_SATA_TF_CMD_OFFSET;
- 	port->data_addr		= base + VSC_SATA_TF_DATA_OFFSET;
-@@ -360,6 +362,14 @@ static void __devinit vsc_sata_setup_por
- 	port->ctl_addr		= base + VSC_SATA_TF_CTL_OFFSET;
- 	port->bmdma_addr	= base + VSC_SATA_DMA_CMD_OFFSET;
- 	port->scr_addr		= base + VSC_SATA_SCR_STATUS_OFFSET;
-+
-+	busaddr->cmd_addr	= busbase + VSC_SATA_TF_CMD_OFFSET;
-+	busaddr->cmd_type	= ATA_ADDR_MMIO;
-+	busaddr->ctl_addr	= busbase + VSC_SATA_TF_CTL_OFFSET;
-+	busaddr->ctl_type	= ATA_ADDR_MMIO;
-+	busaddr->status_addr	= busbase + VSC_SATA_TF_STATUS_OFFSET;
-+	busaddr->status_type	= ATA_ADDR_MMIO;
-+
- 	writel(0, base + VSC_SATA_UP_DESCRIPTOR_OFFSET);
- 	writel(0, base + VSC_SATA_UP_DATA_BUFFER_OFFSET);
- }
-@@ -408,10 +418,12 @@ static int __devinit vsc_sata_init_one (
- 
- 	mmio_base = host->iomap[VSC_MMIO_BAR];
- 
--	for (i = 0; i < host->n_ports; i++)
-+	for (i = 0; i < host->n_ports; i++) {
- 		vsc_sata_setup_port(&host->ports[i]->ioaddr,
--				    mmio_base + (i + 1) * VSC_SATA_PORT_OFFSET);
--
-+				    mmio_base + (i + 1) * VSC_SATA_PORT_OFFSET,
-+				    &host->ports[i]->busaddr,
-+				    pci_resource_start(pdev, VSC_MMIO_BAR) + (i + 1) * VSC_SATA_PORT_OFFSET);
-+	}
  	/*
- 	 * Use 32 bit DMA mask, because 64 bit address support is poor.
+-	 * NEC Vrc-5074 (Nile 4) builtin UART.
+-	 */
+-	[pbn_nec_nile4] = {
+-		.flags		= FL_BASE0,
+-		.num_ports	= 1,
+-		.base_baud	= 520833,
+-		.uart_offset	= 8 << 3,
+-		.reg_shift	= 3,
+-		.first_offset	= 0x300,
+-	},
+-
+-	/*
+ 	 * Computone - uses IOMEM.
  	 */
-diff -puN include/linux/libata.h~libata-store-bus-addresses-versus-mm-for-testing include/linux/libata.h
---- a/include/linux/libata.h~libata-store-bus-addresses-versus-mm-for-testing
-+++ a/include/linux/libata.h
-@@ -370,6 +370,30 @@ struct ata_ioports {
- 	void __iomem		*scr_addr;
- };
+ 	[pbn_computone_4] = {
+@@ -2345,13 +2332,6 @@ static struct pci_device_id serial_pci_t
+ 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b2_1_115200 },
  
-+typedef enum {
-+	ATA_ADDR_UNSET = 0,
-+	ATA_ADDR_PIO = 1,
-+	ATA_ADDR_MMIO = 2
-+} ata_addr_type;
-+
-+struct ata_busports {
-+	/* If this is set it is used to indicate the resource block for
-+	   a device (eg AHCI) which may not fit the usual arrangement */
-+	unsigned long base_addr;
-+	ata_addr_type base_type;
-+	/* Optionally we can provide the SFF type task file and BMDMA
-+	   locations. Status must be provided if the ata_status functions
-+	   are being used */
-+	unsigned long cmd_addr;
-+	ata_addr_type cmd_type;
-+	unsigned long ctl_addr;
-+	ata_addr_type ctl_type;
-+	unsigned long bmdma_addr;
-+	ata_addr_type bmdma_type;
-+	unsigned long status_addr;
-+	ata_addr_type status_type;
-+};
-+
- struct ata_host {
- 	spinlock_t		lock;
- 	struct device 		*dev;
-@@ -536,6 +560,7 @@ struct ata_port {
- 	dma_addr_t		pad_dma;
+-	/*
+-	 * NEC Vrc-5074 (Nile 4) builtin UART.
+-	 */
+-	{	PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_NILE4,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+-		pbn_nec_nile4 },
+-
+ 	{	PCI_VENDOR_ID_DCI, PCI_DEVICE_ID_DCI_PCCOM2,
+ 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b3_2_115200 },
+diff -puN include/linux/pci_ids.h~ddb5477-remove-driver-bits-of-support include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~ddb5477-remove-driver-bits-of-support
++++ a/include/linux/pci_ids.h
+@@ -611,7 +611,6 @@
+ #define PCI_DEVICE_ID_NEC_CBUS_3	0x003b
+ #define PCI_DEVICE_ID_NEC_NAPCCARD	0x003e
+ #define PCI_DEVICE_ID_NEC_PCX2		0x0046 /* PowerVR */
+-#define PCI_DEVICE_ID_NEC_NILE4		0x005a
+ #define PCI_DEVICE_ID_NEC_VRC5476       0x009b
+ #define PCI_DEVICE_ID_NEC_VRC4173	0x00a5
+ #define PCI_DEVICE_ID_NEC_VRC5477_AC97  0x00a6
+diff -puN sound/oss/Kconfig~ddb5477-remove-driver-bits-of-support sound/oss/Kconfig
+--- a/sound/oss/Kconfig~ddb5477-remove-driver-bits-of-support
++++ a/sound/oss/Kconfig
+@@ -31,14 +31,6 @@ config SOUND_HAL2
+ 	  Say Y or M if you have an SGI Indy or Indigo2 system and want to be able to
+ 	  use its on-board A2 audio system.
  
- 	struct ata_ioports	ioaddr;	/* ATA cmd/ctl/dma register blocks */
-+	struct ata_busports	busaddr; /* Bus addresses for reporting */
- 
- 	u8			ctl;	/* cache of ATA control register */
- 	u8			last_ctl;	/* Cache last written value */
-@@ -720,7 +745,8 @@ extern int sata_std_hardreset(struct ata
- 			      unsigned long deadline);
- extern void ata_std_postreset(struct ata_port *ap, unsigned int *classes);
- extern void ata_port_disable(struct ata_port *);
--extern void ata_std_ports(struct ata_ioports *ioaddr);
-+extern void ata_std_io_ports(struct ata_ioports *ioaddr, struct ata_busports *busaddr);
-+extern void ata_std_mmio_ports(struct ata_ioports *ioaddr, struct ata_busports *busaddr);
- #ifdef CONFIG_PCI
- extern int ata_pci_init_one (struct pci_dev *pdev,
- 			     const struct ata_port_info * const * ppi);
+-config SOUND_VRC5477
+-	tristate "NEC Vrc5477 AC97 sound"
+-	depends on SOUND_PRIME && DDB5477
+-	help
+-	  Say Y here to enable sound support for the NEC Vrc5477 chip, an
+-	  integrated, multi-function controller chip for MIPS CPUs.  Works
+-	  with the AC97 codec.
+-
+ config SOUND_AU1550_AC97
+ 	tristate "Au1550/Au1200 AC97 Sound"
+ 	select SND_AC97_CODEC
+diff -puN sound/oss/Makefile~ddb5477-remove-driver-bits-of-support sound/oss/Makefile
+--- a/sound/oss/Makefile~ddb5477-remove-driver-bits-of-support
++++ a/sound/oss/Makefile
+@@ -37,7 +37,6 @@ obj-$(CONFIG_SOUND_MSNDPIN)	+= msnd.o ms
+ obj-$(CONFIG_SOUND_VWSND)	+= vwsnd.o
+ obj-$(CONFIG_SOUND_ICH)		+= i810_audio.o ac97_codec.o
+ obj-$(CONFIG_SOUND_ES1371)	+= es1371.o ac97_codec.o
+-obj-$(CONFIG_SOUND_VRC5477)	+= nec_vrc5477.o ac97_codec.o
+ obj-$(CONFIG_SOUND_AU1550_AC97)	+= au1550_ac97.o ac97_codec.o
+ obj-$(CONFIG_SOUND_TRIDENT)	+= trident.o ac97_codec.o
+ obj-$(CONFIG_SOUND_BCM_CS4297A)	+= swarm_cs4297a.o
+diff -puN sound/oss/nec_vrc5477.c~ddb5477-remove-driver-bits-of-support /dev/null
+--- a/sound/oss/nec_vrc5477.c
++++ /dev/null
+@@ -1,2060 +0,0 @@
+-/***********************************************************************
+- * Copyright 2001 MontaVista Software Inc.
+- * Author: Jun Sun, jsun@mvista.com or jsun@junsun.net
+- *
+- * drivers/sound/nec_vrc5477.c
+- *     AC97 sound dirver for NEC Vrc5477 chip (an integrated, 
+- *     multi-function controller chip for MIPS CPUs)
+- *
+- * VRA support Copyright 2001 Bradley D. LaRonde <brad@ltc.com>
+- *
+- * This program is free software; you can redistribute  it and/or modify it
+- * under  the terms of  the GNU General  Public License as published by the
+- * Free Software Foundation;  either version 2 of the  License, or (at your
+- * option) any later version.
+- ***********************************************************************
+- */
+-
+-/*
+- * This code is derived from ite8172.c, which is written by Steve Longerbeam.
+- *
+- * Features:
+- *   Currently we only support the following capabilities:
+- *	. mono output to PCM L/R (line out).
+- *	. stereo output to PCM L/R (line out).
+- *	. mono input from PCM L (line in).
+- *	. stereo output from PCM (line in).
+- *	. sampling rate at 48k or variable sampling rate 
+- *	. support /dev/dsp, /dev/mixer devices, standard OSS devices.
+- *	. only support 16-bit PCM format (hardware limit, no software
+- *	  translation) 
+- *	. support duplex, but no trigger or realtime.
+- *	
+- *   Specifically the following are not supported:
+- *	. app-set frag size.
+- *	. mmap'ed buffer access
+- */
+-
+-/* 
+- * Original comments from ite8172.c file.
+- */
+-
+-/*
+- *
+- * Notes:
+- *
+- *  1. Much of the OSS buffer allocation, ioctl's, and mmap'ing are
+- *     taken, slightly modified or not at all, from the ES1371 driver,
+- *     so refer to the credits in es1371.c for those. The rest of the
+- *     code (probe, open, read, write, the ISR, etc.) is new.
+- *  2. The following support is untested:
+- *      * Memory mapping the audio buffers, and the ioctl controls that go
+- *        with it.
+- *      * S/PDIF output.
+- *  3. The following is not supported:
+- *      * I2S input.
+- *      * legacy audio mode.
+- *  4. Support for volume button interrupts is implemented but doesn't
+- *     work yet.
+- *
+- *  Revision history
+- *    02.08.2001  0.1   Initial release
+- */
+-
+-#include <linux/module.h>
+-#include <linux/string.h>
+-#include <linux/kernel.h>
+-#include <linux/ioport.h>
+-#include <linux/sched.h>
+-#include <linux/delay.h>
+-#include <linux/sound.h>
+-#include <linux/slab.h>
+-#include <linux/soundcard.h>
+-#include <linux/pci.h>
+-#include <linux/init.h>
+-#include <linux/poll.h>
+-#include <linux/bitops.h>
+-#include <linux/proc_fs.h>
+-#include <linux/spinlock.h>
+-#include <linux/smp_lock.h>
+-#include <linux/ac97_codec.h>
+-#include <linux/mutex.h>
+-
+-#include <asm/io.h>
+-#include <asm/dma.h>
+-#include <asm/uaccess.h>
+-
+-/* -------------------debug macros -------------------------------------- */
+-/* #undef VRC5477_AC97_DEBUG */
+-#define VRC5477_AC97_DEBUG
+-
+-#undef VRC5477_AC97_VERBOSE_DEBUG
+-/* #define VRC5477_AC97_VERBOSE_DEBUG */
+-
+-#if defined(VRC5477_AC97_VERBOSE_DEBUG)
+-#define VRC5477_AC97_DEBUG
+-#endif
+-
+-#if defined(VRC5477_AC97_DEBUG)
+-#define ASSERT(x)  if (!(x)) { \
+-	panic("assertion failed at %s:%d: %s\n", __FILE__, __LINE__, #x); }
+-#else
+-#define	ASSERT(x)
+-#endif /* VRC5477_AC97_DEBUG */
+-
+-#if defined(VRC5477_AC97_VERBOSE_DEBUG)
+-static u16 inTicket; 		/* check sync between intr & write */
+-static u16 outTicket;
+-#endif
+-
+-/* --------------------------------------------------------------------- */
+-
+-#undef OSS_DOCUMENTED_MIXER_SEMANTICS
+-
+-static const unsigned sample_shift[] = { 0, 1, 1, 2 };
+-
+-#define         VRC5477_INT_CLR         0x0
+-#define         VRC5477_INT_STATUS	0x0
+-#define         VRC5477_CODEC_WR        0x4
+-#define         VRC5477_CODEC_RD        0x8
+-#define         VRC5477_CTRL            0x18
+-#define         VRC5477_ACLINK_CTRL     0x1c
+-#define         VRC5477_INT_MASK        0x24
+-
+-#define		VRC5477_DAC1_CTRL	0x30
+-#define		VRC5477_DAC1L		0x34
+-#define		VRC5477_DAC1_BADDR	0x38
+-#define		VRC5477_DAC2_CTRL	0x3c
+-#define		VRC5477_DAC2L		0x40
+-#define		VRC5477_DAC2_BADDR	0x44
+-#define		VRC5477_DAC3_CTRL	0x48
+-#define		VRC5477_DAC3L		0x4c
+-#define		VRC5477_DAC3_BADDR	0x50
+-
+-#define		VRC5477_ADC1_CTRL	0x54
+-#define		VRC5477_ADC1L		0x58
+-#define		VRC5477_ADC1_BADDR	0x5c
+-#define		VRC5477_ADC2_CTRL	0x60
+-#define		VRC5477_ADC2L		0x64
+-#define		VRC5477_ADC2_BADDR	0x68
+-#define		VRC5477_ADC3_CTRL	0x6c
+-#define		VRC5477_ADC3L		0x70
+-#define		VRC5477_ADC3_BADDR	0x74
+-
+-#define		VRC5477_CODEC_WR_RWC	(1 << 23)
+-
+-#define		VRC5477_CODEC_RD_RRDYA	(1 << 31)
+-#define		VRC5477_CODEC_RD_RRDYD	(1 << 30)
+-
+-#define		VRC5477_ACLINK_CTRL_RST_ON	(1 << 15)
+-#define		VRC5477_ACLINK_CTRL_RST_TIME	0x7f
+-#define		VRC5477_ACLINK_CTRL_SYNC_ON	(1 << 30)
+-#define		VRC5477_ACLINK_CTRL_CK_STOP_ON	(1 << 31)
+-
+-#define		VRC5477_CTRL_DAC2ENB		(1 << 15) 
+-#define		VRC5477_CTRL_ADC2ENB		(1 << 14) 
+-#define		VRC5477_CTRL_DAC1ENB		(1 << 13) 
+-#define		VRC5477_CTRL_ADC1ENB		(1 << 12) 
+-
+-#define		VRC5477_INT_MASK_NMASK		(1 << 31) 
+-#define		VRC5477_INT_MASK_DAC1END	(1 << 5) 
+-#define		VRC5477_INT_MASK_DAC2END	(1 << 4) 
+-#define		VRC5477_INT_MASK_DAC3END	(1 << 3) 
+-#define		VRC5477_INT_MASK_ADC1END	(1 << 2) 
+-#define		VRC5477_INT_MASK_ADC2END	(1 << 1) 
+-#define		VRC5477_INT_MASK_ADC3END	(1 << 0) 
+-
+-#define		VRC5477_DMA_ACTIVATION		(1 << 31)
+-#define		VRC5477_DMA_WIP			(1 << 30)
+-
+-
+-#define VRC5477_AC97_MODULE_NAME "NEC_Vrc5477_audio"
+-#define PFX VRC5477_AC97_MODULE_NAME ": "
+-
+-/* --------------------------------------------------------------------- */
+-
+-struct vrc5477_ac97_state {
+-	/* list of vrc5477_ac97 devices */
+-	struct list_head devs;
+-
+-	/* the corresponding pci_dev structure */
+-	struct pci_dev *dev;
+-
+-	/* soundcore stuff */
+-	int dev_audio;
+-
+-	/* hardware resources */
+-	unsigned long io;
+-	unsigned int irq;
+-
+-#ifdef VRC5477_AC97_DEBUG
+-	/* debug /proc entry */
+-	struct proc_dir_entry *ps;
+-	struct proc_dir_entry *ac97_ps;
+-#endif /* VRC5477_AC97_DEBUG */
+-
+-	struct ac97_codec *codec;
+-
+-	unsigned dacChannels, adcChannels;
+-	unsigned short dacRate, adcRate;
+-	unsigned short extended_status;
+-
+-	spinlock_t lock;
+-	struct mutex open_mutex;
+-	mode_t open_mode;
+-	wait_queue_head_t open_wait;
+-
+-	struct dmabuf {
+-		void *lbuf, *rbuf;
+-		dma_addr_t lbufDma, rbufDma;
+-		unsigned bufOrder;
+-		unsigned numFrag;
+-		unsigned fragShift;
+-		unsigned fragSize;	/* redundant */
+-		unsigned fragTotalSize;	/* = numFrag * fragSize(real)  */
+-		unsigned nextIn;
+-		unsigned nextOut;
+-		int count;
+-		unsigned error; /* over/underrun */
+-		wait_queue_head_t wait;
+-		/* OSS stuff */
+-		unsigned stopped:1;
+-		unsigned ready:1;
+-	} dma_dac, dma_adc;
+-
+-	#define	WORK_BUF_SIZE	2048
+-	struct {
+-		u16 lchannel;
+-		u16 rchannel;
+-	} workBuf[WORK_BUF_SIZE/4];
+-};
+-
+-/* --------------------------------------------------------------------- */
+-
+-static LIST_HEAD(devs);
+-
+-/* --------------------------------------------------------------------- */
+-
+-static inline unsigned ld2(unsigned int x)
+-{
+-    unsigned r = 0;
+-	
+-    if (x >= 0x10000) {
+-	x >>= 16;
+-	r += 16;
+-    }
+-    if (x >= 0x100) {
+-	x >>= 8;
+-	r += 8;
+-    }
+-    if (x >= 0x10) {
+-	x >>= 4;
+-	r += 4;
+-    }
+-    if (x >= 4) {
+-	x >>= 2;
+-	r += 2;
+-    }
+-    if (x >= 2)
+-	r++;
+-    return r;
+-}
+-
+-/* --------------------------------------------------------------------- */
+-
+-static u16 rdcodec(struct ac97_codec *codec, u8 addr)
+-{
+-	struct vrc5477_ac97_state *s = 
+-		(struct vrc5477_ac97_state *)codec->private_data;
+-	unsigned long flags;
+-	u32 result;
+-
+-	spin_lock_irqsave(&s->lock, flags);
+-
+-	/* wait until we can access codec registers */
+-	while (inl(s->io + VRC5477_CODEC_WR) & 0x80000000);
+-
+-	/* write the address and "read" command to codec */
+-	addr = addr & 0x7f;
+-	outl((addr << 16) | VRC5477_CODEC_WR_RWC, s->io + VRC5477_CODEC_WR);
+-
+-	/* get the return result */
+-	udelay(100); /* workaround hardware bug */
+-	while ( (result = inl(s->io + VRC5477_CODEC_RD)) & 
+-                (VRC5477_CODEC_RD_RRDYA | VRC5477_CODEC_RD_RRDYD) ) {
+-		/* we get either addr or data, or both */
+-		if (result & VRC5477_CODEC_RD_RRDYA) {
+-			ASSERT(addr == ((result >> 16) & 0x7f) );
+-		}
+-		if (result & VRC5477_CODEC_RD_RRDYD) {
+-			break;
+-		}
+-	}
+-
+-	spin_unlock_irqrestore(&s->lock, flags);
+-
+-	return result & 0xffff;
+-}
+-
+-
+-static void wrcodec(struct ac97_codec *codec, u8 addr, u16 data)
+-{
+-	struct vrc5477_ac97_state *s = 
+-		(struct vrc5477_ac97_state *)codec->private_data;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&s->lock, flags);
+-
+-	/* wait until we can access codec registers */
+-	while (inl(s->io + VRC5477_CODEC_WR) & 0x80000000);
+-
+-	/* write the address and value to codec */
+-	outl((addr << 16) | data, s->io + VRC5477_CODEC_WR);
+-
+-	spin_unlock_irqrestore(&s->lock, flags);
+-}
+-
+-
+-static void waitcodec(struct ac97_codec *codec)
+-{
+-	struct vrc5477_ac97_state *s = 
+-		(struct vrc5477_ac97_state *)codec->private_data;
+-
+-	/* wait until we can access codec registers */
+-	while (inl(s->io + VRC5477_CODEC_WR) & 0x80000000);
+-}
+-
+-static int ac97_codec_not_present(struct ac97_codec *codec)
+-{
+-	struct vrc5477_ac97_state *s = 
+-		(struct vrc5477_ac97_state *)codec->private_data;
+-	unsigned long flags;
+-	unsigned short count  = 0xffff; 
+-
+-	spin_lock_irqsave(&s->lock, flags);
+-
+-	/* wait until we can access codec registers */
+-	do {
+-	       if (!(inl(s->io + VRC5477_CODEC_WR) & 0x80000000))
+-		       break;
+-	} while (--count);
+-
+-	if (count == 0) {
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		return -1;
+-	}
+-
+-	/* write 0 to reset */
+-	outl((AC97_RESET << 16) | 0, s->io + VRC5477_CODEC_WR);
+-
+-	/* test whether we get a response from ac97 chip */
+-	count  = 0xffff; 
+-	do { 
+-	       if (!(inl(s->io + VRC5477_CODEC_WR) & 0x80000000))
+-		       break;
+-	} while (--count);
+-
+-	if (count == 0) {
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		return -1;
+-	}
+-	spin_unlock_irqrestore(&s->lock, flags);
+-	return 0;
+-}
+-
+-/* --------------------------------------------------------------------- */
+-
+-static void vrc5477_ac97_delay(int msec)
+-{
+-	unsigned long tmo;
+-	signed long tmo2;
+-
+-	if (in_interrupt())
+-		return;
+-    
+-	tmo = jiffies + (msec*HZ)/1000;
+-	for (;;) {
+-		tmo2 = tmo - jiffies;
+-		if (tmo2 <= 0)
+-			break;
+-		schedule_timeout(tmo2);
+-	}
+-}
+-
+-
+-static void set_adc_rate(struct vrc5477_ac97_state *s, unsigned rate)
+-{
+-	wrcodec(s->codec, AC97_PCM_LR_ADC_RATE, rate);
+-	s->adcRate = rate;
+-}
+-
+-
+-static void set_dac_rate(struct vrc5477_ac97_state *s, unsigned rate)
+-{
+-	if(s->extended_status & AC97_EXTSTAT_VRA) {
+-	wrcodec(s->codec, AC97_PCM_FRONT_DAC_RATE, rate);
+-		s->dacRate = rdcodec(s->codec, AC97_PCM_FRONT_DAC_RATE);
+-	}
+-}
+-
+-static int ac97_codec_not_present(struct ac97_codec *codec)
+-{
+-	struct vrc5477_ac97_state *s =
+-		(struct vrc5477_ac97_state *)codec->private_data;
+-	unsigned long flags;
+-	unsigned short count  = 0xffff;
+-
+-	spin_lock_irqsave(&s->lock, flags);
+-
+-	/* wait until we can access codec registers */
+-	do {
+-	       if (!(inl(s->io + VRC5477_CODEC_WR) & 0x80000000))
+-		       break;
+-	} while (--count);
+-
+-	if (count == 0) {
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		return -1;
+-	}
+-
+-	/* write 0 to reset */
+-	outl((AC97_RESET << 16) | 0, s->io + VRC5477_CODEC_WR);
+-
+-	/* test whether we get a response from ac97 chip */
+-	count  = 0xffff;
+-	do {
+-	       if (!(inl(s->io + VRC5477_CODEC_WR) & 0x80000000))
+-		       break;
+-	} while (--count);
+-
+-	if (count == 0) {
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		return -1;
+-	}
+-	spin_unlock_irqrestore(&s->lock, flags);
+-	return 0;
+-}
+-
+-/* --------------------------------------------------------------------- */
+-
+-static inline void
+-stop_dac(struct vrc5477_ac97_state *s)
+-{
+-	struct dmabuf* db = &s->dma_dac;
+-	unsigned long flags;
+-	u32 temp;
+-    
+-	spin_lock_irqsave(&s->lock, flags);
+-
+-	if (db->stopped) {
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		return;
+-	}
+-
+-	/* deactivate the dma */
+-	outl(0, s->io + VRC5477_DAC1_CTRL);
+-	outl(0, s->io + VRC5477_DAC2_CTRL);
+-
+-	/* wait for DAM completely stop */
+-	while (inl(s->io + VRC5477_DAC1_CTRL) & VRC5477_DMA_WIP);
+-	while (inl(s->io + VRC5477_DAC2_CTRL) & VRC5477_DMA_WIP);
+-
+-	/* disable dac slots in aclink */
+-	temp = inl(s->io + VRC5477_CTRL);
+-	temp &= ~ (VRC5477_CTRL_DAC1ENB | VRC5477_CTRL_DAC2ENB);
+-	outl (temp, s->io + VRC5477_CTRL);
+-
+-	/* disable interrupts */
+-	temp = inl(s->io + VRC5477_INT_MASK);
+-	temp &= ~ (VRC5477_INT_MASK_DAC1END | VRC5477_INT_MASK_DAC2END); 
+-	outl (temp, s->io + VRC5477_INT_MASK);
+-
+-	/* clear pending ones */
+-	outl(VRC5477_INT_MASK_DAC1END | VRC5477_INT_MASK_DAC2END, 
+-	     s->io +  VRC5477_INT_CLR);
+-    
+-	db->stopped = 1;
+-    
+-	spin_unlock_irqrestore(&s->lock, flags);
+-}	
+-
+-static void start_dac(struct vrc5477_ac97_state *s)
+-{
+-	struct dmabuf* db = &s->dma_dac;
+-	unsigned long flags;
+-	u32 dmaLength;
+-	u32 temp;
+-
+-	spin_lock_irqsave(&s->lock, flags);
+-
+-	if (!db->stopped) {
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		return;
+-	}
+-
+-	/* we should have some data to do the DMA trasnfer */
+-	ASSERT(db->count >= db->fragSize);
+-
+-	/* clear pending fales interrupts */
+-	outl(VRC5477_INT_MASK_DAC1END | VRC5477_INT_MASK_DAC2END, 
+-	     s->io +  VRC5477_INT_CLR);
+-
+-	/* enable interrupts */
+-	temp = inl(s->io + VRC5477_INT_MASK);
+-	temp |= VRC5477_INT_MASK_DAC1END | VRC5477_INT_MASK_DAC2END;
+-	outl(temp, s->io +  VRC5477_INT_MASK);
+-
+-	/* setup dma base addr */
+-	outl(db->lbufDma + db->nextOut, s->io + VRC5477_DAC1_BADDR);
+-	if (s->dacChannels == 1) {
+-		outl(db->lbufDma + db->nextOut, s->io + VRC5477_DAC2_BADDR);
+-	} else {
+-		outl(db->rbufDma + db->nextOut, s->io + VRC5477_DAC2_BADDR);
+-	}
+-
+-	/* set dma length, in the unit of 0x10 bytes */
+-	dmaLength = db->fragSize >> 4;
+-	outl(dmaLength, s->io + VRC5477_DAC1L);
+-	outl(dmaLength, s->io + VRC5477_DAC2L);
+-
+-	/* activate dma */
+-	outl(VRC5477_DMA_ACTIVATION, s->io + VRC5477_DAC1_CTRL);
+-	outl(VRC5477_DMA_ACTIVATION, s->io + VRC5477_DAC2_CTRL);
+-
+-	/* enable dac slots - we should hear the music now! */
+-	temp = inl(s->io + VRC5477_CTRL);
+-	temp |= (VRC5477_CTRL_DAC1ENB | VRC5477_CTRL_DAC2ENB);
+-	outl (temp, s->io + VRC5477_CTRL);
+-
+-	/* it is time to setup next dma transfer */
+-	ASSERT(inl(s->io + VRC5477_DAC1_CTRL) & VRC5477_DMA_WIP);
+-	ASSERT(inl(s->io + VRC5477_DAC2_CTRL) & VRC5477_DMA_WIP);
+-
+-	temp = db->nextOut + db->fragSize;
+-	if (temp >= db->fragTotalSize) {
+-		ASSERT(temp == db->fragTotalSize);
+-		temp = 0;
+-	}
+-
+-	outl(db->lbufDma + temp, s->io + VRC5477_DAC1_BADDR);
+-	if (s->dacChannels == 1) {
+-		outl(db->lbufDma + temp, s->io + VRC5477_DAC2_BADDR);
+-	} else {
+-		outl(db->rbufDma + temp, s->io + VRC5477_DAC2_BADDR);
+-	}
+-
+-	db->stopped = 0;
+-
+-#if defined(VRC5477_AC97_VERBOSE_DEBUG)
+-	outTicket = *(u16*)(db->lbuf+db->nextOut);
+-	if (db->count > db->fragSize) {
+-		ASSERT((u16)(outTicket+1) == *(u16*)(db->lbuf+temp));
+-	}
+-#endif
+-
+-	spin_unlock_irqrestore(&s->lock, flags);
+-}	
+-
+-static inline void stop_adc(struct vrc5477_ac97_state *s)
+-{
+-	struct dmabuf* db = &s->dma_adc;
+-	unsigned long flags;
+-	u32 temp;
+-    
+-	spin_lock_irqsave(&s->lock, flags);
+-
+-	if (db->stopped) {
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		return;
+-	}
+-
+-	/* deactivate the dma */
+-	outl(0, s->io + VRC5477_ADC1_CTRL);
+-	outl(0, s->io + VRC5477_ADC2_CTRL);
+-
+-	/* disable adc slots in aclink */
+-	temp = inl(s->io + VRC5477_CTRL);
+-	temp &= ~ (VRC5477_CTRL_ADC1ENB | VRC5477_CTRL_ADC2ENB);
+-	outl (temp, s->io + VRC5477_CTRL);
+-
+-	/* disable interrupts */
+-        temp = inl(s->io + VRC5477_INT_MASK);
+-        temp &= ~ (VRC5477_INT_MASK_ADC1END | VRC5477_INT_MASK_ADC2END); 
+-        outl (temp, s->io + VRC5477_INT_MASK);
+-
+-	/* clear pending ones */
+-	outl(VRC5477_INT_MASK_ADC1END | VRC5477_INT_MASK_ADC2END, 
+-	     s->io +  VRC5477_INT_CLR);
+-    
+-	db->stopped = 1;
+-
+-	spin_unlock_irqrestore(&s->lock, flags);
+-}	
+-
+-static void start_adc(struct vrc5477_ac97_state *s)
+-{
+-	struct dmabuf* db = &s->dma_adc;
+-	unsigned long flags;
+-	u32 dmaLength;
+-	u32 temp;
+-
+-	spin_lock_irqsave(&s->lock, flags);
+-
+-	if (!db->stopped) {
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		return;
+-	}
+-
+-	/* we should at least have some free space in the buffer */
+-	ASSERT(db->count < db->fragTotalSize - db->fragSize * 2);
+-
+-	/* clear pending ones */
+-	outl(VRC5477_INT_MASK_ADC1END | VRC5477_INT_MASK_ADC2END, 
+-	     s->io +  VRC5477_INT_CLR);
+-
+-        /* enable interrupts */
+-        temp = inl(s->io + VRC5477_INT_MASK);
+-        temp |= VRC5477_INT_MASK_ADC1END | VRC5477_INT_MASK_ADC2END;
+-        outl(temp, s->io +  VRC5477_INT_MASK);
+-
+-	/* setup dma base addr */
+-	outl(db->lbufDma + db->nextIn, s->io + VRC5477_ADC1_BADDR);
+-	outl(db->rbufDma + db->nextIn, s->io + VRC5477_ADC2_BADDR);
+-
+-	/* setup dma length */
+-	dmaLength = db->fragSize >> 4;
+-	outl(dmaLength, s->io + VRC5477_ADC1L);
+-	outl(dmaLength, s->io + VRC5477_ADC2L);
+-
+-	/* activate dma */
+-	outl(VRC5477_DMA_ACTIVATION, s->io + VRC5477_ADC1_CTRL);
+-	outl(VRC5477_DMA_ACTIVATION, s->io + VRC5477_ADC2_CTRL);
+-
+-	/* enable adc slots */
+-	temp = inl(s->io + VRC5477_CTRL);
+-	temp |= (VRC5477_CTRL_ADC1ENB | VRC5477_CTRL_ADC2ENB);
+-	outl (temp, s->io + VRC5477_CTRL);
+-
+-	/* it is time to setup next dma transfer */
+-	temp = db->nextIn + db->fragSize;
+-	if (temp >= db->fragTotalSize) {
+-		ASSERT(temp == db->fragTotalSize);
+-		temp = 0;
+-	}
+-	outl(db->lbufDma + temp, s->io + VRC5477_ADC1_BADDR);
+-	outl(db->rbufDma + temp, s->io + VRC5477_ADC2_BADDR);
+-
+-	db->stopped = 0;
+-
+-	spin_unlock_irqrestore(&s->lock, flags);
+-}	
+-
+-/* --------------------------------------------------------------------- */
+-
+-#define DMABUF_DEFAULTORDER (16-PAGE_SHIFT)
+-#define DMABUF_MINORDER 1
+-
+-static inline void dealloc_dmabuf(struct vrc5477_ac97_state *s,
+-				  struct dmabuf *db)
+-{
+-	if (db->lbuf) {
+-		ASSERT(db->rbuf);
+-		pci_free_consistent(s->dev, PAGE_SIZE << db->bufOrder,
+-				    db->lbuf, db->lbufDma);
+-		pci_free_consistent(s->dev, PAGE_SIZE << db->bufOrder,
+-				    db->rbuf, db->rbufDma);
+-		db->lbuf = db->rbuf = NULL;
+-	}
+-	db->nextIn = db->nextOut = 0;
+-	db->ready = 0;
+-}
+-
+-static int prog_dmabuf(struct vrc5477_ac97_state *s, 
+-		       struct dmabuf *db,
+-		       unsigned rate)
+-{
+-	int order;
+-	unsigned bufsize;
+-
+-	if (!db->lbuf) {
+-		ASSERT(!db->rbuf);
+-
+-		db->ready = 0;
+-		for (order = DMABUF_DEFAULTORDER; 
+-		     order >= DMABUF_MINORDER; 
+-		     order--) {
+-			db->lbuf = pci_alloc_consistent(s->dev,
+-							PAGE_SIZE << order,
+-							&db->lbufDma);
+-			db->rbuf = pci_alloc_consistent(s->dev,
+-							PAGE_SIZE << order,
+-							&db->rbufDma);
+-			if (db->lbuf && db->rbuf) break;
+-			if (db->lbuf) {
+-			    ASSERT(!db->rbuf);
+-			    pci_free_consistent(s->dev, 
+-						PAGE_SIZE << order,
+-						db->lbuf,
+-						db->lbufDma);
+-			}
+-		}
+-		if (!db->lbuf) {
+-			ASSERT(!db->rbuf);
+-			return -ENOMEM;
+-		}
+-
+-		db->bufOrder = order;
+-	}
+-
+-	db->count = 0;
+-	db->nextIn = db->nextOut = 0;
+-    
+-	bufsize = PAGE_SIZE << db->bufOrder;
+-	db->fragShift = ld2(rate * 2 / 100);
+-	if (db->fragShift < 4) db->fragShift = 4;
+-
+-	db->numFrag = bufsize >> db->fragShift;
+-	while (db->numFrag < 4 && db->fragShift > 4) {
+-		db->fragShift--;
+-		db->numFrag = bufsize >> db->fragShift;
+-	}
+-	db->fragSize = 1 << db->fragShift;
+-	db->fragTotalSize = db->numFrag << db->fragShift;
+-	memset(db->lbuf, 0, db->fragTotalSize);
+-	memset(db->rbuf, 0, db->fragTotalSize);
+-    
+-	db->ready = 1;
+-
+-	return 0;
+-}
+-
+-static inline int prog_dmabuf_adc(struct vrc5477_ac97_state *s)
+-{
+-    stop_adc(s);
+-    return prog_dmabuf(s, &s->dma_adc, s->adcRate);
+-}
+-
+-static inline int prog_dmabuf_dac(struct vrc5477_ac97_state *s)
+-{
+-    stop_dac(s);
+-    return prog_dmabuf(s, &s->dma_dac, s->dacRate);
+-}
+-
+-
+-/* --------------------------------------------------------------------- */
+-/* hold spinlock for the following! */
+-
+-static inline void vrc5477_ac97_adc_interrupt(struct vrc5477_ac97_state *s)
+-{
+-	struct dmabuf* adc = &s->dma_adc;
+-	unsigned temp;
+-
+-	/* we need two frags avaiable because one is already being used
+-	 * and the other will be used when next interrupt happens.
+-	 */
+-	if (adc->count >= adc->fragTotalSize - adc->fragSize) {
+-		stop_adc(s);
+-		adc->error++;
+-		printk(KERN_INFO PFX "adc overrun\n");
+-		return;
+-	}
+-
+-	/* set the base addr for next DMA transfer */
+-	temp = adc->nextIn + 2*adc->fragSize;
+-	if (temp >= adc->fragTotalSize) {
+-		ASSERT( (temp == adc->fragTotalSize) ||
+-                             (temp == adc->fragTotalSize + adc->fragSize) );
+-		temp -= adc->fragTotalSize;
+-	}
+-	outl(adc->lbufDma + temp, s->io + VRC5477_ADC1_BADDR);
+-	outl(adc->rbufDma + temp, s->io + VRC5477_ADC2_BADDR);
+-
+-	/* adjust nextIn */
+-	adc->nextIn += adc->fragSize;
+-	if (adc->nextIn >= adc->fragTotalSize) {
+-		ASSERT(adc->nextIn == adc->fragTotalSize);
+-		adc->nextIn = 0;
+-	}
+-
+-	/* adjust count */
+-	adc->count += adc->fragSize;
+-
+-	/* wake up anybody listening */
+-	if (waitqueue_active(&adc->wait)) {
+-		wake_up_interruptible(&adc->wait);
+-	}	
+-}
+-
+-static inline void vrc5477_ac97_dac_interrupt(struct vrc5477_ac97_state *s)
+-{
+-	struct dmabuf* dac = &s->dma_dac;
+-	unsigned temp;
+-
+-	/* next DMA transfer should already started */
+-	// ASSERT(inl(s->io + VRC5477_DAC1_CTRL) & VRC5477_DMA_WIP);
+-	// ASSERT(inl(s->io + VRC5477_DAC2_CTRL) & VRC5477_DMA_WIP);
+-
+-	/* let us set for next next DMA transfer */
+-	temp = dac->nextOut + dac->fragSize*2;
+-	if (temp >= dac->fragTotalSize) {
+-		ASSERT( (temp == dac->fragTotalSize) || 
+-                             (temp == dac->fragTotalSize + dac->fragSize) );
+-		temp -= dac->fragTotalSize;
+-	}
+-	outl(dac->lbufDma + temp, s->io + VRC5477_DAC1_BADDR);
+-	if (s->dacChannels == 1) {
+-		outl(dac->lbufDma + temp, s->io + VRC5477_DAC2_BADDR);
+-	} else {
+-		outl(dac->rbufDma + temp, s->io + VRC5477_DAC2_BADDR);
+-	}
+-
+-#if defined(VRC5477_AC97_VERBOSE_DEBUG)
+-	if (*(u16*)(dac->lbuf +  dac->nextOut) != outTicket) {
+-		printk("assert fail: - %d vs %d\n", 
+-		        *(u16*)(dac->lbuf +  dac->nextOut),
+-                        outTicket);
+-                ASSERT(1 == 0);
+-	}
+-#endif
+-
+-	/* adjust nextOut pointer */
+-	dac->nextOut += dac->fragSize;
+-	if (dac->nextOut >= dac->fragTotalSize) {
+-		ASSERT(dac->nextOut == dac->fragTotalSize);
+-		dac->nextOut = 0;
+-	}
+-
+-	/* adjust count */
+-	dac->count -= dac->fragSize;
+-	if (dac->count <=0 ) {
+-		/* buffer under run */
+-		dac->count = 0;
+-		dac->nextIn = dac->nextOut;
+-		stop_dac(s);
+-	}
+-
+-#if defined(VRC5477_AC97_VERBOSE_DEBUG)
+-	if (dac->count) {
+-		outTicket ++;
+-		ASSERT(*(u16*)(dac->lbuf +  dac->nextOut) == outTicket);
+-	}
+-#endif
+-	
+-	/* we cannot have both under run and someone is waiting on us */
+-	ASSERT(! (waitqueue_active(&dac->wait) && (dac->count <= 0)) );
+-
+-	/* wake up anybody listening */
+-	if (waitqueue_active(&dac->wait))
+-		wake_up_interruptible(&dac->wait);
+-}
+-
+-static irqreturn_t vrc5477_ac97_interrupt(int irq, void *dev_id)
+-{
+-	struct vrc5477_ac97_state *s = (struct vrc5477_ac97_state *)dev_id;
+-	u32 irqStatus;
+-	u32 adcInterrupts, dacInterrupts;
+-
+-	spin_lock(&s->lock);
+-
+-	/* get irqStatus and clear the detected ones */
+-	irqStatus = inl(s->io + VRC5477_INT_STATUS);
+-	outl(irqStatus, s->io + VRC5477_INT_CLR);
+-
+-	/* let us see what we get */
+-	dacInterrupts = VRC5477_INT_MASK_DAC1END | VRC5477_INT_MASK_DAC2END;
+-	adcInterrupts = VRC5477_INT_MASK_ADC1END | VRC5477_INT_MASK_ADC2END;
+-	if (irqStatus & dacInterrupts) {
+-		/* we should get both interrupts, but just in case ...  */
+-		if (irqStatus & VRC5477_INT_MASK_DAC1END) {
+-			vrc5477_ac97_dac_interrupt(s);
+-		}
+-		if ( (irqStatus & dacInterrupts) != dacInterrupts ) {
+-			printk(KERN_WARNING "vrc5477_ac97 : dac interrupts not in sync!!!\n");
+-			stop_dac(s);
+-			start_dac(s);
+-		}
+-	} else if (irqStatus & adcInterrupts) {
+-		/* we should get both interrupts, but just in case ...  */
+-		if(irqStatus & VRC5477_INT_MASK_ADC1END) {
+-			vrc5477_ac97_adc_interrupt(s);
+-		} 
+-		if ( (irqStatus & adcInterrupts) != adcInterrupts ) {
+-			printk(KERN_WARNING "vrc5477_ac97 : adc interrupts not in sync!!!\n");
+-			stop_adc(s);
+-			start_adc(s);
+-		}
+-	}
+-
+-	spin_unlock(&s->lock);
+-	return IRQ_HANDLED;
+-}
+-
+-/* --------------------------------------------------------------------- */
+-
+-static int vrc5477_ac97_open_mixdev(struct inode *inode, struct file *file)
+-{
+-	int minor = iminor(inode);
+-	struct list_head *list;
+-	struct vrc5477_ac97_state *s;
+-
+-	for (list = devs.next; ; list = list->next) {
+-		if (list == &devs)
+-			return -ENODEV;
+-		s = list_entry(list, struct vrc5477_ac97_state, devs);
+-		if (s->codec->dev_mixer == minor)
+-			break;
+-	}
+-	file->private_data = s;
+-	return nonseekable_open(inode, file);
+-}
+-
+-static int vrc5477_ac97_release_mixdev(struct inode *inode, struct file *file)
+-{
+-	return 0;
+-}
+-
+-
+-static int mixdev_ioctl(struct ac97_codec *codec, unsigned int cmd,
+-			unsigned long arg)
+-{
+-	return codec->mixer_ioctl(codec, cmd, arg);
+-}
+-
+-static int vrc5477_ac97_ioctl_mixdev(struct inode *inode, struct file *file,
+-				     unsigned int cmd, unsigned long arg)
+-{
+-    struct vrc5477_ac97_state *s = 
+-	    (struct vrc5477_ac97_state *)file->private_data;
+-    struct ac97_codec *codec = s->codec;
+-
+-    return mixdev_ioctl(codec, cmd, arg);
+-}
+-
+-static /*const*/ struct file_operations vrc5477_ac97_mixer_fops = {
+-	.owner		= THIS_MODULE,
+-	.llseek		= no_llseek,
+-	.ioctl		= vrc5477_ac97_ioctl_mixdev,
+-	.open		= vrc5477_ac97_open_mixdev,
+-	.release	= vrc5477_ac97_release_mixdev,
+-};
+-
+-/* --------------------------------------------------------------------- */
+-
+-static int drain_dac(struct vrc5477_ac97_state *s, int nonblock)
+-{
+-	unsigned long flags;
+-	int count, tmo;
+-	
+-	if (!s->dma_dac.ready)
+-		return 0;
+-
+-	for (;;) {
+-		spin_lock_irqsave(&s->lock, flags);
+-		count = s->dma_dac.count;
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		if (count <= 0)
+-			break;
+-		if (signal_pending(current))
+-			break;
+-		if (nonblock)
+-			return -EBUSY;
+-		tmo = 1000 * count / s->dacRate / 2;
+-		vrc5477_ac97_delay(tmo);
+-	}
+-	if (signal_pending(current))
+-		return -ERESTARTSYS;
+-	return 0;
+-}
+-
+-/* --------------------------------------------------------------------- */
+-
+-static inline int
+-copy_two_channel_adc_to_user(struct vrc5477_ac97_state *s, 
+-		             char *buffer, 
+-			     int copyCount)
+-{
+-	struct dmabuf *db = &s->dma_adc;
+-	int bufStart = db->nextOut;
+-	for (; copyCount > 0; ) {
+-		int i;
+-		int count = copyCount;
+-		if (count > WORK_BUF_SIZE/2) count = WORK_BUF_SIZE/2;
+-		for (i=0; i< count/2; i++) {
+-			s->workBuf[i].lchannel = 
+-				*(u16*)(db->lbuf + bufStart + i*2);
+-			s->workBuf[i].rchannel = 
+-				*(u16*)(db->rbuf + bufStart + i*2);
+-		}
+-		if (copy_to_user(buffer, s->workBuf, count*2)) {
+-			return -1;
+-		}
+-
+-		copyCount -= count;
+-		bufStart += count;
+-		ASSERT(bufStart <= db->fragTotalSize);
+-		buffer += count *2;
+-	}
+-	return 0;
+-}
+-
+-/* return the total bytes that is copied */
+-static inline int
+-copy_adc_to_user(struct vrc5477_ac97_state *s,
+-		 char * buffer,
+-		 size_t count,
+-		 int avail)
+-{
+-	struct dmabuf *db = &s->dma_adc;
+-	int copyCount=0;
+-	int copyFragCount=0;
+-	int totalCopyCount = 0;
+-	int totalCopyFragCount = 0;
+-	unsigned long flags;
+-
+-	/* adjust count to signel channel byte count */
+-	count >>= s->adcChannels - 1;
+-
+-	/* we may have to "copy" twice as ring buffer wraps around */
+-	for (; (avail > 0) && (count > 0); ) {
+-		/* determine max possible copy count for single channel */
+-		copyCount = count;
+-		if (copyCount > avail) {
+-			copyCount = avail;
+-		}
+-		if (copyCount + db->nextOut > db->fragTotalSize) {
+-			copyCount = db->fragTotalSize - db->nextOut;
+-			ASSERT((copyCount % db->fragSize) == 0);
+-		}
+-
+-		copyFragCount = (copyCount-1) >> db->fragShift;
+-		copyFragCount = (copyFragCount+1) << db->fragShift;
+-		ASSERT(copyFragCount >= copyCount);
+-
+-		/* we copy differently based on adc channels */
+-		if (s->adcChannels == 1) {
+-			if (copy_to_user(buffer, 
+-					 db->lbuf + db->nextOut, 
+-					 copyCount)) 
+-				return -1;
+-		} else {
+-			/* *sigh* we have to mix two streams into one  */
+-			if (copy_two_channel_adc_to_user(s, buffer, copyCount))
+-				return -1;
+-		}	
+-
+-		count -= copyCount;
+-		totalCopyCount += copyCount;
+-		avail -= copyFragCount;
+-		totalCopyFragCount += copyFragCount;
+-
+-		buffer += copyCount << (s->adcChannels-1);
+-
+-		db->nextOut += copyFragCount;
+-		if (db->nextOut >= db->fragTotalSize) {
+-			ASSERT(db->nextOut == db->fragTotalSize);
+-			db->nextOut = 0;
+-		}
+-
+-		ASSERT((copyFragCount % db->fragSize) == 0);
+-		ASSERT( (count == 0) || (copyCount == copyFragCount));
+-	}
+-
+-	spin_lock_irqsave(&s->lock, flags);
+-        db->count -= totalCopyFragCount;
+-        spin_unlock_irqrestore(&s->lock, flags);
+-
+-	return totalCopyCount << (s->adcChannels-1);
+-}
+-
+-static ssize_t 
+-vrc5477_ac97_read(struct file *file, 
+-		  char *buffer,
+-		  size_t count, 
+-		  loff_t *ppos)
+-{
+-	struct vrc5477_ac97_state *s = 
+-		(struct vrc5477_ac97_state *)file->private_data;
+-	struct dmabuf *db = &s->dma_adc;
+-	ssize_t ret = 0;
+-	unsigned long flags;
+-	int copyCount;
+-	size_t avail;
+-
+-	if (!access_ok(VERIFY_WRITE, buffer, count))
+-		return -EFAULT;
+-
+-	ASSERT(db->ready);
+-
+-	while (count > 0) {
+-		// wait for samples in capture buffer
+-		do {
+-			spin_lock_irqsave(&s->lock, flags);
+-			if (db->stopped)
+-				start_adc(s);
+-			avail = db->count;
+-			spin_unlock_irqrestore(&s->lock, flags);
+-			if (avail <= 0) {
+-				if (file->f_flags & O_NONBLOCK) {
+-					if (!ret)
+-						ret = -EAGAIN;
+-					return ret;
+-				}
+-				interruptible_sleep_on(&db->wait);
+-				if (signal_pending(current)) {
+-					if (!ret)
+-						ret = -ERESTARTSYS;
+-					return ret;
+-				}
+-			}
+-		} while (avail <= 0);
+-
+-		ASSERT( (avail % db->fragSize) == 0);
+-		copyCount = copy_adc_to_user(s, buffer, count, avail);
+-		if (copyCount <=0 ) {
+-			if (!ret) ret = -EFAULT;
+-			return ret;
+-		}
+-
+-		count -= copyCount;
+-		buffer += copyCount;
+-		ret += copyCount;
+-	} // while (count > 0)
+-
+-	return ret;
+-}
+-
+-static inline int
+-copy_two_channel_dac_from_user(struct vrc5477_ac97_state *s, 
+-			       const char *buffer, 
+-			       int copyCount)
+-{
+-	struct dmabuf *db = &s->dma_dac;
+-	int bufStart = db->nextIn;
+-
+-	ASSERT(db->ready);
+-
+-        for (; copyCount > 0; ) {
+-                int i;
+-                int count = copyCount;
+-                if (count > WORK_BUF_SIZE/2) count = WORK_BUF_SIZE/2;
+-                if (copy_from_user(s->workBuf, buffer, count*2)) {
+-                        return -1;
+-                }
+-                for (i=0; i< count/2; i++) {
+-			*(u16*)(db->lbuf + bufStart + i*2) = 
+-				s->workBuf[i].lchannel;
+-			*(u16*)(db->rbuf + bufStart + i*2) = 
+-				s->workBuf[i].rchannel;
+-                }
+-
+-                copyCount -= count;
+-		bufStart += count;
+-		ASSERT(bufStart <= db->fragTotalSize);
+-                buffer += count *2;
+-        }
+-        return 0;
+-
+-}
+-
+-/* return the total bytes that is copied */
+-static inline int
+-copy_dac_from_user(struct vrc5477_ac97_state *s, 
+-		   const char *buffer, 
+-		   size_t count, 
+-		   int avail)
+-{	
+-        struct dmabuf *db = &s->dma_dac;
+-        int copyCount=0;
+-        int copyFragCount=0;
+-        int totalCopyCount = 0;
+-        int totalCopyFragCount = 0;
+-        unsigned long flags;
+-#if defined(VRC5477_AC97_VERBOSE_DEBUG)
+-	int i;
+-#endif
+-
+-        /* adjust count to signel channel byte count */
+-        count >>= s->dacChannels - 1;
+-
+-        /* we may have to "copy" twice as ring buffer wraps around */
+-        for (; (avail > 0) && (count > 0); ) {
+-                /* determine max possible copy count for single channel */
+-                copyCount = count;
+-                if (copyCount > avail) {
+-                        copyCount = avail;
+-		}
+-                if (copyCount + db->nextIn > db->fragTotalSize) {
+-                        copyCount = db->fragTotalSize - db->nextIn;
+-                        ASSERT(copyCount > 0);
+-                }
+-
+-		copyFragCount = copyCount;
+-		ASSERT(copyFragCount >= copyCount);
+-
+-		/* we copy differently based on the number channels */
+-		if (s->dacChannels == 1) {
+-			if (copy_from_user(db->lbuf + db->nextIn,
+-					   buffer,
+-					   copyCount)) 
+-				return -1;
+-			/* fill gaps with 0 */
+-			memset(db->lbuf + db->nextIn + copyCount,
+-			       0,
+-			       copyFragCount - copyCount);
+-		} else {
+-			/* we have demux the stream into two separate ones */
+-			if (copy_two_channel_dac_from_user(s, buffer, copyCount))
+-				return -1;
+-			/* fill gaps with 0 */
+-			memset(db->lbuf + db->nextIn + copyCount,
+-			       0,
+-			       copyFragCount - copyCount);
+-			memset(db->rbuf + db->nextIn + copyCount,
+-			       0,
+-			       copyFragCount - copyCount);
+-		}
+-
+-#if defined(VRC5477_AC97_VERBOSE_DEBUG)
+-		for (i=0; i< copyFragCount; i+= db->fragSize) {
+-			*(u16*)(db->lbuf + db->nextIn + i) = inTicket ++;
+-		}
+-#endif
+-
+-		count -= copyCount;
+-		totalCopyCount += copyCount;
+-		avail -= copyFragCount;
+-		totalCopyFragCount += copyFragCount;
+-
+-		buffer += copyCount << (s->dacChannels - 1);
+-
+-		db->nextIn += copyFragCount;
+-		if (db->nextIn >= db->fragTotalSize) {
+-			ASSERT(db->nextIn == db->fragTotalSize);
+-			db->nextIn = 0;
+-		}
+-
+-		ASSERT( (count == 0) || (copyCount == copyFragCount));
+-	}
+-
+-	spin_lock_irqsave(&s->lock, flags);
+-        db->count += totalCopyFragCount;
+-	if (db->stopped) {
+-		start_dac(s);
+-	}
+-
+-	/* nextIn should not be equal to nextOut unless we are full */
+-	ASSERT( ( (db->count == db->fragTotalSize) && 
+-                       (db->nextIn == db->nextOut) ) ||
+-                     ( (db->count < db->fragTotalSize) &&
+-                       (db->nextIn != db->nextOut) ) );
+-
+-        spin_unlock_irqrestore(&s->lock, flags);
+-
+-        return totalCopyCount << (s->dacChannels-1);
+-
+-}
+-
+-static ssize_t vrc5477_ac97_write(struct file *file, const char *buffer,
+-				  size_t count, loff_t *ppos)
+-{
+-	struct vrc5477_ac97_state *s = 
+-		(struct vrc5477_ac97_state *)file->private_data;
+-	struct dmabuf *db = &s->dma_dac;
+-	ssize_t ret;
+-	unsigned long flags;
+-	int copyCount, avail;
+-
+-	if (!access_ok(VERIFY_READ, buffer, count))
+-		return -EFAULT;
+-	ret = 0;
+-    
+-	while (count > 0) {
+-		// wait for space in playback buffer
+-		do {
+-			spin_lock_irqsave(&s->lock, flags);
+-			avail = db->fragTotalSize - db->count;
+-			spin_unlock_irqrestore(&s->lock, flags);
+-			if (avail <= 0) {
+-				if (file->f_flags & O_NONBLOCK) {
+-					if (!ret)
+-						ret = -EAGAIN;
+-					return ret;
+-				}
+-				interruptible_sleep_on(&db->wait);
+-				if (signal_pending(current)) {
+-					if (!ret)
+-						ret = -ERESTARTSYS;
+-					return ret;
+-				}
+-			}
+-		} while (avail <= 0);
+-	
+-		copyCount = copy_dac_from_user(s, buffer, count, avail);
+-		if (copyCount < 0) {
+-			if (!ret) ret = -EFAULT;
+-			return ret;
+-		}
+-
+-		count -= copyCount;
+-		buffer += copyCount;
+-		ret += copyCount;
+-	} // while (count > 0)
+-	
+-	return ret;
+-}
+-
+-/* No kernel lock - we have our own spinlock */
+-static unsigned int vrc5477_ac97_poll(struct file *file,
+-				      struct poll_table_struct *wait)
+-{
+-	struct vrc5477_ac97_state *s = (struct vrc5477_ac97_state *)file->private_data;
+-	unsigned long flags;
+-	unsigned int mask = 0;
+-
+-	if (file->f_mode & FMODE_WRITE)
+-		poll_wait(file, &s->dma_dac.wait, wait);
+-	if (file->f_mode & FMODE_READ)
+-		poll_wait(file, &s->dma_adc.wait, wait);
+-	spin_lock_irqsave(&s->lock, flags);
+-	if (file->f_mode & FMODE_READ) {
+-		if (s->dma_adc.count >= (signed)s->dma_adc.fragSize)
+-			mask |= POLLIN | POLLRDNORM;
+-	}
+-	if (file->f_mode & FMODE_WRITE) {
+-		if ((signed)s->dma_dac.fragTotalSize >=
+-		    s->dma_dac.count + (signed)s->dma_dac.fragSize)
+-			mask |= POLLOUT | POLLWRNORM;
+-	}
+-	spin_unlock_irqrestore(&s->lock, flags);
+-	return mask;
+-}
+-
+-#ifdef VRC5477_AC97_DEBUG
+-static struct ioctl_str_t {
+-    unsigned int cmd;
+-    const char* str;
+-} ioctl_str[] = {
+-    {SNDCTL_DSP_RESET, "SNDCTL_DSP_RESET"},
+-    {SNDCTL_DSP_SYNC, "SNDCTL_DSP_SYNC"},
+-    {SNDCTL_DSP_SPEED, "SNDCTL_DSP_SPEED"},
+-    {SNDCTL_DSP_STEREO, "SNDCTL_DSP_STEREO"},
+-    {SNDCTL_DSP_GETBLKSIZE, "SNDCTL_DSP_GETBLKSIZE"},
+-    {SNDCTL_DSP_SETFMT, "SNDCTL_DSP_SETFMT"},
+-    {SNDCTL_DSP_SAMPLESIZE, "SNDCTL_DSP_SAMPLESIZE"},
+-    {SNDCTL_DSP_CHANNELS, "SNDCTL_DSP_CHANNELS"},
+-    {SOUND_PCM_WRITE_CHANNELS, "SOUND_PCM_WRITE_CHANNELS"},
+-    {SOUND_PCM_WRITE_FILTER, "SOUND_PCM_WRITE_FILTER"},
+-    {SNDCTL_DSP_POST, "SNDCTL_DSP_POST"},
+-    {SNDCTL_DSP_SUBDIVIDE, "SNDCTL_DSP_SUBDIVIDE"},
+-    {SNDCTL_DSP_SETFRAGMENT, "SNDCTL_DSP_SETFRAGMENT"},
+-    {SNDCTL_DSP_GETFMTS, "SNDCTL_DSP_GETFMTS"},
+-    {SNDCTL_DSP_GETOSPACE, "SNDCTL_DSP_GETOSPACE"},
+-    {SNDCTL_DSP_GETISPACE, "SNDCTL_DSP_GETISPACE"},
+-    {SNDCTL_DSP_NONBLOCK, "SNDCTL_DSP_NONBLOCK"},
+-    {SNDCTL_DSP_GETCAPS, "SNDCTL_DSP_GETCAPS"},
+-    {SNDCTL_DSP_GETTRIGGER, "SNDCTL_DSP_GETTRIGGER"},
+-    {SNDCTL_DSP_SETTRIGGER, "SNDCTL_DSP_SETTRIGGER"},
+-    {SNDCTL_DSP_GETIPTR, "SNDCTL_DSP_GETIPTR"},
+-    {SNDCTL_DSP_GETOPTR, "SNDCTL_DSP_GETOPTR"},
+-    {SNDCTL_DSP_MAPINBUF, "SNDCTL_DSP_MAPINBUF"},
+-    {SNDCTL_DSP_MAPOUTBUF, "SNDCTL_DSP_MAPOUTBUF"},
+-    {SNDCTL_DSP_SETSYNCRO, "SNDCTL_DSP_SETSYNCRO"},
+-    {SNDCTL_DSP_SETDUPLEX, "SNDCTL_DSP_SETDUPLEX"},
+-    {SNDCTL_DSP_GETODELAY, "SNDCTL_DSP_GETODELAY"},
+-    {SNDCTL_DSP_GETCHANNELMASK, "SNDCTL_DSP_GETCHANNELMASK"},
+-    {SNDCTL_DSP_BIND_CHANNEL, "SNDCTL_DSP_BIND_CHANNEL"},
+-    {OSS_GETVERSION, "OSS_GETVERSION"},
+-    {SOUND_PCM_READ_RATE, "SOUND_PCM_READ_RATE"},
+-    {SOUND_PCM_READ_CHANNELS, "SOUND_PCM_READ_CHANNELS"},
+-    {SOUND_PCM_READ_BITS, "SOUND_PCM_READ_BITS"},
+-    {SOUND_PCM_READ_FILTER, "SOUND_PCM_READ_FILTER"}
+-};
+-#endif    
+-
+-static int vrc5477_ac97_ioctl(struct inode *inode, struct file *file,
+-			unsigned int cmd, unsigned long arg)
+-{
+-	struct vrc5477_ac97_state *s = (struct vrc5477_ac97_state *)file->private_data;
+-	unsigned long flags;
+-	audio_buf_info abinfo;
+-	int count;
+-	int val, ret;
+-
+-#ifdef VRC5477_AC97_DEBUG
+-	for (count = 0; count < ARRAY_SIZE(ioctl_str); count++) {
+-		if (ioctl_str[count].cmd == cmd)
+-			break;
+-	}
+-	if (count < ARRAY_SIZE(ioctl_str))
+-		printk(KERN_INFO PFX "ioctl %s\n", ioctl_str[count].str);
+-	else
+-		printk(KERN_INFO PFX "ioctl unknown, 0x%x\n", cmd);
+-#endif
+-    
+-	switch (cmd) {
+-	case OSS_GETVERSION:
+-		return put_user(SOUND_VERSION, (int *)arg);
+-
+-	case SNDCTL_DSP_SYNC:
+-		if (file->f_mode & FMODE_WRITE)
+-			return drain_dac(s, file->f_flags & O_NONBLOCK);
+-		return 0;
+-		
+-	case SNDCTL_DSP_SETDUPLEX:
+-		return 0;
+-
+-	case SNDCTL_DSP_GETCAPS:
+-		return put_user(DSP_CAP_DUPLEX, (int *)arg);
+-		
+-	case SNDCTL_DSP_RESET:
+-		if (file->f_mode & FMODE_WRITE) {
+-			stop_dac(s);
+-			synchronize_irq(s->irq);
+-			s->dma_dac.count = 0;
+-			s->dma_dac.nextIn = s->dma_dac.nextOut = 0;
+-		}
+-		if (file->f_mode & FMODE_READ) {
+-			stop_adc(s);
+-			synchronize_irq(s->irq);
+-			s->dma_adc.count = 0;
+-			s->dma_adc.nextIn = s->dma_adc.nextOut = 0;
+-		}
+-		return 0;
+-
+-	case SNDCTL_DSP_SPEED:
+-		if (get_user(val, (int *)arg))
+-			return -EFAULT;
+-		if (val >= 0) {
+-			if (file->f_mode & FMODE_READ) {
+-				stop_adc(s);
+-				set_adc_rate(s, val);
+-				if ((ret = prog_dmabuf_adc(s)))
+-					return ret;
+-			}
+-			if (file->f_mode & FMODE_WRITE) {
+-				stop_dac(s);
+-				set_dac_rate(s, val);
+-				if ((ret = prog_dmabuf_dac(s)))
+-					return ret;
+-			}
+-		}
+-		return put_user((file->f_mode & FMODE_READ) ?
+-				s->adcRate : s->dacRate, (int *)arg);
+-
+-	case SNDCTL_DSP_STEREO:
+-		if (get_user(val, (int *)arg))
+-			return -EFAULT;
+-		if (file->f_mode & FMODE_READ) {
+-			stop_adc(s);
+-			if (val)
+-				s->adcChannels = 2;
+-			else
+-				s->adcChannels = 1;
+-			if ((ret = prog_dmabuf_adc(s)))
+-				return ret;
+-		}
+-		if (file->f_mode & FMODE_WRITE) {
+-			stop_dac(s);
+-			if (val)
+-				s->dacChannels = 2;
+-			else
+-				s->dacChannels = 1;
+-			if ((ret = prog_dmabuf_dac(s)))
+-				return ret;
+-		}
+-		return 0;
+-
+-	case SNDCTL_DSP_CHANNELS:
+-		if (get_user(val, (int *)arg))
+-			return -EFAULT;
+-		if (val != 0) {
+-			if ( (val != 1) && (val != 2)) val = 2;
+-
+-			if (file->f_mode & FMODE_READ) {
+-				stop_adc(s);
+-				s->dacChannels = val;
+-				if ((ret = prog_dmabuf_adc(s)))
+-					return ret;
+-			}
+-			if (file->f_mode & FMODE_WRITE) {
+-				stop_dac(s);
+-				s->dacChannels = val;
+-				if ((ret = prog_dmabuf_dac(s)))
+-					return ret;
+-			}
+-		}
+-		return put_user(val, (int *)arg);
+-		
+-	case SNDCTL_DSP_GETFMTS: /* Returns a mask */
+-		return put_user(AFMT_S16_LE, (int *)arg);
+-		
+-	case SNDCTL_DSP_SETFMT: /* Selects ONE fmt*/
+-		if (get_user(val, (int *)arg))
+-			return -EFAULT;
+-		if (val != AFMT_QUERY) {
+-			if (val != AFMT_S16_LE) return -EINVAL;
+-			if (file->f_mode & FMODE_READ) {
+-				stop_adc(s);
+-				if ((ret = prog_dmabuf_adc(s)))
+-					return ret;
+-			}
+-			if (file->f_mode & FMODE_WRITE) {
+-				stop_dac(s);
+-				if ((ret = prog_dmabuf_dac(s)))
+-					return ret;
+-			}
+-		} else {
+-			val = AFMT_S16_LE;
+-		}
+-		return put_user(val, (int *)arg);
+-		
+-	case SNDCTL_DSP_POST:
+-		return 0;
+-
+-	case SNDCTL_DSP_GETTRIGGER:
+-	case SNDCTL_DSP_SETTRIGGER:
+-		/* NO trigger */
+-		return -EINVAL;
+-
+-	case SNDCTL_DSP_GETOSPACE:
+-		if (!(file->f_mode & FMODE_WRITE))
+-			return -EINVAL;
+-		abinfo.fragsize = s->dma_dac.fragSize << (s->dacChannels-1);
+-		spin_lock_irqsave(&s->lock, flags);
+-		count = s->dma_dac.count;
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		abinfo.bytes = (s->dma_dac.fragTotalSize - count) << 
+-			(s->dacChannels-1);
+-		abinfo.fragstotal = s->dma_dac.numFrag;
+-		abinfo.fragments = abinfo.bytes >> s->dma_dac.fragShift >> 
+-			(s->dacChannels-1);      
+-		return copy_to_user((void *)arg, &abinfo, sizeof(abinfo)) ? -EFAULT : 0;
+-
+-	case SNDCTL_DSP_GETISPACE:
+-		if (!(file->f_mode & FMODE_READ))
+-			return -EINVAL;
+-		abinfo.fragsize = s->dma_adc.fragSize << (s->adcChannels-1);
+-		spin_lock_irqsave(&s->lock, flags);
+-		count = s->dma_adc.count;
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		if (count < 0)
+-			count = 0;
+-		abinfo.bytes = count << (s->adcChannels-1);
+-		abinfo.fragstotal = s->dma_adc.numFrag;
+-		abinfo.fragments = (abinfo.bytes >> s->dma_adc.fragShift) >>
+-			(s->adcChannels-1);      
+-		return copy_to_user((void *)arg, &abinfo, sizeof(abinfo)) ? -EFAULT : 0;
+-		
+-	case SNDCTL_DSP_NONBLOCK:
+-		file->f_flags |= O_NONBLOCK;
+-		return 0;
+-
+-	case SNDCTL_DSP_GETODELAY:
+-		if (!(file->f_mode & FMODE_WRITE))
+-			return -EINVAL;
+-		spin_lock_irqsave(&s->lock, flags);
+-		count = s->dma_dac.count;
+-		spin_unlock_irqrestore(&s->lock, flags);
+-		return put_user(count, (int *)arg);
+-
+-	case SNDCTL_DSP_GETIPTR:
+-	case SNDCTL_DSP_GETOPTR:
+-		/* we cannot get DMA ptr */
+-		return -EINVAL;
+-
+-	case SNDCTL_DSP_GETBLKSIZE:
+-		if (file->f_mode & FMODE_WRITE)
+-			return put_user(s->dma_dac.fragSize << (s->dacChannels-1), (int *)arg);
+-		else
+-			return put_user(s->dma_adc.fragSize << (s->adcChannels-1), (int *)arg);
+-
+-	case SNDCTL_DSP_SETFRAGMENT:
+-		/* we ignore fragment size request */
+-		return 0;
+-
+-	case SNDCTL_DSP_SUBDIVIDE:
+-		/* what is this for? [jsun] */
+-		return 0;
+-
+-	case SOUND_PCM_READ_RATE:
+-		return put_user((file->f_mode & FMODE_READ) ?
+-				s->adcRate : s->dacRate, (int *)arg);
+-
+-	case SOUND_PCM_READ_CHANNELS:
+-		if (file->f_mode & FMODE_READ)
+-			return put_user(s->adcChannels, (int *)arg);
+-		else
+-			return put_user(s->dacChannels ? 2 : 1, (int *)arg);
+-	    
+-	case SOUND_PCM_READ_BITS:
+-		return put_user(16, (int *)arg);
+-
+-	case SOUND_PCM_WRITE_FILTER:
+-	case SNDCTL_DSP_SETSYNCRO:
+-	case SOUND_PCM_READ_FILTER:
+-		return -EINVAL;
+-	}
+-
+-	return mixdev_ioctl(s->codec, cmd, arg);
+-}
+-
+-
+-static int vrc5477_ac97_open(struct inode *inode, struct file *file)
+-{
+-	int minor = iminor(inode);
+-	DECLARE_WAITQUEUE(wait, current);
+-	unsigned long flags;
+-	struct list_head *list;
+-	struct vrc5477_ac97_state *s;
+-	int ret=0;
+-
+-	nonseekable_open(inode, file);    
+-	for (list = devs.next; ; list = list->next) {
+-		if (list == &devs)
+-			return -ENODEV;
+-		s = list_entry(list, struct vrc5477_ac97_state, devs);
+-		if (!((s->dev_audio ^ minor) & ~0xf))
+-			break;
+-	}
+-	file->private_data = s;
+-
+-	/* wait for device to become free */
+-	mutex_lock(&s->open_mutex);
+-	while (s->open_mode & file->f_mode) {
+-
+-		if (file->f_flags & O_NONBLOCK) {
+-			mutex_unlock(&s->open_mutex);
+-			return -EBUSY;
+-		}
+-		add_wait_queue(&s->open_wait, &wait);
+-		__set_current_state(TASK_INTERRUPTIBLE);
+-		mutex_unlock(&s->open_mutex);
+-		schedule();
+-		remove_wait_queue(&s->open_wait, &wait);
+-		set_current_state(TASK_RUNNING);
+-		if (signal_pending(current))
+-			return -ERESTARTSYS;
+-		mutex_lock(&s->open_mutex);
+-	}
+-
+-	spin_lock_irqsave(&s->lock, flags);
+-
+-	if (file->f_mode & FMODE_READ) {
+-		/* set default settings */
+-		set_adc_rate(s, 48000);
+-		s->adcChannels = 2;
+-
+-		ret = prog_dmabuf_adc(s);
+-		if (ret) goto bailout;
+-	}
+-	if (file->f_mode & FMODE_WRITE) {
+-		/* set default settings */
+-		set_dac_rate(s, 48000);
+-		s->dacChannels = 2;
+-
+-		ret = prog_dmabuf_dac(s);
+-		if (ret) goto bailout;
+-	}
+-
+-	s->open_mode |= file->f_mode & (FMODE_READ | FMODE_WRITE);
+-
+- bailout:
+-	spin_unlock_irqrestore(&s->lock, flags);
+-
+-	mutex_unlock(&s->open_mutex);
+-	return ret;
+-}
+-
+-static int vrc5477_ac97_release(struct inode *inode, struct file *file)
+-{
+-	struct vrc5477_ac97_state *s = 
+-		(struct vrc5477_ac97_state *)file->private_data;
+-
+-	lock_kernel();
+-	if (file->f_mode & FMODE_WRITE)
+-		drain_dac(s, file->f_flags & O_NONBLOCK);
+-	mutex_lock(&s->open_mutex);
+-	if (file->f_mode & FMODE_WRITE) {
+-		stop_dac(s);
+-		dealloc_dmabuf(s, &s->dma_dac);
+-	}
+-	if (file->f_mode & FMODE_READ) {
+-		stop_adc(s);
+-		dealloc_dmabuf(s, &s->dma_adc);
+-	}
+-	s->open_mode &= (~file->f_mode) & (FMODE_READ|FMODE_WRITE);
+-	mutex_unlock(&s->open_mutex);
+-	wake_up(&s->open_wait);
+-	unlock_kernel();
+-	return 0;
+-}
+-
+-static /*const*/ struct file_operations vrc5477_ac97_audio_fops = {
+-	.owner		= THIS_MODULE,
+-	.llseek		= no_llseek,
+-	.read		= vrc5477_ac97_read,
+-	.write		= vrc5477_ac97_write,
+-	.poll		= vrc5477_ac97_poll,
+-	.ioctl		= vrc5477_ac97_ioctl,
+-	// .mmap	= vrc5477_ac97_mmap,
+-	.open		= vrc5477_ac97_open,
+-	.release	= vrc5477_ac97_release,
+-};
+-
+-
+-/* --------------------------------------------------------------------- */
+-
+-
+-/* --------------------------------------------------------------------- */
+-
+-/*
+- * for debugging purposes, we'll create a proc device that dumps the
+- * CODEC chipstate
+- */
+-
+-#ifdef VRC5477_AC97_DEBUG
+-
+-struct {
+-       const char *regname;
+-       unsigned regaddr;
+-} vrc5477_ac97_regs[] = {
+-	{"VRC5477_INT_STATUS", VRC5477_INT_STATUS},
+-	{"VRC5477_CODEC_WR", VRC5477_CODEC_WR},
+-	{"VRC5477_CODEC_RD", VRC5477_CODEC_RD},
+-	{"VRC5477_CTRL", VRC5477_CTRL},
+-	{"VRC5477_ACLINK_CTRL", VRC5477_ACLINK_CTRL},
+-	{"VRC5477_INT_MASK", VRC5477_INT_MASK},
+-	{"VRC5477_DAC1_CTRL", VRC5477_DAC1_CTRL},
+-	{"VRC5477_DAC1L", VRC5477_DAC1L},
+-	{"VRC5477_DAC1_BADDR", VRC5477_DAC1_BADDR},
+-	{"VRC5477_DAC2_CTRL", VRC5477_DAC2_CTRL},
+-	{"VRC5477_DAC2L", VRC5477_DAC2L},
+-	{"VRC5477_DAC2_BADDR", VRC5477_DAC2_BADDR},
+-	{"VRC5477_DAC3_CTRL", VRC5477_DAC3_CTRL},
+-	{"VRC5477_DAC3L", VRC5477_DAC3L},
+-	{"VRC5477_DAC3_BADDR", VRC5477_DAC3_BADDR},
+-	{"VRC5477_ADC1_CTRL", VRC5477_ADC1_CTRL},
+-	{"VRC5477_ADC1L", VRC5477_ADC1L},
+-	{"VRC5477_ADC1_BADDR", VRC5477_ADC1_BADDR},
+-	{"VRC5477_ADC2_CTRL", VRC5477_ADC2_CTRL},
+-	{"VRC5477_ADC2L", VRC5477_ADC2L},
+-	{"VRC5477_ADC2_BADDR", VRC5477_ADC2_BADDR},
+-	{"VRC5477_ADC3_CTRL", VRC5477_ADC3_CTRL},
+-	{"VRC5477_ADC3L", VRC5477_ADC3L},
+-	{"VRC5477_ADC3_BADDR", VRC5477_ADC3_BADDR},
+-	{NULL, 0x0}
+-};
+-
+-static int proc_vrc5477_ac97_dump (char *buf, char **start, off_t fpos,
+-				   int length, int *eof, void *data)
+-{
+-	struct vrc5477_ac97_state *s;
+-	int cnt, len = 0;
+-
+-	if (list_empty(&devs))
+-		return 0;
+-	s = list_entry(devs.next, struct vrc5477_ac97_state, devs);
+-
+-	/* print out header */
+-	len += sprintf(buf + len, "\n\t\tVrc5477 Audio Debug\n\n");
+-
+-	// print out digital controller state
+-	len += sprintf (buf + len, "NEC Vrc5477 Audio Controller registers\n");
+-	len += sprintf (buf + len, "---------------------------------\n");
+-	for (cnt=0; vrc5477_ac97_regs[cnt].regname != NULL; cnt++) {
+-		len+= sprintf (buf + len, "%-20s = %08x\n",
+-			       vrc5477_ac97_regs[cnt].regname,
+-			       inl(s->io + vrc5477_ac97_regs[cnt].regaddr));
+-	}
+-   
+-	/* print out driver state */
+-	len += sprintf (buf + len, "NEC Vrc5477 Audio driver states\n");
+-	len += sprintf (buf + len, "---------------------------------\n");
+-	len += sprintf (buf + len, "dacChannels  = %d\n", s->dacChannels);
+-	len += sprintf (buf + len, "adcChannels  = %d\n", s->adcChannels);
+-	len += sprintf (buf + len, "dacRate  = %d\n", s->dacRate);
+-	len += sprintf (buf + len, "adcRate  = %d\n", s->adcRate);
+-
+-	len += sprintf (buf + len, "dma_dac is %s ready\n",  
+-	                s->dma_dac.ready? "" : "not");
+-        if (s->dma_dac.ready) {
+-		len += sprintf (buf + len, "dma_dac is %s stopped.\n",  
+-	                        s->dma_dac.stopped? "" : "not");
+-		len += sprintf (buf + len, "dma_dac.fragSize = %x\n", 
+-                                s->dma_dac.fragSize);
+-		len += sprintf (buf + len, "dma_dac.fragShift = %x\n", 
+-                                s->dma_dac.fragShift);
+-		len += sprintf (buf + len, "dma_dac.numFrag = %x\n", 
+-                                s->dma_dac.numFrag);
+-		len += sprintf (buf + len, "dma_dac.fragTotalSize = %x\n", 
+-                                s->dma_dac.fragTotalSize);
+-		len += sprintf (buf + len, "dma_dac.nextIn = %x\n", 
+-                                s->dma_dac.nextIn);
+-		len += sprintf (buf + len, "dma_dac.nextOut = %x\n", 
+-                                s->dma_dac.nextOut);
+-		len += sprintf (buf + len, "dma_dac.count = %x\n", 
+-                                s->dma_dac.count);
+-	}
+-
+-	len += sprintf (buf + len, "dma_adc is %s ready\n",  
+-	                s->dma_adc.ready? "" : "not");
+-        if (s->dma_adc.ready) {
+-		len += sprintf (buf + len, "dma_adc is %s stopped.\n",  
+-	                        s->dma_adc.stopped? "" : "not");
+-		len += sprintf (buf + len, "dma_adc.fragSize = %x\n", 
+-                                s->dma_adc.fragSize);
+-		len += sprintf (buf + len, "dma_adc.fragShift = %x\n", 
+-                                s->dma_adc.fragShift);
+-		len += sprintf (buf + len, "dma_adc.numFrag = %x\n", 
+-                                s->dma_adc.numFrag);
+-		len += sprintf (buf + len, "dma_adc.fragTotalSize = %x\n", 
+-                                s->dma_adc.fragTotalSize);
+-		len += sprintf (buf + len, "dma_adc.nextIn = %x\n", 
+-                                s->dma_adc.nextIn);
+-		len += sprintf (buf + len, "dma_adc.nextOut = %x\n", 
+-                                s->dma_adc.nextOut);
+-		len += sprintf (buf + len, "dma_adc.count = %x\n", 
+-                                s->dma_adc.count);
+-	}
+-	 
+-	/* print out CODEC state */
+-	len += sprintf (buf + len, "\nAC97 CODEC registers\n");
+-	len += sprintf (buf + len, "----------------------\n");
+-	for (cnt=0; cnt <= 0x7e; cnt = cnt +2)
+-		len+= sprintf (buf + len, "reg %02x = %04x\n",
+-			       cnt, rdcodec(s->codec, cnt));
+-
+-	if (fpos >=len){
+-		*start = buf;
+-		*eof =1;
+-		return 0;
+-	}
+-	*start = buf + fpos;
+-	if ((len -= fpos) > length)
+-		return length;
+-	*eof =1;
+-	return len;
+-
+-}
+-#endif /* VRC5477_AC97_DEBUG */
+-
+-/* --------------------------------------------------------------------- */
+-
+-/* maximum number of devices; only used for command line params */
+-#define NR_DEVICE 5
+-
+-static unsigned int devindex;
+-
+-MODULE_AUTHOR("Monta Vista Software, jsun@mvista.com or jsun@junsun.net");
+-MODULE_DESCRIPTION("NEC Vrc5477 audio (AC97) Driver");
+-MODULE_LICENSE("GPL");
+-
+-static int __devinit vrc5477_ac97_probe(struct pci_dev *pcidev,
+-					const struct pci_device_id *pciid)
+-{
+-	struct vrc5477_ac97_state *s;
+-#ifdef VRC5477_AC97_DEBUG
+-	char proc_str[80];
+-#endif
+-
+-	if (pcidev->irq == 0) 
+-		return -1;
+-
+-	if (!(s = kzalloc(sizeof(struct vrc5477_ac97_state), GFP_KERNEL))) {
+-		printk(KERN_ERR PFX "alloc of device struct failed\n");
+-		return -1;
+-	}
+-
+-	init_waitqueue_head(&s->dma_adc.wait);
+-	init_waitqueue_head(&s->dma_dac.wait);
+-	init_waitqueue_head(&s->open_wait);
+-	mutex_init(&s->open_mutex);
+-	spin_lock_init(&s->lock);
+-
+-	s->dev = pcidev;
+-	s->io = pci_resource_start(pcidev, 0);
+-	s->irq = pcidev->irq;
+-	
+-	s->codec = ac97_alloc_codec();
+-
+-	s->codec->private_data = s;
+-	s->codec->id = 0;
+-	s->codec->codec_read = rdcodec;
+-	s->codec->codec_write = wrcodec;
+-	s->codec->codec_wait = waitcodec;
+-
+-	/* setting some other default values such as
+-	 * adcChannels, adcRate is done in open() so that
+-         * no persistent state across file opens.
+-	 */
+-
+-	/* test if get response from ac97, if not return */
+-        if (ac97_codec_not_present(s->codec)) {
+-		printk(KERN_ERR PFX "no ac97 codec\n");
+-		goto err_region;
+-
+-        }
+-
+-	/* test if get response from ac97, if not return */
+-        if (ac97_codec_not_present(&(s->codec))) {
+-		printk(KERN_ERR PFX "no ac97 codec\n");
+-		goto err_region;
+-
+-        }
+-
+-	if (!request_region(s->io, pci_resource_len(pcidev,0),
+-			    VRC5477_AC97_MODULE_NAME)) {
+-		printk(KERN_ERR PFX "io ports %#lx->%#lx in use\n",
+-		       s->io, s->io + pci_resource_len(pcidev,0)-1);
+-		goto err_region;
+-	}
+-	if (request_irq(s->irq, vrc5477_ac97_interrupt, IRQF_DISABLED,
+-			VRC5477_AC97_MODULE_NAME, s)) {
+-		printk(KERN_ERR PFX "irq %u in use\n", s->irq);
+-		goto err_irq;
+-	}
+-
+-	printk(KERN_INFO PFX "IO at %#lx, IRQ %d\n", s->io, s->irq);
+-
+-	/* register devices */
+-	if ((s->dev_audio = register_sound_dsp(&vrc5477_ac97_audio_fops, -1)) < 0)
+-		goto err_dev1;
+-	if ((s->codec->dev_mixer =
+-	     register_sound_mixer(&vrc5477_ac97_mixer_fops, -1)) < 0)
+-		goto err_dev2;
+-
+-#ifdef VRC5477_AC97_DEBUG
+-	/* initialize the debug proc device */
+-	s->ps = create_proc_read_entry(VRC5477_AC97_MODULE_NAME, 0, NULL,
+-				       proc_vrc5477_ac97_dump, NULL);
+-#endif /* VRC5477_AC97_DEBUG */
+-	
+-	/* enable pci io and bus mastering */
+-	if (pci_enable_device(pcidev))
+-		goto err_dev3;
+-	pci_set_master(pcidev);
+-
+-	/* cold reset the AC97 */
+-	outl(VRC5477_ACLINK_CTRL_RST_ON | VRC5477_ACLINK_CTRL_RST_TIME,
+-	     s->io + VRC5477_ACLINK_CTRL);
+-	while (inl(s->io + VRC5477_ACLINK_CTRL) & VRC5477_ACLINK_CTRL_RST_ON);
+-
+-	/* codec init */
+-	if (!ac97_probe_codec(s->codec))
+-		goto err_dev3;
+-
+-#ifdef VRC5477_AC97_DEBUG
+-	sprintf(proc_str, "driver/%s/%d/ac97", 
+-		VRC5477_AC97_MODULE_NAME, s->codec->id);
+-	s->ac97_ps = create_proc_read_entry (proc_str, 0, NULL,
+-					     ac97_read_proc, s->codec);
+-	/* TODO : why this proc file does not show up? */
+-#endif
+-
+-	/* Try to enable variable rate audio mode. */
+-	wrcodec(s->codec, AC97_EXTENDED_STATUS,
+-		rdcodec(s->codec, AC97_EXTENDED_STATUS) | AC97_EXTSTAT_VRA);
+-	/* Did we enable it? */
+-	if(rdcodec(s->codec, AC97_EXTENDED_STATUS) & AC97_EXTSTAT_VRA)
+-		s->extended_status |= AC97_EXTSTAT_VRA;
+-	else {
+-		s->dacRate = 48000;
+-		printk(KERN_INFO PFX "VRA mode not enabled; rate fixed at %d.",
+-			s->dacRate);
+-	}
+-
+-        /* let us get the default volumne louder */
+-        wrcodec(s->codec, 0x2, 0x1010);	/* master volume, middle */
+-        wrcodec(s->codec, 0xc, 0x10);		/* phone volume, middle */
+-        // wrcodec(s->codec, 0xe, 0x10);		/* misc volume, middle */
+-	wrcodec(s->codec, 0x10, 0x8000);	/* line-in 2 line-out disable */
+-        wrcodec(s->codec, 0x18, 0x0707);	/* PCM out (line out) middle */
+-
+-
+-	/* by default we select line in the input */
+-	wrcodec(s->codec, 0x1a, 0x0404);
+-	wrcodec(s->codec, 0x1c, 0x0f0f);
+-	wrcodec(s->codec, 0x1e, 0x07);
+-
+-	/* enable the master interrupt but disable all others */
+-	outl(VRC5477_INT_MASK_NMASK, s->io + VRC5477_INT_MASK);
+-
+-	/* store it in the driver field */
+-	pci_set_drvdata(pcidev, s);
+-	pcidev->dma_mask = 0xffffffff;
+-	/* put it into driver list */
+-	list_add_tail(&s->devs, &devs);
+-	/* increment devindex */
+-	if (devindex < NR_DEVICE-1)
+-		devindex++;
+-	return 0;
+-
+- err_dev3:
+-	unregister_sound_mixer(s->codec->dev_mixer);
+- err_dev2:
+-	unregister_sound_dsp(s->dev_audio);
+- err_dev1:
+-	printk(KERN_ERR PFX "cannot register misc device\n");
+-	free_irq(s->irq, s);
+- err_irq:
+-	release_region(s->io, pci_resource_len(pcidev,0));
+- err_region:
+- 	ac97_release_codec(codec);
+-	kfree(s);
+-	return -1;
+-}
+-
+-static void __devexit vrc5477_ac97_remove(struct pci_dev *dev)
+-{
+-	struct vrc5477_ac97_state *s = pci_get_drvdata(dev);
+-
+-	if (!s)
+-		return;
+-	list_del(&s->devs);
+-
+-#ifdef VRC5477_AC97_DEBUG
+-	if (s->ps)
+-		remove_proc_entry(VRC5477_AC97_MODULE_NAME, NULL);
+-#endif /* VRC5477_AC97_DEBUG */
+-
+-	synchronize_irq();
+-	free_irq(s->irq, s);
+-	release_region(s->io, pci_resource_len(dev,0));
+-	unregister_sound_dsp(s->dev_audio);
+-	unregister_sound_mixer(s->codec->dev_mixer);
+-	ac97_release_codec(s->codec);
+-	kfree(s);
+-	pci_set_drvdata(dev, NULL);
+-}
+-
+-
+-static struct pci_device_id id_table[] = {
+-    { PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_VRC5477_AC97, 
+-      PCI_ANY_ID, PCI_ANY_ID, 0, 0 },
+-    { 0, }
+-};
+-
+-MODULE_DEVICE_TABLE(pci, id_table);
+-
+-static struct pci_driver vrc5477_ac97_driver = {
+-	.name		= VRC5477_AC97_MODULE_NAME,
+-	.id_table	= id_table,
+-	.probe		= vrc5477_ac97_probe,
+-	.remove		= __devexit_p(vrc5477_ac97_remove)
+-};
+-
+-static int __init init_vrc5477_ac97(void)
+-{
+-	printk("Vrc5477 AC97 driver: version v0.2 time " __TIME__ " " __DATE__ " by Jun Sun\n");
+-	return pci_register_driver(&vrc5477_ac97_driver);
+-}
+-
+-static void __exit cleanup_vrc5477_ac97(void)
+-{
+-	printk(KERN_INFO PFX "unloading\n");
+-	pci_unregister_driver(&vrc5477_ac97_driver);
+-}
+-
+-module_init(init_vrc5477_ac97);
+-module_exit(cleanup_vrc5477_ac97);
+-
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
 origin.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-nozomi-shoot-defunct-label.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-acpi-checks-for-80wire-cable-headers.patch
-libata-acpi-checks-for-80wire-cable-implementation.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
-libata-sff-unbreak-non-dma-capable-controllers-again.patch
-pata_cmd64x-correct-the-speed-ranges.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-libata-store-bus-addresses-versus-mm-for-testing.patch
-libata-store-bus-addresses-versus-mm-for-testing-fix.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-lib8390-comment-on-locking-by-alan-cox.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-dtc-clean-up-indent-damage-and-add-printk-levels.patch
-digi_acceleport-drag-the-driver-kicking-and-screaming-into.patch
-kl5kusb105-switch-to-new-speed-api.patch
-mct_u232-convert-to-proper-speed-handling-api.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-geode-setup-correct-chipset-access-functions-fix.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
+ddb5477-remove-driver-bits-of-support.patch
+git-mtd.patch
+serial-fix-section-mismatch-vr41xx_siu.patch
+serial-fix-vr41xx_siu-interface-select.patch
+serial-fix-vr41xx_siu-serial-console-support.patch
+remove-tx3912fb.patch
