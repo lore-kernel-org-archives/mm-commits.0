@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-libata-warnings-with-config_pm=n.patch added to -mm tree
-Date: Mon, 30 Jul 2007 13:33:23 -0700
-Message-ID: <200707302033.l6UKXN7v029198@imap1.linux-foundation.org>
+Subject: + add-a-missing-lib_y-to-arch-alpha-boot-makefile.patch added to -mm tree
+Date: Mon, 30 Jul 2007 13:35:42 -0700
+Message-ID: <200707302035.l6UKZgB3029276@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33038 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39961 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965885AbXG3Ud7 (ORCPT
+	by vger.kernel.org with ESMTP id S968147AbXG3Ug3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 16:33:59 -0400
+	Mon, 30 Jul 2007 16:36:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nix.or.die@googlemail.com
+Cc: mroos@linux.ee, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.net, sam@ravnborg.org
 
 
 The patch titled
-     Fix libata warnings with CONFIG_PM=n
+     add a missing LIB_Y to arch/alpha/boot Makefile
 has been added to the -mm tree.  Its filename is
-     fix-libata-warnings-with-config_pm=n.patch
+     add-a-missing-lib_y-to-arch-alpha-boot-makefile.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix libata warnings with CONFIG_PM=n
-From: Gabriel C <nix.or.die@googlemail.com>
+Subject: add a missing LIB_Y to arch/alpha/boot Makefile
+From: Meelis Roos <mroos@linux.ee>
 
-drivers/ata/libata-core.c:5993: warning: 'ata_host_disable_link_pm' defined but not used
-drivers/ata/libata-core.c:6004: warning: 'ata_host_enable_link_pm' defined but not used
+Add $(LIBS_Y) to get lib/lib.a so srm_printk is present.
 
-Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
+Signed-off-by: Meelis Roos <mroos@linux.ee>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Jay Estabrook <jay.estabrook@hp.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ arch/alpha/boot/Makefile |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-core.c~fix-libata-warnings-with-config_pm=n drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~fix-libata-warnings-with-config_pm=n
-+++ a/drivers/ata/libata-core.c
-@@ -5991,6 +5991,7 @@ int ata_flush_cache(struct ata_device *d
- 	return 0;
- }
+diff -puN arch/alpha/boot/Makefile~add-a-missing-lib_y-to-arch-alpha-boot-makefile arch/alpha/boot/Makefile
+--- a/arch/alpha/boot/Makefile~add-a-missing-lib_y-to-arch-alpha-boot-makefile
++++ a/arch/alpha/boot/Makefile
+@@ -104,7 +104,7 @@ OBJ_bootlx   := $(obj)/head.o $(obj)/mai
+ OBJ_bootph   := $(obj)/head.o $(obj)/bootp.o
+ OBJ_bootpzh  := $(obj)/head.o $(obj)/bootpz.o $(obj)/misc.o
  
-+#ifdef CONFIG_PM
- static void ata_host_disable_link_pm(struct ata_host *host)
- {
- 	int i;
-@@ -6013,7 +6014,7 @@ static void ata_host_enable_link_pm(stru
- 	}
- }
+-$(obj)/bootloader: $(obj)/bootloader.lds $(OBJ_bootlx) FORCE
++$(obj)/bootloader: $(obj)/bootloader.lds $(OBJ_bootlx) $(LIBS_Y) FORCE
+ 	$(call if_changed,ld)
  
--#ifdef CONFIG_PM
-+
- static int ata_host_request_pm(struct ata_host *host, pm_message_t mesg,
- 			       unsigned int action, unsigned int ehi_flags,
- 			       int wait)
+ $(obj)/bootpheader: $(obj)/bootloader.lds $(OBJ_bootph) $(LIBS_Y) FORCE
 _
 
-Patches currently in -mm which might be from nix.or.die@googlemail.com are
+Patches currently in -mm which might be from mroos@linux.ee are
 
-origin.patch
-fix-libata-warnings-with-config_pm=n.patch
-drivers-scsi-g_ncr5380c-ncr53c400_pseudo_dma-is-not.patch
-fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
-broken-lilo-check-on-make-install.patch
-typo-fixes-errror-error.patch
+alpha-fix-mkbb-compilation-warnings.patch
+alpha-fix-objstripc-compilation-warnings.patch
+alpha-fix-boot-mainc-warning.patch
+lib-move-kasprintf-to-a-separate-file.patch
+add-a-missing-lib_y-to-arch-alpha-boot-makefile.patch
+acpi-cure-run-together-printk-lines.patch
+fix-integer-overflow-warning-in-i2o_block.patch
