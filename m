@@ -1,98 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: + task-containersv11-basic-task-container-framework-fix.patch added to -mm tree
-Date: Sun, 29 Jul 2007 22:55:56 -0700
-Message-ID: <200707300555.l6U5tuNB028338@imap1.linux-foundation.org>
+Subject: - git-newsetup-fixup.patch removed from -mm tree
+Date: Mon, 30 Jul 2007 11:09:42 -0700
+Message-ID: <200707301809.l6UI9gQs023161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48484 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58719 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753252AbXG3F4I (ORCPT
+	by vger.kernel.org with ESMTP id S967678AbXG3SJx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 01:56:08 -0400
+	Mon, 30 Jul 2007 14:09:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: menage@google.com, akpm@linux-foundation.org
+To: akpm@linux-foundation.org, hpa@zytor.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     task-containersv11-basic-task-container-framework-fix
-has been added to the -mm tree.  Its filename is
-     task-containersv11-basic-task-container-framework-fix.patch
+     git-newsetup-fixup
+has been removed from the -mm tree.  Its filename was
+     git-newsetup-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: task-containersv11-basic-task-container-framework-fix
-From: "Paul Menage" <menage@google.com>
+Subject: git-newsetup-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On 7/28/07, Andrew Morton <akpm@linux-foundation.org> wrote:
-> >  [<c0154ad2>] proc_cpuset_show+0x5e/0xb9
-> >  [<c01976b1>] seq_read+0xef/0x266
-> >  [<c0181398>] vfs_read+0x8e/0x117
-> >  [<c01817c9>] sys_read+0x3d/0x61
-> >  [<c010401e>] sysenter_past_esp+0x5f/0x99
-> >  =======================
-> > INFO: lockdep is turned off.
-> > Code: 00 89 d8 83 c4 0c 5b 5e 5f 5d c3 55 89 e5 57 56 53 83 ec 08 89
-> > 45 f0 89 55 ec 89 d3 01 cb 8d 43 ff c6 43 ff 00 8b 55 f0 8b 72 1c <8b>
-> > 56 3c 29 d0 3b 45 ec 72 45 89 d1 c1 e9 02 8b 76 40 89 c7 f3
-> > EIP: [<c01536a7>] container_path+0x20/0x7b SS:ESP 0068:c5ccff00
->
+fix rejects in lguest+rusty-docco-patches versus git-newsetup.
 
-Oops, this is a case of trying to read /proc/self/cpuset when cpusets
-are completely unmounted. It works fine when cpusets is mounted as
-part of any hierarchy, or part of an active but unmounted hierarchy.
-Attached patch fixes it, and should be rolled in to the first patch of
-the series. (basic framework patch).
-
-
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/container.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/lguest/lguest.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN kernel/container.c~task-containersv11-basic-task-container-framework-fix kernel/container.c
---- a/kernel/container.c~task-containersv11-basic-task-container-framework-fix
-+++ a/kernel/container.c
-@@ -683,6 +683,15 @@ int container_path(const struct containe
- {
- 	char *start;
+diff -puN drivers/lguest/lguest.c~git-newsetup-fixup drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~git-newsetup-fixup
++++ a/drivers/lguest/lguest.c
+@@ -887,18 +887,9 @@ static __init char *lguest_memory_setup(
+ 	/* We do this here and not earlier because lockcheck barfs if we do it
+ 	 * before start_kernel() */
+ 	atomic_notifier_chain_register(&panic_notifier_list, &paniced);
+-
+-<<<<<<< HEAD/drivers/lguest/lguest.c
+-	/* The Linux bootloader header contains an "e820" memory map: the
+-	 * Launcher populated the first entry with our memory limit. */
+-	add_memory_region(E820_MAP->addr, E820_MAP->size, E820_MAP->type);
+-
+-	/* This string is for the boot messages. */
+-=======
+ 	add_memory_region(boot_params.e820_map[0].addr,
+ 			  boot_params.e820_map[0].size,
+ 			  boot_params.e820_map[0].type);
+->>>>>>> 7d1d895fd57734a0f8a474b4464b093a693b9bab/drivers/lguest/lguest.c
+ 	return "LGUEST";
+ }
  
-+	if (cont == dummytop) {
-+		/*
-+		 * Inactive subsystems have no dentry for their root
-+		 * container
-+		 */
-+		strcpy(buf, "/");
-+		return 0;
-+	}
-+
- 	start = buf + buflen;
- 
- 	*--start = '\0';
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
+origin.patch
+parport_pc-locking-fix.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb.patch
+git-hwmon.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+libata-store-bus-addresses-versus-mm-for-testing-fix.patch
+libata-store-bus-addresses-versus-mm-for-testing-fix-2.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+ide-bodge-things-around-to-make-arm-work.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-block-fix-headers_check.patch
+git-block-whoops.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-watchdog.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
+loop-use-unlocked_ioctl.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+ip2main-warning-fix.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
 task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-add-containerstats-v3.patch
 add-containerstats-v3-fix.patch
-update-getdelays-to-become-containerstats-aware.patch
-containers-implement-namespace-tracking-subsystem.patch
-containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+tpm_tis-debug.patch
+w1-build-fix.patch
