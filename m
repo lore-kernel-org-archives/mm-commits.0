@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-onenand_simc-make-struct-info-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:21:19 -0700
-Message-ID: <200707302221.l6UMLJ9e001099@imap1.linux-foundation.org>
+Subject: + e1000-if-0-two-functions.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:21:50 -0700
+Message-ID: <200707302221.l6UMLoIY001108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49178 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44405 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932801AbXG3WVn (ORCPT
+	by vger.kernel.org with ESMTP id S968660AbXG3WWG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:21:43 -0400
+	Mon, 30 Jul 2007 18:22:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, dwmw2@infradead.org
+Cc: bunk@stusta.de, auke-jan.h.kok@intel.com
 
 
 The patch titled
-     MTD onenand_sim.c: make struct info static
+     e1000: #if 0 two functions
 has been added to the -mm tree.  Its filename is
-     mtd-onenand_simc-make-struct-info-static.patch
+     e1000-if-0-two-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MTD onenand_sim.c: make struct info static
+Subject: e1000: #if 0 two functions
 From: Adrian Bunk <bunk@stusta.de>
 
-On Wed, Jul 25, 2007 at 04:03:04AM -0700, Andrew Morton wrote:
->...
-> Changes since 2.6.22-rc6-mm1:
->...
->  git-mtd.patch
->...
->  git trees
->...
-
-This patch makes the needlessly global struct info static.
+e1000_{read,write}_pci_cfg() are no longer used.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/onenand/onenand_sim.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/e1000/e1000_hw.h   |    2 --
+ drivers/net/e1000/e1000_main.c |    4 ++++
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/onenand/onenand_sim.c~mtd-onenand_simc-make-struct-info-static drivers/mtd/onenand/onenand_sim.c
---- a/drivers/mtd/onenand/onenand_sim.c~mtd-onenand_simc-make-struct-info-static
-+++ a/drivers/mtd/onenand/onenand_sim.c
-@@ -78,7 +78,7 @@ struct onenand_info {
- 	struct onenand_flash	flash;
- };
+diff -puN drivers/net/e1000/e1000_hw.h~e1000-if-0-two-functions drivers/net/e1000/e1000_hw.h
+--- a/drivers/net/e1000/e1000_hw.h~e1000-if-0-two-functions
++++ a/drivers/net/e1000/e1000_hw.h
+@@ -421,8 +421,6 @@ void e1000_tbi_adjust_stats(struct e1000
+ void e1000_get_bus_info(struct e1000_hw *hw);
+ void e1000_pci_set_mwi(struct e1000_hw *hw);
+ void e1000_pci_clear_mwi(struct e1000_hw *hw);
+-void e1000_read_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t * value);
+-void e1000_write_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t * value);
+ int32_t e1000_read_pcie_cap_reg(struct e1000_hw *hw, uint32_t reg, uint16_t *value);
+ void e1000_pcix_set_mmrbc(struct e1000_hw *hw, int mmrbc);
+ int e1000_pcix_get_mmrbc(struct e1000_hw *hw);
+diff -puN drivers/net/e1000/e1000_main.c~e1000-if-0-two-functions drivers/net/e1000/e1000_main.c
+--- a/drivers/net/e1000/e1000_main.c~e1000-if-0-two-functions
++++ a/drivers/net/e1000/e1000_main.c
+@@ -4890,6 +4890,8 @@ e1000_pci_clear_mwi(struct e1000_hw *hw)
+ 	pci_clear_mwi(adapter->pdev);
+ }
  
--struct onenand_info *info;
-+static struct onenand_info *info;
++#if 0
++
+ void
+ e1000_read_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t *value)
+ {
+@@ -4906,6 +4908,8 @@ e1000_write_pci_cfg(struct e1000_hw *hw,
+ 	pci_write_config_word(adapter->pdev, reg, *value);
+ }
  
- #define DPRINTK(format, args...)					\
- do {									\
++#endif  /*  0  */
++
+ int
+ e1000_pcix_get_mmrbc(struct e1000_hw *hw)
+ {
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -82,6 +95,7 @@ git-mmc.patch
 git-mtd.patch
 mtd-onenand_simc-make-struct-info-static.patch
 drivers-net-cxgb3-xgmacc-remove-dead-code.patch
+e1000-if-0-two-functions.patch
 fore200e_param_bs_queue-must-be-__devinit.patch
 make-pktgencget_ipsec_sa-static-and-non-inline.patch
 make-nf_ct_ipv6_skip_exthdr-static.patch
@@ -124,7 +138,6 @@ the-next-round-of-scheduled-oss-code-removal.patch
 reiser4-export-remove_from_page_cache.patch
 reiser4.patch
 mutex-subsystem-synchro-test-module.patch
-e1000-if-0-two-functions.patch
 make-scsi_host_link_pm_policy-static.patch
 usb-make-dev_attr_authorized_default-static.patch
 kernel-printkc-make-2-variables-static.patch
