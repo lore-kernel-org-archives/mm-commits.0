@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + make-drivers-acpi-eventcacpi_event_seqnum-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 14:58:56 -0700
-Message-ID: <200707302158.l6ULwuJG032560@imap1.linux-foundation.org>
+Subject: + i386-alternativec-really-stop-mces-during-code.patch added to -mm tree
+Date: Mon, 30 Jul 2007 14:58:54 -0700
+Message-ID: <200707302158.l6ULwsO7032557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56837 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49696 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968353AbXG3V7L (ORCPT
+	by vger.kernel.org with ESMTP id S968326AbXG3V7J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 17:59:11 -0400
+	Mon, 30 Jul 2007 17:59:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@stusta.de
 
 
 The patch titled
-     make drivers/acpi/event.c:acpi_event_seqnum static
+     i386 alternative.c: really stop MCEs during code patching
 has been added to the -mm tree.  Its filename is
-     make-drivers-acpi-eventcacpi_event_seqnum-static.patch
+     i386-alternativec-really-stop-mces-during-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make drivers/acpi/event.c:acpi_event_seqnum static
+Subject: i386 alternative.c: really stop MCEs during code patching
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes the needlessly global "acpi_event_seqnum" static.
+It's CONFIG_X86_MCE, not CONFIG_MCE.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/event.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/alternative.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/event.c~make-drivers-acpi-eventcacpi_event_seqnum-static drivers/acpi/event.c
---- a/drivers/acpi/event.c~make-drivers-acpi-eventcacpi_event_seqnum-static
-+++ a/drivers/acpi/event.c
-@@ -108,7 +108,7 @@ static const struct file_operations acpi
- };
+diff -puN arch/i386/kernel/alternative.c~i386-alternativec-really-stop-mces-during-code arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~i386-alternativec-really-stop-mces-during-code
++++ a/arch/i386/kernel/alternative.c
+@@ -379,7 +379,7 @@ void __init alternative_instructions(voi
+ 	   that might execute the to be patched code.
+ 	   Other CPUs are not running. */
+ 	stop_nmi();
+-#ifdef CONFIG_MCE
++#ifdef CONFIG_X86_MCE
+ 	stop_mce();
+ #endif
  
- #ifdef CONFIG_NET
--unsigned int acpi_event_seqnum;
-+static unsigned int acpi_event_seqnum;
- struct acpi_genl_event {
- 	acpi_device_class device_class;
- 	char bus_id[15];
+@@ -417,7 +417,7 @@ void __init alternative_instructions(voi
+ 	local_irq_restore(flags);
+ 
+ 	restart_nmi();
+-#ifdef CONFIG_MCE
++#ifdef CONFIG_X86_MCE
+ 	restart_mce();
+ #endif
+ }
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
