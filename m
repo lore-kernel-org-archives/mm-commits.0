@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-schedc-make-code-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:47:26 -0700
-Message-ID: <200707302247.l6UMlQ9W002507@imap1.linux-foundation.org>
+Subject: + parisc-extern-inline-static-inline.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:47:05 -0700
+Message-ID: <200707302247.l6UMl5Ur002480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49798 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46464 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756116AbXG3WsU (ORCPT
+	by vger.kernel.org with ESMTP id S1756308AbXG3Wsd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:48:20 -0400
+	Mon, 30 Jul 2007 18:48:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, mingo@elte.hu
+Cc: bunk@stusta.de, kyle@mcmartin.ca, willy@debian.org
 
 
 The patch titled
-     kernel/sched.c: make code static
+     parisc: "extern inline" -> "static inline"
 has been added to the -mm tree.  Its filename is
-     kernel-schedc-make-code-static.patch
+     parisc-extern-inline-static-inline.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,113 +26,205 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/sched.c: make code static
+Subject: parisc: "extern inline" -> "static inline"
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes the following needlessly global code static:
-
-- arch_reinit_sched_domains()
-- struct attr_sched_mc_power_savings
-- struct attr_sched_smt_power_savings
+"extern inline" will have different semantics with gcc 4.3, and "static
+inline" is correct here.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |    2 -
- kernel/sched.c      |   46 +++++++++++++++++++++---------------------
- 2 files changed, 23 insertions(+), 25 deletions(-)
+ arch/parisc/lib/memcpy.c       |    4 +--
+ include/asm-parisc/io.h        |    2 -
+ include/asm-parisc/pci.h       |    2 -
+ include/asm-parisc/pgtable.h   |   32 +++++++++++++++----------------
+ include/asm-parisc/prefetch.h  |    4 +--
+ include/asm-parisc/semaphore.h |   10 ++++-----
+ include/asm-parisc/tlbflush.h  |    2 -
+ 7 files changed, 28 insertions(+), 28 deletions(-)
 
-diff -puN include/linux/cpu.h~kernel-schedc-make-code-static include/linux/cpu.h
---- a/include/linux/cpu.h~kernel-schedc-make-code-static
-+++ a/include/linux/cpu.h
-@@ -41,8 +41,6 @@ extern void cpu_remove_sysdev_attr(struc
- extern int cpu_add_sysdev_attr_group(struct attribute_group *attrs);
- extern void cpu_remove_sysdev_attr_group(struct attribute_group *attrs);
+diff -puN arch/parisc/lib/memcpy.c~parisc-extern-inline-static-inline arch/parisc/lib/memcpy.c
+--- a/arch/parisc/lib/memcpy.c~parisc-extern-inline-static-inline
++++ a/arch/parisc/lib/memcpy.c
+@@ -139,12 +139,12 @@ DECLARE_PER_CPU(struct exception_data, e
+ #define stw(_s,_t,_o,_a,_e) 	def_store_insn(stw,"r",_s,_t,_o,_a,_e)
  
--extern struct sysdev_attribute attr_sched_mc_power_savings;
--extern struct sysdev_attribute attr_sched_smt_power_savings;
- extern int sched_create_sysfs_power_savings_entries(struct sysdev_class *cls);
- 
- #ifdef CONFIG_HOTPLUG_CPU
-diff -puN kernel/sched.c~kernel-schedc-make-code-static kernel/sched.c
---- a/kernel/sched.c~kernel-schedc-make-code-static
-+++ a/kernel/sched.c
-@@ -6288,7 +6288,7 @@ static void detach_destroy_domains(const
+ #ifdef  CONFIG_PREFETCH
+-extern inline void prefetch_src(const void *addr)
++static inline void prefetch_src(const void *addr)
+ {
+ 	__asm__("ldw 0(" s_space ",%0), %%r0" : : "r" (addr));
  }
  
- #if defined(CONFIG_SCHED_MC) || defined(CONFIG_SCHED_SMT)
--int arch_reinit_sched_domains(void)
-+static int arch_reinit_sched_domains(void)
+-extern inline void prefetch_dst(const void *addr)
++static inline void prefetch_dst(const void *addr)
  {
- 	int err;
- 
-@@ -6317,24 +6317,6 @@ static ssize_t sched_power_savings_store
- 	return ret ? ret : count;
+ 	__asm__("ldd 0(" d_space ",%0), %%r0" : : "r" (addr));
  }
- 
--int sched_create_sysfs_power_savings_entries(struct sysdev_class *cls)
--{
--	int err = 0;
--
--#ifdef CONFIG_SCHED_SMT
--	if (smt_capable())
--		err = sysfs_create_file(&cls->kset.kobj,
--					&attr_sched_smt_power_savings.attr);
--#endif
--#ifdef CONFIG_SCHED_MC
--	if (!err && mc_capable())
--		err = sysfs_create_file(&cls->kset.kobj,
--					&attr_sched_mc_power_savings.attr);
--#endif
--	return err;
--}
--#endif
--
- #ifdef CONFIG_SCHED_MC
- static ssize_t sched_mc_power_savings_show(struct sys_device *dev, char *page)
+diff -puN include/asm-parisc/io.h~parisc-extern-inline-static-inline include/asm-parisc/io.h
+--- a/include/asm-parisc/io.h~parisc-extern-inline-static-inline
++++ a/include/asm-parisc/io.h
+@@ -128,7 +128,7 @@ extern void __iomem * __ioremap(unsigned
+ /* Most machines react poorly to I/O-space being cacheable... Instead let's
+  * define ioremap() in terms of ioremap_nocache().
+  */
+-extern inline void __iomem * ioremap(unsigned long offset, unsigned long size)
++static inline void __iomem * ioremap(unsigned long offset, unsigned long size)
  {
-@@ -6345,8 +6327,8 @@ static ssize_t sched_mc_power_savings_st
- {
- 	return sched_power_savings_store(buf, count, 0);
+ 	return __ioremap(offset, size, _PAGE_NO_CACHE);
  }
--SYSDEV_ATTR(sched_mc_power_savings, 0644, sched_mc_power_savings_show,
--	    sched_mc_power_savings_store);
-+static SYSDEV_ATTR(sched_mc_power_savings, 0644, sched_mc_power_savings_show,
-+		   sched_mc_power_savings_store);
+diff -puN include/asm-parisc/pci.h~parisc-extern-inline-static-inline include/asm-parisc/pci.h
+--- a/include/asm-parisc/pci.h~parisc-extern-inline-static-inline
++++ a/include/asm-parisc/pci.h
+@@ -207,7 +207,7 @@ extern struct pci_bios_ops *pci_bios;
+ extern void pcibios_register_hba(struct pci_hba_data *);
+ extern void pcibios_set_master(struct pci_dev *);
+ #else
+-extern inline void pcibios_register_hba(struct pci_hba_data *x)
++static inline void pcibios_register_hba(struct pci_hba_data *x)
+ {
+ }
  #endif
- 
- #ifdef CONFIG_SCHED_SMT
-@@ -6359,8 +6341,26 @@ static ssize_t sched_smt_power_savings_s
- {
- 	return sched_power_savings_store(buf, count, 1);
- }
--SYSDEV_ATTR(sched_smt_power_savings, 0644, sched_smt_power_savings_show,
--	    sched_smt_power_savings_store);
-+static SYSDEV_ATTR(sched_smt_power_savings, 0644, sched_smt_power_savings_show,
-+		   sched_smt_power_savings_store);
-+#endif
-+
-+int sched_create_sysfs_power_savings_entries(struct sysdev_class *cls)
-+{
-+	int err = 0;
-+
-+#ifdef CONFIG_SCHED_SMT
-+	if (smt_capable())
-+		err = sysfs_create_file(&cls->kset.kobj,
-+					&attr_sched_smt_power_savings.attr);
-+#endif
-+#ifdef CONFIG_SCHED_MC
-+	if (!err && mc_capable())
-+		err = sysfs_create_file(&cls->kset.kobj,
-+					&attr_sched_mc_power_savings.attr);
-+#endif
-+	return err;
-+}
+diff -puN include/asm-parisc/pgtable.h~parisc-extern-inline-static-inline include/asm-parisc/pgtable.h
+--- a/include/asm-parisc/pgtable.h~parisc-extern-inline-static-inline
++++ a/include/asm-parisc/pgtable.h
+@@ -325,27 +325,27 @@ static inline void pgd_clear(pgd_t *pgd)
+  * setup: the pgd is never bad, and a pmd always exists (as it's folded
+  * into the pgd entry)
+  */
+-extern inline int pgd_none(pgd_t pgd)		{ return 0; }
+-extern inline int pgd_bad(pgd_t pgd)		{ return 0; }
+-extern inline int pgd_present(pgd_t pgd)	{ return 1; }
+-extern inline void pgd_clear(pgd_t * pgdp)	{ }
++static inline int pgd_none(pgd_t pgd)		{ return 0; }
++static inline int pgd_bad(pgd_t pgd)		{ return 0; }
++static inline int pgd_present(pgd_t pgd)	{ return 1; }
++static inline void pgd_clear(pgd_t * pgdp)	{ }
  #endif
  
  /*
+  * The following only work if pte_present() is true.
+  * Undefined behaviour if not..
+  */
+-extern inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
+-extern inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+-extern inline int pte_write(pte_t pte)		{ return pte_val(pte) & _PAGE_WRITE; }
+-extern inline int pte_file(pte_t pte)		{ return pte_val(pte) & _PAGE_FILE; }
+-
+-extern inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~_PAGE_DIRTY; return pte; }
+-extern inline pte_t pte_mkold(pte_t pte)	{ pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
+-extern inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) &= ~_PAGE_WRITE; return pte; }
+-extern inline pte_t pte_mkdirty(pte_t pte)	{ pte_val(pte) |= _PAGE_DIRTY; return pte; }
+-extern inline pte_t pte_mkyoung(pte_t pte)	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
+-extern inline pte_t pte_mkwrite(pte_t pte)	{ pte_val(pte) |= _PAGE_WRITE; return pte; }
++static inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
++static inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
++static inline int pte_write(pte_t pte)		{ return pte_val(pte) & _PAGE_WRITE; }
++static inline int pte_file(pte_t pte)		{ return pte_val(pte) & _PAGE_FILE; }
++
++static inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~_PAGE_DIRTY; return pte; }
++static inline pte_t pte_mkold(pte_t pte)	{ pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
++static inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) &= ~_PAGE_WRITE; return pte; }
++static inline pte_t pte_mkdirty(pte_t pte)	{ pte_val(pte) |= _PAGE_DIRTY; return pte; }
++static inline pte_t pte_mkyoung(pte_t pte)	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
++static inline pte_t pte_mkwrite(pte_t pte)	{ pte_val(pte) |= _PAGE_WRITE; return pte; }
+ 
+ /*
+  * Conversion functions: convert a page and protection to a page entry,
+@@ -369,7 +369,7 @@ static inline pte_t pfn_pte(unsigned lon
+ 	return pte;
+ }
+ 
+-extern inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
++static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ { pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot); return pte; }
+ 
+ /* Permanent address of a page.  On parisc we don't have highmem. */
+diff -puN include/asm-parisc/prefetch.h~parisc-extern-inline-static-inline include/asm-parisc/prefetch.h
+--- a/include/asm-parisc/prefetch.h~parisc-extern-inline-static-inline
++++ a/include/asm-parisc/prefetch.h
+@@ -19,7 +19,7 @@
+ #ifdef CONFIG_PREFETCH
+ 
+ #define ARCH_HAS_PREFETCH
+-extern inline void prefetch(const void *addr)
++static inline void prefetch(const void *addr)
+ {
+ 	__asm__("ldw 0(%0), %%r0" : : "r" (addr));
+ }
+@@ -27,7 +27,7 @@ extern inline void prefetch(const void *
+ /* LDD is a PA2.0 addition. */
+ #ifdef CONFIG_PA20
+ #define ARCH_HAS_PREFETCHW
+-extern inline void prefetchw(const void *addr)
++static inline void prefetchw(const void *addr)
+ {
+ 	__asm__("ldd 0(%0), %%r0" : : "r" (addr));
+ }
+diff -puN include/asm-parisc/semaphore.h~parisc-extern-inline-static-inline include/asm-parisc/semaphore.h
+--- a/include/asm-parisc/semaphore.h~parisc-extern-inline-static-inline
++++ a/include/asm-parisc/semaphore.h
+@@ -54,7 +54,7 @@ struct semaphore {
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+ 
+-extern inline void sema_init (struct semaphore *sem, int val)
++static inline void sema_init (struct semaphore *sem, int val)
+ {
+ 	*sem = (struct semaphore)__SEMAPHORE_INITIALIZER((*sem),val);
+ }
+@@ -82,7 +82,7 @@ asmlinkage void __up(struct semaphore * 
+  * interrupts while we're messing with the semaphore.  Sorry.
+  */
+ 
+-extern __inline__ void down(struct semaphore * sem)
++static inline void down(struct semaphore * sem)
+ {
+ 	might_sleep();
+ 	spin_lock_irq(&sem->sentry);
+@@ -94,7 +94,7 @@ extern __inline__ void down(struct semap
+ 	spin_unlock_irq(&sem->sentry);
+ }
+ 
+-extern __inline__ int down_interruptible(struct semaphore * sem)
++static inline int down_interruptible(struct semaphore * sem)
+ {
+ 	int ret = 0;
+ 	might_sleep();
+@@ -112,7 +112,7 @@ extern __inline__ int down_interruptible
+  * down_trylock returns 0 on success, 1 if we failed to get the lock.
+  * May not sleep, but must preserve irq state
+  */
+-extern __inline__ int down_trylock(struct semaphore * sem)
++static inline int down_trylock(struct semaphore * sem)
+ {
+ 	unsigned long flags;
+ 	int count;
+@@ -129,7 +129,7 @@ extern __inline__ int down_trylock(struc
+  * Note! This is subtle. We jump to wake people up only if
+  * the semaphore was negative (== somebody was waiting on it).
+  */
+-extern __inline__ void up(struct semaphore * sem)
++static inline void up(struct semaphore * sem)
+ {
+ 	unsigned long flags;
+ 
+diff -puN include/asm-parisc/tlbflush.h~parisc-extern-inline-static-inline include/asm-parisc/tlbflush.h
+--- a/include/asm-parisc/tlbflush.h~parisc-extern-inline-static-inline
++++ a/include/asm-parisc/tlbflush.h
+@@ -57,7 +57,7 @@ static inline void flush_tlb_mm(struct m
+ #endif
+ }
+ 
+-extern __inline__ void flush_tlb_pgtables(struct mm_struct *mm, unsigned long start, unsigned long end)
++static inline void flush_tlb_pgtables(struct mm_struct *mm, unsigned long start, unsigned long end)
+ {
+ }
+  
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
