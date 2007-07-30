@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + try-harder-to-probe-some-finicky-mice.patch added to -mm tree
-Date: Mon, 30 Jul 2007 13:24:14 -0700
-Message-ID: <200707302024.l6UKOEhB028850@imap1.linux-foundation.org>
+Subject: + documentation-document-hfsplus.patch added to -mm tree
+Date: Mon, 30 Jul 2007 13:25:13 -0700
+Message-ID: <200707302025.l6UKPDwa028870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58841 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60089 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759839AbXG3UZB (ORCPT
+	by vger.kernel.org with ESMTP id S933297AbXG3UZe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 16:25:01 -0400
+	Mon, 30 Jul 2007 16:25:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alonz@nolaviz.org, dtor@mail.ru, jkosina@suse.cz, lkml@nolaviz.org
+Cc: wyatt@banksresearch.com, rdunlap@xenotime.net, zippel@linux-m68k.org
 
 
 The patch titled
-     Try harder to probe some finicky mice
+     Documentation: document HFSPlus
 has been added to the -mm tree.  Its filename is
-     try-harder-to-probe-some-finicky-mice.patch
+     documentation-document-hfsplus.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Try harder to probe some finicky mice
-From: Alon Ziv <alonz@nolaviz.org>
+Subject: Documentation: document HFSPlus
+From: Wyatt Banks <wyatt@banksresearch.com>
 
-Some rodents appear to be extra-finicky, and require both a PSMOUSE_RESET_DIS
-and a PSMOUSE_RESET_BAT before they are unconfused enough to be probed.
+Documentation: document HFSPlus filesystem and its mount options.
 
-Signed-off-by: Alon Ziv <lkml@nolaviz.org>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Wyatt Banks <wyatt@banksresearch.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/psmouse-base.c |    1 +
- 1 files changed, 1 insertion(+)
+ Documentation/filesystems/hfsplus.txt |   59 ++++++++++++++++++++++++
+ 1 files changed, 59 insertions(+)
 
-diff -puN drivers/input/mouse/psmouse-base.c~try-harder-to-probe-some-finicky-mice drivers/input/mouse/psmouse-base.c
---- a/drivers/input/mouse/psmouse-base.c~try-harder-to-probe-some-finicky-mice
-+++ a/drivers/input/mouse/psmouse-base.c
-@@ -651,6 +651,7 @@ static int psmouse_extensions(struct psm
-  * protocol probes. Note that we do full reset becuase some mice
-  * put themselves to sleep when see PSMOUSE_RESET_DIS.
-  */
-+	ps2_command(&psmouse->ps2dev, NULL, PSMOUSE_CMD_RESET_DIS);
- 	psmouse_reset(psmouse);
- 
- 	if (max_proto >= PSMOUSE_IMEX && im_explorer_detect(psmouse, set_properties) == 0)
+diff -puN /dev/null Documentation/filesystems/hfsplus.txt
+--- /dev/null
++++ a/Documentation/filesystems/hfsplus.txt
+@@ -0,0 +1,59 @@
++
++Macintosh HFSPlus Filesystem for Linux
++======================================
++
++HFSPlus is a filesystem first introduced in MacOS 8.1.
++HFSPlus has several extensions to HFS, including 32-bit allocation
++blocks, 255-character unicode filenames, and file sizes of 2^63 bytes.
++
++
++Mount options
++=============
++
++When mounting an HFSPlus filesystem, the following options are accepted:
++
++  creator=cccc, type=cccc
++	Specifies the creator/type values as shown by the MacOS finder
++	used for creating new files.  Default values: '????'.
++
++  uid=n, gid=n
++	Specifies the user/group that owns all files on the filesystem
++	that have uninitialized permissions structures.
++	Default:  user/group id of the mounting process.
++
++  umask=n
++	Specifies the umask (in octal) used for files and directories
++	that have uninitialized permissions structures.
++	Default:  umask of the mounting process.
++
++  session=n
++	Select the CDROM session to mount as HFSPlus filesystem.  Defaults to
++	leaving that decision to the CDROM driver.  This option will fail
++	with anything but a CDROM as underlying devices.
++
++  part=n
++	Select partition number n from the devices.  This option only makes
++	sense for CDROMs because they can't be partitioned under Linux.
++	For disk devices the generic partition parsing code does this
++	for us.  Defaults to not parsing the partition table at all.
++
++  decompose
++	Decompose file name characters.
++
++  nodecompose
++	Do not decompose file name characters.
++
++  force
++	Used to force write access to volumes that are marked as journalled
++	or locked.  Use at your own risk.
++
++  nls=cccc
++	Encoding to use when presenting file names.
++
++
++References
++==========
++
++kernel source:		<file:fs/hfsplus>
++
++Apple Technote 1150	http://developer.apple.com/technotes/tn/tn1150.html
 _
 
-Patches currently in -mm which might be from alonz@nolaviz.org are
+Patches currently in -mm which might be from wyatt@banksresearch.com are
 
-try-harder-to-probe-some-finicky-mice.patch
+documentation-document-hfsplus.patch
