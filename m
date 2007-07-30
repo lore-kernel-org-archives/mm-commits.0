@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_allocc-make-code-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:06:52 -0700
-Message-ID: <200707302206.l6UM6qQ3000398@imap1.linux-foundation.org>
+Subject: + fs-nfsd-exportc-make-3-functions-static.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:06:50 -0700
+Message-ID: <200707302206.l6UM6oDe000391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35669 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34432 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967972AbXG3WHH (ORCPT
+	by vger.kernel.org with ESMTP id S968198AbXG3WHG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:07:07 -0400
+	Mon, 30 Jul 2007 18:07:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: bunk@stusta.de
 The patch titled
      From: Adrian Bunk <bunk@stusta.de>
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-make-code-static.patch
+     fs-nfsd-exportc-make-3-functions-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,41 +29,94 @@ out what to do about this
 Subject: From: Adrian Bunk <bunk@stusta.de>
 
 
-This patch makes needlessly global code static.
+This patch makes the following needlessly global functions static:
+- exp_get_by_name()
+- exp_parent()
+- exp_find()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
 ---
 
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/nfsd/export.c            |   17 ++++++++---------
+ include/linux/nfsd/export.h |   11 -----------
+ 2 files changed, 8 insertions(+), 20 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-make-code-static mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-make-code-static
-+++ a/mm/page_alloc.c
-@@ -143,7 +143,7 @@ static unsigned long __meminitdata dma_r
-   static unsigned long __meminitdata node_boundary_end_pfn[MAX_NUMNODES];
- #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
-   unsigned long __initdata required_kernelcore;
--  unsigned long __initdata required_movablecore;
-+  static unsigned long __initdata required_movablecore;
-   unsigned long __meminitdata zone_movable_pfn[MAX_NUMNODES];
- 
-   /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
-@@ -3714,7 +3714,7 @@ unsigned long __init find_max_pfn_with_a
- 	return max_pfn;
+diff -puN fs/nfsd/export.c~fs-nfsd-exportc-make-3-functions-static fs/nfsd/export.c
+--- a/fs/nfsd/export.c~fs-nfsd-exportc-make-3-functions-static
++++ a/fs/nfsd/export.c
+@@ -861,9 +861,9 @@ exp_get_fsid_key(svc_client *clp, int fs
+ 	return exp_find_key(clp, FSID_NUM, fsidv, NULL);
  }
  
--unsigned long __init early_calculate_totalpages(void)
-+static unsigned long __init early_calculate_totalpages(void)
+-svc_export *
+-exp_get_by_name(svc_client *clp, struct vfsmount *mnt, struct dentry *dentry,
+-		struct cache_req *reqp)
++static svc_export *exp_get_by_name(svc_client *clp, struct vfsmount *mnt,
++				   struct dentry *dentry,
++				   struct cache_req *reqp)
  {
- 	int i;
- 	unsigned long totalpages = 0;
+ 	struct svc_export *exp, key;
+ 	int err;
+@@ -887,9 +887,9 @@ exp_get_by_name(svc_client *clp, struct 
+ /*
+  * Find the export entry for a given dentry.
+  */
+-struct svc_export *
+-exp_parent(svc_client *clp, struct vfsmount *mnt, struct dentry *dentry,
+-	   struct cache_req *reqp)
++static struct svc_export *exp_parent(svc_client *clp, struct vfsmount *mnt,
++				     struct dentry *dentry,
++				     struct cache_req *reqp)
+ {
+ 	svc_export *exp;
+ 
+@@ -1214,9 +1214,8 @@ out:
+ 	return err;
+ }
+ 
+-struct svc_export *
+-exp_find(struct auth_domain *clp, int fsid_type, u32 *fsidv,
+-	 struct cache_req *reqp)
++static struct svc_export *exp_find(struct auth_domain *clp, int fsid_type,
++				   u32 *fsidv, struct cache_req *reqp)
+ {
+ 	struct svc_export *exp;
+ 	struct svc_expkey *ek = exp_find_key(clp, fsid_type, fsidv, reqp);
+diff -puN include/linux/nfsd/export.h~fs-nfsd-exportc-make-3-functions-static include/linux/nfsd/export.h
+--- a/include/linux/nfsd/export.h~fs-nfsd-exportc-make-3-functions-static
++++ a/include/linux/nfsd/export.h
+@@ -127,17 +127,9 @@ void			nfsd_export_shutdown(void);
+ void			nfsd_export_flush(void);
+ void			exp_readlock(void);
+ void			exp_readunlock(void);
+-struct svc_export *	exp_get_by_name(struct auth_domain *clp,
+-					struct vfsmount *mnt,
+-					struct dentry *dentry,
+-					struct cache_req *reqp);
+ struct svc_export *	rqst_exp_get_by_name(struct svc_rqst *,
+ 					     struct vfsmount *,
+ 					     struct dentry *);
+-struct svc_export *	exp_parent(struct auth_domain *clp,
+-				   struct vfsmount *mnt,
+-				   struct dentry *dentry,
+-				   struct cache_req *reqp);
+ struct svc_export *	rqst_exp_parent(struct svc_rqst *,
+ 					struct vfsmount *mnt,
+ 					struct dentry *dentry);
+@@ -157,9 +149,6 @@ static inline void exp_get(struct svc_ex
+ {
+ 	cache_get(&exp->h);
+ }
+-extern struct svc_export *
+-exp_find(struct auth_domain *clp, int fsid_type, u32 *fsidv,
+-	 struct cache_req *reqp);
+ struct svc_export * rqst_exp_find(struct svc_rqst *, int, u32 *);
+ 
+ #endif /* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
