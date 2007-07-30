@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-give-socket-time-to-power-down.patch added to -mm tree
-Date: Mon, 30 Jul 2007 16:01:24 -0700
-Message-ID: <200707302301.l6UN1Okt002983@imap1.linux-foundation.org>
+Subject: + use-erestartnohand-if-poll-is-interrupted-by-a-signal.patch added to -mm tree
+Date: Mon, 30 Jul 2007 16:37:24 -0700
+Message-ID: <200707302337.l6UNbOSb004343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34640 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39948 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756123AbXG3XBp (ORCPT
+	by vger.kernel.org with ESMTP id S1760353AbXG3XiH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 19:01:45 -0400
+	Mon, 30 Jul 2007 19:38:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: daniel.ritz-ml@swissonline.ch, daniel.ritz@gmx.ch, nils.neumann@rwth-aachen.de, stable@kernel.org
+Cc: manfred@colorfullife.com, oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     pcmcia: give socket time to power down
+     Use ERESTARTNOHAND if poll() is interrupted by a signal
 has been added to the -mm tree.  Its filename is
-     pcmcia-give-socket-time-to-power-down.patch
+     use-erestartnohand-if-poll-is-interrupted-by-a-signal.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pcmcia: give socket time to power down
-From: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
+Subject: Use ERESTARTNOHAND if poll() is interrupted by a signal
+From: Manfred Spraul <manfred@colorfullife.com>
 
-Give sockets up to 100ms of additional time to power down.  otherwise we
-might generate false warnings with KERN_ERR priority (like in bug #8262).
+poll() returns -EINTR if a signal is pending.  EINTR is a bad choice: it
+means that poll returns to user space if the task is stopped by
+SIGSTOP/SIGCONT or by the freezer.  select() and ppoll() both use
+ERESTARTNOHAND, this avoids a return to user space for signals that are
+handled by the kernel.
 
-Signed-off-by: Daniel Ritz <daniel.ritz@gmx.ch>
-Cc: Nils Neumann <nils.neumann@rwth-aachen.de>
-Cc: <stable@kernel.org>
+The patch switches poll() to ERESTARTNOHAND.  Tested with FC6.  Patch
+against 2.6.23-rc1-mm1.
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/cs.c |    3 +++
- 1 files changed, 3 insertions(+)
+ fs/select.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pcmcia/cs.c~pcmcia-give-socket-time-to-power-down drivers/pcmcia/cs.c
---- a/drivers/pcmcia/cs.c~pcmcia-give-socket-time-to-power-down
-+++ a/drivers/pcmcia/cs.c
-@@ -409,6 +409,9 @@ static void socket_shutdown(struct pcmci
- #endif
- 	s->functions = 0;
+diff -puN fs/select.c~use-erestartnohand-if-poll-is-interrupted-by-a-signal fs/select.c
+--- a/fs/select.c~use-erestartnohand-if-poll-is-interrupted-by-a-signal
++++ a/fs/select.c
+@@ -621,7 +621,7 @@ static int do_poll(unsigned int nfds,  s
+ 		if (!count) {
+ 			count = wait->error;
+ 			if (signal_pending(current))
+-				count = -EINTR;
++				count = -ERESTARTNOHAND;
+ 		}
+ 		if (count || !*timeout)
+ 			break;
+@@ -774,7 +774,7 @@ asmlinkage long sys_ppoll(struct pollfd 
+ 	ret = do_sys_poll(ufds, nfds, &timeout);
  
-+	/* give socket some time to power down */
-+	msleep(100);
-+
- 	s->ops->get_status(s, &status);
- 	if (status & SS_POWERON) {
- 		printk(KERN_ERR "PCMCIA: socket %p: *** DANGER *** unable to remove socket power\n", s);
+ 	/* We can restart this syscall, usually */
+-	if (ret == -EINTR) {
++	if (ret == -ERESTARTNOHAND) {
+ 		/*
+ 		 * Don't restore the signal mask yet. Let do_signal() deliver
+ 		 * the signal on the way back to userspace, before the signal
+@@ -785,7 +785,6 @@ asmlinkage long sys_ppoll(struct pollfd 
+ 					sizeof(sigsaved));
+ 			set_thread_flag(TIF_RESTORE_SIGMASK);
+ 		}
+-		ret = -ERESTARTNOHAND;
+ 	} else if (sigmask)
+ 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
+ 
 _
 
-Patches currently in -mm which might be from daniel.ritz-ml@swissonline.ch are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-pcmcia-give-socket-time-to-power-down.patch
+use-erestartnohand-if-poll-is-interrupted-by-a-signal.patch
+mm-debug-dump-pageframes-on-bad_page.patch
+slab-leaks3-default-y.patch
