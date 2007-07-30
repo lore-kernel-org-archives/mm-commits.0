@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + make-struct-sony_nc_ids-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:06:54 -0700
-Message-ID: <200707302206.l6UM6sJq000404@imap1.linux-foundation.org>
+Subject: + make-nf_ct_ipv6_skip_exthdr-static.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:06:58 -0700
+Message-ID: <200707302206.l6UM6wxb000410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57953 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37888 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968198AbXG3WHJ (ORCPT
+	by vger.kernel.org with ESMTP id S938944AbXG3WHN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:07:09 -0400
+	Mon, 30 Jul 2007 18:07:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: bunk@stusta.de
 The patch titled
      From: Adrian Bunk <bunk@stusta.de>
 has been added to the -mm tree.  Its filename is
-     make-struct-sony_nc_ids-static.patch
+     make-nf_ct_ipv6_skip_exthdr-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,29 +29,46 @@ out what to do about this
 Subject: From: Adrian Bunk <bunk@stusta.de>
 
 
-sony_nc_ids[] can become static.
+nf_ct_ipv6_skip_exthdr() can now become static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
 ---
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sony-laptop.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/net/netfilter/ipv6/nf_conntrack_ipv6.h |    3 ---
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    4 ++--
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/misc/sony-laptop.c~make-struct-sony_nc_ids-static drivers/misc/sony-laptop.c
---- a/drivers/misc/sony-laptop.c~make-struct-sony_nc_ids-static
-+++ a/drivers/misc/sony-laptop.c
-@@ -845,7 +845,7 @@ static struct sony_nc_event sony_C_event
- };
+diff -puN include/net/netfilter/ipv6/nf_conntrack_ipv6.h~make-nf_ct_ipv6_skip_exthdr-static include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+--- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h~make-nf_ct_ipv6_skip_exthdr-static
++++ a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+@@ -7,9 +7,6 @@ extern struct nf_conntrack_l4proto nf_co
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6;
  
- /* SNC-only model map */
--struct dmi_system_id sony_nc_ids[] = {
-+static struct dmi_system_id sony_nc_ids[] = {
- 		{
- 			.ident = "Sony Vaio FE Series",
- 			.callback = sony_nc_C_enable,
+-extern int nf_ct_ipv6_skip_exthdr(const struct sk_buff *skb, int start,
+-				  u8 *nexthdrp, int len);
+-
+ extern int nf_ct_frag6_init(void);
+ extern void nf_ct_frag6_cleanup(void);
+ extern struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb);
+diff -puN net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c~make-nf_ct_ipv6_skip_exthdr-static net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c~make-nf_ct_ipv6_skip_exthdr-static
++++ a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -86,8 +86,8 @@ static int ipv6_print_conntrack(struct s
+  *        - Note also special handling of AUTH header. Thanks to IPsec wizards.
+  */
+ 
+-int nf_ct_ipv6_skip_exthdr(const struct sk_buff *skb, int start, u8 *nexthdrp,
+-			   int len)
++static int nf_ct_ipv6_skip_exthdr(const struct sk_buff *skb, int start,
++				  u8 *nexthdrp, int len)
+ {
+ 	u8 nexthdr = *nexthdrp;
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
