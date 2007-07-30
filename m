@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-document-hfsplus.patch added to -mm tree
-Date: Mon, 30 Jul 2007 13:25:13 -0700
-Message-ID: <200707302025.l6UKPDwa028870@imap1.linux-foundation.org>
+Subject: + alpha-fix-mkbb-compilation-warnings.patch added to -mm tree
+Date: Mon, 30 Jul 2007 13:27:08 -0700
+Message-ID: <200707302027.l6UKR8ja028973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60089 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53716 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933297AbXG3UZe (ORCPT
+	by vger.kernel.org with ESMTP id S1762952AbXG3U2Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 16:25:34 -0400
+	Mon, 30 Jul 2007 16:28:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wyatt@banksresearch.com, rdunlap@xenotime.net, zippel@linux-m68k.org
+Cc: mroos@linux.ee, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.net
 
 
 The patch titled
-     Documentation: document HFSPlus
+     alpha: fix mkbb compilation warnings
 has been added to the -mm tree.  Its filename is
-     documentation-document-hfsplus.patch
+     alpha-fix-mkbb-compilation-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,85 +26,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Documentation: document HFSPlus
-From: Wyatt Banks <wyatt@banksresearch.com>
+Subject: alpha: fix mkbb compilation warnings
+From: Meelis Roos <mroos@linux.ee>
 
-Documentation: document HFSPlus filesystem and its mount options.
+In current 2.6.23-rc1+git, make bootimage gives the following warnings while
+compiling mkbb.c.  The patch below fixes these warnings by using the proper
+include for exit() and using appropriate printf format.
 
-Signed-off-by: Wyatt Banks <wyatt@banksresearch.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+  HOSTCC  arch/alpha/boot/tools/mkbb
+arch/alpha/boot/tools/mkbb.c: In function 'main':
+arch/alpha/boot/tools/mkbb.c:95: warning: implicit declaration of function 'exit'
+arch/alpha/boot/tools/mkbb.c:95: warning: incompatible implicit declaration of built-in function 'exit'
+arch/alpha/boot/tools/mkbb.c:102: warning: incompatible implicit declaration of built-in function 'exit'
+arch/alpha/boot/tools/mkbb.c:110: warning: incompatible implicit declaration of built-in function 'exit'
+arch/alpha/boot/tools/mkbb.c:117: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+arch/alpha/boot/tools/mkbb.c:118: warning: incompatible implicit declaration of built-in function 'exit'
+arch/alpha/boot/tools/mkbb.c:125: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+arch/alpha/boot/tools/mkbb.c:126: warning: incompatible implicit declaration of built-in function 'exit'
+arch/alpha/boot/tools/mkbb.c:143: warning: incompatible implicit declaration of built-in function 'exit'
+arch/alpha/boot/tools/mkbb.c:148: warning: incompatible implicit declaration of built-in function 'exit'
+
+Signed-off-by: Meelis Roos <mroos@linux.ee>
+Cc: Jay Estabrook <jay.estabrook@hp.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/hfsplus.txt |   59 ++++++++++++++++++++++++
- 1 files changed, 59 insertions(+)
+ arch/alpha/boot/tools/mkbb.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null Documentation/filesystems/hfsplus.txt
---- /dev/null
-+++ a/Documentation/filesystems/hfsplus.txt
-@@ -0,0 +1,59 @@
-+
-+Macintosh HFSPlus Filesystem for Linux
-+======================================
-+
-+HFSPlus is a filesystem first introduced in MacOS 8.1.
-+HFSPlus has several extensions to HFS, including 32-bit allocation
-+blocks, 255-character unicode filenames, and file sizes of 2^63 bytes.
-+
-+
-+Mount options
-+=============
-+
-+When mounting an HFSPlus filesystem, the following options are accepted:
-+
-+  creator=cccc, type=cccc
-+	Specifies the creator/type values as shown by the MacOS finder
-+	used for creating new files.  Default values: '????'.
-+
-+  uid=n, gid=n
-+	Specifies the user/group that owns all files on the filesystem
-+	that have uninitialized permissions structures.
-+	Default:  user/group id of the mounting process.
-+
-+  umask=n
-+	Specifies the umask (in octal) used for files and directories
-+	that have uninitialized permissions structures.
-+	Default:  umask of the mounting process.
-+
-+  session=n
-+	Select the CDROM session to mount as HFSPlus filesystem.  Defaults to
-+	leaving that decision to the CDROM driver.  This option will fail
-+	with anything but a CDROM as underlying devices.
-+
-+  part=n
-+	Select partition number n from the devices.  This option only makes
-+	sense for CDROMs because they can't be partitioned under Linux.
-+	For disk devices the generic partition parsing code does this
-+	for us.  Defaults to not parsing the partition table at all.
-+
-+  decompose
-+	Decompose file name characters.
-+
-+  nodecompose
-+	Do not decompose file name characters.
-+
-+  force
-+	Used to force write access to volumes that are marked as journalled
-+	or locked.  Use at your own risk.
-+
-+  nls=cccc
-+	Encoding to use when presenting file names.
-+
-+
-+References
-+==========
-+
-+kernel source:		<file:fs/hfsplus>
-+
-+Apple Technote 1150	http://developer.apple.com/technotes/tn/tn1150.html
+diff -puN arch/alpha/boot/tools/mkbb.c~alpha-fix-mkbb-compilation-warnings arch/alpha/boot/tools/mkbb.c
+--- a/arch/alpha/boot/tools/mkbb.c~alpha-fix-mkbb-compilation-warnings
++++ a/arch/alpha/boot/tools/mkbb.c
+@@ -11,6 +11,7 @@
+ 
+ #include <fcntl.h>
+ #include <unistd.h>
++#include <stdlib.h>
+ #include <stdio.h>
+ 
+ /* Minimal definition of disklabel, so we don't have to include
+@@ -114,7 +115,7 @@ int main(int argc, char ** argv)
+     nread = read(fd, &bootloader_image, sizeof(bootblock));
+     if(nread != sizeof(bootblock)) {
+ 	perror("lxboot read");
+-	fprintf(stderr, "expected %d, got %d\n", sizeof(bootblock), nread);
++	fprintf(stderr, "expected %zd, got %d\n", sizeof(bootblock), nread);
+ 	exit(0);
+     }
+ 
+@@ -122,7 +123,7 @@ int main(int argc, char ** argv)
+     nread = read(dev, &bootblock_from_disk, sizeof(bootblock));
+     if(nread != sizeof(bootblock)) {
+ 	perror("bootblock read");
+-	fprintf(stderr, "expected %d, got %d\n", sizeof(bootblock), nread);
++	fprintf(stderr, "expected %zd, got %d\n", sizeof(bootblock), nread);
+ 	exit(0);
+     }
+ 
 _
 
-Patches currently in -mm which might be from wyatt@banksresearch.com are
+Patches currently in -mm which might be from mroos@linux.ee are
 
-documentation-document-hfsplus.patch
+alpha-fix-mkbb-compilation-warnings.patch
+alpha-fix-objstripc-compilation-warnings.patch
+alpha-fix-boot-mainc-warning.patch
+acpi-cure-run-together-printk-lines.patch
+fix-integer-overflow-warning-in-i2o_block.patch
