@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + radeon_driver_vblank_do_wait-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 14:59:00 -0700
-Message-ID: <200707302159.l6ULx0HJ032566@imap1.linux-foundation.org>
+Subject: + drivers-i2c-i2c-corec-make-code-static.patch added to -mm tree
+Date: Mon, 30 Jul 2007 14:59:02 -0700
+Message-ID: <200707302159.l6ULx23S032575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35396 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43237 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968383AbXG3V7P (ORCPT
+	by vger.kernel.org with ESMTP id S968563AbXG3V7S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 17:59:15 -0400
+	Mon, 30 Jul 2007 17:59:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@stusta.de
 
 
 The patch titled
-     radeon_driver_vblank_do_wait() static
+     drivers/i2c/i2c-core.c: make code static
 has been added to the -mm tree.  Its filename is
-     radeon_driver_vblank_do_wait-static.patch
+     drivers-i2c-i2c-corec-make-code-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: radeon_driver_vblank_do_wait() static
+Subject: drivers/i2c/i2c-core.c: make code static
 From: Adrian Bunk <bunk@stusta.de>
 
-radeon_driver_vblank_do_wait() can become static.
+After the i2c-isa removal some code can become static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/radeon_irq.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/i2c-core.c |    7 +++----
+ include/linux/i2c.h    |    2 --
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/drm/radeon_irq.c~radeon_driver_vblank_do_wait-static drivers/char/drm/radeon_irq.c
---- a/drivers/char/drm/radeon_irq.c~radeon_driver_vblank_do_wait-static
-+++ a/drivers/char/drm/radeon_irq.c
-@@ -144,8 +144,8 @@ static int radeon_wait_irq(struct drm_de
- 	return ret;
- }
+diff -puN drivers/i2c/i2c-core.c~drivers-i2c-i2c-corec-make-code-static drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c~drivers-i2c-i2c-corec-make-code-static
++++ a/drivers/i2c/i2c-core.c
+@@ -190,7 +190,7 @@ static struct device_attribute i2c_dev_a
+ 	{ },
+ };
  
--int radeon_driver_vblank_do_wait(struct drm_device * dev, unsigned int *sequence,
--				 int crtc)
-+static int radeon_driver_vblank_do_wait(struct drm_device * dev,
-+					unsigned int *sequence, int crtc)
+-struct bus_type i2c_bus_type = {
++static struct bus_type i2c_bus_type = {
+ 	.name		= "i2c",
+ 	.dev_attrs	= i2c_dev_attrs,
+ 	.match		= i2c_device_match,
+@@ -201,7 +201,6 @@ struct bus_type i2c_bus_type = {
+ 	.suspend	= i2c_device_suspend,
+ 	.resume		= i2c_device_resume,
+ };
+-EXPORT_SYMBOL_GPL(i2c_bus_type);
+ 
+ /**
+  * i2c_new_device - instantiate an i2c device for use with a new style driver
+@@ -285,7 +284,7 @@ EXPORT_SYMBOL_GPL(i2c_unregister_device)
+ 
+ /* I2C bus adapters -- one roots each I2C or SMBUS segment */
+ 
+-void i2c_adapter_dev_release(struct device *dev)
++static void i2c_adapter_dev_release(struct device *dev)
  {
- 	drm_radeon_private_t *dev_priv =
- 	    (drm_radeon_private_t *) dev->dev_private;
+ 	struct i2c_adapter *adap = to_i2c_adapter(dev);
+ 	complete(&adap->dev_released);
+@@ -303,7 +302,7 @@ static struct device_attribute i2c_adapt
+ 	{ },
+ };
+ 
+-struct class i2c_adapter_class = {
++static struct class i2c_adapter_class = {
+ 	.owner			= THIS_MODULE,
+ 	.name			= "i2c-adapter",
+ 	.dev_attrs		= i2c_adapter_attrs,
+diff -puN include/linux/i2c.h~drivers-i2c-i2c-corec-make-code-static include/linux/i2c.h
+--- a/include/linux/i2c.h~drivers-i2c-i2c-corec-make-code-static
++++ a/include/linux/i2c.h
+@@ -35,8 +35,6 @@
+ #include <linux/sched.h>	/* for completion */
+ #include <linux/mutex.h>
+ 
+-extern struct bus_type i2c_bus_type;
+-
+ /* --- General options ------------------------------------------------	*/
+ 
+ struct i2c_msg;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
