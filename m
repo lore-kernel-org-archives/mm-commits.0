@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-i386-mm-discontigc-make-some-variables-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:47:22 -0700
-Message-ID: <200707302247.l6UMlMwv002501@imap1.linux-foundation.org>
+Subject: + unexport-fb_prepare_logo.patch added to -mm tree
+Date: Mon, 30 Jul 2007 16:01:21 -0700
+Message-ID: <200707302301.l6UN1LBt002979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57803 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35794 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754624AbXG3W5o (ORCPT
+	by vger.kernel.org with ESMTP id S1754943AbXG3XBj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:57:44 -0400
+	Mon, 30 Jul 2007 19:01:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, ak@suse.de
+Cc: bunk@stusta.de, adaplas@pol.net
 
 
 The patch titled
-     arch/i386/mm/discontig.c: make some variables static
+     unexport fb_prepare_logo
 has been added to the -mm tree.  Its filename is
-     arch-i386-mm-discontigc-make-some-variables-static.patch
+     unexport-fb_prepare_logo.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/i386/mm/discontig.c: make some variables static
+Subject: unexport fb_prepare_logo
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes some needlessly global variables static.
+The logo code is not and should not be used by modules.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Andi Kleen <ak@suse.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/discontig.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/fbmem.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN arch/i386/mm/discontig.c~arch-i386-mm-discontigc-make-some-variables-static arch/i386/mm/discontig.c
---- a/arch/i386/mm/discontig.c~arch-i386-mm-discontigc-make-some-variables-static
-+++ a/arch/i386/mm/discontig.c
-@@ -103,14 +103,14 @@ extern unsigned long highend_pfn, highst
- 
- #define LARGE_PAGE_BYTES (PTRS_PER_PTE * PAGE_SIZE)
- 
--unsigned long node_remap_start_pfn[MAX_NUMNODES];
-+static unsigned long node_remap_start_pfn[MAX_NUMNODES];
- unsigned long node_remap_size[MAX_NUMNODES];
--unsigned long node_remap_offset[MAX_NUMNODES];
--void *node_remap_start_vaddr[MAX_NUMNODES];
-+static unsigned long node_remap_offset[MAX_NUMNODES];
-+static void *node_remap_start_vaddr[MAX_NUMNODES];
- void set_pmd_pfn(unsigned long vaddr, unsigned long pfn, pgprot_t flags);
- 
--void *node_remap_end_vaddr[MAX_NUMNODES];
--void *node_remap_alloc_vaddr[MAX_NUMNODES];
-+static void *node_remap_end_vaddr[MAX_NUMNODES];
-+static void *node_remap_alloc_vaddr[MAX_NUMNODES];
- static unsigned long kva_start_pfn;
- static unsigned long kva_pages;
- /*
+diff -puN drivers/video/fbmem.c~unexport-fb_prepare_logo drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~unexport-fb_prepare_logo
++++ a/drivers/video/fbmem.c
+@@ -1663,7 +1663,6 @@ EXPORT_SYMBOL(register_framebuffer);
+ EXPORT_SYMBOL(unregister_framebuffer);
+ EXPORT_SYMBOL(num_registered_fb);
+ EXPORT_SYMBOL(registered_fb);
+-EXPORT_SYMBOL(fb_prepare_logo);
+ EXPORT_SYMBOL(fb_show_logo);
+ EXPORT_SYMBOL(fb_set_var);
+ EXPORT_SYMBOL(fb_blank);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -74,17 +62,20 @@ make-drivers-acpi-eventcacpi_event_seqnum-static.patch
 make-struct-sony_nc_ids-static.patch
 git-alsa.patch
 kernel-auditscc-fix-an-off-by-one.patch
+ppc-remove-apus-support.patch
 drivers-base-power-make-2-functions-static.patch
 git-drm.patch
 git-dvb.patch
 export-v4l2_int_device_unregister.patch
 drivers-i2c-i2c-corec-make-code-static.patch
 git-hwmon.patch
+include-linux-kbuild-remove-duplicate-entries.patch
 git-kvm.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 git-mmc.patch
 git-mtd.patch
 mtd-onenand_simc-make-struct-info-static.patch
+remove-fs-jffs2-ioctlc.patch
 drivers-net-cxgb3-xgmacc-remove-dead-code.patch
 e1000-if-0-two-functions.patch
 fore200e_param_bs_queue-must-be-__devinit.patch
@@ -93,10 +84,14 @@ make-nf_ct_ipv6_skip_exthdr-static.patch
 net-unix-af_unixc-make-code-static.patch
 backlight-make-2-structs-static.patch
 git-ocfs2.patch
+parisc-extern-inline-static-inline.patch
 cpqphp_ctrlc-remove-dead-code.patch
+kernel-schedc-make-code-static.patch
 drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
 nsp32_restart_autoscsi-remove-error-check.patch
 make-scsi_host_link_pm_policy-static.patch
+drivers-scsi-scsi_errorc-should-include.patch
+drivers-scsi-constantsc-make-2-functions-static.patch
 git-unionfs.patch
 drivers-usb-serial-sierrac-make-3-functions-static.patch
 fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts.patch
@@ -107,6 +102,8 @@ i386-remove-maccumulate-outgoing-args.patch
 arch-i386-mach-generic-probec-make-struct-apic_probe.patch
 arch-i386-mach-es7000-es7000platc-cleanups.patch
 i386-alternativec-really-stop-mces-during-code.patch
+i386-no-need-to-make-enable_cpu_hotplug-a-variable.patch
+arch-i386-mm-discontigc-make-some-variables-static.patch
 serial-sh-sci-fix-build-failure-from-kgdb-fallout.patch
 usb_serial_suspend-buggy-code.patch
 acpi_ec_remove-fix-use-after-free.patch
@@ -115,11 +112,18 @@ slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
 mm-page_allocc-make-code-static.patch
 maps2-add-proc-kpagemap-interface.patch
 hugetlbfs-read-support-fix-2.patch
+mm-shmemc-make-3-functions-static.patch
+mm-migratec-cleanups.patch
+mm-mempolicyc-cleanups.patch
+mm-vmstatc-cleanups.patch
 unexport-pm_power_off_prepare.patch
 fs-reiserfs-cleanups.patch
 anon_inodes-shouldnt-be-user-visible.patch
 remove-unsafe-from-module-struct.patch
 kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
 introduce-i_sync-fix.patch
 ext2-reservations.patch
 fs-nfsd-exportc-make-3-functions-static.patch
@@ -134,19 +138,3 @@ the-next-round-of-scheduled-oss-code-removal.patch
 reiser4-export-remove_from_page_cache.patch
 reiser4.patch
 mutex-subsystem-synchro-test-module.patch
-drivers-scsi-scsi_errorc-should-include.patch
-include-linux-kbuild-remove-duplicate-entries.patch
-parisc-extern-inline-static-inline.patch
-remove-fs-jffs2-ioctlc.patch
-drivers-scsi-constantsc-make-2-functions-static.patch
-fs-afs-possible-cleanups.patch
-ppc-remove-apus-support.patch
-lib-ioremapc-should-include-linux-ioh.patch
-i386-no-need-to-make-enable_cpu_hotplug-a-variable.patch
-arch-i386-mm-discontigc-make-some-variables-static.patch
-ipc-shmc-make-2-functions-static.patch
-kernel-schedc-make-code-static.patch
-mm-shmemc-make-3-functions-static.patch
-mm-migratec-cleanups.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
