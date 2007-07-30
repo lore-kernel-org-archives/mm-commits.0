@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-kbuild-remove-duplicate-entries.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:47:03 -0700
-Message-ID: <200707302247.l6UMl3JV002477@imap1.linux-foundation.org>
+Subject: + drivers-scsi-constantsc-make-2-functions-static.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:47:09 -0700
+Message-ID: <200707302247.l6UMl9VC002486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39232 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41614 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754790AbXG3Wrw (ORCPT
+	by vger.kernel.org with ESMTP id S1754855AbXG3WsA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:47:52 -0400
+	Mon, 30 Jul 2007 18:48:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, sam@ravnborg.org
+Cc: bunk@stusta.de
 
 
 The patch titled
-     include/linux/Kbuild: remove duplicate entries
+     drivers/scsi/constants.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     include-linux-kbuild-remove-duplicate-entries.patch
+     drivers-scsi-constantsc-make-2-functions-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: include/linux/Kbuild: remove duplicate entries
+Subject: drivers/scsi/constants.c: make 2 functions static
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch removes three headers from header-y that were also listed as
-unifdef-y.
+This patch makes two needlessly global functions static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild |    3 ---
- 1 files changed, 3 deletions(-)
+ drivers/scsi/constants.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/Kbuild~include-linux-kbuild-remove-duplicate-entries include/linux/Kbuild
---- a/include/linux/Kbuild~include-linux-kbuild-remove-duplicate-entries
-+++ a/include/linux/Kbuild
-@@ -78,7 +78,6 @@ header-y += if_arcnet.h
- header-y += if_bonding.h
- header-y += if_cablemodem.h
- header-y += if_fc.h
--header-y += if_fddi.h
- header-y += if.h
- header-y += if_hippi.h
- header-y += if_infiniband.h
-@@ -121,7 +120,6 @@ header-y += nl80211.h
- header-y += oom.h
- header-y += param.h
- header-y += pci_regs.h
--header-y += personality.h
- header-y += pfkeyv2.h
- header-y += pg.h
- header-y += phantom.h
-@@ -159,7 +157,6 @@ header-y += video_decoder.h
- header-y += video_encoder.h
- header-y += videotext.h
- header-y += vt.h
--header-y += wireless.h
- header-y += x25.h
+diff -puN drivers/scsi/constants.c~drivers-scsi-constantsc-make-2-functions-static drivers/scsi/constants.c
+--- a/drivers/scsi/constants.c~drivers-scsi-constantsc-make-2-functions-static
++++ a/drivers/scsi/constants.c
+@@ -1235,7 +1235,7 @@ scsi_print_sense_hdr(const char *name, s
+ }
+ EXPORT_SYMBOL(scsi_print_sense_hdr);
  
- unifdef-y += acct.h
+-void
++static void
+ scsi_decode_sense_buffer(const unsigned char *sense_buffer, int sense_len,
+ 		       struct scsi_sense_hdr *sshdr)
+ {
+@@ -1258,7 +1258,7 @@ scsi_decode_sense_buffer(const unsigned 
+ 	}
+ }
+ 
+-void
++static void
+ scsi_decode_sense_extras(const unsigned char *sense_buffer, int sense_len,
+ 			 struct scsi_sense_hdr *sshdr)
+ {
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
