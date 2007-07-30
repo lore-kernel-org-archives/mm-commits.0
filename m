@@ -1,51 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - libata-store-bus-addresses-versus-mm-for-testing-fix.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 11:59:16 -0700
-Message-ID: <200707301859.l6UIxGw8025206@imap1.linux-foundation.org>
+Subject: - libata-store-bus-addresses-versus-mm-for-testing-fix-2.patch removed from -mm tree
+Date: Mon, 30 Jul 2007 11:59:18 -0700
+Message-ID: <200707301859.l6UIxIKg025209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56685 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49486 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966809AbXG3S75 (ORCPT
+	by vger.kernel.org with ESMTP id S966854AbXG3TAL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 14:59:57 -0400
+	Mon, 30 Jul 2007 15:00:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-store-bus-addresses-versus-mm-for-testing-fix
+     libata-store-bus-addresses-versus-mm-for-testing-fix-2
 has been removed from the -mm tree.  Its filename was
-     libata-store-bus-addresses-versus-mm-for-testing-fix.patch
+     libata-store-bus-addresses-versus-mm-for-testing-fix-2.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-Subject: libata-store-bus-addresses-versus-mm-for-testing-fix
+Subject: libata-store-bus-addresses-versus-mm-for-testing-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+is this right?
+
+Cc: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_isapnp.c |    2 +-
+ drivers/ata/pata_mpiix.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_isapnp.c~libata-store-bus-addresses-versus-mm-for-testing-fix drivers/ata/pata_isapnp.c
---- a/drivers/ata/pata_isapnp.c~libata-store-bus-addresses-versus-mm-for-testing-fix
-+++ a/drivers/ata/pata_isapnp.c
-@@ -112,7 +112,7 @@ static int isapnp_init_one(struct pnp_de
- 		ap->busaddr.ctl_addr = pnp_port_start(idev, 1);
- 	}
+diff -puN drivers/ata/pata_mpiix.c~libata-store-bus-addresses-versus-mm-for-testing-fix-2 drivers/ata/pata_mpiix.c
+--- a/drivers/ata/pata_mpiix.c~libata-store-bus-addresses-versus-mm-for-testing-fix-2
++++ a/drivers/ata/pata_mpiix.c
+@@ -249,7 +249,7 @@ static int mpiix_init_one(struct pci_dev
+ 	ap->ioaddr.altstatus_addr = ctl_addr;
  
--	ata_std_io_ports(&ap->ioaddr);
+ 	/* Let libata fill in the port details */
+-	ata_std_ports(&ap->ioaddr);
 +	ata_std_io_ports(&ap->ioaddr, &ap->busaddr);
  
- 	/* activate */
- 	return ata_host_activate(host, pnp_irq(idev, 0), ata_interrupt, 0,
+ 	/* activate host */
+ 	return ata_host_activate(host, irq, ata_interrupt, IRQF_SHARED,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +72,6 @@ iforce-warning-fix.patch
 git-kvm.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-libata-store-bus-addresses-versus-mm-for-testing-fix.patch
 libata-store-bus-addresses-versus-mm-for-testing-fix-2.patch
 fix-ide-ide-add-ide-set-pio-take3.patch
 ide-bodge-things-around-to-make-arm-work.patch
