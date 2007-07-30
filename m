@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-read-support-fix-2.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:02:29 -0700
-Message-ID: <200707302202.l6UM2Tlo032741@imap1.linux-foundation.org>
+Subject: + kernel-rtmutex-debugc-cleanups.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:06:48 -0700
+Message-ID: <200707302206.l6UM6m0h000384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51044 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44275 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759758AbXG3WCo (ORCPT
+	by vger.kernel.org with ESMTP id S968198AbXG3WHD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:02:44 -0400
+	Mon, 30 Jul 2007 18:07:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@stusta.de
 
 
 The patch titled
-     make hugetlbfs_read() static
+     From: Adrian Bunk <bunk@stusta.de>
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-read-support-fix-2.patch
+     kernel-rtmutex-debugc-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make hugetlbfs_read() static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: From: Adrian Bunk <bunk@stusta.de>
 
-On Wed, Jul 25, 2007 at 04:03:04AM -0700, Andrew Morton wrote:
->...
-> Changes since 2.6.22-rc6-mm1:
->...
-> +hugetlbfs-read-support.patch
->...
->  More MM things
->...
 
-hugetlbfs_read() can become static.
+This patch contains the following cleanups:
+- make the needlessly global variable rt_trace_on static
+- remove the unused global function deadlock_trace_off()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+---
+
+This patch has been sent on:
+- 1 Jul 2007
+- 4 Apr 2007
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/rtmutex-debug.c |    7 +------
+ 1 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-read-support-fix-2 fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-read-support-fix-2
-+++ a/fs/hugetlbfs/inode.c
-@@ -217,8 +217,8 @@ hugetlbfs_read_actor(struct page *page, 
-  * data. Its *very* similar to do_generic_mapping_read(), we can't use that
-  * since it has PAGE_CACHE_SIZE assumptions.
+diff -puN kernel/rtmutex-debug.c~kernel-rtmutex-debugc-cleanups kernel/rtmutex-debug.c
+--- a/kernel/rtmutex-debug.c~kernel-rtmutex-debugc-cleanups
++++ a/kernel/rtmutex-debug.c
+@@ -82,12 +82,7 @@ do {						\
+  * into the tracing code when doing error printk or
+  * executing a BUG():
   */
--ssize_t
--hugetlbfs_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos)
-+static ssize_t hugetlbfs_read(struct file *filp, char __user *buf,
-+			      size_t len, loff_t *ppos)
+-int rt_trace_on = 1;
+-
+-void deadlock_trace_off(void)
+-{
+-	rt_trace_on = 0;
+-}
++static int rt_trace_on = 1;
+ 
+ static void printk_task(struct task_struct *p)
  {
- 	struct address_space *mapping = filp->f_mapping;
- 	struct inode *inode = mapping->host;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -113,3 +116,14 @@ the-next-round-of-scheduled-oss-code-removal.patch
 reiser4-export-remove_from_page_cache.patch
 reiser4.patch
 mutex-subsystem-synchro-test-module.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+mm-page_allocc-make-code-static.patch
+make-struct-sony_nc_ids-static.patch
+make-pktgencget_ipsec_sa-static-and-non-inline.patch
+make-nf_ct_ipv6_skip_exthdr-static.patch
+net-unix-af_unixc-make-code-static.patch
+drivers-usb-serial-sierrac-make-3-functions-static.patch
+backlight-make-2-structs-static.patch
+unexport-pm_power_off_prepare.patch
+unexport-fb_prepare_logo.patch
