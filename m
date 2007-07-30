@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-shmc-make-2-functions-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:47:24 -0700
-Message-ID: <200707302247.l6UMlOwL002504@imap1.linux-foundation.org>
+Subject: + mm-migratec-cleanups.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:47:30 -0700
+Message-ID: <200707302247.l6UMlU07002516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49420 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44653 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754548AbXG3W5b (ORCPT
+	by vger.kernel.org with ESMTP id S1750843AbXG3W5n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:57:31 -0400
+	Mon, 30 Jul 2007 18:57:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: bunk@stusta.de, clameter@sgi.com
 
 
 The patch titled
-     ipc/shm.c: make 2 functions static
+     mm/migrate.c: cleanups
 has been added to the -mm tree.  Its filename is
-     ipc-shmc-make-2-functions-static.patch
+     mm-migratec-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ipc/shm.c: make 2 functions static
+Subject: mm/migrate.c: cleanups
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes two needlessly global functions static.
+This patch contains the following cleanups:
+- every file should include the headers containing the prototypes for
+  its global functions
+- make the needlessly global putback_lru_pages() static
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ include/linux/migrate.h |    2 --
+ mm/migrate.c            |    3 ++-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN ipc/shm.c~ipc-shmc-make-2-functions-static ipc/shm.c
---- a/ipc/shm.c~ipc-shmc-make-2-functions-static
-+++ a/ipc/shm.c
-@@ -233,7 +233,7 @@ static int shm_fault(struct vm_area_stru
+diff -puN include/linux/migrate.h~mm-migratec-cleanups include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migratec-cleanups
++++ a/include/linux/migrate.h
+@@ -26,7 +26,6 @@ static inline int vma_migratable(struct 
  }
  
- #ifdef CONFIG_NUMA
--int shm_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
-+static int shm_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
- {
- 	struct file *file = vma->vm_file;
- 	struct shm_file_data *sfd = shm_file_data(file);
-@@ -243,7 +243,8 @@ int shm_set_policy(struct vm_area_struct
- 	return err;
- }
+ extern int isolate_lru_page(struct page *p, struct list_head *pagelist);
+-extern int putback_lru_pages(struct list_head *l);
+ extern int migrate_page(struct address_space *,
+ 			struct page *, struct page *);
+ extern int migrate_pages(struct list_head *l, new_page_t x, unsigned long);
+@@ -44,7 +43,6 @@ static inline int vma_migratable(struct 
  
--struct mempolicy *shm_get_policy(struct vm_area_struct *vma, unsigned long addr)
-+static struct mempolicy *shm_get_policy(struct vm_area_struct *vma,
-+					unsigned long addr)
+ static inline int isolate_lru_page(struct page *p, struct list_head *list)
+ 					{ return -ENOSYS; }
+-static inline int putback_lru_pages(struct list_head *l) { return 0; }
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+ 		unsigned long private) { return -ENOSYS; }
+ 
+diff -puN mm/migrate.c~mm-migratec-cleanups mm/migrate.c
+--- a/mm/migrate.c~mm-migratec-cleanups
++++ a/mm/migrate.c
+@@ -28,6 +28,7 @@
+ #include <linux/mempolicy.h>
+ #include <linux/vmalloc.h>
+ #include <linux/security.h>
++#include <linux/syscalls.h>
+ 
+ #include "internal.h"
+ 
+@@ -100,7 +101,7 @@ static inline void move_to_lru(struct pa
+  *
+  * returns the number of pages put back.
+  */
+-int putback_lru_pages(struct list_head *l)
++static int putback_lru_pages(struct list_head *l)
  {
- 	struct file *file = vma->vm_file;
- 	struct shm_file_data *sfd = shm_file_data(file);
+ 	struct page *page;
+ 	struct page *page2;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
