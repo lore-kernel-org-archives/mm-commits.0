@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-ioremapc-should-include-linux-ioh.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:47:18 -0700
-Message-ID: <200707302247.l6UMlISE002495@imap1.linux-foundation.org>
+Subject: + mm-mempolicyc-cleanups.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:47:32 -0700
+Message-ID: <200707302247.l6UMlWS6002519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40370 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52850 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755347AbXG3WsK (ORCPT
+	by vger.kernel.org with ESMTP id S1755970AbXG3WsT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:48:10 -0400
+	Mon, 30 Jul 2007 18:48:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, hskinnemoen@atmel.com
+Cc: bunk@stusta.de, clameter@sgi.com
 
 
 The patch titled
-     lib/ioremap.c should #include <linux/io.h>
+     mm/mempolicy.c: cleanups
 has been added to the -mm tree.  Its filename is
-     lib-ioremapc-should-include-linux-ioh.patch
+     mm-mempolicyc-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,134 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lib/ioremap.c should #include <linux/io.h>
+Subject: mm/mempolicy.c: cleanups
 From: Adrian Bunk <bunk@stusta.de>
 
-Every file should include the headers containing the prototypes for its global
-functions (in this case ioremap_page_range()).
+This patch contains the following cleanups:
+- every file should include the headers containing the prototypes for
+  its global functions
+- make the follosing needlessly global functions static:
+  - migrate_to_node()
+  - do_mbind()
+  - sp_alloc()
+  - mpol_rebind_policy()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ioremap.c |    1 +
- 1 files changed, 1 insertion(+)
+ include/linux/mempolicy.h |    6 ------
+ mm/mempolicy.c            |   25 ++++++++++++++++---------
+ 2 files changed, 16 insertions(+), 15 deletions(-)
 
-diff -puN lib/ioremap.c~lib-ioremapc-should-include-linux-ioh lib/ioremap.c
---- a/lib/ioremap.c~lib-ioremapc-should-include-linux-ioh
-+++ a/lib/ioremap.c
-@@ -8,6 +8,7 @@
- #include <linux/vmalloc.h>
- #include <linux/mm.h>
- #include <linux/sched.h>
-+#include <linux/io.h>
- #include <asm/cacheflush.h>
- #include <asm/pgtable.h>
+diff -puN include/linux/mempolicy.h~mm-mempolicyc-cleanups include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicyc-cleanups
++++ a/include/linux/mempolicy.h
+@@ -143,7 +143,6 @@ struct mempolicy *mpol_shared_policy_loo
  
+ extern void numa_default_policy(void);
+ extern void numa_policy_init(void);
+-extern void mpol_rebind_policy(struct mempolicy *pol, const nodemask_t *new);
+ extern void mpol_rebind_task(struct task_struct *tsk,
+ 					const nodemask_t *new);
+ extern void mpol_rebind_mm(struct mm_struct *mm, nodemask_t *new);
+@@ -225,11 +224,6 @@ static inline void numa_default_policy(v
+ {
+ }
+ 
+-static inline void mpol_rebind_policy(struct mempolicy *pol,
+-					const nodemask_t *new)
+-{
+-}
+-
+ static inline void mpol_rebind_task(struct task_struct *tsk,
+ 					const nodemask_t *new)
+ {
+diff -puN mm/mempolicy.c~mm-mempolicyc-cleanups mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-cleanups
++++ a/mm/mempolicy.c
+@@ -87,6 +87,7 @@
+ #include <linux/migrate.h>
+ #include <linux/rmap.h>
+ #include <linux/security.h>
++#include <linux/syscalls.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/uaccess.h>
+@@ -108,6 +109,9 @@ struct mempolicy default_policy = {
+ 	.policy = MPOL_DEFAULT,
+ };
+ 
++static void mpol_rebind_policy(struct mempolicy *pol,
++                               const nodemask_t *newmask);
++
+ /* Do sanity checking on a policy */
+ static int mpol_check_policy(int mode, nodemask_t *nodes)
+ {
+@@ -459,7 +463,7 @@ static void mpol_set_task_struct_flag(vo
+ }
+ 
+ /* Set the process memory policy */
+-long do_set_mempolicy(int mode, nodemask_t *nodes)
++static long do_set_mempolicy(int mode, nodemask_t *nodes)
+ {
+ 	struct mempolicy *new;
+ 
+@@ -519,8 +523,8 @@ static int lookup_node(struct mm_struct 
+ }
+ 
+ /* Retrieve NUMA policy */
+-long do_get_mempolicy(int *policy, nodemask_t *nmask,
+-			unsigned long addr, unsigned long flags)
++static long do_get_mempolicy(int *policy, nodemask_t *nmask,
++			     unsigned long addr, unsigned long flags)
+ {
+ 	int err;
+ 	struct mm_struct *mm = current->mm;
+@@ -601,7 +605,8 @@ static struct page *new_node_page(struct
+  * Migrate pages from one node to a target node.
+  * Returns error or the number of pages not migrated.
+  */
+-int migrate_to_node(struct mm_struct *mm, int source, int dest, int flags)
++static int migrate_to_node(struct mm_struct *mm, int source, int dest,
++			   int flags)
+ {
+ 	nodemask_t nmask;
+ 	LIST_HEAD(pagelist);
+@@ -732,8 +737,9 @@ static struct page *new_vma_page(struct 
+ }
+ #endif
+ 
+-long do_mbind(unsigned long start, unsigned long len,
+-		unsigned long mode, nodemask_t *nmask, unsigned long flags)
++static long do_mbind(unsigned long start, unsigned long len,
++		     unsigned long mode, nodemask_t *nmask,
++		     unsigned long flags)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+@@ -1466,8 +1472,8 @@ static void sp_delete(struct shared_poli
+ 	kmem_cache_free(sn_cache, n);
+ }
+ 
+-struct sp_node *
+-sp_alloc(unsigned long start, unsigned long end, struct mempolicy *pol)
++static struct sp_node *sp_alloc(unsigned long start, unsigned long end,
++				struct mempolicy *pol)
+ {
+ 	struct sp_node *n = kmem_cache_alloc(sn_cache, GFP_KERNEL);
+ 
+@@ -1645,7 +1651,8 @@ void numa_default_policy(void)
+ }
+ 
+ /* Migrate a policy to a different set of nodes */
+-void mpol_rebind_policy(struct mempolicy *pol, const nodemask_t *newmask)
++static void mpol_rebind_policy(struct mempolicy *pol,
++			       const nodemask_t *newmask)
+ {
+ 	nodemask_t *mpolmask;
+ 	nodemask_t tmp;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
