@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-partitions-checkc-add-add_partition-error-handling.patch added to -mm tree
-Date: Mon, 30 Jul 2007 13:58:39 -0700
-Message-ID: <200707302058.l6UKwdo4030183@imap1.linux-foundation.org>
+Subject: + add-sys-module-name-notes.patch added to -mm tree
+Date: Mon, 30 Jul 2007 14:01:06 -0700
+Message-ID: <200707302101.l6UL16gq030233@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58139 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33096 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934884AbXG3U6u (ORCPT
+	by vger.kernel.org with ESMTP id S1755451AbXG3VBX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 16:58:50 -0400
+	Mon, 30 Jul 2007 17:01:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eugeneteo@kernel.sg
+Cc: roland@redhat.com
 
 
 The patch titled
-     fs/partitions/check.c: add add_partition() error handling
+     Add /sys/module/name/notes
 has been added to the -mm tree.  Its filename is
-     fs-partitions-checkc-add-add_partition-error-handling.patch
+     add-sys-module-name-notes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,78 +26,190 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/partitions/check.c: add add_partition() error handling
-From: Eugene Teo <eugeneteo@kernel.sg>
+Subject: Add /sys/module/name/notes
+From: Roland McGrath <roland@redhat.com>
 
-Add error handling to add_partition().  Also fixes these warnings:
+This patch adds the /sys/module/<name>/notes/ magic directory, which has a
+file for each allocated SHT_NOTE section that appears in <name>.ko.  This
+is the counterpart for each module of /sys/kernel/notes for vmlinux. 
+Reading this delivers the contents of the module's SHT_NOTE sections.  This
+lets userland easily glean any detailed information about that module's
+build that was stored there at compile time (e.g.  by ld --build-id).
 
-fs/partitions/check.c: In function `add_partition':
-fs/partitions/check.c:391: warning: ignoring return value of `kobject_add',
-	declared with attribute warn_unused_result
-fs/partitions/check.c:394: warning: ignoring return value of
-	`sysfs_create_link', declared with attribute warn_unused_result
-fs/partitions/check.c:401: warning: ignoring return value of
-	`sysfs_create_file', declared with attribute warn_unused_result
-
-Signed-off-by: Eugene Teo <eugeneteo@kernel.sg>
+Signed-off-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/check.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+ include/linux/module.h |    3 +
+ kernel/module.c        |  106 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 109 insertions(+)
 
-diff -puN fs/partitions/check.c~fs-partitions-checkc-add-add_partition-error-handling fs/partitions/check.c
---- a/fs/partitions/check.c~fs-partitions-checkc-add-add_partition-error-handling
-+++ a/fs/partitions/check.c
-@@ -371,6 +371,7 @@ void delete_partition(struct gendisk *di
- void add_partition(struct gendisk *disk, int part, sector_t start, sector_t len, int flags)
- {
- 	struct hd_struct *p;
-+	int err;
+diff -puN include/linux/module.h~add-sys-module-name-notes include/linux/module.h
+--- a/include/linux/module.h~add-sys-module-name-notes
++++ a/include/linux/module.h
+@@ -359,6 +359,9 @@ struct module
  
- 	p = kzalloc(sizeof(*p), GFP_KERNEL);
- 	if (!p)
-@@ -388,20 +389,34 @@ void add_partition(struct gendisk *disk,
- 	p->kobj.parent = &disk->kobj;
- 	p->kobj.ktype = &ktype_part;
- 	kobject_init(&p->kobj);
--	kobject_add(&p->kobj);
-+	err = kobject_add(&p->kobj);
-+	if (err)
-+		goto err_out;
- 	if (!disk->part_uevent_suppress)
- 		kobject_uevent(&p->kobj, KOBJ_ADD);
--	sysfs_create_link(&p->kobj, &block_subsys.kobj, "subsystem");
-+	err = sysfs_create_link(&p->kobj, &block_subsys.kobj, "subsystem");
-+	if (err)
-+		goto err_out_del_kobj;
- 	if (flags & ADDPART_FLAG_WHOLEDISK) {
- 		static struct attribute addpartattr = {
- 			.name = "whole_disk",
- 			.mode = S_IRUSR | S_IRGRP | S_IROTH,
- 		};
- 
--		sysfs_create_file(&p->kobj, &addpartattr);
-+		err = sysfs_create_file(&p->kobj, &addpartattr);
-+		if (err)
-+			goto err_out_del_link;
- 	}
- 	partition_sysfs_add_subdir(p);
- 	disk->part[part-1] = p;
-+	return;
+ 	/* Section attributes */
+ 	struct module_sect_attrs *sect_attrs;
 +
-+err_out_del_link:
-+	sysfs_remove_link(&p->kobj, "subsystem");
-+err_out_del_kobj:
-+	kobject_del(&p->kobj);
-+err_out:
-+	kfree(p);
++	/* Notes attributes */
++	struct module_notes_attrs *notes_attrs;
+ #endif
+ 
+ 	/* Per-cpu data. */
+diff -puN kernel/module.c~add-sys-module-name-notes kernel/module.c
+--- a/kernel/module.c~add-sys-module-name-notes
++++ a/kernel/module.c
+@@ -20,6 +20,7 @@
+ #include <linux/moduleloader.h>
+ #include <linux/init.h>
+ #include <linux/kallsyms.h>
++#include <linux/sysfs.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+@@ -1063,6 +1064,100 @@ static void remove_sect_attrs(struct mod
+ 	}
  }
  
- static char *make_block_name(struct gendisk *disk)
++/*
++ * /sys/module/foo/notes/.section.name gives contents of SHT_NOTE sections.
++ */
++
++struct module_notes_attrs {
++	struct kobject *dir;
++	unsigned int notes;
++	struct bin_attribute attrs[0];
++};
++
++static ssize_t module_notes_read(struct kobject *kobj,
++				 struct bin_attribute *bin_attr,
++				 char *buf, loff_t pos, size_t count)
++{
++	/*
++	 * The caller checked the pos and count against our size.
++	 */
++	memcpy(buf, bin_attr->private + pos, count);
++	return count;
++}
++
++static void free_notes_attrs(struct module_notes_attrs *notes_attrs,
++			     unsigned int i)
++{
++	if (notes_attrs->dir) {
++		while (i-- > 0)
++			sysfs_remove_bin_file(notes_attrs->dir,
++					      &notes_attrs->attrs[i]);
++		kobject_del(notes_attrs->dir);
++	}
++	kfree(notes_attrs);
++}
++
++static void add_notes_attrs(struct module *mod, unsigned int nsect,
++			    char *secstrings, Elf_Shdr *sechdrs)
++{
++	unsigned int notes, loaded, i;
++	struct module_notes_attrs *notes_attrs;
++	struct bin_attribute *nattr;
++
++	/* Count notes sections and allocate structures.  */
++	notes = 0;
++	for (i = 0; i < nsect; i++)
++		if ((sechdrs[i].sh_flags & SHF_ALLOC) &&
++		    (sechdrs[i].sh_type == SHT_NOTE))
++			++notes;
++
++	if (notes == 0)
++		return;
++
++	notes_attrs = kzalloc(sizeof(*notes_attrs)
++			      + notes * sizeof(notes_attrs->attrs[0]),
++			      GFP_KERNEL);
++	if (notes_attrs == NULL)
++		return;
++
++	notes_attrs->notes = notes;
++	nattr = &notes_attrs->attrs[0];
++	for (loaded = i = 0; i < nsect; ++i) {
++		if (!(sechdrs[i].sh_flags & SHF_ALLOC))
++			continue;
++		if (sechdrs[i].sh_type == SHT_NOTE) {
++			nattr->attr.name = mod->sect_attrs->attrs[loaded].name;
++			nattr->attr.mode = S_IRUGO;
++			nattr->size = sechdrs[i].sh_size;
++			nattr->private = (void *) sechdrs[i].sh_addr;
++			nattr->read = module_notes_read;
++			++nattr;
++		}
++		++loaded;
++	}
++
++	notes_attrs->dir = kobject_add_dir(&mod->mkobj.kobj, "notes");
++	if (!notes_attrs->dir)
++		goto out;
++
++	for (i = 0; i < notes; ++i)
++		if (sysfs_create_bin_file(notes_attrs->dir,
++					  &notes_attrs->attrs[i]))
++			goto out;
++
++	mod->notes_attrs = notes_attrs;
++	return;
++
++  out:
++	free_notes_attrs(notes_attrs, i);
++}
++
++static void remove_notes_attrs(struct module *mod)
++{
++	if (mod->notes_attrs)
++		free_notes_attrs(mod->notes_attrs, mod->notes_attrs->notes);
++}
++
+ #else
+ 
+ static inline void add_sect_attrs(struct module *mod, unsigned int nsect,
+@@ -1073,6 +1168,15 @@ static inline void add_sect_attrs(struct
+ static inline void remove_sect_attrs(struct module *mod)
+ {
+ }
++
++static inline void add_notes_attrs(struct module *mod, unsigned int nsect,
++				   char *sectstrings, Elf_Shdr *sechdrs)
++{
++}
++
++static inline void remove_notes_attrs(struct module *mod)
++{
++}
+ #endif /* CONFIG_KALLSYMS */
+ 
+ #ifdef CONFIG_SYSFS
+@@ -1207,6 +1311,7 @@ static void free_module(struct module *m
+ {
+ 	/* Delete from various lists */
+ 	stop_machine_run(__unlink_module, mod, NR_CPUS);
++	remove_notes_attrs(mod);
+ 	remove_sect_attrs(mod);
+ 	mod_kobject_remove(mod);
+ 
+@@ -1971,6 +2076,7 @@ static struct module *load_module(void _
+ 	if (err < 0)
+ 		goto arch_cleanup;
+ 	add_sect_attrs(mod, hdr->e_shnum, secstrings, sechdrs);
++	add_notes_attrs(mod, hdr->e_shnum, secstrings, sechdrs);
+ 
+ 	/* Size of section 0 is 0, so this works well if no unwind info. */
+ 	mod->unwind_info = unwind_add_table(mod,
 _
 
-Patches currently in -mm which might be from eugeneteo@kernel.sg are
+Patches currently in -mm which might be from roland@redhat.com are
 
-arch-i386-kernel-apmc-apm_init-warning-fix.patch
-fs-partitions-checkc-add-add_partition-error-handling.patch
+origin.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+add-sys-module-name-notes.patch
