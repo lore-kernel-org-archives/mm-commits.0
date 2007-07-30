@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-scsi_host_link_pm_policy-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:22:29 -0700
-Message-ID: <200707302222.l6UMMTD2001186@imap1.linux-foundation.org>
+Subject: + fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:23:36 -0700
+Message-ID: <200707302223.l6UMNafg001216@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59423 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52361 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S940000AbXG3WWo (ORCPT
+	by vger.kernel.org with ESMTP id S965833AbXG3WXv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:22:44 -0400
+	Mon, 30 Jul 2007 18:23:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: bunk@stusta.de, greg@kroah.com
 
 
 The patch titled
-     make scsi_host_link_pm_policy() static
+     USB: make dev_attr_authorized_default static
 has been added to the -mm tree.  Its filename is
-     make-scsi_host_link_pm_policy-static.patch
+     fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make scsi_host_link_pm_policy() static
+Subject: USB: make dev_attr_authorized_default static
 From: Adrian Bunk <bunk@stusta.de>
 
 On Wed, Jul 25, 2007 at 04:03:04AM -0700, Andrew Morton wrote:
 >...
 > Changes since 2.6.22-rc6-mm1:
 >...
-> +ata-ahci-alpm-expose-power-management-policy-option-to-users.patch
+> +gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts.patch
 >...
->  ata things
+>  USB tree updates
 >...
 
-scsi_host_link_pm_policy() can become static.
+dev_attr_authorized_default can become static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_sysfs.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/core/hcd.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/scsi_sysfs.c~make-scsi_host_link_pm_policy-static drivers/scsi/scsi_sysfs.c
---- a/drivers/scsi/scsi_sysfs.c~make-scsi_host_link_pm_policy-static
-+++ a/drivers/scsi/scsi_sysfs.c
-@@ -200,7 +200,7 @@ static const struct {
- 	{ SHOST_MEDIUM_POWER, "medium_power" },
- };
+diff -puN drivers/usb/core/hcd.c~fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts drivers/usb/core/hcd.c
+--- a/drivers/usb/core/hcd.c~fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts
++++ a/drivers/usb/core/hcd.c
+@@ -717,9 +717,9 @@ ssize_t usb_host_authorized_default_stor
+ 	return result;
+ }
  
--const char *scsi_host_link_pm_policy(enum scsi_host_link_pm policy)
-+static const char *scsi_host_link_pm_policy(enum scsi_host_link_pm policy)
- {
- 	int i;
- 	char *name = NULL;
+-DEVICE_ATTR(authorized_default, 0644,
+-	    usb_host_authorized_default_show,
+-	    usb_host_authorized_default_store);
++static DEVICE_ATTR(authorized_default, 0644,
++		   usb_host_authorized_default_show,
++		   usb_host_authorized_default_store);
+ 
+ 
+ /* Group all the USB bus attributes */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -94,6 +99,7 @@ nsp32_restart_autoscsi-remove-error-check.patch
 make-scsi_host_link_pm_policy-static.patch
 git-unionfs.patch
 drivers-usb-serial-sierrac-make-3-functions-static.patch
+fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts.patch
 git-v9fs.patch
 git-ipwireless_cs.patch
 arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
@@ -125,7 +131,6 @@ the-next-round-of-scheduled-oss-code-removal.patch
 reiser4-export-remove_from_page_cache.patch
 reiser4.patch
 mutex-subsystem-synchro-test-module.patch
-usb-make-dev_attr_authorized_default-static.patch
 kernel-printkc-make-2-variables-static.patch
 export-v4l2_int_device_unregister.patch
 kernel-pidc-remove-unused-exports.patch
