@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + arch-i386-mach-generic-probec-make-struct-apic_probe.patch added to -mm tree
-Date: Mon, 30 Jul 2007 14:58:50 -0700
-Message-ID: <200707302158.l6ULwotV032548@imap1.linux-foundation.org>
+Subject: + arch-i386-mach-es7000-es7000platc-cleanups.patch added to -mm tree
+Date: Mon, 30 Jul 2007 14:58:52 -0700
+Message-ID: <200707302158.l6ULwqSH032552@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38768 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47670 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968301AbXG3V7F (ORCPT
+	by vger.kernel.org with ESMTP id S968301AbXG3V7I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 17:59:05 -0400
+	Mon, 30 Jul 2007 17:59:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@stusta.de
 
 
 The patch titled
-     arch/i386/mach-generic/probe.c: make struct apic_probe static
+     arch/i386/mach-es7000/es7000plat.c: cleanups
 has been added to the -mm tree.  Its filename is
-     arch-i386-mach-generic-probec-make-struct-apic_probe.patch
+     arch-i386-mach-es7000-es7000platc-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/i386/mach-generic/probe.c: make struct apic_probe static
+Subject: arch/i386/mach-es7000/es7000plat.c: cleanups
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes the needlessly global struct apic_probe static.
+This patch contains the following cleanups:
+- make some needlessly global functions static
+- #if 0 the unused es7000_stop_cpu()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mach-generic/probe.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/mach-es7000/es7000plat.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/mach-generic/probe.c~arch-i386-mach-generic-probec-make-struct-apic_probe arch/i386/mach-generic/probe.c
---- a/arch/i386/mach-generic/probe.c~arch-i386-mach-generic-probec-make-struct-apic_probe
-+++ a/arch/i386/mach-generic/probe.c
-@@ -22,7 +22,7 @@ extern struct genapic apic_default;
+diff -puN arch/i386/mach-es7000/es7000plat.c~arch-i386-mach-es7000-es7000platc-cleanups arch/i386/mach-es7000/es7000plat.c
+--- a/arch/i386/mach-es7000/es7000plat.c~arch-i386-mach-es7000-es7000platc-cleanups
++++ a/arch/i386/mach-es7000/es7000plat.c
+@@ -46,11 +46,11 @@
+  * ES7000 Globals
+  */
  
- struct genapic *genapic = &apic_default;
+-volatile unsigned long	*psai = NULL;
+-struct mip_reg		*mip_reg;
+-struct mip_reg		*host_reg;
+-int 			mip_port;
+-unsigned long		mip_addr, host_addr;
++static volatile unsigned long	*psai = NULL;
++static struct mip_reg		*mip_reg;
++static struct mip_reg		*host_reg;
++static int 			mip_port;
++static unsigned long		mip_addr, host_addr;
  
--struct genapic *apic_probe[] __initdata = { 
-+static struct genapic *apic_probe[] __initdata = {
- 	&apic_summit,
- 	&apic_bigsmp, 
- 	&apic_es7000,
+ /*
+  * GSI override for ES7000 platforms.
+@@ -288,6 +288,7 @@ es7000_start_cpu(int cpu, unsigned long 
+ 
+ }
+ 
++#if 0
+ int
+ es7000_stop_cpu(int cpu)
+ {
+@@ -307,6 +308,7 @@ es7000_stop_cpu(int cpu)
+ 	return 0;
+ 
+ }
++#endif  /*  0  */
+ 
+ void __init
+ es7000_sw_apic()
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
