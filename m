@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-serial-fix-edgeport-regression-on-non-epic-devices.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:51:49 -0700
-Message-ID: <200707302251.l6UMpnIN002619@imap1.linux-foundation.org>
+Subject: + ipc-shmc-make-2-functions-static.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:47:24 -0700
+Message-ID: <200707302247.l6UMlOwL002504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47183 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49420 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751888AbXG3Wwc (ORCPT
+	by vger.kernel.org with ESMTP id S1754548AbXG3W5b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:52:32 -0400
+	Mon, 30 Jul 2007 18:57:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akropel1@rochester.rr.com, Nick@NickAndBarb.net, greg@kroah.com, stable@kernel.org
+Cc: bunk@stusta.de
 
 
 The patch titled
-     usb-serial: fix edgeport regression on non-EPiC devices
+     ipc/shm.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     usb-serial-fix-edgeport-regression-on-non-epic-devices.patch
+     ipc-shmc-make-2-functions-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,125 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb-serial: fix edgeport regression on non-EPiC devices
-From: Adam Kropelin <akropel1@rochester.rr.com>
+Subject: ipc/shm.c: make 2 functions static
+From: Adrian Bunk <bunk@stusta.de>
 
-Fix serious regression on non-EPiC edgeport usb-serial devices.  Baud rate
-and MCR/LCR registers are not being written on these models due to apparent
-copy-n-paste errors introduced with EPiC support.
+This patch makes two needlessly global functions static.
 
-Failure reported by Nick Pasich <Nick@NickAndBarb.net>.
-
-Signed-off-by: Adam Kropelin <akropel1@rochester.rr.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_edgeport.c |   19 ++++++++-----------
- 1 files changed, 8 insertions(+), 11 deletions(-)
+ ipc/shm.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/serial/io_edgeport.c~usb-serial-fix-edgeport-regression-on-non-epic-devices drivers/usb/serial/io_edgeport.c
---- a/drivers/usb/serial/io_edgeport.c~usb-serial-fix-edgeport-regression-on-non-epic-devices
-+++ a/drivers/usb/serial/io_edgeport.c
-@@ -2366,9 +2366,8 @@ static int send_cmd_write_baud_rate (str
- 	int status;
- 	unsigned char number = edge_port->port->number - edge_port->port->serial->minor;
+diff -puN ipc/shm.c~ipc-shmc-make-2-functions-static ipc/shm.c
+--- a/ipc/shm.c~ipc-shmc-make-2-functions-static
++++ a/ipc/shm.c
+@@ -233,7 +233,7 @@ static int shm_fault(struct vm_area_stru
+ }
  
--	if ((!edge_serial->is_epic) ||
--	    ((edge_serial->is_epic) &&
--	     (!edge_serial->epic_descriptor.Supports.IOSPSetBaudRate))) {
-+	if (edge_serial->is_epic &&
-+	    !edge_serial->epic_descriptor.Supports.IOSPSetBaudRate) {
- 		dbg("SendCmdWriteBaudRate - NOT Setting baud rate for port = %d, baud = %d",
- 		    edge_port->port->number, baudRate);
- 		return 0;
-@@ -2461,18 +2460,16 @@ static int send_cmd_write_uart_register 
+ #ifdef CONFIG_NUMA
+-int shm_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
++static int shm_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
+ {
+ 	struct file *file = vma->vm_file;
+ 	struct shm_file_data *sfd = shm_file_data(file);
+@@ -243,7 +243,8 @@ int shm_set_policy(struct vm_area_struct
+ 	return err;
+ }
  
- 	dbg("%s - write to %s register 0x%02x", (regNum == MCR) ? "MCR" : "LCR", __FUNCTION__, regValue);
- 
--	if ((!edge_serial->is_epic) ||
--	    ((edge_serial->is_epic) &&
--	     (!edge_serial->epic_descriptor.Supports.IOSPWriteMCR) &&
--	     (regNum == MCR))) {
-+	if (edge_serial->is_epic &&
-+	    !edge_serial->epic_descriptor.Supports.IOSPWriteMCR &&
-+	    regNum == MCR) {
- 		dbg("SendCmdWriteUartReg - Not writing to MCR Register");
- 		return 0;
- 	}
- 
--	if ((!edge_serial->is_epic) ||
--	    ((edge_serial->is_epic) &&
--	     (!edge_serial->epic_descriptor.Supports.IOSPWriteLCR) &&
--	     (regNum == LCR))) {
-+	if (edge_serial->is_epic &&
-+	    !edge_serial->epic_descriptor.Supports.IOSPWriteLCR &&
-+	    regNum == LCR) {
- 		dbg ("SendCmdWriteUartReg - Not writing to LCR Register");
- 		return 0;
- 	}
+-struct mempolicy *shm_get_policy(struct vm_area_struct *vma, unsigned long addr)
++static struct mempolicy *shm_get_policy(struct vm_area_struct *vma,
++					unsigned long addr)
+ {
+ 	struct file *file = vma->vm_file;
+ 	struct shm_file_data *sfd = shm_file_data(file);
 _
 
-Patches currently in -mm which might be from akropel1@rochester.rr.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-usb-serial-fix-edgeport-regression-on-non-epic-devices.patch
+origin.patch
+slow-down-printk-during-boot-fix-3.patch
+git-acpi.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+make-drivers-acpi-eventcacpi_event_seqnum-static.patch
+make-struct-sony_nc_ids-static.patch
+git-alsa.patch
+kernel-auditscc-fix-an-off-by-one.patch
+drivers-base-power-make-2-functions-static.patch
+git-drm.patch
+git-dvb.patch
+export-v4l2_int_device_unregister.patch
+drivers-i2c-i2c-corec-make-code-static.patch
+git-hwmon.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mmc.patch
+git-mtd.patch
+mtd-onenand_simc-make-struct-info-static.patch
+drivers-net-cxgb3-xgmacc-remove-dead-code.patch
+e1000-if-0-two-functions.patch
+fore200e_param_bs_queue-must-be-__devinit.patch
+make-pktgencget_ipsec_sa-static-and-non-inline.patch
+make-nf_ct_ipv6_skip_exthdr-static.patch
+net-unix-af_unixc-make-code-static.patch
+backlight-make-2-structs-static.patch
+git-ocfs2.patch
+cpqphp_ctrlc-remove-dead-code.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+make-scsi_host_link_pm_policy-static.patch
+git-unionfs.patch
+drivers-usb-serial-sierrac-make-3-functions-static.patch
+fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts.patch
+git-v9fs.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+i386-remove-maccumulate-outgoing-args.patch
+arch-i386-mach-generic-probec-make-struct-apic_probe.patch
+arch-i386-mach-es7000-es7000platc-cleanups.patch
+i386-alternativec-really-stop-mces-during-code.patch
+serial-sh-sci-fix-build-failure-from-kgdb-fallout.patch
+usb_serial_suspend-buggy-code.patch
+acpi_ec_remove-fix-use-after-free.patch
+acpi_battery_add-use-after-free.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+mm-page_allocc-make-code-static.patch
+maps2-add-proc-kpagemap-interface.patch
+hugetlbfs-read-support-fix-2.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+anon_inodes-shouldnt-be-user-visible.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+radeon_driver_vblank_do_wait-static.patch
+unexport-fb_prepare_logo.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
+drivers-scsi-scsi_errorc-should-include.patch
+include-linux-kbuild-remove-duplicate-entries.patch
+parisc-extern-inline-static-inline.patch
+remove-fs-jffs2-ioctlc.patch
+drivers-scsi-constantsc-make-2-functions-static.patch
+fs-afs-possible-cleanups.patch
+ppc-remove-apus-support.patch
+lib-ioremapc-should-include-linux-ioh.patch
+i386-no-need-to-make-enable_cpu_hotplug-a-variable.patch
+arch-i386-mm-discontigc-make-some-variables-static.patch
+ipc-shmc-make-2-functions-static.patch
+kernel-schedc-make-code-static.patch
+mm-shmemc-make-3-functions-static.patch
+mm-migratec-cleanups.patch
+mm-mempolicyc-cleanups.patch
+mm-vmstatc-cleanups.patch
