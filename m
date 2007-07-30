@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + i386-alternativec-really-stop-mces-during-code.patch added to -mm tree
-Date: Mon, 30 Jul 2007 14:58:54 -0700
-Message-ID: <200707302158.l6ULwsO7032557@imap1.linux-foundation.org>
+Subject: + drivers-base-power-make-2-functions-static.patch added to -mm tree
+Date: Mon, 30 Jul 2007 14:58:58 -0700
+Message-ID: <200707302158.l6ULwwLs032563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49696 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56878 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968326AbXG3V7J (ORCPT
+	by vger.kernel.org with ESMTP id S968364AbXG3V7O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 17:59:09 -0400
+	Mon, 30 Jul 2007 17:59:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@stusta.de
 
 
 The patch titled
-     i386 alternative.c: really stop MCEs during code patching
+     drivers/base/power/: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     i386-alternativec-really-stop-mces-during-code.patch
+     drivers-base-power-make-2-functions-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 alternative.c: really stop MCEs during code patching
+Subject: drivers/base/power/: make 2 functions static
 From: Adrian Bunk <bunk@stusta.de>
 
-It's CONFIG_X86_MCE, not CONFIG_MCE.
+suspend_device() and resume_device() can now become static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/power/power.h   |    6 ------
+ drivers/base/power/resume.c  |    2 +-
+ drivers/base/power/suspend.c |    2 +-
+ 3 files changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN arch/i386/kernel/alternative.c~i386-alternativec-really-stop-mces-during-code arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~i386-alternativec-really-stop-mces-during-code
-+++ a/arch/i386/kernel/alternative.c
-@@ -379,7 +379,7 @@ void __init alternative_instructions(voi
- 	   that might execute the to be patched code.
- 	   Other CPUs are not running. */
- 	stop_nmi();
--#ifdef CONFIG_MCE
-+#ifdef CONFIG_X86_MCE
- 	stop_mce();
- #endif
+diff -puN drivers/base/power/power.h~drivers-base-power-make-2-functions-static drivers/base/power/power.h
+--- a/drivers/base/power/power.h~drivers-base-power-make-2-functions-static
++++ a/drivers/base/power/power.h
+@@ -55,12 +55,6 @@ extern void dpm_sysfs_remove(struct devi
  
-@@ -417,7 +417,7 @@ void __init alternative_instructions(voi
- 	local_irq_restore(flags);
+ extern void dpm_resume(void);
+ extern void dpm_power_up(void);
+-extern int resume_device(struct device *);
+-
+-/*
+- * suspend.c
+- */
+-extern int suspend_device(struct device *, pm_message_t);
  
- 	restart_nmi();
--#ifdef CONFIG_MCE
-+#ifdef CONFIG_X86_MCE
- 	restart_mce();
- #endif
- }
+ #else /* CONFIG_PM_SLEEP */
+ 
+diff -puN drivers/base/power/resume.c~drivers-base-power-make-2-functions-static drivers/base/power/resume.c
+--- a/drivers/base/power/resume.c~drivers-base-power-make-2-functions-static
++++ a/drivers/base/power/resume.c
+@@ -20,7 +20,7 @@
+  *
+  */
+ 
+-int resume_device(struct device * dev)
++static int resume_device(struct device * dev)
+ {
+ 	int error = 0;
+ 
+diff -puN drivers/base/power/suspend.c~drivers-base-power-make-2-functions-static drivers/base/power/suspend.c
+--- a/drivers/base/power/suspend.c~drivers-base-power-make-2-functions-static
++++ a/drivers/base/power/suspend.c
+@@ -54,7 +54,7 @@ suspend_device_dbg(struct device *dev, p
+  *	@state:	Power state device is entering.
+  */
+ 
+-int suspend_device(struct device * dev, pm_message_t state)
++static int suspend_device(struct device * dev, pm_message_t state)
+ {
+ 	int error = 0;
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
