@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-serial-sierrac-make-3-functions-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:09:57 -0700
-Message-ID: <200707302209.l6UM9v1J000584@imap1.linux-foundation.org>
+Subject: + unexport-pm_power_off_prepare.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:10:03 -0700
+Message-ID: <200707302210.l6UMAC5I000595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53397 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58264 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968749AbXG3WKN (ORCPT
+	by vger.kernel.org with ESMTP id S969176AbXG3WKb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:10:13 -0400
+	Mon, 30 Jul 2007 18:10:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, greg@kroah.com
+Cc: bunk@stusta.de, rjw@sisk.pl
 
 
 The patch titled
-     drivers/usb/serial/sierra.c: make 3 functions static
+     unexport pm_power_off_prepare
 has been added to the -mm tree.  Its filename is
-     drivers-usb-serial-sierrac-make-3-functions-static.patch
+     unexport-pm_power_off_prepare.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/usb/serial/sierra.c: make 3 functions static
+Subject: unexport pm_power_off_prepare
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes three needlessly global functions static.
+This patch removes the unused EXPORT_SYMBOL(pm_power_off_prepare).
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Greg KH <greg@kroah.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/sierra.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ kernel/sys.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/usb/serial/sierra.c~drivers-usb-serial-sierrac-make-3-functions-static drivers/usb/serial/sierra.c
---- a/drivers/usb/serial/sierra.c~drivers-usb-serial-sierrac-make-3-functions-static
-+++ a/drivers/usb/serial/sierra.c
-@@ -45,7 +45,7 @@ enum devicetype {
- 	DEVICE_INSTALLER =	2,
- };
+diff -puN kernel/sys.c~unexport-pm_power_off_prepare kernel/sys.c
+--- a/kernel/sys.c~unexport-pm_power_off_prepare
++++ a/kernel/sys.c
+@@ -104,7 +104,6 @@ EXPORT_SYMBOL(cad_pid);
+  */
  
--int sierra_set_power_state(struct usb_device *udev, __u16 swiState)
-+static int sierra_set_power_state(struct usb_device *udev, __u16 swiState)
- {
- 	int result;
- 	dev_dbg(&udev->dev, "%s", "SET POWER STATE");
-@@ -60,7 +60,7 @@ int sierra_set_power_state(struct usb_de
- 	return result;
- }
+ void (*pm_power_off_prepare)(void);
+-EXPORT_SYMBOL(pm_power_off_prepare);
  
--int sierra_set_ms_mode(struct usb_device *udev, __u16 eSocMode)
-+static int sierra_set_ms_mode(struct usb_device *udev, __u16 eSocMode)
+ static int set_one_prio(struct task_struct *p, int niceval, int error)
  {
- 	int result;
- 	dev_dbg(&udev->dev, "%s", "DEVICE MODE SWITCH");
-@@ -75,7 +75,8 @@ int sierra_set_ms_mode(struct usb_device
- 	return result;
- }
- 
--int sierra_probe(struct usb_interface *iface, const struct usb_device_id *id)
-+static int sierra_probe(struct usb_interface *iface,
-+			const struct usb_device_id *id)
- {
- 	int result;
- 	struct usb_device *udev;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
