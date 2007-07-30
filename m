@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-make-2-structs-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:07:04 -0700
-Message-ID: <200707302207.l6UM74Ka000492@imap1.linux-foundation.org>
+Subject: + unexport-fb_prepare_logo.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:07:08 -0700
+Message-ID: <200707302207.l6UM78iT000500@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51559 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38508 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S939309AbXG3WHT (ORCPT
+	by vger.kernel.org with ESMTP id S968198AbXG3WHX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:07:19 -0400
+	Mon, 30 Jul 2007 18:07:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: bunk@stusta.de
 The patch titled
      From: Adrian Bunk <bunk@stusta.de>
 has been added to the -mm tree.  Its filename is
-     backlight-make-2-structs-static.patch
+     unexport-fb_prepare_logo.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,43 +29,28 @@ out what to do about this
 Subject: From: Adrian Bunk <bunk@stusta.de>
 
 
-This patch makes two needlessly global structs static.
+The logo code is not and should not be used by modules.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
 ---
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/backlight.c |    2 +-
- drivers/video/backlight/lcd.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/fbmem.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-make-2-structs-static drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-make-2-structs-static
-+++ a/drivers/video/backlight/backlight.c
-@@ -164,7 +164,7 @@ static ssize_t backlight_show_actual_bri
- 	return rc;
- }
- 
--struct class *backlight_class;
-+static struct class *backlight_class;
- 
- static void bl_device_release(struct device *dev)
- {
-diff -puN drivers/video/backlight/lcd.c~backlight-make-2-structs-static drivers/video/backlight/lcd.c
---- a/drivers/video/backlight/lcd.c~backlight-make-2-structs-static
-+++ a/drivers/video/backlight/lcd.c
-@@ -149,7 +149,7 @@ static ssize_t lcd_show_max_contrast(str
- 	return sprintf(buf, "%d\n", ld->props.max_contrast);
- }
- 
--struct class *lcd_class;
-+static struct class *lcd_class;
- 
- static void lcd_device_release(struct device *dev)
- {
+diff -puN drivers/video/fbmem.c~unexport-fb_prepare_logo drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~unexport-fb_prepare_logo
++++ a/drivers/video/fbmem.c
+@@ -1663,7 +1663,6 @@ EXPORT_SYMBOL(register_framebuffer);
+ EXPORT_SYMBOL(unregister_framebuffer);
+ EXPORT_SYMBOL(num_registered_fb);
+ EXPORT_SYMBOL(registered_fb);
+-EXPORT_SYMBOL(fb_prepare_logo);
+ EXPORT_SYMBOL(fb_show_logo);
+ EXPORT_SYMBOL(fb_set_var);
+ EXPORT_SYMBOL(fb_blank);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
