@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-mutex-instead-of-semaphore-in-the-host-ap-driver.patch added to -mm tree
-Date: Mon, 30 Jul 2007 16:46:31 -0700
-Message-ID: <200707302346.l6UNkVtf004631@imap1.linux-foundation.org>
+Subject: + m68knommu-get-rid-of-duplicate-include.patch added to -mm tree
+Date: Mon, 30 Jul 2007 16:48:01 -0700
+Message-ID: <200707302348.l6UNm1vd004737@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60994 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53410 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763705AbXG3XrZ (ORCPT
+	by vger.kernel.org with ESMTP id S1756166AbXG3Xsk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 19:47:25 -0400
+	Mon, 30 Jul 2007 19:48:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com, linville@tuxdriver.com, satyam@infradead.org
+Cc: jesper.juhl@gmail.com, gerg@uclinux.org
 
 
 The patch titled
-     Use mutex instead of semaphore in the Host AP driver
+     m68knommu: get rid of duplicate include
 has been added to the -mm tree.  Its filename is
-     use-mutex-instead-of-semaphore-in-the-host-ap-driver.patch
+     m68knommu-get-rid-of-duplicate-include.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,124 +26,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use mutex instead of semaphore in the Host AP driver
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: m68knommu: get rid of duplicate include
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-The Host AP driver uses a semaphore as mutex. Use the mutex API
-instead of the (binary) semaphore.
+Remove the duplicate inclusion of asm/irq.h from
+arch/m68knommu/platform/5206e/config.c
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Reviewed-by: Satyam Sharma <satyam@infradead.org>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/hostap/hostap_hw.c   |   14 +++++++-------
- drivers/net/wireless/hostap/hostap_wlan.h |    3 ++-
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ arch/m68knommu/platform/5206e/config.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/net/wireless/hostap/hostap_hw.c~use-mutex-instead-of-semaphore-in-the-host-ap-driver drivers/net/wireless/hostap/hostap_hw.c
---- a/drivers/net/wireless/hostap/hostap_hw.c~use-mutex-instead-of-semaphore-in-the-host-ap-driver
-+++ a/drivers/net/wireless/hostap/hostap_hw.c
-@@ -825,7 +825,7 @@ static int hfa384x_get_rid(struct net_de
- 	    local->hw_downloading)
- 		return -ENODEV;
+diff -puN arch/m68knommu/platform/5206e/config.c~m68knommu-get-rid-of-duplicate-include arch/m68knommu/platform/5206e/config.c
+--- a/arch/m68knommu/platform/5206e/config.c~m68knommu-get-rid-of-duplicate-include
++++ a/arch/m68knommu/platform/5206e/config.c
+@@ -20,7 +20,6 @@
+ #include <asm/mcftimer.h>
+ #include <asm/mcfsim.h>
+ #include <asm/mcfdma.h>
+-#include <asm/irq.h>
  
--	res = down_interruptible(&local->rid_bap_sem);
-+	res = mutex_lock_interruptible(&local->rid_bap_mtx);
- 	if (res)
- 		return res;
+ /***************************************************************************/
  
-@@ -834,7 +834,7 @@ static int hfa384x_get_rid(struct net_de
- 		printk(KERN_DEBUG "%s: hfa384x_get_rid: CMDCODE_ACCESS failed "
- 		       "(res=%d, rid=%04x, len=%d)\n",
- 		       dev->name, res, rid, len);
--		up(&local->rid_bap_sem);
-+		mutex_unlock(&local->rid_bap_mtx);
- 		return res;
- 	}
- 
-@@ -861,7 +861,7 @@ static int hfa384x_get_rid(struct net_de
- 		res = hfa384x_from_bap(dev, BAP0, buf, len);
- 
- 	spin_unlock_bh(&local->baplock);
--	up(&local->rid_bap_sem);
-+	mutex_unlock(&local->rid_bap_mtx);
- 
- 	if (res) {
- 		if (res != -ENODATA)
-@@ -902,7 +902,7 @@ static int hfa384x_set_rid(struct net_de
- 	/* RID len in words and +1 for rec.rid */
- 	rec.len = cpu_to_le16(len / 2 + len % 2 + 1);
- 
--	res = down_interruptible(&local->rid_bap_sem);
-+	res = mutex_lock_interruptible(&local->rid_bap_mtx);
- 	if (res)
- 		return res;
- 
-@@ -917,12 +917,12 @@ static int hfa384x_set_rid(struct net_de
- 	if (res) {
- 		printk(KERN_DEBUG "%s: hfa384x_set_rid (rid=%04x, len=%d) - "
- 		       "failed - res=%d\n", dev->name, rid, len, res);
--		up(&local->rid_bap_sem);
-+		mutex_unlock(&local->rid_bap_mtx);
- 		return res;
- 	}
- 
- 	res = hfa384x_cmd(dev, HFA384X_CMDCODE_ACCESS_WRITE, rid, NULL, NULL);
--	up(&local->rid_bap_sem);
-+	mutex_unlock(&local->rid_bap_mtx);
- 
- 	if (res) {
- 		printk(KERN_DEBUG "%s: hfa384x_set_rid: CMDCODE_ACCESS_WRITE "
-@@ -3171,7 +3171,7 @@ prism2_init_local_data(struct prism2_hel
- 	spin_lock_init(&local->cmdlock);
- 	spin_lock_init(&local->baplock);
- 	spin_lock_init(&local->lock);
--	init_MUTEX(&local->rid_bap_sem);
-+	mutex_init(&local->rid_bap_mtx);
- 
- 	if (card_idx < 0 || card_idx >= MAX_PARM_DEVICES)
- 		card_idx = 0;
-diff -puN drivers/net/wireless/hostap/hostap_wlan.h~use-mutex-instead-of-semaphore-in-the-host-ap-driver drivers/net/wireless/hostap/hostap_wlan.h
---- a/drivers/net/wireless/hostap/hostap_wlan.h~use-mutex-instead-of-semaphore-in-the-host-ap-driver
-+++ a/drivers/net/wireless/hostap/hostap_wlan.h
-@@ -3,6 +3,7 @@
- 
- #include <linux/wireless.h>
- #include <linux/netdevice.h>
-+#include <linux/mutex.h>
- #include <net/iw_handler.h>
- 
- #include "hostap_config.h"
-@@ -641,7 +642,7 @@ struct local_info {
- 			      * when removing entries from the list.
- 			      * TX and RX paths can use read lock. */
- 	spinlock_t cmdlock, baplock, lock;
--	struct semaphore rid_bap_sem;
-+	struct mutex rid_bap_mtx;
- 	u16 infofid; /* MAC buffer id for info frame */
- 	/* txfid, intransmitfid, next_txtid, and next_alloc are protected by
- 	 * txfidlock */
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
-kcopyd-use-mutex-instead-of-semaphore.patch
+origin.patch
+various-doc-kernel-parameters-fixes.patch
+git-alsa.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hid.patch
+clean-up-duplicate-includes-in-drivers-input.patch
 git-mtd.patch
-videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
-fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-fs-locksc-use-list_for_each_entry-instead-of-list_for_each.patch
-kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
-kernel-userc-use-list_for_each_entry-instead-of-list_for_each.patch
-use-mutex-instead-of-semaphore-in-the-host-ap-driver.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-use-mutex-instead-of-semaphore-in-the-scsi-tape-driver.patch
-use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
-use-mutex-instead-of-semaphore-in-the-dvb-frontend-tuning-interface.patch
+clean-up-duplicate-includes-in-drivers-net.patch
+clean-up-duplicate-includes-in-drivers-atm.patch
+clean-up-duplicate-includes-in-net-atm.patch
+clean-up-duplicate-includes-in-net-ipv4.patch
+clean-up-duplicate-includes-in-net-ipv6.patch
+clean-up-duplicate-includes-in-net-sched.patch
+clean-up-duplicate-includes-in-net-sunrpc.patch
+clean-up-duplicate-includes-in-net-tipc.patch
+clean-up-duplicate-includes-in-net-xfrm.patch
+dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+clean-up-duplicate-includes-in-drivers-scsi.patch
+clean-up-duplicate-includes-in-drivers-block.patch
+clean-up-duplicate-includes-in-drivers-usb.patch
+clean-up-duplicate-includes-in-arch-i386-xen.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+m68knommu-get-rid-of-duplicate-include.patch
+ipmi-fix-mem-leak-in-try_init_dmi.patch
+fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+cciss-fix-memory-leak.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
