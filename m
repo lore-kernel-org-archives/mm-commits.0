@@ -1,62 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: - git-newsetup-fixup.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 11:09:42 -0700
-Message-ID: <200707301809.l6UI9gQs023161@imap1.linux-foundation.org>
+Subject: + git-block-fixup.patch added to -mm tree
+Date: Mon, 30 Jul 2007 11:16:19 -0700
+Message-ID: <200707301816.l6UIGJQ2023492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58719 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38887 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967678AbXG3SJx (ORCPT
+	by vger.kernel.org with ESMTP id S966127AbXG3SQc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 14:09:53 -0400
+	Mon, 30 Jul 2007 14:16:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     git-newsetup-fixup
-has been removed from the -mm tree.  Its filename was
-     git-newsetup-fixup.patch
+     git-block-fixup
+has been added to the -mm tree.  Its filename is
+     git-block-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-newsetup-fixup
+Subject: git-block-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix rejects in lguest+rusty-docco-patches versus git-newsetup.
+fix git-rejects in git-block (badly and wrongly)
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ arch/ia64/hp/sim/simscsi.c |   18 ---------
+ drivers/scsi/advansys.c    |   67 -----------------------------------
+ 2 files changed, 85 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~git-newsetup-fixup drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~git-newsetup-fixup
-+++ a/drivers/lguest/lguest.c
-@@ -887,18 +887,9 @@ static __init char *lguest_memory_setup(
- 	/* We do this here and not earlier because lockcheck barfs if we do it
- 	 * before start_kernel() */
- 	atomic_notifier_chain_register(&panic_notifier_list, &paniced);
--
--<<<<<<< HEAD/drivers/lguest/lguest.c
--	/* The Linux bootloader header contains an "e820" memory map: the
--	 * Launcher populated the first entry with our memory limit. */
--	add_memory_region(E820_MAP->addr, E820_MAP->size, E820_MAP->type);
--
--	/* This string is for the boot messages. */
+diff -puN arch/ia64/hp/sim/simscsi.c~git-block-fixup arch/ia64/hp/sim/simscsi.c
+--- a/arch/ia64/hp/sim/simscsi.c~git-block-fixup
++++ a/arch/ia64/hp/sim/simscsi.c
+@@ -147,11 +147,8 @@ simscsi_sg_readwrite (struct scsi_cmnd *
+ 			return;
+ 		}
+ 		offset +=  sl->length;
+-<<<<<<< HEAD/arch/ia64/hp/sim/simscsi.c
 -=======
- 	add_memory_region(boot_params.e820_map[0].addr,
- 			  boot_params.e820_map[0].size,
- 			  boot_params.e820_map[0].type);
-->>>>>>> 7d1d895fd57734a0f8a474b4464b093a693b9bab/drivers/lguest/lguest.c
- 	return "LGUEST";
+ 		sl = sg_next(sl);
+ 		list_len--;
+->>>>>>> /arch/ia64/hp/sim/simscsi.c
+ 	}
+ 	sc->result = GOOD;
+ }
+@@ -210,23 +207,9 @@ simscsi_readwrite10 (struct scsi_cmnd *s
+ static void simscsi_fillresult(struct scsi_cmnd *sc, char *buf, unsigned len)
+ {
+ 
+-<<<<<<< HEAD/arch/ia64/hp/sim/simscsi.c
+-	int i;
+-	unsigned thislen;
+-	struct scatterlist *slp;
+-=======
+ 	int scatterlen = sc->use_sg, i;
+ 	struct scatterlist *sg;
+->>>>>>> /arch/ia64/hp/sim/simscsi.c
+ 
+-<<<<<<< HEAD/arch/ia64/hp/sim/simscsi.c
+-	scsi_for_each_sg(sc, slp, scsi_sg_count(sc), i) {
+-		if (!len)
+-			break;
+-		thislen = min(len, slp->length);
+-		memcpy(page_address(slp->page) + slp->offset, buf, thislen);
+-		len -= thislen;
+-=======
+ 	if (scatterlen == 0)
+ 		memcpy(sc->request_buffer, buf, len);
+ 	else {
+@@ -240,7 +223,6 @@ static void simscsi_fillresult(struct sc
+ 			memcpy(page_address(sg->page) + sg->offset, buf, thislen);
+ 			len -= thislen;
+ 		}
+->>>>>>> /arch/ia64/hp/sim/simscsi.c
+ 	}
  }
  
+diff -puN drivers/scsi/advansys.c~git-block-fixup drivers/scsi/advansys.c
+--- a/drivers/scsi/advansys.c~git-block-fixup
++++ a/drivers/scsi/advansys.c
+@@ -5217,7 +5217,6 @@ static int asc_build_req(asc_board_t *bo
+ 		ASC_STATS_ADD(scp->device->host, sg_elem,
+ 			      asc_sg_head.entry_cnt);
+ 
+-<<<<<<< HEAD/drivers/scsi/advansys.c
+ 		/*
+ 		 * Convert scatter-gather list into ASC_SG_HEAD list.
+ 		 */
+@@ -5230,72 +5229,6 @@ static int asc_build_req(asc_board_t *bo
+ 				      ASC_CEILING(sg_dma_len(slp), 512));
+ 		}
+ 	}
+-=======
+-    /*
+-     * Build ASC_SCSI_Q for a contiguous buffer or a scatter-gather
+-     * buffer command.
+-     */
+-    if (scp->use_sg == 0) {
+-        /*
+-         * CDB request of single contiguous buffer.
+-         */
+-        ASC_STATS(scp->device->host, cont_cnt);
+-	scp->SCp.dma_handle = scp->request_bufflen ?
+-	    dma_map_single(dev, scp->request_buffer,
+-			   scp->request_bufflen, scp->sc_data_direction) : 0;
+-	asc_scsi_q.q1.data_addr = cpu_to_le32(scp->SCp.dma_handle);
+-        asc_scsi_q.q1.data_cnt = cpu_to_le32(scp->request_bufflen);
+-        ASC_STATS_ADD(scp->device->host, cont_xfer,
+-                      ASC_CEILING(scp->request_bufflen, 512));
+-        asc_scsi_q.q1.sg_queue_cnt = 0;
+-        asc_scsi_q.sg_head = NULL;
+-    } else {
+-        /*
+-         * CDB scatter-gather request list.
+-         */
+-        int                     sgcnt;
+-	int			use_sg;
+-        struct scatterlist      *slp, *sg;
+-
+-	slp = (struct scatterlist *)scp->request_buffer;
+-	use_sg = dma_map_sg(dev, slp, scp->use_sg, scp->sc_data_direction);
+-
+-	if (use_sg > scp->device->host->sg_tablesize) {
+-            ASC_PRINT3(
+-"asc_build_req: board %d: use_sg %d > sg_tablesize %d\n",
+-		boardp->id, use_sg, scp->device->host->sg_tablesize);
+-	    dma_unmap_sg(dev, slp, scp->use_sg, scp->sc_data_direction);
+-            scp->result = HOST_BYTE(DID_ERROR);
+-            asc_enqueue(&boardp->done, scp, ASC_BACK);
+-            return ASC_ERROR;
+-        }
+-
+-        ASC_STATS(scp->device->host, sg_cnt);
+-
+-        /*
+-         * Use global ASC_SG_HEAD structure and set the ASC_SCSI_Q
+-         * structure to point to it.
+-         */
+-        memset(&asc_sg_head, 0, sizeof(ASC_SG_HEAD));
+-
+-        asc_scsi_q.q1.cntl |= QC_SG_HEAD;
+-        asc_scsi_q.sg_head = &asc_sg_head;
+-        asc_scsi_q.q1.data_cnt = 0;
+-        asc_scsi_q.q1.data_addr = 0;
+-        /* This is a byte value, otherwise it would need to be swapped. */
+-	asc_sg_head.entry_cnt = asc_scsi_q.q1.sg_queue_cnt = use_sg;
+-        ASC_STATS_ADD(scp->device->host, sg_elem, asc_sg_head.entry_cnt);
+-
+-        /*
+-         * Convert scatter-gather list into ASC_SG_HEAD list.
+-         */
+-	scsi_for_each_sg(scp, sg, use_sg, sgcnt) {
+-	    asc_sg_head.sg_list[sgcnt].addr = cpu_to_le32(sg_dma_address(sg));
+-	    asc_sg_head.sg_list[sgcnt].bytes = cpu_to_le32(sg_dma_len(sg));
+-	    ASC_STATS_ADD(scp->device->host, sg_xfer, ASC_CEILING(sg_dma_len(sg), 512));
+-        }
+-    }
+->>>>>>> /drivers/scsi/advansys.c
+ 
+ 	ASC_DBG_PRT_ASC_SCSI_Q(2, &asc_scsi_q);
+ 	ASC_DBG_PRT_CDB(1, scp->cmnd, scp->cmd_len);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +211,7 @@ revert-gregkh-pci-pci_bridge-device.patch
 i386-add-support-for-picopower-irq-router.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
 aacraid-rename-check_reset.patch
+git-block-fixup.patch
 git-block-fix-headers_check.patch
 git-block-whoops.patch
 git-unionfs.patch
@@ -110,7 +224,6 @@ fix-x86_64-mm-early-quirks-unification.patch
 x86_64-clean-up-apicid_to_node-declaration.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
 git-kgdb-fixup.patch
 git-kgdb-arm-fix.patch
 git-kgdb-mips-fix.patch
