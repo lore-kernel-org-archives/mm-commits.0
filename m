@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-shmemc-make-3-functions-static.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:47:28 -0700
-Message-ID: <200707302247.l6UMlSW8002513@imap1.linux-foundation.org>
+Subject: + lib-ioremapc-should-include-linux-ioh.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:47:18 -0700
+Message-ID: <200707302247.l6UMlISE002495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43276 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40370 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755947AbXG3WsS (ORCPT
+	by vger.kernel.org with ESMTP id S1755347AbXG3WsK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:48:18 -0400
+	Mon, 30 Jul 2007 18:48:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, hugh@veritas.com
+Cc: bunk@stusta.de, hskinnemoen@atmel.com
 
 
 The patch titled
-     mm/shmem.c: make 3 functions static
+     lib/ioremap.c should #include <linux/io.h>
 has been added to the -mm tree.  Its filename is
-     mm-shmemc-make-3-functions-static.patch
+     lib-ioremapc-should-include-linux-ioh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,84 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm/shmem.c: make 3 functions static
+Subject: lib/ioremap.c should #include <linux/io.h>
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes three needlessly global functions static.
+Every file should include the headers containing the prototypes for its global
+functions (in this case ioremap_page_range()).
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Hugh Dickins <hugh@veritas.com>
+Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   15 ---------------
- mm/shmem.c         |   10 +++++-----
- 2 files changed, 5 insertions(+), 20 deletions(-)
+ lib/ioremap.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN include/linux/mm.h~mm-shmemc-make-3-functions-static include/linux/mm.h
---- a/include/linux/mm.h~mm-shmemc-make-3-functions-static
-+++ a/include/linux/mm.h
-@@ -712,9 +712,6 @@ static inline int page_mapped(struct pag
- extern void show_free_areas(void);
+diff -puN lib/ioremap.c~lib-ioremapc-should-include-linux-ioh lib/ioremap.c
+--- a/lib/ioremap.c~lib-ioremapc-should-include-linux-ioh
++++ a/lib/ioremap.c
+@@ -8,6 +8,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/mm.h>
+ #include <linux/sched.h>
++#include <linux/io.h>
+ #include <asm/cacheflush.h>
+ #include <asm/pgtable.h>
  
- #ifdef CONFIG_SHMEM
--int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new);
--struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
--					unsigned long addr);
- int shmem_lock(struct file *file, int lock, struct user_struct *user);
- #else
- static inline int shmem_lock(struct file *file, int lock,
-@@ -722,18 +719,6 @@ static inline int shmem_lock(struct file
- {
- 	return 0;
- }
--
--static inline int shmem_set_policy(struct vm_area_struct *vma,
--				   struct mempolicy *new)
--{
--	return 0;
--}
--
--static inline struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
--						 unsigned long addr)
--{
--	return NULL;
--}
- #endif
- struct file *shmem_file_setup(char *name, loff_t size, unsigned long flags);
- 
-diff -puN mm/shmem.c~mm-shmemc-make-3-functions-static mm/shmem.c
---- a/mm/shmem.c~mm-shmemc-make-3-functions-static
-+++ a/mm/shmem.c
-@@ -1024,8 +1024,8 @@ static struct page *shmem_swapin_async(s
- 	return page;
- }
- 
--struct page *shmem_swapin(struct shmem_inode_info *info, swp_entry_t entry,
--			  unsigned long idx)
-+static struct page *shmem_swapin(struct shmem_inode_info *info,
-+				 swp_entry_t entry, unsigned long idx)
- {
- 	struct shared_policy *p = &info->policy;
- 	int i, num;
-@@ -1326,14 +1326,14 @@ static int shmem_fault(struct vm_area_st
- }
- 
- #ifdef CONFIG_NUMA
--int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
-+static int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
- {
- 	struct inode *i = vma->vm_file->f_path.dentry->d_inode;
- 	return mpol_set_shared_policy(&SHMEM_I(i)->policy, vma, new);
- }
- 
--struct mempolicy *
--shmem_get_policy(struct vm_area_struct *vma, unsigned long addr)
-+static struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
-+					  unsigned long addr)
- {
- 	struct inode *i = vma->vm_file->f_path.dentry->d_inode;
- 	unsigned long idx;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
