@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-scsi_errorc-should-include.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:47:01 -0700
-Message-ID: <200707302247.l6UMl1Sw002474@imap1.linux-foundation.org>
+Subject: + include-linux-kbuild-remove-duplicate-entries.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:47:03 -0700
+Message-ID: <200707302247.l6UMl3JV002477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59488 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39232 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754567AbXG3Wrq (ORCPT
+	by vger.kernel.org with ESMTP id S1754790AbXG3Wrw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:47:46 -0400
+	Mon, 30 Jul 2007 18:47:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: bunk@stusta.de, sam@ravnborg.org
 
 
 The patch titled
-     drivers/scsi/scsi_error.c should #include "scsi_transport_api.h"
+     include/linux/Kbuild: remove duplicate entries
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-scsi_errorc-should-include.patch
+     include-linux-kbuild-remove-duplicate-entries.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/scsi/scsi_error.c should #include "scsi_transport_api.h"
+Subject: include/linux/Kbuild: remove duplicate entries
 From: Adrian Bunk <bunk@stusta.de>
 
-Every file should #include the headers containing the prototypes for its
-global functions (in this case for scsi_schedule_eh()).
+This patch removes three headers from header-y that were also listed as
+unifdef-y.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_error.c |    1 +
- 1 files changed, 1 insertion(+)
+ include/linux/Kbuild |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN drivers/scsi/scsi_error.c~drivers-scsi-scsi_errorc-should-include drivers/scsi/scsi_error.c
---- a/drivers/scsi/scsi_error.c~drivers-scsi-scsi_errorc-should-include
-+++ a/drivers/scsi/scsi_error.c
-@@ -37,6 +37,7 @@
+diff -puN include/linux/Kbuild~include-linux-kbuild-remove-duplicate-entries include/linux/Kbuild
+--- a/include/linux/Kbuild~include-linux-kbuild-remove-duplicate-entries
++++ a/include/linux/Kbuild
+@@ -78,7 +78,6 @@ header-y += if_arcnet.h
+ header-y += if_bonding.h
+ header-y += if_cablemodem.h
+ header-y += if_fc.h
+-header-y += if_fddi.h
+ header-y += if.h
+ header-y += if_hippi.h
+ header-y += if_infiniband.h
+@@ -121,7 +120,6 @@ header-y += nl80211.h
+ header-y += oom.h
+ header-y += param.h
+ header-y += pci_regs.h
+-header-y += personality.h
+ header-y += pfkeyv2.h
+ header-y += pg.h
+ header-y += phantom.h
+@@ -159,7 +157,6 @@ header-y += video_decoder.h
+ header-y += video_encoder.h
+ header-y += videotext.h
+ header-y += vt.h
+-header-y += wireless.h
+ header-y += x25.h
  
- #include "scsi_priv.h"
- #include "scsi_logging.h"
-+#include "scsi_transport_api.h"
- 
- #define SENSE_TIMEOUT		(10*HZ)
- 
+ unifdef-y += acct.h
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
