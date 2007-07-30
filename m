@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + make-pktgencget_ipsec_sa-static-and-non-inline.patch added to -mm tree
-Date: Mon, 30 Jul 2007 15:06:56 -0700
-Message-ID: <200707302206.l6UM6uCi000407@imap1.linux-foundation.org>
+Subject: + drivers-usb-serial-sierrac-make-3-functions-static.patch added to -mm tree
+Date: Mon, 30 Jul 2007 15:07:02 -0700
+Message-ID: <200707302207.l6UM72RK000489@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52696 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51009 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937940AbXG3WHL (ORCPT
+	by vger.kernel.org with ESMTP id S938944AbXG3WHQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 18:07:11 -0400
+	Mon, 30 Jul 2007 18:07:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: bunk@stusta.de
 The patch titled
      From: Adrian Bunk <bunk@stusta.de>
 has been added to the -mm tree.  Its filename is
-     make-pktgencget_ipsec_sa-static-and-non-inline.patch
+     drivers-usb-serial-sierrac-make-3-functions-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,32 +29,51 @@ out what to do about this
 Subject: From: Adrian Bunk <bunk@stusta.de>
 
 
-Non-static inline code usually doesn't makes sense.
-
-In this case making is static and non-inline is the correct solution.
+This patch makes three needlessly global functions static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
 ---
+
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/pktgen.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/usb/serial/sierra.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN net/core/pktgen.c~make-pktgencget_ipsec_sa-static-and-non-inline net/core/pktgen.c
---- a/net/core/pktgen.c~make-pktgencget_ipsec_sa-static-and-non-inline
-+++ a/net/core/pktgen.c
-@@ -2156,8 +2156,7 @@ static inline int f_pick(struct pktgen_d
- /* If there was already an IPSEC SA, we keep it as is, else
-  * we go look for it ...
- */
--inline
--void get_ipsec_sa(struct pktgen_dev *pkt_dev, int flow)
-+static void get_ipsec_sa(struct pktgen_dev *pkt_dev, int flow)
+diff -puN drivers/usb/serial/sierra.c~drivers-usb-serial-sierrac-make-3-functions-static drivers/usb/serial/sierra.c
+--- a/drivers/usb/serial/sierra.c~drivers-usb-serial-sierrac-make-3-functions-static
++++ a/drivers/usb/serial/sierra.c
+@@ -45,7 +45,7 @@ enum devicetype {
+ 	DEVICE_INSTALLER =	2,
+ };
+ 
+-int sierra_set_power_state(struct usb_device *udev, __u16 swiState)
++static int sierra_set_power_state(struct usb_device *udev, __u16 swiState)
  {
- 	struct xfrm_state *x = pkt_dev->flows[flow].x;
- 	if (!x) {
+ 	int result;
+ 	dev_dbg(&udev->dev, "%s", "SET POWER STATE");
+@@ -60,7 +60,7 @@ int sierra_set_power_state(struct usb_de
+ 	return result;
+ }
+ 
+-int sierra_set_ms_mode(struct usb_device *udev, __u16 eSocMode)
++static int sierra_set_ms_mode(struct usb_device *udev, __u16 eSocMode)
+ {
+ 	int result;
+ 	dev_dbg(&udev->dev, "%s", "DEVICE MODE SWITCH");
+@@ -75,7 +75,8 @@ int sierra_set_ms_mode(struct usb_device
+ 	return result;
+ }
+ 
+-int sierra_probe(struct usb_interface *iface, const struct usb_device_id *id)
++static int sierra_probe(struct usb_interface *iface,
++			const struct usb_device_id *id)
+ {
+ 	int result;
+ 	struct usb_device *udev;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
