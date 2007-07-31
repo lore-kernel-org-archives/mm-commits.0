@@ -1,58 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-sbus-char-bbc_i2cc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:59:24 -0700
-Message-ID: <200707312359.l6VNxOmp029648@imap1.linux-foundation.org>
+Subject: - net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:59:18 -0700
+Message-ID: <200707312359.l6VNxIeH029639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57709 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43534 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757966AbXHAAQ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1757957AbXHAAQb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:29 -0400
+	Tue, 31 Jul 2007 20:16:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/sbus/char/bbc_i2c.c: kmalloc + memset conversion to kzalloc
+     net/decnet/dn_route.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     drivers-sbus-char-bbc_i2cc-kmalloc-memset-conversion-to-kzalloc.patch
+     net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/sbus/char/bbc_i2c.c: kmalloc + memset conversion to kzalloc
+Subject: net/decnet/dn_route.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/sbus/char/bbc_i2c.c | 10847 -> 10823 (-24 bytes)
+ net/decnet/dn_route.c | 45013 -> 44991 (-22 bytes)
+ net/decnet/dn_route.o | 199388 -> 199580 (+192 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/sbus/char/bbc_i2c.c |    4 ++--
+ net/decnet/dn_route.c |    4 ++--
  1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/sbus/char/bbc_i2c.c~drivers-sbus-char-bbc_i2cc-kmalloc-memset-conversion-to-kzalloc drivers/sbus/char/bbc_i2c.c
---- a/drivers/sbus/char/bbc_i2c.c~drivers-sbus-char-bbc_i2cc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/sbus/char/bbc_i2c.c
-@@ -357,13 +357,13 @@ static void __init reset_one_i2c(struct 
- 
- static int __init attach_one_i2c(struct linux_ebus_device *edev, int index)
+diff -puN net/decnet/dn_route.c~net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc net/decnet/dn_route.c
+--- a/net/decnet/dn_route.c~net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc
++++ a/net/decnet/dn_route.c
+@@ -1737,8 +1737,9 @@ static int dn_rt_cache_seq_open(struct i
  {
--	struct bbc_i2c_bus *bp = kmalloc(sizeof(*bp), GFP_KERNEL);
-+	struct bbc_i2c_bus *bp;
- 	struct linux_ebus_child *echild;
- 	int entry;
+ 	struct seq_file *seq;
+ 	int rc = -ENOMEM;
+-	struct dn_rt_cache_iter_state *s = kmalloc(sizeof(*s), GFP_KERNEL);
++	struct dn_rt_cache_iter_state *s;
  
-+	bp = kzalloc(sizeof(*bp), GFP_KERNEL);
- 	if (!bp)
- 		return -ENOMEM;
--	memset(bp, 0, sizeof(*bp));
- 
- 	bp->i2c_control_regs = ioremap(edev->resource[0].start, 0x2);
- 	if (!bp->i2c_control_regs)
++	s = kzalloc(sizeof(*s), GFP_KERNEL);
+ 	if (!s)
+ 		goto out;
+ 	rc = seq_open(file, &dn_rt_cache_seq_ops);
+@@ -1746,7 +1747,6 @@ static int dn_rt_cache_seq_open(struct i
+ 		goto out_kfree;
+ 	seq		= file->private_data;
+ 	seq->private	= s;
+-	memset(s, 0, sizeof(*s));
+ out:
+ 	return rc;
+ out_kfree:
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
