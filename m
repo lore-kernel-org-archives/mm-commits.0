@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-pci-hotplug-cpqphp_ctrlc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:17 -0700
-Message-ID: <200707311929.l6VJTHB7018316@imap1.linux-foundation.org>
+Subject: + drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:13 -0700
+Message-ID: <200707311929.l6VJTDqe018308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52546 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38986 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752999AbXGaT3t (ORCPT
+	by vger.kernel.org with ESMTP id S1753039AbXGaT3u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:29:49 -0400
+	Tue, 31 Jul 2007 15:29:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, kristen.c.accardi@intel.com
+Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     drivers/pci/hotplug/cpqphp_ctrl.c: kmalloc + memset conversion to kzalloc
+     drivers/char/consolemap.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-pci-hotplug-cpqphp_ctrlc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/pci/hotplug/cpqphp_ctrl.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/char/consolemap.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/pci/hotplug/cpqphp_ctrl.c | 79698 -> 79638 (-60 bytes)
- drivers/pci/hotplug/cpqphp_ctrl.o | 192896 -> 192736 (-160 bytes)
+ drivers/char/consolemap.c | 22678 -> 22650 (-28 bytes)
+ drivers/char/consolemap.o | 90113 -> 90029 (-84 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/cpqphp_ctrl.c |    9 +++------
- 1 files changed, 3 insertions(+), 6 deletions(-)
+ drivers/char/consolemap.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/pci/hotplug/cpqphp_ctrl.c~drivers-pci-hotplug-cpqphp_ctrlc-kmalloc-memset-conversion-to-kzalloc drivers/pci/hotplug/cpqphp_ctrl.c
---- a/drivers/pci/hotplug/cpqphp_ctrl.c~drivers-pci-hotplug-cpqphp_ctrlc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/pci/hotplug/cpqphp_ctrl.c
-@@ -973,16 +973,13 @@ struct pci_func *cpqhp_slot_create(u8 bu
- 	struct pci_func *new_slot;
- 	struct pci_func *next;
- 
--	new_slot = kmalloc(sizeof(*new_slot), GFP_KERNEL);
--
--	if (new_slot == NULL) {
-+	new_slot = kzalloc(sizeof(*new_slot), GFP_KERNEL);
-+	if (!new_slot) {
- 		/* I'm not dead yet!
- 		 * You will be. */
--		return new_slot;
-+		return NULL;
- 	}
- 
--	memset(new_slot, 0, sizeof(struct pci_func));
--
- 	new_slot->next = NULL;
- 	new_slot->configured = 1;
- 
+diff -puN drivers/char/consolemap.c~drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc drivers/char/consolemap.c
+--- a/drivers/char/consolemap.c~drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/char/consolemap.c
+@@ -494,12 +494,11 @@ int con_clear_unimap(struct vc_data *vc,
+ 	p = (struct uni_pagedir *)*vc->vc_uni_pagedir_loc;
+ 	if (p && p->readonly) return -EIO;
+ 	if (!p || --p->refcount) {
+-		q = kmalloc(sizeof(*p), GFP_KERNEL);
++		q = kzalloc(sizeof(*p), GFP_KERNEL);
+ 		if (!q) {
+ 			if (p) p->refcount++;
+ 			return -ENOMEM;
+ 		}
+-		memset(q, 0, sizeof(*q));
+ 		q->refcount=1;
+ 		*vc->vc_uni_pagedir_loc = (unsigned long)q;
+ 	} else {
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
