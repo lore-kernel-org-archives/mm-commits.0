@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mips-qemu-network-work-again.patch added to -mm tree
-Date: Mon, 30 Jul 2007 17:00:30 -0700
-Message-ID: <200707310000.l6V00ULR005210@imap1.linux-foundation.org>
+Subject: + netconsole-cleanups-codingstyle-prettyfication.patch added to -mm tree
+Date: Mon, 30 Jul 2007 17:13:19 -0700
+Message-ID: <200707310013.l6V0DJIh005660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58816 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53234 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936275AbXGaABI (ORCPT
+	by vger.kernel.org with ESMTP id S932826AbXGaANn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 20:01:08 -0400
+	Mon, 30 Jul 2007 20:13:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kyungmin.park@samsung.com, mingo@elte.hu, ralf@linux-mips.org
+Cc: satyam@infradead.org, k-keiichi@bx.jp.nec.com, mpm@selenic.com
 
 
 The patch titled
-     mips: qemu network work again
+     netconsole: Cleanups, codingstyle, prettyfication
 has been added to the -mm tree.  Its filename is
-     mips-qemu-network-work-again.patch
+     netconsole-cleanups-codingstyle-prettyfication.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mips: qemu network work again
-From: "Kyungmin Park" <kyungmin.park@samsung.com>
+Subject: netconsole: Cleanups, codingstyle, prettyfication
+From: Satyam Sharma <satyam@infradead.org>
 
-After kernel 2.6.21, the qemu of mips with nfsroot is not working.
+(1) Remove unwanted headers.
+(2) Mark __init and __exit as appropriate.
+(3) Various trivial codingstyle and prettification stuff.
 
-There are too much WATCHDOG timeout.
-
-I try to find what makes it not working and I found it.  After Ingo
-Monlar's patch "[PATCH] genirq: do not mask interrupts by default" [1],
-it's not working.  To solve this, we also have to register the IRQ disable
-field in MIPS, as x86 does.
-
-1. http://www.uwsg.iu.edu/hypermail/linux/kernel/0701.3/1892.html
-
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Signed-off-by: Keiichi Kii <k-keiichi@bx.jp.nec.com>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/i8259.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/net/netconsole.c |   55 ++++++++++++++++++-------------------
+ 1 files changed, 27 insertions(+), 28 deletions(-)
 
-diff -puN arch/mips/kernel/i8259.c~mips-qemu-network-work-again arch/mips/kernel/i8259.c
---- a/arch/mips/kernel/i8259.c~mips-qemu-network-work-again
-+++ a/arch/mips/kernel/i8259.c
-@@ -36,6 +36,7 @@ void mask_and_ack_8259A(unsigned int);
- static struct irq_chip i8259A_chip = {
- 	.name		= "XT-PIC",
- 	.mask		= disable_8259A_irq,
-+	.disable	= disable_8259A_irq,
- 	.unmask		= enable_8259A_irq,
- 	.mask_ack	= mask_and_ack_8259A,
+diff -puN drivers/net/netconsole.c~netconsole-cleanups-codingstyle-prettyfication drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~netconsole-cleanups-codingstyle-prettyfication
++++ a/drivers/net/netconsole.c
+@@ -35,35 +35,32 @@
+  ****************************************************************/
+ 
+ #include <linux/mm.h>
+-#include <linux/tty.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/console.h>
+-#include <linux/tty_driver.h>
+ #include <linux/moduleparam.h>
+ #include <linux/string.h>
+-#include <linux/sysrq.h>
+-#include <linux/smp.h>
+ #include <linux/netpoll.h>
+ 
+ MODULE_AUTHOR("Maintainer: Matt Mackall <mpm@selenic.com>");
+ MODULE_DESCRIPTION("Console driver for network interfaces");
+ MODULE_LICENSE("GPL");
+ 
+-static char config[256];
+-module_param_string(netconsole, config, 256, 0);
++#define MAX_PARAM_LENGTH	256
++#define MAX_PRINT_CHUNK		1000
++
++static char config[MAX_PARAM_LENGTH];
++module_param_string(netconsole, config, MAX_PARAM_LENGTH, 0);
+ MODULE_PARM_DESC(netconsole, " netconsole=[src-port]@[src-ip]/[dev],[tgt-port]@<tgt-ip>/[tgt-macaddr]\n");
+ 
+ static struct netpoll np = {
+-	.name = "netconsole",
+-	.dev_name = "eth0",
+-	.local_port = 6665,
+-	.remote_port = 6666,
+-	.remote_mac = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
++	.name		= "netconsole",
++	.dev_name	= "eth0",
++	.local_port	= 6665,
++	.remote_port	= 6666,
++	.remote_mac	= {0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
  };
+-static int configured = 0;
+-
+-#define MAX_PRINT_CHUNK 1000
++static int configured;
+ 
+ static void write_msg(struct console *con, const char *msg, unsigned int len)
+ {
+@@ -75,7 +72,7 @@ static void write_msg(struct console *co
+ 
+ 	local_irq_save(flags);
+ 
+-	for(left = len; left; ) {
++	for (left = len; left;) {
+ 		frag = min(left, MAX_PRINT_CHUNK);
+ 		netpoll_send_udp(&np, msg, frag);
+ 		msg += frag;
+@@ -86,12 +83,12 @@ static void write_msg(struct console *co
+ }
+ 
+ static struct console netconsole = {
+-	.name = "netcon",
+-	.flags = CON_ENABLED | CON_PRINTBUFFER,
+-	.write = write_msg
++	.name	= "netcon",
++	.flags	= CON_ENABLED | CON_PRINTBUFFER,
++	.write	= write_msg,
+ };
+ 
+-static int option_setup(char *opt)
++static int __init option_setup(char *opt)
+ {
+ 	configured = !netpoll_parse_options(&np, opt);
+ 	return 1;
+@@ -99,28 +96,30 @@ static int option_setup(char *opt)
+ 
+ __setup("netconsole=", option_setup);
+ 
+-static int init_netconsole(void)
++static int __init init_netconsole(void)
+ {
+-	int err;
++	int err = 0;
+ 
+-	if(strlen(config))
++	if (strnlen(config, MAX_PARAM_LENGTH))
+ 		option_setup(config);
+ 
+-	if(!configured) {
+-		printk("netconsole: not configured, aborting\n");
+-		return 0;
++	if (!configured) {
++		printk(KERN_INFO "netconsole: not configured, aborting\n");
++		goto out;
+ 	}
+ 
+ 	err = netpoll_setup(&np);
+ 	if (err)
+-		return err;
++		goto out;
+ 
+ 	register_console(&netconsole);
+ 	printk(KERN_INFO "netconsole: network logging started\n");
+-	return 0;
++
++out:
++	return err;
+ }
+ 
+-static void cleanup_netconsole(void)
++static void __exit cleanup_netconsole(void)
+ {
+ 	unregister_console(&netconsole);
+ 	netpoll_cleanup(&np);
 _
 
-Patches currently in -mm which might be from kyungmin.park@samsung.com are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-mips-qemu-network-work-again.patch
-git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-dvb-frontend-tuning-interface.patch
+netconsole-cleanups-codingstyle-prettyfication.patch
+netconsole-remove-bogus-check.patch
+netconsole-simplify-boot-module-option-setup-logic.patch
+netconsole-use-netif_running-in-write_msg.patch
+netconsole-add-some-useful-tips-to-documentation.patch
+netconsole-introduce-netconsole_target.patch
+netconsole-introduce-netconsole_netdev_notifier.patch
+netconsole-support-multiple-logging-targets.patch
+netconsole-support-dynamic-reconfiguration-using-configfs.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+use-mutex-instead-of-semaphore-in-the-scsi-tape-driver.patch
+use-mutex-instead-of-semaphore-in-the-host-ap-driver.patch
+use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
