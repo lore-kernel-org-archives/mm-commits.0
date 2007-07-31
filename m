@@ -1,108 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - usb-fix-a-bug-in-usb_start_wait_urb.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 23:33:40 -0700
-Message-ID: <200707310633.l6V6Xe45019760@imap1.linux-foundation.org>
+Subject: - usb-serial-fix-edgeport-regression-on-non-epic-devices.patch removed from -mm tree
+Date: Mon, 30 Jul 2007 23:33:44 -0700
+Message-ID: <200707310633.l6V6XifO019766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36131 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39350 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752114AbXGaGea (ORCPT
+	by vger.kernel.org with ESMTP id S1752204AbXGaGed (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 02:34:30 -0400
+	Tue, 31 Jul 2007 02:34:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, greg@kroah.com, mm-commits@vger.kernel.org
+To: akropel1@rochester.rr.com, Nick@NickAndBarb.net, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB: fix a bug in usb_start_wait_urb
+     usb-serial: fix edgeport regression on non-EPiC devices
 has been removed from the -mm tree.  Its filename was
-     usb-fix-a-bug-in-usb_start_wait_urb.patch
+     usb-serial-fix-edgeport-regression-on-non-epic-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB: fix a bug in usb_start_wait_urb
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: usb-serial: fix edgeport regression on non-EPiC devices
+From: Adam Kropelin <akropel1@rochester.rr.com>
 
-This patch (as941) fixes a bug recently added to the USB synchronous API. 
-The status of a completed URB must be preserved separately across a
-completion callback.  Also, the actual_length value isn't available until
-after the URB has fully completed.
+Fix serious regression on non-EPiC edgeport usb-serial devices.  Baud rate
+and MCR/LCR registers are not being written on these models due to apparent
+copy-n-paste errors introduced with EPiC support.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Failure reported by Nick Pasich <Nick@NickAndBarb.net>.
+
+Signed-off-by: Adam Kropelin <akropel1@rochester.rr.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/message.c |   26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ drivers/usb/serial/io_edgeport.c |   19 ++++++++-----------
+ 1 files changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN drivers/usb/core/message.c~usb-fix-a-bug-in-usb_start_wait_urb drivers/usb/core/message.c
---- a/drivers/usb/core/message.c~usb-fix-a-bug-in-usb_start_wait_urb
-+++ a/drivers/usb/core/message.c
-@@ -18,9 +18,17 @@
- #include "hcd.h"	/* for usbcore internals */
- #include "usb.h"
+diff -puN drivers/usb/serial/io_edgeport.c~usb-serial-fix-edgeport-regression-on-non-epic-devices drivers/usb/serial/io_edgeport.c
+--- a/drivers/usb/serial/io_edgeport.c~usb-serial-fix-edgeport-regression-on-non-epic-devices
++++ a/drivers/usb/serial/io_edgeport.c
+@@ -2366,9 +2366,8 @@ static int send_cmd_write_baud_rate (str
+ 	int status;
+ 	unsigned char number = edge_port->port->number - edge_port->port->serial->minor;
  
-+struct api_context {
-+	struct completion	done;
-+	int			status;
-+};
-+
- static void usb_api_blocking_completion(struct urb *urb)
- {
--	complete((struct completion *)urb->context);
-+	struct api_context *ctx = urb->context;
-+
-+	ctx->status = urb->status;
-+	complete(&ctx->done);
- }
+-	if ((!edge_serial->is_epic) ||
+-	    ((edge_serial->is_epic) &&
+-	     (!edge_serial->epic_descriptor.Supports.IOSPSetBaudRate))) {
++	if (edge_serial->is_epic &&
++	    !edge_serial->epic_descriptor.Supports.IOSPSetBaudRate) {
+ 		dbg("SendCmdWriteBaudRate - NOT Setting baud rate for port = %d, baud = %d",
+ 		    edge_port->port->number, baudRate);
+ 		return 0;
+@@ -2461,18 +2460,16 @@ static int send_cmd_write_uart_register 
  
+ 	dbg("%s - write to %s register 0x%02x", (regNum == MCR) ? "MCR" : "LCR", __FUNCTION__, regValue);
  
-@@ -32,20 +40,21 @@ static void usb_api_blocking_completion(
-  */
- static int usb_start_wait_urb(struct urb *urb, int timeout, int *actual_length)
- { 
--	struct completion done;
-+	struct api_context ctx;
- 	unsigned long expire;
- 	int retval;
--	int status = urb->status;
+-	if ((!edge_serial->is_epic) ||
+-	    ((edge_serial->is_epic) &&
+-	     (!edge_serial->epic_descriptor.Supports.IOSPWriteMCR) &&
+-	     (regNum == MCR))) {
++	if (edge_serial->is_epic &&
++	    !edge_serial->epic_descriptor.Supports.IOSPWriteMCR &&
++	    regNum == MCR) {
+ 		dbg("SendCmdWriteUartReg - Not writing to MCR Register");
+ 		return 0;
+ 	}
  
--	init_completion(&done); 	
--	urb->context = &done;
-+	init_completion(&ctx.done);
-+	urb->context = &ctx;
- 	urb->actual_length = 0;
- 	retval = usb_submit_urb(urb, GFP_NOIO);
- 	if (unlikely(retval))
- 		goto out;
- 
- 	expire = timeout ? msecs_to_jiffies(timeout) : MAX_SCHEDULE_TIMEOUT;
--	if (!wait_for_completion_timeout(&done, expire)) {
-+	if (!wait_for_completion_timeout(&ctx.done, expire)) {
-+		usb_kill_urb(urb);
-+		retval = (ctx.status == -ENOENT ? -ETIMEDOUT : ctx.status);
- 
- 		dev_dbg(&urb->dev->dev,
- 			"%s timed out on ep%d%s len=%d/%d\n",
-@@ -54,11 +63,8 @@ static int usb_start_wait_urb(struct urb
- 			usb_pipein(urb->pipe) ? "in" : "out",
- 			urb->actual_length,
- 			urb->transfer_buffer_length);
--
--		usb_kill_urb(urb);
--		retval = status == -ENOENT ? -ETIMEDOUT : status;
- 	} else
--		retval = status;
-+		retval = ctx.status;
- out:
- 	if (actual_length)
- 		*actual_length = urb->actual_length;
+-	if ((!edge_serial->is_epic) ||
+-	    ((edge_serial->is_epic) &&
+-	     (!edge_serial->epic_descriptor.Supports.IOSPWriteLCR) &&
+-	     (regNum == LCR))) {
++	if (edge_serial->is_epic &&
++	    !edge_serial->epic_descriptor.Supports.IOSPWriteLCR &&
++	    regNum == LCR) {
+ 		dbg ("SendCmdWriteUartReg - Not writing to LCR Register");
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from akropel1@rochester.rr.com are
 
 origin.patch
-nikon-d50-is-an-unusual-device.patch
