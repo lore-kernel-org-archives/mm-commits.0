@@ -1,70 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - trivial-in-string-typos-of-error.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:57:31 -0700
-Message-ID: <200707312357.l6VNvV3S029403@imap1.linux-foundation.org>
+Subject: - futex-pass-nr_wake2-to-futex_wake_op.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:57:26 -0700
+Message-ID: <200707312357.l6VNvQKE029397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58976 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41620 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761473AbXHAARL (ORCPT
+	by vger.kernel.org with ESMTP id S1762515AbXHAARQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:17:11 -0400
+	Tue, 31 Jul 2007 20:17:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eddy@klopper.net, rolandd@cisco.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: schwab@suse.de, drepper@redhat.com, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     in-string typos of "error"
+     futex: pass nr_wake2 to futex_wake_op
 has been removed from the -mm tree.  Its filename was
-     trivial-in-string-typos-of-error.patch
+     futex-pass-nr_wake2-to-futex_wake_op.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: in-string typos of "error"
-From: "Eddy L O Jansson" <eddy@klopper.net>
+Subject: futex: pass nr_wake2 to futex_wake_op
+From: Andreas Schwab <schwab@suse.de>
 
-One patch for two trivial typos of 'error' with three R's, appearing in message strings.
+The fourth argument of sys_futex is ignored when op == FUTEX_WAKE_OP,
+but futex_wake_op expects it as its nr_wake2 parameter.
 
-There's a bunch more of the same in comments, not dealt with here.
+The only user of this operation in glibc is always passing 1, so this
+bug had no consequences so far.
 
-Signed-off-by: Eddy L O Jansson <eddy@klopper.net>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Andreas Schwab <schwab@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ehca/ehca_irq.c |    2 +-
- drivers/net/via-velocity.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/futex.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/ehca/ehca_irq.c~trivial-in-string-typos-of-error drivers/infiniband/hw/ehca/ehca_irq.c
---- a/drivers/infiniband/hw/ehca/ehca_irq.c~trivial-in-string-typos-of-error
-+++ a/drivers/infiniband/hw/ehca/ehca_irq.c
-@@ -116,7 +116,7 @@ static void print_error_data(struct ehca
+diff -puN kernel/futex.c~futex-pass-nr_wake2-to-futex_wake_op kernel/futex.c
+--- a/kernel/futex.c~futex-pass-nr_wake2-to-futex_wake_op
++++ a/kernel/futex.c
+@@ -2060,8 +2060,10 @@ asmlinkage long sys_futex(u32 __user *ua
  	}
- 	default:
- 		ehca_err(&shca->ib_device,
--			 "Unknown errror type: %lx on %s.",
-+			 "Unknown error type: %lx on %s.",
- 			 type, shca->ib_device.name);
- 		break;
- 	}
-diff -puN drivers/net/via-velocity.c~trivial-in-string-typos-of-error drivers/net/via-velocity.c
---- a/drivers/net/via-velocity.c~trivial-in-string-typos-of-error
-+++ a/drivers/net/via-velocity.c
-@@ -1613,7 +1613,7 @@ static void velocity_error(struct veloci
- 	if (status & ISR_TXSTLI) {
- 		struct mac_regs __iomem * regs = vptr->mac_regs;
+ 	/*
+ 	 * requeue parameter in 'utime' if cmd == FUTEX_REQUEUE.
++	 * number of waiters to wake in 'utime' if cmd == FUTEX_WAKE_OP.
+ 	 */
+-	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE)
++	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE ||
++	    cmd == FUTEX_WAKE_OP)
+ 		val2 = (u32) (unsigned long) utime;
  
--		printk(KERN_ERR "TD structure errror TDindex=%hx\n", readw(&regs->TDIdx[0]));
-+		printk(KERN_ERR "TD structure error TDindex=%hx\n", readw(&regs->TDIdx[0]));
- 		BYTE_REG_BITS_ON(TXESR_TDSTR, &regs->TXESR);
- 		writew(TRDCSR_RUN, &regs->TDCSRClr);
- 		netif_stop_queue(vptr->dev);
+ 	return do_futex(uaddr, op, val, tp, uaddr2, val2, val3);
 _
 
-Patches currently in -mm which might be from eddy@klopper.net are
+Patches currently in -mm which might be from schwab@suse.de are
 
 origin.patch
