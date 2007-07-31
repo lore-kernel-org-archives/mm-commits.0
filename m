@@ -1,170 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - mct_u232-convert-to-proper-speed-handling-api.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 23:33:34 -0700
-Message-ID: <200707310633.l6V6XYIK019715@imap1.linux-foundation.org>
+Subject: - geode-setup-correct-chipset-access-functions-fix.patch removed from -mm tree
+Date: Mon, 30 Jul 2007 23:40:01 -0700
+Message-ID: <200707310640.l6V6e14H019960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33576 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56677 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752302AbXGaGef (ORCPT
+	by vger.kernel.org with ESMTP id S1751318AbXGaGlM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 02:34:35 -0400
+	Tue, 31 Jul 2007 02:41:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, ak@suse.de, alan@lxorguk.ukuu.org.uk, dilinger@debian.org, jordan.crouse@amd.com, takada@mbf.nifty.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mct_u232: convert to proper speed handling API
+     geode setup correct chipset access functions fix
 has been removed from the -mm tree.  Its filename was
-     mct_u232-convert-to-proper-speed-handling-api.patch
+     geode-setup-correct-chipset-access-functions-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: mct_u232: convert to proper speed handling API
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: geode setup correct chipset access functions fix
+From: Nick Piggin <npiggin@suse.de>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Should probably be reworked not to require this, but get it building.
+
+Cc: TAKADA Yoshihito <takada@mbf.nifty.com>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Andres Salomon <dilinger@debian.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/mct_u232.c |   54 ++++++++++++++++----------------
- drivers/usb/serial/mct_u232.h |    2 -
- 2 files changed, 28 insertions(+), 28 deletions(-)
+ include/asm-x86_64/processor-cyrix.h |   30 +++++++++++++++++++++++++
+ 1 files changed, 30 insertions(+)
 
-diff -puN drivers/usb/serial/mct_u232.c~mct_u232-convert-to-proper-speed-handling-api drivers/usb/serial/mct_u232.c
---- a/drivers/usb/serial/mct_u232.c~mct_u232-convert-to-proper-speed-handling-api
-+++ a/drivers/usb/serial/mct_u232.c
-@@ -184,21 +184,21 @@ struct mct_u232_private {
-  * we do not know how to support. We ignore them for the moment.
-  * XXX Rate-limit the error message, it's user triggerable.
-  */
--static int mct_u232_calculate_baud_rate(struct usb_serial *serial, int value)
-+static int mct_u232_calculate_baud_rate(struct usb_serial *serial, speed_t value)
- {
- 	if (le16_to_cpu(serial->dev->descriptor.idProduct) == MCT_U232_SITECOM_PID
- 	  || le16_to_cpu(serial->dev->descriptor.idProduct) == MCT_U232_BELKIN_F5U109_PID) {
- 		switch (value) {
--		case    B300: return 0x01;
--		case    B600: return 0x02; /* this one not tested */
--		case   B1200: return 0x03;
--		case   B2400: return 0x04;
--		case   B4800: return 0x06;
--		case   B9600: return 0x08;
--		case  B19200: return 0x09;
--		case  B38400: return 0x0a;
--		case  B57600: return 0x0b;
--		case B115200: return 0x0c;
-+		case    300: return 0x01;
-+		case    600: return 0x02; /* this one not tested */
-+		case   1200: return 0x03;
-+		case   2400: return 0x04;
-+		case   4800: return 0x06;
-+		case   9600: return 0x08;
-+		case  19200: return 0x09;
-+		case  38400: return 0x0a;
-+		case  57600: return 0x0b;
-+		case 115200: return 0x0c;
- 		default:
- 			err("MCT USB-RS232: unsupported baudrate request 0x%x,"
- 			    " using default of B9600", value);
-@@ -206,27 +206,27 @@ static int mct_u232_calculate_baud_rate(
- 		}
- 	} else {
- 		switch (value) {
--		case    B300: value =     300; break;
--		case    B600: value =     600; break;
--		case   B1200: value =    1200; break;
--		case   B2400: value =    2400; break;
--		case   B4800: value =    4800; break;
--		case   B9600: value =    9600; break;
--		case  B19200: value =   19200; break;
--		case  B38400: value =   38400; break;
--		case  B57600: value =   57600; break;
--		case B115200: value =  115200; break;
--		default:
--			err("MCT USB-RS232: unsupported baudrate request 0x%x,"
--			    " using default of B9600", value);
--			value = 9600;
-+			case 300: break;
-+			case 600: break;
-+			case 1200: break;
-+			case 2400: break;
-+			case 4800: break;
-+			case 9600: break;
-+			case 19200: break;
-+			case 38400: break;
-+			case 57600: break;
-+			case 115200: break;
-+			default:
-+				err("MCT USB-RS232: unsupported baudrate request 0x%x,"
-+				    " using default of B9600", value);
-+				value = 9600;
- 		}
- 		return 115200/value;
- 	}
- }
- 
- static int mct_u232_set_baud_rate(struct usb_serial *serial, struct usb_serial_port *port,
--				  int value)
-+				  speed_t value)
- {
- 	__le32 divisor;
-         int rc;
-@@ -634,7 +634,7 @@ static void mct_u232_set_termios (struct
- 		mct_u232_set_modem_ctrl(serial, control_state);
- 	}
- 
--	mct_u232_set_baud_rate(serial, port, cflag & CBAUD);
-+	mct_u232_set_baud_rate(serial, port, tty_get_baud_rate(port->tty));
- 
- 	if ((cflag & CBAUD) == B0 ) {
- 		dbg("%s: baud is B0", __FUNCTION__);
-diff -puN drivers/usb/serial/mct_u232.h~mct_u232-convert-to-proper-speed-handling-api drivers/usb/serial/mct_u232.h
---- a/drivers/usb/serial/mct_u232.h~mct_u232-convert-to-proper-speed-handling-api
-+++ a/drivers/usb/serial/mct_u232.h
-@@ -79,7 +79,7 @@
-  * and "Intel solution". They are the regular MCT and "Sitecom" for us.
-  * This is pointless to document in the header, see the code for the bits.
-  */
--static int mct_u232_calculate_baud_rate(struct usb_serial *serial, int value);
-+static int mct_u232_calculate_baud_rate(struct usb_serial *serial, speed_t value);
- 
- /*
-  * Line Control Register (LCR)
+diff -puN /dev/null include/asm-x86_64/processor-cyrix.h
+--- /dev/null
++++ a/include/asm-x86_64/processor-cyrix.h
+@@ -0,0 +1,30 @@
++/*
++ * NSC/Cyrix CPU indexed register access. Must be inlined instead of
++ * macros to ensure correct access ordering
++ * Access order is always 0x22 (=offset), 0x23 (=value)
++ *
++ * When using the old macros a line like
++ *   setCx86(CX86_CCR2, getCx86(CX86_CCR2) | 0x88);
++ * gets expanded to:
++ *  do {
++ *    outb((CX86_CCR2), 0x22);
++ *    outb((({
++ *        outb((CX86_CCR2), 0x22);
++ *        inb(0x23);
++ *    }) | 0x88), 0x23);
++ *  } while (0);
++ *
++ * which in fact violates the access order (= 0x22, 0x22, 0x23, 0x23).
++ */
++
++static inline u8 getCx86(u8 reg)
++{
++	outb(reg, 0x22);
++	return inb(0x23);
++}
++
++static inline void setCx86(u8 reg, u8 data)
++{
++	outb(reg, 0x22);
++	outb(data, 0x23);
++}
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-nozomi-shoot-defunct-label.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-acpi-checks-for-80wire-cable-headers.patch
-libata-acpi-checks-for-80wire-cable-implementation.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
-libata-sff-unbreak-non-dma-capable-controllers-again.patch
-pata_cmd64x-correct-the-speed-ranges.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-dtc-clean-up-indent-damage-and-add-printk-levels.patch
-kl5kusb105-switch-to-new-speed-api.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
 geode-setup-correct-chipset-access-functions-fix.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-char-cyclades-remove-bottom-half-processing.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+introduce-write_begin-write_end-aops-important-fix.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext2-convert-to-new-aops-fix.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-convert-to-new-aops-fix.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+hostfs-convert-to-new-aops-fix.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+ufs-convert-to-new-aops-fix.patch
+udf-convert-to-new-aops.patch
+udf-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops.patch
+sysv-convert-to-new-aops-fix.patch
+minix-convert-to-new-aops.patch
+minix-convert-to-new-aops-fix.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix.patch
+ocfs2-convert-to-new-aops.patch
+fs-remove-some-aop_truncated_page.patch
+fs-remove-some-aop_truncated_page-fix.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
