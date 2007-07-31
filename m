@@ -1,61 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - spi_mpc83xx-fix-qelsb-mode-shifts.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:57:01 -0700
-Message-ID: <200707312357.l6VNv1F1029355@imap1.linux-foundation.org>
+Subject: - bpqether-fix-rcu-usage.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:57:20 -0700
+Message-ID: <200707312357.l6VNvKSY029388@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51561 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45223 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760813AbXHAARC (ORCPT
+	by vger.kernel.org with ESMTP id S1760905AbXHAARD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:17:02 -0400
+	Tue, 31 Jul 2007 20:17:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, galak@kernel.crashing.org, mm-commits@vger.kernel.org
+To: paulmck@linux.vnet.ibm.com, jeff@garzik.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_mpc83xx: fix QE+LSB mode shifts
+     bpqether: fix rcu usage
 has been removed from the -mm tree.  Its filename was
-     spi_mpc83xx-fix-qelsb-mode-shifts.patch
+     bpqether-fix-rcu-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi_mpc83xx: fix QE+LSB mode shifts
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: bpqether: fix rcu usage
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-spi_mpc83xx should use other shifts when running in QE+LSB mode.
+The rcu_dereference() primitive needs to be applied to an l-value in order to
+ensure that compiler writers don't get an opportunity to apply reordering
+optimizations that could result in multiple fetches or in other misbehavior. 
+This patch pulls the rcu_dereference() calls in bpq_seq_next() up to the point
+at which the fetched pointers are still l-values, rather than after
+list_entry() has transformed them into r-values.
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Acked-by: Kumar Gala <galak@kernel.crashing.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_mpc83xx.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/net/hamradio/bpqether.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-fix-qelsb-mode-shifts drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-fix-qelsb-mode-shifts
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -237,6 +237,14 @@ int mpc83xx_spi_setup_transfer(struct sp
- 	} else
- 		return -EINVAL;
+diff -puN drivers/net/hamradio/bpqether.c~bpqether-fix-rcu-usage drivers/net/hamradio/bpqether.c
+--- a/drivers/net/hamradio/bpqether.c~bpqether-fix-rcu-usage
++++ a/drivers/net/hamradio/bpqether.c
+@@ -413,12 +413,12 @@ static void *bpq_seq_next(struct seq_fil
+ 	++*pos;
  
-+	if (mpc83xx_spi->qe_mode && spi->mode & SPI_LSB_FIRST) {
-+		mpc83xx_spi->tx_shift = 0;
-+		if (bits_per_word <= 8)
-+			mpc83xx_spi->rx_shift = 8;
-+		else
-+			mpc83xx_spi->rx_shift = 0;
-+	}
-+
- 	/* nsecs = (clock period)/2 */
- 	if (!hz)
- 		hz = spi->max_speed_hz;
+ 	if (v == SEQ_START_TOKEN)
+-		p = bpq_devices.next;
++		p = rcu_dereference(bpq_devices.next);
+ 	else
+-		p = ((struct bpqdev *)v)->bpq_list.next;
++		p = rcu_dereference(((struct bpqdev *)v)->bpq_list.next);
+ 
+ 	return (p == &bpq_devices) ? NULL 
+-		: rcu_dereference(list_entry(p, struct bpqdev, bpq_list));
++		: list_entry(p, struct bpqdev, bpq_list);
+ }
+ 
+ static void bpq_seq_stop(struct seq_file *seq, void *v)
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
 origin.patch
+fib_trie-cleanup-fix.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+clean-up-duplicate-includes-in-kernel.patch
