@@ -1,154 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: - make-nf_ct_ipv6_skip_exthdr-static.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 22:01:21 -0700
-Message-ID: <200707310501.l6V51Lxw016545@imap1.linux-foundation.org>
+Subject: + git-dvb-fixup.patch added to -mm tree
+Date: Mon, 30 Jul 2007 23:30:27 -0700
+Message-ID: <200707310630.l6V6URim019578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34574 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42787 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968350AbXGaFBg (ORCPT
+	by vger.kernel.org with ESMTP id S1751098AbXGaGaf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 01:01:36 -0400
+	Tue, 31 Jul 2007 02:30:35 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6V6UXWr019335
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2007 23:30:34 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     make nf_ct_ipv6_skip_exthdr() static
-has been removed from the -mm tree.  Its filename was
-     make-nf_ct_ipv6_skip_exthdr-static.patch
+     git-dvb-fixup
+has been added to the -mm tree.  Its filename is
+     git-dvb-fixup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: make nf_ct_ipv6_skip_exthdr() static
-
-
-nf_ct_ipv6_skip_exthdr() can now become static.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-
----
+Subject: git-dvb-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/netfilter/ipv6/nf_conntrack_ipv6.h |    3 ---
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    4 ++--
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/media/video/ivtv/ivtv-driver.h |    4 --
+ drivers/media/video/zoran_driver.c     |   37 -----------------------
+ 2 files changed, 41 deletions(-)
 
-diff -puN include/net/netfilter/ipv6/nf_conntrack_ipv6.h~make-nf_ct_ipv6_skip_exthdr-static include/net/netfilter/ipv6/nf_conntrack_ipv6.h
---- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h~make-nf_ct_ipv6_skip_exthdr-static
-+++ a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-@@ -7,9 +7,6 @@ extern struct nf_conntrack_l4proto nf_co
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6;
+diff -puN drivers/media/video/zoran_driver.c~git-dvb-fixup drivers/media/video/zoran_driver.c
+--- a/drivers/media/video/zoran_driver.c~git-dvb-fixup
++++ a/drivers/media/video/zoran_driver.c
+@@ -127,7 +127,6 @@ const struct zoran_format zoran_formats[
+ 		.depth = 15,
+ 		.flags = ZORAN_FORMAT_CAPTURE |
+ 			 ZORAN_FORMAT_OVERLAY,
+-<<<<<<< HEAD/drivers/media/video/zoran_driver.c
+ 		.vfespfr = ZR36057_VFESPFR_RGB555|ZR36057_VFESPFR_ErrDif,
+ 	}, {
+ 		.name = "16-bit RGB LE",
+@@ -138,28 +137,10 @@ const struct zoran_format zoran_formats[
+ 			 ZORAN_FORMAT_OVERLAY,
+ 		.vfespfr = ZR36057_VFESPFR_RGB565|ZR36057_VFESPFR_ErrDif|
+ 			   ZR36057_VFESPFR_LittleEndian,
+-=======
+-		.vfespfr = ZR36057_VFESPFR_RGB555|ZR36057_VFESPFR_ErrDif,
+->>>>>>> /drivers/media/video/zoran_driver.c
+-	}, {
+-<<<<<<< HEAD/drivers/media/video/zoran_driver.c
+-		.name = "16-bit RGB BE",
+-		ZFMT(-1,
+-		     V4L2_PIX_FMT_RGB565, V4L2_COLORSPACE_SRGB),
+-=======
+-		.name = "16-bit RGB LE",
+-		ZFMT(VIDEO_PALETTE_RGB565,
+-		     V4L2_PIX_FMT_RGB565, V4L2_COLORSPACE_SRGB),
+-		.depth = 16,
+-		.flags = ZORAN_FORMAT_CAPTURE |
+-			 ZORAN_FORMAT_OVERLAY,
+-		.vfespfr = ZR36057_VFESPFR_RGB565|ZR36057_VFESPFR_ErrDif|
+-			   ZR36057_VFESPFR_LittleEndian,
+ 	}, {
+ 		.name = "16-bit RGB BE",
+ 		ZFMT(-1,
+ 		     V4L2_PIX_FMT_RGB565, V4L2_COLORSPACE_SRGB),
+->>>>>>> /drivers/media/video/zoran_driver.c
+ 		.depth = 16,
+ 		.flags = ZORAN_FORMAT_CAPTURE |
+ 			 ZORAN_FORMAT_OVERLAY,
+@@ -171,21 +152,8 @@ const struct zoran_format zoran_formats[
+ 		.depth = 24,
+ 		.flags = ZORAN_FORMAT_CAPTURE |
+ 			 ZORAN_FORMAT_OVERLAY,
+-<<<<<<< HEAD/drivers/media/video/zoran_driver.c
+ 		.vfespfr = ZR36057_VFESPFR_RGB888|ZR36057_VFESPFR_Pack24,
+-=======
+-		.vfespfr = ZR36057_VFESPFR_RGB888|ZR36057_VFESPFR_Pack24,
+-	}, {
+-		.name = "32-bit RGB LE",
+-		ZFMT(VIDEO_PALETTE_RGB32,
+-		     V4L2_PIX_FMT_BGR32, V4L2_COLORSPACE_SRGB),
+-		.depth = 32,
+-		.flags = ZORAN_FORMAT_CAPTURE |
+-			 ZORAN_FORMAT_OVERLAY,
+-		.vfespfr = ZR36057_VFESPFR_RGB888|ZR36057_VFESPFR_LittleEndian,
+->>>>>>> /drivers/media/video/zoran_driver.c
+ 	}, {
+-<<<<<<< HEAD/drivers/media/video/zoran_driver.c
+ 		.name = "32-bit RGB LE",
+ 		ZFMT(VIDEO_PALETTE_RGB32,
+ 		     V4L2_PIX_FMT_BGR32, V4L2_COLORSPACE_SRGB),
+@@ -197,11 +165,6 @@ const struct zoran_format zoran_formats[
+ 		.name = "32-bit RGB BE",
+ 		ZFMT(-1,
+ 		     V4L2_PIX_FMT_RGB32, V4L2_COLORSPACE_SRGB),
+-=======
+-		.name = "32-bit RGB BE",
+-		ZFMT(-1,
+-		     V4L2_PIX_FMT_RGB32, V4L2_COLORSPACE_SRGB),
+->>>>>>> /drivers/media/video/zoran_driver.c
+ 		.depth = 32,
+ 		.flags = ZORAN_FORMAT_CAPTURE |
+ 			 ZORAN_FORMAT_OVERLAY,
+diff -puN drivers/media/video/ivtv/ivtv-driver.h~git-dvb-fixup drivers/media/video/ivtv/ivtv-driver.h
+--- a/drivers/media/video/ivtv/ivtv-driver.h~git-dvb-fixup
++++ a/drivers/media/video/ivtv/ivtv-driver.h
+@@ -397,13 +397,9 @@ struct ivtv_mailbox_data {
+ #define IVTV_F_I_WORK_HANDLER_YUV  17	/* there is work to be done for YUV */
+ #define IVTV_F_I_WORK_HANDLER_PIO  18	/* there is work to be done for PIO */
+ #define IVTV_F_I_PIO		   19	/* PIO in progress */
+-<<<<<<< HEAD/drivers/media/video/ivtv/ivtv-driver.h
+-#define IVTV_F_I_DEC_PAUSED	   20 	/* the decoder is paused */
+-=======
+ #define IVTV_F_I_DEC_PAUSED	   20 	/* the decoder is paused */
+ #define IVTV_F_I_INITED		   21 	/* set after first open */
+ #define IVTV_F_I_FAILED		   22 	/* set if first open failed */
+->>>>>>> /drivers/media/video/ivtv/ivtv-driver.h
  
--extern int nf_ct_ipv6_skip_exthdr(const struct sk_buff *skb, int start,
--				  u8 *nexthdrp, int len);
--
- extern int nf_ct_frag6_init(void);
- extern void nf_ct_frag6_cleanup(void);
- extern struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb);
-diff -puN net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c~make-nf_ct_ipv6_skip_exthdr-static net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c~make-nf_ct_ipv6_skip_exthdr-static
-+++ a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -86,8 +86,8 @@ static int ipv6_print_conntrack(struct s
-  *        - Note also special handling of AUTH header. Thanks to IPsec wizards.
-  */
- 
--int nf_ct_ipv6_skip_exthdr(const struct sk_buff *skb, int start, u8 *nexthdrp,
--			   int len)
-+static int nf_ct_ipv6_skip_exthdr(const struct sk_buff *skb, int start,
-+				  u8 *nexthdrp, int len)
- {
- 	u8 nexthdr = *nexthdrp;
- 
+ /* Event notifications */
+ #define IVTV_F_I_EV_DEC_STOPPED	   28	/* decoder stopped event */
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-remove-the-arm26-port.patch
-slow-down-printk-during-boot-fix-3.patch
+parport_pc-locking-fix.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-make-drivers-acpi-eventcacpi_event_seqnum-static.patch
-make-struct-sony_nc_ids-static.patch
-git-alsa.patch
-kernel-auditscc-fix-an-off-by-one.patch
-drivers-base-power-make-2-functions-static.patch
-git-drm.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
 git-dvb.patch
-export-v4l2_int_device_unregister.patch
-drivers-i2c-i2c-corec-make-code-static.patch
+git-dvb-fixup.patch
 git-hwmon.patch
-include-linux-kbuild-remove-duplicate-entries.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mmc.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
 git-mtd.patch
-mtd-onenand_simc-make-struct-info-static.patch
-remove-fs-jffs2-ioctlc.patch
-drivers-net-cxgb3-xgmacc-remove-dead-code.patch
-e1000-if-0-two-functions.patch
-git-net.patch
-fore200e_param_bs_queue-must-be-__devinit.patch
-backlight-make-2-structs-static.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
 git-ocfs2.patch
-parisc-extern-inline-static-inline.patch
-cpqphp_ctrlc-remove-dead-code.patch
-kernel-schedc-make-code-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-make-scsi_host_link_pm_policy-static.patch
-drivers-scsi-scsi_errorc-should-include.patch
-drivers-scsi-constantsc-make-2-functions-static.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
 git-unionfs.patch
-drivers-usb-serial-sierrac-make-3-functions-static.patch
-fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts.patch
-git-v9fs.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-i386-remove-maccumulate-outgoing-args.patch
-arch-i386-mach-generic-probec-make-struct-apic_probe.patch
-arch-i386-mach-es7000-es7000platc-cleanups.patch
-i386-alternativec-really-stop-mces-during-code.patch
-i386-no-need-to-make-enable_cpu_hotplug-a-variable.patch
-arch-i386-mm-discontigc-make-some-variables-static.patch
-serial-sh-sci-fix-build-failure-from-kgdb-fallout.patch
-usb_serial_suspend-buggy-code.patch
-acpi_ec_remove-fix-use-after-free.patch
+git-unionfs-fixup.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-watchdog.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
 acpi_battery_add-use-after-free.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-mm-page_allocc-make-code-static.patch
-maps2-add-proc-kpagemap-interface.patch
-hugetlbfs-read-support-fix-2.patch
-mm-shmemc-make-3-functions-static.patch
-mm-migratec-cleanups.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cleanup-arch-alpha-makefile.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-anon_inodes-shouldnt-be-user-visible.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-radeon_driver_vblank_do_wait-static.patch
-unexport-fb_prepare_logo.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+ip2main-warning-fix.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
 reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+tpm_tis-debug.patch
+w1-build-fix.patch
