@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:30:00 -0700
-Message-ID: <200707311930.l6VJU0jZ018376@imap1.linux-foundation.org>
+Subject: + drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:30:06 -0700
+Message-ID: <200707311930.l6VJU6kN018391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34070 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46789 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754319AbXGaTht (ORCPT
+	by vger.kernel.org with ESMTP id S1754062AbXGaThq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:37:49 -0400
+	Tue, 31 Jul 2007 15:37:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     arch/x86_64/kernel/io_apic.c: kmalloc + memset conversion to kzalloc
+     drivers/atm/iphase.c: mostly kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/x86_64/kernel/io_apic.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/atm/iphase.c: mostly kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- arch/x86_64/kernel/io_apic.c | 56080 -> 56038 (-42 bytes)
+ drivers/atm/iphase.c | 111508 -> 111431 (-77 bytes)
+ drivers/atm/iphase.o | 254740 -> 254260 (-480 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/atm/iphase.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -1845,7 +1845,7 @@ static struct sysdev_class ioapic_sysdev
- static int __init ioapic_init_sysfs(void)
- {
- 	struct sys_device * dev;
--	int i, size, error = 0;
-+	int i, size, error;
+diff -puN drivers/atm/iphase.c~drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc drivers/atm/iphase.c
+--- a/drivers/atm/iphase.c~drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/atm/iphase.c
+@@ -1601,14 +1601,14 @@ static int rx_init(struct atm_dev *dev) 
+   
+ 	skb_queue_head_init(&iadev->rx_dma_q);  
+ 	iadev->rx_free_desc_qhead = NULL;   
+-	iadev->rx_open = kmalloc(4*iadev->num_vc,GFP_KERNEL);
+-	if (!iadev->rx_open)  
+-	{  
++
++	iadev->rx_open = kzalloc(4 * iadev->num_vc, GFP_KERNEL);
++	if (!iadev->rx_open) {
+ 		printk(KERN_ERR DEV_LABEL "itf %d couldn't get free page\n",
+ 		dev->number);  
+ 		goto err_free_dle;
+ 	}  
+-	memset(iadev->rx_open, 0, 4*iadev->num_vc);  
++
+         iadev->rxing = 1;
+         iadev->rx_pkt_cnt = 0;
+ 	/* Mode Register */  
+@@ -3171,12 +3171,12 @@ static int __devinit ia_init_one(struct 
+         unsigned long flags;
+ 	int ret;
  
- 	error = sysdev_class_register(&ioapic_sysdev_class);
- 	if (error)
-@@ -1854,12 +1854,11 @@ static int __init ioapic_init_sysfs(void
- 	for (i = 0; i < nr_ioapics; i++ ) {
- 		size = sizeof(struct sys_device) + nr_ioapic_registers[i]
- 			* sizeof(struct IO_APIC_route_entry);
--		mp_ioapic_data[i] = kmalloc(size, GFP_KERNEL);
-+		mp_ioapic_data[i] = kzalloc(size, GFP_KERNEL);
- 		if (!mp_ioapic_data[i]) {
- 			printk(KERN_ERR "Can't suspend/resume IOAPIC %d\n", i);
- 			continue;
- 		}
--		memset(mp_ioapic_data[i], 0, size);
- 		dev = &mp_ioapic_data[i]->dev;
- 		dev->id = i;
- 		dev->cls = &ioapic_sysdev_class;
+-	iadev = kmalloc(sizeof(*iadev), GFP_KERNEL); 
++	iadev = kzalloc(sizeof(*iadev), GFP_KERNEL);
+ 	if (!iadev) {
+ 		ret = -ENOMEM;
+ 		goto err_out;
+ 	}
+-	memset(iadev, 0, sizeof(*iadev));
++
+ 	iadev->pci = pdev;
+ 
+ 	IF_INIT(printk("ia detected at bus:%d dev: %d function:%d\n",
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
