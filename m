@@ -1,66 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - ip2main-warning-fix.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:59:01 -0700
-Message-ID: <200707312359.l6VNx1K2029612@imap1.linux-foundation.org>
+Subject: - kdebugh-forward-declare-struct-struct-notifier_block.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:57:11 -0700
+Message-ID: <200707312357.l6VNvBYg029376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59824 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53818 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761384AbXHAAHU (ORCPT
+	by vger.kernel.org with ESMTP id S1753557AbXHAAIt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:07:20 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7106n5n011280
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2007 17:06:50 -0700
+	Tue, 31 Jul 2007 20:08:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ip2main warning fix
+     kdebug.h: forward-declare struct struct notifier_block
 has been removed from the -mm tree.  Its filename was
-     ip2main-warning-fix.patch
+     kdebugh-forward-declare-struct-struct-notifier_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ip2main warning fix
+Subject: kdebug.h: forward-declare struct struct notifier_block
 From: Andrew Morton <akpm@linux-foundation.org>
 
-CONFIG_PCI=n:
+alpha:
 
-drivers/char/ip2/ip2main.c: In function `ip2_loadmain':
-drivers/char/ip2/ip2main.c:503: warning: unused variable `status'
+In file included from kernel/notifier.c:1:
+include/linux/kdebug.h:14: warning: 'struct notifier_block' declared inside parameter list
+include/linux/kdebug.h:14: warning: its scope is only this definition or declaration, which is probably not what you want
+include/linux/kdebug.h:15: warning: 'struct notifier_block' declared inside parameter list
+kernel/notifier.c:529: error: conflicting types for 'register_die_notifier'
+include/linux/kdebug.h:14: error: previous declaration of 'register_die_notifier' was here
+kernel/notifier.c:533: error: conflicting types for 'register_die_notifier'
+include/linux/kdebug.h:14: error: previous declaration of 'register_die_notifier' was here
+kernel/notifier.c:536: error: conflicting types for 'unregister_die_notifier'
+include/linux/kdebug.h:15: error: previous declaration of 'unregister_die_notifier' was here
+kernel/notifier.c:539: error: conflicting types for 'unregister_die_notifier'
+include/linux/kdebug.h:15: error: previous declaration of 'unregister_die_notifier' was here
 
-
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/kdebug.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/ip2/ip2main.c~ip2main-warning-fix drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~ip2main-warning-fix
-+++ a/drivers/char/ip2/ip2main.c
-@@ -500,7 +500,6 @@ ip2_loadmain(int *iop, int *irqp, unsign
- {
- 	int i, j, box;
- 	int err = 0;
--	int status = 0;
- 	static int loaded;
- 	i2eBordStrPtr pB = NULL;
- 	int rc = -1;
-@@ -588,6 +587,8 @@ ip2_loadmain(int *iop, int *irqp, unsign
- 		case PCI:
- #ifdef CONFIG_PCI
- 			{
-+				int status;
+diff -puN include/linux/kdebug.h~kdebugh-forward-declare-struct-struct-notifier_block include/linux/kdebug.h
+--- a/include/linux/kdebug.h~kdebugh-forward-declare-struct-struct-notifier_block
++++ a/include/linux/kdebug.h
+@@ -3,6 +3,8 @@
+ 
+ #include <asm/kdebug.h>
+ 
++struct notifier_block;
 +
- 				pci_dev_i = pci_get_device(PCI_VENDOR_ID_COMPUTONE,
- 							  PCI_DEVICE_ID_COMPUTONE_IP2EX, pci_dev_i);
- 				if (pci_dev_i != NULL) {
+ struct die_args {
+ 	struct pt_regs *regs;
+ 	const char *str;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
