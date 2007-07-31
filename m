@@ -1,56 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - make-pktgencget_ipsec_sa-static-and-non-inline.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 22:01:19 -0700
-Message-ID: <200707310501.l6V51JqI016542@imap1.linux-foundation.org>
+Subject: - make-nf_ct_ipv6_skip_exthdr-static.patch removed from -mm tree
+Date: Mon, 30 Jul 2007 22:01:21 -0700
+Message-ID: <200707310501.l6V51Lxw016545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44798 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34574 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968641AbXGaFBf (ORCPT
+	by vger.kernel.org with ESMTP id S968350AbXGaFBg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 01:01:35 -0400
+	Tue, 31 Jul 2007 01:01:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make pktgen.c:get_ipsec_sa() static and non-inline
+     make nf_ct_ipv6_skip_exthdr() static
 has been removed from the -mm tree.  Its filename was
-     make-pktgencget_ipsec_sa-static-and-non-inline.patch
+     make-nf_ct_ipv6_skip_exthdr-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make pktgen.c:get_ipsec_sa() static and non-inline
+Subject: make nf_ct_ipv6_skip_exthdr() static
 
 
-Non-static inline code usually doesn't makes sense.
-
-In this case making is static and non-inline is the correct solution.
+nf_ct_ipv6_skip_exthdr() can now become static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
 ---
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/pktgen.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ include/net/netfilter/ipv6/nf_conntrack_ipv6.h |    3 ---
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    4 ++--
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN net/core/pktgen.c~make-pktgencget_ipsec_sa-static-and-non-inline net/core/pktgen.c
---- a/net/core/pktgen.c~make-pktgencget_ipsec_sa-static-and-non-inline
-+++ a/net/core/pktgen.c
-@@ -2156,8 +2156,7 @@ static inline int f_pick(struct pktgen_d
- /* If there was already an IPSEC SA, we keep it as is, else
-  * we go look for it ...
- */
--inline
--void get_ipsec_sa(struct pktgen_dev *pkt_dev, int flow)
-+static void get_ipsec_sa(struct pktgen_dev *pkt_dev, int flow)
+diff -puN include/net/netfilter/ipv6/nf_conntrack_ipv6.h~make-nf_ct_ipv6_skip_exthdr-static include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+--- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h~make-nf_ct_ipv6_skip_exthdr-static
++++ a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+@@ -7,9 +7,6 @@ extern struct nf_conntrack_l4proto nf_co
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6;
+ 
+-extern int nf_ct_ipv6_skip_exthdr(const struct sk_buff *skb, int start,
+-				  u8 *nexthdrp, int len);
+-
+ extern int nf_ct_frag6_init(void);
+ extern void nf_ct_frag6_cleanup(void);
+ extern struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb);
+diff -puN net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c~make-nf_ct_ipv6_skip_exthdr-static net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c~make-nf_ct_ipv6_skip_exthdr-static
++++ a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -86,8 +86,8 @@ static int ipv6_print_conntrack(struct s
+  *        - Note also special handling of AUTH header. Thanks to IPsec wizards.
+  */
+ 
+-int nf_ct_ipv6_skip_exthdr(const struct sk_buff *skb, int start, u8 *nexthdrp,
+-			   int len)
++static int nf_ct_ipv6_skip_exthdr(const struct sk_buff *skb, int start,
++				  u8 *nexthdrp, int len)
  {
- 	struct xfrm_state *x = pkt_dev->flows[flow].x;
- 	if (!x) {
+ 	u8 nexthdr = *nexthdrp;
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
