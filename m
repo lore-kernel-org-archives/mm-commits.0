@@ -1,71 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - gitignore-update.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:54:34 -0700
-Message-ID: <200707312354.l6VNsYvJ029152@imap1.linux-foundation.org>
+Subject: - oom-print-points-as-unsigned-long.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:54:48 -0700
+Message-ID: <200707312354.l6VNsmWe029176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41609 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37966 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756918AbXGaXzT (ORCPT
+	by vger.kernel.org with ESMTP id S1756538AbXGaXzb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 19:55:19 -0400
+	Tue, 31 Jul 2007 19:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, mm-commits@vger.kernel.org
+To: rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     .gitignore update
+     oom: print points as unsigned long
 has been removed from the -mm tree.  Its filename was
-     gitignore-update.patch
+     oom-print-points-as-unsigned-long.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: .gitignore update
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: oom: print points as unsigned long
+From: David Rientjes <rientjes@google.com>
 
-Somehow I ended up with the following in tree:
+In badness(), the automatic variable 'points' is unsigned long.  Print it
+as such.
 
-	$ git status
-		...
-	# Untracked files:
-	#   (use "git add <file>..." to include in what will be committed)
-	#
-	#       fs/proc/root.o.FuMxJQ
-	#       net/ipv4/tcp_minisocks.o.geCDYR
-
-These are presumably temporary gcc files, which aren't interesting.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .gitignore |    1 +
- 1 file changed, 1 insertion(+)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN .gitignore~gitignore-update .gitignore
---- a/.gitignore~gitignore-update
-+++ a/.gitignore
-@@ -7,6 +7,7 @@
- #
- .*
- *.o
-+*.o.*
- *.a
- *.s
- *.ko
+diff -puN mm/oom_kill.c~oom-print-points-as-unsigned-long mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-print-points-as-unsigned-long
++++ a/mm/oom_kill.c
+@@ -157,7 +157,7 @@ unsigned long badness(struct task_struct
+ 	}
+ 
+ #ifdef DEBUG
+-	printk(KERN_DEBUG "OOMkill: task %d (%s) got %d points\n",
++	printk(KERN_DEBUG "OOMkill: task %d (%s) got %lu points\n",
+ 	p->pid, p->comm, points);
+ #endif
+ 	return points;
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-fix-leak-on-proc-lockdep_stats.patch
-consolidate-ptrace_detach.patch
-use-list_head-in-binfmt-handling-update.patch
-make-unregister_binfmt-return-void.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-single_open-seq_release-leak-diagnostics.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
