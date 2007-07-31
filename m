@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:19 -0700
-Message-ID: <200707311929.l6VJTJxP018319@imap1.linux-foundation.org>
+Subject: + drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:27 -0700
+Message-ID: <200707311929.l6VJTRNF018331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46959 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42856 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753209AbXGaTaG (ORCPT
+	by vger.kernel.org with ESMTP id S1753439AbXGaTaN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:30:06 -0400
+	Tue, 31 Jul 2007 15:30:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, edward@namesys.com, vs@namesys.com
+Cc: m.kozlowski@tuxland.pl, agk@redhat.com
 
 
 The patch titled
-     fs/reiser4/plugin/file/cryptcompress.c: kmalloc + memset conversion to kzalloc
+     drivers/md/dm-table.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/reiser4/plugin/file/cryptcompress.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/md/dm-table.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- fs/reiser4/plugin/file/cryptcompress.c | 101386 -> 101352 (-34 bytes)
- fs/reiser4/plugin/file/cryptcompress.o | 456784 -> 456644 (-140 bytes)
+ drivers/md/dm-table.c | 21698 -> 21664 (-34 bytes)
+ drivers/md/dm-table.o | 132153 -> 132093 (-60 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Edward Shishkin <edward@namesys.com>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/cryptcompress.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/md/dm-table.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/reiser4/plugin/file/cryptcompress.c~fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc fs/reiser4/plugin/file/cryptcompress.c
---- a/fs/reiser4/plugin/file/cryptcompress.c~fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc
-+++ a/fs/reiser4/plugin/file/cryptcompress.c
-@@ -96,13 +96,13 @@ static void set_inode_crypto_info (struc
- /* allocate a cipher key info */
- struct reiser4_crypto_info * reiser4_alloc_crypto_info (struct inode * inode)
+diff -puN drivers/md/dm-table.c~drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc drivers/md/dm-table.c
+--- a/drivers/md/dm-table.c~drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/md/dm-table.c
+@@ -213,12 +213,12 @@ static int alloc_targets(struct dm_table
+ int dm_table_create(struct dm_table **result, int mode,
+ 		    unsigned num_targets, struct mapped_device *md)
  {
--	struct reiser4_crypto_info * info;
-+	struct reiser4_crypto_info *info;
- 	int fipsize;
+-	struct dm_table *t = kmalloc(sizeof(*t), GFP_KERNEL);
++	struct dm_table *t;
  
--	info = kmalloc(sizeof(*info), reiser4_ctx_gfp_mask_get());
-+	info = kzalloc(sizeof(*info), reiser4_ctx_gfp_mask_get());
- 	if (!info)
- 		return ERR_PTR(-ENOMEM);
--	memset(info, 0, sizeof (*info));
-+
- 	fipsize = inode_digest_plugin(inode)->fipsize;
- 	info->keyid = kmalloc(fipsize, reiser4_ctx_gfp_mask_get());
- 	if (!info->keyid) {
++	t = kzalloc(sizeof(*t), GFP_KERNEL);
+ 	if (!t)
+ 		return -ENOMEM;
+ 
+-	memset(t, 0, sizeof(*t));
+ 	INIT_LIST_HEAD(&t->devices);
+ 	atomic_set(&t->holders, 1);
+ 
+@@ -229,7 +229,6 @@ int dm_table_create(struct dm_table **re
+ 
+ 	if (alloc_targets(t, num_targets)) {
+ 		kfree(t);
+-		t = NULL;
+ 		return -ENOMEM;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
