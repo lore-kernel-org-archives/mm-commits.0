@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + fs-partitions-checkc-add-add_partition-error-handling.patch added to -mm tree
-Date: Mon, 30 Jul 2007 21:52:43 -0700
-Message-ID: <200707310452.l6V4qhfg016187@imap1.linux-foundation.org>
+Subject: + git-newsetup-fixup.patch added to -mm tree
+Date: Mon, 30 Jul 2007 21:56:01 -0700
+Message-ID: <200707310456.l6V4u19T016327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37649 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39049 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754973AbXGaEwz (ORCPT
+	by vger.kernel.org with ESMTP id S1751642AbXGaE4J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 00:52:55 -0400
+	Tue, 31 Jul 2007 00:56:09 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6V4u661015795
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2007 21:56:07 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eugeneteo@kernel.sg
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     fs/partitions/check.c: add add_partition() error handling
+     git-newsetup-fixup
 has been added to the -mm tree.  Its filename is
-     fs-partitions-checkc-add-add_partition-error-handling.patch
+     git-newsetup-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +30,144 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/partitions/check.c: add add_partition() error handling
-From: Eugene Teo <eugeneteo@kernel.sg>
+Subject: git-newsetup-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add error handling to add_partition().  Also fixes these warnings:
-
-fs/partitions/check.c: In function `add_partition':
-fs/partitions/check.c:391: warning: ignoring return value of `kobject_add',
-	declared with attribute warn_unused_result
-fs/partitions/check.c:394: warning: ignoring return value of
-	`sysfs_create_link', declared with attribute warn_unused_result
-fs/partitions/check.c:401: warning: ignoring return value of
-	`sysfs_create_file', declared with attribute warn_unused_result
-
-Signed-off-by: Eugene Teo <eugeneteo@kernel.sg>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/check.c |   23 ++++++++++++++++++++---
- 1 file changed, 20 insertions(+), 3 deletions(-)
+ drivers/lguest/lguest.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN fs/partitions/check.c~fs-partitions-checkc-add-add_partition-error-handling fs/partitions/check.c
---- a/fs/partitions/check.c~fs-partitions-checkc-add-add_partition-error-handling
-+++ a/fs/partitions/check.c
-@@ -371,6 +371,7 @@ void delete_partition(struct gendisk *di
- void add_partition(struct gendisk *disk, int part, sector_t start, sector_t len, int flags)
- {
- 	struct hd_struct *p;
-+	int err;
+diff -puN drivers/lguest/lguest.c~git-newsetup-fixup drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~git-newsetup-fixup
++++ a/drivers/lguest/lguest.c
+@@ -888,17 +888,9 @@ static __init char *lguest_memory_setup(
+ 	 * before start_kernel() */
+ 	atomic_notifier_chain_register(&panic_notifier_list, &paniced);
  
- 	p = kzalloc(sizeof(*p), GFP_KERNEL);
- 	if (!p)
-@@ -388,20 +389,36 @@ void add_partition(struct gendisk *disk,
- 	p->kobj.parent = &disk->kobj;
- 	p->kobj.ktype = &ktype_part;
- 	kobject_init(&p->kobj);
--	kobject_add(&p->kobj);
-+	err = kobject_add(&p->kobj);
-+	if (err)
-+		goto err_out;
- 	if (!disk->part_uevent_suppress)
- 		kobject_uevent(&p->kobj, KOBJ_ADD);
--	sysfs_create_link(&p->kobj, &block_subsys.kobj, "subsystem");
-+	err = sysfs_create_link(&p->kobj, &block_subsys.kobj, "subsystem");
-+	if (err)
-+		goto err_out_del_kobj;
- 	if (flags & ADDPART_FLAG_WHOLEDISK) {
- 		static struct attribute addpartattr = {
- 			.name = "whole_disk",
- 			.mode = S_IRUSR | S_IRGRP | S_IROTH,
- 		};
- 
--		sysfs_create_file(&p->kobj, &addpartattr);
-+		err = sysfs_create_file(&p->kobj, &addpartattr);
-+		if (err)
-+			goto err_out_del_link;
- 	}
- 	partition_sysfs_add_subdir(p);
- 	disk->part[part-1] = p;
-+	return;
-+
-+err_out_del_link:
-+	sysfs_remove_link(&p->kobj, "subsystem");
-+err_out_del_kobj:
-+	if (!disk->part_uevent_suppress)
-+		kobject_uevent(&p->kobj, KOBJ_REMOVE);
-+	kobject_del(&p->kobj);
-+err_out:
-+	kobject_put(&p->kobj);
+-<<<<<<< HEAD/drivers/lguest/lguest.c
+-	/* The Linux bootloader header contains an "e820" memory map: the
+-	 * Launcher populated the first entry with our memory limit. */
+-	add_memory_region(E820_MAP->addr, E820_MAP->size, E820_MAP->type);
+-
+-	/* This string is for the boot messages. */
+-=======
+ 	add_memory_region(boot_params.e820_map[0].addr,
+ 			  boot_params.e820_map[0].size,
+ 			  boot_params.e820_map[0].type);
+->>>>>>> /drivers/lguest/lguest.c
+ 	return "LGUEST";
  }
  
- static char *make_block_name(struct gendisk *disk)
 _
 
-Patches currently in -mm which might be from eugeneteo@kernel.sg are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-arch-i386-kernel-apmc-apm_init-warning-fix.patch
-fs-partitions-checkc-add-add_partition-error-handling.patch
+origin.patch
+parport_pc-locking-fix.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb.patch
+git-hwmon.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-watchdog.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+acpi_battery_add-use-after-free.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+fs-9p-convc-error-path-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+ip2main-warning-fix.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+tpm_tis-debug.patch
+w1-build-fix.patch
