@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-a-typo-in-documentation-keystxt.patch added to -mm tree
-Date: Mon, 30 Jul 2007 17:14:09 -0700
-Message-ID: <200707310014.l6V0E9J5005749@imap1.linux-foundation.org>
+Subject: + eliminate-warnings-in-ide-tapec.patch added to -mm tree
+Date: Mon, 30 Jul 2007 18:17:01 -0700
+Message-ID: <200707310117.l6V1H1m3007959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34271 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55800 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S940186AbXGaAOa (ORCPT
+	by vger.kernel.org with ESMTP id S1755146AbXGaBRO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 20:14:30 -0400
+	Mon, 30 Jul 2007 21:17:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org, dhowells@redhat.com
+Cc: sfr@canb.auug.org.au
 
 
 The patch titled
-     Fix a typo in Documentation/keys.txt
+     Eliminate warnings in ide-tape.c
 has been added to the -mm tree.  Its filename is
-     fix-a-typo-in-documentation-keystxt.patch
+     eliminate-warnings-in-ide-tapec.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix a typo in Documentation/keys.txt
-From: Satyam Sharma <satyam@infradead.org>
+Subject: Eliminate warnings in ide-tape.c
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Acked-by: David Howells <dhowells@redhat.com>
+drivers/ide/ide-tape.c: In function '__idetape_kmalloc_stage':
+drivers/ide/ide-tape.c:2588: warning: large integer implicitly truncated to unsigned type
+drivers/ide/ide-tape.c:2616: warning: large integer implicitly truncated to unsigned type
+
+b_size in struct idetape_bh is an unsigned short.  We sometimes assign
+PAGE_SIZE to it and PAGE_SIZE can be 64K or larger, so make it a u32.
+
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/keys.txt |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/ide/ide-tape.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/keys.txt~fix-a-typo-in-documentation-keystxt Documentation/keys.txt
---- a/Documentation/keys.txt~fix-a-typo-in-documentation-keystxt
-+++ a/Documentation/keys.txt
-@@ -859,9 +859,8 @@ payload contents" for more information.
- 	void unregister_key_type(struct key_type *type);
+diff -puN drivers/ide/ide-tape.c~eliminate-warnings-in-ide-tapec drivers/ide/ide-tape.c
+--- a/drivers/ide/ide-tape.c~eliminate-warnings-in-ide-tapec
++++ a/drivers/ide/ide-tape.c
+@@ -640,7 +640,7 @@ typedef enum {
+ } idetape_chrdev_direction_t;
  
- 
--Under some circumstances, it may be desirable to desirable to deal with a
--bundle of keys.  The facility provides access to the keyring type for managing
--such a bundle:
-+Under some circumstances, it may be desirable to deal with a bundle of keys.
-+The facility provides access to the keyring type for managing such a bundle:
- 
- 	struct key_type key_type_keyring;
- 
+ struct idetape_bh {
+-	unsigned short b_size;
++	u32 b_size;
+ 	atomic_t b_count;
+ 	struct idetape_bh *b_reqnext;
+ 	char *b_data;
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-fix-a-typo-in-documentation-keystxt.patch
-use-mutex-instead-of-semaphore-in-the-dvb-frontend-tuning-interface.patch
-netconsole-cleanups-codingstyle-prettyfication.patch
-netconsole-remove-bogus-check.patch
-netconsole-simplify-boot-module-option-setup-logic.patch
-netconsole-use-netif_running-in-write_msg.patch
-netconsole-add-some-useful-tips-to-documentation.patch
-netconsole-introduce-netconsole_target.patch
-netconsole-introduce-netconsole_netdev_notifier.patch
-netconsole-support-multiple-logging-targets.patch
-netconsole-support-dynamic-reconfiguration-using-configfs.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-use-mutex-instead-of-semaphore-in-the-scsi-tape-driver.patch
-use-mutex-instead-of-semaphore-in-the-host-ap-driver.patch
-use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
+origin.patch
+arch-i386-kernel-apmc-apm_init-warning-fix.patch
+git-alsa.patch
+eliminate-warnings-in-ide-tapec.patch
+clean-up-duplicate-includes-in-drivers-block.patch
