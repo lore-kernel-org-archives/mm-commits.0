@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + spi_mpc83xx-support-loopback-mode.patch added to -mm tree
-Date: Mon, 30 Jul 2007 21:50:03 -0700
-Message-ID: <200707310450.l6V4o3av016157@imap1.linux-foundation.org>
+Subject: + spidev-supports-more-communications-modes.patch added to -mm tree
+Date: Mon, 30 Jul 2007 21:50:01 -0700
+Message-ID: <200707310450.l6V4o1nb016145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60580 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42970 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757150AbXGaEuX (ORCPT
+	by vger.kernel.org with ESMTP id S1760287AbXGaEut (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 00:50:23 -0400
+	Tue, 31 Jul 2007 00:50:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     spi_mpc83xx: support loopback mode
+     spidev supports more communications modes
 has been added to the -mm tree.  Its filename is
-     spi_mpc83xx-support-loopback-mode.patch
+     spidev-supports-more-communications-modes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi_mpc83xx: support loopback mode
+Subject: spidev supports more communications modes
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-This exposes the hardware loopback mode to drivers, primarily for testing.
+The spidev driver doesn't currently expose all SPI communications modes to
+userspace.  This passes them all through to the driver.
+
+Two of them are potentially troublesome, in the sense that they could cause
+hardware conflicts on shared busses.  It might be appropriate to add some
+privilege checks for for those modes.
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_mpc83xx.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/spi/spidev.c       |   13 ++++++++++---
+ include/linux/spi/spidev.h |    4 ++++
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-support-loopback-mode drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-support-loopback-mode
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -39,6 +39,7 @@ struct mpc83xx_spi_reg {
- };
+diff -puN drivers/spi/spidev.c~spidev-supports-more-communications-modes drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~spidev-supports-more-communications-modes
++++ a/drivers/spi/spidev.c
+@@ -55,9 +55,16 @@
+ static unsigned long	minors[N_SPI_MINORS / BITS_PER_LONG];
  
- /* SPI Controller mode register definitions */
-+#define	SPMODE_LOOP		(1 << 30)
- #define	SPMODE_CI_INACTIVEHIGH	(1 << 29)
- #define	SPMODE_CP_BEGIN_EDGECLK	(1 << 28)
- #define	SPMODE_DIV16		(1 << 27)
-@@ -155,7 +156,7 @@ static void mpc83xx_spi_chipselect(struc
- 		/* mask out bits we are going to set */
- 		regval &= ~(SPMODE_CP_BEGIN_EDGECLK | SPMODE_CI_INACTIVEHIGH
- 				| SPMODE_LEN(0xF) | SPMODE_DIV16
--				| SPMODE_PM(0xF) | SPMODE_REV);
-+				| SPMODE_PM(0xF) | SPMODE_REV | SPMODE_LOOP);
  
- 		if (spi->mode & SPI_CPHA)
- 			regval |= SPMODE_CP_BEGIN_EDGECLK;
-@@ -163,6 +164,8 @@ static void mpc83xx_spi_chipselect(struc
- 			regval |= SPMODE_CI_INACTIVEHIGH;
- 		if (!(spi->mode & SPI_LSB_FIRST))
- 			regval |= SPMODE_REV;
-+		if (spi->mode & SPI_LOOP)
-+			regval |= SPMODE_LOOP;
+-/* Bit masks for spi_device.mode management */
+-#define SPI_MODE_MASK			(SPI_CPHA | SPI_CPOL)
+-
++/* Bit masks for spi_device.mode management.  Note that incorrect
++ * settings for CS_HIGH and 3WIRE can cause *lots* of trouble for other
++ * devices on a shared bus:  CS_HIGH, because this device will be
++ * active when it shouldn't be;  3WIRE, because when active it won't
++ * behave as it should.
++ *
++ * REVISIT should changing those two modes be privileged?
++ */
++#define SPI_MODE_MASK		(SPI_CPHA | SPI_CPOL | SPI_CS_HIGH \
++				| SPI_LSB_FIRST | SPI_3WIRE | SPI_LOOP)
  
- 		regval |= SPMODE_LEN(len);
+ struct spidev_data {
+ 	struct device		dev;
+diff -puN include/linux/spi/spidev.h~spidev-supports-more-communications-modes include/linux/spi/spidev.h
+--- a/include/linux/spi/spidev.h~spidev-supports-more-communications-modes
++++ a/include/linux/spi/spidev.h
+@@ -35,6 +35,10 @@
+ #define SPI_MODE_2		(SPI_CPOL|0)
+ #define SPI_MODE_3		(SPI_CPOL|SPI_CPHA)
  
-@@ -273,7 +276,8 @@ int mpc83xx_spi_setup_transfer(struct sp
- }
++#define SPI_CS_HIGH		0x04
++#define SPI_LSB_FIRST		0x08
++#define SPI_3WIRE		0x10
++#define SPI_LOOP		0x20
  
- /* the spi->mode bits understood by this driver: */
--#define MODEBITS (SPI_CPOL | SPI_CPHA | SPI_CS_HIGH | SPI_LSB_FIRST)
-+#define MODEBITS	(SPI_CPOL | SPI_CPHA | SPI_CS_HIGH \
-+			| SPI_LSB_FIRST | SPI_LOOP)
+ /*---------------------------------------------------------------------------*/
  
- static int mpc83xx_spi_setup(struct spi_device *spi)
- {
 _
 
 Patches currently in -mm which might be from avorontsov@ru.mvista.com are
