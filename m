@@ -1,115 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: + tpm_tis-fix-interrupt-probing.patch added to -mm tree
-Date: Tue, 31 Jul 2007 14:44:29 -0700
-Message-ID: <200707312144.l6VLiTt4024159@imap1.linux-foundation.org>
+Subject: - tpm_tis-debug.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 14:46:44 -0700
+Message-ID: <200707312151.l6VLpRsx024396@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51973 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48100 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756904AbXGaVoj (ORCPT
+	by vger.kernel.org with ESMTP id S1753886AbXGaVwD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 17:44:39 -0400
+	Tue, 31 Jul 2007 17:52:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, valdis.kletnieks@vt.edu
+To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm_tis: fix interrupt probing
-has been added to the -mm tree.  Its filename is
-     tpm_tis-fix-interrupt-probing.patch
+     tpm_tis debug
+has been removed from the -mm tree.  Its filename was
+     tpm_tis-debug.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: tpm_tis: fix interrupt probing
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: tpm_tis debug
+From: Andrew Morton <akpm@linux-foundation.org>
 
-<stuff goes here>
-
-Tested-by: <valdis.kletnieks@vt.edu>
-
+Cc: <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm_tis.c |   22 +++++++++++++---------
- 1 files changed, 13 insertions(+), 9 deletions(-)
+ drivers/char/tpm/tpm_tis.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/tpm/tpm_tis.c~tpm_tis-fix-interrupt-probing drivers/char/tpm/tpm_tis.c
---- a/drivers/char/tpm/tpm_tis.c~tpm_tis-fix-interrupt-probing
+diff -puN drivers/char/tpm/tpm_tis.c~tpm_tis-debug drivers/char/tpm/tpm_tis.c
+--- a/drivers/char/tpm/tpm_tis.c~tpm_tis-debug
 +++ a/drivers/char/tpm/tpm_tis.c
-@@ -433,17 +433,12 @@ module_param(interrupts, bool, 0444);
- MODULE_PARM_DESC(interrupts, "Enable interrupts");
- 
- static int tpm_tis_init(struct device *dev, resource_size_t start,
--			resource_size_t len)
-+			resource_size_t len, unsigned int irq)
- {
- 	u32 vendor, intfcaps, intmask;
- 	int rc, i;
- 	struct tpm_chip *chip;
- 
--	if (!start)
--		start = TIS_MEM_BASE;
--	if (!len)
--		len = TIS_MEM_LEN;
--
- 	if (!(chip = tpm_register_hardware(dev, &tpm_tis)))
- 		return -ENODEV;
- 
-@@ -510,7 +505,9 @@ static int tpm_tis_init(struct device *d
- 	iowrite32(intmask,
- 		  chip->vendor.iobase +
- 		  TPM_INT_ENABLE(chip->vendor.locality));
--	if (interrupts) {
-+	if (interrupts)
-+		chip->vendor.irq = irq;
-+	if (interrupts && !chip->vendor.irq) {
- 		chip->vendor.irq =
- 		    ioread8(chip->vendor.iobase +
- 			    TPM_INT_VECTOR(chip->vendor.locality));
-@@ -595,10 +592,17 @@ static int __devinit tpm_tis_pnp_init(st
+@@ -597,9 +597,11 @@ static int __devinit tpm_tis_pnp_init(st
  				      const struct pnp_device_id *pnp_id)
  {
  	resource_size_t start, len;
-+	unsigned int irq = 0;
 +
  	start = pnp_mem_start(pnp_dev, 0);
  	len = pnp_mem_len(pnp_dev, 0);
- 
--	return tpm_tis_init(&pnp_dev->dev, start, len);
-+	if (pnp_irq_valid(pnp_dev, 0))
-+		irq = pnp_irq(pnp_dev, 0);
-+	else
-+		interrupts = 0;
-+
-+	return tpm_tis_init(&pnp_dev->dev, start, len, irq);
+-
++	printk("%s: start=%llu, len=%llu\n", __FUNCTION__,
++		(unsigned long long)start, (unsigned long long)len);
+ 	return tpm_tis_init(&pnp_dev->dev, start, len);
  }
  
- static int tpm_tis_pnp_suspend(struct pnp_dev *dev, pm_message_t msg)
-@@ -658,7 +662,7 @@ static int __init init_tis(void)
- 			return rc;
- 		if (IS_ERR(pdev=platform_device_register_simple("tpm_tis", -1, NULL, 0)))
- 			return PTR_ERR(pdev);
--		if((rc=tpm_tis_init(&pdev->dev, 0, 0)) != 0) {
-+		if((rc=tpm_tis_init(&pdev->dev, TIS_MEM_BASE, TIS_MEM_LEN, 0)) != 0) {
- 			platform_device_unregister(pdev);
- 			driver_unregister(&tis_drv);
- 		}
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+parport_pc-locking-fix.patch
 revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
+fs-9p-convc-error-path-fix.patch
+ip2main-warning-fix.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-hwmon.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+fix-ide-ide-add-platform-ide-driver.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+git-ocfs2.patch
 serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-move-free-pages-between-lists-on-steal.patch
-convert-ill-defined-log2-to-ilog2.patch
-tpm_tis-fix-interrupt-probing.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-sparc64.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-unionfs-build-fix.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-watchdog.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+acpi_battery_add-use-after-free.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+tpm_tis-debug.patch
+w1-build-fix.patch
