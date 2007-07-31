@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:43 -0700
-Message-ID: <200707311929.l6VJTh3i018355@imap1.linux-foundation.org>
+Subject: + drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:37 -0700
+Message-ID: <200707311929.l6VJTbH3018346@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44704 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55349 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753189AbXGaThR (ORCPT
+	by vger.kernel.org with ESMTP id S1752971AbXGaTh0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:37:17 -0400
+	Tue, 31 Jul 2007 15:37:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     drivers/net/wan/hdlc_fr.c: kmalloc + memset conversion to kzalloc
+     drivers/usb/misc/ftdi-elan.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/net/wan/hdlc_fr.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/usb/misc/ftdi-elan.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/net/wan/hdlc_fr.c | 31260 -> 31223 (-37 bytes)
- drivers/net/wan/hdlc_fr.o | 144872 -> 144728 (-144 bytes)
+ drivers/usb/misc/ftdi-elan.c | 121253 -> 121196 (-57 bytes)
+ drivers/usb/misc/ftdi-elan.o | 209425 -> 209265 (-160 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/hdlc_fr.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/usb/misc/ftdi-elan.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/wan/hdlc_fr.c~drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc drivers/net/wan/hdlc_fr.c
---- a/drivers/net/wan/hdlc_fr.c~drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/net/wan/hdlc_fr.c
-@@ -212,14 +212,13 @@ static pvc_device* add_pvc(struct net_de
- 		pvc_p = &(*pvc_p)->next;
- 	}
- 
--	pvc = kmalloc(sizeof(pvc_device), GFP_ATOMIC);
-+	pvc = kzalloc(sizeof(pvc_device), GFP_ATOMIC);
- #ifdef DEBUG_PVC
- 	printk(KERN_DEBUG "add_pvc: allocated pvc %p, frad %p\n", pvc, dev);
- #endif
- 	if (!pvc)
- 		return NULL;
- 
--	memset(pvc, 0, sizeof(pvc_device));
- 	pvc->dlci = dlci;
- 	pvc->frad = dev;
- 	pvc->next = *pvc_p;	/* Put it in the chain */
+diff -puN drivers/usb/misc/ftdi-elan.c~drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc drivers/usb/misc/ftdi-elan.c
+--- a/drivers/usb/misc/ftdi-elan.c~drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/usb/misc/ftdi-elan.c
+@@ -2777,12 +2777,14 @@ static int ftdi_elan_probe(struct usb_in
+         size_t buffer_size;
+         int i;
+         int retval = -ENOMEM;
+-        struct usb_ftdi *ftdi = kmalloc(sizeof(struct usb_ftdi), GFP_KERNEL);
+-        if (ftdi == NULL) {
++        struct usb_ftdi *ftdi;
++
++	ftdi = kzalloc(sizeof(struct usb_ftdi), GFP_KERNEL);
++	if (!ftdi) {
+                 printk(KERN_ERR "Out of memory\n");
+                 return -ENOMEM;
+         }
+-        memset(ftdi, 0x00, sizeof(struct usb_ftdi));
++
+         mutex_lock(&ftdi_module_lock);
+         list_add_tail(&ftdi->ftdi_list, &ftdi_static_list);
+         ftdi->sequence_num = ++ftdi_instances;
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
