@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:15 -0700
-Message-ID: <200707311929.l6VJTFYE018313@imap1.linux-foundation.org>
+Subject: + drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:29 -0700
+Message-ID: <200707311929.l6VJTTek018334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41575 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756652AbXGaTa1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754999AbXGaTaW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:30:27 -0400
+	Tue, 31 Jul 2007 15:30:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, jens.axboe@oracle.com
+Cc: m.kozlowski@tuxland.pl, agk@redhat.com
 
 
 The patch titled
-     drivers/block/cpqarray.c: better error handling and kmalloc + memset conversion to k[cz]alloc
+     drivers/md/dm-target.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch
+     drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,173 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/block/cpqarray.c: better error handling and kmalloc + memset conversion to k[cz]alloc
+Subject: drivers/md/dm-target.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-This patch removes some redundant casts, does the kmalloc + memset to
-k[cz]alloc conversion and it changes the error path to use goto (to avoid code
-duplication).
-
- drivers/block/cpqarray.c | 49567 -> 48623 (-944 bytes)
- drivers/block/cpqarray.o | 178820 -> 178288 (-532 bytes)
+ drivers/md/dm-target.c | 3300 -> 3271 (-29 bytes)
+ drivers/md/dm-target.o | 105641 -> 105449 (-192 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cpqarray.c |   78 ++++++++++++-------------------------
- 1 files changed, 26 insertions(+), 52 deletions(-)
+ drivers/md/dm-target.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/cpqarray.c~drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc drivers/block/cpqarray.c
---- a/drivers/block/cpqarray.c~drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc
-+++ a/drivers/block/cpqarray.c
-@@ -420,18 +420,17 @@ static int __init cpqarray_register_ctlr
- 			goto Enomem2;
- 	}
+diff -puN drivers/md/dm-target.c~drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc drivers/md/dm-target.c
+--- a/drivers/md/dm-target.c~drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/md/dm-target.c
+@@ -88,12 +88,11 @@ void dm_put_target_type(struct target_ty
  
--	hba[i]->cmd_pool = (cmdlist_t *)pci_alloc_consistent(
-+	hba[i]->cmd_pool = pci_alloc_consistent(
- 		hba[i]->pci_dev, NR_CMDS * sizeof(cmdlist_t),
- 		&(hba[i]->cmd_pool_dhandle));
--	hba[i]->cmd_pool_bits = kmalloc(
--		((NR_CMDS+BITS_PER_LONG-1)/BITS_PER_LONG)*sizeof(unsigned long),
-+	hba[i]->cmd_pool_bits = kcalloc(
-+		(NR_CMDS+BITS_PER_LONG-1)/BITS_PER_LONG, sizeof(unsigned long),
- 		GFP_KERNEL);
+ static struct tt_internal *alloc_target(struct target_type *t)
+ {
+-	struct tt_internal *ti = kmalloc(sizeof(*ti), GFP_KERNEL);
++	struct tt_internal *ti;
  
- 	if (!hba[i]->cmd_pool_bits || !hba[i]->cmd_pool)
- 			goto Enomem1;
+-	if (ti) {
+-		memset(ti, 0, sizeof(*ti));
++	ti = kzalloc(sizeof(*ti), GFP_KERNEL);
++	if (ti)
+ 		ti->tt = *t;
+-	}
  
- 	memset(hba[i]->cmd_pool, 0, NR_CMDS * sizeof(cmdlist_t));
--	memset(hba[i]->cmd_pool_bits, 0, ((NR_CMDS+BITS_PER_LONG-1)/BITS_PER_LONG)*sizeof(unsigned long));
- 	printk(KERN_INFO "cpqarray: Finding drives on %s",
- 		hba[i]->devname);
- 
-@@ -1660,45 +1659,30 @@ static void getgeometry(int ctlr)
- 
- 	info_p->log_drv_map = 0;	
- 	
--	id_ldrive = kmalloc(sizeof(id_log_drv_t), GFP_KERNEL);
--	if(id_ldrive == NULL)
--	{
-+	id_ldrive = kzalloc(sizeof(id_log_drv_t), GFP_KERNEL);
-+	if (!id_ldrive)	{
- 		printk( KERN_ERR "cpqarray:  out of memory.\n");
--		return;
-+		goto err_0;
- 	}
- 
--	id_ctlr_buf = kmalloc(sizeof(id_ctlr_t), GFP_KERNEL);
--	if(id_ctlr_buf == NULL)
--	{
--		kfree(id_ldrive);
-+	id_ctlr_buf = kzalloc(sizeof(id_ctlr_t), GFP_KERNEL);
-+	if (!id_ctlr_buf) {
- 		printk( KERN_ERR "cpqarray:  out of memory.\n");
--		return;
-+		goto err_1;
- 	}
- 
--	id_lstatus_buf = kmalloc(sizeof(sense_log_drv_stat_t), GFP_KERNEL);
--	if(id_lstatus_buf == NULL)
--	{
--		kfree(id_ctlr_buf);
--		kfree(id_ldrive);
-+	id_lstatus_buf = kzalloc(sizeof(sense_log_drv_stat_t), GFP_KERNEL);
-+	if (!id_lstatus_buf) {
- 		printk( KERN_ERR "cpqarray:  out of memory.\n");
--		return;
-+		goto err_2;
- 	}
- 
--	sense_config_buf = kmalloc(sizeof(config_t), GFP_KERNEL);
--	if(sense_config_buf == NULL)
--	{
--		kfree(id_lstatus_buf);
--		kfree(id_ctlr_buf);
--		kfree(id_ldrive);
-+	sense_config_buf = kzalloc(sizeof(config_t), GFP_KERNEL);
-+	if (!sense_config_buf) {
- 		printk( KERN_ERR "cpqarray:  out of memory.\n");
--		return;
-+		goto err_3;
- 	}
- 
--	memset(id_ldrive, 0, sizeof(id_log_drv_t));
--	memset(id_ctlr_buf, 0, sizeof(id_ctlr_t));
--	memset(id_lstatus_buf, 0, sizeof(sense_log_drv_stat_t));
--	memset(sense_config_buf, 0, sizeof(config_t));
--
- 	info_p->phys_drives = 0;
- 	info_p->log_drv_map = 0;
- 	info_p->drv_assign_map = 0;
-@@ -1712,13 +1696,8 @@ static void getgeometry(int ctlr)
- 		 * so the idastubopen will fail on all logical drives
- 		 * on the controller.
- 		 */
--		 /* Free all the buffers and return */ 
- 		printk(KERN_ERR "cpqarray: error sending ID controller\n");
--		kfree(sense_config_buf);
--                kfree(id_lstatus_buf);
--                kfree(id_ctlr_buf);
--                kfree(id_ldrive);
--                return;
-+                goto err_4;
-         }
- 
- 	info_p->log_drives = id_ctlr_buf->nr_drvs;
-@@ -1764,12 +1743,7 @@ static void getgeometry(int ctlr)
- 				" failed to report status of logical drive %d\n"
- 			 "Access to this controller has been disabled\n",
- 				ctlr, log_unit);
--			/* Free all the buffers and return */
--                	kfree(sense_config_buf);
--                	kfree(id_lstatus_buf);
--                	kfree(id_ctlr_buf);
--                	kfree(id_ldrive);
--                	return;
-+                	goto err_4;
- 		}
- 		/*
- 		   Make sure the logical drive is configured
-@@ -1798,14 +1772,8 @@ static void getgeometry(int ctlr)
- 				 sizeof(config_t), 0, 0, log_unit);
- 				if (ret_code == IO_ERROR) {
- 					info_p->log_drv_map = 0;
--					/* Free all the buffers and return */
-                 			printk(KERN_ERR "cpqarray: error sending sense config\n");
--                			kfree(sense_config_buf);
--                			kfree(id_lstatus_buf);
--                			kfree(id_ctlr_buf);
--                			kfree(id_ldrive);
--                			return;
--
-+                			goto err_4;
- 				}
- 
- 				info_p->phys_drives =
-@@ -1820,12 +1788,18 @@ static void getgeometry(int ctlr)
- 			log_index = log_index + 1;
- 		}		/* end of if logical drive configured */
- 	}			/* end of for log_unit */
-+
-+	/* Free all the buffers and return */
-+err_4:
- 	kfree(sense_config_buf);
--  	kfree(id_ldrive);
-+err_3:
-   	kfree(id_lstatus_buf);
-+err_2:
- 	kfree(id_ctlr_buf);
-+err_1:
-+  	kfree(id_ldrive);
-+err_0:
- 	return;
--
+ 	return ti;
  }
- 
- static void __exit cpqarray_exit(void)
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
