@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + netconsole-cleanups-codingstyle-prettyfication.patch added to -mm tree
-Date: Mon, 30 Jul 2007 17:13:19 -0700
-Message-ID: <200707310013.l6V0DJIh005660@imap1.linux-foundation.org>
+Subject: + netconsole-remove-bogus-check.patch added to -mm tree
+Date: Mon, 30 Jul 2007 17:13:21 -0700
+Message-ID: <200707310013.l6V0DLxv005668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53234 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52386 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932826AbXGaANn (ORCPT
+	by vger.kernel.org with ESMTP id S937364AbXGaANn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 30 Jul 2007 20:13:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: satyam@infradead.org, k-keiichi@bx.jp.nec.com, mpm@selenic.com
 
 
 The patch titled
-     netconsole: Cleanups, codingstyle, prettyfication
+     netconsole: Remove bogus check
 has been added to the -mm tree.  Its filename is
-     netconsole-cleanups-codingstyle-prettyfication.patch
+     netconsole-remove-bogus-check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,138 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: netconsole: Cleanups, codingstyle, prettyfication
+Subject: netconsole: Remove bogus check
 From: Satyam Sharma <satyam@infradead.org>
 
-(1) Remove unwanted headers.
-(2) Mark __init and __exit as appropriate.
-(3) Various trivial codingstyle and prettification stuff.
+The (!np.dev) check in write_msg() is bogus (always false), because: np.dev is
+set by netpoll_setup(), which is called by init_netconsole() before
+register_console(), so write_msg() cannot be triggered unless netpoll_setup()
+successfully set np.dev.  Also np.dev cannot go away from under us, because
+netpoll_setup() grabs us reference on it.  So let's remove the bogus check.
 
 Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Signed-off-by: Keiichi Kii <k-keiichi@bx.jp.nec.com>
+Acked-by: Keiichi Kii <k-keiichi@bx.jp.nec.com>
 Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/netconsole.c |   55 ++++++++++++++++++-------------------
- 1 files changed, 27 insertions(+), 28 deletions(-)
+ drivers/net/netconsole.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN drivers/net/netconsole.c~netconsole-cleanups-codingstyle-prettyfication drivers/net/netconsole.c
---- a/drivers/net/netconsole.c~netconsole-cleanups-codingstyle-prettyfication
+diff -puN drivers/net/netconsole.c~netconsole-remove-bogus-check drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~netconsole-remove-bogus-check
 +++ a/drivers/net/netconsole.c
-@@ -35,35 +35,32 @@
-  ****************************************************************/
+@@ -67,9 +67,6 @@ static void write_msg(struct console *co
+ 	int frag, left;
+ 	unsigned long flags;
  
- #include <linux/mm.h>
--#include <linux/tty.h>
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/console.h>
--#include <linux/tty_driver.h>
- #include <linux/moduleparam.h>
- #include <linux/string.h>
--#include <linux/sysrq.h>
--#include <linux/smp.h>
- #include <linux/netpoll.h>
- 
- MODULE_AUTHOR("Maintainer: Matt Mackall <mpm@selenic.com>");
- MODULE_DESCRIPTION("Console driver for network interfaces");
- MODULE_LICENSE("GPL");
- 
--static char config[256];
--module_param_string(netconsole, config, 256, 0);
-+#define MAX_PARAM_LENGTH	256
-+#define MAX_PRINT_CHUNK		1000
-+
-+static char config[MAX_PARAM_LENGTH];
-+module_param_string(netconsole, config, MAX_PARAM_LENGTH, 0);
- MODULE_PARM_DESC(netconsole, " netconsole=[src-port]@[src-ip]/[dev],[tgt-port]@<tgt-ip>/[tgt-macaddr]\n");
- 
- static struct netpoll np = {
--	.name = "netconsole",
--	.dev_name = "eth0",
--	.local_port = 6665,
--	.remote_port = 6666,
--	.remote_mac = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
-+	.name		= "netconsole",
-+	.dev_name	= "eth0",
-+	.local_port	= 6665,
-+	.remote_port	= 6666,
-+	.remote_mac	= {0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
- };
--static int configured = 0;
+-	if (!np.dev)
+-		return;
 -
--#define MAX_PRINT_CHUNK 1000
-+static int configured;
- 
- static void write_msg(struct console *con, const char *msg, unsigned int len)
- {
-@@ -75,7 +72,7 @@ static void write_msg(struct console *co
- 
  	local_irq_save(flags);
  
--	for(left = len; left; ) {
-+	for (left = len; left;) {
- 		frag = min(left, MAX_PRINT_CHUNK);
- 		netpoll_send_udp(&np, msg, frag);
- 		msg += frag;
-@@ -86,12 +83,12 @@ static void write_msg(struct console *co
- }
- 
- static struct console netconsole = {
--	.name = "netcon",
--	.flags = CON_ENABLED | CON_PRINTBUFFER,
--	.write = write_msg
-+	.name	= "netcon",
-+	.flags	= CON_ENABLED | CON_PRINTBUFFER,
-+	.write	= write_msg,
- };
- 
--static int option_setup(char *opt)
-+static int __init option_setup(char *opt)
- {
- 	configured = !netpoll_parse_options(&np, opt);
- 	return 1;
-@@ -99,28 +96,30 @@ static int option_setup(char *opt)
- 
- __setup("netconsole=", option_setup);
- 
--static int init_netconsole(void)
-+static int __init init_netconsole(void)
- {
--	int err;
-+	int err = 0;
- 
--	if(strlen(config))
-+	if (strnlen(config, MAX_PARAM_LENGTH))
- 		option_setup(config);
- 
--	if(!configured) {
--		printk("netconsole: not configured, aborting\n");
--		return 0;
-+	if (!configured) {
-+		printk(KERN_INFO "netconsole: not configured, aborting\n");
-+		goto out;
- 	}
- 
- 	err = netpoll_setup(&np);
- 	if (err)
--		return err;
-+		goto out;
- 
- 	register_console(&netconsole);
- 	printk(KERN_INFO "netconsole: network logging started\n");
--	return 0;
-+
-+out:
-+	return err;
- }
- 
--static void cleanup_netconsole(void)
-+static void __exit cleanup_netconsole(void)
- {
- 	unregister_console(&netconsole);
- 	netpoll_cleanup(&np);
+ 	for (left = len; left;) {
 _
 
 Patches currently in -mm which might be from satyam@infradead.org are
