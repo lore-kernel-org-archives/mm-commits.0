@@ -1,91 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-doc-fixes-for-pci-and-drivers-base.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 23:33:14 -0700
-Message-ID: <200707310633.l6V6XEjN019685@imap1.linux-foundation.org>
+Subject: - export-v4l2_int_device_unregister.patch removed from -mm tree
+Date: Mon, 30 Jul 2007 23:33:21 -0700
+Message-ID: <200707310633.l6V6XLiT019696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49623 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50150 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751232AbXGaGd0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751232AbXGaGdk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 02:33:26 -0400
+	Tue, 31 Jul 2007 02:33:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc fixes for PCI and drivers/base/
+     export v4l2_int_device_{,un}register
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-fixes-for-pci-and-drivers-base.patch
+     export-v4l2_int_device_unregister.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel-doc fixes for PCI and drivers/base/
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: export v4l2_int_device_{,un}register
+From: Adrian Bunk <bunk@stusta.de>
 
-Fix undocumented function parameters in PCI and drivers/base.
+On Wed, Jul 25, 2007 at 04:03:04AM -0700, Andrew Morton wrote:
+>...
+> Changes since 2.6.22-rc6-mm1:
+>...
+>  git-dvb.patch
+>...
+>  git trees
+>...
 
-Warning(linux-2.6.23-rc1//drivers/pci/pci.c:1526): No description found for parameter 'rq'
-Warning(linux-2.6.23-rc1//drivers/base/firmware_class.c:245): No description found for parameter 'bin_attr'
+This patch fixes the following build error:
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Greg KH <greg@kroah.com>
+<--  snip  -->
+
+...
+  MODPOST 2135 modules
+ERROR: "v4l2_int_device_register" [drivers/media/video/tcm825x.ko] undefined!
+ERROR: "v4l2_int_device_unregister" [drivers/media/video/tcm825x.ko] undefined!
+make[2]: *** [__modpost] Error 1
+
+<--  snip  -->
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/firmware_class.c |    1 +
- drivers/pci/pci.c             |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/video/v4l2-int-device.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/base/firmware_class.c~kernel-doc-fixes-for-pci-and-drivers-base drivers/base/firmware_class.c
---- a/drivers/base/firmware_class.c~kernel-doc-fixes-for-pci-and-drivers-base
-+++ a/drivers/base/firmware_class.c
-@@ -232,6 +232,7 @@ fw_realloc_buffer(struct firmware_priv *
- /**
-  * firmware_data_write - write method for firmware
-  * @kobj: kobject for the device
-+ * @bin_attr: bin_attr structure
-  * @buffer: buffer being written
-  * @offset: buffer offset for write in total data store area
-  * @count: buffer size
-diff -puN drivers/pci/pci.c~kernel-doc-fixes-for-pci-and-drivers-base drivers/pci/pci.c
---- a/drivers/pci/pci.c~kernel-doc-fixes-for-pci-and-drivers-base
-+++ a/drivers/pci/pci.c
-@@ -1517,7 +1517,7 @@ EXPORT_SYMBOL(pcie_get_readrq);
- /**
-  * pcie_set_readrq - set PCI Express maximum memory read request
-  * @dev: PCI device to query
-- * @count: maximum memory read count in bytes
-+ * @rq: maximum memory read count in bytes
-  *    valid values are 128, 256, 512, 1024, 2048, 4096
-  *
-  * If possible sets maximum read byte count
+diff -puN drivers/media/video/v4l2-int-device.c~export-v4l2_int_device_unregister drivers/media/video/v4l2-int-device.c
+--- a/drivers/media/video/v4l2-int-device.c~export-v4l2_int_device_unregister
++++ a/drivers/media/video/v4l2-int-device.c
+@@ -101,6 +101,7 @@ int v4l2_int_device_register(struct v4l2
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(v4l2_int_device_register);
+ 
+ void v4l2_int_device_unregister(struct v4l2_int_device *d)
+ {
+@@ -114,6 +115,7 @@ void v4l2_int_device_unregister(struct v
+ 	}
+ 	mutex_unlock(&mutex);
+ }
++EXPORT_SYMBOL_GPL(v4l2_int_device_unregister);
+ 
+ /* Adapted from search_extable in extable.c. */
+ static v4l2_int_ioctl_func *find_ioctl(struct v4l2_int_slave *slave, int cmd,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-update-dontdiff-file.patch
-x86-64-calgary-fix-section-mismatch-warnings-in-tce.patch
-various-doc-kernel-parameters-fixes.patch
-pnp-fix-kernel-doc-warnings.patch
-sched-fix-kernel-doc-warnings.patch
-fix-filemapc-kernel-doc.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-doc-dma-api-update.patch
+remove-the-arm26-port.patch
+slow-down-printk-during-boot-fix-3.patch
 git-acpi.patch
-fix-auditscc-kernel-doc.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+make-drivers-acpi-eventcacpi_event_seqnum-static.patch
+make-struct-sony_nc_ids-static.patch
+git-alsa.patch
+kernel-auditscc-fix-an-off-by-one.patch
+drivers-base-power-make-2-functions-static.patch
+git-drm.patch
+git-dvb.patch
+drivers-i2c-i2c-corec-make-code-static.patch
+git-hwmon.patch
+include-linux-kbuild-remove-duplicate-entries.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mmc.patch
 git-mtd.patch
+mtd-onenand_simc-make-struct-info-static.patch
+remove-fs-jffs2-ioctlc.patch
+drivers-net-cxgb3-xgmacc-remove-dead-code.patch
+e1000-if-0-two-functions.patch
 git-net.patch
-aha152x-in-debug-mode.patch
+fore200e_param_bs_queue-must-be-__devinit.patch
+backlight-make-2-structs-static.patch
+git-ocfs2.patch
+parisc-extern-inline-static-inline.patch
+cpqphp_ctrlc-remove-dead-code.patch
+kernel-schedc-make-code-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+make-scsi_host_link_pm_policy-static.patch
+drivers-scsi-scsi_errorc-should-include.patch
+drivers-scsi-constantsc-make-2-functions-static.patch
 git-unionfs.patch
+fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts.patch
+git-v9fs.patch
 git-ipwireless_cs.patch
-fix-kgdb-kernel-doc.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-i2ch-kernel-doc-additions.patch
-irqh-fix-kernel-doc.patch
-docbook-bad-file-references.patch
-kthread-silence-bogus-section-mismatch-warning.patch
-profile-likely-unlikely-macros.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+i386-remove-maccumulate-outgoing-args.patch
+arch-i386-mach-generic-probec-make-struct-apic_probe.patch
+arch-i386-mach-es7000-es7000platc-cleanups.patch
+i386-alternativec-really-stop-mces-during-code.patch
+i386-no-need-to-make-enable_cpu_hotplug-a-variable.patch
+arch-i386-mm-discontigc-make-some-variables-static.patch
+serial-sh-sci-fix-build-failure-from-kgdb-fallout.patch
+acpi_ec_remove-fix-use-after-free.patch
+acpi_battery_add-use-after-free.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+mm-page_allocc-make-code-static.patch
+maps2-add-proc-kpagemap-interface.patch
+hugetlbfs-read-support-fix-2.patch
+mm-shmemc-make-3-functions-static.patch
+mm-migratec-cleanups.patch
+mm-mempolicyc-cleanups.patch
+mm-vmstatc-cleanups.patch
+cleanup-arch-alpha-makefile.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+anon_inodes-shouldnt-be-user-visible.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+radeon_driver_vblank_do_wait-static.patch
+unexport-fb_prepare_logo.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
