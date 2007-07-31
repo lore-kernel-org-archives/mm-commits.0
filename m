@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:30:20 -0700
-Message-ID: <200707311930.l6VJUKYD018412@imap1.linux-foundation.org>
+Subject: + drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:30:02 -0700
+Message-ID: <200707311930.l6VJU2jq018385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40050 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45371 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752971AbXGaThf (ORCPT
+	by vger.kernel.org with ESMTP id S1754009AbXGaThh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:37:35 -0400
+	Tue, 31 Jul 2007 15:37:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     drivers/scsi/megaraid.c: kmalloc + memset conversion to kzalloc
+     drivers/char/ip2/ip2main.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/scsi/megaraid.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/char/ip2/ip2main.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-This patch does kmalloc + memset conversion to kzalloc and adds missing check
-for kzalloc return value.
-
- drivers/scsi/megaraid.c | 116109 -> 116094 (-15 bytes)
- drivers/scsi/megaraid.o | 257872 -> 257772 (-100 bytes)
+ drivers/char/ip2/ip2main.c | 104398 -> 104346 (-52 bytes)
+ drivers/char/ip2/ip2main.o | 210710 -> 210702 (-8 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/char/ip2/ip2main.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/megaraid.c~drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc drivers/scsi/megaraid.c
---- a/drivers/scsi/megaraid.c~drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/scsi/megaraid.c
-@@ -4408,8 +4408,10 @@ mega_internal_command(adapter_t *adapter
- 	scmd = &adapter->int_scmd;
- 	memset(scmd, 0, sizeof(Scsi_Cmnd));
+diff -puN drivers/char/ip2/ip2main.c~drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/char/ip2/ip2main.c
+@@ -646,10 +646,9 @@ ip2_loadmain(int *iop, int *irqp, unsign
  
--	sdev = kmalloc(sizeof(struct scsi_device), GFP_KERNEL);
--	memset(sdev, 0, sizeof(struct scsi_device));
-+	sdev = kzalloc(sizeof(struct scsi_device), GFP_KERNEL);
-+	if (!sdev)
-+		return -ENOMEM;
-+
- 	scmd->device = sdev;
- 
- 	scmd->device->host = adapter->host;
+ 	for ( i = 0; i < IP2_MAX_BOARDS; ++i ) {
+ 		if ( ip2config.addr[i] ) {
+-			pB = kmalloc( sizeof(i2eBordStr), GFP_KERNEL);
+-			if ( pB != NULL ) {
++			pB = kzalloc(sizeof(i2eBordStr), GFP_KERNEL);
++			if (pB) {
+ 				i2BoardPtrTable[i] = pB;
+-				memset( pB, 0, sizeof(i2eBordStr) );
+ 				iiSetAddress( pB, ip2config.addr[i], ii2DelayTimer );
+ 				iiReset( pB );
+ 			} else {
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
