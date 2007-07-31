@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:56 -0700
-Message-ID: <200707311929.l6VJTu4e018370@imap1.linux-foundation.org>
+Subject: + drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:39 -0700
+Message-ID: <200707311929.l6VJTd2u018349@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47627 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754079AbXGaThv (ORCPT
+	by vger.kernel.org with ESMTP id S1754079AbXGaThn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:37:51 -0400
+	Tue, 31 Jul 2007 15:37:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, raven@themaw.net
+Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     fs/autofs4/inode.c: kmalloc + memset conversion to kzalloc
+     drivers/scsi/gdth.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/autofs4/inode.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/scsi/gdth.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- fs/autofs4/inode.c | 10467 -> 10435 (-32 bytes)
- fs/autofs4/inode.o | 98576 -> 98552 (-24 bytes)
+ drivers/scsi/gdth.c | 189401 -> 189342 (-59 bytes)
+ drivers/scsi/gdth.o | 331028 -> 330324 (-704 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/inode.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/scsi/gdth.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/autofs4/inode.c~fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc fs/autofs4/inode.c
---- a/fs/autofs4/inode.c~fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc
-+++ a/fs/autofs4/inode.c
-@@ -312,13 +312,11 @@ int autofs4_fill_super(struct super_bloc
- 	struct autofs_sb_info *sbi;
- 	struct autofs_info *ino;
+diff -puN drivers/scsi/gdth.c~drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/scsi/gdth.c
+@@ -458,10 +458,10 @@ int __gdth_execute(struct scsi_device *s
+     DECLARE_COMPLETION_ONSTACK(wait);
+     int rval;
  
--	sbi = kmalloc(sizeof(*sbi), GFP_KERNEL);
-+	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
- 	if (!sbi)
- 		goto fail_unlock;
- 	DPRINTK("starting up, sbi = %p",sbi);
+-    scp = kmalloc(sizeof(*scp), GFP_KERNEL);
++    scp = kzalloc(sizeof(*scp), GFP_KERNEL);
+     if (!scp)
+         return -ENOMEM;
+-    memset(scp, 0, sizeof(*scp));
++
+     scp->device = sdev;
+     /* use request field to save the ptr. to completion struct. */
+     scp->request = (struct request *)&wait;
+@@ -5273,10 +5273,10 @@ static int gdth_ioctl(struct inode *inod
+         hanum = res.ionode; 
+         ha = gdth_find_ha(hanum);
  
--	memset(sbi, 0, sizeof(*sbi));
--
- 	s->s_fs_info = sbi;
- 	sbi->magic = AUTOFS_SBI_MAGIC;
- 	sbi->pipefd = -1;
+-        scp  = kmalloc(sizeof(*scp), GFP_KERNEL);
++        scp = kzalloc(sizeof(*scp), GFP_KERNEL);
+         if (!scp)
+             return -ENOMEM;
+-        memset(scp, 0, sizeof(*scp));
++
+         scp->device = ha->sdev;
+         scp->cmd_len = 12;
+         scp->use_sg = 0;
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
