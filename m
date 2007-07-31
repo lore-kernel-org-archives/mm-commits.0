@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + net-ipv4-ip_optionsc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:30:04 -0700
-Message-ID: <200707311930.l6VJU44U018388@imap1.linux-foundation.org>
+Subject: + drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:30:18 -0700
+Message-ID: <200707311930.l6VJUI3Q018409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57576 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59805 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752177AbXGaTg6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753413AbXGaThF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:36:58 -0400
+	Tue, 31 Jul 2007 15:37:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     net/ipv4/ip_options.c: kmalloc + memset conversion to kzalloc
+     drivers/scsi/lpfc/lpfc_scsi.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     net-ipv4-ip_optionsc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net/ipv4/ip_options.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/scsi/lpfc/lpfc_scsi.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- net/ipv4/ip_options.c | 15425 -> 15368 (-57 bytes)
- net/ipv4/ip_options.o | 133668 -> 133588 (-80 bytes)
+ drivers/scsi/lpfc/lpfc_scsi.c | 42769 -> 42721 (-48 bytes)
+ drivers/scsi/lpfc/lpfc_scsi.o | 191332 -> 191240 (-92 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/ip_options.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/scsi/lpfc/lpfc_scsi.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN net/ipv4/ip_options.c~net-ipv4-ip_optionsc-kmalloc-memset-conversion-to-kzalloc net/ipv4/ip_options.c
---- a/net/ipv4/ip_options.c~net-ipv4-ip_optionsc-kmalloc-memset-conversion-to-kzalloc
-+++ a/net/ipv4/ip_options.c
-@@ -513,11 +513,8 @@ void ip_options_undo(struct ip_options *
+diff -puN drivers/scsi/lpfc/lpfc_scsi.c~drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc drivers/scsi/lpfc/lpfc_scsi.c
+--- a/drivers/scsi/lpfc/lpfc_scsi.c~drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/scsi/lpfc/lpfc_scsi.c
+@@ -208,10 +208,9 @@ lpfc_new_scsi_buf(struct lpfc_vport *vpo
+ 	dma_addr_t pdma_phys;
+ 	uint16_t iotag;
  
- static struct ip_options *ip_options_get_alloc(const int optlen)
- {
--	struct ip_options *opt = kmalloc(sizeof(*opt) + ((optlen + 3) & ~3),
--					 GFP_KERNEL);
--	if (opt)
--		memset(opt, 0, sizeof(*opt));
--	return opt;
-+	return kzalloc(sizeof(struct ip_options) + ((optlen + 3) & ~3),
-+		       GFP_KERNEL);
- }
+-	psb = kmalloc(sizeof(struct lpfc_scsi_buf), GFP_KERNEL);
++	psb = kzalloc(sizeof(struct lpfc_scsi_buf), GFP_KERNEL);
+ 	if (!psb)
+ 		return NULL;
+-	memset(psb, 0, sizeof (struct lpfc_scsi_buf));
  
- static int ip_options_get_finish(struct ip_options **optp,
+ 	/*
+ 	 * Get memory from the pci pool to map the virt space to pci bus space
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
