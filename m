@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-ctl_proc-back.patch added to -mm tree
-Date: Mon, 30 Jul 2007 18:20:24 -0700
-Message-ID: <200707310120.l6V1KOJx008124@imap1.linux-foundation.org>
+Subject: + m32r-build-fix-for-removing-fsh-from-mmh.patch added to -mm tree
+Date: Mon, 30 Jul 2007 18:26:55 -0700
+Message-ID: <200707310126.l6V1Qtl0008327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38428 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60966 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753580AbXGaBVI (ORCPT
+	by vger.kernel.org with ESMTP id S1755154AbXGaB1P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 21:21:08 -0400
+	Mon, 30 Jul 2007 21:27:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, shemminger@linux-foundation.org
+Cc: takata@linux-m32r.org, adobriyan@gmail.com
 
 
 The patch titled
-     Add CTL_PROC back
+     m32r: build fix for removing fs.h from mm.h
 has been added to the -mm tree.  Its filename is
-     add-ctl_proc-back.patch
+     m32r-build-fix-for-removing-fsh-from-mmh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add CTL_PROC back
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: m32r: build fix for removing fs.h from mm.h
+From: Hirokazu Takata <takata@linux-m32r.org>
 
-commit eab03ac7bd3e0da99eb9dc068772a85a5e3f3577 aka
-"[PATCH] Get rid of /proc/sys/proc" was good commit except strace(1) compile
-breakage it introduced:
+This patch is required against the commit:
+  Remove fs.h from mm.h
+  4e950f6f0189f65f8bf069cf2272649ef418f5e4
 
-	system.c:1581: error: 'CTL_PROC' undeclared here (not in a function)
-
-So, add dummy enum back.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Stephen Hemminger <shemminger@osdl.org>
+Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m32r/kernel/ptrace.c   |    1 +
+ arch/m32r/kernel/smpboot.c  |    1 +
+ arch/m32r/kernel/sys_m32r.c |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN include/linux/sysctl.h~add-ctl_proc-back include/linux/sysctl.h
---- a/include/linux/sysctl.h~add-ctl_proc-back
-+++ a/include/linux/sysctl.h
-@@ -62,7 +62,7 @@ enum
- 	CTL_KERN=1,		/* General kernel info and control */
- 	CTL_VM=2,		/* VM management */
- 	CTL_NET=3,		/* Networking */
--	/* was CTL_PROC */
-+	CTL_PROC=4,		/* removal breaks strace(1) compilation */
- 	CTL_FS=5,		/* Filesystems */
- 	CTL_DEBUG=6,		/* Debugging */
- 	CTL_DEV=7,		/* Devices */
+diff -puN arch/m32r/kernel/ptrace.c~m32r-build-fix-for-removing-fsh-from-mmh arch/m32r/kernel/ptrace.c
+--- a/arch/m32r/kernel/ptrace.c~m32r-build-fix-for-removing-fsh-from-mmh
++++ a/arch/m32r/kernel/ptrace.c
+@@ -17,6 +17,7 @@
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+ #include <linux/mm.h>
++#include <linux/err.h>
+ #include <linux/smp.h>
+ #include <linux/smp_lock.h>
+ #include <linux/errno.h>
+diff -puN arch/m32r/kernel/smpboot.c~m32r-build-fix-for-removing-fsh-from-mmh arch/m32r/kernel/smpboot.c
+--- a/arch/m32r/kernel/smpboot.c~m32r-build-fix-for-removing-fsh-from-mmh
++++ a/arch/m32r/kernel/smpboot.c
+@@ -43,6 +43,7 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
++#include <linux/err.h>
+ #include <linux/irq.h>
+ #include <linux/bootmem.h>
+ #include <linux/delay.h>
+diff -puN arch/m32r/kernel/sys_m32r.c~m32r-build-fix-for-removing-fsh-from-mmh arch/m32r/kernel/sys_m32r.c
+--- a/arch/m32r/kernel/sys_m32r.c~m32r-build-fix-for-removing-fsh-from-mmh
++++ a/arch/m32r/kernel/sys_m32r.c
+@@ -10,6 +10,7 @@
+ #include <linux/errno.h>
+ #include <linux/sched.h>
+ #include <linux/mm.h>
++#include <linux/fs.h>
+ #include <linux/smp.h>
+ #include <linux/sem.h>
+ #include <linux/msg.h>
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from takata@linux-m32r.org are
 
 origin.patch
-gitignore-update.patch
-add-ctl_proc-back.patch
-consolidate-ptrace_detach.patch
-use-list_head-in-binfmt-handling-update.patch
-make-unregister_binfmt-return-void.patch
-fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
-fix-leak-on-proc-lockdep_stats.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
+m32r-build-fix-for-removing-fsh-from-mmh.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
