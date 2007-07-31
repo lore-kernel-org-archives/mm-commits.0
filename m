@@ -1,110 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:59:18 -0700
-Message-ID: <200707312359.l6VNxIeH029639@imap1.linux-foundation.org>
+Subject: - rtc-m48t59-driver-no_irq-mode-fixup.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:59:16 -0700
+Message-ID: <200707312359.l6VNxGir029636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43534 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60845 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757957AbXHAAQb (ORCPT
+	by vger.kernel.org with ESMTP id S1756868AbXHAAQc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:31 -0400
+	Tue, 31 Jul 2007 20:16:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: rongkai.zhan@windriver.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/decnet/dn_route.c: kmalloc + memset conversion to kzalloc
+     rtc-m48t59 driver NO_IRQ mode fixup
 has been removed from the -mm tree.  Its filename was
-     net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc.patch
+     rtc-m48t59-driver-no_irq-mode-fixup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net/decnet/dn_route.c: kmalloc + memset conversion to kzalloc
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: rtc-m48t59 driver NO_IRQ mode fixup
+From: Mark Zhan <rongkai.zhan@windriver.com>
 
- net/decnet/dn_route.c | 45013 -> 44991 (-22 bytes)
- net/decnet/dn_route.o | 199388 -> 199580 (+192 bytes)
+Since irq in m48t59_private struct is defined as 'unsigned int', which will
+make the following if sentence to be never true:
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+         if (m48t59->irq < 0)
+                  m48t59->irq = NO_IRQ;
+
+And thus it will make the m48t59_rtc_probe() is failed when the driver is
+working in a no irq mode:
+
+Signed-off-by: Mark Zhan <rongkai.zhan@windriver.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/decnet/dn_route.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-m48t59.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/decnet/dn_route.c~net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc net/decnet/dn_route.c
---- a/net/decnet/dn_route.c~net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc
-+++ a/net/decnet/dn_route.c
-@@ -1737,8 +1737,9 @@ static int dn_rt_cache_seq_open(struct i
- {
- 	struct seq_file *seq;
- 	int rc = -ENOMEM;
--	struct dn_rt_cache_iter_state *s = kmalloc(sizeof(*s), GFP_KERNEL);
-+	struct dn_rt_cache_iter_state *s;
- 
-+	s = kzalloc(sizeof(*s), GFP_KERNEL);
- 	if (!s)
- 		goto out;
- 	rc = seq_open(file, &dn_rt_cache_seq_ops);
-@@ -1746,7 +1747,6 @@ static int dn_rt_cache_seq_open(struct i
- 		goto out_kfree;
- 	seq		= file->private_data;
- 	seq->private	= s;
--	memset(s, 0, sizeof(*s));
- out:
- 	return rc;
- out_kfree:
+diff -puN drivers/rtc/rtc-m48t59.c~rtc-m48t59-driver-no_irq-mode-fixup drivers/rtc/rtc-m48t59.c
+--- a/drivers/rtc/rtc-m48t59.c~rtc-m48t59-driver-no_irq-mode-fixup
++++ a/drivers/rtc/rtc-m48t59.c
+@@ -35,7 +35,7 @@
+ struct m48t59_private {
+ 	void __iomem *ioaddr;
+ 	unsigned int size; /* iomem size */
+-	unsigned int irq;
++	int irq;
+ 	struct rtc_device *rtc;
+ 	spinlock_t lock; /* serialize the NVRAM and RTC access */
+ };
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from rongkai.zhan@windriver.com are
 
 origin.patch
-fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-media-video-msp3400-driverc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-ide-arm-icsidec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
-mtd-add-module-license-to-mtdbdi.patch
-mtd-remove-redundant-dead-code-from-physmap_ofc.patch
-drivers-mtd-inftlmountc-kmalloc-memset-conversion-to-kcalloc.patch
-usb-remove-redundant-memset-from-amd5536udc.patch
-drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc.patch
-drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
-drivers-pci-hotplug-cpqphp_ctrlc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
-drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
-drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch
-drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
-arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+no-need-to-convert-file-private_data-to-rtc-device.patch
