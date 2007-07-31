@@ -1,71 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-fix-two-section-mismatch-warnings.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:55:39 -0700
-Message-ID: <200707312355.l6VNtdOf029242@imap1.linux-foundation.org>
+Subject: - fix-a-typo-in-documentation-keystxt.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:56:27 -0700
+Message-ID: <200707312356.l6VNuRJ2029324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56559 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46973 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761383AbXHAART (ORCPT
+	by vger.kernel.org with ESMTP id S1761166AbXHAARH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:17:19 -0400
+	Tue, 31 Jul 2007 20:17:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: satyam@infradead.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: fix two section mismatch warnings
+     Fix a typo in Documentation/keys.txt
 has been removed from the -mm tree.  Its filename was
-     alpha-fix-two-section-mismatch-warnings.patch
+     fix-a-typo-in-documentation-keystxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: alpha: fix two section mismatch warnings
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Fix a typo in Documentation/keys.txt
+From: Satyam Sharma <satyam@infradead.org>
 
-Fix the following section mismatch warnings:
-
-WARNING: o-alpha/vmlinux.o(.text+0x1a4d4): Section mismatch: reference to .init.text:free_area_init (between 'paging_init' and 'srm_paging_stop')
-WARNING: o-alpha/vmlinux.o(.text+0x1a4dc): Section mismatch: reference to .init.text:free_area_init (between 'paging_init' and 'srm_paging_stop')
-
-One instance of paging_init() was declared __init but not the other one -
-used by defconfig.  Fixed by declaring the second instance ___init too.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/mm/init.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/keys.txt |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/alpha/mm/init.c~alpha-fix-two-section-mismatch-warnings arch/alpha/mm/init.c
---- a/arch/alpha/mm/init.c~alpha-fix-two-section-mismatch-warnings
-+++ a/arch/alpha/mm/init.c
-@@ -267,8 +267,7 @@ callback_init(void * kernel_end)
- /*
-  * paging_init() sets up the memory map.
-  */
--void
--paging_init(void)
-+void __init paging_init(void)
- {
- 	unsigned long zones_size[MAX_NR_ZONES] = {0, };
- 	unsigned long dma_pfn, high_pfn;
+diff -puN Documentation/keys.txt~fix-a-typo-in-documentation-keystxt Documentation/keys.txt
+--- a/Documentation/keys.txt~fix-a-typo-in-documentation-keystxt
++++ a/Documentation/keys.txt
+@@ -859,9 +859,8 @@ payload contents" for more information.
+ 	void unregister_key_type(struct key_type *type);
+ 
+ 
+-Under some circumstances, it may be desirable to desirable to deal with a
+-bundle of keys.  The facility provides access to the keyring type for managing
+-such a bundle:
++Under some circumstances, it may be desirable to deal with a bundle of keys.
++The facility provides access to the keyring type for managing such a bundle:
+ 
+ 	struct key_type key_type_keyring;
+ 
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from satyam@infradead.org are
 
 origin.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-pass-g-to-assembler-under-config_debug_info.patch
-mkmakefile-include-arch-on-o=-builds.patch
-include-linux-kbuild-remove-duplicate-entries.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-x86-add-cpu-codenames-for-kconfigcpu.patch
-change-order-in-kconfigcpu-i386.patch
+netconsole-cleanups-codingstyle-prettyfication.patch
+netconsole-remove-bogus-check.patch
+netconsole-simplify-boot-module-option-setup-logic.patch
+netconsole-use-netif_running-in-write_msg.patch
+netconsole-add-some-useful-tips-to-documentation.patch
+netconsole-introduce-netconsole_target.patch
+netconsole-introduce-netconsole_netdev_notifier.patch
+netconsole-support-multiple-logging-targets.patch
+netconsole-support-dynamic-reconfiguration-using-configfs.patch
+introduce-u16_max-and-u32_max.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range.patch
+introduce-strtol_check_range-fix.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+use-mutex-instead-of-semaphore-in-the-host-ap-driver.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
