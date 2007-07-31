@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:09 -0700
-Message-ID: <200707311929.l6VJT9Bo018302@imap1.linux-foundation.org>
+Subject: + drivers-pci-hotplug-cpqphp_ctrlc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:17 -0700
+Message-ID: <200707311929.l6VJTHB7018316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42858 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52546 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752576AbXGaT3i (ORCPT
+	by vger.kernel.org with ESMTP id S1752999AbXGaT3t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:29:38 -0400
+	Tue, 31 Jul 2007 15:29:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, mike.miller@hp.com
+Cc: m.kozlowski@tuxland.pl, kristen.c.accardi@intel.com
 
 
 The patch titled
-     drivers/block/cciss.c: kmalloc + memset conversion to kzalloc
+     drivers/pci/hotplug/cpqphp_ctrl.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-pci-hotplug-cpqphp_ctrlc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/block/cciss.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/pci/hotplug/cpqphp_ctrl.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/block/cciss.c | 104285 -> 104168 (-117 bytes)
- drivers/block/cciss.o | 277400 -> 277124 (-276 bytes)
+ drivers/pci/hotplug/cpqphp_ctrl.c | 79698 -> 79638 (-60 bytes)
+ drivers/pci/hotplug/cpqphp_ctrl.o | 192896 -> 192736 (-160 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Acked-by: Mike Miller <mike.miller@hp.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/pci/hotplug/cpqphp_ctrl.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/cciss.c~drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc drivers/block/cciss.c
---- a/drivers/block/cciss.c~drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/block/cciss.c
-@@ -1977,12 +1977,13 @@ cciss_read_capacity(int ctlr, int logvol
- {
- 	ReadCapdata_struct *buf;
- 	int return_code;
--	buf = kmalloc(sizeof(ReadCapdata_struct), GFP_KERNEL);
--	if (buf == NULL) {
-+
-+	buf = kzalloc(sizeof(ReadCapdata_struct), GFP_KERNEL);
-+	if (!buf) {
- 		printk(KERN_WARNING "cciss: out of memory\n");
- 		return;
- 	}
--	memset(buf, 0, sizeof(ReadCapdata_struct));
-+
- 	if (withirq)
- 		return_code = sendcmd_withirq(CCISS_READ_CAPACITY,
- 				ctlr, buf, sizeof(ReadCapdata_struct),
-@@ -2003,7 +2004,6 @@ cciss_read_capacity(int ctlr, int logvol
- 		printk(KERN_INFO "      blocks= %llu block_size= %d\n",
- 		(unsigned long long)*total_size+1, *block_size);
- 	kfree(buf);
--	return;
- }
+diff -puN drivers/pci/hotplug/cpqphp_ctrl.c~drivers-pci-hotplug-cpqphp_ctrlc-kmalloc-memset-conversion-to-kzalloc drivers/pci/hotplug/cpqphp_ctrl.c
+--- a/drivers/pci/hotplug/cpqphp_ctrl.c~drivers-pci-hotplug-cpqphp_ctrlc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/pci/hotplug/cpqphp_ctrl.c
+@@ -973,16 +973,13 @@ struct pci_func *cpqhp_slot_create(u8 bu
+ 	struct pci_func *new_slot;
+ 	struct pci_func *next;
  
- static void
-@@ -2011,12 +2011,13 @@ cciss_read_capacity_16(int ctlr, int log
- {
- 	ReadCapdata_struct_16 *buf;
- 	int return_code;
--	buf = kmalloc(sizeof(ReadCapdata_struct_16), GFP_KERNEL);
--	if (buf == NULL) {
-+
-+	buf = kzalloc(sizeof(ReadCapdata_struct_16), GFP_KERNEL);
-+	if (!buf) {
- 		printk(KERN_WARNING "cciss: out of memory\n");
- 		return;
+-	new_slot = kmalloc(sizeof(*new_slot), GFP_KERNEL);
+-
+-	if (new_slot == NULL) {
++	new_slot = kzalloc(sizeof(*new_slot), GFP_KERNEL);
++	if (!new_slot) {
+ 		/* I'm not dead yet!
+ 		 * You will be. */
+-		return new_slot;
++		return NULL;
  	}
--	memset(buf, 0, sizeof(ReadCapdata_struct_16));
-+
- 	if (withirq) {
- 		return_code = sendcmd_withirq(CCISS_READ_CAPACITY_16,
- 			ctlr, buf, sizeof(ReadCapdata_struct_16),
-@@ -2038,7 +2039,6 @@ cciss_read_capacity_16(int ctlr, int log
- 	printk(KERN_INFO "      blocks= %llu block_size= %d\n",
- 	       (unsigned long long)*total_size+1, *block_size);
- 	kfree(buf);
--	return;
- }
  
- static int cciss_revalidate(struct gendisk *disk)
+-	memset(new_slot, 0, sizeof(struct pci_func));
+-
+ 	new_slot->next = NULL;
+ 	new_slot->configured = 1;
+ 
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
