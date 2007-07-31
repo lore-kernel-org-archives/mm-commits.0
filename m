@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:29 -0700
-Message-ID: <200707311929.l6VJTTek018334@imap1.linux-foundation.org>
+Subject: + include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:35 -0700
+Message-ID: <200707311929.l6VJTZUJ018343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41575 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42410 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754999AbXGaTaW (ORCPT
+	by vger.kernel.org with ESMTP id S1754708AbXGaTaU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:30:22 -0400
+	Tue, 31 Jul 2007 15:30:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, agk@redhat.com
+Cc: m.kozlowski@tuxland.pl, dhowells@redhat.com
 
 
 The patch titled
-     drivers/md/dm-target.c: kmalloc + memset conversion to kzalloc
+     include/asm-frv/thread_info.h: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
+     include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/md/dm-target.c: kmalloc + memset conversion to kzalloc
+Subject: include/asm-frv/thread_info.h: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/md/dm-target.c | 3300 -> 3271 (-29 bytes)
- drivers/md/dm-target.o | 105641 -> 105449 (-192 bytes)
-
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Alasdair G Kergon <agk@redhat.com>
+Acked-By: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-target.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ include/asm-frv/thread_info.h |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/dm-target.c~drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc drivers/md/dm-target.c
---- a/drivers/md/dm-target.c~drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/md/dm-target.c
-@@ -88,12 +88,11 @@ void dm_put_target_type(struct target_ty
- 
- static struct tt_internal *alloc_target(struct target_type *t)
- {
--	struct tt_internal *ti = kmalloc(sizeof(*ti), GFP_KERNEL);
-+	struct tt_internal *ti;
- 
--	if (ti) {
--		memset(ti, 0, sizeof(*ti));
-+	ti = kzalloc(sizeof(*ti), GFP_KERNEL);
-+	if (ti)
- 		ti->tt = *t;
--	}
- 
- 	return ti;
- }
+diff -puN include/asm-frv/thread_info.h~include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc include/asm-frv/thread_info.h
+--- a/include/asm-frv/thread_info.h~include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc
++++ a/include/asm-frv/thread_info.h
+@@ -88,9 +88,8 @@ register struct thread_info *__current_t
+ 	({							\
+ 		struct thread_info *ret;			\
+ 								\
+-		ret = kmalloc(THREAD_SIZE, GFP_KERNEL);		\
+-		if (ret)					\
+-			memset(ret, 0, THREAD_SIZE);		\
++		ret = kzalloc(THREAD_SIZE, GFP_KERNEL);		\
++								\
+ 		ret;						\
+ 	})
+ #else
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
