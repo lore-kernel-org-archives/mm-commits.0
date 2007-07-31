@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:30:12 -0700
-Message-ID: <200707311930.l6VJUCOr018400@imap1.linux-foundation.org>
+Subject: + drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:30:08 -0700
+Message-ID: <200707311930.l6VJU82G018394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57255 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58876 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754626AbXGaTiI (ORCPT
+	by vger.kernel.org with ESMTP id S1754467AbXGaTiC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:38:08 -0400
+	Tue, 31 Jul 2007 15:38:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, edward@namesys.com, vs@namesys.com
+Cc: m.kozlowski@tuxland.pl, samuel@sortiz.org
 
 
 The patch titled
-     fs/reiser4/ktxnmgrd.c: kmalloc + memset conversion to kzalloc
+     drivers/net/irda/irda-usb.c: mostly kmalloc + memset conversion to k[cz]alloc
 has been added to the -mm tree.  Its filename is
-     fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/reiser4/ktxnmgrd.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/net/irda/irda-usb.c: mostly kmalloc + memset conversion to k[cz]alloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- fs/reiser4/ktxnmgrd.c | 5314 -> 5277 (-37 bytes)
- fs/reiser4/ktxnmgrd.o | 131624 -> 131496 (-128 bytes)
+ drivers/net/irda/irda-usb.c | 59694 -> 59541 (-153 bytes)
+ drivers/net/irda/irda-usb.o | 170588 -> 169256 (-1332 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Edward Shishkin <edward@namesys.com>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/ktxnmgrd.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/net/irda/irda-usb.c |   24 ++++++++++--------------
+ 1 files changed, 10 insertions(+), 14 deletions(-)
 
-diff -puN fs/reiser4/ktxnmgrd.c~fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc fs/reiser4/ktxnmgrd.c
---- a/fs/reiser4/ktxnmgrd.c~fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc
-+++ a/fs/reiser4/ktxnmgrd.c
-@@ -130,13 +130,12 @@ int reiser4_init_ktxnmgrd(struct super_b
+diff -puN drivers/net/irda/irda-usb.c~drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc drivers/net/irda/irda-usb.c
+--- a/drivers/net/irda/irda-usb.c~drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc
++++ a/drivers/net/irda/irda-usb.c
+@@ -1561,10 +1561,9 @@ static inline struct irda_class_desc *ir
+ 	struct irda_class_desc *desc;
+ 	int ret;
  
- 	assert("zam-1014", mgr->daemon == NULL);
+-	desc = kmalloc(sizeof (*desc), GFP_KERNEL);
+-	if (desc == NULL) 
++	desc = kzalloc(sizeof(*desc), GFP_KERNEL);
++	if (!desc)
+ 		return NULL;
+-	memset(desc, 0, sizeof(*desc));
  
--	ctx = kmalloc(sizeof(ktxnmgrd_context), reiser4_ctx_gfp_mask_get());
--	if (ctx == NULL)
-+	ctx = kzalloc(sizeof(ktxnmgrd_context), reiser4_ctx_gfp_mask_get());
-+	if (!ctx)
- 		return RETERR(-ENOMEM);
+ 	/* USB-IrDA class spec 1.0:
+ 	 *	6.1.3: Standard "Get Descriptor" Device Request is not
+@@ -1617,7 +1616,7 @@ static int irda_usb_probe(struct usb_int
+ {
+ 	struct net_device *net;
+ 	struct usb_device *dev = interface_to_usbdev(intf);
+-	struct irda_usb_cb *self = NULL;
++	struct irda_usb_cb *self;
+ 	struct usb_host_interface *interface;
+ 	struct irda_class_desc *irda_desc;
+ 	int ret = -ENOMEM;
+@@ -1655,7 +1654,7 @@ static int irda_usb_probe(struct usb_int
+ 		self->header_length = USB_IRDA_HEADER;
+ 	}
  
- 	assert("nikita-2442", ctx != NULL);
+-	self->rx_urb = kzalloc(self->max_rx_urb * sizeof(struct urb *),
++	self->rx_urb = kcalloc(self->max_rx_urb, sizeof(struct urb *),
+ 				GFP_KERNEL);
  
--	memset(ctx, 0, sizeof *ctx);
- 	init_waitqueue_head(&ctx->wait);
+ 	for (i = 0; i < self->max_rx_urb; i++) {
+@@ -1715,7 +1714,7 @@ static int irda_usb_probe(struct usb_int
+ 	/* Find IrDA class descriptor */
+ 	irda_desc = irda_usb_find_class_desc(intf);
+ 	ret = -ENODEV;
+-	if (irda_desc == NULL)
++	if (!irda_desc)
+ 		goto err_out_3;
  
- 	/*kcond_init(&ctx->startup);*/
+ 	if (self->needspatch) {
+@@ -1738,15 +1737,13 @@ static int irda_usb_probe(struct usb_int
+ 	/* Don't change this buffer size and allocation without doing
+ 	 * some heavy and complete testing. Don't ask why :-(
+ 	 * Jean II */
+-	self->speed_buff = kmalloc(IRDA_USB_SPEED_MTU, GFP_KERNEL);
+-	if (self->speed_buff == NULL) 
++	self->speed_buff = kzalloc(IRDA_USB_SPEED_MTU, GFP_KERNEL);
++	if (!self->speed_buff)
+ 		goto err_out_3;
+ 
+-	memset(self->speed_buff, 0, IRDA_USB_SPEED_MTU);
+-
+ 	self->tx_buff = kzalloc(IRDA_SKB_MAX_MTU + self->header_length,
+ 				GFP_KERNEL);
+-	if (self->tx_buff == NULL)
++	if (!self->tx_buff)
+ 		goto err_out_4;
+ 
+ 	ret = irda_usb_open(self);
+@@ -1767,12 +1764,11 @@ static int irda_usb_probe(struct usb_int
+ 
+ 		/* replace IrDA class descriptor with what patched device is now reporting */
+ 		irda_desc = irda_usb_find_class_desc (self->usbintf);
+-		if (irda_desc == NULL) {
++		if (!irda_desc) {
+ 			ret = -ENODEV;
+ 			goto err_out_6;
+ 		}
+-		if (self->irda_desc)
+-			kfree (self->irda_desc);
++		kfree(self->irda_desc);
+ 		self->irda_desc = irda_desc;
+ 		irda_usb_init_qos(self);
+ 	}
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
