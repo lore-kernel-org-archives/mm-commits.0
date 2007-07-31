@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch added to -mm tree
-Date: Mon, 30 Jul 2007 18:38:55 -0700
-Message-ID: <200707310138.l6V1ctoV008835@imap1.linux-foundation.org>
+Subject: + cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch added to -mm tree
+Date: Mon, 30 Jul 2007 18:38:20 -0700
+Message-ID: <200707310138.l6V1cKfv008792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37088 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38824 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752102AbXGaBjh (ORCPT
+	by vger.kernel.org with ESMTP id S1753201AbXGaBjr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 21:39:37 -0400
+	Mon, 30 Jul 2007 21:39:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: trenn@suse.de, ak@suse.de, benh@kernel.crashing.org, bryan.wu@analog.com, da
 
 
 The patch titled
-     cpufreq: allow ondemand and conservative cpufreq governors to be used as default
+     cpufreq: move policy's governor initialisation out of low-level drivers into cpufreq core
 has been added to the -mm tree.  Its filename is
-     cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
+     cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,25 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpufreq: allow ondemand and conservative cpufreq governors to be used as default
+Subject: cpufreq: move policy's governor initialisation out of low-level drivers into cpufreq core
 From: Thomas Renninger <trenn@suse.de>
-
-Depending on the transition latency of the HW for cpufreq switches, the
-ondemand or conservative governor cannot be used with certain cpufreq
-drivers.  Still the ondemand should be the default governor on a wide range
-of systems.  This patch allows this and lets the governor fallback to the
-performance governor at cpufreq driver load time, if the driver does not
-support fast enough frequency switching.
-
-Main benefit is that on e.g.  installation or other systems without
-userspace support a working dynamic cpufreq support can be achieved on most
-systems by simply loading the cpufreq driver.  This is especially essential
-for recent x86(_64) laptop hardware which may rely on working dynamic
-cpufreq OS support.
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Dave Jones <davej@redhat.com>
 Cc: Dave Jones <davej@redhat.com>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Bryan Wu <bryan.wu@analog.com>
@@ -57,231 +43,326 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/Kconfig                |   27 +++++++++++++++++++----
- drivers/cpufreq/cpufreq.c              |   12 ++++++++++
- drivers/cpufreq/cpufreq_conservative.c |   19 +++++++---------
- drivers/cpufreq/cpufreq_ondemand.c     |   22 +++++++-----------
- include/linux/cpufreq.h                |   20 ++++++++++++++---
- 5 files changed, 70 insertions(+), 30 deletions(-)
+ arch/arm/mach-imx/cpufreq.c                       |    1 -
+ arch/arm/mach-sa1100/cpu-sa1110.c                 |    1 -
+ arch/arm/plat-omap/cpu-omap.c                     |    1 -
+ arch/blackfin/mach-bf533/cpu.c                    |    2 --
+ arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c       |    1 -
+ arch/i386/kernel/cpu/cpufreq/cpufreq-nforce2.c    |    1 -
+ arch/i386/kernel/cpu/cpufreq/e_powersaver.c       |    1 -
+ arch/i386/kernel/cpu/cpufreq/elanfreq.c           |    1 -
+ arch/i386/kernel/cpu/cpufreq/gx-suspmod.c         |    1 -
+ arch/i386/kernel/cpu/cpufreq/longhaul.c           |    1 -
+ arch/i386/kernel/cpu/cpufreq/p4-clockmod.c        |    1 -
+ arch/i386/kernel/cpu/cpufreq/powernow-k6.c        |    1 -
+ arch/i386/kernel/cpu/cpufreq/powernow-k7.c        |    2 --
+ arch/i386/kernel/cpu/cpufreq/powernow-k8.c        |    1 -
+ arch/i386/kernel/cpu/cpufreq/sc520_freq.c         |    1 -
+ arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c |    1 -
+ arch/i386/kernel/cpu/cpufreq/speedstep-ich.c      |    1 -
+ arch/i386/kernel/cpu/cpufreq/speedstep-smi.c      |    1 -
+ arch/ia64/kernel/cpufreq/acpi-cpufreq.c           |    2 --
+ arch/powerpc/platforms/cell/cbe_cpufreq.c         |    2 --
+ arch/powerpc/platforms/pasemi/cpufreq.c           |    2 --
+ arch/powerpc/platforms/powermac/cpufreq_32.c      |    1 -
+ arch/powerpc/platforms/powermac/cpufreq_64.c      |    1 -
+ arch/sh/kernel/cpufreq.c                          |    1 -
+ arch/sparc64/kernel/us2e_cpufreq.c                |    1 -
+ drivers/cpufreq/cpufreq.c                         |    2 ++
+ 26 files changed, 2 insertions(+), 30 deletions(-)
 
-diff -puN drivers/cpufreq/Kconfig~cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default drivers/cpufreq/Kconfig
---- a/drivers/cpufreq/Kconfig~cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default
-+++ a/drivers/cpufreq/Kconfig
-@@ -56,10 +56,6 @@ config CPU_FREQ_STAT_DETAILS
- 
- 	  If in doubt, say N.
- 
--# Note that it is not currently possible to set the other governors (such as ondemand)
--# as the default, since if they fail to initialise, cpufreq will be
--# left in an undefined state.
--
- choice
- 	prompt "Default CPUFreq governor"
- 	default CPU_FREQ_DEFAULT_GOV_USERSPACE if CPU_FREQ_SA1100 || CPU_FREQ_SA1110
-@@ -85,6 +81,29 @@ config CPU_FREQ_DEFAULT_GOV_USERSPACE
- 	  program shall be able to set the CPU dynamically without having
- 	  to enable the userspace governor manually.
- 
-+config CPU_FREQ_DEFAULT_GOV_ONDEMAND
-+	bool "ondemand"
-+	select CPU_FREQ_GOV_ONDEMAND
-+	select CPU_FREQ_GOV_PERFORMANCE
-+	help
-+	  Use the CPUFreq governor 'ondemand' as default. This allows
-+	  you to get a full dynamic frequency capable system by simply
-+	  loading your cpufreq low-level hardware driver.
-+	  Be aware that not all cpufreq drivers support the ondemand
-+	  governor. If unsure have a look at the help section of the
-+	  driver. Fallback governor will be the performance governor.
-+
-+config CPU_FREQ_DEFAULT_GOV_CONSERVATIVE
-+	bool "conservative"
-+	select CPU_FREQ_GOV_CONSERVATIVE
-+	select CPU_FREQ_GOV_PERFORMANCE
-+	help
-+	  Use the CPUFreq governor 'conservative' as default. This allows
-+	  you to get a full dynamic frequency capable system by simply
-+	  loading your cpufreq low-level hardware driver.
-+	  Be aware that not all cpufreq drivers support the conservative
-+	  governor. If unsure have a look at the help section of the
-+	  driver. Fallback governor will be the performance governor.
- endchoice
- 
- config CPU_FREQ_GOV_PERFORMANCE
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -1484,6 +1484,18 @@ static int __cpufreq_governor(struct cpu
- 					unsigned int event)
- {
- 	int ret;
-+	struct cpufreq_governor *gov = CPUFREQ_PERFORMANCE_GOVERNOR;
-+
-+	if (policy->governor->max_transition_latency &&
-+	    policy->cpuinfo.transition_latency >
-+	    policy->governor->max_transition_latency) {
-+		printk(KERN_WARNING "%s governor failed, too long"
-+		       " transition latency of HW, fallback"
-+		       " to %s governor\n",
-+		       policy->governor->name,
-+		       gov->name);
-+		       policy->governor = gov;
-+	}
- 
- 	if (!try_module_get(policy->governor->owner))
+diff -puN arch/arm/mach-imx/cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/arm/mach-imx/cpufreq.c
+--- a/arch/arm/mach-imx/cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/arm/mach-imx/cpufreq.c
+@@ -269,7 +269,6 @@ static int __init imx_cpufreq_driver_ini
  		return -EINVAL;
-diff -puN drivers/cpufreq/cpufreq_conservative.c~cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default drivers/cpufreq/cpufreq_conservative.c
---- a/drivers/cpufreq/cpufreq_conservative.c~cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default
-+++ a/drivers/cpufreq/cpufreq_conservative.c
-@@ -58,7 +58,7 @@ static unsigned int 				def_sampling_rat
- #define DEF_SAMPLING_RATE_LATENCY_MULTIPLIER	(1000)
- #define DEF_SAMPLING_DOWN_FACTOR		(1)
- #define MAX_SAMPLING_DOWN_FACTOR		(10)
--#define TRANSITION_LATENCY_LIMIT		(10 * 1000)
-+#define TRANSITION_LATENCY_LIMIT		(10 * 1000 * 1000)
  
- static void do_dbs_timer(struct work_struct *work);
+ 	policy->cur = policy->min = policy->max = imx_get_speed(0);
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.min_freq = 8000;
+ 	policy->cpuinfo.max_freq = 200000;
+ 	 /* Manual states, that PLL stabilizes in two CLK32 periods */
+diff -puN arch/arm/mach-sa1100/cpu-sa1110.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/arm/mach-sa1100/cpu-sa1110.c
+--- a/arch/arm/mach-sa1100/cpu-sa1110.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/arm/mach-sa1100/cpu-sa1110.c
+@@ -331,7 +331,6 @@ static int __init sa1110_cpu_init(struct
+ 	if (policy->cpu != 0)
+ 		return -EINVAL;
+ 	policy->cur = policy->min = policy->max = sa11x0_getspeed(0);
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.min_freq = 59000;
+ 	policy->cpuinfo.max_freq = 287000;
+ 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
+diff -puN arch/arm/plat-omap/cpu-omap.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/arm/plat-omap/cpu-omap.c
+--- a/arch/arm/plat-omap/cpu-omap.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/arm/plat-omap/cpu-omap.c
+@@ -108,7 +108,6 @@ static int __init omap_cpu_init(struct c
+ 	if (policy->cpu != 0)
+ 		return -EINVAL;
+ 	policy->cur = policy->min = policy->max = omap_getspeed(0);
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.min_freq = clk_round_rate(mpu_clk, 0) / 1000;
+ 	policy->cpuinfo.max_freq = clk_round_rate(mpu_clk, VERY_HI_RATE) / 1000;
+ 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
+diff -puN arch/blackfin/mach-bf533/cpu.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/blackfin/mach-bf533/cpu.c
+--- a/arch/blackfin/mach-bf533/cpu.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/blackfin/mach-bf533/cpu.c
+@@ -118,8 +118,6 @@ static int __init __bf533_cpu_init(struc
+ 	if (policy->cpu != 0)
+ 		return -EINVAL;
  
-@@ -466,9 +466,6 @@ static int cpufreq_governor_dbs(struct c
- 		    (!policy->cur))
- 			return -EINVAL;
- 
--		if (policy->cpuinfo.transition_latency >
--				(TRANSITION_LATENCY_LIMIT * 1000))
--			return -EINVAL;
- 		if (this_dbs_info->enable) /* Already enabled */
- 			break;
- 		 
-@@ -551,15 +548,17 @@ static int cpufreq_governor_dbs(struct c
- 	return 0;
- }
- 
--static struct cpufreq_governor cpufreq_gov_dbs = {
--	.name		= "conservative",
--	.governor	= cpufreq_governor_dbs,
--	.owner		= THIS_MODULE,
-+struct cpufreq_governor cpufreq_gov_conservative = {
-+	.name			= "conservative",
-+	.governor		= cpufreq_governor_dbs,
-+	.max_transition_latency	= TRANSITION_LATENCY_LIMIT,
-+	.owner			= THIS_MODULE,
- };
-+EXPORT_SYMBOL(cpufreq_gov_conservative);
- 
- static int __init cpufreq_gov_dbs_init(void)
- {
--	return cpufreq_register_governor(&cpufreq_gov_dbs);
-+	return cpufreq_register_governor(&cpufreq_gov_conservative);
- }
- 
- static void __exit cpufreq_gov_dbs_exit(void)
-@@ -567,7 +566,7 @@ static void __exit cpufreq_gov_dbs_exit(
- 	/* Make sure that the scheduled work is indeed not running */
- 	flush_scheduled_work();
- 
--	cpufreq_unregister_governor(&cpufreq_gov_dbs);
-+	cpufreq_unregister_governor(&cpufreq_gov_conservative);
- }
- 
- 
-diff -puN drivers/cpufreq/cpufreq_ondemand.c~cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default drivers/cpufreq/cpufreq_ondemand.c
---- a/drivers/cpufreq/cpufreq_ondemand.c~cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default
-+++ a/drivers/cpufreq/cpufreq_ondemand.c
-@@ -47,7 +47,7 @@ static unsigned int def_sampling_rate;
- 			(def_sampling_rate / MIN_SAMPLING_RATE_RATIO)
- #define MAX_SAMPLING_RATE			(500 * def_sampling_rate)
- #define DEF_SAMPLING_RATE_LATENCY_MULTIPLIER	(1000)
--#define TRANSITION_LATENCY_LIMIT		(10 * 1000)
-+#define TRANSITION_LATENCY_LIMIT		(10 * 1000 * 1000)
- 
- static void do_dbs_timer(struct work_struct *work);
- 
-@@ -508,12 +508,6 @@ static int cpufreq_governor_dbs(struct c
- 		if ((!cpu_online(cpu)) || (!policy->cur))
- 			return -EINVAL;
- 
--		if (policy->cpuinfo.transition_latency >
--				(TRANSITION_LATENCY_LIMIT * 1000)) {
--			printk(KERN_WARNING "ondemand governor failed to load "
--			       "due to too long transition latency\n");
--			return -EINVAL;
--		}
- 		if (this_dbs_info->enable) /* Already enabled */
- 			break;
- 
-@@ -585,11 +579,13 @@ static int cpufreq_governor_dbs(struct c
- 	return 0;
- }
- 
--static struct cpufreq_governor cpufreq_gov_dbs = {
--	.name = "ondemand",
--	.governor = cpufreq_governor_dbs,
--	.owner = THIS_MODULE,
-+struct cpufreq_governor cpufreq_gov_ondemand = {
-+	.name			= "ondemand",
-+	.governor		= cpufreq_governor_dbs,
-+	.max_transition_latency = TRANSITION_LATENCY_LIMIT,
-+	.owner			= THIS_MODULE,
- };
-+EXPORT_SYMBOL(cpufreq_gov_ondemand);
- 
- static int __init cpufreq_gov_dbs_init(void)
- {
-@@ -598,12 +594,12 @@ static int __init cpufreq_gov_dbs_init(v
- 		printk(KERN_ERR "Creation of kondemand failed\n");
- 		return -EFAULT;
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+-
+ 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
+ 	/*Now ,only support one cpu */
+ 	policy->cur = bf533_getfreq(0);
+diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -658,7 +658,6 @@ static int acpi_cpufreq_cpu_init(struct 
+ 			policy->cpuinfo.transition_latency =
+ 			    perf->states[i].transition_latency * 1000;
  	}
--	return cpufreq_register_governor(&cpufreq_gov_dbs);
-+	return cpufreq_register_governor(&cpufreq_gov_ondemand);
- }
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
  
- static void __exit cpufreq_gov_dbs_exit(void)
+ 	data->max_freq = perf->states[0].core_frequency * 1000;
+ 	/* table init */
+diff -puN arch/i386/kernel/cpu/cpufreq/cpufreq-nforce2.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/cpufreq-nforce2.c
+--- a/arch/i386/kernel/cpu/cpufreq/cpufreq-nforce2.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/cpufreq-nforce2.c
+@@ -363,7 +363,6 @@ static int nforce2_cpu_init(struct cpufr
+ 	policy->cur = nforce2_get(policy->cpu);
+ 	policy->min = policy->cpuinfo.min_freq;
+ 	policy->max = policy->cpuinfo.max_freq;
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 
+ 	return 0;
+ }
+diff -puN arch/i386/kernel/cpu/cpufreq/e_powersaver.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/e_powersaver.c
+--- a/arch/i386/kernel/cpu/cpufreq/e_powersaver.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/e_powersaver.c
+@@ -253,7 +253,6 @@ static int eps_cpu_init(struct cpufreq_p
+ 		f_table[k].frequency = CPUFREQ_TABLE_END;
+ 	}
+ 
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.transition_latency = 140000; /* 844mV -> 700mV in ns */
+ 	policy->cur = fsb * current_multiplier;
+ 
+diff -puN arch/i386/kernel/cpu/cpufreq/elanfreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/elanfreq.c
+--- a/arch/i386/kernel/cpu/cpufreq/elanfreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/elanfreq.c
+@@ -219,7 +219,6 @@ static int elanfreq_cpu_init(struct cpuf
+ 	}
+ 
+ 	/* cpuinfo and default policy values */
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
+ 	policy->cur = elanfreq_get_cpu_frequency(0);
+ 
+diff -puN arch/i386/kernel/cpu/cpufreq/gx-suspmod.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/gx-suspmod.c
+--- a/arch/i386/kernel/cpu/cpufreq/gx-suspmod.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/gx-suspmod.c
+@@ -420,7 +420,6 @@ static int cpufreq_gx_cpu_init(struct cp
+ 		policy->min = maxfreq / POLICY_MIN_DIV;
+ 	policy->max = maxfreq;
+ 	policy->cur = curfreq;
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.min_freq = maxfreq / max_duration;
+ 	policy->cpuinfo.max_freq = maxfreq;
+ 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
+diff -puN arch/i386/kernel/cpu/cpufreq/longhaul.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/longhaul.c
+--- a/arch/i386/kernel/cpu/cpufreq/longhaul.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/longhaul.c
+@@ -873,7 +873,6 @@ static int __init longhaul_cpu_init(stru
+ 	if ((longhaul_version != TYPE_LONGHAUL_V1) && (scale_voltage != 0))
+ 		longhaul_setup_voltagescaling();
+ 
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.transition_latency = 200000;	/* nsec */
+ 	policy->cur = calc_speed(longhaul_get_cpu_mult());
+ 
+diff -puN arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
+--- a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
+@@ -229,7 +229,6 @@ static int cpufreq_p4_cpu_init(struct cp
+ 	cpufreq_frequency_table_get_attr(p4clockmod_table, policy->cpu);
+ 
+ 	/* cpuinfo and default policy values */
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.transition_latency = 1000000; /* assumed */
+ 	policy->cur = stock_freq;
+ 
+diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k6.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/powernow-k6.c
+--- a/arch/i386/kernel/cpu/cpufreq/powernow-k6.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/powernow-k6.c
+@@ -160,7 +160,6 @@ static int powernow_k6_cpu_init(struct c
+ 	}
+ 
+ 	/* cpuinfo and default policy values */
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
+ 	policy->cur = busfreq * max_multiplier;
+ 
+diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k7.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/powernow-k7.c
+--- a/arch/i386/kernel/cpu/cpufreq/powernow-k7.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/powernow-k7.c
+@@ -637,8 +637,6 @@ static int __init powernow_cpu_init (str
+ 	printk (KERN_INFO PFX "Minimum speed %d MHz. Maximum speed %d MHz.\n",
+ 				minimum_speed/1000, maximum_speed/1000);
+ 
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+-
+ 	policy->cpuinfo.transition_latency = cpufreq_scale(2000000UL, fsb, latency);
+ 
+ 	policy->cur = powernow_get(0);
+diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c
+@@ -1208,7 +1208,6 @@ static int __cpuinit powernowk8_cpu_init
+ 	/* run on any CPU again */
+ 	set_cpus_allowed(current, oldmask);
+ 
+-	pol->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	if (cpu_family == CPU_HW_PSTATE)
+ 		pol->cpus = cpumask_of_cpu(pol->cpu);
+ 	else
+diff -puN arch/i386/kernel/cpu/cpufreq/sc520_freq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/sc520_freq.c
+--- a/arch/i386/kernel/cpu/cpufreq/sc520_freq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/sc520_freq.c
+@@ -111,7 +111,6 @@ static int sc520_freq_cpu_init(struct cp
+ 		return -ENODEV;
+ 
+ 	/* cpuinfo and default policy values */
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.transition_latency = 1000000; /* 1ms */
+ 	policy->cur = sc520_freq_get_cpu_frequency(0);
+ 
+diff -puN arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
+--- a/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
+@@ -393,7 +393,6 @@ static int centrino_cpu_init(struct cpuf
+ 
+ 	freq = get_cur_freq(policy->cpu);
+ 
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.transition_latency = 10000; /* 10uS transition latency */
+ 	policy->cur = freq;
+ 
+diff -puN arch/i386/kernel/cpu/cpufreq/speedstep-ich.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/speedstep-ich.c
+--- a/arch/i386/kernel/cpu/cpufreq/speedstep-ich.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/speedstep-ich.c
+@@ -348,7 +348,6 @@ static int speedstep_cpu_init(struct cpu
+ 		(speed / 1000));
+ 
+ 	/* cpuinfo and default policy values */
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cur = speed;
+ 
+ 	result = cpufreq_frequency_table_cpuinfo(policy, speedstep_freqs);
+diff -puN arch/i386/kernel/cpu/cpufreq/speedstep-smi.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/i386/kernel/cpu/cpufreq/speedstep-smi.c
+--- a/arch/i386/kernel/cpu/cpufreq/speedstep-smi.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/i386/kernel/cpu/cpufreq/speedstep-smi.c
+@@ -290,7 +290,6 @@ static int speedstep_cpu_init(struct cpu
+ 		(speed / 1000));
+ 
+ 	/* cpuinfo and default policy values */
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
+ 	policy->cur = speed;
+ 
+diff -puN arch/ia64/kernel/cpufreq/acpi-cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/ia64/kernel/cpufreq/acpi-cpufreq.c
+--- a/arch/ia64/kernel/cpufreq/acpi-cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/ia64/kernel/cpufreq/acpi-cpufreq.c
+@@ -323,8 +323,6 @@ acpi_cpufreq_cpu_init (
+ 			    data->acpi_data.states[i].transition_latency * 1000;
+ 		}
+ 	}
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+-
+ 	policy->cur = processor_get_freq(data, policy->cpu);
+ 
+ 	/* table init */
+diff -puN arch/powerpc/platforms/cell/cbe_cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/powerpc/platforms/cell/cbe_cpufreq.c
+--- a/arch/powerpc/platforms/cell/cbe_cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/powerpc/platforms/cell/cbe_cpufreq.c
+@@ -107,8 +107,6 @@ static int cbe_cpufreq_cpu_init(struct c
+ 		pr_debug("%d: %d\n", i, cbe_freqs[i].frequency);
+ 	}
+ 
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+-
+ 	/* if DEBUG is enabled set_pmode() measures the latency
+ 	 * of a transition */
+ 	policy->cpuinfo.transition_latency = 25000;
+diff -puN arch/powerpc/platforms/pasemi/cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/powerpc/platforms/pasemi/cpufreq.c
+--- a/arch/powerpc/platforms/pasemi/cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/powerpc/platforms/pasemi/cpufreq.c
+@@ -195,8 +195,6 @@ static int pas_cpufreq_cpu_init(struct c
+ 		pr_debug("%d: %d\n", i, pas_freqs[i].frequency);
+ 	}
+ 
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+-
+ 	policy->cpuinfo.transition_latency = get_gizmo_latency();
+ 
+ 	cur_astate = get_cur_astate(policy->cpu);
+diff -puN arch/powerpc/platforms/powermac/cpufreq_32.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/powerpc/platforms/powermac/cpufreq_32.c
+--- a/arch/powerpc/platforms/powermac/cpufreq_32.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/powerpc/platforms/powermac/cpufreq_32.c
+@@ -410,7 +410,6 @@ static int pmac_cpufreq_cpu_init(struct 
+ 	if (policy->cpu != 0)
+ 		return -ENODEV;
+ 
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.transition_latency	= CPUFREQ_ETERNAL;
+ 	policy->cur = cur_freq;
+ 
+diff -puN arch/powerpc/platforms/powermac/cpufreq_64.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/powerpc/platforms/powermac/cpufreq_64.c
+--- a/arch/powerpc/platforms/powermac/cpufreq_64.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/powerpc/platforms/powermac/cpufreq_64.c
+@@ -357,7 +357,6 @@ static unsigned int g5_cpufreq_get_speed
+ 
+ static int g5_cpufreq_cpu_init(struct cpufreq_policy *policy)
  {
--	cpufreq_unregister_governor(&cpufreq_gov_dbs);
-+	cpufreq_unregister_governor(&cpufreq_gov_ondemand);
- 	destroy_workqueue(kondemand_wq);
- }
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
+ 	policy->cur = g5_cpu_freqs[g5_query_freq()].frequency;
+ 	/* secondary CPUs are tied to the primary one by the
+diff -puN arch/sh/kernel/cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/sh/kernel/cpufreq.c
+--- a/arch/sh/kernel/cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/sh/kernel/cpufreq.c
+@@ -93,7 +93,6 @@ static int sh_cpufreq_cpu_init(struct cp
+ 	policy->cpuinfo.max_freq = (clk_round_rate(cpuclk, ~0UL) + 500) / 1000;
+ 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
  
-diff -puN include/linux/cpufreq.h~cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default
-+++ a/include/linux/cpufreq.h
-@@ -163,6 +163,9 @@ struct cpufreq_governor {
- 	char	name[CPUFREQ_NAME_LEN];
- 	int 	(*governor)	(struct cpufreq_policy *policy,
- 				 unsigned int event);
-+	unsigned int max_transition_latency; /* HW must be able to switch to
-+			next freq faster than this value in nano secs or we
-+			will fallback to performance governor */
- 	struct list_head	governor_list;
- 	struct module		*owner;
- };
-@@ -292,12 +295,23 @@ static inline unsigned int cpufreq_get(u
-  *********************************************************************/
+-	policy->governor	= CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cur		= sh_cpufreq_get(policy->cpu);
+ 	policy->min		= policy->cpuinfo.min_freq;
+ 	policy->max		= policy->cpuinfo.max_freq;
+diff -puN arch/sparc64/kernel/us2e_cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core arch/sparc64/kernel/us2e_cpufreq.c
+--- a/arch/sparc64/kernel/us2e_cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/arch/sparc64/kernel/us2e_cpufreq.c
+@@ -326,7 +326,6 @@ static int __init us2e_freq_cpu_init(str
+ 	table[2].index = 5;
+ 	table[3].frequency = CPUFREQ_TABLE_END;
  
+-	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	policy->cpuinfo.transition_latency = 0;
+ 	policy->cur = clock_tick;
  
--#ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE
-+/*
-+  Performance governor is fallback governor if any other gov failed to
-+  auto load due latency restrictions
-+*/
- extern struct cpufreq_governor cpufreq_gov_performance;
--#define CPUFREQ_DEFAULT_GOVERNOR	&cpufreq_gov_performance
-+#define CPUFREQ_PERFORMANCE_GOVERNOR	(&cpufreq_gov_performance)
-+#ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE
-+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_performance)
- #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE)
- extern struct cpufreq_governor cpufreq_gov_userspace;
--#define CPUFREQ_DEFAULT_GOVERNOR	&cpufreq_gov_userspace
-+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_userspace)
-+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND)
-+extern struct cpufreq_governor cpufreq_gov_ondemand;
-+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_ondemand)
-+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE)
-+extern struct cpufreq_governor cpufreq_gov_conservative;
-+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_conservative)
- #endif
+diff -puN drivers/cpufreq/cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core
++++ a/drivers/cpufreq/cpufreq.c
+@@ -763,6 +763,8 @@ static int cpufreq_add_dev (struct sys_d
+ 	init_completion(&policy->kobj_unregister);
+ 	INIT_WORK(&policy->update, handle_update);
  
- 
++	/* Set governor before ->init, so that driver could check it */
++	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 	/* call driver. From then on the cpufreq must be able
+ 	 * to accept all calls to ->verify and ->setpolicy for this CPU
+ 	 */
 _
 
 Patches currently in -mm which might be from trenn@suse.de are
