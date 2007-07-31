@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:11 -0700
-Message-ID: <200707311929.l6VJTBbQ018305@imap1.linux-foundation.org>
+Subject: + drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:09 -0700
+Message-ID: <200707311929.l6VJT9Bo018302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54818 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42858 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752957AbXGaT3j (ORCPT
+	by vger.kernel.org with ESMTP id S1752576AbXGaT3i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:29:39 -0400
+	Tue, 31 Jul 2007 15:29:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl
+Cc: m.kozlowski@tuxland.pl, mike.miller@hp.com
 
 
 The patch titled
-     fs/cifs/connect.c: kmalloc + memset conversion to kzalloc
+     drivers/block/cciss.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,118 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/cifs/connect.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/block/cciss.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-This patch does kmalloc + memset conversion to kzalloc and removes some
-redundant argument checks.
-
- fs/cifs/connect.c | 109282 -> 109078 (-204 bytes)
- fs/cifs/connect.o | 211804 -> 211576 (-228 bytes)
+ drivers/block/cciss.c | 104285 -> 104168 (-117 bytes)
+ drivers/block/cciss.o | 277400 -> 277124 (-276 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Acked-by: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/connect.c |   30 +++++++++++-------------------
- 1 files changed, 11 insertions(+), 19 deletions(-)
+ drivers/block/cciss.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/cifs/connect.c~fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc fs/cifs/connect.c
---- a/fs/cifs/connect.c~fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc
-+++ a/fs/cifs/connect.c
-@@ -676,10 +676,8 @@ multi_t2_fnd:
- 		server->ssocket = NULL;
+diff -puN drivers/block/cciss.c~drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc drivers/block/cciss.c
+--- a/drivers/block/cciss.c~drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/block/cciss.c
+@@ -1977,12 +1977,13 @@ cciss_read_capacity(int ctlr, int logvol
+ {
+ 	ReadCapdata_struct *buf;
+ 	int return_code;
+-	buf = kmalloc(sizeof(ReadCapdata_struct), GFP_KERNEL);
+-	if (buf == NULL) {
++
++	buf = kzalloc(sizeof(ReadCapdata_struct), GFP_KERNEL);
++	if (!buf) {
+ 		printk(KERN_WARNING "cciss: out of memory\n");
+ 		return;
  	}
- 	/* buffer usuallly freed in free_mid - need to free it here on exit */
--	if (bigbuf != NULL)
--		cifs_buf_release(bigbuf);
--	if (smallbuf != NULL)
--		cifs_small_buf_release(smallbuf);
-+	cifs_buf_release(bigbuf);
-+	cifs_small_buf_release(smallbuf);
- 
- 	read_lock(&GlobalSMBSeslock);
- 	if (list_empty(&server->pending_mid_q)) {
-@@ -1909,8 +1907,8 @@ cifs_mount(struct super_block *sb, struc
- 			return rc;
- 		}
- 
--		srvTcp = kmalloc(sizeof (struct TCP_Server_Info), GFP_KERNEL);
--		if (srvTcp == NULL) {
-+		srvTcp = kzalloc(sizeof(struct TCP_Server_Info), GFP_KERNEL);
-+		if (!srvTcp) {
- 			rc = -ENOMEM;
- 			sock_release(csocket);
- 			kfree(volume_info.UNC);
-@@ -1919,7 +1917,6 @@ cifs_mount(struct super_block *sb, struc
- 			FreeXid(xid);
- 			return rc;
- 		} else {
--			memset(srvTcp, 0, sizeof (struct TCP_Server_Info));
- 			memcpy(&srvTcp->addr.sockAddr, &sin_server,
- 				sizeof (struct sockaddr_in));
- 			atomic_set(&srvTcp->inFlight, 0);
-@@ -2154,8 +2151,8 @@ cifs_mount(struct super_block *sb, struc
- 			}
- 		}
- 		 /* If find_unc succeeded then rc == 0 so we can not end */
--		if (tcon)  /* up accidently freeing someone elses tcon struct */
--			tconInfoFree(tcon);
-+		/* up accidently freeing someone elses tcon struct */
-+		tconInfoFree(tcon);
- 		if (existingCifsSes == NULL) {
- 			if (pSesInfo) {
- 				if ((pSesInfo->server) &&
-@@ -2526,8 +2523,7 @@ CIFSSessSetup(unsigned int xid, struct c
- sesssetup_nomem:	/* do not return an error on nomem for the info strings,
- 			   since that could make reconnection harder, and
- 			   reconnection might be needed to free memory */
--	if (smb_buffer)
--		cifs_buf_release(smb_buffer);
-+	cifs_buf_release(smb_buffer);
- 
- 	return rc;
- }
-@@ -2865,8 +2861,7 @@ CIFSNTLMSSPNegotiateSessSetup(unsigned i
- 		rc = -EIO;
- 	}
- 
--	if (smb_buffer)
--		cifs_buf_release(smb_buffer);
-+	cifs_buf_release(smb_buffer);
- 
- 	return rc;
- }
-@@ -3279,8 +3274,7 @@ CIFSNTLMSSPAuthSessSetup(unsigned int xi
- 		rc = -EIO;
- 	}
- 
--	if (smb_buffer)
--		cifs_buf_release(smb_buffer);
-+	cifs_buf_release(smb_buffer);
- 
- 	return rc;
- }
-@@ -3433,8 +3427,7 @@ CIFSTCon(unsigned int xid, struct cifsSe
- 		ses->ipc_tid = smb_buffer_response->Tid;
- 	}
- 
--	if (smb_buffer)
--		cifs_buf_release(smb_buffer);
-+	cifs_buf_release(smb_buffer);
- 	return rc;
+-	memset(buf, 0, sizeof(ReadCapdata_struct));
++
+ 	if (withirq)
+ 		return_code = sendcmd_withirq(CCISS_READ_CAPACITY,
+ 				ctlr, buf, sizeof(ReadCapdata_struct),
+@@ -2003,7 +2004,6 @@ cciss_read_capacity(int ctlr, int logvol
+ 		printk(KERN_INFO "      blocks= %llu block_size= %d\n",
+ 		(unsigned long long)*total_size+1, *block_size);
+ 	kfree(buf);
+-	return;
  }
  
-@@ -3485,8 +3478,7 @@ cifs_umount(struct super_block *sb, stru
- 	kfree(tmp);
- 	if (ses)
- 		schedule_timeout_interruptible(msecs_to_jiffies(500));
--	if (ses)
--		sesInfoFree(ses);
-+	sesInfoFree(ses);
+ static void
+@@ -2011,12 +2011,13 @@ cciss_read_capacity_16(int ctlr, int log
+ {
+ 	ReadCapdata_struct_16 *buf;
+ 	int return_code;
+-	buf = kmalloc(sizeof(ReadCapdata_struct_16), GFP_KERNEL);
+-	if (buf == NULL) {
++
++	buf = kzalloc(sizeof(ReadCapdata_struct_16), GFP_KERNEL);
++	if (!buf) {
+ 		printk(KERN_WARNING "cciss: out of memory\n");
+ 		return;
+ 	}
+-	memset(buf, 0, sizeof(ReadCapdata_struct_16));
++
+ 	if (withirq) {
+ 		return_code = sendcmd_withirq(CCISS_READ_CAPACITY_16,
+ 			ctlr, buf, sizeof(ReadCapdata_struct_16),
+@@ -2038,7 +2039,6 @@ cciss_read_capacity_16(int ctlr, int log
+ 	printk(KERN_INFO "      blocks= %llu block_size= %d\n",
+ 	       (unsigned long long)*total_size+1, *block_size);
+ 	kfree(buf);
+-	return;
+ }
  
- 	FreeXid(xid);
- 	return rc;	/* BB check if we should always return zero here */
+ static int cciss_revalidate(struct gendisk *disk)
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
