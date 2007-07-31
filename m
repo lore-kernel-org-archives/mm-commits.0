@@ -1,169 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: + git-mmc-build-fix-2.patch added to -mm tree
-Date: Tue, 31 Jul 2007 01:48:37 -0700
-Message-ID: <200707310853.l6V8rJGN024960@imap1.linux-foundation.org>
+Subject: - use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 01:51:17 -0700
+Message-ID: <200707310856.l6V8u0DD025117@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53805 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58700 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752065AbXGaIyA (ORCPT
+	by vger.kernel.org with ESMTP id S1752529AbXGaI4r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 04:54:00 -0400
+	Tue, 31 Jul 2007 04:56:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, drzeus@drzeus.cx
+To: matthias.kaehlcke@gmail.com, kkeil@suse.de, satyam@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mmc-build-fix-2
-has been added to the -mm tree.  Its filename is
-     git-mmc-build-fix-2.patch
+     Use mutex instead of semaphore in ISDN subsystem common functions
+has been removed from the -mm tree.  Its filename was
+     use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: git-mmc-build-fix-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Use mutex instead of semaphore in ISDN subsystem common functions
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+The ISDN subsystem common functions use a semaphore as mutex.  Use the mutex
+API instead of the (binary) semaphore.
+
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Reviewed-by: Satyam Sharma <satyam@infradead.org>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmc/card.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/isdn/i4l/isdn_common.c |   26 +++++++++++++-------------
+ include/linux/isdn.h           |    3 ++-
+ 2 files changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN drivers/mmc/core/lock.c~git-mmc-build-fix-2 drivers/mmc/core/lock.c
-diff -puN include/linux/mmc/card.h~git-mmc-build-fix-2 include/linux/mmc/card.h
---- a/include/linux/mmc/card.h~git-mmc-build-fix-2
-+++ a/include/linux/mmc/card.h
-@@ -112,8 +112,7 @@ struct mmc_card {
- #define mmc_card_blockaddr(c)	((c)->state & MMC_STATE_BLOCKADDR)
- #define mmc_card_locked(c)	((c)->state & MMC_STATE_LOCKED)
+diff -puN drivers/isdn/i4l/isdn_common.c~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions drivers/isdn/i4l/isdn_common.c
+--- a/drivers/isdn/i4l/isdn_common.c~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions
++++ a/drivers/isdn/i4l/isdn_common.c
+@@ -1364,7 +1364,7 @@ isdn_ioctl(struct inode *inode, struct f
+ 				} else {
+ 					s = NULL;
+ 				}
+-				ret = down_interruptible(&dev->sem);
++				ret = mutex_lock_interruptible(&dev->mtx);
+ 				if( ret ) return ret;
+ 				if ((s = isdn_net_new(s, NULL))) {
+ 					if (copy_to_user(argp, s, strlen(s) + 1)){
+@@ -1374,7 +1374,7 @@ isdn_ioctl(struct inode *inode, struct f
+ 					}
+ 				} else
+ 					ret = -ENODEV;
+-				up(&dev->sem);
++				mutex_unlock(&dev->mtx);
+ 				return ret;
+ 			case IIOCNETASL:
+ 				/* Add a slave to a network-interface */
+@@ -1383,7 +1383,7 @@ isdn_ioctl(struct inode *inode, struct f
+ 						return -EFAULT;
+ 				} else
+ 					return -EINVAL;
+-				ret = down_interruptible(&dev->sem);
++				ret = mutex_lock_interruptible(&dev->mtx);
+ 				if( ret ) return ret;
+ 				if ((s = isdn_net_newslave(bname))) {
+ 					if (copy_to_user(argp, s, strlen(s) + 1)){
+@@ -1393,17 +1393,17 @@ isdn_ioctl(struct inode *inode, struct f
+ 					}
+ 				} else
+ 					ret = -ENODEV;
+-				up(&dev->sem);
++				mutex_unlock(&dev->mtx);
+ 				return ret;
+ 			case IIOCNETDIF:
+ 				/* Delete a network-interface */
+ 				if (arg) {
+ 					if (copy_from_user(name, argp, sizeof(name)))
+ 						return -EFAULT;
+-					ret = down_interruptible(&dev->sem);
++					ret = mutex_lock_interruptible(&dev->mtx);
+ 					if( ret ) return ret;
+ 					ret = isdn_net_rm(name);
+-					up(&dev->sem);
++					mutex_unlock(&dev->mtx);
+ 					return ret;
+ 				} else
+ 					return -EINVAL;
+@@ -1432,10 +1432,10 @@ isdn_ioctl(struct inode *inode, struct f
+ 				if (arg) {
+ 					if (copy_from_user(&phone, argp, sizeof(phone)))
+ 						return -EFAULT;
+-					ret = down_interruptible(&dev->sem);
++					ret = mutex_lock_interruptible(&dev->mtx);
+ 					if( ret ) return ret;
+ 					ret = isdn_net_addphone(&phone);
+-					up(&dev->sem);
++					mutex_unlock(&dev->mtx);
+ 					return ret;
+ 				} else
+ 					return -EINVAL;
+@@ -1444,10 +1444,10 @@ isdn_ioctl(struct inode *inode, struct f
+ 				if (arg) {
+ 					if (copy_from_user(&phone, argp, sizeof(phone)))
+ 						return -EFAULT;
+-					ret = down_interruptible(&dev->sem);
++					ret = mutex_lock_interruptible(&dev->mtx);
+ 					if( ret ) return ret;
+ 					ret = isdn_net_getphones(&phone, argp);
+-					up(&dev->sem);
++					mutex_unlock(&dev->mtx);
+ 					return ret;
+ 				} else
+ 					return -EINVAL;
+@@ -1456,10 +1456,10 @@ isdn_ioctl(struct inode *inode, struct f
+ 				if (arg) {
+ 					if (copy_from_user(&phone, argp, sizeof(phone)))
+ 						return -EFAULT;
+-					ret = down_interruptible(&dev->sem);
++					ret = mutex_lock_interruptible(&dev->mtx);
+ 					if( ret ) return ret;
+ 					ret = isdn_net_delphone(&phone);
+-					up(&dev->sem);
++					mutex_unlock(&dev->mtx);
+ 					return ret;
+ 				} else
+ 					return -EINVAL;
+@@ -2303,7 +2303,7 @@ static int __init isdn_init(void)
+ #ifdef MODULE
+ 	dev->owner = THIS_MODULE;
+ #endif
+-	init_MUTEX(&dev->sem);
++	mutex_init(&dev->mtx);
+ 	init_waitqueue_head(&dev->info_waitq);
+ 	for (i = 0; i < ISDN_MAX_CHANNELS; i++) {
+ 		dev->drvmap[i] = -1;
+diff -puN include/linux/isdn.h~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions include/linux/isdn.h
+--- a/include/linux/isdn.h~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions
++++ a/include/linux/isdn.h
+@@ -15,6 +15,7 @@
+ #define __ISDN_H__
  
--#define mmc_card_lockable(c)	(((c)->csd.cmdclass & CCC_LOCK_CARD) && \
--				((c)->host->caps & MMC_CAP_BYTEBLOCK))
-+#define mmc_card_lockable(c)	((c)->csd.cmdclass & CCC_LOCK_CARD)
+ #include <linux/ioctl.h>
++#include <linux/mutex.h>
  
- #define mmc_card_set_present(c)	((c)->state |= MMC_STATE_PRESENT)
- #define mmc_card_set_readonly(c) ((c)->state |= MMC_STATE_READONLY)
+ #ifdef CONFIG_COBALT_MICRO_SERVER
+ /* Save memory */
+@@ -624,7 +625,7 @@ typedef struct isdn_devt {
+ 	int               v110emu[ISDN_MAX_CHANNELS]; /* V.110 emulator-mode 0=none */
+ 	atomic_t          v110use[ISDN_MAX_CHANNELS]; /* Usage-Semaphore for stream */
+ 	isdn_v110_stream  *v110[ISDN_MAX_CHANNELS];   /* V.110 private data         */
+-	struct semaphore  sem;                        /* serialize list access*/
++	struct mutex      mtx;                        /* serialize list access*/
+ 	unsigned long     global_features;
+ } isdn_dev;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-origin.patch
-parport_pc-locking-fix.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-kdebugh-forward-declare-struct-struct-notifier_block.patch
-fs-9p-convc-error-path-fix.patch
-ip2main-warning-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-mark_tsc_unstable-build-fix.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
+videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
 git-dvb.patch
-git-dvb-fixup.patch
-git-hwmon.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-fix-ide-ide-add-platform-ide-driver.patch
-git-mmc-build-fix.patch
 git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-sparc64-add-missing-dma_get_cache_alignment.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-unionfs-build-fix.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-watchdog.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
-git-kgdb-fixup.patch
-git-kgdb-arm-fix.patch
-git-kgdb-mips-fix.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-acpi_battery_add-use-after-free.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+use-mutex-instead-of-semaphore-in-the-scsi-tape-driver.patch
+use-mutex-instead-of-semaphore-in-the-host-ap-driver.patch
+use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
+fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
 fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-tpm_tis-debug.patch
-w1-build-fix.patch
-git-mmc-build-fix-2.patch
+fs-locksc-use-list_for_each_entry-instead-of-list_for_each.patch
+kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
+kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
+kernel-userc-use-list_for_each_entry-instead-of-list_for_each.patch
