@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + genirq-temporary-fix-for-level-triggered-irq-resend.patch added to -mm tree
-Date: Tue, 31 Jul 2007 11:51:20 -0700
-Message-ID: <200707311851.l6VIpKnV016976@imap1.linux-foundation.org>
+Subject: + genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch added to -mm tree
+Date: Tue, 31 Jul 2007 11:52:13 -0700
+Message-ID: <200707311852.l6VIqDIC016994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60460 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45187 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932196AbXGaSwM (ORCPT
+	by vger.kernel.org with ESMTP id S932340AbXGaSw6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 14:52:12 -0400
+	Tue, 31 Jul 2007 14:52:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@elte.hu
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     genirq: temporary fix for level-triggered IRQ
+     genirq-temporary-fix-for-level-triggered-irq-resend-fix
 has been added to the -mm tree.  Its filename is
-     genirq-temporary-fix-for-level-triggered-irq-resend.patch
+     genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,104 +26,151 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: genirq: temporary fix for level-triggered IRQ
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: genirq-temporary-fix-for-level-triggered-irq-resend-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
+be neater about it.
 
-With -rc2 approaching I think we should apply the minimal fix below to get
-Marcin's ne2k-pci networking back in working order.  The WARN_ON_ONCE()
-will not prevent the system from working and it will be a reminder.
-
-A better workaround would be to inhibit the resent vector via the IO-APIC
-irqchip - but i'd still like to have the patch below because the ne2k
-driver _should_ be able to survive the spurious irq that happens.  (even on
-Marcin's system that ne2k-pci irq line is shared with another networking
-card, so an irq could happen at any moment - it's just that with the
-delayed-disable logic it happens _all the time_.)
-
-	Ingo
-
-
-Delayed disable relies on the ability to re-trigger the interrupt in the
-case that a real interrupt happens after the software disable was set.  In
-this case we actually disable the interrupt on the hardware level _after_
-it occurred.
-
-On enable_irq, we need to re-trigger the interrupt. On i386 this relies
-on a hardware resend mechanism (send_IPI_self()).
-
-Actually we only need the resend for edge type interrupts. Level type
-interrupts come back once enable_irq() re-enables the interrupt line.
-
-I assume that the interrupt in question is level triggered because it is
-shared and above the legacy irqs 0-15:
-
-	17:         12   IO-APIC-fasteoi   eth1, eth0
-
-Looking into the IO_APIC code, the resend via send_IPI_self() happens
-unconditionally. So the resend is done for level and edge interrupts.
-This makes the problem more mysterious.
-
-The code in question lib8390.c does
-
-	disable_irq();
-	fiddle_with_the_network_card_hardware()
-	enable_irq();
-
-The fiddle_with_the_network_card_hardware() might cause interrupts,
-which are cleared in the same code path again,
-
-Marcin found that when he disables the irq line on the hardware level
-(removing the delayed disable) the card is kept alive.
-
-So the difference is that we can get a resend on enable_irq, when an
-interrupt happens during the time, where we are in the disabled region.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/resend.c |    9 +++++++++
- 1 files changed, 9 insertions(+)
+ kernel/irq/resend.c |    4 +---
+ 1 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN kernel/irq/resend.c~genirq-temporary-fix-for-level-triggered-irq-resend kernel/irq/resend.c
---- a/kernel/irq/resend.c~genirq-temporary-fix-for-level-triggered-irq-resend
+diff -puN kernel/irq/resend.c~genirq-temporary-fix-for-level-triggered-irq-resend-fix kernel/irq/resend.c
+--- a/kernel/irq/resend.c~genirq-temporary-fix-for-level-triggered-irq-resend-fix
 +++ a/kernel/irq/resend.c
-@@ -62,6 +62,15 @@ void check_irq_resend(struct irq_desc *d
+@@ -66,10 +66,8 @@ void check_irq_resend(struct irq_desc *d
+ 	 * Temporary hack to figure out more about the problem, which
+ 	 * is causing the ancient network cards to die.
  	 */
- 	desc->chip->enable(irq);
+-	if (desc->handle_irq != handle_edge_irq) {
+-		WARN_ON_ONCE(1);
++	if (WARN_ON_ONCE(desc->handle_irq != handle_edge_irq))
+ 		return;
+-	}
  
-+	/*
-+	 * Temporary hack to figure out more about the problem, which
-+	 * is causing the ancient network cards to die.
-+	 */
-+	if (desc->handle_irq != handle_edge_irq) {
-+		WARN_ON_ONCE(1);
-+		return;
-+	}
-+
  	if ((status & (IRQ_PENDING | IRQ_REPLAY)) == IRQ_PENDING) {
  		desc->status = (status & ~IRQ_PENDING) | IRQ_REPLAY;
- 
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-genirq-temporary-fix-for-level-triggered-irq-resend.patch
+parport_pc-locking-fix.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
+fs-9p-convc-error-path-fix.patch
+ip2main-warning-fix.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
-acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-block-irq-balancing-for-timer.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-hwmon.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+fix-ide-ide-add-platform-ide-driver.patch
+git-mmc-build-fix.patch
+git-mmc-build-fix-2.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+sparc64-add-missing-dma_get_cache_alignment.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-unionfs-build-fix.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-watchdog.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-geode-mfgpt-clock-event-device-support.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+acpi_battery_add-use-after-free.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+tpm_tis-debug.patch
+w1-build-fix.patch
