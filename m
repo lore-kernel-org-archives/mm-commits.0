@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-sbus-char-bbc_i2cc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:03 -0700
-Message-ID: <200707311929.l6VJT3Et018292@imap1.linux-foundation.org>
+Subject: + drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:05 -0700
+Message-ID: <200707311929.l6VJT5UW018295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52869 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43964 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752354AbXGaT3W (ORCPT
+	by vger.kernel.org with ESMTP id S1752953AbXGaT3Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:29:22 -0400
+	Tue, 31 Jul 2007 15:29:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     drivers/sbus/char/bbc_i2c.c: kmalloc + memset conversion to kzalloc
+     drivers/mmc/core/bus.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-sbus-char-bbc_i2cc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/sbus/char/bbc_i2c.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/mmc/core/bus.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/sbus/char/bbc_i2c.c | 10847 -> 10823 (-24 bytes)
+ drivers/mmc/core/bus.c | 5663 -> 5619 (-44 bytes)
+ drivers/mmc/core/bus.o | 70899 -> 70731 (-168 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/sbus/char/bbc_i2c.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/mmc/core/bus.c |    4 +---
+ 1 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/sbus/char/bbc_i2c.c~drivers-sbus-char-bbc_i2cc-kmalloc-memset-conversion-to-kzalloc drivers/sbus/char/bbc_i2c.c
---- a/drivers/sbus/char/bbc_i2c.c~drivers-sbus-char-bbc_i2cc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/sbus/char/bbc_i2c.c
-@@ -357,13 +357,13 @@ static void __init reset_one_i2c(struct 
- 
- static int __init attach_one_i2c(struct linux_ebus_device *edev, int index)
+diff -puN drivers/mmc/core/bus.c~drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc drivers/mmc/core/bus.c
+--- a/drivers/mmc/core/bus.c~drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/mmc/core/bus.c
+@@ -206,12 +206,10 @@ struct mmc_card *mmc_alloc_card(struct m
  {
--	struct bbc_i2c_bus *bp = kmalloc(sizeof(*bp), GFP_KERNEL);
-+	struct bbc_i2c_bus *bp;
- 	struct linux_ebus_child *echild;
- 	int entry;
+ 	struct mmc_card *card;
  
-+	bp = kzalloc(sizeof(*bp), GFP_KERNEL);
- 	if (!bp)
- 		return -ENOMEM;
--	memset(bp, 0, sizeof(*bp));
+-	card = kmalloc(sizeof(struct mmc_card), GFP_KERNEL);
++	card = kzalloc(sizeof(struct mmc_card), GFP_KERNEL);
+ 	if (!card)
+ 		return ERR_PTR(-ENOMEM);
  
- 	bp->i2c_control_regs = ioremap(edev->resource[0].start, 0x2);
- 	if (!bp->i2c_control_regs)
+-	memset(card, 0, sizeof(struct mmc_card));
+-
+ 	card->host = host;
+ 
+ 	device_initialize(&card->dev);
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
