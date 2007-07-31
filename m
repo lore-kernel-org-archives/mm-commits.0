@@ -1,63 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - remove-isdn_-is-defined-but-unused-warnings.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:59:11 -0700
-Message-ID: <200707312359.l6VNxBGJ029630@imap1.linux-foundation.org>
+Subject: - serial-fix-vr41xx_siu-interface-select.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:57:37 -0700
+Message-ID: <200707312357.l6VNvb6s029412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51800 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49414 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759633AbXHAAQe (ORCPT
+	by vger.kernel.org with ESMTP id S1759724AbXHAAQg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:34 -0400
+	Tue, 31 Jul 2007 20:16:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: masterdriverz@gentoo.org, kkeil@suse.de, mm-commits@vger.kernel.org
+To: yoichi_yuasa@tripeaks.co.jp, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove 'isdn_* is defined but unused' warnings
+     serial: fix vr41xx_siu interface select
 has been removed from the -mm tree.  Its filename was
-     remove-isdn_-is-defined-but-unused-warnings.patch
+     serial-fix-vr41xx_siu-interface-select.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove 'isdn_* is defined but unused' warnings
-From: Charlie Shepherd <masterdriverz@gentoo.org>
+Subject: serial: fix vr41xx_siu interface select
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-Move the #ifdef guard above these functions to remove the warnings.
+only PORT_VR41XX_SIU can select interface.
 
-Signed-off-by: Charlie Shepherd <masterdriverz@gentoo.org>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/divert/divert_procfs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/serial/vr41xx_siu.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/isdn/divert/divert_procfs.c~remove-isdn_-is-defined-but-unused-warnings drivers/isdn/divert/divert_procfs.c
---- a/drivers/isdn/divert/divert_procfs.c~remove-isdn_-is-defined-but-unused-warnings
-+++ a/drivers/isdn/divert/divert_procfs.c
-@@ -70,6 +70,8 @@ put_info_buffer(char *cp)
- 	wake_up_interruptible(&(rd_queue));
- }				/* put_info_buffer */
+diff -puN drivers/serial/vr41xx_siu.c~serial-fix-vr41xx_siu-interface-select drivers/serial/vr41xx_siu.c
+--- a/drivers/serial/vr41xx_siu.c~serial-fix-vr41xx_siu-interface-select
++++ a/drivers/serial/vr41xx_siu.c
+@@ -800,7 +800,8 @@ static int __init siu_console_setup(stru
+ 		port->membase = ioremap(port->mapbase, siu_port_size(port));
+ 	}
  
-+#ifdef CONFIG_PROC_FS
-+
- /**********************************/
- /* deflection device read routine */
- /**********************************/
-@@ -253,8 +255,6 @@ isdn_divert_ioctl(struct inode *inode, s
- 	return copy_to_user((void __user *)arg, &dioctl, sizeof(dioctl)) ? -EFAULT : 0;
- }				/* isdn_divert_ioctl */
+-	vr41xx_select_siu_interface(SIU_INTERFACE_RS232C);
++	if (port->type == PORT_VR41XX_SIU)
++		vr41xx_select_siu_interface(SIU_INTERFACE_RS232C);
  
--
--#ifdef CONFIG_PROC_FS
- static const struct file_operations isdn_fops =
- {
- 	.owner          = THIS_MODULE,
+ 	if (options != NULL)
+ 		uart_parse_options(options, &baud, &parity, &bits, &flow);
 _
 
-Patches currently in -mm which might be from masterdriverz@gentoo.org are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
 origin.patch
+git-mtd.patch
