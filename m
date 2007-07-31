@@ -1,180 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - parport_pc-locking-fix.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:55:17 -0700
-Message-ID: <200707312355.l6VNtHtS029218@imap1.linux-foundation.org>
+Subject: - alpha-fix-two-section-mismatch-warnings.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:55:39 -0700
+Message-ID: <200707312355.l6VNtdOf029242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43139 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56559 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762074AbXHAAR0 (ORCPT
+	by vger.kernel.org with ESMTP id S1761383AbXHAART (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:17:26 -0400
+	Tue, 31 Jul 2007 20:17:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mike@pikeaero.com, stsp@aknet.ru, tim@cyberelk.net, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport_pc locking fix
+     alpha: fix two section mismatch warnings
 has been removed from the -mm tree.  Its filename was
-     parport_pc-locking-fix.patch
+     alpha-fix-two-section-mismatch-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: parport_pc locking fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alpha: fix two section mismatch warnings
+From: Sam Ravnborg <sam@ravnborg.org>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8821 reports a might_sleep()
-warning due to parport_pc_exit() running platform_device_unregister() while
-holding ports_lock.
+Fix the following section mismatch warnings:
 
-Just remove the locking: nobody else can access ports_list during module_exit.
+WARNING: o-alpha/vmlinux.o(.text+0x1a4d4): Section mismatch: reference to .init.text:free_area_init (between 'paging_init' and 'srm_paging_stop')
+WARNING: o-alpha/vmlinux.o(.text+0x1a4dc): Section mismatch: reference to .init.text:free_area_init (between 'paging_init' and 'srm_paging_stop')
 
-Cc: "Mike Sharkey" <mike@pikeaero.com>
-Cc: Tim Waugh <tim@cyberelk.net>
-Cc: Stas Sergeev <stsp@aknet.ru>
+One instance of paging_init() was declared __init but not the other one -
+used by defconfig.  Fixed by declaring the second instance ___init too.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/alpha/mm/init.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/parport/parport_pc.c~parport_pc-locking-fix drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport_pc-locking-fix
-+++ a/drivers/parport/parport_pc.c
-@@ -3445,7 +3445,6 @@ static void __exit parport_pc_exit(void)
- 		pnp_unregister_driver (&parport_pc_pnp_driver);
- 	platform_driver_unregister(&parport_pc_platform_driver);
- 
--	spin_lock(&ports_lock);
- 	while (!list_empty(&ports_list)) {
- 		struct parport_pc_private *priv;
- 		struct parport *port;
-@@ -3455,11 +3454,8 @@ static void __exit parport_pc_exit(void)
- 		if (port->dev && port->dev->bus == &platform_bus_type)
- 			platform_device_unregister(
- 				to_platform_device(port->dev));
--		spin_unlock(&ports_lock);
- 		parport_pc_unregister_port(port);
--		spin_lock(&ports_lock);
- 	}
--	spin_unlock(&ports_lock);
- }
- 
- MODULE_AUTHOR("Phil Blundell, Tim Waugh, others");
+diff -puN arch/alpha/mm/init.c~alpha-fix-two-section-mismatch-warnings arch/alpha/mm/init.c
+--- a/arch/alpha/mm/init.c~alpha-fix-two-section-mismatch-warnings
++++ a/arch/alpha/mm/init.c
+@@ -267,8 +267,7 @@ callback_init(void * kernel_end)
+ /*
+  * paging_init() sets up the memory map.
+  */
+-void
+-paging_init(void)
++void __init paging_init(void)
+ {
+ 	unsigned long zones_size[MAX_NR_ZONES] = {0, };
+ 	unsigned long dma_pfn, high_pfn;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-remove-the-arm26-port-fix.patch
-genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-mark_tsc_unstable-build-fix.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-hwmon.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-fix-ide-ide-add-platform-ide-driver.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-scsi-fix-build-for-config_scsi_tgt=n.patch
-aacraid-rename-check_reset.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-unionfs-build-fix.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-watchdog.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
-git-kgdb-fixup.patch
-git-kgdb-arm-fix.patch
-git-kgdb-mips-fix.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-acpi_battery_add-use-after-free.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+mkmakefile-include-arch-on-o=-builds.patch
+include-linux-kbuild-remove-duplicate-entries.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+x86-add-cpu-codenames-for-kconfigcpu.patch
+change-order-in-kconfigcpu-i386.patch
