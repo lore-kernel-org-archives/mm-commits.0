@@ -1,96 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - sysrq-add-a-show-stacktrace-on-all-cpus-command.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 21:51:04 -0700
-Message-ID: <200707310451.l6V4p4dB016172@imap1.linux-foundation.org>
+Subject: + fs-partitions-checkc-add-add_partition-error-handling.patch added to -mm tree
+Date: Mon, 30 Jul 2007 21:52:43 -0700
+Message-ID: <200707310452.l6V4qhfg016187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44091 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37649 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936099AbXGaEvP (ORCPT
+	by vger.kernel.org with ESMTP id S1754973AbXGaEwz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 00:51:15 -0400
+	Tue, 31 Jul 2007 00:52:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: eugeneteo@kernel.sg
 
 
 The patch titled
-     sysrq: add a show-stacktrace-on-all-cpus command
-has been removed from the -mm tree.  Its filename was
-     sysrq-add-a-show-stacktrace-on-all-cpus-command.patch
+     fs/partitions/check.c: add add_partition() error handling
+has been added to the -mm tree.  Its filename is
+     fs-partitions-checkc-add-add_partition-error-handling.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: sysrq: add a show-stacktrace-on-all-cpus command
-From: Avi Kivity <avi@qumranet.com>
+Subject: fs/partitions/check.c: add add_partition() error handling
+From: Eugene Teo <eugeneteo@kernel.sg>
 
-If a cpu is spinning in the kernel but still responding to interrupts,
-pressing sysrq-y will show you where it's spinning.
+Add error handling to add_partition().  Also fixes these warnings:
 
-Signed-off-by: Avi Kivity <avi@qumranet.com>
+fs/partitions/check.c: In function `add_partition':
+fs/partitions/check.c:391: warning: ignoring return value of `kobject_add',
+	declared with attribute warn_unused_result
+fs/partitions/check.c:394: warning: ignoring return value of
+	`sysfs_create_link', declared with attribute warn_unused_result
+fs/partitions/check.c:401: warning: ignoring return value of
+	`sysfs_create_file', declared with attribute warn_unused_result
+
+Signed-off-by: Eugene Teo <eugeneteo@kernel.sg>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c |   24 +++++++++++++++++++++++-
- 1 files changed, 23 insertions(+), 1 deletion(-)
+ fs/partitions/check.c |   23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/sysrq.c~sysrq-add-a-show-stacktrace-on-all-cpus-command drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~sysrq-add-a-show-stacktrace-on-all-cpus-command
-+++ a/drivers/char/sysrq.c
-@@ -45,6 +45,8 @@ int __read_mostly __sysrq_enabled = 1;
- 
- static int __read_mostly sysrq_always_enabled;
- 
-+static spinlock_t show_stack_lock = SPIN_LOCK_UNLOCKED;
-+
- int sysrq_on(void)
+diff -puN fs/partitions/check.c~fs-partitions-checkc-add-add_partition-error-handling fs/partitions/check.c
+--- a/fs/partitions/check.c~fs-partitions-checkc-add-add_partition-error-handling
++++ a/fs/partitions/check.c
+@@ -371,6 +371,7 @@ void delete_partition(struct gendisk *di
+ void add_partition(struct gendisk *disk, int part, sector_t start, sector_t len, int flags)
  {
- 	return __sysrq_enabled || sysrq_always_enabled;
-@@ -309,6 +311,26 @@ static struct sysrq_key_op sysrq_unrt_op
- 	.enable_mask	= SYSRQ_ENABLE_RTNICE,
- };
+ 	struct hd_struct *p;
++	int err;
  
-+static void show_cpu_stack(void *garbage)
-+{
-+	spin_lock(&show_stack_lock);
-+	printk("CPU%d stacktrace:\n", raw_smp_processor_id());
-+	dump_stack();
-+	sysrq_handle_showregs(0, NULL);
-+	spin_unlock(&show_stack_lock);
-+}
-+
-+static void sysrq_show_stacks(int key, struct tty_struct *tty)
-+{
-+	on_each_cpu(show_cpu_stack, NULL, 0, 1);
-+}
-+
-+static struct sysrq_key_op sysrq_show_stacks_op = {
-+	.handler	= sysrq_show_stacks,
-+	.help_msg	= "stacktraces-on-all-cpus(Y)",
-+	.action_msg	= "Stack traces on all cpus",
-+};
-+
- /* Key Operations table and lock */
- static DEFINE_SPINLOCK(sysrq_key_table_lock);
+ 	p = kzalloc(sizeof(*p), GFP_KERNEL);
+ 	if (!p)
+@@ -388,20 +389,36 @@ void add_partition(struct gendisk *disk,
+ 	p->kobj.parent = &disk->kobj;
+ 	p->kobj.ktype = &ktype_part;
+ 	kobject_init(&p->kobj);
+-	kobject_add(&p->kobj);
++	err = kobject_add(&p->kobj);
++	if (err)
++		goto err_out;
+ 	if (!disk->part_uevent_suppress)
+ 		kobject_uevent(&p->kobj, KOBJ_ADD);
+-	sysfs_create_link(&p->kobj, &block_subsys.kobj, "subsystem");
++	err = sysfs_create_link(&p->kobj, &block_subsys.kobj, "subsystem");
++	if (err)
++		goto err_out_del_kobj;
+ 	if (flags & ADDPART_FLAG_WHOLEDISK) {
+ 		static struct attribute addpartattr = {
+ 			.name = "whole_disk",
+ 			.mode = S_IRUSR | S_IRGRP | S_IROTH,
+ 		};
  
-@@ -356,7 +378,7 @@ static struct sysrq_key_op *sysrq_key_ta
- 	&sysrq_showstate_blocked_op,	/* w */
- 	/* x: May be registered on ppc/powerpc for xmon */
- 	NULL,				/* x */
--	NULL,				/* y */
-+	&sysrq_show_stacks_op,		/* y */
- 	NULL				/* z */
- };
+-		sysfs_create_file(&p->kobj, &addpartattr);
++		err = sysfs_create_file(&p->kobj, &addpartattr);
++		if (err)
++			goto err_out_del_link;
+ 	}
+ 	partition_sysfs_add_subdir(p);
+ 	disk->part[part-1] = p;
++	return;
++
++err_out_del_link:
++	sysfs_remove_link(&p->kobj, "subsystem");
++err_out_del_kobj:
++	if (!disk->part_uevent_suppress)
++		kobject_uevent(&p->kobj, KOBJ_REMOVE);
++	kobject_del(&p->kobj);
++err_out:
++	kobject_put(&p->kobj);
+ }
  
+ static char *make_block_name(struct gendisk *disk)
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from eugeneteo@kernel.sg are
 
-origin.patch
-ia64-allow-smp_call_function_single-to-current-cpu.patch
-git-kvm.patch
-cpuid-driver-simplify-smp_call_function_single-call-sequence.patch
-msr-driver-simplify-smp_call_function_single-call-sequence.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-sysrq-add-a-show-stacktrace-on-all-cpus-command.patch
+arch-i386-kernel-apmc-apm_init-warning-fix.patch
+fs-partitions-checkc-add-add_partition-error-handling.patch
