@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:13 -0700
-Message-ID: <200707311929.l6VJTDqe018308@imap1.linux-foundation.org>
+Subject: + net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:31 -0700
+Message-ID: <200707311929.l6VJTVQl018337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38986 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55972 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753039AbXGaT3u (ORCPT
+	by vger.kernel.org with ESMTP id S1753064AbXGaTaD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:29:50 -0400
+	Tue, 31 Jul 2007 15:30:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     drivers/char/consolemap.c: kmalloc + memset conversion to kzalloc
+     net/decnet/dn_route.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+     net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/char/consolemap.c: kmalloc + memset conversion to kzalloc
+Subject: net/decnet/dn_route.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/char/consolemap.c | 22678 -> 22650 (-28 bytes)
- drivers/char/consolemap.o | 90113 -> 90029 (-84 bytes)
+ net/decnet/dn_route.c | 45013 -> 44991 (-22 bytes)
+ net/decnet/dn_route.o | 199388 -> 199580 (+192 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/consolemap.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ net/decnet/dn_route.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/consolemap.c~drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc drivers/char/consolemap.c
---- a/drivers/char/consolemap.c~drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/char/consolemap.c
-@@ -494,12 +494,11 @@ int con_clear_unimap(struct vc_data *vc,
- 	p = (struct uni_pagedir *)*vc->vc_uni_pagedir_loc;
- 	if (p && p->readonly) return -EIO;
- 	if (!p || --p->refcount) {
--		q = kmalloc(sizeof(*p), GFP_KERNEL);
-+		q = kzalloc(sizeof(*p), GFP_KERNEL);
- 		if (!q) {
- 			if (p) p->refcount++;
- 			return -ENOMEM;
- 		}
--		memset(q, 0, sizeof(*q));
- 		q->refcount=1;
- 		*vc->vc_uni_pagedir_loc = (unsigned long)q;
- 	} else {
+diff -puN net/decnet/dn_route.c~net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc net/decnet/dn_route.c
+--- a/net/decnet/dn_route.c~net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc
++++ a/net/decnet/dn_route.c
+@@ -1737,8 +1737,9 @@ static int dn_rt_cache_seq_open(struct i
+ {
+ 	struct seq_file *seq;
+ 	int rc = -ENOMEM;
+-	struct dn_rt_cache_iter_state *s = kmalloc(sizeof(*s), GFP_KERNEL);
++	struct dn_rt_cache_iter_state *s;
+ 
++	s = kzalloc(sizeof(*s), GFP_KERNEL);
+ 	if (!s)
+ 		goto out;
+ 	rc = seq_open(file, &dn_rt_cache_seq_ops);
+@@ -1746,7 +1747,6 @@ static int dn_rt_cache_seq_open(struct i
+ 		goto out_kfree;
+ 	seq		= file->private_data;
+ 	seq->private	= s;
+-	memset(s, 0, sizeof(*s));
+ out:
+ 	return rc;
+ out_kfree:
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
