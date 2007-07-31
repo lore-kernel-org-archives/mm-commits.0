@@ -1,63 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - futex-pass-nr_wake2-to-futex_wake_op.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:57:26 -0700
-Message-ID: <200707312357.l6VNvQKE029397@imap1.linux-foundation.org>
+Subject: - rename-setleast-to-generic_setlease.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:58:53 -0700
+Message-ID: <200707312358.l6VNwr92029600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41620 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33247 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762515AbXHAARQ (ORCPT
+	by vger.kernel.org with ESMTP id S1761350AbXHAARM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:17:16 -0400
+	Tue, 31 Jul 2007 20:17:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: schwab@suse.de, drepper@redhat.com, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: hch@lst.de, bfields@fieldses.org, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex: pass nr_wake2 to futex_wake_op
+     rename setlease to generic_setlease
 has been removed from the -mm tree.  Its filename was
-     futex-pass-nr_wake2-to-futex_wake_op.patch
+     rename-setleast-to-generic_setlease.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: futex: pass nr_wake2 to futex_wake_op
-From: Andreas Schwab <schwab@suse.de>
+Subject: rename setlease to generic_setlease
+From: Christoph Hellwig <hch@lst.de>
 
-The fourth argument of sys_futex is ignored when op == FUTEX_WAKE_OP,
-but futex_wake_op expects it as its nr_wake2 parameter.
+Make it a little more clear that this is the default implementation for
+the setleast operation.
 
-The only user of this operation in glibc is always passing 1, so this
-bug had no consequences so far.
-
-Signed-off-by: Andreas Schwab <schwab@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Ulrich Drepper <drepper@redhat.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Acked-by: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/gfs2/ops_file.c |    2 +-
+ fs/locks.c         |    8 ++++----
+ include/linux/fs.h |    2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/futex.c~futex-pass-nr_wake2-to-futex_wake_op kernel/futex.c
---- a/kernel/futex.c~futex-pass-nr_wake2-to-futex_wake_op
-+++ a/kernel/futex.c
-@@ -2060,8 +2060,10 @@ asmlinkage long sys_futex(u32 __user *ua
- 	}
- 	/*
- 	 * requeue parameter in 'utime' if cmd == FUTEX_REQUEUE.
-+	 * number of waiters to wake in 'utime' if cmd == FUTEX_WAKE_OP.
+diff -puN fs/gfs2/ops_file.c~rename-setleast-to-generic_setlease fs/gfs2/ops_file.c
+--- a/fs/gfs2/ops_file.c~rename-setleast-to-generic_setlease
++++ a/fs/gfs2/ops_file.c
+@@ -508,7 +508,7 @@ static int gfs2_setlease(struct file *fi
  	 */
--	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE)
-+	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE ||
-+	    cmd == FUTEX_WAKE_OP)
- 		val2 = (u32) (unsigned long) utime;
+ 	if (!sdp->sd_args.ar_localflocks)
+ 		return -EINVAL;
+-	return setlease(file, arg, fl);
++	return generic_setlease(file, arg, fl);
+ }
  
- 	return do_futex(uaddr, op, val, tp, uaddr2, val2, val3);
+ /**
+diff -puN fs/locks.c~rename-setleast-to-generic_setlease fs/locks.c
+--- a/fs/locks.c~rename-setleast-to-generic_setlease
++++ a/fs/locks.c
+@@ -1324,7 +1324,7 @@ int fcntl_getlease(struct file *filp)
+ }
+ 
+ /**
+- *	setlease	-	sets a lease on an open file
++ *	generic_setlease	-	sets a lease on an open file
+  *	@filp: file pointer
+  *	@arg: type of lease to obtain
+  *	@flp: input - file_lock to use, output - file_lock inserted
+@@ -1334,7 +1334,7 @@ int fcntl_getlease(struct file *filp)
+  *
+  *	Called with kernel lock held.
+  */
+-int setlease(struct file *filp, long arg, struct file_lock **flp)
++int generic_setlease(struct file *filp, long arg, struct file_lock **flp)
+ {
+ 	struct file_lock *fl, **before, **my_before = NULL, *lease;
+ 	struct dentry *dentry = filp->f_path.dentry;
+@@ -1419,7 +1419,7 @@ int setlease(struct file *filp, long arg
+ out:
+ 	return error;
+ }
+-EXPORT_SYMBOL(setlease);
++EXPORT_SYMBOL(generic_setlease);
+ 
+  /**
+  *	vfs_setlease        -       sets a lease on an open file
+@@ -1456,7 +1456,7 @@ int vfs_setlease(struct file *filp, long
+ 	if (filp->f_op && filp->f_op->setlease)
+ 		error = filp->f_op->setlease(filp, arg, lease);
+ 	else
+-		error = setlease(filp, arg, lease);
++		error = generic_setlease(filp, arg, lease);
+ 	unlock_kernel();
+ 
+ 	return error;
+diff -puN include/linux/fs.h~rename-setleast-to-generic_setlease include/linux/fs.h
+--- a/include/linux/fs.h~rename-setleast-to-generic_setlease
++++ a/include/linux/fs.h
+@@ -878,7 +878,7 @@ extern int vfs_cancel_lock(struct file *
+ extern int flock_lock_file_wait(struct file *filp, struct file_lock *fl);
+ extern int __break_lease(struct inode *inode, unsigned int flags);
+ extern void lease_get_mtime(struct inode *, struct timespec *time);
+-extern int setlease(struct file *, long, struct file_lock **);
++extern int generic_setlease(struct file *, long, struct file_lock **);
+ extern int vfs_setlease(struct file *, long, struct file_lock **);
+ extern int lease_modify(struct file_lock **, int);
+ extern int lock_may_read(struct inode *, loff_t start, unsigned long count);
 _
 
-Patches currently in -mm which might be from schwab@suse.de are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
+git-scsi-misc.patch
+partially-fix-up-the-lookup_one_noperm-mess.patch
+git-unionfs-fixup.patch
+sysv-convert-to-new-aops.patch
+kill-declare_mutex_locked.patch
+remove-unneded-lock_kernel-in-driver-block-loopc.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
