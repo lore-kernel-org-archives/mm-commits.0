@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + changing-include-asm-generic-pgtableh-for-non-mmu.patch added to -mm tree
-Date: Mon, 30 Jul 2007 18:19:31 -0700
-Message-ID: <200707310119.l6V1JVaC008097@imap1.linux-foundation.org>
+Subject: + add-ctl_proc-back.patch added to -mm tree
+Date: Mon, 30 Jul 2007 18:20:24 -0700
+Message-ID: <200707310120.l6V1KOJx008124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46225 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38428 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750843AbXGaBTw (ORCPT
+	by vger.kernel.org with ESMTP id S1753580AbXGaBVI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 21:19:52 -0400
+	Mon, 30 Jul 2007 21:21:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gerg@snapgear.com, dhowells@redhat.com
+Cc: adobriyan@sw.ru, shemminger@linux-foundation.org
 
 
 The patch titled
-     changing include/asm-generic/pgtable.h for non-mmu
+     Add CTL_PROC back
 has been added to the -mm tree.  Its filename is
-     changing-include-asm-generic-pgtableh-for-non-mmu.patch
+     add-ctl_proc-back.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,125 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: changing include/asm-generic/pgtable.h for non-mmu
-From: Greg Ungerer <gerg@snapgear.com>
+Subject: Add CTL_PROC back
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-There are some parts of include/asm-generic/pgtable.h that are relevant to
-the non-mmu architectures.  To make it easier to include this from them I
-would like to ifdef the relevant parts.
+commit eab03ac7bd3e0da99eb9dc068772a85a5e3f3577 aka
+"[PATCH] Get rid of /proc/sys/proc" was good commit except strace(1) compile
+breakage it introduced:
 
-Without this there is a handful of functions that are referenced in here
-that are not defined on many non-mmu architectures.  They could be defined
-out of course, as an alternative approach.
+	system.c:1581: error: 'CTL_PROC' undeclared here (not in a function)
 
-Cc: David Howells <dhowells@redhat.com>
+So, add dummy enum back.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Stephen Hemminger <shemminger@osdl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   73 ++++++++++++++++----------------
- 1 file changed, 38 insertions(+), 35 deletions(-)
+ include/linux/sysctl.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-generic/pgtable.h~changing-include-asm-generic-pgtableh-for-non-mmu include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~changing-include-asm-generic-pgtableh-for-non-mmu
-+++ a/include/asm-generic/pgtable.h
-@@ -2,6 +2,7 @@
- #define _ASM_GENERIC_PGTABLE_H
- 
- #ifndef __ASSEMBLY__
-+#ifdef CONFIG_MMU
- 
- #ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- /*
-@@ -133,41 +134,6 @@ static inline void ptep_set_wrprotect(st
- #endif
- 
- /*
-- * A facility to provide lazy MMU batching.  This allows PTE updates and
-- * page invalidations to be delayed until a call to leave lazy MMU mode
-- * is issued.  Some architectures may benefit from doing this, and it is
-- * beneficial for both shadow and direct mode hypervisors, which may batch
-- * the PTE updates which happen during this window.  Note that using this
-- * interface requires that read hazards be removed from the code.  A read
-- * hazard could result in the direct mode hypervisor case, since the actual
-- * write to the page tables may not yet have taken place, so reads though
-- * a raw PTE pointer after it has been modified are not guaranteed to be
-- * up to date.  This mode can only be entered and left under the protection of
-- * the page table locks for all page tables which may be modified.  In the UP
-- * case, this is required so that preemption is disabled, and in the SMP case,
-- * it must synchronize the delayed page table writes properly on other CPUs.
-- */
--#ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
--#define arch_enter_lazy_mmu_mode()	do {} while (0)
--#define arch_leave_lazy_mmu_mode()	do {} while (0)
--#define arch_flush_lazy_mmu_mode()	do {} while (0)
--#endif
--
--/*
-- * A facility to provide batching of the reload of page tables with the
-- * actual context switch code for paravirtualized guests.  By convention,
-- * only one of the lazy modes (CPU, MMU) should be active at any given
-- * time, entry should never be nested, and entry and exits should always
-- * be paired.  This is for sanity of maintaining and reasoning about the
-- * kernel code.
-- */
--#ifndef __HAVE_ARCH_ENTER_LAZY_CPU_MODE
--#define arch_enter_lazy_cpu_mode()	do {} while (0)
--#define arch_leave_lazy_cpu_mode()	do {} while (0)
--#define arch_flush_lazy_cpu_mode()	do {} while (0)
--#endif
--
--/*
-  * When walking page tables, get the address of the next boundary,
-  * or the end address of the range if that comes earlier.  Although no
-  * vma end wraps to 0, rounded up __boundary may wrap to 0 throughout.
-@@ -233,6 +199,43 @@ static inline int pmd_none_or_clear_bad(
- 	}
- 	return 0;
- }
-+#endif /* CONFIG_MMU */
-+
-+/*
-+ * A facility to provide lazy MMU batching.  This allows PTE updates and
-+ * page invalidations to be delayed until a call to leave lazy MMU mode
-+ * is issued.  Some architectures may benefit from doing this, and it is
-+ * beneficial for both shadow and direct mode hypervisors, which may batch
-+ * the PTE updates which happen during this window.  Note that using this
-+ * interface requires that read hazards be removed from the code.  A read
-+ * hazard could result in the direct mode hypervisor case, since the actual
-+ * write to the page tables may not yet have taken place, so reads though
-+ * a raw PTE pointer after it has been modified are not guaranteed to be
-+ * up to date.  This mode can only be entered and left under the protection of
-+ * the page table locks for all page tables which may be modified.  In the UP
-+ * case, this is required so that preemption is disabled, and in the SMP case,
-+ * it must synchronize the delayed page table writes properly on other CPUs.
-+ */
-+#ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
-+#define arch_enter_lazy_mmu_mode()	do {} while (0)
-+#define arch_leave_lazy_mmu_mode()	do {} while (0)
-+#define arch_flush_lazy_mmu_mode()	do {} while (0)
-+#endif
-+
-+/*
-+ * A facility to provide batching of the reload of page tables with the
-+ * actual context switch code for paravirtualized guests.  By convention,
-+ * only one of the lazy modes (CPU, MMU) should be active at any given
-+ * time, entry should never be nested, and entry and exits should always
-+ * be paired.  This is for sanity of maintaining and reasoning about the
-+ * kernel code.
-+ */
-+#ifndef __HAVE_ARCH_ENTER_LAZY_CPU_MODE
-+#define arch_enter_lazy_cpu_mode()	do {} while (0)
-+#define arch_leave_lazy_cpu_mode()	do {} while (0)
-+#define arch_flush_lazy_cpu_mode()	do {} while (0)
-+#endif
-+
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* _ASM_GENERIC_PGTABLE_H */
+diff -puN include/linux/sysctl.h~add-ctl_proc-back include/linux/sysctl.h
+--- a/include/linux/sysctl.h~add-ctl_proc-back
++++ a/include/linux/sysctl.h
+@@ -62,7 +62,7 @@ enum
+ 	CTL_KERN=1,		/* General kernel info and control */
+ 	CTL_VM=2,		/* VM management */
+ 	CTL_NET=3,		/* Networking */
+-	/* was CTL_PROC */
++	CTL_PROC=4,		/* removal breaks strace(1) compilation */
+ 	CTL_FS=5,		/* Filesystems */
+ 	CTL_DEBUG=6,		/* Debugging */
+ 	CTL_DEV=7,		/* Devices */
 _
 
-Patches currently in -mm which might be from gerg@snapgear.com are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-changing-include-asm-generic-pgtableh-for-non-mmu.patch
-git-mtd.patch
+gitignore-update.patch
+add-ctl_proc-back.patch
+consolidate-ptrace_detach.patch
+use-list_head-in-binfmt-handling-update.patch
+make-unregister_binfmt-return-void.patch
+fix-leaks-on-proc-schedsched_debugtimer_listtimer_stats.patch
+fix-leak-on-proc-lockdep_stats.patch
+slab_panic-more-proc-posix-timers-shmem.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2.patch
