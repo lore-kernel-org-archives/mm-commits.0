@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:31 -0700
-Message-ID: <200707311929.l6VJTVQl018337@imap1.linux-foundation.org>
+Subject: + fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:19 -0700
+Message-ID: <200707311929.l6VJTJxP018319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55972 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46959 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753064AbXGaTaD (ORCPT
+	by vger.kernel.org with ESMTP id S1753209AbXGaTaG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:30:03 -0400
+	Tue, 31 Jul 2007 15:30:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl
+Cc: m.kozlowski@tuxland.pl, edward@namesys.com, vs@namesys.com
 
 
 The patch titled
-     net/decnet/dn_route.c: kmalloc + memset conversion to kzalloc
+     fs/reiser4/plugin/file/cryptcompress.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc.patch
+     fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net/decnet/dn_route.c: kmalloc + memset conversion to kzalloc
+Subject: fs/reiser4/plugin/file/cryptcompress.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- net/decnet/dn_route.c | 45013 -> 44991 (-22 bytes)
- net/decnet/dn_route.o | 199388 -> 199580 (+192 bytes)
+ fs/reiser4/plugin/file/cryptcompress.c | 101386 -> 101352 (-34 bytes)
+ fs/reiser4/plugin/file/cryptcompress.o | 456784 -> 456644 (-140 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Edward Shishkin <edward@namesys.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/decnet/dn_route.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/reiser4/plugin/file/cryptcompress.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN net/decnet/dn_route.c~net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc net/decnet/dn_route.c
---- a/net/decnet/dn_route.c~net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc
-+++ a/net/decnet/dn_route.c
-@@ -1737,8 +1737,9 @@ static int dn_rt_cache_seq_open(struct i
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -96,13 +96,13 @@ static void set_inode_crypto_info (struc
+ /* allocate a cipher key info */
+ struct reiser4_crypto_info * reiser4_alloc_crypto_info (struct inode * inode)
  {
- 	struct seq_file *seq;
- 	int rc = -ENOMEM;
--	struct dn_rt_cache_iter_state *s = kmalloc(sizeof(*s), GFP_KERNEL);
-+	struct dn_rt_cache_iter_state *s;
+-	struct reiser4_crypto_info * info;
++	struct reiser4_crypto_info *info;
+ 	int fipsize;
  
-+	s = kzalloc(sizeof(*s), GFP_KERNEL);
- 	if (!s)
- 		goto out;
- 	rc = seq_open(file, &dn_rt_cache_seq_ops);
-@@ -1746,7 +1747,6 @@ static int dn_rt_cache_seq_open(struct i
- 		goto out_kfree;
- 	seq		= file->private_data;
- 	seq->private	= s;
--	memset(s, 0, sizeof(*s));
- out:
- 	return rc;
- out_kfree:
+-	info = kmalloc(sizeof(*info), reiser4_ctx_gfp_mask_get());
++	info = kzalloc(sizeof(*info), reiser4_ctx_gfp_mask_get());
+ 	if (!info)
+ 		return ERR_PTR(-ENOMEM);
+-	memset(info, 0, sizeof (*info));
++
+ 	fipsize = inode_digest_plugin(inode)->fipsize;
+ 	info->keyid = kmalloc(fipsize, reiser4_ctx_gfp_mask_get());
+ 	if (!info->keyid) {
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
