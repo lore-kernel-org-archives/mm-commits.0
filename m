@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + early_printk-accessing-__log_buf.patch added to -mm tree
-Date: Tue, 31 Jul 2007 11:36:15 -0700
-Message-ID: <200707311836.l6VIaF9E016396@imap1.linux-foundation.org>
+Subject: + printk-add-interfaces-for-external-access-to-the-log-buffer.patch added to -mm tree
+Date: Tue, 31 Jul 2007 11:38:24 -0700
+Message-ID: <200707311838.l6VIcO0s016441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55041 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56716 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932151AbXGaSh1 (ORCPT
+	by vger.kernel.org with ESMTP id S932129AbXGaSjU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 14:37:27 -0400
+	Tue, 31 Jul 2007 14:39:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: vapier.adi@gmail.com, gerg@snapgear.com, lethal@linux-sh.org, rgetz@blackfin
 The patch titled
      printk: add interfaces for external access to the log buffer
 has been added to the -mm tree.  Its filename is
-     early_printk-accessing-__log_buf.patch
+     printk-add-interfaces-for-external-access-to-the-log-buffer.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -47,8 +47,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/printk.c        |   49 +++++++++++++++++++++++++++++++++++++++
  2 files changed, 55 insertions(+)
 
-diff -puN include/linux/kernel.h~early_printk-accessing-__log_buf include/linux/kernel.h
---- a/include/linux/kernel.h~early_printk-accessing-__log_buf
+diff -puN include/linux/kernel.h~printk-add-interfaces-for-external-access-to-the-log-buffer include/linux/kernel.h
+--- a/include/linux/kernel.h~printk-add-interfaces-for-external-access-to-the-log-buffer
 +++ a/include/linux/kernel.h
 @@ -157,6 +157,9 @@ asmlinkage int vprintk(const char *fmt, 
  	__attribute__ ((format (printf, 1, 0)));
@@ -70,8 +70,8 @@ diff -puN include/linux/kernel.h~early_printk-accessing-__log_buf include/linux/
  #endif
  
  unsigned long int_sqrt(unsigned long);
-diff -puN kernel/printk.c~early_printk-accessing-__log_buf kernel/printk.c
---- a/kernel/printk.c~early_printk-accessing-__log_buf
+diff -puN kernel/printk.c~printk-add-interfaces-for-external-access-to-the-log-buffer kernel/printk.c
+--- a/kernel/printk.c~printk-add-interfaces-for-external-access-to-the-log-buffer
 +++ a/kernel/printk.c
 @@ -220,6 +220,55 @@ static inline void boot_delay_msec(void)
  #endif
@@ -133,5 +133,5 @@ _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
 
-early_printk-accessing-__log_buf.patch
-early_printk-accessing-__log_buf-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
