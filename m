@@ -1,72 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-fix-objstripc-compilation-warnings.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:56:11 -0700
-Message-ID: <200707312356.l6VNuB4K029298@imap1.linux-foundation.org>
+Subject: - typo-fixes-errror-error.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:58:42 -0700
+Message-ID: <200707312358.l6VNwgLc029580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39138 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51791 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764168AbXHAARj (ORCPT
+	by vger.kernel.org with ESMTP id S1754208AbXHAARB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:17:39 -0400
+	Tue, 31 Jul 2007 20:17:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mroos@linux.ee, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.net, mm-commits@vger.kernel.org
+To: nix.or.die@googlemail.com, jeff@garzik.org, schwidefsky@de.ibm.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: fix objstrip.c compilation warnings
+     Typo fixes errror -> error
 has been removed from the -mm tree.  Its filename was
-     alpha-fix-objstripc-compilation-warnings.patch
+     typo-fixes-errror-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: alpha: fix objstrip.c compilation warnings
-From: Meelis Roos <mroos@linux.ee>
+Subject: Typo fixes errror -> error
+From: Gabriel Craciunescu <nix.or.die@googlemail.com>
 
-In current 2.6.23-rc1+git, make bootimage gives the following warnings while
-compiling objstrip.c.  The patch below fixes these warnings by casting strncmp
-argument to char * - it does not seem feasible to change its type in struct
-elfhdr.
+Typo fixes errror -> error
 
-  HOSTCC  arch/alpha/boot/tools/objstrip
-arch/alpha/boot/tools/objstrip.c: In function 'main':
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strlen' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strlen' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strlen' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of '__builtin_strcmp' differ in signedness
-arch/alpha/boot/tools/objstrip.c:147: warning: pointer targets in passing argument 1 of 'strncmp' differ in signedness
-
-Signed-off-by: Meelis Roos <mroos@linux.ee>
-Cc: Jay Estabrook <jay.estabrook@hp.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/boot/tools/objstrip.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/skfp/pmf.c         |    2 +-
+ drivers/s390/block/dasd_eckd.c |    4 ++--
+ security/selinux/ss/services.c |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/alpha/boot/tools/objstrip.c~alpha-fix-objstripc-compilation-warnings arch/alpha/boot/tools/objstrip.c
---- a/arch/alpha/boot/tools/objstrip.c~alpha-fix-objstripc-compilation-warnings
-+++ a/arch/alpha/boot/tools/objstrip.c
-@@ -144,7 +144,7 @@ main (int argc, char *argv[])
- #ifdef __ELF__
-     elf = (struct elfhdr *) buf;
+diff -puN drivers/net/skfp/pmf.c~typo-fixes-errror-error drivers/net/skfp/pmf.c
+--- a/drivers/net/skfp/pmf.c~typo-fixes-errror-error
++++ a/drivers/net/skfp/pmf.c
+@@ -575,7 +575,7 @@ void smt_add_para(struct s_smc *smc, str
+ 	int		sp_len ;
  
--    if (elf->e_ident[0] == 0x7f && strncmp(elf->e_ident + 1, "ELF", 3) == 0) {
-+    if (elf->e_ident[0] == 0x7f && strncmp((char *)elf->e_ident + 1, "ELF", 3) == 0) {
- 	if (elf->e_type != ET_EXEC) {
- 	    fprintf(stderr, "%s: %s is not an ELF executable\n",
- 		    prog_name, inname);
+ 	/*
+-	 * skip if errror
++	 * skip if error
+ 	 */
+ 	if (pcon->pc_err)
+ 		return ;
+diff -puN drivers/s390/block/dasd_eckd.c~typo-fixes-errror-error drivers/s390/block/dasd_eckd.c
+--- a/drivers/s390/block/dasd_eckd.c~typo-fixes-errror-error
++++ a/drivers/s390/block/dasd_eckd.c
+@@ -555,7 +555,7 @@ dasd_eckd_read_conf(struct dasd_device *
+ 			if (conf_data == NULL) {
+ 				MESSAGE(KERN_WARNING, "%s", "No configuration "
+ 					"data retrieved");
+-				continue;	/* no errror */
++				continue;	/* no error */
+ 			}
+ 			if (conf_len != sizeof (struct dasd_eckd_confdata)) {
+ 				MESSAGE(KERN_WARNING,
+@@ -564,7 +564,7 @@ dasd_eckd_read_conf(struct dasd_device *
+ 					conf_len,
+ 					sizeof (struct dasd_eckd_confdata));
+ 				kfree(conf_data);
+-				continue;	/* no errror */
++				continue;	/* no error */
+ 			}
+ 			/* save first valid configuration data */
+ 			if (!conf_data_saved){
+diff -puN security/selinux/ss/services.c~typo-fixes-errror-error security/selinux/ss/services.c
+--- a/security/selinux/ss/services.c~typo-fixes-errror-error
++++ a/security/selinux/ss/services.c
+@@ -792,7 +792,7 @@ int security_context_to_sid(char *sconte
+  * @scontext: security context
+  * @scontext_len: length in bytes
+  * @sid: security identifier, SID
+- * @def_sid: default SID to assign on errror
++ * @def_sid: default SID to assign on error
+  *
+  * Obtains a SID associated with the security context that
+  * has the string representation specified by @scontext.
 _
 
-Patches currently in -mm which might be from mroos@linux.ee are
+Patches currently in -mm which might be from nix.or.die@googlemail.com are
 
 origin.patch
-acpi-cure-run-together-printk-lines.patch
-fix-runtogether-printks-in-cmd64x-ide-driver.patch
+fix-libata-warnings-with-config_pm=n.patch
+drivers-scsi-g_ncr5380c-ncr53c400_pseudo_dma-is-not.patch
+fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
