@@ -1,62 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-m48t59-driver-no_irq-mode-fixup.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:59:16 -0700
-Message-ID: <200707312359.l6VNxGir029636@imap1.linux-foundation.org>
+Subject: - ncp-delete-test-of-long-deceased-config_ncpfs_debugdentry.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:58:05 -0700
+Message-ID: <200707312358.l6VNw5UE029524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60845 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60778 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756868AbXHAAQc (ORCPT
+	by vger.kernel.org with ESMTP id S1759407AbXHAAQd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:32 -0400
+	Tue, 31 Jul 2007 20:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rongkai.zhan@windriver.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, petr@vandrovec.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-m48t59 driver NO_IRQ mode fixup
+     NCP: delete test of long-deceased CONFIG_NCPFS_DEBUGDENTRY
 has been removed from the -mm tree.  Its filename was
-     rtc-m48t59-driver-no_irq-mode-fixup.patch
+     ncp-delete-test-of-long-deceased-config_ncpfs_debugdentry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc-m48t59 driver NO_IRQ mode fixup
-From: Mark Zhan <rongkai.zhan@windriver.com>
+Subject: NCP: delete test of long-deceased CONFIG_NCPFS_DEBUGDENTRY
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Since irq in m48t59_private struct is defined as 'unsigned int', which will
-make the following if sentence to be never true:
-
-         if (m48t59->irq < 0)
-                  m48t59->irq = NO_IRQ;
-
-And thus it will make the m48t59_rtc_probe() is failed when the driver is
-working in a no irq mode:
-
-Signed-off-by: Mark Zhan <rongkai.zhan@windriver.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Acked-by: Petr Vandrovec <petr@vandrovec.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m48t59.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ncpfs/ncplib_kernel.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-m48t59.c~rtc-m48t59-driver-no_irq-mode-fixup drivers/rtc/rtc-m48t59.c
---- a/drivers/rtc/rtc-m48t59.c~rtc-m48t59-driver-no_irq-mode-fixup
-+++ a/drivers/rtc/rtc-m48t59.c
-@@ -35,7 +35,7 @@
- struct m48t59_private {
- 	void __iomem *ioaddr;
- 	unsigned int size; /* iomem size */
--	unsigned int irq;
-+	int irq;
- 	struct rtc_device *rtc;
- 	spinlock_t lock; /* serialize the NVRAM and RTC access */
- };
+diff -puN fs/ncpfs/ncplib_kernel.c~ncp-delete-test-of-long-deceased-config_ncpfs_debugdentry fs/ncpfs/ncplib_kernel.c
+--- a/fs/ncpfs/ncplib_kernel.c~ncp-delete-test-of-long-deceased-config_ncpfs_debugdentry
++++ a/fs/ncpfs/ncplib_kernel.c
+@@ -726,9 +726,6 @@ ncp_del_file_or_subdir2(struct ncp_serve
+ 	__le32 dirent;
+ 
+ 	if (!inode) {
+-#ifdef CONFIG_NCPFS_DEBUGDENTRY
+-		PRINTK("ncpfs: ncpdel2: dentry->d_inode == NULL\n");
+-#endif
+ 		return 0xFF;	/* Any error */
+ 	}
+ 	volnum = NCP_FINFO(inode)->volNumber;
 _
 
-Patches currently in -mm which might be from rongkai.zhan@windriver.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-no-need-to-convert-file-private_data-to-rtc-device.patch
+git-kvm.patch
+git-mtd.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+remove-dead-references-to-module_parm-macro.patch
+i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
+m68knommu-remove-unused-config-symbol-config_disktel.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+kconfig-make-instrumentation-support-non-experimental.patch
