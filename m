@@ -1,49 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - git-mmc-build-fix.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 13:30:10 -0700
-Message-ID: <200707312030.l6VKUAoF020945@imap1.linux-foundation.org>
+Subject: - git-mmc-build-fix-2.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 13:30:11 -0700
+Message-ID: <200707312030.l6VKUB7Z020948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39841 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40257 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932740AbXGaUaz (ORCPT
+	by vger.kernel.org with ESMTP id S932740AbXGaUau (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 16:30:55 -0400
+	Tue, 31 Jul 2007 16:30:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, drzeus@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mmc-build-fix
+     git-mmc-build-fix-2
 has been removed from the -mm tree.  Its filename was
-     git-mmc-build-fix.patch
+     git-mmc-build-fix-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-mmc-build-fix
+Subject: git-mmc-build-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc_ops.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mmc/card.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/mmc/core/mmc_ops.c~git-mmc-build-fix drivers/mmc/core/mmc_ops.c
---- a/drivers/mmc/core/mmc_ops.c~git-mmc-build-fix
-+++ a/drivers/mmc/core/mmc_ops.c
-@@ -329,7 +329,7 @@ int mmc_lock_unlock(struct mmc_card *car
+diff -puN drivers/mmc/core/lock.c~git-mmc-build-fix-2 drivers/mmc/core/lock.c
+diff -puN include/linux/mmc/card.h~git-mmc-build-fix-2 include/linux/mmc/card.h
+--- a/include/linux/mmc/card.h~git-mmc-build-fix-2
++++ a/include/linux/mmc/card.h
+@@ -112,8 +112,7 @@ struct mmc_card {
+ #define mmc_card_blockaddr(c)	((c)->state & MMC_STATE_BLOCKADDR)
+ #define mmc_card_locked(c)	((c)->state & MMC_STATE_LOCKED)
  
- 	memset(&data, 0, sizeof(struct mmc_data));
+-#define mmc_card_lockable(c)	(((c)->csd.cmdclass & CCC_LOCK_CARD) && \
+-				((c)->host->caps & MMC_CAP_BYTEBLOCK))
++#define mmc_card_lockable(c)	((c)->csd.cmdclass & CCC_LOCK_CARD)
  
--	mmc_set_data_timeout(&data, card, 1);
-+	mmc_set_data_timeout(&data, card);
- 
- 	data.blksz = data_size;
- 	data.blocks = 1;
+ #define mmc_card_set_present(c)	((c)->state |= MMC_STATE_PRESENT)
+ #define mmc_card_set_readonly(c) ((c)->state |= MMC_STATE_READONLY)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
