@@ -1,59 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - i386-include-asm-bugsh-in-bugsc-for-check_bugs-prototype.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:58:47 -0700
-Message-ID: <200707312358.l6VNwl15029588@imap1.linux-foundation.org>
+Subject: - serial-fix-section-mismatch-vr41xx_siu.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:57:35 -0700
+Message-ID: <200707312357.l6VNvZFh029409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36842 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51260 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757256AbXHAAQh (ORCPT
+	by vger.kernel.org with ESMTP id S1760515AbXHAAQh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 31 Jul 2007 20:16:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josh@kernel.org, ak@suse.de, mm-commits@vger.kernel.org
+To: yoichi_yuasa@tripeaks.co.jp, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: include asm/bugs.h in bugs.c for check_bugs prototype
+     serial: fix section mismatch vr41xx_siu
 has been removed from the -mm tree.  Its filename was
-     i386-include-asm-bugsh-in-bugsc-for-check_bugs-prototype.patch
+     serial-fix-section-mismatch-vr41xx_siu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: include asm/bugs.h in bugs.c for check_bugs prototype
-From: Josh Triplett <josh@kernel.org>
+Subject: serial: fix section mismatch vr41xx_siu
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-C files should include the header files that prototype their functions.
+Fix section mismatch vr41xx_siu.
 
-Eliminates a sparse warning:
-warning: symbol 'check_bugs' was not declared. Should it be static?
+WARNING: drivers/built-in.o(.text+0x2ce4c): Section mismatch: reference to .init.text:uart_parse_options (between 'siu_console_setup' and 'siu_request_port')
+WARNING: drivers/built-in.o(.text+0x2ce70): Section mismatch: reference to .init.text:uart_set_options (between 'siu_console_setup' and 'siu_request_port')
 
-Signed-off-by: Josh Triplett <josh@kernel.org>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/bugs.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/serial/vr41xx_siu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/bugs.c~i386-include-asm-bugsh-in-bugsc-for-check_bugs-prototype arch/i386/kernel/cpu/bugs.c
---- a/arch/i386/kernel/cpu/bugs.c~i386-include-asm-bugsh-in-bugsc-for-check_bugs-prototype
-+++ a/arch/i386/kernel/cpu/bugs.c
-@@ -11,6 +11,7 @@
-  */
- #include <linux/init.h>
- #include <linux/utsname.h>
-+#include <asm/bugs.h>
- #include <asm/processor.h>
- #include <asm/i387.h>
- #include <asm/msr.h>
+diff -puN drivers/serial/vr41xx_siu.c~serial-fix-section-mismatch-vr41xx_siu drivers/serial/vr41xx_siu.c
+--- a/drivers/serial/vr41xx_siu.c~serial-fix-section-mismatch-vr41xx_siu
++++ a/drivers/serial/vr41xx_siu.c
+@@ -782,7 +782,7 @@ static void siu_console_write(struct con
+ 	siu_write(port, UART_IER, ier);
+ }
+ 
+-static int siu_console_setup(struct console *con, char *options)
++static int __init siu_console_setup(struct console *con, char *options)
+ {
+ 	struct uart_port *port;
+ 	int baud = 9600;
 _
 
-Patches currently in -mm which might be from josh@kernel.org are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
 origin.patch
-immunize-rcu_dereference-against-crazy-compiler-writers.patch
-i386-mark-pit_clockevent-static.patch
-cfs-mark-print_cfs_stats-static.patch
+git-mtd.patch
