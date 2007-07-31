@@ -1,90 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-fix-mkbb-compilation-warnings.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:56:08 -0700
-Message-ID: <200707312356.l6VNu8Z5029295@imap1.linux-foundation.org>
+Subject: - fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:58:32 -0700
+Message-ID: <200707312358.l6VNwWAP029559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56370 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45112 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762597AbXHAARq (ORCPT
+	by vger.kernel.org with ESMTP id S1764303AbXHAARz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:17:46 -0400
+	Tue, 31 Jul 2007 20:17:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mroos@linux.ee, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.net, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, karim@opersys.com, mathieu.desnoyers@polymtl.ca, wilder@us.ibm.com, zanussi@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: fix mkbb compilation warnings
+     Fix a use after free bug in kernel->userspace relay file support
 has been removed from the -mm tree.  Its filename was
-     alpha-fix-mkbb-compilation-warnings.patch
+     fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: alpha: fix mkbb compilation warnings
-From: Meelis Roos <mroos@linux.ee>
+Subject: Fix a use after free bug in kernel->userspace relay file support
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-In current 2.6.23-rc1+git, make bootimage gives the following warnings while
-compiling mkbb.c.  The patch below fixes these warnings by using the proper
-include for exit() and using appropriate printf format.
+Coverity spotted what looks like a real possible case of using a variable
+after it has been freed.  The problem is in
+kernel/relay.c::relay_open_buf()
 
-  HOSTCC  arch/alpha/boot/tools/mkbb
-arch/alpha/boot/tools/mkbb.c: In function 'main':
-arch/alpha/boot/tools/mkbb.c:95: warning: implicit declaration of function 'exit'
-arch/alpha/boot/tools/mkbb.c:95: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:102: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:110: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:117: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-arch/alpha/boot/tools/mkbb.c:118: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:125: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-arch/alpha/boot/tools/mkbb.c:126: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:143: warning: incompatible implicit declaration of built-in function 'exit'
-arch/alpha/boot/tools/mkbb.c:148: warning: incompatible implicit declaration of built-in function 'exit'
+If the code hits "goto free_buf;" it ends up in this code :
 
-Signed-off-by: Meelis Roos <mroos@linux.ee>
-Cc: Jay Estabrook <jay.estabrook@hp.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+  free_buf:
+    	relay_destroy_buf(buf);	<--- calls kfree() on 'buf'.
+  free_name:
+   	kfree(tmpname);
+  end:
+  	return buf;		<-- use after free of 'buf'.
+
+I read through the callers and they all handle a NULL return from this
+function as an error (and hitting the 'free_buf' label only happens on
+failure to chan->cb->create_buf_file(), so that looks like a clear error to
+me).
+
+The patch simply sets 'buf' to NULL after the call to
+relay_destroy_buf(buf); - as far as I can see that should take care of the
+problem.
+
+The patch also corrects a reference to a documentation file while
+I was at it.
+
+Note from Mathieu: the documentation reference change should have been
+done in a separate patch, but I guess no one will really care.
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: "David J. Wilder" <wilder@us.ibm.com>
+Tested-by: "David J. Wilder" <wilder@us.ibm.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Tom Zanussi <zanussi@us.ibm.com>
+Cc: Karim Yaghmour <karim@opersys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/boot/tools/mkbb.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/relay.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/alpha/boot/tools/mkbb.c~alpha-fix-mkbb-compilation-warnings arch/alpha/boot/tools/mkbb.c
---- a/arch/alpha/boot/tools/mkbb.c~alpha-fix-mkbb-compilation-warnings
-+++ a/arch/alpha/boot/tools/mkbb.c
-@@ -11,6 +11,7 @@
+diff -puN kernel/relay.c~fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support kernel/relay.c
+--- a/kernel/relay.c~fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support
++++ a/kernel/relay.c
+@@ -1,7 +1,7 @@
+ /*
+  * Public API and common code for kernel->userspace relay file support.
+  *
+- * See Documentation/filesystems/relayfs.txt for an overview of relayfs.
++ * See Documentation/filesystems/relay.txt for an overview.
+  *
+  * Copyright (C) 2002-2005 - Tom Zanussi (zanussi@us.ibm.com), IBM Corp
+  * Copyright (C) 1999-2005 - Karim Yaghmour (karim@opersys.com)
+@@ -426,6 +426,7 @@ static struct rchan_buf *relay_open_buf(
  
- #include <fcntl.h>
- #include <unistd.h>
-+#include <stdlib.h>
- #include <stdio.h>
- 
- /* Minimal definition of disklabel, so we don't have to include
-@@ -114,7 +115,7 @@ int main(int argc, char ** argv)
-     nread = read(fd, &bootloader_image, sizeof(bootblock));
-     if(nread != sizeof(bootblock)) {
- 	perror("lxboot read");
--	fprintf(stderr, "expected %d, got %d\n", sizeof(bootblock), nread);
-+	fprintf(stderr, "expected %zd, got %d\n", sizeof(bootblock), nread);
- 	exit(0);
-     }
- 
-@@ -122,7 +123,7 @@ int main(int argc, char ** argv)
-     nread = read(dev, &bootblock_from_disk, sizeof(bootblock));
-     if(nread != sizeof(bootblock)) {
- 	perror("bootblock read");
--	fprintf(stderr, "expected %d, got %d\n", sizeof(bootblock), nread);
-+	fprintf(stderr, "expected %zd, got %d\n", sizeof(bootblock), nread);
- 	exit(0);
-     }
- 
+ free_buf:
+  	relay_destroy_buf(buf);
++ 	buf = NULL;
+ free_name:
+  	kfree(tmpname);
+ end:
 _
 
-Patches currently in -mm which might be from mroos@linux.ee are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-acpi-cure-run-together-printk-lines.patch
-fix-runtogether-printks-in-cmd64x-ide-driver.patch
+git-alsa.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+powerpc-clean-out-a-bunch-of-duplicate-includes.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hid.patch
+ia64-remove-a-few-duplicate-includes.patch
+clean-up-duplicate-includes-in-drivers-input.patch
+mips-remove-some-duplicate-includes.patch
+git-mtd.patch
+clean-up-duplicate-includes-in-drivers-net.patch
+clean-up-duplicate-includes-in-drivers-atm.patch
+clean-up-duplicate-includes-in-net-atm.patch
+clean-up-duplicate-includes-in-net-ipv4.patch
+clean-up-duplicate-includes-in-net-ipv6.patch
+clean-up-duplicate-includes-in-net-sched.patch
+clean-up-duplicate-includes-in-net-sunrpc.patch
+clean-up-duplicate-includes-in-net-tipc.patch
+clean-up-duplicate-includes-in-net-xfrm.patch
+dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
+clean-up-duplicate-includes-in-drivers-scsi.patch
+clean-up-duplicate-includes-in-drivers-block.patch
+clean-up-duplicate-includes-in-arch-i386-xen.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
