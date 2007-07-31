@@ -1,81 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - use-erestartnohand-if-poll-is-interrupted-by-a-signal.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 14:21:07 -0700
-Message-ID: <200707312121.l6VLL7aD023224@imap1.linux-foundation.org>
+Subject: + tpm_tis-fix-interrupt-probing.patch added to -mm tree
+Date: Tue, 31 Jul 2007 14:44:29 -0700
+Message-ID: <200707312144.l6VLiTt4024159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40593 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51973 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753128AbXGaVVl (ORCPT
+	by vger.kernel.org with ESMTP id S1756904AbXGaVoj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 17:21:41 -0400
+	Tue, 31 Jul 2007 17:44:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bjorn.helgaas@hp.com, valdis.kletnieks@vt.edu
 
 
 The patch titled
-     Use ERESTARTNOHAND if poll() is interrupted by a signal
-has been removed from the -mm tree.  Its filename was
-     use-erestartnohand-if-poll-is-interrupted-by-a-signal.patch
+     tpm_tis: fix interrupt probing
+has been added to the -mm tree.  Its filename is
+     tpm_tis-fix-interrupt-probing.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Use ERESTARTNOHAND if poll() is interrupted by a signal
-From: Manfred Spraul <manfred@colorfullife.com>
+Subject: tpm_tis: fix interrupt probing
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-poll() returns -EINTR if a signal is pending.  EINTR is a bad choice: it
-means that poll returns to user space if the task is stopped by
-SIGSTOP/SIGCONT or by the freezer.  select() and ppoll() both use
-ERESTARTNOHAND, this avoids a return to user space for signals that are
-handled by the kernel.
+<stuff goes here>
 
-The patch switches poll() to ERESTARTNOHAND.  Tested with FC6.  Patch
-against 2.6.23-rc1-mm1.
+Tested-by: <valdis.kletnieks@vt.edu>
 
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/char/tpm/tpm_tis.c |   22 +++++++++++++---------
+ 1 files changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN fs/select.c~use-erestartnohand-if-poll-is-interrupted-by-a-signal fs/select.c
---- a/fs/select.c~use-erestartnohand-if-poll-is-interrupted-by-a-signal
-+++ a/fs/select.c
-@@ -621,7 +621,7 @@ static int do_poll(unsigned int nfds,  s
- 		if (!count) {
- 			count = wait->error;
- 			if (signal_pending(current))
--				count = -EINTR;
-+				count = -ERESTARTNOHAND;
- 		}
- 		if (count || !*timeout)
- 			break;
-@@ -774,7 +774,7 @@ asmlinkage long sys_ppoll(struct pollfd 
- 	ret = do_sys_poll(ufds, nfds, &timeout);
+diff -puN drivers/char/tpm/tpm_tis.c~tpm_tis-fix-interrupt-probing drivers/char/tpm/tpm_tis.c
+--- a/drivers/char/tpm/tpm_tis.c~tpm_tis-fix-interrupt-probing
++++ a/drivers/char/tpm/tpm_tis.c
+@@ -433,17 +433,12 @@ module_param(interrupts, bool, 0444);
+ MODULE_PARM_DESC(interrupts, "Enable interrupts");
  
- 	/* We can restart this syscall, usually */
--	if (ret == -EINTR) {
-+	if (ret == -ERESTARTNOHAND) {
- 		/*
- 		 * Don't restore the signal mask yet. Let do_signal() deliver
- 		 * the signal on the way back to userspace, before the signal
-@@ -785,7 +785,6 @@ asmlinkage long sys_ppoll(struct pollfd 
- 					sizeof(sigsaved));
- 			set_thread_flag(TIF_RESTORE_SIGMASK);
- 		}
--		ret = -ERESTARTNOHAND;
- 	} else if (sigmask)
- 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
+ static int tpm_tis_init(struct device *dev, resource_size_t start,
+-			resource_size_t len)
++			resource_size_t len, unsigned int irq)
+ {
+ 	u32 vendor, intfcaps, intmask;
+ 	int rc, i;
+ 	struct tpm_chip *chip;
  
+-	if (!start)
+-		start = TIS_MEM_BASE;
+-	if (!len)
+-		len = TIS_MEM_LEN;
+-
+ 	if (!(chip = tpm_register_hardware(dev, &tpm_tis)))
+ 		return -ENODEV;
+ 
+@@ -510,7 +505,9 @@ static int tpm_tis_init(struct device *d
+ 	iowrite32(intmask,
+ 		  chip->vendor.iobase +
+ 		  TPM_INT_ENABLE(chip->vendor.locality));
+-	if (interrupts) {
++	if (interrupts)
++		chip->vendor.irq = irq;
++	if (interrupts && !chip->vendor.irq) {
+ 		chip->vendor.irq =
+ 		    ioread8(chip->vendor.iobase +
+ 			    TPM_INT_VECTOR(chip->vendor.locality));
+@@ -595,10 +592,17 @@ static int __devinit tpm_tis_pnp_init(st
+ 				      const struct pnp_device_id *pnp_id)
+ {
+ 	resource_size_t start, len;
++	unsigned int irq = 0;
++
+ 	start = pnp_mem_start(pnp_dev, 0);
+ 	len = pnp_mem_len(pnp_dev, 0);
+ 
+-	return tpm_tis_init(&pnp_dev->dev, start, len);
++	if (pnp_irq_valid(pnp_dev, 0))
++		irq = pnp_irq(pnp_dev, 0);
++	else
++		interrupts = 0;
++
++	return tpm_tis_init(&pnp_dev->dev, start, len, irq);
+ }
+ 
+ static int tpm_tis_pnp_suspend(struct pnp_dev *dev, pm_message_t msg)
+@@ -658,7 +662,7 @@ static int __init init_tis(void)
+ 			return rc;
+ 		if (IS_ERR(pdev=platform_device_register_simple("tpm_tis", -1, NULL, 0)))
+ 			return PTR_ERR(pdev);
+-		if((rc=tpm_tis_init(&pdev->dev, 0, 0)) != 0) {
++		if((rc=tpm_tis_init(&pdev->dev, TIS_MEM_BASE, TIS_MEM_LEN, 0)) != 0) {
+ 			platform_device_unregister(pdev);
+ 			driver_unregister(&tis_drv);
+ 		}
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-use-erestartnohand-if-poll-is-interrupted-by-a-signal.patch
-mm-debug-dump-pageframes-on-bad_page.patch
-slab-leaks3-default-y.patch
+origin.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+move-free-pages-between-lists-on-steal.patch
+convert-ill-defined-log2-to-ilog2.patch
+tpm_tis-fix-interrupt-probing.patch
