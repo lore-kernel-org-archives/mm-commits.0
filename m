@@ -1,55 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - try-harder-to-probe-some-finicky-mice.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 23:33:25 -0700
-Message-ID: <200707310633.l6V6XP4w019703@imap1.linux-foundation.org>
+Subject: - usb-fix-a-bug-in-usb_start_wait_urb.patch removed from -mm tree
+Date: Mon, 30 Jul 2007 23:33:40 -0700
+Message-ID: <200707310633.l6V6Xe45019760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60638 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36131 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752114AbXGaGe0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752114AbXGaGea (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 02:34:26 -0400
+	Tue, 31 Jul 2007 02:34:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alonz@nolaviz.org, dtor@mail.ru, jkosina@suse.cz, lkml@nolaviz.org, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Try harder to probe some finicky mice
+     USB: fix a bug in usb_start_wait_urb
 has been removed from the -mm tree.  Its filename was
-     try-harder-to-probe-some-finicky-mice.patch
+     usb-fix-a-bug-in-usb_start_wait_urb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Try harder to probe some finicky mice
-From: Alon Ziv <alonz@nolaviz.org>
+Subject: USB: fix a bug in usb_start_wait_urb
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Some rodents appear to be extra-finicky, and require both a PSMOUSE_RESET_DIS
-and a PSMOUSE_RESET_BAT before they are unconfused enough to be probed.
+This patch (as941) fixes a bug recently added to the USB synchronous API. 
+The status of a completed URB must be preserved separately across a
+completion callback.  Also, the actual_length value isn't available until
+after the URB has fully completed.
 
-Signed-off-by: Alon Ziv <lkml@nolaviz.org>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/psmouse-base.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/usb/core/message.c |   26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-diff -puN drivers/input/mouse/psmouse-base.c~try-harder-to-probe-some-finicky-mice drivers/input/mouse/psmouse-base.c
---- a/drivers/input/mouse/psmouse-base.c~try-harder-to-probe-some-finicky-mice
-+++ a/drivers/input/mouse/psmouse-base.c
-@@ -651,6 +651,7 @@ static int psmouse_extensions(struct psm
-  * protocol probes. Note that we do full reset becuase some mice
-  * put themselves to sleep when see PSMOUSE_RESET_DIS.
-  */
-+	ps2_command(&psmouse->ps2dev, NULL, PSMOUSE_CMD_RESET_DIS);
- 	psmouse_reset(psmouse);
+diff -puN drivers/usb/core/message.c~usb-fix-a-bug-in-usb_start_wait_urb drivers/usb/core/message.c
+--- a/drivers/usb/core/message.c~usb-fix-a-bug-in-usb_start_wait_urb
++++ a/drivers/usb/core/message.c
+@@ -18,9 +18,17 @@
+ #include "hcd.h"	/* for usbcore internals */
+ #include "usb.h"
  
- 	if (max_proto >= PSMOUSE_IMEX && im_explorer_detect(psmouse, set_properties) == 0)
++struct api_context {
++	struct completion	done;
++	int			status;
++};
++
+ static void usb_api_blocking_completion(struct urb *urb)
+ {
+-	complete((struct completion *)urb->context);
++	struct api_context *ctx = urb->context;
++
++	ctx->status = urb->status;
++	complete(&ctx->done);
+ }
+ 
+ 
+@@ -32,20 +40,21 @@ static void usb_api_blocking_completion(
+  */
+ static int usb_start_wait_urb(struct urb *urb, int timeout, int *actual_length)
+ { 
+-	struct completion done;
++	struct api_context ctx;
+ 	unsigned long expire;
+ 	int retval;
+-	int status = urb->status;
+ 
+-	init_completion(&done); 	
+-	urb->context = &done;
++	init_completion(&ctx.done);
++	urb->context = &ctx;
+ 	urb->actual_length = 0;
+ 	retval = usb_submit_urb(urb, GFP_NOIO);
+ 	if (unlikely(retval))
+ 		goto out;
+ 
+ 	expire = timeout ? msecs_to_jiffies(timeout) : MAX_SCHEDULE_TIMEOUT;
+-	if (!wait_for_completion_timeout(&done, expire)) {
++	if (!wait_for_completion_timeout(&ctx.done, expire)) {
++		usb_kill_urb(urb);
++		retval = (ctx.status == -ENOENT ? -ETIMEDOUT : ctx.status);
+ 
+ 		dev_dbg(&urb->dev->dev,
+ 			"%s timed out on ep%d%s len=%d/%d\n",
+@@ -54,11 +63,8 @@ static int usb_start_wait_urb(struct urb
+ 			usb_pipein(urb->pipe) ? "in" : "out",
+ 			urb->actual_length,
+ 			urb->transfer_buffer_length);
+-
+-		usb_kill_urb(urb);
+-		retval = status == -ENOENT ? -ETIMEDOUT : status;
+ 	} else
+-		retval = status;
++		retval = ctx.status;
+ out:
+ 	if (actual_length)
+ 		*actual_length = urb->actual_length;
 _
 
-Patches currently in -mm which might be from alonz@nolaviz.org are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-git-input.patch
+origin.patch
+nikon-d50-is-an-unusual-device.patch
