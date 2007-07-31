@@ -1,157 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - sysrq-add-a-show-stacktrace-on-all-cpus-command-fix.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 21:51:01 -0700
-Message-ID: <200707310451.l6V4p1XS016163@imap1.linux-foundation.org>
+Subject: - sysrq-add-a-show-stacktrace-on-all-cpus-command.patch removed from -mm tree
+Date: Mon, 30 Jul 2007 21:51:04 -0700
+Message-ID: <200707310451.l6V4p4dB016172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47827 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44091 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932322AbXGaEvN (ORCPT
+	by vger.kernel.org with ESMTP id S936099AbXGaEvP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 00:51:13 -0400
+	Tue, 31 Jul 2007 00:51:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avi@qumranet.com, mm-commits@vger.kernel.org
+To: avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysrq-add-a-show-stacktrace-on-all-cpus-command-fix
+     sysrq: add a show-stacktrace-on-all-cpus command
 has been removed from the -mm tree.  Its filename was
-     sysrq-add-a-show-stacktrace-on-all-cpus-command-fix.patch
+     sysrq-add-a-show-stacktrace-on-all-cpus-command.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: sysrq-add-a-show-stacktrace-on-all-cpus-command-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sysrq: add a show-stacktrace-on-all-cpus command
+From: Avi Kivity <avi@qumranet.com>
 
-Cc: Avi Kivity <avi@qumranet.com>
+If a cpu is spinning in the kernel but still responding to interrupts,
+pressing sysrq-y will show you where it's spinning.
+
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/sysrq.c |   24 +++++++++++++++++++++++-
+ 1 files changed, 23 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/sysrq.c~sysrq-add-a-show-stacktrace-on-all-cpus-command-fix drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~sysrq-add-a-show-stacktrace-on-all-cpus-command-fix
+diff -puN drivers/char/sysrq.c~sysrq-add-a-show-stacktrace-on-all-cpus-command drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~sysrq-add-a-show-stacktrace-on-all-cpus-command
 +++ a/drivers/char/sysrq.c
-@@ -45,7 +45,7 @@ int __read_mostly __sysrq_enabled = 1;
+@@ -45,6 +45,8 @@ int __read_mostly __sysrq_enabled = 1;
  
  static int __read_mostly sysrq_always_enabled;
  
--static spinlock_t show_stack_lock = SPIN_LOCK_UNLOCKED;
-+static DEFINE_SPINLOCK(show_stack_lock);
- 
++static spinlock_t show_stack_lock = SPIN_LOCK_UNLOCKED;
++
  int sysrq_on(void)
  {
+ 	return __sysrq_enabled || sysrq_always_enabled;
+@@ -309,6 +311,26 @@ static struct sysrq_key_op sysrq_unrt_op
+ 	.enable_mask	= SYSRQ_ENABLE_RTNICE,
+ };
+ 
++static void show_cpu_stack(void *garbage)
++{
++	spin_lock(&show_stack_lock);
++	printk("CPU%d stacktrace:\n", raw_smp_processor_id());
++	dump_stack();
++	sysrq_handle_showregs(0, NULL);
++	spin_unlock(&show_stack_lock);
++}
++
++static void sysrq_show_stacks(int key, struct tty_struct *tty)
++{
++	on_each_cpu(show_cpu_stack, NULL, 0, 1);
++}
++
++static struct sysrq_key_op sysrq_show_stacks_op = {
++	.handler	= sysrq_show_stacks,
++	.help_msg	= "stacktraces-on-all-cpus(Y)",
++	.action_msg	= "Stack traces on all cpus",
++};
++
+ /* Key Operations table and lock */
+ static DEFINE_SPINLOCK(sysrq_key_table_lock);
+ 
+@@ -356,7 +378,7 @@ static struct sysrq_key_op *sysrq_key_ta
+ 	&sysrq_showstate_blocked_op,	/* w */
+ 	/* x: May be registered on ppc/powerpc for xmon */
+ 	NULL,				/* x */
+-	NULL,				/* y */
++	&sysrq_show_stacks_op,		/* y */
+ 	NULL				/* z */
+ };
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
-parport_pc-locking-fix.patch
-revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-kdebugh-forward-declare-struct-struct-notifier_block.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-mark_tsc_unstable-build-fix.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb.patch
-git-hwmon.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
+ia64-allow-smp_call_function_single-to-current-cpu.patch
 git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-watchdog.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-kgdb-fixup.patch
-git-kgdb-arm-fix.patch
-git-kgdb-mips-fix.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-acpi_battery_add-use-after-free.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-fs-9p-convc-error-path-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-ip2main-warning-fix.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-sysrq-add-a-show-stacktrace-on-all-cpus-command-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-tpm_tis-debug.patch
-w1-build-fix.patch
+cpuid-driver-simplify-smp_call_function_single-call-sequence.patch
+msr-driver-simplify-smp_call_function_single-call-sequence.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+sysrq-add-a-show-stacktrace-on-all-cpus-command.patch
