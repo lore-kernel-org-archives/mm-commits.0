@@ -1,75 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - serial-mpsc-stop-rx-engine-when-cread-cleared.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:57:49 -0700
-Message-ID: <200707312357.l6VNvnnv029431@imap1.linux-foundation.org>
+Subject: - whitelist-references-from-__dbe_table-to-init.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:57:15 -0700
+Message-ID: <200707312357.l6VNvFHA029382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47655 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42057 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760524AbXHAAQh (ORCPT
+	by vger.kernel.org with ESMTP id S1757756AbXHAAQl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:37 -0400
+	Tue, 31 Jul 2007 20:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stephane@artesyncp.com, mgreer@mvista.com, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: MPSC: Stop rx engine when CREAD cleared
+     kbuild: whitelist references from __dbe_table to .init
 has been removed from the -mm tree.  Its filename was
-     serial-mpsc-stop-rx-engine-when-cread-cleared.patch
+     whitelist-references-from-__dbe_table-to-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: serial: MPSC: Stop rx engine when CREAD cleared
-From: Stephane Chazelas <stephane@artesyncp.com>
+Subject: kbuild: whitelist references from __dbe_table to .init
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Currently, the MPSC driver doesn't stop recieving characters when the CREAD
-flag in termios->c_cflag is cleared.  It should.  Also, only start receiving
-if its not already started.
+This is needed on MIPS where the same mechanism as get_user() is used to
+intercept bus error exceptions for some hardware probes.  Without this
+patch modpost will throw spurious warnings:
 
-Signed-off-by: Stephane Chazelas <stephane@artesyncp.com>
-Signed-off-by: Mark A. Greer <mgreer@mvista.com>
+  LD      vmlinux
+  SYSMAP  System.map
+  SYSMAP  .tmp_System.map
+  MODPOST vmlinux
+WARNING: arch/mips/sgi-ip22/built-in.o(__dbe_table+0x0): Section mismatch: reference to .init.text:
+
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/mpsc.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ scripts/mod/modpost.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/serial/mpsc.c~serial-mpsc-stop-rx-engine-when-cread-cleared drivers/serial/mpsc.c
---- a/drivers/serial/mpsc.c~serial-mpsc-stop-rx-engine-when-cread-cleared
-+++ a/drivers/serial/mpsc.c
-@@ -1520,7 +1520,6 @@ mpsc_set_termios(struct uart_port *port,
- 	mpsc_set_baudrate(pi, baud);
- 
- 	/* Characters/events to read */
--	pi->rcv_data = 1;
- 	pi->port.read_status_mask = SDMA_DESC_CMDSTAT_OR;
- 
- 	if (termios->c_iflag & INPCK)
-@@ -1544,11 +1543,15 @@ mpsc_set_termios(struct uart_port *port,
- 			pi->port.ignore_status_mask |= SDMA_DESC_CMDSTAT_OR;
- 	}
- 
--	/* Ignore all chars if CREAD not set */
--	if (!(termios->c_cflag & CREAD))
-+	if ((termios->c_cflag & CREAD)) {
-+		if (!pi->rcv_data) {
-+			pi->rcv_data = 1;
-+			mpsc_start_rx(pi);
-+		}
-+	} else if (pi->rcv_data) {
-+		mpsc_stop_rx(port);
- 		pi->rcv_data = 0;
--	else
--		mpsc_start_rx(pi);
-+	}
- 
- 	spin_unlock_irqrestore(&pi->port.lock, flags);
- 	return;
+diff -puN scripts/mod/modpost.c~whitelist-references-from-__dbe_table-to-init scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~whitelist-references-from-__dbe_table-to-init
++++ a/scripts/mod/modpost.c
+@@ -1121,6 +1121,7 @@ static int initexit_section_ref_ok(const
+ 		".machvec",		/* ia64 + powerpc uses these */
+ 		".machine.desc",
+ 		".opd",			/* See comment [OPD] */
++		"__dbe_table",
+ 		".parainstructions",
+ 		".pdr",
+ 		".plt",			/* seen on ARCH=um build on x86_64. Harmless */
 _
 
-Patches currently in -mm which might be from stephane@artesyncp.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
+mips-remove-some-duplicate-includes.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+mips-qemu-network-work-again.patch
+git-mtd.patch
+git-netdev-all.patch
+serial_txx9-fix-modem-control-line-handling.patch
+serial_txx9-cleanup-includes.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+clean-up-duplicate-includes-in-drivers-char.patch
