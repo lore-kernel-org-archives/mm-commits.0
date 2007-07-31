@@ -1,71 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-fix-kernel-doc-warnings.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:55:28 -0700
-Message-ID: <200707312355.l6VNtSMx029227@imap1.linux-foundation.org>
+Subject: - knfsd-eliminate-unnecessary-enoent-returns-on-export-downcalls.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:55:37 -0700
+Message-ID: <200707312355.l6VNtbwS029239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59936 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55368 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754599AbXHAAQz (ORCPT
+	by vger.kernel.org with ESMTP id S1760676AbXHAAQ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:55 -0400
+	Tue, 31 Jul 2007 20:16:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnp: fix kernel-doc warnings
+     knfsd: eliminate unnecessary -ENOENT returns on export downcalls
 has been removed from the -mm tree.  Its filename was
-     pnp-fix-kernel-doc-warnings.patch
+     knfsd-eliminate-unnecessary-enoent-returns-on-export-downcalls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pnp: fix kernel-doc warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: knfsd: eliminate unnecessary -ENOENT returns on export downcalls
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-Fix PNP docbook warnings:
+A succesful downcall with a negative result (which indicates that the given
+filesystem is not exported to the given user) should not return an error.
 
-Warning(linux-2623-rc1g4//drivers/pnp/core.c): no structured comments found
-Warning(linux-2623-rc1g4//drivers/pnp/driver.c): no structured comments found
+Currently mountd is depending on stdio to write these downcalls.  With some
+versions of libc this appears to cause subsequent writes to attempt to write
+all accumulated data (for which writes previously failed) along with any new
+data.  This can prevent the kernel from seeing responses to later downcalls. 
+Symptoms will be that nfsd fails to respond to certain requests.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-api.tmpl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/nfsd/export.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/DocBook/kernel-api.tmpl~pnp-fix-kernel-doc-warnings Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~pnp-fix-kernel-doc-warnings
-+++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -398,12 +398,12 @@ X!Edrivers/acpi/pci_bind.c
- -->
-      </sect1>
-      <sect1><title>Device drivers PnP support</title>
--!Edrivers/pnp/core.c
-+!Idrivers/pnp/core.c
- <!-- No correct structured comments
- X!Edrivers/pnp/system.c
-  -->
- !Edrivers/pnp/card.c
--!Edrivers/pnp/driver.c
-+!Idrivers/pnp/driver.c
- !Edrivers/pnp/manager.c
- !Edrivers/pnp/support.c
-      </sect1>
+diff -puN fs/nfsd/export.c~knfsd-eliminate-unnecessary-enoent-returns-on-export-downcalls fs/nfsd/export.c
+--- a/fs/nfsd/export.c~knfsd-eliminate-unnecessary-enoent-returns-on-export-downcalls
++++ a/fs/nfsd/export.c
+@@ -564,9 +564,10 @@ static int svc_export_parse(struct cache
+ 
+ 	/* flags */
+ 	err = get_int(&mesg, &an_int);
+-	if (err == -ENOENT)
++	if (err == -ENOENT) {
++		err = 0;
+ 		set_bit(CACHE_NEGATIVE, &exp.h.flags);
+-	else {
++	} else {
+ 		if (err || an_int < 0) goto out;	
+ 		exp.ex_flags= an_int;
+ 	
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
 origin.patch
-git-acpi.patch
-fix-auditscc-kernel-doc.patch
-git-mtd.patch
-aha152x-in-debug-mode.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-kgdb-kernel-doc.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-profile-likely-unlikely-macros.patch
+locks-kill-redundant-local-variable.patch
