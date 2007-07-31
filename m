@@ -1,62 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - pure_initcall-id-inconsistency.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:57:33 -0700
-Message-ID: <200707312357.l6VNvXUQ029406@imap1.linux-foundation.org>
+Subject: - docbook-bad-file-references.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:58:01 -0700
+Message-ID: <200707312358.l6VNw1IA029514@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37032 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46644 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752740AbXHAANB (ORCPT
+	by vger.kernel.org with ESMTP id S1752914AbXHAANO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:13:01 -0400
+	Tue, 31 Jul 2007 20:13:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mb@bu3sch.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pure_initcall ID inconsistency
+     docbook bad file references
 has been removed from the -mm tree.  Its filename was
-     pure_initcall-id-inconsistency.patch
+     docbook-bad-file-references.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pure_initcall ID inconsistency
-From: Michael Buesch <mb@bu3sch.de>
+Subject: docbook bad file references
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-pure_initcall uses the same ID as core_initcall.  I guess that's a typo and
-it should use its own ID.
+Fix docbook warnings:
 
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Warning(linux-2.6.22-git12//drivers/base/power/main.c): no structured comments found
+Warning(linux-2.6.22-git12//include/linux/splice.h): no structured comments found
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/DocBook/kernel-api.tmpl |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/init.h~pure_initcall-id-inconsistency include/linux/init.h
---- a/include/linux/init.h~pure_initcall-id-inconsistency
-+++ a/include/linux/init.h
-@@ -114,7 +114,7 @@ void prepare_namespace(void);
-  *
-  * This only exists for built-in code, not for modules.
-  */
--#define pure_initcall(fn)		__define_initcall("0",fn,1)
-+#define pure_initcall(fn)		__define_initcall("0",fn,0)
+diff -puN Documentation/DocBook/kernel-api.tmpl~docbook-bad-file-references Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~docbook-bad-file-references
++++ a/Documentation/DocBook/kernel-api.tmpl
+@@ -380,7 +380,6 @@ X!Edrivers/base/interface.c
+ !Edrivers/base/bus.c
+      </sect1>
+      <sect1><title>Device Drivers Power Management</title>
+-!Edrivers/base/power/main.c
+ !Edrivers/base/power/resume.c
+ !Edrivers/base/power/suspend.c
+      </sect1>
+@@ -709,7 +708,6 @@ X!Idrivers/video/console/fonts.c
+ 	kernel, without continually transferring them between the kernel
+ 	and user space.
+   </para>
+-!Iinclude/linux/splice.h
+ !Ffs/splice.c
+   </chapter>
  
- #define core_initcall(fn)		__define_initcall("1",fn,1)
- #define core_initcall_sync(fn)		__define_initcall("1s",fn,1s)
 _
 
-Patches currently in -mm which might be from mb@bu3sch.de are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-merge-the-sonics-silicon-backplane-subsystem.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-avoid-ssb-compililation-on-s390.patch
-b44-ssb-fix-irq-routing-bits-on-the-backplane.patch
-merge-the-sonics-silicon-backplane-subsystem-update.patch
-ssb-compile-fix.patch
-watchdog-support-3.patch
-ssb-add-a-driver-for-the-broadcom-ohci-core.patch
+git-acpi.patch
+fix-auditscc-kernel-doc.patch
+git-mtd.patch
+aha152x-in-debug-mode.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-kgdb-kernel-doc.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+profile-likely-unlikely-macros.patch
