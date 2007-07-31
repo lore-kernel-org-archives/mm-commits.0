@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:35 -0700
-Message-ID: <200707311929.l6VJTZUJ018343@imap1.linux-foundation.org>
+Subject: + drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:31:41 -0700
+Message-ID: <200707311931.l6VJVfpt018543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42410 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44412 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754708AbXGaTaU (ORCPT
+	by vger.kernel.org with ESMTP id S1753289AbXGaTbx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:30:20 -0400
+	Tue, 31 Jul 2007 15:31:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, dhowells@redhat.com
+Cc: m.kozlowski@tuxland.pl, Eric.Moore@lsil.com
 
 
 The patch titled
-     include/asm-frv/thread_info.h: kmalloc + memset conversion to kzalloc
+     drivers/message/fusion/mptctl.c: mostly kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: include/asm-frv/thread_info.h: kmalloc + memset conversion to kzalloc
+Subject: drivers/message/fusion/mptctl.c: mostly kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
+This patch does kmalloc + memset conversion to kzalloc anSigned-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+d simplifies mptctl_probe().
+
+ drivers/message/fusion/mptctl.c | 82092 -> 81884 (-208 bytes)
+ drivers/message/fusion/mptctl.o | 201784 -> 200648 (-1136 bytes)
+
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Acked-By: David Howells <dhowells@redhat.com>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-frv/thread_info.h |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/message/fusion/mptctl.c |   36 ++++++++++--------------------
+ 1 files changed, 12 insertions(+), 24 deletions(-)
 
-diff -puN include/asm-frv/thread_info.h~include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc include/asm-frv/thread_info.h
---- a/include/asm-frv/thread_info.h~include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc
-+++ a/include/asm-frv/thread_info.h
-@@ -88,9 +88,8 @@ register struct thread_info *__current_t
- 	({							\
- 		struct thread_info *ret;			\
- 								\
--		ret = kmalloc(THREAD_SIZE, GFP_KERNEL);		\
--		if (ret)					\
--			memset(ret, 0, THREAD_SIZE);		\
-+		ret = kzalloc(THREAD_SIZE, GFP_KERNEL);		\
-+								\
- 		ret;						\
- 	})
- #else
+diff -puN drivers/message/fusion/mptctl.c~drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc drivers/message/fusion/mptctl.c
+--- a/drivers/message/fusion/mptctl.c~drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/message/fusion/mptctl.c
+@@ -970,10 +970,9 @@ kbuf_alloc_2_sgl(int bytes, u32 sgdir, i
+ 	 * structures for the SG elements.
+ 	 */
+ 	i = MAX_SGL_BYTES / 8;
+-	buflist = kmalloc(i, GFP_USER);
+-	if (buflist == NULL)
++	buflist = kzalloc(i, GFP_USER);
++	if (!buflist)
+ 		return NULL;
+-	memset(buflist, 0, i);
+ 	buflist_ent = 0;
+ 
+ 	/* Allocate a single block of memory to store the sg elements and
+@@ -1372,13 +1371,12 @@ mptctl_gettargetinfo (unsigned long arg)
+ 	 *      15- 8: Bus Number
+ 	 *       7- 0: Target ID
+ 	 */
+-	pmem = kmalloc(numBytes, GFP_KERNEL);
+-	if (pmem == NULL) {
++	pmem = kzalloc(numBytes, GFP_KERNEL);
++	if (!pmem) {
+ 		printk(KERN_ERR "%s::mptctl_gettargetinfo() @%d - no memory available!\n",
+ 				__FILE__, __LINE__);
+ 		return -ENOMEM;
+ 	}
+-	memset(pmem, 0, numBytes);
+ 	pdata =  (int *) pmem;
+ 
+ 	/* Get number of devices
+@@ -1563,12 +1561,11 @@ mptctl_eventenable (unsigned long arg)
+ 		/* Have not yet allocated memory - do so now.
+ 		 */
+ 		int sz = MPTCTL_EVENT_LOG_SIZE * sizeof(MPT_IOCTL_EVENTS);
+-		ioc->events = kmalloc(sz, GFP_KERNEL);
+-		if (ioc->events == NULL) {
++		ioc->events = kzalloc(sz, GFP_KERNEL);
++		if (!ioc->events) {
+ 			printk(KERN_ERR MYNAM ": ERROR - Insufficient memory to add adapter!\n");
+ 			return -ENOMEM;
+ 		}
+-		memset(ioc->events, 0, sz);
+ 		ioc->alloc_total += sz;
+ 
+ 		ioc->eventContext = 0;
+@@ -2853,31 +2850,22 @@ static long compat_mpctl_ioctl(struct fi
+ static int
+ mptctl_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ {
+-	int err;
+-	int sz;
+-	u8 *mem;
++	MPT_IOCTL *mem;
+ 	MPT_ADAPTER *ioc = pci_get_drvdata(pdev);
+ 
+ 	/*
+ 	 * Allocate and inite a MPT_IOCTL structure
+ 	*/
+-	sz = sizeof (MPT_IOCTL);
+-	mem = kmalloc(sz, GFP_KERNEL);
+-	if (mem == NULL) {
+-		err = -ENOMEM;
+-		goto out_fail;
++	mem = kzalloc(sizeof(MPT_IOCTL), GFP_KERNEL);
++	if (!mem) {
++		mptctl_remove(pdev);
++		return -ENOMEM;
+ 	}
+ 
+-	memset(mem, 0, sz);
+-	ioc->ioctl = (MPT_IOCTL *) mem;
++	ioc->ioctl = mem;
+ 	ioc->ioctl->ioc = ioc;
+ 	mutex_init(&ioc->ioctl->ioctl_mutex);
+ 	return 0;
+-
+-out_fail:
+-
+-	mptctl_remove(pdev);
+-	return err;
+ }
+ 
+ /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
@@ -61,7 +137,7 @@ mtd-add-module-license-to-mtdbdi.patch
 mtd-remove-redundant-dead-code-from-physmap_ofc.patch
 usb-remove-redundant-memset-from-amd5536udc.patch
 dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
-kmalloc-memset-conversion-co-kzalloc.patch
+drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
 drivers-sbus-char-bbc_envctrlc-kmalloc-memset-conversion-to-kzalloc.patch
 drivers-sbus-char-bbc_i2cc-kmalloc-memset-conversion-to-kzalloc.patch
 drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
@@ -72,7 +148,7 @@ drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
 drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch
 drivers-pci-hotplug-cpqphp_ctrlc-kmalloc-memset-conversion-to-kzalloc.patch
 fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
 drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
 drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
 drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
