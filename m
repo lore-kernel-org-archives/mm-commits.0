@@ -1,76 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - ext4_ext_put_in_cache-uses-__u32-to-receive-physical.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:55:25 -0700
-Message-ID: <200707312355.l6VNtP6g029224__45266.5257188075$1185927496$gmane$org@imap1.linux-foundation.org>
+Subject: - documentation-document-hfsplus.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:56:05 -0700
+Message-ID: <200707312356.l6VNu55m029292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34423 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33543 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761044AbXHAAR2 (ORCPT
+	by vger.kernel.org with ESMTP id S1764087AbXHAARY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:17:28 -0400
+	Tue, 31 Jul 2007 20:17:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmm@us.ibm.com, linux-ext4@vger.kernel.org, stable@kernel.org, yanzheng@21cn.com, mm-commits@vger.kernel.org
+To: wyatt@banksresearch.com, rdunlap@xenotime.net, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     "ext4_ext_put_in_cache" uses __u32 to receive physical block number
+     Documentation: document HFSPlus
 has been removed from the -mm tree.  Its filename was
-     ext4_ext_put_in_cache-uses-__u32-to-receive-physical.patch
+     documentation-document-hfsplus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: "ext4_ext_put_in_cache" uses __u32 to receive physical block number
-From: Mingming Cao <cmm@us.ibm.com>
+Subject: Documentation: document HFSPlus
+From: Wyatt Banks <wyatt@banksresearch.com>
 
-Yan Zheng wrote:
+Documentation: document HFSPlus filesystem and its mount options.
 
-> I think I found a bug in ext4/extents.c, "ext4_ext_put_in_cache" uses
-> "__u32" to receive physical block number.  "ext4_ext_put_in_cache" is
-> used in "ext4_ext_get_blocks", it sets ext4 inode's extent cache
-> according most recently tree lookup (higher 16 bits of saved physical
-> block number are always zero). when serving a mapping request,
-> "ext4_ext_get_blocks" first check whether the logical block is in
-> inode's extent cache. if the logical block is in the cache and the
-> cached region isn't a gap, "ext4_ext_get_blocks" gets physical block
-> number by using cached region's physical block number and offset in
-> the cached region.  as described above, "ext4_ext_get_blocks" may
-> return wrong result when there are physical block numbers bigger than
-> 0xffffffff.
->
-
-You are right.  Thanks for reporting this!
-
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
-Cc: Yan Zheng <yanzheng@21cn.com>
-Cc: <stable@kernel.org>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Wyatt Banks <wyatt@banksresearch.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/extents.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/filesystems/hfsplus.txt |   59 ++++++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
 
-diff -puN fs/ext4/extents.c~ext4_ext_put_in_cache-uses-__u32-to-receive-physical fs/ext4/extents.c
---- a/fs/ext4/extents.c~ext4_ext_put_in_cache-uses-__u32-to-receive-physical
-+++ a/fs/ext4/extents.c
-@@ -1544,7 +1544,7 @@ int ext4_ext_walk_space(struct inode *in
- 
- static void
- ext4_ext_put_in_cache(struct inode *inode, __u32 block,
--			__u32 len, __u32 start, int type)
-+			__u32 len, ext4_fsblk_t start, int type)
- {
- 	struct ext4_ext_cache *cex;
- 	BUG_ON(len == 0);
+diff -puN /dev/null Documentation/filesystems/hfsplus.txt
+--- /dev/null
++++ a/Documentation/filesystems/hfsplus.txt
+@@ -0,0 +1,59 @@
++
++Macintosh HFSPlus Filesystem for Linux
++======================================
++
++HFSPlus is a filesystem first introduced in MacOS 8.1.
++HFSPlus has several extensions to HFS, including 32-bit allocation
++blocks, 255-character unicode filenames, and file sizes of 2^63 bytes.
++
++
++Mount options
++=============
++
++When mounting an HFSPlus filesystem, the following options are accepted:
++
++  creator=cccc, type=cccc
++	Specifies the creator/type values as shown by the MacOS finder
++	used for creating new files.  Default values: '????'.
++
++  uid=n, gid=n
++	Specifies the user/group that owns all files on the filesystem
++	that have uninitialized permissions structures.
++	Default:  user/group id of the mounting process.
++
++  umask=n
++	Specifies the umask (in octal) used for files and directories
++	that have uninitialized permissions structures.
++	Default:  umask of the mounting process.
++
++  session=n
++	Select the CDROM session to mount as HFSPlus filesystem.  Defaults to
++	leaving that decision to the CDROM driver.  This option will fail
++	with anything but a CDROM as underlying devices.
++
++  part=n
++	Select partition number n from the devices.  This option only makes
++	sense for CDROMs because they can't be partitioned under Linux.
++	For disk devices the generic partition parsing code does this
++	for us.  Defaults to not parsing the partition table at all.
++
++  decompose
++	Decompose file name characters.
++
++  nodecompose
++	Do not decompose file name characters.
++
++  force
++	Used to force write access to volumes that are marked as journalled
++	or locked.  Use at your own risk.
++
++  nls=cccc
++	Encoding to use when presenting file names.
++
++
++References
++==========
++
++kernel source:		<file:fs/hfsplus>
++
++Apple Technote 1150	http://developer.apple.com/technotes/tn/tn1150.html
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from wyatt@banksresearch.com are
 
 origin.patch
-convert-ill-defined-log2-to-ilog2.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
