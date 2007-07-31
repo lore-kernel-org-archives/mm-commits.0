@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-ide-ide-add-platform-ide-driver.patch added to -mm tree
-Date: Tue, 31 Jul 2007 01:36:30 -0700
-Message-ID: <200707310841.l6V8fCsC024621@imap1.linux-foundation.org>
+Subject: + git-mmc-build-fix.patch added to -mm tree
+Date: Tue, 31 Jul 2007 01:40:14 -0700
+Message-ID: <200707310844.l6V8iuuk024734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36400 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59980 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752018AbXGaIlZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751225AbXGaIpR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 04:41:25 -0400
+	Tue, 31 Jul 2007 04:45:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com
+Cc: akpm@linux-foundation.org, drzeus@drzeus.cx
 
 
 The patch titled
-     fix ide-ide-add-platform-ide-driver
+     git-mmc-build-fix
 has been added to the -mm tree.  Its filename is
-     fix-ide-ide-add-platform-ide-driver.patch
+     git-mmc-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix ide-ide-add-platform-ide-driver
+Subject: git-mmc-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/legacy/ide_platform.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/mmc/core/mmc_ops.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ide/legacy/ide_platform.c~fix-ide-ide-add-platform-ide-driver drivers/ide/legacy/ide_platform.c
---- a/drivers/ide/legacy/ide_platform.c~fix-ide-ide-add-platform-ide-driver
-+++ a/drivers/ide/legacy/ide_platform.c
-@@ -19,6 +19,7 @@
- #include <linux/module.h>
- #include <linux/pata_platform.h>
- #include <linux/io.h>
-+#include <linux/platform_device.h>
+diff -puN drivers/mmc/core/mmc_ops.c~git-mmc-build-fix drivers/mmc/core/mmc_ops.c
+--- a/drivers/mmc/core/mmc_ops.c~git-mmc-build-fix
++++ a/drivers/mmc/core/mmc_ops.c
+@@ -329,7 +329,7 @@ int mmc_lock_unlock(struct mmc_card *car
  
- static struct {
- 	void __iomem *plat_ide_mapbase;
-@@ -157,7 +158,7 @@ static int __devexit plat_ide_remove(str
- }
+ 	memset(&data, 0, sizeof(struct mmc_data));
  
- static struct platform_driver platform_ide_driver = {
--	.driver {
-+	.driver = {
- 		.name = "pata_platform",
- 	},
- 	.probe = plat_ide_probe,
+-	mmc_set_data_timeout(&data, card, 1);
++	mmc_set_data_timeout(&data, card);
+ 
+ 	data.blksz = data_size;
+ 	data.blocks = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,6 +76,7 @@ git-kvm.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 fix-ide-ide-add-ide-set-pio-take3.patch
+fix-ide-ide-add-platform-ide-driver.patch
 git-mtd.patch
 git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
 mtdoops-printk-warning-fixes.patch
@@ -170,4 +163,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 tpm_tis-debug.patch
 w1-build-fix.patch
-fix-ide-ide-add-platform-ide-driver.patch
+git-mmc-build-fix.patch
