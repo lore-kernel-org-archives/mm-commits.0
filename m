@@ -1,54 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - fs-9p-convc-error-path-fix.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:58:25 -0700
-Message-ID: <200707312358.l6VNwPKs029553@imap1.linux-foundation.org>
+Subject: - net-ipv4-ip_optionsc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:59:20 -0700
+Message-ID: <200707312359.l6VNxKjM029642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60161 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33596 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758445AbXHAAQF (ORCPT
+	by vger.kernel.org with ESMTP id S1760071AbXHAAQQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:05 -0400
+	Tue, 31 Jul 2007 20:16:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, akpm@linux-foundation.org, ericvh@ericvh.myip.org, lucho@ionkov.net, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: 9p/conv.c error path fix
+     net/ipv4/ip_options.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     fs-9p-convc-error-path-fix.patch
+     net-ipv4-ip_optionsc-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs: 9p/conv.c error path fix
+Subject: net/ipv4/ip_options.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-When buf_check_overflow() returns != 0 we will hit kfree(ERR_PTR(err)) and
-it will not be happy about it.
+ net/ipv4/ip_options.c | 15425 -> 15368 (-57 bytes)
+ net/ipv4/ip_options.o | 133668 -> 133588 (-80 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
-Cc: Eric Van Hensbergen <ericvh@ericvh.myip.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/conv.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/ipv4/ip_options.c |    7 ++-----
+ 1 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN net/9p/conv.c~fs-9p-convc-error-path-fix net/9p/conv.c
---- a/net/9p/conv.c~fs-9p-convc-error-path-fix
-+++ a/net/9p/conv.c
-@@ -763,6 +763,7 @@ struct p9_fcall *p9_create_twrite(u32 fi
- 	if (err) {
- 		kfree(fc);
- 		fc = ERR_PTR(err);
-+		goto error;
- 	}
+diff -puN net/ipv4/ip_options.c~net-ipv4-ip_optionsc-kmalloc-memset-conversion-to-kzalloc net/ipv4/ip_options.c
+--- a/net/ipv4/ip_options.c~net-ipv4-ip_optionsc-kmalloc-memset-conversion-to-kzalloc
++++ a/net/ipv4/ip_options.c
+@@ -513,11 +513,8 @@ void ip_options_undo(struct ip_options *
  
- 	if (buf_check_overflow(bufp)) {
+ static struct ip_options *ip_options_get_alloc(const int optlen)
+ {
+-	struct ip_options *opt = kmalloc(sizeof(*opt) + ((optlen + 3) & ~3),
+-					 GFP_KERNEL);
+-	if (opt)
+-		memset(opt, 0, sizeof(*opt));
+-	return opt;
++	return kzalloc(sizeof(struct ip_options) + ((optlen + 3) & ~3),
++		       GFP_KERNEL);
+ }
+ 
+ static int ip_options_get_finish(struct ip_options **optp,
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
