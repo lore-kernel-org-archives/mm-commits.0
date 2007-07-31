@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:39 -0700
-Message-ID: <200707311929.l6VJTd2u018349@imap1.linux-foundation.org>
+Subject: + drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:45 -0700
+Message-ID: <200707311929.l6VJTjCr018358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33932 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48857 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754079AbXGaThn (ORCPT
+	by vger.kernel.org with ESMTP id S1754466AbXGaTh5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:37:43 -0400
+	Tue, 31 Jul 2007 15:37:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl
+Cc: m.kozlowski@tuxland.pl, drzeus-list@drzeus.cx
 
 
 The patch titled
-     drivers/scsi/gdth.c: kmalloc + memset conversion to kzalloc
+     drivers/mmc/core/host.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/scsi/gdth.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/mmc/core/host.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/scsi/gdth.c | 189401 -> 189342 (-59 bytes)
- drivers/scsi/gdth.o | 331028 -> 330324 (-704 bytes)
+ drivers/mmc/core/host.c | 3509 -> 3457 (-52 bytes)
+ drivers/mmc/core/host.o | 92400 -> 92136 (-264 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/mmc/core/host.c |    4 +---
+ 1 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/scsi/gdth.c~drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/scsi/gdth.c
-@@ -458,10 +458,10 @@ int __gdth_execute(struct scsi_device *s
-     DECLARE_COMPLETION_ONSTACK(wait);
-     int rval;
+diff -puN drivers/mmc/core/host.c~drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc drivers/mmc/core/host.c
+--- a/drivers/mmc/core/host.c~drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/mmc/core/host.c
+@@ -58,12 +58,10 @@ struct mmc_host *mmc_alloc_host(int extr
+ {
+ 	struct mmc_host *host;
  
--    scp = kmalloc(sizeof(*scp), GFP_KERNEL);
-+    scp = kzalloc(sizeof(*scp), GFP_KERNEL);
-     if (!scp)
-         return -ENOMEM;
--    memset(scp, 0, sizeof(*scp));
-+
-     scp->device = sdev;
-     /* use request field to save the ptr. to completion struct. */
-     scp->request = (struct request *)&wait;
-@@ -5273,10 +5273,10 @@ static int gdth_ioctl(struct inode *inod
-         hanum = res.ionode; 
-         ha = gdth_find_ha(hanum);
+-	host = kmalloc(sizeof(struct mmc_host) + extra, GFP_KERNEL);
++	host = kzalloc(sizeof(struct mmc_host) + extra, GFP_KERNEL);
+ 	if (!host)
+ 		return NULL;
  
--        scp  = kmalloc(sizeof(*scp), GFP_KERNEL);
-+        scp = kzalloc(sizeof(*scp), GFP_KERNEL);
-         if (!scp)
-             return -ENOMEM;
--        memset(scp, 0, sizeof(*scp));
-+
-         scp->device = ha->sdev;
-         scp->cmd_len = 12;
-         scp->use_sg = 0;
+-	memset(host, 0, sizeof(struct mmc_host) + extra);
+-
+ 	host->parent = dev;
+ 	host->class_dev.parent = dev;
+ 	host->class_dev.class = &mmc_host_class;
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
