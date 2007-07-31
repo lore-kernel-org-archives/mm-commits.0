@@ -1,52 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - remove-one-more-leftover-reference-to-devfs.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:58:11 -0700
-Message-ID: <200707312358.l6VNwB8Y029530@imap1.linux-foundation.org>
+Subject: - hpettxt-broken-link-fix.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:58:16 -0700
+Message-ID: <200707312358.l6VNwGWW029536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40204 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36082 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760905AbXHAAKD (ORCPT
+	by vger.kernel.org with ESMTP id S1756360AbXHAAKv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:10:03 -0400
+	Tue, 31 Jul 2007 20:10:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjt@tls.msk.ru, mm-commits@vger.kernel.org
+To: hidave.darkstar@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove one more leftover reference to devfs
+     hpet.txt: broken link fix
 has been removed from the -mm tree.  Its filename was
-     remove-one-more-leftover-reference-to-devfs.patch
+     hpettxt-broken-link-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove one more leftover reference to devfs
-From: Michael Tokarev <mjt@tls.msk.ru>
+Subject: hpet.txt: broken link fix
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Signed-off-by: Michael Tokarev <mjt@tls.msk.ru>
+The specification link in hpet document is broken.
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/hpet.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/Kconfig~remove-one-more-leftover-reference-to-devfs arch/i386/Kconfig
---- a/arch/i386/Kconfig~remove-one-more-leftover-reference-to-devfs
-+++ a/arch/i386/Kconfig
-@@ -458,8 +458,7 @@ config MICROCODE
- 	tristate "/dev/cpu/microcode - Intel IA32 CPU microcode support"
- 	select FW_LOADER
- 	---help---
--	  If you say Y here and also to "/dev file system support" in the
--	  'File systems' section, you will be able to update the microcode on
-+	  If you say Y here, you will be able to update the microcode on
- 	  Intel processors in the IA32 family, e.g. Pentium Pro, Pentium II,
- 	  Pentium III, Pentium 4, Xeon etc.  You will obviously need the
- 	  actual microcode binary data itself which is not shipped with the
+diff -puN Documentation/hpet.txt~hpettxt-broken-link-fix Documentation/hpet.txt
+--- a/Documentation/hpet.txt~hpettxt-broken-link-fix
++++ a/Documentation/hpet.txt
+@@ -5,7 +5,7 @@ for the 8254 and Real Time Clock (RTC) p
+ Each HPET can have up to 32 timers.  It is possible to configure the
+ first two timers as legacy replacements for 8254 and RTC periodic timers.
+ A specification done by Intel and Microsoft can be found at
+-<http://www.intel.com/hardwaredesign/hpetspec.htm>.
++<http://www.intel.com/technology/architecture/hpetspec.htm>.
+ 
+ The driver supports detection of HPET driver allocation and initialization
+ of the HPET before the driver module_init routine is called.  This enables
 _
 
-Patches currently in -mm which might be from mjt@tls.msk.ru are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 origin.patch
+zisofs-use-mutex-instead-of-semaphore.patch
