@@ -1,54 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - spi-loopback-mode-definition.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:57:03 -0700
-Message-ID: <200707312357.l6VNv3ia029364@imap1.linux-foundation.org>
+Subject: - serial-fix-vr41xx_siu-serial-console-support.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:57:39 -0700
+Message-ID: <200707312357.l6VNvdM5029415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43415 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37603 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760224AbXHAAQh (ORCPT
+	by vger.kernel.org with ESMTP id S1758109AbXHAAQj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:37 -0400
+	Tue, 31 Jul 2007 20:16:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: yoichi_yuasa@tripeaks.co.jp, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SPI loopback mode definition
+     serial: fix vr41xx_siu serial console support
 has been removed from the -mm tree.  Its filename was
-     spi-loopback-mode-definition.patch
+     serial-fix-vr41xx_siu-serial-console-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SPI loopback mode definition
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: serial: fix vr41xx_siu serial console support
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-Loopback mode is supported by various controllers.  This mode can be
-useful for testing, especially in conjunction with spidev driver.
+The serial console can select only SERIAL_VR41XX=y.
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spi/spi.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/serial/Kconfig      |    2 +-
+ drivers/serial/vr41xx_siu.c |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/spi/spi.h~spi-loopback-mode-definition include/linux/spi/spi.h
---- a/include/linux/spi/spi.h~spi-loopback-mode-definition
-+++ a/include/linux/spi/spi.h
-@@ -77,6 +77,7 @@ struct spi_device {
- #define	SPI_CS_HIGH	0x04			/* chipselect active high? */
- #define	SPI_LSB_FIRST	0x08			/* per-word bits-on-wire */
- #define	SPI_3WIRE	0x10			/* SI/SO signals shared */
-+#define	SPI_LOOP	0x20			/* loopback mode */
- 	u8			bits_per_word;
- 	int			irq;
- 	void			*controller_state;
+diff -puN drivers/serial/Kconfig~serial-fix-vr41xx_siu-serial-console-support drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~serial-fix-vr41xx_siu-serial-console-support
++++ a/drivers/serial/Kconfig
+@@ -1191,7 +1191,7 @@ config SERIAL_VR41XX
+ 
+ config SERIAL_VR41XX_CONSOLE
+ 	bool "Enable NEC VR4100 series Serial Interface Unit console"
+-	depends on SERIAL_VR41XX
++	depends on SERIAL_VR41XX=y
+ 	select SERIAL_CORE_CONSOLE
+ 	help
+ 	  If you have a NEC VR4100 series processor and you want to use
+diff -puN drivers/serial/vr41xx_siu.c~serial-fix-vr41xx_siu-serial-console-support drivers/serial/vr41xx_siu.c
+--- a/drivers/serial/vr41xx_siu.c~serial-fix-vr41xx_siu-serial-console-support
++++ a/drivers/serial/vr41xx_siu.c
+@@ -65,7 +65,9 @@ static struct uart_port siu_uart_ports[S
+ 	},
+ };
+ 
++#ifdef CONFIG_SERIAL_VR41XX_CONSOLE
+ static uint8_t lsr_break_flag[SIU_PORTS_MAX];
++#endif
+ 
+ #define siu_read(port, offset)		readb((port)->membase + (offset))
+ #define siu_write(port, offset, value)	writeb((value), (port)->membase + (offset))
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
 origin.patch
+git-mtd.patch
