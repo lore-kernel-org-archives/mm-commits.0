@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:58 -0700
-Message-ID: <200707311929.l6VJTwhk018373@imap1.linux-foundation.org>
+Subject: + drivers-ide-arm-icsidec-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:50 -0700
+Message-ID: <200707311929.l6VJToC1018361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47476 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45407 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754618AbXGaTiH (ORCPT
+	by vger.kernel.org with ESMTP id S1754708AbXGaTiJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:38:07 -0400
+	Tue, 31 Jul 2007 15:38:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, edward@namesys.com, vs@namesys.com
+Cc: m.kozlowski@tuxland.pl, bzolnier@gmail.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     fs/reiser4/plugin/inode_ops_rename.c: kmalloc + memset conversion to kzalloc
+     drivers/ide/arm/icside.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-ide-arm-icsidec-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/reiser4/plugin/inode_ops_rename.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/ide/arm/icside.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- fs/reiser4/plugin/inode_ops_rename.c | 28474 -> 28344 (-130 bytes)
- fs/reiser4/plugin/inode_ops_rename.o | 142600 -> 142476 (-124 bytes)
+Is this a bug?  In original verison memset cleared sizeof(state) bytes instead
+of sizeof(*state).  If it was intentional then this patch is invalid.  If not
+intentional -> valid :) Please review.
+
+ drivers/ide/arm/icside.c | 18883 -> 18849 (-34 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Edward Shishkin <edward@namesys.com>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/inode_ops_rename.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/ide/arm/icside.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/reiser4/plugin/inode_ops_rename.c~fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc fs/reiser4/plugin/inode_ops_rename.c
---- a/fs/reiser4/plugin/inode_ops_rename.c~fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc
-+++ a/fs/reiser4/plugin/inode_ops_rename.c
-@@ -392,16 +392,14 @@ int reiser4_rename_common(struct inode *
- 	if (IS_ERR(ctx))
- 		return PTR_ERR(ctx);
+diff -puN drivers/ide/arm/icside.c~drivers-ide-arm-icsidec-kmalloc-memset-conversion-to-kzalloc drivers/ide/arm/icside.c
+--- a/drivers/ide/arm/icside.c~drivers-ide-arm-icsidec-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/ide/arm/icside.c
+@@ -682,13 +682,12 @@ icside_probe(struct expansion_card *ec, 
+ 	if (ret)
+ 		goto out;
  
--	old_entry = kmalloc(3 * sizeof(*old_entry) + 2 * sizeof(*new_lh) +
-+	old_entry = kzalloc(3 * sizeof(*old_entry) + 2 * sizeof(*new_lh) +
- 			    sizeof(*dotdot_name) + sizeof(*dataonstack),
- 			    reiser4_ctx_gfp_mask_get());
--	if (old_entry == NULL) {
-+	if (!old_entry) {
- 		context_set_commit_async(ctx);
- 		reiser4_exit_context(ctx);
- 		return RETERR(-ENOMEM);
+-	state = kmalloc(sizeof(struct icside_state), GFP_KERNEL);
++	state = kzalloc(sizeof(struct icside_state), GFP_KERNEL);
+ 	if (!state) {
+ 		ret = -ENOMEM;
+ 		goto release;
  	}
--	memset(old_entry, 0, 3 * sizeof(*old_entry) + 2 * sizeof(*new_lh) +
--	       sizeof(*dotdot_name) + sizeof(*dataonstack));
  
- 	new_entry = old_entry + 1;
- 	dotdot_entry = old_entry + 2;
+-	memset(state, 0, sizeof(state));
+ 	state->type	= ICS_TYPE_NOTYPE;
+ 	state->dev	= &ec->dev;
+ 
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
