@@ -1,159 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: - export-v4l2_int_device_unregister.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 23:33:21 -0700
-Message-ID: <200707310633.l6V6XLiT019696@imap1.linux-foundation.org>
+Subject: - 0-null-drivers-usb-gadget.patch removed from -mm tree
+Date: Mon, 30 Jul 2007 23:33:28 -0700
+Message-ID: <200707310633.l6V6XS4A019706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50150 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46913 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751232AbXGaGdk (ORCPT
+	by vger.kernel.org with ESMTP id S1755268AbXGaGdx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 02:33:40 -0400
+	Tue, 31 Jul 2007 02:33:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: padator@wanadoo.fr, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     export v4l2_int_device_{,un}register
+     0 -> NULL, drivers/usb/gadget/
 has been removed from the -mm tree.  Its filename was
-     export-v4l2_int_device_unregister.patch
+     0-null-drivers-usb-gadget.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: export v4l2_int_device_{,un}register
-From: Adrian Bunk <bunk@stusta.de>
+Subject: 0 -> NULL, drivers/usb/gadget/
+From: Yoann Padioleau <padator@wanadoo.fr>
 
-On Wed, Jul 25, 2007 at 04:03:04AM -0700, Andrew Morton wrote:
->...
-> Changes since 2.6.22-rc6-mm1:
->...
->  git-dvb.patch
->...
->  git trees
->...
+When comparing a pointer, it's clearer to compare it to NULL than to 0.
 
-This patch fixes the following build error:
+Here is the semantic patch:
 
-<--  snip  -->
+@@
+expression *E;
+@@
 
-...
-  MODPOST 2135 modules
-ERROR: "v4l2_int_device_register" [drivers/media/video/tcm825x.ko] undefined!
-ERROR: "v4l2_int_device_unregister" [drivers/media/video/tcm825x.ko] undefined!
-make[2]: *** [__modpost] Error 1
+  E ==
+- 0
++ NULL
 
-<--  snip  -->
+@@
+expression *E;
+@@
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+- 0
++ NULL
+  == E
+
+@@
+expression *E;
+@@
+
+  E !=
+- 0
++ NULL
+
+@@
+expression *E;
+@@
+
+- 0
++ NULL
+  != E
+
+Signed-off-by: Yoann Padioleau <padator@wanadoo.fr>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/v4l2-int-device.c |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/usb/gadget/goku_udc.c    |    2 +-
+ drivers/usb/gadget/lh7a40x_udc.c |    2 +-
+ drivers/usb/gadget/net2280.c     |    8 ++++----
+ drivers/usb/gadget/pxa2xx_udc.c  |    4 ++--
+ drivers/usb/gadget/pxa2xx_udc.h  |    2 +-
+ drivers/usb/gadget/s3c2410_udc.c |    2 +-
+ 6 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/media/video/v4l2-int-device.c~export-v4l2_int_device_unregister drivers/media/video/v4l2-int-device.c
---- a/drivers/media/video/v4l2-int-device.c~export-v4l2_int_device_unregister
-+++ a/drivers/media/video/v4l2-int-device.c
-@@ -101,6 +101,7 @@ int v4l2_int_device_register(struct v4l2
+diff -puN drivers/usb/gadget/config.c~0-null-drivers-usb-gadget drivers/usb/gadget/config.c
+diff -puN drivers/usb/gadget/ether.c~0-null-drivers-usb-gadget drivers/usb/gadget/ether.c
+diff -puN drivers/usb/gadget/goku_udc.c~0-null-drivers-usb-gadget drivers/usb/gadget/goku_udc.c
+--- a/drivers/usb/gadget/goku_udc.c~0-null-drivers-usb-gadget
++++ a/drivers/usb/gadget/goku_udc.c
+@@ -776,7 +776,7 @@ goku_queue(struct usb_ep *_ep, struct us
  
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(v4l2_int_device_register);
+ 	} /* else pio or dma irq handler advances the queue. */
  
- void v4l2_int_device_unregister(struct v4l2_int_device *d)
- {
-@@ -114,6 +115,7 @@ void v4l2_int_device_unregister(struct v
+-	if (likely(req != 0))
++	if (likely(req != NULL))
+ 		list_add_tail(&req->queue, &ep->queue);
+ 
+ 	if (likely(!list_empty(&ep->queue))
+diff -puN drivers/usb/gadget/inode.c~0-null-drivers-usb-gadget drivers/usb/gadget/inode.c
+diff -puN drivers/usb/gadget/lh7a40x_udc.c~0-null-drivers-usb-gadget drivers/usb/gadget/lh7a40x_udc.c
+--- a/drivers/usb/gadget/lh7a40x_udc.c~0-null-drivers-usb-gadget
++++ a/drivers/usb/gadget/lh7a40x_udc.c
+@@ -1202,7 +1202,7 @@ static int lh7a40x_queue(struct usb_ep *
  	}
- 	mutex_unlock(&mutex);
- }
-+EXPORT_SYMBOL_GPL(v4l2_int_device_unregister);
  
- /* Adapted from search_extable in extable.c. */
- static v4l2_int_ioctl_func *find_ioctl(struct v4l2_int_slave *slave, int cmd,
+ 	/* pio or dma irq handler advances the queue. */
+-	if (likely(req != 0))
++	if (likely(req != NULL))
+ 		list_add_tail(&req->queue, &ep->queue);
+ 
+ 	spin_unlock_irqrestore(&dev->lock, flags);
+diff -puN drivers/usb/gadget/m66592-udc.c~0-null-drivers-usb-gadget drivers/usb/gadget/m66592-udc.c
+diff -puN drivers/usb/gadget/net2280.c~0-null-drivers-usb-gadget drivers/usb/gadget/net2280.c
+--- a/drivers/usb/gadget/net2280.c~0-null-drivers-usb-gadget
++++ a/drivers/usb/gadget/net2280.c
+@@ -2120,7 +2120,7 @@ static void handle_ep_small (struct net2
+ 		return;
+ 
+ 	/* manual DMA queue advance after short OUT */
+-	if (likely (ep->dma != 0)) {
++	if (likely (ep->dma != NULL)) {
+ 		if (t & (1 << SHORT_PACKET_TRANSFERRED_INTERRUPT)) {
+ 			u32	count;
+ 			int	stopped = ep->stopped;
+@@ -2380,7 +2380,7 @@ static void handle_stat0_irqs (struct ne
+ 			/* hw handles device and interface status */
+ 			if (u.r.bRequestType != (USB_DIR_IN|USB_RECIP_ENDPOINT))
+ 				goto delegate;
+-			if ((e = get_ep_by_addr (dev, w_index)) == 0
++			if ((e = get_ep_by_addr (dev, w_index)) == NULL
+ 					|| w_length > 2)
+ 				goto do_stall;
+ 
+@@ -2408,7 +2408,7 @@ static void handle_stat0_irqs (struct ne
+ 			if (w_value != USB_ENDPOINT_HALT
+ 					|| w_length != 0)
+ 				goto do_stall;
+-			if ((e = get_ep_by_addr (dev, w_index)) == 0)
++			if ((e = get_ep_by_addr (dev, w_index)) == NULL)
+ 				goto do_stall;
+ 			clear_halt (e);
+ 			allow_status (ep);
+@@ -2425,7 +2425,7 @@ static void handle_stat0_irqs (struct ne
+ 			if (w_value != USB_ENDPOINT_HALT
+ 					|| w_length != 0)
+ 				goto do_stall;
+-			if ((e = get_ep_by_addr (dev, w_index)) == 0)
++			if ((e = get_ep_by_addr (dev, w_index)) == NULL)
+ 				goto do_stall;
+ 			set_halt (e);
+ 			allow_status (ep);
+diff -puN drivers/usb/gadget/pxa2xx_udc.c~0-null-drivers-usb-gadget drivers/usb/gadget/pxa2xx_udc.c
+--- a/drivers/usb/gadget/pxa2xx_udc.c~0-null-drivers-usb-gadget
++++ a/drivers/usb/gadget/pxa2xx_udc.c
+@@ -675,7 +675,7 @@ pxa2xx_ep_queue(struct usb_ep *_ep, stru
+ 
+ 	/* kickstart this i/o queue? */
+ 	if (list_empty(&ep->queue) && !ep->stopped) {
+-		if (ep->desc == 0 /* ep0 */) {
++		if (ep->desc == NULL /* ep0 */) {
+ 			unsigned	length = _req->length;
+ 
+ 			switch (dev->ep0state) {
+@@ -729,7 +729,7 @@ pxa2xx_ep_queue(struct usb_ep *_ep, stru
+ 	}
+ 
+ 	/* pio or dma irq handler advances the queue. */
+-	if (likely (req != 0))
++	if (likely (req != NULL))
+ 		list_add_tail(&req->queue, &ep->queue);
+ 	local_irq_restore(flags);
+ 
+diff -puN drivers/usb/gadget/pxa2xx_udc.h~0-null-drivers-usb-gadget drivers/usb/gadget/pxa2xx_udc.h
+--- a/drivers/usb/gadget/pxa2xx_udc.h~0-null-drivers-usb-gadget
++++ a/drivers/usb/gadget/pxa2xx_udc.h
+@@ -232,7 +232,7 @@ dump_state(struct pxa2xx_udc *dev)
+ 		dev->stats.read.bytes, dev->stats.read.ops);
+ 
+ 	for (i = 1; i < PXA_UDC_NUM_ENDPOINTS; i++) {
+-		if (dev->ep [i].desc == 0)
++		if (dev->ep [i].desc == NULL)
+ 			continue;
+ 		DMSG ("udccs%d = %02x\n", i, *dev->ep->reg_udccs);
+ 	}
+diff -puN drivers/usb/gadget/s3c2410_udc.c~0-null-drivers-usb-gadget drivers/usb/gadget/s3c2410_udc.c
+--- a/drivers/usb/gadget/s3c2410_udc.c~0-null-drivers-usb-gadget
++++ a/drivers/usb/gadget/s3c2410_udc.c
+@@ -1294,7 +1294,7 @@ static int s3c2410_udc_queue(struct usb_
+ 	}
+ 
+ 	/* pio or dma irq handler advances the queue. */
+-	if (likely (req != 0))
++	if (likely (req != NULL))
+ 		list_add_tail(&req->queue, &ep->queue);
+ 
+ 	local_irq_restore(flags);
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from padator@wanadoo.fr are
 
 origin.patch
-remove-the-arm26-port.patch
-slow-down-printk-during-boot-fix-3.patch
-git-acpi.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-make-drivers-acpi-eventcacpi_event_seqnum-static.patch
-make-struct-sony_nc_ids-static.patch
-git-alsa.patch
-kernel-auditscc-fix-an-off-by-one.patch
-drivers-base-power-make-2-functions-static.patch
-git-drm.patch
-git-dvb.patch
-drivers-i2c-i2c-corec-make-code-static.patch
-git-hwmon.patch
-include-linux-kbuild-remove-duplicate-entries.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mmc.patch
-git-mtd.patch
-mtd-onenand_simc-make-struct-info-static.patch
-remove-fs-jffs2-ioctlc.patch
-drivers-net-cxgb3-xgmacc-remove-dead-code.patch
-e1000-if-0-two-functions.patch
-git-net.patch
-fore200e_param_bs_queue-must-be-__devinit.patch
-backlight-make-2-structs-static.patch
-git-ocfs2.patch
-parisc-extern-inline-static-inline.patch
-cpqphp_ctrlc-remove-dead-code.patch
-kernel-schedc-make-code-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-make-scsi_host_link_pm_policy-static.patch
-drivers-scsi-scsi_errorc-should-include.patch
-drivers-scsi-constantsc-make-2-functions-static.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-add-the-concept-of-default-authorization-to-usb-hosts.patch
-git-v9fs.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-i386-remove-maccumulate-outgoing-args.patch
-arch-i386-mach-generic-probec-make-struct-apic_probe.patch
-arch-i386-mach-es7000-es7000platc-cleanups.patch
-i386-alternativec-really-stop-mces-during-code.patch
-i386-no-need-to-make-enable_cpu_hotplug-a-variable.patch
-arch-i386-mm-discontigc-make-some-variables-static.patch
-serial-sh-sci-fix-build-failure-from-kgdb-fallout.patch
-acpi_ec_remove-fix-use-after-free.patch
-acpi_battery_add-use-after-free.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-mm-page_allocc-make-code-static.patch
-maps2-add-proc-kpagemap-interface.patch
-hugetlbfs-read-support-fix-2.patch
-mm-shmemc-make-3-functions-static.patch
-mm-migratec-cleanups.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cleanup-arch-alpha-makefile.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-anon_inodes-shouldnt-be-user-visible.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-radeon_driver_vblank_do_wait-static.patch
-unexport-fb_prepare_logo.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+git-netdev-all.patch
