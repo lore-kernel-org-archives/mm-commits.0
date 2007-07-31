@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:37 -0700
-Message-ID: <200707311929.l6VJTbH3018346@imap1.linux-foundation.org>
+Subject: + fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:30:10 -0700
+Message-ID: <200707311930.l6VJUAax018397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55349 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55136 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752971AbXGaTh0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753658AbXGaTh1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:37:26 -0400
+	Tue, 31 Jul 2007 15:37:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     drivers/usb/misc/ftdi-elan.c: kmalloc + memset conversion to kzalloc
+     fs/jbd2/journal.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
+     fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/usb/misc/ftdi-elan.c: kmalloc + memset conversion to kzalloc
+Subject: fs/jbd2/journal.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/usb/misc/ftdi-elan.c | 121253 -> 121196 (-57 bytes)
- drivers/usb/misc/ftdi-elan.o | 209425 -> 209265 (-160 bytes)
+ fs/jbd2/journal.c | 66771 -> 66719 (-52 bytes)
+ fs/jbd2/journal.o | 199193 -> 199049 (-144 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/ftdi-elan.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ fs/jbd2/journal.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/usb/misc/ftdi-elan.c~drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc drivers/usb/misc/ftdi-elan.c
---- a/drivers/usb/misc/ftdi-elan.c~drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/usb/misc/ftdi-elan.c
-@@ -2777,12 +2777,14 @@ static int ftdi_elan_probe(struct usb_in
-         size_t buffer_size;
-         int i;
-         int retval = -ENOMEM;
--        struct usb_ftdi *ftdi = kmalloc(sizeof(struct usb_ftdi), GFP_KERNEL);
--        if (ftdi == NULL) {
-+        struct usb_ftdi *ftdi;
-+
-+	ftdi = kzalloc(sizeof(struct usb_ftdi), GFP_KERNEL);
-+	if (!ftdi) {
-                 printk(KERN_ERR "Out of memory\n");
-                 return -ENOMEM;
-         }
--        memset(ftdi, 0x00, sizeof(struct usb_ftdi));
-+
-         mutex_lock(&ftdi_module_lock);
-         list_add_tail(&ftdi->ftdi_list, &ftdi_static_list);
-         ftdi->sequence_num = ++ftdi_instances;
+diff -puN fs/jbd2/journal.c~fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc
++++ a/fs/jbd2/journal.c
+@@ -929,17 +929,16 @@ static void journal_init_stats(journal_t
+ {
+ 	int size;
+ 
+-	if (proc_jbd2_stats == NULL)
++	if (!proc_jbd2_stats)
+ 		return;
+ 
+ 	journal->j_history_max = 100;
+ 	size = sizeof(struct transaction_stats_s) * journal->j_history_max;
+-	journal->j_history = kmalloc(size, GFP_KERNEL);
+-	if (journal->j_history == NULL) {
++	journal->j_history = kzalloc(size, GFP_KERNEL);
++	if (!journal->j_history) {
+ 		journal->j_history_max = 0;
+ 		return;
+ 	}
+-	memset(journal->j_history, 0, size);
+ 	spin_lock_init(&journal->j_history_lock);
+ }
+ 
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
