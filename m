@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:27 -0700
-Message-ID: <200707311929.l6VJTRNF018331@imap1.linux-foundation.org>
+Subject: + kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:21 -0700
+Message-ID: <200707311929.l6VJTLUk018322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42856 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43935 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753439AbXGaTaN (ORCPT
+	by vger.kernel.org with ESMTP id S1753233AbXGaTaJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:30:13 -0400
+	Tue, 31 Jul 2007 15:30:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, agk@redhat.com
+Cc: m.kozlowski@tuxland.pl, edward@namesys.com, vs@namesys.com
 
 
 The patch titled
-     drivers/md/dm-table.c: kmalloc + memset conversion to kzalloc
+     reiser4: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
+     kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/md/dm-table.c: kmalloc + memset conversion to kzalloc
+Subject: reiser4: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/md/dm-table.c | 21698 -> 21664 (-34 bytes)
- drivers/md/dm-table.o | 132153 -> 132093 (-60 bytes)
-
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Alasdair G Kergon <agk@redhat.com>
+Cc: Edward Shishkin <edward@namesys.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-table.c |    5 ++---
+ fs/reiser4/plugin/file/cryptcompress.h |    5 ++---
  1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/dm-table.c~drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc drivers/md/dm-table.c
---- a/drivers/md/dm-table.c~drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/md/dm-table.c
-@@ -213,12 +213,12 @@ static int alloc_targets(struct dm_table
- int dm_table_create(struct dm_table **result, int mode,
- 		    unsigned num_targets, struct mapped_device *md)
- {
--	struct dm_table *t = kmalloc(sizeof(*t), GFP_KERNEL);
-+	struct dm_table *t;
+diff -puN fs/reiser4/plugin/file/cryptcompress.h~kmalloc-memset-conversion-to-kzalloc fs/reiser4/plugin/file/cryptcompress.h
+--- a/fs/reiser4/plugin/file/cryptcompress.h~kmalloc-memset-conversion-to-kzalloc
++++ a/fs/reiser4/plugin/file/cryptcompress.h
+@@ -86,10 +86,9 @@ static inline int alloc_ts(struct tfm_st
+ 	assert("edward-931", stm);
+ 	assert("edward-932", *stm == NULL);
  
-+	t = kzalloc(sizeof(*t), GFP_KERNEL);
- 	if (!t)
+-	*stm = kmalloc(sizeof **stm, reiser4_ctx_gfp_mask_get());
+-	if (*stm == NULL)
++	*stm = kzalloc(sizeof(**stm), reiser4_ctx_gfp_mask_get());
++	if (!*stm)
  		return -ENOMEM;
- 
--	memset(t, 0, sizeof(*t));
- 	INIT_LIST_HEAD(&t->devices);
- 	atomic_set(&t->holders, 1);
- 
-@@ -229,7 +229,6 @@ int dm_table_create(struct dm_table **re
- 
- 	if (alloc_targets(t, num_targets)) {
- 		kfree(t);
--		t = NULL;
- 		return -ENOMEM;
- 	}
+-	memset(*stm, 0, sizeof **stm);
+ 	return 0;
+ }
  
 _
 
