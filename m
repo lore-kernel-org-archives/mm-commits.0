@@ -1,76 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - broken-lilo-check-on-make-install.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:58:08 -0700
-Message-ID: <200707312358.l6VNw8XB029527@imap1.linux-foundation.org>
+Subject: - pnp-fix-kernel-doc-warnings.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:55:28 -0700
+Message-ID: <200707312355.l6VNtSMx029227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52021 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59936 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760515AbXHAAQ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754599AbXHAAQz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:57 -0400
+	Tue, 31 Jul 2007 20:16:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nix.or.die@googlemail.com, ak@suse.de, hpa@zytor.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     broken lilo check on make install
+     pnp: fix kernel-doc warnings
 has been removed from the -mm tree.  Its filename was
-     broken-lilo-check-on-make-install.patch
+     pnp-fix-kernel-doc-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: broken lilo check on make install
-From: Gabriel C <nix.or.die@googlemail.com>
+Subject: pnp: fix kernel-doc warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-On make install I get the this error:
+Fix PNP docbook warnings:
 
-...
+Warning(linux-2623-rc1g4//drivers/pnp/core.c): no structured comments found
+Warning(linux-2623-rc1g4//drivers/pnp/driver.c): no structured comments found
 
-sh /work/crazy/linux-git/linux-2.6/arch/i386/boot/install.sh
-2.6.22-g4eb6bf6b arch/i386/boot/bzImage System.map "/boot"
-/work/crazy/linux-git/linux-2.6/arch/i386/boot/install.sh: line 54:
-/etc/lilo/install: No such file or directory
-make[1]: *** [install] Error 127
-
-...
-
-I don't use and don't have lilo installed on this system. The attached
-patch fixes the problem for me.
-
-Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/boot/install.sh |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ Documentation/DocBook/kernel-api.tmpl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/boot/install.sh~broken-lilo-check-on-make-install arch/i386/boot/install.sh
---- a/arch/i386/boot/install.sh~broken-lilo-check-on-make-install
-+++ a/arch/i386/boot/install.sh
-@@ -51,4 +51,11 @@ fi
- cat $2 > $4/vmlinuz
- cp $3 $4/System.map
- 
--if [ -x /sbin/lilo ]; then /sbin/lilo; else /etc/lilo/install; fi
-+if [ -x /sbin/lilo ]; then
-+       /sbin/lilo
-+elif [ -x /etc/lilo/install ]; then
-+       /etc/lilo/install
-+else
-+       sync
-+       echo "Cannot find LILO."
-+fi
+diff -puN Documentation/DocBook/kernel-api.tmpl~pnp-fix-kernel-doc-warnings Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~pnp-fix-kernel-doc-warnings
++++ a/Documentation/DocBook/kernel-api.tmpl
+@@ -398,12 +398,12 @@ X!Edrivers/acpi/pci_bind.c
+ -->
+      </sect1>
+      <sect1><title>Device drivers PnP support</title>
+-!Edrivers/pnp/core.c
++!Idrivers/pnp/core.c
+ <!-- No correct structured comments
+ X!Edrivers/pnp/system.c
+  -->
+ !Edrivers/pnp/card.c
+-!Edrivers/pnp/driver.c
++!Idrivers/pnp/driver.c
+ !Edrivers/pnp/manager.c
+ !Edrivers/pnp/support.c
+      </sect1>
 _
 
-Patches currently in -mm which might be from nix.or.die@googlemail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-fix-libata-warnings-with-config_pm=n.patch
-drivers-scsi-g_ncr5380c-ncr53c400_pseudo_dma-is-not.patch
-fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
+git-acpi.patch
+fix-auditscc-kernel-doc.patch
+git-mtd.patch
+aha152x-in-debug-mode.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-kgdb-kernel-doc.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+profile-likely-unlikely-macros.patch
