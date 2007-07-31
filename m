@@ -1,101 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - ipmi-fix-mem-leak-in-try_init_dmi.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:58:03 -0700
-Message-ID: <200707312358.l6VNw3c6029521@imap1.linux-foundation.org>
+Subject: - spidev-supports-more-communications-modes.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:57:05 -0700
+Message-ID: <200707312357.l6VNv5nI029367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46665 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50553 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760514AbXHAAQs (ORCPT
+	by vger.kernel.org with ESMTP id S1760524AbXHAAQs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 31 Jul 2007 20:16:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, cminyard@mvista.com, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipmi: Fix mem leak in try_init_dmi()
+     spidev supports more communications modes
 has been removed from the -mm tree.  Its filename was
-     ipmi-fix-mem-leak-in-try_init_dmi.patch
+     spidev-supports-more-communications-modes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ipmi: Fix mem leak in try_init_dmi()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: spidev supports more communications modes
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-This is only called at init time and only happens if the BIOS screws
-something up, so the leak is slight and it is probably not worth sending to
-2.6.22.x.  The driver would not initialize the interface in the case, and I
-have no reports of this happening.  I have booted and run tests on a system
-with this patch.  Note that the original patch was munged by the mailer,
-here's a new one.
+The spidev driver doesn't currently expose all SPI communications modes to
+userspace.  This passes them all through to the driver.
 
-If we ever hit the "default:" case in the switch in try_init_dmi(),
-then we'll leak the storage allocated with kzalloc() and assigned
-to 'info'.
+Two of them are potentially troublesome, in the sense that they could cause
+hardware conflicts on shared busses.  It might be appropriate to add some
+privilege checks for for those modes.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/spi/spidev.c       |   13 ++++++++++---
+ include/linux/spi/spidev.h |    4 ++++
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-mem-leak-in-try_init_dmi drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-mem-leak-in-try_init_dmi
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2050,6 +2050,7 @@ static __devinit void try_init_dmi(struc
- 		info->si_type = SI_BT;
- 		break;
- 	default:
-+		kfree(info);
- 		return;
- 	}
+diff -puN drivers/spi/spidev.c~spidev-supports-more-communications-modes drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~spidev-supports-more-communications-modes
++++ a/drivers/spi/spidev.c
+@@ -55,9 +55,16 @@
+ static unsigned long	minors[N_SPI_MINORS / BITS_PER_LONG];
+ 
+ 
+-/* Bit masks for spi_device.mode management */
+-#define SPI_MODE_MASK			(SPI_CPHA | SPI_CPOL)
+-
++/* Bit masks for spi_device.mode management.  Note that incorrect
++ * settings for CS_HIGH and 3WIRE can cause *lots* of trouble for other
++ * devices on a shared bus:  CS_HIGH, because this device will be
++ * active when it shouldn't be;  3WIRE, because when active it won't
++ * behave as it should.
++ *
++ * REVISIT should changing those two modes be privileged?
++ */
++#define SPI_MODE_MASK		(SPI_CPHA | SPI_CPOL | SPI_CS_HIGH \
++				| SPI_LSB_FIRST | SPI_3WIRE | SPI_LOOP)
+ 
+ struct spidev_data {
+ 	struct device		dev;
+diff -puN include/linux/spi/spidev.h~spidev-supports-more-communications-modes include/linux/spi/spidev.h
+--- a/include/linux/spi/spidev.h~spidev-supports-more-communications-modes
++++ a/include/linux/spi/spidev.h
+@@ -35,6 +35,10 @@
+ #define SPI_MODE_2		(SPI_CPOL|0)
+ #define SPI_MODE_3		(SPI_CPOL|SPI_CPHA)
+ 
++#define SPI_CS_HIGH		0x04
++#define SPI_LSB_FIRST		0x08
++#define SPI_3WIRE		0x10
++#define SPI_LOOP		0x20
+ 
+ /*---------------------------------------------------------------------------*/
  
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
-git-alsa.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-powerpc-clean-out-a-bunch-of-duplicate-includes.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hid.patch
-ia64-remove-a-few-duplicate-includes.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-mips-remove-some-duplicate-includes.patch
-git-mtd.patch
-clean-up-duplicate-includes-in-drivers-net.patch
-clean-up-duplicate-includes-in-drivers-atm.patch
-clean-up-duplicate-includes-in-net-atm.patch
-clean-up-duplicate-includes-in-net-ipv4.patch
-clean-up-duplicate-includes-in-net-ipv6.patch
-clean-up-duplicate-includes-in-net-sched.patch
-clean-up-duplicate-includes-in-net-sunrpc.patch
-clean-up-duplicate-includes-in-net-tipc.patch
-clean-up-duplicate-includes-in-net-xfrm.patch
-dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-clean-up-duplicate-includes-in-drivers-block.patch
-clean-up-duplicate-includes-in-arch-i386-xen.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
