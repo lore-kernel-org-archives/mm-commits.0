@@ -1,66 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-eliminate-unnecessary-enoent-returns-on-export-downcalls.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:55:37 -0700
-Message-ID: <200707312355.l6VNtbwS029239@imap1.linux-foundation.org>
+Subject: - arch-i386-kernel-apmc-apm_init-warning-fix.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:56:19 -0700
+Message-ID: <200707312356.l6VNuJOL029311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55368 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45784 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760676AbXHAAQ7 (ORCPT
+	by vger.kernel.org with ESMTP id S1761039AbXHAARG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:59 -0400
+	Tue, 31 Jul 2007 20:17:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: eugeneteo@kernel.sg, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: eliminate unnecessary -ENOENT returns on export downcalls
+     arch/i386/kernel/apm.c: apm_init() warning fix
 has been removed from the -mm tree.  Its filename was
-     knfsd-eliminate-unnecessary-enoent-returns-on-export-downcalls.patch
+     arch-i386-kernel-apmc-apm_init-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: eliminate unnecessary -ENOENT returns on export downcalls
-From: J. Bruce Fields <bfields@citi.umich.edu>
+Subject: arch/i386/kernel/apm.c: apm_init() warning fix
+From: Eugene Teo <eugeneteo@kernel.sg>
 
-A succesful downcall with a negative result (which indicates that the given
-filesystem is not exported to the given user) should not return an error.
+arch/i386/kernel/apm.c: In function 'apm_init':
+arch/i386/kernel/apm.c:2240: warning: format '%lx' expects type 'long
+	unsigned int', but argument 3 has type 'u32'
 
-Currently mountd is depending on stdio to write these downcalls.  With some
-versions of libc this appears to cause subsequent writes to attempt to write
-all accumulated data (for which writes previously failed) along with any new
-data.  This can prevent the kernel from seeing responses to later downcalls. 
-Symptoms will be that nfsd fails to respond to certain requests.
+apm_info.bios.offset is of type 'u32'.
 
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Eugene Teo <eugeneteo@kernel.sg>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/i386/kernel/apm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nfsd/export.c~knfsd-eliminate-unnecessary-enoent-returns-on-export-downcalls fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-eliminate-unnecessary-enoent-returns-on-export-downcalls
-+++ a/fs/nfsd/export.c
-@@ -564,9 +564,10 @@ static int svc_export_parse(struct cache
+diff -puN arch/i386/kernel/apm.c~arch-i386-kernel-apmc-apm_init-warning-fix arch/i386/kernel/apm.c
+--- a/arch/i386/kernel/apm.c~arch-i386-kernel-apmc-apm_init-warning-fix
++++ a/arch/i386/kernel/apm.c
+@@ -2235,7 +2235,7 @@ static int __init apm_init(void)
+ 		apm_info.bios.cseg_16_len = 0; /* 64k */
  
- 	/* flags */
- 	err = get_int(&mesg, &an_int);
--	if (err == -ENOENT)
-+	if (err == -ENOENT) {
-+		err = 0;
- 		set_bit(CACHE_NEGATIVE, &exp.h.flags);
--	else {
-+	} else {
- 		if (err || an_int < 0) goto out;	
- 		exp.ex_flags= an_int;
- 	
+ 	if (debug) {
+-		printk(KERN_INFO "apm: entry %x:%lx cseg16 %x dseg %x",
++		printk(KERN_INFO "apm: entry %x:%x cseg16 %x dseg %x",
+ 			apm_info.bios.cseg, apm_info.bios.offset,
+ 			apm_info.bios.cseg_16, apm_info.bios.dseg);
+ 		if (apm_info.bios.version > 0x100)
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from eugeneteo@kernel.sg are
 
 origin.patch
-locks-kill-redundant-local-variable.patch
+fs-partitions-checkc-add-add_partition-error-handling.patch
