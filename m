@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:05 -0700
-Message-ID: <200707311929.l6VJT5UW018295@imap1.linux-foundation.org>
+Subject: + drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:07 -0700
+Message-ID: <200707311929.l6VJT7WT018298@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43964 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52994 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752953AbXGaT3Y (ORCPT
+	by vger.kernel.org with ESMTP id S1752683AbXGaT32 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:29:24 -0400
+	Tue, 31 Jul 2007 15:29:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     drivers/mmc/core/bus.c: kmalloc + memset conversion to kzalloc
+     drivers/scsi/bvme6000_scsi.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/mmc/core/bus.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/scsi/bvme6000_scsi.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/mmc/core/bus.c | 5663 -> 5619 (-44 bytes)
- drivers/mmc/core/bus.o | 70899 -> 70731 (-168 bytes)
+ drivers/scsi/bvme6000_scsi.c | 3330 -> 3253 (-77 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/bus.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/scsi/bvme6000_scsi.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mmc/core/bus.c~drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc drivers/mmc/core/bus.c
---- a/drivers/mmc/core/bus.c~drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/mmc/core/bus.c
-@@ -206,12 +206,10 @@ struct mmc_card *mmc_alloc_card(struct m
+diff -puN drivers/scsi/bvme6000_scsi.c~drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc drivers/scsi/bvme6000_scsi.c
+--- a/drivers/scsi/bvme6000_scsi.c~drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/scsi/bvme6000_scsi.c
+@@ -36,19 +36,18 @@ static struct platform_device *bvme6000_
+ static __devinit int
+ bvme6000_probe(struct device *dev)
  {
- 	struct mmc_card *card;
+-	struct Scsi_Host * host = NULL;
++	struct Scsi_Host *host;
+ 	struct NCR_700_Host_Parameters *hostdata;
  
--	card = kmalloc(sizeof(struct mmc_card), GFP_KERNEL);
-+	card = kzalloc(sizeof(struct mmc_card), GFP_KERNEL);
- 	if (!card)
- 		return ERR_PTR(-ENOMEM);
+ 	if (!MACH_IS_BVME6000)
+ 		goto out;
  
--	memset(card, 0, sizeof(struct mmc_card));
--
- 	card->host = host;
+-	hostdata = kmalloc(sizeof(struct NCR_700_Host_Parameters), GFP_KERNEL);
+-	if (hostdata == NULL) {
++	hostdata = kzalloc(sizeof(struct NCR_700_Host_Parameters), GFP_KERNEL);
++	if (!hostdata) {
+ 		printk(KERN_ERR "bvme6000-scsi: "
+ 				"Failed to allocate host data\n");
+ 		goto out;
+ 	}
+-	memset(hostdata, 0, sizeof(struct NCR_700_Host_Parameters));
  
- 	device_initialize(&card->dev);
+ 	/* Fill in the required pieces of hostdata */
+ 	hostdata->base = (void __iomem *)BVME_NCR53C710_BASE;
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
