@@ -1,243 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: - testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 03:10:29 -0700
-Message-ID: <200707311010.l6VAATK9028031@imap1.linux-foundation.org>
+Subject: + vm-dont-run-touch_buffer-during-buffercache-lookups.patch added to -mm tree
+Date: Tue, 31 Jul 2007 11:28:39 -0700
+Message-ID: <200707311828.l6VISfgX016091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45464 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55598 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754200AbXGaKKr (ORCPT
+	by vger.kernel.org with ESMTP id S1755085AbXGaS2v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 06:10:47 -0400
+	Tue, 31 Jul 2007 14:28:51 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l6VISls5028138
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2007 11:28:48 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, bunk@stusta.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Testing patch for ALi PATA - fixes hopefully for the problems with ATAPI DMA
-has been removed from the -mm tree.  Its filename was
-     testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+     VM: don't run touch_buffer() during buffercache lookups
+has been added to the -mm tree.  Its filename is
+     vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 
-This patch was dropped because it was withdrawn
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Testing patch for ALi PATA - fixes hopefully for the problems with ATAPI DMA
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: VM: don't run touch_buffer() during buffercache lookups
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This implements two things at driver level which are implemented
-implicitly by the old IDE layer
+When userspace reads a directory or a number of inodes it is very common for
+the filesystem to be asked to access the same metadata block multiple times in
+quick succession.  Each lookup will run touch_buffer().
 
-- Only doing sector sized ATAPI I/O via DMA
-- Alway writing the size values
+As a consequence of this, large amounts of blockdev pagecache end up nailed on
+the VM's active list, marked as referenced.  These pages will cause other
+active pages to be evicted: mapped executables, swapout, etc.
 
-Hopefully this will make CD devices behave better for those with the
-problems. If you can test both the detection and mounting/reading of a CD
-works nicely that would be great, and then if you can see whether it is
-the size check or the use of ali_tf_load v ata_tf_load that fixes it this
-would be ideal.
+This is probably wrong.  The core problem here is that the kernel is treating
+that sudden burst of accesses to the dirents and inodes as multiple touches. 
+Really we should be treating them as a single touch.
 
-Currently I don't have an ALi device with the problem so its a bit hard
-to debug.
+So as an experiment, just remove that touch_buffer() call.
 
-[bunk@stusta.de: make drivers/ata/pata_ali.c:ali_tf_load() static]
+We don't have any tests to determine the effects of this, and nobody will
+bother setting one up, so ho hum, this remains in -mm for ever.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+This change is probably a bit too aggressive - as a followup, filesystems
+should be taught to run touch_buffer() or mark_page_accessed() against this
+pagecache on each "independent" access.
+
+The problem is, how to determine when they are "independent"?  Perhaps "the
+access was to the first inode in the block" and "the access was to the first
+directory entry in the block" would suffice.  The fs could then implement
+use-once via:
+
+	if (first inode in block) {
+		page = find_get_page(...);
+		if (page)
+			mark_page_accessed(page);
+		put_page(page);
+	}
+
+I don't think there's any point in doing this until we have some decent
+testcases.
+
+AFACIT ext2 has never run mark_page_accessed() against its directory
+pagecache, so there is no practical way in which ext2 directories _ever_ find
+their way onto the inactive list.  Nobody appears to have noticed this.
+
+touch_buffer() is unused after this patch, but let's retain it for the above
+reasons.  I guess we'll need a new probe_buffer() thing to be able to
+implement the above use-once algorithm for bh-based metadata.
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ali.c |   87 ++++++++++++++++++++++++++++++++++++---
- 1 file changed, 81 insertions(+), 6 deletions(-)
+ fs/buffer.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/ata/pata_ali.c~testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma drivers/ata/pata_ali.c
---- a/drivers/ata/pata_ali.c~testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma
-+++ a/drivers/ata/pata_ali.c
-@@ -233,8 +233,8 @@ static void ali_set_dmamode(struct ata_p
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 
- 
--	if (adev->class == ATA_DEV_ATA)
--		ali_fifo_control(ap, adev, 0x08);
-+/*	if (adev->class == ATA_DEV_ATA)
-+		ali_fifo_control(ap, adev, 0x08); */
- 
- 	if (adev->dma_mode >= XFER_UDMA_0) {
- 		ali_program_modes(ap, adev, NULL, udma_timing[adev->dma_mode - XFER_UDMA_0]);
-@@ -275,6 +275,77 @@ static void ali_lock_sectors(struct ata_
- 	adev->max_sectors = 255;
+diff -puN fs/buffer.c~vm-dont-run-touch_buffer-during-buffercache-lookups fs/buffer.c
+--- a/fs/buffer.c~vm-dont-run-touch_buffer-during-buffercache-lookups
++++ a/fs/buffer.c
+@@ -1337,8 +1337,6 @@ __find_get_block(struct block_device *bd
+ 		if (bh)
+ 			bh_lru_install(bh);
+ 	}
+-	if (bh)
+-		touch_buffer(bh);
+ 	return bh;
  }
- 
-+/**
-+ *	ali_tf_load - send taskfile registers to host controller
-+ *	@ap: Port to which output is sent
-+ *	@tf: ATA taskfile register set
-+ *
-+ *	Outputs ATA taskfile to standard ATA host controller. We can't
-+ *	use the default one as the onboard FIFO logic requires that we
-+ *	write all the registers (see 1535 BIOS programming guide)
-+ *
-+ *	LOCKING:
-+ *	Inherited from caller.
-+ */
-+
-+static void ali_tf_load(struct ata_port *ap, const struct ata_taskfile *tf)
-+{
-+	struct ata_ioports *ioaddr = &ap->ioaddr;
-+	unsigned int is_addr = tf->flags & ATA_TFLAG_ISADDR;
-+
-+	iowrite8(tf->ctl, ioaddr->ctl_addr);
-+	ap->last_ctl = tf->ctl;
-+	ata_wait_idle(ap);
-+
-+	if (is_addr && (tf->flags & ATA_TFLAG_LBA48)) {
-+		iowrite8(tf->hob_feature, ioaddr->feature_addr);
-+		iowrite8(tf->hob_nsect, ioaddr->nsect_addr);
-+		iowrite8(tf->hob_lbal, ioaddr->lbal_addr);
-+		iowrite8(tf->hob_lbam, ioaddr->lbam_addr);
-+		iowrite8(tf->hob_lbah, ioaddr->lbah_addr);
-+		VPRINTK("hob: feat 0x%X nsect 0x%X, lba 0x%X 0x%X 0x%X\n",
-+			tf->hob_feature,
-+			tf->hob_nsect,
-+			tf->hob_lbal,
-+			tf->hob_lbam,
-+			tf->hob_lbah);
-+	}
-+	if (is_addr) {
-+		iowrite8(tf->feature, ioaddr->feature_addr);
-+		iowrite8(tf->nsect, ioaddr->nsect_addr);
-+		iowrite8(tf->lbal, ioaddr->lbal_addr);
-+		iowrite8(tf->lbam, ioaddr->lbam_addr);
-+		iowrite8(tf->lbah, ioaddr->lbah_addr);
-+		VPRINTK("feat 0x%X nsect 0x%X lba 0x%X 0x%X 0x%X\n",
-+			tf->feature,
-+			tf->nsect,
-+			tf->lbal,
-+			tf->lbam,
-+			tf->lbah);
-+	} else {
-+		iowrite8(0, ioaddr->feature_addr);
-+		iowrite8(0, ioaddr->nsect_addr);
-+		iowrite8(0, ioaddr->lbal_addr);
-+		iowrite8(0, ioaddr->lbam_addr);
-+		iowrite8(0, ioaddr->lbah_addr);
-+	}
-+
-+	if (tf->flags & ATA_TFLAG_DEVICE) {
-+		iowrite8(tf->device, ioaddr->device_addr);
-+		VPRINTK("device 0x%X\n", tf->device);
-+	}
-+
-+	ata_wait_idle(ap);
-+}
-+
-+static int ali_check_atapi_dma(struct ata_queued_cmd *qc)
-+{
-+	/* Don't do DMA except for whole blocks */
-+	if (qc->nbytes & 511)
-+		return -1;
-+	return 0;
-+}
-+
- static struct scsi_host_template ali_sht = {
- 	.module			= THIS_MODULE,
- 	.name			= DRV_NAME,
-@@ -300,7 +371,7 @@ static struct scsi_host_template ali_sht
- static struct ata_port_operations ali_early_port_ops = {
- 	.port_disable	= ata_port_disable,
- 	.set_piomode	= ali_set_piomode,
--	.tf_load	= ata_tf_load,
-+	.tf_load	= ali_tf_load,
- 	.tf_read	= ata_tf_read,
- 	.check_status 	= ata_check_status,
- 	.exec_command	= ata_exec_command,
-@@ -314,6 +385,7 @@ static struct ata_port_operations ali_ea
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-+	.check_atapi_dma= ali_check_atapi_dma,
- 
- 	.data_xfer	= ata_data_xfer,
- 
-@@ -336,7 +408,7 @@ static struct ata_port_operations ali_20
- 	.set_dmamode	= ali_set_dmamode,
- 	.mode_filter	= ali_20_filter,
- 
--	.tf_load	= ata_tf_load,
-+	.tf_load	= ali_tf_load,
- 	.tf_read	= ata_tf_read,
- 	.check_status 	= ata_check_status,
- 	.exec_command	= ata_exec_command,
-@@ -356,6 +428,7 @@ static struct ata_port_operations ali_20
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-+	.check_atapi_dma= ali_check_atapi_dma,
- 
- 	.data_xfer	= ata_data_xfer,
- 
-@@ -375,7 +448,7 @@ static struct ata_port_operations ali_c2
- 	.set_piomode	= ali_set_piomode,
- 	.set_dmamode	= ali_set_dmamode,
- 	.mode_filter	= ata_pci_default_filter,
--	.tf_load	= ata_tf_load,
-+	.tf_load	= ali_tf_load,
- 	.tf_read	= ata_tf_read,
- 	.check_status 	= ata_check_status,
- 	.exec_command	= ata_exec_command,
-@@ -395,6 +468,7 @@ static struct ata_port_operations ali_c2
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-+	.check_atapi_dma= ali_check_atapi_dma,
- 
- 	.data_xfer	= ata_data_xfer,
- 
-@@ -414,7 +488,7 @@ static struct ata_port_operations ali_c5
- 	.set_piomode	= ali_set_piomode,
- 	.set_dmamode	= ali_set_dmamode,
- 	.mode_filter	= ata_pci_default_filter,
--	.tf_load	= ata_tf_load,
-+	.tf_load	= ali_tf_load,
- 	.tf_read	= ata_tf_read,
- 	.check_status 	= ata_check_status,
- 	.exec_command	= ata_exec_command,
-@@ -433,6 +507,7 @@ static struct ata_port_operations ali_c5
- 
- 	.qc_prep 	= ata_qc_prep,
- 	.qc_issue	= ata_qc_issue_prot,
-+	.check_atapi_dma= ali_check_atapi_dma,
- 
- 	.data_xfer	= ata_data_xfer,
- 
+ EXPORT_SYMBOL(__find_get_block);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+parport_pc-locking-fix.patch
 revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-nozomi-shoot-defunct-label.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+kdebugh-forward-declare-struct-struct-notifier_block.patch
+fs-9p-convc-error-path-fix.patch
+ip2main-warning-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-hwmon.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
-libata-acpi-checks-for-80wire-cable-headers.patch
-libata-acpi-checks-for-80wire-cable-implementation.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
-libata-sff-unbreak-non-dma-capable-controllers-again.patch
-pata_cmd64x-correct-the-speed-ranges.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+fix-ide-ide-add-platform-ide-driver.patch
+git-mmc-build-fix.patch
+git-mmc-build-fix-2.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-dtc-clean-up-indent-damage-and-add-printk-levels.patch
-kl5kusb105-switch-to-new-speed-api.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+sparc64-add-missing-dma_get_cache_alignment.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-unionfs-build-fix.patch
 mct_u232-convert-to-proper-speed-handling-api-fix.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-char-cyclades-remove-bottom-half-processing.patch
+git-watchdog.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+acpi_battery_add-use-after-free.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+tpm_tis-debug.patch
+w1-build-fix.patch
