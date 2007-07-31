@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:30:16 -0700
-Message-ID: <200707311930.l6VJUG0I018406@imap1.linux-foundation.org>
+Subject: + drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:30:20 -0700
+Message-ID: <200707311930.l6VJUKYD018412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39784 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40050 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753605AbXGaThg (ORCPT
+	by vger.kernel.org with ESMTP id S1752971AbXGaThf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:37:36 -0400
+	Tue, 31 Jul 2007 15:37:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     drivers/scsi/lpfc/lpfc_init.c: kmalloc + memset conversion to kcalloc
+     drivers/scsi/megaraid.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
+     drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/scsi/lpfc/lpfc_init.c: kmalloc + memset conversion to kcalloc
+Subject: drivers/scsi/megaraid.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/scsi/lpfc/lpfc_init.c | 65932 -> 65881 (-51 bytes)
- drivers/scsi/lpfc/lpfc_init.o | 219760 -> 219616 (-144 bytes)
+This patch does kmalloc + memset conversion to kzalloc and adds missing check
+for kzalloc return value.
+
+ drivers/scsi/megaraid.c | 116109 -> 116094 (-15 bytes)
+ drivers/scsi/megaraid.o | 257872 -> 257772 (-100 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_init.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/scsi/megaraid.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_init.c~drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc drivers/scsi/lpfc/lpfc_init.c
---- a/drivers/scsi/lpfc/lpfc_init.c~drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc
-+++ a/drivers/scsi/lpfc/lpfc_init.c
-@@ -1280,11 +1280,10 @@ lpfc_hba_init(struct lpfc_hba *phba, uin
- 	uint32_t *HashWorking;
- 	uint32_t *pwwnn = (uint32_t *) phba->wwnn;
+diff -puN drivers/scsi/megaraid.c~drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc drivers/scsi/megaraid.c
+--- a/drivers/scsi/megaraid.c~drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/scsi/megaraid.c
+@@ -4408,8 +4408,10 @@ mega_internal_command(adapter_t *adapter
+ 	scmd = &adapter->int_scmd;
+ 	memset(scmd, 0, sizeof(Scsi_Cmnd));
  
--	HashWorking = kmalloc(80 * sizeof(uint32_t), GFP_KERNEL);
-+	HashWorking = kcalloc(80, sizeof(uint32_t), GFP_KERNEL);
- 	if (!HashWorking)
- 		return;
+-	sdev = kmalloc(sizeof(struct scsi_device), GFP_KERNEL);
+-	memset(sdev, 0, sizeof(struct scsi_device));
++	sdev = kzalloc(sizeof(struct scsi_device), GFP_KERNEL);
++	if (!sdev)
++		return -ENOMEM;
++
+ 	scmd->device = sdev;
  
--	memset(HashWorking, 0, (80 * sizeof(uint32_t)));
- 	HashWorking[0] = HashWorking[78] = *pwwnn++;
- 	HashWorking[1] = HashWorking[79] = *pwwnn;
- 
+ 	scmd->device->host = adapter->host;
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
