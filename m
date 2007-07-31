@@ -1,71 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - whitelist-references-from-__dbe_table-to-init.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:57:15 -0700
-Message-ID: <200707312357.l6VNvFHA029382@imap1.linux-foundation.org>
+Subject: - cciss-fix-memory-leak.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:58:57 -0700
+Message-ID: <200707312358.l6VNwvTn029606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42057 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54192 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757756AbXHAAQl (ORCPT
+	by vger.kernel.org with ESMTP id S1760191AbXHAAQl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 31 Jul 2007 20:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, mike.miller@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild: whitelist references from __dbe_table to .init
+     cciss: fix memory leak
 has been removed from the -mm tree.  Its filename was
-     whitelist-references-from-__dbe_table-to-init.patch
+     cciss-fix-memory-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kbuild: whitelist references from __dbe_table to .init
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: cciss: fix memory leak
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-This is needed on MIPS where the same mechanism as get_user() is used to
-intercept bus error exceptions for some hardware probes.  Without this
-patch modpost will throw spurious warnings:
+There's a memory leak in the cciss driver.
 
-  LD      vmlinux
-  SYSMAP  System.map
-  SYSMAP  .tmp_System.map
-  MODPOST vmlinux
-WARNING: arch/mips/sgi-ip22/built-in.o(__dbe_table+0x0): Section mismatch: reference to .init.text:
+in alloc_cciss_hba() we may leak sizeof(ctlr_info_t) bytes if a
+call to alloc_disk(1 << NWD_SHIFT) fails.
+This patch should fix the issue.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Spotted by the Coverity checker.
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/cciss.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN scripts/mod/modpost.c~whitelist-references-from-__dbe_table-to-init scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~whitelist-references-from-__dbe_table-to-init
-+++ a/scripts/mod/modpost.c
-@@ -1121,6 +1121,7 @@ static int initexit_section_ref_ok(const
- 		".machvec",		/* ia64 + powerpc uses these */
- 		".machine.desc",
- 		".opd",			/* See comment [OPD] */
-+		"__dbe_table",
- 		".parainstructions",
- 		".pdr",
- 		".plt",			/* seen on ARCH=um build on x86_64. Harmless */
+diff -puN drivers/block/cciss.c~cciss-fix-memory-leak drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-memory-leak
++++ a/drivers/block/cciss.c
+@@ -3227,12 +3227,15 @@ static int alloc_cciss_hba(void)
+ 	for (i = 0; i < MAX_CTLR; i++) {
+ 		if (!hba[i]) {
+ 			ctlr_info_t *p;
++
+ 			p = kzalloc(sizeof(ctlr_info_t), GFP_KERNEL);
+ 			if (!p)
+ 				goto Enomem;
+ 			p->gendisk[0] = alloc_disk(1 << NWD_SHIFT);
+-			if (!p->gendisk[0])
++			if (!p->gendisk[0]) {
++				kfree(p);
+ 				goto Enomem;
++			}
+ 			hba[i] = p;
+ 			return i;
+ 		}
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
+git-alsa.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+powerpc-clean-out-a-bunch-of-duplicate-includes.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hid.patch
+ia64-remove-a-few-duplicate-includes.patch
+clean-up-duplicate-includes-in-drivers-input.patch
 mips-remove-some-duplicate-includes.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-mips-qemu-network-work-again.patch
 git-mtd.patch
-git-netdev-all.patch
-serial_txx9-fix-modem-control-line-handling.patch
-serial_txx9-cleanup-includes.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
+clean-up-duplicate-includes-in-drivers-net.patch
+clean-up-duplicate-includes-in-drivers-atm.patch
+clean-up-duplicate-includes-in-net-atm.patch
+clean-up-duplicate-includes-in-net-ipv4.patch
+clean-up-duplicate-includes-in-net-ipv6.patch
+clean-up-duplicate-includes-in-net-sched.patch
+clean-up-duplicate-includes-in-net-sunrpc.patch
+clean-up-duplicate-includes-in-net-tipc.patch
+clean-up-duplicate-includes-in-net-xfrm.patch
+dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
+clean-up-duplicate-includes-in-drivers-scsi.patch
+clean-up-duplicate-includes-in-drivers-block.patch
+clean-up-duplicate-includes-in-arch-i386-xen.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
 clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
