@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:29:52 -0700
-Message-ID: <200707311929.l6VJTqJj018364@imap1.linux-foundation.org>
+Subject: + fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:56 -0700
+Message-ID: <200707311929.l6VJTu4e018370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50483 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47627 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754227AbXGaThx (ORCPT
+	by vger.kernel.org with ESMTP id S1754079AbXGaThv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:37:53 -0400
+	Tue, 31 Jul 2007 15:37:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, bzolnier@gmail.com
+Cc: m.kozlowski@tuxland.pl, raven@themaw.net
 
 
 The patch titled
-     drivers/scsi/ide-scsi.c: kmalloc + memset conversion to kzalloc
+     fs/autofs4/inode.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc.patch
+     fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/scsi/ide-scsi.c: kmalloc + memset conversion to kzalloc
+Subject: fs/autofs4/inode.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/scsi/ide-scsi.c | 34642 -> 34536 (-106 bytes)
- drivers/scsi/ide-scsi.o | 171728 -> 171524 (-204 bytes)
+ fs/autofs4/inode.c | 10467 -> 10435 (-32 bytes)
+ fs/autofs4/inode.o | 98576 -> 98552 (-24 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ide-scsi.c |   10 ++++------
- 1 files changed, 4 insertions(+), 6 deletions(-)
+ fs/autofs4/inode.c |    4 +---
+ 1 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/scsi/ide-scsi.c~drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc drivers/scsi/ide-scsi.c
---- a/drivers/scsi/ide-scsi.c~drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/scsi/ide-scsi.c
-@@ -333,17 +333,15 @@ static int idescsi_check_condition(ide_d
- 	u8             *buf;
+diff -puN fs/autofs4/inode.c~fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc
++++ a/fs/autofs4/inode.c
+@@ -312,13 +312,11 @@ int autofs4_fill_super(struct super_bloc
+ 	struct autofs_sb_info *sbi;
+ 	struct autofs_info *ino;
  
- 	/* stuff a sense request in front of our current request */
--	pc = kmalloc (sizeof (idescsi_pc_t), GFP_ATOMIC);
--	rq = kmalloc (sizeof (struct request), GFP_ATOMIC);
--	buf = kmalloc(SCSI_SENSE_BUFFERSIZE, GFP_ATOMIC);
--	if (pc == NULL || rq == NULL || buf == NULL) {
-+	pc = kzalloc(sizeof(idescsi_pc_t), GFP_ATOMIC);
-+	rq = kmalloc(sizeof(struct request), GFP_ATOMIC);
-+	buf = kzalloc(SCSI_SENSE_BUFFERSIZE, GFP_ATOMIC);
-+	if (!pc || !rq || !buf) {
- 		kfree(buf);
- 		kfree(rq);
- 		kfree(pc);
- 		return -ENOMEM;
- 	}
--	memset (pc, 0, sizeof (idescsi_pc_t));
--	memset (buf, 0, SCSI_SENSE_BUFFERSIZE);
- 	ide_init_drive_cmd(rq);
- 	rq->special = (char *) pc;
- 	pc->rq = rq;
+-	sbi = kmalloc(sizeof(*sbi), GFP_KERNEL);
++	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if (!sbi)
+ 		goto fail_unlock;
+ 	DPRINTK("starting up, sbi = %p",sbi);
+ 
+-	memset(sbi, 0, sizeof(*sbi));
+-
+ 	s->s_fs_info = sbi;
+ 	sbi->magic = AUTOFS_SBI_MAGIC;
+ 	sbi->pipefd = -1;
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
