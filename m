@@ -1,107 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - cciss-fix-memory-leak.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:58:57 -0700
-Message-ID: <200707312358.l6VNwvTn029606@imap1.linux-foundation.org>
+Subject: - spi_mpc83xx-support-loopback-mode.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:57:09 -0700
+Message-ID: <200707312357.l6VNv99H029373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54192 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37072 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760191AbXHAAQl (ORCPT
+	by vger.kernel.org with ESMTP id S1760515AbXHAAQs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:41 -0400
+	Tue, 31 Jul 2007 20:16:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mike.miller@hp.com, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: fix memory leak
+     spi_mpc83xx: support loopback mode
 has been removed from the -mm tree.  Its filename was
-     cciss-fix-memory-leak.patch
+     spi_mpc83xx-support-loopback-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cciss: fix memory leak
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: spi_mpc83xx: support loopback mode
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-There's a memory leak in the cciss driver.
+This exposes the hardware loopback mode to drivers, primarily for testing.
 
-in alloc_cciss_hba() we may leak sizeof(ctlr_info_t) bytes if a
-call to alloc_disk(1 << NWD_SHIFT) fails.
-This patch should fix the issue.
-
-Spotted by the Coverity checker.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Mike Miller <mike.miller@hp.com>
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/spi/spi_mpc83xx.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-memory-leak drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-memory-leak
-+++ a/drivers/block/cciss.c
-@@ -3227,12 +3227,15 @@ static int alloc_cciss_hba(void)
- 	for (i = 0; i < MAX_CTLR; i++) {
- 		if (!hba[i]) {
- 			ctlr_info_t *p;
-+
- 			p = kzalloc(sizeof(ctlr_info_t), GFP_KERNEL);
- 			if (!p)
- 				goto Enomem;
- 			p->gendisk[0] = alloc_disk(1 << NWD_SHIFT);
--			if (!p->gendisk[0])
-+			if (!p->gendisk[0]) {
-+				kfree(p);
- 				goto Enomem;
-+			}
- 			hba[i] = p;
- 			return i;
- 		}
+diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-support-loopback-mode drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-support-loopback-mode
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -39,6 +39,7 @@ struct mpc83xx_spi_reg {
+ };
+ 
+ /* SPI Controller mode register definitions */
++#define	SPMODE_LOOP		(1 << 30)
+ #define	SPMODE_CI_INACTIVEHIGH	(1 << 29)
+ #define	SPMODE_CP_BEGIN_EDGECLK	(1 << 28)
+ #define	SPMODE_DIV16		(1 << 27)
+@@ -155,7 +156,7 @@ static void mpc83xx_spi_chipselect(struc
+ 		/* mask out bits we are going to set */
+ 		regval &= ~(SPMODE_CP_BEGIN_EDGECLK | SPMODE_CI_INACTIVEHIGH
+ 				| SPMODE_LEN(0xF) | SPMODE_DIV16
+-				| SPMODE_PM(0xF) | SPMODE_REV);
++				| SPMODE_PM(0xF) | SPMODE_REV | SPMODE_LOOP);
+ 
+ 		if (spi->mode & SPI_CPHA)
+ 			regval |= SPMODE_CP_BEGIN_EDGECLK;
+@@ -163,6 +164,8 @@ static void mpc83xx_spi_chipselect(struc
+ 			regval |= SPMODE_CI_INACTIVEHIGH;
+ 		if (!(spi->mode & SPI_LSB_FIRST))
+ 			regval |= SPMODE_REV;
++		if (spi->mode & SPI_LOOP)
++			regval |= SPMODE_LOOP;
+ 
+ 		regval |= SPMODE_LEN(len);
+ 
+@@ -273,7 +276,8 @@ int mpc83xx_spi_setup_transfer(struct sp
+ }
+ 
+ /* the spi->mode bits understood by this driver: */
+-#define MODEBITS (SPI_CPOL | SPI_CPHA | SPI_CS_HIGH | SPI_LSB_FIRST)
++#define MODEBITS	(SPI_CPOL | SPI_CPHA | SPI_CS_HIGH \
++			| SPI_LSB_FIRST | SPI_LOOP)
+ 
+ static int mpc83xx_spi_setup(struct spi_device *spi)
+ {
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
-git-alsa.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-powerpc-clean-out-a-bunch-of-duplicate-includes.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hid.patch
-ia64-remove-a-few-duplicate-includes.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-mips-remove-some-duplicate-includes.patch
-git-mtd.patch
-clean-up-duplicate-includes-in-drivers-net.patch
-clean-up-duplicate-includes-in-drivers-atm.patch
-clean-up-duplicate-includes-in-net-atm.patch
-clean-up-duplicate-includes-in-net-ipv4.patch
-clean-up-duplicate-includes-in-net-ipv6.patch
-clean-up-duplicate-includes-in-net-sched.patch
-clean-up-duplicate-includes-in-net-sunrpc.patch
-clean-up-duplicate-includes-in-net-tipc.patch
-clean-up-duplicate-includes-in-net-xfrm.patch
-dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-clean-up-duplicate-includes-in-drivers-block.patch
-clean-up-duplicate-includes-in-arch-i386-xen.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
