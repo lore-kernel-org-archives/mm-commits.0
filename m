@@ -1,251 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - spidev_test-utility.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:57:07 -0700
-Message-ID: <200707312357.l6VNv7DT029370@imap1.linux-foundation.org>
+Subject: - broken-lilo-check-on-make-install.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:58:08 -0700
+Message-ID: <200707312358.l6VNw8XB029527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59844 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52021 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754218AbXHAAQy (ORCPT
+	by vger.kernel.org with ESMTP id S1760515AbXHAAQ5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:54 -0400
+	Tue, 31 Jul 2007 20:16:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: nix.or.die@googlemail.com, ak@suse.de, hpa@zytor.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spidev_test utility
+     broken lilo check on make install
 has been removed from the -mm tree.  Its filename was
-     spidev_test-utility.patch
+     broken-lilo-check-on-make-install.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spidev_test utility
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: broken lilo check on make install
+From: Gabriel C <nix.or.die@googlemail.com>
 
-This is a simple utility used to test SPI functionality.  It could stand
-growing options to support using other test data patterns; this initial
-version only issues full duplex transfers, which rules out 3WIRE or
-Microwire links.
+On make install I get the this error:
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+...
+
+sh /work/crazy/linux-git/linux-2.6/arch/i386/boot/install.sh
+2.6.22-g4eb6bf6b arch/i386/boot/bzImage System.map "/boot"
+/work/crazy/linux-git/linux-2.6/arch/i386/boot/install.sh: line 54:
+/etc/lilo/install: No such file or directory
+make[1]: *** [install] Error 127
+
+...
+
+I don't use and don't have lilo installed on this system. The attached
+patch fixes the problem for me.
+
+Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/spi/spidev_test.c |  202 ++++++++++++++++++++++++++++++
- 1 file changed, 202 insertions(+)
+ arch/i386/boot/install.sh |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/spi/spidev_test.c
---- /dev/null
-+++ a/Documentation/spi/spidev_test.c
-@@ -0,0 +1,202 @@
-+/*
-+ * SPI testing utility (using spidev driver)
-+ *
-+ * Copyright (c) 2007  MontaVista Software, Inc.
-+ * Copyright (c) 2007  Anton Vorontsov <avorontsov@ru.mvista.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License.
-+ *
-+ * Cross-compile with cross-gcc -I/path/to/cross-kernel/include
-+ */
-+
-+#include <stdint.h>
-+#include <unistd.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <getopt.h>
-+#include <fcntl.h>
-+#include <sys/ioctl.h>
-+#include <linux/types.h>
-+#include <linux/spi/spidev.h>
-+
-+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
-+
-+static void pabort(const char *s)
-+{
-+	perror(s);
-+	abort();
-+}
-+
-+static char *device = "/dev/spidev1.1";
-+static uint8_t mode;
-+static uint8_t bits = 8;
-+static uint32_t speed = 500000;
-+static uint16_t delay;
-+
-+static void transfer(int fd)
-+{
-+	int ret;
-+	uint8_t tx[] = {
-+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-+		0x40, 0x00, 0x00, 0x00, 0x00, 0x95,
-+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-+		0xDE, 0xAD, 0xBE, 0xEF, 0xBA, 0xAD,
-+		0xF0, 0x0D,
-+	};
-+	uint8_t rx[ARRAY_SIZE(tx)] = {0, };
-+	struct spi_ioc_transfer tr = {
-+		.tx_buf = (unsigned long)tx,
-+		.rx_buf = (unsigned long)rx,
-+		.len = ARRAY_SIZE(tx),
-+		.delay_usecs = delay,
-+		.speed_hz = speed,
-+		.bits_per_word = bits,
-+	};
-+
-+	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
-+	if (ret == 1)
-+		pabort("can't send spi message");
-+
-+	for (ret = 0; ret < ARRAY_SIZE(tx); ret++) {
-+		if (!(ret % 6))
-+			puts("");
-+		printf("%.2X ", rx[ret]);
-+	}
-+	puts("");
-+}
-+
-+void print_usage(char *prog)
-+{
-+	printf("Usage: %s [-DsbdlHOLC3]\n", prog);
-+	puts("  -D --device   device to use (default /dev/spidev1.1)\n"
-+	     "  -s --speed    max speed (Hz)\n"
-+	     "  -d --delay    delay (usec)\n"
-+	     "  -b --bpw      bits per word \n"
-+	     "  -l --loop     loopback\n"
-+	     "  -H --cpha     clock phase\n"
-+	     "  -O --cpol     clock polarity\n"
-+	     "  -L --lsb      least significant bit first\n"
-+	     "  -C --cs-high  chip select active high\n"
-+	     "  -3 --3wire    SI/SO signals shared\n");
-+	exit(1);
-+}
-+
-+void parse_opts(int argc, char *argv[])
-+{
-+	while (1) {
-+		static struct option lopts[] = {
-+			{ "device",  1, 0, 'D' },
-+			{ "speed",   1, 0, 's' },
-+			{ "delay",   1, 0, 'd' },
-+			{ "bpw",     1, 0, 'b' },
-+			{ "loop",    0, 0, 'l' },
-+			{ "cpha",    0, 0, 'H' },
-+			{ "cpol",    0, 0, 'O' },
-+			{ "lsb",     0, 0, 'L' },
-+			{ "cs-high", 0, 0, 'C' },
-+			{ "3wire",   0, 0, '3' },
-+			{ NULL, 0, 0, 0 },
-+		};
-+		int c;
-+
-+		c = getopt_long(argc, argv, "D:s:d:b:lHOLC3", lopts, NULL);
-+
-+		if (c == -1)
-+			break;
-+
-+		switch (c) {
-+		case 'D':
-+			device = optarg;
-+			break;
-+		case 's':
-+			speed = atoi(optarg);
-+			break;
-+		case 'd':
-+			delay = atoi(optarg);
-+			break;
-+		case 'b':
-+			bits = atoi(optarg);
-+			break;
-+		case 'l':
-+			mode |= SPI_LOOP;
-+			break;
-+		case 'H':
-+			mode |= SPI_CPHA;
-+			break;
-+		case 'O':
-+			mode |= SPI_CPOL;
-+			break;
-+		case 'L':
-+			mode |= SPI_LSB_FIRST;
-+			break;
-+		case 'C':
-+			mode |= SPI_CS_HIGH;
-+			break;
-+		case '3':
-+			mode |= SPI_3WIRE;
-+			break;
-+		default:
-+			print_usage(argv[0]);
-+			break;
-+		}
-+	}
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	int ret = 0;
-+	int fd;
-+
-+	parse_opts(argc, argv);
-+
-+	fd = open(device, O_RDWR);
-+	if (fd < 0)
-+		pabort("can't open device");
-+
-+	/*
-+	 * spi mode
-+	 */
-+	ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
-+	if (ret == -1)
-+		pabort("can't set spi mode");
-+
-+	ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
-+	if (ret == -1)
-+		pabort("can't get spi mode");
-+
-+	/*
-+	 * bits per word
-+	 */
-+	ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
-+	if (ret == -1)
-+		pabort("can't set bits per word");
-+
-+	ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
-+	if (ret == -1)
-+		pabort("can't get bits per word");
-+
-+	/*
-+	 * max speed hz
-+	 */
-+	ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
-+	if (ret == -1)
-+		pabort("can't set max speed hz");
-+
-+	ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed);
-+	if (ret == -1)
-+		pabort("can't get max speed hz");
-+
-+	printf("spi mode: %d\n", mode);
-+	printf("bits per word: %d\n", bits);
-+	printf("max speed: %d Hz (%d KHz)\n", speed, speed/1000);
-+
-+	transfer(fd);
-+
-+	close(fd);
-+
-+	return ret;
-+}
+diff -puN arch/i386/boot/install.sh~broken-lilo-check-on-make-install arch/i386/boot/install.sh
+--- a/arch/i386/boot/install.sh~broken-lilo-check-on-make-install
++++ a/arch/i386/boot/install.sh
+@@ -51,4 +51,11 @@ fi
+ cat $2 > $4/vmlinuz
+ cp $3 $4/System.map
+ 
+-if [ -x /sbin/lilo ]; then /sbin/lilo; else /etc/lilo/install; fi
++if [ -x /sbin/lilo ]; then
++       /sbin/lilo
++elif [ -x /etc/lilo/install ]; then
++       /etc/lilo/install
++else
++       sync
++       echo "Cannot find LILO."
++fi
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from nix.or.die@googlemail.com are
 
 origin.patch
+fix-libata-warnings-with-config_pm=n.patch
+drivers-scsi-g_ncr5380c-ncr53c400_pseudo_dma-is-not.patch
+fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
