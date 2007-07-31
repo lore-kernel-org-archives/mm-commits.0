@@ -1,75 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-cxgb3-remove-several-unneeded-zero-initialization.patch removed from -mm tree
-Date: Mon, 30 Jul 2007 22:01:06 -0700
-Message-ID: <200707310501.l6V516Nb016521@imap1.linux-foundation.org>
+Subject: - ioc3-switch-hw-checksumming-to-ethtool-configurable.patch removed from -mm tree
+Date: Mon, 30 Jul 2007 22:01:11 -0700
+Message-ID: <200707310501.l6V51BG8016529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42276 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43935 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968400AbXGaFB1 (ORCPT
+	by vger.kernel.org with ESMTP id S1758397AbXGaFBe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 01:01:27 -0400
+	Tue, 31 Jul 2007 01:01:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: crquan@gmail.com, divy@chelsio.com, linux-bugs@chelsio.com, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/cxgb3: remove several unneeded zero initialization
+     IOC3: Switch hw checksumming to ethtool configurable.
 has been removed from the -mm tree.  Its filename was
-     drivers-net-cxgb3-remove-several-unneeded-zero-initialization.patch
+     ioc3-switch-hw-checksumming-to-ethtool-configurable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/net/cxgb3: remove several unneeded zero initialization
-From: Denis Cheng <crquan@gmail.com>
+Subject: IOC3: Switch hw checksumming to ethtool configurable.
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Signed-off-by: Denis Cheng <crquan@gmail.com>
-Cc: <linux-bugs@chelsio.com>
+I've previously sent out this patch a long time ago.  At that time I was
+told NETIF_F_IP_CSUM wouldn't make any sense without NETIF_F_SG.  IOC3's
+S/G abilities are very limited; it can do up to three segments of which the
+first one is up to 104 bytes and part of the packet's TX ring entry, the
+second and 3rd ones can be anywhere in the 64-bit PCI address space but may
+not cross a 16kB page boundary.  So setting NETIF_F_SG isn't really an
+option unless the IOC3 was going to linearize any packet it can't cope with
+itself.
+
+So the big question, does NETIF_F_IP_CSUM without NETIF_F_SG make sense?
+
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/cxgb3_main.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/Kconfig    |   20 ----------------
+ drivers/net/ioc3-eth.c |   48 ++++++++++++++++++++++++++-------------
+ 2 files changed, 32 insertions(+), 36 deletions(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_main.c~drivers-net-cxgb3-remove-several-unneeded-zero-initialization drivers/net/cxgb3/cxgb3_main.c
---- a/drivers/net/cxgb3/cxgb3_main.c~drivers-net-cxgb3-remove-several-unneeded-zero-initialization
-+++ a/drivers/net/cxgb3/cxgb3_main.c
-@@ -754,7 +754,7 @@ static int upgrade_fw(struct adapter *ad
-  */
- static int cxgb_up(struct adapter *adap)
+diff -puN drivers/net/ioc3-eth.c~ioc3-switch-hw-checksumming-to-ethtool-configurable drivers/net/ioc3-eth.c
+--- a/drivers/net/ioc3-eth.c~ioc3-switch-hw-checksumming-to-ethtool-configurable
++++ a/drivers/net/ioc3-eth.c
+@@ -5,7 +5,7 @@
+  *
+  * Driver for SGI's IOC3 based Ethernet cards as found in the PCI card.
+  *
+- * Copyright (C) 1999, 2000, 2001, 2003 Ralf Baechle
++ * Copyright (C) 1999, 2000, 01, 03, 06 Ralf Baechle
+  * Copyright (C) 1995, 1999, 2000, 2001 by Silicon Graphics, Inc.
+  *
+  * References:
+@@ -61,12 +61,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/uaccess.h>
+ #include <asm/sn/types.h>
+-#include <asm/sn/sn0/addrs.h>
+-#include <asm/sn/sn0/hubni.h>
+-#include <asm/sn/sn0/hubio.h>
+-#include <asm/sn/klconfig.h>
+ #include <asm/sn/ioc3.h>
+-#include <asm/sn/sn0/ip27.h>
+ #include <asm/pci/bridge.h>
+ 
+ /*
+@@ -94,6 +89,9 @@ struct ioc3_private {
+ 	u32 emcr, ehar_h, ehar_l;
+ 	spinlock_t ioc3_lock;
+ 	struct mii_if_info mii;
++	unsigned long flags;
++#define IOC3_FLAG_RX_CHECKSUMS	1
++
+ 	struct pci_dev *pdev;
+ 
+ 	/* Members used by autonegotiation  */
+@@ -520,8 +518,6 @@ static struct net_device_stats *ioc3_get
+ 	return &ip->stats;
+ }
+ 
+-#ifdef CONFIG_SGI_IOC3_ETH_HW_RX_CSUM
+-
+ static void ioc3_tcpudp_checksum(struct sk_buff *skb, uint32_t hwsum, int len)
  {
--	int err = 0;
-+	int err;
+ 	struct ethhdr *eh = eth_hdr(skb);
+@@ -589,7 +585,6 @@ static void ioc3_tcpudp_checksum(struct 
+ 	if (csum == 0xffff)
+ 		skb->ip_summed = CHECKSUM_UNNECESSARY;
+ }
+-#endif /* CONFIG_SGI_IOC3_ETH_HW_RX_CSUM */
  
- 	if (!(adap->flags & FULL_INIT_DONE)) {
- 		err = t3_check_fw_version(adap);
-@@ -861,7 +861,7 @@ static int offload_open(struct net_devic
- 	struct adapter *adapter = dev->priv;
- 	struct t3cdev *tdev = T3CDEV(dev);
- 	int adap_up = adapter->open_device_map & PORT_MASK;
--	int err = 0;
-+	int err;
- 
- 	if (test_and_set_bit(OFFLOAD_DEVMAP_BIT, &adapter->open_device_map))
- 		return 0;
-@@ -1502,7 +1502,7 @@ static int set_eeprom(struct net_device 
- 		      u8 * data)
+ static inline void ioc3_rx(struct ioc3_private *ip)
  {
- 	u8 *buf;
--	int err = 0;
-+	int err;
- 	u32 aligned_offset, aligned_len, *p;
- 	struct adapter *adapter = dev->priv;
+@@ -624,9 +619,9 @@ static inline void ioc3_rx(struct ioc3_p
+ 				goto next;
+ 			}
  
+-#ifdef CONFIG_SGI_IOC3_ETH_HW_RX_CSUM
+-			ioc3_tcpudp_checksum(skb, w0 & ERXBUF_IPCKSUM_MASK,len);
+-#endif
++			if (likely(ip->flags & IOC3_FLAG_RX_CHECKSUMS))
++				ioc3_tcpudp_checksum(skb,
++					w0 & ERXBUF_IPCKSUM_MASK, len);
+ 
+ 			netif_rx(skb);
+ 
+@@ -1298,9 +1293,7 @@ static int ioc3_probe(struct pci_dev *pd
+ 	dev->set_multicast_list	= ioc3_set_multicast_list;
+ 	dev->set_mac_address	= ioc3_set_mac_address;
+ 	dev->ethtool_ops	= &ioc3_ethtool_ops;
+-#ifdef CONFIG_SGI_IOC3_ETH_HW_TX_CSUM
+ 	dev->features		= NETIF_F_IP_CSUM;
+-#endif
+ 
+ 	sw_physid1 = ioc3_mdio_read(dev, ip->mii.phy_id, MII_PHYSID1);
+ 	sw_physid2 = ioc3_mdio_read(dev, ip->mii.phy_id, MII_PHYSID2);
+@@ -1390,7 +1383,6 @@ static int ioc3_start_xmit(struct sk_buf
+ 	uint32_t w0 = 0;
+ 	int produce;
+ 
+-#ifdef CONFIG_SGI_IOC3_ETH_HW_TX_CSUM
+ 	/*
+ 	 * IOC3 has a fairly simple minded checksumming hardware which simply
+ 	 * adds up the 1's complement checksum for the entire packet and
+@@ -1438,7 +1430,6 @@ static int ioc3_start_xmit(struct sk_buf
+ 
+ 		w0 = ETXD_DOCHECKSUM | (csoff << ETXD_CHKOFF_SHIFT);
+ 	}
+-#endif /* CONFIG_SGI_IOC3_ETH_HW_TX_CSUM */
+ 
+ 	spin_lock_irq(&ip->ioc3_lock);
+ 
+@@ -1593,12 +1584,37 @@ static u32 ioc3_get_link(struct net_devi
+ 	return rc;
+ }
+ 
++static u32 ioc3_get_rx_csum(struct net_device *dev)
++{
++	struct ioc3_private *ip = netdev_priv(dev);
++
++	return ip->flags & IOC3_FLAG_RX_CHECKSUMS;
++}
++
++static int ioc3_set_rx_csum(struct net_device *dev, u32 data)
++{
++	struct ioc3_private *ip = netdev_priv(dev);
++
++	spin_lock_bh(&ip->ioc3_lock);
++	if (data)
++		ip->flags |= IOC3_FLAG_RX_CHECKSUMS;
++	else
++		ip->flags &= ~IOC3_FLAG_RX_CHECKSUMS;
++	spin_unlock_bh(&ip->ioc3_lock);
++
++	return 0;
++}
++
+ static const struct ethtool_ops ioc3_ethtool_ops = {
+ 	.get_drvinfo		= ioc3_get_drvinfo,
+ 	.get_settings		= ioc3_get_settings,
+ 	.set_settings		= ioc3_set_settings,
+ 	.nway_reset		= ioc3_nway_reset,
+ 	.get_link		= ioc3_get_link,
++	.get_rx_csum		= ioc3_get_rx_csum,
++	.set_rx_csum		= ioc3_set_rx_csum,
++	.get_tx_csum		= ethtool_op_get_tx_csum,
++	.set_tx_csum		= ethtool_op_set_tx_csum
+ };
+ 
+ static int ioc3_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
+diff -puN drivers/net/Kconfig~ioc3-switch-hw-checksumming-to-ethtool-configurable drivers/net/Kconfig
+--- a/drivers/net/Kconfig~ioc3-switch-hw-checksumming-to-ethtool-configurable
++++ a/drivers/net/Kconfig
+@@ -480,26 +480,6 @@ config SGI_IOC3_ETH
+ 	  the Ethernet-HOWTO, available from
+ 	  <http://www.tldp.org/docs.html#howto>.
+ 
+-config SGI_IOC3_ETH_HW_RX_CSUM
+-	bool "Receive hardware checksums"
+-	depends on SGI_IOC3_ETH && INET
+-	default y
+-	help
+-	  The SGI IOC3 network adapter supports TCP and UDP checksums in
+-	  hardware to offload processing of these checksums from the CPU.  At
+-	  the moment only acceleration of IPv4 is supported.  This option
+-	  enables offloading for checksums on receive.  If unsure, say Y.
+-
+-config SGI_IOC3_ETH_HW_TX_CSUM
+-	bool "Transmit hardware checksums"
+-	depends on SGI_IOC3_ETH && INET
+-	default y
+-	help
+-	  The SGI IOC3 network adapter supports TCP and UDP checksums in
+-	  hardware to offload processing of these checksums from the CPU.  At
+-	  the moment only acceleration of IPv4 is supported.  This option
+-	  enables offloading for checksums on transmit.  If unsure, say Y.
+-
+ config MIPS_SIM_NET
+ 	tristate "MIPS simulator Network device"
+ 	depends on MIPS_SIM
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-git-gfs2-nmw.patch
+origin.patch
+ddb5477-remove-driver-bits-of-support.patch
+mips-remove-some-duplicate-includes.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+mips-qemu-network-work-again.patch
+git-mtd.patch
 git-netdev-all.patch
-nbd-use-list_for_each_entry_safe-to-make-it-more-consolidated-and-readable.patch
-nbd-change-a-parameters-type-to-remove-a-memcpy-call.patch
-fs-use-kmem_cache_zalloc-instead.patch
-fs-remove-the-unused-mempages-parameter.patch
+serial_txx9-fix-modem-control-line-handling.patch
+serial_txx9-cleanup-includes.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+whitelist-references-from-__dbe_table-to-init.patch
+bpqether-fix-rcu-usage.patch
+serial-fix-section-mismatch-vr41xx_siu.patch
+serial-fix-vr41xx_siu-interface-select.patch
+serial-fix-vr41xx_siu-serial-console-support.patch
+remove-tx3912fb.patch
+sb1250-duart-__maybe_unused-etc-fixes.patch
+clean-up-duplicate-includes-in-drivers-char.patch
