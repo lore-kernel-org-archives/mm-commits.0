@@ -1,74 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - uml-console-should-handle-spurious-irqs.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:55:22 -0700
-Message-ID: <200707312355.l6VNtMZd029221@imap1.linux-foundation.org>
+Subject: - lzo-add-some-missing-casts.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:55:14 -0700
+Message-ID: <200707312355.l6VNtEJt029215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48504 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42826 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753430AbXHAAQ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1762064AbXHAARP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:58 -0400
+	Tue, 31 Jul 2007 20:17:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: richard@openedhand.com, edward@namesys.com, rpurdie@openedhand.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     UML: console should handle spurious IRQS
+     lzo: add some missing casts
 has been removed from the -mm tree.  Its filename was
-     uml-console-should-handle-spurious-irqs.patch
+     lzo-add-some-missing-casts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: UML: console should handle spurious IRQS
-From: Jeff Dike <jdike@addtoit.com>
+Subject: lzo: add some missing casts
+From: Richard Purdie <richard@openedhand.com>
 
-The previous DEBUG_SHIRQ patch missed one case.  The console doesn't
-set its host descriptors non-blocking.
+Add some casts to the LZO compression algorithm after they were removed
+during cleanup and shouldn't have been.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Richard Purdie <rpurdie@openedhand.com>
+Cc: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/chan_kern.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ lib/lzo/lzo1x_compress.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/um/drivers/chan_kern.c~uml-console-should-handle-spurious-irqs arch/um/drivers/chan_kern.c
---- a/arch/um/drivers/chan_kern.c~uml-console-should-handle-spurious-irqs
-+++ a/arch/um/drivers/chan_kern.c
-@@ -157,7 +157,7 @@ static void tty_receive_char(struct tty_
+diff -puN lib/lzo/lzo1x_compress.c~lzo-add-some-missing-casts lib/lzo/lzo1x_compress.c
+--- a/lib/lzo/lzo1x_compress.c~lzo-add-some-missing-casts
++++ a/lib/lzo/lzo1x_compress.c
+@@ -32,13 +32,13 @@ _lzo1x_1_do_compress(const unsigned char
+ 	ip += 4;
  
- static int open_one_chan(struct chan *chan)
- {
--	int fd;
-+	int fd, err;
+ 	for (;;) {
+-		dindex = ((0x21 * DX3(ip, 5, 5, 6)) >> 5) & D_MASK;
++		dindex = ((size_t)(0x21 * DX3(ip, 5, 5, 6)) >> 5) & D_MASK;
+ 		m_pos = dict[dindex];
  
- 	if(chan->opened)
- 		return 0;
-@@ -168,6 +168,13 @@ static int open_one_chan(struct chan *ch
- 				     chan->data, &chan->dev);
- 	if(fd < 0)
- 		return fd;
-+
-+	err = os_set_fd_block(fd, 0);
-+	if (err) {
-+		(*chan->ops->close)(fd, chan->data);
-+		return err;
-+	}
-+
- 	chan->fd = fd;
+ 		if (m_pos < in)
+ 			goto literal;
  
- 	chan->opened = 1;
+-		if (ip == m_pos || (ip - m_pos) > M4_MAX_OFFSET)
++		if (ip == m_pos || ((size_t)(ip - m_pos) > M4_MAX_OFFSET))
+ 			goto literal;
+ 
+ 		m_off = ip - m_pos;
+@@ -51,7 +51,7 @@ _lzo1x_1_do_compress(const unsigned char
+ 		if (m_pos < in)
+ 			goto literal;
+ 
+-		if (ip == m_pos || (ip - m_pos) > M4_MAX_OFFSET)
++		if (ip == m_pos || ((size_t)(ip - m_pos) > M4_MAX_OFFSET))
+ 			goto literal;
+ 
+ 		m_off = ip - m_pos;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from richard@openedhand.com are
 
 origin.patch
-git-kvm.patch
-hostfs-convert-to-new-aops.patch
-uml-move-userspace-code-to-userspace-file.patch
-uml-tidy-recently-moved-code.patch
-uml-fix-error-cleanup-ordering.patch
-uml-console-subsystem-tidying.patch
+git-mtd.patch
