@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + git-mmc-build-fix.patch added to -mm tree
-Date: Tue, 31 Jul 2007 01:40:14 -0700
-Message-ID: <200707310844.l6V8iuuk024734@imap1.linux-foundation.org>
+Subject: + git-mmc-build-fix-2.patch added to -mm tree
+Date: Tue, 31 Jul 2007 01:48:37 -0700
+Message-ID: <200707310853.l6V8rJGN024960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59980 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53805 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751225AbXGaIpR (ORCPT
+	by vger.kernel.org with ESMTP id S1752065AbXGaIyA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 04:45:17 -0400
+	Tue, 31 Jul 2007 04:54:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, drzeus@drzeus.cx
 
 
 The patch titled
-     git-mmc-build-fix
+     git-mmc-build-fix-2
 has been added to the -mm tree.  Its filename is
-     git-mmc-build-fix.patch
+     git-mmc-build-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mmc-build-fix
+Subject: git-mmc-build-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc_ops.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mmc/card.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/mmc/core/mmc_ops.c~git-mmc-build-fix drivers/mmc/core/mmc_ops.c
---- a/drivers/mmc/core/mmc_ops.c~git-mmc-build-fix
-+++ a/drivers/mmc/core/mmc_ops.c
-@@ -329,7 +329,7 @@ int mmc_lock_unlock(struct mmc_card *car
+diff -puN drivers/mmc/core/lock.c~git-mmc-build-fix-2 drivers/mmc/core/lock.c
+diff -puN include/linux/mmc/card.h~git-mmc-build-fix-2 include/linux/mmc/card.h
+--- a/include/linux/mmc/card.h~git-mmc-build-fix-2
++++ a/include/linux/mmc/card.h
+@@ -112,8 +112,7 @@ struct mmc_card {
+ #define mmc_card_blockaddr(c)	((c)->state & MMC_STATE_BLOCKADDR)
+ #define mmc_card_locked(c)	((c)->state & MMC_STATE_LOCKED)
  
- 	memset(&data, 0, sizeof(struct mmc_data));
+-#define mmc_card_lockable(c)	(((c)->csd.cmdclass & CCC_LOCK_CARD) && \
+-				((c)->host->caps & MMC_CAP_BYTEBLOCK))
++#define mmc_card_lockable(c)	((c)->csd.cmdclass & CCC_LOCK_CARD)
  
--	mmc_set_data_timeout(&data, card, 1);
-+	mmc_set_data_timeout(&data, card);
- 
- 	data.blksz = data_size;
- 	data.blocks = 1;
+ #define mmc_card_set_present(c)	((c)->state |= MMC_STATE_PRESENT)
+ #define mmc_card_set_readonly(c) ((c)->state |= MMC_STATE_READONLY)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +79,7 @@ libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 fix-ide-ide-add-ide-set-pio-take3.patch
 fix-ide-ide-add-platform-ide-driver.patch
+git-mmc-build-fix.patch
 git-mtd.patch
 git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
 mtdoops-printk-warning-fixes.patch
@@ -163,4 +166,4 @@ page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 tpm_tis-debug.patch
 w1-build-fix.patch
-git-mmc-build-fix.patch
+git-mmc-build-fix-2.patch
