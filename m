@@ -1,131 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:58:32 -0700
-Message-ID: <200707312358.l6VNwWAP029559@imap1.linux-foundation.org>
+Subject: - lib-move-kasprintf-to-a-separate-file.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:56:15 -0700
+Message-ID: <200707312356.l6VNuFvm029304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45112 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39748 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764303AbXHAARz (ORCPT
+	by vger.kernel.org with ESMTP id S1764302AbXHAAR7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:17:55 -0400
+	Tue, 31 Jul 2007 20:17:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, karim@opersys.com, mathieu.desnoyers@polymtl.ca, wilder@us.ibm.com, zanussi@us.ibm.com, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, jeremy@goop.org, mroos@linux.ee, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix a use after free bug in kernel->userspace relay file support
+     lib: move kasprintf to a separate file
 has been removed from the -mm tree.  Its filename was
-     fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support.patch
+     lib-move-kasprintf-to-a-separate-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix a use after free bug in kernel->userspace relay file support
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: lib: move kasprintf to a separate file
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Coverity spotted what looks like a real possible case of using a variable
-after it has been freed.  The problem is in
-kernel/relay.c::relay_open_buf()
+kasprintf pulls in kmalloc which proved to be fatal for at least
+bootimage target on alpha.
+Move it to a separate file so only users of kasprintf are exposed
+to the dependency on kmalloc.
 
-If the code hits "goto free_buf;" it ends up in this code :
-
-  free_buf:
-    	relay_destroy_buf(buf);	<--- calls kfree() on 'buf'.
-  free_name:
-   	kfree(tmpname);
-  end:
-  	return buf;		<-- use after free of 'buf'.
-
-I read through the callers and they all handle a NULL return from this
-function as an error (and hitting the 'free_buf' label only happens on
-failure to chan->cb->create_buf_file(), so that looks like a clear error to
-me).
-
-The patch simply sets 'buf' to NULL after the call to
-relay_destroy_buf(buf); - as far as I can see that should take care of the
-problem.
-
-The patch also corrects a reference to a documentation file while
-I was at it.
-
-Note from Mathieu: the documentation reference change should have been
-done in a separate patch, but I guess no one will really care.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: "David J. Wilder" <wilder@us.ibm.com>
-Tested-by: "David J. Wilder" <wilder@us.ibm.com>
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Tom Zanussi <zanussi@us.ibm.com>
-Cc: Karim Yaghmour <karim@opersys.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Meelis Roos <mroos@linux.ee>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Jay Estabrook <jay.estabrook@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/Makefile    |    2 +-
+ lib/kasprintf.c |   44 ++++++++++++++++++++++++++++++++++++++++++++
+ lib/vsprintf.c  |   35 -----------------------------------
+ 3 files changed, 45 insertions(+), 36 deletions(-)
 
-diff -puN kernel/relay.c~fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support kernel/relay.c
---- a/kernel/relay.c~fix-a-use-after-free-bug-in-kernel-userspace-relay-file-support
-+++ a/kernel/relay.c
-@@ -1,7 +1,7 @@
- /*
-  * Public API and common code for kernel->userspace relay file support.
-  *
-- * See Documentation/filesystems/relayfs.txt for an overview of relayfs.
-+ * See Documentation/filesystems/relay.txt for an overview.
-  *
-  * Copyright (C) 2002-2005 - Tom Zanussi (zanussi@us.ibm.com), IBM Corp
-  * Copyright (C) 1999-2005 - Karim Yaghmour (karim@opersys.com)
-@@ -426,6 +426,7 @@ static struct rchan_buf *relay_open_buf(
+diff -puN lib/Makefile~lib-move-kasprintf-to-a-separate-file lib/Makefile
+--- a/lib/Makefile~lib-move-kasprintf-to-a-separate-file
++++ a/lib/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for some libs needed in the kernel.
+ #
  
- free_buf:
-  	relay_destroy_buf(buf);
-+ 	buf = NULL;
- free_name:
-  	kfree(tmpname);
- end:
+-lib-y := ctype.o string.o vsprintf.o cmdline.o \
++lib-y := ctype.o string.o vsprintf.o kasprintf.o cmdline.o \
+ 	 rbtree.o radix-tree.o dump_stack.o \
+ 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
+ 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o
+diff -puN /dev/null lib/kasprintf.c
+--- /dev/null
++++ a/lib/kasprintf.c
+@@ -0,0 +1,44 @@
++/*
++ *  linux/lib/kasprintf.c
++ *
++ *  Copyright (C) 1991, 1992  Linus Torvalds
++ */
++
++#include <stdarg.h>
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/string.h>
++
++/* Simplified asprintf. */
++char *kvasprintf(gfp_t gfp, const char *fmt, va_list ap)
++{
++	unsigned int len;
++	char *p;
++	va_list aq;
++
++	va_copy(aq, ap);
++	len = vsnprintf(NULL, 0, fmt, aq);
++	va_end(aq);
++
++	p = kmalloc(len+1, gfp);
++	if (!p)
++		return NULL;
++
++	vsnprintf(p, len+1, fmt, ap);
++
++	return p;
++}
++EXPORT_SYMBOL(kvasprintf);
++
++char *kasprintf(gfp_t gfp, const char *fmt, ...)
++{
++	va_list ap;
++	char *p;
++
++	va_start(ap, fmt);
++	p = kvasprintf(gfp, fmt, ap);
++	va_end(ap);
++
++	return p;
++}
++EXPORT_SYMBOL(kasprintf);
+diff -puN lib/vsprintf.c~lib-move-kasprintf-to-a-separate-file lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-move-kasprintf-to-a-separate-file
++++ a/lib/vsprintf.c
+@@ -978,38 +978,3 @@ int sscanf(const char * buf, const char 
+ }
+ 
+ EXPORT_SYMBOL(sscanf);
+-
+-
+-/* Simplified asprintf. */
+-char *kvasprintf(gfp_t gfp, const char *fmt, va_list ap)
+-{
+-	unsigned int len;
+-	char *p;
+-	va_list aq;
+-
+-	va_copy(aq, ap);
+-	len = vsnprintf(NULL, 0, fmt, aq);
+-	va_end(aq);
+-
+-	p = kmalloc(len+1, gfp);
+-	if (!p)
+-		return NULL;
+-
+-	vsnprintf(p, len+1, fmt, ap);
+-
+-	return p;
+-}
+-EXPORT_SYMBOL(kvasprintf);
+-
+-char *kasprintf(gfp_t gfp, const char *fmt, ...)
+-{
+-	va_list ap;
+-	char *p;
+-
+-	va_start(ap, fmt);
+-	p = kvasprintf(gfp, fmt, ap);
+-	va_end(ap);
+-
+-	return p;
+-}
+-EXPORT_SYMBOL(kasprintf);
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-git-alsa.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-powerpc-clean-out-a-bunch-of-duplicate-includes.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hid.patch
-ia64-remove-a-few-duplicate-includes.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-mips-remove-some-duplicate-includes.patch
-git-mtd.patch
-clean-up-duplicate-includes-in-drivers-net.patch
-clean-up-duplicate-includes-in-drivers-atm.patch
-clean-up-duplicate-includes-in-net-atm.patch
-clean-up-duplicate-includes-in-net-ipv4.patch
-clean-up-duplicate-includes-in-net-ipv6.patch
-clean-up-duplicate-includes-in-net-sched.patch
-clean-up-duplicate-includes-in-net-sunrpc.patch
-clean-up-duplicate-includes-in-net-tipc.patch
-clean-up-duplicate-includes-in-net-xfrm.patch
-dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-clean-up-duplicate-includes-in-drivers-block.patch
-clean-up-duplicate-includes-in-arch-i386-xen.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+mkmakefile-include-arch-on-o=-builds.patch
+include-linux-kbuild-remove-duplicate-entries.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+x86-add-cpu-codenames-for-kconfigcpu.patch
+change-order-in-kconfigcpu-i386.patch
