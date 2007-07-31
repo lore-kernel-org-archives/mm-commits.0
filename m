@@ -1,180 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 01:51:17 -0700
-Message-ID: <200707310856.l6V8u0DD025117@imap1.linux-foundation.org>
+Subject: - pata_ali-more-work.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 03:10:32 -0700
+Message-ID: <200707311010.l6VAAWY9028034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58700 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59643 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752529AbXGaI4r (ORCPT
+	by vger.kernel.org with ESMTP id S1754333AbXGaKKs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 04:56:47 -0400
+	Tue, 31 Jul 2007 06:10:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, kkeil@suse.de, satyam@infradead.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use mutex instead of semaphore in ISDN subsystem common functions
+     pata_ali: more work
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
+     pata_ali-more-work.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-Subject: Use mutex instead of semaphore in ISDN subsystem common functions
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: pata_ali: more work
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The ISDN subsystem common functions use a semaphore as mutex.  Use the mutex
-API instead of the (binary) semaphore.
+Still don't know why some people see problems with ATAPI devices
+specifically but here are some more small fixes done while searching for
+the root problem (some of these fixes are overconservative but that can be
+fixed *after* the thing works fully)
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Reviewed-by: Satyam Sharma <satyam@infradead.org>
-Acked-by: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/i4l/isdn_common.c |   26 +++++++++++++-------------
- include/linux/isdn.h           |    3 ++-
- 2 files changed, 15 insertions(+), 14 deletions(-)
+ drivers/ata/pata_ali.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN drivers/isdn/i4l/isdn_common.c~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions drivers/isdn/i4l/isdn_common.c
---- a/drivers/isdn/i4l/isdn_common.c~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions
-+++ a/drivers/isdn/i4l/isdn_common.c
-@@ -1364,7 +1364,7 @@ isdn_ioctl(struct inode *inode, struct f
- 				} else {
- 					s = NULL;
- 				}
--				ret = down_interruptible(&dev->sem);
-+				ret = mutex_lock_interruptible(&dev->mtx);
- 				if( ret ) return ret;
- 				if ((s = isdn_net_new(s, NULL))) {
- 					if (copy_to_user(argp, s, strlen(s) + 1)){
-@@ -1374,7 +1374,7 @@ isdn_ioctl(struct inode *inode, struct f
- 					}
- 				} else
- 					ret = -ENODEV;
--				up(&dev->sem);
-+				mutex_unlock(&dev->mtx);
- 				return ret;
- 			case IIOCNETASL:
- 				/* Add a slave to a network-interface */
-@@ -1383,7 +1383,7 @@ isdn_ioctl(struct inode *inode, struct f
- 						return -EFAULT;
- 				} else
- 					return -EINVAL;
--				ret = down_interruptible(&dev->sem);
-+				ret = mutex_lock_interruptible(&dev->mtx);
- 				if( ret ) return ret;
- 				if ((s = isdn_net_newslave(bname))) {
- 					if (copy_to_user(argp, s, strlen(s) + 1)){
-@@ -1393,17 +1393,17 @@ isdn_ioctl(struct inode *inode, struct f
- 					}
- 				} else
- 					ret = -ENODEV;
--				up(&dev->sem);
-+				mutex_unlock(&dev->mtx);
- 				return ret;
- 			case IIOCNETDIF:
- 				/* Delete a network-interface */
- 				if (arg) {
- 					if (copy_from_user(name, argp, sizeof(name)))
- 						return -EFAULT;
--					ret = down_interruptible(&dev->sem);
-+					ret = mutex_lock_interruptible(&dev->mtx);
- 					if( ret ) return ret;
- 					ret = isdn_net_rm(name);
--					up(&dev->sem);
-+					mutex_unlock(&dev->mtx);
- 					return ret;
- 				} else
- 					return -EINVAL;
-@@ -1432,10 +1432,10 @@ isdn_ioctl(struct inode *inode, struct f
- 				if (arg) {
- 					if (copy_from_user(&phone, argp, sizeof(phone)))
- 						return -EFAULT;
--					ret = down_interruptible(&dev->sem);
-+					ret = mutex_lock_interruptible(&dev->mtx);
- 					if( ret ) return ret;
- 					ret = isdn_net_addphone(&phone);
--					up(&dev->sem);
-+					mutex_unlock(&dev->mtx);
- 					return ret;
- 				} else
- 					return -EINVAL;
-@@ -1444,10 +1444,10 @@ isdn_ioctl(struct inode *inode, struct f
- 				if (arg) {
- 					if (copy_from_user(&phone, argp, sizeof(phone)))
- 						return -EFAULT;
--					ret = down_interruptible(&dev->sem);
-+					ret = mutex_lock_interruptible(&dev->mtx);
- 					if( ret ) return ret;
- 					ret = isdn_net_getphones(&phone, argp);
--					up(&dev->sem);
-+					mutex_unlock(&dev->mtx);
- 					return ret;
- 				} else
- 					return -EINVAL;
-@@ -1456,10 +1456,10 @@ isdn_ioctl(struct inode *inode, struct f
- 				if (arg) {
- 					if (copy_from_user(&phone, argp, sizeof(phone)))
- 						return -EFAULT;
--					ret = down_interruptible(&dev->sem);
-+					ret = mutex_lock_interruptible(&dev->mtx);
- 					if( ret ) return ret;
- 					ret = isdn_net_delphone(&phone);
--					up(&dev->sem);
-+					mutex_unlock(&dev->mtx);
- 					return ret;
- 				} else
- 					return -EINVAL;
-@@ -2303,7 +2303,7 @@ static int __init isdn_init(void)
- #ifdef MODULE
- 	dev->owner = THIS_MODULE;
- #endif
--	init_MUTEX(&dev->sem);
-+	mutex_init(&dev->mtx);
- 	init_waitqueue_head(&dev->info_waitq);
- 	for (i = 0; i < ISDN_MAX_CHANNELS; i++) {
- 		dev->drvmap[i] = -1;
-diff -puN include/linux/isdn.h~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions include/linux/isdn.h
---- a/include/linux/isdn.h~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions
-+++ a/include/linux/isdn.h
-@@ -15,6 +15,7 @@
- #define __ISDN_H__
+diff -puN drivers/ata/pata_ali.c~pata_ali-more-work drivers/ata/pata_ali.c
+--- a/drivers/ata/pata_ali.c~pata_ali-more-work
++++ a/drivers/ata/pata_ali.c
+@@ -346,6 +346,16 @@ static int ali_check_atapi_dma(struct at
+ 	return 0;
+ }
  
- #include <linux/ioctl.h>
-+#include <linux/mutex.h>
++static int ali_check_atapi_dma_20(struct ata_queued_cmd *qc)
++{
++	if (qc->dma_dir == DMA_TO_DEVICE)
++		return -1;
++	/* Don't do DMA except for whole blocks */
++	if (qc->nbytes & 511)
++		return -1;
++	return 0;
++}
++
+ static struct scsi_host_template ali_sht = {
+ 	.module			= THIS_MODULE,
+ 	.name			= DRV_NAME,
+@@ -385,7 +395,6 @@ static struct ata_port_operations ali_ea
  
- #ifdef CONFIG_COBALT_MICRO_SERVER
- /* Save memory */
-@@ -624,7 +625,7 @@ typedef struct isdn_devt {
- 	int               v110emu[ISDN_MAX_CHANNELS]; /* V.110 emulator-mode 0=none */
- 	atomic_t          v110use[ISDN_MAX_CHANNELS]; /* Usage-Semaphore for stream */
- 	isdn_v110_stream  *v110[ISDN_MAX_CHANNELS];   /* V.110 private data         */
--	struct semaphore  sem;                        /* serialize list access*/
-+	struct mutex      mtx;                        /* serialize list access*/
- 	unsigned long     global_features;
- } isdn_dev;
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+-	.check_atapi_dma= ali_check_atapi_dma,
+ 
+ 	.data_xfer	= ata_data_xfer,
+ 
+@@ -428,7 +437,7 @@ static struct ata_port_operations ali_20
+ 
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
+-	.check_atapi_dma= ali_check_atapi_dma,
++	.check_atapi_dma= ali_check_atapi_dma_20,
+ 
+ 	.data_xfer	= ata_data_xfer,
  
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
-kcopyd-use-mutex-instead-of-semaphore.patch
-git-dvb.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-use-mutex-instead-of-semaphore-in-the-scsi-tape-driver.patch
-use-mutex-instead-of-semaphore-in-the-host-ap-driver.patch
-use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
-fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-fs-locksc-use-list_for_each_entry-instead-of-list_for_each.patch
-kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
-kernel-userc-use-list_for_each_entry-instead-of-list_for_each.patch
+origin.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+revert-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+nozomi-shoot-defunct-label.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+libata-acpi-checks-for-80wire-cable-headers.patch
+libata-acpi-checks-for-80wire-cable-implementation.patch
+libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
+libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
+libata-sff-unbreak-non-dma-capable-controllers-again.patch
+pata_cmd64x-correct-the-speed-ranges.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+dtc-clean-up-indent-damage-and-add-printk-levels.patch
+kl5kusb105-switch-to-new-speed-api.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+char-cyclades-remove-bottom-half-processing.patch
