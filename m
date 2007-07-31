@@ -1,109 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:50:02 -0700
-Message-ID: <200707311950.l6VJo2V5019203@imap1.linux-foundation.org>
+Subject: - videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 13:23:27 -0700
+Message-ID: <200707312023.l6VKNR2m020519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54345 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54648 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751216AbXGaTuZ (ORCPT
+	by vger.kernel.org with ESMTP id S1760140AbXGaUYF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:50:25 -0400
+	Tue, 31 Jul 2007 16:24:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, takata@linux-m32r.org
+To: matthias.kaehlcke@gmail.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/asm-m32r/thread_info.h: kmalloc + memset conversion to kzalloc
-has been added to the -mm tree.  Its filename is
-     include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+     Videopix Frame Grabber: Fix unreleased lock in vfc_debug()
+has been removed from the -mm tree.  Its filename was
+     videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: include/asm-m32r/thread_info.h: kmalloc + memset conversion to kzalloc
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: Videopix Frame Grabber: Fix unreleased lock in vfc_debug()
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Videopix Frame Grabber: vfc_debug() doesn't release the device lock
+when copy_from_user() fails
+
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m32r/thread_info.h |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/sbus/char/vfc_dev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-m32r/thread_info.h~include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc include/asm-m32r/thread_info.h
---- a/include/asm-m32r/thread_info.h~include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc
-+++ a/include/asm-m32r/thread_info.h
-@@ -100,9 +100,8 @@ static inline struct thread_info *curren
- 	({							\
- 		struct thread_info *ret;			\
- 	 							\
--	 	ret = kmalloc(THREAD_SIZE, GFP_KERNEL);		\
--	 	if (ret)					\
--	 		memset(ret, 0, THREAD_SIZE);		\
-+	 	ret = kzalloc(THREAD_SIZE, GFP_KERNEL);		\
-+								\
- 	 	ret;						\
- 	 })
- #else
+diff -puN drivers/sbus/char/vfc_dev.c~videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug drivers/sbus/char/vfc_dev.c
+--- a/drivers/sbus/char/vfc_dev.c~videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug
++++ a/drivers/sbus/char/vfc_dev.c
+@@ -248,6 +248,7 @@ static int vfc_debug(struct vfc_dev *dev
+ 					buffer,inout.len);
+ 
+ 		if (copy_to_user(argp,&inout,sizeof(inout))) {
++			vfc_unlock_device(dev);
+ 			kfree(buffer);
+ 			return -EFAULT;
+ 		}
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-fs-9p-convc-error-path-fix.patch
-fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-media-video-msp3400-driverc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-ide-arm-icsidec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
-mtd-add-module-license-to-mtdbdi.patch
-mtd-remove-redundant-dead-code-from-physmap_ofc.patch
-drivers-mtd-inftlmountc-kmalloc-memset-conversion-to-kcalloc.patch
-usb-remove-redundant-memset-from-amd5536udc.patch
-net-decnet-dn_routec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc.patch
-net-ipv4-ip_optionsc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc.patch
-drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
-drivers-pci-hotplug-cpqphp_ctrlc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
-drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
-drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch
-drivers-sbus-char-bbc_envctrlc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-sbus-char-bbc_i2cc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
-arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+git-dvb.patch
+git-mtd.patch
+git-scsi-misc.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+git-sparc64.patch
+use-mutex-instead-of-semaphore-in-the-host-ap-driver.patch
+use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
+fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+fs-locksc-use-list_for_each_entry-instead-of-list_for_each.patch
+kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
+kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
+kernel-userc-use-list_for_each_entry-instead-of-list_for_each.patch
