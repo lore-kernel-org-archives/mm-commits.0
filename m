@@ -1,53 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - tpm_tis-debug.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 14:46:44 -0700
-Message-ID: <200707312151.l6VLpRsx024396@imap1.linux-foundation.org>
+Subject: + scsi-fix-build-for-config_scsi_tgt=n.patch added to -mm tree
+Date: Tue, 31 Jul 2007 15:22:07 -0700
+Message-ID: <200707312226.l6VMQpxH025848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48100 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43614 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753886AbXGaVwD (ORCPT
+	by vger.kernel.org with ESMTP id S1752672AbXGaW1T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 17:52:03 -0400
+	Tue, 31 Jul 2007 18:27:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, tomof@acm.org
 
 
 The patch titled
-     tpm_tis debug
-has been removed from the -mm tree.  Its filename was
-     tpm_tis-debug.patch
+     scsi: fix build for CONFIG_SCSI_TGT=n
+has been added to the -mm tree.  Its filename is
+     scsi-fix-build-for-config_scsi_tgt=n.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: tpm_tis debug
+Subject: scsi: fix build for CONFIG_SCSI_TGT=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <Valdis.Kletnieks@vt.edu>
+- Fix this:
+
+ERROR: "scsi_tgt_it_nexus_create" [drivers/scsi/scsi_transport_srp.ko] undefined!
+ERROR: "scsi_tgt_it_nexus_destroy" [drivers/scsi/scsi_transport_srp.ko] undefined!
+
+- Also avoid anonymous args in the function prototypes: adding the nams has
+  commentary value, and makes it easier to check the stubbed inline function
+  agaisnt the out-of-line declaration.
+
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: FUJITA Tomonori <tomof@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm_tis.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/scsi/scsi_tgt.h |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/tpm/tpm_tis.c~tpm_tis-debug drivers/char/tpm/tpm_tis.c
---- a/drivers/char/tpm/tpm_tis.c~tpm_tis-debug
-+++ a/drivers/char/tpm/tpm_tis.c
-@@ -597,9 +597,11 @@ static int __devinit tpm_tis_pnp_init(st
- 				      const struct pnp_device_id *pnp_id)
- {
- 	resource_size_t start, len;
+diff -puN include/scsi/scsi_tgt.h~scsi-fix-build-for-config_scsi_tgt=n include/scsi/scsi_tgt.h
+--- a/include/scsi/scsi_tgt.h~scsi-fix-build-for-config_scsi_tgt=n
++++ a/include/scsi/scsi_tgt.h
+@@ -17,5 +17,20 @@ extern int scsi_tgt_tsk_mgmt_request(str
+ extern struct scsi_cmnd *scsi_host_get_command(struct Scsi_Host *,
+ 					       enum dma_data_direction,	gfp_t);
+ extern void scsi_host_put_command(struct Scsi_Host *, struct scsi_cmnd *);
+-extern int scsi_tgt_it_nexus_create(struct Scsi_Host *, u64, char *);
+-extern int scsi_tgt_it_nexus_destroy(struct Scsi_Host *, u64);
 +
- 	start = pnp_mem_start(pnp_dev, 0);
- 	len = pnp_mem_len(pnp_dev, 0);
--
-+	printk("%s: start=%llu, len=%llu\n", __FUNCTION__,
-+		(unsigned long long)start, (unsigned long long)len);
- 	return tpm_tis_init(&pnp_dev->dev, start, len);
- }
- 
++#ifdef CONFIG_SCSI_TGT
++extern int scsi_tgt_it_nexus_create(struct Scsi_Host *shost, u64 itn_id,
++				char *initiator);
++extern int scsi_tgt_it_nexus_destroy(struct Scsi_Host *shost, u64 itn_id);
++#else
++static inline int scsi_tgt_it_nexus_create(struct Scsi_Host *shost,
++				u64 itn_id, char *initiator)
++{
++	return 0;
++}
++
++static inline int scsi_tgt_it_nexus_destroy(struct Scsi_Host *shost, u64 itn_id)
++{
++	return 0;
++}
++#endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -166,5 +190,5 @@ reiser4.patch
 git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
-tpm_tis-debug.patch
 w1-build-fix.patch
+scsi-fix-build-for-config_scsi_tgt=n.patch
