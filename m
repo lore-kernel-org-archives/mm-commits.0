@@ -1,93 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - fix-user-struct-leakage-with-locked-ipc-shem-segment.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:57:17 -0700
-Message-ID: <200707312357.l6VNvHlY029385@imap1.linux-foundation.org>
+Subject: - serial-mpsc-remove-race-between-rx-stop-restart.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:57:47 -0700
+Message-ID: <200707312357.l6VNvlix029425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53629 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47498 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757256AbXHAAQn (ORCPT
+	by vger.kernel.org with ESMTP id S1759973AbXHAAQu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:43 -0400
+	Tue, 31 Jul 2007 20:16:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: carlos.sanchez@gecoinc.com, mgreer@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix user struct leakage with locked IPC shem segment
+     serial: MPSC: Remove race between Rx stop & restart
 has been removed from the -mm tree.  Its filename was
-     fix-user-struct-leakage-with-locked-ipc-shem-segment.patch
+     serial-mpsc-remove-race-between-rx-stop-restart.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix user struct leakage with locked IPC shem segment
-From: Pavel Emelianov <xemul@openvz.org>
+Subject: serial: MPSC: Remove race between Rx stop & restart
+From: Carlos Sanchez <carlos.sanchez@gecoinc.com>
 
-When user locks an ipc shmem segmant with SHM_LOCK ctl and the segment is
-already locked the shmem_lock() function returns 0.  After this the
-subsequent code leaks the existing user struct:
+The patch in commit ID f7232056bff5fe2d3bfeab35252a66ebaeb5bbde stops (aborts)
+the MPSC's receive engine just before restarting it.  Unfortunately, it
+doesn't wait for the abort to complete before restarting it which creates a
+race between the abort and the restart.  If the restart occurs first, the
+in-progress abort stops it again and the rx engine remains stopped.
 
-== ipc/shm.c: sys_shmctl() ==
-     ...
-     err = shmem_lock(shp->shm_file, 1, user);
-     if (!err) {
-          shp->shm_perm.mode |= SHM_LOCKED;
-          shp->mlock_user = user;
-     }
-     ...
-==
+Instead, do the abort when the SDMA engine is being stopped.  Make sure to
+wait for the abort to complete before continuing.
 
-Other results of this are:
-1. the new shp->mlock_user is not get-ed and will point to freed
-   memory when the task dies.
-2. the RLIMIT_MEMLOCK is screwed on both user structs.
-
-The exploit looks like this:
-
-==
-    id = shmget(...);
-    setresuid(uid, 0, 0);
-    shmctl(id, SHM_LOCK, NULL);
-    setresuid(uid + 1, 0, 0);
-    shmctl(id, SHM_LOCK, NULL);
-==
-
-My solution is to return 0 to the userspace and do not change the
-segment's user.
-
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Carlos Sanchez <carlos.sanchez@gecoinc.com>
+Signed-off-by: Mark A. Greer <mgreer@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/mpsc.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN ipc/shm.c~fix-user-struct-leakage-with-locked-ipc-shem-segment ipc/shm.c
---- a/ipc/shm.c~fix-user-struct-leakage-with-locked-ipc-shem-segment
-+++ a/ipc/shm.c
-@@ -716,7 +716,7 @@ asmlinkage long sys_shmctl (int shmid, i
- 			struct user_struct * user = current->user;
- 			if (!is_file_hugepages(shp->shm_file)) {
- 				err = shmem_lock(shp->shm_file, 1, user);
--				if (!err) {
-+				if (!err && !(shp->shm_perm.mode & SHM_LOCKED)){
- 					shp->shm_perm.mode |= SHM_LOCKED;
- 					shp->mlock_user = user;
- 				}
+diff -puN drivers/serial/mpsc.c~serial-mpsc-remove-race-between-rx-stop-restart drivers/serial/mpsc.c
+--- a/drivers/serial/mpsc.c~serial-mpsc-remove-race-between-rx-stop-restart
++++ a/drivers/serial/mpsc.c
+@@ -1363,8 +1363,6 @@ mpsc_start_rx(struct mpsc_port_info *pi)
+ {
+ 	pr_debug("mpsc_start_rx[%d]: Starting...\n", pi->port.line);
+ 
+-	/* Issue a Receive Abort to clear any receive errors */
+-	writel(MPSC_CHR_2_RA, pi->mpsc_base + MPSC_CHR_2);
+ 	if (pi->rcv_data) {
+ 		mpsc_enter_hunt(pi);
+ 		mpsc_sdma_cmd(pi, SDMA_SDCM_ERD);
+@@ -1379,6 +1377,20 @@ mpsc_stop_rx(struct uart_port *port)
+ 
+ 	pr_debug("mpsc_stop_rx[%d]: Stopping...\n", port->line);
+ 
++	if (pi->mirror_regs) {
++		writel(pi->MPSC_CHR_2_m | MPSC_CHR_2_RA,
++				pi->mpsc_base + MPSC_CHR_2);
++		/* Erratum prevents reading CHR_2 so just delay for a while */
++		udelay(100);
++	}
++	else {
++		writel(readl(pi->mpsc_base + MPSC_CHR_2) | MPSC_CHR_2_RA,
++			pi->mpsc_base + MPSC_CHR_2);
++
++		while (readl(pi->mpsc_base + MPSC_CHR_2) & MPSC_CHR_2_RA)
++			udelay(10);
++	}
++
+ 	mpsc_sdma_cmd(pi, SDMA_SDCM_AR);
+ 	return;
+ }
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from carlos.sanchez@gecoinc.com are
 
 origin.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
