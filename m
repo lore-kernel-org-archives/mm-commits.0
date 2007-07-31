@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-move-userspace-code-to-userspace-file.patch added to -mm tree
-Date: Mon, 30 Jul 2007 18:29:10 -0700
-Message-ID: <200707310129.l6V1TA04008473@imap1.linux-foundation.org>
+Subject: + uml-tidy-recently-moved-code.patch added to -mm tree
+Date: Mon, 30 Jul 2007 18:29:13 -0700
+Message-ID: <200707310129.l6V1TDLO008478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42356 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756166AbXGaB31 (ORCPT
+	by vger.kernel.org with ESMTP id S1756611AbXGaBaA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2007 21:29:27 -0400
+	Mon, 30 Jul 2007 21:30:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     uml: move userspace code to userspace file
+     uml: tidy recently-moved code
 has been added to the -mm tree.  Its filename is
-     uml-move-userspace-code-to-userspace-file.patch
+     uml-tidy-recently-moved-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,138 +26,120 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: move userspace code to userspace file
+Subject: uml: tidy recently-moved code
 From: Jeff Dike <jdike@addtoit.com>
 
-Move some code from a kernelspace file to a userspace file where it fits
-better.  This enables some tidying which is the subject of a later patch.
+Now that the generic console operations are in a userspace file, we
+can do the following:
+	directly call into libc instead of through the os_* wrappers
+	eliminate os_window_size since it has only one user
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/chan_kern.c |   48 ---------------------------------
- arch/um/drivers/chan_user.c |   49 ++++++++++++++++++++++++++++++++++
- 2 files changed, 49 insertions(+), 48 deletions(-)
+ arch/um/drivers/chan_user.c |   30 +++++++++++++++---------------
+ arch/um/include/os.h        |    1 -
+ arch/um/os-Linux/file.c     |   13 -------------
+ 3 files changed, 15 insertions(+), 29 deletions(-)
 
-diff -puN arch/um/drivers/chan_kern.c~uml-move-userspace-code-to-userspace-file arch/um/drivers/chan_kern.c
---- a/arch/um/drivers/chan_kern.c~uml-move-userspace-code-to-userspace-file
-+++ a/arch/um/drivers/chan_kern.c
-@@ -89,54 +89,6 @@ static const struct chan_ops not_configg
- };
- #endif /* CONFIG_NOCONFIG_CHAN */
+diff -puN arch/um/drivers/chan_user.c~uml-tidy-recently-moved-code arch/um/drivers/chan_user.c
+--- a/arch/um/drivers/chan_user.c~uml-tidy-recently-moved-code
++++ a/arch/um/drivers/chan_user.c
+@@ -23,43 +23,43 @@
  
--void generic_close(int fd, void *unused)
--{
+ void generic_close(int fd, void *unused)
+ {
 -	os_close_file(fd);
--}
--
--int generic_read(int fd, char *c_out, void *unused)
--{
--	int n;
--
++	close(fd);
+ }
+ 
+ int generic_read(int fd, char *c_out, void *unused)
+ {
+ 	int n;
+ 
 -	n = os_read_file(fd, c_out, sizeof(*c_out));
 -
 -	if(n == -EAGAIN)
--		return 0;
++	n = read(fd, c_out, sizeof(*c_out));
++	if (n > 0)
++		return n;
++	else if (errno == EAGAIN)
+ 		return 0;
 -	else if(n == 0)
--		return -EIO;
++	else if (n == 0)
+ 		return -EIO;
 -	return n;
--}
--
++	return -errno;
+ }
+ 
 -/* XXX Trivial wrapper around os_write_file */
--
--int generic_write(int fd, const char *buf, int n, void *unused)
--{
++/* XXX Trivial wrapper around write */
+ 
+ int generic_write(int fd, const char *buf, int n, void *unused)
+ {
 -	return os_write_file(fd, buf, n);
--}
--
--int generic_window_size(int fd, void *unused, unsigned short *rows_out,
--			unsigned short *cols_out)
--{
++	return write(fd, buf, n);
+ }
+ 
+ int generic_window_size(int fd, void *unused, unsigned short *rows_out,
+ 			unsigned short *cols_out)
+ {
 -	int rows, cols;
--	int ret;
--
++	struct winsize size;
+ 	int ret;
+ 
 -	ret = os_window_size(fd, &rows, &cols);
 -	if(ret < 0)
 -		return ret;
--
++	if(ioctl(fd, TIOCGWINSZ, &size) < 0)
++		return -errno;
+ 
 -	ret = ((*rows_out != rows) || (*cols_out != cols));
--
++	ret = ((*rows_out != size.ws_row) || (*cols_out != size.ws_col));
+ 
 -	*rows_out = rows;
 -	*cols_out = cols;
--
--	return ret;
--}
--
--void generic_free(void *data)
--{
--	kfree(data);
--}
--
- static void tty_receive_char(struct tty_struct *tty, char ch)
- {
- 	if(tty == NULL) return;
-diff -puN arch/um/drivers/chan_user.c~uml-move-userspace-code-to-userspace-file arch/um/drivers/chan_user.c
---- a/arch/um/drivers/chan_user.c~uml-move-userspace-code-to-userspace-file
-+++ a/arch/um/drivers/chan_user.c
-@@ -19,6 +19,55 @@
- #include "os.h"
- #include "choose-mode.h"
- #include "mode.h"
-+#include "um_malloc.h"
-+
-+void generic_close(int fd, void *unused)
-+{
-+	os_close_file(fd);
-+}
-+
-+int generic_read(int fd, char *c_out, void *unused)
-+{
-+	int n;
-+
-+	n = os_read_file(fd, c_out, sizeof(*c_out));
-+
-+	if(n == -EAGAIN)
-+		return 0;
-+	else if(n == 0)
-+		return -EIO;
-+	return n;
-+}
-+
-+/* XXX Trivial wrapper around os_write_file */
-+
-+int generic_write(int fd, const char *buf, int n, void *unused)
-+{
-+	return os_write_file(fd, buf, n);
-+}
-+
-+int generic_window_size(int fd, void *unused, unsigned short *rows_out,
-+			unsigned short *cols_out)
-+{
-+	int rows, cols;
-+	int ret;
-+
-+	ret = os_window_size(fd, &rows, &cols);
-+	if(ret < 0)
-+		return ret;
-+
-+	ret = ((*rows_out != rows) || (*cols_out != cols));
-+
-+	*rows_out = rows;
-+	*cols_out = cols;
-+
-+	return ret;
-+}
-+
-+void generic_free(void *data)
-+{
-+	kfree(data);
-+}
++	*rows_out = size.ws_row;
++	*cols_out = size.ws_col;
  
- int generic_console_write(int fd, const char *buf, int n)
+ 	return ret;
+ }
+diff -puN arch/um/include/os.h~uml-tidy-recently-moved-code arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-tidy-recently-moved-code
++++ a/arch/um/include/os.h
+@@ -134,7 +134,6 @@ extern void os_print_error(int error, co
+ extern int os_get_exec_close(int fd, int *close_on_exec);
+ extern int os_set_exec_close(int fd, int close_on_exec);
+ extern int os_ioctl_generic(int fd, unsigned int cmd, unsigned long arg);
+-extern int os_window_size(int fd, int *rows, int *cols);
+ extern int os_new_tty_pgrp(int fd, int pid);
+ extern int os_get_ifname(int fd, char *namebuf);
+ extern int os_set_slip(int fd);
+diff -puN arch/um/os-Linux/file.c~uml-tidy-recently-moved-code arch/um/os-Linux/file.c
+--- a/arch/um/os-Linux/file.c~uml-tidy-recently-moved-code
++++ a/arch/um/os-Linux/file.c
+@@ -101,19 +101,6 @@ int os_ioctl_generic(int fd, unsigned in
+ 	return err;
+ }
+ 
+-int os_window_size(int fd, int *rows, int *cols)
+-{
+-	struct winsize size;
+-
+-	if(ioctl(fd, TIOCGWINSZ, &size) < 0)
+-		return -errno;
+-
+-	*rows = size.ws_row;
+-	*cols = size.ws_col;
+-
+-	return 0;
+-}
+-
+ int os_new_tty_pgrp(int fd, int pid)
  {
+ 	if(ioctl(fd, TIOCSCTTY, 0) < 0)
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
