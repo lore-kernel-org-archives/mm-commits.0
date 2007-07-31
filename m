@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch.patch added to -mm tree
-Date: Tue, 31 Jul 2007 11:38:43 -0700
-Message-ID: <200707311838.l6VIchT2016461@imap1.linux-foundation.org>
+Subject: + use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch added to -mm tree
+Date: Tue, 31 Jul 2007 11:40:39 -0700
+Message-ID: <200707311840.l6VIedgn016512@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48325 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59222 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765553AbXGaSjZ (ORCPT
+	by vger.kernel.org with ESMTP id S932439AbXGaSlS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 14:39:25 -0400
+	Tue, 31 Jul 2007 14:41:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bryan.wu@analog.com, adobriyan@gmail.com
+Cc: matthias.kaehlcke@gmail.com, kkeil@suse.de
 
 
 The patch titled
-     Blackfin arch: after removing fs.h from mm.h, fix the broken on Blackfin arch
+     use mutexinstead of semaphore in isdn subsystem common functions
 has been added to the -mm tree.  Its filename is
-     blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch.patch
+     use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,158 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Blackfin arch: after removing fs.h from mm.h, fix the broken on Blackfin arch
-From: Bryan Wu <bryan.wu@analog.com>
+Subject: use mutexinstead of semaphore in isdn subsystem common functions
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+The ISDN subsystem common functions use a semaphore as mutex. Use the
+mutex API instead of the (binary) semaphore.
+
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/init_task.c |    1 +
- arch/blackfin/kernel/process.c   |    2 ++
- arch/blackfin/kernel/sys_bfin.c  |    1 +
- arch/blackfin/kernel/traps.c     |    1 +
- 4 files changed, 5 insertions(+)
+ drivers/isdn/i4l/isdn_common.c |   26 +++++++++++++-------------
+ include/linux/isdn.h           |    3 ++-
+ 2 files changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN arch/blackfin/kernel/init_task.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch arch/blackfin/kernel/init_task.c
---- a/arch/blackfin/kernel/init_task.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch
-+++ a/arch/blackfin/kernel/init_task.c
-@@ -31,6 +31,7 @@
- #include <linux/module.h>
- #include <linux/init_task.h>
- #include <linux/mqueue.h>
-+#include <linux/fs.h>
+diff -puN drivers/isdn/i4l/isdn_common.c~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions drivers/isdn/i4l/isdn_common.c
+--- a/drivers/isdn/i4l/isdn_common.c~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions
++++ a/drivers/isdn/i4l/isdn_common.c
+@@ -1364,7 +1364,7 @@ isdn_ioctl(struct inode *inode, struct f
+ 				} else {
+ 					s = NULL;
+ 				}
+-				ret = down_interruptible(&dev->sem);
++				ret = mutex_lock_interruptible(&dev->mtx);
+ 				if( ret ) return ret;
+ 				if ((s = isdn_net_new(s, NULL))) {
+ 					if (copy_to_user(argp, s, strlen(s) + 1)){
+@@ -1374,7 +1374,7 @@ isdn_ioctl(struct inode *inode, struct f
+ 					}
+ 				} else
+ 					ret = -ENODEV;
+-				up(&dev->sem);
++				mutex_unlock(&dev->mtx);
+ 				return ret;
+ 			case IIOCNETASL:
+ 				/* Add a slave to a network-interface */
+@@ -1383,7 +1383,7 @@ isdn_ioctl(struct inode *inode, struct f
+ 						return -EFAULT;
+ 				} else
+ 					return -EINVAL;
+-				ret = down_interruptible(&dev->sem);
++				ret = mutex_lock_interruptible(&dev->mtx);
+ 				if( ret ) return ret;
+ 				if ((s = isdn_net_newslave(bname))) {
+ 					if (copy_to_user(argp, s, strlen(s) + 1)){
+@@ -1393,17 +1393,17 @@ isdn_ioctl(struct inode *inode, struct f
+ 					}
+ 				} else
+ 					ret = -ENODEV;
+-				up(&dev->sem);
++				mutex_unlock(&dev->mtx);
+ 				return ret;
+ 			case IIOCNETDIF:
+ 				/* Delete a network-interface */
+ 				if (arg) {
+ 					if (copy_from_user(name, argp, sizeof(name)))
+ 						return -EFAULT;
+-					ret = down_interruptible(&dev->sem);
++					ret = mutex_lock_interruptible(&dev->mtx);
+ 					if( ret ) return ret;
+ 					ret = isdn_net_rm(name);
+-					up(&dev->sem);
++					mutex_unlock(&dev->mtx);
+ 					return ret;
+ 				} else
+ 					return -EINVAL;
+@@ -1432,10 +1432,10 @@ isdn_ioctl(struct inode *inode, struct f
+ 				if (arg) {
+ 					if (copy_from_user(&phone, argp, sizeof(phone)))
+ 						return -EFAULT;
+-					ret = down_interruptible(&dev->sem);
++					ret = mutex_lock_interruptible(&dev->mtx);
+ 					if( ret ) return ret;
+ 					ret = isdn_net_addphone(&phone);
+-					up(&dev->sem);
++					mutex_unlock(&dev->mtx);
+ 					return ret;
+ 				} else
+ 					return -EINVAL;
+@@ -1444,10 +1444,10 @@ isdn_ioctl(struct inode *inode, struct f
+ 				if (arg) {
+ 					if (copy_from_user(&phone, argp, sizeof(phone)))
+ 						return -EFAULT;
+-					ret = down_interruptible(&dev->sem);
++					ret = mutex_lock_interruptible(&dev->mtx);
+ 					if( ret ) return ret;
+ 					ret = isdn_net_getphones(&phone, argp);
+-					up(&dev->sem);
++					mutex_unlock(&dev->mtx);
+ 					return ret;
+ 				} else
+ 					return -EINVAL;
+@@ -1456,10 +1456,10 @@ isdn_ioctl(struct inode *inode, struct f
+ 				if (arg) {
+ 					if (copy_from_user(&phone, argp, sizeof(phone)))
+ 						return -EFAULT;
+-					ret = down_interruptible(&dev->sem);
++					ret = mutex_lock_interruptible(&dev->mtx);
+ 					if( ret ) return ret;
+ 					ret = isdn_net_delphone(&phone);
+-					up(&dev->sem);
++					mutex_unlock(&dev->mtx);
+ 					return ret;
+ 				} else
+ 					return -EINVAL;
+@@ -2303,7 +2303,7 @@ static int __init isdn_init(void)
+ #ifdef MODULE
+ 	dev->owner = THIS_MODULE;
+ #endif
+-	init_MUTEX(&dev->sem);
++	mutex_init(&dev->mtx);
+ 	init_waitqueue_head(&dev->info_waitq);
+ 	for (i = 0; i < ISDN_MAX_CHANNELS; i++) {
+ 		dev->drvmap[i] = -1;
+diff -puN include/linux/isdn.h~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions include/linux/isdn.h
+--- a/include/linux/isdn.h~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions
++++ a/include/linux/isdn.h
+@@ -167,6 +167,7 @@ typedef struct {
+ #include <linux/etherdevice.h>
+ #include <linux/skbuff.h>
+ #include <linux/tcp.h>
++#include <linux/mutex.h>
  
- static struct fs_struct init_fs = INIT_FS;
- static struct files_struct init_files = INIT_FILES;
-diff -puN arch/blackfin/kernel/process.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch arch/blackfin/kernel/process.c
---- a/arch/blackfin/kernel/process.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch
-+++ a/arch/blackfin/kernel/process.c
-@@ -33,6 +33,8 @@
- #include <linux/user.h>
- #include <linux/a.out.h>
- #include <linux/uaccess.h>
-+#include <linux/fs.h>
-+#include <linux/err.h>
+ #define ISDN_TTY_MAJOR    43
+ #define ISDN_TTYAUX_MAJOR 44
+@@ -624,7 +625,7 @@ typedef struct isdn_devt {
+ 	int               v110emu[ISDN_MAX_CHANNELS]; /* V.110 emulator-mode 0=none */
+ 	atomic_t          v110use[ISDN_MAX_CHANNELS]; /* Usage-Semaphore for stream */
+ 	isdn_v110_stream  *v110[ISDN_MAX_CHANNELS];   /* V.110 private data         */
+-	struct semaphore  sem;                        /* serialize list access*/
++	struct mutex      mtx;                        /* serialize list access*/
+ 	unsigned long     global_features;
+ } isdn_dev;
  
- #include <asm/blackfin.h>
- #include <asm/fixed_code.h>
-diff -puN arch/blackfin/kernel/sys_bfin.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch arch/blackfin/kernel/sys_bfin.c
---- a/arch/blackfin/kernel/sys_bfin.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch
-+++ a/arch/blackfin/kernel/sys_bfin.c
-@@ -37,6 +37,7 @@
- #include <linux/syscalls.h>
- #include <linux/mman.h>
- #include <linux/file.h>
-+#include <linux/fs.h>
- #include <linux/uaccess.h>
- #include <linux/ipc.h>
- #include <linux/unistd.h>
-diff -puN arch/blackfin/kernel/traps.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch arch/blackfin/kernel/traps.c
---- a/arch/blackfin/kernel/traps.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch
-+++ a/arch/blackfin/kernel/traps.c
-@@ -31,6 +31,7 @@
- #include <linux/interrupt.h>
- #include <linux/module.h>
- #include <linux/kallsyms.h>
-+#include <linux/fs.h>
- #include <asm/traps.h>
- #include <asm/cacheflush.h>
- #include <asm/blackfin.h>
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-origin.patch
-blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-git-watchdog.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
+videopix-frame-grabber-fix-unreleased-lock-in-vfc_debug.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+git-dvb.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+use-mutex-instead-of-semaphore-in-the-scsi-tape-driver.patch
+use-mutex-instead-of-semaphore-in-the-host-ap-driver.patch
+use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
+fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+fs-locksc-use-list_for_each_entry-instead-of-list_for_each.patch
+kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
+kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
+kernel-userc-use-list_for_each_entry-instead-of-list_for_each.patch
