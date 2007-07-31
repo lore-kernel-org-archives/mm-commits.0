@@ -1,82 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-fix-a-race-in-lease-breaking-during-truncate.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 16:58:23 -0700
-Message-ID: <200707312358.l6VNwNtx029550@imap1.linux-foundation.org>
+Subject: - remove-isdn_-is-defined-but-unused-warnings.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 16:59:11 -0700
+Message-ID: <200707312359.l6VNxBGJ029630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58892 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51800 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759617AbXHAAQf (ORCPT
+	by vger.kernel.org with ESMTP id S1759633AbXHAAQe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 20:16:35 -0400
+	Tue, 31 Jul 2007 20:16:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richterd@citi.umich.edu, bfields@citi.umich.edu, mm-commits@vger.kernel.org
+To: masterdriverz@gentoo.org, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     VFS: fix a race in lease-breaking during truncate
+     Remove 'isdn_* is defined but unused' warnings
 has been removed from the -mm tree.  Its filename was
-     vfs-fix-a-race-in-lease-breaking-during-truncate.patch
+     remove-isdn_-is-defined-but-unused-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: VFS: fix a race in lease-breaking during truncate
-From: david m. richter <richterd@citi.umich.edu>
+Subject: Remove 'isdn_* is defined but unused' warnings
+From: Charlie Shepherd <masterdriverz@gentoo.org>
 
-It is possible that another process could acquire a new file lease right
-after break_lease() is called during a truncate, but before lease-granting
-is disabled by the subsequent get_write_access().  Merely switching the
-order of the break_lease() and get_write_access() calls prevents this race.
+Move the #ifdef guard above these functions to remove the warnings.
 
-Signed-off-by: David M. Richter <richterd@citi.umich.edu>
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Signed-off-by: Charlie Shepherd <masterdriverz@gentoo.org>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/isdn/divert/divert_procfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/open.c~vfs-fix-a-race-in-lease-breaking-during-truncate fs/open.c
---- a/fs/open.c~vfs-fix-a-race-in-lease-breaking-during-truncate
-+++ a/fs/open.c
-@@ -256,24 +256,26 @@ static long do_sys_truncate(const char _
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
- 		goto dput_and_out;
+diff -puN drivers/isdn/divert/divert_procfs.c~remove-isdn_-is-defined-but-unused-warnings drivers/isdn/divert/divert_procfs.c
+--- a/drivers/isdn/divert/divert_procfs.c~remove-isdn_-is-defined-but-unused-warnings
++++ a/drivers/isdn/divert/divert_procfs.c
+@@ -70,6 +70,8 @@ put_info_buffer(char *cp)
+ 	wake_up_interruptible(&(rd_queue));
+ }				/* put_info_buffer */
  
--	/*
--	 * Make sure that there are no leases.
--	 */
--	error = break_lease(inode, FMODE_WRITE);
-+	error = get_write_access(inode);
- 	if (error)
- 		goto dput_and_out;
++#ifdef CONFIG_PROC_FS
++
+ /**********************************/
+ /* deflection device read routine */
+ /**********************************/
+@@ -253,8 +255,6 @@ isdn_divert_ioctl(struct inode *inode, s
+ 	return copy_to_user((void __user *)arg, &dioctl, sizeof(dioctl)) ? -EFAULT : 0;
+ }				/* isdn_divert_ioctl */
  
--	error = get_write_access(inode);
-+	/*
-+	 * Make sure that there are no leases.  get_write_access() protects
-+	 * against the truncate racing with a lease-granting setlease().
-+	 */
-+	error = break_lease(inode, FMODE_WRITE);
- 	if (error)
--		goto dput_and_out;
-+		goto put_write_and_out;
- 
- 	error = locks_verify_truncate(inode, NULL, length);
- 	if (!error) {
- 		DQUOT_INIT(inode);
- 		error = do_truncate(nd.dentry, length, 0, NULL);
- 	}
--	put_write_access(inode);
- 
-+put_write_and_out:
-+	put_write_access(inode);
- dput_and_out:
- 	path_release(&nd);
- out:
+-
+-#ifdef CONFIG_PROC_FS
+ static const struct file_operations isdn_fops =
+ {
+ 	.owner          = THIS_MODULE,
 _
 
-Patches currently in -mm which might be from richterd@citi.umich.edu are
+Patches currently in -mm which might be from masterdriverz@gentoo.org are
 
 origin.patch
