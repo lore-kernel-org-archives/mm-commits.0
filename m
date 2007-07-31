@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:30:10 -0700
-Message-ID: <200707311930.l6VJUAax018397@imap1.linux-foundation.org>
+Subject: + drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:30:16 -0700
+Message-ID: <200707311930.l6VJUG0I018406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55136 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39784 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753658AbXGaTh1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753605AbXGaThg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:37:27 -0400
+	Tue, 31 Jul 2007 15:37:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     fs/jbd2/journal.c: kmalloc + memset conversion to kzalloc
+     drivers/scsi/lpfc/lpfc_init.c: kmalloc + memset conversion to kcalloc
 has been added to the -mm tree.  Its filename is
-     fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/jbd2/journal.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/scsi/lpfc/lpfc_init.c: kmalloc + memset conversion to kcalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- fs/jbd2/journal.c | 66771 -> 66719 (-52 bytes)
- fs/jbd2/journal.o | 199193 -> 199049 (-144 bytes)
+ drivers/scsi/lpfc/lpfc_init.c | 65932 -> 65881 (-51 bytes)
+ drivers/scsi/lpfc/lpfc_init.o | 219760 -> 219616 (-144 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/journal.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/scsi/lpfc/lpfc_init.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/jbd2/journal.c~fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc fs/jbd2/journal.c
---- a/fs/jbd2/journal.c~fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc
-+++ a/fs/jbd2/journal.c
-@@ -929,17 +929,16 @@ static void journal_init_stats(journal_t
- {
- 	int size;
+diff -puN drivers/scsi/lpfc/lpfc_init.c~drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc drivers/scsi/lpfc/lpfc_init.c
+--- a/drivers/scsi/lpfc/lpfc_init.c~drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc
++++ a/drivers/scsi/lpfc/lpfc_init.c
+@@ -1280,11 +1280,10 @@ lpfc_hba_init(struct lpfc_hba *phba, uin
+ 	uint32_t *HashWorking;
+ 	uint32_t *pwwnn = (uint32_t *) phba->wwnn;
  
--	if (proc_jbd2_stats == NULL)
-+	if (!proc_jbd2_stats)
+-	HashWorking = kmalloc(80 * sizeof(uint32_t), GFP_KERNEL);
++	HashWorking = kcalloc(80, sizeof(uint32_t), GFP_KERNEL);
+ 	if (!HashWorking)
  		return;
  
- 	journal->j_history_max = 100;
- 	size = sizeof(struct transaction_stats_s) * journal->j_history_max;
--	journal->j_history = kmalloc(size, GFP_KERNEL);
--	if (journal->j_history == NULL) {
-+	journal->j_history = kzalloc(size, GFP_KERNEL);
-+	if (!journal->j_history) {
- 		journal->j_history_max = 0;
- 		return;
- 	}
--	memset(journal->j_history, 0, size);
- 	spin_lock_init(&journal->j_history_lock);
- }
+-	memset(HashWorking, 0, (80 * sizeof(uint32_t)));
+ 	HashWorking[0] = HashWorking[78] = *pwwnn++;
+ 	HashWorking[1] = HashWorking[79] = *pwwnn;
  
 _
 
