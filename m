@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:30:06 -0700
-Message-ID: <200707311930.l6VJU6kN018391@imap1.linux-foundation.org>
+Subject: + drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:52 -0700
+Message-ID: <200707311929.l6VJTqJj018364@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46789 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50483 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754062AbXGaThq (ORCPT
+	by vger.kernel.org with ESMTP id S1754227AbXGaThx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:37:46 -0400
+	Tue, 31 Jul 2007 15:37:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl
+Cc: m.kozlowski@tuxland.pl, bzolnier@gmail.com
 
 
 The patch titled
-     drivers/atm/iphase.c: mostly kmalloc + memset conversion to kzalloc
+     drivers/scsi/ide-scsi.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/atm/iphase.c: mostly kmalloc + memset conversion to kzalloc
+Subject: drivers/scsi/ide-scsi.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/atm/iphase.c | 111508 -> 111431 (-77 bytes)
- drivers/atm/iphase.o | 254740 -> 254260 (-480 bytes)
+ drivers/scsi/ide-scsi.c | 34642 -> 34536 (-106 bytes)
+ drivers/scsi/ide-scsi.o | 171728 -> 171524 (-204 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/iphase.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/scsi/ide-scsi.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/atm/iphase.c~drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc drivers/atm/iphase.c
---- a/drivers/atm/iphase.c~drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/atm/iphase.c
-@@ -1601,14 +1601,14 @@ static int rx_init(struct atm_dev *dev) 
-   
- 	skb_queue_head_init(&iadev->rx_dma_q);  
- 	iadev->rx_free_desc_qhead = NULL;   
--	iadev->rx_open = kmalloc(4*iadev->num_vc,GFP_KERNEL);
--	if (!iadev->rx_open)  
--	{  
-+
-+	iadev->rx_open = kzalloc(4 * iadev->num_vc, GFP_KERNEL);
-+	if (!iadev->rx_open) {
- 		printk(KERN_ERR DEV_LABEL "itf %d couldn't get free page\n",
- 		dev->number);  
- 		goto err_free_dle;
- 	}  
--	memset(iadev->rx_open, 0, 4*iadev->num_vc);  
-+
-         iadev->rxing = 1;
-         iadev->rx_pkt_cnt = 0;
- 	/* Mode Register */  
-@@ -3171,12 +3171,12 @@ static int __devinit ia_init_one(struct 
-         unsigned long flags;
- 	int ret;
+diff -puN drivers/scsi/ide-scsi.c~drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc drivers/scsi/ide-scsi.c
+--- a/drivers/scsi/ide-scsi.c~drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/scsi/ide-scsi.c
+@@ -333,17 +333,15 @@ static int idescsi_check_condition(ide_d
+ 	u8             *buf;
  
--	iadev = kmalloc(sizeof(*iadev), GFP_KERNEL); 
-+	iadev = kzalloc(sizeof(*iadev), GFP_KERNEL);
- 	if (!iadev) {
- 		ret = -ENOMEM;
- 		goto err_out;
+ 	/* stuff a sense request in front of our current request */
+-	pc = kmalloc (sizeof (idescsi_pc_t), GFP_ATOMIC);
+-	rq = kmalloc (sizeof (struct request), GFP_ATOMIC);
+-	buf = kmalloc(SCSI_SENSE_BUFFERSIZE, GFP_ATOMIC);
+-	if (pc == NULL || rq == NULL || buf == NULL) {
++	pc = kzalloc(sizeof(idescsi_pc_t), GFP_ATOMIC);
++	rq = kmalloc(sizeof(struct request), GFP_ATOMIC);
++	buf = kzalloc(SCSI_SENSE_BUFFERSIZE, GFP_ATOMIC);
++	if (!pc || !rq || !buf) {
+ 		kfree(buf);
+ 		kfree(rq);
+ 		kfree(pc);
+ 		return -ENOMEM;
  	}
--	memset(iadev, 0, sizeof(*iadev));
-+
- 	iadev->pci = pdev;
- 
- 	IF_INIT(printk("ia detected at bus:%d dev: %d function:%d\n",
+-	memset (pc, 0, sizeof (idescsi_pc_t));
+-	memset (buf, 0, SCSI_SENSE_BUFFERSIZE);
+ 	ide_init_drive_cmd(rq);
+ 	rq->special = (char *) pc;
+ 	pc->rq = rq;
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
