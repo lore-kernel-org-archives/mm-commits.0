@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kmalloc-memset-conversion-co-kzalloc.patch added to -mm tree
-Date: Tue, 31 Jul 2007 12:28:59 -0700
-Message-ID: <200707311928.l6VJSxtK018280@imap1.linux-foundation.org>
+Subject: + drivers-sbus-char-bbc_envctrlc-kmalloc-memset-conversion-to-kzalloc.patch added to -mm tree
+Date: Tue, 31 Jul 2007 12:29:01 -0700
+Message-ID: <200707311929.l6VJT1Yp018289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48745 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48411 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751286AbXGaT3M (ORCPT
+	by vger.kernel.org with ESMTP id S1751396AbXGaT3N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 15:29:12 -0400
+	Tue, 31 Jul 2007 15:29:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     drivers/scsi/a4000t.c: kmalloc + memset conversion to kzalloc
+     drivers/sbus/char/bbc_envctrl.c: kmalloc + memset conversion to kzalloc
 has been added to the -mm tree.  Its filename is
-     kmalloc-memset-conversion-co-kzalloc.patch
+     drivers-sbus-char-bbc_envctrlc-kmalloc-memset-conversion-to-kzalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/scsi/a4000t.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/sbus/char/bbc_envctrl.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/scsi/a4000t.c | 3534 -> 3457 (-77 bytes)
+ drivers/sbus/char/bbc_envctrl.c | 16622 -> 16580 (-42 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/a4000t.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/sbus/char/bbc_envctrl.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/a4000t.c~kmalloc-memset-conversion-co-kzalloc drivers/scsi/a4000t.c
---- a/drivers/scsi/a4000t.c~kmalloc-memset-conversion-co-kzalloc
-+++ a/drivers/scsi/a4000t.c
-@@ -37,7 +37,7 @@ static struct platform_device *a4000t_sc
+diff -puN drivers/sbus/char/bbc_envctrl.c~drivers-sbus-char-bbc_envctrlc-kmalloc-memset-conversion-to-kzalloc drivers/sbus/char/bbc_envctrl.c
+--- a/drivers/sbus/char/bbc_envctrl.c~drivers-sbus-char-bbc_envctrlc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/sbus/char/bbc_envctrl.c
+@@ -479,11 +479,12 @@ static int kenvctrld(void *__unused)
  
- static int __devinit a4000t_probe(struct device *dev)
+ static void attach_one_temp(struct linux_ebus_child *echild, int temp_idx)
  {
--	struct Scsi_Host * host = NULL;
-+	struct Scsi_Host *host;
- 	struct NCR_700_Host_Parameters *hostdata;
+-	struct bbc_cpu_temperature *tp = kmalloc(sizeof(*tp), GFP_KERNEL);
++	struct bbc_cpu_temperature *tp;
  
- 	if (!(MACH_IS_AMIGA && AMIGAHW_PRESENT(A4000_SCSI)))
-@@ -47,12 +47,11 @@ static int __devinit a4000t_probe(struct
- 				"A4000T builtin SCSI"))
- 		goto out;
++	tp = kzalloc(sizeof(*tp), GFP_KERNEL);
+ 	if (!tp)
+ 		return;
+-	memset(tp, 0, sizeof(*tp));
++
+ 	tp->client = bbc_i2c_attach(echild);
+ 	if (!tp->client) {
+ 		kfree(tp);
+@@ -525,11 +526,12 @@ static void attach_one_temp(struct linux
  
--	hostdata = kmalloc(sizeof(struct NCR_700_Host_Parameters), GFP_KERNEL);
--	if (hostdata == NULL) {
-+	hostdata = kzalloc(sizeof(struct NCR_700_Host_Parameters), GFP_KERNEL);
-+	if (!hostdata) {
- 		printk(KERN_ERR "a4000t-scsi: Failed to allocate host data\n");
- 		goto out_release;
- 	}
--	memset(hostdata, 0, sizeof(struct NCR_700_Host_Parameters));
+ static void attach_one_fan(struct linux_ebus_child *echild, int fan_idx)
+ {
+-	struct bbc_fan_control *fp = kmalloc(sizeof(*fp), GFP_KERNEL);
++	struct bbc_fan_control *fp;
  
- 	/* Fill in the required pieces of hostdata */
- 	hostdata->base = (void __iomem *)ZTWO_VADDR(A4000T_SCSI_ADDR);
++	fp = kzalloc(sizeof(*fp), GFP_KERNEL);
+ 	if (!fp)
+ 		return;
+-	memset(fp, 0, sizeof(*fp));
++
+ 	fp->client = bbc_i2c_attach(echild);
+ 	if (!fp->client) {
+ 		kfree(fp);
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
