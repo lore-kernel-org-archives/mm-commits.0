@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-warn_on-on-bitfield-ops-for-all-other-archs.patch added to -mm tree
-Date: Wed, 01 Aug 2007 15:22:01 -0700
-Message-ID: <200708012222.l71MM1fg020393@imap1.linux-foundation.org>
+Subject: + clean-modulessymvers-in-external-module-dirs.patch added to -mm tree
+Date: Wed, 01 Aug 2007 15:23:34 -0700
+Message-ID: <200708012223.l71MNY3I020469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58872 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51748 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753174AbXHAWXa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 18:23:30 -0400
+	by vger.kernel.org with ESMTP id S1753752AbXHAWXu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 18:23:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, adobriyan@sw.ru, herbert@gondor.apana.org.au, hskinnemoen@atmel.com, kyle@parisc-linux.org, lethal@linux-sh.org, matthew@wil.cx, schwidefsky@de.ibm.com
+Cc: vapier@gentoo.org, sam@ravnborg.org
 
 
 The patch titled
-     Fix WARN_ON() on bitfield ops for all other archs
+     clean Modules.symvers in external module dirs
 has been added to the -mm tree.  Its filename is
-     fix-warn_on-on-bitfield-ops-for-all-other-archs.patch
+     clean-modulessymvers-in-external-module-dirs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,83 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix WARN_ON() on bitfield ops for all other archs
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: clean Modules.symvers in external module dirs
+From: Mike Frysinger <vapier@gentoo.org>
 
-Fixes WARN_ON() on bitfield ops for all architectures that have been left
-out in 8d4fbcfbe0a4bfc73e7f0297c59ae514e1f1436f.
+At the moment, running `make clean` in an external module directory does a
+nice job of cleaning up with one exception: it leaves behind Modules.symvers. 
+Attached patch adds this file to the clean list for external modules.
 
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Kyle McMartin <kyle@parisc-linux.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-avr32/bug.h  |    2 +-
- include/asm-parisc/bug.h |    2 +-
- include/asm-s390/bug.h   |    2 +-
- include/asm-sh/bug.h     |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ Makefile |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN include/asm-avr32/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-avr32/bug.h
---- a/include/asm-avr32/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
-+++ a/include/asm-avr32/bug.h
-@@ -57,7 +57,7 @@
+diff -puN Makefile~clean-modulessymvers-in-external-module-dirs Makefile
+--- a/Makefile~clean-modulessymvers-in-external-module-dirs
++++ a/Makefile
+@@ -1254,8 +1254,10 @@ $(clean-dirs):
+ 	$(Q)$(MAKE) $(clean)=$(patsubst _clean_%,%,$@)
  
- #define WARN_ON(condition)							\
- 	({								\
--		typeof(condition) __ret_warn_on = (condition);		\
-+		int __ret_warn_on = !!(condition);			\
- 		if (unlikely(__ret_warn_on))				\
- 			_BUG_OR_WARN(BUGFLAG_WARNING);			\
- 		unlikely(__ret_warn_on);				\
-diff -puN include/asm-parisc/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-parisc/bug.h
---- a/include/asm-parisc/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
-+++ a/include/asm-parisc/bug.h
-@@ -74,7 +74,7 @@
- 
- 
- #define WARN_ON(x) ({						\
--	typeof(x) __ret_warn_on = (x);				\
-+	int __ret_warn_on = !!(x);				\
- 	if (__builtin_constant_p(__ret_warn_on)) {		\
- 		if (__ret_warn_on)				\
- 			__WARN();				\
-diff -puN include/asm-s390/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-s390/bug.h
---- a/include/asm-s390/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
-+++ a/include/asm-s390/bug.h
-@@ -50,7 +50,7 @@
- #define BUG()	__EMIT_BUG(0)
- 
- #define WARN_ON(x) ({					\
--	typeof(x) __ret_warn_on = (x);			\
-+	int __ret_warn_on = !!(x);			\
- 	if (__builtin_constant_p(__ret_warn_on)) {	\
- 		if (__ret_warn_on)			\
- 			__EMIT_BUG(BUGFLAG_WARNING);	\
-diff -puN include/asm-sh/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-sh/bug.h
---- a/include/asm-sh/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
-+++ a/include/asm-sh/bug.h
-@@ -61,7 +61,7 @@ do {							\
- } while (0)
- 
- #define WARN_ON(x) ({						\
--	typeof(x) __ret_warn_on = (x);				\
-+	int __ret_warn_on = !!(x);				\
- 	if (__builtin_constant_p(__ret_warn_on)) {		\
- 		if (__ret_warn_on)				\
- 			__WARN();				\
+ clean:	rm-dirs := $(MODVERDIR)
++clean: rm-files := $(KBUILD_EXTMOD)/Module.symvers
+ clean: $(clean-dirs)
+ 	$(call cmd,rmdirs)
++	$(call cmd,rmfiles)
+ 	@find $(KBUILD_EXTMOD) $(RCS_FIND_IGNORE) \
+ 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
+ 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \) \
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-fix-warn_on-on-bitfield-ops-for-all-other-archs.patch
-git-wireless.patch
-avoid-ssb-compililation-on-s390.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
+clean-modulessymvers-in-external-module-dirs.patch
+x86_64-hide-cond_syscall-behind-__kernel__.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
