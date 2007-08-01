@@ -1,54 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + git-ixgbe-build-fix.patch added to -mm tree
-Date: Tue, 31 Jul 2007 18:27:27 -0700
-Message-ID: <200708010132.l711WCsf000634@imap1.linux-foundation.org>
+Subject: - scsi-fix-build-for-config_scsi_tgt=n.patch removed from -mm tree
+Date: Tue, 31 Jul 2007 19:51:10 -0700
+Message-ID: <200708010255.l712tsFL003538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37561 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42692 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752574AbXHABcX (ORCPT
+	by vger.kernel.org with ESMTP id S1751388AbXHAC4G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 21:32:23 -0400
+	Tue, 31 Jul 2007 22:56:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ayyappan.veeraiyan@intel.com
+To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, tomof@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-ixgbe-build-fix
-has been added to the -mm tree.  Its filename is
-     git-ixgbe-build-fix.patch
+     scsi: fix build for CONFIG_SCSI_TGT=n
+has been removed from the -mm tree.  Its filename was
+     scsi-fix-build-for-config_scsi_tgt=n.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-Subject: git-ixgbe-build-fix
+Subject: scsi: fix build for CONFIG_SCSI_TGT=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-this got removed.
+- Fix this:
 
-Cc: Ayyappan <ayyappan.veeraiyan@intel.com>
+ERROR: "scsi_tgt_it_nexus_create" [drivers/scsi/scsi_transport_srp.ko] undefined!
+ERROR: "scsi_tgt_it_nexus_destroy" [drivers/scsi/scsi_transport_srp.ko] undefined!
+
+- Also avoid anonymous args in the function prototypes: adding the names has
+  commentary value, and makes it easier to check the stubbed inline function
+  against the out-of-line declaration.
+
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: FUJITA Tomonori <tomof@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ixgbe/ixgbe_ethtool.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/scsi/scsi_tgt.h |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/ixgbe/ixgbe_ethtool.c~git-ixgbe-build-fix drivers/net/ixgbe/ixgbe_ethtool.c
---- a/drivers/net/ixgbe/ixgbe_ethtool.c~git-ixgbe-build-fix
-+++ a/drivers/net/ixgbe/ixgbe_ethtool.c
-@@ -861,7 +861,6 @@ static struct ethtool_ops ixgbe_ethtool_
- 	.phys_id                = ixgbe_phys_id,
- 	.get_stats_count        = ixgbe_get_stats_count,
- 	.get_ethtool_stats      = ixgbe_get_ethtool_stats,
--	.get_perm_addr          = ethtool_op_get_perm_addr,
- };
- 
- void ixgbe_set_ethtool_ops(struct net_device *netdev)
+diff -puN include/scsi/scsi_tgt.h~scsi-fix-build-for-config_scsi_tgt=n include/scsi/scsi_tgt.h
+--- a/include/scsi/scsi_tgt.h~scsi-fix-build-for-config_scsi_tgt=n
++++ a/include/scsi/scsi_tgt.h
+@@ -17,5 +17,20 @@ extern int scsi_tgt_tsk_mgmt_request(str
+ extern struct scsi_cmnd *scsi_host_get_command(struct Scsi_Host *,
+ 					       enum dma_data_direction,	gfp_t);
+ extern void scsi_host_put_command(struct Scsi_Host *, struct scsi_cmnd *);
+-extern int scsi_tgt_it_nexus_create(struct Scsi_Host *, u64, char *);
+-extern int scsi_tgt_it_nexus_destroy(struct Scsi_Host *, u64);
++
++#ifdef CONFIG_SCSI_TGT
++extern int scsi_tgt_it_nexus_create(struct Scsi_Host *shost, u64 itn_id,
++				char *initiator);
++extern int scsi_tgt_it_nexus_destroy(struct Scsi_Host *shost, u64 itn_id);
++#else
++static inline int scsi_tgt_it_nexus_create(struct Scsi_Host *shost,
++				u64 itn_id, char *initiator)
++{
++	return 0;
++}
++
++static inline int scsi_tgt_it_nexus_destroy(struct Scsi_Host *shost, u64 itn_id)
++{
++	return 0;
++}
++#endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +97,7 @@ git-mtd.patch
 git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
 mtdoops-printk-warning-fixes.patch
 ax88796-printk-fixes.patch
+git-ixgbe-build-fix.patch
 ip_auto_config-fix-fix.patch
 fib_trie-cleanup-fix.patch
 introduce-u16_max-and-u32_max-fix.patch
@@ -88,10 +108,7 @@ add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
 i386-add-support-for-picopower-irq-router.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
-scsi-fix-build-for-config_scsi_tgt=n.patch
 aacraid-rename-check_reset.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
 git-unionfs-build-fix.patch
@@ -164,4 +181,3 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-ixgbe-build-fix.patch
