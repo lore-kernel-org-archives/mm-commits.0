@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-missing-numa_zonelist_order-sysctl.patch added to -mm tree
-Date: Wed, 01 Aug 2007 16:37:56 -0700
-Message-ID: <200708012337.l71NbuJ1023110@imap1.linux-foundation.org>
+Subject: + remove-unused-struct-proc_dir_entryset.patch added to -mm tree
+Date: Wed, 01 Aug 2007 16:38:51 -0700
+Message-ID: <200708012338.l71Ncp2B023210@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37283 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53142 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751350AbXHAXij (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 19:38:39 -0400
+	by vger.kernel.org with ESMTP id S1752448AbXHAXj1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 19:39:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, lee.schermerhorn@hp.com, mel@csn.ul.ie
+Cc: adobriyan@gmail.com, ebiederm@xmission.com
 
 
 The patch titled
-     Fix missing numa_zonelist_order sysctl
+     Remove unused struct proc_dir_entry::set
 has been added to the -mm tree.  Its filename is
-     fix-missing-numa_zonelist_order-sysctl.patch
+     remove-unused-struct-proc_dir_entryset.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix missing numa_zonelist_order sysctl
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: Remove unused struct proc_dir_entry::set
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Misplaced #endif is hiding the numa_zonelist_order sysctl when !SECURITY.
+After /proc/sys rewrite it was left unused.
 
-[But, maybe reordering the zonelists is not such a good idea
-when ZONE_MOVABLE is populated?]
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/proc_fs.h |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN kernel/sysctl.c~fix-missing-numa_zonelist_order-sysctl kernel/sysctl.c
---- a/kernel/sysctl.c~fix-missing-numa_zonelist_order-sysctl
-+++ a/kernel/sysctl.c
-@@ -1023,6 +1023,7 @@ static ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_doulongvec_minmax,
- 	},
-+#endif
- #ifdef CONFIG_NUMA
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
-@@ -1034,7 +1035,6 @@ static ctl_table vm_table[] = {
- 		.strategy	= &sysctl_string,
- 	},
- #endif
--#endif
- #if defined(CONFIG_X86_32) || \
-    (defined(CONFIG_SUPERH) && defined(CONFIG_VSYSCALL))
- 	{
+diff -puN include/linux/proc_fs.h~remove-unused-struct-proc_dir_entryset include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~remove-unused-struct-proc_dir_entryset
++++ a/include/linux/proc_fs.h
+@@ -75,7 +75,6 @@ struct proc_dir_entry {
+ 	write_proc_t *write_proc;
+ 	atomic_t count;		/* use count */
+ 	int deleted;		/* delete flag */
+-	void *set;
+ 	int pde_users;	/* number of callers into module in progress */
+ 	spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
+ 	struct completion *pde_unload_completion;
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-fix-missing-numa_zonelist_order-sysctl.patch
-document-linux-memory-policy-v3.patch
+origin.patch
+blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch.patch
+remove-unused-struct-proc_dir_entryset.patch
+faster-ext2_clear_inode.patch
+fs-proc-mmuc-headers-butchery.patch
+remove-sysctlh-from-fsh.patch
+epcac-reformat-comments-and-coding-style-improvements.patch
+revert-faster-ext2_clear_inode.patch
