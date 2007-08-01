@@ -1,73 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-fix-build-for-config_scsi_tgt=n.patch removed from -mm tree
-Date: Tue, 31 Jul 2007 19:51:10 -0700
-Message-ID: <200708010255.l712tsFL003538@imap1.linux-foundation.org>
+Subject: + scsi-fix-build-for-config_scsi_tgt=n-2.patch added to -mm tree
+Date: Tue, 31 Jul 2007 19:53:42 -0700
+Message-ID: <200708010258.l712wPkc003663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42692 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52909 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751388AbXHAC4G (ORCPT
+	by vger.kernel.org with ESMTP id S1751042AbXHAC6f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 22:56:06 -0400
+	Tue, 31 Jul 2007 22:58:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, tomof@acm.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, tomof@acm.org
 
 
 The patch titled
-     scsi: fix build for CONFIG_SCSI_TGT=n
-has been removed from the -mm tree.  Its filename was
-     scsi-fix-build-for-config_scsi_tgt=n.patch
+     scsi-fix-build-for-config_scsi_tgt=n-2
+has been added to the -mm tree.  Its filename is
+     scsi-fix-build-for-config_scsi_tgt=n-2.patch
 
-This patch was dropped because it was withdrawn
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: scsi: fix build for CONFIG_SCSI_TGT=n
+Subject: scsi-fix-build-for-config_scsi_tgt=n-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- Fix this:
+Well that should fix it.
 
-ERROR: "scsi_tgt_it_nexus_create" [drivers/scsi/scsi_transport_srp.ko] undefined!
-ERROR: "scsi_tgt_it_nexus_destroy" [drivers/scsi/scsi_transport_srp.ko] undefined!
-
-- Also avoid anonymous args in the function prototypes: adding the names has
-  commentary value, and makes it easier to check the stubbed inline function
-  against the out-of-line declaration.
-
-Cc: James Bottomley <James.Bottomley@steeleye.com>
 Cc: FUJITA Tomonori <tomof@acm.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/scsi/scsi_tgt.h |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ drivers/scsi/scsi_transport_srp.c |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff -puN include/scsi/scsi_tgt.h~scsi-fix-build-for-config_scsi_tgt=n include/scsi/scsi_tgt.h
---- a/include/scsi/scsi_tgt.h~scsi-fix-build-for-config_scsi_tgt=n
-+++ a/include/scsi/scsi_tgt.h
-@@ -17,5 +17,20 @@ extern int scsi_tgt_tsk_mgmt_request(str
- extern struct scsi_cmnd *scsi_host_get_command(struct Scsi_Host *,
- 					       enum dma_data_direction,	gfp_t);
- extern void scsi_host_put_command(struct Scsi_Host *, struct scsi_cmnd *);
--extern int scsi_tgt_it_nexus_create(struct Scsi_Host *, u64, char *);
--extern int scsi_tgt_it_nexus_destroy(struct Scsi_Host *, u64);
-+
-+#ifdef CONFIG_SCSI_TGT
-+extern int scsi_tgt_it_nexus_create(struct Scsi_Host *shost, u64 itn_id,
-+				char *initiator);
-+extern int scsi_tgt_it_nexus_destroy(struct Scsi_Host *shost, u64 itn_id);
-+#else
-+static inline int scsi_tgt_it_nexus_create(struct Scsi_Host *shost,
-+				u64 itn_id, char *initiator)
-+{
-+	return 0;
-+}
-+
-+static inline int scsi_tgt_it_nexus_destroy(struct Scsi_Host *shost, u64 itn_id)
-+{
-+	return 0;
-+}
-+#endif
+diff -puN drivers/scsi/scsi_transport_srp.c~scsi-fix-build-for-config_scsi_tgt=n-2 drivers/scsi/scsi_transport_srp.c
+--- a/drivers/scsi/scsi_transport_srp.c~scsi-fix-build-for-config_scsi_tgt=n-2
++++ a/drivers/scsi/scsi_transport_srp.c
+@@ -222,17 +222,6 @@ struct srp_rport *srp_rport_add(struct S
+ 		return ERR_PTR(ret);
+ 	}
+ 
+-	if (ids->roles == SRP_RPORT_ROLE_INITIATOR) {
+-		ret = scsi_tgt_it_nexus_create(shost, (unsigned long)rport,
+-					       rport->port_id);
+-		if (ret) {
+-			device_del(&rport->dev);
+-			transport_destroy_device(&rport->dev);
+-			put_device(&rport->dev);
+-			return ERR_PTR(ret);
+-		}
+-	}
+-
+ 	transport_add_device(&rport->dev);
+ 	transport_configure_device(&rport->dev);
+ 
+@@ -250,10 +239,6 @@ void srp_rport_del(struct srp_rport *rpo
+ {
+ 	struct device *dev = &rport->dev;
+ 
+-	if (rport->roles == SRP_RPORT_ROLE_INITIATOR)
+-		scsi_tgt_it_nexus_destroy(dev_to_shost(dev->parent),
+-					  (unsigned long)rport);
+-
+ 	transport_remove_device(dev);
+ 	device_del(dev);
+ 	transport_destroy_device(dev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -181,3 +184,4 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+scsi-fix-build-for-config_scsi_tgt=n-2.patch
