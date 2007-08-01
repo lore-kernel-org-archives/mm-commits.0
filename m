@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ssb-chipcommon-add-function-to-get-processor-clock.patch added to -mm tree
-Date: Wed, 01 Aug 2007 15:06:48 -0700
-Message-ID: <200708012206.l71M6mPE019814@imap1.linux-foundation.org>
+Subject: + fix-warn_on-on-bitfield-ops-for-all-other-archs.patch added to -mm tree
+Date: Wed, 01 Aug 2007 15:22:01 -0700
+Message-ID: <200708012222.l71MM1fg020393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56061 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58872 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753488AbXHAWHm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 18:07:42 -0400
+	by vger.kernel.org with ESMTP id S1753174AbXHAWXa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 18:23:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aurelien@aurel32.net, mb@bu3sch.de, nbd@openwrt.org
+Cc: heiko.carstens@de.ibm.com, adobriyan@sw.ru, herbert@gondor.apana.org.au, hskinnemoen@atmel.com, kyle@parisc-linux.org, lethal@linux-sh.org, matthew@wil.cx, schwidefsky@de.ibm.com
 
 
 The patch titled
-     ssb-chipcommon: Add function to get processor clock
+     Fix WARN_ON() on bitfield ops for all other archs
 has been added to the -mm tree.  Its filename is
-     ssb-chipcommon-add-function-to-get-processor-clock.patch
+     fix-warn_on-on-bitfield-ops-for-all-other-archs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,76 +25,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ssb-chipcommon: Add function to get processor clock
-From: Aurelien Jarno <aurelien@aurel32.net>
+Subject: Fix WARN_ON() on bitfield ops for all other archs
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-Add a new function to get the processor clock.  It originally comes from
-the OpenWrt patches.
+Fixes WARN_ON() on bitfield ops for all architectures that have been left
+out in 8d4fbcfbe0a4bfc73e7f0297c59ae514e1f1436f.
 
-Cc: Felix Fietkau <nbd@openwrt.org>
-Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Kyle McMartin <kyle@parisc-linux.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ssb/driver_chipcommon.c           |   24 ++++++++++++++++++++
- include/linux/ssb/ssb_driver_chipcommon.h |    2 +
- 2 files changed, 26 insertions(+)
+ include/asm-avr32/bug.h  |    2 +-
+ include/asm-parisc/bug.h |    2 +-
+ include/asm-s390/bug.h   |    2 +-
+ include/asm-sh/bug.h     |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ssb/driver_chipcommon.c~ssb-chipcommon-add-function-to-get-processor-clock drivers/ssb/driver_chipcommon.c
---- a/drivers/ssb/driver_chipcommon.c~ssb-chipcommon-add-function-to-get-processor-clock
-+++ a/drivers/ssb/driver_chipcommon.c
-@@ -256,6 +256,30 @@ void ssb_chipco_resume(struct ssb_chipco
- 	ssb_chipco_set_clockmode(cc, SSB_CLKMODE_FAST);
- }
+diff -puN include/asm-avr32/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-avr32/bug.h
+--- a/include/asm-avr32/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
++++ a/include/asm-avr32/bug.h
+@@ -57,7 +57,7 @@
  
-+/* Get the processor clock */
-+void ssb_chipco_get_clockcpu(struct ssb_chipcommon *cc,
-+                             u32 *plltype, u32 *n, u32 *m)
-+{
-+	*n = chipco_read32(cc, SSB_CHIPCO_CLOCK_N);
-+	*plltype = (cc->capabilities & SSB_CHIPCO_CAP_PLLT);
-+	switch (*plltype) {
-+		case SSB_PLLTYPE_2:
-+		case SSB_PLLTYPE_4:
-+		case SSB_PLLTYPE_6:
-+		case SSB_PLLTYPE_7:
-+			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_MIPS);
-+			break;
-+		case SSB_PLLTYPE_3:
-+			/* 5350 uses m2 to control mips */
-+			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_M2);
-+			break;
-+		default:
-+			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_SB);
-+			break;
-+	}
-+}
-+
-+/* Get the bus clock */
- void ssb_chipco_get_clockcontrol(struct ssb_chipcommon *cc,
- 				 u32 *plltype, u32 *n, u32 *m)
- {
-diff -puN include/linux/ssb/ssb_driver_chipcommon.h~ssb-chipcommon-add-function-to-get-processor-clock include/linux/ssb/ssb_driver_chipcommon.h
---- a/include/linux/ssb/ssb_driver_chipcommon.h~ssb-chipcommon-add-function-to-get-processor-clock
-+++ a/include/linux/ssb/ssb_driver_chipcommon.h
-@@ -363,6 +363,8 @@ extern void ssb_chipcommon_init(struct s
- extern void ssb_chipco_suspend(struct ssb_chipcommon *cc, pm_message_t state);
- extern void ssb_chipco_resume(struct ssb_chipcommon *cc);
+ #define WARN_ON(condition)							\
+ 	({								\
+-		typeof(condition) __ret_warn_on = (condition);		\
++		int __ret_warn_on = !!(condition);			\
+ 		if (unlikely(__ret_warn_on))				\
+ 			_BUG_OR_WARN(BUGFLAG_WARNING);			\
+ 		unlikely(__ret_warn_on);				\
+diff -puN include/asm-parisc/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-parisc/bug.h
+--- a/include/asm-parisc/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
++++ a/include/asm-parisc/bug.h
+@@ -74,7 +74,7 @@
  
-+extern void ssb_chipco_get_clockcpu(struct ssb_chipcommon *cc,
-+                                    u32 *plltype, u32 *n, u32 *m);
- extern void ssb_chipco_get_clockcontrol(struct ssb_chipcommon *cc,
- 					u32 *plltype, u32 *n, u32 *m);
- extern void ssb_chipco_timing_init(struct ssb_chipcommon *cc,
+ 
+ #define WARN_ON(x) ({						\
+-	typeof(x) __ret_warn_on = (x);				\
++	int __ret_warn_on = !!(x);				\
+ 	if (__builtin_constant_p(__ret_warn_on)) {		\
+ 		if (__ret_warn_on)				\
+ 			__WARN();				\
+diff -puN include/asm-s390/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-s390/bug.h
+--- a/include/asm-s390/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
++++ a/include/asm-s390/bug.h
+@@ -50,7 +50,7 @@
+ #define BUG()	__EMIT_BUG(0)
+ 
+ #define WARN_ON(x) ({					\
+-	typeof(x) __ret_warn_on = (x);			\
++	int __ret_warn_on = !!(x);			\
+ 	if (__builtin_constant_p(__ret_warn_on)) {	\
+ 		if (__ret_warn_on)			\
+ 			__EMIT_BUG(BUGFLAG_WARNING);	\
+diff -puN include/asm-sh/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-sh/bug.h
+--- a/include/asm-sh/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
++++ a/include/asm-sh/bug.h
+@@ -61,7 +61,7 @@ do {							\
+ } while (0)
+ 
+ #define WARN_ON(x) ({						\
+-	typeof(x) __ret_warn_on = (x);				\
++	int __ret_warn_on = !!(x);				\
+ 	if (__builtin_constant_p(__ret_warn_on)) {		\
+ 		if (__ret_warn_on)				\
+ 			__WARN();				\
 _
 
-Patches currently in -mm which might be from aurelien@aurel32.net are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 origin.patch
-git-kvm.patch
+fix-warn_on-on-bitfield-ops-for-all-other-archs.patch
 git-wireless.patch
-ssb-compile-fix.patch
-watchdog-support-3.patch
-ssb-chipcommon-add-function-to-get-processor-clock.patch
-ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
+avoid-ssb-compililation-on-s390.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
