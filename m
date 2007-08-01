@@ -1,24 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-build-for-config_scsi_tgt=n-2.patch added to -mm tree
-Date: Tue, 31 Jul 2007 19:53:42 -0700
-Message-ID: <200708010258.l712wPkc003663@imap1.linux-foundation.org>
+Subject: + git-unionfs-fix-2.patch added to -mm tree
+Date: Wed, 01 Aug 2007 10:24:15 -0700
+Message-ID: <200708011724.l71HOGcv008850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52909 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51755 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751042AbXHAC6f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2007 22:58:35 -0400
+	by vger.kernel.org with ESMTP id S1752294AbXHARZA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 13:25:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, tomof@acm.org
+Cc: akpm@linux-foundation.org, jsipek@cs.sunysb.edu
 
 
 The patch titled
-     scsi-fix-build-for-config_scsi_tgt=n-2
+     git-unionfs-fix-2
 has been added to the -mm tree.  Its filename is
-     scsi-fix-build-for-config_scsi_tgt=n-2.patch
+     git-unionfs-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scsi-fix-build-for-config_scsi_tgt=n-2
+Subject: git-unionfs-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Well that should fix it.
+fs/unionfs/file.c:147: error: 'file_fsync' undeclared here (not in a function)
 
-Cc: FUJITA Tomonori <tomof@acm.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_transport_srp.c |   15 ---------------
- 1 file changed, 15 deletions(-)
+ fs/unionfs/file.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/scsi_transport_srp.c~scsi-fix-build-for-config_scsi_tgt=n-2 drivers/scsi/scsi_transport_srp.c
---- a/drivers/scsi/scsi_transport_srp.c~scsi-fix-build-for-config_scsi_tgt=n-2
-+++ a/drivers/scsi/scsi_transport_srp.c
-@@ -222,17 +222,6 @@ struct srp_rport *srp_rport_add(struct S
- 		return ERR_PTR(ret);
- 	}
+diff -puN fs/unionfs/file.c~git-unionfs-fix-2 fs/unionfs/file.c
+--- a/fs/unionfs/file.c~git-unionfs-fix-2
++++ a/fs/unionfs/file.c
+@@ -17,6 +17,7 @@
+  */
  
--	if (ids->roles == SRP_RPORT_ROLE_INITIATOR) {
--		ret = scsi_tgt_it_nexus_create(shost, (unsigned long)rport,
--					       rport->port_id);
--		if (ret) {
--			device_del(&rport->dev);
--			transport_destroy_device(&rport->dev);
--			put_device(&rport->dev);
--			return ERR_PTR(ret);
--		}
--	}
--
- 	transport_add_device(&rport->dev);
- 	transport_configure_device(&rport->dev);
+ #include "union.h"
++#include <linux/buffer_head.h>
  
-@@ -250,10 +239,6 @@ void srp_rport_del(struct srp_rport *rpo
- {
- 	struct device *dev = &rport->dev;
- 
--	if (rport->roles == SRP_RPORT_ROLE_INITIATOR)
--		scsi_tgt_it_nexus_destroy(dev_to_shost(dev->parent),
--					  (unsigned long)rport);
--
- 	transport_remove_device(dev);
- 	device_del(dev);
- 	transport_destroy_device(dev);
+ /*******************
+  * File Operations *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,10 +88,12 @@ add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
 i386-add-support-for-picopower-irq-router.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
+scsi-fix-build-for-config_scsi_tgt=n-2.patch
 aacraid-rename-check_reset.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
 git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
 mct_u232-convert-to-proper-speed-handling-api-fix.patch
 git-watchdog.patch
 git-wireless.patch
@@ -184,4 +163,3 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-scsi-fix-build-for-config_scsi_tgt=n-2.patch
