@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + frv-connect-up-fallocate.patch added to -mm tree
-Date: Wed, 01 Aug 2007 15:45:19 -0700
-Message-ID: <200708012245.l71MjJP9021323@imap1.linux-foundation.org>
+Subject: + prevent-ssb-compilation-on-s390-part-2.patch added to -mm tree
+Date: Wed, 01 Aug 2007 15:46:24 -0700
+Message-ID: <200708012246.l71MkO13021335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52772 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43530 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753587AbXHAWqS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 18:46:18 -0400
+	by vger.kernel.org with ESMTP id S1754489AbXHAWrn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 18:47:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: heiko.carstens@de.ibm.com, linville@tuxdriver.com, mb@bu3sch.de, schwidefsky@de.ibm.com
 
 
 The patch titled
-     FRV: connect up fallocate
+     prevent SSB compilation on s390
 has been added to the -mm tree.  Its filename is
-     frv-connect-up-fallocate.patch
+     prevent-ssb-compilation-on-s390-part-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: FRV: connect up fallocate
-From: David Howells <dhowells@redhat.com>
+Subject: prevent SSB compilation on s390
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-Connect up the fallocate() system call.
+drivers/ssb/Kconfig has already a depends on HAS_IOMEM which should prevent
+SSB from being selected.  But appearantly it looks like this doesn't matter
+at all if it gets selected from somewhere else.  So add an explicit depends
+on HAS_IOMEM to the Broadcom driver to prevent selection on s390.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/entry.S  |    1 +
- include/asm-frv/unistd.h |    3 ++-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/net/Kconfig |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/frv/kernel/entry.S~frv-connect-up-fallocate arch/frv/kernel/entry.S
---- a/arch/frv/kernel/entry.S~frv-connect-up-fallocate
-+++ a/arch/frv/kernel/entry.S
-@@ -1496,6 +1496,7 @@ sys_call_table:
- 	.long sys_signalfd
- 	.long sys_timerfd
- 	.long sys_eventfd
-+	.long sys_fallocate
+diff -puN drivers/net/Kconfig~prevent-ssb-compilation-on-s390-part-2 drivers/net/Kconfig
+--- a/drivers/net/Kconfig~prevent-ssb-compilation-on-s390-part-2
++++ a/drivers/net/Kconfig
+@@ -1434,6 +1434,7 @@ config APRICOT
  
- 
- syscall_table_size = (. - sys_call_table)
-diff -puN include/asm-frv/unistd.h~frv-connect-up-fallocate include/asm-frv/unistd.h
---- a/include/asm-frv/unistd.h~frv-connect-up-fallocate
-+++ a/include/asm-frv/unistd.h
-@@ -330,10 +330,11 @@
- #define __NR_signalfd		321
- #define __NR_timerfd		322
- #define __NR_eventfd		323
-+#define __NR_fallocate		324
- 
- #ifdef __KERNEL__
- 
--#define NR_syscalls 324
-+#define NR_syscalls 325
- 
- #define __ARCH_WANT_IPC_PARSE_VERSION
- /* #define __ARCH_WANT_OLD_READDIR */
+ config B44
+ 	tristate "Broadcom 440x/47xx ethernet support"
++	depends on HAS_IOMEM
+ 	select SSB
+ 	select MII
+ 	help
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 origin.patch
-frv-connect-up-fallocate.patch
-changing-include-asm-generic-pgtableh-for-non-mmu.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+fix-warn_on-on-bitfield-ops-for-all-other-archs.patch
+git-wireless.patch
+avoid-ssb-compililation-on-s390.patch
+prevent-ssb-compilation-on-s390-part-2.patch
 during-vm-oom-condition-kill-all-threads-in-process-group.patch
-remove-frv-usage-of-flush_tlb_pgtables.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-fs-afs-possible-cleanups.patch
-ecryptfs-add-key-list-structure-search-keyring.patch
-64-bit-i_version-afs-fixes.patch
-mutex-subsystem-synchro-test-module.patch
