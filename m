@@ -1,12 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + freezer-measure-freezing-time.patch added to -mm tree
-Date: Wed, 01 Aug 2007 16:47:22 -0700
-Message-ID: <200708012347.l71NlMrV023481@imap1.linux-foundation.org>
+Subject: + freezer-use-wait-queue-instead-of-busy-looping.patch added to -mm tree
+Date: Wed, 01 Aug 2007 16:47:20 -0700
+Message-ID: <200708012347.l71NlKCi023478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48719 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39219 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752897AbXHAXsP (ORCPT
+	by vger.kernel.org with ESMTP id S1753072AbXHAXsP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 19:48:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,79 +18,124 @@ Cc: rjw@sisk.pl, pavel@ucw.cz
 
 
 The patch titled
-     freezer: measure freezing time
+     freezer: use wait queue instead of busy looping
 has been added to the -mm tree.  Its filename is
-     freezer-measure-freezing-time.patch
+     freezer-use-wait-queue-instead-of-busy-looping.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: freezer: measure freezing time
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: freezer: use wait queue instead of busy looping
+=46rom: Rafael J. Wysocki <rjw@sisk.pl>
 
-Measure the time of the freezing of tasks, even if it doesn't fail.
+Use the observation that try_to_freeze_tasks() need not loop while wait=
+ing for
+the freezing tasks to enter the refrigerator and make it use a wait que=
+ue.
+
+The idea is that after sending freeze requests to the tasks regarded as
+freezable try_to_freeze_tasks() can go to sleep and wait until at least=
+ one
+task enters the refrigerator.  =A0The first task that does it wakes up
+try_to_freeze_tasks() and the procedure is repeated.  =A0If the refrige=
+rator is
+not entered by any tasks before TIMEOUT expires, the freezing of tasks =
+fails.
+
+This way, try_to_freeze_tasks() doesn't occupy the CPU unnecessarily wh=
+en some
+freezing tasks are waiting for I/O to complete.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/process.c |   18 +++++++++++++++---
- 1 files changed, 15 insertions(+), 3 deletions(-)
+ kernel/power/process.c |   34 +++++++++++++++++++++++++++++++++-
+ 1 files changed, 33 insertions(+), 1 deletion(-)
 
-diff -puN kernel/power/process.c~freezer-measure-freezing-time kernel/power/process.c
---- a/kernel/power/process.c~freezer-measure-freezing-time
+diff -puN kernel/power/process.c~freezer-use-wait-queue-instead-of-busy=
+-looping kernel/power/process.c
+--- a/kernel/power/process.c~freezer-use-wait-queue-instead-of-busy-loo=
+ping
 +++ a/kernel/power/process.c
-@@ -190,6 +190,11 @@ static int try_to_freeze_tasks(int freez
- 	struct task_struct *g, *p;
- 	unsigned long end_time;
+@@ -19,6 +19,12 @@
+  */
+ #define TIMEOUT	(20 * HZ)
+=20
++/*
++ * Time to wait until one or more tasks enter the refrigerator after s=
+ending
++ * freeze requests to them.
++ */
++#define WAIT_TIME (HZ / 5)
++
+ #define FREEZER_KERNEL_THREADS 0
+ #define FREEZER_USER_SPACE 1
+=20
+@@ -43,6 +49,18 @@ static inline void frozen_process(void)
+ 	clear_freeze_flag(current);
+ }
+=20
++/*
++ * Wait queue head used by try_to_freeze_tasks() to wait for tasks to =
+enter the
++ * refrigerator.
++ */
++static DECLARE_WAIT_QUEUE_HEAD(refrigerator_waitq);
++
++/*
++ * Used to notify try_to_freeze_tasks() that the refrigerator has been=
+ entered
++ * by a task.
++ */
++static int refrigerator_called;
++
+ /* Refrigerator is place where frozen processes are stored :-). */
+ void refrigerator(void)
+ {
+@@ -58,6 +76,10 @@ void refrigerator(void)
+ 		task_unlock(current);
+ 		return;
+ 	}
++
++	refrigerator_called =3D 1;
++	wake_up(&refrigerator_waitq);
++
+ 	save =3D current->state;
+ 	pr_debug("%s entered refrigerator\n", current->comm);
+=20
+@@ -170,6 +192,7 @@ static int try_to_freeze_tasks(int freez
  	unsigned int todo;
-+	struct timeval start, end;
-+	s64 elapsed_csecs64;
-+	unsigned int elapsed_csecs;
-+
-+	do_gettimeofday(&start);
- 
- 	end_time = jiffies + TIMEOUT;
- 	refrigerator_called = 0;
-@@ -226,6 +231,11 @@ static int try_to_freeze_tasks(int freez
- 			break;
- 	} while (todo);
- 
-+	do_gettimeofday(&end);
-+	elapsed_csecs64 = timeval_to_ns(&end) - timeval_to_ns(&start);
-+	do_div(elapsed_csecs64, NSEC_PER_SEC / 100);
-+	elapsed_csecs = elapsed_csecs64;
-+
- 	if (todo) {
- 		/* This does not unfreeze processes that are already frozen
- 		 * (we have slightly ugly calling convention in that respect,
-@@ -233,10 +243,9 @@ static int try_to_freeze_tasks(int freez
- 		 * but it cleans up leftover PF_FREEZE requests.
- 		 */
- 		printk("\n");
--		printk(KERN_ERR "Freezing of %s timed out after %d seconds "
-+		printk(KERN_ERR "Freezing of tasks failed after %d.%02d seconds "
- 				"(%d tasks refusing to freeze):\n",
--				freeze_user_space ? "user space " : "tasks ",
--				TIMEOUT / HZ, todo);
-+				elapsed_csecs / 100, elapsed_csecs % 100, todo);
- 		show_state();
+=20
+ 	end_time =3D jiffies + TIMEOUT;
++	refrigerator_called =3D 0;
+ 	do {
+ 		todo =3D 0;
  		read_lock(&tasklist_lock);
- 		do_each_thread(g, p) {
-@@ -247,6 +256,9 @@ static int try_to_freeze_tasks(int freez
- 			task_unlock(p);
+@@ -189,7 +212,16 @@ static int try_to_freeze_tasks(int freez
+ 				todo++;
  		} while_each_thread(g, p);
  		read_unlock(&tasklist_lock);
-+	} else {
-+		printk("(elapsed %d.%02d seconds) ", elapsed_csecs / 100,
-+			elapsed_csecs % 100);
- 	}
- 
- 	return todo ? -EBUSY : 0;
+-		yield();			/* Yield is okay here */
++
++		if (todo) {
++			unsigned long ret;
++
++			ret =3D wait_event_timeout(refrigerator_waitq,
++					refrigerator_called, WAIT_TIME);
++			if (ret)
++				refrigerator_called =3D 0;
++		}
++
+ 		if (time_after(jiffies, end_time))
+ 			break;
+ 	} while (todo);
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
