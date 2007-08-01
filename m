@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + clean-modulessymvers-in-external-module-dirs.patch added to -mm tree
-Date: Wed, 01 Aug 2007 15:23:34 -0700
-Message-ID: <200708012223.l71MNY3I020469@imap1.linux-foundation.org>
+Subject: + atl1-use-spin_trylock_irqsave.patch added to -mm tree
+Date: Wed, 01 Aug 2007 15:25:29 -0700
+Message-ID: <200708012225.l71MPTb7020580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51748 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52826 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753752AbXHAWXu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 18:23:50 -0400
+	by vger.kernel.org with ESMTP id S1753453AbXHAWZq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 18:25:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, sam@ravnborg.org
+Cc: mingo@elte.hu, jacliburn@bellsouth.net
 
 
 The patch titled
-     clean Modules.symvers in external module dirs
+     atl1: use spin_trylock_irqsave()
 has been added to the -mm tree.  Its filename is
-     clean-modulessymvers-in-external-module-dirs.patch
+     atl1-use-spin_trylock_irqsave.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clean Modules.symvers in external module dirs
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: atl1: use spin_trylock_irqsave()
+From: Ingo Molnar <mingo@elte.hu>
 
-At the moment, running `make clean` in an external module directory does a
-nice job of cleaning up with one exception: it leaves behind Modules.symvers. 
-Attached patch adds this file to the clean list for external modules.
+use the simpler spin_trylock_irqsave() API to get the adapter lock.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/net/atl1/atl1_main.c |    4 +---
+ 1 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN Makefile~clean-modulessymvers-in-external-module-dirs Makefile
---- a/Makefile~clean-modulessymvers-in-external-module-dirs
-+++ a/Makefile
-@@ -1254,8 +1254,10 @@ $(clean-dirs):
- 	$(Q)$(MAKE) $(clean)=$(patsubst _clean_%,%,$@)
+diff -puN drivers/net/atl1/atl1_main.c~atl1-use-spin_trylock_irqsave drivers/net/atl1/atl1_main.c
+--- a/drivers/net/atl1/atl1_main.c~atl1-use-spin_trylock_irqsave
++++ a/drivers/net/atl1/atl1_main.c
+@@ -1703,10 +1703,8 @@ static int atl1_xmit_frame(struct sk_buf
+ 		}
+ 	}
  
- clean:	rm-dirs := $(MODVERDIR)
-+clean: rm-files := $(KBUILD_EXTMOD)/Module.symvers
- clean: $(clean-dirs)
- 	$(call cmd,rmdirs)
-+	$(call cmd,rmfiles)
- 	@find $(KBUILD_EXTMOD) $(RCS_FIND_IGNORE) \
- 		\( -name '*.[oas]' -o -name '*.ko' -o -name '.*.cmd' \
- 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \) \
+-	local_irq_save(flags);
+-	if (!spin_trylock(&adapter->lock)) {
++	if (!spin_trylock_irqsave(&adapter->lock, flags)) {
+ 		/* Can't get lock - tell upper layer to requeue */
+-		local_irq_restore(flags);
+ 		dev_printk(KERN_DEBUG, &adapter->pdev->dev, "tx locked\n");
+ 		return NETDEV_TX_LOCKED;
+ 	}
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-clean-modulessymvers-in-external-module-dirs.patch
-x86_64-hide-cond_syscall-behind-__kernel__.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+genirq-temporary-fix-for-level-triggered-irq-resend.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+git-acpi.patch
+git-kvm.patch
+mips-qemu-network-work-again.patch
+atl1-use-spin_trylock_irqsave.patch
+fix-theoretical-ccids_readwrite_lock-race.patch
+kernel-schedc-make-code-static.patch
+tiny-sched_getaffinity-cleanup.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+geode-mfgpt-clock-event-device-support.patch
+i386-remove-unnecessary-code.patch
+x86-expand-proc-interrupts-to-include-missing-vectors-v2.patch
+futex_unlock_pi-hurts-my-brain-and-may-cause.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+softlockup-use-cpu_clock-instead-of-sched_clock.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+softlockup-improve-debug-output.patch
+softlockup-watchdog-style-cleanups.patch
+softlockup-add-a-proc-tuning-parameter.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+cfs-mark-print_cfs_stats-static.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+kernel-rtmutex-debugc-cleanups.patch
+mm-implement-swap-prefetching.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
