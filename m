@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2.patch added to -mm tree
-Date: Wed, 01 Aug 2007 14:12:52 -0700
-Message-ID: <200708012112.l71LCq2v017373@imap1.linux-foundation.org>
+Subject: + git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch added to -mm tree
+Date: Wed, 01 Aug 2007 14:13:13 -0700
+Message-ID: <200708012113.l71LDDok017385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60393 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49077 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751443AbXHAVNH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 17:13:07 -0400
+	by vger.kernel.org with ESMTP id S1751842AbXHAVN3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 17:13:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, hch@lst.de, jason.wessel@windriver.com
 
 
 The patch titled
-     git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2
+     git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft
 has been added to the -mm tree.  Its filename is
-     git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2.patch
+     git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2
+Subject: git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft
 From: Andrew Morton <akpm@linux-foundation.org>
-
-I assume...
 
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/kdebug.h |    1 -
- 1 files changed, 1 deletion(-)
+ arch/i386/kernel/kgdb.c   |    3 ---
+ arch/x86_64/kernel/kgdb.c |    5 ++---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN include/asm-mips/kdebug.h~git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2 include/asm-mips/kdebug.h
---- a/include/asm-mips/kdebug.h~git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2
-+++ a/include/asm-mips/kdebug.h
-@@ -24,7 +24,6 @@ enum die_val {
- 	DIE_DIE,
- 	DIE_KERNELDEBUG,
- 	DIE_TRAP,
--	DIE_PAGE_FAULT,
- };
- 
- #endif /* _MIPS_KDEBUG_H */
+diff -puN arch/i386/kernel/kgdb.c~git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft arch/i386/kernel/kgdb.c
+--- a/arch/i386/kernel/kgdb.c~git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft
++++ a/arch/i386/kernel/kgdb.c
+@@ -318,9 +318,6 @@ static int kgdb_notify(struct notifier_b
+ 		&& kgdb_may_fault) {
+ 		kgdb_fault_longjmp(kgdb_fault_jmp_regs);
+ 		return NOTIFY_STOP;
+-	} else if (cmd == DIE_PAGE_FAULT)
+-		/* A normal page fault, ignore. */
+-		return NOTIFY_DONE;
+ 	else if ((cmd == DIE_NMI || cmd == DIE_NMI_IPI ||
+ 			  cmd == DIE_NMIWATCHDOG) &&
+ 			 atomic_read(&debugger_active)) {
+diff -puN arch/x86_64/kernel/kgdb.c~git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft arch/x86_64/kernel/kgdb.c
+--- a/arch/x86_64/kernel/kgdb.c~git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft
++++ a/arch/x86_64/kernel/kgdb.c
+@@ -412,9 +412,8 @@ static int kgdb_notify(struct notifier_b
+ 		kgdb_arch_handle_exception(args->trapnr, args->signr,
+ 		args->err, "c", "", regs);
+ 		return NOTIFY_STOP;
+-	} else if (cmd == DIE_PAGE_FAULT || user_mode(regs) ||
+-		   cmd == DIE_NMI_IPI || (cmd == DIE_DEBUG &&
+-					  atomic_read(&debugger_active)))
++	} else if (user_mode(regs) || cmd == DIE_NMI_IPI ||
++			(cmd == DIE_DEBUG && atomic_read(&debugger_active)))
+ 		/* Userpace events, normal watchdog event, or spurious
+ 		 * debug exception.  Ignore. */
+ 		return NOTIFY_DONE;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,6 +125,7 @@ git-kgdb-fixup.patch
 git-kgdb-arm-fix.patch
 git-kgdb-mips-fix.patch
 git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
 acpi_battery_add-use-after-free.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
@@ -165,4 +182,3 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2.patch
