@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + document-linux-memory-policy-v3.patch added to -mm tree
-Date: Wed, 01 Aug 2007 14:24:44 -0700
-Message-ID: <200708012124.l71LOii5018180@imap1.linux-foundation.org>
+Subject: + slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch added to -mm tree
+Date: Wed, 01 Aug 2007 14:48:25 -0700
+Message-ID: <200708012148.l71LmPQF019113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50786 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55364 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755529AbXHAVZo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 17:25:44 -0400
+	by vger.kernel.org with ESMTP id S1751492AbXHAVse (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 17:48:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, lee.schermerhorn@hp.com, mtk-manpages@gmx.net, rob@landley.net
+Cc: clameter@sgi.com
 
 
 The patch titled
-     Document Linux Memory Policy
+     SLUB: direct pass through of page size or higher kmalloc requests
 has been added to the -mm tree.  Its filename is
-     document-linux-memory-policy-v3.patch
+     slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,367 +25,363 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Document Linux Memory Policy
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: SLUB: direct pass through of page size or higher kmalloc requests
+From: Christoph Lameter <clameter@sgi.com>
 
-I couldn't find any memory policy documentation in the Documentation
-directory, so here is my attempt to document it.
+This gets rid of all kmalloc caches larger than page size.  A kmalloc
+request larger than PAGE_SIZE > 2 is going to be passed through to the page
+allocator.  This works both inline where we will call __get_free_pages
+instead of kmem_cache_alloc and in __kmalloc.
 
-There's lots more that could be written about the internal design--including
-data structures, functions, etc.  However, if you agree that this is better
-that the nothing that exists now, perhaps it could be merged.  This will
-provide a baseline for updates to document the many policy patches that are
-currently being worked.
+kfree is modified to check if the object is in a slab page. If not then
+the page is freed via the page allocator instead. Roughly similar to what
+SLOB does.
 
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Rob Landley <rob@landley.net>
+Advantages:
+- Reduces memory overhead for kmalloc array
+- Large kmalloc operations are faster since they do not
+  need to pass through the slab allocator to get to the
+  page allocator.
+- Performance increase of 10%-20% on alloc and 50% on free for
+  PAGE_SIZEd allocations.
+  SLUB must call page allocator for each alloc anyways since
+  the higher order pages which that allowed avoiding the page alloc calls
+  are not available in a reliable way anymore. So we are basically removing
+  useless slab allocator overhead.
+- Large kmallocs yields page aligned object which is what
+  SLAB did. Bad things like using page sized kmalloc allocations to
+  stand in for page allocate allocs can be transparently handled and are not
+  distinguishable from page allocator uses.
+- Checking for too large objects can be removed since
+  it is done by the page allocator.
+
+Drawbacks:
+- No accounting for large kmalloc slab allocations anymore
+- No debugging of large kmalloc slab allocations.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/memory_policy.txt |  332 +++++++++++++++++++++++++++
- 1 files changed, 332 insertions(+)
+ include/linux/slub_def.h |   57 ++++++++++++++-------------------
+ mm/slub.c                |   63 ++++++++++++++++++++++---------------
+ 2 files changed, 62 insertions(+), 58 deletions(-)
 
-diff -puN /dev/null Documentation/vm/memory_policy.txt
---- /dev/null
-+++ a/Documentation/vm/memory_policy.txt
-@@ -0,0 +1,332 @@
-+
-+What is Linux Memory Policy?
-+
-+In the Linux kernel, "memory policy" determines from which node the kernel will
-+allocate memory in a NUMA system or in an emulated NUMA system.  Linux has
-+supported platforms with Non-Uniform Memory Access architectures since 2.4.?.
-+The current memory policy support was added to Linux 2.6 around May 2004.  This
-+document attempts to describe the concepts and APIs of the 2.6 memory policy
-+support.
-+
-+Memory policies should not be confused with cpusets (Documentation/cpusets.txt)
-+which is an administrative mechanism for restricting the nodes from which
-+memory may be allocated by a set of processes. Memory policies are a
-+programming interface that a NUMA-aware application can take advantage of.  When
-+both cpusets and policies are applied to a task, the restrictions of the cpuset
-+takes priority.  See "MEMORY POLICIES AND CPUSETS" below for more details.
-+
-+MEMORY POLICY CONCEPTS
-+
-+Scope of Memory Policies
-+
-+The Linux kernel supports _scopes_ of memory policy, described here from
-+most general to most specific:
-+
-+    System Default Policy:  this policy is "hard coded" into the kernel.  It
-+    is the policy that governs all page allocations that aren't controlled
-+    by one of the more specific policy scopes discussed below.  When the
-+    system is "up and running", the system default policy will use "local
-+    allocation" described below.  However, during boot up, the system
-+    default policy will be set to interleave allocations across all nodes
-+    with "sufficient" memory, so as not to overload the initial boot node
-+    with boot-time allocations.
-+
-+    Task/Process Policy:  this is an optional, per-task policy.  When defined
-+    for a specific task, this policy controls all page allocations made by or
-+    on behalf of the task that aren't controlled by a more specific scope.
-+    If a task does not define a task policy, then all page allocations that
-+    would have been controlled by the task policy "fall back" to the System
-+    Default Policy.
-+
-+	The task policy applies to the entire address space of a task. Thus,
-+	it is inheritable, and indeed is inherited, across both fork()
-+	[clone() w/o the CLONE_VM flag] and exec*().  This allows a parent task
-+	to establish the task policy for a child task exec()'d from an
-+	executable image that has no awareness of memory policy.  See the
-+	MEMORY POLICY APIS section, below, for an overview of the system call
-+	that a task may use to set/change it's task/process policy.
-+
-+	In a multi-threaded task, task policies apply only to the thread
-+	[Linux kernel task] that installs the policy and any threads
-+	subsequently created by that thread.  Any sibling threads existing
-+	at the time a new task policy is installed retain their current
-+	policy.
-+
-+	A task policy applies only to pages allocated after the policy is
-+	installed.  Any pages already faulted in by the task when the task
-+	changes its task policy remain where they were allocated based on
-+	the policy at the time they were allocated.
-+
-+    VMA Policy:  A "VMA" or "Virtual Memory Area" refers to a range of a task's
-+    virtual adddress space.  A task may define a specific policy for a range
-+    of its virtual address space.   See the MEMORY POLICIES APIS section,
-+    below, for an overview of the mbind() system call used to set a VMA
-+    policy.
-+
-+    A VMA policy will govern the allocation of pages that back this region of
-+    the address space.  Any regions of the task's address space that don't
-+    have an explicit VMA policy will fall back to the task policy, which may
-+    itself fall back to the System Default Policy.
-+
-+    VMA policies have a few complicating details:
-+
-+	VMA policy applies ONLY to anonymous pages.  These include pages
-+	allocated for anonymous segments, such as the task stack and heap, and
-+	any regions of the address space mmap()ed with the MAP_ANONYMOUS flag.
-+	If a VMA policy is applied to a file mapping, it will be ignored if
-+	the mapping used the MAP_SHARED flag.  If the file mapping used the
-+	MAP_PRIVATE flag, the VMA policy will only be applied when an
-+	anonymous page is allocated on an attempt to write to the mapping--
-+	i.e., at Copy-On-Write.
-+
-+	VMA policies are shared between all tasks that share a virtual address
-+	space--a.k.a. threads--independent of when the policy is installed; and
-+	they are inherited across fork().  However, because VMA policies refer
-+	to a specific region of a task's address space, and because the address
-+	space is discarded and recreated on exec*(), VMA policies are NOT
-+	inheritable across exec().  Thus, only NUMA-aware applications may
-+	use VMA policies.
-+
-+	A task may install a new VMA policy on a sub-range of a previously
-+	mmap()ed region.  When this happens, Linux splits the existing virtual
-+	memory area into 2 or 3 VMAs, each with it's own policy.
-+
-+	By default, VMA policy applies only to pages allocated after the policy
-+	is installed.  Any pages already faulted into the VMA range remain
-+	where they were allocated based on the policy at the time they were
-+	allocated.  However, since 2.6.16, Linux supports page migration via
-+	the mbind() system call, so that page contents can be moved to match
-+	a newly installed policy.
-+
-+    Shared Policy:  Conceptually, shared policies apply to "memory objects"
-+    mapped shared into one or more tasks' distinct address spaces.  An
-+    application installs a shared policies the same way as VMA policies--using
-+    the mbind() system call specifying a range of virtual addresses that map
-+    the shared object.  However, unlike VMA policies, which can be considered
-+    to be an attribute of a range of a task's address space, shared policies
-+    apply directly to the shared object.  Thus, all tasks that attach to the
-+    object share the policy, and all pages allocated for the shared object,
-+    by any task, will obey the shared policy.
-+
-+	As of 2.6.22, only shared memory segments, created by shmget() or
-+	mmap(MAP_ANONYMOUS|MAP_SHARED), support shared policy.  When shared
-+	policy support was added to Linux, the associated data structures were
-+	added to hugetlbfs shmem segments.  At the time, hugetlbfs did not
-+	support allocation at fault time--a.k.a lazy allocation--so hugetlbfs
-+	shmem segments were never "hooked up" to the shared policy support.
-+	Although hugetlbfs segments now support lazy allocation, their support
-+	for shared policy has not been completed.
-+
-+	As mentioned above [re: VMA policies], allocations of page cache
-+	pages for regular files mmap()ed with MAP_SHARED ignore any VMA
-+	policy installed on the virtual address range backed by the shared
-+	file mapping.  Rather, shared page cache pages, including pages backing
-+	private mappings that have not yet been written by the task, follow
-+	task policy, if any, else System Default Policy.
-+
-+	The shared policy infrastructure supports different policies on subset
-+	ranges of the shared object.  However, Linux still splits the VMA of
-+	the task that installs the policy for each range of distinct policy.
-+	Thus, different tasks that attach to a shared memory segment can have
-+	different VMA configurations mapping that one shared object.  This
-+	can be seen by examining the /proc/<pid>/numa_maps of tasks sharing
-+	a shared memory region, when one task has installed shared policy on
-+	one or more ranges of the region.
-+
-+Components of Memory Policies
-+
-+    A Linux memory policy is a tuple consisting of a "mode" and an optional set
-+    of nodes.  The mode determine the behavior of the policy, while the
-+    optional set of nodes can be viewed as the arguments to the behavior.
-+
-+   Internally, memory policies are implemented by a reference counted
-+   structure, struct mempolicy.  Details of this structure will be discussed
-+   in context, below, as required to explain the behavior.
-+
-+	Note:  in some functions AND in the struct mempolicy itself, the mode
-+	is called "policy".  However, to avoid confusion with the policy tuple,
-+	this document will continue to use the term "mode".
-+
-+   Linux memory policy supports the following 4 behavioral modes:
-+
-+	Default Mode--MPOL_DEFAULT:  The behavior specified by this mode is
-+	context or scope dependent.
-+
-+	    As mentioned in the Policy Scope section above, during normal
-+	    system operation, the System Default Policy is hard coded to
-+	    contain the Default mode.
-+
-+	    In this context, default mode means "local" allocation--that is
-+	    attempt to allocate the page from the node associated with the cpu
-+	    where the fault occurs.  If the "local" node has no memory, or the
-+	    node's memory can be exhausted [no free pages available], local
-+	    allocation will "fallback to"--attempt to allocate pages from--
-+	    "nearby" nodes, in order of increasing "distance".
-+
-+		Implementation detail -- subject to change:  "Fallback" uses
-+		a per node list of sibling nodes--called zonelists--built at
-+		boot time, or when nodes or memory are added or removed from
-+		the system [memory hotplug].  These per node zonelist are
-+		constructed with nodes in order of increasing distance based
-+		on information provided by the platform firmware.
-+
-+	    When a task/process policy or a shared policy contains the Default
-+	    mode, this also means "local allocation", as described above.
-+
-+	    In the context of a VMA, Default mode means "fall back to task
-+	    policy"--which may or may not specify Default mode.  Thus, Default
-+	    mode can not be counted on to mean local allocation when used
-+	    on a non-shared region of the address space.  However, see
-+	    MPOL_PREFERRED below.
-+
-+	    The Default mode does not use the optional set of nodes.
-+
-+	MPOL_BIND:  This mode specifies that memory must come from the
-+	set of nodes specified by the policy.
-+
-+	    The memory policy APIs do not specify an order in which the nodes
-+	    will be searched.  However, unlike "local allocation", the Bind
-+	    policy does not consider the distance between the nodes.  Rather,
-+	    allocations will fallback to the nodes specified by the policy in
-+	    order of numeric node id.  Like everything in Linux, this is subject
-+	    to change.
-+
-+	MPOL_PREFERRED:  This mode specifies that the allocation should be
-+	attempted from the single node specified in the policy.  If that
-+	allocation fails, the kernel will search other nodes, exactly as
-+	it would for a local allocation that started at the preferred node
-+	in increasing distance from the preferred node.  "Local" allocation
-+	policy can be viewed as a Preferred policy that starts at the node
-+	containing the cpu where the allocation takes place.
-+
-+	    Internally, the Preferred policy uses a single node--the
-+	    preferred_node member of struct mempolicy.  A "distinguished
-+	    value of this preferred_node, currently '-1', is interpreted
-+	    as "the node containing the cpu where the allocation takes
-+	    place"--local allocation.  This is the way to specify
-+	    local allocation for a specific range of addresses--i.e. for
-+	    VMA policies.
-+
-+	MPOL_INTERLEAVED:  This mode specifies that page allocations be
-+	interleaved, on a page granularity, across the nodes specified in
-+	the policy.  This mode also behaves slightly differently, based on
-+	the context where it is used:
-+
-+	    For allocation of anonymous pages and shared memory pages,
-+	    Interleave mode indexes the set of nodes specified by the policy
-+	    using the page offset of the faulting address into the segment
-+	    [VMA] containing the address modulo the number of nodes specified
-+	    by the policy.  It then attempts to allocate a page, starting at
-+	    the selected node, as if the node had been specified by a Preferred
-+	    policy or had been selected by a local allocation.  That is,
-+	    allocation will follow the per node zonelist.
-+
-+	    For allocation of page cache pages, Interleave mode indexes the set
-+	    of nodes specified by the policy using a node counter maintained
-+	    per task.  This counter wraps around to the lowest specified node
-+	    after it reaches the highest specified node.  This will tend to
-+	    spread the pages out over the nodes specified by the policy based
-+	    on the order in which they are allocated, rather than based on any
-+	    page offset into an address range or file.  During system boot up,
-+	    the temporary interleaved system default policy works in this
-+	    mode.
-+
-+MEMORY POLICY APIs
-+
-+Linux supports 3 system calls for controlling memory policy.  These APIS
-+always affect only the calling task, the calling task's address space, or
-+some shared object mapped into the calling task's address space.
-+
-+	Note:  the headers that define these APIs and the parameter data types
-+	for user space applications reside in a package that is not part of
-+	the Linux kernel.  The kernel system call interfaces, with the 'sys_'
-+	prefix, are defined in <linux/syscalls.h>; the mode and flag
-+	definitions are defined in <linux/mempolicy.h>.
-+
-+Set [Task] Memory Policy:
-+
-+	long set_mempolicy(int mode, const unsigned long *nmask,
-+					unsigned long maxnode);
-+
-+	Set's the calling task's "task/process memory policy" to mode
-+	specified by the 'mode' argument and the set of nodes defined
-+	by 'nmask'.  'nmask' points to a bit mask of node ids containing
-+	at least 'maxnode' ids.
-+
-+	See the set_mempolicy(2) man page for more details
-+
-+
-+Get [Task] Memory Policy or Related Information
-+
-+	long get_mempolicy(int *mode,
-+			   const unsigned long *nmask, unsigned long maxnode,
-+			   void *addr, int flags);
-+
-+	Queries the "task/process memory policy" of the calling task, or
-+	the policy or location of a specified virtual address, depending
-+	on the 'flags' argument.
-+
-+	See the get_mempolicy(2) man page for more details
-+
-+
-+Install VMA/Shared Policy for a Range of Task's Address Space
-+
-+	long mbind(void *start, unsigned long len, int mode,
-+		   const unsigned long *nmask, unsigned long maxnode,
-+		   unsigned flags);
-+
-+	mbind() installs the policy specified by (mode, nmask, maxnodes) as
-+	a VMA policy for the range of the calling task's address space
-+	specified by the 'start' and 'len' arguments.  Additional actions
-+	may be requested via the 'flags' argument.
-+
-+	See the mbind(2) man page for more details.
-+
-+MEMORY POLICY COMMAND LINE INTERFACE
-+
-+Although not strictly part of the Linux implementation of memory policy,
-+a command line tool, numactl(8), exists that allows one to:
-+
-++ set the task policy for a specified program via set_mempolicy(2), fork(2) and
-+  exec(2)
-+
-++ set the shared policy for a shared memory segment via mbind(2)
-+
-+The numactl(8) tool is packages with the run-time version of the library
-+containing the memory policy system call wrappers.  Some distributions
-+package the headers and compile-time libraries in a separate development
-+package.
-+
-+
-+MEMORY POLICIES AND CPUSETS
-+
-+Memory policies work within cpusets as described above.  For memory policies
-+that require a node or set of nodes, the nodes are restricted to the set of
-+nodes whose memories are allowed by the cpuset constraints.  If the
-+intersection of the set of nodes specified for the policy and the set of nodes
-+allowed by the cpuset is the empty set, the policy is considered invalid and
-+cannot be installed.
-+
-+The interaction of memory policies and cpusets can be problematic for a
-+couple of reasons:
-+
-+1) the memory policy APIs take physical node id's as arguments.  However, the
-+   memory policy APIs do not provide a way to determine what nodes are valid
-+   in the context where the application is running.  An application MAY consult
-+   the cpuset file system [directly or via an out of tree, and not generally
-+   available, libcpuset API] to obtain this information, but then the
-+   application must be aware that it is running in a cpuset and use what are
-+   intended primarily as administrative APIs.
-+
-+   However, as long as the policy specifies at least one node that is valid
-+   in the controlling cpuset, the policy can be used.
-+
-+2) when tasks in two cpusets share access to a memory region, such as shared
-+   memory segments created by shmget() of mmap() with the MAP_ANONYMOUS and
-+   MAP_SHARED flags, and any of the tasks install shared policy on the region,
-+   only nodes whose memories are allowed in both cpusets may be used in the
-+   policies.  Again, obtaining this information requires "stepping outside"
-+   the memory policy APIs, as well as knowing in what cpusets other task might
-+   be attaching to the shared region, to use the cpuset information.
-+   Furthermore, if the cpusets' allowed memory sets are disjoint, "local"
-+   allocation is the only valid policy.
+diff -puN include/linux/slub_def.h~slub-direct-pass-through-of-page-size-or-higher-kmalloc include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-direct-pass-through-of-page-size-or-higher-kmalloc
++++ a/include/linux/slub_def.h
+@@ -72,7 +72,7 @@ struct kmem_cache {
+  * We keep the general caches in an array of slab caches that are used for
+  * 2^x bytes of allocations.
+  */
+-extern struct kmem_cache kmalloc_caches[KMALLOC_SHIFT_HIGH + 1];
++extern struct kmem_cache kmalloc_caches[PAGE_SHIFT];
+ 
+ /*
+  * Sorry that the following has to be that ugly but some versions of GCC
+@@ -83,9 +83,6 @@ static inline int kmalloc_index(size_t s
+ 	if (!size)
+ 		return 0;
+ 
+-	if (size > KMALLOC_MAX_SIZE)
+-		return -1;
+-
+ 	if (size <= KMALLOC_MIN_SIZE)
+ 		return KMALLOC_SHIFT_LOW;
+ 
+@@ -102,6 +99,10 @@ static inline int kmalloc_index(size_t s
+ 	if (size <=        512) return 9;
+ 	if (size <=       1024) return 10;
+ 	if (size <=   2 * 1024) return 11;
++/*
++ * The following is only needed to support architectures with a larger page
++ * size than 4k.
++ */
+ 	if (size <=   4 * 1024) return 12;
+ 	if (size <=   8 * 1024) return 13;
+ 	if (size <=  16 * 1024) return 14;
+@@ -109,13 +110,9 @@ static inline int kmalloc_index(size_t s
+ 	if (size <=  64 * 1024) return 16;
+ 	if (size <= 128 * 1024) return 17;
+ 	if (size <= 256 * 1024) return 18;
+-	if (size <=  512 * 1024) return 19;
++	if (size <= 512 * 1024) return 19;
+ 	if (size <= 1024 * 1024) return 20;
+ 	if (size <=  2 * 1024 * 1024) return 21;
+-	if (size <=  4 * 1024 * 1024) return 22;
+-	if (size <=  8 * 1024 * 1024) return 23;
+-	if (size <= 16 * 1024 * 1024) return 24;
+-	if (size <= 32 * 1024 * 1024) return 25;
+ 	return -1;
+ 
+ /*
+@@ -140,19 +137,6 @@ static inline struct kmem_cache *kmalloc
+ 	if (index == 0)
+ 		return NULL;
+ 
+-	/*
+-	 * This function only gets expanded if __builtin_constant_p(size), so
+-	 * testing it here shouldn't be needed.  But some versions of gcc need
+-	 * help.
+-	 */
+-	if (__builtin_constant_p(size) && index < 0) {
+-		/*
+-		 * Generate a link failure. Would be great if we could
+-		 * do something to stop the compile here.
+-		 */
+-		extern void __kmalloc_size_too_large(void);
+-		__kmalloc_size_too_large();
+-	}
+ 	return &kmalloc_caches[index];
+ }
+ 
+@@ -168,15 +152,21 @@ void *__kmalloc(size_t size, gfp_t flags
+ 
+ static inline void *kmalloc(size_t size, gfp_t flags)
+ {
+-	if (__builtin_constant_p(size) && !(flags & SLUB_DMA)) {
+-		struct kmem_cache *s = kmalloc_slab(size);
++	if (__builtin_constant_p(size)) {
++		if (size > PAGE_SIZE / 2)
++			return (void *)__get_free_pages(flags | __GFP_COMP,
++							get_order(size));
+ 
+-		if (!s)
+-			return ZERO_SIZE_PTR;
++		if (!(flags & SLUB_DMA)) {
++			struct kmem_cache *s = kmalloc_slab(size);
++
++			if (!s)
++				return ZERO_SIZE_PTR;
+ 
+-		return kmem_cache_alloc(s, flags);
+-	} else
+-		return __kmalloc(size, flags);
++			return kmem_cache_alloc(s, flags);
++		}
++	}
++	return __kmalloc(size, flags);
+ }
+ 
+ #ifdef CONFIG_NUMA
+@@ -185,15 +175,16 @@ void *kmem_cache_alloc_node(struct kmem_
+ 
+ static inline void *kmalloc_node(size_t size, gfp_t flags, int node)
+ {
+-	if (__builtin_constant_p(size) && !(flags & SLUB_DMA)) {
+-		struct kmem_cache *s = kmalloc_slab(size);
++	if (__builtin_constant_p(size) &&
++		size <= PAGE_SIZE / 2 && !(flags & SLUB_DMA)) {
++			struct kmem_cache *s = kmalloc_slab(size);
+ 
+ 		if (!s)
+ 			return ZERO_SIZE_PTR;
+ 
+ 		return kmem_cache_alloc_node(s, flags, node);
+-	} else
+-		return __kmalloc_node(size, flags, node);
++	}
++	return __kmalloc_node(size, flags, node);
+ }
+ #endif
+ 
+diff -puN mm/slub.c~slub-direct-pass-through-of-page-size-or-higher-kmalloc mm/slub.c
+--- a/mm/slub.c~slub-direct-pass-through-of-page-size-or-higher-kmalloc
++++ a/mm/slub.c
+@@ -2211,11 +2211,11 @@ EXPORT_SYMBOL(kmem_cache_destroy);
+  *		Kmalloc subsystem
+  *******************************************************************/
+ 
+-struct kmem_cache kmalloc_caches[KMALLOC_SHIFT_HIGH + 1] __cacheline_aligned;
++struct kmem_cache kmalloc_caches[PAGE_SHIFT] __cacheline_aligned;
+ EXPORT_SYMBOL(kmalloc_caches);
+ 
+ #ifdef CONFIG_ZONE_DMA
+-static struct kmem_cache *kmalloc_caches_dma[KMALLOC_SHIFT_HIGH + 1];
++static struct kmem_cache *kmalloc_caches_dma[PAGE_SHIFT];
+ #endif
+ 
+ static int __init setup_slub_min_order(char *str)
+@@ -2351,12 +2351,8 @@ static struct kmem_cache *get_slab(size_
+ 			return ZERO_SIZE_PTR;
+ 
+ 		index = size_index[(size - 1) / 8];
+-	} else {
+-		if (size > KMALLOC_MAX_SIZE)
+-			return NULL;
+-
++	} else
+ 		index = fls(size - 1);
+-	}
+ 
+ #ifdef CONFIG_ZONE_DMA
+ 	if (unlikely((flags & SLUB_DMA)))
+@@ -2368,9 +2364,15 @@ static struct kmem_cache *get_slab(size_
+ 
+ void *__kmalloc(size_t size, gfp_t flags)
+ {
+-	struct kmem_cache *s = get_slab(size, flags);
++	struct kmem_cache *s;
+ 
+-	if (ZERO_OR_NULL_PTR(s))
++	if (unlikely(size > PAGE_SIZE / 2))
++		return (void *)__get_free_pages(flags | __GFP_COMP,
++							get_order(size));
++
++	s = get_slab(size, flags);
++
++	if (unlikely(ZERO_OR_NULL_PTR(s)))
+ 		return s;
+ 
+ 	return slab_alloc(s, flags, -1, __builtin_return_address(0));
+@@ -2380,9 +2382,15 @@ EXPORT_SYMBOL(__kmalloc);
+ #ifdef CONFIG_NUMA
+ void *__kmalloc_node(size_t size, gfp_t flags, int node)
+ {
+-	struct kmem_cache *s = get_slab(size, flags);
++	struct kmem_cache *s;
+ 
+-	if (ZERO_OR_NULL_PTR(s))
++	if (unlikely(size > PAGE_SIZE / 2))
++		return (void *)__get_free_pages(flags | __GFP_COMP,
++							get_order(size));
++
++	s = get_slab(size, flags);
++
++	if (unlikely(ZERO_OR_NULL_PTR(s)))
+ 		return s;
+ 
+ 	return slab_alloc(s, flags, node, __builtin_return_address(0));
+@@ -2427,22 +2435,17 @@ EXPORT_SYMBOL(ksize);
+ 
+ void kfree(const void *x)
+ {
+-	struct kmem_cache *s;
+ 	struct page *page;
+ 
+-	/*
+-	 * This has to be an unsigned comparison. According to Linus
+-	 * some gcc version treat a pointer as a signed entity. Then
+-	 * this comparison would be true for all "negative" pointers
+-	 * (which would cover the whole upper half of the address space).
+-	 */
+ 	if (ZERO_OR_NULL_PTR(x))
+ 		return;
+ 
+ 	page = virt_to_head_page(x);
+-	s = page->slab;
+-
+-	slab_free(s, page, (void *)x, __builtin_return_address(0));
++	if (unlikely(!PageSlab(page))) {
++		put_page(page);
++		return;
++	}
++	slab_free(page->slab, page, (void *)x, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(kfree);
+ 
+@@ -2561,7 +2564,7 @@ void __init kmem_cache_init(void)
+ 		caches++;
+ 	}
+ 
+-	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++) {
++	for (i = KMALLOC_SHIFT_LOW; i < PAGE_SHIFT; i++) {
+ 		create_kmalloc_cache(&kmalloc_caches[i],
+ 			"kmalloc", 1 << i, GFP_KERNEL);
+ 		caches++;
+@@ -2588,7 +2591,7 @@ void __init kmem_cache_init(void)
+ 	slab_state = UP;
+ 
+ 	/* Provide the correct kmalloc names now that the caches are up */
+-	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++)
++	for (i = KMALLOC_SHIFT_LOW; i < PAGE_SHIFT; i++)
+ 		kmalloc_caches[i]. name =
+ 			kasprintf(GFP_KERNEL, "kmalloc-%d", 1 << i);
+ 
+@@ -2749,7 +2752,12 @@ static struct notifier_block __cpuinitda
+ 
+ void *__kmalloc_track_caller(size_t size, gfp_t gfpflags, void *caller)
+ {
+-	struct kmem_cache *s = get_slab(size, gfpflags);
++	struct kmem_cache *s;
++
++	if (unlikely(size > PAGE_SIZE / 2))
++		return (void *)__get_free_pages(gfpflags | __GFP_COMP,
++							get_order(size));
++	s = get_slab(size, gfpflags);
+ 
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
+@@ -2760,7 +2768,12 @@ void *__kmalloc_track_caller(size_t size
+ void *__kmalloc_node_track_caller(size_t size, gfp_t gfpflags,
+ 					int node, void *caller)
+ {
+-	struct kmem_cache *s = get_slab(size, gfpflags);
++	struct kmem_cache *s;
++
++	if (unlikely(size > PAGE_SIZE / 2))
++		return (void *)__get_free_pages(gfpflags | __GFP_COMP,
++							get_order(size));
++	s = get_slab(size, gfpflags);
+ 
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
+origin.patch
+check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+x86_64-get-mp_bus_to_node-as-early-v2.patch
+x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
+try-parent-numa_node-at-first-before-using-default-v2.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+x86_64-store-core-id-bits-in-cpuinfo_x8.patch
+x86_64-use-core-id-bits-for-apicid_to_node-initialization.patch
+x86_64-remove-never-used-apic_mapped.patch
+x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes.patch
+x86_64-family-10h-and-11h-to-k8topology.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
 document-linux-memory-policy-v3.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+sparc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+mm-migratec-cleanups.patch
+mm-mempolicyc-cleanups.patch
+mm-vmstatc-cleanups.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+page-owner-tracking-leak-detector.patch
