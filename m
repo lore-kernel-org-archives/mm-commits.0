@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch added to -mm tree
-Date: Wed, 01 Aug 2007 14:48:25 -0700
-Message-ID: <200708012148.l71LmPQF019113@imap1.linux-foundation.org>
+Subject: + ssb-chipcommon-add-function-to-get-processor-clock-fix.patch added to -mm tree
+Date: Wed, 01 Aug 2007 15:06:50 -0700
+Message-ID: <200708012206.l71M6og0019817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55364 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48291 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751492AbXHAVse (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 17:48:34 -0400
+	by vger.kernel.org with ESMTP id S1753502AbXHAWHp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2007 18:07:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: akpm@linux-foundation.org, aurelien@aurel32.net, mb@bu3sch.de, nbd@openwrt.org
 
 
 The patch titled
-     SLUB: direct pass through of page size or higher kmalloc requests
+     ssb-chipcommon-add-function-to-get-processor-clock-fix
 has been added to the -mm tree.  Its filename is
-     slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch
+     ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,363 +25,169 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: direct pass through of page size or higher kmalloc requests
-From: Christoph Lameter <clameter@sgi.com>
+Subject: ssb-chipcommon-add-function-to-get-processor-clock-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This gets rid of all kmalloc caches larger than page size.  A kmalloc
-request larger than PAGE_SIZE > 2 is going to be passed through to the page
-allocator.  This works both inline where we will call __get_free_pages
-instead of kmem_cache_alloc and in __kmalloc.
-
-kfree is modified to check if the object is in a slab page. If not then
-the page is freed via the page allocator instead. Roughly similar to what
-SLOB does.
-
-Advantages:
-- Reduces memory overhead for kmalloc array
-- Large kmalloc operations are faster since they do not
-  need to pass through the slab allocator to get to the
-  page allocator.
-- Performance increase of 10%-20% on alloc and 50% on free for
-  PAGE_SIZEd allocations.
-  SLUB must call page allocator for each alloc anyways since
-  the higher order pages which that allowed avoiding the page alloc calls
-  are not available in a reliable way anymore. So we are basically removing
-  useless slab allocator overhead.
-- Large kmallocs yields page aligned object which is what
-  SLAB did. Bad things like using page sized kmalloc allocations to
-  stand in for page allocate allocs can be transparently handled and are not
-  distinguishable from page allocator uses.
-- Checking for too large objects can be removed since
-  it is done by the page allocator.
-
-Drawbacks:
-- No accounting for large kmalloc slab allocations anymore
-- No debugging of large kmalloc slab allocations.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Aurelien Jarno <aurelien@aurel32.net>
+Cc: Felix Fietkau <nbd@openwrt.org>
+Cc: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |   57 ++++++++++++++-------------------
- mm/slub.c                |   63 ++++++++++++++++++++++---------------
- 2 files changed, 62 insertions(+), 58 deletions(-)
+ drivers/ssb/driver_chipcommon.c |   26 +++++++++++++-------------
+ 1 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/slub_def.h~slub-direct-pass-through-of-page-size-or-higher-kmalloc include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-direct-pass-through-of-page-size-or-higher-kmalloc
-+++ a/include/linux/slub_def.h
-@@ -72,7 +72,7 @@ struct kmem_cache {
-  * We keep the general caches in an array of slab caches that are used for
-  * 2^x bytes of allocations.
-  */
--extern struct kmem_cache kmalloc_caches[KMALLOC_SHIFT_HIGH + 1];
-+extern struct kmem_cache kmalloc_caches[PAGE_SHIFT];
- 
- /*
-  * Sorry that the following has to be that ugly but some versions of GCC
-@@ -83,9 +83,6 @@ static inline int kmalloc_index(size_t s
- 	if (!size)
- 		return 0;
- 
--	if (size > KMALLOC_MAX_SIZE)
--		return -1;
--
- 	if (size <= KMALLOC_MIN_SIZE)
- 		return KMALLOC_SHIFT_LOW;
- 
-@@ -102,6 +99,10 @@ static inline int kmalloc_index(size_t s
- 	if (size <=        512) return 9;
- 	if (size <=       1024) return 10;
- 	if (size <=   2 * 1024) return 11;
-+/*
-+ * The following is only needed to support architectures with a larger page
-+ * size than 4k.
-+ */
- 	if (size <=   4 * 1024) return 12;
- 	if (size <=   8 * 1024) return 13;
- 	if (size <=  16 * 1024) return 14;
-@@ -109,13 +110,9 @@ static inline int kmalloc_index(size_t s
- 	if (size <=  64 * 1024) return 16;
- 	if (size <= 128 * 1024) return 17;
- 	if (size <= 256 * 1024) return 18;
--	if (size <=  512 * 1024) return 19;
-+	if (size <= 512 * 1024) return 19;
- 	if (size <= 1024 * 1024) return 20;
- 	if (size <=  2 * 1024 * 1024) return 21;
--	if (size <=  4 * 1024 * 1024) return 22;
--	if (size <=  8 * 1024 * 1024) return 23;
--	if (size <= 16 * 1024 * 1024) return 24;
--	if (size <= 32 * 1024 * 1024) return 25;
- 	return -1;
- 
- /*
-@@ -140,19 +137,6 @@ static inline struct kmem_cache *kmalloc
- 	if (index == 0)
- 		return NULL;
- 
--	/*
--	 * This function only gets expanded if __builtin_constant_p(size), so
--	 * testing it here shouldn't be needed.  But some versions of gcc need
--	 * help.
--	 */
--	if (__builtin_constant_p(size) && index < 0) {
--		/*
--		 * Generate a link failure. Would be great if we could
--		 * do something to stop the compile here.
--		 */
--		extern void __kmalloc_size_too_large(void);
--		__kmalloc_size_too_large();
--	}
- 	return &kmalloc_caches[index];
- }
- 
-@@ -168,15 +152,21 @@ void *__kmalloc(size_t size, gfp_t flags
- 
- static inline void *kmalloc(size_t size, gfp_t flags)
- {
--	if (__builtin_constant_p(size) && !(flags & SLUB_DMA)) {
--		struct kmem_cache *s = kmalloc_slab(size);
-+	if (__builtin_constant_p(size)) {
-+		if (size > PAGE_SIZE / 2)
-+			return (void *)__get_free_pages(flags | __GFP_COMP,
-+							get_order(size));
- 
--		if (!s)
--			return ZERO_SIZE_PTR;
-+		if (!(flags & SLUB_DMA)) {
-+			struct kmem_cache *s = kmalloc_slab(size);
-+
-+			if (!s)
-+				return ZERO_SIZE_PTR;
- 
--		return kmem_cache_alloc(s, flags);
--	} else
--		return __kmalloc(size, flags);
-+			return kmem_cache_alloc(s, flags);
-+		}
-+	}
-+	return __kmalloc(size, flags);
- }
- 
- #ifdef CONFIG_NUMA
-@@ -185,15 +175,16 @@ void *kmem_cache_alloc_node(struct kmem_
- 
- static inline void *kmalloc_node(size_t size, gfp_t flags, int node)
- {
--	if (__builtin_constant_p(size) && !(flags & SLUB_DMA)) {
--		struct kmem_cache *s = kmalloc_slab(size);
-+	if (__builtin_constant_p(size) &&
-+		size <= PAGE_SIZE / 2 && !(flags & SLUB_DMA)) {
-+			struct kmem_cache *s = kmalloc_slab(size);
- 
- 		if (!s)
- 			return ZERO_SIZE_PTR;
- 
- 		return kmem_cache_alloc_node(s, flags, node);
--	} else
--		return __kmalloc_node(size, flags, node);
-+	}
-+	return __kmalloc_node(size, flags, node);
- }
- #endif
- 
-diff -puN mm/slub.c~slub-direct-pass-through-of-page-size-or-higher-kmalloc mm/slub.c
---- a/mm/slub.c~slub-direct-pass-through-of-page-size-or-higher-kmalloc
-+++ a/mm/slub.c
-@@ -2211,11 +2211,11 @@ EXPORT_SYMBOL(kmem_cache_destroy);
-  *		Kmalloc subsystem
-  *******************************************************************/
- 
--struct kmem_cache kmalloc_caches[KMALLOC_SHIFT_HIGH + 1] __cacheline_aligned;
-+struct kmem_cache kmalloc_caches[PAGE_SHIFT] __cacheline_aligned;
- EXPORT_SYMBOL(kmalloc_caches);
- 
- #ifdef CONFIG_ZONE_DMA
--static struct kmem_cache *kmalloc_caches_dma[KMALLOC_SHIFT_HIGH + 1];
-+static struct kmem_cache *kmalloc_caches_dma[PAGE_SHIFT];
- #endif
- 
- static int __init setup_slub_min_order(char *str)
-@@ -2351,12 +2351,8 @@ static struct kmem_cache *get_slab(size_
- 			return ZERO_SIZE_PTR;
- 
- 		index = size_index[(size - 1) / 8];
--	} else {
--		if (size > KMALLOC_MAX_SIZE)
--			return NULL;
--
-+	} else
- 		index = fls(size - 1);
--	}
- 
- #ifdef CONFIG_ZONE_DMA
- 	if (unlikely((flags & SLUB_DMA)))
-@@ -2368,9 +2364,15 @@ static struct kmem_cache *get_slab(size_
- 
- void *__kmalloc(size_t size, gfp_t flags)
- {
--	struct kmem_cache *s = get_slab(size, flags);
-+	struct kmem_cache *s;
- 
--	if (ZERO_OR_NULL_PTR(s))
-+	if (unlikely(size > PAGE_SIZE / 2))
-+		return (void *)__get_free_pages(flags | __GFP_COMP,
-+							get_order(size));
-+
-+	s = get_slab(size, flags);
-+
-+	if (unlikely(ZERO_OR_NULL_PTR(s)))
- 		return s;
- 
- 	return slab_alloc(s, flags, -1, __builtin_return_address(0));
-@@ -2380,9 +2382,15 @@ EXPORT_SYMBOL(__kmalloc);
- #ifdef CONFIG_NUMA
- void *__kmalloc_node(size_t size, gfp_t flags, int node)
- {
--	struct kmem_cache *s = get_slab(size, flags);
-+	struct kmem_cache *s;
- 
--	if (ZERO_OR_NULL_PTR(s))
-+	if (unlikely(size > PAGE_SIZE / 2))
-+		return (void *)__get_free_pages(flags | __GFP_COMP,
-+							get_order(size));
-+
-+	s = get_slab(size, flags);
-+
-+	if (unlikely(ZERO_OR_NULL_PTR(s)))
- 		return s;
- 
- 	return slab_alloc(s, flags, node, __builtin_return_address(0));
-@@ -2427,22 +2435,17 @@ EXPORT_SYMBOL(ksize);
- 
- void kfree(const void *x)
- {
--	struct kmem_cache *s;
- 	struct page *page;
- 
--	/*
--	 * This has to be an unsigned comparison. According to Linus
--	 * some gcc version treat a pointer as a signed entity. Then
--	 * this comparison would be true for all "negative" pointers
--	 * (which would cover the whole upper half of the address space).
--	 */
- 	if (ZERO_OR_NULL_PTR(x))
- 		return;
- 
- 	page = virt_to_head_page(x);
--	s = page->slab;
--
--	slab_free(s, page, (void *)x, __builtin_return_address(0));
-+	if (unlikely(!PageSlab(page))) {
-+		put_page(page);
-+		return;
-+	}
-+	slab_free(page->slab, page, (void *)x, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(kfree);
- 
-@@ -2561,7 +2564,7 @@ void __init kmem_cache_init(void)
- 		caches++;
+diff -puN drivers/ssb/driver_chipcommon.c~ssb-chipcommon-add-function-to-get-processor-clock-fix drivers/ssb/driver_chipcommon.c
+--- a/drivers/ssb/driver_chipcommon.c~ssb-chipcommon-add-function-to-get-processor-clock-fix
++++ a/drivers/ssb/driver_chipcommon.c
+@@ -263,19 +263,19 @@ void ssb_chipco_get_clockcpu(struct ssb_
+ 	*n = chipco_read32(cc, SSB_CHIPCO_CLOCK_N);
+ 	*plltype = (cc->capabilities & SSB_CHIPCO_CAP_PLLT);
+ 	switch (*plltype) {
+-		case SSB_PLLTYPE_2:
+-		case SSB_PLLTYPE_4:
+-		case SSB_PLLTYPE_6:
+-		case SSB_PLLTYPE_7:
+-			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_MIPS);
+-			break;
+-		case SSB_PLLTYPE_3:
+-			/* 5350 uses m2 to control mips */
+-			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_M2);
+-			break;
+-		default:
+-			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_SB);
+-			break;
++	case SSB_PLLTYPE_2:
++	case SSB_PLLTYPE_4:
++	case SSB_PLLTYPE_6:
++	case SSB_PLLTYPE_7:
++		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_MIPS);
++		break;
++	case SSB_PLLTYPE_3:
++		/* 5350 uses m2 to control mips */
++		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_M2);
++		break;
++	default:
++		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_SB);
++		break;
  	}
+ }
  
--	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++) {
-+	for (i = KMALLOC_SHIFT_LOW; i < PAGE_SHIFT; i++) {
- 		create_kmalloc_cache(&kmalloc_caches[i],
- 			"kmalloc", 1 << i, GFP_KERNEL);
- 		caches++;
-@@ -2588,7 +2591,7 @@ void __init kmem_cache_init(void)
- 	slab_state = UP;
- 
- 	/* Provide the correct kmalloc names now that the caches are up */
--	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++)
-+	for (i = KMALLOC_SHIFT_LOW; i < PAGE_SHIFT; i++)
- 		kmalloc_caches[i]. name =
- 			kasprintf(GFP_KERNEL, "kmalloc-%d", 1 << i);
- 
-@@ -2749,7 +2752,12 @@ static struct notifier_block __cpuinitda
- 
- void *__kmalloc_track_caller(size_t size, gfp_t gfpflags, void *caller)
- {
--	struct kmem_cache *s = get_slab(size, gfpflags);
-+	struct kmem_cache *s;
-+
-+	if (unlikely(size > PAGE_SIZE / 2))
-+		return (void *)__get_free_pages(gfpflags | __GFP_COMP,
-+							get_order(size));
-+	s = get_slab(size, gfpflags);
- 
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
-@@ -2760,7 +2768,12 @@ void *__kmalloc_track_caller(size_t size
- void *__kmalloc_node_track_caller(size_t size, gfp_t gfpflags,
- 					int node, void *caller)
- {
--	struct kmem_cache *s = get_slab(size, gfpflags);
-+	struct kmem_cache *s;
-+
-+	if (unlikely(size > PAGE_SIZE / 2))
-+		return (void *)__get_free_pages(gfpflags | __GFP_COMP,
-+							get_order(size));
-+	s = get_slab(size, gfpflags);
- 
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-x86_64-get-mp_bus_to_node-as-early-v2.patch
-x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
-try-parent-numa_node-at-first-before-using-default-v2.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86_64-store-core-id-bits-in-cpuinfo_x8.patch
-x86_64-use-core-id-bits-for-apicid_to_node-initialization.patch
-x86_64-remove-never-used-apic_mapped.patch
-x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes.patch
-x86_64-family-10h-and-11h-to-k8topology.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-hwmon.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+fix-ide-ide-add-platform-ide-driver.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+scsi-fix-build-for-config_scsi_tgt=n-2.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-watchdog.patch
+git-wireless.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-document-linux-memory-policy-v3.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-sparc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
+acpi_battery_add-use-after-free.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
 slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-mm-migratec-cleanups.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
 intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
