@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + natsemi-fix-netdev-error-acounting.patch added to -mm tree
-Date: Thu, 02 Aug 2007 13:47:31 -0700
-Message-ID: <200708022047.l72KlVrq008504@imap1.linux-foundation.org>
+Subject: + pi-futex-set-pf_exiting-without-taking-pi_lock.patch added to -mm tree
+Date: Thu, 02 Aug 2007 14:46:01 -0700
+Message-ID: <200708022146.l72Lk1nR010842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54293 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42326 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752979AbXHBUrt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Aug 2007 16:47:49 -0400
+	by vger.kernel.org with ESMTP id S1754961AbXHBVq2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Aug 2007 17:46:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org, loveminix@yahoo.com.cn, protasnb@gmail.com, thockin@hockin.org
+Cc: oleg@tv-sign.ru, mingo@elte.hu
 
 
 The patch titled
-     natsemi: fix netdev error acounting
+     pi-futex: set PF_EXITING without taking ->pi_lock
 has been added to the -mm tree.  Its filename is
-     natsemi-fix-netdev-error-acounting.patch
+     pi-futex-set-pf_exiting-without-taking-pi_lock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,161 +25,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: natsemi: fix netdev error acounting
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pi-futex: set PF_EXITING without taking ->pi_lock
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-When a detailed netdev error is counted, we also must account for it in the
-aggregated error count.
+It is a bit annoying that do_exit() takes ->pi_lock to set PF_EXITING.  All
+we need is to synchronize with lookup_pi_state() which saw this task
+without PF_EXITING under ->pi_lock.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=8106
+Change do_exit() to use spin_unlock_wait().
 
-Cc: Tim Hockin <thockin@hockin.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Chongfeng Hu <loveminix@yahoo.com.cn>
-Cc: Natalie Protasevich <protasnb@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/natsemi.c |    3 +++
- 1 files changed, 3 insertions(+)
+ kernel/exit.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/natsemi.c~natsemi-fix-netdev-error-acounting drivers/net/natsemi.c
---- a/drivers/net/natsemi.c~natsemi-fix-netdev-error-acounting
-+++ a/drivers/net/natsemi.c
-@@ -2438,13 +2438,16 @@ static void netdev_error(struct net_devi
- 				dev->name);
- 		}
- 		np->stats.rx_fifo_errors++;
-+		np->stats.rx_errors++;
+diff -puN kernel/exit.c~pi-futex-set-pf_exiting-without-taking-pi_lock kernel/exit.c
+--- a/kernel/exit.c~pi-futex-set-pf_exiting-without-taking-pi_lock
++++ a/kernel/exit.c
+@@ -944,13 +944,13 @@ fastcall NORET_TYPE void do_exit(long co
+ 		schedule();
  	}
- 	/* Hmmmmm, it's not clear how to recover from PCI faults. */
- 	if (intr_status & IntrPCIErr) {
- 		printk(KERN_NOTICE "%s: PCI error %#08x\n", dev->name,
- 			intr_status & IntrPCIErr);
- 		np->stats.tx_fifo_errors++;
-+		np->stats.tx_errors++;
- 		np->stats.rx_fifo_errors++;
-+		np->stats.rx_errors++;
- 	}
- 	spin_unlock(&np->lock);
- }
+ 
++	tsk->flags |= PF_EXITING;
+ 	/*
+ 	 * tsk->flags are checked in the futex code to protect against
+ 	 * an exiting task cleaning up the robust pi futexes.
+ 	 */
+-	spin_lock_irq(&tsk->pi_lock);
+-	tsk->flags |= PF_EXITING;
+-	spin_unlock_irq(&tsk->pi_lock);
++	smp_mb();
++	spin_unlock_wait(&tsk->pi_lock);
+ 
+ 	if (unlikely(in_atomic()))
+ 		printk(KERN_INFO "note: %s[%d] exited with preempt_count %d\n",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-mark_tsc_unstable-build-fix.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-hwmon.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
-fix-ide-ide-add-platform-ide-driver.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-natsemi-fix-netdev-error-acounting.patch
-git-ixgbe-build-fix.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-watchdog.patch
-git-wireless.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
-ssb-mainc-needs-dma-mappingh.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
-git-kgdb-fixup.patch
-git-kgdb-arm-fix.patch
-git-kgdb-mips-fix.patch
-git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-acpi_battery_add-use-after-free.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
+fix-theoretical-ccids_readwrite_lock-race.patch
+i386-remove-unnecessary-code.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
 do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+do_poll-return-eintr-when-signalled.patch
+pi-futex-set-pf_exiting-without-taking-pi_lock.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+cpu-hotplug-topology-remove-topology_dev_map.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
