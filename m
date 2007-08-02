@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch added to -mm tree
-Date: Thu, 02 Aug 2007 12:26:56 -0700
-Message-ID: <200708021926.l72JQumD005374@imap1.linux-foundation.org>
+Subject: + cdc-acm-fix-sysfs-attribute-registration-bug.patch added to -mm tree
+Date: Thu, 02 Aug 2007 12:29:32 -0700
+Message-ID: <200708021929.l72JTWCh005533@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50547 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33799 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753749AbXHBT1J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Aug 2007 15:27:09 -0400
+	by vger.kernel.org with ESMTP id S1755264AbXHBT3w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Aug 2007 15:29:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, pavel@ucw.cz
+Cc: stern@rowland.harvard.edu, greg@kroah.com, oneukum@suse.de, stable@kernel.org
 
 
 The patch titled
-     Hibernation: do not try to mark invalid PFNs as nosave
+     cdc-acm: fix sysfs attribute registration bug
 has been added to the -mm tree.  Its filename is
-     hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch
+     cdc-acm-fix-sysfs-attribute-registration-bug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Hibernation: do not try to mark invalid PFNs as nosave
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: cdc-acm: fix sysfs attribute registration bug
+From: Alan Stern <stern@rowland.harvard.edu>
 
-On some systems some PFNs reported by the early initialization code as
-'nosave' may be invalid.  If we try to set the corresponding bits in the
-hibernation bitmap, BUG_ON() in memory_bm_find_bit() will be triggered and
-the system won't be able to boot (cf. 
-https://bugzilla.novell.com/show_bug.cgi?id=296242).
+This patch (as950) fixes a bug in the cdc-acm driver.  It doesn't keep
+track of which interface (control or data) the sysfs attributes get
+registered for, and as a result, during disconnect it will sometimes
+attempt to remove the attributes from the wrong interface.  The
+left-over attributes can cause a crash later on, particularly if the driver
+module has been unloaded.
 
-Prevent this from happening by verifying if the 'nosave' PFNs are valid in
-mark_nosave_pages().
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Acked-by: Oliver Neukum <oneukum@suse.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/snapshot.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/usb/class/cdc-acm.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN kernel/power/snapshot.c~hibernation-do-not-try-to-mark-invalid-pfns-as-nosave kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~hibernation-do-not-try-to-mark-invalid-pfns-as-nosave
-+++ a/kernel/power/snapshot.c
-@@ -709,7 +709,8 @@ static void mark_nosave_pages(struct mem
- 				region->end_pfn << PAGE_SHIFT);
- 
- 		for (pfn = region->start_pfn; pfn < region->end_pfn; pfn++)
--			memory_bm_set_bit(bm, pfn);
-+			if (pfn_valid(pfn))
-+				memory_bm_set_bit(bm, pfn);
+diff -puN drivers/usb/class/cdc-acm.c~cdc-acm-fix-sysfs-attribute-registration-bug drivers/usb/class/cdc-acm.c
+--- a/drivers/usb/class/cdc-acm.c~cdc-acm-fix-sysfs-attribute-registration-bug
++++ a/drivers/usb/class/cdc-acm.c
+@@ -921,6 +921,10 @@ skip_normal_probe:
+ 			return -EINVAL;
+ 		}
  	}
- }
- 
++
++	/* Accept probe requests only for the control interface */
++	if (intf != control_interface)
++		return -ENODEV;
+ 	
+ 	if (usb_interface_claimed(data_interface)) { /* valid in this context */
+ 		dev_dbg(&intf->dev,"The data interface isn't available");
+@@ -1109,10 +1113,12 @@ static void acm_disconnect(struct usb_in
+ 		return;
+ 	}
+ 	if (acm->country_codes){
+-		device_remove_file(&intf->dev, &dev_attr_wCountryCodes);
+-		device_remove_file(&intf->dev, &dev_attr_iCountryCodeRelDate);
++		device_remove_file(&acm->control->dev,
++				&dev_attr_wCountryCodes);
++		device_remove_file(&acm->control->dev,
++				&dev_attr_iCountryCodeRelDate);
+ 	}
+-	device_remove_file(&intf->dev, &dev_attr_bmCapabilities);
++	device_remove_file(&acm->control->dev, &dev_attr_bmCapabilities);
+ 	acm->dev = NULL;
+ 	usb_set_intfdata(acm->control, NULL);
+ 	usb_set_intfdata(acm->data, NULL);
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
 origin.patch
-hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-use-wait-queue-instead-of-busy-looping.patch
-freezer-measure-freezing-time.patch
-shrink_slab-handle-bad-shrinkers.patch
+nikon-d50-is-an-unusual-device.patch
+cdc-acm-fix-sysfs-attribute-registration-bug.patch
