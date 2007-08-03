@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + deprecate-aout-elf-interpreters.patch added to -mm tree
-Date: Fri, 03 Aug 2007 10:48:13 -0700
-Message-ID: <200708031748.l73HmYVN020283@imap1.linux-foundation.org>
+Subject: + deprecate-aout-elf-interpreters-fix.patch added to -mm tree
+Date: Fri, 03 Aug 2007 10:49:15 -0700
+Message-ID: <200708031749.l73HnFQp020316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45066 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39817 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764150AbXHCRsq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Aug 2007 13:48:46 -0400
+	by vger.kernel.org with ESMTP id S1764548AbXHCRt0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Aug 2007 13:49:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@novell.com, ak@suse.de
+Cc: akpm@linux-foundation.org, ak@novell.com, ak@suse.de
 
 
 The patch titled
-     Deprecate a.out ELF interpreters
+     deprecate-aout-elf-interpreters-fix
 has been added to the -mm tree.  Its filename is
-     deprecate-aout-elf-interpreters.patch
+     deprecate-aout-elf-interpreters-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,76 +25,149 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Deprecate a.out ELF interpreters
-From: Andi Kleen <ak@novell.com>
+Subject: deprecate-aout-elf-interpreters-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The Linux ELF loader is quite complicated and messy code (that could
-probably need a rewrite, but that's a different chapter).  One particular
-messy part in it is the support for non ELF a.out ld.sos.  This was
-originally added to make transition from a.out to ELF easier because an
-a.out ELF ld.so could be still build using an older a.out toolkit.  But by
-now that should be fully obsolete and removing it would clean up
-binfmt_elf.c up a bit.
-
-I propose to deprecate this support and remove for 2.6.25.
-
-Drawback is that someone still runs their system with a.out ld.so
-they would need to update the ld.so when updating to a new kernel.
-
-This patch just adds an entry to the deprecation file and a printk
-warning users.
-
-Signed-off-by: Andi Kleen <ak@suse.de>
+Cc: Andi Kleen <ak@novell.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    9 +++++++++
- fs/binfmt_elf.c                            |    7 +++++++
- 2 files changed, 16 insertions(+)
+ fs/binfmt_elf.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~deprecate-aout-elf-interpreters Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~deprecate-aout-elf-interpreters
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -273,3 +273,12 @@ Why:	All mthca hardware also supports MS
- Who:	Roland Dreier <rolandd@cisco.com>
- 
- ---------------------------
-+
-+What:  a.out interpreter support for ELF executables
-+When:  2.6.25
-+Files: fs/binfmt_elf.c
-+Why:   Using a.out interpreters for ELF executables was a feature for
-+       transition from a.out to ELF. But now it is unlikely to be still
-+       needed anymore and removing it would simplify the hairy ELF
-+       loader code.
-+Who:   Andi Kleen <ak@suse.de>
-diff -puN fs/binfmt_elf.c~deprecate-aout-elf-interpreters fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~deprecate-aout-elf-interpreters
+diff -puN Documentation/feature-removal-schedule.txt~deprecate-aout-elf-interpreters-fix Documentation/feature-removal-schedule.txt
+diff -puN fs/binfmt_elf.c~deprecate-aout-elf-interpreters-fix fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~deprecate-aout-elf-interpreters-fix
 +++ a/fs/binfmt_elf.c
-@@ -730,6 +730,7 @@ static int load_elf_binary(struct linux_
+@@ -744,7 +744,8 @@ static int load_elf_binary(struct linux_
  
- 	/* Some simple consistency checks for the interpreter */
- 	if (elf_interpreter) {
-+		static int warn;
- 		interpreter_type = INTERPRETER_ELF | INTERPRETER_AOUT;
+ 		if (interpreter_type == INTERPRETER_AOUT && warn < 10) {
+ 			printk(KERN_WARNING "a.out ELF interpreter %s is "
+-	"deprecated and will not be supported anymore\n", elf_interpreter);
++				"deprecated and will not be supported "
++				"after Linux 2.6.25\n", elf_interpreter);
+ 			warn++;
+ 		}
  
- 		/* Now figure out which format our binary is */
-@@ -741,6 +742,12 @@ static int load_elf_binary(struct linux_
- 		if (memcmp(loc->interp_elf_ex.e_ident, ELFMAG, SELFMAG) != 0)
- 			interpreter_type &= ~INTERPRETER_ELF;
- 
-+		if (interpreter_type == INTERPRETER_AOUT && warn < 10) {
-+			printk(KERN_WARNING "a.out ELF interpreter %s is "
-+	"deprecated and will not be supported anymore\n", elf_interpreter);
-+			warn++;
-+		}
-+
- 		retval = -ELIBBAD;
- 		if (!interpreter_type)
- 			goto out_free_dentry;
 _
 
-Patches currently in -mm which might be from ak@novell.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-deprecate-aout-elf-interpreters.patch
+origin.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-hwmon.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+fix-ide-ide-add-platform-ide-driver.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-watchdog.patch
+git-wireless.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
+ssb-mainc-needs-dma-mappingh.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+acpi_battery_add-use-after-free.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
 deprecate-aout-elf-interpreters-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
