@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-no-abort-on-interrupt.patch added to -mm tree
-Date: Fri, 03 Aug 2007 15:55:10 -0700
-Message-ID: <200708032255.l73MtAHm031788@imap1.linux-foundation.org>
+Subject: + fuse-cleanup-in-release.patch added to -mm tree
+Date: Fri, 03 Aug 2007 15:55:08 -0700
+Message-ID: <200708032255.l73Mt8vd031785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36024 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43215 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763546AbXHCWzU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Aug 2007 18:55:20 -0400
+	by vger.kernel.org with ESMTP id S1763449AbXHCWzR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Aug 2007 18:55:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     fuse: no abort on interrupt
+     fuse: cleanup in release
 has been added to the -mm tree.  Its filename is
-     fuse-no-abort-on-interrupt.patch
+     fuse-cleanup-in-release.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,98 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: no abort on interrupt
+Subject: fuse: cleanup in release
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Don't set 'aborted' flag on a request if it's interrupted.  We have to wait
-for the answer anyway, and this would only a very little time while copying
-the reply.
-
-This means, that write() on the fuse device will not return -ENOENT during
-normal operation, only if the filesystem is aborted by a forced umount or
-through the fusectl interface.
-
-This could simplify userspace code somewhat when backward compatibility with
-earlier kernel versions is not required.
+Move dput/mntput pair from request_end() to fuse_release_end(), because
+there's no other place they are used.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c |   43 ++++++++++++++++++++++++-------------------
- 1 files changed, 24 insertions(+), 19 deletions(-)
+ fs/fuse/dev.c  |    2 --
+ fs/fuse/file.c |    8 ++++++++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN fs/fuse/dev.c~fuse-no-abort-on-interrupt fs/fuse/dev.c
---- a/fs/fuse/dev.c~fuse-no-abort-on-interrupt
+diff -puN fs/fuse/dev.c~fuse-cleanup-in-release fs/fuse/dev.c
+--- a/fs/fuse/dev.c~fuse-cleanup-in-release
 +++ a/fs/fuse/dev.c
-@@ -273,28 +273,41 @@ static void request_wait_answer(struct f
- 			queue_interrupt(fc, req);
+@@ -231,8 +231,6 @@ static void request_end(struct fuse_conn
+ 		fc->num_background--;
  	}
- 
--	if (req->force) {
--		spin_unlock(&fc->lock);
--		wait_event(req->waitq, req->state == FUSE_REQ_FINISHED);
--		spin_lock(&fc->lock);
--	} else {
-+	if (!req->force) {
- 		sigset_t oldset;
- 
- 		/* Only fatal signals may interrupt this */
- 		block_sigs(&oldset);
- 		wait_answer_interruptible(fc, req);
- 		restore_sigs(&oldset);
-+
-+		if (req->aborted)
-+			goto aborted;
-+		if (req->state == FUSE_REQ_FINISHED)
-+			return;
-+
-+		/* Request is not yet in userspace, bail out */
-+		if (req->state == FUSE_REQ_PENDING) {
-+			list_del(&req->list);
-+			__fuse_put_request(req);
-+			req->out.h.error = -EINTR;
-+			return;
-+		}
- 	}
- 
--	if (req->aborted)
--		goto aborted;
--	if (req->state == FUSE_REQ_FINISHED)
-- 		return;
-+	/*
-+	 * Either request is already in userspace, or it was forced.
-+	 * Wait it out.
-+	 */
-+	spin_unlock(&fc->lock);
-+	wait_event(req->waitq, req->state == FUSE_REQ_FINISHED);
-+	spin_lock(&fc->lock);
- 
--	req->out.h.error = -EINTR;
--	req->aborted = 1;
-+	if (!req->aborted)
-+		return;
- 
-  aborted:
-+	BUG_ON(req->state != FUSE_REQ_FINISHED);
- 	if (req->locked) {
- 		/* This is uninterruptible sleep, because data is
- 		   being copied to/from the buffers of req.  During
-@@ -305,14 +318,6 @@ static void request_wait_answer(struct f
- 		wait_event(req->waitq, !req->locked);
- 		spin_lock(&fc->lock);
- 	}
--	if (req->state == FUSE_REQ_PENDING) {
--		list_del(&req->list);
--		__fuse_put_request(req);
--	} else if (req->state == FUSE_REQ_SENT) {
--		spin_unlock(&fc->lock);
--		wait_event(req->waitq, req->state == FUSE_REQ_FINISHED);
--		spin_lock(&fc->lock);
--	}
+ 	spin_unlock(&fc->lock);
+-	dput(req->dentry);
+-	mntput(req->vfsmount);
+ 	wake_up(&req->waitq);
+ 	if (end)
+ 		end(fc, req);
+diff -puN fs/fuse/file.c~fuse-cleanup-in-release fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-cleanup-in-release
++++ a/fs/fuse/file.c
+@@ -71,11 +71,19 @@ static struct fuse_file *fuse_file_get(s
+ 	return ff;
  }
  
- static unsigned len_args(unsigned numargs, struct fuse_arg *args)
++static void fuse_release_end(struct fuse_conn *fc, struct fuse_req *req)
++{
++	dput(req->dentry);
++	mntput(req->vfsmount);
++	fuse_put_request(fc, req);
++}
++
+ static void fuse_file_put(struct fuse_file *ff)
+ {
+ 	if (atomic_dec_and_test(&ff->count)) {
+ 		struct fuse_req *req = ff->reserved_req;
+ 		struct fuse_conn *fc = get_fuse_conn(req->dentry->d_inode);
++		req->end = fuse_release_end;
+ 		request_send_background(fc, req);
+ 		kfree(ff);
+ 	}
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
