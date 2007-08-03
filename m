@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-fix-page-invalidation.patch added to -mm tree
-Date: Fri, 03 Aug 2007 15:55:00 -0700
-Message-ID: <200708032255.l73Mt0kT031764@imap1.linux-foundation.org>
+Subject: + fuse-set-i_nlink-to-sane-value-after-mount.patch added to -mm tree
+Date: Fri, 03 Aug 2007 15:55:02 -0700
+Message-ID: <200708032255.l73Mt2uQ031773@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41753 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40296 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763303AbXHCWzK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Aug 2007 18:55:10 -0400
+	by vger.kernel.org with ESMTP id S1763445AbXHCWzM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Aug 2007 18:55:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     fuse: fix page invalidation
+     fuse: set i_nlink to sane value after mount
 has been added to the -mm tree.  Its filename is
-     fuse-fix-page-invalidation.patch
+     fuse-set-i_nlink-to-sane-value-after-mount.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: fix page invalidation
+Subject: fuse: set i_nlink to sane value after mount
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Other than truncate, there are two cases, when fuse tries to get rid
-of cached pages:
+Aufs seems to depend on a positive i_nlink value.  So fill in a dummy but sane
+value for the root inode at mount time.
 
- a) in open, if KEEP_CACHE flag is not set
- b) in getattr, if file size changed spontaneously
-
-Until now invalidate_mapping_pages() were used, which didn't get rid
-of mapped pages.  This is wrong, and becomes more wrong as dirty pages
-are introduced.  So instead properly invalidate all pages with
-invalidate_inode_pages2().
+The inode attributes are refreshed with the correct values at the first
+opportunity.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c  |    2 +-
- fs/fuse/inode.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/fuse/inode.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN fs/fuse/file.c~fuse-fix-page-invalidation fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-fix-page-invalidation
-+++ a/fs/fuse/file.c
-@@ -87,7 +87,7 @@ void fuse_finish_open(struct inode *inod
- 	if (outarg->open_flags & FOPEN_DIRECT_IO)
- 		file->f_op = &fuse_direct_io_file_operations;
- 	if (!(outarg->open_flags & FOPEN_KEEP_CACHE))
--		invalidate_mapping_pages(inode->i_mapping, 0, -1);
-+		invalidate_inode_pages2(inode->i_mapping);
- 	ff->fh = outarg->fh;
- 	file->private_data = fuse_file_get(ff);
- }
-diff -puN fs/fuse/inode.c~fuse-fix-page-invalidation fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-fix-page-invalidation
+diff -puN fs/fuse/inode.c~fuse-set-i_nlink-to-sane-value-after-mount fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-set-i_nlink-to-sane-value-after-mount
 +++ a/fs/fuse/inode.c
-@@ -143,7 +143,7 @@ void fuse_change_attributes(struct inode
- 	if (S_ISREG(inode->i_mode) && oldsize != attr->size) {
- 		if (attr->size < oldsize)
- 			fuse_truncate(inode->i_mapping, attr->size);
--		invalidate_mapping_pages(inode->i_mapping, 0, -1);
-+		invalidate_inode_pages2(inode->i_mapping);
- 	}
+@@ -480,6 +480,7 @@ static struct inode *get_root_inode(stru
+ 
+ 	attr.mode = mode;
+ 	attr.ino = FUSE_ROOT_ID;
++	attr.nlink = 1;
+ 	return fuse_iget(sb, 1, 0, &attr);
  }
  
 _
