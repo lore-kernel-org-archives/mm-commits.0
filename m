@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-periodic-irq-fix.patch added to -mm tree
-Date: Thu, 02 Aug 2007 16:51:33 -0700
-Message-ID: <200708022351.l72NpX93015613@imap1.linux-foundation.org>
+Subject: + serial-fix-8250-early-console-setup.patch added to -mm tree
+Date: Fri, 03 Aug 2007 09:46:49 -0700
+Message-ID: <200708031646.l73Gknj0017880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52188 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59095 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756685AbXHBXvv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Aug 2007 19:51:51 -0400
+	by vger.kernel.org with ESMTP id S1754918AbXHCQrE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Aug 2007 12:47:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alessandro.zummo@towertech.it, a.zummo@towertech.it, david-b@pacbell.net
+Cc: daniel.ritz-ml@swissonline.ch, daniel.ritz@gmx.ch, yinghai.lu@sun.com
 
 
 The patch titled
-     RTC: periodic irq fix
+     serial: fix 8250 early console setup
 has been added to the -mm tree.  Its filename is
-     rtc-periodic-irq-fix.patch
+     serial-fix-8250-early-console-setup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,152 +25,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RTC: periodic irq fix
-From: Alessandro Zummo <alessandro.zummo@towertech.it>
+Subject: serial: fix 8250 early console setup
+From: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
 
-Add kernel/kernel and kernel/user locking for the periodic irq feature of
-the rtc class.
+The early setup function serial8250_console_early_setup() can be called
+from non __init code (eg.  hotpluggable serial ports like serial_cs) so
+remove the __init from the call chain to avoid crashes.
 
-PIE ioctls are also supported.
-
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Daniel Ritz <daniel.ritz@gmx.ch>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c     |    1 +
- drivers/rtc/interface.c |   15 ++++++++++++---
- drivers/rtc/rtc-dev.c   |   33 +++++++++++----------------------
- 3 files changed, 24 insertions(+), 25 deletions(-)
+ drivers/serial/8250.c       |    2 +-
+ drivers/serial/8250_early.c |    2 +-
+ kernel/printk.c             |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc-periodic-irq-fix drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc-periodic-irq-fix
-+++ a/drivers/rtc/class.c
-@@ -153,6 +153,7 @@ struct rtc_device *rtc_device_register(c
- 	mutex_init(&rtc->ops_lock);
- 	spin_lock_init(&rtc->irq_lock);
- 	spin_lock_init(&rtc->irq_task_lock);
-+	init_waitqueue_head(&rtc->irq_queue);
- 
- 	strlcpy(rtc->name, name, RTC_DEVICE_NAME_SIZE);
- 	snprintf(rtc->dev.bus_id, BUS_ID_SIZE, "rtc%d", id);
-diff -puN drivers/rtc/interface.c~rtc-periodic-irq-fix drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-periodic-irq-fix
-+++ a/drivers/rtc/interface.c
-@@ -210,6 +210,10 @@ int rtc_irq_register(struct rtc_device *
- 	if (task == NULL || task->func == NULL)
- 		return -EINVAL;
- 
-+	/* Cannot register while the char dev is in use */
-+	if (!(mutex_trylock(&rtc->char_lock)))
-+		return -EBUSY;
-+
- 	spin_lock_irq(&rtc->irq_task_lock);
- 	if (rtc->irq_task == NULL) {
- 		rtc->irq_task = task;
-@@ -217,13 +221,14 @@ int rtc_irq_register(struct rtc_device *
- 	}
- 	spin_unlock_irq(&rtc->irq_task_lock);
- 
-+	mutex_unlock(&rtc->char_lock);
-+
- 	return retval;
+diff -puN drivers/serial/8250.c~serial-fix-8250-early-console-setup drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-fix-8250-early-console-setup
++++ a/drivers/serial/8250.c
+@@ -2514,7 +2514,7 @@ static int __init serial8250_console_set
+ 	return uart_set_options(port, co, baud, parity, bits, flow);
  }
- EXPORT_SYMBOL_GPL(rtc_irq_register);
  
- void rtc_irq_unregister(struct rtc_device *rtc, struct rtc_task *task)
+-static int __init serial8250_console_early_setup(void)
++static int serial8250_console_early_setup(void)
  {
--
- 	spin_lock_irq(&rtc->irq_task_lock);
- 	if (rtc->irq_task == task)
- 		rtc->irq_task = NULL;
-@@ -240,8 +245,10 @@ int rtc_irq_set_state(struct rtc_device 
- 		return -ENXIO;
+ 	return serial8250_find_port_for_earlycon();
+ }
+diff -puN drivers/serial/8250_early.c~serial-fix-8250-early-console-setup drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~serial-fix-8250-early-console-setup
++++ a/drivers/serial/8250_early.c
+@@ -227,7 +227,7 @@ int __init setup_early_serial8250_consol
+ 	return 0;
+ }
  
- 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
-+	if (rtc->irq_task != NULL && task == NULL)
-+		err = -EBUSY;
- 	if (rtc->irq_task != task)
--		err = -ENXIO;
-+		err = -EACCES;
- 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
+-int __init serial8250_find_port_for_earlycon(void)
++int serial8250_find_port_for_earlycon(void)
+ {
+ 	struct early_serial8250_device *device = &early_device;
+ 	struct uart_port *port = &device->port;
+diff -puN kernel/printk.c~serial-fix-8250-early-console-setup kernel/printk.c
+--- a/kernel/printk.c~serial-fix-8250-early-console-setup
++++ a/kernel/printk.c
+@@ -732,7 +732,7 @@ int __init add_preferred_console(char *n
+ 	return 0;
+ }
  
- 	if (err == 0)
-@@ -260,8 +267,10 @@ int rtc_irq_set_freq(struct rtc_device *
- 		return -ENXIO;
- 
- 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
-+	if (rtc->irq_task != NULL && task == NULL)
-+		err = -EBUSY;
- 	if (rtc->irq_task != task)
--		err = -ENXIO;
-+		err = -EACCES;
- 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
- 
- 	if (err == 0) {
-diff -puN drivers/rtc/rtc-dev.c~rtc-periodic-irq-fix drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-periodic-irq-fix
-+++ a/drivers/rtc/rtc-dev.c
-@@ -238,17 +238,6 @@ static int rtc_dev_ioctl(struct inode *i
- 		break;
- 	}
- 
--	/* avoid conflicting IRQ users */
--	if (cmd == RTC_PIE_ON || cmd == RTC_PIE_OFF || cmd == RTC_IRQP_SET) {
--		spin_lock_irq(&rtc->irq_task_lock);
--		if (rtc->irq_task)
--			err = -EBUSY;
--		spin_unlock_irq(&rtc->irq_task_lock);
--
--		if (err < 0)
--			return err;
--	}
--
- 	/* try the driver's ioctl interface */
- 	if (ops->ioctl) {
- 		err = ops->ioctl(rtc->dev.parent, cmd, arg);
-@@ -338,18 +327,20 @@ static int rtc_dev_ioctl(struct inode *i
- 		err = rtc_set_time(rtc, &tm);
- 		break;
- 
--	case RTC_IRQP_READ:
--		if (ops->irq_set_freq)
--			err = put_user(rtc->irq_freq, (unsigned long __user *)uarg);
--		else
--			err = -ENOTTY;
-+	case RTC_PIE_ON:
-+		err = rtc_irq_set_state(rtc, NULL, 1);
-+		break;
-+
-+	case RTC_PIE_OFF:
-+		err = rtc_irq_set_state(rtc, NULL, 0);
- 		break;
- 
- 	case RTC_IRQP_SET:
--		if (ops->irq_set_freq)
--			err = rtc_irq_set_freq(rtc, rtc->irq_task, arg);
--		else
--			err = -ENOTTY;
-+		err = rtc_irq_set_freq(rtc, NULL, arg);
-+		break;
-+
-+	case RTC_IRQP_READ:
-+		err = put_user(rtc->irq_freq, (unsigned long __user *)uarg);
- 		break;
- 
- #if 0
-@@ -449,8 +440,6 @@ void rtc_dev_prepare(struct rtc_device *
- 	rtc->dev.devt = MKDEV(MAJOR(rtc_devt), rtc->id);
- 
- 	mutex_init(&rtc->char_lock);
--	spin_lock_init(&rtc->irq_lock);
--	init_waitqueue_head(&rtc->irq_queue);
- #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
- 	INIT_WORK(&rtc->uie_task, rtc_uie_task);
- 	setup_timer(&rtc->uie_timer, rtc_uie_timer, (unsigned long)rtc);
+-int __init update_console_cmdline(char *name, int idx, char *name_new, int idx_new, char *options)
++int update_console_cmdline(char *name, int idx, char *name_new, int idx_new, char *options)
+ {
+ 	struct console_cmdline *c;
+ 	int i;
 _
 
-Patches currently in -mm which might be from alessandro.zummo@towertech.it are
+Patches currently in -mm which might be from daniel.ritz-ml@swissonline.ch are
 
 origin.patch
-rtc-periodic-irq-fix.patch
+serial-fix-8250-early-console-setup.patch
