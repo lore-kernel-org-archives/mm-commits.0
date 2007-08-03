@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-update-backing_dev_info-congestion-state.patch added to -mm tree
-Date: Fri, 03 Aug 2007 15:54:52 -0700
-Message-ID: <200708032254.l73MsqtC031749@imap1.linux-foundation.org>
+Subject: + fuse-fix-reserved-request-wake-up.patch added to -mm tree
+Date: Fri, 03 Aug 2007 15:54:54 -0700
+Message-ID: <200708032254.l73Mss2p031752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50645 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58513 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755671AbXHCWzC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Aug 2007 18:55:02 -0400
+	by vger.kernel.org with ESMTP id S1761583AbXHCWzE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Aug 2007 18:55:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     fuse: update backing_dev_info congestion state
+     fuse: fix reserved request wake up
 has been added to the -mm tree.  Its filename is
-     fuse-update-backing_dev_info-congestion-state.patch
+     fuse-fix-reserved-request-wake-up.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,63 +25,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: update backing_dev_info congestion state
+Subject: fuse: fix reserved request wake up
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Set the read and write congestion state if the request queue is close to
-blocking, and clear it when it's not.
+Use wake_up_all instead of wake_up in put_reserved_req(), otherwise it is
+possible that the right task is not woken up.
 
-This prevents unnecessary blocking in readahead and (when writable mmaps are
-allowed) writeback.
+Also create a separate reserved_req_waitq in addition to the blocked_waitq,
+since they fulfill totally separate functions.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c    |    8 ++++++++
- fs/fuse/fuse_i.h |    5 ++++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ fs/fuse/dev.c    |    4 ++--
+ fs/fuse/fuse_i.h |    3 +++
+ fs/fuse/inode.c  |    2 ++
+ 3 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN fs/fuse/dev.c~fuse-update-backing_dev_info-congestion-state fs/fuse/dev.c
---- a/fs/fuse/dev.c~fuse-update-backing_dev_info-congestion-state
+diff -puN fs/fuse/dev.c~fuse-fix-reserved-request-wake-up fs/fuse/dev.c
+--- a/fs/fuse/dev.c~fuse-fix-reserved-request-wake-up
 +++ a/fs/fuse/dev.c
-@@ -224,6 +224,10 @@ static void request_end(struct fuse_conn
- 			fc->blocked = 0;
- 			wake_up_all(&fc->blocked_waitq);
- 		}
-+		if (fc->num_background == FUSE_CONGESTION_THRESHOLD) {
-+			clear_bdi_congested(&fc->bdi, READ);
-+			clear_bdi_congested(&fc->bdi, WRITE);
-+		}
- 		fc->num_background--;
- 	}
+@@ -129,7 +129,7 @@ static struct fuse_req *get_reserved_req
+ 	struct fuse_file *ff = file->private_data;
+ 
+ 	do {
+-		wait_event(fc->blocked_waitq, ff->reserved_req);
++		wait_event(fc->reserved_req_waitq, ff->reserved_req);
+ 		spin_lock(&fc->lock);
+ 		if (ff->reserved_req) {
+ 			req = ff->reserved_req;
+@@ -155,7 +155,7 @@ static void put_reserved_req(struct fuse
+ 	fuse_request_init(req);
+ 	BUG_ON(ff->reserved_req);
+ 	ff->reserved_req = req;
+-	wake_up(&fc->blocked_waitq);
++	wake_up_all(&fc->reserved_req_waitq);
  	spin_unlock(&fc->lock);
-@@ -378,6 +382,10 @@ static void request_send_nowait(struct f
- 		fc->num_background++;
- 		if (fc->num_background == FUSE_MAX_BACKGROUND)
- 			fc->blocked = 1;
-+		if (fc->num_background == FUSE_CONGESTION_THRESHOLD) {
-+			set_bdi_congested(&fc->bdi, READ);
-+			set_bdi_congested(&fc->bdi, WRITE);
-+		}
- 
- 		queue_request(fc, req);
- 		spin_unlock(&fc->lock);
-diff -puN fs/fuse/fuse_i.h~fuse-update-backing_dev_info-congestion-state fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~fuse-update-backing_dev_info-congestion-state
+ 	fput(file);
+ }
+diff -puN fs/fuse/fuse_i.h~fuse-fix-reserved-request-wake-up fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-fix-reserved-request-wake-up
 +++ a/fs/fuse/fuse_i.h
-@@ -20,7 +20,10 @@
- #define FUSE_MAX_PAGES_PER_REQ 32
+@@ -289,6 +289,9 @@ struct fuse_conn {
+ 	/** waitq for blocked connection */
+ 	wait_queue_head_t blocked_waitq;
  
- /** Maximum number of outstanding background requests */
--#define FUSE_MAX_BACKGROUND 10
-+#define FUSE_MAX_BACKGROUND 12
++	/** waitq for reserved requests */
++	wait_queue_head_t reserved_req_waitq;
 +
-+/** Congestion starts at 75% of maximum */
-+#define FUSE_CONGESTION_THRESHOLD (FUSE_MAX_BACKGROUND * 75 / 100)
+ 	/** The next unique request id */
+ 	u64 reqctr;
  
- /** It could be as large as PATH_MAX, but would that have any uses? */
- #define FUSE_NAME_MAX 1024
+diff -puN fs/fuse/inode.c~fuse-fix-reserved-request-wake-up fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-fix-reserved-request-wake-up
++++ a/fs/fuse/inode.c
+@@ -232,6 +232,7 @@ static void fuse_put_super(struct super_
+ 	kill_fasync(&fc->fasync, SIGIO, POLL_IN);
+ 	wake_up_all(&fc->waitq);
+ 	wake_up_all(&fc->blocked_waitq);
++	wake_up_all(&fc->reserved_req_waitq);
+ 	mutex_lock(&fuse_mutex);
+ 	list_del(&fc->entry);
+ 	fuse_ctl_remove_conn(fc);
+@@ -426,6 +427,7 @@ static struct fuse_conn *new_conn(void)
+ 		atomic_set(&fc->count, 1);
+ 		init_waitqueue_head(&fc->waitq);
+ 		init_waitqueue_head(&fc->blocked_waitq);
++		init_waitqueue_head(&fc->reserved_req_waitq);
+ 		INIT_LIST_HEAD(&fc->pending);
+ 		INIT_LIST_HEAD(&fc->processing);
+ 		INIT_LIST_HEAD(&fc->io);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
