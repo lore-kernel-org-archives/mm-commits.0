@@ -1,92 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-pcmcia-cm40x0_csc-fix-release-function-call.patch added to -mm tree
-Date: Fri, 03 Aug 2007 18:15:24 -0700
-Message-ID: <200708040115.l741FODB004013@imap1.linux-foundation.org>
+Subject: - memoryless-nodes-introduce-mask-of-nodes-with-memory.patch removed from -mm tree
+Date: Fri, 03 Aug 2007 22:15:09 -0700
+Message-ID: <200708040515.l745F9tT011711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34391 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38061 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759211AbXHDBPs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Aug 2007 21:15:48 -0400
+	by vger.kernel.org with ESMTP id S1752232AbXHDFPT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 4 Aug 2007 01:15:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: daniel.ritz-ml@swissonline.ch, daniel.ritz@gmx.ch, laforge@gnumonks.org, mcconnau@biochem.wustl.edu, protasnb@gmail.com
+To: lee.schermerhorn@hp.com, Lee.Schermerhorn@hp.com, bob.picco@hp.com, clameter@sgi.com, nacc@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/pcmcia/cm40x0_cs.c: fix release function call
-has been added to the -mm tree.  Its filename is
-     drivers-char-pcmcia-cm40x0_csc-fix-release-function-call.patch
+     Memoryless nodes: introduce mask of nodes with memory
+has been removed from the -mm tree.  Its filename was
+     memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: drivers/char/pcmcia/cm40x0_cs.c: fix release function call
-From: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
+Subject: Memoryless nodes: introduce mask of nodes with memory
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-cm4000_cs.c and cm4040_cs.c call the internal release function with
-an argument of wrong type. this fixes bug #8485
+It is necessary to know if nodes have memory since we have recently begun to
+add support for memoryless nodes.  For that purpose we introduce a new node
+state N_MEMORY.
 
-Signed-off-by: Daniel Ritz <daniel.ritz@gmx.ch>
-Cc: Bill McConnaughey <mcconnau@biochem.wustl.edu>
-Cc: Natalie Protasevich <protasnb@gmail.com>
-Cc: Harald Welte <laforge@gnumonks.org>
+A node has its bit in node_memory_map set if it has memory.  If a node has
+memory then it has at least one zone defined in its pgdat structure that is
+located in the pgdat itself.
+
+N_MEMORY can then be used in various places to insure that we do the right
+thing when we encounter a memoryless node.
+
+Signed-off-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Tested-off-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Acked-by: Bob Picco <bob.picco@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/cm4000_cs.c |    5 ++---
- drivers/char/pcmcia/cm4040_cs.c |    2 +-
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ include/linux/nodemask.h |    1 +
+ mm/page_alloc.c          |    9 +++++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/pcmcia/cm4000_cs.c~drivers-char-pcmcia-cm40x0_csc-fix-release-function-call drivers/char/pcmcia/cm4000_cs.c
---- a/drivers/char/pcmcia/cm4000_cs.c~drivers-char-pcmcia-cm40x0_csc-fix-release-function-call
-+++ a/drivers/char/pcmcia/cm4000_cs.c
-@@ -1629,7 +1629,7 @@ static int cmm_open(struct inode *inode,
- {
- 	struct cm4000_dev *dev;
- 	struct pcmcia_device *link;
--	int rc, minor = iminor(inode);
-+	int minor = iminor(inode);
+diff -puN include/linux/nodemask.h~memoryless-nodes-introduce-mask-of-nodes-with-memory include/linux/nodemask.h
+--- a/include/linux/nodemask.h~memoryless-nodes-introduce-mask-of-nodes-with-memory
++++ a/include/linux/nodemask.h
+@@ -343,6 +343,7 @@ static inline void __nodes_remap(nodemas
+ enum node_states {
+ 	N_POSSIBLE,	/* The node could become online at some point */
+ 	N_ONLINE,	/* The node is online */
++	N_MEMORY,	/* The node has memory */
+ 	NR_NODE_STATES
+ };
  
- 	if (minor >= CM4000_MAX_DEV)
- 		return -ENODEV;
-@@ -1668,7 +1668,6 @@ static int cmm_open(struct inode *inode,
- 	start_monitor(dev);
+diff -puN mm/page_alloc.c~memoryless-nodes-introduce-mask-of-nodes-with-memory mm/page_alloc.c
+--- a/mm/page_alloc.c~memoryless-nodes-introduce-mask-of-nodes-with-memory
++++ a/mm/page_alloc.c
+@@ -2313,8 +2313,13 @@ static int __build_all_zonelists(void *d
+ 	int nid;
  
- 	link->open = 1;		/* only one open per device */
--	rc = 0;
- 
- 	DEBUGP(2, dev, "<- cmm_open\n");
- 	return nonseekable_open(inode, filp);
-@@ -1824,7 +1823,7 @@ static int cm4000_resume(struct pcmcia_d
- 
- static void cm4000_release(struct pcmcia_device *link)
- {
--	cmm_cm4000_release(link->priv);	/* delay release until device closed */
-+	cmm_cm4000_release(link);	/* delay release until device closed */
- 	pcmcia_disable_device(link);
+ 	for_each_online_node(nid) {
+-		build_zonelists(NODE_DATA(nid));
+-		build_zonelist_cache(NODE_DATA(nid));
++		pg_data_t *pgdat = NODE_DATA(nid);
++
++		build_zonelists(pgdat);
++		build_zonelist_cache(pgdat);
++
++		if (pgdat->node_present_pages)
++			node_set_state(nid, N_MEMORY);
+ 	}
+ 	return 0;
  }
- 
-diff -puN drivers/char/pcmcia/cm4040_cs.c~drivers-char-pcmcia-cm40x0_csc-fix-release-function-call drivers/char/pcmcia/cm4040_cs.c
---- a/drivers/char/pcmcia/cm4040_cs.c~drivers-char-pcmcia-cm40x0_csc-fix-release-function-call
-+++ a/drivers/char/pcmcia/cm4040_cs.c
-@@ -599,7 +599,7 @@ cs_release:
- 
- static void reader_release(struct pcmcia_device *link)
- {
--	cm4040_reader_release(link->priv);
-+	cm4040_reader_release(link);
- 	pcmcia_disable_device(link);
- }
- 
 _
 
-Patches currently in -mm which might be from daniel.ritz-ml@swissonline.ch are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
-origin.patch
-serial-fix-8250-early-console-setup.patch
-drivers-char-pcmcia-cm40x0_csc-fix-release-function-call.patch
+fix-missing-numa_zonelist_order-sysctl.patch
+document-linux-memory-policy-v3.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+memoryless-nodes-fix-interleave-behavior.patch
+oom-use-the-n_memory-map-instead-of-constructing-one-on-the-fly.patch
+memoryless-nodes-no-need-for-kswapd.patch
+memoryless-node-slab-support.patch
+memoryless-nodes-slub-support.patch
+uncached-allocator-handle-memoryless-nodes.patch
+memoryless-node-allow-profiling-data-to-fall-back-to-other-nodes.patch
+memoryless-nodes-update-memory-policy-and-page-migration.patch
+add-n_cpu-node-state.patch
+memoryless-nodes-fix-gfp_thisnode-behavior.patch
+memoryless-nodes-use-node_memory_map-for-cpusets.patch
+memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
