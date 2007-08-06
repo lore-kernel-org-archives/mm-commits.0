@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-count-writeback-pages-per-bdi.patch added to -mm tree
-Date: Mon, 06 Aug 2007 13:19:11 -0700
-Message-ID: <200708062019.l76KJBuo012952@imap1.linux-foundation.org>
+Subject: + lib-floating-proportions.patch added to -mm tree
+Date: Mon, 06 Aug 2007 13:19:13 -0700
+Message-ID: <200708062019.l76KJDGa012958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40609 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41094 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760689AbXHFUTU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:20 -0400
+	by vger.kernel.org with ESMTP id S1762208AbXHFUTX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: a.p.zijlstra@chello.nl
 
 
 The patch titled
-     mm: count writeback pages per BDI
+     lib: floating proportions
 has been added to the -mm tree.  Its filename is
-     mm-count-writeback-pages-per-bdi.patch
+     lib-floating-proportions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,73 +25,395 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: count writeback pages per BDI
+Subject: lib: floating proportions
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Count per BDI writeback pages.
+Given a set of objects, floating proportions aims to efficiently give the
+proportional 'activity' of a single item as compared to the whole set. Where
+'activity' is a measure of a temporal property of the items.
+
+It is efficient in that it need not inspect any other items of the set
+in order to provide the answer. It is not even needed to know how many
+other items there are.
+
+It has one parameter, and that is the period of 'time' over which the
+'activity' is measured.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    1 +
- mm/page-writeback.c         |   12 ++++++++++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ include/linux/proportions.h |   81 ++++++++++
+ lib/Makefile                |    3 
+ lib/proportions.c           |  264 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 347 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi
-+++ a/include/linux/backing-dev.h
-@@ -28,6 +28,7 @@ typedef int (congested_fn)(void *, int);
+diff -puN /dev/null include/linux/proportions.h
+--- /dev/null
++++ a/include/linux/proportions.h
+@@ -0,0 +1,81 @@
++/*
++ * FLoating proportions
++ *
++ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
++ *
++ * This file contains the public data structure and API definitions.
++ */
++
++#ifndef _LINUX_PROPORTIONS_H
++#define _LINUX_PROPORTIONS_H
++
++#include <linux/percpu_counter.h>
++#include <linux/spinlock.h>
++#include <linux/mutex.h>
++
++struct prop_global {
++	/*
++	 * The period over which we differentiate
++	 *
++	 *   period = 2^shift
++	 */
++	int shift;
++	/*
++	 * The total event counter aka 'time'.
++	 *
++	 * Treated as an unsigned long; the lower 'shift - 1' bits are the
++	 * counter bits, the remaining upper bits the period counter.
++	 */
++	struct percpu_counter events;
++};
++
++/*
++ * global proportion descriptor
++ *
++ * this is needed to consitently flip prop_global structures.
++ */
++struct prop_descriptor {
++	int index;
++	struct prop_global pg[2];
++	struct mutex mutex;		/* serialize the prop_global switch */
++};
++
++int prop_descriptor_init(struct prop_descriptor *pd, int shift);
++void prop_change_shift(struct prop_descriptor *pd, int new_shift);
++struct prop_global *prop_get_global(struct prop_descriptor *pd);
++void prop_put_global(struct prop_descriptor *pd, struct prop_global *pg);
++
++struct prop_local {
++	/*
++	 * the local events counter
++	 */
++	struct percpu_counter events;
++
++	/*
++	 * snapshot of the last seen global state
++	 */
++	int shift;
++	unsigned long period;
++	spinlock_t lock;		/* protect the snapshot state */
++};
++
++int prop_local_init(struct prop_local *pl);
++void prop_local_destroy(struct prop_local *pl);
++
++void prop_norm(struct prop_global *pg, struct prop_local *pl);
++
++/*
++ *   ++x_{j}, ++t
++ */
++static inline
++void __prop_inc(struct prop_global *pg, struct prop_local *pl)
++{
++	prop_norm(pg, pl);
++	percpu_counter_add(&pl->events, 1);
++	percpu_counter_add(&pg->events, 1);
++}
++
++void prop_fraction(struct prop_global *pg, struct prop_local *pl,
++		long *numerator, long *denominator);
++
++#endif /* _LINUX_PROPORTIONS_H */
+diff -puN lib/Makefile~lib-floating-proportions lib/Makefile
+--- a/lib/Makefile~lib-floating-proportions
++++ a/lib/Makefile
+@@ -5,7 +5,8 @@
+ lib-y := ctype.o string.o vsprintf.o kasprintf.o cmdline.o \
+ 	 rbtree.o radix-tree.o dump_stack.o \
+ 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
+-	 sha1.o irq_regs.o reciprocal_div.o argv_split.o
++	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
++	 proportions.o
  
- enum bdi_stat_item {
- 	BDI_RECLAIMABLE,
-+	BDI_WRITEBACK,
- 	NR_BDI_STAT_ITEMS
- };
- 
-diff -puN mm/page-writeback.c~mm-count-writeback-pages-per-bdi mm/page-writeback.c
---- a/mm/page-writeback.c~mm-count-writeback-pages-per-bdi
-+++ a/mm/page-writeback.c
-@@ -979,14 +979,18 @@ int test_clear_page_writeback(struct pag
- 	int ret;
- 
- 	if (mapping) {
-+		struct backing_dev_info *bdi = mapping->backing_dev_info;
- 		unsigned long flags;
- 
- 		write_lock_irqsave(&mapping->tree_lock, flags);
- 		ret = TestClearPageWriteback(page);
--		if (ret)
-+		if (ret) {
- 			radix_tree_tag_clear(&mapping->page_tree,
- 						page_index(page),
- 						PAGECACHE_TAG_WRITEBACK);
-+			if (bdi_cap_writeback_dirty(bdi))
-+				__dec_bdi_stat(bdi, BDI_WRITEBACK);
-+		}
- 		write_unlock_irqrestore(&mapping->tree_lock, flags);
- 	} else {
- 		ret = TestClearPageWriteback(page);
-@@ -1002,14 +1006,18 @@ int test_set_page_writeback(struct page 
- 	int ret;
- 
- 	if (mapping) {
-+		struct backing_dev_info *bdi = mapping->backing_dev_info;
- 		unsigned long flags;
- 
- 		write_lock_irqsave(&mapping->tree_lock, flags);
- 		ret = TestSetPageWriteback(page);
--		if (!ret)
-+		if (!ret) {
- 			radix_tree_tag_set(&mapping->page_tree,
- 						page_index(page),
- 						PAGECACHE_TAG_WRITEBACK);
-+			if (bdi_cap_writeback_dirty(bdi))
-+				__inc_bdi_stat(bdi, BDI_WRITEBACK);
-+		}
- 		if (!PageDirty(page))
- 			radix_tree_tag_clear(&mapping->page_tree,
- 						page_index(page),
+ lib-$(CONFIG_MMU) += ioremap.o pagewalk.o
+ lib-$(CONFIG_SMP) += cpumask.o
+diff -puN /dev/null lib/proportions.c
+--- /dev/null
++++ a/lib/proportions.c
+@@ -0,0 +1,264 @@
++/*
++ * Floating proportions
++ *
++ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
++ *
++ * Description:
++ *
++ * The floating proportion is a time derivative with an exponentially decaying
++ * history:
++ *
++ *   p_{j} = \Sum_{i=0} (dx_{j}/dt_{-i}) / 2^(1+i)
++ *
++ * Where j is an element from {prop_local}, x_{j} is j's number of events,
++ * and i the time period over which the differential is taken. So d/dt_{-i} is
++ * the differential over the i-th last period.
++ *
++ * The decaying history gives smooth transitions. The time differential carries
++ * the notion of speed.
++ *
++ * The denominator is 2^(1+i) because we want the series to be normalised, ie.
++ *
++ *   \Sum_{i=0} 1/2^(1+i) = 1
++ *
++ * Further more, if we measure time (t) in the same events as x; so that:
++ *
++ *   t = \Sum_{j} x_{j}
++ *
++ * we get that:
++ *
++ *   \Sum_{j} p_{j} = 1
++ *
++ * Writing this in an iterative fashion we get (dropping the 'd's):
++ *
++ *   if (++x_{j}, ++t > period)
++ *     t /= 2;
++ *     for_each (j)
++ *       x_{j} /= 2;
++ *
++ * so that:
++ *
++ *   p_{j} = x_{j} / t;
++ *
++ * We optimize away the '/= 2' for the global time delta by noting that:
++ *
++ *   if (++t > period) t /= 2:
++ *
++ * Can be approximated by:
++ *
++ *   period/2 + (++t % period/2)
++ *
++ * [ Furthermore, when we choose period to be 2^n it can be written in terms of
++ *   binary operations and wraparound artefacts disappear. ]
++ *
++ * Also note that this yields a natural counter of the elapsed periods:
++ *
++ *   c = t / (period/2)
++ *
++ * [ Its monotonic increasing property can be applied to mitigate the wrap-
++ *   around issue. ]
++ *
++ * This allows us to do away with the loop over all prop_locals on each period
++ * expiration. By remembering the period count under which it was last accessed
++ * as c_{j}, we can obtain the number of 'missed' cycles from:
++ *
++ *   c - c_{j}
++ *
++ * We can then lazily catch up to the global period count every time we are
++ * going to use x_{j}, by doing:
++ *
++ *   x_{j} /= 2^(c - c_{j}), c_{j} = c
++ */
++
++#include <linux/proportions.h>
++#include <linux/rcupdate.h>
++
++int prop_descriptor_init(struct prop_descriptor *pd, int shift)
++{
++	int err;
++
++	pd->index = 0;
++	pd->pg[0].shift = shift;
++	mutex_init(&pd->mutex);
++	err = percpu_counter_init_irq(&pd->pg[0].events, 0);
++	if (err)
++		goto out;
++
++	err = percpu_counter_init_irq(&pd->pg[1].events, 0);
++	if (err)
++		percpu_counter_destroy(&pd->pg[0].events);
++
++out:
++	return err;
++}
++
++/*
++ * We have two copies, and flip between them to make it seem like an atomic
++ * update. The update is not really atomic wrt the events counter, but
++ * it is internally consistent with the bit layout depending on shift.
++ *
++ * We copy the events count, move the bits around and flip the index.
++ */
++void prop_change_shift(struct prop_descriptor *pd, int shift)
++{
++	int index;
++	int offset;
++	u64 events;
++	unsigned long flags;
++
++	mutex_lock(&pd->mutex);
++
++	index = pd->index ^ 1;
++	offset = pd->pg[pd->index].shift - shift;
++	if (!offset)
++		goto out;
++
++	pd->pg[index].shift = shift;
++
++	local_irq_save(flags);
++	events = percpu_counter_sum(
++			&pd->pg[pd->index].events);
++	if (offset < 0)
++		events <<= -offset;
++	else
++		events >>= offset;
++	percpu_counter_set(&pd->pg[index].events, events);
++
++	/*
++	 * ensure the new pg is fully written before the switch
++	 */
++	smp_wmb();
++	pd->index = index;
++	local_irq_restore(flags);
++
++	synchronize_rcu();
++
++out:
++	mutex_unlock(&pd->mutex);
++}
++
++/*
++ * wrap the access to the data in an rcu_read_lock() section;
++ * this is used to track the active references.
++ */
++struct prop_global *prop_get_global(struct prop_descriptor *pd)
++{
++	int index;
++
++	rcu_read_lock();
++	index = pd->index;
++	/*
++	 * match the wmb from vcd_flip()
++	 */
++	smp_rmb();
++	return &pd->pg[index];
++}
++
++void prop_put_global(struct prop_descriptor *pd, struct prop_global *pg)
++{
++	rcu_read_unlock();
++}
++
++static void prop_adjust_shift(struct prop_local *pl, int new_shift)
++{
++	int offset = pl->shift - new_shift;
++
++	if (!offset)
++		return;
++
++	if (offset < 0)
++		pl->period <<= -offset;
++	else
++		pl->period >>= offset;
++
++	pl->shift = new_shift;
++}
++
++int prop_local_init(struct prop_local *pl)
++{
++	spin_lock_init(&pl->lock);
++	pl->shift = 0;
++	pl->period = 0;
++	return percpu_counter_init_irq(&pl->events, 0);
++}
++
++void prop_local_destroy(struct prop_local *pl)
++{
++	percpu_counter_destroy(&pl->events);
++}
++
++/*
++ * Catch up with missed period expirations.
++ *
++ *   until (c_{j} == c)
++ *     x_{j} -= x_{j}/2;
++ *     c_{j}++;
++ */
++void prop_norm(struct prop_global *pg,
++		struct prop_local *pl)
++{
++	unsigned long period = 1UL << (pg->shift - 1);
++	unsigned long period_mask = ~(period - 1);
++	unsigned long global_period;
++	unsigned long flags;
++
++	global_period = percpu_counter_read(&pg->events);
++	global_period &= period_mask;
++
++	/*
++	 * Fast path - check if the local and global period count still match
++	 * outside of the lock.
++	 */
++	if (pl->period == global_period)
++		return;
++
++	spin_lock_irqsave(&pl->lock, flags);
++	prop_adjust_shift(pl, pg->shift);
++	/*
++	 * For each missed period, we half the local counter.
++	 * basically:
++	 *   pl->events >> (global_period - pl->period);
++	 *
++	 * but since the distributed nature of percpu counters make division
++	 * rather hard, use a regular subtraction loop. This is safe, because
++	 * the events will only every be incremented, hence the subtraction
++	 * can never result in a negative number.
++	 */
++	while (pl->period != global_period) {
++		unsigned long val = percpu_counter_read(&pl->events);
++		unsigned long half = (val + 1) >> 1;
++
++		/*
++		 * Half of zero won't be much less, break out.
++		 * This limits the loop to shift iterations, even
++		 * if we missed a million.
++		 */
++		if (!val)
++			break;
++
++		percpu_counter_add(&pl->events, -half);
++		pl->period += period;
++	}
++	pl->period = global_period;
++	spin_unlock_irqrestore(&pl->lock, flags);
++}
++
++/*
++ * Obtain an fraction of this proportion
++ *
++ *   p_{j} = x_{j} / (period/2 + t % period/2)
++ */
++void prop_fraction(struct prop_global *pg, struct prop_local *pl,
++		long *numerator, long *denominator)
++{
++	unsigned long period_2 = 1UL << (pg->shift - 1);
++	unsigned long counter_mask = period_2 - 1;
++	unsigned long global_count;
++
++	prop_norm(pg, pl);
++	*numerator = percpu_counter_read_positive(&pl->events);
++
++	global_count = percpu_counter_read(&pg->events);
++	*denominator = period_2 + (global_count & counter_mask);
++}
++
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
