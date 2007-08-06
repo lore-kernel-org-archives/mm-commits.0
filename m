@@ -1,149 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - pata_sis-fix-mwdma-for-=-udma66-chipsets-and-udma-for-udma33-chipsets.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:53:17 -0700
-Message-ID: <200708060753.l767rHMj016325@imap1.linux-foundation.org>
+Subject: - sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:53:11 -0700
+Message-ID: <200708060753.l767rBUW016316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46917 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55567 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755658AbXHFHx1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:53:27 -0400
+	by vger.kernel.org with ESMTP id S1754726AbXHFHx2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:53:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bzolnier@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_sis: fix MWDMA for <= UDMA66 chipsets and UDMA for UDMA33 chipsets
+     sata_mv: test patch for Hightpoint RocketRaid 1740/1742
 has been removed from the -mm tree.  Its filename was
-     pata_sis-fix-mwdma-for-=-udma66-chipsets-and-udma-for-udma33-chipsets.patch
+     sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_sis: fix MWDMA for <= UDMA66 chipsets and UDMA for UDMA33 chipsets
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: sata_mv: test patch for Hightpoint RocketRaid 1740/1742
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-* Fix MWDMA timings setup in sis_old_set_dmamode() and sis_66_set_dmamode().
+Underneath all the HPT packaging, PCI identifiers, binary driver modules
+and stuff you find that ...
 
-  The old timings were overclocked (even worse behavior than sis5513 IDE driver
-  which depends on BIOS to program correct timings), the new timings are taken
-  from the datasheet (they match timings from ATA spec).
-
-* Fix UDMA timings setup in sis_old_set_dmamode().
-
-  Misplaced pci_write_config_word() call resulted in UDMA timings never
-  being set.
-
-* Fix comments for sis_133_early_set_dmamode() and sis_133_set_dmamode():
-  - only the former function handles early SiS 961 bridges
-  - both functions lack MWDMA timings setup
-
-* Fix typos in sis_100_set_piomode() and sis_133_set_piomode() comments.
-
-* Bump driver version.
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sis.c |   20 +++++++++-----------
- 1 files changed, 9 insertions(+), 11 deletions(-)
+ drivers/ata/sata_mv.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/ata/pata_sis.c~pata_sis-fix-mwdma-for-=-udma66-chipsets-and-udma-for-udma33-chipsets drivers/ata/pata_sis.c
---- a/drivers/ata/pata_sis.c~pata_sis-fix-mwdma-for-=-udma66-chipsets-and-udma-for-udma33-chipsets
-+++ a/drivers/ata/pata_sis.c
-@@ -2,6 +2,7 @@
-  *    pata_sis.c - SiS ATA driver
-  *
-  *	(C) 2005 Red Hat <alan@redhat.com>
-+ *	(C) 2007 Bartlomiej Zolnierkiewicz
-  *
-  *    Based upon linux/drivers/ide/pci/sis5513.c
-  * Copyright (C) 1999-2000	Andre Hedrick <andre@linux-ide.org>
-@@ -35,7 +36,7 @@
- #include "sis.h"
+diff -puN drivers/ata/sata_mv.c~sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742 drivers/ata/sata_mv.c
+--- a/drivers/ata/sata_mv.c~sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742
++++ a/drivers/ata/sata_mv.c
+@@ -621,6 +621,9 @@ static const struct pci_device_id mv_pci
+ 	{ PCI_VDEVICE(MARVELL, 0x5041), chip_504x },
+ 	{ PCI_VDEVICE(MARVELL, 0x5080), chip_5080 },
+ 	{ PCI_VDEVICE(MARVELL, 0x5081), chip_508x },
++	/* RocketRAID 1740/174x have different identifiers */
++	{ PCI_VDEVICE(TTI, 0x1740), chip_508x },
++	{ PCI_VDEVICE(TTI, 0x1742), chip_508x },
  
- #define DRV_NAME	"pata_sis"
--#define DRV_VERSION	"0.5.1"
-+#define DRV_VERSION	"0.5.2"
- 
- struct sis_chipset {
- 	u16 device;				/* PCI host ID */
-@@ -237,7 +238,7 @@ static void sis_old_set_piomode (struct 
- }
- 
- /**
-- *	sis_100_set_pioode - Initialize host controller PATA PIO timings
-+ *	sis_100_set_piomode - Initialize host controller PATA PIO timings
-  *	@ap: Port whose timings we are configuring
-  *	@adev: Device we are configuring for.
-  *
-@@ -262,7 +263,7 @@ static void sis_100_set_piomode (struct 
- }
- 
- /**
-- *	sis_133_set_pioode - Initialize host controller PATA PIO timings
-+ *	sis_133_set_piomode - Initialize host controller PATA PIO timings
-  *	@ap: Port whose timings we are configuring
-  *	@adev: Device we are configuring for.
-  *
-@@ -334,7 +335,7 @@ static void sis_old_set_dmamode (struct 
- 	int drive_pci = sis_old_port_base(adev);
- 	u16 timing;
- 
--	const u16 mwdma_bits[] = { 0x707, 0x202, 0x202 };
-+	const u16 mwdma_bits[] = { 0x008, 0x302, 0x301 };
- 	const u16 udma_bits[]  = { 0xE000, 0xC000, 0xA000 };
- 
- 	pci_read_config_word(pdev, drive_pci, &timing);
-@@ -342,15 +343,15 @@ static void sis_old_set_dmamode (struct 
- 	if (adev->dma_mode < XFER_UDMA_0) {
- 		/* bits 3-0 hold recovery timing bits 8-10 active timing and
- 		   the higer bits are dependant on the device */
--		timing &= ~ 0x870F;
-+		timing &= ~0x870F;
- 		timing |= mwdma_bits[speed];
--		pci_write_config_word(pdev, drive_pci, timing);
- 	} else {
- 		/* Bit 15 is UDMA on/off, bit 13-14 are cycle time */
- 		speed = adev->dma_mode - XFER_UDMA_0;
- 		timing &= ~0x6000;
- 		timing |= udma_bits[speed];
- 	}
-+	pci_write_config_word(pdev, drive_pci, timing);
- }
- 
- /**
-@@ -373,7 +374,7 @@ static void sis_66_set_dmamode (struct a
- 	int drive_pci = sis_old_port_base(adev);
- 	u16 timing;
- 
--	const u16 mwdma_bits[] = { 0x707, 0x202, 0x202 };
-+	const u16 mwdma_bits[] = { 0x008, 0x302, 0x301 };
- 	const u16 udma_bits[]  = { 0xF000, 0xD000, 0xB000, 0xA000, 0x9000};
- 
- 	pci_read_config_word(pdev, drive_pci, &timing);
-@@ -432,8 +433,7 @@ static void sis_100_set_dmamode (struct 
-  *	@adev: Device to program
-  *
-  *	Set UDMA/MWDMA mode for device, in host controller PCI config space.
-- *	Handles early SiS 961 bridges. Supports MWDMA as well unlike
-- *	the old ide/pci driver.
-+ *	Handles early SiS 961 bridges.
-  *
-  *	LOCKING:
-  *	None (inherited from caller).
-@@ -467,8 +467,6 @@ static void sis_133_early_set_dmamode (s
-  *	@adev: Device to program
-  *
-  *	Set UDMA/MWDMA mode for device, in host controller PCI config space.
-- *	Handles early SiS 961 bridges. Supports MWDMA as well unlike
-- *	the old ide/pci driver.
-  *
-  *	LOCKING:
-  *	None (inherited from caller).
+ 	{ PCI_VDEVICE(MARVELL, 0x6040), chip_604x },
+ 	{ PCI_VDEVICE(MARVELL, 0x6041), chip_604x },
 _
 
-Patches currently in -mm which might be from bzolnier@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+
+nozomi-shoot-defunct-label.patch
+git-libata-all.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+libata-acpi-checks-for-80wire-cable-headers.patch
+libata-acpi-checks-for-80wire-cable-implementation.patch
+libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
+libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
+libata-correct-iordy-handling.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+dtc-clean-up-indent-damage-and-add-printk-levels.patch
+kl5kusb105-switch-to-new-speed-api.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+char-cyclades-remove-bottom-half-processing.patch
