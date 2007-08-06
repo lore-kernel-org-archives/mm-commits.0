@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-bdi-init-hooks.patch added to -mm tree
-Date: Mon, 06 Aug 2007 13:19:05 -0700
-Message-ID: <200708062019.l76KJ5E9012932@imap1.linux-foundation.org>
+Subject: + lib-percpu_counter_init-error-handling.patch added to -mm tree
+Date: Mon, 06 Aug 2007 13:19:01 -0700
+Message-ID: <200708062019.l76KJ14e012915@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44559 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41048 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760975AbXHFUTO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:14 -0400
+	by vger.kernel.org with ESMTP id S1761756AbXHFUTL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: a.p.zijlstra@chello.nl
 
 
 The patch titled
-     mtd: bdi init hooks
+     lib: percpu_counter_init error handling
 has been added to the -mm tree.  Its filename is
-     mtd-bdi-init-hooks.patch
+     lib-percpu_counter_init-error-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,58 +25,171 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mtd: bdi init hooks
+Subject: lib: percpu_counter_init error handling
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-split off because the relevant mtd changes seem particular to -mm
+alloc_percpu can fail, propagate that error.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdcore.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ fs/ext2/super.c                |   11 ++++++++---
+ fs/ext3/super.c                |   11 ++++++++---
+ fs/ext4/super.c                |   11 ++++++++---
+ include/linux/percpu_counter.h |    5 +++--
+ lib/percpu_counter.c           |    8 +++++++-
+ 5 files changed, 34 insertions(+), 12 deletions(-)
 
-diff -puN drivers/mtd/mtdcore.c~mtd-bdi-init-hooks drivers/mtd/mtdcore.c
---- a/drivers/mtd/mtdcore.c~mtd-bdi-init-hooks
-+++ a/drivers/mtd/mtdcore.c
-@@ -48,6 +48,7 @@ static LIST_HEAD(mtd_notifiers);
- int add_mtd_device(struct mtd_info *mtd)
- {
- 	int i;
+diff -puN fs/ext2/super.c~lib-percpu_counter_init-error-handling fs/ext2/super.c
+--- a/fs/ext2/super.c~lib-percpu_counter_init-error-handling
++++ a/fs/ext2/super.c
+@@ -711,6 +711,7 @@ static int ext2_fill_super(struct super_
+ 	int db_count;
+ 	int i, j;
+ 	__le32 features;
 +	int err;
  
- 	if (!mtd->backing_dev_info) {
- 		switch (mtd->type) {
-@@ -62,6 +63,9 @@ int add_mtd_device(struct mtd_info *mtd)
- 			break;
- 		}
- 	}
-+	err = bdi_init(mtd->backing_dev_info);
-+	if (err)
-+		return 1;
+ 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if (!sbi)
+@@ -965,12 +966,16 @@ static int ext2_fill_super(struct super_
+ 	get_random_bytes(&sbi->s_next_generation, sizeof(u32));
+ 	spin_lock_init(&sbi->s_next_gen_lock);
  
- 	BUG_ON(mtd->writesize == 0);
- 	mutex_lock(&mtd_table_mutex);
-@@ -102,6 +106,7 @@ int add_mtd_device(struct mtd_info *mtd)
- 		}
+-	percpu_counter_init(&sbi->s_freeblocks_counter,
++	err = percpu_counter_init(&sbi->s_freeblocks_counter,
+ 				ext2_count_free_blocks(sb));
+-	percpu_counter_init(&sbi->s_freeinodes_counter,
++	err |= percpu_counter_init(&sbi->s_freeinodes_counter,
+ 				ext2_count_free_inodes(sb));
+-	percpu_counter_init(&sbi->s_dirs_counter,
++	err |= percpu_counter_init(&sbi->s_dirs_counter,
+ 				ext2_count_dirs(sb));
++	if (err) {
++		printk(KERN_ERR "EXT2-fs: insufficient memory\n");
++		goto failed_mount3;
++	}
+ 	/*
+ 	 * set up enough so that it can read an inode
+ 	 */
+diff -puN fs/ext3/super.c~lib-percpu_counter_init-error-handling fs/ext3/super.c
+--- a/fs/ext3/super.c~lib-percpu_counter_init-error-handling
++++ a/fs/ext3/super.c
+@@ -1485,6 +1485,7 @@ static int ext3_fill_super (struct super
+ 	int i;
+ 	int needs_recovery;
+ 	__le32 features;
++	int err;
  
- 	mutex_unlock(&mtd_table_mutex);
-+	bdi_destroy(mtd->backing_dev_info);
- 	return 1;
+ 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if (!sbi)
+@@ -1745,12 +1746,16 @@ static int ext3_fill_super (struct super
+ 	get_random_bytes(&sbi->s_next_generation, sizeof(u32));
+ 	spin_lock_init(&sbi->s_next_gen_lock);
+ 
+-	percpu_counter_init(&sbi->s_freeblocks_counter,
++	err = percpu_counter_init(&sbi->s_freeblocks_counter,
+ 		ext3_count_free_blocks(sb));
+-	percpu_counter_init(&sbi->s_freeinodes_counter,
++	err |= percpu_counter_init(&sbi->s_freeinodes_counter,
+ 		ext3_count_free_inodes(sb));
+-	percpu_counter_init(&sbi->s_dirs_counter,
++	err |= percpu_counter_init(&sbi->s_dirs_counter,
+ 		ext3_count_dirs(sb));
++	if (err) {
++		printk(KERN_ERR "EXT3-fs: insufficient memory\n");
++		goto failed_mount3;
++	}
+ 
+ 	/* per fileystem reservation list head & lock */
+ 	spin_lock_init(&sbi->s_rsv_window_lock);
+diff -puN fs/ext4/super.c~lib-percpu_counter_init-error-handling fs/ext4/super.c
+--- a/fs/ext4/super.c~lib-percpu_counter_init-error-handling
++++ a/fs/ext4/super.c
+@@ -1548,6 +1548,7 @@ static int ext4_fill_super (struct super
+ 	int needs_recovery;
+ 	__le32 features;
+ 	__u64 blocks_count;
++	int err;
+ 
+ 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if (!sbi)
+@@ -1829,12 +1830,16 @@ static int ext4_fill_super (struct super
+ 	get_random_bytes(&sbi->s_next_generation, sizeof(u32));
+ 	spin_lock_init(&sbi->s_next_gen_lock);
+ 
+-	percpu_counter_init(&sbi->s_freeblocks_counter,
++	err = percpu_counter_init(&sbi->s_freeblocks_counter,
+ 		ext4_count_free_blocks(sb));
+-	percpu_counter_init(&sbi->s_freeinodes_counter,
++	err |= percpu_counter_init(&sbi->s_freeinodes_counter,
+ 		ext4_count_free_inodes(sb));
+-	percpu_counter_init(&sbi->s_dirs_counter,
++	err |= percpu_counter_init(&sbi->s_dirs_counter,
+ 		ext4_count_dirs(sb));
++	if (err) {
++		printk(KERN_ERR "EXT4-fs: insufficient memory\n");
++		goto failed_mount3;
++	}
+ 
+ 	/* per fileystem reservation list head & lock */
+ 	spin_lock_init(&sbi->s_rsv_window_lock);
+diff -puN include/linux/percpu_counter.h~lib-percpu_counter_init-error-handling include/linux/percpu_counter.h
+--- a/include/linux/percpu_counter.h~lib-percpu_counter_init-error-handling
++++ a/include/linux/percpu_counter.h
+@@ -30,7 +30,7 @@ struct percpu_counter {
+ #define FBC_BATCH	(NR_CPUS*4)
+ #endif
+ 
+-void percpu_counter_init(struct percpu_counter *fbc, s64 amount);
++int percpu_counter_init(struct percpu_counter *fbc, s64 amount);
+ void percpu_counter_destroy(struct percpu_counter *fbc);
+ void percpu_counter_set(struct percpu_counter *fbc, s64 amount);
+ void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch);
+@@ -78,9 +78,10 @@ struct percpu_counter {
+ 	s64 count;
+ };
+ 
+-static inline void percpu_counter_init(struct percpu_counter *fbc, s64 amount)
++static inline int percpu_counter_init(struct percpu_counter *fbc, s64 amount)
+ {
+ 	fbc->count = amount;
++	return 0;
  }
  
-@@ -144,6 +149,10 @@ int del_mtd_device (struct mtd_info *mtd
- 	}
- 
- 	mutex_unlock(&mtd_table_mutex);
-+
-+	if (mtd->backing_dev_info)
-+		bdi_destroy(mtd->backing_dev_info);
-+
- 	return ret;
+ static inline void percpu_counter_destroy(struct percpu_counter *fbc)
+diff -puN lib/percpu_counter.c~lib-percpu_counter_init-error-handling lib/percpu_counter.c
+--- a/lib/percpu_counter.c~lib-percpu_counter_init-error-handling
++++ a/lib/percpu_counter.c
+@@ -68,21 +68,27 @@ s64 __percpu_counter_sum(struct percpu_c
  }
+ EXPORT_SYMBOL(__percpu_counter_sum);
  
+-void percpu_counter_init(struct percpu_counter *fbc, s64 amount)
++int percpu_counter_init(struct percpu_counter *fbc, s64 amount)
+ {
+ 	spin_lock_init(&fbc->lock);
+ 	fbc->count = amount;
+ 	fbc->counters = alloc_percpu(s32);
++	if (!fbc->counters)
++		return -ENOMEM;
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	mutex_lock(&percpu_counters_lock);
+ 	list_add(&fbc->list, &percpu_counters);
+ 	mutex_unlock(&percpu_counters_lock);
+ #endif
++	return 0;
+ }
+ EXPORT_SYMBOL(percpu_counter_init);
+ 
+ void percpu_counter_destroy(struct percpu_counter *fbc)
+ {
++	if (!fbc->counters)
++		return;
++
+ 	free_percpu(fbc->counters);
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	mutex_lock(&percpu_counters_lock);
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
