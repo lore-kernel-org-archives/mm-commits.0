@@ -1,27 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - ata-ahci-alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 11:25:34 -0700
-Message-ID: <200708061825.l76IPY9E008146@imap1.linux-foundation.org>
+Subject: + alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch added to -mm tree
+Date: Mon, 06 Aug 2007 11:27:01 -0700
+Message-ID: <200708061827.l76IR1oT008165@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46390 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758965AbXHFSZx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:25:53 -0400
+	by vger.kernel.org with ESMTP id S1755570AbXHFS1N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:27:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristen.c.accardi@intel.com, James.Bottomley@steeleye.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kristen.c.accardi@intel.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     ata ahci ALPM: Enable Aggressive Link Power management for AHCI controllers
-has been removed from the -mm tree.  Its filename was
-     ata-ahci-alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
+     ALPM: enable Aggressive Link Power management for AHCI  controllers.
+has been added to the -mm tree.  Its filename is
+     alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ata ahci ALPM: Enable Aggressive Link Power management for AHCI controllers
+Subject: ALPM: enable Aggressive Link Power management for AHCI  controllers.
 From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
 This patch will set the correct bits to turn on Aggressive Link Power
@@ -45,24 +49,23 @@ medium_power	ALPM is enabled, and link set to enter
 		idle.  Hot plug not allowed.
 
 Signed-off-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ahci.c |  168 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 167 insertions(+), 1 deletion(-)
+ drivers/ata/ahci.c |  178 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 178 insertions(+)
 
-diff -puN drivers/ata/ahci.c~ata-ahci-alpm-enable-aggressive-link-power-management-for-ahci-controllers drivers/ata/ahci.c
---- a/drivers/ata/ahci.c~ata-ahci-alpm-enable-aggressive-link-power-management-for-ahci-controllers
+diff -puN drivers/ata/ahci.c~alpm-enable-aggressive-link-power-management-for-ahci-controllers drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~alpm-enable-aggressive-link-power-management-for-ahci-controllers
 +++ a/drivers/ata/ahci.c
 @@ -48,6 +48,9 @@
  #define DRV_NAME	"ahci"
  #define DRV_VERSION	"2.3"
  
 +static int ahci_enable_alpm(struct ata_port *ap,
-+		enum scsi_host_link_pm policy);
++		enum link_pm policy);
 +static int ahci_disable_alpm(struct ata_port *ap);
  
  enum {
@@ -84,23 +87,27 @@ diff -puN drivers/ata/ahci.c~ata-ahci-alpm-enable-aggressive-link-power-manageme
  	PORT_CMD_ATAPI		= (1 << 24), /* Device is ATAPI */
  	PORT_CMD_LIST_ON	= (1 << 15), /* cmd list DMA engine running */
  	PORT_CMD_FIS_ON		= (1 << 14), /* FIS DMA engine running */
-@@ -175,6 +181,7 @@ enum {
- 	AHCI_FLAG_32BIT_ONLY		= (1 << 28), /* force 32bit */
- 	AHCI_FLAG_MV_PATA		= (1 << 29), /* PATA port */
- 	AHCI_FLAG_NO_MSI		= (1 << 30), /* no PCI MSI */
-+	AHCI_FLAG_NO_HOTPLUG		= (1 << 31), /* ignore PxSERR.DIAG.N */
+@@ -244,6 +250,11 @@ static int ahci_pci_device_suspend(struc
+ static int ahci_pci_device_resume(struct pci_dev *pdev);
+ #endif
  
- 	AHCI_FLAG_COMMON		= ATA_FLAG_SATA | ATA_FLAG_NO_LEGACY |
- 					  ATA_FLAG_MMIO | ATA_FLAG_PIO_DMA |
-@@ -260,6 +267,7 @@ static struct scsi_host_template ahci_sh
++static struct class_device_attribute *ahci_shost_attrs[] = {
++	&class_device_attr_link_power_management_policy,
++	NULL
++};
++
+ static struct scsi_host_template ahci_sht = {
+ 	.module			= THIS_MODULE,
+ 	.name			= DRV_NAME,
+@@ -261,6 +272,7 @@ static struct scsi_host_template ahci_sh
  	.slave_configure	= ata_scsi_slave_config,
  	.slave_destroy		= ata_scsi_slave_destroy,
  	.bios_param		= ata_std_bios_param,
-+	.set_link_pm_policy	= ata_scsi_set_link_pm_policy,
++	.shost_attrs		= ahci_shost_attrs,
  };
  
  static const struct ata_port_operations ahci_ops = {
-@@ -291,6 +299,8 @@ static const struct ata_port_operations 
+@@ -292,6 +304,8 @@ static const struct ata_port_operations 
  	.port_suspend		= ahci_port_suspend,
  	.port_resume		= ahci_port_resume,
  #endif
@@ -109,7 +116,7 @@ diff -puN drivers/ata/ahci.c~ata-ahci-alpm-enable-aggressive-link-power-manageme
  
  	.port_start		= ahci_port_start,
  	.port_stop		= ahci_port_stop,
-@@ -778,6 +788,156 @@ static void ahci_power_up(struct ata_por
+@@ -778,6 +792,156 @@ static void ahci_power_up(struct ata_por
  	writel(cmd | PORT_CMD_ICC_ACTIVE, port_mmio + PORT_CMD);
  }
  
@@ -149,7 +156,7 @@ diff -puN drivers/ata/ahci.c~ata-ahci-alpm-enable-aggressive-link-power-manageme
 +	writel(PORT_IRQ_PHYRDY, port_mmio + PORT_IRQ_STAT);
 +
 +	/* go ahead and clean out PhyRdy Change from Serror too */
-+	ahci_scr_write(ap, SCR_ERROR, (1 << 16));
++	ahci_scr_write(ap, SCR_ERROR, ((1 << 16) | (1 << 18)));
 +
 +	/*
 + 	 * Clear flag to indicate that we should ignore all PhyRdy
@@ -171,7 +178,7 @@ diff -puN drivers/ata/ahci.c~ata-ahci-alpm-enable-aggressive-link-power-manageme
 +}
 +
 +static int ahci_enable_alpm(struct ata_port *ap,
-+	enum scsi_host_link_pm policy)
++	enum link_pm policy)
 +{
 +	struct ahci_host_priv *hpriv = ap->host->private_data;
 +	void __iomem *port_mmio = ahci_port_base(ap);
@@ -181,34 +188,34 @@ diff -puN drivers/ata/ahci.c~ata-ahci-alpm-enable-aggressive-link-power-manageme
 +
 +	/* Make sure the host is capable of link power management */
 +	if (!(hpriv->cap & HOST_CAP_ALPM)) {
-+		ap->pm_policy = SHOST_NOT_AVAILABLE;
++		ap->pm_policy = NOT_AVAILABLE;
 +		return -EINVAL;
 +	}
 +
 +	/* make sure we have a device attached */
 +	sstatus = readl(port_mmio + PORT_SCR_STAT);
 +	if (!(sstatus & 0xf00)) {
-+		ap->pm_policy = SHOST_NOT_AVAILABLE;
++		ap->pm_policy = NOT_AVAILABLE;
 +		return -EINVAL;
 +	}
 +
 +	switch (policy) {
-+	case SHOST_MAX_PERFORMANCE:
-+	case SHOST_NOT_AVAILABLE:
++	case MAX_PERFORMANCE:
++	case NOT_AVAILABLE:
 +		/*
-+ 		 * if we came here with SHOST_NOT_AVAILABLE,
++ 		 * if we came here with NOT_AVAILABLE,
 + 		 * it just means this is the first time we
 + 		 * have tried to enable - default to max performance,
 + 		 * and let the user go to lower power modes on request.
 + 		 */
 +		ahci_disable_alpm(ap);
-+		ap->pm_policy = SHOST_MAX_PERFORMANCE;
++		ap->pm_policy = MAX_PERFORMANCE;
 +		return 0;
-+	case SHOST_MIN_POWER:
++	case MIN_POWER:
 +		/* configure HBA to enter SLUMBER */
 +		asp = PORT_CMD_ASP;
 +		break;
-+	case SHOST_MEDIUM_POWER:
++	case MEDIUM_POWER:
 +		/* configure HBA to enter PARTIAL */
 +		asp = 0;
 +		break;
@@ -266,37 +273,41 @@ diff -puN drivers/ata/ahci.c~ata-ahci-alpm-enable-aggressive-link-power-manageme
  #ifdef CONFIG_PM
  static void ahci_power_down(struct ata_port *ap)
  {
-@@ -1348,6 +1508,10 @@ static void ahci_port_intr(struct ata_po
+@@ -1348,6 +1512,17 @@ static void ahci_port_intr(struct ata_po
  	status = readl(port_mmio + PORT_IRQ_STAT);
  	writel(status, port_mmio + PORT_IRQ_STAT);
  
++	/* If we are getting PhyRdy, this is
++ 	 * just a power state change, we should
++ 	 * clear out this, plus the PhyRdy/Comm
++ 	 * Wake bits from Serror
++ 	 */
 +	if ((ap->flags & AHCI_FLAG_NO_HOTPLUG) &&
-+		(status & PORT_IRQ_PHYRDY))
++		(status & PORT_IRQ_PHYRDY)) {
 +		status &= ~PORT_IRQ_PHYRDY;
++		ahci_scr_write(ap, SCR_ERROR, ((1 << 16) | (1 << 18)));
++	}
 +
  	if (unlikely(status & PORT_IRQ_ERROR)) {
  		ahci_error_intr(ap, status);
  		return;
-@@ -1877,8 +2041,10 @@ static int ahci_init_one(struct pci_dev 
+@@ -1854,6 +2029,9 @@ static int ahci_init_one(struct pci_dev 
+ 		struct ata_port *ap = host->ports[i];
  		void __iomem *port_mmio = ahci_port_base(ap);
  
++		/* set initial link pm policy */
++		ap->pm_policy = NOT_AVAILABLE;
++
  		/* standard SATA port setup */
--		if (hpriv->port_map & (1 << i))
-+		if (hpriv->port_map & (1 << i)) {
+ 		if (hpriv->port_map & (1 << i))
  			ap->ioaddr.cmd_addr = port_mmio;
-+			ap->pm_policy = SHOST_NOT_AVAILABLE;
-+		}
- 
- 		/* disabled/not-implemented port */
- 		else
 _
 
 Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
-store-interrupt-value.patch
-enable-link-power-management-for-ata-drivers.patch
-enable-aggressive-link-power-management-for-ahci.patch
-ata-ahci-alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
+alpm-store-interrupt-value.patch
+alpm-enable-link-power-management-for-ata-drivers.patch
+alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
 acpiphp_ibm-add-missing-n.patch
 cpqphp_ctrlc-remove-dead-code.patch
 acpi-bay-send-envp-with-uevent-fix.patch
