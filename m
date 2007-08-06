@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-parameterstxt-watchdogtxt-should-be-wdttxt.patch added to -mm tree
-Date: Mon, 06 Aug 2007 12:53:16 -0700
-Message-ID: <200708061953.l76JrGJ2011856@imap1.linux-foundation.org>
+Subject: + nfsd-validate-filehandle-type-in-fsid_source.patch added to -mm tree
+Date: Mon, 06 Aug 2007 12:54:47 -0700
+Message-ID: <200708061954.l76Jslre011977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34504 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42593 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765045AbXHFTxl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 15:53:41 -0400
+	by vger.kernel.org with ESMTP id S1757988AbXHFTzV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 15:55:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nix.or.die@googlemail.com
+Cc: neilb@suse.de, bfields@fieldses.org, lcapitulino@gmail.com
 
 
 The patch titled
-     kernel-parameters.txt : watchdog.txt should be wdt.txt
+     nfsd: validate filehandle type in fsid_source
 has been added to the -mm tree.  Its filename is
-     kernel-parameterstxt-watchdogtxt-should-be-wdttxt.patch
+     nfsd-validate-filehandle-type-in-fsid_source.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel-parameters.txt : watchdog.txt should be wdt.txt
-From: Gabriel C <nix.or.die@googlemail.com>
+Subject: nfsd: validate filehandle type in fsid_source
+From: Neil Brown <neilb@suse.de>
 
-Documentation/watchdog/watchdog.txt does not exist, it is Documentation/watchdog/wdt.txt
+fsid_source decided where to get the 'fsid' number to return for a GETATTR
+based on the type of filehandle.  It can be from the device, from the fsid,
+or from the UUID.
 
-Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
+It is possible for the filehandle to be inconsistent with the export
+information, so make sure the export information actually has the info
+implied by the value returned by fsid_source.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "Luiz Fernando N. Capitulino" <lcapitulino@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfsd/nfsfh.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~kernel-parameterstxt-watchdogtxt-should-be-wdttxt Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~kernel-parameterstxt-watchdogtxt-should-be-wdttxt
-+++ a/Documentation/kernel-parameters.txt
-@@ -1960,7 +1960,7 @@ and is between 256 and 4096 characters. 
- 			See header of drivers/scsi/wd7000.c.
- 
- 	wdt=		[WDT] Watchdog
--			See Documentation/watchdog/watchdog.txt.
-+			See Documentation/watchdog/wdt.txt.
- 
- 	xd=		[HW,XT] Original XT pre-IDE (RLL encoded) disks.
- 	xd_geo=		See header of drivers/block/xd.c.
+diff -puN fs/nfsd/nfsfh.c~nfsd-validate-filehandle-type-in-fsid_source fs/nfsd/nfsfh.c
+--- a/fs/nfsd/nfsfh.c~nfsd-validate-filehandle-type-in-fsid_source
++++ a/fs/nfsd/nfsfh.c
+@@ -566,13 +566,23 @@ enum fsid_source fsid_source(struct svc_
+ 	case FSID_DEV:
+ 	case FSID_ENCODE_DEV:
+ 	case FSID_MAJOR_MINOR:
+-		return FSIDSOURCE_DEV;
++		if (fhp->fh_export->ex_dentry->d_inode->i_sb->s_type->fs_flags
++		    & FS_REQUIRES_DEV)
++			return FSIDSOURCE_DEV;
++		break;
+ 	case FSID_NUM:
+-		return FSIDSOURCE_FSID;
+-	default:
+ 		if (fhp->fh_export->ex_flags & NFSEXP_FSID)
+ 			return FSIDSOURCE_FSID;
+-		else
+-			return FSIDSOURCE_UUID;
++		break;
++	default:
++		break;
+ 	}
++	/* either a UUID type filehandle, or the filehandle doesn't
++	 * match the export.
++	 */
++	if (fhp->fh_export->ex_flags & NFSEXP_FSID)
++		return FSIDSOURCE_FSID;
++	if (fhp->fh_export->ex_uuid)
++		return FSIDSOURCE_UUID;
++	return FSIDSOURCE_DEV;
+ }
 _
 
-Patches currently in -mm which might be from nix.or.die@googlemail.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
-linux-audit-list-is-subscribers-only.patch
-kernel-parameterstxt-watchdogtxt-should-be-wdttxt.patch
-git-kvm.patch
-fix-libata-warnings-with-config_pm=n.patch
-mmc-fix-section-mismatch-warnings-for-drivers-mmc-host.patch
-drivers-scsi-g_ncr5380c-ncr53c400_pseudo_dma-is-not.patch
-fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+clean-up-duplicate-includes-in-net-sunrpc.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+nfsd-validate-filehandle-type-in-fsid_source.patch
