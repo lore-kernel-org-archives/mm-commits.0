@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-zero_page.patch added to -mm tree
-Date: Mon, 06 Aug 2007 11:33:26 -0700
-Message-ID: <200708061833.l76IXQXW008520@imap1.linux-foundation.org>
+Subject: + radix-tree-use-indirect-bit.patch added to -mm tree
+Date: Mon, 06 Aug 2007 11:41:11 -0700
+Message-ID: <200708061841.l76IfBcv008842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59246 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42895 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751038AbXHFSdi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:33:38 -0400
+	by vger.kernel.org with ESMTP id S1759280AbXHFSlc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:41:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: npiggin@suse.de, a.p.zijlstra@chello.nl, hugh@veritas.com
 
 
 The patch titled
-     remove ZERO_PAGE
+     radix-tree: use indirect bit
 has been added to the -mm tree.  Its filename is
-     remove-zero_page.patch
+     radix-tree-use-indirect-bit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,459 +25,330 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove ZERO_PAGE
+Subject: radix-tree: use indirect bit
 From: Nick Piggin <npiggin@suse.de>
 
-Inserting a ZERO_PAGE for anonymous read faults appears to be a false
-optimisation: if an application is performance critical, it would not be
-doing read faults of new memory or at least it could be expected to write
-to that memory soon afterwards.  If it is memory use is critical, it should
-not be touching addresses that it knows to be zero anyway.
+Rather than sign direct radix-tree pointers with a special bit, sign the
+indirect one that hangs off the root.  This means that, given a lookup_slot
+operation, the invalid result will be differentiated from the valid
+(previously, valid results could have the bit either set or clear).
 
-eg.  Very sparse matrix code might benefit from the ZERO_PAGE, however it
-would only be a naive implementation that isn't tuned for memory usage
-anyway.
+This does not affect slot lookups which occur under lock -- they can never
+return an invalid result.  Is needed in future for lockless pagecache.
 
-The motivation for this came from a situation where an Altix system was
-essentially livelocked tearing down ZERO_PAGE pagetables when an HPC app
-aborted during startup.  This is also a case of a silly userspace access
-pattern, but it did highlight the potential scalability problem of the
-ZERO_PAGE, and corner cases where it can really hurt.
-
-Mesuring on my desktop system, there are never many mappings to the
-ZERO_PAGE, thus memory usage should not increase too much if we remove it. 
-My desktop is by no means representative, but it gives some indication.
-
-When running a make -j4 kernel compile on my dual core system, there are
-about 1,000 mappings to the ZERO_PAGE created per second, and about 1,000
-ZERO_PAGE COW faults per second!  (Less than 1 ZERO_PAGE mapping per second
-is torn down without being COWed).  So this patch will save 1,000 page
-faults per second, and 2,000 bounces of the ZERO_PAGE struct page cacheline
-per second when running kbuild, which might end up being a significant
-scalability hit on big systems.
-
-The /dev/zero ZERO_PAGE usage and TLB tricks also get nuked.  I don't see
-much use to them except complexity and useless benchmarks.  All other users
-of ZERO_PAGE are converted just to use ZERO_PAGE(0) for simplicity.  We can
-look at replacing them all and ripping out ZERO_PAGE completely if/when
-this patch gets in.
-
-
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c    |  127 ++++-----------------------------
- fs/binfmt_elf.c       |    2 
- fs/binfmt_elf_fdpic.c |    2 
- fs/direct-io.c        |    4 -
- include/linux/mm.h    |    2 
- mm/memory.c           |  151 +++++-----------------------------------
- 6 files changed, 43 insertions(+), 245 deletions(-)
+ include/linux/radix-tree.h |   40 +++++++++++---------
+ lib/radix-tree.c           |   69 +++++++++++++++++++++--------------
+ 2 files changed, 65 insertions(+), 44 deletions(-)
 
-diff -puN drivers/char/mem.c~remove-zero_page drivers/char/mem.c
---- a/drivers/char/mem.c~remove-zero_page
-+++ a/drivers/char/mem.c
-@@ -625,65 +625,10 @@ static ssize_t splice_write_null(struct 
- 	return splice_from_pipe(pipe, out, ppos, len, flags, pipe_to_null);
+diff -puN include/linux/radix-tree.h~radix-tree-use-indirect-bit include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-use-indirect-bit
++++ a/include/linux/radix-tree.h
+@@ -26,28 +26,31 @@
+ #include <linux/rcupdate.h>
+ 
+ /*
+- * A direct pointer (root->rnode pointing directly to a data item,
+- * rather than another radix_tree_node) is signalled by the low bit
+- * set in the root->rnode pointer.
+- *
+- * In this case root->height is also NULL, but the direct pointer tests are
+- * needed for RCU lookups when root->height is unreliable.
++ * An indirect pointer (root->rnode pointing to a radix_tree_node, rather
++ * than a data item) is signalled by the low bit set in the root->rnode
++ * pointer.
++ *
++ * In this case root->height is > 0, but the indirect pointer tests are
++ * needed for RCU lookups (because root->height is unreliable). The only
++ * time callers need worry about this is when doing a lookup_slot under
++ * RCU.
+  */
+-#define RADIX_TREE_DIRECT_PTR	1
++#define RADIX_TREE_INDIRECT_PTR	1
++#define RADIX_TREE_RETRY ((void *)-1UL)
+ 
+-static inline void *radix_tree_ptr_to_direct(void *ptr)
++static inline void *radix_tree_ptr_to_indirect(void *ptr)
+ {
+-	return (void *)((unsigned long)ptr | RADIX_TREE_DIRECT_PTR);
++	return (void *)((unsigned long)ptr | RADIX_TREE_INDIRECT_PTR);
  }
  
--#ifdef CONFIG_MMU
--/*
-- * For fun, we are using the MMU for this.
-- */
--static inline size_t read_zero_pagealigned(char __user * buf, size_t size)
--{
--	struct mm_struct *mm;
--	struct vm_area_struct * vma;
--	unsigned long addr=(unsigned long)buf;
--
--	mm = current->mm;
--	/* Oops, this was forgotten before. -ben */
--	down_read(&mm->mmap_sem);
--
--	/* For private mappings, just map in zero pages. */
--	for (vma = find_vma(mm, addr); vma; vma = vma->vm_next) {
--		unsigned long count;
--
--		if (vma->vm_start > addr || (vma->vm_flags & VM_WRITE) == 0)
--			goto out_up;
--		if (vma->vm_flags & (VM_SHARED | VM_HUGETLB))
--			break;
--		count = vma->vm_end - addr;
--		if (count > size)
--			count = size;
--
--		zap_page_range(vma, addr, count, NULL);
--        	if (zeromap_page_range(vma, addr, count, PAGE_COPY))
--			break;
--
--		size -= count;
--		buf += count;
--		addr += count;
--		if (size == 0)
--			goto out_up;
--	}
--
--	up_read(&mm->mmap_sem);
--	
--	/* The shared case is hard. Let's do the conventional zeroing. */ 
--	do {
--		unsigned long unwritten = clear_user(buf, PAGE_SIZE);
--		if (unwritten)
--			return size + unwritten - PAGE_SIZE;
--		cond_resched();
--		buf += PAGE_SIZE;
--		size -= PAGE_SIZE;
--	} while (size);
--
--	return size;
--out_up:
--	up_read(&mm->mmap_sem);
--	return size;
--}
--
- static ssize_t read_zero(struct file * file, char __user * buf, 
- 			 size_t count, loff_t *ppos)
+-static inline void *radix_tree_direct_to_ptr(void *ptr)
++static inline void *radix_tree_indirect_to_ptr(void *ptr)
  {
--	unsigned long left, unwritten, written = 0;
-+	size_t written;
+-	return (void *)((unsigned long)ptr & ~RADIX_TREE_DIRECT_PTR);
++	return (void *)((unsigned long)ptr & ~RADIX_TREE_INDIRECT_PTR);
+ }
  
- 	if (!count)
- 		return 0;
-@@ -691,69 +636,33 @@ static ssize_t read_zero(struct file * f
- 	if (!access_ok(VERIFY_WRITE, buf, count))
- 		return -EFAULT;
+-static inline int radix_tree_is_direct_ptr(void *ptr)
++static inline int radix_tree_is_indirect_ptr(void *ptr)
+ {
+-	return (int)((unsigned long)ptr & RADIX_TREE_DIRECT_PTR);
++	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
+ }
  
--	left = count;
--
--	/* do we want to be clever? Arbitrary cut-off */
--	if (count >= PAGE_SIZE*4) {
--		unsigned long partial;
--
--		/* How much left of the page? */
--		partial = (PAGE_SIZE-1) & -(unsigned long) buf;
--		unwritten = clear_user(buf, partial);
--		written = partial - unwritten;
-+	written = 0;
-+	while (count) {
-+		unsigned long unwritten;
-+		size_t chunk = count;
-+
-+		if (chunk > PAGE_SIZE)
-+			chunk = PAGE_SIZE;	/* Just for latency reasons */
-+		unwritten = clear_user(buf, chunk);
-+		written += chunk - unwritten;
- 		if (unwritten)
--			goto out;
--		left -= partial;
--		buf += partial;
--		unwritten = read_zero_pagealigned(buf, left & PAGE_MASK);
--		written += (left & PAGE_MASK) - unwritten;
--		if (unwritten)
--			goto out;
--		buf += left & PAGE_MASK;
--		left &= ~PAGE_MASK;
--	}
--	unwritten = clear_user(buf, left);
--	written += left - unwritten;
--out:
--	return written ? written : -EFAULT;
--}
--
--static int mmap_zero(struct file * file, struct vm_area_struct * vma)
--{
--	int err;
--
--	if (vma->vm_flags & VM_SHARED)
--		return shmem_zero_setup(vma);
--	err = zeromap_page_range(vma, vma->vm_start,
--			vma->vm_end - vma->vm_start, vma->vm_page_prot);
--	BUG_ON(err == -EEXIST);
--	return err;
--}
--#else /* CONFIG_MMU */
--static ssize_t read_zero(struct file * file, char * buf, 
--			 size_t count, loff_t *ppos)
--{
--	size_t todo = count;
--
--	while (todo) {
--		size_t chunk = todo;
--
--		if (chunk > 4096)
--			chunk = 4096;	/* Just for latency reasons */
--		if (clear_user(buf, chunk))
--			return -EFAULT;
-+			break;
- 		buf += chunk;
--		todo -= chunk;
-+		count -= chunk;
- 		cond_resched();
+ /*** radix-tree API starts here ***/
+@@ -130,7 +133,10 @@ do {									\
+  */
+ static inline void *radix_tree_deref_slot(void **pslot)
+ {
+-	return radix_tree_direct_to_ptr(*pslot);
++	void *ret = *pslot;
++	if (unlikely(radix_tree_is_indirect_ptr(ret)))
++		ret = RADIX_TREE_RETRY;
++	return ret;
+ }
+ /**
+  * radix_tree_replace_slot	- replace item in a slot
+@@ -142,10 +148,8 @@ static inline void *radix_tree_deref_slo
+  */
+ static inline void radix_tree_replace_slot(void **pslot, void *item)
+ {
+-	BUG_ON(radix_tree_is_direct_ptr(item));
+-	rcu_assign_pointer(*pslot,
+-		(void *)((unsigned long)item |
+-			((unsigned long)*pslot & RADIX_TREE_DIRECT_PTR)));
++	BUG_ON(radix_tree_is_indirect_ptr(item));
++	rcu_assign_pointer(*pslot, item);
+ }
+ 
+ int radix_tree_insert(struct radix_tree_root *, unsigned long, void *);
+diff -puN lib/radix-tree.c~radix-tree-use-indirect-bit lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-use-indirect-bit
++++ a/lib/radix-tree.c
+@@ -104,7 +104,7 @@ radix_tree_node_alloc(struct radix_tree_
+ 			rtp->nr--;
+ 		}
  	}
--	return count;
-+	return written ? written : -EFAULT;
+-	BUG_ON(radix_tree_is_direct_ptr(ret));
++	BUG_ON(radix_tree_is_indirect_ptr(ret));
+ 	return ret;
  }
  
- static int mmap_zero(struct file * file, struct vm_area_struct * vma)
+@@ -240,7 +240,7 @@ static int radix_tree_extend(struct radi
+ 			return -ENOMEM;
+ 
+ 		/* Increase the height.  */
+-		node->slots[0] = radix_tree_direct_to_ptr(root->rnode);
++		node->slots[0] = radix_tree_indirect_to_ptr(root->rnode);
+ 
+ 		/* Propagate the aggregated tag info into the new root */
+ 		for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++) {
+@@ -251,6 +251,7 @@ static int radix_tree_extend(struct radi
+ 		newheight = root->height+1;
+ 		node->height = newheight;
+ 		node->count = 1;
++		node = radix_tree_ptr_to_indirect(node);
+ 		rcu_assign_pointer(root->rnode, node);
+ 		root->height = newheight;
+ 	} while (height > root->height);
+@@ -274,7 +275,7 @@ int radix_tree_insert(struct radix_tree_
+ 	int offset;
+ 	int error;
+ 
+-	BUG_ON(radix_tree_is_direct_ptr(item));
++	BUG_ON(radix_tree_is_indirect_ptr(item));
+ 
+ 	/* Make sure the tree is high enough.  */
+ 	if (index > radix_tree_maxindex(root->height)) {
+@@ -283,7 +284,8 @@ int radix_tree_insert(struct radix_tree_
+ 			return error;
+ 	}
+ 
+-	slot = root->rnode;
++	slot = radix_tree_indirect_to_ptr(root->rnode);
++
+ 	height = root->height;
+ 	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
+ 
+@@ -298,7 +300,8 @@ int radix_tree_insert(struct radix_tree_
+ 				rcu_assign_pointer(node->slots[offset], slot);
+ 				node->count++;
+ 			} else
+-				rcu_assign_pointer(root->rnode, slot);
++				rcu_assign_pointer(root->rnode,
++					radix_tree_ptr_to_indirect(slot));
+ 		}
+ 
+ 		/* Go a level down */
+@@ -318,7 +321,7 @@ int radix_tree_insert(struct radix_tree_
+ 		BUG_ON(tag_get(node, 0, offset));
+ 		BUG_ON(tag_get(node, 1, offset));
+ 	} else {
+-		rcu_assign_pointer(root->rnode, radix_tree_ptr_to_direct(item));
++		rcu_assign_pointer(root->rnode, item);
+ 		BUG_ON(root_tag_get(root, 0));
+ 		BUG_ON(root_tag_get(root, 1));
+ 	}
+@@ -350,11 +353,12 @@ void **radix_tree_lookup_slot(struct rad
+ 	if (node == NULL)
+ 		return NULL;
+ 
+-	if (radix_tree_is_direct_ptr(node)) {
++	if (!radix_tree_is_indirect_ptr(node)) {
+ 		if (index > 0)
+ 			return NULL;
+ 		return (void **)&root->rnode;
+ 	}
++	node = radix_tree_indirect_to_ptr(node);
+ 
+ 	height = node->height;
+ 	if (index > radix_tree_maxindex(height))
+@@ -398,11 +402,12 @@ void *radix_tree_lookup(struct radix_tre
+ 	if (node == NULL)
+ 		return NULL;
+ 
+-	if (radix_tree_is_direct_ptr(node)) {
++	if (!radix_tree_is_indirect_ptr(node)) {
+ 		if (index > 0)
+ 			return NULL;
+-		return radix_tree_direct_to_ptr(node);
++		return node;
+ 	}
++	node = radix_tree_indirect_to_ptr(node);
+ 
+ 	height = node->height;
+ 	if (index > radix_tree_maxindex(height))
+@@ -447,7 +452,7 @@ void *radix_tree_tag_set(struct radix_tr
+ 	height = root->height;
+ 	BUG_ON(index > radix_tree_maxindex(height));
+ 
+-	slot = root->rnode;
++	slot = radix_tree_indirect_to_ptr(root->rnode);
+ 	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
+ 
+ 	while (height > 0) {
+@@ -497,7 +502,7 @@ void *radix_tree_tag_clear(struct radix_
+ 
+ 	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
+ 	pathp->node = NULL;
+-	slot = root->rnode;
++	slot = radix_tree_indirect_to_ptr(root->rnode);
+ 
+ 	while (height > 0) {
+ 		int offset;
+@@ -562,8 +567,9 @@ int radix_tree_tag_get(struct radix_tree
+ 	if (node == NULL)
+ 		return 0;
+ 
+-	if (radix_tree_is_direct_ptr(node))
++	if (!radix_tree_is_indirect_ptr(node))
+ 		return (index == 0);
++	node = radix_tree_indirect_to_ptr(node);
+ 
+ 	height = node->height;
+ 	if (index > radix_tree_maxindex(height))
+@@ -716,13 +722,13 @@ radix_tree_gang_lookup(struct radix_tree
+ 	if (!node)
+ 		return 0;
+ 
+-	if (radix_tree_is_direct_ptr(node)) {
++	if (!radix_tree_is_indirect_ptr(node)) {
+ 		if (first_index > 0)
+ 			return 0;
+-		node = radix_tree_direct_to_ptr(node);
+-		results[0] = rcu_dereference(node);
++		results[0] = node;
+ 		return 1;
+ 	}
++	node = radix_tree_indirect_to_ptr(node);
+ 
+ 	max_index = radix_tree_maxindex(node->height);
+ 
+@@ -844,13 +850,13 @@ radix_tree_gang_lookup_tag(struct radix_
+ 	if (!node)
+ 		return 0;
+ 
+-	if (radix_tree_is_direct_ptr(node)) {
++	if (!radix_tree_is_indirect_ptr(node)) {
+ 		if (first_index > 0)
+ 			return 0;
+-		node = radix_tree_direct_to_ptr(node);
+-		results[0] = rcu_dereference(node);
++		results[0] = node;
+ 		return 1;
+ 	}
++	node = radix_tree_indirect_to_ptr(node);
+ 
+ 	max_index = radix_tree_maxindex(node->height);
+ 
+@@ -880,12 +886,22 @@ EXPORT_SYMBOL(radix_tree_gang_lookup_tag
+ static inline void radix_tree_shrink(struct radix_tree_root *root)
  {
-+#ifndef CONFIG_MMU
- 	return -ENOSYS;
-+#endif
-+	if (vma->vm_flags & VM_SHARED)
-+		return shmem_zero_setup(vma);
-+	return 0;
- }
--#endif /* CONFIG_MMU */
+ 	/* try to shrink tree height */
+-	while (root->height > 0 &&
+-			root->rnode->count == 1 &&
+-			root->rnode->slots[0]) {
++	while (root->height > 0) {
+ 		struct radix_tree_node *to_free = root->rnode;
+ 		void *newptr;
  
- static ssize_t write_full(struct file * file, const char __user * buf,
- 			  size_t count, loff_t *ppos)
-diff -puN fs/binfmt_elf.c~remove-zero_page fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~remove-zero_page
-+++ a/fs/binfmt_elf.c
-@@ -1733,7 +1733,7 @@ static int elf_core_dump(long signr, str
- 						&page, &vma) <= 0) {
- 				DUMP_SEEK(PAGE_SIZE);
- 			} else {
--				if (page == ZERO_PAGE(addr)) {
-+				if (page == ZERO_PAGE(0)) {
- 					if (!dump_seek(file, PAGE_SIZE)) {
- 						page_cache_release(page);
- 						goto end_coredump;
-diff -puN fs/binfmt_elf_fdpic.c~remove-zero_page fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~remove-zero_page
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1488,7 +1488,7 @@ static int elf_fdpic_dump_segments(struc
- 					   &page, &vma) <= 0) {
- 				DUMP_SEEK(file->f_pos + PAGE_SIZE);
- 			}
--			else if (page == ZERO_PAGE(addr)) {
-+			else if (page == ZERO_PAGE(0)) {
- 				page_cache_release(page);
- 				DUMP_SEEK(file->f_pos + PAGE_SIZE);
- 			}
-diff -puN fs/direct-io.c~remove-zero_page fs/direct-io.c
---- a/fs/direct-io.c~remove-zero_page
-+++ a/fs/direct-io.c
-@@ -163,7 +163,7 @@ static int dio_refill_pages(struct dio *
- 	up_read(&current->mm->mmap_sem);
- 
- 	if (ret < 0 && dio->blocks_available && (dio->rw & WRITE)) {
--		struct page *page = ZERO_PAGE(dio->curr_user_address);
-+		struct page *page = ZERO_PAGE(0);
++		BUG_ON(!radix_tree_is_indirect_ptr(to_free));
++		to_free = radix_tree_indirect_to_ptr(to_free);
++
++		/*
++		 * The candidate node has more than one child, or its child
++		 * is not at the leftmost slot, we cannot shrink.
++		 */
++		if (to_free->count != 1)
++			break;
++		if (!to_free->slots[0])
++			break;
++
  		/*
- 		 * A memory fault, but the filesystem has some outstanding
- 		 * mapped blocks.  We need to use those blocks up to avoid
-@@ -772,7 +772,7 @@ static void dio_zero_block(struct dio *d
+ 		 * We don't need rcu_assign_pointer(), since we are simply
+ 		 * moving the node from one part of the tree to another. If
+@@ -894,8 +910,8 @@ static inline void radix_tree_shrink(str
+ 		 * one (root->rnode).
+ 		 */
+ 		newptr = to_free->slots[0];
+-		if (root->height == 1)
+-			newptr = radix_tree_ptr_to_direct(newptr);
++		if (root->height > 1)
++			newptr = radix_tree_ptr_to_indirect(newptr);
+ 		root->rnode = newptr;
+ 		root->height--;
+ 		/* must only free zeroed nodes into the slab */
+@@ -930,12 +946,12 @@ void *radix_tree_delete(struct radix_tre
+ 		goto out;
  
- 	this_chunk_bytes = this_chunk_blocks << dio->blkbits;
+ 	slot = root->rnode;
+-	if (height == 0 && root->rnode) {
+-		slot = radix_tree_direct_to_ptr(slot);
++	if (height == 0) {
+ 		root_tag_clear_all(root);
+ 		root->rnode = NULL;
+ 		goto out;
+ 	}
++	slot = radix_tree_indirect_to_ptr(slot);
  
--	page = ZERO_PAGE(dio->curr_user_address);
-+	page = ZERO_PAGE(0);
- 	if (submit_page_section(dio, page, 0, this_chunk_bytes, 
- 				dio->next_block_for_io))
- 		return;
-diff -puN include/linux/mm.h~remove-zero_page include/linux/mm.h
---- a/include/linux/mm.h~remove-zero_page
-+++ a/include/linux/mm.h
-@@ -776,8 +776,6 @@ void free_pgtables(struct mmu_gather **t
- 		unsigned long floor, unsigned long ceiling);
- int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
- 			struct vm_area_struct *vma);
--int zeromap_page_range(struct vm_area_struct *vma, unsigned long from,
--			unsigned long size, pgprot_t prot);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
+ 	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
+ 	pathp->node = NULL;
+@@ -977,7 +993,8 @@ void *radix_tree_delete(struct radix_tre
+ 			radix_tree_node_free(to_free);
  
-diff -puN mm/memory.c~remove-zero_page mm/memory.c
---- a/mm/memory.c~remove-zero_page
-+++ a/mm/memory.c
-@@ -966,7 +966,7 @@ no_page_table:
- 	 * has touched so far, we don't want to allocate page tables.
- 	 */
- 	if (flags & FOLL_ANON) {
--		page = ZERO_PAGE(address);
-+		page = ZERO_PAGE(0);
- 		if (flags & FOLL_GET)
- 			get_page(page);
- 		BUG_ON(flags & FOLL_WRITE);
-@@ -1111,95 +1111,6 @@ int get_user_pages(struct task_struct *t
- }
- EXPORT_SYMBOL(get_user_pages);
- 
--static int zeromap_pte_range(struct mm_struct *mm, pmd_t *pmd,
--			unsigned long addr, unsigned long end, pgprot_t prot)
--{
--	pte_t *pte;
--	spinlock_t *ptl;
--	int err = 0;
--
--	pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
--	if (!pte)
--		return -EAGAIN;
--	arch_enter_lazy_mmu_mode();
--	do {
--		struct page *page = ZERO_PAGE(addr);
--		pte_t zero_pte = pte_wrprotect(mk_pte(page, prot));
--
--		if (unlikely(!pte_none(*pte))) {
--			err = -EEXIST;
--			pte++;
--			break;
--		}
--		page_cache_get(page);
--		page_add_file_rmap(page);
--		inc_mm_counter(mm, file_rss);
--		set_pte_at(mm, addr, pte, zero_pte);
--	} while (pte++, addr += PAGE_SIZE, addr != end);
--	arch_leave_lazy_mmu_mode();
--	pte_unmap_unlock(pte - 1, ptl);
--	return err;
--}
--
--static inline int zeromap_pmd_range(struct mm_struct *mm, pud_t *pud,
--			unsigned long addr, unsigned long end, pgprot_t prot)
--{
--	pmd_t *pmd;
--	unsigned long next;
--	int err;
--
--	pmd = pmd_alloc(mm, pud, addr);
--	if (!pmd)
--		return -EAGAIN;
--	do {
--		next = pmd_addr_end(addr, end);
--		err = zeromap_pte_range(mm, pmd, addr, next, prot);
--		if (err)
--			break;
--	} while (pmd++, addr = next, addr != end);
--	return err;
--}
--
--static inline int zeromap_pud_range(struct mm_struct *mm, pgd_t *pgd,
--			unsigned long addr, unsigned long end, pgprot_t prot)
--{
--	pud_t *pud;
--	unsigned long next;
--	int err;
--
--	pud = pud_alloc(mm, pgd, addr);
--	if (!pud)
--		return -EAGAIN;
--	do {
--		next = pud_addr_end(addr, end);
--		err = zeromap_pmd_range(mm, pud, addr, next, prot);
--		if (err)
--			break;
--	} while (pud++, addr = next, addr != end);
--	return err;
--}
--
--int zeromap_page_range(struct vm_area_struct *vma,
--			unsigned long addr, unsigned long size, pgprot_t prot)
--{
--	pgd_t *pgd;
--	unsigned long next;
--	unsigned long end = addr + size;
--	struct mm_struct *mm = vma->vm_mm;
--	int err;
--
--	BUG_ON(addr >= end);
--	pgd = pgd_offset(mm, addr);
--	flush_cache_range(vma, addr, end);
--	do {
--		next = pgd_addr_end(addr, end);
--		err = zeromap_pud_range(mm, pgd, addr, next, prot);
--		if (err)
--			break;
--	} while (pgd++, addr = next, addr != end);
--	return err;
--}
--
- pte_t * fastcall get_locked_pte(struct mm_struct *mm, unsigned long addr, spinlock_t **ptl)
- {
- 	pgd_t * pgd = pgd_offset(mm, addr);
-@@ -1714,16 +1625,11 @@ gotten:
- 
- 	if (unlikely(anon_vma_prepare(vma)))
- 		goto oom;
--	if (old_page == ZERO_PAGE(address)) {
--		new_page = alloc_zeroed_user_highpage_movable(vma, address);
--		if (!new_page)
--			goto oom;
--	} else {
--		new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
--		if (!new_page)
--			goto oom;
--		cow_user_page(new_page, old_page, address, vma);
--	}
-+	VM_BUG_ON(old_page == ZERO_PAGE(0));
-+	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
-+	if (!new_page)
-+		goto oom;
-+	cow_user_page(new_page, old_page, address, vma);
- 
- 	/*
- 	 * Re-check the pte - we dropped the lock
-@@ -2249,39 +2155,24 @@ static int do_anonymous_page(struct mm_s
- 	spinlock_t *ptl;
- 	pte_t entry;
- 
--	if (write_access) {
--		/* Allocate our own private page. */
--		pte_unmap(page_table);
--
--		if (unlikely(anon_vma_prepare(vma)))
--			goto oom;
--		page = alloc_zeroed_user_highpage_movable(vma, address);
--		if (!page)
--			goto oom;
--
--		entry = mk_pte(page, vma->vm_page_prot);
--		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
-+	/* Allocate our own private page. */
-+	pte_unmap(page_table);
- 
--		page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
--		if (!pte_none(*page_table))
--			goto release;
--		inc_mm_counter(mm, anon_rss);
--		lru_cache_add_active(page);
--		page_add_new_anon_rmap(page, vma, address);
--	} else {
--		/* Map the ZERO_PAGE - vm_page_prot is readonly */
--		page = ZERO_PAGE(address);
--		page_cache_get(page);
--		entry = mk_pte(page, vma->vm_page_prot);
-+	if (unlikely(anon_vma_prepare(vma)))
-+		goto oom;
-+	page = alloc_zeroed_user_highpage_movable(vma, address);
-+	if (!page)
-+		goto oom;
- 
--		ptl = pte_lockptr(mm, pmd);
--		spin_lock(ptl);
--		if (!pte_none(*page_table))
--			goto release;
--		inc_mm_counter(mm, file_rss);
--		page_add_file_rmap(page);
--	}
-+	entry = mk_pte(page, vma->vm_page_prot);
-+	entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 
-+	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
-+	if (!pte_none(*page_table))
-+		goto release;
-+	inc_mm_counter(mm, anon_rss);
-+	lru_cache_add_active(page);
-+	page_add_new_anon_rmap(page, vma, address);
- 	set_pte_at(mm, address, page_table, entry);
- 
- 	/* No need to invalidate - it was non-present before */
+ 		if (pathp->node->count) {
+-			if (pathp->node == root->rnode)
++			if (pathp->node ==
++					radix_tree_indirect_to_ptr(root->rnode))
+ 				radix_tree_shrink(root);
+ 			goto out;
+ 		}
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
 
 remove-zero_page.patch
+mm-use-lockless-radix-tree-probe.patch
+mm-improve-find_lock_page.patch
+mm-clarify-__add_to_swap_cache-locking.patch
+radix-tree-use-indirect-bit.patch
 mm-revert-kernel_ds-buffered-write-optimisation.patch
 revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
 revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
