@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch added to -mm tree
-Date: Mon, 06 Aug 2007 12:22:14 -0700
-Message-ID: <200708061922.l76JMEeY010619@imap1.linux-foundation.org>
+Subject: + wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch added to -mm tree
+Date: Mon, 06 Aug 2007 12:22:16 -0700
+Message-ID: <200708061922.l76JMG36010622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34562 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40632 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755943AbXHFTWz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 15:22:55 -0400
+	by vger.kernel.org with ESMTP id S1757988AbXHFTW5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 15:22:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: apw@shadowen.org, mel@csn.ul.ie
 
 
 The patch titled
-     synchronous lumpy reclaim: ensure we count pages transitioning inactive via clear_active_flags
+     synchronous lumpy reclaim: wait for page writeback when directly reclaiming contiguous areas
 has been added to the -mm tree.  Its filename is
-     ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch
+     wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,156 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: synchronous lumpy reclaim: ensure we count pages transitioning inactive via clear_active_flags
+Subject: synchronous lumpy reclaim: wait for page writeback when directly reclaiming contiguous areas
 From: Andy Whitcroft <apw@shadowen.org>
 
-As pointed out by Mel when reclaim is applied at higher orders a significant
-amount of IO may be started.  As this takes finite time to drain reclaim will
-consider more areas than ultimatly needed to satisfy the request.  This leads
-to more reclaim than strictly required and reduced success rates.
+Lumpy reclaim works by selecting a lead page from the LRU list and then
+selecting pages for reclaim from the order-aligned area of pages.  In the
+situation were all pages in that region are inactive and not referenced by any
+process over time, it works well.
 
-I was able to confirm Mel's test results on systems locally.  These show that
-even under light load the success rates drop off far more than expected. 
-Testing with a modified version of his patch (which follows) I was able to
-allocate almost all of ZONE_MOVABLE with a near idle system.  I ran 5 test
-passes sequentially following system boot (the system has 29 hugepages in
-ZONE_MOVABLE):
+In the situation where there is even light load on the system, the pages may
+not free quickly.  Out of a area of 1024 pages, maybe only 950 of them are
+freed when the allocation attempt occurs because lumpy reclaim returned early.
+ This patch alters the behaviour of direct reclaim for large contiguous
+blocks.
 
-  2.6.23-rc1              11  8  6  7  7
-  sync_lumpy              28 28 29 29 26
+The first attempt to call shrink_page_list() is asynchronous but if it fails,
+the pages are submitted a second time and the calling process waits for the IO
+to complete.  This may stall allocators waiting for contiguous memory but that
+should be expected behaviour for high-order users.  It is preferable behaviour
+to potentially queueing unnecessary areas for IO.  Note that kswapd will not
+stall in this fashion.
 
-These show that although hugely better than the near 0% success normally
-expected we can only allocate about a 1/4 of the zone.  Using synchronous
-reclaim for these allocations we get close to 100% as expected.
-
-I have also run our standard high order tests and these show no regressions in
-allocation success rates at rest, and some significant improvements under
-load.
-
-
-This patch:
-
-We are transitioning pages from active to inactive in clear_active_flags,
-those need counting as PGDEACTIVATE vm events.
-
+[apw@shadowen.org: update to version 2]
+[apw@shadowen.org: update to version 3]
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmscan.c |   60 +++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 52 insertions(+), 8 deletions(-)
 
-diff -puN mm/vmscan.c~ensure-we-count-pages-transitioning-inactive-via-clear_active_flags mm/vmscan.c
---- a/mm/vmscan.c~ensure-we-count-pages-transitioning-inactive-via-clear_active_flags
+diff -puN mm/vmscan.c~wait-for-page-writeback-when-directly-reclaiming-contiguous-areas mm/vmscan.c
+--- a/mm/vmscan.c~wait-for-page-writeback-when-directly-reclaiming-contiguous-areas
 +++ a/mm/vmscan.c
-@@ -777,6 +777,7 @@ static unsigned long shrink_inactive_lis
- 			     (sc->order > PAGE_ALLOC_COSTLY_ORDER)?
- 					     ISOLATE_BOTH : ISOLATE_INACTIVE);
- 		nr_active = clear_active_flags(&page_list);
-+		__count_vm_events(PGDEACTIVATE, nr_active);
+@@ -271,6 +271,12 @@ static void handle_write_error(struct ad
+ 	unlock_page(page);
+ }
  
- 		__mod_zone_page_state(zone, NR_ACTIVE, -nr_active);
- 		__mod_zone_page_state(zone, NR_INACTIVE,
++/* Request for sync pageout. */
++enum pageout_io {
++	PAGEOUT_IO_ASYNC,
++	PAGEOUT_IO_SYNC,
++};
++
+ /* possible outcome of pageout() */
+ typedef enum {
+ 	/* failed to write page out, page is locked */
+@@ -287,7 +293,8 @@ typedef enum {
+  * pageout is called by shrink_page_list() for each dirty page.
+  * Calls ->writepage().
+  */
+-static pageout_t pageout(struct page *page, struct address_space *mapping)
++static pageout_t pageout(struct page *page, struct address_space *mapping,
++						enum pageout_io sync_writeback)
+ {
+ 	/*
+ 	 * If the page is dirty, only perform writeback if that write
+@@ -346,6 +353,15 @@ static pageout_t pageout(struct page *pa
+ 			ClearPageReclaim(page);
+ 			return PAGE_ACTIVATE;
+ 		}
++
++		/*
++		 * Wait on writeback if requested to. This happens when
++		 * direct reclaiming a large contiguous area and the
++		 * first attempt to free a range of pages fails.
++		 */
++		if (PageWriteback(page) && sync_writeback == PAGEOUT_IO_SYNC)
++			wait_on_page_writeback(page);
++
+ 		if (!PageWriteback(page)) {
+ 			/* synchronous write or broken a_ops? */
+ 			ClearPageReclaim(page);
+@@ -423,7 +439,8 @@ cannot_free:
+  * shrink_page_list() returns the number of reclaimed pages
+  */
+ static unsigned long shrink_page_list(struct list_head *page_list,
+-					struct scan_control *sc)
++					struct scan_control *sc,
++					enum pageout_io sync_writeback)
+ {
+ 	LIST_HEAD(ret_pages);
+ 	struct pagevec freed_pvec;
+@@ -458,8 +475,15 @@ static unsigned long shrink_page_list(st
+ 		if (page_mapped(page) || PageSwapCache(page))
+ 			sc->nr_scanned++;
+ 
+-		if (PageWriteback(page))
+-			goto keep_locked;
++		may_enter_fs = (sc->gfp_mask & __GFP_FS) ||
++			(PageSwapCache(page) && (sc->gfp_mask & __GFP_IO));
++
++		if (PageWriteback(page)) {
++			if (sync_writeback == PAGEOUT_IO_SYNC && may_enter_fs)
++				wait_on_page_writeback(page);
++			else
++				goto keep_locked;
++		}
+ 
+ 		referenced = page_referenced(page, 1);
+ 		/* In active use or really unfreeable?  Activate it. */
+@@ -478,8 +502,6 @@ static unsigned long shrink_page_list(st
+ #endif /* CONFIG_SWAP */
+ 
+ 		mapping = page_mapping(page);
+-		may_enter_fs = (sc->gfp_mask & __GFP_FS) ||
+-			(PageSwapCache(page) && (sc->gfp_mask & __GFP_IO));
+ 
+ 		/*
+ 		 * The page is mapped into the page tables of one or more
+@@ -505,7 +527,7 @@ static unsigned long shrink_page_list(st
+ 				goto keep_locked;
+ 
+ 			/* Page is dirty, try to write it out here */
+-			switch(pageout(page, mapping)) {
++			switch (pageout(page, mapping, sync_writeback)) {
+ 			case PAGE_KEEP:
+ 				goto keep_locked;
+ 			case PAGE_ACTIVATE:
+@@ -786,7 +808,29 @@ static unsigned long shrink_inactive_lis
+ 		spin_unlock_irq(&zone->lru_lock);
+ 
+ 		nr_scanned += nr_scan;
+-		nr_freed = shrink_page_list(&page_list, sc);
++		nr_freed = shrink_page_list(&page_list, sc, PAGEOUT_IO_ASYNC);
++
++		/*
++		 * If we are direct reclaiming for contiguous pages and we do
++		 * not reclaim everything in the list, try again and wait
++		 * for IO to complete. This will stall high-order allocations
++		 * but that should be acceptable to the caller
++		 */
++		if (nr_freed < nr_taken && !current_is_kswapd() &&
++					sc->order > PAGE_ALLOC_COSTLY_ORDER) {
++			congestion_wait(WRITE, HZ/10);
++
++			/*
++			 * The attempt at page out may have made some
++			 * of the pages active, mark them inactive again.
++			 */
++			nr_active = clear_active_flags(&page_list);
++			count_vm_events(PGDEACTIVATE, nr_active);
++
++			nr_freed += shrink_page_list(&page_list, sc,
++							PAGEOUT_IO_SYNC);
++		}
++
+ 		nr_reclaimed += nr_freed;
+ 		local_irq_disable();
+ 		if (current_is_kswapd()) {
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
