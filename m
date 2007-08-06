@@ -1,101 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - pata_cmd64x-correct-the-speed-ranges.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:53:15 -0700
-Message-ID: <200708060753.l767rFv3016322@imap1.linux-foundation.org>
+Subject: - serial-fix-8250-early-console-setup.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:52:50 -0700
+Message-ID: <200708060752.l767qolA016266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43331 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54726 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754726AbXHFHxe (ORCPT
+	by vger.kernel.org with ESMTP id S1756638AbXHFHxe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:53:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
+To: daniel.ritz-ml@swissonline.ch, daniel.ritz@gmx.ch, yinghai.lu@sun.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_cmd64x: correct the speed ranges
+     serial: fix 8250 early console setup
 has been removed from the -mm tree.  Its filename was
-     pata_cmd64x-correct-the-speed-ranges.patch
+     serial-fix-8250-early-console-setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_cmd64x: correct the speed ranges
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: serial: fix 8250 early console setup
+From: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
 
-I must have been half asleep when doing the original code.
+The early setup function serial8250_console_early_setup() can be called
+from non __init code (eg.  hotpluggable serial ports like serial_cs) so
+remove the __init from the call chain to avoid crashes.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Signed-off-by: Daniel Ritz <daniel.ritz@gmx.ch>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cmd64x.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/serial/8250.c       |    2 +-
+ drivers/serial/8250_early.c |    2 +-
+ kernel/printk.c             |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_cmd64x.c~pata_cmd64x-correct-the-speed-ranges drivers/ata/pata_cmd64x.c
---- a/drivers/ata/pata_cmd64x.c~pata_cmd64x-correct-the-speed-ranges
-+++ a/drivers/ata/pata_cmd64x.c
-@@ -31,7 +31,7 @@
- #include <linux/libata.h>
+diff -puN drivers/serial/8250.c~serial-fix-8250-early-console-setup drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-fix-8250-early-console-setup
++++ a/drivers/serial/8250.c
+@@ -2514,7 +2514,7 @@ static int __init serial8250_console_set
+ 	return uart_set_options(port, co, baud, parity, bits, flow);
+ }
  
- #define DRV_NAME "pata_cmd64x"
--#define DRV_VERSION "0.2.3"
-+#define DRV_VERSION "0.2.4"
+-static int __init serial8250_console_early_setup(void)
++static int serial8250_console_early_setup(void)
+ {
+ 	return serial8250_find_port_for_earlycon();
+ }
+diff -puN drivers/serial/8250_early.c~serial-fix-8250-early-console-setup drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~serial-fix-8250-early-console-setup
++++ a/drivers/serial/8250_early.c
+@@ -227,7 +227,7 @@ int __init setup_early_serial8250_consol
+ 	return 0;
+ }
  
- /*
-  * CMD64x specific registers definition.
-@@ -397,7 +397,7 @@ static int cmd64x_init_one(struct pci_de
- 			.flags = ATA_FLAG_SLAVE_POSS,
- 			.pio_mask = 0x1f,
- 			.mwdma_mask = 0x07,
--			.udma_mask = ATA_UDMA1,
-+			.udma_mask = ATA_UDMA2,
- 			.port_ops = &cmd64x_port_ops
- 		},
- 		{	/* CMD 646 rev 1  */
-@@ -412,7 +412,7 @@ static int cmd64x_init_one(struct pci_de
- 			.flags = ATA_FLAG_SLAVE_POSS,
- 			.pio_mask = 0x1f,
- 			.mwdma_mask = 0x07,
--			.udma_mask = ATA_UDMA2,
-+			.udma_mask = ATA_UDMA4,
- 			.port_ops = &cmd648_port_ops
- 		},
- 		{	/* CMD 649 */
-@@ -420,7 +420,7 @@ static int cmd64x_init_one(struct pci_de
- 			.flags = ATA_FLAG_SLAVE_POSS,
- 			.pio_mask = 0x1f,
- 			.mwdma_mask = 0x07,
--			.udma_mask = ATA_UDMA3,
-+			.udma_mask = ATA_UDMA5,
- 			.port_ops = &cmd648_port_ops
- 		}
- 	};
+-int __init serial8250_find_port_for_earlycon(void)
++int serial8250_find_port_for_earlycon(void)
+ {
+ 	struct early_serial8250_device *device = &early_device;
+ 	struct uart_port *port = &device->port;
+diff -puN kernel/printk.c~serial-fix-8250-early-console-setup kernel/printk.c
+--- a/kernel/printk.c~serial-fix-8250-early-console-setup
++++ a/kernel/printk.c
+@@ -732,7 +732,7 @@ int __init add_preferred_console(char *n
+ 	return 0;
+ }
+ 
+-int __init update_console_cmdline(char *name, int idx, char *name_new, int idx_new, char *options)
++int update_console_cmdline(char *name, int idx, char *name_new, int idx_new, char *options)
+ {
+ 	struct console_cmdline *c;
+ 	int i;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from daniel.ritz-ml@swissonline.ch are
 
-nozomi-shoot-defunct-label.patch
-git-libata-all.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-libata-acpi-checks-for-80wire-cable-headers.patch
-libata-acpi-checks-for-80wire-cable-implementation.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
-libata-correct-iordy-handling.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-dtc-clean-up-indent-damage-and-add-printk-levels.patch
-kl5kusb105-switch-to-new-speed-api.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-char-cyclades-remove-bottom-half-processing.patch
+drivers-char-pcmcia-cm40x0_csc-fix-release-function-call.patch
