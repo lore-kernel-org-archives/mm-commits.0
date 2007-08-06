@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-lockless-radix-tree-probe.patch added to -mm tree
-Date: Mon, 06 Aug 2007 11:41:07 -0700
-Message-ID: <200708061841.l76If7AP008828@imap1.linux-foundation.org>
+Subject: + memory-hotplug-document-take-3.patch added to -mm tree
+Date: Mon, 06 Aug 2007 11:42:04 -0700
+Message-ID: <200708061842.l76Ig4Hm008870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54981 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56464 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932928AbXHFSlR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:41:17 -0400
+	by vger.kernel.org with ESMTP id S1759667AbXHFSmQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:42:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: y-goto@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     mm: use lockless radix-tree probe
+     Memory hotplug document
 has been added to the -mm tree.  Its filename is
-     mm-use-lockless-radix-tree-probe.patch
+     memory-hotplug-document-take-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,143 +25,352 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: use lockless radix-tree probe
-From: Nick Piggin <npiggin@suse.de>
+Subject: Memory hotplug document
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Probing pages and radix_tree_tagged are lockless operations with the lockless
-radix-tree.  Convert these users to RCU locking rather than using tree_lock.
+This is add a document for memory hotplug to describe "How to use" and
+"Current status".
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    8 +++-----
- mm/readahead.c      |    6 ++----
- 2 files changed, 5 insertions(+), 9 deletions(-)
+ Documentation/memory-hotplug.txt |  322 +++++++++++++++++++++++++++++
+ 1 file changed, 322 insertions(+)
 
-diff -puN mm/page-writeback.c~mm-use-lockless-radix-tree-probe mm/page-writeback.c
---- a/mm/page-writeback.c~mm-use-lockless-radix-tree-probe
-+++ a/mm/page-writeback.c
-@@ -1022,17 +1022,15 @@ int test_set_page_writeback(struct page 
- EXPORT_SYMBOL(test_set_page_writeback);
- 
- /*
-- * Return true if any of the pages in the mapping are marged with the
-+ * Return true if any of the pages in the mapping are marked with the
-  * passed tag.
-  */
- int mapping_tagged(struct address_space *mapping, int tag)
- {
--	unsigned long flags;
- 	int ret;
--
--	read_lock_irqsave(&mapping->tree_lock, flags);
-+	rcu_read_lock();
- 	ret = radix_tree_tagged(&mapping->page_tree, tag);
--	read_unlock_irqrestore(&mapping->tree_lock, flags);
-+	rcu_read_unlock();
- 	return ret;
- }
- EXPORT_SYMBOL(mapping_tagged);
-diff -puN mm/readahead.c~mm-use-lockless-radix-tree-probe mm/readahead.c
---- a/mm/readahead.c~mm-use-lockless-radix-tree-probe
-+++ a/mm/readahead.c
-@@ -148,20 +148,19 @@ __do_page_cache_readahead(struct address
- 	/*
- 	 * Preallocate as many pages as we will need.
- 	 */
--	read_lock_irq(&mapping->tree_lock);
- 	for (page_idx = 0; page_idx < nr_to_read; page_idx++) {
- 		pgoff_t page_offset = offset + page_idx;
- 
- 		if (page_offset > end_index)
- 			break;
- 
-+		rcu_read_lock();
- 		page = radix_tree_lookup(&mapping->page_tree, page_offset);
-+		rcu_read_unlock();
- 		if (page)
- 			continue;
- 
--		read_unlock_irq(&mapping->tree_lock);
- 		page = page_cache_alloc_cold(mapping);
--		read_lock_irq(&mapping->tree_lock);
- 		if (!page)
- 			break;
- 		page->index = page_offset;
-@@ -170,7 +169,6 @@ __do_page_cache_readahead(struct address
- 			SetPageReadahead(page);
- 		ret++;
- 	}
--	read_unlock_irq(&mapping->tree_lock);
- 
- 	/*
- 	 * Now start the IO.  We ignore I/O errors - if the page is not
+diff -puN /dev/null Documentation/memory-hotplug.txt
+--- /dev/null
++++ a/Documentation/memory-hotplug.txt
+@@ -0,0 +1,322 @@
++==============
++Memory Hotplug
++==============
++
++Last Updated: Jul 28 2007
++
++This document is about memory hotplug including how-to-use and current status.
++Because Memory Hotplug is still under development, contents of this text will
++be changed often.
++
++1. Introduction
++  1.1 purpose of memory hotplug
++  1.2. Phases of memory hotplug
++  1.3. Unit of Memory online/offline operation
++2. Kernel Configuration
++3. sysfs files for memory hotplug
++4. Physical memory hot-add phase
++  4.1 Hardware(Firmware) Support
++  4.2 Notify memory hot-add event by hand
++5. Logical Memory hot-add phase
++  5.1. State of memory
++  5.2. How to online memory
++6. Logical memory remove
++  6.1 Memory offline and ZONE_MOVABLE
++  6.2. How to offline memory
++7. Physical memory remove
++8. Future Work List
++
++Note(1): x86_64's has special implementation for memory hotplug.
++         This text does not describe it.
++Note(2): This text assumes that sysfs is mounted at /sys.
++
++
++---------------
++1. Introduction
++---------------
++
++1.1 purpose of memory hotplug
++------------
++Memory Hotplug allows users to increase/decrease the amount of memory.
++Generally, there are two purposes.
++
++(A) For changing the amount of memory.
++    This is to allow a feature like capacity on demand.
++(B) For installing/removing DIMMs or NUMA-nodes physically.
++    This is to exchange DIMMs/NUMA-nodes, reduce power consumption, etc.
++
++(A) is required by highly virtualized environments and (B) is required by
++hardware which supports memory power management.
++
++Linux memory hotplug is designed for both purpose.
++
++
++1.2. Phases of memory hotplug
++---------------
++There are 2 phases in Memory Hotplug.
++  1) Physical Memory Hotplug phase
++  2) Logical Memory Hotplug phase.
++
++The First phase is to communicate hardware/firmware and make/erase
++environment for hotplugged memory. Basically, this phase is necessary
++for the purpose (B), but this is good phase for communication between
++highly virtualized environments too.
++
++When memory is hotplugged, the kernel recognizes new memory, makes new memory
++management tables, and makes sysfs files for new memory's operation.
++
++If firmware supports notification of connection of new memory to OS,
++this phase is triggered automatically. ACPI can notify this event. If not,
++"probe" operation by system administration is used instead.
++(see Section 4.).
++
++Logical Memory Hotplug phase is to change memory state into
++avaiable/unavailable for users. Amount of memory from user's view is
++changed by this phase. The kernel makes all memory in it as free pages
++when a memory range is available.
++
++In this document, this phase is described as online/offline.
++
++Logical Memory Hotplug phase is triggred by write of sysfs file by system
++administrator. For the hot-add case, it must be executed after Physical Hotplug
++phase by hand.
++(However, if you writes udev's hotplug scripts for memory hotplug, these
++ phases can be execute in seamless way.)
++
++
++1.3. Unit of Memory online/offline operation
++------------
++Memory hotplug uses SPARSEMEM memory model. SPARSEMEM divides the whole memory
++into chunks of the same size. The chunk is called a "section". The size of
++a section is architecture dependent. For example, power uses 16MiB, ia64 uses
++1GiB. The unit of online/offline operation is "one section". (see Section 3.)
++
++To determine the size of sections, please read this file:
++
++/sys/devices/system/memory/block_size_bytes
++
++This file shows the size of sections in byte.
++
++-----------------------
++2. Kernel Configuration
++-----------------------
++To use memory hotplug feature, kernel must be compiled with following
++config options.
++
++- For all memory hotplug
++    Memory model -> Sparse Memory  (CONFIG_SPARSEMEM)
++    Allow for memory hot-add       (CONFIG_MEMORY_HOTPLUG)
++
++- To enable memory removal, the followings are also necessary
++    Allow for memory hot remove    (CONFIG_MEMORY_HOTREMOVE)
++    Page Migration                 (CONFIG_MIGRATION)
++
++- For ACPI memory hotplug, the followings are also necessary
++    Memory hotplug (under ACPI Support menu) (CONFIG_ACPI_HOTPLUG_MEMORY)
++    This option can be kernel module.
++
++- As a related configuration, if your box has a feature of NUMA-node hotplug
++  via ACPI, then this option is necessary too.
++    ACPI0004,PNP0A05 and PNP0A06 Container Driver (under ACPI Support menu)
++    (CONFIG_ACPI_CONTAINER).
++    This option can be kernel module too.
++
++--------------------------------
++3 sysfs files for memory hotplug
++--------------------------------
++All sections have their device information under /sys/devices/system/memory as
++
++/sys/devices/system/memory/memoryXXX
++(XXX is section id.)
++
++Now, XXX is defined as start_address_of_section / section_size.
++
++For example, assume 1GiB section size. A device for a memory starting at
++0x100000000 is /sys/device/system/memory/memory4
++(0x100000000 / 1Gib = 4)
++This device covers address range [0x100000000 ... 0x140000000)
++
++Under each section, you can see 3 files.
++
++/sys/devices/system/memory/memoryXXX/phys_index
++/sys/devices/system/memory/memoryXXX/phys_device
++/sys/devices/system/memory/memoryXXX/state
++
++'phys_index' : read-only and contains section id, same as XXX.
++'state'      : read-write
++               at read:  contains online/offline state of memory.
++               at write: user can specify "online", "offline" command
++'phys_device': read-only: designed to show the name of physical memory device.
++               This is not well implemented now.
++
++NOTE:
++  These directories/files appear after physical memory hotplug phase.
++
++
++--------------------------------
++4. Physical memory hot-add phase
++--------------------------------
++
++4.1 Hardware(Firmware) Support
++------------
++On x86_64/ia64 platform, memory hotplug by ACPI is supported.
++
++In general, the firmware (ACPI) which supports memory hotplug defines
++memory class object of _HID "PNP0C80". When a notify is asserted to PNP0C80,
++Linux's ACPI handler does hot-add memory to the system and calls a hotplug udev
++script. This will be done automatically.
++
++But scripts for memory hotplug are not contained in generic udev package(now).
++You may have to write it by yourself or online/offline memory by hand.
++Please see "How to online memory", "How to offline memory" in this text.
++
++If firmware supports NUMA-node hotplug, and defines an object _HID "ACPI0004",
++"PNP0A05", or "PNP0A06", notification is asserted to it, and ACPI handler
++calls hotplug code for all of objects which are defined in it.
++If memory device is found, memory hotplug code will be called.
++
++
++4.2 Notify memory hot-add event by hand
++------------
++In some environments, especially virtualized environment, firmware will not
++notify memory hotplug event to the kernel. For such environment, "probe"
++interface is supported. This interface depends on CONFIG_ARCH_MEMORY_PROBE.
++
++Now, CONFIG_ARCH_MEMORY_PROBE is supported only by powerpc but it does not
++contain highly architecture codes. Please add config if you need "probe"
++interface.
++
++Probe interface is located at
++/sys/devices/system/memory/probe
++
++You can tell the physical address of new memory to the kernel by
++
++% echo start_address_of_new_memory > /sys/devices/system/memory/probe
++
++Then, [start_address_of_new_memory, start_address_of_new_memory + section_size)
++memory range is hot-added. In this case, hotplug script is not called (in
++current implementation). You'll have to online memory by yourself.
++Please see "How to online memory" in this text.
++
++
++
++------------------------------
++5. Logical Memory hot-add phase
++------------------------------
++
++5.1. State of memory
++------------
++To see (online/offline) state of memory section, read 'state' file.
++
++% cat /sys/device/system/memory/memoryXXX/state
++
++
++If the memory section is online, you'll read "online".
++If the memory section is offline, you'll read "offline".
++
++
++5.2. How to online memory
++------------
++Even if the memory is hot-added, it is not at ready-to-use state.
++For using newly added memory, you have to "online" the memory section.
++
++For onlining, you have to write "online" to the section's state file as:
++
++% echo online > /sys/devices/system/memory/memoryXXX/state
++
++After this, section memoryXXX's state will be 'online' and the amount of
++available memory will be increased.
++
++Currently, newly added memory is added as ZONE_NORMAL (for powerpc, ZONE_DMA).
++This may be changed in future.
++
++
++
++------------------------
++6. Logical memory remove
++------------------------
++
++6.1 Memory offline and ZONE_MOVABLE
++------------
++Memory offlining is more complicated than memory online. Because memory offline
++has to make the whole memory section be unused, memory offline can fail if
++the section includes memory which cannot be freed.
++
++In general, memory offline can use 2 techniques.
++
++(1) reclaim and free all memory in the section.
++(2) migrate all pages in the section.
++
++In the current implementation, Linux's memory offline uses method (2), freeing
++all  pages in the section by page migration. But not all pages are
++migratable. Under current Linux, migratable pages are anonymous pages and
++page caches. For offlining a section by migration, the kernel has to guarantee
++that the section contains only migratable pages.
++
++Now, a boot option for making a section which consists of migratable pages is
++supported. By specifying "kernelcore=" or "movablecore=" boot option, you can
++create ZONE_MOVABLE...a zone which is just used for movable pages.
++(See also Documentation/kernel-parameters.txt)
++
++Assume the system has "TOTAL" amount of memory at boot time, this boot option
++creates ZONE_MOVABLE as following.
++
++1) When kernelcore=YYYY boot option is used,
++  Size of memory not for movable pages (not for offline) is YYYY.
++  Size of memory for movable pages (for offline) is TOTAL-YYYY.
++
++2) When movablecore=ZZZZ boot option is used,
++  Size of memory not for movable pages (not for offline) is TOTAL - ZZZZ.
++  Size of memory for movable pages (for offline) is ZZZZ.
++
++
++Note) Unfortunately, there is no information to show which section belongs
++to ZONE_MOVABLE. This is TBD.
++
++
++6.2. How to offline memory
++------------
++You can offline a section by using the same sysfs interface that was used in
++memory onlining.
++
++% echo offline > /sys/devices/system/memory/memoryXXX/state
++
++If offline succeeds, the state of the memory section is changed to be "offline".
++If it fails, some error core (like -EBUSY) will be returned by the kernel.
++Even if a section does not belong to ZONE_MOVABLE, you can try to offline it.
++If it doesn't contain 'unmovable' memory, you'll get success.
++
++A section under ZONE_MOVABLE is considered to be able to be offlined easily.
++But under some busy state, it may return -EBUSY. Even if a memory section
++cannot be offlined due to -EBUSY, you can retry offlining it and may be able to
++offline it (or not).
++(For example, a page is referred to by some kernel internal call and released
++ soon.)
++
++Consideration:
++Memory hotplug's design direction is to make the possibility of memory offlining
++higher and to guarantee unplugging memory under any situation. But it needs
++more work. Returning -EBUSY under some situation may be good because the user
++can decide to retry more or not by himself. Currently, memory offlining code
++does some amount of retry with 120 seconds timeout.
++
++-------------------------
++7. Physical memory remove
++-------------------------
++Need more implementation yet....
++ - Notification completion of remove works by OS to firmware.
++ - Guard from remove if not yet.
++
++--------------
++8. Future Work
++--------------
++  - allowing memory hot-add to ZONE_MOVABLE. maybe we need some switch like
++    sysctl or new control file.
++  - showing memory section and physical device relationship.
++  - showing memory section and node relationship (maybe good for NUMA)
++  - showing memory section is under ZONE_MOVABLE or not
++  - test and make it better memory offlining.
++  - support HugeTLB page migration and offlining.
++  - memmap removing at memory offline.
++  - physical remove memory.
++
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
-remove-zero_page.patch
-mm-use-lockless-radix-tree-probe.patch
-mm-improve-find_lock_page.patch
-mm-clarify-__add_to_swap_cache-locking.patch
-radix-tree-use-indirect-bit.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext2-convert-to-new-aops-fix.patch
-ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
-xfs-convert-to-new-aops.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-convert-to-new-aops-fix.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
-hostfs-convert-to-new-aops.patch
-hostfs-convert-to-new-aops-fix.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-ufs-convert-to-new-aops-fix.patch
-udf-convert-to-new-aops.patch
-udf-convert-to-new-aops-fix.patch
-sysv-convert-to-new-aops.patch
-sysv-convert-to-new-aops-fix.patch
-minix-convert-to-new-aops.patch
-minix-convert-to-new-aops-fix.patch
-jfs-convert-to-new-aops.patch
-fs-adfs-convert-to-new-aops.patch
-fs-affs-convert-to-new-aops.patch
-affs-convert-to-new-aops-fix.patch
-ocfs2-convert-to-new-aops.patch
-fs-remove-some-aop_truncated_page.patch
-fs-remove-some-aop_truncated_page-fix.patch
-fs-reiserfs-cleanups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-reiser4-fix-for-new-aops-patches.patch
+memory-hotplug-document-take-3.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+move-free-pages-between-lists-on-steal.patch
+memory-unplug-v7-page-isolation.patch
+memory-unplug-v7-page-offline.patch
