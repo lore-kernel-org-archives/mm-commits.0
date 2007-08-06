@@ -1,102 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: - fix-warn_on-on-bitfield-ops-for-all-other-archs.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:52:44 -0700
-Message-ID: <200708060752.l767qifU016260@imap1.linux-foundation.org>
+Subject: - git-kgdb-arm-fix.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:53:42 -0700
+Message-ID: <200708060753.l767rgZ2016357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48378 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50173 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757723AbXHFHym (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:54:42 -0400
+	by vger.kernel.org with ESMTP id S1754368AbXHFHze (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, adobriyan@sw.ru, herbert@gondor.apana.org.au, hskinnemoen@atmel.com, kyle@parisc-linux.org, lethal@linux-sh.org, matthew@wil.cx, schwidefsky@de.ibm.com, mm-
+To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix WARN_ON() on bitfield ops for all other archs
+     git-kgdb: arm fix
 has been removed from the -mm tree.  Its filename was
-     fix-warn_on-on-bitfield-ops-for-all-other-archs.patch
+     git-kgdb-arm-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix WARN_ON() on bitfield ops for all other archs
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: git-kgdb: arm fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fixes WARN_ON() on bitfield ops for all architectures that have been left
-out in 8d4fbcfbe0a4bfc73e7f0297c59ae514e1f1436f.
+- fix build
 
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Kyle McMartin <kyle@parisc-linux.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+- return is not a function
+
+- we need to get this sort of stuff reviewed by the maintainer early.
+
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-avr32/bug.h  |    2 +-
- include/asm-parisc/bug.h |    2 +-
- include/asm-s390/bug.h   |    2 +-
- include/asm-sh/bug.h     |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ include/asm-arm/system.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-avr32/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-avr32/bug.h
---- a/include/asm-avr32/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
-+++ a/include/asm-avr32/bug.h
-@@ -57,7 +57,7 @@
+diff -puN include/asm-arm/system.h~git-kgdb-arm-fix include/asm-arm/system.h
+--- a/include/asm-arm/system.h~git-kgdb-arm-fix
++++ a/include/asm-arm/system.h
+@@ -367,11 +367,11 @@ static inline unsigned long __cmpxchg(vo
  
- #define WARN_ON(condition)							\
- 	({								\
--		typeof(condition) __ret_warn_on = (condition);		\
-+		int __ret_warn_on = !!(condition);			\
- 		if (unlikely(__ret_warn_on))				\
- 			_BUG_OR_WARN(BUGFLAG_WARNING);			\
- 		unlikely(__ret_warn_on);				\
-diff -puN include/asm-parisc/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-parisc/bug.h
---- a/include/asm-parisc/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
-+++ a/include/asm-parisc/bug.h
-@@ -74,7 +74,7 @@
- 
- 
- #define WARN_ON(x) ({						\
--	typeof(x) __ret_warn_on = (x);				\
-+	int __ret_warn_on = !!(x);				\
- 	if (__builtin_constant_p(__ret_warn_on)) {		\
- 		if (__ret_warn_on)				\
- 			__WARN();				\
-diff -puN include/asm-s390/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-s390/bug.h
---- a/include/asm-s390/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
-+++ a/include/asm-s390/bug.h
-@@ -50,7 +50,7 @@
- #define BUG()	__EMIT_BUG(0)
- 
- #define WARN_ON(x) ({					\
--	typeof(x) __ret_warn_on = (x);			\
-+	int __ret_warn_on = !!(x);			\
- 	if (__builtin_constant_p(__ret_warn_on)) {	\
- 		if (__ret_warn_on)			\
- 			__EMIT_BUG(BUGFLAG_WARNING);	\
-diff -puN include/asm-sh/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs include/asm-sh/bug.h
---- a/include/asm-sh/bug.h~fix-warn_on-on-bitfield-ops-for-all-other-archs
-+++ a/include/asm-sh/bug.h
-@@ -61,7 +61,7 @@ do {							\
- } while (0)
- 
- #define WARN_ON(x) ({						\
--	typeof(x) __ret_warn_on = (x);				\
-+	int __ret_warn_on = !!(x);				\
- 	if (__builtin_constant_p(__ret_warn_on)) {		\
- 		if (__ret_warn_on)				\
- 			__WARN();				\
+ 	if (size == 4) {
+ 		local_irq_save(flags);
+-		pref = *p;
++		prev = *p;
+ 		if (prev == old)
+ 			*p = new;
+ 		local_irq_restore(flags);
+-		return(prev);
++		return prev;
+ 	} else
+ 		return wrong_size_cmpxchg(ptr);
+ }
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slow-down-printk-during-boot-fix-4.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
 git-wireless.patch
-avoid-ssb-compililation-on-s390.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
+ssb-mainc-needs-dma-mappingh.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
