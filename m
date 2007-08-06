@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-clarify-__add_to_swap_cache-locking.patch added to -mm tree
-Date: Mon, 06 Aug 2007 11:41:09 -0700
-Message-ID: <200708061841.l76If9hI008836@imap1.linux-foundation.org>
+Subject: + mm-improve-find_lock_page.patch added to -mm tree
+Date: Mon, 06 Aug 2007 11:41:08 -0700
+Message-ID: <200708061841.l76If89R008831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60314 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60962 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933208AbXHFSlY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:41:24 -0400
+	by vger.kernel.org with ESMTP id S933083AbXHFSlS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:41:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, hugh@veritas.com
+Cc: npiggin@suse.de
 
 
 The patch titled
-     mm: clarify __add_to_swap_cache locking
+     mm: improve find_lock_page
 has been added to the -mm tree.  Its filename is
-     mm-clarify-__add_to_swap_cache-locking.patch
+     mm-improve-find_lock_page.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,62 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: clarify __add_to_swap_cache locking
+Subject: mm: improve find_lock_page
 From: Nick Piggin <npiggin@suse.de>
 
-__add_to_swap_cache unconditionally sets the page locked, which can be a bit
-alarming to the unsuspecting reader: in the code paths where the page is
-visible to other CPUs, the page should be (and is) already locked.
-
-Instead, just add a check to ensure the page is locked here, and teach the one
-path relying on the old behaviour to call SetPageLocked itself.
+find_lock_page does not need to recheck ->index because if the page is in the
+right mapping then the index must be the same.  Also, tree_lock does not need
+to be retaken after the page is locked in order to test that ->mapping has not
+changed, because holding the page lock pins its mapping.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/filemap.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/swap_state.c~mm-clarify-__add_to_swap_cache-locking mm/swap_state.c
---- a/mm/swap_state.c~mm-clarify-__add_to_swap_cache-locking
-+++ a/mm/swap_state.c
-@@ -74,6 +74,7 @@ static int __add_to_swap_cache(struct pa
+diff -puN mm/filemap.c~mm-improve-find_lock_page mm/filemap.c
+--- a/mm/filemap.c~mm-improve-find_lock_page
++++ a/mm/filemap.c
+@@ -621,26 +621,27 @@ struct page *find_lock_page(struct addre
  {
- 	int error;
+ 	struct page *page;
  
-+	BUG_ON(!PageLocked(page));
- 	BUG_ON(PageSwapCache(page));
- 	BUG_ON(PagePrivate(page));
- 	error = radix_tree_preload(gfp_mask);
-@@ -83,7 +84,6 @@ static int __add_to_swap_cache(struct pa
- 						entry.val, page);
- 		if (!error) {
- 			page_cache_get(page);
--			SetPageLocked(page);
- 			SetPageSwapCache(page);
- 			set_page_private(page, entry.val);
- 			total_swapcache_pages++;
-@@ -338,6 +338,7 @@ struct page *read_swap_cache_async(swp_e
- 								vma, addr);
- 			if (!new_page)
- 				break;		/* Out of memory */
-+			SetPageLocked(new_page);/* could be non-atomic op */
+-	read_lock_irq(&mapping->tree_lock);
+ repeat:
++	read_lock_irq(&mapping->tree_lock);
+ 	page = radix_tree_lookup(&mapping->page_tree, offset);
+ 	if (page) {
+ 		page_cache_get(page);
+ 		if (TestSetPageLocked(page)) {
+ 			read_unlock_irq(&mapping->tree_lock);
+ 			__lock_page(page);
+-			read_lock_irq(&mapping->tree_lock);
+ 
+ 			/* Has the page been truncated while we slept? */
+-			if (unlikely(page->mapping != mapping ||
+-				     page->index != offset)) {
++			if (unlikely(page->mapping != mapping)) {
+ 				unlock_page(page);
+ 				page_cache_release(page);
+ 				goto repeat;
+ 			}
++			VM_BUG_ON(page->index != offset);
++			goto out;
  		}
- 
- 		/*
-@@ -361,7 +362,9 @@ struct page *read_swap_cache_async(swp_e
- 		}
- 	} while (err != -ENOENT && err != -ENOMEM);
- 
--	if (new_page)
-+	if (new_page) {
-+		ClearPageLocked(new_page);
- 		page_cache_release(new_page);
-+	}
- 	return found_page;
+ 	}
+ 	read_unlock_irq(&mapping->tree_lock);
++out:
+ 	return page;
  }
+ EXPORT_SYMBOL(find_lock_page);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
