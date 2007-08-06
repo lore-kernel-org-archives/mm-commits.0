@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch added to -mm tree
-Date: Mon, 06 Aug 2007 12:50:17 -0700
-Message-ID: <200708061950.l76JoH2G011786@imap1.linux-foundation.org>
+Subject: + uml-fix-nonremovability-of-watchdog.patch added to -mm tree
+Date: Mon, 06 Aug 2007 12:50:18 -0700
+Message-ID: <200708061950.l76JoIgA011790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56366 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46876 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757501AbXHFTu1 (ORCPT
+	by vger.kernel.org with ESMTP id S1758132AbXHFTu1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 15:50:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: fix an IPV6 libc vs kernel symbol clash
+     uml: fix nonremovability of watchdog
 has been added to the -mm tree.  Its filename is
-     uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
+     uml-fix-nonremovability-of-watchdog.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix an IPV6 libc vs kernel symbol clash
+Subject: uml: fix nonremovability of watchdog
 From: Jeff Dike <jdike@addtoit.com>
 
-On some systems, with IPV6 configured, there is a clash between the kernel's
-in6addr_any and the one in libc.
-
-This is handled in the usual (gross) way of defining the kernel symbol out of
-the way on the gcc command line.
+The UML watchdog driver was using the wrong config variable to control whether
+it can be unloaded once active.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/um/drivers/harddog_kern.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/Makefile~uml-fix-an-ipv6-libc-vs-kernel-symbol-clash arch/um/Makefile
---- a/arch/um/Makefile~uml-fix-an-ipv6-libc-vs-kernel-symbol-clash
-+++ a/arch/um/Makefile
-@@ -60,7 +60,8 @@ SYS_DIR		:= $(ARCH_DIR)/include/sysdep-$
- 
- CFLAGS += $(CFLAGS-y) -D__arch_um__ -DSUBARCH=\"$(SUBARCH)\"	\
- 	$(ARCH_INCLUDE) $(MODE_INCLUDE) -Dvmap=kernel_vmap	\
--	-Din6addr_loopback=kernel_in6addr_loopback
-+	-Din6addr_loopback=kernel_in6addr_loopback \
-+	-Din6addr_any=kernel_in6addr_any
- 
- AFLAGS += $(ARCH_INCLUDE)
+diff -puN arch/um/drivers/harddog_kern.c~uml-fix-nonremovability-of-watchdog arch/um/drivers/harddog_kern.c
+--- a/arch/um/drivers/harddog_kern.c~uml-fix-nonremovability-of-watchdog
++++ a/arch/um/drivers/harddog_kern.c
+@@ -69,7 +69,7 @@ static int harddog_open(struct inode *in
+ 	spin_lock(&lock);
+ 	if(timer_alive)
+ 		goto err;
+-#ifdef CONFIG_HARDDOG_NOWAYOUT
++#ifdef CONFIG_WATCHDOG_NOWAYOUT
+ 	__module_get(THIS_MODULE);
+ #endif
  
 _
 
