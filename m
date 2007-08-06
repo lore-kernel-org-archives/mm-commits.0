@@ -1,52 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - fix-ide-ide-add-ide-set-pio-take3.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:43:52 -0700
-Message-ID: <200708060743.l767hrXq015961@imap1.linux-foundation.org>
+Subject: - fix-ide-ide-add-platform-ide-driver.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:43:55 -0700
+Message-ID: <200708060743.l767htMc015964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33641 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53927 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754476AbXHFHoe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:44:34 -0400
+	by vger.kernel.org with ESMTP id S1754557AbXHFHof (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:44:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-ide-ide-add-ide-set-pio-take3
+     fix ide-ide-add-platform-ide-driver
 has been removed from the -mm tree.  Its filename was
-     fix-ide-ide-add-ide-set-pio-take3.patch
+     fix-ide-ide-add-platform-ide-driver.patch
 
 This patch was dropped because it was sent to Bart, then dropped
 
 ------------------------------------------------------
-Subject: fix-ide-ide-add-ide-set-pio-take3
+Subject: fix ide-ide-add-platform-ide-driver
 From: Andrew Morton <akpm@linux-foundation.org>
-
-drivers/ide/pci/cmd640.c: In function 'cmd640_set_pio_mode':
-drivers/ide/pci/cmd640.c:646: error: 'mode_wanted' undeclared (first use in this function)
-drivers/ide/pci/cmd640.c:646: error: (Each undeclared identifier is reported only once
-drivers/ide/pci/cmd640.c:646: error: for each function it appears in.)
 
 Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ide/legacy/ide_platform.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ide/Kconfig~fix-ide-ide-add-ide-set-pio-take3 drivers/ide/Kconfig
---- a/drivers/ide/Kconfig~fix-ide-ide-add-ide-set-pio-take3
-+++ a/drivers/ide/Kconfig
-@@ -318,6 +318,7 @@ config BLK_DEV_PLATFORM
- config BLK_DEV_CMD640
- 	bool "CMD640 chipset bugfix/support"
- 	depends on X86
-+	depends on BROKEN
- 	---help---
- 	  The CMD-Technologies CMD640 IDE chip is used on many common 486 and
- 	  Pentium motherboards, usually in combination with a "Neptune" or
+diff -puN drivers/ide/legacy/ide_platform.c~fix-ide-ide-add-platform-ide-driver drivers/ide/legacy/ide_platform.c
+--- a/drivers/ide/legacy/ide_platform.c~fix-ide-ide-add-platform-ide-driver
++++ a/drivers/ide/legacy/ide_platform.c
+@@ -19,6 +19,7 @@
+ #include <linux/module.h>
+ #include <linux/pata_platform.h>
+ #include <linux/io.h>
++#include <linux/platform_device.h>
+ 
+ static struct {
+ 	void __iomem *plat_ide_mapbase;
+@@ -157,7 +158,7 @@ static int __devexit plat_ide_remove(str
+ }
+ 
+ static struct platform_driver platform_ide_driver = {
+-	.driver {
++	.driver = {
+ 		.name = "pata_platform",
+ 	},
+ 	.probe = plat_ide_probe,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +70,6 @@ iforce-warning-fix.patch
 git-kvm.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-ide-set-pio-take3.patch
 fix-ide-ide-add-platform-ide-driver.patch
 git-mtd.patch
 git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
