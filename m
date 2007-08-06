@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-clean-up-the-backing_dev_info-usage.patch added to -mm tree
-Date: Mon, 06 Aug 2007 13:19:06 -0700
-Message-ID: <200708062019.l76KJ6F9012935@imap1.linux-foundation.org>
+Subject: + mm-expose-bdi-statistics-in-sysfs.patch added to -mm tree
+Date: Mon, 06 Aug 2007 13:19:12 -0700
+Message-ID: <200708062019.l76KJC99012955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38748 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60322 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760689AbXHFUTQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:16 -0400
+	by vger.kernel.org with ESMTP id S1763567AbXHFUTV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: a.p.zijlstra@chello.nl
 
 
 The patch titled
-     mtd: clean up the backing_dev_info usage
+     mm: expose BDI statistics in sysfs.
 has been added to the -mm tree.  Its filename is
-     mtd-clean-up-the-backing_dev_info-usage.patch
+     mm-expose-bdi-statistics-in-sysfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,69 +25,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mtd: clean up the backing_dev_info usage
+Subject: mm: expose BDI statistics in sysfs.
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Give each mtd device its own backing_dev_info instance.
+Expose the per BDI stats in /sys/block/<dev>/queue/*
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdcore.c   |    8 +++++---
- include/linux/mtd/mtd.h |    2 ++
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ block/ll_rw_blk.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff -puN drivers/mtd/mtdcore.c~mtd-clean-up-the-backing_dev_info-usage drivers/mtd/mtdcore.c
---- a/drivers/mtd/mtdcore.c~mtd-clean-up-the-backing_dev_info-usage
-+++ a/drivers/mtd/mtdcore.c
-@@ -19,6 +19,7 @@
- #include <linux/init.h>
- #include <linux/mtd/compatmac.h>
- #include <linux/proc_fs.h>
-+#include <linux/backing-dev.h>
+diff -puN block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs
++++ a/block/ll_rw_blk.c
+@@ -3982,6 +3982,23 @@ static ssize_t queue_max_hw_sectors_show
+ 	return queue_var_show(max_hw_sectors_kb, (page));
+ }
  
- #include <linux/mtd/mtd.h>
- #include "internal.h"
-@@ -53,15 +54,16 @@ int add_mtd_device(struct mtd_info *mtd)
- 	if (!mtd->backing_dev_info) {
- 		switch (mtd->type) {
- 		case MTD_RAM:
--			mtd->backing_dev_info = &mtd_bdi_rw_mappable;
-+			mtd->mtd_backing_dev_info = mtd_bdi_rw_mappable;
- 			break;
- 		case MTD_ROM:
--			mtd->backing_dev_info = &mtd_bdi_ro_mappable;
-+			mtd->mtd_backing_dev_info = mtd_bdi_ro_mappable;
- 			break;
- 		default:
--			mtd->backing_dev_info = &mtd_bdi_unmappable;
-+			mtd->mtd_backing_dev_info = mtd_bdi_unmappable;
- 			break;
- 		}
-+		mtd->backing_dev_info = &mtd->mtd_backing_dev_info;
- 	}
- 	err = bdi_init(mtd->backing_dev_info);
- 	if (err)
-diff -puN include/linux/mtd/mtd.h~mtd-clean-up-the-backing_dev_info-usage include/linux/mtd/mtd.h
---- a/include/linux/mtd/mtd.h~mtd-clean-up-the-backing_dev_info-usage
-+++ a/include/linux/mtd/mtd.h
-@@ -13,6 +13,7 @@
- #include <linux/module.h>
- #include <linux/uio.h>
- #include <linux/notifier.h>
-+#include <linux/backing-dev.h>
++static ssize_t queue_nr_reclaimable_show(struct request_queue *q, char *page)
++{
++	unsigned long long nr_reclaimable =
++		bdi_stat(&q->backing_dev_info, BDI_RECLAIMABLE);
++
++	return sprintf(page, "%llu\n",
++			nr_reclaimable >> (PAGE_CACHE_SHIFT - 10));
++}
++
++static ssize_t queue_nr_writeback_show(struct request_queue *q, char *page)
++{
++	unsigned long long nr_writeback =
++		bdi_stat(&q->backing_dev_info, BDI_WRITEBACK);
++
++	return sprintf(page, "%llu\n",
++			nr_writeback >> (PAGE_CACHE_SHIFT - 10));
++}
  
- #include <linux/mtd/compatmac.h>
- #include <mtd/mtd-abi.h>
-@@ -154,6 +155,7 @@ struct mtd_info {
- 	 * - provides mmap capabilities
- 	 */
- 	struct backing_dev_info *backing_dev_info;
-+	struct backing_dev_info mtd_backing_dev_info;
+ static struct queue_sysfs_entry queue_requests_entry = {
+ 	.attr = {.name = "nr_requests", .mode = S_IRUGO | S_IWUSR },
+@@ -4006,6 +4023,16 @@ static struct queue_sysfs_entry queue_ma
+ 	.show = queue_max_hw_sectors_show,
+ };
  
- 
- 	int (*read) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
++static struct queue_sysfs_entry queue_reclaimable_entry = {
++	.attr = {.name = "reclaimable_kb", .mode = S_IRUGO },
++	.show = queue_nr_reclaimable_show,
++};
++
++static struct queue_sysfs_entry queue_writeback_entry = {
++	.attr = {.name = "writeback_kb", .mode = S_IRUGO },
++	.show = queue_nr_writeback_show,
++};
++
+ static struct queue_sysfs_entry queue_iosched_entry = {
+ 	.attr = {.name = "scheduler", .mode = S_IRUGO | S_IWUSR },
+ 	.show = elv_iosched_show,
+@@ -4017,6 +4044,8 @@ static struct attribute *default_attrs[]
+ 	&queue_ra_entry.attr,
+ 	&queue_max_hw_sectors_entry.attr,
+ 	&queue_max_sectors_entry.attr,
++	&queue_reclaimable_entry.attr,
++	&queue_writeback_entry.attr,
+ 	&queue_iosched_entry.attr,
+ 	NULL,
+ };
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
