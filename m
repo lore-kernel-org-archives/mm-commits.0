@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-stop-specially-protecting-kernel-stacks.patch added to -mm tree
-Date: Mon, 06 Aug 2007 12:50:19 -0700
-Message-ID: <200708061950.l76JoJoD011793@imap1.linux-foundation.org>
+Subject: + uml-stop-using-libc-asm-pageh.patch added to -mm tree
+Date: Mon, 06 Aug 2007 12:50:15 -0700
+Message-ID: <200708061950.l76JoFJv011783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47791 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44854 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758753AbXHFTub (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 15:50:31 -0400
+	by vger.kernel.org with ESMTP id S1760578AbXHFTue (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 15:50:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: stop specially protecting kernel stacks
+     uml: stop using libc asm/page.h
 has been added to the -mm tree.  Its filename is
-     uml-stop-specially-protecting-kernel-stacks.patch
+     uml-stop-using-libc-asm-pageh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,85 +25,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: stop specially protecting kernel stacks
+Subject: uml: stop using libc asm/page.h
 From: Jeff Dike <jdike@addtoit.com>
 
-Map all of physical memory as executable to avoid having to change stack
-protections during fork and exit.
+Remove includes of asm/page.h from libc code.  This header seems to be
+disappearing, and UML doesn't make much use of it anyway.
 
-unprotect_stack is now called only from MODE_TT code, so it is marked as such.
+The one use, PAGE_SHIFT in stub.h, is handled by copying the constant from the
+kernel side of the house in common_offsets.h.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/kern_util.h |    2 ++
- arch/um/kernel/init_task.c  |    2 ++
- arch/um/kernel/physmem.c    |    2 +-
- arch/um/kernel/process.c    |    5 ++---
- 4 files changed, 7 insertions(+), 4 deletions(-)
+ arch/um/include/common-offsets.h   |    1 +
+ arch/um/include/sysdep-i386/stub.h |    3 +--
+ arch/um/os-Linux/main.c            |    1 -
+ arch/um/os-Linux/skas/mem.c        |    1 -
+ arch/um/os-Linux/start_up.c        |    1 -
+ arch/um/os-Linux/tt.c              |    1 -
+ 6 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN arch/um/include/kern_util.h~uml-stop-specially-protecting-kernel-stacks arch/um/include/kern_util.h
---- a/arch/um/include/kern_util.h~uml-stop-specially-protecting-kernel-stacks
-+++ a/arch/um/include/kern_util.h
-@@ -82,7 +82,9 @@ extern void check_stack_overflow(void *p
- extern void relay_signal(int sig, union uml_pt_regs *regs);
- extern int user_context(unsigned long sp);
- extern void timer_irq(union uml_pt_regs *regs);
-+#ifdef CONFIG_MODE_TT
- extern void unprotect_stack(unsigned long stack);
-+#endif
- extern void do_uml_exitcalls(void);
- extern int attach_debugger(int idle_pid, int pid, int stop);
- extern int config_gdb(char *str);
-diff -puN arch/um/kernel/init_task.c~uml-stop-specially-protecting-kernel-stacks arch/um/kernel/init_task.c
---- a/arch/um/kernel/init_task.c~uml-stop-specially-protecting-kernel-stacks
-+++ a/arch/um/kernel/init_task.c
-@@ -47,7 +47,9 @@ union thread_union cpu0_irqstack
- 	__attribute__((__section__(".data.init_irqstack"))) =
- 		{ INIT_THREAD_INFO(init_task) };
+diff -puN arch/um/include/common-offsets.h~uml-stop-using-libc-asm-pageh arch/um/include/common-offsets.h
+--- a/arch/um/include/common-offsets.h~uml-stop-using-libc-asm-pageh
++++ a/arch/um/include/common-offsets.h
+@@ -10,6 +10,7 @@ OFFSET(HOST_TASK_PID, task_struct, pid);
  
-+#ifdef CONFIG_MODE_TT
- void unprotect_stack(unsigned long stack)
+ DEFINE(UM_KERN_PAGE_SIZE, PAGE_SIZE);
+ DEFINE(UM_KERN_PAGE_MASK, PAGE_MASK);
++DEFINE(UM_KERN_PAGE_SHIFT, PAGE_SHIFT);
+ DEFINE(UM_NSEC_PER_SEC, NSEC_PER_SEC);
+ 
+ DEFINE_STR(UM_KERN_EMERG, KERN_EMERG);
+diff -puN arch/um/include/sysdep-i386/stub.h~uml-stop-using-libc-asm-pageh arch/um/include/sysdep-i386/stub.h
+--- a/arch/um/include/sysdep-i386/stub.h~uml-stop-using-libc-asm-pageh
++++ a/arch/um/include/sysdep-i386/stub.h
+@@ -9,7 +9,6 @@
+ #include <sys/mman.h>
+ #include <asm/ptrace.h>
+ #include <asm/unistd.h>
+-#include <asm/page.h>
+ #include "stub-data.h"
+ #include "kern_constants.h"
+ #include "uml-config.h"
+@@ -19,7 +18,7 @@ extern void stub_clone_handler(void);
+ 
+ #define STUB_SYSCALL_RET EAX
+ #define STUB_MMAP_NR __NR_mmap2
+-#define MMAP_OFFSET(o) ((o) >> PAGE_SHIFT)
++#define MMAP_OFFSET(o) ((o) >> UM_KERN_PAGE_SHIFT)
+ 
+ static inline long stub_syscall0(long syscall)
  {
- 	os_protect_memory((void *) stack, THREAD_SIZE, 1, 1, 0);
- }
-+#endif
-diff -puN arch/um/kernel/physmem.c~uml-stop-specially-protecting-kernel-stacks arch/um/kernel/physmem.c
---- a/arch/um/kernel/physmem.c~uml-stop-specially-protecting-kernel-stacks
-+++ a/arch/um/kernel/physmem.c
-@@ -105,7 +105,7 @@ void __init setup_physmem(unsigned long 
- 
- 	offset = uml_reserved - uml_physmem;
- 	err = os_map_memory((void *) uml_reserved, physmem_fd, offset,
--			    len - offset, 1, 1, 0);
-+			    len - offset, 1, 1, 1);
- 	if(err < 0){
- 		os_print_error(err, "Mapping memory");
- 		exit(1);
-diff -puN arch/um/kernel/process.c~uml-stop-specially-protecting-kernel-stacks arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~uml-stop-specially-protecting-kernel-stacks
-+++ a/arch/um/kernel/process.c
-@@ -82,9 +82,9 @@ unsigned long alloc_stack(int order, int
- 	if (atomic)
- 		flags = GFP_ATOMIC;
- 	page = __get_free_pages(flags, order);
--	if(page == 0)
-+	if (page == 0)
- 		return 0;
--	stack_protections(page);
-+
- 	return page;
- }
- 
-@@ -141,7 +141,6 @@ void release_thread(struct task_struct *
- 
- void exit_thread(void)
- {
--	unprotect_stack((unsigned long) current_thread);
- }
- 
- void *get_current(void)
+diff -puN arch/um/os-Linux/main.c~uml-stop-using-libc-asm-pageh arch/um/os-Linux/main.c
+--- a/arch/um/os-Linux/main.c~uml-stop-using-libc-asm-pageh
++++ a/arch/um/os-Linux/main.c
+@@ -12,7 +12,6 @@
+ #include <sys/resource.h>
+ #include <sys/mman.h>
+ #include <sys/user.h>
+-#include <asm/page.h>
+ #include "kern_util.h"
+ #include "as-layout.h"
+ #include "mem_user.h"
+diff -puN arch/um/os-Linux/skas/mem.c~uml-stop-using-libc-asm-pageh arch/um/os-Linux/skas/mem.c
+--- a/arch/um/os-Linux/skas/mem.c~uml-stop-using-libc-asm-pageh
++++ a/arch/um/os-Linux/skas/mem.c
+@@ -9,7 +9,6 @@
+ #include <unistd.h>
+ #include <sys/mman.h>
+ #include <sys/wait.h>
+-#include <asm/page.h>
+ #include <asm/unistd.h>
+ #include "mem_user.h"
+ #include "mem.h"
+diff -puN arch/um/os-Linux/start_up.c~uml-stop-using-libc-asm-pageh arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-stop-using-libc-asm-pageh
++++ a/arch/um/os-Linux/start_up.c
+@@ -19,7 +19,6 @@
+ #include <sys/mman.h>
+ #include <sys/resource.h>
+ #include <asm/unistd.h>
+-#include <asm/page.h>
+ #include <sys/types.h>
+ #include "kern_util.h"
+ #include "user.h"
+diff -puN arch/um/os-Linux/tt.c~uml-stop-using-libc-asm-pageh arch/um/os-Linux/tt.c
+--- a/arch/um/os-Linux/tt.c~uml-stop-using-libc-asm-pageh
++++ a/arch/um/os-Linux/tt.c
+@@ -17,7 +17,6 @@
+ #include <sys/mman.h>
+ #include <asm/ptrace.h>
+ #include <asm/unistd.h>
+-#include <asm/page.h>
+ #include "kern_util.h"
+ #include "user.h"
+ #include "signal_kern.h"
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
