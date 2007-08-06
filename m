@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:53:11 -0700
-Message-ID: <200708060753.l767rBUW016316@imap1.linux-foundation.org>
+Subject: - libata-sff-unbreak-non-dma-capable-controllers-again.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:53:13 -0700
+Message-ID: <200708060753.l767rDJp016319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55567 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45621 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754726AbXHFHx2 (ORCPT
+	by vger.kernel.org with ESMTP id S1758178AbXHFHx2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:53:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,39 +14,42 @@ To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sata_mv: test patch for Hightpoint RocketRaid 1740/1742
+     libata-sff: unbreak non DMA capable controllers again
 has been removed from the -mm tree.  Its filename was
-     sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742.patch
+     libata-sff-unbreak-non-dma-capable-controllers-again.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sata_mv: test patch for Hightpoint RocketRaid 1740/1742
+Subject: libata-sff: unbreak non DMA capable controllers again
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Underneath all the HPT packaging, PCI identifiers, binary driver modules
-and stuff you find that ...
+Seems nobody else is checking/testing this case as it keeps getting horked.
+
+If we have no BAR4 mapping on an SFF controller this is *NOT* an error, it
+just means it isn't doing BMDMA.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_mv.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/ata/libata-sff.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/ata/sata_mv.c~sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742 drivers/ata/sata_mv.c
---- a/drivers/ata/sata_mv.c~sata_mv-test-patch-for-hightpoint-rocketraid-1740-1742
-+++ a/drivers/ata/sata_mv.c
-@@ -621,6 +621,9 @@ static const struct pci_device_id mv_pci
- 	{ PCI_VDEVICE(MARVELL, 0x5041), chip_504x },
- 	{ PCI_VDEVICE(MARVELL, 0x5080), chip_5080 },
- 	{ PCI_VDEVICE(MARVELL, 0x5081), chip_508x },
-+	/* RocketRAID 1740/174x have different identifiers */
-+	{ PCI_VDEVICE(TTI, 0x1740), chip_508x },
-+	{ PCI_VDEVICE(TTI, 0x1742), chip_508x },
+diff -puN drivers/ata/libata-sff.c~libata-sff-unbreak-non-dma-capable-controllers-again drivers/ata/libata-sff.c
+--- a/drivers/ata/libata-sff.c~libata-sff-unbreak-non-dma-capable-controllers-again
++++ a/drivers/ata/libata-sff.c
+@@ -573,6 +573,10 @@ int ata_pci_init_bmdma(struct ata_host *
+ 	struct pci_dev *pdev = to_pci_dev(gdev);
+ 	int i, rc;
  
- 	{ PCI_VDEVICE(MARVELL, 0x6040), chip_604x },
- 	{ PCI_VDEVICE(MARVELL, 0x6041), chip_604x },
++	/* No BAR4 allocation: No DMA */
++	if (pci_resource_start(pdev, 4) == 0)
++		return 0;
++
+ 	/* TODO: If we get no DMA mask we should fall back to PIO */
+ 	rc = pci_set_dma_mask(pdev, ATA_DMA_MASK);
+ 	if (rc)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
