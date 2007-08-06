@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-expose-bdi-statistics-in-sysfs.patch added to -mm tree
-Date: Mon, 06 Aug 2007 13:19:12 -0700
-Message-ID: <200708062019.l76KJC99012955@imap1.linux-foundation.org>
+Subject: + mm-count-writeback-pages-per-bdi.patch added to -mm tree
+Date: Mon, 06 Aug 2007 13:19:11 -0700
+Message-ID: <200708062019.l76KJBuo012952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60322 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40609 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763567AbXHFUTV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:21 -0400
+	by vger.kernel.org with ESMTP id S1760689AbXHFUTU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: a.p.zijlstra@chello.nl
 
 
 The patch titled
-     mm: expose BDI statistics in sysfs.
+     mm: count writeback pages per BDI
 has been added to the -mm tree.  Its filename is
-     mm-expose-bdi-statistics-in-sysfs.patch
+     mm-count-writeback-pages-per-bdi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,71 +25,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: expose BDI statistics in sysfs.
+Subject: mm: count writeback pages per BDI
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Expose the per BDI stats in /sys/block/<dev>/queue/*
+Count per BDI writeback pages.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/ll_rw_blk.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ include/linux/backing-dev.h |    1 +
+ mm/page-writeback.c         |   12 ++++++++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs
-+++ a/block/ll_rw_blk.c
-@@ -3982,6 +3982,23 @@ static ssize_t queue_max_hw_sectors_show
- 	return queue_var_show(max_hw_sectors_kb, (page));
- }
+diff -puN include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi
++++ a/include/linux/backing-dev.h
+@@ -28,6 +28,7 @@ typedef int (congested_fn)(void *, int);
  
-+static ssize_t queue_nr_reclaimable_show(struct request_queue *q, char *page)
-+{
-+	unsigned long long nr_reclaimable =
-+		bdi_stat(&q->backing_dev_info, BDI_RECLAIMABLE);
-+
-+	return sprintf(page, "%llu\n",
-+			nr_reclaimable >> (PAGE_CACHE_SHIFT - 10));
-+}
-+
-+static ssize_t queue_nr_writeback_show(struct request_queue *q, char *page)
-+{
-+	unsigned long long nr_writeback =
-+		bdi_stat(&q->backing_dev_info, BDI_WRITEBACK);
-+
-+	return sprintf(page, "%llu\n",
-+			nr_writeback >> (PAGE_CACHE_SHIFT - 10));
-+}
- 
- static struct queue_sysfs_entry queue_requests_entry = {
- 	.attr = {.name = "nr_requests", .mode = S_IRUGO | S_IWUSR },
-@@ -4006,6 +4023,16 @@ static struct queue_sysfs_entry queue_ma
- 	.show = queue_max_hw_sectors_show,
+ enum bdi_stat_item {
+ 	BDI_RECLAIMABLE,
++	BDI_WRITEBACK,
+ 	NR_BDI_STAT_ITEMS
  };
  
-+static struct queue_sysfs_entry queue_reclaimable_entry = {
-+	.attr = {.name = "reclaimable_kb", .mode = S_IRUGO },
-+	.show = queue_nr_reclaimable_show,
-+};
-+
-+static struct queue_sysfs_entry queue_writeback_entry = {
-+	.attr = {.name = "writeback_kb", .mode = S_IRUGO },
-+	.show = queue_nr_writeback_show,
-+};
-+
- static struct queue_sysfs_entry queue_iosched_entry = {
- 	.attr = {.name = "scheduler", .mode = S_IRUGO | S_IWUSR },
- 	.show = elv_iosched_show,
-@@ -4017,6 +4044,8 @@ static struct attribute *default_attrs[]
- 	&queue_ra_entry.attr,
- 	&queue_max_hw_sectors_entry.attr,
- 	&queue_max_sectors_entry.attr,
-+	&queue_reclaimable_entry.attr,
-+	&queue_writeback_entry.attr,
- 	&queue_iosched_entry.attr,
- 	NULL,
- };
+diff -puN mm/page-writeback.c~mm-count-writeback-pages-per-bdi mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-count-writeback-pages-per-bdi
++++ a/mm/page-writeback.c
+@@ -979,14 +979,18 @@ int test_clear_page_writeback(struct pag
+ 	int ret;
+ 
+ 	if (mapping) {
++		struct backing_dev_info *bdi = mapping->backing_dev_info;
+ 		unsigned long flags;
+ 
+ 		write_lock_irqsave(&mapping->tree_lock, flags);
+ 		ret = TestClearPageWriteback(page);
+-		if (ret)
++		if (ret) {
+ 			radix_tree_tag_clear(&mapping->page_tree,
+ 						page_index(page),
+ 						PAGECACHE_TAG_WRITEBACK);
++			if (bdi_cap_writeback_dirty(bdi))
++				__dec_bdi_stat(bdi, BDI_WRITEBACK);
++		}
+ 		write_unlock_irqrestore(&mapping->tree_lock, flags);
+ 	} else {
+ 		ret = TestClearPageWriteback(page);
+@@ -1002,14 +1006,18 @@ int test_set_page_writeback(struct page 
+ 	int ret;
+ 
+ 	if (mapping) {
++		struct backing_dev_info *bdi = mapping->backing_dev_info;
+ 		unsigned long flags;
+ 
+ 		write_lock_irqsave(&mapping->tree_lock, flags);
+ 		ret = TestSetPageWriteback(page);
+-		if (!ret)
++		if (!ret) {
+ 			radix_tree_tag_set(&mapping->page_tree,
+ 						page_index(page),
+ 						PAGECACHE_TAG_WRITEBACK);
++			if (bdi_cap_writeback_dirty(bdi))
++				__inc_bdi_stat(bdi, BDI_WRITEBACK);
++		}
+ 		if (!PageDirty(page))
+ 			radix_tree_tag_clear(&mapping->page_tree,
+ 						page_index(page),
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
