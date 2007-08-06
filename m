@@ -1,78 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: + calgary-fix-mis-handled-pci-topology.patch added to -mm tree
-Date: Fri, 03 Aug 2007 22:21:56 -0700
-Message-ID: <200708040521.l745Lujg011924@imap1.linux-foundation.org>
+Subject: - git-acpi-mark_tsc_unstable-build-fix.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:33:43 -0700
+Message-ID: <200708060733.l767Xica015608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37320 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44828 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752798AbXHDFWd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 4 Aug 2007 01:22:33 -0400
+	by vger.kernel.org with ESMTP id S1758053AbXHFHd5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:33:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bernarde@br.ibm.com, ak@suse.de, mfb@br.ibm.com, muli@il.ibm.com
+To: akpm@linux-foundation.org, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Calgary: fix mis-handled PCI topology
-has been added to the -mm tree.  Its filename is
-     calgary-fix-mis-handled-pci-topology.patch
+     git-acpi: mark_tsc_unstable() build fix
+has been removed from the -mm tree.  Its filename was
+     git-acpi-mark_tsc_unstable-build-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Calgary: fix mis-handled PCI topology
-From: Murillo Fernandes Bernardes <bernarde@br.ibm.com>
+Subject: git-acpi: mark_tsc_unstable() build fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Current code assumed that devices were directly connected to a Calgary
-bridge, as it tried to get the iommu table directly from the parent bus
-controller.
+drivers/acpi/processor_idle.c: In function 'acpi_idle_enter_c2':
+drivers/acpi/processor_idle.c:941: error: too few arguments to function 'mark_tsc_unstable'
+drivers/acpi/processor_idle.c: In function 'acpi_idle_enter_c3':
+drivers/acpi/processor_idle.c:1026: error: too few arguments to function 'mark_tsc_unstable'
 
-When we have another bridge between the Calgary/CalIOC2 bridge and the
-device we should look upwards until we get to the top (Calgary/CalIOC2
-bridge), where the iommu table resides.
+also fix coding-style bloopers.
 
-Signed-off-by: Murillo Fernandes Bernardes <mfb@br.ibm.com>
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/acpi/processor_idle.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~calgary-fix-mis-handled-pci-topology arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~calgary-fix-mis-handled-pci-topology
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -367,16 +367,15 @@ static inline struct iommu_table *find_i
+diff -puN drivers/acpi/processor_idle.c~git-acpi-mark_tsc_unstable-build-fix drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~git-acpi-mark_tsc_unstable-build-fix
++++ a/drivers/acpi/processor_idle.c
+@@ -936,9 +936,9 @@ static int acpi_idle_enter_c2(struct cpu
+ 	acpi_idle_do_entry(cx);
+ 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
  
- 	pdev = to_pci_dev(dev);
+-#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86_TSC)
++#if defined(CONFIG_GENERIC_TIME) && defined(CONFIG_X86_TSC)
+ 	/* TSC halts in C2, so notify users */
+-	mark_tsc_unstable();
++	mark_tsc_unstable("acpi_idle_enter_c2");
+ #endif
  
--	/* is the device behind a bridge? */
--	if (unlikely(pdev->bus->parent))
--		pbus = pdev->bus->parent;
--	else
--		pbus = pdev->bus;
-+	pbus = pdev->bus;
-+
-+	/* is the device behind a bridge? Look for the root bus */
-+	while (pbus->parent)
-+		pbus = pbus->parent;
+ 	local_irq_enable();
+@@ -1021,9 +1021,9 @@ static int acpi_idle_enter_c3(struct cpu
+ 		spin_unlock(&c3_lock);
+ 	}
  
- 	tbl = pci_iommu(pbus);
+-#if defined (CONFIG_GENERIC_TIME) && defined (CONFIG_X86_TSC)
++#if defined(CONFIG_GENERIC_TIME) && defined(CONFIG_X86_TSC)
+ 	/* TSC halts in C3, so notify users */
+-	mark_tsc_unstable();
++	mark_tsc_unstable("acpi_idle_enter_c3");
+ #endif
  
--	BUG_ON(pdev->bus->parent &&
--	       (tbl->it_busno != pdev->bus->parent->number));
-+	BUG_ON(tbl && (tbl->it_busno != pbus->number));
- 
- 	return tbl;
- }
+ 	local_irq_enable();
 _
 
-Patches currently in -mm which might be from bernarde@br.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-calgary-fix-mis-handled-pci-topology.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-mark_tsc_unstable-build-fix.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb-fixup.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+fix-ide-ide-add-platform-ide-driver.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
+ssb-mainc-needs-dma-mappingh.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+acpi_battery_add-use-after-free.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
