@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch added to -mm tree
-Date: Mon, 06 Aug 2007 12:16:59 -0700
-Message-ID: <200708061916.l76JGxeW010384@imap1.linux-foundation.org>
+Subject: + ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch added to -mm tree
+Date: Mon, 06 Aug 2007 12:22:14 -0700
+Message-ID: <200708061922.l76JMEeY010619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50746 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34562 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933878AbXHFTR0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 15:17:26 -0400
+	by vger.kernel.org with ESMTP id S1755943AbXHFTWz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 15:22:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fenghua.yu@intel.com, akpm@linux-foundation.org, davej@codemonkey.org.uk, lenb@kernel.org
+Cc: apw@shadowen.org, mel@csn.ul.ie
 
 
 The patch titled
-     Fix some x86/x86-64 acpi-cpufreq driver issues
+     synchronous lumpy reclaim: ensure we count pages transitioning inactive via clear_active_flags
 has been added to the -mm tree.  Its filename is
-     fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+     ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,164 +25,100 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix some x86/x86-64 acpi-cpufreq driver issues
-From: Fenghua Yu <fenghua.yu@intel.com>
+Subject: synchronous lumpy reclaim: ensure we count pages transitioning inactive via clear_active_flags
+From: Andy Whitcroft <apw@shadowen.org>
 
-This patch addresses some issues in x86/x86-64 acpi-cpufreq driver:
+As pointed out by Mel when reclaim is applied at higher orders a significant
+amount of IO may be started.  As this takes finite time to drain reclaim will
+consider more areas than ultimatly needed to satisfy the request.  This leads
+to more reclaim than strictly required and reduced success rates.
 
-1.  Current memory allocation for acpi_perf_data is actually open-coded
-   alloc_percpu().  The patch defines and handles acpi_perf_data as percpu
-   data.  The code will be cleaner and easier to be maintained with this
-   change.
+I was able to confirm Mel's test results on systems locally.  These show that
+even under light load the success rates drop off far more than expected. 
+Testing with a modified version of his patch (which follows) I was able to
+allocate almost all of ZONE_MOVABLE with a near idle system.  I ran 5 test
+passes sequentially following system boot (the system has 29 hugepages in
+ZONE_MOVABLE):
 
-2. Won't load driver in acpi_cpufreq_early_init() failure case.
+  2.6.23-rc1              11  8  6  7  7
+  sync_lumpy              28 28 29 29 26
 
-3. Add __init for acpi_cpufreq_early_init().
+These show that although hugely better than the near 0% success normally
+expected we can only allocate about a 1/4 of the zone.  Using synchronous
+reclaim for these allocations we get close to 100% as expected.
 
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+I have also run our standard high order tests and these show no regressions in
+allocation success rates at rest, and some significant improvements under
+load.
+
+
+This patch:
+
+We are transitioning pages from active to inactive in clear_active_flags,
+those need counting as PGDEACTIVATE vm events.
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c |   41 ++++++------------
- drivers/acpi/processor_perflib.c            |    6 +-
- include/acpi/processor.h                    |    2 
- 3 files changed, 19 insertions(+), 30 deletions(-)
+ mm/vmscan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~fix-some-x86-x86-64-acpi-cpufreq-driver-issues arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~fix-some-x86-x86-64-acpi-cpufreq-driver-issues
-+++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -68,7 +68,8 @@ struct acpi_cpufreq_data {
- };
+diff -puN mm/vmscan.c~ensure-we-count-pages-transitioning-inactive-via-clear_active_flags mm/vmscan.c
+--- a/mm/vmscan.c~ensure-we-count-pages-transitioning-inactive-via-clear_active_flags
++++ a/mm/vmscan.c
+@@ -777,6 +777,7 @@ static unsigned long shrink_inactive_lis
+ 			     (sc->order > PAGE_ALLOC_COSTLY_ORDER)?
+ 					     ISOLATE_BOTH : ISOLATE_INACTIVE);
+ 		nr_active = clear_active_flags(&page_list);
++		__count_vm_events(PGDEACTIVATE, nr_active);
  
- static struct acpi_cpufreq_data *drv_data[NR_CPUS];
--static struct acpi_processor_performance *acpi_perf_data[NR_CPUS];
-+/* acpi_perf_data is a pointer to percpu data. */
-+static struct acpi_processor_performance *acpi_perf_data;
- 
- static struct cpufreq_driver acpi_cpufreq_driver;
- 
-@@ -508,24 +509,14 @@ acpi_cpufreq_guess_freq(struct acpi_cpuf
-  * do _PDC and _PSD and find out the processor dependency for the
-  * actual init that will happen later...
-  */
--static int acpi_cpufreq_early_init(void)
-+static int __init acpi_cpufreq_early_init(void)
- {
--	struct acpi_processor_performance *data;
--	unsigned int i, j;
--
- 	dprintk("acpi_cpufreq_early_init\n");
- 
--	for_each_possible_cpu(i) {
--		data = kzalloc(sizeof(struct acpi_processor_performance),
--			       GFP_KERNEL);
--		if (!data) {
--			for_each_possible_cpu(j) {
--				kfree(acpi_perf_data[j]);
--				acpi_perf_data[j] = NULL;
--			}
--			return -ENOMEM;
--		}
--		acpi_perf_data[i] = data;
-+	acpi_perf_data = alloc_percpu(struct acpi_processor_performance);
-+	if (!acpi_perf_data) {
-+		dprintk("Memory allocation error for acpi_perf_data.\n");
-+		return -ENOMEM;
- 	}
- 
- 	/* Do initialization in ACPI core */
-@@ -574,14 +565,11 @@ static int acpi_cpufreq_cpu_init(struct 
- 
- 	dprintk("acpi_cpufreq_cpu_init\n");
- 
--	if (!acpi_perf_data[cpu])
--		return -ENODEV;
--
- 	data = kzalloc(sizeof(struct acpi_cpufreq_data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
--	data->acpi_data = acpi_perf_data[cpu];
-+	data->acpi_data = percpu_ptr(acpi_perf_data, cpu);
- 	drv_data[cpu] = data;
- 
- 	if (cpu_has(c, X86_FEATURE_CONSTANT_TSC))
-@@ -777,24 +765,25 @@ static struct cpufreq_driver acpi_cpufre
- 
- static int __init acpi_cpufreq_init(void)
- {
-+	int ret;
-+
- 	dprintk("acpi_cpufreq_init\n");
- 
--	acpi_cpufreq_early_init();
-+	ret = acpi_cpufreq_early_init();
-+	if (ret)
-+		return ret;
- 
- 	return cpufreq_register_driver(&acpi_cpufreq_driver);
- }
- 
- static void __exit acpi_cpufreq_exit(void)
- {
--	unsigned int i;
- 	dprintk("acpi_cpufreq_exit\n");
- 
- 	cpufreq_unregister_driver(&acpi_cpufreq_driver);
- 
--	for_each_possible_cpu(i) {
--		kfree(acpi_perf_data[i]);
--		acpi_perf_data[i] = NULL;
--	}
-+	free_percpu(acpi_perf_data);
-+
- 	return;
- }
- 
-diff -puN drivers/acpi/processor_perflib.c~fix-some-x86-x86-64-acpi-cpufreq-driver-issues drivers/acpi/processor_perflib.c
---- a/drivers/acpi/processor_perflib.c~fix-some-x86-x86-64-acpi-cpufreq-driver-issues
-+++ a/drivers/acpi/processor_perflib.c
-@@ -539,7 +539,7 @@ end:
- }
- 
- int acpi_processor_preregister_performance(
--		struct acpi_processor_performance **performance)
-+		struct acpi_processor_performance *performance)
- {
- 	int count, count_target;
- 	int retval = 0;
-@@ -567,12 +567,12 @@ int acpi_processor_preregister_performan
- 			continue;
- 		}
- 
--		if (!performance || !performance[i]) {
-+		if (!performance || !percpu_ptr(performance, i)) {
- 			retval = -EINVAL;
- 			continue;
- 		}
- 
--		pr->performance = performance[i];
-+		pr->performance = percpu_ptr(performance, i);
- 		cpu_set(i, pr->performance->shared_cpu_map);
- 		if (acpi_processor_get_psd(pr)) {
- 			retval = -EINVAL;
-diff -puN include/acpi/processor.h~fix-some-x86-x86-64-acpi-cpufreq-driver-issues include/acpi/processor.h
---- a/include/acpi/processor.h~fix-some-x86-x86-64-acpi-cpufreq-driver-issues
-+++ a/include/acpi/processor.h
-@@ -233,7 +233,7 @@ struct acpi_processor_errata {
- 
- extern int acpi_processor_preregister_performance(struct
- 						  acpi_processor_performance
--						  **performance);
-+						  *performance);
- 
- extern int acpi_processor_register_performance(struct acpi_processor_performance
- 					       *performance, unsigned int cpu);
+ 		__mod_zone_page_state(zone, NR_ACTIVE, -nr_active);
+ 		__mod_zone_page_state(zone, NR_INACTIVE,
 _
 
-Patches currently in -mm which might be from fenghua.yu@intel.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+x86_64-get-mp_bus_to_node-as-early-v2.patch
+x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
+try-parent-numa_node-at-first-before-using-default-v2.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+pci-device-ensure-sysdata-initialised-v4.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
+generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+sparc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch
+wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+page-owner-tracking-leak-detector.patch
