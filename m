@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-physmem-code-tidying.patch added to -mm tree
-Date: Mon, 06 Aug 2007 12:50:22 -0700
-Message-ID: <200708061950.l76JoMaA011799@imap1.linux-foundation.org>
+Subject: + handle-the-multi-threaded-inits-exit-properly.patch added to -mm tree
+Date: Mon, 06 Aug 2007 12:52:33 -0700
+Message-ID: <200708061952.l76JqX7n011817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41359 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42943 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760578AbXHFTut (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 15:50:49 -0400
+	by vger.kernel.org with ESMTP id S1763459AbXHFTxe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 15:53:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com
+Cc: oleg@tv-sign.ru, akpm@linux-foundation.org, clg@fr.ibm.com, ebiederm@xmission.com, mingo@elte.hu, roland@redhat.com, serue@us.ibm.com, sukadev@us.ibm.com
 
 
 The patch titled
-     uml: physmem code tidying
+     handle the multi-threaded init's exit() properly
 has been added to the -mm tree.  Its filename is
-     uml-physmem-code-tidying.patch
+     handle-the-multi-threaded-inits-exit-properly.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,185 +25,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: physmem code tidying
-From: Jeff Dike <jdike@addtoit.com>
+Subject: handle the multi-threaded init's exit() properly
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Tidying of the UML physical memory system.  These are mostly style fixes,
-however the includes were cleaned as well.  This uncovered a need for
-mem_user.h to be included in mode_kern_skas.h.
+With or without this patch, multi-threaded init's are not fully supported,
+but do_exit() is completely wrong.  This becomes a real problem when we
+support pid namespaces.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+1. do_exit() panics when the main thread of /sbin/init exits. It should not
+   until the whole thread group exits. Move the code below, under the
+   "if (group_dead)" check.
+
+   Note: this means that forget_original_parent() can use an already dead
+   child_reaper()'s task_struct. This is OK for /sbin/init because
+
+   	- do_wait() from alive sub-thread still can reap a zombie, we iterate
+   	  over all sub-thread's ->children lists
+
+   	- do_notify_parent() will wakeup some alive sub-thread because it sends
+   	  the group-wide signal
+
+   However, we should remove choose_new_parent()->BUG_ON(reaper->exit_state)
+   for this.
+
+2. We are playing games with ->nsproxy->pid_ns. This code is bogus today, and
+   it has to be changed anyway when we really support pid namespaces, just
+   remove it.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Roland McGrath <roland@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/skas/mode_kern_skas.h |    3 -
- arch/um/kernel/physmem.c              |   50 ++++++++++--------------
- 2 files changed, 23 insertions(+), 30 deletions(-)
+ kernel/exit.c |   31 +++++++++++--------------------
+ 1 file changed, 11 insertions(+), 20 deletions(-)
 
-diff -puN arch/um/include/skas/mode_kern_skas.h~uml-physmem-code-tidying arch/um/include/skas/mode_kern_skas.h
---- a/arch/um/include/skas/mode_kern_skas.h~uml-physmem-code-tidying
-+++ a/arch/um/include/skas/mode_kern_skas.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{linux.intel,addtoit}.com)
-  * Licensed under the GPL
-  */
- 
-@@ -9,6 +9,7 @@
- #include "linux/sched.h"
- #include "asm/page.h"
- #include "asm/ptrace.h"
-+#include "mem_user.h"
- 
- extern void flush_thread_skas(void);
- extern void switch_to_skas(void *prev, void *next);
-diff -puN arch/um/kernel/physmem.c~uml-physmem-code-tidying arch/um/kernel/physmem.c
---- a/arch/um/kernel/physmem.c~uml-physmem-code-tidying
-+++ a/arch/um/kernel/physmem.c
-@@ -1,25 +1,17 @@
- /*
-- * Copyright (C) 2000 - 2003 Jeff Dike (jdike@addtoit.com)
-+ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
--#include "linux/mm.h"
--#include "linux/rbtree.h"
--#include "linux/slab.h"
--#include "linux/vmalloc.h"
- #include "linux/bootmem.h"
--#include "linux/module.h"
-+#include "linux/mm.h"
- #include "linux/pfn.h"
--#include "asm/types.h"
--#include "asm/pgtable.h"
--#include "kern_util.h"
-+#include "asm/page.h"
- #include "as-layout.h"
-+#include "init.h"
-+#include "kern.h"
- #include "mode_kern.h"
--#include "mem.h"
--#include "mem_user.h"
- #include "os.h"
--#include "kern.h"
--#include "init.h"
- 
- static int physmem_fd = -1;
- 
-@@ -49,10 +41,10 @@ int __init init_maps(unsigned long physm
- 	total_len = phys_len + iomem_len + highmem_len;
- 
- 	map = alloc_bootmem_low_pages(total_len);
--	if(map == NULL)
-+	if (map == NULL)
- 		return -ENOMEM;
- 
--	for(i = 0; i < total_pages; i++){
-+	for (i = 0; i < total_pages; i++) {
- 		p = &map[i];
- 		memset(p, 0, sizeof(struct page));
- 		SetPageReserved(p);
-@@ -68,7 +60,7 @@ static unsigned long kmem_top = 0;
- 
- unsigned long get_kmem_end(void)
- {
--	if(kmem_top == 0)
-+	if (kmem_top == 0)
- 		kmem_top = CHOOSE_MODE(kmem_end_tt, kmem_end_skas);
- 	return kmem_top;
+diff -puN kernel/exit.c~handle-the-multi-threaded-inits-exit-properly kernel/exit.c
+--- a/kernel/exit.c~handle-the-multi-threaded-inits-exit-properly
++++ a/kernel/exit.c
+@@ -600,17 +600,6 @@ static void exit_mm(struct task_struct *
+ 	mmput(mm);
  }
-@@ -81,8 +73,8 @@ void map_memory(unsigned long virt, unsi
  
- 	fd = phys_mapping(phys, &offset);
- 	err = os_map_memory((void *) virt, fd, offset, len, r, w, x);
--	if(err) {
--		if(err == -ENOMEM)
-+	if (err) {
-+		if (err == -ENOMEM)
- 			printk("try increasing the host's "
- 			       "/proc/sys/vm/max_map_count to <physical "
- 			       "memory size>/4096\n");
-@@ -106,7 +98,7 @@ void __init setup_physmem(unsigned long 
- 	offset = uml_reserved - uml_physmem;
- 	err = os_map_memory((void *) uml_reserved, physmem_fd, offset,
- 			    len - offset, 1, 1, 1);
--	if(err < 0){
-+	if (err < 0) {
- 		os_print_error(err, "Mapping memory");
- 		exit(1);
- 	}
-@@ -126,16 +118,16 @@ int phys_mapping(unsigned long phys, __u
+-static inline void
+-choose_new_parent(struct task_struct *p, struct task_struct *reaper)
+-{
+-	/*
+-	 * Make sure we're not reparenting to ourselves and that
+-	 * the parent is not a zombie.
+-	 */
+-	BUG_ON(p == reaper || reaper->exit_state);
+-	p->real_parent = reaper;
+-}
+-
+ static void
+ reparent_thread(struct task_struct *p, struct task_struct *father, int traced)
  {
- 	int fd = -1;
+@@ -718,7 +707,7 @@ forget_original_parent(struct task_struc
  
--	if(phys < physmem_size){
-+	if (phys < physmem_size) {
- 		fd = physmem_fd;
- 		*offset_out = phys;
+ 		if (father == p->real_parent) {
+ 			/* reparent with a reaper, real father it's us */
+-			choose_new_parent(p, reaper);
++			p->real_parent = reaper;
+ 			reparent_thread(p, father, 0);
+ 		} else {
+ 			/* reparent ptraced task to its real parent */
+@@ -739,7 +728,7 @@ forget_original_parent(struct task_struc
  	}
--	else if(phys < __pa(end_iomem)){
-+	else if (phys < __pa(end_iomem)) {
- 		struct iomem_region *region = iomem_regions;
+ 	list_for_each_safe(_p, _n, &father->ptrace_children) {
+ 		p = list_entry(_p, struct task_struct, ptrace_list);
+-		choose_new_parent(p, reaper);
++		p->real_parent = reaper;
+ 		reparent_thread(p, father, 1);
+ 	}
+ }
+@@ -890,6 +879,14 @@ static void check_stack_usage(void)
+ static inline void check_stack_usage(void) {}
+ #endif
  
--		while(region != NULL){
--			if((phys >= region->phys) &&
--			   (phys < region->phys + region->size)){
-+		while (region != NULL) {
-+			if ((phys >= region->phys) &&
-+			    (phys < region->phys + region->size)) {
- 				fd = region->fd;
- 				*offset_out = phys - region->phys;
- 				break;
-@@ -143,7 +135,7 @@ int phys_mapping(unsigned long phys, __u
- 			region = region->next;
- 		}
- 	}
--	else if(phys < __pa(end_iomem) + highmem){
-+	else if (phys < __pa(end_iomem) + highmem) {
- 		fd = physmem_fd;
- 		*offset_out = phys - iomem_size;
- 	}
-@@ -188,8 +180,8 @@ unsigned long find_iomem(char *driver, u
++static inline void exit_child_reaper(struct task_struct *tsk)
++{
++	if (likely(tsk->group_leader != child_reaper(tsk)))
++		return;
++
++	panic("Attempted to kill init!");
++}
++
+ fastcall NORET_TYPE void do_exit(long code)
  {
- 	struct iomem_region *region = iomem_regions;
+ 	struct task_struct *tsk = current;
+@@ -903,13 +900,6 @@ fastcall NORET_TYPE void do_exit(long co
+ 		panic("Aiee, killing interrupt handler!");
+ 	if (unlikely(!tsk->pid))
+ 		panic("Attempted to kill the idle task!");
+-	if (unlikely(tsk == child_reaper(tsk))) {
+-		if (tsk->nsproxy->pid_ns != &init_pid_ns)
+-			tsk->nsproxy->pid_ns->child_reaper = init_pid_ns.child_reaper;
+-		else
+-			panic("Attempted to kill init!");
+-	}
+-
  
--	while(region != NULL){
--		if(!strcmp(region->driver, driver)){
-+	while (region != NULL) {
-+		if (!strcmp(region->driver, driver)) {
- 			*len_out = region->size;
- 			return region->virt;
- 		}
-@@ -206,10 +198,10 @@ int setup_iomem(void)
- 	unsigned long iomem_start = high_physmem + PAGE_SIZE;
- 	int err;
- 
--	while(region != NULL){
-+	while (region != NULL) {
- 		err = os_map_memory((void *) iomem_start, region->fd, 0,
- 				    region->size, 1, 1, 0);
--		if(err)
-+		if (err)
- 			printk("Mapping iomem region for driver '%s' failed, "
- 			       "errno = %d\n", region->driver, -err);
- 		else {
+ 	if (unlikely(current->ptrace & PT_TRACE_EXIT)) {
+ 		current->ptrace_message = code;
+@@ -959,6 +949,7 @@ fastcall NORET_TYPE void do_exit(long co
+ 	}
+ 	group_dead = atomic_dec_and_test(&tsk->signal->live);
+ 	if (group_dead) {
++		exit_child_reaper(tsk);
+ 		hrtimer_cancel(&tsk->signal->real_timer);
+ 		exit_itimers(tsk->signal);
+ 	}
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-git-kvm.patch
-hostfs-convert-to-new-aops.patch
-uml-move-userspace-code-to-userspace-file.patch
-uml-tidy-recently-moved-code.patch
-uml-fix-error-cleanup-ordering.patch
-uml-console-subsystem-tidying.patch
-uml-fix-console-writing-bugs.patch
-uml-console-tidying.patch
-uml-stop-using-libc-asm-pageh.patch
-uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
-uml-fix-nonremovability-of-watchdog.patch
-uml-stop-specially-protecting-kernel-stacks.patch
-uml-stop-saving-process-fp-state.patch
-uml-physmem-code-tidying.patch
+fix-theoretical-ccids_readwrite_lock-race.patch
+i386-remove-unnecessary-code.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+do_poll-return-eintr-when-signalled.patch
+pi-futex-set-pf_exiting-without-taking-pi_lock.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+cpu-hotplug-topology-remove-topology_dev_map.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
