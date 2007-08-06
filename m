@@ -1,116 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - mips-remove-some-duplicate-includes.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:53:24 -0700
-Message-ID: <200708060753.l767rOgE016331@imap1.linux-foundation.org>
+Subject: - drivers-acpi-sbsc-remove-dead-code.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:52:55 -0700
+Message-ID: <200708060752.l767qtQD016289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57376 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45254 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756638AbXHFHxl (ORCPT
+	by vger.kernel.org with ESMTP id S1757723AbXHFHxl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:53:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, len.brown@intel.com, vladimir.p.lebedev@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: remove some duplicate includes
+     drivers/acpi/sbs.c: remove dead code
 has been removed from the -mm tree.  Its filename was
-     mips-remove-some-duplicate-includes.patch
+     drivers-acpi-sbsc-remove-dead-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mips: remove some duplicate includes
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: drivers/acpi/sbs.c: remove dead code
+From: Adrian Bunk <bunk@stusta.de>
 
-Remove some duplicate includes from arch/mips/
+Remove dead code spotted by the Coverity checker.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Vladimir Lebedev <vladimir.p.lebedev@intel.com>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/signal32.c   |    1 -
- arch/mips/lemote/lm2e/irq.c   |    1 -
- arch/mips/mipssim/sim_setup.c |    1 -
- 3 files changed, 3 deletions(-)
+ drivers/acpi/sbs.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/mips/kernel/signal32.c~mips-remove-some-duplicate-includes arch/mips/kernel/signal32.c
---- a/arch/mips/kernel/signal32.c~mips-remove-some-duplicate-includes
-+++ a/arch/mips/kernel/signal32.c
-@@ -18,7 +18,6 @@
- #include <linux/errno.h>
- #include <linux/wait.h>
- #include <linux/ptrace.h>
--#include <linux/compat.h>
- #include <linux/suspend.h>
- #include <linux/compiler.h>
- #include <linux/uaccess.h>
-diff -puN arch/mips/lemote/lm2e/irq.c~mips-remove-some-duplicate-includes arch/mips/lemote/lm2e/irq.c
---- a/arch/mips/lemote/lm2e/irq.c~mips-remove-some-duplicate-includes
-+++ a/arch/mips/lemote/lm2e/irq.c
-@@ -25,7 +25,6 @@
-  */
- #include <linux/delay.h>
- #include <linux/io.h>
--#include <linux/irq.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/irq.h>
-diff -puN arch/mips/mipssim/sim_setup.c~mips-remove-some-duplicate-includes arch/mips/mipssim/sim_setup.c
---- a/arch/mips/mipssim/sim_setup.c~mips-remove-some-duplicate-includes
-+++ a/arch/mips/mipssim/sim_setup.c
-@@ -22,7 +22,6 @@
- #include <linux/io.h>
- #include <linux/irq.h>
- #include <linux/ioport.h>
--#include <linux/serial.h>
- #include <linux/tty.h>
- #include <linux/serial.h>
- #include <linux/serial_core.h>
+diff -puN drivers/acpi/sbs.c~drivers-acpi-sbsc-remove-dead-code drivers/acpi/sbs.c
+--- a/drivers/acpi/sbs.c~drivers-acpi-sbsc-remove-dead-code
++++ a/drivers/acpi/sbs.c
+@@ -1415,7 +1415,7 @@ static int acpi_sbs_update_run(struct ac
+ 	char dir_name[32];
+ 	int do_battery_init = 0, do_ac_init = 0;
+ 	int old_remaining_capacity = 0;
+-	int update_ac = 1, update_battery = 1;
++	int update_battery = 1;
+ 	int up_tm = update_time;
+ 
+ 	if (sbs_zombie(sbs)) {
+@@ -1435,10 +1435,6 @@ static int acpi_sbs_update_run(struct ac
+ 
+ 	sbs->run_cnt++;
+ 
+-	if (!update_ac && !update_battery) {
+-		goto end;
+-	}
+-
+ 	old_ac_present = sbs->ac.ac_present;
+ 
+ 	result = acpi_ac_get_present(sbs);
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
+slow-down-printk-during-boot-fix-3.patch
 git-acpi.patch
+make-drivers-acpi-eventcacpi_event_seqnum-static.patch
 git-alsa.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-powerpc-clean-out-a-bunch-of-duplicate-includes.patch
+allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
+drivers-base-power-make-2-functions-static.patch
+git-drm.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-scripts-ver_linux-correct-printing-of-binutils-version.patch
+drivers-i2c-i2c-corec-make-code-static.patch
+include-linux-kbuild-remove-duplicate-entries.patch
+git-kvm.patch
+git-mmc.patch
 git-mtd.patch
-git-ubi.patch
-clean-up-duplicate-includes-in-drivers-net.patch
-clean-up-duplicate-includes-in-drivers-atm.patch
-clean-up-duplicate-includes-in-net-atm.patch
-clean-up-duplicate-includes-in-net-ipv4.patch
-clean-up-duplicate-includes-in-net-ipv6.patch
-clean-up-duplicate-includes-in-net-sched.patch
-clean-up-duplicate-includes-in-net-sunrpc.patch
-clean-up-duplicate-includes-in-net-tipc.patch
-clean-up-duplicate-includes-in-net-xfrm.patch
-dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-clean-up-duplicate-includes-in-drivers-block.patch
-clean-up-duplicate-includes-in-arch-i386-xen.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+remove-fs-jffs2-ioctlc.patch
+drivers-net-cxgb3-xgmacc-remove-dead-code.patch
+e1000-if-0-two-functions.patch
+fore200e_param_bs_queue-must-be-__devinit.patch
+backlight-make-2-structs-static.patch
+git-ocfs2.patch
+parisc-extern-inline-static-inline.patch
+cpqphp_ctrlc-remove-dead-code.patch
+kernel-schedc-make-code-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+make-scsi_host_link_pm_policy-static.patch
+drivers-scsi-scsi_errorc-should-include.patch
+drivers-scsi-constantsc-make-2-functions-static.patch
+git-unionfs.patch
+git-v9fs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+i386-remove-maccumulate-outgoing-args.patch
+arch-i386-mach-generic-probec-make-struct-apic_probe.patch
+arch-i386-mach-es7000-es7000platc-cleanups.patch
+i386-alternativec-really-stop-mces-during-code.patch
+i386-no-need-to-make-enable_cpu_hotplug-a-variable.patch
+arch-i386-mm-discontigc-make-some-variables-static.patch
+git-cryptodev.patch
+kernel-auditscc-fix-an-off-by-one.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+mm-page_allocc-make-code-static.patch
+maps2-add-proc-kpagemap-interface.patch
+hugetlbfs-read-support-fix-2.patch
+mm-shmemc-make-3-functions-static.patch
+mm-mempolicyc-cleanups.patch
+mm-vmstatc-cleanups.patch
+cleanup-arch-alpha-makefile.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+radeon_driver_vblank_do_wait-static.patch
+unexport-fb_prepare_logo.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
