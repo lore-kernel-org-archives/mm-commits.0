@@ -1,59 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-kgdb-arm-fix.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:53:42 -0700
-Message-ID: <200708060753.l767rgZ2016357@imap1.linux-foundation.org>
+Subject: - git-kgdb-mips-fix.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:53:44 -0700
+Message-ID: <200708060753.l767rifK016361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50173 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33485 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754368AbXHFHze (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:55:34 -0400
+	by vger.kernel.org with ESMTP id S1758583AbXHFHzf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:55:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-kgdb: arm fix
+     git-kgdb: mips fix
 has been removed from the -mm tree.  Its filename was
-     git-kgdb-arm-fix.patch
+     git-kgdb-mips-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-kgdb: arm fix
+Subject: git-kgdb: mips fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- fix build
-
-- return is not a function
-
-- we need to get this sort of stuff reviewed by the maintainer early.
+In file included from include/asm/kgdb.h:6,
+                 from include/linux/kgdb.h:22,
+                 from arch/mips/kernel/kgdb-jmp.c:19:
+include/asm-generic/kgdb.h:32: warning: "struct pt_regs" declared inside parameter list
+include/asm-generic/kgdb.h:32: warning: its scope is only this definition or declaration, which is probably not what you want
 
 Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/system.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-generic/kgdb.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/asm-arm/system.h~git-kgdb-arm-fix include/asm-arm/system.h
---- a/include/asm-arm/system.h~git-kgdb-arm-fix
-+++ a/include/asm-arm/system.h
-@@ -367,11 +367,11 @@ static inline unsigned long __cmpxchg(vo
+diff -puN include/asm-generic/kgdb.h~git-kgdb-mips-fix include/asm-generic/kgdb.h
+--- a/include/asm-generic/kgdb.h~git-kgdb-mips-fix
++++ a/include/asm-generic/kgdb.h
+@@ -18,6 +18,8 @@
+ #ifndef __ASM_GENERIC_KGDB_H__
+ #define __ASM_GENERIC_KGDB_H__
  
- 	if (size == 4) {
- 		local_irq_save(flags);
--		pref = *p;
-+		prev = *p;
- 		if (prev == old)
- 			*p = new;
- 		local_irq_restore(flags);
--		return(prev);
-+		return prev;
- 	} else
- 		return wrong_size_cmpxchg(ptr);
- }
++struct pt_regs;
++
+ #ifdef CONFIG_X86
+ /**
+  *	kgdb_skipexception - Bail of of KGDB when we've been triggered.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
