@@ -1,59 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - eliminate-warnings-in-ide-tapec.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:43:57 -0700
-Message-ID: <200708060743.l767hvqC015968@imap1.linux-foundation.org>
+Subject: - fix-ide-ide-add-ide-set-pio-take3.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:43:52 -0700
+Message-ID: <200708060743.l767hrXq015961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36663 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33641 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758583AbXHFHok (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:44:40 -0400
+	by vger.kernel.org with ESMTP id S1754476AbXHFHoe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:44:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Eliminate warnings in ide-tape.c
+     fix-ide-ide-add-ide-set-pio-take3
 has been removed from the -mm tree.  Its filename was
-     eliminate-warnings-in-ide-tapec.patch
+     fix-ide-ide-add-ide-set-pio-take3.patch
 
 This patch was dropped because it was sent to Bart, then dropped
 
 ------------------------------------------------------
-Subject: Eliminate warnings in ide-tape.c
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: fix-ide-ide-add-ide-set-pio-take3
+From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ide/ide-tape.c: In function '__idetape_kmalloc_stage':
-drivers/ide/ide-tape.c:2588: warning: large integer implicitly truncated to unsigned type
-drivers/ide/ide-tape.c:2616: warning: large integer implicitly truncated to unsigned type
+drivers/ide/pci/cmd640.c: In function 'cmd640_set_pio_mode':
+drivers/ide/pci/cmd640.c:646: error: 'mode_wanted' undeclared (first use in this function)
+drivers/ide/pci/cmd640.c:646: error: (Each undeclared identifier is reported only once
+drivers/ide/pci/cmd640.c:646: error: for each function it appears in.)
 
-b_size in struct idetape_bh is an unsigned short.  We sometimes assign
-PAGE_SIZE to it and PAGE_SIZE can be 64K or larger, so make it a u32.
-
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-tape.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ide/ide-tape.c~eliminate-warnings-in-ide-tapec drivers/ide/ide-tape.c
---- a/drivers/ide/ide-tape.c~eliminate-warnings-in-ide-tapec
-+++ a/drivers/ide/ide-tape.c
-@@ -640,7 +640,7 @@ typedef enum {
- } idetape_chrdev_direction_t;
- 
- struct idetape_bh {
--	unsigned short b_size;
-+	u32 b_size;
- 	atomic_t b_count;
- 	struct idetape_bh *b_reqnext;
- 	char *b_data;
+diff -puN drivers/ide/Kconfig~fix-ide-ide-add-ide-set-pio-take3 drivers/ide/Kconfig
+--- a/drivers/ide/Kconfig~fix-ide-ide-add-ide-set-pio-take3
++++ a/drivers/ide/Kconfig
+@@ -318,6 +318,7 @@ config BLK_DEV_PLATFORM
+ config BLK_DEV_CMD640
+ 	bool "CMD640 chipset bugfix/support"
+ 	depends on X86
++	depends on BROKEN
+ 	---help---
+ 	  The CMD-Technologies CMD640 IDE chip is used on many common 486 and
+ 	  Pentium motherboards, usually in combination with a "Neptune" or
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-alsa.patch
-eliminate-warnings-in-ide-tapec.patch
-clean-up-duplicate-includes-in-drivers-block.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-ide-set-pio-take3.patch
+fix-ide-ide-add-platform-ide-driver.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
+ssb-mainc-needs-dma-mappingh.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+git-kgdb-arm-fix.patch
+git-kgdb-mips-fix.patch
+git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+acpi_battery_add-use-after-free.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
