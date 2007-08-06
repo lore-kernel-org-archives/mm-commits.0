@@ -1,60 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - git-newsetup-fixup.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:47:46 -0700
-Message-ID: <200708060747.l767lkDH016098@imap1.linux-foundation.org>
+Subject: - git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:50:36 -0700
+Message-ID: <200708060750.l767oaRT016173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47502 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54376 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753752AbXHFHsV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:48:21 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l767lpnq001306
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 6 Aug 2007 00:47:52 -0700
+	by vger.kernel.org with ESMTP id S1752002AbXHFHvT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:51:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hch@lst.de, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-newsetup-fixup
+     git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft
 has been removed from the -mm tree.  Its filename was
-     git-newsetup-fixup.patch
+     git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-newsetup-fixup
+Subject: git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    8 --------
- 1 file changed, 8 deletions(-)
+ arch/i386/kernel/kgdb.c   |    3 ---
+ arch/x86_64/kernel/kgdb.c |    5 ++---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~git-newsetup-fixup drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~git-newsetup-fixup
-+++ a/drivers/lguest/lguest.c
-@@ -888,17 +888,9 @@ static __init char *lguest_memory_setup(
- 	 * before start_kernel() */
- 	atomic_notifier_chain_register(&panic_notifier_list, &paniced);
- 
--<<<<<<< HEAD/drivers/lguest/lguest.c
--	/* The Linux bootloader header contains an "e820" memory map: the
--	 * Launcher populated the first entry with our memory limit. */
--	add_memory_region(E820_MAP->addr, E820_MAP->size, E820_MAP->type);
--
--	/* This string is for the boot messages. */
--=======
- 	add_memory_region(boot_params.e820_map[0].addr,
- 			  boot_params.e820_map[0].size,
- 			  boot_params.e820_map[0].type);
-->>>>>>> /drivers/lguest/lguest.c
- 	return "LGUEST";
- }
- 
+diff -puN arch/i386/kernel/kgdb.c~git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft arch/i386/kernel/kgdb.c
+--- a/arch/i386/kernel/kgdb.c~git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft
++++ a/arch/i386/kernel/kgdb.c
+@@ -318,9 +318,6 @@ static int kgdb_notify(struct notifier_b
+ 		&& kgdb_may_fault) {
+ 		kgdb_fault_longjmp(kgdb_fault_jmp_regs);
+ 		return NOTIFY_STOP;
+-	} else if (cmd == DIE_PAGE_FAULT)
+-		/* A normal page fault, ignore. */
+-		return NOTIFY_DONE;
+ 	else if ((cmd == DIE_NMI || cmd == DIE_NMI_IPI ||
+ 			  cmd == DIE_NMIWATCHDOG) &&
+ 			 atomic_read(&debugger_active)) {
+diff -puN arch/x86_64/kernel/kgdb.c~git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft arch/x86_64/kernel/kgdb.c
+--- a/arch/x86_64/kernel/kgdb.c~git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft
++++ a/arch/x86_64/kernel/kgdb.c
+@@ -412,9 +412,8 @@ static int kgdb_notify(struct notifier_b
+ 		kgdb_arch_handle_exception(args->trapnr, args->signr,
+ 		args->err, "c", "", regs);
+ 		return NOTIFY_STOP;
+-	} else if (cmd == DIE_PAGE_FAULT || user_mode(regs) ||
+-		   cmd == DIE_NMI_IPI || (cmd == DIE_DEBUG &&
+-					  atomic_read(&debugger_active)))
++	} else if (user_mode(regs) || cmd == DIE_NMI_IPI ||
++			(cmd == DIE_DEBUG && atomic_read(&debugger_active)))
+ 		/* Userpace events, normal watchdog event, or spurious
+ 		 * debug exception.  Ignore. */
+ 		return NOTIFY_DONE;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,11 +111,8 @@ fix-x86_64-mm-early-quirks-unification.patch
 x86_64-clean-up-apicid_to_node-declaration.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 mmconfig-validate-against-acpi-motherboard-resources.patch
-git-newsetup-fixup.patch
 git-xfs.patch
 git-kgdb-fixup.patch
-git-kgdb-arm-fix.patch
-git-kgdb-mips-fix.patch
 git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
 git-kgdb-vs-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-2.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
