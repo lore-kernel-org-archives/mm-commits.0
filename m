@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lib-percpu_count_sum.patch added to -mm tree
-Date: Mon, 06 Aug 2007 13:19:00 -0700
-Message-ID: <200708062019.l76KJ0rD012912@imap1.linux-foundation.org>
+Subject: + mtd-bdi-init-hooks.patch added to -mm tree
+Date: Mon, 06 Aug 2007 13:19:05 -0700
+Message-ID: <200708062019.l76KJ5E9012932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48078 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44559 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761819AbXHFUTL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:11 -0400
+	by vger.kernel.org with ESMTP id S1760975AbXHFUTO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: a.p.zijlstra@chello.nl
 
 
 The patch titled
-     lib: percpu_count_sum()
+     mtd: bdi init hooks
 has been added to the -mm tree.  Its filename is
-     lib-percpu_count_sum.patch
+     mtd-bdi-init-hooks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,84 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lib: percpu_count_sum()
+Subject: mtd: bdi init hooks
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Provide an accurate version of percpu_counter_read.
+split off because the relevant mtd changes seem particular to -mm
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu_counter.h |   18 +++++++++++++++++-
- lib/percpu_counter.c           |    6 +++---
- 2 files changed, 20 insertions(+), 4 deletions(-)
+ drivers/mtd/mtdcore.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN include/linux/percpu_counter.h~lib-percpu_count_sum include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~lib-percpu_count_sum
-+++ a/include/linux/percpu_counter.h
-@@ -34,13 +34,24 @@ void percpu_counter_init(struct percpu_c
- void percpu_counter_destroy(struct percpu_counter *fbc);
- void percpu_counter_set(struct percpu_counter *fbc, s64 amount);
- void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch);
--s64 percpu_counter_sum_positive(struct percpu_counter *fbc);
-+s64 __percpu_counter_sum(struct percpu_counter *fbc);
- 
- static inline void percpu_counter_add(struct percpu_counter *fbc, s64 amount)
+diff -puN drivers/mtd/mtdcore.c~mtd-bdi-init-hooks drivers/mtd/mtdcore.c
+--- a/drivers/mtd/mtdcore.c~mtd-bdi-init-hooks
++++ a/drivers/mtd/mtdcore.c
+@@ -48,6 +48,7 @@ static LIST_HEAD(mtd_notifiers);
+ int add_mtd_device(struct mtd_info *mtd)
  {
- 	__percpu_counter_add(fbc, amount, FBC_BATCH);
- }
+ 	int i;
++	int err;
  
-+static inline s64 percpu_counter_sum_positive(struct percpu_counter *fbc)
-+{
-+	s64 ret = __percpu_counter_sum(fbc);
-+	return ret < 0 ? 0 : ret;
-+}
-+
-+static inline s64 percpu_counter_sum(struct percpu_counter *fbc)
-+{
-+	return __percpu_counter_sum(fbc);
-+}
-+
- static inline s64 percpu_counter_read(struct percpu_counter *fbc)
- {
- 	return fbc->count;
-@@ -107,6 +118,11 @@ static inline s64 percpu_counter_sum_pos
- 	return percpu_counter_read_positive(fbc);
- }
- 
-+static inline s64 percpu_counter_sum(struct percpu_counter *fbc)
-+{
-+	return percpu_counter_read(fbc);
-+}
-+
- #endif	/* CONFIG_SMP */
- 
- static inline void percpu_counter_inc(struct percpu_counter *fbc)
-diff -puN lib/percpu_counter.c~lib-percpu_count_sum lib/percpu_counter.c
---- a/lib/percpu_counter.c~lib-percpu_count_sum
-+++ a/lib/percpu_counter.c
-@@ -52,7 +52,7 @@ EXPORT_SYMBOL(__percpu_counter_add);
-  * Add up all the per-cpu counts, return the result.  This is a more accurate
-  * but much slower version of percpu_counter_read_positive()
-  */
--s64 percpu_counter_sum_positive(struct percpu_counter *fbc)
-+s64 __percpu_counter_sum(struct percpu_counter *fbc)
- {
- 	s64 ret;
- 	int cpu;
-@@ -64,9 +64,9 @@ s64 percpu_counter_sum_positive(struct p
- 		ret += *pcount;
+ 	if (!mtd->backing_dev_info) {
+ 		switch (mtd->type) {
+@@ -62,6 +63,9 @@ int add_mtd_device(struct mtd_info *mtd)
+ 			break;
+ 		}
  	}
- 	spin_unlock(&fbc->lock);
--	return ret < 0 ? 0 : ret;
-+	return ret;
- }
--EXPORT_SYMBOL(percpu_counter_sum_positive);
-+EXPORT_SYMBOL(__percpu_counter_sum);
++	err = bdi_init(mtd->backing_dev_info);
++	if (err)
++		return 1;
  
- void percpu_counter_init(struct percpu_counter *fbc, s64 amount)
- {
+ 	BUG_ON(mtd->writesize == 0);
+ 	mutex_lock(&mtd_table_mutex);
+@@ -102,6 +106,7 @@ int add_mtd_device(struct mtd_info *mtd)
+ 		}
+ 
+ 	mutex_unlock(&mtd_table_mutex);
++	bdi_destroy(mtd->backing_dev_info);
+ 	return 1;
+ }
+ 
+@@ -144,6 +149,10 @@ int del_mtd_device (struct mtd_info *mtd
+ 	}
+ 
+ 	mutex_unlock(&mtd_table_mutex);
++
++	if (mtd->backing_dev_info)
++		bdi_destroy(mtd->backing_dev_info);
++
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
