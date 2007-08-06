@@ -1,160 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - git-kgdb-mips-fix.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:53:44 -0700
-Message-ID: <200708060753.l767rifK016361@imap1.linux-foundation.org>
+Subject: - drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:53:33 -0700
+Message-ID: <200708060753.l767rX5Z016343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33485 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49779 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758583AbXHFHzf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:55:35 -0400
+	by vger.kernel.org with ESMTP id S1754846AbXHFHzl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-kgdb: mips fix
+     drivers/scsi/ide-scsi.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     git-kgdb-mips-fix.patch
+     drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-kgdb: mips fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/scsi/ide-scsi.c: kmalloc + memset conversion to kzalloc
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-In file included from include/asm/kgdb.h:6,
-                 from include/linux/kgdb.h:22,
-                 from arch/mips/kernel/kgdb-jmp.c:19:
-include/asm-generic/kgdb.h:32: warning: "struct pt_regs" declared inside parameter list
-include/asm-generic/kgdb.h:32: warning: its scope is only this definition or declaration, which is probably not what you want
+ drivers/scsi/ide-scsi.c | 34642 -> 34536 (-106 bytes)
+ drivers/scsi/ide-scsi.o | 171728 -> 171524 (-204 bytes)
 
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/kgdb.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/scsi/ide-scsi.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN include/asm-generic/kgdb.h~git-kgdb-mips-fix include/asm-generic/kgdb.h
---- a/include/asm-generic/kgdb.h~git-kgdb-mips-fix
-+++ a/include/asm-generic/kgdb.h
-@@ -18,6 +18,8 @@
- #ifndef __ASM_GENERIC_KGDB_H__
- #define __ASM_GENERIC_KGDB_H__
+diff -puN drivers/scsi/ide-scsi.c~drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc drivers/scsi/ide-scsi.c
+--- a/drivers/scsi/ide-scsi.c~drivers-scsi-ide-scsic-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/scsi/ide-scsi.c
+@@ -333,17 +333,15 @@ static int idescsi_check_condition(ide_d
+ 	u8             *buf;
  
-+struct pt_regs;
-+
- #ifdef CONFIG_X86
- /**
-  *	kgdb_skipexception - Bail of of KGDB when we've been triggered.
+ 	/* stuff a sense request in front of our current request */
+-	pc = kmalloc (sizeof (idescsi_pc_t), GFP_ATOMIC);
+-	rq = kmalloc (sizeof (struct request), GFP_ATOMIC);
+-	buf = kmalloc(SCSI_SENSE_BUFFERSIZE, GFP_ATOMIC);
+-	if (pc == NULL || rq == NULL || buf == NULL) {
++	pc = kzalloc(sizeof(idescsi_pc_t), GFP_ATOMIC);
++	rq = kmalloc(sizeof(struct request), GFP_ATOMIC);
++	buf = kzalloc(SCSI_SENSE_BUFFERSIZE, GFP_ATOMIC);
++	if (!pc || !rq || !buf) {
+ 		kfree(buf);
+ 		kfree(rq);
+ 		kfree(pc);
+ 		return -ENOMEM;
+ 	}
+-	memset (pc, 0, sizeof (idescsi_pc_t));
+-	memset (buf, 0, SCSI_SENSE_BUFFERSIZE);
+ 	ide_init_drive_cmd(rq);
+ 	rq->special = (char *) pc;
+ 	pc->rq = rq;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
+git-dvb.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
 git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-natsemi-fix-netdev-error-acounting.patch
-git-ixgbe-build-fix.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-wireless.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
-ssb-mainc-needs-dma-mappingh.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+mtd-add-module-license-to-mtdbdi.patch
+usb-remove-redundant-memset-from-amd5536udc.patch
+drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc.patch
+drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch
+drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
+arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
