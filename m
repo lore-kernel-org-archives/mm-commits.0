@@ -1,78 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - cdc-acm-fix-sysfs-attribute-registration-bug.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:53:57 -0700
-Message-ID: <200708060754.l767rvsN016392@imap1.linux-foundation.org>
+Subject: - scsi-expose-an-to-user-space.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 11:25:20 -0700
+Message-ID: <200708061825.l76IPKoV008119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55928 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34641 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758891AbXHFH5b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:57:31 -0400
+	by vger.kernel.org with ESMTP id S1755355AbXHFSZc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:25:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, greg@kroah.com, oneukum@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: kristen.c.accardi@intel.com, James.Bottomley@steeleye.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cdc-acm: fix sysfs attribute registration bug
+     scsi: expose AN to user space
 has been removed from the -mm tree.  Its filename was
-     cdc-acm-fix-sysfs-attribute-registration-bug.patch
+     scsi-expose-an-to-user-space.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: cdc-acm: fix sysfs attribute registration bug
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: scsi: expose AN to user space
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-This patch (as950) fixes a bug in the cdc-acm driver.  It doesn't keep
-track of which interface (control or data) the sysfs attributes get
-registered for, and as a result, during disconnect it will sometimes
-attempt to remove the attributes from the wrong interface.  The
-left-over attributes can cause a crash later on, particularly if the driver
-module has been unloaded.
+Get media change notification capability from disk and pass this information
+to genhd by setting appropriate flag.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Acked-by: Oliver Neukum <oneukum@suse.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/class/cdc-acm.c |   12 +++++++++---
- 1 files changed, 9 insertions(+), 3 deletions(-)
+ drivers/scsi/sd.c          |    3 +++
+ drivers/scsi/sr.c          |    2 ++
+ include/scsi/scsi_device.h |    2 +-
+ 3 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/class/cdc-acm.c~cdc-acm-fix-sysfs-attribute-registration-bug drivers/usb/class/cdc-acm.c
---- a/drivers/usb/class/cdc-acm.c~cdc-acm-fix-sysfs-attribute-registration-bug
-+++ a/drivers/usb/class/cdc-acm.c
-@@ -921,6 +921,10 @@ skip_normal_probe:
- 			return -EINVAL;
- 		}
- 	}
+diff -puN drivers/scsi/sd.c~scsi-expose-an-to-user-space drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~scsi-expose-an-to-user-space
++++ a/drivers/scsi/sd.c
+@@ -1668,6 +1668,9 @@ static int sd_probe(struct device *dev)
+ 	if (sdp->removable)
+ 		gd->flags |= GENHD_FL_REMOVABLE;
+ 
++	if (sdp->media_change_notify)
++		gd->flags |= GENHD_FL_MEDIA_CHANGE_NOTIFY;
 +
-+	/* Accept probe requests only for the control interface */
-+	if (intf != control_interface)
-+		return -ENODEV;
- 	
- 	if (usb_interface_claimed(data_interface)) { /* valid in this context */
- 		dev_dbg(&intf->dev,"The data interface isn't available");
-@@ -1109,10 +1113,12 @@ static void acm_disconnect(struct usb_in
- 		return;
- 	}
- 	if (acm->country_codes){
--		device_remove_file(&intf->dev, &dev_attr_wCountryCodes);
--		device_remove_file(&intf->dev, &dev_attr_iCountryCodeRelDate);
-+		device_remove_file(&acm->control->dev,
-+				&dev_attr_wCountryCodes);
-+		device_remove_file(&acm->control->dev,
-+				&dev_attr_iCountryCodeRelDate);
- 	}
--	device_remove_file(&intf->dev, &dev_attr_bmCapabilities);
-+	device_remove_file(&acm->control->dev, &dev_attr_bmCapabilities);
- 	acm->dev = NULL;
- 	usb_set_intfdata(acm->control, NULL);
- 	usb_set_intfdata(acm->data, NULL);
+ 	dev_set_drvdata(dev, sdkp);
+ 	add_disk(gd);
+ 
+diff -puN drivers/scsi/sr.c~scsi-expose-an-to-user-space drivers/scsi/sr.c
+--- a/drivers/scsi/sr.c~scsi-expose-an-to-user-space
++++ a/drivers/scsi/sr.c
+@@ -603,6 +603,8 @@ static int sr_probe(struct device *dev)
+ 
+ 	dev_set_drvdata(dev, cd);
+ 	disk->flags |= GENHD_FL_REMOVABLE;
++	if (sdev->media_change_notify)
++		disk->flags |= GENHD_FL_MEDIA_CHANGE_NOTIFY;
+ 	add_disk(disk);
+ 
+ 	sdev_printk(KERN_DEBUG, sdev,
+diff -puN include/scsi/scsi_device.h~scsi-expose-an-to-user-space include/scsi/scsi_device.h
+--- a/include/scsi/scsi_device.h~scsi-expose-an-to-user-space
++++ a/include/scsi/scsi_device.h
+@@ -126,7 +126,7 @@ struct scsi_device {
+ 	unsigned fix_capacity:1;	/* READ_CAPACITY is too high by 1 */
+ 	unsigned guess_capacity:1;	/* READ_CAPACITY might be too high by 1 */
+ 	unsigned retry_hwerror:1;	/* Retry HARDWARE_ERROR */
+-
++	unsigned media_change_notify:1; /* dev supports async media notify */
+ 	unsigned int device_blocked;	/* Device returned QUEUE_FULL. */
+ 
+ 	unsigned int max_device_blocked; /* what device_blocked counts down from  */
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
-nikon-d50-is-an-unusual-device.patch
+store-interrupt-value.patch
+enable-link-power-management-for-ata-drivers.patch
+enable-aggressive-link-power-management-for-ahci.patch
+scsi-expose-an-to-user-space.patch
+libata-expose-an-to-user-space.patch
+scsi-save-disk-in-scsi_device.patch
+libata-send-event-when-an-received.patch
+ata-ahci-alpm-store-interrupt-value.patch
+ata-ahci-alpm-expose-power-management-policy-option-to-users.patch
+ata-ahci-alpm-enable-link-power-management-for-ata-drivers.patch
+ata-ahci-alpm-enable-link-power-management-for-ata-drivers-fix.patch
+ata-ahci-alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
+acpiphp_ibm-add-missing-n.patch
+cpqphp_ctrlc-remove-dead-code.patch
+acpi-bay-send-envp-with-uevent-fix.patch
+acpi-dock-send-key=value-pair-instead-of-plain-value.patch
