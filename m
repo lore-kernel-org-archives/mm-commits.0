@@ -1,134 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - acpi_ec_remove-fix-use-after-free.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 00:53:53 -0700
-Message-ID: <200708060753.l767rrqx016386@imap1.linux-foundation.org>
+Subject: - at91-include-atmel_lcdch-in-at91sam92613_devicesc.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 00:54:02 -0700
+Message-ID: <200708060754.l767s2YU016401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34841 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42816 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758876AbXHFHzw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:55:52 -0400
+	by vger.kernel.org with ESMTP id S1758944AbXHFH4E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 03:56:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, astarikovskiy@suse.de, len.brown@intel.com, michal.k.k.piotrowski@gmail.com, mm-commits@vger.kernel.org
+To: jan.altenberg@linutronix.de, hskinnemoen@atmel.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi_ec_remove(): fix use-after-free
+     AT91: include atmel_lcdc.h in at91sam926{1,3}_devices.c
 has been removed from the -mm tree.  Its filename was
-     acpi_ec_remove-fix-use-after-free.patch
+     at91-include-atmel_lcdch-in-at91sam92613_devicesc.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: acpi_ec_remove(): fix use-after-free
-From: Adrian Bunk <bunk@stusta.de>
+Subject: AT91: include atmel_lcdc.h in at91sam926{1,3}_devices.c
+=46rom: Jan Altenberg <jan.altenberg@linutronix.de>
 
-This patch fixes an obvious use-after-free introduced by
-commit 837012ede14a8fc088be3682c964da7fc6af026b.
+Current git doesn't compile for CONFIG_ARCH_AT91SAM926{1,3} and and
+CONFIG_FB_ATMEL enabled, due to a missing inclusion of atmel_lcdc.h:
 
-Spotted by the Coverity checker.
+/home/jan/kernel/git/linux-2.6/arch/arm/mach-at91/at91sam9263_devices.c=
+: In function =E2=80=98at91_add_device_lcdc=E2=80=99:
+/home/jan/kernel/git/linux-2.6/arch/arm/mach-at91/at91sam9263_devices.c=
+:688: error: dereferencing pointer to incomplete type
+/home/jan/kernel/git/linux-2.6/arch/arm/mach-at91/at91sam9263_devices.c=
+:688: error: =E2=80=98lcdc_data=E2=80=99 has an incomplete type
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+This error should also have occured in the past, because atmel_lcdc.h
+has never been included.
+
+Signed-off-by: Jan Altenberg <jan.altenberg@linutronix.de>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/ec.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-at91/at91sam9261_devices.c |    2 ++
+ arch/arm/mach-at91/at91sam9263_devices.c |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/acpi/ec.c~acpi_ec_remove-fix-use-after-free drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi_ec_remove-fix-use-after-free
-+++ a/drivers/acpi/ec.c
-@@ -734,14 +734,14 @@ static int acpi_ec_add(struct acpi_devic
- static int acpi_ec_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_ec *ec;
--	struct acpi_ec_query_handler *handler;
-+	struct acpi_ec_query_handler *handler, *tmp;
- 
- 	if (!device)
- 		return -EINVAL;
- 
- 	ec = acpi_driver_data(device);
- 	mutex_lock(&ec->lock);
--	list_for_each_entry(handler, &ec->list, node) {
-+	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
- 		list_del(&handler->node);
- 		kfree(handler);
- 	}
+diff -puN arch/arm/mach-at91/at91sam9261_devices.c~at91-include-atmel_l=
+cdch-in-at91sam92613_devicesc arch/arm/mach-at91/at91sam9261_devices.c
+--- a/arch/arm/mach-at91/at91sam9261_devices.c~at91-include-atmel_lcdch=
+-in-at91sam92613_devicesc
++++ a/arch/arm/mach-at91/at91sam9261_devices.c
+@@ -15,6 +15,8 @@
+=20
+ #include <linux/platform_device.h>
+=20
++#include <video/atmel_lcdc.h>
++
+ #include <asm/arch/board.h>
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/at91sam9261.h>
+diff -puN arch/arm/mach-at91/at91sam9263_devices.c~at91-include-atmel_l=
+cdch-in-at91sam92613_devicesc arch/arm/mach-at91/at91sam9263_devices.c
+--- a/arch/arm/mach-at91/at91sam9263_devices.c~at91-include-atmel_lcdch=
+-in-at91sam92613_devicesc
++++ a/arch/arm/mach-at91/at91sam9263_devices.c
+@@ -14,6 +14,8 @@
+=20
+ #include <linux/platform_device.h>
+=20
++#include <video/atmel_lcdc.h>
++
+ #include <asm/arch/board.h>
+ #include <asm/arch/gpio.h>
+ #include <asm/arch/at91sam9263.h>
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from jan.altenberg@linutronix.d=
+e are
 
-slow-down-printk-during-boot-fix-3.patch
-git-acpi.patch
-make-drivers-acpi-eventcacpi_event_seqnum-static.patch
-git-alsa.patch
-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
-drivers-base-power-make-2-functions-static.patch
-git-drm.patch
-git-dvb.patch
-drivers-i2c-i2c-corec-make-code-static.patch
-include-linux-kbuild-remove-duplicate-entries.patch
-git-kvm.patch
-git-mmc.patch
-git-mtd.patch
-remove-fs-jffs2-ioctlc.patch
-drivers-net-cxgb3-xgmacc-remove-dead-code.patch
-e1000-if-0-two-functions.patch
-fore200e_param_bs_queue-must-be-__devinit.patch
-backlight-make-2-structs-static.patch
-git-ocfs2.patch
-parisc-extern-inline-static-inline.patch
-cpqphp_ctrlc-remove-dead-code.patch
-kernel-schedc-make-code-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-make-scsi_host_link_pm_policy-static.patch
-drivers-scsi-scsi_errorc-should-include.patch
-drivers-scsi-constantsc-make-2-functions-static.patch
-git-unionfs.patch
-git-v9fs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
-i386-remove-maccumulate-outgoing-args.patch
-arch-i386-mach-generic-probec-make-struct-apic_probe.patch
-arch-i386-mach-es7000-es7000platc-cleanups.patch
-i386-alternativec-really-stop-mces-during-code.patch
-i386-no-need-to-make-enable_cpu_hotplug-a-variable.patch
-arch-i386-mm-discontigc-make-some-variables-static.patch
-git-cryptodev.patch
-kernel-auditscc-fix-an-off-by-one.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-mm-page_allocc-make-code-static.patch
-maps2-add-proc-kpagemap-interface.patch
-hugetlbfs-read-support-fix-2.patch
-mm-shmemc-make-3-functions-static.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cleanup-arch-alpha-makefile.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-radeon_driver_vblank_do_wait-static.patch
-unexport-fb_prepare_logo.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+git-arm-master.patch
+remove-get_perm_addr-from-ucc_geth_ethtoolc.patch
