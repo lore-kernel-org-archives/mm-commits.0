@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-improve-find_lock_page.patch added to -mm tree
-Date: Mon, 06 Aug 2007 11:41:08 -0700
-Message-ID: <200708061841.l76If89R008831@imap1.linux-foundation.org>
+Subject: + mm-use-lockless-radix-tree-probe.patch added to -mm tree
+Date: Mon, 06 Aug 2007 11:41:07 -0700
+Message-ID: <200708061841.l76If7AP008828@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54981 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933083AbXHFSlS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:41:18 -0400
+	by vger.kernel.org with ESMTP id S932928AbXHFSlR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:41:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     mm: improve find_lock_page
+     mm: use lockless radix-tree probe
 has been added to the -mm tree.  Its filename is
-     mm-improve-find_lock_page.patch
+     mm-use-lockless-radix-tree-probe.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: improve find_lock_page
+Subject: mm: use lockless radix-tree probe
 From: Nick Piggin <npiggin@suse.de>
 
-find_lock_page does not need to recheck ->index because if the page is in the
-right mapping then the index must be the same.  Also, tree_lock does not need
-to be retaken after the page is locked in order to test that ->mapping has not
-changed, because holding the page lock pins its mapping.
+Probing pages and radix_tree_tagged are lockless operations with the lockless
+radix-tree.  Convert these users to RCU locking rather than using tree_lock.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/page-writeback.c |    8 +++-----
+ mm/readahead.c      |    6 ++----
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN mm/filemap.c~mm-improve-find_lock_page mm/filemap.c
---- a/mm/filemap.c~mm-improve-find_lock_page
-+++ a/mm/filemap.c
-@@ -621,26 +621,27 @@ struct page *find_lock_page(struct addre
+diff -puN mm/page-writeback.c~mm-use-lockless-radix-tree-probe mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-use-lockless-radix-tree-probe
++++ a/mm/page-writeback.c
+@@ -1022,17 +1022,15 @@ int test_set_page_writeback(struct page 
+ EXPORT_SYMBOL(test_set_page_writeback);
+ 
+ /*
+- * Return true if any of the pages in the mapping are marged with the
++ * Return true if any of the pages in the mapping are marked with the
+  * passed tag.
+  */
+ int mapping_tagged(struct address_space *mapping, int tag)
  {
- 	struct page *page;
- 
--	read_lock_irq(&mapping->tree_lock);
- repeat:
-+	read_lock_irq(&mapping->tree_lock);
- 	page = radix_tree_lookup(&mapping->page_tree, offset);
- 	if (page) {
- 		page_cache_get(page);
- 		if (TestSetPageLocked(page)) {
- 			read_unlock_irq(&mapping->tree_lock);
- 			__lock_page(page);
--			read_lock_irq(&mapping->tree_lock);
- 
- 			/* Has the page been truncated while we slept? */
--			if (unlikely(page->mapping != mapping ||
--				     page->index != offset)) {
-+			if (unlikely(page->mapping != mapping)) {
- 				unlock_page(page);
- 				page_cache_release(page);
- 				goto repeat;
- 			}
-+			VM_BUG_ON(page->index != offset);
-+			goto out;
- 		}
- 	}
- 	read_unlock_irq(&mapping->tree_lock);
-+out:
- 	return page;
+-	unsigned long flags;
+ 	int ret;
+-
+-	read_lock_irqsave(&mapping->tree_lock, flags);
++	rcu_read_lock();
+ 	ret = radix_tree_tagged(&mapping->page_tree, tag);
+-	read_unlock_irqrestore(&mapping->tree_lock, flags);
++	rcu_read_unlock();
+ 	return ret;
  }
- EXPORT_SYMBOL(find_lock_page);
+ EXPORT_SYMBOL(mapping_tagged);
+diff -puN mm/readahead.c~mm-use-lockless-radix-tree-probe mm/readahead.c
+--- a/mm/readahead.c~mm-use-lockless-radix-tree-probe
++++ a/mm/readahead.c
+@@ -148,20 +148,19 @@ __do_page_cache_readahead(struct address
+ 	/*
+ 	 * Preallocate as many pages as we will need.
+ 	 */
+-	read_lock_irq(&mapping->tree_lock);
+ 	for (page_idx = 0; page_idx < nr_to_read; page_idx++) {
+ 		pgoff_t page_offset = offset + page_idx;
+ 
+ 		if (page_offset > end_index)
+ 			break;
+ 
++		rcu_read_lock();
+ 		page = radix_tree_lookup(&mapping->page_tree, page_offset);
++		rcu_read_unlock();
+ 		if (page)
+ 			continue;
+ 
+-		read_unlock_irq(&mapping->tree_lock);
+ 		page = page_cache_alloc_cold(mapping);
+-		read_lock_irq(&mapping->tree_lock);
+ 		if (!page)
+ 			break;
+ 		page->index = page_offset;
+@@ -170,7 +169,6 @@ __do_page_cache_readahead(struct address
+ 			SetPageReadahead(page);
+ 		ret++;
+ 	}
+-	read_unlock_irq(&mapping->tree_lock);
+ 
+ 	/*
+ 	 * Now start the IO.  We ignore I/O errors - if the page is not
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
