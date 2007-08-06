@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lib-percpu_counter_init_irq.patch added to -mm tree
-Date: Mon, 06 Aug 2007 13:19:02 -0700
-Message-ID: <200708062019.l76KJ2r5012924@imap1.linux-foundation.org>
+Subject: + mm-scalable-bdi-statistics-counters.patch added to -mm tree
+Date: Mon, 06 Aug 2007 13:19:09 -0700
+Message-ID: <200708062019.l76KJ96E012944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59190 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60267 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760994AbXHFUTK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:10 -0400
+	by vger.kernel.org with ESMTP id S1761870AbXHFUTS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 16:19:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: a.p.zijlstra@chello.nl
 
 
 The patch titled
-     lib: percpu_counter_init_irq
+     mm: scalable bdi statistics counters.
 has been added to the -mm tree.  Its filename is
-     lib-percpu_counter_init_irq.patch
+     mm-scalable-bdi-statistics-counters.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,69 +25,171 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lib: percpu_counter_init_irq
+Subject: mm: scalable bdi statistics counters.
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-provide a way to init percpu_counters that are supposed to be used from irq
-safe contexts.
+Provide scalable per backing_dev_info statistics counters.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu_counter.h |    3 +++
- lib/percpu_counter.c           |   12 ++++++++++++
- 2 files changed, 15 insertions(+)
+ include/linux/backing-dev.h |   85 ++++++++++++++++++++++++++++++++--
+ mm/backing-dev.c            |   27 ++++++++++
+ 2 files changed, 109 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/percpu_counter.h~lib-percpu_counter_init_irq include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~lib-percpu_counter_init_irq
-+++ a/include/linux/percpu_counter.h
-@@ -31,6 +31,7 @@ struct percpu_counter {
- #endif
+diff -puN include/linux/backing-dev.h~mm-scalable-bdi-statistics-counters include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-scalable-bdi-statistics-counters
++++ a/include/linux/backing-dev.h
+@@ -8,6 +8,8 @@
+ #ifndef _LINUX_BACKING_DEV_H
+ #define _LINUX_BACKING_DEV_H
  
- int percpu_counter_init(struct percpu_counter *fbc, s64 amount);
-+int percpu_counter_init_irq(struct percpu_counter *fbc, s64 amount);
- void percpu_counter_destroy(struct percpu_counter *fbc);
- void percpu_counter_set(struct percpu_counter *fbc, s64 amount);
- void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch);
-@@ -84,6 +85,8 @@ static inline int percpu_counter_init(st
- 	return 0;
- }
++#include <linux/percpu_counter.h>
++#include <linux/log2.h>
+ #include <asm/atomic.h>
  
-+#define percpu_counter_init_irq percpu_counter_init
+ struct page;
+@@ -24,6 +26,12 @@ enum bdi_state {
+ 
+ typedef int (congested_fn)(void *, int);
+ 
++enum bdi_stat_item {
++	NR_BDI_STAT_ITEMS
++};
 +
- static inline void percpu_counter_destroy(struct percpu_counter *fbc)
++#define BDI_STAT_BATCH (8*(1+ilog2(nr_cpu_ids)))
++
+ struct backing_dev_info {
+ 	unsigned long ra_pages;	/* max readahead in PAGE_CACHE_SIZE units */
+ 	unsigned long state;	/* Always use atomic bitops on this */
+@@ -32,15 +40,86 @@ struct backing_dev_info {
+ 	void *congested_data;	/* Pointer to aux data for congested func */
+ 	void (*unplug_io_fn)(struct backing_dev_info *, struct page *);
+ 	void *unplug_io_data;
++
++	struct percpu_counter bdi_stat[NR_BDI_STAT_ITEMS];
+ };
+ 
+-static inline int bdi_init(struct backing_dev_info *bdi)
++int bdi_init(struct backing_dev_info *bdi);
++void bdi_destroy(struct backing_dev_info *bdi);
++
++static inline void __mod_bdi_stat(struct backing_dev_info *bdi,
++		enum bdi_stat_item item, s32 amount)
  {
+-	return 0;
++	__percpu_counter_add(&bdi->bdi_stat[item], amount, BDI_STAT_BATCH);
  }
-diff -puN lib/percpu_counter.c~lib-percpu_counter_init_irq lib/percpu_counter.c
---- a/lib/percpu_counter.c~lib-percpu_counter_init_irq
-+++ a/lib/percpu_counter.c
-@@ -68,6 +68,8 @@ s64 __percpu_counter_sum(struct percpu_c
- }
- EXPORT_SYMBOL(__percpu_counter_sum);
  
-+static struct lock_class_key percpu_counter_irqsafe;
-+
- int percpu_counter_init(struct percpu_counter *fbc, s64 amount)
+-static inline void bdi_destroy(struct backing_dev_info *bdi)
++static inline void __inc_bdi_stat(struct backing_dev_info *bdi,
++		enum bdi_stat_item item)
  {
- 	spin_lock_init(&fbc->lock);
-@@ -84,6 +86,16 @@ int percpu_counter_init(struct percpu_co
- }
- EXPORT_SYMBOL(percpu_counter_init);
- 
-+int percpu_counter_init_irq(struct percpu_counter *fbc, s64 amount)
-+{
-+	int err;
-+
-+	err = percpu_counter_init(fbc, amount);
-+	if (!err)
-+		lockdep_set_class(&fbc->lock, &percpu_counter_irqsafe);
-+	return err;
++	__mod_bdi_stat(bdi, item, 1);
 +}
 +
- void percpu_counter_destroy(struct percpu_counter *fbc)
- {
- 	if (!fbc->counters)
++static inline void inc_bdi_stat(struct backing_dev_info *bdi,
++		enum bdi_stat_item item)
++{
++	unsigned long flags;
++
++	local_irq_save(flags);
++	__inc_bdi_stat(bdi, item);
++	local_irq_restore(flags);
++}
++
++static inline void __dec_bdi_stat(struct backing_dev_info *bdi,
++		enum bdi_stat_item item)
++{
++	__mod_bdi_stat(bdi, item, -1);
++}
++
++static inline void dec_bdi_stat(struct backing_dev_info *bdi,
++		enum bdi_stat_item item)
++{
++	unsigned long flags;
++
++	local_irq_save(flags);
++	__dec_bdi_stat(bdi, item);
++	local_irq_restore(flags);
++}
++
++static inline s64 bdi_stat(struct backing_dev_info *bdi,
++		enum bdi_stat_item item)
++{
++	return percpu_counter_read_positive(&bdi->bdi_stat[item]);
++}
++
++static inline s64 __bdi_stat_sum(struct backing_dev_info *bdi,
++		enum bdi_stat_item item)
++{
++	return percpu_counter_sum_positive(&bdi->bdi_stat[item]);
++}
++
++static inline s64 bdi_stat_sum(struct backing_dev_info *bdi,
++		enum bdi_stat_item item)
++{
++	s64 sum;
++	unsigned long flags;
++
++	local_irq_save(flags);
++	sum = __bdi_stat_sum(bdi, item);
++	local_irq_restore(flags);
++
++	return sum;
++}
++
++/*
++ * maximal error of a stat counter.
++ */
++static inline unsigned long bdi_stat_error(struct backing_dev_info *bdi)
++{
++#ifdef CONFIG_SMP
++	return nr_cpu_ids * BDI_STAT_BATCH;
++#else
++	return 1;
++#endif
+ }
+ 
+ /*
+diff -puN mm/backing-dev.c~mm-scalable-bdi-statistics-counters mm/backing-dev.c
+--- a/mm/backing-dev.c~mm-scalable-bdi-statistics-counters
++++ a/mm/backing-dev.c
+@@ -5,6 +5,33 @@
+ #include <linux/sched.h>
+ #include <linux/module.h>
+ 
++int bdi_init(struct backing_dev_info *bdi)
++{
++	int i, j;
++	int err;
++
++	for (i = 0; i < NR_BDI_STAT_ITEMS; i++) {
++		err = percpu_counter_init_irq(&bdi->bdi_stat[i], 0);
++		if (err) {
++			for (j = 0; j < i; j++)
++				perpcu_counter_destroy(&bdi->bdi_stat[i]);
++			break;
++		}
++	}
++
++	return err;
++}
++EXPORT_SYMBOL(bdi_init);
++
++void bdi_destroy(struct backing_dev_info *bdi)
++{
++	int i;
++
++	for (i = 0; i < NR_BDI_STAT_ITEMS; i++)
++		percpu_counter_destroy(&bdi->bdi_stat[i]);
++}
++EXPORT_SYMBOL(bdi_destroy);
++
+ static wait_queue_head_t congestion_wqh[2] = {
+ 		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[0]),
+ 		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[1])
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
