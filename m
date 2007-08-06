@@ -1,31 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: - ata-ahci-alpm-store-interrupt-value.patch removed from -mm tree
-Date: Mon, 06 Aug 2007 11:25:24 -0700
-Message-ID: <200708061825.l76IPOWI008133@imap1.linux-foundation.org>
+Subject: - ata-ahci-alpm-expose-power-management-policy-option-to-users.patch removed from -mm tree
+Date: Mon, 06 Aug 2007 11:25:26 -0700
+Message-ID: <200708061825.l76IPQoh008136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39036 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41993 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758477AbXHFSZf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:25:35 -0400
+	by vger.kernel.org with ESMTP id S1758686AbXHFSZj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Aug 2007 14:25:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kristen.c.accardi@intel.com, James.Bottomley@steeleye.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ata ahci ALPM: Store interrupt value
+     ata ahci ALPM: Expose Power Management Policy option to users
 has been removed from the -mm tree.  Its filename was
-     ata-ahci-alpm-store-interrupt-value.patch
+     ata-ahci-alpm-expose-power-management-policy-option-to-users.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ata ahci ALPM: Store interrupt value
+Subject: ata ahci ALPM: Expose Power Management Policy option to users
 From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-Use a stored value for which interrupts to enable.  Changing this allows us to
-selectively turn off certain interrupts later and have them stay off.
+This patch will modify the scsi subsystem to allow users to set a power
+management policy for the link.
+
+The scsi subsystem will create a new sysfs file for each host in
+/sys/class/scsi_host called "link_power_management_policy".  This file can
+have 3 possible values:
+
+Value		Meaning
+-------------------------------------------------------------------
+min_power	User wishes the link to conserve power as much as
+		possible, even at the cost of some performance
+
+max_performance User wants priority to be on performance, not power
+		savings
+
+medium_power	User wants power savings, with less performance cost
+		than min_power (but less power savings as well).
 
 Signed-off-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
@@ -34,50 +49,197 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ahci.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ Documentation/scsi/link_power_management_policy.txt |   19 ++
+ drivers/scsi/hosts.c                                |   19 ++
+ drivers/scsi/scsi_sysfs.c                           |   69 ++++++++++
+ include/scsi/scsi_host.h                            |   18 ++
+ 4 files changed, 125 insertions(+)
 
-diff -puN drivers/ata/ahci.c~ata-ahci-alpm-store-interrupt-value drivers/ata/ahci.c
---- a/drivers/ata/ahci.c~ata-ahci-alpm-store-interrupt-value
-+++ a/drivers/ata/ahci.c
-@@ -215,6 +215,7 @@ struct ahci_port_priv {
- 	unsigned int		ncq_saw_d2h:1;
- 	unsigned int		ncq_saw_dmas:1;
- 	unsigned int		ncq_saw_sdb:1;
-+	u32 			intr_mask;	/* interrupts to enable */
+diff -puN /dev/null Documentation/scsi/link_power_management_policy.txt
+--- /dev/null
++++ a/Documentation/scsi/link_power_management_policy.txt
+@@ -0,0 +1,19 @@
++This parameter allows the user to set the link (interface) power management.
++There are 3 possible options:
++
++Value			Effect
++----------------------------------------------------------------------------
++min_power		Tell the controller to try to make the link use the
++			least possible power when possible.  This may
++			sacrifice some performance due to increased latency
++			when coming out of lower power states.
++
++max_performance		Generally, this means no power management.  Tell
++			the controller to have performance be a priority
++			over power management.
++
++medium_power		Tell the controller to enter a lower power state
++			when possible, but do not enter the lowest power
++			state, thus improving latency over min_power setting.
++
++
+diff -puN drivers/scsi/hosts.c~ata-ahci-alpm-expose-power-management-policy-option-to-users drivers/scsi/hosts.c
+--- a/drivers/scsi/hosts.c~ata-ahci-alpm-expose-power-management-policy-option-to-users
++++ a/drivers/scsi/hosts.c
+@@ -54,6 +54,25 @@ static struct class shost_class = {
  };
  
- static int ahci_scr_read(struct ata_port *ap, unsigned int sc_reg, u32 *val);
-@@ -1534,6 +1535,7 @@ static void ahci_thaw(struct ata_port *a
- 	void __iomem *mmio = ap->host->iomap[AHCI_PCI_BAR];
- 	void __iomem *port_mmio = ahci_port_base(ap);
- 	u32 tmp;
-+	struct ahci_port_priv *pp = ap->private_data;
- 
- 	/* clear IRQ */
- 	tmp = readl(port_mmio + PORT_IRQ_STAT);
-@@ -1541,7 +1543,7 @@ static void ahci_thaw(struct ata_port *a
- 	writel(1 << ap->port_no, mmio + HOST_IRQ_STAT);
- 
- 	/* turn IRQ back on */
--	writel(DEF_PORT_IRQ, port_mmio + PORT_IRQ_MASK);
-+	writel(pp->intr_mask, port_mmio + PORT_IRQ_MASK);
- }
- 
- static void ahci_error_handler(struct ata_port *ap)
-@@ -1695,6 +1697,12 @@ static int ahci_port_start(struct ata_po
- 	pp->cmd_tbl = mem;
- 	pp->cmd_tbl_dma = mem_dma;
- 
-+	/*
-+ 	 * Save off initial list of interrupts to be enabled.
-+ 	 * This could be changed later
-+ 	 */
-+	pp->intr_mask = DEF_PORT_IRQ;
+ /**
++ *	scsi_host_set_link_pm - Change the link power management policy
++ *	@shost:	scsi host to change the policy of.
++ *	@policy:	policy to change to.
++ *
++ *	Returns zero if successful or an error if the requested
++ *	transition is illegal.
++ **/
++int scsi_host_set_link_pm(struct Scsi_Host *shost,
++		enum scsi_host_link_pm policy)
++{
++	struct scsi_host_template *sht = shost->hostt;
++	if (sht->set_link_pm_policy)
++		sht->set_link_pm_policy(shost, policy);
 +
- 	ap->private_data = pp;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(scsi_host_set_link_pm);
++
++/**
+  *	scsi_host_set_state - Take the given host through the host
+  *		state model.
+  *	@shost:	scsi host to change the state of.
+diff -puN drivers/scsi/scsi_sysfs.c~ata-ahci-alpm-expose-power-management-policy-option-to-users drivers/scsi/scsi_sysfs.c
+--- a/drivers/scsi/scsi_sysfs.c~ata-ahci-alpm-expose-power-management-policy-option-to-users
++++ a/drivers/scsi/scsi_sysfs.c
+@@ -190,6 +190,74 @@ show_shost_state(struct class_device *cl
  
- 	/* engage engines, captain */
+ static CLASS_DEVICE_ATTR(state, S_IRUGO | S_IWUSR, show_shost_state, store_shost_state);
+ 
++static const struct {
++	enum scsi_host_link_pm	value;
++	char			*name;
++} shost_link_pm_policy[] = {
++	{ SHOST_NOT_AVAILABLE, "max_performance" },
++	{ SHOST_MIN_POWER, "min_power" },
++	{ SHOST_MAX_PERFORMANCE, "max_performance" },
++	{ SHOST_MEDIUM_POWER, "medium_power" },
++};
++
++const char *scsi_host_link_pm_policy(enum scsi_host_link_pm policy)
++{
++	int i;
++	char *name = NULL;
++
++	for (i = 0; i < ARRAY_SIZE(shost_link_pm_policy); i++) {
++		if (shost_link_pm_policy[i].value == policy) {
++			name = shost_link_pm_policy[i].name;
++			break;
++		}
++	}
++	return name;
++}
++
++static ssize_t store_link_pm_policy(struct class_device *class_dev,
++	const char *buf, size_t count)
++{
++	struct Scsi_Host *shost = class_to_shost(class_dev);
++	enum scsi_host_link_pm policy = 0;
++	int i;
++
++	/*
++ 	 * we are skipping array location 0 on purpose - this
++ 	 * is because a value of SHOST_NOT_AVAILABLE is displayed
++ 	 * to the user as max_performance, but when the user
++ 	 * writes "max_performance", they actually want the
++ 	 * value to match SHOST_MAX_PERFORMANCE.
++ 	 */
++	for (i = 1; i < ARRAY_SIZE(shost_link_pm_policy); i++) {
++		const int len = strlen(shost_link_pm_policy[i].name);
++		if (strncmp(shost_link_pm_policy[i].name, buf, len) == 0 &&
++		   buf[len] == '\n') {
++			policy = shost_link_pm_policy[i].value;
++			break;
++		}
++	}
++	if (!policy)
++		return -EINVAL;
++
++	if (scsi_host_set_link_pm(shost, policy))
++		return -EINVAL;
++	return count;
++}
++static ssize_t
++show_link_pm_policy(struct class_device *class_dev, char *buf)
++{
++	struct Scsi_Host *shost = class_to_shost(class_dev);
++	const char *policy =
++		scsi_host_link_pm_policy(shost->shost_link_pm_policy);
++
++	if (!policy)
++		return -EINVAL;
++
++	return snprintf(buf, 23, "%s\n", policy);
++}
++static CLASS_DEVICE_ATTR(link_power_management_policy, S_IRUGO | S_IWUSR,
++		show_link_pm_policy, store_link_pm_policy);
++
+ shost_rd_attr(unique_id, "%u\n");
+ shost_rd_attr(host_busy, "%hu\n");
+ shost_rd_attr(cmd_per_lun, "%hd\n");
+@@ -208,6 +276,7 @@ static struct class_device_attribute *sc
+ 	&class_device_attr_proc_name,
+ 	&class_device_attr_scan,
+ 	&class_device_attr_state,
++	&class_device_attr_link_power_management_policy,
+ 	NULL
+ };
+ 
+diff -puN include/scsi/scsi_host.h~ata-ahci-alpm-expose-power-management-policy-option-to-users include/scsi/scsi_host.h
+--- a/include/scsi/scsi_host.h~ata-ahci-alpm-expose-power-management-policy-option-to-users
++++ a/include/scsi/scsi_host.h
+@@ -42,6 +42,16 @@ enum scsi_eh_timer_return {
+ 	EH_RESET_TIMER,
+ };
+ 
++/*
++ * shost pm policy: If you alter this, you also need to alter scsi_sysfs.c
++ * (for the ascii descriptions)
++ */
++enum scsi_host_link_pm {
++	SHOST_NOT_AVAILABLE,
++	SHOST_MIN_POWER,
++	SHOST_MAX_PERFORMANCE,
++	SHOST_MEDIUM_POWER,
++};
+ 
+ struct scsi_host_template {
+ 	struct module *module;
+@@ -339,6 +349,12 @@ struct scsi_host_template {
+ 	enum scsi_eh_timer_return (* eh_timed_out)(struct scsi_cmnd *);
+ 
+ 	/*
++ 	 * link power management support
++ 	 */
++	int (*set_link_pm_policy)(struct Scsi_Host *, enum scsi_host_link_pm);
++	enum scsi_host_link_pm default_link_pm_policy;
++
++	/*
+ 	 * Name of proc directory
+ 	 */
+ 	const char *proc_name;
+@@ -636,6 +652,7 @@ struct Scsi_Host {
+ 	
+ 
+ 	enum scsi_host_state shost_state;
++	enum scsi_host_link_pm shost_link_pm_policy;
+ 
+ 	/* ldm bits */
+ 	struct device		shost_gendev;
+@@ -747,4 +764,5 @@ extern struct Scsi_Host *scsi_register(s
+ extern void scsi_unregister(struct Scsi_Host *);
+ extern int scsi_host_set_state(struct Scsi_Host *, enum scsi_host_state);
+ 
++extern int scsi_host_set_link_pm(struct Scsi_Host *, enum scsi_host_link_pm);
+ #endif /* _SCSI_SCSI_HOST_H */
 _
 
 Patches currently in -mm which might be from kristen.c.accardi@intel.com are
@@ -85,7 +247,6 @@ Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 store-interrupt-value.patch
 enable-link-power-management-for-ata-drivers.patch
 enable-aggressive-link-power-management-for-ahci.patch
-ata-ahci-alpm-store-interrupt-value.patch
 ata-ahci-alpm-expose-power-management-policy-option-to-users.patch
 ata-ahci-alpm-enable-link-power-management-for-ata-drivers.patch
 ata-ahci-alpm-enable-link-power-management-for-ata-drivers-fix.patch
