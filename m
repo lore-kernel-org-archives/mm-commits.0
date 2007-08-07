@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memoryless-nodes-drop-one-memoryless-node-boot-warning.patch added to -mm tree
-Date: Tue, 07 Aug 2007 13:38:33 -0700
-Message-ID: <200708072038.l77KcXxn002840@imap1.linux-foundation.org>
+Subject: + memoryless-nodes-fix-gfp_thisnode-behavior.patch added to -mm tree
+Date: Tue, 07 Aug 2007 13:38:35 -0700
+Message-ID: <200708072038.l77KcZ7D002845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54866 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41157 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934961AbXHGUpy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:45:54 -0400
+	by vger.kernel.org with ESMTP id S934857AbXHGUpv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:45:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com, bob.picco@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.sche
 
 
 The patch titled
-     Memoryless nodes: drop one memoryless node boot warning
+     Memoryless nodes: Fix GFP_THISNODE behavior
 has been added to the -mm tree.  Its filename is
-     memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
+     memoryless-nodes-fix-gfp_thisnode-behavior.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,62 +25,181 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memoryless nodes: drop one memoryless node boot warning
+Subject: Memoryless nodes: Fix GFP_THISNODE behavior
 From: Christoph Lameter <clameter@sgi.com>
 
-get_pfn_range_for_nid() is called multiple times for each node at boot time. 
-Each time, it will warn about nodes with no memory, resulting in boot messages
-like:
+GFP_THISNODE checks that the zone selected is within the pgdat (node) of the
+first zone of a nodelist.  That only works if the node has memory.  A
+memoryless node will have its first node on another pgdat (node).
 
-        Node 0 active with no memory
-        Node 0 active with no memory
-        Node 0 active with no memory
-        Node 0 active with no memory
-        Node 0 active with no memory
-        Node 0 active with no memory
-        On node 0 totalpages: 0
-        Node 0 active with no memory
-        Node 0 active with no memory
-          DMA zone: 0 pages used for memmap
-        Node 0 active with no memory
-        Node 0 active with no memory
-          Normal zone: 0 pages used for memmap
-        Node 0 active with no memory
-        Node 0 active with no memory
-          Movable zone: 0 pages used for memmap
+GFP_THISNODE currently will return simply memory on the first pgdat.  Thus it
+is returning memory on other nodes.  GFP_THISNODE should fail if there is no
+local memory on a node.
 
-and so on for each memoryless node.
+Add a new set of zonelists for each node that only contain the nodes that
+belong to the zones itself so that no fallback is possible.
 
-We already have the "On node N totalpages: ..." and other related messages, so
-drop the "Node N active with no memory" warnings.
+Then modify gfp_type to pickup the right zone based on the presence of
+__GFP_THISNODE.
 
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Bob Picco <bob.picco@hp.com>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Drop the existing GFP_THISNODE checks from the page_allocators hot path.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Tested-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Bob Picco <bob.picco@hp.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mel@skynet.ie>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
+ include/linux/gfp.h    |   17 ++++++++++++-----
+ include/linux/mmzone.h |   14 +++++++++++++-
+ mm/page_alloc.c        |   28 +++++++++++++++++++++++-----
+ 3 files changed, 48 insertions(+), 11 deletions(-)
 
-diff -puN mm/page_alloc.c~memoryless-nodes-drop-one-memoryless-node-boot-warning mm/page_alloc.c
---- a/mm/page_alloc.c~memoryless-nodes-drop-one-memoryless-node-boot-warning
+diff -puN include/linux/gfp.h~memoryless-nodes-fix-gfp_thisnode-behavior include/linux/gfp.h
+--- a/include/linux/gfp.h~memoryless-nodes-fix-gfp_thisnode-behavior
++++ a/include/linux/gfp.h
+@@ -98,22 +98,29 @@ struct vm_area_struct;
+ 
+ static inline enum zone_type gfp_zone(gfp_t flags)
+ {
++	int base = 0;
++
++#ifdef CONFIG_NUMA
++	if (flags & __GFP_THISNODE)
++		base = MAX_NR_ZONES;
++#endif
++
+ #ifdef CONFIG_ZONE_DMA
+ 	if (flags & __GFP_DMA)
+-		return ZONE_DMA;
++		return base + ZONE_DMA;
+ #endif
+ #ifdef CONFIG_ZONE_DMA32
+ 	if (flags & __GFP_DMA32)
+-		return ZONE_DMA32;
++		return base + ZONE_DMA32;
+ #endif
+ 	if ((flags & (__GFP_HIGHMEM | __GFP_MOVABLE)) ==
+ 			(__GFP_HIGHMEM | __GFP_MOVABLE))
+-		return ZONE_MOVABLE;
++		return base + ZONE_MOVABLE;
+ #ifdef CONFIG_HIGHMEM
+ 	if (flags & __GFP_HIGHMEM)
+-		return ZONE_HIGHMEM;
++		return base + ZONE_HIGHMEM;
+ #endif
+-	return ZONE_NORMAL;
++	return base + ZONE_NORMAL;
+ }
+ 
+ /*
+diff -puN include/linux/mmzone.h~memoryless-nodes-fix-gfp_thisnode-behavior include/linux/mmzone.h
+--- a/include/linux/mmzone.h~memoryless-nodes-fix-gfp_thisnode-behavior
++++ a/include/linux/mmzone.h
+@@ -324,6 +324,17 @@ struct zone {
+ #define MAX_ZONES_PER_ZONELIST (MAX_NUMNODES * MAX_NR_ZONES)
+ 
+ #ifdef CONFIG_NUMA
++
++/*
++ * The NUMA zonelists are doubled becausse we need zonelists that restrict the
++ * allocations to a single node for GFP_THISNODE.
++ *
++ * [0 .. MAX_NR_ZONES -1] 		: Zonelists with fallback
++ * [MAZ_NR_ZONES ... MAZ_ZONELISTS -1]  : No fallback (GFP_THISNODE)
++ */
++#define MAX_ZONELISTS (2 * MAX_NR_ZONES)
++
++
+ /*
+  * We cache key information from each zonelist for smaller cache
+  * footprint when scanning for free pages in get_page_from_freelist().
+@@ -389,6 +400,7 @@ struct zonelist_cache {
+ 	unsigned long last_full_zap;		/* when last zap'd (jiffies) */
+ };
+ #else
++#define MAX_ZONELISTS MAX_NR_ZONES
+ struct zonelist_cache;
+ #endif
+ 
+@@ -455,7 +467,7 @@ extern struct page *mem_map;
+ struct bootmem_data;
+ typedef struct pglist_data {
+ 	struct zone node_zones[MAX_NR_ZONES];
+-	struct zonelist node_zonelists[MAX_NR_ZONES];
++	struct zonelist node_zonelists[MAX_ZONELISTS];
+ 	int nr_zones;
+ #ifdef CONFIG_FLAT_NODE_MEM_MAP
+ 	struct page *node_mem_map;
+diff -puN mm/page_alloc.c~memoryless-nodes-fix-gfp_thisnode-behavior mm/page_alloc.c
+--- a/mm/page_alloc.c~memoryless-nodes-fix-gfp_thisnode-behavior
 +++ a/mm/page_alloc.c
-@@ -2701,10 +2701,8 @@ void __meminit get_pfn_range_for_nid(uns
- 		*end_pfn = max(*end_pfn, early_node_map[i].end_pfn);
+@@ -1184,9 +1184,6 @@ zonelist_scan:
+ 			!zlc_zone_worth_trying(zonelist, z, allowednodes))
+ 				continue;
+ 		zone = *z;
+-		if (unlikely(NUMA_BUILD && (gfp_mask & __GFP_THISNODE) &&
+-			zone->zone_pgdat != zonelist->zones[0]->zone_pgdat))
+-				break;
+ 		if ((alloc_flags & ALLOC_CPUSET) &&
+ 			!cpuset_zone_allowed_softwall(zone, gfp_mask))
+ 				goto try_next_zone;
+@@ -1255,7 +1252,10 @@ restart:
+ 	z = zonelist->zones;  /* the list of zones suitable for gfp_mask */
+ 
+ 	if (unlikely(*z == NULL)) {
+-		/* Should this ever happen?? */
++		/*
++		 * Happens if we have an empty zonelist as a result of
++		 * GFP_THISNODE being used on a memoryless node
++		 */
+ 		return NULL;
  	}
  
--	if (*start_pfn == -1UL) {
--		printk(KERN_WARNING "Node %u active with no memory\n", nid);
-+	if (*start_pfn == -1UL)
- 		*start_pfn = 0;
--	}
+@@ -1851,6 +1851,22 @@ static void build_zonelists_in_node_orde
+ }
  
- 	/* Push the node boundaries out if requested */
- 	account_node_boundary(nid, start_pfn, end_pfn);
+ /*
++ * Build gfp_thisnode zonelists
++ */
++static void build_thisnode_zonelists(pg_data_t *pgdat)
++{
++	enum zone_type i;
++	int j;
++	struct zonelist *zonelist;
++
++	for (i = 0; i < MAX_NR_ZONES; i++) {
++		zonelist = pgdat->node_zonelists + MAX_NR_ZONES + i;
++		j = build_zonelists_node(pgdat, zonelist, 0, i);
++		zonelist->zones[j] = NULL;
++	}
++}
++
++/*
+  * Build zonelists ordered by zone and nodes within zones.
+  * This results in conserving DMA zone[s] until all Normal memory is
+  * exhausted, but results in overflowing to remote node while memory
+@@ -1954,7 +1970,7 @@ static void build_zonelists(pg_data_t *p
+ 	int order = current_zonelist_order;
+ 
+ 	/* initialize zonelists */
+-	for (i = 0; i < MAX_NR_ZONES; i++) {
++	for (i = 0; i < MAX_ZONELISTS; i++) {
+ 		zonelist = pgdat->node_zonelists + i;
+ 		zonelist->zones[0] = NULL;
+ 	}
+@@ -1999,6 +2015,8 @@ static void build_zonelists(pg_data_t *p
+ 		/* calculate node order -- i.e., DMA last! */
+ 		build_zonelists_in_zone_order(pgdat, j);
+ 	}
++
++	build_thisnode_zonelists(pgdat);
+ }
+ 
+ /* Construct the zonelist performance cache - see further mmzone.h */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
