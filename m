@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ds1682-add-sesnsors-kconfig-variable-prefix.patch added to -mm tree
-Date: Tue, 07 Aug 2007 15:50:29 -0700
-Message-ID: <200708072250.l77MoTtu008952@imap1.linux-foundation.org>
+Subject: + off-by-one-in-sys-module-refcnt.patch added to -mm tree
+Date: Tue, 07 Aug 2007 15:51:36 -0700
+Message-ID: <200708072251.l77Mpaax008970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41617 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37667 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759329AbXHGWvQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:51:16 -0400
+	by vger.kernel.org with ESMTP id S1759456AbXHGWwP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:52:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: max@stro.at, grant.likely@secretlab.ca
+Cc: adobriyan@gmail.com, greg@kroah.com, htejun@gmail.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     DS1682 add SESNSORS Kconfig variable prefix
+     Off-by-one in /sys/module/*/refcnt
 has been added to the -mm tree.  Its filename is
-     ds1682-add-sesnsors-kconfig-variable-prefix.patch
+     off-by-one-in-sys-module-refcnt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: DS1682 add SESNSORS Kconfig variable prefix
-From: maximilian attems <max@stro.at>
+Subject: Off-by-one in /sys/module/*/refcnt
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-The new DS1682 chip driver "polluates" global Kconfig namespace.  make it
-consistent with ds1337, ds1374 and friends.
+sysfs internals were changed to not pin module in question.
 
-Signed-off-by: maximilian attems <max@stro.at>
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/chips/Kconfig  |    2 +-
- drivers/i2c/chips/Makefile |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/module.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/i2c/chips/Kconfig~ds1682-add-sesnsors-kconfig-variable-prefix drivers/i2c/chips/Kconfig
---- a/drivers/i2c/chips/Kconfig~ds1682-add-sesnsors-kconfig-variable-prefix
-+++ a/drivers/i2c/chips/Kconfig
-@@ -30,7 +30,7 @@ config SENSORS_DS1374
- 	  This driver is deprecated and will be dropped soon. Use
- 	  rtc-ds1374 instead.
+diff -puN kernel/module.c~off-by-one-in-sys-module-refcnt kernel/module.c
+--- a/kernel/module.c~off-by-one-in-sys-module-refcnt
++++ a/kernel/module.c
+@@ -784,8 +784,7 @@ EXPORT_SYMBOL_GPL(symbol_put_addr);
+ static ssize_t show_refcnt(struct module_attribute *mattr,
+ 			   struct module *mod, char *buffer)
+ {
+-	/* sysfs holds a reference */
+-	return sprintf(buffer, "%u\n", module_refcount(mod)-1);
++	return sprintf(buffer, "%u\n", module_refcount(mod));
+ }
  
--config DS1682
-+config SENSORS_DS1682
- 	tristate "Dallas DS1682 Total Elapsed Time Recorder with Alarm"
- 	depends on EXPERIMENTAL
- 	help
-diff -puN drivers/i2c/chips/Makefile~ds1682-add-sesnsors-kconfig-variable-prefix drivers/i2c/chips/Makefile
---- a/drivers/i2c/chips/Makefile~ds1682-add-sesnsors-kconfig-variable-prefix
-+++ a/drivers/i2c/chips/Makefile
-@@ -4,7 +4,7 @@
- 
- obj-$(CONFIG_SENSORS_DS1337)	+= ds1337.o
- obj-$(CONFIG_SENSORS_DS1374)	+= ds1374.o
--obj-$(CONFIG_DS1682)		+= ds1682.o
-+obj-$(CONFIG_SENSORS_DS1682)	+= ds1682.o
- obj-$(CONFIG_SENSORS_EEPROM)	+= eeprom.o
- obj-$(CONFIG_SENSORS_MAX6875)	+= max6875.o
- obj-$(CONFIG_SENSORS_M41T00)	+= m41t00.o
+ static struct module_attribute refcnt = {
 _
 
-Patches currently in -mm which might be from max@stro.at are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-ds1682-add-sesnsors-kconfig-variable-prefix.patch
-git-mtd.patch
+blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch.patch
+remove-unused-struct-proc_dir_entryset.patch
+off-by-one-in-sys-module-refcnt.patch
+faster-ext2_clear_inode.patch
+fs-proc-mmuc-headers-butchery.patch
+remove-sysctlh-from-fsh.patch
+epcac-reformat-comments-and-coding-style-improvements.patch
+revert-faster-ext2_clear_inode.patch
