@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memoryless-nodes-fix-gfp_thisnode-behavior.patch added to -mm tree
-Date: Tue, 07 Aug 2007 13:38:35 -0700
-Message-ID: <200708072038.l77KcZ7D002845@imap1.linux-foundation.org>
+Subject: + memoryless-nodes-update-memory-policy-and-page-migration.patch added to -mm tree
+Date: Tue, 07 Aug 2007 13:38:29 -0700
+Message-ID: <200708072038.l77KcTps002833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41157 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37989 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934857AbXHGUpv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:45:51 -0400
+	by vger.kernel.org with ESMTP id S932289AbXHGUpp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:45:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com, bob.picco@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.sche
 
 
 The patch titled
-     Memoryless nodes: Fix GFP_THISNODE behavior
+     Memoryless nodes: Update memory policy and page migration
 has been added to the -mm tree.  Its filename is
-     memoryless-nodes-fix-gfp_thisnode-behavior.patch
+     memoryless-nodes-update-memory-policy-and-page-migration.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,24 +25,22 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memoryless nodes: Fix GFP_THISNODE behavior
+Subject: Memoryless nodes: Update memory policy and page migration
 From: Christoph Lameter <clameter@sgi.com>
 
-GFP_THISNODE checks that the zone selected is within the pgdat (node) of the
-first zone of a nodelist.  That only works if the node has memory.  A
-memoryless node will have its first node on another pgdat (node).
+Online nodes now may have no memory.  The checks and initialization must
+therefore be changed to no longer use the online functions.
 
-GFP_THISNODE currently will return simply memory on the first pgdat.  Thus it
-is returning memory on other nodes.  GFP_THISNODE should fail if there is no
-local memory on a node.
+This will correctly initialize the interleave on bootup to only target nodes
+with memory and will make sys_move_pages return an error when a page is to be
+moved to a memoryless node.  Similarly we will get an error if MPOL_BIND and
+MPOL_INTERLEAVE is used on a memoryless node.
 
-Add a new set of zonelists for each node that only contain the nodes that
-belong to the zones itself so that no fallback is possible.
-
-Then modify gfp_type to pickup the right zone based on the presence of
-__GFP_THISNODE.
-
-Drop the existing GFP_THISNODE checks from the page_allocators hot path.
+These are somewhat new semantics.  So far one could specify memoryless nodes
+and we would maybe do the right thing and just ignore the node (or we'd do
+something strange like with MPOL_INTERLEAVE).  If we want to allow the
+specification of memoryless nodes via memory policies then we need to keep
+checking for online nodes.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
@@ -53,153 +51,64 @@ Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |   17 ++++++++++++-----
- include/linux/mmzone.h |   14 +++++++++++++-
- mm/page_alloc.c        |   28 +++++++++++++++++++++++-----
- 3 files changed, 48 insertions(+), 11 deletions(-)
+ mm/mempolicy.c |   10 +++++-----
+ mm/migrate.c   |    2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/gfp.h~memoryless-nodes-fix-gfp_thisnode-behavior include/linux/gfp.h
---- a/include/linux/gfp.h~memoryless-nodes-fix-gfp_thisnode-behavior
-+++ a/include/linux/gfp.h
-@@ -98,22 +98,29 @@ struct vm_area_struct;
+diff -puN mm/mempolicy.c~memoryless-nodes-update-memory-policy-and-page-migration mm/mempolicy.c
+--- a/mm/mempolicy.c~memoryless-nodes-update-memory-policy-and-page-migration
++++ a/mm/mempolicy.c
+@@ -494,9 +494,9 @@ static void get_zonemask(struct mempolic
+ 		*nodes = p->v.nodes;
+ 		break;
+ 	case MPOL_PREFERRED:
+-		/* or use current node instead of online map? */
++		/* or use current node instead of memory_map? */
+ 		if (p->v.preferred_node < 0)
+-			*nodes = node_online_map;
++			*nodes = node_states[N_HIGH_MEMORY];
+ 		else
+ 			node_set(p->v.preferred_node, *nodes);
+ 		break;
+@@ -1617,7 +1617,7 @@ void __init numa_policy_init(void)
+ 	 * fall back to the largest node if they're all smaller.
+ 	 */
+ 	nodes_clear(interleave_nodes);
+-	for_each_online_node(nid) {
++	for_each_node_state(nid, N_HIGH_MEMORY) {
+ 		unsigned long total_pages = node_present_pages(nid);
  
- static inline enum zone_type gfp_zone(gfp_t flags)
- {
-+	int base = 0;
-+
-+#ifdef CONFIG_NUMA
-+	if (flags & __GFP_THISNODE)
-+		base = MAX_NR_ZONES;
-+#endif
-+
- #ifdef CONFIG_ZONE_DMA
- 	if (flags & __GFP_DMA)
--		return ZONE_DMA;
-+		return base + ZONE_DMA;
- #endif
- #ifdef CONFIG_ZONE_DMA32
- 	if (flags & __GFP_DMA32)
--		return ZONE_DMA32;
-+		return base + ZONE_DMA32;
- #endif
- 	if ((flags & (__GFP_HIGHMEM | __GFP_MOVABLE)) ==
- 			(__GFP_HIGHMEM | __GFP_MOVABLE))
--		return ZONE_MOVABLE;
-+		return base + ZONE_MOVABLE;
- #ifdef CONFIG_HIGHMEM
- 	if (flags & __GFP_HIGHMEM)
--		return ZONE_HIGHMEM;
-+		return base + ZONE_HIGHMEM;
- #endif
--	return ZONE_NORMAL;
-+	return base + ZONE_NORMAL;
- }
- 
- /*
-diff -puN include/linux/mmzone.h~memoryless-nodes-fix-gfp_thisnode-behavior include/linux/mmzone.h
---- a/include/linux/mmzone.h~memoryless-nodes-fix-gfp_thisnode-behavior
-+++ a/include/linux/mmzone.h
-@@ -324,6 +324,17 @@ struct zone {
- #define MAX_ZONES_PER_ZONELIST (MAX_NUMNODES * MAX_NR_ZONES)
- 
- #ifdef CONFIG_NUMA
-+
-+/*
-+ * The NUMA zonelists are doubled becausse we need zonelists that restrict the
-+ * allocations to a single node for GFP_THISNODE.
-+ *
-+ * [0 .. MAX_NR_ZONES -1] 		: Zonelists with fallback
-+ * [MAZ_NR_ZONES ... MAZ_ZONELISTS -1]  : No fallback (GFP_THISNODE)
-+ */
-+#define MAX_ZONELISTS (2 * MAX_NR_ZONES)
-+
-+
- /*
-  * We cache key information from each zonelist for smaller cache
-  * footprint when scanning for free pages in get_page_from_freelist().
-@@ -389,6 +400,7 @@ struct zonelist_cache {
- 	unsigned long last_full_zap;		/* when last zap'd (jiffies) */
- };
- #else
-+#define MAX_ZONELISTS MAX_NR_ZONES
- struct zonelist_cache;
- #endif
- 
-@@ -455,7 +467,7 @@ extern struct page *mem_map;
- struct bootmem_data;
- typedef struct pglist_data {
- 	struct zone node_zones[MAX_NR_ZONES];
--	struct zonelist node_zonelists[MAX_NR_ZONES];
-+	struct zonelist node_zonelists[MAX_ZONELISTS];
- 	int nr_zones;
- #ifdef CONFIG_FLAT_NODE_MEM_MAP
- 	struct page *node_mem_map;
-diff -puN mm/page_alloc.c~memoryless-nodes-fix-gfp_thisnode-behavior mm/page_alloc.c
---- a/mm/page_alloc.c~memoryless-nodes-fix-gfp_thisnode-behavior
-+++ a/mm/page_alloc.c
-@@ -1184,9 +1184,6 @@ zonelist_scan:
- 			!zlc_zone_worth_trying(zonelist, z, allowednodes))
- 				continue;
- 		zone = *z;
--		if (unlikely(NUMA_BUILD && (gfp_mask & __GFP_THISNODE) &&
--			zone->zone_pgdat != zonelist->zones[0]->zone_pgdat))
--				break;
- 		if ((alloc_flags & ALLOC_CPUSET) &&
- 			!cpuset_zone_allowed_softwall(zone, gfp_mask))
- 				goto try_next_zone;
-@@ -1255,7 +1252,10 @@ restart:
- 	z = zonelist->zones;  /* the list of zones suitable for gfp_mask */
- 
- 	if (unlikely(*z == NULL)) {
--		/* Should this ever happen?? */
-+		/*
-+		 * Happens if we have an empty zonelist as a result of
-+		 * GFP_THISNODE being used on a memoryless node
-+		 */
- 		return NULL;
+ 		/* Preserve the largest node */
+@@ -1897,7 +1897,7 @@ int show_numa_map(struct seq_file *m, vo
+ 		seq_printf(m, " huge");
+ 	} else {
+ 		check_pgd_range(vma, vma->vm_start, vma->vm_end,
+-				&node_online_map, MPOL_MF_STATS, md);
++			&node_states[N_HIGH_MEMORY], MPOL_MF_STATS, md);
  	}
  
-@@ -1851,6 +1851,22 @@ static void build_zonelists_in_node_orde
- }
+ 	if (!md->pages)
+@@ -1924,7 +1924,7 @@ int show_numa_map(struct seq_file *m, vo
+ 	if (md->writeback)
+ 		seq_printf(m," writeback=%lu", md->writeback);
  
- /*
-+ * Build gfp_thisnode zonelists
-+ */
-+static void build_thisnode_zonelists(pg_data_t *pgdat)
-+{
-+	enum zone_type i;
-+	int j;
-+	struct zonelist *zonelist;
-+
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
-+		zonelist = pgdat->node_zonelists + MAX_NR_ZONES + i;
-+		j = build_zonelists_node(pgdat, zonelist, 0, i);
-+		zonelist->zones[j] = NULL;
-+	}
-+}
-+
-+/*
-  * Build zonelists ordered by zone and nodes within zones.
-  * This results in conserving DMA zone[s] until all Normal memory is
-  * exhausted, but results in overflowing to remote node while memory
-@@ -1954,7 +1970,7 @@ static void build_zonelists(pg_data_t *p
- 	int order = current_zonelist_order;
+-	for_each_online_node(n)
++	for_each_node_state(n, N_HIGH_MEMORY)
+ 		if (md->node[n])
+ 			seq_printf(m, " N%d=%lu", n, md->node[n]);
+ out:
+diff -puN mm/migrate.c~memoryless-nodes-update-memory-policy-and-page-migration mm/migrate.c
+--- a/mm/migrate.c~memoryless-nodes-update-memory-policy-and-page-migration
++++ a/mm/migrate.c
+@@ -979,7 +979,7 @@ asmlinkage long sys_move_pages(pid_t pid
+ 				goto out;
  
- 	/* initialize zonelists */
--	for (i = 0; i < MAX_NR_ZONES; i++) {
-+	for (i = 0; i < MAX_ZONELISTS; i++) {
- 		zonelist = pgdat->node_zonelists + i;
- 		zonelist->zones[0] = NULL;
- 	}
-@@ -1999,6 +2015,8 @@ static void build_zonelists(pg_data_t *p
- 		/* calculate node order -- i.e., DMA last! */
- 		build_zonelists_in_zone_order(pgdat, j);
- 	}
-+
-+	build_thisnode_zonelists(pgdat);
- }
+ 			err = -ENODEV;
+-			if (!node_online(node))
++			if (!node_state(node, N_HIGH_MEMORY))
+ 				goto out;
  
- /* Construct the zonelist performance cache - see further mmzone.h */
+ 			err = -EACCES;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
