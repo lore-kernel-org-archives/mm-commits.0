@@ -1,139 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: + pm-fix-dependencies-of-config_suspend-and-config_hibernation.patch added to -mm tree
-Date: Tue, 07 Aug 2007 13:17:40 -0700
-Message-ID: <200708072017.l77KHe08001983@imap1.linux-foundation.org>
+Subject: - remove-current-defines-and-uses-of-pr_err-add-pr_emerg.patch removed from -mm tree
+Date: Tue, 07 Aug 2007 13:19:07 -0700
+Message-ID: <200708072019.l77KJ7Il002051@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42290 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43168 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752870AbXHGUTS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:19:18 -0400
+	by vger.kernel.org with ESMTP id S1753122AbXHGUUl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:20:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, bunk@stusta.de, lenb@kernel.org, pavel@ucw.cz
+To: joe@perches.com, adaplas@pol.net, greg@kroah.com, jeff@garzik.org, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
-has been added to the -mm tree.  Its filename is
-     pm-fix-dependencies-of-config_suspend-and-config_hibernation.patch
+     Remove current defines and uses of pr_err, add pr_emerg, pr_alert, pr_crit, pr_err, pr_warn, pr_notice to include/linux/kernel.h
+has been removed from the -mm tree.  Its filename was
+     remove-current-defines-and-uses-of-pr_err-add-pr_emerg.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: Remove current defines and uses of pr_err, add pr_emerg, pr_alert, pr_crit, pr_err, pr_warn, pr_notice to include/linux/kernel.h
+From: Joe Perches <joe@perches.com>
 
-Dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION introduced by commit
-296699de6bdc717189a331ab6bbe90e05c94db06 "Introduce CONFIG_SUSPEND for
-suspend-to-Ram and standby" are incorrect, as they don't cover the facts
-that (1) not all architectures support suspend and (2) SMP hibernation is
-only possible on X86 and PPC64 (if PPC64_SWSUSP is set).
+Remove current #define and uses of pr_err
+Add pr_emerg, pr_alert, pr_crit, pr_err, pr_warn, pr_notice
+	to include/linux/kernel.h
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/Kconfig |   40 ++++++++++++++++++++++++++++++----------
- 1 files changed, 30 insertions(+), 10 deletions(-)
+ drivers/i2c/chips/menelaus.c     |   11 +++++------
+ drivers/net/spider_net.c         |   17 +++++++++--------
+ drivers/net/spider_net.h         |    3 ---
+ drivers/video/omap/lcd_h3.c      |    7 +++----
+ drivers/video/omap/lcd_inn1610.c |    7 +++----
+ include/linux/kernel.h           |   16 ++++++++++------
+ 6 files changed, 30 insertions(+), 31 deletions(-)
 
-diff -puN kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation kernel/power/Kconfig
---- a/kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation
-+++ a/kernel/power/Kconfig
-@@ -72,15 +72,10 @@ config PM_TRACE
- 	CAUTION: this option will cause your machine's real-time clock to be
- 	set to an invalid time after a resume.
+diff -puN drivers/i2c/chips/menelaus.c~remove-current-defines-and-uses-of-pr_err-add-pr_emerg drivers/i2c/chips/menelaus.c
+--- a/drivers/i2c/chips/menelaus.c~remove-current-defines-and-uses-of-pr_err-add-pr_emerg
++++ a/drivers/i2c/chips/menelaus.c
+@@ -49,8 +49,7 @@
+ #include <asm/arch/menelaus.h>
  
--config SUSPEND_SMP_POSSIBLE
--	bool
--	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES || PPC_PMAC))
--	depends on SMP
--	default y
+ #define DRIVER_NAME			"menelaus"
 -
--config SUSPEND_SMP
-+config PM_SLEEP_SMP
- 	bool
--	depends on SUSPEND_SMP_POSSIBLE && PM_SLEEP
-+	depends on SUSPEND_SMP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
-+	depends on PM_SLEEP
- 	select HOTPLUG_CPU
- 	default y
+-#define pr_err(fmt, arg...)	printk(KERN_ERR DRIVER_NAME ": ", ## arg);
++#define PFX                             DRIVER_NAME ": "
  
-@@ -89,20 +84,45 @@ config PM_SLEEP
- 	depends on SUSPEND || HIBERNATION
- 	default y
+ #define MENELAUS_I2C_ADDRESS		0x72
  
-+config SUSPEND_UP_POSSIBLE
-+	bool
-+	depends on BLACKFIN || MIPS || SUPERH || FRV || (PPC32 && PPC_MPC52xx)
-+	depends on !SMP
-+	default y
-+
-+config SUSPEND_SMP_POSSIBLE
-+	bool
-+	depends on (X86 && !X86_VOYAGER) \
-+		   || (PPC64 && (PPC_PSERIES || PPC_PMAC)) || ARM
-+	depends on SMP
-+	default y
-+
- config SUSPEND
- 	bool "Suspend to RAM and standby"
- 	depends on PM
--	depends on !SMP || SUSPEND_SMP_POSSIBLE
-+	depends on SUSPEND_UP_POSSIBLE || SUSPEND_SMP_POSSIBLE
- 	default y
- 	---help---
- 	  Allow the system to enter sleep states in which main memory is
- 	  powered and thus its contents are preserved, such as the
- 	  suspend-to-RAM state (i.e. the ACPI S3 state).
+@@ -156,7 +155,7 @@ static int menelaus_write_reg(int reg, u
+ 	int val = i2c_smbus_write_byte_data(the_menelaus->client, reg, value);
  
-+config HIBERNATION_UP_POSSIBLE
-+	bool
-+	depends on X86 || PPC64_SWSUSP || FRV || PPC32
-+	depends on !SMP
-+	default y
+ 	if (val < 0) {
+-		pr_err("write error");
++		printk(KERN_ERR PFX "write error\n");
+ 		return val;
+ 	}
+ 
+@@ -168,7 +167,7 @@ static int menelaus_read_reg(int reg)
+ 	int val = i2c_smbus_read_byte_data(the_menelaus->client, reg);
+ 
+ 	if (val < 0)
+-		pr_err("read error");
++		printk(KERN_ERR PFX "read error\n");
+ 
+ 	return val;
+ }
+@@ -1178,7 +1177,7 @@ static int menelaus_probe(struct i2c_cli
+ 	/* If a true probe check the device */
+ 	rev = menelaus_read_reg(MENELAUS_REV);
+ 	if (rev < 0) {
+-		pr_err("device not found");
++		printk(KERN_ERR PFX "device not found\n");
+ 		err = -ENODEV;
+ 		goto fail1;
+ 	}
+@@ -1259,7 +1258,7 @@ static int __init menelaus_init(void)
+ 
+ 	res = i2c_add_driver(&menelaus_i2c_driver);
+ 	if (res < 0) {
+-		pr_err("driver registration failed\n");
++		printk(KERN_ERR PFX "driver registration failed\n");
+ 		return res;
+ 	}
+ 
+diff -puN drivers/net/spider_net.c~remove-current-defines-and-uses-of-pr_err-add-pr_emerg drivers/net/spider_net.c
+--- a/drivers/net/spider_net.c~remove-current-defines-and-uses-of-pr_err-add-pr_emerg
++++ a/drivers/net/spider_net.c
+@@ -1238,14 +1238,15 @@ spider_net_decode_one_descr(struct spide
+ 	if (hwdescr->dmac_cmd_status & SPIDER_NET_DESCR_BAD_STATUS) {
+ 		dev_err(&card->netdev->dev, "bad status, cmd_status=x%08x\n",
+ 			       hwdescr->dmac_cmd_status);
+-		pr_err("buf_addr=x%08x\n", hw_buf_addr);
+-		pr_err("buf_size=x%08x\n", hwdescr->buf_size);
+-		pr_err("next_descr_addr=x%08x\n", hwdescr->next_descr_addr);
+-		pr_err("result_size=x%08x\n", hwdescr->result_size);
+-		pr_err("valid_size=x%08x\n", hwdescr->valid_size);
+-		pr_err("data_status=x%08x\n", hwdescr->data_status);
+-		pr_err("data_error=x%08x\n", hwdescr->data_error);
+-		pr_err("which=%ld\n", descr - card->rx_chain.ring);
++		printk(KERN_ERR "buf_addr=x%08x\n", hw_buf_addr);
++		printk(KERN_ERR "buf_size=x%08x\n", hwdescr->buf_size);
++		printk(KERN_ERR "next_descr_addr=x%08x\n",
++		       hwdescr->next_descr_addr);
++		printk(KERN_ERR "result_size=x%08x\n", hwdescr->result_size);
++		printk(KERN_ERR "valid_size=x%08x\n", hwdescr->valid_size);
++		printk(KERN_ERR "data_status=x%08x\n", hwdescr->data_status);
++		printk(KERN_ERR "data_error=x%08x\n", hwdescr->data_error);
++		printk(KERN_ERR "which=%ld\n", descr - card->rx_chain.ring);
+ 
+ 		card->spider_stats.rx_desc_error++;
+ 		goto bad_desc;
+diff -puN drivers/net/spider_net.h~remove-current-defines-and-uses-of-pr_err-add-pr_emerg drivers/net/spider_net.h
+--- a/drivers/net/spider_net.h~remove-current-defines-and-uses-of-pr_err-add-pr_emerg
++++ a/drivers/net/spider_net.h
+@@ -493,7 +493,4 @@ struct spider_net_card {
+ 	struct spider_net_descr darray[0];
+ };
+ 
+-#define pr_err(fmt,arg...) \
+-	printk(KERN_ERR fmt ,##arg)
+-
+ #endif
+diff -puN drivers/video/omap/lcd_h3.c~remove-current-defines-and-uses-of-pr_err-add-pr_emerg drivers/video/omap/lcd_h3.c
+--- a/drivers/video/omap/lcd_h3.c~remove-current-defines-and-uses-of-pr_err-add-pr_emerg
++++ a/drivers/video/omap/lcd_h3.c
+@@ -27,8 +27,7 @@
+ #include <asm/arch/omapfb.h>
+ 
+ #define MODULE_NAME	"omapfb-lcd_h3"
+-
+-#define pr_err(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
++#define PFX MODULE_NAME ": "
+ 
+ static int h3_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+ {
+@@ -48,7 +47,7 @@ static int h3_panel_enable(struct lcd_pa
+ 	if (!r)
+ 		r = tps65010_set_gpio_out_value(GPIO2, HIGH);
+ 	if (r)
+-		pr_err("Unable to turn on LCD panel\n");
++		printk(KERN_ERR PFX "Unable to turn on LCD panel\n");
+ 
+ 	return r;
+ }
+@@ -62,7 +61,7 @@ static void h3_panel_disable(struct lcd_
+ 	if (!r)
+ 		tps65010_set_gpio_out_value(GPIO2, LOW);
+ 	if (r)
+-		pr_err("Unable to turn off LCD panel\n");
++		printk(KERN_ERR PFX "Unable to turn off LCD panel\n");
+ }
+ 
+ static unsigned long h3_panel_get_caps(struct lcd_panel *panel)
+diff -puN drivers/video/omap/lcd_inn1610.c~remove-current-defines-and-uses-of-pr_err-add-pr_emerg drivers/video/omap/lcd_inn1610.c
+--- a/drivers/video/omap/lcd_inn1610.c~remove-current-defines-and-uses-of-pr_err-add-pr_emerg
++++ a/drivers/video/omap/lcd_inn1610.c
+@@ -26,8 +26,7 @@
+ #include <asm/arch/omapfb.h>
+ 
+ #define MODULE_NAME	"omapfb-lcd_h3"
+-
+-#define pr_err(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
++#define PFX		MODULE_NAME ": "
+ 
+ static int innovator1610_panel_init(struct lcd_panel *panel,
+ 				    struct omapfb_device *fbdev)
+@@ -35,12 +34,12 @@ static int innovator1610_panel_init(stru
+ 	int r = 0;
+ 
+ 	if (omap_request_gpio(14)) {
+-		pr_err("can't request GPIO 14\n");
++		printk(KERN_ERR PFX "can't request GPIO 14\n");
+ 		r = -1;
+ 		goto exit;
+ 	}
+ 	if (omap_request_gpio(15)) {
+-		pr_err("can't request GPIO 15\n");
++		printk(KERN_ERR PFX "can't request GPIO 15\n");
+ 		omap_free_gpio(14);
+ 		r = -1;
+ 		goto exit;
+diff -puN include/linux/kernel.h~remove-current-defines-and-uses-of-pr_err-add-pr_emerg include/linux/kernel.h
+--- a/include/linux/kernel.h~remove-current-defines-and-uses-of-pr_err-add-pr_emerg
++++ a/include/linux/kernel.h
+@@ -241,20 +241,24 @@ extern void print_hex_dump_bytes(const c
+ 			void *buf, size_t len);
+ #define hex_asc(x)	"0123456789abcdef"[x]
+ 
++#define pr_emerg(fmt, arg...)	printk(KERN_EMERG fmt, ##arg)
++#define pr_alert(fmt, arg...)	printk(KERN_ALERT fmt, ##arg)
++#define pr_crit(fmt, arg...)	printk(KERN_CRIT fmt, ##arg)
++#define pr_err(fmt, arg...)	printk(KERN_ERR fmt, ##arg)
++#define pr_warn(fmt, arg...)	printk(KERN_WARNING fmt, ##arg)
++#define pr_notice(fmt, arg...)	printk(KERN_NOTICE fmt, ##arg)
++#define pr_info(fmt, arg...)	printk(KERN_INFO fmt, ##arg)
 +
-+config HIBERNATION_SMP_POSSIBLE
-+	bool
-+	depends on (X86 && !X86_VOYAGER) || PPC64_SWSUSP
-+	depends on SMP
-+	default y
-+
- config HIBERNATION
- 	bool "Hibernation (aka 'suspend to disk')"
- 	depends on PM && SWAP
--	depends on ((X86 || PPC64_SWSUSP || FRV || PPC32) && !SMP) || SUSPEND_SMP_POSSIBLE
-+	depends on HIBERNATION_UP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
- 	---help---
- 	  Enable the suspend to disk (STD) functionality, which is usually
- 	  called "hibernation" in user interfaces.  STD checkpoints the
+ #ifdef DEBUG
+ /* If you are writing a driver, please use dev_dbg instead */
+-#define pr_debug(fmt,arg...) \
+-	printk(KERN_DEBUG fmt,##arg)
++#define pr_debug(fmt,arg...)	printk(KERN_DEBUG fmt, ##arg)
+ #else
+-static inline int __attribute__ ((format (printf, 1, 2))) pr_debug(const char * fmt, ...)
++static inline int __attribute__ ((format (printf, 1, 2))) pr_debug(const char *fmt, ...)
+ {
+ 	return 0;
+ }
+ #endif
+ 
+-#define pr_info(fmt,arg...) \
+-	printk(KERN_INFO fmt,##arg)
+-
+ /*
+  *      Display an IP address in readable format.
+  */
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from joe@perches.com are
 
-hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch
-pm-fix-dependencies-of-config_suspend-and-config_hibernation.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-use-wait-queue-instead-of-busy-looping.patch
-freezer-measure-freezing-time.patch
-shrink_slab-handle-bad-shrinkers.patch
+remove-current-defines-and-uses-of-pr_err-add-pr_emerg.patch
