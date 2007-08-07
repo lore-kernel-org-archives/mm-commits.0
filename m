@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ehea-eliminated-some-compiler-warnings.patch added to -mm tree
-Date: Tue, 07 Aug 2007 16:20:11 -0700
-Message-ID: <200708072320.l77NKBqp010119@imap1.linux-foundation.org>
+Subject: + do-not-export-usr-include-scsi-in-make-headers_install.patch added to -mm tree
+Date: Tue, 07 Aug 2007 16:21:52 -0700
+Message-ID: <200708072321.l77NLq3T010134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54883 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51604 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755264AbXHGXUu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 19:20:50 -0400
+	by vger.kernel.org with ESMTP id S1755467AbXHGXWi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 19:22:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: osstklei@de.ibm.com, tklein@de.ibm.com
+Cc: olh@suse.de, James.Bottomley@steeleye.com, dwmw2@infradead.org
 
 
 The patch titled
-     ehea: eliminated some compiler warnings
+     do not export /usr/include/scsi in make headers_install
 has been added to the -mm tree.  Its filename is
-     ehea-eliminated-some-compiler-warnings.patch
+     do-not-export-usr-include-scsi-in-make-headers_install.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,99 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ehea: eliminated some compiler warnings
-From: Thomas Klein <osstklei@de.ibm.com>
+Subject: do not export /usr/include/scsi in make headers_install
+From: Olaf Hering <olh@suse.de>
 
-Fixed wrongly casted pointers
+/usr/include/scsi is provided by glibc.
+Remove the scsi export from make headers_install target.
 
-Signed-off-by: Thomas Klein <tklein@de.ibm.com>
+Signed-off-by: Olaf Hering <olh@suse.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea_main.c |   25 ++++++++++---------------
- 1 files changed, 10 insertions(+), 15 deletions(-)
+ include/Kbuild      |    1 -
+ include/scsi/Kbuild |    4 ----
+ 2 files changed, 5 deletions(-)
 
-diff -puN drivers/net/ehea/ehea_main.c~ehea-eliminated-some-compiler-warnings drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~ehea-eliminated-some-compiler-warnings
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -1326,7 +1326,6 @@ static void write_swqe2_TSO(struct sk_bu
- 	u8 *imm_data = &swqe->u.immdata_desc.immediate_data[0];
- 	int skb_data_size = skb->len - skb->data_len;
- 	int headersize;
--	u64 tmp_addr;
- 
- 	/* Packet is TCP with TSO enabled */
- 	swqe->tx_control |= EHEA_SWQE_TSO;
-@@ -1347,9 +1346,8 @@ static void write_swqe2_TSO(struct sk_bu
- 			/* set sg1entry data */
- 			sg1entry->l_key = lkey;
- 			sg1entry->len = skb_data_size - headersize;
+diff -puN include/Kbuild~do-not-export-usr-include-scsi-in-make-headers_install include/Kbuild
+--- a/include/Kbuild~do-not-export-usr-include-scsi-in-make-headers_install
++++ a/include/Kbuild
+@@ -1,6 +1,5 @@
+ header-y += asm-generic/
+ header-y += linux/
+-header-y += scsi/
+ header-y += sound/
+ header-y += mtd/
+ header-y += rdma/
+diff -puN include/scsi/Kbuild~do-not-export-usr-include-scsi-in-make-headers_install /dev/null
+--- a/include/scsi/Kbuild
++++ /dev/null
+@@ -1,4 +0,0 @@
+-header-y += scsi.h
 -
--			tmp_addr = (u64)(skb->data + headersize);
--			sg1entry->vaddr = ehea_map_vaddr(tmp_addr);
-+			sg1entry->vaddr =
-+				ehea_map_vaddr(skb->data + headersize);
- 			swqe->descriptors++;
- 		}
- 	} else
-@@ -1362,7 +1360,6 @@ static void write_swqe2_nonTSO(struct sk
- 	int skb_data_size = skb->len - skb->data_len;
- 	u8 *imm_data = &swqe->u.immdata_desc.immediate_data[0];
- 	struct ehea_vsgentry *sg1entry = &swqe->u.immdata_desc.sg_entry;
--	u64 tmp_addr;
- 
- 	/* Packet is any nonTSO type
- 	 *
-@@ -1379,8 +1376,8 @@ static void write_swqe2_nonTSO(struct sk
- 			/* copy sg1entry data */
- 			sg1entry->l_key = lkey;
- 			sg1entry->len = skb_data_size - SWQE2_MAX_IMM;
--			tmp_addr = (u64)(skb->data + SWQE2_MAX_IMM);
--			sg1entry->vaddr = ehea_map_vaddr(tmp_addr);
-+			sg1entry->vaddr =
-+				ehea_map_vaddr(skb->data + SWQE2_MAX_IMM);
- 			swqe->descriptors++;
- 		}
- 	} else {
-@@ -1395,7 +1392,6 @@ static inline void write_swqe2_data(stru
- 	struct ehea_vsgentry *sg_list, *sg1entry, *sgentry;
- 	skb_frag_t *frag;
- 	int nfrags, sg1entry_contains_frag_data, i;
--	u64 tmp_addr;
- 
- 	nfrags = skb_shinfo(skb)->nr_frags;
- 	sg1entry = &swqe->u.immdata_desc.sg_entry;
-@@ -1417,9 +1413,9 @@ static inline void write_swqe2_data(stru
- 			/* copy sg1entry data */
- 			sg1entry->l_key = lkey;
- 			sg1entry->len = frag->size;
--			tmp_addr =  (u64)(page_address(frag->page)
--					  + frag->page_offset);
--			sg1entry->vaddr = ehea_map_vaddr(tmp_addr);
-+			sg1entry->vaddr =
-+				ehea_map_vaddr(page_address(frag->page)
-+					       + frag->page_offset);
- 			swqe->descriptors++;
- 			sg1entry_contains_frag_data = 1;
- 		}
-@@ -1431,10 +1427,9 @@ static inline void write_swqe2_data(stru
- 
- 			sgentry->l_key = lkey;
- 			sgentry->len = frag->size;
--
--			tmp_addr = (u64)(page_address(frag->page)
--					 + frag->page_offset);
--			sgentry->vaddr = ehea_map_vaddr(tmp_addr);
-+			sgentry->vaddr =
-+				ehea_map_vaddr(page_address(frag->page)
-+					       + frag->page_offset);
- 			swqe->descriptors++;
- 		}
- 	}
+-unifdef-y += scsi_ioctl.h
+-unifdef-y += sg.h
 _
 
-Patches currently in -mm which might be from osstklei@de.ibm.com are
+Patches currently in -mm which might be from olh@suse.de are
 
-ehea-fix-workqueue-handling.patch
-ehea-simplify-resource-usage-check.patch
-ehea-eliminated-some-compiler-warnings.patch
+git-ieee1394.patch
+do-not-export-usr-include-scsi-in-make-headers_install.patch
