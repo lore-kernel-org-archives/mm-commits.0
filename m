@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch added to -mm tree
-Date: Tue, 07 Aug 2007 15:54:38 -0700
-Message-ID: <200708072254.l77MsclU009134@imap1.linux-foundation.org>
+Subject: + at91-remove-at91_lcdch.patch added to -mm tree
+Date: Tue, 07 Aug 2007 15:56:06 -0700
+Message-ID: <200708072256.l77Mu6Xo009153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37953 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34666 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761482AbXHGWzw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:55:52 -0400
+	by vger.kernel.org with ESMTP id S1759072AbXHGW6D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:58:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com
+Cc: jan.altenberg@linutronix.de, andrew@sanpeople.com, nicolas.ferre@rfo.atmel.com
 
 
 The patch titled
-     wait_task_zombie: fix 2/3 races vs forget_original_parent()
+     AT91: Remove at91_lcdc.h
 has been added to the -mm tree.  Its filename is
-     wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+     at91-remove-at91_lcdch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,180 +25,178 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: wait_task_zombie: fix 2/3 races vs forget_original_parent()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: AT91: Remove at91_lcdc.h
+From: Jan Altenberg <jan.altenberg@linutronix.de>
 
-Two threads, T1 and T2.  T2 ptraces P, and P is not a child of ptracer's
-thread group.  P exits and goes to TASK_ZOMBIE.
+include/asm-arm/arch-at91/at91_lcdc.h (which is still present in latest
+git) has been superseeded by include/video/atmel_lcdc.h, so let's remove
+it.
 
-T1 does wait_task_zombie(P):
-
-	P->exit_state = TASK_DEAD;
-	...
-	read_unlock(&tasklist_lock);
-
-					T2 does exit(), takes tasklist,
-					forget_original_parent() does
-					__ptrace_unlink(P) but doesn't
-					call do_notify_parent(P) because
-					p->exit_state == EXIT_DEAD.
-
-Now, P is not visible to our process: __ptrace_unlink() removed it from
-->children. We should send notification to P->parent and release P if and
-only if SIGCHLD is ignored.
-
-And we have 3 bugs:
-
-1. P->parent does do_wait() and gets -ECHILD (P is on ->parent->children,
-   but its state is TASK_DEAD).
-
-2. // wait_task_zombie() continues
-
-	if (put_user(...)) {
-		// TODO: is this safe?
-		p->exit_state = EXIT_ZOMBIE;
-		return;
-	}
-
-   we return without notification/release, task_struct leaked.
-
-   Solution: ignore -EFAULT and proceed. It is an application's bug if
-   we can't fill infop/stat_addr (in case of VM_FAULT_OOM we have much
-   more problems).
-
-3. // wait_task_zombie() continues
-
-	if (p->real_parent != p->parent) {
-		// Not taken, it was untraced'ed
-		...
-	}
-
-	release_task(p);
-
-   we released the task which we shouldn't.
-
-   Solution: check ->real_parent != ->parent before, under tasklist_lock,
-   but use ptrace_unlink() instead of __ptrace_unlink() to check ->ptrace.
-
-This patch hopefully solves 2 and 3, the 1st bug will be fixed later, we need
-some cleanups in forget_original_parent/reparent_thread.
-
-However, the first race is very unlikely and not critical, so I hope it makes
-sense to fix 1 and 2 for now.
-
-4. Small cleanup: don't "restore" EXIT_ZOMBIE unless we know we are not going
-   to realease the child.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Jan Altenberg <jan.altenberg@linutronix.de>
+Cc: Andrew Victor <andrew@sanpeople.com>
+Cc: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   45 +++++++++++++++++++++------------------------
- 1 files changed, 21 insertions(+), 24 deletions(-)
+ include/asm-arm/arch-at91/at91_lcdc.h |  148 ------------------------
+ 1 files changed, 148 deletions(-)
 
-diff -puN kernel/exit.c~wait_task_zombie-fix-2-3-races-vs-forget_original_parent kernel/exit.c
---- a/kernel/exit.c~wait_task_zombie-fix-2-3-races-vs-forget_original_parent
-+++ a/kernel/exit.c
-@@ -1166,8 +1166,7 @@ static int wait_task_zombie(struct task_
- 			    int __user *stat_addr, struct rusage __user *ru)
- {
- 	unsigned long state;
--	int retval;
--	int status;
-+	int retval, status, traced;
- 
- 	if (unlikely(noreap)) {
- 		pid_t pid = p->pid;
-@@ -1209,7 +1208,10 @@ static int wait_task_zombie(struct task_
- 		return 0;
- 	}
- 
--	if (likely(p->real_parent == p->parent)) {
-+	/* traced means p->ptrace, but not vice versa */
-+	traced = (p->real_parent != p->parent);
-+
-+	if (likely(!traced)) {
- 		struct signal_struct *psig;
- 		struct signal_struct *sig;
- 
-@@ -1291,35 +1293,30 @@ static int wait_task_zombie(struct task_
- 		retval = put_user(p->pid, &infop->si_pid);
- 	if (!retval && infop)
- 		retval = put_user(p->uid, &infop->si_uid);
--	if (retval) {
--		// TODO: is this safe?
--		p->exit_state = EXIT_ZOMBIE;
--		return retval;
--	}
--	retval = p->pid;
--	if (p->real_parent != p->parent) {
-+	if (!retval)
-+		retval = p->pid;
-+
-+	if (traced) {
- 		write_lock_irq(&tasklist_lock);
--		/* Double-check with lock held.  */
--		if (p->real_parent != p->parent) {
--			__ptrace_unlink(p);
--			// TODO: is this safe?
--			p->exit_state = EXIT_ZOMBIE;
--			/*
--			 * If this is not a detached task, notify the parent.
--			 * If it's still not detached after that, don't release
--			 * it now.
--			 */
-+		/* We dropped tasklist, ptracer could die and untrace */
-+		ptrace_unlink(p);
-+		/*
-+		 * If this is not a detached task, notify the parent.
-+		 * If it's still not detached after that, don't release
-+		 * it now.
-+		 */
-+		if (p->exit_signal != -1) {
-+			do_notify_parent(p, p->exit_signal);
- 			if (p->exit_signal != -1) {
--				do_notify_parent(p, p->exit_signal);
--				if (p->exit_signal != -1)
--					p = NULL;
-+				p->exit_state = EXIT_ZOMBIE;
-+				p = NULL;
- 			}
- 		}
- 		write_unlock_irq(&tasklist_lock);
- 	}
- 	if (p != NULL)
- 		release_task(p);
--	BUG_ON(!retval);
-+
- 	return retval;
- }
- 
+diff -puN include/asm-arm/arch-at91/at91_lcdc.h~at91-remove-at91_lcdch /dev/null
+--- a/include/asm-arm/arch-at91/at91_lcdc.h
++++ /dev/null
+@@ -1,148 +0,0 @@
+-/*
+- * include/asm-arm/arch-at91/at91_lcdc.h
+- *
+- * LCD Controller (LCDC).
+- * Based on AT91SAM9261 datasheet revision E.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-
+-#ifndef AT91_LCDC_H
+-#define AT91_LCDC_H
+-
+-#define AT91_LCDC_DMABADDR1	0x00		/* DMA Base Address Register 1 */
+-#define AT91_LCDC_DMABADDR2	0x04		/* DMA Base Address Register 2 */
+-#define AT91_LCDC_DMAFRMPT1	0x08		/* DMA Frame Pointer Register 1 */
+-#define AT91_LCDC_DMAFRMPT2	0x0c		/* DMA Frame Pointer Register 2 */
+-#define AT91_LCDC_DMAFRMADD1	0x10		/* DMA Frame Address Register 1 */
+-#define AT91_LCDC_DMAFRMADD2	0x14		/* DMA Frame Address Register 2 */
+-
+-#define AT91_LCDC_DMAFRMCFG	0x18		/* DMA Frame Configuration Register */
+-#define		AT91_LCDC_FRSIZE	(0x7fffff <<  0)	/* Frame Size */
+-#define		AT91_LCDC_BLENGTH	(0x7f     << 24)	/* Burst Length */
+-
+-#define AT91_LCDC_DMACON	0x1c		/* DMA Control Register */
+-#define		AT91_LCDC_DMAEN		(0x1 << 0)	/* DMA Enable */
+-#define		AT91_LCDC_DMARST	(0x1 << 1)	/* DMA Reset */
+-#define		AT91_LCDC_DMABUSY	(0x1 << 2)	/* DMA Busy */
+-
+-#define AT91_LCDC_LCDCON1	0x0800		/* LCD Control Register 1 */
+-#define		AT91_LCDC_BYPASS	(1     <<  0)	/* Bypass lcd_dotck divider */
+-#define		AT91_LCDC_CLKVAL	(0x1ff << 12)	/* Clock Divider */
+-#define		AT91_LCDC_LINCNT	(0x7ff << 21)	/* Line Counter */
+-
+-#define AT91_LCDC_LCDCON2	0x0804		/* LCD Control Register 2 */
+-#define		AT91_LCDC_DISTYPE	(3 << 0)	/* Display Type */
+-#define			AT91_LCDC_DISTYPE_STNMONO	(0 << 0)
+-#define			AT91_LCDC_DISTYPE_STNCOLOR	(1 << 0)
+-#define			AT91_LCDC_DISTYPE_TFT		(2 << 0)
+-#define		AT91_LCDC_SCANMOD	(1 << 2)	/* Scan Mode */
+-#define			AT91_LCDC_SCANMOD_SINGLE	(0 << 2)
+-#define			AT91_LCDC_SCANMOD_DUAL		(1 << 2)
+-#define		AT91_LCDC_IFWIDTH	(3 << 3)	/*Interface Width */
+-#define			AT91_LCDC_IFWIDTH_4		(0 << 3)
+-#define			AT91_LCDC_IFWIDTH_8		(1 << 3)
+-#define			AT91_LCDC_IFWIDTH_16		(2 << 3)
+-#define		AT91_LCDC_PIXELSIZE	(7 << 5)	/* Bits per pixel */
+-#define			AT91_LCDC_PIXELSIZE_1		(0 << 5)
+-#define			AT91_LCDC_PIXELSIZE_2		(1 << 5)
+-#define			AT91_LCDC_PIXELSIZE_4		(2 << 5)
+-#define			AT91_LCDC_PIXELSIZE_8		(3 << 5)
+-#define			AT91_LCDC_PIXELSIZE_16		(4 << 5)
+-#define			AT91_LCDC_PIXELSIZE_24		(5 << 5)
+-#define		AT91_LCDC_INVVD		(1 << 8)	/* LCD Data polarity */
+-#define			AT91_LCDC_INVVD_NORMAL		(0 << 8)
+-#define			AT91_LCDC_INVVD_INVERTED	(1 << 8)
+-#define		AT91_LCDC_INVFRAME	(1 << 9 )	/* LCD VSync polarity */
+-#define			AT91_LCDC_INVFRAME_NORMAL	(0 << 9)
+-#define			AT91_LCDC_INVFRAME_INVERTED	(1 << 9)
+-#define		AT91_LCDC_INVLINE	(1 << 10)	/* LCD HSync polarity */
+-#define			AT91_LCDC_INVLINE_NORMAL	(0 << 10)
+-#define			AT91_LCDC_INVLINE_INVERTED	(1 << 10)
+-#define		AT91_LCDC_INVCLK	(1 << 11)	/* LCD dotclk polarity */
+-#define			AT91_LCDC_INVCLK_NORMAL		(0 << 11)
+-#define			AT91_LCDC_INVCLK_INVERTED	(1 << 11)
+-#define		AT91_LCDC_INVDVAL	(1 << 12)	/* LCD dval polarity */
+-#define			AT91_LCDC_INVDVAL_NORMAL	(0 << 12)
+-#define			AT91_LCDC_INVDVAL_INVERTED	(1 << 12)
+-#define		AT91_LCDC_CLKMOD	(1 << 15)	/* LCD dotclk mode */
+-#define			AT91_LCDC_CLKMOD_ACTIVEDISPLAY	(0 << 15)
+-#define			AT91_LCDC_CLKMOD_ALWAYSACTIVE	(1 << 15)
+-#define		AT91_LCDC_MEMOR		(1 << 31)	/* Memory Ordering Format */
+-#define			AT91_LCDC_MEMOR_BIG		(0 << 31)
+-#define			AT91_LCDC_MEMOR_LITTLE		(1 << 31)
+-
+-#define AT91_LCDC_TIM1		0x0808		/* LCD Timing Register 1 */
+-#define		AT91_LCDC_VFP		(0xff <<  0)	/* Vertical Front Porch */
+-#define		AT91_LCDC_VBP		(0xff <<  8)	/* Vertical Back Porch */
+-#define		AT91_LCDC_VPW		(0x3f << 16)	/* Vertical Synchronization Pulse Width */
+-#define		AT91_LCDC_VHDLY		(0xf  << 24)	/* Vertical to Horizontal Delay */
+-
+-#define AT91_LCDC_TIM2		0x080c		/* LCD Timing Register 2 */
+-#define		AT91_LCDC_HBP		(0xff  <<  0)	/* Horizontal Back Porch */
+-#define		AT91_LCDC_HPW		(0x3f  <<  8)	/* Horizontal Synchronization Pulse Width */
+-#define		AT91_LCDC_HFP		(0x7ff << 21)	/* Horizontal Front Porch */
+-
+-#define AT91_LCDC_LCDFRMCFG	0x0810		/* LCD Frame Configuration Register */
+-#define		AT91_LCDC_LINEVAL	(0x7ff <<  0)	/* Vertical Size of LCD Module */
+-#define		AT91_LCDC_HOZVAL	(0x7ff << 21)	/* Horizontal Size of LCD Module */
+-
+-#define AT91_LCDC_FIFO		0x0814		/* LCD FIFO Register */
+-#define		AT91_LCDC_FIFOTH	(0xffff)	/* FIFO Threshold */
+-
+-#define AT91_LCDC_DP1_2		0x081c		/* Dithering Pattern DP1_2 Register */
+-#define AT91_LCDC_DP4_7		0x0820		/* Dithering Pattern DP4_7 Register */
+-#define AT91_LCDC_DP3_5		0x0824		/* Dithering Pattern DP3_5 Register */
+-#define AT91_LCDC_DP2_3		0x0828		/* Dithering Pattern DP2_3 Register */
+-#define AT91_LCDC_DP5_7		0x082c		/* Dithering Pattern DP5_7 Register */
+-#define AT91_LCDC_DP3_4		0x0830		/* Dithering Pattern DP3_4 Register */
+-#define AT91_LCDC_DP4_5		0x0834		/* Dithering Pattern DP4_5 Register */
+-#define AT91_LCDC_DP6_7		0x0838		/* Dithering Pattern DP6_7 Register */
+-#define		AT91_LCDC_DP1_2_VAL	(0xff)
+-#define		AT91_LCDC_DP4_7_VAL	(0xfffffff)
+-#define		AT91_LCDC_DP3_5_VAL	(0xfffff)
+-#define		AT91_LCDC_DP2_3_VAL	(0xfff)
+-#define		AT91_LCDC_DP5_7_VAL	(0xfffffff)
+-#define		AT91_LCDC_DP3_4_VAL	(0xffff)
+-#define		AT91_LCDC_DP4_5_VAL	(0xfffff)
+-#define		AT91_LCDC_DP6_7_VAL	(0xfffffff)
+-
+-#define AT91_LCDC_PWRCON	0x083c		/* Power Control Register */
+-#define		AT91_LCDC_PWR		(1    <<  0)	/* LCD Module Power Control */
+-#define		AT91_LCDC_GUARDT	(0x7f <<  1)	/* Delay in Frame Period */
+-#define		AT91_LCDC_BUSY		(1    << 31)	/* LCD Busy */
+-
+-#define AT91_LCDC_CONTRAST_CTR	0x0840		/* Contrast Control Register */
+-#define		AT91_LCDC_PS		(3 << 0)	/* Contrast Counter Prescaler */
+-#define			AT91_LCDC_PS_DIV1		(0 << 0)
+-#define			AT91_LCDC_PS_DIV2		(1 << 0)
+-#define			AT91_LCDC_PS_DIV4		(2 << 0)
+-#define			AT91_LCDC_PS_DIV8		(3 << 0)
+-#define		AT91_LCDC_POL		(1 << 2)	/* Polarity of output Pulse */
+-#define			AT91_LCDC_POL_NEGATIVE		(0 << 2)
+-#define			AT91_LCDC_POL_POSITIVE		(1 << 2)
+-#define		AT91_LCDC_ENA		(1 << 3)	/* PWM generator Control */
+-#define			AT91_LCDC_ENA_PWMDISABLE	(0 << 3)
+-#define			AT91_LCDC_ENA_PWMENABLE		(1 << 3)
+-
+-#define AT91_LCDC_CONTRAST_VAL	0x0844		/* Contrast Value Register */
+-#define		AT91_LCDC_CVAL		(0xff)		/* PWM compare value */
+-
+-#define AT91_LCDC_IER		0x0848		/* Interrupt Enable Register */
+-#define AT91_LCDC_IDR		0x084c		/* Interrupt Disable Register */
+-#define AT91_LCDC_IMR		0x0850		/* Interrupt Mask Register */
+-#define AT91_LCDC_ISR		0x0854		/* Interrupt Enable Register */
+-#define AT91_LCDC_ICR		0x0858		/* Interrupt Clear Register */
+-#define		AT91_LCDC_LNI		(1 << 0)	/* Line Interrupt */
+-#define		AT91_LCDC_LSTLNI	(1 << 1)	/* Last Line Interrupt */
+-#define		AT91_LCDC_EOFI		(1 << 2)	/* DMA End Of Frame Interrupt */
+-#define		AT91_LCDC_UFLWI		(1 << 4)	/* FIFO Underflow Interrupt */
+-#define		AT91_LCDC_OWRI		(1 << 5)	/* FIFO Overwrite Interrupt */
+-#define		AT91_LCDC_MERI		(1 << 6)	/* DMA Memory Error Interrupt */
+-
+-#define AT91_LCDC_LUT_(n)	(0x0c00 + ((n)*4))	/* Palette Entry 0..255 */
+-
+-#endif
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from jan.altenberg@linutronix.de are
 
-fix-theoretical-ccids_readwrite_lock-race.patch
-i386-remove-unnecessary-code.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-do_poll-return-eintr-when-signalled.patch
-pi-futex-set-pf_exiting-without-taking-pi_lock.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
+git-arm-master.patch
+at91-remove-at91_lcdch.patch
+remove-get_perm_addr-from-ucc_geth_ethtoolc.patch
