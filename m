@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-sysrq-description-of-h-slightly-inaccurate.patch added to -mm tree
-Date: Tue, 07 Aug 2007 15:09:36 -0700
-Message-ID: <200708072209.l77M9a3X007301@imap1.linux-foundation.org>
+Subject: + mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch added to -mm tree
+Date: Tue, 07 Aug 2007 15:09:40 -0700
+Message-ID: <200708072209.l77M9epe007307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52506 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35213 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964835AbXHGWJq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:09:46 -0400
+	by vger.kernel.org with ESMTP id S964883AbXHGWJs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:09:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jesper.juhl@gmail.com
 
 
 The patch titled
-     Documentation: sysrq, description of 'h' slightly inaccurate
+     mga_dma: return 'err' not just zero from mga_do_cleanup_dma()
 has been added to the -mm tree.  Its filename is
-     documentation-sysrq-description-of-h-slightly-inaccurate.patch
+     mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Documentation: sysrq, description of 'h' slightly inaccurate
+Subject: mga_dma: return 'err' not just zero from mga_do_cleanup_dma()
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
-In Documentation/sysrq.txt, the description of 'h' says that any key not
-listed *above* will generate help.  That's obviously not true since all the
-keys listed below 'h' will do what they are described to do, not display help.
- So change the text so that it says that any key not listed in the table will
-generate help, which is what really happens.
+While reading some code I stumbled across the use of 'err' in
+drivers/char/drm/mga_dma.c::mga_do_cleanup_dma() and I think there's a small
+problem.
+
+The variable is only used inside #if __OS_HAS_AGP which is fine, but all that
+ever happens is an assignment to the variable - it is never actually used for
+anything.  The variable is nicely initialized to zero which is also what the
+return statement at the end of function returns (always at the moment).
+
+It looks to me like that function should be returning 'err' instead of always
+just returning 0.  Here's a patch to do that.
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysrq.txt |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/drm/mga_dma.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/sysrq.txt~documentation-sysrq-description-of-h-slightly-inaccurate Documentation/sysrq.txt
---- a/Documentation/sysrq.txt~documentation-sysrq-description-of-h-slightly-inaccurate
-+++ a/Documentation/sysrq.txt
-@@ -1,6 +1,6 @@
- Linux Magic System Request Key Hacks
- Documentation for sysrq.c
--Last update: 2007-MAR-14
-+Last update: 2007-AUG-04
+diff -puN drivers/char/drm/mga_dma.c~mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma drivers/char/drm/mga_dma.c
+--- a/drivers/char/drm/mga_dma.c~mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma
++++ a/drivers/char/drm/mga_dma.c
+@@ -1004,7 +1004,7 @@ static int mga_do_cleanup_dma(struct drm
+ 		}
+ 	}
  
- *  What is the magic SysRq key?
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -78,7 +78,7 @@ On all -  write a character to /proc/sys
- 'g'	- Used by kgdb on ppc and sh platforms.
+-	return 0;
++	return err;
+ }
  
- 'h'     - Will display help (actually any other key than those listed
--          above will display help. but 'h' is easy to remember :-)
-+          here will display help. but 'h' is easy to remember :-)
- 
- 'i'     - Send a SIGKILL to all processes, except for init.
- 
+ int mga_dma_init(DRM_IOCTL_ARGS)
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
