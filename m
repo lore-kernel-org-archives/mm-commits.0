@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-linux-elfcore-compath.patch added to -mm tree
-Date: Tue, 07 Aug 2007 14:53:49 -0700
-Message-ID: <200708072153.l77LrnCU006596@imap1.linux-foundation.org>
+Subject: + documentation-make-headers_installtxt.patch added to -mm tree
+Date: Tue, 07 Aug 2007 14:57:05 -0700
+Message-ID: <200708072157.l77Lv5Dk006741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55151 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35078 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966156AbXHGVyM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 17:54:12 -0400
+	by vger.kernel.org with ESMTP id S936568AbXHGV5k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 17:57:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, ak@suse.de, benh@kernel.crashing.org, linux-arch@vger.kernel.org, paulus@samba.org, tony.luck@intel.com
+Cc: rob@landley.net, dwmw2@infradead.org, sam@ravnborg.org
 
 
 The patch titled
-     Add linux/elfcore-compat.h
+     Documentation/make/headers_install.txt
 has been added to the -mm tree.  Its filename is
-     add-linux-elfcore-compath.patch
+     documentation-make-headers_installtxt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,104 +25,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add linux/elfcore-compat.h
-From: Roland McGrath <roland@redhat.com>
+Subject: Documentation/make/headers_install.txt
+From: Rob Landley <rob@landley.net>
 
-This adds the linux/elfcore-compat.h header file, which is the CONFIG_COMPAT
-analog of the linux/elfcore.h header.  Each arch that needs to fake out
-fs/binfmt_elf.c for its compat code can use this header to replace the
-hand-copied definitions of the compat variants of struct elf_prstatus et al. 
-Only the pr_reg field varies by arch, so asm/{compat,elf}.h must define
-compat_elf_gregset_t before linux/elfcore-compat.h can be used.
+Some documentation for "make headers_install".
 
-It's a clean-up that every arch with compat core dumping code can benefit
-from.  I only touched the ones I have handy to test at home.  Doing the same
-for each other arch should be straightforward, and I'm happy to offer tips.
-
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/elfcore-compat.h |   55 +++++++++++++++++++++++++++++++
- 1 files changed, 55 insertions(+)
+ Documentation/make/headers_install.txt |   46 +++++++++++++++++++++++
+ 1 files changed, 46 insertions(+)
 
-diff -puN /dev/null include/linux/elfcore-compat.h
+diff -puN /dev/null Documentation/make/headers_install.txt
 --- /dev/null
-+++ a/include/linux/elfcore-compat.h
-@@ -0,0 +1,55 @@
-+#ifndef _LINUX_ELFCORE_COMPAT_H
-+#define _LINUX_ELFCORE_COMPAT_H
++++ a/Documentation/make/headers_install.txt
+@@ -0,0 +1,46 @@
++Exporting kernel headers for use by userspace
++=============================================
 +
-+#include <linux/elf.h>
-+#include <linux/elfcore.h>
-+#include <linux/compat.h>
++The "make headers_install" command exports the kernel's header files in a
++form suitable for use by userspace programs.
 +
-+/*
-+ * Make sure these layouts match the linux/elfcore.h native definitions.
-+ */
++The linux kernel's exported header files describe the API for user space
++programs attempting to use kernel services.  These kernel header files are
++used by the system's C library (such as glibc or uClibc) to define available
++system calls, as well as constants and structures to be used with these
++system calls.  The C library's header files include the kernel header files
++from the "linux" subdirectory.  The system's libc headers are usually
++installed at the default location /usr/include and the kernel headers in
++subdirectories under that (most notably /usr/include/linux and
++/usr/include/asm).
 +
-+struct compat_elf_siginfo
-+{
-+	compat_int_t			si_signo;
-+	compat_int_t			si_code;
-+	compat_int_t			si_errno;
-+};
++Kernel headers are backwards compatible, but not forwards compatible.  This
++means that a program built against a C library using older kernel headers
++should run on a newer kernel (although it may not have access to new
++features), but a program built against newer kernel headers may not work on an
++older kernel.
 +
-+struct compat_elf_prstatus
-+{
-+	struct compat_elf_siginfo	pr_info;
-+	short				pr_cursig;
-+	compat_ulong_t			pr_sigpend;
-+	compat_ulong_t			pr_sighold;
-+	compat_pid_t			pr_pid;
-+	compat_pid_t			pr_ppid;
-+	compat_pid_t			pr_pgrp;
-+	compat_pid_t			pr_sid;
-+	struct compat_timeval		pr_utime;
-+	struct compat_timeval		pr_stime;
-+	struct compat_timeval		pr_cutime;
-+	struct compat_timeval		pr_cstime;
-+	compat_elf_gregset_t		pr_reg;
-+#ifdef CONFIG_BINFMT_ELF_FDPIC
-+	compat_ulong_t			pr_exec_fdpic_loadmap;
-+	compat_ulong_t			pr_interp_fdpic_loadmap;
-+#endif
-+	compat_int_t			pr_fpvalid;
-+};
++The "make headers_install" command can be run in the top level directory of the
++kernel source code (or using a standard out-of-tree build).  It takes two
++optional arguments:
 +
-+struct compat_elf_prpsinfo
-+{
-+	char				pr_state;
-+	char				pr_sname;
-+	char				pr_zomb;
-+	char				pr_nice;
-+	compat_ulong_t			pr_flag;
-+	compat_uid_t			pr_uid;
-+	compat_gid_t			pr_gid;
-+	compat_pid_t			pr_pid, pr_ppid, pr_pgrp, pr_sid;
-+	char				pr_fname[16];
-+	char				pr_psargs[ELF_PRARGSZ];
-+};
++  make headers_install ARCH=i386 INSTALL_HDR_PATH=/usr/include
 +
-+#endif /* _LINUX_ELFCORE_COMPAT_H */
++ARCH indicates which architecture to produce headers for, and defaults to the
++current architecture.  The linux/asm directory of the exported kernel headers
++is platform-specific, to see a complete list of supported architectures use
++the command:
++
++  ls -d include/asm-* | sed 's/.*-//'
++
++INSTALL_HDR_PATH indicates where to install the headers.  It defaults to
++"./usr/include".
++
++The command "make headers_install_all" exports headers for all architectures
++simultaneously.  (This is mostly of interest to distribution maintainers,
++who create an architecture-independent tarball from the resulting include
++directory.)  Remember to provide the appropriate linux/asm directory via "mv"
++or "ln -s" before building a C library with headers exported this way.
++
++The kernel header export infrastructure is maintained by David Woodhouse
++<dwmw2@infradead.org>.
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from rob@landley.net are
 
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-pass-g-to-assembler-under-config_debug_info.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-add-sys-module-name-notes.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-add-linux-elfcore-compath.patch
-x86_64-use-linux-elfcore-compath.patch
-powerpc-use-linux-elfcore-compath.patch
+document-linux-memory-policy-v3.patch
+documentation-make-headers_installtxt.patch
