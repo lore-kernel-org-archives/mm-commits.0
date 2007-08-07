@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch added to -mm tree
-Date: Tue, 07 Aug 2007 15:09:40 -0700
-Message-ID: <200708072209.l77M9epe007307@imap1.linux-foundation.org>
+Subject: + fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch added to -mm tree
+Date: Tue, 07 Aug 2007 15:09:38 -0700
+Message-ID: <200708072209.l77M9cCJ007304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35213 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54811 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964883AbXHGWJs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:09:48 -0400
+	by vger.kernel.org with ESMTP id S964892AbXHGWJt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:09:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com
+Cc: jesper.juhl@gmail.com, kkeil@suse.de
 
 
 The patch titled
-     mga_dma: return 'err' not just zero from mga_do_cleanup_dma()
+     fix possible NULL deref on low memory condition in capidrv.c::send_message()
 has been added to the -mm tree.  Its filename is
-     mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+     fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mga_dma: return 'err' not just zero from mga_do_cleanup_dma()
+Subject: fix possible NULL deref on low memory condition in capidrv.c::send_message()
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
-While reading some code I stumbled across the use of 'err' in
-drivers/char/drm/mga_dma.c::mga_do_cleanup_dma() and I think there's a small
-problem.
-
-The variable is only used inside #if __OS_HAS_AGP which is fine, but all that
-ever happens is an assignment to the variable - it is never actually used for
-anything.  The variable is nicely initialized to zero which is also what the
-return statement at the end of function returns (always at the moment).
-
-It looks to me like that function should be returning 'err' instead of always
-just returning 0.  Here's a patch to do that.
+If we fail to allocate an skb in
+drivers/isdn/capi/capidrv.c::send_message(), then we'll end up
+dereferencing a NULL pointer.
+Since out of memory conditions are not unheard of, I believe it
+is better to print a error message and just return rather than
+bring down the whole kernel.
+Sure, doing this may upset some application, but that's still
+better than crashing the whole system.
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/mga_dma.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/isdn/capi/capidrv.c |    5 +++++
+ 1 files changed, 5 insertions(+)
 
-diff -puN drivers/char/drm/mga_dma.c~mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma drivers/char/drm/mga_dma.c
---- a/drivers/char/drm/mga_dma.c~mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma
-+++ a/drivers/char/drm/mga_dma.c
-@@ -1004,7 +1004,7 @@ static int mga_do_cleanup_dma(struct drm
- 		}
- 	}
- 
--	return 0;
-+	return err;
- }
- 
- int mga_dma_init(DRM_IOCTL_ARGS)
+diff -puN drivers/isdn/capi/capidrv.c~fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message drivers/isdn/capi/capidrv.c
+--- a/drivers/isdn/capi/capidrv.c~fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message
++++ a/drivers/isdn/capi/capidrv.c
+@@ -506,9 +506,14 @@ static void send_message(capidrv_contr *
+ {
+ 	struct sk_buff *skb;
+ 	size_t len;
++
+ 	capi_cmsg2message(cmsg, cmsg->buf);
+ 	len = CAPIMSG_LEN(cmsg->buf);
+ 	skb = alloc_skb(len, GFP_ATOMIC);
++	if (!skb) {
++		printk(KERN_ERR "capidrv::send_message: can't allocate mem\n");
++		return;
++	}
+ 	memcpy(skb_put(skb, len), cmsg->buf, len);
+ 	if (capi20_put_message(&global.ap, skb) != CAPI_NOERROR)
+ 		kfree_skb(skb);
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
