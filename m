@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memoryless-nodes-slab-support.patch added to -mm tree
-Date: Tue, 07 Aug 2007 13:38:21 -0700
-Message-ID: <200708072038.l77KcLAq002818@imap1.linux-foundation.org>
+Subject: + memoryless-nodes-slub-support.patch added to -mm tree
+Date: Tue, 07 Aug 2007 13:38:23 -0700
+Message-ID: <200708072038.l77KcNec002821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46132 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753358AbXHGUjG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:39:06 -0400
+	by vger.kernel.org with ESMTP id S1753142AbXHGUjI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:39:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com, bob.picco@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.sche
 
 
 The patch titled
-     Memoryless nodes: Slab support
+     Memoryless nodes: SLUB support
 has been added to the -mm tree.  Its filename is
-     memoryless-nodes-slab-support.patch
+     memoryless-nodes-slub-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,67 +25,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memoryless nodes: Slab support
+Subject: Memoryless nodes: SLUB support
 From: Christoph Lameter <clameter@sgi.com>
 
-Slab should not allocate control structures for nodes without memory.  This
-may seem to work right now but its unreliable since not all allocations can
-fall back due to the use of GFP_THISNODE.
-
-Switching a few for_each_online_node's to N_NORMAL_MEMORY will allow us to
-only allocate for nodes that have regular memory.
+Simply switch all for_each_online_node to for_each_node_state(NORMAL_MEMORY). 
+That way SLUB only operates on nodes with regular memory.  Any allocation
+attempt on a memoryless node or a node with just highmem will fall whereupon
+SLUB will fetch memory from a nearby node (depending on how memory policies
+and cpuset describe fallback).
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Tested-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Acked-by: Bob Picco <bob.picco@hp.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ mm/slub.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/slab.c~memoryless-nodes-slab-support mm/slab.c
---- a/mm/slab.c~memoryless-nodes-slab-support
-+++ a/mm/slab.c
-@@ -1565,7 +1565,7 @@ void __init kmem_cache_init(void)
- 		/* Replace the static kmem_list3 structures for the boot cpu */
- 		init_list(&cache_cache, &initkmem_list3[CACHE_CACHE], node);
- 
--		for_each_online_node(nid) {
-+		for_each_node_state(nid, N_NORMAL_MEMORY) {
- 			init_list(malloc_sizes[INDEX_AC].cs_cachep,
- 				  &initkmem_list3[SIZE_AC + nid], nid);
- 
-@@ -1941,7 +1941,7 @@ static void __init set_up_list3s(struct 
+diff -puN mm/slub.c~memoryless-nodes-slub-support mm/slub.c
+--- a/mm/slub.c~memoryless-nodes-slub-support
++++ a/mm/slub.c
+@@ -1904,7 +1904,7 @@ static void free_kmem_cache_nodes(struct
  {
  	int node;
  
 -	for_each_online_node(node) {
 +	for_each_node_state(node, N_NORMAL_MEMORY) {
- 		cachep->nodelists[node] = &initkmem_list3[index + node];
- 		cachep->nodelists[node]->next_reap = jiffies +
- 		    REAPTIMEOUT_LIST3 +
-@@ -2072,7 +2072,7 @@ static int __init_refok setup_cpu_cache(
- 			g_cpucache_up = PARTIAL_L3;
- 		} else {
- 			int node;
--			for_each_online_node(node) {
-+			for_each_node_state(node, N_NORMAL_MEMORY) {
- 				cachep->nodelists[node] =
- 				    kmalloc_node(sizeof(struct kmem_list3),
- 						GFP_KERNEL, node);
-@@ -3782,7 +3782,7 @@ static int alloc_kmemlist(struct kmem_ca
- 	struct array_cache *new_shared;
- 	struct array_cache **new_alien = NULL;
+ 		struct kmem_cache_node *n = s->node[node];
+ 		if (n && n != &s->local_node)
+ 			kmem_cache_free(kmalloc_caches, n);
+@@ -1922,7 +1922,7 @@ static int init_kmem_cache_nodes(struct 
+ 	else
+ 		local_node = 0;
  
 -	for_each_online_node(node) {
 +	for_each_node_state(node, N_NORMAL_MEMORY) {
+ 		struct kmem_cache_node *n;
  
-                 if (use_alien_caches) {
-                         new_alien = alloc_alien_cache(node, cachep->limit);
+ 		if (local_node == node)
+@@ -2176,7 +2176,7 @@ static inline int kmem_cache_close(struc
+ 	flush_all(s);
+ 
+ 	/* Attempt to free all objects */
+-	for_each_online_node(node) {
++	for_each_node_state(node, N_NORMAL_MEMORY) {
+ 		struct kmem_cache_node *n = get_node(s, node);
+ 
+ 		n->nr_partial -= free_list(s, n, &n->partial);
+@@ -2474,7 +2474,7 @@ int kmem_cache_shrink(struct kmem_cache 
+ 		return -ENOMEM;
+ 
+ 	flush_all(s);
+-	for_each_online_node(node) {
++	for_each_node_state(node, N_NORMAL_MEMORY) {
+ 		n = get_node(s, node);
+ 
+ 		if (!n->nr_partial)
+@@ -2874,7 +2874,7 @@ static long validate_slab_cache(struct k
+ 		return -ENOMEM;
+ 
+ 	flush_all(s);
+-	for_each_online_node(node) {
++	for_each_node_state(node, N_NORMAL_MEMORY) {
+ 		struct kmem_cache_node *n = get_node(s, node);
+ 
+ 		count += validate_slab_node(s, n, map);
+@@ -3094,7 +3094,7 @@ static int list_locations(struct kmem_ca
+ 	/* Push back cpu slabs */
+ 	flush_all(s);
+ 
+-	for_each_online_node(node) {
++	for_each_node_state(node, N_NORMAL_MEMORY) {
+ 		struct kmem_cache_node *n = get_node(s, node);
+ 		unsigned long flags;
+ 		struct page *page;
+@@ -3221,7 +3221,7 @@ static unsigned long slab_objects(struct
+ 		}
+ 	}
+ 
+-	for_each_online_node(node) {
++	for_each_node_state(node, N_NORMAL_MEMORY) {
+ 		struct kmem_cache_node *n = get_node(s, node);
+ 
+ 		if (flags & SO_PARTIAL) {
+@@ -3249,7 +3249,7 @@ static unsigned long slab_objects(struct
+ 
+ 	x = sprintf(buf, "%lu", total);
+ #ifdef CONFIG_NUMA
+-	for_each_online_node(node)
++	for_each_node_state(node, N_NORMAL_MEMORY)
+ 		if (nodes[node])
+ 			x += sprintf(buf + x, " N%d=%lu",
+ 					node, nodes[node]);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
