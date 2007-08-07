@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uli526x-add-suspend-and-resume-routines.patch added to -mm tree
-Date: Tue, 07 Aug 2007 16:04:04 -0700
-Message-ID: <200708072304.l77N44El009503@imap1.linux-foundation.org>
+Subject: + enable-lguest-drivers-in-kconfig.patch added to -mm tree
+Date: Tue, 07 Aug 2007 16:04:45 -0700
+Message-ID: <200708072304.l77N4jXo009518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44413 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35061 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934637AbXHGXER (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 19:04:17 -0400
+	by vger.kernel.org with ESMTP id S934102AbXHGXE5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 19:04:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, grundler@parisc-linux.org, kyle@mcmartin.ca
+Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     uli526x: add suspend and resume routines
+     Enable lguest drivers in Kconfig
 has been added to the -mm tree.  Its filename is
-     uli526x-add-suspend-and-resume-routines.patch
+     enable-lguest-drivers-in-kconfig.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,189 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uli526x: add suspend and resume routines
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: Enable lguest drivers in Kconfig
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Add suspend/resume support to the uli526x network driver (tested on x86_64,
-with "Ethernet controller: ALi Corporation M5263 Ethernet Controller, rev 40").
+Lguest drivers need to default to "Y" otherwise they're never selected for
+new builds.  (We don't bother prompting, because they're less than 4k
+combined, and implied by selecting lguest support).
 
-This patch is based on the suspend/resume code in the tg3 driver.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/uli526x.c |  108 ++++++++++++++++++++++++++++++++--
- 1 files changed, 102 insertions(+), 6 deletions(-)
+ drivers/lguest/Kconfig |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/net/tulip/uli526x.c~uli526x-add-suspend-and-resume-routines drivers/net/tulip/uli526x.c
---- a/drivers/net/tulip/uli526x.c~uli526x-add-suspend-and-resume-routines
-+++ a/drivers/net/tulip/uli526x.c
-@@ -1110,19 +1110,15 @@ static void uli526x_timer(unsigned long 
+diff -puN drivers/lguest/Kconfig~enable-lguest-drivers-in-kconfig drivers/lguest/Kconfig
+--- a/drivers/lguest/Kconfig~enable-lguest-drivers-in-kconfig
++++ a/drivers/lguest/Kconfig
+@@ -21,8 +21,10 @@ config LGUEST_GUEST
  
+ config LGUEST_NET
+ 	tristate
++	default y
+ 	depends on LGUEST_GUEST && NET
  
- /*
-- *	Dynamic reset the ULI526X board
-  *	Stop ULI526X board
-  *	Free Tx/Rx allocated memory
-- *	Reset ULI526X board
-- *	Re-initialize ULI526X board
-+ *	Init system variable
-  */
- 
--static void uli526x_dynamic_reset(struct net_device *dev)
-+static void uli526x_reset_prepare(struct net_device *dev)
- {
- 	struct uli526x_board_info *db = netdev_priv(dev);
- 
--	ULI526X_DBUG(0, "uli526x_dynamic_reset()", 0);
--
- 	/* Sopt MAC controller */
- 	db->cr6_data &= ~(CR6_RXSC | CR6_TXSC);	/* Disable Tx/Rx */
- 	update_cr6(db->cr6_data, dev->base_addr);
-@@ -1141,6 +1137,22 @@ static void uli526x_dynamic_reset(struct
- 	db->link_failed = 1;
- 	db->init=1;
- 	db->wait_reset = 0;
-+}
-+
-+
-+/*
-+ *	Dynamic reset the ULI526X board
-+ *	Stop ULI526X board
-+ *	Free Tx/Rx allocated memory
-+ *	Reset ULI526X board
-+ *	Re-initialize ULI526X board
-+ */
-+
-+static void uli526x_dynamic_reset(struct net_device *dev)
-+{
-+	ULI526X_DBUG(0, "uli526x_dynamic_reset()", 0);
-+
-+	uli526x_reset_prepare(dev);
- 
- 	/* Re-initialize ULI526X board */
- 	uli526x_init(dev);
-@@ -1150,6 +1162,88 @@ static void uli526x_dynamic_reset(struct
- }
- 
- 
-+#ifdef CONFIG_PM_SLEEP
-+
-+/*
-+ *	Suspend the interface.
-+ */
-+
-+static int uli526x_suspend(struct pci_dev *pdev, pm_message_t state)
-+{
-+	struct net_device *dev = pci_get_drvdata(pdev);
-+	int err = 0;
-+
-+	ULI526X_DBUG(0, "uli526x_suspend", 0);
-+
-+	if (dev && netdev_priv(dev)) {
-+		pci_power_t power_state;
-+
-+		pci_save_state(pdev);
-+
-+		if (!netif_running(dev))
-+			return 0;
-+
-+		netif_device_detach(dev);
-+		uli526x_reset_prepare(dev);
-+
-+		power_state = pci_choose_state(pdev, state);
-+		pci_enable_wake(pdev, power_state, 0);
-+		err = pci_set_power_state(pdev, power_state);
-+		if (err) {
-+			netif_device_attach(dev);
-+			/* Re-initialize ULI526X board */
-+			uli526x_init(dev);
-+			/* Restart upper layer interface */
-+			netif_wake_queue(dev);
-+		}
-+	}
-+	return err;
-+}
-+
-+/*
-+ *	Resume the interface.
-+ */
-+
-+static int uli526x_resume(struct pci_dev *pdev)
-+{
-+	struct net_device *dev = pci_get_drvdata(pdev);
-+	struct uli526x_board_info *db = netdev_priv(dev);
-+
-+	ULI526X_DBUG(0, "uli526x_resume", 0);
-+
-+	if (dev && db) {
-+		int err;
-+
-+		pci_restore_state(pdev);
-+
-+		if (!netif_running(dev))
-+			return 0;
-+
-+		err = pci_set_power_state(pdev, PCI_D0);
-+		if (err) {
-+			printk(KERN_WARNING
-+				"%s: Could not put device into D0\n",
-+				dev->name);
-+			return err;
-+		}
-+
-+		netif_device_attach(dev);
-+		/* Re-initialize ULI526X board */
-+		uli526x_init(dev);
-+		/* Restart upper layer interface */
-+		netif_wake_queue(dev);
-+	}
-+	return 0;
-+}
-+
-+#else /* !CONFIG_PM_SLEEP */
-+
-+#define uli526x_suspend	NULL
-+#define uli526x_resume	NULL
-+
-+#endif /* !CONFIG_PM_SLEEP */
-+
-+
- /*
-  *	free all allocated rx buffer
-  */
-@@ -1689,6 +1783,8 @@ static struct pci_driver uli526x_driver 
- 	.id_table	= uli526x_pci_tbl,
- 	.probe		= uli526x_init_one,
- 	.remove		= __devexit_p(uli526x_remove_one),
-+	.suspend	= uli526x_suspend,
-+	.resume		= uli526x_resume,
- };
- 
- MODULE_AUTHOR("Peer Chen, peer.chen@uli.com.tw");
+ config LGUEST_BLOCK
+ 	tristate
++	default y
+ 	depends on LGUEST_GUEST && BLOCK
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch
-uli526x-add-suspend-and-resume-routines.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-use-wait-queue-instead-of-busy-looping.patch
-freezer-measure-freezing-time.patch
-shrink_slab-handle-bad-shrinkers.patch
+enable-lguest-drivers-in-kconfig.patch
+git-kvm.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+radixtree-introduce-radix_tree_next_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+remove-unsafe-from-module-struct.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
