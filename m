@@ -1,95 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-remove-bogus-bug_on-in-videobuf_dvb_thread.patch added to -mm tree
-Date: Tue, 07 Aug 2007 15:58:50 -0700
-Message-ID: <200708072258.l77MwogS009289@imap1.linux-foundation.org>
+Subject: - pm-fix-dependencies-of-config_suspend-and-config_hibernation.patch removed from -mm tree
+Date: Tue, 07 Aug 2007 15:59:55 -0700
+Message-ID: <200708072259.l77Mxua8009313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41480 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37153 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757872AbXHGXAK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 19:00:10 -0400
+	by vger.kernel.org with ESMTP id S1757419AbXHGXBI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 19:01:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: simon@fire.lp0.eu, mchehab@infradead.org
+To: rjw@sisk.pl, bunk@stusta.de, lenb@kernel.org, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     DVB: remove bogus BUG_ON in videobuf_dvb_thread
-has been added to the -mm tree.  Its filename is
-     dvb-remove-bogus-bug_on-in-videobuf_dvb_thread.patch
+     PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
+has been removed from the -mm tree.  Its filename was
+     pm-fix-dependencies-of-config_suspend-and-config_hibernation.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: DVB: remove bogus BUG_ON in videobuf_dvb_thread
-From: Simon Arlott <simon@fire.lp0.eu>
+Subject: PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Since videobuf_waiton is called with intr=1, it can return -EINTR and therefore
-err may be non-zero. This happens when the system goes into the standby state.
+Dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION introduced by commit
+296699de6bdc717189a331ab6bbe90e05c94db06 "Introduce CONFIG_SUSPEND for
+suspend-to-Ram and standby" are incorrect, as they don't cover the facts
+that (1) not all architectures support suspend and (2) SMP hibernation is
+only possible on X86 and PPC64 (if PPC64_SWSUSP is set).
 
-Without the BUG() occurring, there's no problem with standby mode while DVB
-is being used.
-
----
-int videobuf_waiton(struct videobuf_buffer *vb, int non_blocking, int intr);
-
-[  224.561803] Stopping tasks ... <0>------------[ cut here ]------------
-[  224.712939] kernel BUG at drivers/media/video/video-buf-dvb.c:59!
-[  224.712951] invalid opcode: 0000 [#1]
-[  224.712957] PREEMPT
-[  224.712969] Modules linked in:
-[  224.712985] CPU:    0
-[  224.712987] EIP:    0060:[<b03a0740>]    Not tainted VLI
-[  224.712989] EFLAGS: 00010286   (2.6.23-rc2-git #282)
-[  224.713019] EIP is at videobuf_dvb_thread+0x160/0x170
-[  224.713028] eax: fffffffc   ebx: 00000282   ecx: 00000000   edx: 00000000
-[  224.713038] esi: eeda63c0   edi: b1a1fa3c   ebp: ea82bfcc   esp: ea82bfb0
-[  224.713046] ds: 007b   es: 007b   fs: 0000  gs: 0000  ss: 0068
-[  224.713055] Process saa7134[0] dvb (pid: 6649, ti=ea82a000 task=eb1d5550 task.ti=ea82a000)
-[  224.713064] Stack: 00000009 b011ec68 b1a1fa44 b1a1fb28 b1a1fa3c b03a05e0 fffffffc ea82bfe0
-[  224.713103]        b0135dec b0135d90 00000000 00000000 00000000 b0104e57 ea82fd70 00000000
-[  224.713140]        00000000 00000000 09010df7 862a0510
-[  224.713170] Call Trace:
-[  224.713178]  [<b0104fca>] show_trace_log_lvl+0x1a/0x30
-[  224.713206]  [<b010508b>] show_stack_log_lvl+0x8b/0xb0
-[  224.713220]  [<b01052d3>] show_registers+0x1c3/0x320
-[  224.713235]  [<b01055af>] die+0xff/0x210
-[  224.713248]  [<b0105751>] do_trap+0x91/0xd0
-[  224.713261]  [<b01059f8>] do_invalid_op+0x88/0xa0
-[  224.713274]  [<b052206a>] error_code+0x6a/0x70
-[  224.713296]  [<b0135dec>] kthread+0x5c/0x90
-[  224.713313]  [<b0104e57>] kernel_thread_helper+0x7/0x10
-[  224.713327]  =======================
-[  224.713335] Code: 8b 00 c7 04 24 c8 21 63 b0 89 44 24 04 e8 c9 29 d8 ff e9 cd fe ff ff 8b
-	07 c7 04 24 e8 21 63 b0 89 44 24 04 e8 b2 29 d8 ff eb c2 <0f> 0b eb fe 8d b6 00 00
-	00 00 8d bf 00 00 00 00 55 ba ea ff ff
-[  224.713590] EIP: [<b03a0740>] videobuf_dvb_thread+0x160/0x170 SS:ESP 0068:ea82bfb0
-[  224.713893] done.
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/video-buf-dvb.c |    1 -
- 1 files changed, 1 deletion(-)
+ kernel/power/Kconfig |   40 ++++++++++++++++++++++++++++++----------
+ 1 files changed, 30 insertions(+), 10 deletions(-)
 
-diff -puN drivers/media/video/video-buf-dvb.c~dvb-remove-bogus-bug_on-in-videobuf_dvb_thread drivers/media/video/video-buf-dvb.c
---- a/drivers/media/video/video-buf-dvb.c~dvb-remove-bogus-bug_on-in-videobuf_dvb_thread
-+++ a/drivers/media/video/video-buf-dvb.c
-@@ -56,7 +56,6 @@ static int videobuf_dvb_thread(void *dat
- 				 struct videobuf_buffer, stream);
- 		list_del(&buf->stream);
- 		err = videobuf_waiton(buf,0,1);
--		BUG_ON(0 != err);
+diff -puN kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation kernel/power/Kconfig
+--- a/kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation
++++ a/kernel/power/Kconfig
+@@ -72,15 +72,10 @@ config PM_TRACE
+ 	CAUTION: this option will cause your machine's real-time clock to be
+ 	set to an invalid time after a resume.
  
- 		/* no more feeds left or stop_feed() asked us to quit */
- 		if (0 == dvb->nfeeds)
+-config SUSPEND_SMP_POSSIBLE
+-	bool
+-	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES || PPC_PMAC))
+-	depends on SMP
+-	default y
+-
+-config SUSPEND_SMP
++config PM_SLEEP_SMP
+ 	bool
+-	depends on SUSPEND_SMP_POSSIBLE && PM_SLEEP
++	depends on SUSPEND_SMP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
++	depends on PM_SLEEP
+ 	select HOTPLUG_CPU
+ 	default y
+ 
+@@ -89,20 +84,45 @@ config PM_SLEEP
+ 	depends on SUSPEND || HIBERNATION
+ 	default y
+ 
++config SUSPEND_UP_POSSIBLE
++	bool
++	depends on BLACKFIN || MIPS || SUPERH || FRV || (PPC32 && PPC_MPC52xx)
++	depends on !SMP
++	default y
++
++config SUSPEND_SMP_POSSIBLE
++	bool
++	depends on (X86 && !X86_VOYAGER) \
++		   || (PPC64 && (PPC_PSERIES || PPC_PMAC)) || ARM
++	depends on SMP
++	default y
++
+ config SUSPEND
+ 	bool "Suspend to RAM and standby"
+ 	depends on PM
+-	depends on !SMP || SUSPEND_SMP_POSSIBLE
++	depends on SUSPEND_UP_POSSIBLE || SUSPEND_SMP_POSSIBLE
+ 	default y
+ 	---help---
+ 	  Allow the system to enter sleep states in which main memory is
+ 	  powered and thus its contents are preserved, such as the
+ 	  suspend-to-RAM state (i.e. the ACPI S3 state).
+ 
++config HIBERNATION_UP_POSSIBLE
++	bool
++	depends on X86 || PPC64_SWSUSP || FRV || PPC32
++	depends on !SMP
++	default y
++
++config HIBERNATION_SMP_POSSIBLE
++	bool
++	depends on (X86 && !X86_VOYAGER) || PPC64_SWSUSP
++	depends on SMP
++	default y
++
+ config HIBERNATION
+ 	bool "Hibernation (aka 'suspend to disk')"
+ 	depends on PM && SWAP
+-	depends on ((X86 || PPC64_SWSUSP || FRV || PPC32) && !SMP) || SUSPEND_SMP_POSSIBLE
++	depends on HIBERNATION_UP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
+ 	---help---
+ 	  Enable the suspend to disk (STD) functionality, which is usually
+ 	  called "hibernation" in user interfaces.  STD checkpoints the
 _
 
-Patches currently in -mm which might be from simon@fire.lp0.eu are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-dvb-remove-bogus-bug_on-in-videobuf_dvb_thread.patch
+hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch
+pm-fix-dependencies-of-config_suspend-and-config_hibernation.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+unexport-pm_power_off_prepare.patch
+pm_trace-displays-the-wrong-time-from-the-rtc.patch
+freezer-be-more-verbose.patch
+freezer-use-wait-queue-instead-of-busy-looping.patch
+freezer-measure-freezing-time.patch
+shrink_slab-handle-bad-shrinkers.patch
