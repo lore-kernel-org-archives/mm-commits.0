@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-fix-something-fix.patch added to -mm tree
-Date: Tue, 07 Aug 2007 16:17:42 -0700
-Message-ID: <200708072317.l77NHg89009952@imap1.linux-foundation.org>
+Subject: + docs-note-about-select-in-kconfig-languagetxt.patch added to -mm tree
+Date: Tue, 07 Aug 2007 16:18:53 -0700
+Message-ID: <200708072318.l77NIrpx010068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57602 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59401 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751521AbXHGXS2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 19:18:28 -0400
+	by vger.kernel.org with ESMTP id S1753358AbXHGXTn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 19:19:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, greg@kroah.com, jbeulich@novell.com, ktk@enterprise.bidmc.harvard.edu, protasnb@gmail.com
+Cc: jarkao2@o2.pl, sam@ravnborg.org, zippel@linux-m68k.org
 
 
 The patch titled
-     pci-fix-something-fix
+     docs: note about select in kconfig-language.txt
 has been added to the -mm tree.  Its filename is
-     pci-fix-something-fix.patch
+     docs-note-about-select-in-kconfig-languagetxt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,185 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci-fix-something-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: docs: note about select in kconfig-language.txt
+From: Jarek Poplawski <jarkao2@o2.pl>
 
-- coding-style cleanups
+A warning note from Sam Ravnborg about kconfig's select evilness,
+dependencies and the future (slightly corrected).
 
-- convert to resource_size_t.
-
-Cc: "Jan Beulich" <jbeulich@novell.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kristofer T. Karas" <ktk@enterprise.bidmc.harvard.edu>
-Cc: Natalie Protasevich <protasnb@gmail.com>
+Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |   31 +++++++++++++++++--------------
- 1 files changed, 17 insertions(+), 14 deletions(-)
+ Documentation/kbuild/kconfig-language.txt |    9 +++++++++
+ 1 files changed, 9 insertions(+)
 
-diff -puN drivers/pci/probe.c~pci-fix-something-fix drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-fix-something-fix
-+++ a/drivers/pci/probe.c
-@@ -742,29 +742,32 @@ static void pci_read_irq(struct pci_dev 
- }
+diff -puN Documentation/kbuild/kconfig-language.txt~docs-note-about-select-in-kconfig-languagetxt Documentation/kbuild/kconfig-language.txt
+--- a/Documentation/kbuild/kconfig-language.txt~docs-note-about-select-in-kconfig-languagetxt
++++ a/Documentation/kbuild/kconfig-language.txt
+@@ -98,6 +98,15 @@ applicable everywhere (see syntax).
+   times, the limit is set to the largest selection.
+   Reverse dependencies can only be used with boolean or tristate
+   symbols.
++  Note:
++	select is evil.... select will by brute force set a symbol
++	equal to 'y' without visiting the dependencies. So abusing
++	select you are able to select a symbol FOO even if FOO depends
++	on BAR that is not set. In general use select only for
++	non-visible symbols (no promts anywhere) and for symbols with
++	no dependencies. That will limit the usefulness but on the
++	other hand avoid the illegal configurations all over. kconfig
++	should one day warn about such things.
  
- static void change_legacy_io_resource(struct pci_dev * dev, unsigned index,
--                                      unsigned start, unsigned end)
-+				resource_size_t start, resource_size_t end)
- {
--	unsigned base = start & PCI_BASE_ADDRESS_IO_MASK;
--	unsigned len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
-+	resource_size_t base = start & PCI_BASE_ADDRESS_IO_MASK;
-+	resource_size_t len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
- 
- 	if (!(pci_resource_flags(dev, index) & IORESOURCE_IO)) {
- 		printk(KERN_WARNING "%s: cannot adjust BAR%u (not I/O)\n",
- 		       pci_name(dev), index);
- 		return;
- 	}
--	if (pci_resource_len(dev, index) != len)
--		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %04X)\n",
--		       pci_name(dev), index, (unsigned)pci_resource_len(dev, index));
--	else {
--		printk(KERN_INFO "%s: trying to change BAR%u from %04X to %04X\n",
--		       pci_name(dev), index,
--		       (unsigned)pci_resource_start(dev, index), base);
--		pci_write_config_dword(dev, PCI_BASE_ADDRESS_0 + index * 4, base);
-+	if (pci_resource_len(dev, index) != len) {
-+		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %Lx)\n",
-+			pci_name(dev), index,
-+			(unsigned long long)pci_resource_len(dev, index));
-+	} else {
-+		printk(KERN_INFO "%s: trying to change BAR%u from %Lx to %Lx\n",
-+			pci_name(dev), index,
-+			(unsigned long long)pci_resource_start(dev, index),
-+			(unsigned long long)base);
-+		pci_write_config_dword(dev, PCI_BASE_ADDRESS_0 + index * 4,
-+					base);
- 	}
- 	pci_resource_start(dev, index) = start;
--	pci_resource_end(dev, index)   = end;
--	pci_resource_flags(dev, index) =
--		IORESOURCE_IO | IORESOURCE_PCI_FIXED | PCI_BASE_ADDRESS_SPACE_IO;
-+	pci_resource_end(dev, index) = end;
-+	pci_resource_flags(dev, index) = IORESOURCE_IO|IORESOURCE_PCI_FIXED|
-+					PCI_BASE_ADDRESS_SPACE_IO;
- }
- 
- /**
+ - numerical ranges: "range" <symbol> <symbol> ["if" <expr>]
+   This allows to limit the range of possible input values for int
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jarkao2@o2.pl are
 
-genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
-fbcon-kill-compile-warning-fix.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-natsemi-fix-netdev-error-acounting.patch
-git-ixgbe-build-fix.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-wireless.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
-ssb-mainc-needs-dma-mappingh.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
-pci-fix-something-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+docs-note-about-select-in-kconfig-languagetxt.patch
