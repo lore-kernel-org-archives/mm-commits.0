@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch added to -mm tree
-Date: Tue, 07 Aug 2007 13:38:17 -0700
-Message-ID: <200708072038.l77KcH6k002812@imap1.linux-foundation.org>
+Subject: + memoryless-nodes-add-n_cpu-node-state.patch added to -mm tree
+Date: Tue, 07 Aug 2007 13:38:31 -0700
+Message-ID: <200708072038.l77KcVDX002837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37987 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38995 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753431AbXHGUjI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:39:08 -0400
+	by vger.kernel.org with ESMTP id S1754937AbXHGUjQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:39:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com, bob.picco@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.sche
 
 
 The patch titled
-     Memoryless nodes: OOM: use N_HIGH_MEMORY map instead of constructing one on the fly
+     Memoryless nodes: Add N_CPU node state
 has been added to the -mm tree.  Its filename is
-     memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
+     memoryless-nodes-add-n_cpu-node-state.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memoryless nodes: OOM: use N_HIGH_MEMORY map instead of constructing one on the fly
+Subject: Memoryless nodes: Add N_CPU node state
 From: Christoph Lameter <clameter@sgi.com>
 
-constrained_alloc() builds its own memory map for nodes with memory.  We have
-that available in N_HIGH_MEMORY now.  So simplify the code.
+We need the check for a node with cpu in zone reclaim.  Zone reclaim will not
+allow remote zone reclaim if a node has a cpu.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Tested-by:  Lee Schermerhorn <lee.schermerhorn@hp.com>
 Acked-by: Bob Picco <bob.picco@hp.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    9 +--------
- 1 files changed, 1 insertion(+), 8 deletions(-)
+ include/linux/nodemask.h |    1 +
+ mm/page_alloc.c          |    4 +++-
+ mm/vmscan.c              |    4 +---
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/oom_kill.c~memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly mm/oom_kill.c
---- a/mm/oom_kill.c~memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly
-+++ a/mm/oom_kill.c
-@@ -177,14 +177,7 @@ static inline int constrained_alloc(stru
- {
- #ifdef CONFIG_NUMA
- 	struct zone **z;
--	nodemask_t nodes;
--	int node;
--
--	nodes_clear(nodes);
--	/* node has memory ? */
--	for_each_online_node(node)
--		if (NODE_DATA(node)->node_present_pages)
--			node_set(node, nodes);
-+	nodemask_t nodes = node_states[N_HIGH_MEMORY];
+diff -puN include/linux/nodemask.h~memoryless-nodes-add-n_cpu-node-state include/linux/nodemask.h
+--- a/include/linux/nodemask.h~memoryless-nodes-add-n_cpu-node-state
++++ a/include/linux/nodemask.h
+@@ -349,6 +349,7 @@ enum node_states {
+ #else
+ 	N_HIGH_MEMORY = N_NORMAL_MEMORY,
+ #endif
++	N_CPU,		/* The node has one or more cpus */
+ 	NR_NODE_STATES
+ };
  
- 	for (z = zonelist->zones; *z; z++)
- 		if (cpuset_zone_allowed_softwall(*z, gfp_mask))
+diff -puN mm/page_alloc.c~memoryless-nodes-add-n_cpu-node-state mm/page_alloc.c
+--- a/mm/page_alloc.c~memoryless-nodes-add-n_cpu-node-state
++++ a/mm/page_alloc.c
+@@ -2345,6 +2345,7 @@ static struct per_cpu_pageset boot_pages
+ static int __cpuinit process_zones(int cpu)
+ {
+ 	struct zone *zone, *dzone;
++	int node = cpu_to_node(cpu);
+ 
+ 	for_each_zone(zone) {
+ 
+@@ -2352,7 +2353,7 @@ static int __cpuinit process_zones(int c
+ 			continue;
+ 
+ 		zone_pcp(zone, cpu) = kmalloc_node(sizeof(struct per_cpu_pageset),
+-					 GFP_KERNEL, cpu_to_node(cpu));
++					 GFP_KERNEL, node);
+ 		if (!zone_pcp(zone, cpu))
+ 			goto bad;
+ 
+@@ -2363,6 +2364,7 @@ static int __cpuinit process_zones(int c
+ 			 	(zone->present_pages / percpu_pagelist_fraction));
+ 	}
+ 
++	node_set_state(node, N_CPU);
+ 	return 0;
+ bad:
+ 	for_each_zone(dzone) {
+diff -puN mm/vmscan.c~memoryless-nodes-add-n_cpu-node-state mm/vmscan.c
+--- a/mm/vmscan.c~memoryless-nodes-add-n_cpu-node-state
++++ a/mm/vmscan.c
+@@ -1842,7 +1842,6 @@ static int __zone_reclaim(struct zone *z
+ 
+ int zone_reclaim(struct zone *zone, gfp_t gfp_mask, unsigned int order)
+ {
+-	cpumask_t mask;
+ 	int node_id;
+ 
+ 	/*
+@@ -1879,8 +1878,7 @@ int zone_reclaim(struct zone *zone, gfp_
+ 	 * as wide as possible.
+ 	 */
+ 	node_id = zone_to_nid(zone);
+-	mask = node_to_cpumask(node_id);
+-	if (!cpus_empty(mask) && node_id != numa_node_id())
++	if (node_state(node_id, N_CPU) && node_id != numa_node_id())
+ 		return 0;
+ 	return __zone_reclaim(zone, gfp_mask, order);
+ }
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
