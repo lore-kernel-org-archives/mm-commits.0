@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch added to -mm tree
-Date: Tue, 07 Aug 2007 15:09:30 -0700
-Message-ID: <200708072209.l77M9Utw007292@imap1.linux-foundation.org>
+Subject: + documentation-sysrq-description-of-h-slightly-inaccurate.patch added to -mm tree
+Date: Tue, 07 Aug 2007 15:09:36 -0700
+Message-ID: <200708072209.l77M9a3X007301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35976 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52506 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935474AbXHGWJk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:09:40 -0400
+	by vger.kernel.org with ESMTP id S964835AbXHGWJq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:09:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jesper.juhl@gmail.com
 
 
 The patch titled
-     fix a potential NULL pointer deref in XFS on failed mount.
+     Documentation: sysrq, description of 'h' slightly inaccurate
 has been added to the -mm tree.  Its filename is
-     fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
+     documentation-sysrq-description-of-h-slightly-inaccurate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,79 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix a potential NULL pointer deref in XFS on failed mount.
+Subject: Documentation: sysrq, description of 'h' slightly inaccurate
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
-The Coverity checker spotted (as bug #346) a potential problem in XFS.
-
-The problem is that if, in xfs_mount(), this code triggers:
-
-       ...
-       if (!mp->m_logdev_targp)
-               goto error0;
-       ...
-
-Then we'll end up calling xfs_unmountfs_close() with a NULL
-'mp->m_logdev_targp'.
-This in turn will result in a call to xfs_free_buftarg() with its 'btp'
-argument == NULL. xfs_free_buftarg() dereferences 'btp' leading to
-a NULL pointer dereference and crash.
-
-I think this can happen, since the fatal call to xfs_free_buftarg()
-happens when 'm_logdev_targp != m_ddev_targp' and due to a check of
-'m_ddev_targp' against NULL in xfs_mount() (and subsequent return if it is
-NULL) the two will never both be NULL when we hit the error0 label from
-the two lines cited above.
-
-This patch fixes the issue by checking mp->m_logdev_targp against NULL
-in xfs_unmountfs_close() and doing the proper xfs_blkdev_put(logdev);
-and xfs_blkdev_put(rtdev); on (!mp->m_rtdev_targp) in xfs_mount().
+In Documentation/sysrq.txt, the description of 'h' says that any key not
+listed *above* will generate help.  That's obviously not true since all the
+keys listed below 'h' will do what they are described to do, not display help.
+ So change the text so that it says that any key not listed in the table will
+generate help, which is what really happens.
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_mount.c  |    2 +-
- fs/xfs/xfs_vfsops.c |   10 ++++++++--
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ Documentation/sysrq.txt |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/xfs/xfs_mount.c~fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount fs/xfs/xfs_mount.c
---- a/fs/xfs/xfs_mount.c~fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount
-+++ a/fs/xfs/xfs_mount.c
-@@ -1275,7 +1275,7 @@ xfs_unmountfs(xfs_mount_t *mp, struct cr
- void
- xfs_unmountfs_close(xfs_mount_t *mp, struct cred *cr)
- {
--	if (mp->m_logdev_targp != mp->m_ddev_targp)
-+	if (mp->m_logdev_targp && mp->m_logdev_targp != mp->m_ddev_targp)
- 		xfs_free_buftarg(mp->m_logdev_targp, 1);
- 	if (mp->m_rtdev_targp)
- 		xfs_free_buftarg(mp->m_rtdev_targp, 1);
-diff -puN fs/xfs/xfs_vfsops.c~fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount fs/xfs/xfs_vfsops.c
---- a/fs/xfs/xfs_vfsops.c~fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount
-+++ a/fs/xfs/xfs_vfsops.c
-@@ -482,13 +482,19 @@ xfs_mount(
- 	}
- 	if (rtdev) {
- 		mp->m_rtdev_targp = xfs_alloc_buftarg(rtdev, 1);
--		if (!mp->m_rtdev_targp)
-+		if (!mp->m_rtdev_targp) {
-+			xfs_blkdev_put(logdev);
-+			xfs_blkdev_put(rtdev);
- 			goto error0;
-+		}
- 	}
- 	mp->m_logdev_targp = (logdev && logdev != ddev) ?
- 				xfs_alloc_buftarg(logdev, 1) : mp->m_ddev_targp;
--	if (!mp->m_logdev_targp)
-+	if (!mp->m_logdev_targp) {
-+		xfs_blkdev_put(logdev);
-+		xfs_blkdev_put(rtdev);
- 		goto error0;
-+	}
+diff -puN Documentation/sysrq.txt~documentation-sysrq-description-of-h-slightly-inaccurate Documentation/sysrq.txt
+--- a/Documentation/sysrq.txt~documentation-sysrq-description-of-h-slightly-inaccurate
++++ a/Documentation/sysrq.txt
+@@ -1,6 +1,6 @@
+ Linux Magic System Request Key Hacks
+ Documentation for sysrq.c
+-Last update: 2007-MAR-14
++Last update: 2007-AUG-04
  
- 	/*
- 	 * Setup flags based on mount(2) options and then the superblock
+ *  What is the magic SysRq key?
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@@ -78,7 +78,7 @@ On all -  write a character to /proc/sys
+ 'g'	- Used by kgdb on ppc and sh platforms.
+ 
+ 'h'     - Will display help (actually any other key than those listed
+-          above will display help. but 'h' is easy to remember :-)
++          here will display help. but 'h' is easy to remember :-)
+ 
+ 'i'     - Send a SIGKILL to all processes, except for init.
+ 
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
