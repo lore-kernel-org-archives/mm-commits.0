@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + finish-i386-and-x86-64-sysdata-conversion.patch added to -mm tree
-Date: Tue, 07 Aug 2007 15:49:15 -0700
-Message-ID: <200708072249.l77MnFes008921@imap1.linux-foundation.org>
+Subject: + ds1682-add-sesnsors-kconfig-variable-prefix.patch added to -mm tree
+Date: Tue, 07 Aug 2007 15:50:29 -0700
+Message-ID: <200708072250.l77MoTtu008952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47372 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41617 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759219AbXHGWus (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:50:48 -0400
+	by vger.kernel.org with ESMTP id S1759329AbXHGWvQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:51:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: muli@il.ibm.com, ak@suse.de, apw@shadowen.org, cebbert@redhat.com, jeff@garzik.org, riku.seppala@kymp.net, yhlu.kernel@gmail.com
+Cc: max@stro.at, grant.likely@secretlab.ca
 
 
 The patch titled
-     finish i386 and x86-64 sysdata conversion
+     DS1682 add SESNSORS Kconfig variable prefix
 has been added to the -mm tree.  Its filename is
-     finish-i386-and-x86-64-sysdata-conversion.patch
+     ds1682-add-sesnsors-kconfig-variable-prefix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,220 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: finish i386 and x86-64 sysdata conversion
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: DS1682 add SESNSORS Kconfig variable prefix
+From: maximilian attems <max@stro.at>
 
-This patch finishes the i386 and x86-64 ->sysdata conversion and hopefully
-also fixes Riku's and Andy's observed bugs.  It is based on Yinghai Lu's
-and Andy Whitcroft's patches (thanks!) with some changes:
+The new DS1682 chip driver "polluates" global Kconfig namespace.  make it
+consistent with ds1337, ds1374 and friends.
 
-- introduce pci_scan_bus_with_sysdata() and use it instead of
-  pci_scan_bus() where appropriate. pci_scan_bus_with_sysdata() will
-  allocate the sysdata structure and then call pci_scan_bus().
-- always allocate pci_sysdata dynamically. The whole point of this
-  sysdata work is to make it easy to do root-bus specific things
-  (e.g., support PCI domains and IOMMU's). I dislike using a default
-  struct pci_sysdata in some places and a dynamically allocated
-  pci_sysdata elsewhere - the potential for someone indavertantly
-  changing the default structure is too high.
-- this patch only makes the minimal changes necessary, i.e., the NUMA node is
-  always initialized to -1. Patches to do the right thing with regards
-  to the NUMA node can build on top of this (either add a 'node'
-  parameter to pci_scan_bus_with_sysdata() or just update the node
-  when it becomes known).
-
-The patch was compile tested with various configurations (e.g., NUMAQ,
-VISWS) and run-time tested on i386 and x86-64.  Unfortunately none of my
-machines exhibited the bugs so caveat emptor.
-
-Andy, could you please see if this fixes the NUMA issues you've seen?
-Riku, does this fix "pci=noacpi" on your laptop?
-
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Chuck Ebbert <cebbert@redhat.com>
-Cc: <riku.seppala@kymp.net>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: maximilian attems <max@stro.at>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/common.c   |   23 +++++++++++++++++++++++
- arch/i386/pci/fixup.c    |    6 +++---
- arch/i386/pci/irq.c      |    5 +++--
- arch/i386/pci/legacy.c   |    2 +-
- arch/i386/pci/numa.c     |   15 +++++++++------
- arch/i386/pci/visws.c    |    4 ++--
- include/asm-i386/pci.h   |    3 +++
- include/asm-x86_64/pci.h |    2 ++
- 8 files changed, 46 insertions(+), 14 deletions(-)
+ drivers/i2c/chips/Kconfig  |    2 +-
+ drivers/i2c/chips/Makefile |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/pci/common.c~finish-i386-and-x86-64-sysdata-conversion arch/i386/pci/common.c
---- a/arch/i386/pci/common.c~finish-i386-and-x86-64-sysdata-conversion
-+++ a/arch/i386/pci/common.c
-@@ -455,3 +455,26 @@ void pcibios_disable_device (struct pci_
- 	if (!dev->msi_enabled && pcibios_disable_irq)
- 		pcibios_disable_irq(dev);
- }
-+
-+struct pci_bus *pci_scan_bus_with_sysdata(int busno)
-+{
-+	struct pci_bus *bus = NULL;
-+	struct pci_sysdata *sd;
-+
-+	/*
-+	 * Allocate per-root-bus (not per bus) arch-specific data.
-+	 * TODO: leak; this memory is never freed.
-+	 * It's arguable whether it's worth the trouble to care.
-+	 */
-+	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
-+	if (!sd) {
-+		printk(KERN_ERR "PCI: OOM, skipping PCI bus %02x\n", busno);
-+		return NULL;
-+	}
-+	sd->node = -1;
-+	bus = pci_scan_bus(busno, &pci_root_ops, sd);
-+	if (!bus)
-+		kfree(sd);
-+
-+	return bus;
-+}
-diff -puN arch/i386/pci/fixup.c~finish-i386-and-x86-64-sysdata-conversion arch/i386/pci/fixup.c
---- a/arch/i386/pci/fixup.c~finish-i386-and-x86-64-sysdata-conversion
-+++ a/arch/i386/pci/fixup.c
-@@ -25,9 +25,9 @@ static void __devinit pci_fixup_i450nx(s
- 		pci_read_config_byte(d, reg++, &subb);
- 		DBG("i450NX PXB %d: %02x/%02x/%02x\n", pxb, busno, suba, subb);
- 		if (busno)
--			pci_scan_bus(busno, &pci_root_ops, NULL);	/* Bus A */
-+			pci_scan_bus_with_sysdata(busno);	/* Bus A */
- 		if (suba < subb)
--			pci_scan_bus(suba+1, &pci_root_ops, NULL);	/* Bus B */
-+			pci_scan_bus_with_sysdata(suba+1);	/* Bus B */
- 	}
- 	pcibios_last_bus = -1;
- }
-@@ -42,7 +42,7 @@ static void __devinit pci_fixup_i450gx(s
- 	u8 busno;
- 	pci_read_config_byte(d, 0x4a, &busno);
- 	printk(KERN_INFO "PCI: i440KX/GX host bridge %s: secondary bus %02x\n", pci_name(d), busno);
--	pci_scan_bus(busno, &pci_root_ops, NULL);
-+	pci_scan_bus_with_sysdata(busno);
- 	pcibios_last_bus = -1;
- }
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82454GX, pci_fixup_i450gx);
-diff -puN arch/i386/pci/irq.c~finish-i386-and-x86-64-sysdata-conversion arch/i386/pci/irq.c
---- a/arch/i386/pci/irq.c~finish-i386-and-x86-64-sysdata-conversion
-+++ a/arch/i386/pci/irq.c
-@@ -138,8 +138,9 @@ static void __init pirq_peer_trick(void)
- 	for(i = 1; i < 256; i++) {
- 		if (!busmap[i] || pci_find_bus(0, i))
- 			continue;
--		if (pci_scan_bus(i, &pci_root_ops, NULL))
--			printk(KERN_INFO "PCI: Discovered primary peer bus %02x [IRQ]\n", i);
-+		if (pci_scan_bus_with_sysdata(i))
-+			printk(KERN_INFO "PCI: Discovered primary peer "
-+			       "bus %02x [IRQ]\n", i);
- 	}
- 	pcibios_last_bus = -1;
- }
-diff -puN arch/i386/pci/legacy.c~finish-i386-and-x86-64-sysdata-conversion arch/i386/pci/legacy.c
---- a/arch/i386/pci/legacy.c~finish-i386-and-x86-64-sysdata-conversion
-+++ a/arch/i386/pci/legacy.c
-@@ -26,7 +26,7 @@ static void __devinit pcibios_fixup_peer
- 			    l != 0x0000 && l != 0xffff) {
- 				DBG("Found device at %02x:%02x [%04x]\n", n, devfn, l);
- 				printk(KERN_INFO "PCI: Discovered peer bus %02x\n", n);
--				pci_scan_bus(n, &pci_root_ops, NULL);
-+				pci_scan_bus_with_sysdata(n);
- 				break;
- 			}
- 		}
-diff -puN arch/i386/pci/numa.c~finish-i386-and-x86-64-sysdata-conversion arch/i386/pci/numa.c
---- a/arch/i386/pci/numa.c~finish-i386-and-x86-64-sysdata-conversion
-+++ a/arch/i386/pci/numa.c
-@@ -96,10 +96,14 @@ static void __devinit pci_fixup_i450nx(s
- 		pci_read_config_byte(d, reg++, &suba);
- 		pci_read_config_byte(d, reg++, &subb);
- 		DBG("i450NX PXB %d: %02x/%02x/%02x\n", pxb, busno, suba, subb);
--		if (busno)
--			pci_scan_bus(QUADLOCAL2BUS(quad,busno), &pci_root_ops, NULL);	/* Bus A */
--		if (suba < subb)
--			pci_scan_bus(QUADLOCAL2BUS(quad,suba+1), &pci_root_ops, NULL);	/* Bus B */
-+		if (busno) {
-+			/* Bus A */
-+			pci_scan_bus_with_sysdata(QUADLOCAL2BUS(quad, busno));
-+		}
-+		if (suba < subb) {
-+			/* Bus B */
-+			pci_scan_bus_with_sysdata(QUADLOCAL2BUS(quad, suba+1));
-+		}
- 	}
- 	pcibios_last_bus = -1;
- }
-@@ -123,8 +127,7 @@ static int __init pci_numa_init(void)
- 				continue;
- 			printk("Scanning PCI bus %d for quad %d\n", 
- 				QUADLOCAL2BUS(quad,0), quad);
--			pci_scan_bus(QUADLOCAL2BUS(quad,0), 
--				&pci_root_ops, NULL);
-+			pci_scan_bus_with_sysdata(QUADLOCAL2BUS(quad, 0));
- 		}
- 	return 0;
- }
-diff -puN arch/i386/pci/visws.c~finish-i386-and-x86-64-sysdata-conversion arch/i386/pci/visws.c
---- a/arch/i386/pci/visws.c~finish-i386-and-x86-64-sysdata-conversion
-+++ a/arch/i386/pci/visws.c
-@@ -101,8 +101,8 @@ static int __init pcibios_init(void)
- 		"bridge B (PIIX4) bus: %u\n", pci_bus1, pci_bus0);
+diff -puN drivers/i2c/chips/Kconfig~ds1682-add-sesnsors-kconfig-variable-prefix drivers/i2c/chips/Kconfig
+--- a/drivers/i2c/chips/Kconfig~ds1682-add-sesnsors-kconfig-variable-prefix
++++ a/drivers/i2c/chips/Kconfig
+@@ -30,7 +30,7 @@ config SENSORS_DS1374
+ 	  This driver is deprecated and will be dropped soon. Use
+ 	  rtc-ds1374 instead.
  
- 	raw_pci_ops = &pci_direct_conf1;
--	pci_scan_bus(pci_bus0, &pci_root_ops, NULL);
--	pci_scan_bus(pci_bus1, &pci_root_ops, NULL);
-+	pci_scan_bus_with_sysdata(pci_bus0);
-+	pci_scan_bus_with_sysdata(pci_bus1);
- 	pci_fixup_irqs(visws_swizzle, visws_map_irq);
- 	pcibios_resource_survey();
- 	return 0;
-diff -puN include/asm-i386/pci.h~finish-i386-and-x86-64-sysdata-conversion include/asm-i386/pci.h
---- a/include/asm-i386/pci.h~finish-i386-and-x86-64-sysdata-conversion
-+++ a/include/asm-i386/pci.h
-@@ -8,6 +8,9 @@ struct pci_sysdata {
- 	int		node;		/* NUMA node */
- };
+-config DS1682
++config SENSORS_DS1682
+ 	tristate "Dallas DS1682 Total Elapsed Time Recorder with Alarm"
+ 	depends on EXPERIMENTAL
+ 	help
+diff -puN drivers/i2c/chips/Makefile~ds1682-add-sesnsors-kconfig-variable-prefix drivers/i2c/chips/Makefile
+--- a/drivers/i2c/chips/Makefile~ds1682-add-sesnsors-kconfig-variable-prefix
++++ a/drivers/i2c/chips/Makefile
+@@ -4,7 +4,7 @@
  
-+/* scan a bus after allocating a pci_sysdata for it */
-+extern struct pci_bus *pci_scan_bus_with_sysdata(int busno);
-+
- #include <linux/mm.h>		/* for struct page */
- 
- /* Can be used to override the logic in pci_scan_bus for skipping
-diff -puN include/asm-x86_64/pci.h~finish-i386-and-x86-64-sysdata-conversion include/asm-x86_64/pci.h
---- a/include/asm-x86_64/pci.h~finish-i386-and-x86-64-sysdata-conversion
-+++ a/include/asm-x86_64/pci.h
-@@ -10,6 +10,8 @@ struct pci_sysdata {
- 	void*		iommu;		/* IOMMU private data */
- };
- 
-+extern struct pci_bus *pci_scan_bus_with_sysdata(int busno);
-+
- #ifdef CONFIG_CALGARY_IOMMU
- static inline void* pci_iommu(struct pci_bus *bus)
- {
+ obj-$(CONFIG_SENSORS_DS1337)	+= ds1337.o
+ obj-$(CONFIG_SENSORS_DS1374)	+= ds1374.o
+-obj-$(CONFIG_DS1682)		+= ds1682.o
++obj-$(CONFIG_SENSORS_DS1682)	+= ds1682.o
+ obj-$(CONFIG_SENSORS_EEPROM)	+= eeprom.o
+ obj-$(CONFIG_SENSORS_MAX6875)	+= max6875.o
+ obj-$(CONFIG_SENSORS_M41T00)	+= m41t00.o
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from max@stro.at are
 
-finish-i386-and-x86-64-sysdata-conversion.patch
-calgary-fix-mis-handled-pci-topology.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+ds1682-add-sesnsors-kconfig-variable-prefix.patch
+git-mtd.patch
