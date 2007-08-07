@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memoryless-nodes-update-memory-policy-and-page-migration.patch added to -mm tree
-Date: Tue, 07 Aug 2007 13:38:29 -0700
-Message-ID: <200708072038.l77KcTps002833@imap1.linux-foundation.org>
+Subject: + memoryless-nodes-use-n_high_memory-for-cpusets.patch added to -mm tree
+Date: Tue, 07 Aug 2007 13:38:37 -0700
+Message-ID: <200708072038.l77KcbX9002853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37989 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56989 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932289AbXHGUpp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:45:45 -0400
+	by vger.kernel.org with ESMTP id S934949AbXHGUpx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:45:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com, bob.picco@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.sche
 
 
 The patch titled
-     Memoryless nodes: Update memory policy and page migration
+     Memoryless nodes: Use N_HIGH_MEMORY for cpusets
 has been added to the -mm tree.  Its filename is
-     memoryless-nodes-update-memory-policy-and-page-migration.patch
+     memoryless-nodes-use-n_high_memory-for-cpusets.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,197 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memoryless nodes: Update memory policy and page migration
+Subject: Memoryless nodes: Use N_HIGH_MEMORY for cpusets
 From: Christoph Lameter <clameter@sgi.com>
 
-Online nodes now may have no memory.  The checks and initialization must
-therefore be changed to no longer use the online functions.
+cpusets try to ensure that any node added to a cpuset's mems_allowed is
+on-line and contains memory.  The assumption was that online nodes contained
+memory.  Thus, it is possible to add memoryless nodes to a cpuset and then add
+tasks to this cpuset.  This results in continuous series of oom-kill and
+apparent system hang.
 
-This will correctly initialize the interleave on bootup to only target nodes
-with memory and will make sys_move_pages return an error when a page is to be
-moved to a memoryless node.  Similarly we will get an error if MPOL_BIND and
-MPOL_INTERLEAVE is used on a memoryless node.
+Change cpusets to use node_states[N_HIGH_MEMORY] [a.k.a.  node_memory_map] in
+place of node_online_map when vetting memories.  Return error if admin
+attempts to write a non-empty mems_allowed node mask containing only
+memoryless-nodes.
 
-These are somewhat new semantics.  So far one could specify memoryless nodes
-and we would maybe do the right thing and just ignore the node (or we'd do
-something strange like with MPOL_INTERLEAVE).  If we want to allow the
-specification of memoryless nodes via memory policies then we need to keep
-checking for online nodes.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Tested-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Bob Picco <bob.picco@hp.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Bob Picco <bob.picco@hp.com>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mel@skynet.ie>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   10 +++++-----
- mm/migrate.c   |    2 +-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ Documentation/cpusets.txt |    7 ++--
+ include/linux/cpuset.h    |    2 -
+ kernel/cpuset.c           |   56 ++++++++++++++++++++++++------------
+ 3 files changed, 43 insertions(+), 22 deletions(-)
 
-diff -puN mm/mempolicy.c~memoryless-nodes-update-memory-policy-and-page-migration mm/mempolicy.c
---- a/mm/mempolicy.c~memoryless-nodes-update-memory-policy-and-page-migration
-+++ a/mm/mempolicy.c
-@@ -494,9 +494,9 @@ static void get_zonemask(struct mempolic
- 		*nodes = p->v.nodes;
- 		break;
- 	case MPOL_PREFERRED:
--		/* or use current node instead of online map? */
-+		/* or use current node instead of memory_map? */
- 		if (p->v.preferred_node < 0)
--			*nodes = node_online_map;
-+			*nodes = node_states[N_HIGH_MEMORY];
- 		else
- 			node_set(p->v.preferred_node, *nodes);
- 		break;
-@@ -1617,7 +1617,7 @@ void __init numa_policy_init(void)
- 	 * fall back to the largest node if they're all smaller.
- 	 */
- 	nodes_clear(interleave_nodes);
--	for_each_online_node(nid) {
-+	for_each_node_state(nid, N_HIGH_MEMORY) {
- 		unsigned long total_pages = node_present_pages(nid);
+diff -puN Documentation/cpusets.txt~memoryless-nodes-use-n_high_memory-for-cpusets Documentation/cpusets.txt
+--- a/Documentation/cpusets.txt~memoryless-nodes-use-n_high_memory-for-cpusets
++++ a/Documentation/cpusets.txt
+@@ -35,7 +35,8 @@ CONTENTS:
+ ----------------------
  
- 		/* Preserve the largest node */
-@@ -1897,7 +1897,7 @@ int show_numa_map(struct seq_file *m, vo
- 		seq_printf(m, " huge");
- 	} else {
- 		check_pgd_range(vma, vma->vm_start, vma->vm_end,
--				&node_online_map, MPOL_MF_STATS, md);
-+			&node_states[N_HIGH_MEMORY], MPOL_MF_STATS, md);
+ Cpusets provide a mechanism for assigning a set of CPUs and Memory
+-Nodes to a set of tasks.
++Nodes to a set of tasks.   In this document "Memory Node" refers to
++an on-line node that contains memory.
+ 
+ Cpusets constrain the CPU and Memory placement of tasks to only
+ the resources within a tasks current cpuset.  They form a nested
+@@ -220,8 +221,8 @@ and name space for cpusets, with a minim
+ The cpus and mems files in the root (top_cpuset) cpuset are
+ read-only.  The cpus file automatically tracks the value of
+ cpu_online_map using a CPU hotplug notifier, and the mems file
+-automatically tracks the value of node_online_map using the
+-cpuset_track_online_nodes() hook.
++automatically tracks the value of node_states[N_MEMORY]--i.e.,
++nodes with memory--using the cpuset_track_online_nodes() hook.
+ 
+ 
+ 1.4 What are exclusive cpusets ?
+diff -puN include/linux/cpuset.h~memoryless-nodes-use-n_high_memory-for-cpusets include/linux/cpuset.h
+--- a/include/linux/cpuset.h~memoryless-nodes-use-n_high_memory-for-cpusets
++++ a/include/linux/cpuset.h
+@@ -93,7 +93,7 @@ static inline nodemask_t cpuset_mems_all
+ 	return node_possible_map;
+ }
+ 
+-#define cpuset_current_mems_allowed (node_online_map)
++#define cpuset_current_mems_allowed (node_states[N_HIGH_MEMORY])
+ static inline void cpuset_init_current_mems_allowed(void) {}
+ static inline void cpuset_update_task_memory_state(void) {}
+ #define cpuset_nodes_subset_current_mems_allowed(nodes) (1)
+diff -puN kernel/cpuset.c~memoryless-nodes-use-n_high_memory-for-cpusets kernel/cpuset.c
+--- a/kernel/cpuset.c~memoryless-nodes-use-n_high_memory-for-cpusets
++++ a/kernel/cpuset.c
+@@ -581,26 +581,28 @@ static void guarantee_online_cpus(const 
+ 
+ /*
+  * Return in *pmask the portion of a cpusets's mems_allowed that
+- * are online.  If none are online, walk up the cpuset hierarchy
+- * until we find one that does have some online mems.  If we get
+- * all the way to the top and still haven't found any online mems,
+- * return node_online_map.
++ * are online, with memory.  If none are online with memory, walk
++ * up the cpuset hierarchy until we find one that does have some
++ * online mems.  If we get all the way to the top and still haven't
++ * found any online mems, return node_states[N_HIGH_MEMORY].
+  *
+  * One way or another, we guarantee to return some non-empty subset
+- * of node_online_map.
++ * of node_states[N_HIGH_MEMORY].
+  *
+  * Call with callback_mutex held.
+  */
+ 
+ static void guarantee_online_mems(const struct cpuset *cs, nodemask_t *pmask)
+ {
+-	while (cs && !nodes_intersects(cs->mems_allowed, node_online_map))
++	while (cs && !nodes_intersects(cs->mems_allowed,
++					node_states[N_HIGH_MEMORY]))
+ 		cs = cs->parent;
+ 	if (cs)
+-		nodes_and(*pmask, cs->mems_allowed, node_online_map);
++		nodes_and(*pmask, cs->mems_allowed,
++					node_states[N_HIGH_MEMORY]);
+ 	else
+-		*pmask = node_online_map;
+-	BUG_ON(!nodes_intersects(*pmask, node_online_map));
++		*pmask = node_states[N_HIGH_MEMORY];
++	BUG_ON(!nodes_intersects(*pmask, node_states[N_HIGH_MEMORY]));
+ }
+ 
+ /**
+@@ -924,7 +926,10 @@ static int update_nodemask(struct cpuset
+ 	int fudge;
+ 	int retval;
+ 
+-	/* top_cpuset.mems_allowed tracks node_online_map; it's read-only */
++	/*
++	 * top_cpuset.mems_allowed tracks node_stats[N_HIGH_MEMORY];
++	 * it's read-only
++	 */
+ 	if (cs == &top_cpuset)
+ 		return -EACCES;
+ 
+@@ -941,8 +946,21 @@ static int update_nodemask(struct cpuset
+ 		retval = nodelist_parse(buf, trialcs.mems_allowed);
+ 		if (retval < 0)
+ 			goto done;
++		if (!nodes_intersects(trialcs.mems_allowed,
++						node_states[N_HIGH_MEMORY])) {
++			/*
++			 * error if only memoryless nodes specified.
++			 */
++			retval = -ENOSPC;
++			goto done;
++		}
  	}
+-	nodes_and(trialcs.mems_allowed, trialcs.mems_allowed, node_online_map);
++	/*
++	 * Exclude memoryless nodes.  We know that trialcs.mems_allowed
++	 * contains at least one node with memory.
++	 */
++	nodes_and(trialcs.mems_allowed, trialcs.mems_allowed,
++						node_states[N_HIGH_MEMORY]);
+ 	oldmem = cs->mems_allowed;
+ 	if (nodes_equal(oldmem, trialcs.mems_allowed)) {
+ 		retval = 0;		/* Too easy - nothing to do */
+@@ -2098,8 +2116,9 @@ static void guarantee_online_cpus_mems_i
  
- 	if (!md->pages)
-@@ -1924,7 +1924,7 @@ int show_numa_map(struct seq_file *m, vo
- 	if (md->writeback)
- 		seq_printf(m," writeback=%lu", md->writeback);
+ /*
+  * The cpus_allowed and mems_allowed nodemasks in the top_cpuset track
+- * cpu_online_map and node_online_map.  Force the top cpuset to track
+- * whats online after any CPU or memory node hotplug or unplug event.
++ * cpu_online_map and node_states[N_HIGH_MEMORY].  Force the top cpuset to
++ * track what's online after any CPU or memory node hotplug or unplug
++ * event.
+  *
+  * To ensure that we don't remove a CPU or node from the top cpuset
+  * that is currently in use by a child cpuset (which would violate
+@@ -2119,7 +2138,7 @@ static void common_cpu_mem_hotplug_unplu
  
--	for_each_online_node(n)
-+	for_each_node_state(n, N_HIGH_MEMORY)
- 		if (md->node[n])
- 			seq_printf(m, " N%d=%lu", n, md->node[n]);
- out:
-diff -puN mm/migrate.c~memoryless-nodes-update-memory-policy-and-page-migration mm/migrate.c
---- a/mm/migrate.c~memoryless-nodes-update-memory-policy-and-page-migration
-+++ a/mm/migrate.c
-@@ -979,7 +979,7 @@ asmlinkage long sys_move_pages(pid_t pid
- 				goto out;
+ 	guarantee_online_cpus_mems_in_subtree(&top_cpuset);
+ 	top_cpuset.cpus_allowed = cpu_online_map;
+-	top_cpuset.mems_allowed = node_online_map;
++	top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
  
- 			err = -ENODEV;
--			if (!node_online(node))
-+			if (!node_state(node, N_HIGH_MEMORY))
- 				goto out;
+ 	mutex_unlock(&callback_mutex);
+ 	mutex_unlock(&manage_mutex);
+@@ -2147,8 +2166,9 @@ static int cpuset_handle_cpuhp(struct no
  
- 			err = -EACCES;
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+- * Keep top_cpuset.mems_allowed tracking node_online_map.
+- * Call this routine anytime after you change node_online_map.
++ * Keep top_cpuset.mems_allowed tracking node_states[N_HIGH_MEMORY].
++ * Call this routine anytime after you change
++ * node_states[N_HIGH_MEMORY].
+  * See also the previous routine cpuset_handle_cpuhp().
+  */
+ 
+@@ -2167,7 +2187,7 @@ void cpuset_track_online_nodes(void)
+ void __init cpuset_init_smp(void)
+ {
+ 	top_cpuset.cpus_allowed = cpu_online_map;
+-	top_cpuset.mems_allowed = node_online_map;
++	top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
+ 
+ 	hotcpu_notifier(cpuset_handle_cpuhp, 0);
+ }
+@@ -2309,7 +2329,7 @@ void cpuset_init_current_mems_allowed(vo
+  *
+  * Description: Returns the nodemask_t mems_allowed of the cpuset
+  * attached to the specified @tsk.  Guaranteed to return some non-empty
+- * subset of node_online_map, even if this means going outside the
++ * subset of node_states[N_HIGH_MEMORY], even if this means going outside the
+  * tasks cpuset.
+  **/
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
