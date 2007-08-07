@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + allow-rcutorture-to-handle-synchronize_sched.patch added to -mm tree
-Date: Tue, 07 Aug 2007 12:41:23 -0700
-Message-ID: <200708071941.l77JfNbC000688@imap1.linux-foundation.org>
+Subject: + 64-bit-ino-support-for-nfs-client.patch added to -mm tree
+Date: Tue, 07 Aug 2007 12:43:05 -0700
+Message-ID: <200708071943.l77Jh5F8000804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50429 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49763 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752448AbXHGTmP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 15:42:15 -0400
+	by vger.kernel.org with ESMTP id S1753431AbXHGTpU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 15:45:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulmck@linux.vnet.ibm.com, josh@kernel.org
+Cc: staubach@redhat.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     Allow rcutorture to handle synchronize_sched()
+     64 bit ino support for NFS client
 has been added to the -mm tree.  Its filename is
-     allow-rcutorture-to-handle-synchronize_sched.patch
+     64-bit-ino-support-for-nfs-client.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Allow rcutorture to handle synchronize_sched()
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: 64 bit ino support for NFS client
+From: Peter Staubach <staubach@redhat.com>
 
-The rcutorture module uses a random-number generator that periodically
-calls get_random_bytes() to add entropy.  This random-number generator is
-invoked from within the RCU read-side critical section, which, in the case
-of the synchronize_sched() variant of RCU, has preeemption disabled. 
-Unfortunately, get_random_bytes() ends up acquiring normal spinlocks, which
-can block in -rt, resulting in very large numbers of "scheduling while
-atomic" messages.
+Modify the NFS client code to support 64 bit ino's, as appropriate for the
+system and the NFS protocol version.
 
-This patch takes a very crude approach, simply substituting the time
-of day for get_random_bytes().
+The code basically just expand the NFS interfaces for routines which handle
+ino's from using ino_t to u64 and then uses the fileid in the nfs_inode
+instead of i_ino in the inode.  The code paths that were updated are in the
+getattr method and the readdir methods.
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Acked-by: Josh Triplett <josh@kernel.org>
+This should be no real change on 64 bit platforms.  Since the ino_t is an
+unsigned long, it would already be 64 bits wide.
+
+Signed-off-by: Peter Staubach <staubach@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcutorture.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ fs/nfs/dir.c      |   15 ++++++++-------
+ fs/nfs/inode.c    |    4 +++-
+ fs/nfs/nfs4proc.c |    4 ++--
+ 3 files changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN kernel/rcutorture.c~allow-rcutorture-to-handle-synchronize_sched kernel/rcutorture.c
---- a/kernel/rcutorture.c~allow-rcutorture-to-handle-synchronize_sched
-+++ a/kernel/rcutorture.c
-@@ -165,16 +165,13 @@ struct rcu_random_state {
+diff -puN fs/nfs/dir.c~64-bit-ino-support-for-nfs-client fs/nfs/dir.c
+--- a/fs/nfs/dir.c~64-bit-ino-support-for-nfs-client
++++ a/fs/nfs/dir.c
+@@ -407,7 +407,7 @@ int nfs_do_filldir(nfs_readdir_descripto
+ 	struct file	*file = desc->file;
+ 	struct nfs_entry *entry = desc->entry;
+ 	struct dentry	*dentry = NULL;
+-	unsigned long	fileid;
++	u64		fileid;
+ 	int		loop_count = 0,
+ 			res;
  
- /*
-  * Crude but fast random-number generator.  Uses a linear congruential
-- * generator, with occasional help from get_random_bytes().
-+ * generator, with occasional help from the time-of-day clock.
-  */
- static unsigned long
- rcu_random(struct rcu_random_state *rrsp)
+@@ -418,7 +418,7 @@ int nfs_do_filldir(nfs_readdir_descripto
+ 		unsigned d_type = DT_UNKNOWN;
+ 		/* Note: entry->prev_cookie contains the cookie for
+ 		 *	 retrieving the current dirent on the server */
+-		fileid = nfs_fileid_to_ino_t(entry->ino);
++		fileid = entry->ino;
+ 
+ 		/* Get a dentry if we have one */
+ 		if (dentry != NULL)
+@@ -428,7 +428,7 @@ int nfs_do_filldir(nfs_readdir_descripto
+ 		/* Use readdirplus info */
+ 		if (dentry != NULL && dentry->d_inode != NULL) {
+ 			d_type = dt_type(dentry->d_inode);
+-			fileid = dentry->d_inode->i_ino;
++			fileid = NFS_FILEID(dentry->d_inode);
+ 		}
+ 
+ 		res = filldir(dirent, entry->name, entry->len, 
+@@ -1348,9 +1348,9 @@ static int nfs_rmdir(struct inode *dir, 
+ static int nfs_sillyrename(struct inode *dir, struct dentry *dentry)
  {
--	long refresh;
--
- 	if (--rrsp->rrs_count < 0) {
--		get_random_bytes(&refresh, sizeof(refresh));
--		rrsp->rrs_state += refresh;
-+		rrsp->rrs_state += xtime.tv_nsec;
- 		rrsp->rrs_count = RCU_RANDOM_REFRESH;
+ 	static unsigned int sillycounter;
+-	const int      i_inosize  = sizeof(dir->i_ino)*2;
++	const int      fileidsize  = sizeof(NFS_FILEID(dentry->d_inode))*2;
+ 	const int      countersize = sizeof(sillycounter)*2;
+-	const int      slen       = sizeof(".nfs") + i_inosize + countersize - 1;
++	const int      slen        = sizeof(".nfs")+fileidsize+countersize-1;
+ 	char           silly[slen+1];
+ 	struct qstr    qsilly;
+ 	struct dentry *sdentry;
+@@ -1368,8 +1368,9 @@ static int nfs_sillyrename(struct inode 
+ 	if (dentry->d_flags & DCACHE_NFSFS_RENAMED)
+ 		goto out;
+ 
+-	sprintf(silly, ".nfs%*.*lx",
+-		i_inosize, i_inosize, dentry->d_inode->i_ino);
++	sprintf(silly, ".nfs%*.*Lx",
++		fileidsize, fileidsize,
++		(unsigned long long)NFS_FILEID(dentry->d_inode));
+ 
+ 	/* Return delegation in anticipation of the rename */
+ 	nfs_inode_return_delegation(dentry->d_inode);
+diff -puN fs/nfs/inode.c~64-bit-ino-support-for-nfs-client fs/nfs/inode.c
+--- a/fs/nfs/inode.c~64-bit-ino-support-for-nfs-client
++++ a/fs/nfs/inode.c
+@@ -450,8 +450,10 @@ int nfs_getattr(struct vfsmount *mnt, st
+ 		err = __nfs_revalidate_inode(NFS_SERVER(inode), inode);
+ 	else
+ 		err = nfs_revalidate_inode(NFS_SERVER(inode), inode);
+-	if (!err)
++	if (!err) {
+ 		generic_fillattr(inode, stat);
++		stat->ino = NFS_FILEID(inode);
++	}
+ 	return err;
+ }
+ 
+diff -puN fs/nfs/nfs4proc.c~64-bit-ino-support-for-nfs-client fs/nfs/nfs4proc.c
+--- a/fs/nfs/nfs4proc.c~64-bit-ino-support-for-nfs-client
++++ a/fs/nfs/nfs4proc.c
+@@ -177,7 +177,7 @@ static void nfs4_setup_readdir(u64 cooki
+ 		*p++ = xdr_one;                         /* bitmap length */
+ 		*p++ = htonl(FATTR4_WORD0_FILEID);             /* bitmap */
+ 		*p++ = htonl(8);              /* attribute buffer length */
+-		p = xdr_encode_hyper(p, dentry->d_inode->i_ino);
++		p = xdr_encode_hyper(p, NFS_FILEID(dentry->d_inode));
  	}
- 	rrsp->rrs_state = rrsp->rrs_state * RCU_RANDOM_MULT + RCU_RANDOM_ADD;
+ 	
+ 	*p++ = xdr_one;                                  /* next */
+@@ -189,7 +189,7 @@ static void nfs4_setup_readdir(u64 cooki
+ 	*p++ = xdr_one;                         /* bitmap length */
+ 	*p++ = htonl(FATTR4_WORD0_FILEID);             /* bitmap */
+ 	*p++ = htonl(8);              /* attribute buffer length */
+-	p = xdr_encode_hyper(p, dentry->d_parent->d_inode->i_ino);
++	p = xdr_encode_hyper(p, NFS_FILEID(dentry->d_parent->d_inode));
+ 
+ 	readdir->pgbase = (char *)p - (char *)start;
+ 	readdir->count -= readdir->pgbase;
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from staubach@redhat.com are
 
-allow-rcutorture-to-handle-synchronize_sched.patch
-fib_trie-cleanup-fix.patch
-immunize-rcu_dereference-against-crazy-compiler-writers.patch
-remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
-clean-up-duplicate-includes-in-kernel.patch
+64-bit-ino-support-for-nfs-client.patch
