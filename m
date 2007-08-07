@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memoryless-nodes-no-need-for-kswapd.patch added to -mm tree
-Date: Tue, 07 Aug 2007 13:38:19 -0700
-Message-ID: <200708072038.l77KcJSs002815@imap1.linux-foundation.org>
+Subject: + memoryless-nodes-uncached-allocator-updates.patch added to -mm tree
+Date: Tue, 07 Aug 2007 13:38:25 -0700
+Message-ID: <200708072038.l77KcPRt002824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34762 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51748 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756103AbXHGUjV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:39:21 -0400
+	by vger.kernel.org with ESMTP id S1756360AbXHGUjW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:39:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, bob.picco@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@skynet.ie, nacc@us.ibm.com
+Cc: clameter@sgi.com, bob.picco@hp.com, jes@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@skynet.ie, nacc@us.ibm.com
 
 
 The patch titled
-     Memoryless nodes: No need for kswapd
+     Memoryless nodes: Uncached allocator updates
 has been added to the -mm tree.  Its filename is
-     memoryless-nodes-no-need-for-kswapd.patch
+     memoryless-nodes-uncached-allocator-updates.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memoryless nodes: No need for kswapd
+Subject: Memoryless nodes: Uncached allocator updates
 From: Christoph Lameter <clameter@sgi.com>
 
-A node without memory does not need a kswapd.  So use the memory map instead
-of the online map when starting kswapd.
+The checks for node_online in the uncached allocator are made to make sure
+that memory is available on these nodes.  Thus switch all the checks to use
+N_HIGH_MEMORY and to N_ONLINE.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Tested-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Jes Sorensen <jes@sgi.com>
+Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Acked-by: Bob Picco <bob.picco@hp.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/kernel/uncached.c |    4 ++--
+ drivers/char/mspec.c        |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~memoryless-nodes-no-need-for-kswapd mm/vmscan.c
---- a/mm/vmscan.c~memoryless-nodes-no-need-for-kswapd
-+++ a/mm/vmscan.c
-@@ -1722,7 +1722,7 @@ static int __init kswapd_init(void)
+diff -puN arch/ia64/kernel/uncached.c~memoryless-nodes-uncached-allocator-updates arch/ia64/kernel/uncached.c
+--- a/arch/ia64/kernel/uncached.c~memoryless-nodes-uncached-allocator-updates
++++ a/arch/ia64/kernel/uncached.c
+@@ -196,7 +196,7 @@ unsigned long uncached_alloc_page(int st
+ 	nid = starting_nid;
+ 
+ 	do {
+-		if (!node_online(nid))
++		if (!node_state(nid, N_HIGH_MEMORY))
+ 			continue;
+ 		uc_pool = &uncached_pools[nid];
+ 		if (uc_pool->pool == NULL)
+@@ -268,7 +268,7 @@ static int __init uncached_init(void)
+ {
  	int nid;
  
- 	swap_setup();
--	for_each_online_node(nid)
-+	for_each_node_state(nid, N_HIGH_MEMORY)
-  		kswapd_run(nid);
- 	hotcpu_notifier(cpu_callback, 0);
- 	return 0;
+-	for_each_online_node(nid) {
++	for_each_node_state(nid, N_ONLINE) {
+ 		uncached_pools[nid].pool = gen_pool_create(PAGE_SHIFT, nid);
+ 		mutex_init(&uncached_pools[nid].add_chunk_mutex);
+ 	}
+diff -puN drivers/char/mspec.c~memoryless-nodes-uncached-allocator-updates drivers/char/mspec.c
+--- a/drivers/char/mspec.c~memoryless-nodes-uncached-allocator-updates
++++ a/drivers/char/mspec.c
+@@ -345,7 +345,7 @@ mspec_init(void)
+ 		is_sn2 = 1;
+ 		if (is_shub2()) {
+ 			ret = -ENOMEM;
+-			for_each_online_node(nid) {
++			for_each_node_state(nid, N_ONLINE) {
+ 				int actual_nid;
+ 				int nasid;
+ 				unsigned long phys;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
