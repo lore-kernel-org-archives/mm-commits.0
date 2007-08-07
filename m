@@ -1,121 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: - pm-fix-dependencies-of-config_suspend-and-config_hibernation.patch removed from -mm tree
-Date: Tue, 07 Aug 2007 15:59:55 -0700
-Message-ID: <200708072259.l77Mxua8009313@imap1.linux-foundation.org>
+Subject: + uli526x-add-suspend-and-resume-routines.patch added to -mm tree
+Date: Tue, 07 Aug 2007 16:04:04 -0700
+Message-ID: <200708072304.l77N44El009503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37153 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44413 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757419AbXHGXBI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 19:01:08 -0400
+	by vger.kernel.org with ESMTP id S934637AbXHGXER (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 19:04:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, bunk@stusta.de, lenb@kernel.org, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rjw@sisk.pl, grundler@parisc-linux.org, kyle@mcmartin.ca
 
 
 The patch titled
-     PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
-has been removed from the -mm tree.  Its filename was
-     pm-fix-dependencies-of-config_suspend-and-config_hibernation.patch
+     uli526x: add suspend and resume routines
+has been added to the -mm tree.  Its filename is
+     uli526x-add-suspend-and-resume-routines.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
+Subject: uli526x: add suspend and resume routines
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION introduced by commit
-296699de6bdc717189a331ab6bbe90e05c94db06 "Introduce CONFIG_SUSPEND for
-suspend-to-Ram and standby" are incorrect, as they don't cover the facts
-that (1) not all architectures support suspend and (2) SMP hibernation is
-only possible on X86 and PPC64 (if PPC64_SWSUSP is set).
+Add suspend/resume support to the uli526x network driver (tested on x86_64,
+with "Ethernet controller: ALi Corporation M5263 Ethernet Controller, rev 40").
+
+This patch is based on the suspend/resume code in the tg3 driver.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/Kconfig |   40 ++++++++++++++++++++++++++++++----------
- 1 files changed, 30 insertions(+), 10 deletions(-)
+ drivers/net/tulip/uli526x.c |  108 ++++++++++++++++++++++++++++++++--
+ 1 files changed, 102 insertions(+), 6 deletions(-)
 
-diff -puN kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation kernel/power/Kconfig
---- a/kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation
-+++ a/kernel/power/Kconfig
-@@ -72,15 +72,10 @@ config PM_TRACE
- 	CAUTION: this option will cause your machine's real-time clock to be
- 	set to an invalid time after a resume.
+diff -puN drivers/net/tulip/uli526x.c~uli526x-add-suspend-and-resume-routines drivers/net/tulip/uli526x.c
+--- a/drivers/net/tulip/uli526x.c~uli526x-add-suspend-and-resume-routines
++++ a/drivers/net/tulip/uli526x.c
+@@ -1110,19 +1110,15 @@ static void uli526x_timer(unsigned long 
  
--config SUSPEND_SMP_POSSIBLE
--	bool
--	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES || PPC_PMAC))
--	depends on SMP
--	default y
+ 
+ /*
+- *	Dynamic reset the ULI526X board
+  *	Stop ULI526X board
+  *	Free Tx/Rx allocated memory
+- *	Reset ULI526X board
+- *	Re-initialize ULI526X board
++ *	Init system variable
+  */
+ 
+-static void uli526x_dynamic_reset(struct net_device *dev)
++static void uli526x_reset_prepare(struct net_device *dev)
+ {
+ 	struct uli526x_board_info *db = netdev_priv(dev);
+ 
+-	ULI526X_DBUG(0, "uli526x_dynamic_reset()", 0);
 -
--config SUSPEND_SMP
-+config PM_SLEEP_SMP
- 	bool
--	depends on SUSPEND_SMP_POSSIBLE && PM_SLEEP
-+	depends on SUSPEND_SMP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
-+	depends on PM_SLEEP
- 	select HOTPLUG_CPU
- 	default y
+ 	/* Sopt MAC controller */
+ 	db->cr6_data &= ~(CR6_RXSC | CR6_TXSC);	/* Disable Tx/Rx */
+ 	update_cr6(db->cr6_data, dev->base_addr);
+@@ -1141,6 +1137,22 @@ static void uli526x_dynamic_reset(struct
+ 	db->link_failed = 1;
+ 	db->init=1;
+ 	db->wait_reset = 0;
++}
++
++
++/*
++ *	Dynamic reset the ULI526X board
++ *	Stop ULI526X board
++ *	Free Tx/Rx allocated memory
++ *	Reset ULI526X board
++ *	Re-initialize ULI526X board
++ */
++
++static void uli526x_dynamic_reset(struct net_device *dev)
++{
++	ULI526X_DBUG(0, "uli526x_dynamic_reset()", 0);
++
++	uli526x_reset_prepare(dev);
  
-@@ -89,20 +84,45 @@ config PM_SLEEP
- 	depends on SUSPEND || HIBERNATION
- 	default y
+ 	/* Re-initialize ULI526X board */
+ 	uli526x_init(dev);
+@@ -1150,6 +1162,88 @@ static void uli526x_dynamic_reset(struct
+ }
  
-+config SUSPEND_UP_POSSIBLE
-+	bool
-+	depends on BLACKFIN || MIPS || SUPERH || FRV || (PPC32 && PPC_MPC52xx)
-+	depends on !SMP
-+	default y
-+
-+config SUSPEND_SMP_POSSIBLE
-+	bool
-+	depends on (X86 && !X86_VOYAGER) \
-+		   || (PPC64 && (PPC_PSERIES || PPC_PMAC)) || ARM
-+	depends on SMP
-+	default y
-+
- config SUSPEND
- 	bool "Suspend to RAM and standby"
- 	depends on PM
--	depends on !SMP || SUSPEND_SMP_POSSIBLE
-+	depends on SUSPEND_UP_POSSIBLE || SUSPEND_SMP_POSSIBLE
- 	default y
- 	---help---
- 	  Allow the system to enter sleep states in which main memory is
- 	  powered and thus its contents are preserved, such as the
- 	  suspend-to-RAM state (i.e. the ACPI S3 state).
  
-+config HIBERNATION_UP_POSSIBLE
-+	bool
-+	depends on X86 || PPC64_SWSUSP || FRV || PPC32
-+	depends on !SMP
-+	default y
++#ifdef CONFIG_PM_SLEEP
 +
-+config HIBERNATION_SMP_POSSIBLE
-+	bool
-+	depends on (X86 && !X86_VOYAGER) || PPC64_SWSUSP
-+	depends on SMP
-+	default y
++/*
++ *	Suspend the interface.
++ */
 +
- config HIBERNATION
- 	bool "Hibernation (aka 'suspend to disk')"
- 	depends on PM && SWAP
--	depends on ((X86 || PPC64_SWSUSP || FRV || PPC32) && !SMP) || SUSPEND_SMP_POSSIBLE
-+	depends on HIBERNATION_UP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
- 	---help---
- 	  Enable the suspend to disk (STD) functionality, which is usually
- 	  called "hibernation" in user interfaces.  STD checkpoints the
++static int uli526x_suspend(struct pci_dev *pdev, pm_message_t state)
++{
++	struct net_device *dev = pci_get_drvdata(pdev);
++	int err = 0;
++
++	ULI526X_DBUG(0, "uli526x_suspend", 0);
++
++	if (dev && netdev_priv(dev)) {
++		pci_power_t power_state;
++
++		pci_save_state(pdev);
++
++		if (!netif_running(dev))
++			return 0;
++
++		netif_device_detach(dev);
++		uli526x_reset_prepare(dev);
++
++		power_state = pci_choose_state(pdev, state);
++		pci_enable_wake(pdev, power_state, 0);
++		err = pci_set_power_state(pdev, power_state);
++		if (err) {
++			netif_device_attach(dev);
++			/* Re-initialize ULI526X board */
++			uli526x_init(dev);
++			/* Restart upper layer interface */
++			netif_wake_queue(dev);
++		}
++	}
++	return err;
++}
++
++/*
++ *	Resume the interface.
++ */
++
++static int uli526x_resume(struct pci_dev *pdev)
++{
++	struct net_device *dev = pci_get_drvdata(pdev);
++	struct uli526x_board_info *db = netdev_priv(dev);
++
++	ULI526X_DBUG(0, "uli526x_resume", 0);
++
++	if (dev && db) {
++		int err;
++
++		pci_restore_state(pdev);
++
++		if (!netif_running(dev))
++			return 0;
++
++		err = pci_set_power_state(pdev, PCI_D0);
++		if (err) {
++			printk(KERN_WARNING
++				"%s: Could not put device into D0\n",
++				dev->name);
++			return err;
++		}
++
++		netif_device_attach(dev);
++		/* Re-initialize ULI526X board */
++		uli526x_init(dev);
++		/* Restart upper layer interface */
++		netif_wake_queue(dev);
++	}
++	return 0;
++}
++
++#else /* !CONFIG_PM_SLEEP */
++
++#define uli526x_suspend	NULL
++#define uli526x_resume	NULL
++
++#endif /* !CONFIG_PM_SLEEP */
++
++
+ /*
+  *	free all allocated rx buffer
+  */
+@@ -1689,6 +1783,8 @@ static struct pci_driver uli526x_driver 
+ 	.id_table	= uli526x_pci_tbl,
+ 	.probe		= uli526x_init_one,
+ 	.remove		= __devexit_p(uli526x_remove_one),
++	.suspend	= uli526x_suspend,
++	.resume		= uli526x_resume,
+ };
+ 
+ MODULE_AUTHOR("Peer Chen, peer.chen@uli.com.tw");
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
 
 hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch
-pm-fix-dependencies-of-config_suspend-and-config_hibernation.patch
+uli526x-add-suspend-and-resume-routines.patch
 pm-move-definition-of-struct-pm_ops-to-suspendh.patch
 pm-rename-struct-pm_ops-and-related-things.patch
 pm-rework-struct-platform_suspend_ops.patch
