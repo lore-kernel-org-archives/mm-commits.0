@@ -1,158 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: + memoryless-nodes-uncached-allocator-updates.patch added to -mm tree
-Date: Tue, 07 Aug 2007 13:38:25 -0700
-Message-ID: <200708072038.l77KcPRt002824@imap1.linux-foundation.org>
+Subject: - request_firmware-skip-timeout-if-userspace-was-not-notified-fix.patch removed from -mm tree
+Date: Tue, 07 Aug 2007 13:44:31 -0700
+Message-ID: <200708072044.l77KiVkT003088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51748 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40504 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756360AbXHGUjW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:39:22 -0400
+	by vger.kernel.org with ESMTP id S1759411AbXHGUpE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:45:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, bob.picco@hp.com, jes@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@skynet.ie, nacc@us.ibm.com
+To: akpm@linux-foundation.org, greg@kroah.com, javier.pello@urjc.es, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Memoryless nodes: Uncached allocator updates
-has been added to the -mm tree.  Its filename is
-     memoryless-nodes-uncached-allocator-updates.patch
+     request_firmware-skip-timeout-if-userspace-was-not-notified-fix
+has been removed from the -mm tree.  Its filename was
+     request_firmware-skip-timeout-if-userspace-was-not-notified-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Memoryless nodes: Uncached allocator updates
-From: Christoph Lameter <clameter@sgi.com>
+Subject: request_firmware-skip-timeout-if-userspace-was-not-notified-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The checks for node_online in the uncached allocator are made to make sure
-that memory is available on these nodes.  Thus switch all the checks to use
-N_HIGH_MEMORY and to N_ONLINE.
+coding-style fixes
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Jes Sorensen <jes@sgi.com>
-Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Bob Picco <bob.picco@hp.com>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@skynet.ie>
+Cc: Greg KH <greg@kroah.com>
+Cc: Javier Pello <javier.pello@urjc.es>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/uncached.c |    4 ++--
- drivers/char/mspec.c        |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/base/firmware_class.c |    5 ++---
+ lib/kobject_uevent.c          |   14 ++++++--------
+ 2 files changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN arch/ia64/kernel/uncached.c~memoryless-nodes-uncached-allocator-updates arch/ia64/kernel/uncached.c
---- a/arch/ia64/kernel/uncached.c~memoryless-nodes-uncached-allocator-updates
-+++ a/arch/ia64/kernel/uncached.c
-@@ -196,7 +196,7 @@ unsigned long uncached_alloc_page(int st
- 	nid = starting_nid;
+diff -puN drivers/base/firmware_class.c~request_firmware-skip-timeout-if-userspace-was-not-notified-fix drivers/base/firmware_class.c
+--- a/drivers/base/firmware_class.c~request_firmware-skip-timeout-if-userspace-was-not-notified-fix
++++ a/drivers/base/firmware_class.c
+@@ -422,11 +422,10 @@ _request_firmware(const struct firmware 
+ 		}
  
- 	do {
--		if (!node_online(nid))
-+		if (!node_state(nid, N_HIGH_MEMORY))
- 			continue;
- 		uc_pool = &uncached_pools[nid];
- 		if (uc_pool->pool == NULL)
-@@ -268,7 +268,7 @@ static int __init uncached_init(void)
- {
- 	int nid;
- 
--	for_each_online_node(nid) {
-+	for_each_node_state(nid, N_ONLINE) {
- 		uncached_pools[nid].pool = gen_pool_create(PAGE_SHIFT, nid);
- 		mutex_init(&uncached_pools[nid].add_chunk_mutex);
+ 		retval = kobject_uevent(&f_dev->kobj, KOBJ_ADD);
+-		if (retval) {
++		if (retval)
+ 			fw_load_abort(fw_priv);
+-		} else {
++		else
+ 			wait_for_completion(&fw_priv->completion);
+-		}
+ 		set_bit(FW_STATUS_DONE, &fw_priv->status);
+ 		del_timer_sync(&fw_priv->timeout);
+ 	} else
+diff -puN lib/kobject_uevent.c~request_firmware-skip-timeout-if-userspace-was-not-notified-fix lib/kobject_uevent.c
+--- a/lib/kobject_uevent.c~request_firmware-skip-timeout-if-userspace-was-not-notified-fix
++++ a/lib/kobject_uevent.c
+@@ -200,15 +200,13 @@ int kobject_uevent_env(struct kobject *k
+ 		argv [1] = (char *)subsystem;
+ 		argv [2] = NULL;
+ #if defined(CONFIG_NET)
+-		if (retval) {
+-			retval = call_usermodehelper (argv[0], argv, envp,
+-						UMH_WAIT_EXEC);
+-		} else {
+-			call_usermodehelper (argv[0], argv, envp,
+-						UMH_WAIT_EXEC);
+-		}
++		if (retval)
++			retval = call_usermodehelper(argv[0], argv, envp,
++							UMH_WAIT_EXEC);
++		else
++			call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
+ #else
+-		retval = call_usermodehelper (argv[0], argv, envp,
++		retval = call_usermodehelper(argv[0], argv, envp,
+ 						UMH_WAIT_EXEC);
+ #endif
  	}
-diff -puN drivers/char/mspec.c~memoryless-nodes-uncached-allocator-updates drivers/char/mspec.c
---- a/drivers/char/mspec.c~memoryless-nodes-uncached-allocator-updates
-+++ a/drivers/char/mspec.c
-@@ -345,7 +345,7 @@ mspec_init(void)
- 		is_sn2 = 1;
- 		if (is_shub2()) {
- 			ret = -ENOMEM;
--			for_each_online_node(nid) {
-+			for_each_node_state(nid, N_ONLINE) {
- 				int actual_nid;
- 				int nasid;
- 				unsigned long phys;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-apply-memory-policies-to-top-two-highest-zones-when-highest-zone-is-zone_movable.patch
-check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-x86_64-get-mp_bus_to_node-as-early-v2.patch
-x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
-try-parent-numa_node-at-first-before-using-default-v2.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86_64-store-core-id-bits-in-cpuinfo_x8.patch
-x86_64-use-core-id-bits-for-apicid_to_node-initialization.patch
-x86_64-remove-never-used-apic_mapped.patch
-x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes.patch
-x86_64-family-10h-and-11h-to-k8topology.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+fbcon-kill-compile-warning-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+request_firmware-skip-timeout-if-userspace-was-not-notified-fix.patch
+dma-arch-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
+ssb-mainc-needs-dma-mappingh.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-xfs.patch
+git-kgdb-fixup.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-document-linux-memory-policy-v3.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
-generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
-generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-sparc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
-memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
-memoryless-nodes-no-need-for-kswapd.patch
-memoryless-nodes-slab-support.patch
-memoryless-nodes-slub-support.patch
-memoryless-nodes-uncached-allocator-updates.patch
-memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
-memoryless-nodes-update-memory-policy-and-page-migration.patch
-memoryless-nodes-add-n_cpu-node-state.patch
-memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
-memoryless-nodes-fix-gfp_thisnode-behavior.patch
-memoryless-nodes-use-n_high_memory-for-cpusets.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
+fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
 slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
 intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
