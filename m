@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch added to -mm tree
-Date: Tue, 07 Aug 2007 15:09:32 -0700
-Message-ID: <200708072209.l77M9WoU007295@imap1.linux-foundation.org>
+Subject: + fix-several-memory-leaks-in-cr_backlight_probe-take2.patch added to -mm tree
+Date: Tue, 07 Aug 2007 15:09:28 -0700
+Message-ID: <200708072209.l77M9TNi007289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38428 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52354 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937079AbXHGWJl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:09:41 -0400
+	by vger.kernel.org with ESMTP id S964837AbXHGWJp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:09:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com
+Cc: jesper.juhl@gmail.com, rpurdie@rpsys.net
 
 
 The patch titled
-     improve scripts/gcc-version.sh output a bit when called without args
+     Fix several memory leaks in cr_backlight_probe() - take2
 has been added to the -mm tree.  Its filename is
-     improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
+     fix-several-memory-leaks-in-cr_backlight_probe-take2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,111 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: improve scripts/gcc-version.sh output a bit when called without args
+Subject: Fix several memory leaks in cr_backlight_probe() - take2
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Currently, if you call scripts/gcc-version.sh without arguments it will
-generate this output :
+After fixing the too small memory allocation in cr_backlight_probe()
+from drivers/video/backlight/cr_bllcd.c
+(commit e3bbb3f05339de438faf54124f25c92e6fe4ac2e) I noticed that the
+Coverity checker also thought there were a few memory leaks in there.
+I took a closer look and confirmed that there were indeed several
+leaks.
 
-$ sh scripts/gcc-version.sh
-scripts/gcc-version.sh: line 12: [: =: unary operator expected
-scripts/gcc-version.sh: line 16: -E: command not found
-scripts/gcc-version.sh: line 17: -E: command not found
-0000
+At the start of the function we allocate storage for a
+'struct cr_panel' and store the pointer in a variable named 'crp'.
 
-Not too pretty. I believe this is an improvement :
+Then we call pci_get_device() and pci_read_config_byte() and if
+either of them fail we return without freeing the memory allocated
+for the 'struct cr_panel'. These two leaks are easy to fix since we
+don't even use 'crp' for anything up to this point, so I simply
+moved the allocation further down in the function so it only happens
+just before we actually need it.
 
-$ sh scripts/gcc-version.sh
-Error: No compiler specified.
-Usage:
-        scripts/gcc-version.sh <gcc-command>
+A bit further down we call backlight_device_register() and store the
+result in 'crp->cr_backlight_device'. In case of error we return
+'crp->cr_backlight_device' from the function, thus leaking 'crp'
+itself. The same thing happens with the call to lcd_device_register().
+To fix these two leaks I declare two new pointers to hold the return
+values, so that in case of error we can return the pointer (as before)
+but without leaking 'crp'.
+
+This version of the patch also adds missing
+backlight_device_unregister() / lcd_device_unregister() / pci_dev_put()
+calls to error paths.
+  Thanks to Richard Purdie <rpurdie@rpsys.net> for noticing.
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gcc-version.sh |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/video/backlight/cr_bllcd.c |   35 +++++++++++++++------------
+ 1 files changed, 20 insertions(+), 15 deletions(-)
 
-diff -puN scripts/gcc-version.sh~improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args scripts/gcc-version.sh
---- a/scripts/gcc-version.sh~improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args
-+++ a/scripts/gcc-version.sh
-@@ -9,10 +9,16 @@
- # gcc-2.95.3, `030301' for gcc-3.3.1, etc.
- #
+diff -puN drivers/video/backlight/cr_bllcd.c~fix-several-memory-leaks-in-cr_backlight_probe-take2 drivers/video/backlight/cr_bllcd.c
+--- a/drivers/video/backlight/cr_bllcd.c~fix-several-memory-leaks-in-cr_backlight_probe-take2
++++ a/drivers/video/backlight/cr_bllcd.c
+@@ -171,13 +171,11 @@ static struct lcd_ops cr_lcd_ops = {
  
--if [ $1 = "-p" ] ; then with_patchlevel=1; shift; fi
-+if [[ $1 = "-p" ]] ; then with_patchlevel=1; shift; fi
+ static int cr_backlight_probe(struct platform_device *pdev)
+ {
++	struct backlight_device *bdp;
++	struct lcd_device *ldp;
+ 	struct cr_panel *crp;
+ 	u8 dev_en;
  
- compiler="$*"
+-	crp = kzalloc(sizeof(*crp), GFP_KERNEL);
+-	if (crp == NULL)
+-		return -ENOMEM;
+-
+ 	lpc_dev = pci_get_device(PCI_VENDOR_ID_INTEL,
+ 					CRVML_DEVICE_LPC, NULL);
+ 	if (!lpc_dev) {
+@@ -193,27 +191,34 @@ static int cr_backlight_probe(struct pla
+ 		return -ENODEV;
+ 	}
  
-+if [ ${#compiler} -eq 0 ]; then
-+	echo "Error: No compiler specified."
-+	echo -e "Usage:\n\t$0 <gcc-command>"
-+	exit 1
-+fi
+-	crp->cr_backlight_device = backlight_device_register("cr-backlight",
+-							     &pdev->dev, NULL,
+-							     &cr_backlight_ops);
+-	if (IS_ERR(crp->cr_backlight_device)) {
++	bdp = backlight_device_register("cr-backlight",
++					&pdev->dev, NULL, &cr_backlight_ops);
++	if (IS_ERR(bdp)) {
+ 		pci_dev_put(lpc_dev);
+-		return PTR_ERR(crp->cr_backlight_device);
++		return PTR_ERR(bdp);
+ 	}
+ 
+-	crp->cr_lcd_device = lcd_device_register("cr-lcd",
+-							&pdev->dev, NULL,
+-							&cr_lcd_ops);
+-
+-	if (IS_ERR(crp->cr_lcd_device)) {
++	ldp = lcd_device_register("cr-lcd", &pdev->dev, NULL, &cr_lcd_ops);
++	if (IS_ERR(ldp)) {
++		backlight_device_unregister(bdp);
+ 		pci_dev_put(lpc_dev);
+-		return PTR_ERR(crp->cr_backlight_device);
++		return PTR_ERR(bdp);
+ 	}
+ 
+ 	pci_read_config_dword(lpc_dev, CRVML_REG_GPIOBAR,
+ 			      &gpio_bar);
+ 	gpio_bar &= ~0x3F;
+ 
++	crp = kzalloc(sizeof(*crp), GFP_KERNEL);
++	if (!crp) {
++		lcd_device_unregister(ldp);
++		backlight_device_unregister(bdp);
++		pci_dev_put(lpc_dev);
++		return -ENOMEM;
++	}
 +
- MAJOR=$(echo __GNUC__ | $compiler -E -xc - | tail -n 1)
- MINOR=$(echo __GNUC_MINOR__ | $compiler -E -xc - | tail -n 1)
- if [ "x$with_patchlevel" != "x" ] ; then
++	crp->cr_backlight_device = bdp;
++	crp->cr_lcd_device = ldp;
+ 	crp->cr_backlight_device->props.power = FB_BLANK_UNBLANK;
+ 	crp->cr_backlight_device->props.brightness = 0;
+ 	crp->cr_backlight_device->props.max_brightness = 0;
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
