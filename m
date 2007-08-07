@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memoryless-nodes-add-n_cpu-node-state.patch added to -mm tree
-Date: Tue, 07 Aug 2007 13:38:31 -0700
-Message-ID: <200708072038.l77KcVDX002837@imap1.linux-foundation.org>
+Subject: + memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch added to -mm tree
+Date: Tue, 07 Aug 2007 13:38:15 -0700
+Message-ID: <200708072038.l77KcFAc002809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38995 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43375 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754937AbXHGUjQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:39:16 -0400
+	by vger.kernel.org with ESMTP id S1755576AbXHGUjR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 16:39:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com, bob.picco@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.sche
 
 
 The patch titled
-     Memoryless nodes: Add N_CPU node state
+     Memoryless nodes: Fix interleave behavior for memoryless nodes
 has been added to the -mm tree.  Its filename is
-     memoryless-nodes-add-n_cpu-node-state.patch
+     memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,86 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memoryless nodes: Add N_CPU node state
+Subject: Memoryless nodes: Fix interleave behavior for memoryless nodes
 From: Christoph Lameter <clameter@sgi.com>
 
-We need the check for a node with cpu in zone reclaim.  Zone reclaim will not
-allow remote zone reclaim if a node has a cpu.
+MPOL_INTERLEAVE currently simply loops over all nodes.  Allocations on
+memoryless nodes will be redirected to nodes with memory.  This results in an
+imbalance because the neighboring nodes to memoryless nodes will get
+significantly more interleave hits that the rest of the nodes on the system.
+
+We can avoid this imbalance by clearing the nodes in the interleave node set
+that have no memory.  If we use the node map of the memory nodes instead of
+the online nodes then we have only the nodes we want.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Tested-by:  Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Tested-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Acked-by: Bob Picco <bob.picco@hp.com>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    1 +
- mm/page_alloc.c          |    4 +++-
- mm/vmscan.c              |    4 +---
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ mm/mempolicy.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/nodemask.h~memoryless-nodes-add-n_cpu-node-state include/linux/nodemask.h
---- a/include/linux/nodemask.h~memoryless-nodes-add-n_cpu-node-state
-+++ a/include/linux/nodemask.h
-@@ -349,6 +349,7 @@ enum node_states {
- #else
- 	N_HIGH_MEMORY = N_NORMAL_MEMORY,
- #endif
-+	N_CPU,		/* The node has one or more cpus */
- 	NR_NODE_STATES
- };
- 
-diff -puN mm/page_alloc.c~memoryless-nodes-add-n_cpu-node-state mm/page_alloc.c
---- a/mm/page_alloc.c~memoryless-nodes-add-n_cpu-node-state
-+++ a/mm/page_alloc.c
-@@ -2345,6 +2345,7 @@ static struct per_cpu_pageset boot_pages
- static int __cpuinit process_zones(int cpu)
- {
- 	struct zone *zone, *dzone;
-+	int node = cpu_to_node(cpu);
- 
- 	for_each_zone(zone) {
- 
-@@ -2352,7 +2353,7 @@ static int __cpuinit process_zones(int c
- 			continue;
- 
- 		zone_pcp(zone, cpu) = kmalloc_node(sizeof(struct per_cpu_pageset),
--					 GFP_KERNEL, cpu_to_node(cpu));
-+					 GFP_KERNEL, node);
- 		if (!zone_pcp(zone, cpu))
- 			goto bad;
- 
-@@ -2363,6 +2364,7 @@ static int __cpuinit process_zones(int c
- 			 	(zone->present_pages / percpu_pagelist_fraction));
- 	}
- 
-+	node_set_state(node, N_CPU);
- 	return 0;
- bad:
- 	for_each_zone(dzone) {
-diff -puN mm/vmscan.c~memoryless-nodes-add-n_cpu-node-state mm/vmscan.c
---- a/mm/vmscan.c~memoryless-nodes-add-n_cpu-node-state
-+++ a/mm/vmscan.c
-@@ -1842,7 +1842,6 @@ static int __zone_reclaim(struct zone *z
- 
- int zone_reclaim(struct zone *zone, gfp_t gfp_mask, unsigned int order)
- {
--	cpumask_t mask;
- 	int node_id;
- 
- 	/*
-@@ -1879,8 +1878,7 @@ int zone_reclaim(struct zone *zone, gfp_
- 	 * as wide as possible.
- 	 */
- 	node_id = zone_to_nid(zone);
--	mask = node_to_cpumask(node_id);
--	if (!cpus_empty(mask) && node_id != numa_node_id())
-+	if (node_state(node_id, N_CPU) && node_id != numa_node_id())
- 		return 0;
- 	return __zone_reclaim(zone, gfp_mask, order);
- }
+diff -puN mm/mempolicy.c~memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes mm/mempolicy.c
+--- a/mm/mempolicy.c~memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes
++++ a/mm/mempolicy.c
+@@ -183,7 +183,9 @@ static struct mempolicy *mpol_new(int mo
+ 	switch (mode) {
+ 	case MPOL_INTERLEAVE:
+ 		policy->v.nodes = *nodes;
+-		if (nodes_weight(*nodes) == 0) {
++		nodes_and(policy->v.nodes, policy->v.nodes,
++					node_states[N_HIGH_MEMORY]);
++		if (nodes_weight(policy->v.nodes) == 0) {
+ 			kmem_cache_free(policy_cache, policy);
+ 			return ERR_PTR(-EINVAL);
+ 		}
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
