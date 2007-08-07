@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch added to -mm tree
-Date: Tue, 07 Aug 2007 15:09:42 -0700
-Message-ID: <200708072209.l77M9gUY007310@imap1.linux-foundation.org>
+Subject: + emu10k1-remove-redundant-memset.patch added to -mm tree
+Date: Tue, 07 Aug 2007 15:09:44 -0700
+Message-ID: <200708072209.l77M9iLI007313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33647 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44069 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964930AbXHGWJ4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:09:56 -0400
+	by vger.kernel.org with ESMTP id S935511AbXHGWKE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:10:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, kkeil@suse.de
+Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     isdn: guard against a potential NULL pointer dereference in old_capi_manufacturer()
+     emu10k1: remove redundant memset
 has been added to the -mm tree.  Its filename is
-     isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+     emu10k1-remove-redundant-memset.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,86 +25,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: isdn: guard against a potential NULL pointer dereference in old_capi_manufacturer()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: emu10k1: remove redundant memset
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-In drivers/isdn/capi/kcapi.c::old_capi_manufacturer(), if the call to
-get_capi_ctr_by_nr(ldef.contr); in line 823 returns NULL, then we'll be
-dereferencing a NULL pointer in the very next line.
+This patch removes memset() from snd_emu10k1_fx8010_info() which apparently
+isn't needed there.  Upatched code uses:
 
-(Found by Coverity checker as bug #402)
+memset(info, 0, sizeof(info));
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Karsten Keil <kkeil@suse.de>
+where 'info' is a pointer and therefore only first 4 bytes of 'info' gets
+cleared on a 32bit machine.  Anyway looking at the code zeoring this memory
+region isn't needed at all because the snd_emu10k1_fx8010_info() function
+initializes all the 'info' fields on its own.  So that's why this code works
+at all in its original form.
+
+This patch removes this redundant code.  Also snd_emu10k1_fx8010_info() can't
+fail so lets save some bytes and change its return type to void.
+
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/kcapi.c |    2 ++
- 1 files changed, 2 insertions(+)
+ sound/pci/emu10k1/emufx.c |    9 ++-------
+ 1 files changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN drivers/isdn/capi/kcapi.c~isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer drivers/isdn/capi/kcapi.c
---- a/drivers/isdn/capi/kcapi.c~isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer
-+++ a/drivers/isdn/capi/kcapi.c
-@@ -821,6 +821,8 @@ static int old_capi_manufacturer(unsigne
- 				return -EFAULT;
- 		}
- 		card = get_capi_ctr_by_nr(ldef.contr);
-+		if (!card)
-+			return -EINVAL;
- 		card = capi_ctr_get(card);
- 		if (!card)
- 			return -ESRCH;
+diff -puN sound/pci/emu10k1/emufx.c~emu10k1-remove-redundant-memset sound/pci/emu10k1/emufx.c
+--- a/sound/pci/emu10k1/emufx.c~emu10k1-remove-redundant-memset
++++ a/sound/pci/emu10k1/emufx.c
+@@ -2440,14 +2440,13 @@ static void copy_string(char *dst, char 
+ 		strcpy(dst, src);
+ }
+ 
+-static int snd_emu10k1_fx8010_info(struct snd_emu10k1 *emu,
++static void snd_emu10k1_fx8010_info(struct snd_emu10k1 *emu,
+ 				   struct snd_emu10k1_fx8010_info *info)
+ {
+ 	char **fxbus, **extin, **extout;
+ 	unsigned short fxbus_mask, extin_mask, extout_mask;
+ 	int res;
+ 
+-	memset(info, 0, sizeof(info));
+ 	info->internal_tram_size = emu->fx8010.itram_size;
+ 	info->external_tram_size = emu->fx8010.etram_pages.bytes / 2;
+ 	fxbus = fxbuses;
+@@ -2464,7 +2463,6 @@ static int snd_emu10k1_fx8010_info(struc
+ 	for (res = 16; res < 32; res++, extout++)
+ 		copy_string(info->extout_names[res], extout_mask & (1 << res) ? *extout : NULL, "Unused", res);
+ 	info->gpr_controls = emu->fx8010.gpr_count;
+-	return 0;
+ }
+ 
+ static int snd_emu10k1_fx8010_ioctl(struct snd_hwdep * hw, struct file *file, unsigned int cmd, unsigned long arg)
+@@ -2485,10 +2483,7 @@ static int snd_emu10k1_fx8010_ioctl(stru
+ 		info = kmalloc(sizeof(*info), GFP_KERNEL);
+ 		if (!info)
+ 			return -ENOMEM;
+-		if ((res = snd_emu10k1_fx8010_info(emu, info)) < 0) {
+-			kfree(info);
+-			return res;
+-		}
++		snd_emu10k1_fx8010_info(emu, info);
+ 		if (copy_to_user(argp, info, sizeof(*info))) {
+ 			kfree(info);
+ 			return -EFAULT;
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-git-acpi.patch
-git-alsa.patch
-au88x0-mem-leak-fix-in-snd_vortex_create.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-powerpc-clean-out-a-bunch-of-duplicate-includes.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-scripts-ver_linux-correct-printing-of-binutils-version.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
 git-mtd.patch
-git-ubi.patch
-clean-up-duplicate-includes-in-drivers-net.patch
-clean-up-duplicate-includes-in-drivers-atm.patch
-clean-up-duplicate-includes-in-net-atm.patch
-clean-up-duplicate-includes-in-net-ipv4.patch
-clean-up-duplicate-includes-in-net-ipv6.patch
-clean-up-duplicate-includes-in-net-sched.patch
-clean-up-duplicate-includes-in-net-sunrpc.patch
-clean-up-duplicate-includes-in-net-tipc.patch
-clean-up-duplicate-includes-in-net-xfrm.patch
-dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-clean-up-duplicate-includes-in-drivers-block.patch
-clean-up-duplicate-includes-in-arch-i386-xen.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-fix-several-memory-leaks-in-cr_backlight_probe-take2.patch
-fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
-improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-documentation-sysrq-description-of-h-slightly-inaccurate.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+mtd-add-module-license-to-mtdbdi.patch
+usb-remove-redundant-memset-from-amd5536udc.patch
+drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc.patch
+drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch
+drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
+arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+emu10k1-remove-redundant-memset.patch
