@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch added to -mm tree
-Date: Tue, 07 Aug 2007 15:09:34 -0700
-Message-ID: <200708072209.l77M9Y6k007298@imap1.linux-foundation.org>
+Subject: + fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch added to -mm tree
+Date: Tue, 07 Aug 2007 15:09:30 -0700
+Message-ID: <200708072209.l77M9Utw007292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45526 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35976 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964806AbXHGWJm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:09:42 -0400
+	by vger.kernel.org with ESMTP id S935474AbXHGWJk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 18:09:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jesper.juhl@gmail.com
 
 
 The patch titled
-     Fix a potential NULL pointer deref in the aic7xxx, ahc_print_register() function
+     fix a potential NULL pointer deref in XFS on failed mount.
 has been added to the -mm tree.  Its filename is
-     fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
+     fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix a potential NULL pointer deref in the aic7xxx, ahc_print_register() function
+Subject: fix a potential NULL pointer deref in XFS on failed mount.
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
-The Coverity checker noticed that we have a potential NULL pointer
-deref in drivers/scsi/aic7xxx/aic7xxx_core.c::ahc_print_register().
-This patch handles it by adding the same test against NULL that is
-used elsewhere in the same function.
+The Coverity checker spotted (as bug #346) a potential problem in XFS.
+
+The problem is that if, in xfs_mount(), this code triggers:
+
+       ...
+       if (!mp->m_logdev_targp)
+               goto error0;
+       ...
+
+Then we'll end up calling xfs_unmountfs_close() with a NULL
+'mp->m_logdev_targp'.
+This in turn will result in a call to xfs_free_buftarg() with its 'btp'
+argument == NULL. xfs_free_buftarg() dereferences 'btp' leading to
+a NULL pointer dereference and crash.
+
+I think this can happen, since the fatal call to xfs_free_buftarg()
+happens when 'm_logdev_targp != m_ddev_targp' and due to a check of
+'m_ddev_targp' against NULL in xfs_mount() (and subsequent return if it is
+NULL) the two will never both be NULL when we hit the error0 label from
+the two lines cited above.
+
+This patch fixes the issue by checking mp->m_logdev_targp against NULL
+in xfs_unmountfs_close() and doing the proper xfs_blkdev_put(logdev);
+and xfs_blkdev_put(rtdev); on (!mp->m_rtdev_targp) in xfs_mount().
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic7xxx/aic7xxx_core.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ fs/xfs/xfs_mount.c  |    2 +-
+ fs/xfs/xfs_vfsops.c |   10 ++++++++--
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/aic7xxx/aic7xxx_core.c~fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function drivers/scsi/aic7xxx/aic7xxx_core.c
---- a/drivers/scsi/aic7xxx/aic7xxx_core.c~fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function
-+++ a/drivers/scsi/aic7xxx/aic7xxx_core.c
-@@ -6557,7 +6557,8 @@ ahc_print_register(ahc_reg_parse_entry_t
- 	printed = printf("%s[0x%x]", name, value);
- 	if (table == NULL) {
- 		printed += printf(" ");
--		*cur_column += printed;
-+		if (cur_column != NULL)
-+			*cur_column += printed;
- 		return (printed);
+diff -puN fs/xfs/xfs_mount.c~fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount fs/xfs/xfs_mount.c
+--- a/fs/xfs/xfs_mount.c~fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount
++++ a/fs/xfs/xfs_mount.c
+@@ -1275,7 +1275,7 @@ xfs_unmountfs(xfs_mount_t *mp, struct cr
+ void
+ xfs_unmountfs_close(xfs_mount_t *mp, struct cred *cr)
+ {
+-	if (mp->m_logdev_targp != mp->m_ddev_targp)
++	if (mp->m_logdev_targp && mp->m_logdev_targp != mp->m_ddev_targp)
+ 		xfs_free_buftarg(mp->m_logdev_targp, 1);
+ 	if (mp->m_rtdev_targp)
+ 		xfs_free_buftarg(mp->m_rtdev_targp, 1);
+diff -puN fs/xfs/xfs_vfsops.c~fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount fs/xfs/xfs_vfsops.c
+--- a/fs/xfs/xfs_vfsops.c~fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount
++++ a/fs/xfs/xfs_vfsops.c
+@@ -482,13 +482,19 @@ xfs_mount(
  	}
- 	printed_mask = 0;
+ 	if (rtdev) {
+ 		mp->m_rtdev_targp = xfs_alloc_buftarg(rtdev, 1);
+-		if (!mp->m_rtdev_targp)
++		if (!mp->m_rtdev_targp) {
++			xfs_blkdev_put(logdev);
++			xfs_blkdev_put(rtdev);
+ 			goto error0;
++		}
+ 	}
+ 	mp->m_logdev_targp = (logdev && logdev != ddev) ?
+ 				xfs_alloc_buftarg(logdev, 1) : mp->m_ddev_targp;
+-	if (!mp->m_logdev_targp)
++	if (!mp->m_logdev_targp) {
++		xfs_blkdev_put(logdev);
++		xfs_blkdev_put(rtdev);
+ 		goto error0;
++	}
+ 
+ 	/*
+ 	 * Setup flags based on mount(2) options and then the superblock
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
