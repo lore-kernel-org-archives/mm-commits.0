@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-r8a66597-hcd-clean-up-error-path.patch added to -mm tree
-Date: Tue, 07 Aug 2007 18:25:15 -0700
-Message-ID: <200708080125.l781PFW6014508@imap1.linux-foundation.org>
+Subject: + wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix.patch added to -mm tree
+Date: Tue, 07 Aug 2007 19:19:06 -0700
+Message-ID: <200708080219.l782J66S016338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53646 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40416 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935182AbXHHBZz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 21:25:55 -0400
+	by vger.kernel.org with ESMTP id S1756577AbXHHCUR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 22:20:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, greg@kroah.com, shimoda.yoshihiro@renesas.com, stern@rowland.harvard.edu
+Cc: apw@shadowen.org
 
 
 The patch titled
-     usb: r8a66597-hcd: Clean up error path.
+     synchronous lumpy: improve commentary on writeback wait
 has been added to the -mm tree.  Its filename is
-     usb-r8a66597-hcd-clean-up-error-path.patch
+     wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb: r8a66597-hcd: Clean up error path.
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: synchronous lumpy: improve commentary on writeback wait
+From: Andy Whitcroft <apw@shadowen.org>
 
-Currently when registration fails we're left with a stray reference to
-release_mem_region(), this leads to the following case:
+Improve code commentary on the initial writeback wait in synchronous
+reclaim mode.
 
-    r8a66597_hcd r8a66597_hcd: irq 13, io base 0x18040000
-    drivers/usb/host/r8a66597-hcd.c: register access fail.
-    r8a66597_hcd r8a66597_hcd: startup error -6
-    r8a66597_hcd r8a66597_hcd: USB bus 1 deregistered
-    drivers/usb/host/r8a66597-hcd.c: Failed to add hcd
-    Trying to free nonexistent resource <0000000018040000-0000000018040000>
-
-This fixes it up.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Yoshihiro Shimoda <shimoda.yoshihiro@renesas.com>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/r8a66597-hcd.c |    2 --
- 1 files changed, 2 deletions(-)
+ mm/vmscan.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/usb/host/r8a66597-hcd.c~usb-r8a66597-hcd-clean-up-error-path drivers/usb/host/r8a66597-hcd.c
---- a/drivers/usb/host/r8a66597-hcd.c~usb-r8a66597-hcd-clean-up-error-path
-+++ a/drivers/usb/host/r8a66597-hcd.c
-@@ -2208,8 +2208,6 @@ static int __init r8a66597_probe(struct 
- clean_up:
- 	if (reg)
- 		iounmap(reg);
--	if (res)
--		release_mem_region(res->start, 1);
+diff -puN mm/vmscan.c~wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix mm/vmscan.c
+--- a/mm/vmscan.c~wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix
++++ a/mm/vmscan.c
+@@ -479,6 +479,14 @@ static unsigned long shrink_page_list(st
+ 			(PageSwapCache(page) && (sc->gfp_mask & __GFP_IO));
  
- 	return ret;
- }
+ 		if (PageWriteback(page)) {
++			/*
++			 * Synchronous reclaim is performed in two passes,
++			 * first an asynchronous pass over the list to
++			 * start parallel writeback, and a second synchronous
++			 * pass to wait for the IO to complete.  Wait here
++			 * for any page for which writeback has already
++			 * started.
++			 */
+ 			if (sync_writeback == PAGEOUT_IO_SYNC && may_enter_fs)
+ 				wait_on_page_writeback(page);
+ 			else
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-pvr2fb-consolidated-cleanup-of-pvr2fbc.patch
-apply-memory-policies-to-top-two-highest-zones-when-highest-zone-is-zone_movable.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-net-smc91x-build-fixes-for-general-sh-boards.patch
-git-sh.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-usb-enable-hcd-support-on-sh-unconditionally.patch
-usb-r8a66597-hcd-clean-up-error-path.patch
-nohz-fix-nohz-x86-dyntick-idle-handling.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-clean-up-duplicate-includes-in-mm.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
+update-checkpatchpl-to-version-009.patch
+finish-i386-and-x86-64-sysdata-conversion.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
+generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+sparc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch
+wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch
+wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+page-owner-tracking-leak-detector.patch
