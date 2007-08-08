@@ -1,32 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - ssb-extif-timing-serial-port-initialization-fix.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 16:26:35 -0700
-Message-ID: <200708082331.l78NVQtZ004056@imap1.linux-foundation.org>
+Subject: - use-ssb-extif-in-ssb-mips-core-driver-fix.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 16:26:59 -0700
+Message-ID: <200708082331.l78NVpvm004068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50485 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54874 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932266AbXHHXcu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 19:32:50 -0400
+	by vger.kernel.org with ESMTP id S1758678AbXHHXdN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 19:33:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mb@bu3sch.de, aurelien@aurel32.net, nbd@openwrt.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ssb: Make extif driver compilation depend on extif config
+     ssb: Fix extif compile error
 has been removed from the -mm tree.  Its filename was
-     ssb-extif-timing-serial-port-initialization-fix.patch
+     use-ssb-extif-in-ssb-mips-core-driver-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: ssb: Make extif driver compilation depend on extif config
+Subject: ssb: Fix extif compile error
 From: Michael Buesch <mb@bu3sch.de>
 
-Compilation of the extif driver must depend on
-CONFIG_SSB_DRIVER_EXTIF.
-Sorry, my fault.
+This is a compilation fix for a recently applied patch
+[PATCH 2/3] Use SSB EXTIF in SSB MIPS core driver
+when the extif core is not enabled.
+
+This also makes the extif driver depend on CONFIG_SSB_DRIVER_EXTIF
+(sorry, my mistake).
 
 Signed-off-by: Michael Buesch <mb@bu3sch.de>
 Cc: Felix Fietkau <nbd@openwrt.org>
@@ -34,22 +37,80 @@ Cc: Aurelien Jarno <aurelien@aurel32.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ssb/Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ssb/main.c                   |    2 -
+ include/linux/ssb/ssb_driver_extif.h |   36 ++++++++++++++++++++++---
+ 2 files changed, 33 insertions(+), 5 deletions(-)
 
-diff -puN drivers/ssb/Makefile~ssb-extif-timing-serial-port-initialization-fix drivers/ssb/Makefile
---- a/drivers/ssb/Makefile~ssb-extif-timing-serial-port-initialization-fix
-+++ a/drivers/ssb/Makefile
-@@ -7,7 +7,8 @@ ssb-$(CONFIG_SSB_PCMCIAHOST)		+= pcmcia.
+diff -puN drivers/ssb/main.c~use-ssb-extif-in-ssb-mips-core-driver-fix drivers/ssb/main.c
+--- a/drivers/ssb/main.c~use-ssb-extif-in-ssb-mips-core-driver-fix
++++ a/drivers/ssb/main.c
+@@ -819,7 +819,7 @@ u32 ssb_clockspeed(struct ssb_bus *bus)
+ 	u32 plltype;
+ 	u32 clkctl_n, clkctl_m;
  
- # built-in drivers
- ssb-y					+= driver_chipcommon.o
--ssb-$(CONFIG_SSB_DRIVER_MIPS)		+= driver_mipscore.o driver_extif.o
-+ssb-$(CONFIG_SSB_DRIVER_MIPS)		+= driver_mipscore.o
-+ssb-$(CONFIG_SSB_DRIVER_EXTIF)		+= driver_extif.o
- ssb-$(CONFIG_SSB_DRIVER_PCICORE)	+= driver_pcicore.o
+-	if (bus->extif.dev)
++	if (ssb_extif_available(&bus->extif))
+ 		ssb_extif_get_clockcontrol(&bus->extif, &plltype,
+ 					   &clkctl_n, &clkctl_m);
+ 	else if (bus->chipco.dev)
+diff -puN include/linux/ssb/ssb_driver_extif.h~use-ssb-extif-in-ssb-mips-core-driver-fix include/linux/ssb/ssb_driver_extif.h
+--- a/include/linux/ssb/ssb_driver_extif.h~use-ssb-extif-in-ssb-mips-core-driver-fix
++++ a/include/linux/ssb/ssb_driver_extif.h
+@@ -20,10 +20,6 @@
+ #ifndef LINUX_SSB_EXTIFCORE_H_
+ #define LINUX_SSB_EXTIFCORE_H_
  
- obj-$(CONFIG_SSB)			+= ssb.o
+-struct ssb_extif {
+-	struct ssb_device *dev;
+-};
+-
+ /* external interface address space */
+ #define	SSB_EXTIF_PCMCIA_MEMBASE(x)	(x)
+ #define	SSB_EXTIF_PCMCIA_IOBASE(x)	((x) + 0x100000)
+@@ -156,6 +152,19 @@ struct ssb_extif {
+ /* watchdog */
+ #define SSB_EXTIF_WATCHDOG_CLK		48000000	/* Hz */
+ 
++
++
++#ifdef CONFIG_SSB_DRIVER_EXTIF
++
++struct ssb_extif {
++	struct ssb_device *dev;
++};
++
++static inline bool ssb_extif_available(struct ssb_extif *extif)
++{
++	return (extif->dev != NULL);
++}
++
+ extern void ssb_extif_get_clockcontrol(struct ssb_extif *extif,
+ 			               u32 *plltype, u32 *n, u32 *m);
+ 
+@@ -167,4 +176,23 @@ extern int ssb_extif_serial_init(struct 
+ 				 struct ssb_serial_port *ports);
+ #endif /* CONFIG_SSB_SERIAL */
+ 
++
++#else /* CONFIG_SSB_DRIVER_EXTIF */
++/* extif disabled */
++
++struct ssb_extif {
++};
++
++static inline bool ssb_extif_available(struct ssb_extif *extif)
++{
++	return 0;
++}
++
++static inline
++void ssb_extif_get_clockcontrol(struct ssb_extif *extif,
++			        u32 *plltype, u32 *n, u32 *m)
++{
++}
++
++#endif /* CONFIG_SSB_DRIVER_EXTIF */
+ #endif /* LINUX_SSB_EXTIFCORE_H_ */
 _
 
 Patches currently in -mm which might be from mb@bu3sch.de are
@@ -66,7 +127,6 @@ watchdog-support-3.patch
 ssb-chipcommon-add-function-to-get-processor-clock.patch
 ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
 ssb-mainc-needs-dma-mappingh.patch
-ssb-extif-timing-serial-port-initialization-fix.patch
 use-ssb-extif-in-ssb-mips-core-driver.patch
 use-ssb-extif-in-ssb-mips-core-driver-fix.patch
 add-buswidth-to-ssb-mips-core-flash-driver.patch
