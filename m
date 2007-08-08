@@ -1,192 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - ssb-chipcommon-add-function-to-get-processor-clock-fix.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 16:54:23 -0700
-Message-ID: <200708082359.l78NxEwM005070@imap1.linux-foundation.org>
+Subject: - use-ssb-extif-in-ssb-mips-core-driver.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 16:54:27 -0700
+Message-ID: <200708082359.l78NxJWS005076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47166 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38505 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762475AbXHIAAI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 20:00:08 -0400
+	by vger.kernel.org with ESMTP id S1756674AbXHIAAM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 20:00:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aurelien@aurel32.net, mb@bu3sch.de, nbd@openwrt.org, mm-commits@vger.kernel.org
+To: aurelien@aurel32.net, mb@bu3sch.de, nbd@openwrt.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ssb-chipcommon-add-function-to-get-processor-clock-fix
+     Use SSB EXTIF in SSB MIPS core driver
 has been removed from the -mm tree.  Its filename was
-     ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
+     use-ssb-extif-in-ssb-mips-core-driver.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ssb-chipcommon-add-function-to-get-processor-clock-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Use SSB EXTIF in SSB MIPS core driver
+From: Aurelien Jarno <aurelien@aurel32.net>
 
-Cc: Aurelien Jarno <aurelien@aurel32.net>
+Use the functions added in the previous patch to do serial and timing
+initializations for EXTIF, currently marked as TODO.  It also implements the
+ssb_cpu_clock() and export it.  This function is needed to support the
+BCM947xx CPUs.
+
 Cc: Felix Fietkau <nbd@openwrt.org>
-Cc: Michael Buesch <mb@bu3sch.de>
+Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ssb/driver_chipcommon.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/ssb/driver_mipscore.c       |   89 +++++++-------------------
+ drivers/ssb/main.c                  |    9 +-
+ include/linux/ssb/ssb_driver_mips.h |    1 
+ 3 files changed, 31 insertions(+), 68 deletions(-)
 
-diff -puN drivers/ssb/driver_chipcommon.c~ssb-chipcommon-add-function-to-get-processor-clock-fix drivers/ssb/driver_chipcommon.c
---- a/drivers/ssb/driver_chipcommon.c~ssb-chipcommon-add-function-to-get-processor-clock-fix
-+++ a/drivers/ssb/driver_chipcommon.c
-@@ -263,19 +263,19 @@ void ssb_chipco_get_clockcpu(struct ssb_
- 	*n = chipco_read32(cc, SSB_CHIPCO_CLOCK_N);
- 	*plltype = (cc->capabilities & SSB_CHIPCO_CAP_PLLT);
- 	switch (*plltype) {
--		case SSB_PLLTYPE_2:
--		case SSB_PLLTYPE_4:
--		case SSB_PLLTYPE_6:
--		case SSB_PLLTYPE_7:
--			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_MIPS);
--			break;
--		case SSB_PLLTYPE_3:
--			/* 5350 uses m2 to control mips */
--			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_M2);
--			break;
--		default:
--			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_SB);
--			break;
-+	case SSB_PLLTYPE_2:
-+	case SSB_PLLTYPE_4:
-+	case SSB_PLLTYPE_6:
-+	case SSB_PLLTYPE_7:
-+		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_MIPS);
-+		break;
-+	case SSB_PLLTYPE_3:
-+		/* 5350 uses m2 to control mips */
-+		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_M2);
-+		break;
-+	default:
-+		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_SB);
-+		break;
+diff -puN drivers/ssb/driver_mipscore.c~use-ssb-extif-in-ssb-mips-core-driver drivers/ssb/driver_mipscore.c
+--- a/drivers/ssb/driver_mipscore.c~use-ssb-extif-in-ssb-mips-core-driver
++++ a/drivers/ssb/driver_mipscore.c
+@@ -117,51 +117,10 @@ static void set_irq(struct ssb_device *d
+ 	ssb_write32(mdev, SSB_IPSFLAG, irqflag);
+ }
+ 
+-/* XXX: leave here or move into separate extif driver? */
+-static int ssb_extif_serial_init(struct ssb_device *dev, struct ssb_serial_ports *ports)
+-{
+-
+-}
+-
+-
+ static void ssb_mips_serial_init(struct ssb_mipscore *mcore)
+ {
+ 	struct ssb_bus *bus = mcore->dev->bus;
+ 
+-	//TODO if (EXTIF available
+-#if 0
+-		extifregs_t *eir = (extifregs_t *) regs;
+-		sbconfig_t *sb;
+-
+-		/* Determine external UART register base */
+-		sb = (sbconfig_t *)((ulong) eir + SBCONFIGOFF);
+-		base = EXTIF_CFGIF_BASE(sb_base(R_REG(&sb->sbadmatch1)));
+-
+-		/* Determine IRQ */
+-		irq = sb_irq(sbh);
+-
+-		/* Disable GPIO interrupt initially */
+-		W_REG(&eir->gpiointpolarity, 0);
+-		W_REG(&eir->gpiointmask, 0);
+-
+-		/* Search for external UARTs */
+-		n = 2;
+-		for (i = 0; i < 2; i++) {
+-			regs = (void *) REG_MAP(base + (i * 8), 8);
+-			if (BCMINIT(serial_exists)(regs)) {
+-				/* Set GPIO 1 to be the external UART IRQ */
+-				W_REG(&eir->gpiointmask, 2);
+-				if (add)
+-					add(regs, irq, 13500000, 0);
+-			}
+-		}
+-
+-		/* Add internal UART if enabled */
+-		if (R_REG(&eir->corecontrol) & CC_UE)
+-			if (add)
+-				add((void *) &eir->uartdata, irq, sb_clock(sbh), 2);
+-
+-#endif
+ 	if (bus->extif.dev)
+ 		mcore->nr_serial_ports = ssb_extif_serial_init(&bus->extif, mcore->serial_ports);
+ 	else if (bus->chipco.dev)
+@@ -183,9 +142,29 @@ static void ssb_mips_flash_detect(struct
  	}
  }
  
+-
+-static void ssb_cpu_clock(struct ssb_mipscore *mcore)
++u32 ssb_cpu_clock(struct ssb_mipscore *mcore)
+ {
++	struct ssb_bus *bus = mcore->dev->bus;
++	u32 pll_type, n, m, rate = 0;
++
++	if (bus->extif.dev) {
++		ssb_extif_get_clockcontrol(&bus->extif, &pll_type, &n, &m);
++	} else if (bus->chipco.dev) {
++		ssb_chipco_get_clockcpu(&bus->chipco, &pll_type, &n, &m);
++	} else
++		return 0;
++
++	if ((pll_type == SSB_PLLTYPE_5) || (bus->chip_id == 0x5365)) {
++		rate = 200000000;
++	} else {
++		rate = ssb_calc_clock_rate(pll_type, n, m);
++	}
++
++	if (pll_type == SSB_PLLTYPE_6) {
++		rate *= 2;
++	}
++
++	return rate;
+ }
+ 
+ void ssb_mipscore_init(struct ssb_mipscore *mcore)
+@@ -205,27 +184,9 @@ void ssb_mipscore_init(struct ssb_mipsco
+ 		hz = 100000000;
+ 	ns = 1000000000 / hz;
+ 
+-//TODO
+-#if 0
+-	if (have EXTIF) {
+-		/* Initialize extif so we can get to the LEDs and external UART */
+-		W_REG(&eir->prog_config, CF_EN);
+-
+-		/* Set timing for the flash */
+-		tmp = CEIL(10, ns) << FW_W3_SHIFT;	/* W3 = 10nS */
+-		tmp = tmp | (CEIL(40, ns) << FW_W1_SHIFT); /* W1 = 40nS */
+-		tmp = tmp | CEIL(120, ns);		/* W0 = 120nS */
+-		W_REG(&eir->prog_waitcount, tmp);	/* 0x01020a0c for a 100Mhz clock */
+-
+-		/* Set programmable interface timing for external uart */
+-		tmp = CEIL(10, ns) << FW_W3_SHIFT;	/* W3 = 10nS */
+-		tmp = tmp | (CEIL(20, ns) << FW_W2_SHIFT); /* W2 = 20nS */
+-		tmp = tmp | (CEIL(100, ns) << FW_W1_SHIFT); /* W1 = 100nS */
+-		tmp = tmp | CEIL(120, ns);		/* W0 = 120nS */
+-		W_REG(&eir->prog_waitcount, tmp);
+-	}
+-#endif
+-	if (bus->chipco.dev)
++	if (bus->extif.dev)
++		ssb_extif_timing_init(&bus->extif, ns);
++	else if (bus->chipco.dev)
+ 		ssb_chipco_timing_init(&bus->chipco, ns);
+ 
+ 	/* Assign IRQs to all cores on the bus, start with irq line 2, because serial usually takes 1 */
+diff -puN drivers/ssb/main.c~use-ssb-extif-in-ssb-mips-core-driver drivers/ssb/main.c
+--- a/drivers/ssb/main.c~use-ssb-extif-in-ssb-mips-core-driver
++++ a/drivers/ssb/main.c
+@@ -819,12 +819,13 @@ u32 ssb_clockspeed(struct ssb_bus *bus)
+ 	u32 plltype;
+ 	u32 clkctl_n, clkctl_m;
+ 
+-	//TODO if EXTIF: PLLTYPE == 1, read n from clockcontrol_n, m from clockcontrol_sb
+-
+-	if (bus->chipco.dev) {
++	if (bus->extif.dev)
++		ssb_extif_get_clockcontrol(&bus->extif, &plltype,
++					   &clkctl_n, &clkctl_m);
++	else if (bus->chipco.dev)
+ 		ssb_chipco_get_clockcontrol(&bus->chipco, &plltype,
+ 					    &clkctl_n, &clkctl_m);
+-	} else
++	else
+ 		return 0;
+ 
+ 	if (bus->chip_id == 0x5365) {
+diff -puN include/linux/ssb/ssb_driver_mips.h~use-ssb-extif-in-ssb-mips-core-driver include/linux/ssb/ssb_driver_mips.h
+--- a/include/linux/ssb/ssb_driver_mips.h~use-ssb-extif-in-ssb-mips-core-driver
++++ a/include/linux/ssb/ssb_driver_mips.h
+@@ -25,6 +25,7 @@ struct ssb_mipscore {
+ };
+ 
+ extern void ssb_mipscore_init(struct ssb_mipscore *mcore);
++extern u32 ssb_cpu_clock(struct ssb_mipscore *mcore);
+ 
+ extern unsigned int ssb_mips_irq(struct ssb_device *dev);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aurelien@aurel32.net are
 
-genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
-fbcon-kill-compile-warning-fix.patch
-fix-serial-buffer-memory-leak-fix.patch
-mtdchar-build-fix.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
 git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-platform-ide-driver.patch
-ide-arm-hack.patch
-mmc-make-it-build.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-ax88796-printk-fixes.patch
-natsemi-fix-netdev-error-acounting.patch
-git-ixgbe-build-fix.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
 git-wireless.patch
-ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
-ssb-mainc-needs-dma-mappingh.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
-git-kgdb-fixup.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
-pci-align-bar-settings-for-legacy-mode-ide-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-mm-bdi-init-hooks-fix.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+use-ssb-extif-in-ssb-mips-core-driver.patch
+add-buswidth-to-ssb-mips-core-flash-driver.patch
