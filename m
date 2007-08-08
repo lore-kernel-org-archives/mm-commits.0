@@ -1,54 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - remove-get_perm_addr-from-ucc_geth_ethtoolc.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 12:07:52 -0700
-Message-ID: <200708081907.l78J7q6a025801@imap1.linux-foundation.org>
+Subject: - aha152x-in-debug-mode.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 12:08:02 -0700
+Message-ID: <200708081908.l78J82mj025842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42299 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41388 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937449AbXHHTI7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:08:59 -0400
+	by vger.kernel.org with ESMTP id S1755532AbXHHTQj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:16:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.altenberg@linutronix.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove get_perm_addr from ucc_geth_ethtool.c
+     aha152x in debug mode
 has been removed from the -mm tree.  Its filename was
-     remove-get_perm_addr-from-ucc_geth_ethtoolc.patch
+     aha152x-in-debug-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove get_perm_addr from ucc_geth_ethtool.c
-From: Jan Altenberg <jan.altenberg@linutronix.de>
+Subject: aha152x in debug mode
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This is needed because commit 313674afa8fdced2fe79f50f38e1c387b63d8790
-inlines the generic function to the caller.
+The symbol <debug_locks> conflicts with the rather global one in
+include/linux/locks.h.
 
-Signed-off-by: Jan Altenberg <jan.altenberg@linutronix.de>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ucc_geth_ethtool.c |    1 -
- 1 files changed, 1 deletion(-)
+ drivers/scsi/aha152x.c |   10 +++++-----
+ drivers/scsi/aha152x.h |    2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/net/ucc_geth_ethtool.c~remove-get_perm_addr-from-ucc_geth_ethtoolc drivers/net/ucc_geth_ethtool.c
---- a/drivers/net/ucc_geth_ethtool.c~remove-get_perm_addr-from-ucc_geth_ethtoolc
-+++ a/drivers/net/ucc_geth_ethtool.c
-@@ -379,7 +379,6 @@ static const struct ethtool_ops uec_etht
- 	.get_stats_count        = uec_get_stats_count,
- 	.get_strings            = uec_get_strings,
- 	.get_ethtool_stats      = uec_get_ethtool_stats,
--	.get_perm_addr          = ethtool_op_get_perm_addr,
- };
+diff -puN drivers/scsi/aha152x.c~aha152x-in-debug-mode drivers/scsi/aha152x.c
+--- a/drivers/scsi/aha152x.c~aha152x-in-debug-mode
++++ a/drivers/scsi/aha152x.c
+@@ -289,18 +289,18 @@ static LIST_HEAD(aha152x_host_list);
+ 		if(spin_is_locked(&QLOCK)) { \
+ 			DPRINTK(debug_intr, DEBUG_LEAD "(%s:%d) already locked at %s:%d\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__, QLOCKER, QLOCKERL); \
+ 		} \
+-		DPRINTK(debug_locks, DEBUG_LEAD "(%s:%d) locking\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
++		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) locking\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
+ 		spin_lock_irqsave(&QLOCK,flags); \
+-		DPRINTK(debug_locks, DEBUG_LEAD "(%s:%d) locked\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
++		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) locked\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
+ 		QLOCKER=__FUNCTION__; \
+ 		QLOCKERL=__LINE__; \
+ 	} while(0)
  
- void uec_set_ethtool_ops(struct net_device *netdev)
+ #define DO_UNLOCK(flags)	\
+ 	do { \
+-		DPRINTK(debug_locks, DEBUG_LEAD "(%s:%d) unlocking (locked at %s:%d)\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__, QLOCKER, QLOCKERL); \
++		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) unlocking (locked at %s:%d)\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__, QLOCKER, QLOCKERL); \
+ 		spin_unlock_irqrestore(&QLOCK,flags); \
+-		DPRINTK(debug_locks, DEBUG_LEAD "(%s:%d) unlocked\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
++		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) unlocked\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
+ 		QLOCKER="(not locked)"; \
+ 		QLOCKERL=0; \
+ 	} while(0)
+@@ -3395,7 +3395,7 @@ static int aha152x_proc_info(struct Scsi
+ 	PDEBUG(debug_datai, "data in");
+ 	PDEBUG(debug_datao, "data out");
+ 	PDEBUG(debug_eh, "eh");
+-	PDEBUG(debug_locks, "locks");
++	PDEBUG(debug_locking, "locks");
+ 	PDEBUG(debug_phases, "phases");
+ 
+ 	SPRINTF("\n");
+diff -puN drivers/scsi/aha152x.h~aha152x-in-debug-mode drivers/scsi/aha152x.h
+--- a/drivers/scsi/aha152x.h~aha152x-in-debug-mode
++++ a/drivers/scsi/aha152x.h
+@@ -298,7 +298,7 @@ typedef union {
+ enum {
+   debug_procinfo  = 0x0001,
+   debug_queue     = 0x0002,
+-  debug_locks     = 0x0004,
++  debug_locking   = 0x0004,
+   debug_intr      = 0x0008,
+   debug_selection = 0x0010,
+   debug_msgo      = 0x0020,
 _
 
-Patches currently in -mm which might be from jan.altenberg@linutronix.de are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-at91-remove-at91_lcdch.patch
-git-netdev-all.patch
+fix-auditscc-kernel-doc.patch
+git-mtd.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+profile-likely-unlikely-macros.patch
