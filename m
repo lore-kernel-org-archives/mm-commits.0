@@ -1,75 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - enable-lguest-drivers-in-kconfig.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 12:07:43 -0700
-Message-ID: <200708081907.l78J7hU9025789@imap1.linux-foundation.org>
+Subject: - net-smc91x-build-fixes-for-general-sh-boards.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 12:07:50 -0700
+Message-ID: <200708081907.l78J7oxQ025798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57847 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41942 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762368AbXHHTIY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:08:24 -0400
+	by vger.kernel.org with ESMTP id S1763903AbXHHTIa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:08:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Enable lguest drivers in Kconfig
+     net: smc91x: Build fixes for general sh boards.
 has been removed from the -mm tree.  Its filename was
-     enable-lguest-drivers-in-kconfig.patch
+     net-smc91x-build-fixes-for-general-sh-boards.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Enable lguest drivers in Kconfig
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: net: smc91x: Build fixes for general sh boards.
+From: Paul Mundt <lethal@linux-sh.org>
 
-Lguest drivers need to default to "Y" otherwise they're never selected for
-new builds.  (We don't bother prompting, because they're less than 4k
-combined, and implied by selecting lguest support).
+SH boards in general only wire this up in 8 or 16-bit mode, and as we never
+had the wrappers for 32-bit mode defined, SMC_CAN_USE_32BIT caused build
+failure for the non-Solution Engine boards.  This gets it building again.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Also kill off the straggling set_irq_type() definition, this is left over
+cruft that was missed when the rest of it switched to IRQ flags.
+
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/Kconfig |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/net/smc91x.h |    4 +---
+ 1 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/lguest/Kconfig~enable-lguest-drivers-in-kconfig drivers/lguest/Kconfig
---- a/drivers/lguest/Kconfig~enable-lguest-drivers-in-kconfig
-+++ a/drivers/lguest/Kconfig
-@@ -21,8 +21,10 @@ config LGUEST_GUEST
+diff -puN drivers/net/smc91x.h~net-smc91x-build-fixes-for-general-sh-boards drivers/net/smc91x.h
+--- a/drivers/net/smc91x.h~net-smc91x-build-fixes-for-general-sh-boards
++++ a/drivers/net/smc91x.h
+@@ -299,7 +299,7 @@ SMC_outw(u16 val, void __iomem *ioaddr, 
  
- config LGUEST_NET
- 	tristate
-+	default y
- 	depends on LGUEST_GUEST && NET
+ #define SMC_CAN_USE_8BIT       1
+ #define SMC_CAN_USE_16BIT      1
+-#define SMC_CAN_USE_32BIT      1
++#define SMC_CAN_USE_32BIT      0
  
- config LGUEST_BLOCK
- 	tristate
-+	default y
- 	depends on LGUEST_GUEST && BLOCK
+ #define SMC_inb(a, r)          inb((a) + (r))
+ #define SMC_inw(a, r)          inw((a) + (r))
+@@ -310,8 +310,6 @@ SMC_outw(u16 val, void __iomem *ioaddr, 
+ 
+ #endif  /* BOARDS */
+ 
+-#define set_irq_type(irq, type) do {} while (0)
+-
+ #elif   defined(CONFIG_M32R)
+ 
+ #define SMC_CAN_USE_8BIT	0
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-origin.patch
-git-kvm.patch
-readahead-compacting-file_ra_state.patch
-readahead-mmap-read-around-simplification.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-radixtree-introduce-radix_tree_next_hole.patch
-readahead-basic-support-of-interleaved-reads.patch
-readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
-readahead-remove-several-readahead-macros.patch
-readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
-filemap-trivial-code-cleanups.patch
-filemap-convert-some-unsigned-long-to-pgoff_t.patch
-mmaps2-vma-out-of-mem_size_stats.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-remove-unsafe-from-module-struct.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+pvr2fb-consolidated-cleanup-of-pvr2fbc.patch
+apply-memory-policies-to-top-two-highest-zones-when-highest-zone-is-zone_movable.patch
+cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
+cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
+git-netdev-all.patch
+git-sh.patch
+sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
+usb-enable-hcd-support-on-sh-unconditionally.patch
+usb-r8a66597-hcd-clean-up-error-path.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+clean-up-duplicate-includes-in-mm.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
