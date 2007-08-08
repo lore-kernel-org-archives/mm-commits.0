@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-ssb-extif-in-ssb-mips-core-driver-fix.patch added to -mm tree
-Date: Tue, 07 Aug 2007 17:40:44 -0700
-Message-ID: <200708080040.l780eirq012811@imap1.linux-foundation.org>
+Subject: + add-mmf_dump_elf_headers.patch added to -mm tree
+Date: Tue, 07 Aug 2007 17:51:01 -0700
+Message-ID: <200708080051.l780p1sO013168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34266 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36731 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758945AbXHHAlh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 20:41:37 -0400
+	by vger.kernel.org with ESMTP id S1758128AbXHHAvR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 20:51:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mb@bu3sch.de, aurelien@aurel32.net, nbd@openwrt.org
+Cc: roland@redhat.com, hidehiro.kawai.ez@hitachi.com
 
 
 The patch titled
-     ssb: Fix extif compile error
+     Add MMF_DUMP_ELF_HEADERS
 has been added to the -mm tree.  Its filename is
-     use-ssb-extif-in-ssb-mips-core-driver-fix.patch
+     add-mmf_dump_elf_headers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,113 +25,188 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ssb: Fix extif compile error
-From: Michael Buesch <mb@bu3sch.de>
+Subject: Add MMF_DUMP_ELF_HEADERS
+From: Roland McGrath <roland@redhat.com>
 
-This is a compilation fix for a recently applied patch
-[PATCH 2/3] Use SSB EXTIF in SSB MIPS core driver
-when the extif core is not enabled.
+This adds the MMF_DUMP_ELF_HEADERS option to /proc/pid/coredump_filter. 
+This dumps the first page (only) of a private file mapping if it appears to
+be a mapping of an ELF file.  Including these pages in the core dump may
+give sufficient identifying information to associate the original DSO and
+executable file images and their debugging information with a core file in
+a generic way just from its contents (e.g.  when those binaries were built
+with ld --build-id).  I expect this to become the default behavior
+eventually.  Existing versions of gdb can be confused by the core dumps it
+creates, so it won't enabled by default for some time to come.  Soon many
+people will have systems with a gdb that handle these dumps, so they can
+arrange to set the bit at boot and have it inherited system-wide.
 
-This also makes the extif driver depend on CONFIG_SSB_DRIVER_EXTIF
-(sorry, my mistake).
+This also cleans up the checking of the MMF_DUMP_* flag bits, which did not
+need to be using atomic macros.
 
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
-Cc: Felix Fietkau <nbd@openwrt.org>
-Cc: Aurelien Jarno <aurelien@aurel32.net>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ssb/main.c                   |    2 -
- include/linux/ssb/ssb_driver_extif.h |   36 ++++++++++++++++++++++---
- 2 files changed, 33 insertions(+), 5 deletions(-)
+ fs/binfmt_elf.c       |   78 +++++++++++++++++++++++++++-------------
+ include/linux/sched.h |    3 +
+ 2 files changed, 55 insertions(+), 26 deletions(-)
 
-diff -puN drivers/ssb/main.c~use-ssb-extif-in-ssb-mips-core-driver-fix drivers/ssb/main.c
---- a/drivers/ssb/main.c~use-ssb-extif-in-ssb-mips-core-driver-fix
-+++ a/drivers/ssb/main.c
-@@ -819,7 +819,7 @@ u32 ssb_clockspeed(struct ssb_bus *bus)
- 	u32 plltype;
- 	u32 clkctl_n, clkctl_m;
+diff -puN fs/binfmt_elf.c~add-mmf_dump_elf_headers fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~add-mmf_dump_elf_headers
++++ a/fs/binfmt_elf.c
+@@ -1201,35 +1201,68 @@ static int dump_seek(struct file *file, 
+ }
  
--	if (bus->extif.dev)
-+	if (ssb_extif_available(&bus->extif))
- 		ssb_extif_get_clockcontrol(&bus->extif, &plltype,
- 					   &clkctl_n, &clkctl_m);
- 	else if (bus->chipco.dev)
-diff -puN include/linux/ssb/ssb_driver_extif.h~use-ssb-extif-in-ssb-mips-core-driver-fix include/linux/ssb/ssb_driver_extif.h
---- a/include/linux/ssb/ssb_driver_extif.h~use-ssb-extif-in-ssb-mips-core-driver-fix
-+++ a/include/linux/ssb/ssb_driver_extif.h
-@@ -20,10 +20,6 @@
- #ifndef LINUX_SSB_EXTIFCORE_H_
- #define LINUX_SSB_EXTIFCORE_H_
+ /*
+- * Decide whether a segment is worth dumping; default is yes to be
+- * sure (missing info is worse than too much; etc).
+- * Personally I'd include everything, and use the coredump limit...
+- *
+- * I think we should skip something. But I am not sure how. H.J.
++ * Decide what to dump of a segment, part, all or none.
+  */
+-static int maydump(struct vm_area_struct *vma, unsigned long mm_flags)
++static unsigned long vma_dump_size(struct vm_area_struct *vma,
++				   unsigned long mm_flags)
+ {
+ 	/* The vma can be set up to tell us the answer directly.  */
+ 	if (vma->vm_flags & VM_ALWAYSDUMP)
+-		return 1;
++		goto whole;
  
--struct ssb_extif {
--	struct ssb_device *dev;
--};
--
- /* external interface address space */
- #define	SSB_EXTIF_PCMCIA_MEMBASE(x)	(x)
- #define	SSB_EXTIF_PCMCIA_IOBASE(x)	((x) + 0x100000)
-@@ -156,6 +152,19 @@ struct ssb_extif {
- /* watchdog */
- #define SSB_EXTIF_WATCHDOG_CLK		48000000	/* Hz */
+ 	/* Do not dump I/O mapped devices or special mappings */
+ 	if (vma->vm_flags & (VM_IO | VM_RESERVED))
+ 		return 0;
  
++#define FILTER(type)	(mm_flags & (1UL << MMF_DUMP_##type))
 +
-+
-+#ifdef CONFIG_SSB_DRIVER_EXTIF
-+
-+struct ssb_extif {
-+	struct ssb_device *dev;
-+};
-+
-+static inline bool ssb_extif_available(struct ssb_extif *extif)
-+{
-+	return (extif->dev != NULL);
-+}
-+
- extern void ssb_extif_get_clockcontrol(struct ssb_extif *extif,
- 			               u32 *plltype, u32 *n, u32 *m);
+ 	/* By default, dump shared memory if mapped from an anonymous file. */
+ 	if (vma->vm_flags & VM_SHARED) {
+-		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0)
+-			return test_bit(MMF_DUMP_ANON_SHARED, &mm_flags);
+-		else
+-			return test_bit(MMF_DUMP_MAPPED_SHARED, &mm_flags);
++		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0 ?
++		    FILTER(ANON_SHARED) : FILTER(MAPPED_SHARED))
++			goto whole;
++		return 0;
+ 	}
  
-@@ -167,4 +176,23 @@ extern int ssb_extif_serial_init(struct 
- 				 struct ssb_serial_port *ports);
- #endif /* CONFIG_SSB_SERIAL */
+-	/* By default, if it hasn't been written to, don't write it out. */
+-	if (!vma->anon_vma)
+-		return test_bit(MMF_DUMP_MAPPED_PRIVATE, &mm_flags);
++	/* Dump segments that have been written to.  */
++	if (vma->anon_vma && FILTER(ANON_PRIVATE))
++		goto whole;
++	if (vma->vm_file == NULL)
++		return 0;
++
++	if (FILTER(MAPPED_PRIVATE))
++		goto whole;
  
+-	return test_bit(MMF_DUMP_ANON_PRIVATE, &mm_flags);
++	/*
++	 * If this looks like the beginning of a DSO or executable mapping,
++	 * check for an ELF header.  If we find one, dump the first page to
++	 * aid in determining what was mapped here.
++	 */
++	if (FILTER(ELF_HEADERS) && vma->vm_file != NULL && vma->vm_pgoff == 0) {
++		u32 __user *header = (u32 __user *) vma->vm_start;
++		u32 word;
++		/*
++		 * Doing it this way gets the constant folded by GCC.
++		 */
++		union {
++			u32 cmp;
++			char elfmag[SELFMAG];
++		} magic;
++		BUILD_BUG_ON(SELFMAG != sizeof word);
++		magic.elfmag[EI_MAG0] = ELFMAG0;
++		magic.elfmag[EI_MAG1] = ELFMAG1;
++		magic.elfmag[EI_MAG2] = ELFMAG2;
++		magic.elfmag[EI_MAG3] = ELFMAG3;
++		if (get_user(word, header) == 0 && word == magic.cmp)
++			return PAGE_SIZE;
++	}
 +
-+#else /* CONFIG_SSB_DRIVER_EXTIF */
-+/* extif disabled */
++#undef	FILTER
 +
-+struct ssb_extif {
-+};
-+
-+static inline bool ssb_extif_available(struct ssb_extif *extif)
-+{
 +	return 0;
-+}
 +
-+static inline
-+void ssb_extif_get_clockcontrol(struct ssb_extif *extif,
-+			        u32 *plltype, u32 *n, u32 *m)
-+{
-+}
-+
-+#endif /* CONFIG_SSB_DRIVER_EXTIF */
- #endif /* LINUX_SSB_EXTIFCORE_H_ */
++whole:
++	return vma->vm_end - vma->vm_start;
+ }
+ 
+ /* An ELF note in memory */
+@@ -1675,16 +1708,13 @@ static int elf_core_dump(long signr, str
+ 	for (vma = first_vma(current, gate_vma); vma != NULL;
+ 			vma = next_vma(vma, gate_vma)) {
+ 		struct elf_phdr phdr;
+-		size_t sz;
+-
+-		sz = vma->vm_end - vma->vm_start;
+ 
+ 		phdr.p_type = PT_LOAD;
+ 		phdr.p_offset = offset;
+ 		phdr.p_vaddr = vma->vm_start;
+ 		phdr.p_paddr = 0;
+-		phdr.p_filesz = maydump(vma, mm_flags) ? sz : 0;
+-		phdr.p_memsz = sz;
++		phdr.p_filesz = vma_dump_size(vma, mm_flags);
++		phdr.p_memsz = vma->vm_end - vma->vm_start;
+ 		offset += phdr.p_filesz;
+ 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
+ 		if (vma->vm_flags & VM_WRITE)
+@@ -1726,13 +1756,11 @@ static int elf_core_dump(long signr, str
+ 	for (vma = first_vma(current, gate_vma); vma != NULL;
+ 			vma = next_vma(vma, gate_vma)) {
+ 		unsigned long addr;
++		unsigned long end;
+ 
+-		if (!maydump(vma, mm_flags))
+-			continue;
++		end = vma->vm_start + vma_dump_size(vma, mm_flags);
+ 
+-		for (addr = vma->vm_start;
+-		     addr < vma->vm_end;
+-		     addr += PAGE_SIZE) {
++		for (addr = vma->vm_start; addr < end; addr += PAGE_SIZE) {
+ 			struct page *page;
+ 			struct vm_area_struct *vma;
+ 
+diff -puN include/linux/sched.h~add-mmf_dump_elf_headers include/linux/sched.h
+--- a/include/linux/sched.h~add-mmf_dump_elf_headers
++++ a/include/linux/sched.h
+@@ -360,8 +360,9 @@ extern int get_dumpable(struct mm_struct
+ #define MMF_DUMP_ANON_SHARED	3
+ #define MMF_DUMP_MAPPED_PRIVATE	4
+ #define MMF_DUMP_MAPPED_SHARED	5
++#define MMF_DUMP_ELF_HEADERS	6
+ #define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
+-#define MMF_DUMP_FILTER_BITS	4
++#define MMF_DUMP_FILTER_BITS	5
+ #define MMF_DUMP_FILTER_MASK \
+ 	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
+ #define MMF_DUMP_FILTER_DEFAULT \
 _
 
-Patches currently in -mm which might be from mb@bu3sch.de are
+Patches currently in -mm which might be from roland@redhat.com are
 
-git-wireless.patch
-merge-the-sonics-silicon-backplane-subsystem.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-avoid-ssb-compililation-on-s390.patch
-b44-ssb-fix-irq-routing-bits-on-the-backplane.patch
-merge-the-sonics-silicon-backplane-subsystem-update.patch
-ssb-compile-fix.patch
-watchdog-support-3.patch
-ssb-chipcommon-add-function-to-get-processor-clock.patch
-ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
-ssb-mainc-needs-dma-mappingh.patch
-ssb-extif-timing-serial-port-initialization.patch
-use-ssb-extif-in-ssb-mips-core-driver.patch
-use-ssb-extif-in-ssb-mips-core-driver-fix.patch
-add-buswidth-to-ssb-mips-core-flash-driver.patch
-ssb-add-a-driver-for-the-broadcom-ohci-core.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+add-sys-module-name-notes.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+wait_task_zombie-remove-unneeded-child-signal-check.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+zap_other_threads-dont-optimize-thread_group_empty-case.patch
+add-mmf_dump_elf_headers.patch
