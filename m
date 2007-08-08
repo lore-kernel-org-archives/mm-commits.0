@@ -1,62 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - ssb-compile-fix.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 16:54:17 -0700
-Message-ID: <200708082359.l78Nx8Oi005057@imap1.linux-foundation.org>
+Subject: - ssb-mainc-needs-dma-mappingh.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 16:54:25 -0700
+Message-ID: <200708082359.l78NxGfw005073@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55383 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41110 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761640AbXHHX77 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 19:59:59 -0400
+	by vger.kernel.org with ESMTP id S1761541AbXHHX7z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 19:59:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aurelien@aurel32.net, mb@bu3sch.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ssb: compile fix
+     ssb/main.c needs dma-mapping.h
 has been removed from the -mm tree.  Its filename was
-     ssb-compile-fix.patch
+     ssb-mainc-needs-dma-mappingh.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ssb: compile fix
-From: Aurelien Jarno <aurelien@aurel32.net>
+Subject: ssb/main.c needs dma-mapping.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The patch below against 2.6.23-rc1-mm1 fixes the definition of
-pcibios_map_irq in the SSB code. The corresponding include file has been
-changed in commit 19df0d1169b3ddcc84933794d1401aaafe2f0000.
+alpha:
 
-Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
-Acked-by: Michael Buesch <mb@bu3sch.de>
+drivers/ssb/main.c: In function 'ssb_dma_set_mask':
+drivers/ssb/main.c:982: error: implicit declaration of function 'dma_supported'
+
+Cc: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ssb/driver_pcicore.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ssb/main.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ssb/driver_pcicore.c~ssb-compile-fix drivers/ssb/driver_pcicore.c
---- a/drivers/ssb/driver_pcicore.c~ssb-compile-fix
-+++ a/drivers/ssb/driver_pcicore.c
-@@ -102,7 +102,7 @@ static void __init ssb_fixup_pcibridge(s
- }
- DECLARE_PCI_FIXUP_EARLY(PCI_ANY_ID, PCI_ANY_ID, ssb_fixup_pcibridge);
+diff -puN drivers/ssb/main.c~ssb-mainc-needs-dma-mappingh drivers/ssb/main.c
+--- a/drivers/ssb/main.c~ssb-mainc-needs-dma-mappingh
++++ a/drivers/ssb/main.c
+@@ -13,7 +13,7 @@
+ #include <linux/delay.h>
+ #include <linux/ssb/ssb.h>
+ #include <linux/ssb/ssb_regs.h>
+-
++#include <linux/dma-mapping.h>
+ #include <linux/pci.h>
  
--int __init pcibios_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
-+int __init pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
- {
- 	return ssb_mips_irq(extpci_core->dev) + 2;
- }
+ #include <pcmcia/cs_types.h>
 _
 
-Patches currently in -mm which might be from aurelien@aurel32.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+fbcon-kill-compile-warning-fix.patch
+fix-serial-buffer-memory-leak-fix.patch
+mtdchar-build-fix.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
 git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-platform-ide-driver.patch
+ide-arm-hack.patch
+mmc-make-it-build.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
 git-wireless.patch
-ssb-compile-fix.patch
-watchdog-support-3.patch
-ssb-chipcommon-add-function-to-get-processor-clock.patch
-ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
-use-ssb-extif-in-ssb-mips-core-driver.patch
-add-buswidth-to-ssb-mips-core-flash-driver.patch
+ssb-mainc-needs-dma-mappingh.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
+git-kgdb-fixup.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+pci-align-bar-settings-for-legacy-mode-ide-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+mm-bdi-init-hooks-fix.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
