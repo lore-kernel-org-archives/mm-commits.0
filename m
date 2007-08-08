@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch added to -mm tree
-Date: Wed, 08 Aug 2007 12:33:42 -0700
-Message-ID: <200708081938.l78JcZO1026950@imap1.linux-foundation.org>
+Subject: + fix-ide-ide-add-platform-ide-driver.patch added to -mm tree
+Date: Wed, 08 Aug 2007 12:51:45 -0700
+Message-ID: <200708081956.l78JuaKL027591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48167 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33221 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754321AbXHHTjK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:39:10 -0400
+	by vger.kernel.org with ESMTP id S1751974AbXHHT5O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:57:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, bob.picco@hp.com, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@skynet.ie, nacc@us.ibm.com
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     memoryless-nodes-introduce-mask-of-nodes-with-memory-fix
+     fix ide-ide-add-platform-ide-driver
 has been added to the -mm tree.  Its filename is
-     memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+     fix-ide-ide-add-platform-ide-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memoryless-nodes-introduce-mask-of-nodes-with-memory-fix
+Subject: fix ide-ide-add-platform-ide-driver
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/page_alloc.c: In function 'check_for_regular_memory':
-mm/page_alloc.c:2427: error: 'nid' undeclared (first use in this function)
-mm/page_alloc.c:2427: error: (Each undeclared identifier is reported only once
-mm/page_alloc.c:2427: error: for each function it appears in.)
+I already fixed this.
 
-Cc: Bob Picco <bob.picco@hp.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Mel Gorman <mel@skynet.ie>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/ide/legacy/ide_platform.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~memoryless-nodes-introduce-mask-of-nodes-with-memory-fix mm/page_alloc.c
---- a/mm/page_alloc.c~memoryless-nodes-introduce-mask-of-nodes-with-memory-fix
-+++ a/mm/page_alloc.c
-@@ -2077,11 +2077,12 @@ static void build_zonelist_cache(pg_data
- static void check_for_regular_memory(pg_data_t *pgdat)
- {
- #ifdef CONFIG_HIGHMEM
--	enum zone_type zone;
-+	enum zone_type zone_type;
+diff -puN drivers/ide/legacy/ide_platform.c~fix-ide-ide-add-platform-ide-driver drivers/ide/legacy/ide_platform.c
+--- a/drivers/ide/legacy/ide_platform.c~fix-ide-ide-add-platform-ide-driver
++++ a/drivers/ide/legacy/ide_platform.c
+@@ -18,6 +18,7 @@
+ #include <linux/ioport.h>
+ #include <linux/module.h>
+ #include <linux/pata_platform.h>
++#include <linux/platform_device.h>
+ #include <linux/io.h>
  
--	for (zone = 0; zone <= ZONE_NORMAL; zone++)
--		if (pgdat->node_zones[zone].present_pages)
--			node_set_state(nid, N_NORMAL_MEMORY);
-+	for (zone_type = 0; zone_type <= ZONE_NORMAL; zone_type++) {
-+		struct zone *zone = &pgdat->node_zones[zone_type];
-+		if (zone->present_pages)
-+			node_set_state(zone_to_nid(zone), N_NORMAL_MEMORY);
- 	}
- #endif
+ static struct {
+@@ -157,7 +158,7 @@ static int __devexit plat_ide_remove(str
  }
+ 
+ static struct platform_driver platform_ide_driver = {
+-	.driver {
++	.driver = {
+ 		.name = "pata_platform",
+ 	},
+ 	.probe = plat_ide_probe,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +78,7 @@ iforce-warning-fix.patch
 git-kvm.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-platform-ide-driver.patch
 git-mtd.patch
 git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
 mtdoops-printk-warning-fixes.patch
