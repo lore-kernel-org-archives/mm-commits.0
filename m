@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-align-bar-settings-for-legacy-mode-ide-fix.patch added to -mm tree
-Date: Wed, 08 Aug 2007 01:07:07 -0700
-Message-ID: <200708080807.l78877xZ028197@imap1.linux-foundation.org>
+Subject: + uli526x-add-suspend-and-resume-routines.patch added to -mm tree
+Date: Wed, 08 Aug 2007 09:36:41 -0700
+Message-ID: <200708081636.l78GafDn015053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47456 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57881 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753610AbXHHIHe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 04:07:34 -0400
+	by vger.kernel.org with ESMTP id S1756495AbXHHQhm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 12:37:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, greg@kroah.com, jbeulich@novell.com, ktk@enterprise.bidmc.harvard.edu, protasnb@gmail.com
+Cc: rjw@sisk.pl, grundler@parisc-linux.org, kyle@mcmartin.ca
 
 
 The patch titled
-     pci-align-bar-settings-for-legacy-mode-ide fix
+     uli526x: add suspend and resume routines
 has been added to the -mm tree.  Its filename is
-     pci-align-bar-settings-for-legacy-mode-ide-fix.patch
+     uli526x-add-suspend-and-resume-routines.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,186 +25,191 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci-align-bar-settings-for-legacy-mode-ide fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uli526x: add suspend and resume routines
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-- coding-style cleanups
+Add suspend/resume support to the uli526x network driver (tested on x86_64,
+with "Ethernet controller: ALi Corporation M5263 Ethernet Controller, rev 40").
 
-- convert to resource_size_t.
+This patch is based on the suspend/resume code in the tg3 driver.
 
-Cc: "Jan Beulich" <jbeulich@novell.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kristofer T. Karas" <ktk@enterprise.bidmc.harvard.edu>
-Cc: Natalie Protasevich <protasnb@gmail.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |   31 +++++++++++++++++--------------
- 1 file changed, 17 insertions(+), 14 deletions(-)
+ drivers/net/tulip/uli526x.c |  109 ++++++++++++++++++++++++++++++++--
+ 1 file changed, 103 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide-fix drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide-fix
-+++ a/drivers/pci/probe.c
-@@ -742,29 +742,32 @@ static void pci_read_irq(struct pci_dev 
- }
+diff -puN drivers/net/tulip/uli526x.c~uli526x-add-suspend-and-resume-routines drivers/net/tulip/uli526x.c
+--- a/drivers/net/tulip/uli526x.c~uli526x-add-suspend-and-resume-routines
++++ a/drivers/net/tulip/uli526x.c
+@@ -1110,19 +1110,15 @@ static void uli526x_timer(unsigned long 
  
- static void change_legacy_io_resource(struct pci_dev * dev, unsigned index,
--                                      unsigned start, unsigned end)
-+				resource_size_t start, resource_size_t end)
+ 
+ /*
+- *	Dynamic reset the ULI526X board
+  *	Stop ULI526X board
+  *	Free Tx/Rx allocated memory
+- *	Reset ULI526X board
+- *	Re-initialize ULI526X board
++ *	Init system variable
+  */
+ 
+-static void uli526x_dynamic_reset(struct net_device *dev)
++static void uli526x_reset_prepare(struct net_device *dev)
  {
--	unsigned base = start & PCI_BASE_ADDRESS_IO_MASK;
--	unsigned len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
-+	resource_size_t base = start & PCI_BASE_ADDRESS_IO_MASK;
-+	resource_size_t len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
+ 	struct uli526x_board_info *db = netdev_priv(dev);
  
- 	if (!(pci_resource_flags(dev, index) & IORESOURCE_IO)) {
- 		printk(KERN_WARNING "%s: cannot adjust BAR%u (not I/O)\n",
- 		       pci_name(dev), index);
- 		return;
- 	}
--	if (pci_resource_len(dev, index) != len)
--		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %04X)\n",
--		       pci_name(dev), index, (unsigned)pci_resource_len(dev, index));
--	else {
--		printk(KERN_INFO "%s: trying to change BAR%u from %04X to %04X\n",
--		       pci_name(dev), index,
--		       (unsigned)pci_resource_start(dev, index), base);
--		pci_write_config_dword(dev, PCI_BASE_ADDRESS_0 + index * 4, base);
-+	if (pci_resource_len(dev, index) != len) {
-+		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %Lx)\n",
-+			pci_name(dev), index,
-+			(unsigned long long)pci_resource_len(dev, index));
-+	} else {
-+		printk(KERN_INFO "%s: trying to change BAR%u from %Lx to %Lx\n",
-+			pci_name(dev), index,
-+			(unsigned long long)pci_resource_start(dev, index),
-+			(unsigned long long)base);
-+		pci_write_config_dword(dev, PCI_BASE_ADDRESS_0 + index * 4,
-+					base);
- 	}
- 	pci_resource_start(dev, index) = start;
--	pci_resource_end(dev, index)   = end;
--	pci_resource_flags(dev, index) =
--		IORESOURCE_IO | IORESOURCE_PCI_FIXED | PCI_BASE_ADDRESS_SPACE_IO;
-+	pci_resource_end(dev, index) = end;
-+	pci_resource_flags(dev, index) = IORESOURCE_IO|IORESOURCE_PCI_FIXED|
-+					PCI_BASE_ADDRESS_SPACE_IO;
+-	ULI526X_DBUG(0, "uli526x_dynamic_reset()", 0);
+-
+ 	/* Sopt MAC controller */
+ 	db->cr6_data &= ~(CR6_RXSC | CR6_TXSC);	/* Disable Tx/Rx */
+ 	update_cr6(db->cr6_data, dev->base_addr);
+@@ -1141,6 +1137,22 @@ static void uli526x_dynamic_reset(struct
+ 	db->link_failed = 1;
+ 	db->init=1;
+ 	db->wait_reset = 0;
++}
++
++
++/*
++ *	Dynamic reset the ULI526X board
++ *	Stop ULI526X board
++ *	Free Tx/Rx allocated memory
++ *	Reset ULI526X board
++ *	Re-initialize ULI526X board
++ */
++
++static void uli526x_dynamic_reset(struct net_device *dev)
++{
++	ULI526X_DBUG(0, "uli526x_dynamic_reset()", 0);
++
++	uli526x_reset_prepare(dev);
+ 
+ 	/* Re-initialize ULI526X board */
+ 	uli526x_init(dev);
+@@ -1150,6 +1162,89 @@ static void uli526x_dynamic_reset(struct
  }
  
- /**
+ 
++#ifdef CONFIG_PM_SLEEP
++
++/*
++ *	Suspend the interface.
++ */
++
++static int uli526x_suspend(struct pci_dev *pdev, pm_message_t state)
++{
++	struct net_device *dev = pci_get_drvdata(pdev);
++	pci_power_t power_state;
++	int err;
++
++	ULI526X_DBUG(0, "uli526x_suspend", 0);
++
++	if (!(dev && netdev_priv(dev)))
++		return 0;
++
++	pci_save_state(pdev);
++
++	if (!netif_running(dev))
++		return 0;
++
++	netif_device_detach(dev);
++	uli526x_reset_prepare(dev);
++
++	power_state = pci_choose_state(pdev, state);
++	pci_enable_wake(pdev, power_state, 0);
++	err = pci_set_power_state(pdev, power_state);
++	if (err) {
++		netif_device_attach(dev);
++		/* Re-initialize ULI526X board */
++		uli526x_init(dev);
++		/* Restart upper layer interface */
++		netif_wake_queue(dev);
++	}
++
++	return err;
++}
++
++/*
++ *	Resume the interface.
++ */
++
++static int uli526x_resume(struct pci_dev *pdev)
++{
++	struct net_device *dev = pci_get_drvdata(pdev);
++	struct uli526x_board_info *db = netdev_priv(dev);
++	int err;
++
++	ULI526X_DBUG(0, "uli526x_resume", 0);
++
++	if (!(dev && db))
++		return 0;
++
++	pci_restore_state(pdev);
++
++	if (!netif_running(dev))
++		return 0;
++
++	err = pci_set_power_state(pdev, PCI_D0);
++	if (err) {
++		printk(KERN_WARNING "%s: Could not put device into D0\n",
++			dev->name);
++		return err;
++	}
++
++	netif_device_attach(dev);
++	/* Re-initialize ULI526X board */
++	uli526x_init(dev);
++	/* Restart upper layer interface */
++	netif_wake_queue(dev);
++
++	return 0;
++}
++
++#else /* !CONFIG_PM_SLEEP */
++
++#define uli526x_suspend	NULL
++#define uli526x_resume	NULL
++
++#endif /* !CONFIG_PM_SLEEP */
++
++
+ /*
+  *	free all allocated rx buffer
+  */
+@@ -1689,6 +1784,8 @@ static struct pci_driver uli526x_driver 
+ 	.id_table	= uli526x_pci_tbl,
+ 	.probe		= uli526x_init_one,
+ 	.remove		= __devexit_p(uli526x_remove_one),
++	.suspend	= uli526x_suspend,
++	.resume		= uli526x_resume,
+ };
+ 
+ MODULE_AUTHOR("Peer Chen, peer.chen@uli.com.tw");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
-fbcon-kill-compile-warning-fix.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-natsemi-fix-netdev-error-acounting.patch
-git-ixgbe-build-fix.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-wireless.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
-ssb-mainc-needs-dma-mappingh.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
-pci-align-bar-settings-for-legacy-mode-ide-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch
+pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-2x.patch
+uli526x-add-suspend-and-resume-routines.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+unexport-pm_power_off_prepare.patch
+pm_trace-displays-the-wrong-time-from-the-rtc.patch
+freezer-be-more-verbose.patch
+freezer-use-wait-queue-instead-of-busy-looping.patch
+freezer-measure-freezing-time.patch
+shrink_slab-handle-bad-shrinkers.patch
