@@ -1,96 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - aha152x-in-debug-mode.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 12:08:02 -0700
-Message-ID: <200708081908.l78J82mj025842@imap1.linux-foundation.org>
+Subject: - nfs-fix-put_nfs_open_context.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 12:08:08 -0700
+Message-ID: <200708081908.l78J88c9025848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41388 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56821 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755532AbXHHTQj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:16:39 -0400
+	by vger.kernel.org with ESMTP id S1758576AbXHHTRK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:17:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: Trond.Myklebust@netapp.com, bfields@fieldses.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aha152x in debug mode
+     NFS: Fix put_nfs_open_context
 has been removed from the -mm tree.  Its filename was
-     aha152x-in-debug-mode.patch
+     nfs-fix-put_nfs_open_context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: aha152x in debug mode
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: NFS: Fix put_nfs_open_context
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
 
-The symbol <debug_locks> conflicts with the rather global one in
-include/linux/locks.h.
+We need to grab the inode->i_lock atomically with the last reference put in
+order to remove the open context that is being freed from the
+nfsi->open_files list.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Fix by converting the kref to a standard atomic counter and then using
+atomic_dec_and_lock()...
+
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aha152x.c |   10 +++++-----
- drivers/scsi/aha152x.h |    2 +-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ fs/nfs/inode.c         |   24 ++++++++----------------
+ include/linux/nfs_fs.h |    2 +-
+ 2 files changed, 9 insertions(+), 17 deletions(-)
 
-diff -puN drivers/scsi/aha152x.c~aha152x-in-debug-mode drivers/scsi/aha152x.c
---- a/drivers/scsi/aha152x.c~aha152x-in-debug-mode
-+++ a/drivers/scsi/aha152x.c
-@@ -289,18 +289,18 @@ static LIST_HEAD(aha152x_host_list);
- 		if(spin_is_locked(&QLOCK)) { \
- 			DPRINTK(debug_intr, DEBUG_LEAD "(%s:%d) already locked at %s:%d\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__, QLOCKER, QLOCKERL); \
- 		} \
--		DPRINTK(debug_locks, DEBUG_LEAD "(%s:%d) locking\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
-+		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) locking\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
- 		spin_lock_irqsave(&QLOCK,flags); \
--		DPRINTK(debug_locks, DEBUG_LEAD "(%s:%d) locked\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
-+		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) locked\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
- 		QLOCKER=__FUNCTION__; \
- 		QLOCKERL=__LINE__; \
- 	} while(0)
+diff -puN fs/nfs/inode.c~nfs-fix-put_nfs_open_context fs/nfs/inode.c
+--- a/fs/nfs/inode.c~nfs-fix-put_nfs_open_context
++++ a/fs/nfs/inode.c
+@@ -468,7 +468,7 @@ static struct nfs_open_context *alloc_nf
+ 		ctx->lockowner = current->files;
+ 		ctx->error = 0;
+ 		ctx->dir_cookie = 0;
+-		kref_init(&ctx->kref);
++		atomic_set(&ctx->count, 1);
+ 	}
+ 	return ctx;
+ }
+@@ -476,21 +476,18 @@ static struct nfs_open_context *alloc_nf
+ struct nfs_open_context *get_nfs_open_context(struct nfs_open_context *ctx)
+ {
+ 	if (ctx != NULL)
+-		kref_get(&ctx->kref);
++		atomic_inc(&ctx->count);
+ 	return ctx;
+ }
  
- #define DO_UNLOCK(flags)	\
- 	do { \
--		DPRINTK(debug_locks, DEBUG_LEAD "(%s:%d) unlocking (locked at %s:%d)\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__, QLOCKER, QLOCKERL); \
-+		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) unlocking (locked at %s:%d)\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__, QLOCKER, QLOCKERL); \
- 		spin_unlock_irqrestore(&QLOCK,flags); \
--		DPRINTK(debug_locks, DEBUG_LEAD "(%s:%d) unlocked\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
-+		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) unlocked\n", CMDINFO(CURRENT_SC), __FUNCTION__, __LINE__); \
- 		QLOCKER="(not locked)"; \
- 		QLOCKERL=0; \
- 	} while(0)
-@@ -3395,7 +3395,7 @@ static int aha152x_proc_info(struct Scsi
- 	PDEBUG(debug_datai, "data in");
- 	PDEBUG(debug_datao, "data out");
- 	PDEBUG(debug_eh, "eh");
--	PDEBUG(debug_locks, "locks");
-+	PDEBUG(debug_locking, "locks");
- 	PDEBUG(debug_phases, "phases");
+-static void nfs_free_open_context(struct kref *kref)
++void put_nfs_open_context(struct nfs_open_context *ctx)
+ {
+-	struct nfs_open_context *ctx = container_of(kref,
+-			struct nfs_open_context, kref);
++	struct inode *inode = ctx->path.dentry->d_inode;
  
- 	SPRINTF("\n");
-diff -puN drivers/scsi/aha152x.h~aha152x-in-debug-mode drivers/scsi/aha152x.h
---- a/drivers/scsi/aha152x.h~aha152x-in-debug-mode
-+++ a/drivers/scsi/aha152x.h
-@@ -298,7 +298,7 @@ typedef union {
- enum {
-   debug_procinfo  = 0x0001,
-   debug_queue     = 0x0002,
--  debug_locks     = 0x0004,
-+  debug_locking   = 0x0004,
-   debug_intr      = 0x0008,
-   debug_selection = 0x0010,
-   debug_msgo      = 0x0020,
+-	if (!list_empty(&ctx->list)) {
+-		struct inode *inode = ctx->path.dentry->d_inode;
+-		spin_lock(&inode->i_lock);
+-		list_del(&ctx->list);
+-		spin_unlock(&inode->i_lock);
+-	}
++	if (!atomic_dec_and_lock(&ctx->count, &inode->i_lock))
++		return;
++	list_del(&ctx->list);
++	spin_unlock(&inode->i_lock);
+ 	if (ctx->state != NULL)
+ 		nfs4_close_state(&ctx->path, ctx->state, ctx->mode);
+ 	if (ctx->cred != NULL)
+@@ -500,11 +497,6 @@ static void nfs_free_open_context(struct
+ 	kfree(ctx);
+ }
+ 
+-void put_nfs_open_context(struct nfs_open_context *ctx)
+-{
+-	kref_put(&ctx->kref, nfs_free_open_context);
+-}
+-
+ /*
+  * Ensure that mmap has a recent RPC credential for use when writing out
+  * shared pages
+diff -puN include/linux/nfs_fs.h~nfs-fix-put_nfs_open_context include/linux/nfs_fs.h
+--- a/include/linux/nfs_fs.h~nfs-fix-put_nfs_open_context
++++ a/include/linux/nfs_fs.h
+@@ -69,7 +69,7 @@ struct nfs_access_entry {
+ 
+ struct nfs4_state;
+ struct nfs_open_context {
+-	struct kref kref;
++	atomic_t count;
+ 	struct path path;
+ 	struct rpc_cred *cred;
+ 	struct nfs4_state *state;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
 
-origin.patch
-fix-auditscc-kernel-doc.patch
-git-mtd.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-profile-likely-unlikely-macros.patch
+git-nfs.patch
+nfs-convert-to-new-aops.patch
+sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks.patch
