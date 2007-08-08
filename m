@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-swappiness-safer-to-use.patch added to -mm tree
-Date: Tue, 07 Aug 2007 17:57:00 -0700
-Message-ID: <200708080057.l780v1gw013362@imap1.linux-foundation.org>
+Subject: + ext2-ext3-ext4-add-block-bitmap-validation-fix.patch added to -mm tree
+Date: Tue, 07 Aug 2007 18:18:54 -0700
+Message-ID: <200708080118.l781IsM8014230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37779 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44176 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762592AbXHHA5P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 20:57:15 -0400
+	by vger.kernel.org with ESMTP id S1754102AbXHHBTF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 21:19:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andrea@suse.de, garloff@suse.de, npiggin@suse.de, wfg@mail.ustc.edu.cn
+Cc: akpm@linux-foundation.org, adilger@clusterfs.com, aneesh.kumar@linux.vnet.ibm.com, cmm@us.ibm.com
 
 
 The patch titled
-     make swappiness safer to use
+     ext2-ext3-ext4-add-block-bitmap-validation-fix
 has been added to the -mm tree.  Its filename is
-     make-swappiness-safer-to-use.patch
+     ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,113 +25,161 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make swappiness safer to use
-From: Andrea Arcangeli <andrea@suse.de>
+Subject: ext2-ext3-ext4-add-block-bitmap-validation-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Swappiness isn't a safe sysctl.  Setting it to 0 for example can hang a
-system.  That's a corner case but even setting it to 10 or lower can waste
-enormous amounts of cpu without making much progress.  We've customers who
-wants to use swappiness but they can't because of the current
-implementation (if you change it so the system stops swapping it really
-stops swapping and nothing works sane anymore if you really had to swap
-something to make progress).
-
-This patch from Kurt Garloff makes swappiness safer to use (no more huge
-cpu usage or hangs with low swappiness values).
-
-I think the prev_priority can also be nuked since it wastes 4 bytes per
-zone (that would be an incremental patch but I wait the nr_scan_[in]active
-to be nuked first for similar reasons).  Clearly somebody at some point
-noticed how broken that thing was and they had to add min(priority,
-prev_priority) to give it some reliability, but they didn't go the last
-mile to nuke prev_priority too.  Calculating distress only in function of
-not-racy priority is correct and sure more than enough without having to
-add randomness into the equation.
-
-Patch is tested on older kernels but it compiles and it's quite simple
-so...
-
-Overall I'm not very satisified by the swappiness tweak, since it doesn't
-rally do anything with the dirty pagecache that may be inactive.  We need
-another kind of tweak that controls the inactive scan and tunes the
-can_writepage feature (not yet in mainline despite having submitted it a
-few times), not only the active one.  That new tweak will tell the kernel
-how hard to scan the inactive list for pure clean pagecache (something the
-mainline kernel isn't capable of yet).  We already have that feature
-working in all our enterprise kernels with the default reasonable tune, or
-they can't even run a readonly backup with tar without triggering huge
-write I/O.  I think it should be available also in mainline later.
-
-Cc: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Kurt Garloff <garloff@suse.de>
-Signed-off-by: Andrea Arcangeli <andrea@suse.de>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Andreas Dilger <adilger@clusterfs.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   41 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 41 insertions(+)
+ fs/ext3/balloc.c |    1 +
+ fs/ext4/balloc.c |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~make-swappiness-safer-to-use mm/vmscan.c
---- a/mm/vmscan.c~make-swappiness-safer-to-use
-+++ a/mm/vmscan.c
-@@ -924,6 +924,7 @@ static void shrink_active_list(unsigned 
- 		long mapped_ratio;
- 		long distress;
- 		long swap_tendency;
-+		long imbalance;
+diff -puN fs/ext3/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix
++++ a/fs/ext3/balloc.c
+@@ -79,6 +79,7 @@ struct ext3_group_desc * ext3_get_group_
+ 		*bh = sbi->s_group_desc[group_desc];
+ 	return desc + offset;
+ }
++
+ static inline int
+ block_in_use(ext3_fsblk_t block, struct super_block *sb, unsigned char *map)
+ {
+diff -puN fs/ext4/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix
++++ a/fs/ext4/balloc.c
+@@ -99,6 +99,7 @@ struct ext4_group_desc * ext4_get_group_
+ 		*bh = sbi->s_group_desc[group_desc];
+ 	return desc;
+ }
++
+ static inline int
+ block_in_use(ext4_fsblk_t block, struct super_block *sb, unsigned char *map)
+ {
+@@ -108,7 +109,6 @@ block_in_use(ext4_fsblk_t block, struct 
+ 	return ext4_test_bit (offset, map);
+ }
  
- 		if (zone_is_near_oom(zone))
- 			goto force_reclaim_mapped;
-@@ -959,6 +960,46 @@ static void shrink_active_list(unsigned 
- 		swap_tendency = mapped_ratio / 2 + distress + sc->swappiness;
- 
- 		/*
-+		 * If there's huge imbalance between active and inactive
-+		 * (think active 100 times larger than inactive) we should
-+		 * become more permissive, or the system will take too much
-+		 * cpu before it start swapping during memory pressure.
-+		 * Distress is about avoiding early-oom, this is about
-+		 * making swappiness graceful despite setting it to low
-+		 * values.
-+		 *
-+		 * Avoid div by zero with nr_inactive+1, and max resulting
-+		 * value is vm_total_pages.
-+		 */
-+		imbalance  = zone_page_state(zone, NR_ACTIVE);
-+		imbalance /= zone_page_state(zone, NR_INACTIVE) + 1;
-+
-+		/*
-+		 * Reduce the effect of imbalance if swappiness is low,
-+		 * this means for a swappiness very low, the imbalance
-+		 * must be much higher than 100 for this logic to make
-+		 * the difference.
-+		 *
-+		 * Max temporary value is vm_total_pages*100.
-+		 */
-+		imbalance *= (vm_swappiness + 1);
-+		imbalance /= 100;
-+
-+		/*
-+		 * If not much of the ram is mapped, makes the imbalance
-+		 * less relevant, it's high priority we refill the inactive
-+		 * list with mapped pages only in presence of high ratio of
-+		 * mapped pages.
-+		 *
-+		 * Max temporary value is vm_total_pages*100.
-+		 */
-+		imbalance *= mapped_ratio;
-+		imbalance /= 100;
-+
-+		/* apply imbalance feedback to swap_tendency */
-+		swap_tendency += imbalance;
-+
-+		/*
- 		 * Now use this metric to decide whether to start moving mapped
- 		 * memory onto the inactive list.
- 		 */
+-
+ /**
+  * read_block_bitmap()
+  * @sb:			super block
 _
 
-Patches currently in -mm which might be from andrea@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-make-swappiness-safer-to-use.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+fbcon-kill-compile-warning-fix.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+git-ocfs2.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
+ssb-mainc-needs-dma-mappingh.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+pci-fix-something-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
