@@ -1,287 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-2x.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 14:58:24 -0700
-Message-ID: <200708082203.l78M3Feb000764@imap1.linux-foundation.org>
+Subject: + mtdchar-build-fix.patch added to -mm tree
+Date: Wed, 08 Aug 2007 15:56:18 -0700
+Message-ID: <200708082301.l78N19aa002906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53284 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52233 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754878AbXHHWEP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 18:04:15 -0400
+	by vger.kernel.org with ESMTP id S1763029AbXHHXBe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 19:01:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, ak@suse.de, benh@kernel.crashing.org, lenb@kernel.org, paulus@samba.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
-has been removed from the -mm tree.  Its filename was
-     pm-fix-dependencies-of-config_suspend-and-config_hibernation-updat=
-ed-2x.patch
+     mtdchar build fix
+has been added to the -mm tree.  Its filename is
+     mtdchar-build-fix.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
-=46rom: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: mtdchar build fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION introduced by com=
-mit
-296699de6bdc717189a331ab6bbe90e05c94db06 "Introduce CONFIG_SUSPEND for
-suspend-to-Ram and standby" are incorrect, as they don't cover the fact=
-s that
-(1) not all architectures support suspend and (2) SMP hibernation is on=
-ly
-possible on X86 and PPC64 (if CONFIG_PPC64_SWSUSP is set).
+sh:
 
-Moreover, SMP suspend and hibernation are only possible if CONFIG_HOTPL=
-UG is
-set, because they select HOTPLUG_CPU that depends on it. =A0Also, since=
- suspend
-and hibernation don't depend on EXPERIMENTAL, arrange things so that CP=
-U
-hotplug can be selected if it is not set.
+drivers/mtd/mtdchar.c: In function `mtd_mmap':
+drivers/mtd/mtdchar.c:817: error: dereferencing pointer to incomplete type
+drivers/mtd/mtdchar.c:817: error: `VM_SHARED' undeclared (first use in this function)
+drivers/mtd/mtdchar.c:817: error: (Each undeclared identifier is reported only once
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig      |    2 -
- arch/i386/Kconfig     |    3 +-
- arch/powerpc/Kconfig  |    3 +-
- arch/x86_64/Kconfig   |    2 -
- arch/x86_64/defconfig |    1=20
- include/linux/cpu.h   |    6 ++---
- kernel/cpu.c          |    4 +--
- kernel/power/Kconfig  |   43 ++++++++++++++++++++++++++++++----------
- 8 files changed, 44 insertions(+), 20 deletions(-)
+ drivers/mtd/mtdchar.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/arm/Kconfig~pm-fix-dependencies-of-config_suspend-and-co=
-nfig_hibernation-updated-2x arch/arm/Kconfig
---- a/arch/arm/Kconfig~pm-fix-dependencies-of-config_suspend-and-config=
-_hibernation-updated-2x
-+++ a/arch/arm/Kconfig
-@@ -594,7 +594,7 @@ config NR_CPUS
-=20
- config HOTPLUG_CPU
- 	bool "Support for hot-pluggable CPUs (EXPERIMENTAL)"
--	depends on SMP && HOTPLUG && EXPERIMENTAL
-+	depends on SMP && HOTPLUG && (EXPERIMENTAL || PM_SLEEP_SMP)
- 	help
- 	  Say Y here to experiment with turning CPUs off and on.  CPUs
- 	  can be controlled through /sys/devices/system/cpu.
-diff -puN arch/i386/Kconfig~pm-fix-dependencies-of-config_suspend-and-c=
-onfig_hibernation-updated-2x arch/i386/Kconfig
---- a/arch/i386/Kconfig~pm-fix-dependencies-of-config_suspend-and-confi=
-g_hibernation-updated-2x
-+++ a/arch/i386/Kconfig
-@@ -904,7 +904,8 @@ config PHYSICAL_ALIGN
-=20
- config HOTPLUG_CPU
- 	bool "Support for suspend on SMP and hot-pluggable CPUs (EXPERIMENTAL=
-)"
--	depends on SMP && HOTPLUG && EXPERIMENTAL && !X86_VOYAGER
-+	depends on SMP && HOTPLUG && (EXPERIMENTAL || PM_SLEEP_SMP) \
-+		   && !X86_VOYAGER
- 	---help---
- 	  Say Y here to experiment with turning CPUs off and on, and to
- 	  enable suspend on SMP systems. CPUs can be controlled through
-diff -puN arch/powerpc/Kconfig~pm-fix-dependencies-of-config_suspend-an=
-d-config_hibernation-updated-2x arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~pm-fix-dependencies-of-config_suspend-and-co=
-nfig_hibernation-updated-2x
-+++ a/arch/powerpc/Kconfig
-@@ -194,7 +194,8 @@ config IOMMU_VMERGE
-=20
- config HOTPLUG_CPU
- 	bool "Support for enabling/disabling CPUs"
--	depends on SMP && HOTPLUG && EXPERIMENTAL && (PPC_PSERIES || PPC_PMAC=
-)
-+	depends on SMP && HOTPLUG && (EXPERIMENTAL || PM_SLEEP_SMP) \
-+		   && (PPC_PSERIES || PPC_PMAC)
- 	---help---
- 	  Say Y here to be able to disable and re-enable individual
- 	  CPUs at runtime on SMP machines.
-diff -puN arch/x86_64/Kconfig~pm-fix-dependencies-of-config_suspend-and=
--config_hibernation-updated-2x arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~pm-fix-dependencies-of-config_suspend-and-con=
-fig_hibernation-updated-2x
-+++ a/arch/x86_64/Kconfig
-@@ -445,7 +445,7 @@ config PHYSICAL_ALIGN
-=20
- config HOTPLUG_CPU
- 	bool "Support for suspend on SMP and hot-pluggable CPUs (EXPERIMENTAL=
-)"
--	depends on SMP && HOTPLUG && EXPERIMENTAL
-+	depends on SMP && HOTPLUG && (EXPERIMENTAL || PM_SLEEP_SMP)
- 	help
- 		Say Y here to experiment with turning CPUs off and on.  CPUs
- 		can be controlled through /sys/devices/system/cpu/cpu#.
-diff -puN arch/x86_64/defconfig~pm-fix-dependencies-of-config_suspend-a=
-nd-config_hibernation-updated-2x arch/x86_64/defconfig
---- a/arch/x86_64/defconfig~pm-fix-dependencies-of-config_suspend-and-c=
-onfig_hibernation-updated-2x
-+++ a/arch/x86_64/defconfig
-@@ -201,7 +201,6 @@ CONFIG_PM=3Dy
- # CONFIG_PM_DEBUG is not set
- CONFIG_HIBERNATION=3Dy
- CONFIG_PM_STD_PARTITION=3D""
--CONFIG_SUSPEND_SMP=3Dy
-=20
- #
- # ACPI (Advanced Configuration and Power Interface) Support
-diff -puN include/linux/cpu.h~pm-fix-dependencies-of-config_suspend-and=
--config_hibernation-updated-2x include/linux/cpu.h
---- a/include/linux/cpu.h~pm-fix-dependencies-of-config_suspend-and-con=
-fig_hibernation-updated-2x
-+++ a/include/linux/cpu.h
-@@ -128,16 +128,16 @@ static inline void cpuhotplug_mutex_unlo
- static inline int cpu_is_offline(int cpu) { return 0; }
- #endif		/* CONFIG_HOTPLUG_CPU */
-=20
--#ifdef CONFIG_SUSPEND_SMP
-+#ifdef CONFIG_PM_SLEEP_SMP
- extern int suspend_cpu_hotplug;
-=20
- extern int disable_nonboot_cpus(void);
- extern void enable_nonboot_cpus(void);
--#else
-+#else /* !CONFIG_PM_SLEEP_SMP */
- #define suspend_cpu_hotplug	0
-=20
- static inline int disable_nonboot_cpus(void) { return 0; }
- static inline void enable_nonboot_cpus(void) {}
--#endif
-+#endif /* !CONFIG_PM_SLEEP_SMP */
-=20
- #endif /* _LINUX_CPU_H_ */
-diff -puN kernel/cpu.c~pm-fix-dependencies-of-config_suspend-and-config=
-_hibernation-updated-2x kernel/cpu.c
---- a/kernel/cpu.c~pm-fix-dependencies-of-config_suspend-and-config_hib=
-ernation-updated-2x
-+++ a/kernel/cpu.c
-@@ -273,7 +273,7 @@ int __cpuinit cpu_up(unsigned int cpu)
- 	return err;
- }
-=20
--#ifdef CONFIG_SUSPEND_SMP
-+#ifdef CONFIG_PM_SLEEP_SMP
- static cpumask_t frozen_cpus;
-=20
- int disable_nonboot_cpus(void)
-@@ -334,4 +334,4 @@ void enable_nonboot_cpus(void)
- out:
- 	mutex_unlock(&cpu_add_remove_lock);
- }
--#endif
-+#endif /* CONFIG_PM_SLEEP_SMP */
-diff -puN kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-an=
-d-config_hibernation-updated-2x kernel/power/Kconfig
---- a/kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-and-co=
-nfig_hibernation-updated-2x
-+++ a/kernel/power/Kconfig
-@@ -72,15 +72,10 @@ config PM_TRACE
- 	CAUTION: this option will cause your machine's real-time clock to be
- 	set to an invalid time after a resume.
-=20
--config SUSPEND_SMP_POSSIBLE
--	bool
--	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES || PPC_PMA=
-C))
--	depends on SMP
--	default y
--
--config SUSPEND_SMP
-+config PM_SLEEP_SMP
- 	bool
--	depends on SUSPEND_SMP_POSSIBLE && PM_SLEEP
-+	depends on SUSPEND_SMP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
-+	depends on PM_SLEEP
- 	select HOTPLUG_CPU
- 	default y
-=20
-@@ -89,20 +84,48 @@ config PM_SLEEP
- 	depends on SUSPEND || HIBERNATION
- 	default y
-=20
-+config SUSPEND_UP_POSSIBLE
-+	bool
-+	depends on (X86 && !X86_VOYAGER) || PPC || ARM || BLACKFIN || MIPS \
-+		   || SUPERH || FRV
-+	depends on !SMP
-+	default y
-+
-+config SUSPEND_SMP_POSSIBLE
-+	bool
-+	depends on (X86 && !X86_VOYAGER) \
-+		   || (PPC && (PPC_PSERIES || PPC_PMAC)) || ARM
-+	depends on SMP
-+	depends on HOTPLUG
-+	default y
-+
- config SUSPEND
- 	bool "Suspend to RAM and standby"
- 	depends on PM
--	depends on !SMP || SUSPEND_SMP_POSSIBLE
-+	depends on SUSPEND_UP_POSSIBLE || SUSPEND_SMP_POSSIBLE
- 	default y
- 	---help---
- 	  Allow the system to enter sleep states in which main memory is
- 	  powered and thus its contents are preserved, such as the
- 	  suspend-to-RAM state (i.e. the ACPI S3 state).
-=20
-+config HIBERNATION_UP_POSSIBLE
-+	bool
-+	depends on X86 || PPC64_SWSUSP || FRV || PPC32
-+	depends on !SMP
-+	default y
-+
-+config HIBERNATION_SMP_POSSIBLE
-+	bool
-+	depends on (X86 && !X86_VOYAGER) || PPC64_SWSUSP
-+	depends on SMP
-+	depends on HOTPLUG
-+	default y
-+
- config HIBERNATION
- 	bool "Hibernation (aka 'suspend to disk')"
- 	depends on PM && SWAP
--	depends on ((X86 || PPC64_SWSUSP || FRV || PPC32) && !SMP) || SUSPEND=
-_SMP_POSSIBLE
-+	depends on HIBERNATION_UP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
- 	---help---
- 	  Enable the suspend to disk (STD) functionality, which is usually
- 	  called "hibernation" in user interfaces.  STD checkpoints the
+diff -puN drivers/mtd/mtdchar.c~mtdchar-build-fix drivers/mtd/mtdchar.c
+--- a/drivers/mtd/mtdchar.c~mtdchar-build-fix
++++ a/drivers/mtd/mtdchar.c
+@@ -7,6 +7,7 @@
+ 
+ #include <linux/device.h>
+ #include <linux/fs.h>
++#include <linux/mm.h>
+ #include <linux/err.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch
-pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-2x=
-=2Epatch
-uli526x-add-suspend-and-resume-routines.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-use-wait-queue-instead-of-busy-looping.patch
-freezer-measure-freezing-time.patch
-shrink_slab-handle-bad-shrinkers.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+fbcon-kill-compile-warning-fix.patch
+fix-serial-buffer-memory-leak-fix.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-platform-ide-driver.patch
+ide-arm-hack.patch
+mmc-make-it-build.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+merge-the-sonics-silicon-backplane-subsystem-fix.patch
+ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
+ssb-mainc-needs-dma-mappingh.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
+git-kgdb-fixup.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+pci-align-bar-settings-for-legacy-mode-ide-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+mm-bdi-init-hooks-fix.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
+mtdchar-build-fix.patch
