@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + ssb-extif-timing-serial-port-initialization.patch added to -mm tree
-Date: Tue, 07 Aug 2007 17:32:15 -0700
-Message-ID: <200708080032.l780WFK7012466@imap1.linux-foundation.org>
+Subject: + use-ssb-extif-in-ssb-mips-core-driver.patch added to -mm tree
+Date: Tue, 07 Aug 2007 17:32:18 -0700
+Message-ID: <200708080032.l780WIY5012469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55000 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50162 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752160AbXHHAdV (ORCPT
+	by vger.kernel.org with ESMTP id S1754184AbXHHAdV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 20:33:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: aurelien@aurel32.net, mb@bu3sch.de, nbd@openwrt.org
 
 
 The patch titled
-     SSB EXTIF timing & serial port initialization
+     Use SSB EXTIF in SSB MIPS core driver
 has been added to the -mm tree.  Its filename is
-     ssb-extif-timing-serial-port-initialization.patch
+     use-ssb-extif-in-ssb-mips-core-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,11 +25,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SSB EXTIF timing & serial port initialization
+Subject: Use SSB EXTIF in SSB MIPS core driver
 From: Aurelien Jarno <aurelien@aurel32.net>
 
-Add a new file drivers/ssb/driver_extif.c which contains new SSB EXTIF
-functions to initializes the timing and the serial ports.
+Use the functions added in the previous patch to do serial and timing
+initializations for EXTIF, currently marked as TODO.  It also implements the
+ssb_cpu_clock() and export it.  This function is needed to support the
+BCM947xx CPUs.
 
 Cc: Felix Fietkau <nbd@openwrt.org>
 Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
@@ -37,150 +39,161 @@ Signed-off-by: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ssb/Makefile                 |    2 
- drivers/ssb/driver_extif.c           |  104 +++++++++++++++++++++++++
- include/linux/ssb/ssb_driver_extif.h |   10 ++
- 3 files changed, 115 insertions(+), 1 deletion(-)
+ drivers/ssb/driver_mipscore.c       |   89 +++++++-------------------
+ drivers/ssb/main.c                  |    9 +-
+ include/linux/ssb/ssb_driver_mips.h |    1 
+ 3 files changed, 31 insertions(+), 68 deletions(-)
 
-diff -puN drivers/ssb/Makefile~ssb-extif-timing-serial-port-initialization drivers/ssb/Makefile
---- a/drivers/ssb/Makefile~ssb-extif-timing-serial-port-initialization
-+++ a/drivers/ssb/Makefile
-@@ -7,7 +7,7 @@ ssb-$(CONFIG_SSB_PCMCIAHOST)		+= pcmcia.
+diff -puN drivers/ssb/driver_mipscore.c~use-ssb-extif-in-ssb-mips-core-driver drivers/ssb/driver_mipscore.c
+--- a/drivers/ssb/driver_mipscore.c~use-ssb-extif-in-ssb-mips-core-driver
++++ a/drivers/ssb/driver_mipscore.c
+@@ -117,51 +117,10 @@ static void set_irq(struct ssb_device *d
+ 	ssb_write32(mdev, SSB_IPSFLAG, irqflag);
+ }
  
- # built-in drivers
- ssb-y					+= driver_chipcommon.o
--ssb-$(CONFIG_SSB_DRIVER_MIPS)		+= driver_mipscore.o
-+ssb-$(CONFIG_SSB_DRIVER_MIPS)		+= driver_mipscore.o driver_extif.o
- ssb-$(CONFIG_SSB_DRIVER_PCICORE)	+= driver_pcicore.o
+-/* XXX: leave here or move into separate extif driver? */
+-static int ssb_extif_serial_init(struct ssb_device *dev, struct ssb_serial_ports *ports)
+-{
+-
+-}
+-
+-
+ static void ssb_mips_serial_init(struct ssb_mipscore *mcore)
+ {
+ 	struct ssb_bus *bus = mcore->dev->bus;
  
- obj-$(CONFIG_SSB)			+= ssb.o
-diff -puN drivers/ssb/driver_extif.c~ssb-extif-timing-serial-port-initialization drivers/ssb/driver_extif.c
---- a/drivers/ssb/driver_extif.c~ssb-extif-timing-serial-port-initialization
-+++ a/drivers/ssb/driver_extif.c
-@@ -0,0 +1,104 @@
-+/*
-+ * Sonics Silicon Backplane
-+ * Broadcom EXTIF core driver
-+ *
-+ * Copyright 2005, Broadcom Corporation
-+ * Copyright 2006, 2007, Michael Buesch <mb@bu3sch.de>
-+ * Copyright 2006, 2007, Felix Fietkau <nbd@openwrt.org>
-+ * Copyright 2007, Aurelien Jarno <aurelien@aurel32.net>
-+ *
-+ * Licensed under the GNU/GPL. See COPYING for details.
-+ */
+-	//TODO if (EXTIF available
+-#if 0
+-		extifregs_t *eir = (extifregs_t *) regs;
+-		sbconfig_t *sb;
+-
+-		/* Determine external UART register base */
+-		sb = (sbconfig_t *)((ulong) eir + SBCONFIGOFF);
+-		base = EXTIF_CFGIF_BASE(sb_base(R_REG(&sb->sbadmatch1)));
+-
+-		/* Determine IRQ */
+-		irq = sb_irq(sbh);
+-
+-		/* Disable GPIO interrupt initially */
+-		W_REG(&eir->gpiointpolarity, 0);
+-		W_REG(&eir->gpiointmask, 0);
+-
+-		/* Search for external UARTs */
+-		n = 2;
+-		for (i = 0; i < 2; i++) {
+-			regs = (void *) REG_MAP(base + (i * 8), 8);
+-			if (BCMINIT(serial_exists)(regs)) {
+-				/* Set GPIO 1 to be the external UART IRQ */
+-				W_REG(&eir->gpiointmask, 2);
+-				if (add)
+-					add(regs, irq, 13500000, 0);
+-			}
+-		}
+-
+-		/* Add internal UART if enabled */
+-		if (R_REG(&eir->corecontrol) & CC_UE)
+-			if (add)
+-				add((void *) &eir->uartdata, irq, sb_clock(sbh), 2);
+-
+-#endif
+ 	if (bus->extif.dev)
+ 		mcore->nr_serial_ports = ssb_extif_serial_init(&bus->extif, mcore->serial_ports);
+ 	else if (bus->chipco.dev)
+@@ -183,9 +142,29 @@ static void ssb_mips_flash_detect(struct
+ 	}
+ }
+ 
+-
+-static void ssb_cpu_clock(struct ssb_mipscore *mcore)
++u32 ssb_cpu_clock(struct ssb_mipscore *mcore)
+ {
++	struct ssb_bus *bus = mcore->dev->bus;
++	u32 pll_type, n, m, rate = 0;
 +
-+#include <linux/serial.h>
-+#include <linux/serial_core.h>
-+#include <linux/serial_reg.h>
++	if (bus->extif.dev) {
++		ssb_extif_get_clockcontrol(&bus->extif, &pll_type, &n, &m);
++	} else if (bus->chipco.dev) {
++		ssb_chipco_get_clockcpu(&bus->chipco, &pll_type, &n, &m);
++	} else
++		return 0;
 +
-+#include "ssb_private.h"
-+
-+
-+static inline u32 extif_read32(struct ssb_extif *extif, u16 offset)
-+{
-+	return ssb_read32(extif->dev, offset);
-+}
-+
-+static inline void extif_write32(struct ssb_extif *extif, u16 offset, u32 value)
-+{
-+	ssb_write32(extif->dev, offset, value);
-+}
-+
-+#ifdef CONFIG_SSB_SERIAL
-+static bool serial_exists(u8 *regs)
-+{
-+	u8 save_mcr, msr = 0;
-+
-+	if (regs) {
-+		save_mcr = regs[UART_MCR];
-+		regs[UART_MCR] = (UART_MCR_LOOP | UART_MCR_OUT2 | UART_MCR_RTS);
-+		msr = regs[UART_MSR] & (UART_MSR_DCD | UART_MSR_RI
-+					| UART_MSR_CTS | UART_MSR_DSR);
-+		regs[UART_MCR] = save_mcr;
++	if ((pll_type == SSB_PLLTYPE_5) || (bus->chip_id == 0x5365)) {
++		rate = 200000000;
++	} else {
++		rate = ssb_calc_clock_rate(pll_type, n, m);
 +	}
-+	return (msr == (UART_MSR_DCD | UART_MSR_CTS));
-+}
 +
-+int ssb_extif_serial_init(struct ssb_extif *extif, struct ssb_serial_port *ports)
-+{
-+	u32 i, nr_ports = 0;
-+
-+	/* Disable GPIO interrupt initially */
-+	extif_write32(extif, SSB_EXTIF_GPIO_INTPOL, 0);
-+	extif_write32(extif, SSB_EXTIF_GPIO_INTMASK, 0);
-+
-+	for (i = 0; i < 2; i++) {
-+		void __iomem *uart_regs;
-+
-+		uart_regs = ioremap_nocache(SSB_EUART, 16);
-+		if (uart_regs) {
-+			uart_regs += (i * 8);
-+
-+			if (serial_exists(uart_regs) && ports) {
-+				extif_write32(extif, SSB_EXTIF_GPIO_INTMASK, 2);
-+
-+				nr_ports++;
-+				ports[i].regs = uart_regs;
-+				ports[i].irq = 2;
-+				ports[i].baud_base = 13500000;
-+				ports[i].reg_shift = 0;
-+			}
-+			iounmap(uart_regs);
-+		}
++	if (pll_type == SSB_PLLTYPE_6) {
++		rate *= 2;
 +	}
-+	return nr_ports;
-+}
-+#endif /* CONFIG_SSB_SERIAL */
 +
-+void ssb_extif_timing_init(struct ssb_extif *extif, unsigned long ns)
-+{
-+	u32 tmp;
-+
-+	/* Initialize extif so we can get to the LEDs and external UART */
-+	extif_write32(extif, SSB_EXTIF_PROG_CFG, SSB_EXTCFG_EN);
-+
-+	/* Set timing for the flash */
-+	tmp  = DIV_ROUND_UP(10, ns) << SSB_PROG_WCNT_3_SHIFT;
-+	tmp |= DIV_ROUND_UP(40, ns) << SSB_PROG_WCNT_1_SHIFT;
-+	tmp |= DIV_ROUND_UP(120, ns);
-+	extif_write32(extif, SSB_EXTIF_PROG_WAITCNT, tmp);
-+
-+	/* Set programmable interface timing for external uart */
-+	tmp  = DIV_ROUND_UP(10, ns) << SSB_PROG_WCNT_3_SHIFT;
-+	tmp |= DIV_ROUND_UP(20, ns) << SSB_PROG_WCNT_2_SHIFT;
-+	tmp |= DIV_ROUND_UP(100, ns) << SSB_PROG_WCNT_1_SHIFT;
-+	tmp |= DIV_ROUND_UP(120, ns);
-+	extif_write32(extif, SSB_EXTIF_PROG_WAITCNT, tmp);
-+}
-+
-+void ssb_extif_get_clockcontrol(struct ssb_extif *extif,
-+				u32 *pll_type, u32 *n, u32 *m)
-+{
-+	*pll_type = SSB_PLLTYPE_1;
-+	*n = extif_read32(extif, SSB_EXTIF_CLOCK_N);
-+	*m = extif_read32(extif, SSB_EXTIF_CLOCK_SB);
-+}
-+
-diff -puN include/linux/ssb/ssb_driver_extif.h~ssb-extif-timing-serial-port-initialization include/linux/ssb/ssb_driver_extif.h
---- a/include/linux/ssb/ssb_driver_extif.h~ssb-extif-timing-serial-port-initialization
-+++ a/include/linux/ssb/ssb_driver_extif.h
-@@ -156,5 +156,15 @@ struct ssb_extif {
- /* watchdog */
- #define SSB_EXTIF_WATCHDOG_CLK		48000000	/* Hz */
++	return rate;
+ }
  
-+extern void ssb_extif_get_clockcontrol(struct ssb_extif *extif,
-+			               u32 *plltype, u32 *n, u32 *m);
-+
-+extern void ssb_extif_timing_init(struct ssb_extif *extif,
-+				  unsigned long ns);
-+
-+#ifdef CONFIG_SSB_SERIAL
-+extern int ssb_extif_serial_init(struct ssb_extif *extif,
-+				 struct ssb_serial_port *ports);
-+#endif /* CONFIG_SSB_SERIAL */
+ void ssb_mipscore_init(struct ssb_mipscore *mcore)
+@@ -205,27 +184,9 @@ void ssb_mipscore_init(struct ssb_mipsco
+ 		hz = 100000000;
+ 	ns = 1000000000 / hz;
  
- #endif /* LINUX_SSB_EXTIFCORE_H_ */
+-//TODO
+-#if 0
+-	if (have EXTIF) {
+-		/* Initialize extif so we can get to the LEDs and external UART */
+-		W_REG(&eir->prog_config, CF_EN);
+-
+-		/* Set timing for the flash */
+-		tmp = CEIL(10, ns) << FW_W3_SHIFT;	/* W3 = 10nS */
+-		tmp = tmp | (CEIL(40, ns) << FW_W1_SHIFT); /* W1 = 40nS */
+-		tmp = tmp | CEIL(120, ns);		/* W0 = 120nS */
+-		W_REG(&eir->prog_waitcount, tmp);	/* 0x01020a0c for a 100Mhz clock */
+-
+-		/* Set programmable interface timing for external uart */
+-		tmp = CEIL(10, ns) << FW_W3_SHIFT;	/* W3 = 10nS */
+-		tmp = tmp | (CEIL(20, ns) << FW_W2_SHIFT); /* W2 = 20nS */
+-		tmp = tmp | (CEIL(100, ns) << FW_W1_SHIFT); /* W1 = 100nS */
+-		tmp = tmp | CEIL(120, ns);		/* W0 = 120nS */
+-		W_REG(&eir->prog_waitcount, tmp);
+-	}
+-#endif
+-	if (bus->chipco.dev)
++	if (bus->extif.dev)
++		ssb_extif_timing_init(&bus->extif, ns);
++	else if (bus->chipco.dev)
+ 		ssb_chipco_timing_init(&bus->chipco, ns);
+ 
+ 	/* Assign IRQs to all cores on the bus, start with irq line 2, because serial usually takes 1 */
+diff -puN drivers/ssb/main.c~use-ssb-extif-in-ssb-mips-core-driver drivers/ssb/main.c
+--- a/drivers/ssb/main.c~use-ssb-extif-in-ssb-mips-core-driver
++++ a/drivers/ssb/main.c
+@@ -819,12 +819,13 @@ u32 ssb_clockspeed(struct ssb_bus *bus)
+ 	u32 plltype;
+ 	u32 clkctl_n, clkctl_m;
+ 
+-	//TODO if EXTIF: PLLTYPE == 1, read n from clockcontrol_n, m from clockcontrol_sb
+-
+-	if (bus->chipco.dev) {
++	if (bus->extif.dev)
++		ssb_extif_get_clockcontrol(&bus->extif, &plltype,
++					   &clkctl_n, &clkctl_m);
++	else if (bus->chipco.dev)
+ 		ssb_chipco_get_clockcontrol(&bus->chipco, &plltype,
+ 					    &clkctl_n, &clkctl_m);
+-	} else
++	else
+ 		return 0;
+ 
+ 	if (bus->chip_id == 0x5365) {
+diff -puN include/linux/ssb/ssb_driver_mips.h~use-ssb-extif-in-ssb-mips-core-driver include/linux/ssb/ssb_driver_mips.h
+--- a/include/linux/ssb/ssb_driver_mips.h~use-ssb-extif-in-ssb-mips-core-driver
++++ a/include/linux/ssb/ssb_driver_mips.h
+@@ -25,6 +25,7 @@ struct ssb_mipscore {
+ };
+ 
+ extern void ssb_mipscore_init(struct ssb_mipscore *mcore);
++extern u32 ssb_cpu_clock(struct ssb_mipscore *mcore);
+ 
+ extern unsigned int ssb_mips_irq(struct ssb_device *dev);
+ 
 _
 
 Patches currently in -mm which might be from aurelien@aurel32.net are
