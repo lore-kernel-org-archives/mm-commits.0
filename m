@@ -1,135 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: - ich8-cf-timeout-regression.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 12:00:06 -0700
-Message-ID: <200708081900.l78J06kI025569@imap1.linux-foundation.org>
+Subject: - sched-debug-cleanup-the-sysctl-registration-code.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 12:03:31 -0700
+Message-ID: <200708081903.l78J3WJj025637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46123 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40416 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760056AbXHHTBE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:01:04 -0400
+	by vger.kernel.org with ESMTP id S1759639AbXHHTEi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:04:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.blueman@gmail.com, htejun@gmail.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, mingo@elte.hu, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ICH8 CF timeout fix
+     sched debug: clean up the sysctl registration code.
 has been removed from the -mm tree.  Its filename was
-     ich8-cf-timeout-regression.patch
+     sched-debug-cleanup-the-sysctl-registration-code.patch
 
-This patch was dropped because I _think_ Tejun's b28ea54eb3c88e7418778878a67ef98c0285a5bc fixed this in a different way
+This patch was dropped because Changes in Ingo's tree destroyed it
 
 ------------------------------------------------------
-Subject: ICH8 CF timeout fix
-From: "Daniel J Blueman" <daniel.blueman@gmail.com>
+Subject: sched debug: clean up the sysctl registration code.
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-On 03/08/07, Tejun Heo <htejun@gmail.com> wrote:
-> Daniel J Blueman wrote:
-> > The ICH8 south-bridge I have is the mobile variant and does come
-> > equipped with native parallel IDE - see page 447:
-> > http://download.intel.com/design/chipsets/datashts/31305603.pdf . I do
-> > see 35MB/s with DMA enabled from my CF on the 1 in 15 times the
-> > libata-kernel does work.
-> >
-> > I can dump off and decode the configuration registers for the timing
-> > and bus master registers in the working and non-working libata cases,
-> > and the legacy ATA working case and see what's different.
->
-> Does the attached patch change anything?
+- Use C99 initializers (struct ctl_table may change again)
+- We don't need to set ctl_name anywhere to anything besides CTL_UNNUMBERED
+- memset after kmalloc isn't needed if we just use kzalloc
+- Directories under /proc/sys should always be 0555.
+  User space programs can not write to them.
 
-This addresses the issue 100%!
-
-Due to the differences between the ICH8 non-mobile and mobile
-variants, I've cooked the change into a new initialisation structure
-for the ICH8M in the attached patch, if that helps at all.
-
-The changes thus affect (correct) behaviour on the ICH8M in IDE mode
-only...so should be safe for inclusion. There may be a similar
-situation with ICH9Ms also.
-
-(akpm: needs a sane changelog)
-
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_piix.c |   33 +++++++++++++++++++++++++++++----
- 1 file changed, 29 insertions(+), 4 deletions(-)
+ kernel/sched.c |   56 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 32 insertions(+), 24 deletions(-)
 
-diff -puN drivers/ata/ata_piix.c~ich8-cf-timeout-regression drivers/ata/ata_piix.c
---- a/drivers/ata/ata_piix.c~ich8-cf-timeout-regression
-+++ a/drivers/ata/ata_piix.c
-@@ -129,7 +129,8 @@ enum {
- 	ich6_sata_ahci		= 7,
- 	ich6m_sata_ahci		= 8,
- 	ich8_sata_ahci		= 9,
--	piix_pata_mwdma		= 10,	/* PIIX3 MWDMA only */
-+	ich8m_sata_ahci		= 10,
-+	piix_pata_mwdma		= 11,	/* PIIX3 MWDMA only */
+diff -puN kernel/sched.c~sched-debug-cleanup-the-sysctl-registration-code kernel/sched.c
+--- a/kernel/sched.c~sched-debug-cleanup-the-sysctl-registration-code
++++ a/kernel/sched.c
+@@ -5208,32 +5208,40 @@ static void migrate_dead_tasks(unsigned 
+ #if defined(CONFIG_SCHED_DEBUG) && defined(CONFIG_SYSCTL)
  
- 	/* constants for mapping table */
- 	P0			= 0,  /* port 0 */
-@@ -240,7 +241,7 @@ static const struct pci_device_id piix_p
- 	/* SATA Controller 2 IDE (ICH8) */
- 	{ 0x8086, 0x2825, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
- 	/* Mobile SATA Controller IDE (ICH8M) */
--	{ 0x8086, 0x2828, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
-+	{ 0x8086, 0x2828, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8m_sata_ahci },
- 	/* SATA Controller IDE (ICH9) */
- 	{ 0x8086, 0x2920, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
- 	/* SATA Controller IDE (ICH9) */
-@@ -436,7 +437,19 @@ static const struct piix_map_db ich8_map
- 		/* PM   PS   SM   SS       MAP */
- 		{  P0,  P2,  P1,  P3 }, /* 00b (hardwired when in AHCI) */
- 		{  RV,  RV,  RV,  RV },
--		{  IDE,  IDE,  NA,  NA }, /* 10b (IDE mode) */
-+		{ IDE, IDE,  NA,  NA }, /* 10b (IDE mode) */
-+		{  RV,  RV,  RV,  RV },
-+	},
-+};
-+
-+static const struct piix_map_db ich8m_map_db = {
-+	.mask = 0x3,
-+	.port_enable = 0x3,
-+	.map = {
-+		/* PM   PS   SM   SS       MAP */
-+		{  P0,  P2,  P1,  P3 }, /* 00b (hardwired when in AHCI) */
-+		{  RV,  RV,  RV,  RV },
-+		{  P0,  P2, IDE, IDE }, /* 10b (IDE mode) */
- 		{  RV,  RV,  RV,  RV },
- 	},
- };
-@@ -447,6 +460,7 @@ static const struct piix_map_db *piix_ma
- 	[ich6_sata_ahci]	= &ich6_map_db,
- 	[ich6m_sata_ahci]	= &ich6m_map_db,
- 	[ich8_sata_ahci]	= &ich8_map_db,
-+	[ich8m_sata_ahci]	= &ich8m_map_db,
- };
- 
- static struct ata_port_info piix_port_info[] = {
-@@ -552,7 +566,18 @@ static struct ata_port_info piix_port_in
- 		.port_ops	= &piix_sata_ops,
- 	},
- 
--	/* piix_pata_mwdma: 10:  PIIX3 MWDMA only */
-+	/* ich8m_sata_ahci: 10 */
+ static struct ctl_table sd_ctl_dir[] = {
+-	{CTL_UNNUMBERED, "sched_domain", NULL, 0, 0755, NULL, },
+-	{0,},
 +	{
-+		.sht		= &piix_sht,
-+		.flags		= PIIX_SATA_FLAGS | PIIX_FLAG_SCR |
-+				  PIIX_FLAG_AHCI,
-+		.pio_mask	= 0x1f,	/* pio0-4 */
-+		.mwdma_mask	= 0x07, /* mwdma0-2 */
-+		.udma_mask	= ATA_UDMA6,
-+		.port_ops	= &piix_sata_ops,
++		.ctl_name 	= CTL_UNNUMBERED,
++		.procname	= "sched_domain",
++		.mode		= 0555,
 +	},
-+
-+	/* piix_pata_mwdma: 11:  PIIX3 MWDMA only */
- 	{
- 		.sht		= &piix_sht,
- 		.flags		= PIIX_PATA_FLAGS,
++	{}
+ };
+ 
+ static struct ctl_table sd_ctl_root[] = {
+-	{CTL_UNNUMBERED, "kernel", NULL, 0, 0755, sd_ctl_dir, },
+-	{0,},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "kernel",
++		.mode		= 0555,
++		.child		= sd_ctl_dir,
++	},
++	{}
+ };
+ 
+ static struct ctl_table *sd_alloc_ctl_entry(int n)
+ {
+ 	struct ctl_table *entry =
+-		kmalloc(n * sizeof(struct ctl_table), GFP_KERNEL);
++		kzalloc(n * sizeof(struct ctl_table), GFP_KERNEL);
+ 
+ 	BUG_ON(!entry);
+-	memset(entry, 0, n * sizeof(struct ctl_table));
+ 
+ 	return entry;
+ }
+ 
+ static void
+-set_table_entry(struct ctl_table *entry, int ctl_name,
++set_table_entry(struct ctl_table *entry,
+ 		const char *procname, void *data, int maxlen,
+ 		mode_t mode, proc_handler *proc_handler)
+ {
+-	entry->ctl_name = ctl_name;
++	entry->ctl_name = CTL_UNNUMBERED;
+ 	entry->procname = procname;
+ 	entry->data = data;
+ 	entry->maxlen = maxlen;
+@@ -5246,34 +5254,34 @@ sd_alloc_ctl_domain_table(struct sched_d
+ {
+ 	struct ctl_table *table = sd_alloc_ctl_entry(14);
+ 
+-	set_table_entry(&table[0], 1, "min_interval", &sd->min_interval,
++	set_table_entry(&table[0], "min_interval", &sd->min_interval,
+ 		sizeof(long), 0644, proc_doulongvec_minmax);
+-	set_table_entry(&table[1], 2, "max_interval", &sd->max_interval,
++	set_table_entry(&table[1], "max_interval", &sd->max_interval,
+ 		sizeof(long), 0644, proc_doulongvec_minmax);
+-	set_table_entry(&table[2], 3, "busy_idx", &sd->busy_idx,
++	set_table_entry(&table[2], "busy_idx", &sd->busy_idx,
+ 		sizeof(int), 0644, proc_dointvec_minmax);
+-	set_table_entry(&table[3], 4, "idle_idx", &sd->idle_idx,
++	set_table_entry(&table[3], "idle_idx", &sd->idle_idx,
+ 		sizeof(int), 0644, proc_dointvec_minmax);
+-	set_table_entry(&table[4], 5, "newidle_idx", &sd->newidle_idx,
++	set_table_entry(&table[4], "newidle_idx", &sd->newidle_idx,
+ 		sizeof(int), 0644, proc_dointvec_minmax);
+-	set_table_entry(&table[5], 6, "wake_idx", &sd->wake_idx,
++	set_table_entry(&table[5], "wake_idx", &sd->wake_idx,
+ 		sizeof(int), 0644, proc_dointvec_minmax);
+-	set_table_entry(&table[6], 7, "forkexec_idx", &sd->forkexec_idx,
++	set_table_entry(&table[6], "forkexec_idx", &sd->forkexec_idx,
+ 		sizeof(int), 0644, proc_dointvec_minmax);
+-	set_table_entry(&table[7], 8, "busy_factor", &sd->busy_factor,
++	set_table_entry(&table[7], "busy_factor", &sd->busy_factor,
+ 		sizeof(int), 0644, proc_dointvec_minmax);
+-	set_table_entry(&table[8], 9, "imbalance_pct", &sd->imbalance_pct,
++	set_table_entry(&table[8], "imbalance_pct", &sd->imbalance_pct,
+ 		sizeof(int), 0644, proc_dointvec_minmax);
+-	set_table_entry(&table[10], 11, "cache_nice_tries",
++	set_table_entry(&table[10], "cache_nice_tries",
+ 		&sd->cache_nice_tries,
+ 		sizeof(int), 0644, proc_dointvec_minmax);
+-	set_table_entry(&table[12], 13, "flags", &sd->flags,
++	set_table_entry(&table[12], "flags", &sd->flags,
+ 		sizeof(int), 0644, proc_dointvec_minmax);
+ 
+ 	return table;
+ }
+ 
+-static ctl_table *sd_alloc_ctl_cpu_table(int cpu)
++static struct ctl_table *sd_alloc_ctl_cpu_table(int cpu)
+ {
+ 	struct ctl_table *entry, *table;
+ 	struct sched_domain *sd;
+@@ -5287,9 +5295,9 @@ static ctl_table *sd_alloc_ctl_cpu_table
+ 	i = 0;
+ 	for_each_domain(cpu, sd) {
+ 		snprintf(buf, 32, "domain%d", i);
+-		entry->ctl_name = i + 1;
++		entry->ctl_name = CTL_UNNUMBERED;
+ 		entry->procname = kstrdup(buf, GFP_KERNEL);
+-		entry->mode = 0755;
++		entry->mode = 0555;
+ 		entry->child = sd_alloc_ctl_domain_table(sd);
+ 		entry++;
+ 		i++;
+@@ -5308,9 +5316,9 @@ static void init_sched_domain_sysctl(voi
+ 
+ 	for (i = 0; i < cpu_num; i++, entry++) {
+ 		snprintf(buf, 32, "cpu%d", i);
+-		entry->ctl_name = i + 1;
++		entry->ctl_name = CTL_UNNUMBERED;
+ 		entry->procname = kstrdup(buf, GFP_KERNEL);
+-		entry->mode = 0755;
++		entry->mode = 0555;
+ 		entry->child = sd_alloc_ctl_cpu_table(i);
+ 	}
+ 	sd_sysctl_header = register_sysctl_table(sd_ctl_root);
 _
 
-Patches currently in -mm which might be from daniel.blueman@gmail.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-ich8-cf-timeout-regression.patch
+remove-unused-struct-proc_dir_entryset.patch
+dvb_en_50221-convert-to-kthread-api.patch
+sched-debug-cleanup-the-sysctl-registration-code.patch
+x86_64-remove-sync_arb_ids.patch
+x86_64-clear-io_apic-before-enabing-apic-error-vector.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
