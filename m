@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + e1000e-build-fix.patch added to -mm tree
-Date: Wed, 08 Aug 2007 14:29:12 -0700
-Message-ID: <200708082134.l78LY3TJ031116@imap1.linux-foundation.org>
+Subject: - e1000e-build-fix.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 14:31:37 -0700
+Message-ID: <200708082136.l78LaTr4031209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33090 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45107 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933620AbXHHVeP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 17:34:15 -0400
+	by vger.kernel.org with ESMTP id S1765284AbXHHVgk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 17:36:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, jeff@garzik.org
+To: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      e1000e-build-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      e1000e-build-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: e1000e-build-fix
@@ -84,6 +80,7 @@ git-mtd.patch
 git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
 mtdoops-printk-warning-fixes.patch
 git-netdev-all.patch
+e1000e-build-fix.patch
 ax88796-printk-fixes.patch
 natsemi-fix-netdev-error-acounting.patch
 git-ixgbe-build-fix.patch
@@ -175,4 +172,3 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-e1000e-build-fix.patch
