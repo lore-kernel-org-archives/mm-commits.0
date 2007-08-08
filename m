@@ -1,80 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - net-smc91x-build-fixes-for-general-sh-boards.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 12:07:50 -0700
-Message-ID: <200708081907.l78J7oxQ025798@imap1.linux-foundation.org>
+Subject: - atl1-use-spin_trylock_irqsave.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 12:07:47 -0700
+Message-ID: <200708081907.l78J7l5F025795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41942 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41417 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763903AbXHHTIa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:08:30 -0400
+	by vger.kernel.org with ESMTP id S1764579AbXHHTId (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:08:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: mingo@elte.hu, jacliburn@bellsouth.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: smc91x: Build fixes for general sh boards.
+     atl1: use spin_trylock_irqsave()
 has been removed from the -mm tree.  Its filename was
-     net-smc91x-build-fixes-for-general-sh-boards.patch
+     atl1-use-spin_trylock_irqsave.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net: smc91x: Build fixes for general sh boards.
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: atl1: use spin_trylock_irqsave()
+From: Ingo Molnar <mingo@elte.hu>
 
-SH boards in general only wire this up in 8 or 16-bit mode, and as we never
-had the wrappers for 32-bit mode defined, SMC_CAN_USE_32BIT caused build
-failure for the non-Solution Engine boards.  This gets it building again.
+use the simpler spin_trylock_irqsave() API to get the adapter lock.
 
-Also kill off the straggling set_irq_type() definition, this is left over
-cruft that was missed when the rest of it switched to IRQ flags.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc91x.h |    4 +---
+ drivers/net/atl1/atl1_main.c |    4 +---
  1 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/net/smc91x.h~net-smc91x-build-fixes-for-general-sh-boards drivers/net/smc91x.h
---- a/drivers/net/smc91x.h~net-smc91x-build-fixes-for-general-sh-boards
-+++ a/drivers/net/smc91x.h
-@@ -299,7 +299,7 @@ SMC_outw(u16 val, void __iomem *ioaddr, 
+diff -puN drivers/net/atl1/atl1_main.c~atl1-use-spin_trylock_irqsave drivers/net/atl1/atl1_main.c
+--- a/drivers/net/atl1/atl1_main.c~atl1-use-spin_trylock_irqsave
++++ a/drivers/net/atl1/atl1_main.c
+@@ -1703,10 +1703,8 @@ static int atl1_xmit_frame(struct sk_buf
+ 		}
+ 	}
  
- #define SMC_CAN_USE_8BIT       1
- #define SMC_CAN_USE_16BIT      1
--#define SMC_CAN_USE_32BIT      1
-+#define SMC_CAN_USE_32BIT      0
- 
- #define SMC_inb(a, r)          inb((a) + (r))
- #define SMC_inw(a, r)          inw((a) + (r))
-@@ -310,8 +310,6 @@ SMC_outw(u16 val, void __iomem *ioaddr, 
- 
- #endif  /* BOARDS */
- 
--#define set_irq_type(irq, type) do {} while (0)
--
- #elif   defined(CONFIG_M32R)
- 
- #define SMC_CAN_USE_8BIT	0
+-	local_irq_save(flags);
+-	if (!spin_trylock(&adapter->lock)) {
++	if (!spin_trylock_irqsave(&adapter->lock, flags)) {
+ 		/* Can't get lock - tell upper layer to requeue */
+-		local_irq_restore(flags);
+ 		dev_printk(KERN_DEBUG, &adapter->pdev->dev, "tx locked\n");
+ 		return NETDEV_TX_LOCKED;
+ 	}
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-pvr2fb-consolidated-cleanup-of-pvr2fbc.patch
-apply-memory-policies-to-top-two-highest-zones-when-highest-zone-is-zone_movable.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+fix-local_irq_-macro-definition-thinkos-for-the-trace_irqflags_support-case.patch
+git-kvm.patch
+mips-qemu-network-work-again.patch
 git-netdev-all.patch
-git-sh.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-usb-enable-hcd-support-on-sh-unconditionally.patch
-usb-r8a66597-hcd-clean-up-error-path.patch
+fix-theoretical-ccids_readwrite_lock-race.patch
+git-sched.patch
+kernel-schedc-make-code-static.patch
 nohz-fix-nohz-x86-dyntick-idle-handling.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-clean-up-duplicate-includes-in-mm.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+geode-mfgpt-clock-event-device-support.patch
+i386-remove-unnecessary-code.patch
+x86-expand-proc-interrupts-to-include-missing-vectors-v2.patch
+i386-convert-mm_context_t-semaphore-to-a-mutex.patch
+futex_unlock_pi-hurts-my-brain-and-may-cause.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+softlockup-use-cpu_clock-instead-of-sched_clock.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+softlockup-improve-debug-output.patch
+softlockup-watchdog-style-cleanups.patch
+softlockup-add-a-proc-tuning-parameter.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+kernel-rtmutex-debugc-cleanups.patch
+pi-futex-set-pf_exiting-without-taking-pi_lock.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+msleep-with-hrtimers.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+mm-implement-swap-prefetching.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
