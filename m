@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-mmf_dump_elf_headers.patch added to -mm tree
-Date: Tue, 07 Aug 2007 17:51:01 -0700
-Message-ID: <200708080051.l780p1sO013168@imap1.linux-foundation.org>
+Subject: + make-swappiness-safer-to-use.patch added to -mm tree
+Date: Tue, 07 Aug 2007 17:57:00 -0700
+Message-ID: <200708080057.l780v1gw013362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36731 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37779 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758128AbXHHAvR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 20:51:17 -0400
+	by vger.kernel.org with ESMTP id S1762592AbXHHA5P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 20:57:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, hidehiro.kawai.ez@hitachi.com
+Cc: andrea@suse.de, garloff@suse.de, npiggin@suse.de, wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     Add MMF_DUMP_ELF_HEADERS
+     make swappiness safer to use
 has been added to the -mm tree.  Its filename is
-     add-mmf_dump_elf_headers.patch
+     make-swappiness-safer-to-use.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,188 +25,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add MMF_DUMP_ELF_HEADERS
-From: Roland McGrath <roland@redhat.com>
+Subject: make swappiness safer to use
+From: Andrea Arcangeli <andrea@suse.de>
 
-This adds the MMF_DUMP_ELF_HEADERS option to /proc/pid/coredump_filter. 
-This dumps the first page (only) of a private file mapping if it appears to
-be a mapping of an ELF file.  Including these pages in the core dump may
-give sufficient identifying information to associate the original DSO and
-executable file images and their debugging information with a core file in
-a generic way just from its contents (e.g.  when those binaries were built
-with ld --build-id).  I expect this to become the default behavior
-eventually.  Existing versions of gdb can be confused by the core dumps it
-creates, so it won't enabled by default for some time to come.  Soon many
-people will have systems with a gdb that handle these dumps, so they can
-arrange to set the bit at boot and have it inherited system-wide.
+Swappiness isn't a safe sysctl.  Setting it to 0 for example can hang a
+system.  That's a corner case but even setting it to 10 or lower can waste
+enormous amounts of cpu without making much progress.  We've customers who
+wants to use swappiness but they can't because of the current
+implementation (if you change it so the system stops swapping it really
+stops swapping and nothing works sane anymore if you really had to swap
+something to make progress).
 
-This also cleans up the checking of the MMF_DUMP_* flag bits, which did not
-need to be using atomic macros.
+This patch from Kurt Garloff makes swappiness safer to use (no more huge
+cpu usage or hangs with low swappiness values).
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+I think the prev_priority can also be nuked since it wastes 4 bytes per
+zone (that would be an incremental patch but I wait the nr_scan_[in]active
+to be nuked first for similar reasons).  Clearly somebody at some point
+noticed how broken that thing was and they had to add min(priority,
+prev_priority) to give it some reliability, but they didn't go the last
+mile to nuke prev_priority too.  Calculating distress only in function of
+not-racy priority is correct and sure more than enough without having to
+add randomness into the equation.
+
+Patch is tested on older kernels but it compiles and it's quite simple
+so...
+
+Overall I'm not very satisified by the swappiness tweak, since it doesn't
+rally do anything with the dirty pagecache that may be inactive.  We need
+another kind of tweak that controls the inactive scan and tunes the
+can_writepage feature (not yet in mainline despite having submitted it a
+few times), not only the active one.  That new tweak will tell the kernel
+how hard to scan the inactive list for pure clean pagecache (something the
+mainline kernel isn't capable of yet).  We already have that feature
+working in all our enterprise kernels with the default reasonable tune, or
+they can't even run a readonly backup with tar without triggering huge
+write I/O.  I think it should be available also in mainline later.
+
+Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Kurt Garloff <garloff@suse.de>
+Signed-off-by: Andrea Arcangeli <andrea@suse.de>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c       |   78 +++++++++++++++++++++++++++-------------
- include/linux/sched.h |    3 +
- 2 files changed, 55 insertions(+), 26 deletions(-)
+ mm/vmscan.c |   41 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 41 insertions(+)
 
-diff -puN fs/binfmt_elf.c~add-mmf_dump_elf_headers fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~add-mmf_dump_elf_headers
-+++ a/fs/binfmt_elf.c
-@@ -1201,35 +1201,68 @@ static int dump_seek(struct file *file, 
- }
+diff -puN mm/vmscan.c~make-swappiness-safer-to-use mm/vmscan.c
+--- a/mm/vmscan.c~make-swappiness-safer-to-use
++++ a/mm/vmscan.c
+@@ -924,6 +924,7 @@ static void shrink_active_list(unsigned 
+ 		long mapped_ratio;
+ 		long distress;
+ 		long swap_tendency;
++		long imbalance;
  
- /*
-- * Decide whether a segment is worth dumping; default is yes to be
-- * sure (missing info is worse than too much; etc).
-- * Personally I'd include everything, and use the coredump limit...
-- *
-- * I think we should skip something. But I am not sure how. H.J.
-+ * Decide what to dump of a segment, part, all or none.
-  */
--static int maydump(struct vm_area_struct *vma, unsigned long mm_flags)
-+static unsigned long vma_dump_size(struct vm_area_struct *vma,
-+				   unsigned long mm_flags)
- {
- 	/* The vma can be set up to tell us the answer directly.  */
- 	if (vma->vm_flags & VM_ALWAYSDUMP)
--		return 1;
-+		goto whole;
+ 		if (zone_is_near_oom(zone))
+ 			goto force_reclaim_mapped;
+@@ -959,6 +960,46 @@ static void shrink_active_list(unsigned 
+ 		swap_tendency = mapped_ratio / 2 + distress + sc->swappiness;
  
- 	/* Do not dump I/O mapped devices or special mappings */
- 	if (vma->vm_flags & (VM_IO | VM_RESERVED))
- 		return 0;
- 
-+#define FILTER(type)	(mm_flags & (1UL << MMF_DUMP_##type))
-+
- 	/* By default, dump shared memory if mapped from an anonymous file. */
- 	if (vma->vm_flags & VM_SHARED) {
--		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0)
--			return test_bit(MMF_DUMP_ANON_SHARED, &mm_flags);
--		else
--			return test_bit(MMF_DUMP_MAPPED_SHARED, &mm_flags);
-+		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0 ?
-+		    FILTER(ANON_SHARED) : FILTER(MAPPED_SHARED))
-+			goto whole;
-+		return 0;
- 	}
- 
--	/* By default, if it hasn't been written to, don't write it out. */
--	if (!vma->anon_vma)
--		return test_bit(MMF_DUMP_MAPPED_PRIVATE, &mm_flags);
-+	/* Dump segments that have been written to.  */
-+	if (vma->anon_vma && FILTER(ANON_PRIVATE))
-+		goto whole;
-+	if (vma->vm_file == NULL)
-+		return 0;
-+
-+	if (FILTER(MAPPED_PRIVATE))
-+		goto whole;
- 
--	return test_bit(MMF_DUMP_ANON_PRIVATE, &mm_flags);
-+	/*
-+	 * If this looks like the beginning of a DSO or executable mapping,
-+	 * check for an ELF header.  If we find one, dump the first page to
-+	 * aid in determining what was mapped here.
-+	 */
-+	if (FILTER(ELF_HEADERS) && vma->vm_file != NULL && vma->vm_pgoff == 0) {
-+		u32 __user *header = (u32 __user *) vma->vm_start;
-+		u32 word;
-+		/*
-+		 * Doing it this way gets the constant folded by GCC.
+ 		/*
++		 * If there's huge imbalance between active and inactive
++		 * (think active 100 times larger than inactive) we should
++		 * become more permissive, or the system will take too much
++		 * cpu before it start swapping during memory pressure.
++		 * Distress is about avoiding early-oom, this is about
++		 * making swappiness graceful despite setting it to low
++		 * values.
++		 *
++		 * Avoid div by zero with nr_inactive+1, and max resulting
++		 * value is vm_total_pages.
 +		 */
-+		union {
-+			u32 cmp;
-+			char elfmag[SELFMAG];
-+		} magic;
-+		BUILD_BUG_ON(SELFMAG != sizeof word);
-+		magic.elfmag[EI_MAG0] = ELFMAG0;
-+		magic.elfmag[EI_MAG1] = ELFMAG1;
-+		magic.elfmag[EI_MAG2] = ELFMAG2;
-+		magic.elfmag[EI_MAG3] = ELFMAG3;
-+		if (get_user(word, header) == 0 && word == magic.cmp)
-+			return PAGE_SIZE;
-+	}
++		imbalance  = zone_page_state(zone, NR_ACTIVE);
++		imbalance /= zone_page_state(zone, NR_INACTIVE) + 1;
 +
-+#undef	FILTER
++		/*
++		 * Reduce the effect of imbalance if swappiness is low,
++		 * this means for a swappiness very low, the imbalance
++		 * must be much higher than 100 for this logic to make
++		 * the difference.
++		 *
++		 * Max temporary value is vm_total_pages*100.
++		 */
++		imbalance *= (vm_swappiness + 1);
++		imbalance /= 100;
 +
-+	return 0;
++		/*
++		 * If not much of the ram is mapped, makes the imbalance
++		 * less relevant, it's high priority we refill the inactive
++		 * list with mapped pages only in presence of high ratio of
++		 * mapped pages.
++		 *
++		 * Max temporary value is vm_total_pages*100.
++		 */
++		imbalance *= mapped_ratio;
++		imbalance /= 100;
 +
-+whole:
-+	return vma->vm_end - vma->vm_start;
- }
- 
- /* An ELF note in memory */
-@@ -1675,16 +1708,13 @@ static int elf_core_dump(long signr, str
- 	for (vma = first_vma(current, gate_vma); vma != NULL;
- 			vma = next_vma(vma, gate_vma)) {
- 		struct elf_phdr phdr;
--		size_t sz;
--
--		sz = vma->vm_end - vma->vm_start;
- 
- 		phdr.p_type = PT_LOAD;
- 		phdr.p_offset = offset;
- 		phdr.p_vaddr = vma->vm_start;
- 		phdr.p_paddr = 0;
--		phdr.p_filesz = maydump(vma, mm_flags) ? sz : 0;
--		phdr.p_memsz = sz;
-+		phdr.p_filesz = vma_dump_size(vma, mm_flags);
-+		phdr.p_memsz = vma->vm_end - vma->vm_start;
- 		offset += phdr.p_filesz;
- 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
- 		if (vma->vm_flags & VM_WRITE)
-@@ -1726,13 +1756,11 @@ static int elf_core_dump(long signr, str
- 	for (vma = first_vma(current, gate_vma); vma != NULL;
- 			vma = next_vma(vma, gate_vma)) {
- 		unsigned long addr;
-+		unsigned long end;
- 
--		if (!maydump(vma, mm_flags))
--			continue;
-+		end = vma->vm_start + vma_dump_size(vma, mm_flags);
- 
--		for (addr = vma->vm_start;
--		     addr < vma->vm_end;
--		     addr += PAGE_SIZE) {
-+		for (addr = vma->vm_start; addr < end; addr += PAGE_SIZE) {
- 			struct page *page;
- 			struct vm_area_struct *vma;
- 
-diff -puN include/linux/sched.h~add-mmf_dump_elf_headers include/linux/sched.h
---- a/include/linux/sched.h~add-mmf_dump_elf_headers
-+++ a/include/linux/sched.h
-@@ -360,8 +360,9 @@ extern int get_dumpable(struct mm_struct
- #define MMF_DUMP_ANON_SHARED	3
- #define MMF_DUMP_MAPPED_PRIVATE	4
- #define MMF_DUMP_MAPPED_SHARED	5
-+#define MMF_DUMP_ELF_HEADERS	6
- #define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
--#define MMF_DUMP_FILTER_BITS	4
-+#define MMF_DUMP_FILTER_BITS	5
- #define MMF_DUMP_FILTER_MASK \
- 	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
- #define MMF_DUMP_FILTER_DEFAULT \
++		/* apply imbalance feedback to swap_tendency */
++		swap_tendency += imbalance;
++
++		/*
+ 		 * Now use this metric to decide whether to start moving mapped
+ 		 * memory onto the inactive list.
+ 		 */
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from andrea@suse.de are
 
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-pass-g-to-assembler-under-config_debug_info.patch
-i386-vdso-install-unstripped-copies-on-disk.patch
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-add-sys-module-name-notes.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-add-linux-elfcore-compath.patch
-x86_64-use-linux-elfcore-compath.patch
-powerpc-use-linux-elfcore-compath.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
-zap_other_threads-dont-optimize-thread_group_empty-case.patch
-add-mmf_dump_elf_headers.patch
+make-swappiness-safer-to-use.patch
