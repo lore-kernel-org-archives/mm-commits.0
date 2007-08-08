@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-ext3-ext4-add-block-bitmap-validation-fix.patch added to -mm tree
-Date: Tue, 07 Aug 2007 18:18:54 -0700
-Message-ID: <200708080118.l781IsM8014230@imap1.linux-foundation.org>
+Subject: + ext2-ext3-ext4-add-block-bitmap-validation.patch added to -mm tree
+Date: Tue, 07 Aug 2007 18:18:52 -0700
+Message-ID: <200708080118.l781IqOI014227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47129 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754102AbXHHBTF (ORCPT
+	by vger.kernel.org with ESMTP id S1755065AbXHHBTF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 21:19:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adilger@clusterfs.com, aneesh.kumar@linux.vnet.ibm.com, cmm@us.ibm.com
+Cc: aneesh.kumar@linux.vnet.ibm.com, adilger@clusterfs.com, cmm@us.ibm.com
 
 
 The patch titled
-     ext2-ext3-ext4-add-block-bitmap-validation-fix
+     ext2/ext3/ext4: add block bitmap validation
 has been added to the -mm tree.  Its filename is
-     ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+     ext2-ext3-ext4-add-block-bitmap-validation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,161 +25,299 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext2-ext3-ext4-add-block-bitmap-validation-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ext2/ext3/ext4: add block bitmap validation
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Andreas Dilger <adilger@clusterfs.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
+When a new block bitmap is read from disk in read_block_bitmap() there are
+a few bits that should ALWAYS be set.  In particular, the blocks given by
+ext4_blk_bitmap, ext4_inode_bitmap and ext4_inode_table.  Validate the
+block bitmap against these blocks.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: Andreas Dilger <adilger@clusterfs.com>
+Acked-by: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/balloc.c |    1 +
- fs/ext4/balloc.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/ext2/balloc.c |   56 +++++++++++++++++++++++++++++++---------
+ fs/ext3/balloc.c |   53 ++++++++++++++++++++++++++++++--------
+ fs/ext4/balloc.c |   62 ++++++++++++++++++++++++++++++++++-----------
+ 3 files changed, 133 insertions(+), 38 deletions(-)
 
-diff -puN fs/ext3/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix fs/ext3/balloc.c
---- a/fs/ext3/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix
+diff -puN fs/ext2/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation fs/ext2/balloc.c
+--- a/fs/ext2/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation
++++ a/fs/ext2/balloc.c
+@@ -69,6 +69,14 @@ struct ext2_group_desc * ext2_get_group_
+ 	return desc + offset;
+ }
+ 
++static inline int
++block_in_use(unsigned long block, struct super_block *sb, unsigned char *map)
++{
++	return ext2_test_bit ((block -
++		le32_to_cpu(EXT2_SB(sb)->s_es->s_first_data_block)) %
++			 EXT2_BLOCKS_PER_GROUP(sb), map);
++}
++
+ /*
+  * Read the bitmap for a given block_group, reading into the specified 
+  * slot in the superblock's bitmap cache.
+@@ -78,20 +86,51 @@ struct ext2_group_desc * ext2_get_group_
+ static struct buffer_head *
+ read_block_bitmap(struct super_block *sb, unsigned int block_group)
+ {
++	int i;
+ 	struct ext2_group_desc * desc;
+ 	struct buffer_head * bh = NULL;
+-	
++	unsigned int bitmap_blk;
++
+ 	desc = ext2_get_group_desc (sb, block_group, NULL);
+ 	if (!desc)
+-		goto error_out;
+-	bh = sb_bread(sb, le32_to_cpu(desc->bg_block_bitmap));
++		return NULL;
++	bitmap_blk = le32_to_cpu(desc->bg_block_bitmap);
++	bh = sb_bread(sb, bitmap_blk);
+ 	if (!bh)
+-		ext2_error (sb, "read_block_bitmap",
++		ext2_error (sb, __FUNCTION__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %u",
+ 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
+-error_out:
++
++	/* check whether block bitmap block number is set */
++	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++		/* bad block bitmap */
++		goto error_out;
++	}
++	/* check whether the inode bitmap block number is set */
++	bitmap_blk = le32_to_cpu(desc->bg_inode_bitmap);
++	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++		/* bad block bitmap */
++		goto error_out;
++	}
++	/* check whether the inode table block number is set */
++	bitmap_blk = le32_to_cpu(desc->bg_inode_table);
++	for (i = 0; i < EXT2_SB(sb)->s_itb_per_group; i++, bitmap_blk++) {
++		if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++			/* bad block bitmap */
++			goto error_out;
++		}
++	}
++
+ 	return bh;
++
++error_out:
++	brelse(bh);
++	ext2_error(sb, __FUNCTION__,
++			"Invalid block bitmap - "
++			"block_group = %d, block = %u",
++			block_group, bitmap_blk);
++	return NULL;
+ }
+ 
+ /*
+@@ -583,13 +622,6 @@ unsigned long ext2_count_free_blocks (st
+ #endif
+ }
+ 
+-static inline int
+-block_in_use(unsigned long block, struct super_block *sb, unsigned char *map)
+-{
+-	return ext2_test_bit ((block -
+-		le32_to_cpu(EXT2_SB(sb)->s_es->s_first_data_block)) %
+-			 EXT2_BLOCKS_PER_GROUP(sb), map);
+-}
+ 
+ static inline int test_root(int a, int b)
+ {
+diff -puN fs/ext3/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation
 +++ a/fs/ext3/balloc.c
-@@ -79,6 +79,7 @@ struct ext3_group_desc * ext3_get_group_
+@@ -79,6 +79,13 @@ struct ext3_group_desc * ext3_get_group_
  		*bh = sbi->s_group_desc[group_desc];
  	return desc + offset;
  }
-+
- static inline int
- block_in_use(ext3_fsblk_t block, struct super_block *sb, unsigned char *map)
++static inline int
++block_in_use(ext3_fsblk_t block, struct super_block *sb, unsigned char *map)
++{
++	return ext3_test_bit ((block -
++		le32_to_cpu(EXT3_SB(sb)->s_es->s_first_data_block)) %
++			 EXT3_BLOCKS_PER_GROUP(sb), map);
++}
+ 
+ /**
+  * read_block_bitmap()
+@@ -93,20 +100,51 @@ struct ext3_group_desc * ext3_get_group_
+ static struct buffer_head *
+ read_block_bitmap(struct super_block *sb, unsigned int block_group)
  {
-diff -puN fs/ext4/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix
++	int i;
+ 	struct ext3_group_desc * desc;
+ 	struct buffer_head * bh = NULL;
++	ext3_fsblk_t bitmap_blk;
+ 
+ 	desc = ext3_get_group_desc (sb, block_group, NULL);
+ 	if (!desc)
+-		goto error_out;
+-	bh = sb_bread(sb, le32_to_cpu(desc->bg_block_bitmap));
++		return NULL;
++	bitmap_blk = le32_to_cpu(desc->bg_block_bitmap);
++	bh = sb_bread(sb, bitmap_blk);
+ 	if (!bh)
+-		ext3_error (sb, "read_block_bitmap",
++		ext3_error (sb, __FUNCTION__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %u",
+ 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
+-error_out:
++
++	/* check whether block bitmap block number is set */
++	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++		/* bad block bitmap */
++		goto error_out;
++	}
++	/* check whether the inode bitmap block number is set */
++	bitmap_blk = le32_to_cpu(desc->bg_inode_bitmap);
++	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++		/* bad block bitmap */
++		goto error_out;
++	}
++	/* check whether the inode table block number is set */
++	bitmap_blk = le32_to_cpu(desc->bg_inode_table);
++	for (i = 0; i < EXT3_SB(sb)->s_itb_per_group; i++, bitmap_blk++) {
++		if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++			/* bad block bitmap */
++			goto error_out;
++		}
++	}
++
+ 	return bh;
++
++error_out:
++	brelse(bh);
++	ext3_error(sb, __FUNCTION__,
++			"Invalid block bitmap - "
++			"block_group = %d, block = %lu",
++			block_group, bitmap_blk);
++	return NULL;
+ }
+ /*
+  * The reservation window structure operations
+@@ -1733,13 +1771,6 @@ ext3_fsblk_t ext3_count_free_blocks(stru
+ #endif
+ }
+ 
+-static inline int
+-block_in_use(ext3_fsblk_t block, struct super_block *sb, unsigned char *map)
+-{
+-	return ext3_test_bit ((block -
+-		le32_to_cpu(EXT3_SB(sb)->s_es->s_first_data_block)) %
+-			 EXT3_BLOCKS_PER_GROUP(sb), map);
+-}
+ 
+ static inline int test_root(int a, int b)
+ {
+diff -puN fs/ext4/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation
 +++ a/fs/ext4/balloc.c
-@@ -99,6 +99,7 @@ struct ext4_group_desc * ext4_get_group_
+@@ -99,6 +99,15 @@ struct ext4_group_desc * ext4_get_group_
  		*bh = sbi->s_group_desc[group_desc];
  	return desc;
  }
++static inline int
++block_in_use(ext4_fsblk_t block, struct super_block *sb, unsigned char *map)
++{
++	ext4_grpblk_t offset;
 +
- static inline int
- block_in_use(ext4_fsblk_t block, struct super_block *sb, unsigned char *map)
- {
-@@ -108,7 +109,6 @@ block_in_use(ext4_fsblk_t block, struct 
- 	return ext4_test_bit (offset, map);
- }
++	ext4_get_group_no_and_offset(sb, block, NULL, &offset);
++	return ext4_test_bit (offset, map);
++}
++
  
--
  /**
   * read_block_bitmap()
-  * @sb:			super block
+@@ -113,21 +122,53 @@ struct ext4_group_desc * ext4_get_group_
+ static struct buffer_head *
+ read_block_bitmap(struct super_block *sb, unsigned int block_group)
+ {
++	int i;
+ 	struct ext4_group_desc * desc;
+ 	struct buffer_head * bh = NULL;
++	ext4_fsblk_t bitmap_blk;
+ 
+ 	desc = ext4_get_group_desc (sb, block_group, NULL);
+ 	if (!desc)
+-		goto error_out;
+-	bh = sb_bread(sb, ext4_block_bitmap(sb, desc));
++		return NULL;
++	bitmap_blk = ext4_block_bitmap(sb, desc);
++	bh = sb_bread(sb, bitmap_blk);
+ 	if (!bh)
+-		ext4_error (sb, "read_block_bitmap",
++		ext4_error (sb, __FUNCTION__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %llu",
+-			    block_group,
+-			    ext4_block_bitmap(sb, desc));
+-error_out:
++			    block_group, bitmap_blk);
++
++	/* check whether block bitmap block number is set */
++	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++		/* bad block bitmap */
++		goto error_out;
++	}
++
++	/* check whether the inode bitmap block number is set */
++	bitmap_blk = ext4_inode_bitmap(sb, desc);
++	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++		/* bad block bitmap */
++		goto error_out;
++	}
++	/* check whether the inode table block number is set */
++	bitmap_blk = ext4_inode_table(sb, desc);
++	for (i = 0; i < EXT4_SB(sb)->s_itb_per_group; i++, bitmap_blk++) {
++		if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++			/* bad block bitmap */
++			goto error_out;
++		}
++	}
++
+ 	return bh;
++
++error_out:
++	brelse(bh);
++	ext4_error(sb, __FUNCTION__,
++			"Invalid block bitmap - "
++			"block_group = %d, block = %llu",
++			block_group, bitmap_blk);
++	return NULL;
++
+ }
+ /*
+  * The reservation window structure operations
+@@ -1747,15 +1788,6 @@ ext4_fsblk_t ext4_count_free_blocks(stru
+ #endif
+ }
+ 
+-static inline int
+-block_in_use(ext4_fsblk_t block, struct super_block *sb, unsigned char *map)
+-{
+-	ext4_grpblk_t offset;
+-
+-	ext4_get_group_no_and_offset(sb, block, NULL, &offset);
+-	return ext4_test_bit (offset, map);
+-}
+-
+ static inline int test_root(int a, int b)
+ {
+ 	int num = b;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
-fbcon-kill-compile-warning-fix.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-ax88796-printk-fixes.patch
-natsemi-fix-netdev-error-acounting.patch
-git-ixgbe-build-fix.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
-git-ocfs2.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-wireless.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
-ssb-mainc-needs-dma-mappingh.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
-pci-fix-something-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation.patch
 ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
