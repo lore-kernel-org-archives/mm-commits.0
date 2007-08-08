@@ -1,76 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - git-unionfs-fixup.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 13:13:38 -0700
-Message-ID: <200708082018.l78KITKV028387@imap1.linux-foundation.org>
+Subject: + x86_64-get-mp_bus_to_node-as-early-v3-fix.patch added to -mm tree
+Date: Wed, 08 Aug 2007 13:17:43 -0700
+Message-ID: <200708082022.l78KMYiX028543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58817 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50674 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761981AbXHHUTa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 16:19:30 -0400
+	by vger.kernel.org with ESMTP id S935050AbXHHUYH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 16:24:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@lst.de, jsipek@cs.sunysb.edu, miklos@szeredi.hu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ak@suse.de, apw@shadowen.org, clameter@sgi.com, jeff@garzik.org, yinghai.lu@sun.com
 
 
 The patch titled
-     git-unionfs-fixup
-has been removed from the -mm tree.  Its filename was
-     git-unionfs-fixup.patch
+     x86_64-get-mp_bus_to_node-as-early-v3-fix
+has been added to the -mm tree.  Its filename is
+     x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-unionfs-fixup
+Subject: x86_64-get-mp_bus_to_node-as-early-v3-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Repair git-unionfs after partially-fix-up-the-lookup_one_noperm-mess.patch
+arch/i386/pci/legacy.c: In function 'pcibios_fixup_peer_bridges':
+arch/i386/pci/legacy.c:16: warning: unused variable 'sd'
+arch/i386/pci/legacy.c:15: warning: unused variable 'bus'
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c            |    3 ++-
- include/linux/namei.h |    9 ++++++++-
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ arch/i386/pci/legacy.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/namei.c~git-unionfs-fixup fs/namei.c
---- a/fs/namei.c~git-unionfs-fixup
-+++ a/fs/namei.c
-@@ -1357,7 +1357,8 @@ static int __lookup_one_len(const char *
-  * nameidata argument is passed to the filesystem methods and a filesystem
-  * using this helper needs to be prepared for that.
-  */
--struct dentry *lookup_one_len(const char *name, struct dentry *base, int len)
-+struct dentry *lookup_one_len_nd(const char *name, struct dentry *base, int len,
-+				struct nameidata *nd)
+diff -puN arch/i386/pci/legacy.c~x86_64-get-mp_bus_to_node-as-early-v3-fix arch/i386/pci/legacy.c
+--- a/arch/i386/pci/legacy.c~x86_64-get-mp_bus_to_node-as-early-v3-fix
++++ a/arch/i386/pci/legacy.c
+@@ -12,8 +12,6 @@
+ static void __devinit pcibios_fixup_peer_bridges(void)
  {
- 	int err;
- 	struct qstr this;
-diff -puN include/linux/namei.h~git-unionfs-fixup include/linux/namei.h
---- a/include/linux/namei.h~git-unionfs-fixup
-+++ a/include/linux/namei.h
-@@ -82,9 +82,16 @@ extern struct file *lookup_instantiate_f
- extern struct file *nameidata_to_filp(struct nameidata *nd, int flags);
- extern void release_open_intent(struct nameidata *);
+ 	int n, devfn;
+-	struct pci_bus *bus = NULL;
+-	struct pci_sysdata *sd;
+ 	long node;
  
--extern struct dentry *lookup_one_len(const char *, struct dentry *, int);
-+extern struct dentry *lookup_one_len_nd(const char *, struct dentry *,
-+					 int, struct nameidata *);
- extern struct dentry *lookup_one_noperm(const char *, struct dentry *);
- 
-+static inline struct dentry *lookup_one_len(const char *name,
-+			struct dentry *dir, int len)
-+{
-+	return lookup_one_len_nd(name, dir, len, NULL);
-+}
-+
- extern int follow_down(struct vfsmount **, struct dentry **);
- extern int follow_up(struct vfsmount **, struct dentry **);
- 
+ 	if (pcibios_last_bus <= 0 || pcibios_last_bus >= 0xff)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +95,6 @@ i386-add-support-for-picopower-irq-router.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
 aacraid-rename-check_reset.patch
 git-unionfs.patch
-git-unionfs-fixup.patch
 git-unionfs-build-fix.patch
 git-unionfs-fix-2.patch
 mct_u232-convert-to-proper-speed-handling-api-fix.patch
@@ -124,6 +107,7 @@ fix-x86_64-mm-early-quirks-unification.patch
 x86_64-clean-up-apicid_to_node-declaration.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
 git-kgdb-fixup.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
 fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
