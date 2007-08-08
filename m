@@ -1,384 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: - ssb-add-a-driver-for-the-broadcom-ohci-core.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 16:54:32 -0700
-Message-ID: <200708082359.l78NxNZC005082@imap1.linux-foundation.org>
+Subject: - ssb-chipcommon-add-function-to-get-processor-clock-fix.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 16:54:23 -0700
+Message-ID: <200708082359.l78NxEwM005070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50996 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47166 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763003AbXHIAAG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 20:00:06 -0400
+	by vger.kernel.org with ESMTP id S1762475AbXHIAAI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 20:00:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mb@bu3sch.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aurelien@aurel32.net, mb@bu3sch.de, nbd@openwrt.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ssb: add a driver for the Broadcom OHCI core
+     ssb-chipcommon-add-function-to-get-processor-clock-fix
 has been removed from the -mm tree.  Its filename was
-     ssb-add-a-driver-for-the-broadcom-ohci-core.patch
+     ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ssb: add a driver for the Broadcom OHCI core
-From: Michael Buesch <mb@bu3sch.de>
+Subject: ssb-chipcommon-add-function-to-get-processor-clock-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This adds a driver for the Broadcom USB OHCI HCD device.
-These devices are found in various embedded Broadcom-47xx machines.
-
-SSB is a mini-bus used on various broadcom devices, like embedded wireless
-routers or even b44 and bcm43xx as on-chip bus.  It has most of the
-capabilities of a real bus (like PCI), so this is an implementation to support
-SSB through a real kernel bus subsystem.
-
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Cc: Aurelien Jarno <aurelien@aurel32.net>
+Cc: Felix Fietkau <nbd@openwrt.org>
+Cc: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/Kconfig    |   13 +
- drivers/usb/host/ohci-hcd.c |   21 ++
- drivers/usb/host/ohci-ssb.c |  254 ++++++++++++++++++++++++++++++++++
- 3 files changed, 287 insertions(+), 1 deletion(-)
+ drivers/ssb/driver_chipcommon.c |   26 +++++++++++++-------------
+ 1 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN drivers/usb/host/Kconfig~ssb-add-a-driver-for-the-broadcom-ohci-core drivers/usb/host/Kconfig
---- a/drivers/usb/host/Kconfig~ssb-add-a-driver-for-the-broadcom-ohci-core
-+++ a/drivers/usb/host/Kconfig
-@@ -154,6 +154,19 @@ config USB_OHCI_HCD_PCI
- 	  Enables support for PCI-bus plug-in USB controller cards.
- 	  If unsure, say Y.
+diff -puN drivers/ssb/driver_chipcommon.c~ssb-chipcommon-add-function-to-get-processor-clock-fix drivers/ssb/driver_chipcommon.c
+--- a/drivers/ssb/driver_chipcommon.c~ssb-chipcommon-add-function-to-get-processor-clock-fix
++++ a/drivers/ssb/driver_chipcommon.c
+@@ -263,19 +263,19 @@ void ssb_chipco_get_clockcpu(struct ssb_
+ 	*n = chipco_read32(cc, SSB_CHIPCO_CLOCK_N);
+ 	*plltype = (cc->capabilities & SSB_CHIPCO_CAP_PLLT);
+ 	switch (*plltype) {
+-		case SSB_PLLTYPE_2:
+-		case SSB_PLLTYPE_4:
+-		case SSB_PLLTYPE_6:
+-		case SSB_PLLTYPE_7:
+-			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_MIPS);
+-			break;
+-		case SSB_PLLTYPE_3:
+-			/* 5350 uses m2 to control mips */
+-			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_M2);
+-			break;
+-		default:
+-			*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_SB);
+-			break;
++	case SSB_PLLTYPE_2:
++	case SSB_PLLTYPE_4:
++	case SSB_PLLTYPE_6:
++	case SSB_PLLTYPE_7:
++		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_MIPS);
++		break;
++	case SSB_PLLTYPE_3:
++		/* 5350 uses m2 to control mips */
++		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_M2);
++		break;
++	default:
++		*m = chipco_read32(cc, SSB_CHIPCO_CLOCK_SB);
++		break;
+ 	}
+ }
  
-+config USB_OHCI_HCD_SSB
-+	bool "OHCI support for the Broadcom SSB OHCI core (embedded systems only)"
-+	depends on USB_OHCI_HCD && ((USB_OHCI_HCD=m && SSB) || (USB_OHCI_HCD=y && SSB=y)) && EXPERIMENTAL
-+	default n
-+	---help---
-+	  Support for the Sonics Silicon Backplane (SSB) attached
-+	  Broadcom USB OHCI core.
-+
-+	  This device is only present in some embedded devices with
-+	  Broadcom based SSB bus.
-+
-+	  If unsure, say N.
-+
- config USB_OHCI_BIG_ENDIAN_DESC
- 	bool
- 	depends on USB_OHCI_HCD
-diff -puN drivers/usb/host/ohci-hcd.c~ssb-add-a-driver-for-the-broadcom-ohci-core drivers/usb/host/ohci-hcd.c
---- a/drivers/usb/host/ohci-hcd.c~ssb-add-a-driver-for-the-broadcom-ohci-core
-+++ a/drivers/usb/host/ohci-hcd.c
-@@ -1038,11 +1038,17 @@ MODULE_LICENSE ("GPL");
- #define PS3_SYSTEM_BUS_DRIVER	ps3_ohci_driver
- #endif
- 
-+#ifdef CONFIG_USB_OHCI_HCD_SSB
-+#include "ohci-ssb.c"
-+#define SSB_OHCI_DRIVER		ssb_ohci_driver
-+#endif
-+
- #if	!defined(PCI_DRIVER) &&		\
- 	!defined(PLATFORM_DRIVER) &&	\
- 	!defined(OF_PLATFORM_DRIVER) &&	\
- 	!defined(SA1111_DRIVER) &&	\
--	!defined(PS3_SYSTEM_BUS_DRIVER)
-+	!defined(PS3_SYSTEM_BUS_DRIVER) && \
-+	!defined(SSB_OHCI_DRIVER)
- #error "missing bus glue for ohci-hcd"
- #endif
- 
-@@ -1087,10 +1093,20 @@ static int __init ohci_hcd_mod_init(void
- 		goto error_pci;
- #endif
- 
-+#ifdef SSB_OHCI_DRIVER
-+	retval = ssb_driver_register(&SSB_OHCI_DRIVER);
-+	if (retval)
-+		goto error_ssb;
-+#endif
-+
- 	return retval;
- 
- 	/* Error path */
-+#ifdef SSB_OHCI_DRIVER
-+ error_ssb:
-+#endif
- #ifdef PCI_DRIVER
-+	pci_unregister_driver(&PCI_DRIVER);
-  error_pci:
- #endif
- #ifdef SA1111_DRIVER
-@@ -1115,6 +1131,9 @@ module_init(ohci_hcd_mod_init);
- 
- static void __exit ohci_hcd_mod_exit(void)
- {
-+#ifdef SSB_OHCI_DRIVER
-+	ssb_driver_unregister(&SSB_OHCI_DRIVER);
-+#endif
- #ifdef PCI_DRIVER
- 	pci_unregister_driver(&PCI_DRIVER);
- #endif
-diff -puN /dev/null drivers/usb/host/ohci-ssb.c
---- /dev/null
-+++ a/drivers/usb/host/ohci-ssb.c
-@@ -0,0 +1,254 @@
-+/*
-+ * Sonics Silicon Backplane
-+ * Broadcom USB-core OHCI driver
-+ *
-+ * Copyright 2007 Michael Buesch <mb@bu3sch.de>
-+ *
-+ * Derived from the OHCI-PCI driver
-+ * Copyright 1999 Roman Weissgaerber
-+ * Copyright 2000-2002 David Brownell
-+ * Copyright 1999 Linus Torvalds
-+ * Copyright 1999 Gregory P. Smith
-+ *
-+ * Derived from the USBcore related parts of Broadcom-SB
-+ * Copyright 2005 Broadcom Corporation
-+ *
-+ * Licensed under the GNU/GPL. See COPYING for details.
-+ */
-+
-+#include <linux/ssb/ssb.h>
-+
-+
-+#define SSB_OHCI_TMSLOW_HOSTMODE	(1 << 29)
-+
-+struct ssb_ohci_device {
-+	struct ohci_hcd ohci; /* _must_ be at the beginning. */
-+
-+	u32 enable_flags;
-+};
-+
-+
-+static inline
-+struct ssb_ohci_device * hcd_to_ssb_ohci(struct usb_hcd *hcd)
-+{
-+	return (struct ssb_ohci_device *)(hcd->hcd_priv);
-+}
-+
-+
-+static const struct ssb_device_id ssb_ohci_table[] = {
-+	SSB_DEVICE(SSB_VENDOR_BROADCOM, SSB_DEV_USB11_HOSTDEV, SSB_ANY_REV),
-+	SSB_DEVICE(SSB_VENDOR_BROADCOM, SSB_DEV_USB11_HOST, SSB_ANY_REV),
-+	SSB_DEVTABLE_END
-+};
-+MODULE_DEVICE_TABLE(ssb, ssb_ohci_table);
-+
-+
-+static int ssb_ohci_reset(struct usb_hcd *hcd)
-+{
-+	struct ssb_ohci_device *ohcidev = hcd_to_ssb_ohci(hcd);
-+	struct ohci_hcd *ohci = &ohcidev->ohci;
-+	int err;
-+
-+	ohci_hcd_init(ohci);
-+	err = ohci_init(ohci);
-+
-+	return err;
-+}
-+
-+static int ssb_ohci_start(struct usb_hcd *hcd)
-+{
-+	struct ssb_ohci_device *ohcidev = hcd_to_ssb_ohci(hcd);
-+	struct ohci_hcd *ohci = &ohcidev->ohci;
-+	int err;
-+
-+	err = ohci_run(ohci);
-+	if (err < 0) {
-+		ohci_err(ohci, "can't start\n");
-+		ohci_stop(hcd);
-+	}
-+
-+	return err;
-+}
-+
-+#ifdef CONFIG_PM
-+static int ssb_ohci_hcd_suspend(struct usb_hcd *hcd, pm_message_t message)
-+{
-+	struct ssb_ohci_device *ohcidev = hcd_to_ssb_ohci(hcd);
-+	struct ohci_hcd *ohci = &ohcidev->ohci;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ohci->lock, flags);
-+
-+	ohci_writel(ohci, OHCI_INTR_MIE, &ohci->regs->intrdisable);
-+	ohci_readl(ohci, &ohci->regs->intrdisable); /* commit write */
-+
-+	/* make sure snapshot being resumed re-enumerates everything */
-+	if (message.event == PM_EVENT_PRETHAW)
-+		ohci_usb_reset(ohci);
-+
-+	clear_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
-+
-+	spin_unlock_irqrestore(&ohci->lock, flags);
-+
-+	return 0;
-+}
-+
-+static int ssb_ohci_hcd_resume(struct usb_hcd *hcd)
-+{
-+	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
-+	usb_hcd_resume_root_hub(hcd);
-+	return 0;
-+}
-+#endif /* CONFIG_PM */
-+
-+static const struct hc_driver ssb_ohci_hc_driver = {
-+	.description		= "ssb-usb-ohci",
-+	.product_desc		= "SSB OHCI Controller",
-+	.hcd_priv_size		= sizeof(struct ssb_ohci_device),
-+
-+	.irq			= ohci_irq,
-+	.flags			= HCD_MEMORY | HCD_USB11,
-+
-+	.reset			= ssb_ohci_reset,
-+	.start			= ssb_ohci_start,
-+	.stop			= ohci_stop,
-+	.shutdown		= ohci_shutdown,
-+
-+#ifdef CONFIG_PM
-+	.suspend		= ssb_ohci_hcd_suspend,
-+	.resume			= ssb_ohci_hcd_resume,
-+#endif
-+
-+	.urb_enqueue		= ohci_urb_enqueue,
-+	.urb_dequeue		= ohci_urb_dequeue,
-+	.endpoint_disable	= ohci_endpoint_disable,
-+
-+	.get_frame_number	= ohci_get_frame,
-+
-+	.hub_status_data	= ohci_hub_status_data,
-+	.hub_control		= ohci_hub_control,
-+	.hub_irq_enable		= ohci_rhsc_enable,
-+
-+#ifdef CONFIG_PM
-+	.bus_suspend		= ohci_bus_suspend,
-+	.bus_resume		= ohci_bus_resume,
-+#endif
-+
-+	.start_port_reset	= ohci_start_port_reset,
-+};
-+
-+
-+static void ssb_ohci_detach(struct ssb_device *dev)
-+{
-+	struct usb_hcd *hcd = ssb_get_drvdata(dev);
-+
-+	usb_remove_hcd(hcd);
-+	iounmap(hcd->regs);
-+	usb_put_hcd(hcd);
-+	ssb_device_disable(dev, 0);
-+}
-+
-+static int ssb_ohci_attach(struct ssb_device *dev)
-+{
-+	struct ssb_ohci_device *ohcidev;
-+	struct usb_hcd *hcd;
-+	int err = -ENOMEM;
-+	u32 tmp, flags = 0;
-+
-+	if (dev->id.coreid == SSB_DEV_USB11_HOSTDEV)
-+		flags |= SSB_OHCI_TMSLOW_HOSTMODE;
-+
-+	ssb_device_enable(dev, flags);
-+
-+	hcd = usb_create_hcd(&ssb_ohci_hc_driver, dev->dev,
-+			     dev->dev->bus_id);
-+	if (!hcd)
-+		goto err_dev_disable;
-+	ohcidev = hcd_to_ssb_ohci(hcd);
-+	ohcidev->enable_flags = flags;
-+
-+	tmp = ssb_read32(dev, SSB_ADMATCH0);
-+	hcd->rsrc_start = ssb_admatch_base(tmp);
-+	hcd->rsrc_len = ssb_admatch_size(tmp);
-+	hcd->regs = ioremap_nocache(hcd->rsrc_start, hcd->rsrc_len);
-+	if (!hcd->regs)
-+		goto err_put_hcd;
-+	err = usb_add_hcd(hcd, dev->irq, IRQF_SHARED);
-+	if (err)
-+		goto err_iounmap;
-+
-+	ssb_set_drvdata(dev, hcd);
-+
-+	return err;
-+
-+err_iounmap:
-+	iounmap(hcd->regs);
-+err_put_hcd:
-+	usb_put_hcd(hcd);
-+err_dev_disable:
-+	ssb_device_disable(dev, flags);
-+	return err;
-+}
-+
-+static int ssb_ohci_probe(struct ssb_device *dev,
-+			  const struct ssb_device_id *id)
-+{
-+	int err;
-+	u16 chipid_top;
-+
-+	chipid_top = (dev->bus->chip_id & 0xFF00);
-+	if (chipid_top != 0x4700 &&
-+	    chipid_top != 0x5300) {
-+		/* USBcores are only connected on embedded devices. */
-+		return -ENODEV;
-+	}
-+	/* TODO: Probably need more checks here whether the core is connected. */
-+
-+	if (usb_disabled())
-+		return -ENODEV;
-+
-+	/* We currently always attach SSB_DEV_USB11_HOSTDEV
-+	 * as HOST OHCI. If we want to attach it as Client device,
-+	 * we must branch here and call into the (yet to
-+	 * be written) Client mode driver. Same for remove(). */
-+
-+	err = ssb_ohci_attach(dev);
-+
-+	return err;
-+}
-+
-+static void ssb_ohci_remove(struct ssb_device *dev)
-+{
-+	ssb_ohci_detach(dev);
-+}
-+
-+#ifdef CONFIG_PM
-+static int ssb_ohci_suspend(struct ssb_device *dev, pm_message_t state)
-+{
-+	ssb_device_disable(dev, 0);
-+
-+	return 0;
-+}
-+
-+static int ssb_ohci_resume(struct ssb_device *dev)
-+{
-+	struct usb_hcd *hcd = ssb_get_drvdata(dev);
-+	struct ssb_ohci_device *ohcidev = hcd_to_ssb_ohci(hcd);
-+
-+	ssb_device_enable(dev, ohcidev->enable_flags);
-+
-+	return 0;
-+}
-+#else /* CONFIG_PM */
-+# define ssb_ohci_suspend	NULL
-+# define ssb_ohci_resume	NULL
-+#endif /* CONFIG_PM */
-+
-+static struct ssb_driver ssb_ohci_driver = {
-+	.name		= KBUILD_MODNAME,
-+	.id_table	= ssb_ohci_table,
-+	.probe		= ssb_ohci_probe,
-+	.remove		= ssb_ohci_remove,
-+	.suspend	= ssb_ohci_suspend,
-+	.resume		= ssb_ohci_resume,
-+};
 _
 
-Patches currently in -mm which might be from mb@bu3sch.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+fbcon-kill-compile-warning-fix.patch
+fix-serial-buffer-memory-leak-fix.patch
+mtdchar-build-fix.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-platform-ide-driver.patch
+ide-arm-hack.patch
+mmc-make-it-build.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
 git-netdev-all.patch
+e1000e-build-fix.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
 git-wireless.patch
-ssb-add-a-driver-for-the-broadcom-ohci-core.patch
+ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
+ssb-mainc-needs-dma-mappingh.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
+git-kgdb-fixup.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+pci-align-bar-settings-for-legacy-mode-ide-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+mm-bdi-init-hooks-fix.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
