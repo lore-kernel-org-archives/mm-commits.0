@@ -1,114 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-fix-put_nfs_open_context.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 12:08:08 -0700
-Message-ID: <200708081908.l78J88c9025848@imap1.linux-foundation.org>
+Subject: - nfsd-validate-filehandle-type-in-fsid_source.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 12:08:13 -0700
+Message-ID: <200708081908.l78J8D5W025854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56821 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58961 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758576AbXHHTRK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:17:10 -0400
+	by vger.kernel.org with ESMTP id S1760428AbXHHTRN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:17:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Trond.Myklebust@netapp.com, bfields@fieldses.org, mm-commits@vger.kernel.org
+To: neilb@suse.de, bfields@fieldses.org, lcapitulino@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFS: Fix put_nfs_open_context
+     nfsd: validate filehandle type in fsid_source
 has been removed from the -mm tree.  Its filename was
-     nfs-fix-put_nfs_open_context.patch
+     nfsd-validate-filehandle-type-in-fsid_source.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NFS: Fix put_nfs_open_context
-From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Subject: nfsd: validate filehandle type in fsid_source
+From: Neil Brown <neilb@suse.de>
 
-We need to grab the inode->i_lock atomically with the last reference put in
-order to remove the open context that is being freed from the
-nfsi->open_files list.
+fsid_source decided where to get the 'fsid' number to return for a GETATTR
+based on the type of filehandle.  It can be from the device, from the fsid,
+or from the UUID.
 
-Fix by converting the kref to a standard atomic counter and then using
-atomic_dec_and_lock()...
+It is possible for the filehandle to be inconsistent with the export
+information, so make sure the export information actually has the info
+implied by the value returned by fsid_source.
 
-Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "Luiz Fernando N. Capitulino" <lcapitulino@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/inode.c         |   24 ++++++++----------------
- include/linux/nfs_fs.h |    2 +-
- 2 files changed, 9 insertions(+), 17 deletions(-)
+ fs/nfsd/nfsfh.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN fs/nfs/inode.c~nfs-fix-put_nfs_open_context fs/nfs/inode.c
---- a/fs/nfs/inode.c~nfs-fix-put_nfs_open_context
-+++ a/fs/nfs/inode.c
-@@ -468,7 +468,7 @@ static struct nfs_open_context *alloc_nf
- 		ctx->lockowner = current->files;
- 		ctx->error = 0;
- 		ctx->dir_cookie = 0;
--		kref_init(&ctx->kref);
-+		atomic_set(&ctx->count, 1);
+diff -puN fs/nfsd/nfsfh.c~nfsd-validate-filehandle-type-in-fsid_source fs/nfsd/nfsfh.c
+--- a/fs/nfsd/nfsfh.c~nfsd-validate-filehandle-type-in-fsid_source
++++ a/fs/nfsd/nfsfh.c
+@@ -566,13 +566,23 @@ enum fsid_source fsid_source(struct svc_
+ 	case FSID_DEV:
+ 	case FSID_ENCODE_DEV:
+ 	case FSID_MAJOR_MINOR:
+-		return FSIDSOURCE_DEV;
++		if (fhp->fh_export->ex_dentry->d_inode->i_sb->s_type->fs_flags
++		    & FS_REQUIRES_DEV)
++			return FSIDSOURCE_DEV;
++		break;
+ 	case FSID_NUM:
+-		return FSIDSOURCE_FSID;
+-	default:
+ 		if (fhp->fh_export->ex_flags & NFSEXP_FSID)
+ 			return FSIDSOURCE_FSID;
+-		else
+-			return FSIDSOURCE_UUID;
++		break;
++	default:
++		break;
  	}
- 	return ctx;
++	/* either a UUID type filehandle, or the filehandle doesn't
++	 * match the export.
++	 */
++	if (fhp->fh_export->ex_flags & NFSEXP_FSID)
++		return FSIDSOURCE_FSID;
++	if (fhp->fh_export->ex_uuid)
++		return FSIDSOURCE_UUID;
++	return FSIDSOURCE_DEV;
  }
-@@ -476,21 +476,18 @@ static struct nfs_open_context *alloc_nf
- struct nfs_open_context *get_nfs_open_context(struct nfs_open_context *ctx)
- {
- 	if (ctx != NULL)
--		kref_get(&ctx->kref);
-+		atomic_inc(&ctx->count);
- 	return ctx;
- }
- 
--static void nfs_free_open_context(struct kref *kref)
-+void put_nfs_open_context(struct nfs_open_context *ctx)
- {
--	struct nfs_open_context *ctx = container_of(kref,
--			struct nfs_open_context, kref);
-+	struct inode *inode = ctx->path.dentry->d_inode;
- 
--	if (!list_empty(&ctx->list)) {
--		struct inode *inode = ctx->path.dentry->d_inode;
--		spin_lock(&inode->i_lock);
--		list_del(&ctx->list);
--		spin_unlock(&inode->i_lock);
--	}
-+	if (!atomic_dec_and_lock(&ctx->count, &inode->i_lock))
-+		return;
-+	list_del(&ctx->list);
-+	spin_unlock(&inode->i_lock);
- 	if (ctx->state != NULL)
- 		nfs4_close_state(&ctx->path, ctx->state, ctx->mode);
- 	if (ctx->cred != NULL)
-@@ -500,11 +497,6 @@ static void nfs_free_open_context(struct
- 	kfree(ctx);
- }
- 
--void put_nfs_open_context(struct nfs_open_context *ctx)
--{
--	kref_put(&ctx->kref, nfs_free_open_context);
--}
--
- /*
-  * Ensure that mmap has a recent RPC credential for use when writing out
-  * shared pages
-diff -puN include/linux/nfs_fs.h~nfs-fix-put_nfs_open_context include/linux/nfs_fs.h
---- a/include/linux/nfs_fs.h~nfs-fix-put_nfs_open_context
-+++ a/include/linux/nfs_fs.h
-@@ -69,7 +69,7 @@ struct nfs_access_entry {
- 
- struct nfs4_state;
- struct nfs_open_context {
--	struct kref kref;
-+	atomic_t count;
- 	struct path path;
- 	struct rpc_cred *cred;
- 	struct nfs4_state *state;
 _
 
-Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
-git-nfs.patch
-nfs-convert-to-new-aops.patch
-sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks.patch
+clean-up-duplicate-includes-in-net-sunrpc.patch
+git-nfsd.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+fs-nfsd-exportc-make-3-functions-static.patch
