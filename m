@@ -1,63 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - cfs-mark-print_cfs_stats-static.patch removed from -mm tree
-Date: Wed, 08 Aug 2007 12:07:19 -0700
-Message-ID: <200708081907.l78J7J9k025786@imap1.linux-foundation.org>
+Subject: - au88x0-mem-leak-fix-in-snd_vortex_create.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 12:07:45 -0700
+Message-ID: <200708081907.l78J7jci025792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46043 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55437 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753047AbXHHTIN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:08:13 -0400
+	by vger.kernel.org with ESMTP id S1760649AbXHHTIY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:08:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josh@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, rene.herman@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CFS: mark print_cfs_stats static
+     au88x0: mem leak fix in snd_vortex_create()
 has been removed from the -mm tree.  Its filename was
-     cfs-mark-print_cfs_stats-static.patch
+     au88x0-mem-leak-fix-in-snd_vortex_create.patch
 
-This patch was dropped because Changes in Ingo's tree destroyed it
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CFS: mark print_cfs_stats static
-From: Josh Triplett <josh@kernel.org>
+Subject: au88x0: mem leak fix in snd_vortex_create()
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-sched_fair.c defines print_cfs_stats, and sched_debug.c uses it, but sched.c
-includes both sched_fair.c and sched_debug.c, so all the references to
-print_cfs_stats occur in the same compilation unit.  Thus, mark
-print_cfs_stats static.
+In sound/pci/au88x0/au88x0.c::snd_vortex_create() :
+The Coverity checker found that if we allocate storage for 'chip'
+but then leave via the  regions_out:  label, then we end up leaking
+the storage allocated for 'chip'.
+I believe simply freeing 'chip' before the "return err;" line is
+all we need to fix this, but please double-check me :)
 
-Eliminates a sparse warning:
-warning: symbol 'print_cfs_stats' was not declared. Should it be static?
-
-Signed-off-by: Josh Triplett <josh@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: Rene Herman <rene.herman@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_fair.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ sound/pci/au88x0/au88x0.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN kernel/sched_fair.c~cfs-mark-print_cfs_stats-static kernel/sched_fair.c
---- a/kernel/sched_fair.c~cfs-mark-print_cfs_stats-static
-+++ a/kernel/sched_fair.c
-@@ -1120,7 +1120,7 @@ struct sched_class fair_sched_class __re
- };
+diff -puN sound/pci/au88x0/au88x0.c~au88x0-mem-leak-fix-in-snd_vortex_create sound/pci/au88x0/au88x0.c
+--- a/sound/pci/au88x0/au88x0.c~au88x0-mem-leak-fix-in-snd_vortex_create
++++ a/sound/pci/au88x0/au88x0.c
+@@ -232,6 +232,7 @@ snd_vortex_create(struct snd_card *card,
+ 	pci_disable_device(chip->pci_dev);
+ 	//FIXME: this not the right place to unregister the gameport
+ 	vortex_gameport_unregister(chip);
++	kfree(chip);
+ 	return err;
+ }
  
- #ifdef CONFIG_SCHED_DEBUG
--void print_cfs_stats(struct seq_file *m, int cpu, u64 now)
-+static void print_cfs_stats(struct seq_file *m, int cpu, u64 now)
- {
- 	struct rq *rq = cpu_rq(cpu);
- 	struct cfs_rq *cfs_rq;
 _
 
-Patches currently in -mm which might be from josh@kernel.org are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
-allow-rcutorture-to-handle-synchronize_sched.patch
-git-sched.patch
-immunize-rcu_dereference-against-crazy-compiler-writers.patch
-i386-mark-pit_clockevent-static.patch
-cfs-mark-print_cfs_stats-static.patch
+documentation-sysrq-description-of-h-slightly-inaccurate.patch
+git-acpi.patch
+git-alsa.patch
+git-agpgart.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+powerpc-clean-out-a-bunch-of-duplicate-includes.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+clean-up-duplicate-includes-in-drivers-input.patch
+scripts-ver_linux-correct-printing-of-binutils-version.patch
+improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
+git-mtd.patch
+git-ubi.patch
+clean-up-duplicate-includes-in-drivers-net.patch
+clean-up-duplicate-includes-in-drivers-atm.patch
+clean-up-duplicate-includes-in-net-atm.patch
+clean-up-duplicate-includes-in-net-ipv4.patch
+clean-up-duplicate-includes-in-net-ipv6.patch
+clean-up-duplicate-includes-in-net-sched.patch
+clean-up-duplicate-includes-in-net-sunrpc.patch
+clean-up-duplicate-includes-in-net-tipc.patch
+clean-up-duplicate-includes-in-net-xfrm.patch
+dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm.patch
+fix-several-memory-leaks-in-cr_backlight_probe-take2.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
+clean-up-duplicate-includes-in-drivers-scsi.patch
+mpt-fusion-fix-two-potential-mem-leaks.patch
+fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
+clean-up-duplicate-includes-in-drivers-block.patch
+clean-up-duplicate-includes-in-arch-i386-xen.patch
+fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
