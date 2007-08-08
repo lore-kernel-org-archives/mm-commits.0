@@ -1,215 +1,305 @@
 From: akpm@linux-foundation.org
-Subject: + uli526x-add-suspend-and-resume-routines.patch added to -mm tree
-Date: Wed, 08 Aug 2007 09:36:41 -0700
-Message-ID: <200708081636.l78GafDn015053@imap1.linux-foundation.org>
+Subject: - kdump-fix-apic-shutdown-sequence.patch removed from -mm tree
+Date: Wed, 08 Aug 2007 10:51:44 -0700
+Message-ID: <200708081751.l78Hpjmt023090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57881 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49988 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756495AbXHHQhm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 12:37:42 -0400
+	by vger.kernel.org with ESMTP id S1763081AbXHHRwd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 13:52:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, grundler@parisc-linux.org, kyle@mcmartin.ca
+To: martin.wilck@fujitsu-siemens.com, Martin.Wilck@fujitsu-siemens.com, ak@suse.de, ebiederm@xmission.com, hbabu@us.ibm.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uli526x: add suspend and resume routines
-has been added to the -mm tree.  Its filename is
-     uli526x-add-suspend-and-resume-routines.patch
+     kdump: fix APIC shutdown sequence
+has been removed from the -mm tree.  Its filename was
+     kdump-fix-apic-shutdown-sequence.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-Subject: uli526x: add suspend and resume routines
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: kdump: fix APIC shutdown sequence
+From: Martin Wilck <martin.wilck@fujitsu-siemens.com>
 
-Add suspend/resume support to the uli526x network driver (tested on x86_64,
-with "Ethernet controller: ALi Corporation M5263 Ethernet Controller, rev 40").
+This patch fixes a problem that we have encountered with kdump under high
+I/O load on some machines.  The machines showing the errors have an Intel
+ICH7 chip set with a 6702PXH PCI Express-to-PCI Bridge (8086:032c)
+containing an IO-APIC.
 
-This patch is based on the suspend/resume code in the tg3 driver.
+The bug symptom is that certain controllers connected to the 6702PXH bridge
+wouldn't receive any IRQs in the kdump kernel.  In the error case (which is
+about 20% of all cases) the IRR bit of the IO-APIC pin for that controller
+is always set after the start of the kdump kernel, indicating an IRQ in
+progress.  We haven't found a way to recover from this situation when it
+has once occured, except for a system reset.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
+The error is caused by IRQs arriving while the APIC subsystem is
+deactivated in machine_crash_shutdown().
+
+Apparently, the IO-APIC gets stuck if it sends an IRQ message to a Local
+APIC and never receives an EOI for that message.  This can have several
+possible reasons:
+
+1. If, under SMP, the IO-APIC logical destination field is set by the
+   IRQ balancing code to one of the "other" CPUs (i.e.  not the
+   crashing_cpu), and an IRQ arrives on the respective pin after that CPU
+   has shut down its local APIC (but before the IO-APIC pin is masked) the
+   IRQ message can't be delivered.
+
+2. The crashing CPU itself disables its local APIC before the IO-APIC,
+   leaving a short time window where the IOAPIC can receive IRQs, but not
+   deliver them.
+
+3. An IRQ is received and delivered to a local APIC, but no CPU ever
+   executes the IRQ handler and therefore no EOI is sent.
+
+After a lot of failed attempts, i have come up with the following patch,
+which fixes the problem.
+
+The patch first masks all IO-Apic pins to avoid a sitation where the
+IO-Apic can receive, but not deliver, the IRQs.  Moreover, it enables
+interrupts for a short period before eventually starting the kdump kernel,
+so that EOIs can be sent to the APICs as necessary.
+
+Notes:
+
+a) Simply calling disable_IO_APIC() early doesn't work, probably because
+   that also clears the IRQ vector information, so that arriving EOI
+   messages can't be associated with pins by the IO-APIC.
+
+b) We have tried patches that avoid re-enabling interrupts, but so far
+   without success.  Re-enabling IRQs is of course dangerous while dumping,
+   and I'd rather find a way to avoid it.
+
+c) There are indications that besides the EOI, it's also necessary that
+   the PCI IRQ pin is deasserted at least for a short time.  That usually
+   requires that the driver IRQ handler is called and tells the FW that the
+   IRQ was received.  Whether or not this is a requirement hasn't been
+   finally clarified yet.
+
+d) The problem is only seen with the IO-APIC in the 6702PXH PCI bridge,
+   which is the system's secondary IO-APIC.  On the system's main IO-APIC,
+   we see other IRQs (timer etc) arrive and never get an EOI, but we see no
+   errors.
+
+Signed-off-by: Martin Wilck <Martin.Wilck@fujitsu-siemens.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Haren Myneni <hbabu@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/uli526x.c |  109 ++++++++++++++++++++++++++++++++--
- 1 file changed, 103 insertions(+), 6 deletions(-)
+ arch/x86_64/kernel/crash.c   |   69 ++++++++++++++++++++++++++++-----
+ arch/x86_64/kernel/io_apic.c |   44 +++++++++++++++++++++
+ arch/x86_64/kernel/smpboot.c |    2 
+ 3 files changed, 104 insertions(+), 11 deletions(-)
 
-diff -puN drivers/net/tulip/uli526x.c~uli526x-add-suspend-and-resume-routines drivers/net/tulip/uli526x.c
---- a/drivers/net/tulip/uli526x.c~uli526x-add-suspend-and-resume-routines
-+++ a/drivers/net/tulip/uli526x.c
-@@ -1110,19 +1110,15 @@ static void uli526x_timer(unsigned long 
+diff -puN arch/x86_64/kernel/crash.c~kdump-fix-apic-shutdown-sequence arch/x86_64/kernel/crash.c
+--- a/arch/x86_64/kernel/crash.c~kdump-fix-apic-shutdown-sequence
++++ a/arch/x86_64/kernel/crash.c
+@@ -18,6 +18,7 @@
+ #include <linux/elf.h>
+ #include <linux/elfcore.h>
+ #include <linux/kdebug.h>
++#include <linux/interrupt.h>
  
+ #include <asm/processor.h>
+ #include <asm/hardirq.h>
+@@ -30,6 +31,11 @@ static int crashing_cpu;
  
- /*
-- *	Dynamic reset the ULI526X board
-  *	Stop ULI526X board
-  *	Free Tx/Rx allocated memory
-- *	Reset ULI526X board
-- *	Re-initialize ULI526X board
-+ *	Init system variable
-  */
+ #ifdef CONFIG_SMP
+ static atomic_t waiting_for_crash_ipi;
++static atomic_t crash_ipi_stage2 = ATOMIC_INIT(0);
++
++extern void remove_siblinginfo(int);
++extern void remove_cpu_from_maps(void);
++extern void crash_mask_IO_APIC(int);
  
--static void uli526x_dynamic_reset(struct net_device *dev)
-+static void uli526x_reset_prepare(struct net_device *dev)
- {
- 	struct uli526x_board_info *db = netdev_priv(dev);
+ static int crash_nmi_callback(struct notifier_block *self,
+ 				unsigned long val, void *data)
+@@ -53,13 +59,30 @@ static int crash_nmi_callback(struct not
+ 	local_irq_disable();
  
--	ULI526X_DBUG(0, "uli526x_dynamic_reset()", 0);
--
- 	/* Sopt MAC controller */
- 	db->cr6_data &= ~(CR6_RXSC | CR6_TXSC);	/* Disable Tx/Rx */
- 	update_cr6(db->cr6_data, dev->base_addr);
-@@ -1141,6 +1137,22 @@ static void uli526x_dynamic_reset(struct
- 	db->link_failed = 1;
- 	db->init=1;
- 	db->wait_reset = 0;
-+}
+ 	crash_save_cpu(regs, cpu);
+-	disable_local_APIC();
+-	atomic_dec(&waiting_for_crash_ipi);
++	disable_APIC_timer();
++        atomic_dec(&waiting_for_crash_ipi);
++
++	while(atomic_read(&crash_ipi_stage2) == 0)
++		cpu_relax();
++
++ 	/* Send EOI for pending IRQs */
++ 	local_irq_enable();
++ 	udelay(10000);
++ 	local_irq_disable();
++
++ 	remove_siblinginfo(cpu);
++ 	cpu_clear(cpu, cpu_online_map);
++ 	remove_cpu_from_maps();
++
++ 	disable_local_APIC();
++ 	atomic_dec(&crash_ipi_stage2);
 +
 +
-+/*
-+ *	Dynamic reset the ULI526X board
-+ *	Stop ULI526X board
-+ *	Free Tx/Rx allocated memory
-+ *	Reset ULI526X board
-+ *	Re-initialize ULI526X board
-+ */
-+
-+static void uli526x_dynamic_reset(struct net_device *dev)
-+{
-+	ULI526X_DBUG(0, "uli526x_dynamic_reset()", 0);
-+
-+	uli526x_reset_prepare(dev);
+ 	/* Assume hlt works */
+ 	for(;;)
+ 		halt();
  
- 	/* Re-initialize ULI526X board */
- 	uli526x_init(dev);
-@@ -1150,6 +1162,89 @@ static void uli526x_dynamic_reset(struct
+-	return 1;
++	return NOTIFY_OK;
  }
  
+ static void smp_send_nmi_allbutself(void)
+@@ -79,7 +102,7 @@ static struct notifier_block crash_nmi_n
  
-+#ifdef CONFIG_PM_SLEEP
-+
-+/*
-+ *	Suspend the interface.
-+ */
-+
-+static int uli526x_suspend(struct pci_dev *pdev, pm_message_t state)
-+{
-+	struct net_device *dev = pci_get_drvdata(pdev);
-+	pci_power_t power_state;
-+	int err;
-+
-+	ULI526X_DBUG(0, "uli526x_suspend", 0);
-+
-+	if (!(dev && netdev_priv(dev)))
-+		return 0;
-+
-+	pci_save_state(pdev);
-+
-+	if (!netif_running(dev))
-+		return 0;
-+
-+	netif_device_detach(dev);
-+	uli526x_reset_prepare(dev);
-+
-+	power_state = pci_choose_state(pdev, state);
-+	pci_enable_wake(pdev, power_state, 0);
-+	err = pci_set_power_state(pdev, power_state);
-+	if (err) {
-+		netif_device_attach(dev);
-+		/* Re-initialize ULI526X board */
-+		uli526x_init(dev);
-+		/* Restart upper layer interface */
-+		netif_wake_queue(dev);
+ static void nmi_shootdown_cpus(void)
+ {
+-	unsigned long msecs;
++	unsigned long usecs;
+ 
+ 	atomic_set(&waiting_for_crash_ipi, num_online_cpus() - 1);
+ 	if (register_die_notifier(&crash_nmi_nb))
+@@ -93,19 +116,33 @@ static void nmi_shootdown_cpus(void)
+ 
+ 	smp_send_nmi_allbutself();
+ 
++	usecs = 1000000; /* Wait at most a second for the other cpus to stop */
++	while ((atomic_read(&waiting_for_crash_ipi) > 0) && usecs) {
++		udelay(1);
++		usecs--;
 +	}
++}
 +
-+	return err;
++static void nmi_shootdown_cpus_stage2(void)
++{
++
++	unsigned long msecs;
++	atomic_set(&crash_ipi_stage2, num_online_cpus());
++
+ 	msecs = 1000; /* Wait at most a second for the other cpus to stop */
+-	while ((atomic_read(&waiting_for_crash_ipi) > 0) && msecs) {
++	while ((atomic_read(&crash_ipi_stage2) > 1) && msecs) {
+ 		mdelay(1);
+ 		msecs--;
+ 	}
+-	/* Leave the nmi callback set */
+-	disable_local_APIC();
+ }
+ #else
+ static void nmi_shootdown_cpus(void)
+ {
+ 	/* There are no cpus to shootdown */
+ }
++static void nmi_shootdown_cpus_stage2(void)
++{
++}
+ #endif
+ 
+ void machine_crash_shutdown(struct pt_regs *regs)
+@@ -121,15 +158,27 @@ void machine_crash_shutdown(struct pt_re
+ 	 */
+ 	/* The kernel is broken so disable interrupts */
+ 	local_irq_disable();
+-
+ 	/* Make a note of crashing cpu. Will be used in NMI callback.*/
+ 	crashing_cpu = smp_processor_id();
++	crash_save_cpu(regs, crashing_cpu);
++
++ 	/* disable timer interrupts */
++ 	disable_irq_nosync(0);
++ 	disable_APIC_timer();
++
+ 	nmi_shootdown_cpus();
+ 
++ 	/* Mask all IRQs, and make sure they are delivered to this CPU */
++ 	crash_mask_IO_APIC(crashing_cpu);
++ 	nmi_shootdown_cpus_stage2();
++
+ 	if(cpu_has_apic)
+ 		 disable_local_APIC();
+ 
+-	disable_IO_APIC();
++ 	/* Send EOI for pending IRQs */
++ 	local_irq_enable();
++ 	udelay(10000);
++ 	local_irq_disable();
+ 
+-	crash_save_cpu(regs, smp_processor_id());
++	disable_IO_APIC();
+ }
+diff -puN arch/x86_64/kernel/io_apic.c~kdump-fix-apic-shutdown-sequence arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~kdump-fix-apic-shutdown-sequence
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -371,6 +371,50 @@ static void unmask_IO_APIC_irq (unsigned
+ 	spin_unlock_irqrestore(&ioapic_lock, flags);
+ }
+ 
++static void crash_mask_IO_APIC_pin(unsigned int apic, unsigned int pin, int reg1)
++{
++	struct IO_APIC_route_entry entry;
++	unsigned long flags;
++
++	/* Check delivery_mode to be sure we're not clearing an SMI pin
++	 * Don't bother disabling masked pins
++	 */
++	spin_lock_irqsave(&ioapic_lock, flags);
++	*(((int*)&entry) + 0) = io_apic_read(apic, 0x10 + 2 * pin);
++	spin_unlock_irqrestore(&ioapic_lock, flags);
++	if (entry.delivery_mode == dest_SMI || entry.mask)
++		return;
++
++	entry.mask = 1;
++	*(((int*)&entry) + 1) = reg1;
++
++	spin_lock_irqsave(&ioapic_lock, flags);
++	io_apic_write(apic, 0x10 + 2 * pin, *(((int *)&entry) + 0));
++	io_apic_write(apic, 0x11 + 2 * pin, *(((int *)&entry) + 1));
++	io_apic_sync(apic);
++	spin_unlock_irqrestore(&ioapic_lock, flags);
 +}
 +
 +/*
-+ *	Resume the interface.
++ * This function is used for kdump to mask all IO-APIC IRQs, and reset
++ * the destination apic ID.
 + */
-+
-+static int uli526x_resume(struct pci_dev *pdev)
++void crash_mask_IO_APIC(int cpu)
 +{
-+	struct net_device *dev = pci_get_drvdata(pdev);
-+	struct uli526x_board_info *db = netdev_priv(dev);
-+	int err;
++	int apic, pin;
++	int reg1;
++	cpumask_t mask;
 +
-+	ULI526X_DBUG(0, "uli526x_resume", 0);
++	cpus_clear(mask);
++	cpu_set(cpu, mask);
++	reg1 = SET_APIC_LOGICAL_ID(cpu_mask_to_apicid(mask));
 +
-+	if (!(dev && db))
-+		return 0;
-+
-+	pci_restore_state(pdev);
-+
-+	if (!netif_running(dev))
-+		return 0;
-+
-+	err = pci_set_power_state(pdev, PCI_D0);
-+	if (err) {
-+		printk(KERN_WARNING "%s: Could not put device into D0\n",
-+			dev->name);
-+		return err;
++	for (apic = 0; apic < nr_ioapics; apic++) {
++		for (pin = 0; pin < nr_ioapic_registers[apic]; pin++)
++			crash_mask_IO_APIC_pin(apic, pin, reg1);
 +	}
-+
-+	netif_device_attach(dev);
-+	/* Re-initialize ULI526X board */
-+	uli526x_init(dev);
-+	/* Restart upper layer interface */
-+	netif_wake_queue(dev);
-+
-+	return 0;
 +}
 +
-+#else /* !CONFIG_PM_SLEEP */
-+
-+#define uli526x_suspend	NULL
-+#define uli526x_resume	NULL
-+
-+#endif /* !CONFIG_PM_SLEEP */
-+
-+
- /*
-  *	free all allocated rx buffer
-  */
-@@ -1689,6 +1784,8 @@ static struct pci_driver uli526x_driver 
- 	.id_table	= uli526x_pci_tbl,
- 	.probe		= uli526x_init_one,
- 	.remove		= __devexit_p(uli526x_remove_one),
-+	.suspend	= uli526x_suspend,
-+	.resume		= uli526x_resume,
- };
+ static void clear_IO_APIC_pin(unsigned int apic, unsigned int pin)
+ {
+ 	struct IO_APIC_route_entry entry;
+diff -puN arch/x86_64/kernel/smpboot.c~kdump-fix-apic-shutdown-sequence arch/x86_64/kernel/smpboot.c
+--- a/arch/x86_64/kernel/smpboot.c~kdump-fix-apic-shutdown-sequence
++++ a/arch/x86_64/kernel/smpboot.c
+@@ -973,7 +973,7 @@ void __init smp_cpus_done(unsigned int m
  
- MODULE_AUTHOR("Peer Chen, peer.chen@uli.com.tw");
+ #ifdef CONFIG_HOTPLUG_CPU
+ 
+-static void remove_siblinginfo(int cpu)
++void remove_siblinginfo(int cpu)
+ {
+ 	int sibling;
+ 	struct cpuinfo_x86 *c = cpu_data;
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from martin.wilck@fujitsu-siemens.com are
 
-hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch
-pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-2x.patch
-uli526x-add-suspend-and-resume-routines.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-use-wait-queue-instead-of-busy-looping.patch
-freezer-measure-freezing-time.patch
-shrink_slab-handle-bad-shrinkers.patch
+kdump-fix-apic-shutdown-sequence.patch
