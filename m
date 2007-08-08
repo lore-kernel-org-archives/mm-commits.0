@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-get-mp_bus_to_node-as-early-v3-fix.patch added to -mm tree
-Date: Wed, 08 Aug 2007 13:17:43 -0700
-Message-ID: <200708082022.l78KMYiX028543@imap1.linux-foundation.org>
+Subject: + alpha-o_cloexec-definition.patch added to -mm tree
+Date: Wed, 08 Aug 2007 13:34:32 -0700
+Message-ID: <200708082034.l78KYW9S028969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50674 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42041 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935050AbXHHUYH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 16:24:07 -0400
+	by vger.kernel.org with ESMTP id S1756522AbXHHUgh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 16:36:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, apw@shadowen.org, clameter@sgi.com, jeff@garzik.org, yinghai.lu@sun.com
+Cc: rth@twiddle.net
 
 
 The patch titled
-     x86_64-get-mp_bus_to_node-as-early-v3-fix
+     Alpha O_CLOEXEC definition
 has been added to the -mm tree.  Its filename is
-     x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
+     alpha-o_cloexec-definition.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,149 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64-get-mp_bus_to_node-as-early-v3-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Alpha O_CLOEXEC definition
+From: Richard Henderson <rth@twiddle.net>
 
-arch/i386/pci/legacy.c: In function 'pcibios_fixup_peer_bridges':
-arch/i386/pci/legacy.c:16: warning: unused variable 'sd'
-arch/i386/pci/legacy.c:15: warning: unused variable 'bus'
+The default definition in asm-generic conflicts with Alpha's O_DIRECT,
+so, like several other arches, it needs to be redefined.
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
+Signed-off-by: Richard Hendersion  <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/legacy.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/asm-alpha/fcntl.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/i386/pci/legacy.c~x86_64-get-mp_bus_to_node-as-early-v3-fix arch/i386/pci/legacy.c
---- a/arch/i386/pci/legacy.c~x86_64-get-mp_bus_to_node-as-early-v3-fix
-+++ a/arch/i386/pci/legacy.c
-@@ -12,8 +12,6 @@
- static void __devinit pcibios_fixup_peer_bridges(void)
- {
- 	int n, devfn;
--	struct pci_bus *bus = NULL;
--	struct pci_sysdata *sd;
- 	long node;
+diff -puN include/asm-alpha/fcntl.h~alpha-o_cloexec-definition include/asm-alpha/fcntl.h
+--- a/include/asm-alpha/fcntl.h~alpha-o_cloexec-definition
++++ a/include/asm-alpha/fcntl.h
+@@ -16,6 +16,7 @@
+ #define O_LARGEFILE	0400000 /* will be set by the kernel on every open */
+ #define O_DIRECT	02000000 /* direct disk access - should check with OSF/1 */
+ #define O_NOATIME	04000000
++#define O_CLOEXEC	010000000 /* set close_on_exec */
  
- 	if (pcibios_last_bus <= 0 || pcibios_last_bus >= 0xff)
+ #define F_GETLK		7
+ #define F_SETLK		8
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rth@twiddle.net are
 
-genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
-fbcon-kill-compile-warning-fix.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-platform-ide-driver.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-ax88796-printk-fixes.patch
-natsemi-fix-netdev-error-acounting.patch
-git-ixgbe-build-fix.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-wireless.patch
-merge-the-sonics-silicon-backplane-subsystem-fix.patch
-ssb-chipcommon-add-function-to-get-processor-clock-fix.patch
-ssb-mainc-needs-dma-mappingh.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
-git-kgdb-fixup.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
-pci-align-bar-settings-for-legacy-mode-ide-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-mm-bdi-init-hooks-fix.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+alpha-o_cloexec-definition.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+cleanup-arch-alpha-makefile.patch
+report-the-per-irq-statistics-on-allarches.patch
