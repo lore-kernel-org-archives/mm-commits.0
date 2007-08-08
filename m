@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-ide-ide-add-platform-ide-driver.patch added to -mm tree
-Date: Wed, 08 Aug 2007 12:51:45 -0700
-Message-ID: <200708081956.l78JuaKL027591@imap1.linux-foundation.org>
+Subject: + mm-bdi-init-hooks-fix.patch added to -mm tree
+Date: Wed, 08 Aug 2007 13:03:57 -0700
+Message-ID: <200708082008.l78K8mG0028041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33221 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49131 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751974AbXHHT5O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 15:57:14 -0400
+	by vger.kernel.org with ESMTP id S1762731AbXHHUJ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 16:09:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     fix ide-ide-add-platform-ide-driver
+     mm-bdi-init-hooks-fix
 has been added to the -mm tree.  Its filename is
-     fix-ide-ide-add-platform-ide-driver.patch
+     mm-bdi-init-hooks-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix ide-ide-add-platform-ide-driver
+Subject: mm-bdi-init-hooks-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I already fixed this.
+err...
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/legacy/ide_platform.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ide/legacy/ide_platform.c~fix-ide-ide-add-platform-ide-driver drivers/ide/legacy/ide_platform.c
---- a/drivers/ide/legacy/ide_platform.c~fix-ide-ide-add-platform-ide-driver
-+++ a/drivers/ide/legacy/ide_platform.c
-@@ -18,6 +18,7 @@
- #include <linux/ioport.h>
- #include <linux/module.h>
- #include <linux/pata_platform.h>
-+#include <linux/platform_device.h>
- #include <linux/io.h>
+diff -puN fs/hugetlbfs/inode.c~mm-bdi-init-hooks-fix fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-bdi-init-hooks-fix
++++ a/fs/hugetlbfs/inode.c
+@@ -967,7 +967,7 @@ static int __init init_hugetlbfs_fs(void
+ 					sizeof(struct hugetlbfs_inode_info),
+ 					0, 0, init_once);
+ 	if (hugetlbfs_inode_cachep == NULL)
+-		return out2;
++		goto out2;
  
- static struct {
-@@ -157,7 +158,7 @@ static int __devexit plat_ide_remove(str
- }
- 
- static struct platform_driver platform_ide_driver = {
--	.driver {
-+	.driver = {
- 		.name = "pata_platform",
- 	},
- 	.probe = plat_ide_probe,
+ 	error = register_filesystem(&hugetlbfs_fs_type);
+ 	if (error)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -152,6 +144,7 @@ writeback-fix-comment-use-helper-function.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+mm-bdi-init-hooks-fix.patch
 revert-faster-ext2_clear_inode.patch
 ecryptfs-printk-warning-fixes.patch
 tdfxfb-mtrr-support-fix.patch
