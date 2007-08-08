@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-clear-io_apic-before-enabing-apic-error-vector.patch added to -mm tree
-Date: Tue, 07 Aug 2007 19:29:21 -0700
-Message-ID: <200708080229.l782TL7H016674@imap1.linux-foundation.org>
+Subject: + x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch added to -mm tree
+Date: Tue, 07 Aug 2007 19:29:25 -0700
+Message-ID: <200708080229.l782TPeG016680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43944 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43250 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757212AbXHHC3c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 22:29:32 -0400
+	by vger.kernel.org with ESMTP id S1757124AbXHHCaO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Aug 2007 22:30:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Yinghai.Lu@Sun.COM, ak@suse.de, ebiederm@xmission.com, yinghai.lu@Sun.COM
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, apw@shadowen.org, clameter@sgi.com, jeff@garzik.org, yinghai.lu@Sun.COM
 
 
 The patch titled
-     x86_64: clear IO_APIC before enabing apic error vector
+     x86_64: use bus conf in NB conf fun1 to get bus range on node
 has been added to the -mm tree.  Its filename is
-     x86_64-clear-io_apic-before-enabing-apic-error-vector.patch
+     x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,142 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: clear IO_APIC before enabing apic error vector
+Subject: x86_64: use bus conf in NB conf fun1 to get bus range on node
 From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Some apic id lifting system: 4 socket quad core, 8 socket quad core will do
-apic id lifting for BSP.
-
-but io-apic regs for ExtINT still use 0 as dest.
-
-so when we enable apic error vector in BSP, we will get one APIC error.
-
-CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
-CPU: L2 Cache: 512K (64 bytes/line)
-CPU 0/4 -> Node 0
-CPU: Physical Processor ID: 1
-CPU: Processor Core ID: 0
-SMP alternatives: switching to UP code
-ACPI: Core revision 20070126
-enabled ExtINT on CPU#0
-ESR value after enabling vector: 00000000, after 0000000c
-APIC error on CPU0: 0c(08)
-ENABLING IO-APIC IRQs
-Synchronizing Arb IDs.
-
-So move enable_IO_APIC from setup_IO_APIC into setup_local_APIC and call it
-before enabling apic error vector.
+So we use the same code with Quad core cpu as old opteron.  this patch is
+usful when acpi=off or _PXM is not there in DSDT
 
 Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c    |    8 ++++++++
- arch/x86_64/kernel/io_apic.c |    7 +++++--
- include/asm-x86_64/hw_irq.h  |    1 +
- 3 files changed, 14 insertions(+), 2 deletions(-)
+ arch/x86_64/pci/k8-bus.c |   88 ++++++++++++++++++++-----------------
+ 1 file changed, 48 insertions(+), 40 deletions(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-clear-io_apic-before-enabing-apic-error-vector arch/x86_64/kernel/apic.c
---- a/arch/x86_64/kernel/apic.c~x86_64-clear-io_apic-before-enabing-apic-error-vector
-+++ a/arch/x86_64/kernel/apic.c
-@@ -418,6 +418,14 @@ void __cpuinit setup_local_APIC (void)
- 		value = APIC_DM_NMI | APIC_LVT_MASKED;
- 	apic_write(APIC_LVT1, value);
+diff -puN arch/x86_64/pci/k8-bus.c~x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node arch/x86_64/pci/k8-bus.c
+--- a/arch/x86_64/pci/k8-bus.c~x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node
++++ a/arch/x86_64/pci/k8-bus.c
+@@ -12,15 +12,18 @@
+  * RED-PEN empty cpus get reported wrong
+  */
  
-+	/*
-+	 * Now enable IO-APICs, actually call clear_IO_APIC
-+	 * We need clear_IO_APIC before enabling vector on BP
-+	 */
-+	if (!smp_processor_id())
-+	if (!skip_ioapic_setup && nr_ioapics)
-+		enable_IO_APIC();
+-#define NODE_ID_REGISTER 0x60
+-#define NODE_ID(dword) (dword & 0x07)
+-#define LDT_BUS_NUMBER_REGISTER_0 0x94
+-#define LDT_BUS_NUMBER_REGISTER_1 0xB4
+-#define LDT_BUS_NUMBER_REGISTER_2 0xD4
+-#define NR_LDT_BUS_NUMBER_REGISTERS 3
+-#define SECONDARY_LDT_BUS_NUMBER(dword) ((dword >> 8) & 0xFF)
+-#define SUBORDINATE_LDT_BUS_NUMBER(dword) ((dword >> 16) & 0xFF)
++#define NODE_ID(dword) ((dword>>4) & 0x07)
++#define LDT_BUS_NUMBER_REGISTER_0 0xE0
++#define LDT_BUS_NUMBER_REGISTER_1 0xE4
++#define LDT_BUS_NUMBER_REGISTER_2 0xE8
++#define LDT_BUS_NUMBER_REGISTER_3 0xEC
++#define NR_LDT_BUS_NUMBER_REGISTERS 4
++#define SECONDARY_LDT_BUS_NUMBER(dword) ((dword >> 16) & 0xFF)
++#define SUBORDINATE_LDT_BUS_NUMBER(dword) ((dword >> 24) & 0xFF)
 +
- 	{
- 		unsigned oldvalue;
- 		maxlvt = get_maxlvt();
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-clear-io_apic-before-enabing-apic-error-vector arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-clear-io_apic-before-enabing-apic-error-vector
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -1209,7 +1209,7 @@ void __apicdebuginit print_PIC(void)
+ #define PCI_DEVICE_ID_K8HTCONFIG 0x1100
++#define PCI_DEVICE_ID_K8_10H_HTCONFIG 0x1200
++#define PCI_DEVICE_ID_K8_11H_HTCONFIG 0x1300
  
- #endif  /*  0  */
+ #define BUS_NR 256
  
--static void __init enable_IO_APIC(void)
-+void __init enable_IO_APIC(void)
+@@ -60,12 +63,19 @@ early_fill_mp_bus_to_node(void)
  {
- 	union IO_APIC_reg_01 reg_01;
- 	int i8259_apic, i8259_pin;
-@@ -1818,7 +1818,10 @@ __setup("no_timer_check", notimercheck);
- 
- void __init setup_IO_APIC(void)
- {
--	enable_IO_APIC();
+ 	int i, j;
+ 	unsigned slot;
+-	u32 ldtbus, nid;
++	u32 ldtbus;
+ 	u32 id;
+-	static int lbnr[3] = {
++	int node;
++	u16 deviceid;
++	u16 vendorid;
++	int min_bus;
++	int max_bus;
 +
-+	/*
-+	 * calling enable_IO_APIC() is moved to setup_local_APIC for BP
-+	 */
++	static int lbnr[NR_LDT_BUS_NUMBER_REGISTERS] = {
+ 		LDT_BUS_NUMBER_REGISTER_0,
+ 		LDT_BUS_NUMBER_REGISTER_1,
+-		LDT_BUS_NUMBER_REGISTER_2
++		LDT_BUS_NUMBER_REGISTER_2,
++		LDT_BUS_NUMBER_REGISTER_3
+ 	};
  
- 	if (acpi_ioapic)
- 		io_apic_irqs = ~0;	/* all IRQs go through IOAPIC */
-diff -puN include/asm-x86_64/hw_irq.h~x86_64-clear-io_apic-before-enabing-apic-error-vector include/asm-x86_64/hw_irq.h
---- a/include/asm-x86_64/hw_irq.h~x86_64-clear-io_apic-before-enabing-apic-error-vector
-+++ a/include/asm-x86_64/hw_irq.h
-@@ -135,6 +135,7 @@ extern void init_8259A(int aeoi);
- extern void send_IPI_self(int vector);
- extern void init_VISWS_APIC_irqs(void);
- extern void setup_IO_APIC(void);
-+extern void enable_IO_APIC(void);
- extern void disable_IO_APIC(void);
- extern void print_IO_APIC(void);
- extern int IO_APIC_get_PCI_irq_vector(int bus, int slot, int fn);
+ 	memset(mp_bus_to_node, 0, BUS_NR);
+@@ -73,38 +83,36 @@ early_fill_mp_bus_to_node(void)
+ 	if (!early_pci_allowed())
+ 		return -1;
+ 
+-	for (slot = 0x18; slot < 0x20; slot++) {
+-		id = read_pci_config(0, slot, 0, PCI_VENDOR_ID);
+-		if (id != (PCI_VENDOR_ID_AMD | (PCI_DEVICE_ID_K8HTCONFIG<<16)))
+-			break;
+-		nid = read_pci_config(0, slot, 0, NODE_ID_REGISTER);
+-
+-		for (i = 0; i < NR_LDT_BUS_NUMBER_REGISTERS; i++) {
+-			ldtbus = read_pci_config(0, slot, 0, lbnr[i]);
+-			/*
+-			 * if there are no busses hanging off of the current
+-			 * ldt link then both the secondary and subordinate
+-			 * bus number fields are set to 0.
+-			 *
+-			 * RED-PEN
+-			 * This is slightly broken because it assumes
+-			 * HT node IDs == Linux node ids, which is not always
+-			 * true. However it is probably mostly true.
+-			 */
+-			if (!(SECONDARY_LDT_BUS_NUMBER(ldtbus) == 0
+-				&& SUBORDINATE_LDT_BUS_NUMBER(ldtbus) == 0)) {
+-				for (j = SECONDARY_LDT_BUS_NUMBER(ldtbus);
+-				     j <= SUBORDINATE_LDT_BUS_NUMBER(ldtbus);
+-				     j++) {
+-					int node = NODE_ID(nid);
+-					mp_bus_to_node[j] = (unsigned char)node;
+-				}
+-			}
+-		}
++	slot = 0x18;
++	id = read_pci_config(0, slot, 0, PCI_VENDOR_ID);
++
++	vendorid = id & 0xffff;
++	if (vendorid != PCI_VENDOR_ID_AMD)
++		goto out;
++
++	deviceid = (id>>16) & 0xffff;
++	if ((deviceid != PCI_DEVICE_ID_K8HTCONFIG) &&
++	    (deviceid != PCI_DEVICE_ID_K8_10H_HTCONFIG) &&
++	    (deviceid != PCI_DEVICE_ID_K8_11H_HTCONFIG))
++		goto out;
++
++	for (i = 0; i < NR_LDT_BUS_NUMBER_REGISTERS; i++) {
++		ldtbus = read_pci_config(0, slot, 1, lbnr[i]);
++
++		/* Check if that register is enabled for bus range */
++		if ((ldtbus & 7) != 3)
++			continue;
++
++		min_bus = SECONDARY_LDT_BUS_NUMBER(ldtbus);
++		max_bus = SUBORDINATE_LDT_BUS_NUMBER(ldtbus);
++		node = NODE_ID(ldtbus);
++		for (j = min_bus; j <= max_bus; j++)
++			mp_bus_to_node[j] = (unsigned char) node;
+ 	}
+ 
++out:
+ 	for (i = 0; i < BUS_NR; i++) {
+-		int node = mp_bus_to_node[i];
++		node = mp_bus_to_node[i];
+ 		if (node)
+ 			printk(KERN_DEBUG "bus: %02x to node: %02x\n", i, node);
+ 	}
 _
 
 Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
