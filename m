@@ -1,226 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: - serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 14:03:04 -0700
-Message-ID: <200708092103.l79L34L4019391@imap1.linux-foundation.org>
+Subject: - lib-floating-proportions-_single-tidy.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 13:56:52 -0700
+Message-ID: <200708092056.l79KuqRY019067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43760 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59496 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752353AbXHIVEH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:04:07 -0400
+	by vger.kernel.org with ESMTP id S932173AbXHIVGY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:06:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, dilinger@debian.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: turn serial console suspend a boot rather than compile time option
+     lib-floating-proportions-_single tidy
 has been removed from the -mm tree.  Its filename was
-     serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
+     lib-floating-proportions-_single-tidy.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: serial: turn serial console suspend a boot rather than compile time option
-From: Andres Salomon <dilinger@queued.net>
+Subject: lib-floating-proportions-_single tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently, there's a CONFIG_DISABLE_CONSOLE_SUSPEND that allows one to stop
-the serial console from being suspended when the rest of the machine goes
-to sleep.  This is incredibly useful for debugging power management-related
-things; however, having it as a compile-time option has proved to be
-incredibly inconvenient for us (OLPC).  There are plenty of times that we
-want serial console to not suspend, but for the most part we'd like serial
-console to be suspended.
+- that macro was nasty
 
-This drops CONFIG_DISABLE_CONSOLE_SUSPEND, and replaces it with a kernel
-boot parameter (no_console_suspend).  By default, the serial console will
-be suspended along with the rest of the system; by passing
-'no_console_suspend' to the kernel during boot, serial console will remain
-alive during suspend.
+- this code uses a local variable `pl' which sometime refers to a
+  prop_local_single, other times refers to a prop_local_percpu.  Confusing.
 
-I have another version of this patch which keeps #ifdefs around; however,
-it's uglier.  I prefer this version of the patch, and don't feel that it
-increases bloat.  If people strongly disagree, let me know and I'll submit
-the other patch.
-
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt        |    8 ++++++++
- Documentation/power/basic-pm-debugging.txt |    4 ++--
- arch/powerpc/configs/pmac32_defconfig      |    1 -
- drivers/serial/serial_core.c               |   10 ++++------
- include/linux/console.h                    |    7 ++-----
- kernel/power/Kconfig                       |   11 -----------
- kernel/printk.c                            |   15 +++++++++++++--
- 7 files changed, 29 insertions(+), 27 deletions(-)
+ lib/proportions.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/Documentation/kernel-parameters.txt
-@@ -477,6 +477,14 @@ and is between 256 and 4096 characters. 
- 			UART at the specified I/O port or MMIO address.
- 			The options are the same as for ttyS, above.
+diff -puN lib/proportions.c~lib-floating-proportions-_single-tidy lib/proportions.c
+--- a/lib/proportions.c~lib-floating-proportions-_single-tidy
++++ a/lib/proportions.c
+@@ -116,8 +116,7 @@ void prop_change_shift(struct prop_descr
+ 	pd->pg[index].shift = shift;
  
-+	no_console_suspend
-+			[HW] Never suspend the serial console
-+			Disable suspending the serial console during
-+			suspend/resume operations.  If disabled, debugging
-+			messages can reach the console while the rest of
-+			the system is being put to sleep (ie, while
-+			debugging driver suspend/resume hooks).
-+
- 	cpcihp_generic=	[HW,PCI] Generic port I/O CompactPCI driver
- 			Format:
- 			<first_slot>,<last_slot>,<port>,<enum_bit>[,<debug>]
-diff -puN Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/power/basic-pm-debugging.txt
---- a/Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/Documentation/power/basic-pm-debugging.txt
-@@ -78,8 +78,8 @@ c) Advanced debugging
- In case the STD does not work on your system even in the minimal configuration
- and compiling more drivers as modules is not practical or some modules cannot
- be unloaded, you can use one of the more advanced debugging techniques to find
--the problem.  First, if there is a serial port in your box, you can set the
--CONFIG_DISABLE_CONSOLE_SUSPEND kernel configuration option and try to log kernel
-+the problem.  First, if there is a serial port in your box, you boot the
-+kernel with the 'no_console_suspend' parameter and try to log kernel
- messages using the serial console.  This may provide you with some information
- about the reasons of the suspend (resume) failure.  Alternatively, it may be
- possible to use a FireWire port for debugging with firescope
-diff -puN arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option arch/powerpc/configs/pmac32_defconfig
---- a/arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/arch/powerpc/configs/pmac32_defconfig
-@@ -216,7 +216,6 @@ CONFIG_PROC_DEVICETREE=y
- CONFIG_PM=y
- # CONFIG_PM_LEGACY is not set
- CONFIG_PM_DEBUG=y
--# CONFIG_DISABLE_CONSOLE_SUSPEND is not set
- CONFIG_PM_SYSFS_DEPRECATED=y
- CONFIG_HIBERNATION=y
- CONFIG_PM_STD_PARTITION=""
-diff -puN drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/drivers/serial/serial_core.c
-@@ -1954,12 +1954,11 @@ int uart_suspend_port(struct uart_driver
+ 	local_irq_save(flags);
+-	events = percpu_counter_sum(
+-			&pd->pg[pd->index].events);
++	events = percpu_counter_sum(&pd->pg[pd->index].events);
+ 	if (offset < 0)
+ 		events <<= -offset;
+ 	else
+@@ -160,7 +159,7 @@ void prop_put_global(struct prop_descrip
+ }
  
- 	mutex_lock(&state->mutex);
+ static void
+-__prop_adjust_shift(int *pl_shift, unsigned long *pl_period, int new_shift)
++prop_adjust_shift(int *pl_shift, unsigned long *pl_period, int new_shift)
+ {
+ 	int offset = *pl_shift - new_shift;
  
--#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
--	if (uart_console(port)) {
-+	if (!serial_console_suspend_enabled && uart_console(port)) {
-+		/* we're going to avoid suspending serial console */
- 		mutex_unlock(&state->mutex);
- 		return 0;
- 	}
--#endif
+@@ -175,10 +174,6 @@ __prop_adjust_shift(int *pl_shift, unsig
+ 	*pl_shift = new_shift;
+ }
  
- 	if (state->info && state->info->flags & UIF_INITIALIZED) {
- 		const struct uart_ops *ops = port->ops;
-@@ -2002,12 +2001,11 @@ int uart_resume_port(struct uart_driver 
- 
- 	mutex_lock(&state->mutex);
- 
--#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
--	if (uart_console(port)) {
-+	if (!serial_console_suspend_enabled && uart_console(port)) {
-+		/* no need to resume serial console, it wasn't suspended */
- 		mutex_unlock(&state->mutex);
- 		return 0;
- 	}
--#endif
- 
- 	uart_change_pm(state, 0);
- 
-diff -puN include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option include/linux/console.h
---- a/include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/include/linux/console.h
-@@ -121,14 +121,11 @@ extern void console_stop(struct console 
- extern void console_start(struct console *);
- extern int is_console_locked(void);
- 
--#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
-+extern int serial_console_suspend_enabled;
-+
- /* Suspend and resume console messages over PM events */
- extern void suspend_console(void);
- extern void resume_console(void);
--#else
--static inline void suspend_console(void) {}
--static inline void resume_console(void) {}
--#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
- 
- int mda_console_init(void);
- void prom_con_init(void);
-diff -puN kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/power/Kconfig
---- a/kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/kernel/power/Kconfig
-@@ -44,17 +44,6 @@ config PM_VERBOSE
- 	---help---
- 	This option enables verbose messages from the Power Management code.
- 
--config DISABLE_CONSOLE_SUSPEND
--	bool "Keep console(s) enabled during suspend/resume (DANGEROUS)"
--	depends on PM_DEBUG && PM_SLEEP
--	default n
--	---help---
--	This option turns off the console suspend mechanism that prevents
--	debug messages from reaching the console during the suspend/resume
--	operations.  This may be helpful when debugging device drivers'
--	suspend/resume routines, but may itself lead to problems, for example
--	if netconsole is used.
+-#define prop_adjust_shift(prop_local, pg_shift)			\
+-	__prop_adjust_shift(&(prop_local)->shift,		\
+-			    &(prop_local)->period, pg_shift)
 -
- config PM_TRACE
- 	bool "Suspend/resume event tracing"
- 	depends on PM_DEBUG && X86 && PM_SLEEP && EXPERIMENTAL
-diff -puN kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/printk.c
---- a/kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/kernel/printk.c
-@@ -810,7 +810,15 @@ int update_console_cmdline(char *name, i
- 	return -1;
- }
- 
--#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
-+int serial_console_suspend_enabled = 1;
-+
-+static int __init console_suspend_disable(char *str)
-+{
-+	serial_console_suspend_enabled = 0;
-+	return 1;
-+}
-+__setup("no_console_suspend", console_suspend_disable);
-+
- /**
-  * suspend_console - suspend the console subsystem
-  *
-@@ -818,6 +826,8 @@ int update_console_cmdline(char *name, i
+ /*
+  * PERCPU
   */
- void suspend_console(void)
- {
-+	if (!serial_console_suspend_enabled)
-+		return;
- 	printk("Suspending console(s)\n");
- 	acquire_console_sem();
- 	console_suspended = 1;
-@@ -825,10 +835,11 @@ void suspend_console(void)
+@@ -221,7 +216,7 @@ void prop_norm_percpu(struct prop_global
+ 		return;
  
- void resume_console(void)
- {
-+	if (!serial_console_suspend_enabled)
-+		return;
- 	console_suspended = 0;
- 	release_console_sem();
+ 	spin_lock_irqsave(&pl->lock, flags);
+-	prop_adjust_shift(pl, pg->shift);
++	prop_adjust_shift(&pl->shift, &pl->period, pg->shift);
+ 	/*
+ 	 * For each missed period, we half the local counter.
+ 	 * basically:
+@@ -312,7 +307,7 @@ void prop_norm_single(struct prop_global
+ 		return;
+ 
+ 	spin_lock_irqsave(&pl->lock, flags);
+-	prop_adjust_shift(pl, pg->shift);
++	prop_adjust_shift(&pl->shift, &pl->period, pg->shift);
+ 	/*
+ 	 * For each missed period, we half the local counter.
+ 	 * basically:
+@@ -364,4 +359,3 @@ void prop_fraction_single(struct prop_gl
+ 	global_count = percpu_counter_read(&pg->events);
+ 	*denominator = period_2 + (global_count & counter_mask);
  }
--#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
- 
- /**
-  * acquire_console_sem - lock the console system for exclusive use.
+-
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+fbcon-kill-compile-warning-fix.patch
+fix-serial-buffer-memory-leak-fix.patch
+mtdchar-build-fix.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-platform-ide-driver.patch
+ide-arm-hack.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+git-nfsd-build-fixes.patch
+nfsd-warning-fix.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+disable-b44-and-bcm43xx.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+pci-align-bar-settings-for-legacy-mode-ide-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+implement-cpu_physical_id-on-smp=n.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+lib-floating-proportions-_single-tidy.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
