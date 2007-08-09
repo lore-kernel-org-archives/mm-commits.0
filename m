@@ -1,101 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: + lib-floating-proportions-_single-tidy.patch added to -mm tree
-Date: Thu, 09 Aug 2007 09:29:24 -0700
-Message-ID: <200708091629.l79GTOD4007975@imap1.linux-foundation.org>
+Subject: - mmc-make-it-build.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 11:22:20 -0700
+Message-ID: <200708091822.l79IML4i012620@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57695 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33304 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756621AbXHIQaC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 12:30:02 -0400
+	by vger.kernel.org with ESMTP id S1752823AbXHISXG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 14:23:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
+To: akpm@linux-foundation.org, bunk@stusta.de, drzeus-list@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib-floating-proportions-_single tidy
-has been added to the -mm tree.  Its filename is
-     lib-floating-proportions-_single-tidy.patch
+     mmc-make-it-build
+has been removed from the -mm tree.  Its filename was
+     mmc-make-it-build.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: lib-floating-proportions-_single tidy
+Subject: mmc-make-it-build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- that macro was nasty
-
-- this code uses a local variable `pl' which sometime refers to a
-  prop_local_single, other times refers to a prop_local_percpu.  Confusing.
-
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/proportions.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ drivers/mmc/host/mmci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/proportions.c~lib-floating-proportions-_single-tidy lib/proportions.c
---- a/lib/proportions.c~lib-floating-proportions-_single-tidy
-+++ a/lib/proportions.c
-@@ -116,8 +116,7 @@ void prop_change_shift(struct prop_descr
- 	pd->pg[index].shift = shift;
- 
- 	local_irq_save(flags);
--	events = percpu_counter_sum(
--			&pd->pg[pd->index].events);
-+	events = percpu_counter_sum(&pd->pg[pd->index].events);
- 	if (offset < 0)
- 		events <<= -offset;
- 	else
-@@ -160,7 +159,7 @@ void prop_put_global(struct prop_descrip
- }
- 
- static void
--__prop_adjust_shift(int *pl_shift, unsigned long *pl_period, int new_shift)
-+prop_adjust_shift(int *pl_shift, unsigned long *pl_period, int new_shift)
- {
- 	int offset = *pl_shift - new_shift;
- 
-@@ -175,10 +174,6 @@ __prop_adjust_shift(int *pl_shift, unsig
- 	*pl_shift = new_shift;
- }
- 
--#define prop_adjust_shift(prop_local, pg_shift)			\
--	__prop_adjust_shift(&(prop_local)->shift,		\
--			    &(prop_local)->period, pg_shift)
--
- /*
-  * PERCPU
-  */
-@@ -221,7 +216,7 @@ void prop_norm_percpu(struct prop_global
+diff -puN drivers/mmc/host/mmci.c~mmc-make-it-build drivers/mmc/host/mmci.c
+--- a/drivers/mmc/host/mmci.c~mmc-make-it-build
++++ a/drivers/mmc/host/mmci.c
+@@ -395,7 +395,7 @@ static void mmci_request(struct mmc_host
+ 		printk(KERN_ERR "%s: Unsupported block size (%d bytes)\n",
+ 			mmc_hostname(mmc), mrq->data->blksz);
+ 		mrq->cmd->error = -EINVAL;
+-		mmc_end_request(mmc, mrq);
++//		mmc_end_request(mmc, mrq);
  		return;
+ 	}
  
- 	spin_lock_irqsave(&pl->lock, flags);
--	prop_adjust_shift(pl, pg->shift);
-+	prop_adjust_shift(&pl->shift, &pl->period, pg->shift);
- 	/*
- 	 * For each missed period, we half the local counter.
- 	 * basically:
-@@ -312,7 +307,7 @@ void prop_norm_single(struct prop_global
- 		return;
- 
- 	spin_lock_irqsave(&pl->lock, flags);
--	prop_adjust_shift(pl, pg->shift);
-+	prop_adjust_shift(&pl->shift, &pl->period, pg->shift);
- 	/*
- 	 * For each missed period, we half the local counter.
- 	 * basically:
-@@ -364,4 +359,3 @@ void prop_fraction_single(struct prop_gl
- 	global_count = percpu_counter_read(&pg->events);
- 	*denominator = period_2 + (global_count & counter_mask);
- }
--
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
