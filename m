@@ -1,76 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: + uml-remove-unnecessary-hostfs_getattr.patch added to -mm tree
-Date: Thu, 09 Aug 2007 14:35:35 -0700
-Message-ID: <200708092135.l79LZZdh020738@imap1.linux-foundation.org>
+Subject: + fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch added to -mm tree
+Date: Thu, 09 Aug 2007 14:36:53 -0700
+Message-ID: <200708092136.l79LarbI020750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57499 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58176 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751033AbXHIVfu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:35:50 -0400
+	by vger.kernel.org with ESMTP id S1753735AbXHIVhF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:37:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, jdike@addtoit.com
+Cc: mszeredi@suse.cz, npiggin@suse.de
 
 
 The patch titled
-     UML: remove unnecessary hostfs_getattr()
+     fix warnings in revoked_inode.c
 has been added to the -mm tree.  Its filename is
-     uml-remove-unnecessary-hostfs_getattr.patch
+     fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-f=
+ix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: UML: remove unnecessary hostfs_getattr()
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: fix warnings in revoked_inode.c
+=46rom: Miklos Szeredi <mszeredi@suse.cz>
 
-Currently hostfs_getattr() just defines the default behavior.
+=46ix following warnings introduced by
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+
+fs/revoked_inode.c:381: warning: =E2=80=98revoked_write_begin=E2=80=99 =
+defined but not used
+fs/revoked_inode.c:388: warning: =E2=80=98revoked_write_end=E2=80=99 de=
+fined but not used
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hostfs/hostfs_kern.c |    9 ---------
- 1 files changed, 9 deletions(-)
+ fs/revoked_inode.c |   16 ++--------------
+ 1 files changed, 2 insertions(+), 14 deletions(-)
 
-diff -puN fs/hostfs/hostfs_kern.c~uml-remove-unnecessary-hostfs_getattr fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~uml-remove-unnecessary-hostfs_getattr
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -874,13 +874,6 @@ int hostfs_setattr(struct dentry *dentry
- 	return inode_setattr(dentry->d_inode, attr);
+diff -puN fs/revoked_inode.c~fs-introduce-write_begin-write_end-and-per=
+form_write-aops-revoke-fix fs/revoked_inode.c
+--- a/fs/revoked_inode.c~fs-introduce-write_begin-write_end-and-perform=
+_write-aops-revoke-fix
++++ a/fs/revoked_inode.c
+@@ -372,18 +372,6 @@ static int revoked_writepage(struct page
+ 	return -EIO;
  }
- 
--int hostfs_getattr(struct vfsmount *mnt, struct dentry *dentry,
--	   struct kstat *stat)
+=20
+-static int revoked_prepare_write(struct file *file, struct page *page,
+-				 unsigned from, unsigned to)
 -{
--	generic_fillattr(dentry->d_inode, stat);
--	return 0;
+-	return -EIO;
 -}
 -
- static const struct inode_operations hostfs_iops = {
- 	.create		= hostfs_create,
- 	.link		= hostfs_link,
-@@ -892,7 +885,6 @@ static const struct inode_operations hos
- 	.rename		= hostfs_rename,
- 	.permission	= hostfs_permission,
- 	.setattr	= hostfs_setattr,
--	.getattr	= hostfs_getattr,
+-static int revoked_commit_write(struct file *file, struct page *page,
+-				unsigned from, unsigned to)
+-{
+-	return -EIO;
+-}
+-
+ static int revoked_write_begin(struct file *file, struct address_space=
+ *mapping,
+ 				loff_t pos, unsigned len, unsigned flags,
+ 				struct page **pagep, void **fsdata)
+@@ -408,8 +396,8 @@ static ssize_t revoked_direct_IO(int rw,
+ static const struct address_space_operations revoked_aops =3D {
+         .readpage       =3D revoked_readpage,
+         .writepage      =3D revoked_writepage,
+-        .prepare_write  =3D revoked_prepare_write,
+-        .commit_write   =3D revoked_commit_write,
++	.write_begin	=3D revoked_write_begin,
++	.write_end	=3D revoked_write_end,
+         .direct_IO      =3D revoked_direct_IO,
  };
- 
- static const struct inode_operations hostfs_dir_iops = {
-@@ -907,7 +899,6 @@ static const struct inode_operations hos
- 	.rename		= hostfs_rename,
- 	.permission	= hostfs_permission,
- 	.setattr	= hostfs_setattr,
--	.getattr	= hostfs_getattr,
- };
- 
- int hostfs_link_readpage(struct file *file, struct page *page)
+=20
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
@@ -91,10 +106,12 @@ unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
 unprivileged-mounts-allow-unprivileged-bind-mounts.patch
 unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
 unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patc=
+h
 unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
 unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-a=
+udit.patch
 unprivileged-mounts-add-no-submounts-flag.patch
 fuse-update-backing_dev_info-congestion-state.patch
 fuse-fix-reserved-request-wake-up.patch
@@ -105,9 +122,11 @@ fuse-set-i_nlink-to-sane-value-after-mount.patch
 fuse-refresh-stale-attributes-in-fuse_permission.patch
 fuse-fix-permission-checking-on-sticky-directories.patch
 fuse-fix-permission-checking-on-sticky-directories-fix.patch
-fuse-fix-permission-checking-on-sticky-directories-fix-setting-i_mode-bits.patch
+fuse-fix-permission-checking-on-sticky-directories-fix-setting-i_mode-b=
+its.patch
 fuse-cleanup-in-release.patch
 fuse-no-abort-on-interrupt.patch
 fuse-no-enoent-from-fuse-device-read.patch
 fuse-clean-up-execute-permission-checking.patch
-fix-warnings-in-revoked_inodec.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.pa=
+tch
