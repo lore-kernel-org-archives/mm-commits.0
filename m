@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfsd-build-fixes.patch added to -mm tree
-Date: Thu, 09 Aug 2007 00:53:44 -0700
-Message-ID: <200708090753.l797rmsc021135@imap1.linux-foundation.org>
+Subject: + nfsd-warning-fix.patch added to -mm tree
+Date: Thu, 09 Aug 2007 00:53:50 -0700
+Message-ID: <200708090753.l797ro51021138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39245 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33913 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935093AbXHIHyI (ORCPT
+	by vger.kernel.org with ESMTP id S935188AbXHIHyI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 03:54:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de
 
 
 The patch titled
-     git-nfsd build fixes
+     nfsd warning fix
 has been added to the -mm tree.  Its filename is
-     git-nfsd-build-fixes.patch
+     nfsd-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfsd build fixes
+Subject: nfsd warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- fix this:
-
-In file included from fs/nfsctl.c:12:
-include/linux/nfsd/nfsd.h: In function 'nfs4_state_init':
-include/linux/nfsd/nfsd.h:164: warning: 'return' with a value, in function returning void
-include/linux/nfsd/nfsd.h: In function 'nfs4_state_start':
-include/linux/nfsd/nfsd.h:166: warning: 'return' with a value, in function returning void
-
-- tidy things up a bit in there.
+fs/nfsd/nfsctl.c: In function 'write_filehandle':
+fs/nfsd/nfsctl.c:301: warning: 'maxsize' may be used uninitialized in this function
 
 Cc: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nfsd/nfsd.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/nfsd/nfsctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/nfsd/nfsd.h~git-nfsd-build-fixes include/linux/nfsd/nfsd.h
---- a/include/linux/nfsd/nfsd.h~git-nfsd-build-fixes
-+++ a/include/linux/nfsd/nfsd.h
-@@ -161,13 +161,13 @@ time_t nfs4_lease_time(void);
- void nfs4_reset_lease(time_t leasetime);
- int nfs4_reset_recoverydir(char *recdir);
- #else
--static inline void nfs4_state_init(void) {return 0; }
--static inline void nfsd4_free_slabs(void){}
--static inline void nfs4_state_start(void) {return 0; }
--static inline void nfs4_state_shutdown(void){}
--static inline time_t nfs4_lease_time(void){return 0;}
--static inline void nfs4_reset_lease(time_t leasetime){}
--static inline int nfs4_reset_recoverydir(char *recdir) {return 0;}
-+static inline int nfs4_state_init(void) { return 0; }
-+static inline void nfsd4_free_slabs(void) { }
-+static inline void nfs4_state_start(void) { }
-+static inline void nfs4_state_shutdown(void) { }
-+static inline time_t nfs4_lease_time(void) { return 0;}
-+static inline void nfs4_reset_lease(time_t leasetime) { }
-+static inline int nfs4_reset_recoverydir(char *recdir) { return 0; }
- #endif
- 
- /*
+diff -puN fs/nfsd/nfsctl.c~nfsd-warning-fix fs/nfsd/nfsctl.c
+--- a/fs/nfsd/nfsctl.c~nfsd-warning-fix
++++ a/fs/nfsd/nfsctl.c
+@@ -298,7 +298,7 @@ static ssize_t write_filehandle(struct f
+ 	 * qword quoting is used, so filehandle will be \x....
+ 	 */
+ 	char *dname, *path;
+-	int maxsize;
++	int uninitialized_var(maxsize);
+ 	char *mesg = buf;
+ 	int len;
+ 	struct auth_domain *dom;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
