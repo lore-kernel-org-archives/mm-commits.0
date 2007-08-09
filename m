@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-zoran_driverc-fix-memset-in-ioctl.patch added to -mm tree
-Date: Thu, 09 Aug 2007 12:13:37 -0700
-Message-ID: <200708091913.l79JDbN9014874@imap1.linux-foundation.org>
+Subject: + aoe-remove-unecessary-wrapper-function.patch added to -mm tree
+Date: Thu, 09 Aug 2007 12:16:45 -0700
+Message-ID: <200708091916.l79JGjXJ014968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44330 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34249 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751866AbXHITO3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 15:14:29 -0400
+	by vger.kernel.org with ESMTP id S1751120AbXHITQx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 15:16:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, mchehab@infradead.org
+Cc: ecashin@coraid.com
 
 
 The patch titled
-     drivers/media/video/zoran_driver.c: fix memset in ioctl
+     aoe: remove unecessary wrapper function
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-zoran_driverc-fix-memset-in-ioctl.patch
+     aoe-remove-unecessary-wrapper-function.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,79 +25,120 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/media/video/zoran_driver.c: fix memset in ioctl
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: aoe: remove unecessary wrapper function
+From: "Ed L. Cashin" <ecashin@coraid.com>
 
-Looks like memset() is zeroing wrong nr of bytes.
+We can just use skb_mac_header now, and we don't need a wrapper function to
+perform the cast.  Instead of requiring the reader to check aoe.h to look
+up what an aoe_hdr function does, I'd rather do without it.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/zoran_driver.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/aoe/aoe.h    |    9 ---------
+ drivers/block/aoe/aoecmd.c |   14 +++++++-------
+ drivers/block/aoe/aoenet.c |    2 +-
+ 3 files changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN drivers/media/video/zoran_driver.c~drivers-media-video-zoran_driverc-fix-memset-in-ioctl drivers/media/video/zoran_driver.c
---- a/drivers/media/video/zoran_driver.c~drivers-media-video-zoran_driverc-fix-memset-in-ioctl
-+++ a/drivers/media/video/zoran_driver.c
-@@ -3196,7 +3196,7 @@ zoran_do_ioctl (struct inode *inode,
- 			"%s: VIDIOC_QUERYBUF - index=%d, type=%d\n",
- 			ZR_DEVNAME(zr), buf->index, buf->type);
+diff -puN drivers/block/aoe/aoe.h~aoe-remove-unecessary-wrapper-function drivers/block/aoe/aoe.h
+--- a/drivers/block/aoe/aoe.h~aoe-remove-unecessary-wrapper-function
++++ a/drivers/block/aoe/aoe.h
+@@ -48,15 +48,6 @@ struct aoe_hdr {
+ 	__be32 tag;
+ };
  
--		memset(buf, 0, sizeof(buf));
-+		memset(buf, 0, sizeof(*buf));
- 		buf->type = type;
- 		buf->index = index;
+-#ifdef __KERNEL__
+-#include <linux/skbuff.h>
+-
+-static inline struct aoe_hdr *aoe_hdr(const struct sk_buff *skb)
+-{
+-	return (struct aoe_hdr *)skb_mac_header(skb);
+-}
+-#endif
+-
+ struct aoe_atahdr {
+ 	unsigned char aflags;
+ 	unsigned char errfeat;
+diff -puN drivers/block/aoe/aoecmd.c~aoe-remove-unecessary-wrapper-function drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-remove-unecessary-wrapper-function
++++ a/drivers/block/aoe/aoecmd.c
+@@ -119,7 +119,7 @@ aoecmd_ata_rw(struct aoedev *d, struct f
  
+ 	/* initialize the headers & frame */
+ 	skb = f->skb;
+-	h = aoe_hdr(skb);
++	h = (struct aoe_hdr *) skb_mac_header(skb);
+ 	ah = (struct aoe_atahdr *) (h+1);
+ 	skb_put(skb, sizeof *h + sizeof *ah);
+ 	memset(h, 0, skb->len);
+@@ -208,7 +208,7 @@ aoecmd_cfg_pkts(ushort aoemajor, unsigne
+ 		skb->dev = ifp;
+ 		if (sl_tail == NULL)
+ 			sl_tail = skb;
+-		h = aoe_hdr(skb);
++		h = (struct aoe_hdr *) skb_mac_header(skb);
+ 		memset(h, 0, sizeof *h + sizeof *ch);
+ 
+ 		memset(h->dst, 0xff, sizeof h->dst);
+@@ -303,7 +303,7 @@ rexmit(struct aoedev *d, struct frame *f
+ 	aoechr_error(buf);
+ 
+ 	skb = f->skb;
+-	h = aoe_hdr(skb);
++	h = (struct aoe_hdr *) skb_mac_header(skb);
+ 	ah = (struct aoe_atahdr *) (h+1);
+ 	f->tag = n;
+ 	h->tag = cpu_to_be32(n);
+@@ -532,7 +532,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 	char ebuf[128];
+ 	u16 aoemajor;
+ 
+-	hin = aoe_hdr(skb);
++	hin = (struct aoe_hdr *) skb_mac_header(skb);
+ 	aoemajor = be16_to_cpu(get_unaligned(&hin->major));
+ 	d = aoedev_by_aoeaddr(aoemajor, hin->minor);
+ 	if (d == NULL) {
+@@ -564,7 +564,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 	calc_rttavg(d, tsince(f->tag));
+ 
+ 	ahin = (struct aoe_atahdr *) (hin+1);
+-	hout = aoe_hdr(f->skb);
++	hout = (struct aoe_hdr *) skb_mac_header(f->skb);
+ 	ahout = (struct aoe_atahdr *) (hout+1);
+ 	buf = f->buf;
+ 
+@@ -698,7 +698,7 @@ aoecmd_ata_id(struct aoedev *d)
+ 
+ 	/* initialize the headers & frame */
+ 	skb = f->skb;
+-	h = aoe_hdr(skb);
++	h = (struct aoe_hdr *) skb_mac_header(skb);
+ 	ah = (struct aoe_atahdr *) (h+1);
+ 	skb_put(skb, sizeof *h + sizeof *ah);
+ 	memset(h, 0, skb->len);
+@@ -729,7 +729,7 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
+ 	enum { MAXFRAMES = 16 };
+ 	u16 n;
+ 
+-	h = aoe_hdr(skb);
++	h = (struct aoe_hdr *) skb_mac_header(skb);
+ 	ch = (struct aoe_cfghdr *) (h+1);
+ 
+ 	/*
+diff -puN drivers/block/aoe/aoenet.c~aoe-remove-unecessary-wrapper-function drivers/block/aoe/aoenet.c
+--- a/drivers/block/aoe/aoenet.c~aoe-remove-unecessary-wrapper-function
++++ a/drivers/block/aoe/aoenet.c
+@@ -123,7 +123,7 @@ aoenet_rcv(struct sk_buff *skb, struct n
+ 		goto exit;
+ 	skb_push(skb, ETH_HLEN);	/* (1) */
+ 
+-	h = aoe_hdr(skb);
++	h = (struct aoe_hdr *) skb_mac_header(skb);
+ 	n = be32_to_cpu(get_unaligned(&h->tag));
+ 	if ((h->verfl & AOEFL_RSP) == 0 || (n & 1<<31))
+ 		goto exit;
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from ecashin@coraid.com are
 
-emu10k1-remove-redundant-memset.patch
-fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
-git-dvb.patch
-drivers-media-video-arvc-fix-memset-in-ioctl.patch
-drivers-media-video-videodevc-memset-fix.patch
-drivers-media-video-zoran_driverc-fix-memset-in-ioctl.patch
-drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
-git-mtd.patch
-mtd-add-module-license-to-mtdbdi.patch
-git-netdev-all.patch
-usb-remove-redundant-memset-from-amd5536udc.patch
-drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc.patch
-drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
-drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
-drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
-drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch
-drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
-arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+aoe-remove-unecessary-wrapper-function.patch
