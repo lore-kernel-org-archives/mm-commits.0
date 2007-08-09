@@ -1,338 +1,278 @@
 From: akpm@linux-foundation.org
-Subject: - lib-floating-proportions.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 13:56:47 -0700
-Message-ID: <200708092056.l79KulNe019061@imap1.linux-foundation.org>
+Subject: - lib-floating-proportions-_single.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 13:56:50 -0700
+Message-ID: <200708092056.l79Kuo4F019064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40606 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52522 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932827AbXHIVGy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:06:54 -0400
+	by vger.kernel.org with ESMTP id S932797AbXHIVGx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:06:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib: floating proportions
+     lib: floating proportions _single
 has been removed from the -mm tree.  Its filename was
-     lib-floating-proportions.patch
+     lib-floating-proportions-_single.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: lib: floating proportions
+Subject: lib: floating proportions _single
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Given a set of objects, floating proportions aims to efficiently give the
-proportional 'activity' of a single item as compared to the whole set. Where
-'activity' is a measure of a temporal property of the items.
-
-It is efficient in that it need not inspect any other items of the set
-in order to provide the answer. It is not even needed to know how many
-other items there are.
-
-It has one parameter, and that is the period of 'time' over which the
-'activity' is measured.
+Provide a prop_local that does not use a percpu variable for its counter.
+This is useful for items that are not (or infrequently) accessed from
+multiple context and/or are plenty enought that the percpu_counter overhead
+will hurt (tasks).
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/proportions.h |   81 ++++++++++
- lib/Makefile                |    3 
- lib/proportions.c           |  264 ++++++++++++++++++++++++++++++++++
- 3 files changed, 347 insertions(+), 1 deletion(-)
+ include/linux/proportions.h |  113 ++++++++++++++++++++++++++++--
+ lib/proportions.c           |  125 +++++++++++++++++++++++++++++++---
+ 2 files changed, 220 insertions(+), 18 deletions(-)
 
-diff -puN /dev/null include/linux/proportions.h
---- /dev/null
+diff -puN include/linux/proportions.h~lib-floating-proportions-_single include/linux/proportions.h
+--- a/include/linux/proportions.h~lib-floating-proportions-_single
 +++ a/include/linux/proportions.h
-@@ -0,0 +1,81 @@
+@@ -45,7 +45,11 @@ void prop_change_shift(struct prop_descr
+ struct prop_global *prop_get_global(struct prop_descriptor *pd);
+ void prop_put_global(struct prop_descriptor *pd, struct prop_global *pg);
+ 
+-struct prop_local {
 +/*
-+ * FLoating proportions
-+ *
-+ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
-+ *
-+ * This file contains the public data structure and API definitions.
++ * ----- PERCPU ------
 + */
 +
-+#ifndef _LINUX_PROPORTIONS_H
-+#define _LINUX_PROPORTIONS_H
-+
-+#include <linux/percpu_counter.h>
-+#include <linux/spinlock.h>
-+#include <linux/mutex.h>
-+
-+struct prop_global {
-+	/*
-+	 * The period over which we differentiate
-+	 *
-+	 *   period = 2^shift
-+	 */
-+	int shift;
-+	/*
-+	 * The total event counter aka 'time'.
-+	 *
-+	 * Treated as an unsigned long; the lower 'shift - 1' bits are the
-+	 * counter bits, the remaining upper bits the period counter.
-+	 */
-+	struct percpu_counter events;
-+};
++struct prop_local_percpu {
+ 	/*
+ 	 * the local events counter
+ 	 */
+@@ -59,23 +63,118 @@ struct prop_local {
+ 	spinlock_t lock;		/* protect the snapshot state */
+ };
+ 
+-int prop_local_init(struct prop_local *pl);
+-void prop_local_destroy(struct prop_local *pl);
++int prop_local_init_percpu(struct prop_local_percpu *pl);
++void prop_local_destroy_percpu(struct prop_local_percpu *pl);
+ 
+-void prop_norm(struct prop_global *pg, struct prop_local *pl);
++void prop_norm_percpu(struct prop_global *pg, struct prop_local_percpu *pl);
+ 
+ /*
+  *   ++x_{j}, ++t
+  */
+ static inline
+-void __prop_inc(struct prop_global *pg, struct prop_local *pl)
++void __prop_inc_percpu(struct prop_global *pg, struct prop_local_percpu *pl)
+ {
+-	prop_norm(pg, pl);
++	prop_norm_percpu(pg, pl);
+ 	percpu_counter_add(&pl->events, 1);
+ 	percpu_counter_add(&pg->events, 1);
+ }
+ 
+-void prop_fraction(struct prop_global *pg, struct prop_local *pl,
++void prop_fraction_percpu(struct prop_global *pg, struct prop_local_percpu *pl,
++		long *numerator, long *denominator);
 +
 +/*
-+ * global proportion descriptor
-+ *
-+ * this is needed to consitently flip prop_global structures.
++ * ----- SINGLE ------
 + */
-+struct prop_descriptor {
-+	int index;
-+	struct prop_global pg[2];
-+	struct mutex mutex;		/* serialize the prop_global switch */
-+};
 +
-+int prop_descriptor_init(struct prop_descriptor *pd, int shift);
-+void prop_change_shift(struct prop_descriptor *pd, int new_shift);
-+struct prop_global *prop_get_global(struct prop_descriptor *pd);
-+void prop_put_global(struct prop_descriptor *pd, struct prop_global *pg);
-+
-+struct prop_local {
++struct prop_local_single {
 +	/*
 +	 * the local events counter
 +	 */
-+	struct percpu_counter events;
++	unsigned long events;
 +
 +	/*
 +	 * snapshot of the last seen global state
++	 * and a lock protecting this state
 +	 */
 +	int shift;
 +	unsigned long period;
 +	spinlock_t lock;		/* protect the snapshot state */
 +};
 +
-+int prop_local_init(struct prop_local *pl);
-+void prop_local_destroy(struct prop_local *pl);
++int prop_local_init_single(struct prop_local_single *pl);
++void prop_local_destroy_single(struct prop_local_single *pl);
 +
-+void prop_norm(struct prop_global *pg, struct prop_local *pl);
++void prop_norm_single(struct prop_global *pg, struct prop_local_single *pl);
 +
 +/*
 + *   ++x_{j}, ++t
 + */
 +static inline
-+void __prop_inc(struct prop_global *pg, struct prop_local *pl)
++void __prop_inc_single(struct prop_global *pg, struct prop_local_single *pl)
 +{
-+	prop_norm(pg, pl);
-+	percpu_counter_add(&pl->events, 1);
++	prop_norm_single(pg, pl);
++	pl->events++;
 +	percpu_counter_add(&pg->events, 1);
 +}
 +
-+void prop_fraction(struct prop_global *pg, struct prop_local *pl,
-+		long *numerator, long *denominator);
-+
-+#endif /* _LINUX_PROPORTIONS_H */
-diff -puN lib/Makefile~lib-floating-proportions lib/Makefile
---- a/lib/Makefile~lib-floating-proportions
-+++ a/lib/Makefile
-@@ -5,7 +5,8 @@
- lib-y := ctype.o string.o vsprintf.o kasprintf.o cmdline.o \
- 	 rbtree.o radix-tree.o dump_stack.o \
- 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
--	 sha1.o irq_regs.o reciprocal_div.o argv_split.o
-+	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
-+	 proportions.o
++void prop_fraction_single(struct prop_global *pg, struct prop_local_single *pl,
+ 		long *numerator, long *denominator);
  
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
-diff -puN /dev/null lib/proportions.c
---- /dev/null
++/*
++ * ----- GLUE ------
++ */
++
++#undef TYPE_EQUAL
++#define TYPE_EQUAL(expr, type) \
++	__builtin_types_compatible_p(typeof(expr), type)
++
++extern int __bad_prop_local(void);
++
++#define prop_local_init(prop_local)					\
++({	int err;							\
++	if (TYPE_EQUAL(*(prop_local), struct prop_local_percpu))	\
++		err = prop_local_init_percpu(				\
++			(struct prop_local_percpu *)(prop_local));	\
++	else if (TYPE_EQUAL(*(prop_local), struct prop_local_single))	\
++		err = prop_local_init_single(				\
++			(struct prop_local_single *)(prop_local));	\
++	else __bad_prop_local();					\
++	err;								\
++})
++
++#define prop_local_destroy(prop_local)					\
++do {									\
++	if (TYPE_EQUAL(*(prop_local), struct prop_local_percpu))	\
++		prop_local_destroy_percpu(				\
++			(struct prop_local_percpu *)(prop_local));	\
++	else if (TYPE_EQUAL(*(prop_local), struct prop_local_single))	\
++		prop_local_destroy_single(				\
++			(struct prop_local_single *)(prop_local));	\
++	else __bad_prop_local();					\
++} while (0)
++
++#define __prop_inc(prop_global, prop_local)				\
++do {									\
++	if (TYPE_EQUAL(*(prop_local), struct prop_local_percpu))	\
++		__prop_inc_percpu(prop_global,				\
++			(struct prop_local_percpu *)(prop_local)); 	\
++	else if (TYPE_EQUAL(*(prop_local), struct prop_local_single))	\
++		__prop_inc_single(prop_global,				\
++			(struct prop_local_single *)(prop_local)); 	\
++	else __bad_prop_local();					\
++} while (0)
++
++#define prop_fraction(prop_global, prop_local, num, denom)		\
++do {									\
++	if (TYPE_EQUAL(*(prop_local), struct prop_local_percpu))	\
++		prop_fraction_percpu(prop_global,			\
++			(struct prop_local_percpu *)(prop_local),	\
++			num, denom);					\
++	else if (TYPE_EQUAL(*(prop_local), struct prop_local_single))	\
++		prop_fraction_single(prop_global,			\
++			(struct prop_local_single *)(prop_local),	\
++			num, denom);					\
++	else __bad_prop_local();					\
++} while (0)
++
+ #endif /* _LINUX_PROPORTIONS_H */
+diff -puN lib/proportions.c~lib-floating-proportions-_single lib/proportions.c
+--- a/lib/proportions.c~lib-floating-proportions-_single
 +++ a/lib/proportions.c
-@@ -0,0 +1,264 @@
-+/*
-+ * Floating proportions
-+ *
-+ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
-+ *
-+ * Description:
-+ *
-+ * The floating proportion is a time derivative with an exponentially decaying
-+ * history:
-+ *
-+ *   p_{j} = \Sum_{i=0} (dx_{j}/dt_{-i}) / 2^(1+i)
-+ *
-+ * Where j is an element from {prop_local}, x_{j} is j's number of events,
-+ * and i the time period over which the differential is taken. So d/dt_{-i} is
-+ * the differential over the i-th last period.
-+ *
-+ * The decaying history gives smooth transitions. The time differential carries
-+ * the notion of speed.
-+ *
-+ * The denominator is 2^(1+i) because we want the series to be normalised, ie.
-+ *
-+ *   \Sum_{i=0} 1/2^(1+i) = 1
-+ *
-+ * Further more, if we measure time (t) in the same events as x; so that:
-+ *
-+ *   t = \Sum_{j} x_{j}
-+ *
-+ * we get that:
-+ *
-+ *   \Sum_{j} p_{j} = 1
-+ *
-+ * Writing this in an iterative fashion we get (dropping the 'd's):
-+ *
-+ *   if (++x_{j}, ++t > period)
-+ *     t /= 2;
-+ *     for_each (j)
-+ *       x_{j} /= 2;
-+ *
-+ * so that:
-+ *
-+ *   p_{j} = x_{j} / t;
-+ *
-+ * We optimize away the '/= 2' for the global time delta by noting that:
-+ *
-+ *   if (++t > period) t /= 2:
-+ *
-+ * Can be approximated by:
-+ *
-+ *   period/2 + (++t % period/2)
-+ *
-+ * [ Furthermore, when we choose period to be 2^n it can be written in terms of
-+ *   binary operations and wraparound artefacts disappear. ]
-+ *
-+ * Also note that this yields a natural counter of the elapsed periods:
-+ *
-+ *   c = t / (period/2)
-+ *
-+ * [ Its monotonic increasing property can be applied to mitigate the wrap-
-+ *   around issue. ]
-+ *
-+ * This allows us to do away with the loop over all prop_locals on each period
-+ * expiration. By remembering the period count under which it was last accessed
-+ * as c_{j}, we can obtain the number of 'missed' cycles from:
-+ *
-+ *   c - c_{j}
-+ *
-+ * We can then lazily catch up to the global period count every time we are
-+ * going to use x_{j}, by doing:
-+ *
-+ *   x_{j} /= 2^(c - c_{j}), c_{j} = c
-+ */
-+
-+#include <linux/proportions.h>
-+#include <linux/rcupdate.h>
-+
-+int prop_descriptor_init(struct prop_descriptor *pd, int shift)
-+{
-+	int err;
-+
-+	pd->index = 0;
-+	pd->pg[0].shift = shift;
-+	mutex_init(&pd->mutex);
-+	err = percpu_counter_init_irq(&pd->pg[0].events, 0);
-+	if (err)
-+		goto out;
-+
-+	err = percpu_counter_init_irq(&pd->pg[1].events, 0);
-+	if (err)
-+		percpu_counter_destroy(&pd->pg[0].events);
-+
-+out:
-+	return err;
-+}
+@@ -159,22 +159,31 @@ void prop_put_global(struct prop_descrip
+ 	rcu_read_unlock();
+ }
+ 
+-static void prop_adjust_shift(struct prop_local *pl, int new_shift)
++static void
++__prop_adjust_shift(int *pl_shift, unsigned long *pl_period, int new_shift)
+ {
+-	int offset = pl->shift - new_shift;
++	int offset = *pl_shift - new_shift;
+ 
+ 	if (!offset)
+ 		return;
+ 
+ 	if (offset < 0)
+-		pl->period <<= -offset;
++		*pl_period <<= -offset;
+ 	else
+-		pl->period >>= offset;
++		*pl_period >>= offset;
+ 
+-	pl->shift = new_shift;
++	*pl_shift = new_shift;
+ }
+ 
+-int prop_local_init(struct prop_local *pl)
++#define prop_adjust_shift(prop_local, pg_shift)			\
++	__prop_adjust_shift(&(prop_local)->shift,		\
++			    &(prop_local)->period, pg_shift)
 +
 +/*
-+ * We have two copies, and flip between them to make it seem like an atomic
-+ * update. The update is not really atomic wrt the events counter, but
-+ * it is internally consistent with the bit layout depending on shift.
-+ *
-+ * We copy the events count, move the bits around and flip the index.
++ * PERCPU
 + */
-+void prop_change_shift(struct prop_descriptor *pd, int shift)
-+{
-+	int index;
-+	int offset;
-+	u64 events;
-+	unsigned long flags;
 +
-+	mutex_lock(&pd->mutex);
-+
-+	index = pd->index ^ 1;
-+	offset = pd->pg[pd->index].shift - shift;
-+	if (!offset)
-+		goto out;
-+
-+	pd->pg[index].shift = shift;
-+
-+	local_irq_save(flags);
-+	events = percpu_counter_sum(
-+			&pd->pg[pd->index].events);
-+	if (offset < 0)
-+		events <<= -offset;
-+	else
-+		events >>= offset;
-+	percpu_counter_set(&pd->pg[index].events, events);
-+
-+	/*
-+	 * ensure the new pg is fully written before the switch
-+	 */
-+	smp_wmb();
-+	pd->index = index;
-+	local_irq_restore(flags);
-+
-+	synchronize_rcu();
-+
-+out:
-+	mutex_unlock(&pd->mutex);
-+}
-+
++int prop_local_init_percpu(struct prop_local_percpu *pl)
+ {
+ 	spin_lock_init(&pl->lock);
+ 	pl->shift = 0;
+@@ -182,7 +191,7 @@ int prop_local_init(struct prop_local *p
+ 	return percpu_counter_init_irq(&pl->events, 0);
+ }
+ 
+-void prop_local_destroy(struct prop_local *pl)
++void prop_local_destroy_percpu(struct prop_local_percpu *pl)
+ {
+ 	percpu_counter_destroy(&pl->events);
+ }
+@@ -194,8 +203,7 @@ void prop_local_destroy(struct prop_loca
+  *     x_{j} -= x_{j}/2;
+  *     c_{j}++;
+  */
+-void prop_norm(struct prop_global *pg,
+-		struct prop_local *pl)
++void prop_norm_percpu(struct prop_global *pg, struct prop_local_percpu *pl)
+ {
+ 	unsigned long period = 1UL << (pg->shift - 1);
+ 	unsigned long period_mask = ~(period - 1);
+@@ -248,17 +256,112 @@ void prop_norm(struct prop_global *pg,
+  *
+  *   p_{j} = x_{j} / (period/2 + t % period/2)
+  */
+-void prop_fraction(struct prop_global *pg, struct prop_local *pl,
++void prop_fraction_percpu(struct prop_global *pg, struct prop_local_percpu *pl,
+ 		long *numerator, long *denominator)
+ {
+ 	unsigned long period_2 = 1UL << (pg->shift - 1);
+ 	unsigned long counter_mask = period_2 - 1;
+ 	unsigned long global_count;
+ 
+-	prop_norm(pg, pl);
++	prop_norm_percpu(pg, pl);
+ 	*numerator = percpu_counter_read_positive(&pl->events);
+ 
+ 	global_count = percpu_counter_read(&pg->events);
+ 	*denominator = period_2 + (global_count & counter_mask);
+ }
+ 
 +/*
-+ * wrap the access to the data in an rcu_read_lock() section;
-+ * this is used to track the active references.
++ * SINGLE
 + */
-+struct prop_global *prop_get_global(struct prop_descriptor *pd)
-+{
-+	int index;
 +
-+	rcu_read_lock();
-+	index = pd->index;
-+	/*
-+	 * match the wmb from vcd_flip()
-+	 */
-+	smp_rmb();
-+	return &pd->pg[index];
-+}
-+
-+void prop_put_global(struct prop_descriptor *pd, struct prop_global *pg)
-+{
-+	rcu_read_unlock();
-+}
-+
-+static void prop_adjust_shift(struct prop_local *pl, int new_shift)
-+{
-+	int offset = pl->shift - new_shift;
-+
-+	if (!offset)
-+		return;
-+
-+	if (offset < 0)
-+		pl->period <<= -offset;
-+	else
-+		pl->period >>= offset;
-+
-+	pl->shift = new_shift;
-+}
-+
-+int prop_local_init(struct prop_local *pl)
++int prop_local_init_single(struct prop_local_single *pl)
 +{
 +	spin_lock_init(&pl->lock);
 +	pl->shift = 0;
 +	pl->period = 0;
-+	return percpu_counter_init_irq(&pl->events, 0);
++	pl->events = 0;
++	return 0;
 +}
 +
-+void prop_local_destroy(struct prop_local *pl)
++void prop_local_destroy_single(struct prop_local_single *pl)
 +{
-+	percpu_counter_destroy(&pl->events);
 +}
 +
 +/*
@@ -342,8 +282,7 @@ diff -puN /dev/null lib/proportions.c
 + *     x_{j} -= x_{j}/2;
 + *     c_{j}++;
 + */
-+void prop_norm(struct prop_global *pg,
-+		struct prop_local *pl)
++void prop_norm_single(struct prop_global *pg, struct prop_local_single *pl)
 +{
 +	unsigned long period = 1UL << (pg->shift - 1);
 +	unsigned long period_mask = ~(period - 1);
@@ -367,13 +306,13 @@ diff -puN /dev/null lib/proportions.c
 +	 * basically:
 +	 *   pl->events >> (global_period - pl->period);
 +	 *
-+	 * but since the distributed nature of percpu counters make division
++	 * but since the distributed nature of single counters make division
 +	 * rather hard, use a regular subtraction loop. This is safe, because
 +	 * the events will only every be incremented, hence the subtraction
 +	 * can never result in a negative number.
 +	 */
 +	while (pl->period != global_period) {
-+		unsigned long val = percpu_counter_read(&pl->events);
++		unsigned long val = pl->events;
 +		unsigned long half = (val + 1) >> 1;
 +
 +		/*
@@ -384,7 +323,11 @@ diff -puN /dev/null lib/proportions.c
 +		if (!val)
 +			break;
 +
-+		percpu_counter_add(&pl->events, -half);
++		/*
++		 * Iff shift >32 half might exceed the limits of
++		 * the regular single_counter_mod.
++		 */
++		pl->events -= half;
 +		pl->period += period;
 +	}
 +	pl->period = global_period;
@@ -396,15 +339,15 @@ diff -puN /dev/null lib/proportions.c
 + *
 + *   p_{j} = x_{j} / (period/2 + t % period/2)
 + */
-+void prop_fraction(struct prop_global *pg, struct prop_local *pl,
++void prop_fraction_single(struct prop_global *pg, struct prop_local_single *pl,
 +		long *numerator, long *denominator)
 +{
 +	unsigned long period_2 = 1UL << (pg->shift - 1);
 +	unsigned long counter_mask = period_2 - 1;
 +	unsigned long global_count;
 +
-+	prop_norm(pg, pl);
-+	*numerator = percpu_counter_read_positive(&pl->events);
++	prop_norm_single(pg, pl);
++	*numerator = pl->events;
 +
 +	global_count = percpu_counter_read(&pg->events);
 +	*denominator = period_2 + (global_count & counter_mask);
@@ -415,7 +358,6 @@ _
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 radix-tree-use-indirect-bit.patch
-lib-floating-proportions.patch
 lib-floating-proportions-_single.patch
 lib-floating-proportions-_single-tidy.patch
 mm-per-device-dirty-threshold.patch
