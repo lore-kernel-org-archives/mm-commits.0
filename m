@@ -1,144 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-give-mtdconcat-devices-their-own-backing_dev_info.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 13:56:39 -0700
-Message-ID: <200708092056.l79KudD7019046@imap1.linux-foundation.org>
+Subject: - mm-count-writeback-pages-per-bdi.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 13:56:45 -0700
+Message-ID: <200708092056.l79KujTJ019055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48778 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49157 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764356AbXHIU4w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:56:52 -0400
+	by vger.kernel.org with ESMTP id S1759278AbXHIU4z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:56:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, rkaiser@sysgo.de, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: give mtdconcat devices their own backing_dev_info
+     mm: count writeback pages per BDI
 has been removed from the -mm tree.  Its filename was
-     mtd-give-mtdconcat-devices-their-own-backing_dev_info.patch
+     mm-count-writeback-pages-per-bdi.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mtd: give mtdconcat devices their own backing_dev_info
+Subject: mm: count writeback pages per BDI
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-These are actual devices, give them their own BDI.
+Count per BDI writeback pages.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Robert Kaiser <rkaiser@sysgo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdconcat.c |   28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ include/linux/backing-dev.h |    1 +
+ mm/page-writeback.c         |   12 ++++++++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/mtdconcat.c~mtd-give-mtdconcat-devices-their-own-backing_dev_info drivers/mtd/mtdconcat.c
---- a/drivers/mtd/mtdconcat.c~mtd-give-mtdconcat-devices-their-own-backing_dev_info
-+++ a/drivers/mtd/mtdconcat.c
-@@ -32,6 +32,7 @@ struct mtd_concat {
- 	struct mtd_info mtd;
- 	int num_subdev;
- 	struct mtd_info **subdev;
-+	struct backing_dev_info backing_dev_info;
+diff -puN include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi
++++ a/include/linux/backing-dev.h
+@@ -28,6 +28,7 @@ typedef int (congested_fn)(void *, int);
+ 
+ enum bdi_stat_item {
+ 	BDI_RECLAIMABLE,
++	BDI_WRITEBACK,
+ 	NR_BDI_STAT_ITEMS
  };
  
- /*
-@@ -782,10 +783,9 @@ struct mtd_info *mtd_concat_create(struc
+diff -puN mm/page-writeback.c~mm-count-writeback-pages-per-bdi mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-count-writeback-pages-per-bdi
++++ a/mm/page-writeback.c
+@@ -979,14 +979,18 @@ int test_clear_page_writeback(struct pag
+ 	int ret;
  
- 	for (i = 1; i < num_devs; i++) {
- 		if (concat->mtd.type != subdev[i]->type) {
--			kfree(concat);
- 			printk("Incompatible device type on \"%s\"\n",
- 			       subdev[i]->name);
--			return NULL;
-+			goto error;
- 		}
- 		if (concat->mtd.flags != subdev[i]->flags) {
- 			/*
-@@ -794,10 +794,9 @@ struct mtd_info *mtd_concat_create(struc
- 			 */
- 			if ((concat->mtd.flags ^ subdev[i]->
- 			     flags) & ~MTD_WRITEABLE) {
--				kfree(concat);
- 				printk("Incompatible device flags on \"%s\"\n",
- 				       subdev[i]->name);
--				return NULL;
-+				goto error;
- 			} else
- 				/* if writeable attribute differs,
- 				   make super device writeable */
-@@ -809,9 +808,12 @@ struct mtd_info *mtd_concat_create(struc
- 		 * - copy-mapping is still permitted
- 		 */
- 		if (concat->mtd.backing_dev_info !=
--		    subdev[i]->backing_dev_info)
-+		    subdev[i]->backing_dev_info) {
-+			concat->backing_dev_info = default_backing_dev_info;
-+			bdi_init(&concat->backing_dev_info);
- 			concat->mtd.backing_dev_info =
--				&default_backing_dev_info;
-+				&concat->backing_dev_info;
+ 	if (mapping) {
++		struct backing_dev_info *bdi = mapping->backing_dev_info;
+ 		unsigned long flags;
+ 
+ 		write_lock_irqsave(&mapping->tree_lock, flags);
+ 		ret = TestClearPageWriteback(page);
+-		if (ret)
++		if (ret) {
+ 			radix_tree_tag_clear(&mapping->page_tree,
+ 						page_index(page),
+ 						PAGECACHE_TAG_WRITEBACK);
++			if (bdi_cap_writeback_dirty(bdi))
++				__dec_bdi_stat(bdi, BDI_WRITEBACK);
 +		}
+ 		write_unlock_irqrestore(&mapping->tree_lock, flags);
+ 	} else {
+ 		ret = TestClearPageWriteback(page);
+@@ -1002,14 +1006,18 @@ int test_set_page_writeback(struct page 
+ 	int ret;
  
- 		concat->mtd.size += subdev[i]->size;
- 		concat->mtd.ecc_stats.badblocks +=
-@@ -821,10 +823,9 @@ struct mtd_info *mtd_concat_create(struc
- 		    concat->mtd.oobsize    !=  subdev[i]->oobsize ||
- 		    !concat->mtd.read_oob  != !subdev[i]->read_oob ||
- 		    !concat->mtd.write_oob != !subdev[i]->write_oob) {
--			kfree(concat);
- 			printk("Incompatible OOB or ECC data on \"%s\"\n",
- 			       subdev[i]->name);
--			return NULL;
-+			goto error;
- 		}
- 		concat->subdev[i] = subdev[i];
+ 	if (mapping) {
++		struct backing_dev_info *bdi = mapping->backing_dev_info;
+ 		unsigned long flags;
  
-@@ -903,11 +904,10 @@ struct mtd_info *mtd_concat_create(struc
- 		    kmalloc(num_erase_region *
- 			    sizeof (struct mtd_erase_region_info), GFP_KERNEL);
- 		if (!erase_region_p) {
--			kfree(concat);
- 			printk
- 			    ("memory allocation error while creating erase region list"
- 			     " for device \"%s\"\n", name);
--			return NULL;
-+			goto error;
- 		}
- 
- 		/*
-@@ -968,6 +968,12 @@ struct mtd_info *mtd_concat_create(struc
- 	}
- 
- 	return &concat->mtd;
-+
-+error:
-+	if (concat->mtd.backing_dev_info == &concat->backing_dev_info)
-+		bdi_destroy(&concat->backing_dev_info);
-+	kfree(concat);
-+	return NULL;
- }
- 
- /*
-@@ -977,6 +983,8 @@ struct mtd_info *mtd_concat_create(struc
- void mtd_concat_destroy(struct mtd_info *mtd)
- {
- 	struct mtd_concat *concat = CONCAT(mtd);
-+	if (concat->mtd.backing_dev_info == &concat->backing_dev_info)
-+		bdi_destroy(&concat->backing_dev_info);
- 	if (concat->mtd.numeraseregions)
- 		kfree(concat->mtd.eraseregions);
- 	kfree(concat);
+ 		write_lock_irqsave(&mapping->tree_lock, flags);
+ 		ret = TestSetPageWriteback(page);
+-		if (!ret)
++		if (!ret) {
+ 			radix_tree_tag_set(&mapping->page_tree,
+ 						page_index(page),
+ 						PAGECACHE_TAG_WRITEBACK);
++			if (bdi_cap_writeback_dirty(bdi))
++				__inc_bdi_stat(bdi, BDI_WRITEBACK);
++		}
+ 		if (!PageDirty(page))
+ 			radix_tree_tag_clear(&mapping->page_tree,
+ 						page_index(page),
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 radix-tree-use-indirect-bit.patch
-mtd-give-mtdconcat-devices-their-own-backing_dev_info.patch
-mm-scalable-bdi-statistics-counters.patch
-mm-count-reclaimable-pages-per-bdi.patch
 mm-count-writeback-pages-per-bdi.patch
 mm-expose-bdi-statistics-in-sysfs.patch
 lib-floating-proportions.patch
