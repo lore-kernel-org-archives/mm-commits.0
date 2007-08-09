@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-fix-permission-checking-on-sticky-directories-fix-setting-i_mode-bits.patch added to -mm tree
-Date: Thu, 09 Aug 2007 14:33:49 -0700
-Message-ID: <200708092133.l79LXn4p020695@imap1.linux-foundation.org>
+Subject: + fuse-clean-up-execute-permission-checking.patch added to -mm tree
+Date: Thu, 09 Aug 2007 14:34:10 -0700
+Message-ID: <200708092134.l79LYAhV020724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40779 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49313 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752075AbXHIVe3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:34:29 -0400
+	by vger.kernel.org with ESMTP id S1751993AbXHIVev (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     fuse: fix setting i_mode bits
+     fuse: clean up execute permission checking
 has been added to the -mm tree.  Its filename is
-     fuse-fix-permission-checking-on-sticky-directories-fix-setting-i_mode-bits.patch
+     fuse-clean-up-execute-permission-checking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,60 +25,114 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: fix setting i_mode bits
+Subject: fuse: clean up execute permission checking
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-The patch titled "fuse: fix permission checking on sticky directories" removed
-all but the S_IFMT bits from i_mode.
+Define a new function fuse_refresh_attributes() that conditionally refreshes
+the attributes based on the validity timeout.
 
-However some of these are unfortunately used by the VFS, such as the execute,
-suid and sgid bits.
-
-So only remove the sticky bit, which is used for checking deletion from a
-directory.
+In fuse_permission() only refresh the attributes for checking the execute bits
+if necessary.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/inode.c |   18 ++++++++++--------
- 1 files changed, 10 insertions(+), 8 deletions(-)
+ fs/fuse/dir.c |   49 ++++++++++++++++++++++++++++++------------------
+ 1 files changed, 31 insertions(+), 18 deletions(-)
 
-diff -puN fs/fuse/inode.c~fuse-fix-permission-checking-on-sticky-directories-fix-setting-i_mode-bits fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-fix-permission-checking-on-sticky-directories-fix-setting-i_mode-bits
-+++ a/fs/fuse/inode.c
-@@ -124,14 +124,7 @@ void fuse_change_attributes(struct inode
- 	loff_t oldsize;
+diff -puN fs/fuse/dir.c~fuse-clean-up-execute-permission-checking fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-clean-up-execute-permission-checking
++++ a/fs/fuse/dir.c
+@@ -695,6 +695,20 @@ static int fuse_do_getattr(struct inode 
+ }
  
- 	inode->i_ino     = attr->ino;
--	fi->orig_i_mode  = (inode->i_mode & S_IFMT) | (attr->mode & 07777);
--	/*
--	 * Don't set the mode bits in i_mode, unless we want the VFS
--	 * to check permissions.  This prevents failures due to the
--	 * sticky bit check in may_delete().
--	 */
--	if (fc->flags & FUSE_DEFAULT_PERMISSIONS)
--		inode->i_mode = fi->orig_i_mode;
-+	inode->i_mode    = (inode->i_mode & S_IFMT) | (attr->mode & 07777);
- 	inode->i_nlink   = attr->nlink;
- 	inode->i_uid     = attr->uid;
- 	inode->i_gid     = attr->gid;
-@@ -143,6 +136,15 @@ void fuse_change_attributes(struct inode
- 	inode->i_ctime.tv_sec   = attr->ctime;
- 	inode->i_ctime.tv_nsec  = attr->ctimensec;
- 
-+	/*
-+	 * Don't set the sticky bit in i_mode, unless we want the VFS
-+	 * to check permissions.  This prevents failures due to the
-+	 * check in may_delete().
-+	 */
-+	fi->orig_i_mode = inode->i_mode;
-+	if (!(fc->flags & FUSE_DEFAULT_PERMISSIONS))
-+		inode->i_mode &= ~S_ISVTX;
+ /*
++ * Check if attributes are still valid, and if not send a GETATTR
++ * request to refresh them.
++ */
++static int fuse_refresh_attributes(struct inode *inode)
++{
++	struct fuse_inode *fi = get_fuse_inode(inode);
 +
- 	spin_lock(&fc->lock);
- 	oldsize = inode->i_size;
- 	i_size_write(inode, attr->size);
++	if (fi->i_time < get_jiffies_64())
++		return fuse_do_getattr(inode);
++	else
++		return 0;
++}
++
++/*
+  * Calling into a user-controlled filesystem gives the filesystem
+  * daemon ptrace-like capabilities over the requester process.  This
+  * means, that the filesystem daemon is able to record the exact
+@@ -770,7 +784,6 @@ static int fuse_access(struct inode *ino
+ static int fuse_permission(struct inode *inode, int mask, struct nameidata *nd)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	struct fuse_inode *fi = get_fuse_inode(inode);
+ 	bool refreshed = false;
+ 	int err = 0;
+ 
+@@ -778,12 +791,11 @@ static int fuse_permission(struct inode 
+ 		return -EACCES;
+ 
+ 	/*
+-	 * If attributes are needed, but are stale, refresh them
+-	 * before proceeding
++	 * If attributes are needed, refresh them before proceeding
+ 	 */
+-	if (((fc->flags & FUSE_DEFAULT_PERMISSIONS) || (mask & MAY_EXEC)) &&
+-	    fi->i_time < get_jiffies_64()) {
+-		err = fuse_do_getattr(inode);
++	if ((fc->flags & FUSE_DEFAULT_PERMISSIONS) ||
++	    ((mask & MAY_EXEC) && S_ISREG(inode->i_mode))) {
++		err = fuse_refresh_attributes(inode);
+ 		if (err)
+ 			return err;
+ 
+@@ -806,14 +818,17 @@ static int fuse_permission(struct inode 
+ 		   exist.  So if permissions are revoked this won't be
+ 		   noticed immediately, only after the attribute
+ 		   timeout has expired */
+-
+-	} else {
+-		int mode = inode->i_mode;
+-		if ((mask & MAY_EXEC) && !S_ISDIR(mode) && !(mode & S_IXUGO))
+-			return -EACCES;
+-
+-		if (nd && (nd->flags & (LOOKUP_ACCESS | LOOKUP_CHDIR)))
+-			return fuse_access(inode, mask);
++	} else if (nd && (nd->flags & (LOOKUP_ACCESS | LOOKUP_CHDIR))) {
++		err = fuse_access(inode, mask);
++	} else if ((mask & MAY_EXEC) && S_ISREG(inode->i_mode)) {
++		if (!(inode->i_mode & S_IXUGO)) {
++			if (refreshed)
++				return -EACCES;
++
++			err = fuse_do_getattr(inode);
++			if (!err && !(inode->i_mode & S_IXUGO))
++				return -EACCES;
++		}
+ 	}
+ 	return err;
+ }
+@@ -1046,14 +1061,12 @@ static int fuse_getattr(struct vfsmount 
+ 	struct inode *inode = entry->d_inode;
+ 	struct fuse_inode *fi = get_fuse_inode(inode);
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	int err = 0;
++	int err;
+ 
+ 	if (!fuse_allow_task(fc, current))
+ 		return -EACCES;
+ 
+-	if (fi->i_time < get_jiffies_64())
+-		err = fuse_do_getattr(inode);
+-
++	err = fuse_refresh_attributes(inode);
+ 	if (!err) {
+ 		generic_fillattr(inode, stat);
+ 		stat->mode = fi->orig_i_mode;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
