@@ -1,180 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: + pci-align-bar-settings-for-legacy-mode-ide-fix.patch added to -mm tree
-Date: Thu, 09 Aug 2007 15:58:56 -0700
-Message-ID: <200708092258.l79Mwuw7023934@imap1.linux-foundation.org>
+Subject: - cpqphp_ctrlc-remove-dead-code.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 15:59:50 -0700
+Message-ID: <200708092259.l79MxoDe023950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36989 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36867 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752259AbXHIW7N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:59:13 -0400
+	by vger.kernel.org with ESMTP id S1753466AbXHIXAH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 19:00:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, greg@kroah.com, jbeulich@novell.com, ktk@enterprise.bidmc.harvard.edu, nix.or.die@googlemail.com, protasnb@gmail.com
+To: bunk@stusta.de, greg@kroah.com, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-align-bar-settings-for-legacy-mode-ide-fix
-has been added to the -mm tree.  Its filename is
-     pci-align-bar-settings-for-legacy-mode-ide-fix.patch
+     cpqphp_ctrl.c: remove dead code
+has been removed from the -mm tree.  Its filename was
+     cpqphp_ctrlc-remove-dead-code.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-Subject: pci-align-bar-settings-for-legacy-mode-ide-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cpqphp_ctrl.c: remove dead code
+From: Adrian Bunk <bunk@stusta.de>
 
-<alan>Just remove that chunk</aman>
+If !mem_node we did already return -ENOMEM above in the function.
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Gabriel C <nix.or.die@googlemail.com>
+Spotted by the Coverity checker.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Cc: Greg KH <greg@kroah.com>
-Cc: Jan Beulich <jbeulich@novell.com>
-Cc: Kristofer T. Karas" <ktk@enterprise.bidmc.harvard.edu>
-Cc: Natalie Protasevich <protasnb@gmail.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |    5 -----
- 1 files changed, 5 deletions(-)
+ drivers/pci/hotplug/cpqphp_ctrl.c |   28 +++++++---------------------
+ 1 file changed, 7 insertions(+), 21 deletions(-)
 
-diff -puN drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide-fix drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide-fix
-+++ a/drivers/pci/probe.c
-@@ -747,11 +747,6 @@ static void change_legacy_io_resource(st
- 	resource_size_t base = start & PCI_BASE_ADDRESS_IO_MASK;
- 	resource_size_t len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
+diff -puN drivers/pci/hotplug/cpqphp_ctrl.c~cpqphp_ctrlc-remove-dead-code drivers/pci/hotplug/cpqphp_ctrl.c
+--- a/drivers/pci/hotplug/cpqphp_ctrl.c~cpqphp_ctrlc-remove-dead-code
++++ a/drivers/pci/hotplug/cpqphp_ctrl.c
+@@ -2553,29 +2553,15 @@ static int configure_new_function(struct
+ 			hold_IO_node = NULL;
+ 		}
  
--	if (!(pci_resource_flags(dev, index) & IORESOURCE_IO)) {
--		printk(KERN_WARNING "%s: cannot adjust BAR%u (not I/O)\n",
--		       pci_name(dev), index);
--		return;
--	}
- 	if (pci_resource_len(dev, index) != len) {
- 		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %Lx)\n",
- 			pci_name(dev), index,
+-		/* If we have memory resources copy them and fill in the
+-		 * bridge's memory range registers.  Otherwise, fill in the
+-		 * range registers with values that disable them. */
+-		if (mem_node) {
+-			memcpy(hold_mem_node, mem_node, sizeof(struct pci_resource));
+-			mem_node->next = NULL;
+-
+-			/* set Mem base and Limit registers */
+-			temp_word = mem_node->base >> 16;
+-			rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_BASE, temp_word);
++		memcpy(hold_mem_node, mem_node, sizeof(struct pci_resource));
++		mem_node->next = NULL;
+ 
+-			temp_word = (mem_node->base + mem_node->length - 1) >> 16;
+-			rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_LIMIT, temp_word);
+-		} else {
+-			temp_word = 0xFFFF;
+-			rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_BASE, temp_word);
+-
+-			temp_word = 0x0000;
+-			rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_LIMIT, temp_word);
++		/* set Mem base and Limit registers */
++		temp_word = mem_node->base >> 16;
++		rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_BASE, temp_word);
+ 
+-			kfree(hold_mem_node);
+-			hold_mem_node = NULL;
+-		}
++		temp_word = (mem_node->base + mem_node->length - 1) >> 16;
++		rc = pci_bus_write_config_word(pci_bus, devfn, PCI_MEMORY_LIMIT, temp_word);
+ 
+ 		memcpy(hold_p_mem_node, p_mem_node, sizeof(struct pci_resource));
+ 		p_mem_node->next = NULL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-fbcon-kill-compile-warning-fix.patch
-fix-serial-buffer-memory-leak-fix.patch
-mtdchar-build-fix.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
+slow-down-printk-during-boot-fix-3.patch
 git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
+make-drivers-acpi-eventcacpi_event_seqnum-static.patch
+git-alsa.patch
+allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
+drivers-base-power-make-2-functions-static.patch
+git-drm.patch
+git-dvb.patch
+include-linux-kbuild-remove-duplicate-entries.patch
 git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-ide-arm-hack.patch
+git-mmc.patch
 git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-ax88796-printk-fixes.patch
-natsemi-fix-netdev-error-acounting.patch
-git-ixgbe-build-fix.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
-git-nfsd.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
+remove-fs-jffs2-ioctlc.patch
+drivers-net-cxgb3-xgmacc-remove-dead-code.patch
+e1000-if-0-two-functions.patch
+fore200e_param_bs_queue-must-be-__devinit.patch
+backlight-make-2-structs-static.patch
+git-ocfs2.patch
+parisc-extern-inline-static-inline.patch
+cpqphp_ctrlc-remove-dead-code.patch
+kernel-schedc-make-code-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+drivers-scsi-scsi_errorc-should-include.patch
+drivers-scsi-constantsc-make-2-functions-static.patch
 git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-v9fs.patch
 git-wireless.patch
-disable-b44-and-bcm43xx.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
-pci-align-bar-settings-for-legacy-mode-ide-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-implement-cpu_physical_id-on-smp=n.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+i386-remove-maccumulate-outgoing-args.patch
+arch-i386-mach-generic-probec-make-struct-apic_probe.patch
+arch-i386-mach-es7000-es7000platc-cleanups.patch
+i386-alternativec-really-stop-mces-during-code.patch
+i386-no-need-to-make-enable_cpu_hotplug-a-variable.patch
+arch-i386-mm-discontigc-make-some-variables-static.patch
+git-cryptodev.patch
+kernel-auditscc-fix-an-off-by-one.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+mm-page_allocc-make-code-static.patch
+maps2-add-proc-kpagemap-interface.patch
+hugetlbfs-read-support-fix-2.patch
+mm-shmemc-make-3-functions-static.patch
+mm-mempolicyc-cleanups.patch
+mm-vmstatc-cleanups.patch
+cleanup-arch-alpha-makefile.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+radeon_driver_vblank_do_wait-static.patch
+unexport-fb_prepare_logo.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
 reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+mutex-subsystem-synchro-test-module.patch
