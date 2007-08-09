@@ -1,88 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - flush-icache-before-set_pte-on-ia64-migration-fix.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 14:16:54 -0700
-Message-ID: <200708092116.l79LGtqF019913@imap1.linux-foundation.org>
+Subject: + x86_64-efi-boot-support-efi-boot-document.patch added to -mm tree
+Date: Thu, 09 Aug 2007 14:23:01 -0700
+Message-ID: <200708092123.l79LN10p020198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44819 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47202 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752703AbXHIVWO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:22:14 -0400
+	by vger.kernel.org with ESMTP id S932534AbXHIVXX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:23:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, davem@davemloft.net, hugh@veritas.com, nickpiggin@yahoo.com.au, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ying.huang@intel.com, adaplas@pol.net, ak@suse.de, mouli@linux.intel.com
 
 
 The patch titled
-     flush icache before set_pte() on ia64: migration fix
-has been removed from the -mm tree.  Its filename was
-     flush-icache-before-set_pte-on-ia64-migration-fix.patch
+     x86_64 EFI boot support: EFI boot document
+has been added to the -mm tree.  Its filename is
+     x86_64-efi-boot-support-efi-boot-document.patch
 
-This patch was dropped because it was nacked
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: flush icache before set_pte() on ia64: migration fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: x86_64 EFI boot support: EFI boot document
+From: "Huang, Ying" <ying.huang@intel.com>
 
-In migration, a new page should be cache flushed before set_pte() in some
-archs which have virtually-tagged cache..  I'll separate this from patch set
-in the next time.
+Add a document for EFI x86_64 boot support.  The setup and operation guide of
+EFI based system is documented in Documentation/x86_64/uefi.txt.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Chandramouli Narayanan <mouli@linux.intel.com>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    1 +
- 1 files changed, 1 insertion(+)
+ Documentation/x86_64/uefi.txt |   29 +++++++++++++++++++++++++++++
+ 1 files changed, 29 insertions(+)
 
-diff -puN mm/migrate.c~flush-icache-before-set_pte-on-ia64-migration-fix mm/migrate.c
---- a/mm/migrate.c~flush-icache-before-set_pte-on-ia64-migration-fix
-+++ a/mm/migrate.c
-@@ -171,6 +171,7 @@ static void remove_migration_pte(struct 
- 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
- 	if (is_write_migration_entry(entry))
- 		pte = pte_mkwrite(pte);
-+	flush_cache_page(vma, addr, pte_pfn(pte));
- 	set_pte_at(mm, addr, ptep, pte);
- 
- 	if (PageAnon(new))
+diff -puN /dev/null Documentation/x86_64/uefi.txt
+--- /dev/null
++++ a/Documentation/x86_64/uefi.txt
+@@ -0,0 +1,29 @@
++General note on [U]EFI x86_64 support
++-------------------------------------
++
++The nomenclature EFI and UEFI are used interchangeably in this document.
++
++Although the tools below are _not_ needed for building the kernel,
++the needed bootloader support and associated tools for x86_64 platforms
++with EFI firmware and specifications are listed below.
++
++1. UEFI specification:  http://www.uefi.org
++
++2. Booting Linux kernel on UEFI x86_64 platform requires bootloader
++   support. Elilo with x86_64 support can be used.
++
++3. x86_64 platform with EFI/UEFI firmware.
++
++Mechanics:
++---------
++- Build the kernel with the following configuration.
++	CONFIG_FB_EFI=y
++	CONFIG_FRAMEBUFFER_CONSOLE=y
++- Create a VFAT partition on the disk
++- Copy the following to the VFAT partition:
++	elilo bootloader with x86_64 support, elilo configuration file,
++	kernel image built in first step and corresponding
++	initrd. Instructions on building elilo	and its dependencies
++	can be found in the elilo sourceforge project.
++- Boot to EFI shell and invoke elilo choosing the kernel image built
++  in first step.
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-memory-hotplug-document-take-3.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-sparc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
-memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
-memoryless-nodes-no-need-for-kswapd.patch
-memoryless-nodes-slab-support.patch
-memoryless-nodes-slub-support.patch
-memoryless-nodes-uncached-allocator-updates.patch
-memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
-memoryless-nodes-update-memory-policy-and-page-migration.patch
-memoryless-nodes-add-n_cpu-node-state.patch
-memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
-memoryless-nodes-fix-gfp_thisnode-behavior.patch
-memoryless-nodes-use-n_high_memory-for-cpusets.patch
-flush-icache-before-set_pte-on-ia64-migration-fix.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-memory-unplug-v7-memory-hotplug-cleanup.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-ia64-interface.patch
+x86_64-efi-boot-support-efi-frame-buffer-driver.patch
+x86_64-efi-boot-support-efi-boot-document.patch
