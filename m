@@ -1,216 +1,226 @@
 From: akpm@linux-foundation.org
-Subject: - mm-scalable-bdi-statistics-counters.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 13:56:42 -0700
-Message-ID: <200708092056.l79KugKk019049@imap1.linux-foundation.org>
+Subject: - serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 14:03:04 -0700
+Message-ID: <200708092103.l79L34L4019391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58278 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43760 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758984AbXHIU5A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:57:00 -0400
+	by vger.kernel.org with ESMTP id S1752353AbXHIVEH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:04:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: dilinger@queued.net, dilinger@debian.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: scalable bdi statistics counters.
+     serial: turn serial console suspend a boot rather than compile time option
 has been removed from the -mm tree.  Its filename was
-     mm-scalable-bdi-statistics-counters.patch
+     serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mm: scalable bdi statistics counters.
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: serial: turn serial console suspend a boot rather than compile time option
+From: Andres Salomon <dilinger@queued.net>
 
-Provide scalable per backing_dev_info statistics counters.
+Currently, there's a CONFIG_DISABLE_CONSOLE_SUSPEND that allows one to stop
+the serial console from being suspended when the rest of the machine goes
+to sleep.  This is incredibly useful for debugging power management-related
+things; however, having it as a compile-time option has proved to be
+incredibly inconvenient for us (OLPC).  There are plenty of times that we
+want serial console to not suspend, but for the most part we'd like serial
+console to be suspended.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+This drops CONFIG_DISABLE_CONSOLE_SUSPEND, and replaces it with a kernel
+boot parameter (no_console_suspend).  By default, the serial console will
+be suspended along with the rest of the system; by passing
+'no_console_suspend' to the kernel during boot, serial console will remain
+alive during suspend.
+
+I have another version of this patch which keeps #ifdefs around; however,
+it's uglier.  I prefer this version of the patch, and don't feel that it
+increases bloat.  If people strongly disagree, let me know and I'll submit
+the other patch.
+
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |   85 ++++++++++++++++++++++++++++++++--
- mm/backing-dev.c            |   27 ++++++++++
- 2 files changed, 109 insertions(+), 3 deletions(-)
+ Documentation/kernel-parameters.txt        |    8 ++++++++
+ Documentation/power/basic-pm-debugging.txt |    4 ++--
+ arch/powerpc/configs/pmac32_defconfig      |    1 -
+ drivers/serial/serial_core.c               |   10 ++++------
+ include/linux/console.h                    |    7 ++-----
+ kernel/power/Kconfig                       |   11 -----------
+ kernel/printk.c                            |   15 +++++++++++++--
+ 7 files changed, 29 insertions(+), 27 deletions(-)
 
-diff -puN include/linux/backing-dev.h~mm-scalable-bdi-statistics-counters include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-scalable-bdi-statistics-counters
-+++ a/include/linux/backing-dev.h
-@@ -8,6 +8,8 @@
- #ifndef _LINUX_BACKING_DEV_H
- #define _LINUX_BACKING_DEV_H
+diff -puN Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/Documentation/kernel-parameters.txt
+@@ -477,6 +477,14 @@ and is between 256 and 4096 characters. 
+ 			UART at the specified I/O port or MMIO address.
+ 			The options are the same as for ttyS, above.
  
-+#include <linux/percpu_counter.h>
-+#include <linux/log2.h>
- #include <asm/atomic.h>
- 
- struct page;
-@@ -24,6 +26,12 @@ enum bdi_state {
- 
- typedef int (congested_fn)(void *, int);
- 
-+enum bdi_stat_item {
-+	NR_BDI_STAT_ITEMS
-+};
++	no_console_suspend
++			[HW] Never suspend the serial console
++			Disable suspending the serial console during
++			suspend/resume operations.  If disabled, debugging
++			messages can reach the console while the rest of
++			the system is being put to sleep (ie, while
++			debugging driver suspend/resume hooks).
 +
-+#define BDI_STAT_BATCH (8*(1+ilog2(nr_cpu_ids)))
-+
- struct backing_dev_info {
- 	unsigned long ra_pages;	/* max readahead in PAGE_CACHE_SIZE units */
- 	unsigned long state;	/* Always use atomic bitops on this */
-@@ -32,15 +40,86 @@ struct backing_dev_info {
- 	void *congested_data;	/* Pointer to aux data for congested func */
- 	void (*unplug_io_fn)(struct backing_dev_info *, struct page *);
- 	void *unplug_io_data;
-+
-+	struct percpu_counter bdi_stat[NR_BDI_STAT_ITEMS];
- };
+ 	cpcihp_generic=	[HW,PCI] Generic port I/O CompactPCI driver
+ 			Format:
+ 			<first_slot>,<last_slot>,<port>,<enum_bit>[,<debug>]
+diff -puN Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/power/basic-pm-debugging.txt
+--- a/Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/Documentation/power/basic-pm-debugging.txt
+@@ -78,8 +78,8 @@ c) Advanced debugging
+ In case the STD does not work on your system even in the minimal configuration
+ and compiling more drivers as modules is not practical or some modules cannot
+ be unloaded, you can use one of the more advanced debugging techniques to find
+-the problem.  First, if there is a serial port in your box, you can set the
+-CONFIG_DISABLE_CONSOLE_SUSPEND kernel configuration option and try to log kernel
++the problem.  First, if there is a serial port in your box, you boot the
++kernel with the 'no_console_suspend' parameter and try to log kernel
+ messages using the serial console.  This may provide you with some information
+ about the reasons of the suspend (resume) failure.  Alternatively, it may be
+ possible to use a FireWire port for debugging with firescope
+diff -puN arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option arch/powerpc/configs/pmac32_defconfig
+--- a/arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/arch/powerpc/configs/pmac32_defconfig
+@@ -216,7 +216,6 @@ CONFIG_PROC_DEVICETREE=y
+ CONFIG_PM=y
+ # CONFIG_PM_LEGACY is not set
+ CONFIG_PM_DEBUG=y
+-# CONFIG_DISABLE_CONSOLE_SUSPEND is not set
+ CONFIG_PM_SYSFS_DEPRECATED=y
+ CONFIG_HIBERNATION=y
+ CONFIG_PM_STD_PARTITION=""
+diff -puN drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/drivers/serial/serial_core.c
+@@ -1954,12 +1954,11 @@ int uart_suspend_port(struct uart_driver
  
--static inline int bdi_init(struct backing_dev_info *bdi)
-+int bdi_init(struct backing_dev_info *bdi);
-+void bdi_destroy(struct backing_dev_info *bdi);
+ 	mutex_lock(&state->mutex);
+ 
+-#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
+-	if (uart_console(port)) {
++	if (!serial_console_suspend_enabled && uart_console(port)) {
++		/* we're going to avoid suspending serial console */
+ 		mutex_unlock(&state->mutex);
+ 		return 0;
+ 	}
+-#endif
+ 
+ 	if (state->info && state->info->flags & UIF_INITIALIZED) {
+ 		const struct uart_ops *ops = port->ops;
+@@ -2002,12 +2001,11 @@ int uart_resume_port(struct uart_driver 
+ 
+ 	mutex_lock(&state->mutex);
+ 
+-#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
+-	if (uart_console(port)) {
++	if (!serial_console_suspend_enabled && uart_console(port)) {
++		/* no need to resume serial console, it wasn't suspended */
+ 		mutex_unlock(&state->mutex);
+ 		return 0;
+ 	}
+-#endif
+ 
+ 	uart_change_pm(state, 0);
+ 
+diff -puN include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option include/linux/console.h
+--- a/include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/include/linux/console.h
+@@ -121,14 +121,11 @@ extern void console_stop(struct console 
+ extern void console_start(struct console *);
+ extern int is_console_locked(void);
+ 
+-#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
++extern int serial_console_suspend_enabled;
 +
-+static inline void __mod_bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item, s32 amount)
- {
--	return 0;
-+	__percpu_counter_add(&bdi->bdi_stat[item], amount, BDI_STAT_BATCH);
+ /* Suspend and resume console messages over PM events */
+ extern void suspend_console(void);
+ extern void resume_console(void);
+-#else
+-static inline void suspend_console(void) {}
+-static inline void resume_console(void) {}
+-#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
+ 
+ int mda_console_init(void);
+ void prom_con_init(void);
+diff -puN kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/power/Kconfig
+--- a/kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/kernel/power/Kconfig
+@@ -44,17 +44,6 @@ config PM_VERBOSE
+ 	---help---
+ 	This option enables verbose messages from the Power Management code.
+ 
+-config DISABLE_CONSOLE_SUSPEND
+-	bool "Keep console(s) enabled during suspend/resume (DANGEROUS)"
+-	depends on PM_DEBUG && PM_SLEEP
+-	default n
+-	---help---
+-	This option turns off the console suspend mechanism that prevents
+-	debug messages from reaching the console during the suspend/resume
+-	operations.  This may be helpful when debugging device drivers'
+-	suspend/resume routines, but may itself lead to problems, for example
+-	if netconsole is used.
+-
+ config PM_TRACE
+ 	bool "Suspend/resume event tracing"
+ 	depends on PM_DEBUG && X86 && PM_SLEEP && EXPERIMENTAL
+diff -puN kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/printk.c
+--- a/kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/kernel/printk.c
+@@ -810,7 +810,15 @@ int update_console_cmdline(char *name, i
+ 	return -1;
  }
  
--static inline void bdi_destroy(struct backing_dev_info *bdi)
-+static inline void __inc_bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
- {
-+	__mod_bdi_stat(bdi, item, 1);
-+}
+-#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
++int serial_console_suspend_enabled = 1;
 +
-+static inline void inc_bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
++static int __init console_suspend_disable(char *str)
 +{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	__inc_bdi_stat(bdi, item);
-+	local_irq_restore(flags);
-+}
-+
-+static inline void __dec_bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
-+{
-+	__mod_bdi_stat(bdi, item, -1);
-+}
-+
-+static inline void dec_bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	__dec_bdi_stat(bdi, item);
-+	local_irq_restore(flags);
-+}
-+
-+static inline s64 bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
-+{
-+	return percpu_counter_read_positive(&bdi->bdi_stat[item]);
-+}
-+
-+static inline s64 __bdi_stat_sum(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
-+{
-+	return percpu_counter_sum_positive(&bdi->bdi_stat[item]);
-+}
-+
-+static inline s64 bdi_stat_sum(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
-+{
-+	s64 sum;
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	sum = __bdi_stat_sum(bdi, item);
-+	local_irq_restore(flags);
-+
-+	return sum;
-+}
-+
-+/*
-+ * maximal error of a stat counter.
-+ */
-+static inline unsigned long bdi_stat_error(struct backing_dev_info *bdi)
-+{
-+#ifdef CONFIG_SMP
-+	return nr_cpu_ids * BDI_STAT_BATCH;
-+#else
++	serial_console_suspend_enabled = 0;
 +	return 1;
-+#endif
++}
++__setup("no_console_suspend", console_suspend_disable);
++
+ /**
+  * suspend_console - suspend the console subsystem
+  *
+@@ -818,6 +826,8 @@ int update_console_cmdline(char *name, i
+  */
+ void suspend_console(void)
+ {
++	if (!serial_console_suspend_enabled)
++		return;
+ 	printk("Suspending console(s)\n");
+ 	acquire_console_sem();
+ 	console_suspended = 1;
+@@ -825,10 +835,11 @@ void suspend_console(void)
+ 
+ void resume_console(void)
+ {
++	if (!serial_console_suspend_enabled)
++		return;
+ 	console_suspended = 0;
+ 	release_console_sem();
  }
+-#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
  
- /*
-diff -puN mm/backing-dev.c~mm-scalable-bdi-statistics-counters mm/backing-dev.c
---- a/mm/backing-dev.c~mm-scalable-bdi-statistics-counters
-+++ a/mm/backing-dev.c
-@@ -5,6 +5,33 @@
- #include <linux/sched.h>
- #include <linux/module.h>
- 
-+int bdi_init(struct backing_dev_info *bdi)
-+{
-+	int i, j;
-+	int err;
-+
-+	for (i = 0; i < NR_BDI_STAT_ITEMS; i++) {
-+		err = percpu_counter_init_irq(&bdi->bdi_stat[i], 0);
-+		if (err) {
-+			for (j = 0; j < i; j++)
-+				perpcu_counter_destroy(&bdi->bdi_stat[i]);
-+			break;
-+		}
-+	}
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(bdi_init);
-+
-+void bdi_destroy(struct backing_dev_info *bdi)
-+{
-+	int i;
-+
-+	for (i = 0; i < NR_BDI_STAT_ITEMS; i++)
-+		percpu_counter_destroy(&bdi->bdi_stat[i]);
-+}
-+EXPORT_SYMBOL(bdi_destroy);
-+
- static wait_queue_head_t congestion_wqh[2] = {
- 		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[0]),
- 		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[1])
+ /**
+  * acquire_console_sem - lock the console system for exclusive use.
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-radix-tree-use-indirect-bit.patch
-mm-scalable-bdi-statistics-counters.patch
-mm-count-reclaimable-pages-per-bdi.patch
-mm-count-writeback-pages-per-bdi.patch
-mm-expose-bdi-statistics-in-sysfs.patch
-lib-floating-proportions.patch
-lib-floating-proportions-_single.patch
-lib-floating-proportions-_single-tidy.patch
-mm-per-device-dirty-threshold.patch
-mm-dirty-balancing-for-tasks.patch
-debug-sysfs-files-for-the-current-ratio-size-total.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-task-containersv11-add-procfs-interface-containers-bdi-init-hooks.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
