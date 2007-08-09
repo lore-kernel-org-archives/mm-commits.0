@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-consolemaph-from-header-exports.patch added to -mm tree
-Date: Thu, 09 Aug 2007 13:20:24 -0700
-Message-ID: <200708092020.l79KKOxO017641@imap1.linux-foundation.org>
+Subject: + x86_64-remove-x86_cpu_to_log_apicid.patch added to -mm tree
+Date: Thu, 09 Aug 2007 13:21:32 -0700
+Message-ID: <200708092021.l79KLWXO017654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32776 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51341 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752120AbXHIUVB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:21:01 -0400
+	by vger.kernel.org with ESMTP id S1752216AbXHIUWH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:22:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olaf@aepfle.de
+Cc: travis@sgi.com, clameter@sgi.com
 
 
 The patch titled
-     remove consolemap.h from header exports
+     x86_64: remove x86_cpu_to_log_apicid
 has been added to the -mm tree.  Its filename is
-     remove-consolemaph-from-header-exports.patch
+     x86_64-remove-x86_cpu_to_log_apicid.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove consolemap.h from header exports
-From: Olaf Hering <olaf@aepfle.de>
+Subject: x86_64: remove x86_cpu_to_log_apicid
+From: Mike Travis <travis@sgi.com>
 
-Remove linux/consolemap.h from make headers_install
+Remove the x86_cpu_to_log_apicid array.  It is set in
+arch/x86_64/kernel/genapic_flat.c:flat_init_apic_ldr() and
+arch/x86_64/kernel/smpboot.c:do_boot_cpu() but it is never
+referenced.
 
-It contains no user interfaces.
-The defines in this file are used only for kernel internal state.
-
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Signed-off-by: Mike Travis <travis@sgi.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild |    1 -
- 1 files changed, 1 deletion(-)
+ arch/x86_64/kernel/genapic.c      |    2 --
+ arch/x86_64/kernel/genapic_flat.c |    1 -
+ arch/x86_64/kernel/smpboot.c      |    1 -
+ include/asm-x86_64/smp.h          |    1 -
+ 4 files changed, 5 deletions(-)
 
-diff -puN include/linux/Kbuild~remove-consolemaph-from-header-exports include/linux/Kbuild
---- a/include/linux/Kbuild~remove-consolemaph-from-header-exports
-+++ a/include/linux/Kbuild
-@@ -45,7 +45,6 @@ header-y += chio.h
- header-y += coda_psdev.h
- header-y += coff.h
- header-y += comstats.h
--header-y += consolemap.h
- header-y += const.h
- header-y += cycx_cfm.h
- header-y += dlm_device.h
+diff -puN arch/x86_64/kernel/genapic.c~x86_64-remove-x86_cpu_to_log_apicid arch/x86_64/kernel/genapic.c
+--- a/arch/x86_64/kernel/genapic.c~x86_64-remove-x86_cpu_to_log_apicid
++++ a/arch/x86_64/kernel/genapic.c
+@@ -29,8 +29,6 @@ u8 x86_cpu_to_apicid[NR_CPUS] __read_mos
+ 					= { [0 ... NR_CPUS-1] = BAD_APICID };
+ EXPORT_SYMBOL(x86_cpu_to_apicid);
+ 
+-u8 x86_cpu_to_log_apicid[NR_CPUS]	= { [0 ... NR_CPUS-1] = BAD_APICID };
+-
+ struct genapic __read_mostly *genapic = &apic_flat;
+ 
+ /*
+diff -puN arch/x86_64/kernel/genapic_flat.c~x86_64-remove-x86_cpu_to_log_apicid arch/x86_64/kernel/genapic_flat.c
+--- a/arch/x86_64/kernel/genapic_flat.c~x86_64-remove-x86_cpu_to_log_apicid
++++ a/arch/x86_64/kernel/genapic_flat.c
+@@ -52,7 +52,6 @@ static void flat_init_apic_ldr(void)
+ 
+ 	num = smp_processor_id();
+ 	id = 1UL << num;
+-	x86_cpu_to_log_apicid[num] = id;
+ 	apic_write(APIC_DFR, APIC_DFR_FLAT);
+ 	val = apic_read(APIC_LDR) & ~APIC_LDR_MASK;
+ 	val |= SET_APIC_LOGICAL_ID(id);
+diff -puN arch/x86_64/kernel/smpboot.c~x86_64-remove-x86_cpu_to_log_apicid arch/x86_64/kernel/smpboot.c
+--- a/arch/x86_64/kernel/smpboot.c~x86_64-remove-x86_cpu_to_log_apicid
++++ a/arch/x86_64/kernel/smpboot.c
+@@ -702,7 +702,6 @@ do_rest:
+ 		cpu_clear(cpu, cpu_present_map);
+ 		cpu_clear(cpu, cpu_possible_map);
+ 		x86_cpu_to_apicid[cpu] = BAD_APICID;
+-		x86_cpu_to_log_apicid[cpu] = BAD_APICID;
+ 		return -EIO;
+ 	}
+ 
+diff -puN include/asm-x86_64/smp.h~x86_64-remove-x86_cpu_to_log_apicid include/asm-x86_64/smp.h
+--- a/include/asm-x86_64/smp.h~x86_64-remove-x86_cpu_to_log_apicid
++++ a/include/asm-x86_64/smp.h
+@@ -78,7 +78,6 @@ static inline int hard_smp_processor_id(
+  * the real APIC ID <-> CPU # mapping.
+  */
+ extern u8 x86_cpu_to_apicid[NR_CPUS];	/* physical ID */
+-extern u8 x86_cpu_to_log_apicid[NR_CPUS];
+ extern u8 bios_cpu_apicid[];
+ 
+ static inline int cpu_present_to_apicid(int mps_cpu)
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from travis@sgi.com are
 
-unexport-asm-shmparamh.patch
-remove-consolemaph-from-header-exports.patch
-keep-track-of-network-interface-renaming.patch
+x86_64-remove-x86_cpu_to_log_apicid.patch
