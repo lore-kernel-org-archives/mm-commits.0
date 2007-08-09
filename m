@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + jsm-remove-further-unneeded-crud.patch added to -mm tree
-Date: Thu, 09 Aug 2007 12:59:36 -0700
-Message-ID: <200708091959.l79Jxakw016792@imap1.linux-foundation.org>
+Subject: + consolidate-show_regs-and-show_registers-for-i386.patch added to -mm tree
+Date: Thu, 09 Aug 2007 13:15:05 -0700
+Message-ID: <200708092015.l79KF5eF017402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37245 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48906 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755636AbXHIUAF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:00:05 -0400
+	by vger.kernel.org with ESMTP id S1753640AbXHIUPP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:15:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, scottk@digi.com
+Cc: xemul@openvz.org
 
 
 The patch titled
-     jsm: Remove further unneeded crud
+     i386: consolidate show_regs() and show_registers()
 has been added to the -mm tree.  Its filename is
-     jsm-remove-further-unneeded-crud.patch
+     consolidate-show_regs-and-show_registers-for-i386.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,131 +25,192 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: jsm: Remove further unneeded crud
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: i386: consolidate show_regs() and show_registers()
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Remove some remaining vestiges of the old hacks jsm had to work around the old
-tty buffering.  With the new tty buffering it simply doesn't matter any more.
+Both functions printk the same information, except for CRx and debug
+registers in the show_registers() one and a bit different manner.  So move
+the common code into one place.  This is already done for x86_64, so I
+think it's worth having the same on i386.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Scott Kilau <scottk@digi.com> 
+This saves 100 bytes of .rodata section :) ...
+   but only 8 from .text :(
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm_tty.c |   42 ++-------------------------------
- 1 files changed, 3 insertions(+), 39 deletions(-)
+ arch/i386/kernel/process.c |   56 +++++++++++++++++++++++++----------
+ arch/i386/kernel/traps.c   |   32 ++------------------
+ include/asm-i386/system.h  |    1 
+ 3 files changed, 45 insertions(+), 44 deletions(-)
 
-diff -puN drivers/serial/jsm/jsm_tty.c~jsm-remove-further-unneeded-crud drivers/serial/jsm/jsm_tty.c
---- a/drivers/serial/jsm/jsm_tty.c~jsm-remove-further-unneeded-crud
-+++ a/drivers/serial/jsm/jsm_tty.c
-@@ -500,7 +500,6 @@ void jsm_input(struct jsm_channel *ch)
+diff -puN arch/i386/kernel/process.c~consolidate-show_regs-and-show_registers-for-i386 arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~consolidate-show_regs-and-show_registers-for-i386
++++ a/arch/i386/kernel/process.c
+@@ -297,34 +297,52 @@ static int __init idle_setup(char *str)
+ }
+ early_param("idle", idle_setup);
+ 
+-void show_regs(struct pt_regs * regs)
++void __show_registers(struct pt_regs *regs, int all)
  {
- 	struct jsm_board *bd;
- 	struct tty_struct *tp;
--	struct tty_ldisc *ld;
- 	u32 rmask;
- 	u16 head;
- 	u16 tail;
-@@ -574,45 +573,13 @@ void jsm_input(struct jsm_channel *ch)
+ 	unsigned long cr0 = 0L, cr2 = 0L, cr3 = 0L, cr4 = 0L;
+ 	unsigned long d0, d1, d2, d3, d6, d7;
++	unsigned long esp;
++	unsigned short ss, gs;
++
++	if (user_mode_vm(regs)) {
++		esp = regs->esp;
++		ss = regs->xss & 0xffff;
++		savesegment(gs, gs);
++	} else {
++		esp = (unsigned long) (&regs->esp);
++		savesegment(ss, ss);
++		savesegment(gs, gs);
++	}
  
- 	jsm_printk(READ, INFO, &ch->ch_bd->pci_dev, "start 2\n");
+ 	printk("\n");
+-	printk("Pid: %d, comm: %20s\n", current->pid, current->comm);
+-	printk("EIP: %04x:[<%08lx>] CPU: %d\n",0xffff & regs->xcs,regs->eip, smp_processor_id());
++	printk("Pid: %d, comm: %.*s %s (%s %.*s)\n",
++			current->pid, TASK_COMM_LEN, current->comm,
++			print_tainted(), init_utsname()->release,
++			(int)strcspn(init_utsname()->version, " "),
++			init_utsname()->version);
++
++	printk("EIP: %04x:[<%08lx>] EFLAGS: %08lx CPU: %d\n",
++			0xffff & regs->xcs, regs->eip, regs->eflags,
++			smp_processor_id());
+ 	print_symbol("EIP is at %s\n", regs->eip);
  
--	/*
--	 * If the rxbuf is empty and we are not throttled, put as much
--	 * as we can directly into the linux TTY buffer.
--	 *
--	 */
--	flip_len = TTY_FLIPBUF_SIZE;
--
--	len = min(data_len, flip_len);
--	len = min(len, (N_TTY_BUF_SIZE - 1) - tp->read_cnt);
--	ld = tty_ldisc_ref(tp);
--
--	/*
--	 * If we were unable to get a reference to the ld,
--	 * don't flush our buffer, and act like the ld doesn't
--	 * have any space to put the data right now.
--	 */
--	if (!ld) {
--		len = 0;
--	} else {
--		/*
--		 * If ld doesn't have a pointer to a receive_buf function,
--		 * flush the data, then act like the ld doesn't have any
--		 * space to put the data right now.
--		 */
--		if (!ld->receive_buf) {
--				ch->ch_r_head = ch->ch_r_tail;
--				len = 0;
--		}
--	}
--
--	if (len <= 0) {
-+	if (data_len <= 0) {
- 		spin_unlock_irqrestore(&ch->ch_lock, lock_flags);
- 		jsm_printk(READ, INFO, &ch->ch_bd->pci_dev, "jsm_input 1\n");
--		if (ld)
--			tty_ldisc_deref(ld);
- 		return;
- 	}
+-	if (user_mode_vm(regs))
+-		printk(" ESP: %04x:%08lx",0xffff & regs->xss,regs->esp);
+-	printk(" EFLAGS: %08lx    %s  (%s %.*s)\n",
+-	       regs->eflags, print_tainted(), init_utsname()->release,
+-	       (int)strcspn(init_utsname()->version, " "),
+-	       init_utsname()->version);
+ 	printk("EAX: %08lx EBX: %08lx ECX: %08lx EDX: %08lx\n",
+-		regs->eax,regs->ebx,regs->ecx,regs->edx);
+-	printk("ESI: %08lx EDI: %08lx EBP: %08lx",
+-		regs->esi, regs->edi, regs->ebp);
+-	printk(" DS: %04x ES: %04x FS: %04x\n",
+-	       0xffff & regs->xds,0xffff & regs->xes, 0xffff & regs->xfs);
++		regs->eax, regs->ebx, regs->ecx, regs->edx);
++	printk("ESI: %08lx EDI: %08lx EBP: %08lx ESP: %08lx\n",
++		regs->esi, regs->edi, regs->ebp, esp);
++	printk(" DS: %04x ES: %04x FS: %04x GS: %04x SS: %04x\n",
++	       regs->xds & 0xffff, regs->xes & 0xffff,
++	       regs->xfs & 0xffff, gs, ss);
++
++	if (!all)
++		return;
  
--	len = tty_buffer_request_room(tp, len);
-+	len = tty_buffer_request_room(tp, data_len);
- 	n = len;
+ 	cr0 = read_cr0();
+ 	cr2 = read_cr2();
+ 	cr3 = read_cr3();
+ 	cr4 = read_cr4_safe();
+-	printk("CR0: %08lx CR2: %08lx CR3: %08lx CR4: %08lx\n", cr0, cr2, cr3, cr4);
++	printk("CR0: %08lx CR2: %08lx CR3: %08lx CR4: %08lx\n",
++			cr0, cr2, cr3, cr4);
  
- 	/*
-@@ -647,7 +614,7 @@ void jsm_input(struct jsm_channel *ch)
- 				else if (*(ch->ch_equeue +tail +i) & UART_LSR_FE)
- 					tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_FRAME);
- 				else
--				tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_NORMAL);
-+					tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_NORMAL);
- 			}
- 		} else {
- 			tty_insert_flip_string(tp, ch->ch_rqueue + tail, s) ;
-@@ -666,9 +633,6 @@ void jsm_input(struct jsm_channel *ch)
- 	/* Tell the tty layer its okay to "eat" the data now */
- 	tty_flip_buffer_push(tp);
+ 	get_debugreg(d0, 0);
+ 	get_debugreg(d1, 1);
+@@ -332,10 +350,16 @@ void show_regs(struct pt_regs * regs)
+ 	get_debugreg(d3, 3);
+ 	printk("DR0: %08lx DR1: %08lx DR2: %08lx DR3: %08lx\n",
+ 			d0, d1, d2, d3);
++
+ 	get_debugreg(d6, 6);
+ 	get_debugreg(d7, 7);
+-	printk("DR6: %08lx DR7: %08lx\n", d6, d7);
++	printk("DR6: %08lx DR7: %08lx\n",
++			d6, d7);
++}
  
--	if (ld)
--		tty_ldisc_deref(ld);
--
- 	jsm_printk(IOCTL, INFO, &ch->ch_bd->pci_dev, "finish\n");
++void show_regs(struct pt_regs * regs)
++{
++	__show_registers(regs, 1);
+ 	show_trace(NULL, regs, &regs->esp);
  }
  
+diff -puN arch/i386/kernel/traps.c~consolidate-show_regs-and-show_registers-for-i386 arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~consolidate-show_regs-and-show_registers-for-i386
++++ a/arch/i386/kernel/traps.c
+@@ -281,33 +281,9 @@ EXPORT_SYMBOL(dump_stack);
+ void show_registers(struct pt_regs *regs)
+ {
+ 	int i;
+-	int in_kernel = 1;
+-	unsigned long esp;
+-	unsigned short ss, gs;
+-
+-	esp = (unsigned long) (&regs->esp);
+-	savesegment(ss, ss);
+-	savesegment(gs, gs);
+-	if (user_mode_vm(regs)) {
+-		in_kernel = 0;
+-		esp = regs->esp;
+-		ss = regs->xss & 0xffff;
+-	}
++
+ 	print_modules();
+-	printk(KERN_EMERG "CPU:    %d\n"
+-		KERN_EMERG "EIP:    %04x:[<%08lx>]    %s VLI\n"
+-		KERN_EMERG "EFLAGS: %08lx   (%s %.*s)\n",
+-		smp_processor_id(), 0xffff & regs->xcs, regs->eip,
+-		print_tainted(), regs->eflags, init_utsname()->release,
+-		(int)strcspn(init_utsname()->version, " "),
+-		init_utsname()->version);
+-	print_symbol(KERN_EMERG "EIP is at %s\n", regs->eip);
+-	printk(KERN_EMERG "eax: %08lx   ebx: %08lx   ecx: %08lx   edx: %08lx\n",
+-		regs->eax, regs->ebx, regs->ecx, regs->edx);
+-	printk(KERN_EMERG "esi: %08lx   edi: %08lx   ebp: %08lx   esp: %08lx\n",
+-		regs->esi, regs->edi, regs->ebp, esp);
+-	printk(KERN_EMERG "ds: %04x   es: %04x   fs: %04x  gs: %04x  ss: %04x\n",
+-	       regs->xds & 0xffff, regs->xes & 0xffff, regs->xfs & 0xffff, gs, ss);
++	__show_registers(regs, 0);
+ 	printk(KERN_EMERG "Process %.*s (pid: %d, ti=%p task=%p task.ti=%p)",
+ 		TASK_COMM_LEN, current->comm, current->pid,
+ 		current_thread_info(), current, task_thread_info(current));
+@@ -315,14 +291,14 @@ void show_registers(struct pt_regs *regs
+ 	 * When in-kernel, we also print out the stack and code at the
+ 	 * time of the fault..
+ 	 */
+-	if (in_kernel) {
++	if (!user_mode_vm(regs)) {
+ 		u8 *eip;
+ 		unsigned int code_prologue = code_bytes * 43 / 64;
+ 		unsigned int code_len = code_bytes;
+ 		unsigned char c;
+ 
+ 		printk("\n" KERN_EMERG "Stack: ");
+-		show_stack_log_lvl(NULL, regs, (unsigned long *)esp, KERN_EMERG);
++		show_stack_log_lvl(NULL, regs, &regs->esp, KERN_EMERG);
+ 
+ 		printk(KERN_EMERG "Code: ");
+ 
+diff -puN include/asm-i386/system.h~consolidate-show_regs-and-show_registers-for-i386 include/asm-i386/system.h
+--- a/include/asm-i386/system.h~consolidate-show_regs-and-show_registers-for-i386
++++ a/include/asm-i386/system.h
+@@ -314,5 +314,6 @@ extern unsigned long arch_align_stack(un
+ extern void free_init_pages(char *what, unsigned long begin, unsigned long end);
+ 
+ void default_idle(void);
++void __show_registers(struct pt_regs *, int all);
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-fix-serial-buffer-memory-leak.patch
-fix-serial-buffer-memory-leak-fix.patch
-nozomi-shoot-defunct-label.patch
-git-libata-all.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-libata-acpi-checks-for-80wire-cable-headers.patch
-libata-acpi-checks-for-80wire-cable-implementation.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
-libata-correct-iordy-handling.patch
-st340823a-hpa-and-libata.patch
-pata_cmd64x-set-up-mwdma-modes-properly.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-ata_piix-disallow-udma-133-on-ich5-ich7.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-dtc-clean-up-indent-damage-and-add-printk-levels.patch
-kl5kusb105-switch-to-new-speed-api.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-pci-align-bar-settings-for-legacy-mode-ide-fix.patch
-belkin_sa-avoid-divide-by-zero-error.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-char-cyclades-remove-bottom-half-processing.patch
+consolidate-show_regs-and-show_registers-for-i386.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
