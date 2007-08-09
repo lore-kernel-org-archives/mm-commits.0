@@ -1,115 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: - pci-align-bar-settings-for-legacy-mode-ide.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 15:06:32 -0700
-Message-ID: <200708092206.l79M6Whh021939@imap1.linux-foundation.org>
+Subject: + sysctl-factor-out-sysctl_data.patch added to -mm tree
+Date: Thu, 09 Aug 2007 15:11:48 -0700
+Message-ID: <200708092211.l79MBmr8022134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39554 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56127 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752639AbXHIWGu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:06:50 -0400
+	by vger.kernel.org with ESMTP id S1752445AbXHIWMc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:12:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, greg@kroah.com, ktk@enterprise.bidmc.harvard.edu, protasnb@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ebiederm@xmission.com, adobriyan@sw.ru
 
 
 The patch titled
-     pci: align BAR settings for legacy mode IDE
-has been removed from the -mm tree.  Its filename was
-     pci-align-bar-settings-for-legacy-mode-ide.patch
+     sysctl: Factor out sysctl_data.
+has been added to the -mm tree.  Its filename is
+     sysctl-factor-out-sysctl_data.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pci: align BAR settings for legacy mode IDE
-From: Jan Beulich <jbeulich@novell.com>
+Subject: sysctl: Factor out sysctl_data.
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Fix http://bugzilla.kernel.org/show_bug.cgi?id=8187
+There as been no easy way to wrap the default sysctl strategy routine except
+for returning 0.  Which is not always what we want.  The few instances I have
+seen that want different behaviour have written their own version of
+sysctl_data.  While not too hard it is unnecessary code and has the potential
+for extra bugs.
 
-The change to force legacy mode IDE channels' resources to fixed non-zero
-values confuses (at least some versions of) X, because the values reported by
-the kernel and those readable from PCI config space aren't consistent anymore.
- Therefore, this patch arranges for the respective BARs to also get updated if
-possible.
+So to make these situations easier and make that part of sysctl more symetric
+I have factord sysctl_data out of do_sysctl_strategy and exported as a
+function everyone can use.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Kristofer T. Karas" <ktk@enterprise.bidmc.harvard.edu>
-Acked-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Natalie Protasevich <protasnb@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Further having sysctl_data be an explicit function makes checking for badly
+formed sysctl tables much easier.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |   45 +++++++++++++++++++++++++++++-------------
- 1 files changed, 32 insertions(+), 13 deletions(-)
+ include/linux/sysctl.h |    1 
+ kernel/sysctl.c        |   66 +++++++++++++++++++++++++++------------
+ 2 files changed, 47 insertions(+), 20 deletions(-)
 
-diff -puN drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide
-+++ a/drivers/pci/probe.c
-@@ -741,7 +741,34 @@ static void pci_read_irq(struct pci_dev 
- 	dev->irq = irq;
+diff -puN include/linux/sysctl.h~sysctl-factor-out-sysctl_data include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-factor-out-sysctl_data
++++ a/include/linux/sysctl.h
+@@ -972,6 +972,7 @@ extern int do_sysctl_strategy (struct ct
+ 			       void __user *oldval, size_t __user *oldlenp,
+ 			       void __user *newval, size_t newlen);
+ 
++extern ctl_handler sysctl_data;
+ extern ctl_handler sysctl_string;
+ extern ctl_handler sysctl_intvec;
+ extern ctl_handler sysctl_jiffies;
+diff -puN kernel/sysctl.c~sysctl-factor-out-sysctl_data kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-factor-out-sysctl_data
++++ a/kernel/sysctl.c
+@@ -1457,7 +1457,6 @@ int do_sysctl_strategy (struct ctl_table
+ 			void __user *newval, size_t newlen)
+ {
+ 	int op = 0, rc;
+-	size_t len;
+ 
+ 	if (oldval)
+ 		op |= 004;
+@@ -1478,25 +1477,10 @@ int do_sysctl_strategy (struct ctl_table
+ 	/* If there is no strategy routine, or if the strategy returns
+ 	 * zero, proceed with automatic r/w */
+ 	if (table->data && table->maxlen) {
+-		if (oldval && oldlenp) {
+-			if (get_user(len, oldlenp))
+-				return -EFAULT;
+-			if (len) {
+-				if (len > table->maxlen)
+-					len = table->maxlen;
+-				if(copy_to_user(oldval, table->data, len))
+-					return -EFAULT;
+-				if(put_user(len, oldlenp))
+-					return -EFAULT;
+-			}
+-		}
+-		if (newval && newlen) {
+-			len = newlen;
+-			if (len > table->maxlen)
+-				len = table->maxlen;
+-			if(copy_from_user(table->data, newval, len))
+-				return -EFAULT;
+-		}
++		rc = sysctl_data(table, name, nlen, oldval, oldlenp,
++				 newval, newlen);
++		if (rc < 0)
++			return rc;
+ 	}
+ 	return 0;
+ }
+@@ -2395,6 +2379,40 @@ int proc_doulongvec_ms_jiffies_minmax(st
+  * General sysctl support routines 
+  */
+ 
++/* The generic sysctl data routine (used if no strategy routine supplied) */
++int sysctl_data(struct ctl_table *table, int __user *name, int nlen,
++		void __user *oldval, size_t __user *oldlenp,
++		void __user *newval, size_t newlen)
++{
++	size_t len;
++
++	/* Get out of I don't have a variable */
++	if (!table->data || !table->maxlen)
++		return -ENOTDIR;
++
++	if (oldval && oldlenp) {
++		if (get_user(len, oldlenp))
++			return -EFAULT;
++		if (len) {
++			if (len > table->maxlen)
++				len = table->maxlen;
++			if (copy_to_user(oldval, table->data, len))
++				return -EFAULT;
++			if (put_user(len, oldlenp))
++				return -EFAULT;
++		}
++	}
++
++	if (newval && newlen) {
++		if (newlen > table->maxlen)
++			newlen = table->maxlen;
++
++		if (copy_from_user(table->data, newval, newlen))
++			return -EFAULT;
++	}
++	return 1;
++}
++
+ /* The generic string strategy routine: */
+ int sysctl_string(struct ctl_table *table, int __user *name, int nlen,
+ 		  void __user *oldval, size_t __user *oldlenp,
+@@ -2583,6 +2601,13 @@ out:
+ 	return -ENOSYS;
  }
  
--#define LEGACY_IO_RESOURCE	(IORESOURCE_IO | IORESOURCE_PCI_FIXED)
-+static void change_legacy_io_resource(struct pci_dev * dev, unsigned index,
-+				resource_size_t start, resource_size_t end)
++int sysctl_data(struct ctl_table *table, int __user *name, int nlen,
++		  void __user *oldval, size_t __user *oldlenp,
++		  void __user *newval, size_t newlen)
 +{
-+	resource_size_t base = start & PCI_BASE_ADDRESS_IO_MASK;
-+	resource_size_t len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
-+
-+	if (!(pci_resource_flags(dev, index) & IORESOURCE_IO)) {
-+		printk(KERN_WARNING "%s: cannot adjust BAR%u (not I/O)\n",
-+		       pci_name(dev), index);
-+		return;
-+	}
-+	if (pci_resource_len(dev, index) != len) {
-+		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %Lx)\n",
-+			pci_name(dev), index,
-+			(unsigned long long)pci_resource_len(dev, index));
-+	} else {
-+		printk(KERN_INFO "%s: trying to change BAR%u from %Lx to %Lx\n",
-+			pci_name(dev), index,
-+			(unsigned long long)pci_resource_start(dev, index),
-+			(unsigned long long)base);
-+		pci_write_config_dword(dev, PCI_BASE_ADDRESS_0 + index * 4,
-+					base);
-+	}
-+	pci_resource_start(dev, index) = start;
-+	pci_resource_end(dev, index) = end;
-+	pci_resource_flags(dev, index) = IORESOURCE_IO|IORESOURCE_PCI_FIXED|
-+					PCI_BASE_ADDRESS_SPACE_IO;
++	return -ENOSYS;
 +}
- 
- /**
-  * pci_setup_device - fill in class and map information of a device
-@@ -795,20 +822,12 @@ static int pci_setup_device(struct pci_d
- 			u8 progif;
- 			pci_read_config_byte(dev, PCI_CLASS_PROG, &progif);
- 			if ((progif & 1) == 0) {
--				dev->resource[0].start = 0x1F0;
--				dev->resource[0].end = 0x1F7;
--				dev->resource[0].flags = LEGACY_IO_RESOURCE;
--				dev->resource[1].start = 0x3F6;
--				dev->resource[1].end = 0x3F6;
--				dev->resource[1].flags = LEGACY_IO_RESOURCE;
-+				change_legacy_io_resource(dev, 0, 0x1F0, 0x1F7);
-+				change_legacy_io_resource(dev, 1, 0x3F6, 0x3F6);
- 			}
- 			if ((progif & 4) == 0) {
--				dev->resource[2].start = 0x170;
--				dev->resource[2].end = 0x177;
--				dev->resource[2].flags = LEGACY_IO_RESOURCE;
--				dev->resource[3].start = 0x376;
--				dev->resource[3].end = 0x376;
--				dev->resource[3].flags = LEGACY_IO_RESOURCE;
-+				change_legacy_io_resource(dev, 2, 0x170, 0x177);
-+				change_legacy_io_resource(dev, 3, 0x376, 0x376);
- 			}
- 		}
- 		break;
++
+ int sysctl_string(struct ctl_table *table, int __user *name, int nlen,
+ 		  void __user *oldval, size_t __user *oldlenp,
+ 		  void __user *newval, size_t newlen)
+@@ -2630,4 +2655,5 @@ EXPORT_SYMBOL(sysctl_intvec);
+ EXPORT_SYMBOL(sysctl_jiffies);
+ EXPORT_SYMBOL(sysctl_ms_jiffies);
+ EXPORT_SYMBOL(sysctl_string);
++EXPORT_SYMBOL(sysctl_data);
+ EXPORT_SYMBOL(unregister_sysctl_table);
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-pci-align-bar-settings-for-legacy-mode-ide.patch
+remove-unused-struct-proc_dir_entryset.patch
+dvb_en_50221-convert-to-kthread-api.patch
+x86_64-remove-sync_arb_ids.patch
+x86_64-clear-io_apic-before-enabing-apic-error-vector.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysctl-error-on-bad-sysctl-tables.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
