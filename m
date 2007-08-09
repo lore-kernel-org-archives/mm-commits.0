@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-videodevc-memset-fix.patch added to -mm tree
-Date: Thu, 09 Aug 2007 12:13:35 -0700
-Message-ID: <200708091913.l79JDZC5014869@imap1.linux-foundation.org>
+Subject: + drivers-media-video-zoran_driverc-fix-memset-in-ioctl.patch added to -mm tree
+Date: Thu, 09 Aug 2007 12:13:37 -0700
+Message-ID: <200708091913.l79JDbN9014874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59992 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44330 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751789AbXHITOX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 15:14:23 -0400
+	by vger.kernel.org with ESMTP id S1751866AbXHITO3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 15:14:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: m.kozlowski@tuxland.pl, mchehab@infradead.org
 
 
 The patch titled
-     drivers/media/video/videodev.c: memset fix
+     drivers/media/video/zoran_driver.c: fix memset in ioctl
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-videodevc-memset-fix.patch
+     drivers-media-video-zoran_driverc-fix-memset-in-ioctl.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/media/video/videodev.c: memset fix
+Subject: drivers/media/video/zoran_driver.c: fix memset in ioctl
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
 Looks like memset() is zeroing wrong nr of bytes.
@@ -35,21 +35,21 @@ Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/videodev.c |    2 +-
+ drivers/media/video/zoran_driver.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/videodev.c~drivers-media-video-videodevc-memset-fix drivers/media/video/videodev.c
---- a/drivers/media/video/videodev.c~drivers-media-video-videodevc-memset-fix
-+++ a/drivers/media/video/videodev.c
-@@ -448,7 +448,7 @@ static int __video_do_ioctl(struct inode
- 	if (cmd == VIDIOCGMBUF) {
- 		struct video_mbuf *p=arg;
+diff -puN drivers/media/video/zoran_driver.c~drivers-media-video-zoran_driverc-fix-memset-in-ioctl drivers/media/video/zoran_driver.c
+--- a/drivers/media/video/zoran_driver.c~drivers-media-video-zoran_driverc-fix-memset-in-ioctl
++++ a/drivers/media/video/zoran_driver.c
+@@ -3196,7 +3196,7 @@ zoran_do_ioctl (struct inode *inode,
+ 			"%s: VIDIOC_QUERYBUF - index=%d, type=%d\n",
+ 			ZR_DEVNAME(zr), buf->index, buf->type);
  
--		memset(p,0,sizeof(p));
-+		memset(p, 0, sizeof(*p));
+-		memset(buf, 0, sizeof(buf));
++		memset(buf, 0, sizeof(*buf));
+ 		buf->type = type;
+ 		buf->index = index;
  
- 		if (!vfd->vidiocgmbuf)
- 			return ret;
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
