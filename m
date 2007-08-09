@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hex_dump-add-missing-const-qualifiers.patch added to -mm tree
-Date: Thu, 09 Aug 2007 13:24:06 -0700
-Message-ID: <200708092024.l79KO6bN017804@imap1.linux-foundation.org>
+Subject: + serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch added to -mm tree
+Date: Thu, 09 Aug 2007 13:26:47 -0700
+Message-ID: <200708092026.l79KQlDX017864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43025 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51588 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752747AbXHIU0z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:26:55 -0400
+	by vger.kernel.org with ESMTP id S1752095AbXHIU21 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:28:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, Artem.Bityutskiy@nokia.com
+Cc: dilinger@queued.net, dilinger@debian.org, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     hex_dump: add missing "const" qualifiers
+     serial: turn serial console suspend a boot rather than compile time option
 has been added to the -mm tree.  Its filename is
-     hex_dump-add-missing-const-qualifiers.patch
+     serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,67 +25,206 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hex_dump: add missing "const" qualifiers
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: serial: turn serial console suspend a boot rather than compile time option
+From: Andres Salomon <dilinger@queued.net>
 
-Add a couple of missing "const" qualifiers to the print_hex_dump library
-routines.
+Currently, there's a CONFIG_DISABLE_CONSOLE_SUSPEND that allows one to stop
+the serial console from being suspended when the rest of the machine goes
+to sleep.  This is incredibly useful for debugging power management-related
+things; however, having it as a compile-time option has proved to be
+incredibly inconvenient for us (OLPC).  There are plenty of times that we
+want serial console to not suspend, but for the most part we'd like serial
+console to be suspended.
 
-(akpm: rumoured to fix some compile warning somewhere)
+This drops CONFIG_DISABLE_CONSOLE_SUSPEND, and replaces it with a kernel
+boot parameter (no_console_suspend).  By default, the serial console will
+be suspended along with the rest of the system; by passing
+'no_console_suspend' to the kernel during boot, serial console will remain
+alive during suspend.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+I have another version of this patch which keeps #ifdefs around; however,
+it's uglier.  I prefer this version of the patch, and don't feel that it
+increases bloat.  If people strongly disagree, let me know and I'll submit
+the other patch.
+
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    4 ++--
- lib/hexdump.c          |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ Documentation/kernel-parameters.txt        |    8 ++++++++
+ Documentation/power/basic-pm-debugging.txt |    4 ++--
+ arch/powerpc/configs/pmac32_defconfig      |    1 -
+ drivers/serial/serial_core.c               |   10 ++++------
+ include/linux/console.h                    |    7 ++-----
+ kernel/power/Kconfig                       |   11 -----------
+ kernel/printk.c                            |   15 +++++++++++++--
+ 7 files changed, 29 insertions(+), 27 deletions(-)
 
-diff -puN include/linux/kernel.h~hex_dump-add-missing-const-qualifiers include/linux/kernel.h
---- a/include/linux/kernel.h~hex_dump-add-missing-const-qualifiers
-+++ a/include/linux/kernel.h
-@@ -224,9 +224,9 @@ extern void hex_dump_to_buffer(const voi
- 				char *linebuf, size_t linebuflen, bool ascii);
- extern void print_hex_dump(const char *level, const char *prefix_str,
- 				int prefix_type, int rowsize, int groupsize,
--				void *buf, size_t len, bool ascii);
-+				const void *buf, size_t len, bool ascii);
- extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
--			void *buf, size_t len);
-+			const void *buf, size_t len);
- #define hex_asc(x)	"0123456789abcdef"[x]
+diff -puN Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/Documentation/kernel-parameters.txt
+@@ -477,6 +477,14 @@ and is between 256 and 4096 characters. 
+ 			UART at the specified I/O port or MMIO address.
+ 			The options are the same as for ttyS, above.
  
- #ifdef DEBUG
-diff -puN lib/hexdump.c~hex_dump-add-missing-const-qualifiers lib/hexdump.c
---- a/lib/hexdump.c~hex_dump-add-missing-const-qualifiers
-+++ a/lib/hexdump.c
-@@ -145,9 +145,9 @@ EXPORT_SYMBOL(hex_dump_to_buffer);
-  */
- void print_hex_dump(const char *level, const char *prefix_str, int prefix_type,
- 			int rowsize, int groupsize,
--			void *buf, size_t len, bool ascii)
-+			const void *buf, size_t len, bool ascii)
- {
--	u8 *ptr = buf;
-+	const u8 *ptr = buf;
- 	int i, linelen, remaining = len;
- 	unsigned char linebuf[200];
++	no_console_suspend
++			[HW] Never suspend the serial console
++			Disable suspending the serial console during
++			suspend/resume operations.  If disabled, debugging
++			messages can reach the console while the rest of
++			the system is being put to sleep (ie, while
++			debugging driver suspend/resume hooks).
++
+ 	cpcihp_generic=	[HW,PCI] Generic port I/O CompactPCI driver
+ 			Format:
+ 			<first_slot>,<last_slot>,<port>,<enum_bit>[,<debug>]
+diff -puN Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/power/basic-pm-debugging.txt
+--- a/Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/Documentation/power/basic-pm-debugging.txt
+@@ -78,8 +78,8 @@ c) Advanced debugging
+ In case the STD does not work on your system even in the minimal configuration
+ and compiling more drivers as modules is not practical or some modules cannot
+ be unloaded, you can use one of the more advanced debugging techniques to find
+-the problem.  First, if there is a serial port in your box, you can set the
+-CONFIG_DISABLE_CONSOLE_SUSPEND kernel configuration option and try to log kernel
++the problem.  First, if there is a serial port in your box, you boot the
++kernel with the 'no_console_suspend' parameter and try to log kernel
+ messages using the serial console.  This may provide you with some information
+ about the reasons of the suspend (resume) failure.  Alternatively, it may be
+ possible to use a FireWire port for debugging with firescope
+diff -puN arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option arch/powerpc/configs/pmac32_defconfig
+--- a/arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/arch/powerpc/configs/pmac32_defconfig
+@@ -216,7 +216,6 @@ CONFIG_PROC_DEVICETREE=y
+ CONFIG_PM=y
+ # CONFIG_PM_LEGACY is not set
+ CONFIG_PM_DEBUG=y
+-# CONFIG_DISABLE_CONSOLE_SUSPEND is not set
+ CONFIG_PM_SYSFS_DEPRECATED=y
+ CONFIG_HIBERNATION=y
+ CONFIG_PM_STD_PARTITION=""
+diff -puN drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/drivers/serial/serial_core.c
+@@ -1954,12 +1954,11 @@ int uart_suspend_port(struct uart_driver
  
-@@ -189,7 +189,7 @@ EXPORT_SYMBOL(print_hex_dump);
-  * rowsize of 16, groupsize of 1, and ASCII output included.
+ 	mutex_lock(&state->mutex);
+ 
+-#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
+-	if (uart_console(port)) {
++	if (!serial_console_suspend_enabled && uart_console(port)) {
++		/* we're going to avoid suspending serial console */
+ 		mutex_unlock(&state->mutex);
+ 		return 0;
+ 	}
+-#endif
+ 
+ 	if (state->info && state->info->flags & UIF_INITIALIZED) {
+ 		const struct uart_ops *ops = port->ops;
+@@ -2002,12 +2001,11 @@ int uart_resume_port(struct uart_driver 
+ 
+ 	mutex_lock(&state->mutex);
+ 
+-#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
+-	if (uart_console(port)) {
++	if (!serial_console_suspend_enabled && uart_console(port)) {
++		/* no need to resume serial console, it wasn't suspended */
+ 		mutex_unlock(&state->mutex);
+ 		return 0;
+ 	}
+-#endif
+ 
+ 	uart_change_pm(state, 0);
+ 
+diff -puN include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option include/linux/console.h
+--- a/include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/include/linux/console.h
+@@ -121,14 +121,11 @@ extern void console_stop(struct console 
+ extern void console_start(struct console *);
+ extern int is_console_locked(void);
+ 
+-#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
++extern int serial_console_suspend_enabled;
++
+ /* Suspend and resume console messages over PM events */
+ extern void suspend_console(void);
+ extern void resume_console(void);
+-#else
+-static inline void suspend_console(void) {}
+-static inline void resume_console(void) {}
+-#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
+ 
+ int mda_console_init(void);
+ void prom_con_init(void);
+diff -puN kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/power/Kconfig
+--- a/kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/kernel/power/Kconfig
+@@ -44,17 +44,6 @@ config PM_VERBOSE
+ 	---help---
+ 	This option enables verbose messages from the Power Management code.
+ 
+-config DISABLE_CONSOLE_SUSPEND
+-	bool "Keep console(s) enabled during suspend/resume (DANGEROUS)"
+-	depends on PM_DEBUG && PM_SLEEP
+-	default n
+-	---help---
+-	This option turns off the console suspend mechanism that prevents
+-	debug messages from reaching the console during the suspend/resume
+-	operations.  This may be helpful when debugging device drivers'
+-	suspend/resume routines, but may itself lead to problems, for example
+-	if netconsole is used.
+-
+ config PM_TRACE
+ 	bool "Suspend/resume event tracing"
+ 	depends on PM_DEBUG && X86 && PM_SLEEP && EXPERIMENTAL
+diff -puN kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/printk.c
+--- a/kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/kernel/printk.c
+@@ -810,7 +810,15 @@ int update_console_cmdline(char *name, i
+ 	return -1;
+ }
+ 
+-#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
++int serial_console_suspend_enabled = 1;
++
++static int __init console_suspend_disable(char *str)
++{
++	serial_console_suspend_enabled = 0;
++	return 1;
++}
++__setup("no_console_suspend", console_suspend_disable);
++
+ /**
+  * suspend_console - suspend the console subsystem
+  *
+@@ -818,6 +826,8 @@ int update_console_cmdline(char *name, i
   */
- void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
--			void *buf, size_t len)
-+			const void *buf, size_t len)
+ void suspend_console(void)
  {
- 	print_hex_dump(KERN_DEBUG, prefix_str, prefix_type, 16, 1,
- 			buf, len, 1);
++	if (!serial_console_suspend_enabled)
++		return;
+ 	printk("Suspending console(s)\n");
+ 	acquire_console_sem();
+ 	console_suspended = 1;
+@@ -825,10 +835,11 @@ void suspend_console(void)
+ 
+ void resume_console(void)
+ {
++	if (!serial_console_suspend_enabled)
++		return;
+ 	console_suspended = 0;
+ 	release_console_sem();
+ }
+-#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
+ 
+ /**
+  * acquire_console_sem - lock the console system for exclusive use.
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-hex_dump-add-missing-const-qualifiers.patch
-nikon-d50-is-an-unusual-device.patch
-usb-enable-hcd-support-on-sh-unconditionally.patch
-usb-r8a66597-hcd-clean-up-error-path.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
