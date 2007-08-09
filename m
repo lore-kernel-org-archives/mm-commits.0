@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch added to -mm tree
-Date: Thu, 09 Aug 2007 14:30:31 -0700
-Message-ID: <200708092130.l79LUVHJ020548@imap1.linux-foundation.org>
+Subject: + vfs-check-nanoseconds-in-utimensat.patch added to -mm tree
+Date: Thu, 09 Aug 2007 14:31:31 -0700
+Message-ID: <200708092131.l79LVVOg020566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34141 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47034 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752232AbXHIVbM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:31:12 -0400
+	by vger.kernel.org with ESMTP id S1753703AbXHIVcU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:32:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz
+Cc: mszeredi@suse.cz, drepper@redhat.com
 
 
 The patch titled
-     unprivileged mounts: fix subtype handling
+     VFS: check nanoseconds in utimensat
 has been added to the -mm tree.  Its filename is
-     unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+     vfs-check-nanoseconds-in-utimensat.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,111 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unprivileged mounts: fix subtype handling
+Subject: VFS: check nanoseconds in utimensat
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Subtype handling was done in do_kern_mount(), but "unprivileged mounts: allow
-unprivileged mounts" patch made do_new_mount() use vfs_kern_mount().  This
-broke the filesystem subtype handling.
-
-Fix this by moving the subtype handling from do_kern_mount() into
-do_new_mount().  All other callers are kernel-internal and do not need subtype
-support.
+utimensat() (and possibly other callers of do_utimes()) didn't check if the
+nanosecond value was within the allowed range.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |   26 ++++++++++++++++++++++++++
- fs/super.c     |   26 --------------------------
- 2 files changed, 26 insertions(+), 26 deletions(-)
+ fs/utimes.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+)
 
-diff -puN fs/namespace.c~unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling fs/namespace.c
---- a/fs/namespace.c~unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling
-+++ a/fs/namespace.c
-@@ -1186,6 +1186,29 @@ out:
- 	return err;
- }
+diff -puN fs/utimes.c~vfs-check-nanoseconds-in-utimensat fs/utimes.c
+--- a/fs/utimes.c~vfs-check-nanoseconds-in-utimensat
++++ a/fs/utimes.c
+@@ -38,6 +38,14 @@ asmlinkage long sys_utime(char __user *f
  
-+static struct vfsmount *fs_set_subtype(struct vfsmount *mnt, const char *fstype)
+ #endif
+ 
++static bool nsec_valid(long nsec)
 +{
-+	int err;
-+	const char *subtype = strchr(fstype, '.');
-+	if (subtype) {
-+		subtype++;
-+		err = -EINVAL;
-+		if (!subtype[0])
-+			goto err;
-+	} else
-+		subtype = "";
++	if (nsec == UTIME_OMIT || nsec == UTIME_NOW)
++		return true;
 +
-+	mnt->mnt_sb->s_subtype = kstrdup(subtype, GFP_KERNEL);
-+	err = -ENOMEM;
-+	if (!mnt->mnt_sb->s_subtype)
-+		goto err;
-+	return mnt;
-+
-+ err:
-+	mntput(mnt);
-+	return ERR_PTR(err);
++	return nsec >= 0 && nsec <= 999999999;
 +}
 +
- /*
-  * create a new mount for userspace and request it to be added into the
-  * namespace's tree
-@@ -1215,6 +1238,9 @@ static int do_new_mount(struct nameidata
- 	}
+ /* If times==NULL, set access and modification to current time,
+  * must be owner or have write permission.
+  * Else, update from *times, must be owner or super user.
+@@ -52,6 +60,11 @@ long do_utimes(int dfd, char __user *fil
+ 	struct file *f = NULL;
  
- 	mnt = vfs_kern_mount(type, flags & ~MS_SETUSER, name, data);
-+	if (!IS_ERR(mnt) && (type->fs_flags & FS_HAS_SUBTYPE) &&
-+	    !mnt->mnt_sb->s_subtype)
-+		mnt = fs_set_subtype(mnt, fstype);
- 	put_filesystem(type);
- 	if (IS_ERR(mnt)) {
- 		if (flags & MS_SETUSER)
-diff -puN fs/super.c~unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling fs/super.c
---- a/fs/super.c~unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling
-+++ a/fs/super.c
-@@ -906,29 +906,6 @@ out:
+ 	error = -EINVAL;
++	if (times && (!nsec_valid(times[0].tv_nsec) ||
++		      !nsec_valid(times[1].tv_nsec))) {
++		goto out;
++	}
++
+ 	if (flags & ~AT_SYMLINK_NOFOLLOW)
+ 		goto out;
  
- EXPORT_SYMBOL_GPL(vfs_kern_mount);
- 
--static struct vfsmount *fs_set_subtype(struct vfsmount *mnt, const char *fstype)
--{
--	int err;
--	const char *subtype = strchr(fstype, '.');
--	if (subtype) {
--		subtype++;
--		err = -EINVAL;
--		if (!subtype[0])
--			goto err;
--	} else
--		subtype = "";
--
--	mnt->mnt_sb->s_subtype = kstrdup(subtype, GFP_KERNEL);
--	err = -ENOMEM;
--	if (!mnt->mnt_sb->s_subtype)
--		goto err;
--	return mnt;
--
-- err:
--	mntput(mnt);
--	return ERR_PTR(err);
--}
--
- struct vfsmount *
- do_kern_mount(const char *fstype, int flags, const char *name, void *data)
- {
-@@ -937,9 +914,6 @@ do_kern_mount(const char *fstype, int fl
- 	if (!type)
- 		return ERR_PTR(-ENODEV);
- 	mnt = vfs_kern_mount(type, flags, name, data);
--	if (!IS_ERR(mnt) && (type->fs_flags & FS_HAS_SUBTYPE) &&
--	    !mnt->mnt_sb->s_subtype)
--		mnt = fs_set_subtype(mnt, fstype);
- 	put_filesystem(type);
- 	return mnt;
- }
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
@@ -138,6 +77,7 @@ fuse-convert-to-new-aops.patch
 ext2-show-all-mount-options.patch
 ext3-show-all-mount-options.patch
 ext4-show-all-mount-options.patch
+vfs-check-nanoseconds-in-utimensat.patch
 unprivileged-mounts-add-user-mounts-to-the-kernel.patch
 unprivileged-mounts-allow-unprivileged-umount.patch
 unprivileged-mounts-account-user-mounts.patch
@@ -162,7 +102,6 @@ fuse-fix-permission-checking-on-sticky-directories-fix.patch
 fuse-cleanup-in-release.patch
 fuse-no-abort-on-interrupt.patch
 fuse-no-enoent-from-fuse-device-read.patch
-vfs-check-nanoseconds-in-utimensat.patch
 fix-execute-checking-in-permission.patch
 exec-remove-unnecessary-check-for-mnt_noexec.patch
 fuse-fix-setting-i_mode-bits.patch
