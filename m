@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-media-video-arvc-fix-memset-in-ioctl.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 15:50:15 -0700
-Message-ID: <200708092250.l79MoFBB023567@imap1.linux-foundation.org>
+Subject: - drivers-media-video-zoran_driverc-fix-memset-in-ioctl.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 15:50:20 -0700
+Message-ID: <200708092250.l79MoKO1023573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59105 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49181 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762796AbXHIWua (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:30 -0400
+	by vger.kernel.org with ESMTP id S1760336AbXHIWui (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: m.kozlowski@tuxland.pl, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/video/arv.c: fix memset in ioctl
+     drivers/media/video/zoran_driver.c: fix memset in ioctl
 has been removed from the -mm tree.  Its filename was
-     drivers-media-video-arvc-fix-memset-in-ioctl.patch
+     drivers-media-video-zoran_driverc-fix-memset-in-ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/media/video/arv.c: fix memset in ioctl
+Subject: drivers/media/video/zoran_driver.c: fix memset in ioctl
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
 Looks like memset() is zeroing wrong nr of bytes.
@@ -31,21 +31,21 @@ Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/arv.c |    2 +-
+ drivers/media/video/zoran_driver.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/arv.c~drivers-media-video-arvc-fix-memset-in-ioctl drivers/media/video/arv.c
---- a/drivers/media/video/arv.c~drivers-media-video-arvc-fix-memset-in-ioctl
-+++ a/drivers/media/video/arv.c
-@@ -441,7 +441,7 @@ static int ar_do_ioctl(struct inode *ino
- 	{
- 		struct video_window *w = arg;
- 		DEBUG(1, "VIDIOCGWIN:\n");
--		memset(w, 0, sizeof(w));
-+		memset(w, 0, sizeof(*w));
- 		w->width = ar->width;
- 		w->height = ar->height;
- 		return 0;
+diff -puN drivers/media/video/zoran_driver.c~drivers-media-video-zoran_driverc-fix-memset-in-ioctl drivers/media/video/zoran_driver.c
+--- a/drivers/media/video/zoran_driver.c~drivers-media-video-zoran_driverc-fix-memset-in-ioctl
++++ a/drivers/media/video/zoran_driver.c
+@@ -3196,7 +3196,7 @@ zoran_do_ioctl (struct inode *inode,
+ 			"%s: VIDIOC_QUERYBUF - index=%d, type=%d\n",
+ 			ZR_DEVNAME(zr), buf->index, buf->type);
+ 
+-		memset(buf, 0, sizeof(buf));
++		memset(buf, 0, sizeof(*buf));
+ 		buf->type = type;
+ 		buf->index = index;
+ 
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
