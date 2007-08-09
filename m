@@ -1,91 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-fix-non-tsc-guest-clocksource-lockup.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 15:50:09 -0700
-Message-ID: <200708092250.l79Mo9UR023556@imap1.linux-foundation.org>
+Subject: - fix-oops-in-__audit_signal_info.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 15:50:07 -0700
+Message-ID: <200708092250.l79Mo7sK023553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37015 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54001 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753827AbXHIWuU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:20 -0400
+	by vger.kernel.org with ESMTP id S1753757AbXHIWuV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: viro@ftp.linux.org.uk, jmorris@namei.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: fix non-TSC guest clocksource lockup
+     fix oops in __audit_signal_info()
 has been removed from the -mm tree.  Its filename was
-     lguest-fix-non-tsc-guest-clocksource-lockup.patch
+     fix-oops-in-__audit_signal_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lguest: fix non-TSC guest clocksource lockup
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: fix oops in __audit_signal_info()
+From: Al Viro <viro@ftp.linux.org.uk>
 
-lguest uses a host-supplied wallclock-based clocksource when the TSC is not
-reliable.  As this is already in nanoseconds, I naively used a multiplier of 1
-and a shift of 0.
+Check for audit_signals is misplaced and check for audit_dummy_context() is
+missing; as the result, if we send signal to auditd from task with NULL
+->audit_context while we have audit_signals != 0 we end up with an oops.
 
-But update_wall_time() in its infinite wisdom decides to adjust the clock a
-little (where does it think it's getting a more accurate time from?)
-
-It will happily tweak the multiplier... to 0, then -1.
-
-So the "fix" is to use a shift of 22 like everyone else, and a
-multiplier of 1 << 22.
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Acked-by: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/auditsc.c |   22 +++++++++++-----------
+ 1 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-fix-non-tsc-guest-clocksource-lockup drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-fix-non-tsc-guest-clocksource-lockup
-+++ a/drivers/lguest/lguest.c
-@@ -687,7 +687,8 @@ static struct clocksource lguest_clock =
- 	.rating		= 400,
- 	.read		= lguest_clock_read,
- 	.mask		= CLOCKSOURCE_MASK(64),
--	.mult		= 1,
-+	.mult		= 1 << 22,
-+	.shift		= 22,
- };
+diff -puN kernel/auditsc.c~fix-oops-in-__audit_signal_info kernel/auditsc.c
+--- a/kernel/auditsc.c~fix-oops-in-__audit_signal_info
++++ a/kernel/auditsc.c
+@@ -1992,19 +1992,19 @@ int __audit_signal_info(int sig, struct 
+ 	extern uid_t audit_sig_uid;
+ 	extern u32 audit_sig_sid;
  
- /* The "scheduler clock" is just our real clock, adjusted to start at zero */
-@@ -770,7 +771,6 @@ static void lguest_time_init(void)
- 	 * way, the "rating" is initialized so high that it's always chosen
- 	 * over any other clocksource. */
- 	if (lguest_data.tsc_khz) {
--		lguest_clock.shift = 22;
- 		lguest_clock.mult = clocksource_khz2mult(lguest_data.tsc_khz,
- 							 lguest_clock.shift);
- 		lguest_clock.flags = CLOCK_SOURCE_IS_CONTINUOUS;
+-	if (audit_pid && t->tgid == audit_pid &&
+-	    (sig == SIGTERM || sig == SIGHUP || sig == SIGUSR1)) {
+-		audit_sig_pid = tsk->pid;
+-		if (ctx)
+-			audit_sig_uid = ctx->loginuid;
+-		else
+-			audit_sig_uid = tsk->uid;
+-		selinux_get_task_sid(tsk, &audit_sig_sid);
++	if (audit_pid && t->tgid == audit_pid) {
++		if (sig == SIGTERM || sig == SIGHUP || sig == SIGUSR1) {
++			audit_sig_pid = tsk->pid;
++			if (ctx)
++				audit_sig_uid = ctx->loginuid;
++			else
++				audit_sig_uid = tsk->uid;
++			selinux_get_task_sid(tsk, &audit_sig_sid);
++		}
++		if (!audit_signals || audit_dummy_context())
++			return 0;
+ 	}
+ 
+-	if (!audit_signals) /* audit_context checked in wrapper */
+-		return 0;
+-
+ 	/* optimize the common case by putting first signal recipient directly
+ 	 * in audit_context */
+ 	if (!ctx->target_pid) {
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from viro@ftp.linux.org.uk are
 
 origin.patch
-lguest-files-should-explicitly-include-asm-paravirth.patch
-git-kvm.patch
-readahead-compacting-file_ra_state.patch
-readahead-mmap-read-around-simplification.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-radixtree-introduce-radix_tree_next_hole.patch
-readahead-basic-support-of-interleaved-reads.patch
-readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
-readahead-remove-several-readahead-macros.patch
-readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
-filemap-trivial-code-cleanups.patch
-filemap-convert-some-unsigned-long-to-pgoff_t.patch
-mmaps2-vma-out-of-mem_size_stats.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-remove-unsafe-from-module-struct.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+introduce-i_sync.patch
+slab-leaks3-default-y.patch
