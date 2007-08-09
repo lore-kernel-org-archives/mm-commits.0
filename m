@@ -1,79 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - fix-oops-in-__audit_signal_info.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 15:50:07 -0700
-Message-ID: <200708092250.l79Mo7sK023553@imap1.linux-foundation.org>
+Subject: - mmc-fix-section-mismatch-warnings-for-drivers-mmc-host.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 15:50:25 -0700
+Message-ID: <200708092250.l79MoP04023582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54001 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54793 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753757AbXHIWuV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:21 -0400
+	by vger.kernel.org with ESMTP id S1758438AbXHIWum (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viro@ftp.linux.org.uk, jmorris@namei.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: nix.or.die@googlemail.com, drzeus@drzeus.cx, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix oops in __audit_signal_info()
+     mmc: fix section mismatch warnings for drivers/mmc/host
 has been removed from the -mm tree.  Its filename was
-     fix-oops-in-__audit_signal_info.patch
+     mmc-fix-section-mismatch-warnings-for-drivers-mmc-host.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix oops in __audit_signal_info()
-From: Al Viro <viro@ftp.linux.org.uk>
+Subject: mmc: fix section mismatch warnings for drivers/mmc/host
+From: Gabriel C <nix.or.die@googlemail.com>
 
-Check for audit_signals is misplaced and check for audit_dummy_context() is
-missing; as the result, if we send signal to auditd from task with NULL
-->audit_context while we have audit_signals != 0 we end up with an oops.
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Acked-by: James Morris <jmorris@namei.org>
+WARNING: vmlinux.o(.init.text+0x29d40): Section mismatch: reference to .exit.text:wbsd_release_resources (between 'wbsd_init' and 'wbsd_probe')
+WARNING: vmlinux.o(.init.text+0x29d49): Section mismatch: reference to .exit.text:wbsd_free_mmc (between 'wbsd_init' and 'wbsd_probe')
+WARNING: vmlinux.o(.init.text+0x29f28): Section mismatch: reference to .exit.text:wbsd_free_mmc (between 'wbsd_init' and 'wbsd_probe')
+
+Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/mmc/host/wbsd.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/auditsc.c~fix-oops-in-__audit_signal_info kernel/auditsc.c
---- a/kernel/auditsc.c~fix-oops-in-__audit_signal_info
-+++ a/kernel/auditsc.c
-@@ -1992,19 +1992,19 @@ int __audit_signal_info(int sig, struct 
- 	extern uid_t audit_sig_uid;
- 	extern u32 audit_sig_sid;
+diff -puN drivers/mmc/host/wbsd.c~mmc-fix-section-mismatch-warnings-for-drivers-mmc-host drivers/mmc/host/wbsd.c
+--- a/drivers/mmc/host/wbsd.c~mmc-fix-section-mismatch-warnings-for-drivers-mmc-host
++++ a/drivers/mmc/host/wbsd.c
+@@ -1265,7 +1265,7 @@ static int __devinit wbsd_alloc_mmc(stru
+ 	return 0;
+ }
  
--	if (audit_pid && t->tgid == audit_pid &&
--	    (sig == SIGTERM || sig == SIGHUP || sig == SIGUSR1)) {
--		audit_sig_pid = tsk->pid;
--		if (ctx)
--			audit_sig_uid = ctx->loginuid;
--		else
--			audit_sig_uid = tsk->uid;
--		selinux_get_task_sid(tsk, &audit_sig_sid);
-+	if (audit_pid && t->tgid == audit_pid) {
-+		if (sig == SIGTERM || sig == SIGHUP || sig == SIGUSR1) {
-+			audit_sig_pid = tsk->pid;
-+			if (ctx)
-+				audit_sig_uid = ctx->loginuid;
-+			else
-+				audit_sig_uid = tsk->uid;
-+			selinux_get_task_sid(tsk, &audit_sig_sid);
-+		}
-+		if (!audit_signals || audit_dummy_context())
-+			return 0;
- 	}
+-static void __devexit wbsd_free_mmc(struct device *dev)
++static void wbsd_free_mmc(struct device *dev)
+ {
+ 	struct mmc_host *mmc;
+ 	struct wbsd_host *host;
+@@ -1357,7 +1357,7 @@ static int __devinit wbsd_request_region
+ 	return 0;
+ }
  
--	if (!audit_signals) /* audit_context checked in wrapper */
--		return 0;
--
- 	/* optimize the common case by putting first signal recipient directly
- 	 * in audit_context */
- 	if (!ctx->target_pid) {
+-static void __devexit wbsd_release_regions(struct wbsd_host *host)
++static void wbsd_release_regions(struct wbsd_host *host)
+ {
+ 	if (host->base)
+ 		release_region(host->base, 8);
+@@ -1433,7 +1433,7 @@ err:
+ 		"Falling back on FIFO.\n", dma);
+ }
+ 
+-static void __devexit wbsd_release_dma(struct wbsd_host *host)
++static void wbsd_release_dma(struct wbsd_host *host)
+ {
+ 	if (host->dma_addr) {
+ 		dma_unmap_single(mmc_dev(host->mmc), host->dma_addr,
+@@ -1483,7 +1483,7 @@ static int __devinit wbsd_request_irq(st
+ 	return 0;
+ }
+ 
+-static void __devexit wbsd_release_irq(struct wbsd_host *host)
++static void  wbsd_release_irq(struct wbsd_host *host)
+ {
+ 	if (!host->irq)
+ 		return;
+@@ -1534,7 +1534,7 @@ static int __devinit wbsd_request_resour
+  * Release all resources for the host.
+  */
+ 
+-static void __devexit wbsd_release_resources(struct wbsd_host *host)
++static void wbsd_release_resources(struct wbsd_host *host)
+ {
+ 	wbsd_release_dma(host);
+ 	wbsd_release_irq(host);
 _
 
-Patches currently in -mm which might be from viro@ftp.linux.org.uk are
+Patches currently in -mm which might be from nix.or.die@googlemail.com are
 
 origin.patch
-introduce-i_sync.patch
-slab-leaks3-default-y.patch
+linux-audit-list-is-subscribers-only.patch
+kernel-parameterstxt-watchdogtxt-should-be-wdttxt.patch
+git-kvm.patch
+fix-libata-warnings-with-config_pm=n.patch
+drivers-scsi-g_ncr5380c-ncr53c400_pseudo_dma-is-not.patch
+fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
