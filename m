@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + timerremove-clockevents_unregister_notifier.patch added to -mm tree
-Date: Thu, 09 Aug 2007 13:42:21 -0700
-Message-ID: <200708092042.l79KgLYj018477@imap1.linux-foundation.org>
+Subject: + fix-compilation-with-gcc-42.patch added to -mm tree
+Date: Thu, 09 Aug 2007 13:44:13 -0700
+Message-ID: <200708092044.l79KiDtX018605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50067 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33007 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757433AbXHIUnU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:43:20 -0400
+	by vger.kernel.org with ESMTP id S1753063AbXHIUpk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:45:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: miaox@cn.fujitsu.com, tglx@linutronix.de
+Cc: peterc@gelato.unsw.edu.au, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, lenb@kernel.org, prasanna@in.ibm.com, tony.luck@intel.com
 
 
 The patch titled
-     timer: remove clockevents_unregister_notifier
+     fix compilation with gcc 4.2
 has been added to the -mm tree.  Its filename is
-     timerremove-clockevents_unregister_notifier.patch
+     fix-compilation-with-gcc-42.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: timer: remove clockevents_unregister_notifier
-From: Miao Xie <miaox@cn.fujitsu.com>
+Subject: fix compilation with gcc 4.2
+From: Peter Chubb <peterc@gelato.unsw.edu.au>
 
-I find a function(clockevents_unregister_notifier) which is not called by
-anything in tree.
+gcc-4.2 is a lot more picky about its symbol handling.  EXPORT_SYMBOL no
+longer works on symbols that are undefined or defined with static scope.
 
-Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+For example, with CONFIG_PROFILE off, I see:
+
+  kernel/profile.c:206: error: __ksymtab_profile_event_unregister causes a section type conflict
+  kernel/profile.c:205: error: __ksymtab_profile_event_register causes a section type conflict
+
+This patch moves the EXPORTs inside the #ifdef CONFIG_PROFILE, so we
+only try to export symbols that are defined.
+
+Also, in kernel/kprobes.c there's an EXPORT_SYMBOL_GPL() for
+jprobes_return, which if CONFIG_JPROBES is undefined is a static
+inline and gives the same error.
+
+And in drivers/acpi/resources/rsxface.c, there's an
+ACPI_EXPORT_SYMBOPL() for a static symbol. If it's static, it's not
+accessible from outside the compilation unit, so should bot be exported.
+
+These three changes allow building a zx1_defconfig kernel with gcc 4.2
+on IA64.
+
+Signed-off-by: Peter Chubb <peterc@gelato.unsw.edu.au>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clockchips.h |    1 -
- kernel/time/clockevents.c  |   10 ----------
- 2 files changed, 11 deletions(-)
+ drivers/acpi/resources/rsxface.c |    2 --
+ kernel/kprobes.c                 |    4 +++-
+ kernel/profile.c                 |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/clockchips.h~timerremove-clockevents_unregister_notifier include/linux/clockchips.h
---- a/include/linux/clockchips.h~timerremove-clockevents_unregister_notifier
-+++ a/include/linux/clockchips.h
-@@ -123,7 +123,6 @@ extern void clockevents_exchange_device(
- extern void clockevents_set_mode(struct clock_event_device *dev,
- 				 enum clock_event_mode mode);
- extern int clockevents_register_notifier(struct notifier_block *nb);
--extern void clockevents_unregister_notifier(struct notifier_block *nb);
- extern int clockevents_program_event(struct clock_event_device *dev,
- 				     ktime_t expires, ktime_t now);
- 
-diff -puN kernel/time/clockevents.c~timerremove-clockevents_unregister_notifier kernel/time/clockevents.c
---- a/kernel/time/clockevents.c~timerremove-clockevents_unregister_notifier
-+++ a/kernel/time/clockevents.c
-@@ -113,16 +113,6 @@ int clockevents_register_notifier(struct
- 	return ret;
+diff -puN drivers/acpi/resources/rsxface.c~fix-compilation-with-gcc-42 drivers/acpi/resources/rsxface.c
+--- a/drivers/acpi/resources/rsxface.c~fix-compilation-with-gcc-42
++++ a/drivers/acpi/resources/rsxface.c
+@@ -474,8 +474,6 @@ acpi_rs_match_vendor_resource(struct acp
+ 	return (AE_CTRL_TERMINATE);
  }
  
--/**
-- * clockevents_unregister_notifier - unregister a clock events change listener
-- */
--void clockevents_unregister_notifier(struct notifier_block *nb)
--{
--	spin_lock(&clockevents_lock);
--	raw_notifier_chain_unregister(&clockevents_chain, nb);
--	spin_unlock(&clockevents_lock);
--}
+-ACPI_EXPORT_SYMBOL(acpi_rs_match_vendor_resource)
 -
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_walk_resources
+diff -puN kernel/kprobes.c~fix-compilation-with-gcc-42 kernel/kprobes.c
+--- a/kernel/kprobes.c~fix-compilation-with-gcc-42
++++ a/kernel/kprobes.c
+@@ -1063,6 +1063,8 @@ EXPORT_SYMBOL_GPL(register_kprobe);
+ EXPORT_SYMBOL_GPL(unregister_kprobe);
+ EXPORT_SYMBOL_GPL(register_jprobe);
+ EXPORT_SYMBOL_GPL(unregister_jprobe);
+-EXPORT_SYMBOL_GPL(jprobe_return);
++
++#ifdef CONFIG_KPROBES
+ EXPORT_SYMBOL_GPL(register_kretprobe);
+ EXPORT_SYMBOL_GPL(unregister_kretprobe);
++#endif
+diff -puN kernel/profile.c~fix-compilation-with-gcc-42 kernel/profile.c
+--- a/kernel/profile.c~fix-compilation-with-gcc-42
++++ a/kernel/profile.c
+@@ -199,11 +199,11 @@ EXPORT_SYMBOL_GPL(register_timer_hook);
+ EXPORT_SYMBOL_GPL(unregister_timer_hook);
+ EXPORT_SYMBOL_GPL(task_handoff_register);
+ EXPORT_SYMBOL_GPL(task_handoff_unregister);
++EXPORT_SYMBOL_GPL(profile_event_register);
++EXPORT_SYMBOL_GPL(profile_event_unregister);
+ 
+ #endif /* CONFIG_PROFILING */
+ 
+-EXPORT_SYMBOL_GPL(profile_event_register);
+-EXPORT_SYMBOL_GPL(profile_event_unregister);
+ 
+ #ifdef CONFIG_SMP
  /*
-  * Notify about a clock event change. Called with clockevents_lock
-  * held.
 _
 
-Patches currently in -mm which might be from miaox@cn.fujitsu.com are
+Patches currently in -mm which might be from peterc@gelato.unsw.edu.au are
 
-timerremove-clockevents_unregister_notifier.patch
+fix-compilation-with-gcc-42.patch
