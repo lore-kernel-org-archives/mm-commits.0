@@ -1,69 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - hexdump-use-const-notation.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 13:22:53 -0700
-Message-ID: <200708092022.l79KMrFg017681@imap1.linux-foundation.org>
+Subject: + rcu-remove-prototype-for-nonexistent-function.patch added to -mm tree
+Date: Thu, 09 Aug 2007 13:24:49 -0700
+Message-ID: <200708092024.l79KOn51017819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37658 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47415 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752174AbXHIUXm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:23:42 -0400
+	by vger.kernel.org with ESMTP id S1753913AbXHIUZe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:25:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dedekind@yandex.ru, Artem.Bityutskiy@nokia.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: josht@linux.vnet.ibm.com, josh@kernel.org, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     hexdump: use const notation
-has been removed from the -mm tree.  Its filename was
-     hexdump-use-const-notation.patch
+     RCU: Remove prototype for nonexistent function synchronize_idle()
+has been added to the -mm tree.  Its filename is
+     rcu-remove-prototype-for-nonexistent-function.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: hexdump: use const notation
-From: Artem Bityutskiy <dedekind@yandex.ru>
+Subject: RCU: Remove prototype for nonexistent function synchronize_idle()
+From: Josh Triplett <josht@linux.vnet.ibm.com>
 
-Mark the buffer to hexdump as const so callers could avoid casting their
-const buffers when calling print_hex_dump().
+synchronize_idle() sounds like an interesting function, but we don't
+actually have it, so don't prototype it.  Introduced in commit
+9b06e818985d139fd9e82c28297f7744e1b484e1, in 2005.
 
-Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Signed-off-by: Josh Triplett <josh@kernel.org>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 +-
- lib/hexdump.c          |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/rcupdate.h |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN include/linux/kernel.h~hexdump-use-const-notation include/linux/kernel.h
---- a/include/linux/kernel.h~hexdump-use-const-notation
-+++ a/include/linux/kernel.h
-@@ -229,7 +229,7 @@ extern void hex_dump_to_buffer(const voi
- 				char *linebuf, size_t linebuflen, bool ascii);
- extern void print_hex_dump(const char *level, const char *prefix_str,
- 				int prefix_type, int rowsize, int groupsize,
--				void *buf, size_t len, bool ascii);
-+				const void *buf, size_t len, bool ascii);
- extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
- 			void *buf, size_t len);
- #define hex_asc(x)	"0123456789abcdef"[x]
-diff -puN lib/hexdump.c~hexdump-use-const-notation lib/hexdump.c
---- a/lib/hexdump.c~hexdump-use-const-notation
-+++ a/lib/hexdump.c
-@@ -145,9 +145,9 @@ EXPORT_SYMBOL(hex_dump_to_buffer);
-  */
- void print_hex_dump(const char *level, const char *prefix_str, int prefix_type,
- 			int rowsize, int groupsize,
--			void *buf, size_t len, bool ascii)
-+			const void *buf, size_t len, bool ascii)
- {
--	u8 *ptr = buf;
-+	const u8 *ptr = buf;
- 	int i, linelen, remaining = len;
- 	unsigned char linebuf[200];
+diff -puN include/linux/rcupdate.h~rcu-remove-prototype-for-nonexistent-function include/linux/rcupdate.h
+--- a/include/linux/rcupdate.h~rcu-remove-prototype-for-nonexistent-function
++++ a/include/linux/rcupdate.h
+@@ -281,7 +281,6 @@ extern void FASTCALL(call_rcu(struct rcu
+ extern void FASTCALL(call_rcu_bh(struct rcu_head *head,
+ 				void (*func)(struct rcu_head *head)));
+ extern void synchronize_rcu(void);
+-void synchronize_idle(void);
+ extern void rcu_barrier(void);
  
+ #endif /* __KERNEL__ */
 _
 
-Patches currently in -mm which might be from dedekind@yandex.ru are
+Patches currently in -mm which might be from josht@linux.vnet.ibm.com are
 
-hexdump-use-const-notation.patch
+rcu-remove-prototype-for-nonexistent-function.patch
+i386-mark-pit_clockevent-static.patch
