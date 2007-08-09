@@ -1,58 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - fix-ide-ide-add-platform-ide-driver.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 15:50:24 -0700
-Message-ID: <200708092250.l79MoOeI023579@imap1.linux-foundation.org>
+Subject: - git-nfsd-build-fixes.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 15:50:28 -0700
+Message-ID: <200708092250.l79MoSDU023585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50059 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37456 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762947AbXHIWud (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:33 -0400
+	by vger.kernel.org with ESMTP id S1754319AbXHIWuq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix ide-ide-add-platform-ide-driver
+     git-nfsd build fixes
 has been removed from the -mm tree.  Its filename was
-     fix-ide-ide-add-platform-ide-driver.patch
+     git-nfsd-build-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix ide-ide-add-platform-ide-driver
+Subject: git-nfsd build fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I already fixed this.
+- fix this:
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+In file included from fs/nfsctl.c:12:
+include/linux/nfsd/nfsd.h: In function 'nfs4_state_init':
+include/linux/nfsd/nfsd.h:164: warning: 'return' with a value, in function returning void
+include/linux/nfsd/nfsd.h: In function 'nfs4_state_start':
+include/linux/nfsd/nfsd.h:166: warning: 'return' with a value, in function returning void
+
+- tidy things up a bit in there.
+
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/legacy/ide_platform.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/nfsd/nfsd.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/ide/legacy/ide_platform.c~fix-ide-ide-add-platform-ide-driver drivers/ide/legacy/ide_platform.c
---- a/drivers/ide/legacy/ide_platform.c~fix-ide-ide-add-platform-ide-driver
-+++ a/drivers/ide/legacy/ide_platform.c
-@@ -18,6 +18,7 @@
- #include <linux/ioport.h>
- #include <linux/module.h>
- #include <linux/pata_platform.h>
-+#include <linux/platform_device.h>
- #include <linux/io.h>
+diff -puN include/linux/nfsd/nfsd.h~git-nfsd-build-fixes include/linux/nfsd/nfsd.h
+--- a/include/linux/nfsd/nfsd.h~git-nfsd-build-fixes
++++ a/include/linux/nfsd/nfsd.h
+@@ -161,13 +161,13 @@ time_t nfs4_lease_time(void);
+ void nfs4_reset_lease(time_t leasetime);
+ int nfs4_reset_recoverydir(char *recdir);
+ #else
+-static inline void nfs4_state_init(void) {return 0; }
+-static inline void nfsd4_free_slabs(void){}
+-static inline void nfs4_state_start(void) {return 0; }
+-static inline void nfs4_state_shutdown(void){}
+-static inline time_t nfs4_lease_time(void){return 0;}
+-static inline void nfs4_reset_lease(time_t leasetime){}
+-static inline int nfs4_reset_recoverydir(char *recdir) {return 0;}
++static inline int nfs4_state_init(void) { return 0; }
++static inline void nfsd4_free_slabs(void) { }
++static inline void nfs4_state_start(void) { }
++static inline void nfs4_state_shutdown(void) { }
++static inline time_t nfs4_lease_time(void) { return 0;}
++static inline void nfs4_reset_lease(time_t leasetime) { }
++static inline int nfs4_reset_recoverydir(char *recdir) { return 0; }
+ #endif
  
- static struct {
-@@ -157,7 +158,7 @@ static int __devexit plat_ide_remove(str
- }
- 
- static struct platform_driver platform_ide_driver = {
--	.driver {
-+	.driver = {
- 		.name = "pata_platform",
- 	},
- 	.probe = plat_ide_probe,
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
