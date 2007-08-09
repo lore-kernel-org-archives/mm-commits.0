@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + freezer-introduce-freezer-firendly-waiting-macros-fix.patch added to -mm tree
-Date: Thu, 09 Aug 2007 12:11:53 -0700
-Message-ID: <200708091911.l79JBrkm014731@imap1.linux-foundation.org>
+Subject: + drivers-media-video-arvc-fix-memset-in-ioctl.patch added to -mm tree
+Date: Thu, 09 Aug 2007 12:13:33 -0700
+Message-ID: <200708091913.l79JDXoJ014864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57116 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44261 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751658AbXHITMd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 15:12:33 -0400
+	by vger.kernel.org with ESMTP id S1750736AbXHITOT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 15:14:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl
+Cc: m.kozlowski@tuxland.pl, mchehab@infradead.org
 
 
 The patch titled
-     freezer-introduce-freezer-firendly-waiting-macros fix
+     drivers/media/video/arv.c: fix memset in ioctl
 has been added to the -mm tree.  Its filename is
-     freezer-introduce-freezer-firendly-waiting-macros-fix.patch
+     drivers-media-video-arvc-fix-memset-in-ioctl.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,84 +25,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: freezer-introduce-freezer-firendly-waiting-macros fix
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: drivers/media/video/arv.c: fix memset in ioctl
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Fix a bug in freezer-introduce-freezer-firendly-waiting-macros.patch which
-uses a wrong variable name in wait_event_freezable() and
-wait_event_freezable_timeout() (this name is also used in
-wait_event_interruptible() and wait_event_interruptible_timeout() which are
-macros and the names clash).
+Looks like memset() is zeroing wrong nr of bytes.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/media/video/arv.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/freezer.h~freezer-introduce-freezer-firendly-waiting-macros-fix include/linux/freezer.h
---- a/include/linux/freezer.h~freezer-introduce-freezer-firendly-waiting-macros-fix
-+++ a/include/linux/freezer.h
-@@ -134,28 +134,28 @@ static inline void set_freezable(void)
- 
- #define wait_event_freezable(wq, condition)				\
- ({									\
--	int __ret;							\
-+	int __retval;							\
- 	do {								\
--		__ret = wait_event_interruptible(wq, 			\
-+		__retval = wait_event_interruptible(wq, 		\
- 				(condition) || freezing(current));	\
--		if (__ret && !freezing(current))			\
-+		if (__retval && !freezing(current))			\
- 			break;						\
- 		else if (!(condition))					\
--			__ret = -ERESTARTSYS;				\
-+			__retval = -ERESTARTSYS;			\
- 	} while (try_to_freeze());					\
--	__ret;								\
-+	__retval;							\
- })
- 
- 
- #define wait_event_freezable_timeout(wq, condition, timeout)		\
- ({									\
--	long __ret = timeout;						\
-+	long __retval = timeout;					\
- 	do {								\
--		__ret = wait_event_interruptible_timeout(wq,		\
-+		__retval = wait_event_interruptible_timeout(wq,		\
- 				(condition) || freezing(current),	\
--				__ret); 				\
-+				__retval); 				\
- 	} while (try_to_freeze());					\
--	__ret;								\
-+	__retval;							\
- })
- #else /* !CONFIG_PM_SLEEP */
- static inline int frozen(struct task_struct *p) { return 0; }
+diff -puN drivers/media/video/arv.c~drivers-media-video-arvc-fix-memset-in-ioctl drivers/media/video/arv.c
+--- a/drivers/media/video/arv.c~drivers-media-video-arvc-fix-memset-in-ioctl
++++ a/drivers/media/video/arv.c
+@@ -441,7 +441,7 @@ static int ar_do_ioctl(struct inode *ino
+ 	{
+ 		struct video_window *w = arg;
+ 		DEBUG(1, "VIDIOCGWIN:\n");
+-		memset(w, 0, sizeof(w));
++		memset(w, 0, sizeof(*w));
+ 		w->width = ar->width;
+ 		w->height = ar->height;
+ 		return 0;
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch
-uli526x-add-suspend-and-resume-routines.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-introduce-freezer-firendly-waiting-macros-fix.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-use-wait-queue-instead-of-busy-looping.patch
-freezer-measure-freezing-time.patch
-shrink_slab-handle-bad-shrinkers.patch
+emu10k1-remove-redundant-memset.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
+git-dvb.patch
+drivers-media-video-arvc-fix-memset-in-ioctl.patch
+drivers-media-video-videodevc-memset-fix.patch
+drivers-media-video-zoran_driverc-fix-memset-in-ioctl.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
+git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
+git-netdev-all.patch
+usb-remove-redundant-memset-from-amd5536udc.patch
+drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc.patch
+drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch
+drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
+arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
