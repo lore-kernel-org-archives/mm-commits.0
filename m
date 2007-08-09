@@ -1,100 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-fix-section-mismatch-warnings-for-drivers-mmc-host.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 15:50:25 -0700
-Message-ID: <200708092250.l79MoP04023582@imap1.linux-foundation.org>
+Subject: - drivers-media-video-videodevc-memset-fix.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 15:50:18 -0700
+Message-ID: <200708092250.l79MoInc023570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54793 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43135 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758438AbXHIWum (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:42 -0400
+	by vger.kernel.org with ESMTP id S1756308AbXHIWud (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nix.or.die@googlemail.com, drzeus@drzeus.cx, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: fix section mismatch warnings for drivers/mmc/host
+     drivers/media/video/videodev.c: memset fix
 has been removed from the -mm tree.  Its filename was
-     mmc-fix-section-mismatch-warnings-for-drivers-mmc-host.patch
+     drivers-media-video-videodevc-memset-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mmc: fix section mismatch warnings for drivers/mmc/host
-From: Gabriel C <nix.or.die@googlemail.com>
+Subject: drivers/media/video/videodev.c: memset fix
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
+Looks like memset() is zeroing wrong nr of bytes.
 
-WARNING: vmlinux.o(.init.text+0x29d40): Section mismatch: reference to .exit.text:wbsd_release_resources (between 'wbsd_init' and 'wbsd_probe')
-WARNING: vmlinux.o(.init.text+0x29d49): Section mismatch: reference to .exit.text:wbsd_free_mmc (between 'wbsd_init' and 'wbsd_probe')
-WARNING: vmlinux.o(.init.text+0x29f28): Section mismatch: reference to .exit.text:wbsd_free_mmc (between 'wbsd_init' and 'wbsd_probe')
-
-Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/wbsd.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/media/video/videodev.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/wbsd.c~mmc-fix-section-mismatch-warnings-for-drivers-mmc-host drivers/mmc/host/wbsd.c
---- a/drivers/mmc/host/wbsd.c~mmc-fix-section-mismatch-warnings-for-drivers-mmc-host
-+++ a/drivers/mmc/host/wbsd.c
-@@ -1265,7 +1265,7 @@ static int __devinit wbsd_alloc_mmc(stru
- 	return 0;
- }
+diff -puN drivers/media/video/videodev.c~drivers-media-video-videodevc-memset-fix drivers/media/video/videodev.c
+--- a/drivers/media/video/videodev.c~drivers-media-video-videodevc-memset-fix
++++ a/drivers/media/video/videodev.c
+@@ -448,7 +448,7 @@ static int __video_do_ioctl(struct inode
+ 	if (cmd == VIDIOCGMBUF) {
+ 		struct video_mbuf *p=arg;
  
--static void __devexit wbsd_free_mmc(struct device *dev)
-+static void wbsd_free_mmc(struct device *dev)
- {
- 	struct mmc_host *mmc;
- 	struct wbsd_host *host;
-@@ -1357,7 +1357,7 @@ static int __devinit wbsd_request_region
- 	return 0;
- }
+-		memset(p,0,sizeof(p));
++		memset(p, 0, sizeof(*p));
  
--static void __devexit wbsd_release_regions(struct wbsd_host *host)
-+static void wbsd_release_regions(struct wbsd_host *host)
- {
- 	if (host->base)
- 		release_region(host->base, 8);
-@@ -1433,7 +1433,7 @@ err:
- 		"Falling back on FIFO.\n", dma);
- }
- 
--static void __devexit wbsd_release_dma(struct wbsd_host *host)
-+static void wbsd_release_dma(struct wbsd_host *host)
- {
- 	if (host->dma_addr) {
- 		dma_unmap_single(mmc_dev(host->mmc), host->dma_addr,
-@@ -1483,7 +1483,7 @@ static int __devinit wbsd_request_irq(st
- 	return 0;
- }
- 
--static void __devexit wbsd_release_irq(struct wbsd_host *host)
-+static void  wbsd_release_irq(struct wbsd_host *host)
- {
- 	if (!host->irq)
- 		return;
-@@ -1534,7 +1534,7 @@ static int __devinit wbsd_request_resour
-  * Release all resources for the host.
-  */
- 
--static void __devexit wbsd_release_resources(struct wbsd_host *host)
-+static void wbsd_release_resources(struct wbsd_host *host)
- {
- 	wbsd_release_dma(host);
- 	wbsd_release_irq(host);
+ 		if (!vfd->vidiocgmbuf)
+ 			return ret;
 _
 
-Patches currently in -mm which might be from nix.or.die@googlemail.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
-linux-audit-list-is-subscribers-only.patch
-kernel-parameterstxt-watchdogtxt-should-be-wdttxt.patch
-git-kvm.patch
-fix-libata-warnings-with-config_pm=n.patch
-drivers-scsi-g_ncr5380c-ncr53c400_pseudo_dma-is-not.patch
-fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+emu10k1-remove-redundant-memset.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
+git-dvb.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+git-mmc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
+git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
+git-netdev-all.patch
+usb-remove-redundant-memset-from-amd5536udc.patch
+drivers-net-remove-superfluous-memset.patch
+net-tulip-xircom_cbc-remove-superfulous-priv-assignment.patch
+drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc.patch
+drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch
+drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
+git-wireless.patch
+arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
