@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + disable-b44-and-bcm43xx.patch added to -mm tree
-Date: Wed, 08 Aug 2007 17:14:09 -0700
-Message-ID: <200708090019.l790J0Ls005743@imap1.linux-foundation.org>
+Subject: + git-nfsd-build-fixes.patch added to -mm tree
+Date: Thu, 09 Aug 2007 00:53:44 -0700
+Message-ID: <200708090753.l797rmsc021135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44717 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39245 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756551AbXHIAUP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Aug 2007 20:20:15 -0400
+	by vger.kernel.org with ESMTP id S935093AbXHIHyI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 03:54:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com, mb@bu3sch.de
+Cc: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de
 
 
 The patch titled
-     disable b44 and bcm43xx
+     git-nfsd build fixes
 has been added to the -mm tree.  Its filename is
-     disable-b44-and-bcm43xx.patch
+     git-nfsd-build-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: disable b44 and bcm43xx
+Subject: git-nfsd build fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+- fix this:
+
+In file included from fs/nfsctl.c:12:
+include/linux/nfsd/nfsd.h: In function 'nfs4_state_init':
+include/linux/nfsd/nfsd.h:164: warning: 'return' with a value, in function returning void
+include/linux/nfsd/nfsd.h: In function 'nfs4_state_start':
+include/linux/nfsd/nfsd.h:166: warning: 'return' with a value, in function returning void
+
+- tidy things up a bit in there.
+
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig                           |    1 +
- drivers/net/wireless/bcm43xx-mac80211/Kconfig |    1 +
- drivers/net/wireless/bcm43xx/Kconfig          |    1 +
- 3 files changed, 3 insertions(+)
+ include/linux/nfsd/nfsd.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/Kconfig~disable-b44-and-bcm43xx drivers/net/Kconfig
---- a/drivers/net/Kconfig~disable-b44-and-bcm43xx
-+++ a/drivers/net/Kconfig
-@@ -1435,6 +1435,7 @@ config APRICOT
- config B44
- 	tristate "Broadcom 440x/47xx ethernet support"
- 	depends on HAS_IOMEM
-+	depends on BROKEN
- 	select SSB
- 	select MII
- 	help
-diff -puN drivers/net/wireless/bcm43xx-mac80211/Kconfig~disable-b44-and-bcm43xx drivers/net/wireless/bcm43xx-mac80211/Kconfig
---- a/drivers/net/wireless/bcm43xx-mac80211/Kconfig~disable-b44-and-bcm43xx
-+++ a/drivers/net/wireless/bcm43xx-mac80211/Kconfig
-@@ -1,6 +1,7 @@
- config BCM43XX_MAC80211
- 	tristate "Broadcom BCM43xx wireless support (mac80211 stack)"
- 	depends on MAC80211 && WLAN_80211 && EXPERIMENTAL
-+	depends on BROKEN
- 	select FW_LOADER
- 	select SSB
- 	select HW_RANDOM
-diff -puN drivers/net/wireless/bcm43xx/Kconfig~disable-b44-and-bcm43xx drivers/net/wireless/bcm43xx/Kconfig
---- a/drivers/net/wireless/bcm43xx/Kconfig~disable-b44-and-bcm43xx
-+++ a/drivers/net/wireless/bcm43xx/Kconfig
-@@ -2,6 +2,7 @@ config BCM43XX
- 	tristate "Broadcom BCM43xx wireless support"
- 	depends on PCI && IEEE80211 && IEEE80211_SOFTMAC && WLAN_80211 && EXPERIMENTAL
- 	depends on BCM43XX_MAC80211 != 'y'
-+	depends on BROKEN
- 	select WIRELESS_EXT
- 	select FW_LOADER
- 	select HW_RANDOM
+diff -puN include/linux/nfsd/nfsd.h~git-nfsd-build-fixes include/linux/nfsd/nfsd.h
+--- a/include/linux/nfsd/nfsd.h~git-nfsd-build-fixes
++++ a/include/linux/nfsd/nfsd.h
+@@ -161,13 +161,13 @@ time_t nfs4_lease_time(void);
+ void nfs4_reset_lease(time_t leasetime);
+ int nfs4_reset_recoverydir(char *recdir);
+ #else
+-static inline void nfs4_state_init(void) {return 0; }
+-static inline void nfsd4_free_slabs(void){}
+-static inline void nfs4_state_start(void) {return 0; }
+-static inline void nfs4_state_shutdown(void){}
+-static inline time_t nfs4_lease_time(void){return 0;}
+-static inline void nfs4_reset_lease(time_t leasetime){}
+-static inline int nfs4_reset_recoverydir(char *recdir) {return 0;}
++static inline int nfs4_state_init(void) { return 0; }
++static inline void nfsd4_free_slabs(void) { }
++static inline void nfs4_state_start(void) { }
++static inline void nfs4_state_shutdown(void) { }
++static inline time_t nfs4_lease_time(void) { return 0;}
++static inline void nfs4_reset_lease(time_t leasetime) { }
++static inline int nfs4_reset_recoverydir(char *recdir) { return 0; }
+ #endif
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,6 +108,8 @@ ip_auto_config-fix-fix.patch
 fib_trie-cleanup-fix.patch
 introduce-u16_max-and-u32_max-fix.patch
 introduce-strtol_check_range-fix.patch
+git-nfsd-build-fixes.patch
+nfsd-warning-fix.patch
 serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
@@ -120,12 +121,14 @@ git-unionfs-build-fix.patch
 git-unionfs-fix-2.patch
 mct_u232-convert-to-proper-speed-handling-api-fix.patch
 git-wireless.patch
+disable-b44-and-bcm43xx.patch
 revert-x86_64-mm-pci-mmconfig-eax.patch
 fix-x86_64-mm-early-quirks-unification.patch
 x86_64-clean-up-apicid_to_node-declaration.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 mmconfig-validate-against-acpi-motherboard-resources.patch
 x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
+git-xfs.patch
 git-kgdb-fixup.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
 fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
@@ -190,4 +193,3 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-disable-b44-and-bcm43xx.patch
