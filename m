@@ -1,172 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - mm-bdi-init-hooks-fix.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 13:56:34 -0700
-Message-ID: <200708092056.l79KuYQG019037@imap1.linux-foundation.org>
+Subject: - mm-expose-bdi-statistics-in-sysfs.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 13:56:46 -0700
+Message-ID: <200708092056.l79KukXn019058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49013 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44616 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764212AbXHIU4o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:56:44 -0400
+	by vger.kernel.org with ESMTP id S1765210AbXHIU4z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:56:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-bdi-init-hooks-fix
+     mm: expose BDI statistics in sysfs.
 has been removed from the -mm tree.  Its filename was
-     mm-bdi-init-hooks-fix.patch
+     mm-expose-bdi-statistics-in-sysfs.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mm-bdi-init-hooks-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: expose BDI statistics in sysfs.
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-err...
+Expose the per BDI stats in /sys/block/<dev>/queue/*
 
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/ll_rw_blk.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff -puN fs/hugetlbfs/inode.c~mm-bdi-init-hooks-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-bdi-init-hooks-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -967,7 +967,7 @@ static int __init init_hugetlbfs_fs(void
- 					sizeof(struct hugetlbfs_inode_info),
- 					0, 0, init_once);
- 	if (hugetlbfs_inode_cachep == NULL)
--		return out2;
-+		goto out2;
+diff -puN block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs
++++ a/block/ll_rw_blk.c
+@@ -3982,6 +3982,23 @@ static ssize_t queue_max_hw_sectors_show
+ 	return queue_var_show(max_hw_sectors_kb, (page));
+ }
  
- 	error = register_filesystem(&hugetlbfs_fs_type);
- 	if (error)
++static ssize_t queue_nr_reclaimable_show(struct request_queue *q, char *page)
++{
++	unsigned long long nr_reclaimable =
++		bdi_stat(&q->backing_dev_info, BDI_RECLAIMABLE);
++
++	return sprintf(page, "%llu\n",
++			nr_reclaimable >> (PAGE_CACHE_SHIFT - 10));
++}
++
++static ssize_t queue_nr_writeback_show(struct request_queue *q, char *page)
++{
++	unsigned long long nr_writeback =
++		bdi_stat(&q->backing_dev_info, BDI_WRITEBACK);
++
++	return sprintf(page, "%llu\n",
++			nr_writeback >> (PAGE_CACHE_SHIFT - 10));
++}
+ 
+ static struct queue_sysfs_entry queue_requests_entry = {
+ 	.attr = {.name = "nr_requests", .mode = S_IRUGO | S_IWUSR },
+@@ -4006,6 +4023,16 @@ static struct queue_sysfs_entry queue_ma
+ 	.show = queue_max_hw_sectors_show,
+ };
+ 
++static struct queue_sysfs_entry queue_reclaimable_entry = {
++	.attr = {.name = "reclaimable_kb", .mode = S_IRUGO },
++	.show = queue_nr_reclaimable_show,
++};
++
++static struct queue_sysfs_entry queue_writeback_entry = {
++	.attr = {.name = "writeback_kb", .mode = S_IRUGO },
++	.show = queue_nr_writeback_show,
++};
++
+ static struct queue_sysfs_entry queue_iosched_entry = {
+ 	.attr = {.name = "scheduler", .mode = S_IRUGO | S_IWUSR },
+ 	.show = elv_iosched_show,
+@@ -4017,6 +4044,8 @@ static struct attribute *default_attrs[]
+ 	&queue_ra_entry.attr,
+ 	&queue_max_hw_sectors_entry.attr,
+ 	&queue_max_sectors_entry.attr,
++	&queue_reclaimable_entry.attr,
++	&queue_writeback_entry.attr,
+ 	&queue_iosched_entry.attr,
+ 	NULL,
+ };
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
-fbcon-kill-compile-warning-fix.patch
-fix-serial-buffer-memory-leak-fix.patch
-mtdchar-build-fix.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-fix-ide-ide-add-platform-ide-driver.patch
-ide-arm-hack.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-ax88796-printk-fixes.patch
-natsemi-fix-netdev-error-acounting.patch
-git-ixgbe-build-fix.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
-git-nfsd-build-fixes.patch
-nfsd-warning-fix.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-wireless.patch
-disable-b44-and-bcm43xx.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
-pci-align-bar-settings-for-legacy-mode-ide-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-implement-cpu_physical_id-on-smp=n.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-mm-bdi-init-hooks-fix.patch
+radix-tree-use-indirect-bit.patch
+mm-expose-bdi-statistics-in-sysfs.patch
+lib-floating-proportions.patch
+lib-floating-proportions-_single.patch
 lib-floating-proportions-_single-tidy.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+debug-sysfs-files-for-the-current-ratio-size-total.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
 intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+task-containersv11-add-procfs-interface-containers-bdi-init-hooks.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
