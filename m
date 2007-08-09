@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-ipsc-fix-scsi_add_host-warning.patch added to -mm tree
-Date: Thu, 09 Aug 2007 12:41:19 -0700
-Message-ID: <200708091941.l79JfJQI016050@imap1.linux-foundation.org>
+Subject: + message-fusion-remove-redundant-memset.patch added to -mm tree
+Date: Thu, 09 Aug 2007 12:42:01 -0700
+Message-ID: <200708091942.l79Jg1ri016066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41534 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48030 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755001AbXHITld (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 15:41:33 -0400
+	by vger.kernel.org with ESMTP id S1750741AbXHITmO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 15:42:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eugeneteo@kernel.sg
+Cc: m.kozlowski@tuxland.pl, Eric.Moore@lsil.com
 
 
 The patch titled
-     drivers/scsi/ips.c: fix scsi_add_host warning
+     message/fusion: remove redundant memset
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-ipsc-fix-scsi_add_host-warning.patch
+     message-fusion-remove-redundant-memset.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,76 +25,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/scsi/ips.c: fix scsi_add_host warning
-From: Eugene Teo <eugeneteo@kernel.sg>
+Subject: message/fusion: remove redundant memset
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-drivers/scsi/ips.c: In function 'ips_register_scsi':
-drivers/scsi/ips.c:6867: warning: ignoring return value of
-	'scsi_add_host', declared with attribute warn_unused_result
+alloc_fcdev() calls alloc_netdev() which uses kzalloc to alloc all the
+memory together with dev->priv region hence no zeroing of structs inside
+struct mpt_lan_priv needed.
 
-Signed-off-by: Eugene Teo <eugeneteo@kernel.sg>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ips.c |   16 ++++++++++++----
- 1 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/message/fusion/mptlan.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/ips.c~drivers-scsi-ipsc-fix-scsi_add_host-warning drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~drivers-scsi-ipsc-fix-scsi_add_host-warning
-+++ a/drivers/scsi/ips.c
-@@ -6824,13 +6824,14 @@ ips_order_controllers(void)
- static int
- ips_register_scsi(int index)
+diff -puN drivers/message/fusion/mptlan.c~message-fusion-remove-redundant-memset drivers/message/fusion/mptlan.c
+--- a/drivers/message/fusion/mptlan.c~message-fusion-remove-redundant-memset
++++ a/drivers/message/fusion/mptlan.c
+@@ -1351,10 +1351,11 @@ mpt_lan_post_receive_buckets_work(struct
+ static struct net_device *
+ mpt_register_lan_device (MPT_ADAPTER *mpt_dev, int pnum)
  {
-+	int rc = -1;
- 	struct Scsi_Host *sh;
- 	ips_ha_t *ha, *oldha = ips_ha[index];
- 	sh = scsi_host_alloc(&ips_driver_template, sizeof (ips_ha_t));
- 	if (!sh) {
- 		IPS_PRINTK(KERN_WARNING, oldha->pcidev,
- 			   "Unable to register controller with SCSI subsystem\n");
--		return -1;
-+		return rc;
- 	}
- 	ha = IPS_HA(sh);
- 	memcpy(ha, oldha, sizeof (ips_ha_t));
-@@ -6839,8 +6840,7 @@ ips_register_scsi(int index)
- 	if (request_irq(ha->irq, do_ipsintr, IRQF_SHARED, ips_name, ha)) {
- 		IPS_PRINTK(KERN_WARNING, ha->pcidev,
- 			   "Unable to install interrupt handler\n");
--		scsi_host_put(sh);
--		return -1;
-+		goto err_put_sh;
- 	}
+-	struct net_device *dev = alloc_fcdev(sizeof(struct mpt_lan_priv));
+-	struct mpt_lan_priv *priv = NULL;
++	struct net_device *dev;
++	struct mpt_lan_priv *priv;
+ 	u8 HWaddr[FC_ALEN], *a;
  
- 	kfree(oldha);
-@@ -6864,10 +6864,18 @@ ips_register_scsi(int index)
- 	sh->max_channel = ha->nbus - 1;
- 	sh->can_queue = ha->max_cmds - 1;
++	dev = alloc_fcdev(sizeof(struct mpt_lan_priv));
+ 	if (!dev)
+ 		return NULL;
  
--	scsi_add_host(sh, NULL);
-+	rc = scsi_add_host(sh, NULL);
-+	if (rc)
-+		goto err_free_irq;
- 	scsi_scan_host(sh);
+@@ -1366,7 +1367,6 @@ mpt_register_lan_device (MPT_ADAPTER *mp
+ 	priv->mpt_dev = mpt_dev;
+ 	priv->pnum = pnum;
  
- 	return 0;
-+
-+err_free_irq:
-+	free_irq(ha->irq);
-+err_put_sh:
-+	scsi_host_put(sh);
-+	return rc;
- }
+-	memset(&priv->post_buckets_task, 0, sizeof(priv->post_buckets_task));
+ 	INIT_DELAYED_WORK(&priv->post_buckets_task,
+ 			  mpt_lan_post_receive_buckets_work);
+ 	priv->post_buckets_active = 0;
+@@ -1391,8 +1391,6 @@ mpt_register_lan_device (MPT_ADAPTER *mp
+ 	spin_lock_init(&priv->txfidx_lock);
+ 	spin_lock_init(&priv->rxfidx_lock);
  
- /*---------------------------------------------------------------------------*/
+-	memset(&priv->stats, 0, sizeof(priv->stats));
+-
+ 	/*  Grab pre-fetched LANPage1 stuff. :-) */
+ 	a = (u8 *) &mpt_dev->lan_cnfg_page1.HardwareAddressLow;
+ 
 _
 
-Patches currently in -mm which might be from eugeneteo@kernel.sg are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-git-acpi.patch
-git-alsa.patch
+emu10k1-remove-redundant-memset.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
+git-dvb.patch
+drivers-media-video-arvc-fix-memset-in-ioctl.patch
+drivers-media-video-videodevc-memset-fix.patch
+drivers-media-video-zoran_driverc-fix-memset-in-ioctl.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
+git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
 git-netdev-all.patch
-drivers-scsi-ipsc-fix-scsi_add_host-warning.patch
-fs-partitions-checkc-add-add_partition-error-handling.patch
-drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning.patch
+usb-remove-redundant-memset-from-amd5536udc.patch
+drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc.patch
+drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch
+drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
+arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
