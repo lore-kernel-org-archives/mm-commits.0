@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-check-nanoseconds-in-utimensat.patch added to -mm tree
-Date: Thu, 09 Aug 2007 14:31:31 -0700
-Message-ID: <200708092131.l79LVVOg020566@imap1.linux-foundation.org>
+Subject: + fix-execute-checking-in-permission.patch added to -mm tree
+Date: Thu, 09 Aug 2007 14:32:23 -0700
+Message-ID: <200708092132.l79LWN8f020583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47034 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52982 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753703AbXHIVcU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:32:20 -0400
+	by vger.kernel.org with ESMTP id S1755149AbXHIVdM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:33:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, drepper@redhat.com
+Cc: mszeredi@suse.cz, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     VFS: check nanoseconds in utimensat
+     fix execute checking in permission()
 has been added to the -mm tree.  Its filename is
-     vfs-check-nanoseconds-in-utimensat.patch
+     fix-execute-checking-in-permission.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,91 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: VFS: check nanoseconds in utimensat
+Subject: fix execute checking in permission()
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-utimensat() (and possibly other callers of do_utimes()) didn't check if the
-nanosecond value was within the allowed range.
+permission() checks that MAY_EXEC is only allowed on regular files if at least
+one execute bit is set in the file mode.
+
+generic_permission() already ensures this, so the extra check in permission()
+is superfluous.
+
+If the filesystem defines it's own ->permission() the check may still be
+needed.  In this case move it after ->permission().  This is needed because
+filesystems such as FUSE may need to refresh the inode attributes before
+checking permissions.
+
+This check should be moved inside ->permission(), but that's another story.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+)
+ fs/namei.c |   36 ++++++++++++++++++++++++------------
+ 1 files changed, 24 insertions(+), 12 deletions(-)
 
-diff -puN fs/utimes.c~vfs-check-nanoseconds-in-utimensat fs/utimes.c
---- a/fs/utimes.c~vfs-check-nanoseconds-in-utimensat
-+++ a/fs/utimes.c
-@@ -38,6 +38,14 @@ asmlinkage long sys_utime(char __user *f
+diff -puN fs/namei.c~fix-execute-checking-in-permission fs/namei.c
+--- a/fs/namei.c~fix-execute-checking-in-permission
++++ a/fs/namei.c
+@@ -227,10 +227,10 @@ int generic_permission(struct inode *ino
  
- #endif
+ int permission(struct inode *inode, int mask, struct nameidata *nd)
+ {
+-	umode_t mode = inode->i_mode;
+ 	int retval, submask;
  
-+static bool nsec_valid(long nsec)
-+{
-+	if (nsec == UTIME_OMIT || nsec == UTIME_NOW)
-+		return true;
-+
-+	return nsec >= 0 && nsec <= 999999999;
-+}
-+
- /* If times==NULL, set access and modification to current time,
-  * must be owner or have write permission.
-  * Else, update from *times, must be owner or super user.
-@@ -52,6 +60,11 @@ long do_utimes(int dfd, char __user *fil
- 	struct file *f = NULL;
+ 	if (mask & MAY_WRITE) {
++		umode_t mode = inode->i_mode;
  
- 	error = -EINVAL;
-+	if (times && (!nsec_valid(times[0].tv_nsec) ||
-+		      !nsec_valid(times[1].tv_nsec))) {
-+		goto out;
+ 		/*
+ 		 * Nobody gets write access to a read-only fs.
+@@ -246,22 +246,34 @@ int permission(struct inode *inode, int 
+ 			return -EACCES;
+ 	}
+ 
+-
+-	/*
+-	 * MAY_EXEC on regular files requires special handling: We override
+-	 * filesystem execute permissions if the mode bits aren't set or
+-	 * the fs is mounted with the "noexec" flag.
+-	 */
+-	if ((mask & MAY_EXEC) && S_ISREG(mode) && (!(mode & S_IXUGO) ||
+-			(nd && nd->mnt && (nd->mnt->mnt_flags & MNT_NOEXEC))))
+-		return -EACCES;
++	if ((mask & MAY_EXEC) && S_ISREG(inode->i_mode)) {
++		/*
++		 * MAY_EXEC on regular files is denied if the fs is mounted
++		 * with the "noexec" flag.
++		 */
++		if (nd && nd->mnt && (nd->mnt->mnt_flags & MNT_NOEXEC))
++			return -EACCES;
 +	}
-+
- 	if (flags & ~AT_SYMLINK_NOFOLLOW)
- 		goto out;
+ 
+ 	/* Ordinary permission routines do not understand MAY_APPEND. */
+ 	submask = mask & ~MAY_APPEND;
+-	if (inode->i_op && inode->i_op->permission)
++	if (inode->i_op && inode->i_op->permission) {
+ 		retval = inode->i_op->permission(inode, submask, nd);
+-	else
++		if (!retval) {
++			/*
++			 * Exec permission on a regular file is denied if none
++			 * of the execute bits are set.
++			 *
++			 * This check should be done by the ->permission()
++			 * method.
++			 */
++			if ((mask & MAY_EXEC) && S_ISREG(inode->i_mode) &&
++			    !(inode->i_mode & S_IXUGO))
++				return -EACCES;
++		}
++	} else {
+ 		retval = generic_permission(inode, submask, NULL);
++	}
+ 	if (retval)
+ 		return retval;
  
 _
 
@@ -78,6 +120,7 @@ ext2-show-all-mount-options.patch
 ext3-show-all-mount-options.patch
 ext4-show-all-mount-options.patch
 vfs-check-nanoseconds-in-utimensat.patch
+fix-execute-checking-in-permission.patch
 unprivileged-mounts-add-user-mounts-to-the-kernel.patch
 unprivileged-mounts-allow-unprivileged-umount.patch
 unprivileged-mounts-account-user-mounts.patch
@@ -102,7 +145,6 @@ fuse-fix-permission-checking-on-sticky-directories-fix.patch
 fuse-cleanup-in-release.patch
 fuse-no-abort-on-interrupt.patch
 fuse-no-enoent-from-fuse-device-read.patch
-fix-execute-checking-in-permission.patch
 exec-remove-unnecessary-check-for-mnt_noexec.patch
 fuse-fix-setting-i_mode-bits.patch
 fuse-clean-up-execute-permission-checking.patch
