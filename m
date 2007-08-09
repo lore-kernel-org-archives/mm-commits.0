@@ -1,141 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - mm-count-reclaimable-pages-per-bdi.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 13:56:43 -0700
-Message-ID: <200708092056.l79Kuh03019052@imap1.linux-foundation.org>
+Subject: - mtd-give-mtdconcat-devices-their-own-backing_dev_info.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 13:56:39 -0700
+Message-ID: <200708092056.l79KudD7019046@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57490 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48778 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759153AbXHIU44 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:56:56 -0400
+	by vger.kernel.org with ESMTP id S1764356AbXHIU4w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:56:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, rkaiser@sysgo.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: count reclaimable pages per BDI
+     mtd: give mtdconcat devices their own backing_dev_info
 has been removed from the -mm tree.  Its filename was
-     mm-count-reclaimable-pages-per-bdi.patch
+     mtd-give-mtdconcat-devices-their-own-backing_dev_info.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mm: count reclaimable pages per BDI
+Subject: mtd: give mtdconcat devices their own backing_dev_info
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Count per BDI reclaimable pages; nr_reclaimable = nr_dirty + nr_unstable.
+These are actual devices, give them their own BDI.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Robert Kaiser <rkaiser@sysgo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |    2 ++
- fs/nfs/write.c              |    7 +++++++
- include/linux/backing-dev.h |    1 +
- mm/page-writeback.c         |    4 ++++
- mm/truncate.c               |    2 ++
- 5 files changed, 16 insertions(+)
+ drivers/mtd/mtdconcat.c |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN fs/buffer.c~mm-count-reclaimable-pages-per-bdi fs/buffer.c
---- a/fs/buffer.c~mm-count-reclaimable-pages-per-bdi
-+++ a/fs/buffer.c
-@@ -697,6 +697,8 @@ static int __set_page_dirty(struct page 
- 
- 		if (mapping_cap_account_dirty(mapping)) {
- 			__inc_zone_page_state(page, NR_FILE_DIRTY);
-+			__inc_bdi_stat(mapping->backing_dev_info,
-+					BDI_RECLAIMABLE);
- 			task_io_account_write(PAGE_CACHE_SIZE);
- 		}
- 		radix_tree_tag_set(&mapping->page_tree,
-diff -puN fs/nfs/write.c~mm-count-reclaimable-pages-per-bdi fs/nfs/write.c
---- a/fs/nfs/write.c~mm-count-reclaimable-pages-per-bdi
-+++ a/fs/nfs/write.c
-@@ -464,6 +464,7 @@ nfs_mark_request_commit(struct nfs_page 
- 			NFS_PAGE_TAG_COMMIT);
- 	spin_unlock(&inode->i_lock);
- 	inc_zone_page_state(req->wb_page, NR_UNSTABLE_NFS);
-+	inc_bdi_stat(req->wb_page->mapping->backing_dev_info, BDI_RECLAIMABLE);
- 	__mark_inode_dirty(inode, I_DIRTY_DATASYNC);
- }
- 
-@@ -550,6 +551,8 @@ static void nfs_cancel_commit_list(struc
- 	while(!list_empty(head)) {
- 		req = nfs_list_entry(head->next);
- 		dec_zone_page_state(req->wb_page, NR_UNSTABLE_NFS);
-+		dec_bdi_stat(req->wb_page->mapping->backing_dev_info,
-+				BDI_RECLAIMABLE);
- 		nfs_list_remove_request(req);
- 		clear_bit(PG_NEED_COMMIT, &(req)->wb_flags);
- 		nfs_inode_remove_request(req);
-@@ -1210,6 +1213,8 @@ nfs_commit_list(struct inode *inode, str
- 		nfs_list_remove_request(req);
- 		nfs_mark_request_commit(req);
- 		dec_zone_page_state(req->wb_page, NR_UNSTABLE_NFS);
-+		dec_bdi_stat(req->wb_page->mapping->backing_dev_info,
-+				BDI_RECLAIMABLE);
- 		nfs_clear_page_tag_locked(req);
- 	}
- 	return -ENOMEM;
-@@ -1235,6 +1240,8 @@ static void nfs_commit_done(struct rpc_t
- 		nfs_list_remove_request(req);
- 		clear_bit(PG_NEED_COMMIT, &(req)->wb_flags);
- 		dec_zone_page_state(req->wb_page, NR_UNSTABLE_NFS);
-+		dec_bdi_stat(req->wb_page->mapping->backing_dev_info,
-+				BDI_RECLAIMABLE);
- 
- 		dprintk("NFS: commit (%s/%Ld %d@%Ld)",
- 			req->wb_context->path.dentry->d_inode->i_sb->s_id,
-diff -puN include/linux/backing-dev.h~mm-count-reclaimable-pages-per-bdi include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-count-reclaimable-pages-per-bdi
-+++ a/include/linux/backing-dev.h
-@@ -27,6 +27,7 @@ enum bdi_state {
- typedef int (congested_fn)(void *, int);
- 
- enum bdi_stat_item {
-+	BDI_RECLAIMABLE,
- 	NR_BDI_STAT_ITEMS
+diff -puN drivers/mtd/mtdconcat.c~mtd-give-mtdconcat-devices-their-own-backing_dev_info drivers/mtd/mtdconcat.c
+--- a/drivers/mtd/mtdconcat.c~mtd-give-mtdconcat-devices-their-own-backing_dev_info
++++ a/drivers/mtd/mtdconcat.c
+@@ -32,6 +32,7 @@ struct mtd_concat {
+ 	struct mtd_info mtd;
+ 	int num_subdev;
+ 	struct mtd_info **subdev;
++	struct backing_dev_info backing_dev_info;
  };
  
-diff -puN mm/page-writeback.c~mm-count-reclaimable-pages-per-bdi mm/page-writeback.c
---- a/mm/page-writeback.c~mm-count-reclaimable-pages-per-bdi
-+++ a/mm/page-writeback.c
-@@ -827,6 +827,8 @@ int __set_page_dirty_nobuffers(struct pa
- 			WARN_ON_ONCE(!PagePrivate(page) && !PageUptodate(page));
- 			if (mapping_cap_account_dirty(mapping)) {
- 				__inc_zone_page_state(page, NR_FILE_DIRTY);
-+				__inc_bdi_stat(mapping->backing_dev_info,
-+						BDI_RECLAIMABLE);
- 				task_io_account_write(PAGE_CACHE_SIZE);
- 			}
- 			radix_tree_tag_set(&mapping->page_tree,
-@@ -961,6 +963,8 @@ int clear_page_dirty_for_io(struct page 
+ /*
+@@ -782,10 +783,9 @@ struct mtd_info *mtd_concat_create(struc
+ 
+ 	for (i = 1; i < num_devs; i++) {
+ 		if (concat->mtd.type != subdev[i]->type) {
+-			kfree(concat);
+ 			printk("Incompatible device type on \"%s\"\n",
+ 			       subdev[i]->name);
+-			return NULL;
++			goto error;
+ 		}
+ 		if (concat->mtd.flags != subdev[i]->flags) {
+ 			/*
+@@ -794,10 +794,9 @@ struct mtd_info *mtd_concat_create(struc
+ 			 */
+ 			if ((concat->mtd.flags ^ subdev[i]->
+ 			     flags) & ~MTD_WRITEABLE) {
+-				kfree(concat);
+ 				printk("Incompatible device flags on \"%s\"\n",
+ 				       subdev[i]->name);
+-				return NULL;
++				goto error;
+ 			} else
+ 				/* if writeable attribute differs,
+ 				   make super device writeable */
+@@ -809,9 +808,12 @@ struct mtd_info *mtd_concat_create(struc
+ 		 * - copy-mapping is still permitted
  		 */
- 		if (TestClearPageDirty(page)) {
- 			dec_zone_page_state(page, NR_FILE_DIRTY);
-+			dec_bdi_stat(mapping->backing_dev_info,
-+					BDI_RECLAIMABLE);
- 			return 1;
+ 		if (concat->mtd.backing_dev_info !=
+-		    subdev[i]->backing_dev_info)
++		    subdev[i]->backing_dev_info) {
++			concat->backing_dev_info = default_backing_dev_info;
++			bdi_init(&concat->backing_dev_info);
+ 			concat->mtd.backing_dev_info =
+-				&default_backing_dev_info;
++				&concat->backing_dev_info;
++		}
+ 
+ 		concat->mtd.size += subdev[i]->size;
+ 		concat->mtd.ecc_stats.badblocks +=
+@@ -821,10 +823,9 @@ struct mtd_info *mtd_concat_create(struc
+ 		    concat->mtd.oobsize    !=  subdev[i]->oobsize ||
+ 		    !concat->mtd.read_oob  != !subdev[i]->read_oob ||
+ 		    !concat->mtd.write_oob != !subdev[i]->write_oob) {
+-			kfree(concat);
+ 			printk("Incompatible OOB or ECC data on \"%s\"\n",
+ 			       subdev[i]->name);
+-			return NULL;
++			goto error;
  		}
- 		return 0;
-diff -puN mm/truncate.c~mm-count-reclaimable-pages-per-bdi mm/truncate.c
---- a/mm/truncate.c~mm-count-reclaimable-pages-per-bdi
-+++ a/mm/truncate.c
-@@ -72,6 +72,8 @@ void cancel_dirty_page(struct page *page
- 		struct address_space *mapping = page->mapping;
- 		if (mapping && mapping_cap_account_dirty(mapping)) {
- 			dec_zone_page_state(page, NR_FILE_DIRTY);
-+			dec_bdi_stat(mapping->backing_dev_info,
-+					BDI_RECLAIMABLE);
- 			if (account_size)
- 				task_io_account_cancelled_write(account_size);
+ 		concat->subdev[i] = subdev[i];
+ 
+@@ -903,11 +904,10 @@ struct mtd_info *mtd_concat_create(struc
+ 		    kmalloc(num_erase_region *
+ 			    sizeof (struct mtd_erase_region_info), GFP_KERNEL);
+ 		if (!erase_region_p) {
+-			kfree(concat);
+ 			printk
+ 			    ("memory allocation error while creating erase region list"
+ 			     " for device \"%s\"\n", name);
+-			return NULL;
++			goto error;
  		}
+ 
+ 		/*
+@@ -968,6 +968,12 @@ struct mtd_info *mtd_concat_create(struc
+ 	}
+ 
+ 	return &concat->mtd;
++
++error:
++	if (concat->mtd.backing_dev_info == &concat->backing_dev_info)
++		bdi_destroy(&concat->backing_dev_info);
++	kfree(concat);
++	return NULL;
+ }
+ 
+ /*
+@@ -977,6 +983,8 @@ struct mtd_info *mtd_concat_create(struc
+ void mtd_concat_destroy(struct mtd_info *mtd)
+ {
+ 	struct mtd_concat *concat = CONCAT(mtd);
++	if (concat->mtd.backing_dev_info == &concat->backing_dev_info)
++		bdi_destroy(&concat->backing_dev_info);
+ 	if (concat->mtd.numeraseregions)
+ 		kfree(concat->mtd.eraseregions);
+ 	kfree(concat);
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 radix-tree-use-indirect-bit.patch
+mtd-give-mtdconcat-devices-their-own-backing_dev_info.patch
+mm-scalable-bdi-statistics-counters.patch
 mm-count-reclaimable-pages-per-bdi.patch
 mm-count-writeback-pages-per-bdi.patch
 mm-expose-bdi-statistics-in-sysfs.patch
