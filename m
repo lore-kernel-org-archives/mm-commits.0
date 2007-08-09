@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + st340823a-hpa-and-libata.patch added to -mm tree
-Date: Thu, 09 Aug 2007 12:59:30 -0700
-Message-ID: <200708091959.l79JxUld016780@imap1.linux-foundation.org>
+Subject: + jsm-remove-further-unneeded-crud.patch added to -mm tree
+Date: Thu, 09 Aug 2007 12:59:36 -0700
+Message-ID: <200708091959.l79Jxakw016792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56607 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37245 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755567AbXHIUAB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:00:01 -0400
+	by vger.kernel.org with ESMTP id S1755636AbXHIUAF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:00:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, scottk@digi.com
 
 
 The patch titled
-     ST340823A, HPA and libata
+     jsm: Remove further unneeded crud
 has been added to the -mm tree.  Its filename is
-     st340823a-hpa-and-libata.patch
+     jsm-remove-further-unneeded-crud.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ST340823A, HPA and libata
+Subject: jsm: Remove further unneeded crud
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Ok this is a different approach to handling it - knowing it is an off by one
-so we can handle the drive if clipped
+Remove some remaining vestiges of the old hacks jsm had to work around the old
+tty buffering.  With the new tty buffering it simply doesn't matter any more.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
+Acked-by: Scott Kilau <scottk@digi.com> 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    7 +++++++
- include/linux/libata.h    |    1 +
- 2 files changed, 8 insertions(+)
+ drivers/serial/jsm/jsm_tty.c |   42 ++-------------------------------
+ 1 files changed, 3 insertions(+), 39 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~st340823a-hpa-and-libata drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~st340823a-hpa-and-libata
-+++ a/drivers/ata/libata-core.c
-@@ -988,6 +988,10 @@ static u64 ata_hpa_resize(struct ata_dev
- 	else
- 		hpa_sectors = ata_read_native_max_address(dev);
+diff -puN drivers/serial/jsm/jsm_tty.c~jsm-remove-further-unneeded-crud drivers/serial/jsm/jsm_tty.c
+--- a/drivers/serial/jsm/jsm_tty.c~jsm-remove-further-unneeded-crud
++++ a/drivers/serial/jsm/jsm_tty.c
+@@ -500,7 +500,6 @@ void jsm_input(struct jsm_channel *ch)
+ {
+ 	struct jsm_board *bd;
+ 	struct tty_struct *tp;
+-	struct tty_ldisc *ld;
+ 	u32 rmask;
+ 	u16 head;
+ 	u16 tail;
+@@ -574,45 +573,13 @@ void jsm_input(struct jsm_channel *ch)
  
-+	/* Reports one sector too many */
-+	if (hpa_sectors && (dev->horkage & ATA_HORKAGE_HPA_SIZE))
-+		hpa_sectors--;
-+
- 	if (hpa_sectors > sectors) {
- 		ata_dev_printk(dev, KERN_INFO,
- 			"Host Protected Area detected:\n"
-@@ -3863,6 +3867,9 @@ static const struct ata_blacklist_entry 
+ 	jsm_printk(READ, INFO, &ch->ch_bd->pci_dev, "start 2\n");
  
- 	/* Devices with NCQ limits */
+-	/*
+-	 * If the rxbuf is empty and we are not throttled, put as much
+-	 * as we can directly into the linux TTY buffer.
+-	 *
+-	 */
+-	flip_len = TTY_FLIPBUF_SIZE;
+-
+-	len = min(data_len, flip_len);
+-	len = min(len, (N_TTY_BUF_SIZE - 1) - tp->read_cnt);
+-	ld = tty_ldisc_ref(tp);
+-
+-	/*
+-	 * If we were unable to get a reference to the ld,
+-	 * don't flush our buffer, and act like the ld doesn't
+-	 * have any space to put the data right now.
+-	 */
+-	if (!ld) {
+-		len = 0;
+-	} else {
+-		/*
+-		 * If ld doesn't have a pointer to a receive_buf function,
+-		 * flush the data, then act like the ld doesn't have any
+-		 * space to put the data right now.
+-		 */
+-		if (!ld->receive_buf) {
+-				ch->ch_r_head = ch->ch_r_tail;
+-				len = 0;
+-		}
+-	}
+-
+-	if (len <= 0) {
++	if (data_len <= 0) {
+ 		spin_unlock_irqrestore(&ch->ch_lock, lock_flags);
+ 		jsm_printk(READ, INFO, &ch->ch_bd->pci_dev, "jsm_input 1\n");
+-		if (ld)
+-			tty_ldisc_deref(ld);
+ 		return;
+ 	}
  
-+	/* Devices which report 1 sector over size HPA */
-+	{ "ST340823A",		NULL,		ATA_HORKAGE_HPA_SIZE, },
-+
- 	/* End Marker */
- 	{ }
- };
-diff -puN include/linux/libata.h~st340823a-hpa-and-libata include/linux/libata.h
---- a/include/linux/libata.h~st340823a-hpa-and-libata
-+++ a/include/linux/libata.h
-@@ -314,6 +314,7 @@ enum {
- 	ATA_HORKAGE_NONCQ	= (1 << 2),	/* Don't use NCQ */
- 	ATA_HORKAGE_MAX_SEC_128	= (1 << 3),	/* Limit max sects to 128 */
- 	ATA_HORKAGE_IPM		= (1 << 4), 	/* LPM problems */
-+	ATA_HORKAGE_HPA_SIZE	= (1 << 6), 	/* Reports native size off by one */
- };
+-	len = tty_buffer_request_room(tp, len);
++	len = tty_buffer_request_room(tp, data_len);
+ 	n = len;
  
- enum hsm_task_states {
+ 	/*
+@@ -647,7 +614,7 @@ void jsm_input(struct jsm_channel *ch)
+ 				else if (*(ch->ch_equeue +tail +i) & UART_LSR_FE)
+ 					tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_FRAME);
+ 				else
+-				tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_NORMAL);
++					tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_NORMAL);
+ 			}
+ 		} else {
+ 			tty_insert_flip_string(tp, ch->ch_rqueue + tail, s) ;
+@@ -666,9 +633,6 @@ void jsm_input(struct jsm_channel *ch)
+ 	/* Tell the tty layer its okay to "eat" the data now */
+ 	tty_flip_buffer_push(tp);
+ 
+-	if (ld)
+-		tty_ldisc_deref(ld);
+-
+ 	jsm_printk(IOCTL, INFO, &ch->ch_bd->pci_dev, "finish\n");
+ }
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
