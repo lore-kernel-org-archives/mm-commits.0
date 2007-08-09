@@ -1,96 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-remove-x86_cpu_to_log_apicid.patch added to -mm tree
-Date: Thu, 09 Aug 2007 13:21:32 -0700
-Message-ID: <200708092021.l79KLWXO017654@imap1.linux-foundation.org>
+Subject: - hexdump-use-const-notation.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 13:22:53 -0700
+Message-ID: <200708092022.l79KMrFg017681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51341 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37658 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752216AbXHIUWH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:22:07 -0400
+	by vger.kernel.org with ESMTP id S1752174AbXHIUXm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:23:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, clameter@sgi.com
+To: dedekind@yandex.ru, Artem.Bityutskiy@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: remove x86_cpu_to_log_apicid
-has been added to the -mm tree.  Its filename is
-     x86_64-remove-x86_cpu_to_log_apicid.patch
+     hexdump: use const notation
+has been removed from the -mm tree.  Its filename was
+     hexdump-use-const-notation.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: x86_64: remove x86_cpu_to_log_apicid
-From: Mike Travis <travis@sgi.com>
+Subject: hexdump: use const notation
+From: Artem Bityutskiy <dedekind@yandex.ru>
 
-Remove the x86_cpu_to_log_apicid array.  It is set in
-arch/x86_64/kernel/genapic_flat.c:flat_init_apic_ldr() and
-arch/x86_64/kernel/smpboot.c:do_boot_cpu() but it is never
-referenced.
+Mark the buffer to hexdump as const so callers could avoid casting their
+const buffers when calling print_hex_dump().
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/genapic.c      |    2 --
- arch/x86_64/kernel/genapic_flat.c |    1 -
- arch/x86_64/kernel/smpboot.c      |    1 -
- include/asm-x86_64/smp.h          |    1 -
- 4 files changed, 5 deletions(-)
+ include/linux/kernel.h |    2 +-
+ lib/hexdump.c          |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/genapic.c~x86_64-remove-x86_cpu_to_log_apicid arch/x86_64/kernel/genapic.c
---- a/arch/x86_64/kernel/genapic.c~x86_64-remove-x86_cpu_to_log_apicid
-+++ a/arch/x86_64/kernel/genapic.c
-@@ -29,8 +29,6 @@ u8 x86_cpu_to_apicid[NR_CPUS] __read_mos
- 					= { [0 ... NR_CPUS-1] = BAD_APICID };
- EXPORT_SYMBOL(x86_cpu_to_apicid);
- 
--u8 x86_cpu_to_log_apicid[NR_CPUS]	= { [0 ... NR_CPUS-1] = BAD_APICID };
--
- struct genapic __read_mostly *genapic = &apic_flat;
- 
- /*
-diff -puN arch/x86_64/kernel/genapic_flat.c~x86_64-remove-x86_cpu_to_log_apicid arch/x86_64/kernel/genapic_flat.c
---- a/arch/x86_64/kernel/genapic_flat.c~x86_64-remove-x86_cpu_to_log_apicid
-+++ a/arch/x86_64/kernel/genapic_flat.c
-@@ -52,7 +52,6 @@ static void flat_init_apic_ldr(void)
- 
- 	num = smp_processor_id();
- 	id = 1UL << num;
--	x86_cpu_to_log_apicid[num] = id;
- 	apic_write(APIC_DFR, APIC_DFR_FLAT);
- 	val = apic_read(APIC_LDR) & ~APIC_LDR_MASK;
- 	val |= SET_APIC_LOGICAL_ID(id);
-diff -puN arch/x86_64/kernel/smpboot.c~x86_64-remove-x86_cpu_to_log_apicid arch/x86_64/kernel/smpboot.c
---- a/arch/x86_64/kernel/smpboot.c~x86_64-remove-x86_cpu_to_log_apicid
-+++ a/arch/x86_64/kernel/smpboot.c
-@@ -702,7 +702,6 @@ do_rest:
- 		cpu_clear(cpu, cpu_present_map);
- 		cpu_clear(cpu, cpu_possible_map);
- 		x86_cpu_to_apicid[cpu] = BAD_APICID;
--		x86_cpu_to_log_apicid[cpu] = BAD_APICID;
- 		return -EIO;
- 	}
- 
-diff -puN include/asm-x86_64/smp.h~x86_64-remove-x86_cpu_to_log_apicid include/asm-x86_64/smp.h
---- a/include/asm-x86_64/smp.h~x86_64-remove-x86_cpu_to_log_apicid
-+++ a/include/asm-x86_64/smp.h
-@@ -78,7 +78,6 @@ static inline int hard_smp_processor_id(
-  * the real APIC ID <-> CPU # mapping.
+diff -puN include/linux/kernel.h~hexdump-use-const-notation include/linux/kernel.h
+--- a/include/linux/kernel.h~hexdump-use-const-notation
++++ a/include/linux/kernel.h
+@@ -229,7 +229,7 @@ extern void hex_dump_to_buffer(const voi
+ 				char *linebuf, size_t linebuflen, bool ascii);
+ extern void print_hex_dump(const char *level, const char *prefix_str,
+ 				int prefix_type, int rowsize, int groupsize,
+-				void *buf, size_t len, bool ascii);
++				const void *buf, size_t len, bool ascii);
+ extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
+ 			void *buf, size_t len);
+ #define hex_asc(x)	"0123456789abcdef"[x]
+diff -puN lib/hexdump.c~hexdump-use-const-notation lib/hexdump.c
+--- a/lib/hexdump.c~hexdump-use-const-notation
++++ a/lib/hexdump.c
+@@ -145,9 +145,9 @@ EXPORT_SYMBOL(hex_dump_to_buffer);
   */
- extern u8 x86_cpu_to_apicid[NR_CPUS];	/* physical ID */
--extern u8 x86_cpu_to_log_apicid[NR_CPUS];
- extern u8 bios_cpu_apicid[];
+ void print_hex_dump(const char *level, const char *prefix_str, int prefix_type,
+ 			int rowsize, int groupsize,
+-			void *buf, size_t len, bool ascii)
++			const void *buf, size_t len, bool ascii)
+ {
+-	u8 *ptr = buf;
++	const u8 *ptr = buf;
+ 	int i, linelen, remaining = len;
+ 	unsigned char linebuf[200];
  
- static inline int cpu_present_to_apicid(int mps_cpu)
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from dedekind@yandex.ru are
 
-x86_64-remove-x86_cpu_to_log_apicid.patch
+hexdump-use-const-notation.patch
