@@ -1,63 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - v4l-add-additional-ioctls-to-compat_ioctl32.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 15:50:22 -0700
-Message-ID: <200708092250.l79MoMOS023576@imap1.linux-foundation.org>
+Subject: - drivers-media-video-arvc-fix-memset-in-ioctl.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 15:50:15 -0700
+Message-ID: <200708092250.l79MoFBB023567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51502 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59105 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756229AbXHIWuc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:32 -0400
+	by vger.kernel.org with ESMTP id S1762796AbXHIWua (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stevenrwalter@gmail.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     V4L: Add additional ioctls to compat_ioctl32
+     drivers/media/video/arv.c: fix memset in ioctl
 has been removed from the -mm tree.  Its filename was
-     v4l-add-additional-ioctls-to-compat_ioctl32.patch
+     drivers-media-video-arvc-fix-memset-in-ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: V4L: Add additional ioctls to compat_ioctl32
-From: Steven Walter <stevenrwalter@gmail.com>
+Subject: drivers/media/video/arv.c: fix memset in ioctl
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-With the addition of these ioctls, I'm able to watch TV with a 32-bit
-version of tvtime on x86_64
+Looks like memset() is zeroing wrong nr of bytes.
 
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/compat_ioctl32.c |    5 +++++
- 1 files changed, 5 insertions(+)
+ drivers/media/video/arv.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/compat_ioctl32.c~v4l-add-additional-ioctls-to-compat_ioctl32 drivers/media/video/compat_ioctl32.c
---- a/drivers/media/video/compat_ioctl32.c~v4l-add-additional-ioctls-to-compat_ioctl32
-+++ a/drivers/media/video/compat_ioctl32.c
-@@ -848,6 +848,8 @@ long v4l_compat_ioctl32(struct file *fil
- 	case VIDIOCSFREQ32:
- 	case VIDIOCGAUDIO:
- 	case VIDIOCSAUDIO:
-+	case VIDIOCGVBIFMT:
-+	case VIDIOCSVBIFMT:
- #endif
- 	case VIDIOC_QUERYCAP:
- 	case VIDIOC_ENUM_FMT:
-@@ -874,7 +876,10 @@ long v4l_compat_ioctl32(struct file *fil
- 	case VIDIOC_ENUMINPUT:
- 	case VIDIOC_ENUMINPUT32:
- 	case VIDIOC_G_CTRL:
-+	case VIDIOC_S_CTRL:
- 	case VIDIOC_S_CTRL32:
-+	case VIDIOC_S_FREQUENCY:
-+	case VIDIOC_G_FREQUENCY:
- 	case VIDIOC_QUERYCTRL:
- 	case VIDIOC_G_INPUT32:
- 	case VIDIOC_S_INPUT32:
+diff -puN drivers/media/video/arv.c~drivers-media-video-arvc-fix-memset-in-ioctl drivers/media/video/arv.c
+--- a/drivers/media/video/arv.c~drivers-media-video-arvc-fix-memset-in-ioctl
++++ a/drivers/media/video/arv.c
+@@ -441,7 +441,7 @@ static int ar_do_ioctl(struct inode *ino
+ 	{
+ 		struct video_window *w = arg;
+ 		DEBUG(1, "VIDIOCGWIN:\n");
+-		memset(w, 0, sizeof(w));
++		memset(w, 0, sizeof(*w));
+ 		w->width = ar->width;
+ 		w->height = ar->height;
+ 		return 0;
 _
 
-Patches currently in -mm which might be from stevenrwalter@gmail.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
+origin.patch
+emu10k1-remove-redundant-memset.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
 git-dvb.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+git-mmc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
+git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
+git-netdev-all.patch
+usb-remove-redundant-memset-from-amd5536udc.patch
+drivers-net-remove-superfluous-memset.patch
+net-tulip-xircom_cbc-remove-superfulous-priv-assignment.patch
+drivers-net-wan-hdlc_frc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-net-irda-irda-usbc-mostly-kmalloc-memset-conversion-to-kalloc.patch
+drivers-atm-iphasec-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+drivers-block-ccissc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-block-cpqarrayc-better-error-handling-and-kmalloc-memset-conversion-to-kalloc.patch
+drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
+git-wireless.patch
+arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
