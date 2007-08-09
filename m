@@ -1,194 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: + pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x.patch added to -mm tree
-Date: Thu, 09 Aug 2007 14:55:02 -0700
-Message-ID: <200708092155.l79Lt2dC021520@imap1.linux-foundation.org>
+Subject: - alpm-store-interrupt-value.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 14:59:24 -0700
+Message-ID: <200708092159.l79LxOXd021705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34002 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36089 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751988AbXHIVzU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:55:20 -0400
+	by vger.kernel.org with ESMTP id S1750961AbXHIV7i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 17:59:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl
+To: kristen.c.accardi@intel.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
-has been added to the -mm tree.  Its filename is
-     pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x.patch
+     ALPM: store interrupt value
+has been removed from the -mm tree.  Its filename was
+     alpm-store-interrupt-value.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ALPM: store interrupt value
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-Dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION introduced by commit
-296699de6bdc717189a331ab6bbe90e05c94db06 "Introduce CONFIG_SUSPEND for
-suspend-to-Ram and standby" are incorrect, as they don't cover the facts that
-(1) not all architectures support suspend and (2) SMP hibernation is only
-possible on X86 and PPC64 (if CONFIG_PPC64_SWSUSP is set).
+Use a stored value for which interrupts to enable.  Changing this allows us to
+selectively turn off certain interrupts later and have them stay off.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/defconfig |    1 
- include/linux/cpu.h   |    6 ++---
- kernel/cpu.c          |    4 +--
- kernel/power/Kconfig  |   41 ++++++++++++++++++++++++++++++----------
- 4 files changed, 36 insertions(+), 16 deletions(-)
+ drivers/ata/ahci.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/defconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x arch/x86_64/defconfig
---- a/arch/x86_64/defconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x
-+++ a/arch/x86_64/defconfig
-@@ -201,7 +201,6 @@ CONFIG_PM=y
- # CONFIG_PM_DEBUG is not set
- CONFIG_HIBERNATION=y
- CONFIG_PM_STD_PARTITION=""
--CONFIG_SUSPEND_SMP=y
+diff -puN drivers/ata/ahci.c~alpm-store-interrupt-value drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~alpm-store-interrupt-value
++++ a/drivers/ata/ahci.c
+@@ -175,6 +175,7 @@ enum {
+ 	AHCI_FLAG_32BIT_ONLY		= (1 << 28), /* force 32bit */
+ 	AHCI_FLAG_MV_PATA		= (1 << 29), /* PATA port */
+ 	AHCI_FLAG_NO_MSI		= (1 << 30), /* no PCI MSI */
++	AHCI_FLAG_NO_HOTPLUG		= (1 << 31), /* ignore PxSERR.DIAG.N */
  
- #
- # ACPI (Advanced Configuration and Power Interface) Support
-diff -puN include/linux/cpu.h~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x include/linux/cpu.h
---- a/include/linux/cpu.h~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x
-+++ a/include/linux/cpu.h
-@@ -128,16 +128,16 @@ static inline void cpuhotplug_mutex_unlo
- static inline int cpu_is_offline(int cpu) { return 0; }
- #endif		/* CONFIG_HOTPLUG_CPU */
+ 	AHCI_FLAG_COMMON		= ATA_FLAG_SATA | ATA_FLAG_NO_LEGACY |
+ 					  ATA_FLAG_MMIO | ATA_FLAG_PIO_DMA |
+@@ -215,6 +216,7 @@ struct ahci_port_priv {
+ 	unsigned int		ncq_saw_d2h:1;
+ 	unsigned int		ncq_saw_dmas:1;
+ 	unsigned int		ncq_saw_sdb:1;
++	u32 			intr_mask;	/* interrupts to enable */
+ };
  
--#ifdef CONFIG_SUSPEND_SMP
-+#ifdef CONFIG_PM_SLEEP_SMP
- extern int suspend_cpu_hotplug;
+ static int ahci_scr_read(struct ata_port *ap, unsigned int sc_reg, u32 *val);
+@@ -1511,6 +1513,7 @@ static void ahci_thaw(struct ata_port *a
+ 	void __iomem *mmio = ap->host->iomap[AHCI_PCI_BAR];
+ 	void __iomem *port_mmio = ahci_port_base(ap);
+ 	u32 tmp;
++	struct ahci_port_priv *pp = ap->private_data;
  
- extern int disable_nonboot_cpus(void);
- extern void enable_nonboot_cpus(void);
--#else
-+#else /* !CONFIG_PM_SLEEP_SMP */
- #define suspend_cpu_hotplug	0
+ 	/* clear IRQ */
+ 	tmp = readl(port_mmio + PORT_IRQ_STAT);
+@@ -1518,7 +1521,7 @@ static void ahci_thaw(struct ata_port *a
+ 	writel(1 << ap->port_no, mmio + HOST_IRQ_STAT);
  
- static inline int disable_nonboot_cpus(void) { return 0; }
- static inline void enable_nonboot_cpus(void) {}
--#endif
-+#endif /* !CONFIG_PM_SLEEP_SMP */
- 
- #endif /* _LINUX_CPU_H_ */
-diff -puN kernel/cpu.c~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x kernel/cpu.c
---- a/kernel/cpu.c~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x
-+++ a/kernel/cpu.c
-@@ -273,7 +273,7 @@ int __cpuinit cpu_up(unsigned int cpu)
- 	return err;
+ 	/* turn IRQ back on */
+-	writel(DEF_PORT_IRQ, port_mmio + PORT_IRQ_MASK);
++	writel(pp->intr_mask, port_mmio + PORT_IRQ_MASK);
  }
  
--#ifdef CONFIG_SUSPEND_SMP
-+#ifdef CONFIG_PM_SLEEP_SMP
- static cpumask_t frozen_cpus;
+ static void ahci_error_handler(struct ata_port *ap)
+@@ -1672,6 +1675,12 @@ static int ahci_port_start(struct ata_po
+ 	pp->cmd_tbl = mem;
+ 	pp->cmd_tbl_dma = mem_dma;
  
- int disable_nonboot_cpus(void)
-@@ -334,4 +334,4 @@ void enable_nonboot_cpus(void)
- out:
- 	mutex_unlock(&cpu_add_remove_lock);
- }
--#endif
-+#endif /* CONFIG_PM_SLEEP_SMP */
-diff -puN kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x kernel/power/Kconfig
---- a/kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x
-+++ a/kernel/power/Kconfig
-@@ -72,15 +72,10 @@ config PM_TRACE
- 	CAUTION: this option will cause your machine's real-time clock to be
- 	set to an invalid time after a resume.
- 
--config SUSPEND_SMP_POSSIBLE
--	bool
--	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES || PPC_PMAC))
--	depends on SMP
--	default y
--
--config SUSPEND_SMP
-+config PM_SLEEP_SMP
- 	bool
--	depends on SUSPEND_SMP_POSSIBLE && PM_SLEEP
-+	depends on SUSPEND_SMP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
-+	depends on PM_SLEEP
- 	select HOTPLUG_CPU
- 	default y
- 
-@@ -89,20 +84,46 @@ config PM_SLEEP
- 	depends on SUSPEND || HIBERNATION
- 	default y
- 
-+config SUSPEND_UP_POSSIBLE
-+	bool
-+	depends on (X86 && !X86_VOYAGER) || PPC || ARM || BLACKFIN || MIPS \
-+		   || SUPERH || FRV
-+	depends on !SMP
-+	default y
++	/*
++ 	 * Save off initial list of interrupts to be enabled.
++ 	 * This could be changed later
++ 	 */
++	pp->intr_mask = DEF_PORT_IRQ;
 +
-+config SUSPEND_SMP_POSSIBLE
-+	bool
-+	depends on (X86 && !X86_VOYAGER) \
-+		   || (PPC && (PPC_PSERIES || PPC_PMAC)) || ARM
-+	depends on SMP
-+	default y
-+
- config SUSPEND
- 	bool "Suspend to RAM and standby"
- 	depends on PM
--	depends on !SMP || SUSPEND_SMP_POSSIBLE
-+	depends on SUSPEND_UP_POSSIBLE || SUSPEND_SMP_POSSIBLE
- 	default y
- 	---help---
- 	  Allow the system to enter sleep states in which main memory is
- 	  powered and thus its contents are preserved, such as the
- 	  suspend-to-RAM state (i.e. the ACPI S3 state).
+ 	ap->private_data = pp;
  
-+config HIBERNATION_UP_POSSIBLE
-+	bool
-+	depends on X86 || PPC64_SWSUSP || FRV || PPC32
-+	depends on !SMP
-+	default y
-+
-+config HIBERNATION_SMP_POSSIBLE
-+	bool
-+	depends on (X86 && !X86_VOYAGER) || PPC64_SWSUSP
-+	depends on SMP
-+	default y
-+
- config HIBERNATION
- 	bool "Hibernation (aka 'suspend to disk')"
- 	depends on PM && SWAP
--	depends on ((X86 || PPC64_SWSUSP || FRV || PPC32) && !SMP) || SUSPEND_SMP_POSSIBLE
-+	depends on HIBERNATION_UP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
- 	---help---
- 	  Enable the suspend to disk (STD) functionality, which is usually
- 	  called "hibernation" in user interfaces.  STD checkpoints the
+ 	/* engage engines, captain */
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
-hibernation-do-not-try-to-mark-invalid-pfns-as-nosave.patch
-pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x.patch
-uli526x-add-suspend-and-resume-routines.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-introduce-freezer-firendly-waiting-macros-fix.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-use-wait-queue-instead-of-busy-looping.patch
-freezer-measure-freezing-time.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-libata-all.patch
+alpm-store-interrupt-value.patch
+alpm-enable-link-power-management-for-ata-drivers.patch
+alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
+libata-check-for-an-support.patch
+scsi-expose-an-support-to-user-space.patch
+libata-expose-an-to-user-space.patch
+libata-send-event-when-an-received.patch
+acpiphp_ibm-add-missing-n.patch
+cpqphp_ctrlc-remove-dead-code.patch
+acpi-bay-send-envp-with-uevent-fix.patch
+acpi-dock-send-key=value-pair-instead-of-plain-value.patch
