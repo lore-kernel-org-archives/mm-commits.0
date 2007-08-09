@@ -1,93 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-remove-congestion_end.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 13:56:16 -0700
-Message-ID: <200708092056.l79KuGaT019007@imap1.linux-foundation.org>
+Subject: - lib-percpu_counter-variable-batch.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 13:56:19 -0700
+Message-ID: <200708092056.l79KuJIl019013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53692 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46844 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752680AbXHIU4Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:56:25 -0400
+	by vger.kernel.org with ESMTP id S1753063AbXHIU40 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:56:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs: remove congestion_end()
+     lib: percpu_counter variable batch
 has been removed from the -mm tree.  Its filename was
-     nfs-remove-congestion_end.patch
+     lib-percpu_counter-variable-batch.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: nfs: remove congestion_end()
+Subject: lib: percpu_counter variable batch
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-It's redundant, clear_bdi_congested() already wakes the waiters.
+Because the current batch setup has an quadric error bound on the counter,
+allow for an alternative setup.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/write.c              |    4 +---
- include/linux/backing-dev.h |    1 -
- mm/backing-dev.c            |   13 -------------
- 3 files changed, 1 insertion(+), 17 deletions(-)
+ include/linux/percpu_counter.h |   10 +++++++++-
+ lib/percpu_counter.c           |    6 +++---
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN fs/nfs/write.c~nfs-remove-congestion_end fs/nfs/write.c
---- a/fs/nfs/write.c~nfs-remove-congestion_end
-+++ a/fs/nfs/write.c
-@@ -235,10 +235,8 @@ static void nfs_end_page_writeback(struc
- 	struct nfs_server *nfss = NFS_SERVER(inode);
+diff -puN include/linux/percpu_counter.h~lib-percpu_counter-variable-batch include/linux/percpu_counter.h
+--- a/include/linux/percpu_counter.h~lib-percpu_counter-variable-batch
++++ a/include/linux/percpu_counter.h
+@@ -32,9 +32,14 @@ struct percpu_counter {
  
- 	end_page_writeback(page);
--	if (atomic_long_dec_return(&nfss->writeback) < NFS_CONGESTION_OFF_THRESH) {
-+	if (atomic_long_dec_return(&nfss->writeback) < NFS_CONGESTION_OFF_THRESH)
- 		clear_bdi_congested(&nfss->backing_dev_info, WRITE);
--		congestion_end(WRITE);
--	}
+ void percpu_counter_init(struct percpu_counter *fbc, s64 amount);
+ void percpu_counter_destroy(struct percpu_counter *fbc);
+-void percpu_counter_add(struct percpu_counter *fbc, s32 amount);
++void __percpu_counter_add(struct percpu_counter *fbc, s32 amount, s32 batch);
+ s64 percpu_counter_sum(struct percpu_counter *fbc);
+ 
++static inline void percpu_counter_add(struct percpu_counter *fbc, s32 amount)
++{
++	__percpu_counter_add(fbc, amount, FBC_BATCH);
++}
++
+ static inline s64 percpu_counter_read(struct percpu_counter *fbc)
+ {
+ 	return fbc->count;
+@@ -70,6 +75,9 @@ static inline void percpu_counter_destro
+ {
  }
+ 
++#define __percpu_counter_add(fbc, amount, batch) \
++	percpu_counter_add(fbc, amount)
++
+ static inline void
+ percpu_counter_add(struct percpu_counter *fbc, s32 amount)
+ {
+diff -puN lib/percpu_counter.c~lib-percpu_counter-variable-batch lib/percpu_counter.c
+--- a/lib/percpu_counter.c~lib-percpu_counter-variable-batch
++++ a/lib/percpu_counter.c
+@@ -14,7 +14,7 @@ static LIST_HEAD(percpu_counters);
+ static DEFINE_MUTEX(percpu_counters_lock);
+ #endif
+ 
+-void percpu_counter_add(struct percpu_counter *fbc, s32 amount)
++void __percpu_counter_add(struct percpu_counter *fbc, s32 amount, s32 batch)
+ {
+ 	long count;
+ 	s32 *pcount;
+@@ -22,7 +22,7 @@ void percpu_counter_add(struct percpu_co
+ 
+ 	pcount = per_cpu_ptr(fbc->counters, cpu);
+ 	count = *pcount + amount;
+-	if (count >= FBC_BATCH || count <= -FBC_BATCH) {
++	if (count >= batch || count <= -batch) {
+ 		spin_lock(&fbc->lock);
+ 		fbc->count += count;
+ 		*pcount = 0;
+@@ -32,7 +32,7 @@ void percpu_counter_add(struct percpu_co
+ 	}
+ 	put_cpu();
+ }
+-EXPORT_SYMBOL(percpu_counter_add);
++EXPORT_SYMBOL(__percpu_counter_add);
  
  /*
-diff -puN include/linux/backing-dev.h~nfs-remove-congestion_end include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~nfs-remove-congestion_end
-+++ a/include/linux/backing-dev.h
-@@ -93,7 +93,6 @@ static inline int bdi_rw_congested(struc
- void clear_bdi_congested(struct backing_dev_info *bdi, int rw);
- void set_bdi_congested(struct backing_dev_info *bdi, int rw);
- long congestion_wait(int rw, long timeout);
--void congestion_end(int rw);
- 
- #define bdi_cap_writeback_dirty(bdi) \
- 	(!((bdi)->capabilities & BDI_CAP_NO_WRITEBACK))
-diff -puN mm/backing-dev.c~nfs-remove-congestion_end mm/backing-dev.c
---- a/mm/backing-dev.c~nfs-remove-congestion_end
-+++ a/mm/backing-dev.c
-@@ -54,16 +54,3 @@ long congestion_wait(int rw, long timeou
- 	return ret;
- }
- EXPORT_SYMBOL(congestion_wait);
--
--/**
-- * congestion_end - wake up sleepers on a congested backing_dev_info
-- * @rw: READ or WRITE
-- */
--void congestion_end(int rw)
--{
--	wait_queue_head_t *wqh = &congestion_wqh[rw];
--
--	if (waitqueue_active(wqh))
--		wake_up(wqh);
--}
--EXPORT_SYMBOL(congestion_end);
+  * Add up all the per-cpu counts, return the result.  This is a more accurate
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 radix-tree-use-indirect-bit.patch
-nfs-remove-congestion_end.patch
-lib-percpu_counter_add.patch
 lib-percpu_counter-variable-batch.patch
 lib-make-percpu_counter_add-take-s64.patch
 lib-percpu_counter_set.patch
