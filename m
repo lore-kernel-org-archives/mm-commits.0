@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-dubious-legal-statment-from-uio-howto.patch added to -mm tree
-Date: Thu, 09 Aug 2007 13:36:08 -0700
-Message-ID: <200708092036.l79Ka8YL018238@imap1.linux-foundation.org>
+Subject: + spidev-warning-fix.patch added to -mm tree
+Date: Thu, 09 Aug 2007 13:41:30 -0700
+Message-ID: <200708092041.l79KfUXp018462@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45053 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35477 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758132AbXHIUhd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:37:33 -0400
+	by vger.kernel.org with ESMTP id S1753545AbXHIUlt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:41:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, hjk@linutronix.de
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     remove dubious legal statment from uio-howto
+     spidev warning fix
 has been added to the -mm tree.  Its filename is
-     remove-dubious-legal-statment-from-uio-howto.patch
+     spidev-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,74 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove dubious legal statment from uio-howto
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: spidev warning fix
+From: David Brownell <david-b@pacbell.net>
 
-UIO currently contains a rather dubious statement which wants removing.
+Git rid of "warning: passing arg 2 of `access_ok' makes pointer from integer
+without a cast" reported on SH ...  most architectures use macros in that
+test, SH uses inlined functions.
 
-The actual questions around whether user space code that depends tightly
-on kernel GPL code designed to co-work with it are derivative works of
-the kernel is extremely complex, and since we don't have space for either
-a masters length essay on legal issues or need to start flamewars lets
-simply remove the comment and leave law to lawyers
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: <hjk@linutronix.de>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/uio-howto.tmpl |    4 ----
- 1 files changed, 4 deletions(-)
+ drivers/spi/spidev.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/DocBook/uio-howto.tmpl~remove-dubious-legal-statment-from-uio-howto Documentation/DocBook/uio-howto.tmpl
---- a/Documentation/DocBook/uio-howto.tmpl~remove-dubious-legal-statment-from-uio-howto
-+++ a/Documentation/DocBook/uio-howto.tmpl
-@@ -133,10 +133,6 @@ interested in translating it, please ema
- 	<para>updates of your driver can take place without recompiling
- 	the kernel.</para>
- </listitem>
--<listitem>
--	<para>if you need to keep some parts of your driver closed source,
--	you can do so without violating the GPL license on the kernel.</para>
--</listitem>
- </itemizedlist>
+diff -puN drivers/spi/spidev.c~spidev-warning-fix drivers/spi/spidev.c
+--- a/drivers/spi/spidev.c~spidev-warning-fix
++++ a/drivers/spi/spidev.c
+@@ -183,7 +183,9 @@ static int spidev_message(struct spidev_
  
- <sect1 id="how_uio_works">
+ 		if (u_tmp->rx_buf) {
+ 			k_tmp->rx_buf = buf;
+-			if (!access_ok(VERIFY_WRITE, u_tmp->rx_buf, u_tmp->len))
++			if (!access_ok(VERIFY_WRITE, (u8 __user *)
++						(ptrdiff_t) u_tmp->rx_buf,
++						u_tmp->len))
+ 				goto done;
+ 		}
+ 		if (u_tmp->tx_buf) {
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-fix-serial-buffer-memory-leak.patch
-fix-serial-buffer-memory-leak-fix.patch
-nozomi-shoot-defunct-label.patch
-remove-dubious-legal-statment-from-uio-howto.patch
-git-libata-all.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-libata-acpi-checks-for-80wire-cable-headers.patch
-libata-acpi-checks-for-80wire-cable-implementation.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
-libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
-libata-correct-iordy-handling.patch
-st340823a-hpa-and-libata.patch
-pata_cmd64x-set-up-mwdma-modes-properly.patch
-ata_piix-disallow-udma-133-on-ich5-ich7.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-dtc-clean-up-indent-damage-and-add-printk-levels.patch
-kl5kusb105-switch-to-new-speed-api.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-pci-align-bar-settings-for-legacy-mode-ide-fix.patch
-belkin_sa-avoid-divide-by-zero-error.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-char-cyclades-remove-bottom-half-processing.patch
+spidev-warning-fix.patch
+git-mmc.patch
+git-mtd.patch
+dma_free_coherent-needs-irqs-enabled-sigh.patch
+rtc-periodic-irq-fix.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
