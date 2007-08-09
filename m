@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cris-drivers-cdrom-kconfig-no-longer.patch added to -mm tree
-Date: Thu, 09 Aug 2007 13:34:18 -0700
-Message-ID: <200708092034.l79KYIix018186@imap1.linux-foundation.org>
+Subject: + remove-dubious-legal-statment-from-uio-howto.patch added to -mm tree
+Date: Thu, 09 Aug 2007 13:36:08 -0700
+Message-ID: <200708092036.l79Ka8YL018238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57953 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45053 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755530AbXHIUfO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:35:14 -0400
+	by vger.kernel.org with ESMTP id S1758132AbXHIUhd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 16:37:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, starvik@axis.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, hjk@linutronix.de
 
 
 The patch titled
-     cris: drivers/cdrom/Kconfig no longer exists
+     remove dubious legal statment from uio-howto
 has been added to the -mm tree.  Its filename is
-     cris-drivers-cdrom-kconfig-no-longer.patch
+     remove-dubious-legal-statment-from-uio-howto.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cris: drivers/cdrom/Kconfig no longer exists
-From: Adrian Bunk <bunk@kernel.org>
+Subject: remove dubious legal statment from uio-howto
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-scripts/kconfig/conf -d arch/cris/Kconfig
-arch/cris/Kconfig:183: can't open file "drivers/cdrom/Kconfig"
+UIO currently contains a rather dubious statement which wants removing.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Mikael Starvik <starvik@axis.com>
+The actual questions around whether user space code that depends tightly
+on kernel GPL code designed to co-work with it are derivative works of
+the kernel is extremely complex, and since we don't have space for either
+a masters length essay on legal issues or need to start flamewars lets
+simply remove the comment and leave law to lawyers
+
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: <hjk@linutronix.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/Kconfig |    2 --
- 1 files changed, 2 deletions(-)
+ Documentation/DocBook/uio-howto.tmpl |    4 ----
+ 1 files changed, 4 deletions(-)
 
-diff -puN arch/cris/Kconfig~cris-drivers-cdrom-kconfig-no-longer arch/cris/Kconfig
---- a/arch/cris/Kconfig~cris-drivers-cdrom-kconfig-no-longer
-+++ a/arch/cris/Kconfig
-@@ -180,8 +180,6 @@ source "drivers/isdn/Kconfig"
+diff -puN Documentation/DocBook/uio-howto.tmpl~remove-dubious-legal-statment-from-uio-howto Documentation/DocBook/uio-howto.tmpl
+--- a/Documentation/DocBook/uio-howto.tmpl~remove-dubious-legal-statment-from-uio-howto
++++ a/Documentation/DocBook/uio-howto.tmpl
+@@ -133,10 +133,6 @@ interested in translating it, please ema
+ 	<para>updates of your driver can take place without recompiling
+ 	the kernel.</para>
+ </listitem>
+-<listitem>
+-	<para>if you need to keep some parts of your driver closed source,
+-	you can do so without violating the GPL license on the kernel.</para>
+-</listitem>
+ </itemizedlist>
  
- source "drivers/telephony/Kconfig"
- 
--source "drivers/cdrom/Kconfig"
--
- #
- # input before char - char/joystick depends on it. As does USB.
- #
+ <sect1 id="how_uio_works">
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-cris-drivers-cdrom-kconfig-no-longer.patch
+fix-serial-buffer-memory-leak.patch
+fix-serial-buffer-memory-leak-fix.patch
+nozomi-shoot-defunct-label.patch
+remove-dubious-legal-statment-from-uio-howto.patch
+git-libata-all.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+libata-acpi-checks-for-80wire-cable-headers.patch
+libata-acpi-checks-for-80wire-cable-implementation.patch
+libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
+libata-acpi-checks-for-80wire-cable-use-in-pata_via.patch
+libata-correct-iordy-handling.patch
+st340823a-hpa-and-libata.patch
+pata_cmd64x-set-up-mwdma-modes-properly.patch
+ata_piix-disallow-udma-133-on-ich5-ich7.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+dtc-clean-up-indent-damage-and-add-printk-levels.patch
+kl5kusb105-switch-to-new-speed-api.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+pci-align-bar-settings-for-legacy-mode-ide-fix.patch
+belkin_sa-avoid-divide-by-zero-error.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+char-cyclades-remove-bottom-half-processing.patch
