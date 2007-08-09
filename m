@@ -1,92 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: + flush-icache-before-set_pte-on-ia64-migration-fix.patch added to -mm tree
-Date: Thu, 09 Aug 2007 15:33:33 -0700
-Message-ID: <200708092233.l79MXXEF022967@imap1.linux-foundation.org>
+Subject: - lguest-fix-non-tsc-guest-clocksource-lockup.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 15:50:09 -0700
+Message-ID: <200708092250.l79Mo9UR023556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49193 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37015 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750790AbXHIWdu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:33:50 -0400
+	by vger.kernel.org with ESMTP id S1753827AbXHIWuU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 18:50:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, davem@davemloft.net, hugh@veritas.com, nickpiggin@yahoo.com.au, tony.luck@intel.com
+To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flush icache before set_pte() on ia64: migration fix
-has been added to the -mm tree.  Its filename is
-     flush-icache-before-set_pte-on-ia64-migration-fix.patch
+     lguest: fix non-TSC guest clocksource lockup
+has been removed from the -mm tree.  Its filename was
+     lguest-fix-non-tsc-guest-clocksource-lockup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: flush icache before set_pte() on ia64: migration fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: lguest: fix non-TSC guest clocksource lockup
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-In migration, a new page should be cache flushed before set_pte() in some
-archs which have virtually-tagged cache..  I'll separate this from patch set
-in the next time.
+lguest uses a host-supplied wallclock-based clocksource when the TSC is not
+reliable.  As this is already in nanoseconds, I naively used a multiplier of 1
+and a shift of 0.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Acked-by: David S. Miller <davem@davemloft.net>
+But update_wall_time() in its infinite wisdom decides to adjust the clock a
+little (where does it think it's getting a more accurate time from?)
+
+It will happily tweak the multiplier... to 0, then -1.
+
+So the "fix" is to use a shift of 22 like everyone else, and a
+multiplier of 1 << 22.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/lguest/lguest.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~flush-icache-before-set_pte-on-ia64-migration-fix mm/migrate.c
---- a/mm/migrate.c~flush-icache-before-set_pte-on-ia64-migration-fix
-+++ a/mm/migrate.c
-@@ -171,6 +171,7 @@ static void remove_migration_pte(struct 
- 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
- 	if (is_write_migration_entry(entry))
- 		pte = pte_mkwrite(pte);
-+	flush_cache_page(vma, addr, pte_pfn(pte));
- 	set_pte_at(mm, addr, ptep, pte);
+diff -puN drivers/lguest/lguest.c~lguest-fix-non-tsc-guest-clocksource-lockup drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-fix-non-tsc-guest-clocksource-lockup
++++ a/drivers/lguest/lguest.c
+@@ -687,7 +687,8 @@ static struct clocksource lguest_clock =
+ 	.rating		= 400,
+ 	.read		= lguest_clock_read,
+ 	.mask		= CLOCKSOURCE_MASK(64),
+-	.mult		= 1,
++	.mult		= 1 << 22,
++	.shift		= 22,
+ };
  
- 	if (PageAnon(new))
+ /* The "scheduler clock" is just our real clock, adjusted to start at zero */
+@@ -770,7 +771,6 @@ static void lguest_time_init(void)
+ 	 * way, the "rating" is initialized so high that it's always chosen
+ 	 * over any other clocksource. */
+ 	if (lguest_data.tsc_khz) {
+-		lguest_clock.shift = 22;
+ 		lguest_clock.mult = clocksource_khz2mult(lguest_data.tsc_khz,
+ 							 lguest_clock.shift);
+ 		lguest_clock.flags = CLOCK_SOURCE_IS_CONTINUOUS;
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-memory-hotplug-document-take-3.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-sparc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
-memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
-memoryless-nodes-no-need-for-kswapd.patch
-memoryless-nodes-slab-support.patch
-memoryless-nodes-slub-support.patch
-memoryless-nodes-uncached-allocator-updates.patch
-memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
-memoryless-nodes-update-memory-policy-and-page-migration.patch
-memoryless-nodes-add-n_cpu-node-state.patch
-memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
-memoryless-nodes-fix-gfp_thisnode-behavior.patch
-memoryless-nodes-use-n_high_memory-for-cpusets.patch
-flush-icache-before-set_pte-on-ia64-migration-fix.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-memory-unplug-v7-memory-hotplug-cleanup.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-ia64-interface.patch
+origin.patch
+lguest-files-should-explicitly-include-asm-paravirth.patch
+git-kvm.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+radixtree-introduce-radix_tree_next_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+remove-unsafe-from-module-struct.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
