@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-clarify-__add_to_swap_cache-locking-fix.patch added to -mm tree
-Date: Thu, 09 Aug 2007 09:17:06 -0700
-Message-ID: <200708091617.l79GH6C6007540@imap1.linux-foundation.org>
+Subject: + lib-floating-proportions-_single-tidy.patch added to -mm tree
+Date: Thu, 09 Aug 2007 09:29:24 -0700
+Message-ID: <200708091629.l79GTOD4007975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56225 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57695 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764111AbXHIQSK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 12:18:10 -0400
+	by vger.kernel.org with ESMTP id S1756621AbXHIQaC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 12:30:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     mm-clarify-__add_to_swap_cache-locking fix
+     lib-floating-proportions-_single tidy
 has been added to the -mm tree.  Its filename is
-     mm-clarify-__add_to_swap_cache-locking-fix.patch
+     lib-floating-proportions-_single-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,198 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm-clarify-__add_to_swap_cache-locking fix
-From: Hugh Dickins <hugh@veritas.com>
+Subject: lib-floating-proportions-_single tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Nick's mm-clarify-__add_to_swap_cache-locking.patch is fine for mainline,
-but soon generates a "kernel BUG at mm/swap_state.c:78!" when it meets
-mm-implement-swap-prefetching.patch in 2.6.23-rc2-mm1.  We could add a fix
-to the latter, but I think it's better to adjust Nick's, so that it's right
-for whichever tree it's in: move the responsibility to SetPageLocked from
-read_swap_cache_async to add_to_swap_cache.
+- that macro was nasty
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+- this code uses a local variable `pl' which sometime refers to a
+  prop_local_single, other times refers to a prop_local_percpu.  Confusing.
+
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/proportions.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN mm/swap_state.c~mm-clarify-__add_to_swap_cache-locking-fix mm/swap_state.c
---- a/mm/swap_state.c~mm-clarify-__add_to_swap_cache-locking-fix
-+++ a/mm/swap_state.c
-@@ -100,15 +100,18 @@ int add_to_swap_cache(struct page *page,
- {
- 	int error;
+diff -puN lib/proportions.c~lib-floating-proportions-_single-tidy lib/proportions.c
+--- a/lib/proportions.c~lib-floating-proportions-_single-tidy
++++ a/lib/proportions.c
+@@ -116,8 +116,7 @@ void prop_change_shift(struct prop_descr
+ 	pd->pg[index].shift = shift;
  
-+	BUG_ON(PageLocked(page));
- 	if (!swap_duplicate(entry)) {
- 		INC_CACHE_INFO(noent_race);
- 		return -ENOENT;
- 	}
-+	SetPageLocked(page);
- 	error = __add_to_swap_cache(page, entry, GFP_KERNEL);
- 	/*
- 	 * Anon pages are already on the LRU, we don't run lru_cache_add here.
- 	 */
- 	if (error) {
-+		ClearPageLocked(page);
- 		swap_free(entry);
- 		if (error == -EEXIST)
- 			INC_CACHE_INFO(exist_race);
-@@ -345,7 +348,6 @@ struct page *read_swap_cache_async(swp_e
- 								vma, addr);
- 			if (!new_page)
- 				break;		/* Out of memory */
--			SetPageLocked(new_page);/* could be non-atomic op */
- 		}
- 
- 		/*
-@@ -369,9 +371,7 @@ struct page *read_swap_cache_async(swp_e
- 		}
- 	} while (err != -ENOENT && err != -ENOMEM);
- 
--	if (new_page) {
--		ClearPageLocked(new_page);
-+	if (new_page)
- 		page_cache_release(new_page);
--	}
- 	return found_page;
+ 	local_irq_save(flags);
+-	events = percpu_counter_sum(
+-			&pd->pg[pd->index].events);
++	events = percpu_counter_sum(&pd->pg[pd->index].events);
+ 	if (offset < 0)
+ 		events <<= -offset;
+ 	else
+@@ -160,7 +159,7 @@ void prop_put_global(struct prop_descrip
  }
+ 
+ static void
+-__prop_adjust_shift(int *pl_shift, unsigned long *pl_period, int new_shift)
++prop_adjust_shift(int *pl_shift, unsigned long *pl_period, int new_shift)
+ {
+ 	int offset = *pl_shift - new_shift;
+ 
+@@ -175,10 +174,6 @@ __prop_adjust_shift(int *pl_shift, unsig
+ 	*pl_shift = new_shift;
+ }
+ 
+-#define prop_adjust_shift(prop_local, pg_shift)			\
+-	__prop_adjust_shift(&(prop_local)->shift,		\
+-			    &(prop_local)->period, pg_shift)
+-
+ /*
+  * PERCPU
+  */
+@@ -221,7 +216,7 @@ void prop_norm_percpu(struct prop_global
+ 		return;
+ 
+ 	spin_lock_irqsave(&pl->lock, flags);
+-	prop_adjust_shift(pl, pg->shift);
++	prop_adjust_shift(&pl->shift, &pl->period, pg->shift);
+ 	/*
+ 	 * For each missed period, we half the local counter.
+ 	 * basically:
+@@ -312,7 +307,7 @@ void prop_norm_single(struct prop_global
+ 		return;
+ 
+ 	spin_lock_irqsave(&pl->lock, flags);
+-	prop_adjust_shift(pl, pg->shift);
++	prop_adjust_shift(&pl->shift, &pl->period, pg->shift);
+ 	/*
+ 	 * For each missed period, we half the local counter.
+ 	 * basically:
+@@ -364,4 +359,3 @@ void prop_fraction_single(struct prop_gl
+ 	global_count = percpu_counter_read(&pg->events);
+ 	*denominator = period_2 + (global_count & counter_mask);
+ }
+-
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-mm-clarify-__add_to_swap_cache-locking.patch
-radix-tree-use-indirect-bit.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-reiserfs-convert-to-new-aops-fix.patch
-hostfs-convert-to-new-aops-fix.patch
-affs-convert-to-new-aops-fix.patch
-mm-shmemc-make-3-functions-static.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-prio_tree-debugging-patch.patch
-mm-clarify-__add_to_swap_cache-locking-fix.patch
+genirq-temporary-fix-for-level-triggered-irq-resend-fix.patch
+fbcon-kill-compile-warning-fix.patch
+fix-serial-buffer-memory-leak-fix.patch
+mtdchar-build-fix.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+fix-ide-ide-add-platform-ide-driver.patch
+ide-arm-hack.patch
+mmc-make-it-build.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+git-nfsd-build-fixes.patch
+nfsd-warning-fix.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+disable-b44-and-bcm43xx.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+pci-align-bar-settings-for-legacy-mode-ide-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+mm-bdi-init-hooks-fix.patch
+lib-floating-proportions-_single-tidy.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
