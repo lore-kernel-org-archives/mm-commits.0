@@ -1,58 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 13:56:48 -0700
-Message-ID: <200708102056.l7AKunO3008485@imap1.linux-foundation.org>
+Subject: - fib_trie-cleanup-fix.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 14:07:30 -0700
+Message-ID: <200708102107.l7AL7UBJ009146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53921 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36165 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761200AbXHJU5M (ORCPT
+	by vger.kernel.org with ESMTP id S1755154AbXHJVIJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 16:57:12 -0400
+	Fri, 10 Aug 2007 17:08:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kluo@nvidia.com, pchen@nvidia.com, zboszor@dunaweb.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, paulmck@linux.vnet.ibm.com, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
+     fib_trie-cleanup-fix
 has been removed from the -mm tree.  Its filename was
-     ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+     fib_trie-cleanup-fix.patch
 
-This patch was dropped because it was folded into ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+This patch was dropped because it was folded into fib_trie-cleanup.patch
 
 ------------------------------------------------------
-Subject: ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
+Subject: fib_trie-cleanup-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this:
-
-drivers/ata/sata_nv.c:2260: error: too few arguments to function 'ap->ops->scr_read'
-
-Is this right?
-
-Cc: Kuan Luo <kluo@nvidia.com>
-Cc: Peer Chen <pchen@nvidia.com>
-Cc: Zoltan Boszormenyi <zboszor@dunaweb.hu>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/ipv4/fib_trie.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
-+++ a/drivers/ata/sata_nv.c
-@@ -2256,7 +2256,8 @@ static void nv_swncq_host_interrupt(stru
- 	if (!pp->qc_active)
- 		return;
+diff -puN net/ipv4/fib_trie.c~fib_trie-cleanup-fix net/ipv4/fib_trie.c
+--- a/net/ipv4/fib_trie.c~fib_trie-cleanup-fix
++++ a/net/ipv4/fib_trie.c
+@@ -169,7 +169,10 @@ static struct trie *trie_local = NULL, *
  
--	serror = ap->ops->scr_read(ap, SCR_ERROR);
-+	if (ap->ops->scr_read(ap, SCR_ERROR, &serror))
-+		return;
- 	ap->ops->scr_write(ap, SCR_ERROR, serror);
+ static inline struct tnode *node_parent(struct node *node)
+ {
+-	return rcu_dereference((struct tnode *) (node->parent & ~NODE_TYPE_MASK));
++	struct tnode *ret;
++
++	ret = (struct tnode *)(node->parent & ~NODE_TYPE_MASK);
++	return rcu_dereference(ret);
+ }
  
- 	if (ata_stat & ATA_ERR) {
+ static inline void node_set_parent(struct node *node, struct tnode *ptr)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +74,6 @@ iforce-warning-fix.patch
 git-kvm.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 ide-arm-hack.patch
 git-mtd.patch
 git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
@@ -90,7 +85,8 @@ ax88796-printk-fixes.patch
 natsemi-fix-netdev-error-acounting.patch
 git-ixgbe-build-fix.patch
 git-net-fixup.patch
-ip_auto_config-fix-fix.patch
+ip_auto_config-fix.patch
+fib_trie-cleanup.patch
 fib_trie-cleanup-fix.patch
 introduce-u16_max-and-u32_max-fix.patch
 introduce-strtol_check_range-fix.patch
