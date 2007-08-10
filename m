@@ -1,62 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-strtol_check_range-fix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 14:09:42 -0700
-Message-ID: <200708102109.l7AL9gIU009244@imap1.linux-foundation.org>
+Subject: - serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 14:15:22 -0700
+Message-ID: <200708102115.l7ALFMQ7009675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57548 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47521 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S942188AbXHJVKX (ORCPT
+	by vger.kernel.org with ESMTP id S1765954AbXHJVPk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 17:10:23 -0400
+	Fri, 10 Aug 2007 17:15:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, satyam@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, minyard@acm.org, rmk+lkml@arm.linux.org.uk, yinghai.lu@sun.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce-strtol_check_range-fix
+     serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix
 has been removed from the -mm tree.  Its filename was
-     introduce-strtol_check_range-fix.patch
+     serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
 
-This patch was dropped because it was folded into introduce-strtol_check_range.patch
+This patch was dropped because it was folded into serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
 
 ------------------------------------------------------
-Subject: introduce-strtol_check_range-fix
+Subject: serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Satyam Sharma <satyam@infradead.org>
+opportunism
+
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Russell King <rmk+lkml@arm.linux.org.uk>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    3 ++-
- lib/vsprintf.c         |    1 -
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/serial/8250.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/kernel.h~introduce-strtol_check_range-fix include/linux/kernel.h
---- a/include/linux/kernel.h~introduce-strtol_check_range-fix
-+++ a/include/linux/kernel.h
-@@ -121,7 +121,8 @@ extern unsigned long simple_strtoul(cons
- extern long simple_strtol(const char *,char **,unsigned int);
- extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
- extern long long simple_strtoll(const char *,char **,unsigned int);
--extern long strtol_check_range(const char *,long,long,unsigned int);
-+extern long strtol_check_range(const char *cp, long min, long max,
-+				unsigned int base);
- extern int sprintf(char * buf, const char * fmt, ...)
- 	__attribute__ ((format (printf, 2, 3)));
- extern int vsprintf(char *buf, const char *, va_list)
-diff -puN lib/vsprintf.c~introduce-strtol_check_range-fix lib/vsprintf.c
---- a/lib/vsprintf.c~introduce-strtol_check_range-fix
-+++ a/lib/vsprintf.c
-@@ -153,7 +153,6 @@ long strtol_check_range(const char *cp, 
+diff -puN drivers/serial/8250.c~serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix
++++ a/drivers/serial/8250.c
+@@ -1906,10 +1906,10 @@ static int serial8250_startup(struct uar
+ 	 * saved flags to avoid getting false values from polling
+ 	 * routines or the previous session.
+ 	 */
+-	(void) serial_inp(up, UART_LSR);
+-	(void) serial_inp(up, UART_RX);
+-	(void) serial_inp(up, UART_IIR);
+-	(void) serial_inp(up, UART_MSR);
++	serial_inp(up, UART_LSR);
++	serial_inp(up, UART_RX);
++	serial_inp(up, UART_IIR);
++	serial_inp(up, UART_MSR);
+ 	up->lsr_saved_flags = 0;
+ 	up->msr_saved_flags = 0;
  
- 	return ret;
- }
--
- EXPORT_SYMBOL(strtol_check_range);
- 
- static int skip_atoi(const char **s)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,8 +95,8 @@ ip_auto_config-fix.patch
 fib_trie-cleanup.patch
 introduce-u16_max-and-u32_max.patch
 introduce-strtol_check_range.patch
-introduce-strtol_check_range-fix.patch
 git-nfsd.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
 serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
