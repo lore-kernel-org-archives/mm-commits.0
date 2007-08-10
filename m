@@ -1,60 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 14:15:22 -0700
-Message-ID: <200708102115.l7ALFMQ7009675@imap1.linux-foundation.org>
+Subject: - ip_auto_config-fix-fix.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 14:06:26 -0700
+Message-ID: <200708102106.l7AL6QlL009087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47521 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38717 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765954AbXHJVPk (ORCPT
+	by vger.kernel.org with ESMTP id S1759952AbXHJVP7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 17:15:40 -0400
+	Fri, 10 Aug 2007 17:15:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, minyard@acm.org, rmk+lkml@arm.linux.org.uk, yinghai.lu@sun.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, joakim.tjernlund@transmode.se, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix
+     ip_auto_config-fix fix
 has been removed from the -mm tree.  Its filename was
-     serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+     ip_auto_config-fix-fix.patch
 
-This patch was dropped because it was folded into serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+This patch was dropped because it was folded into ip_auto_config-fix.patch
 
 ------------------------------------------------------
-Subject: serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix
+Subject: ip_auto_config-fix fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-opportunism
+Davem said (in February!):
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Corey Minyard <minyard@acm.org>
-Cc: Russell King <rmk+lkml@arm.linux.org.uk>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
+  Well, first of all the change in question is not in 2.4.x either.  I just
+  checked the current 2.4.x GIT tree and the test is exactly:
+
+	if (ic_myaddr == INADDR_NONE ||
+#ifdef CONFIG_ROOT_NFS
+	    (MAJOR(ROOT_DEV) == UNNAMED_MAJOR
+	     && root_server_addr == INADDR_NONE
+	     && ic_servaddr == INADDR_NONE) ||
+#endif
+	    ic_first_dev->next) {
+
+  which matches 2.6.x
+
+  I even checked 2.4.x when it was branched for 2.5.x and the test was the
+  same at the point in time too.
+
+  Looking at the proposed change a bit it appears that it is probably
+  correct, as it's trying to check that ROOT_DEV is nfs root.  But if it is
+  correct then the UNNAMED_MAJOR comparison in the same code block should be
+  removed as it becomes superfluous.
+
+  I'm happy to apply this patch with that modification made.
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Joakim Tjernlund <joakim.tjernlund@transmode.se>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ net/ipv4/ipconfig.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/serial/8250.c~serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix
-+++ a/drivers/serial/8250.c
-@@ -1906,10 +1906,10 @@ static int serial8250_startup(struct uar
- 	 * saved flags to avoid getting false values from polling
- 	 * routines or the previous session.
+diff -puN net/ipv4/ipconfig.c~ip_auto_config-fix-fix net/ipv4/ipconfig.c
+--- a/net/ipv4/ipconfig.c~ip_auto_config-fix-fix
++++ a/net/ipv4/ipconfig.c
+@@ -1281,8 +1281,7 @@ static int __init ip_auto_config(void)
  	 */
--	(void) serial_inp(up, UART_LSR);
--	(void) serial_inp(up, UART_RX);
--	(void) serial_inp(up, UART_IIR);
--	(void) serial_inp(up, UART_MSR);
-+	serial_inp(up, UART_LSR);
-+	serial_inp(up, UART_RX);
-+	serial_inp(up, UART_IIR);
-+	serial_inp(up, UART_MSR);
- 	up->lsr_saved_flags = 0;
- 	up->msr_saved_flags = 0;
- 
+ 	if (ic_myaddr == NONE ||
+ #ifdef CONFIG_ROOT_NFS
+-	    (MAJOR(ROOT_DEV) == UNNAMED_MAJOR
+-	     && root_server_addr == NONE
++	    (root_server_addr == NONE
+ 	     && ic_servaddr == NONE
+ 	     && ROOT_DEV == Root_NFS) ||
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,11 +109,11 @@ natsemi-fix-netdev-error-acounting.patch
 git-ixgbe-build-fix.patch
 git-net-fixup.patch
 ip_auto_config-fix.patch
-fib_trie-cleanup.patch
-introduce-u16_max-and-u32_max.patch
-introduce-strtol_check_range.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
 git-nfsd.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
 serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
