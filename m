@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-ipv6-route-flushing-kill-binary-path.patch added to -mm tree
-Date: Thu, 09 Aug 2007 18:41:58 -0700
-Message-ID: <200708100141.l7A1fwBU029573@imap1.linux-foundation.org>
+Subject: + sysct-mqueue-remove-the-binary-sysctl-numbers.patch added to -mm tree
+Date: Thu, 09 Aug 2007 18:41:54 -0700
+Message-ID: <200708100141.l7A1fsdV029562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50225 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34515 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754319AbXHJBml (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:42:41 -0400
+	by vger.kernel.org with ESMTP id S1754582AbXHJBmh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:42:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, adobriyan@sw.ru, davem@davemloft.net
+Cc: ebiederm@xmission.com, adobriyan@sw.ru
 
 
 The patch titled
-     sysctl: ipv6 route flushing (kill binary path)
+     sysctl mqueue: remove the binary sysctl numbers
 has been added to the -mm tree.  Its filename is
-     sysctl-ipv6-route-flushing-kill-binary-path.patch
+     sysct-mqueue-remove-the-binary-sysctl-numbers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: ipv6 route flushing (kill binary path)
+Subject: sysctl mqueue: remove the binary sysctl numbers
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-We don't preoperly support the sysctl binary path for flushing the ipv6
-routes.  So remove support for a binary path.
+Because of a conflict with FS_INODE_NR none of the binary sysctl numbers use
+by mqueue, were available to user space.  So just remove them.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv6/route.c |    1 -
- 1 file changed, 1 deletion(-)
+ ipc/mqueue.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN net/ipv6/route.c~sysctl-ipv6-route-flushing-kill-binary-path net/ipv6/route.c
---- a/net/ipv6/route.c~sysctl-ipv6-route-flushing-kill-binary-path
-+++ a/net/ipv6/route.c
-@@ -2458,7 +2458,6 @@ int ipv6_sysctl_rtcache_flush(ctl_table 
+diff -puN ipc/mqueue.c~sysct-mqueue-remove-the-binary-sysctl-numbers ipc/mqueue.c
+--- a/ipc/mqueue.c~sysct-mqueue-remove-the-binary-sysctl-numbers
++++ a/ipc/mqueue.c
+@@ -44,12 +44,6 @@
+ #define STATE_PENDING	1
+ #define STATE_READY	2
  
- ctl_table ipv6_route_table[] = {
+-/* used by sysctl */
+-#define FS_MQUEUE 	1
+-#define CTL_QUEUESMAX 	2
+-#define CTL_MSGMAX 	3
+-#define CTL_MSGSIZEMAX 	4
+-
+ /* default values */
+ #define DFLT_QUEUESMAX	256	/* max number of message queues */
+ #define DFLT_MSGMAX 	10	/* max number of messages in each queue */
+@@ -1197,7 +1191,6 @@ static int msg_maxsize_limit_max = INT_M
+ 
+ static ctl_table mq_sysctls[] = {
  	{
--		.ctl_name	=	NET_IPV6_ROUTE_FLUSH,
- 		.procname	=	"flush",
- 		.data		=	&flush_delay,
- 		.maxlen		=	sizeof(int),
+-		.ctl_name	= CTL_QUEUESMAX,
+ 		.procname	= "queues_max",
+ 		.data		= &queues_max,
+ 		.maxlen		= sizeof(int),
+@@ -1205,7 +1198,6 @@ static ctl_table mq_sysctls[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+ 	{
+-		.ctl_name	= CTL_MSGMAX,
+ 		.procname	= "msg_max",
+ 		.data		= &msg_max,
+ 		.maxlen		= sizeof(int),
+@@ -1215,7 +1207,6 @@ static ctl_table mq_sysctls[] = {
+ 		.extra2		= &msg_max_limit_max,
+ 	},
+ 	{
+-		.ctl_name	= CTL_MSGSIZEMAX,
+ 		.procname	= "msgsize_max",
+ 		.data		= &msgsize_max,
+ 		.maxlen		= sizeof(int),
+@@ -1229,7 +1220,6 @@ static ctl_table mq_sysctls[] = {
+ 
+ static ctl_table mq_sysctl_dir[] = {
+ 	{
+-		.ctl_name	= FS_MQUEUE,
+ 		.procname	= "mqueue",
+ 		.mode		= 0555,
+ 		.child		= mq_sysctls,
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
