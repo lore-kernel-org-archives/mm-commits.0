@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + bsg-declare-request_queue.patch added to -mm tree
-Date: Fri, 10 Aug 2007 09:37:53 -0700
-Message-ID: <200708101637.l7AGbrva030699@imap1.linux-foundation.org>
+Subject: + git-net-fixup.patch added to -mm tree
+Date: Fri, 10 Aug 2007 12:07:05 -0700
+Message-ID: <200708101907.l7AJ759R003821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41047 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54128 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765418AbXHJQiU (ORCPT
+	by vger.kernel.org with ESMTP id S939901AbXHJTHM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 12:38:20 -0400
+	Fri, 10 Aug 2007 15:07:12 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7AJ7AX9001430
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 10 Aug 2007 12:07:11 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     bsg: declare request_queue
+     git-net-fixup
 has been added to the -mm tree.  Its filename is
-     bsg-declare-request_queue.patch
+     git-net-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +30,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bsg: declare request_queue
+Subject: git-net-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-include/linux/bsg.h:67: warning: 'struct request_queue' declared inside parameter list
-include/linux/bsg.h:67: warning: its scope is only this definition or declaration, which is probably not what you want
-include/linux/bsg.h:71: warning: 'struct request_queue' declared inside parameter list
-
-Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bsg.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/cxgb3/cxgb3_main.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/bsg.h~bsg-declare-request_queue include/linux/bsg.h
---- a/include/linux/bsg.h~bsg-declare-request_queue
-+++ a/include/linux/bsg.h
-@@ -53,6 +53,8 @@ struct sg_io_v4 {
+diff -puN drivers/net/cxgb3/cxgb3_main.c~git-net-fixup drivers/net/cxgb3/cxgb3_main.c
+--- a/drivers/net/cxgb3/cxgb3_main.c~git-net-fixup
++++ a/drivers/net/cxgb3/cxgb3_main.c
+@@ -1489,8 +1489,9 @@ static int set_eeprom(struct net_device 
+ {
+ 	u8 *buf;
+ 	int err;
++	struct port_info *pi = netdev_priv(dev);
++	struct adapter *adapter = pi->adapter;
+ 	u32 aligned_offset, aligned_len, *p;
+-	struct adapter *adapter = dev->priv;
  
- #ifdef __KERNEL__
- 
-+struct request_queue;
-+
- #if defined(CONFIG_BLK_DEV_BSG)
- struct bsg_class_device {
- 	struct class_device *class_dev;
+ 	if (eeprom->magic != EEPROM_MAGIC)
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +87,7 @@ revert-8139too-clean-up-i-o-remapping.patch
 ax88796-printk-fixes.patch
 natsemi-fix-netdev-error-acounting.patch
 git-ixgbe-build-fix.patch
+git-net-fixup.patch
 ip_auto_config-fix-fix.patch
 fib_trie-cleanup-fix.patch
 introduce-u16_max-and-u32_max-fix.patch
@@ -96,6 +98,7 @@ add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
 i386-add-support-for-picopower-irq-router.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
+bsg-declare-request_queue.patch
 aacraid-rename-check_reset.patch
 drivers-scsi-ipsc-fix-scsi_add_host-warning-fix.patch
 scsi-ipsc-warning-fix.patch
@@ -175,4 +178,3 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-bsg-declare-request_queue.patch
