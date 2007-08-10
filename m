@@ -1,178 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-ipsc-warning-fix.patch added to -mm tree
-Date: Thu, 09 Aug 2007 17:36:31 -0700
-Message-ID: <200708100041.l7A0fOqJ027431@imap1.linux-foundation.org>
+Subject: - allow-rcutorture-to-handle-synchronize_sched.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 18:35:18 -0700
+Message-ID: <200708100135.l7A1ZIR0029361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34989 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37786 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754575AbXHJAmF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 20:42:05 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7A0fTmp001986
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 9 Aug 2007 17:41:34 -0700
+	by vger.kernel.org with ESMTP id S1754708AbXHJBfk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:35:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: paulmck@linux.vnet.ibm.com, josh@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: ipsc warning fix
-has been added to the -mm tree.  Its filename is
-     scsi-ipsc-warning-fix.patch
+     Allow rcutorture to handle synchronize_sched()
+has been removed from the -mm tree.  Its filename was
+     allow-rcutorture-to-handle-synchronize_sched.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: scsi: ipsc warning fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Allow rcutorture to handle synchronize_sched()
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-drivers/scsi/ips.c: In function 'ips_insert_device':
-drivers/scsi/ips.c:6957: warning: 'index' may be used uninitialized in this function
+The rcutorture module uses a random-number generator that periodically
+calls get_random_bytes() to add entropy.  This random-number generator is
+invoked from within the RCU read-side critical section, which, in the case
+of the synchronize_sched() variant of RCU, has preeemption disabled. 
+Unfortunately, get_random_bytes() ends up acquiring normal spinlocks, which
+can block in -rt, resulting in very large numbers of "scheduling while
+atomic" messages.
 
+This patch takes a very crude approach, simply substituting the time
+of day for get_random_bytes().
 
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Acked-by: Josh Triplett <josh@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ips.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/rcutorture.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/ips.c~scsi-ipsc-warning-fix drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~scsi-ipsc-warning-fix
-+++ a/drivers/scsi/ips.c
-@@ -6954,7 +6954,7 @@ module_exit(ips_module_exit);
- static int __devinit
- ips_insert_device(struct pci_dev *pci_dev, const struct pci_device_id *ent)
- {
--	int index;
-+	int unintialized_var(index);
- 	int rc;
+diff -puN kernel/rcutorture.c~allow-rcutorture-to-handle-synchronize_sched kernel/rcutorture.c
+--- a/kernel/rcutorture.c~allow-rcutorture-to-handle-synchronize_sched
++++ a/kernel/rcutorture.c
+@@ -166,16 +166,13 @@ struct rcu_random_state {
  
- 	METHOD_TRACE("ips_insert_device", 1);
+ /*
+  * Crude but fast random-number generator.  Uses a linear congruential
+- * generator, with occasional help from get_random_bytes().
++ * generator, with occasional help from the time-of-day clock.
+  */
+ static unsigned long
+ rcu_random(struct rcu_random_state *rrsp)
+ {
+-	long refresh;
+-
+ 	if (--rrsp->rrs_count < 0) {
+-		get_random_bytes(&refresh, sizeof(refresh));
+-		rrsp->rrs_state += refresh;
++		rrsp->rrs_state += xtime.tv_nsec;
+ 		rrsp->rrs_count = RCU_RANDOM_REFRESH;
+ 	}
+ 	rrsp->rrs_state = rrsp->rrs_state * RCU_RANDOM_MULT + RCU_RANDOM_ADD;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
-fbcon-kill-compile-warning-fix.patch
-fix-serial-buffer-memory-leak-fix.patch
-mtdchar-build-fix.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events-fix.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-ide-arm-hack.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-ax88796-printk-fixes.patch
-natsemi-fix-netdev-error-acounting.patch
-git-ixgbe-build-fix.patch
-ip_auto_config-fix-fix.patch
+allow-rcutorture-to-handle-synchronize_sched.patch
+rcu-remove-prototype-for-nonexistent-function.patch
 fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
-git-nfsd.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-aacraid-rename-check_reset.patch
-drivers-scsi-ipsc-fix-scsi_add_host-warning-fix.patch
-scsi-ipsc-warning-fix.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-wireless.patch
-disable-b44-and-bcm43xx.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
-fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
-pci-align-bar-settings-for-legacy-mode-ide-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-implement-cpu_physical_id-on-smp=n.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+clean-up-duplicate-includes-in-kernel.patch
+make-access-to-tasks-nsproxy-lighter.patch
