@@ -1,23 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + flush-cache-before-installing-new-page-at-migraton.patch added to -mm tree
-Date: Thu, 09 Aug 2007 19:23:32 -0700
-Message-ID: <200708100223.l7A2NWPs031120@imap1.linux-foundation.org>
+Subject: + implement-cpu_physical_id-on-smp=n-fix.patch added to -mm tree
+Date: Thu, 09 Aug 2007 21:19:38 -0700
+Message-ID: <200708100424.l7A4OVOt003411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50250 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33384 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764208AbXHJCYj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 22:24:39 -0400
+	by vger.kernel.org with ESMTP id S1750926AbXHJEZO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Fri, 10 Aug 2007 00:25:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, davem@davemloft.net, hugh@veritas.com, nickpiggin@yahoo.com.au, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, ak@suse.de, shannon.nelson@intel.com, tony.luck@intel.com
 
 
 The patch titled
-     flush cache before installing new page at migraton
+     implement-cpu_physical_id-on-smp=n-fix
 has been added to the -mm tree.  Its filename is
-     flush-cache-before-installing-new-page-at-migraton.patch
+     implement-cpu_physical_id-on-smp=n-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,67 +26,158 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: flush cache before installing new page at migraton
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: implement-cpu_physical_id-on-smp=n-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In migration, a new page should be cache flushed before set_pte() in some
-archs which have virtually-tagged cache.
+this is sooooooo screwed up.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Shannon Nelson <shannon.nelson@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/smp.h |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/migrate.c~flush-cache-before-installing-new-page-at-migraton mm/migrate.c
---- a/mm/migrate.c~flush-cache-before-installing-new-page-at-migraton
-+++ a/mm/migrate.c
-@@ -171,6 +171,7 @@ static void remove_migration_pte(struct 
- 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
- 	if (is_write_migration_entry(entry))
- 		pte = pte_mkwrite(pte);
-+	flush_cache_page(vma, addr, pte_pfn(pte));
- 	set_pte_at(mm, addr, ptep, pte);
+diff -puN include/linux/smp.h~implement-cpu_physical_id-on-smp=n-fix include/linux/smp.h
+--- a/include/linux/smp.h~implement-cpu_physical_id-on-smp=n-fix
++++ a/include/linux/smp.h
+@@ -108,10 +108,9 @@ static inline void smp_send_reschedule(i
+ 	0;			\
+ })
  
- 	if (PageAnon(new))
+-static inline unsigned cpu_physical_id(unsigned cpu)
+-{
+-	return 0;
+-}
++#ifndef cpu_physical_id
++#define cpu_physical_id(cpu) (0)
++#endif
+ 
+ #endif /* !SMP */
+ 
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memory-hotplug-document-take-3.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-sparc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+fbcon-kill-compile-warning-fix.patch
+fix-serial-buffer-memory-leak-fix.patch
+mtdchar-build-fix.patch
+fix-compilation-with-gcc-42-fix.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events-fix.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+ide-arm-hack.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+ip_auto_config-fix-fix.patch
+fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range-fix.patch
+git-nfsd.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+aacraid-rename-check_reset.patch
+drivers-scsi-ipsc-fix-scsi_add_host-warning-fix.patch
+scsi-ipsc-warning-fix.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+disable-b44-and-bcm43xx.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+pci-align-bar-settings-for-legacy-mode-ide-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
-memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
-memoryless-nodes-no-need-for-kswapd.patch
-memoryless-nodes-slab-support.patch
-memoryless-nodes-slub-support.patch
-memoryless-nodes-uncached-allocator-updates.patch
-memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
-memoryless-nodes-update-memory-policy-and-page-migration.patch
-memoryless-nodes-add-n_cpu-node-state.patch
-memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
-memoryless-nodes-fix-gfp_thisnode-behavior.patch
-memoryless-nodes-use-n_high_memory-for-cpusets.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-memory-unplug-v7-memory-hotplug-cleanup.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-ia64-interface.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+implement-cpu_physical_id-on-smp=n.patch
+implement-cpu_physical_id-on-smp=n-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
