@@ -1,99 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-add-reboot-mechanism-fix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 13:43:41 -0700
-Message-ID: <200708102043.l7AKhftI007761@imap1.linux-foundation.org>
+Subject: - adbhid-produce-all-capslock-key-events-fix.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 13:54:43 -0700
+Message-ID: <200708102054.l7AKsh2D008337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40991 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48681 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758882AbXHJUom (ORCPT
+	by vger.kernel.org with ESMTP id S1761317AbXHJUzA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 16:44:42 -0400
+	Fri, 10 Aug 2007 16:55:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adurbin@google.com, ak@suse.de, lenb@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, amcnabb@mcnabbs.org, benh@kernel.crashing.org, dtor@mail.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-add-reboot-mechanism-fix
+     adbhid-produce-all-capslock-key-events-fix
 has been removed from the -mm tree.  Its filename was
-     acpi-add-reboot-mechanism-fix.patch
+     adbhid-produce-all-capslock-key-events-fix.patch
 
-This patch was dropped because it was folded into acpi-add-reboot-mechanism.patch
+This patch was dropped because it was folded into adbhid-produce-all-capslock-key-events.patch
 
 ------------------------------------------------------
-Subject: acpi-add-reboot-mechanism-fix
+Subject: adbhid-produce-all-capslock-key-events-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Aaron Durbin <adurbin@google.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Andrew McNabb <amcnabb@mcnabbs.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/reboot.c |   37 ++++++++++++++++++-------------------
- include/acpi/reboot.h |    2 +-
- 2 files changed, 19 insertions(+), 20 deletions(-)
+ drivers/macintosh/adbhid.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/acpi/reboot.c~acpi-add-reboot-mechanism-fix drivers/acpi/reboot.c
---- a/drivers/acpi/reboot.c~acpi-add-reboot-mechanism-fix
-+++ a/drivers/acpi/reboot.c
-@@ -21,25 +21,24 @@ void acpi_reboot(void)
- 	/* The reset register can only exist in I/O, Memory or PCI config space
- 	 * on a device on bus 0. */
- 	switch (rr->space_id) {
--		case ACPI_ADR_SPACE_PCI_CONFIG:
--			/* The reset register can only live on bus 0. */
--			bus0 = pci_find_bus(0, 0);
--			if (!bus0)
--				return;
--			/* Form PCI device/function pair. */
--			devfn = PCI_DEVFN((rr->address >> 32) & 0xffff,
--					  (rr->address >> 16) & 0xffff);
--			printk(KERN_DEBUG "Resetting with ACPI PCI RESET_REG.");
--			/* Write the value that resets us. */
--			pci_bus_write_config_byte(bus0, devfn,
--					(rr->address & 0xffff), reset_value);
--			break;
-+	case ACPI_ADR_SPACE_PCI_CONFIG:
-+		/* The reset register can only live on bus 0. */
-+		bus0 = pci_find_bus(0, 0);
-+		if (!bus0)
-+			return;
-+		/* Form PCI device/function pair. */
-+		devfn = PCI_DEVFN((rr->address >> 32) & 0xffff,
-+				  (rr->address >> 16) & 0xffff);
-+		printk(KERN_DEBUG "Resetting with ACPI PCI RESET_REG.");
-+		/* Write the value that resets us. */
-+		pci_bus_write_config_byte(bus0, devfn,
-+				(rr->address & 0xffff), reset_value);
-+		break;
+diff -puN drivers/macintosh/adbhid.c~adbhid-produce-all-capslock-key-events-fix drivers/macintosh/adbhid.c
+--- a/drivers/macintosh/adbhid.c~adbhid-produce-all-capslock-key-events-fix
++++ a/drivers/macintosh/adbhid.c
+@@ -52,7 +52,7 @@
  
--		case ACPI_ADR_SPACE_SYSTEM_MEMORY:
--		case ACPI_ADR_SPACE_SYSTEM_IO:
--			printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.");
--			acpi_hw_low_level_write(8, reset_value, rr);
--			break;
-+	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
-+	case ACPI_ADR_SPACE_SYSTEM_IO:
-+		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.");
-+		acpi_hw_low_level_write(8, reset_value, rr);
-+		break;
- 	}
- }
--
-diff -puN include/acpi/reboot.h~acpi-add-reboot-mechanism-fix include/acpi/reboot.h
---- a/include/acpi/reboot.h~acpi-add-reboot-mechanism-fix
-+++ a/include/acpi/reboot.h
-@@ -4,7 +4,7 @@
- #ifdef CONFIG_ACPI
- extern void acpi_reboot(void);
- #else
--#define acpi_reboot()
-+static inline void acpi_reboot(void) { }
- #endif
+ MODULE_AUTHOR("Franz Sirl <Franz.Sirl-kernel@lauterbach.com>");
  
- #endif
+-static int restore_capslock_events = 0;
++static int restore_capslock_events;
+ module_param(restore_capslock_events, int, 0644);
+ MODULE_PARM_DESC(restore_capslock_events,
+ 	"Produce keypress events for capslock on both keyup and keydown.");
+@@ -284,8 +284,8 @@ adbhid_input_keycode(int id, int scancod
+ 	struct adbhid *ahid = adbhid[id];
+ 	int keycode, up_flag;
+ 
+-	keycode = (scancode & 0x7f);
+-	up_flag = (scancode & 0x80);
++	keycode = scancode & 0x7f;
++	up_flag = scancode & 0x80;
+ 
+ 	if (restore_capslock_events) {
+ 		if ((keycode == ADB_KEY_CAPSLOCK) && !up_flag) {
+@@ -316,7 +316,8 @@ adbhid_input_keycode(int id, int scancod
+ 
+ 	switch (keycode) {
+ 	case ADB_KEY_CAPSLOCK:
+-		if (restore_capslock_events) break;
++		if (restore_capslock_events)
++			break;
+ 		/* Generate down/up events for CapsLock everytime. */
+ 		input_report_key(ahid->input, KEY_CAPSLOCK, 1);
+ 		input_report_key(ahid->input, KEY_CAPSLOCK, 0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,12 +82,12 @@ slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
 acpi-add-reboot-mechanism.patch
-acpi-add-reboot-mechanism-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 revert-gregkh-driver-block-device.patch
 dma-arch-fix.patch
 git-dma-up-fix.patch
 git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events.patch
 adbhid-produce-all-capslock-key-events-fix.patch
 m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
 iforce-warning-fix.patch
