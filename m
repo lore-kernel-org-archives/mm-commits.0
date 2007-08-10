@@ -1,60 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - pci-align-bar-settings-for-legacy-mode-ide-fix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 13:04:56 -0700
-Message-ID: <200708102004.l7AK4ucI006186@imap1.linux-foundation.org>
+Subject: - acpi-add-reboot-mechanism-fix.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 13:43:41 -0700
+Message-ID: <200708102043.l7AKhftI007761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51585 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40991 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758530AbXHJUFj (ORCPT
+	by vger.kernel.org with ESMTP id S1758882AbXHJUom (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 16:05:39 -0400
+	Fri, 10 Aug 2007 16:44:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, greg@kroah.com, jbeulich@novell.com, ktk@enterprise.bidmc.harvard.edu, nix.or.die@googlemail.com, protasnb@gma
+To: akpm@linux-foundation.org, adurbin@google.com, ak@suse.de, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-align-bar-settings-for-legacy-mode-ide-fix
+     acpi-add-reboot-mechanism-fix
 has been removed from the -mm tree.  Its filename was
-     pci-align-bar-settings-for-legacy-mode-ide-fix.patch
+     acpi-add-reboot-mechanism-fix.patch
 
-This patch was dropped because it was folded into pci-align-bar-settings-for-legacy-mode-ide.patch
+This patch was dropped because it was folded into acpi-add-reboot-mechanism.patch
 
 ------------------------------------------------------
-Subject: pci-align-bar-settings-for-legacy-mode-ide-fix
+Subject: acpi-add-reboot-mechanism-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-<alan>Just remove that chunk</aman>
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Gabriel C <nix.or.die@googlemail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jan Beulich <jbeulich@novell.com>
-Cc: Kristofer T. Karas" <ktk@enterprise.bidmc.harvard.edu>
-Cc: Natalie Protasevich <protasnb@gmail.com>
+Cc: Aaron Durbin <adurbin@google.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |    5 -----
- 1 files changed, 5 deletions(-)
+ drivers/acpi/reboot.c |   37 ++++++++++++++++++-------------------
+ include/acpi/reboot.h |    2 +-
+ 2 files changed, 19 insertions(+), 20 deletions(-)
 
-diff -puN drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide-fix drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide-fix
-+++ a/drivers/pci/probe.c
-@@ -747,11 +747,6 @@ static void change_legacy_io_resource(st
- 	resource_size_t base = start & PCI_BASE_ADDRESS_IO_MASK;
- 	resource_size_t len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
+diff -puN drivers/acpi/reboot.c~acpi-add-reboot-mechanism-fix drivers/acpi/reboot.c
+--- a/drivers/acpi/reboot.c~acpi-add-reboot-mechanism-fix
++++ a/drivers/acpi/reboot.c
+@@ -21,25 +21,24 @@ void acpi_reboot(void)
+ 	/* The reset register can only exist in I/O, Memory or PCI config space
+ 	 * on a device on bus 0. */
+ 	switch (rr->space_id) {
+-		case ACPI_ADR_SPACE_PCI_CONFIG:
+-			/* The reset register can only live on bus 0. */
+-			bus0 = pci_find_bus(0, 0);
+-			if (!bus0)
+-				return;
+-			/* Form PCI device/function pair. */
+-			devfn = PCI_DEVFN((rr->address >> 32) & 0xffff,
+-					  (rr->address >> 16) & 0xffff);
+-			printk(KERN_DEBUG "Resetting with ACPI PCI RESET_REG.");
+-			/* Write the value that resets us. */
+-			pci_bus_write_config_byte(bus0, devfn,
+-					(rr->address & 0xffff), reset_value);
+-			break;
++	case ACPI_ADR_SPACE_PCI_CONFIG:
++		/* The reset register can only live on bus 0. */
++		bus0 = pci_find_bus(0, 0);
++		if (!bus0)
++			return;
++		/* Form PCI device/function pair. */
++		devfn = PCI_DEVFN((rr->address >> 32) & 0xffff,
++				  (rr->address >> 16) & 0xffff);
++		printk(KERN_DEBUG "Resetting with ACPI PCI RESET_REG.");
++		/* Write the value that resets us. */
++		pci_bus_write_config_byte(bus0, devfn,
++				(rr->address & 0xffff), reset_value);
++		break;
  
--	if (!(pci_resource_flags(dev, index) & IORESOURCE_IO)) {
--		printk(KERN_WARNING "%s: cannot adjust BAR%u (not I/O)\n",
--		       pci_name(dev), index);
--		return;
--	}
- 	if (pci_resource_len(dev, index) != len) {
- 		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %Lx)\n",
- 			pci_name(dev), index,
+-		case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+-		case ACPI_ADR_SPACE_SYSTEM_IO:
+-			printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.");
+-			acpi_hw_low_level_write(8, reset_value, rr);
+-			break;
++	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
++	case ACPI_ADR_SPACE_SYSTEM_IO:
++		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.");
++		acpi_hw_low_level_write(8, reset_value, rr);
++		break;
+ 	}
+ }
+-
+diff -puN include/acpi/reboot.h~acpi-add-reboot-mechanism-fix include/acpi/reboot.h
+--- a/include/acpi/reboot.h~acpi-add-reboot-mechanism-fix
++++ a/include/acpi/reboot.h
+@@ -4,7 +4,7 @@
+ #ifdef CONFIG_ACPI
+ extern void acpi_reboot(void);
+ #else
+-#define acpi_reboot()
++static inline void acpi_reboot(void) { }
+ #endif
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,6 +107,7 @@ remove-bdput-from-do_open-in-fs-block_devc-fix.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
+acpi-add-reboot-mechanism.patch
 acpi-add-reboot-mechanism-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 revert-gregkh-driver-block-device.patch
@@ -121,7 +161,6 @@ git-xfs.patch
 git-kgdb-fixup.patch
 fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
 pci-align-bar-settings-for-legacy-mode-ide.patch
-pci-align-bar-settings-for-legacy-mode-ide-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
