@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch added to -mm tree
-Date: Thu, 09 Aug 2007 18:41:59 -0700
-Message-ID: <200708100141.l7A1fx37029576@imap1.linux-foundation.org>
+Subject: + sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch added to -mm tree
+Date: Thu, 09 Aug 2007 18:42:05 -0700
+Message-ID: <200708100142.l7A1g5ba029594@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53807 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35776 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755378AbXHJBnJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:43:09 -0400
+	by vger.kernel.org with ESMTP id S1755271AbXHJBnG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:43:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, adobriyan@sw.ru, bfields@fieldses.org, davem@davemloft.net, neilb@suse.de, trond.myklebust@fys.uio.no
+Cc: ebiederm@xmission.com, adobriyan@sw.ru, bcrl@kvack.org, lenb@kernel.org, pbadari@us.ibm.com, zach.brown@oracle.com
 
 
 The patch titled
-     sysctl: remove broken sunrpc debug binary sysctls
+     sysctl: remove the binary interface for aio-nr, aio-max-nr, acpi_video_flags
 has been added to the -mm tree.  Its filename is
-     sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+     sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,60 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: remove broken sunrpc debug binary sysctls
+Subject: sysctl: remove the binary interface for aio-nr, aio-max-nr, acpi_video_flags
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This is debug code so no need to support binary sysctl, and the binary sysctls
-as they were written were not consistent with what showed up in /proc so
-remove the binary sysctl support.
+aio-nr, aio-max-nr, acpi_video_flags are unsigned long values which sysctl
+does not handle properly with a 64bit kernel and a 32bit user space.
+
+Since no one is likely to be using the binary sysctl values and the ascii
+interface still works, this patch just removes support for the binary sysctl
+interface from the kernel.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/sysctl.c |    4 ----
- 1 file changed, 4 deletions(-)
+ kernel/sysctl.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN net/sunrpc/sysctl.c~sysctl-remove-broken-sunrpc-debug-binary-sysctls net/sunrpc/sysctl.c
---- a/net/sunrpc/sysctl.c~sysctl-remove-broken-sunrpc-debug-binary-sysctls
-+++ a/net/sunrpc/sysctl.c
-@@ -114,7 +114,6 @@ done:
- 
- static ctl_table debug_table[] = {
+diff -puN kernel/sysctl.c~sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags
++++ a/kernel/sysctl.c
+@@ -701,7 +701,6 @@ static struct ctl_table kern_table[] = {
+ #endif
+ #if	defined(CONFIG_ACPI_SLEEP) && defined(CONFIG_X86)
  	{
--		.ctl_name	= CTL_RPCDEBUG,
- 		.procname	= "rpc_debug",
- 		.data		= &rpc_debug,
- 		.maxlen		= sizeof(int),
-@@ -122,7 +121,6 @@ static ctl_table debug_table[] = {
- 		.proc_handler	= &proc_dodebug
+-		.ctl_name	= KERN_ACPI_VIDEO_FLAGS,
+ 		.procname	= "acpi_video_flags",
+ 		.data		= &acpi_realmode_flags,
+ 		.maxlen		= sizeof (unsigned long),
+@@ -1193,7 +1192,6 @@ static struct ctl_table fs_table[] = {
+ 		.extra2		= &two,
  	},
  	{
--		.ctl_name	= CTL_NFSDEBUG,
- 		.procname	= "nfs_debug",
- 		.data		= &nfs_debug,
- 		.maxlen		= sizeof(int),
-@@ -130,7 +128,6 @@ static ctl_table debug_table[] = {
- 		.proc_handler	= &proc_dodebug
+-		.ctl_name	= FS_AIO_NR,
+ 		.procname	= "aio-nr",
+ 		.data		= &aio_nr,
+ 		.maxlen		= sizeof(aio_nr),
+@@ -1201,7 +1199,6 @@ static struct ctl_table fs_table[] = {
+ 		.proc_handler	= &proc_doulongvec_minmax,
  	},
  	{
--		.ctl_name	= CTL_NFSDDEBUG,
- 		.procname	= "nfsd_debug",
- 		.data		= &nfsd_debug,
- 		.maxlen		= sizeof(int),
-@@ -138,7 +135,6 @@ static ctl_table debug_table[] = {
- 		.proc_handler	= &proc_dodebug
- 	},
- 	{
--		.ctl_name	= CTL_NLMDEBUG,
- 		.procname	= "nlm_debug",
- 		.data		= &nlm_debug,
- 		.maxlen		= sizeof(int),
+-		.ctl_name	= FS_AIO_MAX_NR,
+ 		.procname	= "aio-max-nr",
+ 		.data		= &aio_max_nr,
+ 		.maxlen		= sizeof(aio_max_nr),
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
