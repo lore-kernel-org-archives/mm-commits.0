@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sysct-mqueue-remove-the-binary-sysctl-numbers.patch added to -mm tree
-Date: Thu, 09 Aug 2007 18:41:54 -0700
-Message-ID: <200708100141.l7A1fsdV029562@imap1.linux-foundation.org>
+Subject: + sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch added to -mm tree
+Date: Thu, 09 Aug 2007 18:41:55 -0700
+Message-ID: <200708100141.l7A1ftnd029565@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34515 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56118 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754582AbXHJBmh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:42:37 -0400
+	by vger.kernel.org with ESMTP id S1753879AbXHJBmi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:42:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ebiederm@xmission.com, adobriyan@sw.ru
 
 
 The patch titled
-     sysctl mqueue: remove the binary sysctl numbers
+     sysctl: remove binary sysctl support where it clearly doesn't work
 has been added to the -mm tree.  Its filename is
-     sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+     sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl mqueue: remove the binary sysctl numbers
+Subject: sysctl: remove binary sysctl support where it clearly doesn't work
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Because of a conflict with FS_INODE_NR none of the binary sysctl numbers use
-by mqueue, were available to user space.  So just remove them.
+These functions are all wrapper functions for the proc interface that are
+needed for them to work correctly.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ kernel/sysctl.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN ipc/mqueue.c~sysct-mqueue-remove-the-binary-sysctl-numbers ipc/mqueue.c
---- a/ipc/mqueue.c~sysct-mqueue-remove-the-binary-sysctl-numbers
-+++ a/ipc/mqueue.c
-@@ -44,12 +44,6 @@
- #define STATE_PENDING	1
- #define STATE_READY	2
- 
--/* used by sysctl */
--#define FS_MQUEUE 	1
--#define CTL_QUEUESMAX 	2
--#define CTL_MSGMAX 	3
--#define CTL_MSGSIZEMAX 	4
--
- /* default values */
- #define DFLT_QUEUESMAX	256	/* max number of message queues */
- #define DFLT_MSGMAX 	10	/* max number of messages in each queue */
-@@ -1197,7 +1191,6 @@ static int msg_maxsize_limit_max = INT_M
- 
- static ctl_table mq_sysctls[] = {
+diff -puN kernel/sysctl.c~sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work
++++ a/kernel/sysctl.c
+@@ -363,7 +363,6 @@ static struct ctl_table kern_table[] = {
+ 	},
+ #ifdef CONFIG_PROC_SYSCTL
  	{
--		.ctl_name	= CTL_QUEUESMAX,
- 		.procname	= "queues_max",
- 		.data		= &queues_max,
+-		.ctl_name	= KERN_TAINTED,
+ 		.procname	= "tainted",
+ 		.data		= &tainted,
  		.maxlen		= sizeof(int),
-@@ -1205,7 +1198,6 @@ static ctl_table mq_sysctls[] = {
+@@ -372,7 +371,6 @@ static struct ctl_table kern_table[] = {
+ 	},
+ #endif
+ 	{
+-		.ctl_name	= KERN_CAP_BSET,
+ 		.procname	= "cap-bound",
+ 		.data		= &cap_bset,
+ 		.maxlen		= sizeof(kernel_cap_t),
+@@ -648,7 +646,6 @@ static struct ctl_table kern_table[] = {
+ 		.proc_handler   = &proc_dointvec,
+ 	},
+ 	{
+-		.ctl_name       = KERN_NMI_WATCHDOG,
+ 		.procname       = "nmi_watchdog",
+ 		.data           = &nmi_watchdog_enabled,
+ 		.maxlen         = sizeof (int),
+@@ -837,7 +834,6 @@ static struct ctl_table vm_table[] = {
+ 		.extra2		= &one_hundred,
+ 	},
+ 	{
+-		.ctl_name	= VM_DIRTY_WB_CS,
+ 		.procname	= "dirty_writeback_centisecs",
+ 		.data		= &dirty_writeback_interval,
+ 		.maxlen		= sizeof(dirty_writeback_interval),
+@@ -845,7 +841,6 @@ static struct ctl_table vm_table[] = {
+ 		.proc_handler	= &dirty_writeback_centisecs_handler,
+ 	},
+ 	{
+-		.ctl_name	= VM_DIRTY_EXPIRE_CS,
+ 		.procname	= "dirty_expire_centisecs",
+ 		.data		= &dirty_expire_interval,
+ 		.maxlen		= sizeof(dirty_expire_interval),
+@@ -873,7 +868,6 @@ static struct ctl_table vm_table[] = {
+ 	},
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	 {
+-		.ctl_name	= VM_HUGETLB_PAGES,
+ 		.procname	= "nr_hugepages",
+ 		.data		= &max_huge_pages,
+ 		.maxlen		= sizeof(unsigned long),
+@@ -1124,7 +1118,6 @@ static struct ctl_table fs_table[] = {
  		.proc_handler	= &proc_dointvec,
  	},
  	{
--		.ctl_name	= CTL_MSGMAX,
- 		.procname	= "msg_max",
- 		.data		= &msg_max,
- 		.maxlen		= sizeof(int),
-@@ -1215,7 +1207,6 @@ static ctl_table mq_sysctls[] = {
- 		.extra2		= &msg_max_limit_max,
- 	},
- 	{
--		.ctl_name	= CTL_MSGSIZEMAX,
- 		.procname	= "msgsize_max",
- 		.data		= &msgsize_max,
- 		.maxlen		= sizeof(int),
-@@ -1229,7 +1220,6 @@ static ctl_table mq_sysctls[] = {
- 
- static ctl_table mq_sysctl_dir[] = {
- 	{
--		.ctl_name	= FS_MQUEUE,
- 		.procname	= "mqueue",
- 		.mode		= 0555,
- 		.child		= mq_sysctls,
+-		.ctl_name	= FS_NRFILE,
+ 		.procname	= "file-nr",
+ 		.data		= &files_stat,
+ 		.maxlen		= 3*sizeof(int),
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
