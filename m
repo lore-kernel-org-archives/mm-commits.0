@@ -1,51 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-u16_max-and-u32_max-fix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 14:09:03 -0700
-Message-ID: <200708102109.l7AL94vW009233@imap1.linux-foundation.org>
+Subject: - introduce-strtol_check_range-fix.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 14:09:42 -0700
+Message-ID: <200708102109.l7AL9gIU009244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34670 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57548 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S942184AbXHJVJr (ORCPT
+	by vger.kernel.org with ESMTP id S942188AbXHJVKX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 17:09:47 -0400
+	Fri, 10 Aug 2007 17:10:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, satyam@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce-u16_max-and-u32_max-fix
+     introduce-strtol_check_range-fix
 has been removed from the -mm tree.  Its filename was
-     introduce-u16_max-and-u32_max-fix.patch
+     introduce-strtol_check_range-fix.patch
 
-This patch was dropped because it was folded into introduce-u16_max-and-u32_max.patch
+This patch was dropped because it was folded into introduce-strtol_check_range.patch
 
 ------------------------------------------------------
-Subject: introduce-u16_max-and-u32_max-fix
+Subject: introduce-strtol_check_range-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Satyam Sharma <satyam@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kernel.h |    3 ++-
+ lib/vsprintf.c         |    1 -
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kernel.h~introduce-u16_max-and-u32_max-fix include/linux/kernel.h
---- a/include/linux/kernel.h~introduce-u16_max-and-u32_max-fix
+diff -puN include/linux/kernel.h~introduce-strtol_check_range-fix include/linux/kernel.h
+--- a/include/linux/kernel.h~introduce-strtol_check_range-fix
 +++ a/include/linux/kernel.h
-@@ -30,8 +30,8 @@ extern const char linux_proc_banner[];
- #define LLONG_MIN	(-LLONG_MAX - 1)
- #define ULLONG_MAX	(~0ULL)
+@@ -121,7 +121,8 @@ extern unsigned long simple_strtoul(cons
+ extern long simple_strtol(const char *,char **,unsigned int);
+ extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
+ extern long long simple_strtoll(const char *,char **,unsigned int);
+-extern long strtol_check_range(const char *,long,long,unsigned int);
++extern long strtol_check_range(const char *cp, long min, long max,
++				unsigned int base);
+ extern int sprintf(char * buf, const char * fmt, ...)
+ 	__attribute__ ((format (printf, 2, 3)));
+ extern int vsprintf(char *buf, const char *, va_list)
+diff -puN lib/vsprintf.c~introduce-strtol_check_range-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~introduce-strtol_check_range-fix
++++ a/lib/vsprintf.c
+@@ -153,7 +153,6 @@ long strtol_check_range(const char *cp, 
  
--#define U16_MAX		((u16) ~0U)
--#define U32_MAX		((u32) ~0U)
-+#define U16_MAX		(0xffff)
-+#define U32_MAX		(0xffffffff)
+ 	return ret;
+ }
+-
+ EXPORT_SYMBOL(strtol_check_range);
  
- #define STACK_MAGIC	0xdeadbeef
- 
+ static int skip_atoi(const char **s)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,7 +96,7 @@ git-net-fixup.patch
 ip_auto_config-fix.patch
 fib_trie-cleanup.patch
 introduce-u16_max-and-u32_max.patch
-introduce-u16_max-and-u32_max-fix.patch
+introduce-strtol_check_range.patch
 introduce-strtol_check_range-fix.patch
 git-nfsd.patch
 serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
