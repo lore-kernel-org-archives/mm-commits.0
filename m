@@ -1,82 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - restore-acpi-change-for-scsi.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 14:45:59 -0700
-Message-ID: <200708102145.l7ALjxSM011146@imap1.linux-foundation.org>
+Subject: - drivers-scsi-ipsc-fix-scsi_add_host-warning-fix.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 14:46:39 -0700
+Message-ID: <200708102146.l7ALkdLV011163@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44799 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56839 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750934AbXHJVqT (ORCPT
+	by vger.kernel.org with ESMTP id S1751187AbXHJVqs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 17:46:19 -0400
+	Fri, 10 Aug 2007 17:46:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lenb@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, eugeneteo@kernel.sg, mm-commits@vger.kernel.org
 
 
 The patch titled
-     restore-acpi-change-for-scsi
+     drivers-scsi-ipsc-fix-scsi_add_host-warning-fix
 has been removed from the -mm tree.  Its filename was
-     restore-acpi-change-for-scsi.patch
+     drivers-scsi-ipsc-fix-scsi_add_host-warning-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into drivers-scsi-ipsc-fix-scsi_add_host-warning.patch
 
 ------------------------------------------------------
-Subject: restore-acpi-change-for-scsi
+Subject: drivers-scsi-ipsc-fix-scsi_add_host-warning-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-resigh
-
-Cc: Len Brown <lenb@kernel.org>
+Cc: Eugene Teo <eugeneteo@kernel.sg>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_attr.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/scsi/ips.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_attr.c~restore-acpi-change-for-scsi drivers/scsi/lpfc/lpfc_attr.c
---- a/drivers/scsi/lpfc/lpfc_attr.c~restore-acpi-change-for-scsi
-+++ a/drivers/scsi/lpfc/lpfc_attr.c
-@@ -1405,7 +1405,8 @@ struct class_device_attribute *lpfc_hba_
- };
+diff -puN drivers/scsi/ips.c~drivers-scsi-ipsc-fix-scsi_add_host-warning-fix drivers/scsi/ips.c
+--- a/drivers/scsi/ips.c~drivers-scsi-ipsc-fix-scsi_add_host-warning-fix
++++ a/drivers/scsi/ips.c
+@@ -6872,7 +6872,7 @@ ips_register_scsi(int index)
+ 	return 0;
  
- static ssize_t
--sysfs_ctlreg_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+sysfs_ctlreg_write(struct kobject *kobj, struct bin_attribute *bin_attr,
-+		   char *buf, loff_t off, size_t count)
- {
- 	size_t buf_off;
- 	struct class_device *cdev = container_of(kobj, struct class_device,
-@@ -1437,7 +1438,8 @@ sysfs_ctlreg_write(struct kobject *kobj,
- }
- 
- static ssize_t
--sysfs_ctlreg_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+sysfs_ctlreg_read(struct kobject *kobj, struct bin_attribute *bin_attr,
-+		  char *buf, loff_t off, size_t count)
- {
- 	size_t buf_off;
- 	uint32_t * tmp_ptr;
-@@ -1495,7 +1497,8 @@ sysfs_mbox_idle(struct lpfc_hba *phba)
- }
- 
- static ssize_t
--sysfs_mbox_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+sysfs_mbox_write(struct kobject *kobj, struct bin_attribute *bin_attr,
-+		 char *buf, loff_t off, size_t count)
- {
- 	struct class_device *cdev = container_of(kobj, struct class_device,
- 						 kobj);
-@@ -1549,7 +1552,8 @@ sysfs_mbox_write(struct kobject *kobj, c
- }
- 
- static ssize_t
--sysfs_mbox_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+sysfs_mbox_read(struct kobject *kobj, struct bin_attribute *bin_attr,
-+		char *buf, loff_t off, size_t count)
- {
- 	struct class_device *cdev = container_of(kobj, struct class_device,
- 						 kobj);
+ err_free_irq:
+-	free_irq(ha->irq);
++	free_irq(ha->irq, ha);
+ err_put_sh:
+ 	scsi_host_put(sh);
+ 	return rc;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,6 +92,7 @@ i386-add-support-for-picopower-irq-router.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
 bsg-declare-request_queue.patch
 aacraid-rename-check_reset.patch
+drivers-scsi-ipsc-fix-scsi_add_host-warning.patch
 drivers-scsi-ipsc-fix-scsi_add_host-warning-fix.patch
 scsi-ipsc-warning-fix.patch
 git-unionfs.patch
