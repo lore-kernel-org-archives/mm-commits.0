@@ -1,56 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 13:03:01 -0700
-Message-ID: <200708102003.l7AK314j006139@imap1.linux-foundation.org>
+Subject: - pci-align-bar-settings-for-legacy-mode-ide-fix.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 13:04:56 -0700
+Message-ID: <200708102004.l7AK4ucI006186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55661 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51585 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964836AbXHJUEQ (ORCPT
+	by vger.kernel.org with ESMTP id S1758530AbXHJUFj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 16:04:16 -0400
+	Fri, 10 Aug 2007 16:05:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, apw@shadowen.org, clameter@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, greg@kroah.com, jbeulich@novell.com, ktk@enterprise.bidmc.harvard.edu, nix.or.die@googlemail.com, protasnb@gma
 
 
 The patch titled
-     sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix
+     pci-align-bar-settings-for-legacy-mode-ide-fix
 has been removed from the -mm tree.  Its filename was
-     sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
+     pci-align-bar-settings-for-legacy-mode-ide-fix.patch
 
-This patch was dropped because it was folded into sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+This patch was dropped because it was folded into pci-align-bar-settings-for-legacy-mode-ide.patch
 
 ------------------------------------------------------
-Subject: sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix
+Subject: pci-align-bar-settings-for-legacy-mode-ide-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Christoph Lameter <clameter@sgi.com>
+<alan>Just remove that chunk</aman>
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Gabriel C <nix.or.die@googlemail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Kristofer T. Karas" <ktk@enterprise.bidmc.harvard.edu>
+Cc: Natalie Protasevich <protasnb@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/probe.c |    5 -----
+ 1 files changed, 5 deletions(-)
 
-diff -puN mm/sparse.c~sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix mm/sparse.c
---- a/mm/sparse.c~sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix
-+++ a/mm/sparse.c
-@@ -42,12 +42,12 @@ int page_to_nid(struct page *page)
- }
- EXPORT_SYMBOL(page_to_nid);
+diff -puN drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide-fix drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide-fix
++++ a/drivers/pci/probe.c
+@@ -747,11 +747,6 @@ static void change_legacy_io_resource(st
+ 	resource_size_t base = start & PCI_BASE_ADDRESS_IO_MASK;
+ 	resource_size_t len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
  
--void set_section_nid(unsigned long section_nr, int nid)
-+static void set_section_nid(unsigned long section_nr, int nid)
- {
- 	section_to_node_table[section_nr] = nid;
- }
- #else /* !NODE_NOT_IN_PAGE_FLAGS */
--void set_section_nid(unsigned long section_nr, int nid)
-+static inline void set_section_nid(unsigned long section_nr, int nid)
- {
- }
- #endif
+-	if (!(pci_resource_flags(dev, index) & IORESOURCE_IO)) {
+-		printk(KERN_WARNING "%s: cannot adjust BAR%u (not I/O)\n",
+-		       pci_name(dev), index);
+-		return;
+-	}
+ 	if (pci_resource_len(dev, index) != len) {
+ 		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %Lx)\n",
+ 			pci_name(dev), index,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +64,6 @@ fix-serial-buffer-memory-leak.patch
 mtdchar-build-fix.patch
 fix-compilation-with-gcc-42.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static-fix.patch
 remove-bdput-from-do_open-in-fs-block_devc-fix.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
@@ -117,6 +120,7 @@ x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
 git-xfs.patch
 git-kgdb-fixup.patch
 fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
 pci-align-bar-settings-for-legacy-mode-ide-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
