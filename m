@@ -1,54 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - fib_trie-cleanup-fix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 14:07:30 -0700
-Message-ID: <200708102107.l7AL7UBJ009146@imap1.linux-foundation.org>
+Subject: - introduce-u16_max-and-u32_max-fix.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 14:09:03 -0700
+Message-ID: <200708102109.l7AL94vW009233@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36165 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34670 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755154AbXHJVIJ (ORCPT
+	by vger.kernel.org with ESMTP id S942184AbXHJVJr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 17:08:09 -0400
+	Fri, 10 Aug 2007 17:09:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, paulmck@linux.vnet.ibm.com, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, satyam@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fib_trie-cleanup-fix
+     introduce-u16_max-and-u32_max-fix
 has been removed from the -mm tree.  Its filename was
-     fib_trie-cleanup-fix.patch
+     introduce-u16_max-and-u32_max-fix.patch
 
-This patch was dropped because it was folded into fib_trie-cleanup.patch
+This patch was dropped because it was folded into introduce-u16_max-and-u32_max.patch
 
 ------------------------------------------------------
-Subject: fib_trie-cleanup-fix
+Subject: introduce-u16_max-and-u32_max-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Satyam Sharma <satyam@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/fib_trie.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/kernel.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/ipv4/fib_trie.c~fib_trie-cleanup-fix net/ipv4/fib_trie.c
---- a/net/ipv4/fib_trie.c~fib_trie-cleanup-fix
-+++ a/net/ipv4/fib_trie.c
-@@ -169,7 +169,10 @@ static struct trie *trie_local = NULL, *
+diff -puN include/linux/kernel.h~introduce-u16_max-and-u32_max-fix include/linux/kernel.h
+--- a/include/linux/kernel.h~introduce-u16_max-and-u32_max-fix
++++ a/include/linux/kernel.h
+@@ -30,8 +30,8 @@ extern const char linux_proc_banner[];
+ #define LLONG_MIN	(-LLONG_MAX - 1)
+ #define ULLONG_MAX	(~0ULL)
  
- static inline struct tnode *node_parent(struct node *node)
- {
--	return rcu_dereference((struct tnode *) (node->parent & ~NODE_TYPE_MASK));
-+	struct tnode *ret;
-+
-+	ret = (struct tnode *)(node->parent & ~NODE_TYPE_MASK);
-+	return rcu_dereference(ret);
- }
+-#define U16_MAX		((u16) ~0U)
+-#define U32_MAX		((u32) ~0U)
++#define U16_MAX		(0xffff)
++#define U32_MAX		(0xffffffff)
  
- static inline void node_set_parent(struct node *node, struct tnode *ptr)
+ #define STACK_MAGIC	0xdeadbeef
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,7 +84,7 @@ git-ixgbe-build-fix.patch
 git-net-fixup.patch
 ip_auto_config-fix.patch
 fib_trie-cleanup.patch
-fib_trie-cleanup-fix.patch
+introduce-u16_max-and-u32_max.patch
 introduce-u16_max-and-u32_max-fix.patch
 introduce-strtol_check_range-fix.patch
 git-nfsd.patch
