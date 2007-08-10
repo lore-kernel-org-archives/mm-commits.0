@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-remove-broken-cdrom-binary-sysctls.patch added to -mm tree
-Date: Thu, 09 Aug 2007 18:42:02 -0700
-Message-ID: <200708100142.l7A1g2ei029588@imap1.linux-foundation.org>
+Subject: + sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch added to -mm tree
+Date: Thu, 09 Aug 2007 18:41:59 -0700
+Message-ID: <200708100141.l7A1fx37029576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37651 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53807 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755378AbXHJBmu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:42:50 -0400
+	by vger.kernel.org with ESMTP id S1755378AbXHJBnJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:43:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, adobriyan@sw.ru, alan@lxorguk.ukuu.org.uk, jens.axboe@oracle.com
+Cc: ebiederm@xmission.com, adobriyan@sw.ru, bfields@fieldses.org, davem@davemloft.net, neilb@suse.de, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     sysctl: remove broken cdrom binary sysctls
+     sysctl: remove broken sunrpc debug binary sysctls
 has been added to the -mm tree.  Its filename is
-     sysctl-remove-broken-cdrom-binary-sysctls.patch
+     sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,115 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: remove broken cdrom binary sysctls
+Subject: sysctl: remove broken sunrpc debug binary sysctls
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-The binary interface for the cdrom sysctls can't possilby work.  So remove the
-binary sysctls and update the test for finding out which sysctl table entry we
-are dealy with to use the procname and not the ctl_name (which I am removing).
+This is debug code so no need to support binary sysctl, and the binary sysctls
+as they were written were not consistent with what showed up in /proc so
+remove the binary sysctl support.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |   31 +++++++++----------------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+ net/sunrpc/sysctl.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/cdrom/cdrom.c~sysctl-remove-broken-cdrom-binary-sysctls drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~sysctl-remove-broken-cdrom-binary-sysctls
-+++ a/drivers/cdrom/cdrom.c
-@@ -3468,32 +3468,25 @@ static int cdrom_sysctl_handler(ctl_tabl
- 		else
- 			*valp = 0;
+diff -puN net/sunrpc/sysctl.c~sysctl-remove-broken-sunrpc-debug-binary-sysctls net/sunrpc/sysctl.c
+--- a/net/sunrpc/sysctl.c~sysctl-remove-broken-sunrpc-debug-binary-sysctls
++++ a/net/sunrpc/sysctl.c
+@@ -114,7 +114,6 @@ done:
  
--		switch (ctl->ctl_name) {
--		case DEV_CDROM_AUTOCLOSE: {
-+		if (strcmp(ctl->procname, "autoclose") == 0) {
- 			if (valp == &cdrom_sysctl_settings.autoclose)
- 				autoclose = cdrom_sysctl_settings.autoclose;
--			break;
--			}
--		case DEV_CDROM_AUTOEJECT: {
-+		}
-+		else if (strcmp(ctl->procname, "autoeject") == 0) {
- 			if (valp == &cdrom_sysctl_settings.autoeject)
- 				autoeject = cdrom_sysctl_settings.autoeject;
--			break;
--			}
--		case DEV_CDROM_DEBUG: {
-+		}
-+		else if (strcmp(ctl->procname, "debug") == 0) {
- 			if (valp == &cdrom_sysctl_settings.debug)
- 				debug = cdrom_sysctl_settings.debug;
--			break;
--			}
--		case DEV_CDROM_LOCK: {
-+		}
-+		else if (strcmp(ctl->procname, "lock") == 0) {
- 			if (valp == &cdrom_sysctl_settings.lock)
- 				lockdoor = cdrom_sysctl_settings.lock;
--			break;
--			}
--		case DEV_CDROM_CHECK_MEDIA: {
-+		}
-+		else if (strcmp(ctl->procname, "check_media") == 0) {
- 			if (valp == &cdrom_sysctl_settings.check)
- 				check_media_type = cdrom_sysctl_settings.check;
--			break;
--			}
- 		}
- 		/* update the option flags according to the changes. we
- 		   don't have per device options through sysctl yet,
-@@ -3507,7 +3500,6 @@ static int cdrom_sysctl_handler(ctl_tabl
- /* Place files in /proc/sys/dev/cdrom */
- static ctl_table cdrom_table[] = {
+ static ctl_table debug_table[] = {
  	{
--		.ctl_name	= DEV_CDROM_INFO,
- 		.procname	= "info",
- 		.data		= &cdrom_sysctl_settings.info, 
- 		.maxlen		= CDROM_STR_SIZE,
-@@ -3515,7 +3507,6 @@ static ctl_table cdrom_table[] = {
- 		.proc_handler	= &cdrom_sysctl_info,
- 	},
- 	{
--		.ctl_name	= DEV_CDROM_AUTOCLOSE,
- 		.procname	= "autoclose",
- 		.data		= &cdrom_sysctl_settings.autoclose,
+-		.ctl_name	= CTL_RPCDEBUG,
+ 		.procname	= "rpc_debug",
+ 		.data		= &rpc_debug,
  		.maxlen		= sizeof(int),
-@@ -3523,7 +3514,6 @@ static ctl_table cdrom_table[] = {
- 		.proc_handler	= &cdrom_sysctl_handler,
+@@ -122,7 +121,6 @@ static ctl_table debug_table[] = {
+ 		.proc_handler	= &proc_dodebug
  	},
  	{
--		.ctl_name	= DEV_CDROM_AUTOEJECT,
- 		.procname	= "autoeject",
- 		.data		= &cdrom_sysctl_settings.autoeject,
+-		.ctl_name	= CTL_NFSDEBUG,
+ 		.procname	= "nfs_debug",
+ 		.data		= &nfs_debug,
  		.maxlen		= sizeof(int),
-@@ -3531,7 +3521,6 @@ static ctl_table cdrom_table[] = {
- 		.proc_handler	= &cdrom_sysctl_handler,
+@@ -130,7 +128,6 @@ static ctl_table debug_table[] = {
+ 		.proc_handler	= &proc_dodebug
  	},
  	{
--		.ctl_name	= DEV_CDROM_DEBUG,
- 		.procname	= "debug",
- 		.data		= &cdrom_sysctl_settings.debug,
+-		.ctl_name	= CTL_NFSDDEBUG,
+ 		.procname	= "nfsd_debug",
+ 		.data		= &nfsd_debug,
  		.maxlen		= sizeof(int),
-@@ -3539,7 +3528,6 @@ static ctl_table cdrom_table[] = {
- 		.proc_handler	= &cdrom_sysctl_handler,
+@@ -138,7 +135,6 @@ static ctl_table debug_table[] = {
+ 		.proc_handler	= &proc_dodebug
  	},
  	{
--		.ctl_name	= DEV_CDROM_LOCK,
- 		.procname	= "lock",
- 		.data		= &cdrom_sysctl_settings.lock,
- 		.maxlen		= sizeof(int),
-@@ -3547,7 +3535,6 @@ static ctl_table cdrom_table[] = {
- 		.proc_handler	= &cdrom_sysctl_handler,
- 	},
- 	{
--		.ctl_name	= DEV_CDROM_CHECK_MEDIA,
- 		.procname	= "check_media",
- 		.data		= &cdrom_sysctl_settings.check,
+-		.ctl_name	= CTL_NLMDEBUG,
+ 		.procname	= "nlm_debug",
+ 		.data		= &nlm_debug,
  		.maxlen		= sizeof(int),
 _
 
