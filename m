@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-x86_64-remove-unnecessary-binary-paths.patch added to -mm tree
-Date: Thu, 09 Aug 2007 18:42:01 -0700
-Message-ID: <200708100142.l7A1g1ZZ029579@imap1.linux-foundation.org>
+Subject: + sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch added to -mm tree
+Date: Thu, 09 Aug 2007 18:42:04 -0700
+Message-ID: <200708100142.l7A1g4Jn029591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36047 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45545 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754319AbXHJBmr (ORCPT
+	by vger.kernel.org with ESMTP id S1755092AbXHJBmr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:42:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, adobriyan@sw.ru, ak@suse.de
+Cc: ebiederm@xmission.com, adobriyan@sw.ru, davem@davemloft.net
 
 
 The patch titled
-     sysctl: x86_64 remove unnecessary binary paths
+     sysctl: ipv4 remove binary sysctl paths where they are broken
 has been added to the -mm tree.  Its filename is
-     sysctl-x86_64-remove-unnecessary-binary-paths.patch
+     sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: x86_64 remove unnecessary binary paths
+Subject: sysctl: ipv4 remove binary sysctl paths where they are broken
 From: Eric W. Biederman <ebiederm@xmission.com>
+
+Currently tcp_available_congestion_control does not even attempt being read
+from sys_sysctl, and ipfrag_max_dist while it works allows setting of invalid
+values using sys_sysctl.
+
+So just kill the binary sys_sysctl support for these sysctls.  If the support
+is not important enough to test and get right it probably isn't important
+enough to keep.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Andi Kleen <ak@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/ia32/ia32_binfmt.c |    1 -
- arch/x86_64/kernel/vsyscall.c  |   10 +---------
- 2 files changed, 1 insertion(+), 10 deletions(-)
+ net/ipv4/sysctl_net_ipv4.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/x86_64/ia32/ia32_binfmt.c~sysctl-x86_64-remove-unnecessary-binary-paths arch/x86_64/ia32/ia32_binfmt.c
---- a/arch/x86_64/ia32/ia32_binfmt.c~sysctl-x86_64-remove-unnecessary-binary-paths
-+++ a/arch/x86_64/ia32/ia32_binfmt.c
-@@ -258,7 +258,6 @@ static void elf32_init(struct pt_regs *r
- 
- static ctl_table abi_table2[] = {
+diff -puN net/ipv4/sysctl_net_ipv4.c~sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken net/ipv4/sysctl_net_ipv4.c
+--- a/net/ipv4/sysctl_net_ipv4.c~sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken
++++ a/net/ipv4/sysctl_net_ipv4.c
+@@ -672,7 +672,6 @@ ctl_table ipv4_table[] = {
+ 		.strategy	= &sysctl_jiffies
+ 	},
  	{
--		.ctl_name	= 99,
- 		.procname	= "vsyscall32",
- 		.data		= &sysctl_vsyscall32,
+-		.ctl_name	= NET_IPV4_IPFRAG_MAX_DIST,
+ 		.procname	= "ipfrag_max_dist",
+ 		.data		= &sysctl_ipfrag_max_dist,
  		.maxlen		= sizeof(int),
-diff -puN arch/x86_64/kernel/vsyscall.c~sysctl-x86_64-remove-unnecessary-binary-paths arch/x86_64/kernel/vsyscall.c
---- a/arch/x86_64/kernel/vsyscall.c~sysctl-x86_64-remove-unnecessary-binary-paths
-+++ a/arch/x86_64/kernel/vsyscall.c
-@@ -260,18 +260,10 @@ out:
- 	return ret;
- }
- 
--static int vsyscall_sysctl_nostrat(ctl_table *t, int __user *name, int nlen,
--				void __user *oldval, size_t __user *oldlenp,
--				void __user *newval, size_t newlen)
--{
--	return -ENOSYS;
--}
--
- static ctl_table kernel_table2[] = {
--	{ .ctl_name = 99, .procname = "vsyscall64",
-+	{ .procname = "vsyscall64",
- 	  .data = &vsyscall_gtod_data.sysctl_enabled, .maxlen = sizeof(int),
- 	  .mode = 0644,
--	  .strategy = vsyscall_sysctl_nostrat,
- 	  .proc_handler = vsyscall_sysctl_change },
- 	{}
- };
+@@ -797,7 +796,6 @@ ctl_table ipv4_table[] = {
+ 	},
+ #endif /* CONFIG_NETLABEL */
+ 	{
+-		.ctl_name	= NET_TCP_AVAIL_CONG_CONTROL,
+ 		.procname	= "tcp_available_congestion_control",
+ 		.maxlen		= TCP_CA_BUF_MAX,
+ 		.mode		= 0444,
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
