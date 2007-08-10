@@ -1,62 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: + implement-cpu_physical_id-on-smp=n-fix.patch added to -mm tree
-Date: Thu, 09 Aug 2007 21:19:38 -0700
-Message-ID: <200708100424.l7A4OVOt003411@imap1.linux-foundation.org>
+Subject: - implement-cpu_physical_id-on-smp=n.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 21:23:40 -0700
+Message-ID: <200708100428.l7A4SXht003477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33384 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48684 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750926AbXHJEZO (ORCPT
+	by vger.kernel.org with ESMTP id S1750926AbXHJE3P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 00:25:14 -0400
+	Fri, 10 Aug 2007 00:29:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, shannon.nelson@intel.com, tony.luck@intel.com
+To: akpm@linux-foundation.org, ak@suse.de, shannon.nelson@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     implement-cpu_physical_id-on-smp=n-fix
-has been added to the -mm tree.  Its filename is
-     implement-cpu_physical_id-on-smp=n-fix.patch
+     Implement cpu_physical_id() on SMP=n
+has been removed from the -mm tree.  Its filename was
+     implement-cpu_physical_id-on-smp=n.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: implement-cpu_physical_id-on-smp=n-fix
+Subject: Implement cpu_physical_id() on SMP=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-this is sooooooo screwed up.
+i386, x86_64 and ia64 implement cpu_physical_id() if CONFIG_SMP=y.
 
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Provide a uniprocessor stub so that callers will dtrt.
+
 Cc: Andi Kleen <ak@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Shannon Nelson <shannon.nelson@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/smp.h |    5 +++++
+ 1 files changed, 5 insertions(+)
 
-diff -puN include/linux/smp.h~implement-cpu_physical_id-on-smp=n-fix include/linux/smp.h
---- a/include/linux/smp.h~implement-cpu_physical_id-on-smp=n-fix
+diff -puN include/linux/smp.h~implement-cpu_physical_id-on-smp=n include/linux/smp.h
+--- a/include/linux/smp.h~implement-cpu_physical_id-on-smp=n
 +++ a/include/linux/smp.h
-@@ -108,10 +108,9 @@ static inline void smp_send_reschedule(i
+@@ -108,6 +108,11 @@ static inline void smp_send_reschedule(i
  	0;			\
  })
  
--static inline unsigned cpu_physical_id(unsigned cpu)
--{
--	return 0;
--}
-+#ifndef cpu_physical_id
-+#define cpu_physical_id(cpu) (0)
-+#endif
- 
++static inline unsigned cpu_physical_id(unsigned cpu)
++{
++	return 0;
++}
++
  #endif /* !SMP */
  
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
